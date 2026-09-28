@@ -124,16 +124,33 @@ une interaction ni une sauvegarde.
 
 ## Lot Z0 : constats, règles et documents
 
-- [ ] **Z0.1** Construire la galerie et capturer à 850 × 720, au thème
+- [x] **Z0.1** Construire la galerie et capturer à 850 × 720, au thème
   sombre de Figma, la carte Garanties d’une palette à deux intensités avec
   une garantie choisie et plusieurs états (`hover`, `active`). Constater le
   trait que le retour décrit « à droite » : le code ne pose qu’une ombre de
   2 px à gauche de la rangée choisie. Noter ce qui produit le trait dans ce
   plan, sous cette case.
-- [ ] **Z0.2** Mesurer à 850 × 720, dans la galerie, la largeur de chaque
+  Constat, état `garantie-en-echec` de la galerie, à 850 px : le trait est
+  l’ombre `inset 2px 0 0 var(--texte)` de `.garantie[aria-pressed='true']`,
+  à gauche, à 4 px du code du rôle. Aucun élément de la carte ne porte de
+  bord droit, hors le cadre des spécimens. Un clic ne pose pas d’anneau de
+  focus (`:focus-visible` faux). La carte ouverte mesure 1 310 px, et
+  1 264 px pour une palette sans échec. Quatre ratios sur seize passent leur
+  badge à la ligne dans les cases de 64 px, à 850 px comme à 500 px : les
+  trois AAA et « AA ✗ ».
+- [x] **Z0.2** Mesurer à 850 × 720, dans la galerie, la largeur de chaque
   carte et de chaque bloc de l’onglet Création, des Réglages communs et de
   l’onglet Palettes, contre la largeur disponible. Lister ici les blocs qui
   gardent leur largeur de 750 px, avec la règle CSS qui les fixe.
+  Constat, états `garanties-respectees`, `configuration-de-la-recette` et
+  `planche-perimee`, à 750 puis 850 px : chaque carte suit la largeur du
+  panneau (801 px à 850). Les blocs qui ne grandissent pas sont des
+  contrôles à leur largeur naturelle (segments, boutons, titres, pastilles
+  d’état), plus quatre largeurs fixes : la colonne du nom d’une garantie
+  (`.garantie`, 140 px, lot Z6), la case d’un état de garantie
+  (`.garantie-etat`, 64 px, lot Z6), le code hexa (`.champ-ligne
+  .champ-hexa`, 88 px, Z1.6) et le sélecteur de couleur (232 px, décision
+  Z3.1). Z1.2 n’a donc rien à élargir hors de Z1.6 et Z6.
 - [ ] **Z0.3** Spécification : `[UI-01]` (850 × 720, anciens défauts),
   `[UI-02]` et `[UI-04]` (noms des onglets), `[UI-06]` (sélecteur sans
   palette), `[UI-11]` (code hexa, segments des intensités), `[UI-05]` et
@@ -267,6 +284,14 @@ proposé au designer l’est en plusieurs rédactions côte à côte.
   de remplacement si l’invitation change son texte.
 
 Second passage dans le même fichier après les retours, jusqu’à validation.
+
+Premier passage produit : les écrans sont le DOM de la
+galerie construite, réorganisé dans Chromium, et chaque proposition est un
+prototype des règles CSS que Z5 et Z6 écriront. Recommandations soumises :
+Z3.1 forme B, lien b, explication b ; Z3.2 disposition G2 (968 px contre
+1 310, 900 contre 1 264 sans échec, aucun badge à la ligne) ; Z3.3
+disposition D1, invitation a, texte sans palette inchangé ; Q6.1 à Q6.5
+comme recommandé. Les cases Z3 se cochent à la validation.
 
 Critère : le mainteneur valide ou corrige chaque maquette sans imaginer une
 interaction.
