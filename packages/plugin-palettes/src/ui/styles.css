@@ -206,10 +206,11 @@
   flex: 1 1 auto;
 }
 
+/* Le code prend la largeur de sa colonne, moins la pastille (Z1.6). */
 .champ-ligne .champ-hexa,
 .champ-ligne .champ-creation {
-  width: 88px;
-  flex: 0 0 88px;
+  width: auto;
+  flex: 1 1 auto;
   font-variant-numeric: tabular-nums;
 }
 
@@ -874,7 +875,7 @@
 }
 
 /*
- * L'onglet Planche : le compte, le thème des fiches et « Actualiser » en tête,
+ * L'onglet Palettes : le compte, le thème des fiches et « Actualiser » en tête,
  * puis une carte par palette (V8.1).
  */
 .planche-tete {
@@ -962,8 +963,8 @@
 /*
  * La fiche en disposition A (maquette Y2.2) : l'état du cadre en pastille à
  * droite du nom, puis la référence et les garanties sur une ligne. La couleur
- * de la pastille dit la sévérité : orange à mettre à jour, vert à jour, rouge
- * introuvable ou illisible, gris jamais généré.
+ * de la pastille dit la sévérité : orange à actualiser ou jamais généré, vert
+ * à jour, rouge introuvable ou illisible.
  */
 .pastille-d-etat {
   flex-shrink: 0;
@@ -974,14 +975,20 @@
   white-space: nowrap;
 }
 
-.pastille-d-etat[data-etat='perimee'] {
+.pastille-d-etat[data-etat='perimee'],
+.pastille-d-etat[data-etat='jamais-dessinee'] {
   background: var(--fond-avertissement);
   color: var(--texte-avertissement);
 }
 
+/*
+ * Le vert de succès du socle tient 4,33:1 sur du blanc au plus, en thème clair.
+ * Mêlé à la couleur du texte, il tient 5,07:1 sur le fond de succès du thème
+ * clair et 8,54:1 sur celui du thème sombre (Z1.5).
+ */
 .pastille-d-etat[data-etat='a-jour'] {
-  background: var(--fond-note);
-  color: var(--texte-succes);
+  background: var(--fond-succes);
+  color: color-mix(in srgb, var(--texte-succes) 80%, var(--texte));
 }
 
 .pastille-d-etat[data-etat='introuvable'],
@@ -1023,7 +1030,7 @@
 }
 
 /*
- * L'onglet Palettes : un titre de premier rang, puis des cartes de même facture
+ * L'onglet Création : un titre de premier rang, puis des cartes de même facture
  * (CONTRIBUTING.md, « Les surfaces d'UCM Palettes »). Trois niveaux de titre :
  * premier rang, carte, libellé de champ.
  */
@@ -1173,19 +1180,9 @@
 
 /* Les segments du modèle et du profil porteur gardent leur largeur naturelle sur leur rangée. */
 .carte-corps > .champ-colonne > .bascule-de-base,
-.interrupteur-des-intensites .bascule-de-base {
+.segments-des-intensites .bascule-de-base {
   justify-self: start;
   min-width: 200px;
-}
-
-/* L'interrupteur des intensités de la configuration précède son libellé, à gauche, comme les segments voisins. */
-.interrupteur-des-intensites .reglage-ligne {
-  flex-direction: row-reverse;
-  justify-content: flex-end;
-}
-
-.interrupteur-des-intensites .field-label {
-  font-weight: 400;
 }
 
 .champ-colonne {

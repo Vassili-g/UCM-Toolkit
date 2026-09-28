@@ -5,7 +5,7 @@
 import * as socle from 'ucm-plugin-socle/src/fenetre';
 
 /** La taille d'ouverture, tant que rien n'a été rangé. */
-export const TAILLE_PAR_DEFAUT = { largeur: 750, hauteur: 720 } as const;
+export const TAILLE_PAR_DEFAUT = { largeur: 770, hauteur: 720 } as const;
 
 /**
  * Les anciens défauts. Une fenêtre que le designer n'a jamais redimensionnée
@@ -15,6 +15,7 @@ export const TAILLE_PAR_DEFAUT = { largeur: 750, hauteur: 720 } as const;
 export const ANCIENS_DEFAUTS = [
   { largeur: 600, hauteur: 720 },
   { largeur: 650, hauteur: 720 },
+  { largeur: 750, hauteur: 720 },
 ] as const;
 
 /** En dessous, les trois colonnes de la couleur de base et l'aperçu ne tiennent plus en largeur. */

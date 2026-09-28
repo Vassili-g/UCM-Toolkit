@@ -40,9 +40,9 @@ export const TEXTES = {
   titre: 'UCM Palettes',
   titreConfiguration: 'Réglages communs',
   etiquetteDesOnglets: 'Navigation du plugin',
-  ongletPalettes: 'Palettes',
-  // N078.
-  ongletPlanche: 'Planches',
+  // N130. Les clés gardent le nom de leur module (Q6.1) : `ongletPalettes.ts` porte l'onglet Création.
+  ongletPalettes: 'Création',
+  ongletPlanche: 'Palettes',
   lectureEnCours: 'Chargement des palettes et des réglages…',
   recetteAbsente: 'Créez votre première palette. Les réglages par défaut seront utilisés.',
   choisirUnePalette: 'Choisir une palette',
@@ -80,7 +80,7 @@ export const TEXTES = {
 } as const;
 
 /**
- * Le titre de premier rang de l'onglet Palettes et les titres de ses cartes
+ * Le titre de premier rang de l'onglet Création et les titres de ses cartes
  * (N076, N077, N027). La carte d'aperçu ne montre pas son titre : il reste son
  * nom accessible.
  */
@@ -173,7 +173,7 @@ export const TEXTES_DU_CONTENU = {
   auMoinsUnTheme: ' · au moins un thème',
   calques: (nombre: number) => `${milliers(nombre)} calques`,
   toutGenere: 'Tout est généré.',
-  effet: (palette: string, complet: number, choisi: number) => `Les cadres déjà générés passeront « À mettre à jour ». Cadre de ${palette} : ${milliers(complet)} → ${milliers(choisi)} calques.`,
+  effet: (palette: string, complet: number, choisi: number) => `Les cadres déjà générés passeront « À actualiser ». Cadre de ${palette} : ${milliers(complet)} → ${milliers(choisi)} calques.`,
   resume: {
     tout: 'Tout est généré',
     note: 'Sans note',
@@ -216,7 +216,7 @@ export function effetEcrit(effet: {
     : `${effet.changees.length === 1 ? 'Une palette change' : `${effet.changees.length} palettes changent`} de couleur à une nuance gardée : ${effet.changees.join(', ')}.`;
   const cadres = effet.cadres === 0
     ? ''
-    : effet.cadres === 1 ? ' 1 cadre passera « À mettre à jour ».' : ` ${effet.cadres} cadres passeront « À mettre à jour ».`;
+    : effet.cadres === 1 ? ' 1 cadre passera « À actualiser ».' : ` ${effet.cadres} cadres passeront « À actualiser ».`;
   return `Passer à ${effet.nombre} nuances ${gestes}. ${TEXTES_DU_PREREGLAGE.rolesGardes} ${couleurs}${cadres}`;
 }
 
@@ -319,8 +319,9 @@ export const TEXTES_DE_LA_BASE = {
 /** Le choix des intensités d'une palette, en deux cartes ([ENT-14], maquettes Y2.1 et Y2.6). */
 export const TEXTES_DES_INTENSITES_DE_PALETTE = {
   libelle: 'Intensités',
-  une: { titre: 'Une intensité', texte: 'Une seule variante, à l’intensité de la couleur de référence.' },
-  deux: { titre: 'Deux intensités', texte: 'Une variante douce « Soft » et une variante vive « Vivid ».' },
+  // Le titre nomme la carte de la création, le segment celui de la configuration (N131).
+  une: { titre: 'Une intensité', segment: 'Une', texte: 'Une seule variante, à l’intensité de la couleur de référence.' },
+  deux: { titre: 'Deux intensités', segment: 'Deux', texte: 'Une variante douce « Soft » et une variante vive « Vivid ».' },
   partDeLaReference: (part: string) => `Intensité : ${part}`,
 } as const;
 
@@ -1014,7 +1015,7 @@ export function lignesDeNature(nature: { readonly couleurs: boolean; readonly mi
 export function consequenceSurLaPlanche(aMettreAJour: readonly string[], orphelins: readonly string[]): string {
   if (aMettreAJour.length === 0 && orphelins.length === 0) return 'Sur la planche : aucun cadre à jour n’est touché.';
   const parties = [
-    aMettreAJour.length === 0 ? null : `${aMettreAJour.length === 1 ? '1 cadre passera' : `${aMettreAJour.length} cadres passeront`} « À mettre à jour » (${aMettreAJour.join(', ')})`,
+    aMettreAJour.length === 0 ? null : `${aMettreAJour.length === 1 ? '1 cadre passera' : `${aMettreAJour.length} cadres passeront`} « À actualiser » (${aMettreAJour.join(', ')})`,
     orphelins.length === 0 ? null : `${orphelins.length === 1 ? '1 cadre restera' : `${orphelins.length} cadres resteront`} sans palette (${orphelins.join(', ')})`,
   ].filter((partie): partie is string => partie !== null);
   return `Sur la planche : ${parties.join(' ; ')}.`;
@@ -1038,19 +1039,19 @@ export function importFutur(fichier: string, version: number): Constat {
   };
 }
 
-/** Les libellés de la génération et de l'onglet Planche (section 13.2). */
+/** Les libellés de la génération et de l'onglet Palettes (section 13.2). */
 export const TEXTES_DU_DESSIN = {
   dessiner: 'Générer sur Figma',
   // Le premier geste d'une fiche, selon l'état du cadre ([UI-05]).
   actualiserSurFigma: 'Actualiser sur Figma',
   aJour: 'À jour',
-  perimee: 'À mettre à jour',
+  perimee: 'À actualiser',
   redessinerQuandMeme: 'Remplacer le cadre et son contenu',
   voirSurLaPlanche: 'Afficher dans Figma',
   reessayer: 'Réessayer',
   confirmer: 'Générer sur Figma',
   annuler: 'Annuler',
-  plancheSansPalette: 'Créez une palette dans l’onglet « Palettes » pour pouvoir générer sa présentation ici.',
+  plancheSansPalette: 'Créez une palette dans l’onglet « Création » pour pouvoir générer sa présentation ici.',
   versLesPalettes: 'Créer une palette',
   // N009, N010, puis N043 à N047 ; un cadre jamais généré a sa pastille (Y2.2).
   pasEncore: 'Pas encore sur Figma',
@@ -1067,7 +1068,7 @@ export const TEXTES_DU_DESSIN = {
 
 /**
  * L'état d'un cadre de palette, tel que la pastille d'une fiche de l'onglet
- * Planches l'écrit ([PLA-20], V8.2, maquette Y2.2).
+ * Palettes l'écrit ([PLA-20], V8.2, maquette Y2.2).
  */
 export function etatDuCadreEcrit(etat: EtatDuCadre): string {
   return {
@@ -1080,7 +1081,7 @@ export function etatDuCadreEcrit(etat: EtatDuCadre): string {
 }
 
 /**
- * Le premier geste d'une fiche de l'onglet Planches ([UI-05]) : « Générer sur
+ * Le premier geste d'une fiche de l'onglet Palettes ([UI-05]) : « Générer sur
  * Figma » sans cadre ou pour un cadre introuvable, « Actualiser sur Figma »
  * quand le cadre a changé. Un cadre à jour ou illisible n'en a pas : `null`.
  */
@@ -1101,7 +1102,7 @@ function nombreDePalettes(nombre: number): string {
 
 /** Le geste qui génère les palettes qui ne sont pas à jour (V8.4, Y1.8). */
 export function genererLesPalettesPasAJour(nombre: number): string {
-  return `Mettre à jour (${nombreDePalettes(nombre)})`;
+  return `Actualiser tout (${nombreDePalettes(nombre)})`;
 }
 
 /** Le geste qui génère toutes les palettes (V8.4, Y1.8). */
@@ -1129,7 +1130,7 @@ export function lectureImpossible(noms: readonly string[]): Constat {
   return {
     ou: `Lecture impossible : ${citer(noms)}`,
     quoi: `Figma n’a pas pu lire le cadre existant ${noms.length === 1 ? 'de cette palette' : 'de ces palettes'}. Aucune palette n’a été générée, pour ne pas créer un second cadre à côté du premier.`,
-    geste: 'Actualisez l’onglet Planche, puis relancez la génération.',
+    geste: 'Actualisez l’onglet Palettes, puis relancez la génération.',
   };
 }
 
@@ -1142,7 +1143,7 @@ export function suiviFutur(): Constat {
   };
 }
 
-/** Le nombre de palettes, en tête de l'onglet Planche ([UI-02]). */
+/** Le nombre de palettes, en tête de l'onglet Palettes ([UI-02]). */
 export function enTeteDeLaPlanche(nombre: number): string {
   if (nombre === 0) return 'Aucune palette';
   return nombre === 1 ? '1 palette' : `${nombre} palettes`;
@@ -1226,7 +1227,7 @@ export function suppressionRefusee(nom: string): Constat {
   return {
     ou: `Cadre non supprimé : ${nom}`,
     quoi: 'Le fichier a changé depuis la dernière lecture : ce cadre n’est plus celui d’une palette supprimée.',
-    geste: 'Actualisez l’onglet Planches.',
+    geste: 'Actualisez l’onglet Palettes.',
   };
 }
 
@@ -1290,7 +1291,7 @@ export const TEXTES_DE_LA_PLANCHE = {
 } as const;
 
 /**
- * La section « Interface de test » de l'onglet Palettes ([UI-14]) : l'écran
+ * La section « Interface de test » de l'onglet Création ([UI-14]) : l'écran
  * « Membres de l'équipe », sur le modèle de Radix Themes, et la grille des
  * composants par état (N108, N113).
  */

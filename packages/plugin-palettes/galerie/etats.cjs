@@ -99,11 +99,11 @@ const CADRES_SUPPRIMES = [
 const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', cadres, ...reglages });
 const ouvrirLaPlanche = { clic: '#onglet-planche' };
 
-/** Le designer choisit un fichier de recette dans l'onglet Planche. */
+/** Le designer choisit un fichier de recette dans l'onglet Palettes. */
 const importer = (contenu) => ({ fichier: { dans: '#panneau-planche input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
 
 const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
-/** Le premier geste de la première fiche de l'onglet Planches, qui doit être ouvert. */
+/** Le premier geste de la première fiche de l'onglet Palettes, qui doit être ouvert. */
 const dessinerLaPalette = { clic: '#panneau-planche .fiche-planche [data-geste="generer"]' };
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
 const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)' };
@@ -122,6 +122,9 @@ const SEPT_PALETTES = [
   palette('p-3c4d5e6f', 'Violet', '#7C3AED'),
   palette('p-4d5e6f70', 'Cyan', '#0891B2'),
 ];
+
+/** Une palette par état de cadre : à jour, périmée, jamais générée, introuvable, illisible. */
+const CINQ_ETATS = SEPT_PALETTES.slice(0, 5);
 
 /** La courbe claire descend à 0,55 au cran 700 : text sur surface manque 4,5 en clair. */
 const cranSeptCentsPlusClair = (recette) => {
@@ -321,7 +324,7 @@ const ETATS = [
   {
     id: 'confirmation-six-palettes',
     titre: 'Confirmation au-delà de six palettes',
-    quand: 'Le designer clique « Mettre à jour (7 palettes) » sur un fichier de sept palettes jamais générées.',
+    quand: 'Le designer clique « Actualiser tout (7 palettes) » sur un fichier de sept palettes jamais générées.',
     regarder: 'La confirmation qui compte les palettes et les calques, sous les fiches, et ses deux gestes.',
     existe: true,
     atteinte: [
@@ -332,9 +335,9 @@ const ETATS = [
   },
   {
     id: 'planche-sans-palette',
-    titre: 'Onglet Planche sans palette',
-    quand: 'Le designer ouvre l’onglet Planche d’un fichier sans palette.',
-    regarder: 'Le texte qui dit qu’il n’y a rien à dessiner, et le geste vers l’onglet Palettes.',
+    titre: 'Onglet Palettes sans palette',
+    quand: 'Le designer ouvre l’onglet Palettes d’un fichier sans palette.',
+    regarder: 'Le texte qui dit qu’il n’y a rien à dessiner, et le geste vers l’onglet Création.',
     existe: true,
     atteinte: [etatDuFichier(''), { clic: '#onglet-planche' }],
   },
@@ -352,6 +355,20 @@ const ETATS = [
     ],
   },
   {
+    id: 'pastilles-des-etats',
+    titre: 'Pastilles des cinq états',
+    quand: 'Cinq palettes : Bleu à jour, Jaune périmée, Ardoise jamais générée, Rouge au cadre introuvable, Vert au cadre illisible.',
+    regarder: 'Les pastilles : « À jour » sur fond vert ; « À actualiser » et « Pas encore sur Figma » en orange ; « Cadre introuvable » et « Lecture impossible » en rouge. Chaque texte lisible sur son fond.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee(CINQ_ETATS), 'SRGB', plancheLue(
+        [cadreDessine(rangee(CINQ_ETATS), BLEU, '40:2'), cadreDessine(rangee(CINQ_ETATS), JAUNE, '40:3', { empreinte: '0badc0de' })],
+        { manquants: [{ palette: 'p-1a2b3c4d', cadre: '40:7', raison: 'introuvable' }, { palette: 'p-2b3c4d5e', cadre: '40:8', raison: 'illisible' }] },
+      )),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
     id: 'planche-a-jour',
     titre: 'Planche à jour',
     quand: 'Bleu et Jaune ont été dessinées, et la recette n’a pas changé depuis.',
@@ -366,7 +383,7 @@ const ETATS = [
     id: 'planche-perimee',
     titre: 'Planche périmée',
     quand: 'Le cadre de Jaune a été dessiné sur une recette d’avant ; Ardoise n’a jamais été dessinée.',
-    regarder: 'Bleu « À jour » sans premier geste ; Jaune « À mettre à jour », « Actualiser sur Figma » en bleu puis « Afficher » et « Modifier », tous trois de 24 px ; Ardoise sans état écrit, « Générer sur Figma » et « Modifier » sans « Afficher » ; en pied, « Mettre à jour (2 palettes) » et « Générer tout (3 palettes) », détachés des fiches.',
+    regarder: 'Bleu « À jour » sans premier geste ; Jaune « À actualiser », « Actualiser sur Figma » en bleu puis « Afficher » et « Modifier », tous trois de 24 px ; Ardoise « Pas encore sur Figma » en orange, « Générer sur Figma » et « Modifier » sans « Afficher » ; en pied, « Actualiser tout (2 palettes) » et « Générer tout (3 palettes) », détachés des fiches.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
@@ -450,7 +467,7 @@ const ETATS = [
     id: 'ecart-d-import',
     titre: 'Écart d’import',
     quand: 'Bleu et Jaune sont à jour sur la planche ; le fichier importé renomme Bleu, retire Jaune, ajoute Ardoise et relève le seuil de texte.',
-    regarder: 'La confirmation : palettes ajoutées et retirées, « Palette à modifier : Bleu roi (nom) », « minimum des textes », les lignes Couleurs et Minimums, « Sur la planche : 1 cadre passera « À mettre à jour » (Bleu roi) ; 1 cadre restera sans palette (Jaune) », puis ses gestes.',
+    regarder: 'La confirmation : palettes ajoutées et retirées, « Palette à modifier : Bleu roi (nom) », « minimum des textes », les lignes Couleurs et Minimums, « Sur la planche : 1 cadre passera « À actualiser » (Bleu roi) ; 1 cadre restera sans palette (Jaune) », puis ses gestes.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')])),
@@ -508,7 +525,7 @@ const ETATS = [
     id: 'palette-de-base-forcee',
     titre: 'Palette de base forcée',
     quand: 'Le designer force Soft sur une référence saturée, #1E6FD9, qu’Auto confiait à Vivid.',
-    regarder: 'Soft pressé sous « Référence exacte dans », sous l’interrupteur « Deux intensités » activé, le ◆ passé dans la rangée Soft avec le même code, et le résumé « Référence dans Soft » de la carte Intensités.',
+    regarder: 'Soft pressé sous « Référence exacte dans », sous le segment « Deux » des intensités, le ◆ passé dans la rangée Soft avec le même code, et le résumé « Référence dans Soft » de la carte Intensités.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' }],
   },
@@ -564,7 +581,7 @@ const ETATS = [
     id: 'generation-partielle',
     titre: 'Génération partielle',
     quand: 'Sur trois palettes, la deuxième s’arrête : la première est créée, la troisième attend.',
-    regarder: 'Le bloquant en tête de l’onglet Planche : Jaune interrompue, Bleu conservée, Ardoise en attente, et « Réessayer », qui reprend à Jaune.',
+    regarder: 'Le bloquant en tête de l’onglet Palettes : Jaune interrompue, Bleu conservée, Ardoise en attente, et « Réessayer », qui reprend à Jaune.',
     existe: true,
     // L'ouverture de l'onglet relit l'état (demande 2) : la génération porte la demande 3.
     atteinte: [
@@ -687,7 +704,7 @@ const ETATS = [
     id: 'palette-une-intensite',
     titre: 'Palette à une intensité',
     quand: 'Bleu porte une seule intensité, celle de sa couleur de référence.',
-    regarder: 'L’interrupteur « Deux intensités » désactivé et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; ni carte Intensités, ni bascule Soft et Vivid dans les garanties, ni lien de synchronisation dans la dérive.',
+    regarder: 'Le segment « Une » des intensités pressé, son aide, et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; ni carte Intensités, ni bascule Soft et Vivid dans les garanties, ni lien de synchronisation dans la dérive.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }]))],
   },
@@ -695,15 +712,15 @@ const ETATS = [
     id: 'palette-deux-intensites',
     titre: 'Palette à deux intensités',
     quand: 'Bleu porte Soft et Vivid.',
-    regarder: 'L’interrupteur « Deux intensités » activé, puis « Référence exacte dans » Auto pressé avec « Auto a choisi Vivid » dessous ; Soft et Vivid dans l’aperçu.',
+    regarder: 'Le segment « Deux » des intensités pressé, son aide, puis « Référence exacte dans » Auto pressé avec « Auto a choisi Vivid » dessous ; Soft et Vivid dans l’aperçu.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU]))],
   },
   {
     id: 'fiche-refaite',
     titre: 'Fiche d’une palette',
-    quand: 'Trois palettes dans l’onglet Planches : Bleu à jour, Jaune périmée, Ardoise jamais générée.',
-    regarder: 'Chaque fiche en disposition A : le nom et l’état en pastille, verte, orange ou grise ; les rampes ; la référence et les garanties sur une ligne ; puis les gestes, sans premier geste pour Bleu.',
+    quand: 'Trois palettes dans l’onglet Palettes : Bleu à jour, Jaune périmée, Ardoise jamais générée.',
+    regarder: 'Chaque fiche en disposition A : le nom et l’état en pastille, verte ou orange ; les rampes ; la référence et les garanties sur une ligne ; puis les gestes, sans premier geste pour Bleu.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),

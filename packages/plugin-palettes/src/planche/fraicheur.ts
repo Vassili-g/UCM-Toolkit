@@ -33,10 +33,10 @@ export interface FraicheurDeLaPlanche {
 }
 
 /**
- * Le cadre d'une seule palette : l'état que sa fiche de l'onglet Planches
+ * Le cadre d'une seule palette : l'état que sa fiche de l'onglet Palettes
  * montre ([UI-05]). Le calcul reconstruit le modèle de ce seul cadre, avec les
  * parties que la recette dessine ([PLA-28]) : un cadre dessiné avec d'autres
- * parties est à mettre à jour.
+ * parties est à actualiser.
  */
 export function fraicheurDUnePalette(recette: Recette, profil: ProfilDuDocument, planche: EtatDeLaPlanche, id: string): CadreDUnePalette {
   const palette = recette.palettes.find((candidate) => candidate.id === id);
@@ -60,7 +60,7 @@ export function fraicheurDeLaPlanche(recette: Recette, profil: ProfilDuDocument,
 
 /**
  * Ce qu'un import ferait aux cadres déjà dessinés (V12.2), sans rien écrire :
- * les palettes dont le cadre à jour passerait « À mettre à jour », et celles
+ * les palettes dont le cadre à jour passerait « À actualiser », et celles
  * dont le cadre deviendrait orphelin, retirées par l'import.
  */
 export function consequenceDeLImport(

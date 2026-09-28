@@ -11,7 +11,7 @@
  * `default`, `hover` et `active`, chacun avec les garanties qu'il porte et
  * leur niveau WCAG, puis les grilles des contrastes, alignées sur les rampes
  * ([PLA-18]). La recette dit quelles parties se dessinent ([PLA-28]).
- * L'interface d'exemple n'est pas sur la planche : l'onglet Palettes la
+ * L'interface d'exemple n'est pas sur la planche : l'onglet Création la
  * montre ([UI-14]).
  */
 import {

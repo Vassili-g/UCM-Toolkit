@@ -1,12 +1,12 @@
 /**
- * L'onglet Planches (section 13.2, [UI-02]) : une fiche par palette, dans
+ * L'onglet Palettes (section 13.2, [UI-02]) : une fiche par palette, dans
  * l'ordre de la recette, disposée en A (maquette Y2.2) : le nom et l'état du
  * cadre en pastille, les rampes de ses intensités dans le thème choisi en
  * tête, puis sa référence et le résultat de ses garanties sur une ligne
  * (V8.1, V8.2). Chaque fiche porte ses gestes dans cet ordre : « Générer sur
  * Figma » ou « Actualiser sur Figma », bouton principal, quand le cadre en
  * demande un ; « Afficher » pour un cadre localisé ; « Modifier ». Tous ont la
- * taille compacte du socle. Suivent « Mettre à jour » et « Générer tout »
+ * taille compacte du socle. Suivent « Actualiser tout » et « Générer tout »
  * (V8.4), une carte par palette supprimée dont le cadre reste dans Figma
  * ([PLA-27]), les notices, puis la carte repliée « Palettes et réglages »
  * (V8.5).
@@ -72,7 +72,7 @@ export interface OngletPlancheUi {
 export interface GestesDeLaPlanche extends GestesDuResultat {
   dessiner(palettes: readonly string[], noms: { readonly [id: string]: string }): void;
   versLesPalettes(): void;
-  /** Ouvre la palette dans l'onglet Palettes, dans le thème des fiches (V8.3). */
+  /** Ouvre la palette dans l'onglet Création, dans le thème des fiches (V8.3). */
   modifier(id: string, mode: Mode): void;
   /** Relit la planche ; `'fichier'` cherche les cadres sur toutes les pages (V8.6, V8.7). */
   actualiser(recherche?: 'fichier'): void;

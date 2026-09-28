@@ -1,4 +1,4 @@
-/** L'analyse d'une palette pour l'onglet Palettes ([VER-07], section 11.4, [ENT-02]). */
+/** L'analyse d'une palette pour l'onglet Création ([VER-07], section 11.4, [ENT-02]). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

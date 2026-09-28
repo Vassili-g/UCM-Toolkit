@@ -73,6 +73,7 @@
   --fond-note: var(--figma-color-bg-tertiary, #ebebeb);
   --fond-marque: var(--figma-color-bg-brand, #0d99ff);
   --fond-marque-survol: var(--figma-color-bg-brand-hover, #007be5);
+  --fond-succes: var(--figma-color-bg-success-tertiary, #e3f6e9);
   --fond-avertissement: var(--figma-color-bg-warning-tertiary, #fff1d6);
   --fond-danger: var(--figma-color-bg-danger-tertiary, #ffe0db);
   --fond-danger-plein: var(--figma-color-bg-danger, #f24822);
@@ -117,6 +118,7 @@
   --fond-note: var(--figma-color-bg-tertiary, #4d4d4d);
   --fond-marque: var(--figma-color-bg-brand, #0d99ff);
   --fond-marque-survol: var(--figma-color-bg-brand-hover, #3ab0ff);
+  --fond-succes: var(--figma-color-bg-success-tertiary, #1d3a28);
   --fond-avertissement: var(--figma-color-bg-warning-tertiary, #4a3a10);
   --fond-danger: var(--figma-color-bg-danger-tertiary, #4d1f17);
   --fond-danger-plein: var(--figma-color-bg-danger, #e03e1a);

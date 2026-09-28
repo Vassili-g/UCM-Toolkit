@@ -1,10 +1,10 @@
 /**
- * L'onglet Palettes (section 13.2) : le choix ou la création d'une palette,
+ * L'onglet Création (section 13.2) : le choix ou la création d'une palette,
  * le titre « Palette [nom] » seul sur sa ligne, puis les cartes :
  * Configuration de la palette, aperçu, Intensités et Dérive de teinte
  * repliables, Garanties de contraste, et l'Interface de test en dernier
  * ([UI-12]). Un message se lit sous la carte qu'il concerne. La génération
- * appartient à l'onglet Planches ([UI-05]).
+ * appartient à l'onglet Palettes ([UI-05]).
  *
  * Une saisie recalcule l'aperçu dans l'interface ([ENT-02]). La recette
  * s'enregistre à la fin de chaque geste : valider un champ, relâcher un
@@ -53,7 +53,7 @@ import { blocDeConstat, listeDesMessages, type Message } from './constats';
 import { createAjustement } from './ajustement';
 import { createCarte } from './carte';
 import { apercuCompact } from './apercuCompact';
-import { champEnColonne, createChoixDuModele, createInterrupteurDesIntensites, createPuces, type ChoixDeBase } from './champs';
+import { champEnColonne, createChoixDuModele, createPuces, createSegmentsDesIntensites, type ChoixDeBase } from './champs';
 import { nuancesProposees } from './couleur/propositions';
 import { createPipette, fermerLeSelecteur } from './couleur/selecteur';
 import { createCreation, type ApercuDeLaSaisie } from './creation';
@@ -118,7 +118,7 @@ export interface OngletPalettesUi {
   appliquer(recette: Recette): void;
   /** Une recette importée, ou la recette par défaut : elle remplace celle du fichier, même illisible, et s'enregistre. */
   importer(recette: Recette): void;
-  /** Ouvre une palette dans le thème que sa fiche de l'onglet Planche montrait (V8.3). */
+  /** Ouvre une palette dans le thème que sa fiche de l'onglet Palettes montrait (V8.3). */
   ouvrirLaPalette(id: string, mode: Mode): void;
 }
 
@@ -276,12 +276,11 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     valider(remplacerPalette(recette, ajustee));
   }, () => fermerLeSelecteur(true));
   /*
-   * Les intensités, en un interrupteur « Deux intensités » ([ENT-14]) ; le
-   * profil qui porte la référence, Auto, Soft ou Vivid, se choisit dessous
-   * quand il est activé ([ENT-11]). Passer de deux à une ne demande pas de
-   * confirmation (Y2.1).
+   * Les intensités, en segments « Une · Deux » ([ENT-14]) ; le profil qui
+   * porte la référence, Auto, Soft ou Vivid, se choisit sous « Deux »
+   * ([ENT-11]). Passer de deux à une ne demande pas de confirmation (Y2.1).
    */
-  const choixDesIntensites = createInterrupteurDesIntensites((nombre) => {
+  const choixDesIntensites = createSegmentsDesIntensites((nombre) => {
     const courante = ouverte();
     if (recette && courante) valider(remplacerPalette(recette, choisirLesIntensites(recette, courante, nombre)));
   }, (valeur) => {

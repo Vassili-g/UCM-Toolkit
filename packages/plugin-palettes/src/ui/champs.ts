@@ -1,12 +1,11 @@
 /**
  * Les champs que la configuration d'une palette, sa création et les Réglages
  * communs partagent : un libellé au-dessus de ses saisies ([UI-11]), le
- * choix des intensités en deux cartes à la création et en interrupteur dans
- * la configuration ([ENT-14]), le choix du profil qui porte la référence en
+ * choix des intensités en deux cartes à la création et en segments dans la
+ * configuration ([ENT-14]), le choix du profil qui porte la référence en
  * trois segments, le choix du modèle et les numéros d'une palette libre (W6.5).
  */
 import { BORNES_DES_CRANS_LIBRES, type Profil } from 'ucm-couleur';
-import { createInterrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
 
 import { NOM_DU_PROFIL, TEXTES_DE_LA_BASE, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE } from './textes';
 
@@ -66,15 +65,15 @@ export function createChoixDeBase(surChoix: (choix: ChoixDeBase) => void): Choix
   };
 }
 
-/** Ce que l'interrupteur des intensités montre. */
-export interface EtatDeLInterrupteurDesIntensites {
+/** Ce que les segments des intensités montrent. */
+export interface EtatDesSegmentsDesIntensites {
   readonly intensites: 1 | 2;
   /** La part de la couleur de référence, écrite ; `null` avant une couleur lisible. */
   readonly part: string | null;
 }
 
 /** Ce que les deux cartes du choix des intensités montrent. */
-export interface EtatDuChoixDesIntensites extends EtatDeLInterrupteurDesIntensites {
+export interface EtatDuChoixDesIntensites extends EtatDesSegmentsDesIntensites {
   /** La rampe que chaque choix donnerait, en Thème Light ; `null` avant une couleur de référence lisible. */
   readonly apercu: ((intensites: 1 | 2) => HTMLElement) | null;
 }
@@ -152,37 +151,54 @@ export function createChoixDesIntensites(surChoix: (intensites: 1 | 2) => void, 
   };
 }
 
-export interface InterrupteurDesIntensitesUi {
-  /** La rangée entière : l'interrupteur « Deux intensités », puis la suite du choix. */
+export interface SegmentsDesIntensitesUi {
+  /** La rangée entière : le libellé « Intensités », les segments « Une · Deux », puis la suite du choix. */
   readonly element: HTMLDivElement;
-  /** Le choix du profil qui porte la référence, sous l'interrupteur activé. */
+  /** Le choix du profil qui porte la référence, sous « Deux ». */
   readonly base: ChoixDeBaseUi;
-  poser(etat: EtatDeLInterrupteurDesIntensites): void;
+  poser(etat: EtatDesSegmentsDesIntensites): void;
 }
 
 /**
- * Le choix des intensités dans la configuration d'une palette : un
- * interrupteur « Deux intensités ». Les deux cartes et leurs rampes restent à
- * la création. Sous l'interrupteur, la suite du choix : la part de la
- * référence pour une intensité, « Référence exacte dans » pour deux.
+ * Le choix des intensités dans la configuration d'une palette : deux
+ * segments « Une · Deux », comme le choix du modèle (Q6.2). Les deux cartes
+ * et leurs rampes restent à la création. Sous les segments, l'aide du choix
+ * pressé, puis sa suite : la part de la référence pour une intensité,
+ * « Référence exacte dans » pour deux. Un clic appelle `surChoix` ;
+ * l'appelant pose l'état pressé.
  */
-export function createInterrupteurDesIntensites(surChoix: (intensites: 1 | 2) => void, surBase: (choix: ChoixDeBase) => void): InterrupteurDesIntensitesUi {
+export function createSegmentsDesIntensites(surChoix: (intensites: 1 | 2) => void, surBase: (choix: ChoixDeBase) => void): SegmentsDesIntensitesUi {
   const t = TEXTES_DES_INTENSITES_DE_PALETTE;
-  const interrupteur = createInterrupteur('intensites-de-la-palette', t.deux.titre, t.deux.texte, (active) => surChoix(active ? 2 : 1));
+  const segments = document.createElement('div');
+  segments.className = 'bascule bascule-de-base';
+  segments.setAttribute('role', 'group');
+  segments.setAttribute('aria-label', t.libelle);
+  const boutons = ([1, 2] as const).map((nombre) => {
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'bascule-option';
+    bouton.textContent = nombre === 1 ? t.une.segment : t.deux.segment;
+    bouton.addEventListener('click', () => surChoix(nombre));
+    segments.append(bouton);
+    return { nombre, bouton };
+  });
   const base = createChoixDeBase(surBase);
+  const aide = document.createElement('span');
+  aide.className = 'ligne-secondaire';
   const part = document.createElement('span');
   part.className = 'ligne-secondaire';
   const libelle = document.createElement('span');
   libelle.className = 'libelle-de-champ';
   libelle.textContent = t.libelle;
   const element = document.createElement('div');
-  element.className = 'champ-colonne interrupteur-des-intensites';
-  element.append(libelle, interrupteur.element, part, base.element);
+  element.className = 'champ-colonne segments-des-intensites';
+  element.append(libelle, segments, aide, part, base.element);
   return {
     element,
     base,
     poser({ intensites, part: partEcrite }) {
-      interrupteur.poser(intensites === 2);
+      for (const { nombre, bouton } of boutons) bouton.setAttribute('aria-pressed', String(nombre === intensites));
+      aide.textContent = intensites === 1 ? t.une.texte : t.deux.texte;
       part.textContent = partEcrite === null ? '' : t.partDeLaReference(partEcrite);
       part.hidden = intensites !== 1 || partEcrite === null;
       base.element.hidden = intensites !== 2;

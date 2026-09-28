@@ -203,8 +203,8 @@ test('[UI-05] le premier geste d’une fiche suit l’état du cadre : Générer
 });
 
 test('Q5.5 : les gestes globaux comptent les palettes en minuscules, au singulier pour une seule', () => {
-  assert.equal(genererLesPalettesPasAJour(2), 'Mettre à jour (2 palettes)');
-  assert.equal(genererLesPalettesPasAJour(1), 'Mettre à jour (1 palette)');
+  assert.equal(genererLesPalettesPasAJour(2), 'Actualiser tout (2 palettes)');
+  assert.equal(genererLesPalettesPasAJour(1), 'Actualiser tout (1 palette)');
   assert.equal(genererToutesLesPalettes(7), 'Générer tout (7 palettes)');
   assert.equal(genererToutesLesPalettes(1), 'Générer tout (1 palette)');
 });
@@ -240,5 +240,5 @@ test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l
   assert.equal(ligneDesValeurs([{ nom: 'Bleu', champs: ['reference', 'base'] }]), 'Palette à modifier : Bleu (couleur de référence, palette de base).');
   assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Minimums des promesses : le résultat des garanties peut changer, sans changer les couleurs.']);
   assert.equal(consequenceSurLaPlanche([], []), 'Sur la planche : aucun cadre à jour n’est touché.');
-  assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À mettre à jour » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
+  assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À actualiser » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
 });

@@ -1,5 +1,5 @@
 /**
- * La section « Interface de test » ([UI-14]), dernière de l'onglet Palettes :
+ * La section « Interface de test » ([UI-14]), dernière de l'onglet Création :
  * la palette ouverte, peinte dans le thème de l'aperçu et le profil porteur,
  * en deux vues qu'une bascule choisit. « Écran » montre une page d'équipe sur
  * le modèle de Radix Themes, qui se manipule : survol et appui avancent d'une

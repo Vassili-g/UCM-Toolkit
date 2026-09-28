@@ -739,6 +739,10 @@ Le plan d’ergonomie crée des contrôles et des états que l’inventaire ne c
 | N127 | Pastille de l’état d’un cadre jamais généré, sur une fiche de l’onglet Planches | Pas encore sur Figma | Maquette Y2.2 |
 | N128 | Interface de test, bascule du profil d’une palette à deux intensités | Profil peint | À valider |
 | N129 | Refus de la validation, format 4, et noms des champs | {champ} : « {valeur} » n’est pas accepté. Indiquez 1 pour une seule intensité, ou retirez ce champ pour Soft et Vivid. · {champ} : une palette à une intensité n’a ni palette de base, ni intensités propres, ni nuances libres, et sa dérive reste liée. Retirez ce champ dans le fichier importé. · {champ} : saisissez une intensité entre 0 et 1. Valeur reçue : {valeur}. · {champ} : gardez au moins un thème, Light ou Dark. · Fonds du thème Dark · Contenu des planches · Contenu des planches, {partie} · nombre d’intensités | À valider |
+| N130 | Noms des deux onglets (plan V6, Z1.3) ; remplace « Palettes » et N078 | Création · Palettes | Mainteneur, round 6 |
+| N131 | Segments des intensités de la configuration (plan V6, Z1.7) ; complète N119 | Une · Deux | Mainteneur, Q6.2 |
+| N132 | État d’un cadre et geste global de l’onglet Palettes (plan V6, Z1.4) ; remplace « À mettre à jour » de N124, N104 et du geste de fiche, et « Mettre à jour » de N117 | À actualiser · Actualiser tout ({nombre} palettes) · (1 palette) au singulier · Créez une palette dans l’onglet « Création » pour pouvoir générer sa présentation ici. · Actualisez l’onglet Palettes, puis relancez la génération. · Actualisez l’onglet Palettes. | Mainteneur, round 6 ; les deux phrases qui nomment un onglet suivent Z1.3 |
+| N133 | Textes retirés avec le sixième plan (Z1.3, Z1.4) : « À mettre à jour », « Mettre à jour ({nombre} palettes) », l’onglet « Planches » | — | Retiré |
 
 ## Points à conserver lors de l’application
 

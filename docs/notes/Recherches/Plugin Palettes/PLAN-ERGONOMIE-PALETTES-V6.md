@@ -2,7 +2,7 @@
 
 ## Résultat attendu
 
-Le panneau s’ouvre à 850 × 720 et son contenu occupe la largeur gagnée.
+Le panneau s’ouvre à 770 × 720 et son contenu occupe la largeur gagnée.
 L’onglet « Palettes » s’appelle « Création », l’onglet « Planches »
 s’appelle « Palettes ». À l’ouverture, aucune palette n’est choisie :
 l’onglet Création montre le sélecteur « Sélectionner une palette » et une
@@ -70,7 +70,7 @@ relatifs à `packages/plugin-palettes/`.
 
 | Sujet | Décision |
 |---|---|
-| Fenêtre | 850 × 720 par défaut. Le plus petit format reste 500 × 520. Une taille rangée à 600, 650 ou 750 × 720 s’ouvre à 850 × 720 ; toute autre taille rangée se garde |
+| Fenêtre | 770 × 720 par défaut, sur le [retour du mainteneur en cours de lot](#retour-du-mainteneur-lot-z1) : 850 px rendait tout trop grand. Le plus petit format reste 500 × 520. Une taille rangée à 600, 650 ou 750 × 720 s’ouvre à 770 × 720 ; toute autre taille rangée se garde |
 | Largeur du contenu | Aucun bloc ne garde une largeur fixe pensée pour 750 px quand la place existe. Les largeurs fixes qui servent un alignement (colonnes de nuances, pastilles) se gardent. Le sélecteur de couleur garde 232 px pour « Choisir » ; la présentation d’« Ajuster » se tranche en Z3.4 |
 | Onglets | Libellés « Création » et « Palettes ». Les identifiants (`palettes`, `planche`), les panneaux, les modules (`ongletPalettes.ts`, `ongletPlanche.ts`) et `data-geste` ne changent pas (Q6.1). AGENTS.md et CONTRIBUTING.md donnent la correspondance |
 | Palette ouverte à l’ouverture | Aucune. Le sélecteur écrit « Sélectionner une palette ». Le menu de la palette (dupliquer, monter, descendre, supprimer) se cache. « Nouvelle palette » reste. La palette choisie dure jusqu’à la fermeture du plugin et ne se range pas |
@@ -152,22 +152,26 @@ une interaction ni une sauvegarde.
   (`.garantie-etat`, 64 px, lot Z6), le code hexa (`.champ-ligne
   .champ-hexa`, 88 px, Z1.6) et le sélecteur de couleur (232 px, décision
   Z3.1). Z1.2 n’a donc rien à élargir hors de Z1.6 et Z6.
-- [ ] **Z0.3** Spécification : `[UI-01]` (850 × 720, anciens défauts),
+- [ ] **Z0.3** (fait pour Z1 : `[UI-01]`, `[UI-02]`, `[UI-05]`, `[UI-11]`,
+  `[PLA-20]`, chaque mention d’un onglet et les deux schémas ; `[UI-06]`
+  reste à Z2) Spécification : `[UI-01]` (770 × 720, anciens défauts),
   `[UI-02]` et `[UI-04]` (noms des onglets), `[UI-06]` (sélecteur sans
   palette), `[UI-11]` (code hexa, segments des intensités), `[UI-05]` et
   `[PLA-20]` (pastilles et libellés). Chaque mention d’un onglet relue une à
   une : « Palettes » désigne désormais l’ancien onglet Planches.
   `[UI-09]` et `[UI-15]` se récrivent avec leurs lots.
-- [ ] **Z0.4** CONTRIBUTING.md, « Les surfaces d’UCM Palettes » : noms des
+- [ ] **Z0.4** (fait pour Z1 : noms, correspondance, segments, code hexa ;
+  l’état sans palette reste à Z2) CONTRIBUTING.md, « Les surfaces d’UCM Palettes » : noms des
   onglets, correspondance avec les modules, état sans palette. AGENTS.md :
   la carte du code dit `ongletPalettes.ts` « l’onglet Création » et
   `ongletPlanche.ts` « l’onglet Palettes ».
-- [ ] **Z0.5** Inventaire des textes : « Création », « Palettes » (onglet),
+- [ ] **Z0.5** (N130 à N133 pour Z1 ; « Sélectionner une palette » et les
+  textes des maquettes entrent avec leurs lots) Inventaire des textes : « Création », « Palettes » (onglet),
   « Sélectionner une palette », « À actualiser », « Actualiser tout (N
   palettes) », dictés ; « À mettre à jour » et « Mettre à jour (N
   palettes) » marqués retirés. Les textes des maquettes entrent « À
   valider ».
-- [ ] **Z0.6** Déclarer dans `galerie/etats.cjs` les états de ce plan, chacun
+- [ ] **Z0.6** (fait : `pastilles-des-etats`, atteignable) Déclarer dans `galerie/etats.cjs` les états de ce plan, chacun
   avec la case qui le rendra atteignable : onglet Création sans palette
   choisie, avec des palettes (Z2) ; panneau « Ajuster » refait (Z5) ;
   Garanties refaites (Z6) ; pastilles des cinq états (Z1.5).
@@ -181,43 +185,60 @@ Fichiers : `fenetre.ts`, `styles.css`, `textes.ts`, `champs.ts`,
 `ongletPalettes.ts`, `ongletPlanche.ts`, `plugin-socle/src/ui/socle.css`,
 tests voisins et `tests/interface/interface.test.mjs`.
 
-- [ ] **Z1.1** Fenêtre à 850 × 720 par défaut ; 750 × 720 rejoint
+- [x] **Z1.1** Fenêtre à 770 × 720 par défaut ; 750 × 720 rejoint
   `ANCIENS_DEFAUTS`. Reprendre les tests de `fenetre.ts`, `PAR_DEFAUT` des
   tests d’interface et la taille par défaut de la galerie. `[UI-03]` se
   vérifie aux deux tailles.
-- [ ] **Z1.2** Chaque bloc listé en Z0.2 prend la largeur disponible, sauf
+  Fait à 770 × 720 : 850 × 720 a été construit, puis refusé par le
+  mainteneur. Aucune version à 850 × 720 n’a atteint `dist/code.js` : aucune
+  taille rangée à 850 ne se reprend.
+- [x] **Z1.2** Chaque bloc listé en Z0.2 prend la largeur disponible, sauf
   les Garanties, qui attendent Z6. Vérifier à 500 × 520 que rien ne
   déborde et à 850 × 720 que rien ne reste à sa largeur de 750 px.
-- [ ] **Z1.3** Onglets « Création » et « Palettes » : les deux libellés, les
+  Mesuré dans les deux galeries construites, 58 états chacune : aucun
+  débordement horizontal à 500 ni à 770 px, et chaque carte de premier
+  niveau suit la largeur du panneau. Seul le code hexa changeait (Z1.6).
+- [x] **Z1.3** Onglets « Création » et « Palettes » : les deux libellés, les
   trois textes qui nomment un onglet, les commentaires qui en nomment un.
   Identifiants, panneaux et modules inchangés. Le test « la fenêtre s’ouvre
   sur l’onglet Palettes » vise l’onglet « Création ».
-- [ ] **Z1.4** « À actualiser » dans les quatre textes qui écrivaient « À
+- [x] **Z1.4** « À actualiser » dans les quatre textes qui écrivaient « À
   mettre à jour » ; `genererLesPalettesPasAJour` rend « Actualiser tout (N
   palettes) ».
-- [ ] **Z1.5** Ajouter au socle `--fond-succes`, aux deux thèmes, sur
+- [x] **Z1.5** Ajouter au socle `--fond-succes`, aux deux thèmes, sur
   `--figma-color-bg-success-tertiary` avec un repli de chaque thème.
   Mesurer le contraste de `--texte-succes` sur ce fond, 4,5:1 au moins aux
   deux thèmes, et le noter ici. Pastille « À jour » : fond de succès.
   Pastille « Pas encore sur Figma » : fond et texte d’avertissement. UCM
   Exporter ne pose pas le jeton : sa suite reste verte, et sa galerie ne
   change pas (preuve sur le DOM, pas sur les captures).
-- [ ] **Z1.6** Code hexa sur toute la largeur de sa colonne, dans la
+  Fait. Replis et décalque : `#e3f6e9` au thème clair, `#1d3a28` au thème
+  sombre. `--texte-succes` n’y tient que 3,84:1 au clair : le vert du socle
+  tient 4,33:1 sur du blanc au plus, aucun fond vert ne lui donne 4,5:1. La
+  pastille mêle donc `--texte-succes` à 80 % avec `--texte` : 5,07:1 au
+  clair, 8,54:1 au sombre. L’avertissement tient 4,59:1 et 7,03:1. Aucune
+  feuille d’UCM Exporter ne lit `--fond-succes` ; sa suite reste verte.
+  Le contraste réel se vérifie dans Figma, qui sert ses propres variables.
+- [x] **Z1.6** Code hexa sur toute la largeur de sa colonne, dans la
   configuration et dans la création. La pastille garde sa taille ; le champ
   garde `tabular-nums`. Vérifier à 500 × 520 que la rangée du nom et de la
   référence tient.
-- [ ] **Z1.7** Intensités de la configuration en segments `.bascule-de-base`,
+- [x] **Z1.7** Intensités de la configuration en segments `.bascule-de-base`,
   « Une · Deux » (Q6.2). Le composant garde l’API de
   `createInterrupteurDesIntensites` (`poser`, `base`, `element`) ; renommer
   s’il ne s’agit plus d’un interrupteur. Les deux tests Y4.8 passent par les
   segments. Une palette libre n’a toujours pas ce choix.
-- [ ] **Z1.8** Tests : taille par défaut et reprise de 750 × 720 ; libellés
+  Fait : `createSegmentsDesIntensites`. Sous les segments, l’aide du choix
+  pressé (N119), puis sa suite.
+- [x] **Z1.8** Tests : taille par défaut et reprise de 750 × 720 ; libellés
   des onglets ; libellé du geste global au singulier et au pluriel ; fond de
   chaque pastille par sa couleur calculée, « À jour » distinct de
   `--fond-note` ; largeur du code hexa égale à celle de sa colonne, moins la
   pastille ; segments des intensités, `aria-pressed` et effet sur la palette.
+  Fait, chaque test vu rouge sur une mutation de la ligne qu’il garde (dix
+  mutations). Suite d’interface : 96 verts.
 
-Critère : à 850 × 720, aucun bloc de Z0.2 ne laisse de marge vide à droite,
+Critère : à 770 × 720, aucun bloc de Z0.2 ne laisse de marge vide à droite,
 et l’onglet Palettes se lit aux libellés et couleurs dictés.
 
 ## Lot Z2 : aucune palette à l’ouverture
@@ -361,12 +382,12 @@ garantie manque et pourquoi la référence doit bouger.
 
 Après la validation de Z3.2 et Z1.2.
 
-- [ ] **Z6.1** La carte selon G2 à 850 px et selon Z3.5 sous 700 px, à une
+- [ ] **Z6.1** La carte selon G2 à 770 px et selon Z3.5 sous 700 px, à une
   et à deux intensités, aux deux thèmes de palette. `[UI-09]` récrit.
-- [ ] **Z6.2** Vérifier à 500 × 520 et à 850 × 720, au ratio le plus long
+- [ ] **Z6.2** Vérifier à 500 × 520 et à 770 × 720, au ratio le plus long
   (« ✗ 21:1 » et un badge AAA), qu’aucun badge ne passe à la ligne.
 - [ ] **Z6.3** Tests : badge sur la même ligne que son ratio, à 500 px et à
-  850 px ; nom de chaque état écrit une fois par groupe ; code d’un rôle à
+  770 px ; nom de chaque état écrit une fois par groupe ; code d’un rôle à
   la taille du texte courant ; rangée choisie et focus visibles ; une
   garantie en échec garde ses liens. Vus rouges sur mutation.
 
@@ -395,7 +416,7 @@ de Palettes verts, et recette Figma terminée.
 
 | Scénario | Résultat observable | Lots |
 |---|---|---|
-| Ouvrir le plugin sans taille rangée, puis avec 750 × 720 rangé | 850 × 720 dans les deux cas ; aucune marge vide à droite des cartes | Z1 |
+| Ouvrir le plugin sans taille rangée, puis avec 750 × 720 rangé | 770 × 720 dans les deux cas ; aucune marge vide à droite des cartes | Z1 |
 | Lire la barre d’onglets | « Création » puis « Palettes » | Z1 |
 | Ouvrir le plugin sur un fichier qui a des palettes | « Sélectionner une palette » et l’invitation ; aucune palette ouverte | Z2 |
 | Ouvrir le plugin sur un fichier sans palette | Le panneau de création | Z2 |
@@ -405,7 +426,7 @@ de Palettes verts, et recette Figma terminée.
 | Lire l’onglet Palettes avec un cadre de chaque état | « À actualiser » et « Pas encore sur Figma » en orange, « À jour » sur fond vert, « Actualiser tout (N palettes) » | Z1 |
 | Ouvrir la configuration d’une palette | Code hexa sur toute sa colonne ; « Intensités » en segments, comme « Modèle » | Z1 |
 
-La recette visuelle couvre 500 × 520 et 850 × 720, les deux thèmes de Figma,
+La recette visuelle couvre 500 × 520 et 770 × 720, les deux thèmes de Figma,
 les deux thèmes de palette, une et deux intensités, un nom long et plusieurs
 garanties en échec.
 
@@ -479,6 +500,15 @@ Zone Garanties de contraste
     de vu global car on ne distingue même pas spécialement les
     différentes sections. Et tout prend beaucoup de place pour
     certaines nuances
+```
+
+## Retour du mainteneur, lot Z1
+
+Texte d’origine, après la construction du lot Z1 à 850 × 720.
+
+```text
+reviens sur la width d'avant, là tout est trop grand c'est moche. ajoute
+juste 20px à la taille précédente
 ```
 
 ## Retours du mainteneur, maquettes du lot Z3

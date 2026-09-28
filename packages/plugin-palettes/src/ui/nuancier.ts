@@ -80,7 +80,7 @@ export interface NuancierUi {
   mode(): Mode;
   /** Montre un autre thème, et offre de revenir à celui d'avant ([UI-09]). */
   montrerLeTheme(mode: Mode): void;
-  /** Pose le thème, sans retour : celui qu'une fiche de l'onglet Planche montrait (V8.3). */
+  /** Pose le thème, sans retour : celui qu'une fiche de l'onglet Palettes montrait (V8.3). */
   choisirLeTheme(mode: Mode): void;
 }
 

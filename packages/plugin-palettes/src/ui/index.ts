@@ -62,7 +62,7 @@ const frontiere = createFrontiere(versSandbox, (statut, refus) => {
   // Une recette rangée peut périmer des cadres ([PLA-20]).
   if (statut === 'range') afficherLaPlanche();
 });
-// Un dessin fini a posé des cadres : l'état relu dit lesquels à l'onglet Planche.
+// Un dessin fini a posé des cadres : l'état relu dit lesquels à l'onglet Palettes.
 const suivi = createSuiviDuDessin(frontiere, () => frontiere.lireLEtat(), (resultat) => {
   const recette = ongletPalettes.recette();
   return resultat.issue === 'dessinee' && recette ? ecartsDePeinture(recette, resultat.peints) : [];
@@ -87,7 +87,7 @@ function texteAExporter(): string {
 
 /**
  * Une recette importée, ou la recette par défaut, remplace celle du fichier.
- * L'onglet Planche la relit au rangement qui suit : son dernier état cesse
+ * L'onglet Palettes la relit au rangement qui suit : son dernier état cesse
  * d'être illisible.
  */
 function remplacerLaRecette(recette: Recette): void {
@@ -177,7 +177,7 @@ function relireLaPlanche(recherche?: 'fichier'): void {
 }
 
 /**
- * Le dernier état accepté : l'onglet Planche le relit quand on l'ouvre. Sa
+ * Le dernier état accepté : l'onglet Palettes le relit quand on l'ouvre. Sa
  * fraîcheur recalcule le modèle de chaque cadre ; elle ne se calcule que sur
  * l'onglet ouvert.
  */
@@ -188,7 +188,7 @@ function afficherLaPlanche(): void {
   ongletPlanche.afficher(dernierEtat.classement, ongletPalettes.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
 }
 
-// La recette change dans l'onglet Palettes : l'onglet Planche la relit à son ouverture.
+// La recette change dans l'onglet Création : l'onglet Palettes la relit à son ouverture.
 const onglets = createOnglets(TEXTES.etiquetteDesOnglets, [
   { id: 'palettes', libelle: TEXTES.ongletPalettes, panneau: ongletPalettes.element },
   { id: 'planche', libelle: TEXTES.ongletPlanche, panneau: ongletPlanche.element },

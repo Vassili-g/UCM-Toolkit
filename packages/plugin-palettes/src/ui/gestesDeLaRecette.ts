@@ -4,7 +4,7 @@
  * illisible ou future, repartir de la recette par défaut ([REC-11], E19).
  * Sur une recette lisible, le rapport de vérification s'exporte aussi
  * ([VER-01]).
- * L'onglet Planche les porte ; le bloquant de l'onglet Palettes aussi.
+ * L'onglet Palettes les porte ; le bloquant de l'onglet Création aussi.
  *
  * L'écart d'un import nomme les valeurs modifiées, dit si l'import change les
  * couleurs, les minimums ou les seuls signalements, et ce qu'il ferait aux
@@ -46,7 +46,7 @@ export interface DemandesDeLaRecette {
   /** Remplace la recette du fichier : l'import confirmé, ou le départ de la recette par défaut. */
   remplacer(recette: Recette): void;
   recetteParDefaut(): Recette;
-  /** Les palettes dont le cadre passerait « À mettre à jour » ou deviendrait orphelin ; `null` sans planche lue (V12.2). */
+  /** Les palettes dont le cadre passerait « À actualiser » ou deviendrait orphelin ; `null` sans planche lue (V12.2). */
   consequence(recette: Recette): { readonly aMettreAJour: readonly string[]; readonly orphelins: readonly string[] } | null;
 }
 

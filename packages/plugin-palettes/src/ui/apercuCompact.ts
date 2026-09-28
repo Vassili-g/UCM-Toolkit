@@ -2,7 +2,7 @@
  * L'aperçu compact d'une palette : les rampes de ses intensités peintes du
  * fond d'un thème, la référence marquée ◆, et le résultat de ses garanties
  * dans ce thème, comme la bascule des garanties le donne (V4.2). La fiche de
- * l'onglet Planche (V8.1), la tête des Réglages communs (V9.3) et les cartes
+ * l'onglet Palettes (V8.1), la tête des Réglages communs (V9.3) et les cartes
  * du choix des intensités ([ENT-14]) le montrent.
  */
 import { lireHexa, rampeDe, type Intensite, type Mode, type Recette } from 'ucm-couleur';

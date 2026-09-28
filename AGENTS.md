@@ -233,9 +233,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
-  src/ui/                  l'en-tête du socle, les onglets Palettes et Planches, la configuration
-  src/ui/ongletPalettes.ts le sélecteur, le titre « Palette [nom] », puis les cartes, chaque message sous la sienne
-  src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, l'interrupteur des intensités de la configuration et le choix du profil porteur
+  src/ui/                  l'en-tête du socle, les onglets Création et Palettes, la configuration
+  src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », puis les cartes, chaque message sous la sienne
+  src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable, avec son résumé
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, et les pastilles qu'il propose
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
@@ -246,7 +246,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui
-  src/ui/ongletPlanche.ts  une fiche par palette : nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
+  src/ui/ongletPlanche.ts  l'onglet Palettes : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
   src/ui/configuration.ts  les Réglages communs en cartes : aperçu de la palette ouverte, fonds, intensités et fonds du thème Dark, courbes ; seuils et contenu des planches repliés
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
@@ -1020,7 +1020,7 @@ La spécification en lien porte le raisonnement.
   cadre rangé que Figma ne connaît plus est introuvable, un cadre qu'il
   refuse de lire est illisible : aucun des deux n'est « jamais dessiné ».
   L'interface recalcule la fraîcheur après chaque état lu et chaque
-  rangement, sur l'onglet Planche ouvert ; elle ne redessine jamais sans le
+  rangement, sur l'onglet Palettes ouvert ; elle ne redessine jamais sans le
   geste du designer. `packages/plugin-palettes/tests/fraicheur.test.ts`
   le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#96-fraîcheur)

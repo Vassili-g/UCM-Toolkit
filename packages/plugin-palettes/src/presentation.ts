@@ -25,7 +25,7 @@ import {
 
 /**
  * Le réglage qu'un message ouvre et focalise ([VER-15]). Les trois premiers
- * sont dans l'onglet Palettes, les trois derniers dans les Réglages communs.
+ * sont dans l'onglet Création, les trois derniers dans les Réglages communs.
  */
 export type CibleDAction =
   | 'reference'
@@ -74,7 +74,7 @@ export function groupesManques(promesses: readonly Promesse[]): GroupeDePromesse
 }
 
 /**
- * Où l'onglet Palettes montre une alerte ([VER-10], [VER-11]) : près du
+ * Où l'onglet Création montre une alerte ([VER-10], [VER-11]) : près du
  * réglage d'intensité pour ce qui compare les intensités, dans la liste des
  * points à vérifier pour le reste. Le rapport les garde toutes.
  */
@@ -84,7 +84,7 @@ export function placeDeLAlerte(alerte: Alerte): 'intensite' | 'liste' {
     : 'liste';
 }
 
-/** La carte de l'onglet Palettes sous laquelle un message se lit. */
+/** La carte de l'onglet Création sous laquelle un message se lit. */
 export type CarteDuMessage = 'couleur-de-base' | 'apercu' | 'derive';
 
 /**

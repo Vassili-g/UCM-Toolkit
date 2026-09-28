@@ -85,16 +85,16 @@ export interface ConfigurationUi {
   focaliser(groupe: GroupeDeConfiguration): void;
 }
 
-/** Ce que la configuration lit et modifie : la recette de l'onglet Palettes. */
+/** Ce que la configuration lit et modifie : la recette de l'onglet Création. */
 export interface RecetteDeLaConfiguration {
   lire(): Recette | null;
-  /** La palette ouverte dans l'onglet Palettes, et le thème de son aperçu ; `null` sans palette. */
+  /** La palette ouverte dans l'onglet Création, et le thème de son aperçu ; `null` sans palette. */
   ouverte(): { readonly id: string; readonly mode: Mode } | null;
   /** Une saisie en cours : l'aperçu la suit, rien ne se range. */
   previsualiser(recette: Recette): void;
   /** La fin d'un geste : la recette se range. */
   appliquer(recette: Recette): void;
-  /** Le nombre de cadres à jour qu'une recette proposée ferait passer « À mettre à jour » (W6.4). */
+  /** Le nombre de cadres à jour qu'une recette proposée ferait passer « À actualiser » (W6.4). */
   cadresAMettreAJour(proposee: Recette): number;
 }
 

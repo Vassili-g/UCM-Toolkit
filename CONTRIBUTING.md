@@ -243,7 +243,10 @@ Quatre bornes, sans quoi la table ne tient pas :
 
 La table des rangs, la borne des deux moyens et le rôle de la couleur
 sémantique valent pour UCM Palettes. La règle des deux cartes décrit l’écran
-d’UCM Exporter ; l’onglet Palettes applique celles-ci :
+d’UCM Exporter. UCM Palettes a deux onglets, Création et Palettes ; le code
+garde les noms d’origine, `ongletPalettes.ts` pour l’onglet Création et
+`ongletPlanche.ts` pour l’onglet Palettes. L’onglet Création applique
+celles-ci :
 
 - la barre du sélecteur vient en tête : la liste déroulante prend toute la
   largeur libre, « Nouvelle palette » et « … » gardent leur largeur
@@ -258,13 +261,15 @@ d’UCM Exporter ; l’onglet Palettes applique celles-ci :
   champ ;
 - la création d’une palette s’ouvre sous le sélecteur, dans une carte
   disposée comme « Configuration de la palette » : le nom et la couleur de
-  référence sur une ligne, libellé au-dessus du champ, puis une rangée pour
+  référence sur une ligne, libellé au-dessus du champ, le code hexadécimal
+  sur le reste de sa colonne, puis une rangée pour
   le Modèle et une pour les Intensités, puis ses gestes sur une ligne ;
 - à la création, le choix des intensités tient en deux cartes côte à côte,
   chacune avec la rampe qu’elle donnerait. La carte choisie prend la bordure
   de marque, et porte la suite de son choix : « Référence exacte dans » ne
-  paraît que dans « Deux intensités ». Dans la configuration, un
-  interrupteur « Deux intensités » le remplace, la suite du choix dessous ;
+  paraît que dans « Deux intensités ». Dans la configuration, des segments
+  « Une · Deux », de même facture que le Modèle, les remplacent, la suite du
+  choix dessous ;
 - les cartes se suivent dans cet ordre : Configuration de la palette, carte
   d’aperçu, Intensités, Dérive de teinte, Garanties de contraste, puis
   Interface de test. La palette se règle avant de se juger. Une palette à une
@@ -279,9 +284,9 @@ d’UCM Exporter ; l’onglet Palettes applique celles-ci :
   surface peinte du fond du thème choisi, à l’intérieur de sa carte. Il peut
   occuper la plus grande part du panneau. La ligne « ◆ Référence » se lit sous
   lui ;
-- la génération appartient à l’onglet Planches : sa progression et son
+- la génération appartient à l’onglet Palettes : sa progression et son
   résultat s’y lisent, et un nouveau résultat remplace le précédent au même
-  endroit. Sous le titre de l’onglet Palettes ne se lisent que le refus d’un
+  endroit. Sous le titre de l’onglet Création ne se lisent que le refus d’un
   enregistrement et le conflit ; un enregistrement réussi ne s’annonce pas ;
 - toutes les bascules à onglets, thème, profil et vue, donnent à l’onglet
   actif le même fond, distinct de la carte aux deux thèmes de Figma. Un
@@ -301,7 +306,7 @@ d’UCM Exporter ; l’onglet Palettes applique celles-ci :
   Intensités, sous Soft et Vivid, parce qu’il agit sur la part de chroma de
   toutes les palettes. Une carte fixe porte son compte de palettes et
   « Rétablir » à droite de son titre ;
-- dans l’onglet Planches, une fiche porte sur sa première ligne le nom de la
+- dans l’onglet Palettes, une fiche porte sur sa première ligne le nom de la
   palette et l’état de son cadre en pastille, puis l’aperçu, puis la
   référence et les garanties sur une ligne, puis ses gestes. Les gestes prennent la taille compacte
   du bouton du socle, 24 px : le premier geste, quand le cadre en demande un,

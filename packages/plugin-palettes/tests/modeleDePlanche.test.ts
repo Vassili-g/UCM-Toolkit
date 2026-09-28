@@ -66,7 +66,7 @@ test('W3.6 [UI-14] : chaque thème dit son fond et son verdict, puis les rampes,
   assert.deepEqual(racine.enfants.map((noeud) => noeud.nom), ['en-tête', 'thème light', 'thème dark']);
   const sections = trouver(racine, 'thème light').enfants.map((noeud) => noeud.nom).filter((nom) => nom !== 'filet');
   assert.deepEqual(sections, ['en-tête', 'les deux rampes', 'quelle nuance pour quel usage soft', 'quelle nuance pour quel usage vivid', 'contrastes']);
-  assert.equal(cadres(racine).some((noeud) => noeud.nom === 'écran de réglages'), false, 'l’écran de réglages est dans l’onglet Palettes, pas sur la planche');
+  assert.equal(cadres(racine).some((noeud) => noeud.nom === 'écran de réglages'), false, 'l’écran de réglages est dans l’onglet Création, pas sur la planche');
   const tete = textes(trouver(trouver(racine, 'thème dark'), 'en-tête')).map((noeud) => noeud.contenu);
   assert.deepEqual(tete, ['Thème Dark · fond #121212', '✓ Toutes les garanties tenues']);
   const echec = trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light');
@@ -262,7 +262,7 @@ test('[PLA-19] E2 : l’empreinte suit ce que le cadre montre, et seulement cela
   assert.equal(empreinteAvec(voisin), empreinteAvec(renommer(voisin, 'Voisin')));
 });
 
-test('V10.10 : les styles de texte entrent dans l’empreinte, et un cadre dessiné avant ce modèle est à mettre à jour', () => {
+test('V10.10 : les styles de texte entrent dans l’empreinte, et un cadre dessiné avant ce modèle est à actualiser', () => {
   const avant = STYLES_DE_TEXTE.valeur.taille;
   (STYLES_DE_TEXTE.valeur as { taille: number }).taille = avant + 1;
   try {

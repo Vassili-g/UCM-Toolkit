@@ -1,5 +1,5 @@
 /**
- * Les messages que l'onglet Palettes montre pour la palette ouverte : les
+ * Les messages que l'onglet Création montre pour la palette ouverte : les
  * points à vérifier et les informations, dans la liste ; les alertes qui
  * comparent les intensités, près du réglage d'intensité ([VER-10],
  * [VER-11]). Les promesses manquées se lisent dans la carte des garanties

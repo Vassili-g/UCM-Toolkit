@@ -158,7 +158,7 @@ test('[PLA-01] V8.8 : un suivi des cadres d’une version plus récente ne se li
 
 const etats = (fraicheur: ReturnType<typeof fraicheurDeLaPlanche>) => fraicheur.palettes.map(({ palette, etat }) => `${palette} ${etat}`);
 
-test('[PLA-20] un cadre dessiné avec la grille est à jour tant que son modèle ne change pas ; sans elle, il est à mettre à jour', async () => {
+test('[PLA-20] un cadre dessiné avec la grille est à jour tant que son modèle ne change pas ; sans elle, il est à actualiser', async () => {
   const planche = await lireLaPlanche((await plancheDessinee()).api());
   assert.deepEqual(etats(fraicheurDeLaPlanche(RECETTE, 'SRGB', planche)), [`${BLEU.id} a-jour`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
 });
@@ -197,10 +197,10 @@ test('L6.14 : les couleurs relues d’un dessin n’ont aucun écart avec l’ap
   ]);
 });
 
-test('V12.2 : un import dit quels cadres à jour passeraient « À mettre à jour », et lesquels resteraient sans palette', async () => {
+test('V12.2 : un import dit quels cadres à jour passeraient « À actualiser », et lesquels resteraient sans palette', async () => {
   const figma = new FauxFigma();
   await dessinerLaPlanche(figma.api(), { recette: RECETTE, profil: 'SRGB', palettes: [BLEU, AMBRE] });
-  // Vert, dessiné sans la grille, est déjà à mettre à jour : l'import ne le change pas.
+  // Vert, dessiné sans la grille, est déjà à actualiser : l'import ne le change pas.
   await dessinerLaPlanche(figma.api(), { recette: SANS_GRILLES, profil: 'SRGB', palettes: [VERT] });
   const planche = await lireLaPlanche(figma.api());
   const importee: Recette = { ...RECETTE, palettes: [{ ...BLEU, nom: 'Marine' }, VERT] };

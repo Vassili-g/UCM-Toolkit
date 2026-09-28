@@ -568,9 +568,9 @@ dix-sept paires.
 | Couleur de référence | Hexa, avec le sélecteur de couleur embarqué (`[UI-13]`) | aucun |
 | Nom | Texte libre, facultatif | l'hexa de référence |
 | Dérive de teinte | Deux angles par profil, dans l'éditeur de la [section 12](#12-léditeur-de-dérive) | préréglage Tailwind |
-| Intensités | « Une intensité » ou « Deux intensités », deux cartes à la création ; un interrupteur « Deux intensités » dans la configuration (`[ENT-14]`) | Une |
+| Intensités | « Une intensité » ou « Deux intensités », deux cartes à la création ; des segments « Une · Deux » dans la configuration (`[ENT-14]`) | Une |
 | Part de chroma par profil | Nombre dans `[0, 1]`, facultatif, dans la carte « Intensités », pour deux intensités | celle de la recette |
-| Référence exacte dans | Auto, Soft ou Vivid, dans la carte « Deux intensités » à la création, sous l'interrupteur activé dans la configuration (`[ENT-11]`) | Auto |
+| Référence exacte dans | Auto, Soft ou Vivid, dans la carte « Deux intensités » à la création, sous le segment « Deux » dans la configuration (`[ENT-11]`) | Auto |
 
 - `[ENT-01]` Changer la couleur de référence recalcule le préréglage Tailwind.
   Une dérive d'origine `tailwind` suit ce nouveau calcul ; une dérive `libre` ou
@@ -579,8 +579,8 @@ dix-sept paires.
 - `[ENT-02]` Chaque saisie met l'aperçu à jour sans aller-retour avec le
   sandbox : le moteur est inclus dans l'interface.
 - `[ENT-03]` Une palette se crée, se renomme, se duplique, se réordonne et se
-  supprime dans l'onglet Palettes. Supprimer une palette ne supprime pas son
-  cadre de la planche : l'onglet Planches montre le cadre comme celui d'une
+  supprime dans l'onglet Création. Supprimer une palette ne supprime pas son
+  cadre de la planche : l'onglet Palettes montre le cadre comme celui d'une
   palette supprimée, que « Supprimer définitivement » retire (`[PLA-27]`).
 - `[ENT-04]` Une palette se crée depuis un code saisi ou choisi au sélecteur
   de couleur ; le plugin ne lit pas la couleur de la sélection Figma. La
@@ -606,7 +606,7 @@ dix-sept paires.
   les deux profils se rejoignent, l'alerte « Profils confondus » le dit et
   mène aux intensités de la palette. Ce choix, libellé « Référence exacte
   dans », ne paraît qu'avec deux intensités : dans leur carte à la création,
-  sous l'interrupteur « Deux intensités » dans la configuration.
+  sous le segment « Deux » dans la configuration.
 - `[ENT-14]` Une palette porte une intensité ou deux, au choix du designer à
   la création, « Une » par défaut, et dans la configuration. À une intensité,
   elle a une seule rampe par thème, sans nom de profil : celle que le profil
@@ -645,7 +645,7 @@ composant du socle la porte (`[UI-02]`).
 - `[ENT-13]` « Luminosité des nuances » s'ouvre sur le nombre de nuances,
   9, 11 ou 13. Choisir un autre préréglage dit d'abord ce qu'il changerait :
   les numéros ajoutés ou retirés, les palettes dont une nuance gardée change
-  de couleur, et le nombre de cadres qui passeraient « À mettre à jour ». Il
+  de couleur, et le nombre de cadres qui passeraient « À actualiser ». Il
   ne se range qu'à « Passer à N nuances » ; « Annuler » ne range rien. Une
   liste importée se dit « Liste importée ». Au-delà de onze nuances, les
   champs de la table se resserrent pour tenir à la largeur minimale.
@@ -715,7 +715,7 @@ côte.
   n'est jamais réécrit. Un cadre dont Figma refuse de lire le nom devient
   illisible, sans faire échouer la lecture.
   Elle ne parcourt toutes les pages qu'au geste « Chercher dans tout le
-  fichier » ; l'onglet Planches annonce cette limite quand un cadre reste
+  fichier » ; l'onglet Palettes annonce cette limite quand un cadre reste
   introuvable. Le plugin charge la page de la planche et celles des cadres
   retrouvés, et aucune autre sans ce geste.
 - `[PLA-02]` Un cadre par palette, posé au premier niveau de la page de la
@@ -744,8 +744,8 @@ côte.
   nouvelle position. Un cadre neuf se pose à 200 px à droite du cadre possédé
   le plus à droite, aligné sur le haut du premier cadre.
 - `[PLA-06]` Le geste « Générer sur Figma » porte sur une palette : la palette
-  ouverte dans l'onglet Palettes, ou celle d'une fiche de l'onglet Planches.
-  L'onglet Planches propose aussi de générer les palettes à mettre à jour, et
+  ouverte dans l'onglet Création, ou celle d'une fiche de l'onglet Palettes.
+  L'onglet Palettes propose aussi de générer les palettes à actualiser, et
   toutes les palettes. Après une génération, le plugin appelle
   `figma.commitUndo()` : un Ctrl+Z défait cette génération entière, et elle
   seule. Le résultat propose « Afficher dans Figma », qui ouvre la page du
@@ -772,7 +772,7 @@ composant : quelle nuance pour quel usage, et est-elle lisible (récit R1,
 maquette W3.6). Chaque thème se lit de haut en bas : les rampes des
 intensités de la palette, les usages de chacune dans leurs états, puis les
 contrastes nuance par nuance ; la recette dit quelles parties se dessinent
-(`[PLA-28]`). L'écran de réglages qui essaie la palette est dans l'onglet Palettes
+(`[PLA-28]`). L'écran de réglages qui essaie la palette est dans l'onglet Création
 (`[UI-14]`).
 
 ```text
@@ -885,7 +885,7 @@ l'état, son numéro, puis ses garanties.
   thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
   pastilles sont ce que la [section 17](#17-option-ultérieure--créer-les-variables)
   lira. Une partie retirée change l'empreinte du modèle : les cadres générés
-  passent « À mettre à jour ». La carte « Contenu des planches », repliée en
+  passent « À actualiser ». La carte « Contenu des planches », repliée en
   dernier dans les Réglages communs, porte un interrupteur par partie et le
   nombre de calques qu'elle pèse dans le cadre de la palette ouverte.
 
@@ -910,10 +910,10 @@ toutes les nuances : ses cases ne sont pas des promesses.
   qu'une seule palette change.
 - `[PLA-20]` À l'ouverture et après chaque rangement de la recette, le plugin
   recalcule le modèle de chaque cadre et compare son empreinte à celle du
-  cadre. Un écart classe le cadre « À mettre à jour » dans l'interface, avec le
-  geste « Générer sur Figma ». Le plugin ne redessine jamais sans ce geste.
+  cadre. Un écart classe le cadre « À actualiser » dans l'interface, avec le
+  geste « Actualiser sur Figma ». Le plugin ne redessine jamais sans ce geste.
   L'état du cadre se distingue du résultat des garanties : un ratio
-  insuffisant n'est pas une panne de génération. L'onglet Planches relit l'état
+  insuffisant n'est pas une panne de génération. L'onglet Palettes relit l'état
   à son ouverture, après chaque génération et au geste « Actualiser », pour ce
   que les événements de Figma ne signalent pas. Le cadre ne montre rien des
   autres palettes : les renommer ne le périme pas.
@@ -955,7 +955,7 @@ toutes les nuances : ses cases ne sont pas des promesses.
   seuils modifiés, un à un. L'écart dit ce que l'import change : les couleurs
   des nuances, le résultat des garanties sans les couleurs, ou les seuls
   signalements de couleurs proches ; puis quels cadres à jour passeraient
-  « À mettre à jour » et lesquels resteraient sans palette. Le designer
+  « À actualiser » et lesquels resteraient sans palette. Le designer
   confirme ; l'import remplace la recette rangée et ne redessine rien. Annuler
   ne touche à rien.
 - `[REC-09]` La recette exportée se range dans le dépôt du design system. Cette
@@ -1066,7 +1066,7 @@ composants : `default`, puis `hover` à une nuance, `active` à deux.
   lisible, et les paires 15 et 16 ne s'y jugent pas.
 - `[VER-06]` Une promesse manquée nomme l'association (section 11.2), le mode,
   l'état, le profil pour une palette à deux intensités, son contraste mesuré et le minimum demandé. L'onglet
-  Palettes la porte sur la ligne de son association, dans la carte des
+  Création la porte sur la ligne de son association, dans la carte des
   garanties (`[UI-09]`), et non dans la liste des messages. Le compte reste
   celui des contrôles évalués, un par paire, mode et intensité. Aucun cran ne se
   propose : la table est commune à toutes les palettes. Le geste mène au
@@ -1178,7 +1178,7 @@ comme sRGB (section 6.7), et le rapport garde le profil.
 
 L'éditeur règle les deux dérives d'une palette et montre leur effet sur chaque
 cran pendant le geste. Il occupe la carte repliable « Dérive de teinte » de
-l'onglet Palettes (`[UI-12]`), repliée à l'ouverture : son en-tête porte le
+l'onglet Création (`[UI-12]`), repliée à l'ouverture : son en-tête porte le
 titre et, à droite, le résumé du préréglage et de la synchronisation.
 
 ```text
@@ -1286,22 +1286,29 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
 
 ### 13.1 Fenêtre et onglets
 
-- `[UI-01]` Taille par défaut 750 × 720, minimale 500 × 520, rangée sous une
+- `[UI-01]` Taille par défaut 770 × 720, minimale 500 × 520, rangée sous une
   clé propre au plugin par la fenêtre du socle. La poignée de
   redimensionnement ne descend pas sous la largeur minimale, et une taille
   rangée plus étroite s'ouvre à 500 px. Une taille rangée égale à un ancien
-  défaut, 600 × 720 ou 650 × 720, s'ouvre à 750 × 720 ; toute autre taille
-  rangée se garde. Le designer peut élargir la fenêtre.
-- `[UI-02]` Deux onglets, **Palettes** et **Planches**, et un bouton en forme
+  défaut, 600, 650 ou 750 × 720, s'ouvre à 770 × 720 ; toute autre taille
+  rangée se garde. Le designer peut élargir la fenêtre, et chaque carte suit
+  la largeur du panneau.
+- `[UI-02]` Deux onglets, **Création** et **Palettes**, et un bouton en forme
   d'engrenage dans l'en-tête, qui ouvre les Réglages communs (section 8.3)
-  comme celui d'UCM Exporter ouvre sa configuration. L'onglet Palettes ne
-  génère rien : la génération appartient à l'onglet Planches (`[UI-05]`), qui
+  comme celui d'UCM Exporter ouvre sa configuration. Le code garde les noms
+  d'origine : `ongletPalettes.ts` et le panneau `#panneau-palettes` portent
+  l'onglet Création, `ongletPlanche.ts` et `#panneau-planche` l'onglet
+  Palettes. L'onglet Création ne
+  génère rien : la génération appartient à l'onglet Palettes (`[UI-05]`), qui
   montre chaque palette, dans l'ordre de la recette : son nom, ses rampes Soft
   et Vivid dans le thème choisi en tête de l'onglet, sa référence, le résultat
-  Soft et Vivid de ses garanties et l'état de son cadre, avec ses gestes. Il
-  propose aussi « Mettre à jour (2 palettes) », qui génère les palettes à
-  mettre à jour, et « Générer tout (3 palettes) », au singulier pour une
-  palette. Il range dans une section secondaire l'export et l'import des palettes et réglages et l'export du
+  Soft et Vivid de ses garanties et l'état de son cadre en pastille, avec ses
+  gestes. La pastille dit la sévérité : « À jour » sur le fond de succès ;
+  « À actualiser » et « Pas encore sur Figma » en avertissement ; « Cadre
+  introuvable » et « Lecture impossible » en danger. L'onglet
+  propose aussi « Actualiser tout (2 palettes) », qui génère les palettes à
+  actualiser et celles qui ne sont pas encore sur Figma, et « Générer tout
+  (3 palettes) », au singulier pour une palette. Il range dans une section secondaire l'export et l'import des palettes et réglages et l'export du
   rapport. Chaque palette supprimée dont le cadre reste dans Figma a sa
   carte : son nom, une phrase, « Afficher dans Figma » et « Supprimer
   définitivement » (`[PLA-27]`).
@@ -1316,7 +1323,7 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
 
 ### 13.2 Écrans
 
-Onglet Palettes, une palette ouverte, à 600 × 720 :
+Onglet Création, une palette ouverte :
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -1328,13 +1335,10 @@ Onglet Palettes, une palette ouverte, à 600 × 720 :
 │ │ [Bleu marque                ]   [■ #1E6FD9     ]                 │  │
 │ │                                 Ajuster la référence            │  │
 │ │ Modèle      [Standard|Libre]                                    │  │
-│ │ Intensités                                                      │  │
-│ │ ┌ ○ Une intensité ─────────┐ ┌ ● Deux intensités ────────────┐ │  │
-│ │ │ rampe                    │ │ Soft et Vivid                 │ │  │
-│ │ │                          │ │ Référence exacte dans         │ │  │
-│ │ │                          │ │ [Auto|Soft|Vivid]             │ │  │
-│ │ │                          │ │ Auto a choisi Vivid           │ │  │
-│ │ └──────────────────────────┘ └───────────────────────────────┘ │  │
+│ │ Intensités  [Une|Deux]                                          │  │
+│ │ Une variante douce « Soft » et une variante vive « Vivid ».     │  │
+│ │ Référence exacte dans  [Auto|Soft|Vivid]                        │  │
+│ │ Auto a choisi Vivid                                             │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌ [Thème Light|Thème Dark] ─────────────────────────── Fond [■] ──┐  │
 │ │ ┌ surface peinte du fond du thème ──────────────────────────┐  │  │
@@ -1406,7 +1410,7 @@ palette » gardent leurs libellés au-dessus des champs.
   referme le détail, et le focus reste sur elle ; le survol signale la
   cible sans déplacer la page. Les flèches, Origine et Fin déplacent le focus ;
   une copie de code est un geste distinct de la sélection.
-- `[UI-05]` La génération appartient à l'onglet Planches. Le premier geste
+- `[UI-05]` La génération appartient à l'onglet Palettes. Le premier geste
   d'une fiche dit l'état du cadre : « Générer sur Figma » sans cadre ou pour
   un cadre introuvable, « Actualiser sur Figma » quand le cadre a changé. Un
   cadre à jour ou illisible n'en a pas. Ce geste est le bouton principal de la
@@ -1417,9 +1421,9 @@ palette » gardent leurs libellés au-dessus des champs.
   comprise : la génération n'a pas d'option. Pendant la génération, les deux
   onglets sont inertes et la progression prend la place de « Générer tout ».
   L'erreur, la confirmation des calques étrangers ou les écarts de peinture se
-  lisent en tête de l'onglet Planches : un nouveau résultat remplace le
-  précédent. L'onglet Palettes n'en montre aucun. « Nouvelle palette » est le
-  seul bouton principal de l'onglet Palettes, et un filet sépare la barre du
+  lisent en tête de l'onglet Palettes : un nouveau résultat remplace le
+  précédent. L'onglet Création n'en montre aucun. « Nouvelle palette » est le
+  seul bouton principal de l'onglet Création, et un filet sépare la barre du
   sélecteur et la création de la palette ouverte, à 15 px de chacune.
 - `[UI-09]` La carte « Garanties de contraste » suit la Dérive de teinte et
   montre le thème que l'aperçu a choisi, qu'elle nomme dans son en-tête.
@@ -1479,11 +1483,12 @@ palette » gardent leurs libellés au-dessus des champs.
   d'un enregistrement et le conflit, avec leurs gestes ; un enregistrement
   réussi ne s'annonce pas. La carte « Configuration de la palette » ouvre la
   configuration, disposée comme la création (maquette Y2.6, P2) : Nom de la
-  palette et Couleur de référence (pastille cliquable et code hexadécimal)
-  en deux colonnes, libellé au-dessus du champ ; puis la rangée Modèle
-  (Standard ou Libre) ; puis la rangée Intensités, un interrupteur « Deux
-  intensités » (`[ENT-14]`) : les deux cartes et leurs rampes restent à la
-  création. Sous l'interrupteur, la suite du choix : la part de la
+  palette et Couleur de référence (pastille cliquable et code hexadécimal,
+  qui prend le reste de sa colonne) en deux colonnes, libellé au-dessus du champ ; puis la rangée Modèle
+  (Standard ou Libre) ; puis la rangée Intensités, en segments « Une ·
+  Deux » de même facture que le Modèle (`[ENT-14]`) : les deux cartes et
+  leurs rampes restent à la création. Sous les segments, l'aide du choix
+  pressé, puis sa suite : la part de la
   référence pour une intensité ; pour deux,
   « Référence exacte dans » (Auto, Soft ou Vivid), et en Auto une ligne qui
   dit le profil que le classement a choisi : « Auto a choisi Vivid ». Soft
@@ -1516,7 +1521,7 @@ palette » gardent leurs libellés au-dessus des champs.
   Intensités puis Dérive de teinte, avant les Garanties de contraste
   (`[UI-09]`) : la palette se règle avant de se juger. L'Interface de test
   (`[UI-14]`) ferme l'onglet.
-- `[UI-14]` L'Interface de test est la dernière carte de l'onglet Palettes,
+- `[UI-14]` L'Interface de test est la dernière carte de l'onglet Création,
   repliée à l'ouverture. Elle montre la palette ouverte, peinte dans le thème
   de l'aperçu, en deux vues qu'une bascule choisit, et la vue choisie dure la
   session. Une palette à deux intensités a une seconde bascule, Soft et
@@ -1587,19 +1592,19 @@ palette » gardent leurs libellés au-dessus des champs.
   Échap annule quand « Annuler » est offert. Après création, la palette est
   ouverte ; après annulation, le focus revient à « Nouvelle palette ».
 
-Onglet Planches :
+Onglet Palettes :
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
 │ 3 palettes             [Thème Light] [Thème Dark] [Actualiser] │
-│ ┌ Bleu ───────────────────────────────── (À mettre à jour) ┐ │
+│ ┌ Bleu ──────────────────────────────────── (À actualiser) ┐ │
 │ │ Soft  ▪▪▪▪▪▪▪▪▪▪▪                                        │ │
 │ │ Vivid ▪▪▪▪▪▪◆▪▪▪▪                                        │ │
 │ │ ■ #1E6FD9 ◆ Vivid · nuance 600         Soft ✓  Vivid ✗ 2 │ │
 │ │ [Actualiser sur Figma] [Afficher] [Modifier]             │ │
 │ └──────────────────────────────────────────────────────────┘ │
 │ … une fiche par palette                                       │
-│ [Mettre à jour (2 palettes)] [Générer tout (3 palettes)]      │
+│ [Actualiser tout (2 palettes)] [Générer tout (3 palettes)]    │
 │ ┌ Ardoise ──────────────────────────── teinte d'avertissement ┐ │
 │ │ phrase courte : palette supprimée, cadre resté dans Figma  │ │
 │ │ [Afficher dans Figma] [Supprimer définitivement]           │ │
@@ -1677,9 +1682,9 @@ qui le créera.
 | Génération partielle | Palettes déjà créées nommées, palette fautive, reprise possible |
 | Génération interrompue | Arrêt nommé, cadre précédent conservé, détail technique replié, « Réessayer » |
 | Confirmation au-delà de six palettes | « Générer tout » demande confirmation |
-| Onglet Planches sans palette | Aucune palette à générer, geste vers l'onglet Palettes |
+| Onglet Palettes sans palette | Aucune palette à générer, geste vers l'onglet Création |
 | Planche à jour | Chaque fiche dit « À jour » |
-| Planche à mettre à jour | Fiches à mettre à jour, ou « Pas encore sur Figma », génération groupée |
+| Planche à actualiser | Fiches « À actualiser » ou « Pas encore sur Figma », en orange, génération groupée |
 | Fiche d’une palette | Disposition A : nom et état en pastille, rampes, référence et garanties sur une ligne, gestes |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
 | Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités des Réglages communs |
@@ -1855,7 +1860,7 @@ Les lots s'exécutent dans cet ordre : 0, 1, 2, 8, 2b, 3, 4, 5, 6, 7, 9. Le lot
 | 8 | Extraction du socle commun, avant le squelette | ARC-02, ARC-09, ARC-10 |
 | 2b | Table fixe des emplois : câblage retiré de la recette, promesses par profil, alerte de la référence plus claire que le bouton | VER-04 à VER-06, VER-11, VER-12, REC-05 |
 | 3 | Squelette du plugin sur le socle, lecture et rangement de la recette, galerie | ARC-03, ARC-05, ARC-06, ARC-12 à ARC-15, REC-01, REC-04, REC-10, UI-01, UI-02, UI-07, UI-08 |
-| 4 | Onglet Palettes, aperçu, gestion des palettes ; configuration des courbes, des parts et du seuil de profils confondus | ENT-01 à ENT-04, ENT-07, ENT-10, REC-06, UI-03 à UI-06, ARC-11 |
+| 4 | Onglet Création, aperçu, gestion des palettes ; configuration des courbes, des parts et du seuil de profils confondus | ENT-01 à ENT-04, ENT-07, ENT-10, REC-06, UI-03 à UI-06, ARC-11 |
 | 5 | Éditeur de dérive | DER-01 à DER-16, ARC-08 |
 | 6 | Planche : modèle, écriture, fraîcheur, recette Figma | PLA-01 à PLA-25, MOT-25, ARC-07 |
 | 7 | Reste de la configuration, import et export, rapport | ENT-05, ENT-08, REC-07 à REC-09, REC-11, VER-01, VER-02 |
