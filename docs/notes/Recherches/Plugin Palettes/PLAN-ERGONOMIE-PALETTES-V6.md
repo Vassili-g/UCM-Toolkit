@@ -443,8 +443,11 @@ palette sans échec tient dans moins de hauteur qu’aujourd’hui.
 
 ## Lot Z7 : recette et clôture
 
-- [ ] **Z7.1** (ex-Y8.1) Reprendre les tests d’interface cassés, en gardant
+- [x] **Z7.1** (ex-Y8.1) Reprendre les tests d’interface cassés, en gardant
   ce que chacun protégeait. Au mainteneur, sous Chromium.
+  Fait par l’agent sous Chromium, lot par lot : 104 tests verts après Z5.1.
+  Les tests que Z2 cassait ouvrent la première palette, comme le designer ;
+  aucun ne change de sujet. Z5.2 et Z6 les reprendront pour leur part.
 - [ ] **Z7.2** Mettre à jour AGENTS.md si la carte du code change, la
   spécification et les liens des plans. Marquer les cases ouvertes du
   cinquième plan comme reprises ici.
