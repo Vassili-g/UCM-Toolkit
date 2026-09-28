@@ -1,4 +1,4 @@
-# Contribuer à UCM Contract Exporter
+# Contribuer à UCM Toolkit
 
 Ce document dit **comment travailler** sur ce dépôt : écrire du code, un
 message, un test, un document, et vérifier avant de proposer un changement.

@@ -1,13 +1,24 @@
-# UCM Contract Exporter
+# UCM Toolkit
 
-Un plugin Figma qui exporte un composant sous forme de contrat JSON versionné,
-et l'outillage qui vérifie que le code du repository reste conforme à ce
-contrat.
+UCM Toolkit regroupe les outils de conception et de contrôle d'un design system :
+deux plugins Figma, un format de contrat de composant et les commandes qui
+vérifient ces contrats dans le repository consommateur.
+
+| Outil | Usage | Documentation |
+|---|---|---|
+| UCM Contract Exporter | Exporter les composants en contrats JSON et les variables en tokens DTCG ; publier sur GitHub ou GitLab | [Plugin Exporter](./packages/plugin-exporter/README.md) |
+| UCM Palettes | Construire des palettes, examiner leurs contrastes et dessiner leurs planches dans Figma | [Plugin Palettes](./packages/plugin-palettes/README.md) |
+| `@ucm-kit/cli` | Initialiser un repository, contrôler les contrats, produire le CSS des tokens et préparer l'implémentation | [CLI](./packages/cli/README.md) |
+| `@ucm-kit/core` | Lire le format, valider les contrats et leurs références depuis du code | [Kit](./packages/kit/README.md) |
+| `@ucm-kit/adapter-typescript` | Comparer l'API TypeScript et la composition JSX aux contrats ; dériver les unions de types | [Adaptateur](./packages/adapter-typescript/README.md) |
+
+**UCM Toolkit** est le nom du projet. **UCM Contract Exporter** et **UCM Palettes**
+sont les noms de ses plugins. Les paquets publics gardent le préfixe `@ucm-kit/`.
 
 ## Le problème
 
-Le même composant existe dans Figma, dans le code et dans les tokens. Aucun
-contrôle ne compare ces trois copies. UCM donne un propriétaire unique à chaque
+Le même composant existe dans Figma, dans le code et dans les tokens. Ces
+représentations peuvent diverger. UCM donne un propriétaire unique à chaque
 information ; [CONCEPT.md](./CONCEPT.md) énonce le partage et ce qui l'a motivé.
 
 Figma exporte ce qu'il possède dans un fichier `.contract.json`, posé à côté du
@@ -48,7 +59,8 @@ qui avertit, et le geste attendu pour chaque écart.
 |---|---|---|
 | **Designer** | Vos variantes, vos tokens et vos règles d'usage arrivent au développeur sans être retapés, et la demande de fusion vous dit ce qui manque | [Ouvrir le plugin](#ouvrir-le-plugin), puis [docs/guides/POUR-LES-DESIGNERS.md](./docs/guides/POUR-LES-DESIGNERS.md) |
 | **Développeur d'un repository consommateur** | Une source unique pour l'API visuelle d'un composant, et une CI qui signale les écarts avant la fusion | [Brancher un repository](#brancher-un-repository) |
-| **Contributeur du moteur** | Un moteur générique, sans aucune règle liée au nom d'un composant | [Construire le plugin](#construire-le-plugin-depuis-ce-dépôt), puis [AGENTS.md](./AGENTS.md) |
+| **Designer de palettes** | Des rampes, leurs contrastes et une planche partageable dans Figma | [Utiliser UCM Palettes](./packages/plugin-palettes/README.md) |
+| **Contributeur** | Les sources des deux plugins et des paquets de contrôle | [Construire les plugins](#construire-le-plugin-depuis-ce-dépôt), puis [AGENTS.md](./AGENTS.md) |
 
 ## Ouvrir le plugin
 
@@ -131,6 +143,10 @@ commandes et les codes de sortie sont dans
 | Tokens | Les références `{chemin.du.token}` citées existent-elles dans `tokens.json` ? | ⚠️ avertit, mais un fichier de tokens absent ou illisible bloque |
 | Parité code | Les props du contrat sont-elles dans l'API publique du composant, typées correctement, et chaque composant déclaré rendu autant de fois que le contrat le déclare ? | ⚠️ avertit |
 
+La validation couvre aussi les adresses des échantillons. La version du format
+de tokens est contrôlée avant les contrats, même dans un repository qui n'en
+contient pas encore.
+
 Un contrôle bloque quand le fichier déposé ne se lit pas tel quel. Il avertit
 quand la lecture aboutit et que l'écart vise le code ou le fichier de tokens.
 Le rapport relaie aussi les avertissements de l'export et le verdict des tests
@@ -162,9 +178,10 @@ répète de l'une à l'autre : un composant à quatre-vingt-dix variantes ne pub
 pas quatre-vingt-dix arbres. [docs/format/FORMAT.md](./docs/format/FORMAT.md#ce-que-le-contrat-publie-champ-par-champ)
 décrit chaque champ et ce que son absence signifie.
 
-Version de contrat courante : **14.0**, écrite dans
-`packages/kit/src/format/version.ts` et nulle part ailleurs. Un consommateur en
-lit deux, la courante et la précédente, le temps qu'un réexport arrive.
+Le build de développement produit le contrat **14.0** et le format de tokens
+**2**. Le kit lit les contrats **13.0 et 14.0**. La publication Community peut
+différer du build local : [ROADMAP.md](./ROADMAP.md#5-stabiliser-linteropérabilité)
+précise l'état de publication.
 
 ## Utiliser le kit depuis votre code
 
@@ -185,7 +202,7 @@ npm install @ucm-kit/core@0.1.41
 
 ## Construire le plugin depuis ce dépôt
 
-Ce chemin s'adresse au contributeur qui modifie le moteur. Il demande Node 22,
+Ce chemin construit les deux plugins. Il demande Node 22,
 la version de la CI, et l'application de bureau Figma.
 
 ```sh
@@ -193,16 +210,25 @@ npm install
 npm run build
 ```
 
-Dans Figma, importez `packages/plugin-exporter/dist/manifest.json` par `Plugins >
-Development > Import plugin from manifest`.
+Dans Figma, utilisez `Plugins > Development > Import plugin from manifest`
+pour importer le manifeste du plugin à ouvrir :
+
+- `packages/plugin-exporter/dist/manifest.json` pour UCM Contract Exporter ;
+- `packages/plugin-palettes/dist/manifest.json` pour UCM Palettes.
 
 | Commande | Rôle |
 |---|---|
-| `npm test` | Tests du moteur, du kit, du CLI et de l'adaptateur |
+| `npm test` | Tests des sept paquets et contrôles du monorepo |
 | `npm run typecheck` | Vérification TypeScript |
-| `npm run build` | Vérifie les types puis construit le plugin |
+| `npm run build` | Construit le kit et les deux plugins, avec vérification des types de chaque build |
+| `npm run test:ui --workspace ucm-exporter-plugin` | Tests d'interaction de l'exporteur dans Chromium |
+| `npm run test:ui --workspace ucm-palettes-plugin` | Tests d'interaction de Palettes dans Chromium |
+| `npm run galerie --workspace <plugin>` | Construit la galerie de `ucm-exporter-plugin` ou `ucm-palettes-plugin` |
 | `npm run schema` | Régénère le JSON Schema depuis `types.ts`, après tout changement de ce fichier |
 | `npm run cascade` | Rend la feuille des tokens dans Chromium, Firefox et WebKit ; les navigateurs s'installent par `npx playwright install chromium firefox webkit` |
+
+Les tests d'interface demandent `npx playwright install chromium`. Les galeries
+présentent les états de chaque plugin hors de Figma.
 
 Avant un premier changement, lisez [AGENTS.md](./AGENTS.md) pour la carte du
 code et les invariants, puis [CONTRIBUTING.md](./CONTRIBUTING.md) pour les
@@ -211,14 +237,18 @@ règles de code, de test et de rédaction.
 ## Architecture
 
 ```text
-packages/plugin-exporter/    le moteur : extraction Figma. Dépend du kit. Non publié.
-packages/kit/       le format : @ucm-kit/core, publié sur npm.
-packages/cli/       la commande : @ucm-kit/cli, publiée sur npm.
-packages/adapter-typescript/  l'adaptateur opt-in, publié sur npm.
+packages/plugin-exporter/     UCM Contract Exporter, dépend du kit et du socle
+packages/plugin-palettes/     UCM Palettes, dépend du moteur de couleur et du socle
+packages/plugin-socle/        build, interface et galeries partagés, privé
+packages/couleur/             calculs de couleur sans Figma ni DOM, privé
+packages/kit/                 @ucm-kit/core, format et lecteurs publiés sur npm
+packages/cli/                 @ucm-kit/cli, commandes publiées sur npm
+packages/adapter-typescript/  adaptateur optionnel publié sur npm
 ```
 
-Le plugin importe le kit ; le kit n'importe pas le plugin, ce qui le rend
-publiable seul. [AGENTS.md](./AGENTS.md#carte-du-code) détaille chaque dossier.
+Les plugins sont indépendants l'un de l'autre. Le [socle](./packages/plugin-socle/README.md)
+porte leurs éléments communs ; le [moteur de couleur](./packages/couleur/README.md)
+se teste sans Figma. [AGENTS.md](./AGENTS.md#carte-du-code) détaille chaque dossier.
 
 ## État du projet
 
