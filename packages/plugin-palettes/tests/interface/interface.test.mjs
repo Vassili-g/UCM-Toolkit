@@ -2438,3 +2438,110 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
     await page.close();
   }
 });
+
+/**
+ * Ouvre le sélecteur de la couleur de référence, cartes lourdes dépliées, et
+ * pose dans la page `glisser(mouvements, apres)` : un appui dans la zone,
+ * les mouvements donnés dans la même tâche, puis `apres` ('rien', 'echap' ou
+ * 'relacher'). Les événements sont synthétiques : la capture du pointeur
+ * n'existe que pour un vrai pointeur, elle se simule.
+ */
+async function ouvrirLeGlisser(page) {
+  await deplierLaCarte(page, 'Garanties de contraste');
+  await deplierLaCarte(page, 'Interface de test');
+  await carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .pipette').click();
+  await page.evaluate(() => {
+    const zone = document.querySelector('.selecteur-zone');
+    zone.setPointerCapture = () => {};
+    zone.hasPointerCapture = () => true;
+    const cadre = zone.getBoundingClientRect();
+    const point = (x, y) => ({ bubbles: true, pointerId: 1, isPrimary: true, button: 0, clientX: cadre.left + cadre.width * x, clientY: cadre.top + cadre.height * y });
+    window.compteDesRendus = 0;
+    new MutationObserver(() => { window.compteDesRendus += 1; }).observe(document.querySelector('.repere-de-la-reference'), { childList: true, characterData: true, subtree: true });
+    window.garantiesTouchees = 0;
+    new MutationObserver(() => { window.garantiesTouchees += 1; }).observe(document.querySelector('[aria-label="Garanties de contraste"] .carte-corps'), { childList: true, characterData: true, subtree: true, attributes: true });
+    window.glisser = (mouvements, apres) => {
+      zone.dispatchEvent(new PointerEvent('pointerdown', point(0.1, 0.1)));
+      for (const [x, y] of mouvements) zone.dispatchEvent(new PointerEvent('pointermove', point(x, y)));
+      if (apres === 'echap') document.querySelector('.selecteur-de-couleur').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (apres === 'relacher') zone.dispatchEvent(new PointerEvent('pointerup', point(...mouvements.at(-1))));
+      // Le champ Hex du sélecteur s'écrit sans dièse.
+      return `#${document.querySelector('.selecteur-champ').value}`;
+    };
+    window.relacher = () => zone.dispatchEvent(new PointerEvent('pointerup', point(0.8, 0.6)));
+  });
+}
+
+const referenceMontree = (page) => carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .champ-hexa').inputValue();
+const imageSuivante = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+const rangements = (page) => page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette'));
+
+test('Z4.4 [UI-13] pendant un glisser dans le sélecteur de couleur, l’aperçu se rend une fois par image, à la couleur du dernier mouvement ; les garanties attendent', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const avant = await referenceMontree(page);
+    // Les mouvements et la lecture du code tiennent dans une même tâche : aucune image ne passe entre eux.
+    const [code, rendusPendant, montreePendant] = await page.evaluate(() => {
+      window.compteDesRendus = 0;
+      window.garantiesTouchees = 0;
+      // Un observateur ne reçoit sa file qu'après la tâche : takeRecords la lit dans la tâche.
+      const pendant = new MutationObserver(() => {});
+      pendant.observe(document.querySelector('.repere-de-la-reference'), { childList: true, characterData: true, subtree: true });
+      const lu = window.glisser([[0.3, 0.2], [0.5, 0.3], [0.7, 0.4], [0.9, 0.5]], 'rien');
+      const rendus = pendant.takeRecords().length;
+      pendant.disconnect();
+      return [lu, rendus, document.querySelector('[aria-label="Configuration de la palette"] .colonnes-de-base .champ-hexa').value];
+    });
+    assert.equal(rendusPendant, 0, 'aucun rendu dans les mouvements');
+    assert.equal(montreePendant, avant, 'le code de la configuration attend l’image');
+    await imageSuivante(page);
+    assert.equal(await page.evaluate(() => window.compteDesRendus), 1, 'un rendu pour quatre mouvements');
+    assert.equal(await referenceMontree(page), code, 'le rendu porte le dernier mouvement');
+    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'les garanties attendent la fin du geste');
+    assert.deepEqual(await rangements(page), [], 'rien ne se range pendant le geste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.4 [UI-13] la fin d’un glisser range une seule fois, à la couleur du dernier mouvement, et rend les garanties', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const code = await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4], [0.8, 0.6]], 'rien'));
+    // Une image passe avant le relâcher : l'aperçu seul s'est rendu.
+    await imageSuivante(page);
+    await page.evaluate(() => {
+      window.garantiesTouchees = 0;
+      window.relacher();
+    });
+    await imageSuivante(page);
+    const ranges = await rangements(page);
+    assert.equal(ranges.length, 1);
+    assert.equal(ranges[0].recette.palettes[0].reference, code);
+    assert.equal(await referenceMontree(page), code);
+    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'les garanties suivent la fin du geste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.4 [UI-13] Échap pendant un glisser referme le sélecteur, rend le focus à la pastille, laisse l’aperçu au dernier mouvement sans rien ranger, puis rend tout l’onglet', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const code = await page.evaluate(() => {
+      window.garantiesTouchees = 0;
+      return window.glisser([[0.4, 0.3], [0.8, 0.7]], 'echap');
+    });
+    assert.equal(await referenceMontree(page), code, 'l’aperçu garde le dernier mouvement');
+    assert.equal(await page.locator('.selecteur-de-couleur').isVisible(), false);
+    assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('pipette')), true);
+    await page.waitForFunction(() => window.garantiesTouchees > 0, null, { timeout: 2000 });
+    await page.evaluate(() => document.querySelector('.selecteur-zone').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 })));
+    assert.deepEqual(await rangements(page), [], 'Échap n’enregistre rien');
+  } finally {
+    await page.close();
+  }
+});

@@ -237,7 +237,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », puis les cartes, chaque message sous la sienne
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable, avec son résumé
-  src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, et les pastilles qu'il propose
+  src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
   src/ui/garanties.ts      la carte des garanties : bascule Soft/Vivid pour deux intensités, réglette et arcs, une ligne par association
@@ -262,6 +262,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
   tests/                   dont la loi d'écriture, et interface/ pour Chromium
   scripts/mesurer-glisser.mjs  le coût d'un mouvement de poignée, hors des tests
+  scripts/mesurer-glisser-couleur.mjs  le coût d'un glisser dans le sélecteur de couleur et ses rendus par image, hors des tests
   manifest.json            identifiant attribué par Figma (point M1)
 
 docs/                    la documentation classée par sujet

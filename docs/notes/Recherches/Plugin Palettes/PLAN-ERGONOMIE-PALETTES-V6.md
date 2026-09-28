@@ -346,24 +346,47 @@ interaction.
 
 ## Lot Z4 : glisser du sélecteur de couleur
 
-- [ ] **Z4.1** Mesurer. Écrire `scripts/mesurer-glisser-couleur.mjs` sur le
+- [x] **Z4.1** Mesurer. Écrire `scripts/mesurer-glisser-couleur.mjs` sur le
   modèle de `mesurer-glisser.mjs` : dans Chromium, sur la galerie construite,
   cinquante mouvements dans la zone du sélecteur de la référence, puis dans
   le curseur de teinte, la durée médiane et maximale d’un `pointermove`, et
   le nombre de rendus par image. Même mesure pour un fond des Réglages
   communs. Reporter les chiffres ici.
-- [ ] **Z4.2** Un rendu par image au plus pendant un glisser : la dernière
+  Mesuré à 770 × 720 dans Chromium, avant correction, médiane et pire d’un
+  `pointermove`, quatre mouvements par image : référence, zone, 3,6 et
+  8,6 ms ; teinte, 3,3 et 6,9 ms ; zone avec Dérive, Garanties et Interface
+  de test dépliées, 8,0 et 19,2 ms ; fond des Réglages communs, 7,6 et
+  13,9 ms. Chaque mouvement rendait tout l’onglet : 4 rendus par image
+  synthétique. Un glisser réel de la souris de Playwright donne un
+  mouvement par image (201 rendus pour 202 images) : Chromium aligne déjà
+  la souris sur les images, et le retard vient du coût d’un rendu.
+  JavaScript d’un rendu, cartes dépliées : analyse 0,59 ms, nuancier 0,46,
+  garanties 1,04, dérive 0,54, interface de test 0,32, messages 0,05 ; le
+  reste des 8 ms est la mise en page forcée.
+- [x] **Z4.2** Un rendu par image au plus pendant un glisser : la dernière
   couleur reçue se rend à la prochaine image, la fin du geste rend et range
   aussitôt. Le sélecteur peint sa zone et son code à chaque événement.
-- [ ] **Z4.3** Remesurer. Si une image dépasse encore 16 ms, lister ce que le
+- [x] **Z4.3** Remesurer. Si une image dépasse encore 16 ms, lister ce que le
   rendu coûte, partie par partie, et différer à la fin du geste ce qui ne
   suit pas le pointeur : garanties, interface de test, messages. Le
   nuancier suit le pointeur. Reporter les chiffres avant et après dans le
   message du commit.
-- [ ] **Z4.4** Tests : pendant un glisser, un seul rendu par image ; la fin du
+  Aucune image ne dépassait 16 ms dans Chromium, mais les cartes dépliées
+  en approchaient, et Figma est plus lent : garanties, messages,
+  intensités, dérive et interface de test attendent la fin du geste
+  quand même. Après : un `pointermove` coûte 0,2 ms (pire 2,7), l’image
+  qui rend l’aperçu 1,4 ms (pire 2,3), cartes dépliées comprises ; le fond
+  des Réglages communs, 6,1 ms (pire 7,6), le rendu des Réglages eux-mêmes.
+  Un rendu par image. L’ordre des rangements ne change pas : le relâcher
+  range une fois, après le dernier aperçu ; aucune revue n’a été demandée.
+- [x] **Z4.4** Tests : pendant un glisser, un seul rendu par image ; la fin du
   geste range une seule fois, à la couleur du dernier mouvement ; Échap
   pendant un glisser se comporte comme aujourd’hui. Vus rouges sur
   mutation.
+  Fait : trois tests, vus rouges sur six mutations. Une mutation de
+  `valider` restait verte, le rangement relançant lui aussi un rendu
+  complet : le garde-fou muté est le retour au rendu complet après
+  l’aperçu seul.
 
 Critère : dans Figma, la zone du sélecteur suit le pointeur, et l’aperçu
 suit sans retard visible.

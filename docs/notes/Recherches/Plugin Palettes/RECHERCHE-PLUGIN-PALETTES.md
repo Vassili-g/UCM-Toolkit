@@ -1566,7 +1566,11 @@ palette » gardent leurs libellés au-dessus des champs.
   et de luminosité, un curseur de teinte, un menu de format et le code, en
   Hex à chaque ouverture ; RGB et HSL donnent trois champs. Aucune opacité.
   Le code a le focus à l'ouverture. Un glisser prévisualise et son relâcher
-  enregistre ; un code s'enregistre à Entrée ou à la sortie du champ, et un
+  enregistre. Pendant un glisser, la zone et le code suivent chaque
+  mouvement ; le contrôle reçoit une couleur par image, la dernière, et
+  l'onglet ne rend que l'aperçu : garanties, messages, intensités, dérive et
+  interface de test suivent le relâcher, ou, après Échap, le premier rendu
+  complet ; un code s'enregistre à Entrée ou à la sortie du champ, et un
   code invalide reste dans son champ, marqué, sans rien enregistrer. Les
   flèches déplacent la zone de 1 % et la teinte de 1°, dix fois plus avec
   Maj, et chaque pression enregistre. Échap referme et rend le focus au

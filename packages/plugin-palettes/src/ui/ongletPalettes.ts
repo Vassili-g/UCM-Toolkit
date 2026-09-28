@@ -123,6 +123,9 @@ export interface OngletPalettesUi {
   ouvrirLaPalette(id: string, mode: Mode): void;
 }
 
+/** Sans mouvement depuis ce délai, un glisser qui n'a pas fini, par Échap, rend tout l'onglet. */
+const DELAI_DU_RENDU_COMPLET = 150;
+
 function ligneDEtat(texte: string): HTMLParagraphElement {
   const ligne = document.createElement('p');
   ligne.className = 'etat-lecture';
@@ -211,7 +214,7 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
       hexa: courante.reference,
       titreDesPastilles: TEXTES_DU_SELECTEUR.nuancesDeLaPalette,
       pastilles: nuancesProposees(analyserPalette(recette, courante), nuancier.mode()),
-      saisir: (saisie, fin) => saisirReference(saisie, fin),
+      saisir: (saisie, fin) => saisirReference(saisie, fin, true),
       // L'onglet « Ajuster » part de la palette telle qu'elle est à son ouverture (X2.7, R3).
       ajustement: {
         element: ajustement.element,
@@ -424,6 +427,27 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     rendre();
   }
 
+  /*
+   * Pendant un glisser dans le sélecteur de couleur, un rendu ne peint que
+   * l'aperçu : champs, analyse et nuancier suivent le pointeur. Garanties,
+   * messages, intensités, dérive et interface de test suivent la fin du
+   * geste, qui range et rend tout, ou, sans elle, après Échap par exemple,
+   * le premier rendu complet (Z4.3).
+   */
+  let apercuSeul = false;
+  let renduComplet: ReturnType<typeof setTimeout> | undefined;
+
+  function rendreLApercu(): void {
+    apercuSeul = true;
+    try {
+      rendre();
+    } finally {
+      apercuSeul = false;
+    }
+    clearTimeout(renduComplet);
+    renduComplet = setTimeout(() => rendre(), DELAI_DU_RENDU_COMPLET);
+  }
+
   /** La fin d'un geste : la recette s'enregistre. */
   function valider(suivante: Recette): void {
     recette = suivante;
@@ -478,7 +502,7 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     if (fin) valider(suivante);
     else {
       recette = suivante;
-      rendre();
+      rendreLApercu();
     }
   }
 
@@ -513,7 +537,7 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
   }
 
   /** Une saisie d'hexa : l'aperçu suit une valeur complète, une valeur impossible se signale. */
-  function saisirReference(saisie: string, fin: boolean): void {
+  function saisirReference(saisie: string, fin: boolean, depuisLeSelecteur = false): void {
     const courante = ouverte();
     if (!recette || !courante) return;
     const suivante = changerReference(recette, courante, saisie);
@@ -528,6 +552,9 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
       if (originaleAvantSaisie && suivante.reference !== originaleAvantSaisie.toUpperCase()) note = originaleRetiree(originaleAvantSaisie);
       originaleAvantSaisie = null;
       valider(remplacerPalette(recette, suivante));
+    } else if (depuisLeSelecteur) {
+      recette = remplacerPalette(recette, suivante);
+      rendreLApercu();
     } else modifier(suivante);
   }
 
@@ -634,6 +661,7 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     repereDeReference.textContent = `◆ ${ligneDeLaReference(analyse.ancrage, nuancier.mode())}`;
 
     nuancier.afficher({ recette: lue, analyse, confondues: analyse.confusions });
+    if (apercuSeul) return;
 
     const nomDe = (id: string) => {
       const trouvee = lue.palettes.find((candidate) => candidate.id === id);
@@ -671,6 +699,7 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
   }
 
   function rendre(): void {
+    if (!apercuSeul) clearTimeout(renduComplet);
     rendreRefus();
     if (!classementLu) {
       montrer(vide);
@@ -715,9 +744,10 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
       const courante = ouverte();
       return courante ? { id: courante.id, mode: nuancier.mode() } : null;
     },
+    // Les Réglages communs couvrent l'onglet : leur glisser ne rend que l'aperçu, leur fin passe par `appliquer`.
     previsualiser(suivante) {
       recette = suivante;
-      rendre();
+      rendreLApercu();
     },
     appliquer: (suivante) => valider(suivante),
     importer(suivante) {

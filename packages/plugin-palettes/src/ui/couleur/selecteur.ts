@@ -282,7 +282,35 @@ function creer() {
     position = suivante;
     peindre();
     ecrireLesChamps();
-    ouverture?.saisir(ecrireHexa(couleur()), fin);
+    if (fin || !glisse) {
+      annulerLaSaisieEnAttente();
+      ouverture?.saisir(ecrireHexa(couleur()), fin);
+    } else transmettreALImageSuivante(ecrireHexa(couleur()));
+  }
+
+  /*
+   * Pendant un glisser, la zone et le code suivent chaque mouvement ; le
+   * contrôle ne reçoit qu'une couleur par image, la dernière, parce que sa
+   * saisie redessine l'aperçu (Z4.2). La fin du geste part aussitôt.
+   */
+  let saisieEnAttente: { hexa: string; image: number } | null = null;
+
+  function transmettreALImageSuivante(hexa: string): void {
+    if (saisieEnAttente) {
+      saisieEnAttente.hexa = hexa;
+      return;
+    }
+    const image = requestAnimationFrame(() => {
+      const attente = saisieEnAttente;
+      saisieEnAttente = null;
+      if (attente) ouverture?.saisir(attente.hexa, false);
+    });
+    saisieEnAttente = { hexa, image };
+  }
+
+  function annulerLaSaisieEnAttente(): void {
+    if (saisieEnAttente) cancelAnimationFrame(saisieEnAttente.image);
+    saisieEnAttente = null;
   }
 
   function suivrePointeur(commande: HTMLElement, lire: (x: number, y: number) => Hsv): void {
@@ -406,6 +434,11 @@ function creer() {
   }
 
   function ouvrir(suivante: OuvertureDuSelecteur): void {
+    // Une couleur en attente appartient au contrôle précédent : elle lui revient avant le changement.
+    const attente = saisieEnAttente;
+    annulerLaSaisieEnAttente();
+    if (attente) ouverture?.saisir(attente.hexa, false);
+    glisse = false;
     if (ouverture) ouverture.ancre.setAttribute('aria-expanded', 'false');
     ouverture = suivante;
     const lue = lireHexa(suivante.hexa) ?? [0, 0, 0];
@@ -432,6 +465,10 @@ function creer() {
 
   function fermer(rendreLeFocus: boolean): void {
     if (!ouverture) return;
+    // Échap pendant un glisser laisse l'aperçu au dernier mouvement, sans rien enregistrer.
+    const attente = saisieEnAttente;
+    annulerLaSaisieEnAttente();
+    if (attente) ouverture.saisir(attente.hexa, false);
     const { ancre } = ouverture;
     ouverture = null;
     glisse = false;
