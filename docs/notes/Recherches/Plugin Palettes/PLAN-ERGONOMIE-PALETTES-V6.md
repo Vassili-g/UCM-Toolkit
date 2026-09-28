@@ -30,8 +30,9 @@ Lire dans cet ordre :
    sans modification ;
 2. les décisions ci-dessous et les [réponses aux
    questions](#questions-au-mainteneur), une fois données ;
-3. les maquettes du lot Z3 (`MAQUETTES-RECETTE-V6.html`), une fois
-   validées ;
+3. les maquettes du lot Z3 (`MAQUETTES-RECETTE-V6.html`) : Z3.3 et les
+   questions Q6 sont validées, Z3.1 et Z3.2 le sont en partie, le reste
+   attend le second passage (Z3.4, Z3.5) ;
 4. le [cinquième plan](./PLAN-ERGONOMIE-PALETTES-V5.md), les [décisions de
    rédaction](./DECISIONS-REDACTION-PALETTES.md) et
    l’[inventaire des textes](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md) ;
@@ -70,18 +71,18 @@ relatifs à `packages/plugin-palettes/`.
 | Sujet | Décision |
 |---|---|
 | Fenêtre | 850 × 720 par défaut. Le plus petit format reste 500 × 520. Une taille rangée à 600, 650 ou 750 × 720 s’ouvre à 850 × 720 ; toute autre taille rangée se garde |
-| Largeur du contenu | Aucun bloc ne garde une largeur fixe pensée pour 750 px quand la place existe. Les largeurs fixes qui servent un alignement (colonnes de nuances, pastilles) se gardent. Le sélecteur de couleur garde 232 px, sauf si la maquette Z3.1 en décide autrement pour « Ajuster » |
+| Largeur du contenu | Aucun bloc ne garde une largeur fixe pensée pour 750 px quand la place existe. Les largeurs fixes qui servent un alignement (colonnes de nuances, pastilles) se gardent. Le sélecteur de couleur garde 232 px pour « Choisir » ; la présentation d’« Ajuster » se tranche en Z3.4 |
 | Onglets | Libellés « Création » et « Palettes ». Les identifiants (`palettes`, `planche`), les panneaux, les modules (`ongletPalettes.ts`, `ongletPlanche.ts`) et `data-geste` ne changent pas (Q6.1). AGENTS.md et CONTRIBUTING.md donnent la correspondance |
 | Palette ouverte à l’ouverture | Aucune. Le sélecteur écrit « Sélectionner une palette ». Le menu de la palette (dupliquer, monter, descendre, supprimer) se cache. « Nouvelle palette » reste. La palette choisie dure jusqu’à la fermeture du plugin et ne se range pas |
-| Invitation | Sous le sélecteur, sans palette choisie : avec des palettes, une phrase qui invite à en choisir une dans la liste ou à en créer une, et le bouton « Nouvelle palette » ; sans palette, le panneau de création actuel. Textes à valider en Z3.3 |
+| Invitation | Sous le sélecteur, sans palette choisie et avec des palettes : le titre « Choisissez une palette », puis « Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ». » (disposition D1, texte a). Pas de bouton dans l’invitation : les gestes sont ceux de la barre. Sans palette, le panneau de création actuel, et son texte ne change pas (Z3.3, question 3, a) |
 | Palette supprimée | La palette suivante s’ouvre, comme aujourd’hui (Q6.3) |
 | Glisser dans le sélecteur de couleur | Un rendu par image au plus pendant un glisser. La fin du geste rend et range comme aujourd’hui. Si une image dépasse encore son budget, les parties lourdes (garanties, interface de test, messages) attendent la fin du geste ; l’aperçu suit le pointeur |
-| Ajuster la référence | Workflow refait d’après la maquette Z3.1 : dire pourquoi avant de proposer le geste, moins de texte, textes rangés par ce que le designer décide |
+| Ajuster la référence | Forme A (Z3.1) : le panneau reste ouvert depuis la pastille de la référence, réorganisé. En tête, la phrase qui dit pourquoi, rédaction b : « La nuance 600 est exactement votre couleur. En Thème Light, elle est trop claire pour les bordures de champ et l’anneau de focus sur fond léger : 2,92:1 pour un minimum de 3:1. » Puis les deux témoins, les pas, une ligne pour la nuance visée et les annonces des pas, le code, les garanties avant et après en tableau, et le bilan par intensité. La luminosité se retire. Sous le code, avec une garantie manquée : « ✗ 2 garanties manquées en Thème Light » en couleur de danger, puis « Ajuster la référence » (lien b). Le panneau prend la forme d’une modale, pas d’un panneau pleine largeur : sa largeur et sa place se valident en Z3.4 |
 | Pastilles d’état | « À actualiser » et « Pas encore sur Figma » : fond et texte d’avertissement. « À jour » : fond de succès, texte de succès. « Cadre introuvable » et « Lecture impossible » gardent le danger |
 | Libellés de l’onglet Palettes | « À actualiser » partout où « À mettre à jour » s’écrivait. « Actualiser tout (N palettes) » remplace « Mettre à jour (N palettes) », singulier gardé. « Générer tout (N palettes) » ne change pas |
 | Code hexa | Il prend toute la largeur de sa colonne, dans la configuration et dans la création, qui gardent la même disposition (Q6.5) |
-| Intensités dans la configuration | Segments `.bascule-de-base`, libellé « Intensités » au-dessus, comme « Modèle ». Libellés des segments à valider (Q6.2). Dessous, inchangés : l’aide, « Intensité : 0,89 » à une intensité, « Référence exacte dans » à deux. La création garde ses deux cartes |
-| Garanties de contraste | Mise en page refaite d’après la maquette Z3.2. Le contenu ne change pas : associations, états, ratios, niveaux WCAG, réglettes, liens des garanties en échec |
+| Intensités dans la configuration | Segments `.bascule-de-base`, libellé « Intensités » au-dessus, comme « Modèle ». Libellés « Une · Deux » (Q6.2). Dessous, inchangés : l’aide, « Intensité : 0,89 » à une intensité, « Référence exacte dans » à deux. La création garde ses deux cartes |
+| Garanties de contraste | Disposition G2 (Z3.2) : un encadré par groupe de minimum, son titre en bandeau ; les états nommés une fois en tête de colonne ; dans chaque case, le spécimen à gauche des numéros et du ratio, le badge sur la ligne du ratio ; les codes des rôles en 11 px sur fond ; la rangée choisie sur fond, marquée d’une barre de 3 px écartée du texte. À 500 px, les états ne passent pas sous le nom : la disposition étroite se valide en Z3.5. Le contenu ne change pas : associations, états, ratios, niveaux WCAG, réglettes, liens des garanties en échec |
 
 ## Reprise du cinquième plan
 
@@ -105,11 +106,11 @@ compacts des fiches (Y1.6).
 |---|---|---|
 | Constats, règles et documents | Z0 | Relecture de ce plan |
 | Corrections directes | Z1 | Z0 |
-| Aucune palette à l’ouverture | Z2 | Z1.3 ; textes de Z3.3 validés |
-| Maquettes à valider | Z3 | Z0.1 ; en parallèle de Z1 |
+| Aucune palette à l’ouverture | Z2 | Z1.3 (textes de Z3.3 validés) |
+| Maquettes à valider | Z3 | Second passage : Z3.4 et Z3.5 ; en parallèle de Z1 |
 | Glisser du sélecteur de couleur | Z4 | Z0 ; en parallèle de Z1 |
-| Ajuster la référence | Z5 | Z3.1 validée |
-| Garanties de contraste | Z6 | Z3.2 validée, Z1.2 |
+| Ajuster la référence | Z5 | Z3.4 validée |
+| Garanties de contraste | Z6 | Z3.5 validée, Z1.2 |
 | Recette et clôture | Z7 | Lots finis |
 
 Aucun lot ne touche au moteur ni à la recette : `FORMAT_RECETTE` reste 4,
@@ -206,7 +207,7 @@ tests voisins et `tests/interface/interface.test.mjs`.
   garde `tabular-nums`. Vérifier à 500 × 520 que la rangée du nom et de la
   référence tient.
 - [ ] **Z1.7** Intensités de la configuration en segments `.bascule-de-base`,
-  selon la réponse à Q6.2. Le composant garde l’API de
+  « Une · Deux » (Q6.2). Le composant garde l’API de
   `createInterrupteurDesIntensites` (`poser`, `base`, `element`) ; renommer
   s’il ne s’agit plus d’un interrupteur. Les deux tests Y4.8 passent par les
   segments. Une palette libre n’a toujours pas ce choix.
@@ -256,7 +257,7 @@ lettrés au-dessus de ses choix, la disposition en place d’abord, une
 recommandation ensuite. Textes courts, une ligne par légende. Chaque texte
 proposé au designer l’est en plusieurs rédactions côte à côte.
 
-- [ ] **Z3.1** Ajuster la référence. Montrer d’abord le parcours en place,
+- [x] **Z3.1** Ajuster la référence. Montrer d’abord le parcours en place,
   du lien au panneau, avec une référence qui manque deux garanties dans un
   thème. Puis au moins trois formes :
   A, le panneau dans le sélecteur, réorganisé : une phrase qui dit pourquoi
@@ -269,7 +270,7 @@ proposé au designer l’est en plusieurs rédactions côte à côte.
   Pour chacune : le texte du lien et la phrase qui explique (plusieurs
   rédactions, fondées sur `[MOT-17]`), ce qui se retire, ce qui reste,
   l’état après « Appliquer ». Recommander une forme.
-- [ ] **Z3.2** Garanties de contraste. Montrer la carte en place à 850 px,
+- [x] **Z3.2** Garanties de contraste. Montrer la carte en place à 850 px,
   une palette à deux intensités, une garantie choisie, une garantie en
   échec. Puis au moins deux dispositions qui répondent à chaque point du
   retour : codes des rôles (`text`, `on-solid`) à la taille du texte et
@@ -278,20 +279,36 @@ proposé au designer l’est en plusieurs rédactions côte à côte.
   tête de colonne ; rangée choisie marquée sans trait collé au texte ;
   groupes par minimum séparés ; rangée d’un seul état plus basse. Donner la
   hauteur de la carte dans chaque disposition, contre celle d’aujourd’hui.
-- [ ] **Z3.3** Onglet Création sans palette choisie : la disposition, le
+- [x] **Z3.3** Onglet Création sans palette choisie : la disposition, le
   libellé du sélecteur, et trois rédactions de l’invitation avec des
   palettes. Sans palette, le panneau de création actuel, et une rédaction
   de remplacement si l’invitation change son texte.
 
 Second passage dans le même fichier après les retours, jusqu’à validation.
 
-Premier passage produit : les écrans sont le DOM de la
-galerie construite, réorganisé dans Chromium, et chaque proposition est un
-prototype des règles CSS que Z5 et Z6 écriront. Recommandations soumises :
-Z3.1 forme B, lien b, explication b ; Z3.2 disposition G2 (968 px contre
-1 310, 900 contre 1 264 sans échec, aucun badge à la ligne) ; Z3.3
-disposition D1, invitation a, texte sans palette inchangé ; Q6.1 à Q6.5
-comme recommandé. Les cases Z3 se cochent à la validation.
+Premier passage : les écrans sont le DOM de la galerie construite,
+réorganisé dans Chromium, et chaque proposition est un prototype des règles
+CSS que Z5 et Z6 écriront. Réponses du mainteneur, conservées [en fin de
+plan](#retours-du-mainteneur-maquettes-du-lot-z3) : Z3.1 forme A, lien b,
+phrase b « en forme de modal, pas pleine page » ; Z3.2 G2 à 850 px, mais
+la version étroite est refusée ; Z3.3 D1, texte a, texte sans palette a ;
+Q6.1 à Q6.5 comme recommandé. Deux cases restent, au second passage, dans
+le même fichier :
+
+- [ ] **Z3.4** Ajuster la référence en modale. La forme A et la phrase b,
+  dans le cas de Vert, en deux présentations : M1, le panneau d’aujourd’hui
+  sous la pastille, à 232 px ; M2, une modale posée au-dessus du panneau,
+  plus large, le fond assombri, que « Annuler », Échap et « Appliquer »
+  referment en rendant le focus à la pastille. Pour chacune : la largeur, le
+  nombre de lignes de la phrase et du tableau, ce que la modale laisse voir
+  de la configuration. Si « modal » désignait autre chose que M2, le
+  mainteneur le dit sur ces écrans.
+- [ ] **Z3.5** Garanties à 500 px sans retour à la ligne. G2 à 500 px, où
+  chaque rangée garde le nom et ses états sur une même ligne, en au moins
+  deux dispositions : N1, le nom français sous le code, le spécimen réduit,
+  des cases d’état plus étroites ; N2, le spécimen au-dessus des numéros et
+  du ratio dans les cases étroites, comme G1. Vérifier au ratio le plus
+  long (« ✗ 21:1 » et un badge AAA) et donner la hauteur de la carte.
 
 Critère : le mainteneur valide ou corrige chaque maquette sans imaginer une
 interaction.
@@ -324,10 +341,14 @@ suit sans retard visible.
 
 Après la validation de Z3.1.
 
-- [ ] **Z5.1** Le lien et son explication selon Z3.1. Le lien ne paraît
-  toujours qu’avec une garantie manquée (Y8.0).
-- [ ] **Z5.2** Le panneau selon Z3.1 ; les textes retirés marqués retirés
-  dans l’inventaire. `[UI-15]` récrit.
+- [ ] **Z5.1** Sous le code, « ✗ N garanties manquées en Thème X » en
+  couleur de danger, puis « Ajuster la référence ». Les deux ne paraissent
+  qu’avec une garantie manquée (Y8.0) ; avec des manques dans les deux
+  thèmes, la ligne les compte ensemble.
+- [ ] **Z5.2** Le panneau selon la forme A et la présentation validée en
+  Z3.4 : la phrase b en tête, le tableau avant et après, une ligne pour la
+  nuance visée et les pas, sans luminosité. Les textes retirés marqués
+  retirés dans l’inventaire. `[UI-15]` récrit.
 - [ ] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
   d’interface d’« Ajuster » repris, en gardant ce que chacun protégeait :
   rien ne change avant « Appliquer », « Annuler » et Échap rendent le focus,
@@ -340,8 +361,8 @@ garantie manque et pourquoi la référence doit bouger.
 
 Après la validation de Z3.2 et Z1.2.
 
-- [ ] **Z6.1** La carte selon Z3.2, à une et à deux intensités, aux deux
-  thèmes de palette. `[UI-09]` récrit.
+- [ ] **Z6.1** La carte selon G2 à 850 px et selon Z3.5 sous 700 px, à une
+  et à deux intensités, aux deux thèmes de palette. `[UI-09]` récrit.
 - [ ] **Z6.2** Vérifier à 500 × 520 et à 850 × 720, au ratio le plus long
   (« ✗ 21:1 » et un badge AAA), qu’aucun badge ne passe à la ligne.
 - [ ] **Z6.3** Tests : badge sur la même ligne que son ratio, à 500 px et à
@@ -390,13 +411,13 @@ garanties en échec.
 
 ## Questions au mainteneur
 
-| Question | Ce qui en dépend | Recommandation |
-|---|---|---|
-| **Q6.1** Les identifiants de code gardent-ils les anciens noms (`ongletPalettes.ts` pour l’onglet Création, `ongletPlanche.ts` pour l’onglet Palettes) ? | Z1.3, Z0.4 | Oui, avec la correspondance dans AGENTS.md et CONTRIBUTING.md. Renommer toucherait 94 tests et 63 états, et `palettes` changerait de sens |
-| **Q6.2** Libellés des segments des intensités : « Une · Deux » ou « Une intensité · Deux intensités » ? | Z1.7 | « Une · Deux », sous le libellé « Intensités », comme « Standard · Libre » sous « Modèle » |
-| **Q6.3** Après la suppression de la palette ouverte : la suivante s’ouvre, ou l’onglet revient sans palette ? | Z2.1 | La suivante, comme aujourd’hui |
-| **Q6.4** « Actualiser tout » génère aussi les palettes « Pas encore sur Figma ». Le libellé convient-il ? | Z1.4 | Oui : les deux états partagent désormais l’orange, et le geste les traite ensemble |
-| **Q6.5** Le code hexa prend-il aussi toute la largeur dans la carte de création ? | Z1.6 | Oui : la création et la configuration gardent la même disposition (décision Y2.1) |
+| Question | Ce qui en dépend | Recommandation | Réponse |
+|---|---|---|---|
+| **Q6.1** Les identifiants de code gardent-ils les anciens noms (`ongletPalettes.ts` pour l’onglet Création, `ongletPlanche.ts` pour l’onglet Palettes) ? | Z1.3, Z0.4 | Oui, avec la correspondance dans AGENTS.md et CONTRIBUTING.md. Renommer toucherait 94 tests et 63 états, et `palettes` changerait de sens | Recommandation retenue |
+| **Q6.2** Libellés des segments des intensités : « Une · Deux » ou « Une intensité · Deux intensités » ? | Z1.7 | « Une · Deux », sous le libellé « Intensités », comme « Standard · Libre » sous « Modèle » | Recommandation retenue |
+| **Q6.3** Après la suppression de la palette ouverte : la suivante s’ouvre, ou l’onglet revient sans palette ? | Z2.1 | La suivante, comme aujourd’hui | Recommandation retenue |
+| **Q6.4** « Actualiser tout » génère aussi les palettes « Pas encore sur Figma ». Le libellé convient-il ? | Z1.4 | Oui : les deux états partagent désormais l’orange, et le geste les traite ensemble | Recommandation retenue |
+| **Q6.5** Le code hexa prend-il aussi toute la largeur dans la carte de création ? | Z1.6 | Oui : la création et la configuration gardent la même disposition (décision Y2.1) | Recommandation retenue |
 
 ## Hors périmètre
 
@@ -458,4 +479,40 @@ Zone Garanties de contraste
     de vu global car on ne distingue même pas spécialement les
     différentes sections. Et tout prend beaucoup de place pour
     certaines nuances
+```
+
+## Retours du mainteneur, maquettes du lot Z3
+
+Texte d’origine, premier passage de `MAQUETTES-RECETTE-V6.html`. Sous
+Z3.1, la ligne « b mais en forme de modal » suit la question 2 ; elle vise
+la question 3, dont les écrans montraient la phrase dans la forme B.
+
+```text
+Question 1
+A
+Question 2
+B
+b mais en forme de modal, pas pleine page
+
+Z3.2 · Garanties de contraste
+Question 1
+G2
+
+Question 1 bis
+G2 mais c'est pas terrible que ça passe à la ligne, ça fait vraiment fouilli
+
+Z3.3 · Onglet Création sans palette choisie
+Question 1
+D1
+
+Question 2
+A
+
+Question 3
+A
+Q6.1 à Q6.5
+ok pour reco
+
+Q6.1, Q6.3, Q6.4
+ok reco
 ```
