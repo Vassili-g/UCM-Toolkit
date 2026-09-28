@@ -185,7 +185,7 @@ jobs:
       # La marche à suivre, une fois par NOM de paquet :
       #   1. `npm publish --workspace <paquet>` depuis un poste, avec 2FA ;
       #   2. déclarer l'éditeur de confiance sur npm — Organization `Vassili-g`,
-      #      Repository `UCM-Exporter`, Workflow `publish.yml`, aucun
+      #      Repository `UCM-Toolkit`, Workflow `publish.yml`, aucun
       #      environnement (l'étape « Identité OIDC » ci-dessus affiche ces
       #      valeurs, champ par champ, telles que le runner les présente) ;
       #   3. toutes les versions suivantes partent d'ici.

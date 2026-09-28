@@ -7,7 +7,7 @@ contracts. It lives outside
 depends on the TypeScript compiler, a 23 MB dependency.
 
 ```sh
-npm install --save-dev @ucm-kit/adapter-typescript@0.1.42 @ucm-kit/cli@0.1.49
+npm install --save-dev @ucm-kit/adapter-typescript@0.1.43 @ucm-kit/cli@0.1.50
 npx ucm-typescript          # generates the types from the contracts
 npx --no-install ucm check  # checks the contracts, parity included
 ```
@@ -84,5 +84,5 @@ skipped and named; `ucm check` reports why.
 
 **0.x, the public surface is not frozen.** Pin an exact version, without `^`.
 
-- [Repository and issues](https://github.com/Vassili-g/UCM-Exporter)
-- [MIT licensed](https://github.com/Vassili-g/UCM-Exporter/blob/main/LICENSE)
+- [Repository and issues](https://github.com/Vassili-g/UCM-Toolkit)
+- [MIT licensed](https://github.com/Vassili-g/UCM-Toolkit/blob/main/LICENSE)

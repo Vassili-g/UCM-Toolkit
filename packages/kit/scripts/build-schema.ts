@@ -61,7 +61,7 @@ function identifier(schema: Record<string, unknown>): Record<string, unknown> {
   return {
     $schema,
     // Identifiant, pas adresse : le dépôt est privé et cette URI ne résout pas.
-    $id: `https://github.com/Vassili-g/UCM-Exporter/schema/ucm-contract-${CONTRACT_VERSION}.schema.json`,
+    $id: `https://github.com/Vassili-g/UCM-Toolkit/schema/ucm-contract-${CONTRACT_VERSION}.schema.json`,
     title: `Contrat de composant UCM ${CONTRACT_VERSION}`,
     description: LIMITES,
     'x-ucm-contract-version': CONTRACT_VERSION,

@@ -737,7 +737,7 @@ function validerFontSizesParTaille(children, prefixe, invalides) {
  * chercher dans la seule projection de référence refuse donc exactement le cas
  * que ce champ existe pour décrire, et le premier contrat à en porter une l'a
  * prouvé. L'autorité côté producteur balaie `viewStructures` en entier
- * (`UCM-Exporter/tests/lois.ts`) ; ce relevé fait la même chose.
+ * (`UCM-Toolkit/tests/lois.ts`) ; ce relevé fait la même chose.
  *
  * Un contrat antérieur à la 11.0 n'a pas de catalogue de structures : le
  * relevé se réduit alors à sa projection, c'est-à-dire à son unique arbre.

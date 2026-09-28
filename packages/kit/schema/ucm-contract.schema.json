@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/Vassili-g/UCM-Exporter/schema/ucm-contract-14.0.schema.json",
+  "$id": "https://github.com/Vassili-g/UCM-Toolkit/schema/ucm-contract-14.0.schema.json",
   "title": "Contrat de composant UCM 14.0",
   "description": "Ce schéma décrit la FORME d'un contrat, pas sa cohérence interne. Il ne vérifie pas les renvois internes : une entrée de `variants` peut citer une vue absente de `variantViews`, une icône un slot absent de `structure`, un token une référence inexistante. Il ne contraint pas non plus le FORMAT des valeurs : une référence de token `{chemin.du.token}`, une mesure `120px` et une piste `1fr` y sont de simples chaînes, parce que TypeScript les décrit par des types que JSON Schema ne sait pas porter. Un contrat valide au sens de ce schéma reste donc à vérifier par un consommateur.",
   "x-ucm-contract-version": "14.0",

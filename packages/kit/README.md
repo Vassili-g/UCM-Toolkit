@@ -5,12 +5,12 @@ The UCM contract format, and the readers that judge a contract.
 A **UCM contract** is a JSON file describing a UI component exactly as it exists
 in Figma: its variants, its structure, its design tokens, its usage rules. It is
 written by the [UCM Contract
-Exporter](https://github.com/Vassili-g/UCM-Exporter) Figma plugin, and read by
+Exporter](https://github.com/Vassili-g/UCM-Toolkit) Figma plugin, and read by
 the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.1.41
+npm install @ucm-kit/core@0.1.42
 ```
 
 Most repositories never call this package directly. They run
@@ -143,5 +143,5 @@ returns a verdict.
 The exported symbols are French: `champsInvalidesDuContrat` reads as "invalid
 fields of the contract", `verdictDeVersion` as "version verdict".
 
-- [Repository and issues](https://github.com/Vassili-g/UCM-Exporter)
-- [MIT licensed](https://github.com/Vassili-g/UCM-Exporter/blob/main/LICENSE)
+- [Repository and issues](https://github.com/Vassili-g/UCM-Toolkit)
+- [MIT licensed](https://github.com/Vassili-g/UCM-Toolkit/blob/main/LICENSE)

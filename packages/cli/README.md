@@ -6,7 +6,7 @@ exported them.
 A **UCM contract** is a JSON file describing a UI component exactly as it exists
 in Figma: its variants, its structure, its design tokens, its usage rules. It is
 written by the [UCM Contract
-Exporter](https://github.com/Vassili-g/UCM-Exporter) Figma plugin and committed
+Exporter](https://github.com/Vassili-g/UCM-Toolkit) Figma plugin and committed
 next to the component's code. This command reads those files and reports
 whether they are valid, whether their references resolve, and whether the code
 matches them.
@@ -16,7 +16,7 @@ matches them.
 Requires Node 20 or later. At the root of the repository:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.49 init
+npx --yes @ucm-kit/cli@0.1.50 init
 ```
 
 1. Commit and push the files `init` wrote.
@@ -27,7 +27,7 @@ npx --yes @ucm-kit/cli@0.1.49 init
 To run the check locally:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.49 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.50 check --report ci-report.md
 ```
 
 `--yes` skips the npx confirmation prompt. Pin an exact version, without `^`:
@@ -78,7 +78,7 @@ contract would resolve to the same file. A repository that does not write React
 states its own extension:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.49 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
+npx --yes @ucm-kit/cli@0.1.50 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
 ```
 
 The three path options act only on a first install. `ucm init` never overwrites
@@ -188,7 +188,7 @@ directory. It writes a minimal report when the check stopped before writing
 one, then posts the report:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.49 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
+npx --yes @ucm-kit/cli@0.1.50 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
 ```
 
 | Option | Effect |
@@ -405,5 +405,5 @@ cannot read, a contract version outside its reading window included.
 
 **0.x, the public surface is not frozen.** Pin an exact version.
 
-- [Repository and issues](https://github.com/Vassili-g/UCM-Exporter)
-- [MIT licensed](https://github.com/Vassili-g/UCM-Exporter/blob/main/LICENSE)
+- [Repository and issues](https://github.com/Vassili-g/UCM-Toolkit)
+- [MIT licensed](https://github.com/Vassili-g/UCM-Toolkit/blob/main/LICENSE)
