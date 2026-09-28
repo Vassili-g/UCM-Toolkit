@@ -334,12 +334,22 @@ le même fichier :
   nombre de lignes de la phrase et du tableau, ce que la modale laisse voir
   de la configuration. Si « modal » désignait autre chose que M2, le
   mainteneur le dit sur ces écrans.
+  Produit, à 770 px et à 500 px, attend la réponse. M1 : 232 px, la phrase
+  sur 6 lignes, chaque garantie sur deux, le panneau 89 px sous la fenêtre
+  (289 px à 500 px) ; il couvre le code et l’aperçu. M2, recommandée :
+  520 px, la phrase sur 3 lignes, le tableau en colonnes, tout dans la
+  fenêtre, à 500 px aussi (468 px).
 - [ ] **Z3.5** Garanties à 500 px sans retour à la ligne. G2 à 500 px, où
   chaque rangée garde le nom et ses états sur une même ligne, en au moins
   deux dispositions : N1, le nom français sous le code, le spécimen réduit,
   des cases d’état plus étroites ; N2, le spécimen au-dessus des numéros et
   du ratio dans les cases étroites, comme G1. Vérifier au ratio le plus
   long (« ✗ 21:1 » et un badge AAA) et donner la hauteur de la carte.
+  Produit, attend la réponse. À 500 px, aucun badge à la ligne en N1 ni en
+  N2, avec « ✗ 21,00 » et « AAA » ou « AA ✗ » dans chaque case. Hauteur,
+  Bleu avec un échec : aujourd’hui 1 284 px et quatre badges à la ligne ;
+  N1 1 390 px, le nom écrasé (« border- / control ») ; N2, recommandée,
+  1 248 px. G2 à 770 px : 978 px, aucun badge à la ligne.
 
 Critère : le mainteneur valide ou corrige chaque maquette sans imaginer une
 interaction.
