@@ -2545,3 +2545,36 @@ test('Z4.4 [UI-13] Échap pendant un glisser referme le sélecteur, rend le focu
     await page.close();
   }
 });
+
+test('Z5.1 [UI-11] sous le code, une référence qui manque des garanties dit combien et dans quel thème, en couleur de danger, puis « Ajuster la référence » ; sans manque, ni l’un ni l’autre', async () => {
+  const page = await ouvrirSur('ajustement-ouvert');
+  try {
+    await page.keyboard.press('Escape');
+    const colonne = carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base');
+    const manque = colonne.locator('.manque-de-la-reference');
+    assert.equal(await manque.textContent(), '✗ 2 garanties manquées en Thème Light');
+    const [couleur, danger] = await manque.evaluate((element) => {
+      const temoin = document.createElement('span');
+      temoin.style.color = 'var(--texte-danger)';
+      document.body.append(temoin);
+      const attendue = getComputedStyle(temoin).color;
+      temoin.remove();
+      return [getComputedStyle(element).color, attendue];
+    });
+    assert.equal(couleur, danger);
+    const lien = colonne.getByRole('button', { name: 'Ajuster la référence' });
+    assert.equal(await lien.getAttribute('aria-describedby'), 'manque-de-la-reference');
+    const [haut, bas] = [await manque.boundingBox(), await lien.boundingBox()];
+    assert.ok(haut.y + haut.height <= bas.y, 'la ligne précède le lien');
+  } finally {
+    await page.close();
+  }
+  const sansManque = await ouvrirSur('garanties-respectees');
+  try {
+    const colonne = carteDeLOnglet(sansManque, 'Configuration de la palette').locator('.colonnes-de-base');
+    assert.equal(await colonne.locator('.manque-de-la-reference').isVisible(), false);
+    assert.equal(await colonne.getByRole('button', { name: 'Ajuster la référence' }).isVisible(), false);
+  } finally {
+    await sansManque.close();
+  }
+});

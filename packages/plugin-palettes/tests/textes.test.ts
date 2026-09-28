@@ -15,6 +15,7 @@ import {
   dessinInterrompu,
   ecartDePeinture,
   ligneDesValeurs,
+  garantiesManqueesDeLaReference,
   genererLesPalettesPasAJour,
   genererToutesLesPalettes,
   jugementDuSeuil,
@@ -241,4 +242,10 @@ test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l
   assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Minimums des promesses : le résultat des garanties peut changer, sans changer les couleurs.']);
   assert.equal(consequenceSurLaPlanche([], []), 'Sur la planche : aucun cadre à jour n’est touché.');
   assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À actualiser » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
+});
+
+test('Z5.1 : sous le code, les garanties manquées se comptent, au singulier pour une, et les deux thèmes ensemble', () => {
+  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 0 }), '✗ 2 garanties manquées en Thème Light');
+  assert.equal(garantiesManqueesDeLaReference({ light: 0, dark: 1 }), '✗ 1 garantie manquée en Thème Dark');
+  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 1 }), '✗ 3 garanties manquées en Thème Light et en Thème Dark');
 });

@@ -395,10 +395,14 @@ suit sans retard visible.
 
 Après la validation de Z3.1.
 
-- [ ] **Z5.1** Sous le code, « ✗ N garanties manquées en Thème X » en
+- [x] **Z5.1** Sous le code, « ✗ N garanties manquées en Thème X » en
   couleur de danger, puis « Ajuster la référence ». Les deux ne paraissent
   qu’avec une garantie manquée (Y8.0) ; avec des manques dans les deux
   thèmes, la ligne les compte ensemble.
+  Fait avant Z3.4 : le texte est validé (lien b) et ne dépend pas de la
+  présentation du panneau. Deux thèmes : « ✗ 3 garanties manquées en Thème
+  Light et en Thème Dark », à valider (N135). Le lien décrit par cette
+  ligne (`aria-describedby`). Tests vus rouges sur cinq mutations.
 - [ ] **Z5.2** Le panneau selon la forme A et la présentation validée en
   Z3.4 : la phrase b en tête, le tableau avant et après, une ligne pour la
   nuance visée et les pas, sans luminosité. Les textes retirés marqués

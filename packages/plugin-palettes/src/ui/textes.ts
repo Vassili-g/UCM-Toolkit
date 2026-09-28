@@ -1365,6 +1365,17 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   horsLimite: 'Aucun pas possible dans ce sens : la luminosité est à sa limite.',
 } as const;
 
+/**
+ * La ligne sous le code d'une référence qui manque des garanties, avant
+ * « Ajuster la référence » (maquette Z3.1, lien b ; N135). Des manques dans
+ * les deux thèmes se comptent ensemble.
+ */
+export function garantiesManqueesDeLaReference(manques: { readonly [M in Mode]: number }): string {
+  const total = manques.light + manques.dark;
+  const themes = (['light', 'dark'] as const).filter((mode) => manques[mode] > 0).map((mode) => `en Thème ${NOM_DU_MODE[mode]}`);
+  return `✗ ${total} ${total === 1 ? 'garantie manquée' : 'garanties manquées'} ${themes.join(' et ')}`;
+}
+
 /** La nuance qui porterait la référence : une fois quand les deux thèmes s'accordent. */
 export function nuanceVisee(crans: { readonly [M in Mode]: number }): string {
   return crans.light === crans.dark

@@ -1493,9 +1493,12 @@ palette » gardent leurs libellés au-dessus des champs.
   « Référence exacte dans » (Auto, Soft ou Vivid), et en Auto une ligne qui
   dit le profil que le classement a choisi : « Auto a choisi Vivid ». Soft
   ou Vivid force le profil porteur (`[MOT-17]`). L'erreur d'un code invalide reste sous son champ.
-  Sous le code, aligné à gauche et hors du libellé du champ, « Ajuster la
+  Sous le code, aligné à gauche et hors du libellé du champ, une ligne en
+  couleur de danger compte les garanties manquées et nomme leur thème,
+  « ✗ 2 garanties manquées en Thème Light », les deux thèmes ensemble quand
+  les deux en manquent ; puis « Ajuster la
   référence » ouvre le sélecteur de couleur de la référence sur son onglet
-  « Ajuster » (`[UI-15]`). Il ne paraît que lorsqu'une garantie est manquée,
+  « Ajuster » (`[UI-15]`). Les deux ne paraissent que lorsqu'une garantie est manquée,
   dans l'un ou l'autre thème : une palette libre ou une palette qui tient
   toutes ses garanties ne l'a pas, et l'onglet « Ajuster » de la pastille
   reste ouvert à toute palette. Une référence ajustée ajoute « Ajustée depuis

@@ -76,6 +76,7 @@ import {
   TEXTES_DE_L_ONGLET,
   TEXTES_DU_SELECTEUR,
   confirmationDeSuppression,
+  garantiesManqueesDeLaReference,
   hexaInvalide,
   ligneDeLaReference,
   nomDeLaCopie,
@@ -265,7 +266,12 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
   traceDeLAjustement.append(ajusteeDepuis, ' · ', revenir);
   const colonneDeLaReference = document.createElement('div');
   colonneDeLaReference.className = 'champ-colonne';
-  colonneDeLaReference.append(champEnColonne(TEXTES.reference, pipette.bouton, hexa), erreurHexa, lienDAjustement, traceDeLAjustement);
+  // Avant le lien, ce qui manque : le designer sait pourquoi ajuster avant d'ouvrir le panneau (Z5.1).
+  const manqueDeLaReference = document.createElement('p');
+  manqueDeLaReference.className = 'manque-de-la-reference';
+  manqueDeLaReference.id = 'manque-de-la-reference';
+  lienDAjustement.setAttribute('aria-describedby', manqueDeLaReference.id);
+  colonneDeLaReference.append(champEnColonne(TEXTES.reference, pipette.bouton, hexa), erreurHexa, manqueDeLaReference, lienDAjustement, traceDeLAjustement);
   /** L'originale de la palette au début d'une saisie du code : la retirer se signale (section 3 de la conception). */
   let originaleAvantSaisie: string | null = null;
   hexa.addEventListener('focus', () => {
@@ -646,6 +652,9 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     ajusteeDepuis.textContent = courante.originale ? TEXTES_DE_L_AJUSTEMENT.ajusteeDepuis(courante.originale) : '';
     traceDeLAjustement.hidden = !courante.originale;
     lienDAjustement.hidden = analyse.manquees === 0;
+    const manquees = (mode: Mode) => analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.verdict === 'manquee').length;
+    manqueDeLaReference.textContent = analyse.manquees === 0 ? '' : garantiesManqueesDeLaReference({ light: manquees('light'), dark: manquees('dark') });
+    manqueDeLaReference.hidden = analyse.manquees === 0;
     poser(nom, courante.nom ?? '');
     nom.placeholder = courante.reference;
     titreDeConfiguration.textContent = TEXTES_DE_L_ONGLET.titre(nomDeLaPalette(courante));
