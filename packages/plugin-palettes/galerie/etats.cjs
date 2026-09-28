@@ -143,6 +143,31 @@ function recetteCassee() {
 
 const ETATS = [
   {
+    id: 'sans-palette-choisie',
+    titre: 'Onglet Création sans palette choisie',
+    quand: 'Le fichier porte trois palettes ; le plugin s’ouvre, et aucune n’est choisie.',
+    regarder: '« Sélectionner une palette » en couleur secondaire dans le sélecteur, « Nouvelle palette » sans « … » ; sous le filet, « Choisissez une palette » en titre de premier rang et sa phrase, sans bouton.',
+    existe: true,
+    sansPaletteChoisie: true,
+    atteinte: [etatDuFichier(rangee(TROIS_PALETTES))],
+  },
+  {
+    id: 'ajuster-en-modale',
+    titre: 'Ajuster la référence, refait',
+    quand: 'Vert manque deux garanties en Thème Light ; le designer ouvre « Ajuster la référence ».',
+    regarder: 'La phrase qui dit pourquoi en tête, les deux témoins, les pas, la nuance visée, le code, le tableau avant et après, le bilan par intensité ; sans luminosité.',
+    existe: false,
+    attendu: 'Z5.2',
+  },
+  {
+    id: 'garanties-refaites',
+    titre: 'Garanties de contraste, refaites',
+    quand: 'Bleu, deux intensités, une garantie en échec choisie.',
+    regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte.',
+    existe: false,
+    attendu: 'Z6.1',
+  },
+  {
     id: 'premier-lancement',
     titre: 'Premier lancement',
     quand: 'Le fichier ne porte aucune recette : la recette par défaut est proposée, sans palette.',
@@ -753,4 +778,19 @@ const ETATS = [
   },
 ];
 
-module.exports = { ETATS };
+/** Le designer choisit la première palette de la liste : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]). */
+const ouvrirLaPremierePalette = [{ clic: '.selecteur-bouton' }, { clic: '.selecteur-option' }];
+
+/**
+ * Un état dont le premier état lu porte des palettes montre la première,
+ * choisie par le designer, sauf s'il montre l'onglet sans palette choisie.
+ */
+function avecLaPremierePalette(etat) {
+  if (!etat.atteinte) return etat;
+  const [lu, ...suite] = etat.atteinte;
+  const palettes = lu.message?.type === 'etat' ? lu.message.classement.recette?.palettes ?? [] : [];
+  if (etat.sansPaletteChoisie || palettes.length === 0) return etat;
+  return { ...etat, atteinte: [lu, ...ouvrirLaPremierePalette, ...suite] };
+}
+
+module.exports = { ETATS: ETATS.map(avecLaPremierePalette) };

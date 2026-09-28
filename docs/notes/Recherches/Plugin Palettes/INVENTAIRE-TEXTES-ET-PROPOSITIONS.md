@@ -742,6 +742,7 @@ Le plan d’ergonomie crée des contrôles et des états que l’inventaire ne c
 | N130 | Noms des deux onglets (plan V6, Z1.3) ; remplace « Palettes » et N078 | Création · Palettes | Mainteneur, round 6 |
 | N131 | Segments des intensités de la configuration (plan V6, Z1.7) ; complète N119 | Une · Deux | Mainteneur, Q6.2 |
 | N132 | État d’un cadre et geste global de l’onglet Palettes (plan V6, Z1.4) ; remplace « À mettre à jour » de N124, N104 et du geste de fiche, et « Mettre à jour » de N117 | À actualiser · Actualiser tout ({nombre} palettes) · (1 palette) au singulier · Créez une palette dans l’onglet « Création » pour pouvoir générer sa présentation ici. · Actualisez l’onglet Palettes, puis relancez la génération. · Actualisez l’onglet Palettes. | Mainteneur, round 6 ; les deux phrases qui nomment un onglet suivent Z1.3 |
+| N134 | Onglet Création sans palette choisie (plan V6, Z2) : le sélecteur, puis l’invitation | Sélectionner une palette · Choisissez une palette · Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ». | Maquette Z3.3 (D1, texte a) ; le libellé du sélecteur : mainteneur, round 6 |
 | N133 | Textes retirés avec le sixième plan (Z1.3, Z1.4) : « À mettre à jour », « Mettre à jour ({nombre} palettes) », l’onglet « Planches » | — | Retiré |
 
 ## Points à conserver lors de l’application

@@ -248,6 +248,9 @@ garde les noms d’origine, `ongletPalettes.ts` pour l’onglet Création et
 `ongletPlanche.ts` pour l’onglet Palettes. L’onglet Création applique
 celles-ci :
 
+- à l’ouverture du plugin, aucune palette n’est choisie : la barre du
+  sélecteur, puis, sous le filet, une invitation, un titre de premier rang et
+  une phrase, sans geste propre ; les gestes sont ceux de la barre ;
 - la barre du sélecteur vient en tête : la liste déroulante prend toute la
   largeur libre, « Nouvelle palette » et « … » gardent leur largeur
   naturelle et la hauteur de la liste. Suit un seul titre de premier rang,

@@ -46,6 +46,10 @@ export const TEXTES = {
   lectureEnCours: 'Chargement des palettes et des réglages…',
   recetteAbsente: 'Créez votre première palette. Les réglages par défaut seront utilisés.',
   choisirUnePalette: 'Choisir une palette',
+  // N134 : le sélecteur sans palette choisie, puis l'invitation dessous (maquette Z3.3, D1, texte a).
+  selectionnerUnePalette: 'Sélectionner une palette',
+  invitationTitre: 'Choisissez une palette',
+  invitation: 'Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ».',
   dessiner: 'Générer sur Figma',
   prete: 'Prête',
   reference: 'Couleur de référence',

@@ -81,10 +81,19 @@ test('un état plus ancien que la dernière lecture est écarté', async () => {
 const { ETATS } = createRequire(import.meta.url)('../../galerie/etats.cjs');
 const messageDe = (id) => ETATS.find((etat) => etat.id === id).atteinte[0].message;
 
-async function ouvrirSur(id, viewport) {
+/** Choisit la première palette de la liste, comme le designer : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]). */
+async function ouvrirLaPremierePalette(page) {
+  await page.locator('.selecteur-bouton').click();
+  await page.locator('.selecteur-option').first().click();
+  await page.locator('.tete-de-la-palette .titre-de-premier-rang').waitFor();
+}
+
+/** Ouvre l'interface sur le premier message d'un état de la galerie, puis sur sa première palette, sauf `sansPalette`. */
+async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
   const page = await ouvrir(viewport);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));
-  await page.locator('.titre-de-premier-rang').waitFor();
+  if (sansPalette) await page.locator('.selecteur-bouton').waitFor();
+  else await ouvrirLaPremierePalette(page);
   return page;
 }
 
@@ -124,7 +133,7 @@ test('[UI-03] [UI-11] à 770 × 720, la carte « Configuration de la palette » 
   try {
     const visibles = {
       sélecteur: page.locator('.selecteur-bouton'),
-      titre: page.locator('.titre-de-premier-rang'),
+      titre: page.locator('.tete-de-la-palette .titre-de-premier-rang'),
       'nom et référence': page.locator('[aria-label="Configuration de la palette"] .colonnes-de-base'),
     };
     for (const [nom, locator] of Object.entries(visibles)) assert.equal(await dansLaFenetre(locator), true, `${nom} hors de la fenêtre`);
@@ -531,7 +540,8 @@ test('[REC-10] un rangement refusé propose « Recharger », qui relit l’état
     assert.equal(relecture.type, 'lire-etat');
     await envoyer(page, { ...messageDe('alertes-seules'), demande: relecture.demande });
     assert.equal(await page.getByRole('button', { name: 'Recharger les palettes' }).count(), 0);
-    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
+    // La copie n'a jamais été rangée : relue sans elle, l'onglet attend un nouveau choix ([UI-06]).
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Sélectionner une palette');
   } finally {
     await page.close();
   }
@@ -582,14 +592,15 @@ test('[UI-03] un nom de palette long ne pousse ni les gestes ni le champ du nom 
     const message = structuredClone(messageDe('alertes-seules'));
     message.classement.recette.palettes[0].nom = 'Jaune principal de la marque, déclinaison institutionnelle';
     await envoyer(page, message);
+    await ouvrirLaPremierePalette(page);
     // Le bord droit du contenu est celui de l'en-tête : il est hors des grilles de l'onglet.
     const enTete = await page.locator('.header').boundingBox();
     const largeur = enTete.x + enTete.width;
-    for (const locator of [page.getByRole('button', { name: 'Actions sur la palette' }), page.locator('.titre-de-premier-rang'), page.getByRole('textbox', { name: 'Nom de la palette' })]) {
+    for (const locator of [page.getByRole('button', { name: 'Actions sur la palette' }), page.locator('.tete-de-la-palette .titre-de-premier-rang'), page.getByRole('textbox', { name: 'Nom de la palette' })]) {
       const boite = await locator.boundingBox();
       assert.ok(boite.x + boite.width <= largeur, JSON.stringify(boite));
     }
-    assert.equal(await page.locator('.titre-de-premier-rang').evaluate((element) => element.scrollWidth > element.clientWidth), true, 'le nom long se coupe');
+    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').evaluate((element) => element.scrollWidth > element.clientWidth), true, 'le nom long se coupe');
   } finally {
     await page.close();
   }
@@ -601,6 +612,7 @@ test('[UI-06] à 500 px, la liste prend la largeur libre, les deux gestes ont sa
     const message = structuredClone(messageDe('alertes-seules'));
     message.classement.recette.palettes[0].nom = 'Jaune principal de la marque, déclinaison institutionnelle';
     await envoyer(page, message);
+    await ouvrirLaPremierePalette(page);
     const liste = await page.locator('.selecteur-bouton').boundingBox();
     const nouvelle = await page.getByRole('button', { name: 'Nouvelle palette', exact: true }).boundingBox();
     const menu = await page.getByRole('button', { name: 'Actions sur la palette' }).boundingBox();
@@ -619,7 +631,7 @@ test('[UI-06] à 500 px, la liste prend la largeur libre, les deux gestes ont sa
 test('[UI-11] le titre dit « Palette [nom] » et suit la saisie du nom, sans retirer le focus du champ', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    const titre = page.locator('.titre-de-premier-rang');
+    const titre = page.locator('.tete-de-la-palette .titre-de-premier-rang');
     assert.equal(await titre.textContent(), 'Palette Jaune');
     assert.equal(await page.locator('[aria-label="Configuration de la palette"] .carte-titre').textContent(), 'Configuration de la palette');
     const nom = page.getByRole('textbox', { name: 'Nom de la palette' });
@@ -673,7 +685,7 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
       (({ nom, reference, base, intensites }) => ({ nom, reference, base, intensites }))(demande.recette.palettes.at(-1)),
       { nom: 'Menthe', reference: '#16A34A', base: 'vivid', intensites: undefined },
     );
-    assert.equal(await page.locator('.titre-de-premier-rang').textContent(), 'Palette Menthe');
+    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Menthe');
     await envoyer(page, rangee(demande.demande));
 
     // À une intensité, la palette ne porte ni profil porteur ni parts : `intensites: 1`.
@@ -845,7 +857,7 @@ test('W4.2 le sélecteur de la référence : nuances Vivid, formats, code invali
     assert.equal(await vivid500.getAttribute('aria-pressed'), 'true');
 
     // Un clic hors du sélecteur le referme.
-    await page.locator('.titre-de-premier-rang').click();
+    await page.locator('.tete-de-la-palette .titre-de-premier-rang').click();
     assert.equal(await selecteur.isVisible(), false);
   } finally {
     await page.close();
@@ -1166,6 +1178,7 @@ test('[DER-05] deux profils déliés tracent deux lignes, et les poignées porte
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('derive-deliee-libre'));
+    await ouvrirLaPremierePalette(page);
     await deplier(page);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.derive-trait')].map((trait) => trait.getAttribute('class'))), [
       'derive-trait derive-trait-soft',
@@ -1181,6 +1194,7 @@ test('[DER-14] une référence plus sombre que le bout sombre masque la poignée
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('reference-hors-rampe'));
+    await ouvrirLaPremierePalette(page);
     await deplier(page);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.derive-poignee')].map((poignee) => poignee.dataset.bout)), ['clair']);
     // La référence exacte porte la dernière nuance claire : le pivot tombe dans cette colonne ([DER-02]).
@@ -1230,6 +1244,7 @@ test('[DER-15] une référence presque grise désactive l’éditeur', async () 
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('couleur-presque-grise'));
+    await ouvrirLaPremierePalette(page);
     assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), true);
   } finally {
     await page.close();
@@ -1412,6 +1427,7 @@ test('[DER-03] à ±90°, les poignées et leurs étiquettes restent dans le cad
       const message = structuredClone(messageDe('derive-deliee-libre'));
       message.classement.recette.palettes[0].derive.vivid = { clair, sombre, origine: 'libre' };
       await envoyer(page, message);
+      await ouvrirLaPremierePalette(page);
       await deplier(page);
       const dehors = await page.evaluate(() => {
         const cadre = document.querySelector('.derive-graphe').getBoundingClientRect();
@@ -1465,7 +1481,7 @@ test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette
     assert.equal(await page.locator('#panneau-planche .constat').count(), 0, 'aucun message de succès empilé');
     // Un dessin fini a posé des cadres : l'état se relit, et la fiche dit l'état du cadre.
     const relecture = await prochaineDuType(page, 'lire-etat', avant);
-    await envoyer(page, { ...ETATS.find(({ id }) => id === 'generation-reussie').atteinte[4].message, demande: relecture.demande });
+    await envoyer(page, { ...ETATS.find(({ id }) => id === 'generation-reussie').atteinte.findLast((etape) => etape.message?.type === 'etat').message, demande: relecture.demande });
     const fiche = page.locator(`.fiche-planche[data-palette="${ID_DU_BLEU}"]`);
     assert.equal(await fiche.getAttribute('data-etat'), 'a-jour');
     assert.deepEqual(await fiche.locator('.fiche-gestes button').allTextContents(), ['Afficher', 'Modifier'], 'un cadre à jour n’a pas de premier geste');
@@ -2329,5 +2345,96 @@ test('Z1.6 : le code hexa prend la largeur de sa colonne, moins la pastille, dan
     } finally {
       await page.close();
     }
+  }
+});
+
+/** Ce que l'onglet Création montre de lui-même : le sélecteur, le menu, l'invitation et la palette. */
+const vueDeLaCreation = (page) => page.evaluate(() => {
+  const visible = (selecteur) => {
+    const element = document.querySelector(`#panneau-palettes ${selecteur}`);
+    return Boolean(element && element.getClientRects().length > 0);
+  };
+  return {
+    selecteur: document.querySelector('.selecteur-nom')?.textContent,
+    invitation: visible('.invitation') ? document.querySelector('.invitation').innerText.split('\n').filter(Boolean) : null,
+    menu: visible('.menu-palette'),
+    nouvelle: visible('.bouton-de-barre'),
+    palette: visible('.configuration-de-la-palette'),
+  };
+});
+
+const INVITATION = ['Choisissez une palette', 'Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ».'];
+
+test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : « Sélectionner une palette », l’invitation, ni menu ni palette ; la liste ne coche rien', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
+    assert.equal(await page.locator('.invitation button').count(), 0, 'les gestes sont ceux de la barre');
+    assert.equal(await page.locator('#panneau-palettes .titre-de-premier-rang:visible').textContent(), 'Choisissez une palette');
+    await page.locator('.selecteur-bouton').click();
+    assert.deepEqual(await page.locator('.selecteur-option').evaluateAll((options) => options.map((option) => option.getAttribute('aria-selected'))), ['false', 'false', 'false']);
+    assert.equal(await page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length), 0, 'ouvrir sans choisir ne range rien');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z2.5 [UI-06] deux gestes mènent à une palette : la liste, puis une option ; « Nouvelle palette » crée et ouvre la palette créée', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    await page.locator('.selecteur-bouton').click();
+    await page.getByRole('option', { name: 'Jaune' }).click();
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Jaune', invitation: null, menu: true, nouvelle: true, palette: true });
+    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Jaune');
+  } finally {
+    await page.close();
+  }
+  const creation = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    await creation.locator('.bouton-de-barre').click();
+    assert.equal((await vueDeLaCreation(creation)).invitation, null, 'la création ouverte remplace l’invitation');
+    await creation.locator('#panneau-palettes .champ-creation').fill('#7C3AED');
+    const avant = await compte(creation);
+    await creation.getByRole('button', { name: 'Créer la palette' }).click();
+    const rangement = await prochaineDuType(creation, 'ranger-recette', avant);
+    assert.equal(rangement.recette.palettes.length, 4);
+    assert.deepEqual(await vueDeLaCreation(creation), { selecteur: '#7C3AED', invitation: null, menu: true, nouvelle: true, palette: true });
+  } finally {
+    await creation.close();
+  }
+});
+
+test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre session, l’onglet revient à l’invitation ; supprimée, la suivante s’ouvre', async () => {
+  const page = await ouvrirSur('sans-palette-choisie');
+  try {
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Bleu');
+    // Une autre session a retiré Bleu : l'état relu ne la porte plus.
+    const lu = messageDe('sans-palette-choisie');
+    const sansBleu = structuredClone(lu);
+    sansBleu.classement.recette.palettes = sansBleu.classement.recette.palettes.filter(({ id }) => id !== ID_DU_BLEU);
+    await envoyer(page, { ...sansBleu, demande: 2 });
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
+
+    await ouvrirLaPremierePalette(page);
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
+    await page.getByRole('button', { name: 'Actions sur la palette' }).click();
+    await page.getByRole('menuitem', { name: 'Supprimer la palette' }).click();
+    await page.locator('#panneau-palettes .confirmation').getByRole('button', { name: 'Supprimer la palette' }).click();
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Ardoise', 'la suivante s’ouvre (Q6.3)');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont pas d’aperçu en tête et ne nomment aucune palette', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    assert.equal(await page.locator('.reglages-apercu').isVisible(), false);
+    assert.equal(await reglage(page, 'Couleurs de fond').isVisible(), true);
+    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
+  } finally {
+    await page.close();
   }
 });

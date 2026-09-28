@@ -1,6 +1,7 @@
 /**
  * Le sélecteur de la palette ouverte ([UI-06]) : chaque palette sous son nom
- * ou son hexa, avec une pastille de sa référence. Un `<select>` natif ne porte
+ * ou son hexa, avec une pastille de sa référence ; « Sélectionner une
+ * palette » tant qu'aucune n'est choisie. Un `<select>` natif ne porte
  * pas de pastille : la liste suit le motif WAI-ARIA « listbox » derrière un
  * bouton. Flèches et Entrée choisissent, Échap referme.
  */
@@ -102,9 +103,11 @@ export function createSelecteur(onChoix: (id: string) => void): SelecteurUi {
     afficher(palettes, idOuvert) {
       ouvert = idOuvert;
       const courante = palettes.find((palette) => palette.id === idOuvert);
+      // Sans palette choisie, le bouton invite à choisir ([UI-06]).
       const nom = document.createElement('span');
       nom.className = 'selecteur-nom';
-      nom.textContent = courante ? nomDeLaPalette(courante) : '';
+      nom.classList.toggle('selecteur-invite', !courante);
+      nom.textContent = courante ? nomDeLaPalette(courante) : TEXTES.selectionnerUnePalette;
       const fleche = document.createElement('span');
       fleche.className = 'selecteur-fleche';
       fleche.setAttribute('aria-hidden', 'true');

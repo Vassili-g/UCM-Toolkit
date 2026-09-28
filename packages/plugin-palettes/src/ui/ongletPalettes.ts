@@ -1,6 +1,7 @@
 /**
- * L'onglet Création (section 13.2) : le choix ou la création d'une palette,
- * le titre « Palette [nom] » seul sur sa ligne, puis les cartes :
+ * L'onglet Création (section 13.2) : le choix ou la création d'une palette.
+ * Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
+ * « Palette [nom] » seul sur sa ligne, puis les cartes :
  * Configuration de la palette, aperçu, Intensités et Dérive de teinte
  * repliables, Garanties de contraste, et l'Interface de test en dernier
  * ([UI-12]). Un message se lit sous la carte qu'il concerne. La génération
@@ -407,9 +408,13 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     }
   }
 
+  /**
+   * La palette que le designer a choisie. Aucune à l'ouverture du plugin, et
+   * aucune quand la palette choisie a disparu, par un import ou une autre
+   * session ([UI-06]) : l'onglet attend alors un choix.
+   */
   function ouverte(): Palette | null {
-    if (!recette || recette.palettes.length === 0) return null;
-    return recette.palettes.find((candidate) => candidate.id === idOuvert) ?? recette.palettes[0];
+    return recette?.palettes.find((candidate) => candidate.id === idOuvert) ?? null;
   }
 
   /** Remplace la recette affichée, sans l'enregistrer : une saisie en cours. */
@@ -554,9 +559,18 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
   const vide = document.createElement('div');
   vide.className = 'page-stack colonne';
   vide.append(ligneVide);
+  // Sans palette choisie : un titre et une phrase, sans geste propre ; les gestes sont ceux de la barre (maquette Z3.3, D1).
+  const invitation = document.createElement('div');
+  invitation.className = 'invitation';
+  const titreDeLInvitation = document.createElement('h2');
+  titreDeLInvitation.className = 'titre-de-premier-rang';
+  titreDeLInvitation.textContent = TEXTES.invitationTitre;
+  const texteDeLInvitation = document.createElement('p');
+  texteDeLInvitation.textContent = TEXTES.invitation;
+  invitation.append(titreDeLInvitation, texteDeLInvitation);
   const vue = document.createElement('div');
   vue.className = 'page-stack colonne vue-de-la-palette';
-  vue.append(choix, configuration);
+  vue.append(choix, invitation, configuration);
   element.append(zoneDuRefus, zoneDuBloquant, vide, vue);
 
   /** Le panneau de création suit la vue montrée : seul, ou sous le sélecteur. */
@@ -580,19 +594,26 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
     zoneDuRefus.replaceChildren(bloc);
   }
 
-  function rendrePalette(courante: Palette, lue: Recette): void {
-    idOuvert = courante.id;
-    const analyse = analyserPalette(lue, courante);
-    selecteur.afficher(lue.palettes, courante.id);
-    menu.afficher(lue.palettes.indexOf(courante), lue.palettes.length);
+  /** La barre, la création, la confirmation et la note, avec ou sans palette choisie. */
+  function rendreLaBarre(lue: Recette, courante: Palette | null): void {
+    selecteur.afficher(lue.palettes, courante?.id ?? '');
+    // Le menu porte sur la palette choisie : sans elle, il se cache.
+    menu.element.hidden = !courante;
+    if (courante) menu.afficher(lue.palettes.indexOf(courante), lue.palettes.length);
     placerLaCreation(choix, confirmation);
     creation.element.hidden = !creationOuverte;
     plus.setAttribute('aria-expanded', String(creationOuverte));
-    texteDeConfirmation.textContent = confirmationDeSuppression(nomDeLaPalette(courante));
-    confirmation.hidden = !suppressionDemandee;
+    texteDeConfirmation.textContent = courante ? confirmationDeSuppression(nomDeLaPalette(courante)) : '';
+    confirmation.hidden = !suppressionDemandee || !courante;
     zoneDeLaNote.replaceChildren(...(note ? [blocDeConstat(note, 'notice')] : []));
     zoneDeLaNote.hidden = !note;
+    // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
+    invitation.hidden = courante !== null || creationOuverte;
+    configuration.hidden = !courante;
+  }
 
+  function rendrePalette(courante: Palette, lue: Recette): void {
+    const analyse = analyserPalette(lue, courante);
     poser(hexa, courante.reference);
     pipette.poser(courante.reference);
     ajusteeDepuis.textContent = courante.originale ? TEXTES_DE_L_AJUSTEMENT.ajusteeDepuis(courante.originale) : '';
@@ -663,16 +684,17 @@ export function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalette
       zoneDuBloquant.replaceChildren(blocDeConstat(constat, 'bloquant'), demandes.recetteEnFichier.element);
       return;
     }
-    const courante = ouverte();
-    if (!recette || !courante) {
+    if (!recette || recette.palettes.length === 0) {
       montrer(vide);
       ligneVide.textContent = classementLu.etat === 'absente' ? TEXTES.recetteAbsente : palettesDuFichier(0);
       placerLaCreation(vide, null);
       creation.element.hidden = false;
       return;
     }
+    const courante = ouverte();
     montrer(vue);
-    rendrePalette(courante, recette);
+    rendreLaBarre(recette, courante);
+    if (courante) rendrePalette(courante, recette);
   }
 
   creation.ouvrir(false);

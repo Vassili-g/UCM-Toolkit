@@ -137,6 +137,10 @@
   white-space: nowrap;
 }
 
+.selecteur-invite {
+  color: var(--texte-second);
+}
+
 .selecteur-fleche {
   color: var(--texte-second);
 }
@@ -1054,6 +1058,17 @@
 
 .vue-de-la-palette {
   gap: 15px;
+}
+
+/* Sans palette choisie : le titre de premier rang et une phrase, sous le filet (maquette Z3.3, D1). */
+.invitation {
+  display: grid;
+  justify-items: start;
+  gap: var(--espace-controle);
+}
+
+.invitation p {
+  margin: 0;
 }
 
 /*

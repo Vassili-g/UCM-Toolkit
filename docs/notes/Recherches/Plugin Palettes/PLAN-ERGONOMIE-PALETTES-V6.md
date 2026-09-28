@@ -152,26 +152,26 @@ une interaction ni une sauvegarde.
   (`.garantie-etat`, 64 px, lot Z6), le code hexa (`.champ-ligne
   .champ-hexa`, 88 px, Z1.6) et le sélecteur de couleur (232 px, décision
   Z3.1). Z1.2 n’a donc rien à élargir hors de Z1.6 et Z6.
-- [ ] **Z0.3** (fait pour Z1 : `[UI-01]`, `[UI-02]`, `[UI-05]`, `[UI-11]`,
-  `[PLA-20]`, chaque mention d’un onglet et les deux schémas ; `[UI-06]`
-  reste à Z2) Spécification : `[UI-01]` (770 × 720, anciens défauts),
+- [x] **Z0.3** (fait avec Z1 et Z2 ; `[UI-09]` et `[UI-15]` attendent leurs
+  lots) Spécification : `[UI-01]` (770 × 720, anciens défauts),
   `[UI-02]` et `[UI-04]` (noms des onglets), `[UI-06]` (sélecteur sans
   palette), `[UI-11]` (code hexa, segments des intensités), `[UI-05]` et
   `[PLA-20]` (pastilles et libellés). Chaque mention d’un onglet relue une à
   une : « Palettes » désigne désormais l’ancien onglet Planches.
   `[UI-09]` et `[UI-15]` se récrivent avec leurs lots.
-- [ ] **Z0.4** (fait pour Z1 : noms, correspondance, segments, code hexa ;
-  l’état sans palette reste à Z2) CONTRIBUTING.md, « Les surfaces d’UCM Palettes » : noms des
+- [x] **Z0.4** CONTRIBUTING.md, « Les surfaces d’UCM Palettes » : noms des
   onglets, correspondance avec les modules, état sans palette. AGENTS.md :
   la carte du code dit `ongletPalettes.ts` « l’onglet Création » et
   `ongletPlanche.ts` « l’onglet Palettes ».
-- [ ] **Z0.5** (N130 à N133 pour Z1 ; « Sélectionner une palette » et les
-  textes des maquettes entrent avec leurs lots) Inventaire des textes : « Création », « Palettes » (onglet),
+- [ ] **Z0.5** (N130 à N134 ; les textes de Z5 entrent avec leur lot)
+  Inventaire des textes : « Création », « Palettes » (onglet),
   « Sélectionner une palette », « À actualiser », « Actualiser tout (N
   palettes) », dictés ; « À mettre à jour » et « Mettre à jour (N
   palettes) » marqués retirés. Les textes des maquettes entrent « À
   valider ».
-- [ ] **Z0.6** (fait : `pastilles-des-etats`, atteignable) Déclarer dans `galerie/etats.cjs` les états de ce plan, chacun
+- [x] **Z0.6** (fait : `sans-palette-choisie` et `pastilles-des-etats`,
+  atteignables ; `ajuster-en-modale` attend Z5.2, `garanties-refaites` Z6.1)
+  Déclarer dans `galerie/etats.cjs` les états de ce plan, chacun
   avec la case qui le rendra atteignable : onglet Création sans palette
   choisie, avec des palettes (Z2) ; panneau « Ajuster » refait (Z5) ;
   Garanties refaites (Z6) ; pastilles des cinq états (Z1.5).
@@ -245,25 +245,35 @@ et l’onglet Palettes se lit aux libellés et couleurs dictés.
 
 Après Z1.3 et la validation des textes de Z3.3.
 
-- [ ] **Z2.1** `ouverte()` sans repli sur la première palette. Sans palette
+- [x] **Z2.1** `ouverte()` sans repli sur la première palette. Sans palette
   choisie : le sélecteur porte « Sélectionner une palette », le menu de la
   palette se cache, la vue de la palette se cache, l’invitation paraît. Un
   `idOuvert` qui ne désigne plus aucune palette (import, autre session)
   ramène à cet état.
-- [ ] **Z2.2** L’invitation selon Z3.3, avec des palettes. Sans palette, le
+- [x] **Z2.2** L’invitation selon Z3.3, avec des palettes. Sans palette, le
   panneau de création actuel reste ; son texte suit Z3.3 s’il change.
-- [ ] **Z2.3** Vérifier sans palette choisie : Réglages communs (aperçu de
+- [x] **Z2.3** Vérifier sans palette choisie : Réglages communs (aperçu de
   la palette ouverte, fonds proposés, effet du contenu des planches),
   « Modifier » d’une fiche de l’onglet Palettes, création puis ouverture de
   la palette créée, suppression, import.
-- [ ] **Z2.4** Galerie : un geste `ouvrirLaPremierePalette` (clic sur
+  Vérifié par les tests : les Réglages communs n’ont ni aperçu ni palette
+  nommée, et l’effet du contenu des planches ne cite aucun cadre ;
+  « Modifier » ouvre sa palette ; la création ouvre la palette créée ; la
+  suppression ouvre la suivante ; un état relu sans la palette choisie
+  ramène à l’invitation. Une duplication refusée puis rechargée y ramène
+  aussi, la copie n’ayant jamais été rangée.
+- [x] **Z2.4** Galerie : un geste `ouvrirLaPremierePalette` (clic sur
   `.selecteur-bouton`, puis sur la première option) ajouté à chaque état qui
   montrait une palette. Tests d’interface : `ouvrirSur` ouvre la première
   palette, sauf demande contraire. Aucun état ni test ne change de sujet.
-- [ ] **Z2.5** Tests : ouverture sans palette choisie, avec le libellé du
+  Fait : `avecLaPremierePalette` l’ajoute aux 55 états dont le premier état
+  lu porte des palettes ; huit tests qui envoyaient eux-mêmes l’état
+  l’appellent.
+- [x] **Z2.5** Tests : ouverture sans palette choisie, avec le libellé du
   sélecteur et l’invitation ; choix d’une palette depuis l’invitation ;
   retour à l’état vide quand la palette ouverte disparaît ; Réglages
   communs sans palette.
+  Fait : quatre tests, vus rouges sur sept mutations. Interface : 100 verts.
 
 Critère : à chaque ouverture du plugin, l’onglet Création attend un choix,
 et deux gestes mènent à une palette.

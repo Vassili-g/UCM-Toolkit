@@ -1577,7 +1577,14 @@ palette » gardent leurs libellés au-dessus des champs.
   palettes. La création ne propose aucune pastille. Tout se calcule dans
   l'interface, sans requête.
 - `[UI-06]` Le sélecteur de palette liste chaque palette par son nom ou son
-  hexa, avec une pastille de sa référence. Sa liste déroulante prend toute la
+  hexa, avec une pastille de sa référence. À l'ouverture du plugin, aucune
+  palette n'est choisie : le sélecteur dit « Sélectionner une palette », le
+  menu « … » se cache, et sous le filet se lisent le titre de premier rang
+  « Choisissez une palette » et une phrase qui renvoie à la liste et à
+  « Nouvelle palette », sans geste propre. Un choix dure jusqu'à la
+  fermeture du plugin et ne se range pas. Une palette choisie qui disparaît,
+  par un import ou une autre session, ramène à cet état ; une palette
+  supprimée ouvre la suivante. Un fichier sans palette montre la création. Sa liste déroulante prend toute la
   largeur libre de sa ligne, et un nom long s'y coupe par des points de
   suspension. « Nouvelle palette » et « … » gardent leur largeur naturelle
   et prennent la hauteur de la liste. « Nouvelle palette » ouvre la création
@@ -1644,6 +1651,7 @@ qui le créera.
 | État | Ce qu'il montre |
 |---|---|
 | Premier lancement | Aucune recette rangée, recette par défaut proposée, aucune palette |
+| Onglet Création sans palette choisie | « Sélectionner une palette », l'invitation sous le filet, ni menu ni palette |
 | Premier lancement, palette créée | La première palette ouverte, recette rangée |
 | Création ouverte | La carte de création sous le sélecteur, en P2 : nom et couleur de référence, Modèle, « Une intensité » choisie, « Créer la palette » et « Annuler » |
 | Palette à une intensité | La carte « Une intensité » choisie, une rangée par thème sans nom de profil, ni carte Intensités, ni bascule des garanties |
@@ -1686,6 +1694,7 @@ qui le créera.
 | Planche à jour | Chaque fiche dit « À jour » |
 | Planche à actualiser | Fiches « À actualiser » ou « Pas encore sur Figma », en orange, génération groupée |
 | Fiche d’une palette | Disposition A : nom et état en pastille, rampes, référence et garanties sur une ligne, gestes |
+| Pastilles des cinq états | « À jour » sur fond de succès, « À actualiser » et « Pas encore sur Figma » en avertissement, introuvable et illisible en danger |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
 | Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités des Réglages communs |
 | Cadre déplacé | Un cadre rangé dans une section ou sur une autre page, retrouvé par son identité |
