@@ -235,22 +235,33 @@ export const ETAPES_DE_L_ANALYSE: readonly EtapePrevue[] = [
  *
  * `options.respirer` rend la main au sandbox dans les boucles longues, une
  * fois le budget de calcul écoulé ; `code.ts` y lit l'annulation.
+ * La création transmet `composant` et `page` capturés avant ses attentes.
+ * À défaut, l'export capture la sélection et la page courantes à l'appel.
  */
 export async function handleExportComponent(
   annoncer: Annonce = () => {},
-  options: { respirer?: () => Promise<void> } = {},
+  options: {
+    respirer?: () => Promise<void>;
+    composant?: ComponentNode | ComponentSetNode;
+    page?: PageNode;
+  } = {},
 ): Promise<ComponentExport> {
-  return dansUnePorteeDAnalyse(options, () => exporterLaSelection(annoncer));
+  const composant = options.composant ?? getSelectedComponent();
+  const page = options.page ?? figma.currentPage;
+  return dansUnePorteeDAnalyse(options, () => exporterLeComposant(annoncer, composant, page));
 }
 
-async function exporterLaSelection(annoncer: Annonce): Promise<ComponentExport> {
-  const componentSet = getSelectedComponent();
+async function exporterLeComposant(
+  annoncer: Annonce,
+  componentSet: ComponentNode | ComponentSetNode,
+  page: PageNode,
+): Promise<ComponentExport> {
   await annoncer('Lecture des règles d’usage…');
   etape('regles');
 
   // Les règles enrichissent l'intention et la documentation, mais ne sont plus
   // une précondition d'export. Leur absence reste visible dans les diagnostics.
-  const rules = await extractRules(componentSet);
+  const rules = await extractRules(componentSet, page);
   const warnings: string[] = [...rules.warnings];
   reporterLocalisations(rules.warnings, warnings);
   // Sous-ensemble qui mesure réellement la projection UCM. Les avertissements

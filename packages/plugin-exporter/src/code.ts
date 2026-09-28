@@ -4,7 +4,7 @@
  * Rôle : afficher l'UI, écouter ses demandes d'export, lancer le bon
  * handler et lui renvoyer le fichier produit ou l'erreur.
  */
-import { oublierLaPage } from './contract/composedComponents';
+import { IndexModifie, oublierLaPage } from './contract/composedComponents';
 import {
   extractRules,
   hasUsableRules,
@@ -614,9 +614,8 @@ async function avecLaSourceDuDocument(releve: ReleveDeSource): Promise<ReleveDeS
  *
  * Rien ne peut interrompre un appel Figma déjà parti. La demande est donc lue
  * là où le moteur annonce une étape, et à chaque respiration de ses boucles
- * longues (`respirer`) : l'analyse s'arrête après au plus
- * `BUDGET_DE_CALCUL_MS` de calcul, plus la durée de l'appel Figma en cours, et
- * rien n'est publié après elle. Le designer ne la demande jamais directement :
+ * longues (`respirer`). Le budget est un seuil entre ces points de contrôle,
+ * sans garantie de délai maximal. Le designer ne la demande jamais directement :
  * `demandee` vient d'un changement de sélection, `reglages` d'une destination
  * qui a changé pendant l'analyse.
  */
@@ -636,6 +635,7 @@ function verifierAnnulation(): void {
  * l'étape.
  */
 function respirer(): Promise<void> {
+  verifierAnnulation();
   signalerAvancement();
   return rendreLaMain().then(verifierAnnulation);
 }
@@ -862,8 +862,15 @@ async function analyser(
     });
   } catch (error) {
     if (error instanceof ExportAnnule || annulation !== null) {
+      analyseProduite = null;
       analysesGardees.delete(artifactKind);
       await annoncerLAnnulation(provenance);
+      return;
+    }
+    if (error instanceof IndexModifie) {
+      analyseProduite = null;
+      analysesGardees.delete(artifactKind);
+      postStatus('error', error.message, provenance);
       return;
     }
     if (analyseProduite) postDownload(analyseProduite.filename, analyseProduite.content, provenance);
@@ -1081,8 +1088,9 @@ async function creerRegles(operation: number): Promise<void> {
   try {
     postStatus('loading', 'Création des règles d’usage…', provenance);
     const composant = getSelectedComponent();
+    const page = figma.currentPage;
     annoncer('Lecture de la page…');
-    const releve = await avecLaSourceDuDocument((await extractRules(composant)).releve);
+    const releve = await avecLaSourceDuDocument((await extractRules(composant, page)).releve);
     const { sources, refus } = await resoudreLesSources(releve);
     if (!sources) {
       postStatus('error', refus ?? ECHEC_GENERIQUE, provenance);
@@ -1093,7 +1101,7 @@ async function creerRegles(operation: number): Promise<void> {
     // Le contrat que le développeur recevra est ce que les règles documentent :
     // le modèle se lit dessus, jamais sur les propriétés Figma brutes, qui
     // ignorent la couche sémantique.
-    const analyse = await handleExportComponent(annoncer);
+    const analyse = await handleExportComponent(annoncer, { composant, page });
     const contrat = JSON.parse(analyse.content) as ContratLu;
     const clesDuParent = clesDeclareesPar(composant);
     // Ce que le contrat publie sans que le parent le déclare vient d'un
@@ -1108,11 +1116,12 @@ async function creerRegles(operation: number): Promise<void> {
     const resultat = await creerLesRegles(composant, modele, sources, annoncer);
     // Le conteneur posé déclare le composant comme dépendance UCM. La page
     // gardée par l'index l'ignore encore, et `nodechange` arrive par lots.
-    oublierLaPage(figma.currentPage);
+    oublierLaPage(page);
     // Le contrat suivant ne dira plus la même chose : garder l'analyse d'avant
     // ferait publier un contrat sans les règles qu'on vient de poser.
     analysesGardees.delete('component');
-    figma.currentPage.selection = [composant];
+    if (figma.currentPage !== page) await figma.setCurrentPageAsync(page);
+    page.selection = [composant];
     figma.viewport.scrollAndZoomIntoView([composant, resultat.conteneur]);
     postStatus(
       'success',

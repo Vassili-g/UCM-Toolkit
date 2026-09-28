@@ -290,6 +290,23 @@ test('une dépendance ne gagne pas l’élection du node de layout de son parent
   assert.equal(findLayoutNode(racine), dependance as unknown as SceneNode);
 });
 
+test('un maître supprimé pendant l’élection laisse le variant sans wrapper avec son diagnostic', async () => {
+  const premier = variantAvecWrapper('Variant=A');
+  const second = variantAvecWrapper('Variant=B');
+  second.wrapper.getMainComponentAsync = async () => ({
+    ...wrapperMain,
+    get parent(): null { throw new Error('supprimé'); },
+  });
+  const warnings: string[] = [];
+  const nodes = await electVariantLayoutNodes(
+    [premier.composant, second.composant],
+    { component: premier.composant, wrapper: { instance: premier.wrapper as unknown as InstanceNode, componentSet: null } },
+    warnings,
+  );
+  assert.equal(nodes.get(second.composant), second.composant);
+  assert.equal(warnings.length, 1);
+});
+
 test('un wrapper qu’aucun id n’identifie ne fait pas diverger la référence', async () => {
   // `findWrapperReference` écarte désormais ce candidat à la source. Ce test
   // tient la propriété au niveau du module, qui est exporté : sans l'id du

@@ -37,7 +37,7 @@ un composant composé. Couvrir un catalogue entier n'en fait pas partie.
 | Export DTCG | Variables locales, alias et modes exportés dans la version 2 du format de tokens : couleurs, dimensions, durées et courbes du module `2025.10`, graisses reconnues en nombre, familles prouvées typées, marque et axes à la racine. `ucm tokens css` projette ces axes et les collections étendues en attributs. La cascade passe dans Chromium, Firefox et WebKit |
 | Structure portable | Flex, wrap, grille, arbres récursifs, tailles, bornes, typographie, icônes et composition, tous couverts par le vocabulaire du contrat |
 | Position et rotation | Un calque hors du flux est placé par `constraints` et `inset`, sa `rotation` écrite en vocabulaire CSS |
-| Dépendances composées | Détection sur toutes les pages, graphe acyclique, cardinalité et dépendances conditionnelles contrôlées |
+| Dépendances composées | Détection sur la page de chaque maître local, graphe acyclique, cardinalité et dépendances conditionnelles contrôlées |
 | Consommation | `@ucm-kit/core` lit deux versions et porte les contrôles indépendants du langage. `@ucm-kit/cli` les exécute et découvre l'adaptateur optionnel. `@ucm-kit/adapter-typescript` compare props et composition, puis génère les types dérivés |
 | Contrôles chez le consommateur | Forme, version du contrat et du format de tokens, graphe de composition, adresses des échantillons, références de tokens, et parité statique quand l'adaptateur est installé. Tout vient du workflow qu'`ucm init` écrit |
 | Rapport CI | Constats et avertissements agrégés dans le terminal, le résumé CI, le commentaire de pull request sur GitHub et la note de merge request sur GitLab |

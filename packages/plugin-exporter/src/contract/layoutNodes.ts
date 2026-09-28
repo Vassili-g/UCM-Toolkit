@@ -88,7 +88,10 @@ export type ReferenceVariant = {
 async function instanceOwnerId(instance: InstanceNode): Promise<string | null> {
   const main = await maitreDe(instance);
   if (!main) return null;
-  return main.parent?.type === 'COMPONENT_SET' ? main.parent.id : main.id;
+  try {
+    const parent = main.parent;
+    return parent?.type === 'COMPONENT_SET' ? parent.id : main.id;
+  } catch { return null; }
 }
 
 /** L'instance du même composant que le wrapper de référence, dans ce variant. */

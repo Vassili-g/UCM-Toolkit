@@ -19,7 +19,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { componentContractFilename, mergeWrapperProps } from '../src/contract/exportComponent';
+import { componentContractFilename, mergeWrapperProps, handleExportComponent as exporterCible } from '../src/contract/exportComponent';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 import { verifierLesLois } from './lois';
 import { conteneurDeRegles, handleExportComponent, node, regle } from './aides/figmaFaux';
@@ -394,6 +394,22 @@ test('composes se dérive de l’arbre : deux dépendances d’un même cadre y 
     ]);
   } finally {
     figmaFaux.restaurer();
+  }
+});
+
+test('une cible explicite garde ses règles après un changement de sélection et de page', async () => {
+  const montage = monterFigma();
+  try {
+    const runtime = (globalThis as any).figma;
+    const page = runtime.currentPage;
+    runtime.currentPage = node('PAGE', 'Autre page', [], { selection: [] });
+    const resultat = await exporterCible(undefined, { composant: montage.componentSet, page });
+    const contrat = JSON.parse(resultat.content);
+    verifierLesLois(contrat, 'cible explicite');
+    assert.equal(contrat.name, 'Button');
+    assert.ok(resultat.content.includes('Action principale'));
+  } finally {
+    montage.restaurer();
   }
 });
 

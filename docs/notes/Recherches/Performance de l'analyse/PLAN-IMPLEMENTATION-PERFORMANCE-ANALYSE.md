@@ -7,8 +7,9 @@ dépendances du composant, sous réserve de la sonde S6. Elle y cherche les
 conteneurs de règles sans descendre dans les calques masqués d'instance. Le
 contrat ne dépend que du fichier Figma. Chaque maître d'instance est
 résolu une fois par analyse. Une retouche ne fait rebalayer que sa page. Un
-changement de sélection arrête l'analyse après au plus 200 ms de calcul, plus
-la durée de l'appel Figma en cours. Si la sonde S2 le permet, l'index est prêt
+changement de sélection arrête l'analyse au prochain contrôle d'annulation.
+Le seuil de 200 ms entre respirations ne borne pas la durée des blocs synchrones
+ni celle des appels Figma. Si la sonde S2 le permet, l'index est prêt
 avant le clic.
 
 Ce plan est destiné à l'agent qui réalisera les changements. Il applique la
@@ -356,8 +357,9 @@ L7.4 se fait en fin de plan.
   100 ms, ou si le canevas s'arrête pendant le défilement, écrire « L3 retiré »
   sous cette tâche. L'agent coche alors L3.1 à L3.3 avec la mention « non
   réalisée ».
-  *L2 existe : S2 peut se lancer (`sondes/S2-prechauffage.js`). L3.1 à L3.3
-  attendent son constat.*
+  Construire S2 avec `npm run sonde:s2 --workspace ucm-exporter-plugin`, puis
+  coller `packages/plugin-exporter/dist/S2-prechauffage.js` dans la console.
+  La sonde embarque l'index du moteur. L3.1 à L3.3 attendent son constat.
 - [ ] **L3.1** Dans `reportSelectionState`, lancer `indexContractedNames` en
   priorité `fond` quand la cible est exportable
   et qu'un variant satisfait `contientUneInstanceRendue`. Passer

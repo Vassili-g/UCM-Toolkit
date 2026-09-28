@@ -12,7 +12,7 @@
  * Le module est synchrone : les maîtres viennent de `scanComposedMatrix`, qui
  * les a lus une fois pour toute la matrice.
  */
-import { compactName } from './extractRules';
+import { estContracte } from './composedComponents';
 import { getAllNodes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import { noter, pousserNote } from './localisation';
@@ -65,8 +65,11 @@ export function estUnePieceInterne(nom: string): boolean {
  * Le set porte le nom que le designer lit, alors que le variant porte
  * « Size=Small », et Figma refuse `componentPropertyDefinitions` sur un variant.
  */
-function porteurDuMaitre(main: ComponentNode): ComponentNode | ComponentSetNode {
-  return main.parent?.type === 'COMPONENT_SET' ? main.parent : main;
+function porteurDuMaitre(main: ComponentNode): ComponentNode | ComponentSetNode | null {
+  try {
+    const parent = main.parent;
+    return parent?.type === 'COMPONENT_SET' ? parent : main;
+  } catch { return null; }
 }
 
 /**
@@ -127,6 +130,7 @@ function aQuiAppartient(
   composant: ComponentNode | ComponentSetNode,
   porteurs: ReadonlyMap<string, ComponentNode | ComponentSetNode>,
   contractes: ReadonlySet<string>,
+  maitres: ReadonlyMap<string, ComponentNode>,
 ): Appartenance {
   const chaine: InstanceNode[] = [];
   try {
@@ -143,7 +147,7 @@ function aQuiAppartient(
     const porteur = porteurs.get(maillon.id);
     if (!porteur) return 'illisible';
     if (estUnePieceInterne(porteur.name)) continue;
-    if (contractes.has(compactName(porteur.name))) return 'elaguee';
+    if (estContracte(porteur, contractes, maitres.get(maillon.id))) return 'elaguee';
     proche = { composant: porteur, maillon };
   }
   return proche;
@@ -223,7 +227,8 @@ export function releverLesImbriques(sources: SourcesDuReleve): ReleveDesImbrique
   const porteurs = new Map<string, ComponentNode | ComponentSetNode>();
   for (const instance of instances) {
     const main = maitres.get(instance.id);
-    if (main) porteurs.set(instance.id, porteurDuMaitre(main));
+    const porteur = main && porteurDuMaitre(main);
+    if (porteur) porteurs.set(instance.id, porteur);
   }
 
   const auParent: string[] = [];
@@ -233,7 +238,7 @@ export function releverLesImbriques(sources: SourcesDuReleve): ReleveDesImbrique
   for (const instance of instances) {
     const porteur = porteurs.get(instance.id);
     if (!porteur) continue;
-    const appartenance = aQuiAppartient(instance, composant, porteurs, contractes);
+    const appartenance = aQuiAppartient(instance, composant, porteurs, contractes, maitres);
     if (appartenance === 'elaguee') continue;
     const declarees = clesDeclareesParLePorteur(porteur) ?? [];
     for (const cle of declarees) restantes.delete(cle);
@@ -264,7 +269,7 @@ export function releverLesImbriques(sources: SourcesDuReleve): ReleveDesImbrique
     // celui-là.
     const nodeIds = instances.filter((autre) => {
       if (porteurs.get(autre.id)?.id !== proprietaire.id) return false;
-      const sienne = aQuiAppartient(autre, composant, porteurs, contractes);
+      const sienne = aQuiAppartient(autre, composant, porteurs, contractes, maitres);
       return typeof sienne === 'object' && sienne !== null && sienne.composant === proprietaire;
     }).map((autre) => autre.id);
     const groupe: ImbriqueSansRegles = {

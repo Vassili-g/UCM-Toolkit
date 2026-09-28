@@ -55,6 +55,27 @@ function relever(
 const titres = (releve: ReleveDesImbriques, racine: any) =>
   pointsDesImbriques(racine, releve).map(({ point }) => point.titre);
 
+test('un distant homonyme d’un composant contracté reste sans règles', () => {
+  const bouton = node('INSTANCE', 'Action', []);
+  const racine = node('COMPONENT', 'Exemple', [bouton]);
+  const releve = relever(racine, [[bouton, setDe('Button', setBouton.componentPropertyDefinitions, { remote: true })]], { contractes: ['button'] });
+  assert.equal(releve.sansRegles.length, 1);
+  assert.equal(releve.sansRegles[0].distant, true);
+  assert.deepEqual(releve.sansRegles[0].nodeIds, [bouton.id]);
+});
+
+test('un maître dont le parent est illisible laisse ses propriétés sans porteur', () => {
+  const bouton = node('INSTANCE', 'Action', []);
+  const racine = node('COMPONENT', 'Exemple', [bouton]);
+  const maitre = node('COMPONENT', 'Supprimé');
+  Object.defineProperty(maitre, 'parent', { get() { throw new Error('supprimé'); } });
+  const releve = releverLesImbriques({
+    composant: racine, variants: [racine], maitres: new Map([[bouton.id, maitre]]),
+    contractes: new Set(), composed: new Map(), horsDuParent: ['label'],
+  });
+  assert.deepEqual(releve.sansPorteur, ['label']);
+});
+
 test('un imbriqué sans règles donne un point qui nomme les deux composants', () => {
   const bouton = node('INSTANCE', 'Action', []);
   const racine = node('COMPONENT', 'Exemple', [bouton]);

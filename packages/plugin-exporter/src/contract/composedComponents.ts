@@ -197,7 +197,11 @@ let pagesGardees = new Map<unknown, EntreeDePage>();
 let calculEnVol: Promise<unknown> = Promise.resolve();
 
 /** Une modification pendant les lectures empêche de rendre un index cohérent. */
-export class IndexModifie extends Error {}
+export class IndexModifie extends Error {
+  constructor() {
+    super('Analyse annulée : les règles du document ont changé. Relancez l’analyse.');
+  }
+}
 
 export type OptionsDeLIndex = {
   /** Attendu avant de charger et de balayer une page. */

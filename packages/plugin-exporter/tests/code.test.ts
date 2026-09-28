@@ -15,6 +15,7 @@ import * as sources from '../src/template/sources';
 import * as modele from '../src/template/modele';
 import * as imbriques from '../src/contract/imbriques';
 import * as mesure from '../src/contract/mesure';
+import { IndexModifie } from '../src/contract/composedComponents';
 import * as termes from '../src/forges/termes';
 import type { ReleveDeSource } from '../src/contract/extractRules';
 import type { ModeleDeRegles } from '../src/template/modele';
@@ -63,7 +64,7 @@ function ouvrir() {
   const stockage = new Map<string, unknown>();
   const appels = { analyses: 0, ecritures: 0, pagesOubliees: [] as unknown[], publications: 0, forges: 0, lectures: 0, connexions: 0, collections: 0, avecTokens: [] as boolean[], jetons: [] as string[], relevesDeProps: [] as string[][], modeles: [] as ModeleDeRegles[] };
   const exporte = {
-    traiter: async (_annoncer?: unknown, _options?: { respirer: () => Promise<void> }) =>
+    traiter: async (_annoncer?: unknown, _options?: { respirer?: () => Promise<void>; composant?: ReturnType<typeof selectionDe>; page?: unknown }) =>
       resultat('tokens.json'),
   };
   /** Ce que la résolution des maîtres rend au clic ; le test le choisit. */
@@ -71,6 +72,7 @@ function ouvrir() {
   /** L'écriture elle-même, jamais jouée : le banc juge ce que le routeur en fait. */
   const creation = { traiter: async () => ({ conteneur: { id: 'conteneur' }, regles: 2 }) };
   const publication = { traiter: async () => ({ status: 'created', path: 'tokens.json', pullRequestUrl: 'https://github.com/o/r/pull/1' }) };
+  const lecture = { traiter: async () => ({ path: 'tokens.json', layout: { source: 'configuration' } }) };
   const resumeDesTokens = { traiter: async () => ({ presents: true, resume: '1 variable' }) };
   /** Ce que la lecture des règles relève de la page ; le test le choisit. */
   const releve: { actuel: ReleveDeSource } = {
@@ -89,6 +91,7 @@ function ouvrir() {
     currentPage: {
       selection: [selectionDe('a')],
     },
+    setCurrentPageAsync: async (page: { selection: ReturnType<typeof selectionDe>[] }) => { runtime.currentPage = page; },
     ui: { postMessage: (message: PluginMessage) => messages.push(message), resize() {}, onmessage: async (_message: UiRequest) => {} },
     on: (nom: string, rappel: () => void) => evenements.set(nom, rappel),
     clientStorage: {
@@ -115,6 +118,7 @@ function ouvrir() {
       MARQUEUR_A_COMPLETER: '[À compléter]',
     },
     './contract/composedComponents': {
+      IndexModifie,
       oublierLaPage: (page: unknown) => { appels.pagesOubliees.push(page); },
     },
     // Le vrai texte des points : la création le reprend du moteur.
@@ -158,7 +162,7 @@ function ouvrir() {
         appels.connexions += 1;
         return connexionDe.traiter(forge.configuration);
       },
-      lireAvantEcriture: async (_forge: unknown, _artefact: unknown, options: { avecTokens: boolean }) => { appels.lectures += 1; appels.avecTokens.push(options.avecTokens); return { path: 'tokens.json', layout: { source: 'configuration' } }; },
+      lireAvantEcriture: async (_forge: unknown, _artefact: unknown, options: { avecTokens: boolean }) => { appels.lectures += 1; appels.avecTokens.push(options.avecTokens); return lecture.traiter(); },
       publishArtifact: async () => { appels.publications += 1; return publication.traiter(); },
     },
   };
@@ -170,7 +174,7 @@ function ouvrir() {
     clearTimeout: (id: number) => temporisations.delete(id),
   });
   return {
-    messages, traces, appels, exporte, publication, connexionDe, temporisations, resumeDesTokens, releve, regles, resolution, creation, runtime, stockage,
+    messages, traces, appels, exporte, publication, lecture, connexionDe, temporisations, resumeDesTokens, releve, regles, resolution, creation, runtime, stockage,
     envoyer: (message: UiRequest) => runtime.ui.onmessage(message),
     selectionner(id: string, parent?: { type: string }) {
       runtime.currentPage.selection = [selectionDe(id, parent)];
@@ -181,6 +185,90 @@ function ouvrir() {
       stockage.set('depotActif', 'github:o/r');
     },
   };
+}
+
+for (const attenteDe of ['depot', 'configuration'] as const) {
+  test(`une annulation pendant la lecture ${attenteDe} ne remplace pas la trace précédente`, async () => {
+    const h = ouvrir();
+    h.connecter();
+    await h.envoyer({ type: 'analyser-composant', operation: 1 });
+    const traces = h.traces.length;
+    h.messages.length = 0;
+    const attente = differe<void>();
+    if (attenteDe === 'depot') {
+      h.lecture.traiter = async () => {
+        await attente.promesse;
+        return { path: 'exemple.contract.json', layout: { source: 'configuration' } };
+      };
+    } else {
+      const lire = h.runtime.clientStorage.getAsync;
+      h.exporte.traiter = async () => {
+        h.runtime.clientStorage.getAsync = async (cle) => { await attente.promesse; return lire(cle); };
+        return resultat('exemple.contract.json');
+      };
+    }
+    const analyse = h.envoyer({ type: 'analyser-composant', operation: 2 });
+    await tourner();
+    h.selectionner('b');
+    attente.resoudre();
+    await analyse;
+    assert.equal(h.messages.some(({ type }) => ['mesure', 'verdict', 'download'].includes(type)), false);
+    assert.equal(h.traces.length, traces);
+  });
+}
+
+test('une respiration déjà annulée n’envoie aucun avancement', async () => {
+  const h = ouvrir();
+  h.exporte.traiter = async (_annoncer, options) => {
+    mesure.etape('structure');
+    mesure.avancer(1, 2);
+    h.selectionner('b');
+    const respiration = options!.respirer!();
+    for (const rappel of h.temporisations.values()) rappel();
+    await respiration;
+    return resultat('exemple.contract.json');
+  };
+  await h.envoyer({ type: 'analyser-composant', operation: 1 });
+  assert.equal(h.messages.some(({ type }) => type === 'avancement'), false);
+  assert.equal(statuts(h).at(-1), 'Export annulé. Rien n’a été écrit.');
+});
+
+test('un index modifié arrête l’analyse avec une consigne de relance', async () => {
+  const h = ouvrir();
+  h.exporte.traiter = async () => { throw new IndexModifie(); };
+  await h.envoyer({ type: 'analyser-composant', operation: 1 });
+  assert.match(statuts(h).at(-1) ?? '', /Relancez l’analyse/);
+  assert.equal(h.messages.some(({ type }) => ['mesure', 'verdict', 'download'].includes(type)), false);
+});
+
+for (const autrePage of [false, true]) {
+  test(`la création garde sa cible pendant la résolution, changement de page : ${autrePage}`, async () => {
+    const h = ouvrir();
+    const page = h.runtime.currentPage;
+    const cible = page.selection[0];
+    const attente = differe<void>();
+    const resoudre = h.resolution.traiter;
+    h.resolution.traiter = async () => { await attente.promesse; return resoudre(); };
+    let composantAnalyse: unknown;
+    let pageAnalysee: unknown;
+    h.exporte.traiter = async (_annoncer, options) => {
+      composantAnalyse = options?.composant;
+      pageAnalysee = options?.page;
+      return resultat('exemple.contract.json');
+    };
+    const creation = h.envoyer({ type: 'creer-regles', operation: 1 });
+    await tourner();
+    if (autrePage) h.runtime.currentPage = { selection: [] };
+    h.selectionner('b');
+    attente.resoudre();
+    await creation;
+    assert.equal(composantAnalyse, cible);
+    assert.equal(pageAnalysee, page);
+    assert.deepEqual(h.appels.pagesOubliees, [page]);
+    assert.equal(h.runtime.currentPage, page);
+    assert.equal(page.selection[0], cible);
+    assert.equal(h.appels.ecritures, 1);
+  });
 }
 
 test('deux demandes simultanées ne lancent qu’une analyse', async () => {
@@ -216,7 +304,7 @@ test('une respiration qui suit un changement de sélection arrête l’analyse, 
   let apresLaRespiration = false;
   h.exporte.traiter = async (_annoncer, options) => {
     h.selectionner('b');
-    const respiration = options!.respirer();
+    const respiration = options!.respirer!();
     // La respiration est le dernier `setTimeout` posé : le moteur attend qu'il
     // passe, comme le sandbox le ferait après avoir traité la sélection.
     const [id, rappel] = [...h.temporisations].at(-1)!;
@@ -286,7 +374,7 @@ test('la trace relève le temps passé à rendre la main et le plus long silence
   h.connecter();
   h.exporte.traiter = async (annoncer, options) => {
     (annoncer as (texte: string) => void)('Lecture des règles d’usage…');
-    const respiration = options!.respirer();
+    const respiration = options!.respirer!();
     const [id, rappel] = [...h.temporisations].at(-1)!;
     h.temporisations.delete(id);
     rappel();

@@ -451,21 +451,19 @@ function candidatsDeRegles(page: PageNode): SceneNode[] {
  * (composant sans règles) de « conteneur présent mais vide », pour un warning
  * précis.
  *
- * La lecture porte sur la page courante, alors que l'index des dépendances
- * couvre tout le document. Le conteneur étant désormais une instance d'un même
- * maître, rien n'empêche plus de regrouper les règles sur une page de
- * documentation ; l'étendre ici demanderait un `loadAllPagesAsync` à chaque
- * changement de sélection, et le premier constat dit donc « de cette page ».
+ * La page est capturée au début du geste : un changement de page pendant
+ * l'attente ne doit pas changer les règles du composant ciblé.
  */
 export async function extractRules(
   componentSet: ComponentNode | ComponentSetNode,
+  page: PageNode = figma.currentPage,
 ): Promise<ExtractedRules> {
   const owner = compactName(componentSet.name);
   const releve = releveVide();
   // On les cherche tous : n'en lire qu'un alors que la page en porte plusieurs
   // ferait disparaître des règles sans que rien ne le dise. Le même parcours
   // relève ce dont l'offre de création a besoin.
-  const candidats = candidatsDeRegles(figma.currentPage);
+  const candidats = candidatsDeRegles(page);
   const containers = candidats.filter((node) => {
     if (node.type === 'COMPONENT' && compactName(node.name) === MAITRE_COMPACTE) {
       releve.maitreLocal ??= node;

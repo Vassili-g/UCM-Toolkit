@@ -1,25 +1,23 @@
-// Sonde S2 : le préchauffage de l'index fige-t-il Figma ?
-//
-// À coller dans la console d'un plugin de développement FRAÎCHEMENT lancé
-// (mesure à froid), un composant à instances sélectionné. Pendant que le script
-// tourne, faire défiler le canevas et noter tout arrêt de l'image. Le script ne
-// fait que lire et charger des pages.
-//
-// Il rejoue le calcul de l'index de L2 (conception, section 5.4) : maîtres des
-// instances rendues, page de chaque maître par ses parents, chargement et
-// balayage de cette page seule, puis un tour de plus pour les dépendances
-// contractées. Un battement `setTimeout(0)` tourne pendant ce temps et relève le
-// plus grand écart entre deux battements.
-//
-// Seuil (conception, section 6) : un écart de plus de 100 ms sur un seul des
-// cinq essais à froid d'un fichier du corpus retire L3.
+// Sonde S2 : battement du sandbox pendant le calcul réel de l'index à froid.
+// Construire avec `npm run sonde:s2 --workspace ucm-exporter-plugin`, puis
+// coller packages/plugin-exporter/dist/S2-prechauffage.js dans la console
+// d'un plugin de développement fraîchement lancé, sans analyse en cours.
+// Sélectionner un composant à instances et faire défiler le canevas pendant
+// chacun des cinq essais à froid. Un écart supérieur à 100 ms ou un arrêt
+// visible du canevas retire le préchauffage.
+import { indexContractedNames, oublierLIndexDuDocument } from '../../../../../packages/plugin-exporter/src/contract/composedComponents';
+import { dansUnePorteeDAnalyse } from '../../../../../packages/plugin-exporter/src/contract/porteeDAnalyse';
+import { ouvrirLaMesure, fermerLaMesure, abandonnerLaMesure } from '../../../../../packages/plugin-exporter/src/contract/mesure';
+
 (async () => {
   const racine = figma.currentPage.selection[0];
-  if (!racine || !('findAllWithCriteria' in racine)) {
+  if (!racine || !['COMPONENT', 'COMPONENT_SET'].includes(racine.type)) {
     console.log('[S2] sélectionner un composant ou un component set');
     return;
   }
-
+  const variants = racine.type === 'COMPONENT_SET'
+    ? racine.children.filter((node) => node.type === 'COMPONENT')
+    : [racine];
   let battre = true;
   let dernier = Date.now();
   let plusGrandEcart = 0;
@@ -31,86 +29,29 @@
     battements += 1;
     if (battre) setTimeout(battement, 0);
   };
+  oublierLIndexDuDocument();
+  ouvrirLaMesure();
   setTimeout(battement, 0);
-  const respirer = () => new Promise((resolve) => setTimeout(resolve, 0));
-
-  const compacter = (nom) => nom.replace(/\s+/g, '').toLowerCase();
-  const pageDe = (node) => {
-    let courant = node;
-    while (courant && courant.type !== 'PAGE') courant = courant.parent;
-    return courant && courant.type === 'PAGE' ? courant : null;
-  };
-  const nomsDeLaPage = (page) => {
-    const avant = figma.skipInvisibleInstanceChildren;
-    figma.skipInvisibleInstanceChildren = true;
-    try {
-      const noms = new Set();
-      for (const texte of page.findAllWithCriteria({ types: ['TEXT'] })) {
-        try {
-          if (texte.name.trim().toLowerCase() !== 'component-name') continue;
-          let parent = texte.parent;
-          while (parent && parent.type !== 'INSTANCE' && parent.type !== 'PAGE') parent = parent.parent;
-          if (!parent || parent.type !== 'INSTANCE') continue;
-          const nom = compacter(texte.characters);
-          if (nom && !texte.characters.includes('[À compléter]')) noms.add(nom);
-        } catch (_) {
-          // Un calque que Figma ne sert plus ne déclare rien.
-        }
-      }
-      return noms;
-    } finally {
-      figma.skipInvisibleInstanceChildren = avant;
-    }
-  };
-
-  const debut = Date.now();
-  const nomsParPage = new Map();
-  const contractes = new Set();
-  const vus = new Set();
-  let racines = racine.type === 'COMPONENT_SET' ? [...racine.children] : [racine];
-  let tours = 0;
-  while (racines.length > 0) {
-    tours += 1;
-    const proprietaires = [];
-    for (const variant of racines) {
-      for (const instance of variant.findAllWithCriteria({ types: ['INSTANCE'] })) {
-        const maitre = await instance.getMainComponentAsync().catch(() => null);
-        if (!maitre) continue;
-        const proprietaire = maitre.parent && maitre.parent.type === 'COMPONENT_SET' ? maitre.parent : maitre;
-        if (vus.has(proprietaire.id)) continue;
-        vus.add(proprietaire.id);
-        proprietaires.push({ proprietaire, maitre });
-      }
-    }
-    racines = [];
-    for (const { proprietaire, maitre } of proprietaires) {
-      if (maitre.remote) continue;
-      const page = pageDe(proprietaire);
-      if (!page) continue;
-      if (!nomsParPage.has(page.id)) {
-        await respirer();
-        await page.loadAsync();
-        nomsParPage.set(page.id, nomsDeLaPage(page));
-      }
-      if (!nomsParPage.get(page.id).has(compacter(proprietaire.name))) continue;
-      contractes.add(proprietaire.name);
-      racines.push(maitre);
-      if (proprietaire.type === 'COMPONENT_SET' && proprietaire.defaultVariant) {
-        racines.push(proprietaire.defaultVariant);
-      }
-    }
+  try {
+    const contractes = await dansUnePorteeDAnalyse({}, () =>
+      indexContractedNames(variants, { priorite: 'fond' }));
+    const trace = fermerLaMesure('');
+    battre = false;
+    // Le dernier battement inclut le bloc synchrone qui termine le calcul.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    console.log('[S2]', {
+      racine: racine.name,
+      trace,
+      contractes: [...contractes],
+      battements,
+      plusGrandEcartMs: plusGrandEcart,
+      fige: plusGrandEcart > 100,
+    });
+  } catch (erreur) {
+    console.error('[S2] essai invalide', erreur);
+  } finally {
+    battre = false;
+    abandonnerLaMesure();
+    oublierLIndexDuDocument();
   }
-  const duree = Date.now() - debut;
-  battre = false;
-  await new Promise((resolve) => setTimeout(resolve, 20));
-  console.log('[S2]', {
-    racine: racine.name,
-    ms: duree,
-    tours,
-    pagesChargees: nomsParPage.size,
-    contractes: Array.from(contractes),
-    battements,
-    plusGrandEcartMs: plusGrandEcart,
-    fige: plusGrandEcart > 100,
-  });
 })();
