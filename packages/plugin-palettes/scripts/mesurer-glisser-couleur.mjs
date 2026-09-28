@@ -108,7 +108,7 @@ const CAS = [
   { nom: 'Fond des Réglages communs, zone', etat: 'configuration-de-la-recette', gestes: ['[aria-label="Couleurs de fond"] .pipette'], commande: '.selecteur-zone', temoin: '.reglages-apercu' },
 ];
 for (const { nom, etat, gestes, commande, temoin } of CAS) {
-  const onglet = await navigateur.newPage({ viewport: { width: 770, height: 720 } });
+  const onglet = await navigateur.newPage({ viewport: { width: 600, height: 720 } });
   await onglet.goto(galerie(etat));
   await onglet.waitForFunction(() => document.documentElement.dataset.galerie === 'pret');
   for (const geste of gestes) await onglet.locator(geste).first().click();

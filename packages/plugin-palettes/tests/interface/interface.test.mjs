@@ -116,9 +116,9 @@ const dansLaFenetre = async (locator, hauteur = 520) => {
 };
 
 /** La taille par défaut de la fenêtre ([UI-01]). */
-const PAR_DEFAUT = { width: 770, height: 720 };
+const PAR_DEFAUT = { width: 600, height: 720 };
 
-test('[UI-03] [UI-11] à 770 × 720, la carte « Configuration de la palette » et le haut de l’aperçu se lisent sans défiler ; à 500 × 520, le sélecteur, le titre seul sur sa ligne et la rangée du nom et de la référence', async () => {
+test('[UI-03] [UI-11] à 600 × 720, la carte « Configuration de la palette » et le haut de l’aperçu se lisent sans défiler ; à 500 × 520, le sélecteur, le titre seul sur sa ligne et la rangée du nom et de la référence', async () => {
   const grande = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
   try {
     for (const [nom, locator] of Object.entries({
