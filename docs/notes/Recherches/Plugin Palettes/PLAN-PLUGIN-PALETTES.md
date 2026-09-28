@@ -656,8 +656,8 @@ la recette sous la clé partagée, le thème de Figma servi à l'interface. Sur 
 fichier neuf, l'onglet Palettes doit annoncer « Aucune recette dans ce
 fichier ».
 
-Réponse du mainteneur : accord pour créer le plugin au lot 3 ; l'identifiant
-reste à donner.
+Réponse du mainteneur : accord pour créer le plugin au lot 3. Identifiant
+attribué par Figma : `1686417188609883766`, porté par le manifest.
 
 ### M2 : textes destinés au designer
 

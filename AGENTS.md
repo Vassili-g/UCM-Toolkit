@@ -262,7 +262,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
   tests/                   dont la loi d'écriture, et interface/ pour Chromium
   scripts/mesurer-glisser.mjs  le coût d'un mouvement de poignée, hors des tests
-  manifest.json            identifiant provisoire jusqu'au point M1
+  manifest.json            identifiant attribué par Figma (point M1)
 
 docs/                    la documentation classée par sujet
   README.md              le sommaire par profil de lecteur, et la table des autorités
