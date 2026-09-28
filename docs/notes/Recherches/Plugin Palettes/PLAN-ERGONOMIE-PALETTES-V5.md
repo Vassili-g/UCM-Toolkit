@@ -19,6 +19,8 @@ plus large.
 Ce plan est destiné à l’agent qui réalisera les changements. Il remplace les
 cases encore ouvertes du [quatrième plan](./PLAN-ERGONOMIE-PALETTES-V4.md),
 dont les décisions restent valables quand ce document ne les remplace pas.
+Les cases encore ouvertes de ce plan-ci passent au [sixième
+plan](./PLAN-ERGONOMIE-PALETTES-V6.md).
 Le mainteneur a répondu aux six [questions](#questions-au-mainteneur) ; Q5.4
 se confirme sur la maquette Y2.1. Il fait lui-même les tests d’interface et
 la recette dans Figma.
