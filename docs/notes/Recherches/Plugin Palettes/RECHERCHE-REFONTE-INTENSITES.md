@@ -295,3 +295,150 @@ point de départ. Replier l’ajustement dans `clarte[porteur]` déplacerait
 aussi la rampe du porteur, et une recette 4 changerait de couleurs. Garder
 la référence rangée comme point de départ de `f`, l’originale gardée pour
 « Revenir à l’originale », ne change aucune couleur.
+
+## Spécification du moteur (Z10.5)
+
+Écrite après la validation de la maquette Z10.4, avant le moteur, puis
+corrigée par une seconde revue indépendante dont les conclusions suivent.
+Elle précise le modèle C là où la maquette le laissait ouvert.
+
+### Le champ
+
+Une palette porte `reglages`, facultatif :
+
+| Clé | Sens | Bornes, arrondi |
+|---|---|---|
+| `teinte` | `{ soft?, vivid? }` : la teinte de chaque profil depuis le départ, en degrés | [−30, 30], au centième |
+| `clarte` | `{ soft?, vivid? }` : le décalage de clarté OKLCH de chaque profil | [−0,05, +0,02], au millième |
+| `part` | La part de chroma de la référence, à une intensité seulement | [0, 1], au millième |
+| `porteur` | Le profil porteur figé, `soft` ou `vivid`, à deux intensités sans `base` | — |
+| `depart` | Le départ d'une référence ajustée avant cette version : sa référence rangée | hexa, différent de `originale` |
+
+Une palette à une intensité range sous `vivid`, comme sa dérive. Une teinte
+ou une clarté nulle ne se range pas, ni un objet vide ; `part` peut valoir 0.
+`reglages` contient au moins une teinte, une clarté ou `part`.
+
+Le porteur `P` vaut `base`, sinon `reglages.porteur`, sinon le classement
+automatique. À deux intensités sans `base`, `reglages` porte `porteur` : il
+se fige au premier réglage. Un **réglage du porteur** est `teinte[P]`,
+`clarte[P]` ou `part`.
+
+### Le départ et la référence
+
+Le départ `S` vaut `depart ?? originale` quand un réglage du porteur existe,
+sinon la référence. Un réglage du porteur exige `originale` ; `depart`
+n'existe qu'avec lui.
+
+`referenceReglee(S, teinte, clarte, part)` rend les octets de la référence :
+clarté `S.L + clarte`, teinte `S.H + teinte`, chroma `part × plafond` quand
+`part` existe, sinon `min(S.C, plafond)`, comme `propositionDAjustement`.
+Tout zéro rend `S`, octets compris. Les gestes tiennent `reference =
+referenceReglee(S, teinte[P], clarte[P], part)` ; la validation ne le
+recalcule pas, car les fonctions mathématiques de JavaScript ne rendent pas
+les mêmes derniers chiffres dans tous les moteurs, et un écart d'un bit
+rendrait la recette illisible. Des propriétés sur tirages le tiennent.
+Avec un réglage du porteur, `originale` peut égaler la référence : un
+réglage fin rend souvent les mêmes octets.
+
+### Les rampes
+
+Pour chaque profil `p`, `d_p` vaut `clarte[p]`, ou 0.
+
+1. Le pivot de `p` a pour clarté `S.L` et pour teinte `S.H + teinte[p]`.
+   Sans réglage du porteur, `S` est la référence : le pivot du porteur est
+   celui d'aujourd'hui.
+2. Un cran lit sa clarté commune `L`. Sa teinte vaut `teinteA(L, pivot de
+   p, dérive de p, bouts)`, sa clarté fabriquée `L + d_p`, bornée à [0, 1],
+   sa part celle de `partsDe`. `facteurSombre` lit `L`.
+3. L'ancrage prend, sur la courbe commune, le rang le plus proche de `S.L`,
+   puis y pose les octets de la référence. `S` ne bouge pas pendant les
+   gestes : le ◆ garde sa nuance.
+4. `pivotDe(recette, palette, intensité)` expose le pivot au graphe de la
+   dérive ; l'alerte « hors de la rampe » compare `S.L` aux bouts.
+
+Le préréglage Tailwind se calcule sur `S` : les gestes de la carte ne le
+déplacent pas, et une palette ajustée en version 4 garde le sien. Avec
+`base`, la part du porteur est celle de la référence réglée : une teinte ou
+une luminosité change aussi sa saturation.
+
+### Les gestes
+
+Chaque geste suit le même ordre :
+
+1. Il pose les nouvelles valeurs, bornées. « Les deux » déplace les deux
+   profils du même écart et s'arrête quand l'un atteint sa borne. La
+   saturation des deux intensités passe par `parts`, comme aujourd'hui.
+2. Il normalise : zéros et objets vides retirés.
+3. À deux intensités sans `base`, `porteur` prend le porteur d'avant le
+   geste tant que `reglages` existe, et disparaît avec lui.
+4. S'il crée le premier réglage du porteur : `originale` prend la
+   référence d'avant quand elle manque, et `depart` la référence rangée
+   quand `originale` existait déjà et diffère d'elle.
+5. Il récrit la référence : `referenceReglee(S, ...)` avec un réglage du
+   porteur ; sans lui, `S` redevient la référence, `depart` se retire, et
+   `originale` aussi quand la référence l'égale.
+6. `ajusterPartsGrises` suit, comme pour un code saisi.
+
+« Ajuster la référence » (réponse R1) propose `clarte[P]` par pas de 0,01,
+de −5 à +2 pas ; la modale s'ouvre au pas le plus proche de la clarté
+rangée, et « Appliquer » passe par le geste de luminosité. Le ◆ ne change
+plus de nuance : la ligne des nuances ne dit plus que la nuance visée.
+
+« Revenir à l'originale » pose `reference = originale`, retire `originale`,
+`depart` et les réglages du porteur, et garde ceux de l'autre profil, dont
+la teinte se mesure depuis le même départ. La dérive Tailwind se recalcule
+sur l'originale, comme en version 4.
+
+Un code saisi (`changerReference`) retire `originale` et tout `reglages` : le
+designer repart d'une couleur neuve.
+
+`choisirLaBase` : un profil pose `base` et retire `reglages.porteur`, puis
+récrit la référence avec les réglages du nouveau porteur ; l'interface
+l'annonce avant d'agir. « Auto » retire `base` et, s'il reste des réglages,
+fige le porteur d'avant : aucune couleur ne change.
+
+Passer de deux intensités à une range les réglages du porteur sous `vivid`,
+retire ceux de l'autre et `porteur`, garde `depart` et la dérive du
+porteur : la référence ne change pas. Passer d'une à deux retire `part`,
+récrit la référence sans elle, classe le porteur sur la nouvelle référence
+et range sous lui les réglages. `passerEnLibre` passe d'abord à deux
+intensités ; `revenirAuModele` replie comme un passage à une.
+
+### La recette 5
+
+`FORMAT_RECETTE` passe à 5. La migration de 4 à 5 ne change que
+`formatVersion` : aucune palette ne reçoit `reglages`, et une recette 4
+garde ses couleurs à l'octet. Règles nouvelles de `[REC-05]` :
+`reglages-bornes`, `reglage-nul`, `reglages-intensites` (une clé qui ne
+convient pas au nombre d'intensités), `porteur-base`, `porteur-manquant`,
+`reglages-sans-originale`, `depart-sans-reglage` et `depart-identique`.
+
+L'import compte `reglages` parmi les champs nommés d'un écart, et parmi
+ceux qui changent les couleurs ; le rapport le porte, au format 3.
+
+### Vecteurs et propriétés
+
+- Une recette 4 migrée égale la recette lue, au JSON près de
+  `formatVersion`, et ses rampes égalent celles d'avant à l'octet.
+- Sans réglage, `rampesDe` rend les octets d'aujourd'hui (vecteurs figés).
+- Pour tout réglage, à la clarté `S.L`, la teinte de chaque profil vaut
+  celle de son pivot (propriété sur tirages).
+- La teinte d'un cran d'un profil décalé en clarté égale celle du même
+  profil sans décalage.
+- Une référence proche du milieu de 500 et 600, décalée de +0,02 : le ◆
+  reste au même rang, et un ancrage lu sur la clarté des octets le ferait
+  changer.
+- Un aller-retour de teinte de ±10° rend la référence d'avant à l'octet.
+- `[MOT-13]` tenu, remesuré par `mesurer-temps.mjs`.
+
+### Revue de la spécification
+
+Retenu de la seconde revue : une teinte par profil au lieu d'une rotation
+et d'un écart ; pivot et ancrage sur le départ ; l'invariant de la
+référence tenu par les gestes et les propriétés, non par la validation ;
+`part` à 0 permis ; aucun `porteur` sans autre réglage ni avec `base` ;
+`ajusterPartsGrises` après chaque récriture ; un code saisi retire tout
+`reglages` ; le préréglage Tailwind sur le départ ; l'import, le rapport,
+le graphe de la dérive et l'alerte « hors de la rampe » suivent ; le
+vecteur du ◆ pris près d'une frontière de nuances. Écarté : garder `part` à
+deux intensités, qui ferait deux saturations de la référence.

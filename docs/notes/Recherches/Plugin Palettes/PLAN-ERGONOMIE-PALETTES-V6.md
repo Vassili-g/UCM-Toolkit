@@ -914,6 +914,11 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
   recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
   `[MOT-13]` tenu. Tests vus rouges sur mutation.
+  Spécification écrite et revue avant le moteur : [Spécification du
+  moteur (Z10.5)](./RECHERCHE-REFONTE-INTENSITES.md#spécification-du-moteur-z105).
+  La revue a simplifié le modèle : une teinte par profil au lieu d'une
+  rotation et d'un écart, le pivot et l'ancrage sur le départ, l'invariant
+  de la référence tenu par les gestes plutôt que par la validation.
 - [ ] **Z10.6** L’interface, selon la maquette. La carte remplace celle des
   intensités ; le module se renomme s’il ne dit plus ce qu’il fait, et
   AGENTS.md suit. Prévisualiser pendant le geste, ranger à la fin, Échap
