@@ -2411,3 +2411,17 @@
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * La largeur de la fenêtre, en repère de développement : posée dans le coin,
+ * hors du flux, comme la poignée de redimensionnement qu'elle ne recouvre pas.
+ */
+.largeur-fenetre {
+  position: fixed;
+  left: 4px;
+  bottom: 2px;
+  font-size: 10px;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}

@@ -320,7 +320,14 @@ export function creerVuesIndex(i18n: Localisation) {
     if (point.focus?.isConnected && point.focus !== document.body) point.focus.focus({ preventScroll: true });
   }
 
-  app.append(enTete, travail, configuration, createResizeGrip(versSandbox));
+  const largeurFenetre = document.createElement('div');
+largeurFenetre.className = 'largeur-fenetre';
+largeurFenetre.setAttribute('aria-hidden', 'true');
+const rafraichirLargeurFenetre = () => (largeurFenetre.textContent = `${Math.round(window.innerWidth)} px`);
+rafraichirLargeurFenetre();
+window.addEventListener('resize', rafraichirLargeurFenetre);
+
+app.append(enTete, travail, configuration, largeurFenetre, createResizeGrip(versSandbox));
 
   onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
     const message = event.data.pluginMessage;
