@@ -1770,62 +1770,130 @@
   stroke-dasharray: 3 2;
 }
 
+/*
+ * La liste des garanties (maquette Z3.2, G2) : un encadré par minimum, son
+ * titre en bandeau, les états nommés une fois en tête de colonne, chaque
+ * état dans sa colonne. La rangée choisie prend le fond de survol et une
+ * barre de 3 px écartée du texte.
+ */
 .liste-des-garanties {
   display: grid;
-  gap: 2px;
+  gap: var(--espace-bloc);
 }
 
-.garanties-groupe {
+.garanties-bloc {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.garanties-bloc-tete {
   display: flex;
   justify-content: space-between;
   gap: var(--espace-controle);
-  padding-top: var(--espace-serre);
+  padding: 6px var(--espace-bloc);
+  background: var(--fond-note);
+  font-size: var(--libelle);
   font-weight: 600;
 }
 
-.garanties-groupe .ligne-secondaire {
+.garanties-bloc-tete .ligne-secondaire {
   font-weight: 400;
 }
 
-.garantie {
+.garanties-colonnes,
+.garantie,
+.garantie-echec {
   display: grid;
-  align-items: start;
-  gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-serre);
+  column-gap: var(--espace-controle);
+  /* 150 px : le spécimen de 64 px, 6 px, puis « ✗ 21,00 » et « AA ✗ », le résultat le plus large. */
+  grid-template-columns: minmax(0, 1fr) repeat(3, 150px);
+}
+
+.garanties-colonnes {
+  padding: 6px var(--espace-bloc) 2px 18px;
+  color: var(--texte-second);
+}
+
+.garantie {
+  position: relative;
+  align-items: center;
+  padding: 6px var(--espace-bloc) 6px 18px;
   border-top: 1px solid var(--bordure);
-  border-radius: 4px;
   cursor: pointer;
-  grid-template-columns: 140px minmax(0, 1fr);
+}
+
+.garanties-colonnes + .garantie {
+  border-top: 0;
 }
 
 .garantie[aria-pressed='true'] {
-  border-top-color: transparent;
   background: var(--fond-survol);
-  box-shadow: inset 2px 0 0 var(--texte);
+}
+
+.garantie[aria-pressed='true']::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--bordure-marque);
+  content: '';
 }
 
 .garantie:focus-visible {
   outline: 2px solid var(--bordure-marque);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
 
 .garantie-qui {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.garantie-etats {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espace-controle);
+  align-items: baseline;
+  min-width: 0;
+  column-gap: var(--espace-controle);
+  grid-row: 1;
 }
 
+.garantie-qui .code-du-role,
+.garantie-decorative .code-du-role {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--fond-note);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Une case d'état : le spécimen à gauche, les numéros puis le ratio et son badge, sur une ligne. */
 .garantie-etat {
   display: grid;
-  width: 64px;
-  justify-items: center;
-  gap: 2px;
+  align-items: center;
+  justify-items: start;
+  column-gap: 6px;
+  grid-row: 1;
+  grid-template-columns: 64px auto;
+  grid-template-rows: auto auto;
+}
+
+.garantie-etat .specimen-cadre {
+  grid-row: 1 / span 2;
+}
+
+.garanties-colonnes > [data-rang='0'],
+.garantie-etat[data-rang='0'] {
+  grid-column: 2;
+}
+
+.garanties-colonnes > [data-rang='1'],
+.garantie-etat[data-rang='1'] {
+  grid-column: 3;
+}
+
+.garanties-colonnes > [data-rang='2'],
+.garantie-etat[data-rang='2'] {
+  grid-column: 4;
 }
 
 .garantie-numeros {
@@ -1837,6 +1905,7 @@
 .garantie-resultat {
   color: var(--texte-succes);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .garantie-resultat[data-verdict='manquee'] {
@@ -1845,16 +1914,76 @@
 }
 
 .garantie-echec {
-  display: grid;
-  gap: var(--espace-serre);
-  padding: 0 var(--espace-serre) var(--espace-controle) 148px;
+  row-gap: var(--espace-serre);
+  padding: 0 var(--espace-bloc) var(--espace-controle) 18px;
+  background: var(--fond-survol);
   color: var(--texte-danger);
 }
 
+.garantie-echec > * {
+  grid-column: 2 / -1;
+}
+
 .garantie-decorative {
-  padding: var(--espace-controle) var(--espace-serre) 0;
-  border-top: 1px solid var(--bordure);
+  padding: 0 var(--espace-serre);
   color: var(--texte-second);
+}
+
+/*
+ * Sous 700 px (maquette Z3.5, N2) : chaque rangée garde le nom et ses trois
+ * états sur une ligne, dans des cases de 92 px ; le spécimen passe au-dessus
+ * des numéros et du ratio, et le nom de chaque état se centre sur sa colonne.
+ */
+@media (max-width: 699px) {
+  .garanties-colonnes,
+  .garantie,
+  .garantie-echec {
+    column-gap: 6px;
+    grid-template-columns: minmax(0, 1fr) repeat(3, 92px);
+  }
+
+  .garanties-colonnes {
+    padding-right: 8px;
+    padding-left: 14px;
+  }
+
+  .garanties-colonnes > [data-rang] {
+    text-align: center;
+  }
+
+  .garantie {
+    align-items: start;
+    padding: 6px 8px 6px 14px;
+  }
+
+  .garantie[aria-pressed='true']::before {
+    left: 4px;
+  }
+
+  .garantie-echec {
+    padding-right: 8px;
+    padding-left: 14px;
+  }
+
+  .garantie-echec > * {
+    grid-column: 1 / -1;
+  }
+
+  .garantie-qui {
+    display: grid;
+  }
+
+  .garantie-etat {
+    justify-items: center;
+    row-gap: 2px;
+    grid-template-columns: auto;
+  }
+
+  .garantie-etat .specimen-cadre {
+    width: 56px;
+    height: 22px;
+    grid-row: auto;
+  }
 }
 
 .autre-theme {

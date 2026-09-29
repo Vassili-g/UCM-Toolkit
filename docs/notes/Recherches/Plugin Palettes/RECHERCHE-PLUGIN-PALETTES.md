@@ -1454,13 +1454,20 @@ palette » gardent leurs libellés au-dessus des champs.
   par état, de la nuance du premier membre à celle du second : trait plein en
   `default`, tireté en `hover`, pointillé en `active`. Un arc en échec prend la
   couleur de danger, et une légende d'une ligne nomme les trois traits.
-  La liste donne une ligne par association (section 11.2), en deux groupes :
-  « Textes lisibles » au minimum texte, « Éléments visibles » au minimum non
-  textuel, chaque groupe avec son minimum lu dans la recette. Une ligne porte
-  la relation (« `text` sur `surface` ») et son nom français, puis un spécimen
-  par état. Sous chaque spécimen : les deux numéros comparés (« 700 / 100 »,
-  « fond / 700 »), le ratio avec ✓ ou ✗ et son badge de niveau
-  (`[VER-13]`), puis l'état. Une ligne en échec
+  La liste donne une ligne par association (section 11.2), dans deux
+  encadrés : « Textes lisibles » au minimum texte, « Éléments visibles » au
+  minimum non textuel, chacun avec son titre en bandeau et son minimum lu
+  dans la recette. Sous le bandeau, les états `default`, `hover` et
+  `active` se nomment une fois, en tête de trois colonnes. Une ligne porte
+  la relation (« `text` sur `surface` »), les codes des rôles à la taille du
+  texte sur un fond de note, et son nom français, puis chaque état dans sa
+  colonne : le spécimen à gauche, les deux numéros comparés (« 700 / 100 »,
+  « fond / 700 »), puis le ratio avec ✓ ou ✗ et son badge de niveau
+  (`[VER-13]`) sur une seule ligne, « ✗ 21,00 » et « AA ✗ » compris. Sous
+  700 px de fenêtre, les colonnes passent de 150 à 92 px, le spécimen passe
+  au-dessus des numéros et du ratio, et le nom de chaque état se centre sur
+  sa colonne. La ligne choisie prend le fond de survol et une barre de 3 px
+  écartée du texte. Une ligne en échec
   porte l'état fautif, son ratio et le minimum, puis le lien vers le réglage
   qui peut agir (`[VER-15]`), « Ajuster la référence » (`[UI-15]`) en
   dernier. La liste se termine par `border-decorative`,
@@ -1594,8 +1601,7 @@ palette » gardent leurs libellés au-dessus des champs.
   par Échap, par la fermeture du sélecteur, après le clic qui l'a refermé,
   ou par la capture du pointeur perdue en plein glisser. Aucun rendu complet
   ne part pendant le geste, même quand le pointeur s'arrête ; une réponse
-  du sandbox à un rangement n'y montre qu'un refus. Un mouvement sans
-  bouton finit le glisser comme un relâcher. Pendant la saisie d'un fond des
+  du sandbox à un rangement n'y montre qu'un refus. Pendant la saisie d'un fond des
   Réglages communs, seul leur aperçu compact suit : le tracé et la garantie
   des courbes, qui ne lisent pas les fonds, attendent le relâcher, et
   l'onglet Création, caché, se rend au retour. Un code s'enregistre à Entrée

@@ -245,7 +245,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
-  src/ui/garanties.ts      la carte des garanties : bascule Soft/Vivid pour deux intensités, réglette et arcs, une ligne par association
+  src/ui/garanties.ts      la carte des garanties : bascule Soft/Vivid pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités

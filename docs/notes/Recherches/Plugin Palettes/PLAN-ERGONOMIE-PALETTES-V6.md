@@ -505,8 +505,7 @@ encore mesurées :
   L'abandon qui suit un clic hors du sélecteur attend la fin de ce clic,
   sans quoi le rendu rebâtirait l'élément visé et le clic se perdrait.
   La couleur en attente passe avant l'abandon. Changer de contrôle clôt
-  aussi la séquence. Un mouvement sans bouton finit le geste comme un
-  relâcher, pour un bouton relâché hors de l'iframe. Une réponse de
+  aussi la séquence. Une réponse de
   rangement en plein aperçu ne rend que le refus. Le retour des Réglages
   rend l'onglet s'il est resté en aperçu. `pointercancel` garde son
   comportement : il finit le geste et range. « Pointeur perdu » désigne
@@ -550,6 +549,11 @@ encore mesurées :
   courbes calculée une fois par geste. Chacun vu rouge sur mutation.
   Reconstruire le plugin dans la copie partagée, puis confier la recette
   Figma au mainteneur. La case ne se ferme qu’après son retour.
+  Retour du mainteneur après le build de Z5 : dans Figma, le glisser ne
+  sélectionnait plus de couleur. La règle « un mouvement sans bouton finit
+  le geste », retenue de la revue, est retirée (9400091) ; Chromium ne
+  reproduisait pas la panne. Un test tient le contraire : un mouvement donné
+  sans bouton prolonge le glisser.
   Remesuré, à 770 px. Images de plus de 20 ms : ×4, 0 sur 381, 1 sur 383,
   0 sur 347 pour un fond ; ×6, 7 sur 441, 6 sur 453, 1 sur 415. Fil
   principal par image à ×6 : 13,7 ms, 13,7 ms et 14,0 ms. Pauses de
@@ -630,16 +634,29 @@ garantie manque et pourquoi la référence doit bouger.
 
 Après la validation de Z3.2 et Z1.2.
 
-- [ ] **Z6.1** La carte selon G2 à 770 px et selon N2 (Z3.5) sous 700 px,
+- [x] **Z6.1** La carte selon G2 à 770 px et selon N2 (Z3.5) sous 700 px,
   à une et à deux intensités, aux deux thèmes de palette. Règles `.v6-g2`
   et `.v6-n2` du générateur à reprendre. L’état de galerie
   `garanties-refaites` (Z0.6) devient atteignable. `[UI-09]` récrit.
-- [ ] **Z6.2** Vérifier à 500 × 520 et à 770 × 720, au ratio le plus long
+  Fait. Les colonnes G2 font 150 px, et non 146 : au pire contenu, le
+  spécimen, l'écart et « ✗ 21,00 AA ✗ » prennent 150 px, et le résultat
+  débordait de 4 px sur la colonne voisine. La relation n'imbrique plus un
+  paragraphe dans un autre : « fond » passait à la ligne. Hauteur de la
+  carte ouverte, avant puis après : sans échec, 1 253 → 893 px à 770 px et
+  1 218 → 1 165 px à 500 px ; avec un échec, 1 299 → 961 px et 1 288 →
+  1 233 px. Badges à la ligne : 3 ou 4 avant, 0 après.
+- [x] **Z6.2** Vérifier à 500 × 520 et à 770 × 720, au ratio le plus long
   (« ✗ 21:1 » et un badge AAA), qu’aucun badge ne passe à la ligne.
-- [ ] **Z6.3** Tests : badge sur la même ligne que son ratio, à 500 px et à
+  Fait par un test, « ✗ 21,00 » et « AA ✗ », plus large que « AAA », dans
+  chaque case : aucun badge à la ligne, aucun résultat hors de sa case.
+- [x] **Z6.3** Tests : badge sur la même ligne que son ratio, à 500 px et à
   770 px ; nom de chaque état écrit une fois par groupe ; code d’un rôle à
   la taille du texte courant ; rangée choisie et focus visibles ; une
   garantie en échec garde ses liens. Vus rouges sur mutation.
+  Fait : trois tests, dix mutations vues rouges. Deux mutations sont
+  d'abord restées vertes, les cases de 64 px et de 146 px : `nowrap` y
+  gardait le badge sur la ligne en débordant. Le test vérifie désormais que
+  chaque résultat tient dans sa case.
 
 Critère : le designer distingue les groupes d’un regard, et la carte d’une
 palette sans échec tient dans moins de hauteur qu’aujourd’hui.

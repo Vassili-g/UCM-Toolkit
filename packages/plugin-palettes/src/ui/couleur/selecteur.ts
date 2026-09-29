@@ -291,7 +291,7 @@ function construireVues(i18n: Localisation) {
         glisse = false;
         poser(depuis(evenement), true);
       };
-      // Le geste ne lit pas `buttons` : quand il le lisait, le glisser ne fonctionnait plus dans Figma (recette du 2026-09-29).
+      // Le geste ne lit pas `buttons` : quand il le lisait, le glisser ne fonctionnait plus dans Figma.
       commande.addEventListener('pointermove', (evenement) => {
         if (glisse && commande.hasPointerCapture(evenement.pointerId)) poser(depuis(evenement), false);
       });

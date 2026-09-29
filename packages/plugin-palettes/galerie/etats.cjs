@@ -166,9 +166,9 @@ const ETATS = [
     id: 'garanties-refaites',
     titre: 'Garanties de contraste, refaites',
     quand: 'Bleu, deux intensités, une garantie en échec choisie.',
-    regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte.',
-    existe: false,
-    attendu: 'Z6.1',
+    regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte. Sous 700 px, le spécimen au-dessus des numéros, chaque rangée sur une ligne.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), { clic: '[aria-label="Garanties de contraste"] .carte-bascule' }],
   },
   {
     id: 'premier-lancement',

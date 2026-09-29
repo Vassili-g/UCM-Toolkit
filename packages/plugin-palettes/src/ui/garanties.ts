@@ -1,10 +1,13 @@
 /**
  * La carte « Garanties de contraste » ([UI-09]) : pour le thème de l'aperçu,
  * une bascule Soft/Vivid qui porte le résultat de chaque profil, une réglette
- * des nuances où la garantie choisie se trace en arcs, puis une ligne par
- * association (section 9.4), groupées par minimum, chaque ratio avec son
- * niveau WCAG ([VER-13]). Une ligne en échec porte
- * l'état fautif et les réglages qui peuvent agir ([VER-06], [VER-15]).
+ * des nuances où la garantie choisie se trace en arcs, puis un encadré par
+ * minimum (maquette Z3.2, G2) : les états nommés une fois en tête de
+ * colonne, une ligne par association (section 9.4), chaque état dans sa
+ * colonne, son ratio avec son niveau WCAG sur une seule ligne ([VER-13]).
+ * Sous 700 px, le spécimen passe au-dessus des numéros (maquette Z3.5, N2).
+ * Une ligne en échec porte l'état fautif et les réglages qui peuvent agir
+ * ([VER-06], [VER-15]).
  *
  * Le profil affiché et la garantie choisie durent tant que la palette reste
  * ouverte ; ils se conservent au changement de profil et de thème.
@@ -206,10 +209,11 @@ function construireVues(i18n: Localisation) {
       reglette.replaceChildren(svg);
     }
 
-    /** Un état d'une association : son spécimen, les deux numéros, le résultat, puis l'état. */
-    function etatDeLaGarantie(promesse: Promesse, fond: Rgb8, nommerLEtat: boolean): HTMLDivElement {
+    /** Un état d'une association, dans la colonne de son état : son spécimen, les deux numéros, puis le résultat et son badge. */
+    function etatDeLaGarantie(promesse: Promesse, fond: Rgb8): HTMLDivElement {
       const bloc = document.createElement('div');
       bloc.className = 'garantie-etat';
+      bloc.dataset.rang = String(etatDeLaPaire(promesse.paire));
       const numeros = paragraphe(TEXTES_DES_GARANTIES.numeros(numeroDuMembre(promesse, 'premier'), numeroDuMembre(promesse, 'second')));
       numeros.className = 'garantie-numeros';
       const resultat = paragraphe(TEXTES_DES_GARANTIES.resultat(promesse.verdict === 'tenue', promesse.contraste));
@@ -217,7 +221,6 @@ function construireVues(i18n: Localisation) {
       resultat.dataset.verdict = promesse.verdict;
       resultat.append(badgeDeNiveau(promesse.contraste, jugementDuSeuil(promesse.paire.seuil)));
       bloc.append(specimenDeLaPromesse(promesse, fond), numeros, resultat);
-      if (nommerLEtat) bloc.append(paragraphe(NOM_DE_L_ETAT[etatDeLaPaire(promesse.paire)], 'ligne-secondaire'));
       return bloc;
     }
 
@@ -253,15 +256,11 @@ function construireVues(i18n: Localisation) {
       qui.className = 'garantie-qui';
       const relation = document.createElement('p');
       relation.append(code(association.premier), i18n.noeud(i18n.composer` ${TEXTES_DES_GARANTIES.sur} `));
-      relation.append(association.second === 'fond' ? paragraphe(TEXTES_DES_GARANTIES.fond) : code(association.second));
+      relation.append(association.second === 'fond' ? i18n.noeud(TEXTES_DES_GARANTIES.fond) : code(association.second));
       const francais = i18n.composer`${NOM_DU_ROLE[association.premier]} ${TEXTES_DES_GARANTIES.sur} ${association.second === 'fond' ? TEXTES_DES_GARANTIES.fond : NOM_DU_ROLE[association.second]}`;
       qui.append(relation, paragraphe(francais, 'ligne-secondaire'));
       if (association.premier === 'on-solid') qui.append(paragraphe(TEXTES_DES_GARANTIES.onSolid, 'ligne-secondaire'));
-      const etats = document.createElement('div');
-      etats.className = 'garantie-etats';
-      const nommer = promesses.length > 1 || etatDeLaPaire(promesses[0].paire) !== 0;
-      etats.append(...promesses.map((promesse) => etatDeLaGarantie(promesse, fond, nommer)));
-      ligne.append(qui, etats);
+      ligne.append(qui, ...promesses.map((promesse) => etatDeLaGarantie(promesse, fond)));
 
       const echecs = promesses.filter((promesse) => promesse.verdict === 'manquee');
       if (echecs.length === 0) return [ligne];
@@ -313,19 +312,31 @@ function construireVues(i18n: Localisation) {
       ];
       const lignes: HTMLElement[] = [];
       for (const groupe of groupes) {
-        const titre = document.createElement('p');
-        titre.className = 'garanties-groupe';
+        const bloc = document.createElement('section');
+        bloc.className = 'garanties-bloc';
+        i18n.lier(bloc, 'aria-label', groupe.titre);
+        const tete = document.createElement('div');
+        tete.className = 'garanties-bloc-tete';
         const minimum = document.createElement('span');
         minimum.className = 'ligne-secondaire';
         i18n.lier(minimum, 'textContent', TEXTES_DES_GARANTIES.minimum(groupe.minimum));
-        i18n.lier(titre, 'textContent', groupe.titre);
-        titre.append(minimum);
-        lignes.push(titre);
+        tete.append(i18n.noeud(groupe.titre), minimum);
+        // Les états, nommés une fois en tête de leur colonne ; chaque ligne les redit à l'assistance technique.
+        const colonnes = document.createElement('div');
+        colonnes.className = 'garanties-colonnes';
+        colonnes.setAttribute('aria-hidden', 'true');
+        colonnes.append(document.createElement('span'), ...([0, 1, 2] as const).map((etat) => {
+          const nom = i18n.noeud(NOM_DE_L_ETAT[etat]);
+          nom.dataset.rang = String(etat);
+          return nom;
+        }));
+        bloc.append(tete, colonnes);
         for (const association of ASSOCIATIONS) {
           const ici = deLAssociation(association);
           if (ici.length === 0 || ici[0].paire.seuil !== groupe.seuil) continue;
-          lignes.push(...ligneDAssociation(association, ici, fond));
+          bloc.append(...ligneDAssociation(association, ici, fond));
         }
+        lignes.push(bloc);
       }
       const decoratif = document.createElement('p');
       decoratif.className = 'garantie-decorative';

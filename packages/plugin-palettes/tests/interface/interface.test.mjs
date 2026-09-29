@@ -415,6 +415,87 @@ test('[UI-09] repliées, les garanties gardent le résultat des deux profils ; l
   }
 });
 
+/** Les badges passés sous la ligne de leur ratio, dans une carte des garanties. */
+const badgesALaLigne = (carte) => carte.evaluate((element) => [...element.querySelectorAll('.garantie-resultat')].filter((resultat) => {
+  const badge = resultat.querySelector('.badge-de-niveau');
+  return badge && badge.getBoundingClientRect().top > resultat.getBoundingClientRect().top + 6;
+}).length);
+
+test('Z6.3 [UI-09] à 500 et à 770 px, chaque badge reste sur la ligne de son ratio, au ratio le plus long', async () => {
+  for (const viewport of [MINIMALE, { width: 770, height: 720 }]) {
+    const page = await ouvrirSur('garantie-en-echec', viewport);
+    try {
+      await deplierLaCarte(page, 'Garanties de contraste');
+      const carte = carteDeLOnglet(page, 'Garanties de contraste');
+      assert.equal(await badgesALaLigne(carte), 0, `${viewport.width} px, contenu réel`);
+      // Le pire contenu : « ✗ 21,00 » et le badge le plus large, dans chaque case.
+      await carte.evaluate((element) => {
+        for (const resultat of element.querySelectorAll('.garantie-resultat')) {
+          const badge = resultat.querySelector('.badge-de-niveau');
+          badge.textContent = 'AA ✗';
+          resultat.replaceChildren('✗ 21,00', badge);
+        }
+      });
+      assert.equal(await badgesALaLigne(carte), 0, `${viewport.width} px, « ✗ 21,00 » et « AA ✗ »`);
+      const debordent = await carte.evaluate((element) => [...element.querySelectorAll('.garantie-etat')].filter((cellule) => cellule.querySelector('.garantie-resultat').getBoundingClientRect().right > cellule.getBoundingClientRect().right + 0.5).length);
+      assert.equal(debordent, 0, `${viewport.width} px, chaque résultat tient dans sa case`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('Z6.3 [UI-09] un encadré par minimum ; les états nommés une fois, en tête de colonne ; le code d’un rôle à la taille du texte qui l’entoure', async () => {
+  const page = await ouvrirSur('garantie-en-echec', { width: 770, height: 720 });
+  try {
+    await deplierLaCarte(page, 'Garanties de contraste');
+    const carte = carteDeLOnglet(page, 'Garanties de contraste');
+    const blocs = carte.locator('.garanties-bloc');
+    assert.deepEqual(await blocs.evaluateAll((liste) => liste.map((bloc) => bloc.getAttribute('aria-label'))), ['Textes lisibles', 'Éléments visibles']);
+    for (const bloc of await blocs.all()) {
+      const texte = await bloc.evaluate((element) => [...element.querySelectorAll('.garantie')].map((ligne) => ligne.innerText).join(' '));
+      for (const etat of ['default', 'hover', 'active']) assert.equal(texte.includes(etat), false, `« ${etat} » se répète dans les lignes`);
+      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['default', 'hover', 'active']);
+    }
+    // Chaque case tombe sous le nom de son état.
+    const alignees = await carte.evaluate((element) => [...element.querySelectorAll('.garantie-etat')].every((cellule) => {
+      const nom = cellule.closest('.garanties-bloc').querySelector(`.garanties-colonnes [data-rang="${cellule.dataset.rang}"]`).getBoundingClientRect();
+      const cadre = cellule.getBoundingClientRect();
+      return Math.abs(cadre.left - nom.left) < 1;
+    }));
+    assert.equal(alignees, true, 'chaque état dans sa colonne');
+    const [codeTaille, texteTaille] = await carte.locator('.garantie-qui p').first().evaluate((relation) => [getComputedStyle(relation.querySelector('.code-du-role')).fontSize, getComputedStyle(relation).fontSize]);
+    assert.equal(codeTaille, texteTaille);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le focus se voit, et une garantie en échec garde ses liens', async () => {
+  const page = await ouvrirSur('garantie-en-echec', { width: 770, height: 720 });
+  try {
+    await deplierLaCarte(page, 'Garanties de contraste');
+    const carte = carteDeLOnglet(page, 'Garanties de contraste');
+    const choisie = carte.locator('.garantie[aria-pressed="true"]');
+    const { barre, ecart, fond, fondLibre } = await choisie.evaluate((ligne) => {
+      const avant = getComputedStyle(ligne, '::before');
+      const libre = ligne.parentElement.querySelector('.garantie[aria-pressed="false"]');
+      const texte = ligne.querySelector('.garantie-qui').getBoundingClientRect().left - ligne.getBoundingClientRect().left;
+      return { barre: avant.width, ecart: texte - (parseFloat(avant.left) + parseFloat(avant.width)), fond: getComputedStyle(ligne).backgroundColor, fondLibre: getComputedStyle(libre).backgroundColor };
+    });
+    assert.equal(barre, '3px');
+    assert.ok(ecart >= 6, `la barre est à ${ecart} px du texte`);
+    assert.notEqual(fond, fondLibre, 'la rangée choisie a son fond');
+    await carte.locator('.garantie').first().focus();
+    await page.keyboard.press('Tab');
+    const contour = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
+    assert.notEqual(contour, 'none', 'le focus se voit');
+    assert.deepEqual(await carte.locator('.garantie-echec .lien-de-constat').allTextContents(), ['Intensités de la palette', 'Dérive de teinte', 'Luminosité des nuances', 'Ajuster la référence']);
+  } finally {
+    await page.close();
+  }
+});
+
 test('[UI-09] des garanties manquées dans l’autre thème se comptent, basculent l’aperçu sur ce thème, et un bouton ramène au thème d’avant', async () => {
   // Le cran 700 plus clair fait manquer text sur surface en Light ; l'aperçu montre Dark.
   const page = await ouvrirSur('garantie-en-echec');
