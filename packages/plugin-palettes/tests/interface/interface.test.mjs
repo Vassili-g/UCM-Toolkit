@@ -2680,18 +2680,20 @@ test('Z4.9 [UI-13] Échap pendant un glisser rend tout l’onglet une fois, sans
   }
 });
 
-test('Z4.9 [UI-13] un mouvement sans bouton finit le glisser comme un relâcher, et une capture perdue l’arrête sans rien ranger', async () => {
+test('Z4.9 [UI-13] un mouvement que le navigateur donne sans bouton prolonge le glisser, et une capture perdue l’arrête sans rien ranger', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
     await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4]], 'rien'));
-    await page.evaluate(() => window.bouger(0.7, 0.5, 0));
-    const ranges = await rangements(page);
-    assert.equal(ranges.length, 1, 'le relâcher perdu hors de l’iframe range une fois');
-    assert.equal(ranges[0].recette.palettes[0].reference, await referenceMontree(page));
-    await page.evaluate(() => window.bouger(0.2, 0.9));
     await imageSuivante(page);
-    assert.equal(await referenceMontree(page), ranges[0].recette.palettes[0].reference, 'un survol après la fin ne prévisualise plus');
+    const avant = await referenceMontree(page);
+    // Dans Figma, le glisser s'arrêtait au premier mouvement quand le sélecteur lisait `buttons`.
+    await page.evaluate(() => window.bouger(0.9, 0.9, 0));
+    await imageSuivante(page);
+    assert.deepEqual(await rangements(page), [], 'le geste continue');
+    assert.notEqual(await referenceMontree(page), avant, 'l’aperçu suit le mouvement');
+    await page.evaluate(() => window.relacher());
+    assert.equal((await rangements(page)).length, 1);
 
     await page.evaluate(() => window.glisser([[0.2, 0.2], [0.3, 0.8]], 'rien'));
     await page.evaluate(() => { window.garantiesTouchees = 0; window.perdreLaCapture(); });

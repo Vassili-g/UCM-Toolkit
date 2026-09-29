@@ -291,11 +291,9 @@ function construireVues(i18n: Localisation) {
         glisse = false;
         poser(depuis(evenement), true);
       };
+      // Le geste ne lit pas `buttons` : quand il le lisait, le glisser ne fonctionnait plus dans Figma (recette du 2026-09-29).
       commande.addEventListener('pointermove', (evenement) => {
-        if (!glisse || !commande.hasPointerCapture(evenement.pointerId)) return;
-        // Un bouton relâché hors de l'iframe n'envoie pas toujours `pointerup` : un mouvement sans bouton finit le geste.
-        if ((evenement.buttons & 1) === 0) finir(evenement);
-        else poser(depuis(evenement), false);
+        if (glisse && commande.hasPointerCapture(evenement.pointerId)) poser(depuis(evenement), false);
       });
       commande.addEventListener('pointerup', finir);
       commande.addEventListener('pointercancel', finir);
