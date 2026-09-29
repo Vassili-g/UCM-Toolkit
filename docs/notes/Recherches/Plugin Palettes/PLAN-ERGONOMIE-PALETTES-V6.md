@@ -16,6 +16,16 @@ Palettes, les pastilles d’état et le geste global prennent les libellés et
 les couleurs dictés. Dans la configuration, le code hexa prend la largeur
 disponible et les intensités se choisissent par segments, comme le modèle.
 
+Suite de la recette (lots Z8 à Z10) : le graphe de la dérive de teinte, la
+réglette des garanties et le tracé des courbes gardent la taille de leurs
+textes et de leurs traits quand la fenêtre change de largeur ; seules leurs
+colonnes s’étirent, comme l’aperçu des rôles. La poignée de
+redimensionnement suit le pointeur dans les deux sens, ne lâche pas en
+plein geste et ne bouge plus la fenêtre une fois relâchée. La carte
+« Intensités » est repensée d’après une recherche et une maquette validée :
+teinte, saturation et luminosité se règlent pour Vivid, Soft ou les deux,
+jusqu’à la référence, et la dérive de teinte s’applique par-dessus.
+
 Ce plan est destiné à l’agent qui réalisera les changements. Il reprend les
 cases encore ouvertes du [cinquième plan](./PLAN-ERGONOMIE-PALETTES-V5.md),
 dont les décisions restent valables quand ce document ne les remplace pas.
@@ -26,14 +36,16 @@ recette dans Figma.
 
 Lire dans cet ordre :
 
-1. les [retours du mainteneur](#retours-du-mainteneur-round-6), conservés
-   sans modification ;
+1. les [retours du mainteneur](#retours-du-mainteneur-round-6) et ceux de
+   la [suite de la recette](#retours-du-mainteneur-suite-de-la-recette-v6),
+   conservés sans modification ;
 2. les décisions ci-dessous et les [réponses aux
    questions](#questions-au-mainteneur), une fois données ;
 3. les maquettes du lot Z3 (`MAQUETTES-RECETTE-V6.html`), toutes
    validées : Z3.1 forme A, Z3.2 G2, Z3.3 D1, Z3.4 M2, Z3.5 N2. Les règles
    `v6-` de `generer-maquettes-v6.mjs` sont les prototypes des règles CSS
-   de Z5.2 et Z6.1, et `ajusterEnModale` celui de la modale ;
+   de Z5.2 et Z6.1, et `ajusterEnModale` celui de la modale ; puis la
+   maquette du lot Z10 (`MAQUETTES-RECETTE-V6-2.html`), une fois validée ;
 4. le [cinquième plan](./PLAN-ERGONOMIE-PALETTES-V5.md), les [décisions de
    rédaction](./DECISIONS-REDACTION-PALETTES.md) et
    l’[inventaire des textes](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md) ;
@@ -67,6 +79,26 @@ relatifs à `packages/plugin-palettes/`.
 | Dans la configuration, le modèle se choisit par segments `.bascule.bascule-de-base` (« Standard · Libre ») ; les intensités, par l’interrupteur « Deux intensités » posé en Y8.6 | `champs.ts`, `createChoixDuModele`, `createInterrupteurDesIntensites` | Le retour défait Y8.6 : des segments comme le modèle |
 | Garanties : `.code-du-role` en 10 px à chasse fixe, à côté d’un texte courant de 11 px ; une case d’état fait 64 px de large et porte « ✓ 4,52:1 » puis le badge ; le nom de l’état s’écrit sous chaque case ; la rangée choisie prend `--fond-survol` et une ombre intérieure de 2 px à gauche ; les groupes par minimum ne se distinguent que par un titre en gras | `styles.css`, `.garantie*`, `garanties.ts` | Chaque point du retour a sa cause dans une règle ; le retour parle d’un trait à droite, que le code ne pose pas : Z0.1 le constate |
 
+Faits des lots Z8 à Z10, relevés au commit `4531729`, avant la traduction
+en cours dans la copie partagée :
+
+| Fait | Source | Conséquence |
+|---|---|---|
+| Le graphe de dérive a un viewBox fixe de 396 × 208 unités, affiché en `width: 100%; height: auto`. Graduations en 9 px, lettres des poignées en 8 px, traits de 1 à 2 unités, cases de 16 unités : tout grandit avec la colonne | `derive/graphe.ts`, `CADRE`, `HAUTEUR_TOTALE` ; `styles.css`, `.derive-graphe` | Le graphe se dessine à la largeur mesurée, une unité pour un pixel |
+| La géométrie de la dérive est pure et prend son `Cadre` en paramètre. Le glisser d’une poignée convertit l’ordonnée par `HAUTEUR_TOTALE` sur la hauteur affichée | `derive/geometrie.ts`, `derive/editeur.ts` | Une largeur variable ne touche pas la géométrie ; une hauteur fixe garde la conversion exacte |
+| La réglette des garanties : viewBox `-46 0 (n × 40,5 + 46) 92`, cases de 37 unités au pas de 40,5, numéros en 9,5 px, arcs de 1,4 à 1,8 unité, même règle `width: 100%; height: auto` | `garanties.ts`, `CASE`, `PAS`, `ON_SOLID` ; `.reglette-svg` | Même défaut, dans un fichier que Z6.1 récrit |
+| Le tracé des courbes des Réglages communs suit la même règle. Le retour ne le cite pas | `traceDesCourbes.ts`, `.trace-courbes` | Les trois graphes suivent une seule règle |
+| L’aperçu des rôles (`on-solid`, `surface-card`, `border-decorative`) est en HTML : ses cases s’étirent, ses textes et ses bordures gardent leur taille. Aucun `ResizeObserver` dans `src/ui` | `specimens.ts`, `styles.css`, `grep` | C’est le comportement demandé ; la mesure de largeur est à poser |
+| La poignée du socle envoie un `resize` à chaque `pointermove`, sans limite par image. Elle ne s’arrête que sur `pointerup` ou `pointercancel` reçus par elle, et ne lit jamais `buttons` : un relâcher perdu la laisse attachée, et un mouvement sans bouton redimensionne encore | `plugin-socle/src/ui/ResizeGrip.ts` | Cause probable de « ça redimensionne tout seul », à constater (Z9.1) |
+| Pour agrandir, le pointeur sort de l’iframe avant que Figma ne l’élargisse : les mouvements n’arrivent plus que par la capture du pointeur | `ResizeGrip.ts`, `setPointerCapture` | Cause possible de « on n’arrive pas à agrandir », à constater (Z9.1) |
+| À chaque `resize`, le sandbox appelle `figma.ui.resize` puis attend `rangerTaille` : une écriture de `clientStorage` par mouvement | `plugin-palettes/src/code.ts`, `plugin-exporter/src/code.ts`, `traiterMessage` | Ranger une fois, à la fin du geste |
+| UCM Exporter pose la même poignée et reçoit le même message (`messages.ts`) | `plugin-exporter/src/ui/index.ts` | Une correction du socle vaut pour les deux plugins ; la suite et la galerie d’Exporter restent vertes |
+| La carte « Intensités » ne paraît qu’à deux intensités. Elle règle une part de chroma par profil, de 0 à 1, par curseur et champ ; Soft ne dépasse jamais Vivid ; un repère situe la part de la référence ; dessous, l’origine des parts, « Reprendre les réglages communs » et les alertes qui comparent les profils | `intensites.ts`, `[ENT-09]`, `[ENT-11]`, `[UI-12]`, `[VER-10]`, `[VER-11]` | La saturation par profil existe déjà : la refonte la reprend au lieu d’en ajouter une seconde |
+| Une palette range `reference`, `derive` (une par profil, et `lien`), `parts`, `base`, `crans`, `originale`, `intensites`. Aucun champ de teinte ni de luminosité par profil. `FORMAT_RECETTE` vaut 4 | `packages/couleur/src/recette.ts` | Régler la teinte ou la luminosité d’un seul profil demande un champ nouveau : moteur, validation, recette en version 5 |
+| La référence garde ses octets dans son profil porteur (`[MOT-17]`). La teinte d’un cran part de celle de la référence, puis la dérive s’y ajoute (section 6.4) | Spécification | Décaler le profil porteur déplace la référence ; décaler l’autre profil ne la touche pas |
+| « Ajuster la référence » règle déjà la luminosité OKLCH de la référence, par pas de 0,01, et garde `originale` avec « Revenir à l’originale » | `[UI-15]`, `ajustement.ts`, `ajustementDeLaReference.ts` | La refonte et la modale de Z5 écrivent le même champ : elles partagent `originale` et ne se contredisent pas |
+| « Intensités » nomme aussi les segments « Une · Deux » de la configuration (Z1.7) | `champs.ts`, `[UI-11]` | Renommer la carte lève l’homonymie |
+
 ## Décisions
 
 | Sujet | Décision |
@@ -84,6 +116,10 @@ relatifs à `packages/plugin-palettes/`.
 | Code hexa | Il prend toute la largeur de sa colonne, dans la configuration et dans la création, qui gardent la même disposition (Q6.5) |
 | Intensités dans la configuration | Segments `.bascule-de-base`, libellé « Intensités » au-dessus, comme « Modèle ». Libellés « Une · Deux » (Q6.2). Dessous, inchangés : l’aide, « Intensité : 0,89 » à une intensité, « Référence exacte dans » à deux. La création garde ses deux cartes |
 | Garanties de contraste | Disposition G2 (Z3.2) : un encadré par groupe de minimum, son titre en bandeau ; les états nommés une fois en tête de colonne ; dans chaque case, le spécimen à gauche des numéros et du ratio, le badge sur la ligne du ratio ; les codes des rôles en 11 px sur fond ; la rangée choisie sur fond, marquée d’une barre de 3 px écartée du texte. Sous 700 px, disposition N2 (Z3.5) : chaque rangée garde le nom et ses trois états sur une ligne, les cases d’état passent à 92 px, le spécimen se pose au-dessus des numéros et du ratio, et le nom de chaque état se centre sur sa colonne ; aucun badge ne passe à la ligne, « ✗ 21,00 » et « AA ✗ » compris. Le contenu ne change pas : associations, états, ratios, niveaux WCAG, réglettes, liens des garanties en échec |
+| Graphes | Le graphe de la dérive, la réglette des garanties et le tracé des courbes se dessinent à la largeur mesurée de leur colonne, une unité du viewBox pour un pixel, à la hauteur qu’ils ont aujourd’hui dans la fenêtre minimale. Textes, traits, poignées, pivot et hauteurs de case restent en pixels fixes, aux tailles relevées à 500 px (Z8.1) ; seules les colonnes des crans s’étirent. Un redessin par image au plus quand la largeur change, aucun quand la carte est repliée |
+| Redimensionnement de la fenêtre | Correction dans le socle, pour les deux plugins, après constat (Z9.1) : un message par image au plus ; arrêt du geste sur tout signe de fin (bouton relâché, capture perdue, mouvement sans bouton) ; taille rangée une fois, à la fin du geste. La taille par défaut reste suspendue ([hors périmètre](#hors-périmètre)) |
+| Refonte des intensités | La carte « Intensités » devient la carte qui règle teinte, saturation et luminosité par profil : Vivid, Soft, ou les deux ensemble, chaque profil pouvant garder ses propres réglages. Un réglage qui déplace la référence le dit par un avertissement. La dérive de teinte s’applique après ces réglages. Le modèle, les contrôles et les textes se décident en Z10.1 à Z10.4 : recherche, mesure, revue indépendante, maquette validée. Rien ne s’implémente avant la validation |
+| Nom de la section | Recommandation, à confirmer sur la maquette (Q6.7) : « Teinte, saturation, luminosité », en anglais « Hue, saturation, lightness ». Il nomme les trois contrôles, comme « Dérive de teinte » nomme le sien. « Réglages globaux » est écarté : trop proche de « Réglages communs », qui valent pour toutes les palettes. « Value » est écarté : le moteur règle la clarté OKLCH, pas la valeur de HSV |
 
 ## Reprise du cinquième plan
 
@@ -112,7 +148,10 @@ compacts des fiches (Y1.6).
 | Glisser du sélecteur de couleur | Z4 ; reprise Z4.5 à Z4.9 | Z0 ; en parallèle de Z1 |
 | Ajuster la référence | Z5 | Z3.4 validée |
 | Garanties de contraste | Z6 | Z3.5 validée, Z1.2 |
-| Recette et clôture | Z7 | Lots finis |
+| Graphes à taille fixe | Z8 | Z8.1, Z8.2 et Z8.4 tout de suite ; Z8.3 après Z6.1, qui récrit `garanties.ts` |
+| Redimensionnement de la fenêtre | Z9 | Aucune ; en parallèle |
+| Refonte des intensités | Z10 | Z10.1 à Z10.4 tout de suite ; Z10.5 et la suite après la validation de Z10.4 |
+| Recette et clôture | Z7 | Lots finis, Z8 à Z10 compris |
 
 Z3.4 et Z3.5 sont validées : Z4.5, Z5.2 et Z6.1 peuvent commencer. Une
 autre session traduit l’interface (`src/i18n/`,
@@ -121,10 +160,25 @@ autre session traduit l’interface (`src/i18n/`,
 `garanties.ts`, `configuration.ts` et `textes.ts`. Z4.6 à Z6 touchent ces
 fichiers : l’agent attend le commit de cette traduction, ou le confirme par
 `git status`, avant d’y écrire. Il écrit alors ses textes par la voie que la
-traduction a posée.
+traduction a posée. La même règle vaut pour Z8 à Z10, qui touchent aussi
+`derive/graphe.ts`, `derive/editeur.ts`, `intensites.ts`, `index.ts` et
+`code.ts`, modifiés par la même traduction. Les textes nouveaux s’écrivent
+en français et en anglais : l’interface s’ouvre en anglais (`[UI-16]`).
 
-Aucun lot ne touche au moteur ni à la recette : `FORMAT_RECETTE` reste 4,
-et la revue indépendante n’est pas requise. Z4 touche au rendu de l’onglet :
+Pour l’agent autonome, l’ordre de travail est : Z4.5 à Z4.9, Z5.2 et Z5.3,
+Z6, Z9, Z8, puis Z10.1 à Z10.4. Il s’arrête à trois points, et à ceux-là
+seulement : une recette Figma à confier au mainteneur (Z4.9, Z9.5, Z7) ; un
+texte ou une maquette à valider (Z5.2 à deux thèmes, Z10.4) ; une question
+de Z9.2 dont la correction n’est pas mesurable dans Chromium. À chaque
+arrêt, il reconstruit le plugin dans la copie partagée si la recette le
+demande, donne le lien ou le fichier, et poursuit sur un lot qui n’en
+dépend pas.
+
+Aucun lot ne touche au moteur ni à la recette, sauf Z10 : son modèle passe
+par un agent de revue avant d’être écrit (Z10.3), et les conclusions de la
+revue se vérifient dans le code. Hors de Z10, `FORMAT_RECETTE` reste 4. Z9
+touche au socle, que UCM Exporter partage : la suite et la galerie
+d’Exporter restent vertes, preuve sur le DOM. Z4 touche au rendu de l’onglet :
 si sa correction change l’ordre des rendus ou des rangements, faire relire
 le changement par un agent de revue avant de l’écrire. Chaque lot suit les
 règles de code, de test et de relecture de CONTRIBUTING.md, met à jour la
@@ -520,6 +574,209 @@ Après la validation de Z3.2 et Z1.2.
 Critère : le designer distingue les groupes d’un regard, et la carte d’une
 palette sans échec tient dans moins de hauteur qu’aujourd’hui.
 
+## Lot Z8 : graphes à taille fixe
+
+Fichiers : `derive/graphe.ts`, `derive/editeur.ts`, `garanties.ts`,
+`traceDesCourbes.ts`, `styles.css`, tests voisins,
+`tests/interface/interface.test.mjs` et `galerie/etats.cjs`.
+
+- [ ] **Z8.1** Constater. Dans la galerie construite, à 500, 770 et 1 000 px
+  de large : pour le graphe de la dérive déplié, la réglette des garanties
+  et le tracé des courbes, la largeur et la hauteur affichées, la hauteur
+  rendue d’une graduation, d’un numéro et d’une lettre de poignée,
+  l’épaisseur rendue d’un trait. Reporter les chiffres ici. Ceux de 500 px
+  sont la cible, à toutes les largeurs.
+- [ ] **Z8.2** Le graphe de la dérive. Un `ResizeObserver` sur sa colonne ;
+  à chaque largeur nouvelle, au plus une fois par image, le `Cadre` prend la
+  largeur mesurée et le graphe se redessine, viewBox `0 0 largeur
+  HAUTEUR_TOTALE`, largeur et hauteur de l’élément en pixels.
+  `HAUTEUR_TOTALE` et les ordonnées ne changent pas. Les tailles de texte et
+  de trait sont celles de 500 px, écrites en pixels dans `styles.css`. Un
+  changement de largeur pendant le glisser d’une poignée redessine sans
+  perdre la poignée, l’échelle figée ni le focus. Carte repliée : aucun
+  redessin, la largeur se relit à l’ouverture. Avant la première mesure
+  (tests sans mise en page), la largeur reste 396. `[DER-16]` se vérifie à
+  500 px : 24 px par cran au moins. `[DER-01]` et `[DER-16]` récrits.
+- [ ] **Z8.3** La réglette des garanties, après Z6.1. Même règle : le pas
+  des cases se calcule sur la largeur mesurée, moins la case `on-solid` ;
+  les cases gardent leur écart et leurs 22 px de haut, les numéros, les
+  arcs et `on-solid` leur taille. `[UI-09]` le dit.
+- [ ] **Z8.4** Le tracé des courbes : même règle, si Z8.1 constate que ses
+  traits grandissent avec la largeur. Sinon, la raison s’écrit ici.
+- [ ] **Z8.5** Tests : à 500 et à 1 000 px, la même hauteur rendue d’une
+  graduation, d’un numéro et d’une lettre de poignée, et la même épaisseur
+  de trait, à 0,5 px près ; la même hauteur de graphe et de réglette ; des
+  colonnes qui suivent la largeur, rampe et bande alignées sur elles ; une
+  poignée glissée à 1 000 px atteint l’angle visé ; aucun redessin carte
+  repliée. Chacun vu rouge sur une mutation (par exemple `height: auto`
+  rétabli). Galerie : les états de la dérive et des garanties capturés à 500
+  et à 770 px, la preuve sur le DOM.
+
+Critère : à 500 comme à 1 000 px, les textes et les traits des trois
+graphes ont la même taille ; seules leurs colonnes s’élargissent.
+
+## Lot Z9 : redimensionnement de la fenêtre
+
+Fichiers : `plugin-socle/src/ui/ResizeGrip.ts`, `plugin-palettes/src/code.ts`
+et `messages.ts`, `plugin-exporter/src/code.ts` et `messages.ts`, tests des
+trois paquets, un script de mesure.
+
+Le retour décrit trois symptômes : la fenêtre « perd le focus », elle « se
+redimensionne toute seule », elle se rétrécit mais s’agrandit mal. Les
+[faits](#faits-qui-fondent-les-décisions) donnent une cause lisible pour
+chacun ; aucune n’est encore constatée. « Ça perd le focus » se lit d’abord
+comme la poignée qui lâche le pointeur en plein geste ; Z9.1 vérifie aussi
+que le focus du clavier ne change pas.
+
+- [ ] **Z9.1** Constater. Écrire `scripts/mesurer-redimensionnement.mjs` :
+  dans Chromium, une page hôte embarque l’interface construite dans une
+  iframe et répond au message `resize` comme Figma, en redimensionnant
+  l’iframe après un délai réglable (0, 16 et 50 ms). Au pointeur réel de
+  Playwright : agrandir vite de 200 px ; rétrécir vite ; relâcher le bouton
+  hors de l’iframe, puis la survoler sans bouton ; reprendre la poignée. Pour
+  chacun, relever les messages par image, la taille finale contre la
+  position du relâcher, les messages envoyés après le relâcher, l’élément
+  focalisé avant et après. Compter les appels à `rangerTaille` par geste
+  dans un test du sandbox. Reporter les chiffres ici, et dire quelles causes
+  se confirment, avant toute correction.
+- [ ] **Z9.2** La poignée. Au plus un message par image, à la dernière
+  position reçue. Le geste finit sur `pointerup`, `pointercancel`,
+  `lostpointercapture`, et sur tout mouvement dont `buttons` vaut 0 : les
+  écouteurs se retirent et un dernier message part, à la position finale,
+  marqué fin de geste. La poignée ne prend pas le focus. Si Z9.1 montre que
+  les mouvements hors de l’iframe n’arrivent pas, noter la cause ici et
+  proposer au mainteneur deux corrections, mesurées, avant d’en écrire une.
+- [ ] **Z9.3** Le sandbox, dans les deux plugins. `figma.ui.resize` à chaque
+  demande, sauf celle égale à la taille en cours ; `rangerTaille` une seule
+  fois, sur la fin du geste. `DemandeDeTaille` et les deux `messages.ts`
+  gagnent un champ facultatif de fin ; un message sans lui reste compris.
+  Rien ne change dans les bornes ni dans la taille par défaut.
+- [ ] **Z9.4** Tests : un message par image au plus pendant un glisser ;
+  plus aucun message après un relâcher, même perdu (mouvement sans bouton,
+  capture perdue) ; une seule écriture du rangement par geste, à la taille
+  finale ; la taille reste bornée au minimum. Chacun vu rouge sur mutation.
+  Remesurer Z9.1 ; chiffres avant et après dans le message du commit. Suites
+  et galeries de Palettes et d’Exporter vertes.
+- [ ] **Z9.5** Reconstruire les deux plugins dans la copie partagée, puis
+  confier la recette Figma au mainteneur. La case ne se ferme qu’après son
+  retour.
+
+Critère : dans Figma, la fenêtre suit le pointeur quand on l’agrandit comme
+quand on la rétrécit, et ne bouge plus après le relâcher. Le mainteneur le
+constate ; une mesure dans Chromium ne ferme pas le lot.
+
+## Lot Z10 : refonte des intensités
+
+Le retour demande de repenser la section entière. Ce lot fixe le besoin et
+les contraintes ; le modèle, les contrôles et les textes se décident en
+Z10.1 à Z10.4. L’agent s’arrête après Z10.4 jusqu’à la validation de la
+maquette, et n’écrit ni moteur ni interface avant.
+
+Le besoin, tel que le retour le dicte :
+
+- régler la teinte, la saturation et la luminosité d’une palette, avec un
+  contrôle précis pour chacune ;
+- pour Vivid, pour Soft ou pour les deux, chaque profil pouvant garder ses
+  propres réglages : deux profils aux teintes légèrement différentes, réglés
+  ensemble ;
+- un réglage peut toucher la référence, et un petit avertissement le dit ;
+  c’est aussi la voie pour affiner la référence ;
+- la dérive de teinte s’applique ensuite, et l’emporte ;
+- la section change de nom (Q6.7).
+
+Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
+
+| Question | Ce qui la pose |
+|---|---|
+| Espace des réglages : OKLCH, celui du moteur (teinte en degrés, chroma, clarté), ou HSL | Le moteur fabrique les crans en OKLCH ; HSL déforme la clarté perçue d’une teinte à l’autre |
+| Décalages relatifs à la référence ou valeurs absolues | Deux profils décalés de quelques degrés, ou deux teintes posées |
+| La saturation reprend-elle la part de chroma de chaque profil (`parts`), ou s’y ajoute-t-elle | La carte actuelle règle déjà cette part ; `[ENT-09]` et `[ENT-11]` la calculent aussi |
+| Ce que déplace la luminosité : la référence seule, dont le cran porteur peut changer, ou toute la rampe du profil, hors des courbes communes | Les courbes de clarté sont communes à la recette ; les garanties en dépendent |
+| « Les deux » : un réglage lié, comme la synchronisation de la dérive (`derive.lien`), qui garde les valeurs propres de chaque profil quand on le délie | `[DER-12]` |
+| Un réglage du profil porteur récrit-il `reference`, avec `originale` comme « Ajuster la référence », ou se range-t-il à part, la référence rangée sortant alors de sa rampe | `[MOT-17]`, `[UI-15]`, Q6.8 |
+| Une palette à une intensité a-t-elle la section, sans choix de profil | `[ENT-14]` : elle n’a pas de carte Intensités aujourd’hui ; Q6.9 |
+| Coexistence avec « Ajuster la référence » (Z5) et « Revenir à l’originale » | Les deux gestes écrivent la référence |
+| Ce que deviennent les palettes grises, la palette de base, les palettes libres, les parts communes des Réglages communs et l’alerte « Profils confondus » | `[ENT-09]`, `[ENT-11]`, W6, section 8.3, `[VER-10]` |
+| Version 5 de la recette et lecture des recettes 4 ; planche et tokens | Section 7.3 |
+
+- [ ] **Z10.1** Recherche. Relire la spécification (sections 6.3 à 6.5, 7,
+  8.1, 8.3, 12, `[UI-12]`, `[UI-15]`), la [revue
+  d’ergonomie](./REVUE-ERGONOMIE-PLUGIN-PALETTES.md), la [revue
+  critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md), les [décisions de
+  rédaction](./DECISIONS-REDACTION-PALETTES.md), la
+  [conception W6 et W7](./CONCEPTION-NUANCES-ET-FORMAT-3.md) et les plans V2
+  à V6 pour ce qui touche aux intensités et à la référence. Étudier au moins
+  six outils qui règlent teinte, saturation et luminosité d’une couleur ou
+  d’une gamme : Teinte/Saturation de Photoshop, le panneau Teinte,
+  saturation, luminance de Lightroom, le sélecteur de Figma, et des outils de palettes (Leonardo
+  d’Adobe, Huetone, Colorbox, Radix Colors, uicolors, Atmos ou d’autres) :
+  ce qu’ils montrent, la précision des contrôles (piste peinte, champ, pas
+  au clavier, remise à zéro), le réglage de plusieurs cibles liées, les
+  avertissements. Rédiger `RECHERCHE-REFONTE-INTENSITES.md` dans ce
+  dossier : constats sourcés, réponse argumentée à chaque question
+  ci-dessus, deux ou trois modèles candidats avec leurs effets sur
+  `[MOT-17]`, les garanties, la recette et l’interface.
+- [ ] **Z10.2** Mesurer avant de choisir. Pour `#1E6FD9`, `#16A34A`,
+  `#DC2626`, `#A0B599` et une référence grise, calculer par le moteur
+  l’effet de chaque modèle candidat aux bornes de ses contrôles : rampes,
+  cran porteur, garanties manquées, profils confondus, temps de calcul
+  contre `[MOT-13]`. Reporter dans la recherche, et retenir un modèle.
+- [ ] **Z10.3** Revue indépendante du modèle retenu, par un agent de revue :
+  champs de la recette, validation, migration de la version 4, `[MOT-17]`,
+  ordre des réglages puis de la dérive, vecteurs de test de la section 6.8,
+  effets sur la planche et les tokens. Ses conclusions se vérifient dans le
+  code et s’écrivent sous cette case ; le modèle se corrige avant la
+  maquette.
+- [ ] **Z10.4** Maquettes. `MAQUETTES-RECETTE-V6-2.html`, écrit par
+  `generer-maquettes-v6-2.mjs` sur le modèle de `generer-maquettes-v6.mjs`,
+  selon les règles du lot Z3 : une question par bloc, écrans lettrés
+  au-dessus des choix, la disposition en place d’abord, une recommandation
+  ensuite, textes courts, plusieurs rédactions côte à côte, couleurs et
+  ratios calculés par le moteur, écrans à 770 et à 500 px. Les questions :
+  1. le nom de la section, en français et en anglais, au moins quatre
+     rédactions, dont la recommandation (Q6.7) ;
+  2. la disposition des contrôles, en au moins trois formes : A, les
+     segments « Vivid · Soft · Les deux » au-dessus de trois curseurs ; B,
+     deux colonnes Vivid et Soft côte à côte, liées par un lien comme la
+     dérive ; C, une forme que la recherche propose. Pour chacune : les
+     pistes peintes (teinte, saturation, luminosité), le champ, le pas au
+     clavier, la remise à zéro, et ce que la carte repliée résume ;
+  3. l’avertissement quand la référence bouge : où, et à quel moment (avant
+     le premier geste, pendant, après), en plusieurs rédactions ;
+  4. la palette à une intensité (Q6.9) ;
+  5. la coexistence avec « Ajuster la référence » et « Revenir à
+     l’originale » ;
+  6. chaque question du modèle que la recherche laisse ouverte, avec sa
+     recommandation.
+  Donner le fichier au mainteneur et s’arrêter. Second passage dans le même
+  fichier après ses retours, jusqu’à validation ; ses réponses se
+  conservent en fin de plan.
+- [ ] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
+  la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
+  recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
+  `[MOT-13]` tenu. Tests vus rouges sur mutation.
+- [ ] **Z10.6** L’interface, selon la maquette. La carte remplace celle des
+  intensités ; le module se renomme s’il ne dit plus ce qu’il fait, et
+  AGENTS.md suit. Prévisualiser pendant le geste, ranger à la fin, Échap
+  rend la valeur d’avant, un rendu par image au plus (Z4). Les messages qui
+  menaient aux intensités (`[VER-15]`) mènent aux contrôles de la nouvelle
+  carte. Textes en français et en anglais, par la voie de la traduction,
+  inscrits à l’inventaire « À valider ».
+- [ ] **Z10.7** Documents : spécification (sections 6.4, 7.1 à 7.3, 8.1,
+  `[ENT-09]`, `[ENT-11]`, `[ENT-14]`, `[MOT-16]`, `[MOT-17]`, `[UI-12]`,
+  `[UI-15]`, section 12), CONTRIBUTING.md. Galerie : états à une et à deux
+  intensités, profils déliés, réglage du profil porteur avec
+  l’avertissement.
+- [ ] **Z10.8** Tests : un profil délié réglé ne touche pas l’autre ; « Les
+  deux » règle les deux ; un réglage du profil porteur déplace la référence
+  et montre l’avertissement ; la dérive s’applique après ; Échap rend l’état
+  d’avant ; une recette 4 se lit ; une recette exportée puis relue est
+  égale. Chacun vu rouge sur mutation.
+
+Critère : un designer décale la teinte de Soft seule sans toucher Vivid,
+affine la référence depuis la carte, et sait avant le geste que la
+référence va bouger.
+
 ## Lot Z7 : recette et clôture
 
 - [x] **Z7.1** (ex-Y8.1) Reprendre les tests d’interface cassés, en gardant
@@ -555,6 +812,9 @@ de Palettes verts, et recette Figma terminée.
 | Lire les Garanties d’une palette à deux intensités | Codes lisibles, badges sur une ligne, groupes distincts | Z6 |
 | Lire l’onglet Palettes avec un cadre de chaque état | « À actualiser » et « Pas encore sur Figma » en orange, « À jour » sur fond vert, « Actualiser tout (N palettes) » | Z1 |
 | Ouvrir la configuration d’une palette | Code hexa sur toute sa colonne ; « Intensités » en segments, comme « Modèle » | Z1 |
+| Élargir puis rétrécir la fenêtre, Dérive et Garanties dépliées, Réglages communs ouverts ensuite | Textes et traits des trois graphes gardent leur taille ; seules les colonnes s’élargissent | Z8 |
+| Agrandir puis rétrécir la fenêtre par la poignée, vite, et relâcher hors du plugin ; même geste dans UCM Exporter | La fenêtre suit dans les deux sens et ne bouge plus après le relâcher | Z9 |
+| Décaler la teinte de Soft seule, puis des deux profils, puis régler la luminosité du profil porteur | Vivid ne bouge pas au premier geste ; l’avertissement précède le déplacement de la référence ; la dérive s’applique par-dessus ; « Revenir à l’originale » rend la référence | Z10 |
 
 La recette visuelle couvre 500 × 520 et 770 × 720, les deux thèmes de Figma,
 les deux thèmes de palette, une et deux intensités, un nom long et plusieurs
@@ -570,16 +830,20 @@ garanties en échec.
 | **Q6.4** « Actualiser tout » génère aussi les palettes « Pas encore sur Figma ». Le libellé convient-il ? | Z1.4 | Oui : les deux états partagent désormais l’orange, et le geste les traite ensemble | Recommandation retenue |
 | **Q6.5** Le code hexa prend-il aussi toute la largeur dans la carte de création ? | Z1.6 | Oui : la création et la configuration gardent la même disposition (décision Y2.1) | Recommandation retenue |
 | **Q6.6** Avec la modale M2, l’onglet « Ajuster » du sélecteur de couleur se retire-t-il, ou ouvre-t-il la modale ? | Z5.2 | Le retirer : la pastille n’ouvre que « Choisir », la modale s’ouvre par le lien et par l’action des messages | Recommandation retenue |
+| **Q6.7** Le nom de la section qui remplace « Intensités » | Z10.4, Z10.6 | « Teinte, saturation, luminosité » (« Hue, saturation, lightness ») : il nomme les trois contrôles. « Réglages globaux » se confond avec « Réglages communs » | À la maquette Z10.4 |
+| **Q6.8** Un réglage du profil porteur récrit-il la référence, `originale` gardée comme pour « Ajuster la référence » ? | Z10.2, Z10.5 | Oui, si Z10.2 ne montre pas mieux : la référence reste exacte dans sa rampe (`[MOT-17]`), et « Revenir à l’originale » défait tout | À la maquette Z10.4 |
+| **Q6.9** Une palette à une intensité a-t-elle la section, sans choix de profil ? | Z10.4, Z10.6 | Oui : c’est là qu’affiner la référence sert le plus, et la carte actuelle lui manque | À la maquette Z10.4 |
 
 ## Hors périmètre
 
-- Moteur, recette et format de la planche.
+- Moteur et recette, sauf le lot Z10 ; format de la planche.
 - Nombre de nuances, courbes et fonds des Réglages communs, hors largeur.
 - Relecture des textes hors de ce plan.
 - La taille de la fenêtre, suspendue par le mainteneur : le code ouvre à
   600 × 720 (`TAILLE_PAR_DEFAUT`), la décision Z1.1 et `[UI-01]` écrivent
   770 × 720. Aucun lot ne réaligne l’un sur l’autre, et les mesures
-  gardent 770 et 500 px.
+  gardent 770 et 500 px. Le comportement de la poignée (Z9) n’en fait pas
+  partie.
 
 ## Retours du mainteneur, round 6
 
@@ -698,4 +962,73 @@ m2
 Z3.5 · Garanties de contraste
 Question 1
 N2
+```
+
+## Retours du mainteneur, suite de la recette V6
+
+Texte d’origine (`recette-v6-2.pdf`), à l’origine des lots Z8 à Z10.
+
+```text
+Suite recette v6 :
+
+Graphique de dérive de teinte
+
+quand on modifie la width du plugin, le graphique s’étire de façon
+proportionnelle et devient donc énorme ou tout petit
+
+Il faudrait plutôt qu’il réagisse comme la visualisation des palettes
+(avec les on-solid, surface-card, border-decorative etc) où les éléments
+restent à la même taille mais s’étirent, s’adaptent, etc
+
+Graphique garanties de contraste :
+
+même retour que pour le graphique de dérive de teinte, ça se redimensionne
+en scale alors que ça devrait se redimensionner en mode responsive avec
+typos et stroke en taille fixe
+
+Redimensionnement de la fenetre :
+
+ça fonctionne très mal quand on redimensionne la fenètre manuellement, ça
+perd le focus, ça redimensionne tout seul, on arrive pas trop à agrandir la
+fenêtre, juste à la rétrécir etc
+
+Refonte de la section “intensités”
+
+Je me rend compte qu’on peut faire beaucoup mieux pour cette section, il
+faut repenser entièrement la logique de la section pour que l’interface
+soit vraiment très bien pensée dans le workflow UX
+
+Features globales :
+
+Renommer la section en un titre du genre “Hue Saturation Value” ou “Global
+tweaks” ou un truc du genre, à réfléchir (par toi)
+
+L’idée de cette section serait de pouvoir tweaker la hue, saturation ou
+luminosité des palettes, en affectant la couleur de référence (avec un
+petit warning quand même) et avec le choix de faire ces réglages sur la
+palette vivid, soft ou les deux
+
+Ca permettrait d’avoir deux palettes qui ont des teintes globalement
+légèrement différentes tout en travaillant les deux en même temps. et ça
+permettrait aussi de tweaker la couleur de référence plus finement
+
+Au niveau des contrôles il faudrait :
+
+sélecteur palette vivid / soft / les deux, en sachant qu’on peut faire des
+réglages indépendant sur l’une ou l’autre
+
+sélecteur de hue précis
+
+sélecteur de luminosité précis
+
+sélecteur de saturation précis
+
+Les modifications faites ensuite sur le color drift prennent le dessus,
+bien sur
+
+Pour cette refonte il faut faire une passe de recherche pour trouver les
+meilleures solutions d’un point de vue UX/UI, peut être en relisant les
+docs de recherche aussi
+
+Puis il faut faire une maquette claude qui sera validée par le user
 ```
