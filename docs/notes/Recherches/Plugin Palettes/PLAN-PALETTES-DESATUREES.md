@@ -5,12 +5,14 @@
 Une référence peu saturée donne une palette peu saturée. Soft prend
 l’intensité de la référence, et ses nuances voisines lui ressemblent. Vivid
 reste plus vif que Soft, dans le rapport des intensités communes, sans devenir
-une couleur franche. La dérive de teinte reste réglable tant qu’une nuance de
-la palette a une couleur. Elle ne se désactive que pour un gris neutre, dont
-toutes les nuances sont grises : les deux profils sont alors identiques. Le
-message « presque gris » disparaît de la liste des points à vérifier. Une
-référence plus claire ou plus sombre que toutes les nuances ne produit plus de
-point à vérifier qui contredit l’éditeur de dérive.
+une couleur franche. La dérive de teinte et la teinte de la carte « Teinte,
+saturation, luminosité » restent réglables tant qu’une nuance de la palette a
+une couleur. Elles ne se désactivent que pour un gris neutre, dont toutes les
+nuances sont grises : les deux profils sont alors identiques. Un geste de la
+carte ne verrouille jamais une teinte qui reste appliquée. Le message
+« presque gris » disparaît de la liste des points à vérifier. Une référence
+plus claire ou plus sombre que toutes les nuances ne produit plus de point à
+vérifier qui contredit l’éditeur de dérive.
 
 Ce plan est destiné à l’agent qui réalisera les changements. Il s’articule
 avec le [lot Z10 du sixième plan](./PLAN-ERGONOMIE-PALETTES-V6.md#lot-z10--refonte-des-intensités),
@@ -40,8 +42,7 @@ sans réglage, il rend les mêmes octets pour `#897288`, `#7C717B` et
 `#060605`. Les couleurs par défaut ne changent donc pas. La carte « Teinte,
 saturation, luminosité » change en revanche ce que le designer peut faire de
 C1, C3 et C6 : C7 le mesure, par les gestes de `edition.ts` appelés tels
-quels. Les
-mesures viennent du moteur (`packages/couleur/src`).
+quels. Les mesures viennent du moteur (`packages/couleur/src`).
 [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs)
 refait celles de C2 à C6.
 
@@ -217,6 +218,12 @@ cette spécification et dans le code en cours :
   restent pourtant appliqués. Le designer ne peut plus les voir ni les
   remettre à zéro, sauf à remonter la saturation. `[DER-15]` supposait
   qu’une teinte verrouillée ne se voyait pas.
+- **Monter la saturation d’un gris neutre invente une teinte.** Sous le
+  seuil, la piste de teinte est verrouillée, mais la saturation reste libre.
+  Vivid à 30 % sur `#808080` donne une rampe rose : sa teinte vaut 0°, faute
+  de chroma. `#7F7F80` donne du violet, `#060605` de l’olive : leur teinte
+  tient à un octet. « Les deux » à 30 % laisse `#808080` gris au 600, au
+  milieu d’une rampe Soft rose.
 - **À deux intensités, le seuil ne se passe qu’au sélecteur de couleur.** La
   saturation n’y déplace pas la référence, et la teinte comme la clarté
   gardent sa chroma, sauf aux clartés extrêmes où `referenceReglee` la borne
@@ -261,13 +268,17 @@ le moteur.
   de part non nulle. L’éditeur de dérive se désactive seulement quand aucune
   nuance calculée, hors du cran de la référence, n’a de couleur : trois
   octets égaux dans chaque intensité et chaque mode. C’est la condition que
-  le mainteneur donne.
+  le mainteneur donne. La piste de teinte de la carte suit la même
+  condition. Lue sur les nuances calculées, elle déverrouille la teinte dès
+  qu’une saturation du designer colore la rampe d’un gris neutre : le
+  designer choisit alors la teinte que l’octet imposait (C7).
 - **R5, les parts `grise` disparaissent.** R1 et R2 les remplacent. La
   version 5 de la recette ne les accepte plus ; la lecture d’une recette 4
   les retire. `ajusterPartsGrises` disparaît, et ses appelants
   (`edition.ts`, `configuration.ts`) avec lui.
 - **R6, les alertes.** `couleur-presque-grise` quitte la table 11.3 : une note
-  dans la carte de la dérive dit pourquoi elle est désactivée.
+  dans la carte de la dérive dit pourquoi elle est désactivée. Son texte
+  actuel est de toute façon faux dès que le designer règle les parts (C7).
   `reference-plus-terne` ne sonne plus en Auto, puisque R1 donne à Soft la
   part de la référence ; elle reste pour des parts du designer.
   `reference-hors-rampe` quitte la liste des points à vérifier : la note de
@@ -304,6 +315,9 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   base forcée Vivid, R3 sur les vecteurs de la section 6.8 et les références
   colorées très sombres, R4 et le coût de `[MOT-13]`, la migration de la
   version 4, l’effet sur la planche et les tokens des palettes existantes.
+  Côté carte Z10 : « Les deux » ajoute un écart aux parts de R1 au lieu de
+  garder leur rapport ; la teinte de départ d’un gris neutre que le designer
+  sature ; la part d’une palette à une intensité hors de l’étendue (R3).
   Ses conclusions se vérifient dans le code et s’écrivent sous cette case,
   retenues ou rejetées avec leur raison.
 
@@ -321,8 +335,9 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   la carte de la dérive d’un gris neutre, la ligne d’origine des intensités.
   Premier passage fait, par
   [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs) :
-  Q1, Q1 ter (les gestes de la carte Z10), Q1 bis (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de
-  l’interface viennent au second passage, avec les textes de G1.3.
+  Q1, Q1 ter (les gestes de la carte Z10, gris neutre saturé compris), Q1 bis
+  (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de l’interface
+  viennent au second passage, avec les textes de G1.3.
 - [ ] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
   valider mot à mot avant le code. Les propositions ci-dessous sont un point
   de départ.
@@ -417,7 +432,8 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
   égale.
 - [ ] **G5.3** Carte Z10 : à une intensité, baisser la saturation de
   `#897288` tournée de +10° jusqu’à 8 % laisse la teinte réglable ; « Les
-  deux » depuis une palette désaturée garde Vivid au-dessus de Soft.
+  deux » depuis une palette désaturée garde Vivid au-dessus de Soft ;
+  saturer Vivid d’un gris neutre déverrouille la teinte.
 - [ ] **G5.4** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
   `#7C717B`, se désactive pour `#808080`), aucune alerte « hors de la
   rampe » pour `#060605`, textes validés.
@@ -440,6 +456,10 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
   gris neutre, puis `#060605`. À chaque pas : les voisines de la référence
   lui ressemblent, Vivid reste plus vif que Soft, la dérive reste réglable
   jusqu’au gris neutre, et aucun point à vérifier ne contredit l’éditeur.
+- [ ] **G7.2** Dans la carte « Teinte, saturation, luminosité » : Soft et
+  Vivid de `#7C717B` se règlent avec leur teinte ; à une intensité, la
+  saturation descend sous l’ancien seuil sans verrouiller la teinte ; Vivid
+  saturé sur `#808080` laisse choisir sa teinte.
 
 ## Hors périmètre
 

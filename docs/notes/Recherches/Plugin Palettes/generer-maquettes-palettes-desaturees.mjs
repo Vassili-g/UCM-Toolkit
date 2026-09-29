@@ -217,11 +217,15 @@ const UNE = nouvellePalette(RECETTE, 'p-0000000a', '#897288', 1);
 const UNE_TOURNEE = reglerTeinte(avecPalette(UNE), UNE, 'vivid', 10);
 const UNE_12 = reglerSaturation(avecPalette(UNE_TOURNEE), UNE_TOURNEE, 'vivid', 0.12);
 const UNE_08 = reglerSaturation(avecPalette(UNE_TOURNEE), UNE_TOURNEE, 'vivid', 0.08);
+const NEUTRE = nouvellePalette(RECETTE, 'p-0000000a', '#808080', 2);
+const NEUTRE_VIVID = reglerSaturation(avecPalette(NEUTRE), NEUTRE, 'vivid', 0.3);
+const NEUTRE_DEUX = reglerSaturation(avecPalette(NEUTRE), NEUTRE, 'deux', 0.3);
 const alertesEcrites = (r) => (r.alertes.length ? r.alertes.map((code) => `« ${code} »`).join(', ') : 'aucune alerte');
 const q1ter = {
   mauve: calculer(MAUVE), mauveSoft: calculer(MAUVE_SOFT),
   gris: calculer(GRIS), grisVivid: calculer(GRIS_VIVID), grisR1: proportion('#7C717B'),
   une12: calculer(UNE_12), une08: calculer(UNE_08),
+  neutre: calculer(NEUTRE), neutreVivid: calculer(NEUTRE_VIVID), neutreDeux: calculer(NEUTRE_DEUX),
 };
 
 const sectionQ1ter = blocDeQuestion('Q1 ter', 'Ce que la nouvelle carte permet déjà, à la main',
@@ -240,8 +244,13 @@ const sectionQ1ter = blocDeQuestion('Q1 ter', 'Ce que la nouvelle carte permet d
       vue(rampe(q1ter.une12, 'unique', 'light', { titre: `Saturation 12 % · ${UNE_12.reference}` }), 'A', 'Au-dessus du seuil : teinte et dérive réglables.'),
       vue(rampe(q1ter.une08, 'unique', 'light', { titre: `Saturation 8 % · ${UNE_08.reference}` }), 'B', 'Sous le seuil : la teinte, son « Rétablir » et la dérive se verrouillent, mais +10° et la dérive restent appliqués.'),
     ].join('')],
+    [`${pastille('#808080')} gris neutre, deux intensités : saturer`, [
+      vue(deux(q1ter.neutre), 'A', 'Sans réglage : deux rampes grises.'),
+      vue(deux(q1ter.neutreVivid), 'B', 'Curseur Vivid à 30 % : une rampe rose, car la teinte d’un gris vaut 0°. La piste de teinte reste verrouillée.'),
+      vue(deux(q1ter.neutreDeux), 'C', '« Les deux » à 30 % : la référence reste grise au 600, au milieu d’une rampe Soft rose.'),
+    ].join('')],
   ]),
-  `<p>La carte répare à la main le Soft de #897288, et sépare Soft et Vivid pour #7C717B. Elle ne rend ni la teinte ni la dérive à une palette désaturée. À une intensité, son curseur de saturation fait passer la référence sous le seuil en plein geste. L’alerte « presque grise » dit alors que « les deux profils reprennent son intensité », ce qui est faux dès que le designer a réglé les parts.</p>`);
+  `<ul><li>La carte répare à la main le Soft de #897288. Elle sépare aussi Soft et Vivid pour #7C717B.</li><li>Elle ne rend ni la teinte ni la dérive à une palette désaturée. R1 et R4 les rendent.</li><li>À une intensité, le curseur de saturation fait passer la référence sous le seuil en plein geste. La teinte se verrouille alors qu’elle reste appliquée. R4 lève ce verrou.</li><li>Sur un gris neutre, saturer invente une teinte que le designer ne peut pas changer. Avec R4, la piste de teinte se déverrouille dès que la rampe prend de la couleur.</li><li>L’alerte « presque grise » dit que « les deux profils reprennent son intensité ». C’est faux dès que le designer règle les parts. R6 retire cette alerte.</li></ul>`);
 
 const sectionQ1bis = blocDeQuestion('Q1 bis', 'Le même choix, pendant un glisser',
   'Dans le sélecteur de couleur, la saturation de #897288 baisse pas à pas. Rampe Vivid, thème Light.',
@@ -250,7 +259,7 @@ const sectionQ1bis = blocDeQuestion('Q1 bis', 'Le même choix, pendant un glisse
     vue(ligneDuGlisser(bornes), 'B', 'Bornes : Vivid ne bouge pas.'),
     vue(ligneDuGlisser((h) => proportion(h)), 'C', 'Proportion : Vivid baisse avec la référence, sans saut.'),
   ].join(''),
-  `<p>Le saut de A se voit aussi pendant un réglage de luminosité de la nouvelle carte, quand la chroma de la référence passe le seuil. C ${reco('n’a pas de seuil, donc pas de saut.')}</p>`);
+  `<p>À deux intensités, ce saut n’arrive qu’au sélecteur de couleur. Dans la carte, la saturation d’un profil ne déplace pas la référence, et la teinte comme la luminosité gardent sa chroma. C ${reco('n’a pas de seuil, donc pas de saut.')}</p>`);
 
 const sectionQ2 = blocDeQuestion('Q2', 'Au-dessus de Soft, le profil porteur prend-il l’intensité de la référence ?',
   `Deux références entre les intensités communes. Thème Light, profil porteur seul. Les autres palettes gardent ${virgule(S)} et ${virgule(V)}.`,
@@ -269,7 +278,7 @@ const sectionQ2 = blocDeQuestion('Q2', 'Au-dessus de Soft, le profil porteur pre
 const sectionQ3 = blocDeQuestion('Q3', '« Profils confondus » sur une palette désaturée',
   `Règle « Proportion ». Sous chaque paire, l’écart ΔEok entre Soft et Vivid ; en couleur, sous le seuil de ${virgule(RECETTE.seuils.profilsConfondus)}.`,
   q3.map((x) => vue(deux(x.r) + ligneDesEcarts(x.ecarts), '', `${pastille(x.hexa)} ${x.ecarts.filter((e) => e < RECETTE.seuils.profilsConfondus).length} nuances sur ${CRANS.length} sous le seuil. ${x.r.alertes.includes('profils-confondus') ? 'Le moteur sonne « Profils confondus ».' : 'Le moteur se tait.'}`)).join(''),
-  `<ol type="a"><li><b>Se taire</b> ${reco()} quand Soft prend l’intensité de la référence. Les profils sont proches par construction, comme avec les parts grises aujourd’hui.</li><li><b>Sonner.</b> Le point à vérifier propose alors une intensité seule, ou plus de saturation pour Vivid.</li></ol>`);
+  `<ol type="a"><li><b>Se taire</b> ${reco()} quand Soft prend l’intensité de la référence. Les profils sont proches par construction, comme avec les parts grises aujourd’hui.</li><li><b>Sonner.</b> Le point à vérifier propose alors une intensité seule, ou plus de saturation pour Vivid.</li></ol><p>Aujourd’hui, le même écart réglé à la main dans la carte (Vivid à 16,5 %, Q1 ter) sonne aussi. Avec des parts du designer, l’alerte continue de sonner dans les deux choix.</p>`);
 
 const repere = (hexa, L) => `${pastille(hexa)} clarté ${virgule(L, 3)}`;
 const sectionQ4 = blocDeQuestion('Q4', 'Une référence plus sombre que toutes les nuances',
@@ -341,7 +350,7 @@ ${STYLE}</style>
 <section class="intro">
   <span class="sur">UCM Palettes · palettes désaturées et grises</span>
   <h1>Questions Q1 à Q5, en exemples</h1>
-  <p>Chaque rampe est calculée par le moteur actuel, réglages de Z10.5 compris : sans réglage, il rend les mêmes octets qu’avant. Recette par défaut, onze nuances, Soft ${virgule(S)} et Vivid ${virgule(V)}. Les choix sont ceux du <a href="./PLAN-PALETTES-DESATUREES.md#questions-au-mainteneur">plan</a>.</p>
+  <p>Chaque rampe est calculée par le moteur actuel, réglages de Z10.5 compris : sans réglage, il rend les mêmes octets qu’avant. Recette par défaut, onze nuances, Soft ${virgule(S)} et Vivid ${virgule(V)}. Les choix sont ceux du <a href="./PLAN-PALETTES-DESATUREES.md#questions-au-mainteneur">plan</a>. Q1 ter appelle les gestes de la carte « Teinte, saturation, luminosité » tels qu’ils sont écrits aujourd’hui : ce que le designer obtient à la main, et ce qui bloque.</p>
   <p class="note">Page écrite par <code>generer-maquettes-palettes-desaturees.mjs</code>.</p>
   <nav class="sommaire"><a href="#q1">Q1 Vivid sous Soft</a><a href="#q2">Q2 Au-dessus de Soft</a><a href="#q3">Q3 Profils confondus</a><a href="#q4">Q4 Hors des nuances</a><a href="#q5">Q5 Gris neutre</a></nav>
 </section>
