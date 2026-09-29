@@ -35,6 +35,7 @@ import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { createCarte } from './carte';
+import { suivreLaLargeur } from './largeur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerVuesNuancier } from './nuancier';
 import { creerVuesSpecimens } from './specimens';
@@ -70,12 +71,24 @@ function construireVues(i18n: Localisation) {
 
   const SVG = 'http://www.w3.org/2000/svg';
 
-  /** La trame de la réglette : une case de nuance, son pas, et la case `on-solid` à gauche. */
-  const CASE = 37;
+  /**
+   * La trame de la réglette : l'écart entre deux cases, le pas avant la
+   * première mesure, et la case `on-solid` à gauche. Le pas suit ensuite la
+   * largeur mesurée, moins la case `on-solid` (Z8.3).
+   */
+  const ECART_ENTRE_CASES = 3.5;
 
-  const PAS = 40.5;
+  const PAS_AVANT_MESURE = 40.5;
 
   const ON_SOLID = { x: -44, largeur: 36 };
+
+  /** Ce que le viewBox montre à gauche de la première nuance : la case `on-solid` et sa marge. */
+  const A_GAUCHE = 46;
+
+  /** La hauteur du viewBox, et les pixels d'une unité : l'échelle de la réglette dans la fenêtre minimale, 451 px pour 491,5 unités (Z8.1). */
+  const HAUTEUR = 92;
+
+  const PIXELS_PAR_UNITE = 451 / 491.5;
 
   const TIRETS: Record<number, string> = { 0: '', 1: '4 3', 2: '1.5 2.5' };
 
@@ -128,6 +141,13 @@ function construireVues(i18n: Localisation) {
     const autreTheme = document.createElement('p');
     autreTheme.className = 'autre-theme';
     carte.corps.append(bascule, reglette, legende, liste, autreTheme);
+    /** La largeur mesurée de la réglette, en unités ; `null` avant la première mesure. */
+    let largeurDeLaReglette: number | null = null;
+    let derniereReglette: (() => void) | null = null;
+    suivreLaLargeur(reglette, (largeur) => {
+      largeurDeLaReglette = largeur / PIXELS_PAR_UNITE;
+      derniereReglette?.();
+    });
 
     let entrees: EntreesDesGaranties | null = null;
     let palette = '';
@@ -152,6 +172,10 @@ function construireVues(i18n: Localisation) {
 
     /** La réglette : la case `on-solid`, les nuances numérotées, et un arc par état de la garantie choisie. */
     function dessinerLaReglette(recette: Recette, analyse: AnalyseDePalette, mode: Mode, promesses: readonly Promesse[]): void {
+      derniereReglette = () => dessinerLaReglette(recette, analyse, mode, promesses);
+      const largeur = largeurDeLaReglette ?? recette.crans.length * PAS_AVANT_MESURE + A_GAUCHE;
+      const PAS = (largeur - A_GAUCHE) / recette.crans.length;
+      const CASE = PAS - ECART_ENTRE_CASES;
       const fond = recette.fonds[mode];
       const couleurDuFond = lireHexa(fond) ?? [255, 255, 255];
       const encres = encresSur(couleurDuFond);
@@ -159,9 +183,9 @@ function construireVues(i18n: Localisation) {
       reglette.style.setProperty('--encre-surface', encres.encre);
       reglette.style.setProperty('--encre-surface-seconde', encres.seconde);
       reglette.style.setProperty('--bordure-surface', encres.bordure);
-      const largeur = recette.crans.length * PAS;
-      const svg = element('svg', { viewBox: `-46 0 ${largeur + 46} 92`, 'aria-hidden': 'true' });
+      const svg = element('svg', { viewBox: `${-A_GAUCHE} 0 ${largeur} ${HAUTEUR}`, 'aria-hidden': 'true' });
       svg.classList.add('reglette-svg');
+      svg.style.height = `${HAUTEUR * PIXELS_PAR_UNITE}px`;
       const centre = (promesse: Promesse, rang: 'premier' | 'second'): number => {
         const designe = promesse[rang];
         return designe.nature === 'cran' ? recette.crans.indexOf(designe.cran) * PAS + CASE / 2 : ON_SOLID.x + ON_SOLID.largeur / 2;

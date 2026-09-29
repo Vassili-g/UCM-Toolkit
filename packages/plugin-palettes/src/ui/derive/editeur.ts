@@ -188,6 +188,7 @@ function construireVues(i18n: Localisation) {
     // Le graphe : glisser, double-clic et clavier sur les poignées.
     const graphe = createGraphe();
     const svg = graphe.element;
+    graphe.surLargeur(() => dessiner());
     let glisse: { bout: Bout; pointeur: number } | null = null;
     /** L'échelle figée pendant un glisser : la poignée ne saute pas sous le pointeur ([DER-01]). */
     let echelleFigee: number | null = null;

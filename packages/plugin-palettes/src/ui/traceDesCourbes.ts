@@ -17,8 +17,16 @@ export interface ReferenceTracee {
   readonly rangs: { readonly [M in Mode]: number };
 }
 
-/** Les dimensions du tracé, dans le repère de sa `viewBox`. */
+/** Les dimensions du tracé, dans le repère de sa `viewBox` ; `pas` vaut avant la première mesure de sa largeur. */
 export const TRAME_DU_TRACE = { pas: 40, hauteur: 120, marge: 10 } as const;
+
+/**
+ * Les pixels d'une unité : l'échelle du tracé dans la fenêtre minimale, onze
+ * nuances sur 421 px (Z8.1). Le tracé la garde à toute largeur : ses traits,
+ * ses points et sa hauteur restent ceux de 500 px, et seules ses colonnes
+ * s'étirent (Z8.4).
+ */
+export const PIXELS_PAR_UNITE_DU_TRACE = 421 / 440;
 
 export interface GeometrieDesCourbes {
   readonly largeur: number;
@@ -29,9 +37,14 @@ export interface GeometrieDesCourbes {
   readonly references: readonly { readonly mode: Mode; readonly x: number; readonly y: number }[];
 }
 
-/** La géométrie du tracé : une colonne par nuance, la luminosité 1 en haut. */
-export function geometrieDesCourbes(courbes: { readonly [M in Mode]: readonly number[] }, reference: ReferenceTracee | null): GeometrieDesCourbes {
-  const { pas, hauteur, marge } = TRAME_DU_TRACE;
+/**
+ * La géométrie du tracé : une colonne par nuance, la luminosité 1 en haut.
+ * `largeur`, en unités, est celle de la colonne mesurée ; sans elle, chaque
+ * nuance prend le pas de la trame.
+ */
+export function geometrieDesCourbes(courbes: { readonly [M in Mode]: readonly number[] }, reference: ReferenceTracee | null, largeur?: number): GeometrieDesCourbes {
+  const { hauteur, marge } = TRAME_DU_TRACE;
+  const pas = largeur === undefined ? TRAME_DU_TRACE.pas : largeur / courbes.light.length;
   const x = (rang: number) => rang * pas + pas / 2;
   const y = (clarte: number) => marge + (1 - clarte) * (hauteur - 2 * marge);
   return {
@@ -57,6 +70,7 @@ function noeud<K extends keyof SVGElementTagNameMap>(nom: K, attributs: Record<s
 export function dessinerLesCourbes(geometrie: GeometrieDesCourbes): SVGSVGElement {
   const svg = noeud('svg', { viewBox: `0 0 ${geometrie.largeur} ${geometrie.hauteur}`, 'aria-hidden': 'true' });
   svg.classList.add('trace-courbes');
+  svg.style.height = `${geometrie.hauteur * PIXELS_PAR_UNITE_DU_TRACE}px`;
   const { marge, hauteur } = TRAME_DU_TRACE;
   for (const bord of [marge, hauteur - marge]) {
     const repere = noeud('line', { x1: 0, x2: geometrie.largeur, y1: bord, y2: bord });

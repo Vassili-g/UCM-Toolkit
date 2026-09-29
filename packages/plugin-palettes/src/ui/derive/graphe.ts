@@ -22,6 +22,7 @@ import {
   type Recette,
 } from 'ucm-couleur';
 
+import { suivreLaLargeur } from '../largeur';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
 import { abscisse, ligneBrisee, ordonnee, reperes, type Cadre } from './geometrie';
 
@@ -46,6 +47,8 @@ export interface GrapheUi {
   afficher(entrees: EntreesDuGraphe): void;
   /** Les poignées dessinées, par bout ; absente quand la référence n'a pas de segment de ce côté ([DER-14]). */
   poignees(): { clair: SVGGElement | null; sombre: SVGGElement | null };
+  /** Une largeur nouvelle de la colonne : l'éditeur redessine, et rend le focus à sa poignée (Z8.2). */
+  surLargeur(action: () => void): void;
 }
 
 function construireVues(i18n: Localisation) {
@@ -53,8 +56,16 @@ function construireVues(i18n: Localisation) {
 
   const SVG = 'http://www.w3.org/2000/svg';
 
-  /** Le viewBox : 396 unités, la largeur utile de la fenêtre minimale, pour 24 px par cran au moins ([DER-16]). */
+  /** Le cadre, 396 unités de large avant la première mesure : la largeur utile de la fenêtre minimale, pour 24 px par cran au moins ([DER-16]). */
   const CADRE: Cadre = { largeur: 396, hauteur: 150, gauche: 36, droite: 8, haut: 10, bas: 10 };
+
+  /**
+   * Les pixels d'une unité : l'échelle du graphe dans la fenêtre minimale,
+   * 451 px pour 396 unités (Z8.1). Le graphe garde cette échelle à toute
+   * largeur : ses textes, ses traits et sa hauteur restent ceux de 500 px, et
+   * seules ses colonnes s'étirent.
+   */
+  const PIXELS_PAR_UNITE = 451 / 396;
 
   const Y_CRANS = 164;
 
@@ -83,20 +94,28 @@ function construireVues(i18n: Localisation) {
   function createGraphe(): GrapheUi {
     const svg = element('svg', { viewBox: `0 0 ${CADRE.largeur} ${HAUTEUR_TOTALE}`, role: 'group' });
     svg.setAttribute('class', 'derive-graphe');
+    svg.style.height = `${HAUTEUR_TOTALE * PIXELS_PAR_UNITE}px`;
     let poignees: { clair: SVGGElement | null; sombre: SVGGElement | null } = { clair: null, sombre: null };
+    /** Le cadre du dernier dessin : sa largeur suit la colonne mesurée, ses ordonnées ne changent pas. */
+    let cadre: Cadre = CADRE;
+    let apresLaLargeur: (() => void) | null = null;
+    suivreLaLargeur(svg, (largeur) => {
+      cadre = { ...CADRE, largeur: largeur / PIXELS_PAR_UNITE };
+      apresLaLargeur?.();
+    });
 
     /** L'échelle du dernier dessin, que les repères et les poignées lisent. */
     let echelle = 90;
 
     function repere(angle: number): SVGGElement {
       const groupe = element('g', {});
-      const y = ordonnee(angle, CADRE, echelle);
-      const trait = element('line', { x1: CADRE.gauche, x2: CADRE.largeur - CADRE.droite, y1: y, y2: y });
+      const y = ordonnee(angle, cadre, echelle);
+      const trait = element('line', { x1: cadre.gauche, x2: cadre.largeur - cadre.droite, y1: y, y2: y });
       if (angle === 0) trait.setAttribute('class', 'derive-axe');
       else trait.setAttribute('class', 'derive-repere');
       groupe.append(trait);
       if (angle % (echelle <= 45 ? 15 : 30) === 0) {
-        const texte = element('text', { x: CADRE.gauche - 4, y: y + 3, 'text-anchor': 'end' });
+        const texte = element('text', { x: cadre.gauche - 4, y: y + 3, 'text-anchor': 'end' });
         texte.setAttribute('class', 'derive-graduation');
         i18n.lier(texte, 'textContent', graduation(angle));
         groupe.append(texte);
@@ -117,8 +136,8 @@ function construireVues(i18n: Localisation) {
       });
       groupe.setAttribute('class', 'derive-poignee');
       groupe.dataset.bout = bout;
-      const x = abscisse(rang, CADRE, total);
-      const y = ordonnee(angle, CADRE, echelle);
+      const x = abscisse(rang, cadre, total);
+      const y = ordonnee(angle, cadre, echelle);
       const rond = element('circle', { cx: x, cy: y, r: 7 });
       rond.setAttribute('class', 'derive-poignee-rond');
       const lettre = element('text', { x, y: y + 3, 'text-anchor': 'middle' });
@@ -136,6 +155,9 @@ function construireVues(i18n: Localisation) {
     return {
       element: svg,
       poignees: () => poignees,
+      surLargeur(action) {
+        apresLaLargeur = action;
+      },
       afficher(entrees) {
         const { recette, palette, profil, rampe, ancrage, grille } = entrees;
         const courbe = grille.courbes.light;
@@ -144,6 +166,7 @@ function construireVues(i18n: Localisation) {
         const reference = rgb8VersOklch(referenceDe(palette));
         const lie = palette.derive.lien;
         echelle = entrees.echelle;
+        svg.setAttribute('viewBox', `0 0 ${cadre.largeur} ${HAUTEUR_TOTALE}`);
         const enfants: SVGElement[] = reperes(echelle).map(repere);
 
         // Synchronisés, les profils partagent la ligne du porteur. Déliés, deux lignes, pleine et tiretée ([DER-05]).
@@ -152,7 +175,7 @@ function construireVues(i18n: Localisation) {
         for (const trace of lie ? [porteur] : PROFILS) {
           const rangAncre = trace === porteur ? ancrage.rangs.light : null;
           const sommets = ligneBrisee(courbe, reference, palette.derive[trace], bouts, rangAncre);
-          const points = sommets.map(({ rang, angle }) => `${abscisse(rang, CADRE, total)},${ordonnee(angle, CADRE, echelle)}`);
+          const points = sommets.map(({ rang, angle }) => `${abscisse(rang, cadre, total)},${ordonnee(angle, cadre, echelle)}`);
           const ligne = element('polyline', { points: points.join(' ') });
           if (!lie && trace === 'soft') ligne.setAttribute('class', 'derive-trait derive-trait-soft');
           else ligne.setAttribute('class', 'derive-trait derive-trait-vivid');
@@ -160,7 +183,7 @@ function construireVues(i18n: Localisation) {
           // Déliées, chaque courbe porte le nom de son profil, lisible sans la couleur ni le trait ([DER-05]).
           if (!lie) {
             const avantDernier = sommets.filter(({ rang }) => Number.isInteger(rang))[total - 2];
-            const nom = element('text', { x: abscisse(total - 2, CADRE, total), y: ordonnee(avantDernier.angle, CADRE, echelle) - 6, 'text-anchor': 'middle' });
+            const nom = element('text', { x: abscisse(total - 2, cadre, total), y: ordonnee(avantDernier.angle, cadre, echelle) - 6, 'text-anchor': 'middle' });
             nom.setAttribute('class', 'derive-graduation derive-nom-de-courbe');
             i18n.lier(nom, 'textContent', NOM_DU_PROFIL[trace]);
             enfants.push(nom);
@@ -168,8 +191,8 @@ function construireVues(i18n: Localisation) {
         }
 
         // Le pivot est la référence exacte, sur son rang clair ([DER-02]).
-        const x = abscisse(ancrage.rangs.light, CADRE, total);
-        const y = ordonnee(0, CADRE, echelle);
+        const x = abscisse(ancrage.rangs.light, cadre, total);
+        const y = ordonnee(0, cadre, echelle);
         const losange = element('path', { d: `M ${x} ${y - 6} L ${x + 6} ${y} L ${x} ${y + 6} L ${x - 6} ${y} Z` });
         losange.setAttribute('class', 'derive-pivot');
         const titre = element('title', {});
@@ -191,9 +214,9 @@ function construireVues(i18n: Localisation) {
         if (poignees.clair) enfants.push(poignees.clair);
         if (poignees.sombre) enfants.push(poignees.sombre);
 
-        const largeur = (CADRE.largeur - CADRE.gauche - CADRE.droite) / total;
+        const largeur = (cadre.largeur - cadre.gauche - cadre.droite) / total;
         courbe.forEach((clarte, rang) => {
-          const x = abscisse(rang, CADRE, total);
+          const x = abscisse(rang, cadre, total);
           const numero = element('text', { x, y: Y_CRANS, 'text-anchor': 'middle' });
           numero.setAttribute('class', 'derive-graduation');
           i18n.lier(numero, 'textContent', String(grille.crans[rang]));

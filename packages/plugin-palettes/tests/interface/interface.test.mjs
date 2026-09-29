@@ -3043,6 +3043,129 @@ test('Z5.3 [UI-13] [UI-15] la pastille de la référence n’ouvre que le choix 
   }
 });
 
+/**
+ * Ce qu'un graphe rend à l'écran : sa largeur et sa hauteur, la hauteur d'un
+ * texte par classe, et l'épaisseur d'un trait, viewBox appliquée.
+ */
+const rendu = (page, svg, textes, trait) => page.locator(svg).first().evaluate((element, { textes, trait }) => {
+  const cadre = element.getBoundingClientRect();
+  const echelle = cadre.height / element.viewBox.baseVal.height;
+  const hauteurs = Object.fromEntries(textes.map((classe) => [classe, Math.round(element.querySelector(classe).getBoundingClientRect().height * 10) / 10]));
+  // L'étendue du dessin : du bord gauche de la première case, ou du premier point, au bord droit de la dernière.
+  const formes = [...element.querySelectorAll('rect, circle')].map((forme) => forme.getBoundingClientRect());
+  const [gauche, droite] = [Math.min(...formes.map((forme) => forme.left)), Math.max(...formes.map((forme) => forme.right))];
+  const dedans = gauche >= cadre.left - 1 && droite <= cadre.right + 1;
+  return { largeur: cadre.width, etendue: droite - gauche, dedans, hauteur: Math.round(cadre.height * 10) / 10, ...hauteurs, trait: parseFloat(getComputedStyle(element.querySelector(trait)).strokeWidth) * echelle };
+}, { textes, trait });
+
+const pareils = (petit, grand, nom) => {
+  assert.ok(grand.etendue > petit.etendue + 300, `${nom} : le dessin s'étend de ${petit.etendue} à ${grand.etendue} px`);
+  assert.ok(petit.dedans && grand.dedans, `${nom} : le dessin tient dans son cadre`);
+  for (const cle of Object.keys(petit).filter((cle) => !['largeur', 'etendue', 'dedans'].includes(cle))) {
+    assert.ok(Math.abs(petit[cle] - grand[cle]) <= 0.5, `${nom}, ${cle} : ${petit[cle]} à 500 px, ${grand[cle]} à 1 000 px`);
+  }
+};
+
+test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette gardent la taille de leurs textes, de leurs traits et leur hauteur ; seules leurs colonnes s’étirent', async () => {
+  const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
+  try {
+    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, 'Garanties de contraste');
+    await imageSuivante(page);
+    const mesurer = async () => ({
+      derive: await rendu(page, '.derive-graphe', ['.derive-graduation', '.derive-poignee-lettre'], '.derive-trait'),
+      reglette: await rendu(page, '.reglette-svg', ['.reglette-numero'], '.reglette-arc'),
+    });
+    const petit = await mesurer();
+    await page.setViewportSize({ width: 1000, height: 720 });
+    await imageSuivante(page);
+    const grand = await mesurer();
+    pareils(petit.derive, grand.derive, 'dérive');
+    pareils(petit.reglette, grand.reglette, 'réglette');
+    // Les numéros, la bande et la rampe tombent sur les mêmes colonnes.
+    const decalages = await page.locator('.derive-graphe').evaluate((svg) => {
+      const numeros = [...svg.querySelectorAll('text.derive-graduation')].filter((texte) => /^\d+$/.test(texte.textContent));
+      const cases = [...svg.querySelectorAll('rect[rx]')];
+      return numeros.map((numero, rang) => {
+        const a = numero.getBoundingClientRect();
+        const b = cases[rang].getBoundingClientRect();
+        return Math.abs((a.left + a.right) / 2 - (b.left + b.right) / 2);
+      });
+    });
+    assert.ok(decalages.length === 11 && decalages.every((ecart) => ecart < 1), `décalages : ${decalages}`);
+    // La bande de teintes est continue : chaque case touche la suivante.
+    const trous = await page.locator('.derive-graphe').evaluate((svg) => {
+      const bande = [...svg.querySelectorAll('rect:not([rx])')].map((forme) => forme.getBoundingClientRect());
+      return bande.slice(1).map((forme, rang) => Math.abs(forme.left - bande[rang].right));
+    });
+    assert.ok(trous.every((trou) => trou < 1), `trous dans la bande : ${trous}`);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z8.5 [UI-02] à 500 et à 1 000 px, le tracé des courbes garde ses traits, son losange et sa hauteur', async () => {
+  const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
+  try {
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await imageSuivante(page);
+    const petit = await rendu(page, '.trace-courbes', ['.trace-reference'], '.trace-courbe');
+    await page.setViewportSize({ width: 1000, height: 720 });
+    await imageSuivante(page);
+    const grand = await rendu(page, '.trace-courbes', ['.trace-reference'], '.trace-courbe');
+    pareils(petit, grand, 'tracé');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z8.5 [DER-07] à 1 000 px, une poignée glissée sur le repère de +15° prend 15°', async () => {
+  const page = await ouvrirSur('derive-deliee-libre', { width: 1000, height: 720 });
+  try {
+    await deplierLaCarte(page, 'Dérive de teinte');
+    await imageSuivante(page);
+    const poignee = page.locator('.derive-poignee[data-bout="sombre"]');
+    await page.locator('.derive-graphe').evaluate((svg) => svg.scrollIntoView({ block: 'center' }));
+    const depart = await poignee.locator('circle').boundingBox();
+    const cible = await page.locator('.derive-graphe').evaluate((svg) => {
+      const texte = [...svg.querySelectorAll('.derive-graduation')].find((element) => element.textContent.replace('−', '-').startsWith('+15'));
+      const trait = texte.parentElement.querySelector('line');
+      const cadre = svg.getBoundingClientRect();
+      return cadre.top + Number(trait.getAttribute('y1')) * (cadre.height / svg.viewBox.baseVal.height);
+    });
+    await page.mouse.move(depart.x + depart.width / 2, depart.y + depart.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(depart.x + depart.width / 2, cible, { steps: 8 });
+    await page.mouse.up();
+    assert.equal(await page.locator('.derive-poignee[data-bout="sombre"]').getAttribute('aria-valuenow'), '15');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z8.5 [DER-01] carte repliée, un changement de largeur ne redessine pas la dérive ; dépliée, elle se redessine à sa largeur', async () => {
+  const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
+  try {
+    await deplierLaCarte(page, 'Dérive de teinte');
+    await imageSuivante(page);
+    await bascule(page, 'Dérive de teinte').click();
+    await page.evaluate(() => {
+      window.redessins = 0;
+      new MutationObserver(() => { window.redessins += 1; }).observe(document.querySelector('.derive-graphe'), { childList: true });
+    });
+    await page.setViewportSize({ width: 1000, height: 720 });
+    await imageSuivante(page);
+    await imageSuivante(page);
+    assert.equal(await page.evaluate(() => window.redessins), 0, 'repliée, aucun redessin');
+    await bascule(page, 'Dérive de teinte').click();
+    await imageSuivante(page);
+    const { viewBox, largeur } = await page.locator('.derive-graphe').evaluate((svg) => ({ viewBox: svg.viewBox.baseVal.width, largeur: svg.getBoundingClientRect().width }));
+    assert.ok(Math.abs(viewBox * (451 / 396) - largeur) < 1, `dépliée, le viewBox suit la largeur : ${viewBox} unités pour ${largeur} px`);
+  } finally {
+    await page.close();
+  }
+});
+
 test('Z5.1 [UI-11] sous le code, une référence qui manque des garanties dit combien et dans quel thème, en couleur de danger, puis « Ajuster la référence » ; sans manque, ni l’un ni l’autre', async () => {
   const page = await ouvrirSur('ajustement-ouvert');
   try {

@@ -605,10 +605,10 @@
   grid-column: 2 / -1;
 }
 
+/* Sa hauteur, en pixels, est posée par le tracé : elle ne suit pas la largeur (Z8.4). */
 .trace-courbes {
   display: block;
   width: 100%;
-  height: auto;
 }
 
 .trace-repere {
@@ -739,11 +739,10 @@
   gap: var(--espace-controle);
 }
 
-/* Le graphe suit la largeur de la colonne : son viewBox est celui de la fenêtre minimale. */
+/* Le graphe suit la largeur de la colonne ; sa hauteur, en pixels, est posée par le graphe (Z8.2). */
 .derive-graphe {
   display: block;
   width: 100%;
-  height: auto;
   overflow: visible;
 }
 
@@ -1727,7 +1726,6 @@
 .reglette-svg {
   display: block;
   width: 100%;
-  height: auto;
 }
 
 .reglette-arc {

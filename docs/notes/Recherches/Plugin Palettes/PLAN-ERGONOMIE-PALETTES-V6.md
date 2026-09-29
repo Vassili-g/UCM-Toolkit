@@ -674,13 +674,19 @@ Le rendu à 500 px est donc la référence visuelle de ce lot, pas seulement
 celle des tailles : à 770 et à 1 000 px, une capture de chaque graphe se
 compare à celle de 500 px, et seul l’écart entre les colonnes change.
 
-- [ ] **Z8.1** Constater. Dans la galerie construite, à 500, 770 et 1 000 px
+- [x] **Z8.1** Constater. Dans la galerie construite, à 500, 770 et 1 000 px
   de large : pour le graphe de la dérive déplié, la réglette des garanties
   et le tracé des courbes, la largeur et la hauteur affichées, la hauteur
   rendue d’une graduation, d’un numéro et d’une lettre de poignée,
   l’épaisseur rendue d’un trait. Reporter les chiffres ici. Ceux de 500 px
   sont la cible, à toutes les largeurs.
-- [ ] **Z8.2** Le graphe de la dérive. Un `ResizeObserver` sur sa colonne ;
+  Constaté, 500, 770 puis 1 000 px. Dérive : 451, 721, 951 px de large pour
+  237, 379, 500 px de haut ; graduation 12, 20, 26 px ; lettre de poignée 11,
+  18, 24 px ; trait 2,3, 3,6, 4,8 px. Réglette : 84, 135, 178 px de haut ;
+  numéro 10, 16, 22 px ; arc 1,6, 2,6, 3,5 px ; case 20, 32, 43 px. Tracé des
+  courbes : 115, 188, 251 px de haut ; losange 13, 21, 28 px ; trait 1,4,
+  2,4, 3,1 px. Les trois graphes grandissent : Z8.4 s'applique.
+- [x] **Z8.2** Le graphe de la dérive. Un `ResizeObserver` sur sa colonne ;
   à chaque largeur nouvelle, au plus une fois par image, le `Cadre` prend la
   largeur mesurée et le graphe se redessine, viewBox `0 0 largeur
   HAUTEUR_TOTALE`, largeur et hauteur de l’élément en pixels.
@@ -691,13 +697,30 @@ compare à celle de 500 px, et seul l’écart entre les colonnes change.
   redessin, la largeur se relit à l’ouverture. Avant la première mesure
   (tests sans mise en page), la largeur reste 396. `[DER-16]` se vérifie à
   500 px : 24 px par cran au moins. `[DER-01]` et `[DER-16]` récrits.
-- [ ] **Z8.3** La réglette des garanties, après Z6.1. Même règle : le pas
+  Fait, avec un écart à la lettre du plan : une unité du viewBox ne vaut pas
+  un pixel, elle vaut l'échelle que le graphe a dans la fenêtre minimale
+  (451 px pour 396 unités). Le graphe garde cette échelle à toute largeur ;
+  seule la largeur de son viewBox suit la colonne. Le rendu de 500 px, jugé
+  juste par le mainteneur, se retrouve donc à l'identique, sans récrire les
+  tailles en pixels dans `styles.css` ; une unité pour un pixel l'aurait
+  réduit de 12 %. La mesure passe par `src/ui/largeur.ts` : le graphe se
+  redessine dans le rappel du `ResizeObserver`, rendu une fois par image au
+  plus, avant la peinture. Une première version attendait l'image suivante :
+  le dessin fait avant toute mesure se peignait une image, et un test de
+  glisser saisissait la poignée à son ancienne place une fois sur deux. L'éditeur redessine et rend le focus
+  à sa poignée ; la capture du glisser tient sur le SVG, l'échelle figée
+  reste. 36 px par cran à 500 px.
+- [x] **Z8.3** La réglette des garanties, après Z6.1. Même règle : le pas
   des cases se calcule sur la largeur mesurée, moins la case `on-solid` ;
   les cases gardent leur écart et leurs 22 px de haut, les numéros, les
   arcs et `on-solid` leur taille. `[UI-09]` le dit.
-- [ ] **Z8.4** Le tracé des courbes : même règle, si Z8.1 constate que ses
+  Fait, même règle : 451 px pour 491,5 unités, les cases à 20 px de haut
+  comme à 500 px, et non 22.
+- [x] **Z8.4** Le tracé des courbes : même règle, si Z8.1 constate que ses
   traits grandissent avec la largeur. Sinon, la raison s’écrit ici.
-- [ ] **Z8.5** Tests : à 500 et à 1 000 px, la même hauteur rendue d’une
+  Fait : ses traits grandissaient (Z8.1). Onze nuances sur 421 px, et
+  `geometrieDesCourbes` prend la largeur mesurée.
+- [x] **Z8.5** Tests : à 500 et à 1 000 px, la même hauteur rendue d’une
   graduation, d’un numéro et d’une lettre de poignée, et la même épaisseur
   de trait, à 0,5 px près ; la même hauteur de graphe et de réglette ; des
   colonnes qui suivent la largeur, rampe et bande alignées sur elles ; une
@@ -705,6 +728,16 @@ compare à celle de 500 px, et seul l’écart entre les colonnes change.
   repliée. Chacun vu rouge sur une mutation (par exemple `height: auto`
   rétabli). Galerie : les états de la dérive et des garanties capturés à 500
   et à 770 px, la preuve sur le DOM.
+  Fait : quatre tests, sept mutations. Au premier passage, cinq sont restées
+  vertes. Un viewBox qui ne suit plus la largeur se réduit en
+  proportion et se centre à hauteur fixe : les tailles restaient justes, et les colonnes ne
+  s'étiraient plus. Les tests mesurent désormais l'étendue du dessin, sa
+  place dans le cadre et la continuité de la bande ; six mutations sont
+  vues rouges. La septième retire la hauteur posée en pixels : elle ne se
+  voit qu'avant la première mesure, puisque le viewBox qui suit la largeur
+  garde la proportion, et elle reste pour cette première image. Les
+  preuves de galerie sont les mesures de Z8.1 refaites : à 500, 770 et
+  1 000 px, les mêmes tailles.
 
 Critère : à 500 comme à 1 000 px, les textes et les traits des trois
 graphes ont la même taille ; seules leurs colonnes et contenus s’élargissent et s'étirent, pas les typos ni les stroke.

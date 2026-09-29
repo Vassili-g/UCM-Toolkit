@@ -1213,7 +1213,11 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
   régulières alignent le graphe, la bande de teintes et la rampe sur les mêmes
   colonnes. Les poignées se posent sur les colonnes des numéros 50 et 950, où
   se lisent les bouts ; une liste qui ne porte pas l'un d'eux pose sa poignée
-  au bord, du côté de son bout.
+  au bord, du côté de son bout. Le graphe se redessine à la largeur mesurée
+  de sa colonne, une fois par image au plus : ses textes, ses traits, ses
+  poignées, son pivot et sa hauteur gardent la taille qu'ils ont dans la
+  fenêtre minimale, et seules ses colonnes s'étirent. Replié, il ne se
+  redessine pas ; il relit sa largeur à l'ouverture.
 - `[DER-02]` Le pivot est un losange sur la ligne 0°. L'abscisse est celle de
   la courbe claire, sur laquelle les deux bouts de la dérive se définissent :
   le graphe ne change pas avec le thème de l'aperçu. Pour le profil porteur
@@ -1280,7 +1284,8 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
 - `[DER-15]` Une référence presque grise désactive l'éditeur et affiche
   l'alerte « couleur presque grise » : sans teinte, une dérive ne se voit pas.
 - `[DER-16]` La largeur minimale de la fenêtre garde les onze positions du
-  graphe lisibles : 24 px par cran, repères compris.
+  graphe lisibles : 24 px par cran au moins, repères compris ; 36 px à
+  500 px.
 
 ## 13. L'interface
 
@@ -1450,7 +1455,10 @@ palette » gardent leurs libellés au-dessus des champs.
   a des garanties manquées, une ligne les compte et bascule l'aperçu sur ce
   thème ; « Revenir au thème » ramène au thème d'avant.
   Une réglette montre la case `on-solid`, puis les nuances du profil choisi,
-  numérotées, sur le fond du thème. La garantie choisie s'y trace par un arc
+  numérotées, sur le fond du thème. Comme le graphe de la dérive, elle suit la
+  largeur de sa colonne sans grandir : le pas des cases se calcule sur la
+  largeur mesurée, et les cases, les numéros et les arcs gardent la taille
+  qu'ils ont dans la fenêtre minimale. La garantie choisie s'y trace par un arc
   par état, de la nuance du premier membre à celle du second : trait plein en
   `default`, tireté en `hover`, pointillé en `active`. Un arc en échec prend la
   couleur de danger, et une légende d'une ligne nomme les trois traits.

@@ -56,7 +56,8 @@ import { creerVuesPropositions } from './couleur/propositions';
 import { creerVuesSelecteur } from './couleur/selecteur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerSocleLocalise } from './socleLocalise';
-import { dessinerLesCourbes, geometrieDesCourbes } from './traceDesCourbes';
+import { suivreLaLargeur } from './largeur';
+import { PIXELS_PAR_UNITE_DU_TRACE, dessinerLesCourbes, geometrieDesCourbes } from './traceDesCourbes';
 
 export interface ConfigurationUi {
   element: HTMLDivElement;
@@ -359,6 +360,13 @@ function construireVues(i18n: Localisation) {
 
     const trace = document.createElement('div');
     trace.className = 'trace-des-courbes';
+    /** La largeur mesurée du tracé, en unités, et son dernier dessin, refait quand la largeur change (Z8.4). */
+    let largeurDuTrace: number | undefined;
+    let dernierTrace: (() => void) | null = null;
+    suivreLaLargeur(trace, (largeur) => {
+      largeurDuTrace = largeur / PIXELS_PAR_UNITE_DU_TRACE;
+      dernierTrace?.();
+    });
     const legende = paragraphe('', 'ligne-secondaire');
     const table = document.createElement('div');
     table.className = 'table-courbes';
@@ -558,7 +566,8 @@ function construireVues(i18n: Localisation) {
       // Le tracé montre les courbes communes : le ◆ d'une palette libre, posé sur sa propre liste, n'y a pas de colonne.
       const commune = palette && analyse && !analyse.libre ? analyse : null;
       const reference = palette && commune ? { clarte: rgb8VersOklch(referenceDe(palette)).L, rangs: commune.ancrage.rangs } : null;
-      trace.replaceChildren(dessinerLesCourbes(geometrieDesCourbes(lue.courbes, reference)));
+      dernierTrace = () => trace.replaceChildren(dessinerLesCourbes(geometrieDesCourbes(lue.courbes, reference, largeurDuTrace)));
+      dernierTrace();
       i18n.lier(legende, 'textContent', legendeDesCourbes(palette && commune ? { nom: nomDeLaPalette(palette), crans: commune.ancrage.crans } : null));
       rendreLaGarantie(lue);
     }
