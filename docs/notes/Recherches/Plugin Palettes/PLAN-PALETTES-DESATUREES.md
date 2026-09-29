@@ -14,8 +14,9 @@ point à vérifier qui contredit l’éditeur de dérive.
 
 Ce plan est destiné à l’agent qui réalisera les changements. Il s’articule
 avec le [lot Z10 du sixième plan](./PLAN-ERGONOMIE-PALETTES-V6.md#lot-z10--refonte-des-intensités),
-dont le moteur (Z10.5) n’est pas encore écrit. Le mainteneur fait lui-même
-la recette dans Figma.
+dont le moteur (Z10.5) s’écrit dans une autre session. Le mainteneur fait
+lui-même la recette dans Figma. Les exemples des questions Q1 à Q5 sont dans
+[MAQUETTES-PALETTES-DESATUREES.html](./MAQUETTES-PALETTES-DESATUREES.html).
 
 ## Autorités
 
@@ -33,9 +34,13 @@ la recette dans Figma.
 ## Audit
 
 Relevé dans le code au commit `98521f2`, recette par défaut (parts communes
-Soft 0,45 et Vivid 0,95, seuil de gris 0,03, onze nuances). Les mesures
-viennent du moteur (`packages/couleur/src`), appelé par un script jetable.
-Le lot G1 les reprend dans un script rangé ici.
+Soft 0,45 et Vivid 0,95, seuil de gris 0,03, onze nuances). Revu au commit
+`5752952`, sur le moteur de Z10.5 que l’arbre partagé porte sans commit :
+sans réglage, il rend les mêmes octets pour `#897288`, `#7C717B` et
+`#060605`. Les constats C1 à C6 tiennent ; C7 dit ce que Z10.5 change. Les
+mesures viennent du moteur (`packages/couleur/src`).
+[generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs)
+refait celles de C2 à C6.
 
 ### C1. Soft ne prend pas l’intensité de la référence qu’il porte
 
@@ -122,8 +127,11 @@ s’y insère sans rupture.
 éviter. « Proportion » garde une palette désaturée et deux profils distincts.
 Elle est continue avec la règle actuelle : à une part de 0,45, Vivid vaut
 0,95 dans les deux règles. Une référence colorée au-dessus de 0,45 ne change
-pas. Sur les gris les plus neutres, l’écart des profils passe sous le seuil
-de « Profils confondus », 0,02 : la question Q3 le traite.
+pas. Sur une palette désaturée, l’écart des profils passe sous le seuil de
+« Profils confondus », 0,02, sur la plupart des nuances : 10 sur 11 pour
+`#78716C`, 7 sur 11 pour `#7C717B`, et le moteur sonne. La dernière colonne
+du tableau compare des rampes sans ancrage ; au 600, Soft porte la référence,
+ce qui porte l’écart à 0,034. La question Q3 le traite.
 
 ### C5. La part s’amplifie aux clartés extrêmes
 
@@ -166,12 +174,44 @@ faux :
   950 prévu à 0,27 en Light, et le 50 prévu à 0,18 en Dark, plus sombre que
   le fond `#121212`.
 
-### C7. Ce que le lot Z10 a décidé sur les gris
+### C7. Ce que la recette V6 change
 
-La [recherche sur les intensités](./RECHERCHE-REFONTE-INTENSITES.md#réponses-aux-questions-du-plan)
-répond : « Gris : le moteur applique les réglages, l’interface désactive la
-teinte, comme la dérive (`[DER-15]`) ». Elle reprend aussi les parts `grise`
-de `[ENT-09]`. Ces deux réponses se révisent avec ce plan, avant Z10.5.
+La [spécification du moteur de Z10.5](./RECHERCHE-REFONTE-INTENSITES.md#spécification-du-moteur-z105)
+ajoute `reglages` à une palette : une teinte et une clarté par profil, la
+part de la référence à une intensité, le porteur figé, le départ. Relevé dans
+cette spécification et dans le code en cours :
+
+- **Aucune couleur par défaut ne change.** « Sans réglage, `rampesDe` rend
+  les octets d’aujourd’hui » ; la mesure le confirme. C1 à C6 restent.
+- **Le seuil désactive désormais deux contrôles.** La carte « Teinte,
+  saturation, luminosité » (`ui/reglagesDeLaPalette.ts`) désactive sa piste
+  de teinte pour une référence presque grise, comme l’éditeur de dérive. La
+  [recherche](./RECHERCHE-REFONTE-INTENSITES.md#réponses-aux-questions-du-plan)
+  l’a décidé (« Gris : l’interface désactive la teinte »). La maquette Z10.4
+  ne montrait aucune palette grise : le mainteneur n’a pas validé ce point.
+- **La saturation à deux intensités reste `parts`.** Le curseur de Soft
+  répare C1 en un geste, par des parts du designer. R1 le rend inutile pour
+  une référence sous 0,45.
+- **Le seuil fait sauter Vivid pendant un geste.** `changerReference` et chaque
+  geste de la carte finissent par `ajusterPartsGrises`. Quand la chroma de la
+  référence passe 0,03, Vivid passe d’un coup de 0,95 à la part de la
+  référence. Cela arrive en glissant dans le sélecteur de couleur, et pendant
+  un réglage de luminosité : `referenceReglee` borne la chroma au plafond de
+  la nouvelle clarté. R1 n’a pas de seuil, donc pas de saut (maquette, Q1 bis).
+- **L’alerte « hors de la rampe » lit le départ** (`departDe`) au lieu de la
+  référence. La contradiction de C6 reste. « Ajuster la référence » devient
+  le raccourci de la luminosité du porteur, bornée à +0,02 : il ne peut pas
+  ramener `#060605` dans l’étendue, qui demande +0,15.
+- **Le porteur peut être figé** (`reglages.porteur`), en plus de `base`. R1
+  vise le porteur quel qu’il soit : Vivid figé sous 0,45 suit la règle de Vivid
+  forcé.
+- **Une palette à une intensité range sa part** (`reglages.part`), mesurée à
+  la clarté de la référence par `referenceReglee`. R3 mesurerait la part de
+  la rampe à la clarté bornée : les deux valeurs diffèrent pour une référence
+  hors de l’étendue. La revue G0 tranche laquelle le curseur montre.
+- **La version 5 de la recette** vient de Z10.5, qui ne touche ni aux parts
+  `grise` ni au seuil. La spécification écarte les parts à deux intensités
+  dans `reglages` : Q2 n’est donc pas traitée par Z10.5.
 
 ## Décisions proposées
 
@@ -219,16 +259,17 @@ le moteur.
 | # | Question | Recommandation |
 |---|---|---|
 | Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B` |
-| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui une référence à 0,60 est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Oui, dans un second temps : c’est la règle de la base forcée étendue à Auto. Elle change toutes les palettes colorées, et Z10 règle déjà la saturation du porteur. La traiter avec Z10.5, pas ici |
-| Q3 | « Profils confondus » sur une palette désaturée : `#78716C` donne 0,014 au 600, sous le seuil de 0,02 | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus |
-| Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Elle mène à « Ajuster la référence » |
+| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 |
+| Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus |
+| Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 |
 | Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 |
 
 ## Ordre d’exécution
 
-G0, puis G1 jusqu’à validation. G2 à G5 ensuite, avant Z10.5 : la version
-5 de la recette porte les deux changements, et aucune recette 5 ne se publie
-entre les deux. G6 et G7 ferment le plan.
+G0, puis G1 jusqu’à validation. G2 à G5 attendent que Z10.5 et Z10.6 soient
+commités : ils touchent les mêmes fichiers (`palette.ts`, `recette.ts`,
+`edition.ts`, `ongletPalettes.ts`, `reglagesDeLaPalette.ts`). La version de
+la recette se décide en G3.1. G6 et G7 ferment le plan.
 
 ## Lot G0 : revue indépendante
 
@@ -249,11 +290,15 @@ entre les deux. G6 et G7 ferment le plan.
   `#6B7280`, `#78716C`, `#A0B599`, `#7F7F80`, `#060605`, `#FAFAF5`, et sur
   `#1E6FD9`, `#16A34A`, `#DC2626` pour montrer qu’une référence colorée ne
   change pas.
-- [ ] **G1.2** Maquette `MAQUETTES-PALETTES-DESATUREES.html`, selon les
+- [ ] **G1.2** Maquette [MAQUETTES-PALETTES-DESATUREES.html](./MAQUETTES-PALETTES-DESATUREES.html), selon les
   règles du lot Z3 : une question par bloc, écrans lettrés au-dessus des
   choix, couleurs calculées par le moteur, écrans à 770 et à 500 px. Blocs :
   Q1 (les deux rampes de chaque référence sous chaque règle), Q3, Q4, Q5,
   la carte de la dérive d’un gris neutre, la ligne d’origine des intensités.
+  Premier passage fait, par
+  [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs) :
+  Q1, Q1 bis (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de
+  l’interface viennent au second passage, avec les textes de G1.3.
 - [ ] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
   valider mot à mot avant le code. Les propositions ci-dessous sont un point
   de départ.
@@ -306,18 +351,20 @@ entre les deux. G6 et G7 ferment le plan.
 
 ## Lot G3 : recette
 
-- [ ] **G3.1** `FORMAT_RECETTE` 5, partagé avec Z10.5 : l’origine `grise`
-  est refusée par la validation, et la lecture d’une recette 4 retire ces
-  parts et remet `seuils.chromaGrise` au défaut (R5, R7). Si Z10.5 a déjà
-  posé la version 5, ces règles s’y ajoutent sans nouvelle version.
+- [ ] **G3.1** Version de la recette. Si aucune recette 5 n’a été écrite dans
+  un fichier Figma quand G3 commence, les règles entrent dans la version 5 de
+  Z10.5 : la validation refuse l’origine `grise`, et la lecture d’une
+  recette 4 retire ces parts et remet `seuils.chromaGrise` au défaut (R5,
+  R7). Sinon, une version 6 fait la même migration depuis la 5.
 - [ ] **G3.2** Vérifier que la planche marque périmés les cadres des
   palettes dont les couleurs changent, et que les tokens exportés suivent.
 
 ## Lot G4 : interface
 
-- [ ] **G4.1** `ongletPalettes.ts` : la carte de la dérive se désactive sur
-  la fonction de G2.3, avec la note validée. Le résumé de la carte suit.
-- [ ] **G4.2** Carte « Intensités » : `origineDesParts` prend les lignes
+- [ ] **G4.1** `ongletPalettes.ts` et `reglagesDeLaPalette.ts` : l’éditeur
+  de dérive et la piste de teinte de la carte Z10 se désactivent sur la
+  fonction de G2.3, avec la note validée. Le résumé de chaque carte suit.
+- [ ] **G4.2** Carte « Teinte, saturation, luminosité » : `origineDesParts` prend les lignes
   validées, et le repère de la référence lit la part de R3.
 - [ ] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
   les cas retirés et gagnent la notice de Q4 si elle est retenue.
@@ -367,8 +414,8 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
 
 ## Hors périmètre
 
-- Le porteur qui prend la part de la référence au-dessus de 0,45 (Q2) : il
-  relève de Z10.5.
+- Le porteur qui prend la part de la référence au-dessus de 0,45 (Q2), à
+  rediscuter après la recette de Z10.
 - Un modèle de chroma absolue pour les gris, où chaque nuance garde la
   chroma de la référence au lieu d’une part du plafond. R1 et R3 corrigent
   les cas mesurés sans changer `[MOT-09]`.
