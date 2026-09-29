@@ -607,9 +607,6 @@ export const TEXTES_DU_SELECTEUR = {
   blanc: 'Blanc',
   nuance: (profil: string, numero: number) => `${profil} ${numero}`,
   // N114 : les deux onglets du sélecteur de la couleur de référence (X2.7, R3).
-  onglets: 'Choisir ou ajuster la couleur',
-  choisir: 'Choisir',
-  ajuster: 'Ajuster',
   pastille: (titre: string, hexa: string) => `${titre}, ${hexa}`,
 } as const;
 
@@ -1357,7 +1354,6 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   titre: 'Ajuster la référence',
   originale: 'Originale',
   proposition: 'Proposition',
-  luminosite: 'Luminosité',
   plusSombre: 'Un pas plus sombre',
   plusClair: 'Un pas plus clair',
   code: 'Code de la proposition',
@@ -1367,8 +1363,62 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   annuler: 'Annuler',
   ajusteeDepuis: (hexa: string) => `Ajustée depuis ${hexa}`,
   revenir: 'Revenir à l’originale',
-  horsLimite: 'Aucun pas possible dans ce sens : la luminosité est à sa limite.',
+  colonnes: { garantie: 'Garantie', theme: 'Thème', avant: 'Avant', apres: 'Après' },
+  sur: 'sur',
+  fond: 'fond',
 } as const;
+
+/** Un rôle dans la phrase qui dit pourquoi ajuster, avec son article (N136). */
+const ROLE_DANS_LA_PHRASE: Record<Emploi, string> = {
+  solid: 'les fonds pleins',
+  'on-solid': 'le texte sur fond plein',
+  text: 'le texte coloré',
+  surface: 'les fonds légers',
+  'surface-card': 'les fonds de carte',
+  'border-control': 'les bordures de champ',
+  'border-decorative': 'les séparateurs',
+  focus: 'les anneaux de focus',
+};
+
+/**
+ * La phrase en tête de la modale « Ajuster la référence » (Z5.2, rédaction a,
+ * N136) : une idée par phrase, le premier rôle manqué de chaque thème, sans
+ * ratio. En Light, une garantie manquée dit une couleur trop claire ; en
+ * Dark, trop sombre.
+ */
+export function pourquoiAjuster(manques: readonly { readonly mode: Mode; readonly emploi: Emploi }[]): string {
+  const phrases = manques.map(({ mode, emploi }) => `En Thème ${NOM_DU_MODE[mode]}, elle est trop ${mode === 'light' ? 'claire' : 'sombre'} pour ${ROLE_DANS_LA_PHRASE[emploi]}.`);
+  return ['La palette utilise votre couleur telle quelle.', ...phrases].join(' ');
+}
+
+/**
+ * Le thème et l'intensité d'une garantie de la modale (N137) : « Light ·
+ * Vivid » dans la colonne Thème, « Thème Light · Vivid » en titre de groupe
+ * sous 552 px.
+ */
+export function themeDeLaGarantie(mode: Mode, profil: Intensite, enTitre: boolean): string {
+  const theme = enTitre ? `Thème ${NOM_DU_MODE[mode]}` : NOM_DU_MODE[mode];
+  return profil === 'unique' ? theme : `${theme} · ${NOM_DU_PROFIL[profil]}`;
+}
+
+/** Une garantie avant ou après la proposition : « ✓ 3,03:1 », « ✗ 2,92:1 » (N138). */
+export function resultatDeLaGarantie(tenue: boolean, contraste: number): string {
+  return `${tenue ? '✓' : '✗'} ${contrasteEcrit(contraste)}`;
+}
+
+/**
+ * La ligne sous les pas (N139) : la nuance que la proposition vise, puis ce
+ * que chaque pas voisin changerait, « Nuance 600 dans les deux thèmes · un
+ * pas plus clair : 700 en Dark ».
+ */
+export function nuancesDeLAjustement(
+  crans: { readonly [M in Mode]: number },
+  voisins: readonly { readonly sens: -1 | 1; readonly changements: readonly { readonly mode: Mode; readonly numero: number }[] }[],
+): string {
+  const visee = crans.light === crans.dark ? `Nuance ${crans.light} dans les deux thèmes` : `Nuance ${crans.light} en Light, ${crans.dark} en Dark`;
+  const pas = voisins.map(({ sens, changements }) => `un pas ${sens < 0 ? 'plus sombre' : 'plus clair'} : ${changements.map(({ mode, numero }) => `${numero} en ${NOM_DU_MODE[mode]}`).join(', ')}`);
+  return [visee, ...pas].join(' · ');
+}
 
 /**
  * La ligne sous le code d'une référence qui manque des garanties, avant
@@ -1381,20 +1431,6 @@ export function garantiesManqueesDeLaReference(manques: { readonly [M in Mode]: 
   return `✗ ${total} ${total === 1 ? 'garantie manquée' : 'garanties manquées'} ${themes.join(' et ')}`;
 }
 
-/** La nuance qui porterait la référence : une fois quand les deux thèmes s'accordent. */
-export function nuanceVisee(crans: { readonly [M in Mode]: number }): string {
-  return crans.light === crans.dark
-    ? `Nuance visée : ${crans.light} dans les deux thèmes`
-    : `Nuance visée : ${crans.light} en Thème Light, ${crans.dark} en Thème Dark`;
-}
-
-/** L'annonce sous un bouton de pas, quand ce pas changerait le numéro de la référence (section 3 de la conception). */
-export function annonceDuPas(sens: -1 | 1, changements: readonly { readonly mode: Mode; readonly numero: number }[]): string {
-  const pas = sens < 0 ? 'Le pas plus sombre' : 'Le pas plus clair';
-  const ou = changements.map(({ mode, numero }) => `au ${numero} en Thème ${NOM_DU_MODE[mode]}`).join(' et ');
-  return `${pas} place la référence ${ou}.`;
-}
-
 /** Le bilan d'un profil avant et après la proposition : « Vivid ✗ 2 → ✓ », ou « Soft ✓ inchangé ». */
 export function bilanDeLAjustement(profil: Intensite, avant: number, apres: number): string {
   const resultat = (manquees: number) => (manquees === 0 ? '✓' : `✗ ${manquees}`);
@@ -1402,12 +1438,6 @@ export function bilanDeLAjustement(profil: Intensite, avant: number, apres: numb
   return avant === apres
     ? `${nom} ${resultat(avant)} inchangé`
     : `${nom} ${resultat(avant)} → ${resultat(apres)}`;
-}
-
-/** Une garantie avant et après la proposition : l'association, le thème, le profil, puis les deux contrastes. */
-export function garantieAvantApres(association: string, mode: Mode, profil: Intensite, avant: number, apres: number): string {
-  const ou = profil === 'unique' ? `Thème ${NOM_DU_MODE[mode]}` : `Thème ${NOM_DU_MODE[mode]} · ${NOM_DU_PROFIL[profil]}`;
-  return `${association} · ${ou} : ${contrasteEcrit(avant)} → ${contrasteEcrit(apres)}`;
 }
 
 /** Un code saisi dans la configuration remplace une référence ajustée : l'originale n'est plus gardée (section 3 de la conception). */

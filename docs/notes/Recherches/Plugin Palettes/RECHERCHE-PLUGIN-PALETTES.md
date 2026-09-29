@@ -1509,11 +1509,10 @@ palette » gardent leurs libellés au-dessus des champs.
   couleur de danger compte les garanties manquées et nomme leur thème,
   « ✗ 2 garanties manquées en Thème Light », les deux thèmes ensemble quand
   les deux en manquent ; puis « Ajuster la
-  référence » ouvre le sélecteur de couleur de la référence sur son onglet
-  « Ajuster » (`[UI-15]`). Les deux ne paraissent que lorsqu'une garantie est manquée,
-  dans l'un ou l'autre thème : une palette libre ou une palette qui tient
-  toutes ses garanties ne l'a pas, et l'onglet « Ajuster » de la pastille
-  reste ouvert à toute palette. Une référence ajustée ajoute « Ajustée depuis
+  référence » ouvre la modale d'ajustement (`[UI-15]`). Les deux ne
+  paraissent que lorsqu'une garantie est manquée, dans l'un ou l'autre
+  thème : une palette libre ou une palette qui tient toutes ses garanties
+  ne l'a pas. Une référence ajustée ajoute « Ajustée depuis
   #16A34A · Revenir à l'originale ».
   Libre retire le choix des intensités, dit « Sans rôles ni garanties », et
   montre une puce par multiple de 50, de 50 à 1050, allumée
@@ -1554,29 +1553,35 @@ palette » gardent leurs libellés au-dessus des champs.
   `active` et `focus`, chaque cellule peinte de son état sans survol.
   Chaque couleur vient de la table des emplois. Une palette libre n'a pas
   cette carte. La planche ne porte pas cet écran.
-- `[UI-15]` Le sélecteur de couleur de la référence a deux onglets,
-  « Choisir » et « Ajuster ». « Ajuster la référence », sous le code ou
-  parmi les réglages d'une garantie en échec, l'ouvre sur « Ajuster ». Cet
-  onglet part de la référence rangée : l'originale et la proposition en
-  grandes pastilles côte à côte, « − » et « + » par pas de 0,01 de
-  luminosité OKLCH, chroma et teinte gardées, et entre eux une piste qui
-  peint les propositions voisines et marque d'un trait le passage d'une
-  nuance à la suivante. Suivent la luminosité, le code de la proposition
-  saisissable, la nuance visée dans chaque thème, et les garanties avant et
-  après : le bilan de chaque intensité, puis chaque garantie manquée d'un côté,
-  avec sa pastille. Une phrase ne s'ajoute que lorsque le pas voisin
-  franchit une frontière de nuance. Seul « Appliquer » range : la
-  proposition devient la référence de la palette courante, et `originale`
-  garde celle du premier ajustement. « Annuler » et Échap referment le
-  sélecteur sans rien écrire et rendent le focus à la pastille. « Revenir à
-  l'originale » rend l'originale et retire le champ ; un code saisi dans la
-  configuration le retire aussi, et une notice le dit. Aucun ajustement ne
-  se fait sans le geste du designer.
+- `[UI-15]` « Ajuster la référence », sous le code ou parmi les réglages
+  d'une garantie en échec, ouvre une modale centrée au-dessus du panneau,
+  sur un voile assombri : 520 px de large au plus, 16 px de marge à la
+  fenêtre, défilante quand la hauteur manque. Le reste de la page est
+  inerte, et Tab reste dans la modale. Elle part de la référence rangée.
+  En tête, sous le titre, une phrase dit pourquoi ajuster, une idée par
+  phrase, sans ratio : « La palette utilise votre couleur telle quelle. En
+  Thème Light, elle est trop claire pour les bordures de champ. », avec le
+  premier rôle manqué de chaque thème, trop claire en Light, trop sombre en
+  Dark. Suivent l'originale et la proposition en grandes pastilles côte à
+  côte ; « − » et « + » par pas de 0,01 de luminosité OKLCH, chroma et
+  teinte gardées, et entre eux une piste qui peint les propositions
+  voisines et marque d'un trait le passage d'une nuance à la suivante ;
+  une ligne qui donne la nuance visée et ce que chaque pas voisin
+  changerait ; le code de la proposition, saisissable ; les garanties
+  manquées avant ou après, en tableau (garantie, thème, avant, après et son
+  badge), le thème et l'intensité passant en titre de groupe sous 552 px
+  de fenêtre ; le bilan de chaque intensité ; puis « Annuler » et
+  « Appliquer ». Seul « Appliquer » range : la proposition devient la
+  référence de la palette courante, et `originale` garde celle du premier
+  ajustement. « Annuler », Échap et un clic sur le voile referment sans
+  rien écrire. Chaque fermeture rend le focus au lien, ou au code quand le
+  lien a disparu. « Revenir à l'originale » rend l'originale et retire le
+  champ ; un code saisi dans la configuration le retire aussi, et une
+  notice le dit. Aucun ajustement ne se fait sans le geste du designer.
 - `[UI-13]` Aucune couleur ne se choisit dans le sélecteur du navigateur, qui
   s'ouvre en RGB dans Figma. La pastille de la couleur de référence, celle
   de la création, celles des deux fonds des Réglages communs et celle du
-  fond de l'aperçu ouvrent le sélecteur embarqué (celui de la référence a
-  aussi l'onglet « Ajuster », `[UI-15]`) : 232 px sous le contrôle,
+  fond de l'aperçu ouvrent le sélecteur embarqué : 232 px sous le contrôle,
   par-dessus le contenu, aligné sur son bord. Il porte une zone de saturation
   et de luminosité, un curseur de teinte, un menu de format et le code, en
   Hex à chaque ouverture ; RGB et HSL donnent trois champs. Aucune opacité.

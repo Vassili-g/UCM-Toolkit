@@ -119,7 +119,7 @@ function construireVues(i18n: Localisation) {
   const { apercuCompact } = creerVuesApercuCompact(i18n);
   const { champEnColonne, createChoixDuModele, createPuces, createSegmentsDesIntensites } = creerVuesChamps(i18n);
   const { nuancesProposees } = creerVuesPropositions(i18n);
-  const { createPipette, fermerLeSelecteur } = creerVuesSelecteurCouleur(i18n);
+  const { createPipette } = creerVuesSelecteurCouleur(i18n);
   const { createCreation } = creerVuesCreation(i18n);
   const { createEditeur } = creerVuesEditeur(i18n);
   const { createGaranties } = creerVuesGaranties(i18n);
@@ -221,15 +221,6 @@ function construireVues(i18n: Localisation) {
         pastilles: nuancesProposees(analyserPalette(recette, courante), nuancier.mode()),
         saisir: (saisie, fin) => saisirReference(saisie, fin, true),
         abandonner: () => rendre(),
-        // L'onglet « Ajuster » part de la palette telle qu'elle est à son ouverture (X2.7, R3).
-        ajustement: {
-          element: ajustement.element,
-          preparer: () => {
-            const actuelle = ouverte();
-            if (recette && actuelle) ajustement.preparer(recette, actuelle);
-          },
-          focaliser: () => ajustement.focaliser(),
-        },
       };
     });
     const hexa = document.createElement('input');
@@ -245,15 +236,15 @@ function construireVues(i18n: Localisation) {
     nom.className = 'input';
     /*
      * Sous le code, hors du libellé qui focalise la pastille : « Ajuster la
-     * référence » ouvre le panneau (W7.1), seulement quand une garantie est
-     * manquée ; une référence ajustée dit son originale, que « Revenir à
+     * référence » ouvre la modale (W7.1, Z5.2), seulement quand une garantie
+     * est manquée ; une référence ajustée dit son originale, que « Revenir à
      * l'originale » rend.
      */
     const lienDAjustement = document.createElement('button');
     lienDAjustement.type = 'button';
     lienDAjustement.className = 'lien-de-constat';
     i18n.lier(lienDAjustement, 'textContent', TEXTES_DE_L_AJUSTEMENT.lien);
-    lienDAjustement.addEventListener('click', () => pipette.ouvrir('ajuster'));
+    lienDAjustement.addEventListener('click', () => ouvrirLAjustement());
     const traceDeLAjustement = document.createElement('p');
     traceDeLAjustement.className = 'ligne-secondaire trace-de-l-ajustement';
     const ajusteeDepuis = document.createElement('span');
@@ -282,14 +273,22 @@ function construireVues(i18n: Localisation) {
     hexa.addEventListener('focus', () => {
       originaleAvantSaisie = ouverte()?.originale ?? null;
     });
-    // Appliquer porte sur la palette courante : un nom ou une intensité changés pendant l'ajustement se gardent.
-    const ajustement = createAjustement((proposition) => {
+    // La modale part de la palette telle qu'elle est à son ouverture (X2.7, R3) ; le focus revient au lien, ou au code quand le lien a disparu (Y8.0).
+    const ajustement = createAjustement({
+      appliquer: (proposition) => {
+        const courante = ouverte();
+        const ajustee = recette && courante ? appliquerLAjustement(recette, courante, proposition) : null;
+        if (!recette || !ajustee) return;
+        note = null;
+        valider(remplacerPalette(recette, ajustee));
+      },
+      retour: () => (lienDAjustement.hidden ? hexa : lienDAjustement),
+    });
+
+    function ouvrirLAjustement(): void {
       const courante = ouverte();
-      const ajustee = recette && courante ? appliquerLAjustement(recette, courante, proposition) : null;
-      if (!recette || !ajustee) return;
-      note = null;
-      valider(remplacerPalette(recette, ajustee));
-    }, () => fermerLeSelecteur(true));
+      if (recette && courante) ajustement.ouvrir(recette, courante);
+    }
     /*
      * Les intensités, en segments « Une · Deux » ([ENT-14]) ; le profil qui
      * porte la référence, Auto, Soft ou Vivid, se choisit sous « Deux »
@@ -413,7 +412,7 @@ function construireVues(i18n: Localisation) {
         hexa.focus();
         hexa.select();
       } else if (cible === 'ajuster-reference') {
-        pipette.ouvrir('ajuster');
+        ouvrirLAjustement();
       } else if (cible === 'intensites-palette') {
         carteDesIntensites.ouvrir();
         intensites.ouvrir();

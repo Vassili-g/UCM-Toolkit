@@ -1905,31 +1905,56 @@
 }
 
 /*
- * Les onglets du sélecteur de la référence, « Choisir » et « Ajuster », puis
- * les deux contenus qu'ils montrent tour à tour.
+ * La modale « Ajuster la référence » (Z5.2, maquette Z3.4, M2) : centrée
+ * au-dessus du panneau sur un voile assombri, 520 px au plus et 16 px de
+ * marge à la fenêtre : élément flex, elle rétrécit avec elle. Elle défile en
+ * elle-même quand la hauteur manque.
  */
-.selecteur-onglets .bascule-option {
-  flex: 1 1 0;
+.voile-de-modale {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
 }
 
-.selecteur-choix,
-.selecteur-accueil {
+.voile-de-modale[hidden] {
+  display: none;
+}
+
+.modale {
   display: grid;
+  width: 520px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
   gap: var(--espace-controle);
+  padding: var(--espace-bloc) 16px 16px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--fond);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-/*
- * Le panneau « Ajuster la référence » (W7), dans l'onglet « Ajuster » : deux
- * grandes pastilles, la piste de luminosité entre les deux pas, puis le code,
- * la nuance visée, les garanties et les gestes.
- */
-.ajustement {
-  display: grid;
-  gap: var(--espace-controle);
-}
-
-.ajustement-bilan {
+.modale-titre {
+  margin: 0;
+  font-size: var(--libelle);
   font-weight: 600;
+}
+
+.modale .confirmation-gestes {
+  justify-content: flex-start;
+}
+
+/* La phrase qui dit pourquoi ajuster, en tête, sur le fond des notes. */
+.ajustement-pourquoi {
+  margin: 0;
+  padding: var(--espace-controle);
+  border-radius: var(--rayon);
+  background: var(--fond-note);
+  color: var(--texte);
 }
 
 .ajustement-temoins {
@@ -1982,22 +2007,103 @@
   box-shadow: 0 0 0 1px var(--texte);
 }
 
-.ajustement-luminosite {
-  font-variant-numeric: tabular-nums;
+.ajustement-nuances {
+  margin: 0;
 }
 
-.ajustement .champ-hexa {
-  width: 96px;
+.ajustement-code .champ-hexa {
+  flex: 0 0 120px;
 }
 
-.ajustement-annonces,
-.ajustement-garanties {
+/*
+ * Le tableau avant et après : garantie, thème, avant, flèche, après et son
+ * badge. Sous 552 px de fenêtre, la modale mesure moins de 520 px : l'en-tête
+ * et la colonne du thème se retirent, le thème et l'intensité passent en
+ * titre de groupe, et chaque garantie tient sur une ligne.
+ */
+.ajustement-tableau {
   display: grid;
   gap: 2px;
 }
 
-.ajustement-garantie[data-verdict='manquee'] {
+.ajustement-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 64px 12px 104px;
+  align-items: baseline;
+  column-gap: var(--espace-controle);
+  padding: 3px 0;
+  border-top: 1px solid var(--bordure);
+}
+
+.ajustement-ligne > * {
+  margin: 0;
+}
+
+.ajustement-entete {
+  color: var(--texte-second);
+  border-top: 0;
+}
+
+.ajustement-groupe {
+  display: none;
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.ajustement-qui {
+  min-width: 0;
+}
+
+.ajustement-qui .code-du-role {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--fond-note);
+  font-size: 11px;
+}
+
+.ajustement-tenue,
+.ajustement-manquee {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ajustement-tenue {
+  color: var(--texte-succes);
+}
+
+.ajustement-manquee {
   color: var(--texte-danger);
+  font-weight: 600;
+}
+
+.ajustement-fleche {
+  color: var(--texte-second);
+}
+
+.ajustement-apres {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.ajustement-bilan {
+  margin: 0;
+}
+
+@media (max-width: 551px) {
+  .ajustement-entete,
+  .ajustement-theme {
+    display: none;
+  }
+
+  .ajustement-groupe {
+    display: block;
+  }
+
+  .ajustement-ligne {
+    grid-template-columns: minmax(0, 1fr) auto 12px auto;
+  }
 }
 
 .trace-de-l-ajustement {

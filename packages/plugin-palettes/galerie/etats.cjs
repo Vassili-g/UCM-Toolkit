@@ -153,11 +153,14 @@ const ETATS = [
   },
   {
     id: 'ajuster-en-modale',
-    titre: 'Ajuster la référence, refait',
+    titre: 'Ajuster la référence, en modale',
     quand: 'Vert manque deux garanties en Thème Light ; le designer ouvre « Ajuster la référence ».',
-    regarder: 'La phrase qui dit pourquoi en tête, les deux témoins, les pas, la nuance visée, le code, le tableau avant et après, le bilan par intensité ; sans luminosité.',
-    existe: false,
-    attendu: 'Z5.2',
+    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour les bordures de champ. », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
+      { clic: '[aria-label="Configuration de la palette"] .colonnes-de-base .lien-de-constat' },
+    ],
   },
   {
     id: 'garanties-refaites',
@@ -669,7 +672,7 @@ const ETATS = [
     id: 'ajustement-ouvert',
     titre: 'Ajuster la référence',
     quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait un pas plus sombre.',
-    regarder: 'Le sélecteur de la référence sur l’onglet « Ajuster » : Originale #16A34A et Proposition #0DA047 côte à côte, la piste de luminosité entre « − » et « + » avec ses traits de nuance, le code, « Nuance visée : 600 dans les deux thèmes », les garanties Vivid « ✗ 2 → ✓ » et leurs lignes avec une pastille, puis Annuler et Appliquer.',
+    regarder: 'La modale après un pas : Originale #16A34A et Proposition #0DA047 côte à côte, la piste de luminosité entre « − » et « + » avec ses traits de nuance, « Nuance 600 dans les deux thèmes », le code, les deux garanties passées de ✗ à ✓ avec leur badge, « Soft ✓ inchangé · Vivid ✗ 2 → ✓ », puis Annuler et Appliquer actif.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),

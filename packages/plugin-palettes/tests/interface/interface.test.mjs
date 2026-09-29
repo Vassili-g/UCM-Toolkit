@@ -2817,6 +2817,149 @@ test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur une garanti
   }
 });
 
+/** Vert, #16A34A : deux garanties Vivid manquées en Thème Light. Ouvre la modale par le lien sous le code. */
+async function ouvrirLAjustement(page) {
+  await carteDeLOnglet(page, 'Configuration de la palette').getByRole('button', { name: 'Ajuster la référence', exact: true }).click();
+  const modale = page.getByRole('dialog', { name: 'Ajuster la référence' });
+  await modale.waitFor();
+  return modale;
+}
+
+const lienDAjustement = (page) => carteDeLOnglet(page, 'Configuration de la palette').getByRole('button', { name: 'Ajuster la référence', exact: true });
+const focusDans = (page, selecteur) => page.evaluate((cible) => document.activeElement?.matches(cible) ?? false, selecteur);
+
+test('Z5.3 [UI-15] le lien ouvre la modale : la phrase qui dit pourquoi, les témoins, les pas, la ligne des nuances, le code, le tableau et le bilan, sans luminosité ; la page dessous est inerte', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
+  try {
+    const modale = await ouvrirLAjustement(page);
+    assert.equal(await modale.getAttribute('aria-modal'), 'true');
+    assert.equal(await modale.locator('.ajustement-pourquoi').textContent(), 'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour les bordures de champ.');
+    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#16A34A', '#16A34A']);
+    assert.equal(await modale.getByRole('button', { name: 'Un pas plus sombre' }).evaluate((element) => element === document.activeElement), true, 'le premier pas a le focus');
+    assert.match(await modale.locator('.ajustement-nuances').textContent(), /^Nuance \d+/);
+    assert.deepEqual(await modale.locator('.ajustement-entete').evaluate((entete) => [...entete.children].map((cellule) => cellule.textContent)), ['Garantie', 'Thème', 'Avant', '', 'Après']);
+    assert.deepEqual(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-qui').allTextContents(), ['border-control sur surface', 'focus sur surface']);
+    assert.equal(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-theme').first().textContent(), 'Light · Vivid');
+    assert.equal(await modale.locator('.ajustement-groupe').isVisible(), false, 'à 770 px, le thème est une colonne');
+    assert.equal(await modale.locator('.ajustement-bilan').textContent(), 'Soft ✓ inchangé · Vivid ✗ 2 inchangé');
+    assert.equal(await modale.getByText('Luminosité', { exact: false }).count(), 0);
+    assert.equal(await page.locator('#app').evaluate((app) => app.inert), true, 'la page dessous est inerte');
+    // Chaque garantie tient sur une ligne, badge compris.
+    const hauteurs = await modale.locator('.ajustement-ligne:not(.ajustement-entete)').evaluateAll((lignes) => lignes.map((ligne) => ligne.getBoundingClientRect().height));
+    assert.ok(hauteurs.every((hauteur) => hauteur < 30), `lignes : ${hauteurs}`);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z5.3 [UI-15] rien ne change avant « Appliquer » ; Appliquer range la proposition, garde l’originale, et rend le focus au code quand le lien disparaît ; « Revenir à l’originale » la rend', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
+  try {
+    const modale = await ouvrirLAjustement(page);
+    await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
+    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#16A34A', '#0DA047']);
+    assert.equal(await modale.locator('.ajustement-bilan').textContent(), 'Soft ✓ inchangé · Vivid ✗ 2 → ✓');
+    assert.deepEqual(await rangements(page), [], 'un pas ne range rien');
+    assert.equal(await referenceMontree(page), '#16A34A', 'un pas ne change pas la palette');
+    await modale.getByRole('button', { name: 'Appliquer' }).click();
+    assert.equal(await modale.isVisible(), false);
+    const ranges = await rangements(page);
+    assert.equal(ranges.length, 1);
+    assert.equal(ranges[0].recette.palettes[0].reference, '#0DA047');
+    assert.equal(ranges[0].recette.palettes[0].originale, '#16A34A');
+    assert.equal(await lienDAjustement(page).isVisible(), false, 'toutes les garanties tenues : le lien disparaît');
+    assert.equal(await focusDans(page, '[aria-label="Configuration de la palette"] .colonnes-de-base .champ-hexa'), true, 'le focus revient au code');
+    assert.equal(await page.locator('#app').evaluate((app) => app.inert), false);
+    await envoyer(page, rangee(ranges[0].demande));
+    await page.getByRole('button', { name: 'Revenir à l’originale' }).click();
+    await page.waitForFunction(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length === 2, null, { timeout: 2000 });
+    const [, retour] = await rangements(page);
+    assert.equal(retour.recette.palettes[0].reference, '#16A34A');
+    assert.equal(retour.recette.palettes[0].originale, undefined);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z5.3 [UI-15] « Annuler », Échap et un clic sur le voile referment sans rien changer et rendent le focus au lien ; un clic dans la modale ne la referme pas', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
+  try {
+    const fermetures = {
+      annuler: (modale) => modale.getByRole('button', { name: 'Annuler' }).click(),
+      echap: () => page.keyboard.press('Escape'),
+      voile: () => page.mouse.click(8, 700),
+    };
+    for (const [nom, fermer] of Object.entries(fermetures)) {
+      const modale = await ouvrirLAjustement(page);
+      await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
+      await modale.locator('.ajustement-pourquoi').click();
+      assert.equal(await modale.isVisible(), true, `${nom} : un clic dans la modale la garde ouverte`);
+      await fermer(modale);
+      assert.equal(await modale.isVisible(), false, `${nom} referme la modale`);
+      assert.equal(await lienDAjustement(page).evaluate((element) => element === document.activeElement), true, `${nom} rend le focus au lien`);
+      assert.equal(await referenceMontree(page), '#16A34A', `${nom} ne change rien`);
+      assert.equal(await page.locator('#app').evaluate((app) => app.inert), false, `${nom} rend la page`);
+    }
+    assert.deepEqual(await rangements(page), []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z5.3 [UI-15] Tab reste dans la modale, dans les deux sens', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
+  try {
+    const modale = await ouvrirLAjustement(page);
+    await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
+    for (let rang = 0; rang < 8; rang += 1) {
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(() => Boolean(document.activeElement?.closest('.modale'))), true, `Tab n°${rang + 1} sort de la modale`);
+    }
+    await modale.getByRole('button', { name: 'Un pas plus sombre' }).focus();
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await modale.getByRole('button', { name: 'Appliquer' }).evaluate((element) => element === document.activeElement), true, 'Maj+Tab depuis le premier va au dernier');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z5.3 [UI-15] à 500 × 520, la modale tient dans la fenêtre, 16 px de marge, le thème et l’intensité en titre et chaque garantie sur une ligne', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', MINIMALE);
+  try {
+    const modale = await ouvrirLAjustement(page);
+    const cadre = await modale.boundingBox();
+    const largeurUtile = await page.evaluate(() => document.documentElement.clientWidth);
+    assert.ok(cadre.x >= 16 && cadre.x + cadre.width <= largeurUtile - 16 + 0.5, `modale de ${cadre.x} à ${cadre.x + cadre.width} sur ${largeurUtile}`);
+    assert.ok(cadre.y >= 0 && cadre.y + cadre.height <= MINIMALE.height, 'la modale tient dans la hauteur');
+    assert.equal(await modale.locator('.ajustement-entete').isVisible(), false);
+    assert.deepEqual(await modale.locator('.ajustement-groupe').allTextContents(), ['Thème Light · Vivid']);
+    assert.equal(await modale.locator('.ajustement-groupe').isVisible(), true, 'le thème passe en titre');
+    assert.equal(await modale.locator('.ajustement-theme').first().isVisible(), false);
+    const hauteurs = await modale.locator('.ajustement-ligne:not(.ajustement-entete)').evaluateAll((lignes) => lignes.map((ligne) => ligne.getBoundingClientRect().height));
+    assert.ok(hauteurs.every((hauteur) => hauteur < 30), `lignes : ${hauteurs}`);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z5.3 [UI-13] [UI-15] la pastille de la référence n’ouvre que le choix d’une couleur ; une garantie en échec ouvre la modale', async () => {
+  const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
+  try {
+    await carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .pipette').click();
+    const selecteur = page.locator('.selecteur-de-couleur');
+    assert.equal(await selecteur.locator('.selecteur-zone').isVisible(), true);
+    assert.equal(await selecteur.getByRole('button', { name: 'Ajuster' }).count(), 0, 'plus d’onglet « Ajuster »');
+    assert.equal(await selecteur.getByText('Ajuster la référence').count(), 0);
+    await page.keyboard.press('Escape');
+    await deplierLaCarte(page, 'Garanties de contraste');
+    await carteDeLOnglet(page, 'Garanties de contraste').locator('.garantie[data-verdict="manquee"], .garantie:has([data-verdict="manquee"])').first().click();
+    await carteDeLOnglet(page, 'Garanties de contraste').getByRole('button', { name: 'Ajuster la référence' }).first().click();
+    assert.equal(await page.getByRole('dialog', { name: 'Ajuster la référence' }).isVisible(), true);
+  } finally {
+    await page.close();
+  }
+});
+
 test('Z5.1 [UI-11] sous le code, une référence qui manque des garanties dit combien et dans quel thème, en couleur de danger, puis « Ajuster la référence » ; sans manque, ni l’un ni l’autre', async () => {
   const page = await ouvrirSur('ajustement-ouvert');
   try {

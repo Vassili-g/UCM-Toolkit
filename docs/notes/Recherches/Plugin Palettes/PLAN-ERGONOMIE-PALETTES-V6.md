@@ -227,7 +227,7 @@ une interaction ni une sauvegarde.
   onglets, correspondance avec les modules, état sans palette. AGENTS.md :
   la carte du code dit `ongletPalettes.ts` « l’onglet Création » et
   `ongletPlanche.ts` « l’onglet Palettes ».
-- [ ] **Z0.5** (N130 à N134 ; les textes de Z5 entrent avec leur lot)
+- [ ] **Z0.5** (N130 à N140 ; Z5 fait)
   Inventaire des textes : « Création », « Palettes » (onglet),
   « Sélectionner une palette », « À actualiser », « Actualiser tout (N
   palettes) », dictés ; « À mettre à jour » et « Mettre à jour (N
@@ -574,7 +574,7 @@ Après la validation de Z3.1.
   présentation du panneau. Deux thèmes : « ✗ 3 garanties manquées en Thème
   Light et en Thème Dark », à valider (N135). Le lien décrit par cette
   ligne (`aria-describedby`). Tests vus rouges sur cinq mutations.
-- [ ] **Z5.2** Le panneau selon la forme A, dans la modale M2 : titre
+- [x] **Z5.2** Le panneau selon la forme A, dans la modale M2 : titre
   « Ajuster la référence », la phrase b en tête, les deux témoins, les pas,
   une ligne pour la nuance visée et les annonces des pas, le code de la
   proposition, le tableau avant et après, le bilan par intensité, puis
@@ -594,7 +594,19 @@ Après la validation de Z3.1.
   le cas naît d’un minimum relevé dans les Réglages communs. L’état de galerie `ajuster-en-modale` (Z0.6)
   devient atteignable, à 770 et à 500 px. Les textes retirés sont marqués
   retirés dans l’inventaire. `[UI-15]` récrit.
-- [ ] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
+  Fait. `ajustement.ts` rend la modale, posée sur `body` hors de `#app`,
+  qui devient inerte ; Tab boucle dans la modale, Échap s'écoute sur le
+  document, pour le cas où un clic dans la modale a rendu le focus au
+  corps de la page. La colonne Thème écrit « Light · Vivid » sous son
+  en-tête, comme la maquette ; « Thème Light · Vivid » devient le titre de
+  groupe sous 552 px. Mesuré dans la galerie : 520 × 468 px à 770 px,
+  aucune garantie sur deux lignes ; à 500 px, 453 px de large (la barre de
+  défilement prend 15 px), 466 px de haut, tout dans la fenêtre. Textes
+  nouveaux N136 à N139 ; retirés : la luminosité, la limite d'un pas,
+  `nuanceVisee`, `annonceDuPas`, `garantieAvantApres` et les trois
+  textes des onglets du sélecteur, marqués retirés (N140). `[UI-15]`
+  récrit, `[UI-13]` et `[UI-11]` n'ont plus d'onglet « Ajuster ».
+- [x] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
   d’interface d’« Ajuster » repris, en gardant ce que chacun protégeait :
   rien ne change avant « Appliquer », l’originale se garde et « Revenir à
   l’originale » la rend. S’y ajoutent : « Annuler », Échap et un clic sur
@@ -603,6 +615,13 @@ Après la validation de Z3.1.
   disparaît ; Tab ne sort pas de la modale ; à 500 px la modale tient dans
   la fenêtre ; la pastille n’ouvre plus que « Choisir ». Chacun vu rouge
   sur mutation.
+  Fait. `tests/ajustement.test.ts` porte sur les calculs, que la modale
+  ne change pas : il reste tel quel. Six tests d'interface, douze
+  mutations vues rouges. Deux mutations vues vertes au premier passage ont
+  corrigé le code et un test : `max-width: 100%` ne protégeait rien, la
+  modale rétrécissant en élément flex, et la règle est retirée ; le titre
+  de groupe se lisait sans être visible, et le test vérifie désormais sa
+  visibilité.
 
 Critère : un designer qui voit le lien sait, avant de cliquer, quelle
 garantie manque et pourquoi la référence doit bouger.
@@ -671,7 +690,7 @@ compare à celle de 500 px, et seul l’écart entre les colonnes change.
   et à 770 px, la preuve sur le DOM.
 
 Critère : à 500 comme à 1 000 px, les textes et les traits des trois
-graphes ont la même taille ; seules leurs colonnes s’élargissent.
+graphes ont la même taille ; seules leurs colonnes et contenus s’élargissent et s'étirent, pas les typos ni les stroke.
 
 ## Lot Z9 : redimensionnement de la fenêtre
 
@@ -685,8 +704,7 @@ d’après-recette](#précisions-du-mainteneur-après-la-suite-de-la-recette)).
 Au commit `3d844ee`, aucun commit ne touche `ResizeGrip.ts` depuis
 `56e00df`, et l’arbre de travail ne le modifie pas. Avant de reprendre Z9,
 l’agent retrouve cette correction dans `git log`. Si elle est dans le
-dépôt, il la vérifie contre Z9.4, sinon il demande au mainteneur où elle
-se trouve.
+dépôt, il la vérifie contre Z9.4, sinon il regarde ce qu'il en est lui même dans le code.
 
 Le retour décrit trois symptômes : la fenêtre « perd le focus », elle « se
 redimensionne toute seule », elle se rétrécit mais s’agrandit mal. Les
