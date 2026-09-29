@@ -17,7 +17,7 @@ import {
   type CarteDesReglages,
 } from '../src/configuration';
 import { ajouter, nouvellePalette } from '../src/edition';
-import { constatDeGarantie, palettesConcernees, resumeDesEcarts, resumeDesMinimums } from '../src/ui/textes';
+import { constatDeGarantie, palettesConcernees, resumeDesEcarts, resumeDesMinimums } from '../src/i18n/fr';
 import { TRAME_DU_TRACE, geometrieDesCourbes } from '../src/ui/traceDesCourbes';
 
 const DEFAUT = recetteParDefaut();

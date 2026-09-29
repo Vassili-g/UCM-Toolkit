@@ -54,7 +54,7 @@ import {
   niveauEcrit,
   nomDeLaPalette,
   verdictDuTheme,
-} from '../ui/textes';
+} from './textes';
 
 /** Une couleur peinte : son hexa sRGB, et ses composantes dans l'espace du document (section 6.7). */
 export interface Peinture {

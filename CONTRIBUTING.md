@@ -40,6 +40,14 @@ Les messages de l’interface, des pull requests et des rapports CI sont lus par
 un designer. Ils donnent un constat et une action, sans raconter le
 fonctionnement interne des contrôles.
 
+UCM Palettes s’affiche en anglais ou en français, au choix du designer. Ses
+textes vivent dans les catalogues de `packages/plugin-palettes/src/i18n/`.
+Écrivez un texte nouveau d’abord en français, la référence validée, puis dans
+chaque catalogue, avec le même constat et le même geste. Traduisez une phrase
+entière : un catalogue ne recolle pas des fragments dans l’ordre du français.
+Les textes des planches, UCM Exporter, les pull requests et les rapports CI
+restent en français.
+
 Un diagnostic agrégé suit cet ordre :
 
 1. le problème principal, puis le nombre d’éléments concernés ;
@@ -174,8 +182,8 @@ phrases de contexte.
 
 Un message emploie **les intitulés que Figma affiche**, repris tels quels : le
 designer doit pouvoir chercher dans son écran le mot que le message emploie. La
-phrase reste en français ; seul le nom de l’élément Figma est repris à
-l’identique. Ne traduisez jamais un libellé de panneau : `padding` ne devient
+phrase reste en français, sauf dans UCM Palettes, décrit plus bas ; seul le
+nom de l’élément Figma est repris à l’identique. Ne traduisez jamais un libellé de panneau : `padding` ne devient
 pas « marges intérieures ».
 
 | Terme du code | Terme employé | | Terme du code | Terme employé |

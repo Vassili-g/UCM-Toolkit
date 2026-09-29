@@ -95,7 +95,7 @@ function pageEtat(gabarit, mode, etat) {
   const decalque = mode.variables
     ? `<style>${neutraliserBalises(fs.readFileSync(DECALQUE, 'utf8'))}</style>`
     : '<!-- aucune variable servie : les replis de styles.css s\'appliquent seuls -->';
-  let page = remplacer(gabarit, '<html lang="fr">', `<html lang="fr" class="${mode.classe}">`);
+  let page = gabarit.replace(/<html\b([^>]*)>/, (_, attributs) => `<html${attributs} class="${mode.classe}">`);
   page = remplacer(page, '</head>', `${decalque}</head>`);
   return remplacer(page, '</body>', `${pilote(etat)}</body>`);
 }

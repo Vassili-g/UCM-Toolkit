@@ -11,6 +11,9 @@ import { TAILLE_PAR_DEFAUT, lireTaille, rangerTaille, tailleValide } from './fen
 import { lireEtat, lireLaPlanche } from './lecture';
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
+import { creerPreferences } from './preferences';
+
+const preferences = creerPreferences(figma.clientStorage);
 
 /*
  * `showUI` part tout de suite à la taille par défaut, puis la fenêtre reprend
@@ -33,6 +36,14 @@ async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<vo
 }
 
 async function traiterMessage(message: UiRequest): Promise<void> {
+  if (message.type === 'lire-langue') {
+    versUi({ type: 'langue', langue: await preferences.lire() });
+    return;
+  }
+  if (message.type === 'ranger-langue') {
+    versUi({ type: 'langue-rangee', selection: message.selection, reussie: await preferences.ranger(message.langue) });
+    return;
+  }
   if (message.type === 'lire-etat') {
     await envoyerEtat(message.demande, message.recherche === 'fichier');
     return;

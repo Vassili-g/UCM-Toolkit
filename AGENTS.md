@@ -233,10 +233,15 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
+  src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
+  src/preferences.ts       la langue de l'interface, lue et rangée dans clientStorage, rangements ordonnés
+  src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création et Palettes, la configuration
   src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », puis les cartes, chaque message sous la sienne
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable, avec son résumé
+  src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
+  src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
@@ -1049,6 +1054,27 @@ La spécification en lien porte le raisonnement.
 - Le manifest n'ouvre aucun domaine et ne déclare pas `enablePrivatePluginApi`.
 - Aucun des deux plugins n'importe l'autre : `tests/pluginsSepares.test.ts` lit
   les deux sens, à la racine, sans qu'un paquet lise les sources de l'autre.
+
+### Langue d'UCM Palettes
+
+- L'interface s'ouvre en anglais ; une langue rangée absente ou inconnue donne
+  l'anglais, sans lire la langue de Figma ni du système. La préférence se
+  range dans `figma.clientStorage` sous `ucm-palettes.langue`, jamais dans
+  le document. `src/preferences.ts` ne reçoit que `getAsync` et `setAsync`,
+  et ordonne ses rangements : le dernier choix est celui de l'ouverture
+  suivante. `packages/plugin-palettes/tests/i18n.test.ts` le tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets)
+- Les vues de `src/ui/` ne posent aucun mot en dur : chaque texte, infobulle
+  et nom accessible vient des catalogues de `src/i18n/`, et les catalogues
+  ont les mêmes clés et les mêmes types. `packages/plugin-palettes/tests/loiDesTextes.test.ts`
+  et `tests/i18n.test.ts` le tiennent. Borne : la loi ne lit qu'un littéral
+  posé directement dans une destination connue.
+- Changer de langue ne reconstruit aucun élément et n'envoie aucune demande de
+  rangement, de dessin ou de retrait. Les planches importent
+  `src/planche/textes.ts` et restent en français : leur modèle et leur
+  empreinte ne dépendent pas de la langue. Les tests d'interface le tiennent.
+- Le registre `src/i18n/langues.ts` n'importe aucun catalogue, pour que le
+  sandbox valide la préférence sans embarquer les textes de l'interface.
 
 ## Vérification
 

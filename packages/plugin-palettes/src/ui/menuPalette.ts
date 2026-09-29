@@ -4,7 +4,7 @@
  * n'occupent l'écran qu'à la demande, le compte des objets restant sous la
  * douzaine (protocole de relecture, point (e)).
  */
-import { TEXTES } from './textes';
+import { memoriserVues, type Localisation, type Texte } from './localisation';
 
 export type GesteDePalette = 'dupliquer' | 'monter' | 'descendre' | 'supprimer';
 
@@ -16,95 +16,102 @@ export interface MenuPaletteUi {
   focaliser(): void;
 }
 
-const GESTES: readonly { geste: GesteDePalette; libelle: string }[] = [
-  { geste: 'dupliquer', libelle: TEXTES.dupliquer },
-  { geste: 'monter', libelle: TEXTES.monter },
-  { geste: 'descendre', libelle: TEXTES.descendre },
-  { geste: 'supprimer', libelle: TEXTES.supprimer },
-];
+function construireVues(i18n: Localisation) {
+  const { TEXTES } = i18n.messages;
 
-export function createMenuPalette(onGeste: (geste: GesteDePalette) => void): MenuPaletteUi {
-  const element = document.createElement('div');
-  element.className = 'menu-palette';
+  const GESTES: readonly { geste: GesteDePalette; libelle: Texte }[] = [
+    { geste: 'dupliquer', libelle: TEXTES.dupliquer },
+    { geste: 'monter', libelle: TEXTES.monter },
+    { geste: 'descendre', libelle: TEXTES.descendre },
+    { geste: 'supprimer', libelle: TEXTES.supprimer },
+  ];
 
-  const bouton = document.createElement('button');
-  bouton.type = 'button';
-  bouton.className = 'icon-button';
-  bouton.textContent = '⋯';
-  bouton.setAttribute('aria-label', TEXTES.gestesDeLaPalette);
-  bouton.setAttribute('aria-haspopup', 'menu');
-  bouton.setAttribute('aria-expanded', 'false');
+  function createMenuPalette(onGeste: (geste: GesteDePalette) => void): MenuPaletteUi {
+    const element = document.createElement('div');
+    element.className = 'menu-palette';
 
-  const liste = document.createElement('ul');
-  liste.className = 'menu-liste';
-  liste.setAttribute('role', 'menu');
-  liste.hidden = true;
-
-  const options = GESTES.map(({ geste, libelle }) => {
-    const option = document.createElement('li');
-    option.className = 'menu-option';
-    option.setAttribute('role', 'menuitem');
-    option.dataset.geste = geste;
-    option.tabIndex = -1;
-    option.textContent = libelle;
-    option.addEventListener('click', () => choisir(option));
-    liste.append(option);
-    return option;
-  });
-
-  const actives = () => options.filter((option) => option.getAttribute('aria-disabled') !== 'true');
-
-  function fermer(rendreLeFocus: boolean): void {
-    liste.hidden = true;
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'icon-button';
+    i18n.lier(bouton, 'textContent', '⋯');
+    i18n.lier(bouton, 'aria-label', TEXTES.gestesDeLaPalette);
+    bouton.setAttribute('aria-haspopup', 'menu');
     bouton.setAttribute('aria-expanded', 'false');
-    if (rendreLeFocus) bouton.focus();
-  }
 
-  function choisir(option: HTMLLIElement): void {
-    if (option.getAttribute('aria-disabled') === 'true') return;
-    fermer(true);
-    onGeste(option.dataset.geste as GesteDePalette);
-  }
+    const liste = document.createElement('ul');
+    liste.className = 'menu-liste';
+    liste.setAttribute('role', 'menu');
+    liste.hidden = true;
 
-  bouton.addEventListener('click', () => {
-    if (!liste.hidden) {
-      fermer(false);
-      return;
+    const options = GESTES.map(({ geste, libelle }) => {
+      const option = document.createElement('li');
+      option.className = 'menu-option';
+      option.setAttribute('role', 'menuitem');
+      option.dataset.geste = geste;
+      option.tabIndex = -1;
+      i18n.lier(option, 'textContent', libelle);
+      option.addEventListener('click', () => choisir(option));
+      liste.append(option);
+      return option;
+    });
+
+    const actives = () => options.filter((option) => option.getAttribute('aria-disabled') !== 'true');
+
+    function fermer(rendreLeFocus: boolean): void {
+      liste.hidden = true;
+      bouton.setAttribute('aria-expanded', 'false');
+      if (rendreLeFocus) bouton.focus();
     }
-    liste.hidden = false;
-    bouton.setAttribute('aria-expanded', 'true');
-    actives()[0]?.focus();
-  });
-  liste.addEventListener('keydown', (evenement) => {
-    const disponibles = actives();
-    const rang = disponibles.indexOf(document.activeElement as HTMLLIElement);
-    const gestes: Record<string, () => void> = {
-      ArrowDown: () => disponibles[(rang + 1) % disponibles.length]?.focus(),
-      ArrowUp: () => disponibles[(rang - 1 + disponibles.length) % disponibles.length]?.focus(),
-      Enter: () => { if (disponibles[rang]) choisir(disponibles[rang]); },
-      ' ': () => { if (disponibles[rang]) choisir(disponibles[rang]); },
-      Escape: () => fermer(true),
-    };
-    const geste = gestes[evenement.key];
-    if (!geste) return;
-    evenement.preventDefault();
-    geste();
-  });
-  element.addEventListener('focusout', (evenement) => {
-    if (!element.contains(evenement.relatedTarget as Node | null)) fermer(false);
-  });
 
-  element.append(bouton, liste);
+    function choisir(option: HTMLLIElement): void {
+      if (option.getAttribute('aria-disabled') === 'true') return;
+      fermer(true);
+      onGeste(option.dataset.geste as GesteDePalette);
+    }
 
-  return {
-    element,
-    focaliser: () => bouton.focus(),
-    afficher(rang, nombre) {
-      for (const option of options) {
-        const bloquee = (option.dataset.geste === 'monter' && rang === 0)
-          || (option.dataset.geste === 'descendre' && rang === nombre - 1);
-        option.setAttribute('aria-disabled', String(bloquee));
+    bouton.addEventListener('click', () => {
+      if (!liste.hidden) {
+        fermer(false);
+        return;
       }
-    },
-  };
+      liste.hidden = false;
+      bouton.setAttribute('aria-expanded', 'true');
+      actives()[0]?.focus();
+    });
+    liste.addEventListener('keydown', (evenement) => {
+      const disponibles = actives();
+      const rang = disponibles.indexOf(document.activeElement as HTMLLIElement);
+      const gestes: Record<string, () => void> = {
+        ArrowDown: () => disponibles[(rang + 1) % disponibles.length]?.focus(),
+        ArrowUp: () => disponibles[(rang - 1 + disponibles.length) % disponibles.length]?.focus(),
+        Enter: () => { if (disponibles[rang]) choisir(disponibles[rang]); },
+        ' ': () => { if (disponibles[rang]) choisir(disponibles[rang]); },
+        Escape: () => fermer(true),
+      };
+      const geste = gestes[evenement.key];
+      if (!geste) return;
+      evenement.preventDefault();
+      geste();
+    });
+    element.addEventListener('focusout', (evenement) => {
+      if (!element.contains(evenement.relatedTarget as Node | null)) fermer(false);
+    });
+
+    element.append(bouton, liste);
+
+    return {
+      element,
+      focaliser: () => bouton.focus(),
+      afficher(rang, nombre) {
+        for (const option of options) {
+          const bloquee = (option.dataset.geste === 'monter' && rang === 0)
+            || (option.dataset.geste === 'descendre' && rang === nombre - 1);
+          option.setAttribute('aria-disabled', String(bloquee));
+        }
+      },
+    };
+  }
+  return { createMenuPalette };
 }
+
+export const creerVuesMenuPalette = memoriserVues(construireVues);

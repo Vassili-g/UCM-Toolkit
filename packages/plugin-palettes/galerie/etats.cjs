@@ -793,4 +793,17 @@ function avecLaPremierePalette(etat) {
   return { ...etat, atteinte: [lu, ...ouvrirLaPremierePalette, ...suite] };
 }
 
+ETATS.push({
+  id: 'preference-de-langue',
+  titre: 'Préférence de langue non enregistrée',
+  quand: 'Le stockage personnel refuse la préférence de langue.',
+  regarder: 'Le choix reste actif pour la session ; le designer peut réessayer son enregistrement.',
+  existe: true,
+  atteinte: [
+    { message: { type: 'langue', langue: 'en' } },
+    { clic: '.icon-button' },
+    { message: { type: 'langue-rangee', selection: 0, reussie: false } },
+  ],
+});
+
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette) };

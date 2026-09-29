@@ -4,9 +4,10 @@
  * en-tête un bouton qui porte le chevron, le titre et un résumé aligné à
  * droite ; son état ouvert dure autant que l'élément, donc la session.
  */
+import type { Localisation, Texte } from './localisation';
 
 export interface OptionsDeCarte {
-  readonly titre: string;
+  readonly titre: Texte;
   /** Une carte repliable, et son état à l'ouverture du plugin. */
   readonly repliable?: { readonly ouverte: boolean };
   /** Le titre ne sert que de nom accessible : l'en-tête ne porte que les contrôles que l'appelant y pose ([UI-04]). */
@@ -19,18 +20,18 @@ export interface CarteUi {
   readonly tete: HTMLElement;
   readonly corps: HTMLDivElement;
   /** Le texte à droite du titre, ou dans l'en-tête replié. */
-  poserResume(texte: string): void;
+  poserResume(texte: Texte): void;
   ouvrir(): void;
   estOuverte(): boolean;
   /** Une carte repliable désactivée reste fermée, et son en-tête dit pourquoi. */
-  desactiver(raison: string | null): void;
+  desactiver(raison: Texte | null): void;
   /** Un geste sur l'en-tête qui ouvre ou replie la carte. */
   surBascule(action: (ouverte: boolean) => void): void;
 }
 
 let compteur = 0;
 
-export function createCarte(options: OptionsDeCarte): CarteUi {
+export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteUi {
   const element = document.createElement('section');
   element.className = 'carte';
   const corps = document.createElement('div');
@@ -39,11 +40,11 @@ export function createCarte(options: OptionsDeCarte): CarteUi {
   corps.id = `carte-corps-${compteur}`;
   const titre = document.createElement('h3');
   titre.className = 'carte-titre';
-  titre.textContent = options.titre;
+  i18n.lier(titre, 'textContent', options.titre);
   const resume = document.createElement('span');
   resume.className = 'carte-resume';
   resume.hidden = true;
-  element.setAttribute('aria-label', options.titre);
+  i18n.lier(element, 'aria-label', options.titre);
 
   let ouverte = options.repliable?.ouverte ?? true;
   const actions: ((ouverte: boolean) => void)[] = [];
@@ -87,7 +88,7 @@ export function createCarte(options: OptionsDeCarte): CarteUi {
     tete,
     corps,
     poserResume(texte) {
-      resume.textContent = texte;
+      i18n.lier(resume, 'textContent', texte);
       resume.hidden = texte === '';
     },
     ouvrir() {
@@ -101,7 +102,7 @@ export function createCarte(options: OptionsDeCarte): CarteUi {
       desactivee = raison !== null;
       if (bouton) {
         bouton.disabled = desactivee;
-        bouton.title = raison ?? '';
+        i18n.lier(bouton, 'title', raison ?? '');
       }
       rendre();
     },

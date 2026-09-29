@@ -2,10 +2,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { dessinInterrompu } from '../src/i18n/fr';
 import type { PluginMessage } from '../src/messages';
+import { creerVuesDessin } from '../src/ui/dessin';
 import type { Frontiere } from '../src/ui/frontiere';
-import { createSuiviDuDessin } from '../src/ui/dessin';
-import { dessinInterrompu } from '../src/ui/textes';
+import { creerLocalisation } from '../src/ui/localisation';
+
+const { createSuiviDuDessin } = creerVuesDessin(creerLocalisation('fr'));
 
 const NOMS = { a: 'Bleu', b: 'Ambre', c: 'Vert' };
 

@@ -13,7 +13,6 @@ import {
   aUneIntensite,
   boutsDe,
   rampeDe,
-  ecrireArrondi,
   referenceDe,
   rgb8VersOklch,
   teinteA,
@@ -24,12 +23,12 @@ import {
   type Recette,
 } from 'ucm-couleur';
 
+import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
 import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerBout } from '../../edition';
-import type { AnalyseDePalette } from '../../analyse';
-import { TEXTES_DE_LA_DERIVE, repereTailwind, valeurDePoignee } from '../textes';
-import { CADRE, HAUTEUR_TOTALE, createGraphe } from './graphe';
+import { memoriserVues, lireTexte, type Localisation, type Texte } from '../localisation';
 import { angleDuGlisser, echelleDe } from './geometrie';
+import { creerVuesGraphe } from './graphe';
 
 /** Ce que l'éditeur demande à l'onglet. */
 export interface GestesDeLEditeur {
@@ -48,9 +47,6 @@ export interface EditeurUi {
 }
 
 type Bout = 'clair' | 'sombre';
-const BOUTS: readonly Bout[] = ['clair', 'sombre'];
-/** La profondeur de la pile d'annulation (E21). */
-const PROFONDEUR = 50;
 
 interface Reglette {
   ligne: HTMLDivElement;
@@ -59,324 +55,338 @@ interface Reglette {
   repere: HTMLSpanElement;
 }
 
-function bouton(texte: string, classe: 'bouton-discret' | 'bascule-option'): HTMLButtonElement {
-  const element = document.createElement('button');
-  element.type = 'button';
-  if (classe === 'bouton-discret') element.className = 'bouton-discret';
-  else element.className = 'bascule-option';
-  element.textContent = texte;
-  return element;
-}
+function construireVues(i18n: Localisation) {
+  const ecrireArrondi = i18n.arrondi;
+  const { TEXTES_DE_LA_DERIVE, repereTailwind, valeurDePoignee } = i18n.messages;
+  const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
 
-export function createEditeur(gestes: GestesDeLEditeur): EditeurUi {
-  const element = document.createElement('div');
-  element.className = 'editeur-derive';
+  const BOUTS: readonly Bout[] = ['clair', 'sombre'];
 
-  let recette: Recette | null = null;
-  let palette: Palette | null = null;
-  let profil: Profil = 'vivid';
-  let confirmationOuverte = false;
-  /** La palette d'avant le geste en cours : glisser, réglette ou champ. */
-  let avantLeGeste: Palette | null = null;
-  const pile: Palette[] = [];
+  /** La profondeur de la pile d'annulation (E21). */
+  const PROFONDEUR = 50;
 
-  function empiler(avant: Palette): void {
-    pile.push(avant);
-    if (pile.length > PROFONDEUR) pile.shift();
+  function bouton(texte: Texte, classe: 'bouton-discret' | 'bascule-option'): HTMLButtonElement {
+    const element = document.createElement('button');
+    element.type = 'button';
+    if (classe === 'bouton-discret') element.className = 'bouton-discret';
+    else element.className = 'bascule-option';
+    i18n.lier(element, 'textContent', texte);
+    return element;
   }
 
-  /** Un geste fini : la palette d'avant entre dans la pile, la nouvelle se range. */
-  function terminer(suivante: Palette): void {
-    const avant = avantLeGeste ?? palette;
-    avantLeGeste = null;
-    if (!avant || JSON.stringify(avant.derive) === JSON.stringify(suivante.derive)) return;
-    empiler(avant);
-    gestes.valider(suivante);
-  }
+  function createEditeur(gestes: GestesDeLEditeur): EditeurUi {
+    const element = document.createElement('div');
+    element.className = 'editeur-derive';
 
-  function regler(bout: Bout, angle: number, fin: boolean): void {
-    if (!recette || !palette) return;
-    if (!fin && !avantLeGeste) avantLeGeste = palette;
-    const suivante = reglerBout(recette, palette, profil, bout, angle);
-    if (fin) terminer(suivante);
-    else gestes.previsualiser(suivante);
-  }
+    let recette: Recette | null = null;
+    let palette: Palette | null = null;
+    let profil: Profil = 'vivid';
+    let confirmationOuverte = false;
+    /** La palette d'avant le geste en cours : glisser, réglette ou champ. */
+    let avantLeGeste: Palette | null = null;
+    const pile: Palette[] = [];
 
-  // En-tête : préréglage, lien des profils, profil réglé quand ils sont déliés.
-  const entete = document.createElement('div');
-  entete.className = 'editeur-entete';
-  const choixDuPrereglage = document.createElement('select');
-  choixDuPrereglage.className = 'input champ-prereglage';
-  choixDuPrereglage.setAttribute('aria-label', TEXTES_DE_LA_DERIVE.prereglage);
-  for (const [valeur, texte] of [['tailwind', TEXTES_DE_LA_DERIVE.tailwind], ['constante', TEXTES_DE_LA_DERIVE.constante], ['libre', TEXTES_DE_LA_DERIVE.libre]]) {
-    const option = document.createElement('option');
-    option.value = valeur;
-    option.textContent = texte;
-    // « Libre » s'affiche dès qu'une valeur s'écarte du préréglage ; il ne se choisit pas ([DER-11]).
-    option.disabled = valeur === 'libre';
-    choixDuPrereglage.append(option);
-  }
-  choixDuPrereglage.addEventListener('change', () => {
-    if (!recette || !palette) return;
-    const choisi = choixDuPrereglage.value;
-    if (choisi === 'tailwind' || choisi === 'constante') terminer(appliquerPrereglage(recette, palette, profil, choisi));
-  });
-  // Synchroniser se coche : l'état se lit sur la case, et la recocher confirme avant de remplacer soft ([DER-12]).
-  const lien = document.createElement('input');
-  lien.type = 'checkbox';
-  lien.className = 'case-a-cocher';
-  const etiquetteDuLien = document.createElement('label');
-  etiquetteDuLien.className = 'champ-ligne';
-  const texteDuLien = document.createElement('span');
-  texteDuLien.textContent = TEXTES_DE_LA_DERIVE.lien;
-  etiquetteDuLien.append(lien, texteDuLien);
-  lien.addEventListener('change', () => {
-    if (!palette) return;
-    if (lien.checked) {
-      const { soft, vivid } = palette.derive;
-      const egales = soft.clair === vivid.clair && soft.sombre === vivid.sombre && soft.origine === vivid.origine;
-      if (egales) terminer(lierLesProfils(palette, true));
-      else {
-        lien.checked = false;
-        confirmationOuverte = true;
-        dessiner();
+    function empiler(avant: Palette): void {
+      pile.push(avant);
+      if (pile.length > PROFONDEUR) pile.shift();
+    }
+
+    /** Un geste fini : la palette d'avant entre dans la pile, la nouvelle se range. */
+    function terminer(suivante: Palette): void {
+      const avant = avantLeGeste ?? palette;
+      avantLeGeste = null;
+      if (!avant || JSON.stringify(avant.derive) === JSON.stringify(suivante.derive)) return;
+      empiler(avant);
+      gestes.valider(suivante);
+    }
+
+    function regler(bout: Bout, angle: number, fin: boolean): void {
+      if (!recette || !palette) return;
+      if (!fin && !avantLeGeste) avantLeGeste = palette;
+      const suivante = reglerBout(recette, palette, profil, bout, angle);
+      if (fin) terminer(suivante);
+      else gestes.previsualiser(suivante);
+    }
+
+    // En-tête : préréglage, lien des profils, profil réglé quand ils sont déliés.
+    const entete = document.createElement('div');
+    entete.className = 'editeur-entete';
+    const choixDuPrereglage = document.createElement('select');
+    choixDuPrereglage.className = 'input champ-prereglage';
+    i18n.lier(choixDuPrereglage, 'aria-label', TEXTES_DE_LA_DERIVE.prereglage);
+    for (const [valeur, texte] of [['tailwind', TEXTES_DE_LA_DERIVE.tailwind], ['constante', TEXTES_DE_LA_DERIVE.constante], ['libre', TEXTES_DE_LA_DERIVE.libre]] as const) {
+      const option = document.createElement('option');
+      option.value = valeur;
+      i18n.lier(option, 'textContent', texte);
+      // « Libre » s'affiche dès qu'une valeur s'écarte du préréglage ; il ne se choisit pas ([DER-11]).
+      option.disabled = valeur === 'libre';
+      choixDuPrereglage.append(option);
+    }
+    choixDuPrereglage.addEventListener('change', () => {
+      if (!recette || !palette) return;
+      const choisi = choixDuPrereglage.value;
+      if (choisi === 'tailwind' || choisi === 'constante') terminer(appliquerPrereglage(recette, palette, profil, choisi));
+    });
+    // Synchroniser se coche : l'état se lit sur la case, et la recocher confirme avant de remplacer soft ([DER-12]).
+    const lien = document.createElement('input');
+    lien.type = 'checkbox';
+    lien.className = 'case-a-cocher';
+    const etiquetteDuLien = document.createElement('label');
+    etiquetteDuLien.className = 'champ-ligne';
+    const texteDuLien = document.createElement('span');
+    i18n.lier(texteDuLien, 'textContent', TEXTES_DE_LA_DERIVE.lien);
+    etiquetteDuLien.append(lien, texteDuLien);
+    lien.addEventListener('change', () => {
+      if (!palette) return;
+      if (lien.checked) {
+        const { soft, vivid } = palette.derive;
+        const egales = soft.clair === vivid.clair && soft.sombre === vivid.sombre && soft.origine === vivid.origine;
+        if (egales) terminer(lierLesProfils(palette, true));
+        else {
+          lien.checked = false;
+          confirmationOuverte = true;
+          dessiner();
+        }
+        return;
       }
-      return;
-    }
-    terminer(lierLesProfils(palette, false));
-  });
-  const profils = document.createElement('div');
-  profils.className = 'bascule';
-  profils.setAttribute('role', 'group');
-  profils.setAttribute('aria-label', TEXTES_DE_LA_DERIVE.profilRegle);
-  const boutonsDeProfil = (['soft', 'vivid'] as const).map((valeur) => {
-    const choix = bouton(valeur, 'bascule-option');
-    choix.addEventListener('click', () => {
-      profil = valeur;
+      terminer(lierLesProfils(palette, false));
+    });
+    const profils = document.createElement('div');
+    profils.className = 'bascule';
+    profils.setAttribute('role', 'group');
+    i18n.lier(profils, 'aria-label', TEXTES_DE_LA_DERIVE.profilRegle);
+    const boutonsDeProfil = (['soft', 'vivid'] as const).map((valeur) => {
+      const choix = bouton(valeur, 'bascule-option');
+      choix.addEventListener('click', () => {
+        profil = valeur;
+        dessiner();
+      });
+      profils.append(choix);
+      return { valeur, choix };
+    });
+    entete.append(choixDuPrereglage, etiquetteDuLien, profils);
+
+    const confirmation = document.createElement('div');
+    confirmation.className = 'confirmation';
+    const texteDeConfirmation = document.createElement('p');
+    i18n.lier(texteDeConfirmation, 'textContent', TEXTES_DE_LA_DERIVE.confirmationDuLien);
+    const gestesDeConfirmation = document.createElement('div');
+    gestesDeConfirmation.className = 'confirmation-gestes';
+    const aligner = bouton(TEXTES_DE_LA_DERIVE.aligner, 'bouton-discret');
+    aligner.addEventListener('click', () => {
+      confirmationOuverte = false;
+      if (palette) terminer(lierLesProfils(palette, true));
+    });
+    const renoncer = bouton(TEXTES_DE_LA_DERIVE.annuler, 'bouton-discret');
+    renoncer.addEventListener('click', () => {
+      confirmationOuverte = false;
       dessiner();
     });
-    profils.append(choix);
-    return { valeur, choix };
-  });
-  entete.append(choixDuPrereglage, etiquetteDuLien, profils);
+    gestesDeConfirmation.append(aligner, renoncer);
+    confirmation.append(texteDeConfirmation, gestesDeConfirmation);
 
-  const confirmation = document.createElement('div');
-  confirmation.className = 'confirmation';
-  const texteDeConfirmation = document.createElement('p');
-  texteDeConfirmation.textContent = TEXTES_DE_LA_DERIVE.confirmationDuLien;
-  const gestesDeConfirmation = document.createElement('div');
-  gestesDeConfirmation.className = 'confirmation-gestes';
-  const aligner = bouton(TEXTES_DE_LA_DERIVE.aligner, 'bouton-discret');
-  aligner.addEventListener('click', () => {
-    confirmationOuverte = false;
-    if (palette) terminer(lierLesProfils(palette, true));
-  });
-  const renoncer = bouton(TEXTES_DE_LA_DERIVE.annuler, 'bouton-discret');
-  renoncer.addEventListener('click', () => {
-    confirmationOuverte = false;
-    dessiner();
-  });
-  gestesDeConfirmation.append(aligner, renoncer);
-  confirmation.append(texteDeConfirmation, gestesDeConfirmation);
-
-  // Le graphe : glisser, double-clic et clavier sur les poignées.
-  const graphe = createGraphe();
-  const svg = graphe.element;
-  let glisse: { bout: Bout; pointeur: number } | null = null;
-  /** L'échelle figée pendant un glisser : la poignée ne saute pas sous le pointeur ([DER-01]). */
-  let echelleFigee: number | null = null;
-  const echelleCourante = (): number => echelleFigee ?? (palette
-    ? echelleDe([palette.derive.soft.clair, palette.derive.soft.sombre, palette.derive.vivid.clair, palette.derive.vivid.sombre])
-    : 90);
-  /** La capture du pointeur fait viser le SVG aux clics suivants : le double-clic lit le bout pressé. */
-  let boutPresse: Bout | null = null;
-  const boutDe = (cible: EventTarget | null): Bout | null => {
-    const poignee = (cible as Element | null)?.closest?.('.derive-poignee') as SVGGElement | null;
-    const bout = poignee?.dataset.bout;
-    return bout === 'clair' || bout === 'sombre' ? bout : null;
-  };
-  const ordonneeDuPointeur = (evenement: PointerEvent): number => {
-    const cadre = svg.getBoundingClientRect();
-    return (evenement.clientY - cadre.top) * (HAUTEUR_TOTALE / cadre.height);
-  };
-  svg.addEventListener('pointerdown', (evenement) => {
-    const bout = boutDe(evenement.target);
-    if (!bout) return;
-    evenement.preventDefault();
-    // Le graphe se redessine à chaque mouvement : la capture tient sur le SVG, pas sur la poignée.
-    svg.setPointerCapture(evenement.pointerId);
-    echelleFigee = echelleCourante();
-    glisse = { bout, pointeur: evenement.pointerId };
-    boutPresse = bout;
-    avantLeGeste = palette;
-  });
-  svg.addEventListener('pointermove', (evenement) => {
-    if (!glisse || evenement.pointerId !== glisse.pointeur) return;
-    regler(glisse.bout, angleDuGlisser(ordonneeDuPointeur(evenement), CADRE, evenement.shiftKey ? 5 : 1, echelleCourante()), false);
-  });
-  const relacher = (evenement: PointerEvent) => {
-    if (!glisse || evenement.pointerId !== glisse.pointeur) return;
-    glisse = null;
-    echelleFigee = null;
-    if (palette) terminer(palette);
-  };
-  svg.addEventListener('pointerup', relacher);
-  svg.addEventListener('pointercancel', relacher);
-  svg.addEventListener('dblclick', (evenement) => {
-    const bout = boutDe(evenement.target) ?? boutPresse;
-    if (bout && recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
-  });
-  svg.addEventListener('keydown', (evenement) => {
-    const bout = boutDe(evenement.target);
-    if (!bout || !palette) return;
-    const actuel = palette.derive[profil][bout];
-    const pas = evenement.shiftKey ? 5 : 1;
-    // Origine et Fin gardent le sens du motif clavier d'un curseur : le minimum et le maximum (E20).
-    const cibles: Record<string, number> = {
-      ArrowUp: actuel + pas,
-      ArrowRight: actuel + pas,
-      ArrowDown: actuel - pas,
-      ArrowLeft: actuel - pas,
-      Home: -90,
-      End: 90,
+    // Le graphe : glisser, double-clic et clavier sur les poignées.
+    const graphe = createGraphe();
+    const svg = graphe.element;
+    let glisse: { bout: Bout; pointeur: number } | null = null;
+    /** L'échelle figée pendant un glisser : la poignée ne saute pas sous le pointeur ([DER-01]). */
+    let echelleFigee: number | null = null;
+    const echelleCourante = (): number => echelleFigee ?? (palette
+      ? echelleDe([palette.derive.soft.clair, palette.derive.soft.sombre, palette.derive.vivid.clair, palette.derive.vivid.sombre])
+      : 90);
+    /** La capture du pointeur fait viser le SVG aux clics suivants : le double-clic lit le bout pressé. */
+    let boutPresse: Bout | null = null;
+    const boutDe = (cible: EventTarget | null): Bout | null => {
+      const poignee = (cible as Element | null)?.closest?.('.derive-poignee') as SVGGElement | null;
+      const bout = poignee?.dataset.bout;
+      return bout === 'clair' || bout === 'sombre' ? bout : null;
     };
-    const cible = cibles[evenement.key];
-    if (cible === undefined) return;
-    evenement.preventDefault();
-    regler(bout, cible, true);
-  });
-
-  // Les réglettes : un champ numérique et un curseur par bout, liés au graphe ([DER-08]).
-  const reglettes = {} as Record<Bout, Reglette>;
-  const zoneDesReglettes = document.createElement('div');
-  zoneDesReglettes.className = 'reglettes';
-  for (const bout of BOUTS) {
-    const ligne = document.createElement('div');
-    ligne.className = 'reglette';
-    const libelle = document.createElement('span');
-    libelle.className = 'field-label';
-    libelle.textContent = TEXTES_DE_LA_DERIVE.bout[bout];
-    const champ = document.createElement('input');
-    champ.type = 'text';
-    champ.inputMode = 'decimal';
-    champ.className = 'input champ-nombre';
-    champ.setAttribute('aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
-    champ.addEventListener('input', () => {
-      const valeur = lireNombre(champ.value);
-      if (valeur !== null) regler(bout, valeur, false);
-    });
-    champ.addEventListener('change', () => {
-      const valeur = lireNombre(champ.value);
-      if (valeur !== null) regler(bout, valeur, true);
-    });
-    const piste = document.createElement('span');
-    piste.className = 'reglette-piste';
-    const curseur = document.createElement('input');
-    curseur.type = 'range';
-    curseur.min = '-90';
-    curseur.max = '90';
-    curseur.step = '1';
-    curseur.className = 'reglette-curseur';
-    curseur.setAttribute('aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
-    curseur.addEventListener('input', () => regler(bout, Number(curseur.value), false));
-    curseur.addEventListener('change', () => regler(bout, Number(curseur.value), true));
-    curseur.addEventListener('keydown', (evenement) => {
-      // Le curseur natif avance d'un degré ; Maj le fait avancer de cinq ([DER-09]).
-      if (!evenement.shiftKey || !palette) return;
-      const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
-      if (!sens) return;
+    const ordonneeDuPointeur = (evenement: PointerEvent): number => {
+      const cadre = svg.getBoundingClientRect();
+      return (evenement.clientY - cadre.top) * (HAUTEUR_TOTALE / cadre.height);
+    };
+    svg.addEventListener('pointerdown', (evenement) => {
+      const bout = boutDe(evenement.target);
+      if (!bout) return;
       evenement.preventDefault();
-      regler(bout, palette.derive[profil][bout] + 5 * sens, true);
+      // Le graphe se redessine à chaque mouvement : la capture tient sur le SVG, pas sur la poignée.
+      svg.setPointerCapture(evenement.pointerId);
+      echelleFigee = echelleCourante();
+      glisse = { bout, pointeur: evenement.pointerId };
+      boutPresse = bout;
+      avantLeGeste = palette;
     });
-    const repere = document.createElement('span');
-    repere.className = 'reglette-repere';
-    piste.append(curseur, repere);
-    const tailwind = bouton(TEXTES_DE_LA_DERIVE.tailwind, 'bouton-discret');
-    tailwind.setAttribute('aria-label', TEXTES_DE_LA_DERIVE.ramenerAuPrereglage[bout]);
-    tailwind.addEventListener('click', () => {
-      if (recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
+    svg.addEventListener('pointermove', (evenement) => {
+      if (!glisse || evenement.pointerId !== glisse.pointeur) return;
+      regler(glisse.bout, angleDuGlisser(ordonneeDuPointeur(evenement), CADRE, evenement.shiftKey ? 5 : 1, echelleCourante()), false);
     });
-    ligne.append(libelle, champ, piste, tailwind);
-    zoneDesReglettes.append(ligne);
-    reglettes[bout] = { ligne, champ, curseur, repere };
-  }
+    const relacher = (evenement: PointerEvent) => {
+      if (!glisse || evenement.pointerId !== glisse.pointeur) return;
+      glisse = null;
+      echelleFigee = null;
+      if (palette) terminer(palette);
+    };
+    svg.addEventListener('pointerup', relacher);
+    svg.addEventListener('pointercancel', relacher);
+    svg.addEventListener('dblclick', (evenement) => {
+      const bout = boutDe(evenement.target) ?? boutPresse;
+      if (bout && recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
+    });
+    svg.addEventListener('keydown', (evenement) => {
+      const bout = boutDe(evenement.target);
+      if (!bout || !palette) return;
+      const actuel = palette.derive[profil][bout];
+      const pas = evenement.shiftKey ? 5 : 1;
+      // Origine et Fin gardent le sens du motif clavier d'un curseur : le minimum et le maximum (E20).
+      const cibles: Record<string, number> = {
+        ArrowUp: actuel + pas,
+        ArrowRight: actuel + pas,
+        ArrowDown: actuel - pas,
+        ArrowLeft: actuel - pas,
+        Home: -90,
+        End: 90,
+      };
+      const cible = cibles[evenement.key];
+      if (cible === undefined) return;
+      evenement.preventDefault();
+      regler(bout, cible, true);
+    });
 
-  const note = document.createElement('p');
-  note.className = 'ligne-secondaire';
-
-  element.append(entete, confirmation, svg, zoneDesReglettes, note);
-
-  // Ctrl+Z ou Cmd+Z défait le dernier réglage, hors d'un champ texte (E21).
-  element.addEventListener('keydown', (evenement) => {
-    if (!(evenement.ctrlKey || evenement.metaKey) || evenement.key.toLowerCase() !== 'z') return;
-    const cible = evenement.target as HTMLElement;
-    if (cible instanceof HTMLInputElement && cible.type === 'text') return;
-    evenement.preventDefault();
-    const precedente = pile.pop();
-    if (precedente) gestes.valider(precedente);
-  });
-
-  let rampes: Rampes | null = null;
-  let analyse: AnalyseDePalette | null = null;
-  let ancrage: Ancrage | null = null;
-
-  function dessiner(): void {
-    if (!recette || !palette || !rampes || !ancrage) return;
-    const focalisee = boutDe(document.activeElement);
-    const lie = palette.derive.lien;
-    // Une palette à une intensité n'a qu'une dérive, rangée liée sous les deux clés ([ENT-14]) : un seul tracé, et ni lien ni profil à choisir.
-    const une = aUneIntensite(palette);
-    // Synchronisés, les deux profils se règlent ensemble : l'éditeur montre le porteur de la référence.
-    if (lie) profil = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
-    if (!analyse) return;
-    graphe.afficher({ recette, palette, profil, rampe: rampeDe(rampes, une ? 'unique' : profil).light, ancrage, grille: analyse.grille, echelle: echelleCourante() });
-    // Le graphe s'est redessiné : la poignée qui avait le focus le reprend.
-    if (focalisee) graphe.poignees()[focalisee]?.focus();
-
-    const derive = palette.derive[profil];
-    choixDuPrereglage.value = derive.origine;
-    lien.checked = lie;
-    etiquetteDuLien.hidden = une;
-    profils.hidden = lie;
-    for (const { valeur, choix } of boutonsDeProfil) choix.setAttribute('aria-pressed', String(valeur === profil));
-    confirmation.hidden = !confirmationOuverte;
-
-    const reference = rgb8VersOklch(referenceDe(palette));
-    const bouts = boutsDe(recette);
-    const tailwind = prereglageDe(recette, palette);
-    // Un segment se juge sur les bouts de la dérive, aux numéros 50 et 950, et non sur les extrémités de la liste (W6).
-    const sansSegment: Record<Bout, boolean> = { clair: reference.L > bouts.clair, sombre: reference.L < bouts.sombre };
+    // Les réglettes : un champ numérique et un curseur par bout, liés au graphe ([DER-08]).
+    const reglettes = {} as Record<Bout, Reglette>;
+    const zoneDesReglettes = document.createElement('div');
+    zoneDesReglettes.className = 'reglettes';
     for (const bout of BOUTS) {
-      const { ligne, champ, curseur, repere } = reglettes[bout];
-      // Un bout que la référence dépasse n'a pas de segment à régler ([DER-14]).
-      ligne.hidden = sansSegment[bout];
-      if (document.activeElement !== champ) champ.value = ecrireArrondi(derive[bout], 1);
-      if (document.activeElement !== curseur) curseur.value = String(Math.round(derive[bout]));
-      const teinte = teinteA(bouts[bout], reference, derive, bouts);
-      curseur.setAttribute('aria-valuetext', valeurDePoignee(derive[bout], teinte));
-      // Le repère Tailwind reste visible même quand la dérive est libre ([DER-06]).
-      repere.style.left = `${((tailwind[bout] + 90) / 180) * 100}%`;
-      repere.title = repereTailwind(tailwind[bout]);
+      const ligne = document.createElement('div');
+      ligne.className = 'reglette';
+      const libelle = document.createElement('span');
+      libelle.className = 'field-label';
+      i18n.lier(libelle, 'textContent', TEXTES_DE_LA_DERIVE.bout[bout]);
+      const champ = document.createElement('input');
+      champ.type = 'text';
+      champ.inputMode = 'decimal';
+      champ.className = 'input champ-nombre';
+      i18n.lier(champ, 'aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
+      champ.addEventListener('input', () => {
+        const valeur = lireNombre(champ.value);
+        if (valeur !== null) regler(bout, valeur, false);
+      });
+      champ.addEventListener('change', () => {
+        const valeur = lireNombre(champ.value);
+        if (valeur !== null) regler(bout, valeur, true);
+      });
+      const piste = document.createElement('span');
+      piste.className = 'reglette-piste';
+      const curseur = document.createElement('input');
+      curseur.type = 'range';
+      curseur.min = '-90';
+      curseur.max = '90';
+      curseur.step = '1';
+      curseur.className = 'reglette-curseur';
+      i18n.lier(curseur, 'aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
+      curseur.addEventListener('input', () => regler(bout, Number(curseur.value), false));
+      curseur.addEventListener('change', () => regler(bout, Number(curseur.value), true));
+      curseur.addEventListener('keydown', (evenement) => {
+        // Le curseur natif avance d'un degré ; Maj le fait avancer de cinq ([DER-09]).
+        if (!evenement.shiftKey || !palette) return;
+        const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
+        if (!sens) return;
+        evenement.preventDefault();
+        regler(bout, palette.derive[profil][bout] + 5 * sens, true);
+      });
+      const repere = document.createElement('span');
+      repere.className = 'reglette-repere';
+      piste.append(curseur, repere);
+      const tailwind = bouton(TEXTES_DE_LA_DERIVE.tailwind, 'bouton-discret');
+      i18n.lier(tailwind, 'aria-label', TEXTES_DE_LA_DERIVE.ramenerAuPrereglage[bout]);
+      tailwind.addEventListener('click', () => {
+        if (recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
+      });
+      ligne.append(libelle, champ, piste, tailwind);
+      zoneDesReglettes.append(ligne);
+      reglettes[bout] = { ligne, champ, curseur, repere };
     }
-    note.textContent = sansSegment.clair
-      ? TEXTES_DE_LA_DERIVE.sansSegmentClair
-      : sansSegment.sombre ? TEXTES_DE_LA_DERIVE.sansSegmentSombre : '';
-    note.hidden = note.textContent === '';
-  }
 
-  return {
-    element,
-    focaliser() {
-      choixDuPrereglage.focus();
-    },
-    afficher(recetteLue, paletteLue, rampesLues, ancrageLu, analyseLue) {
-      analyse = analyseLue;
-      if (palette && paletteLue.id !== palette.id) confirmationOuverte = false;
-      recette = recetteLue;
-      palette = paletteLue;
-      rampes = rampesLues;
-      ancrage = ancrageLu;
-      dessiner();
-    },
-  };
+    const note = document.createElement('p');
+    note.className = 'ligne-secondaire';
+
+    element.append(entete, confirmation, svg, zoneDesReglettes, note);
+
+    // Ctrl+Z ou Cmd+Z défait le dernier réglage, hors d'un champ texte (E21).
+    element.addEventListener('keydown', (evenement) => {
+      if (!(evenement.ctrlKey || evenement.metaKey) || evenement.key.toLowerCase() !== 'z') return;
+      const cible = evenement.target as HTMLElement;
+      if (cible instanceof HTMLInputElement && cible.type === 'text') return;
+      evenement.preventDefault();
+      const precedente = pile.pop();
+      if (precedente) gestes.valider(precedente);
+    });
+
+    let rampes: Rampes | null = null;
+    let analyse: AnalyseDePalette | null = null;
+    let ancrage: Ancrage | null = null;
+
+    function dessiner(): void {
+      if (!recette || !palette || !rampes || !ancrage) return;
+      const focalisee = boutDe(document.activeElement);
+      const lie = palette.derive.lien;
+      // Une palette à une intensité n'a qu'une dérive, rangée liée sous les deux clés ([ENT-14]) : un seul tracé, et ni lien ni profil à choisir.
+      const une = aUneIntensite(palette);
+      // Synchronisés, les deux profils se règlent ensemble : l'éditeur montre le porteur de la référence.
+      if (lie) profil = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
+      if (!analyse) return;
+      graphe.afficher({ recette, palette, profil, rampe: rampeDe(rampes, une ? 'unique' : profil).light, ancrage, grille: analyse.grille, echelle: echelleCourante() });
+      // Le graphe s'est redessiné : la poignée qui avait le focus le reprend.
+      if (focalisee) graphe.poignees()[focalisee]?.focus();
+
+      const derive = palette.derive[profil];
+      choixDuPrereglage.value = derive.origine;
+      lien.checked = lie;
+      etiquetteDuLien.hidden = une;
+      profils.hidden = lie;
+      for (const { valeur, choix } of boutonsDeProfil) choix.setAttribute('aria-pressed', String(valeur === profil));
+      confirmation.hidden = !confirmationOuverte;
+
+      const reference = rgb8VersOklch(referenceDe(palette));
+      const bouts = boutsDe(recette);
+      const tailwind = prereglageDe(recette, palette);
+      // Un segment se juge sur les bouts de la dérive, aux numéros 50 et 950, et non sur les extrémités de la liste (W6).
+      const sansSegment: Record<Bout, boolean> = { clair: reference.L > bouts.clair, sombre: reference.L < bouts.sombre };
+      for (const bout of BOUTS) {
+        const { ligne, champ, curseur, repere } = reglettes[bout];
+        // Un bout que la référence dépasse n'a pas de segment à régler ([DER-14]).
+        ligne.hidden = sansSegment[bout];
+        if (document.activeElement !== champ) champ.value = lireTexte(ecrireArrondi(derive[bout], 1));
+        if (document.activeElement !== curseur) curseur.value = String(Math.round(derive[bout]));
+        const teinte = teinteA(bouts[bout], reference, derive, bouts);
+        i18n.lier(curseur, 'aria-valuetext', valeurDePoignee(derive[bout], teinte));
+        // Le repère Tailwind reste visible même quand la dérive est libre ([DER-06]).
+        repere.style.left = `${((tailwind[bout] + 90) / 180) * 100}%`;
+        i18n.lier(repere, 'title', repereTailwind(tailwind[bout]));
+      }
+      i18n.lier(note, 'textContent', sansSegment.clair
+        ? TEXTES_DE_LA_DERIVE.sansSegmentClair
+        : sansSegment.sombre ? TEXTES_DE_LA_DERIVE.sansSegmentSombre : '');
+      note.hidden = note.textContent === '';
+    }
+
+    return {
+      element,
+      focaliser() {
+        choixDuPrereglage.focus();
+      },
+      afficher(recetteLue, paletteLue, rampesLues, ancrageLu, analyseLue) {
+        analyse = analyseLue;
+        if (palette && paletteLue.id !== palette.id) confirmationOuverte = false;
+        recette = recetteLue;
+        palette = paletteLue;
+        rampes = rampesLues;
+        ancrage = ancrageLu;
+        dessiner();
+      },
+    };
+  }
+  return { createEditeur };
 }
+
+export const creerVuesEditeur = memoriserVues(construireVues);

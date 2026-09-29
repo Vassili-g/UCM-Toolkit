@@ -10,7 +10,8 @@ import { severiteDeLAlerte, type Palette } from 'ucm-couleur';
 import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLAlerte, placeDeLAlerte } from '../presentation';
 import type { Message } from './constats';
-import { constatDAlerte, type ContexteDAlerte } from './textes';
+import { memoriserVues, type Localisation } from './localisation';
+import { type ContexteDAlerte } from './textes';
 
 export interface MessagesDeLaPalette {
   /** Points à vérifier, puis informations. */
@@ -19,23 +20,30 @@ export interface MessagesDeLaPalette {
   readonly intensite: readonly Message[];
 }
 
-export function messagesDeLaPalette(
-  analyse: AnalyseDePalette,
-  palette: Palette,
-  contexte: ContexteDAlerte,
-): MessagesDeLaPalette {
-  const alertes = analyse.alertes.map((alerte) => ({
-    place: placeDeLAlerte(alerte),
-    message: {
-      severite: severiteDeLAlerte(alerte),
-      constat: constatDAlerte(alerte, contexte),
-      cibles: ciblesDeLAlerte(alerte, palette),
-      compte: 1,
-    } satisfies Message,
-  }));
-  const liste = alertes.filter(({ place }) => place === 'liste').map(({ message }) => message);
-  return {
-    liste: [...liste.filter((message) => message.severite === 'alerte'), ...liste.filter((message) => message.severite === 'notice')],
-    intensite: alertes.filter(({ place }) => place === 'intensite').map(({ message }) => message),
-  };
+function construireVues(i18n: Localisation) {
+  const { constatDAlerte } = i18n.messages;
+
+  function messagesDeLaPalette(
+    analyse: AnalyseDePalette,
+    palette: Palette,
+    contexte: ContexteDAlerte,
+  ): MessagesDeLaPalette {
+    const alertes = analyse.alertes.map((alerte) => ({
+      place: placeDeLAlerte(alerte),
+      message: {
+        severite: severiteDeLAlerte(alerte),
+        constat: constatDAlerte(alerte, contexte),
+        cibles: ciblesDeLAlerte(alerte, palette),
+        compte: 1,
+      } satisfies Message,
+    }));
+    const liste = alertes.filter(({ place }) => place === 'liste').map(({ message }) => message);
+    return {
+      liste: [...liste.filter((message) => message.severite === 'alerte'), ...liste.filter((message) => message.severite === 'notice')],
+      intensite: alertes.filter(({ place }) => place === 'intensite').map(({ message }) => message),
+    };
+  }
+  return { messagesDeLaPalette };
 }
+
+export const creerVuesMessagesDePalette = memoriserVues(construireVues);

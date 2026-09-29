@@ -10,6 +10,7 @@
  * réponse porte le numéro de la demande qui l'a produite ([UI-08]).
  */
 import type { Classement, Recette } from 'ucm-couleur';
+import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
@@ -18,6 +19,8 @@ import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 
 /** Ce que l'interface demande au sandbox. */
 export type UiRequest =
+  | { type: 'lire-langue' }
+  | { type: 'ranger-langue'; selection: number; langue: Langue }
   /**
    * `recherche: 'fichier'` étend la recherche des cadres à toutes les pages,
    * au geste explicite du designer (V8.6) ; sinon, la seule page de la planche.
@@ -45,6 +48,8 @@ export type { IssueDuRetrait, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
+  | { type: 'langue'; langue: Langue }
+  | { type: 'langue-rangee'; selection: number; reussie: boolean }
   /**
    * L'état du fichier, en réponse à `lire-etat` : la recette classée
    * ([REC-03]), l'empreinte du texte rangé, `null` sans recette, le profil

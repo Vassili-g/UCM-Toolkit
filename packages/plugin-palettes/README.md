@@ -78,7 +78,8 @@ npm run test:ui --workspace ucm-palettes-plugin
 
 Les tests d'interface demandent Chromium : `npx playwright install chromium`.
 La galerie est générée dans `dist/galerie/index.html` et sa version étroite dans
-`dist/galerie-minimale/index.html`, sous ce paquet. Elle présente les états de
+`dist/galerie-minimale/index.html`, sous ce paquet ; `dist/galerie-en/` et
+`dist/galerie-en-minimale/` en donnent la version anglaise. Elle présente les états de
 l'interface en thèmes clair, sombre et sombre sans variables Figma.
 
 Le [socle](../plugin-socle/README.md) fournit les composants d'interface et le
@@ -88,10 +89,36 @@ contribution dans [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## État du produit
 
-L'interface actuelle est en français. Les plans d'ergonomie et
-d'internationalisation décrivent des travaux à réaliser ; ils ne prouvent pas
-leur présence dans le build. Le [sommaire documentaire](../../docs/README.md)
+L'interface s'ouvre en anglais, quelle que soit la langue de Figma ou du
+système. Le champ « Language » des Réglages communs propose l'anglais et le
+français ; le choix prend effet sans recharger et se range dans
+`figma.clientStorage`, sous la clé `ucm-palettes.langue`, sur le poste du
+designer. Il n'écrit rien dans le document. Les textes des planches dessinées
+restent en français. Les plans d'ergonomie décrivent des travaux à réaliser ;
+ils ne prouvent pas leur présence dans le build. Le [sommaire documentaire](../../docs/README.md)
 donne accès aux spécifications et aux plans de Palettes.
+
+## Ajouter une langue
+
+1. Copier `src/i18n/en.ts` sous le code de la langue, puis traduire chaque
+   entrée. Une fonction garde ses paramètres ; une phrase se traduit entière,
+   sans recoller des fragments.
+2. Écrire les pluriels et les ordinaux de la langue dans les fonctions qui
+   comptent (`nombreDePalettes`, `nommerChamp` et leurs voisines).
+   `pluriel` de `src/i18n/nombres.ts` donne la catégorie `Intl` d'un nombre.
+3. Inscrire la langue dans `LANGUES` de `src/i18n/langues.ts` : code, nom
+   dans sa propre langue, direction et séparateur décimal. Associer ensuite le
+   code à son catalogue dans `CATALOGUES` de `src/i18n/index.ts` ; sans
+   cette entrée, la compilation échoue.
+4. Lancer `npm run test` : `tests/i18n.test.ts` refuse un catalogue dont une
+   clé manque ou change de type. Ajouter à ce fichier les attentes des messages
+   dynamiques de la langue, avec les valeurs 0, 1 et 2.
+5. Ajouter une galerie de la langue dans `galerie/build-galerie.cjs` et
+   relire ses états à 500 et à 600 px.
+
+Une direction `rtl` se déclare dans le registre, mais la mise en page n'a été
+relue qu'en `ltr` : une langue de droite à gauche demande sa propre relecture
+visuelle.
 
 ## Licence
 

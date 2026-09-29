@@ -4,16 +4,24 @@
  * WCAG ; l'assistance technique lit ce qu'il juge et son résultat,
  * « Texte courant : AA atteint, AAA non atteint ».
  */
-import { niveauEcrit, type Jugement } from './textes';
+import { memoriserVues, type Localisation } from './localisation';
+import { type Jugement } from './textes';
 
-export function badgeDeNiveau(valeur: number, jugement: Jugement): HTMLSpanElement {
-  const niveau = niveauEcrit(valeur, jugement);
-  const badge = document.createElement('span');
-  badge.className = 'badge-de-niveau';
-  badge.dataset.atteint = String(niveau.atteint);
-  badge.textContent = niveau.ecrit;
-  badge.setAttribute('role', 'img');
-  badge.setAttribute('aria-label', niveau.etiquette);
-  badge.title = niveau.etiquette;
-  return badge;
+function construireVues(i18n: Localisation) {
+  const { niveauEcrit } = i18n.messages;
+
+  function badgeDeNiveau(valeur: number, jugement: Jugement): HTMLSpanElement {
+    const niveau = niveauEcrit(valeur, jugement);
+    const badge = document.createElement('span');
+    badge.className = 'badge-de-niveau';
+    badge.dataset.atteint = String(niveau.atteint);
+    i18n.lier(badge, 'textContent', niveau.ecrit);
+    badge.setAttribute('role', 'img');
+    i18n.lier(badge, 'aria-label', niveau.etiquette);
+    i18n.lier(badge, 'title', niveau.etiquette);
+    return badge;
+  }
+  return { badgeDeNiveau };
 }
+
+export const creerVuesBadge = memoriserVues(construireVues);

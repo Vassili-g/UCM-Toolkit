@@ -32,7 +32,7 @@ import {
   texteDuRefus,
   titreDeGroupe,
   verdict,
-} from '../src/ui/textes';
+} from '../src/i18n/fr';
 
 test('un chemin de champ s’écrit en mots du designer', () => {
   assert.equal(nommerChamp('crans[3]'), '4e nuance');

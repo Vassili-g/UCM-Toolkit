@@ -37,6 +37,7 @@ const DOMAINES = [
   'Ecriture dans le document',
   'Moteur de couleur',
   "Ecriture d'UCM Palettes",
+  "Langue d'UCM Palettes",
 ];
 
 /**
@@ -381,7 +382,7 @@ const ENONCES_SPEC = [
 const sansAccent = (texte: string): string =>
   texte.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-test("les treize domaines d'invariants sont la, dans leur ordre", () => {
+test("les quatorze domaines d'invariants sont la, dans leur ordre", () => {
   const bloc = sansAccent(sectionDesInvariants());
   const trouves = [...bloc.matchAll(/^### (.+)$/gm)].map((t) => t[1].trim());
   assert.deepEqual(trouves, DOMAINES);

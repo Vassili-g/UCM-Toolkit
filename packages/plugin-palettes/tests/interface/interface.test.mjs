@@ -10,6 +10,86 @@ before(async () => { navigateur = await chromium.launch(); });
 after(async () => { await navigateur?.close(); });
 const html = readFileSync(new URL('../../dist/ui.html', import.meta.url), 'utf8');
 
+test('la préférence anglaise, son enregistrement et sa récupération sont indépendants de la recette', async () => {
+  const page = await ouvrir(MINIMALE, 'inconnue');
+  try {
+    await page.getByRole('tab', { name: 'Create', exact: true }).waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    const langue = page.getByLabel('Language', { exact: true });
+    assert.deepEqual(await langue.locator('option').allTextContents(), ['English', 'Français']);
+    await langue.selectOption('fr');
+    assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).waitFor();
+    await page.waitForFunction(() => window.langueRangee === 'fr');
+    const suivante = await ouvrir(MINIMALE, await page.evaluate(() => window.langueRangee));
+    try { await suivante.getByRole('tab', { name: 'Création', exact: true }).waitFor(); }
+    finally { await suivante.close(); }
+    assert.deepEqual(await page.evaluate(() => window.demandes), [{ type: 'lire-etat', demande: 1 }]);
+  } finally { await page.close(); }
+});
+
+test('la bascule conserve les champs incomplets, les cartes ouvertes et les éléments montés', async () => {
+  const page = await ouvrirSur('dessin-en-cours');
+  try {
+    await deplierLaCarte(page, 'Dérive de teinte');
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    const champ = page.locator('input[data-mode="light"][data-rang="7"]');
+    await champ.fill('0,');
+    await page.evaluate(() => {
+      window.champConserve = document.querySelector('input[data-mode="light"][data-rang="7"]');
+      window.cartesConservees = [...document.querySelectorAll('.carte')];
+      window.defilementAvant = document.scrollingElement.scrollTop;
+      document.querySelector('#langue-du-plugin').value = 'en';
+      document.querySelector('#langue-du-plugin').dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    assert.equal(await champ.inputValue(), '0,');
+    assert.equal(await champ.evaluate((element) => element === window.champConserve && document.activeElement === element), true);
+    assert.equal(await page.evaluate(() => window.cartesConservees.every((element) => element.isConnected)), true);
+    assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop === window.defilementAvant), true);
+    await page.getByRole('button', { name: 'Back to palettes and board' }).click();
+    assert.equal(await page.locator('.carte[aria-label="Hue shift"]').getAttribute('data-ouverte'), 'true');
+    assert.equal(await page.locator('body').textContent().then((texte) => texte.includes('[object Object]')), false);
+    assert.equal(await page.evaluate(() => window.demandes.filter((d) => ['ranger-recette', 'dessiner', 'retirer-cadre'].includes(d.type)).length), 0);
+  } finally { await page.close(); }
+});
+
+test('un dessin en cours garde sa demande et son résultat à travers une bascule', async () => {
+  const page = await ouvrirSur('dessin-en-cours');
+  try {
+    await genererDepuisLaFiche(page, ID_DU_BLEU);
+    const demande = await dessinEnvoye(page, 1);
+    await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByLabel('Langue', { exact: true }).selectOption('en');
+    assert.equal(await page.locator('#panneau-planche').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
+    assert.equal(await page.locator('.carte-de-reglage').first().evaluate((element) => element.closest('[inert]') !== null), true);
+    await envoyer(page, dessinDe(demande.demande, { issue: 'etrangers', cadres: [{ palette: ID_DU_BLEU, calques: [{ id: 'x', nom: 'Note personnelle' }] }] }));
+    await page.getByRole('button', { name: 'Back to palettes and board' }).click();
+    await page.getByText('Content added to the frame for “Bleu”').waitFor();
+    assert.match(await page.locator('#panneau-planche').textContent(), /Note personnelle/);
+    assert.equal(await page.evaluate(() => window.demandes.filter((d) => d.type === 'dessiner').length), 1);
+  } finally { await page.close(); }
+});
+
+test('un refus de préférence se retraduit et peut être réessayé, une lecture tardive est ignorée', async () => {
+  const page = await ouvrir(MINIMALE, 'en');
+  try {
+    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    await page.evaluate(() => { window.refuserLangue = true; });
+    await page.getByLabel('Language', { exact: true }).selectOption('fr');
+    const reessayer = page.getByRole('button', { name: 'Réessayer l’enregistrement de la langue' });
+    await reessayer.waitFor();
+    await envoyer(page, { type: 'langue', langue: 'en' });
+    assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+    await page.evaluate(() => { window.refuserLangue = false; });
+    await reessayer.click();
+    await reessayer.waitFor({ state: 'hidden' });
+    await page.getByLabel('Langue', { exact: true }).selectOption('en');
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+  } finally { await page.close(); }
+});
+
 /**
  * Le relevé des demandes que l'interface envoie au sandbox. Il se pose avant
  * le bundle : l'interface demande l'état dès son chargement.
@@ -18,6 +98,11 @@ const RELEVE = `<script>
   window.demandes = [];
   window.addEventListener('message', (event) => {
     const type = event.data.pluginMessage && event.data.pluginMessage.type;
+    if (type === 'lire-langue') window.postMessage({ pluginMessage: { type: 'langue', langue: 'fr' } }, '*');
+    if (type === 'ranger-langue') {
+      window.langueRangee = event.data.pluginMessage.langue;
+      window.postMessage({ pluginMessage: { type: 'langue-rangee', selection: event.data.pluginMessage.selection, reussie: !window.refuserLangue } }, '*');
+    }
     if (['lire-etat', 'ranger-recette', 'dessiner', 'voir-sur-la-planche', 'retirer-cadre'].includes(type)) window.demandes.push(event.data.pluginMessage);
   });
 </script>`;
@@ -26,10 +111,10 @@ const RELEVE = `<script>
 const MINIMALE = { width: 500, height: 520 };
 
 /** Ouvre l'interface, par défaut à 440 × 520, sous la largeur minimale. */
-async function ouvrir(viewport = { width: 440, height: 520 }) {
+async function ouvrir(viewport = { width: 440, height: 520 }, langue = 'fr') {
   const page = await navigateur.newPage({ viewport });
   page.setDefaultTimeout(5000);
-  await page.setContent(html.replace('<head>', () => `<head>${RELEVE}`));
+  await page.setContent(html.replace('<head>', () => `<head>${RELEVE.replace("langue: 'fr'", `langue: ${JSON.stringify(langue)}`)}`));
   return page;
 }
 
@@ -1469,7 +1554,7 @@ test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette
     assert.deepEqual(demande, { type: 'dessiner', demande: demande.demande, palettes: [ID_DU_BLEU], empreinteLue: messageDe('dessin-en-cours').empreinte, etrangersConfirmes: [] });
     assert.equal(await page.locator('#panneau-palettes').evaluate((panneau) => panneau.inert), true);
     assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), true);
-    assert.equal(await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).isDisabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).isDisabled(), false);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
     assert.equal(await page.locator('#panneau-planche .gestes-globaux .btn-secondary').textContent(), 'Génération de « Bleu »…', 'la progression prend la place de « Générer tout »');
 

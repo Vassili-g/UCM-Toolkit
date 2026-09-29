@@ -7,40 +7,47 @@
  */
 import type { Emploi } from 'ucm-couleur';
 
-import { TEXTES_DES_GARANTIES } from './textes';
+import { memoriserVues, type Localisation } from './localisation';
 
-const rgb = (couleur: readonly number[]): string => `rgb(${couleur.join(', ')})`;
+function construireVues(i18n: Localisation) {
+  const { TEXTES_DES_GARANTIES } = i18n.messages;
 
-/**
- * Un spécimen posé sur `fond` : `couleur` est celle du rôle, `texte` celle du
- * texte que le rôle porte (`on-solid` sur un fond plein).
- */
-export function specimenDuRole(emploi: Emploi, couleur: readonly number[], fond: readonly number[], texte?: readonly number[]): HTMLSpanElement {
-  const cadre = document.createElement('span');
-  cadre.className = 'specimen-cadre';
-  cadre.style.background = rgb(fond);
-  const forme = document.createElement('span');
-  forme.className = 'specimen-forme';
-  forme.dataset.role = emploi;
-  forme.setAttribute('aria-hidden', 'true');
-  if (emploi === 'solid') {
-    forme.style.background = rgb(couleur);
-    forme.style.color = rgb(texte ?? fond);
-    forme.textContent = TEXTES_DES_GARANTIES.specimenBouton;
-  } else if (emploi === 'on-solid') {
-    forme.style.background = rgb(fond);
-    forme.style.color = rgb(couleur);
-    forme.textContent = TEXTES_DES_GARANTIES.specimenBouton;
-  } else if (emploi === 'text') {
-    forme.style.color = rgb(couleur);
-    forme.textContent = TEXTES_DES_GARANTIES.specimenTexte;
-  } else if (emploi === 'focus') {
-    forme.style.outlineColor = rgb(couleur);
-  } else if (emploi === 'surface' || emploi === 'surface-card') {
-    forme.style.background = rgb(couleur);
-  } else {
-    forme.style.borderColor = rgb(couleur);
+  const rgb = (couleur: readonly number[]): string => `rgb(${couleur.join(', ')})`;
+
+  /**
+   * Un spécimen posé sur `fond` : `couleur` est celle du rôle, `texte` celle du
+   * texte que le rôle porte (`on-solid` sur un fond plein).
+   */
+  function specimenDuRole(emploi: Emploi, couleur: readonly number[], fond: readonly number[], texte?: readonly number[]): HTMLSpanElement {
+    const cadre = document.createElement('span');
+    cadre.className = 'specimen-cadre';
+    cadre.style.background = rgb(fond);
+    const forme = document.createElement('span');
+    forme.className = 'specimen-forme';
+    forme.dataset.role = emploi;
+    forme.setAttribute('aria-hidden', 'true');
+    if (emploi === 'solid') {
+      forme.style.background = rgb(couleur);
+      forme.style.color = rgb(texte ?? fond);
+      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenBouton);
+    } else if (emploi === 'on-solid') {
+      forme.style.background = rgb(fond);
+      forme.style.color = rgb(couleur);
+      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenBouton);
+    } else if (emploi === 'text') {
+      forme.style.color = rgb(couleur);
+      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenTexte);
+    } else if (emploi === 'focus') {
+      forme.style.outlineColor = rgb(couleur);
+    } else if (emploi === 'surface' || emploi === 'surface-card') {
+      forme.style.background = rgb(couleur);
+    } else {
+      forme.style.borderColor = rgb(couleur);
+    }
+    cadre.append(forme);
+    return cadre;
   }
-  cadre.append(forme);
-  return cadre;
+  return { specimenDuRole };
 }
+
+export const creerVuesSpecimens = memoriserVues(construireVues);

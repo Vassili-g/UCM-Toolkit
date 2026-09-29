@@ -1320,6 +1320,18 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
   de l'aperçu se lisent sans défiler ; à 500 × 520, le sélecteur de palette,
   le titre de premier rang et la rangée du nom et de la référence. Le reste s'atteint en défilant, sans barre flottante qui recouvre
   le contenu.
+- `[UI-16]` L'interface s'ouvre en anglais, quelle que soit la langue de
+  Figma, du navigateur ou du système. Le premier champ des Réglages communs,
+  « Language », propose chaque langue du registre sous son nom dans sa propre
+  langue : `English`, `Français`. Il reste utilisable sans recette, avec une
+  recette illisible ou future, et pendant un dessin. Le choix traduit tout ce
+  qui est affiché, résultats et erreurs compris, sans reconstruire un élément
+  ni envoyer de demande de rangement, de dessin ou de retrait. Il se range dans
+  `figma.clientStorage` sous `ucm-palettes.langue` ; une valeur absente ou
+  inconnue donne l'anglais. Un refus du stockage garde la langue pour la
+  session et propose de réessayer. La recette, le rapport, les empreintes et
+  les textes des planches ne dépendent pas de la langue : les planches restent
+  en français.
 
 ### 13.2 Écrans
 
@@ -1720,7 +1732,8 @@ qui le créera.
 - `[UI-07]` `messages.ts` déclare les deux sens de la frontière. L'interface
   envoie des demandes : lire l'état, ranger la
   recette, dessiner une palette ou toutes, importer, voir sur la planche,
-  retirer le cadre d'une palette supprimée, redimensionner. Le sandbox envoie
+  retirer le cadre d'une palette supprimée, redimensionner, lire et ranger la
+  langue (`[UI-16]`). Le sandbox envoie
   l'état (recette rangée, profil du document, état de chaque cadre), la
   la progression et les résultats. Un message entre dans `messages.ts` au lot qui le met en scène
   dans la galerie.
@@ -1856,6 +1869,7 @@ test qui la tient.
 | Le plugin n'écrit que dans les cadres qu'il possède et dans la recette | Tests du modèle et de l'écriture |
 | Le manifest n'ouvre aucun domaine | Test du manifest |
 | Aucun des deux plugins n'importe l'autre | Loi d'import à la racine du dépôt, `tests/pluginsSepares.test.ts`, qui lit les deux sens |
+| Aucune vue ne pose un mot hors des catalogues de `src/i18n/`, et les catalogues ont les mêmes clés | `tests/loiDesTextes.test.ts` et `tests/i18n.test.ts` |
 
 ## 15. Les lots
 

@@ -1,13 +1,16 @@
 /** La sélection d'une nuance dans l'aperçu ([UI-04]) et les couleurs de l'interface de test ([UI-14]). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { recetteParDefaut } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { ajouter, nouvellePalette } from '../src/edition';
-import { couleursDeLInterface } from '../src/ui/interfaceDeTest';
-import { memeChoix, type Choix } from '../src/ui/nuancier';
+import { creerVuesInterfaceDeTest } from '../src/ui/interfaceDeTest';
+import { creerLocalisation } from '../src/ui/localisation';
+import { creerVuesNuancier, type Choix } from '../src/ui/nuancier';
+
+const { couleursDeLInterface } = creerVuesInterfaceDeTest(creerLocalisation('fr'));
+const { memeChoix } = creerVuesNuancier(creerLocalisation('fr'));
 
 const VIDE = recetteParDefaut();
 const BLEU = nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!;
