@@ -168,7 +168,7 @@ médiane, avec ou sans réglage. `[MOT-13]` accorde 5 ms.
 | « Les deux » | Un réglage lié, comme `derive.lien` : il déplace les deux profils du même écart et garde l’écart entre eux | `[DER-12]` |
 | Le profil porteur | Un réglage de teinte ou de luminosité du porteur déplace la référence, `originale` gardée. La saturation du porteur ne la déplace pas. Le porteur se fige dès le premier réglage de la carte | E1, E3, E6, Q6.8 |
 | Palette à une intensité | La carte existe, sans choix de profil. La teinte et la luminosité déplacent la rampe et la référence, comme pour un porteur ; la saturation est celle de la référence, qu’elle récrit (`[ENT-14]`) | Q6.9 |
-| « Ajuster la référence » | À trancher par la maquette : devenir le raccourci de la luminosité du porteur, ou rester un second réglage de la référence seule | E4 bis, E5 |
+| « Ajuster la référence » | Le raccourci de la luminosité du porteur : la modale propose la valeur qui répare, « Appliquer » la pose dans la carte (réponse R1) | E4 bis, E5 |
 | Palettes grises, de base, libres ; parts communes ; « Profils confondus » | Gris : le moteur applique les réglages, l’interface désactive la teinte, comme la dérive (`[DER-15]`). Libre : la carte existe, sans garanties. Les parts communes ne changent pas. « Profils confondus » mène à la saturation, à l’écart ou à la luminosité de la carte | `[ENT-09]`, `[ENT-11]`, `[VER-15]` |
 | Version de la recette | Version 5 : un champ facultatif par palette. Une recette 4 se lit sans changer de couleur | Section 7.3 |
 
@@ -218,8 +218,7 @@ revue.
   part et le plafond.
 - **La dérive Tailwind.** Le préréglage se calcule sur l’originale, pour
   qu’il ne bouge pas pendant les gestes de la carte. Un code saisi retire
-  l’originale et le recalcule, comme `[ENT-01]` le dit. À trancher par la
-  maquette.
+  l’originale et le recalcule, comme `[ENT-01]` le dit.
 
 Les gestes de la carte :
 
@@ -263,7 +262,8 @@ Retenu :
 4. La référence se tire de l’originale par une seule fonction. « Ajuster la
    référence » s’ouvre aujourd’hui au pas qui mène de l’originale à la
    référence : après une rotation, il proposerait l’originale et défairait
-   la rotation. Sa place se tranche à la maquette (question 5).
+   la rotation. Avec la réponse R1, la modale pose la luminosité du porteur
+   dans la carte.
 5. « Revenir à l’originale » doit remettre à zéro les réglages du porteur et
    garder la couleur de l’autre profil.
 6. La saturation reste active sur une palette de base.
@@ -291,4 +291,7 @@ Retenu :
 Reste pour Z10.5 : une palette de version 4 déjà ajustée porte une
 référence qui n’est pas `f(originale, 0, 0)`. La migration doit replier cet
 ajustement dans `clarte[porteur]`, ou garder la référence rangée comme
-point de départ ; l’agent le décide avec la réponse à la question 5.
+point de départ. Replier l’ajustement dans `clarte[porteur]` déplacerait
+aussi la rampe du porteur, et une recette 4 changerait de couleurs. Garder
+la référence rangée comme point de départ de `f`, l’originale gardée pour
+« Revenir à l’originale », ne change aucune couleur.

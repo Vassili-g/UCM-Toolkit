@@ -540,8 +540,9 @@ Après la validation de Z3.1.
   `ajuster-reference` ouvrent la modale. La phrase b ne couvre qu’un
   thème : pour une référence en échec dans les deux, l’agent propose
   plusieurs rédactions au mainteneur et attend son choix avant de
-  l’écrire. Rédactions proposées dans `MAQUETTES-RECETTE-V6-2.html`,
-  attendent le choix. Avec la recette par défaut, aucune de 10 000 couleurs
+  l’écrire. Les rédactions de `MAQUETTES-RECETTE-V6-2.html` sont refusées,
+  trop compliquées ; de nouvelles, en phrases courtes, sont proposées à
+  l’écrit. Avec la recette par défaut, aucune de 10 000 couleurs
   essayées ne manque de garantie dans les deux thèmes : le cas naît d’un
   minimum relevé dans les Réglages communs. L’état de galerie `ajuster-en-modale` (Z0.6)
   devient atteignable, à 770 et à 500 px. Les textes retirés sont marqués
@@ -759,7 +760,7 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   Vert une fois refaite ; le porteur se fige ; la référence se tire de
   l’originale par une seule fonction ; courbe, pivot, bouts et ancrage se
   translatent. Deux corrections écartées, avec leur raison.
-- [ ] **Z10.4** Maquettes. `MAQUETTES-RECETTE-V6-2.html`, écrit par
+- [x] **Z10.4** Maquettes. `MAQUETTES-RECETTE-V6-2.html`, écrit par
   `generer-maquettes-v6-2.mjs` sur le modèle de `generer-maquettes-v6.mjs`,
   selon les règles du lot Z3 : une question par bloc, écrans lettrés
   au-dessus des choix, la disposition en place d’abord, une recommandation
@@ -783,10 +784,13 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   Donner le fichier au mainteneur et s’arrêter. Second passage dans le même
   fichier après ses retours, jusqu’à validation ; ses réponses se
   conservent en fin de plan.
-  Produit, attend la réponse : six questions, trois dispositions à 770 et
-  500 px. La question 5 demande si « Ajuster la référence » devient le
-  raccourci de la luminosité du porteur ; la question 6, les bornes de la
-  luminosité, la dérive Tailwind pendant le geste et le porteur figé.
+  Validée ([réponses](#retours-du-mainteneur-maquettes-du-lot-z10)) : nom
+  « Teinte, saturation, luminosité » (a), disposition A, avertissement
+  avant le geste et ligne « Ajustée depuis » après (W1 et W3), carte pour
+  une intensité, « Ajuster la référence » devient le raccourci de la
+  luminosité du porteur (R1), luminosité de −0,05 à +0,02, dérive Tailwind
+  calculée sur l’originale, porteur figé au premier réglage. Le texte de
+  W1 est refusé : nouvelles rédactions proposées au mainteneur, à l’écrit.
 - [ ] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
   la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
   recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
@@ -866,9 +870,9 @@ garanties en échec.
 | **Q6.4** « Actualiser tout » génère aussi les palettes « Pas encore sur Figma ». Le libellé convient-il ? | Z1.4 | Oui : les deux états partagent désormais l’orange, et le geste les traite ensemble | Recommandation retenue |
 | **Q6.5** Le code hexa prend-il aussi toute la largeur dans la carte de création ? | Z1.6 | Oui : la création et la configuration gardent la même disposition (décision Y2.1) | Recommandation retenue |
 | **Q6.6** Avec la modale M2, l’onglet « Ajuster » du sélecteur de couleur se retire-t-il, ou ouvre-t-il la modale ? | Z5.2 | Le retirer : la pastille n’ouvre que « Choisir », la modale s’ouvre par le lien et par l’action des messages | Recommandation retenue |
-| **Q6.7** Le nom de la section qui remplace « Intensités » | Z10.4, Z10.6 | « Teinte, saturation, luminosité » (« Hue, saturation, lightness ») : il nomme les trois contrôles. « Réglages globaux » se confond avec « Réglages communs » | À la maquette Z10.4 |
-| **Q6.8** Un réglage du profil porteur récrit-il la référence, `originale` gardée comme pour « Ajuster la référence » ? | Z10.2, Z10.5 | Oui, si Z10.2 ne montre pas mieux : la référence reste exacte dans sa rampe (`[MOT-17]`), et « Revenir à l’originale » défait tout | À la maquette Z10.4 |
-| **Q6.9** Une palette à une intensité a-t-elle la section, sans choix de profil ? | Z10.4, Z10.6 | Oui : c’est là qu’affiner la référence sert le plus, et la carte actuelle lui manque | À la maquette Z10.4 |
+| **Q6.7** Le nom de la section qui remplace « Intensités » | Z10.4, Z10.6 | « Teinte, saturation, luminosité » (« Hue, saturation, lightness ») : il nomme les trois contrôles. « Réglages globaux » se confond avec « Réglages communs » | Recommandation retenue (Z10.4, nom a) |
+| **Q6.8** Un réglage du profil porteur récrit-il la référence, `originale` gardée comme pour « Ajuster la référence » ? | Z10.2, Z10.5 | Oui, si Z10.2 ne montre pas mieux : la référence reste exacte dans sa rampe (`[MOT-17]`), et « Revenir à l’originale » défait tout | Oui, porteur figé ; « Revenir à l’originale » remet à zéro teinte et luminosité du porteur, l’autre profil garde sa couleur (Z10.4, R1) |
+| **Q6.9** Une palette à une intensité a-t-elle la section, sans choix de profil ? | Z10.4, Z10.6 | Oui : c’est là qu’affiner la référence sert le plus, et la carte actuelle lui manque | Recommandation retenue (Z10.4, question 4) |
 
 ## Hors périmètre
 
@@ -1067,6 +1071,36 @@ meilleures solutions d’un point de vue UX/UI, peut être en relisant les
 docs de recherche aussi
 
 Puis il faut faire une maquette claude qui sera validée par le user
+```
+
+## Retours du mainteneur, maquettes du lot Z10
+
+Texte d’origine, réponses à `MAQUETTES-RECETTE-V6-2.html`.
+
+```text
+Z10.4 · Refonte des intensités
+Question 1
+A
+Question 2
+A
+
+Question 3
+OK mais revoir le wording "◆ Vivid porte votre couleur de référence : la
+teinte et la luminosité la déplacent aussi." c'est pas compréhensible.
+plutôt un truc du genre : "Attention, votre couleur de référence a été
+modifiée" (c'était le point Question 3 bis)
+Question 4
+Oui ok
+Question 5
+R1 ok
+Question 6
+ok pour tout
+
+Z5.2 · Ajuster la référence
+Question 1
+ta rédaction est trop alembiquée, personne n'écrit comme ça en français,
+regarde comment rédiger des phrases simples sur internet et recommence ta
+proposition (à l'écrit uniquement, pas de maquette)
 ```
 
 ## Précisions du mainteneur après la suite de la recette
