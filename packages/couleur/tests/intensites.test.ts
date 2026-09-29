@@ -158,5 +158,5 @@ test('[VER-17] « Palettes proches » : Vivid contre Vivid à deux intensités, 
   assert.equal(distanceDePalettes(recette, sauge, autre), distanceSur(recette, sauge, 'unique', autre, 'unique'));
   const bleu = paletteTailwind('p-000000cb', '#1E6FD9');
   assert.equal(distanceDePalettes(recette, bleu, deux), distanceSur(recette, bleu, 'vivid', deux, 'vivid'), 'deux intensités : Vivid contre Vivid, comme au format 3');
-  assert.equal(recetteParDefaut().formatVersion, 4);
+  assert.equal(recetteParDefaut().formatVersion, 5);
 });

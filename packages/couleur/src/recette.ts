@@ -16,11 +16,11 @@ import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
  * La version de la forme de la recette que ce paquet écrit. La version 2
  * ajoute `base` à une palette ; la version 3, `crans` et `originale` ; la
  * version 4, `intensites` à une palette, `intensiteDesFondsSombres` et
- * `contenuDesPlanches` à la recette. Un plugin qui lit une version
- * antérieure classe donc la recette « future » au lieu de refuser une clé
- * inconnue.
+ * `contenuDesPlanches` à la recette ; la version 5, `reglages` à une
+ * palette. Un plugin qui lit une version antérieure classe donc la recette
+ * « future » au lieu de refuser une clé inconnue.
  */
-export const FORMAT_RECETTE = 4;
+export const FORMAT_RECETTE = 5;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -37,6 +37,31 @@ export interface PartsPropres {
   readonly vivid: number;
   readonly origine: OrigineParts;
 }
+
+/** Une valeur par profil ; une palette à une intensité range la sienne sous `vivid`, comme sa dérive. */
+export interface ParProfil {
+  readonly soft?: number;
+  readonly vivid?: number;
+}
+
+/**
+ * Teinte, saturation et luminosité réglées dans la carte (Z10.5, spécification
+ * de la refonte des intensités). `teinte` se mesure depuis le départ, en
+ * degrés ; `clarte` décale la rampe d'un profil ; `part` est la saturation
+ * de la référence d'une palette à une intensité. `porteur` fige le profil
+ * qui porte la référence, et `depart` garde le départ d'une référence
+ * ajustée avant la version 5.
+ */
+export interface Reglages {
+  readonly teinte?: ParProfil;
+  readonly clarte?: ParProfil;
+  readonly part?: number;
+  readonly porteur?: Profil;
+  readonly depart?: string;
+}
+
+/** Les bornes des réglages : la teinte en degrés, la clarté en décalage OKLCH (mesures E4 bis de la recherche). */
+export const BORNES_DES_REGLAGES = { teinte: 30, clarte: { bas: -0.05, haut: 0.02 } } as const;
 
 export interface Palette {
   readonly id: string;
@@ -59,6 +84,8 @@ export interface Palette {
    * de profil ([ENT-14]). Absent, elle porte Soft et Vivid.
    */
   readonly intensites?: 1;
+  /** Teinte, saturation et luminosité de la carte (Z10.5). Absent, aucun réglage. */
+  readonly reglages?: Reglages;
 }
 
 /** Les parties d'un cadre de la planche que le designer choisit de dessiner ([PLA-28]). */
@@ -148,7 +175,15 @@ export type RegleRecette =
   | 'intensites-valeur'
   | 'intensites-incompatible'
   | 'fonds-sombres-bornes'
-  | 'contenu-sans-theme';
+  | 'contenu-sans-theme'
+  | 'reglages-bornes'
+  | 'reglage-nul'
+  | 'reglages-intensites'
+  | 'porteur-base'
+  | 'porteur-manquant'
+  | 'reglages-sans-originale'
+  | 'depart-sans-reglage'
+  | 'depart-identique';
 
 /** Un refus : la règle, le chemin du champ fautif, et la valeur lue quand elle se montre. */
 export interface Refus {
@@ -317,8 +352,86 @@ function validerIntensites(releve: Releve, palette: Objet, chemin: string): void
   if (estObjet(palette.derive) && palette.derive.lien === false) releve.refuser('intensites-incompatible', `${chemin}.derive.lien`);
 }
 
+/**
+ * Le profil dont les réglages déplacent la référence : la palette de base, le
+ * porteur figé, `vivid` pour une palette à une intensité. Absent quand le
+ * classement automatique décide encore, faute de réglage.
+ */
+function porteurRange(palette: Objet): Profil | undefined {
+  if (palette.intensites === 1) return 'vivid';
+  if (palette.base === 'soft' || palette.base === 'vivid') return palette.base;
+  const reglages = palette.reglages;
+  return estObjet(reglages) && (reglages.porteur === 'soft' || reglages.porteur === 'vivid') ? reglages.porteur : undefined;
+}
+
+/** Vrai quand la palette porte un réglage du porteur : sa teinte, sa clarté ou la part de la référence. */
+function aUnReglageDuPorteur(palette: Objet): boolean {
+  const reglages = palette.reglages;
+  const porteur = porteurRange(palette);
+  if (!estObjet(reglages)) return false;
+  if ('part' in reglages) return true;
+  if (!porteur) return false;
+  return [reglages.teinte, reglages.clarte].some((valeurs) => estObjet(valeurs) && porteur in valeurs);
+}
+
+function validerParProfil(releve: Releve, valeurs: unknown, chemin: string, bas: number, haut: number): void {
+  if (!releve.objet(valeurs, chemin, [], ['soft', 'vivid'])) return;
+  if (Object.keys(valeurs).length === 0) releve.refuser('reglage-nul', chemin);
+  for (const profil of ['soft', 'vivid'] as const) {
+    if (!(profil in valeurs)) continue;
+    const valeur = valeurs[profil];
+    if (!releve.nombre(valeur, `${chemin}.${profil}`)) continue;
+    if (valeur === 0) releve.refuser('reglage-nul', `${chemin}.${profil}`);
+    else if (valeur < bas || valeur > haut) releve.refuser('reglages-bornes', `${chemin}.${profil}`, valeur);
+  }
+}
+
+/**
+ * Les réglages de la carte (Z10.5) : bornés, jamais nuls, une clé par
+ * intensité présente ; le porteur figé à deux intensités sans palette de
+ * base ; l'originale et le départ seulement quand un réglage du porteur
+ * déplace la référence.
+ */
+function validerReglages(releve: Releve, palette: Objet, chemin: string): void {
+  if (!('reglages' in palette)) return;
+  const ici = `${chemin}.reglages`;
+  const reglages = palette.reglages;
+  if (!releve.objet(reglages, ici, [], ['teinte', 'clarte', 'part', 'porteur', 'depart'])) return;
+  const une = palette.intensites === 1;
+  const { teinte, clarte } = BORNES_DES_REGLAGES;
+  if ('teinte' in reglages) validerParProfil(releve, reglages.teinte, `${ici}.teinte`, -teinte, teinte);
+  if ('clarte' in reglages) validerParProfil(releve, reglages.clarte, `${ici}.clarte`, clarte.bas, clarte.haut);
+  if ('part' in reglages && releve.nombre(reglages.part, `${ici}.part`) && (reglages.part < 0 || reglages.part > 1)) {
+    releve.refuser('reglages-bornes', `${ici}.part`, reglages.part);
+  }
+  if (!['teinte', 'clarte', 'part'].some((cle) => cle in reglages)) releve.refuser('reglage-nul', ici);
+  if ('porteur' in reglages && reglages.porteur !== 'soft' && reglages.porteur !== 'vivid') releve.refuser('base-inconnue', `${ici}.porteur`, reglages.porteur);
+  if ('depart' in reglages) releve.hexa(reglages.depart, `${ici}.depart`);
+
+  if (une) {
+    for (const cle of ['teinte', 'clarte'] as const) {
+      const valeurs = reglages[cle];
+      if (estObjet(valeurs) && 'soft' in valeurs) releve.refuser('reglages-intensites', `${ici}.${cle}.soft`);
+    }
+    if ('porteur' in reglages) releve.refuser('reglages-intensites', `${ici}.porteur`);
+  } else {
+    if ('part' in reglages) releve.refuser('reglages-intensites', `${ici}.part`);
+    if ('base' in palette && 'porteur' in reglages) releve.refuser('porteur-base', `${ici}.porteur`);
+    if (!('base' in palette) && !('porteur' in reglages)) releve.refuser('porteur-manquant', ici);
+  }
+
+  const duPorteur = aUnReglageDuPorteur(palette);
+  if (duPorteur && !('originale' in palette)) releve.refuser('reglages-sans-originale', ici);
+  if ('depart' in reglages) {
+    if (!duPorteur) releve.refuser('depart-sans-reglage', `${ici}.depart`);
+    const identique = typeof reglages.depart === 'string' && typeof palette.originale === 'string'
+      && reglages.depart.toUpperCase() === palette.originale.toUpperCase();
+    if (identique) releve.refuser('depart-identique', `${ici}.depart`, reglages.depart as string);
+  }
+}
+
 function validerPalette(releve: Releve, palette: unknown, chemin: string): void {
-  if (!releve.objet(palette, chemin, ['id', 'reference', 'derive'], ['nom', 'parts', 'base', 'crans', 'originale', 'intensites'])) return;
+  if (!releve.objet(palette, chemin, ['id', 'reference', 'derive'], ['nom', 'parts', 'base', 'crans', 'originale', 'intensites', 'reglages'])) return;
   if (typeof palette.id !== 'string' || !MOTIF_IDENTIFIANT.test(palette.id)) {
     releve.refuser('identifiant-forme', `${chemin}.id`, palette.id);
   }
@@ -331,12 +444,14 @@ function validerPalette(releve: Releve, palette: unknown, chemin: string): void 
   }
   if ('originale' in palette) {
     releve.hexa(palette.originale, `${chemin}.originale`);
+    // Un réglage fin du porteur rend souvent les octets de l'originale : elle reste alors, comme départ (Z10.5).
     const identique = typeof palette.originale === 'string' && typeof palette.reference === 'string'
       && palette.originale.toUpperCase() === palette.reference.toUpperCase();
-    if (identique) releve.refuser('originale-identique', `${chemin}.originale`, palette.originale as string);
+    if (identique && !aUnReglageDuPorteur(palette)) releve.refuser('originale-identique', `${chemin}.originale`, palette.originale as string);
   }
 
   validerIntensites(releve, palette, chemin);
+  validerReglages(releve, palette, chemin);
 
   const derive = palette.derive;
   if (releve.objet(derive, `${chemin}.derive`, ['lien', 'soft', 'vivid'])) {
@@ -458,6 +573,8 @@ export type Migrations = Readonly<Record<number, (ancienne: Objet) => Objet>>;
  * `intensites` est facultatif et chaque palette garde ses deux intensités ;
  * la recette reçoit les valeurs par défaut de `intensiteDesFondsSombres` et
  * de `contenuDesPlanches`. Les fonds du thème Dark changent donc de couleur.
+ * De 4 à 5, `reglages` est facultatif : aucune palette n'en reçoit, et
+ * aucune couleur ne change.
  */
 export const MIGRATIONS: Migrations = {
   1: (ancienne) => ({ ...ancienne, formatVersion: 2 }),
@@ -468,6 +585,7 @@ export const MIGRATIONS: Migrations = {
     intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
     contenuDesPlanches: { ...CONTENU_COMPLET },
   }),
+  4: (ancienne) => ({ ...ancienne, formatVersion: 5 }),
 };
 
 /** Ce que la lecture conclut d'une recette rangée ([REC-03]). */

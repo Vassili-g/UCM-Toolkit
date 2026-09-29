@@ -293,7 +293,7 @@ function construireVues(i18n: Localisation) {
       for (const promesse of echecs) echec.append(paragraphe(TEXTES_DES_GARANTIES.echec(etatDeLaPaire(promesse.paire), promesse.contraste, promesse.seuil)));
       const liens = document.createElement('div');
       liens.className = 'constat-liens';
-      for (const cible of ciblesDeLaPromesse(entrees!.palette)) {
+      for (const cible of ciblesDeLaPromesse()) {
         const lien = document.createElement('button');
         lien.type = 'button';
         lien.className = 'lien-de-constat';

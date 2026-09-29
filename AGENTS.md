@@ -191,7 +191,8 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/emplois.ts           la table fixe des emplois et les crans que la recette doit porter
   src/recette.ts           la forme de la recette, sa validation, son classement à la lecture
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
-  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts grises, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
+  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts grises, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
+  src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
   src/nuances.ts           les trois préréglages de nuances, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
   src/promesses.ts         les seize paires, jugées par mode et par intensité présente, et les emplois d'un cran
@@ -257,7 +258,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
   src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : dérive, réglette et tracé s'étirent sans grandir
   src/ui/apercuCompact.ts  les rampes présentes d'une palette et le résultat de ses garanties, pour une fiche ou les réglages
-  src/ui/intensites.ts     les intensités de la palette : curseurs, repère de la référence, origine, retour aux réglages communs
+  src/ui/reglagesDeLaPalette.ts la carte « Teinte, saturation, luminosité » : profil visé, trois curseurs peints, avertissement de la référence, origine des parts, retour aux réglages communs
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, et ceux des intensités
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
   src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
@@ -934,6 +935,12 @@ La spécification en lien porte le raisonnement.
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quelle que soit la dérive. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.
+  Sous des réglages de teinte ou de luminosité, chaque profil pivote sur son
+  départ : à la clarté du départ, sa teinte vaut celle de son pivot, et un
+  décalage de clarté ne change la teinte d'aucun cran. `pivotDe`
+  (`packages/couleur/src/palette.ts`) en est l'unique autorité, et
+  `packages/couleur/tests/reglages.test.ts` l'éprouve sur des tirages.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
 - Dans son intensité porteuse, chaque mode d'une palette contient les octets
   exacts de sa couleur de référence, au cran de clarté la plus proche. Les
@@ -941,7 +948,12 @@ La spécification en lien porte le raisonnement.
   référence : promesses, alertes, planche, rapport et éditeur de dérive lisent
   `rampesDe` et `ancrageDe` (`packages/couleur/src/palette.ts`), qui en sont
   l'unique autorité. `packages/couleur/tests/ancrage.test.ts` l'éprouve sur deux
-  mille tirages. Borne : l'ancrage ne promet pas qu'une promesse reste tenue.
+  mille tirages. Le cran porteur se lit sur la clarté du départ des réglages :
+  une luminosité réglée translate la rampe sans changer la nuance du ◆. La
+  référence réglée sort de `referenceReglee` (`packages/couleur/src/reglages.ts`),
+  que seuls les gestes appellent ; la validation ne la recalcule pas, et
+  `packages/plugin-palettes/tests/reglages.test.ts` tient l'égalité. Borne :
+  l'ancrage ne promet pas qu'une promesse reste tenue.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
 - À deux intensités, une palette de base Soft ou Vivid, que l'interface
   appelle « Référence exacte dans », désigne le profil porteur, et ce profil
@@ -949,7 +961,9 @@ La spécification en lien porte le raisonnement.
   bornée pour que soft ne dépasse pas vivid. Ces parts se calculent à la
   lecture et ne se rangent jamais : `partsDe` et `profilPorteur`
   (`packages/couleur/src/palette.ts`) en sont l'unique autorité, et des parts
-  propres passent avant elles. `packages/couleur/tests/base.test.ts` l'éprouve
+  propres passent avant elles. Sans palette de base, le premier réglage de la
+  carte « Teinte, saturation, luminosité » fige le porteur dans
+  `reglages.porteur`, qui passe avant le classement automatique. `packages/couleur/tests/base.test.ts` l'éprouve
   sur des teintes, des clartés et des parts communes variées.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
 - Une palette porte une intensité ou deux. À une intensité, elle n'a qu'une

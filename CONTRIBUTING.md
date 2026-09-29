@@ -282,10 +282,12 @@ celles-ci :
   « Une · Deux », de même facture que le Modèle, les remplacent, la suite du
   choix dessous ;
 - les cartes se suivent dans cet ordre : Configuration de la palette, carte
-  d’aperçu, Intensités, Dérive de teinte, Garanties de contraste, puis
-  Interface de test. La palette se règle avant de se juger. Une palette à une
-  intensité n’a pas la carte Intensités, ni de bascule Soft et Vivid : aucune
-  surface ne montre un profil que la palette ne porte pas. Toutes les
+  d’aperçu, Teinte, saturation, luminosité, Dérive de teinte, Garanties de
+  contraste, puis Interface de test. La palette se règle avant de se juger.
+  Une palette à une intensité n’a ni segments « Vivid · Soft · Les deux », ni
+  bascule Soft et Vivid : aucune surface ne montre un profil que la palette
+  ne porte pas. Le module de la carte « Teinte, saturation, luminosité » est
+  `reglagesDeLaPalette.ts`. Toutes les
   cartes, sauf Configuration et aperçu, se replient et sont repliées à
   l’ouverture ; leur en-tête est un bouton qui
   porte le chevron, le titre et un résumé aligné à droite ;

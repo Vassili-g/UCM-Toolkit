@@ -11,7 +11,7 @@ export const PARAMETRES_COMMUNS = ['crans', 'courbes', 'profils', 'intensiteDesF
 export type ParametreCommun = (typeof PARAMETRES_COMMUNS)[number];
 
 /** Les champs d'une palette que l'écart nomme, palette de base, liste libre, originale et intensités comprises (V12.2, W6.3). */
-export const CHAMPS_DE_PALETTE = ['nom', 'reference', 'intensites', 'base', 'parts', 'derive', 'crans', 'originale'] as const;
+export const CHAMPS_DE_PALETTE = ['nom', 'reference', 'intensites', 'base', 'parts', 'derive', 'crans', 'originale', 'reglages'] as const;
 export type ChampDePalette = (typeof CHAMPS_DE_PALETTE)[number];
 
 export interface EcartDImport {
@@ -40,7 +40,7 @@ export interface NatureDeLEcart {
 // `contenuDesPlanches` ne peint aucune nuance : il ne change que les cadres de la planche.
 const PARAMETRES_DE_COULEUR: readonly ParametreCommun[] = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'derives', 'gamut'];
 // `originale` ne peint rien : la référence porte la couleur, et son champ change avec elle.
-const CHAMPS_DE_COULEUR: readonly ChampDePalette[] = ['reference', 'intensites', 'base', 'parts', 'derive', 'crans'];
+const CHAMPS_DE_COULEUR: readonly ChampDePalette[] = ['reference', 'intensites', 'base', 'parts', 'derive', 'crans', 'reglages'];
 
 export function natureDeLEcart(ecart: EcartDImport): NatureDeLEcart {
   const palettesColorees = Object.values(ecart.champs).some((champs) => champs.some((champ) => CHAMPS_DE_COULEUR.includes(champ)));

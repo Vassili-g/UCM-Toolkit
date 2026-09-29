@@ -7,7 +7,7 @@
 import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
 import { distanceOk, partDeChroma } from './contraste';
 import { EMPLOIS, EMPLOIS_FACULTATIFS, TABLE_DES_EMPLOIS, rangDuCranLeger } from './emplois';
-import { aUneIntensite, estPresqueGrise, fondsSombresDe, intensitesDe, partsDe, rampesDe, referenceDe } from './palette';
+import { aUneIntensite, departDe, estPresqueGrise, fondsSombresDe, intensitesDe, partsDe, rampesDe, referenceDe } from './palette';
 import { estLibre, etendueDe, grilleDe } from './nuances';
 import { decalagesDeLEmploi } from './promesses';
 import { arrondir, facteurSombre, MODES, rampeDe, type Intensite, type Mode } from './rampe';
@@ -107,8 +107,10 @@ export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
   // Une palette à une intensité prend la part de sa référence : elle n'est ni plus terne ni plus vive ([ENT-14]).
   if (parts.soft !== undefined && part < parts.soft) alertes.push({ code: 'reference-plus-terne', palette: palette.id, part, partSoft: parts.soft });
   if (parts.vivid !== undefined && part > parts.vivid) alertes.push({ code: 'reference-plus-vive', palette: palette.id, part, partVivid: parts.vivid });
-  if (lue.L > bouts.clair || lue.L < bouts.sombre) {
-    alertes.push({ code: 'reference-hors-rampe', palette: palette.id, clarte: lue.L, boutClair: bouts.clair, boutSombre: bouts.sombre });
+  // La référence se place à la clarté de son départ : un décalage de luminosité translate la rampe avec elle (Z10.5).
+  const place = rgb8VersOklch(departDe(recette, palette)).L;
+  if (place > bouts.clair || place < bouts.sombre) {
+    alertes.push({ code: 'reference-hors-rampe', palette: palette.id, clarte: place, boutClair: bouts.clair, boutSombre: bouts.sombre });
   }
   return alertes;
 }

@@ -242,12 +242,25 @@ normaliser(h) = ((h mod 360) + 360) mod 360
   partagent la même ([section 12](#12-léditeur-de-dérive)). Une palette à une
   intensité garde ses deux dérives liées, donc égales, et sa rampe unique lit
   celle de `vivid`.
+- `[MOT-29]` Une palette peut porter des réglages de teinte, de saturation et
+  de luminosité (`reglages`, section 7.1, `[ENT-15]`). Leur départ `S` vaut
+  `reglages.depart`, sinon `originale`, quand un réglage du porteur existe ;
+  sinon, la référence. Le pivot d'un profil `p` a pour clarté `S.L` et pour
+  teinte `S.H + teinte[p]` : `La` et `Ha` ci-dessus sont les siens. Un cran
+  lit sa clarté commune `L`. Sa teinte vaut `teinte(L)` autour du pivot de
+  son profil, et sa couleur se fabrique à la clarté `L + clarte[p]`, bornée à
+  `[0, 1]` ; `facteur` (`[MOT-28]`) lit `L`. Un décalage de clarté translate
+  donc la courbe, le pivot et les bouts ensemble : la teinte d'un cran ne
+  change pas. Sans réglage, le pivot est la référence et les crans sont ceux
+  de la version 4 de la recette, à l'octet. `pivotDe` et `decalageDe`
+  (`packages/couleur/src/palette.ts`) en sont l'autorité.
 - `[MOT-17]` La couleur de référence ne se recalcule jamais : ses octets
   entrent tels quels dans les rampes de son intensité porteuse, un cran par
   mode : la rampe unique d'une palette à une intensité (`[ENT-14]`), le
   profil porteur d'une palette à deux.
   - Une palette de base Soft ou Vivid (`[ENT-11]`) désigne le profil porteur.
-    Sans elle, le classement automatique compare la part de chroma de la
+    Sans elle, le porteur que `reglages.porteur` a figé au premier réglage
+    (`[ENT-15]`) le désigne. Sans l'un ni l'autre, le classement automatique compare la part de chroma de la
     référence aux parts **communes** de `soft` et `vivid`, au millième : le
     plus proche la porte, `vivid` à égalité. Une référence presque grise
     (`[MOT-18]`) est portée par `soft`. Les parts propres d'une palette
@@ -255,15 +268,16 @@ normaliser(h) = ((h mod 360) + 360) mod 360
     de profil. Changer les parts communes peut le faire, sauf sous une palette
     de base.
   - Dans chaque mode, le cran porteur est celui dont la clarté de la courbe
-    est la plus proche de celle de la référence, le plus petit numéro à
-    égalité. Une référence hors de la courbe prend l'extrémité la plus proche.
+    est la plus proche de celle du départ (`[MOT-29]`), la référence sans
+    réglage, le plus petit numéro à égalité. Un réglage de luminosité ne
+    change donc pas la nuance qui porte la référence. Une référence hors de la courbe prend l'extrémité la plus proche.
     Le numéro peut différer entre `light` et `dark` : `#B00100` est le 700
     clair et le 500 sombre.
   - Le cran porteur prend `rgb8` de la référence, et `L`, `C`, `H` lus sur
     lui. Les autres crans, et l'autre profil au même rang, gardent le calcul de
     la section 6.3. Promesses, alertes, planche et rapport lisent ces rampes
-    ancrées ; la teinte suit toujours la section 6.4, pivotée sur la
-    référence.
+    ancrées ; la teinte suit toujours la section 6.4, pivotée sur le pivot de
+    son profil (`[MOT-29]`).
   - L'ancrage garde l'ordre des clartés avant quantification : la clarté de la
     référence est plus proche de son cran que des voisins. Deux crans voisins
     peuvent pourtant partager un hexa quand la courbe a des pas plus petits que
@@ -293,7 +307,8 @@ teinte du cran 950) par rampe. Il redonne le tableau 3.3 de l'architecture :
 | 340°, rose | pink | +21°, vers le rouge |
 | 10° à 20°, rouges | rose, red | 0° à +9° |
 
-Calcul pour une couleur de référence `(La, Ca, Ha)` :
+Calcul pour une couleur de référence `(La, Ca, Ha)`, lue sur le départ `S`
+(`[MOT-29]`) : les réglages de la carte ne déplacent pas le préréglage.
 
 ```text
 d       = dériveTailwind(Ha)          dérive totale, du bout clair au bout sombre
@@ -449,8 +464,9 @@ Une palette porte :
 | `parts` | Facultatif : `soft` et `vivid`, une part de chroma chacun, qui remplace celle de la recette, et `origine` : `designer` ou `grise` (`[ENT-09]`) |
 | `base` | Facultatif : `soft` ou `vivid`, la palette de base qui force le profil porteur (`[ENT-11]`). Absent, le classement automatique décide |
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
-| `originale` | Facultatif : le code de la référence avant le premier ajustement, en majuscules, différent de `reference`. Absent, aucun ajustement |
+| `originale` | Facultatif : le code de la référence avant le premier ajustement ou le premier réglage du porteur, en majuscules. Différent de `reference`, sauf sous un réglage du porteur, dont le résultat peut rendre les mêmes octets. Absent, aucun ajustement |
 | `intensites` | Facultatif : `1` pour une palette à une intensité (`[ENT-14]`), sans `base`, sans `parts`, sans `crans`, dérive liée. Absent, la palette porte Soft et Vivid |
+| `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,05, +0,02]` au millième ; `part`, la saturation de la référence d'une palette à une intensité, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
 
 ### 7.2 Exemple
 
@@ -535,12 +551,20 @@ dix-sept paires.
   `base` ; `originale` est un hexa différent de `reference`. `intensites` ne
   vaut que 1, et refuse à côté de lui `base`, `parts`, `crans` et une dérive
   déliée ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
-  `contenuDesPlanches` garde un thème au moins. La version 2 de la recette
-  ajoute `base`, la version 3 `crans` et `originale`, la version 4
-  `intensites`, `intensiteDesFondsSombres` et `contenuDesPlanches`. Une
+  `contenuDesPlanches` garde un thème au moins. `reglages` porte au moins
+  une teinte, une clarté ou `part`, dans leurs bornes, sans zéro ni objet
+  vide ; `part` et une clé `soft` ne vont qu'au nombre d'intensités qui les
+  admet ; `porteur` accompagne des réglages à deux intensités sans `base`,
+  et jamais `base` ; un réglage du porteur exige `originale` ; `depart`
+  exige un réglage du porteur et diffère d'`originale`. La validation ne
+  recalcule pas la référence réglée : deux moteurs JavaScript peuvent
+  différer au dernier bit, et la recette deviendrait illisible. La version 2
+  de la recette ajoute `base`, la version 3 `crans` et `originale`, la
+  version 4 `intensites`, `intensiteDesFondsSombres` et
+  `contenuDesPlanches`, la version 5 `reglages`. Une
   recette de version 1 à 3 se migre sans changer ses palettes : chacune garde
   ses deux intensités, et la version 4 ajoute les deux réglages communs à leur
-  valeur par défaut, si bien que ses fonds du thème Dark changent de couleur. La validation rend tous ses refus, chacun avec sa
+  valeur par défaut, si bien que ses fonds du thème Dark changent de couleur. Une recette de version 4 passe en version 5 sans autre changement, et garde ses couleurs à l'octet. La validation rend tous ses refus, chacun avec sa
   règle et le chemin du champ, et ne rédige aucune phrase.
 - `[REC-06]` La recette se range automatiquement à la fin de chaque geste :
   relâcher une poignée, valider un champ, créer, dupliquer, réordonner ou
@@ -569,7 +593,7 @@ dix-sept paires.
 | Nom | Texte libre, facultatif | l'hexa de référence |
 | Dérive de teinte | Deux angles par profil, dans l'éditeur de la [section 12](#12-léditeur-de-dérive) | préréglage Tailwind |
 | Intensités | « Une intensité » ou « Deux intensités », deux cartes à la création ; des segments « Une · Deux » dans la configuration (`[ENT-14]`) | Une |
-| Part de chroma par profil | Nombre dans `[0, 1]`, facultatif, dans la carte « Intensités », pour deux intensités | celle de la recette |
+| Teinte, saturation, luminosité | Trois curseurs pour Vivid, Soft ou les deux, dans la carte « Teinte, saturation, luminosité » (`[ENT-15]`) ; la saturation d'un profil est sa part de chroma | aucun réglage, parts de la recette |
 | Référence exacte dans | Auto, Soft ou Vivid, dans la carte « Deux intensités » à la création, sous le segment « Deux » dans la configuration (`[ENT-11]`) | Auto |
 
 - `[ENT-01]` Changer la couleur de référence recalcule le préréglage Tailwind.
@@ -604,21 +628,49 @@ dix-sept paires.
   restent, et une référence presque grise garde ses deux profils égaux.
   Revenir à Auto retire `base` : la palette reprend les parts communes. Quand
   les deux profils se rejoignent, l'alerte « Profils confondus » le dit et
-  mène aux intensités de la palette. Ce choix, libellé « Référence exacte
+  mène à la carte « Teinte, saturation, luminosité ». Ce choix, libellé « Référence exacte
   dans », ne paraît qu'avec deux intensités : dans leur carte à la création,
-  sous le segment « Deux » dans la configuration.
+  sous le segment « Deux » dans la configuration. Sous des réglages
+  (`[ENT-15]`), son aide dit que le porteur est fixé et qu'en changer
+  modifie la référence : choisir l'autre profil pose `base` et récrit la
+  référence avec les réglages de ce profil ; Auto retire `base` et fige le
+  porteur d'avant, sans changer de couleur.
 - `[ENT-14]` Une palette porte une intensité ou deux, au choix du designer à
   la création, « Une » par défaut, et dans la configuration. À une intensité,
   elle a une seule rampe par thème, sans nom de profil : celle que le profil
   porteur forcé donnerait, à la part de chroma de la référence, référence
   exacte à son cran. Elle n'a ni palette de base, ni parts propres, ni
-  seconde dérive, ni carte Intensités, et ses tokens n'ont pas de segment de
-  profil : `theme.primary.700`. Passer de deux à une ne demande pas de
-  confirmation : la palette garde la dérive de son intensité porteuse et
-  perd `base` et ses parts. Passer de une à deux rend Soft et Vivid. Une
+  seconde dérive, et ses tokens n'ont pas de segment de profil :
+  `theme.primary.700`. Elle a la carte « Teinte, saturation, luminosité »,
+  sans choix de profil. Passer de deux à une ne demande pas de
+  confirmation : la palette garde la dérive et les réglages de son intensité
+  porteuse, et perd `base`, ses parts et les réglages de l'autre profil ; la
+  référence ne change pas. Passer de une à deux rend Soft et Vivid, retire
+  `part` et récrit la référence sans elle, puis range les réglages sous le
+  profil que le classement automatique désigne. Une
   palette libre n'a pas ce choix ; la rendre au modèle la remet à une
   intensité. `intensitesDe` (`packages/couleur`) en est l'autorité : toute
   vue parcourt les intensités qu'elle rend.
+- `[ENT-15]` La carte « Teinte, saturation, luminosité » règle chaque
+  profil. Ses gestes visent Vivid, Soft ou les deux ; « Les deux » déplace
+  les deux profils du même écart et s'arrête quand l'un atteint sa borne. La
+  teinte d'un profil se mesure depuis le départ (`[MOT-29]`), en degrés, de
+  −30 à +30. La luminosité décale toute la rampe du profil, de −0,05 à +0,02.
+  La saturation d'un profil est sa part (`[ENT-09]`), bornée pour que
+  `soft` ne dépasse pas `vivid`, et ne déplace pas la référence. Le premier
+  réglage fige le porteur dans `reglages.porteur`, sauf sous une palette de
+  base. Un réglage du porteur (sa teinte, sa clarté, ou `part` à une
+  intensité) déplace la référence : le geste garde `originale`, puis récrit
+  `reference = referenceReglee(S, teinte[P], clarte[P], part)`
+  (`packages/couleur/src/reglages.ts`). Aucun geste ne part de la référence
+  déjà arrondie : un aller-retour de ±10° rend ses octets. Au premier
+  réglage du porteur d'une palette ajustée avant la version 5,
+  `reglages.depart` garde sa référence, qui reste le départ, et ses couleurs
+  ne changent pas. « Revenir à l'originale » rend l'originale, retire
+  `originale`, `depart` et les réglages du porteur, et garde ceux de
+  l'autre profil. Un code saisi retire `originale` et tout `reglages`. Les
+  gestes et `packages/plugin-palettes/tests/reglages.test.ts` tiennent
+  l'égalité de la référence à `referenceReglee`.
 
 ### 8.2 Les fonds de référence
 
@@ -1129,9 +1181,9 @@ composants : `default`, puis `hover` à une nuance, `active` à deux.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. La mesure, sa valeur et le seuil se
   lisent dans le détail et dans le rapport.
-- `[VER-10]` Une référence plus vive que `vivid` ne produit aucun message : le
-  réglage d'intensité de `vivid` porte un repère qui la situe, et le rapport
-  garde la mesure. La référence exacte n'est jamais décrite comme plus terne
+- `[VER-10]` Une référence plus vive que `vivid` ne produit aucun message : la
+  piste de saturation de la carte « Teinte, saturation, luminosité » porte
+  un repère qui situe sa part, et le rapport garde la mesure. La référence exacte n'est jamais décrite comme plus terne
   qu'elle-même ; les nuances autour d'elle peuvent l'être.
 - `[VER-11]` « Profils confondus » ne porte que sur les crans de la table des
   emplois, la 50 de `surface-card` exceptée : les deux profils s'y confondent
@@ -1168,7 +1220,7 @@ comme sRGB (section 6.7), et le rapport garde le profil.
   intervention immédiate s'annonce par `role="alert"` : un blocage, jamais un
   mouvement de poignée.
 - `[VER-15]` Le geste d'un message est une cible typée, indépendante de sa
-  phrase : intensités de la palette, dérive, luminosité commune, fonds,
+  phrase : teinte, saturation et luminosité de la palette, dérive, luminosité commune, fonds,
   intensités communes. Une fonction de présentation la choisit selon la cause
   connue et la portée du réglage ; le lien ouvre et focalise ce réglage, et le
   retour garde la palette, le thème, la nuance choisie et la position de
@@ -1226,7 +1278,9 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
   de référence, son profil et sa nuance dans chaque thème. Pour l'autre
   profil, il se place entre les deux rangs qui encadrent la clarté de la
   référence, par interpolation linéaire, et son infobulle dit la teinte fixe
-  sans désigner de pastille égale à la référence. La référence reste fixe
+  sans désigner de pastille égale à la référence. Chaque courbe passe à 0°
+  par le pivot de son profil (`[MOT-29]`) : une teinte réglée ne déplace pas
+  la courbe de l'autre profil. La référence reste fixe
   pendant le déplacement des poignées.
 - `[DER-03]` Deux poignées rondes aux bouts de la courbe portent `dClair` et
   `dSombre`. Leur étiquette donne l'angle signé et la teinte absolue qui en
@@ -1370,7 +1424,7 @@ Onglet Création, une palette ouverte :
 │ │ └────────────────────────────────────────────────────────────┘  │  │
 │ │ ◆ Référence : Vivid · nuance 600                                │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
-│ ┌ › Intensités ─────────────── Communes · Soft 0,45 · Vivid 0,95 ─┐  │
+│ ┌ › Teinte, saturation, luminosité ─ Aucun réglage · Soft 45 % · … ┐│
 │ ┌ › Dérive de teinte ─────────────────────── Tailwind · synchronisée┐ │
 │   points à vérifier, sous la carte qu'ils concernent                  │
 │ ┌ ⌄ Garanties de contraste ─────────────────────── Thème Dark ────┐  │
@@ -1537,17 +1591,34 @@ palette » gardent leurs libellés au-dessus des champs.
   garanties, et chaque bilan de garanties dit « Palette libre · N nuances ».
   Le détail d'une nuance libre ne lui prête aucun rôle. Standard rend la
   liste commune.
-- `[UI-12]` « Intensités » et « Dérive de teinte » sont deux cartes
+- `[UI-12]` « Teinte, saturation, luminosité » et « Dérive de teinte » sont deux cartes
   repliables de même forme, repliées à l'ouverture, qui gardent leur état
   pendant la session. Leur en-tête est un bouton : chevron, titre et résumé
-  aligné à droite. Le résumé des intensités donne leur origine et les deux
-  valeurs ; celui de la dérive, le préréglage et la synchronisation. Une
-  palette à une intensité n'a pas la carte Intensités, et sa dérive n'a qu'un
-  tracé, sans synchronisation ni profil à choisir (`[ENT-14]`). Repliée,
+  aligné à droite. Le résumé de la première donne les réglages de chaque
+  profil, ou « Aucun réglage », puis sa saturation ; celui de la dérive, le
+  préréglage et la synchronisation. La première porte les segments « Vivid ·
+  Soft · Les deux », le ◆ sur le profil porteur, puis trois rangées :
+  Teinte, Saturation et Luminosité, chacune avec sa piste peinte par le
+  moteur, son champ, la teinte absolue après le champ de la teinte, et
+  « Rétablir » ; un double-clic sur la piste rétablit aussi. Un pas au
+  clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur chaque piste, la
+  lettre de l'autre profil situe sa valeur quand un seul profil se règle ;
+  sur la piste de saturation, un repère situe la référence (`[VER-10]`).
+  Quand la cible porte la référence, « Attention : ce réglage va modifier
+  votre couleur de référence. » précède le geste, puis « Attention, votre
+  couleur de référence a été modifiée. » le remplace tant qu'un réglage du
+  porteur existe. Une couleur presque grise n'a pas de teinte à régler
+  (`[DER-15]`). Un glisser prévisualise une fois par image au plus, la fin
+  du geste range, et Échap rend la palette d'avant le geste. Sous les
+  curseurs, « La dérive de teinte s'applique ensuite. », l'origine des parts,
+  le retour aux réglages communs et les alertes qui comparent les profils.
+  Une palette à une intensité a cette carte sans segments, avec
+  l'avertissement ; sa dérive n'a qu'un tracé, sans synchronisation ni
+  profil à choisir (`[ENT-14]`). Repliée,
   une carte annonce dans son résumé le point à vérifier qui la concerne, des
   profils confondus par exemple. Un lien de message qui vise un réglage déplie
   sa carte avant de focaliser le contrôle. Les deux cartes suivent l'aperçu,
-  Intensités puis Dérive de teinte, avant les Garanties de contraste
+  « Teinte, saturation, luminosité » puis Dérive de teinte, avant les Garanties de contraste
   (`[UI-09]`) : la palette se règle avant de se juger. L'Interface de test
   (`[UI-14]`) ferme l'onglet.
 - `[UI-14]` L'Interface de test est la dernière carte de l'onglet Création,
@@ -1578,20 +1649,21 @@ palette » gardent leurs libellés au-dessus des champs.
   Thème Light, elle est trop claire pour les bordures de champ. », avec le
   premier rôle manqué de chaque thème, trop claire en Light, trop sombre en
   Dark. Suivent l'originale et la proposition en grandes pastilles côte à
-  côte ; « − » et « + » par pas de 0,01 de luminosité OKLCH, chroma et
-  teinte gardées, et entre eux une piste qui peint les propositions
-  voisines et marque d'un trait le passage d'une nuance à la suivante ;
-  une ligne qui donne la nuance visée et ce que chaque pas voisin
-  changerait ; le code de la proposition, saisissable ; les garanties
+  côte ; « − » et « + » par pas de 0,01 de la luminosité du profil porteur
+  (`[ENT-15]`), de −5 à +2 pas, et entre eux une piste qui peint les
+  propositions voisines ; une ligne qui donne la nuance visée, que la
+  luminosité ne change pas (`[MOT-17]`) ; le code de la proposition,
+  saisissable, qui prend le pas le plus proche ; les garanties
   manquées avant ou après, en tableau (garantie, thème, avant, après et son
   badge), le thème et l'intensité passant en titre de groupe sous 552 px
   de fenêtre ; le bilan de chaque intensité ; puis « Annuler » et
-  « Appliquer ». Seul « Appliquer » range : la proposition devient la
-  référence de la palette courante, et `originale` garde celle du premier
-  ajustement. « Annuler », Échap et un clic sur le voile referment sans
+  « Appliquer ». Seul « Appliquer » range : le pas devient la luminosité du
+  porteur, comme dans la carte « Teinte, saturation, luminosité », et
+  `originale` garde la référence d'avant le premier réglage. La modale
+  s'ouvre au pas de la luminosité rangée. « Annuler », Échap et un clic sur le voile referment sans
   rien écrire. Chaque fermeture rend le focus au lien, ou au code quand le
   lien a disparu. « Revenir à l'originale » rend l'originale et retire le
-  champ ; un code saisi dans la configuration le retire aussi, et une
+  champ, avec les réglages du porteur (`[ENT-15]`) ; un code saisi dans la configuration le retire aussi, et une
   notice le dit. Aucun ajustement ne se fait sans le geste du designer.
 - `[UI-13]` Aucune couleur ne se choisit dans le sélecteur du navigateur, qui
   s'ouvre en RGB dans Figma. La pastille de la couleur de référence, celle
@@ -1701,23 +1773,27 @@ qui le créera.
 | Onglet Création sans palette choisie | « Sélectionner une palette », l'invitation sous le filet, ni menu ni palette |
 | Premier lancement, palette créée | La première palette ouverte, recette rangée |
 | Création ouverte | La carte de création sous le sélecteur, en P2 : nom et couleur de référence, Modèle, « Une intensité » choisie, « Créer la palette » et « Annuler » |
-| Palette à une intensité | La carte « Une intensité » choisie, une rangée par thème sans nom de profil, ni carte Intensités, ni bascule des garanties |
+| Palette à une intensité | La carte « Une intensité » choisie, une rangée par thème sans nom de profil, ni bascule des garanties |
 | Palette à deux intensités | La carte « Deux intensités » choisie, « Référence exacte dans » et « Auto a choisi Vivid » dans la carte |
 | Palette en saisie | Aperçu à jour, rien de généré |
 | Référence Soft | Une référence peu intense, portée par Soft, avec son repère et sa nuance |
 | Référence Vivid | Une référence intense, portée par Vivid, nuance différente en Light et en Dark |
-| Palette de base forcée | Soft forcé sous « Référence exacte dans » sur une couleur saturée : même code, repère Soft, intensité propre dans « Intensités » |
+| Palette de base forcée | Soft forcé sous « Référence exacte dans » sur une couleur saturée : même code, repère Soft, saturation propre dans « Teinte, saturation, luminosité » |
+| Teinte, saturation, luminosité, à une intensité | La carte dépliée sans segments, l'avertissement avant le geste, trois rangées |
+| Un profil réglé seul | Soft tourné de 8°, aucun avertissement, la lettre de Vivid sur chaque piste, le repère de la référence |
+| Avant un réglage du porteur | Vivid ◆ choisi, l'avertissement avant tout geste |
+| Référence modifiée | L'avertissement après le geste, « Ajustée depuis » sous le code, le porteur fixé par les réglages |
 | Garanties respectées | Bascule ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs |
 | Garantie en échec | Bascule ✗ sur le profil, première ligne en échec choisie, arc de danger, lien vers le réglage |
 | Garantie de l'autre thème | Ligne qui compte les garanties manquées de l'autre thème, aperçu basculé, « Revenir au thème » |
 | Détail de la référence | La nuance de la référence choisie : usages, garanties avec numéros, repère ◆ |
 | Nuance sans rôle | « Sans rôle », puis la table des contrastes, fond du thème, blanc et noir, chacun avec son badge |
 | Nuance désélectionnée | La nuance choisie recliquée : détail refermé, focus resté sur la pastille |
-| Cartes repliées | « Intensités » et « Dérive de teinte » repliées, leur résumé, un point à vérifier annoncé |
+| Cartes repliées | « Teinte, saturation, luminosité » et « Dérive de teinte » repliées, leur résumé, un point à vérifier annoncé |
 | Fond personnalisé | Un fond saturé peint sous le nuancier, textes et focus lisibles dessus |
 | Fond dans le sélecteur de couleur | La pastille du fond ouverte, la mention du fond commun à toutes les palettes |
 | Interface de test | L'écran de réglages peint de la palette, aux deux thèmes de l'aperçu |
-| Ajuster la référence | Le panneau ouvert après un pas : originale et proposition, nuance visée, garanties avant et après |
+| Ajuster la référence | La modale après deux pas : originale et proposition, nuance visée, garanties avant et après |
 | Référence ajustée | « Ajustée depuis #16A34A · Revenir à l'originale » sous le code |
 | Palette libre | Libre pressé, six puces allumées, l’aperçu à six colonnes sans `on-solid` ni accolades, aucune carte des garanties |
 | Référence dans le sélecteur de couleur | La pastille de la référence ouverte, les nuances Vivid de la palette proposées |

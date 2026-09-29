@@ -100,7 +100,6 @@ export const TEXTES_DE_L_ONGLET = {
   configuration: "Palette settings",
   apercu: "Preview",
   garanties: "Contrast guarantees",
-  intensites: "Intensities",
   derive: "Hue shift",
 } as const;
 
@@ -112,7 +111,7 @@ export function titreDeGroupe(titre: string, nombre: number): string {
 /** Le libellé du lien qu'un message pose vers un réglage ([VER-15]). */
 export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
   reference: "Reference colour",
-  'intensites-palette': "Palette intensities",
+  'intensites-palette': "Hue, saturation, lightness",
   derive: "Hue shift",
   'luminosite-commune': "Shade lightness",
   fonds: "Background colours",
@@ -294,7 +293,6 @@ export function constatDeGarantie(manque: ManqueDeGarantie): Constat {
 /** Les réglages propres à une palette (section 8.1, [ENT-09]). */
 export const TEXTES_AVANCES = {
   avance: "Settings for this palette",
-  partDuProfil: { soft: "Soft palette intensity", vivid: "Vivid palette intensity" },
   reprendre: "Use shared intensity settings",
 } as const;
 
@@ -326,6 +324,58 @@ export const TEXTES_DE_LA_BASE = {
   choixAutomatique: (profil: Profil) => `Auto selected ${NOM_DU_PROFIL[profil]}`,
   choixAVenir: (profil: Profil) => `Auto will select ${NOM_DU_PROFIL[profil]}`,
 } as const;
+
+/**
+ * La carte « Teinte, saturation, luminosité » (Z10.6, maquette Z10.4, forme
+ * A). Le titre et les deux avertissements sont validés ; les autres textes
+ * attendent la validation (N143 à N146).
+ */
+export const TEXTES_DES_REGLAGES = {
+  titre: "Hue, saturation, lightness",
+  regler: "Adjust",
+  cible: "Profile to adjust",
+  lesDeux: "Both",
+  deuxProfils: "Soft and Vivid",
+  grandeurs: { teinte: "Hue", saturation: "Saturation", luminosite: "Lightness" },
+  retablir: "Reset",
+  retablirLa: (grandeur: string) => `Reset ${grandeur.toLowerCase()}`,
+  etiquette: (grandeur: string, profil: string) => `${profil} ${grandeur.toLowerCase()}`,
+  avertissementAvant: "Warning: this adjustment will change your reference colour.",
+  avertissementApres: "Warning: your reference colour has been changed.",
+  pied: "The hue shift is applied afterwards.",
+  porteurFige: (profil: Profil) => `Reference in ${NOM_DU_PROFIL[profil]}, fixed by the adjustments. Changing profile will change your reference colour.`,
+} as const;
+
+/** Une teinte réglée, signée, au centième : « +6° », « −12,5° ». */
+export function teinteReglee(valeur: number): string {
+  return `${valeur > 0 ? '+' : valeur < 0 ? '−' : ''}${nombreEcrit(Math.abs(valeur))}°`;
+}
+
+/** Une luminosité réglée, signée, au millième : « +0,02 », « −0,005 ». */
+export function luminositeReglee(valeur: number): string {
+  return `${valeur > 0 ? '+' : valeur < 0 ? '−' : ''}${nombreEcrit(Math.abs(valeur))}`;
+}
+
+/** Une saturation, en pour cent entiers : « 45 % ». */
+export function saturationReglee(valeur: number): string {
+  return `${Math.round(valeur * 100)}%`;
+}
+
+/**
+ * Le résumé de la carte repliée (N146) : les réglages de chaque profil, ou
+ * « Aucun réglage », puis la saturation de chaque profil. Un profil sans nom
+ * est la rampe d'une palette à une intensité.
+ */
+export function resumeDesReglages(
+  reglages: readonly { readonly nom: string; readonly teinte: number; readonly clarte: number }[],
+  saturations: readonly { readonly nom: string; readonly part: number }[],
+  points: number,
+): string {
+  const regles = reglages.filter(({ teinte, clarte }) => teinte !== 0 || clarte !== 0)
+    .map(({ nom, teinte, clarte }) => [nom, teinte !== 0 ? teinteReglee(teinte) : '', clarte !== 0 ? luminositeReglee(clarte) : ''].filter(Boolean).join(' '));
+  const saturation = saturations.map(({ nom, part }) => `${nom || "Saturation"} ${saturationReglee(part)}`).join(' · ');
+  return `${regles.length > 0 ? regles.join(' · ') : "No adjustment"} · ${saturation}${pointsAVerifier(points)}`;
+}
 
 /** Le choix des intensités d'une palette, en deux cartes ([ENT-14], maquettes Y2.1 et Y2.6). */
 export const TEXTES_DES_INTENSITES_DE_PALETTE = {
@@ -477,22 +527,6 @@ const ORIGINES: Record<DeriveRangee['origine'], string> = { tailwind: 'Tailwind'
 function pointsAVerifier(nombre: number): string {
   if (nombre === 0) return '';
   return nombre === 1 ? " · 1 point to check" : ` · ${nombre} points to check`;
-}
-
-const ORIGINE_DES_INTENSITES: Record<'communes' | 'designer' | 'grise', string> = {
-  communes: "Shared",
-  designer: "Custom",
-  grise: "Almost grey",
-};
-
-/**
- * Le résumé de la carte Intensités (N040) : leur origine, les deux intensités,
- * puis les points à vérifier. Une palette de base forcée sans intensités
- * propres se nomme par sa base.
- */
-export function resumeDesIntensites(origine: 'designer' | 'grise' | undefined, base: Profil | undefined, parts: { soft: number; vivid: number }, points: number): string {
-  const nom = !origine && base ? `Reference in ${NOM_DU_PROFIL[base]}` : ORIGINE_DES_INTENSITES[origine ?? 'communes'];
-  return `${nom} · Soft ${nombreEcrit(parts.soft)} · Vivid ${nombreEcrit(parts.vivid)}${pointsAVerifier(points)}`;
 }
 
 /** Le résumé de la carte Dérive de teinte (N041) : le préréglage et la synchronisation. */
@@ -914,6 +948,15 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'intensites-incompatible': (champ) => `${champ}: a single-intensity palette has no base palette, custom intensities or freeform shades, and its hue shifts stay linked. Remove this field from the imported file.`,
   'fonds-sombres-bornes': (champ, valeur) => `${champ}: enter an intensity between 0 and 1. Received: ${valeur}.`,
   'contenu-sans-theme': (champ) => `${champ}: keep at least one theme, Light or Dark.`,
+  // Les huit règles du format 5 (Z10.5, N141).
+  'reglages-bornes': (champ, valeur) => `${champ}: “${valeur}” is out of range. Hue goes from −30° to +30°, lightness from −0.05 to +0.02, saturation from 0 to 1.`,
+  'reglage-nul': (champ) => `${champ}: a zero adjustment is not saved. Remove this field from the imported file.`,
+  'reglages-intensites': (champ) => `${champ}: this adjustment does not match the palette’s number of intensities. Remove this field from the imported file.`,
+  'porteur-base': (champ) => `${champ}: the base palette already sets the profile that holds the reference. Remove this field from the imported file.`,
+  'porteur-manquant': (champ) => `${champ}: set the profile that holds the reference, soft or vivid, in the imported file.`,
+  'reglages-sans-originale': (champ) => `${champ}: these adjustments move the reference, but the original colour is missing. Have this field checked in the imported file.`,
+  'depart-sans-reglage': (champ) => `${champ}: no adjustment starts from this colour. Remove this field from the imported file.`,
+  'depart-identique': (champ) => `${champ}: it is identical to the original colour. Remove this field from the imported file.`,
 };
 
 /** Le texte d'un refus de [REC-05]. */
@@ -1006,6 +1049,8 @@ const NOMS_DES_CHAMPS: Record<ChampDePalette, string> = {
   // N101 : les deux champs du format 3.
   crans: "freeform palette shades",
   originale: "original reference colour",
+  // N142 : le champ du format 5.
+  reglages: "hue, saturation and lightness",
 };
 
 /** Les valeurs modifiées de chaque palette, palette de base comprise (V12.2, N072). */

@@ -1,18 +1,17 @@
 /**
- * Ce que le panneau « Ajuster la référence » calcule (W7, section 3 de la
- * conception du format 3), sans DOM : le pas de départ, la proposition d'un
- * pas, la nuance qu'elle vise dans chaque thème, l'annonce d'un pas qui
- * changerait ce numéro, et les garanties avant et après. Rien ne se range
- * ici : seul « Appliquer » change la palette, par `appliquerLAjustement`.
+ * Ce que la modale « Ajuster la référence » calcule (W7, réponse R1 de la
+ * maquette Z10.4), sans DOM : elle règle la luminosité du profil porteur, par
+ * pas de 0,01, dans les bornes de la carte (Z10.5). Un pas translate la rampe
+ * du porteur, la référence avec elle. Rien ne se range ici : seul
+ * « Appliquer » change la palette, par le geste de luminosité de la carte.
  */
 import {
+  BORNES_DES_REGLAGES,
   MODES,
   ancrageDe,
-  ecrireHexa,
+  cleDuPorteur,
   intensitesDe,
   lireHexa,
-  pasDepuisLOriginale,
-  propositionDAjustement,
   verifierPromesses,
   type Intensite,
   type Mode,
@@ -21,40 +20,38 @@ import {
   type Recette,
 } from 'ucm-couleur';
 
-import { appliquerLAjustement, originaleDe } from './edition';
+import { reglerClarte, valeursDe } from './edition';
 
-/**
- * Le pas à l'ouverture du panneau : 0 sur une palette jamais ajustée, sinon le
- * pas qui mène de l'originale à la référence, quand la référence en est une
- * proposition. Une référence saisie ailleurs repart de 0.
- */
+/** Un pas de la modale, en clarté OKLCH, et les pas extrêmes que les bornes de la carte permettent. */
+const PAS = 0.01;
+
+const PAS_EXTREMES = { bas: Math.round(BORNES_DES_REGLAGES.clarte.bas / PAS), haut: Math.round(BORNES_DES_REGLAGES.clarte.haut / PAS) };
+
+/** Le pas à l'ouverture : celui qui mène à la luminosité rangée du porteur, arrondi au pas le plus proche. */
 export function pasALOuverture(recette: Recette, palette: Palette): number {
-  if (!palette.originale) return 0;
-  const originale = lireHexa(palette.originale);
-  const reference = lireHexa(palette.reference);
-  if (!originale || !reference) return 0;
-  return pasDepuisLOriginale(originale, reference, recette.gamut) ?? 0;
+  const clarte = valeursDe(palette).clarte[cleDuPorteur(recette, palette)] ?? 0;
+  return Math.min(PAS_EXTREMES.haut, Math.max(PAS_EXTREMES.bas, Math.round(clarte / PAS)));
 }
 
-/** La proposition à `pas` pas de l'originale, en hexa, ou `null` quand la luminosité sortirait de [0, 1]. */
+/** La palette à `pas` pas de luminosité du porteur, telle qu'« Appliquer » la rangerait ; `null` hors des bornes. */
+export function paletteAuPas(recette: Recette, palette: Palette, pas: number): Palette | null {
+  if (pas < PAS_EXTREMES.bas || pas > PAS_EXTREMES.haut) return null;
+  return reglerClarte(recette, palette, cleDuPorteur(recette, palette), pas * PAS);
+}
+
+/** La référence que la palette aurait à `pas` pas, en hexa ; `null` hors des bornes. */
 export function propositionAuPas(recette: Recette, palette: Palette, pas: number): string | null {
-  const originale = lireHexa(originaleDe(palette));
-  if (!originale) return null;
-  const proposee = propositionDAjustement(originale, pas, recette.gamut);
-  return proposee ? ecrireHexa(proposee) : null;
+  return paletteAuPas(recette, palette, pas)?.reference ?? null;
 }
 
-/** Le pas le plus proche d'un code saisi dans le panneau : le pas suivant repart de sa luminosité. */
+/** Le pas dont la proposition ressemble le plus à un code saisi dans la modale, octet par octet. */
 export function pasLePlusProche(recette: Recette, palette: Palette, hexa: string): number {
-  const originale = lireHexa(originaleDe(palette));
   const saisie = lireHexa(hexa);
-  if (!originale || !saisie) return 0;
-  const exact = pasDepuisLOriginale(originale, saisie, recette.gamut);
-  if (exact !== null) return exact;
-  let meilleur = 0;
+  if (!saisie) return pasALOuverture(recette, palette);
+  let meilleur = pasALOuverture(recette, palette);
   let ecart = Infinity;
-  for (let pas = -100; pas <= 100; pas += 1) {
-    const proposee = propositionDAjustement(originale, pas, recette.gamut);
+  for (let pas = PAS_EXTREMES.bas; pas <= PAS_EXTREMES.haut; pas += 1) {
+    const proposee = lireHexa(propositionAuPas(recette, palette, pas) ?? '');
     if (!proposee) continue;
     const distance = proposee.reduce((total, canal, rang) => total + Math.abs(canal - saisie[rang]), 0);
     if (distance < ecart) {
@@ -63,11 +60,6 @@ export function pasLePlusProche(recette: Recette, palette: Palette, hexa: string
     }
   }
   return meilleur;
-}
-
-/** La palette telle qu'« Appliquer » la rangerait, ou `null` pour un hexa illisible. */
-export function paletteAjustee(recette: Recette, palette: Palette, proposition: string): Palette | null {
-  return appliquerLAjustement(recette, palette, proposition);
 }
 
 /** La nuance qui porterait la référence dans chaque thème. */
@@ -84,14 +76,12 @@ export interface ChangementDeNuance {
 /**
  * Ce que le pas voisin, `sens` vaut −1 ou +1, ferait au numéro de la
  * référence : la liste des thèmes où il change, vide sinon, `null` quand ce
- * pas sortirait de [0, 1]. Le panneau l'annonce sous le bouton, avant le clic.
+ * pas sortirait des bornes. L'ancrage se lit sur le départ (Z10.5) : un pas de
+ * luminosité ne change pas de nuance, et la liste reste vide.
  */
 export function changementAuPasVoisin(recette: Recette, palette: Palette, pas: number, sens: -1 | 1): ChangementDeNuance[] | null {
-  const actuelle = propositionAuPas(recette, palette, pas);
-  const voisine = propositionAuPas(recette, palette, pas + sens);
-  if (!actuelle || !voisine) return null;
-  const avant = paletteAjustee(recette, palette, actuelle);
-  const apres = paletteAjustee(recette, palette, voisine);
+  const avant = paletteAuPas(recette, palette, pas);
+  const apres = paletteAuPas(recette, palette, pas + sens);
   if (!avant || !apres) return null;
   const cransAvant = nuancesVisees(recette, avant);
   const cransApres = nuancesVisees(recette, apres);
@@ -114,7 +104,7 @@ export interface GarantieComparee {
 }
 
 /**
- * Les garanties à montrer dans le panneau : celles qui sont manquées avant ou
+ * Les garanties à montrer dans la modale : celles qui sont manquées avant ou
  * après la proposition, dans l'ordre du moteur. Une garantie tenue des deux
  * côtés ne se montre pas.
  */

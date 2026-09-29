@@ -6,7 +6,7 @@
  * écarts de peinture du dernier dessin (L6.14). Les nombres sont ceux du
  * moteur, sans arrondi : un outil qui relit le rapport juge lui-même.
  */
-import { aUneIntensite, lireHexa, mesurerCran, rampeDe, type Alerte, type Intensite, type Mode, type Profil, type Promesse, type Recette } from 'ucm-couleur';
+import { aUneIntensite, lireHexa, mesurerCran, rampeDe, type Alerte, type Intensite, type Mode, type Profil, type Promesse, type Recette, type Reglages } from 'ucm-couleur';
 
 import { analyserPalette } from './analyse';
 import type { ProfilDuDocument } from './lecture';
@@ -27,6 +27,8 @@ export interface PaletteDuRapport {
   readonly reference: string;
   /** La référence d'avant le premier ajustement (W7), `null` sans ajustement. */
   readonly originale: string | null;
+  /** Teinte, saturation et luminosité réglées dans la carte (Z10.5), `null` sans réglage. */
+  readonly reglages: Reglages | null;
   /** Vrai pour une palette libre (W6) : ses crans sont ceux de sa liste, et elle n'a aucune promesse. */
   readonly libre: boolean;
   /** Le nombre d'intensités de la palette ([ENT-14]) : une rampe sans nom de profil, ou Soft et Vivid. */
@@ -95,6 +97,7 @@ export function rapportDeLaRecette(
         nom: palette.nom ?? null,
         reference: palette.reference,
         originale: palette.originale ?? null,
+        reglages: palette.reglages ?? null,
         libre: analyse.libre,
         intensites: une ? 1 : 2,
         ancrage: porteur === 'unique' ? ancrage : { profil: porteur, ...ancrage },

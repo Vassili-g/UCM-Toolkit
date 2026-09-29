@@ -20,7 +20,6 @@ import {
   type Mode,
   type Palette,
   type Promesse,
-  aUneIntensite,
 } from 'ucm-couleur';
 
 /**
@@ -102,11 +101,11 @@ export function carteDuMessage(cibles: readonly CibleDAction[]): CarteDuMessage 
  * Les réglages qu'une promesse manquée ouvre : l'intensité et la dérive de la
  * palette, puis la luminosité commune, qui touche toutes les palettes, et
  * enfin l’ajustement de la référence, qui ne touche que sa luminosité (W7.1).
- * Une palette à une intensité n'a pas de carte Intensités ([ENT-14]).
+ * Toute palette a la carte « Teinte, saturation, luminosité », une intensité
+ * comprise (Z10.6).
  */
-export function ciblesDeLaPromesse(palette: Palette): CibleDAction[] {
-  const suite: CibleDAction[] = ['derive', 'luminosite-commune', 'ajuster-reference'];
-  return aUneIntensite(palette) ? suite : ['intensites-palette', ...suite];
+export function ciblesDeLaPromesse(): CibleDAction[] {
+  return ['intensites-palette', 'derive', 'luminosite-commune', 'ajuster-reference'];
 }
 
 /**

@@ -65,24 +65,24 @@ test('[ENT-09] reprendre les parts de la recette retire les parts du designer, e
 
 test('[ENT-11] forcer une palette de base remplace les intensités du designer ; revenir à Auto retire le choix', () => {
   const designer = poserPart(RECETTE, PALETTE, 'soft', 0.3);
-  const forcee = choisirLaBase(designer, 'soft');
+  const forcee = choisirLaBase(RECETTE, designer, 'soft');
   assert.equal(forcee.base, 'soft');
   assert.equal(forcee.parts, undefined);
   assert.equal(profilPorteur(RECETTE, forcee), 'soft');
-  const auto = choisirLaBase(forcee, 'auto');
+  const auto = choisirLaBase(RECETTE, forcee, 'auto');
   assert.equal('base' in auto, false);
   assert.equal(profilPorteur(RECETTE, auto), 'vivid');
 });
 
 test('[ENT-11] une référence changée sous une palette de base forcée garde son profil, et son intensité la suit', () => {
-  const forcee = choisirLaBase(PALETTE, 'soft');
+  const forcee = choisirLaBase(RECETTE, PALETTE, 'soft');
   const terne = changerReference(RECETTE, forcee, '#A0B599')!;
   assert.equal(profilPorteur(RECETTE, terne), 'soft');
   assert.equal(partsDe(RECETTE, terne).soft, arrondir(partDeChroma(lireHexa('#A0B599')!, 'srgb'), 3));
 });
 
 test('[ENT-11] un glisser d’intensité sous une palette de base forcée ne change pas le profil porteur', () => {
-  const glissee = poserPart(RECETTE, choisirLaBase(PALETTE, 'vivid'), 'vivid', 0.2);
+  const glissee = poserPart(RECETTE, choisirLaBase(RECETTE, PALETTE, 'vivid'), 'vivid', 0.2);
   assert.equal(glissee.parts?.origine, 'designer');
   assert.equal(profilPorteur(RECETTE, glissee), 'vivid');
 });

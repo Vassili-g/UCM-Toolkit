@@ -1,8 +1,8 @@
 /**
  * Ajuster la référence ([UI-15], W7), en modale centrée au-dessus du panneau
  * (maquette Z3.4, forme A et présentation M2) : la phrase qui dit pourquoi,
- * l'originale et la proposition côte à côte, un pas de 0,01 de luminosité
- * OKLCH vers le sombre ou le clair, chroma et teinte gardées, une piste qui
+ * l'originale et la proposition côte à côte, un pas de 0,01 de la luminosité
+ * du profil porteur (réponse R1 de la maquette Z10.4), une piste qui
  * marque d'un trait le passage d'une nuance à la suivante, une ligne pour la
  * nuance visée et ce que chaque pas voisin changerait, le code de la
  * proposition saisissable, les garanties avant et après en tableau, et le
@@ -21,7 +21,7 @@ import {
   garantiesComparees,
   manqueesParIntensite,
   nuancesVisees,
-  paletteAjustee,
+  paletteAuPas,
   pasALOuverture,
   pasLePlusProche,
   propositionAuPas,
@@ -33,8 +33,8 @@ import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerSocleLocalise } from './socleLocalise';
 
 export interface GestesDeLAjustement {
-  /** Reçoit la proposition, que l'onglet applique à la palette courante. */
-  appliquer(proposition: string): void;
+  /** Reçoit le pas choisi, que l'onglet pose en luminosité du porteur sur la palette courante (R1). */
+  appliquer(pas: number): void;
   /** L'élément qui reprend le focus à la fermeture : le lien, ou le code quand le lien a disparu (Y8.0). */
   retour(): HTMLElement;
 }
@@ -177,17 +177,14 @@ function construireVues(i18n: Localisation) {
     let recette: Recette | null = null;
     let palette: Palette | null = null;
     let pas = 0;
-    /** La proposition montrée : celle du pas, ou un code saisi dans la modale. */
-    let courante: string | null = null;
+    /** Le pas à l'ouverture : « Appliquer » ne vaut que pour un autre pas. */
+    let pasDeDepart = 0;
     /** L'inertie de chaque élément de la page avant l'ouverture, rendue à la fermeture. */
     let inerties: { element: HTMLElement; inerte: boolean }[] = [];
 
     function faireUnPas(sens: -1 | 1): void {
-      if (!recette || !palette) return;
-      const suivante = propositionAuPas(recette, palette, pas + sens);
-      if (!suivante) return;
+      if (!recette || !palette || propositionAuPas(recette, palette, pas + sens) === null) return;
       pas += sens;
-      courante = suivante;
       rendre();
     }
 
@@ -198,8 +195,9 @@ function construireVues(i18n: Localisation) {
       }
       code.setAttribute('aria-invalid', 'false');
       const saisie = code.value.trim().startsWith('#') ? code.value.trim() : `#${code.value.trim()}`;
-      courante = saisie.toUpperCase();
-      pas = pasLePlusProche(recette, palette, courante);
+      // Un code saisi prend le pas dont la proposition lui ressemble le plus : la modale ne règle que la luminosité.
+      pas = pasLePlusProche(recette, palette, saisie);
+      code.value = propositionAuPas(recette, palette, pas) ?? code.value;
       rendre();
     });
 
@@ -210,11 +208,9 @@ function construireVues(i18n: Localisation) {
      */
     function rendreLaPiste(lue: Recette, ajustee: Palette): void {
       const pasMontres = Array.from({ length: 2 * DEMI_PISTE + 1 }, (_, rang) => pas - DEMI_PISTE + rang);
-      const propositions = pasMontres.map((candidat) => propositionAuPas(lue, ajustee, candidat));
-      const visees = propositions.map((hexa) => {
-        const apres = hexa ? paletteAjustee(lue, ajustee, hexa) : null;
-        return apres ? nuancesVisees(lue, apres) : null;
-      });
+      const palettes = pasMontres.map((candidat) => paletteAuPas(lue, ajustee, candidat));
+      const propositions = palettes.map((candidate) => candidate?.reference ?? null);
+      const visees = palettes.map((candidate) => (candidate ? nuancesVisees(lue, candidate) : null));
       const couleurs = propositions.filter((hexa): hexa is string => hexa !== null);
       piste.style.background = couleurs.length > 1 ? `linear-gradient(to right, ${couleurs.join(', ')})` : couleurs[0] ?? 'transparent';
       const traits = visees.slice(1).flatMap((visee, rang) => {
@@ -293,7 +289,9 @@ function construireVues(i18n: Localisation) {
     }
 
     function rendre(): void {
-      if (!recette || !palette || !courante) return;
+      if (!recette || !palette) return;
+      const apres = paletteAuPas(recette, palette, pas);
+      const courante = apres?.reference ?? palette.reference;
       const manques = manquesDeLaPalette(recette, palette);
       i18n.lier(pourquoi, 'textContent', manques.length > 0 ? pourquoiAjuster(manques) : '');
       pourquoi.hidden = manques.length === 0;
@@ -304,14 +302,13 @@ function construireVues(i18n: Localisation) {
       plusSombre.disabled = propositionAuPas(recette, palette, pas - 1) === null;
       plusClair.disabled = propositionAuPas(recette, palette, pas + 1) === null;
 
-      const apres = paletteAjustee(recette, palette, courante);
       const voisins = ([-1, 1] as const).flatMap((sens) => {
         const changements = changementAuPasVoisin(recette!, palette!, pas, sens);
         return changements && changements.length > 0 ? [{ sens, changements }] : [];
       });
       i18n.lier(nuances, 'textContent', apres ? nuancesDeLAjustement(nuancesVisees(recette, apres), voisins) : '');
       if (apres) rendreLeTableau(recette, palette, apres);
-      boutonAppliquer.disabled = !apres || apres.reference === palette.reference;
+      boutonAppliquer.disabled = !apres || pas === pasDeDepart;
     }
 
     /** Les éléments focalisables de la modale, dans l'ordre de la tabulation. */
@@ -336,11 +333,10 @@ function construireVues(i18n: Localisation) {
 
     /** « Appliquer » : la modale se referme avant que l'onglet se rende, et le focus suit le rendu. */
     function valider(): void {
-      if (!recette || !palette || !courante) return;
-      const choisie = courante;
-      if (!paletteAjustee(recette, palette, choisie)) return;
+      if (!recette || !palette || !paletteAuPas(recette, palette, pas)) return;
+      const choisi = pas;
       refermer();
-      gestes.appliquer(choisie);
+      gestes.appliquer(choisi);
       gestes.retour().focus();
     }
 
@@ -379,7 +375,7 @@ function construireVues(i18n: Localisation) {
         recette = lue;
         palette = ajustee;
         pas = pasALOuverture(lue, ajustee);
-        courante = ajustee.reference.toUpperCase();
+        pasDeDepart = pas;
         code.setAttribute('aria-invalid', 'false');
         rendre();
         inerties = Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && element !== voile).map((element) => ({ element, inerte: element.inert }));

@@ -11,8 +11,7 @@ import {
   boutsDe,
   fabriquerCran,
   normaliserTeinte,
-  rgb8VersOklch,
-  referenceDe,
+  pivotDe,
   teinteA,
   type Ancrage,
   type Cran,
@@ -163,7 +162,10 @@ function construireVues(i18n: Localisation) {
         const courbe = grille.courbes.light;
         const total = courbe.length;
         const bouts = boutsDe(recette);
-        const reference = rgb8VersOklch(referenceDe(palette));
+        // Chaque profil pivote autour de son départ réglé (Z10.5) : sa teinte, et la clarté du départ.
+        const pivot = (profil: Profil | 'unique') => pivotDe(recette, palette, profil);
+        const porteurDuPivot = ancrage.profil;
+        const reference = pivot(porteurDuPivot);
         const lie = palette.derive.lien;
         echelle = entrees.echelle;
         svg.setAttribute('viewBox', `0 0 ${cadre.largeur} ${HAUTEUR_TOTALE}`);
@@ -174,7 +176,7 @@ function construireVues(i18n: Localisation) {
         const porteur = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
         for (const trace of lie ? [porteur] : PROFILS) {
           const rangAncre = trace === porteur ? ancrage.rangs.light : null;
-          const sommets = ligneBrisee(courbe, reference, palette.derive[trace], bouts, rangAncre);
+          const sommets = ligneBrisee(courbe, pivot(trace), palette.derive[trace], bouts, rangAncre);
           const points = sommets.map(({ rang, angle }) => `${abscisse(rang, cadre, total)},${ordonnee(angle, cadre, echelle)}`);
           const ligne = element('polyline', { points: points.join(' ') });
           if (!lie && trace === 'soft') ligne.setAttribute('class', 'derive-trait derive-trait-soft');
@@ -207,9 +209,9 @@ function construireVues(i18n: Localisation) {
         const colonneDe = (numero: number, bord: number): number => (grille.crans.includes(numero) ? grille.crans.indexOf(numero) : bord);
         poignees = {
           clair: reference.L > bouts.clair ? null
-            : poignee('clair', colonneDe(50, 0), derive.clair, teinteA(bouts.clair, reference, derive, bouts), initiale, total),
+            : poignee('clair', colonneDe(50, 0), derive.clair, teinteA(bouts.clair, pivot(profil), derive, bouts), initiale, total),
           sombre: reference.L < bouts.sombre ? null
-            : poignee('sombre', colonneDe(950, total - 1), derive.sombre, teinteA(bouts.sombre, reference, derive, bouts), initiale, total),
+            : poignee('sombre', colonneDe(950, total - 1), derive.sombre, teinteA(bouts.sombre, pivot(profil), derive, bouts), initiale, total),
         };
         if (poignees.clair) enfants.push(poignees.clair);
         if (poignees.sombre) enfants.push(poignees.sombre);
@@ -220,7 +222,7 @@ function construireVues(i18n: Localisation) {
           const numero = element('text', { x, y: Y_CRANS, 'text-anchor': 'middle' });
           numero.setAttribute('class', 'derive-graduation');
           i18n.lier(numero, 'textContent', String(grille.crans[rang]));
-          const teinte = normaliserTeinte(teinteA(clarte, reference, palette.derive.vivid, bouts));
+          const teinte = normaliserTeinte(teinteA(clarte, pivot(porteurDuPivot === 'unique' ? 'unique' : 'vivid'), palette.derive.vivid, bouts));
           const bande = element('rect', { x: x - largeur / 2, y: Y_BANDE, width: largeur, height: HAUTEUR_DE_CASE });
           bande.setAttribute('fill', fabriquerCran(CLARTE_DE_LA_BANDE, teinte, recette.profils.vivid.part, recette.gamut).hexa);
           const cran = element('rect', { x: x - largeur / 2 + 1, y: Y_RAMPE, width: largeur - 2, height: HAUTEUR_DE_CASE, rx: 3 });

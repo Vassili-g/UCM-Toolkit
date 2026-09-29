@@ -14,10 +14,13 @@
  */
 import {
   aUneIntensite,
+  cleDuPorteur,
   estPresqueGrise,
+  intensitesDe,
   partDeLaReference,
   partsDesProfils,
   profilAutomatique,
+  profilPorteur,
   type Classement,
   type Mode,
   type Palette,
@@ -30,7 +33,6 @@ import { poserFond } from '../configuration';
 import {
   MOTIF_HEXA,
   ajouter,
-  appliquerLAjustement,
   basculerNuance,
   changerReference,
   choisirLaBase,
@@ -43,6 +45,7 @@ import {
   passerEnLibre,
   remplacerPalette,
   renommer,
+  reglerClarte,
   revenirALOriginale,
   revenirAuModele,
   supprimer,
@@ -63,13 +66,13 @@ import { creerVuesEditeur } from './derive/editeur';
 import type { StatutDuRangement } from './frontiere';
 import { creerVuesGaranties } from './garanties';
 import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
-import { creerVuesIntensites } from './intensites';
 import { creerVuesInterfaceDeTest } from './interfaceDeTest';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMenuPalette } from './menuPalette';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
 import { creerVuesNuancier } from './nuancier';
+import { creerVuesReglagesDeLaPalette } from './reglagesDeLaPalette';
 import { creerVuesSelecteur } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
 import { type Constat } from './textes';
@@ -123,13 +126,13 @@ function construireVues(i18n: Localisation) {
   const { createCreation } = creerVuesCreation(i18n);
   const { createEditeur } = creerVuesEditeur(i18n);
   const { createGaranties } = creerVuesGaranties(i18n);
-  const { createIntensites } = creerVuesIntensites(i18n);
+  const { createReglagesDeLaPalette } = creerVuesReglagesDeLaPalette(i18n);
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
   const { createMenuPalette } = creerVuesMenuPalette(i18n);
   const { messagesDeLaPalette } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
   const { createSelecteur } = creerVuesSelecteur(i18n);
-  const { TEXTES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesIntensites } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -275,12 +278,12 @@ function construireVues(i18n: Localisation) {
     });
     // La modale part de la palette telle qu'elle est à son ouverture (X2.7, R3) ; le focus revient au lien, ou au code quand le lien a disparu (Y8.0).
     const ajustement = createAjustement({
-      appliquer: (proposition) => {
+      // R1 : le pas choisi devient la luminosité du porteur, comme dans la carte (Z10.4).
+      appliquer: (pas) => {
         const courante = ouverte();
-        const ajustee = recette && courante ? appliquerLAjustement(recette, courante, proposition) : null;
-        if (!recette || !ajustee) return;
+        if (!recette || !courante) return;
         note = null;
-        valider(remplacerPalette(recette, ajustee));
+        valider(remplacerPalette(recette, reglerClarte(recette, courante, cleDuPorteur(recette, courante), pas / 100)));
       },
       retour: () => (lienDAjustement.hidden ? hexa : lienDAjustement),
     });
@@ -299,7 +302,7 @@ function construireVues(i18n: Localisation) {
       if (recette && courante) valider(remplacerPalette(recette, choisirLesIntensites(recette, courante, nombre)));
     }, (valeur) => {
       const courante = ouverte();
-      if (recette && courante) valider(remplacerPalette(recette, choisirLaBase(courante, valeur)));
+      if (recette && courante) valider(remplacerPalette(recette, choisirLaBase(recette, courante, valeur)));
     });
     const choixDeBase = choixDesIntensites.base;
     const choixAutomatique = choixDeBase.aide;
@@ -312,7 +315,7 @@ function construireVues(i18n: Localisation) {
     const choixDuModele = createChoixDuModele((valeur) => {
       const courante = ouverte();
       if (!recette || !courante) return;
-      valider(remplacerPalette(recette, valeur === 'libre' ? passerEnLibre(recette, courante) : revenirAuModele(courante)));
+      valider(remplacerPalette(recette, valeur === 'libre' ? passerEnLibre(recette, courante) : revenirAuModele(recette, courante)));
     });
     const puces = createPuces((numero) => {
       const courante = ouverte();
@@ -345,9 +348,9 @@ function construireVues(i18n: Localisation) {
       montrerLeTheme: (mode) => nuancier.montrerLeTheme(mode),
     });
 
-    // Cartes repliables Intensités et Dérive de teinte ([UI-12]).
-    const carteDesIntensites = createCarte({ titre: TEXTES_DE_L_ONGLET.intensites, repliable: { ouverte: false } }, i18n);
-    const intensites = createIntensites({
+    // Cartes repliables « Teinte, saturation, luminosité » et Dérive de teinte ([UI-12], Z10.6).
+    const carteDesIntensites = createCarte({ titre: TEXTES_DES_REGLAGES.titre, repliable: { ouverte: false } }, i18n);
+    const intensites = createReglagesDeLaPalette({
       previsualiser: (suivante) => modifier(suivante),
       valider: (suivante) => {
         if (recette) valider(remplacerPalette(recette, suivante));
@@ -499,7 +502,7 @@ function construireVues(i18n: Localisation) {
       idOuvert = id;
       creationOuverte = false;
       note = null;
-      const dansLeModele = choisirLaBase(renommer(palette, nomSaisi), base);
+      const dansLeModele = choisirLaBase(recette, renommer(palette, nomSaisi), base);
       valider(ajouter(recette, crans ? { ...passerEnLibre(recette, dansLeModele), crans: [...crans] } : dansLeModele));
       nom.focus();
     }
@@ -671,8 +674,11 @@ function construireVues(i18n: Localisation) {
       choixDeBase.poser(courante.base ?? 'auto');
       puces.element.hidden = !analyse.libre;
       puces.poser(analyse.grille.crans);
-      i18n.lier(choixAutomatique, 'textContent', courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante)));
-      choixAutomatique.hidden = Boolean(courante.base);
+      // Des réglages figent le porteur, et changer de profil déplacerait la référence : l'aide le dit avant le geste (Z10.5).
+      i18n.lier(choixAutomatique, 'textContent', courante.reglages
+        ? TEXTES_DES_REGLAGES.porteurFige(profilPorteur(lue, courante))
+        : courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante)));
+      choixAutomatique.hidden = Boolean(courante.base) && !courante.reglages;
       i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, nuancier.mode())}`);
 
       nuancier.afficher({ recette: lue, analyse, confondues: analyse.confusions });
@@ -686,13 +692,16 @@ function construireVues(i18n: Localisation) {
       // Une palette libre n'a pas de garantie : sa carte se retire (W6.5).
       garanties.element.hidden = analyse.libre;
       if (!analyse.libre) garanties.afficher({ recette: lue, palette: courante, analyse, mode: nuancier.mode() });
-      // Une palette à une intensité prend la part de sa référence : elle n'a pas de carte Intensités (I1, [ENT-14]).
-      carteDesIntensites.element.hidden = une || analyse.libre;
-      if (!une) {
-        intensites.afficher(lue, courante, analyse.part, messages.intensite);
-        const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
-        carteDesIntensites.poserResume(resumeDesIntensites(courante.parts?.origine, courante.base, partsDesProfils(lue, courante), pointsDIntensite));
-      }
+      // Toute palette a la carte, une intensité comprise : c'est là qu'elle affine sa référence (Z10.4, question 4).
+      intensites.afficher(lue, courante, messages.intensite);
+      const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
+      carteDesIntensites.poserResume(resumeDesReglages(
+        intensitesDe(courante).map((intensite) => ({ nom: intensite === 'unique' ? '' : NOM_DU_PROFIL[intensite], teinte: courante.reglages?.teinte?.[intensite === 'unique' ? 'vivid' : intensite] ?? 0, clarte: courante.reglages?.clarte?.[intensite === 'unique' ? 'vivid' : intensite] ?? 0 })),
+        une
+          ? [{ nom: '', part: courante.reglages?.part ?? partDeLaReference(lue, courante) }]
+          : (['soft', 'vivid'] as const).map((profil) => ({ nom: NOM_DU_PROFIL[profil], part: partsDesProfils(lue, courante)[profil] })),
+        pointsDIntensite,
+      ));
       poserLesMessages(messages.liste);
 
       // Une référence presque grise n'a pas de teinte : l'éditeur se désactive ([DER-15]).

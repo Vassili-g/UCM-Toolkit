@@ -28,7 +28,7 @@ import {
   resultatDuProfil,
   resultatDuProfilEnMots,
   resumeDeLaDerive,
-  resumeDesIntensites,
+  resumeDesReglages,
   texteDuRefus,
   titreDeGroupe,
   verdict,
@@ -224,9 +224,11 @@ test('[UI-12] une carte repliée se résume : préréglage et synchronisation, o
   const liee = { ...RECETTE.palettes[0], derive: { ...RECETTE.palettes[0].derive, lien: true } };
   assert.equal(resumeDeLaDerive(liee, false, 1), 'Personnalisée · synchronisée · 1 point à vérifier');
   assert.equal(resumeDeLaDerive(liee, true, 0), 'Désactivée pour une couleur presque grise');
-  assert.equal(resumeDesIntensites(undefined, undefined, { soft: 0.45, vivid: 0.95 }, 0), 'Communes · Soft 0,45 · Vivid 0,95');
-  assert.equal(resumeDesIntensites(undefined, 'vivid', { soft: 0.3, vivid: 0.3 }, 2), 'Référence dans Vivid · Soft 0,3 · Vivid 0,3 · 2 points à vérifier');
-  assert.equal(resumeDesIntensites('designer', 'vivid', { soft: 0.2, vivid: 0.8 }, 0), 'Propres · Soft 0,2 · Vivid 0,8');
+  const parts = [{ nom: 'Soft', part: 0.45 }, { nom: 'Vivid', part: 0.95 }];
+  const aucun = [{ nom: 'Soft', teinte: 0, clarte: 0 }, { nom: 'Vivid', teinte: 0, clarte: 0 }];
+  assert.equal(resumeDesReglages(aucun, parts, 0), 'Aucun réglage · Soft 45 % · Vivid 95 %');
+  assert.equal(resumeDesReglages([{ nom: 'Soft', teinte: 8, clarte: 0 }, { nom: 'Vivid', teinte: -2.5, clarte: -0.02 }], parts, 2), 'Soft +8° · Vivid −2,5° −0,02 · Soft 45 % · Vivid 95 % · 2 points à vérifier');
+  assert.equal(resumeDesReglages([{ nom: '', teinte: 0, clarte: 0.015 }], [{ nom: '', part: 0.894 }], 0), '+0,015 · Saturation 89 %', 'une intensité : sans nom de profil');
 });
 
 test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {

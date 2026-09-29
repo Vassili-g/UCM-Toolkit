@@ -16,6 +16,7 @@ const chemins = [
   ['TEXTES_DE_L_ONGLET', 'derive'], ['TEXTES_DE_L_ONGLET', 'configuration'],
   ['TEXTES_DE_LA_BASE', 'libelle'], ['TEXTES_DE_L_AJUSTEMENT', 'plusSombre'],
   ['TEXTES_DE_CONFIGURATION', 'contenu'], ['TEXTES_DE_CONFIGURATION', 'fondsSombres'],
+  ['TEXTES_DES_REGLAGES', 'titre'],
 ];
 function selecteurDansLaLangue(selecteur, langue) {
   for (const [domaine, cle] of chemins) selecteur = selecteur.replaceAll(CATALOGUES.fr[domaine][cle], CATALOGUES[langue][domaine][cle]);

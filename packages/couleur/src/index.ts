@@ -13,6 +13,7 @@ export * from './emplois';
 export * from './recette';
 export * from './empreinte';
 export * from './palette';
+export * from './reglages';
 export * from './promesses';
 export * from './alertes';
 export * from './garantie';

@@ -5,7 +5,7 @@
  *
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
-import { ecrireHexa, lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
+import { ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
 import { partDeChroma } from './contraste';
 import { PREREGLAGES, boutsDe, estLibre, grilleDe } from './nuances';
 import {
@@ -128,11 +128,54 @@ export function profilAutomatique(recette: Recette, palette: Palette): Profil {
 
 /**
  * Le profil qui porte la référence exacte d'une palette à deux intensités :
- * la palette de base forcée ([ENT-11]), sinon le classement automatique. Une
- * palette libre n'a pas de base : la validation la refuse.
+ * la palette de base forcée ([ENT-11]), sinon le porteur que les réglages ont
+ * figé (Z10.5), sinon le classement automatique. Une palette libre n'a pas de
+ * base : la validation la refuse.
  */
 export function profilPorteur(recette: Recette, palette: Palette): Profil {
-  return (estLibre(palette) ? undefined : palette.base) ?? profilAutomatique(recette, palette);
+  return (estLibre(palette) ? undefined : palette.base) ?? palette.reglages?.porteur ?? profilAutomatique(recette, palette);
+}
+
+/** La clé sous laquelle se rangent les réglages du porteur : `vivid` pour une palette à une intensité, comme sa dérive. */
+export function cleDuPorteur(recette: Recette, palette: Palette): Profil {
+  return aUneIntensite(palette) ? 'vivid' : profilPorteur(recette, palette);
+}
+
+/** Vrai quand un réglage déplace la référence : la teinte ou la clarté du porteur, ou la part d'une palette à une intensité. */
+export function aUnReglageDuPorteur(recette: Recette, palette: Palette): boolean {
+  const reglages = palette.reglages;
+  if (!reglages) return false;
+  const cle = cleDuPorteur(recette, palette);
+  return reglages.part !== undefined || reglages.teinte?.[cle] !== undefined || reglages.clarte?.[cle] !== undefined;
+}
+
+/**
+ * Le départ des réglages (Z10.5) : `depart`, sinon `originale`, quand un
+ * réglage du porteur existe ; sinon la référence. Le pivot, l'ancrage et le
+ * préréglage Tailwind le lisent : il ne bouge pas pendant les gestes.
+ */
+export function departDe(recette: Recette, palette: Palette): Rgb8 {
+  if (!aUnReglageDuPorteur(recette, palette)) return referenceDe(palette);
+  const couleur = lireHexa(palette.reglages?.depart ?? palette.originale ?? palette.reference);
+  if (!couleur) throw new Error(`Départ illisible pour la palette ${palette.id}. La recette n'a pas été validée.`);
+  return couleur;
+}
+
+/**
+ * Le pivot de la teinte d'une intensité (Z10.5) : la clarté du départ, et sa
+ * teinte plus celle que la carte règle pour ce profil. Sans réglage, la
+ * référence elle-même.
+ */
+export function pivotDe(recette: Recette, palette: Palette, intensite: Intensite): Oklch {
+  const depart = rgb8VersOklch(departDe(recette, palette));
+  const cle: Profil = intensite === 'unique' ? 'vivid' : intensite;
+  const teinte = palette.reglages?.teinte?.[cle] ?? 0;
+  return teinte === 0 ? depart : { ...depart, H: normaliserTeinte(depart.H + teinte) };
+}
+
+/** Le décalage de clarté d'une intensité, réglé dans la carte (Z10.5) ; 0 sans réglage. */
+export function decalageDe(palette: Palette, intensite: Intensite): number {
+  return palette.reglages?.clarte?.[intensite === 'unique' ? 'vivid' : intensite] ?? 0;
 }
 
 /** L'intensité qui porte la référence exacte : `unique`, ou le profil porteur. */
@@ -166,7 +209,8 @@ export interface Ancrage {
  * ou sa liste libre.
  */
 export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
-  const clarte = rgb8VersOklch(referenceDe(palette)).L;
+  // Le départ, fixe pendant les gestes : la luminosité du porteur translate sa rampe sans changer la nuance du ◆ (Z10.5).
+  const clarte = rgb8VersOklch(departDe(recette, palette)).L;
   const { crans, courbes } = grilleDe(recette, palette);
   const rangs = { light: rangPorteur(courbes.light, clarte), dark: rangPorteur(courbes.dark, clarte) };
   return {
@@ -187,16 +231,17 @@ function cranDeLaReference(reference: Rgb8): Cran {
  * porteur forcé donnerait, à la part de la référence, avec la dérive liée.
  */
 function rampeUnique(recette: Recette, palette: Palette): RampeParMode {
-  const reference = rgb8VersOklch(referenceDe(palette));
+  const pivot = pivotDe(recette, palette, 'unique');
   const { courbes } = grilleDe(recette, palette);
   const rampe = (mode: Mode): Cran[] => fabriquerRampe({
     courbe: courbes[mode],
     bouts: boutsDe(recette),
-    reference,
+    reference: pivot,
     derive: palette.derive.vivid,
     part: partDeLaReference(recette, palette),
     gamut: recette.gamut,
     sombre: mode === 'dark' ? fondsSombresDe(recette) : undefined,
+    decalage: decalageDe(palette, 'unique'),
   });
   return { light: rampe('light'), dark: rampe('dark') };
 }
@@ -225,6 +270,8 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
     derives: { soft: palette.derive.soft, vivid: palette.derive.vivid },
     gamut: recette.gamut,
     sombre: fondsSombresDe(recette),
+    pivots: { soft: pivotDe(recette, palette, 'soft'), vivid: pivotDe(recette, palette, 'vivid') },
+    decalages: { soft: decalageDe(palette, 'soft'), vivid: decalageDe(palette, 'vivid') },
   });
   return { ...communes, [ancrage.profil]: ancrer(communes[ancrage.profil as Profil]) };
 }

@@ -13,8 +13,7 @@ import {
   aUneIntensite,
   boutsDe,
   rampeDe,
-  referenceDe,
-  rgb8VersOklch,
+  pivotDe,
   teinteA,
   type Ancrage,
   type Palette,
@@ -348,7 +347,7 @@ function construireVues(i18n: Localisation) {
       for (const { valeur, choix } of boutonsDeProfil) choix.setAttribute('aria-pressed', String(valeur === profil));
       confirmation.hidden = !confirmationOuverte;
 
-      const reference = rgb8VersOklch(referenceDe(palette));
+      const reference = pivotDe(recette, palette, aUneIntensite(palette) ? 'unique' : profil);
       const bouts = boutsDe(recette);
       const tailwind = prereglageDe(recette, palette);
       // Un segment se juge sur les bouts de la dérive, aux numéros 50 et 950, et non sur les extrémités de la liste (W6).

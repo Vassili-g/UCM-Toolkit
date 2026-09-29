@@ -23,12 +23,14 @@ const {
   ajusterPartsGrises,
   boutsDe,
   classerRecette,
+  ecrireHexa,
   fnv1a,
   jsonCanonique,
   lireHexa,
   octetsUtf8,
   prereglageTailwind,
   recetteParDefaut,
+  referenceReglee,
   rgb8VersOklch,
 } = chargerLeMoteur();
 const { modeleDeCadre } = compiler(path.resolve(__dirname, '../src/planche/modele.ts'), 'galerie-modele');
@@ -111,6 +113,19 @@ const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)'
 /** Vert, ajusté d'un pas plus sombre : #16A34A devient #0DA047, et l'originale se garde (W7). */
 const VERT_AJUSTE = { ...palette('p-2b3c4d5e', 'Vert', '#0DA047'), originale: '#16A34A' };
 const deplierLaDerive = { clic: '[aria-label="Dérive de teinte"] .carte-bascule' };
+const deplierLesReglages = { clic: '[aria-label="Teinte, saturation, luminosité"] .carte-bascule' };
+
+/**
+ * Bleu réglé dans la carte « Teinte, saturation, luminosité » (Z10.5) : Soft
+ * tourné de 8°, Vivid, qui porte la référence, assombri de 0,02. La référence
+ * se tire de l'originale par le moteur, comme le geste la récrit.
+ */
+const BLEU_REGLE = {
+  ...BLEU,
+  reference: ecrireHexa(referenceReglee(lireHexa(BLEU.reference), 0, -0.02, undefined, recetteParDefaut().gamut)),
+  originale: BLEU.reference,
+  reglages: { teinte: { soft: 8 }, clarte: { vivid: -0.02 }, porteur: 'vivid' },
+};
 
 /** Sept palettes : une de plus que le seuil au-delà duquel tout dessiner se confirme. */
 const SEPT_PALETTES = [
@@ -671,12 +686,13 @@ const ETATS = [
   {
     id: 'ajustement-ouvert',
     titre: 'Ajuster la référence',
-    quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait un pas plus sombre.',
-    regarder: 'La modale après un pas : Originale #16A34A et Proposition #0DA047 côte à côte, la piste de luminosité entre « − » et « + » avec ses traits de nuance, « Nuance 600 dans les deux thèmes », le code, les deux garanties passées de ✗ à ✓ avec leur badge, « Soft ✓ inchangé · Vivid ✗ 2 → ✓ », puis Annuler et Appliquer actif.',
+    quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait deux pas plus sombres.',
+    regarder: 'La modale après deux pas : Originale #16A34A et Proposition #029D44 côte à côte, la piste de luminosité entre « − » et « + », la ligne de la nuance visée, le code, les deux garanties passées de ✗ à ✓ avec leur badge, « Soft ✓ inchangé · Vivid ✗ 2 → ✓ », puis Annuler et Appliquer actif.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
       { clic: '[aria-label="Configuration de la palette"] .colonnes-de-base .lien-de-constat' },
+      { clic: '[aria-label="Un pas plus sombre"]' },
       { clic: '[aria-label="Un pas plus sombre"]' },
     ],
   },
@@ -732,7 +748,7 @@ const ETATS = [
     id: 'palette-une-intensite',
     titre: 'Palette à une intensité',
     quand: 'Bleu porte une seule intensité, celle de sa couleur de référence.',
-    regarder: 'Le segment « Une » des intensités pressé, son aide, et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; ni carte Intensités, ni bascule Soft et Vivid dans les garanties, ni lien de synchronisation dans la dérive.',
+    regarder: 'Le segment « Une » des intensités pressé, son aide, et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; la carte « Teinte, saturation, luminosité » repliée, ni bascule Soft et Vivid dans les garanties, ni lien de synchronisation dans la dérive.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }]))],
   },
@@ -743,6 +759,38 @@ const ETATS = [
     regarder: 'Le segment « Deux » des intensités pressé, son aide, puis « Référence exacte dans » Auto pressé avec « Auto a choisi Vivid » dessous ; Soft et Vivid dans l’aperçu.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU]))],
+  },
+  {
+    id: 'reglages-une-intensite',
+    titre: 'Teinte, saturation, luminosité, à une intensité',
+    quand: 'Bleu porte une seule intensité ; le designer déplie la carte « Teinte, saturation, luminosité ».',
+    regarder: 'Aucun choix de profil ; l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » en tête ; trois rangées, Teinte, Saturation et Luminosité, chacune avec sa piste peinte, son champ et « Rétablir », la teinte absolue après son champ ; la saturation à celle de la référence, sans repère ; « La dérive de teinte s’applique ensuite. ».',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }])), deplierLesReglages],
+  },
+  {
+    id: 'reglages-profil-delie',
+    titre: 'Teinte, saturation, luminosité, un profil réglé seul',
+    quand: 'Bleu, deux intensités : Soft tourné de 8° ; le designer déplie la carte, ouverte sur Soft.',
+    regarder: 'Les segments « Vivid ◆ · Soft · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Soft +8° · Soft 45 % · Vivid 95 % · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, reglages: { teinte: { soft: 8 }, porteur: 'vivid' } }])), deplierLesReglages],
+  },
+  {
+    id: 'reglages-avant-le-porteur',
+    titre: 'Teinte, saturation, luminosité, avant un réglage du porteur',
+    quand: 'Bleu, deux intensités ; le designer déplie la carte et choisit Vivid, qui porte la référence.',
+    regarder: 'Vivid ◆ pressé, et dessous, avant tout geste, l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » sur fond d’avertissement ; la lettre S qui situe Soft sur chaque piste.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(1)' }],
+  },
+  {
+    id: 'reglages-reference-modifiee',
+    titre: 'Teinte, saturation, luminosité, référence modifiée',
+    quand: 'Bleu : Soft tourné de 8°, Vivid assombri de 0,02, ce qui a déplacé la référence ; le designer rouvre la carte sur Vivid.',
+    regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 95 % ».',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(1)' }],
   },
   {
     id: 'fiche-refaite',

@@ -227,7 +227,7 @@ une interaction ni une sauvegarde.
   onglets, correspondance avec les modules, état sans palette. AGENTS.md :
   la carte du code dit `ongletPalettes.ts` « l’onglet Création » et
   `ongletPlanche.ts` « l’onglet Palettes ».
-- [ ] **Z0.5** (N130 à N140 ; Z5 fait)
+- [x] **Z0.5** (N130 à N148 ; Z5 et Z10 faits)
   Inventaire des textes : « Création », « Palettes » (onglet),
   « Sélectionner une palette », « À actualiser », « Actualiser tout (N
   palettes) », dictés ; « À mettre à jour » et « Mettre à jour (N
@@ -910,7 +910,7 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   référence. » ; après le geste, à sa place, « Attention, votre couleur de
   référence a été modifiée. ». Les deux s’écrivent en anglais par la voie
   de la traduction (Z10.6).
-- [ ] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
+- [x] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
   la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
   recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
   `[MOT-13]` tenu. Tests vus rouges sur mutation.
@@ -919,23 +919,64 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   La revue a simplifié le modèle : une teinte par profil au lieu d'une
   rotation et d'un écart, le pivot et l'ancrage sur le départ, l'invariant
   de la référence tenu par les gestes plutôt que par la validation.
-- [ ] **Z10.6** L’interface, selon la maquette. La carte remplace celle des
+  Fait : `reglages` et ses huit refus, `FORMAT_RECETTE` 5, migration de 4
+  sans autre changement, `referenceReglee`, `pivotDe`, `departDe`,
+  `decalageDe`, porteur figé, ancrage et alerte « hors de la rampe » lus sur
+  le départ. Neuf tests, sept mutations vues rouges. Une mutation est restée
+  verte au premier passage : le retour anticipé de `referenceReglee` sur un
+  réglage nul. Le test tirait ses départs par `fabriquerCran`, qui les
+  refabrique à l'identique ; 336 couleurs sur 636 056 changent pourtant
+  d'octets à la refabrication, toutes très sombres (`#000012` donne
+  `#00010F`), et le test les porte désormais. `[MOT-13]` : `rampesDe` d'une
+  palette de 44 crans coûte 0,36 ms avec réglages, 0,09 ms sans, médiane de
+  cent calculs à dérive neuve. `scripts/mesurer-temps.mjs` ne tourne plus
+  depuis que `boutsDe` prend la recette : la mesure est passée par un script
+  temporaire.
+- [x] **Z10.6** L’interface, selon la maquette. La carte remplace celle des
   intensités ; le module se renomme s’il ne dit plus ce qu’il fait, et
   AGENTS.md suit. Prévisualiser pendant le geste, ranger à la fin, Échap
   rend la valeur d’avant, un rendu par image au plus (Z4). Les messages qui
   menaient aux intensités (`[VER-15]`) mènent aux contrôles de la nouvelle
   carte. Textes en français et en anglais, par la voie de la traduction,
   inscrits à l’inventaire « À valider ».
-- [ ] **Z10.7** Documents : spécification (sections 6.4, 7.1 à 7.3, 8.1,
+  Fait : `intensites.ts` devient `reglagesDeLaPalette.ts`. La carte paraît
+  pour toute palette, une intensité comprise, sans segments pour celle-ci ;
+  la modale « Ajuster la référence » pose la luminosité du porteur (R1) et
+  répare Vert en deux pas au lieu d'un, puisque la rampe se translate avec la
+  référence. Gardés de l'ancienne carte : le repère de la saturation de la
+  référence (`[VER-10]`), l'origine des parts et le retour aux réglages
+  communs. Ajouté hors maquette : la teinte désactivée pour une couleur
+  presque grise, comme la dérive (`[DER-15]`), et le nom accessible réduit
+  à la grandeur pour une palette à une intensité. Le lien des messages vers
+  la carte prend son nom (N147), et une promesse manquée d'une palette à une
+  intensité y mène aussi. Textes N141 à N148 ; les textes de l'ancienne carte
+  sont retirés des deux catalogues.
+- [x] **Z10.7** Documents : spécification (sections 6.4, 7.1 à 7.3, 8.1,
   `[ENT-09]`, `[ENT-11]`, `[ENT-14]`, `[MOT-16]`, `[MOT-17]`, `[UI-12]`,
   `[UI-15]`, section 12), CONTRIBUTING.md. Galerie : états à une et à deux
   intensités, profils déliés, réglage du profil porteur avec
   l’avertissement.
-- [ ] **Z10.8** Tests : un profil délié réglé ne touche pas l’autre ; « Les
+  Fait : `[MOT-29]` et `[ENT-15]` nouveaux ; 6.4, `[MOT-17]`, 6.5, 7.1,
+  `[REC-05]`, `[ENT-11]`, `[ENT-14]`, `[VER-10]`, `[VER-15]`, `[DER-02]`,
+  `[UI-12]`, `[UI-15]`, l'écran de l'onglet et la table des états récrits ;
+  AGENTS.md (carte du code, trois invariants du moteur) et CONTRIBUTING.md.
+  Galerie : quatre états nouveaux, `reglages-une-intensite`,
+  `reglages-profil-delie`, `reglages-avant-le-porteur` et
+  `reglages-reference-modifiee`, atteints dans les deux langues et
+  vérifiés sur le DOM à 770 et à 500 px ; `ajustement-ouvert` passe à deux
+  pas.
+- [x] **Z10.8** Tests : un profil délié réglé ne touche pas l’autre ; « Les
   deux » règle les deux ; un réglage du profil porteur déplace la référence
   et montre l’avertissement ; la dérive s’applique après ; Échap rend l’état
   d’avant ; une recette 4 se lit ; une recette exportée puis relue est
   égale. Chacun vu rouge sur mutation.
+  Fait : dix tests des gestes, dont une propriété sur 480 suites de gestes
+  tirées (la référence égale `referenceReglee` du départ, la recette se
+  valide), et trois tests d'interface nouveaux ; six tests d'interface de
+  l'ancienne carte repris en gardant ce qu'ils protégeaient. Treize
+  mutations vues rouges. Une mutation est restée verte au premier passage :
+  l'avertissement jamais montré, que le test lisait par son texte ; il
+  vérifie désormais sa visibilité. Interface : 131 verts.
 
 Critère : un designer décale la teinte de Soft seule sans toucher Vivid,
 affine la référence depuis la carte, et sait avant le geste que la
@@ -951,6 +992,8 @@ référence va bouger.
 - [ ] **Z7.2** Mettre à jour AGENTS.md si la carte du code change, la
   spécification et les liens des plans. Marquer les cases ouvertes du
   cinquième plan comme reprises ici.
+  Z10 fait pour sa part (Z10.7). Restent les liens des plans et les cases du
+  cinquième plan.
 - [ ] **Z7.3** (ex-Y8.3) Constater dans Figma qu’un seul Ctrl+Z après
   « Supprimer définitivement » rend le cadre et son suivi. Au mainteneur.
 - [ ] **Z7.4** (ex-Y8.4) Construire code et interface dans la copie

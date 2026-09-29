@@ -140,20 +140,29 @@ export function fabriquerCran(L: number, H: number, part: number, gamut: Gamut):
 export interface ParametresRampe {
   readonly courbe: readonly number[];
   readonly bouts: Bouts;
+  /** Le pivot de la teinte : la référence, ou le départ réglé d'un profil (Z10.5). */
   readonly reference: Oklch;
   readonly derive: Derive;
   readonly part: number;
   readonly gamut: Gamut;
   /** Présent pour une rampe du thème Dark : la part de ses fonds baisse ([MOT-28]). */
   readonly sombre?: FondsSombres;
+  /** Le décalage de clarté du profil, réglé dans la carte (Z10.5) ; absent, 0. */
+  readonly decalage?: number;
 }
 
-/** Les crans d'une rampe, dans l'ordre de la courbe. */
+/**
+ * Les crans d'une rampe, dans l'ordre de la courbe. Un décalage de clarté
+ * translate la courbe, le pivot et les bouts ensemble : la teinte et le
+ * facteur des fonds se lisent sur la clarté de la courbe, la couleur se
+ * fabrique à la clarté décalée, bornée à [0, 1].
+ */
 export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
   const { sombre } = parametres;
+  const decalage = parametres.decalage ?? 0;
   return parametres.courbe.map((L) =>
     fabriquerCran(
-      L,
+      Math.min(1, Math.max(0, L + decalage)),
       teinteA(L, parametres.reference, parametres.derive, parametres.bouts),
       sombre ? parametres.part * facteurSombre(L, sombre) : parametres.part,
       parametres.gamut,
@@ -184,6 +193,10 @@ export interface EntreesPalette {
   readonly gamut: Gamut;
   /** Absent, les fonds du thème Dark gardent la part de leur profil ([MOT-28]). */
   readonly sombre?: FondsSombres;
+  /** Le pivot de chaque profil (Z10.5) ; absent, la référence pour les deux. */
+  readonly pivots?: { readonly [P in Profil]: Oklch };
+  /** Le décalage de clarté de chaque profil (Z10.5) ; absent, aucun. */
+  readonly decalages?: { readonly [P in Profil]: number };
 }
 
 /** Une rampe par thème. */
@@ -217,11 +230,12 @@ export function fabriquerPalette(entrees: EntreesPalette): RampesDesProfils {
     fabriquerRampe({
       courbe: entrees.courbes[mode],
       bouts,
-      reference,
+      reference: entrees.pivots?.[profil] ?? reference,
       derive: entrees.derives[profil],
       part: entrees.parts[profil],
       gamut: entrees.gamut,
       sombre: mode === 'dark' ? entrees.sombre : undefined,
+      decalage: entrees.decalages?.[profil],
     });
   return {
     soft: { light: rampe('soft', 'light'), dark: rampe('soft', 'dark') },

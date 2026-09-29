@@ -1988,8 +1988,7 @@
   color: var(--texte-second);
 }
 
-/* Les intensités de la palette, sous le nuancier. */
-.intensites,
+/* Les intensités des Réglages communs, un curseur et un champ par profil. */
 .intensites-reglages {
   display: grid;
   gap: var(--espace-serre);
@@ -2011,9 +2010,128 @@
   width: 56px;
 }
 
-/* L'intensité de la couleur de référence, un repère plein sur la piste du curseur. */
+/*
+ * La carte « Teinte, saturation, luminosité » (Z10.6, maquette Z10.4, forme
+ * A) : la cible en segments, puis une rangée par grandeur, libellé, piste
+ * peinte, champ, valeur absolue et « Rétablir ».
+ */
+.reglages-de-la-palette {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.cible-des-reglages,
+.reglage-de-la-palette {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.cible-des-reglages {
+  margin-bottom: 4px;
+}
+
+.cible-des-reglages .field-label,
+.reglage-de-la-palette .field-label {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.cible-des-reglages .bascule-option {
+  white-space: nowrap;
+}
+
+.reglage-de-la-palette {
+  min-height: 28px;
+}
+
+/* La piste montre, peintes par le moteur, les couleurs que le curseur donnerait. */
+.piste-peinte {
+  height: 22px;
+}
+
+.piste-peinte::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--piste);
+  box-shadow: inset 0 0 0 1px var(--bordure);
+  content: '';
+  transform: translateY(-50%);
+}
+
+.curseur-peint {
+  position: relative;
+  height: 22px;
+  appearance: none;
+  background: transparent;
+}
+
+.curseur-peint::-webkit-slider-runnable-track {
+  height: 22px;
+  background: transparent;
+}
+
+.curseur-peint::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border: 2px solid var(--texte);
+  border-radius: 50%;
+  appearance: none;
+  background: var(--fond);
+}
+
+/* La lettre de l'autre profil, au-dessus de sa valeur. */
+.fantome-du-profil {
+  position: absolute;
+  top: -3px;
+  color: var(--texte-second);
+  font-size: 9px;
+  line-height: 1;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.fantome-du-profil::after {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  background: var(--texte-second);
+  content: '';
+}
+
+/* La saturation de la couleur de référence, un repère plein sur la piste de saturation ([VER-10]). */
 .repere-de-reference {
   background: var(--texte);
+}
+
+.champ-du-reglage {
+  flex: 0 0 56px;
+  width: 56px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.absolu-du-reglage {
+  flex: 0 0 36px;
+  width: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.avertissement-des-reglages {
+  margin: 0 0 4px;
+  padding: 6px var(--espace-controle);
+  border-left: 2px solid var(--texte-avertissement);
+  border-radius: 0 var(--rayon) var(--rayon) 0;
+  background: var(--fond-avertissement);
+  color: var(--texte);
 }
 
 .derive-nom-de-courbe {
