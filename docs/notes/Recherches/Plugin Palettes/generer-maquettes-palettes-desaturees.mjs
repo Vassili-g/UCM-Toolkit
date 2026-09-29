@@ -37,6 +37,7 @@ const ICI = path.dirname(fileURLToPath(import.meta.url));
 
 const esc = (texte) => String(texte).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const virgule = (x, n = 2) => x.toFixed(n).replace('.', ',');
+const pourcent = (x) => `${Math.round(x * 100)} %`;
 
 /* Le moteur */
 
@@ -92,8 +93,8 @@ function rampe(resultat, intensite, mode = 'light', { taille = 'm', titre = '' }
 const deux = (resultat, mode = 'light') => rampe(resultat, 'soft', mode, { titre: 'Soft' }) + rampe(resultat, 'vivid', mode, { titre: 'Vivid' });
 const pastille = (hexa) => `<span class="pastille" style="background:${hexa}"></span><code>${hexa}</code>`;
 
-function blocDeQuestion(numero, titre, explication, ecrans, choix) {
-  return `<div class="qbloc"><div class="qtete"><span class="qnum">${numero}</span><h3>${titre}</h3></div>${explication ? `<p>${explication}</p>` : ''}${ecrans ? `<div class="scene">${ecrans.startsWith('<p class="rangee-titre"') ? ecrans : `<div class="scene-rangee">${ecrans}</div>`}</div>` : ''}${choix ? `<div class="qchoix">${choix}</div>` : ''}</div>`;
+function blocDeQuestion(numero, titre, explication, ecrans, choix, reponse) {
+  return `<div class="qbloc${reponse ? ' repondu' : ''}"><div class="qtete"><span class="qnum">${numero}</span><h3>${titre}</h3>${reponse ? `<span class="reponse">Ta réponse : ${reponse}</span>` : ''}</div>${explication ? `<p>${explication}</p>` : ''}${ecrans ? `<div class="scene">${ecrans.startsWith('<p class="rangee-titre"') ? ecrans : `<div class="scene-rangee">${ecrans}</div>`}</div>` : ''}${choix ? `<div class="qchoix">${choix}</div>` : ''}</div>`;
 }
 const vue = (contenu, lettre, legende) => `<div class="qecran">${lettre ? `<span class="qlettre">${lettre}</span>` : ''}<div class="carton">${contenu}</div>${legende ? `<p class="legende">${legende}</p>` : ''}</div>`;
 /** Des rangées d'écrans, chacune sous son titre. */
@@ -122,11 +123,18 @@ const ligneDuGlisser = (regle) => GLISSER.map((hexa) => {
 
 /* Q2 : au-dessus de la part commune de Soft */
 
-const VERT_60 = fabriquerCran(0.62, 150, 0.6, 'srgb').hexa;
-const BLEU = '#1E6FD9';
 const q2 = {
-  vert: { hexa: VERT_60, p: part(VERT_60), a: actuelle(VERT_60), b: calculer(palette(VERT_60, { parts: { soft: part(VERT_60), vivid: V } })) },
-  bleu: { hexa: BLEU, p: part(BLEU), a: actuelle(BLEU), b: calculer(palette(BLEU, { parts: { soft: S, vivid: part(BLEU) } })) },
+  palettes: [
+    { nom: 'Vert', hexa: fabriquerCran(0.62, 150, 0.6, 'srgb').hexa },
+    { nom: 'Orange', hexa: fabriquerCran(0.7, 55, 0.52, 'srgb').hexa },
+    { nom: 'Bleu', hexa: '#1E6FD9' },
+  ].map((x) => {
+    const p = part(x.hexa);
+    const a = actuelle(x.hexa);
+    const porteur = a.ancrage.profil;
+    const b = calculer(palette(x.hexa, { parts: porteur === 'soft' ? { soft: p, vivid: V } : { soft: S, vivid: p } }));
+    return { ...x, p, a, b, porteur };
+  }),
 };
 
 /* Q3 : profils confondus */
@@ -160,10 +168,17 @@ const partBornee = (hexa) => {
   return lu.C < 1e-4 ? 0 : Math.min(1, Math.round((lu.C / plafond(L, lu.H)) * 1000) / 1000);
 };
 const sousSeuil = (hexa, seuil) => lire(hexa).C < seuil;
+const DESCRIPTIONS = {
+  '#7F7F80': 'gris moyen, une unité de bleu en trop',
+  '#060605': 'presque noir, une unité de bleu en moins',
+  '#FAFAF5': 'blanc cassé, légèrement chaud',
+  '#78716C': 'gris beige',
+};
 const q5 = Q5_REFS.map((hexa) => {
   const pb = partBornee(hexa);
   return {
     hexa,
+    description: DESCRIPTIONS[hexa],
     C: lire(hexa).C,
     p: part(hexa),
     pb,
@@ -204,7 +219,8 @@ const sectionQ1 = blocDeQuestion('Q1', 'Sous l’intensité commune de Soft, que
     vue(deux(x.bornes), 'B', `Bornes : Soft ${virgule(x.p, 3)}, Vivid ${virgule(V)}.`),
     vue(deux(x.proportion), 'C', `Proportion : Soft ${virgule(x.p, 3)}, Vivid ${virgule(Math.min(1, x.p * V / S), 3)}.`),
   ].join('')])),
-  `<ol type="A"><li><b>Aujourd’hui.</b> Au-dessus de 0,03 de chroma, Soft garde ${virgule(S)} : la référence est plus terne que ses voisines. En dessous, Soft et Vivid sont identiques.</li><li><b>Bornes.</b> Soft prend l’intensité de la référence ; Vivid garde ${virgule(V)}. Un gris bleuté donne un Vivid bleu franc.</li><li><b>Proportion.</b> ${reco()} Soft prend l’intensité de la référence ; Vivid reste ${virgule(V / S, 1)} fois plus intense. La palette reste désaturée, et les deux profils restent distincts.</li></ol>`);
+  `<ol type="A"><li><b>Aujourd’hui.</b> Au-dessus de 0,03 de chroma, Soft garde ${virgule(S)} : la référence est plus terne que ses voisines. En dessous, Soft et Vivid sont identiques.</li><li><b>Bornes.</b> Soft prend l’intensité de la référence ; Vivid garde ${virgule(V)}. Un gris bleuté donne un Vivid bleu franc.</li><li><b>Proportion.</b> ${reco()} Soft prend l’intensité de la référence ; Vivid reste ${virgule(V / S, 1)} fois plus intense. La palette reste désaturée, et les deux profils restent distincts.</li></ol>`,
+  'C');
 
 /* Q1 ter : les gestes de la carte « Teinte, saturation, luminosité » (Z10.5), appelés tels quels */
 
@@ -228,29 +244,31 @@ const q1ter = {
   neutre: calculer(NEUTRE), neutreVivid: calculer(NEUTRE_VIVID), neutreDeux: calculer(NEUTRE_DEUX),
 };
 
-const sectionQ1ter = blocDeQuestion('Q1 ter', 'Ce que la nouvelle carte permet déjà, à la main',
-  'Les gestes de la carte « Teinte, saturation, luminosité », appelés tels quels. Thème Light.',
+const sectionQ1ter = blocDeQuestion('Constat', 'Ce que le plugin fait aujourd’hui, à la main',
+  'Rien à choisir ici. Ce bloc montre le plugin tel qu’il est, avec la carte « Teinte, saturation, luminosité ». La colonne de droite montre le même cas une fois le plan appliqué.',
   rangees([
-    [`${pastille('#897288')} deux intensités : baisser Soft`, [
-      vue(deux(q1ter.mauve), 'A', `Sans réglage : ${alertesEcrites(q1ter.mauve)}.`),
-      vue(deux(q1ter.mauveSoft), 'B', `Curseur Soft à 16 % : ${alertesEcrites(q1ter.mauveSoft)}. Vivid garde 0,95.`),
+    [`${pastille('#897288')} Baisser la saturation de Soft`, [
+      vue(deux(q1ter.mauve), 'Aujourd’hui', 'Sans réglage, Soft est trop vif autour de ta couleur.'),
+      vue(deux(q1ter.mauveSoft), 'Aujourd’hui', 'Soft à 16 % à la main : les voisines lui ressemblent.'),
+      vue(deux(proportion('#897288')), 'Avec le plan', 'Le même résultat, sans geste. Vivid baisse aussi.'),
     ].join('')],
-    [`${pastille('#7C717B')} deux intensités : monter Vivid`, [
-      vue(deux(q1ter.gris), 'A', 'Sans réglage : Soft et Vivid identiques.'),
-      vue(deux(q1ter.grisVivid), 'B', `Curseur Vivid à 16,5 % : ${alertesEcrites(q1ter.grisVivid)}. Teinte et dérive restent verrouillées, à 0°.`),
-      vue(deux(q1ter.grisR1), 'C', 'Règle « Proportion » : les mêmes intensités, avec la dérive Tailwind.'),
+    [`${pastille('#7C717B')} Séparer Soft et Vivid`, [
+      vue(deux(q1ter.gris), 'Aujourd’hui', 'Sans réglage, Soft et Vivid sont identiques.'),
+      vue(deux(q1ter.grisVivid), 'Aujourd’hui', 'Vivid à 16,5 % à la main. La teinte et la dérive restent bloquées.'),
+      vue(deux(q1ter.grisR1), 'Avec le plan', 'Le même écart, sans geste, avec la dérive.'),
     ].join('')],
-    [`${pastille('#897288')} une intensité : teinte +10°, puis baisser la saturation`, [
-      vue(rampe(q1ter.une12, 'unique', 'light', { titre: `Saturation 12 % · ${UNE_12.reference}` }), 'A', 'Au-dessus du seuil : teinte et dérive réglables.'),
-      vue(rampe(q1ter.une08, 'unique', 'light', { titre: `Saturation 8 % · ${UNE_08.reference}` }), 'B', 'Sous le seuil : la teinte, son « Rétablir » et la dérive se verrouillent, mais +10° et la dérive restent appliqués.'),
+    [`${pastille('#897288')} Une intensité : teinte +10°, puis moins de saturation`, [
+      vue(rampe(q1ter.une12, 'unique', 'light', { titre: `Saturation 12 % · ${UNE_12.reference}` }), 'Aujourd’hui', 'La teinte se règle.'),
+      vue(rampe(q1ter.une08, 'unique', 'light', { titre: `Saturation 8 % · ${UNE_08.reference}` }), 'Aujourd’hui', 'La teinte se bloque. Les +10° restent appliqués.'),
+      vue('<div class="texte-seul">La teinte reste réglable. Elle ne se bloque que si toutes les nuances sont grises.</div>', 'Avec le plan', ''),
     ].join('')],
-    [`${pastille('#808080')} gris neutre, deux intensités : saturer`, [
-      vue(deux(q1ter.neutre), 'A', 'Sans réglage : deux rampes grises.'),
-      vue(deux(q1ter.neutreVivid), 'B', 'Curseur Vivid à 30 % : une rampe rose, car la teinte d’un gris vaut 0°. La piste de teinte reste verrouillée.'),
-      vue(deux(q1ter.neutreDeux), 'C', '« Les deux » à 30 % : la référence reste grise au 600, au milieu d’une rampe Soft rose.'),
+    [`${pastille('#808080')} Gris pur : ajouter de la saturation`, [
+      vue(deux(q1ter.neutre), 'Aujourd’hui', 'Deux rampes grises.'),
+      vue(deux(q1ter.neutreVivid), 'Aujourd’hui', 'Vivid à 30 % devient rose. La teinte reste bloquée.'),
+      vue('<div class="texte-seul">La teinte se débloque dès que Vivid a de la couleur. Tu choisis la teinte.</div>', 'Avec le plan', ''),
     ].join('')],
   ]),
-  `<ul><li>La carte répare à la main le Soft de #897288. Elle sépare aussi Soft et Vivid pour #7C717B.</li><li>Elle ne rend ni la teinte ni la dérive à une palette désaturée. R1 et R4 les rendent.</li><li>À une intensité, le curseur de saturation fait passer la référence sous le seuil en plein geste. La teinte se verrouille alors qu’elle reste appliquée. R4 lève ce verrou.</li><li>Sur un gris neutre, saturer invente une teinte que le designer ne peut pas changer. Avec R4, la piste de teinte se déverrouille dès que la rampe prend de la couleur.</li><li>L’alerte « presque grise » dit que « les deux profils reprennent son intensité ». C’est faux dès que le designer règle les parts. R6 retire cette alerte.</li></ul>`);
+  '');
 
 const sectionQ1bis = blocDeQuestion('Q1 bis', 'Le même choix, pendant un glisser',
   'Dans le sélecteur de couleur, la saturation de #897288 baisse pas à pas. Rampe Vivid, thème Light.',
@@ -259,48 +277,41 @@ const sectionQ1bis = blocDeQuestion('Q1 bis', 'Le même choix, pendant un glisse
     vue(ligneDuGlisser(bornes), 'B', 'Bornes : Vivid ne bouge pas.'),
     vue(ligneDuGlisser((h) => proportion(h)), 'C', 'Proportion : Vivid baisse avec la référence, sans saut.'),
   ].join(''),
-  `<p>À deux intensités, ce saut n’arrive qu’au sélecteur de couleur. Dans la carte, la saturation d’un profil ne déplace pas la référence, et la teinte comme la luminosité gardent sa chroma. C ${reco('n’a pas de seuil, donc pas de saut.')}</p>`);
+  `<p>À deux intensités, ce saut n’arrive qu’au sélecteur de couleur. Dans la carte, la saturation d’un profil ne déplace pas la référence, et la teinte comme la luminosité gardent sa chroma. C ${reco('n’a pas de seuil, donc pas de saut.')}</p>`,
+  'très bien');
 
-const sectionQ2 = blocDeQuestion('Q2', 'Au-dessus de Soft, le profil porteur prend-il l’intensité de la référence ?',
-  `Deux références entre les intensités communes. Thème Light, profil porteur seul. Les autres palettes gardent ${virgule(S)} et ${virgule(V)}.`,
+const sectionQ2 = blocDeQuestion('Q2', 'Une couleur entre Soft et Vivid',
+  `Tous les Soft du fichier ont la même saturation, ${pourcent(S)}. Tous les Vivid ont ${pourcent(V)}. Ta couleur va dans le plus proche des deux. Si elle est plus vive que Soft, elle ressort de sa rampe. Faut-il aligner la rampe sur ta couleur ?`,
   rangees([
-    [`${pastille(q2.vert.hexa)} intensité ${virgule(q2.vert.p, 3)}, portée par Soft`, [
-      vue(rampe(q2.vert.a, 'soft', 'light', { titre: 'Soft' }), 'A', `Soft garde ${virgule(S)}.`),
-      vue(rampe(q2.vert.b, 'soft', 'light', { titre: 'Soft' }), 'B', `Soft prend ${virgule(q2.vert.p, 3)}.`),
-    ].join('')],
-    [`${pastille(BLEU)} intensité ${virgule(q2.bleu.p, 3)}, portée par Vivid`, [
-      vue(rampe(q2.bleu.a, 'vivid', 'light', { titre: 'Vivid' }), 'A', `Vivid garde ${virgule(V)}.`),
-      vue(rampe(q2.bleu.b, 'vivid', 'light', { titre: 'Vivid' }), 'B', `Vivid prend ${virgule(q2.bleu.p, 3)}.`),
+    ['Les rampes Soft de trois palettes du même fichier', [
+      vue(q2.palettes.map((x) => rampe(x.a, 'soft', 'light', { titre: `${pastille(x.hexa)} ${x.nom}, saturation ${pourcent(x.p)}${x.porteur === 'soft' ? ', dans Soft' : ', dans Vivid'}` })).join(''), 'A', `Tous les Soft restent à ${pourcent(S)}.`),
+      vue(q2.palettes.map((x) => rampe(x.b, 'soft', 'light', { titre: `${pastille(x.hexa)} ${x.nom}, Soft à ${pourcent(x.porteur === 'soft' ? x.p : S)}` })).join(''), 'B', 'Chaque Soft prend la saturation de sa couleur.'),
     ].join('')],
   ]),
-  `<ol type="A"><li><b>Garder les intensités communes.</b> ${reco('Recommandé pour ce plan.')} Tous les Soft du design system ont la même intensité. Le vert a un écart visible autour du ◆ ; le bleu, presque aucun. La nouvelle carte « Teinte, saturation, luminosité » règle déjà la saturation de Soft en un geste, et son repère montre celle de la référence.</li><li><b>Le porteur prend l’intensité de la référence</b>, comme avec une palette de base forcée. Le ◆ se fond dans sa rampe. Toutes les palettes colorées changent, et deux Soft du même fichier n’ont plus la même intensité. À rediscuter après la recette de Z10.</li></ol>`);
+  `<ol type="A"><li><b>Garder la même saturation pour tous les Soft.</b> ${reco()} Tes Soft restent homogènes d’une palette à l’autre. Ta couleur ressort un peu de sa rampe. Tu peux l’y fondre à la main, avec le curseur de saturation.</li><li><b>Aligner la rampe sur ta couleur.</b> Ta couleur se fond dans sa rampe. Tes Soft n’ont plus la même saturation d’une palette à l’autre.</li></ol><p>Ce choix ne touche que les couleurs entre ${pourcent(S)} et ${pourcent(V)}. En dessous, Q1 a déjà tranché.</p>`);
 
 const sectionQ3 = blocDeQuestion('Q3', '« Profils confondus » sur une palette désaturée',
-  `Règle « Proportion ». Sous chaque paire, l’écart ΔEok entre Soft et Vivid ; en couleur, sous le seuil de ${virgule(RECETTE.seuils.profilsConfondus)}.`,
-  q3.map((x) => vue(deux(x.r) + ligneDesEcarts(x.ecarts), '', `${pastille(x.hexa)} ${x.ecarts.filter((e) => e < RECETTE.seuils.profilsConfondus).length} nuances sur ${CRANS.length} sous le seuil. ${x.r.alertes.includes('profils-confondus') ? 'Le moteur sonne « Profils confondus ».' : 'Le moteur se tait.'}`)).join(''),
-  `<ol type="a"><li><b>Se taire</b> ${reco()} quand Soft prend l’intensité de la référence. Les profils sont proches par construction, comme avec les parts grises aujourd’hui.</li><li><b>Sonner.</b> Le point à vérifier propose alors une intensité seule, ou plus de saturation pour Vivid.</li></ol><p>Aujourd’hui, le même écart réglé à la main dans la carte (Vivid à 16,5 %, Q1 ter) sonne aussi. Avec des parts du designer, l’alerte continue de sonner dans les deux choix.</p>`);
+  `Règle C de Q1. Sous chaque paire, l’écart entre Soft et Vivid ; en couleur, sous le seuil de ${virgule(RECETTE.seuils.profilsConfondus)}.`,
+  q3.map((x) => vue(deux(x.r) + ligneDesEcarts(x.ecarts), '', `${pastille(x.hexa)} ${x.ecarts.filter((e) => e < RECETTE.seuils.profilsConfondus).length} nuances sur ${CRANS.length} sous le seuil.`)).join(''),
+  `<ol type="a"><li><b>Se taire</b> quand Soft prend la saturation de ta couleur.</li><li><b>Sonner.</b></li></ol>`,
+  'a');
 
-const repere = (hexa, L) => `${pastille(hexa)} clarté ${virgule(L, 3)}`;
-const sectionQ4 = blocDeQuestion('Q4', 'Une référence plus sombre que toutes les nuances',
-  `${pastille(NOIR)}, clarté ${virgule(clarteDe(NOIR), 3)}. Elle remplace le ${CRANS[Q4_RANGS.light]} en Light, prévu à ${virgule(courbe.light[Q4_RANGS.light], 3)}, et le ${CRANS[Q4_RANGS.dark]} en Dark, prévu à ${virgule(courbe.dark[Q4_RANGS.dark], 3)}, plus sombre que le fond ${RECETTE.fonds.dark}.`,
+const sectionQ4 = blocDeQuestion('Q4', 'Une couleur plus sombre que toutes les nuances',
+  `${pastille(NOIR)} remplace la nuance 950 en Light et la 50 en Dark.`,
   [
-    vue(rampe(q4.a, 'soft', 'light', { titre: 'Light' }) + rampe(q4.a, 'soft', 'dark', { titre: 'Dark' }), '', 'Soft, aujourd’hui. Le ◆ fait une marche au bout de la rampe.'),
-    vue(`<div class="message"><p class="m-t">Points à vérifier · 1</p><p>La luminosité de départ (0,121) est en dehors de la plage des nuances (0,270 à 0,975). Vous pouvez régler la teinte d’un seul côté.</p><p class="m-g">Utilisez le réglage encore disponible.</p></div><div class="desactive">Dérive de teinte · désactivée pour une couleur presque grise</div>`, '', 'Le message d’aujourd’hui, sous une carte désactivée.'),
+    vue(rampe(q4.a, 'soft', 'light', { titre: 'Light' }) + rampe(q4.a, 'soft', 'dark', { titre: 'Dark' }), '', 'Soft, aujourd’hui.'),
+    vue(`<div class="message"><p class="m-t">Points à vérifier · 1</p><p>La luminosité de départ (0,121) est en dehors de la plage des nuances (0,270 à 0,975). Vous pouvez régler la teinte d’un seul côté.</p><p class="m-g">Utilisez le réglage encore disponible.</p></div>`, '', 'Le message d’aujourd’hui disparaît.'),
   ].join(''),
-  `<ol type="a"><li><b>Aucun message.</b> L’éditeur de dérive garde sa note sur le côté sans réglage.</li><li><b>Une notice</b> ${reco()} qui dit la marche : « Votre couleur de référence est plus sombre que la nuance 950 prévue. Elle la remplace telle quelle. » Elle n’apparaît qu’au-delà de 0,005 d’écart de clarté. « Ajuster la référence » ne la répare pas : il ne monte que de 0,02, il faudrait ${virgule(courbe.light[Q4_RANGS.light] - clarteDe(NOIR), 2)}. Le geste proposé est donc de choisir une couleur plus claire.</li></ol>`);
+  `<ol type="a"><li><b>Aucun message.</b> Une palette peut partir de #000000 ou de #FFFFFF.</li><li><b>Une notice.</b></li></ol>`,
+  'a, pas de message');
 
-const tableIncertitude = `<table class="mini"><tr><th>Chroma</th>${INCERTITUDES.map((i) => `<td>${virgule(i.C, 3)}</td>`).join('')}</tr><tr><th>Teinte, écart médian</th>${INCERTITUDES.map((i) => `<td>${Math.round(i.mediane)}°</td>`).join('')}</tr><tr><th>Teinte, écart maximal</th>${INCERTITUDES.map((i) => `<td>${Math.round(i.pire)}°</td>`).join('')}</tr></table>`;
-const sectionQ5 = blocDeQuestion('Q5', 'Sous quelle chroma une référence est-elle un gris neutre ?',
-  `Un gris neutre n’a que des nuances grises : Soft et Vivid identiques, dérive désactivée. Le tableau dit de combien un octet déplace la teinte à chaque chroma. Les rampes : règle « Proportion », intensité mesurée à la clarté bornée (R3).`,
-  rangees([
-    ['Ce qu’un octet fait à la teinte', vue(tableIncertitude, '', 'Sous 0,005, un octet déplace la teinte de plus de 20°.')],
-    ...q5.map((x) => [`${pastille(x.hexa)} chroma ${virgule(x.C, 4)}`, [
-      vue(deux(x.actuelle), 'A', `Aujourd’hui, seuil 0,03 : intensité ${virgule(x.p, 3)} pour les deux.`),
-      vue(deux(x.s005), 'B', `Seuil 0,005 : ${sousSeuil(x.hexa, 0.005) ? 'gris neutre.' : `intensité ${virgule(x.pb, 3)}.`}`),
-      vue(deux(x.sans), 'C', `Aucun seuil : intensité ${virgule(x.pb, 3)}.`),
-    ].join('')]),
-  ]),
-  `<ol type="A"><li><b>0,03, aujourd’hui.</b> #78716C, beige grisé dont la teinte est connue à 10° près, devient un gris sans dérive.</li><li><b>0,005</b> ${reco()} #7F7F80 et #060605 deviennent neutres : leur teinte ne tient qu’à un octet. #FAFAF5 garde sa teinte chaude.</li><li><b>Aucun seuil.</b> #060605 garde une teinte olive pâle, tirée d’un octet de bleu en moins.</li></ol>`);
+const sectionQ5 = blocDeQuestion('Q5', 'Quand une couleur est-elle un gris pur ?',
+  'Un gris saisi en hexa est rarement pur. #7F7F80 a une unité de bleu en trop. Si le plugin garde cette trace, toutes les nuances la reprennent. S’il l’ignore, la palette est grise, sans teinte. #000000 et #FFFFFF restent des gris purs dans les deux cas.',
+  rangees(q5.map((x) => [`${pastille(x.hexa)} · ${x.description}`, [
+    vue(deux(x.s005), 'A', sousSeuil(x.hexa, 0.005) ? 'Gris pur.' : 'La teinte est gardée.'),
+    vue(deux(x.sans), 'B', 'La teinte est gardée.'),
+  ].join('')])),
+  `<ol type="A"><li><b>Ignorer une trace trop faible pour avoir une teinte stable.</b> ${reco()} Une seule unité RGB peut y faire tourner la teinte de plus de 30°. #7F7F80 et #060605 deviennent des gris purs. #FAFAF5 et #78716C gardent leur teinte.</li><li><b>Tout garder.</b> #060605, un presque noir, donne des nuances claires vert olive.</li></ol>`);
 
 const lireStyle = (fichier) => /<style>([\s\S]*?)<\/style>/.exec(fs.readFileSync(path.join(ICI, fichier), 'utf8'))[1];
 const STYLE = `${lireStyle('MAQUETTES-RECETTE-V5.html')}
@@ -331,6 +342,11 @@ main { max-width: 1840px; }
 table.mini { border-collapse: collapse; font-size: 13px; }
 table.mini th, table.mini td { padding: 4px 10px; border-bottom: 1px solid var(--filet); text-align: left; }
 table.mini th { color: var(--encre-2); font-weight: 500; }
+.reponse { margin-left: auto; font: 600 12px/1 var(--sans); padding: 5px 9px; border-radius: 6px; background: var(--accent-fond); color: var(--accent); }
+.qbloc.repondu { opacity: .8; }
+.qchoix p { margin-top: 10px; }
+.qtete { display: flex; align-items: baseline; gap: 10px; }
+.texte-seul { width: 350px; min-height: 60px; display: grid; align-items: center; font-size: 14px; }
 `;
 
 const page = `<!doctype html>
@@ -349,16 +365,16 @@ ${STYLE}</style>
 <main>
 <section class="intro">
   <span class="sur">UCM Palettes · palettes désaturées et grises</span>
-  <h1>Questions Q1 à Q5, en exemples</h1>
-  <p>Chaque rampe est calculée par le moteur actuel, réglages de Z10.5 compris : sans réglage, il rend les mêmes octets qu’avant. Recette par défaut, onze nuances, Soft ${virgule(S)} et Vivid ${virgule(V)}. Les choix sont ceux du <a href="./PLAN-PALETTES-DESATUREES.md#questions-au-mainteneur">plan</a>. Q1 ter appelle les gestes de la carte « Teinte, saturation, luminosité » tels qu’ils sont écrits aujourd’hui : ce que le designer obtient à la main, et ce qui bloque.</p>
+  <h1>Palettes désaturées, second passage</h1>
+  <p>Deux questions restent ouvertes, Q2 et Q5. Elles sont réécrites plus simplement. Tes réponses aux autres suivent, pour mémoire.</p>
+  <p>Chaque rampe va de la nuance 50 à la 950, en thème Light. Le losange ◆ marque ta couleur de référence, posée telle quelle. Les couleurs sont calculées par le moteur du plugin.</p>
   <p class="note">Page écrite par <code>generer-maquettes-palettes-desaturees.mjs</code>.</p>
-  <nav class="sommaire"><a href="#q1">Q1 Vivid sous Soft</a><a href="#q2">Q2 Au-dessus de Soft</a><a href="#q3">Q3 Profils confondus</a><a href="#q4">Q4 Hors des nuances</a><a href="#q5">Q5 Gris neutre</a></nav>
+  <nav class="sommaire"><a href="#q2">Q2 Entre Soft et Vivid</a><a href="#q5">Q5 Gris pur</a><a href="#constat">Constat</a><a href="#reponses">Déjà répondu</a></nav>
 </section>
-<section class="bloc" id="q1">${sectionQ1}${sectionQ1ter}${sectionQ1bis}</section>
 <section class="bloc" id="q2">${sectionQ2}</section>
-<section class="bloc" id="q3">${sectionQ3}</section>
-<section class="bloc" id="q4">${sectionQ4}</section>
 <section class="bloc" id="q5">${sectionQ5}</section>
+<section class="bloc" id="constat">${sectionQ1ter}</section>
+<section class="bloc" id="reponses"><div class="tete"><span class="sur">Déjà répondu</span></div>${sectionQ1}${sectionQ1bis}${sectionQ3}${sectionQ4}</section>
 </main>
 </body>
 </html>
@@ -367,7 +383,10 @@ ${STYLE}</style>
 fs.writeFileSync(path.join(ICI, 'MAQUETTES-PALETTES-DESATUREES.html'), page);
 process.stdout.write(`MAQUETTES-PALETTES-DESATUREES.html : ${page.length} caractères\n`);
 process.stdout.write(`Glisser : ${GLISSER.join(' ')}\n`);
-process.stdout.write(`Q2 : vert ${VERT_60} part ${part(VERT_60)} porteur ${q2.vert.a.ancrage.profil} ; bleu part ${part(BLEU)} porteur ${q2.bleu.a.ancrage.profil}\n`);
+process.stdout.write(`Q2 : ${q2.palettes.map((x) => `${x.nom} ${x.hexa} part ${x.p} porteur ${x.porteur}`).join(" ; ")}
+`);
+process.stdout.write(`Teinte, écart maximal pour un octet : ${INCERTITUDES.map((x) => `C ${x.C} ${Math.round(x.pire)}°`).join(" ; ")}
+`);
 process.stdout.write(`Q3 : ${q3.map((x) => `${x.hexa} 600 ${x.e600.toFixed(3)} min ${Math.min(...x.ecarts).toFixed(3)} alertes ${x.r.alertes.join(', ')}`).join(' ; ')}\n`);
 process.stdout.write(`Q4 : alertes ${q4.a.alertes.join(', ')} ; rangs ${JSON.stringify(Q4_RANGS)}\n`);
 process.stdout.write(`Q5 : ${q5.map((x) => `${x.hexa} C ${x.C.toFixed(4)} p ${x.p} pb ${x.pb}`).join(' ; ')}\n`);

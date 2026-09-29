@@ -24,7 +24,9 @@ lui-même la recette dans Figma. Les exemples des questions Q1 à Q5 sont dans
 
 1. le [signalement du mainteneur](#signalement-du-mainteneur), conservé
    sans modification ;
-2. les [réponses aux questions](#questions-au-mainteneur), une fois données ;
+2. les [réponses aux questions](#questions-au-mainteneur) et les [retours sur
+   la maquette](#retours-du-mainteneur-maquette-des-palettes-désaturées),
+   conservés sans modification ;
 3. la [spécification](./RECHERCHE-PLUGIN-PALETTES.md), en particulier
    `[MOT-17]`, `[MOT-18]`, `[ENT-09]`, `[ENT-11]`, `[DER-14]`, `[DER-15]`,
    `[VER-10]` et la table 11.3 ;
@@ -283,7 +285,8 @@ le moteur.
   part de la référence ; elle reste pour des parts du designer.
   `reference-hors-rampe` quitte la liste des points à vérifier : la note de
   `[DER-14]` dit la limite de l’éditeur, et elle se tait quand l’éditeur est
-  désactivé. Q4 décide si une notice sur l’écart de clarté la remplace.
+  désactivé. Aucune notice ne la remplace (réponse Q4) : une palette peut
+  partir de `#000000` ou de `#FFFFFF`.
 - **R7, le seuil dans les Réglages communs.** Le champ reste, sous un nouveau
   sens et une nouvelle aide. La lecture d’une recette 4 remet le seuil au
   nouveau défaut, quelle que soit sa valeur : son sens a changé, et le
@@ -291,13 +294,13 @@ le moteur.
 
 ## Questions au mainteneur
 
-| # | Question | Recommandation |
-|---|---|---|
-| Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B`. La carte Z10 obtient déjà ces intensités à la main (maquette, Q1 ter), sans la dérive ; R1 les donne par défaut, avec elle |
-| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 |
-| Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus |
-| Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 |
-| Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 |
+| # | Question | Recommandation | Réponse |
+|---|---|---|---|
+| Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B`. La carte Z10 obtient déjà ces intensités à la main (maquette, Q1 ter), sans la dérive ; R1 les donne par défaut, avec elle | C, Proportion. Q1 bis (le glisser) : « très bien » |
+| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 | Non comprise. Reformulée au second passage de la maquette : « Une couleur entre Soft et Vivid » |
+| Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus | a, se taire |
+| Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 | Aucun message : « on a le droit de faire une palette avec un #000 ou un #fff » |
+| Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 | Non comprise. Reformulée au second passage : « Quand une couleur est-elle un gris pur ? » |
 
 ## Ordre d’exécution
 
@@ -357,10 +360,6 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   - a. « Votre couleur de référence est un gris neutre. Soft et Vivid sont identiques. »
   - b. « Les deux profils sont gris. Ils sont identiques. »
 
-  Notice de Q4, si elle est retenue (titre, impact, action) :
-  - a. « Votre couleur de référence est plus sombre que la nuance 950 prévue. » / « La nuance 950 prend votre couleur telle quelle. L’écart avec la nuance 900 est plus grand que les autres. » / « Pour une rampe régulière, ajustez la référence. »
-  - b. « Couleur de référence très sombre. » / « Elle remplace la nuance 950 et rompt la régularité de la rampe. » / « Utilisez “Ajuster la référence”. »
-
   Aide du seuil dans les Réglages communs (remplace `aideGris`) :
   - a. « Sous cette chroma, la couleur de référence est un gris neutre. Toutes ses nuances sont grises. »
 
@@ -368,7 +367,9 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   l’[inventaire](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
 - [ ] **G1.4** Donner la maquette au mainteneur et s’arrêter. Ses réponses
   se conservent en fin de plan, et les décisions R1 à R7 se corrigent avant
-  G2.
+  G2. Premier passage répondu : Q1 (C), Q3 (a), Q4 (aucun message). Second
+  passage : Q2 et Q5 réécrites en phrases courtes, et Q1 ter devenu un
+  constat « aujourd’hui / avec le plan », sans choix. En attente de réponse.
 
 ## Lot G2 : moteur
 
@@ -381,10 +382,9 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 - [ ] **G2.3** `prereglageTailwind` ne rend une dérive nulle que pour une
   part nulle (R4, `[MOT-18]`). Une fonction du moteur dit si une palette est
   un gris neutre, lue par l’interface (R4).
-- [ ] **G2.4** Alertes (R6, et Q3, Q4 selon les réponses) : retirer
-  `couleur-presque-grise` et `reference-hors-rampe` du type `Alerte`, faire
-  taire `profils-confondus` sous R1, ajouter la notice de Q4 si elle est
-  retenue.
+- [ ] **G2.4** Alertes (R6, Q3, Q4) : retirer `couleur-presque-grise` et
+  `reference-hors-rampe` du type `Alerte`, sans notice de remplacement ;
+  faire taire `profils-confondus` quand R1 s’applique.
 - [ ] **G2.5** `CHROMA_GRISE` passe à 0,005 et `recetteParDefaut` suit.
   `[MOT-13]` tenu : mesurer une analyse avant et après.
 
@@ -408,7 +408,7 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 - [ ] **G4.2** Carte « Teinte, saturation, luminosité » : `origineDesParts` prend les lignes
   validées, et le repère de la référence lit la part de R3.
 - [ ] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
-  les cas retirés et gagnent la notice de Q4 si elle est retenue.
+  les cas retirés.
   L’éditeur ne montre plus la note de `[DER-14]` quand il est désactivé.
 - [ ] **G4.4** Réglages communs : libellé et aide du seuil validés.
 - [ ] **G4.5** Galerie : un état pour `#897288`, un pour `#7C717B`, un pour
@@ -436,7 +436,8 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
   saturer Vivid d’un gris neutre déverrouille la teinte.
 - [ ] **G5.4** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
   `#7C717B`, se désactive pour `#808080`), aucune alerte « hors de la
-  rampe » pour `#060605`, textes validés.
+  rampe » pour `#060605`, textes validés. `#000000` et `#FFFFFF` donnent
+  des rampes grises et aucun point à vérifier.
 
 ## Lot G6 : documents
 
@@ -468,6 +469,31 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
 - Un modèle de chroma absolue pour les gris, où chaque nuance garde la
   chroma de la référence au lieu d’une part du plafond. R1 et R3 corrigent
   les cas mesurés sans changer `[MOT-09]`.
+
+## Retours du mainteneur, maquette des palettes désaturées
+
+Texte d’origine, réponses au premier passage de
+`MAQUETTES-PALETTES-DESATUREES.html`.
+
+```text
+Q1
+C
+Q1 ter
+je n'ai pas compris les exemples : c'est l'actuel ? la proposition ? il faut faire un choix ?
+Q1 bis
+Q1 bis
+très bien
+Q2
+j'ai pas compris
+Q3
+a
+
+Q4
+pas de message, on a le droit de faire une palette avec un #000 ou un #fff si on veut
+
+Q5
+j'ai pas compris
+```
 
 ## Signalement du mainteneur
 
