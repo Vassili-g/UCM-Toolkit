@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ajusterPartsGrises,
   alertesDePalette,
+  compterManquees,
   ancrageDe,
   boutsDe,
   distanceOk,
@@ -30,6 +31,7 @@ import {
   rampesDe,
   recetteParDefaut,
   rgb8VersOklch,
+  verifierPromesses,
 } from '../../../../packages/couleur/src/index.ts';
 import { nouvellePalette, reglerSaturation, reglerTeinte } from '../../../../packages/plugin-palettes/src/edition.ts';
 
@@ -210,6 +212,81 @@ function incertitude(C) {
 }
 const INCERTITUDES = [0.003, 0.005, 0.01, 0.02, 0.03].map((C) => ({ C, ...incertitude(C) }));
 
+/* Passage 3 : la règle issue des réponses Q1 et Q2, et la proposition Q5 */
+
+/** R, G et B égaux ou à une unité près : un voisin est un gris pur, la teinte ne se lit pas (proposition Q5). */
+const estGrisPur = (hexa) => {
+  const c = lireHexa(hexa);
+  return Math.max(...c) - Math.min(...c) <= 1;
+};
+
+/**
+ * Les rampes que le plan donnerait : gris pur, sinon la saturation mesurée à la clarté bornée ; sous Soft,
+ * Soft la prend et Vivid garde le rapport (Q1) ; au-dessus, le profil qui porte la couleur la prend (Q2).
+ */
+function regleFinale(hexa) {
+  if (estGrisPur(hexa)) return proportion(hexa, 0);
+  const p = Math.round(partBornee(hexa) * 1000) / 1000;
+  if (p < S) return proportion(hexa, p);
+  const porteur = actuelle(hexa).ancrage.profil;
+  return calculer(palette(hexa, { parts: porteur === 'soft' ? { soft: p, vivid: Math.max(V, p) } : { soft: Math.min(S, p), vivid: p }, seuil: 0 }));
+}
+
+/** Le glisser de Q2 bis : un vert dont la saturation monte de 50 à 90 %, rampes Soft et Vivid en petit. */
+const GLISSER_Q2 = [0.5, 0.6, 0.68, 0.72, 0.8, 0.9].map((q) => fabriquerCran(0.62, 150, q, 'srgb').hexa);
+const ligneDuGlisserQ2 = (regle) => GLISSER_Q2.map((hexa) => {
+  const r = regle(hexa);
+  return `<div class="glisser"><span class="t">${pastille(hexa)} ${pourcent(part(hexa))}</span><div>${rampe(r, 'soft', 'light', { taille: 's' })}${rampe(r, 'vivid', 'light', { taille: 's' })}</div></div>`;
+}).join('');
+
+/** Mesure de Q2 : les garanties et l'écart du ◆ à la nuance prévue, sur 240 couleurs entre Soft et Vivid. */
+const MESURE_Q2 = (() => {
+  let references = 0;
+  let pireAvant = 0;
+  let pireApres = 0;
+  let manqueesAvant = 0;
+  let manqueesApres = 0;
+  const ecart = (p) => {
+    const r = { ...RECETTE, palettes: [p] };
+    const ancrage = ancrageDe(r, p);
+    const autre = ancrage.profil === 'soft' ? 'vivid' : 'soft';
+    const sans = { ...p, base: autre, parts: p.parts ?? { soft: S, vivid: V, origine: 'designer' } };
+    const prevue = rampesDe({ ...RECETTE, palettes: [sans] }, sans)[ancrage.profil].light[ancrage.rangs.light];
+    return { ecart: distanceOk(lireHexa(p.reference), prevue.couleur), manquees: compterManquees(verifierPromesses(r, p)) };
+  };
+  for (let H = 0; H < 360; H += 30) for (const L of [0.45, 0.55, 0.65, 0.75]) for (const q of [0.5, 0.6, 0.7, 0.8, 0.9]) {
+    const hexa = fabriquerCran(L, H, q, 'srgb').hexa;
+    const p = part(hexa);
+    if (p < S) continue;
+    const porteur = actuelle(hexa).ancrage.profil;
+    const avant = ecart(ajusterPartsGrises(RECETTE, palette(hexa)));
+    const apres = ecart(palette(hexa, { parts: porteur === 'soft' ? { soft: p, vivid: Math.max(V, p) } : { soft: Math.min(S, p), vivid: p } }));
+    references += 1;
+    pireAvant = Math.max(pireAvant, avant.ecart);
+    pireApres = Math.max(pireApres, apres.ecart);
+    manqueesAvant += avant.manquees;
+    manqueesApres += apres.manquees;
+  }
+  return { references, pireAvant, pireApres, manqueesAvant, manqueesApres };
+})();
+
+/** Les familles de gris de Tailwind, de 50 à 950 : l'étalon de Q5. */
+const TAILWIND = {
+  slate: ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'],
+  stone: ['#FAFAF9', '#F5F5F4', '#E7E5E4', '#D6D3D1', '#A8A29E', '#78716C', '#57534E', '#44403C', '#292524', '#1C1917', '#0C0A09'],
+};
+const Q5_CAS = [
+  { hexa: '#060605', description: 'presque noir, une unité de bleu en moins' },
+  { hexa: '#7F7F80', description: 'gris moyen, une unité de bleu en trop' },
+  { hexa: '#0C0A09', description: 'stone-950, noir chaud de Tailwind', tailwind: 'stone' },
+  { hexa: '#020617', description: 'slate-950, noir bleuté de Tailwind', tailwind: 'slate' },
+  { hexa: '#F8FAFC', description: 'slate-50, blanc bleuté de Tailwind', tailwind: 'slate' },
+  { hexa: '#FAFAF5', description: 'blanc cassé, légèrement chaud' },
+];
+
+/** Une rampe de codes donnés, sans calcul : la famille Tailwind qu'on compare. */
+const rampeDeHexas = (liste, titre) => `<div class="rampe"><span class="t">${titre}</span><div class="nuances">${liste.map((hexa, rang) => nuance({ hexa }, CRANS[rang], false)).join('')}</div></div>`;
+
 /* La page */
 
 const sectionQ1 = blocDeQuestion('Q1', 'Sous l’intensité commune de Soft, que fait Vivid ?',
@@ -288,7 +365,16 @@ const sectionQ2 = blocDeQuestion('Q2', 'Une couleur entre Soft et Vivid',
       vue(q2.palettes.map((x) => rampe(x.b, 'soft', 'light', { titre: `${pastille(x.hexa)} ${x.nom}, Soft à ${pourcent(x.porteur === 'soft' ? x.p : S)}` })).join(''), 'B', 'Chaque Soft prend la saturation de sa couleur.'),
     ].join('')],
   ]),
-  `<ol type="A"><li><b>Garder la même saturation pour tous les Soft.</b> ${reco()} Tes Soft restent homogènes d’une palette à l’autre. Ta couleur ressort un peu de sa rampe. Tu peux l’y fondre à la main, avec le curseur de saturation.</li><li><b>Aligner la rampe sur ta couleur.</b> Ta couleur se fond dans sa rampe. Tes Soft n’ont plus la même saturation d’une palette à l’autre.</li></ol><p>Ce choix ne touche que les couleurs entre ${pourcent(S)} et ${pourcent(V)}. En dessous, Q1 a déjà tranché.</p>`);
+  `<p>Mesuré sur ${MESURE_Q2.references} couleurs entre ${pourcent(S)} et ${pourcent(V)} : ${MESURE_Q2.manqueesAvant} garantie manquée avant, ${MESURE_Q2.manqueesApres} après. L’écart entre ta couleur et ses voisines baisse, de ${virgule(MESURE_Q2.pireAvant, 3)} à ${virgule(MESURE_Q2.pireApres, 3)} au pire.</p>`,
+  'B, aligner la rampe sur ta couleur');
+
+const sectionQ2bis = blocDeQuestion('Q2 bis', 'Quand ta couleur passe de Soft à Vivid',
+  `Ta couleur va dans Soft jusqu’à ${pourcent(0.7)} de saturation, dans Vivid au-delà. Avec ta réponse à Q2, la rampe qui la porte prend sa saturation. En glissant la saturation dans le sélecteur, les deux rampes changent donc d’un coup à ${pourcent(0.7)}.`,
+  [
+    vue(ligneDuGlisserQ2((h) => actuelle(h)), 'Aujourd’hui', `Les rampes restent à ${pourcent(S)} et ${pourcent(V)}. Seul le ◆ change de rampe.`),
+    vue(ligneDuGlisserQ2(regleFinale), 'Avec ta réponse', 'La rampe du ◆ suit ta couleur. Les deux rampes sautent à 70 %.'),
+  ].join(''),
+  `<ol type="a"><li><b>Accepter ce saut.</b> ${reco()} Il n’arrive qu’en passant 70 %. Pour l’éviter, choisis toi-même la rampe avec « Référence exacte dans ».</li><li><b>Fixer la rampe à la création de la palette.</b> Ta couleur reste dans Soft ou dans Vivid, même si tu changes sa saturation ensuite. Pour changer de rampe, tu passes par « Référence exacte dans ».</li></ol>`);
 
 const sectionQ3 = blocDeQuestion('Q3', '« Profils confondus » sur une palette désaturée',
   `Règle C de Q1. Sous chaque paire, l’écart entre Soft et Vivid ; en couleur, sous le seuil de ${virgule(RECETTE.seuils.profilsConfondus)}.`,
@@ -306,12 +392,13 @@ const sectionQ4 = blocDeQuestion('Q4', 'Une couleur plus sombre que toutes les n
   'a, pas de message');
 
 const sectionQ5 = blocDeQuestion('Q5', 'Quand une couleur est-elle un gris pur ?',
-  'Un gris saisi en hexa est rarement pur. #7F7F80 a une unité de bleu en trop. Si le plugin garde cette trace, toutes les nuances la reprennent. S’il l’ignore, la palette est grise, sans teinte. #000000 et #FFFFFF restent des gris purs dans les deux cas.',
-  rangees(q5.map((x) => [`${pastille(x.hexa)} · ${x.description}`, [
-    vue(deux(x.s005), 'A', sousSeuil(x.hexa, 0.005) ? 'Gris pur.' : 'La teinte est gardée.'),
-    vue(deux(x.sans), 'B', 'La teinte est gardée.'),
+  'Ma proposition : ta couleur est un gris pur si R, G et B sont égaux, ou ne diffèrent que d’une unité. Sinon, sa teinte est gardée. Pour vérifier, je compare les rampes aux gris de Tailwind : slate, stone.',
+  rangees(Q5_CAS.map((x) => [`${pastille(x.hexa)} · ${x.description}`, [
+    vue(deux(actuelle(x.hexa)), 'Aujourd’hui', ''),
+    vue(deux(regleFinale(x.hexa)), 'Proposition', estGrisPur(x.hexa) ? 'Gris pur.' : 'La teinte est gardée.'),
+    x.tailwind ? vue(rampeDeHexas(TAILWIND[x.tailwind], `Tailwind ${x.tailwind}`), 'Pour comparer', `La famille ${x.tailwind} de Tailwind.`) : '',
   ].join('')])),
-  `<ol type="A"><li><b>Ignorer une trace trop faible pour avoir une teinte stable.</b> ${reco()} Une seule unité RGB peut y faire tourner la teinte de plus de 30°. #7F7F80 et #060605 deviennent des gris purs. #FAFAF5 et #78716C gardent leur teinte.</li><li><b>Tout garder.</b> #060605, un presque noir, donne des nuances claires vert olive.</li></ol>`);
+  `<ol type="A"><li><b>Une unité d’écart au plus.</b> ${reco()} #060605 et #7F7F80 deviennent gris : un voisin à une unité est déjà un gris pur, leur teinte est du hasard. stone-950, slate-950 et slate-50 gardent leur teinte et retrouvent leur famille Tailwind.</li><li><b>Deux unités d’écart au plus.</b> Plus strict. zinc-950 (#09090B) et gray-50 (#F9FAFB) deviennent aussi gris.</li></ol><p>Dans les deux cas, la couleur est mesurée comme si elle était dans la plage des nuances. Un presque noir teinté ne donne plus de rampe vive : compare slate-950, aujourd’hui et proposé. Le réglage « Gris » des Réglages communs disparaît.</p>`);
 
 const lireStyle = (fichier) => /<style>([\s\S]*?)<\/style>/.exec(fs.readFileSync(path.join(ICI, fichier), 'utf8'))[1];
 const STYLE = `${lireStyle('MAQUETTES-RECETTE-V5.html')}
@@ -365,16 +452,16 @@ ${STYLE}</style>
 <main>
 <section class="intro">
   <span class="sur">UCM Palettes · palettes désaturées et grises</span>
-  <h1>Palettes désaturées, second passage</h1>
-  <p>Deux questions restent ouvertes, Q2 et Q5. Elles sont réécrites plus simplement. Tes réponses aux autres suivent, pour mémoire.</p>
+  <h1>Palettes désaturées, troisième passage</h1>
+  <p>Deux questions restent ouvertes. Q2 bis montre une conséquence de ta réponse à Q2. Q5 porte ma proposition pour les gris. Tes réponses aux autres suivent, pour mémoire.</p>
   <p>Chaque rampe va de la nuance 50 à la 950, en thème Light. Le losange ◆ marque ta couleur de référence, posée telle quelle. Les couleurs sont calculées par le moteur du plugin.</p>
   <p class="note">Page écrite par <code>generer-maquettes-palettes-desaturees.mjs</code>.</p>
-  <nav class="sommaire"><a href="#q2">Q2 Entre Soft et Vivid</a><a href="#q5">Q5 Gris pur</a><a href="#constat">Constat</a><a href="#reponses">Déjà répondu</a></nav>
+  <nav class="sommaire"><a href="#q2bis">Q2 bis De Soft à Vivid</a><a href="#q5">Q5 Gris pur</a><a href="#constat">Constat</a><a href="#reponses">Déjà répondu</a></nav>
 </section>
-<section class="bloc" id="q2">${sectionQ2}</section>
+<section class="bloc" id="q2bis">${sectionQ2bis}</section>
 <section class="bloc" id="q5">${sectionQ5}</section>
 <section class="bloc" id="constat">${sectionQ1ter}</section>
-<section class="bloc" id="reponses"><div class="tete"><span class="sur">Déjà répondu</span></div>${sectionQ1}${sectionQ1bis}${sectionQ3}${sectionQ4}</section>
+<section class="bloc" id="reponses"><div class="tete"><span class="sur">Déjà répondu</span></div>${sectionQ1}${sectionQ1bis}${sectionQ2}${sectionQ3}${sectionQ4}</section>
 </main>
 </body>
 </html>
@@ -383,6 +470,8 @@ ${STYLE}</style>
 fs.writeFileSync(path.join(ICI, 'MAQUETTES-PALETTES-DESATUREES.html'), page);
 process.stdout.write(`MAQUETTES-PALETTES-DESATUREES.html : ${page.length} caractères\n`);
 process.stdout.write(`Glisser : ${GLISSER.join(' ')}\n`);
+process.stdout.write(`Mesure Q2 : ${JSON.stringify(MESURE_Q2)}\n`);
+process.stdout.write(`Q5 gris purs : ${Q5_CAS.filter((x) => estGrisPur(x.hexa)).map((x) => x.hexa).join(' ')}\n`);
 process.stdout.write(`Q2 : ${q2.palettes.map((x) => `${x.nom} ${x.hexa} part ${x.p} porteur ${x.porteur}`).join(" ; ")}
 `);
 process.stdout.write(`Teinte, écart maximal pour un octet : ${INCERTITUDES.map((x) => `C ${x.C} ${Math.round(x.pire)}°`).join(" ; ")}

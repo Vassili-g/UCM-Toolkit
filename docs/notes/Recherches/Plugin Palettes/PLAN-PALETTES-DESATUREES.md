@@ -2,10 +2,13 @@
 
 ## Résultat attendu
 
-Une référence peu saturée donne une palette peu saturée. Soft prend
-l’intensité de la référence, et ses nuances voisines lui ressemblent. Vivid
-reste plus vif que Soft, dans le rapport des intensités communes, sans devenir
-une couleur franche. La dérive de teinte et la teinte de la carte « Teinte,
+La couleur de référence se fond dans sa rampe : le profil qui la porte prend
+sa saturation, qu’elle soit terne ou vive, et les garanties de contraste
+restent tenues. Une référence peu saturée donne une palette peu saturée :
+Vivid reste plus vif que Soft, dans le rapport des intensités communes, sans
+devenir une couleur franche. Une couleur n’est un gris pur que si R, G et B
+ne diffèrent pas de plus d’une unité ; sinon sa teinte est gardée, et un
+presque noir teinté ne donne plus de rampe vive. La dérive de teinte et la teinte de la carte « Teinte,
 saturation, luminosité » restent réglables tant qu’une nuance de la palette a
 une couleur. Elles ne se désactivent que pour un gris neutre, dont toutes les
 nuances sont grises : les deux profils sont alors identiques. Un geste de la
@@ -246,23 +249,62 @@ cette spécification et dans le code en cours :
   `grise` ni au seuil. La spécification écarte les parts à deux intensités
   dans `reglages` : Q2 n’est donc pas traitée par Z10.5.
 
+### C8. Mesures après les réponses Q1 à Q5
+
+Faites par [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs),
+au commit `d357774`, moteur de Z10.5 à Z10.8 commité.
+
+**Q2, le porteur à la saturation de la référence.** Sur 240 références entre
+0,45 et 0,95 (12 teintes, 4 clartés, 5 saturations) : garanties manquées,
+0 avant et 0 après. L’écart entre la référence et la nuance que le calcul
+aurait mise à sa place tombe de 0,089 à 0,041 ΔEok au pire. En contrepartie,
+les deux rampes changent d’un coup quand la référence passe de Soft à Vivid,
+à 0,70 : le porteur prend la saturation, l’autre profil revient à sa part
+commune (Q2 bis).
+
+**Q5, les gris de Tailwind comme étalon.** Chroma des nuances Soft 100, 300,
+500, 700 et 900, depuis des références de Tailwind, part mesurée à la clarté
+bornée (R3), comparée à la famille Tailwind :
+
+| Référence | Tailwind | Aujourd’hui | Part à la clarté bornée |
+|---|---|---|---|
+| slate-950 `#020617` | 0,007 · 0,020 · 0,041 · 0,039 · 0,040 | 0,010 · 0,036 · 0,080 · 0,129 · 0,108 | 0,005 · 0,016 · 0,038 · 0,061 · 0,052 |
+| slate-50 `#F8FAFC` | idem | 0,011 · 0,035 · 0,078 · 0,058 · 0,040 | 0,007 · 0,022 · 0,050 · 0,038 · 0,026 |
+| gray-50 `#F9FAFB` | 0,003 · 0,009 · 0,023 · 0,031 · 0,032 | 0,005 · 0,019 · 0,040 · 0,030 · 0,020 | 0,003 · 0,011 · 0,024 · 0,018 · 0,012 |
+| stone-950 `#0C0A09` | 0,001 · 0,004 · 0,012 · 0,009 · 0,006 | 0,003 · 0,010 · 0,019 · 0,014 · 0,009 | 0,002 · 0,005 · 0,010 · 0,008 · 0,005 |
+
+Depuis un 500, toutes les règles retrouvent la famille. Le seuil de 0,005
+recommandé d’abord annulait slate-50, gray-50, zinc-950 et stone-950, que la
+part à la clarté bornée reproduit. Le défaut de `#060605` tient à sa teinte,
+pas à sa chroma. Écart de teinte maximal entre une référence et ses six
+voisines à une unité RGB : `#060605`, `#7F7F80`, `#FAFAF9` et `#F4F4F5`
+ont un voisin gris pur, donc ±180° ; zinc-950 ±39°, stone-950 ±36°, slate-50
+±28°, `#FAFAF5` ±11°, les 500 de Tailwind ±10° au plus. Un plafond « jamais
+plus coloré que la référence » a été écarté : depuis slate-50, il donne 0,003
+au 500, contre 0,041 chez Tailwind.
+
 ## Décisions proposées
 
 Chaque règle se valide par les [questions](#questions-au-mainteneur) avant
 le moteur.
 
-- **R1, la proportion.** On note `p` la part de la référence, `s` et `v` les
-  parts communes de Soft et de Vivid. Quand `p < s`, le profil porteur prend
-  `p` et l’autre garde le rapport des parts communes : Soft porteur donne
-  Vivid à `min(1, p × v / s)`, Vivid forcé donne Soft à `p × s / v`. Au-dessus
-  de `s`, rien ne change (`[ENT-11]` et le classement automatique). Des parts
-  du designer passent toujours avant. Ces parts se calculent à la lecture,
-  comme celles d’une base forcée : la recette ne les range pas.
-- **R2, le gris neutre.** Une référence dont la chroma est sous
-  `seuils.chromaGrise` a une part nulle : toutes ses nuances sont des gris
-  neutres, dans les deux profils et les deux modes. La référence garde ses
-  octets à son cran (`[MOT-17]`). Le défaut du seuil passe de 0,03 à 0,005,
-  où un octet déplace la teinte de plus de 20° (C2).
+- **R1, le porteur prend la saturation de la référence** (réponses Q1 et
+  Q2). On note `p` la part de la référence, `s` et `v` les parts communes
+  de Soft et de Vivid. Le profil porteur prend toujours `p`, en Auto comme
+  avec une base forcée ou un porteur figé. Quand `p < s`, l’autre garde le
+  rapport des parts communes : Soft porteur donne Vivid à
+  `min(1, p × v / s)`, Vivid porteur donne Soft à `p × s / v`. Au-dessus,
+  l’autre garde sa part commune, bornée pour que Soft ne dépasse pas Vivid
+  (`[ENT-11]`). Des parts du designer passent toujours avant. Ces parts se
+  calculent à la lecture et ne se rangent pas. Les parts communes des
+  Réglages communs deviennent la saturation par défaut du profil qui ne
+  porte pas la référence, et la frontière du classement automatique.
+- **R2, le gris pur** (proposition Q5, à valider). Une référence dont R, G
+  et B ne diffèrent pas de plus d’une unité a une part nulle : toutes ses
+  nuances sont des gris purs, dans les deux profils et les deux modes. Un de
+  ses voisins à une unité est déjà un gris pur : sa teinte ne dit rien de
+  l’intention du designer (C8). La référence garde ses octets à son cran
+  (`[MOT-17]`). Toute autre référence garde sa teinte.
 - **R3, la part à la clarté bornée.** La part de la référence se mesure au
   plafond de sa teinte, à sa clarté bornée à l’étendue de la liste de la
   palette. Une référence dans l’étendue garde sa part.
@@ -281,26 +323,27 @@ le moteur.
 - **R6, les alertes.** `couleur-presque-grise` quitte la table 11.3 : une note
   dans la carte de la dérive dit pourquoi elle est désactivée. Son texte
   actuel est de toute façon faux dès que le designer règle les parts (C7).
-  `reference-plus-terne` ne sonne plus en Auto, puisque R1 donne à Soft la
-  part de la référence ; elle reste pour des parts du designer.
+  `reference-plus-terne` et `reference-plus-vive` ne sonnent plus que pour
+  des parts du designer : R1 donne au porteur la part de la référence.
   `reference-hors-rampe` quitte la liste des points à vérifier : la note de
   `[DER-14]` dit la limite de l’éditeur, et elle se tait quand l’éditeur est
   désactivé. Aucune notice ne la remplace (réponse Q4) : une palette peut
   partir de `#000000` ou de `#FFFFFF`.
-- **R7, le seuil dans les Réglages communs.** Le champ reste, sous un nouveau
-  sens et une nouvelle aide. La lecture d’une recette 4 remet le seuil au
-  nouveau défaut, quelle que soit sa valeur : son sens a changé, et le
-  mainteneur est le seul designer qui en a rangé une.
+- **R7, le réglage « Gris » disparaît.** R2 ne lit plus de seuil de chroma :
+  `seuils.chromaGrise` quitte la recette et les Réglages communs. La lecture
+  d’une recette antérieure retire le champ ; aucune couleur n’en dépend plus.
 
 ## Questions au mainteneur
 
 | # | Question | Recommandation | Réponse |
 |---|---|---|---|
 | Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B`. La carte Z10 obtient déjà ces intensités à la main (maquette, Q1 ter), sans la dérive ; R1 les donne par défaut, avec elle | C, Proportion. Q1 bis (le glisser) : « très bien » |
-| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 | Non comprise. Reformulée au second passage de la maquette : « Une couleur entre Soft et Vivid » |
+| Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 | Oui, aligner. « Le plus important c’est que la couleur de référence soit bien intégrée dans la palette et que les checks de contrastes soient OK. » Mesuré : 0 garantie perdue (C8). R1 étendue |
+| Q2 bis | Le saut des deux rampes quand la référence passe de Soft à Vivid, à 0,70 : l’accepter, ou fixer le porteur à la création de la palette | L’accepter : il n’arrive qu’en passant 0,70, et « Référence exacte dans » l’évite | En attente (troisième passage) |
 | Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus | a, se taire |
 | Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 | Aucun message : « on a le droit de faire une palette avec un #000 ou un #fff » |
-| Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 | Non comprise. Reformulée au second passage : « Quand une couleur est-elle un gris pur ? » |
+| Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 | Non comprise au premier passage. Au second : garder la teinte, gris pur seulement si l’on choisit du gris pur, sans vert dans les clairs d’un noir neutre ; « tu proposes quoi ? » |
+| Q5 bis | Gris pur si R, G et B diffèrent d’une unité au plus, ou de deux | Une unité (R2) : `#060605` et `#7F7F80` deviennent gris, les gris de Tailwind gardent leur teinte (C8) | En attente (troisième passage) |
 
 ## Ordre d’exécution
 
@@ -360,41 +403,40 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   - a. « Votre couleur de référence est un gris neutre. Soft et Vivid sont identiques. »
   - b. « Les deux profils sont gris. Ils sont identiques. »
 
-  Aide du seuil dans les Réglages communs (remplace `aideGris`) :
-  - a. « Sous cette chroma, la couleur de référence est un gris neutre. Toutes ses nuances sont grises. »
-
   L’anglais suit par la voie de la traduction. Les textes validés entrent à
   l’[inventaire](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
 - [ ] **G1.4** Donner la maquette au mainteneur et s’arrêter. Ses réponses
   se conservent en fin de plan, et les décisions R1 à R7 se corrigent avant
   G2. Premier passage répondu : Q1 (C), Q3 (a), Q4 (aucun message). Second
-  passage : Q2 et Q5 réécrites en phrases courtes, et Q1 ter devenu un
-  constat « aujourd’hui / avec le plan », sans choix. En attente de réponse.
+  passage répondu : Q2 (aligner), Q5 (garder la teinte, proposer un seuil).
+  Troisième passage : Q2 bis (le saut à 0,70) et Q5 bis (la proposition,
+  comparée aux gris de Tailwind). En attente de réponse.
 
 ## Lot G2 : moteur
 
 - [ ] **G2.1** `partDeLaReference` mesure à la clarté bornée (R3) et rend 0
-  sous le seuil (R2). `partDeChroma` reste la mesure brute d’une couleur :
+  pour un gris pur (R2). `partDeChroma` reste la mesure brute d’une couleur :
   vérifier chacun de ses appelants et choisir la bonne des deux.
-- [ ] **G2.2** `partsDesProfils` applique R1, base forcée comprise.
-  `estPresqueGrise` devient la condition du gris neutre ; `profilAutomatique`
-  n’en a plus besoin, puisqu’une part sous 0,45 donne déjà Soft.
+- [ ] **G2.2** `partsDesProfils` applique R1 à tout porteur : Auto, base
+  forcée, porteur figé. `estPresqueGrise` devient `estGrisPur`, la condition
+  de R2 ; `profilAutomatique` n’en a plus besoin, puisqu’une part nulle
+  donne déjà Soft.
 - [ ] **G2.3** `prereglageTailwind` ne rend une dérive nulle que pour une
   part nulle (R4, `[MOT-18]`). Une fonction du moteur dit si une palette est
   un gris neutre, lue par l’interface (R4).
 - [ ] **G2.4** Alertes (R6, Q3, Q4) : retirer `couleur-presque-grise` et
   `reference-hors-rampe` du type `Alerte`, sans notice de remplacement ;
   faire taire `profils-confondus` quand R1 s’applique.
-- [ ] **G2.5** `CHROMA_GRISE` passe à 0,005 et `recetteParDefaut` suit.
-  `[MOT-13]` tenu : mesurer une analyse avant et après.
+- [ ] **G2.5** `CHROMA_GRISE` et `seuils.chromaGrise` disparaissent (R7),
+  `recetteParDefaut` suit. `[MOT-13]` tenu : mesurer une analyse avant et
+  après.
 
 ## Lot G3 : recette
 
 - [ ] **G3.1** Version de la recette. Si aucune recette 5 n’a été écrite dans
   un fichier Figma quand G3 commence, les règles entrent dans la version 5 de
   Z10.5 : la validation refuse l’origine `grise`, et la lecture d’une
-  recette 4 retire ces parts et remet `seuils.chromaGrise` au défaut (R5,
-  R7). Sinon, une version 6 fait la même migration depuis la 5.
+  recette 4 retire ces parts et `seuils.chromaGrise` (R5, R7). Sinon, une version 6 fait la même migration depuis la 5.
 - [ ] **G3.2** Vérifier que la planche marque périmés les cadres des
   palettes dont les couleurs changent, et que les tokens exportés suivent.
 
@@ -410,7 +452,8 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 - [ ] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
   les cas retirés.
   L’éditeur ne montre plus la note de `[DER-14]` quand il est désactivé.
-- [ ] **G4.4** Réglages communs : libellé et aide du seuil validés.
+- [ ] **G4.4** Réglages communs : le réglage « Gris » et son résumé se
+  retirent (R7).
 - [ ] **G4.5** Galerie : un état pour `#897288`, un pour `#7C717B`, un pour
   un gris neutre, un pour `#060605`. `galerie/etats.cjs` est modifié par une
   autre session au moment où ce plan s’écrit : lire l’index avant d’y
@@ -420,15 +463,17 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 
 Chaque loi se voit rouge sur mutation avant d’être crue.
 
-- [ ] **G5.1** Moteur : R1 (Soft vaut la part de la référence, Vivid le
-  rapport ; continuité à 0,45 ; base forcée Vivid), R2 (toutes les nuances
-  neutres sous le seuil), R3 (`#060605` n’a plus de nuance crème ; une
-  référence dans l’étendue garde sa part), R4 (dérive Tailwind non nulle
-  pour `#7C717B`). Les tests `[MOT-18]`, `[ENT-09]`, `[VER-08]` et
+- [ ] **G5.1** Moteur : R1 (le porteur vaut la part de la référence, sous
+  et au-dessus de 0,45 ; Vivid au rapport sous 0,45 ; continuité à 0,45 ;
+  base forcée Vivid ; porteur figé), R2 (`#060605` et `#7F7F80` donnent
+  des gris purs ; `#0C0A09`, `#020617`, `#F8FAFC` et `#FAFAF5` gardent leur
+  teinte), R3 (depuis slate-950, la chroma du Soft 500 reste à 0,01 près de
+  celle de Tailwind ; une référence dans l’étendue garde sa part), R4
+  (dérive Tailwind non nulle pour `#7C717B`). Les tests `[MOT-18]`, `[ENT-09]`, `[VER-08]` et
   `[MOT-17]` qui citent les parts grises se réécrivent sur les nouvelles
   règles.
 - [ ] **G5.2** Recette : une recette 4 aux parts `grise` se lit, les perd,
-  et reprend le seuil par défaut ; une recette 5 exportée puis relue est
+  et perd `seuils.chromaGrise` ; une recette 5 exportée puis relue est
   égale.
 - [ ] **G5.3** Carte Z10 : à une intensité, baisser la saturation de
   `#897288` tournée de +10° jusqu’à 8 % laisse la teinte réglable ; « Les
@@ -464,8 +509,6 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
 
 ## Hors périmètre
 
-- Le porteur qui prend la part de la référence au-dessus de 0,45 (Q2), à
-  rediscuter après la recette de Z10.
 - Un modèle de chroma absolue pour les gris, où chaque nuance garde la
   chroma de la référence au lieu d’une part du plafond. R1 et R3 corrigent
   les cas mesurés sans changer `[MOT-09]`.
@@ -493,6 +536,16 @@ pas de message, on a le droit de faire une palette avec un #000 ou un #fff si on
 
 Q5
 j'ai pas compris
+```
+
+Réponses au second passage :
+
+```text
+Q2
+toutes les palettes soft et vivid ne doivent pas forcément avoir toutes la même saturation, on a le droit de la changer, le plus important c'est que la couleur de référence soit bien intégrée dans la palette et que les checks de contrastes soient OK
+
+Q5
+ben en soit c'est bien de conserver la teinte et de n'avoir du gris pur que si on choisi du gris pur mais faut voir le threshold quoi. si c'est vraiment presque 100% neutre en noir et que sur les couleurs clairs on est sur du vert, ça passe pas trop. tu proposes quoi ?
 ```
 
 ## Signalement du mainteneur
