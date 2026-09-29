@@ -110,7 +110,7 @@ en cours dans la copie partagée :
 | Invitation | Sous le sélecteur, sans palette choisie et avec des palettes : le titre « Choisissez une palette », puis « Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ». » (disposition D1, texte a). Pas de bouton dans l’invitation : les gestes sont ceux de la barre. Sans palette, le panneau de création actuel, et son texte ne change pas (Z3.3, question 3, a) |
 | Palette supprimée | La palette suivante s’ouvre, comme aujourd’hui (Q6.3) |
 | Glisser dans le sélecteur de couleur | Un rendu par image au plus pendant un glisser. La fin du geste rend et range comme aujourd’hui. Si une image dépasse encore son budget, les parties lourdes (garanties, interface de test, messages) attendent la fin du geste ; l’aperçu suit le pointeur |
-| Ajuster la référence | Forme A (Z3.1) : le panneau reste ouvert depuis la pastille de la référence, réorganisé. En tête, la phrase qui dit pourquoi, rédaction b : « La nuance 600 est exactement votre couleur. En Thème Light, elle est trop claire pour les bordures de champ et l’anneau de focus sur fond léger : 2,92:1 pour un minimum de 3:1. » Puis les deux témoins, les pas, une ligne pour la nuance visée et les annonces des pas, le code, les garanties avant et après en tableau, et le bilan par intensité. La luminosité se retire. Sous le code, avec une garantie manquée : « ✗ 2 garanties manquées en Thème Light » en couleur de danger, puis « Ajuster la référence » (lien b). Présentation M2 (Z3.4) : une modale centrée au-dessus du panneau, sur un voile assombri, 520 px de large au plus et 16 px de marge à la fenêtre (468 px à 500 px) ; elle tient dans la fenêtre et défile en elle-même si la hauteur manque. Le tableau a ses colonnes (garantie, thème, avant, après) à 770 px ; à 500 px, le thème et l’intensité passent en titre et chaque garantie tient sur une ligne. « Annuler », Échap, « Appliquer » et un clic sur le voile la referment ; le focus revient au lien, ou au code quand le lien disparaît (Y8.0). Le sélecteur de couleur perd son onglet « Ajuster » (Q6.6) : la modale s’ouvre par le lien et par l’action `ajuster-reference` des messages |
+| Ajuster la référence | Forme A (Z3.1) : le panneau reste ouvert depuis la pastille de la référence, réorganisé. En tête, la phrase qui dit pourquoi, rédaction a du lot Z10 : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour les bordures de champ. » Avec des manques dans les deux thèmes : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour le texte coloré. En Thème Dark, elle est trop sombre pour les bordures de champ. » Les ratios restent dans le tableau. Puis les deux témoins, les pas, une ligne pour la nuance visée et les annonces des pas, le code, les garanties avant et après en tableau, et le bilan par intensité. La luminosité se retire. Sous le code, avec une garantie manquée : « ✗ 2 garanties manquées en Thème Light » en couleur de danger, puis « Ajuster la référence » (lien b). Présentation M2 (Z3.4) : une modale centrée au-dessus du panneau, sur un voile assombri, 520 px de large au plus et 16 px de marge à la fenêtre (468 px à 500 px) ; elle tient dans la fenêtre et défile en elle-même si la hauteur manque. Le tableau a ses colonnes (garantie, thème, avant, après) à 770 px ; à 500 px, le thème et l’intensité passent en titre et chaque garantie tient sur une ligne. « Annuler », Échap, « Appliquer » et un clic sur le voile la referment ; le focus revient au lien, ou au code quand le lien disparaît (Y8.0). Le sélecteur de couleur perd son onglet « Ajuster » (Q6.6) : la modale s’ouvre par le lien et par l’action `ajuster-reference` des messages |
 | Pastilles d’état | « À actualiser » et « Pas encore sur Figma » : fond et texte d’avertissement. « À jour » : fond de succès, texte de succès. « Cadre introuvable » et « Lecture impossible » gardent le danger |
 | Libellés de l’onglet Palettes | « À actualiser » partout où « À mettre à jour » s’écrivait. « Actualiser tout (N palettes) » remplace « Mettre à jour (N palettes) », singulier gardé. « Générer tout (N palettes) » ne change pas |
 | Code hexa | Il prend toute la largeur de sa colonne, dans la configuration et dans la création, qui gardent la même disposition (Q6.5) |
@@ -537,14 +537,13 @@ Après la validation de Z3.1.
   sélecteur de couleur perd son onglet « Ajuster » (Q6.6) : sa bascule
   d’onglets, `OngletDAjustement` et le choix d’onglet de
   `createPipette.ouvrir` se retirent ; le lien et l’action
-  `ajuster-reference` ouvrent la modale. La phrase b ne couvre qu’un
-  thème : pour une référence en échec dans les deux, l’agent propose
-  plusieurs rédactions au mainteneur et attend son choix avant de
-  l’écrire. Les rédactions de `MAQUETTES-RECETTE-V6-2.html` sont refusées,
-  trop compliquées ; de nouvelles, en phrases courtes, sont proposées à
-  l’écrit. Avec la recette par défaut, aucune de 10 000 couleurs
-  essayées ne manque de garantie dans les deux thèmes : le cas naît d’un
-  minimum relevé dans les Réglages communs. L’état de galerie `ajuster-en-modale` (Z0.6)
+  `ajuster-reference` ouvrent la modale. La phrase en tête est celle de
+  la [décision](#décisions), rédaction a, validée à l’écrit : une idée
+  par phrase, le rôle nommé sans ratio. Elle remplace la phrase b du
+  premier passage, y compris pour un seul thème. Le rôle nommé est le
+  premier rôle manqué du thème. Avec la recette par défaut, aucune de
+  10 000 couleurs essayées ne manque de garantie dans les deux thèmes :
+  le cas naît d’un minimum relevé dans les Réglages communs. L’état de galerie `ajuster-en-modale` (Z0.6)
   devient atteignable, à 770 et à 500 px. Les textes retirés sont marqués
   retirés dans l’inventaire. `[UI-15]` récrit.
 - [ ] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
@@ -789,8 +788,12 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   avant le geste et ligne « Ajustée depuis » après (W1 et W3), carte pour
   une intensité, « Ajuster la référence » devient le raccourci de la
   luminosité du porteur (R1), luminosité de −0,05 à +0,02, dérive Tailwind
-  calculée sur l’originale, porteur figé au premier réglage. Le texte de
-  W1 est refusé : nouvelles rédactions proposées au mainteneur, à l’écrit.
+  calculée sur l’originale, porteur figé au premier réglage.
+  Avertissement, validé à l’écrit : avant le geste, dès que la cible porte
+  la référence, « Attention : ce réglage va modifier votre couleur de
+  référence. » ; après le geste, à sa place, « Attention, votre couleur de
+  référence a été modifiée. ». Les deux s’écrivent en anglais par la voie
+  de la traduction (Z10.6).
 - [ ] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
   la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
   recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
@@ -1101,6 +1104,19 @@ Question 1
 ta rédaction est trop alembiquée, personne n'écrit comme ça en français,
 regarde comment rédiger des phrases simples sur internet et recommence ta
 proposition (à l'écrit uniquement, pas de maquette)
+```
+
+## Retours du mainteneur, textes du lot Z10 et de Z5.2
+
+Texte d’origine, réponse aux rédactions proposées à l’écrit. « A » vise la
+rédaction a de Z5.2 ; « ta question » demandait si la phrase à un seul
+thème se récrit comme elle.
+
+```text
+« Attention : ce réglage va modifier votre couleur de référence. » +
+« Attention, votre couleur de référence a été modifiée. »
+
+ok pour A et oui pour ta question. modifie le plan et c'est tout
 ```
 
 ## Précisions du mainteneur après la suite de la recette
