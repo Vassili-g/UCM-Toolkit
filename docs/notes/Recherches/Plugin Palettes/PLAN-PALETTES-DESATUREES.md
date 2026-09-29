@@ -37,7 +37,10 @@ Relevé dans le code au commit `98521f2`, recette par défaut (parts communes
 Soft 0,45 et Vivid 0,95, seuil de gris 0,03, onze nuances). Revu au commit
 `5752952`, sur le moteur de Z10.5 que l’arbre partagé porte sans commit :
 sans réglage, il rend les mêmes octets pour `#897288`, `#7C717B` et
-`#060605`. Les constats C1 à C6 tiennent ; C7 dit ce que Z10.5 change. Les
+`#060605`. Les couleurs par défaut ne changent donc pas. La carte « Teinte,
+saturation, luminosité » change en revanche ce que le designer peut faire de
+C1, C3 et C6 : C7 le mesure, par les gestes de `edition.ts` appelés tels
+quels. Les
 mesures viennent du moteur (`packages/couleur/src`).
 [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs)
 refait celles de C2 à C6.
@@ -189,15 +192,36 @@ cette spécification et dans le code en cours :
   [recherche](./RECHERCHE-REFONTE-INTENSITES.md#réponses-aux-questions-du-plan)
   l’a décidé (« Gris : l’interface désactive la teinte »). La maquette Z10.4
   ne montrait aucune palette grise : le mainteneur n’a pas validé ce point.
-- **La saturation à deux intensités reste `parts`.** Le curseur de Soft
-  répare C1 en un geste, par des parts du designer. R1 le rend inutile pour
-  une référence sous 0,45.
-- **Le seuil fait sauter Vivid pendant un geste.** `changerReference` et chaque
-  geste de la carte finissent par `ajusterPartsGrises`. Quand la chroma de la
-  référence passe 0,03, Vivid passe d’un coup de 0,95 à la part de la
-  référence. Cela arrive en glissant dans le sélecteur de couleur, et pendant
-  un réglage de luminosité : `referenceReglee` borne la chroma au plafond de
-  la nouvelle clarté. R1 n’a pas de seuil, donc pas de saut (maquette, Q1 bis).
+- **C1 se répare à la main.** À deux intensités, la saturation d’un profil
+  pose des parts du designer (`reglerSaturation`) sans déplacer la
+  référence. Soft à 16 % sur `#897288` donne la rampe Soft de R1, et les
+  alertes `profils-confondus` et `reference-plus-terne` se taisent. Vivid
+  garde 0,95. Le défaut reste celui de C1 : R1 le corrige sans geste.
+- **C3 se répare à moitié.** Sur `#7C717B`, Vivid à 16,5 % sépare les deux
+  profils et donne les intensités de R1. La teinte, son « Rétablir » et
+  l’éditeur de dérive restent verrouillés, et la dérive rangée reste 0° :
+  Vivid n’a pas la dérive Tailwind que R1 lui donne. `profils-confondus`
+  sonne (7 nuances sur 11 sous 0,02).
+- **« Les deux » ne sépare pas des parts grises.** Le curseur déplace les deux
+  parts du même écart : depuis 0,078 et 0,078, il donne 0,2 et 0,2, et
+  `reference-plus-terne` s’ajoute. Il ne garde pas non plus un rapport entre
+  les parts, celui de R1.
+- **L’alerte « presque grise » devient fausse.** Elle dit que « les deux
+  profils reprennent son intensité », alors que les parts du designer, 0,078
+  et 0,165, ne sont plus égales. Le texte ne regarde pas `parts.origine`.
+- **À une intensité, la saturation fait passer le seuil en plein geste.** La
+  part de la référence (`reglages.part`) récrit ses octets. `#897288`
+  tournée de +10°, puis descendue à 8 %, devient `#83767F`, chroma 0,021 :
+  la piste de teinte, son « Rétablir » et l’éditeur de dérive se
+  verrouillent. Les +10° et la dérive Tailwind, calculée sur le départ,
+  restent pourtant appliqués. Le designer ne peut plus les voir ni les
+  remettre à zéro, sauf à remonter la saturation. `[DER-15]` supposait
+  qu’une teinte verrouillée ne se voyait pas.
+- **À deux intensités, le seuil ne se passe qu’au sélecteur de couleur.** La
+  saturation n’y déplace pas la référence, et la teinte comme la clarté
+  gardent sa chroma, sauf aux clartés extrêmes où `referenceReglee` la borne
+  au plafond. Au sélecteur, Vivid saute de 0,95 à la part de la référence en
+  passant 0,03. R1 n’a pas de seuil, donc pas de saut (maquette, Q1 bis).
 - **L’alerte « hors de la rampe » lit le départ** (`departDe`) au lieu de la
   référence. La contradiction de C6 reste. « Ajuster la référence » devient
   le raccourci de la luminosité du porteur, bornée à +0,02 : il ne peut pas
@@ -258,7 +282,7 @@ le moteur.
 
 | # | Question | Recommandation |
 |---|---|---|
-| Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B` |
+| Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B`. La carte Z10 obtient déjà ces intensités à la main (maquette, Q1 ter), sans la dérive ; R1 les donne par défaut, avec elle |
 | Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 |
 | Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus |
 | Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 |
@@ -297,7 +321,7 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   la carte de la dérive d’un gris neutre, la ligne d’origine des intensités.
   Premier passage fait, par
   [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs) :
-  Q1, Q1 bis (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de
+  Q1, Q1 ter (les gestes de la carte Z10), Q1 bis (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de
   l’interface viennent au second passage, avec les textes de G1.3.
 - [ ] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
   valider mot à mot avant le code. Les propositions ci-dessous sont un point
@@ -364,6 +388,8 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 - [ ] **G4.1** `ongletPalettes.ts` et `reglagesDeLaPalette.ts` : l’éditeur
   de dérive et la piste de teinte de la carte Z10 se désactivent sur la
   fonction de G2.3, avec la note validée. Le résumé de chaque carte suit.
+  « Rétablir » reste actif tant qu’une teinte est rangée : un réglage
+  rangé se remet toujours à zéro (C7, une intensité).
 - [ ] **G4.2** Carte « Teinte, saturation, luminosité » : `origineDesParts` prend les lignes
   validées, et le repère de la référence lit la part de R3.
 - [ ] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
@@ -389,7 +415,10 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
 - [ ] **G5.2** Recette : une recette 4 aux parts `grise` se lit, les perd,
   et reprend le seuil par défaut ; une recette 5 exportée puis relue est
   égale.
-- [ ] **G5.3** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
+- [ ] **G5.3** Carte Z10 : à une intensité, baisser la saturation de
+  `#897288` tournée de +10° jusqu’à 8 % laisse la teinte réglable ; « Les
+  deux » depuis une palette désaturée garde Vivid au-dessus de Soft.
+- [ ] **G5.4** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
   `#7C717B`, se désactive pour `#808080`), aucune alerte « hors de la
   rampe » pour `#060605`, textes validés.
 

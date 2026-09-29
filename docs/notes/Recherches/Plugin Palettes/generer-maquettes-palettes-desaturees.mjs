@@ -31,6 +31,7 @@ import {
   recetteParDefaut,
   rgb8VersOklch,
 } from '../../../../packages/couleur/src/index.ts';
+import { nouvellePalette, reglerSaturation, reglerTeinte } from '../../../../packages/plugin-palettes/src/edition.ts';
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -205,6 +206,43 @@ const sectionQ1 = blocDeQuestion('Q1', 'Sous l’intensité commune de Soft, que
   ].join('')])),
   `<ol type="A"><li><b>Aujourd’hui.</b> Au-dessus de 0,03 de chroma, Soft garde ${virgule(S)} : la référence est plus terne que ses voisines. En dessous, Soft et Vivid sont identiques.</li><li><b>Bornes.</b> Soft prend l’intensité de la référence ; Vivid garde ${virgule(V)}. Un gris bleuté donne un Vivid bleu franc.</li><li><b>Proportion.</b> ${reco()} Soft prend l’intensité de la référence ; Vivid reste ${virgule(V / S, 1)} fois plus intense. La palette reste désaturée, et les deux profils restent distincts.</li></ol>`);
 
+/* Q1 ter : les gestes de la carte « Teinte, saturation, luminosité » (Z10.5), appelés tels quels */
+
+const avecPalette = (p) => ({ ...RECETTE, palettes: [p] });
+const MAUVE = nouvellePalette(RECETTE, 'p-0000000a', '#897288', 2);
+const MAUVE_SOFT = reglerSaturation(avecPalette(MAUVE), MAUVE, 'soft', 0.16);
+const GRIS = nouvellePalette(RECETTE, 'p-0000000a', '#7C717B', 2);
+const GRIS_VIVID = reglerSaturation(avecPalette(GRIS), GRIS, 'vivid', 0.165);
+const UNE = nouvellePalette(RECETTE, 'p-0000000a', '#897288', 1);
+const UNE_TOURNEE = reglerTeinte(avecPalette(UNE), UNE, 'vivid', 10);
+const UNE_12 = reglerSaturation(avecPalette(UNE_TOURNEE), UNE_TOURNEE, 'vivid', 0.12);
+const UNE_08 = reglerSaturation(avecPalette(UNE_TOURNEE), UNE_TOURNEE, 'vivid', 0.08);
+const alertesEcrites = (r) => (r.alertes.length ? r.alertes.map((code) => `« ${code} »`).join(', ') : 'aucune alerte');
+const q1ter = {
+  mauve: calculer(MAUVE), mauveSoft: calculer(MAUVE_SOFT),
+  gris: calculer(GRIS), grisVivid: calculer(GRIS_VIVID), grisR1: proportion('#7C717B'),
+  une12: calculer(UNE_12), une08: calculer(UNE_08),
+};
+
+const sectionQ1ter = blocDeQuestion('Q1 ter', 'Ce que la nouvelle carte permet déjà, à la main',
+  'Les gestes de la carte « Teinte, saturation, luminosité », appelés tels quels. Thème Light.',
+  rangees([
+    [`${pastille('#897288')} deux intensités : baisser Soft`, [
+      vue(deux(q1ter.mauve), 'A', `Sans réglage : ${alertesEcrites(q1ter.mauve)}.`),
+      vue(deux(q1ter.mauveSoft), 'B', `Curseur Soft à 16 % : ${alertesEcrites(q1ter.mauveSoft)}. Vivid garde 0,95.`),
+    ].join('')],
+    [`${pastille('#7C717B')} deux intensités : monter Vivid`, [
+      vue(deux(q1ter.gris), 'A', 'Sans réglage : Soft et Vivid identiques.'),
+      vue(deux(q1ter.grisVivid), 'B', `Curseur Vivid à 16,5 % : ${alertesEcrites(q1ter.grisVivid)}. Teinte et dérive restent verrouillées, à 0°.`),
+      vue(deux(q1ter.grisR1), 'C', 'Règle « Proportion » : les mêmes intensités, avec la dérive Tailwind.'),
+    ].join('')],
+    [`${pastille('#897288')} une intensité : teinte +10°, puis baisser la saturation`, [
+      vue(rampe(q1ter.une12, 'unique', 'light', { titre: `Saturation 12 % · ${UNE_12.reference}` }), 'A', 'Au-dessus du seuil : teinte et dérive réglables.'),
+      vue(rampe(q1ter.une08, 'unique', 'light', { titre: `Saturation 8 % · ${UNE_08.reference}` }), 'B', 'Sous le seuil : la teinte, son « Rétablir » et la dérive se verrouillent, mais +10° et la dérive restent appliqués.'),
+    ].join('')],
+  ]),
+  `<p>La carte répare à la main le Soft de #897288, et sépare Soft et Vivid pour #7C717B. Elle ne rend ni la teinte ni la dérive à une palette désaturée. À une intensité, son curseur de saturation fait passer la référence sous le seuil en plein geste. L’alerte « presque grise » dit alors que « les deux profils reprennent son intensité », ce qui est faux dès que le designer a réglé les parts.</p>`);
+
 const sectionQ1bis = blocDeQuestion('Q1 bis', 'Le même choix, pendant un glisser',
   'Dans le sélecteur de couleur, la saturation de #897288 baisse pas à pas. Rampe Vivid, thème Light.',
   [
@@ -307,7 +345,7 @@ ${STYLE}</style>
   <p class="note">Page écrite par <code>generer-maquettes-palettes-desaturees.mjs</code>.</p>
   <nav class="sommaire"><a href="#q1">Q1 Vivid sous Soft</a><a href="#q2">Q2 Au-dessus de Soft</a><a href="#q3">Q3 Profils confondus</a><a href="#q4">Q4 Hors des nuances</a><a href="#q5">Q5 Gris neutre</a></nav>
 </section>
-<section class="bloc" id="q1">${sectionQ1}${sectionQ1bis}</section>
+<section class="bloc" id="q1">${sectionQ1}${sectionQ1ter}${sectionQ1bis}</section>
 <section class="bloc" id="q2">${sectionQ2}</section>
 <section class="bloc" id="q3">${sectionQ3}</section>
 <section class="bloc" id="q4">${sectionQ4}</section>
