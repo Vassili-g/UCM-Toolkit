@@ -540,7 +540,10 @@ Après la validation de Z3.1.
   `ajuster-reference` ouvrent la modale. La phrase b ne couvre qu’un
   thème : pour une référence en échec dans les deux, l’agent propose
   plusieurs rédactions au mainteneur et attend son choix avant de
-  l’écrire. L’état de galerie `ajuster-en-modale` (Z0.6)
+  l’écrire. Rédactions proposées dans `MAQUETTES-RECETTE-V6-2.html`,
+  attendent le choix. Avec la recette par défaut, aucune de 10 000 couleurs
+  essayées ne manque de garantie dans les deux thèmes : le cas naît d’un
+  minimum relevé dans les Réglages communs. L’état de galerie `ajuster-en-modale` (Z0.6)
   devient atteignable, à 770 et à 500 px. Les textes retirés sont marqués
   retirés dans l’inventaire. `[UI-15]` récrit.
 - [ ] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
@@ -579,6 +582,13 @@ palette sans échec tient dans moins de hauteur qu’aujourd’hui.
 Fichiers : `derive/graphe.ts`, `derive/editeur.ts`, `garanties.ts`,
 `traceDesCourbes.ts`, `styles.css`, tests voisins,
 `tests/interface/interface.test.mjs` et `galerie/etats.cjs`.
+
+Le mainteneur juge le graphe de la dérive et la réglette des garanties
+« très beaux » à 500 px de large, et moins beaux dès qu’ils grandissent
+([précision d’après-recette](#précisions-du-mainteneur-après-la-suite-de-la-recette)).
+Le rendu à 500 px est donc la référence visuelle de ce lot, pas seulement
+celle des tailles : à 770 et à 1 000 px, une capture de chaque graphe se
+compare à celle de 500 px, et seul l’écart entre les colonnes change.
 
 - [ ] **Z8.1** Constater. Dans la galerie construite, à 500, 770 et 1 000 px
   de large : pour le graphe de la dérive déplié, la réglette des garanties
@@ -620,6 +630,15 @@ graphes ont la même taille ; seules leurs colonnes s’élargissent.
 Fichiers : `plugin-socle/src/ui/ResizeGrip.ts`, `plugin-palettes/src/code.ts`
 et `messages.ts`, `plugin-exporter/src/code.ts` et `messages.ts`, tests des
 trois paquets, un script de mesure.
+
+Lot suspendu : le mainteneur rapporte qu’un autre agent
+semble avoir corrigé le redimensionnement ([précision
+d’après-recette](#précisions-du-mainteneur-après-la-suite-de-la-recette)).
+Au commit `3d844ee`, aucun commit ne touche `ResizeGrip.ts` depuis
+`56e00df`, et l’arbre de travail ne le modifie pas. Avant de reprendre Z9,
+l’agent retrouve cette correction dans `git log`. Si elle est dans le
+dépôt, il la vérifie contre Z9.4, sinon il demande au mainteneur où elle
+se trouve.
 
 Le retour décrit trois symptômes : la fenêtre « perd le focus », elle « se
 redimensionne toute seule », elle se rétrécit mais s’agrandit mal. Les
@@ -699,7 +718,7 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
 | Ce que deviennent les palettes grises, la palette de base, les palettes libres, les parts communes des Réglages communs et l’alerte « Profils confondus » | `[ENT-09]`, `[ENT-11]`, W6, section 8.3, `[VER-10]` |
 | Version 5 de la recette et lecture des recettes 4 ; planche et tokens | Section 7.3 |
 
-- [ ] **Z10.1** Recherche. Relire la spécification (sections 6.3 à 6.5, 7,
+- [x] **Z10.1** Recherche. Relire la spécification (sections 6.3 à 6.5, 7,
   8.1, 8.3, 12, `[UI-12]`, `[UI-15]`), la [revue
   d’ergonomie](./REVUE-ERGONOMIE-PLUGIN-PALETTES.md), la [revue
   critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md), les [décisions de
@@ -716,17 +735,30 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   dossier : constats sourcés, réponse argumentée à chaque question
   ci-dessus, deux ou trois modèles candidats avec leurs effets sur
   `[MOT-17]`, les garanties, la recette et l’interface.
-- [ ] **Z10.2** Mesurer avant de choisir. Pour `#1E6FD9`, `#16A34A`,
+  Fait : [RECHERCHE-REFONTE-INTENSITES.md](./RECHERCHE-REFONTE-INTENSITES.md),
+  neuf outils. Modèle C retenu : régler le profil porteur déplace la
+  référence, régler l’autre ne la touche pas.
+- [x] **Z10.2** Mesurer avant de choisir. Pour `#1E6FD9`, `#16A34A`,
   `#DC2626`, `#A0B599` et une référence grise, calculer par le moteur
   l’effet de chaque modèle candidat aux bornes de ses contrôles : rampes,
   cran porteur, garanties manquées, profils confondus, temps de calcul
   contre `[MOT-13]`. Reporter dans la recherche, et retenir un modèle.
-- [ ] **Z10.3** Revue indépendante du modèle retenu, par un agent de revue :
+  Fait par `mesurer-refonte-intensites.mjs`, témoin contre le moteur. Garder
+  la référence fixe fait rompre son cran à 10° de teinte ; écrire la
+  saturation dans la référence fait basculer le porteur sous 0,70 ; au-delà
+  de +0,02 de luminosité, la nuance 50 blanchit. Coût : 0,10 ms.
+- [x] **Z10.3** Revue indépendante du modèle retenu, par un agent de revue :
   champs de la recette, validation, migration de la version 4, `[MOT-17]`,
   ordre des réglages puis de la dérive, vecteurs de test de la section 6.8,
   effets sur la planche et les tokens. Ses conclusions se vérifient dans le
   code et s’écrivent sous cette case ; le modèle se corrige avant la
   maquette.
+  Faite. Conclusions vérifiées et reportées dans la [revue du
+  modèle](./RECHERCHE-REFONTE-INTENSITES.md#revue-du-modèle) : la première
+  mesure de la luminosité décrivait le modèle B, et le sens s’inverse sur
+  Vert une fois refaite ; le porteur se fige ; la référence se tire de
+  l’originale par une seule fonction ; courbe, pivot, bouts et ancrage se
+  translatent. Deux corrections écartées, avec leur raison.
 - [ ] **Z10.4** Maquettes. `MAQUETTES-RECETTE-V6-2.html`, écrit par
   `generer-maquettes-v6-2.mjs` sur le modèle de `generer-maquettes-v6.mjs`,
   selon les règles du lot Z3 : une question par bloc, écrans lettrés
@@ -751,6 +783,10 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   Donner le fichier au mainteneur et s’arrêter. Second passage dans le même
   fichier après ses retours, jusqu’à validation ; ses réponses se
   conservent en fin de plan.
+  Produit, attend la réponse : six questions, trois dispositions à 770 et
+  500 px. La question 5 demande si « Ajuster la référence » devient le
+  raccourci de la luminosité du porteur ; la question 6, les bornes de la
+  luminosité, la dérive Tailwind pendant le geste et le porteur figé.
 - [ ] **Z10.5** Après validation : le moteur (`packages/couleur`). Champs de
   la palette, validation et refus nommés, `FORMAT_RECETTE` 5 et lecture des
   recettes 4, section 6.4 (réglages puis dérive), vecteurs de test,
@@ -1031,4 +1067,18 @@ meilleures solutions d’un point de vue UX/UI, peut être en relisant les
 docs de recherche aussi
 
 Puis il faut faire une maquette claude qui sera validée par le user
+```
+
+## Précisions du mainteneur après la suite de la recette
+
+Texte d’origine, reçu pendant Z10.1.
+
+```text
+pour les graph "hue shift" et "contrast guarantees", ils sont très beau
+quand le plugin fait 500px de width. Quand la taille augmente et qu'ils
+scalent, ils deviennent moins beau. Peut être à ajouter dans le plan pour
+référence.
+
+Aussi, un autre agent semble avoir fixé le problème du resize qui
+fonctionne mal donc c'est peut être pas la peine de traiter ça.
 ```
