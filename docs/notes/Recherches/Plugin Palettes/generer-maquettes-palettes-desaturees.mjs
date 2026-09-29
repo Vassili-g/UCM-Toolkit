@@ -374,7 +374,8 @@ const sectionQ2bis = blocDeQuestion('Q2 bis', 'Quand ta couleur passe de Soft à
     vue(ligneDuGlisserQ2((h) => actuelle(h)), 'Aujourd’hui', `Les rampes restent à ${pourcent(S)} et ${pourcent(V)}. Seul le ◆ change de rampe.`),
     vue(ligneDuGlisserQ2(regleFinale), 'Avec ta réponse', 'La rampe du ◆ suit ta couleur. Les deux rampes sautent à 70 %.'),
   ].join(''),
-  `<ol type="a"><li><b>Accepter ce saut.</b> ${reco()} Il n’arrive qu’en passant 70 %. Pour l’éviter, choisis toi-même la rampe avec « Référence exacte dans ».</li><li><b>Fixer la rampe à la création de la palette.</b> Ta couleur reste dans Soft ou dans Vivid, même si tu changes sa saturation ensuite. Pour changer de rampe, tu passes par « Référence exacte dans ».</li></ol>`);
+  `<ol type="a"><li><b>Accepter ce saut.</b> ${reco()} Il n’arrive qu’en passant 70 %. Pour l’éviter, choisis toi-même la rampe avec « Référence exacte dans ».</li><li><b>Fixer la rampe à la création de la palette.</b> Ta couleur reste dans Soft ou dans Vivid, même si tu changes sa saturation ensuite. Pour changer de rampe, tu passes par « Référence exacte dans ».</li></ol>`,
+  'a');
 
 const sectionQ3 = blocDeQuestion('Q3', '« Profils confondus » sur une palette désaturée',
   `Règle C de Q1. Sous chaque paire, l’écart entre Soft et Vivid ; en couleur, sous le seuil de ${virgule(RECETTE.seuils.profilsConfondus)}.`,
@@ -398,7 +399,8 @@ const sectionQ5 = blocDeQuestion('Q5', 'Quand une couleur est-elle un gris pur ?
     vue(deux(regleFinale(x.hexa)), 'Proposition', estGrisPur(x.hexa) ? 'Gris pur.' : 'La teinte est gardée.'),
     x.tailwind ? vue(rampeDeHexas(TAILWIND[x.tailwind], `Tailwind ${x.tailwind}`), 'Pour comparer', `La famille ${x.tailwind} de Tailwind.`) : '',
   ].join('')])),
-  `<ol type="A"><li><b>Une unité d’écart au plus.</b> ${reco()} #060605 et #7F7F80 deviennent gris : un voisin à une unité est déjà un gris pur, leur teinte est du hasard. stone-950, slate-950 et slate-50 gardent leur teinte et retrouvent leur famille Tailwind.</li><li><b>Deux unités d’écart au plus.</b> Plus strict. zinc-950 (#09090B) et gray-50 (#F9FAFB) deviennent aussi gris.</li></ol><p>Dans les deux cas, la couleur est mesurée comme si elle était dans la plage des nuances. Un presque noir teinté ne donne plus de rampe vive : compare slate-950, aujourd’hui et proposé. Le réglage « Gris » des Réglages communs disparaît.</p>`);
+  `<ol type="A"><li><b>Une unité d’écart au plus.</b> ${reco()} #060605 et #7F7F80 deviennent gris : un voisin à une unité est déjà un gris pur, leur teinte est du hasard. stone-950, slate-950 et slate-50 gardent leur teinte et retrouvent leur famille Tailwind.</li><li><b>Deux unités d’écart au plus.</b> Plus strict. zinc-950 (#09090B) et gray-50 (#F9FAFB) deviennent aussi gris.</li></ol><p>Dans les deux cas, la couleur est mesurée comme si elle était dans la plage des nuances. Un presque noir teinté ne donne plus de rampe vive : compare slate-950, aujourd’hui et proposé. Le réglage « Gris » des Réglages communs disparaît.</p>`,
+  'A');
 
 const lireStyle = (fichier) => /<style>([\s\S]*?)<\/style>/.exec(fs.readFileSync(path.join(ICI, fichier), 'utf8'))[1];
 const STYLE = `${lireStyle('MAQUETTES-RECETTE-V5.html')}
@@ -452,16 +454,14 @@ ${STYLE}</style>
 <main>
 <section class="intro">
   <span class="sur">UCM Palettes · palettes désaturées et grises</span>
-  <h1>Palettes désaturées, troisième passage</h1>
-  <p>Deux questions restent ouvertes. Q2 bis montre une conséquence de ta réponse à Q2. Q5 porte ma proposition pour les gris. Tes réponses aux autres suivent, pour mémoire.</p>
+  <h1>Palettes désaturées, maquette validée</h1>
+  <p>Toutes les questions ont une réponse. La page les garde pour mémoire, avec le constat de départ.</p>
   <p>Chaque rampe va de la nuance 50 à la 950, en thème Light. Le losange ◆ marque ta couleur de référence, posée telle quelle. Les couleurs sont calculées par le moteur du plugin.</p>
   <p class="note">Page écrite par <code>generer-maquettes-palettes-desaturees.mjs</code>.</p>
-  <nav class="sommaire"><a href="#q2bis">Q2 bis De Soft à Vivid</a><a href="#q5">Q5 Gris pur</a><a href="#constat">Constat</a><a href="#reponses">Déjà répondu</a></nav>
+  <nav class="sommaire"><a href="#reponses">Réponses</a><a href="#constat">Constat</a></nav>
 </section>
-<section class="bloc" id="q2bis">${sectionQ2bis}</section>
-<section class="bloc" id="q5">${sectionQ5}</section>
+<section class="bloc" id="reponses"><div class="tete"><span class="sur">Réponses</span></div>${sectionQ1}${sectionQ1bis}${sectionQ2}${sectionQ2bis}${sectionQ3}${sectionQ4}${sectionQ5}</section>
 <section class="bloc" id="constat">${sectionQ1ter}</section>
-<section class="bloc" id="reponses"><div class="tete"><span class="sur">Déjà répondu</span></div>${sectionQ1}${sectionQ1bis}${sectionQ2}${sectionQ3}${sectionQ4}</section>
 </main>
 </body>
 </html>

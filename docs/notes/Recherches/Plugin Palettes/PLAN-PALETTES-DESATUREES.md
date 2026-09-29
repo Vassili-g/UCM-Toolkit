@@ -299,7 +299,7 @@ le moteur.
   calculent à la lecture et ne se rangent pas. Les parts communes des
   Réglages communs deviennent la saturation par défaut du profil qui ne
   porte pas la référence, et la frontière du classement automatique.
-- **R2, le gris pur** (proposition Q5, à valider). Une référence dont R, G
+- **R2, le gris pur** (réponse Q5 bis). Une référence dont R, G
   et B ne diffèrent pas de plus d’une unité a une part nulle : toutes ses
   nuances sont des gris purs, dans les deux profils et les deux modes. Un de
   ses voisins à une unité est déjà un gris pur : sa teinte ne dit rien de
@@ -339,11 +339,11 @@ le moteur.
 |---|---|---|---|
 | Q1 | Sous la part commune de Soft : « Proportion » (Vivid garde le rapport des parts communes) ou « Bornes » (Vivid garde 0,95) | Proportion. Bornes tire un bleu franc de `#6B7280` et un magenta de `#7C717B`. La carte Z10 obtient déjà ces intensités à la main (maquette, Q1 ter), sans la dérive ; R1 les donne par défaut, avec elle | C, Proportion. Q1 bis (le glisser) : « très bien » |
 | Q2 | Au-dessus de 0,45, le profil porteur en Auto doit-il aussi prendre la part de la référence ? Aujourd’hui `#559765`, part 0,60, est portée par Soft à 0,45 : l’écart atteint 0,25 à 0,70 | Non, pas dans ce plan. Tous les Soft d’un fichier gardent la même intensité, et le curseur de saturation de la carte Z10 règle Soft en un geste. À rediscuter après la recette de Z10 | Oui, aligner. « Le plus important c’est que la couleur de référence soit bien intégrée dans la palette et que les checks de contrastes soient OK. » Mesuré : 0 garantie perdue (C8). R1 étendue |
-| Q2 bis | Le saut des deux rampes quand la référence passe de Soft à Vivid, à 0,70 : l’accepter, ou fixer le porteur à la création de la palette | L’accepter : il n’arrive qu’en passant 0,70, et « Référence exacte dans » l’évite | En attente (troisième passage) |
+| Q2 bis | Le saut des deux rampes quand la référence passe de Soft à Vivid, à 0,70 : l’accepter, ou fixer le porteur à la création de la palette | L’accepter : il n’arrive qu’en passant 0,70, et « Référence exacte dans » l’évite | a, l’accepter |
 | Q3 | « Profils confondus » sur une palette désaturée : sous R1, le moteur sonne pour `#78716C` (10 nuances sur 11 sous 0,02) et `#7C717B` (7 sur 11) | Se taire quand R1 s’applique, comme pour les parts `grise` aujourd’hui : les profils sont proches par construction. Sonner pour un gris neutre n’a pas de sens non plus | a, se taire |
 | Q4 | Référence hors de l’étendue : aucun message, ou une notice qui dit que la nuance prévue est remplacée par une couleur plus sombre ou plus claire | Une notice, seulement quand l’écart de clarté dépasse la tolérance du fond, 0,005 (`[ENT-06]`). Son geste est de choisir une couleur plus claire ou plus sombre : « Ajuster la référence » ne monte que de 0,02 | Aucun message : « on a le droit de faire une palette avec un #000 ou un #fff » |
 | Q5 | Seuil du gris neutre : 0,005, un autre nombre, ou aucun seuil (la part de `#060605` corrigée par R3 garde une teinte crème pâle) | 0,005 | Non comprise au premier passage. Au second : garder la teinte, gris pur seulement si l’on choisit du gris pur, sans vert dans les clairs d’un noir neutre ; « tu proposes quoi ? » |
-| Q5 bis | Gris pur si R, G et B diffèrent d’une unité au plus, ou de deux | Une unité (R2) : `#060605` et `#7F7F80` deviennent gris, les gris de Tailwind gardent leur teinte (C8) | En attente (troisième passage) |
+| Q5 bis | Gris pur si R, G et B diffèrent d’une unité au plus, ou de deux | Une unité (R2) : `#060605` et `#7F7F80` deviennent gris, les gris de Tailwind gardent leur teinte (C8) | A, une unité |
 
 ## Ordre d’exécution
 
@@ -385,32 +385,47 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de l’interface
   viennent au second passage, avec les textes de G1.3.
 - [ ] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
-  valider mot à mot avant le code. Les propositions ci-dessous sont un point
-  de départ.
+  valider mot à mot avant le code. Les saturations s’écrivent en pour cent,
+  comme dans la carte « Teinte, saturation, luminosité ». Propositions
+  écrites après les réponses Q1 à Q5 :
 
-  Note de la carte de la dérive, gris neutre (remplace `grisDesactive` et le
-  résumé « Désactivée pour une couleur presque grise ») :
-  - a. « Votre couleur de référence est un gris neutre. Ses nuances n’ont pas de teinte à régler. »
-  - b. « Aucune nuance de cette palette n’a de couleur. La dérive de teinte n’a donc aucun effet. »
-  - c. « Cette palette est entièrement grise. La dérive de teinte est désactivée. »
+  T1, note sous l’éditeur de dérive et sous la piste de teinte de la carte,
+  quand toutes les nuances sont grises (remplace `grisDesactive`) :
+  - a. « Toutes les nuances de cette palette sont grises. La teinte ne se règle pas. »
+  - b. « Votre couleur de référence est un gris pur. Ses nuances n’ont pas de teinte à régler. »
+  - c. « Cette palette est entièrement grise. Il n’y a pas de teinte à régler. »
 
-  Ligne d’origine des intensités sous R1 (remplace la ligne `grise` de
-  `origineDesParts`) :
-  - a. « Votre couleur de référence est peu saturée. Soft prend son intensité, 0,08. Vivid baisse dans la même proportion, à 0,17. »
-  - b. « Soft utilise l’intensité de votre couleur de référence, 0,08. Vivid reste deux fois plus intense, à 0,17. »
+  T2, résumé de la carte de la dérive repliée (remplace « Désactivée pour une
+  couleur presque grise ») :
+  - a. « Désactivée pour une palette grise »
+  - b. « Désactivée : aucune teinte »
 
-  Ligne d’origine d’un gris neutre :
-  - a. « Votre couleur de référence est un gris neutre. Soft et Vivid sont identiques. »
-  - b. « Les deux profils sont gris. Ils sont identiques. »
+  T3, ligne d’origine des saturations, sans réglage du designer (remplace les
+  lignes `grise`, base forcée et réglages communs de `origineDesParts`) :
+  - a. « Soft prend la saturation de votre couleur de référence, 16 %. Vivid garde celle des réglages communs, 95 %. »
+  - b. « Votre couleur de référence est dans Soft. Soft prend sa saturation, 16 %. Vivid garde 95 %. »
+  - Sous la saturation commune de Soft, a : « Soft prend la saturation de votre couleur de référence, 8 %. Vivid reste plus saturé dans la même proportion, à 17 %. »
+  - Sous la saturation commune de Soft, b : « Votre couleur de référence est dans Soft. Soft prend sa saturation, 8 %. Vivid garde le même rapport, à 17 %. »
 
-  L’anglais suit par la voie de la traduction. Les textes validés entrent à
+  T4, ligne d’origine d’une palette grise :
+  - a. « Votre couleur de référence est un gris pur. Soft et Vivid sont gris. »
+  - b. « Soft et Vivid sont gris, comme votre couleur de référence. »
+
+  T5, aide des saturations communes dans les Réglages communs (remplace
+  `aideParts`) :
+  - a. « Le profil qui porte votre couleur de référence prend sa saturation. L’autre profil prend la valeur réglée ici. »
+  - b. « Chaque palette place sa couleur de référence dans Soft ou dans Vivid, et ce profil prend sa saturation. L’autre profil prend la valeur réglée ici. »
+
+  Le réglage « Gris » et sa mention dans le résumé des écarts se retirent,
+  sans texte nouveau. L’anglais suit par la voie de la traduction. Les
+  textes validés entrent à
   l’[inventaire](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
 - [ ] **G1.4** Donner la maquette au mainteneur et s’arrêter. Ses réponses
   se conservent en fin de plan, et les décisions R1 à R7 se corrigent avant
   G2. Premier passage répondu : Q1 (C), Q3 (a), Q4 (aucun message). Second
   passage répondu : Q2 (aligner), Q5 (garder la teinte, proposer un seuil).
-  Troisième passage : Q2 bis (le saut à 0,70) et Q5 bis (la proposition,
-  comparée aux gris de Tailwind). En attente de réponse.
+  Troisième passage répondu : Q2 bis (a) et Q5 bis (A). Maquette validée ;
+  les règles R1 à R7 en tiennent compte.
 
 ## Lot G2 : moteur
 
@@ -546,6 +561,16 @@ toutes les palettes soft et vivid ne doivent pas forcément avoir toutes la mêm
 
 Q5
 ben en soit c'est bien de conserver la teinte et de n'avoir du gris pur que si on choisi du gris pur mais faut voir le threshold quoi. si c'est vraiment presque 100% neutre en noir et que sur les couleurs clairs on est sur du vert, ça passe pas trop. tu proposes quoi ?
+```
+
+Réponses au troisième passage :
+
+```text
+Q2 bis, une conséquence à valider.
+ok A
+
+Q5
+A
 ```
 
 ## Signalement du mainteneur
