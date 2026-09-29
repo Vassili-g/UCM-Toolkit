@@ -30,9 +30,10 @@ Lire dans cet ordre :
    sans modification ;
 2. les décisions ci-dessous et les [réponses aux
    questions](#questions-au-mainteneur), une fois données ;
-3. les maquettes du lot Z3 (`MAQUETTES-RECETTE-V6.html`) : Z3.3 et les
-   questions Q6 sont validées, Z3.1 et Z3.2 le sont en partie, le reste
-   attend le second passage (Z3.4, Z3.5) ;
+3. les maquettes du lot Z3 (`MAQUETTES-RECETTE-V6.html`), toutes
+   validées : Z3.1 forme A, Z3.2 G2, Z3.3 D1, Z3.4 M2, Z3.5 N2. Les règles
+   `v6-` de `generer-maquettes-v6.mjs` sont les prototypes des règles CSS
+   de Z5.2 et Z6.1, et `ajusterEnModale` celui de la modale ;
 4. le [cinquième plan](./PLAN-ERGONOMIE-PALETTES-V5.md), les [décisions de
    rédaction](./DECISIONS-REDACTION-PALETTES.md) et
    l’[inventaire des textes](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md) ;
@@ -71,18 +72,18 @@ relatifs à `packages/plugin-palettes/`.
 | Sujet | Décision |
 |---|---|
 | Fenêtre | 770 × 720 par défaut, sur le [retour du mainteneur en cours de lot](#retour-du-mainteneur-lot-z1) : 850 px rendait tout trop grand. Le plus petit format reste 500 × 520. Une taille rangée à 600, 650 ou 750 × 720 s’ouvre à 770 × 720 ; toute autre taille rangée se garde |
-| Largeur du contenu | Aucun bloc ne garde une largeur fixe pensée pour 750 px quand la place existe. Les largeurs fixes qui servent un alignement (colonnes de nuances, pastilles) se gardent. Le sélecteur de couleur garde 232 px pour « Choisir » ; la présentation d’« Ajuster » se tranche en Z3.4 |
+| Largeur du contenu | Aucun bloc ne garde une largeur fixe pensée pour 750 px quand la place existe. Les largeurs fixes qui servent un alignement (colonnes de nuances, pastilles) se gardent. Le sélecteur de couleur garde 232 px pour « Choisir » ; « Ajuster » passe en modale (Z3.4, M2) |
 | Onglets | Libellés « Création » et « Palettes ». Les identifiants (`palettes`, `planche`), les panneaux, les modules (`ongletPalettes.ts`, `ongletPlanche.ts`) et `data-geste` ne changent pas (Q6.1). AGENTS.md et CONTRIBUTING.md donnent la correspondance |
 | Palette ouverte à l’ouverture | Aucune. Le sélecteur écrit « Sélectionner une palette ». Le menu de la palette (dupliquer, monter, descendre, supprimer) se cache. « Nouvelle palette » reste. La palette choisie dure jusqu’à la fermeture du plugin et ne se range pas |
 | Invitation | Sous le sélecteur, sans palette choisie et avec des palettes : le titre « Choisissez une palette », puis « Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ». » (disposition D1, texte a). Pas de bouton dans l’invitation : les gestes sont ceux de la barre. Sans palette, le panneau de création actuel, et son texte ne change pas (Z3.3, question 3, a) |
 | Palette supprimée | La palette suivante s’ouvre, comme aujourd’hui (Q6.3) |
 | Glisser dans le sélecteur de couleur | Un rendu par image au plus pendant un glisser. La fin du geste rend et range comme aujourd’hui. Si une image dépasse encore son budget, les parties lourdes (garanties, interface de test, messages) attendent la fin du geste ; l’aperçu suit le pointeur |
-| Ajuster la référence | Forme A (Z3.1) : le panneau reste ouvert depuis la pastille de la référence, réorganisé. En tête, la phrase qui dit pourquoi, rédaction b : « La nuance 600 est exactement votre couleur. En Thème Light, elle est trop claire pour les bordures de champ et l’anneau de focus sur fond léger : 2,92:1 pour un minimum de 3:1. » Puis les deux témoins, les pas, une ligne pour la nuance visée et les annonces des pas, le code, les garanties avant et après en tableau, et le bilan par intensité. La luminosité se retire. Sous le code, avec une garantie manquée : « ✗ 2 garanties manquées en Thème Light » en couleur de danger, puis « Ajuster la référence » (lien b). Le panneau prend la forme d’une modale, pas d’un panneau pleine largeur : sa largeur et sa place se valident en Z3.4 |
+| Ajuster la référence | Forme A (Z3.1) : le panneau reste ouvert depuis la pastille de la référence, réorganisé. En tête, la phrase qui dit pourquoi, rédaction b : « La nuance 600 est exactement votre couleur. En Thème Light, elle est trop claire pour les bordures de champ et l’anneau de focus sur fond léger : 2,92:1 pour un minimum de 3:1. » Puis les deux témoins, les pas, une ligne pour la nuance visée et les annonces des pas, le code, les garanties avant et après en tableau, et le bilan par intensité. La luminosité se retire. Sous le code, avec une garantie manquée : « ✗ 2 garanties manquées en Thème Light » en couleur de danger, puis « Ajuster la référence » (lien b). Présentation M2 (Z3.4) : une modale centrée au-dessus du panneau, sur un voile assombri, 520 px de large au plus et 16 px de marge à la fenêtre (468 px à 500 px) ; elle tient dans la fenêtre et défile en elle-même si la hauteur manque. Le tableau a ses colonnes (garantie, thème, avant, après) à 770 px ; à 500 px, le thème et l’intensité passent en titre et chaque garantie tient sur une ligne. « Annuler », Échap, « Appliquer » et un clic sur le voile la referment ; le focus revient au lien, ou au code quand le lien disparaît (Y8.0). Le sélecteur de couleur perd son onglet « Ajuster » (Q6.6) : la modale s’ouvre par le lien et par l’action `ajuster-reference` des messages |
 | Pastilles d’état | « À actualiser » et « Pas encore sur Figma » : fond et texte d’avertissement. « À jour » : fond de succès, texte de succès. « Cadre introuvable » et « Lecture impossible » gardent le danger |
 | Libellés de l’onglet Palettes | « À actualiser » partout où « À mettre à jour » s’écrivait. « Actualiser tout (N palettes) » remplace « Mettre à jour (N palettes) », singulier gardé. « Générer tout (N palettes) » ne change pas |
 | Code hexa | Il prend toute la largeur de sa colonne, dans la configuration et dans la création, qui gardent la même disposition (Q6.5) |
 | Intensités dans la configuration | Segments `.bascule-de-base`, libellé « Intensités » au-dessus, comme « Modèle ». Libellés « Une · Deux » (Q6.2). Dessous, inchangés : l’aide, « Intensité : 0,89 » à une intensité, « Référence exacte dans » à deux. La création garde ses deux cartes |
-| Garanties de contraste | Disposition G2 (Z3.2) : un encadré par groupe de minimum, son titre en bandeau ; les états nommés une fois en tête de colonne ; dans chaque case, le spécimen à gauche des numéros et du ratio, le badge sur la ligne du ratio ; les codes des rôles en 11 px sur fond ; la rangée choisie sur fond, marquée d’une barre de 3 px écartée du texte. À 500 px, les états ne passent pas sous le nom : la disposition étroite se valide en Z3.5. Le contenu ne change pas : associations, états, ratios, niveaux WCAG, réglettes, liens des garanties en échec |
+| Garanties de contraste | Disposition G2 (Z3.2) : un encadré par groupe de minimum, son titre en bandeau ; les états nommés une fois en tête de colonne ; dans chaque case, le spécimen à gauche des numéros et du ratio, le badge sur la ligne du ratio ; les codes des rôles en 11 px sur fond ; la rangée choisie sur fond, marquée d’une barre de 3 px écartée du texte. Sous 700 px, disposition N2 (Z3.5) : chaque rangée garde le nom et ses trois états sur une ligne, les cases d’état passent à 92 px, le spécimen se pose au-dessus des numéros et du ratio, et le nom de chaque état se centre sur sa colonne ; aucun badge ne passe à la ligne, « ✗ 21,00 » et « AA ✗ » compris. Le contenu ne change pas : associations, états, ratios, niveaux WCAG, réglettes, liens des garanties en échec |
 
 ## Reprise du cinquième plan
 
@@ -108,10 +109,19 @@ compacts des fiches (Y1.6).
 | Corrections directes | Z1 | Z0 |
 | Aucune palette à l’ouverture | Z2 | Z1.3 (textes de Z3.3 validés) |
 | Maquettes à valider | Z3 | Second passage : Z3.4 et Z3.5 ; en parallèle de Z1 |
-| Glisser du sélecteur de couleur | Z4 | Z0 ; en parallèle de Z1 |
+| Glisser du sélecteur de couleur | Z4 ; reprise Z4.5 à Z4.9 | Z0 ; en parallèle de Z1 |
 | Ajuster la référence | Z5 | Z3.4 validée |
 | Garanties de contraste | Z6 | Z3.5 validée, Z1.2 |
 | Recette et clôture | Z7 | Lots finis |
+
+Z3.4 et Z3.5 sont validées : Z4.5, Z5.2 et Z6.1 peuvent commencer. Une
+autre session traduit l’interface (`src/i18n/`,
+`localisation.ts`) et modifie sans les commiter `selecteur.ts`,
+`couleur/selecteur.ts`, `ongletPalettes.ts`, `nuancier.ts`, `ajustement.ts`,
+`garanties.ts`, `configuration.ts` et `textes.ts`. Z4.6 à Z6 touchent ces
+fichiers : l’agent attend le commit de cette traduction, ou le confirme par
+`git status`, avant d’y écrire. Il écrit alors ses textes par la voie que la
+traduction a posée.
 
 Aucun lot ne touche au moteur ni à la recette : `FORMAT_RECETTE` reste 4,
 et la revue indépendante n’est pas requise. Z4 touche au rendu de l’onglet :
@@ -323,10 +333,10 @@ CSS que Z5 et Z6 écriront. Réponses du mainteneur, conservées [en fin de
 plan](#retours-du-mainteneur-maquettes-du-lot-z3) : Z3.1 forme A, lien b,
 phrase b « en forme de modal, pas pleine page » ; Z3.2 G2 à 850 px, mais
 la version étroite est refusée ; Z3.3 D1, texte a, texte sans palette a ;
-Q6.1 à Q6.5 comme recommandé. Deux cases restent, au second passage, dans
-le même fichier :
+Q6.1 à Q6.5 comme recommandé. Second passage, dans le même fichier, et ses
+réponses [en fin de plan](#retours-du-mainteneur-second-passage-du-lot-z3) :
 
-- [ ] **Z3.4** Ajuster la référence en modale. La forme A et la phrase b,
+- [x] **Z3.4** Ajuster la référence en modale. La forme A et la phrase b,
   dans le cas de Vert, en deux présentations : M1, le panneau d’aujourd’hui
   sous la pastille, à 232 px ; M2, une modale posée au-dessus du panneau,
   plus large, le fond assombri, que « Annuler », Échap et « Appliquer »
@@ -338,8 +348,9 @@ le même fichier :
   sur 6 lignes, chaque garantie sur deux, le panneau 89 px sous la fenêtre
   (289 px à 500 px) ; il couvre le code et l’aperçu. M2, recommandée :
   520 px, la phrase sur 3 lignes, le tableau en colonnes, tout dans la
-  fenêtre, à 500 px aussi (468 px).
-- [ ] **Z3.5** Garanties à 500 px sans retour à la ligne. G2 à 500 px, où
+  fenêtre, à 500 px aussi (468 px). Réponse : M2. L’onglet « Ajuster » du
+  sélecteur se retire (Q6.6).
+- [x] **Z3.5** Garanties à 500 px sans retour à la ligne. G2 à 500 px, où
   chaque rangée garde le nom et ses états sur une même ligne, en au moins
   deux dispositions : N1, le nom français sous le code, le spécimen réduit,
   des cases d’état plus étroites ; N2, le spécimen au-dessus des numéros et
@@ -349,7 +360,7 @@ le même fichier :
   N2, avec « ✗ 21,00 » et « AAA » ou « AA ✗ » dans chaque case. Hauteur,
   Bleu avec un échec : aujourd’hui 1 284 px et quatre badges à la ligne ;
   N1 1 390 px, le nom écrasé (« border- / control ») ; N2, recommandée,
-  1 248 px. G2 à 770 px : 978 px, aucun badge à la ligne.
+  1 248 px. G2 à 770 px : 978 px, aucun badge à la ligne. Réponse : N2.
 
 Critère : le mainteneur valide ou corrige chaque maquette sans imaginer une
 interaction.
@@ -398,8 +409,56 @@ interaction.
   complet : le garde-fou muté est le retour au rendu complet après
   l’aperçu seul.
 
+Reprise après la recette du mainteneur : dans Figma, le glisser lag
+toujours. La revue du lot relève quatre causes, lues dans le code et non
+encore mesurées :
+
+| Cause | Source |
+|---|---|
+| `mesurer-glisser-couleur.mjs` ne chronomètre que le JavaScript des rappels d’image, dans Chromium à pleine vitesse. Style, mise en page et peinture n’entrent pas dans ses chiffres, et Z4.3 n’a pas été constaté dans Figma | `scripts/mesurer-glisser-couleur.mjs`, `travail` |
+| `rendreLApercu` programme un rendu complet 150 ms après chaque mouvement. Il part à chaque pause du pointeur, bouton enfoncé, et rend garanties, messages, dérive et interface de test en plein geste | `ongletPalettes.ts`, `DELAI_DU_RENDU_COMPLET`, `rendreLApercu` |
+| Chaque image d’aperçu reconstruit la grille du nuancier, ses accolades et son détail, puis le bouton et toutes les options de la liste des palettes. Le sélecteur flotte au-dessus de l’aperçu avec une ombre floue de 32 px, sans calque propre, et ses repères bougent par `left` et `top` | `nuancier.ts`, `dessiner` ; `selecteur.ts`, `afficher` ; `styles.css`, `.selecteur-de-couleur`, `.selecteur-repere` |
+| Un fond des Réglages communs valide la recette entière à chaque image, reconstruit l’aperçu compact et le tracé des courbes, et recalcule `garantieDesCourbes` (2 880 crans), dont le résultat ne dépend pas des fonds. `previsualiser` rend en plus l’onglet Création, caché. Z4.3 mesurait déjà 6,1 ms de JavaScript par image | `configuration.ts`, `proposer`, `rendreLesVues` ; `ongletPalettes.ts`, `previsualiser` |
+
+- [ ] **Z4.5** Mesurer l’image entière. Étendre
+  `mesurer-glisser-couleur.mjs` : durée de chaque image pendant un glisser
+  réel, style, mise en page et peinture compris (entrées
+  `long-animation-frame`, ou trace de performance de Chromium), sous un
+  processeur ralenti ×4 et ×6 (`Emulation.setCPUThrottlingRate`). Trois
+  cas : référence avec cartes repliées, référence avec Dérive, Garanties et
+  Interface de test dépliées, fond des Réglages communs. Ajouter un
+  glisser avec des pauses de 300 ms. Reporter les chiffres ici avant
+  toute correction.
+- [ ] **Z4.6** Aucun rendu complet avant la fin du geste. Retirer le
+  délai de 150 ms. Le sélecteur signale au contrôle la fin d’un glisser
+  qui n’enregistre rien (Échap, fermeture, pointeur perdu) ; le contrôle
+  rend alors tout, sans ranger. Le relâcher range une fois, comme
+  aujourd’hui.
+- [ ] **Z4.7** Un aperçu sans reconstruction. Tant que les crans, les
+  intensités, le thème et le modèle ne changent pas, le nuancier repeint
+  ses pastilles en place (fond, encre, repère ◆, étiquettes) ; accolades
+  et détail ne se refont que si leur entrée change. Pendant l’aperçu, la
+  barre ne met à jour que la pastille du bouton de la liste. Le sélecteur
+  de couleur prend son propre calque, et ses repères bougent par
+  `transform`. Mesurer chaque changement : celui qui ne fait rien gagner
+  se retire.
+- [ ] **Z4.8** Le fond des Réglages communs. Pendant le glisser, seuls
+  l’aperçu compact et l’aperçu de l’onglet suivent le pointeur. Tracé des
+  courbes, `garantieDesCourbes` et rendu de l’onglet Création caché
+  attendent la fin du geste. Une validation retirée de l’aperçu doit
+  rester vraie par construction : `poserFond` ne rend qu’un hexa valide.
+- [ ] **Z4.9** Remesurer les cas de Z4.5, sous ralentissement ×4 et ×6 :
+  aucune image au-dessus de 16 ms, et aucun rendu complet pendant un
+  glisser avec pauses. Tests : pause de 300 ms bouton enfoncé, aucun rendu
+  complet ; Échap pendant un glisser, un rendu complet et aucun rangement ;
+  nuancier repeint sans nouvel élément ; fond des Réglages, garantie des
+  courbes calculée une fois par geste. Chacun vu rouge sur mutation.
+  Reconstruire le plugin dans la copie partagée, puis confier la recette
+  Figma au mainteneur. La case ne se ferme qu’après son retour.
+
 Critère : dans Figma, la zone du sélecteur suit le pointeur, et l’aperçu
-suit sans retard visible.
+suit sans retard visible. Le mainteneur le constate ; une mesure dans
+Chromium ne ferme pas le lot.
 
 ## Lot Z5 : ajuster la référence
 
@@ -413,14 +472,32 @@ Après la validation de Z3.1.
   présentation du panneau. Deux thèmes : « ✗ 3 garanties manquées en Thème
   Light et en Thème Dark », à valider (N135). Le lien décrit par cette
   ligne (`aria-describedby`). Tests vus rouges sur cinq mutations.
-- [ ] **Z5.2** Le panneau selon la forme A et la présentation validée en
-  Z3.4 : la phrase b en tête, le tableau avant et après, une ligne pour la
-  nuance visée et les pas, sans luminosité. Les textes retirés marqués
+- [ ] **Z5.2** Le panneau selon la forme A, dans la modale M2 : titre
+  « Ajuster la référence », la phrase b en tête, les deux témoins, les pas,
+  une ligne pour la nuance visée et les annonces des pas, le code de la
+  proposition, le tableau avant et après, le bilan par intensité, puis
+  « Annuler » et « Appliquer ». Sans luminosité. Largeur, voile, focus et
+  disposition à 500 px selon la [décision](#décisions), règles `.v6-voile`,
+  `.v6-modale` et `.v6-aa*` du générateur à reprendre. Le reste de la
+  page est `inert` pendant la modale, et Tab reste dans la modale. Le
+  sélecteur de couleur perd son onglet « Ajuster » (Q6.6) : sa bascule
+  d’onglets, `OngletDAjustement` et le choix d’onglet de
+  `createPipette.ouvrir` se retirent ; le lien et l’action
+  `ajuster-reference` ouvrent la modale. La phrase b ne couvre qu’un
+  thème : pour une référence en échec dans les deux, l’agent propose
+  plusieurs rédactions au mainteneur et attend son choix avant de
+  l’écrire. L’état de galerie `ajuster-en-modale` (Z0.6)
+  devient atteignable, à 770 et à 500 px. Les textes retirés sont marqués
   retirés dans l’inventaire. `[UI-15]` récrit.
 - [ ] **Z5.3** Tests : ceux de `tests/ajustement.test.ts` et les tests
   d’interface d’« Ajuster » repris, en gardant ce que chacun protégeait :
-  rien ne change avant « Appliquer », « Annuler » et Échap rendent le focus,
-  l’originale se garde et « Revenir à l’originale » la rend.
+  rien ne change avant « Appliquer », l’originale se garde et « Revenir à
+  l’originale » la rend. S’y ajoutent : « Annuler », Échap et un clic sur
+  le voile referment sans rien changer ; les trois gestes de fermeture et
+  « Appliquer » rendent le focus au lien, ou au code quand le lien
+  disparaît ; Tab ne sort pas de la modale ; à 500 px la modale tient dans
+  la fenêtre ; la pastille n’ouvre plus que « Choisir ». Chacun vu rouge
+  sur mutation.
 
 Critère : un designer qui voit le lien sait, avant de cliquer, quelle
 garantie manque et pourquoi la référence doit bouger.
@@ -429,8 +506,10 @@ garantie manque et pourquoi la référence doit bouger.
 
 Après la validation de Z3.2 et Z1.2.
 
-- [ ] **Z6.1** La carte selon G2 à 770 px et selon Z3.5 sous 700 px, à une
-  et à deux intensités, aux deux thèmes de palette. `[UI-09]` récrit.
+- [ ] **Z6.1** La carte selon G2 à 770 px et selon N2 (Z3.5) sous 700 px,
+  à une et à deux intensités, aux deux thèmes de palette. Règles `.v6-g2`
+  et `.v6-n2` du générateur à reprendre. L’état de galerie
+  `garanties-refaites` (Z0.6) devient atteignable. `[UI-09]` récrit.
 - [ ] **Z6.2** Vérifier à 500 × 520 et à 770 × 720, au ratio le plus long
   (« ✗ 21:1 » et un badge AAA), qu’aucun badge ne passe à la ligne.
 - [ ] **Z6.3** Tests : badge sur la même ligne que son ratio, à 500 px et à
@@ -470,8 +549,9 @@ de Palettes verts, et recette Figma terminée.
 | Lire la barre d’onglets | « Création » puis « Palettes » | Z1 |
 | Ouvrir le plugin sur un fichier qui a des palettes | « Sélectionner une palette » et l’invitation ; aucune palette ouverte | Z2 |
 | Ouvrir le plugin sur un fichier sans palette | Le panneau de création | Z2 |
-| Glisser vite dans la zone du sélecteur de la référence | La zone et l’aperçu suivent le pointeur ; une seule entrée dans l’historique de Figma | Z4 |
-| Choisir une référence qui manque une garantie | Le lien et son explication ; le panneau validé en Z3.1 | Z5 |
+| Glisser vite dans la zone du sélecteur de la référence, avec des pauses, cartes dépliées | La zone et l’aperçu suivent le pointeur sans à-coup ; une seule entrée dans l’historique de Figma | Z4 |
+| Glisser dans le sélecteur d’un fond des Réglages communs | L’aperçu suit le pointeur sans à-coup | Z4 |
+| Choisir une référence qui manque une garantie, puis « Ajuster la référence » | La ligne des garanties manquées et le lien ; la modale M2 ; Échap rend le focus au lien | Z5 |
 | Lire les Garanties d’une palette à deux intensités | Codes lisibles, badges sur une ligne, groupes distincts | Z6 |
 | Lire l’onglet Palettes avec un cadre de chaque état | « À actualiser » et « Pas encore sur Figma » en orange, « À jour » sur fond vert, « Actualiser tout (N palettes) » | Z1 |
 | Ouvrir la configuration d’une palette | Code hexa sur toute sa colonne ; « Intensités » en segments, comme « Modèle » | Z1 |
@@ -489,12 +569,17 @@ garanties en échec.
 | **Q6.3** Après la suppression de la palette ouverte : la suivante s’ouvre, ou l’onglet revient sans palette ? | Z2.1 | La suivante, comme aujourd’hui | Recommandation retenue |
 | **Q6.4** « Actualiser tout » génère aussi les palettes « Pas encore sur Figma ». Le libellé convient-il ? | Z1.4 | Oui : les deux états partagent désormais l’orange, et le geste les traite ensemble | Recommandation retenue |
 | **Q6.5** Le code hexa prend-il aussi toute la largeur dans la carte de création ? | Z1.6 | Oui : la création et la configuration gardent la même disposition (décision Y2.1) | Recommandation retenue |
+| **Q6.6** Avec la modale M2, l’onglet « Ajuster » du sélecteur de couleur se retire-t-il, ou ouvre-t-il la modale ? | Z5.2 | Le retirer : la pastille n’ouvre que « Choisir », la modale s’ouvre par le lien et par l’action des messages | Recommandation retenue |
 
 ## Hors périmètre
 
 - Moteur, recette et format de la planche.
 - Nombre de nuances, courbes et fonds des Réglages communs, hors largeur.
 - Relecture des textes hors de ce plan.
+- La taille de la fenêtre, suspendue par le mainteneur : le code ouvre à
+  600 × 720 (`TAILLE_PAR_DEFAUT`), la décision Z1.1 et `[UI-01]` écrivent
+  770 × 720. Aucun lot ne réaligne l’un sur l’autre, et les mesures
+  gardent 770 et 500 px.
 
 ## Retours du mainteneur, round 6
 
@@ -595,4 +680,22 @@ ok pour reco
 
 Q6.1, Q6.3, Q6.4
 ok reco
+```
+
+## Retours du mainteneur, second passage du lot Z3
+
+Texte d’origine : la recette de Z4, puis les réponses au second passage de
+`MAQUETTES-RECETTE-V6.html`. La question Q6.6 a reçu la recommandation.
+
+```text
+notamment le widget de color pick, il lag toujours.
+
+pour la taille du plugin on laisse tomber pour le moment.
+
+Z3.4 · Ajuster la référence
+m2
+
+Z3.5 · Garanties de contraste
+Question 1
+N2
 ```
