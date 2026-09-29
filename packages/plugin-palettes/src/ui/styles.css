@@ -1111,6 +1111,7 @@
   border-radius: 8px;
   background: var(--fond-bloc);
   grid-template-columns: minmax(0, 1fr);
+  isolation: isolate;
 }
 
 .carte-tete {

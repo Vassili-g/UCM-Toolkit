@@ -43,6 +43,7 @@ export const TEXTES = {
   reessayerLangue: 'Réessayer l’enregistrement de la langue',
   titre: 'UCM Palettes',
   titreConfiguration: 'Réglages communs',
+  largeurDeLaFenetre: (largeur: number) => `${largeur} px`,
   etiquetteDesOnglets: 'Navigation du plugin',
   // N130. Les clés gardent le nom de leur module (Q6.1) : `ongletPalettes.ts` porte l'onglet Création.
   ongletPalettes: 'Création',

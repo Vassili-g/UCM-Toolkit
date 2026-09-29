@@ -19,6 +19,7 @@ export const lireTexte = (texte: Texte): string => typeof texte === 'string' ? t
 export function creerLocalisation(langue: Langue) {
   let traducteur = creerTraducteur(langue);
   const liaisons = new WeakMap<Element, Map<string, () => void>>();
+  const noeudsDeTexte = new WeakMap<Element, Text>();
   let observation: MutationObserver | null = null;
   function actualiser(racine: Element): void {
     for (const appliquer of liaisons.get(racine)?.values() ?? []) appliquer();
@@ -72,13 +73,21 @@ export function creerLocalisation(langue: Langue) {
         });
         observation.observe(document.documentElement, { childList: true, subtree: true });
       }
-      const noeud = propriete === 'textContent' ? document.createTextNode('') : null;
-      if (noeud) element.replaceChildren(noeud);
+      // Un élément relié à chaque rendu garde son nœud de texte : le DOM ne change que si le texte change (Z4.7).
+      const precedent = noeudsDeTexte.get(element);
+      const reutilisable = precedent?.parentNode === element && element.childNodes.length === 1;
+      const noeud = propriete !== 'textContent' ? null : reutilisable ? precedent! : document.createTextNode('');
+      if (noeud && !reutilisable) {
+        element.replaceChildren(noeud);
+        noeudsDeTexte.set(element, noeud);
+      }
       const appliquer = () => {
         const valeur = texte === null ? '' : lireTexte(texte);
-        if (noeud) noeud.data = valeur;
-        else if (propriete === 'value' && element instanceof HTMLInputElement) element.value = valeur;
-        else element.setAttribute(propriete, valeur);
+        if (noeud) {
+          if (noeud.data !== valeur) noeud.data = valeur;
+        } else if (propriete === 'value' && element instanceof HTMLInputElement) {
+          if (element.value !== valeur) element.value = valeur;
+        } else if (element.getAttribute(propriete) !== valeur) element.setAttribute(propriete, valeur);
       };
       let proprietes = liaisons.get(element);
       if (!proprietes) { proprietes = new Map(); liaisons.set(element, proprietes); }

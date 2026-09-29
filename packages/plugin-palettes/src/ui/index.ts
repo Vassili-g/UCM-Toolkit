@@ -312,6 +312,8 @@ export function creerVuesIndex(i18n: Localisation) {
 
   function ouvrirTravail(): void {
     montrerTravail(bascule());
+    // Une saisie des Réglages communs a laissé l'onglet en aperçu : il se rend, visible, avant que le défilement revienne.
+    ongletPalettes.rendreSiDiffere();
     i18n.lier(titre, 'textContent', TEXTES.titre);
     const point = pointDeLecture;
     pointDeLecture = null;
@@ -321,13 +323,13 @@ export function creerVuesIndex(i18n: Localisation) {
   }
 
   const largeurFenetre = document.createElement('div');
-largeurFenetre.className = 'largeur-fenetre';
-largeurFenetre.setAttribute('aria-hidden', 'true');
-const rafraichirLargeurFenetre = () => (largeurFenetre.textContent = `${Math.round(window.innerWidth)} px`);
-rafraichirLargeurFenetre();
-window.addEventListener('resize', rafraichirLargeurFenetre);
+  largeurFenetre.className = 'largeur-fenetre';
+  largeurFenetre.setAttribute('aria-hidden', 'true');
+  const rafraichirLargeurFenetre = () => i18n.lier(largeurFenetre, 'textContent', TEXTES.largeurDeLaFenetre(Math.round(window.innerWidth)));
+  rafraichirLargeurFenetre();
+  window.addEventListener('resize', rafraichirLargeurFenetre);
 
-app.append(enTete, travail, configuration, largeurFenetre, createResizeGrip(versSandbox));
+  app.append(enTete, travail, configuration, largeurFenetre, createResizeGrip(versSandbox));
 
   onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
     const message = event.data.pluginMessage;

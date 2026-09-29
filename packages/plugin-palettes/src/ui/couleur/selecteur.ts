@@ -45,6 +45,12 @@ export interface OuvertureDuSelecteur {
   readonly pastilles?: readonly PastilleProposee[];
   /** Une couleur choisie, en `#RRGGBB` ; `fin` à la fin du geste. */
   saisir(hexa: string, fin: boolean): void;
+  /**
+   * La fin d'un aperçu qui n'enregistre rien : Échap, fermeture, ou pointeur
+   * perdu en plein glisser. Le contrôle rend ce que l'aperçu avait différé,
+   * sans ranger (Z4.6). Appelé une fois, après la dernière couleur transmise.
+   */
+  abandonner?(): void;
   /** Le second onglet ; sans lui, le sélecteur n'a pas d'onglets. */
   readonly ajustement?: OngletDAjustement;
   /** L'onglet montré à l'ouverture, « Choisir » par défaut. */
@@ -70,6 +76,9 @@ function construireVues(i18n: Localisation) {
   const MARGE = 8;
 
   const bornerA = (valeur: number, min: number, max: number): number => Math.min(max, Math.max(min, valeur));
+
+  /** Quand l'abandon d'un aperçu part : tout de suite, après le clic qui a refermé le sélecteur, ou après la tâche en cours. */
+  type MomentDeLAbandon = 'aussitot' | 'apresLeClic' | 'apresLaTache';
 
   let instance: ReturnType<typeof creer> | null = null;
 
@@ -272,6 +281,15 @@ function construireVues(i18n: Localisation) {
       ecrireLesChamps();
     }
 
+    /** Vrai quand le contrôle a reçu un aperçu depuis la dernière couleur enregistrée : sa clôture sans fin l'abandonne. */
+    let apercuSansFin = false;
+
+    function transmettre(hexa: string, fin: boolean): void {
+      if (!ouverture) return;
+      apercuSansFin = !fin;
+      ouverture.saisir(hexa, fin);
+    }
+
     /** Une frappe prévisualise un code complet ; la validation l'enregistre, ou marque le champ invalide. */
     function saisirLeCode(fin: boolean): void {
       const lue = lireCode(format, champs.map((champ) => champ.value));
@@ -280,7 +298,7 @@ function construireVues(i18n: Localisation) {
       position = positionDe(lue, position);
       peindre();
       if (fin) ecrireLesChamps();
-      ouverture?.saisir(ecrireHexa(lue), fin);
+      transmettre(ecrireHexa(lue), fin);
     }
 
     /** Une position posée par la zone, le curseur ou le clavier. */
@@ -290,7 +308,7 @@ function construireVues(i18n: Localisation) {
       ecrireLesChamps();
       if (fin || !glisse) {
         annulerLaSaisieEnAttente();
-        ouverture?.saisir(ecrireHexa(couleur()), fin);
+        transmettre(ecrireHexa(couleur()), fin);
       } else transmettreALImageSuivante(ecrireHexa(couleur()));
     }
 
@@ -309,7 +327,7 @@ function construireVues(i18n: Localisation) {
       const image = requestAnimationFrame(() => {
         const attente = saisieEnAttente;
         saisieEnAttente = null;
-        if (attente) ouverture?.saisir(attente.hexa, false);
+        if (attente) transmettre(attente.hexa, false);
       });
       saisieEnAttente = { hexa, image };
     }
@@ -332,16 +350,23 @@ function construireVues(i18n: Localisation) {
         glisse = true;
         poser(depuis(evenement), false);
       });
-      commande.addEventListener('pointermove', (evenement) => {
-        if (glisse && commande.hasPointerCapture(evenement.pointerId)) poser(depuis(evenement), false);
-      });
       const finir = (evenement: PointerEvent): void => {
         if (!glisse) return;
         glisse = false;
         poser(depuis(evenement), true);
       };
+      commande.addEventListener('pointermove', (evenement) => {
+        if (!glisse || !commande.hasPointerCapture(evenement.pointerId)) return;
+        // Un bouton relâché hors de l'iframe n'envoie pas toujours `pointerup` : un mouvement sans bouton finit le geste.
+        if ((evenement.buttons & 1) === 0) finir(evenement);
+        else poser(depuis(evenement), false);
+      });
       commande.addEventListener('pointerup', finir);
       commande.addEventListener('pointercancel', finir);
+      // La capture perdue sans relâcher, quand la commande disparaît par exemple : le geste s'arrête sans rien enregistrer.
+      commande.addEventListener('lostpointercapture', () => {
+        if (glisse) clore('aussitot');
+      });
     }
     suivrePointeur(zone, (x, y) => ({ h: position.h, s: x, v: 1 - y }));
     suivrePointeur(teinte, (x) => ({ ...position, h: Math.min(x * 360, 359.9) }));
@@ -389,13 +414,13 @@ function construireVues(i18n: Localisation) {
     document.addEventListener('pointerdown', (evenement) => {
       const cible = evenement.target as Node | null;
       if (!ouverture || !cible || element.contains(cible) || ouverture.ancre.contains(cible)) return;
-      fermer(false);
+      fermer(false, 'apresLeClic');
     }, true);
-    // Le focus qui sort par Tab le referme aussi.
+    // Le focus qui sort par Tab le referme aussi ; l'abandon attend la fin de la tâche, qui a déjà posé le focus.
     element.addEventListener('focusout', (evenement) => {
       const suivant = evenement.relatedTarget as Node | null;
       if (!ouverture || !suivant || element.contains(suivant)) return;
-      fermer(false);
+      fermer(false, 'apresLaTache');
     });
     const replacer = (): void => { if (ouverture) placer(ouverture.ancre); };
     window.addEventListener('resize', replacer);
@@ -432,20 +457,49 @@ function construireVues(i18n: Localisation) {
           position = positionDe(lue, position);
           peindre();
           ecrireLesChamps();
-          ouverture?.saisir(normalise, true);
+          transmettre(normalise, true);
         });
         return [{ hexa: normalise, bouton }];
       });
       pastilles.replaceChildren(...boutonsDesPastilles.map(({ bouton }) => bouton));
     }
 
-    function ouvrir(suivante: OuvertureDuSelecteur): void {
-      // Une couleur en attente appartient au contrôle précédent : elle lui revient avant le changement.
+    /**
+     * Clôt la séquence du contrôle ouvert : la couleur en attente lui revient,
+     * le glisser s'arrête, et un aperçu sans fin s'abandonne. Après un clic
+     * hors du sélecteur, l'abandon attend la fin de ce clic : le rendu qu'il
+     * déclenche reconstruirait l'élément visé, et le clic serait perdu. Après
+     * une sortie par Tab, il attend la fin de la tâche.
+     */
+    function clore(quand: MomentDeLAbandon): void {
       const attente = saisieEnAttente;
       annulerLaSaisieEnAttente();
-      if (attente) ouverture?.saisir(attente.hexa, false);
+      if (attente) transmettre(attente.hexa, false);
       glisse = false;
-      if (ouverture) ouverture.ancre.setAttribute('aria-expanded', 'false');
+      const abandon = apercuSansFin ? ouverture?.abandonner : undefined;
+      apercuSansFin = false;
+      if (!abandon) return;
+      if (quand === 'aussitot') abandon();
+      else if (quand === 'apresLaTache') setTimeout(abandon, 0);
+      else apresLeClic(abandon);
+    }
+
+    function apresLeClic(action: () => void): void {
+      const suite = (): void => {
+        window.removeEventListener('pointerup', suite, true);
+        window.removeEventListener('pointercancel', suite, true);
+        setTimeout(action, 0);
+      };
+      window.addEventListener('pointerup', suite, true);
+      window.addEventListener('pointercancel', suite, true);
+    }
+
+    function ouvrir(suivante: OuvertureDuSelecteur): void {
+      // Une couleur en attente appartient au contrôle précédent : elle lui revient avant le changement.
+      if (ouverture) {
+        clore('aussitot');
+        ouverture.ancre.setAttribute('aria-expanded', 'false');
+      }
       ouverture = suivante;
       const lue = lireHexa(suivante.hexa) ?? [0, 0, 0];
       position = positionDe(lue);
@@ -469,15 +523,12 @@ function construireVues(i18n: Localisation) {
       montrerLOnglet(suivante.onglet ?? 'choisir', true);
     }
 
-    function fermer(rendreLeFocus: boolean): void {
+    function fermer(rendreLeFocus: boolean, quand: MomentDeLAbandon = 'aussitot'): void {
       if (!ouverture) return;
       // Échap pendant un glisser laisse l'aperçu au dernier mouvement, sans rien enregistrer.
-      const attente = saisieEnAttente;
-      annulerLaSaisieEnAttente();
-      if (attente) ouverture.saisir(attente.hexa, false);
+      clore(quand);
       const { ancre } = ouverture;
       ouverture = null;
-      glisse = false;
       element.hidden = true;
       ancre.setAttribute('aria-expanded', 'false');
       if (rendreLeFocus) ancre.focus({ preventScroll: true });

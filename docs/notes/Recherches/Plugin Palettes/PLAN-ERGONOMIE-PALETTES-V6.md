@@ -474,7 +474,7 @@ encore mesurées :
 | Chaque image d’aperçu reconstruit la grille du nuancier, ses accolades et son détail, puis le bouton et toutes les options de la liste des palettes. Le sélecteur flotte au-dessus de l’aperçu avec une ombre floue de 32 px, sans calque propre, et ses repères bougent par `left` et `top` | `nuancier.ts`, `dessiner` ; `selecteur.ts`, `afficher` ; `styles.css`, `.selecteur-de-couleur`, `.selecteur-repere` |
 | Un fond des Réglages communs valide la recette entière à chaque image, reconstruit l’aperçu compact et le tracé des courbes, et recalcule `garantieDesCourbes` (2 880 crans), dont le résultat ne dépend pas des fonds. `previsualiser` rend en plus l’onglet Création, caché. Z4.3 mesurait déjà 6,1 ms de JavaScript par image | `configuration.ts`, `proposer`, `rendreLesVues` ; `ongletPalettes.ts`, `previsualiser` |
 
-- [ ] **Z4.5** Mesurer l’image entière. Étendre
+- [x] **Z4.5** Mesurer l’image entière. Étendre
   `mesurer-glisser-couleur.mjs` : durée de chaque image pendant un glisser
   réel, style, mise en page et peinture compris (entrées
   `long-animation-frame`, ou trace de performance de Chromium), sous un
@@ -483,12 +483,35 @@ encore mesurées :
   Interface de test dépliées, fond des Réglages communs. Ajouter un
   glisser avec des pauses de 300 ms. Reporter les chiffres ici avant
   toute correction.
-- [ ] **Z4.6** Aucun rendu complet avant la fin du geste. Retirer le
+  Fait, à 770 px, sur la galerie construite, avant correction. Sans
+  ralentissement, aucune image ne dépasse 16,8 ms. Images de plus de 20 ms
+  sur un glisser de deux cents pas : ×4, 7 sur 448 (référence, cartes
+  repliées), 64 sur 514 (cartes dépliées), 245 sur 476 (fond des Réglages
+  communs) ; ×6, 238 sur 498, 219 sur 438, 223 sur 471, la pire à 150 ms.
+  Fil principal par image à ×6 : 22 ms (script 8, style 1,5, mise en page
+  5,2), 28 ms cartes dépliées, 40 ms pour un fond. Avec cinq pauses de
+  300 ms, bouton enfoncé, cinq rendus complets de la carte Garanties avant
+  le relâcher, une image de 83 ms à ×4. Profil du JavaScript d'un rendu
+  d'aperçu : nuancier rebâti 37 %, analyse 31 %, liste des palettes rebâtie
+  23 %. Pour un fond : `garantieDesCourbes` 58 %, rendu de l'onglet caché
+  22 %. Cartes dépliées, chaque image repeint tout le calque racine, 755 ×
+  3 080 px : la peinture double.
+- [x] **Z4.6** Aucun rendu complet avant la fin du geste. Retirer le
   délai de 150 ms. Le sélecteur signale au contrôle la fin d’un glisser
   qui n’enregistre rien (Échap, fermeture, pointeur perdu) ; le contrôle
   rend alors tout, sans ranger. Le relâcher range une fois, comme
   aujourd’hui.
-- [ ] **Z4.7** Un aperçu sans reconstruction. Tant que les crans, les
+  Fait, après une revue indépendante, dont six corrections sont retenues.
+  L'abandon qui suit un clic hors du sélecteur attend la fin de ce clic,
+  sans quoi le rendu rebâtirait l'élément visé et le clic se perdrait.
+  La couleur en attente passe avant l'abandon. Changer de contrôle clôt
+  aussi la séquence. Un mouvement sans bouton finit le geste comme un
+  relâcher, pour un bouton relâché hors de l'iframe. Une réponse de
+  rangement en plein aperçu ne rend que le refus. Le retour des Réglages
+  rend l'onglet s'il est resté en aperçu. `pointercancel` garde son
+  comportement : il finit le geste et range. « Pointeur perdu » désigne
+  `lostpointercapture` sans relâcher, qui arrête le geste sans ranger.
+- [x] **Z4.7** Un aperçu sans reconstruction. Tant que les crans, les
   intensités, le thème et le modèle ne changent pas, le nuancier repeint
   ses pastilles en place (fond, encre, repère ◆, étiquettes) ; accolades
   et détail ne se refont que si leur entrée change. Pendant l’aperçu, la
@@ -496,11 +519,29 @@ encore mesurées :
   de couleur prend son propre calque, et ses repères bougent par
   `transform`. Mesurer chaque changement : celui qui ne fait rien gagner
   se retire.
-- [ ] **Z4.8** Le fond des Réglages communs. Pendant le glisser, seuls
+  Fait. Gardés : la grille du nuancier se rebâtit seulement quand thème,
+  crans, intensités ou modèle changent, sinon ses pastilles se repeignent ;
+  les accolades suivent les crans ; la liste des palettes repeint pastilles
+  et noms en place ; `i18n.lier` garde le nœud de texte d'un élément et
+  n'écrit que ce qui change. À ×4, les images de plus de 20 ms passent de 7
+  à 0 et de 64 à 1. Chaque carte isole sa peinture (`isolation: isolate`),
+  que Blink réutilise quand elle ne change pas : à ×6 cartes dépliées,
+  181 images lentes deviennent 12. Retirés, faute de gain mesuré : le calque
+  propre du sélecteur et ses repères par `transform` (174 contre 181 images
+  lentes, dans le bruit). Le rendu de la barre en aperçu se réduit au
+  repeint en place de la liste, sans cas particulier.
+- [x] **Z4.8** Le fond des Réglages communs. Pendant le glisser, seuls
   l’aperçu compact et l’aperçu de l’onglet suivent le pointeur. Tracé des
   courbes, `garantieDesCourbes` et rendu de l’onglet Création caché
   attendent la fin du geste. Une validation retirée de l’aperçu doit
   rester vraie par construction : `poserFond` ne rend qu’un hexa valide.
+  Fait. « L'aperçu de l'onglet » ne suit pas : l'onglet Création est caché
+  derrière les Réglages, il garde la recette et se rend au retour.
+  `validerRecette` ne se saute que pour une recette déjà acceptée, et
+  `poserFond` n'en change qu'un fond. La garantie des courbes se mémorise
+  dans l'interface par la clé des champs qu'elle lit : crans, courbes,
+  gamut, deux seuils et deux parts. Un geste sur un fond ne la recalcule
+  donc jamais.
 - [ ] **Z4.9** Remesurer les cas de Z4.5, sous ralentissement ×4 et ×6 :
   aucune image au-dessus de 16 ms, et aucun rendu complet pendant un
   glisser avec pauses. Tests : pause de 300 ms bouton enfoncé, aucun rendu
@@ -509,6 +550,13 @@ encore mesurées :
   courbes calculée une fois par geste. Chacun vu rouge sur mutation.
   Reconstruire le plugin dans la copie partagée, puis confier la recette
   Figma au mainteneur. La case ne se ferme qu’après son retour.
+  Remesuré, à 770 px. Images de plus de 20 ms : ×4, 0 sur 381, 1 sur 383,
+  0 sur 347 pour un fond ; ×6, 7 sur 441, 6 sur 453, 1 sur 415. Fil
+  principal par image à ×6 : 13,7 ms, 13,7 ms et 14,0 ms. Pauses de
+  300 ms : aucun rendu complet. Les quelques images lentes à ×6 restent :
+  le JavaScript d'un aperçu y coûte 5,5 ms, l'analyse de la palette en
+  tête. Tests : sept nouveaux, onze mutations vues rouges. Plugin
+  reconstruit dans la copie partagée. Reste la recette Figma du mainteneur.
 
 Critère : dans Figma, la zone du sélecteur suit le pointeur, et l’aperçu
 suit sans retard visible. Le mainteneur le constate ; une mesure dans

@@ -96,8 +96,13 @@ export interface OngletPalettesUi {
   recette(): Recette | null;
   /** La palette ouverte et le thème de son aperçu, que les Réglages communs montrent (V9.3) ; `null` sans palette. */
   ouverte(): { readonly id: string; readonly mode: Mode } | null;
-  /** Une recette en cours de saisie ailleurs, dans les Réglages communs : l'aperçu la suit. */
+  /**
+   * Une recette en cours de saisie dans les Réglages communs, qui couvrent
+   * l'onglet : elle se garde sans se rendre (Z4.8).
+   */
   previsualiser(recette: Recette): void;
+  /** Rend l'onglet si une saisie l'a laissé en aperçu : au retour des Réglages communs. */
+  rendreSiDiffere(): void;
   /** Une recette validée ailleurs : elle s'enregistre. */
   appliquer(recette: Recette): void;
   /** Une recette importée, ou la recette par défaut : elle remplace celle du fichier, même illisible, et s'enregistre. */
@@ -125,9 +130,6 @@ function construireVues(i18n: Localisation) {
   const { createNuancier } = creerVuesNuancier(i18n);
   const { createSelecteur } = creerVuesSelecteur(i18n);
   const { TEXTES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesIntensites } = i18n.messages;
-
-  /** Sans mouvement depuis ce délai, un glisser qui n'a pas fini, par Échap, rend tout l'onglet. */
-  const DELAI_DU_RENDU_COMPLET = 150;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -218,6 +220,7 @@ function construireVues(i18n: Localisation) {
         titreDesPastilles: TEXTES_DU_SELECTEUR.nuancesDeLaPalette,
         pastilles: nuancesProposees(analyserPalette(recette, courante), nuancier.mode()),
         saisir: (saisie, fin) => saisirReference(saisie, fin, true),
+        abandonner: () => rendre(),
         // L'onglet « Ajuster » part de la palette telle qu'elle est à son ouverture (X2.7, R3).
         ajustement: {
           element: ajustement.element,
@@ -327,6 +330,7 @@ function construireVues(i18n: Localisation) {
     const nuancier = createNuancier({
       surMode: () => rendre(),
       saisirFond: (mode, hexa, fin) => saisirFond(mode, hexa, fin),
+      abandonnerLeFond: () => rendre(),
       choisirGarantie: (association) => garanties.choisir(association),
     });
     const carteDApercu = createCarte({ titre: TEXTES_DE_L_ONGLET.apercu, sansTitre: true }, i18n);
@@ -438,12 +442,14 @@ function construireVues(i18n: Localisation) {
     /*
      * Pendant un glisser dans le sélecteur de couleur, un rendu ne peint que
      * l'aperçu : champs, analyse et nuancier suivent le pointeur. Garanties,
-     * messages, intensités, dérive et interface de test suivent la fin du
-     * geste, qui range et rend tout, ou, sans elle, après Échap par exemple,
-     * le premier rendu complet (Z4.3).
+     * messages, intensités, dérive et interface de test attendent la fin du
+     * geste, qui range et rend tout, ou son abandon (Échap, fermeture,
+     * pointeur perdu), qui rend tout sans ranger. Aucun rendu complet ne part
+     * en plein geste, même quand le pointeur s'arrête (Z4.6).
      */
     let apercuSeul = false;
-    let renduComplet: ReturnType<typeof setTimeout> | undefined;
+    /** Vrai tant qu'un rendu d'aperçu, ou une recette des Réglages, attend le rendu complet. */
+    let renduDiffere = false;
 
     function rendreLApercu(): void {
       apercuSeul = true;
@@ -452,8 +458,7 @@ function construireVues(i18n: Localisation) {
       } finally {
         apercuSeul = false;
       }
-      clearTimeout(renduComplet);
-      renduComplet = setTimeout(() => rendre(), DELAI_DU_RENDU_COMPLET);
+      renduDiffere = true;
     }
 
     /** La fin d'un geste : la recette s'enregistre. */
@@ -710,7 +715,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function rendre(): void {
-      if (!apercuSeul) clearTimeout(renduComplet);
+      if (!apercuSeul) renduDiffere = false;
       rendreRefus();
       if (!classementLu) {
         montrer(vide);
@@ -755,10 +760,13 @@ function construireVues(i18n: Localisation) {
         const courante = ouverte();
         return courante ? { id: courante.id, mode: nuancier.mode() } : null;
       },
-      // Les Réglages communs couvrent l'onglet : leur glisser ne rend que l'aperçu, leur fin passe par `appliquer`.
+      // Les Réglages communs couvrent l'onglet : leur saisie ne le rend pas, leur fin passe par `appliquer`.
       previsualiser(suivante) {
         recette = suivante;
-        rendreLApercu();
+        renduDiffere = true;
+      },
+      rendreSiDiffere() {
+        if (renduDiffere) rendre();
       },
       appliquer: (suivante) => valider(suivante),
       importer(suivante) {
@@ -770,7 +778,9 @@ function construireVues(i18n: Localisation) {
         demandes.recetteEnFichier.bloquer(suivant === 'refuse' ? TEXTES.conflitEnCours : null);
         if (suivant === 'refuse') refus = recetteModifieeAilleurs();
         else if (suivant === 'invalide') refus = rangementInvalide(refusDuSandbox);
-        rendre();
+        // Une réponse du sandbox en plein aperçu ne montre que le refus : le rendu complet attend la fin du geste.
+        if (renduDiffere) rendreRefus();
+        else rendre();
       },
       ouvrirLaPalette(id, mode) {
         idOuvert = id;

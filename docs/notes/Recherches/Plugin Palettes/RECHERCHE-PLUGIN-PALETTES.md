@@ -1583,10 +1583,19 @@ palette » gardent leurs libellés au-dessus des champs.
   Le code a le focus à l'ouverture. Un glisser prévisualise et son relâcher
   enregistre. Pendant un glisser, la zone et le code suivent chaque
   mouvement ; le contrôle reçoit une couleur par image, la dernière, et
-  l'onglet ne rend que l'aperçu : garanties, messages, intensités, dérive et
-  interface de test suivent le relâcher, ou, après Échap, le premier rendu
-  complet ; un code s'enregistre à Entrée ou à la sortie du champ, et un
-  code invalide reste dans son champ, marqué, sans rien enregistrer. Les
+  l'onglet ne rend que l'aperçu, repeint en place : garanties, messages,
+  intensités, dérive et interface de test suivent le relâcher, qui range,
+  ou l'abandon de l'aperçu, qui rend tout sans ranger. Un aperçu s'abandonne
+  par Échap, par la fermeture du sélecteur, après le clic qui l'a refermé,
+  ou par la capture du pointeur perdue en plein glisser. Aucun rendu complet
+  ne part pendant le geste, même quand le pointeur s'arrête ; une réponse
+  du sandbox à un rangement n'y montre qu'un refus. Un mouvement sans
+  bouton finit le glisser comme un relâcher. Pendant la saisie d'un fond des
+  Réglages communs, seul leur aperçu compact suit : le tracé et la garantie
+  des courbes, qui ne lisent pas les fonds, attendent le relâcher, et
+  l'onglet Création, caché, se rend au retour. Un code s'enregistre à Entrée
+  ou à la sortie du champ, et un code invalide reste dans son champ, marqué,
+  sans rien enregistrer. Les
   flèches déplacent la zone de 1 % et la teinte de 1°, dix fois plus avec
   Maj, et chaque pression enregistre. Échap referme et rend le focus au
   contrôle ; un clic ou une tabulation hors du sélecteur le referme. Sur la

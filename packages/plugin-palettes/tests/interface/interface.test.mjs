@@ -2527,9 +2527,12 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
 /**
  * Ouvre le sélecteur de la couleur de référence, cartes lourdes dépliées, et
  * pose dans la page `glisser(mouvements, apres)` : un appui dans la zone,
- * les mouvements donnés dans la même tâche, puis `apres` ('rien', 'echap' ou
- * 'relacher'). Les événements sont synthétiques : la capture du pointeur
- * n'existe que pour un vrai pointeur, elle se simule.
+ * les mouvements donnés dans la même tâche, bouton enfoncé, puis `apres`
+ * ('rien', 'echap' ou 'relacher'). Les événements sont synthétiques : la
+ * capture du pointeur n'existe que pour un vrai pointeur, elle se simule.
+ * `compteDesRendus` compte les rendus de l'aperçu, qui repeignent le
+ * nuancier ; `garantiesTouchees`, ceux de la carte des garanties, qui
+ * n'arrivent qu'avec un rendu complet.
  */
 async function ouvrirLeGlisser(page) {
   await deplierLaCarte(page, 'Garanties de contraste');
@@ -2540,20 +2543,22 @@ async function ouvrirLeGlisser(page) {
     zone.setPointerCapture = () => {};
     zone.hasPointerCapture = () => true;
     const cadre = zone.getBoundingClientRect();
-    const point = (x, y) => ({ bubbles: true, pointerId: 1, isPrimary: true, button: 0, clientX: cadre.left + cadre.width * x, clientY: cadre.top + cadre.height * y });
+    const point = (x, y, buttons = 1) => ({ bubbles: true, pointerId: 1, isPrimary: true, button: 0, buttons, clientX: cadre.left + cadre.width * x, clientY: cadre.top + cadre.height * y });
     window.compteDesRendus = 0;
-    new MutationObserver(() => { window.compteDesRendus += 1; }).observe(document.querySelector('.repere-de-la-reference'), { childList: true, characterData: true, subtree: true });
+    new MutationObserver(() => { window.compteDesRendus += 1; }).observe(document.querySelector('.nuancier-surface'), { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['style'] });
     window.garantiesTouchees = 0;
     new MutationObserver(() => { window.garantiesTouchees += 1; }).observe(document.querySelector('[aria-label="Garanties de contraste"] .carte-corps'), { childList: true, characterData: true, subtree: true, attributes: true });
     window.glisser = (mouvements, apres) => {
       zone.dispatchEvent(new PointerEvent('pointerdown', point(0.1, 0.1)));
       for (const [x, y] of mouvements) zone.dispatchEvent(new PointerEvent('pointermove', point(x, y)));
       if (apres === 'echap') document.querySelector('.selecteur-de-couleur').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      if (apres === 'relacher') zone.dispatchEvent(new PointerEvent('pointerup', point(...mouvements.at(-1))));
+      if (apres === 'relacher') zone.dispatchEvent(new PointerEvent('pointerup', point(...mouvements.at(-1), 0)));
       // Le champ Hex du sélecteur s'écrit sans dièse.
       return `#${document.querySelector('.selecteur-champ').value}`;
     };
-    window.relacher = () => zone.dispatchEvent(new PointerEvent('pointerup', point(0.8, 0.6)));
+    window.bouger = (x, y, buttons = 1) => zone.dispatchEvent(new PointerEvent('pointermove', point(x, y, buttons)));
+    window.relacher = () => zone.dispatchEvent(new PointerEvent('pointerup', point(0.8, 0.6, 0)));
+    window.perdreLaCapture = () => zone.dispatchEvent(new PointerEvent('lostpointercapture', point(0.8, 0.6)));
   });
 }
 
@@ -2626,6 +2631,187 @@ test('Z4.4 [UI-13] Échap pendant un glisser referme le sélecteur, rend le focu
     await page.waitForFunction(() => window.garantiesTouchees > 0, null, { timeout: 2000 });
     await page.evaluate(() => document.querySelector('.selecteur-zone').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 })));
     assert.deepEqual(await rangements(page), [], 'Échap n’enregistre rien');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] une pause de 300 ms, bouton enfoncé, ne rend pas tout l’onglet : les garanties attendent le relâcher', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4]], 'rien'));
+    await imageSuivante(page);
+    await page.evaluate(() => { window.garantiesTouchees = 0; });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.bouger(0.7, 0.5));
+    await imageSuivante(page);
+    await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'aucun rendu complet pendant les pauses');
+    assert.deepEqual(await rangements(page), [], 'rien ne se range pendant le geste');
+    await page.evaluate(() => window.relacher());
+    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'le relâcher rend tout');
+    assert.equal((await rangements(page)).length, 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] Échap pendant un glisser rend tout l’onglet une fois, sans attendre ni rien ranger', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const touchees = await page.evaluate(() => {
+      window.glisser([[0.4, 0.3], [0.8, 0.7]], 'rien');
+      window.garantiesTouchees = 0;
+      const pendant = new MutationObserver(() => {});
+      pendant.observe(document.querySelector('[aria-label="Garanties de contraste"] .carte-corps'), { childList: true, characterData: true, subtree: true, attributes: true });
+      document.querySelector('.selecteur-de-couleur').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      // Le rendu complet part dans la même tâche que la touche.
+      const lus = pendant.takeRecords().length;
+      pendant.disconnect();
+      return lus;
+    });
+    assert.ok(touchees > 0, 'Échap rend les garanties dans sa propre tâche');
+    await imageSuivante(page);
+    assert.deepEqual(await rangements(page), [], 'Échap n’enregistre rien');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] un mouvement sans bouton finit le glisser comme un relâcher, et une capture perdue l’arrête sans rien ranger', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4]], 'rien'));
+    await page.evaluate(() => window.bouger(0.7, 0.5, 0));
+    const ranges = await rangements(page);
+    assert.equal(ranges.length, 1, 'le relâcher perdu hors de l’iframe range une fois');
+    assert.equal(ranges[0].recette.palettes[0].reference, await referenceMontree(page));
+    await page.evaluate(() => window.bouger(0.2, 0.9));
+    await imageSuivante(page);
+    assert.equal(await referenceMontree(page), ranges[0].recette.palettes[0].reference, 'un survol après la fin ne prévisualise plus');
+
+    await page.evaluate(() => window.glisser([[0.2, 0.2], [0.3, 0.8]], 'rien'));
+    await page.evaluate(() => { window.garantiesTouchees = 0; window.perdreLaCapture(); });
+    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'la capture perdue rend tout');
+    assert.equal((await rangements(page)).length, 1, 'la capture perdue ne range rien');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] la réponse d’un rangement reçue en plein glisser ne rend pas tout l’onglet ; un refus s’y lit aussitôt', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4]], 'relacher'));
+    const [premier] = await rangements(page);
+    await page.evaluate(() => window.glisser([[0.2, 0.3], [0.5, 0.6]], 'rien'));
+    await imageSuivante(page);
+    await page.evaluate(() => { window.garantiesTouchees = 0; });
+    await envoyer(page, rangee(premier.demande));
+    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'la réponse attend la fin du geste');
+    await page.evaluate(() => window.relacher());
+    const [, second] = await rangements(page);
+    assert.ok(second, 'le relâcher range, la réponse précédente reçue');
+    await page.evaluate(() => window.glisser([[0.4, 0.4], [0.7, 0.7]], 'rien'));
+    await imageSuivante(page);
+    await envoyer(page, { type: 'rangement', demande: second.demande, issue: { issue: 'modifiee-ailleurs' } });
+    assert.equal(await page.locator('#panneau-palettes [role="alert"]').count(), 1, 'le refus se lit pendant le geste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-04] pendant un glisser, le nuancier repeint ses pastilles sans créer d’élément, et la liste des palettes garde les siens', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const ajouts = await page.evaluate(async () => {
+      let nuancier = 0;
+      let barre = 0;
+      const compter = (liste) => liste.reduce((total, mutation) => total + mutation.addedNodes.length, 0);
+      const surNuancier = new MutationObserver((liste) => { nuancier += compter(liste); });
+      surNuancier.observe(document.querySelector('.nuancier-surface'), { childList: true, subtree: true });
+      const surBarre = new MutationObserver((liste) => { barre += compter(liste); });
+      surBarre.observe(document.querySelector('.barre-gestes'), { childList: true, subtree: true });
+      window.glisser([[0.3, 0.2], [0.6, 0.4]], 'rien');
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.glisser([[0.7, 0.6], [0.9, 0.9]], 'rien');
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      surNuancier.disconnect();
+      surBarre.disconnect();
+      return { nuancier, barre };
+    });
+    assert.ok(await page.evaluate(() => window.compteDesRendus) >= 2, 'l’aperçu s’est rendu');
+    assert.deepEqual(ajouts, { nuancier: 0, barre: 0 });
+    const pastille = await page.locator('.selecteur-bouton .pastille-reference').evaluate((element) => element.style.background);
+    assert.equal(pastille, await page.evaluate(() => document.querySelector('.pastille[data-reference="true"]').style.background), 'la pastille du bouton suit la référence');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-02] le glisser d’un fond des Réglages communs ne redessine ni le tracé ni la garantie des courbes avant le relâcher, puis une fois', async () => {
+  const page = await ouvrirSur('configuration-de-la-recette');
+  try {
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await reglage(page, 'Couleurs de fond').locator('.pipette').first().click();
+    const pendant = await page.evaluate(async () => {
+      const zone = document.querySelector('.selecteur-zone');
+      zone.setPointerCapture = () => {};
+      zone.hasPointerCapture = () => true;
+      const cadre = zone.getBoundingClientRect();
+      const point = (x, y, buttons = 1) => ({ bubbles: true, pointerId: 1, isPrimary: true, button: 0, buttons, clientX: cadre.left + cadre.width * x, clientY: cadre.top + cadre.height * y });
+      // Sans manque, un recalcul ne muterait rien : un témoin posé dans la zone disparaît s'il se refait.
+      const temoin = document.createElement('span');
+      temoin.id = 'temoin-de-garantie';
+      document.querySelector('[aria-label="Luminosité des nuances"] .constats').append(temoin);
+      window.tracesRedessines = 0;
+      window.garantiesRedessinees = 0;
+      window.apercusRedessines = 0;
+      const compter = (cle) => () => { window[cle] += 1; };
+      new MutationObserver(compter('tracesRedessines')).observe(document.querySelector('.trace-des-courbes'), { childList: true });
+      new MutationObserver(compter('garantiesRedessinees')).observe(document.querySelector('[aria-label="Luminosité des nuances"] .constats'), { childList: true });
+      new MutationObserver(compter('apercusRedessines')).observe(document.querySelector('.reglages-apercu'), { childList: true, subtree: true });
+      zone.dispatchEvent(new PointerEvent('pointerdown', point(0.1, 0.1)));
+      for (const [x, y] of [[0.2, 0.3], [0.5, 0.5]]) {
+        zone.dispatchEvent(new PointerEvent('pointermove', point(x, y)));
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const lus = { traces: window.tracesRedessines, garanties: window.garantiesRedessinees, apercus: window.apercusRedessines };
+      zone.dispatchEvent(new PointerEvent('pointerup', point(0.5, 0.5, 0)));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return lus;
+    });
+    assert.ok(pendant.apercus > 0, 'l’aperçu compact suit le pointeur');
+    assert.deepEqual({ traces: pendant.traces, garanties: pendant.garanties }, { traces: 0, garanties: 0 });
+    assert.equal(await page.evaluate(() => window.tracesRedessines), 1, 'le relâcher redessine le tracé une fois');
+    assert.equal(await page.evaluate(() => window.garantiesRedessinees), 0, 'la garantie ne dépend pas des fonds : elle ne se recalcule pas');
+    assert.equal(await page.locator('#temoin-de-garantie').count(), 1);
+    assert.equal((await rangements(page)).length, 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur une garantie : le clic la choisit, puis l’onglet se rend', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await ouvrirLeGlisser(page);
+    const champ = page.locator('.selecteur-champ').first();
+    await champ.fill('2A7FDB');
+    const visee = page.locator('[aria-label="Garanties de contraste"] .garantie[aria-pressed="false"]').nth(2);
+    const association = await visee.getAttribute('data-association');
+    // Le rendu complet rebâtit les lignes des garanties : parti au pointerdown, il perdrait le clic.
+    await visee.click();
+    await page.waitForFunction(() => !document.querySelector('.selecteur-de-couleur') || document.querySelector('.selecteur-de-couleur').hidden);
+    await imageSuivante(page);
+    assert.equal(await page.locator(`[aria-label="Garanties de contraste"] .garantie[data-association="${association}"]`).getAttribute('aria-pressed'), 'true');
+    assert.equal(await referenceMontree(page), '#2A7FDB', 'l’aperçu garde le code tapé');
   } finally {
     await page.close();
   }

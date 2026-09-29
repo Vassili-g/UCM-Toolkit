@@ -56,6 +56,8 @@ export interface GestesDuNuancier {
    * `fin` à la fin du geste, qui enregistre.
    */
   saisirFond(mode: Mode, hexa: string, fin: boolean): void;
+  /** La saisie du fond s'achève sans rien enregistrer : l'onglet rend ce que l'aperçu avait différé. */
+  abandonnerLeFond(): void;
   /** Une garantie du détail se choisit dans la carte des garanties ([UI-10]). */
   choisirGarantie(association: Association): void;
 }
@@ -200,6 +202,7 @@ function construireVues(i18n: Localisation) {
         titreDesPastilles: TEXTES_DU_SELECTEUR.fondsProposes,
         pastilles: fondsProposes(analyse, modeDuSelecteur),
         saisir: (hexa, fin) => gestes.saisirFond(modeDuSelecteur, hexa, fin),
+        abandonner: () => gestes.abandonnerLeFond(),
       });
     });
 
@@ -256,9 +259,11 @@ function construireVues(i18n: Localisation) {
       const ligne = Math.max(0, Math.min(cellules.length - 1, rampe));
       const place = Math.max(premiereColonne(), Math.min(cellules[ligne].length - 1, rang));
       active = { rampe: ligne, colonne: place };
-      cellules.flat().forEach((cellule) => { cellule.tabIndex = -1; });
       const cible = cellules[ligne][place];
-      cible.tabIndex = 0;
+      for (const cellule of cellules.flat()) {
+        const rang = cellule === cible ? 0 : -1;
+        if (cellule.tabIndex !== rang) cellule.tabIndex = rang;
+      }
       if (focaliser) cible.focus();
     }
 
@@ -525,6 +530,33 @@ function construireVues(i18n: Localisation) {
       i18n.lier(pastilleDuFond, 'aria-label', TEXTES_DU_NUANCIER.modifierLeFond(mode, recette.fonds[mode]));
       suivreLaCouleur(pastilleDuFond, recette.fonds[modeDuSelecteur]);
 
+      // La grille ne se rebâtit que si sa forme change ; sinon ses cellules se repeignent en place (Z4.7).
+      const structure = [mode, crans.join(','), analyse.intensites.join(','), analyse.libre].join('|');
+      if (structure !== structureBatie) {
+        structureBatie = structure;
+        batirLaGrille(analyse);
+      }
+      peindreLaGrille(entrees);
+      activer(active.rampe, active.colonne, false);
+      const formeDesAccolades = `${recette.crans.join(',')}|${analyse.libre}`;
+      if (formeDesAccolades !== accoladesBaties) {
+        accoladesBaties = formeDesAccolades;
+        rendreLesAccolades(recette, analyse);
+      }
+      // Le détail dépend des couleurs de la nuance choisie : il se refait tant qu'un choix existe.
+      if (choix || !detail.hidden) rendreLeDetail(entrees);
+    }
+
+    /** La forme de la grille bâtie, et celle des accolades : un changement les rebâtit. */
+    let structureBatie = '';
+    let accoladesBaties = '';
+    /** La pastille `on-solid` et les pastilles de chaque rangée, dans l'ordre des intensités. */
+    let onSolid: HTMLElement | null = null;
+    let pastillesDesRangees: HTMLElement[][] = [];
+
+    /** Les éléments de la grille et leurs gestes, pour une forme donnée : thème, crans, intensités et modèle. */
+    function batirLaGrille(analyse: AnalyseDePalette): void {
+      const { crans } = analyse.grille;
       const numeros = document.createElement('div');
       numeros.className = 'nuancier-rangee';
       numeros.setAttribute('role', 'row');
@@ -543,24 +575,22 @@ function construireVues(i18n: Localisation) {
       }));
 
       // La pastille on-solid : peinte du fond du thème, sur la hauteur des rangées, une par intensité.
-      const onSolid = document.createElement('span');
-      onSolid.className = 'pastille pastille-on-solid';
-      onSolid.setAttribute('role', 'gridcell');
-      onSolid.style.gridColumn = String(colonne(-1));
-      onSolid.style.gridRow = `2 / span ${analyse.intensites.length}`;
-      onSolid.style.background = recette.fonds[mode];
-      i18n.lier(onSolid, 'aria-label', TEXTES_DU_NUANCIER.etiquetteDuFond(recette.fonds[mode]));
-      onSolid.setAttribute('aria-selected', String(choix?.nature === 'fond'));
-      onSolid.hidden = analyse.libre;
-      onSolid.addEventListener('click', () => {
+      const pastilleOnSolid = document.createElement('span');
+      pastilleOnSolid.className = 'pastille pastille-on-solid';
+      pastilleOnSolid.setAttribute('role', 'gridcell');
+      pastilleOnSolid.style.gridColumn = String(colonne(-1));
+      pastilleOnSolid.style.gridRow = `2 / span ${analyse.intensites.length}`;
+      pastilleOnSolid.hidden = analyse.libre;
+      pastilleOnSolid.addEventListener('click', () => {
         active = { rampe: active.rampe, colonne: 0 };
         basculer({ nature: 'fond' });
         activer(active.rampe, 0, true);
       });
-      onSolid.addEventListener('focus', () => { active = { rampe: active.rampe, colonne: 0 }; });
+      pastilleOnSolid.addEventListener('focus', () => { active = { rampe: active.rampe, colonne: 0 }; });
+      onSolid = pastilleOnSolid;
 
-      const confondues = new Set(entrees.confondues.filter((confondue) => confondue.mode === mode).map((confondue) => confondue.cran));
       cellules = [];
+      pastillesDesRangees = [];
       const rangees = analyse.intensites.map((profil, rangDeRampe) => {
         const rangee = document.createElement('div');
         rangee.className = 'nuancier-rangee';
@@ -572,9 +602,8 @@ function construireVues(i18n: Localisation) {
         // La rampe d'une palette à une intensité n'a pas de nom de profil ([ENT-14]).
         i18n.lier(entete, 'textContent', profil === 'unique' ? '' : NOM_DU_PROFIL[profil]);
         rangee.append(entete);
-        if (rangDeRampe === 0) rangee.append(onSolid);
-        const pastilles = rampeDe(analyse.rampes, profil)[mode].map((cran, rang) => {
-          const numero = crans[rang];
+        if (rangDeRampe === 0) rangee.append(pastilleOnSolid);
+        const pastilles = crans.map((numero, rang) => {
           const pastille = document.createElement('span');
           pastille.className = 'pastille';
           pastille.setAttribute('role', 'gridcell');
@@ -582,21 +611,6 @@ function construireVues(i18n: Localisation) {
           pastille.dataset.profil = profil;
           pastille.style.gridColumn = String(colonne(rang));
           pastille.style.gridRow = String(rangDeRampe + 2);
-          pastille.style.background = cran.hexa;
-          pastille.style.color = contraste(cran.couleur, [0, 0, 0]) >= contraste(cran.couleur, [255, 255, 255]) ? '#000000' : '#FFFFFF';
-          const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
-          const etiquettes = [TEXTES_DU_NUANCIER.etiquetteDeNuance(profil, numero, cran.hexa)];
-          if (reference) {
-            pastille.dataset.reference = 'true';
-            i18n.lier(pastille, 'textContent', '◆');
-            etiquettes.push(TEXTES_DU_NUANCIER.reference);
-          }
-          if (confondues.has(numero)) {
-            pastille.dataset.confondue = 'true';
-            etiquettes.push(TEXTES_DU_NUANCIER.tresProche(profil === 'soft' ? 'vivid' : 'soft'));
-          }
-          i18n.lier(pastille, 'aria-label', i18n.joindre(etiquettes, ', '));
-          pastille.setAttribute('aria-selected', String(choix?.nature === 'nuance' && choix.profil === profil && choix.rang === rang));
           pastille.tabIndex = -1;
           pastille.addEventListener('click', () => {
             active = { rampe: rangDeRampe, colonne: rang + 1 };
@@ -607,13 +621,43 @@ function construireVues(i18n: Localisation) {
           return pastille;
         });
         rangee.append(...pastilles);
-        cellules.push([onSolid, ...pastilles]);
+        cellules.push([pastilleOnSolid, ...pastilles]);
+        pastillesDesRangees.push(pastilles);
         return rangee;
       });
       grille.replaceChildren(numeros, ...rangees);
-      activer(active.rampe, active.colonne, false);
-      rendreLesAccolades(recette, analyse);
-      rendreLeDetail(entrees);
+    }
+
+    /** Les couleurs, le repère ◆, les indices de confusion, les noms accessibles et le choix de chaque cellule. */
+    function peindreLaGrille(entrees: EntreesDuNuancier): void {
+      const { recette, analyse } = entrees;
+      const { crans } = analyse.grille;
+      if (onSolid) {
+        onSolid.style.background = recette.fonds[mode];
+        i18n.lier(onSolid, 'aria-label', TEXTES_DU_NUANCIER.etiquetteDuFond(recette.fonds[mode]));
+        onSolid.setAttribute('aria-selected', String(choix?.nature === 'fond'));
+      }
+      const confondues = new Set(entrees.confondues.filter((confondue) => confondue.mode === mode).map((confondue) => confondue.cran));
+      analyse.intensites.forEach((profil, rangDeRampe) => {
+        rampeDe(analyse.rampes, profil)[mode].forEach((cran, rang) => {
+          const pastille = pastillesDesRangees[rangDeRampe][rang];
+          const numero = crans[rang];
+          pastille.style.background = cran.hexa;
+          pastille.style.color = contraste(cran.couleur, [0, 0, 0]) >= contraste(cran.couleur, [255, 255, 255]) ? '#000000' : '#FFFFFF';
+          const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
+          const confondue = confondues.has(numero);
+          const etiquettes = [TEXTES_DU_NUANCIER.etiquetteDeNuance(profil, numero, cran.hexa)];
+          if (reference) etiquettes.push(TEXTES_DU_NUANCIER.reference);
+          if (confondue) etiquettes.push(TEXTES_DU_NUANCIER.tresProche(profil === 'soft' ? 'vivid' : 'soft'));
+          if (reference) pastille.dataset.reference = 'true';
+          else delete pastille.dataset.reference;
+          if (confondue) pastille.dataset.confondue = 'true';
+          else delete pastille.dataset.confondue;
+          i18n.lier(pastille, 'textContent', reference ? '◆' : '');
+          i18n.lier(pastille, 'aria-label', i18n.joindre(etiquettes, ', '));
+          pastille.setAttribute('aria-selected', String(choix?.nature === 'nuance' && choix.profil === profil && choix.rang === rang));
+        });
+      });
     }
 
     return {

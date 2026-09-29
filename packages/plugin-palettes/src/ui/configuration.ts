@@ -11,13 +11,15 @@
  * Une saisie valide recalcule la garantie des courbes, le tracé et l'aperçu ;
  * la validation du champ range la recette (D-D). Une saisie intermédiaire
  * garde son champ. Un refus de `[REC-05]` s'écrit sous la carte, et rien
- * n'est rangé.
+ * n'est rangé. Pendant la saisie d'un fond, seul l'aperçu compact suit : ni
+ * le tracé ni la garantie ne lisent les fonds (Z4.8).
  */
 import {
   MODES,
   PROFILS,
   garantieDesCourbes,
   type ContenuDesPlanches,
+  type ManqueDeGarantie,
   nombreDeNuancesDe,
   rgb8VersOklch,
   referenceDe,
@@ -208,6 +210,8 @@ function construireVues(i18n: Localisation) {
           titreDesPastilles: TEXTES_DU_SELECTEUR.fondsProposes,
           pastilles: fondsProposes(palette ? analyserPalette(lue, palette) : null, mode),
           saisir: (hexa, fin) => saisirFond(mode, hexa, fin),
+          // Un aperçu abandonné relit tout, champ et pastille du fond compris, sans ranger.
+          abandonner: () => afficher(),
         };
       });
       const saisie = document.createElement('input');
@@ -512,11 +516,8 @@ function construireVues(i18n: Localisation) {
       erreur.hidden = texte === null;
     }
 
-    /**
-     * Ce que chaque saisie valide redessine sans toucher aux champs : l'aperçu
-     * compact, le tracé des courbes et la garantie commune.
-     */
-    function rendreLesVues(lue: Recette): void {
+    /** L'aperçu compact de la palette ouverte ; sans palette, il se cache. Rend l'analyse, pour le tracé. */
+    function rendreLApercu(lue: Recette) {
       const ouverte = recette.ouverte();
       const palette = ouverte ? lue.palettes.find((candidate) => candidate.id === ouverte.id) : undefined;
       const analyse = palette ? analyserPalette(lue, palette) : null;
@@ -528,16 +529,49 @@ function construireVues(i18n: Localisation) {
         );
       }
       apercu.hidden = !analyse;
+      return { palette, analyse };
+    }
 
+    /**
+     * La dernière garantie des courbes, et la clé des champs qu'elle lit :
+     * crans, courbes, gamut, les deux seuils et les deux parts. Une recette
+     * qui ne change que les fonds, les palettes ou les autres seuils la
+     * retrouve sans la recalculer (Z4.8).
+     */
+    let garantieCalculee: { readonly cle: string; readonly manques: readonly ManqueDeGarantie[] } | null = null;
+
+    function rendreLaGarantie(lue: Recette): void {
+      const cle = JSON.stringify([lue.crans, lue.courbes.light, lue.courbes.dark, lue.gamut, lue.seuils.texte, lue.seuils.nonTexte, lue.profils.soft.part, lue.profils.vivid.part]);
+      if (garantieCalculee?.cle === cle) return;
+      const manques = garantieDesCourbes(lue);
+      garantieCalculee = { cle, manques };
+      garantie.replaceChildren(...manques.map((manque) => blocDeConstat(constatDeGarantie(manque), 'alerte')));
+      noteDeGarantie.hidden = manques.length === 0;
+    }
+
+    /**
+     * Ce que chaque saisie valide redessine sans toucher aux champs : l'aperçu
+     * compact, le tracé des courbes et la garantie commune.
+     */
+    function rendreLesVues(lue: Recette): void {
+      const { palette, analyse } = rendreLApercu(lue);
       // Le tracé montre les courbes communes : le ◆ d'une palette libre, posé sur sa propre liste, n'y a pas de colonne.
       const commune = palette && analyse && !analyse.libre ? analyse : null;
       const reference = palette && commune ? { clarte: rgb8VersOklch(referenceDe(palette)).L, rangs: commune.ancrage.rangs } : null;
       trace.replaceChildren(dessinerLesCourbes(geometrieDesCourbes(lue.courbes, reference)));
       i18n.lier(legende, 'textContent', legendeDesCourbes(palette && commune ? { nom: nomDeLaPalette(palette), crans: commune.ancrage.crans } : null));
+      rendreLaGarantie(lue);
+    }
 
-      const manques = garantieDesCourbes(lue);
-      garantie.replaceChildren(...manques.map((manque) => blocDeConstat(constatDeGarantie(manque), 'alerte')));
-      noteDeGarantie.hidden = manques.length === 0;
+    /** Les recettes que `validerRecette` a acceptées ici, et celles qu'un fond saisi en tire. */
+    const recettesValides = new WeakSet<Recette>();
+
+    /** Une recette déjà acceptée, ou acceptée maintenant : la validation ne se refait pas à chaque image. */
+    function estValide(lue: Recette): boolean {
+      if (recettesValides.has(lue)) return true;
+      if ('refus' in validerRecette(lue)) return false;
+      recettesValides.add(lue);
+      return true;
     }
 
     /** La recette jugée : une recette valide se prévisualise, et se range à la fin du geste. */
@@ -547,13 +581,14 @@ function construireVues(i18n: Localisation) {
         if (fin) signaler(carte, texteDuRefus(jugee.refus[0]));
         return;
       }
+      recettesValides.add(suivante);
       signaler(carte, null);
-      rendreLesVues(suivante);
       if (!fin) {
+        rendreLesVues(suivante);
         recette.previsualiser(suivante);
         return;
       }
-      // La fin d'un geste relit tout : comptes, résumés, « Rétablir » et les autres champs.
+      // La fin d'un geste relit tout : comptes, résumés, « Rétablir », les autres champs et les vues.
       recette.appliquer(suivante);
       afficher();
     }
@@ -595,6 +630,18 @@ function construireVues(i18n: Localisation) {
       const suivante = poserFond(lue, mode, texte);
       if (suivante === null) {
         if (fin) signaler('fonds', hexaInvalide(texte));
+        return;
+      }
+      /*
+       * Pendant la saisie d'un fond, seul l'aperçu compact suit. La validation
+       * reste vraie par construction : `poserFond` ne change qu'un fond, en
+       * `#RRGGBB`, d'une recette que `validerRecette` a déjà acceptée (Z4.8).
+       */
+      if (!fin && estValide(lue)) {
+        recettesValides.add(suivante);
+        signaler('fonds', null);
+        rendreLApercu(suivante);
+        recette.previsualiser(suivante);
         return;
       }
       proposer(suivante, 'fonds', fin);

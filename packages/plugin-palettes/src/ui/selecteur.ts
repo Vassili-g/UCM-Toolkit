@@ -43,7 +43,7 @@ function construireVues(i18n: Localisation) {
     liste.tabIndex = -1;
     liste.hidden = true;
 
-    let options: { id: string; element: HTMLLIElement }[] = [];
+    let options: { id: string; element: HTMLLIElement; pastille: HTMLSpanElement; texte: HTMLSpanElement }[] = [];
     let ouvert = '';
     let visee = 0;
 
@@ -100,37 +100,56 @@ function construireVues(i18n: Localisation) {
 
     element.append(bouton, liste);
 
+    let formeBatie: string | null = null;
+    const nomDuBouton = document.createElement('span');
+    nomDuBouton.className = 'selecteur-nom';
+    let pastilleDuBouton: HTMLSpanElement | null = null;
+
+    /** Le bouton et les options, avec leurs gestes, pour une liste de palettes et un choix donnés. */
+    function batir(palettes: readonly Palette[], courante: Palette | undefined): void {
+      nomDuBouton.classList.toggle('selecteur-invite', !courante);
+      const fleche = document.createElement('span');
+      fleche.className = 'selecteur-fleche';
+      fleche.setAttribute('aria-hidden', 'true');
+      i18n.lier(fleche, 'textContent', '▾');
+      pastilleDuBouton = courante ? pastilleDe(courante) : null;
+      bouton.replaceChildren(...(pastilleDuBouton ? [pastilleDuBouton] : []), nomDuBouton, fleche);
+
+      options = palettes.map((palette, rang) => {
+        const option = document.createElement('li');
+        option.className = 'selecteur-option';
+        option.id = `option-${palette.id}`;
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', String(palette.id === courante?.id));
+        const texte = document.createElement('span');
+        const pastille = pastilleDe(palette);
+        option.append(pastille, texte);
+        option.addEventListener('mousedown', (evenement) => evenement.preventDefault());
+        option.addEventListener('click', () => choisir(rang));
+        return { id: palette.id, element: option, pastille, texte };
+      });
+      liste.replaceChildren(...options.map(({ element: option }) => option));
+    }
+
     return {
       element,
       focaliser: () => bouton.focus(),
       afficher(palettes, idOuvert) {
-        ouvert = idOuvert;
         const courante = palettes.find((palette) => palette.id === idOuvert);
+        // Les mêmes palettes, dans le même ordre, et le même choix : pastilles et noms se repeignent en place (Z4.7).
+        const forme = `${courante ? idOuvert : ''}|${palettes.map((palette) => palette.id).join(',')}`;
+        if (forme !== formeBatie) {
+          formeBatie = forme;
+          batir(palettes, courante);
+        }
+        ouvert = idOuvert;
+        if (courante && pastilleDuBouton) pastilleDuBouton.style.background = courante.reference;
         // Sans palette choisie, le bouton invite à choisir ([UI-06]).
-        const nom = document.createElement('span');
-        nom.className = 'selecteur-nom';
-        nom.classList.toggle('selecteur-invite', !courante);
-        i18n.lier(nom, 'textContent', courante ? nomDeLaPalette(courante) : TEXTES.selectionnerUnePalette);
-        const fleche = document.createElement('span');
-        fleche.className = 'selecteur-fleche';
-        fleche.setAttribute('aria-hidden', 'true');
-        i18n.lier(fleche, 'textContent', '▾');
-        bouton.replaceChildren(...(courante ? [pastilleDe(courante)] : []), nom, fleche);
-
-        options = palettes.map((palette, rang) => {
-          const option = document.createElement('li');
-          option.className = 'selecteur-option';
-          option.id = `option-${palette.id}`;
-          option.setAttribute('role', 'option');
-          option.setAttribute('aria-selected', String(palette.id === idOuvert));
-          const texte = document.createElement('span');
-          i18n.lier(texte, 'textContent', nomDeLaPalette(palette));
-          option.append(pastilleDe(palette), texte);
-          option.addEventListener('mousedown', (evenement) => evenement.preventDefault());
-          option.addEventListener('click', () => choisir(rang));
-          return { id: palette.id, element: option };
+        i18n.lier(nomDuBouton, 'textContent', courante ? nomDeLaPalette(courante) : TEXTES.selectionnerUnePalette);
+        palettes.forEach((palette, rang) => {
+          options[rang].pastille.style.background = palette.reference;
+          i18n.lier(options[rang].texte, 'textContent', nomDeLaPalette(palette));
         });
-        liste.replaceChildren(...options.map(({ element: option }) => option));
       },
     };
   }
