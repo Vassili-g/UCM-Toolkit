@@ -1135,10 +1135,12 @@
 }
 
 /* Une carte repliable : son en-tête est un bouton sur toute la largeur. */
+/* Le résumé passe sous le titre quand la ligne manque : le titre ne se coupe jamais. */
 .carte-bascule {
   width: 100%;
   min-height: var(--hauteur-action);
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  row-gap: 2px;
   justify-content: flex-start;
   margin: calc(-1 * var(--espace-controle)) 0;
   padding: 0;
@@ -1154,15 +1156,21 @@
   text-align: right;
 }
 
+.carte-bascule .carte-titre {
+  white-space: nowrap;
+}
+
 .carte-chevron::before {
   display: inline-block;
   width: 10px;
   color: var(--texte-second);
   content: '›';
+  text-align: center;
 }
 
+/* Le même chevron, tourné : « ⌄ » se dessinait plus petit et plus bas que le titre. */
 .carte-bascule[aria-expanded='true'] .carte-chevron::before {
-  content: '⌄';
+  transform: rotate(90deg);
 }
 
 .carte-bascule:disabled {
@@ -1195,7 +1203,8 @@
 
 /* Les segments du modèle et du profil porteur gardent leur largeur naturelle sur leur rangée. */
 .carte-corps > .champ-colonne > .bascule-de-base,
-.segments-des-intensites .bascule-de-base {
+.segments-des-intensites .bascule-de-base,
+.cible-des-reglages .bascule-de-base {
   justify-self: start;
   min-width: 200px;
 }
@@ -1312,7 +1321,7 @@
   height: auto;
   min-width: 0;
   flex: 1 1 0;
-  padding: 0;
+  padding: 0 var(--espace-controle);
 }
 
 /* Un segment de choix d'une valeur n'est pas un onglet : il garde le fond des blocs. */
@@ -2041,8 +2050,10 @@
   white-space: nowrap;
 }
 
+/* Au-dessus de la piste, la lettre de l'autre profil : la rangée lui laisse sa place. */
 .reglage-de-la-palette {
   min-height: 28px;
+  padding-top: 8px;
 }
 
 /* La piste montre, peintes par le moteur, les couleurs que le curseur donnerait. */
@@ -2088,7 +2099,7 @@
 /* La lettre de l'autre profil, au-dessus de sa valeur. */
 .fantome-du-profil {
   position: absolute;
-  top: -3px;
+  top: -10px;
   color: var(--texte-second);
   font-size: 9px;
   line-height: 1;
@@ -2098,10 +2109,10 @@
 
 .fantome-du-profil::after {
   position: absolute;
-  top: 10px;
+  top: 9px;
   left: 50%;
   width: 2px;
-  height: 10px;
+  height: 8px;
   margin-left: -1px;
   background: var(--texte-second);
   content: '';
@@ -2136,6 +2147,15 @@
 
 .derive-nom-de-courbe {
   font-weight: 600;
+}
+
+/* Un halo du fond de la carte garde lisibles l'étiquette d'une poignée et le nom d'une courbe qu'une ligne croise. */
+.derive-etiquette-de-poignee,
+.derive-nom-de-courbe {
+  paint-order: stroke;
+  stroke: var(--fond-bloc);
+  stroke-linejoin: round;
+  stroke-width: 3px;
 }
 
 .etat-du-cadre {

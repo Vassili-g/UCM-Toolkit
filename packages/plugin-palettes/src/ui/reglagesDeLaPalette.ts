@@ -164,14 +164,28 @@ function construireVues(i18n: Localisation) {
       i18n.lier(retablir, 'aria-label', TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]));
       retablir.addEventListener('click', () => retablirLaGrandeur(grandeur));
       curseur.addEventListener('dblclick', () => retablirLaGrandeur(grandeur));
-      curseur.addEventListener('input', () => prevoir(grandeur, Number(curseur.value)));
+      // Échap abandonne le geste : le curseur garde la valeur d'avant jusqu'au relâcher. Revenu à sa valeur de départ,
+      // il n'émet pas `change`, et le relâcher n'enregistre rien.
+      curseur.addEventListener('pointerdown', () => {
+        abandonne = null;
+      });
+      curseur.addEventListener('input', () => {
+        if (abandonne === curseur) {
+          curseur.value = valeurDAvant;
+          return;
+        }
+        prevoir(grandeur, Number(curseur.value));
+      });
       curseur.addEventListener('change', () => terminer(grandeur, Number(curseur.value)));
       curseur.addEventListener('keydown', (evenement) => {
         if (evenement.key === 'Escape' && avantLeGeste) {
           evenement.preventDefault();
           annuler();
+          abandonne = curseur;
+          valeurDAvant = curseur.value;
           return;
         }
+        if (evenement.key !== 'Escape') abandonne = null;
         // Maj : le grand pas ; sans Maj, le pas du curseur, que le navigateur applique.
         const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
         if (!evenement.shiftKey || sens === undefined) return;
@@ -229,6 +243,10 @@ function construireVues(i18n: Localisation) {
     let avantLeGeste: Palette | null = null;
     /** Un aperçu attend l'image suivante : un seul rendu par image pendant un glisser (Z4). */
     let enAttente: { palette: Palette; image: number } | null = null;
+    /** Le curseur dont Échap a abandonné le glisser : il ne bouge plus jusqu'au relâcher. */
+    let abandonne: HTMLInputElement | null = null;
+    /** La valeur qu'un curseur abandonné garde jusqu'au relâcher. */
+    let valeurDAvant = '';
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -288,14 +306,20 @@ function construireVues(i18n: Localisation) {
       const avant = avantLeGeste;
       annulerLAttente();
       avantLeGeste = null;
-      if (avant) gestes.previsualiser(avant);
+      if (avant) {
+        gestes.previsualiser(avant);
+        courante = avant;
+      }
+      // Le contrôle a le focus, et un rendu ne récrit pas sa valeur : l'abandon la rend. Quitter le champ ensuite
+      // n'émet pas `change`.
+      rendre(true);
     }
 
     /** « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
     function retablirLaGrandeur(grandeur: Grandeur): void {
       if (!lue || !courante) return;
       if (grandeur === 'saturation') {
-        valider(retablirLaSaturation(lue, courante));
+        valider(retablirLaSaturation(lue, courante, cibleDuGeste()));
         return;
       }
       const regler = grandeur === 'teinte' ? reglerTeinte : reglerClarte;
@@ -339,7 +363,8 @@ function construireVues(i18n: Localisation) {
       return ((Math.min(max, Math.max(min, valeur)) - min) / (max - min)) * 100;
     };
 
-    function rendre(): void {
+    /** `forcer` récrit aussi le curseur et le champ qui ont le focus. */
+    function rendre(forcer = false): void {
       if (!lue || !courante) return;
       const recette = lue;
       const palette = courante;
@@ -372,8 +397,8 @@ function construireVues(i18n: Localisation) {
         champ.disabled = inactive;
         retablir.disabled = inactive;
         const valeur = valeurs[grandeur];
-        if (document.activeElement !== curseur) curseur.value = String(valeur);
-        if (document.activeElement !== champ) champ.value = lireTexte(ecrire(grandeur, valeur));
+        if (forcer || document.activeElement !== curseur) curseur.value = String(valeur);
+        if (forcer || document.activeElement !== champ) champ.value = lireTexte(ecrire(grandeur, valeur));
         // Une palette à une intensité n'a qu'un profil : le curseur porte le nom de sa grandeur.
         const etiquette = uneSeule ? TEXTES_DES_REGLAGES.grandeurs[grandeur] : TEXTES_DES_REGLAGES.etiquette(TEXTES_DES_REGLAGES.grandeurs[grandeur], nomDeLaCible);
         i18n.lier(curseur, 'aria-label', etiquette);

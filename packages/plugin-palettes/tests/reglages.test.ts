@@ -12,6 +12,7 @@ import {
   departDe,
   ecrireHexa,
   jsonCanonique,
+  partsDesProfils,
   profilPorteur,
   rampesDe,
   recetteParDefaut,
@@ -31,6 +32,7 @@ import {
   reglerClarte,
   reglerSaturation,
   reglerTeinte,
+  retablirLaSaturation,
   revenirALOriginale,
   revenirAuModele,
 } from '../src/edition';
@@ -186,4 +188,16 @@ test('Z10.8 après toute suite de gestes, la référence est celle que reference
     }
   }
   assert.ok(juges > 100, `${juges} palettes réglées jugées`);
+});
+
+test('Z11.7 « Rétablir » la saturation d’un profil laisse l’autre, et la palette reprend les parts de la recette quand les deux y reviennent', () => {
+  const communes = partsDesProfils(RECETTE, BLEU);
+  const reglee = reglerSaturation(RECETTE, reglerSaturation(RECETTE, BLEU, 'vivid', 0.8), 'soft', 0.3);
+  const soft = retablirLaSaturation(RECETTE, reglee, 'soft');
+  valide(soft);
+  assert.deepEqual(soft.parts, { soft: communes.soft, vivid: 0.8, origine: 'designer' });
+  const deux = retablirLaSaturation(RECETTE, soft, 'vivid');
+  valide(deux);
+  assert.equal('parts' in deux, false);
+  assert.equal('parts' in retablirLaSaturation(RECETTE, reglee, 'deux'), false);
 });

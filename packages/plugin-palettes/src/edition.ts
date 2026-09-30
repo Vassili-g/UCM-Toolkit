@@ -201,12 +201,21 @@ export function reglerSaturation(recette: Recette, palette: Palette, cible: Cibl
 
 /**
  * « Rétablir » la saturation (Z10.6) : à une intensité, la référence reprend
- * celle de son départ ; à deux, les parts reprennent celles de la recette.
+ * celle de son départ. À deux, la part de la cible reprend celle de la
+ * recette, bornée comme un réglage ; l'autre profil garde la sienne. Quand
+ * les deux parts sont celles de la recette, la palette les reprend.
  */
-export function retablirLaSaturation(recette: Recette, palette: Palette): Palette {
-  if (!aUneIntensite(palette)) return reprendreLesParts(recette, palette);
-  const { teinte, clarte } = valeursDe(palette);
-  return appliquerLesReglages(recette, palette, { teinte, clarte });
+export function retablirLaSaturation(recette: Recette, palette: Palette, cible: CibleDuReglage = 'deux'): Palette {
+  if (aUneIntensite(palette)) {
+    const { teinte, clarte } = valeursDe(palette);
+    return appliquerLesReglages(recette, palette, { teinte, clarte });
+  }
+  const communes = reprendreLesParts(recette, palette);
+  if (cible === 'deux') return communes;
+  const retablie = reglerSaturation(recette, palette, cible, partsDesProfils(recette, communes)[cible]);
+  const parts = partsDesProfils(recette, retablie);
+  const partsCommunes = partsDesProfils(recette, communes);
+  return PROFILS.every((profil) => parts[profil] === partsCommunes[profil]) ? communes : retablie;
 }
 
 /**

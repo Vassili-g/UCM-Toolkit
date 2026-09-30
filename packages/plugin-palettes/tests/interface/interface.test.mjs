@@ -3307,3 +3307,203 @@ test('Z10.6 [ENT-14] une palette à une intensité a la carte, sans choix de pro
     await page.close();
   }
 });
+
+async function ouvrirSurEn(id, viewport, langue) {
+  const page = await ouvrir(viewport, langue);
+  await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));
+  await ouvrirLaPremierePalette(page);
+  return page;
+}
+
+test('Z11.1 chaque segment garde une marge autour de son libellé, « Vivid ◆ » compris, en français et en anglais, à 500 px', async () => {
+  for (const langue of ['fr', 'en']) {
+    const page = await ouvrirSurEn('reglages-profil-delie', MINIMALE, langue);
+    try {
+      await page.locator('.carte-bascule[aria-expanded="false"]').first().waitFor();
+      await page.evaluate(() => document.querySelectorAll('#panneau-palettes .carte-bascule[aria-expanded="false"]').forEach((bouton) => bouton.click()));
+      const serres = await page.evaluate(() => [...document.querySelectorAll('.bascule-de-base .bascule-option')]
+        .filter((bouton) => bouton.getClientRects().length > 0)
+        .map((bouton) => {
+          const boite = bouton.getBoundingClientRect();
+          const plage = document.createRange();
+          plage.selectNodeContents(bouton);
+          const texte = plage.getBoundingClientRect();
+          return { libelle: bouton.textContent, gauche: texte.left - boite.left, droite: boite.right - texte.right, coupe: bouton.scrollWidth > bouton.clientWidth };
+        })
+        .filter(({ gauche, droite, coupe }) => coupe || gauche < 6 || droite < 6));
+      assert.deepEqual(serres, [], `${langue} : segments sans marge`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('Z11.2 la lettre de l’autre profil se lit au-dessus du curseur, sans toucher la rangée d’au-dessus', async () => {
+  const page = await ouvrirSur('reglages-profil-delie', MINIMALE);
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const places = await page.evaluate(() => [...document.querySelectorAll('.reglage-de-la-palette')]
+      .filter((ligne) => ligne.getClientRects().length > 0)
+      .map((ligne) => {
+        const lettre = ligne.querySelector('.fantome-du-profil').getBoundingClientRect();
+        const curseur = ligne.querySelector('.curseur-peint').getBoundingClientRect();
+        const dessus = ligne.previousElementSibling.getBoundingClientRect();
+        // Le curseur rond fait 14 px et commence 4 px sous le haut de sa piste de 22 px.
+        return { sousLeCurseur: lettre.bottom - (curseur.top + 4), contreLaRangee: dessus.bottom + 2 - lettre.top };
+      }));
+    assert.equal(places.length, 3);
+    for (const { sousLeCurseur, contreLaRangee } of places) {
+      assert.ok(sousLeCurseur <= 0, `la lettre descend de ${sousLeCurseur} px sur le curseur`);
+      assert.ok(contreLaRangee <= 0, `la lettre monte de ${contreLaRangee} px sur la rangée d’au-dessus`);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z11.3 à 500 px, le titre d’une carte tient sur une ligne ; un résumé trop long passe dessous sans le chevaucher', async () => {
+  const page = await ouvrirSur('reglages-profil-delie', MINIMALE);
+  try {
+    const titres = await page.evaluate(() => [...document.querySelectorAll('#panneau-palettes .carte-bascule')]
+      .filter((bouton) => bouton.getClientRects().length > 0)
+      .map((bouton) => {
+        const titre = bouton.querySelector('.carte-titre');
+        const plage = document.createRange();
+        plage.selectNodeContents(titre);
+        const lignes = new Set([...plage.getClientRects()].map((rect) => Math.round(rect.top))).size;
+        const t = titre.getBoundingClientRect();
+        const r = bouton.querySelector('.carte-resume').getBoundingClientRect();
+        const chevauche = r.width > 0 && t.left < r.right && r.left < t.right && t.top < r.bottom && r.top < t.bottom;
+        return { titre: titre.textContent, lignes, chevauche };
+      }));
+    assert.ok(titres.some(({ titre }) => titre === 'Teinte, saturation, luminosité'));
+    assert.deepEqual(titres.filter(({ lignes, chevauche }) => lignes !== 1 || chevauche), []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z11.4 [DER-05] aucune ligne de la dérive ne barre l’étiquette d’une poignée, et le nom d’une courbe ne la chevauche pas', async () => {
+  // La dérive de la galerie descend vers le bout sombre. À +20°, elle remonte vers lui ; à +3°, sa fin presque plate met
+  // l'étiquette de la poignée à la hauteur du nom de la courbe.
+  for (const [viewport, sombre] of [[MINIMALE, null], [{ width: 600, height: 720 }, null], [{ width: 1000, height: 720 }, null], [MINIMALE, '20'], [{ width: 600, height: 720 }, '20'], [MINIMALE, '3'], [{ width: 600, height: 720 }, '3']]) {
+    const page = await ouvrirSur('derive-deliee-libre', viewport);
+    try {
+      await deplierLaCarte(page, 'Dérive de teinte');
+      if (sombre) {
+        const champ = carteDeLOnglet(page, 'Dérive de teinte').getByRole('textbox', { name: 'Nuances sombres' });
+        await champ.fill(sombre);
+        await champ.press('Tab');
+      }
+      const conflits = await page.evaluate(() => {
+        const svg = document.querySelector('#panneau-palettes .derive-graphe');
+        const boite = (texte) => texte.getBBox();
+        const etiquettes = [...svg.querySelectorAll('.derive-poignee text:not(.derive-poignee-lettre)')].map(boite);
+        const noms = [...svg.querySelectorAll('.derive-nom-de-courbe')].map(boite);
+        const dans = ({ x, y }, b) => x > b.x && x < b.x + b.width && y > b.y && y < b.y + b.height;
+        const seCoupent = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+        const out = [];
+        for (const ligne of svg.querySelectorAll('polyline')) {
+          const points = [...ligne.points];
+          for (let i = 1; i < points.length; i++) {
+            for (let pas = 0; pas <= 40; pas++) {
+              const point = { x: points[i - 1].x + ((points[i].x - points[i - 1].x) * pas) / 40, y: points[i - 1].y + ((points[i].y - points[i - 1].y) * pas) / 40 };
+              etiquettes.forEach((b, rang) => { if (dans(point, b)) out.push(`ligne sur l’étiquette ${rang}`); });
+            }
+          }
+        }
+        noms.forEach((nom, n) => etiquettes.forEach((b, e) => { if (seCoupent(nom, b)) out.push(`nom ${n} sur l’étiquette ${e}`); }));
+        // Un nom se lit sur la courbe la plus proche : la sienne.
+        const hauteurA = (ligne, x) => {
+          const points = [...ligne.points];
+          const rang = points.findIndex((point, i) => i > 0 && x >= points[i - 1].x && x <= point.x);
+          if (rang < 1) return null;
+          const [a, b] = [points[rang - 1], points[rang]];
+          return a.y + ((x - a.x) / (b.x - a.x || 1)) * (b.y - a.y);
+        };
+        const traits = { Soft: svg.querySelector('polyline.derive-trait-soft'), Vivid: svg.querySelector('polyline.derive-trait-vivid') };
+        for (const nom of svg.querySelectorAll('.derive-nom-de-courbe')) {
+          const b = nom.getBBox();
+          const [x, y] = [b.x + b.width / 2, b.y + b.height / 2];
+          const propre = hauteurA(traits[nom.textContent], x);
+          const autre = hauteurA(traits[nom.textContent === 'Soft' ? 'Vivid' : 'Soft'], x);
+          if (!(Math.abs(y - propre) < Math.abs(y - autre))) out.push(`nom ${nom.textContent} plus près de l’autre courbe`);
+        }
+        return { nombre: etiquettes.length, conflits: [...new Set(out)] };
+      });
+      assert.equal(conflits.nombre, 2, `${viewport.width} px : deux poignées`);
+      assert.deepEqual(conflits.conflits, [], `${viewport.width} px, bout sombre ${sombre ?? 'de la galerie'}`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('Z11.5 Échap pendant un glisser de la carte des réglages : le curseur revient, et le relâcher n’enregistre rien', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const curseur = page.getByRole('slider', { name: 'Teinte de Soft' });
+    await curseur.scrollIntoViewIfNeeded();
+    const boite = await curseur.boundingBox();
+    const avant = await curseur.inputValue();
+    const ranges = (await rangements(page)).length;
+    await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(boite.x + boite.width * 0.8, boite.y + boite.height / 2, { steps: 5 });
+    await page.keyboard.press('Escape');
+    assert.equal(await curseur.inputValue(), avant, 'Échap rend la valeur d’avant au curseur');
+    await page.mouse.move(boite.x + boite.width * 0.9, boite.y + boite.height / 2, { steps: 3 });
+    await page.mouse.up();
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    assert.equal((await rangements(page)).length, ranges, 'le relâcher après Échap n’enregistre rien');
+    assert.equal(await curseur.inputValue(), avant);
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z11.6 Échap dans un champ de la carte des réglages rend sa valeur, et le quitter ensuite n’enregistre rien', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const champ = page.getByRole('textbox', { name: 'Teinte de Soft' });
+    const avant = await champ.inputValue();
+    const ranges = (await rangements(page)).length;
+    await champ.fill('25');
+    await champ.press('Escape');
+    assert.equal(await champ.inputValue(), avant, 'Échap rend la valeur d’avant au champ');
+    await champ.press('Tab');
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    assert.equal((await rangements(page)).length, ranges, 'quitter le champ après Échap n’enregistre rien');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z11.7 « Rétablir » la saturation de Soft laisse celle de Vivid', async () => {
+  const page = await ouvrirSur('reglages-profil-delie', { width: 600, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    const cible = carte.getByRole('group', { name: 'Profil à régler' });
+    const avant = await compte(page);
+    await cible.getByRole('button', { name: 'Vivid ◆' }).click();
+    await carte.getByRole('textbox', { name: 'Saturation de Vivid' }).fill('80');
+    await carte.getByRole('textbox', { name: 'Saturation de Vivid' }).press('Tab');
+    const vivid = await prochaine(page, avant);
+    await envoyer(page, rangee(vivid.demande));
+    await cible.getByRole('button', { name: 'Soft', exact: true }).click();
+    await carte.getByRole('textbox', { name: 'Saturation de Soft' }).fill('30');
+    await carte.getByRole('textbox', { name: 'Saturation de Soft' }).press('Tab');
+    const soft = await prochaine(page, avant + 1);
+    assert.deepEqual(soft.recette.palettes[0].parts, { soft: 0.3, vivid: 0.8, origine: 'designer' });
+    await envoyer(page, rangee(soft.demande));
+    await carte.getByRole('button', { name: 'Rétablir la saturation' }).click();
+    const retablie = await prochaine(page, avant + 2);
+    assert.equal(retablie.recette.palettes[0].parts.vivid, 0.8, 'Vivid garde sa saturation');
+    assert.equal(retablie.recette.palettes[0].parts.soft, 0.45, 'Soft reprend celle de la recette');
+  } finally {
+    await page.close();
+  }
+});

@@ -23,7 +23,33 @@ import {
 
 import { suivreLaLargeur } from '../largeur';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
-import { abscisse, ligneBrisee, ordonnee, reperes, type Cadre } from './geometrie';
+import { abscisse, ligneBrisee, ordonnee, reperes, type Cadre, type Sommet } from './geometrie';
+
+/** Le nom d'une courbe déliée, et les sommets de la courbe qu'il suit. */
+interface NomDeCourbe {
+  readonly nom: SVGTextElement;
+  readonly sommets: readonly Sommet[];
+}
+
+const seCoupent = (a: DOMRect, b: DOMRect): boolean => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+/** Le segment de `a` à `b` traverse-t-il la boîte ? Découpage de Liang et Barsky. */
+function traverse(a: DOMPoint, b: DOMPoint, boite: DOMRect): boolean {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let entree = 0;
+  let sortie = 1;
+  for (const [p, q] of [[-dx, a.x - boite.x], [dx, boite.x + boite.width - a.x], [-dy, a.y - boite.y], [dy, boite.y + boite.height - a.y]]) {
+    if (p === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    if (p < 0) entree = Math.max(entree, q / p);
+    else sortie = Math.min(sortie, q / p);
+    if (entree > sortie) return false;
+  }
+  return true;
+}
 
 /** Ce que le graphe dessine. */
 export interface EntreesDuGraphe {
@@ -122,7 +148,48 @@ function construireVues(i18n: Localisation) {
       return groupe;
     }
 
-    function poignee(bout: 'clair' | 'sombre', rang: number, angle: number, teinte: number, initiale: string, total: number): SVGGElement {
+    /**
+     * Pose le nom de chaque courbe où il ne touche ni l'étiquette d'une
+     * poignée, ni l'autre nom, ni une ligne, et nettement plus près de sa
+     * courbe que de l'autre : au-dessus puis au-dessous de sa courbe, de l'avant-dernière colonne vers le milieu, puis depuis la
+     * deuxième. Sans place libre, il garde la première. Un graphe qu'on ne
+     * voit pas ne se mesure pas : ses noms restent où le dessin les a posés.
+     */
+    function placerLesNoms(noms: readonly NomDeCourbe[], etiquettes: readonly SVGTextElement[], lignes: readonly SVGPolylineElement[], total: number): void {
+      if (noms.length === 0 || noms[0].nom.getBBox().width === 0) return;
+      const occupees = etiquettes.map((etiquette) => etiquette.getBBox());
+      const traits = lignes.map((ligne) => Array.from(ligne.points));
+      const coupeUnTrait = (boite: DOMRect): boolean => traits.some((points) => points.some((point, rang) => rang > 0 && traverse(points[rang - 1], point, boite)));
+      const milieu = Math.floor(total / 2);
+      const colonnes = [...Array.from({ length: total - 1 - milieu }, (_, rang) => total - 2 - rang), ...Array.from({ length: milieu - 1 }, (_, rang) => rang + 1)];
+      for (const { nom, sommets } of noms) {
+        const autres = noms.filter((autre) => autre.nom !== nom).map((autre) => autre.sommets);
+        const places = colonnes.flatMap((colonne) => {
+          const sommet = sommets.find(({ rang }) => rang === colonne);
+          if (!sommet) return [];
+          const courbe = ordonnee(sommet.angle, cadre, echelle);
+          const x = abscisse(colonne, cadre, total);
+          const autresCourbes = autres.flatMap((autre) => autre.filter(({ rang }) => rang === colonne).map(({ angle }) => ordonnee(angle, cadre, echelle)));
+          return [{ x, y: courbe - 6, courbe, autresCourbes }, { x, y: courbe + 14, courbe, autresCourbes }];
+        });
+        const libre = places.find(({ x, y, courbe, autresCourbes }) => {
+          nom.setAttribute('x', String(x));
+          nom.setAttribute('y', String(y));
+          const boite = nom.getBBox();
+          // Au croisement des courbes, ou l'autre courbe entre le nom et la sienne, le nom se lirait sur l'autre.
+          const centre = boite.y + boite.height / 2;
+          const ambigu = autresCourbes.some((autre) => Math.abs(centre - courbe) + 4 > Math.abs(centre - autre));
+          return !ambigu && !occupees.some((occupee) => seCoupent(occupee, boite)) && !coupeUnTrait(boite);
+        }) ?? places[0];
+        if (!libre) continue;
+        nom.setAttribute('x', String(libre.x));
+        nom.setAttribute('y', String(libre.y));
+        occupees.push(nom.getBBox());
+      }
+    }
+
+    /** `voisin` : l'angle de la ligne au cran voisin, vers l'intérieur du graphe ; l'étiquette se pose du côté qu'elle quitte. */
+    function poignee(bout: 'clair' | 'sombre', rang: number, angle: number, teinte: number, initiale: string, total: number, voisin: number | null): { groupe: SVGGElement; etiquette: SVGTextElement } {
       // Une poignée est un curseur au sens WAI-ARIA : focalisable, bornée, et qui dit sa valeur ([DER-09]).
       const groupe = element('g', {
         tabindex: 0,
@@ -142,13 +209,20 @@ function construireVues(i18n: Localisation) {
       const lettre = element('text', { x, y: y + 3, 'text-anchor': 'middle' });
       lettre.setAttribute('class', 'derive-poignee-lettre');
       i18n.lier(lettre, 'textContent', initiale);
-      // Près du haut du cadre, l'étiquette passe sous la poignée : au-dessus, elle sortirait du graphe.
-      const dessous = angle > echelle * 0.66;
-      const etiquette = element('text', { x: bout === 'clair' ? x + 11 : x - 11, y: dessous ? y + 18 : y - 10, 'text-anchor': bout === 'clair' ? 'start' : 'end' });
-      etiquette.setAttribute('class', 'derive-graduation');
+      // L'étiquette se pose du côté que la ligne quitte : au-dessus quand elle descend vers l'intérieur, dessous
+      // quand elle monte. Près d'un bord du cadre, elle passe de l'autre côté pour rester dans le graphe.
+      const dessusPossible = y - 17 >= 0;
+      const dessousPossible = y + 18 <= Y_CRANS - 12;
+      const vers = voisin === null ? (angle > echelle * 0.66 ? 'dessous' : 'dessus') : voisin < angle ? 'dessus' : 'dessous';
+      const dessous = vers === 'dessous' ? dessousPossible || !dessusPossible : !dessusPossible;
+      const ancre = bout === 'clair' ? 'start' : 'end';
+      const ex = bout === 'clair' ? x + 11 : x - 11;
+      const ey = dessous ? y + 18 : y - 10;
+      const etiquette = element('text', { x: ex, y: ey, 'text-anchor': ancre });
+      etiquette.setAttribute('class', 'derive-graduation derive-etiquette-de-poignee');
       i18n.lier(etiquette, 'textContent', etiquetteDePoignee(angle, teinte));
       groupe.append(rond, lettre, etiquette);
-      return groupe;
+      return { groupe, etiquette };
     }
 
     return {
@@ -174,6 +248,9 @@ function construireVues(i18n: Localisation) {
         // Synchronisés, les profils partagent la ligne du porteur. Déliés, deux lignes, pleine et tiretée ([DER-05]).
         // La rampe unique d'une palette à une intensité range sa dérive sous la clé `vivid` comme sous `soft` ([ENT-14]).
         const porteur = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
+        const sommetsDesTraces = new Map<Profil, readonly Sommet[]>();
+        const noms: NomDeCourbe[] = [];
+        const lignes: SVGPolylineElement[] = [];
         for (const trace of lie ? [porteur] : PROFILS) {
           const rangAncre = trace === porteur ? ancrage.rangs.light : null;
           const sommets = ligneBrisee(courbe, pivot(trace), palette.derive[trace], bouts, rangAncre);
@@ -182,13 +259,20 @@ function construireVues(i18n: Localisation) {
           if (!lie && trace === 'soft') ligne.setAttribute('class', 'derive-trait derive-trait-soft');
           else ligne.setAttribute('class', 'derive-trait derive-trait-vivid');
           enfants.push(ligne);
+          lignes.push(ligne);
+          sommetsDesTraces.set(trace, sommets);
           // Déliées, chaque courbe porte le nom de son profil, lisible sans la couleur ni le trait ([DER-05]).
           if (!lie) {
             const avantDernier = sommets.filter(({ rang }) => Number.isInteger(rang))[total - 2];
-            const nom = element('text', { x: abscisse(total - 2, cadre, total), y: ordonnee(avantDernier.angle, cadre, echelle) - 6, 'text-anchor': 'middle' });
+            // Sa place ne se lie pas à la langue : `placerLesNoms` la déplace après le dessin, et un changement de
+            // langue la remettrait à la première.
+            const nom = element('text', { 'text-anchor': 'middle' });
+            nom.setAttribute('x', String(abscisse(total - 2, cadre, total)));
+            nom.setAttribute('y', String(ordonnee(avantDernier.angle, cadre, echelle) - 6));
             nom.setAttribute('class', 'derive-graduation derive-nom-de-courbe');
             i18n.lier(nom, 'textContent', NOM_DU_PROFIL[trace]);
             enfants.push(nom);
+            noms.push({ nom, sommets });
           }
         }
 
@@ -207,14 +291,17 @@ function construireVues(i18n: Localisation) {
         const derive = palette.derive[profil];
         const initiale = lie ? '' : profil[0];
         const colonneDe = (numero: number, bord: number): number => (grille.crans.includes(numero) ? grille.crans.indexOf(numero) : bord);
-        poignees = {
-          clair: reference.L > bouts.clair ? null
-            : poignee('clair', colonneDe(50, 0), derive.clair, teinteA(bouts.clair, pivot(profil), derive, bouts), initiale, total),
-          sombre: reference.L < bouts.sombre ? null
-            : poignee('sombre', colonneDe(950, total - 1), derive.sombre, teinteA(bouts.sombre, pivot(profil), derive, bouts), initiale, total),
-        };
-        if (poignees.clair) enfants.push(poignees.clair);
-        if (poignees.sombre) enfants.push(poignees.sombre);
+        const ligneDesPoignees = sommetsDesTraces.get(lie ? porteur : profil) ?? [];
+        const angleAuCran = (colonne: number): number | null => ligneDesPoignees.find(({ rang }) => rang === colonne)?.angle ?? null;
+        const colonneClaire = colonneDe(50, 0);
+        const colonneSombre = colonneDe(950, total - 1);
+        const clair = reference.L > bouts.clair ? null
+          : poignee('clair', colonneClaire, derive.clair, teinteA(bouts.clair, pivot(profil), derive, bouts), initiale, total, angleAuCran(colonneClaire + 1));
+        const sombre = reference.L < bouts.sombre ? null
+          : poignee('sombre', colonneSombre, derive.sombre, teinteA(bouts.sombre, pivot(profil), derive, bouts), initiale, total, angleAuCran(colonneSombre - 1));
+        poignees = { clair: clair?.groupe ?? null, sombre: sombre?.groupe ?? null };
+        if (clair) enfants.push(clair.groupe);
+        if (sombre) enfants.push(sombre.groupe);
 
         const largeur = (cadre.largeur - cadre.gauche - cadre.droite) / total;
         courbe.forEach((clarte, rang) => {
@@ -231,6 +318,8 @@ function construireVues(i18n: Localisation) {
         });
 
         svg.replaceChildren(...enfants);
+        const etiquettes = [clair?.etiquette, sombre?.etiquette].filter((etiquette): etiquette is SVGTextElement => etiquette !== undefined);
+        placerLesNoms(noms, etiquettes, lignes, total);
       },
     };
   }
