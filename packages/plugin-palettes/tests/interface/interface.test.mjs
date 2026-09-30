@@ -1103,7 +1103,7 @@ test('W4.4 Minimums et détection : une ligne par seuil, l’aide lisible sans s
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
-    for (const [titre, lignes] of [['Minimums des promesses', 2], ['Détection des couleurs proches', 3]]) {
+    for (const [titre, lignes] of [['Minimums des promesses', 2], ['Détection des couleurs proches', 2]]) {
       const carte = page.locator(`[aria-label="${titre}"]`);
       await carte.locator('.carte-bascule').click();
       const mesures = await carte.locator('.ligne-de-seuil').evaluateAll((elements) => elements.map((ligne) => ({
@@ -1118,7 +1118,7 @@ test('W4.4 Minimums et détection : une ligne par seuil, l’aide lisible sans s
         assert.ok(mesure.aide.length > 0);
       }
     }
-    assert.deepEqual(await page.locator('.ligne-de-seuil .unite').allTextContents(), [':1', ':1', 'ΔEok', 'ΔEok', 'chroma']);
+    assert.deepEqual(await page.locator('.ligne-de-seuil .unite').allTextContents(), [':1', ':1', 'ΔEok', 'ΔEok']);
     const texte = page.getByRole('textbox', { name: 'Texte', exact: true });
     const avant = await compte(page);
     await texte.fill('7');
@@ -1176,7 +1176,7 @@ test('W6.5 une palette libre de six nuances : l’aperçu suit sa liste, le dét
     assert.deepEqual(await page.locator('.nuancier-numero').allTextContents(), ['100', '200', '400', '600', '800', '900']);
     await page.locator('.pastille[data-profil="vivid"][data-cran="800"]').click();
     const detail = page.locator('.nuancier-detail');
-    assert.match(await detail.textContent(), /^Vivid · 800#0846A3/);
+    assert.match(await detail.textContent(), /^Vivid · 800#10479E/);
     assert.doesNotMatch(await detail.textContent(), /Sert à/);
     const configuration = page.locator('[aria-label="Configuration de la palette"]');
     for (const numero of [100, 200]) {
@@ -1272,7 +1272,7 @@ test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes q
     const fixes = ['Couleurs de fond', 'Intensités', 'Luminosité des nuances'];
     assert.deepEqual(await Promise.all(fixes.map((titre) => reglage(page, titre).locator('.carte-resume').textContent())), [
       '3 palettes concernées',
-      '1 palette concernée',
+      '2 palettes concernées',
       '3 palettes concernées',
     ]);
     const comptes = [];
@@ -1281,12 +1281,11 @@ test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes q
       await reglage(page, titre).locator('> .carte-bascule').click();
       comptes.push(...await reglage(page, titre).locator('.carte-corps .ligne-secondaire').evaluateAll((lignes) => lignes.map((ligne) => ligne.textContent).filter((texte) => /concernée/.test(texte))));
     }
-    // Seuils de contraste, profils confondus, palettes proches, référence grise.
+    // Seuils de contraste, profils confondus, palettes proches.
     assert.deepEqual(comptes, [
       '3 palettes concernées',
       '2 palettes concernées',
       '3 palettes concernées',
-      '2 palettes concernées',
     ]);
   } finally {
     await page.close();
@@ -1409,12 +1408,25 @@ test('[DER-02] le pivot tombe dans la colonne de la nuance qui porte la référe
   }
 });
 
-test('[DER-15] une référence presque grise désactive l’éditeur', async () => {
-  const page = await ouvrir();
+test('[DER-15] une palette grise désactive l’éditeur ; une palette très désaturée le garde', async () => {
+  for (const [id, desactive] of [['palette-grise', true], ['palette-tres-desaturee', false]]) {
+    const page = await ouvrirSur(id);
+    try {
+      assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), desactive, id);
+      if (desactive) assert.equal(await carteDeLOnglet(page, 'Dérive de teinte').locator('.carte-resume').textContent(), 'Désactivée pour une palette grise');
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[VER-08] Q4 : un presque noir donne des rampes grises, sans point à vérifier ni note de poignée masquée', async () => {
+  const page = await ouvrirSur('presque-noir');
   try {
-    await envoyer(page, messageDe('couleur-presque-grise'));
-    await ouvrirLaPremierePalette(page);
+    assert.equal(await page.locator('#panneau-palettes .constat-alerte').count(), 0);
+    assert.equal(await page.locator('#panneau-palettes .constat-notice').count(), 0);
     assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), true);
+    assert.equal(await page.locator('.editeur-derive > .ligne-secondaire:visible').count(), 0, 'la note de [DER-14] se tait quand l’éditeur est désactivé');
   } finally {
     await page.close();
   }
@@ -2019,7 +2031,8 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
   try {
     const soft = page.getByRole('textbox', { name: 'Saturation de Soft' });
     assert.equal(await soft.isVisible(), false, 'la carte est repliée à l’ouverture');
-    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Aucun réglage · Soft 45 % · Vivid 95 %');
+    // Vivid porte #FACC15 et prend sa saturation, 0,983 ([ENT-11]).
+    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Aucun réglage · Soft 45 % · Vivid 98 %');
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     // Le profil proposé d'abord ne porte pas la référence : Vivid la porte.
     assert.equal(await soft.inputValue(), '45 %');
@@ -2027,14 +2040,14 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
     await soft.fill('60');
     await soft.press('Tab');
     const rangement = await prochaine(page, avant);
-    assert.deepEqual(rangement.recette.palettes[0].parts, { soft: 0.6, vivid: 0.95, origine: 'designer' });
+    assert.deepEqual(rangement.recette.palettes[0].parts, { soft: 0.6, vivid: 0.983, origine: 'designer' });
     await envoyer(page, rangee(rangement.demande));
 
     // Soft ne dépasse jamais vivid : une saisie au-dessus s'arrête à la saturation de vivid.
     await soft.fill('99');
     await soft.press('Tab');
     const bornee = await prochaine(page, avant + 1);
-    assert.deepEqual(bornee.recette.palettes[0].parts, { soft: 0.95, vivid: 0.95, origine: 'designer' });
+    assert.deepEqual(bornee.recette.palettes[0].parts, { soft: 0.983, vivid: 0.983, origine: 'designer' });
     await envoyer(page, rangee(bornee.demande));
 
     await page.getByRole('button', { name: 'Utiliser les réglages communs pour l’intensité' }).click();
@@ -2075,13 +2088,13 @@ test('[VER-10] la saturation de la référence se situe par un repère sur la pi
   const page = await ouvrirSur('alertes-seules');
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
-    // #FACC15 a une intensité de 0,98, au-dessus de vivid (0,95).
+    // #FACC15 a une intensité de 0,98, au-dessus de la part commune de vivid (0,95) : Vivid la prend ([ENT-11]).
     const reperes = page.locator('.reglages-de-la-palette .repere-de-reference:visible');
     assert.equal(await reperes.count(), 1);
     assert.match(await reperes.getAttribute('title'), /^Intensité de la couleur de référence : 0,98$/);
     assert.equal(await reperes.evaluate((repere) => repere.closest('.reglage-de-la-palette').querySelector('input[type="range"]').getAttribute('aria-label')), 'Saturation de Soft');
     assert.equal(await page.locator('.reglages-de-la-palette > .constats .constat').count(), 0, 'aucune notice permanente');
-    assert.equal(await page.locator('.reglages-de-la-palette > .constat-detail').isVisible(), true, 'le détail reste à la demande');
+    assert.equal(await page.locator('.reglages-de-la-palette > .constat-detail').isVisible(), false, 'aucune notice à déplier : Vivid porte la référence à sa saturation');
     assert.equal(await page.locator('#panneau-palettes .constats-titre-notice').count(), 0);
   } finally {
     await page.close();
@@ -2105,18 +2118,45 @@ test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée
   }
 });
 
-test('D-G [DER-15] : les intensités grises se lisent sous les curseurs, et une couleur presque grise n’a pas de teinte à régler', async () => {
-  const page = await ouvrirSur('couleur-presque-grise');
+test('D-G [DER-15] : une palette grise le dit sous les curseurs et n’a pas de teinte à régler ; saturer Vivid rend la teinte réglable', async () => {
+  const page = await ouvrirSur('palette-grise');
   try {
-    const lignes = await page.locator('.reglages-de-la-palette > .ligne-secondaire').allTextContents();
-    assert.ok(lignes.some((ligne) => /^La couleur de référence est presque grise\. Les profils soft et vivid utilisent tous les deux son intensité : 0,\d+\.$/.test(ligne)), JSON.stringify(lignes));
+    const lignes = await page.locator('.reglages-de-la-palette > .ligne-secondaire:not([hidden])').allTextContents();
+    assert.ok(lignes.includes('Votre couleur de référence est un gris pur. Soft et Vivid sont gris.'), JSON.stringify(lignes));
     assert.equal(await page.getByRole('button', { name: 'Utiliser les réglages communs pour l’intensité' }).isVisible(), false);
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const reglages = carteDeLOnglet(page, CARTE_DES_REGLAGES);
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), true);
     assert.equal(await reglages.getByRole('textbox', { name: /^Teinte de / }).isDisabled(), true);
+    assert.equal(await reglages.getByText('Cette palette est entièrement grise. Il n’y a pas de teinte à régler.').isVisible(), true);
     assert.equal(await reglages.getByRole('slider', { name: /^Saturation de / }).isDisabled(), false);
     assert.equal(await reglages.getByRole('slider', { name: /^Luminosité de / }).isDisabled(), false);
+
+    // Vivid saturé colore ses nuances : la teinte que l'octet imposait se règle (R4).
+    const avant = await compte(page);
+    const vivid = reglages.getByRole('textbox', { name: 'Saturation de Vivid' });
+    await vivid.fill('30');
+    await vivid.press('Tab');
+    const rangement = await prochaine(page, avant);
+    assert.deepEqual(rangement.recette.palettes[0].parts, { soft: 0, vivid: 0.3, origine: 'designer' });
+    await envoyer(page, rangee(rangement.demande));
+    assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
+    assert.equal(await reglages.getByText('Cette palette est entièrement grise. Il n’y a pas de teinte à régler.').isVisible(), false);
+    assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), false);
+  } finally {
+    await page.close();
+  }
+});
+
+test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine, et sa teinte se règle', async () => {
+  const page = await ouvrirSur('palette-tres-desaturee');
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const reglages = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    const lignes = await page.locator('.reglages-de-la-palette > .ligne-secondaire:not([hidden])').allTextContents();
+    assert.ok(!lignes.some((ligne) => /réglages communs|gris pur/.test(ligne)), JSON.stringify(lignes));
+    assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
+    assert.equal(await page.locator('#panneau-palettes .constat-alerte').count(), 0, 'aucun point à vérifier, « Profils confondus » compris');
   } finally {
     await page.close();
   }
@@ -3252,7 +3292,8 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
     assert.equal(await avertissement.isVisible(), true);
     assert.equal(await avertissement.textContent(), 'Attention, votre couleur de référence a été modifiée.');
     assert.equal(await referenceMontree(page), '#1669D2');
-    assert.equal(await carte.locator('.carte-resume').textContent(), 'Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 95 %');
+    // Vivid porte la référence assombrie et prend sa saturation ([ENT-11]).
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 93 %');
   } finally {
     await page.close();
   }
@@ -3308,6 +3349,7 @@ test('Z10.6 [ENT-14] une palette à une intensité a la carte, sans choix de pro
   }
 });
 
+/** Ouvre l'interface dans une langue, sur le premier message d'un état de la galerie et sa première palette. */
 async function ouvrirSurEn(id, viewport, langue) {
   const page = await ouvrir(viewport, langue);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));

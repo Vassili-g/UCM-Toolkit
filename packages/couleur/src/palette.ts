@@ -1,19 +1,20 @@
 /**
  * Une palette lue contre sa recette : ses intensités, ses parts, l'ancrage de
- * sa référence, ses rampes, et les parts propres d'une référence presque
- * grise ([ENT-09]).
+ * sa référence et ses rampes.
  *
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
-import { ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
-import { partDeChroma } from './contraste';
-import { PREREGLAGES, boutsDe, estLibre, grilleDe } from './nuances';
+import { CHROMA_SANS_TEINTE, ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
+import { PREREGLAGES, boutsDe, estLibre, etendueDe, grilleDe } from './nuances';
+import { plafond } from './plafond';
 import {
   arrondir,
   fabriquerPalette,
   fabriquerRampe,
+  MODES,
   partsEffectives,
   PROFILS,
+  rampeDe,
   type Cran,
   type FondsSombres,
   type Intensite,
@@ -49,32 +50,78 @@ export function referenceDe(palette: Palette): Rgb8 {
   return couleur;
 }
 
-/** La part de chroma de la référence, au millième : la précision à laquelle une part se range ([MOT-27]). */
+/**
+ * Vrai pour un gris pur ([MOT-18]) : R, G et B ne diffèrent pas de plus d'une
+ * unité. Un voisin à une unité est alors un gris sans teinte, et la teinte
+ * lue ne dit rien de l'intention du designer.
+ */
+export function estGrisPur(couleur: Rgb8): boolean {
+  return Math.max(...couleur) - Math.min(...couleur) <= 1;
+}
+
+/**
+ * La part de chroma de la référence ([MOT-18]), au millième : la précision à
+ * laquelle une part se range ([MOT-27]). Nulle pour un gris pur. Le plafond
+ * se lit à la teinte de la référence et à sa clarté bornée à l'étendue de la
+ * liste de la palette : près du noir ou du blanc, le plafond à sa propre
+ * clarté est minuscule, et la part mesurée là colorerait les nuances du
+ * milieu. Une référence dans l'étendue garde la part de `partDeChroma`.
+ */
 export function partDeLaReference(recette: Recette, palette: Palette): number {
-  return arrondir(partDeChroma(referenceDe(palette), recette.gamut), 3);
+  const reference = referenceDe(palette);
+  const lue = rgb8VersOklch(reference);
+  if (estGrisPur(reference) || lue.C < CHROMA_SANS_TEINTE) return 0;
+  const etendue = etendueDe(grilleDe(recette, palette));
+  const maximum = plafond(Math.min(etendue.clair, Math.max(etendue.sombre, lue.L)), lue.H, recette.gamut);
+  return arrondir(maximum <= 0 ? 1 : Math.min(1, lue.C / maximum), 3);
 }
 
 /**
  * Les parts de chroma qu'une palette emploie, une par intensité. Une palette
  * à une intensité prend la part de sa référence ([ENT-14]). Sinon ses parts
- * propres, du designer ou grises, passent d'abord. Sinon une palette de base
- * forcée ([ENT-11]) donne au profil forcé la part de la référence ; l'autre
- * profil garde la part commune, bornée pour que soft ne dépasse pas vivid.
- * Ces parts se calculent à la lecture et ne se rangent pas : un changement de
- * référence ou de part commune les suit sans rangement.
+ * du designer passent d'abord, puis celles de `partsDesProfils`. Ces parts se
+ * calculent à la lecture et ne se rangent pas : un changement de référence ou
+ * de part commune les suit sans rangement.
  */
 export function partsDe(recette: Recette, palette: Palette): PartsDePalette {
   return aUneIntensite(palette) ? { unique: partDeLaReference(recette, palette) } : partsDesProfils(recette, palette);
 }
 
-/** Les parts des deux profils d'une palette à deux intensités, celles que `partsDe` lui donne. */
+/**
+ * Les parts des deux profils d'une palette à deux intensités, celles que
+ * `partsDe` lui donne ([ENT-11]). Des parts du designer passent d'abord.
+ * Sinon le profil porteur prend la part de la référence, qu'il soit forcé,
+ * figé ou classé. Sous la part commune de soft, l'autre profil garde le
+ * rapport des parts communes : une référence terne donne deux profils ternes
+ * et distincts. Au-dessus, l'autre garde sa part commune, bornée pour que
+ * soft ne dépasse pas vivid.
+ */
 export function partsDesProfils(recette: Recette, palette: Palette): Parts {
   const communes = { soft: recette.profils.soft.part, vivid: recette.profils.vivid.part };
-  if (palette.parts || !palette.base) return partsEffectives(communes, palette.parts);
+  if (palette.parts) return partsEffectives(communes, palette.parts);
   const part = partDeLaReference(recette, palette);
-  return palette.base === 'soft'
-    ? { soft: part, vivid: Math.max(communes.vivid, part) }
-    : { soft: Math.min(communes.soft, part), vivid: part };
+  const terne = part < communes.soft;
+  const rapport = communes.soft > 0 ? communes.vivid / communes.soft : 1;
+  if (profilPorteur(recette, palette) === 'soft') {
+    return { soft: part, vivid: terne ? Math.min(1, arrondir(part * rapport, 3)) : Math.max(communes.vivid, part) };
+  }
+  return { soft: terne ? arrondir(part / rapport, 3) : Math.min(communes.soft, part), vivid: part };
+}
+
+/**
+ * Vrai pour une palette grise ([DER-15]) : aucune nuance calculée, hors du
+ * cran de la référence, n'a de couleur. R, G et B y sont égaux, dans chaque
+ * intensité et chaque mode. La teinte ne s'y voit pas : l'éditeur de dérive
+ * et la piste de teinte se désactivent. Des parts toutes nulles donnent des
+ * gris purs, sans calcul des rampes.
+ */
+export function estPaletteGrise(recette: Recette, palette: Palette): boolean {
+  if (Object.values(partsDe(recette, palette)).every((part) => part === 0)) return true;
+  const ancrage = ancrageDe(recette, palette);
+  const rampes = rampesDe(recette, palette);
+  return intensitesDe(palette).every((intensite) => MODES.every((mode) =>
+    rampeDe(rampes, intensite)[mode].every(({ couleur }, rang) =>
+      (intensite === ancrage.profil && rang === ancrage.rangs[mode]) || (couleur[0] === couleur[1] && couleur[1] === couleur[2]))));
 }
 
 /**
@@ -103,24 +150,18 @@ export function fondsSombresDe(recette: Recette): FondsSombres {
   };
 }
 
-/** Vrai quand la chroma de la référence est sous `seuils.chromaGrise` ([MOT-18]). */
-export function estPresqueGrise(recette: Recette, palette: Palette): boolean {
-  return rgb8VersOklch(referenceDe(palette)).C < recette.seuils.chromaGrise;
-}
-
 /** Une part au millième entier : la précision à laquelle une part se range ([MOT-27]). */
 const enMilliemes = (part: number): number => Math.round(part * 1000);
 
 /**
  * Le profil que le classement automatique choisit ([MOT-17]) : celui dont la
- * part **commune** est la plus proche de la part de chroma de la référence,
- * comparées au millième. Égalité : `vivid`. Une référence presque grise :
- * `soft`. Les parts propres d'une palette n'y entrent pas : les régler ne
- * fait pas passer la référence d'un profil à l'autre.
+ * part **commune** est la plus proche de la part de la référence, comparées
+ * au millième. Égalité : `vivid`. Un gris pur, de part nulle, va à `soft`.
+ * Les parts propres d'une palette n'y entrent pas : les régler ne fait pas
+ * passer la référence d'un profil à l'autre.
  */
 export function profilAutomatique(recette: Recette, palette: Palette): Profil {
-  if (estPresqueGrise(recette, palette)) return 'soft';
-  const part = enMilliemes(partDeChroma(referenceDe(palette), recette.gamut));
+  const part = enMilliemes(partDeLaReference(recette, palette));
   const versSoft = Math.abs(part - enMilliemes(recette.profils.soft.part));
   const versVivid = Math.abs(part - enMilliemes(recette.profils.vivid.part));
   return versSoft < versVivid ? 'soft' : 'vivid';
@@ -274,28 +315,4 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
     decalages: { soft: decalageDe(palette, 'soft'), vivid: decalageDe(palette, 'vivid') },
   });
   return { ...communes, [ancrage.profil]: ancrer(communes[ancrage.profil as Profil]) };
-}
-
-/**
- * Pose ou retire les parts d'origine `grise` ([ENT-09]). Une référence presque
- * grise reçoit des parts égales à sa part de chroma, au millième ; une
- * référence qui cesse de l'être les perd. Des parts d'origine `designer`
- * restent dans les deux cas. Une palette à une intensité n'a jamais de parts
- * propres : sa part est déjà celle de la référence ([ENT-14]).
- */
-export function ajusterPartsGrises(recette: Recette, palette: Palette): Palette {
-  if (aUneIntensite(palette)) {
-    const { parts: _retirees, ...sansParts } = palette;
-    return sansParts;
-  }
-  if (palette.parts?.origine === 'designer') return palette;
-  if (estPresqueGrise(recette, palette)) {
-    const part = partDeLaReference(recette, palette);
-    return { ...palette, parts: { soft: part, vivid: part, origine: 'grise' } };
-  }
-  if (palette.parts?.origine === 'grise') {
-    const { parts: _retirees, ...sansParts } = palette;
-    return sansParts;
-  }
-  return palette;
 }

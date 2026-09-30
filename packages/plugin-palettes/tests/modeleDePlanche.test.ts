@@ -124,7 +124,7 @@ test('[PLA-14] quarante-quatre pastilles nommées profil/mode/cran, chacune une 
   const noms = AVEC_GRILLE.peints.map(({ nom }) => nom);
   assert.equal(noms.length, 44);
   assert.equal(new Set(noms).size, 44);
-  assert.equal(AVEC_GRILLE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#0E5DC6');
+  assert.equal(AVEC_GRILLE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1');
 });
 
 /** Les usages d'un profil dans un thème ([PLA-18]). */
@@ -164,10 +164,10 @@ test('W5.5 [VER-13] : chaque paire du moteur se lit dans les usages de chaque th
     assert.deepEqual([...lues].sort((a, b) => a - b), PAIRES.map(({ numero }) => numero), mode);
   }
   const lignes = (nom: string) => textes(trouver(usagesDe(MODELE.racine, 'light', 'vivid'), nom)).filter((noeud) => noeud.nom.startsWith('garantie ')).map((noeud) => noeud.contenu);
-  assert.deepEqual(lignes('text default'), ['✓ sur fond : 5,76:1 · AA', '✓ sur surface 100 : 5,34:1 · AA', '✓ sur surface-card 50 : 5,76:1 · AA']);
+  assert.deepEqual(lignes('text default'), ['✓ sur fond : 5,74:1 · AA', '✓ sur surface 100 : 5,33:1 · AA', '✓ sur surface-card 50 : 5,74:1 · AA']);
   // Un élément graphique n'a que AA : 4,19:1 ne se juge pas en texte courant.
-  assert.deepEqual(lignes('surface default'), ['✓ text 700 dessus : 5,34:1 · AA', '✓ border-control 600 dessus : 4,19:1 · AA', '✓ focus 600 dessus : 4,19:1 · AA']);
-  assert.deepEqual(lignes('solid default'), ['✓ on-solid dessus : 5,76:1 · AA']);
+  assert.deepEqual(lignes('surface default'), ['✓ text 700 dessus : 5,33:1 · AA', '✓ border-control 600 dessus : 4,19:1 · AA', '✓ focus 600 dessus : 4,19:1 · AA']);
+  assert.deepEqual(lignes('solid default'), ['✓ on-solid dessus : 5,74:1 · AA']);
   assert.deepEqual(lignes('border-decorative default'), []);
   const echec = textes(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.nom.startsWith('garantie ') && noeud.contenu.startsWith('✗'))!;
   assert.equal(echec.style, 'chiffre');
@@ -186,7 +186,7 @@ test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les ramp
   const valeur = (lisible.enfants[0] as NoeudTexte);
   assert.equal(valeur.couleur.hexa, hexa(100));
   assert.equal(valeur.style, 'chiffre');
-  assert.equal(valeur.contenu, '10,43 AAA');
+  assert.equal(valeur.contenu, '10,47 AAA');
   const aa = cadres(grille).find((noeud) => /^\d+\/\d+$/.test(noeud.nom) && (noeud.enfants[0] as NoeudTexte | undefined)?.contenu.endsWith(' AA'));
   assert.ok(aa, 'une paire entre 4,5:1 et 7:1 porte AA');
   const sansNiveau = cadres(grille).filter((noeud) => /^\d+\/\d+$/.test(noeud.nom) && noeud.enfants.length > 0).map((noeud) => (noeud.enfants[0] as NoeudTexte).contenu).filter((contenu) => !/ AAA?$/.test(contenu));
@@ -247,7 +247,19 @@ test('section 6.7 : la peinture suit le profil du document', () => {
   assert.deepEqual(peinture(bleu, 'LEGACY').composantes, [30 / 255, 111 / 255, 217 / 255]);
   assert.deepEqual(peinture(bleu, 'DISPLAY_P3').composantes, [...rgb8VersP3(bleu)]);
   const p3 = modeleDeCadre(RECETTE, BLEU, 'DISPLAY_P3');
-  assert.equal(p3.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#0E5DC6', 'l’hexa annoncé ne change pas');
+  assert.equal(p3.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1', 'l’hexa annoncé ne change pas');
+});
+
+test('[PLA-19] G3.2 : un cadre dessiné avant la version 6 de la recette est périmé quand ses couleurs changent', () => {
+  // Les parts d'avant se rejouent en parts du designer : mêmes nombres, mêmes couleurs, sans la règle du porteur.
+  const ardoise = nouvellePalette(VIDE, 'p-0000000e', '#6B7280', 2)!;
+  for (const [palette, soft, vivid] of [[BLEU, 0.45, 0.95], [ardoise, 0.094, 0.094]] as const) {
+    const aujourdHui = modeleDeCadre(avec(palette), palette, 'SRGB');
+    const ancienne = { ...palette, parts: { soft, vivid, origine: 'designer' as const } };
+    const dessine = modeleDeCadre(avec(ancienne), ancienne, 'SRGB');
+    assert.notDeepEqual(aujourdHui.peints, dessine.peints, palette.reference);
+    assert.notEqual(aujourdHui.empreinte, dessine.empreinte, palette.reference);
+  }
 });
 
 test('[PLA-19] E2 : l’empreinte suit ce que le cadre montre, et seulement cela', () => {

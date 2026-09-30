@@ -134,13 +134,10 @@ export const TEXTES_DE_CONFIGURATION = {
   seuilNonTexte: "Graphical elements",
   couleursProches: "Similar colour detection",
   seuilPalettesProches: "Minimum difference between two palettes",
-  seuilChromaGrise: "Grey detection threshold (chroma)",
   sansRecette: "The saved palettes and settings could not be read. Import a valid backup to access the settings.",
-  aideParts: "Values near 0 produce greyer shades. Values near 1 use more of the available colour.",
   aideCourbes: "Set the lightness of each shade between 0 and 1. Changes apply to all palettes.",
   aideEcarts: "This threshold flags colours that are too similar. Increase it to flag more similarities. Unit: ΔEok, the distance between two colours in Oklab.",
   aideMinimums: "These values set the minimum contrast for your requirements. Changing them affects the results, without changing the colours or WCAG levels.",
-  aideGris: "Below this chroma value, a colour is considered almost grey and hue shift controls are disabled.",
   retablir: "Reset",
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: "This check covers the shared curves across all hues. For an individual palette, see its “Contrast guarantees” card.",
@@ -162,7 +159,6 @@ export const TEXTES_DE_CONFIGURATION = {
   // N061 : les unités des mesures avancées (V9.8).
   uniteDeContraste: ':1',
   uniteDEcart: 'ΔEok',
-  uniteDeChroma: 'chroma',
 } as const;
 
 /** Un nombre de calques, les milliers séparés par une espace fine. */
@@ -248,8 +244,8 @@ export function resumeDesMinimums(texte: number, nonTexte: number): string {
 }
 
 /** Le résumé replié de la carte « Détection des couleurs proches » (V9.2, N057). */
-export function resumeDesEcarts(profilsConfondus: number, palettesProches: number, chromaGrise: number): string {
-  return `Soft and Vivid ${nombreEcrit(profilsConfondus)} · Two palettes ${nombreEcrit(palettesProches)} · Grey ${nombreEcrit(chromaGrise)}`;
+export function resumeDesEcarts(profilsConfondus: number, palettesProches: number): string {
+  return `Soft and Vivid ${nombreEcrit(profilsConfondus)} · Two palettes ${nombreEcrit(palettesProches)}`;
 }
 
 /** Le nom accessible de « Rétablir », qui nomme la carte (V9.5, N058). */
@@ -303,15 +299,14 @@ export const TEXTES_DES_INTENSITES = {
   detailDeLaReference: "Reference colour intensity",
 } as const;
 
-/** D'où viennent les intensités qu'une palette emploie ; une intensité grise est visible (D-G). */
-export function origineDesParts(origine: 'designer' | 'grise' | undefined, base: Profil | undefined, parts: { soft: number; vivid: number }): string {
-  if (origine === 'designer') return "This palette uses its own intensities. Changes to the shared intensity settings no longer apply to it.";
-  if (origine === 'grise') return `The reference colour is almost grey. Both Soft and Vivid use its intensity: ${nombreEcrit(parts.soft)}.`;
-  if (base) {
-    const autre: Profil = base === 'soft' ? 'vivid' : 'soft';
-    return `Exact reference in ${NOM_DU_PROFIL[base]}: ${NOM_DU_PROFIL[base]} uses the reference colour intensity, ${nombreEcrit(parts[base])}. ${NOM_DU_PROFIL[autre]} follows the shared settings within this limit.`;
-  }
-  return "This palette follows the shared intensity settings.";
+/**
+ * D'où viennent les saturations d'une palette, quand une ligne le dit : ses
+ * parts propres, ou un gris pur (T4). Sans l'un ni l'autre, aucune ligne (T3).
+ */
+export function origineDesParts(propres: boolean, grise: boolean): string | null {
+  if (propres) return "This palette uses its own intensities. Changes to the shared intensity settings no longer apply to it.";
+  if (grise) return "Your reference colour is a pure grey. Soft and Vivid are grey.";
+  return null;
 }
 
 /**
@@ -399,7 +394,7 @@ export const TEXTES_DU_MODELE = {
 /** Les libellés de l'éditeur de dérive (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
   regler: "Hue shift settings",
-  grisDesactive: "Hue controls are disabled for this almost grey colour. Choose a more saturated colour to use them.",
+  grisDesactive: "This palette is entirely grey. There is no hue to adjust.",
   sansSegmentClair: "The reference colour is lighter than every shade. Only the dark end hue control is available.",
   sansSegmentSombre: "The reference colour is darker than every shade. Only the light end hue control is available.",
   prereglage: "Hue shift",
@@ -531,7 +526,7 @@ function pointsAVerifier(nombre: number): string {
 
 /** Le résumé de la carte Dérive de teinte (N041) : le préréglage et la synchronisation. */
 export function resumeDeLaDerive(palette: Palette, grise: boolean, points: number): string {
-  if (grise) return "Disabled for an almost grey colour";
+  if (grise) return "Disabled for a grey palette";
   const { lien, soft, vivid } = palette.derive;
   // Une palette à une intensité n'a qu'une dérive : rien à synchroniser ([ENT-14]).
   if (palette.intensites === 1) return `${ORIGINES[vivid.origine]}${pointsAVerifier(points)}`;
@@ -778,12 +773,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         geste: "If these palettes need to be distinct, change their reference colours. You can also delete the duplicate palette.",
         mesures: [`Average difference: ${ecrireArrondi(alerte.distance, 3)} ΔEok, against a minimum of ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
-    case 'couleur-presque-grise':
-      return {
-        ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `This colour is almost grey. Hue controls are disabled and both profiles use its intensity. Chroma: ${ecrireArrondi(alerte.chroma, 3)}, below the threshold of ${ecrireArrondi(alerte.seuil, 2)}.`,
-        geste: "Choose a more saturated reference colour for more colourful shades.",
-      };
     case 'reference-plus-terne':
       return {
         ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
@@ -795,12 +784,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
         quoi: `The Vivid shades generated around your reference colour use a lower intensity. Reference intensity: ${ecrireArrondi(alerte.part, 2)}; Vivid: ${ecrireArrondi(alerte.partVivid, 2)}.`,
         geste: "Increase the Vivid intensity in “Settings for this palette” to get closer to the reference colour.",
-      };
-    case 'reference-hors-rampe':
-      return {
-        ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `The starting lightness (${ecrireArrondi(alerte.clarte, 3)}) is outside the shade range (${ecrireArrondi(alerte.boutSombre, 3)} to ${ecrireArrondi(alerte.boutClair, 3)}). You can adjust the hue on only one side.`,
-        geste: "Use the available control. To adjust both sides, choose a reference colour with lightness within this range.",
       };
     case 'fond-hors-courbe': {
       const sens = alerte.mode === 'light' ? "darker" : "lighter";
@@ -867,7 +850,6 @@ const NOMS_DES_SEUILS: Record<string, string> = {
   nonTexte: "graphical elements",
   profilsConfondus: "minimum difference between Soft and Vivid",
   palettesProches: "minimum difference between two palettes",
-  chromaGrise: "grey detection",
 };
 
 /**
@@ -1036,7 +1018,6 @@ export const SEUILS_DE_L_IMPORT: Record<keyof Recette['seuils'], string> = {
   nonTexte: "visible element minimum",
   profilsConfondus: "minimum difference between Soft and Vivid",
   palettesProches: "minimum difference between two palettes",
-  chromaGrise: "grey detection threshold",
 };
 
 const NOMS_DES_CHAMPS: Record<ChampDePalette, string> = {

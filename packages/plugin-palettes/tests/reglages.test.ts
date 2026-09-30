@@ -7,16 +7,20 @@ import test from 'node:test';
 
 import {
   aUnReglageDuPorteur,
+  arrondir,
   classerRecette,
   cleDuPorteur,
   departDe,
   ecrireHexa,
+  estPaletteGrise,
   jsonCanonique,
+  lireHexa,
   partsDesProfils,
   profilPorteur,
   rampesDe,
   recetteParDefaut,
   referenceReglee,
+  rgb8VersOklch,
   validerRecette,
   type Palette,
 } from 'ucm-couleur';
@@ -67,8 +71,9 @@ test('Z10.8 « Les deux » déplace les deux profils du même écart, et s’arr
   const clartes = reglerClarte(RECETTE, BLEU, 'deux', -0.02);
   assert.deepEqual(clartes.reglages?.clarte, { soft: -0.02, vivid: -0.02 });
   const parts = reglerSaturation(RECETTE, BLEU, 'deux', 1.2);
+  const avant = partsDesProfils(RECETTE, BLEU);
   assert.equal(parts.parts!.vivid, 1, 'Vivid s’arrête à 1');
-  assert.equal(parts.parts!.vivid - parts.parts!.soft, 0.5, 'l’écart des parts se garde');
+  assert.equal(arrondir(parts.parts!.vivid - parts.parts!.soft, 3), arrondir(avant.vivid - avant.soft, 3), 'l’écart des parts se garde');
 });
 
 test('Z10.8 un réglage du porteur déplace la référence, garde l’originale, et l’aller-retour la rend à l’octet', () => {
@@ -200,4 +205,40 @@ test('Z11.7 « Rétablir » la saturation d’un profil laisse l’autre, et la 
   valide(deux);
   assert.equal('parts' in deux, false);
   assert.equal('parts' in retablirLaSaturation(RECETTE, reglee, 'deux'), false);
+});
+
+test('G5.3 à une intensité, #897288 tournée de +10° puis désaturée à 8 % garde une teinte réglable ; à 0 %, la teinte rangée reste', () => {
+  const mauve = nouvellePalette(RECETTE, 'p-0000001d', '#897288', 1)!;
+  const tournee = reglerTeinte(RECETTE, mauve, 'vivid', 10);
+  const terne = reglerSaturation(RECETTE, tournee, 'vivid', 0.08);
+  valide(terne);
+  assert.ok(rgb8VersOklch(lireHexa(terne.reference)!).C < 0.03, 'sous l’ancien seuil de gris');
+  assert.equal(estPaletteGrise(RECETTE, terne), false);
+  assert.equal(terne.reglages?.teinte?.vivid, 10);
+  // Sans saturation, la palette devient grise, mais la teinte rangée se garde : « Rétablir » la remet à zéro.
+  const grise = reglerSaturation(RECETTE, terne, 'vivid', 0);
+  valide(grise);
+  assert.equal(estPaletteGrise(RECETTE, grise), true);
+  assert.equal(grise.reglages?.teinte?.vivid, 10);
+  assert.equal(reglerTeinte(RECETTE, grise, 'vivid', 0).reglages?.teinte, undefined);
+});
+
+test('G5.3 « Les deux » depuis une palette désaturée garde Vivid au-dessus de Soft', () => {
+  const taupe = nouvellePalette(RECETTE, 'p-0000001e', '#7C717B', 2)!;
+  const avant = partsDesProfils(RECETTE, taupe);
+  assert.ok(avant.vivid > avant.soft);
+  for (const valeur of [0, 0.02, 0.2, 0.6, 1]) {
+    const parts = partsDesProfils(RECETTE, reglerSaturation(RECETTE, taupe, 'deux', valeur));
+    assert.ok(parts.vivid > parts.soft, `${valeur} : ${JSON.stringify(parts)}`);
+  }
+});
+
+test('G5.3 saturer Vivid d’un gris neutre colore ses nuances : la palette cesse d’être grise', () => {
+  const gris = nouvellePalette(RECETTE, 'p-0000001f', '#808080', 2)!;
+  assert.equal(estPaletteGrise(RECETTE, gris), true);
+  const saturee = reglerSaturation(RECETTE, gris, 'vivid', 0.3);
+  valide(saturee);
+  assert.deepEqual(saturee.parts, { soft: 0, vivid: 0.3, origine: 'designer' });
+  assert.equal(estPaletteGrise(RECETTE, saturee), false);
+  assert.equal(saturee.reference, '#808080', 'à deux intensités, la saturation ne déplace pas la référence');
 });

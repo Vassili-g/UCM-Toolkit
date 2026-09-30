@@ -15,7 +15,7 @@
 import {
   aUneIntensite,
   cleDuPorteur,
-  estPresqueGrise,
+  estPaletteGrise,
   intensitesDe,
   partDeLaReference,
   partsDesProfils,
@@ -704,8 +704,8 @@ function construireVues(i18n: Localisation) {
       ));
       poserLesMessages(messages.liste);
 
-      // Une référence presque grise n'a pas de teinte : l'éditeur se désactive ([DER-15]).
-      const grise = estPresqueGrise(lue, courante);
+      // Une palette grise n'a pas de teinte à montrer : l'éditeur se désactive ([DER-15]).
+      const grise = estPaletteGrise(lue, courante);
       const pointsDeDerive = messages.liste.filter((message) => carteDuMessage(message.cibles) === 'derive').length;
       carteDeLaDerive.poserResume(resumeDeLaDerive(courante, grise, pointsDeDerive));
       carteDeLaDerive.desactiver(grise ? TEXTES_DE_LA_DERIVE.grisDesactive : null);

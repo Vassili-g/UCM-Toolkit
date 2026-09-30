@@ -99,10 +99,8 @@ const CONTEXTE = { recette: RECETTE, nomDe: (id: string) => (id === 'p-0000000a'
 const ALERTES: Record<Alerte['code'], Alerte> = {
   'profils-confondus': { code: 'profils-confondus', palette: 'p-0000000a', crans: [{ mode: 'light', cran: 100, distance: 0.012 }], seuil: 0.02 },
   'palettes-proches': { code: 'palettes-proches', palettes: ['p-0000000a', 'p-0000000b'], distance: 0.03, seuil: 0.05 },
-  'couleur-presque-grise': { code: 'couleur-presque-grise', palette: 'p-0000000a', chroma: 0.021, seuil: 0.03 },
   'reference-plus-terne': { code: 'reference-plus-terne', palette: 'p-0000000a', part: 0.226, partSoft: 0.45 },
   'reference-plus-vive': { code: 'reference-plus-vive', palette: 'p-0000000a', part: 0.983, partVivid: 0.95 },
-  'reference-hors-rampe': { code: 'reference-hors-rampe', palette: 'p-0000000a', clarte: 0.254, boutClair: 0.975, boutSombre: 0.27 },
   'fond-hors-courbe': { code: 'fond-hors-courbe', mode: 'light', clarte: 0.949, cran: 0.975 },
 };
 
@@ -223,7 +221,7 @@ test('[UI-12] une carte repliée se résume : préréglage et synchronisation, o
   assert.equal(resumeDeLaDerive(RECETTE.palettes[0], false, 0), 'Soft Tailwind · Vivid Personnalisée · désynchronisée');
   const liee = { ...RECETTE.palettes[0], derive: { ...RECETTE.palettes[0].derive, lien: true } };
   assert.equal(resumeDeLaDerive(liee, false, 1), 'Personnalisée · synchronisée · 1 point à vérifier');
-  assert.equal(resumeDeLaDerive(liee, true, 0), 'Désactivée pour une couleur presque grise');
+  assert.equal(resumeDeLaDerive(liee, true, 0), 'Désactivée pour une palette grise');
   const parts = [{ nom: 'Soft', part: 0.45 }, { nom: 'Vivid', part: 0.95 }];
   const aucun = [{ nom: 'Soft', teinte: 0, clarte: 0 }, { nom: 'Vivid', teinte: 0, clarte: 0 }];
   assert.equal(resumeDesReglages(aucun, parts, 0), 'Aucun réglage · Soft 45 % · Vivid 95 %');

@@ -1,7 +1,7 @@
 /**
  * Ce que la configuration de la recette modifie (section 8.3) : le préréglage
  * du nombre de nuances, les deux courbes, les parts des profils et celle des
- * fonds du thème Dark, les deux fonds, les cinq seuils et le contenu des
+ * fonds du thème Dark, les deux fonds, les quatre seuils et le contenu des
  * planches, rangés en six cartes que « Rétablir » remet une à une aux valeurs
  * par défaut (V9.5). Une autre liste que les trois préréglages ne vient que
  * d'un import ([ENT-08]).
@@ -10,8 +10,8 @@ import {
   CONTENU_COMPLET,
   MODES,
   PREREGLAGES,
+  aDesProfilsTernes,
   aUneIntensite,
-  ajusterPartsGrises,
   ecrireHexa,
   grilleAuPrereglage,
   grilleDe,
@@ -38,7 +38,7 @@ export type ChampDeConfiguration =
   | { readonly seuil: keyof Seuils };
 
 /** Les groupes de champs, chacun avec le compte des palettes qu'il modifie ([ENT-07]). */
-export type GroupeDeConfiguration = 'courbes' | 'parts' | 'fondsSombres' | 'fonds' | 'contraste' | 'profilsConfondus' | 'palettesProches' | 'chromaGrise' | 'contenu';
+export type GroupeDeConfiguration = 'courbes' | 'parts' | 'fondsSombres' | 'fonds' | 'contraste' | 'profilsConfondus' | 'palettesProches' | 'contenu';
 
 /**
  * Un nombre saisi, à virgule ou à point, signe moins ordinaire ou
@@ -50,11 +50,7 @@ export function lireNombre(saisie: string): number | null {
   return Number(nettoyee);
 }
 
-/**
- * La recette où le champ prend la valeur, sans validation : `validerRecette` en
- * juge. Le seuil de chroma grise décide quelles palettes portent des parts
- * `grise` ([ENT-09]) : le changer les recalcule toutes.
- */
+/** La recette où le champ prend la valeur, sans validation : `validerRecette` en juge. */
 export function poserValeur(recette: Recette, champ: ChampDeConfiguration, valeur: number): Recette {
   if ('courbe' in champ) {
     const courbe = [...recette.courbes[champ.courbe]];
@@ -65,9 +61,7 @@ export function poserValeur(recette: Recette, champ: ChampDeConfiguration, valeu
     return { ...recette, profils: { ...recette.profils, [champ.part]: { part: valeur } } };
   }
   if ('fondsSombres' in champ) return { ...recette, intensiteDesFondsSombres: valeur };
-  const suivante = { ...recette, seuils: { ...recette.seuils, [champ.seuil]: valeur } };
-  if (champ.seuil !== 'chromaGrise') return suivante;
-  return { ...suivante, palettes: suivante.palettes.map((palette) => ajusterPartsGrises(suivante, palette)) };
+  return { ...recette, seuils: { ...recette.seuils, [champ.seuil]: valeur } };
 }
 
 /** La valeur que le champ porte dans la recette. */
@@ -95,17 +89,15 @@ export function poserPartie(recette: Recette, partie: keyof ContenuDesPlanches, 
  * modifient toutes. Une part de profil épargne les palettes qui portent leurs
  * parts propres et celles à une intensité, qui prennent la part de leur
  * référence ([ENT-14]). Le seuil des profils
- * confondus épargne les palettes aux parts `grise`, pour lesquelles l'alerte
- * se tait ; celui de chroma grise, les palettes aux parts du designer, qu'il
- * ne touche jamais. Le seuil des palettes proches compare deux palettes : seul,
- * une palette n'en a aucune à comparer.
+ * confondus épargne les palettes aux profils ternes (`aDesProfilsTernes`),
+ * pour lesquelles l'alerte se tait. Le seuil des palettes proches compare deux
+ * palettes : seul, une palette n'en a aucune à comparer.
  */
 export function palettesModifiees(recette: Recette, groupe: GroupeDeConfiguration): number {
   const { palettes } = recette;
   switch (groupe) {
     case 'parts': return palettes.filter((palette) => !palette.parts && !aUneIntensite(palette)).length;
-    case 'profilsConfondus': return palettes.filter((palette) => palette.parts?.origine !== 'grise').length;
-    case 'chromaGrise': return palettes.filter((palette) => palette.parts?.origine !== 'designer').length;
+    case 'profilsConfondus': return palettes.filter((palette) => !aDesProfilsTernes(recette, palette)).length;
     case 'palettesProches': return palettes.length < 2 ? 0 : palettes.length;
     default: return palettes.length;
   }
@@ -120,7 +112,7 @@ export const CARTES_DES_REGLAGES = {
   parts: ['parts', 'fondsSombres'],
   courbes: ['courbes'],
   minimums: ['contraste'],
-  proches: ['profilsConfondus', 'palettesProches', 'chromaGrise'],
+  proches: ['profilsConfondus', 'palettesProches'],
   contenu: ['contenu'],
 } as const satisfies Record<string, readonly GroupeDeConfiguration[]>;
 
@@ -132,7 +124,7 @@ export function carteDuGroupe(groupe: GroupeDeConfiguration): CarteDesReglages {
   return cartes.find((carte) => (CARTES_DES_REGLAGES[carte] as readonly GroupeDeConfiguration[]).includes(groupe))!;
 }
 
-const SEUILS_DE_LA_CARTE = { minimums: ['texte', 'nonTexte'], proches: ['profilsConfondus', 'palettesProches', 'chromaGrise'] } as const;
+const SEUILS_DE_LA_CARTE = { minimums: ['texte', 'nonTexte'], proches: ['profilsConfondus', 'palettesProches'] } as const;
 
 /** Les courbes par défaut du préréglage que la liste reconnaît ; `null` pour une liste importée, qui n'en a pas. */
 function courbesParDefaut(recette: Recette): Recette['courbes'] | null {
@@ -143,8 +135,7 @@ function courbesParDefaut(recette: Recette): Recette['courbes'] | null {
 /**
  * La recette où une carte reprend ses valeurs par défaut (V9.5). Les autres
  * cartes restent, et les palettes aussi : leurs intensités propres, celles du
- * designer comme celles d'une palette de base forcée, ne changent pas. Seul
- * le seuil de gris recalcule les parts `grise`, comme une saisie de ce seuil.
+ * designer comme celles d'une palette de base forcée, ne changent pas.
  * `null` pour les courbes d'une recette dont la liste des crans a changé par
  * import ([ENT-08]) : les courbes par défaut n'ont pas sa longueur.
  */

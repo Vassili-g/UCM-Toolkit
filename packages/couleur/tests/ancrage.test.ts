@@ -8,13 +8,13 @@ import test from 'node:test';
 import {
   MODES,
   PROFILS,
-  ajusterPartsGrises,
   ancrageDe,
   boutsDe,
   fabriquerPalette,
   fondsSombresDe,
   lireHexa,
   partDeChroma,
+  partDeLaReference,
   partsDe,
   profilPorteur,
   rampesDe,
@@ -27,9 +27,9 @@ import {
 } from '../src/index';
 import { paletteTailwind, recetteAvec } from './fabrique';
 
-/** Une palette neuve de cette référence, parts grises posées s'il le faut, dans la recette par défaut. */
+/** Une palette neuve de cette référence, dans la recette par défaut. */
 function neuve(reference: string, recette: Recette = recetteParDefaut()): { recette: Recette; palette: Palette } {
-  const palette = ajusterPartsGrises(recette, paletteTailwind('p-000000a1', reference));
+  const palette = paletteTailwind('p-000000a1', reference);
   return { recette: { ...recette, palettes: [palette] }, palette };
 }
 
@@ -56,16 +56,17 @@ test('[MOT-17] à égalité de distance entre les deux parts communes, vivid por
   assert.equal(profilPorteur(plusPresDeSoft, palette), 'soft');
 });
 
-test('[MOT-17] une référence presque grise est portée par soft, noir, blanc et gris compris', () => {
+test('[MOT-17] une référence terne est portée par soft, noir, blanc et gris compris', () => {
   for (const reference of ['#808080', '#6B7280', '#000000', '#FFFFFF']) {
     assert.equal(decrire(reference).split(' ')[0], 'soft', reference);
   }
 });
 
-test('[MOT-17] un quasi-noir de part 0,99 reste porté par soft : la règle du gris passe avant la part', () => {
-  // #000102 : chroma 0,013, sous le seuil de 0,03, mais une part de 0,996 du plafond, minuscule à cette clarté.
+test('[MOT-17] [MOT-18] un quasi-noir de part 0,99 à sa clarté reste porté par soft : sa part se mesure à la clarté bornée', () => {
+  // #000102 : chroma 0,013, une part de 0,996 du plafond à sa clarté, minuscule ; à la clarté du 950, sa part est faible.
   const { recette, palette } = neuve('#000102');
   assert.ok(partDeChroma(lireHexa('#000102')!) > 0.95);
+  assert.ok(partDeLaReference(recette, palette) < 0.45);
   assert.equal(profilPorteur(recette, palette), 'soft');
 });
 
@@ -103,13 +104,14 @@ test('[MOT-17] à égalité de clarté, le premier rang porte la référence, da
   assert.equal(rangPorteur([0.9, 0.5625, 0.4375], 0.5), 1);
 });
 
-test('[MOT-17] #1E6FD9 est le 600 de vivid dans les deux modes ; ses voisins restent ceux du relevé', () => {
+test('[MOT-17] [ENT-11] #1E6FD9 est le 600 de vivid dans les deux modes ; ses voisins prennent sa part, 0,894', () => {
   const bleu = paletteTailwind('p-0000000a', '#1E6FD9');
   const rampes = rampesDe(recetteAvec(bleu), bleu);
   assert.equal(rampes.vivid!.light[6].hexa, '#1E6FD9');
   assert.equal(rampes.vivid!.dark[6].hexa, '#1E6FD9');
-  assert.equal(rampes.vivid!.light[7].hexa, '#0E5DC6');
-  assert.equal(rampes.vivid!.dark[7].hexa, '#4596FA');
+  // À la part commune de vivid, 0,95, ils valaient #0E5DC6 et #4596FA.
+  assert.equal(rampes.vivid!.light[7].hexa, '#185EC1');
+  assert.equal(rampes.vivid!.dark[7].hexa, '#4B96F4');
   assert.notEqual(rampes.soft!.light[6].hexa, '#1E6FD9');
 });
 

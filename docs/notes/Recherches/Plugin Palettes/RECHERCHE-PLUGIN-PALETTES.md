@@ -260,10 +260,11 @@ normaliser(h) = ((h mod 360) + 360) mod 360
   profil porteur d'une palette à deux.
   - Une palette de base Soft ou Vivid (`[ENT-11]`) désigne le profil porteur.
     Sans elle, le porteur que `reglages.porteur` a figé au premier réglage
-    (`[ENT-15]`) le désigne. Sans l'un ni l'autre, le classement automatique compare la part de chroma de la
-    référence aux parts **communes** de `soft` et `vivid`, au millième : le
-    plus proche la porte, `vivid` à égalité. Une référence presque grise
-    (`[MOT-18]`) est portée par `soft`. Les parts propres d'une palette
+    (`[ENT-15]`) le désigne. Sans l'un ni l'autre, le classement automatique
+    compare la part de la référence (`[MOT-24]`) aux parts **communes** de
+    `soft` et `vivid`, au millième : le plus proche la porte, `vivid` à
+    égalité. Un gris pur (`[MOT-18]`), de part nulle, est donc porté par
+    `soft`. Les parts propres d'une palette
     n'entrent pas dans ce choix : les régler ne fait pas changer la référence
     de profil. Changer les parts communes peut le faire, sauf sous une palette
     de base.
@@ -329,13 +330,19 @@ La dérive totale se répartit entre les deux bouts selon la position de la
 couleur de référence dans la rampe. Une référence claire reçoit presque toute la
 dérive du côté sombre, une référence foncée du côté clair.
 
-- `[MOT-18]` Sous une chroma de référence `seuils.chromaGrise` (défaut 0,03), le
-  préréglage rend `dClair = dSombre = 0` et l'alerte « couleur presque grise »
-  s'affiche : la teinte d'un gris n'a pas de sens. La palette reçoit aussi des
-  parts propres égales à la part de chroma de la référence, d'origine `grise`
-  (`[ENT-09]`) : sans elles, `#6B7280` produirait `#0E44F7` en `vivid.700`.
-  Une palette à une intensité n'a pas de parts propres : sa rampe unique
-  prend déjà la part de la référence, et reste grise.
+- `[MOT-18]` Une référence dont R, G et B ne diffèrent pas de plus d'une
+  unité est un gris pur : un de ses voisins à une unité n'a pas de teinte, et
+  la teinte lue ne dit rien de l'intention du designer. Sa part vaut 0
+  (`[MOT-24]`), si bien que toutes ses nuances sont des gris purs, dans les
+  deux intensités et les deux modes ; la référence garde ses octets à son
+  cran (`[MOT-17]`). Le préréglage d'un gris pur rend `dClair = dSombre = 0`.
+  Toute autre référence garde sa teinte et son préréglage : `#7C717B`, chroma
+  0,020, a une teinte connue à 6° près. `#060605` et `#7F7F80` sont des gris
+  purs ; `#0C0A09` (stone-950) et `#F8FAFC` (slate-50) ne le sont pas. Une
+  référence terne donne des profils ternes (`[ENT-11]`) : `#6B7280` ne
+  produit pas le bleu franc `#0E44F7` que la part commune de `vivid` donnerait
+  en `vivid.700`. `estGrisPur` (`packages/couleur/src/palette.ts`) en est
+  l'autorité.
 - `[MOT-19]` Une seule évaluation de `dériveTailwind`, sur `Ha`. Deux
   implémentations rendent ainsi le même préréglage.
 - `[MOT-20]` La recette garde les deux angles retenus et le nom du préréglage
@@ -366,7 +373,15 @@ dérive du côté sombre, une référence foncée du côté clair.
   Oklab, sur `rgb8`, notée ΔEok.
 - `[MOT-24]` La part de chroma d'une couleur est `C / plafond(L, H, gamut)`,
   bornée à `[0, 1]`. Une couleur sans teinte (`[MOT-04]`) a une part nulle : le
-  blanc relu porte une chroma de 4e-8 contre un plafond de 2e-7.
+  blanc relu porte une chroma de 4e-8 contre un plafond de 2e-7. La part de la
+  **référence** d'une palette lit le plafond à sa teinte et à sa clarté bornée
+  à l'étendue de la liste de la palette. Près du noir ou du blanc, le plafond
+  à sa propre clarté est minuscule : slate-950 `#020617` y vaut 0,458, et
+  colorerait les nuances du milieu deux fois plus que la famille slate de
+  Tailwind ; bornée à 0,27, sa part vaut 0,218. Une référence dans l'étendue
+  garde la part de sa couleur. Un gris pur (`[MOT-18]`) a une part nulle.
+  `partDeLaReference` (`packages/couleur/src/palette.ts`) en est l'autorité,
+  arrondie au millième (`[MOT-27]`).
 
 ### 6.7 Peindre dans l'espace du document
 
@@ -418,7 +433,7 @@ Ces vecteurs portent sur les rampes communes. Sur les rampes ancrées de
 
 | Entrée | Attendu |
 |---|---|
-| Référence `#1E6FD9`, préréglage Tailwind | profil porteur `vivid`, cran 600 en clair et en sombre, où l'hexa vaut `#1E6FD9` ; clair 700 reste `#0E5DC6` |
+| Référence `#1E6FD9`, préréglage Tailwind | profil porteur `vivid`, à la part de la référence, 0,894 (`[ENT-11]`) ; cran 600 en clair et en sombre, où l'hexa vaut `#1E6FD9` ; clair 700 `#185EC1` |
 | Référence `#A0B599` | profil porteur `soft`, cran 400 en clair, 800 en sombre |
 | Référence `#B00100` | profil porteur `vivid`, cran 700 en clair, 500 en sombre |
 | Référence `#000000` | profil porteur `soft`, cran 950 en clair, 50 en sombre |
@@ -438,7 +453,7 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | `profils` | `soft` et `vivid`, une part de chroma chacun | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
 | `fonds` | `light` et `dark`, un hexa chacun | Contrastes, et texte posé sur un fond plein |
-| `seuils` | `texte` 4,5 ; `nonTexte` 3 ; `profilsConfondus` 0,02 ; `palettesProches` 0,05 ; `chromaGrise` 0,03 | Vérifications |
+| `seuils` | `texte` 4,5 ; `nonTexte` 3 ; `profilsConfondus` 0,02 ; `palettesProches` 0,05 | Vérifications |
 | `derives` | Les dix-sept paires de Tailwind | Préréglage |
 | `intensiteDesFondsSombres` | Nombre dans `[0, 1]`, 0,30 par défaut : le facteur de la part des fonds du thème Dark au numéro 50 (`[MOT-28]`) | Toutes les palettes, thème Dark |
 | `contenuDesPlanches` | `note`, `usages`, `grilles`, `light`, `dark` : les parties qu'un cadre dessine, toutes vraies par défaut, un thème au moins (`[PLA-28]`) | Planche |
@@ -461,7 +476,7 @@ Une palette porte :
 | `reference` | L'hexa de la couleur de référence |
 | `derive.lien` | `true` quand `soft` et `vivid` partagent la même dérive |
 | `derive.soft`, `derive.vivid` | `clair` et `sombre` en degrés, et `origine` : `tailwind`, `constante` ou `libre` |
-| `parts` | Facultatif : `soft` et `vivid`, une part de chroma chacun, qui remplace celle de la recette, et `origine` : `designer` ou `grise` (`[ENT-09]`) |
+| `parts` | Facultatif : `soft` et `vivid`, une part de chroma chacun, qui remplace celle de `partsDesProfils`, et `origine` : `designer` (`[ENT-09]`) |
 | `base` | Facultatif : `soft` ou `vivid`, la palette de base qui force le profil porteur (`[ENT-11]`). Absent, le classement automatique décide |
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
 | `originale` | Facultatif : le code de la référence avant le premier ajustement ou le premier réglage du porteur, en majuscules. Différent de `reference`, sauf sous un réglage du porteur, dont le résultat peut rendre les mêmes octets. Absent, aucun ajustement |
@@ -472,7 +487,7 @@ Une palette porte :
 
 ```json
 {
-  "formatVersion": 4,
+  "formatVersion": 6,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
@@ -483,7 +498,7 @@ Une palette porte :
   "fonds": { "light": "#F7F7F7", "dark": "#121212" },
   "seuils": {
     "texte": 4.5, "nonTexte": 3, "profilsConfondus": 0.02,
-    "palettesProches": 0.05, "chromaGrise": 0.03
+    "palettesProches": 0.05
   },
   "derives": [["rose", 12.422, 12.094], ["red", 17.38, 26.042]],
   "intensiteDesFondsSombres": 0.3,
@@ -561,10 +576,17 @@ dix-sept paires.
   différer au dernier bit, et la recette deviendrait illisible. La version 2
   de la recette ajoute `base`, la version 3 `crans` et `originale`, la
   version 4 `intensites`, `intensiteDesFondsSombres` et
-  `contenuDesPlanches`, la version 5 `reglages`. Une
-  recette de version 1 à 3 se migre sans changer ses palettes : chacune garde
-  ses deux intensités, et la version 4 ajoute les deux réglages communs à leur
-  valeur par défaut, si bien que ses fonds du thème Dark changent de couleur. Une recette de version 4 passe en version 5 sans autre changement, et garde ses couleurs à l'octet. La validation rend tous ses refus, chacun avec sa
+  `contenuDesPlanches`, la version 5 `reglages`. La version 6 retire les
+  parts d'origine `grise` et `seuils.chromaGrise`. Une recette de version 1 à
+  3 se migre sans changer ses palettes : chacune garde ses deux intensités, et
+  la version 4 ajoute les deux réglages communs à leur valeur par défaut, si
+  bien que ses fonds du thème Dark changent de couleur. Une recette de
+  version 4 passe en version 5 sans autre changement. De la version 5 à la 6,
+  la lecture retire les parts `grise` et le seuil de gris ; les parts
+  `designer` restent. Les couleurs changent alors pour toute palette sans parts
+  du designer dont le profil porteur n'avait pas la part de la référence
+  (`[ENT-11]`) : les cadres de ces palettes deviennent à actualiser. La
+  validation rend tous ses refus, chacun avec sa
   règle et le chemin du champ, et ne rédige aucune phrase.
 - `[REC-06]` La recette se range automatiquement à la fin de chaque geste :
   relâcher une poignée, valider un champ, créer, dupliquer, réordonner ou
@@ -611,22 +633,31 @@ dix-sept paires.
   lecture de la peinture d'un calque sert au dessin, qui relit les pastilles
   qu'il a posées : seule une peinture `SOLID` visible et d'opacité 1 se lit,
   et dans un document `DISPLAY_P3` elle se convertit en sRGB (`[MOT-26]`).
-- `[ENT-09]` Une référence dont la chroma est sous `seuils.chromaGrise` reçoit
-  des parts propres égales à sa part de chroma, d'origine `grise`. Ces parts
-  disparaissent quand la référence cesse d'être grise. Une palette qui porte
-  des parts d'origine `designer` les garde, grise ou non. L'alerte « Profils
-  confondus » se tait pour une palette aux parts `grise`, dont les deux profils
-  sont égaux par construction.
-- `[ENT-11]` Une palette de base Soft ou Vivid force le profil porteur
-  (`[MOT-17]`), et ce profil prend la part de chroma de la référence, au
-  millième. L'autre profil garde la part commune, bornée pour que `soft` ne
-  dépasse pas `vivid` : Soft forcé élève Vivid à la part de la référence
-  quand elle le dépasse, Vivid forcé abaisse Soft à elle. Ces parts se
-  calculent à la lecture et ne se rangent pas : un changement de référence ou
-  de part commune les suit. Des parts propres passent avant elles. Choisir
-  Soft ou Vivid retire les parts d'origine `designer` ; les parts `grise`
-  restent, et une référence presque grise garde ses deux profils égaux.
-  Revenir à Auto retire `base` : la palette reprend les parts communes. Quand
+- `[ENT-09]` Des parts propres viennent toujours du designer, d'origine
+  `designer` : un changement de référence ne les pose ni ne les retire. Sans
+  elles, les parts sont celles de `[ENT-11]`. L'alerte « Profils confondus »
+  se tait pour une palette sans parts propres dont la référence est sous la
+  part commune de `soft` : ses deux profils sont ternes et proches par
+  construction. `#78716C` en confondrait dix nuances sur onze.
+  `aDesProfilsTernes` (`packages/couleur/src/alertes.ts`) en est
+  l'autorité.
+- `[ENT-11]` Le profil porteur (`[MOT-17]`) prend la part de la référence
+  (`[MOT-24]`), qu'une palette de base le force, que `reglages.porteur` le
+  fige ou que le classement automatique le choisisse. On note `p` la part de
+  la référence, `s` et `v` les parts communes de `soft` et `vivid`. Quand
+  `p < s`, l'autre profil garde le rapport des parts communes : Soft porteur
+  donne Vivid à `min(1, p × v / s)`, Vivid porteur donne Soft à `p × s / v`.
+  Une référence terne donne ainsi deux profils ternes et distincts. Sinon,
+  l'autre profil garde sa part commune, bornée pour que `soft` ne dépasse pas
+  `vivid`. Les deux règles se rejoignent à `p = s`. Ces parts se calculent à
+  la lecture, au millième, et ne se rangent pas : un changement de référence
+  ou de part commune les suit. Des parts propres passent avant elles. Quand la
+  référence passe d'un profil à l'autre en Auto, à mi-chemin des parts
+  communes, les deux rampes changent d'un coup ; « Référence exacte dans »
+  l'évite. Choisir Soft ou Vivid retire les parts d'origine `designer`.
+  Revenir à Auto retire `base` : le classement automatique désigne de nouveau
+  le porteur. `partsDesProfils` (`packages/couleur/src/palette.ts`) en est
+  l'autorité. Quand
   les deux profils se rejoignent, l'alerte « Profils confondus » le dit et
   mène à la carte « Teinte, saturation, luminosité ». Ce choix, libellé « Référence exacte
   dans », ne paraît qu'avec deux intensités : dans leur carte à la création,
@@ -709,8 +740,7 @@ composant du socle la porte (`[UI-02]`).
   toutes les palettes ; « Rétablir » le remet à 0,30 avec les parts. « Rétablir » remet une carte
   aux valeurs de la recette par défaut, sans toucher aux autres cartes ni aux
   palettes : leurs parts propres, du designer ou d'une palette de base
-  forcée, restent. Le seuil de gris rétabli recalcule les parts `grise`, comme
-  sa saisie. Les courbes se rétablissent à celles du préréglage que la liste
+  forcée, restent. Les courbes se rétablissent à celles du préréglage que la liste
   reconnaît ; une liste importée n'en a pas, et « Rétablir » y reste inactif.
   En tête, l'aperçu compact de la palette
   ouverte, dans le thème de son aperçu, donne le résultat Soft et Vivid de ses
@@ -1165,11 +1195,9 @@ composants : `default`, puis `hover` à une nuance, `active` à deux.
 
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
-| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans de la table des emplois, états `+1` et `+2` compris, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf parts `grise` (`[ENT-09]`) |
+| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans de la table des emplois, états `+1` et `+2` compris, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
 | Palettes proches | ΔEok moyen sur les crans 500, 600 et 700, en clair, chaque palette lue sur sa liste, sur les rampes de `[VER-17]` | `palettesProches` | chaque paire de palettes dont les deux listes portent ces trois crans |
-| Couleur presque grise | chroma de la référence | `chromaGrise` | chaque palette |
-| Référence plus terne que `soft` | part de chroma de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités |
-| Référence hors de la rampe | clarté de la référence hors de l’étendue de la liste de la palette, en clair | sans seuil | chaque palette |
+| Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
 
 - `[VER-17]` « Palettes proches » compare Vivid à Vivid entre deux palettes à
@@ -1180,7 +1208,11 @@ composants : `default`, puis `hover` à une nuance, `active` à deux.
   ressemble au profil le plus proche d'elle.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. La mesure, sa valeur et le seuil se
-  lisent dans le détail et dans le rapport.
+  lisent dans le détail et dans le rapport. Une référence grise, noire,
+  blanche ou hors de l'étendue de la liste ne produit aucun message : une
+  palette peut partir de `#000000` ou de `#FFFFFF`. Sans parts du designer, le
+  profil porteur a la part de la référence (`[ENT-11]`) : ni « Référence plus
+  terne que `soft` » ni la notice « plus vive que `vivid` » ne sonnent.
 - `[VER-10]` Une référence plus vive que `vivid` ne produit aucun message : la
   piste de saturation de la carte « Teinte, saturation, luminosité » porte
   un repère qui situe sa part, et le rapport garde la mesure. La référence exacte n'est jamais décrite comme plus terne
@@ -1334,9 +1366,18 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
 
 - `[DER-14]` Une référence plus claire que le bout clair n'a pas de segment
   clair : la poignée claire est masquée et une note dit pourquoi. Même règle au
-  bout sombre.
-- `[DER-15]` Une référence presque grise désactive l'éditeur et affiche
-  l'alerte « couleur presque grise » : sans teinte, une dérive ne se voit pas.
+  bout sombre. La note se tait quand l'éditeur est désactivé (`[DER-15]`).
+- `[DER-15]` Une palette grise désactive l'éditeur : aucune nuance calculée,
+  hors du cran de la référence, n'a de couleur, dans chaque intensité et
+  chaque mode. Sans teinte, une dérive ne se voit pas. La carte repliée se
+  résume « Désactivée pour une palette grise », et sa note dit « Cette palette
+  est entièrement grise. Il n'y a pas de teinte à régler. ». La piste de
+  teinte de la carte « Teinte, saturation, luminosité » suit la même
+  condition. Une référence terne garde les deux : `#7C717B` se règle. Une
+  saturation du designer qui colore la rampe d'un gris pur rend la teinte
+  réglable. Une teinte rangée garde son « Rétablir » actif, même sur une
+  palette devenue grise. `estPaletteGrise` (`packages/couleur/src/palette.ts`)
+  en est l'autorité.
 - `[DER-16]` La largeur minimale de la fenêtre garde les onze positions du
   graphe lisibles : 24 px par cran au moins, repères compris ; 36 px à
   500 px.
@@ -1607,7 +1648,7 @@ palette » gardent leurs libellés au-dessus des champs.
   Quand la cible porte la référence, « Attention : ce réglage va modifier
   votre couleur de référence. » précède le geste, puis « Attention, votre
   couleur de référence a été modifiée. » le remplace tant qu'un réglage du
-  porteur existe. Une couleur presque grise n'a pas de teinte à régler
+  porteur existe. Une palette grise n'a pas de teinte à régler
   (`[DER-15]`). Un glisser prévisualise une fois par image au plus, la fin
   du geste range, et Échap rend la palette d'avant le geste. Sous les
   curseurs, « La dérive de teinte s'applique ensuite. », l'origine des parts,
@@ -1804,8 +1845,11 @@ qui le créera.
 | Conflit de sauvegarde | Enregistrement refusé : consultation et export du brouillon possibles, « Recharger » |
 | Dérive liée, préréglage Tailwind | Une courbe, repères Tailwind confondus avec les poignées |
 | Dérive déliée et libre | Deux courbes, repères Tailwind visibles à l'écart |
-| Référence hors de la rampe | Une poignée masquée et sa note, la référence à l'extrémité |
-| Couleur presque grise | Éditeur désactivé, alerte |
+| Référence hors de la rampe | Une poignée masquée et sa note, la référence à l'extrémité, aucun point à vérifier |
+| Palette désaturée | `#897288` : Soft à la saturation de la référence, Vivid plus vif, dérive réglable |
+| Palette très désaturée | `#7C717B` : deux profils distincts, aucun point à vérifier, teinte réglable |
+| Palette grise | `#808080` : dérive et piste de teinte désactivées, avec leur note, et la ligne du gris pur |
+| Presque noir | `#060605` : un gris pur, rampes grises, aucun point à vérifier |
 | Palette avec points à vérifier seuls | Garanties respectées, points à vérifier sous la carte qu'ils concernent |
 | Génération en cours | Progression à la place de « Générer tout », aucun geste possible |
 | Génération réussie | La fiche « À jour » sans premier geste, « Afficher » et « Modifier » |

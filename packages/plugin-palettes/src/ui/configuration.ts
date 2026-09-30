@@ -254,7 +254,7 @@ function construireVues(i18n: Localisation) {
       reglagesDesParts.append(ligne);
       return { profil, curseur };
     });
-    cartes.parts.ui.corps.prepend(reglagesDesParts, paragraphe(TEXTES_DE_CONFIGURATION.aideParts, 'ligne-secondaire'));
+    cartes.parts.ui.corps.prepend(reglagesDesParts);
     groupeDeCarte('parts', 'parts', reglagesDesParts);
 
     // Les fonds du thème Dark : leur part à la nuance 50, sous les deux intensités ([MOT-28], maquette Y2.5).
@@ -409,7 +409,6 @@ function construireVues(i18n: Localisation) {
     const seuilsProches = [
       { seuil: 'profilsConfondus', etiquette: TEXTES_DE_CONFIGURATION.seuilProfilsConfondus, unite: TEXTES_DE_CONFIGURATION.uniteDEcart, aide: TEXTES_DE_CONFIGURATION.aideProfilsConfondus },
       { seuil: 'palettesProches', etiquette: TEXTES_DE_CONFIGURATION.seuilPalettesProches, unite: TEXTES_DE_CONFIGURATION.uniteDEcart, aide: TEXTES_DE_CONFIGURATION.aidePalettesProches },
-      { seuil: 'chromaGrise', etiquette: TEXTES_DE_CONFIGURATION.seuilChromaGrise, unite: TEXTES_DE_CONFIGURATION.uniteDeChroma, aide: TEXTES_DE_CONFIGURATION.aideGris },
     ] as const;
     const lignesProches = document.createElement('div');
     lignesProches.className = 'lignes-de-seuil';
@@ -690,7 +689,7 @@ function construireVues(i18n: Localisation) {
         groupe.compter(palettesConcernees(palettesModifiees(lue, nom)));
       }
       cartes.minimums.ui.poserResume(resumeDesMinimums(lue.seuils.texte, lue.seuils.nonTexte));
-      cartes.proches.ui.poserResume(resumeDesEcarts(lue.seuils.profilsConfondus, lue.seuils.palettesProches, lue.seuils.chromaGrise));
+      cartes.proches.ui.poserResume(resumeDesEcarts(lue.seuils.profilsConfondus, lue.seuils.palettesProches));
       for (const carte of Object.keys(cartes) as CarteDesReglages[]) {
         const sansDefaut = retablir(lue, carte) === null;
         cartes[carte].retablir.disabled = sansDefaut || estParDefaut(lue, carte);

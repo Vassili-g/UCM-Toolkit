@@ -33,10 +33,21 @@ test('un hexa sans dièse se lit, un hexa incomplet se refuse', () => {
   assert.equal(changerReference(RECETTE, PALETTE, 'bleu'), null);
 });
 
-test('[ENT-09] une référence presque grise pose des parts grises, une référence colorée les retire', () => {
-  const grise = changerReference(RECETTE, PALETTE, '#6B7280')!;
-  assert.equal(grise.parts?.origine, 'grise');
-  assert.equal(changerReference(RECETTE, grise, '#1E6FD9')!.parts, undefined);
+test('[ENT-09] [MOT-18] une référence terne ne pose pas de parts : Soft prend sa part, Vivid garde le rapport des parts communes', () => {
+  const terne = changerReference(RECETTE, PALETTE, '#6B7280')!;
+  assert.equal(terne.parts, undefined);
+  const part = arrondir(partDeChroma(lireHexa('#6B7280')!, 'srgb'), 3);
+  assert.deepEqual(partsDe(RECETTE, terne), { soft: part, vivid: arrondir((part * 0.95) / 0.45, 3) });
+  // Sa teinte se lit : la dérive Tailwind suit la référence, comme pour une couleur franche.
+  assert.deepEqual(terne.derive.soft, { ...prereglage('#6B7280'), origine: 'tailwind' });
+  assert.notDeepEqual(prereglage('#6B7280'), { clair: 0, sombre: 0 });
+});
+
+test('[MOT-18] un gris pur rend une dérive Tailwind nulle, même si sa chroma n’est pas nulle', () => {
+  // #7F7F80 : un octet de bleu en plus, une teinte violette qu'un voisin gris pur contredit.
+  for (const reference of ['#808080', '#7F7F80', '#060605']) {
+    assert.deepEqual(changerReference(RECETTE, PALETTE, reference)!.derive.soft, { clair: 0, sombre: 0, origine: 'tailwind' }, reference);
+  }
 });
 
 test('un nom vide retire la clé : la palette s’affiche sous son hexa', () => {
@@ -53,14 +64,18 @@ test('remplacer une palette garde les autres et leur ordre', () => {
 
 test('[ENT-09] E3 : une part propre se pose au millième, passe les parts au designer, et l’autre profil garde la sienne', () => {
   const posee = poserPart(RECETTE, PALETTE, 'soft', 0.61234);
-  assert.deepEqual(posee.parts, { soft: 0.612, vivid: RECETTE.profils.vivid.part, origine: 'designer' });
+  // Vivid porte #1E6FD9 et employait sa part, 0,894 : il la garde.
+  assert.deepEqual(posee.parts, { soft: 0.612, vivid: partsDe(RECETTE, PALETTE).vivid, origine: 'designer' });
+  assert.equal(posee.parts?.vivid, arrondir(partDeChroma(lireHexa('#1E6FD9')!, 'srgb'), 3));
   assert.deepEqual(poserPart(RECETTE, posee, 'vivid', 0.8).parts, { soft: 0.612, vivid: 0.8, origine: 'designer' });
 });
 
-test('[ENT-09] reprendre les parts de la recette retire les parts du designer, et remet les parts grises d’une référence grise', () => {
+test('[ENT-09] reprendre les parts de la recette retire les parts du designer, terne ou non', () => {
   assert.equal(reprendreLesParts(RECETTE, poserPart(RECETTE, PALETTE, 'soft', 0.6)).parts, undefined);
-  const grise = changerReference(RECETTE, PALETTE, '#6B7280')!;
-  assert.equal(reprendreLesParts(RECETTE, poserPart(RECETTE, grise, 'vivid', 0.5)).parts?.origine, 'grise');
+  const terne = changerReference(RECETTE, PALETTE, '#6B7280')!;
+  const reprise = reprendreLesParts(RECETTE, poserPart(RECETTE, terne, 'vivid', 0.5));
+  assert.equal(reprise.parts, undefined);
+  assert.deepEqual(partsDe(RECETTE, reprise), partsDe(RECETTE, terne));
 });
 
 test('[ENT-11] forcer une palette de base remplace les intensités du designer ; revenir à Auto retire le choix', () => {

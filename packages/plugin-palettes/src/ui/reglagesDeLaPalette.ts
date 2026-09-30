@@ -4,8 +4,8 @@
  * les deux, puis trois curseurs peints par le moteur, chacun avec son champ,
  * sa valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa
  * valeur sur chaque piste, et un repère situe la saturation de la référence
- * sur celle des deux profils ([VER-10]). Une couleur presque grise n'a pas de
- * teinte à régler ([DER-15]). Un avertissement précède un réglage qui déplace la
+ * sur celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
+ * régler ([DER-15]). Un avertissement précède un réglage qui déplace la
  * référence, et dit ensuite qu'elle a bougé. Sous les curseurs : l'origine
  * des parts, le retour aux réglages communs et les alertes qui comparent les
  * profils ([VER-10], [VER-11]).
@@ -18,7 +18,7 @@
 import {
   aUnReglageDuPorteur,
   aUneIntensite,
-  estPresqueGrise,
+  estPaletteGrise,
   fabriquerCran,
   partDeLaReference,
   partsDesProfils,
@@ -86,7 +86,7 @@ interface Rangee {
 
 function construireVues(i18n: Localisation) {
   const { blocDeConstat } = creerVuesConstats(i18n);
-  const { NOM_DU_PROFIL, TEXTES, TEXTES_AVANCES, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES, TEXTES_AVANCES, TEXTES_DE_LA_DERIVE, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
 
   /** Le texte d'un champ : la teinte signée en degrés, la saturation en pour cent, la luminosité signée. */
   const ecrire = (grandeur: Grandeur, valeur: number): Texte =>
@@ -220,6 +220,11 @@ function construireVues(i18n: Localisation) {
     const pied = document.createElement('p');
     pied.className = 'ligne-secondaire';
     i18n.lier(pied, 'textContent', TEXTES_DES_REGLAGES.pied);
+    // Sous la piste de teinte, la raison qui la désactive ([DER-15]).
+    const noteGrise = document.createElement('p');
+    noteGrise.className = 'ligne-secondaire';
+    noteGrise.hidden = true;
+    i18n.lier(noteGrise, 'textContent', TEXTES_DE_LA_DERIVE.grisDesactive);
     const origine = document.createElement('p');
     origine.className = 'ligne-secondaire';
     const reprendre = document.createElement('button');
@@ -233,7 +238,7 @@ function construireVues(i18n: Localisation) {
     const resume = document.createElement('summary');
     i18n.lier(resume, 'textContent', TEXTES.detailTechnique);
     details.append(resume);
-    element.append(cible, avertissement, ...rangees.map(({ ligne }) => ligne), erreur, pied, origine, reprendre, messages, details);
+    element.append(cible, avertissement, ...rangees.flatMap(({ grandeur, ligne }) => (grandeur === 'teinte' ? [ligne, noteGrise] : [ligne])), erreur, pied, origine, reprendre, messages, details);
 
     let lue: Recette | null = null;
     let courante: Palette | null = null;
@@ -387,16 +392,18 @@ function construireVues(i18n: Localisation) {
       const autre: Profil = profil === 'soft' ? 'vivid' : 'soft';
       const valeurs = valeursDuProfil(recette, palette, profil);
       const valeursDeLAutre = valeursDuProfil(recette, palette, autre);
-      // Sans teinte, la teinte ne se règle pas, comme la dérive ([DER-15]).
-      const grise = estPresqueGrise(recette, palette);
+      // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme la dérive ([DER-15]).
+      const grise = estPaletteGrise(recette, palette);
+      noteGrise.hidden = !grise;
       const partDeReference = partDeLaReference(recette, palette);
       const nomDeLaCible = choisie === 'deux' ? TEXTES_DES_REGLAGES.deuxProfils : NOM_DU_PROFIL[choisie];
       for (const { grandeur, curseur, piste, fantome, repere, champ, absolu, retablir } of rangees) {
         const inactive = grandeur === 'teinte' && grise;
+        const valeur = valeurs[grandeur];
         curseur.disabled = inactive;
         champ.disabled = inactive;
-        retablir.disabled = inactive;
-        const valeur = valeurs[grandeur];
+        // Une teinte rangée se remet toujours à zéro, même sur une palette devenue grise.
+        retablir.disabled = inactive && valeur === 0;
         if (forcer || document.activeElement !== curseur) curseur.value = String(valeur);
         if (forcer || document.activeElement !== champ) champ.value = lireTexte(ecrire(grandeur, valeur));
         // Une palette à une intensité n'a qu'un profil : le curseur porte le nom de sa grandeur.
@@ -436,9 +443,9 @@ function construireVues(i18n: Localisation) {
         courante = palette;
         rendre();
         const uneSeule = aUneIntensite(palette);
-        const parts = uneSeule ? null : partsDesProfils(recette, palette);
-        origine.hidden = uneSeule;
-        if (parts) i18n.lier(origine, 'textContent', origineDesParts(palette.parts?.origine, palette.base, parts));
+        const ligneDOrigine = uneSeule ? null : origineDesParts(palette.parts !== undefined, estPaletteGrise(recette, palette));
+        origine.hidden = ligneDOrigine === null;
+        i18n.lier(origine, 'textContent', ligneDOrigine ?? '');
         reprendre.hidden = palette.parts?.origine !== 'designer';
         // Les informations restent repliées ; les points à vérifier se lisent tout de suite.
         const visibles = messagesDesReglages.filter((message) => message.severite !== 'notice');

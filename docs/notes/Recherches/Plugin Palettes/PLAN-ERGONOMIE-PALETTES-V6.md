@@ -931,7 +931,9 @@ Les questions de conception, auxquelles Z10.1 et Z10.2 répondent :
   palette de 44 crans coûte 0,36 ms avec réglages, 0,09 ms sans, médiane de
   cent calculs à dérive neuve. `scripts/mesurer-temps.mjs` ne tourne plus
   depuis que `boutsDe` prend la recette : la mesure est passée par un script
-  temporaire.
+  temporaire. La version 6 de la recette retire ensuite les parts `grise` et
+  `seuils.chromaGrise` : le [plan des palettes désaturées](./PLAN-PALETTES-DESATUREES.md)
+  en porte la migration (G3.1).
 - [x] **Z10.6** L’interface, selon la maquette. La carte remplace celle des
   intensités ; le module se renomme s’il ne dit plus ce qu’il fait, et
   AGENTS.md suit. Prévisualiser pendant le geste, ranger à la fin, Échap

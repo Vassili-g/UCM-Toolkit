@@ -83,7 +83,7 @@ Cinq références, recette par défaut, deux intensités, dérive Tailwind.
 | Vert `#16A34A` | Vivid | 600 Light, 700 Dark | 0,965 | Vivid ✗ 2 |
 | Rouge `#DC2626` | Vivid | 600 Light, 600 Dark | 0,914 | toutes tenues |
 | Sauge `#A0B599` | Soft | 400 Light, 800 Dark | 0,198 | toutes tenues |
-| Gris `#6B7280` | Soft | 600 Light, 600 Dark | 0,094 | toutes tenues, parts `grise` |
+| Gris `#6B7280` | Soft | 600 Light, 600 Dark | 0,094 | toutes tenues, parts `grise` ; depuis la version 6 de la recette, Soft à 0,094 et Vivid à 0,199 ([palettes désaturées](./PLAN-PALETTES-DESATUREES.md)) |
 
 **E1, la référence tournée.** Tourner la teinte de la référence à clarté
 égale fait perdre de la chroma quand la teinte d’arrivée a un plafond plus
@@ -169,7 +169,7 @@ médiane, avec ou sans réglage. `[MOT-13]` accorde 5 ms.
 | Le profil porteur | Un réglage de teinte ou de luminosité du porteur déplace la référence, `originale` gardée. La saturation du porteur ne la déplace pas. Le porteur se fige dès le premier réglage de la carte | E1, E3, E6, Q6.8 |
 | Palette à une intensité | La carte existe, sans choix de profil. La teinte et la luminosité déplacent la rampe et la référence, comme pour un porteur ; la saturation est celle de la référence, qu’elle récrit (`[ENT-14]`) | Q6.9 |
 | « Ajuster la référence » | Le raccourci de la luminosité du porteur : la modale propose la valeur qui répare, « Appliquer » la pose dans la carte (réponse R1) | E4 bis, E5 |
-| Palettes grises, de base, libres ; parts communes ; « Profils confondus » | Gris : le moteur applique les réglages, l’interface désactive la teinte, comme la dérive (`[DER-15]`). Libre : la carte existe, sans garanties. Les parts communes ne changent pas. « Profils confondus » mène à la saturation, à l’écart ou à la luminosité de la carte | `[ENT-09]`, `[ENT-11]`, `[VER-15]` |
+| Palettes grises, de base, libres ; parts communes ; « Profils confondus » | Gris : le moteur applique les réglages. L’interface désactive la teinte, comme la dérive, pour une palette dont aucune nuance calculée n’a de couleur (`[DER-15]`, [palettes désaturées](./PLAN-PALETTES-DESATUREES.md), R4) ; une référence terne garde sa teinte. Libre : la carte existe, sans garanties. Les parts communes ne changent pas. « Profils confondus » mène à la saturation, à l’écart ou à la luminosité de la carte | `[ENT-09]`, `[ENT-11]`, `[VER-15]` |
 | Version de la recette | Version 5 : un champ facultatif par palette. Une recette 4 se lit sans changer de couleur | Section 7.3 |
 
 ## Modèles candidats

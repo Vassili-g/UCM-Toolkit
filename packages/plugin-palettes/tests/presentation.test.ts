@@ -45,8 +45,8 @@ test('aucune promesse manquée, aucun groupe', () => {
 test('[VER-10] [VER-11] les alertes qui comparent les intensités se lisent près du réglage d’intensité', () => {
   const place = (code: Alerte['code']) => placeDeLAlerte({ code } as Alerte);
   assert.deepEqual(
-    ['profils-confondus', 'reference-plus-terne', 'reference-plus-vive', 'palettes-proches', 'couleur-presque-grise', 'reference-hors-rampe', 'fond-hors-courbe'].map((code) => place(code as Alerte['code'])),
-    ['intensite', 'intensite', 'intensite', 'liste', 'liste', 'liste', 'liste'],
+    ['profils-confondus', 'reference-plus-terne', 'reference-plus-vive', 'palettes-proches', 'fond-hors-courbe'].map((code) => place(code as Alerte['code'])),
+    ['intensite', 'intensite', 'intensite', 'liste', 'liste'],
   );
 });
 

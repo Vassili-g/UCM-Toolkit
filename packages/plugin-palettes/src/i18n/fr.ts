@@ -133,13 +133,10 @@ export const TEXTES_DE_CONFIGURATION = {
   seuilNonTexte: 'Éléments graphiques',
   couleursProches: 'Détection des couleurs proches',
   seuilPalettesProches: 'Écart minimal entre deux palettes',
-  seuilChromaGrise: 'Seuil de détection du gris (chroma)',
   sansRecette: 'Les palettes et les réglages enregistrés sont illisibles. Importez une sauvegarde valide pour accéder aux réglages.',
-  aideParts: 'Une valeur proche de 0 produit des nuances plus grises. Une valeur proche de 1 utilise davantage la couleur disponible.',
   aideCourbes: 'Réglez la luminosité de chaque nuance entre 0 et 1. Les changements s’appliquent à toutes les palettes.',
   aideEcarts: 'Ce seuil déclenche un signalement lorsque les couleurs sont trop proches. Augmentez-le pour signaler davantage de ressemblances. Unité : ΔEok, la distance entre deux couleurs dans l’espace Oklab.',
   aideMinimums: 'Ces valeurs définissent les contrastes minimums de vos promesses. Les modifier change leur résultat, sans modifier les couleurs ni les niveaux WCAG.',
-  aideGris: 'En dessous de cette valeur de chroma, la couleur est considérée comme presque grise. Le réglage de dérive de teinte est alors désactivé.',
   retablir: 'Rétablir',
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: 'Cette vérification porte sur les courbes communes, pour toutes les teintes. Les garanties d’une palette se lisent dans sa carte « Garanties de contraste ».',
@@ -161,7 +158,6 @@ export const TEXTES_DE_CONFIGURATION = {
   // N061 : les unités des mesures avancées (V9.8).
   uniteDeContraste: ':1',
   uniteDEcart: 'ΔEok',
-  uniteDeChroma: 'chroma',
 } as const;
 
 /** Un nombre de calques, les milliers séparés par une espace fine. */
@@ -247,8 +243,8 @@ export function resumeDesMinimums(texte: number, nonTexte: number): string {
 }
 
 /** Le résumé replié de la carte « Détection des couleurs proches » (V9.2, N057). */
-export function resumeDesEcarts(profilsConfondus: number, palettesProches: number, chromaGrise: number): string {
-  return `Soft et Vivid ${nombreEcrit(profilsConfondus)} · Deux palettes ${nombreEcrit(palettesProches)} · Gris ${nombreEcrit(chromaGrise)}`;
+export function resumeDesEcarts(profilsConfondus: number, palettesProches: number): string {
+  return `Soft et Vivid ${nombreEcrit(profilsConfondus)} · Deux palettes ${nombreEcrit(palettesProches)}`;
 }
 
 /** Le nom accessible de « Rétablir », qui nomme la carte (V9.5, N058). */
@@ -302,15 +298,14 @@ export const TEXTES_DES_INTENSITES = {
   detailDeLaReference: 'Intensité de la couleur de référence',
 } as const;
 
-/** D'où viennent les intensités qu'une palette emploie ; une intensité grise est visible (D-G). */
-export function origineDesParts(origine: 'designer' | 'grise' | undefined, base: Profil | undefined, parts: { soft: number; vivid: number }): string {
-  if (origine === 'designer') return 'Cette palette utilise ses propres intensités. Les changements d’intensité dans les réglages communs ne s’y appliquent plus.';
-  if (origine === 'grise') return `La couleur de référence est presque grise. Les profils soft et vivid utilisent tous les deux son intensité : ${nombreEcrit(parts.soft)}.`;
-  if (base) {
-    const autre: Profil = base === 'soft' ? 'vivid' : 'soft';
-    return `Référence exacte dans ${NOM_DU_PROFIL[base]} : ${NOM_DU_PROFIL[base]} utilise l’intensité de la couleur de référence, ${nombreEcrit(parts[base])}. ${NOM_DU_PROFIL[autre]} suit les réglages communs, sans dépasser cette limite.`;
-  }
-  return 'Les intensités de cette palette suivent les réglages communs.';
+/**
+ * D'où viennent les saturations d'une palette, quand une ligne le dit : ses
+ * parts propres, ou un gris pur (T4). Sans l'un ni l'autre, aucune ligne (T3).
+ */
+export function origineDesParts(propres: boolean, grise: boolean): string | null {
+  if (propres) return 'Cette palette utilise ses propres intensités. Les changements d’intensité dans les réglages communs ne s’y appliquent plus.';
+  if (grise) return 'Votre couleur de référence est un gris pur. Soft et Vivid sont gris.';
+  return null;
 }
 
 /**
@@ -398,7 +393,7 @@ export const TEXTES_DU_MODELE = {
 /** Les libellés de l'éditeur de dérive (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
   regler: 'Configuration de la dérive',
-  grisDesactive: 'Le réglage de teinte est désactivé pour cette couleur presque grise. Choisissez une couleur plus saturée pour l’utiliser.',
+  grisDesactive: 'Cette palette est entièrement grise. Il n’y a pas de teinte à régler.',
   sansSegmentClair: 'La couleur de référence est plus claire que toutes les nuances. Seul le réglage de teinte du côté sombre est disponible.',
   sansSegmentSombre: 'La couleur de référence est plus sombre que toutes les nuances. Seul le réglage de teinte du côté clair est disponible.',
   prereglage: 'Dérive de teinte',
@@ -530,7 +525,7 @@ function pointsAVerifier(nombre: number): string {
 
 /** Le résumé de la carte Dérive de teinte (N041) : le préréglage et la synchronisation. */
 export function resumeDeLaDerive(palette: Palette, grise: boolean, points: number): string {
-  if (grise) return 'Désactivée pour une couleur presque grise';
+  if (grise) return 'Désactivée pour une palette grise';
   const { lien, soft, vivid } = palette.derive;
   // Une palette à une intensité n'a qu'une dérive : rien à synchroniser ([ENT-14]).
   if (palette.intensites === 1) return `${ORIGINES[vivid.origine]}${pointsAVerifier(points)}`;
@@ -777,12 +772,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         geste: 'Si ces palettes doivent être distinctes, modifiez leur couleur de référence. Vous pouvez aussi supprimer celle qui fait doublon.',
         mesures: [`Écart moyen : ${ecrireArrondi(alerte.distance, 3)} ΔEok, pour un minimum de ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
-    case 'couleur-presque-grise':
-      return {
-        ou: `${contexte.nomDe(alerte.palette)} : couleur de référence ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `Cette couleur est presque grise. Le réglage de teinte est désactivé et les deux profils reprennent son intensité. Chroma : ${ecrireArrondi(alerte.chroma, 3)}, sous le seuil de ${ecrireArrondi(alerte.seuil, 2)}.`,
-        geste: 'Choisissez une couleur de référence plus saturée pour obtenir des nuances plus colorées.',
-      };
     case 'reference-plus-terne':
       return {
         ou: `${contexte.nomDe(alerte.palette)} : couleur de référence ${referenceLue(contexte, alerte.palette)}`,
@@ -794,12 +783,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         ou: `${contexte.nomDe(alerte.palette)} : couleur de référence ${referenceLue(contexte, alerte.palette)}`,
         quoi: `Les nuances vivid produites autour de votre couleur de référence utilisent une intensité plus faible. Intensité de référence : ${ecrireArrondi(alerte.part, 2)} ; vivid : ${ecrireArrondi(alerte.partVivid, 2)}.`,
         geste: 'Augmentez l’intensité de vivid dans « Réglages de cette palette » pour vous rapprocher de la couleur de référence.',
-      };
-    case 'reference-hors-rampe':
-      return {
-        ou: `${contexte.nomDe(alerte.palette)} : couleur de référence ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `La luminosité de départ (${ecrireArrondi(alerte.clarte, 3)}) est en dehors de la plage des nuances (${ecrireArrondi(alerte.boutSombre, 3)} à ${ecrireArrondi(alerte.boutClair, 3)}). Vous pouvez régler la teinte d’un seul côté.`,
-        geste: 'Utilisez le réglage encore disponible. Pour régler les deux côtés, choisissez une couleur de référence dont la luminosité se situe dans cette plage.',
       };
     case 'fond-hors-courbe': {
       const sens = alerte.mode === 'light' ? 'plus sombre' : 'plus clair';
@@ -862,7 +845,6 @@ const NOMS_DES_SEUILS: Record<string, string> = {
   nonTexte: 'éléments graphiques',
   profilsConfondus: 'écart minimal entre soft et vivid',
   palettesProches: 'écart minimal entre deux palettes',
-  chromaGrise: 'détection du gris',
 };
 
 /**
@@ -1031,7 +1013,6 @@ export const SEUILS_DE_L_IMPORT: Record<keyof Recette['seuils'], string> = {
   nonTexte: 'minimum des éléments visibles',
   profilsConfondus: 'écart minimal entre Soft et Vivid',
   palettesProches: 'écart minimal entre deux palettes',
-  chromaGrise: 'seuil de détection du gris',
 };
 
 const NOMS_DES_CHAMPS: Record<ChampDePalette, string> = {

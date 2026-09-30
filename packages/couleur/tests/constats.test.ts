@@ -17,6 +17,6 @@ test('les constats se rangent : bloquants, promesses, alertes, notices', () => {
 });
 
 test('une alerte reste une alerte, sauf la référence plus vive que vivid', () => {
-  assert.equal(severiteDeLAlerte({ code: 'couleur-presque-grise', palette: 'p-0000000a', chroma: 0.01, seuil: 0.03 }), 'alerte');
+  assert.equal(severiteDeLAlerte({ code: 'reference-plus-terne', palette: 'p-0000000a', part: 0.2, partSoft: 0.45 }), 'alerte');
   assert.equal(severiteDeLAlerte({ code: 'reference-plus-vive', palette: 'p-0000000a', part: 1, partVivid: 0.95 }), 'notice');
 });

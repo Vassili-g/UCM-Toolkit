@@ -122,10 +122,7 @@ export function ciblesDeLAlerte(alerte: Alerte, palette: Palette | null): CibleD
     case 'reference-plus-vive':
       return ['intensites-palette'];
     case 'palettes-proches':
-    case 'couleur-presque-grise':
       return ['reference'];
-    case 'reference-hors-rampe':
-      return ['derive', 'reference'];
     case 'fond-hors-courbe':
       return ['fonds'];
   }

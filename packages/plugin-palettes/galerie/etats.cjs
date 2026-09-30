@@ -20,10 +20,11 @@ const chargerLeMoteur = () => compiler(require.resolve('ucm-couleur'), 'galerie-
 
 const {
   FORMAT_RECETTE,
-  ajusterPartsGrises,
+  PREREGLAGE_CONSTANTE,
   boutsDe,
   classerRecette,
   ecrireHexa,
+  estGrisPur,
   fnv1a,
   jsonCanonique,
   lireHexa,
@@ -53,15 +54,16 @@ function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande =
   };
 }
 
-/** Une palette au préréglage Tailwind, profils liés, parts grises posées s'il le faut. */
+/** Une palette au préréglage Tailwind, profils liés, comme l'onglet Création la crée : un gris pur n'a pas de dérive. */
 function palette(id, nom, reference, recette = recetteParDefaut()) {
-  const derive = prereglageTailwind(rgb8VersOklch(lireHexa(reference)), boutsDe(recette));
-  return ajusterPartsGrises(recette, {
+  const couleur = lireHexa(reference);
+  const derive = estGrisPur(couleur) ? PREREGLAGE_CONSTANTE : prereglageTailwind(rgb8VersOklch(couleur), boutsDe(recette));
+  return {
     id,
     nom,
     reference,
     derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } },
-  });
+  };
 }
 
 /** Le texte rangé d'une recette : la recette par défaut, modifiée, avec ces palettes. */
@@ -72,7 +74,7 @@ function rangee(palettes, modifier = (recette) => recette) {
 const BLEU = palette('p-3fa2c91e', 'Bleu', '#1E6FD9');
 const JAUNE = palette('p-08b7d4a0', 'Jaune', '#FACC15');
 
-/** Trois palettes que la configuration ne touche pas toutes : parts du designer, parts grises. */
+/** Trois palettes que la configuration ne touche pas toutes : parts du designer, profils ternes. */
 const TROIS_PALETTES = [
   BLEU,
   { ...JAUNE, parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } },
@@ -234,19 +236,43 @@ const ETATS = [
   },
   {
     id: 'alertes-seules',
-    titre: 'Palette avec alertes seules',
-    quand: 'Une référence jaune, plus vive que vivid : Vivid la porte au 300 en Light.',
-    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et la notice en couleur secondaire.',
+    titre: 'Référence plus vive que la saturation commune',
+    quand: 'Une référence jaune, plus vive que la saturation commune de Vivid : Vivid la porte au 300 en Light et prend sa saturation, 98 %.',
+    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid.',
     existe: true,
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU]))],
   },
   {
-    id: 'couleur-presque-grise',
-    titre: 'Couleur presque grise',
-    quand: 'La référence #6B7280 est sous le seuil de chroma : la palette reçoit des parts grises.',
-    regarder: 'L’alerte « couleur presque grise », les deux rampes égales, et une dérive nulle.',
+    id: 'palette-desaturee',
+    titre: 'Palette désaturée',
+    quand: 'La référence #897288, saturation 16 % : Soft la porte et prend sa saturation, Vivid garde le rapport des saturations communes.',
+    regarder: 'Les voisines de la référence dans Soft, aussi ternes qu’elle ; Vivid plus vif, sans couleur franche ; aucun point à vérifier ; la dérive de teinte réglable.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-5c1d0e77', 'Ardoise', '#6B7280')]))],
+    atteinte: [etatDuFichier(rangee([palette('p-89728800', 'Mauve', '#897288')]))],
+  },
+  {
+    id: 'palette-tres-desaturee',
+    titre: 'Palette très désaturée',
+    quand: 'La référence #7C717B, saturation 8 % : sa teinte se lit encore, et la dérive Tailwind s’y applique.',
+    regarder: 'Soft et Vivid distincts, Vivid plus vif ; aucun point à vérifier, « Profils confondus » compris ; la dérive de teinte et la piste de teinte de la carte « Teinte, saturation, luminosité » réglables.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([palette('p-7c717b00', 'Taupe', '#7C717B')])), deplierLesReglages],
+  },
+  {
+    id: 'palette-grise',
+    titre: 'Palette grise',
+    quand: 'La référence #808080 est un gris pur : toutes les nuances sont grises, dans les deux profils et les deux thèmes.',
+    regarder: 'La dérive de teinte désactivée, résumée « Désactivée pour une palette grise » ; dans la carte « Teinte, saturation, luminosité », la piste de teinte désactivée, la note « Cette palette est entièrement grise. Il n’y a pas de teinte à régler. » dessous, et la ligne « Votre couleur de référence est un gris pur. Soft et Vivid sont gris. » ; aucun point à vérifier.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([palette('p-80808000', 'Gris', '#808080')])), deplierLesReglages],
+  },
+  {
+    id: 'presque-noir',
+    titre: 'Presque noir',
+    quand: 'La référence #060605 : R, G et B ne diffèrent que d’une unité, c’est un gris pur, plus sombre que toutes les nuances.',
+    regarder: 'Des rampes grises, sans teinte crème dans les clairs ; la référence à la place du 950 en Light ; aucun point à vérifier, ni « hors de la rampe » ; la dérive de teinte désactivée, sans la note de la poignée masquée.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([palette('p-06060500', 'Encre', '#060605')])), deplierLaDerive],
   },
   {
     id: 'premier-lancement-palette-creee',
@@ -285,7 +311,7 @@ const ETATS = [
   {
     id: 'configuration-de-la-recette',
     titre: 'Configuration de la recette',
-    quand: 'Le designer ouvre l’engrenage sur un fichier de trois palettes, dont une aux parts propres et une grise.',
+    quand: 'Le designer ouvre l’engrenage sur un fichier de trois palettes, dont une aux parts propres et une aux profils ternes.',
     regarder: 'En tête, Bleu en Thème Light avec « Soft ✓ · Vivid ✓ » et ses rampes ; les cartes Couleurs de fond, Intensités et Luminosité des nuances, chacune avec son compte (3, 1 et 3 palettes concernées) et « Rétablir » inactif ; le tracé des deux courbes et les deux ◆ de Bleu, puis une colonne par nuance sous son point, Light puis Dark ; puis Minimums des promesses et Détection des couleurs proches repliées, avec leur résumé.',
     existe: true,
     atteinte: [etatDuFichier(rangee(TROIS_PALETTES)), ouvrirLaConfiguration],
@@ -772,7 +798,7 @@ const ETATS = [
     id: 'reglages-profil-delie',
     titre: 'Teinte, saturation, luminosité, un profil réglé seul',
     quand: 'Bleu, deux intensités : Soft tourné de 8° ; le designer déplie la carte, ouverte sur Soft.',
-    regarder: 'Les segments « Vivid ◆ · Soft · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Soft +8° · Soft 45 % · Vivid 95 % · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
+    regarder: 'Les segments « Vivid ◆ · Soft · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Soft +8° · Soft 45 % · Vivid 89 % · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, reglages: { teinte: { soft: 8 }, porteur: 'vivid' } }])), deplierLesReglages],
   },
@@ -788,7 +814,7 @@ const ETATS = [
     id: 'reglages-reference-modifiee',
     titre: 'Teinte, saturation, luminosité, référence modifiée',
     quand: 'Bleu : Soft tourné de 8°, Vivid assombri de 0,02, ce qui a déplacé la référence ; le designer rouvre la carte sur Vivid.',
-    regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 95 % ».',
+    regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 93 % ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(1)' }],
   },

@@ -32,7 +32,8 @@ test('[VER-07] une palette compte ses promesses manquées', () => {
 });
 
 test('[VER-16] l’analyse garde toutes les alertes du moteur, même celles que l’onglet montre ailleurs', () => {
-  const jaune = nouvelle('p-0000000c', '#FACC15');
+  // Des parts du designer sous la référence : sans elles, Vivid prend la part de #FACC15 et rien ne sonne.
+  const jaune = { ...nouvelle('p-0000000c', '#FACC15'), parts: { soft: 0.45, vivid: 0.95, origine: 'designer' as const } };
   const recette = { ...avec(jaune), fonds: { light: '#EEEEEE', dark: '#121212' } };
   assert.deepEqual(codes(recette), [...alertesDePalette(recette, jaune).map((alerte) => alerte.code), 'fond-hors-courbe']);
   assert.ok(codes(recette).includes('reference-plus-vive'));
@@ -46,7 +47,7 @@ test('une palette proche d’une autre porte l’alerte, et les fonds hors de la
 
 test('[MOT-17] l’analyse porte la part de la référence, celles des profils, et l’ancrage du moteur', () => {
   const analyse = analyserPalette(avec(BLEU), BLEU);
-  assert.deepEqual(analyse.parts, { soft: 0.45, vivid: 0.95 });
+  assert.deepEqual(analyse.parts, { soft: 0.45, vivid: analyse.part }, 'Vivid porte la référence et prend sa part');
   assert.deepEqual(analyse.ancrage, ancrageDe(avec(BLEU), BLEU));
   assert.deepEqual(analyse.ancrage.crans, { light: 600, dark: 600 });
   assert.deepEqual(analyse.rampes, rampesDe(avec(BLEU), BLEU));

@@ -3,7 +3,7 @@
  * Tailwind montrent, prédite pour une couleur de référence ([MOT-18] à
  * [MOT-20]).
  */
-import type { Oklch } from './conversions';
+import { CHROMA_SANS_TEINTE, type Oklch } from './conversions';
 import { arrondir, type Bouts, type Derive } from './rampe';
 
 /** Une rampe relevée : son nom, la teinte de son cran 50 et celle de son cran 950. */
@@ -57,24 +57,21 @@ export function deriveTailwind(h: number, releve: readonly PaireDeDerive[] = REL
   return deriveAvant + (deriveApres - deriveAvant) * position;
 }
 
-/** Le seuil de chroma sous lequel une référence est presque grise, par défaut. */
-export const CHROMA_GRISE = 0.03;
-
 /**
  * Le préréglage Tailwind pour une référence (section 6.5). Une seule
  * évaluation de `deriveTailwind`, sur la teinte de la référence ([MOT-19]).
  * La dérive totale se répartit entre les deux bouts selon la place de la
  * référence dans la rampe, et chaque angle est arrondi au centième
- * ([MOT-27]). Une référence presque grise rend deux dérives nulles
- * ([MOT-18]).
+ * ([MOT-27]). Une couleur sans teinte ([MOT-04]) rend deux dérives nulles ;
+ * l'appelant qui lit des octets écarte aussi un gris pur (`estGrisPur`,
+ * [MOT-18]).
  */
 export function prereglageTailwind(
   reference: Oklch,
   bouts: Bouts,
   releve: readonly PaireDeDerive[] = RELEVE_TAILWIND,
-  chromaGrise: number = CHROMA_GRISE,
 ): Derive {
-  if (reference.C < chromaGrise) return { clair: 0, sombre: 0 };
+  if (reference.C < CHROMA_SANS_TEINTE) return { clair: 0, sombre: 0 };
   const totale = deriveTailwind(reference.H, releve);
   const place = Math.min(1, Math.max(0, (bouts.clair - reference.L) / (bouts.clair - bouts.sombre)));
   return {

@@ -113,6 +113,33 @@ test('[REC-03] une version antérieure connue est migrée en mémoire', () => {
   assert.ok(classement.etat === 'migree' && classement.depuis === 0 && classement.recette.formatVersion === FORMAT_RECETTE);
 });
 
+test('[REC-03] [ENT-09] une recette 4 ou 5 perd ses parts grises et son seuil de gris ; les parts du designer restent', () => {
+  const recette = valide();
+  const [bleu, ambre] = recette.palettes;
+  const designer = { ...ambre, parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } };
+  for (const version of [4, 5]) {
+    const ancienne = {
+      ...recette,
+      formatVersion: version,
+      seuils: { ...recette.seuils, chromaGrise: 0.03 },
+      palettes: [{ ...bleu, parts: { soft: 0.094, vivid: 0.094, origine: 'grise' } }, designer],
+    };
+    const classement = classerRecette(JSON.stringify(ancienne));
+    assert.ok(classement.etat === 'migree' && classement.depuis === version, `${version} : ${JSON.stringify(classement).slice(0, 200)}`);
+    assert.deepEqual(classement.recette, { ...recette, palettes: [bleu, designer] });
+  }
+  // La version 6 n'accepte plus l'origine `grise`, ni le seuil.
+  const refus = validerRecette({ ...recette, palettes: [{ ...bleu, parts: { soft: 0.1, vivid: 0.1, origine: 'grise' } }] });
+  assert.ok('refus' in refus);
+  assert.ok('refus' in validerRecette({ ...recette, seuils: { ...recette.seuils, chromaGrise: 0.03 } }));
+});
+
+test('[REC-03] une recette 6 exportée puis relue est égale', () => {
+  const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
+  assert.equal(recette.formatVersion, 6);
+  assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
+});
+
 test('[REC-03] une version antérieure sans migration est illisible', () => {
   assert.equal(classerRecette(JSON.stringify({ ...valide(), formatVersion: 0 })).etat, 'illisible');
 });

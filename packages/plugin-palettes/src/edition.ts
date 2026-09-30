@@ -9,14 +9,15 @@ import {
   PROFILS,
   aUnReglageDuPorteur,
   aUneIntensite,
-  ajusterPartsGrises,
   arrondir,
   boutsDe,
   cleDuPorteur,
   departDe,
   ecrireHexa,
+  estGrisPur,
   lireHexa,
   partsDesProfils,
+  PREREGLAGE_CONSTANTE,
   prereglageTailwind,
   profilAutomatique,
   profilPorteur,
@@ -36,12 +37,21 @@ import {
 export const MOTIF_HEXA = /^#?[0-9a-f]{6}$/i;
 
 /**
+ * Le préréglage Tailwind d'une couleur, sur le relevé de la recette (section
+ * 6.5). Un gris pur n'a pas de teinte à suivre : ses deux dérives sont nulles
+ * ([MOT-18]).
+ */
+function prereglageDeLaCouleur(recette: Recette, couleur: Rgb8): Derive {
+  return estGrisPur(couleur) ? PREREGLAGE_CONSTANTE : prereglageTailwind(rgb8VersOklch(couleur), boutsDe(recette), recette.derives);
+}
+
+/**
  * La palette avec la référence `couleur`, sans `originale` : une dérive
  * d'origine `tailwind` suit le préréglage recalculé sur elle ([ENT-01]), une
  * dérive `libre` ou `constante` reste telle quelle.
  */
 function poserReference(recette: Recette, palette: Palette, couleur: Rgb8): Palette {
-  const prereglage = prereglageTailwind(rgb8VersOklch(couleur), boutsDe(recette), recette.derives, recette.seuils.chromaGrise);
+  const prereglage = prereglageDeLaCouleur(recette, couleur);
   const suivre = (derive: DeriveRangee): DeriveRangee =>
     derive.origine === 'tailwind' ? { ...prereglage, origine: 'tailwind' } : derive;
   const { originale: _originale, ...sansOriginale } = palette;
@@ -55,15 +65,14 @@ function poserReference(recette: Recette, palette: Palette, couleur: Rgb8): Pale
 /**
  * La palette avec une nouvelle référence ([ENT-01]) : le designer repart
  * d'une couleur neuve. Elle retire `originale` et tous les réglages de la
- * carte (Z10.5), et les parts `grise` se posent ou se retirent selon elle
- * ([ENT-09]). Rend `null` pour un hexa qui ne se lit pas.
+ * carte (Z10.5). Rend `null` pour un hexa qui ne se lit pas.
  */
 export function changerReference(recette: Recette, palette: Palette, saisie: string): Palette | null {
   if (!MOTIF_HEXA.test(saisie.trim())) return null;
   const couleur = lireHexa(saisie.trim().startsWith('#') ? saisie.trim() : `#${saisie.trim()}`);
   if (!couleur) return null;
   const { reglages: _reglages, ...sansReglages } = poserReference(recette, palette, couleur);
-  return ajusterPartsGrises(recette, sansReglages);
+  return sansReglages;
 }
 
 /** La couleur de référence d'avant le premier réglage : `originale`, ou la référence d'une palette jamais réglée. */
@@ -94,7 +103,7 @@ function sansZero(valeurs: ParProfil): ParProfil | null {
  * Pose des valeurs réglées sur une palette (Z10.5, « Les gestes ») : zéros
  * retirés, porteur figé à deux intensités sans palette de base, `originale`
  * et `depart` posés au premier réglage du porteur, la référence tirée du
- * départ par `referenceReglee`, puis les parts grises recalculées.
+ * départ par `referenceReglee`.
  * `porteur` remplace le porteur d'avant, quand le geste en change ; `base`
  * est celle de la palette rendue.
  */
@@ -138,13 +147,13 @@ function appliquerLesReglages(
   }
 
   const { reglages: _reglages, originale: _originale, base: _base, ...reste } = avant;
-  return ajusterPartsGrises(recette, {
+  return {
     ...reste,
     reference,
     ...(base ? { base } : {}),
     ...(originale ? { originale: originale.toUpperCase() } : {}),
     ...(aDesReglages ? { reglages } : {}),
-  });
+  };
 }
 
 /** Ce qu'un geste de la carte vise : un profil, ou les deux ensemble. Une palette à une intensité se règle sous `vivid`. */
@@ -267,9 +276,8 @@ export function nouvellePalette(recette: Recette, id: string, saisie: string, in
 /**
  * La palette à une ou deux intensités ([ENT-14]). Passer à une retire la
  * palette de base et les parts propres, et garde la dérive de l'intensité qui
- * portait la référence, liée ; passer à deux rend Soft et Vivid, parts grises
- * posées s'il le faut. Une palette libre n'a pas ce choix : elle reste telle
- * quelle.
+ * portait la référence, liée ; passer à deux rend Soft et Vivid. Une palette
+ * libre n'a pas ce choix : elle reste telle quelle.
  */
 export function choisirLesIntensites(recette: Recette, palette: Palette, nombre: 1 | 2): Palette {
   if (palette.crans !== undefined || aUneIntensite(palette) === (nombre === 1)) return palette;
@@ -348,7 +356,7 @@ export function supprimer(recette: Recette, id: string): Recette {
  * déplacent pas.
  */
 export function prereglageDe(recette: Recette, palette: Palette): Derive {
-  return prereglageTailwind(rgb8VersOklch(departDe(recette, palette)), boutsDe(recette), recette.derives, recette.seuils.chromaGrise);
+  return prereglageDeLaCouleur(recette, departDe(recette, palette));
 }
 
 /**
@@ -419,18 +427,17 @@ export function poserPart(recette: Recette, palette: Palette, profil: Profil, pa
   return { ...palette, parts: { ...employees, [profil]: arrondir(part, 3), origine: 'designer' } };
 }
 
-/** La palette sans parts propres : elle reprend celles de la recette, ou des parts grises si sa référence l'est. */
-export function reprendreLesParts(recette: Recette, palette: Palette): Palette {
+/** La palette sans parts propres : elle reprend celles que `partsDesProfils` lui donne. */
+export function reprendreLesParts(_recette: Recette, palette: Palette): Palette {
   const { parts: _retirees, ...sansParts } = palette;
-  return ajusterPartsGrises(recette, sansParts);
+  return sansParts;
 }
 
 /**
  * La palette avec sa palette de base ([ENT-11]) : `auto` retire le choix, Soft
  * ou Vivid force le profil porteur. Forcer un profil retire les intensités du
- * designer, pour que le profil forcé prenne celle de la référence ; les parts
- * grises restent. Un glisser d'intensité ensuite rend la main au designer
- * sans changer de profil porteur.
+ * designer, pour que le profil forcé prenne celle de la référence. Un glisser
+ * d'intensité ensuite rend la main au designer sans changer de profil porteur.
  */
 export function choisirLaBase(recette: Recette, palette: Palette, choix: 'auto' | Profil): Palette {
   if (aUneIntensite(palette)) return palette;
@@ -464,7 +471,7 @@ export function passerEnLibre(recette: Recette, palette: Palette): Palette {
     return passerEnLibre(recette, { ...sansBase, reglages: { ...palette.reglages, porteur } });
   }
   const { base: _retiree, intensites: _intensites, ...sansBase } = palette;
-  return ajusterPartsGrises(recette, { ...sansBase, crans: cransLibresParDefaut(recette) });
+  return { ...sansBase, crans: cransLibresParDefaut(recette) };
 }
 
 /** Les numéros qu'une palette libre reçoit en sortant du modèle : ceux de la liste commune que les bornes admettent. */

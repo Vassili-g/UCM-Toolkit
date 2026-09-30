@@ -9,7 +9,8 @@ import { rapportDeLaRecette, type CranDuRapport } from '../src/rapport';
 
 const VIDE = recetteParDefaut();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
-const JAUNE = nouvellePalette(VIDE, 'p-0000000b', '#FACC15', 2)!;
+// Des parts du designer sous la référence : sans elles, Vivid prend la part de #FACC15 et rien ne sonne.
+const JAUNE = { ...nouvellePalette(VIDE, 'p-0000000b', '#FACC15', 2)!, parts: { soft: 0.45, vivid: 0.95, origine: 'designer' as const } };
 const RECETTE: Recette = [BLEU, JAUNE].reduce(ajouter, VIDE);
 
 test('[VER-01] chaque palette donne, par mode et par profil, chaque cran avec son hexa et ses contrastes', () => {

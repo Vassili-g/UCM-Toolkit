@@ -38,11 +38,12 @@ test('entre pink et rose, l’interpolation passe par 0°', () => {
   assert.ok(Math.abs(auMilieu - (20.709 + -0.328) / 2) < 1e-3, `${auMilieu}`);
 });
 
-test('[MOT-18] une référence presque grise rend deux dérives nulles', () => {
-  const gris = rgb8VersOklch(lireHexa('#6B7280')!);
-  assert.ok(gris.C < 0.03);
-  assert.deepEqual(prereglageTailwind(gris, BOUTS), { clair: 0, sombre: 0 });
-  assert.notDeepEqual(prereglageTailwind(gris, BOUTS, RELEVE_TAILWIND, 0.02), { clair: 0, sombre: 0 });
+test('[MOT-18] une couleur sans teinte rend deux dérives nulles, une référence terne garde la sienne', () => {
+  assert.deepEqual(prereglageTailwind(rgb8VersOklch(lireHexa('#808080')!), BOUTS), { clair: 0, sombre: 0 });
+  // #7C717B et #6B7280, chroma 0,020 et 0,026 : leur teinte se lit à 6° près, leur dérive se calcule.
+  for (const reference of ['#7C717B', '#6B7280']) {
+    assert.notDeepEqual(prereglageTailwind(rgb8VersOklch(lireHexa(reference)!), BOUTS), { clair: 0, sombre: 0 }, reference);
+  }
 });
 
 test('[MOT-19] la dérive totale se répartit selon la place de la référence dans la rampe', () => {

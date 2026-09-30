@@ -17,14 +17,16 @@ import {
   MODES,
   PAIRES,
   PROFILS,
+  PREREGLAGE_CONSTANTE,
   TABLE_DES_EMPLOIS,
-  ajusterPartsGrises,
   ancrageDe,
   atteintLeSeuil,
   boutsDe,
   contraste,
   distanceOk,
+  estGrisPur,
   fabriquerPalette,
+  fondsSombresDe,
   lireHexa,
   partDeChroma,
   partsDe,
@@ -42,12 +44,13 @@ const GRIS = ['#000000', '#FFFFFF', '#808080', '#6B7280'];
 const recetteDeBase = recetteParDefaut();
 
 function paletteNeuve(hexa) {
-  const derive = prereglageTailwind(rgb8VersOklch(lireHexa(hexa)), boutsDe(recetteDeBase.courbes), recetteDeBase.derives, recetteDeBase.seuils.chromaGrise);
-  const palette = ajusterPartsGrises(recetteDeBase, {
+  const couleur = lireHexa(hexa);
+  const derive = estGrisPur(couleur) ? PREREGLAGE_CONSTANTE : prereglageTailwind(rgb8VersOklch(couleur), boutsDe(recetteDeBase), recetteDeBase.derives);
+  const palette = {
     id: 'p-00000001',
     reference: hexa,
     derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } },
-  });
+  };
   return { recette: { ...recetteDeBase, palettes: [palette] }, palette };
 }
 
@@ -81,9 +84,11 @@ for (const hexa of [...MAINTENEUR, ...TAILWIND_500, ...TAILWIND_600, ...GRIS]) {
   const communes = fabriquerPalette({
     reference: lireHexa(hexa),
     courbes: recette.courbes,
+    bouts: boutsDe(recette),
     parts: partsDe(recette, palette),
     derives: { soft: palette.derive.soft, vivid: palette.derive.vivid },
     gamut: recette.gamut,
+    sombre: fondsSombresDe(recette),
   });
   const modes = MODES.map((mode) => {
     const rang = ancrage.rangs[mode];

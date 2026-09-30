@@ -191,7 +191,7 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/emplois.ts           la table fixe des emplois et les crans que la recette doit porter
   src/recette.ts           la forme de la recette, sa validation, son classement à la lecture
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
-  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts grises, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
+  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
   src/nuances.ts           les trois préréglages de nuances, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
@@ -955,16 +955,24 @@ La spécification en lien porte le raisonnement.
   `packages/plugin-palettes/tests/reglages.test.ts` tient l'égalité. Borne :
   l'ancrage ne promet pas qu'une promesse reste tenue.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
-- À deux intensités, une palette de base Soft ou Vivid, que l'interface
-  appelle « Référence exacte dans », désigne le profil porteur, et ce profil
-  prend la part de chroma de la référence ; l'autre garde la part commune,
-  bornée pour que soft ne dépasse pas vivid. Ces parts se calculent à la
-  lecture et ne se rangent jamais : `partsDe` et `profilPorteur`
+- À deux intensités, le profil porteur prend la part de chroma de la
+  référence, qu'une palette de base Soft ou Vivid le force (l'interface
+  l'appelle « Référence exacte dans »), que `reglages.porteur` le fige ou que
+  le classement automatique le choisisse. Sous la part commune de soft,
+  l'autre profil garde le rapport des parts communes ; au-dessus, il garde sa
+  part commune, bornée pour que soft ne dépasse pas vivid. La part de la
+  référence se lit à sa clarté bornée à l'étendue de la liste de la palette,
+  et vaut 0 pour un gris pur, dont R, G et B ne diffèrent pas de plus d'une
+  unité. Ces parts se calculent à la lecture et ne se rangent jamais :
+  `partsDe`, `partDeLaReference` et `profilPorteur`
   (`packages/couleur/src/palette.ts`) en sont l'unique autorité, et des parts
-  propres passent avant elles. Sans palette de base, le premier réglage de la
-  carte « Teinte, saturation, luminosité » fige le porteur dans
-  `reglages.porteur`, qui passe avant le classement automatique. `packages/couleur/tests/base.test.ts` l'éprouve
-  sur des teintes, des clartés et des parts communes variées.
+  propres du designer passent avant elles. Sans palette de base, le premier
+  réglage de la carte « Teinte, saturation, luminosité » fige le porteur dans
+  `reglages.porteur`, qui passe avant le classement automatique.
+  `packages/couleur/tests/base.test.ts` l'éprouve sur des teintes, des
+  clartés et des parts communes variées, et
+  `packages/couleur/tests/desaturees.test.ts` sur les gris et les références
+  ternes.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
 - Une palette porte une intensité ou deux. À une intensité, elle n'a qu'une
   rampe par mode, sans nom de profil, égale à celle du profil porteur forcé :

@@ -4,13 +4,13 @@
  * rien ; elle porte la mesure, le seuil et ce qu'ils visent, et l'interface
  * les met en mots.
  */
-import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
-import { distanceOk, partDeChroma } from './contraste';
+import { lireHexa, rgb8VersOklch } from './conversions';
+import { distanceOk } from './contraste';
 import { EMPLOIS, EMPLOIS_FACULTATIFS, TABLE_DES_EMPLOIS, rangDuCranLeger } from './emplois';
-import { aUneIntensite, departDe, estPresqueGrise, fondsSombresDe, intensitesDe, partsDe, rampesDe, referenceDe } from './palette';
-import { estLibre, etendueDe, grilleDe } from './nuances';
+import { aUneIntensite, fondsSombresDe, intensitesDe, partDeLaReference, partsDe, rampesDe } from './palette';
+import { estLibre, grilleDe } from './nuances';
 import { decalagesDeLEmploi } from './promesses';
-import { arrondir, facteurSombre, MODES, rampeDe, type Intensite, type Mode } from './rampe';
+import { facteurSombre, MODES, rampeDe, type Intensite, type Mode } from './rampe';
 import type { Palette, Recette } from './recette';
 
 /** Un cran où `soft` et `vivid` se confondent. */
@@ -23,10 +23,8 @@ export interface Confusion {
 export type Alerte =
   | { readonly code: 'profils-confondus'; readonly palette: string; readonly crans: readonly Confusion[]; readonly seuil: number }
   | { readonly code: 'palettes-proches'; readonly palettes: readonly [string, string]; readonly distance: number; readonly seuil: number }
-  | { readonly code: 'couleur-presque-grise'; readonly palette: string; readonly chroma: number; readonly seuil: number }
   | { readonly code: 'reference-plus-terne'; readonly palette: string; readonly part: number; readonly partSoft: number }
   | { readonly code: 'reference-plus-vive'; readonly palette: string; readonly part: number; readonly partVivid: number }
-  | { readonly code: 'reference-hors-rampe'; readonly palette: string; readonly clarte: number; readonly boutClair: number; readonly boutSombre: number }
   | { readonly code: 'fond-hors-courbe'; readonly mode: Mode; readonly clarte: number; readonly cran: number };
 
 /** La tolérance sur la clarté d'un fond : `#121212` vaut 0,1822 contre une courbe à 0,18 ([ENT-06]). */
@@ -55,13 +53,23 @@ export function rangsDesEmplois(recette: Recette): number[] {
 }
 
 /**
+ * Vrai quand les deux profils d'une palette sont ternes par construction
+ * ([ENT-09]) : sans parts du designer, une référence sous la part commune de
+ * soft donne deux parts dans le rapport des parts communes, proches l'une de
+ * l'autre. Un gris pur en fait partie.
+ */
+export function aDesProfilsTernes(recette: Recette, palette: Palette): boolean {
+  return !aUneIntensite(palette) && !palette.parts && partDeLaReference(recette, palette) < recette.profils.soft.part;
+}
+
+/**
  * Les nuances d'une palette où `soft` et `vivid` se confondent, sur toute sa
- * liste : le repère ≈ de l'aperçu et de la planche ([PLA-15]). Des parts
- * `grise` rendent les deux profils égaux par construction : rien ne se
- * signale ([ENT-09]). Une palette à une intensité n'a qu'une rampe ([ENT-14]).
+ * liste : le repère ≈ de l'aperçu et de la planche ([PLA-15]). Des profils
+ * ternes par construction ne se signalent pas (`aDesProfilsTernes`). Une
+ * palette à une intensité n'a qu'une rampe ([ENT-14]).
  */
 export function confusionsDe(recette: Recette, palette: Palette): Confusion[] {
-  if (palette.parts?.origine === 'grise' || aUneIntensite(palette)) return [];
+  if (aUneIntensite(palette) || aDesProfilsTernes(recette, palette)) return [];
   const rampes = rampesDe(recette, palette);
   const [soft, vivid] = [rampeDe(rampes, 'soft'), rampeDe(rampes, 'vivid')];
   const { crans } = grilleDe(recette, palette);
@@ -88,30 +96,20 @@ function profilsConfondus(recette: Recette, palette: Palette): Alerte | null {
     : null;
 }
 
-/** Les alertes et la notice qui portent sur une palette seule, dans l'ordre de la table 11.3. */
+/**
+ * Les alertes qui portent sur une palette seule, dans l'ordre de la table
+ * 11.3. Sans parts du designer, le profil porteur prend la part de la
+ * référence : elle n'est ni plus terne ni plus vive ([ENT-11], [ENT-14]).
+ */
 export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
   const alertes: Alerte[] = [];
-  const reference: Rgb8 = referenceDe(palette);
-  const lue = rgb8VersOklch(reference);
   const parts = partsDe(recette, palette);
-  // La part se compare au millième, la précision à laquelle une part se range ([MOT-27]).
-  const part = arrondir(partDeChroma(reference, recette.gamut), 3);
-  // « Hors de la rampe » se juge sur l'étendue de la liste de la palette, et non sur les bouts de la dérive.
-  const bouts = etendueDe(grilleDe(recette, palette));
+  const part = partDeLaReference(recette, palette);
 
   const confondus = profilsConfondus(recette, palette);
   if (confondus) alertes.push(confondus);
-  if (estPresqueGrise(recette, palette)) {
-    alertes.push({ code: 'couleur-presque-grise', palette: palette.id, chroma: lue.C, seuil: recette.seuils.chromaGrise });
-  }
-  // Une palette à une intensité prend la part de sa référence : elle n'est ni plus terne ni plus vive ([ENT-14]).
   if (parts.soft !== undefined && part < parts.soft) alertes.push({ code: 'reference-plus-terne', palette: palette.id, part, partSoft: parts.soft });
   if (parts.vivid !== undefined && part > parts.vivid) alertes.push({ code: 'reference-plus-vive', palette: palette.id, part, partVivid: parts.vivid });
-  // La référence se place à la clarté de son départ : un décalage de luminosité translate la rampe avec elle (Z10.5).
-  const place = rgb8VersOklch(departDe(recette, palette)).L;
-  if (place > bouts.clair || place < bouts.sombre) {
-    alertes.push({ code: 'reference-hors-rampe', palette: palette.id, clarte: place, boutClair: bouts.clair, boutSombre: bouts.sombre });
-  }
   return alertes;
 }
 

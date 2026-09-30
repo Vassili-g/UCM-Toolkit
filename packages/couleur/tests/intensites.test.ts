@@ -101,8 +101,9 @@ test('[ENT-14] [VER-11] une palette à une intensité n’a ni profils confondus
     const codes = alertesDePalette(recette, seule).map((alerte) => alerte.code);
     for (const code of ['profils-confondus', 'reference-plus-terne', 'reference-plus-vive']) assert.ok(!codes.includes(code as never), `${reference} : ${codes}`);
   }
-  const deux = paletteTailwind('p-000000c4', '#A0B599');
-  assert.ok(alertesDePalette(recetteAvec(deux), deux).some((alerte) => alerte.code === 'reference-plus-vive' || alerte.code === 'reference-plus-terne'), 'la même référence à deux intensités sonne');
+  // À deux intensités, des parts du designer au-dessus de la référence font sonner « plus terne ».
+  const deux = paletteTailwind('p-000000c4', '#A0B599', { parts: { soft: 0.45, vivid: 0.95, origine: 'designer' } });
+  assert.ok(alertesDePalette(recetteAvec(deux), deux).some((alerte) => alerte.code === 'reference-plus-terne'), 'la même référence à deux intensités sonne');
 });
 
 test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette de base, des parts, une liste libre et une dérive déliée', () => {
@@ -158,5 +159,5 @@ test('[VER-17] « Palettes proches » : Vivid contre Vivid à deux intensités, 
   assert.equal(distanceDePalettes(recette, sauge, autre), distanceSur(recette, sauge, 'unique', autre, 'unique'));
   const bleu = paletteTailwind('p-000000cb', '#1E6FD9');
   assert.equal(distanceDePalettes(recette, bleu, deux), distanceSur(recette, bleu, 'vivid', deux, 'vivid'), 'deux intensités : Vivid contre Vivid, comme au format 3');
-  assert.equal(recetteParDefaut().formatVersion, 5);
+  assert.equal(recetteParDefaut().formatVersion, 6);
 });

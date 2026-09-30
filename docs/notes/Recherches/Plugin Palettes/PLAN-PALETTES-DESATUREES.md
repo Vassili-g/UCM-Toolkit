@@ -369,12 +369,18 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 
 ## Lot G1 : maquette et textes à valider
 
-- [ ] **G1.1** Script `mesurer-palettes-desaturees.mjs` dans ce dossier, qui
+- [x] **G1.1** Script `mesurer-palettes-desaturees.mjs` dans ce dossier, qui
   refait les mesures C2 à C5 par le moteur, sur `#897288`, `#7C717B`,
   `#6B7280`, `#78716C`, `#A0B599`, `#7F7F80`, `#060605`, `#FAFAF5`, et sur
   `#1E6FD9`, `#16A34A`, `#DC2626` pour montrer qu’une référence colorée ne
   change pas.
-- [ ] **G1.2** Maquette [MAQUETTES-PALETTES-DESATUREES.html](./MAQUETTES-PALETTES-DESATUREES.html), selon les
+  Fait : [mesurer-palettes-desaturees.mjs](./mesurer-palettes-desaturees.mjs)
+  crée chaque palette par `nouvellePalette`, comme l’onglet Création, et
+  écrit en fin de sortie les quatre rampes de chaque référence. Comparer sa
+  sortie avant et après G2 montre les couleurs qui bougent. Sur le moteur de
+  Z10.5, il retrouve les chiffres de C1 à C5, sauf l’écart médian à 0,008 :
+  11° au lieu de 12°.
+- [x] **G1.2** Maquette [MAQUETTES-PALETTES-DESATUREES.html](./MAQUETTES-PALETTES-DESATUREES.html), selon les
   règles du lot Z3 : une question par bloc, écrans lettrés au-dessus des
   choix, couleurs calculées par le moteur, écrans à 770 et à 500 px. Blocs :
   Q1 (les deux rampes de chaque référence sous chaque règle), Q3, Q4, Q5,
@@ -382,9 +388,10 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   Premier passage fait, par
   [generer-maquettes-palettes-desaturees.mjs](./generer-maquettes-palettes-desaturees.mjs) :
   Q1, Q1 ter (les gestes de la carte Z10, gris neutre saturé compris), Q1 bis
-  (le glisser), Q2 à Q5, rampes du moteur actuel. Les écrans de l’interface
-  viennent au second passage, avec les textes de G1.3.
-- [ ] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
+  (le glisser), Q2 à Q5, rampes du moteur actuel. Les textes de G1.3 ont été
+  validés sans écran : T3 et T5 ne laissent aucun texte, et T1, T2, T4
+  remplacent des lignes en place.
+- [x] **G1.3** Textes, chacun en plusieurs rédactions rendues en entier, à
   valider mot à mot avant le code. Les saturations s’écrivent en pour cent,
   comme dans la carte « Teinte, saturation, luminosité ». Propositions
   écrites après les réponses Q1 à Q5 :
@@ -420,7 +427,12 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   sans texte nouveau. L’anglais suit par la voie de la traduction. Les
   textes validés entrent à
   l’[inventaire](./INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
-- [ ] **G1.4** Donner la maquette au mainteneur et s’arrêter. Ses réponses
+
+  Validés : T1 c, T2 a, T4 a. T3 : aucune ligne quand la
+  palette n’a ni parts du designer ni gris pur, base forcée comprise. Une
+  réécriture plus simple a été proposée, puis écartée : « on n’a pas besoin
+  de phrase pour ce cas ». T5 : aucun texte, `aideParts` se retire.
+- [x] **G1.4** Donner la maquette au mainteneur et s’arrêter. Ses réponses
   se conservent en fin de plan, et les décisions R1 à R7 se corrigent avant
   G2. Premier passage répondu : Q1 (C), Q3 (a), Q4 (aucun message). Second
   passage répondu : Q2 (aligner), Q5 (garder la teinte, proposer un seuil).
@@ -429,56 +441,82 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
 
 ## Lot G2 : moteur
 
-- [ ] **G2.1** `partDeLaReference` mesure à la clarté bornée (R3) et rend 0
+- [x] **G2.1** `partDeLaReference` mesure à la clarté bornée (R3) et rend 0
   pour un gris pur (R2). `partDeChroma` reste la mesure brute d’une couleur :
   vérifier chacun de ses appelants et choisir la bonne des deux.
-- [ ] **G2.2** `partsDesProfils` applique R1 à tout porteur : Auto, base
+  Fait : l’analyse, les alertes et le classement lisent `partDeLaReference` ;
+  `partDeChroma` ne sert plus qu’aux mesures d’une couleur quelconque.
+- [x] **G2.2** `partsDesProfils` applique R1 à tout porteur : Auto, base
   forcée, porteur figé. `estPresqueGrise` devient `estGrisPur`, la condition
   de R2 ; `profilAutomatique` n’en a plus besoin, puisqu’une part nulle
   donne déjà Soft.
-- [ ] **G2.3** `prereglageTailwind` ne rend une dérive nulle que pour une
+- [x] **G2.3** `prereglageTailwind` ne rend une dérive nulle que pour une
   part nulle (R4, `[MOT-18]`). Une fonction du moteur dit si une palette est
   un gris neutre, lue par l’interface (R4).
-- [ ] **G2.4** Alertes (R6, Q3, Q4) : retirer `couleur-presque-grise` et
+  Fait : `prereglageTailwind` ne lit que des OKLCH et rend 0 pour une couleur
+  sans teinte ; `edition.ts` écarte le gris pur avant de l’appeler.
+  `estPaletteGrise` dit la palette grise.
+- [x] **G2.4** Alertes (R6, Q3, Q4) : retirer `couleur-presque-grise` et
   `reference-hors-rampe` du type `Alerte`, sans notice de remplacement ;
   faire taire `profils-confondus` quand R1 s’applique.
-- [ ] **G2.5** `CHROMA_GRISE` et `seuils.chromaGrise` disparaissent (R7),
+  Fait : `aDesProfilsTernes` fait taire l’alerte pour une palette sans parts
+  propres dont la référence est sous la part commune de Soft.
+- [x] **G2.5** `CHROMA_GRISE` et `seuils.chromaGrise` disparaissent (R7),
   `recetteParDefaut` suit. `[MOT-13]` tenu : mesurer une analyse avant et
   après.
+  Fait : `rampesDe`, `alertesDePalette`, `verifierPromesses` et
+  `estPaletteGrise` d’une palette de onze nuances, médiane de cent calculs à
+  dérive neuve : 0,40 à 0,58 ms au commit `6ed8f07`, 0,31 à 0,65 ms après,
+  pour `#1E6FD9`, `#897288`, `#7C717B`, `#808080` et `#060605`.
 
 ## Lot G3 : recette
 
-- [ ] **G3.1** Version de la recette. Si aucune recette 5 n’a été écrite dans
+- [x] **G3.1** Version de la recette. Si aucune recette 5 n’a été écrite dans
   un fichier Figma quand G3 commence, les règles entrent dans la version 5 de
   Z10.5 : la validation refuse l’origine `grise`, et la lecture d’une
   recette 4 retire ces parts et `seuils.chromaGrise` (R5, R7). Sinon, une version 6 fait la même migration depuis la 5.
-- [ ] **G3.2** Vérifier que la planche marque périmés les cadres des
+  Fait : version 6. La version 5 est commitée depuis `fbb2662`, et la recette
+  de Z10 a pu la ranger dans un fichier. La migration de 5 à 6 retire les
+  parts `grise` et le seuil ; une recette 4 y passe par la 5.
+- [x] **G3.2** Vérifier que la planche marque périmés les cadres des
   palettes dont les couleurs changent, et que les tokens exportés suivent.
+  Fait : l’empreinte d’un cadre porte ses hexas. Un test de
+  `modeleDeCadre` rejoue les parts d’avant en parts du designer, pour
+  `#1E6FD9` et `#6B7280` : pastilles et empreinte diffèrent, le cadre est à
+  actualiser. UCM Palettes n’exporte pas de tokens ; le rapport lit
+  `rampesDe`, que ses tests suivent.
 
 ## Lot G4 : interface
 
-- [ ] **G4.1** `ongletPalettes.ts` et `reglagesDeLaPalette.ts` : l’éditeur
+- [x] **G4.1** `ongletPalettes.ts` et `reglagesDeLaPalette.ts` : l’éditeur
   de dérive et la piste de teinte de la carte Z10 se désactivent sur la
   fonction de G2.3, avec la note validée. Le résumé de chaque carte suit.
   « Rétablir » reste actif tant qu’une teinte est rangée : un réglage
   rangé se remet toujours à zéro (C7, une intensité).
-- [ ] **G4.2** Carte « Teinte, saturation, luminosité » : `origineDesParts` prend les lignes
+- [x] **G4.2** Carte « Teinte, saturation, luminosité » : `origineDesParts` prend les lignes
   validées, et le repère de la référence lit la part de R3.
-- [ ] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
+- [x] **G4.3** Messages : `presentation.ts` et les deux catalogues perdent
   les cas retirés.
   L’éditeur ne montre plus la note de `[DER-14]` quand il est désactivé.
-- [ ] **G4.4** Réglages communs : le réglage « Gris » et son résumé se
+  Fait : la carte désactivée ne se déplie pas, et sa note ne se voit pas ; un
+  test d’interface le tient sur `#060605`.
+- [x] **G4.4** Réglages communs : le réglage « Gris » et son résumé se
   retirent (R7).
-- [ ] **G4.5** Galerie : un état pour `#897288`, un pour `#7C717B`, un pour
+- [x] **G4.5** Galerie : un état pour `#897288`, un pour `#7C717B`, un pour
   un gris neutre, un pour `#060605`. `galerie/etats.cjs` est modifié par une
   autre session au moment où ce plan s’écrit : lire l’index avant d’y
   toucher.
+  Fait : `palette-desaturee`, `palette-tres-desaturee`, `palette-grise` et
+  `presque-noir` remplacent `couleur-presque-grise`. L’état `alertes-seules`
+  garde son identifiant, que quarante tests lisent : Jaune n’y a plus de
+  notice, puisque Vivid prend sa part, et son titre devient « Référence plus
+  vive que la saturation commune ».
 
 ## Lot G5 : tests
 
 Chaque loi se voit rouge sur mutation avant d’être crue.
 
-- [ ] **G5.1** Moteur : R1 (le porteur vaut la part de la référence, sous
+- [x] **G5.1** Moteur : R1 (le porteur vaut la part de la référence, sous
   et au-dessus de 0,45 ; Vivid au rapport sous 0,45 ; continuité à 0,45 ;
   base forcée Vivid ; porteur figé), R2 (`#060605` et `#7F7F80` donnent
   des gris purs ; `#0C0A09`, `#020617`, `#F8FAFC` et `#FAFAF5` gardent leur
@@ -487,27 +525,37 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
   (dérive Tailwind non nulle pour `#7C717B`). Les tests `[MOT-18]`, `[ENT-09]`, `[VER-08]` et
   `[MOT-17]` qui citent les parts grises se réécrivent sur les nouvelles
   règles.
-- [ ] **G5.2** Recette : une recette 4 aux parts `grise` se lit, les perd,
+  Fait : `desaturees.test.ts` pour R2, R3, le porteur figé et
+  `estPaletteGrise`. Huit mutations vues rouges : le gris pur à zéro unité,
+  la part à la clarté propre, chacune des deux branches du rapport, l’ancrage
+  inclus dans la palette grise, les deux retraits de la migration, le silence
+  des profils ternes. La dernière a demandé un cas : des parts du designer si
+  faibles que seule la référence a une teinte.
+- [x] **G5.2** Recette : une recette 4 aux parts `grise` se lit, les perd,
   et perd `seuils.chromaGrise` ; une recette 5 exportée puis relue est
   égale.
-- [ ] **G5.3** Carte Z10 : à une intensité, baisser la saturation de
+- [x] **G5.3** Carte Z10 : à une intensité, baisser la saturation de
   `#897288` tournée de +10° jusqu’à 8 % laisse la teinte réglable ; « Les
   deux » depuis une palette désaturée garde Vivid au-dessus de Soft ;
   saturer Vivid d’un gris neutre déverrouille la teinte.
-- [ ] **G5.4** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
+- [x] **G5.4** Interface : `[DER-15]` réécrit (l’éditeur reste actif pour
   `#7C717B`, se désactive pour `#808080`), aucune alerte « hors de la
   rampe » pour `#060605`, textes validés. `#000000` et `#FFFFFF` donnent
   des rampes grises et aucun point à vérifier.
+  Fait : le noir et le blanc sont tenus par le moteur (`alertes.test.ts`,
+  `desaturees.test.ts`), l’interface par les états de G4.5. Sur `#1E6FD9`,
+  Vivid à 0,894 déplace les valeurs attendues de la planche et du nuancier :
+  le 700 clair passe de `#0E5DC6` à `#185EC1`.
 
 ## Lot G6 : documents
 
-- [ ] **G6.1** Spécification : `[MOT-17]`, `[MOT-18]`, `[ENT-09]`,
+- [x] **G6.1** Spécification : `[MOT-17]`, `[MOT-18]`, `[ENT-09]`,
   `[ENT-11]`, `[DER-14]`, `[DER-15]`, `[VER-10]`, table 11.3, recette par
   défaut (section 7.2), lecture des versions (section 7.3).
-- [ ] **G6.2** [Recherche sur les intensités](./RECHERCHE-REFONTE-INTENSITES.md) :
+- [x] **G6.2** [Recherche sur les intensités](./RECHERCHE-REFONTE-INTENSITES.md) :
   la réponse sur les palettes grises, et le tableau des références où le
   gris porte des parts `grise`.
-- [ ] **G6.3** Sixième plan : une ligne dans Z10.5 renvoie à ce plan pour la
+- [x] **G6.3** Sixième plan : une ligne dans Z10.5 renvoie à ce plan pour la
   version 5.
 
 ## Lot G7 : recette
@@ -571,6 +619,17 @@ ok A
 
 Q5
 A
+```
+
+Réponses sur les textes T1 à T5 :
+
+```text
+T1 : c
+T2 : a
+T3 : faire beaucoup plus simple et avec une rédaction française, pas IA
+     puis, sur trois réécritures courtes : je crois qu'on a pas besoin de phrase pour ce cas
+T4 : a
+T5 : pas de texte non plus
 ```
 
 ## Signalement du mainteneur

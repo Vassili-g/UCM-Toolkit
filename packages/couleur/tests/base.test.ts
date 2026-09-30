@@ -1,6 +1,7 @@
 /**
- * La palette de base ([ENT-11]) : Soft ou Vivid force le profil porteur, et ce
- * profil prend l'intensité de la référence, calculée à la lecture.
+ * Le profil porteur prend l'intensité de la référence ([ENT-11]), qu'une
+ * palette de base le force, que les réglages le figent ou que le classement
+ * automatique le choisisse ; l'autre profil suit, calculé à la lecture.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -9,7 +10,6 @@ import {
   FORMAT_RECETTE,
   MODES,
   PROFILS,
-  ajusterPartsGrises,
   alertesDePalette,
   ancrageDe,
   arrondir,
@@ -29,22 +29,25 @@ import {
 } from '../src/index';
 import { paletteTailwind } from './fabrique';
 
-/** Une recette d'une seule palette de cette référence, forcée sur `base`, parts grises posées s'il le faut. */
+/** Une recette d'une seule palette de cette référence, forcée sur `base` quand elle est donnée. */
 function forcee(reference: string, base?: Profil, recette: Recette = recetteParDefaut()): { recette: Recette; palette: Palette } {
-  const palette = ajusterPartsGrises(recette, paletteTailwind('p-000000b1', reference, base ? { base } : {}));
+  const palette = paletteTailwind('p-000000b1', reference, base ? { base } : {});
   return { recette: { ...recette, palettes: [palette] }, palette };
 }
+
+/** Le rapport des parts communes par défaut, Vivid sur Soft. */
+const RAPPORT = 0.95 / 0.45;
 
 const partDe = (reference: string): number => arrondir(partDeChroma(lireHexa(reference)!, 'srgb'), 3);
 
 const codesDAlerte = (recette: Recette, palette: Palette): string[] => alertesDePalette(recette, palette).map((alerte) => alerte.code);
 
-test('[ENT-11] une référence terne forcée en Vivid : Vivid prend son intensité, Soft descend à elle', () => {
+test('[ENT-11] une référence terne forcée en Vivid : Vivid prend son intensité, Soft garde le rapport des parts communes', () => {
   const { recette, palette } = forcee('#A0B599', 'vivid');
   assert.equal(profilAutomatique(recette, palette), 'soft');
   assert.equal(profilPorteur(recette, palette), 'vivid');
   const part = partDe('#A0B599');
-  assert.deepEqual(partsDe(recette, palette), { soft: Math.min(0.45, part), vivid: part });
+  assert.deepEqual(partsDe(recette, palette), { soft: arrondir(part / RAPPORT, 3), vivid: part });
   assert.ok(!codesDAlerte(recette, palette).includes('reference-plus-terne'));
   assert.ok(!codesDAlerte(recette, palette).includes('reference-plus-vive'));
 });
@@ -64,21 +67,36 @@ test('[ENT-11] forcer le profil qu’Auto aurait choisi aligne quand même son i
   assert.deepEqual(partsDe(recette, palette), { soft: 0.45, vivid: partDe('#1E6FD9') });
 });
 
-test('[ENT-11] sans palette de base, les intensités reviennent aux réglages communs', () => {
+test('[ENT-11] sans palette de base, le porteur classé prend l’intensité de la référence, l’autre garde la part commune', () => {
   const { recette, palette } = forcee('#1E6FD9');
-  assert.deepEqual(partsDe(recette, palette), { soft: 0.45, vivid: 0.95 });
   assert.equal(profilPorteur(recette, palette), 'vivid');
+  assert.deepEqual(partsDe(recette, palette), { soft: 0.45, vivid: partDe('#1E6FD9') });
+  // Au-dessus de la part commune de Soft, Soft porteur prend la part de la référence et Vivid garde la sienne.
+  const vert = forcee('#559765');
+  assert.equal(profilPorteur(vert.recette, vert.palette), 'soft');
+  assert.deepEqual(partsDe(vert.recette, vert.palette), { soft: partDe('#559765'), vivid: 0.95 });
 });
 
-test('[ENT-11] [ENT-09] un gris et le noir forcés gardent leurs parts grises, et le profil forcé les porte', () => {
-  for (const reference of ['#6B7280', '#000000']) {
-    for (const base of PROFILS) {
-      const { recette, palette } = forcee(reference, base);
-      assert.equal(palette.parts?.origine, 'grise', reference);
-      assert.equal(profilPorteur(recette, palette), base, `${reference} ${base}`);
-      assert.equal(partsDe(recette, palette).soft, partsDe(recette, palette).vivid);
-    }
+test('[ENT-11] sous la part commune de Soft, Soft porte la référence et Vivid garde le rapport des parts communes', () => {
+  for (const reference of ['#897288', '#7C717B', '#6B7280', '#78716C']) {
+    const { recette, palette } = forcee(reference);
+    const part = partDe(reference);
+    assert.ok(part < 0.45, reference);
+    assert.equal(profilPorteur(recette, palette), 'soft', reference);
+    assert.deepEqual(partsDe(recette, palette), { soft: part, vivid: arrondir(part * RAPPORT, 3) }, reference);
   }
+});
+
+test('[ENT-11] la part de l’autre profil est continue quand la référence passe la part commune de Soft', () => {
+  // La part commune de Soft encadre celle de #897288, 0,160 : Vivid passe du rapport à sa part commune sans saut.
+  const part = partDe('#897288');
+  const autour = (soft: number) => {
+    const { recette, palette } = forcee('#897288', 'soft', { ...recetteParDefaut(), profils: { soft: { part: soft }, vivid: { part: 0.95 } } });
+    return partsDe(recette, palette).vivid!;
+  };
+  assert.ok(Math.abs(autour(part + 0.001) - 0.95) <= 0.01);
+  assert.equal(autour(part), 0.95);
+  assert.equal(autour(part - 0.001), 0.95);
 });
 
 test('[ENT-11] des intensités du designer passent avant celles de la palette de base', () => {
@@ -111,9 +129,7 @@ test('[ENT-11] propriété : sur des teintes, clartés et intensités communes v
           assert.equal(ancrageDe(avec, palette).profil, base, nom);
           const rampes = rampesDe(avec, palette);
           for (const mode of MODES) assert.equal(rampes[base]![mode][ancrageDe(avec, palette).rangs[mode]].hexa, reference, `${nom} ${mode}`);
-          if (palette.parts?.origine !== 'grise') {
-            assert.ok(!codesDAlerte(avec, palette).some((code) => code === 'reference-plus-terne' || code === 'reference-plus-vive'), nom);
-          }
+          assert.ok(!codesDAlerte(avec, palette).some((code) => code === 'reference-plus-terne' || code === 'reference-plus-vive'), nom);
         }
       }
     }
@@ -127,15 +143,20 @@ test('[REC-05] une palette de base autre que soft ou vivid est refusée', () => 
   assert.deepEqual(lue.refus, [{ regle: 'base-inconnue', chemin: 'palettes[0].base', valeur: 'auto' }]);
 });
 
-test('[REC-03] une recette de format 1 se migre jusqu’au format 5 sans changer ses palettes', () => {
-  assert.equal(FORMAT_RECETTE, 5);
-  const grise = ajusterPartsGrises(recetteParDefaut(), paletteTailwind('p-000000b2', '#6B7280'));
+test('[REC-03] une recette de format 1 se migre jusqu’au format 6 : ses parts grises se retirent, les parts du designer restent', () => {
+  assert.equal(FORMAT_RECETTE, 6);
+  const gris = paletteTailwind('p-000000b2', '#6B7280');
   const designer = paletteTailwind('p-000000b3', '#1E6FD9', { parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } });
-  const ancienne = { ...recetteParDefaut(), formatVersion: 1, palettes: [grise, designer] };
+  const ancienne = {
+    ...recetteParDefaut(),
+    formatVersion: 1,
+    seuils: { ...recetteParDefaut().seuils, chromaGrise: 0.03 },
+    palettes: [{ ...gris, parts: { soft: 0.094, vivid: 0.094, origine: 'grise' } }, designer],
+  };
   const classement = classerRecette(jsonCanonique(ancienne));
-  assert.ok(classement.etat === 'migree' && classement.depuis === 1);
-  assert.deepEqual(classement.recette.palettes, [grise, designer]);
-  assert.equal(classement.recette.formatVersion, 5);
+  assert.ok(classement.etat === 'migree' && classement.depuis === 1, JSON.stringify(classement).slice(0, 300));
+  assert.deepEqual(classement.recette.palettes, [gris, designer]);
+  assert.equal(classement.recette.formatVersion, 6);
 });
 
 /** Un hexa depuis teinte, saturation et luminosité HSL, en entiers. */

@@ -17,10 +17,11 @@ import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
  * ajoute `base` à une palette ; la version 3, `crans` et `originale` ; la
  * version 4, `intensites` à une palette, `intensiteDesFondsSombres` et
  * `contenuDesPlanches` à la recette ; la version 5, `reglages` à une
- * palette. Un plugin qui lit une version antérieure classe donc la recette
- * « future » au lieu de refuser une clé inconnue.
+ * palette ; la version 6 retire les parts d'origine `grise` et
+ * `seuils.chromaGrise`. Un plugin qui lit une version antérieure classe donc
+ * la recette « future » au lieu de refuser une clé inconnue.
  */
-export const FORMAT_RECETTE = 5;
+export const FORMAT_RECETTE = 6;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -30,7 +31,8 @@ export interface DeriveRangee {
   readonly origine: OrigineDerive;
 }
 
-export type OrigineParts = 'designer' | 'grise';
+/** Des parts propres viennent toujours du designer ([ENT-09]). */
+export type OrigineParts = 'designer';
 
 export interface PartsPropres {
   readonly soft: number;
@@ -108,7 +110,6 @@ export interface Seuils {
   readonly nonTexte: number;
   readonly profilsConfondus: number;
   readonly palettesProches: number;
-  readonly chromaGrise: number;
 }
 
 export interface Recette {
@@ -135,7 +136,7 @@ export function recetteParDefaut(): Recette {
     profils: { soft: { part: 0.45 }, vivid: { part: 0.95 } },
     gamut: 'srgb',
     fonds: { light: '#F7F7F7', dark: '#121212' },
-    seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05, chromaGrise: 0.03 },
+    seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05 },
     derives: RELEVE_TAILWIND.map(([nom, clair, sombre]) => [nom, clair, sombre] as PaireDeDerive),
     intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
     contenuDesPlanches: { ...CONTENU_COMPLET },
@@ -322,7 +323,7 @@ function validerCransLibres(releve: Releve, crans: unknown, chemin: string): voi
 }
 
 const ORIGINES_DERIVE: readonly string[] = ['tailwind', 'constante', 'libre'];
-const ORIGINES_PARTS: readonly string[] = ['designer', 'grise'];
+const ORIGINES_PARTS: readonly string[] = ['designer'];
 
 function validerDerivePalette(releve: Releve, derive: unknown, chemin: string): void {
   if (!releve.objet(derive, chemin, ['clair', 'sombre', 'origine'])) return;
@@ -530,7 +531,7 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   }
 
   const seuils = entree.seuils;
-  const nomsSeuils = ['texte', 'nonTexte', 'profilsConfondus', 'palettesProches', 'chromaGrise'];
+  const nomsSeuils = ['texte', 'nonTexte', 'profilsConfondus', 'palettesProches'];
   if (releve.objet(seuils, 'seuils', nomsSeuils)) {
     for (const nom of nomsSeuils) {
       const valeur = seuils[nom];
@@ -574,7 +575,10 @@ export type Migrations = Readonly<Record<number, (ancienne: Objet) => Objet>>;
  * la recette reçoit les valeurs par défaut de `intensiteDesFondsSombres` et
  * de `contenuDesPlanches`. Les fonds du thème Dark changent donc de couleur.
  * De 4 à 5, `reglages` est facultatif : aucune palette n'en reçoit, et
- * aucune couleur ne change.
+ * aucune couleur ne change. De 5 à 6, les parts d'origine `grise` et
+ * `seuils.chromaGrise` se retirent : ces palettes prennent les parts de
+ * `partsDesProfils`, et leurs couleurs changent. Un champ qui n'a pas la
+ * forme attendue reste tel quel, pour que la validation le refuse.
  */
 export const MIGRATIONS: Migrations = {
   1: (ancienne) => ({ ...ancienne, formatVersion: 2 }),
@@ -586,7 +590,24 @@ export const MIGRATIONS: Migrations = {
     contenuDesPlanches: { ...CONTENU_COMPLET },
   }),
   4: (ancienne) => ({ ...ancienne, formatVersion: 5 }),
+  5: (ancienne) => ({
+    ...ancienne,
+    formatVersion: 6,
+    ...(estObjet(ancienne.seuils) ? { seuils: sansCle(ancienne.seuils, 'chromaGrise') } : {}),
+    ...(Array.isArray(ancienne.palettes) ? { palettes: ancienne.palettes.map(sansPartsGrises) } : {}),
+  }),
 };
+
+/** Un objet sans `cle`. */
+function sansCle(objet: Objet, cle: string): Objet {
+  const { [cle]: _retiree, ...reste } = objet;
+  return reste;
+}
+
+/** Une palette rangée sans ses parts d'origine `grise` ; toute autre valeur reste. */
+function sansPartsGrises(palette: unknown): unknown {
+  return estObjet(palette) && estObjet(palette.parts) && palette.parts.origine === 'grise' ? sansCle(palette, 'parts') : palette;
+}
 
 /** Ce que la lecture conclut d'une recette rangée ([REC-03]). */
 export type Classement =

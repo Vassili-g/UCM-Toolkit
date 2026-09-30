@@ -1,4 +1,4 @@
-/** Ce que la configuration de la recette modifie (section 8.3, [ENT-05], [ENT-07], [ENT-09], [ENT-10], V9.4, V9.5, V9.7). */
+/** Ce que la configuration de la recette modifie (section 8.3, [ENT-05], [ENT-07], [ENT-10], V9.4, V9.5, V9.7). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,7 +33,7 @@ test('chaque champ pose sa valeur à sa place, et la relit', () => {
   const champs = [
     { courbe: 'light' as const, rang: 7 },
     { part: 'soft' as const },
-    ...(['texte', 'nonTexte', 'profilsConfondus', 'palettesProches', 'chromaGrise'] as const).map((seuil) => ({ seuil })),
+    ...(['texte', 'nonTexte', 'profilsConfondus', 'palettesProches'] as const).map((seuil) => ({ seuil })),
   ];
   for (const champ of champs) {
     const suivante = poserValeur(DEFAUT, champ, 0.123);
@@ -43,14 +43,15 @@ test('chaque champ pose sa valeur à sa place, et la relit', () => {
   assert.deepEqual(poserValeur(DEFAUT, champs[0], 0.123).courbes.dark, DEFAUT.courbes.dark);
 });
 
-test('[ENT-07] une courbe touche toutes les palettes, une part épargne les parts propres, le seuil les grises', () => {
+test('[ENT-07] une courbe touche toutes les palettes, une part épargne les parts propres, le seuil des profils confondus les profils ternes', () => {
   let recette: Recette = DEFAUT;
   recette = ajouter(recette, nouvellePalette(recette, 'p-0000000a', '#1E6FD9', 2)!);
   recette = ajouter(recette, { ...nouvellePalette(recette, 'p-0000000b', '#FACC15', 2)!, parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } });
+  // #6B7280 est sous la part commune de Soft : ses deux parts suivent les parts communes, et « Profils confondus » s'y tait.
   recette = ajouter(recette, nouvellePalette(recette, 'p-0000000c', '#6B7280', 2)!);
-  assert.equal(recette.palettes[2].parts?.origine, 'grise');
-  const groupes = ['courbes', 'parts', 'fonds', 'contraste', 'profilsConfondus', 'palettesProches', 'chromaGrise'] as const;
-  assert.deepEqual(groupes.map((groupe) => palettesModifiees(recette, groupe)), [3, 1, 3, 3, 2, 3, 2]);
+  assert.equal(recette.palettes[2].parts, undefined);
+  const groupes = ['courbes', 'parts', 'fonds', 'contraste', 'profilsConfondus', 'palettesProches'] as const;
+  assert.deepEqual(groupes.map((groupe) => palettesModifiees(recette, groupe)), [3, 2, 3, 3, 2, 3]);
   const seule = ajouter(DEFAUT, nouvellePalette(DEFAUT, 'p-0000000a', '#1E6FD9', 2)!);
   assert.equal(palettesModifiees(seule, 'palettesProches'), 0, 'une palette seule n’a aucune voisine');
   assert.deepEqual([palettesConcernees(0), palettesConcernees(1), palettesConcernees(3)], ['Aucune palette concernée', '1 palette concernée', '3 palettes concernées']);
@@ -68,17 +69,6 @@ test('[ENT-05] un fond se saisit en hexa, s’écrit en majuscules, et une saisi
   assert.equal(poserFond(DEFAUT, 'light', 'gris'), null);
 });
 
-test('[ENT-09] le seuil de chroma grise recalcule les parts grises, et laisse les parts du designer', () => {
-  let recette: Recette = DEFAUT;
-  recette = ajouter(recette, nouvellePalette(recette, 'p-0000000c', '#6B7280', 2)!);
-  recette = ajouter(recette, { ...nouvellePalette(recette, 'p-0000000d', '#64748B', 2)!, parts: { soft: 0.2, vivid: 0.4, origine: 'designer' } });
-  assert.equal(recette.palettes[0].parts?.origine, 'grise');
-  const abaisse = poserValeur(recette, { seuil: 'chromaGrise' }, 0.001);
-  assert.equal(abaisse.palettes[0].parts, undefined, 'la référence cesse d’être grise');
-  assert.deepEqual(abaisse.palettes[1].parts, recette.palettes[1].parts);
-  assert.equal(poserValeur(abaisse, { seuil: 'chromaGrise' }, 0.03).palettes[0].parts?.origine, 'grise');
-});
-
 /** Une recette où chaque carte s'écarte de ses valeurs par défaut, avec une palette aux parts du designer et une palette forcée. */
 function recetteReglee(): Recette {
   let recette: Recette = DEFAUT;
@@ -90,7 +80,7 @@ function recetteReglee(): Recette {
   recette = poserValeur(recette, { courbe: 'light', rang: 7 }, 0.48);
   recette = poserValeur(recette, { seuil: 'texte' }, 7);
   recette = { ...recette, contenuDesPlanches: { ...recette.contenuDesPlanches, grilles: false } };
-  return poserValeur(recette, { seuil: 'chromaGrise' }, 0.05);
+  return poserValeur(recette, { seuil: 'profilsConfondus' }, 0.03);
 }
 
 const CARTES = Object.keys(CARTES_DES_REGLAGES) as CarteDesReglages[];
@@ -104,23 +94,12 @@ test('V9.5 : « Rétablir » remet une carte aux valeurs par défaut, sans touch
     for (const autre of CARTES.filter((candidate) => candidate !== carte)) {
       assert.equal(estParDefaut(retablie, autre), estParDefaut(reglee, autre), `${carte} laisse ${autre}`);
     }
-    const propres = (recette: Recette) => recette.palettes.filter((palette) => palette.parts?.origine !== 'grise');
-    assert.deepEqual(propres(retablie), propres(reglee), `${carte} garde les palettes, base forcée et parts du designer comprises`);
+    assert.deepEqual(retablie.palettes, reglee.palettes, `${carte} garde les palettes, base forcée et parts du designer comprises`);
   }
   assert.deepEqual(CARTES.map((carte) => estParDefaut(reglee, carte)), [false, false, false, false, false, false]);
   assert.deepEqual(CARTES.map((carte) => estParDefaut(DEFAUT, carte)), [true, true, true, true, true, true]);
   assert.equal(estParDefaut(poserValeur(DEFAUT, { fondsSombres: true }, 0.5), 'parts'), false, 'les fonds du thème Dark comptent dans les intensités');
   assert.equal(estParDefaut(poserValeur(DEFAUT, { courbe: 'dark', rang: 3 }, 0.34), 'courbes'), false, 'la courbe sombre compte aussi');
-});
-
-test('V9.5 : rétablir le seuil de gris recalcule les parts grises, comme sa saisie', () => {
-  // #6E7A90 a une chroma de 0,037 : presque grise sous le seuil de 0,05, colorée sous celui par défaut, 0,03.
-  const reglee = recetteReglee();
-  const ardoise = ajouter(reglee, nouvellePalette(reglee, 'p-0000000d', '#6E7A90', 2)!);
-  assert.equal(ardoise.palettes[3].parts?.origine, 'grise');
-  const retablie = retablir(ardoise, 'proches')!;
-  assert.equal(retablie.palettes[3].parts, undefined);
-  assert.deepEqual(retablie.palettes, poserValeur(ardoise, { seuil: 'chromaGrise' }, DEFAUT.seuils.chromaGrise).palettes);
 });
 
 test('V9.5 : les courbes par défaut ne se rétablissent pas sur une autre liste de nuances', () => {
@@ -130,13 +109,13 @@ test('V9.5 : les courbes par défaut ne se rétablissent pas sur une autre liste
 });
 
 test('V9.7 : chaque groupe a une carte, celle qu’un lien ouvre', () => {
-  const groupes = ['courbes', 'parts', 'fonds', 'contraste', 'profilsConfondus', 'palettesProches', 'chromaGrise'] as const;
-  assert.deepEqual(groupes.map(carteDuGroupe), ['courbes', 'parts', 'fonds', 'minimums', 'proches', 'proches', 'proches']);
+  const groupes = ['courbes', 'parts', 'fonds', 'contraste', 'profilsConfondus', 'palettesProches'] as const;
+  assert.deepEqual(groupes.map(carteDuGroupe), ['courbes', 'parts', 'fonds', 'minimums', 'proches', 'proches']);
 });
 
 test('V9.2 : les cartes repliées résument leurs seuils, avec leur unité', () => {
   assert.equal(resumeDesMinimums(4.5, 3), 'Texte 4,5:1 · Éléments graphiques 3:1');
-  assert.equal(resumeDesEcarts(0.02, 0.05, 0.03), 'Soft et Vivid 0,02 · Deux palettes 0,05 · Gris 0,03');
+  assert.equal(resumeDesEcarts(0.02, 0.05), 'Soft et Vivid 0,02 · Deux palettes 0,05');
 });
 
 test('V9.4 : le tracé place chaque nuance dans sa colonne, la luminosité 1 en haut, et le ◆ à la nuance où la référence est insérée', () => {
