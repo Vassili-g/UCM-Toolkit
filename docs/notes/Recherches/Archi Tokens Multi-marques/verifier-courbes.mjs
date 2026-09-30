@@ -11,8 +11,8 @@
  *   node "docs/notes/Recherches/Archi Tokens Multi-marques/verifier-courbes.mjs"
  *   node ".../verifier-courbes.mjs" --section=roles
  *
- * Le script sort en échec dès qu'une promesse de la section 5 du document est
- * manquée.
+ * Le script sort en échec dès qu'une paire de la table des emplois, section 4
+ * du document, ou un niveau d'élévation de sa section 6 manque son seuil.
  */
 
 /** Les deux courbes de clarté. Le cran 50 est le fond de page dans les deux modes, et la surface d'une carte. */
@@ -230,12 +230,12 @@ function sectionModes() {
 }
 
 /**
- * Les promesses du câblage par défaut, telles que la section 5 du document les écrit.
+ * Les promesses du câblage par défaut, telles que la section 4 du document les écrit, quatre rangs compris.
  *
  * L'anneau de focus se mesure contre le fond de page et contre une surface au
  * repos, parce que le document impose un décalage qui laisse voir ce fond entre
  * l'anneau et le contrôle. Sans ce décalage, l'anneau au cran 600 rendrait
- * 1,40:1 contre un fond plein au cran 700, ce que la dernière section mesure.
+ * 1,40:1 contre un fond plein au cran 700, ce que la section 6 mesure.
  */
 const PROMESSES = [
   ['text sur fond de page', 4.5, (m, t, q) => [couleur(m, 700, t, q), fondDePage(m, t)]],
@@ -254,17 +254,20 @@ const PROMESSES = [
   ['solid survolé sur fond de page', 3, (m, t, q) => [couleur(m, 800, t, q), fondDePage(m, t)]],
   ['text sur surface-card', 4.5, (m, t, q) => [couleur(m, 700, t, q), couleur(m, 50, t, q)]],
   ['border-control sur surface-card', 3, (m, t, q) => [couleur(m, 600, t, q), couleur(m, 50, t, q)]],
+  ['text active-hover sur surface active-hover', 4.5, (m, t, q) => [couleur(m, 950, t, q), couleur(m, 400, t, q)]],
+  ['on-solid sur solid active-hover', 4.5, (m, t, q) => [fondDePage(m, t), couleur(m, 950, t, q)]],
+  ['border-control active-hover sur surface active-hover', 3, (m, t, q) => [couleur(m, 900, t, q), couleur(m, 400, t, q)]],
 ];
 
 function sectionRoles() {
   titre('5. Le câblage par défaut des rôles tient-il ses promesses ?');
   console.log('Sur 360 teintes, les deux profils et les deux modes.\n');
-  console.log(`  ${'promesse'.padEnd(44)}${colonne('seuil')}${colonne('min')}${colonne('max')}  pire cas`);
+  console.log(`  ${'promesse'.padEnd(53)}${colonne('seuil')}${colonne('min')}${colonne('max')}  pire cas`);
   let echecs = 0;
   for (const [nom, seuil, paire] of PROMESSES) {
     const { min, max, ou } = pireCas(paire);
     if (min < seuil) echecs += 1;
-    console.log(`  ${nom.padEnd(44)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}`
+    console.log(`  ${nom.padEnd(53)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}`
       + `${colonne(max.toFixed(2))}  ${min >= seuil ? `tenue, ${ou}` : `REFUSÉE, ${ou}`}`);
   }
   console.log(`\n  ${echecs} promesse(s) refusée(s).`);
@@ -274,7 +277,7 @@ function sectionRoles() {
 function sectionAnneau() {
   titre('6. Pourquoi l\'anneau de focus demande un décalage');
   console.log('Contraste d\'un anneau posé au contact du contrôle qu\'il entoure.\n');
-  console.log(`  ${'paire'.padEnd(44)}${colonne('seuil')}${colonne('min')}  verdict`);
+  console.log(`  ${'paire'.padEnd(53)}${colonne('seuil')}${colonne('min')}  verdict`);
   const contact = [
     ['anneau 600 contre un fond plein 700', 3, (m, t, q) => [couleur(m, 600, t, q), couleur(m, 700, t, q)]],
     ['anneau 900 contre un fond plein 700', 3, (m, t, q) => [couleur(m, 900, t, q), couleur(m, 700, t, q)]],
@@ -283,7 +286,7 @@ function sectionAnneau() {
   ];
   for (const [nom, seuil, paire] of contact) {
     const { min } = pireCas(paire);
-    console.log(`  ${nom.padEnd(44)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}  ${min >= seuil ? 'tenue' : 'REFUSÉE'}`);
+    console.log(`  ${nom.padEnd(53)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}  ${min >= seuil ? 'tenue' : 'REFUSÉE'}`);
   }
   console.log('\n  Aucun cran de la rampe ne tient 3:1 contre le cran 700 de la même rampe.');
   console.log('  Le décalage qui laisse voir le fond de page est ce qui rend l\'anneau visible.');
@@ -334,14 +337,53 @@ const PARTS_QUELCONQUES = Object.fromEntries(Array.from({ length: 21 }, (_, i) =
 function sectionIntensites() {
   titre('9. Une palette à une intensité tient-elle les mêmes promesses ?');
   console.log('Sur 360 teintes, les parts de 0 à 1 par pas de 0,05 et les deux modes.\n');
-  console.log(`  ${'promesse'.padEnd(44)}${colonne('seuil')}${colonne('min')}  pire cas`);
+  console.log(`  ${'promesse'.padEnd(53)}${colonne('seuil')}${colonne('min')}  pire cas`);
   let echecs = 0;
   for (const [nom, seuil, paire] of PROMESSES) {
     const { min, ou } = pireCas(paire, PARTS_QUELCONQUES);
     if (min < seuil) echecs += 1;
-    console.log(`  ${nom.padEnd(44)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}  ${min >= seuil ? `tenue, ${ou}` : `REFUSÉE, ${ou}`}`);
+    console.log(`  ${nom.padEnd(53)}${colonne(`${seuil}:1`)}${colonne(min.toFixed(2))}  ${min >= seuil ? `tenue, ${ou}` : `REFUSÉE, ${ou}`}`);
   }
   console.log(`\n  ${echecs} promesse(s) refusée(s).`);
+  return echecs;
+}
+
+/** Un cran du neutre, gris : la teinte passée est ignorée. */
+const gris = (mode, cran) => couleur(mode, cran, 0, 0);
+const BLANC = { L: 1, C: 0, H: 0 };
+
+/**
+ * Les niveaux d'élévation, opaques. En Light, `raised` et `overlay` valent le
+ * blanc ; en Dark, le cran 100 du neutre. La ligne du cran 200 en Dark mesure
+ * la valeur qu'`overlay` ne prend pas.
+ */
+const NIVEAUX = [
+  ['page, light : neutre 50', 'light', () => fondDePage('light')],
+  ['raised et overlay, light : blanc', 'light', () => BLANC],
+  ['page, dark : neutre 50', 'dark', () => fondDePage('dark')],
+  ['raised et overlay, dark : neutre 100', 'dark', () => gris('dark', 100)],
+  ['écarté, dark : neutre 200', 'dark', () => gris('dark', 200)],
+];
+
+function sectionElevation() {
+  titre('10. Les niveaux d\'élévation portent-ils le texte et les bordures ?');
+  console.log('Sur 360 teintes et les deux profils, dans le mode du niveau. text-strong est le cran 900 du neutre.\n');
+  console.log(`  ${'niveau'.padEnd(40)}${colonne('text', 8)}${colonne('border', 8)}${colonne('strong', 8)}`);
+  let echecs = 0;
+  for (const [nom, mode, fond] of NIVEAUX) {
+    let texte = Infinity;
+    let bordure = Infinity;
+    for (const part of Object.values(PROFILS)) {
+      for (const teinte of TEINTES) {
+        texte = Math.min(texte, contraste(couleur(mode, 700, teinte, part), fond()));
+        bordure = Math.min(bordure, contraste(couleur(mode, 600, teinte, part), fond()));
+      }
+    }
+    const fort = contraste(gris(mode, 900), fond());
+    if (!nom.startsWith('écarté') && (texte < 4.5 || bordure < 3)) echecs += 1;
+    console.log(`  ${nom.padEnd(40)}${colonne(texte.toFixed(2), 8)}${colonne(bordure.toFixed(2), 8)}${colonne(fort.toFixed(2), 8)}`);
+  }
+  console.log(`\n  ${echecs} niveau(x) refusé(s).`);
   return echecs;
 }
 
@@ -355,6 +397,7 @@ const SECTIONS = {
   etats: sectionEtats,
   ancre: sectionAncre,
   intensites: sectionIntensites,
+  elevation: sectionElevation,
 };
 
 const demande = process.argv.find((a) => a.startsWith('--section='))?.slice('--section='.length);

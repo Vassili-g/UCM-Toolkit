@@ -39,9 +39,6 @@ a{color:var(--add)}
 :focus-visible{outline:2px solid var(--add);outline-offset:2px}
 code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
 .lede{font-size:1.08rem;color:var(--muted)}
-.callout{background:var(--new-bg);border-radius:8px;padding:12px 16px;margin:16px 0}
-.callout b{color:var(--new)}
-.callout ul{margin:6px 0 0;padding-left:20px}
 
 /* panneau Figma */
 .fx{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -68,7 +65,6 @@ code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1
 .tag.mod{background:var(--mod-bg);color:var(--mod)}
 .tag.del{background:var(--del-bg);color:var(--del)}
 .tag.same{background:var(--keep-bg);color:var(--keep)}
-.tag.prop{background:var(--new-bg);color:var(--new)}
 .fx-main{min-width:0;padding:12px 14px 16px}
 .fx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
 .fx-head b{font-family:var(--mono);font-size:1.05rem}
@@ -144,15 +140,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <h1>Architecture des tokens : du Playground au design system</h1>
     <p class="lede">Ce document part des tokens actuels du Playground (<code>UCM-Playground/src/tokens/tokens.json</code>) et propose l’architecture du futur design system : six marques, un thème clair et un thème sombre, une gamme complète de composants. Chaque collection conservée, modifiée, ajoutée ou supprimée renvoie à une décision numérotée, avec sa raison, l’option écartée et son origine.</p>
     <p>Il s’appuie sur la <a href="RECHERCHE-ARCHI-MULTIMARQUES.md">recherche</a>, la <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a>, <a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a>, tes décisions de mainteneur rangées dans l’historique du dépôt, et les propositions d’écriture des variables par <a href="../Plugin%20Palettes/RECHERCHE-CONCURRENCE-PALETTES.md">UCM Palettes</a>.</p>
-    <div class="callout">
-      <b>Les écarts avec ARCHITECTURE-FINALE</b>, marqués « Nouvelle décision ». Leur intégration dans ARCHITECTURE-FINALE, le code et les spécifications est inventoriée dans <a href="PLAN-INTEGRATION-ARCHITECTURE.md">PLAN-INTEGRATION-ARCHITECTURE.md</a> :
-      <ul>
-        <li><a href="#d5">D5</a> : les palettes nommées de <code>primitives › colors</code> (terracota, sky, grass…) sont conservées. ARCHITECTURE-FINALE les supprimait sans raison écrite.</li>
-        <li><a href="#d6">D6</a> : <code>color-utilities</code> est conservée pour les rôles communs à toutes les marques (<code>success</code> choisit <code>grass</code>).</li>
-        <li><a href="#d10">D10</a> : le blanc et le noir deviennent des constantes.</li>
-        <li><a href="#d13">D13</a> à <a href="#d17">D17</a> : une collection <code>usage</code> qui porte la table des emplois, l’accès encadré aux nuances hors table, trois niveaux d’élévation, une même table pour UCM Palettes, l’architecture et UCM Exporter, et quatre rangs d’état.</li>
-      </ul>
-    </div>
   </div>
 
   <h2>Le panneau des variables, aujourd’hui et demain</h2>
@@ -247,7 +234,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d5">
-    <div class="dec-h"><span class="id">D5</span><h3><code>primitives › colors</code> est conservé : un catalogue de palettes nommées, chacune en <code>light</code> et <code>dark</code></h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D5</span><h3><code>primitives › colors</code> est conservé : un catalogue de palettes nommées, chacune en <code>light</code> et <code>dark</code></h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd>Neuf palettes dessinées à l’œil : terracota, deep, sky, rose, grass, orange, poppy, blue, titanium. Une seule version, sans thème.</dd>
       <dt>Après</dt><dd>Chaque palette garde son nom et reçoit deux versions : <code>colors/terracota/light/700</code>, <code>colors/terracota/dark/700</code>. Une palette à deux intensités ajoute un segment : <code>colors/grass/soft/light/700</code>. UCM Palettes recalcule les valeurs sur la courbe commune. Chaque nouvelle marque y ajoute ses palettes.</dd>
@@ -266,7 +253,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d6">
-    <div class="dec-h"><span class="id">D6</span><h3><code>color-utilities</code> est conservée : les rôles communs à toutes les marques</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D6</span><h3><code>color-utilities</code> est conservée : les rôles communs à toutes les marques</h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd><code>success/700</code> vise <code>colors/grass/700</code>, <code>neutral/50</code> vise <code>colors/titanium/50</code>. Une version, une intensité.</dd>
       <dt>Après</dt><dd><code>success/soft/light/N</code> vise <code>colors/grass/soft/light/N</code>, et de même pour <code>vivid</code>, <code>dark</code> et les trois autres statuts. <code>neutral/light/N</code> et <code>neutral/dark/N</code> visent <code>titanium</code>. 198 alias, sans mode.</dd>
@@ -314,7 +301,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d10">
-    <div class="dec-h"><span class="id">D10</span><h3>Le blanc et le noir deviennent des constantes, hors des palettes</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D10</span><h3>Le blanc et le noir deviennent des constantes, hors des palettes</h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd><code>colors/titanium/0</code> (#FFFFFF) et <code>colors/titanium/1200</code> (#000000) font partie de la rampe neutre. Des composants les citent pour un texte ou un fond, par exemple le texte des alertes pleines.</dd>
       <dt>Après</dt><dd><code>colors/white</code> et <code>colors/black</code>, dans <code>primitives</code>, hors de toute palette. Les citations actuelles passent au neutre : le texte des alertes pleines prend <code>theme.neutral.50</code>, comme celui des boutons.</dd>
@@ -356,7 +343,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <p>Les guides de tokens convergent sur un point : un composant ne cite pas une valeur brute, et une exception passe par un token de composant (<a href="https://designsystemproblems.com/token-management/semantic-vs-primitive-tokens/">Design System Problems</a>). Côté Figma, les <a href="https://help.figma.com/hc/en-us/articles/15145852043927-Create-and-manage-variables-and-collections">portées</a> filtrent les variables qu’un sélecteur de propriété propose : une couleur de texte, un remplissage, un contour.</p>
 
   <div class="dec" id="d13">
-    <div class="dec-h"><span class="id">D13</span><h3>Une collection <code>usage</code>, sans mode : la table des emplois devient des variables</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D13</span><h3>Une collection <code>usage</code>, sans mode : la table des emplois devient des variables</h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>Avant</dt><dd>Aucun nom d’usage. La table n’existe que dans la documentation et dans le code d’UCM Palettes (<code>TABLE_DES_EMPLOIS</code>, <code>packages/couleur/src/emplois.ts</code>). Dans ARCHITECTURE-FINALE, un composant cite une nuance, <code>theme.primary.700</code>.</dd>
       <dt>Après</dt><dd><ul>
@@ -384,7 +371,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d14">
-    <div class="dec-h"><span class="id">D14</span><h3>Une nuance hors de la table reste possible : par un token de composant, délibéré et relevé</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D14</span><h3>Une nuance hors de la table reste possible : par un token de composant, délibéré et relevé</h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>La question</dt><dd>Un graphique a besoin d’une échelle de 100 à 800, une illustration d’un 400 : aucune de ces nuances n’a d’emploi.</dd>
       <dt>Après</dt><dd><ul>
@@ -413,7 +400,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d15">
-    <div class="dec-h"><span class="id">D15</span><h3>Trois niveaux d’élévation, opaques : <code>page</code>, <code>raised</code>, <code>overlay</code></h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D15</span><h3>Trois niveaux d’élévation, opaques : <code>page</code>, <code>raised</code>, <code>overlay</code></h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>Avant</dt><dd>Aucun document ne traite l’élévation. <code>surface-card</code> (nuance 50) a la couleur du fond de page ; une carte dans une modale, un menu sur une carte ne sont pas couverts.</dd>
       <dt>Après</dt><dd><code>usage.elevation.page</code>, <code>.raised</code>, <code>.overlay</code> visent <code>theme.elevation.*</code>, qui vise <code>color-utilities.elevation.light|dark.*</code> :
@@ -437,7 +424,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d16">
-    <div class="dec-h"><span class="id">D16</span><h3>Une seule table des emplois pour UCM Palettes, l’architecture et UCM Exporter</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D16</span><h3>Une seule table des emplois pour UCM Palettes, l’architecture et UCM Exporter</h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>Avant</dt><dd><ul>
         <li>UCM Palettes définit les 8 emplois et leurs 16 paires, sur trois rangs d’état, (<code>emplois.ts</code>, <code>promesses.ts</code>) et les juge sur chaque palette.</li>
@@ -457,12 +444,12 @@ footer ul{padding-left:18px;margin:6px 0 0}
         <li>Un quatrième contrôle compare l’état de chaque variant au rang des usages qu’il vise (D17).</li>
       </ul></dd>
       <dt>Pourquoi</dt><dd>Une seule définition des emplois et de leurs paires, lue par les trois outils. Aujourd’hui la table est garantie sur les palettes, et rien ne vérifie qu’un composant l’applique : c’est là que le Playground échoue (D4).</dd>
-      <dt>Coût</dt><dd>Le kit, qui porte <code>ucm check</code>, dépend du moteur <code>ucm-couleur</code>. La spécification d’UCM Palettes l’anticipe (D7 : « le moteur entre dans le kit le jour où un lecteur de <code>tokens.json</code> en a besoin »). Aucun de ces contrôles n’est écrit.</dd>
+      <dt>Coût</dt><dd>Le vocabulaire commun, emplois, paires, rangs et contraste WCAG, entre dans le point d’entrée <code>@ucm-kit/core/emplois</code> du kit, qui porte <code>ucm check</code> ; <code>ucm-couleur</code> l’importe et garde la fabrication des palettes (réponse R1 du <a href="PLAN-INTEGRATION-ARCHITECTURE.md#r1-ce-qui-entre-dans-le-kit">plan d’intégration</a>). Aucun de ces contrôles n’est écrit.</dd>
     </dl>
   </div>
 
   <div class="dec" id="d17">
-    <div class="dec-h"><span class="id">D17</span><h3>Quatre rangs d’état, et une correspondance écrite entre l’état d’un composant et son rang</h3><span class="tag prop">Nouvelle décision</span></div>
+    <div class="dec-h"><span class="id">D17</span><h3>Quatre rangs d’état, et une correspondance écrite entre l’état d’un composant et son rang</h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Le problème</dt><dd>Avec trois rangs, <code>active</code> sert à l’appui et à la sélection. Un élément sélectionné qu’on survole n’a plus de nuance. Et pour un développeur, <code>:active</code> désigne l’appui en CSS.</dd>
       <dt>Après</dt><dd><ul>
@@ -544,7 +531,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     </tbody>
     <tfoot><tr><td>Total</td><td class="n">1 063</td><td></td><td class="n">1 412</td></tr></tfoot>
   </table></div>
-  <p>ARCHITECTURE-FINALE en comptait 710. Tes décisions restent les mêmes : pour chaque marque, deux palettes et une couleur de charte ; pour les rôles communs, cinq palettes ; six niveaux d’élévation. Les autres valeurs suivent une règle, et UCM Palettes les écrit. Le compte des valeurs pèse sur la taille de la feuille CSS, que <code>ucm tokens css</code> imprime à chaque écriture.</p>
+  <p>La forme précédente, où <code>brand</code> portait les hexas et sans <code>usage</code>, en comptait 710. Tes décisions restent les mêmes : pour chaque marque, deux palettes et une couleur de charte ; pour les rôles communs, cinq palettes ; six niveaux d’élévation. Les autres valeurs suivent une règle, et UCM Palettes les écrit. Le compte des valeurs pèse sur la taille de la feuille CSS, que <code>ucm tokens css</code> imprime à chaque écriture.</p>
 
   <h2>À décider</h2>
   <ul class="rules">
@@ -896,15 +883,15 @@ footer ul{padding-left:18px;margin:6px 0 0}
     tomorrow:[
       {id:"components",info:"aucun mode · mêmes noms",modes:["Valeur"],rows:compRows(true),tag:["mod","valeurs modifiées"],
         note:["Mêmes noms. Chaque couleur vise l’usage de la table qui correspond à ce qu’elle peint ; sous chaque valeur, l’alias d’aujourd’hui.","Une couleur hors table vise une nuance de theme par un token nommé, comme scale-5 en bas. "+lnk("d11")+" · "+lnk("d13")+" · "+lnk("d14")]},
-      {id:"usage",info:"aucun mode · 226 variables",modes:["Valeur"],rows:usageRows(),tag:["prop","nouvelle"],
+      {id:"usage",info:"aucun mode · 226 variables",modes:["Valeur"],rows:usageRows(),tag:["new","nouvelle"],
         note:["La table des emplois en variables : 20 usages par palette, sur quatre rangs d’état, avec les noms du code d’UCM Palettes. Chaque usage vise une nuance de theme, la même pour toutes les marques.","Chaque usage n’apparaît que dans les sélecteurs de ce qu’il peint : texte, remplissage ou contour. "+lnk("d13")+" · "+lnk("d14")+" · "+lnk("d16")]},
       {id:"theme",info:"2 modes · 124 variables",modes:["light","dark"],rows:themeRows(),tag:["new","nouvelle"],
         note:["Le seul endroit où le thème se choisit. Chaque nuance vise la même nuance en version light et en version dark ; aucune valeur ne se choisit ici. Portées vides : theme n’apparaît dans aucun sélecteur de calque.","En dark, les numéros s’inversent : 50 est le fond, le plus sombre ; 700 reste une couleur de texte lisible. Le groupe elevation vise color-utilities, où ses valeurs se choisissent. "+lnk("d2")+" · "+lnk("d15")]},
       {id:"brand",info:"1 mode par marque · 45 variables",modes:["intencial","marque-2","marque-3","… jusqu’à 6"],newCol:2,rows:brandRows(),tag:["mod","ex-color-brand-tokens"],
         note:["color-brand-tokens renommée. Chaque colonne choisit les palettes de sa marque dans primitives, par alias. identity/primary garde la couleur de charte.","Les 10 rôles sont supprimés. La colonne marque-3 montre l’ajout d’une marque : une colonne, aucune variable. "+lnk("d3")+" · "+lnk("d4")+" · "+lnk("d9")]},
-      {id:"color-utilities",info:"aucun mode · 204 variables",modes:["Valeur"],rows:utilRows(),tag:["prop","conservée, modifiée"],
+      {id:"color-utilities",info:"aucun mode · 204 variables",modes:["Valeur"],rows:utilRows(),tag:["mod","conservée, modifiée"],
         note:["Les rôles communs à toutes les marques. Chaque statut existe en soft et vivid, en light et dark ; le neutre en light et dark.","info vise maintenant blue : il ne partage plus sky avec la palette principale de marque-2. Les niveaux d’élévation choisissent leur valeur claire et leur valeur sombre séparément. "+lnk("d6")+" · "+lnk("d8")+" · "+lnk("d15")]},
-      {id:"primitives",info:"aucun mode · 464 couleurs pour 6 marques",modes:["Valeur"],rows:primRows(),tag:["prop","conservée, modifiée"],
+      {id:"primitives",info:"aucun mode · 464 couleurs pour 6 marques",modes:["Valeur"],rows:primRows(),tag:["mod","conservée, modifiée"],
         note:["Le catalogue des palettes, sous leur nom. Chacune reçoit une version light et une version dark, recalculées sur la courbe commune. Sous une valeur recalculée, la valeur d’aujourd’hui.","Dimensions et typographie inchangées. "+lnk("d5")+" · "+lnk("d7")+" · "+lnk("d10")]},
       {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke","inchangé"),M("31 dimensions")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
       {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label","inchangé"),M("60 variables de texte")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},

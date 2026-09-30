@@ -52,7 +52,7 @@ suivante.
 
 ## Phase 1 : les documents d'autorité
 
-- [ ] **A0.1 à A0.11** ARCHITECTURE-FINALE, `verifier-courbes.mjs`, la vue
+- [x] **A0.1 à A0.11** ARCHITECTURE-FINALE, `verifier-courbes.mjs`, la vue
   illustrée et `docs/README.md`, comme le plan d'intégration les décrit.
 - [ ] **A2.1, A2.2, A2.3, A2.10** Spécification d'UCM Palettes : dix-neuf
   paires, 400 et 950 obligatoires, format 7 sans conversion, préréglages 11 et

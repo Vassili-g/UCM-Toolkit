@@ -100,43 +100,43 @@ Un lot se termine quand ses cases sont cochées et que `npm test`,
 
 ## Lot A0 : les documents d'autorité
 
-- [ ] **A0.1** ARCHITECTURE-FINALE, section 1 : la table des préréglages perd
+- [x] **A0.1** ARCHITECTURE-FINALE, section 1 : la table des préréglages perd
   la ligne 9. Écrire que 400 et 950 sont obligatoires, et pourquoi : le
   quatrième rang les vise (D17). La 500 reste la seule nuance sans emploi.
-- [ ] **A0.2** ARCHITECTURE-FINALE, section 2, table des collections : six
+- [x] **A0.2** ARCHITECTURE-FINALE, section 2, table des collections : six
   collections de couleur au lieu de quatre, avec le contenu et les modes de la
   vue illustrée. `primitives` porte `colors/{palette}/{light|dark}/{nuance}`,
   le segment d'intensité pour une palette à deux intensités, `colors/white`,
   `colors/black`, les dimensions et la typographie (D5, D10).
-- [ ] **A0.3** ARCHITECTURE-FINALE, section 2, « Le chemin d'une couleur » :
+- [x] **A0.3** ARCHITECTURE-FINALE, section 2, « Le chemin d'une couleur » :
   remplacer `primitives.success.soft.light.700` par la chaîne
   `color-utilities.success.soft.light.700` vers
   `primitives.colors.grass.soft.light.700`, et
   `brand.palette.primary.dark.700` par son alias vers une palette du catalogue
   (D5, D6).
-- [ ] **A0.4** ARCHITECTURE-FINALE, « Ce que `theme` expose » : 124 variables,
+- [x] **A0.4** ARCHITECTURE-FINALE, « Ce que `theme` expose » : 124 variables,
   dont 3 niveaux d'élévation ; les cibles du neutre et des statuts sont dans
   `color-utilities` (D2, D6, D15).
-- [ ] **A0.5** ARCHITECTURE-FINALE, nouvelle section « `usage` » : les 20
+- [x] **A0.5** ARCHITECTURE-FINALE, nouvelle section « `usage` » : les 20
   usages par palette, les 3 usages du neutre (`text-strong`, `text-disabled`,
   `fill-disabled`), les 3 niveaux d'élévation, les portées par emploi, la règle
   des nuances hors table (D13, D14).
-- [ ] **A0.6** ARCHITECTURE-FINALE, section 4 : la table des emplois prend le
+- [x] **A0.6** ARCHITECTURE-FINALE, section 4 : la table des emplois prend le
   quatrième rang, ses minimums (13,66 ; 6,61 ; 5,32) et la table de l'état
   d'un composant vers son rang (D17).
-- [ ] **A0.7** ARCHITECTURE-FINALE, nouvelle section « L'élévation » : les
+- [x] **A0.7** ARCHITECTURE-FINALE, nouvelle section « L'élévation » : les
   valeurs de la vue illustrée, les mesures (4,88 et 3,41 sur la nuance 100 ;
   4,23 et 2,96 sur la 200), les ombres en effect styles (D15).
-- [ ] **A0.8** ARCHITECTURE-FINALE, sections 6 à 8 : les variables CSS
+- [x] **A0.8** ARCHITECTURE-FINALE, sections 6 à 8 : les variables CSS
   `--usage-*`, le coût d'une marque avec les alias de `brand`, les points
   encore ouverts de ce plan.
-- [ ] **A0.9** `verifier-courbes.mjs`, sections 5 et 9 : mesurer les trois
+- [x] **A0.9** `verifier-courbes.mjs`, sections 5 et 9 : mesurer les trois
   paires du quatrième rang et les paires sur les niveaux d'élévation, pour que
   chaque nombre des points A0.6 et A0.7 se rejoue. Le calcul de la vue
   illustrée, à teinte constante, redonne les minimums publiés à 0,04 près.
-- [ ] **A0.10** La vue illustrée : les badges « Nouvelle décision » et
+- [x] **A0.10** La vue illustrée : les badges « Nouvelle décision » et
   l'encadré des écarts disparaissent une fois ARCHITECTURE-FINALE réécrite.
-- [ ] **A0.11** [docs/README.md](../../../README.md) : une ligne pour ce plan ;
+- [x] **A0.11** [docs/README.md](../../../README.md) : une ligne pour ce plan ;
   la ligne d'ARCHITECTURE-FINALE nomme les six collections.
 
 ## Lot A1 : le vocabulaire commun dans le kit, et le moteur `ucm-couleur`
