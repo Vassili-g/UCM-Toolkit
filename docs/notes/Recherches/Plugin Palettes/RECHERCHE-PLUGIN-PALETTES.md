@@ -989,7 +989,10 @@ toutes les nuances : ses cases ne sont pas des promesses.
   l'empreinte du modèle de planche de ce cadre (`[ARC-07]`) au moment du
   dessin. Elle se calcule sur le modèle privé du texte qui l'affiche dans
   l'en-tête. Une empreinte de la recette entière périmerait tous les cadres dès
-  qu'une seule palette change.
+  qu'une seule palette change. Le sandbox la range et l'interface la
+  recalcule, dans deux moteurs JavaScript dont `**` ne rend pas le même
+  dernier bit : les composantes Display P3 du modèle s'arrondissent au
+  millionième.
 - `[PLA-20]` À l'ouverture et après chaque rangement de la recette, le plugin
   recalcule le modèle de chaque cadre et compare son empreinte à celle du
   cadre. Un écart classe le cadre « À actualiser » dans l'interface, avec le

@@ -245,7 +245,12 @@ test('section 6.7 : la peinture suit le profil du document', () => {
   const bleu = couleur('#1E6FD9');
   assert.deepEqual(peinture(bleu, 'SRGB').composantes, [30 / 255, 111 / 255, 217 / 255]);
   assert.deepEqual(peinture(bleu, 'LEGACY').composantes, [30 / 255, 111 / 255, 217 / 255]);
-  assert.deepEqual(peinture(bleu, 'DISPLAY_P3').composantes, [...rgb8VersP3(bleu)]);
+  // Au millionième : le dernier bit de `**` change d'un moteur à l'autre, et l'empreinte du cadre le lirait ([PLA-19]).
+  const composantes = peinture(bleu, 'DISPLAY_P3').composantes;
+  composantes.forEach((composante, rang) => {
+    assert.equal(composante, Math.round(composante * 1e6) / 1e6, `composante ${rang} au millionième`);
+    assert.ok(Math.abs(composante - rgb8VersP3(bleu)[rang]) <= 5e-7, `composante ${rang} en P3`);
+  });
   const p3 = modeleDeCadre(RECETTE, BLEU, 'DISPLAY_P3');
   assert.equal(p3.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1', 'l’hexa annoncé ne change pas');
 });

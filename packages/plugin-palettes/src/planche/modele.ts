@@ -173,10 +173,18 @@ const USAGES: readonly Emploi[] = ['surface-card', 'surface', 'text', 'solid', '
 /** Les états d'un emploi, dans le vocabulaire des composants (W3.6), rangés par décalage. */
 export const ETATS = ['default', 'hover', 'active'] as const;
 
+/**
+ * Une composante P3 arrondie au millionième. `**` ne rend pas le même dernier bit d'un moteur JavaScript à
+ * l'autre : Node 22 et 24, Linux et Windows donnent trois résultats. Le sandbox range l'empreinte et l'iframe la
+ * recalcule ([PLA-19]) : sans l'arrondi, un cadre P3 resterait « À actualiser ». Figma range un flottant
+ * de 32 bits, plus grossier que le millionième.
+ */
+const auMillionieme = (composante: number): number => Math.round(composante * 1e6) / 1e6;
+
 /** Peint une couleur à 8 bits dans l'espace du document (section 6.7, [MOT-25]). */
 export function peinture(couleur: Rgb8, profil: ProfilDuDocument): Peinture {
   const composantes = profil === 'DISPLAY_P3'
-    ? rgb8VersP3(couleur)
+    ? rgb8VersP3(couleur).map(auMillionieme)
     : [couleur[0] / 255, couleur[1] / 255, couleur[2] / 255] as const;
   return { hexa: ecrireHexa(couleur), composantes: [composantes[0], composantes[1], composantes[2]] };
 }
