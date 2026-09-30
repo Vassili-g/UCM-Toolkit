@@ -21,7 +21,7 @@ l'ordre.
 **Statut.** Ce document ne décide rien. La
 [spécification](../RECHERCHE-PLUGIN-PALETTES.md) reste l'autorité sur le
 comportement du plugin, en particulier sa [section 6.4](../RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
-et sa [section 12](../RECHERCHE-PLUGIN-PALETTES.md#12-léditeur-de-dérive). Les
+et sa [section 12](../RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift). Les
 décisions validées la modifient d'abord, au lot 0.
 
 **Les fichiers.**

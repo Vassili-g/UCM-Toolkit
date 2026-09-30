@@ -125,7 +125,7 @@ clarté, et le designer règle deux dérives en degrés, une par bout. Un
 préréglage Tailwind calcule ces deux dérives, et un éditeur graphique les
 règle en direct ([sections 6.4](./RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran),
 [6.5](./RECHERCHE-PLUGIN-PALETTES.md#65-le-préréglage-tailwind) et
-[12](./RECHERCHE-PLUGIN-PALETTES.md#12-léditeur-de-dérive)). Pour une référence
+[12](./RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift)). Pour une référence
 située dans la rampe, le préréglage rend au centième de degré les teintes de la
 formule à deux teintes.
 

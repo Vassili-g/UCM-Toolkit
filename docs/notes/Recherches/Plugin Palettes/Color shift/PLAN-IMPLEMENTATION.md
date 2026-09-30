@@ -54,26 +54,26 @@ suivante.
 
 - [x] **A0.1 à A0.11** ARCHITECTURE-FINALE, `verifier-courbes.mjs`, la vue
   illustrée et `docs/README.md`, comme le plan d'intégration les décrit.
-- [ ] **A2.1, A2.2, A2.3, A2.10** Spécification d'UCM Palettes : dix-neuf
+- [x] **A2.1, A2.2, A2.3, A2.10** Spécification d'UCM Palettes : dix-neuf
   paires, 400 et 950 obligatoires, format 7 sans conversion, préréglages 11 et
   13, vocabulaire commun dans le kit.
-- [ ] **S1** Spécification, section 6.4 : le poids d'une nuance, les trois
+- [x] **S1** Spécification, section 6.4 : le poids d'une nuance, les trois
   grandeurs, la lecture du poids sur la clarté de la courbe (étude, section 4).
   `teinteA` reste l'autorité de la teinte.
-- [ ] **S2** Spécification, section 7 : la dérive rangée du format 7 porte
+- [x] **S2** Spécification, section 7 : la dérive rangée du format 7 porte
   `saturation` et `clarte`, facultatifs, zéro quand ils manquent ; leurs
   bornes et leurs arrondis ; `derive-lien` compare les trois grandeurs ;
   `origine` ne mesure que la teinte.
-- [ ] **S3** Spécification, section 12 renommée « Le Color shift » : onglets,
+- [x] **S3** Spécification, section 12 renommée « Le Color shift » : onglets,
   graphe à trois unités, rails, réglettes à zones interdites, ligne de la
   plage sûre, cas limites, limites dynamiques et leur cause (étude, sections 5
   et 6). Garder les numéros `[DER-xx]` qui restent vrais ; un comportement
   nouveau prend un numéro libre.
-- [ ] **S4** Spécification, section 13 : la carte « Réglage global » et ses
+- [x] **S4** Spécification, section 13 : la carte « Réglage global » et ses
   limites (décision Q6) ; le titre de section « Ajuster la palette » ; un
   glyphe par carte ; les six règles de la mise en page stable (étude,
   section 7.2) ; le pied et le volet.
-- [ ] **S5** [TEXTES-A-VALIDER.md](../TEXTES-A-VALIDER.md) : chaque texte
+- [x] **S5** [TEXTES-A-VALIDER.md](../TEXTES-A-VALIDER.md) : chaque texte
   nouveau, en anglais et en français, dont « Color shift » dans les deux
   langues et « Réglage global ».
 

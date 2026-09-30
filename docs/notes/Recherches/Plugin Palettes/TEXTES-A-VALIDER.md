@@ -275,6 +275,74 @@ Lignes simples, sans les trois parties :
 | Import invalide | Import, {fichier} | {n} champs sont invalides ; le premier : {refus}. La recette du fichier reste intacte. | Corrigez le fichier, puis importez-le de nouveau. |
 | Import futur | Import, {fichier}, version {version} | Ce plugin lit la version {courante} : la recette du fichier reste intacte. | Mettez UCM Palettes à jour, puis importez de nouveau ce fichier. |
 
+## Textes du Color shift et de la mise en page stable
+
+Ces textes viennent de l'[étude du Color shift](./Color%20shift/ETUDE-COLOR-SHIFT.md)
+et des sections 12 et 13 de la [spécification](./RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift).
+Le français est la rédaction de référence ; l'anglais le traduit phrase par
+phrase. « Color shift » garde son nom dans les deux langues (décision Q1).
+
+### Cartes et section
+
+| Texte | Français | Anglais | Retenue |
+|---|---|---|---|
+| Titre de section | Ajuster la palette | Adjust the palette | |
+| Phrase de la section | Le réglage global déplace toute la rampe. Le Color shift écarte ensuite les nuances claires et sombres de la référence, qui ne bouge pas. | The global adjustment moves the whole ramp. The Color shift then spreads the light and dark shades away from the reference, which stays fixed. | |
+| Carte globale | Réglage global | Global adjustment | |
+| Sous-titre de la carte globale | Teinte, saturation et luminosité de toute la rampe | Hue, saturation and lightness of the whole ramp | |
+| Pied de la carte globale | Le Color shift s'applique ensuite, autour de la référence. | The Color shift applies next, around the reference. | |
+| Carte du Color shift | Color shift | Color shift | |
+| Sous-titre du Color shift | Nuances claires et sombres, autour de la référence ◆ | Light and dark shades, around the reference ◆ | |
+| Aide du Color shift | Chaque nuance s'écarte en proportion de sa distance à la référence. Les zones hachurées feraient manquer une garantie de contraste. | Each shade moves in proportion to its distance from the reference. Hatched zones would break a contrast guarantee. | |
+| Résumé replié | Tailwind · Teinte {clair} / {sombre} · Saturation {clair} / {sombre} · synchronisé | Tailwind · Hue {light} / {dark} · Saturation {light} / {dark} · synced | |
+
+### Réglages du Color shift
+
+| Texte | Français | Anglais | Retenue |
+|---|---|---|---|
+| Onglets | Teinte · Saturation · Luminosité | Hue · Saturation · Lightness | |
+| Bouts | Nuances claires · Nuances sombres | Light shades · Dark shades | |
+| Préréglage | Teinte Tailwind · Teinte constante · Personnalisé | Tailwind hue · Constant hue · Custom | |
+| Synchronisation | Synchroniser Soft et Vivid | Sync Soft and Vivid | |
+| Gestes | Tailwind · Rétablir · Tout rétablir | Tailwind · Reset · Reset all | |
+| Confirmation du lien | Aligner Soft sur Vivid ? Le Color shift de Soft sera remplacé par celui de Vivid : teinte, saturation et luminosité. | Align Soft with Vivid? Soft's Color shift will be replaced by Vivid's: hue, saturation and lightness. | |
+| Plage sûre | Plage sûre · nuances claires {bas} à {haut} · nuances sombres {bas} à {haut} | Safe range · light shades {low} to {high} · dark shades {low} to {high} | |
+| Butée sur une garantie | {Grandeur}, {bout} : limite atteinte à {borne}. Au-delà, {paire} ({profil}, {thème}) tomberait à {contraste}, sous {minimum}. | {Quantity}, {end}: limit reached at {bound}. Beyond it, {pair} ({profile}, {theme}) would drop to {contrast}, below {minimum}. | |
+| Butée sur l'ordre | {Grandeur}, {bout} : limite atteinte à {borne}. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité. | {Quantity}, {end}: limit reached at {bound}. Beyond it, two neighboring shades would come closer than 0.01 in lightness. | |
+| Hors de la plage | {Bout} hors de la plage sûre : un autre réglage l'a resserrée. | {End} outside the safe range: another setting narrowed it. | |
+| Palette grise | Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable. | This palette is entirely gray: hue and saturation don't show. Lightness remains adjustable. | |
+| Légende des arcs | trait plein : default · tireté : hover · pointillé : active · tiret-point : active-hover | solid: default · dashed: hover · dotted: active · dash-dot: active-hover | |
+
+### Lignes fixes, pied et volet
+
+| Texte | Français | Anglais | Retenue |
+|---|---|---|---|
+| État neutre du réglage global | Ce réglage ne touche pas la couleur de référence. | This setting doesn't change the reference color. | |
+| État neutre de la référence | Couleur de référence employée telle quelle. | Reference color used as is. | |
+| Pied, tout tenu | {n} garanties tenues · aucune alerte | {n} guarantees met · no alerts | |
+| Pied, manques | {m} garanties manquées sur {n} · {k} alertes | {m} of {n} guarantees missed · {k} alerts | |
+| Pied, palette libre | Palette libre · {k} alertes | Free palette · {k} alerts | |
+| Geste du pied | Détails | Details | |
+| Titre du volet | Garanties et alertes | Guarantees and alerts | |
+| Groupes du volet | Garanties manquées · {n} · Alertes · {n} · Aucune. | Missed guarantees · {n} · Alerts · {n} · None. | |
+| Fermeture du volet | Fermer | Close | |
+
+Le singulier suit chaque compte : « 1 garantie manquée sur 76 · 1 alerte »,
+« 1 of 76 guarantees missed · 1 alert ».
+
+### Refus de validation du format 7
+
+| Règle | Français | Anglais | Retenue |
+|---|---|---|---|
+| `derive-saturation` | {champ} : décalage de saturation {valeur}, hors de −1 à 1. | {field}: saturation shift {value}, outside −1 to 1. | |
+| `derive-clarte` | {champ} : décalage de luminosité {valeur}, hors de −0,15 à 0,15. | {field}: lightness shift {value}, outside −0.15 to 0.15. | |
+| `derive-nulle` | {champ} : les deux décalages valent zéro ; retirez l'objet. | {field}: both shifts are zero; remove the object. | |
+| `derive-lien` | {palette} : profils liés, mais Color shift différents. | {palette}: linked profiles, but different Color shifts. | |
+
+Libellés de l'écart d'un import : « Color shift, teinte », « Color shift,
+saturation », « Color shift, luminosité » ; « Color shift, hue », « Color
+shift, saturation », « Color shift, lightness ».
+
 ## Questions pour le mainteneur
 
 - La notice « Référence plus vive que vivid » n'a de geste que si la rampe doit

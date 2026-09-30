@@ -200,17 +200,17 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
 
 ## Lot A2 : UCM Palettes
 
-- [ ] **A2.1** Spécification, section 11.2 : dix-neuf paires ; la table des
+- [x] **A2.1** Spécification, section 11.2 : dix-neuf paires ; la table des
   paires et celle des associations prennent `active-hover` ; les comptes
   deviennent 76 paires pour une palette à deux intensités (68 sans la 50) et 38
   pour une intensité (34 sans la 50).
-- [ ] **A2.2** Spécification, `[VER-05]` et `[REC-05]` : les nuances visées
+- [x] **A2.2** Spécification, `[VER-05]` et `[REC-05]` : les nuances visées
   comptent 400 et 950 ; une liste qui les omet est refusée. La section 7.3
   (rangement et version) dit qu'une recette d'un format antérieur est refusée,
   sans conversion (réponse R2).
-- [ ] **A2.3** Spécification, sections 7 (format 7 de la recette) et des
+- [x] **A2.3** Spécification, sections 7 (format 7 de la recette) et des
   préréglages : 11 et 13 nuances seulement.
-- [ ] **A2.10** Spécification, décision D7 : le moteur reste dans
+- [x] **A2.10** Spécification, décision D7 : le moteur reste dans
   `ucm-couleur` ; le vocabulaire commun (emplois, paires, rangs, contraste
   WCAG) est dans `@ucm-kit/core/emplois` (réponse R1). `[ARC-01]` et
   `[ARC-04]` suivent.

@@ -494,7 +494,7 @@ la galerie présent ; protocole passé.
 
 ## Lot 5 : éditeur de dérive
 
-Spécification : [section 12](./RECHERCHE-PLUGIN-PALETTES.md#12-léditeur-de-dérive),
+Spécification : [section 12](./RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift),
 avec D-C, E20 et E21.
 
 ### 5a : géométrie et dessin

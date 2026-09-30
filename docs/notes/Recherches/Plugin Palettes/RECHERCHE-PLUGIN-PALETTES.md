@@ -35,7 +35,7 @@ critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md).
 | `MOT` | Moteur de couleur, sans Figma |
 | `REC` | Recette : contenu, rangement, version |
 | `ENT` | Entrées du designer |
-| `DER` | Éditeur de la dérive de teinte |
+| `DER` | Le Color shift : sa carte et ses limites |
 | `PLA` | Planche : les palettes dessinées dans Figma |
 | `VER` | Vérifications et alertes |
 | `ARC` | Architecture du code et réemploi |
@@ -52,9 +52,12 @@ critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md).
 | Profil | `soft` ou `vivid` : la part de la vivacité maximale que l'écran affiche, 0,45 ou 0,95 par défaut |
 | Intensité | Une rampe par mode qu'une palette porte : `soft` et `vivid` pour une palette à deux intensités, la rampe unique, sans nom de profil, pour une palette à une intensité (`[ENT-14]`) |
 | Mode | `light` ou `dark` : la courbe de clarté employée |
-| Dérive de teinte | La rotation de teinte, en degrés, entre la couleur de référence et chaque bout de la rampe |
+| Color shift | Les décalages de teinte, de saturation et de luminosité à chaque bout de la rampe, autour de la couleur de référence (`[MOT-30]`). La recette les range sous `derive`, et le code garde ce nom |
+| Dérive de teinte | Le décalage de teinte du Color shift, en degrés, entre la couleur de référence et chaque bout de la rampe |
+| Poids d'une nuance | 0 à la clarté du pivot, 1 au bout de la rampe, linéaire entre les deux : la fraction du réglage d'un bout que la nuance reçoit (`[MOT-30]`) |
 | Fond de référence | L'hexa contre lequel se mesurent les contrastes d'un mode |
-| Emploi | Un usage d'un cran, `text` ou `solid` par exemple. La table des emplois de l'architecture lui fixe un cran, et un cran par état |
+| Emploi | Un usage d'un cran, `text` ou `solid` par exemple. La table des emplois de l'architecture lui fixe un cran, et un cran par rang |
+| Rang | `default`, `hover`, `active` ou `active-hover` : le nombre de crans, de 0 à 3, dont un membre de paire avance. Un rang nomme un cran de la paire, pas une interaction |
 | Recette | Tous les nombres qui fabriquent les palettes du fichier |
 | Planche | Les cadres que le plugin dessine dans Figma |
 | Profil porteur | Le profil dont les rampes contiennent la couleur de référence exacte, dans les deux modes (`[MOT-17]`). Une palette à une intensité n'en a pas : sa rampe unique contient la référence |
@@ -75,10 +78,10 @@ aussi.
 | D1 | Plugin séparé d'UCM Exporter, dans ce monorepo | UCM Exporter garde sa garantie : l'analyse et la publication n'écrivent jamais dans le document |
 | D2 | Le résultat est une planche : des cadres Figma qui dessinent chaque palette et ses informations | Le plugin ne crée ni ne modifie aucune variable. Créer les variables est une option ultérieure ([section 17](#17-option-ultérieure--créer-les-variables)) |
 | D3 | L'unité est la palette, sans notion de marque ni de famille | Le plugin ne nomme jamais une couleur `primary` ou `danger` ; le nom éventuel vient du designer |
-| D4 | La dérive se règle en degrés aux deux bouts, autour de la couleur de référence | La couleur de référence et sa teinte restent fixes ; les autres crans suivent le réglage en direct |
-| D5 | Un préréglage « Tailwind » calcule les deux dérives depuis le relevé des rampes Tailwind | Reproduire le comportement de Tailwind tient en un clic |
+| D4 | Le Color shift règle la teinte, la saturation et la luminosité aux deux bouts, autour de la couleur de référence | La couleur de référence reste fixe ; les autres crans suivent le réglage en direct, dans des limites qui gardent les garanties tenues ([section 12](#12-le-color-shift)) |
+| D5 | Un préréglage « Tailwind » calcule les deux dérives de teinte depuis le relevé des rampes Tailwind | Reproduire le comportement de Tailwind tient en un clic. La saturation et la luminosité n'ont pas de préréglage |
 | D6 | Le plugin n'a aucun accès réseau | La recette exportée se range à la main dans un dépôt |
-| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source | Le plugin et ses tests emploient le même code. Le moteur entre dans le kit le jour où un lecteur de `tokens.json` en a besoin, avec une montée de version du kit |
+| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source. Le vocabulaire qu'UCM Palettes, l'architecture et `ucm check` partagent, emplois, paires, rangs et contraste WCAG 2, est dans le point d'entrée `@ucm-kit/core/emplois` du kit publié | Le plugin, ses tests et `ucm check` jugent sur la même table et le même arrondi. `ucm-couleur` importe ce vocabulaire ; la fabrication des palettes, la recette et ses formats restent hors du kit |
 | D8 | Les contrastes se mesurent contre deux fonds de référence saisis, un clair et un sombre | Le plugin ne fabrique pas de rampe neutre |
 | D9 | Les emplois forment une table fixe, celle de l'architecture, commune à toutes les palettes | Le designer voit quel cran sert à quoi et si la promesse tient. Aucune palette ne relie un emploi à un autre cran, et la recette ne porte aucun câblage |
 | D10 | La recette rangée dans le fichier Figma fait autorité ; le JSON exporté en est une copie | Un import de JSON est un geste explicite, précédé de l'écart |
@@ -101,7 +104,7 @@ paramètre de la recette.
 | Q4 | Gamut de fabrication | sRGB, tranché par l'architecture, qui écarte Display P3 | Recette, `gamut`, qui n'accepte que `srgb` |
 | Q5 | Fonds de référence | `#F7F7F7` en clair, `#121212` en sombre : le gris de clarté 0,975 et 0,18 | Recette, `fonds` |
 | Q6 | Profil vérifié par les promesses | Les deux, `soft` et `vivid` | Aucun endroit : la table des emplois vaut pour les deux profils |
-| Q7 | Dérive d'une palette nouvelle | Préréglage Tailwind | Réglage de la palette |
+| Q7 | Color shift d'une palette nouvelle | Teinte du préréglage Tailwind, saturation et luminosité à zéro | Réglage de la palette |
 
 Les courbes et les parts de chroma sont des choix visuels : l'architecture les
 a fixées en comparant des rampes à l'écran, sans règle qui les impose. Elles se
@@ -113,7 +116,7 @@ planche.
 Le plugin fait :
 
 - fabriquer, pour chaque palette, ses quatre rampes ;
-- régler la dérive de teinte aux deux bouts, avec un aperçu en direct ;
+- régler le Color shift aux deux bouts, avec un aperçu en direct et des limites qui gardent les garanties tenues ;
 - mesurer les contrastes de chaque cran contre les fonds de référence ;
 - vérifier les promesses de la table des emplois ;
 - signaler les alertes ;
@@ -178,10 +181,13 @@ dans l'iframe du plugin et dans le sandbox Figma.
 Pour une palette, une intensité, un mode et un cran d'indice `i` :
 
 ```text
-L = courbes[mode][i]
-H = teinte(L)                       section 6.4
-C = part(intensité) × facteur(mode, L) × plafond(L, H, gamut)   [MOT-28]
-rgbLinéaire = oklchVersSrgbLinéaire(L, C, H)
+L  = courbes[mode][i]
+w  = poids(L)                       section 6.4
+H  = teinte(L)                      section 6.4
+Lf = clamp(L + clarte[p] + clarté(w), 0, 1)              [MOT-29], [MOT-30]
+q  = clamp(part(intensité) × (1 + saturation(w)), 0, 1)  [MOT-30]
+C  = q × facteur(mode, L) × plafond(Lf, H, gamut)        [MOT-28]
+rgbLinéaire = oklchVersSrgbLinéaire(Lf, C, H)
 rgb8 = round(255 × encoder(clamp(rgbLinéaire, 0, 1)))   par canal
 hexa = format(rgb8)
 ```
@@ -196,14 +202,13 @@ hexa = format(rgb8)
   sombre 700 partagent 0,670. L'ancrage peut rompre cette égalité, puisque la
   référence ne remplace qu'un cran par mode.
 - `[MOT-13]` Une palette de 44 crans se calcule en moins de 5 ms dans
-  l'interface, pour que l'éditeur de dérive suive le pointeur.
+  l'interface, pour que le Color shift suive le pointeur.
 - `[MOT-28]` Les fonds du thème Dark perdent de la part. `facteur` vaut 1 en
   `light` ; en `dark`, il vaut `intensiteDesFondsSombres` (0,30 par défaut)
   jusqu'à la clarté `L50`, puis remonte linéairement en clarté jusqu'à 1 à
   `L400`, et au-delà. `L50` et `L400` sont les clartés Dark des numéros 50 et
-  400 de la liste commune, ou celles de la courbe par défaut des onze nuances
-  quand la liste ne porte pas le numéro : passer à neuf nuances, qui retire le
-  400, ne change aucune couleur gardée. Le facteur se lit sur la clarté que la
+  400 de la liste commune ; une liste importée sans 50 prend celle de la
+  courbe par défaut des onze nuances. Le facteur se lit sur la clarté que la
   courbe vise. Il vaut pour chaque intensité, et pour les palettes libres par
   leur clarté. La référence exacte garde ses octets (`[MOT-17]`). Les accents,
   400 et au-delà, gardent leur part, et le thème `light` ne change pas.
@@ -219,7 +224,7 @@ La couleur de référence a une clarté `La` et une teinte `Ha`. Elle est le piv
 à la clarté `La`, la teinte vaut `Ha`, quelle que soit la dérive. Les deux bouts
 sont les clartés des numéros 50 et 950 sur la courbe claire, `Lc` et `Ls`, soit
 0,975 et 0,270. Lus à ces numéros et non aux extrémités de la liste, ils ne
-bougent pas quand treize nuances ajoutent 1000 et 1050 ; une liste sans 950 le
+bougent pas quand treize nuances ajoutent 1000 et 1050 ; une palette libre sans 950 le
 calcule par la règle de la luminosité d’un numéro ([conception
 W6](./CONCEPTION-NUANCES-ET-FORMAT-3.md#luminosité-dun-numéro)). Le designer règle deux angles signés : `dClair`, la dérive au
 bout clair, et `dSombre`, la dérive au bout sombre.
@@ -232,16 +237,23 @@ sinon     : v = clamp((La − L) / (La − Ls), 0, 1)    v = 1 si La ≤ Ls
 normaliser(h) = ((h mod 360) + 360) mod 360
 ```
 
-- `[MOT-14]` Une clarté hors de `[Ls, Lc]` prend la dérive entière du bout le
-  plus proche. La courbe sombre descend à 0,18 : ses crans 50 et 100 prennent
-  `dSombre` entier.
-- `[MOT-15]` Une dérive se borne à `[-90, 90]` degrés. Une dérive positive
-  tourne dans le sens des teintes croissantes : du bleu vers le violet, du
-  jaune vers le vert.
-- `[MOT-16]` Chaque profil a sa propre dérive. Par défaut, `soft` et `vivid`
-  partagent la même ([section 12](#12-léditeur-de-dérive)). Une palette à une
-  intensité garde ses deux dérives liées, donc égales, et sa rampe unique lit
-  celle de `vivid`.
+`u` et `v` sont le poids de la nuance, `w` en section 6.3 : 0 à la clarté du
+pivot, 1 au bout, linéaire entre les deux. La teinte n'est que la première des
+trois grandeurs du Color shift, qui lisent toutes ce poids (`[MOT-30]`).
+`poidsA` (`packages/couleur/src/rampe.ts`) calcule le poids, et `teinteA`
+reste l'autorité de la teinte.
+
+- `[MOT-14]` Une clarté hors de `[Ls, Lc]` prend le poids 1 du bout le plus
+  proche, pour les trois grandeurs. La courbe sombre descend à 0,18 : ses crans
+  50 et 100 prennent `dSombre` entier.
+- `[MOT-15]` Une dérive de teinte se borne à `[-90, 90]` degrés. Une dérive
+  positive tourne dans le sens des teintes croissantes : du bleu vers le
+  violet, du jaune vers le vert. Un décalage de saturation se borne à
+  `[-1, 1]`, un décalage de luminosité à `[-0,15, +0,15]`.
+- `[MOT-16]` Chaque profil a son propre Color shift, trois grandeurs aux deux
+  bouts. Par défaut, `soft` et `vivid` partagent le même
+  ([section 12](#12-le-color-shift)). Une palette à une intensité garde les
+  deux liés, donc égaux, et sa rampe unique lit celui de `vivid`.
 - `[MOT-29]` Une palette peut porter des réglages de teinte, de saturation et
   de luminosité (`reglages`, section 7.1, `[ENT-15]`). Leur départ `S` vaut
   `reglages.depart`, sinon `originale`, quand un réglage du porteur existe ;
@@ -254,6 +266,29 @@ normaliser(h) = ((h mod 360) + 360) mod 360
   change pas. Sans réglage, le pivot est la référence et les crans sont ceux
   de la version 4 de la recette, à l'octet. `pivotDe` et `decalageDe`
   (`packages/couleur/src/palette.ts`) en sont l'autorité.
+- `[MOT-30]` Le Color shift décale trois grandeurs, avec un réglage par bout.
+  Une nuance de poids `w` reçoit le réglage du bout que sa clarté regarde :
+  le bout clair quand `L ≥ La`, le bout sombre sinon.
+
+  | Grandeur | Réglage au bout | Effet sur une nuance de poids `w` |
+  |---|---|---|
+  | Teinte | `d`, en degrés signés | `Ha + d × w`, la section 6.4 |
+  | Saturation | `s`, fraction signée de la part du profil | part × (1 + `s × w`), bornée à `[0, 1]` |
+  | Luminosité | `c`, décalage de clarté OKLCH | `L + clarte[p] + c × w`, bornée à `[0, 1]` |
+
+  Le poids, la teinte et le facteur des fonds (`[MOT-28]`) se lisent sur la
+  clarté `L` que la courbe vise, jamais sur la clarté décalée. « Nuances
+  claires » désigne donc les nuances claires des deux thèmes : le 50 du
+  thème Light et le 950 du thème Dark prennent le réglage du bout clair. Au
+  pivot, le poids est nul et aucune grandeur ne décale la nuance ; le cran
+  porteur garde en plus les octets de la référence (`[MOT-17]`). La luminosité
+  réglée au bout incline la courbe autour du pivot, là où `clarte[p]` la
+  translate : la transformation est affine de chaque côté du pivot et garde
+  l'ordre des nuances tant que la limite de `[DER-19]` tient. Une part nulle
+  reste nulle sous toute saturation : une palette grise reste grise. Sans
+  saturation ni luminosité, les rampes sont celles de la teinte seule, à
+  l'octet. `poidsA`, `teinteA` et `fabriquerRampe`
+  (`packages/couleur/src/rampe.ts`) en sont l'autorité.
 - `[MOT-17]` La couleur de référence ne se recalcule jamais : ses octets
   entrent tels quels dans les rampes de son intensité porteuse, un cran par
   mode : la rampe unique d'une palette à une intensité (`[ENT-14]`), le
@@ -348,8 +383,9 @@ dérive du côté sombre, une référence foncée du côté clair.
 - `[MOT-20]` La recette garde les deux angles retenus et le nom du préréglage
   dont ils viennent, `tailwind`, `constante` ou `libre`. Elle ne garde jamais la
   formule : un relevé modifié ne change pas une palette déjà réglée.
-- `[MOT-27]` Un angle se range au centième de degré et une part de chroma au
-  millième, arrondis au moment où ils sont posés :
+- `[MOT-27]` Un angle et un décalage de saturation se rangent au centième,
+  une part de chroma et un décalage de luminosité au millième, arrondis au
+  moment où ils sont posés :
   `arrondir(x, n) = signe(x) × round(|x| × 10ⁿ) / 10ⁿ`, symétrique en signe. Le
   préréglage rend la valeur arrondie, et « Libre » se décide en comparant des
   valeurs arrondies. Pour `#1E6FD9`, arrondir les deux angles change un cran sur
@@ -412,9 +448,9 @@ référence n'entre pas dans les dépendances du paquet.
 | `#767676` sur `#FFFFFF` | contraste 4,54 |
 | `#1E6FD9` | `L ≈ 0,555`, `C ≈ 0,179`, `H ≈ 257,4` |
 | `plafond(0.5, h, srgb)` sur 360 teintes | jamais hors gamut, et une chroma supérieure de `1e-3` en sort |
-| dérives nulles, 360 teintes, deux profils, deux modes, rampes communes | les seize promesses de la [section 11.2](#112-promesses-des-emplois) tenues après arrondi |
+| dérives nulles, 360 teintes, deux profils, deux modes, rampes communes | les dix-neuf promesses de la [section 11.2](#112-promesses-des-emplois) tenues après arrondi |
 | gris de clarté 0,975 et 0,180 | `#F7F7F7` et `#121212`, les fonds par défaut |
-| toute dérive, toute référence dans `[Ls, Lc]` | la teinte à la clarté `La` vaut `Ha` |
+| tout Color shift, toute référence dans `[Ls, Lc]` | à la clarté `La`, la teinte vaut `Ha`, la part celle du profil et la clarté celle de la courbe |
 
 Un second jeu vient de cette spécification. [`mesurer-recette.mjs`](./mesurer-recette.mjs)
 le calcule, angles arrondis au centième (`[MOT-27]`) et contrastes tronqués
@@ -448,7 +484,7 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | Clé | Contenu | Portée |
 |---|---|---|
 | `formatVersion` | Entier positif, version de la forme de la recette | Fichier |
-| `crans` | `[50, 100, …, 950]` | Toutes les rampes |
+| `crans` | `[50, 100, …, 950]`, 400 et 950 compris (`[VER-05]`) | Toutes les rampes |
 | `courbes` | `light` et `dark`, une clarté par cran | Toutes les rampes |
 | `profils` | `soft` et `vivid`, une part de chroma chacun | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
@@ -474,8 +510,8 @@ Une palette porte :
 | `id` | `p-` suivi de huit chiffres hexadécimaux minuscules, tirés au hasard par l'interface à la création, jamais dérivé du nom |
 | `nom` | Texte libre, facultatif. Absent, la palette s'affiche sous son hexa de référence |
 | `reference` | L'hexa de la couleur de référence |
-| `derive.lien` | `true` quand `soft` et `vivid` partagent la même dérive |
-| `derive.soft`, `derive.vivid` | `clair` et `sombre` en degrés, et `origine` : `tailwind`, `constante` ou `libre` |
+| `derive.lien` | `true` quand `soft` et `vivid` partagent le même Color shift, ses trois grandeurs comprises |
+| `derive.soft`, `derive.vivid` | La teinte : `clair` et `sombre` en degrés, et `origine`, `tailwind`, `constante` ou `libre`, qui ne mesure que la teinte. Facultatifs (`[MOT-30]`) : `saturation`, `clair` et `sombre` en fraction de la part, dans `[-1, 1]` au centième ; `clarte`, `clair` et `sombre` en décalage de clarté OKLCH, dans `[-0,15, +0,15]` au millième. Un objet absent vaut zéro aux deux bouts ; un objet dont les deux valeurs sont nulles ne se range pas |
 | `parts` | Facultatif : `soft` et `vivid`, une part de chroma chacun, qui remplace celle de `partsDesProfils`, et `origine` : `designer` (`[ENT-09]`) |
 | `base` | Facultatif : `soft` ou `vivid`, la palette de base qui force le profil porteur (`[ENT-11]`). Absent, le classement automatique décide |
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
@@ -487,7 +523,7 @@ Une palette porte :
 
 ```json
 {
-  "formatVersion": 6,
+  "formatVersion": 7,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
@@ -511,8 +547,8 @@ Une palette porte :
       "intensites": 1,
       "derive": {
         "lien": true,
-        "soft": { "clair": -7.53, "sombre": 5.11, "origine": "tailwind" },
-        "vivid": { "clair": -7.53, "sombre": 5.11, "origine": "tailwind" }
+        "soft": { "clair": -7.53, "sombre": 5.11, "origine": "tailwind", "saturation": { "clair": -0.4, "sombre": 0 } },
+        "vivid": { "clair": -7.53, "sombre": 5.11, "origine": "tailwind", "saturation": { "clair": -0.4, "sombre": 0 } }
       }
     },
     {
@@ -544,22 +580,26 @@ dix-sept paires.
   `TextEncoder`.
 - `[REC-03]` La lecture classe la recette avant de l'employer : absente, la
   recette par défaut du paquet est proposée ; `formatVersion` courante, lue ;
-  antérieure et connue, migrée en mémoire ; supérieure, refusée avec un message
-  qui demande de mettre le plugin à jour ; illisible, refusée sans écrire.
+  antérieure, illisible, par le refus de `formatVersion` et sans conversion ;
+  supérieure, refusée avec un message qui demande de mettre le plugin à jour ;
+  illisible, refusée sans écrire.
 - `[REC-04]` Un refus de lecture laisse la recette rangée intacte. Le plugin ne
   dessine rien tant que la recette n'est pas lisible.
 - `[REC-05]` Une validation de forme précède tout emploi : crans croissants,
   deux courbes de même longueur que `crans`, courbe claire décroissante, courbe
   sombre croissante, clartés dans `[0, 1]`, parts dans `[0, 1]` avec
   `soft ≤ vivid` dans la recette et après les parts propres de chaque
-  palette, dérives dans `[-90, 90]`, seuils strictement positifs, hexas valides,
-  identifiants uniques, `crans` qui contient chaque cran de la table des emplois
-  (`[VER-05]`). `derives`
+  palette, dérives de teinte dans `[-90, 90]`, décalages de saturation dans
+  `[-1, 1]` et de luminosité dans `[-0,15, +0,15]`, sans objet `saturation` ou
+  `clarte` aux deux valeurs nulles, seuils strictement positifs, hexas valides,
+  identifiants uniques, `crans` qui contient chaque cran de la table des emplois,
+  400 et 950 compris (`[VER-05]`). `derives`
   compte au moins deux paires, aux noms uniques, aux teintes dans `[0, 360)`, et
   leurs teintes claires sont distinctes : deux teintes claires égales annulent
   le dénominateur de l'interpolation de `dériveTailwind`. Une clé que la
   version courante ne connaît pas est refusée, `planche` comprise. Une palette
-  aux profils liés porte deux dérives identiques ; chaque origine est l'une de
+  aux profils liés porte deux Color shift identiques, teinte, saturation et
+  luminosité comprises ; chaque origine est l'une de
   celles que la section 7.1 énumère ; `base` vaut `soft` ou `vivid` ; un
   identifiant a la forme `p-` et huit chiffres hexadécimaux. Une palette libre
   porte 4 à 13 numéros, multiples de 50 de 50 à 1050, croissants, et pas de
@@ -573,21 +613,13 @@ dix-sept paires.
   et jamais `base` ; un réglage du porteur exige `originale` ; `depart`
   exige un réglage du porteur et diffère d'`originale`. La validation ne
   recalcule pas la référence réglée : deux moteurs JavaScript peuvent
-  différer au dernier bit, et la recette deviendrait illisible. La version 2
-  de la recette ajoute `base`, la version 3 `crans` et `originale`, la
-  version 4 `intensites`, `intensiteDesFondsSombres` et
-  `contenuDesPlanches`, la version 5 `reglages`. La version 6 retire les
-  parts d'origine `grise` et `seuils.chromaGrise`. Une recette de version 1 à
-  3 se migre sans changer ses palettes : chacune garde ses deux intensités, et
-  la version 4 ajoute les deux réglages communs à leur valeur par défaut, si
-  bien que ses fonds du thème Dark changent de couleur. Une recette de
-  version 4 passe en version 5 sans autre changement. De la version 5 à la 6,
-  la lecture retire les parts `grise` et le seuil de gris ; les parts
-  `designer` restent. Les couleurs changent alors pour toute palette sans parts
-  du designer dont le profil porteur n'avait pas la part de la référence
-  (`[ENT-11]`) : les cadres de ces palettes deviennent à actualiser. La
-  validation rend tous ses refus, chacun avec sa
-  règle et le chemin du champ, et ne rédige aucune phrase.
+  différer au dernier bit, et la recette deviendrait illisible. La version 7
+  exige 400 et 950 dans `crans` et ajoute `saturation` et `clarte` au Color
+  shift. Une recette d'une version antérieure est refusée sans conversion :
+  seul le mainteneur en a rangé, pour ses essais. Un changement de forme
+  reprendra sa conversion et ses tests le jour où des recettes seront rangées
+  hors de ces essais. La validation rend tous ses refus, chacun avec sa règle
+  et le chemin du champ, et ne rédige aucune phrase.
 - `[REC-06]` La recette se range automatiquement à la fin de chaque geste :
   relâcher une poignée, valider un champ, créer, dupliquer, réordonner ou
   supprimer une palette. Elle ne se range jamais pendant un glisser. Après
@@ -613,9 +645,9 @@ dix-sept paires.
 |---|---|---|
 | Couleur de référence | Hexa, avec le sélecteur de couleur embarqué (`[UI-13]`) | aucun |
 | Nom | Texte libre, facultatif | l'hexa de référence |
-| Dérive de teinte | Deux angles par profil, dans l'éditeur de la [section 12](#12-léditeur-de-dérive) | préréglage Tailwind |
+| Color shift | Teinte, saturation et luminosité aux deux bouts, par profil, dans la carte de la [section 12](#12-le-color-shift) | teinte du préréglage Tailwind, saturation et luminosité à zéro |
 | Intensités | « Une intensité » ou « Deux intensités », deux cartes à la création ; des segments « Une · Deux » dans la configuration (`[ENT-14]`) | Une |
-| Teinte, saturation, luminosité | Trois curseurs pour Vivid, Soft ou les deux, dans la carte « Teinte, saturation, luminosité » (`[ENT-15]`) ; la saturation d'un profil est sa part de chroma | aucun réglage, parts de la recette |
+| Réglage global | Teinte, saturation et luminosité de toute la rampe, trois curseurs pour Vivid, Soft ou les deux, dans la carte « Réglage global » (`[ENT-15]`) ; la saturation d'un profil est sa part de chroma | aucun réglage, parts de la recette |
 | Référence exacte dans | Auto, Soft ou Vivid, dans la carte « Deux intensités » à la création, sous le segment « Deux » dans la configuration (`[ENT-11]`) | Auto |
 
 - `[ENT-01]` Changer la couleur de référence recalcule le préréglage Tailwind.
@@ -659,7 +691,7 @@ dix-sept paires.
   le porteur. `partsDesProfils` (`packages/couleur/src/palette.ts`) en est
   l'autorité. Quand
   les deux profils se rejoignent, l'alerte « Profils confondus » le dit et
-  mène à la carte « Teinte, saturation, luminosité ». Ce choix, libellé « Référence exacte
+  mène à la carte « Réglage global ». Ce choix, libellé « Référence exacte
   dans », ne paraît qu'avec deux intensités : dans leur carte à la création,
   sous le segment « Deux » dans la configuration. Sous des réglages
   (`[ENT-15]`), son aide dit que le porteur est fixé et qu'en changer
@@ -672,7 +704,7 @@ dix-sept paires.
   porteur forcé donnerait, à la part de chroma de la référence, référence
   exacte à son cran. Elle n'a ni palette de base, ni parts propres, ni
   seconde dérive, et ses tokens n'ont pas de segment de profil :
-  `theme.primary.700`. Elle a la carte « Teinte, saturation, luminosité »,
+  `theme.primary.700`. Elle a la carte « Réglage global »,
   sans choix de profil. Passer de deux à une ne demande pas de
   confirmation : la palette garde la dérive et les réglages de son intensité
   porteuse, et perd `base`, ses parts et les réglages de l'autre profil ; la
@@ -682,9 +714,12 @@ dix-sept paires.
   palette libre n'a pas ce choix ; la rendre au modèle la remet à une
   intensité. `intensitesDe` (`packages/couleur`) en est l'autorité : toute
   vue parcourt les intensités qu'elle rend.
-- `[ENT-15]` La carte « Teinte, saturation, luminosité » règle chaque
+- `[ENT-15]` La carte « Réglage global » règle toute la rampe de chaque
   profil. Ses gestes visent Vivid, Soft ou les deux ; « Les deux » déplace
-  les deux profils du même écart et s'arrête quand l'un atteint sa borne. La
+  les deux profils du même écart et s'arrête quand l'un atteint sa borne.
+  Chaque curseur s'arrête aussi à la limite dynamique de `[DER-19]`, calculée
+  pour la cible choisie : une valeur qui ferait manquer une garantie tenue au
+  début du geste n'est pas permise. La
   teinte d'un profil se mesure depuis le départ (`[MOT-29]`), en degrés, de
   −30 à +30. La luminosité décale toute la rampe du profil, de −0,05 à +0,02.
   La saturation d'un profil est sa part (`[ENT-09]`), bornée pour que
@@ -726,7 +761,7 @@ composant du socle la porte (`[UI-02]`).
 - `[ENT-07]` Chaque champ de la configuration affiche le nombre de palettes
   qu'il modifie.
 - `[ENT-13]` « Luminosité des nuances » s'ouvre sur le nombre de nuances,
-  9, 11 ou 13. Choisir un autre préréglage dit d'abord ce qu'il changerait :
+  11 ou 13. Choisir un autre préréglage dit d'abord ce qu'il changerait :
   les numéros ajoutés ou retirés, les palettes dont une nuance gardée change
   de couleur, et le nombre de cadres qui passeraient « À actualiser ». Il
   ne se range qu'à « Passer à N nuances » ; « Annuler » ne range rien. Une
@@ -754,7 +789,7 @@ composant du socle la porte (`[UI-02]`).
   couleurs proches donnent une ligne par seuil : le libellé et son aide à
   gauche, lisibles sans survol, le champ et son unité dans deux colonnes
   alignées d'une ligne à l'autre.
-- `[ENT-08]` La liste commune se choisit parmi trois préréglages, 9, 11 ou 13
+- `[ENT-08]` La liste commune se choisit parmi deux préréglages, 11 ou 13
   nuances, dans les Réglages communs ; une autre liste passe par un import de
   recette. Changer de préréglage garde la luminosité de chaque numéro gardé ;
   un numéro ajouté prend celle du préréglage quand la courbe reste monotone,
@@ -932,8 +967,8 @@ Une ligne par usage, dans cet ordre : `surface-card`, quand la liste porte
 la 50, `surface`, `text`, `solid`, `border-control`, `focus`,
 `border-decorative`. `on-solid` n'a pas de ligne :
 il se lit sur `solid`. Chaque ligne donne à gauche le nom de l'usage, son rôle
-en police de code et ce qu'il habille ; puis une colonne par état, `default`,
-`hover` et `active`, dans le vocabulaire des composants. L'état avance d'une
+en police de code et ce qu'il habille ; puis une colonne par rang, `default`,
+`hover`, `active` et `active-hover`, dans le vocabulaire des composants. L'état avance d'une
 nuance. `surface-card`, `focus` et `border-decorative` n'ont que `default` ; l'anneau se lit
 « focus · état focus ». Une colonne montre un spécimen peint de la nuance de
 l'état, son numéro, puis ses garanties.
@@ -1078,8 +1113,8 @@ référence de la recette.
 
 ### 11.2 Promesses des emplois
 
-Pour chaque palette, chaque mode et chaque intensité présente, seize paires,
-sur la table des emplois de l'architecture ; quatorze dans une liste sans 50. `R+1` désigne le cran suivant celui que
+Pour chaque palette, chaque mode et chaque intensité présente, dix-neuf paires,
+sur la table des emplois de l'architecture ; dix-sept dans une liste sans 50. `R+1` désigne le cran suivant celui que
 l'emploi `R` vise, dans la même rampe : l'architecture fait avancer un état
 d'un cran. `on-solid` est le fond de référence du mode.
 
@@ -1112,41 +1147,48 @@ d'un cran. `on-solid` est le fond de référence du mode.
 | 14 | `solid+1` sur fond | 3 |
 | 15 | `text` sur `surface-card` | 4,5 |
 | 16 | `border-control` sur `surface-card` | 3 |
+| 17 | `text+3` sur `surface+3`, état active-hover | 4,5 |
+| 18 | `on-solid` sur `solid+3` | 4,5 |
+| 19 | `border-control+3` sur `surface+3` | 3 |
+
+Les paires 17 à 19 suivent les seize autres : les numéros 1 à 16, que les
+rapports et les tests citent, ne bougent pas.
 
 `surface-card` est la surface d'une carte, jamais le fond d'un bouton : un
 bouton soft garde `surface`, et `surface` sur `surface-card` n'a aucun
 minimum, comme `surface` sur le fond. L'emploi n'existe, avec les paires 15
-et 16, que dans une liste qui porte la 50 : les trois préréglages l'ont. Une
+et 16, que dans une liste qui porte la 50 : les deux préréglages l'ont. Une
 carte a la clarté du fond de page, un peu plus sombre que lui en Dark : elle
 se borde de `border-decorative`. L'anneau de focus, au cran de
 `border-control`, n'a pas de paire propre sur une carte.
 
-Une palette à deux intensités compte 64 paires : seize par mode et par
-profil, ou 56 dans une liste sans 50. Une palette à une intensité en compte
-32, ou 28 sans 50. Les deux
+Une palette à deux intensités compte 76 paires : dix-neuf par mode et par
+profil, ou 68 dans une liste sans 50. Une palette à une intensité en compte
+38, ou 34 sans 50. Les deux
 profils partagent leurs clartés, mais pas leur chroma : leurs contrastes
 diffèrent un peu, et les composants citent l'un comme l'autre.
 
-Les seize paires se groupent en dix associations : une association réunit
+Les dix-neuf paires se groupent en dix associations : une association réunit
 les paires de même premier emploi et de même second membre. L'état d'une paire
 est le décalage le plus grand de ses deux membres, dans le vocabulaire des
-composants : `default`, puis `hover` à une nuance, `active` à deux.
+composants : `default`, puis `hover` à une nuance, `active` à deux,
+`active-hover` à trois.
 
 | Association | Paires | États |
 |---|---|---|
 | `text` sur fond | 1 | default |
-| `text` sur `surface` | 2, 3, 4 | default, hover, active |
-| `on-solid` sur `solid` | 5, 6, 7 | default, hover, active |
+| `text` sur `surface` | 2, 3, 4, 17 | default, hover, active, active-hover |
+| `on-solid` sur `solid` | 5, 6, 7, 18 | default, hover, active, active-hover |
 | `border-control` sur fond | 8 | default |
-| `border-control` sur `surface` | 9, 10, 11 | default, hover, active |
+| `border-control` sur `surface` | 9, 10, 11, 19 | default, hover, active, active-hover |
 | `focus` sur fond | 12 | default |
 | `focus` sur `surface` | 13 | default |
 | `solid` sur fond | 14 | hover |
 | `text` sur `surface-card` | 15 | default |
 | `border-control` sur `surface-card` | 16 | default |
 
-- `[VER-05]` Les paires visent les crans 100, 200, 300, 600, 700, 800 et 900,
-  et la 50 de `surface-card`. `[REC-05]` refuse une recette dont `crans`
+- `[VER-05]` Les paires visent les crans 100, 200, 300, 400, 600, 700, 800,
+  900 et 950, et la 50 de `surface-card`. `[REC-05]` refuse une recette dont `crans`
   n'en contient pas un, la 50 exceptée : une liste importée sans 50 reste
   lisible, et les paires 15 et 16 ne s'y jugent pas.
 - `[VER-06]` Une promesse manquée nomme l'association (section 11.2), le mode,
@@ -1217,7 +1259,7 @@ composants : `default`, puis `hover` à une nuance, `active` à deux.
   profil porteur a la part de la référence (`[ENT-11]`) : ni « Référence plus
   terne que `soft` » ni la notice « plus vive que `vivid` » ne sonnent.
 - `[VER-10]` Une référence plus vive que `vivid` ne produit aucun message : la
-  piste de saturation de la carte « Teinte, saturation, luminosité » porte
+  piste de saturation de la carte « Réglage global » porte
   un repère qui situe sa part, et le rapport garde la mesure. La référence exacte n'est jamais décrite comme plus terne
   qu'elle-même ; les nuances autour d'elle peuvent l'être.
 - `[VER-11]` « Profils confondus » ne porte que sur les crans de la table des
@@ -1255,135 +1297,207 @@ comme sRGB (section 6.7), et le rapport garde le profil.
   intervention immédiate s'annonce par `role="alert"` : un blocage, jamais un
   mouvement de poignée.
 - `[VER-15]` Le geste d'un message est une cible typée, indépendante de sa
-  phrase : teinte, saturation et luminosité de la palette, dérive, luminosité commune, fonds,
+  phrase : réglage global de la palette, Color shift, luminosité commune, fonds,
   intensités communes. Une fonction de présentation la choisit selon la cause
   connue et la portée du réglage ; le lien ouvre et focalise ce réglage, et le
   retour garde la palette, le thème, la nuance choisie et la position de
   lecture.
 
-## 12. L'éditeur de dérive
+## 12. Le Color shift
 
-L'éditeur règle les deux dérives d'une palette et montre leur effet sur chaque
-cran pendant le geste. Il occupe la carte repliable « Dérive de teinte » de
-l'onglet Création (`[UI-12]`), repliée à l'ouverture : son en-tête porte le
-titre et, à droite, le résumé du préréglage et de la synchronisation.
+La carte « Color shift » règle la teinte, la saturation et la luminosité aux
+deux bouts de la rampe, autour de la couleur de référence (`[MOT-30]`). Elle
+montre l'effet sur chaque cran pendant le geste, et ses réglages s'arrêtent
+avant de faire manquer une garantie tenue. Elle suit la carte « Réglage
+global », qui déplace toute la rampe (`[ENT-15]`), dans la section « Ajuster
+la palette » de l'onglet Création (`[UI-12]`). Repliée à l'ouverture, elle
+porte dans son en-tête son glyphe, le titre « Color shift » dans les deux
+langues, le sous-titre « Nuances claires et sombres, autour de la référence
+◆ » et, à droite, un résumé : le préréglage de la teinte, chaque grandeur
+réglée, bout clair puis bout sombre, et la synchronisation, « Tailwind ·
+Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
 
 ```text
-┌ ⌄ Dérive de teinte ──────────────────────────────── Tailwind · synchronisée ┐
-│ Dérive de teinte [Tailwind ▾]   ☑ Synchroniser la dérive de soft et vivid    │
+┌ › ⟋◆⟍ Color shift ─────────── Tailwind · Teinte −7,5° / +5,1° · synchronisé ┐
+│       Nuances claires et sombres, autour de la référence ◆                    │
+│ [Teinte Tailwind ▾]   ☑ Synchroniser Soft et Vivid              Tout rétablir │
+│ [Teinte −7,5° · +5,1°] [Saturation 0 % · 0 %] [Luminosité 0,000 · 0,000]      │
 │ +30° ┤                                                                        │
-│      │                                                                        │
 │   0° ┼━━━━━━━━━━━━━━━━━━━━━━━━━━━━◆━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●            │
-│      ●╱                  référence 257° (fixe)                                │
-│ −30° ┤                                                                        │
+│      ●╱                                                         ▨ rail        │
+│ −30° ┤                                                          ▨ interdit    │
 │       50   100   200   300   400   500   600   700   800   900   950          │
-│      ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇  teintes     │
-│      ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪         vivid light   │
+│      ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪   sans Color shift   │
+│      ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪    ▪   avec Color shift   │
 ├────────────────────────────────────────────────────────────────────────────────┤
-│ Nuances claires  [ −7,5 ]°  ◂━━━━━━━━●━━━━━━━━▸   ┊ Tailwind −7,5°             │
-│ Nuances sombres  [ +5,1 ]°  ◂━━━━━━━━━━●━━━━━━▸   ┊ Tailwind +5,1°             │
+│ Nuances claires  [ −7,5 ]°  ◂━━━━━━━━●━━━━━━━━▸   ┊ [Tailwind]                 │
+│ Nuances sombres  [ +5,1 ]°  ◂━━━━━━━━━━●━━━━━━▸   ┊ [Tailwind]                 │
+│ Plage sûre · nuances claires −90° à +90° · nuances sombres −90° à +90°        │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 12.1 Ce que l'éditeur montre
+### 12.1 Ce que la carte montre
 
+- `[DER-18]` Trois onglets, Teinte, Saturation et Luminosité, choisissent la
+  grandeur que le graphe et les réglettes règlent. Chaque onglet porte les
+  deux valeurs de sa grandeur, bout clair puis bout sombre, et une pastille
+  quand elle s'écarte de son point de départ : la teinte Tailwind pour la
+  teinte, zéro pour les deux autres. L'onglet choisi dure la session. Un seul
+  graphe se calcule à la fois.
 - `[DER-01]` Un graphe : en abscisse le rang du cran dans la liste de la
   palette, une position régulière par nuance, commune ou libre, de la plus
-  claire à gauche à la plus sombre à droite ; en
-  ordonnée la dérive par rapport à `Ha`. L'échelle vaut ±30° quand les deux
-  dérives y tiennent, puis s'élargit par paliers lisibles, ±45°, ±60° et ±90°.
-  Elle reste figée pendant un glisser et se réévalue avant ou après le geste :
-  la poignée ne saute pas sous le pointeur. Les valeurs extrêmes restent
-  accessibles au clavier et au champ numérique. La courbe est une ligne brisée
-  qui passe, à chaque position, par la dérive que la
-  [section 6.4](#64-la-teinte-dun-cran) donne à ce cran. Les positions
-  régulières alignent le graphe, la bande de teintes et la rampe sur les mêmes
-  colonnes. Les poignées se posent sur les colonnes des numéros 50 et 950, où
-  se lisent les bouts ; une liste qui ne porte pas l'un d'eux pose sa poignée
-  au bord, du côté de son bout. Le graphe se redessine à la largeur mesurée
-  de sa colonne, une fois par image au plus : ses textes, ses traits, ses
+  claire à gauche à la plus sombre à droite ; en ordonnée le décalage de la
+  grandeur choisie, dans son unité : des degrés pour la teinte, un
+  pourcentage de la part du profil pour la saturation, un décalage de clarté
+  OKLCH pour la luminosité. L'échelle s'élargit par paliers lisibles quand
+  les deux valeurs n'y tiennent plus : ±30°, ±45°, ±60° et ±90° ; ±25 %,
+  ±50 % et ±100 % ; ±0,05, ±0,10 et ±0,15. Elle reste figée pendant un
+  glisser et se réévalue avant ou après le geste : la poignée ne saute pas
+  sous le pointeur. Les valeurs extrêmes restent accessibles au clavier et
+  au champ numérique. La courbe est une ligne brisée qui passe, à chaque
+  position, par le décalage que `[MOT-30]` donne à ce cran. Les positions
+  régulières alignent le graphe et les rampes sur les mêmes colonnes. Les
+  poignées se posent sur les colonnes des numéros 50 et 950, où se lisent
+  les bouts ; une liste qui ne porte pas l'un d'eux pose sa poignée au bord,
+  du côté de son bout. Le graphe se redessine à la largeur mesurée de sa
+  colonne, une fois par image au plus : ses textes, ses traits, ses
   poignées, son pivot et sa hauteur gardent la taille qu'ils ont dans la
   fenêtre minimale, et seules ses colonnes s'étirent. Replié, il ne se
   redessine pas ; il relit sa largeur à l'ouverture.
-- `[DER-02]` Le pivot est un losange sur la ligne 0°. L'abscisse est celle de
-  la courbe claire, sur laquelle les deux bouts de la dérive se définissent :
-  le graphe ne change pas avec le thème de l'aperçu. Pour le profil porteur
+- `[DER-02]` Le pivot est un losange sur la ligne zéro. L'abscisse est celle
+  de la courbe claire, sur laquelle les deux bouts se définissent : le graphe
+  ne change pas avec le thème de l'aperçu. Pour le profil porteur
   (`[MOT-17]`), le pivot tombe sur la colonne de la nuance qui porte la
-  référence en Light, la ligne y passe à 0°, et son infobulle nomme la couleur
-  de référence, son profil et sa nuance dans chaque thème. Pour l'autre
-  profil, il se place entre les deux rangs qui encadrent la clarté de la
-  référence, par interpolation linéaire, et son infobulle dit la teinte fixe
-  sans désigner de pastille égale à la référence. Chaque courbe passe à 0°
-  par le pivot de son profil (`[MOT-29]`) : une teinte réglée ne déplace pas
-  la courbe de l'autre profil. La référence reste fixe
+  référence en Light, la ligne y passe à zéro, et son infobulle nomme la
+  couleur de référence, son profil et sa nuance dans chaque thème. Pour
+  l'autre profil, il se place entre les deux rangs qui encadrent la clarté
+  de la référence, par interpolation linéaire, et son infobulle dit la
+  teinte fixe sans désigner de pastille égale à la référence. Chaque courbe
+  passe à zéro par le pivot de son profil (`[MOT-29]`) : un réglage global
+  ne déplace pas la courbe de l'autre profil. La référence reste fixe
   pendant le déplacement des poignées.
-- `[DER-03]` Deux poignées rondes aux bouts de la courbe portent `dClair` et
-  `dSombre`. Leur étiquette donne l'angle signé et la teinte absolue qui en
-  résulte.
-- `[DER-04]` Sous le graphe, une bande de teintes : chaque cran peint à sa
-  teinte, à la chroma de `vivid` en clair. Sous la bande, la rampe Light du
-  profil réglé, alignée sur les colonnes ; quand les profils sont
-  synchronisés, celle du profil porteur. Les deux se mettent à jour pendant le
-  geste.
-- `[DER-05]` Quand `soft` et `vivid` ont des dérives distinctes, le graphe
-  trace deux courbes de deux motifs de trait, plein et tireté, chacune avec le
-  nom de son profil, pour rester lisibles sans la couleur. Chaque poignée porte
-  l'initiale de son profil. Synchronisés, les deux profils partagent une
-  courbe, tracée pour le profil porteur.
-- `[DER-06]` Sur chaque réglette, un repère fin marque la valeur du préréglage
-  Tailwind, même quand la dérive est libre. Le designer voit ainsi l'écart avec
-  Tailwind sans changer de préréglage.
-- `[DER-17]` L'éditeur ne redit pas le résultat des garanties : la carte des
-  garanties le porte (`[UI-09]`), et son en-tête replié le résume.
+- `[DER-03]` Deux poignées rondes aux bouts de la courbe portent le réglage
+  de chaque bout. Leur étiquette donne la valeur signée, et pour la teinte la
+  teinte absolue qui en résulte. Chaque poignée glisse sur un rail vertical,
+  hachuré au-delà de la limite de `[DER-19]`.
+- `[DER-04]` Sous le graphe, deux rampes du profil réglé, alignées sur les
+  colonnes, dans le thème de l'aperçu : la rampe sans Color shift, puis la
+  rampe avec. Quand les profils sont synchronisés, celles du profil porteur.
+  Les deux se mettent à jour pendant le geste.
+- `[DER-05]` Quand `soft` et `vivid` ont des réglages distincts, le graphe
+  trace deux courbes de deux motifs de trait, plein et tireté, chacune avec
+  le nom de son profil, pour rester lisibles sans la couleur. Chaque poignée
+  porte l'initiale de son profil. Synchronisés, les deux profils partagent
+  une courbe, tracée pour le profil porteur.
+- `[DER-06]` Sur chaque réglette de teinte, un repère fin marque la valeur du
+  préréglage Tailwind, même quand la teinte est personnalisée. Le designer
+  voit ainsi l'écart avec Tailwind sans changer de préréglage.
+- `[DER-17]` La carte ne redit pas le résultat des garanties : la carte des
+  garanties le porte (`[UI-09]`), et le pied de l'onglet le résume
+  (`[UI-18]`).
 
 ### 12.2 Ce que le designer fait
 
-- `[DER-07]` Glisser une poignée verticalement change sa dérive au degré près.
-  Maintenir Maj arrondit aux 5°. La poignée ne se déplace pas horizontalement.
-- `[DER-08]` Chaque dérive a aussi un champ numérique et une réglette, liés au
-  graphe dans les deux sens. Le champ accepte une décimale, la virgule et le
-  point.
-- `[DER-09]` Au clavier, une poignée ou une réglette qui a le focus change de 1°
-  avec les flèches, de 5° avec Maj et les flèches. Origine et Fin gardent le
-  sens que le motif clavier d'un curseur leur donne : le minimum et le maximum.
-  Un bouton « Tailwind » à côté de chaque champ ramène la valeur du préréglage.
-  Chaque poignée porte `role="slider"` et une `aria-valuetext` qui donne l'angle
-  et la teinte absolue.
-- `[DER-10]` Un double-clic sur une poignée ramène sa valeur Tailwind.
-- `[DER-11]` Le menu Préréglage propose « Tailwind », « Constante » (les deux
-  dérives à 0) et affiche « Libre » dès qu'une valeur s'écarte du préréglage
-  choisi. Choisir un préréglage remplace les deux dérives du profil affiché,
-  ou des deux profils quand ils sont liés.
-- `[DER-12]` La case « Synchroniser la dérive de soft et vivid » est cochée par
-  défaut. La décocher garde la dérive courante dans les deux profils, puis
-  montre le sélecteur du profil dont on règle les poignées. La recocher
-  applique la dérive de `vivid` à `soft`, après confirmation si leurs valeurs
-  diffèrent ; l'annulation laisse les deux dérives intactes.
+- `[DER-07]` Glisser une poignée verticalement change sa valeur au pas de la
+  grandeur : 1°, 1 % ou 0,005. Maintenir Maj arrondit au grand pas : 5°, 5 %
+  ou 0,02. La poignée ne se déplace pas horizontalement.
+- `[DER-08]` Chaque bout a aussi un champ numérique et une réglette
+  (`[DER-21]`), liés au graphe dans les deux sens. Le champ accepte une
+  décimale pour les degrés et le pourcentage, trois pour la luminosité, la
+  virgule et le point.
+- `[DER-09]` Au clavier, une poignée ou une réglette qui a le focus avance
+  d'un pas avec les flèches, d'un grand pas avec Maj et les flèches. Origine
+  et Fin vont aux bornes permises (`[DER-19]`). À côté de chaque champ, un
+  bouton « Tailwind » ramène la teinte du préréglage, et « Rétablir » ramène
+  zéro pour la saturation et la luminosité. Chaque poignée et chaque
+  réglette porte `role="slider"`, `aria-valuemin` et `aria-valuemax` aux
+  bornes permises, et une `aria-valuetext` qui donne la valeur et la plage
+  sûre, avec la teinte absolue pour la teinte.
+- `[DER-10]` Un double-clic sur une poignée ramène sa valeur Tailwind pour la
+  teinte, zéro pour les deux autres grandeurs.
+- `[DER-11]` Le menu du préréglage ne règle que la teinte : « Teinte
+  Tailwind », « Teinte constante » (les deux dérives de teinte à 0), et
+  « Personnalisé » dès qu'une valeur s'écarte du préréglage choisi. Choisir
+  un préréglage remplace les deux dérives de teinte du profil affiché, ou
+  des deux profils quand ils sont liés. « Tout rétablir » rend la teinte
+  Tailwind, et la saturation et la luminosité à zéro, aux deux bouts.
+- `[DER-12]` La case « Synchroniser Soft et Vivid » est cochée par défaut. La
+  décocher garde le Color shift courant dans les deux profils, puis montre
+  le sélecteur du profil dont on règle les poignées. La recocher copie les
+  trois grandeurs de `vivid` dans `soft`, après confirmation si leurs
+  valeurs diffèrent ; l'annulation laisse les deux profils intacts.
 - `[DER-13]` Tout changement se lit dans l'aperçu en moins d'une image
   (`[MOT-13]`). Il se range au relâchement de la poignée ou à la validation du
   champ, jamais pendant le glisser (`[REC-06]`). Ctrl+Z, ou Cmd+Z sur Mac,
-  annule le dernier réglage de dérive quand le focus est dans l'éditeur, hors
-  d'un champ texte. La pile garde cinquante réglages, sans rétablissement.
+  annule le dernier réglage du Color shift quand le focus est dans la carte,
+  hors d'un champ texte, quelle que soit sa grandeur. La pile garde
+  cinquante réglages, sans rétablissement.
 
-### 12.3 Bornes de l'éditeur
+### 12.3 Les limites
+
+- `[DER-19]` Une valeur est permise quand chaque promesse tenue au début du
+  geste reste tenue, dans chaque mode et chaque intensité que le geste
+  touche, et, pour la luminosité, quand deux nuances voisines gardent 0,01 de
+  clarté d'écart. La
+  limite est l'intervalle autour de la valeur courante où cette règle tient,
+  borné par les bornes fixes de `[MOT-15]` et balayé au pas de la grandeur.
+  Une promesse manquée au début du geste ne borne rien : le designer peut la
+  réparer, et une promesse réparée entre dans la règle au geste suivant. Une
+  palette libre n'a pas de promesse : l'ordre des nuances borne seul sa
+  luminosité. `limiteDynamique` (`packages/couleur/src/limites.ts`) en est
+  l'autorité. Elle reçoit une fonction qui rend la palette candidate pour une
+  valeur : le Color shift et le réglage global (`[ENT-15]`) lui passent
+  chacun la leur.
+- `[DER-20]` Chaque borne porte sa cause : la première promesse tenue au
+  départ qui manquerait un pas au-delà, avec son contraste et son minimum, ou
+  l'ordre des nuances. La limite se calcule sur l'état du début du geste : à
+  l'ouverture de la carte, au changement d'onglet, au relâchement. Pendant un
+  glisser, elle reste figée comme l'échelle du graphe. Une limite se croise
+  avec les autres : une luminosité posée en butée resserre la teinte et la
+  saturation du même bout.
+- `[DER-21]` Une réglette par bout suit le graphe. Sa piste est peinte par le
+  moteur : la couleur que le bout prendrait pour chaque valeur, à la clarté
+  du bout. Au-delà de la limite, la piste est hachurée, et le pouce s'arrête
+  sur la borne. Un glisser ou une saisie au-delà d'une borne pose la borne.
+- `[DER-22]` Sous les réglettes, une ligne fixe (`[UI-17]`) dit la plage sûre
+  des deux bouts : « Plage sûre · nuances claires −0,050 à +0,040 · nuances
+  sombres −0,150 à +0,055 ». Quand un geste pose une borne, la même ligne en
+  nomme la cause jusqu'au geste suivant : « Luminosité, nuances claires :
+  limite atteinte à −0,050. Au-delà, text 700 / surface 100 (Soft, Light)
+  tomberait à 4,44:1, sous 4,5:1. » ; pour l'ordre, « Au-delà, deux nuances
+  voisines se rapprocheraient à moins de 0,01 de luminosité. »
+- `[DER-23]` Le plugin ne ramène jamais une valeur rangée dans sa limite sans
+  le geste du designer. Un réglage global, un réglage commun, un changement
+  de référence ou un import peut resserrer la plage : la valeur reste en
+  place, son pouce se lit dans la zone hachurée, et la ligne de la plage
+  sûre dit « Nuances sombres hors de la plage sûre : un autre réglage l'a
+  resserrée. ». Une garantie manquée s'affiche comme toute garantie.
+
+### 12.4 Cas limites
 
 - `[DER-14]` Une référence plus claire que le bout clair n'a pas de segment
-  clair : la poignée claire est masquée et une note dit pourquoi. Même règle au
-  bout sombre. La note se tait quand l'éditeur est désactivé (`[DER-15]`).
-- `[DER-15]` Une palette grise désactive l'éditeur : aucune nuance calculée,
-  hors du cran de la référence, n'a de couleur, dans chaque intensité et
-  chaque mode. Sans teinte, une dérive ne se voit pas. La carte repliée se
-  résume « Désactivée pour une palette grise », et sa note dit « Cette palette
-  est entièrement grise. Il n'y a pas de teinte à régler. ». La piste de
-  teinte de la carte « Teinte, saturation, luminosité » suit la même
-  condition. Une référence terne garde les deux : `#7C717B` se règle. Une
+  clair : la poignée claire et les réglettes du bout clair sont masquées,
+  pour les trois grandeurs, et une note dit pourquoi. Même règle au bout
+  sombre. La note se tait sous une palette grise (`[DER-15]`).
+- `[DER-15]` Une palette grise désactive la teinte et la saturation : aucune
+  nuance calculée, hors du cran de la référence, n'a de couleur, dans chaque
+  intensité et chaque mode, et une part nulle reste nulle (`[MOT-30]`). Les
+  onglets Teinte et Saturation se désactivent, et la luminosité reste
+  réglable. La note dit « Cette palette est entièrement grise : teinte et
+  saturation ne se voient pas. La luminosité reste réglable. ». La piste de
+  teinte de la carte « Réglage global » suit la même condition. Une
+  référence terne garde les trois grandeurs : `#7C717B` se règle. Une
   saturation du designer qui colore la rampe d'un gris pur rend la teinte
-  réglable. Une teinte rangée garde son « Rétablir » actif, même sur une
+  réglable. Une teinte rangée garde son « Tailwind » actif, même sur une
   palette devenue grise. `estPaletteGrise` (`packages/couleur/src/palette.ts`)
   en est l'autorité.
 - `[DER-16]` La largeur minimale de la fenêtre garde les onze positions du
   graphe lisibles : 24 px par cran au moins, repères compris ; 36 px à
   500 px.
+- `[DER-24]` Une palette à une intensité n'a qu'un profil, sans
+  synchronisation ni choix du profil. Sous des profils déliés, le profil
+  réglé se choisit, le graphe trace l'autre en tireté, et la limite ne juge
+  que le profil réglé.
 
 ## 13. L'interface
 
@@ -1473,9 +1587,10 @@ Onglet Création, une palette ouverte :
 │ │ └────────────────────────────────────────────────────────────┘  │  │
 │ │ ◆ Référence : Vivid · nuance 600                                │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
-│ ┌ › Teinte, saturation, luminosité ─ Aucun réglage · Soft 45 % · … ┐│
-│ ┌ › Dérive de teinte ─────────────────────── Tailwind · synchronisée┐ │
-│   points à vérifier, sous la carte qu'ils concernent                  │
+│ Ajuster la palette                                                   │
+│ Le réglage global déplace toute la rampe. Le Color shift écarte …    │
+│ ┌ › ▭ Réglage global ─────────── Aucun réglage · Soft 45 % · … ┐    │
+│ ┌ › ◆ Color shift ───────────── Tailwind · Teinte −7,5° / +5,1° ┐   │
 │ ┌ ⌄ Garanties de contraste ─────────────────────── Thème Dark ────┐  │
 │ │ [Soft ✓ | Vivid ✗ 2]                                            │  │
 │ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
@@ -1486,6 +1601,8 @@ Onglet Création, une palette ouverte :
 │ │ border-decorative 300 · séparateur, sans minimum de contraste   │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌ › Interface de test ─────────────────────── Thème Light · Vivid ─┐ │
+├──────────────────────────────────────────────────────────────────────┤
+│ ✗ 2 garanties manquées sur 76 · 1 alerte · text 700 / …  [Détails]  │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1504,7 +1621,7 @@ palette » gardent leurs libellés au-dessus des champs.
   dit que le fond vaut pour toutes les palettes. La saisie change le réglage
   commun `fonds`, que les Réglages communs montrent aussi. L'étiquette
   accessible du bouton nomme le thème et la valeur. Sous la surface, la ligne
-  « ◆ Référence : Vivid · nuance 600 » nomme le profil porteur et la nuance du
+  « ◆ Référence : Vivid · nuance 600 », coupée par une ellipse, nomme le profil porteur et la nuance du
   thème montré ; une palette à une intensité écrit « ◆ Référence : nuance
   600 ». La surface est peinte du fond du thème choisi,
   et ses textes, bordures, sélection et focus prennent des couleurs lisibles
@@ -1545,7 +1662,7 @@ palette » gardent leurs libellés au-dessus des champs.
   précédent. L'onglet Création n'en montre aucun. « Nouvelle palette » est le
   seul bouton principal de l'onglet Création, et un filet sépare la barre du
   sélecteur et la création de la palette ouverte, à 15 px de chacune.
-- `[UI-09]` La carte « Garanties de contraste » suit la Dérive de teinte et
+- `[UI-09]` La carte « Garanties de contraste » suit le Color shift et
   montre le thème que l'aperçu a choisi, qu'elle nomme dans son en-tête.
   Repliée à l'ouverture, comme toutes les cartes repliables de l'onglet, elle
   garde son état pendant la session ; repliée, son en-tête garde le
@@ -1563,13 +1680,14 @@ palette » gardent leurs libellés au-dessus des champs.
   largeur mesurée, et les cases, les numéros et les arcs gardent la taille
   qu'ils ont dans la fenêtre minimale. La garantie choisie s'y trace par un arc
   par état, de la nuance du premier membre à celle du second : trait plein en
-  `default`, tireté en `hover`, pointillé en `active`. Un arc en échec prend la
-  couleur de danger, et une légende d'une ligne nomme les trois traits.
+  `default`, tireté en `hover`, pointillé en `active`, tiret-point en
+  `active-hover`. Un arc en échec prend la couleur de danger, et une légende
+  d'une ligne nomme les quatre traits.
   La liste donne une ligne par association (section 11.2), dans deux
   encadrés : « Textes lisibles » au minimum texte, « Éléments visibles » au
   minimum non textuel, chacun avec son titre en bandeau et son minimum lu
-  dans la recette. Sous le bandeau, les états `default`, `hover` et
-  `active` se nomment une fois, en tête de trois colonnes. Une ligne porte
+  dans la recette. Sous le bandeau, les rangs `default`, `hover`, `active`
+  et `active-hover` se nomment une fois, en tête de quatre colonnes. Une ligne porte
   la relation (« `text` sur `surface` »), les codes des rôles à la taille du
   texte sur un fond de note, et son nom français, puis chaque état dans sa
   colonne : le spécimen à gauche, les deux numéros comparés (« 700 / 100 »,
@@ -1620,18 +1738,20 @@ palette » gardent leurs libellés au-dessus des champs.
   leurs rampes restent à la création. Sous les segments, l'aide du choix
   pressé, puis sa suite : la part de la
   référence pour une intensité ; pour deux,
-  « Référence exacte dans » (Auto, Soft ou Vivid), et en Auto une ligne qui
-  dit le profil que le classement a choisi : « Auto a choisi Vivid ». Soft
+  « Référence exacte dans » (Auto, Soft ou Vivid), et en Auto une ligne fixe (`[UI-17]`)
+  qui dit le profil que le classement a choisi : « Auto a choisi Vivid ». Soft
   ou Vivid force le profil porteur (`[MOT-17]`). L'erreur d'un code invalide reste sous son champ.
-  Sous le code, aligné à gauche et hors du libellé du champ, une ligne en
-  couleur de danger compte les garanties manquées et nomme leur thème,
-  « ✗ 2 garanties manquées en Thème Light », les deux thèmes ensemble quand
-  les deux en manquent ; puis « Ajuster la
-  référence » ouvre la modale d'ajustement (`[UI-15]`). Les deux ne
-  paraissent que lorsqu'une garantie est manquée, dans l'un ou l'autre
-  thème : une palette libre ou une palette qui tient toutes ses garanties
-  ne l'a pas. Une référence ajustée ajoute « Ajustée depuis
-  #16A34A · Revenir à l'originale ».
+  Sous le code, aligné à gauche et hors du libellé du champ, une ligne fixe
+  (`[UI-17]`) dit l'état de la référence. Quand une garantie est manquée,
+  dans l'un ou l'autre thème, elle compte les garanties manquées en couleur
+  de danger et nomme leur thème, « ✗ 2 garanties manquées en Thème Light »,
+  les deux thèmes ensemble quand les deux en manquent, puis « Ajuster la
+  référence » ouvre la modale d'ajustement (`[UI-15]`). Sinon, une référence
+  ajustée y lit « Ajustée depuis #16A34A · Revenir à l'originale », et une
+  référence employée telle quelle « Couleur de référence employée telle
+  quelle. ». Quand une garantie manque sur une référence ajustée, la bulle
+  de la ligne ajoute la trace de l'ajustement et « Revenir à l'originale ».
+  Une palette libre ne compte aucune garantie.
   Libre retire le choix des intensités, dit « Sans rôles ni garanties », et
   montre une puce par multiple de 50, de 50 à 1050, allumée
   quand la palette porte ce numéro. Une puce allumée ne s'éteint pas sous
@@ -1640,38 +1760,105 @@ palette » gardent leurs libellés au-dessus des champs.
   garanties, et chaque bilan de garanties dit « Palette libre · N nuances ».
   Le détail d'une nuance libre ne lui prête aucun rôle. Standard rend la
   liste commune.
-- `[UI-12]` « Teinte, saturation, luminosité » et « Dérive de teinte » sont deux cartes
-  repliables de même forme, repliées à l'ouverture, qui gardent leur état
-  pendant la session. Leur en-tête est un bouton : chevron, titre et résumé
-  aligné à droite. Le résumé de la première donne les réglages de chaque
-  profil, ou « Aucun réglage », puis sa saturation ; celui de la dérive, le
-  préréglage et la synchronisation. La première porte les segments « Vivid ·
-  Soft · Les deux », le ◆ sur le profil porteur, puis trois rangées :
-  Teinte, Saturation et Luminosité, chacune avec sa piste peinte par le
-  moteur, son champ, la teinte absolue après le champ de la teinte, et
-  « Rétablir » ; un double-clic sur la piste rétablit aussi. Un pas au
-  clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur chaque piste, la
-  lettre de l'autre profil situe sa valeur quand un seul profil se règle ;
-  sur la piste de saturation, un repère situe la référence (`[VER-10]`).
-  Quand la cible porte la référence, « Attention : ce réglage va modifier
-  votre couleur de référence. » précède le geste, puis « Attention, votre
-  couleur de référence a été modifiée. » le remplace tant qu'un réglage du
-  porteur existe. Une palette grise n'a pas de teinte à régler
-  (`[DER-15]`). Un glisser prévisualise une fois par image au plus, la fin
-  du geste range, et Échap rend la palette d'avant le geste. Le glisser
-  d'un curseur se suit sur le document, comme la poignée (`[UI-01]`) : il
-  continue hors de la piste et finit au relâcher. Sous les
-  curseurs, « La dérive de teinte s'applique ensuite. », l'origine des parts,
-  le retour aux réglages communs et les alertes qui comparent les profils.
-  Une palette à une intensité a cette carte sans segments, avec
-  l'avertissement ; sa dérive n'a qu'un tracé, sans synchronisation ni
-  profil à choisir (`[ENT-14]`). Repliée,
-  une carte annonce dans son résumé le point à vérifier qui la concerne, des
-  profils confondus par exemple. Un lien de message qui vise un réglage déplie
-  sa carte avant de focaliser le contrôle. Les deux cartes suivent l'aperçu,
-  « Teinte, saturation, luminosité » puis Dérive de teinte, avant les Garanties de contraste
-  (`[UI-09]`) : la palette se règle avant de se juger. L'Interface de test
-  (`[UI-14]`) ferme l'onglet.
+- `[UI-12]` Après l'aperçu, le titre de section « Ajuster la palette » et sa
+  phrase, « Le réglage global déplace toute la rampe. Le Color shift écarte
+  ensuite les nuances claires et sombres de la référence, qui ne bouge
+  pas. », précèdent deux cartes repliables de même forme, repliées à
+  l'ouverture, qui gardent leur état pendant la session : « Réglage global »,
+  sous-titrée « Teinte, saturation et luminosité de toute la rampe », puis
+  « Color shift » ([section 12](#12-le-color-shift)). Leur en-tête est un
+  bouton : chevron, glyphe (`[UI-19]`), titre et sous-titre, puis un résumé
+  aligné à droite, sur une ligne. Le résumé de la première donne les
+  réglages de chaque profil, ou « Aucun réglage », puis sa saturation. La
+  première porte les segments « Vivid · Soft · Les deux », le ◆ sur le
+  profil porteur, une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
+  Saturation et Luminosité, chacune avec sa réglette peinte par le moteur,
+  son champ, la teinte absolue après le champ de la teinte, et « Rétablir » ;
+  un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
+  de `[DER-19]` pour la cible choisie, avec `reglerTeinte`,
+  `reglerSaturation` ou `reglerClarte` comme candidate, ses hachures
+  (`[DER-21]`) et sa ligne de plage sûre et de butée (`[DER-22]`). Les
+  Réglages communs restent sans limite : ils touchent toutes les palettes à
+  la fois. Un pas au clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur
+  chaque piste, la lettre de l'autre profil situe sa valeur quand un seul
+  profil se règle ; sur la piste de saturation, un repère situe la référence
+  (`[VER-10]`). La ligne fixe au-dessus des curseurs dit l'effet du réglage
+  sur la référence : « Ce réglage ne touche pas la couleur de référence. »
+  quand la cible ne la porte pas, « Attention : ce réglage va modifier votre
+  couleur de référence. » avant un réglage du porteur, puis « Attention,
+  votre couleur de référence a été modifiée. » tant qu'un réglage du porteur
+  existe. Une palette grise n'a pas de teinte à régler (`[DER-15]`). Un
+  glisser prévisualise une fois par image au plus, la fin du geste range, et
+  Échap rend la palette d'avant le geste. Le glisser d'un curseur se suit sur
+  le document, comme la poignée (`[UI-01]`) : il continue hors de la piste et
+  finit au relâcher. Sous les curseurs, « Le Color shift s'applique ensuite,
+  autour de la référence. », puis l'origine des parts, le retour aux parts
+  communes et les alertes qui comparent les profils, chacun dans une ligne
+  fixe réservée. Une palette à une intensité a cette carte sans segments,
+  avec la ligne fixe ; son Color shift n'a qu'un tracé, sans synchronisation
+  ni profil à choisir (`[ENT-14]`). Repliée, une carte annonce dans son
+  résumé le point à vérifier qui la concerne, des profils confondus par
+  exemple. Un lien de message qui vise un réglage déplie sa carte avant de
+  focaliser le contrôle. Les deux cartes suivent l'aperçu, avant les
+  Garanties de contraste (`[UI-09]`) : la palette se règle avant de se
+  juger. L'Interface de test (`[UI-14]`) ferme l'onglet.
+- `[UI-17]` Une ligne fixe porte un message sur une ligne de 24 px, qui ne
+  change jamais de hauteur. Son texte se coupe par une ellipse ; le texte
+  entier est dans `title` et dans le nom accessible. Elle a trois tons,
+  neutre, avertissement et butée, signalés par une icône en plus de la
+  couleur (`[VER-14]`). Présente même sans message, elle dit alors l'état
+  neutre : la plage sûre, ou « Ce réglage ne touche pas la couleur de
+  référence. ». Un clic ouvre le texte entier dans une bulle posée
+  par-dessus les cartes, dans la fenêtre du plugin ; Échap, un clic ailleurs
+  et le défilement la ferment. L'ouvrir ou la fermer ne déplace aucun
+  élément. `src/ui/ligneFixe.ts` en est le composant.
+- `[UI-18]` Sous le contenu défilant de l'onglet Création, un pied fixe
+  d'une ligne porte le bilan de la palette ouverte : une icône de sévérité,
+  le compte des garanties et des alertes, « 76 garanties tenues · aucune
+  alerte » ou « 2 garanties manquées sur 76 · 1 alerte », le premier
+  message, et « Détails ». Il reste visible à toute position de défilement,
+  pendant un geste compris. « Détails » ouvre au-dessus du pied un volet
+  superposé, « Garanties et alertes », qui liste les messages par sévérité
+  (section 11.4), chacun avec ses parties et son lien vers le réglage
+  (`[VER-15]`) ; Échap et « Fermer » le ferment et rendent le focus à
+  « Détails ». Le volet garde sa taille et fait défiler son contenu. Une
+  région `aria-live="polite"` du pied annonce le bilan à la fin d'un geste,
+  jamais pendant. Un blocage, refus d'enregistrement ou conflit, reste sous
+  le titre (`[UI-11]`). Sans palette ouverte, le pied ne paraît pas ; une
+  palette libre n'y compte que ses alertes. `src/ui/piedDeLaPalette.ts` en
+  est le composant.
+- `[UI-19]` Chaque carte titrée porte un glyphe à gauche de son titre : un
+  dessin tracé dans un cadre de 44 × 28, affiché en 38 × 24 px, d'un trait de
+  1,8, peint des rôles `--texte-second` et `--texte-marque` de la feuille,
+  sans couleur de donnée, `aria-hidden`. Le glyphe du réglage global montre
+  une rampe translatée, celui du Color shift deux bouts qui pivotent autour
+  d'un losange. Les autres cartes titrées en reçoivent un du même style :
+  dans l'onglet Création, Configuration de la palette, Garanties de
+  contraste, Interface de test et la création d'une palette ; dans les
+  Réglages communs, Couleurs de fond, Intensités, Luminosité des nuances,
+  Minimums des promesses, Détection des couleurs proches et Contenu des
+  planches ; dans l'onglet Palettes, Palettes et réglages. Une fiche ou une
+  carte titrée par un nom de palette n'en a pas. `src/ui/glyphes.ts` les
+  dessine, d'après la planche des glyphes de la maquette du Color shift.
+- `[UI-20]` Pendant un geste, aucun contrôle de l'onglet Création ne se
+  déplace, et aucun élément ne change de hauteur. Six règles le tiennent :
+  1. chaque avertissement tient sur une ligne fixe (`[UI-17]`), présente
+     même sans avertissement ;
+  2. son texte entier s'ouvre au clic, dans une bulle superposée ;
+  3. le bilan des garanties et des alertes passe dans le pied (`[UI-18]`),
+     et son détail dans un volet superposé ;
+  4. le résumé d'une carte repliable tient sur une ligne, coupé par une
+     ellipse, texte entier au survol et pour le lecteur d'écran ; le titre ne
+     se coupe pas ;
+  5. un volet ouvert garde sa taille pendant un geste et fait défiler son
+     contenu ;
+  6. les messages s'annoncent au lecteur d'écran une fois, à la fin du geste.
+
+  L'état du geste se pose à un seul endroit, celui où la prévisualisation et
+  la validation passent. Un test d'interface Chromium glisse les curseurs de
+  la carte « Réglage global », une poignée et une réglette du Color shift sur
+  une palette placée près d'un seuil, relève la position du contrôle à chaque
+  image, et échoue au premier pixel d'écart.
 - `[UI-14]` L'Interface de test est la dernière carte de l'onglet Création,
   repliée à l'ouverture. Elle montre la palette ouverte, peinte dans le thème
   de l'aperçu, en deux vues qu'une bascule choisit, et la vue choisie dure la
@@ -1709,7 +1896,7 @@ palette » gardent leurs libellés au-dessus des champs.
   badge), le thème et l'intensité passant en titre de groupe sous 552 px
   de fenêtre ; le bilan de chaque intensité ; puis « Annuler » et
   « Appliquer ». Seul « Appliquer » range : le pas devient la luminosité du
-  porteur, comme dans la carte « Teinte, saturation, luminosité », et
+  porteur, comme dans la carte « Réglage global », et
   `originale` garde la référence d'avant le premier réglage. La modale
   s'ouvre au pas de la luminosité rangée. « Annuler », Échap et un clic sur le voile referment sans
   rien écrire. Chaque fermeture rend le focus au lien, ou au code quand le
@@ -1727,7 +1914,7 @@ palette » gardent leurs libellés au-dessus des champs.
   enregistre. Pendant un glisser, la zone et le code suivent chaque
   mouvement ; le contrôle reçoit une couleur par image, la dernière, et
   l'onglet ne rend que l'aperçu, repeint en place : garanties, messages,
-  intensités, dérive et interface de test suivent le relâcher, qui range,
+  intensités, Color shift et interface de test suivent le relâcher, qui range,
   ou l'abandon de l'aperçu, qui rend tout sans ranger. Un aperçu s'abandonne
   par Échap, par la fermeture du sélecteur, après le clic qui l'a refermé,
   ou par la capture du pointeur perdue en plein glisser. Aucun rendu complet
@@ -1829,8 +2016,8 @@ qui le créera.
 | Palette en saisie | Aperçu à jour, rien de généré |
 | Référence Soft | Une référence peu intense, portée par Soft, avec son repère et sa nuance |
 | Référence Vivid | Une référence intense, portée par Vivid, nuance différente en Light et en Dark |
-| Palette de base forcée | Soft forcé sous « Référence exacte dans » sur une couleur saturée : même code, repère Soft, saturation propre dans « Teinte, saturation, luminosité » |
-| Teinte, saturation, luminosité, à une intensité | La carte dépliée sans segments, l'avertissement avant le geste, trois rangées |
+| Palette de base forcée | Soft forcé sous « Référence exacte dans » sur une couleur saturée : même code, repère Soft, saturation propre dans « Réglage global » |
+| Réglage global, à une intensité | La carte dépliée sans segments, la ligne fixe de l'avertissement, trois réglettes |
 | Un profil réglé seul | Soft tourné de 8°, aucun avertissement, la lettre de Vivid sur chaque piste, le repère de la référence |
 | Avant un réglage du porteur | Vivid ◆ choisi, l'avertissement avant tout geste |
 | Référence modifiée | L'avertissement après le geste, « Ajustée depuis » sous le code, le porteur fixé par les réglages |
@@ -1840,7 +2027,7 @@ qui le créera.
 | Détail de la référence | La nuance de la référence choisie : usages, garanties avec numéros, repère ◆ |
 | Nuance sans rôle | « Sans rôle », puis la table des contrastes, fond du thème, blanc et noir, chacun avec son badge |
 | Nuance désélectionnée | La nuance choisie recliquée : détail refermé, focus resté sur la pastille |
-| Cartes repliées | « Teinte, saturation, luminosité » et « Dérive de teinte » repliées, leur résumé, un point à vérifier annoncé |
+| Cartes repliées | « Réglage global » et « Color shift » repliées, leur glyphe, leur résumé sur une ligne, un point à vérifier annoncé |
 | Fond personnalisé | Un fond saturé peint sous le nuancier, textes et focus lisibles dessus |
 | Fond dans le sélecteur de couleur | La pastille du fond ouverte, la mention du fond commun à toutes les palettes |
 | Interface de test | L'écran de réglages peint de la palette, aux deux thèmes de l'aperçu |
@@ -1853,12 +2040,18 @@ qui le créera.
 | Courbe hors garantie | Alerte sous la courbe : cran, mode, profil, teinte du pire cas et contraste |
 | Hexa invalide | Le champ de référence refuse la saisie, aperçu inchangé |
 | Conflit de sauvegarde | Enregistrement refusé : consultation et export du brouillon possibles, « Recharger » |
-| Dérive liée, préréglage Tailwind | Une courbe, repères Tailwind confondus avec les poignées |
-| Dérive déliée et libre | Deux courbes, repères Tailwind visibles à l'écart |
+| Color shift lié, teinte Tailwind | Onglet Teinte, une courbe, repères Tailwind confondus avec les poignées, ligne de la plage sûre |
+| Color shift, saturation | Onglet Saturation, échelle en pourcentage, rails hachurés |
+| Color shift, luminosité | Onglet Luminosité, échelle en clarté, rampes sans et avec Color shift |
+| Color shift en butée | Une réglette posée sur sa borne, la ligne qui nomme la cause |
+| Réglage global en butée | Un curseur de luminosité arrêté à sa limite, hachures et cause |
+| Color shift délié et personnalisé | Deux courbes, repères Tailwind visibles à l'écart |
 | Référence hors de la rampe | Une poignée masquée et sa note, la référence à l'extrémité, aucun point à vérifier |
 | Palette désaturée | `#897288` : Soft à la saturation de la référence, Vivid plus vif, dérive réglable |
 | Palette très désaturée | `#7C717B` : deux profils distincts, aucun point à vérifier, teinte réglable |
-| Palette grise | `#808080` : dérive et piste de teinte désactivées, avec leur note, et la ligne du gris pur |
+| Palette grise | `#808080` : onglets Teinte et Saturation et piste de teinte désactivés, luminosité réglable, la note et la ligne du gris pur |
+| Avertissement long | La ligne fixe la plus longue coupée par une ellipse, sa bulle ouverte, à la taille par défaut et à 500 × 520 |
+| Volet ouvert | Le pied et le volet « Garanties et alertes » ouvert sur vingt messages, à la taille par défaut et à 500 × 520 |
 | Presque noir | `#060605` : un gris pur, rampes grises, aucun point à vérifier |
 | Palette avec points à vérifier seuls | Garanties respectées, points à vérifier sous la carte qu'ils concernent |
 | Génération en cours | Progression à la place de « Générer tout », aucun geste possible |
@@ -1904,15 +2097,19 @@ qui le créera.
 ### 14.1 Les paquets
 
 ```text
+packages/kit/src/emplois/        @ucm-kit/core/emplois, publié         [ARC-01]
+                                   emplois, dix-neuf paires, rangs, table des états, contraste WCAG
+
 packages/couleur/                ucm-couleur, privé, le moteur pur    [ARC-01]
   src/conversions.ts               hexa, sRGB, linéaire, Oklab, OKLCH, P3
   src/plafond.ts                   plafond de chroma, mémorisé
   src/rampe.ts                     cran, teinte pivotée, rampe entière
   src/tailwind.ts                  le préréglage et son relevé
   src/contraste.ts                 contraste WCAG, ΔEok, part de chroma
-  src/promesses.ts                 la table des emplois, ses seize paires
+  src/promesses.ts                 le jugement des dix-neuf paires sur les rampes
+  src/limites.ts                   la limite dynamique d'un réglage et sa cause
   src/alertes.ts                   les alertes de la section 11.3
-  src/recette.ts                   forme, validation, migration, recette par défaut
+  src/recette.ts                   forme, validation, classement, recette par défaut
   src/empreinte.ts                 JSON canonique, encodeur UTF-8 et FNV-1a
   src/index.ts                     la porte du paquet, lue en source
 
@@ -1937,18 +2134,24 @@ packages/plugin-palettes/        le plugin UCM Palettes              [ARC-03]
   src/navigation.ts                la page courante, le cadrage et la sélection
   src/ui/                          l'interface
   src/ui/textes.ts                 tous les textes destinés au designer
-  src/ui/derive/                   l'éditeur de dérive : graphe, poignées, réglettes
+  src/ui/derive/                   le Color shift : onglets, graphe, poignées, réglettes
+  src/ui/ligneFixe.ts              la ligne d'un message, de hauteur fixe, et sa bulle
+  src/ui/piedDeLaPalette.ts        le pied de l'onglet Création et son volet
+  src/ui/glyphes.ts                le glyphe de chaque carte titrée
   galerie/etats.cjs                les états de l'interface
   tests/
 ```
 
 - `[ARC-04]` Le moteur est le paquet privé `ucm-couleur`, sans étape de build :
   son `package.json` exporte `./src/index.ts`, qu'esbuild, tsx et tsc en
-  résolution `Bundler` lisent tels quels. Il ne dépend d'aucun paquet. Sa
-  compilation cible ES2020 sans types d'environnement : `figma`, `document`,
-  `window` et `performance` y sont des erreurs. Il entre dans `@ucm-kit/core`
-  le jour où un lecteur de `tokens.json` en a besoin ; ranger un contenu dans
-  le kit en monte la version, que la CLI et l'adaptateur épinglent.
+  résolution `Bundler` lisent tels quels. Il ne dépend que de `@ucm-kit/core`,
+  dont il lit le point d'entrée `./emplois` : la table des emplois, les
+  dix-neuf paires, les rangs et le contraste WCAG 2, que `ucm check` lit
+  aussi. Le kit n'importe rien d'`ucm-couleur`. Sa compilation cible ES2020
+  sans types d'environnement : `figma`, `document`, `window` et
+  `performance` y sont des erreurs. Un changement de ce vocabulaire monte la
+  version du kit, que la CLI et l'adaptateur épinglent ; la fabrication des
+  palettes, la recette et ses formats restent dans `ucm-couleur`.
 - `[ARC-05]` Le manifest du plugin déclare `editorType: ["figma"]`,
   `documentAccess: "dynamic-page"`, et
   `networkAccess: { "allowedDomains": ["none"] }`. Son identifiant est celui que
@@ -1960,7 +2163,7 @@ packages/plugin-palettes/        le plugin UCM Palettes              [ARC-03]
   `ecriture/planche.ts` le traduit en nodes Figma, sans décision. Tout ce que la
   [section 9](#9-sortie-1--la-planche) exige se teste sur le modèle, hors de
   Figma.
-- `[ARC-08]` L'éditeur de dérive est un composant DOM natif, comme le reste de
+- `[ARC-08]` Le Color shift est un composant DOM natif, comme le reste de
   l'interface, dessiné en SVG. Sa géométrie (position d'une poignée, angle
   d'une position) est une fonction pure testée à part.
 
@@ -2021,7 +2224,9 @@ test qui la tient.
 | Règle | Test |
 |---|---|
 | Le moteur de couleur ne lit ni `figma`, ni le DOM, ni l'heure, ni le hasard | Compilation sans types d'environnement, et loi de pureté sur `packages/couleur/src/` pour `Date`, `Math.random`, `Intl`, `toLocaleString` et `TextEncoder` |
-| À la clarté de la référence, la teinte vaut celle de la référence, quelle que soit la dérive | Test de propriété du moteur |
+| À la clarté du pivot, le Color shift ne décale ni la teinte, ni la part, ni la clarté | Test de propriété du moteur |
+| Une valeur dans la limite du Color shift ou du réglage global garde chaque promesse tenue au début du geste | `packages/couleur/tests/limites.test.ts` |
+| Pendant un geste, aucun contrôle de l'onglet Création ne se déplace | Test d'interface Chromium (`[UI-20]`) |
 | Seul `src/ecriture/` écrit dans le document | Loi d'écriture, patron de `loiDuDocumentIntact` |
 | Le plugin ne touche aucune variable | Loi d'écriture : `figma.variables` absent de `src/` |
 | Le plugin n'écrit que dans les cadres qu'il possède et dans la recette | Tests du modèle et de l'écriture |
@@ -2065,8 +2270,8 @@ Ce qui ne se prouve pas hors de Figma se rejoue à la main.
    document `DISPLAY_P3`, poser les deux planches côte à côte : elles
    s'affichent identiques, et les composantes relues de la peinture P3 égalent
    la conversion `[MOT-05]`. Ce point tranche `[MOT-25]`.
-3. Glisser une poignée de dérive : l'aperçu suit le pointeur sans saccade
-   visible.
+3. Glisser une poignée du Color shift : l'aperçu suit le pointeur sans
+   saccade visible, et aucun curseur ne se déplace sous le pointeur.
 4. Déplacer un cadre, redessiner : il reste à sa place.
 5. Ctrl+Z après un dessin défait ce dessin entier.
 6. Modifier la recette : le cadre est signalé périmé, puis redessiné au geste.
