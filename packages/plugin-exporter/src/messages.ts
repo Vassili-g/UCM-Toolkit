@@ -12,6 +12,7 @@ import type { Cible } from './cible';
 import type { CodeVerdict } from './prevol';
 import type { Offre } from './template/sources';
 import type { TraceDeMesure } from './contract/mesure';
+import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 /**
  * Annonce une étape sans donner au moteur de dépendance vers l'UI.
@@ -99,7 +100,7 @@ export type UiRequest =
    * plugin tout seul (aucune API ne l'expose et rien ne le fait à sa place),
    * donc la demande vient de l'UI, et le sandbox seul peut l'exécuter.
    */
-  | { type: 'resize'; largeur: number; hauteur: number }
+  | DemandeDeTaille
   /**
    * Sélectionne et cadre ensemble les calques d'un point à corriger, sans
    * modifier le document Figma.

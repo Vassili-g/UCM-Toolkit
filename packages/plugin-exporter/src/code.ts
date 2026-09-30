@@ -73,7 +73,7 @@ import {
 import { etatDeCible, detailDeCible } from './cible';
 import type { CauseConnexion, CauseDeRepli, PrecisionConnexion } from './connexion';
 
-import { TAILLE_PAR_DEFAUT, lireTaille, rangerTaille, tailleValide } from './fenetre';
+import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 
 /*
  * La fenêtre s'ouvre à sa taille par défaut, puis reprend celle que le designer lui
@@ -86,7 +86,9 @@ figma.showUI(__html__, {
   width: TAILLE_PAR_DEFAUT.largeur,
   height: TAILLE_PAR_DEFAUT.hauteur,
 });
-void lireTaille().then((taille) => figma.ui.resize(taille.largeur, taille.hauteur));
+const fenetre = creerRedimensionnement((taille) => figma.ui.resize(taille.largeur, taille.hauteur));
+fenetre.poser(TAILLE_PAR_DEFAUT);
+void lireTaille().then(fenetre.poser);
 
 /** Porte typée unique vers l'UI ; aucun message sandbox ne la contourne. */
 function versUi(message: PluginMessage): void {
@@ -1318,9 +1320,7 @@ async function traiterMessage(message: UiRequest): Promise<void> {
     // la seule autorité sur ce qu'est une taille acceptable, et l'appliquer
     // comme la ranger passent par elle. Une borne recopiée dans l'UI serait la
     // seconde autorité au désaccord muet que ce dépôt referme partout ailleurs.
-    const taille = tailleValide({ largeur: message.largeur, hauteur: message.hauteur });
-    figma.ui.resize(taille.largeur, taille.hauteur);
-    await rangerTaille(taille);
+    await fenetre.demander(message);
     return;
   }
 

@@ -2074,11 +2074,13 @@
   transform: translateY(-50%);
 }
 
+/* Le glisser se suit en script (`reglagesDeLaPalette.ts`) : aucun geste tactile ne le double. */
 .curseur-peint {
   position: relative;
   height: 22px;
   appearance: none;
   background: transparent;
+  touch-action: none;
 }
 
 .curseur-peint::-webkit-slider-runnable-track {

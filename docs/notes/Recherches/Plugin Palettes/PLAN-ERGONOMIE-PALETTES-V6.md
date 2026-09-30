@@ -755,6 +755,8 @@ Au commit `3d844ee`, aucun commit ne touche `ResizeGrip.ts` depuis
 `56e00df`, et l’arbre de travail ne le modifie pas. Avant de reprendre Z9,
 l’agent retrouve cette correction dans `git log`. Si elle est dans le
 dépôt, il la vérifie contre Z9.4, sinon il regarde ce qu'il en est lui même dans le code.
+Repris au commit `fac7af4` : aucun commit ne touche encore `ResizeGrip.ts`
+depuis `56e00df`, et le code garde les causes relevées.
 
 Le retour décrit trois symptômes : la fenêtre « perd le focus », elle « se
 redimensionne toute seule », elle se rétrécit mais s’agrandit mal. Les
@@ -763,7 +765,7 @@ chacun ; aucune n’est encore constatée. « Ça perd le focus » se lit d’ab
 comme la poignée qui lâche le pointeur en plein geste ; Z9.1 vérifie aussi
 que le focus du clavier ne change pas.
 
-- [ ] **Z9.1** Constater. Écrire `scripts/mesurer-redimensionnement.mjs` :
+- [x] **Z9.1** Constater. Écrire `scripts/mesurer-redimensionnement.mjs` :
   dans Chromium, une page hôte embarque l’interface construite dans une
   iframe et répond au message `resize` comme Figma, en redimensionnant
   l’iframe après un délai réglable (0, 16 et 50 ms). Au pointeur réel de
@@ -774,27 +776,69 @@ que le focus du clavier ne change pas.
   focalisé avant et après. Compter les appels à `rangerTaille` par geste
   dans un test du sandbox. Reporter les chiffres ici, et dire quelles causes
   se confirment, avant toute correction.
-- [ ] **Z9.2** La poignée. Au plus un message par image, à la dernière
+  Fait, dans `packages/plugin-palettes/scripts/`, aux trois délais, avec les
+  mêmes chiffres. Dans Chromium, les gestes ordinaires suivent : agrandir et
+  rétrécir de 200 px, relâcher hors de l’iframe, reprendre la poignée,
+  chacun un message par mouvement, la taille finale à la position du
+  relâcher, aucun message après lui, le focus sur `body` avant et après. La
+  capture du pointeur porte les mouvements hors de l’iframe. La cause
+  vient d’un geste que le script ajoute : un mouvement sans bouton en plein
+  geste, que Figma donne (9400091). Chromium retire alors la capture ; la
+  poignée n’envoie plus rien, et la fenêtre reste à 582 × 612 au lieu de
+  881 × 656. Ses écouteurs restent posés, et survoler la poignée sans
+  bouton, geste fini, envoie encore un message. Les trois symptômes du
+  retour en découlent : le geste lâche, la fenêtre se redimensionne seule,
+  et agrandir, qui sort de la poignée, s’arrête. Le focus du clavier ne
+  change pas. Le sandbox rangeait la taille à chaque message : dix
+  écritures pour un geste de dix mouvements.
+- [x] **Z9.2** La poignée. Au plus un message par image, à la dernière
   position reçue. Le geste finit sur `pointerup`, `pointercancel`,
   `lostpointercapture`, et sur tout mouvement dont `buttons` vaut 0 : les
   écouteurs se retirent et un dernier message part, à la position finale,
   marqué fin de geste. La poignée ne prend pas le focus. Si Z9.1 montre que
   les mouvements hors de l’iframe n’arrivent pas, noter la cause ici et
   proposer au mainteneur deux corrections, mesurées, avant d’en écrire une.
-- [ ] **Z9.3** Le sandbox, dans les deux plugins. `figma.ui.resize` à chaque
+  Fait, avec deux écarts. Un mouvement dont `buttons` vaut 0 ne finit pas
+  le geste : Figma en donne bouton enfoncé, et la même règle a cassé le
+  sélecteur de couleur (9400091). `lostpointercapture` ne le finit pas non
+  plus, puisque Chromium retire la capture sur ce mouvement. Le geste se
+  suit sur le document et finit au relâcher, n’importe où dans le
+  document, ou à la sortie de la fenêtre quand la capture est perdue : le
+  relâcher dehors n’arriverait pas. Dans ce cas, agrandir s’arrête quand
+  le pointeur sort de la fenêtre. Deux corrections possibles, à mesurer
+  dans Figma si la recette le montre : demander pendant le geste une
+  fenêtre plus grande que le pointeur d’une marge, 48 px par exemple, que
+  le dernier message retire ; ou garder le geste à la sortie et le finir
+  au premier mouvement revenu, au risque de suivre un pointeur relâché
+  dehors.
+- [x] **Z9.3** Le sandbox, dans les deux plugins. `figma.ui.resize` à chaque
   demande, sauf celle égale à la taille en cours ; `rangerTaille` une seule
   fois, sur la fin du geste. `DemandeDeTaille` et les deux `messages.ts`
   gagnent un champ facultatif de fin ; un message sans lui reste compris.
   Rien ne change dans les bornes ni dans la taille par défaut.
-- [ ] **Z9.4** Tests : un message par image au plus pendant un glisser ;
+  Fait : `creerRedimensionnement`, dans la fenêtre du socle, que chaque
+  plugin borne par sa fonction `tailleValide`.
+- [x] **Z9.4** Tests : un message par image au plus pendant un glisser ;
   plus aucun message après un relâcher, même perdu (mouvement sans bouton,
   capture perdue) ; une seule écriture du rangement par geste, à la taille
   finale ; la taille reste bornée au minimum. Chacun vu rouge sur mutation.
   Remesurer Z9.1 ; chiffres avant et après dans le message du commit. Suites
   et galeries de Palettes et d’Exporter vertes.
+  Fait : trois tests d’interface et un test du socle. Six mutations vues
+  rouges : l’ancienne poignée, l’envoi sans limite par image, la sortie de
+  la fenêtre ignorée, les mouvements lus sur la poignée seule, une taille
+  égale réappliquée, un rangement par message. Une septième reste verte,
+  l’écouteur des mouvements gardé après le geste : il ne fait rien sans
+  geste en cours. Remesuré aux trois délais : un message par image, plus
+  le message de fin, qui peut partager l’image du dernier. Après le
+  mouvement sans bouton, la poignée suit encore : la fenêtre passe à
+  621 × 636, puis le pointeur sort de l’iframe, sans capture, ce qui finit
+  le geste à cette taille, sous les 881 × 656 visés. Le survol d’après
+  n’envoie plus rien.
 - [ ] **Z9.5** Reconstruire les deux plugins dans la copie partagée, puis
   confier la recette Figma au mainteneur. La case ne se ferme qu’après son
   retour.
+  Plugins reconstruits avec Z12. Reste la recette Figma du mainteneur.
 
 Critère : dans Figma, la fenêtre suit le pointeur quand on l’agrandit comme
 quand on la rétrécit, et ne bouge plus après le relâcher. Le mainteneur le
@@ -984,6 +1028,35 @@ Critère : un designer décale la teinte de Soft seule sans toucher Vivid,
 affine la référence depuis la carte, et sait avant le geste que la
 référence va bouger.
 
+## Lot Z12 : curseurs de la carte des réglages
+
+Retour du mainteneur, texte d’origine :
+
+```text
+section Hue saturation lightness, les sliders ne fonctionnent pas très bien,
+on perd le focus quand la souris sort de la zone du slider
+```
+
+- [x] **Z12.1** Constater. Dans Chromium, le glisser natif d’un curseur
+  continue hors de sa piste, même dans une iframe d’une autre origine. Un
+  mouvement sans bouton, comme Figma en donne (9400091), l’arrête : la
+  valeur reste à 6 quand le pointeur, sous la piste, vise 25.
+- [x] **Z12.2** Le glisser des trois curseurs se suit sur le document,
+  comme la poignée (Z9.2) : la valeur se lit sur l’abscisse du pointeur,
+  au pas du curseur, et le geste finit au relâcher, ou à la sortie de la
+  fenêtre sans capture. Le clavier garde `input` et `change`, et Échap
+  garde son effet (Z11.5). Un double-clic sur un curseur remettait la
+  palette à zéro sans réécrire le curseur, qui a le focus : il le
+  réécrit.
+- [x] **Z12.3** Tests : le glisser continue après un mouvement sans bouton
+  hors de la piste et range une fois ; sans capture, la sortie de la
+  fenêtre finit le geste à la dernière valeur ; le double-clic rend zéro
+  au curseur et à la recette. Vus rouges sur l’ancien curseur et sur trois
+  mutations : les mouvements lus sur le curseur seul, le relâcher lu sur
+  lui seul, la sortie ignorée ; le double-clic sur son retrait.
+- [ ] **Z12.4** Recette Figma, au mainteneur : glisser chaque curseur au-delà
+  de sa piste, vers le haut, le bas et hors du plugin.
+
 ## Lot Z7 : recette et clôture
 
 - [x] **Z7.1** (ex-Y8.1) Reprendre les tests d’interface cassés, en gardant
@@ -991,11 +1064,12 @@ référence va bouger.
   Fait par l’agent sous Chromium, lot par lot : 104 tests verts après Z5.1.
   Les tests que Z2 cassait ouvrent la première palette, comme le designer ;
   aucun ne change de sujet. Z5.2 et Z6 les reprendront pour leur part.
-- [ ] **Z7.2** Mettre à jour AGENTS.md si la carte du code change, la
+- [x] **Z7.2** Mettre à jour AGENTS.md si la carte du code change, la
   spécification et les liens des plans. Marquer les cases ouvertes du
   cinquième plan comme reprises ici.
-  Z10 fait pour sa part (Z10.7). Restent les liens des plans et les cases du
-  cinquième plan.
+  Z10 fait pour sa part (Z10.7). Fait : Y8.1 à Y8.5 du cinquième plan
+  renvoient à Z7.1, Z7.3, Z7.4 et Z7.5 ; `[UI-01]` et `[UI-12]` disent le
+  geste de Z9 et de Z12. La carte du code ne change pas.
 - [ ] **Z7.3** (ex-Y8.3) Constater dans Figma qu’un seul Ctrl+Z après
   « Supprimer définitivement » rend le cadre et son suivi. Au mainteneur.
 - [ ] **Z7.4** (ex-Y8.4) Construire code et interface dans la copie
@@ -1023,6 +1097,7 @@ de Palettes verts, et recette Figma terminée.
 | Ouvrir la configuration d’une palette | Code hexa sur toute sa colonne ; « Intensités » en segments, comme « Modèle » | Z1 |
 | Élargir puis rétrécir la fenêtre, Dérive et Garanties dépliées, Réglages communs ouverts ensuite | Textes et traits des trois graphes gardent leur taille ; seules les colonnes s’élargissent | Z8 |
 | Agrandir puis rétrécir la fenêtre par la poignée, vite, et relâcher hors du plugin ; même geste dans UCM Exporter | La fenêtre suit dans les deux sens et ne bouge plus après le relâcher | Z9 |
+| Glisser la teinte, la saturation et la luminosité au-delà de leur piste, puis hors du plugin | Le curseur suit le pointeur hors de sa piste ; hors du plugin, il garde sa dernière valeur | Z12 |
 | Décaler la teinte de Soft seule, puis des deux profils, puis régler la luminosité du profil porteur | Vivid ne bouge pas au premier geste ; l’avertissement précède le déplacement de la référence ; la dérive s’applique par-dessus ; « Revenir à l’originale » rend la référence | Z10 |
 
 La recette visuelle couvre 500 × 520 et 770 × 720, les deux thèmes de Figma,

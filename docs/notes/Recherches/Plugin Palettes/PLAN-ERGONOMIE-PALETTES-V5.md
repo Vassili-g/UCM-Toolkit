@@ -645,9 +645,10 @@ boutons gardent leur vivacité, et toutes les garanties tiennent.
   calcule plus les deux rampes d’aperçu à chaque rendu. Les deux tests Y4.8
   passent par l’interrupteur ; suite d’interface verte sous Chromium.
 
-- [ ] **Y8.1** Reprendre les tests d’interface que Y1 à Y7 cassent, en
+- [x] **Y8.1** Reprendre les tests d’interface que Y1 à Y7 cassent, en
   gardant ce que chacun protégeait encore. Au mainteneur : à sa demande, les
   tests d’interface sous Chromium ne tournent pas dans la session de clôture.
+  Reprise et faite en Z7.1 du sixième plan.
 - [x] **Y8.2** Mettre à jour AGENTS.md si la carte du code change, la
   spécification et les liens des plans. Marquer le quatrième plan comme
   remplacé pour ses cases ouvertes. Fait : la carte perd `ui/generation.ts`,
@@ -657,12 +658,14 @@ boutons gardent leur vivacité, et toutes les garanties tiennent.
   Le quatrième plan renvoie au cinquième.
 - [ ] **Y8.3** (ex-X8.2) Constater dans Figma qu’un seul Ctrl+Z après
   « Supprimer définitivement » rend le cadre et son suivi. Au mainteneur.
+  Reprise en Z7.3 du sixième plan.
 - [ ] **Y8.4** (ex-X8.3) Construire code et interface, recharger le plugin
   dans la copie partagée, puis exécuter la recette ci-dessous avec les
-  constats restés ouverts du quatrième plan. Au mainteneur.
+  constats restés ouverts du quatrième plan. Au mainteneur. Reprise en Z7.4
+  du sixième plan.
 - [ ] **Y8.5** (ex-X8.4) Mesurer dans Figma le temps et le nombre de calques
   d’une génération de douze palettes, après Y5 ; appliquer `[PLA-24]` au
-  résultat. Au mainteneur.
+  résultat. Au mainteneur. Reprise en Z7.5 du sixième plan.
 
 Critère de clôture : contrôles du dépôt, typecheck, build, tests d’interface
 de Palettes tous verts, et recette Figma terminée.

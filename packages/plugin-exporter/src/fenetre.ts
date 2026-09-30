@@ -28,3 +28,8 @@ export function lireTaille(): Promise<socle.TailleFenetre> {
 export function rangerTaille(taille: socle.TailleFenetre): Promise<void> {
   return socle.rangerTaille(taille, BORNES);
 }
+
+/** Le redimensionnement de la fenêtre dans les bornes d'UCM Exporter ; `appliquer` redimensionne l'iframe. */
+export function creerRedimensionnement(appliquer: (taille: socle.TailleFenetre) => void) {
+  return socle.creerRedimensionnement(tailleValide, appliquer, rangerTaille);
+}

@@ -1392,7 +1392,12 @@ titre et, à droite, le résumé du préréglage et de la synchronisation.
   rangée plus étroite s'ouvre à 500 px. Une taille rangée égale à un ancien
   défaut, 600, 650 ou 750 × 720, s'ouvre à 770 × 720 ; toute autre taille
   rangée se garde. Le designer peut élargir la fenêtre, et chaque carte suit
-  la largeur du panneau.
+  la largeur du panneau. Le geste de la poignée se suit sur le document, au
+  plus un message par image, sans lire `buttons` ni compter sur la capture
+  du pointeur, que Figma fait perdre en plein geste. Il finit au relâcher,
+  ou à la sortie de la fenêtre quand la capture est perdue ; après lui, un
+  survol ne redimensionne rien. Le sandbox n'applique qu'une taille qui
+  change, et ne range la taille qu'une fois, à la fin du geste.
 - `[UI-02]` Deux onglets, **Création** et **Palettes**, et un bouton en forme
   d'engrenage dans l'en-tête, qui ouvre les Réglages communs (section 8.3)
   comme celui d'UCM Exporter ouvre sa configuration. Le code garde les noms
@@ -1650,7 +1655,9 @@ palette » gardent leurs libellés au-dessus des champs.
   couleur de référence a été modifiée. » le remplace tant qu'un réglage du
   porteur existe. Une palette grise n'a pas de teinte à régler
   (`[DER-15]`). Un glisser prévisualise une fois par image au plus, la fin
-  du geste range, et Échap rend la palette d'avant le geste. Sous les
+  du geste range, et Échap rend la palette d'avant le geste. Le glisser
+  d'un curseur se suit sur le document, comme la poignée (`[UI-01]`) : il
+  continue hors de la piste et finit au relâcher. Sous les
   curseurs, « La dérive de teinte s'applique ensuite. », l'origine des parts,
   le retour aux réglages communs et les alertes qui comparent les profils.
   Une palette à une intensité a cette carte sans segments, avec

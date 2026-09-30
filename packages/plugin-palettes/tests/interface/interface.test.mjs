@@ -3549,3 +3549,209 @@ test('Z11.7 « Rétablir » la saturation de Soft laisse celle de Vivid', async 
     await page.close();
   }
 });
+
+/** Un événement de souris réel, par le protocole de Chromium : `buttons` se choisit, ce que `page.mouse` ne permet pas. */
+async function sourisReelle(page) {
+  const cdp = await page.context().newCDPSession(page);
+  return (type, x, y, buttons) => cdp.send('Input.dispatchMouseEvent', { type, x, y, buttons, clickCount: 1, button: type === 'mouseMoved' && buttons === 0 ? 'none' : 'left' });
+}
+
+test('le glisser d’un curseur de la carte des réglages continue hors de sa piste après un mouvement sans bouton, comme Figma en donne, et le relâcher enregistre une fois', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const curseur = page.getByRole('slider', { name: 'Teinte de Soft' });
+    await curseur.scrollIntoViewIfNeeded();
+    const boite = await curseur.boundingBox();
+    const souris = await sourisReelle(page);
+    const y = boite.y + boite.height / 2;
+    await souris('mouseMoved', boite.x + boite.width / 2, y, 0);
+    await souris('mousePressed', boite.x + boite.width / 2, y, 1);
+    await souris('mouseMoved', boite.x + boite.width * 0.6, y, 1);
+    // Sous la piste, sans bouton : Chromium y lâche toute capture, et le curseur natif s'arrêtait là.
+    await souris('mouseMoved', boite.x + boite.width * 0.6, y + 60, 0);
+    await souris('mouseMoved', boite.x + boite.width * 0.9, y + 60, 0);
+    assert.equal(await curseur.inputValue(), '25', 'la valeur suit le pointeur hors de la piste');
+    assert.equal(await curseur.evaluate((element) => document.activeElement === element), true, 'le curseur garde le focus');
+    assert.equal((await rangements(page)).length, 0, 'rien ne s’enregistre avant le relâcher');
+    await souris('mouseReleased', boite.x + boite.width * 0.9, y + 60, 0);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    const ranges = await rangements(page);
+    assert.equal(ranges.length, 1);
+    assert.equal(ranges[0].recette.palettes.find(({ reglages }) => reglages?.teinte?.soft !== undefined)?.reglages.teinte.soft, 25);
+    await souris('mouseMoved', boite.x + boite.width * 0.1, y, 0);
+    assert.equal(await curseur.inputValue(), '25', 'après le relâcher, le pointeur ne règle plus rien');
+  } finally {
+    await page.close();
+  }
+});
+
+/**
+ * Une page qui joue Figma : l'interface dans une iframe à 150 × 100 de son coin, 600 × 720, et le relevé des demandes
+ * dans l'hôte, `resize` compris. Rend l'iframe, une fois l'état du fichier demandé.
+ */
+async function ouvrirDansUneIframe(page) {
+  await page.setContent(`<body style="margin:0"><iframe id="ui" style="position:absolute;left:150px;top:100px;width:600px;height:720px;border:0"></iframe>
+    <script>
+      window.demandes = [];
+      const ui = document.getElementById('ui');
+      window.addEventListener('message', (event) => {
+        const message = event.data.pluginMessage;
+        if (event.source !== ui.contentWindow || !message) return;
+        if (message.type === 'lire-langue') ui.contentWindow.postMessage({ pluginMessage: { type: 'langue', langue: 'fr' } }, '*');
+        if (['lire-etat', 'ranger-recette', 'resize'].includes(message.type)) window.demandes.push(message);
+      });
+    </script></body>`);
+  await page.evaluate((contenu) => { document.getElementById('ui').srcdoc = contenu; }, html);
+  await page.waitForFunction(() => window.demandes.length > 0);
+  return page.frames()[1];
+}
+
+test('le glisser d’un curseur de la carte des réglages, sans capture, finit à la dernière valeur quand le pointeur quitte la fenêtre du plugin', async () => {
+  const page = await navigateur.newPage({ viewport: { width: 900, height: 900 } });
+  page.setDefaultTimeout(5000);
+  try {
+    const ui = await ouvrirDansUneIframe(page);
+    await ui.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('alertes-seules'));
+    await ui.locator('.selecteur-bouton').click();
+    await ui.locator('.selecteur-option').first().click();
+    await ui.locator('.tete-de-la-palette .titre-de-premier-rang').waitFor();
+    const carte = ui.locator(`#panneau-palettes .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
+    if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-bascule').click();
+    const curseur = ui.getByRole('slider', { name: 'Teinte de Soft' });
+    await curseur.scrollIntoViewIfNeeded();
+    const boite = await curseur.boundingBox();
+    const souris = await sourisReelle(page);
+    const y = boite.y + boite.height / 2;
+    await souris('mouseMoved', boite.x + boite.width / 2, y, 0);
+    await souris('mousePressed', boite.x + boite.width / 2, y, 1);
+    await souris('mouseMoved', boite.x + boite.width * 0.6, y, 1);
+    await souris('mouseMoved', boite.x + boite.width * 0.8, y + 40, 0);
+    const derniere = await curseur.inputValue();
+    assert.ok(Number(derniere) > 6, 'la valeur suit le pointeur hors de la piste');
+    // Hors de l'iframe, le relâcher ne s'y verrait pas : le geste finit à la sortie.
+    await souris('mouseMoved', 40, y, 0);
+    await page.waitForFunction(() => window.demandes.some(({ type }) => type === 'ranger-recette'));
+    await souris('mouseReleased', 40, y, 0);
+    await souris('mouseMoved', boite.x + boite.width * 0.2, y, 0);
+    assert.equal(await curseur.inputValue(), derniere, 'revenu dans le plugin, le pointeur ne règle plus rien');
+    const ranges = await page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette'));
+    assert.equal(ranges.length, 1);
+    assert.equal(ranges[0].recette.palettes.find(({ reglages }) => reglages?.teinte?.soft !== undefined)?.reglages.teinte.soft, Number(derniere));
+  } finally {
+    await page.close();
+  }
+});
+
+test('un double-clic sur un curseur de la carte des réglages rend la valeur de départ, même loin du zéro de la piste', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const curseur = page.getByRole('slider', { name: 'Teinte de Soft' });
+    await curseur.scrollIntoViewIfNeeded();
+    const boite = await curseur.boundingBox();
+    await curseur.dblclick({ position: { x: boite.width * 0.9, y: boite.height / 2 } });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    assert.equal(await curseur.inputValue(), '0');
+    // Un seul rangement en vol : celui du double-clic part à la réponse du premier.
+    await envoyer(page, rangee((await rangements(page))[0].demande));
+    await page.waitForFunction(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length === 2);
+    const derniere = (await rangements(page)).at(-1);
+    assert.equal(derniere.recette.palettes.some(({ reglages }) => reglages?.teinte?.soft), false, 'la teinte de Soft rangée revient à zéro');
+  } finally {
+    await page.close();
+  }
+});
+
+/** Les demandes `resize` de la poignée, relevées dans la page. */
+async function releverLesTailles(page) {
+  await page.evaluate(() => {
+    window.tailles = [];
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage?.type === 'resize') window.tailles.push(event.data.pluginMessage);
+    });
+  });
+}
+
+const centreDe = async (locator) => {
+  const boite = await locator.boundingBox();
+  return { x: boite.x + boite.width / 2, y: boite.y + boite.height / 2 };
+};
+
+test('Z9.4 la poignée envoie au plus un message par image, à la dernière position reçue, et marque le dernier message du geste', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await releverLesTailles(page);
+    const coin = await centreDe(page.locator('.resize-grip'));
+    const souris = await sourisReelle(page);
+    await souris('mouseMoved', coin.x, coin.y, 0);
+    await souris('mousePressed', coin.x, coin.y, 1);
+    // Dix mouvements dans la même tâche, comme une souris plus rapide que les images.
+    const avantLImage = await page.evaluate(() => {
+      for (let rang = 1; rang <= 10; rang += 1) window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, isPrimary: true, clientX: 500 + rang * 10, clientY: 600 + rang * 5, bubbles: true }));
+      return window.tailles.length;
+    });
+    assert.equal(avantLImage, 0, 'aucun message avant l’image');
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    assert.deepEqual(await page.evaluate(() => window.tailles), [{ type: 'resize', largeur: 604, hauteur: 654, fin: false }]);
+    await souris('mouseReleased', coin.x - 40, coin.y - 30, 0);
+    const tailles = await page.evaluate(() => window.tailles);
+    assert.deepEqual(tailles.at(-1), { type: 'resize', largeur: Math.ceil(coin.x - 40 + 4), hauteur: Math.ceil(coin.y - 30 + 4), fin: true });
+    assert.equal(tailles.filter(({ fin }) => fin).length, 1, 'un seul message de fin par geste');
+    assert.notEqual(await page.evaluate(() => document.activeElement?.className), 'resize-grip', 'la poignée ne prend pas le focus');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z9.4 un mouvement sans bouton, comme Figma en donne, prolonge le geste de la poignée ; après le relâcher, la survoler n’envoie plus rien', async () => {
+  const page = await ouvrirSur('alertes-seules', { width: 600, height: 720 });
+  try {
+    await releverLesTailles(page);
+    const coin = await centreDe(page.locator('.resize-grip'));
+    const souris = await sourisReelle(page);
+    const image = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    await souris('mouseMoved', coin.x, coin.y, 0);
+    await souris('mousePressed', coin.x, coin.y, 1);
+    await souris('mouseMoved', coin.x - 20, coin.y - 20, 1);
+    await image();
+    // Sans bouton, loin de la poignée : Chromium y retire la capture.
+    await souris('mouseMoved', coin.x - 100, coin.y - 80, 0);
+    await image();
+    await souris('mouseMoved', coin.x - 150, coin.y - 120, 0);
+    await image();
+    assert.deepEqual((await page.evaluate(() => window.tailles)).at(-1), { type: 'resize', largeur: Math.ceil(coin.x - 150 + 4), hauteur: Math.ceil(coin.y - 120 + 4), fin: false }, 'la poignée suit encore le pointeur');
+    await souris('mouseReleased', coin.x - 150, coin.y - 120, 0);
+    const auRelacher = (await page.evaluate(() => window.tailles)).length;
+    for (const [dx, dy] of [[0, 0], [-4, -4], [-30, -10]]) await souris('mouseMoved', coin.x + dx, coin.y + dy, 0);
+    await image();
+    assert.equal((await page.evaluate(() => window.tailles)).length, auRelacher, 'aucun message après le relâcher');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z9.4 sans capture, la sortie de la fenêtre finit le geste de la poignée, et y revenir n’envoie plus rien', async () => {
+  const page = await navigateur.newPage({ viewport: { width: 900, height: 900 } });
+  page.setDefaultTimeout(5000);
+  try {
+    const ui = await ouvrirDansUneIframe(page);
+    const coin = await centreDe(ui.locator('.resize-grip'));
+    const souris = await sourisReelle(page);
+    const tailles = () => page.evaluate(() => window.demandes.filter(({ type }) => type === 'resize'));
+    await souris('mouseMoved', coin.x, coin.y, 0);
+    await souris('mousePressed', coin.x, coin.y, 1);
+    await souris('mouseMoved', coin.x - 40, coin.y - 40, 0);
+    // Hors de l'iframe, à droite : sans capture, le relâcher n'y serait pas vu.
+    await souris('mouseMoved', 800, coin.y - 40, 0);
+    await page.waitForFunction(() => window.demandes.some(({ type, fin }) => type === 'resize' && fin));
+    await souris('mouseReleased', 800, coin.y - 40, 0);
+    const avant = (await tailles()).length;
+    for (const [dx, dy] of [[-40, -40], [0, 0], [-10, -10]]) await souris('mouseMoved', coin.x + dx, coin.y + dy, 0);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 20))));
+    assert.equal((await tailles()).length, avant, 'revenu dans le plugin, le pointeur ne redimensionne plus');
+    assert.equal((await tailles()).filter(({ fin }) => fin).length, 1);
+  } finally {
+    await page.close();
+  }
+});

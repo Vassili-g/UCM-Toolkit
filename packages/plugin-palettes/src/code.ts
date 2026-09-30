@@ -7,7 +7,7 @@
  */
 import { dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
-import { TAILLE_PAR_DEFAUT, lireTaille, rangerTaille, tailleValide } from './fenetre';
+import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
@@ -24,7 +24,9 @@ figma.showUI(__html__, {
   width: TAILLE_PAR_DEFAUT.largeur,
   height: TAILLE_PAR_DEFAUT.hauteur,
 });
-void lireTaille().then((taille) => figma.ui.resize(taille.largeur, taille.hauteur));
+const fenetre = creerRedimensionnement((taille) => figma.ui.resize(taille.largeur, taille.hauteur));
+fenetre.poser(TAILLE_PAR_DEFAUT);
+void lireTaille().then(fenetre.poser);
 
 /** Porte typée unique vers l'interface. */
 function versUi(message: PluginMessage): void {
@@ -71,11 +73,7 @@ async function traiterMessage(message: UiRequest): Promise<void> {
     return;
   }
 
-  if (message.type === 'resize') {
-    const taille = tailleValide({ largeur: message.largeur, hauteur: message.hauteur });
-    figma.ui.resize(taille.largeur, taille.hauteur);
-    await rangerTaille(taille);
-  }
+  if (message.type === 'resize') await fenetre.demander(message);
 }
 
 figma.ui.onmessage = async (message: UiRequest) => {

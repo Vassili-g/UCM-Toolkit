@@ -72,6 +72,9 @@ const CURSEURS: Record<Grandeur, { readonly min: number; readonly max: number; r
   luminosite: { min: BORNES_DES_REGLAGES.clarte.bas, max: BORNES_DES_REGLAGES.clarte.haut, pas: 0.005, grandPas: 0.02 },
 };
 
+/** La moitié de la largeur du pouce (`.curseur-peint::-webkit-slider-thumb`) : son centre parcourt la piste moins deux demi-pouces. */
+const DEMI_POUCE = 7;
+
 interface Rangee {
   readonly grandeur: Grandeur;
   readonly ligne: HTMLDivElement;
@@ -164,11 +167,7 @@ function construireVues(i18n: Localisation) {
       i18n.lier(retablir, 'aria-label', TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]));
       retablir.addEventListener('click', () => retablirLaGrandeur(grandeur));
       curseur.addEventListener('dblclick', () => retablirLaGrandeur(grandeur));
-      // Échap abandonne le geste : le curseur garde la valeur d'avant jusqu'au relâcher. Revenu à sa valeur de départ,
-      // il n'émet pas `change`, et le relâcher n'enregistre rien.
-      curseur.addEventListener('pointerdown', () => {
-        abandonne = null;
-      });
+      curseur.addEventListener('pointerdown', (evenement) => commencer(grandeur, curseur, evenement));
       curseur.addEventListener('input', () => {
         if (abandonne === curseur) {
           curseur.value = valeurDAvant;
@@ -252,6 +251,70 @@ function construireVues(i18n: Localisation) {
     let abandonne: HTMLInputElement | null = null;
     /** La valeur qu'un curseur abandonné garde jusqu'au relâcher. */
     let valeurDAvant = '';
+    /** Le glisser en cours : sa grandeur, son curseur, son pointeur et la valeur au premier appui. */
+    let glisse: { grandeur: Grandeur; curseur: HTMLInputElement; pointeur: number; depart: string } | null = null;
+
+    /*
+     * Le glisser d'un curseur se suit sur le document. Dans Figma, un mouvement arrive avec `buttons` à 0 bouton
+     * enfoncé, et Chromium retire alors toute capture : le glisser natif s'arrête dès que la souris quitte la piste.
+     * Le geste ne lit donc ni `buttons` ni la capture, et finit au relâcher, n'importe où dans le document. Sans
+     * capture, le relâcher hors de la fenêtre n'arrive pas : la sortie de la fenêtre finit le geste à la dernière
+     * valeur. `input` et `change` ne viennent plus que du clavier. Échap abandonne le geste : le curseur garde la
+     * valeur d'avant jusqu'au relâcher, qui n'enregistre rien.
+     */
+    function commencer(grandeur: Grandeur, curseur: HTMLInputElement, evenement: PointerEvent): void {
+      if (evenement.button !== 0 || curseur.disabled) return;
+      evenement.preventDefault();
+      curseur.focus({ preventScroll: true });
+      curseur.setPointerCapture(evenement.pointerId);
+      abandonne = null;
+      glisse = { grandeur, curseur, pointeur: evenement.pointerId, depart: curseur.value };
+      window.addEventListener('pointermove', bouger, true);
+      window.addEventListener('pointerup', relacher, true);
+      window.addEventListener('pointercancel', relacher, true);
+      document.addEventListener('pointerout', sortir, true);
+      suivre(evenement);
+    }
+
+    /** Pose la valeur sous le pointeur, arrondie au pas par le navigateur, puis la prévisualise. */
+    function suivre(evenement: PointerEvent): void {
+      if (!glisse || abandonne === glisse.curseur) return;
+      const { grandeur, curseur } = glisse;
+      const { min, max } = CURSEURS[grandeur];
+      const cadre = curseur.getBoundingClientRect();
+      const course = cadre.width - 2 * DEMI_POUCE;
+      const rapport = course > 0 ? Math.min(1, Math.max(0, (evenement.clientX - cadre.left - DEMI_POUCE) / course)) : 0;
+      const avant = curseur.value;
+      curseur.value = String(min + rapport * (max - min));
+      if (curseur.value !== avant) prevoir(grandeur, Number(curseur.value));
+    }
+
+    function bouger(evenement: PointerEvent): void {
+      if (glisse && evenement.pointerId === glisse.pointeur) suivre(evenement);
+    }
+
+    function relacher(evenement: PointerEvent): void {
+      if (glisse && evenement.pointerId === glisse.pointeur) finirLeGlisser();
+    }
+
+    /** Le pointeur quitte la fenêtre sans capture : le relâcher n'y serait pas vu. */
+    function sortir(evenement: PointerEvent): void {
+      if (!glisse || evenement.pointerId !== glisse.pointeur || evenement.relatedTarget !== null) return;
+      if (!glisse.curseur.hasPointerCapture(glisse.pointeur)) finirLeGlisser();
+    }
+
+    function finirLeGlisser(): void {
+      if (!glisse) return;
+      const { grandeur, curseur, depart } = glisse;
+      glisse = null;
+      window.removeEventListener('pointermove', bouger, true);
+      window.removeEventListener('pointerup', relacher, true);
+      window.removeEventListener('pointercancel', relacher, true);
+      document.removeEventListener('pointerout', sortir, true);
+      if (abandonne === curseur) return;
+      if (curseur.value !== depart) terminer(grandeur, Number(curseur.value));
+      else if (avantLeGeste) annuler();
+    }
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -320,16 +383,20 @@ function construireVues(i18n: Localisation) {
       rendre(true);
     }
 
-    /** « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
+    /**
+     * « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. Après un double-clic,
+     * le curseur a le focus, qu'un rendu ne récrit pas : le rendu forcé le rend à sa valeur.
+     */
     function retablirLaGrandeur(grandeur: Grandeur): void {
       if (!lue || !courante) return;
       if (grandeur === 'saturation') {
         valider(retablirLaSaturation(lue, courante, cibleDuGeste()));
-        return;
+      } else {
+        const regler = grandeur === 'teinte' ? reglerTeinte : reglerClarte;
+        const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
+        valider(profils.reduce((palette, profil) => regler(lue!, palette, profil, 0), courante));
       }
-      const regler = grandeur === 'teinte' ? reglerTeinte : reglerClarte;
-      const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
-      valider(profils.reduce((palette, profil) => regler(lue!, palette, profil, 0), courante));
+      rendre(true);
     }
 
     reprendre.addEventListener('click', () => {

@@ -45,3 +45,39 @@ export async function lireTaille(bornes: BornesFenetre): Promise<TailleFenetre> 
 export async function rangerTaille(taille: TailleFenetre, bornes: BornesFenetre): Promise<void> {
   await figma.clientStorage.setAsync(bornes.cle, tailleValide(taille, bornes));
 }
+
+/** Ce que le sandbox reçoit de la poignée : la forme de `DemandeDeTaille`, sans son type. */
+export interface DemandeDeRedimensionnement {
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly fin?: boolean;
+}
+
+/**
+ * Le redimensionnement de la fenêtre, pur pour être testé. Chaque demande
+ * passe par `valider`, puis s'applique si elle change la taille en cours. Le
+ * rangement attend la fin du geste : une demande marquée `fin: false` ne se
+ * range pas, et une demande sans `fin` se range, comme d'une interface
+ * antérieure.
+ */
+export function creerRedimensionnement(
+  valider: (brut: Partial<TailleFenetre>) => TailleFenetre,
+  appliquer: (taille: TailleFenetre) => void,
+  ranger: (taille: TailleFenetre) => Promise<void>,
+) {
+  let courante: TailleFenetre | null = null;
+  const poser = (taille: TailleFenetre): void => {
+    if (courante && courante.largeur === taille.largeur && courante.hauteur === taille.hauteur) return;
+    courante = taille;
+    appliquer(taille);
+  };
+  return {
+    /** La taille de l'ouverture, ou celle que la lecture du rangement donne. */
+    poser,
+    async demander(demande: DemandeDeRedimensionnement): Promise<void> {
+      const taille = valider({ largeur: demande.largeur, hauteur: demande.hauteur });
+      poser(taille);
+      if (demande.fin !== false) await ranger(taille);
+    },
+  };
+}
