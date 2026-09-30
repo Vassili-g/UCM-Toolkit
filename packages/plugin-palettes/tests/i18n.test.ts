@@ -93,3 +93,17 @@ test('les rangements rapides restent ordonnés après un échec', async () => {
   assert.deepEqual(appels, ['fr', 'en']);
   assert.equal(await preferences.lire(), 'en');
 });
+
+test('[UI-18] le bilan du pied accorde les garanties et les alertes, dans les deux langues', () => {
+  const anglais = creerTraducteur('en').messages;
+  const francais = creerTraducteur('fr').messages;
+  assert.equal(francais.bilanDuPied(76, 0, 0, false), '76 garanties tenues · aucune alerte');
+  assert.equal(francais.bilanDuPied(1, 0, 1, false), '1 garantie tenue · 1 alerte');
+  assert.equal(francais.bilanDuPied(76, 1, 2, false), '1 garantie manquée sur 76 · 2 alertes');
+  assert.equal(francais.bilanDuPied(76, 3, 0, false), '3 garanties manquées sur 76 · aucune alerte');
+  assert.equal(francais.bilanDuPied(0, 0, 1, true), 'Palette libre · 1 alerte');
+  assert.equal(anglais.bilanDuPied(76, 0, 0, false), '76 guarantees met · no alerts');
+  assert.equal(anglais.bilanDuPied(1, 0, 1, false), '1 guarantee met · 1 alert');
+  assert.equal(anglais.bilanDuPied(76, 1, 2, false), '1 of 76 guarantees unmet · 2 alerts');
+  assert.equal(anglais.bilanDuPied(0, 0, 3, true), 'Free palette · 3 alerts');
+});

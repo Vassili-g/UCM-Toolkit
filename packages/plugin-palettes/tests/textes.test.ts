@@ -244,8 +244,8 @@ test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l
   assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À actualiser » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
 });
 
-test('Z5.1 : sous le code, les garanties manquées se comptent, au singulier pour une, et les deux thèmes ensemble', () => {
-  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 0 }), '✗ 2 garanties manquées en Thème Light');
-  assert.equal(garantiesManqueesDeLaReference({ light: 0, dark: 1 }), '✗ 1 garantie manquée en Thème Dark');
-  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 1 }), '✗ 3 garanties manquées en Thème Light et en Thème Dark');
+test('Z5.1 [UI-17] : sous le code, les garanties manquées se comptent, au singulier pour une, et les deux thèmes ensemble ; le ✗ est l’icône de la ligne fixe', () => {
+  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 0 }), '2 garanties manquées en Thème Light');
+  assert.equal(garantiesManqueesDeLaReference({ light: 0, dark: 1 }), '1 garantie manquée en Thème Dark');
+  assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 1 }), '3 garanties manquées en Thème Light et en Thème Dark');
 });

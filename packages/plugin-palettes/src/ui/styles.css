@@ -1134,13 +1134,16 @@
   color: var(--texte-second);
 }
 
-/* Une carte repliable : son en-tête est un bouton sur toute la largeur. */
-/* Le résumé passe sous le titre quand la ligne manque : le titre ne se coupe jamais. */
+/*
+ * Une carte repliable : son en-tête est un bouton sur toute la largeur, sur
+ * une ligne. Le titre ne se coupe jamais ; le résumé prend la place qui reste
+ * et se coupe par une ellipse, pour qu'un résumé qui s'allonge pendant un
+ * geste ne change pas la hauteur de la carte ([UI-20]).
+ */
 .carte-bascule {
   width: 100%;
   min-height: var(--hauteur-action);
-  flex-wrap: wrap;
-  row-gap: 2px;
+  flex-wrap: nowrap;
   justify-content: flex-start;
   margin: calc(-1 * var(--espace-controle)) 0;
   padding: 0;
@@ -1152,11 +1155,16 @@
 }
 
 .carte-bascule .carte-resume {
+  flex: 1 1 0;
   margin-left: auto;
+  overflow: hidden;
   text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .carte-bascule .carte-titre {
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
@@ -1330,7 +1338,22 @@
 }
 
 .repere-de-la-reference {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Une aide qui s'allonge pendant un geste garde sa ligne : le texte entier se lit au survol ([UI-20]). */
+.aide-sur-une-ligne {
+  display: block;
+  min-width: 0;
+  height: var(--corps-interligne);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*
@@ -2138,13 +2161,9 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* La ligne fixe au-dessus des curseurs garde un pas d'écart avec eux. */
 .avertissement-des-reglages {
-  margin: 0 0 4px;
-  padding: 6px var(--espace-controle);
-  border-left: 2px solid var(--texte-avertissement);
-  border-radius: 0 var(--rayon) var(--rayon) 0;
-  background: var(--fond-avertissement);
-  color: var(--texte);
+  margin-bottom: var(--espace-serre);
 }
 
 .derive-nom-de-courbe {
@@ -2373,20 +2392,188 @@
   }
 }
 
-.trace-de-l-ajustement {
-  margin: 0;
+/* L'état de la référence, sous le code, commence au bord gauche de sa colonne (Z5.1). */
+.ligne-de-la-reference {
+  justify-self: stretch;
 }
 
-/* Ce que la référence manque, en couleur de danger, au-dessus du lien qui l'ajuste (Z5.1). */
-.manque-de-la-reference {
-  margin: 0;
+/*
+ * Une ligne fixe ([UI-17]) : 24 px, une ligne, coupée par une ellipse. Sa
+ * hauteur ne dépend ni de son texte ni de ses gestes. Le texte cède sa place
+ * aux gestes, jusqu'à 24 px qui restent cliquables ; au-delà, les gestes se
+ * coupent à leur tour, leur nom accessible entier.
+ */
+.ligne-fixe {
+  display: flex;
+  min-width: 0;
+  height: 24px;
+  align-items: center;
+  gap: var(--espace-serre);
+  color: var(--texte-second);
+}
+
+.ligne-fixe[data-ton='avertissement'] {
+  color: var(--texte-avertissement);
+}
+
+.ligne-fixe[data-ton='danger'] {
   color: var(--texte-danger);
 }
 
-/* Le lien garde sa largeur, aligné sous le code : étiré, toute la bande sous le champ ouvrait le panneau. */
-.champ-colonne > .lien-de-constat {
-  justify-self: start;
+.ligne-fixe[data-ton='butee'] {
+  color: var(--texte);
+}
+
+.ligne-fixe-icone {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.ligne-fixe-icone:empty,
+.ligne-fixe-gestes:empty {
+  display: none;
+}
+
+.ligne-fixe-texte {
+  min-width: 24px;
+  height: 24px;
+  flex: 0 1 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 24px;
   text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ligne-fixe-texte:disabled {
+  cursor: default;
+}
+
+.ligne-fixe-texte:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: -2px;
+}
+
+.ligne-fixe-gestes {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  gap: var(--espace-controle);
+  overflow: hidden;
+}
+
+.ligne-fixe-gestes > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Le texte entier d'une ligne fixe, posé par-dessus les cartes, dans la fenêtre du plugin. */
+.bulle-de-ligne {
+  position: fixed;
+  z-index: 4;
+  padding: var(--espace-serre) var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  color: var(--texte);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Le pied de l'onglet Création ([UI-18]) : une ligne collée au bas de la
+ * fenêtre, à toute position de défilement, au-dessus du contenu qui défile.
+ * Le volet s'ouvre au-dessus de lui, à hauteur fixe : ce qu'il liste défile
+ * dedans.
+ */
+.pied-de-la-palette {
+  position: sticky;
+  z-index: 3;
+  bottom: 0;
+  display: flex;
+  min-width: 0;
+  height: 32px;
+  align-items: center;
+  gap: var(--espace-controle);
+  margin: 0 calc(-1 * var(--espace-controle)) calc(-1 * var(--espace-page));
+  padding: 0 calc(var(--espace-controle) + 16px) 0 var(--espace-controle);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+/* La poignée de redimensionnement du socle reste au-dessus du pied, dans le coin qu'il lui laisse. */
+.resize-grip {
+  z-index: 5;
+}
+
+.pied-icone {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.pied-de-la-palette[data-ton='succes'] .pied-icone {
+  color: var(--texte-succes);
+}
+
+.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
+  color: var(--texte-avertissement);
+}
+
+.pied-de-la-palette[data-ton='danger'] .pied-icone {
+  color: var(--texte-danger);
+}
+
+.pied-texte {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* L'annonce du bilan, lue par l'assistance technique et cachée à l'écran. */
+.pied-annonce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.volet-de-la-palette {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  display: grid;
+  height: min(320px, 60vh);
+  grid-template-rows: auto minmax(0, 1fr);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.volet-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) var(--espace-controle);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.volet-corps {
+  overflow: auto;
+  padding: var(--espace-controle);
 }
 
 /*

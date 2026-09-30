@@ -5,10 +5,12 @@
  * sa valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa
  * valeur sur chaque piste, et un repère situe la saturation de la référence
  * sur celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
- * régler ([DER-15]). Un avertissement précède un réglage qui déplace la
- * référence, et dit ensuite qu'elle a bougé. Sous les curseurs : l'origine
- * des parts, le retour aux réglages communs et les alertes qui comparent les
- * profils ([VER-10], [VER-11]).
+ * régler ([DER-15]). Une ligne fixe dit, avant les curseurs, si un réglage
+ * déplace la référence, et ensuite qu'elle a bougé. Sous les curseurs, deux
+ * lignes fixes : l'origine des parts et le retour aux réglages communs, puis
+ * la note d'une palette grise ou la première alerte qui compare les profils
+ * ([VER-10], [VER-11]). Aucune ne change de hauteur pendant un geste
+ * ([UI-20]) ; le détail des alertes se lit dans le volet du pied ([UI-18]).
  *
  * Un glisser prévisualise une fois par image au plus, la fin du geste
  * enregistre, Échap rend la palette d'avant le geste. Une palette à une
@@ -44,7 +46,7 @@ import {
 } from '../edition';
 import type { CibleDAction } from '../presentation';
 import { type Message } from './constats';
-import { creerVuesConstats } from './constats';
+import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
 export interface ReglagesDeLaPaletteUi {
@@ -88,8 +90,8 @@ interface Rangee {
 }
 
 function construireVues(i18n: Localisation) {
-  const { blocDeConstat } = creerVuesConstats(i18n);
-  const { NOM_DU_PROFIL, TEXTES, TEXTES_AVANCES, TEXTES_DE_LA_DERIVE, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
+  const { createLigneFixe } = creerVuesLigneFixe(i18n);
+  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_AVANCES, TEXTES_DE_LA_DERIVE, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
 
   /** Le texte d'un champ : la teinte signée en degrés, la saturation en pour cent, la luminosité signée. */
   const ecrire = (grandeur: Grandeur, valeur: number): Texte =>
@@ -129,8 +131,8 @@ function construireVues(i18n: Localisation) {
     });
     cible.append(libelleDeLaCible, segments);
 
-    const avertissement = document.createElement('p');
-    avertissement.className = 'avertissement-des-reglages';
+    const avertissement = createLigneFixe();
+    avertissement.element.classList.add('avertissement-des-reglages');
 
     const rangees: Rangee[] = GRANDEURS.map((grandeur) => {
       const ligne = document.createElement('div');
@@ -219,25 +221,22 @@ function construireVues(i18n: Localisation) {
     const pied = document.createElement('p');
     pied.className = 'ligne-secondaire';
     i18n.lier(pied, 'textContent', TEXTES_DES_REGLAGES.pied);
-    // Sous la piste de teinte, la raison qui la désactive ([DER-15]).
-    const noteGrise = document.createElement('p');
-    noteGrise.className = 'ligne-secondaire';
-    noteGrise.hidden = true;
-    i18n.lier(noteGrise, 'textContent', TEXTES_DE_LA_DERIVE.grisDesactive);
-    const origine = document.createElement('p');
-    origine.className = 'ligne-secondaire';
+    // L'origine des parts, et le retour aux réglages communs quand le designer a posé les siennes.
+    const origine = createLigneFixe();
     const reprendre = document.createElement('button');
     reprendre.type = 'button';
     reprendre.className = 'lien-de-constat';
     i18n.lier(reprendre, 'textContent', TEXTES_AVANCES.reprendre);
-    const messages = document.createElement('div');
-    messages.className = 'constats';
-    const details = document.createElement('details');
-    details.className = 'constat-detail';
-    const resume = document.createElement('summary');
-    i18n.lier(resume, 'textContent', TEXTES.detailTechnique);
-    details.append(resume);
-    element.append(cible, avertissement, ...rangees.flatMap(({ grandeur, ligne }) => (grandeur === 'teinte' ? [ligne, noteGrise] : [ligne])), erreur, pied, origine, reprendre, messages, details);
+    // La raison qui désactive la teinte ([DER-15]), ou la première alerte de la carte et le réglage qu'elle ouvre.
+    const alerte = createLigneFixe();
+    const lienDeLAlerte = document.createElement('button');
+    lienDeLAlerte.type = 'button';
+    lienDeLAlerte.className = 'lien-de-constat';
+    let cibleDeLAlerte: CibleDAction | null = null;
+    lienDeLAlerte.addEventListener('click', () => {
+      if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
+    });
+    element.append(cible, avertissement.element, ...rangees.map(({ ligne }) => ligne), erreur, pied, origine.element, alerte.element);
 
     let lue: Recette | null = null;
     let courante: Palette | null = null;
@@ -450,10 +449,8 @@ function construireVues(i18n: Localisation) {
       }
       // L'avertissement : avant un réglage qui déplacera la référence, puis, à sa place, après qu'elle a bougé.
       const porteLaReference = uneSeule || choisie === 'deux' || choisie === porteur;
-      avertissement.hidden = !porteLaReference;
-      i18n.lier(avertissement, 'textContent', porteLaReference
-        ? (aUnReglageDuPorteur(recette, palette) ? TEXTES_DES_REGLAGES.avertissementApres : TEXTES_DES_REGLAGES.avertissementAvant)
-        : '');
+      if (!porteLaReference) avertissement.poser(TEXTES_DES_REGLAGES.neutre);
+      else avertissement.poser(aUnReglageDuPorteur(recette, palette) ? TEXTES_DES_REGLAGES.avertissementApres : TEXTES_DES_REGLAGES.avertissementAvant, 'avertissement');
 
       const profil: Profil = uneSeule ? 'vivid' : choisie === 'deux' ? porteur : choisie;
       const autre: Profil = profil === 'soft' ? 'vivid' : 'soft';
@@ -461,7 +458,6 @@ function construireVues(i18n: Localisation) {
       const valeursDeLAutre = valeursDuProfil(recette, palette, autre);
       // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme la dérive ([DER-15]).
       const grise = estPaletteGrise(recette, palette);
-      noteGrise.hidden = !grise;
       const partDeReference = partDeLaReference(recette, palette);
       const nomDeLaCible = choisie === 'deux' ? TEXTES_DES_REGLAGES.deuxProfils : NOM_DU_PROFIL[choisie];
       for (const { grandeur, curseur, piste, fantome, repere, champ, absolu, retablir } of rangees) {
@@ -510,18 +506,18 @@ function construireVues(i18n: Localisation) {
         courante = palette;
         rendre();
         const uneSeule = aUneIntensite(palette);
-        const ligneDOrigine = uneSeule ? null : origineDesParts(palette.parts !== undefined, estPaletteGrise(recette, palette));
-        origine.hidden = ligneDOrigine === null;
-        i18n.lier(origine, 'textContent', ligneDOrigine ?? '');
-        reprendre.hidden = palette.parts?.origine !== 'designer';
-        // Les informations restent repliées ; les points à vérifier se lisent tout de suite.
-        const visibles = messagesDesReglages.filter((message) => message.severite !== 'notice');
-        const replies = messagesDesReglages.filter((message) => message.severite === 'notice');
-        messages.replaceChildren(...visibles.map((message) => blocDeConstat(message.constat, message.severite, { cibles: message.cibles, ouvrir: gestes.ouvrir })));
-        messages.hidden = visibles.length === 0;
-        details.replaceChildren(resume, ...replies.map((message) => blocDeConstat(message.constat, message.severite)));
-        details.hidden = replies.length === 0;
-        i18n.lier(resume, 'textContent', TEXTES_DES_INTENSITES.detailDeLaReference);
+        const grise = estPaletteGrise(recette, palette);
+        const ligneDOrigine = uneSeule ? null : origineDesParts(palette.parts !== undefined, grise);
+        // Une palette à une intensité n'a pas de parts à situer : la ligne ne paraît qu'avec deux, quelle que soit la saisie.
+        origine.element.hidden = ligneDOrigine === null;
+        origine.poser(ligneDOrigine ?? '', 'neutre', palette.parts?.origine === 'designer' ? [reprendre] : []);
+        // Les informations se lisent dans le volet du pied ; la ligne garde le premier point à vérifier.
+        const premiere = messagesDesReglages.find((message) => message.severite !== 'notice');
+        cibleDeLAlerte = premiere?.cibles[0] ?? null;
+        i18n.lier(lienDeLAlerte, 'textContent', cibleDeLAlerte ? LIBELLES_DES_CIBLES[cibleDeLAlerte] : '');
+        if (grise) alerte.poser(TEXTES_DE_LA_DERIVE.grisDesactive);
+        else if (premiere) alerte.poser(i18n.composer`${premiere.constat.ou} · ${premiere.constat.quoi}`, 'avertissement', cibleDeLAlerte ? [lienDeLAlerte] : []);
+        else alerte.poser('');
       },
     };
   }

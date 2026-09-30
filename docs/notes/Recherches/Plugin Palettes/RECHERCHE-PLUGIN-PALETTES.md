@@ -1540,8 +1540,9 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   [UCM Palettes](../../../../CONTRIBUTING.md#les-surfaces-ducm-palettes) : à
   la taille par défaut, la carte « Configuration de la palette » et le haut
   de l'aperçu se lisent sans défiler ; à 500 × 520, le sélecteur de palette,
-  le titre de premier rang et la rangée du nom et de la référence. Le reste s'atteint en défilant, sans barre flottante qui recouvre
-  le contenu.
+  le titre de premier rang et la rangée du nom et de la référence. Le reste s'atteint en défilant. Seul le pied de l'onglet Création
+  (`[UI-18]`) reste en vue : il couvre la bande du bas de la fenêtre, et la
+  page défile jusqu'à dégager ce qu'il cache.
 - `[UI-16]` L'interface s'ouvre en anglais, quelle que soit la langue de
   Figma, du navigateur ou du système. Le premier champ des Réglages communs,
   « Language », propose chaque langue du registre sous son nom dans sa propre
@@ -1749,9 +1750,10 @@ palette » gardent leurs libellés au-dessus des champs.
   référence » ouvre la modale d'ajustement (`[UI-15]`). Sinon, une référence
   ajustée y lit « Ajustée depuis #16A34A · Revenir à l'originale », et une
   référence employée telle quelle « Couleur de référence employée telle
-  quelle. ». Quand une garantie manque sur une référence ajustée, la bulle
-  de la ligne ajoute la trace de l'ajustement et « Revenir à l'originale ».
-  Une palette libre ne compte aucune garantie.
+  quelle. ». Quand une garantie manque sur une référence ajustée, la ligne
+  ajoute la trace au manque et porte les deux gestes ; à 500 px, le texte se
+  réduit et les gestes se coupent, leur nom accessible entier. Une palette
+  libre ne compte aucune garantie.
   Libre retire le choix des intensités, dit « Sans rôles ni garanties », et
   montre une puce par multiple de 50, de 50 à 1050, allumée
   quand la palette porte ce numéro. Une puce allumée ne s'éteint pas sous
@@ -1804,9 +1806,10 @@ palette » gardent leurs libellés au-dessus des champs.
   juger. L'Interface de test (`[UI-14]`) ferme l'onglet.
 - `[UI-17]` Une ligne fixe porte un message sur une ligne de 24 px, qui ne
   change jamais de hauteur. Son texte se coupe par une ellipse ; le texte
-  entier est dans `title` et dans le nom accessible. Elle a trois tons,
-  neutre, avertissement et butée, signalés par une icône en plus de la
-  couleur (`[VER-14]`). Présente même sans message, elle dit alors l'état
+  entier est dans `title` et dans le nom accessible. Elle a quatre tons,
+  neutre, avertissement, danger et butée, signalés par une icône en plus de
+  la couleur (`[VER-14]`). Ses gestes suivent le texte, qui leur cède sa place
+  jusqu'à 24 px restés cliquables. Présente même sans message, elle dit alors l'état
   neutre : la plage sûre, ou « Ce réglage ne touche pas la couleur de
   référence. ». Un clic ouvre le texte entier dans une bulle posée
   par-dessus les cartes, dans la fenêtre du plugin ; Échap, un clic ailleurs

@@ -290,7 +290,7 @@ celles-ci :
   `reglagesDeLaPalette.ts`. Toutes les
   cartes, sauf Configuration et aperçu, se replient et sont repliées à
   l’ouverture ; leur en-tête est un bouton qui
-  porte le chevron, le titre et un résumé aligné à droite ;
+  porte le chevron, le titre et un résumé aligné à droite, sur une ligne ;
 - la carte d’aperçu n’a pas de titre : son en-tête porte à gauche les onglets
   Light et Dark, et à droite la
   pastille du fond, qui ouvre le sélecteur de couleur. L’aperçu est une
@@ -308,10 +308,14 @@ celles-ci :
 - un geste destructif prend la variante `danger` du bouton du socle : fond et
   survol de danger, jamais la couleur de marque ;
 - un message qui n’est pas une garantie de contraste n’a pas de carte : il
-  garde un filet de sévérité, sous la carte qu’il concerne ;
+  se compte dans le pied de l’onglet et se lit dans son volet. Un message qui
+  peut paraître pendant un geste tient dans une ligne fixe de 24 px, présente
+  même sans message : aucun contrôle ne se déplace sous le pointeur ;
 - un résultat nomme toujours la palette ouverte. Un résultat d’une autre
   palette, ou d’une demande plus ancienne, ne la remplace pas ;
-- à la taille minimale, aucun élément fixe ne recouvre l’aperçu ou un champ ;
+- à la taille minimale, aucun élément fixe ne recouvre l’aperçu ou un champ,
+  hors du pied de l’onglet Création : il couvre une bande de 32 px au bas de
+  la fenêtre, et la page défile jusqu’à dégager ce qu’il cache ;
 - les Réglages communs reprennent les mêmes cartes : l’aperçu compact de la
   palette ouverte en tête, puis Couleurs de fond, Intensités, Luminosité des
   nuances, puis trois cartes repliées : les deux cartes de seuils et Contenu

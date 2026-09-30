@@ -4,8 +4,12 @@
  * « Palette [nom] » seul sur sa ligne, puis les cartes :
  * Configuration de la palette, aperçu, Intensités et Dérive de teinte
  * repliables, Garanties de contraste, et l'Interface de test en dernier
- * ([UI-12]). Un message se lit sous la carte qu'il concerne. La génération
- * appartient à l'onglet Palettes ([UI-05]).
+ * ([UI-12]). Les messages de la palette se comptent dans le pied, et se
+ * lisent dans son volet ([UI-18]). La génération appartient à l'onglet
+ * Palettes ([UI-05]).
+ *
+ * Pendant un geste, aucun contrôle ne se déplace ([UI-20]) : un message tient
+ * dans une ligne fixe, ou passe au pied.
  *
  * Une saisie recalcule l'aperçu dans l'interface ([ENT-02]). La recette
  * s'enregistre à la fin de chaque geste : valider un champ, relâcher un
@@ -26,6 +30,7 @@ import {
   type Palette,
   type Recette,
   type Refus,
+  ORDRE_DES_SEVERITES,
 } from 'ucm-couleur';
 
 import { analyserPalette } from '../analyse';
@@ -50,7 +55,7 @@ import {
   revenirAuModele,
   supprimer,
 } from '../edition';
-import { CIBLES_COMMUNES, carteDuMessage, type CarteDuMessage, type CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, carteDuMessage, ciblesDeLaPromesse, groupesManques, type CibleDAction } from '../presentation';
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
@@ -67,11 +72,13 @@ import type { StatutDuRangement } from './frontiere';
 import { creerVuesGaranties } from './garanties';
 import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
 import { creerVuesInterfaceDeTest } from './interfaceDeTest';
+import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMenuPalette } from './menuPalette';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
 import { creerVuesNuancier } from './nuancier';
+import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
 import { creerVuesReglagesDeLaPalette } from './reglagesDeLaPalette';
 import { creerVuesSelecteur } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
@@ -117,7 +124,9 @@ export interface OngletPalettesUi {
 function construireVues(i18n: Localisation) {
   const ecrireArrondi = i18n.arrondi;
   const { createButton } = creerSocleLocalise(i18n);
-  const { blocDeConstat, listeDesMessages } = creerVuesConstats(i18n);
+  const { blocDeConstat } = creerVuesConstats(i18n);
+  const { createLigneFixe } = creerVuesLigneFixe(i18n);
+  const { createPiedDeLaPalette } = creerVuesPiedDeLaPalette(i18n);
   const { createAjustement } = creerVuesAjustement(i18n);
   const { apercuCompact } = creerVuesApercuCompact(i18n);
   const { champEnColonne, createChoixDuModele, createPuces, createSegmentsDesIntensites } = creerVuesChamps(i18n);
@@ -132,7 +141,7 @@ function construireVues(i18n: Localisation) {
   const { messagesDeLaPalette } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
   const { createSelecteur } = creerVuesSelecteur(i18n);
-  const { NOM_DU_PROFIL, TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, constatDeGroupe, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -238,19 +247,17 @@ function construireVues(i18n: Localisation) {
     nom.type = 'text';
     nom.className = 'input';
     /*
-     * Sous le code, hors du libellé qui focalise la pastille : « Ajuster la
-     * référence » ouvre la modale (W7.1, Z5.2), seulement quand une garantie
-     * est manquée ; une référence ajustée dit son originale, que « Revenir à
-     * l'originale » rend.
+     * Sous le code, hors du libellé qui focalise la pastille, une ligne fixe
+     * dit l'état de la référence ([UI-11]) : les garanties manquées et
+     * « Ajuster la référence », qui ouvre la modale (W7.1, Z5.2) ; l'originale
+     * d'une référence ajustée et « Revenir à l'originale » ; sinon, une
+     * référence employée telle quelle.
      */
     const lienDAjustement = document.createElement('button');
     lienDAjustement.type = 'button';
     lienDAjustement.className = 'lien-de-constat';
     i18n.lier(lienDAjustement, 'textContent', TEXTES_DE_L_AJUSTEMENT.lien);
     lienDAjustement.addEventListener('click', () => ouvrirLAjustement());
-    const traceDeLAjustement = document.createElement('p');
-    traceDeLAjustement.className = 'ligne-secondaire trace-de-l-ajustement';
-    const ajusteeDepuis = document.createElement('span');
     const revenir = document.createElement('button');
     revenir.type = 'button';
     revenir.className = 'lien-de-constat';
@@ -260,17 +267,13 @@ function construireVues(i18n: Localisation) {
       if (!recette || !courante) return;
       note = null;
       valider(remplacerPalette(recette, revenirALOriginale(recette, courante)));
-      (lienDAjustement.hidden ? hexa : lienDAjustement).focus();
+      (lienDAjustement.isConnected ? lienDAjustement : hexa).focus();
     });
-    traceDeLAjustement.append(ajusteeDepuis, ' · ', revenir);
     const colonneDeLaReference = document.createElement('div');
     colonneDeLaReference.className = 'champ-colonne';
-    // Avant le lien, ce qui manque : le designer sait pourquoi ajuster avant d'ouvrir le panneau (Z5.1).
-    const manqueDeLaReference = document.createElement('p');
-    manqueDeLaReference.className = 'manque-de-la-reference';
-    manqueDeLaReference.id = 'manque-de-la-reference';
-    lienDAjustement.setAttribute('aria-describedby', manqueDeLaReference.id);
-    colonneDeLaReference.append(champEnColonne(TEXTES.reference, pipette.bouton, hexa), erreurHexa, manqueDeLaReference, lienDAjustement, traceDeLAjustement);
+    const etatDeLaReference = createLigneFixe();
+    etatDeLaReference.element.classList.add('ligne-de-la-reference');
+    colonneDeLaReference.append(champEnColonne(TEXTES.reference, pipette.bouton, hexa), erreurHexa, etatDeLaReference.element);
     /** L'originale de la palette au début d'une saisie du code : la retirer se signale (section 3 de la conception). */
     let originaleAvantSaisie: string | null = null;
     hexa.addEventListener('focus', () => {
@@ -285,7 +288,7 @@ function construireVues(i18n: Localisation) {
         note = null;
         valider(remplacerPalette(recette, reglerClarte(recette, courante, cleDuPorteur(recette, courante), pas / 100)));
       },
-      retour: () => (lienDAjustement.hidden ? hexa : lienDAjustement),
+      retour: () => (lienDAjustement.isConnected ? lienDAjustement : hexa),
     });
 
     function ouvrirLAjustement(): void {
@@ -325,8 +328,7 @@ function construireVues(i18n: Localisation) {
     colonnes.className = 'colonnes-de-base';
     colonnes.append(champEnColonne(TEXTES.nom, nom), colonneDeLaReference);
     const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration }, i18n);
-    const messagesDeBase = document.createElement('div');
-    carteDeBase.corps.append(colonnes, choixDuModele.element, choixDesIntensites.element, puces.element, messagesDeBase);
+    carteDeBase.corps.append(colonnes, choixDuModele.element, choixDesIntensites.element, puces.element);
 
     // Carte d'aperçu sans titre ([UI-04]) : thèmes et fond dans l'en-tête, la référence sous la surface.
     const nuancier = createNuancier({
@@ -340,7 +342,6 @@ function construireVues(i18n: Localisation) {
     const repereDeReference = document.createElement('p');
     repereDeReference.className = 'repere-de-la-reference';
     carteDApercu.corps.append(nuancier.element, repereDeReference);
-    const messagesDApercu = document.createElement('div');
 
     // Carte Garanties de contraste ([UI-09]) : elle suit le thème de l'aperçu.
     const garanties = createGaranties({
@@ -369,11 +370,17 @@ function construireVues(i18n: Localisation) {
     carteDeLaDerive.corps.append(editeur.element);
     // L'éditeur ne se dessine que déplié : l'ouvrir le dessine.
     carteDeLaDerive.surBascule(() => rendre());
-    const messagesDeLaDerive = document.createElement('div');
 
     // L'interface de test ferme l'onglet ([UI-14]) : repliée, elle ne se dessine qu'ouverte.
     const interfaceDeTest = createInterfaceDeTest();
     interfaceDeTest.surBascule(() => rendre());
+
+    // Le bilan de la palette, dans un pied qui reste en vue ([UI-18]).
+    // Un lien du volet vers un réglage de l'onglet referme le volet, qui le couvrirait ; vers les Réglages communs, il le garde pour le retour ([VER-15]).
+    const pied = createPiedDeLaPalette((cible) => {
+      if (!CIBLES_COMMUNES.includes(cible)) pied.fermer();
+      ouvrir(cible);
+    });
 
     // La palette se règle, puis se juge : Intensités et Dérive sous l'aperçu, les Garanties ensuite ([UI-12]).
     const configuration = document.createElement('div');
@@ -382,28 +389,12 @@ function construireVues(i18n: Localisation) {
       teteDeLaPalette,
       carteDeBase.element,
       carteDApercu.element,
-      messagesDApercu,
       carteDesIntensites.element,
       carteDeLaDerive.element,
-      messagesDeLaDerive,
       garanties.element,
       interfaceDeTest.element,
+      pied.element,
     );
-
-    /** Les messages de la palette, chacun sous la carte qu'il concerne. */
-    const ZONES_DES_MESSAGES: Record<CarteDuMessage, HTMLDivElement> = {
-      'couleur-de-base': messagesDeBase,
-      apercu: messagesDApercu,
-      derive: messagesDeLaDerive,
-    };
-
-    function poserLesMessages(liste: readonly Message[]): void {
-      for (const [carte, zone] of Object.entries(ZONES_DES_MESSAGES) as [CarteDuMessage, HTMLDivElement][]) {
-        const ici = liste.filter((message) => carteDuMessage(message.cibles) === carte);
-        zone.replaceChildren(...(ici.length > 0 ? [listeDesMessages(ici, ouvrir)] : []));
-        zone.hidden = ici.length === 0;
-      }
-    }
 
     /** Ouvre et focalise le réglage qu'un message nomme ([VER-15]) : dans l'onglet, ou dans les Réglages communs. */
     function ouvrir(cible: CibleDAction): void {
@@ -434,10 +425,17 @@ function construireVues(i18n: Localisation) {
       return recette?.palettes.find((candidate) => candidate.id === idOuvert) ?? null;
     }
 
+    /*
+     * Un geste en cours : une saisie prévisualisée, que `valider` termine. Le
+     * pied n'annonce son bilan qu'en dehors d'un geste ([UI-20]).
+     */
+    let enGeste = false;
+
     /** Remplace la recette affichée, sans l'enregistrer : une saisie en cours. */
     function modifier(suivante: Palette): void {
       if (!recette) return;
       recette = remplacerPalette(recette, suivante);
+      enGeste = true;
       rendre();
     }
 
@@ -454,6 +452,7 @@ function construireVues(i18n: Localisation) {
     let renduDiffere = false;
 
     function rendreLApercu(): void {
+      enGeste = true;
       apercuSeul = true;
       try {
         rendre();
@@ -466,6 +465,7 @@ function construireVues(i18n: Localisation) {
     /** La fin d'un geste : la recette s'enregistre. */
     function valider(suivante: Recette): void {
       recette = suivante;
+      enGeste = false;
       rendre();
       demandes.ranger(suivante);
     }
@@ -658,12 +658,13 @@ function construireVues(i18n: Localisation) {
       const analyse = analyserPalette(lue, courante);
       poser(hexa, courante.reference);
       pipette.poser(courante.reference);
-      i18n.lier(ajusteeDepuis, 'textContent', courante.originale ? TEXTES_DE_L_AJUSTEMENT.ajusteeDepuis(courante.originale) : '');
-      traceDeLAjustement.hidden = !courante.originale;
-      lienDAjustement.hidden = analyse.manquees === 0;
       const manquees = (mode: Mode) => analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.verdict === 'manquee').length;
-      i18n.lier(manqueDeLaReference, 'textContent', analyse.manquees === 0 ? '' : garantiesManqueesDeLaReference({ light: manquees('light'), dark: manquees('dark') }));
-      manqueDeLaReference.hidden = analyse.manquees === 0;
+      const trace = courante.originale ? TEXTES_DE_L_AJUSTEMENT.ajusteeDepuis(courante.originale) : null;
+      if (analyse.manquees > 0) {
+        const manque = garantiesManqueesDeLaReference({ light: manquees('light'), dark: manquees('dark') });
+        etatDeLaReference.poser(trace ? i18n.composer`${manque} · ${trace}` : manque, 'danger', trace ? [lienDAjustement, revenir] : [lienDAjustement]);
+      } else if (trace) etatDeLaReference.poser(trace, 'neutre', [revenir]);
+      else etatDeLaReference.poser(TEXTES_DE_L_AJUSTEMENT.telleQuelle);
       poser(nom, courante.nom ?? '');
       i18n.lier(nom, 'placeholder', courante.reference);
       i18n.lier(titreDeConfiguration, 'textContent', TEXTES_DE_L_ONGLET.titre(nomDeLaPalette(courante)));
@@ -675,10 +676,12 @@ function construireVues(i18n: Localisation) {
       puces.element.hidden = !analyse.libre;
       puces.poser(analyse.grille.crans);
       // Des réglages figent le porteur, et changer de profil déplacerait la référence : l'aide le dit avant le geste (Z10.5).
-      i18n.lier(choixAutomatique, 'textContent', courante.reglages
+      // Sa ligne garde sa place, vide sous une palette de base : un premier réglage ne la fait pas paraître ([UI-20]).
+      const aideDuChoix = courante.reglages
         ? TEXTES_DES_REGLAGES.porteurFige(profilPorteur(lue, courante))
-        : courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante)));
-      choixAutomatique.hidden = Boolean(courante.base) && !courante.reglages;
+        : courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante));
+      i18n.lier(choixAutomatique, 'textContent', aideDuChoix);
+      i18n.lier(choixAutomatique, 'title', aideDuChoix);
       i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, nuancier.mode())}`);
 
       nuancier.afficher({ recette: lue, analyse, confondues: analyse.confusions });
@@ -702,7 +705,12 @@ function construireVues(i18n: Localisation) {
           : (['soft', 'vivid'] as const).map((profil) => ({ nom: NOM_DU_PROFIL[profil], part: partsDesProfils(lue, courante)[profil] })),
         pointsDIntensite,
       ));
-      poserLesMessages(messages.liste);
+      pied.afficher({
+        garanties: analyse.libre ? 0 : analyse.promesses.length,
+        manquees: analyse.manquees,
+        libre: analyse.libre,
+        messages: messagesDuPied([...messages.liste, ...messages.intensite], groupesManques(analyse.promesses), nomDeLaPalette(courante)),
+      }, !enGeste);
 
       // Une palette grise n'a pas de teinte à montrer : l'éditeur se désactive ([DER-15]).
       const grise = estPaletteGrise(lue, courante);
@@ -711,6 +719,21 @@ function construireVues(i18n: Localisation) {
       carteDeLaDerive.desactiver(grise ? TEXTES_DE_LA_DERIVE.grisDesactive : null);
       if (carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse);
       interfaceDeTest.afficher(lue, analyse, nuancier.mode(), courante.id);
+    }
+
+    /**
+     * Les messages du volet, dans l'ordre des sévérités : chaque groupe de
+     * promesses manquées, puis les alertes, puis les informations ([VER-14]).
+     */
+    function messagesDuPied(alertes: readonly Message[], groupes: ReturnType<typeof groupesManques>, nom: string): Message[] {
+      const promesses: Message[] = groupes.map((groupe) => ({
+        severite: 'promesse',
+        constat: constatDeGroupe(groupe, nom),
+        cibles: ciblesDeLaPromesse(),
+        compte: groupe.manquees,
+      }));
+      const rang = (message: Message) => ORDRE_DES_SEVERITES.indexOf(message.severite);
+      return [...promesses, ...alertes].sort((a, b) => rang(a) - rang(b));
     }
 
     /**

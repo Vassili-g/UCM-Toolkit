@@ -710,6 +710,28 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([VERT_AJUSTE]))],
   },
   {
+    id: 'avertissement-long',
+    titre: 'Avertissement long, sur une ligne fixe',
+    quand: 'Vert, #16A34A, garde l’originale #15803D d’un ajustement et manque encore deux garanties ; le designer clique la ligne sous le code.',
+    regarder: 'La ligne de 24 px sous le code : ✗, le texte coupé par une ellipse, puis « Ajuster la référence » et « Revenir à l’originale ». La bulle posée sous elle, par-dessus les cartes, dans la fenêtre, avec le texte entier ; rien n’a bougé dessous. À 500 × 520, le texte se réduit à quelques lettres et les deux gestes restent entiers.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([{ ...palette('p-2b3c4d5e', 'Vert', '#16A34A'), originale: '#15803D' }])),
+      { clic: '[aria-label="Configuration de la palette"] .ligne-de-la-reference .ligne-fixe-texte' },
+    ],
+  },
+  {
+    id: 'volet-ouvert',
+    titre: 'Pied et volet des garanties et alertes',
+    quand: 'La courbe claire place le cran 700 à 0,55 : Bleu manque des garanties ; le designer ouvre « Détails » dans le pied.',
+    regarder: 'Le pied au bas de la fenêtre : ✗ en danger, « N garanties manquées sur 64 · aucune alerte · » et le premier message, coupé, puis « Détails ». Le volet au-dessus du pied, de hauteur fixe : « Garanties et alertes », « Fermer », les groupes de promesses à corriger avec leurs liens, qui défilent dans le volet. À 500 × 520, le volet couvre le haut de la page sans sortir de la fenêtre.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)),
+      { clic: '.pied-de-la-palette [aria-controls="volet-de-la-palette"]' },
+    ],
+  },
+  {
     id: 'ajustement-ouvert',
     titre: 'Ajuster la référence',
     quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait deux pas plus sombres.',

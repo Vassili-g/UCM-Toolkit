@@ -82,41 +82,41 @@ suivante.
 Cette phase corrige un défaut présent dans le plugin. Elle ne dépend ni du
 moteur ni du Color shift.
 
-- [ ] **M1** Écrire d'abord le test qui échoue :
+- [x] **M1** Écrire d'abord le test qui échoue :
   `packages/plugin-palettes/tests/interface/interface.test.mjs` place la
   palette `#16A34A` avec deux intensités, glisse la luminosité de la carte
   globale de 0 à +0,02, et relève `getBoundingClientRect().top` du curseur à
   chaque image. Il échoue au premier pixel d'écart. Même relevé pour une
   poignée du graphe de dérive. Le constater en échec sur `main`.
-- [ ] **M2** Nouveau `src/ui/ligneFixe.ts` : une ligne de 24 px, ellipse,
+- [x] **M2** Nouveau `src/ui/ligneFixe.ts` : une ligne de 24 px, ellipse,
   texte entier dans `title` et pour le lecteur d'écran, un ton (`neutre`,
   `avertissement`, `butee`). Le clic ouvre une bulle superposée, positionnée
   dans la fenêtre du plugin ; Échap et un clic ailleurs la ferment.
-- [ ] **M3** Nouveau `src/ui/piedDeLaPalette.ts`, sous le contenu défilant de
+- [x] **M3** Nouveau `src/ui/piedDeLaPalette.ts`, sous le contenu défilant de
   l'onglet Création : icône, compte des garanties et des alertes, premier
   message, bouton « Détails ». Le volet superposé liste les messages par
   sévérité avec `blocDeConstat` et leurs liens `ouvrir` ; Échap le ferme. Une
   région `aria-live="polite"` annonce le bilan à la fin d'un geste, pas
   pendant.
-- [ ] **M4** `src/ui/ongletPalettes.ts` : les zones `messagesDeBase`,
+- [x] **M4** `src/ui/ongletPalettes.ts` : les zones `messagesDeBase`,
   `messagesDApercu` et `messagesDeLaDerive` quittent le flux et alimentent le
   pied. `manqueDeLaReference`, `lienDAjustement` et `traceDeLAjustement`
   deviennent une ligne fixe de la carte de la référence ; `choixAutomatique`
   aussi ; `repereDeReference` tient sur une ligne.
-- [ ] **M5** `src/ui/reglagesDeLaPalette.ts` : l'avertissement devient une
+- [x] **M5** `src/ui/reglagesDeLaPalette.ts` : l'avertissement devient une
   ligne fixe toujours présente, avec l'état neutre « Ce réglage ne touche pas
   la couleur de référence ». Origine des parts, retour aux parts communes et
   messages de la carte tiennent chacun dans une ligne fixe réservée.
-- [ ] **M6** `src/ui/carte.ts` et `styles.css` : le résumé d'une carte
+- [x] **M6** `src/ui/carte.ts` et `styles.css` : le résumé d'une carte
   repliable tient sur une ligne, coupé par une ellipse ; `.carte-bascule`
   perd son `flex-wrap`. Le titre ne se coupe toujours pas.
-- [ ] **M7** Pendant un geste, aucun élément ne change de hauteur : un volet
+- [x] **M7** Pendant un geste, aucun élément ne change de hauteur : un volet
   ouvert garde sa taille et fait défiler son contenu. Poser l'état du geste à
   un seul endroit, là où `previsualiser` et `valider` passent.
-- [ ] **M8** Textes anglais et français des états neutres, du pied et du
+- [x] **M8** Textes anglais et français des états neutres, du pied et du
   volet ; `loiDesTextes` et `i18n` passent. Galerie : un état « avertissement
   long » et un état « volet ouvert », à la taille par défaut et à 500 × 520.
-- [ ] **M9** AGENTS.md, invariant de l'interface : pendant un geste, aucun
+- [x] **M9** AGENTS.md, invariant de l'interface : pendant un geste, aucun
   contrôle de l'onglet Création ne se déplace ; le test M1 le tient. Carte du
   code : `ligneFixe.ts` et `piedDeLaPalette.ts`.
 - [ ] **M10** Arrêt : le mainteneur essaie le plugin dans Figma, glisse près

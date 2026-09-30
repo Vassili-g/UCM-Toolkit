@@ -94,8 +94,9 @@ function construireVues(i18n: Localisation) {
       segments.append(bouton);
       return { valeur, bouton };
     });
+    // L'aide tient sur une ligne, coupée par une ellipse : son texte s'allonge au premier réglage ([UI-20]).
     const aide = document.createElement('span');
-    aide.className = 'ligne-secondaire';
+    aide.className = 'ligne-secondaire aide-sur-une-ligne';
     const libelle = document.createElement('span');
     libelle.className = 'libelle-de-champ';
     i18n.lier(libelle, 'textContent', TEXTES_DE_LA_BASE.libelle);

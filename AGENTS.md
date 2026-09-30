@@ -238,7 +238,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/preferences.ts       la langue de l'interface, lue et rangée dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création et Palettes, la configuration
-  src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », puis les cartes, chaque message sous la sienne
+  src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
+  src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, volet des messages, annonce en fin de geste
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable, avec son résumé
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
@@ -258,7 +260,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
   src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : dérive, réglette et tracé s'étirent sans grandir
   src/ui/apercuCompact.ts  les rampes présentes d'une palette et le résultat de ses garanties, pour une fiche ou les réglages
-  src/ui/reglagesDeLaPalette.ts la carte « Teinte, saturation, luminosité » : profil visé, trois curseurs peints, avertissement de la référence, origine des parts, retour aux réglages communs
+  src/ui/reglagesDeLaPalette.ts la carte « Teinte, saturation, luminosité » : profil visé, trois curseurs peints, et en lignes fixes l'avertissement de la référence, l'origine des parts et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, et ceux des intensités
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
   src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
@@ -1098,6 +1100,23 @@ La spécification en lien porte le raisonnement.
   empreinte ne dépendent pas de la langue. Les tests d'interface le tiennent.
 - Le registre `src/i18n/langues.ts` n'importe aucun catalogue, pour que le
   sandbox valide la préférence sans embarquer les textes de l'interface.
+
+### Interface d'UCM Palettes
+
+- Pendant un geste, aucun contrôle de l'onglet Création ne se déplace. Un
+  message qui peut paraître pendant un glisser tient dans une ligne fixe de
+  24 px, présente même sans message (`src/ui/ligneFixe.ts`) ; le bilan des
+  garanties et des alertes passe dans le pied, dont le volet garde sa hauteur
+  (`src/ui/piedDeLaPalette.ts`) ; le résumé d'une carte repliable tient sur
+  une ligne. `ongletPalettes.ts` pose l'état du geste là où la
+  prévisualisation et la validation passent, et le pied n'annonce son bilan
+  qu'à la fin d'un geste. Les tests `[UI-20]` de
+  `packages/plugin-palettes/tests/interface/interface.test.mjs` relèvent,
+  fenêtre sans défilement, la position d'un curseur de la carte des réglages
+  et du graphe de la dérive à chaque image d'un glisser, et échouent au
+  premier pixel d'écart. Borne : ils ne relèvent que ces deux contrôles, et un
+  élément placé sous le contrôle saisi peut encore changer de hauteur.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 
 ## Vérification
 

@@ -2,7 +2,9 @@
  * Une carte de la configuration d'une palette (`[UI-09]` à `[UI-12]`) : fond
  * secondaire, bordure du socle, titre de carte. Une carte repliable a pour
  * en-tête un bouton qui porte le chevron, le titre et un résumé aligné à
- * droite ; son état ouvert dure autant que l'élément, donc la session.
+ * droite, sur une ligne : un résumé trop long se coupe par une ellipse, et son
+ * texte entier se lit au survol ([UI-20]). Son état ouvert dure autant que
+ * l'élément, donc la session.
  */
 import type { Localisation, Texte } from './localisation';
 
@@ -89,6 +91,7 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
     corps,
     poserResume(texte) {
       i18n.lier(resume, 'textContent', texte);
+      i18n.lier(resume, 'title', texte);
       resume.hidden = texte === '';
     },
     ouvrir() {

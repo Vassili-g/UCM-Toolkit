@@ -38,6 +38,7 @@ const DOMAINES = [
   'Moteur de couleur',
   "Ecriture d'UCM Palettes",
   "Langue d'UCM Palettes",
+  "Interface d'UCM Palettes",
 ];
 
 /**

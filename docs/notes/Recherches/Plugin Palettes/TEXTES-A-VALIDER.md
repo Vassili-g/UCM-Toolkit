@@ -308,27 +308,31 @@ phrase. « Color shift » garde son nom dans les deux langues (décision Q1).
 | Confirmation du lien | Aligner Soft sur Vivid ? Le Color shift de Soft sera remplacé par celui de Vivid : teinte, saturation et luminosité. | Align Soft with Vivid? Soft's Color shift will be replaced by Vivid's: hue, saturation and lightness. | |
 | Plage sûre | Plage sûre · nuances claires {bas} à {haut} · nuances sombres {bas} à {haut} | Safe range · light shades {low} to {high} · dark shades {low} to {high} | |
 | Butée sur une garantie | {Grandeur}, {bout} : limite atteinte à {borne}. Au-delà, {paire} ({profil}, {thème}) tomberait à {contraste}, sous {minimum}. | {Quantity}, {end}: limit reached at {bound}. Beyond it, {pair} ({profile}, {theme}) would drop to {contrast}, below {minimum}. | |
-| Butée sur l'ordre | {Grandeur}, {bout} : limite atteinte à {borne}. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité. | {Quantity}, {end}: limit reached at {bound}. Beyond it, two neighboring shades would come closer than 0.01 in lightness. | |
+| Butée sur l'ordre | {Grandeur}, {bout} : limite atteinte à {borne}. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité. | {Quantity}, {end}: limit reached at {bound}. Beyond it, two neighbouring shades would come closer than 0.01 in lightness. | |
 | Hors de la plage | {Bout} hors de la plage sûre : un autre réglage l'a resserrée. | {End} outside the safe range: another setting narrowed it. | |
-| Palette grise | Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable. | This palette is entirely gray: hue and saturation don't show. Lightness remains adjustable. | |
+| Palette grise | Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable. | This palette is entirely grey: hue and saturation don't show. Lightness remains adjustable. | |
 | Légende des arcs | trait plein : default · tireté : hover · pointillé : active · tiret-point : active-hover | solid: default · dashed: hover · dotted: active · dash-dot: active-hover | |
 
 ### Lignes fixes, pied et volet
 
 | Texte | Français | Anglais | Retenue |
 |---|---|---|---|
-| État neutre du réglage global | Ce réglage ne touche pas la couleur de référence. | This setting doesn't change the reference color. | |
-| État neutre de la référence | Couleur de référence employée telle quelle. | Reference color used as is. | |
+| État neutre du réglage global | Ce réglage ne touche pas la couleur de référence. | This adjustment doesn't change the reference colour. | |
+| État neutre de la référence | Couleur de référence employée telle quelle. | Reference colour used as is. | |
+| Manque de la référence, après l'icône ✗ | {n} garanties manquées en Thème {thème} | {n} unmet guarantees in the {thème} theme | |
 | Pied, tout tenu | {n} garanties tenues · aucune alerte | {n} guarantees met · no alerts | |
-| Pied, manques | {m} garanties manquées sur {n} · {k} alertes | {m} of {n} guarantees missed · {k} alerts | |
+| Pied, manques | {m} garanties manquées sur {n} · {k} alertes | {m} of {n} guarantees unmet · {k} alerts | |
 | Pied, palette libre | Palette libre · {k} alertes | Free palette · {k} alerts | |
+| Nom du pied | Bilan de la palette | Palette summary | |
 | Geste du pied | Détails | Details | |
 | Titre du volet | Garanties et alertes | Guarantees and alerts | |
-| Groupes du volet | Garanties manquées · {n} · Alertes · {n} · Aucune. | Missed guarantees · {n} · Alerts · {n} · None. | |
+| Volet vide | Aucune garantie manquée, aucune alerte. | No unmet guarantee, no alert. | |
 | Fermeture du volet | Fermer | Close | |
 
 Le singulier suit chaque compte : « 1 garantie manquée sur 76 · 1 alerte »,
-« 1 of 76 guarantees missed · 1 alert ».
+« 1 of 76 guarantees unmet · 1 alert ». Les groupes du volet reprennent les
+titres des groupes de messages : « Promesses à corriger · {n} », « Points à
+vérifier · {n} », « À savoir · {n} ».
 
 ### Refus de validation du format 7
 

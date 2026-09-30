@@ -103,6 +103,26 @@ export const TEXTES_DE_L_ONGLET = {
   derive: "Hue shift",
 } as const;
 
+/** Le pied de l'onglet Création et son volet ([UI-18]). */
+export const TEXTES_DU_PIED = {
+  region: "Palette summary",
+  details: "Details",
+  titre: "Guarantees and alerts",
+  fermer: "Close",
+  aucun: "No unmet guarantee, no alert.",
+} as const;
+
+/**
+ * Le bilan du pied ([UI-18]) : « 76 guarantees met · no alerts »,
+ * « 2 of 76 guarantees unmet · 1 alert », « Free palette · 2 alerts ».
+ */
+export function bilanDuPied(garanties: number, manquees: number, alertes: number, libre: boolean): string {
+  const lesAlertes = alertes === 0 ? "no alerts" : alertes === 1 ? "1 alert" : `${alertes} alerts`;
+  if (libre) return `Free palette · ${lesAlertes}`;
+  if (manquees === 0) return `${garanties} ${garanties === 1 ? "guarantee met" : "guarantees met"} · ${lesAlertes}`;
+  return `${manquees} of ${garanties} ${garanties === 1 ? "guarantee" : "guarantees"} unmet · ${lesAlertes}`;
+}
+
 /** Le titre d'un groupe de messages et son nombre ([VER-14]) : « Promesses à corriger · 2 ». */
 export function titreDeGroupe(titre: string, nombre: number): string {
   return `${titre} · ${nombre}`;
@@ -337,6 +357,7 @@ export const TEXTES_DES_REGLAGES = {
   etiquette: (grandeur: string, profil: string) => `${profil} ${grandeur.toLowerCase()}`,
   avertissementAvant: "Warning: this adjustment will change your reference colour.",
   avertissementApres: "Warning: your reference colour has been changed.",
+  neutre: "This adjustment doesn't change the reference colour.",
   pied: "The hue shift is applied afterwards.",
   porteurFige: (profil: Profil) => `Reference in ${NOM_DU_PROFIL[profil]}, fixed by the adjustments. Changing profile will change your reference colour.`,
 } as const;
@@ -1394,6 +1415,7 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   appliquer: "Apply",
   annuler: "Cancel",
   ajusteeDepuis: (hexa: string) => `Adjusted from ${hexa}`,
+  telleQuelle: "Reference colour used as is.",
   revenir: "Restore original",
   colonnes: { garantie: "Guarantee", theme: "Theme", avant: "Before", apres: "After" },
   sur: "on",
@@ -1460,7 +1482,7 @@ export function nuancesDeLAjustement(
 export function garantiesManqueesDeLaReference(manques: { readonly [M in Mode]: number }): string {
   const total = manques.light + manques.dark;
   const themes = (['light', 'dark'] as const).filter((mode) => manques[mode] > 0).map((mode) => `in the ${NOM_DU_MODE[mode]} theme`);
-  return `✗ ${total} ${total === 1 ? "unmet guarantee" : "unmet guarantees"} ${themes.join(" and ")}`;
+  return `${total} ${total === 1 ? "unmet guarantee" : "unmet guarantees"} ${themes.join(" and ")}`;
 }
 
 /** Le bilan d'un profil avant et après la proposition : « Vivid ✗ 2 → ✓ », ou « Soft ✓ inchangé ». */
