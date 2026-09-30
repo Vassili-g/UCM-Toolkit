@@ -3648,13 +3648,18 @@ test('un double-clic sur un curseur de la carte des réglages rend la valeur de 
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const curseur = page.getByRole('slider', { name: 'Teinte de Soft' });
-    await curseur.scrollIntoViewIfNeeded();
-    const boite = await curseur.boundingBox();
-    await curseur.dblclick({ position: { x: boite.width * 0.9, y: boite.height / 2 } });
+    const aLaValeur = async () => {
+      await curseur.scrollIntoViewIfNeeded();
+      const boite = await curseur.boundingBox();
+      return { x: boite.width * 0.9, y: boite.height / 2 };
+    };
+    // Un premier clic range la teinte : le résumé de la carte change et peut la décaler, d'où une seconde mesure.
+    await curseur.click({ position: await aLaValeur() });
+    assert.notEqual(await curseur.inputValue(), '0');
+    await envoyer(page, rangee((await rangements(page))[0].demande));
+    await curseur.dblclick({ position: await aLaValeur() });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     assert.equal(await curseur.inputValue(), '0');
-    // Un seul rangement en vol : celui du double-clic part à la réponse du premier.
-    await envoyer(page, rangee((await rangements(page))[0].demande));
     await page.waitForFunction(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length === 2);
     const derniere = (await rangements(page)).at(-1);
     assert.equal(derniere.recette.palettes.some(({ reglages }) => reglages?.teinte?.soft), false, 'la teinte de Soft rangée revient à zéro');

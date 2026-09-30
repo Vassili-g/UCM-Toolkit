@@ -75,6 +75,22 @@ jobs:
       - run: npm install -g npm@12.0.2 && npm -v
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
+      # Les interfaces demandent Inter, la police de Figma, sans l'embarquer.
+      # Sans elle, Chromium prend une police plus large, et les tests
+      # d'interface qui mesurent des lignes, des marges et des cases échouent
+      # ici seulement. Inter 3.19, en Regular, Medium et SemiBold, est ce que
+      # le poste qui écrit ces tests installe.
+      - name: Installer Inter 3.19
+        run: |
+          curl -sSL -o inter.zip https://github.com/rsms/inter/releases/download/v3.19/Inter-3.19.zip
+          echo "150ab6230d1762a57bebf35dfc04d606ff91598a31d785f7f100356ecdcc0032  inter.zip" | sha256sum -c
+          mkdir -p ~/.local/share/fonts
+          for graisse in Regular Medium SemiBold; do
+            unzip -j -o inter.zip "Inter Hinted for Windows/Desktop/Inter-$graisse.ttf" -d ~/.local/share/fonts
+          done
+          rm inter.zip
+          fc-cache -f
+          fc-list | grep "Inter-"
       - run: npm run cascade
       - run: npm run test:ui --workspace ucm-exporter-plugin
       - run: npm run test:ui --workspace ucm-palettes-plugin
