@@ -1,0 +1,1307 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette Color shift</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #f3f3f1; --page-texte: #1e1e1e; --page-second: #5b5b5b; --page-carte: #ffffff; --page-bordure: #dcdcd8; --page-accent: #0d6ec9; --page-bon: #168b52; --page-mauvais: #c2410c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --page: #161616; --page-texte: #ededed; --page-second: #a9a9a9; --page-carte: #1f1f1f; --page-bordure: #3a3a3a; --page-accent: #7cc4f8; --page-bon: #85e0a3; --page-mauvais: #ffb38a; }
+}
+:root[data-theme="dark"] { --page: #161616; --page-texte: #ededed; --page-second: #a9a9a9; --page-carte: #1f1f1f; --page-bordure: #3a3a3a; --page-accent: #7cc4f8; --page-bon: #85e0a3; --page-mauvais: #ffb38a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-texte); font: 13px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+header.page { padding: 24px 24px 8px; max-width: 1480px; margin: 0 auto; }
+header.page h1 { font-size: 20px; margin: 0 0 4px; }
+header.page p { margin: 0; color: var(--page-second); max-width: 900px; }
+.mise-en-page { display: grid; grid-template-columns: 300px 600px minmax(260px, 1fr); gap: 24px; padding: 16px 24px 48px; max-width: 1480px; margin: 0 auto; align-items: start; }
+@media (max-width: 1260px) { .mise-en-page { grid-template-columns: 300px 600px; } .explications { grid-column: 1 / -1; } }
+@media (max-width: 960px) { .mise-en-page { grid-template-columns: minmax(0, 1fr); padding: 16px; } }
+#scenario, .explications { background: var(--page-carte); border: 1px solid var(--page-bordure); border-radius: 10px; padding: 16px; }
+#scenario h2, .explications h2 { font-size: 14px; margin: 0 0 10px; }
+#scenario h2:not(:first-child), .explications h2:not(:first-child) { margin-top: 20px; }
+.groupe { margin-bottom: 12px; }
+.groupe-titre { display: block; font-size: 11px; font-weight: 600; color: var(--page-second); margin-bottom: 4px; }
+.choix { display: flex; flex-wrap: wrap; gap: 4px; }
+.choix button, .essais button { font: inherit; font-size: 12px; border: 1px solid var(--page-bordure); background: transparent; color: var(--page-texte); border-radius: 6px; padding: 3px 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.choix button[aria-pressed="true"] { border-color: var(--page-accent); color: var(--page-accent); font-weight: 600; }
+.essais { display: grid; gap: 4px; }
+.essais button { text-align: left; }
+.puce { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.mesure { margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; border: 1px dashed var(--page-bordure); font-size: 12px; }
+.mesure[data-ton="bon"] { border: 1px solid var(--page-bon); color: var(--page-bon); }
+.mesure[data-ton="mauvais"] { border: 1px solid var(--page-mauvais); color: var(--page-mauvais); font-weight: 600; }
+.questions { padding-left: 18px; margin: 0; display: grid; gap: 8px; font-size: 12px; }
+.explications { font-size: 12.5px; }
+.explications p { margin: 0 0 10px; }
+.explications ul { margin: 0 0 10px; padding-left: 18px; }
+.explications table { border-collapse: collapse; width: 100%; font-size: 11.5px; margin-bottom: 10px; }
+.explications th, .explications td { border-bottom: 1px solid var(--page-bordure); text-align: left; padding: 4px 6px 4px 0; vertical-align: top; }
+.schema { width: 100%; max-width: 360px; display: block; margin: 4px 0 12px; }
+.schema text { fill: var(--page-second); font-size: 10px; }
+.schema .s-axe { stroke: var(--page-bordure); }
+.schema .s-avant { stroke: var(--page-second); stroke-dasharray: 3 3; fill: none; }
+.schema .s-apres { stroke: var(--page-accent); stroke-width: 2; fill: none; }
+.schema .s-ref { fill: var(--page-texte); }
+
+/* Le plugin simulé : une fenêtre de 600 × 720, contenu défilant, sur les rôles de couleur du socle. */
+#plugin {
+  width: 600px; max-width: 100%; height: 720px; position: relative; display: grid; grid-template-rows: 40px minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr);
+  border-radius: 10px; overflow: hidden; border: 1px solid var(--page-bordure); box-shadow: 0 6px 24px rgba(0,0,0,.12);
+  --fond: #ffffff; --fond-bloc: #f5f5f5; --fond-note: #ebebeb; --fond-survol: #f5f5f5; --fond-avertissement: #fff1d6;
+  --bordure: #d2d2d2; --texte: #1e1e1e; --texte-second: #6b6b6b; --texte-marque: #007be5; --texte-danger: #dc3412; --texte-avertissement: #a55b00;
+  --interdit: #dc3412; --ombre: 0 8px 24px rgba(0,0,0,.18);
+  --fond-niveau-atteint: #CDEFD9; --texte-niveau-atteint: #14532D; --fond-niveau-manque: #F9D8D1; --texte-niveau-manque: #8A2A1B;
+  background: var(--fond); color: var(--texte); font: 11px/16px Inter, ui-sans-serif, system-ui, sans-serif;
+}
+@media (max-width: 960px) { #plugin { height: 80vh; min-height: 520px; } }
+#plugin.figma-dark {
+  --fond: #2c2c2c; --fond-bloc: #383838; --fond-note: #4d4d4d; --fond-survol: #383838; --fond-avertissement: #4a3a10;
+  --bordure: #5e5e5e; --texte: #ffffff; --texte-second: #b3b3b3; --texte-marque: #7cc4f8; --texte-danger: #ffafa3; --texte-avertissement: #ffc470;
+  --interdit: #ff8a73; --ombre: 0 8px 24px rgba(0,0,0,.5);
+}
+#plugin button, #plugin select, #plugin input { font: inherit; color: inherit; }
+#plugin [hidden] { display: none !important; }
+.entete-plugin { display: flex; gap: 16px; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--bordure); }
+.onglet { font-size: 12px; color: var(--texte-second); }
+.onglet.actif { color: var(--texte); font-weight: 600; box-shadow: inset 0 -2px 0 var(--texte); padding: 11px 0; }
+.engrenage { margin-left: auto; color: var(--texte-second); }
+.contenu { padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; overflow-y: auto; overflow-anchor: none; }
+.titre-palette { font-size: 15px; line-height: 20px; margin: 0; }
+.titre-de-section { font-size: 12px; margin: 8px 0 -8px; }
+.aide-de-section { margin: 0; color: var(--texte-second); }
+.carte { border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond); }
+.carte-tete { display: flex; align-items: center; gap: 8px; padding: 8px 12px; min-height: 40px; width: 100%; background: none; border: 0; text-align: left; }
+.tete-repliable { cursor: pointer; }
+.tete-repliable:hover { background: var(--fond-survol); }
+.carte-titre { font-size: 12px; font-weight: 600; }
+.titres { display: grid; flex: 0 1 auto; min-width: 0; }
+.sous-titre { color: var(--texte-second); }
+.resume { margin-left: auto; color: var(--texte-second); text-align: right; max-width: 260px; }
+.mise-en-page-stable .resume { min-width: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chevron { display: inline-block; width: 10px; transition: transform .12s; color: var(--texte-second); font-size: 14px; }
+.ouverte .chevron { transform: rotate(90deg); }
+.carte-corps { display: none; padding: 4px 12px 12px; border-top: 1px solid var(--bordure); }
+.ouverte .carte-corps { display: grid; gap: 8px; }
+.glyphe { width: 38px; height: 24px; flex: none; }
+.glyphe-avant rect { fill: var(--texte-second); opacity: .35; }
+.glyphe-apres rect { fill: var(--texte-marque); }
+.glyphe-axe { stroke: var(--bordure); stroke-width: 1.2; }
+.glyphe-ligne { stroke: var(--texte-marque); stroke-width: 1.8; fill: none; }
+.glyphe-point { fill: var(--fond); stroke: var(--texte-marque); stroke-width: 1.6; }
+.glyphe-losange { fill: var(--texte); }
+.bascule { display: inline-flex; border: 1px solid var(--bordure); border-radius: 6px; overflow: hidden; }
+.bascule-option { border: 0; background: none; padding: 0 10px; height: 24px; cursor: pointer; }
+.bascule-option[aria-pressed="true"] { background: var(--fond-note); font-weight: 600; }
+.carte-tete .bascule { margin-left: auto; }
+.apercu { border-radius: 6px; padding: 10px 10px 4px; margin: 0 12px 12px; display: grid; gap: 4px; }
+.rangee-apercu { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 6px; }
+.nom-rampe { color: #6b6b6b; font-size: 10px; }
+.apercu-sombre .nom-rampe, .apercu-sombre .numeros span { color: #b3b3b3; }
+.pastilles { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
+.pastille { height: 26px; border-radius: 4px; display: grid; place-items: center; font-size: 11px; }
+.numeros span { font-size: 9.5px; text-align: center; color: #6b6b6b; }
+.bilan { margin: -4px 12px 10px; }
+.badge { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 8px; font-size: 10px; font-weight: 700; flex: none; vertical-align: -3px; margin-right: 4px; }
+.badge-ok { background: var(--fond-niveau-atteint); color: var(--texte-niveau-atteint); }
+.badge-ko { background: var(--fond-niveau-manque); color: var(--texte-niveau-manque); }
+.badge-alerte { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+.messages-flux { display: grid; gap: 4px; }
+.constats-titre { margin: 0; font-weight: 600; color: var(--texte-danger); }
+.constat { margin: 0; padding: 6px 8px; border-radius: 4px; background: var(--fond-bloc); }
+.rangee { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.field-label { color: var(--texte-second); }
+.avertissement { margin: 0; padding: 6px 8px; background: var(--fond-avertissement); border-radius: 4px; color: var(--texte-avertissement); }
+.pied, .aide { margin: 0; color: var(--texte-second); }
+.reglage-global { display: grid; grid-template-columns: 76px 1fr 56px; align-items: center; gap: 8px; }
+.range-global { width: 100%; }
+.valeur-globale { text-align: right; font-variant-numeric: tabular-nums; }
+.input { height: 24px; border: 1px solid var(--bordure); border-radius: 4px; background: var(--fond); padding: 0 6px; }
+.cache { display: none !important; }
+.champ-ligne { display: inline-flex; gap: 6px; align-items: center; }
+.bouton-discret { border: 0; background: none; color: var(--texte-marque); cursor: pointer; padding: 0 4px; height: 24px; }
+.bouton-discret:disabled { color: var(--texte-second); opacity: .5; cursor: default; }
+.entete-shift .tout-retablir { margin-left: auto; }
+
+/* La ligne fixe : une ligne de 24 px, toujours présente, coupée par une ellipse ; le clic ouvre la bulle. */
+.ligne-fixe { display: block; width: 100%; height: 24px; line-height: 24px; padding: 0 8px; border: 0; border-radius: 4px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; background: var(--fond-bloc); color: var(--texte-second); }
+.ligne-fixe[data-ton="avertissement"] { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+.ligne-fixe[data-ton="butee"] { box-shadow: inset 3px 0 0 var(--interdit); color: var(--texte); }
+.bulle { position: absolute; z-index: 5; padding: 8px 10px; border-radius: 6px; background: var(--fond); border: 1px solid var(--bordure); box-shadow: var(--ombre); }
+.pied-plugin { display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px 0 16px; border-top: 1px solid var(--bordure); background: var(--fond); }
+.pied-texte { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.volet { position: absolute; z-index: 4; left: 8px; right: 8px; bottom: 44px; max-height: 55%; display: grid; grid-template-rows: auto minmax(0, 1fr); border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond); box-shadow: var(--ombre); }
+.volet-tete { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 4px 12px; }
+.volet-corps { overflow-y: auto; padding: 0 12px 12px; display: grid; gap: 4px; align-content: start; }
+.volet-groupe { margin: 8px 0 0; font-weight: 600; }
+.volet-ligne { margin: 0; padding: 4px 8px; border-radius: 4px; background: var(--fond-bloc); }
+
+.onglets-grandeur { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--bordure); border-radius: 6px; overflow: hidden; }
+.onglet-grandeur { border: 0; border-right: 1px solid var(--bordure); background: none; padding: 6px 8px; text-align: left; cursor: pointer; display: grid; gap: 1px; }
+.onglet-grandeur:last-child { border-right: 0; }
+.onglet-grandeur[aria-selected="true"] { background: var(--fond-note); box-shadow: inset 0 -2px 0 var(--texte-marque); }
+.onglet-grandeur:disabled { opacity: .45; cursor: not-allowed; }
+.onglet-nom { font-weight: 600; display: inline-flex; gap: 5px; align-items: center; }
+.onglet-valeurs { color: var(--texte-second); font-variant-numeric: tabular-nums; }
+.pastille-reglee { width: 6px; height: 6px; border-radius: 3px; background: var(--texte-marque); display: none; }
+.reglee .pastille-reglee { display: inline-block; }
+.graphe svg { width: 100%; display: block; }
+.graphe .grille { stroke: var(--bordure); stroke-width: .6; stroke-dasharray: 2 3; }
+.graphe .axe-zero { stroke: var(--texte-second); stroke-width: .8; }
+.graphe .graduation, .graphe .numero { fill: var(--texte-second); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+.graphe .courbe { stroke: var(--texte-marque); stroke-width: 2; fill: none; stroke-linejoin: round; }
+.graphe .courbe-fantome { stroke: var(--texte-second); stroke-width: 1.4; fill: none; stroke-dasharray: 4 3; }
+.graphe .sommet { fill: var(--texte-marque); }
+.graphe .losange { fill: var(--texte); stroke: var(--fond); stroke-width: 1.5; }
+.graphe .losange-rampe { font-size: 10px; }
+.graphe .poignee { cursor: ns-resize; outline: none; }
+.graphe .poignee-cible { fill: transparent; }
+.graphe .poignee-rond { fill: var(--fond); stroke: var(--texte-marque); stroke-width: 2.5; }
+.graphe .poignee:focus-visible .poignee-rond { stroke-width: 4; }
+.graphe .etiquette-poignee { fill: var(--texte); font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.graphe .rail-permis { fill: var(--texte-marque); opacity: .14; }
+.graphe .hachures-fond { fill: var(--fond); }
+.graphe .hachures-trait { stroke: var(--interdit); stroke-width: 1.6; opacity: .55; }
+.reglette { display: grid; grid-template-columns: 96px 64px 1fr 58px; align-items: center; gap: 8px; }
+.reglette .plage { grid-column: 3 / 5; color: var(--texte-second); font-size: 10px; margin-top: -6px; }
+.reglette .plage:empty { display: none; }
+.reglette.inactive { opacity: .4; pointer-events: none; }
+.champ { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
+.curseur { position: relative; height: 24px; cursor: pointer; outline: none; touch-action: none; }
+.curseur .piste { position: absolute; left: 0; right: 0; top: 7px; height: 10px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.curseur .interdit { position: absolute; top: 5px; height: 14px; background: repeating-linear-gradient(135deg, var(--interdit) 0 2px, transparent 2px 5px); opacity: .9; }
+.curseur .interdit-bas { left: 0; border-radius: 5px 0 0 5px; border-right: 2px solid var(--interdit); }
+.curseur .interdit-haut { border-radius: 0 5px 5px 0; border-left: 2px solid var(--interdit); }
+.curseur .interdit::after { content: ''; position: absolute; inset: 0; background: var(--fond); opacity: .45; border-radius: inherit; }
+.curseur .zero { position: absolute; top: 3px; width: 1px; height: 18px; background: var(--texte-second); opacity: .6; }
+.curseur .repere-tailwind { position: absolute; top: 1px; width: 2px; height: 22px; margin-left: -1px; background: var(--texte); opacity: .7; border-radius: 1px; }
+.curseur .pouce { position: absolute; top: 4px; width: 16px; height: 16px; margin-left: -8px; border-radius: 8px; background: #ffffff; box-shadow: 0 0 0 1.5px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.3); }
+.curseur:focus-visible .pouce { box-shadow: 0 0 0 2.5px var(--texte-marque), 0 1px 3px rgba(0,0,0,.3); }
+.butee { margin: 0; padding: 6px 8px; border-radius: 4px; background: var(--fond-bloc); border-left: 3px solid var(--interdit); }
+@media (max-width: 560px) {
+  .reglette { grid-template-columns: 1fr 64px; } .reglette .curseur { grid-column: 1 / -1; } .reglette .plage { grid-column: 1 / -1; margin-top: 0; }
+  .resume { display: none; } .reglage-global { grid-template-columns: 70px 1fr 48px; }
+}
+</style>
+</head>
+<body>
+<header class="page">
+  <h1>UCM Palettes · Maquette du Color shift, version 2</h1>
+  <p>Teinte, saturation et luminosité aux deux bouts de la rampe, référence fixe, limites qui gardent les garanties de contraste ; des avertissements qui tiennent sur une ligne. Le plugin simulé fait 600 × 720 ; l’étude est dans ETUDE-COLOR-SHIFT.md.</p>
+</header>
+<div class="mise-en-page">
+  <aside id="scenario" aria-label="Scénario"></aside>
+  <main><div id="plugin" aria-label="Plugin UCM Palettes simulé"></div></main>
+  <aside class="explications">
+<h2>Deux cartes, deux gestes</h2>
+<p><strong>Réglage global.</strong> Toute la rampe bouge du même écart. Le décalage de luminosité translate la courbe ; celui du profil porteur déplace la référence.</p>
+<svg class="schema" viewBox="0 0 360 100" aria-label="Schéma du réglage global : la courbe se translate">
+  <line x1="20" y1="88" x2="350" y2="88" class="s-axe"/><text x="20" y="12">luminosité</text><text x="20" y="99">50</text><text x="332" y="99">950</text>
+  <polyline points="20,18 120,34 190,48 260,62 350,74" class="s-avant"/>
+  <polyline points="20,26 120,42 190,56 260,70 350,82" class="s-apres"/>
+</svg>
+<p><strong>Color shift.</strong> Les deux bouts s’écartent, la référence ◆ reste fixe. Chaque nuance prend le décalage de son bout, en proportion de sa distance à la référence.</p>
+<svg class="schema" viewBox="0 0 360 100" aria-label="Schéma du Color shift : la courbe pivote autour de la référence">
+  <line x1="20" y1="88" x2="350" y2="88" class="s-axe"/><text x="20" y="12">luminosité</text><text x="20" y="99">50</text><text x="332" y="99">950</text>
+  <polyline points="20,18 120,34 190,48 260,62 350,74" class="s-avant"/>
+  <polyline points="20,28 120,40 190,48 260,58 350,66" class="s-apres"/>
+  <path d="M190 42 L196 48 L190 54 L184 48 Z" class="s-ref"/>
+</svg>
+<h2>Des avertissements qui ne déplacent rien</h2>
+<p>Pendant un glisser, le plugin repeint la palette à chaque image. Aujourd’hui, un message qui apparaît au-dessus du curseur pousse la carte vers le bas ; près d’un seuil, il apparaît et disparaît à chaque pixel, et l’interface clignote.</p>
+<ul>
+<li>Chaque avertissement tient sur une ligne de hauteur fixe, présente même sans avertissement.</li>
+<li>Le texte entier s’ouvre au clic, dans une bulle ou un volet posés par-dessus les cartes.</li>
+<li>Le bilan des garanties et des alertes passe dans le pied de la fenêtre, visible à toute position de défilement.</li>
+<li>Les résumés d’en-tête tiennent sur une ligne.</li>
+</ul>
+<p>La page mesure le déplacement du contrôle saisi pendant chaque geste. L’essai 5 le montre dans la mise en page actuelle, l’essai 6 dans la proposée.</p>
+<h2>Le modèle</h2>
+<table>
+<tr><th>Grandeur</th><th>Au bout</th><th>Sur une nuance</th></tr>
+<tr><td>Teinte</td><td>degrés, ±90°</td><td>l’interpolation actuelle de <code>teinteA</code></td></tr>
+<tr><td>Saturation</td><td>% de la saturation du profil, ±100 %</td><td>part × (1 + s × poids), bornée à [0, 1]</td></tr>
+<tr><td>Luminosité</td><td>clarté OKLCH, ±0,15</td><td>L + c × poids</td></tr>
+</table>
+<p>Le poids vaut 0 à la clarté du pivot et 1 au bout. Le cran porteur garde les octets de la référence.</p>
+<h2>Ce que la mesure a trouvé</h2>
+<p>Sur la recette par défaut et six références, teinte et saturation ne font manquer aucune garantie sur toute leur plage. La luminosité se borne entre −0,015 et −0,060 côté clair, entre +0,045 et +0,060 côté sombre. Le 50 atteint le blanc vers +0,040.</p>
+<p>Les limites se croisent : la luminosité posée en butée, la teinte du même bout se borne à son tour. Une limite se calcule en 28 ms en moyenne.</p>
+</aside>
+</div>
+<script id="moteur-ucm">var UCM=(()=>{var he=Object.defineProperty;var Qr=Object.getOwnPropertyDescriptor;var en=Object.getOwnPropertyNames;var rn=Object.prototype.hasOwnProperty;var nn=(e,r)=>{for(var n in r)he(e,n,{get:r[n],enumerable:!0})},tn=(e,r,n,t)=>{if(r&&typeof r=="object"||typeof r=="function")for(let o of en(r))!rn.call(e,o)&&o!==n&&he(e,o,{get:()=>r[o],enumerable:!(t=Qr(r,o))||t.enumerable});return e};var on=e=>tn(he({},"__esModule",{value:!0}),e);var dt={};nn(dt,{ASSOCIATIONS:()=>Xn,BORNES_DES_CRANS_LIBRES:()=>Ge,BORNES_DES_REGLAGES:()=>ee,CHROMA_SANS_TEINTE:()=>$,CONTENU_COMPLET:()=>we,CRANS_DES_EMPLOIS:()=>Ie,CRANS_PALETTES_PROCHES:()=>$r,DERIVE_MAXIMALE:()=>ue,EMPLOIS:()=>z,EMPLOIS_FACULTATIFS:()=>K,FORMAT_RECETTE:()=>H,INTENSITE_DES_FONDS_SOMBRES:()=>Ve,MIGRATIONS:()=>Mr,MODES:()=>R,MOTIF_IDENTIFIANT:()=>vr,ORDRE_DES_SEVERITES:()=>We,PAIRES:()=>ve,PAS_D_AJUSTEMENT:()=>Ce,PREREGLAGES:()=>h,PREREGLAGE_CONSTANTE:()=>ke,PROFILS:()=>w,RELEVE_TAILWIND:()=>Y,TABLE_DES_EMPLOIS:()=>v,TAILLE_MEMOIRE_PLAFOND:()=>tr,TOLERANCE_FOND:()=>Xe,aDesProfilsTernes:()=>wr,aUnReglageDuPorteur:()=>xe,aUneIntensite:()=>p,ajouter:()=>Jr,alertesDePalette:()=>Gr,alertesDeRecette:()=>ot,alertesDesFonds:()=>jr,ancrageDe:()=>He,arrondir:()=>g,associationDe:()=>Ir,atteintLeSeuil:()=>D,boutsDe:()=>j,classerRecette:()=>qn,cleDeLAssociation:()=>Ue,cleDuPorteur:()=>U,compterManquees:()=>Kn,confusionsDe:()=>Vr,contraste:()=>L,cranFlottant:()=>yn,cranVise:()=>Me,dansLeGamut:()=>or,decalageDe:()=>pe,decalagesDeLEmploi:()=>Re,decoder:()=>_,departDe:()=>X,deriveTailwind:()=>lr,distanceDePalettes:()=>qr,distanceOk:()=>fe,ecartAngulaire:()=>Te,ecrireArrondi:()=>En,ecrireContraste:()=>Mn,ecrireHexa:()=>E,ecrireTronque:()=>pr,emploiPresent:()=>_e,emploisDuCran:()=>Wn,empreinte:()=>jn,encoder:()=>M,estGrisPur:()=>ge,estLibre:()=>F,estPaletteGrise:()=>Fn,etatDeLaPaire:()=>Un,etendueDe:()=>Oe,fabriquerCran:()=>O,fabriquerPalette:()=>Se,fabriquerRampe:()=>ce,facteurSombre:()=>le,fnv1a:()=>Or,fondsSombresDe:()=>ne,garantieDesCourbes:()=>st,grilleAuPrereglage:()=>Rn,grilleDe:()=>T,intensitePorteuse:()=>Tr,intensitesDe:()=>V,jsonCanonique:()=>de,lineaireVersOklab:()=>W,lineaireVersRgb8:()=>ae,lireHexa:()=>b,luminanceLineaire:()=>cr,luminanceRelative:()=>Le,luminositeAuNumero:()=>J,mesurerCran:()=>rt,niveauxWcag:()=>Dn,nombreDeNuancesDe:()=>Pn,normaliserTeinte:()=>S,nouvellePalette:()=>Zr,octetsUtf8:()=>Sr,oklabVersLineaire:()=>ze,oklabVersOklch:()=>Ke,oklchVersLineaire:()=>q,oklchVersOklab:()=>Qe,p3LineaireVersSrgbLineaire:()=>rr,p3VersRgb8:()=>mn,paireJugeable:()=>_r,partDeChroma:()=>Sn,partDeLaReference:()=>I,partsDe:()=>ye,partsDesProfils:()=>re,partsEffectives:()=>Ee,pasDepuisLOriginale:()=>hn,pivotDe:()=>me,plafond:()=>P,prereglageDe:()=>Yr,prereglageTailwind:()=>Ae,profilAutomatique:()=>Fe,profilPorteur:()=>B,propositionDAjustement:()=>ur,rampeDe:()=>C,rampesDe:()=>G,rangDuCranLeger:()=>Q,rangPorteur:()=>je,rangsDesEmplois:()=>Nr,rapportDeLuminances:()=>fr,recetteParDefaut:()=>Pr,referenceDe:()=>be,referenceReglee:()=>Be,reglerClarte:()=>Xr,reglerSaturation:()=>Wr,reglerTeinte:()=>Ur,remplacerPalette:()=>zr,rgb8VersLineaire:()=>N,rgb8VersOklch:()=>m,rgb8VersP3:()=>dn,severiteDeLAlerte:()=>at,srgbLineaireVersP3Lineaire:()=>er,tailleMemoirePlafond:()=>gn,teinteA:()=>ir,trierParSeverite:()=>ut,validerRecette:()=>Dr,verifierPromesses:()=>zn});var $=1e-4,sn=/^#?([0-9a-f]{6})$/i,an=/^#([0-9a-f]{3})$/i;function b(e){let r=sn.exec(e.trim());if(r){let t=r[1];return[0,2,4].map(o=>parseInt(t.slice(o,o+2),16))}let n=an.exec(e.trim());return n?[0,1,2].map(t=>parseInt(n[1][t]+n[1][t],16)):null}function E(e){return`#${e.map(r=>r.toString(16).padStart(2,"0")).join("").toUpperCase()}`}function M(e){return e<=.0031308?12.92*e:1.055*e**(1/2.4)-.055}function _(e){return e<=.04045?e/12.92:((e+.055)/1.055)**2.4}function N(e){return[_(e[0]/255),_(e[1]/255),_(e[2]/255)]}var De=e=>Math.min(1,Math.max(0,e));function ae(e){return[Math.round(255*M(De(e[0]))),Math.round(255*M(De(e[1]))),Math.round(255*M(De(e[2])))]}function W(e){let[r,n,t]=e,o=Math.cbrt(.4122214708*r+.5363325363*n+.0514459929*t),i=Math.cbrt(.2119034982*r+.6806995451*n+.1073969566*t),s=Math.cbrt(.0883024619*r+.2817188376*n+.6299787005*t);return[.2104542553*o+.793617785*i-.0040720468*s,1.9779984951*o-2.428592205*i+.4505937099*s,.0259040371*o+.7827717662*i-.808675766*s]}function ze(e){let[r,n,t]=e,o=(r+.3963377774*n+.2158037573*t)**3,i=(r-.1055613458*n-.0638541728*t)**3,s=(r-.0894841775*n-1.291485548*t)**3;return[4.0767416621*o-3.3077115913*i+.2309699292*s,-1.2684380046*o+2.6097574011*i-.3413193965*s,-.0041960863*o-.7034186147*i+1.707614701*s]}function S(e){return(e%360+360)%360}function Ke(e){let[r,n,t]=e,o=Math.hypot(n,t),i=o<1e-4?0:S(Math.atan2(t,n)*180/Math.PI);return{L:r,C:o,H:i}}function Qe(e){let r=e.H*Math.PI/180;return[e.L,e.C*Math.cos(r),e.C*Math.sin(r)]}function q(e){return ze(Qe(e))}function m(e){return Ke(W(N(e)))}function se(e,r){return[e[0][0]*r[0]+e[0][1]*r[1]+e[0][2]*r[2],e[1][0]*r[0]+e[1][1]*r[1]+e[1][2]*r[2],e[2][0]*r[0]+e[2][1]*r[1]+e[2][2]*r[2]]}var un=[[506752/1228815,87881/245763,12673/70218],[87098/409605,175762/245763,12673/175545],[7918/409605,87881/737289,1001167/1053270]],ln=[[12831/3959,-329/214,-1974/3959],[-851781/878810,1648619/878810,36519/878810],[705/12673,-2585/12673,705/667]],cn=[[608311/1250200,189793/714400,198249/1000160],[35783/156275,247089/357200,198249/2500400],[0,32229/714400,5220557/5000800]],fn=[[446124/178915,-333277/357830,-72051/178915],[-14852/17905,63121/35810,423/17905],[11844/330415,-50337/660830,316169/330415]];function er(e){return se(fn,se(un,e))}function rr(e){return se(ln,se(cn,e))}function dn(e){let r=er(N(e));return[M(r[0]),M(r[1]),M(r[2])]}function mn(e){let r=rr([_(e[0]),_(e[1]),_(e[2])]),n=r.some(t=>{let o=t<0?-M(-t):M(t);return o<-.5/255||o>1+.5/255});return{couleur:ae(r),ramenee:n}}var nr=1e-6,pn=50,bn=.5,tr=2e4,Z=new Map;function or(e){return e.every(r=>r>=-nr&&r<=1+nr)}function P(e,r,n="srgb"){let t=`${e}|${r}|${n}`,o=Z.get(t);if(o!==void 0)return o;let i=0,s=bn;for(let a=0;a<pn;a+=1){let u=(i+s)/2;or(q({L:e,C:u,H:r}))?i=u:s=u}return Z.size>=tr&&Z.clear(),Z.set(t,i),i}function gn(){return Z.size}var w=["soft","vivid"],R=["light","dark"],ue=90;function g(e,r){let n=10**r,t=Math.round(Math.abs(e)*n)/n;return e<0&&t!==0?-t:t}function ir(e,r,n,t){if(e>=r.L){let i=t.clair>r.L?Math.min(1,Math.max(0,(e-r.L)/(t.clair-r.L))):0;return S(r.H+n.clair*i)}let o=r.L>t.sombre?Math.min(1,Math.max(0,(r.L-e)/(r.L-t.sombre))):1;return S(r.H+n.sombre*o)}function Me(e,r,n,t){return{L:e,C:n*P(e,r,t),H:r}}function yn(e,r,n,t){let o=q(Me(e,r,n,t));return[Math.min(1,Math.max(0,o[0])),Math.min(1,Math.max(0,o[1])),Math.min(1,Math.max(0,o[2]))]}function le(e,r){let n=Math.min(1,Math.max(0,(e-r.clarteBasse)/(r.clarteHaute-r.clarteBasse)));return r.depart+(1-r.depart)*n}function O(e,r,n,t){let o=ae(q(Me(e,r,n,t))),i=m(o);return{couleur:o,hexa:E(o),L:i.L,C:i.C,H:i.H}}function ce(e){let{sombre:r}=e,n=e.decalage??0;return e.courbe.map(t=>O(Math.min(1,Math.max(0,t+n)),ir(t,e.reference,e.derive,e.bouts),r?e.part*le(t,r):e.part,e.gamut))}function Ee(e,r){return r?{soft:r.soft,vivid:r.vivid}:e}function C(e,r){let n=e[r];if(!n)throw new Error(`Intensit\xE9 absente de la palette : ${r}.`);return n}function Se(e){let r=m(e.reference),{bouts:n}=e,t=(o,i)=>ce({courbe:e.courbes[i],bouts:n,reference:e.pivots?.[o]??r,derive:e.derives[o],part:e.parts[o],gamut:e.gamut,sombre:i==="dark"?e.sombre:void 0,decalage:e.decalages?.[o]});return{soft:{light:t("soft","light"),dark:t("soft","dark")},vivid:{light:t("vivid","light"),dark:t("vivid","dark")}}}var k={crans:[50,100,200,300,400,500,600,700,800,900,950],courbes:{light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.18,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]}};function xn(e){let r=(n,t)=>!e.includes(k.crans[t]);return{crans:k.crans.filter(n=>!e.includes(n)),courbes:{light:k.courbes.light.filter(r),dark:k.courbes.dark.filter(r)}}}var h={9:xn([400,950]),11:k,13:{crans:[...k.crans,1e3,1050],courbes:{light:[...k.courbes.light,.215,.165],dark:[...k.courbes.dark,.96,.98]}}};function Pn(e){for(let r of[9,11,13]){let n=h[r].crans;if(n.length===e.length&&n.every((t,o)=>t===e[o]))return r}return null}function ar(e,r,n){let t=e.findIndex(i=>i>=n);if(e[t]===n)return r[t];let o=(n-e[t-1])/(e[t]-e[t-1]);return r[t-1]+o*(r[t]-r[t-1])}function sr(e,r){let{crans:n,courbes:t}=h[13],o=Math.min(n[n.length-1],Math.max(n[0],r));return ar(n,t[e],o)}function J(e,r,n){let{crans:t}=e,o=e.courbes[r],i=t[0],s=t[t.length-1];if(n>=i&&n<=s)return ar(t,o,n);let a=n>s,u=a?s:i,l=o[a?o.length-1:0],c=a===(r==="light")?0:1,d=sr(r,u);return l+(c-l)*(sr(r,n)-d)/(c-d)}function j(e){return{clair:J(e,"light",50),sombre:J(e,"light",950)}}function Oe(e){let r=e.courbes.light;return{clair:r[0],sombre:r[r.length-1]}}function F(e){return e.crans!==void 0}function T(e,r){if(!F(r))return{crans:e.crans,courbes:e.courbes};let n=t=>r.crans.map(o=>J(e,t,o));return{crans:r.crans,courbes:{light:n("light"),dark:n("dark")}}}var vn=(e,r)=>e.every((n,t)=>t===0||(r==="light"?n<e[t-1]:n>e[t-1]));function Rn(e,r){let n=h[r],t=o=>{let i=(a,u,l)=>{let c=e.crans.indexOf(a);return c>=0?e.courbes[o][c]:l(a,u)},s=n.crans.map((a,u)=>i(a,u,(l,c)=>n.courbes[o][c]));return vn(s,o)?s:n.crans.map((a,u)=>i(a,u,l=>Math.round(J(e,o,l)*1e3)/1e3))};return{crans:n.crans,courbes:{light:t("light"),dark:t("dark")}}}var Ce=.01;function ur(e,r,n){if(r===0)return e;let{L:t,C:o,H:i}=m(e),s=t+r*Ce;if(s<0||s>1)return null;let a=P(s,i,n);return O(s,i,a>0?Math.min(1,o/a):0,n).couleur}function hn(e,r,n){let t=Math.round((m(r).L-m(e).L)/Ce),o=ur(e,t,n);return o&&o.every((i,s)=>i===r[s])?t:null}var Y=[["rose",12.422,12.094],["red",17.38,26.042],["orange",73.684,36.259],["amber",95.277,45.635],["yellow",102.212,53.813],["lime",120.757,132.109],["green",155.826,152.934],["emerald",166.113,172.552],["teal",180.72,192.524],["cyan",200.873,229.695],["sky",236.62,243.157],["blue",254.604,267.935],["indigo",272.314,281.288],["violet",293.756,291.089],["purple",308.299,302.717],["fuchsia",320.058,325.661],["pink",343.198,3.907]];function Te(e,r){return(r-e+540)%360-180}function lr(e,r=Y){let n=[...r].sort((l,c)=>l[1]-c[1]),t=n.findIndex(l=>l[1]>e);t<0&&(t=0);let o=n[t],i=n[(t-1+n.length)%n.length],s=(e-i[1]+360)%360/((o[1]-i[1]+360)%360),a=Te(i[1],i[2]),u=Te(o[1],o[2]);return a+(u-a)*s}function Ae(e,r,n=Y){if(e.C<1e-4)return{clair:0,sombre:0};let t=lr(e.H,n),o=Math.min(1,Math.max(0,(r.clair-e.L)/(r.clair-r.sombre)));return{clair:g(-t*o,2),sombre:g(t*(1-o),2)}}var ke={clair:0,sombre:0};function cr(e){return .2126*e[0]+.7152*e[1]+.0722*e[2]}function Le(e){return cr(N(e))}function fr(e,r){return(Math.max(e,r)+.05)/(Math.min(e,r)+.05)}function L(e,r){return fr(Le(e),Le(r))}function dr(e){return e.toFixed(10)}function D(e,r){return Number(dr(e))>=r}function Dn(e){let r=(n,t)=>D(e,t)?"AAA":D(e,n)?"AA":null;return{texte:r(4.5,7),grandTexte:r(3,4.5),graphique:D(e,3)}}function mr(e){return e.replace(".",",")}function pr(e,r){let[n,t]=dr(e).split(".");return r===0?n:mr(`${n}.${t.slice(0,r)}`)}function Mn(e){return pr(e,2)}function En(e,r){return mr(e.toFixed(r))}function fe(e,r){let[n,t,o]=W(N(e)),[i,s,a]=W(N(r));return Math.hypot(n-i,t-s,o-a)}function Sn(e,r="srgb"){let n=m(e);if(n.C<1e-4)return 0;let t=P(n.L,n.H,r);return t<=0?1:Math.min(1,Math.max(0,n.C/t))}var z=["solid","on-solid","text","surface","surface-card","border-control","border-decorative","focus"],v={solid:700,"on-solid":"fond",text:700,surface:100,"surface-card":50,"border-control":600,"border-decorative":300,focus:600},Ie=[100,200,300,600,700,800,900],K=["surface-card"];function _e(e,r){let n=v[e];return n==="fond"||r.includes(n)}function Q(e){return Math.max(0,e.indexOf(v["surface-card"]))}var H=6,ee={teinte:30,clarte:{bas:-.05,haut:.02}},we={note:!0,usages:!0,grilles:!0,light:!0,dark:!0},Ve=.3;function Pr(){return{formatVersion:H,crans:[...h[11].crans],courbes:{light:[...h[11].courbes.light],dark:[...h[11].courbes.dark]},profils:{soft:{part:.45},vivid:{part:.95}},gamut:"srgb",fonds:{light:"#F7F7F7",dark:"#121212"},seuils:{texte:4.5,nonTexte:3,profilsConfondus:.02,palettesProches:.05},derives:Y.map(([e,r,n])=>[e,r,n]),intensiteDesFondsSombres:Ve,contenuDesPlanches:{...we},palettes:[]}}var vr=/^p-[0-9a-f]{8}$/,y=e=>typeof e=="object"&&e!==null&&!Array.isArray(e),$e=e=>typeof e=="number"&&Number.isFinite(e),Ne=class{constructor(){this.refus=[]}refuser(r,n,t){let o=typeof t=="string"||typeof t=="number"?t:void 0;this.refus.push(o===void 0?{regle:r,chemin:n}:{regle:r,chemin:n,valeur:o})}objet(r,n,t,o=[]){if(!y(r))return this.refuser("forme",n),!1;for(let i of t)i in r||this.refuser("forme",br(n,i));for(let i of Object.keys(r))!t.includes(i)&&!o.includes(i)&&this.refuser("cle-inconnue",br(n,i));return!0}nombre(r,n){return $e(r)?!0:(this.refuser("forme",n),!1)}nombres(r,n){return Array.isArray(r)?r.map((t,o)=>this.nombre(t,`${n}[${o}]`)).every(Boolean):(this.refuser("forme",n),!1)}hexa(r,n){(typeof r!="string"||b(r)===null)&&this.refuser("hexa-invalide",n,r)}},br=(e,r)=>e?`${e}.${r}`:r;function On(e,r){if(!e.nombres(r,"crans"))return null;r.length<2&&e.refuser("crans-croissants","crans"),r.forEach((n,t)=>{(!Number.isInteger(n)||t>0&&n<=r[t-1])&&e.refuser("crans-croissants",`crans[${t}]`,n)});for(let n of Ie)r.includes(n)||e.refuser("crans-emplois","crans",n);return r}function Cn(e,r,n){if(e.objet(r,"courbes",["light","dark"]))for(let t of["light","dark"]){let o=`courbes.${t}`,i=r[t];e.nombres(i,o)&&(n!==null&&i.length!==n&&e.refuser("courbes-longueur",o,i.length),i.forEach((s,a)=>{(s<0||s>1)&&e.refuser("courbes-bornes",`${o}[${a}]`,s),a!==0&&(t==="light"&&s>=i[a-1]&&e.refuser("courbe-claire-decroissante",`${o}[${a}]`,s),t==="dark"&&s<=i[a-1]&&e.refuser("courbe-sombre-croissante",`${o}[${a}]`,s))}))}}function Rr(e,r,n,t,o){let i=[];for(let[s,a]of[["soft",r],["vivid",n]]){let u=`${t}.${s}${o}`;e.nombre(a,u)&&((a<0||a>1)&&e.refuser("parts-bornes",u,a),i.push(a))}i.length===2&&i[0]>i[1]&&e.refuser("parts-ordre",t)}function Tn(e,r){if(!Array.isArray(r)){e.refuser("forme","derives");return}r.length<2&&e.refuser("derives-nombre","derives",r.length);let n=new Set,t=new Set;r.forEach((o,i)=>{let s=`derives[${i}]`;if(!Array.isArray(o)||o.length!==3||typeof o[0]!="string"||!$e(o[1])||!$e(o[2])){e.refuser("forme",s);return}let[a,u,l]=o;n.has(a)&&e.refuser("derives-noms",s,a),n.add(a);for(let c of[u,l])(c<0||c>=360)&&e.refuser("derives-teintes",s,c);t.has(u)&&e.refuser("derives-teintes-claires",s,u),t.add(u)})}var Ge={nombre:[4,13],pas:50,premier:50,dernier:1050};function An(e,r,n){if(!e.nombres(r,n))return;let{nombre:t,pas:o,premier:i,dernier:s}=Ge;(r.length<t[0]||r.length>t[1])&&e.refuser("crans-libres-nombre",n,r.length),r.forEach((a,u)=>{(!Number.isInteger(a)||a%o!==0||a<i||a>s||u>0&&a<=r[u-1])&&e.refuser("crans-libres-numeros",`${n}[${u}]`,a)})}var kn=["tailwind","constante","libre"],Ln=["designer"];function gr(e,r,n){if(e.objet(r,n,["clair","sombre","origine"])){for(let t of["clair","sombre"]){let o=r[t];e.nombre(o,`${n}.${t}`)&&Math.abs(o)>ue&&e.refuser("derive-bornes",`${n}.${t}`,o)}kn.includes(r.origine)||e.refuser("origine-inconnue",`${n}.origine`,r.origine)}}function In(e,r,n){if("intensites"in r){r.intensites!==1&&e.refuser("intensites-valeur",`${n}.intensites`,r.intensites);for(let t of["base","parts","crans"])t in r&&e.refuser("intensites-incompatible",`${n}.${t}`);y(r.derive)&&r.derive.lien===!1&&e.refuser("intensites-incompatible",`${n}.derive.lien`)}}function _n(e){if(e.intensites===1)return"vivid";if(e.base==="soft"||e.base==="vivid")return e.base;let r=e.reglages;return y(r)&&(r.porteur==="soft"||r.porteur==="vivid")?r.porteur:void 0}function hr(e){let r=e.reglages,n=_n(e);return y(r)?"part"in r?!0:n?[r.teinte,r.clarte].some(t=>y(t)&&n in t):!1:!1}function yr(e,r,n,t,o){if(e.objet(r,n,[],["soft","vivid"])){Object.keys(r).length===0&&e.refuser("reglage-nul",n);for(let i of["soft","vivid"]){if(!(i in r))continue;let s=r[i];e.nombre(s,`${n}.${i}`)&&(s===0?e.refuser("reglage-nul",`${n}.${i}`):(s<t||s>o)&&e.refuser("reglages-bornes",`${n}.${i}`,s))}}}function $n(e,r,n){if(!("reglages"in r))return;let t=`${n}.reglages`,o=r.reglages;if(!e.objet(o,t,[],["teinte","clarte","part","porteur","depart"]))return;let i=r.intensites===1,{teinte:s,clarte:a}=ee;if("teinte"in o&&yr(e,o.teinte,`${t}.teinte`,-s,s),"clarte"in o&&yr(e,o.clarte,`${t}.clarte`,a.bas,a.haut),"part"in o&&e.nombre(o.part,`${t}.part`)&&(o.part<0||o.part>1)&&e.refuser("reglages-bornes",`${t}.part`,o.part),["teinte","clarte","part"].some(l=>l in o)||e.refuser("reglage-nul",t),"porteur"in o&&o.porteur!=="soft"&&o.porteur!=="vivid"&&e.refuser("base-inconnue",`${t}.porteur`,o.porteur),"depart"in o&&e.hexa(o.depart,`${t}.depart`),i){for(let l of["teinte","clarte"]){let c=o[l];y(c)&&"soft"in c&&e.refuser("reglages-intensites",`${t}.${l}.soft`)}"porteur"in o&&e.refuser("reglages-intensites",`${t}.porteur`)}else"part"in o&&e.refuser("reglages-intensites",`${t}.part`),"base"in r&&"porteur"in o&&e.refuser("porteur-base",`${t}.porteur`),!("base"in r)&&!("porteur"in o)&&e.refuser("porteur-manquant",t);let u=hr(r);u&&!("originale"in r)&&e.refuser("reglages-sans-originale",t),"depart"in o&&(u||e.refuser("depart-sans-reglage",`${t}.depart`),typeof o.depart=="string"&&typeof r.originale=="string"&&o.depart.toUpperCase()===r.originale.toUpperCase()&&e.refuser("depart-identique",`${t}.depart`,o.depart))}function Nn(e,r,n){if(!e.objet(r,n,["id","reference","derive"],["nom","parts","base","crans","originale","intensites","reglages"]))return;(typeof r.id!="string"||!vr.test(r.id))&&e.refuser("identifiant-forme",`${n}.id`,r.id),"nom"in r&&typeof r.nom!="string"&&e.refuser("forme",`${n}.nom`),"base"in r&&r.base!=="soft"&&r.base!=="vivid"&&e.refuser("base-inconnue",`${n}.base`,r.base),e.hexa(r.reference,`${n}.reference`),"crans"in r&&(An(e,r.crans,`${n}.crans`),"base"in r&&e.refuser("base-libre",`${n}.base`,r.base)),"originale"in r&&(e.hexa(r.originale,`${n}.originale`),typeof r.originale=="string"&&typeof r.reference=="string"&&r.originale.toUpperCase()===r.reference.toUpperCase()&&!hr(r)&&e.refuser("originale-identique",`${n}.originale`,r.originale)),In(e,r,n),$n(e,r,n);let t=r.derive;if(e.objet(t,`${n}.derive`,["lien","soft","vivid"])){typeof t.lien!="boolean"&&e.refuser("forme",`${n}.derive.lien`),gr(e,t.soft,`${n}.derive.soft`),gr(e,t.vivid,`${n}.derive.vivid`);let o=t.soft,i=t.vivid,s=y(o)&&y(i)&&["clair","sombre","origine"].every(a=>o[a]===i[a]);t.lien===!0&&!s&&e.refuser("derive-lien",`${n}.derive`)}if("parts"in r){let o=r.parts;e.objet(o,`${n}.parts`,["soft","vivid","origine"])&&(Rr(e,o.soft,o.vivid,`${n}.parts`,""),Ln.includes(o.origine)||e.refuser("origine-inconnue",`${n}.parts.origine`,o.origine))}}var wn=["formatVersion","crans","courbes","profils","gamut","fonds","seuils","derives","intensiteDesFondsSombres","contenuDesPlanches","palettes"],xr=["note","usages","grilles","light","dark"];function Vn(e,r){if(e.objet(r,"contenuDesPlanches",xr)){for(let n of xr)typeof r[n]!="boolean"&&e.refuser("forme",`contenuDesPlanches.${n}`);r.light===!1&&r.dark===!1&&e.refuser("contenu-sans-theme","contenuDesPlanches")}}function Dr(e){let r=new Ne;if(!r.objet(e,"",wn))return{refus:r.refus};e.formatVersion!==H&&r.refuser("forme","formatVersion",e.formatVersion);let n=On(r,e.crans);Cn(r,e.courbes,n?.length??null);let t=e.profils;if(r.objet(t,"profils",["soft","vivid"])){let a=t.soft,u=t.vivid;r.objet(a,"profils.soft",["part"])&&r.objet(u,"profils.vivid",["part"])&&Rr(r,a.part,u.part,"profils",".part")}e.gamut!=="srgb"&&r.refuser("gamut-inconnu","gamut",e.gamut),r.objet(e.fonds,"fonds",["light","dark"])&&(r.hexa(e.fonds.light,"fonds.light"),r.hexa(e.fonds.dark,"fonds.dark"));let o=e.seuils,i=["texte","nonTexte","profilsConfondus","palettesProches"];if(r.objet(o,"seuils",i))for(let a of i){let u=o[a];r.nombre(u,`seuils.${a}`)&&u<=0&&r.refuser("seuils-positifs",`seuils.${a}`,u)}Tn(r,e.derives);let s=e.intensiteDesFondsSombres;if(r.nombre(s,"intensiteDesFondsSombres")&&(s<0||s>1)&&r.refuser("fonds-sombres-bornes","intensiteDesFondsSombres",s),Vn(r,e.contenuDesPlanches),!Array.isArray(e.palettes))r.refuser("forme","palettes");else{let a=new Set;e.palettes.forEach((u,l)=>{let c=`palettes[${l}]`;Nn(r,u,c);let d=y(u)?u.id:void 0;a.has(d)&&r.refuser("identifiants-uniques",`${c}.id`,d),a.add(d)})}return r.refus.length>0?{refus:r.refus}:{recette:e}}var Mr={1:e=>({...e,formatVersion:2}),2:e=>({...e,formatVersion:3}),3:e=>({...e,formatVersion:4,intensiteDesFondsSombres:Ve,contenuDesPlanches:{...we}}),4:e=>({...e,formatVersion:5}),5:e=>({...e,formatVersion:6,...y(e.seuils)&&typeof e.seuils.chromaGrise=="number"?{seuils:Er(e.seuils,"chromaGrise")}:{},...Array.isArray(e.palettes)?{palettes:e.palettes.map(Gn)}:{}})};function Er(e,r){let{[r]:n,...t}=e;return t}function Gn(e){let r=y(e)?e.parts:void 0;return y(r)&&r.origine==="grise"&&typeof r.soft=="number"&&typeof r.vivid=="number"?Er(e,"parts"):e}function qn(e,r=Mr){if(e===void 0||e==="")return{etat:"absente",recette:Pr()};let n;try{n=JSON.parse(e)}catch{return{etat:"illisible",refus:[{regle:"forme",chemin:""}]}}if(!y(n))return{etat:"illisible",refus:[{regle:"forme",chemin:""}]};let t=n.formatVersion;if(!Number.isInteger(t)||t<0)return{etat:"illisible",refus:[{regle:"forme",chemin:"formatVersion"}]};if(t>H)return{etat:"future",version:t};let o=n;for(let s=t;s<H;s+=1){let a=r[s];if(!a)return{etat:"illisible",refus:[{regle:"forme",chemin:"formatVersion",valeur:t}]};o=a(o)}let i=Dr(o);return"refus"in i?{etat:"illisible",refus:i.refus}:t===H?{etat:"courante",recette:i.recette}:{etat:"migree",recette:i.recette,depuis:t}}function de(e){if(Array.isArray(e))return`[${e.map(r=>de(r??null)).join(",")}]`;if(typeof e=="object"&&e!==null){let r=e;return`{${Object.keys(r).filter(t=>r[t]!==void 0).sort().map(t=>`${JSON.stringify(t)}:${de(r[t])}`).join(",")}}`}return JSON.stringify(e)}function Sr(e){let r=[];for(let n=0;n<e.length;n+=1){let t=e.charCodeAt(n);if(t>=55296&&t<=56319){let o=e.charCodeAt(n+1);o>=56320&&o<=57343?(t=65536+(t-55296<<10)+(o-56320),n+=1):t=65533}else t>=56320&&t<=57343&&(t=65533);t<128?r.push(t):t<2048?r.push(192|t>>6,128|t&63):t<65536?r.push(224|t>>12,128|t>>6&63,128|t&63):r.push(240|t>>18,128|t>>12&63,128|t>>6&63,128|t&63)}return r}function Or(e){let r=2166136261;for(let n of e)r^=n,r=Math.imul(r,16777619)>>>0;return r.toString(16).padStart(8,"0")}function jn(e){return Or(Sr(de(e)))}function p(e){return e.intensites===1}function V(e){return p(e)?["unique"]:w}function be(e){let r=b(e.reference);if(!r)throw new Error(`R\xE9f\xE9rence illisible : ${e.reference}. La recette n'a pas \xE9t\xE9 valid\xE9e.`);return r}function ge(e){return Math.max(...e)-Math.min(...e)<=1}function I(e,r){let n=be(r),t=m(n);if(ge(n)||t.C<1e-4)return 0;let o=Oe(T(e,r)),i=P(Math.min(o.clair,Math.max(o.sombre,t.L)),t.H,e.gamut);return g(i<=0?1:Math.min(1,t.C/i),3)}function ye(e,r){return p(r)?{unique:I(e,r)}:re(e,r)}function re(e,r){let n={soft:e.profils.soft.part,vivid:e.profils.vivid.part};if(r.parts)return Ee(n,r.parts);let t=I(e,r),o=t<n.soft,i=n.soft>0?n.vivid/n.soft:1;return B(e,r)==="soft"?{soft:t,vivid:o?Math.min(1,g(t*i,3)):Math.max(n.vivid,t)}:{soft:o?g(t/i,3):Math.min(n.soft,t),vivid:t}}function Fn(e,r){if(Object.values(ye(e,r)).every(o=>o===0))return!0;let n=He(e,r),t=G(e,r);return V(r).every(o=>R.every(i=>C(t,o)[i].every(({couleur:s},a)=>o===n.profil&&a===n.rangs[i]||s[0]===s[1]&&s[1]===s[2])))}function Cr(e,r){let n=e.crans.indexOf(r);if(n>=0)return e.courbes.dark[n];let{crans:t,courbes:o}=h[11];return o.dark[t.indexOf(r)]}function ne(e){return{depart:e.intensiteDesFondsSombres,clarteBasse:Cr(e,50),clarteHaute:Cr(e,400)}}var qe=e=>Math.round(e*1e3);function Fe(e,r){let n=qe(I(e,r)),t=Math.abs(n-qe(e.profils.soft.part)),o=Math.abs(n-qe(e.profils.vivid.part));return t<o?"soft":"vivid"}function B(e,r){return(F(r)?void 0:r.base)??r.reglages?.porteur??Fe(e,r)}function U(e,r){return p(r)?"vivid":B(e,r)}function xe(e,r){let n=r.reglages;if(!n)return!1;let t=U(e,r);return n.part!==void 0||n.teinte?.[t]!==void 0||n.clarte?.[t]!==void 0}function X(e,r){if(!xe(e,r))return be(r);let n=b(r.reglages?.depart??r.originale??r.reference);if(!n)throw new Error(`D\xE9part illisible pour la palette ${r.id}. La recette n'a pas \xE9t\xE9 valid\xE9e.`);return n}function me(e,r,n){let t=m(X(e,r)),o=n==="unique"?"vivid":n,i=r.reglages?.teinte?.[o]??0;return i===0?t:{...t,H:S(t.H+i)}}function pe(e,r){return e.reglages?.clarte?.[r==="unique"?"vivid":r]??0}function Tr(e,r){return p(r)?"unique":B(e,r)}function je(e,r){let n=0;return e.forEach((t,o)=>{Math.abs(t-r)<Math.abs(e[n]-r)&&(n=o)}),n}function He(e,r){let n=m(X(e,r)).L,{crans:t,courbes:o}=T(e,r),i={light:je(o.light,n),dark:je(o.dark,n)};return{profil:Tr(e,r),rangs:i,crans:{light:t[i.light],dark:t[i.dark]}}}function Hn(e){let r=m(e);return{couleur:e,hexa:E(e),L:r.L,C:r.C,H:r.H}}function Bn(e,r){let n=me(e,r,"unique"),{courbes:t}=T(e,r),o=i=>ce({courbe:t[i],bouts:j(e),reference:n,derive:r.derive.vivid,part:I(e,r),gamut:e.gamut,sombre:i==="dark"?ne(e):void 0,decalage:pe(r,"unique")});return{light:o("light"),dark:o("dark")}}function G(e,r){let n=be(r),t=He(e,r),o=s=>{let a=u=>s[u].map((l,c)=>c===t.rangs[u]?Hn(n):l);return{light:a("light"),dark:a("dark")}};if(p(r))return{unique:o(Bn(e,r))};let i=Se({reference:n,courbes:T(e,r).courbes,bouts:j(e),parts:re(e,r),derives:{soft:r.derive.soft,vivid:r.derive.vivid},gamut:e.gamut,sombre:ne(e),pivots:{soft:me(e,r,"soft"),vivid:me(e,r,"vivid")},decalages:{soft:pe(r,"soft"),vivid:pe(r,"vivid")}});return{...i,[t.profil]:o(i[t.profil])}}function Be(e,r,n,t,o){if(r===0&&n===0&&t===void 0)return e;let{L:i,C:s,H:a}=m(e),u=Math.min(1,Math.max(0,i+n)),l=S(a+r),c=P(u,l,o),d=t??(c>0?Math.min(1,s/c):0);return O(u,l,d,o).couleur}var f=(e,r=0)=>({emploi:e,decalage:r}),Pe={fond:!0},ve=[{numero:1,premier:f("text"),second:Pe,seuil:"texte"},{numero:2,premier:f("text"),second:f("surface"),seuil:"texte"},{numero:3,premier:f("text",1),second:f("surface",1),seuil:"texte"},{numero:4,premier:f("text",2),second:f("surface",2),seuil:"texte"},{numero:5,premier:f("on-solid"),second:f("solid"),seuil:"texte"},{numero:6,premier:f("on-solid"),second:f("solid",1),seuil:"texte"},{numero:7,premier:f("on-solid"),second:f("solid",2),seuil:"texte"},{numero:8,premier:f("border-control"),second:Pe,seuil:"nonTexte"},{numero:9,premier:f("border-control"),second:f("surface"),seuil:"nonTexte"},{numero:10,premier:f("border-control",1),second:f("surface",1),seuil:"nonTexte"},{numero:11,premier:f("border-control",2),second:f("surface",2),seuil:"nonTexte"},{numero:12,premier:f("focus"),second:Pe,seuil:"nonTexte"},{numero:13,premier:f("focus"),second:f("surface"),seuil:"nonTexte"},{numero:14,premier:f("solid",1),second:Pe,seuil:"nonTexte"},{numero:15,premier:f("text"),second:f("surface-card"),seuil:"texte"},{numero:16,premier:f("border-control"),second:f("surface-card"),seuil:"nonTexte"}],Ar=e=>"fond"in e?"fond":e.emploi,kr=e=>"fond"in e?0:e.decalage;function Ir(e){let r=Ar(e.premier);if(r==="fond")throw new Error(`Paire ${e.numero} : le premier membre est le fond.`);return{premier:r,second:Ar(e.second)}}function Un(e){return Math.max(kr(e.premier),kr(e.second))}var Ue=e=>`${e.premier}/${e.second}`,Xn=ve.map(Ir).filter((e,r,n)=>n.findIndex(t=>Ue(t)===Ue(e))===r);function Re(e){let r=new Set([0]);for(let n of ve)for(let t of[n.premier,n.second])"emploi"in t&&t.emploi===e&&r.add(t.decalage);return[...r].sort((n,t)=>n-t)}function Wn(e,r){let n=[];for(let t of z){let o=v[t];if(o==="fond")continue;let i=e.indexOf(o);if(!(i<0))for(let s of Re(t))i+s===r&&n.push({emploi:t,decalage:s})}return n}function Lr(e,r,n,t){if("fond"in e)return{nature:"fond",couleur:t.fonds[r]};let o=v[e.emploi];if(o==="fond")return{nature:"fond",couleur:t.fonds[r]};let i=t.recette.crans,s=i.indexOf(o),a=s+e.decalage;if(s<0||a>=i.length)throw new Error(`Cran ${o} absent ou sans cran suivant. La recette n'a pas \xE9t\xE9 valid\xE9e.`);return{nature:"cran",cran:i[a],couleur:C(t.rampes,n)[r][a].couleur}}var Zn=(e,r)=>r[e.seuil];function Jn(e,r,n,t){let o=Lr(e.premier,r,n,t),i=Lr(e.second,r,n,t),s=Zn(e,t.recette.seuils),a=L(o.couleur,i.couleur);return{paire:e,mode:r,profil:n,premier:o,second:i,seuil:s,contraste:a,verdict:D(a,s)?"tenue":"manquee"}}function Yn(e,r){let n=t=>{let o=b(t);if(!o)throw new Error(`Fond illisible : ${t}. La recette n'a pas \xE9t\xE9 valid\xE9e.`);return o};return{recette:e,rampes:G(e,r),fonds:{light:n(e.fonds.light),dark:n(e.fonds.dark)}}}function _r(e,r){return[e.premier,e.second].every(n=>"fond"in n||!K.includes(n.emploi)||_e(n.emploi,r))}function zn(e,r){if(r.crans!==void 0)return[];let n=Yn(e,r),t=ve.filter(o=>_r(o,e.crans));return R.flatMap(o=>V(r).flatMap(i=>t.map(s=>Jn(s,o,i,n))))}function Kn(e){return e.filter(r=>r.verdict==="manquee").length}var Qn=[255,255,255],et=[0,0,0];function rt(e,r,n){let t=L(e,r),o=D(t,n.texte)?"texte":D(t,n.nonTexte)?"nonTexte":null;return{fond:t,blanc:L(e,Qn),noir:L(e,et),seuilTenu:o}}var Xe=.005,$r=[500,600,700];function Nr(e){let r=new Set;for(let n of z){let t=v[n];if(t==="fond"||K.includes(n))continue;let o=e.crans.indexOf(t);for(let i of Re(n))o>=0&&o+i<e.crans.length&&r.add(o+i)}return[...r].sort((n,t)=>n-t)}function wr(e,r){return!p(r)&&!r.parts&&I(e,r)<e.profils.soft.part}function Vr(e,r){if(p(r)||wr(e,r))return[];let n=G(e,r),[t,o]=[C(n,"soft"),C(n,"vivid")],{crans:i}=T(e,r);return R.flatMap(s=>i.flatMap((a,u)=>{let l=fe(t[s][u].couleur,o[s][u].couleur);return l<e.seuils.profilsConfondus?[{mode:s,cran:a,distance:l}]:[]}))}function nt(e,r){if(F(r))return null;let n=new Set(Nr(e).map(s=>e.crans[s])),t=ne(e),o=({mode:s,cran:a})=>s==="dark"&&le(e.courbes.dark[e.crans.indexOf(a)],t)<1,i=Vr(e,r).filter(s=>n.has(s.cran)&&!o(s));return i.length>0?{code:"profils-confondus",palette:r.id,crans:i,seuil:e.seuils.profilsConfondus}:null}function Gr(e,r){let n=[],t=ye(e,r),o=I(e,r),i=nt(e,r);return i&&n.push(i),t.soft!==void 0&&o<t.soft&&n.push({code:"reference-plus-terne",palette:r.id,part:o,partSoft:t.soft}),t.vivid!==void 0&&o>t.vivid&&n.push({code:"reference-plus-vive",palette:r.id,part:o,partVivid:t.vivid}),n}function tt(e,r){let[n,t]=[p(e),p(r)];if(!n&&!t)return[["vivid","vivid"]];let o=n?["unique"]:V(e),i=t?["unique"]:V(r);return o.flatMap(s=>i.map(a=>[s,a]))}function qr(e,r,n){let t=a=>{let{crans:u}=T(e,a),l=$r.map(d=>u.indexOf(d));if(l.some(d=>d<0))return null;let c=G(e,a);return d=>l.map(x=>C(c,d).light[x].couleur)},o=t(r),i=t(n);if(!o||!i)return null;let s=tt(r,n).map(([a,u])=>{let[l,c]=[o(a),i(u)];return l.reduce((d,x,te)=>d+fe(x,c[te]),0)/l.length});return Math.min(...s)}function jr(e){let r=[];for(let n of R){let t=b(e.fonds[n]);if(!t)continue;let o=m(t).L,i=e.courbes[n][Q(e.crans)];(n==="light"?o<i-Xe:o>i+Xe)&&r.push({code:"fond-hors-courbe",mode:n,clarte:o,cran:i})}return r}function ot(e){let r=jr(e);for(let n of e.palettes)r.push(...Gr(e,n));return e.palettes.forEach((n,t)=>{for(let o of e.palettes.slice(t+1)){let i=qr(e,n,o);i!==null&&i<e.seuils.palettesProches&&r.push({code:"palettes-proches",palettes:[n.id,o.id],distance:i,seuil:e.seuils.palettesProches})}}),r}function it(e){return[{cran:v["border-control"],seuil:e.seuils.nonTexte},{cran:v.text,seuil:e.seuils.texte}]}function st(e){let r=[];for(let n of R){let t=e.courbes[n],o=O(t[Q(e.crans)],0,0,e.gamut).couleur;for(let{cran:i,seuil:s}of it(e)){let a=t[e.crans.indexOf(i)];for(let u of w){let l=e.profils[u].part,c={teinte:0,contraste:1/0};for(let d=0;d<360;d+=1){let x=L(O(a,d,l,e.gamut).couleur,o);x<c.contraste&&(c={teinte:d,contraste:x})}D(c.contraste,s)||r.push({mode:n,cran:i,profil:u,...c,seuil:s})}}}return r}var We=["bloquant","promesse","alerte","notice"];function at(e){return e.code==="reference-plus-vive"?"notice":"alerte"}function ut(e){return e.map((r,n)=>({constat:r,rang:n})).sort((r,n)=>We.indexOf(r.constat.severite)-We.indexOf(n.constat.severite)||r.rang-n.rang).map(({constat:r})=>r)}var lt=/^#?[0-9a-f]{6}$/i;function Hr(e,r){return ge(r)?ke:Ae(m(r),j(e),e.derives)}function ct(e,r,n){let t=Hr(e,n),o=a=>a.origine==="tailwind"?{...t,origine:"tailwind"}:a,{originale:i,...s}=r;return{...s,reference:E(n),derive:{...r.derive,soft:o(r.derive.soft),vivid:o(r.derive.vivid)}}}function ft(e,r,n){if(!lt.test(n.trim()))return null;let t=b(n.trim().startsWith("#")?n.trim():`#${n.trim()}`);if(!t)return null;let{reglages:o,...i}=ct(e,r,t);return i}function Ze(e){let{teinte:r={},clarte:n={},part:t}=e.reglages??{};return t===void 0?{teinte:r,clarte:n}:{teinte:r,clarte:n,part:t}}function Fr(e){let r=w.filter(n=>e[n]!==void 0&&e[n]!==0);return r.length===0?null:Object.fromEntries(r.map(n=>[n,e[n]]))}function Je(e,r,n,t={}){let o=t.porteur??U(e,r),i="base"in t?t.base:r.base,s=p(r),a=Fr(n.teinte),u=Fr(n.clarte),l=s?n.part:void 0,c={};a&&(c.teinte=a),u&&(c.clarte=u),l!==void 0&&(c.part=l);let d=Object.keys(c).length>0;d&&!s&&!i&&(c.porteur=o);let x=l!==void 0||a?.[o]!==void 0||u?.[o]!==void 0,te=xe(e,r),A=r.originale,oe=r.reglages?.depart;x&&!te&&(A?A.toUpperCase()!==r.reference.toUpperCase()&&(oe=r.reference):A=r.reference);let Ye=b(te||x?oe??A??r.reference:r.reference)??X(e,r),ie;x?(ie=E(Be(Ye,a?.[o]??0,u?.[o]??0,l,e.gamut)),oe&&(c.depart=oe.toUpperCase())):(ie=E(Ye),A?.toUpperCase()===ie&&(A=void 0));let{reglages:mt,originale:pt,base:bt,...Kr}=r;return{...Kr,reference:ie,...i?{base:i}:{},...A?{originale:A.toUpperCase()}:{},...d?{reglages:c}:{}}}function Br(e,r,n,t,o,i,s){let a=x=>g(Math.min(i,Math.max(o,x)),s)+0;if(n!=="deux")return{...e,[n]:a(t)};let[u,l]=[e.soft??0,e.vivid??0],c=t-(e[r]??0),d=Math.min(i-Math.max(u,l),Math.max(o-Math.min(u,l),c));return{soft:a(u+d),vivid:a(l+d)}}function Ur(e,r,n,t){let o=Ze(r),{teinte:i}=ee,s=Br(o.teinte,U(e,r),p(r)?"vivid":n,t,-i,i,2);return Je(e,r,{...o,teinte:s})}function Xr(e,r,n,t){let o=Ze(r),{clarte:i}=ee,s=Br(o.clarte,U(e,r),p(r)?"vivid":n,t,i.bas,i.haut,3);return Je(e,r,{...o,clarte:s})}function Wr(e,r,n,t){let o=g(Math.min(1,Math.max(0,t)),3)+0;if(p(r))return Je(e,r,{...Ze(r),part:o});let i=re(e,r),s=B(e,r);if(n==="deux"){let u=Math.min(1-i.vivid,Math.max(-i.soft,o-i[s]));return{...r,parts:{soft:g(i.soft+u,3)+0,vivid:g(i.vivid+u,3)+0,origine:"designer"}}}let a=n==="soft"?Math.min(o,i.vivid):Math.max(o,i.soft);return{...r,parts:{...i,[n]:a,origine:"designer"}}}function Zr(e,r,n,t){let o={clair:0,sombre:0,origine:"tailwind"},i={id:r,reference:"#000000",derive:{lien:!0,soft:o,vivid:o}};return ft(e,t===1?{...i,intensites:1}:i,n)}function Jr(e,r){return{...e,palettes:[...e.palettes,r]}}function Yr(e,r){return Hr(e,X(e,r))}function zr(e,r){return{...e,palettes:e.palettes.map(n=>n.id===r.id?r:n)}}return on(dt);})();
+</script>
+<script>
+var GRANDEURS = {"teinte":{"bas":-90,"haut":90,"pas":1,"grandPas":5},"saturation":{"bas":-1,"haut":1,"pas":0.01,"grandPas":0.05},"clarte":{"bas":-0.15,"haut":0.15,"pas":0.005,"grandPas":0.02}};
+var ECART_MINIMAL = 0.01;
+var REFERENCES = [{"nom":"Bleu","hexa":"#1E6FD9"},{"nom":"Vert","hexa":"#16A34A"},{"nom":"Rouge","hexa":"#DC2626"},{"nom":"Jaune","hexa":"#EAB308"},{"nom":"Sauge","hexa":"#A0B599"},{"nom":"Gris","hexa":"#808080"}];
+var DECISIONS = [["Q1","Nom","« Color shift » en anglais et en français."],["Q2","Choix de la grandeur","Onglets et graphe."],["Q3","Bouts","« Nuances claires » et « Nuances sombres », lues sur la luminosité."],["Q4","Saturation","Relative, de −100 % à +100 % de celle du profil."],["Q5","Préréglage","Tailwind règle la teinte seule ; aucun préréglage pour la saturation et la luminosité."],["Q7","Palette grise","Luminosité réglable, teinte et saturation désactivées."],["Q8","Carte globale","« Réglage global », sous-titré « Teinte, saturation et luminosité de toute la rampe »."],["Q6","Limites du réglage global","Ses curseurs prennent la même limite que le Color shift. L’essai 4 montre ce qu’ils peuvent casser sans elle."],["Q9","Avertissements","Ligne fixe, pied de fenêtre et volet superposé. Les essais 5 et 6 font le même geste dans les deux mises en page."],["Q10","Glyphes","Chaque carte titrée reçoit un glyphe dans le style des deux cartes d’ajustement."]];
+var OUVERTES = [];
+function decalageNul() {
+  return { teinte: { clair: 0, sombre: 0 }, saturation: { clair: 0, sombre: 0 }, clarte: { clair: 0, sombre: 0 } };
+}
+
+function poidsA(L, pivot, bouts) {
+  if (L >= pivot.L) {
+    const u = bouts.clair > pivot.L ? Math.min(1, Math.max(0, (L - pivot.L) / (bouts.clair - pivot.L))) : 0;
+    return { bout: 'clair', poids: u };
+  }
+  const v = pivot.L > bouts.sombre ? Math.min(1, Math.max(0, (pivot.L - L) / (pivot.L - bouts.sombre))) : 1;
+  return { bout: 'sombre', poids: v };
+}
+
+function rampeDecalee(M, recette, palette, intensite, mode, decalage) {
+  const courbe = M.grilleDe(recette, palette).courbes[mode];
+  const bouts = M.boutsDe(recette);
+  const pivot = M.pivotDe(recette, palette, intensite);
+  const part = M.partsDe(recette, palette)[intensite];
+  const global = M.decalageDe(palette, intensite);
+  const sombre = mode === 'dark' ? M.fondsSombresDe(recette) : undefined;
+  return courbe.map((L) => {
+    const { bout, poids } = poidsA(L, pivot, bouts);
+    const H = M.teinteA(L, pivot, decalage.teinte, bouts);
+    const partDecalee = Math.min(1, Math.max(0, part * (1 + decalage.saturation[bout] * poids)));
+    const clarte = Math.min(1, Math.max(0, L + global + decalage.clarte[bout] * poids));
+    const cran = M.fabriquerCran(clarte, H, sombre ? partDecalee * M.facteurSombre(L, sombre) : partDecalee, recette.gamut);
+    return { ...cran, Lvise: clarte };
+  });
+}
+
+function rampesDecalees(M, recette, palette, decalages) {
+  const ancrage = M.ancrageDe(recette, palette);
+  const reference = M.referenceDe(palette);
+  const lue = M.rgb8VersOklch(reference);
+  const rampes = {};
+  for (const intensite of M.intensitesDe(palette)) {
+    const decalage = decalages[intensite === 'unique' ? 'vivid' : intensite];
+    rampes[intensite] = {};
+    for (const mode of M.MODES) {
+      const crans = rampeDecalee(M, recette, palette, intensite, mode, decalage);
+      if (intensite === ancrage.profil) {
+        crans[ancrage.rangs[mode]] = { couleur: reference, hexa: M.ecrireHexa(reference), L: lue.L, C: lue.C, H: lue.H, Lvise: lue.L };
+      }
+      rampes[intensite][mode] = crans;
+    }
+  }
+  return rampes;
+}
+
+function libelleDuMembre(M, recette, membre) {
+  if ('fond' in membre) return 'fond';
+  const cible = M.TABLE_DES_EMPLOIS[membre.emploi];
+  if (cible === 'fond') return 'fond';
+  return `${membre.emploi} ${recette.crans[recette.crans.indexOf(cible) + membre.decalage]}`;
+}
+
+function promessesDecalees(M, recette, palette, rampes) {
+  if (palette.crans !== undefined) return [];
+  const fonds = { light: M.lireHexa(recette.fonds.light), dark: M.lireHexa(recette.fonds.dark) };
+  const designer = (membre, mode, intensite) => {
+    if ('fond' in membre) return fonds[mode];
+    const cible = M.TABLE_DES_EMPLOIS[membre.emploi];
+    if (cible === 'fond') return fonds[mode];
+    return rampes[intensite][mode][recette.crans.indexOf(cible) + membre.decalage].couleur;
+  };
+  const paires = M.PAIRES.filter((paire) => M.paireJugeable(paire, recette.crans));
+  const promesses = [];
+  for (const mode of M.MODES) {
+    for (const intensite of M.intensitesDe(palette)) {
+      for (const paire of paires) {
+        const seuil = recette.seuils[paire.seuil];
+        const contraste = M.contraste(designer(paire.premier, mode, intensite), designer(paire.second, mode, intensite));
+        promesses.push({
+          cle: `${mode}/${intensite}/${paire.numero}`,
+          mode,
+          intensite,
+          libelle: `${libelleDuMembre(M, recette, paire.premier)} / ${libelleDuMembre(M, recette, paire.second)}`,
+          seuil,
+          contraste,
+          tenue: M.atteintLeSeuil(contraste, seuil),
+        });
+      }
+    }
+  }
+  return promesses;
+}
+
+function ordreTenu(rampes) {
+  return Object.values(rampes).every((parMode) => Object.values(parMode).every((crans) => {
+    const sens = Math.sign(crans[0].Lvise - crans[crans.length - 1].Lvise);
+    return crans.every((cran, rang) => rang === 0 || sens * (crans[rang - 1].Lvise - cran.Lvise) >= ECART_MINIMAL - 1e-9);
+  }));
+}
+
+function decalagesAvec(decalages, cibles, grandeur, bout, valeur) {
+  const suivants = { ...decalages };
+  for (const profil of cibles) {
+    suivants[profil] = { ...decalages[profil], [grandeur]: { ...decalages[profil][grandeur], [bout]: valeur } };
+  }
+  return suivants;
+}
+
+function limiteDe(M, recette, palette, decalages, cibles, grandeur, bout) {
+  const { bas, haut, pas } = GRANDEURS[grandeur];
+  const tenuesAuDepart = new Set(promessesDecalees(M, recette, palette, rampesDecalees(M, recette, palette, decalages))
+    .filter((promesse) => promesse.tenue).map((promesse) => promesse.cle));
+  const verdict = (valeur) => {
+    const rampes = rampesDecalees(M, recette, palette, decalagesAvec(decalages, cibles, grandeur, bout, valeur));
+    if (grandeur === 'clarte' && !ordreTenu(rampes)) return { ordre: true };
+    const manquee = promessesDecalees(M, recette, palette, rampes).find((promesse) => !promesse.tenue && tenuesAuDepart.has(promesse.cle));
+    return manquee ? { promesse: manquee } : null;
+  };
+  const courant = decalages[cibles[0]][grandeur][bout];
+  const chercher = (sens) => {
+    let dernier = courant;
+    for (let rang = 1; ; rang += 1) {
+      const valeur = Math.round((courant + sens * rang * pas) / pas) * pas;
+      if (sens > 0 ? valeur > haut + 1e-9 : valeur < bas - 1e-9) return { borne: sens > 0 ? haut : bas, cause: null };
+      const cause = verdict(valeur);
+      if (cause) return { borne: dernier, cause };
+      dernier = valeur;
+    }
+  };
+  return { bas: chercher(-1), haut: chercher(1) };
+}
+(function application(M) {
+  const BOUTS = ['clair', 'sombre'];
+  const LISTE_DES_GRANDEURS = ['teinte', 'saturation', 'clarte'];
+  const NOM_DE_GRANDEUR = { teinte: 'Teinte', saturation: 'Saturation', clarte: 'Luminosité' };
+  const NOM_DU_BOUT = { clair: 'Nuances claires', sombre: 'Nuances sombres' };
+  const NOM_DU_PROFIL = { soft: 'Soft', vivid: 'Vivid', unique: 'Palette' };
+  const NOM_DU_MODE = { light: 'Light', dark: 'Dark' };
+  const ECHELLES = { teinte: [30, 45, 60, 90], saturation: [0.25, 0.5, 1], clarte: [0.05, 0.1, 0.15] };
+  const recetteVide = M.recetteParDefaut();
+
+  const etat = {
+    reference: REFERENCES[0].hexa,
+    intensites: 2,
+    miseEnPage: 'stable',
+    figmaSombre: false,
+    mode: 'light',
+    grandeur: 'teinte',
+    lien: true,
+    profil: 'vivid',
+    cibleGlobale: 'deux',
+    globalOuvert: false,
+    shiftOuvert: true,
+    voletOuvert: false,
+    recette: null,
+    palette: null,
+    decalages: null,
+    limites: {},
+    derniereButee: null,
+  };
+  const stable = () => etat.miseEnPage === 'stable';
+
+  // ---------------------------------------------------------- écriture
+
+  const virgule = (x, n) => x.toFixed(n).replace('.', ',');
+  function signe(x, n) {
+    const arrondi = Number(x.toFixed(n));
+    if (arrondi === 0) return virgule(0, n);
+    return `${arrondi > 0 ? '+' : '−'}${virgule(Math.abs(arrondi), n)}`;
+  }
+  function ecrireValeur(grandeur, valeur) {
+    if (grandeur === 'teinte') return `${signe(valeur, Math.abs(valeur - Math.round(valeur)) > 0.04 ? 1 : 0)}°`;
+    if (grandeur === 'saturation') return `${signe(valeur * 100, 0)} %`;
+    return signe(valeur, 3);
+  }
+  const ecrireContraste = (x) => virgule(Math.floor(x * 100) / 100, 2);
+  const echapper = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+
+  function texteDePromesse(p) {
+    return `${p.libelle} (${NOM_DU_PROFIL[p.intensite]}, ${NOM_DU_MODE[p.mode]}) : ${ecrireContraste(p.contraste)}:1, sous ${virgule(p.seuil, 1)}:1`;
+  }
+  function texteDAlerte(alerte) {
+    if (alerte.code === 'profils-confondus') return `Soft et Vivid se confondent sur ${pluriel(alerte.crans.length, 'nuance')}`;
+    if (alerte.code === 'reference-plus-terne') return `La référence est plus terne que Soft (${Math.round(alerte.part * 100)} % contre ${Math.round(alerte.partSoft * 100)} %)`;
+    if (alerte.code === 'reference-plus-vive') return `La référence est plus vive que Vivid (${Math.round(alerte.part * 100)} % contre ${Math.round(alerte.partVivid * 100)} %)`;
+    return alerte.code;
+  }
+
+  // ---------------------------------------------------------- modèle
+
+  const une = () => etat.intensites === 1;
+  const porteur = () => M.ancrageDe(etat.recette, etat.palette).profil;
+  /** L'intensité que le Color shift montre et règle. */
+  const intensiteEditee = () => (une() ? 'unique' : etat.lien ? porteur() : etat.profil);
+  const cleEditee = () => (une() ? 'vivid' : intensiteEditee());
+  const cibles = () => (une() ? ['vivid'] : etat.lien ? ['soft', 'vivid'] : [etat.profil]);
+  const valeur = (grandeur, bout) => etat.decalages[cleEditee()][grandeur][bout];
+  const grise = () => M.estPaletteGrise(etat.recette, etat.palette);
+  const tailwind = () => M.prereglageDe(etat.recette, etat.palette);
+
+  function segments() {
+    const pivot = M.pivotDe(etat.recette, etat.palette, intensiteEditee());
+    const bouts = M.boutsDe(etat.recette);
+    return { clair: pivot.L <= bouts.clair, sombre: pivot.L >= bouts.sombre };
+  }
+
+  function grandeurActive(grandeur) {
+    return grandeur === 'clarte' || !grise();
+  }
+
+  function nouvellePalette() {
+    const palette = M.nouvellePalette(recetteVide, 'p-00000001', etat.reference, etat.intensites);
+    etat.palette = palette;
+    etat.recette = M.ajouter(recetteVide, palette);
+    const derive = M.prereglageDe(etat.recette, palette);
+    const de = () => ({ ...decalageNul(), teinte: { clair: derive.clair, sombre: derive.sombre } });
+    etat.decalages = { soft: de(), vivid: de() };
+    etat.derniereButee = null;
+  }
+
+  function origine() {
+    const t = etat.decalages[cleEditee()].teinte;
+    const tw = tailwind();
+    if (Math.abs(t.clair - tw.clair) < 0.005 && Math.abs(t.sombre - tw.sombre) < 0.005) return 'tailwind';
+    if (t.clair === 0 && t.sombre === 0) return 'constante';
+    return 'libre';
+  }
+
+  function calculerLimites() {
+    const grandeur = etat.grandeur;
+    etat.limites = { [grandeur]: {} };
+    for (const bout of BOUTS) {
+      etat.limites[grandeur][bout] = limiteDe(M, etat.recette, etat.palette, etat.decalages, cibles(), grandeur, bout);
+    }
+  }
+
+  /** Pose une valeur sur les cibles, bornée par la limite ; `fin` recalcule les limites. */
+  function poser(grandeur, bout, voulue, fin) {
+    const limite = etat.limites[grandeur]?.[bout];
+    let bornee = voulue;
+    let butee = null;
+    if (limite) {
+      if (voulue <= limite.bas.borne + 1e-9) {
+        bornee = limite.bas.borne;
+        if (limite.bas.cause && voulue < limite.bas.borne - 1e-9) butee = { grandeur, bout, ...limite.bas };
+      } else if (voulue >= limite.haut.borne - 1e-9) {
+        bornee = limite.haut.borne;
+        if (limite.haut.cause && voulue > limite.haut.borne + 1e-9) butee = { grandeur, bout, ...limite.haut };
+      }
+    }
+    etat.decalages = decalagesAvec(etat.decalages, cibles(), grandeur, bout, bornee);
+    if (butee) etat.derniereButee = butee;
+    else if (etat.derniereButee?.grandeur === grandeur && etat.derniereButee?.bout === bout) etat.derniereButee = null;
+    if (fin) calculerLimites();
+    actualiser();
+  }
+
+  function reglerGlobal(grandeur, valeurVoulue, fin) {
+    const fonction = { teinte: M.reglerTeinte, saturation: M.reglerSaturation, clarte: M.reglerClarte }[grandeur];
+    etat.palette = fonction(etat.recette, etat.palette, une() ? 'vivid' : etat.cibleGlobale, valeurVoulue);
+    etat.recette = M.remplacerPalette(etat.recette, etat.palette);
+    if (fin) calculerLimites();
+    actualiser();
+  }
+
+  function valeurGlobale(grandeur) {
+    const cle = une() ? 'vivid' : etat.cibleGlobale === 'deux' ? M.cleDuPorteur(etat.recette, etat.palette) : etat.cibleGlobale;
+    if (grandeur === 'saturation') return M.partsDe(etat.recette, etat.palette)[une() ? 'unique' : cle];
+    return etat.palette.reglages?.[grandeur]?.[cle] ?? 0;
+  }
+
+  /**
+   * L'état de la carte globale, écrit sur une seule ligne : un réglage qui
+   * déplacera la référence, une référence déjà déplacée, ou un réglage qui ne
+   * la touche pas.
+   */
+  function etatDuGlobal() {
+    const porteLaReference = une() || etat.cibleGlobale === 'deux' || etat.cibleGlobale === M.cleDuPorteur(etat.recette, etat.palette);
+    if (!porteLaReference) return { texte: 'Ce réglage ne touche pas la couleur de référence.', ton: 'neutre' };
+    if (M.aUnReglageDuPorteur(etat.recette, etat.palette)) return { texte: 'La couleur de référence a été déplacée par ce réglage.', ton: 'avertissement' };
+    return { texte: 'Un réglage de teinte ou de luminosité déplacera la couleur de référence.', ton: 'avertissement' };
+  }
+
+  // ---------------------------------------------------------- peinture
+
+  /** La couleur que le bout prendrait pour `v`, à la clarté du bout : la piste d'une réglette. */
+  function couleurDePiste(grandeur, bout, v) {
+    const intensite = intensiteEditee();
+    const pivot = M.pivotDe(etat.recette, etat.palette, intensite);
+    const bouts = M.boutsDe(etat.recette);
+    const d = etat.decalages[cleEditee()];
+    const L = bouts[bout];
+    const part = M.partsDe(etat.recette, etat.palette)[intensite];
+    const H = pivot.H + (grandeur === 'teinte' ? v : d.teinte[bout]);
+    const s = grandeur === 'saturation' ? v : d.saturation[bout];
+    const c = grandeur === 'clarte' ? v : d.clarte[bout];
+    return M.fabriquerCran(Math.min(1, Math.max(0, L + c)), H, Math.min(1, Math.max(0, part * (1 + s))), etat.recette.gamut).hexa;
+  }
+
+  function degradeDePiste(grandeur, bout) {
+    const { bas, haut } = GRANDEURS[grandeur];
+    const arrets = Array.from({ length: 9 }, (_, rang) => bas + ((haut - bas) * rang) / 8);
+    return `linear-gradient(90deg, ${arrets.map((v, rang) => `${couleurDePiste(grandeur, bout, v)} ${rang * 12.5}%`).join(', ')})`;
+  }
+
+  // ---------------------------------------------------------- la bulle
+
+  /**
+   * Le texte entier d'une ligne fixe, ouvert au clic dans une bulle posée
+   * par-dessus les cartes : l'ouvrir ne déplace rien.
+   */
+  const bulle = document.createElement('div');
+  bulle.className = 'bulle';
+  bulle.hidden = true;
+  let bulleDe = null;
+  function basculerBulle(ligne) {
+    if (bulleDe === ligne) {
+      fermerBulle();
+      return;
+    }
+    const cadre = racine.getBoundingClientRect();
+    const ici = ligne.getBoundingClientRect();
+    bulle.textContent = ligne.dataset.texteEntier || ligne.textContent;
+    bulle.style.left = `${ici.left - cadre.left}px`;
+    bulle.style.top = `${ici.bottom - cadre.top + 4}px`;
+    bulle.style.width = `${ici.width}px`;
+    bulle.hidden = false;
+    bulleDe = ligne;
+  }
+  function fermerBulle() {
+    bulle.hidden = true;
+    bulleDe = null;
+  }
+  document.addEventListener('keydown', (evenement) => {
+    if (evenement.key !== 'Escape') return;
+    fermerBulle();
+    if (etat.voletOuvert) {
+      etat.voletOuvert = false;
+      actualiser();
+    }
+  });
+
+  /** Une ligne fixe : une ligne, coupée par une ellipse ; le clic ouvre la bulle quand le texte dépasse. */
+  function ligneFixe(classe) {
+    const ligne = document.createElement('button');
+    ligne.type = 'button';
+    ligne.className = `ligne-fixe ${classe}`;
+    ligne.addEventListener('click', () => basculerBulle(ligne));
+    return ligne;
+  }
+  function poserLigne(ligne, texte, ton) {
+    ligne.dataset.texteEntier = texte;
+    ligne.textContent = texte;
+    ligne.dataset.ton = ton;
+    ligne.title = texte;
+    if (bulleDe === ligne) bulle.textContent = texte;
+  }
+
+  // ---------------------------------------------------------- la réglette
+
+  /** Une réglette à zones interdites : piste peinte, hachures hors limite, repère Tailwind, champ et « Rétablir ». */
+  function creerReglette(grandeur, bout) {
+    const ligne = document.createElement('div');
+    ligne.className = 'reglette';
+    const nom = `${NOM_DE_GRANDEUR[grandeur]}, ${NOM_DU_BOUT[bout].toLowerCase()}`;
+    ligne.innerHTML = `
+      <span class="reglette-libelle">${echapper(NOM_DU_BOUT[bout])}</span>
+      <input class="input champ" type="text" inputmode="decimal" spellcheck="false" aria-label="${echapper(nom)}">
+      <div class="curseur" role="slider" tabindex="0" aria-label="${echapper(nom)}">
+        <div class="piste"></div>
+        <div class="interdit interdit-bas"></div>
+        <div class="interdit interdit-haut"></div>
+        <div class="zero"></div>
+        <div class="repere-tailwind" title="Valeur Tailwind"></div>
+        <div class="pouce"></div>
+      </div>
+      <button type="button" class="bouton-discret retablir">Rétablir</button>
+      <span class="plage"></span>`;
+    const champ = ligne.querySelector('.champ');
+    const curseur = ligne.querySelector('.curseur');
+    const { bas, haut, pas, grandPas } = GRANDEURS[grandeur];
+    const position = (v) => ((v - bas) / (haut - bas)) * 100;
+    const depuisX = (x) => {
+      const cadre = curseur.getBoundingClientRect();
+      const t = Math.min(1, Math.max(0, (x - cadre.left) / cadre.width));
+      return Math.round((bas + t * (haut - bas)) / pas) * pas;
+    };
+    let pointeur = null;
+    curseur.addEventListener('pointerdown', (evenement) => {
+      evenement.preventDefault();
+      curseur.focus();
+      curseur.setPointerCapture(evenement.pointerId);
+      pointeur = evenement.pointerId;
+      poser(grandeur, bout, depuisX(evenement.clientX), false);
+    });
+    curseur.addEventListener('pointermove', (evenement) => {
+      if (evenement.pointerId === pointeur) poser(grandeur, bout, depuisX(evenement.clientX), false);
+    });
+    const relacher = (evenement) => {
+      if (evenement.pointerId !== pointeur) return;
+      pointeur = null;
+      poser(grandeur, bout, valeur(grandeur, bout), true);
+    };
+    curseur.addEventListener('pointerup', relacher);
+    curseur.addEventListener('pointercancel', relacher);
+    curseur.addEventListener('keydown', (evenement) => {
+      const limite = etat.limites[grandeur]?.[bout];
+      const actuelle = valeur(grandeur, bout);
+      const saut = evenement.shiftKey ? grandPas : pas;
+      const suivantes = {
+        ArrowUp: actuelle + saut, ArrowRight: actuelle + saut, ArrowDown: actuelle - saut, ArrowLeft: actuelle - saut,
+        Home: limite ? limite.bas.borne : bas, End: limite ? limite.haut.borne : haut,
+      };
+      if (suivantes[evenement.key] === undefined) return;
+      evenement.preventDefault();
+      poser(grandeur, bout, Math.round(suivantes[evenement.key] / pas) * pas, true);
+    });
+    champ.addEventListener('change', () => {
+      const nombre = Number(champ.value.replace(/[°%\s+]/g, '').replace('−', '-').replace(',', '.'));
+      if (!Number.isFinite(nombre)) {
+        actualiser();
+        return;
+      }
+      poser(grandeur, bout, grandeur === 'saturation' ? nombre / 100 : nombre, true);
+    });
+    ligne.querySelector('.retablir').addEventListener('click', () => {
+      poser(grandeur, bout, grandeur === 'teinte' ? tailwind()[bout] : 0, true);
+    });
+    return {
+      element: ligne,
+      actualiser() {
+        const v = valeur(grandeur, bout);
+        const limite = etat.limites[grandeur]?.[bout];
+        ligne.classList.toggle('inactive', !grandeurActive(grandeur));
+        if (document.activeElement !== champ) champ.value = ecrireValeur(grandeur, v);
+        ligne.querySelector('.piste').style.background = degradeDePiste(grandeur, bout);
+        ligne.querySelector('.pouce').style.left = `${position(v)}%`;
+        ligne.querySelector('.zero').style.left = `${position(0)}%`;
+        const repere = ligne.querySelector('.repere-tailwind');
+        repere.hidden = grandeur !== 'teinte';
+        if (grandeur === 'teinte') repere.style.left = `${position(tailwind()[bout])}%`;
+        const basPermis = limite ? limite.bas.borne : bas;
+        const hautPermis = limite ? limite.haut.borne : haut;
+        const zoneBas = ligne.querySelector('.interdit-bas');
+        const zoneHaut = ligne.querySelector('.interdit-haut');
+        zoneBas.style.width = `${position(basPermis)}%`;
+        zoneBas.hidden = basPermis <= bas + 1e-9;
+        zoneHaut.style.left = `${position(hautPermis)}%`;
+        zoneHaut.style.width = `${100 - position(hautPermis)}%`;
+        zoneHaut.hidden = hautPermis >= haut - 1e-9;
+        curseur.setAttribute('aria-valuemin', String(basPermis));
+        curseur.setAttribute('aria-valuemax', String(hautPermis));
+        curseur.setAttribute('aria-valuenow', String(v));
+        curseur.setAttribute('aria-valuetext', `${ecrireValeur(grandeur, v)}, plage sûre de ${ecrireValeur(grandeur, basPermis)} à ${ecrireValeur(grandeur, hautPermis)}`);
+        // Mise en page actuelle : la plage paraît sous la réglette quand une limite resserre la plage fixe.
+        const restreinte = limite && (basPermis > bas + 1e-9 || hautPermis < haut - 1e-9);
+        ligne.querySelector('.plage').textContent = !stable() && restreinte ? `Plage sûre : ${ecrireValeur(grandeur, basPermis)} à ${ecrireValeur(grandeur, hautPermis)}` : '';
+        const zero = grandeur === 'teinte' ? tailwind()[bout] : 0;
+        ligne.querySelector('.retablir').disabled = Math.abs(v - zero) < 1e-9;
+        ligne.querySelector('.retablir').textContent = grandeur === 'teinte' ? 'Tailwind' : 'Rétablir';
+      },
+    };
+  }
+
+  // ---------------------------------------------------------- le graphe
+
+  const CADRE = { largeur: 560, gauche: 44, droite: 16, haut: 12, trace: 150, bas: 22, rampe: 16 };
+
+  function creerGraphe() {
+    const conteneur = document.createElement('div');
+    conteneur.className = 'graphe';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('role', 'group');
+    conteneur.append(svg);
+    let glisse = null;
+    let echelleFigee = null;
+
+    const hauteur = () => CADRE.haut + CADRE.trace + CADRE.bas + 2 * (CADRE.rampe + 6) + 8;
+    const echelle = () => {
+      if (echelleFigee !== null) return echelleFigee;
+      const g = etat.grandeur;
+      const plusGrand = Math.max(...BOUTS.map((b) => Math.abs(valeur(g, b))));
+      return ECHELLES[g].find((e) => e > plusGrand + 1e-9) ?? ECHELLES[g][ECHELLES[g].length - 1];
+    };
+    const y = (v, e) => CADRE.haut + ((e - v) / (2 * e)) * CADRE.trace;
+    const vDe = (py, e) => e - ((py - CADRE.haut) / CADRE.trace) * 2 * e;
+
+    const pyDuPointeur = (evenement) => {
+      const cadre = svg.getBoundingClientRect();
+      return (evenement.clientY - cadre.top) * (hauteur() / cadre.height);
+    };
+    svg.addEventListener('pointerdown', (evenement) => {
+      const poignee = evenement.target.closest?.('[data-bout]');
+      if (!poignee) return;
+      evenement.preventDefault();
+      svg.setPointerCapture(evenement.pointerId);
+      echelleFigee = echelle();
+      glisse = { bout: poignee.dataset.bout, pointeur: evenement.pointerId };
+    });
+    svg.addEventListener('pointermove', (evenement) => {
+      if (!glisse || evenement.pointerId !== glisse.pointeur) return;
+      const { pas, grandPas } = GRANDEURS[etat.grandeur];
+      const saut = evenement.shiftKey ? grandPas : pas;
+      poser(etat.grandeur, glisse.bout, Math.round(vDe(pyDuPointeur(evenement), echelleFigee) / saut) * saut, false);
+    });
+    const relacher = (evenement) => {
+      if (!glisse || evenement.pointerId !== glisse.pointeur) return;
+      const { bout } = glisse;
+      glisse = null;
+      echelleFigee = null;
+      poser(etat.grandeur, bout, valeur(etat.grandeur, bout), true);
+    };
+    svg.addEventListener('pointerup', relacher);
+    svg.addEventListener('pointercancel', relacher);
+    svg.addEventListener('keydown', (evenement) => {
+      const bout = evenement.target.closest?.('[data-bout]')?.dataset.bout;
+      if (!bout) return;
+      const { pas, grandPas } = GRANDEURS[etat.grandeur];
+      const saut = evenement.shiftKey ? grandPas : pas;
+      const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
+      if (!sens) return;
+      evenement.preventDefault();
+      poser(etat.grandeur, bout, Math.round((valeur(etat.grandeur, bout) + sens * saut) / pas) * pas, true);
+      requestAnimationFrame(() => svg.querySelector(`[data-bout="${bout}"]`)?.focus());
+    });
+
+    function dessiner() {
+      const g = etat.grandeur;
+      const e = echelle();
+      const H = hauteur();
+      svg.setAttribute('viewBox', `0 0 ${CADRE.largeur} ${H}`);
+      svg.setAttribute('aria-label', `Graphe du Color shift : ${NOM_DE_GRANDEUR[g].toLowerCase()} par nuance`);
+      const { crans, courbes } = M.grilleDe(etat.recette, etat.palette);
+      const n = crans.length;
+      const colonne = (CADRE.largeur - CADRE.gauche - CADRE.droite) / n;
+      const x = (rang) => CADRE.gauche + (rang + 0.5) * colonne;
+      const intensite = intensiteEditee();
+      const pivot = M.pivotDe(etat.recette, etat.palette, intensite);
+      const bouts = M.boutsDe(etat.recette);
+      const ancrage = M.ancrageDe(etat.recette, etat.palette);
+      const seg = segments();
+      const parties = [];
+      parties.push(`<defs><pattern id="hachures" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" class="hachures-fond"/><line x1="0" y1="0" x2="0" y2="6" class="hachures-trait"/></pattern></defs>`);
+      const graduations = g === 'teinte' ? [-e, -e / 2, 0, e / 2, e] : [-e, 0, e];
+      for (const v of graduations) {
+        parties.push(`<line x1="${CADRE.gauche}" x2="${CADRE.largeur - CADRE.droite}" y1="${y(v, e)}" y2="${y(v, e)}" class="${v === 0 ? 'axe-zero' : 'grille'}"/>`);
+        parties.push(`<text x="${CADRE.gauche - 6}" y="${y(v, e) + 3.5}" class="graduation" text-anchor="end">${echapper(ecrireValeur(g, v))}</text>`);
+      }
+      // Rails des poignées : zone permise, zone interdite hachurée.
+      const railDe = (bout, rang) => {
+        const limite = etat.limites[g]?.[bout];
+        if (!limite || !seg[bout]) return;
+        const xr = x(rang) - 7;
+        const borne = (v) => Math.max(-e, Math.min(e, v));
+        const haut = borne(limite.haut.borne);
+        const bas = borne(limite.bas.borne);
+        if (haut < e) parties.push(`<rect x="${xr}" y="${y(e, e)}" width="14" height="${y(haut, e) - y(e, e)}" fill="url(#hachures)"/>`);
+        if (bas > -e) parties.push(`<rect x="${xr}" y="${y(bas, e)}" width="14" height="${y(-e, e) - y(bas, e)}" fill="url(#hachures)"/>`);
+        parties.push(`<rect x="${xr}" y="${y(haut, e)}" width="14" height="${y(bas, e) - y(haut, e)}" rx="3" class="rail-permis"/>`);
+      };
+      railDe('clair', 0);
+      railDe('sombre', n - 1);
+      // Ligne brisée : un sommet par nuance, et le pivot à 0.
+      const sommets = (cle, rangAncre) => {
+        const d = etat.decalages[cle][g];
+        const points = courbes.light.map((L, rang) => {
+          const { bout, poids } = poidsA(L, pivot, bouts);
+          return { rang, v: rang === rangAncre ? 0 : d[bout] * poids };
+        });
+        const rangPivot = (() => {
+          for (let rang = 0; rang < n - 1; rang += 1) {
+            const a = courbes.light[rang];
+            const b = courbes.light[rang + 1];
+            if (pivot.L <= a && pivot.L >= b) return rang + (a - pivot.L) / (a - b);
+          }
+          return null;
+        })();
+        if (rangAncre === null && rangPivot !== null) points.push({ rang: rangPivot, v: 0 });
+        return { points: points.sort((a, b) => a.rang - b.rang), rangPivot };
+      };
+      const estPorteur = intensite === ancrage.profil;
+      const principal = sommets(cleEditee(), estPorteur ? ancrage.rangs.light : null);
+      if (!une() && !etat.lien) {
+        const autre = etat.profil === 'soft' ? 'vivid' : 'soft';
+        const fantome = sommets(autre, autre === ancrage.profil ? ancrage.rangs.light : null);
+        parties.push(`<polyline class="courbe-fantome" points="${fantome.points.map((p) => `${x(p.rang)},${y(Math.max(-e, Math.min(e, p.v)), e)}`).join(' ')}"/>`);
+      }
+      parties.push(`<polyline class="courbe" points="${principal.points.map((p) => `${x(p.rang)},${y(Math.max(-e, Math.min(e, p.v)), e)}`).join(' ')}"/>`);
+      for (const p of principal.points) {
+        if (Number.isInteger(p.rang) && p.rang !== 0 && p.rang !== n - 1) parties.push(`<circle cx="${x(p.rang)}" cy="${y(Math.max(-e, Math.min(e, p.v)), e)}" r="2" class="sommet"/>`);
+      }
+      const rangLosange = estPorteur ? ancrage.rangs.light : principal.rangPivot;
+      if (rangLosange !== null) {
+        const cx = x(rangLosange);
+        const cy = y(0, e);
+        parties.push(`<path d="M ${cx} ${cy - 7} L ${cx + 7} ${cy} L ${cx} ${cy + 7} L ${cx - 7} ${cy} Z" class="losange"><title>Référence : fixe, quel que soit le Color shift</title></path>`);
+      }
+      for (const [bout, rang] of [['clair', 0], ['sombre', n - 1]]) {
+        if (!seg[bout]) continue;
+        const v = valeur(g, bout);
+        const cy = y(Math.max(-e, Math.min(e, v)), e);
+        const texte = ecrireValeur(g, v);
+        const ancre = bout === 'clair' ? 'start' : 'end';
+        const dx = bout === 'clair' ? 12 : -12;
+        parties.push(`<g data-bout="${bout}" class="poignee" tabindex="0" role="slider" aria-label="${echapper(`${NOM_DE_GRANDEUR[g]}, ${NOM_DU_BOUT[bout].toLowerCase()}`)}" aria-valuetext="${echapper(texte)}"><circle cx="${x(rang)}" cy="${cy}" r="12" class="poignee-cible"/><circle cx="${x(rang)}" cy="${cy}" r="6.5" class="poignee-rond"/></g>`);
+        parties.push(`<text x="${x(rang) + dx}" y="${cy - 9}" text-anchor="${ancre}" class="etiquette-poignee">${echapper(texte)}</text>`);
+      }
+      const yNumeros = CADRE.haut + CADRE.trace + 15;
+      crans.forEach((numero, rang) => parties.push(`<text x="${x(rang)}" y="${yNumeros}" text-anchor="middle" class="numero">${numero}</text>`));
+      const sans = rampesDecalees(M, etat.recette, etat.palette, { soft: decalageNul(), vivid: decalageNul() })[intensite][etat.mode];
+      const avec = rampesDecalees(M, etat.recette, etat.palette, etat.decalages)[intensite][etat.mode];
+      const yRampe1 = CADRE.haut + CADRE.trace + CADRE.bas + 4;
+      const yRampe2 = yRampe1 + CADRE.rampe + 6;
+      parties.push(`<text x="${CADRE.gauche - 6}" y="${yRampe1 + 11.5}" text-anchor="end" class="graduation">Sans</text>`);
+      parties.push(`<text x="${CADRE.gauche - 6}" y="${yRampe2 + 11.5}" text-anchor="end" class="graduation">Avec</text>`);
+      const rangAncreMode = estPorteur ? ancrage.rangs[etat.mode] : -1;
+      [[sans, yRampe1], [avec, yRampe2]].forEach(([rampe, yr]) => rampe.forEach((cran, rang) => {
+        parties.push(`<rect x="${x(rang) - colonne / 2 + 1}" y="${yr}" width="${colonne - 2}" height="${CADRE.rampe}" rx="3" fill="${cran.hexa}"><title>${crans[rang]} · ${cran.hexa}</title></rect>`);
+        if (rang === rangAncreMode) {
+          const lum = M.rgb8VersOklch(cran.couleur).L;
+          parties.push(`<text x="${x(rang)}" y="${yr + 12}" text-anchor="middle" class="losange-rampe" fill="${lum > 0.6 ? '#1e1e1e' : '#ffffff'}">◆</text>`);
+        }
+      }));
+      svg.innerHTML = parties.join('');
+      svg.style.aspectRatio = `${CADRE.largeur} / ${H}`;
+    }
+
+    return { element: conteneur, dessiner };
+  }
+
+  // ---------------------------------------------------------- les glyphes
+
+  const GLYPHE_GLOBAL = `<svg viewBox="0 0 44 28" class="glyphe" aria-hidden="true"><g class="glyphe-avant">${Array.from({ length: 6 }, (_, i) => `<rect x="${3 + i * 6.6}" y="${6 + i * 2.2}" width="4.6" height="4" rx="1"/>`).join('')}</g><g class="glyphe-apres">${Array.from({ length: 6 }, (_, i) => `<rect x="${3 + i * 6.6}" y="${13 + i * 2.2}" width="4.6" height="4" rx="1"/>`).join('')}</g></svg>`;
+  const GLYPHE_SHIFT = `<svg viewBox="0 0 44 28" class="glyphe" aria-hidden="true"><line x1="4" y1="14" x2="40" y2="14" class="glyphe-axe"/><polyline points="4,5 22,14 40,22" class="glyphe-ligne"/><circle cx="4" cy="5" r="2.6" class="glyphe-point"/><circle cx="40" cy="22" r="2.6" class="glyphe-point"/><path d="M22 10 L26 14 L22 18 L18 14 Z" class="glyphe-losange"/></svg>`;
+
+  // ---------------------------------------------------------- construction
+
+  const racine = document.getElementById('plugin');
+  const refs = {};
+
+  function construire() {
+    fermerBulle();
+    racine.classList.toggle('figma-dark', etat.figmaSombre);
+    racine.classList.toggle('mise-en-page-stable', stable());
+    const nom = REFERENCES.find((r) => r.hexa === etat.reference)?.nom ?? 'Palette';
+    const defilement = racine.querySelector('.contenu')?.scrollTop ?? 0;
+    racine.innerHTML = `
+      <div class="entete-plugin"><span class="onglet actif">Création</span><span class="onglet">Palettes</span><span class="engrenage" aria-hidden="true">⚙</span></div>
+      <div class="contenu">
+        <h1 class="titre-palette">Palette ${echapper(nom)}</h1>
+        <section class="carte">
+          <div class="carte-tete"><span class="carte-titre">Aperçu</span><div class="bascule" role="group" aria-label="Thème de l'aperçu"><button type="button" class="bascule-option" data-mode="light">Light</button><button type="button" class="bascule-option" data-mode="dark">Dark</button></div></div>
+          <div class="apercu"></div>
+          <p class="bilan"></p>
+        </section>
+        <div class="messages-flux" hidden></div>
+        <h2 class="titre-de-section">Ajuster la palette</h2>
+        <p class="aide-de-section">Le réglage global déplace toute la rampe. Le Color shift écarte ensuite les nuances claires et sombres de la référence, qui ne bouge pas.</p>
+        <section class="carte repliable ${etat.globalOuvert ? 'ouverte' : ''}" data-carte="global">
+          <button type="button" class="carte-tete tete-repliable" aria-expanded="${etat.globalOuvert}">
+            <span class="chevron" aria-hidden="true">›</span>${GLYPHE_GLOBAL}
+            <span class="titres"><span class="carte-titre">Réglage global</span><span class="sous-titre">Teinte, saturation et luminosité de toute la rampe</span></span>
+            <span class="resume resume-global"></span>
+          </button>
+          <div class="carte-corps corps-global"></div>
+        </section>
+        <section class="carte repliable ${etat.shiftOuvert ? 'ouverte' : ''}" data-carte="shift">
+          <button type="button" class="carte-tete tete-repliable" aria-expanded="${etat.shiftOuvert}">
+            <span class="chevron" aria-hidden="true">›</span>${GLYPHE_SHIFT}
+            <span class="titres"><span class="carte-titre">Color shift</span><span class="sous-titre">Nuances claires et sombres, autour de la référence ◆</span></span>
+            <span class="resume resume-shift"></span>
+          </button>
+          <div class="carte-corps corps-shift"></div>
+        </section>
+        <section class="carte"><div class="carte-tete"><span class="carte-titre">Garanties de contraste</span><span class="resume resume-garanties"></span></div></section>
+      </div>
+      <div class="pied-plugin">
+        <span class="badge"></span><span class="pied-texte"></span>
+        <button type="button" class="bouton-discret pied-details" aria-expanded="false">Détails</button>
+      </div>
+      <div class="volet" role="dialog" aria-label="Garanties et alertes" hidden>
+        <div class="volet-tete"><strong>Garanties et alertes</strong><button type="button" class="bouton-discret volet-fermer" aria-label="Fermer">✕</button></div>
+        <div class="volet-corps"></div>
+      </div>`;
+    racine.append(bulle);
+    racine.querySelector('.contenu').scrollTop = defilement;
+    racine.querySelector('.contenu').addEventListener('scroll', fermerBulle);
+    racine.querySelectorAll('[data-mode]').forEach((bouton) => bouton.addEventListener('click', () => {
+      etat.mode = bouton.dataset.mode;
+      actualiser();
+    }));
+    racine.querySelectorAll('.tete-repliable').forEach((tete) => tete.addEventListener('click', () => {
+      const carte = tete.closest('[data-carte]').dataset.carte;
+      if (carte === 'global') etat.globalOuvert = !etat.globalOuvert;
+      else etat.shiftOuvert = !etat.shiftOuvert;
+      construire();
+    }));
+    racine.querySelector('.pied-details').addEventListener('click', () => {
+      etat.voletOuvert = !etat.voletOuvert;
+      actualiser();
+    });
+    racine.querySelector('.volet-fermer').addEventListener('click', () => {
+      etat.voletOuvert = false;
+      actualiser();
+    });
+    refs.apercu = racine.querySelector('.apercu');
+    refs.bilan = racine.querySelector('.bilan');
+    refs.messagesFlux = racine.querySelector('.messages-flux');
+    refs.resumeGlobal = racine.querySelector('.resume-global');
+    refs.resumeShift = racine.querySelector('.resume-shift');
+    refs.resumeGaranties = racine.querySelector('.resume-garanties');
+    refs.pied = racine.querySelector('.pied-plugin');
+    refs.volet = racine.querySelector('.volet');
+    construireGlobal(racine.querySelector('.corps-global'));
+    construireShift(racine.querySelector('.corps-shift'));
+    actualiser();
+  }
+
+  function construireGlobal(corps) {
+    const choix = une() ? '' : `<div class="rangee"><span class="field-label">Régler</span><div class="bascule" role="group" aria-label="Profil à régler">${[['vivid', 'Vivid'], ['soft', 'Soft'], ['deux', 'Les deux']].map(([v, t]) => `<button type="button" class="bascule-option" data-cible="${v}" aria-pressed="${etat.cibleGlobale === v}">${t}</button>`).join('')}</div></div>`;
+    corps.innerHTML = choix;
+    refs.etatGlobal = stable() ? ligneFixe('etat-global') : Object.assign(document.createElement('p'), { className: 'avertissement' });
+    corps.append(refs.etatGlobal);
+    corps.insertAdjacentHTML('beforeend', `
+      ${[['teinte', -30, 30, 1], ['saturation', 0, 1, 0.01], ['clarte', -0.05, 0.02, 0.005]].map(([g, min, max, pas]) => `
+        <div class="reglage-global"><span class="reglette-libelle">${NOM_DE_GRANDEUR[g]}</span><input type="range" class="range-global" data-grandeur="${g}" min="${min}" max="${max}" step="${pas}" aria-label="${NOM_DE_GRANDEUR[g]} de toute la rampe"><span class="valeur-globale" data-valeur="${g}"></span></div>`).join('')}
+      <p class="pied">Le Color shift s’applique ensuite, autour de la référence.</p>`);
+    corps.querySelectorAll('[data-cible]').forEach((bouton) => bouton.addEventListener('click', () => {
+      etat.cibleGlobale = bouton.dataset.cible;
+      construire();
+    }));
+    corps.querySelectorAll('.range-global').forEach((range) => {
+      range.addEventListener('input', () => reglerGlobal(range.dataset.grandeur, Number(range.value), false));
+      range.addEventListener('change', () => reglerGlobal(range.dataset.grandeur, Number(range.value), true));
+    });
+    refs.rangesGlobaux = [...corps.querySelectorAll('.range-global')];
+    refs.valeursGlobales = [...corps.querySelectorAll('[data-valeur]')];
+  }
+
+  function construireShift(corps) {
+    refs.reglettes = [];
+    corps.innerHTML = '';
+    const description = document.createElement('p');
+    description.className = 'aide';
+    description.textContent = 'Chaque nuance s’écarte en proportion de sa distance à la référence. Les zones hachurées feraient manquer une garantie de contraste.';
+    corps.append(description);
+
+    const entete = document.createElement('div');
+    entete.className = 'rangee entete-shift';
+    entete.innerHTML = `
+      <select class="input prereglage" aria-label="Préréglage de la teinte"><option value="tailwind">Teinte Tailwind</option><option value="constante">Teinte constante</option><option value="libre" disabled>Personnalisé</option></select>
+      <label class="champ-ligne ${une() ? 'cache' : ''}"><input type="checkbox" class="lien" ${etat.lien ? 'checked' : ''}> Synchroniser Soft et Vivid</label>
+      <div class="bascule ${une() || etat.lien ? 'cache' : ''}" role="group" aria-label="Profil réglé">${['soft', 'vivid'].map((p) => `<button type="button" class="bascule-option" data-profil="${p}" aria-pressed="${etat.profil === p}">${NOM_DU_PROFIL[p]}</button>`).join('')}</div>
+      <button type="button" class="bouton-discret tout-retablir">Tout rétablir</button>`;
+    corps.append(entete);
+    entete.querySelector('.prereglage').addEventListener('change', (evenement) => {
+      const t = evenement.target.value === 'tailwind' ? tailwind() : { clair: 0, sombre: 0 };
+      etat.decalages = decalagesAvec(decalagesAvec(etat.decalages, cibles(), 'teinte', 'clair', t.clair), cibles(), 'teinte', 'sombre', t.sombre);
+      calculerLimites();
+      actualiser();
+    });
+    entete.querySelector('.lien').addEventListener('change', (evenement) => {
+      etat.lien = evenement.target.checked;
+      if (etat.lien) etat.decalages = { soft: etat.decalages.vivid, vivid: etat.decalages.vivid };
+      calculerLimites();
+      construire();
+    });
+    entete.querySelectorAll('[data-profil]').forEach((bouton) => bouton.addEventListener('click', () => {
+      etat.profil = bouton.dataset.profil;
+      calculerLimites();
+      construire();
+    }));
+    entete.querySelector('.tout-retablir').addEventListener('click', () => {
+      const tw = tailwind();
+      for (const profil of cibles()) etat.decalages[profil] = { ...decalageNul(), teinte: { clair: tw.clair, sombre: tw.sombre } };
+      etat.derniereButee = null;
+      calculerLimites();
+      actualiser();
+    });
+    refs.prereglage = entete.querySelector('.prereglage');
+
+    const onglets = document.createElement('div');
+    onglets.className = 'onglets-grandeur';
+    onglets.setAttribute('role', 'tablist');
+    onglets.setAttribute('aria-label', 'Grandeur réglée');
+    for (const g of LISTE_DES_GRANDEURS) {
+      const onglet = document.createElement('button');
+      onglet.type = 'button';
+      onglet.className = 'onglet-grandeur';
+      onglet.setAttribute('role', 'tab');
+      onglet.dataset.grandeur = g;
+      onglet.setAttribute('aria-selected', String(etat.grandeur === g));
+      onglet.disabled = !grandeurActive(g);
+      onglet.innerHTML = `<span class="onglet-nom">${NOM_DE_GRANDEUR[g]}<span class="pastille-reglee" aria-hidden="true"></span></span><span class="onglet-valeurs"></span>`;
+      onglet.addEventListener('click', () => {
+        etat.grandeur = g;
+        etat.derniereButee = null;
+        calculerLimites();
+        construire();
+      });
+      onglets.append(onglet);
+    }
+    corps.append(onglets);
+    refs.onglets = [...onglets.children];
+    refs.graphe = creerGraphe();
+    corps.append(refs.graphe.element);
+    const seg = segments();
+    for (const bout of BOUTS) {
+      if (!seg[bout]) continue;
+      const reglette = creerReglette(etat.grandeur, bout);
+      refs.reglettes.push(reglette);
+      corps.append(reglette.element);
+    }
+    if (stable()) {
+      refs.etatShift = ligneFixe('etat-shift');
+      corps.append(refs.etatShift);
+    } else {
+      refs.etatShift = document.createElement('p');
+      refs.etatShift.className = 'butee';
+      corps.append(refs.etatShift);
+    }
+    const note = document.createElement('p');
+    note.className = 'aide note-grise';
+    corps.append(note);
+    refs.noteGrise = note;
+  }
+
+  // ---------------------------------------------------------- actualisation
+
+  function actualiser() {
+    const { recette, palette } = etat;
+    const rampes = rampesDecalees(M, recette, palette, etat.decalages);
+    const promesses = promessesDecalees(M, recette, palette, rampes);
+    const manquees = promesses.filter((p) => !p.tenue);
+    // Les alertes viennent du moteur, sur les rampes sans Color shift : la maquette ne les recalcule pas.
+    const alertes = M.alertesDePalette(recette, palette);
+    const ancrage = M.ancrageDe(recette, palette);
+    const { crans } = M.grilleDe(recette, palette);
+
+    racine.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === etat.mode)));
+    refs.apercu.style.background = recette.fonds[etat.mode];
+    refs.apercu.classList.toggle('apercu-sombre', etat.mode === 'dark');
+    refs.apercu.innerHTML = M.intensitesDe(palette).map((intensite) => `
+      <div class="rangee-apercu"><span class="nom-rampe">${intensite === 'unique' ? '' : NOM_DU_PROFIL[intensite]}</span><div class="pastilles">${rampes[intensite][etat.mode].map((cran, rang) => {
+        const encre = M.rgb8VersOklch(cran.couleur).L > 0.6 ? '#1e1e1e' : '#ffffff';
+        const ref = intensite === ancrage.profil && rang === ancrage.rangs[etat.mode];
+        return `<span class="pastille" style="background:${cran.hexa};color:${encre}" title="${crans[rang]} · ${cran.hexa}">${ref ? '◆' : ''}</span>`;
+      }).join('')}</div></div>`).join('') + `<div class="rangee-apercu numeros"><span class="nom-rampe"></span><div class="pastilles">${crans.map((c) => `<span>${c}</span>`).join('')}</div></div>`;
+
+    const resumeDesGaranties = manquees.length === 0 ? `${promesses.length} garanties tenues` : `${pluriel(manquees.length, 'garantie')} manquée${manquees.length > 1 ? 's' : ''} sur ${promesses.length}`;
+    const resumeDesAlertes = alertes.length === 0 ? 'aucune alerte' : pluriel(alertes.length, 'alerte');
+    const premier = manquees[0] ? texteDePromesse(manquees[0]) : alertes[0] ? texteDAlerte(alertes[0]) : '';
+    refs.resumeGaranties.textContent = manquees.length === 0 ? `${promesses.length} tenues` : `${manquees.length} manquée${manquees.length > 1 ? 's' : ''}`;
+
+    if (stable()) {
+      // Mise en page proposée : une ligne dans le pied, le détail dans un volet superposé.
+      refs.bilan.hidden = true;
+      refs.messagesFlux.hidden = true;
+      refs.pied.hidden = false;
+      const badge = refs.pied.querySelector('.badge');
+      badge.className = `badge ${manquees.length > 0 ? 'badge-ko' : alertes.length > 0 ? 'badge-alerte' : 'badge-ok'}`;
+      badge.textContent = manquees.length > 0 ? '✗' : alertes.length > 0 ? '!' : '✓';
+      const texte = `${resumeDesGaranties} · ${resumeDesAlertes}${premier ? ` · ${premier}` : ''}`;
+      const pied = refs.pied.querySelector('.pied-texte');
+      pied.textContent = texte;
+      pied.title = texte;
+      refs.pied.querySelector('.pied-details').setAttribute('aria-expanded', String(etat.voletOuvert));
+      refs.volet.hidden = !etat.voletOuvert;
+      refs.volet.querySelector('.volet-corps').innerHTML = `
+        <p class="volet-groupe">Garanties manquées · ${manquees.length}</p>
+        ${manquees.length === 0 ? '<p class="aide">Aucune.</p>' : manquees.map((p) => `<p class="volet-ligne">${echapper(texteDePromesse(p))}</p>`).join('')}
+        <p class="volet-groupe">Alertes · ${alertes.length}</p>
+        ${alertes.length === 0 ? '<p class="aide">Aucune.</p>' : alertes.map((a) => `<p class="volet-ligne">${echapper(texteDAlerte(a))}</p>`).join('')}`;
+    } else {
+      // Mise en page actuelle : le bilan et la liste des messages entrent dans le flux, au-dessus des réglages.
+      refs.pied.hidden = true;
+      refs.volet.hidden = true;
+      refs.bilan.hidden = false;
+      refs.bilan.innerHTML = manquees.length === 0
+        ? `<span class="badge badge-ok">✓</span> ${promesses.length} garanties tenues`
+        : `<span class="badge badge-ko">✗</span> ${resumeDesGaranties} : ${manquees.slice(0, 3).map((p) => echapper(texteDePromesse(p))).join(' · ')}`;
+      const blocs = [];
+      if (manquees.length > 0) blocs.push(`<p class="constats-titre">Promesses à corriger · ${manquees.length}</p>${manquees.map((p) => `<p class="constat">${echapper(texteDePromesse(p))}. Ajustez l’intensité ou le Color shift de cette palette, puis vérifiez cette association.</p>`).join('')}`);
+      if (alertes.length > 0) blocs.push(`<p class="constats-titre">Alertes · ${alertes.length}</p>${alertes.map((a) => `<p class="constat">${echapper(texteDAlerte(a))}.</p>`).join('')}`);
+      refs.messagesFlux.innerHTML = blocs.join('');
+      refs.messagesFlux.hidden = blocs.length === 0;
+    }
+
+    // Réglage global.
+    const cle = une() ? 'vivid' : M.cleDuPorteur(recette, palette);
+    const t = palette.reglages?.teinte?.[cle] ?? 0;
+    const l = palette.reglages?.clarte?.[cle] ?? 0;
+    const parts = M.partsDe(recette, palette);
+    const resumeGlobal = `${t === 0 && l === 0 ? 'Aucun décalage' : [t ? ecrireValeur('teinte', t) : '', l ? ecrireValeur('clarte', l) : ''].filter(Boolean).join(' ')} · ${Object.entries(parts).map(([i, p]) => `${i === 'unique' ? 'Saturation' : NOM_DU_PROFIL[i]} ${Math.round(p * 100)} %`).join(' · ')}`;
+    refs.resumeGlobal.textContent = resumeGlobal;
+    refs.resumeGlobal.title = resumeGlobal;
+    for (const range of refs.rangesGlobaux ?? []) {
+      if (document.activeElement !== range) range.value = String(valeurGlobale(range.dataset.grandeur));
+    }
+    for (const span of refs.valeursGlobales ?? []) {
+      const g = span.dataset.valeur;
+      span.textContent = g === 'saturation' ? `${Math.round(valeurGlobale(g) * 100)} %` : ecrireValeur(g, valeurGlobale(g));
+    }
+    const global = etatDuGlobal();
+    if (stable()) poserLigne(refs.etatGlobal, global.texte, global.ton);
+    else {
+      refs.etatGlobal.textContent = global.texte;
+      refs.etatGlobal.hidden = global.ton === 'neutre';
+    }
+
+    // Color shift.
+    const d = etat.decalages[cleEditee()];
+    const resume = LISTE_DES_GRANDEURS.filter((g) => g === 'teinte' || d[g].clair !== 0 || d[g].sombre !== 0)
+      .map((g) => `${NOM_DE_GRANDEUR[g]} ${ecrireValeur(g, d[g].clair)} / ${ecrireValeur(g, d[g].sombre)}`);
+    const resumeShift = `${origine() === 'tailwind' ? 'Tailwind · ' : ''}${resume.join(' · ')}${!une() && etat.lien ? ' · synchronisé' : ''}`;
+    refs.resumeShift.textContent = resumeShift;
+    refs.resumeShift.title = resumeShift;
+    if (refs.prereglage) refs.prereglage.value = origine();
+    for (const onglet of refs.onglets ?? []) {
+      const g = onglet.dataset.grandeur;
+      onglet.querySelector('.onglet-valeurs').textContent = `${ecrireValeur(g, d[g].clair)} · ${ecrireValeur(g, d[g].sombre)}`;
+      const regle = g === 'teinte' ? origine() !== 'tailwind' && (d.teinte.clair !== 0 || d.teinte.sombre !== 0) : d[g].clair !== 0 || d[g].sombre !== 0;
+      onglet.classList.toggle('reglee', regle);
+    }
+    refs.graphe?.dessiner();
+    for (const reglette of refs.reglettes ?? []) reglette.actualiser();
+
+    const b = etat.derniereButee;
+    let texteDeButee = null;
+    if (b && b.cause) {
+      const cause = b.cause.ordre
+        ? 'deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité'
+        : `${b.cause.promesse.libelle} (${NOM_DU_PROFIL[b.cause.promesse.intensite]}, ${NOM_DU_MODE[b.cause.promesse.mode]}) tomberait à ${ecrireContraste(b.cause.promesse.contraste)}:1, sous ${virgule(b.cause.promesse.seuil, 1)}:1`;
+      texteDeButee = `⊣ ${NOM_DE_GRANDEUR[b.grandeur]}, ${NOM_DU_BOUT[b.bout].toLowerCase()} : limite atteinte à ${ecrireValeur(b.grandeur, b.borne)}. Au-delà, ${cause}.`;
+    }
+    if (stable()) {
+      const limites = etat.limites[etat.grandeur] ?? {};
+      const plages = BOUTS.filter((bout) => segments()[bout] && limites[bout])
+        .map((bout) => `${NOM_DU_BOUT[bout].toLowerCase()} ${ecrireValeur(etat.grandeur, limites[bout].bas.borne)} à ${ecrireValeur(etat.grandeur, limites[bout].haut.borne)}`);
+      poserLigne(refs.etatShift, texteDeButee ?? `Plage sûre · ${plages.join(' · ')}`, texteDeButee ? 'butee' : 'neutre');
+    } else {
+      refs.etatShift.textContent = texteDeButee ?? '';
+      refs.etatShift.hidden = texteDeButee === null;
+    }
+    refs.noteGrise.textContent = grise() ? 'Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable.' : '';
+    refs.noteGrise.hidden = !grise();
+    mesurerLeDeplacement();
+  }
+
+  // ---------------------------------------------------------- mesure du déplacement
+
+  /** Le déplacement vertical du contrôle saisi, du début du geste à chaque rendu : 0 px dans une mise en page stable. */
+  let suivi = null;
+  document.addEventListener('pointerdown', (evenement) => {
+    const controle = evenement.target.closest?.('.curseur, .range-global, .graphe svg');
+    if (!controle || !racine.contains(controle)) return;
+    suivi = { controle, depart: controle.getBoundingClientRect().top, plusGrand: 0 };
+  }, true);
+  document.addEventListener('pointerup', () => {
+    if (!suivi) return;
+    afficherLaMesure(suivi.plusGrand);
+    suivi = null;
+  }, true);
+  function mesurerLeDeplacement() {
+    if (!suivi || !suivi.controle.isConnected) return;
+    suivi.plusGrand = Math.max(suivi.plusGrand, Math.abs(suivi.controle.getBoundingClientRect().top - suivi.depart));
+    afficherLaMesure(suivi.plusGrand);
+  }
+  function afficherLaMesure(pixels) {
+    const zone = document.getElementById('mesure');
+    if (!zone) return;
+    zone.dataset.ton = pixels > 0.5 ? 'mauvais' : 'bon';
+    zone.textContent = `Pendant le dernier geste, le contrôle saisi a bougé de ${Math.round(pixels)} px.`;
+  }
+
+  // ---------------------------------------------------------- scénario
+
+  function construireScenario() {
+    const zone = document.getElementById('scenario');
+    zone.innerHTML = `
+      <h2>Scénario</h2>
+      <div class="groupe"><span class="groupe-titre">Référence</span><div class="choix">${REFERENCES.map((r) => `<button type="button" data-reference="${r.hexa}" aria-pressed="${etat.reference === r.hexa}"><span class="puce" style="background:${r.hexa}"></span>${r.nom}</button>`).join('')}</div></div>
+      <div class="groupe"><span class="groupe-titre">Intensités</span><div class="choix">${[[2, 'Deux'], [1, 'Une']].map(([n, t]) => `<button type="button" data-intensites="${n}" aria-pressed="${etat.intensites === n}">${t}</button>`).join('')}</div></div>
+      <div class="groupe"><span class="groupe-titre">Avertissements</span><div class="choix">${[['stable', 'Ligne fixe (proposé)'], ['flux', 'Dans le flux (actuel)']].map(([v, t]) => `<button type="button" data-mise-en-page="${v}" aria-pressed="${etat.miseEnPage === v}">${t}</button>`).join('')}</div></div>
+      <div class="groupe"><span class="groupe-titre">Thème de Figma</span><div class="choix">${[[false, 'Clair'], [true, 'Sombre']].map(([v, t]) => `<button type="button" data-figma="${v}" aria-pressed="${etat.figmaSombre === v}">${t}</button>`).join('')}</div></div>
+      <p id="mesure" class="mesure" aria-live="polite">Saisissez un curseur : la page mesure de combien il bouge pendant le geste.</p>
+      <div class="groupe"><span class="groupe-titre">Essais</span><div class="essais">
+        <button type="button" data-essai="assombrir">1 · Assombrir les nuances claires jusqu’à la butée</button>
+        <button type="button" data-essai="desaturer">2 · Désaturer les nuances claires de 40 %</button>
+        <button type="button" data-essai="croise">3 · Éclaircir les nuances sombres jusqu’à la butée, puis ouvrir la teinte</button>
+        <button type="button" data-essai="global">4 · Nuances sombres en butée, puis luminosité globale −0,03 : le réglage global fait manquer deux garanties</button>
+        <button type="button" data-essai="flux">5 · Vert, avertissements dans le flux : glissez la luminosité globale entre 0 et +0,02</button>
+        <button type="button" data-essai="stable">6 · Vert, ligne fixe : le même geste</button>
+      </div></div>
+      <h2>Décisions retenues</h2>
+      <ul class="questions">${DECISIONS.map(([id, titre, texte]) => `<li><strong>${id} · ${titre}.</strong> ${texte}</li>`).join('')}</ul>
+      ${OUVERTES.length === 0 ? '' : `<h2>À valider</h2>
+      <ul class="questions">${OUVERTES.map(([id, titre, texte]) => `<li><strong>${id} · ${titre}.</strong> ${texte}</li>`).join('')}</ul>`}`;
+    zone.querySelectorAll('[data-reference]').forEach((b) => b.addEventListener('click', () => { etat.reference = b.dataset.reference; recommencer(); }));
+    zone.querySelectorAll('[data-intensites]').forEach((b) => b.addEventListener('click', () => { etat.intensites = Number(b.dataset.intensites); recommencer(); }));
+    zone.querySelectorAll('[data-mise-en-page]').forEach((b) => b.addEventListener('click', () => {
+      etat.miseEnPage = b.dataset.miseEnPage;
+      etat.voletOuvert = false;
+      construireScenario();
+      construire();
+    }));
+    zone.querySelectorAll('[data-figma]').forEach((b) => b.addEventListener('click', () => {
+      etat.figmaSombre = b.dataset.figma === 'true';
+      construireScenario();
+      construire();
+    }));
+    zone.querySelectorAll('[data-essai]').forEach((b) => b.addEventListener('click', () => essai(b.dataset.essai)));
+  }
+
+  function essai(nom) {
+    if (nom === 'flux' || nom === 'stable') {
+      etat.reference = '#16A34A';
+      etat.miseEnPage = nom;
+      etat.voletOuvert = false;
+    }
+    recommencerSansRendu();
+    etat.shiftOuvert = true;
+    etat.globalOuvert = false;
+    if (nom === 'assombrir' || nom === 'croise') {
+      etat.grandeur = 'clarte';
+      calculerLimites();
+      if (nom === 'assombrir') poser('clarte', 'clair', -0.15, true);
+      else {
+        poser('clarte', 'sombre', 0.15, true);
+        etat.grandeur = 'teinte';
+        calculerLimites();
+      }
+    } else if (nom === 'desaturer') {
+      etat.grandeur = 'saturation';
+      calculerLimites();
+      poser('saturation', 'clair', -0.4, true);
+    } else if (nom === 'global') {
+      etat.globalOuvert = true;
+      etat.cibleGlobale = 'deux';
+      etat.grandeur = 'clarte';
+      calculerLimites();
+      poser('clarte', 'sombre', 0.15, true);
+      etat.derniereButee = null;
+      reglerGlobal('clarte', -0.03, true);
+    } else if (nom === 'flux' || nom === 'stable') {
+      etat.globalOuvert = true;
+      etat.cibleGlobale = 'deux';
+    }
+    construireScenario();
+    construire();
+  }
+
+  function recommencerSansRendu() {
+    nouvellePalette();
+    etat.lien = true;
+    calculerLimites();
+  }
+
+  function recommencer() {
+    recommencerSansRendu();
+    construireScenario();
+    construire();
+  }
+
+  recommencer();
+})(UCM);
+</script>
+</body>
+</html>

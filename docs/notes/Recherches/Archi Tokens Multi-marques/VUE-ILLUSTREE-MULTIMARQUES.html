@@ -1,704 +1,975 @@
-<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tokens multi-marques</title>
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Architecture des tokens</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
 :root{
-  --bg:#F4F5F7; --surface:#FFFFFF; --ink:#16181D; --muted:#5A6170; --line:#D7DBE3;
-  --lane:#ECEEF2; --lane-strong:#E3E6EC;
-  --brand-c:#A95404; --brand-bg:#FBEEDF;
-  --theme-c:#0A726D; --theme-bg:#DDF2EF;
-  --accent:#3040C0; --accent-bg:#E6E8FA;
-  --warn:#9A2B2B;
-  --fig-bg:#FFFFFF; --fig-side:#F5F5F5; --fig-line:#E6E6E6; --fig-sel:#E5F0FF; --fig-ink:#1E1E1E; --fig-muted:#7A7A7A;
-  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --add:#17687F; --add-bg:#DFEFF3; --mod:#A94A1C; --mod-bg:#FAEBE2; --del:#B42318; --del-bg:#FBE9E7; --keep:#1E7446; --keep-bg:#E3F3EA;
+  --new:#6B3FA0; --new-bg:#EFE7F8; --hl:#FFF3BF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#101217; --surface:#181B22; --ink:#E7E9EE; --muted:#9BA2AF; --line:#2C313B;
-    --lane:#1A1E26; --lane-strong:#20252E;
-    --brand-c:#F2A456; --brand-bg:#33261A;
-    --theme-c:#45C4BA; --theme-bg:#15302E;
-    --accent:#98A3FF; --accent-bg:#222746;
-    --warn:#F08A8A;
-    --fig-bg:#2C2C2C; --fig-side:#252525; --fig-line:#3D3D3D; --fig-sel:#23384F; --fig-ink:#F0F0F0; --fig-muted:#A0A0A0;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+    --new:#C4A2EE; --new-bg:#2A1D3B; --hl:#3B3413;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#101217; --surface:#181B22; --ink:#E7E9EE; --muted:#9BA2AF; --line:#2C313B;
-  --lane:#1A1E26; --lane-strong:#20252E;
-  --brand-c:#F2A456; --brand-bg:#33261A;
-  --theme-c:#45C4BA; --theme-bg:#15302E;
-  --accent:#98A3FF; --accent-bg:#222746;
-  --warn:#F08A8A;
-  --fig-bg:#2C2C2C; --fig-side:#252525; --fig-line:#3D3D3D; --fig-sel:#23384F; --fig-ink:#F0F0F0; --fig-muted:#A0A0A0;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+  --new:#C4A2EE; --new-bg:#2A1D3B; --hl:#3B3413;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;padding:0 16px}
-main{max-width:1000px;margin:0 auto;padding-block:40px 80px}
-.prose{max-width:68ch}
-h1{font-size:2.1rem;line-height:1.15;margin:0 0 12px;letter-spacing:-.01em;text-wrap:balance}
-h2{font-size:1.4rem;line-height:1.25;margin:56px 0 12px;text-wrap:balance;scroll-margin-top:16px}
-h3{font-size:1.05rem;margin:28px 0 8px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
+main{max-width:1060px;margin:0 auto;padding-block:40px 80px}
+.narrow{max-width:880px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.45rem;line-height:1.25;margin:60px 0 12px}
 p{margin:0 0 12px}
-a{color:var(--accent)}
-a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-code,.m{font-family:var(--mono);font-size:.86em}
-code{background:var(--lane);padding:1px 5px;border-radius:3px}
-.lede{font-size:1.1rem;color:var(--muted);max-width:66ch}
-.b{color:var(--brand-c);font-weight:600}
-.t{color:var(--theme-c);font-weight:600}
-.pill{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:99px}
-.pill.b{background:var(--brand-bg)}
-.pill.t{background:var(--theme-bg)}
-.jump{display:flex;flex-wrap:wrap;gap:8px 18px;margin:14px 0 0;font-size:.95rem}
+a{color:var(--add)}
+:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+.lede{font-size:1.08rem;color:var(--muted)}
+.callout{background:var(--new-bg);border-radius:8px;padding:12px 16px;margin:16px 0}
+.callout b{color:var(--new)}
+.callout ul{margin:6px 0 0;padding-left:20px}
 
-.thesis{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:24px 0 8px}
-.thesis div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
-.thesis strong{display:block;margin-bottom:4px}
+/* panneau Figma */
+.fx{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fx-top{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--soft)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{all:unset;cursor:pointer;padding:6px 16px;font-weight:600;font-size:.92rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.legend[hidden]{display:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:4px;height:14px;border-radius:2px;display:inline-block}
+.fx-body{display:grid;grid-template-columns:250px 1fr;min-height:460px}
+.fx-cols{border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.fx-cols .lab{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:2px 8px 6px}
+.fx-cols button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-family:var(--mono);font-size:.84rem}
+.fx-cols button:hover{background:var(--soft)}
+.fx-cols button[aria-current="true"]{background:var(--ink);color:var(--bg)}
+.fx-cols button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.fx-cols button.gone .cn{text-decoration:line-through;opacity:.7}
+.tag{display:inline-block;font-family:var(--sans);font-size:.68rem;font-weight:600;padding:0 7px;border-radius:99px;white-space:nowrap;line-height:1.6}
+.tag.new{background:var(--add-bg);color:var(--add)}
+.tag.mod{background:var(--mod-bg);color:var(--mod)}
+.tag.del{background:var(--del-bg);color:var(--del)}
+.tag.same{background:var(--keep-bg);color:var(--keep)}
+.tag.prop{background:var(--new-bg);color:var(--new)}
+.fx-main{min-width:0;padding:12px 14px 16px}
+.fx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
+.fx-head b{font-family:var(--mono);font-size:1.05rem}
+.fx-head span{color:var(--muted);font-size:.86rem}
+.fx-note{font-size:.92rem;background:var(--bg);border-radius:6px;padding:9px 12px;margin-bottom:10px}
+.fx-note p{margin:0 0 4px}
+.fx-note p:last-child{margin:0}
+.fx-note a{font-weight:600}
+.fx-tw{overflow-x:auto}
+.fx table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
+.fx th{text-align:left;font-weight:500;color:var(--muted);font-size:.8rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fx th.newcol{color:var(--add);font-weight:600}
+.fx td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fx td.nm{font-family:var(--mono);white-space:nowrap}
+.fx tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;color:var(--muted);padding-top:12px;border-bottom:none}
+.fx tr.g td .tag{margin-left:8px}
+.fx tr.more td{color:var(--muted);font-style:italic;font-size:.8rem}
+.fx tr.new td:first-child{box-shadow:inset 4px 0 var(--add)}
+.fx tr.mod td:first-child{box-shadow:inset 4px 0 var(--mod)}
+.fx tr.del td:first-child{box-shadow:inset 4px 0 var(--del)}
+.fx tr.del td{color:var(--muted)}
+.fx tr.del td.nm,.fx tr.del .val{text-decoration:line-through}
+.fx tr.hl td{background:var(--hl)}
+.val{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block;flex:none}
+.chip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 7px 1px 3px;font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+.chip:hover{border-color:var(--add)}
+.chip:focus-visible{outline:2px solid var(--add);outline-offset:1px}
+.chip .col{color:var(--muted)}
+.old{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.old s{text-decoration-color:var(--del)}
+.cap{color:var(--muted);font-size:.86rem;margin-top:8px}
 
-figure{margin:20px 0 8px}
-.scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px}
-figure svg{display:block;width:100%;min-width:780px;height:auto}
-figcaption{color:var(--muted);font-size:.9rem;margin-top:8px;max-width:72ch}
+/* décisions */
+.dec{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:12px 0;scroll-margin-top:12px}
+.dec-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:10px}
+.dec-h .id{font-family:var(--display);font-weight:700;color:var(--muted)}
+.dec-h h3{font-size:1.05rem;margin:0;line-height:1.35;flex:1 1 380px}
+.dec dl{display:grid;grid-template-columns:120px 1fr;gap:7px 16px;margin:0}
+.dec dt{font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:3px}
+.dec dd{margin:0}
+.dec dd ul{margin:0;padding-left:18px}
+.dec dd li{margin-bottom:4px}
+.dec .see{all:unset;cursor:pointer;color:var(--add);font-size:.88rem;text-decoration:underline;text-underline-offset:3px}
+.dec .see:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+.org{font-size:.85rem;color:var(--muted)}
 
-.lane{fill:var(--lane)} .lane-b{fill:var(--brand-bg)} .lane-t{fill:var(--theme-bg)}
-.ln{font-family:var(--mono);font-size:13px;font-weight:600;fill:var(--ink)}
-.lm{font-family:var(--sans);font-size:12px;fill:var(--muted)}
-.lm-b{font-family:var(--sans);font-size:12px;fill:var(--brand-c);font-weight:600}
-.lm-t{font-family:var(--sans);font-size:12px;fill:var(--theme-c);font-weight:600}
-.node{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
-.node-alt{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:4 3}
-.node-acc{fill:var(--accent-bg);stroke:var(--accent);stroke-width:1.4}
-.nt{font-family:var(--mono);font-size:12px;fill:var(--ink)}
-.nt-alt{font-family:var(--mono);font-size:12px;fill:var(--muted)}
-.ar{stroke:var(--ink);stroke-width:1.3;fill:none}
-.ar-b{stroke:var(--brand-c);stroke-width:1.6;fill:none}
-.ar-t{stroke:var(--theme-c);stroke-width:1.6;fill:none}
-.dash{stroke-dasharray:5 4}
-.ah{fill:var(--ink)} .ah-b{fill:var(--brand-c)} .ah-t{fill:var(--theme-c)}
-.al{font-family:var(--sans);font-size:12px;fill:var(--muted)}
-.al-b{font-family:var(--sans);font-size:12px;fill:var(--brand-c);font-weight:600}
-.al-t{font-family:var(--sans);font-size:12px;fill:var(--theme-c);font-weight:600}
-.flow{stroke:var(--muted);fill:none;stroke-linecap:round}
-.flow-t{stroke:var(--theme-c);fill:none;stroke-linecap:round}
-.flow-b{stroke:var(--brand-c);fill:none;stroke-linecap:round}
-.sep{stroke:var(--line);stroke-width:1}
-.h{font-family:var(--sans);font-size:14px;font-weight:700;fill:var(--ink)}
-.warn{font-family:var(--sans);font-size:12px;fill:var(--warn);font-weight:600}
-
-/* Figma mock */
-.fig{display:grid;grid-template-columns:190px 1fr;background:var(--fig-bg);color:var(--fig-ink);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12.5px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.fig-side{background:var(--fig-side);border-right:1px solid var(--fig-line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
-.fig-side .cap{font-size:11px;color:var(--fig-muted);padding:4px 8px 6px;font-weight:600}
-.fig-side button{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:4px;font-family:var(--sans);font-size:12.5px;color:var(--fig-ink)}
-.fig-side button:hover{background:var(--fig-line)}
-.fig-side button[aria-selected="true"]{background:var(--fig-sel);font-weight:600}
-.fig-side button span:last-child{color:var(--fig-muted);font-weight:400}
-.fig-main{min-width:0}
-.fig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--fig-line)}
-.fig-head b{font-size:14px}
-.fig-head span{color:var(--fig-muted)}
-.fig-tw{overflow-x:auto}
-.fig table{font-size:12.5px;min-width:520px}
-.fig th{font-size:11.5px;text-transform:none;letter-spacing:0;color:var(--fig-muted);font-weight:500;border-bottom:1px solid var(--fig-line);padding:7px 12px;white-space:nowrap}
-.fig td{border-bottom:1px solid var(--fig-line);padding:6px 12px;vertical-align:middle}
-.fig tr.g td{font-weight:600;padding-top:12px;color:var(--fig-ink);border-bottom:none;font-family:var(--mono);font-size:11.5px}
-.fig tr.g.res td{color:var(--fig-muted);font-weight:500}
-.fig tr.more td{color:var(--fig-muted);font-style:italic;font-size:12px}
-.fig td.nm{font-family:var(--mono);font-size:12px;padding-left:24px;white-space:nowrap}
-.val{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:var(--mono);font-size:11.5px}
-.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);flex:none}
-.chip{display:inline-flex;align-items:center;gap:5px;background:var(--fig-side);border:1px solid var(--fig-line);border-radius:4px;padding:1px 6px 1px 3px;white-space:nowrap;font-family:var(--mono);font-size:11.5px}
-.txt{font-family:var(--mono);font-size:11.5px}
-
-/* ramps */
-.ramps{min-width:720px}
-.ramp{display:grid;grid-template-columns:78px repeat(11,1fr);gap:3px;margin-bottom:3px}
-.ramp .lab{font-size:.8rem;color:var(--muted);align-self:center}
-.sw{height:52px;border-radius:3px;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:var(--mono);font-size:11px;line-height:1.3}
-.sw b{font-weight:600}
-.marks{display:grid;grid-template-columns:78px repeat(11,1fr);gap:3px;margin-top:6px;font-size:.78rem;color:var(--muted)}
-.marks span{text-align:center;line-height:1.25}
-.marks .on{color:var(--ink);font-weight:600;border-top:2px solid var(--accent);padding-top:4px}
-
-table{border-collapse:collapse;width:100%;font-size:.93rem}
 .tw{overflow-x:auto;margin:12px 0}
-th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
-th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
-td code{white-space:nowrap}
-td.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table.plain{border-collapse:collapse;width:100%;font-size:.92rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.plain th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+table.plain td.n,table.plain th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.plain tfoot td{font-weight:600;border-bottom:none}
+td.c{text-align:center;font-family:var(--mono);font-weight:600}
+.bad{color:var(--del);font-weight:600}
+ul.rules{padding-left:20px}
+ul.rules li{margin-bottom:6px}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+footer ul{padding-left:18px;margin:6px 0 0}
 
-.pre{font-family:var(--mono);font-size:.84rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;line-height:1.6}
-.pre .x{color:var(--muted)}
-.pre .b,.pre .t{font-weight:600}
-
-.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:12px}
-.split > div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
-.split h3{margin-top:0}
-.split ul{margin:0;padding-left:18px}
-.split li{margin-bottom:6px}
-.split .mine{border-color:var(--accent)}
-
-ol.ladder{padding-left:22px}
-ol.ladder li{margin-bottom:10px}
-.rules{counter-reset:r;list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
-.rules li{counter-increment:r;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 16px 12px 48px;position:relative}
-.rules li::before{content:counter(r);position:absolute;left:16px;top:11px;font-family:var(--mono);font-weight:600;color:var(--accent)}
-
-.open li{margin-bottom:8px}
-.done{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
-.done span{font-size:.85rem;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px 10px}
-.note{border-left:3px solid var(--brand-c);padding:8px 14px;background:var(--surface);margin:14px 0;border-radius:0 4px 4px 0}
-
-/* cheat sheet */
-.memo{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:14px}
-.memo section{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
-.memo h3{margin:0 0 8px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.memo ul{margin:0;padding-left:18px}
-.memo li{margin-bottom:5px;font-size:.95rem}
-.memo .never li::marker{content:"✕  ";color:var(--warn)}
-.crans{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.93rem}
-.crans b{font-family:var(--mono);font-weight:600;text-align:right}
-.crans .hl{color:var(--accent);font-weight:600}
-
-@media (max-width:640px){
-  .fig{grid-template-columns:1fr}
-  .fig-side{flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--fig-line)}
-  .fig-side .cap{width:100%}
+@media (max-width:720px){
+  .fx-body{grid-template-columns:1fr}
+  .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
+  .fx-cols .lab{width:100%}
+  .dec dl{grid-template-columns:1fr;gap:2px}
+  .dec dd{margin-bottom:8px}
 }
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
-
 </head>
 <body>
 <main>
-<h1>Tokens multi-marques : l'architecture cible</h1>
-<p class="lede">Six marques, clair et sombre, deux profils de couleur <code>soft</code> et <code>vivid</code> pour les utilitaires, une seule intensité pour les rampes de marque. Cette page reprend <a href="./ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE-MULTIMARQUES.md</a>, la montre telle qu'elle apparaîtra dans Figma et liste ce qu'il faut changer dans le <span class="m">tokens.json</span> actuel.</p>
-<nav class="jump" aria-label="Raccourcis">
-  <a href="#figma">Vue Figma</a>
-  <a href="#memo">Aide-mémoire</a>
-  <a href="#fichier">Ce qui change dans le fichier</a>
-  <a href="#reste">Décidé et à décider</a>
-</nav>
-
-<div class="thesis">
-  <div><strong>Deux interrupteurs indépendants</strong><span class="pill b">marque</span> sur la collection <code>brand</code>, <span class="pill t">thème</span> sur la collection <code>theme</code>. Figma et la CSS les règlent séparément.</div>
-  <div><strong>Les composants ne citent que <code>theme</code></strong>Pour une couleur, jamais <code>brand</code> ni <code>primitives</code>. C'est le seul endroit où clair et sombre se décident.</div>
-  <div><strong>Un numéro de cran vaut un contraste</strong>Toutes les rampes suivent la même courbe de clarté : <code>700</code> se lit en texte dans toutes les marques, les deux thèmes et les deux profils.</div>
-</div>
-
-<h2>Les quatre collections et le chemin d'un token</h2>
-<p class="prose">Chaque bande est une collection Figma. On lit de haut en bas : un composant cite <code>theme</code>, qui choisit clair ou sombre. Le nom visé est ensuite résolu soit dans <code>brand</code>, qui choisit la marque, soit dans <code>primitives</code>, commun à toutes.</p>
-
-<figure>
-<div class="scroll">
-<svg viewBox="0 0 990 462" role="img" aria-label="Quatre collections empilées : components, theme à deux modes, brand à six modes, primitives. Le fond du bouton traverse theme puis brand ; le fond d'alerte traverse theme puis primitives, en clair comme en sombre, sans passer par brand.">
-  <defs>
-    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
-    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-b" d="M0,0 L10,5 L0,10 z"/></marker>
-    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-t" d="M0,0 L10,5 L0,10 z"/></marker>
-  </defs>
-
-  <rect class="lane" x="0" y="10" width="990" height="76" rx="6"/>
-  <rect class="lane-t" x="0" y="96" width="990" height="76" rx="6"/>
-  <rect class="lane-b" x="0" y="182" width="990" height="150" rx="6"/>
-  <rect class="lane" x="0" y="342" width="990" height="110" rx="6"/>
-
-  <text class="ln" x="16" y="40">components</text>
-  <text class="lm" x="16" y="60">aucun mode</text>
-  <text class="ln" x="16" y="126">theme</text>
-  <text class="lm-t" x="16" y="146">2 modes : light · dark</text>
-  <text class="ln" x="16" y="212">brand</text>
-  <text class="lm-b" x="16" y="232">6 modes : marque A … F</text>
-  <text class="lm" x="16" y="252">rampes,</text>
-  <text class="lm" x="16" y="268">couleur exacte</text>
-  <text class="ln" x="16" y="372">primitives</text>
-  <text class="lm" x="16" y="392">aucun mode</text>
-  <text class="lm" x="16" y="412">neutre, utilitaires</text>
-
-  <!-- trace 1 : bouton -->
-  <rect class="node" x="210" y="32" width="260" height="32" rx="4"/>
-  <text class="nt" x="340" y="52" text-anchor="middle">button.primary.background</text>
-  <rect class="node-acc" x="210" y="118" width="260" height="32" rx="4"/>
-  <text class="nt" x="340" y="138" text-anchor="middle">primary.700</text>
-  <rect class="node" x="210" y="206" width="260" height="32" rx="4"/>
-  <text class="nt" x="340" y="226" text-anchor="middle">palette.primary.light.700</text>
-  <rect class="node-alt" x="520" y="206" width="260" height="32" rx="4"/>
-  <text class="nt-alt" x="650" y="226" text-anchor="middle">palette.primary.dark.700</text>
-  <rect class="node" x="210" y="276" width="120" height="32" rx="4"/>
-  <text class="nt" x="270" y="296" text-anchor="middle">hexa de A</text>
-  <rect class="node-alt" x="350" y="276" width="120" height="32" rx="4"/>
-  <text class="nt-alt" x="410" y="296" text-anchor="middle">hexa de B</text>
-  <text class="al" x="210" y="325">la valeur de la colonne de chaque marque</text>
-
-  <line class="ar" x1="340" y1="64" x2="340" y2="116" marker-end="url(#a)"/>
-  <text class="al" x="350" y="95">cite</text>
-  <line class="ar-t" x1="340" y1="150" x2="340" y2="204" marker-end="url(#at)"/>
-  <text class="al-t" x="350" y="180">light</text>
-  <line class="ar-t dash" x1="440" y1="150" x2="598" y2="204" marker-end="url(#at)"/>
-  <text class="al-t" x="540" y="166">dark</text>
-  <line class="ar-b" x1="270" y1="238" x2="270" y2="274" marker-end="url(#ab)"/>
-  <text class="al-b" x="220" y="261" text-anchor="end">marque A</text>
-  <line class="ar-b dash" x1="410" y1="238" x2="410" y2="274" marker-end="url(#ab)"/>
-  <text class="al-b" x="420" y="261">marque B</text>
-
-  <!-- trace 2 : alerte -->
-  <rect class="node" x="790" y="32" width="160" height="32" rx="4"/>
-  <text class="nt" x="870" y="52" text-anchor="middle">alert.info.background</text>
-  <rect class="node-acc" x="790" y="118" width="160" height="32" rx="4"/>
-  <text class="nt" x="870" y="138" text-anchor="middle">info.soft.100</text>
-  <rect class="node" x="790" y="356" width="146" height="32" rx="4"/>
-  <text class="nt" x="863" y="376" text-anchor="middle">info.soft.light.100</text>
-  <rect class="node-alt" x="790" y="400" width="146" height="32" rx="4"/>
-  <text class="nt-alt" x="863" y="420" text-anchor="middle">info.soft.dark.100</text>
-  <line class="ar" x1="870" y1="64" x2="870" y2="116" marker-end="url(#a)"/>
-  <line class="ar-t" x1="870" y1="150" x2="870" y2="354" marker-end="url(#at)"/>
-  <path class="ar-t dash" d="M946,150 L946,416 L940,416" marker-end="url(#at)"/>
-  <text class="al-t" x="860" y="244" text-anchor="end">light</text>
-  <text class="al-t" x="953" y="244">dark</text>
-  <text class="al" x="860" y="262" text-anchor="end">traverse brand</text>
-  <text class="al" x="860" y="278" text-anchor="end">sans s'y arrêter</text>
-</svg>
-</div>
-<figcaption>Deux chemins. Le fond du bouton passe par les deux interrupteurs : <span class="t">theme</span> choisit la rampe claire ou sombre, puis <span class="b">brand</span> donne l'hexa de la marque affichée. Le cran, 700, est le même pour toutes les marques. Le fond d'alerte est commun aux marques : il change avec le thème mais ne dépend pas de la marque. En pointillé, ce qu'on obtient avec l'autre thème ou l'autre marque. Les nœuds surlignés sont les seuls noms que les composants voient.</figcaption>
-</figure>
-
-<h3>Pourquoi deux collections plutôt qu'une à douze modes</h3>
-<p class="prose">Une seule collection « marque × thème » compterait douze modes, alors que Figma Professional plafonne à dix modes par collection. Avec deux collections, chacune reste sous le plafond (6 et 2 modes), et une maquette peut poser un encart sombre sans toucher à la marque. Tout ce qui dépend de la marque reste dans <code>brand</code> : si les réglages vivaient dans une autre collection à six modes, Figma pourrait afficher la palette de A avec les réglages de B. L'export dérive l'attribut HTML du nom de la collection : <code>brand</code> donne <code>data-brand</code>, <code>theme</code> donne <code>data-theme</code>.</p>
-
-<h2 id="figma">Ce que tu verras dans Figma</h2>
-<p class="prose">Le panneau des variables, collection par collection. Dans Figma, les points d'un chemin deviennent des groupes : <code>theme.primary.700</code> s'affiche <code>primary/700</code> dans la collection <code>theme</code>. Clique sur une collection à gauche.</p>
-
-<figure>
-<div class="fig">
-  <div class="fig-side" role="tablist" aria-label="Collections" id="fig-tabs">
-    <div class="cap">Collections</div>
-  </div>
-  <div class="fig-main">
-    <div class="fig-head" id="fig-head"></div>
-    <div class="fig-tw"><table id="fig-table"></table></div>
-  </div>
-</div>
-<figcaption>Extrait : chaque collection montre quelques lignes de chaque groupe, et le reste est résumé en italique. Les couleurs sont calculées avec les courbes et les parts de chroma du document, à teinte constante et sans dérive. Ce sont des illustrations : le plugin Palettes produira les vraies valeurs. Les colonnes de <code>brand</code> s'arrêtent à la marque C ; D, E et F suivent le même modèle. Une puce est un alias, avec en couleur sa valeur résolue en marque A et en clair.</figcaption>
-</figure>
-
-<h2>Ce qui casse aujourd'hui</h2>
-<p class="prose">Dans le fichier actuel, les couleurs des composants visent directement leurs rampes. Un axe clair/sombre n'a donc aucun point d'appui : il faudrait le poser sur une collection que tous les composants traversent, et il n'en existe pas.</p>
-
-<figure>
-<div class="scroll">
-<svg viewBox="0 0 960 270" role="img" aria-label="Aujourd'hui, 256 des 306 citations de couleur des composants visent des collections sans mode. Demain, les 306 passent par theme.">
-  <text class="h" x="10" y="18">Aujourd'hui</text>
-  <text class="h" x="510" y="18">Demain</text>
-  <line class="sep" x1="480" y1="6" x2="480" y2="262"/>
-
-  <rect class="node" x="130" y="34" width="200" height="34" rx="4"/>
-  <text class="nt" x="230" y="55" text-anchor="middle">components · 306</text>
-  <path class="flow" d="M200,68 C200,120 80,120 80,172" stroke-width="13"/>
-  <path class="flow" d="M230,68 L230,172" stroke-width="2.4"/>
-  <path class="flow-b" d="M260,68 C260,120 380,120 380,172" stroke-width="3"/>
-  <text class="al" x="92" y="120">217</text>
-  <text class="al" x="238" y="130">39</text>
-  <text class="al-b" x="352" y="120">50</text>
-  <rect class="node" x="10" y="172" width="140" height="44" rx="4"/>
-  <text class="nt" x="80" y="190" text-anchor="middle">color-utilities</text>
-  <text class="al" x="80" y="207" text-anchor="middle">aucun mode</text>
-  <rect class="node" x="165" y="172" width="130" height="44" rx="4"/>
-  <text class="nt" x="230" y="190" text-anchor="middle">primitives.colors</text>
-  <text class="al" x="230" y="207" text-anchor="middle">valeurs brutes</text>
-  <rect class="node" x="310" y="172" width="150" height="44" rx="4"/>
-  <text class="nt" x="385" y="190" text-anchor="middle">color-brand-tokens</text>
-  <text class="al-b" x="385" y="207" text-anchor="middle">axe marque</text>
-  <text class="warn" x="10" y="246">256 citations sur 306 (84 %) : aucun mode ne peut les changer</text>
-
-  <rect class="node" x="630" y="34" width="200" height="34" rx="4"/>
-  <text class="nt" x="730" y="55" text-anchor="middle">components · 306</text>
-  <path class="flow-t" d="M730,68 L730,106" stroke-width="13"/>
-  <text class="al" x="746" y="92">306</text>
-  <rect class="node-acc" x="630" y="106" width="200" height="40" rx="4"/>
-  <text class="nt" x="730" y="124" text-anchor="middle">theme</text>
-  <text class="al-t" x="730" y="140" text-anchor="middle">light · dark</text>
-  <path class="flow" d="M690,146 C690,170 610,170 610,190" stroke-width="3"/>
-  <path class="flow" d="M770,146 C770,170 850,170 850,190" stroke-width="3"/>
-  <rect class="node" x="530" y="190" width="160" height="44" rx="4"/>
-  <text class="nt" x="610" y="208" text-anchor="middle">brand</text>
-  <text class="al-b" x="610" y="225" text-anchor="middle">6 marques</text>
-  <rect class="node" x="770" y="190" width="160" height="44" rx="4"/>
-  <text class="nt" x="850" y="208" text-anchor="middle">primitives</text>
-  <text class="al" x="850" y="225" text-anchor="middle">neutre + utilitaires</text>
-  <text class="al" x="510" y="258">Toutes les couleurs traversent l'interrupteur clair/sombre</text>
-</svg>
-</div>
-<figcaption>Où vont les 306 couleurs de <code>components</code>. L'épaisseur des traits suit le nombre de citations. Les 306 citations visent 55 cibles distinctes : c'est le vrai volume de repointage. L'exemple type est <code>alert.info.standard.background</code>, qui vise <code>primitives.colors.sky.50</code> en dur.</figcaption>
-</figure>
-
-<h2>Le socle : une courbe de clarté commune</h2>
-<p class="prose">Toutes les rampes ont onze crans, de 50 à 950, et partagent la même clarté OKLCH à chaque cran. La teinte et la vivacité bougent peu le contraste, donc le numéro suffit à le garantir. Le sombre a sa propre courbe avec les mêmes numéros : le cran 50 est toujours le fond de page.</p>
-
-<figure>
-<div class="scroll">
-<div class="ramps">
-  <div class="ramp" id="r-light"><span class="lab">Clair</span></div>
-  <div class="ramp" id="r-dark"><span class="lab">Sombre</span></div>
-  <div class="marks" id="r-marks"><span></span></div>
-</div>
-</div>
-<figcaption>Les vingt-deux clartés du document, rendues en gris à clarté exacte (<code>oklch(L 0 0)</code>). Contre le cran 50, le 600 garantit 3:1 (3,63 à 4,72) et le 700 garantit 4,5:1 (5,23 à 6,79), sur les 360 teintes, les deux profils et les deux thèmes. Ces courbes se règlent dans la configuration du plugin Palettes, qui avertit si l'une d'elles ne tient plus ces seuils.</figcaption>
-</figure>
-
-<h3>Les deux profils</h3>
-<p class="prose"><code>soft</code> et <code>vivid</code> ont la même clarté, donc les mêmes contrastes : seule la vivacité change (45 % et 95 % du maximum que l'écran affiche). <code>soft</code> sert à un élément répété ou secondaire, comme un badge présent vingt fois à l'écran ; <code>vivid</code> sert à ce qui doit se remarquer. Les quatre utilitaires ont les deux profils. Une rampe de marque n'a qu'une intensité, celle de la couleur de marque, qui reste exacte à son cran ; le neutre n'a qu'un profil. Aucun profil ne se lie à un thème. Aux crans 50, 100 et 950, l'écran n'affiche presque pas de vivacité : les deux profils s'y ressemblent.</p>
-
-<h2>Les emplois et les états</h2>
-<p class="prose">Un composant cite un cran fixe, le même dans toutes les marques. Aucune marque ne choisit un autre cran : chaque cran garantit son contraste, et chaque état avance d'un cran, écrit une seule fois dans <code>components</code>. La table vaut pour toutes les rampes et les deux profils.</p>
-
-<div class="tw"><table>
-<thead><tr><th>Emploi</th><th>Repos</th><th>Survol</th><th>Appui</th><th>Garantie (minimum mesuré)</th></tr></thead>
-<tbody>
-<tr><td><code>solid</code> fond plein d'un bouton, d'un badge</td><td>700</td><td>800</td><td>900</td><td>texte <code>neutral.50</code> à 4,5:1 (5,23 · 7,45 · 10,50)</td></tr>
-<tr><td><code>text</code> texte de marque sur la page</td><td>700</td><td></td><td></td><td>4,5:1 (5,23)</td></tr>
-<tr><td><code>surface</code> fond teinté discret</td><td>100</td><td>200</td><td>300</td><td>texte 700, 800, 900 à 4,5:1 (4,99 · 6,32 · 7,28)</td></tr>
-<tr><td><code>border-control</code> contour d'un champ</td><td>600</td><td>700</td><td>800</td><td>3:1 contre la surface (3,46 · 4,46 · 5,25)</td></tr>
-<tr><td><code>border-decorative</code> filet</td><td>300</td><td></td><td></td><td>aucune</td></tr>
-<tr><td><code>focus</code> anneau, décollé du contrôle</td><td>600</td><td></td><td></td><td>3:1 contre la page (3,63)</td></tr>
-<tr><td>bouton texte</td><td>texte 700, sans fond</td><td>fond 200, texte 800</td><td>fond 300, texte 900</td><td>4,5:1</td></tr>
-<tr><td>désactivé</td><td colspan="3">neutres : fond 200, texte 500</td><td>hors seuil, WCAG ne l'exige pas</td></tr>
-</tbody></table></div>
-
-<p class="prose">Le bouton actuel cite <code>color-brand-tokens.primary.default</code> pour trois emplois qui n'ont pas le même seuil. Il devient :</p>
-<div class="pre"><span class="x">button…contained.default.background</span>  → theme.primary.700
-<span class="x">button…contained.hover.background</span>    → theme.primary.800
-<span class="x">button…contained.press.background</span>    → theme.primary.900
-<span class="x">button…contained.*.foreground</span>       → theme.neutral.50
-<span class="x">button…outlined.default.border</span>       → theme.primary.600</div>
-
-<p class="prose" style="margin-top:14px"><strong>La couleur de charte</strong> se place au cran dont elle est la plus proche, et le plugin l'affiche. Elle reste disponible telle quelle (<code>brand.identity.primary</code>) pour le logo et les aplats de charte. Le bouton, lui, est toujours au 700 : une couleur plus claire que le 700 donne un bouton plus foncé qu'elle, et le plugin le signale. Material 3 fait de même : la couleur choisie donne la teinte, et le bouton prend toujours le même ton.</p>
-<p class="prose"><strong>Une marque qui mène avec sa deuxième couleur</strong> la place dans sa palette <code>primary</code> au moment de la générer. <code>primary</code> désigne la couleur des actions, pas l'ordre de la charte.</p>
-
-<h2>Quand une marque voudra autre chose</h2>
-<p class="prose">Aujourd'hui, aucune marque ne diverge. Rien n'est donc créé, mais la place est prévue. Le jour venu, prendre le premier échelon qui suffit :</p>
-<ol class="ladder prose">
-  <li><strong>Changer la couleur de sa palette <code>primary</code></strong>, si la marque veut une autre couleur partout. Aucune variable de plus.</li>
-  <li><strong>Un réglage de marque</strong>, <code>brand.params.*</code>, si la différence n'est pas une couleur : boutons en pilule, police des titres. Le thème ne le change pas, donc il ne passe pas par <code>theme</code>.</li>
-  <li><strong>Une exception</strong>, si la différence ne vaut que dans un thème : bouton gris foncé en sombre chez B seulement. <code>brand.exception.light.*</code> et <code>brand.exception.dark.*</code> portent les deux valeurs de chaque marque, et <code>theme.exception.*</code> choisit entre elles. Une exception sur un fond porte aussi ses états, survol et appui.</li>
-  <li><strong>Une variante de composant</strong>, si c'est le dessin qui change et pas une valeur.</li>
-</ol>
-<p class="prose">Trois règles permettent de franchir ces échelons sans toucher à un composant publié :</p>
-<ol class="rules prose">
-  <li><code>brand</code> reste la seule collection qui porte l'axe des marques. Un réglage ou une exception s'y ajoute ; aucune seconde collection à six modes.</li>
-  <li>Chaque propriété d'un composant Figma est liée à une variable de <code>components</code>. Ajouter un réglage ou une exception, c'est repointer cette seule variable.</li>
-  <li>Un réglage ou une exception se crée le jour où une marque le demande, pas avant.</li>
-</ol>
-
-<h2 id="fichier">Ce qui change dans le fichier de tokens</h2>
-<p class="prose">Collection par collection, du <code>tokens.json</code> actuel à la cible. Les nombres comptent les variables de couleur par colonne de mode.</p>
-
-<div class="tw"><table>
-<thead><tr><th>Aujourd'hui</th><th>Demain</th><th>Ce que ça demande</th><th>Variables</th></tr></thead>
-<tbody>
-<tr>
-  <td><code>color-brands</code> (une marque par dossier, 44)<br><code>color-brand-tokens</code> (axe marque, 10 rôles)</td>
-  <td><code>brand</code>, <span class="b">6 modes</span></td>
-  <td>Fusionner les deux. Les dossiers <code>intencial</code> et <code>marque-2</code> disparaissent : la marque devient une colonne. On y range :<br>• <code>palette</code> : primaire et secondaire × clair et sombre × 11 crans, une intensité chacune ;<br>• <code>identity.primary</code>, la couleur exacte ;<br>• <code>params</code> et <code>exception</code>, réservés et vides.<br>Les 10 rôles de <code>color-brand-tokens</code> disparaissent, sans remplaçant.</td>
-  <td class="n">45 × 6</td>
-</tr>
-<tr>
-  <td><code>color-utilities</code> (54 : neutre sur 14 crans, 4 utilitaires sur 10)<br><code>primitives.colors</code> (9 teintes brutes)</td>
-  <td><code>primitives</code>, sans mode</td>
-  <td>Le neutre devient un gris fixe en deux jeux, <code>light</code> et <code>dark</code>. Les 4 utilitaires passent en <code>soft</code> et <code>vivid</code>, chacun en <code>light</code> et <code>dark</code>. Tout est renuméroté sur 11 crans : le neutre abandonne 1000, 1100, <code>white</code> et <code>black</code>, et les utilitaires gagnent un 950. Plus aucun composant ne cite les 9 teintes brutes.</td>
-  <td class="n">198</td>
-</tr>
-<tr>
-  <td>—</td>
-  <td><code>theme</code>, <span class="t">light · dark</span></td>
-  <td>Nouvelle collection. Chaque nom pointe vers sa valeur claire ou sombre :<br>• <code>neutral.*</code> (11) ;<br>• <code>success</code>, <code>warning</code>, <code>info</code>, <code>danger</code> × <code>soft</code> et <code>vivid</code> (88) ;<br>• <code>primary</code> et <code>secondary</code>, sans segment de profil (22) ;<br>• <code>exception.*</code>, réservé et vide.</td>
-  <td class="n">121 × 2</td>
-</tr>
-<tr>
-  <td><code>components</code> (306 couleurs)</td>
-  <td><code>components</code>, sans mode</td>
-  <td>Repointer les 306 citations de couleur sur des crans de <code>theme</code> (55 cibles distinctes), selon la table des emplois : chaque état, survol, appui, focus, désactivé, reçoit son cran. Aucune variable par marque.</td>
-  <td class="n">306 alias</td>
-</tr>
-<tr>
-  <td><code>typography</code>, <code>layouts</code>, dimensions, <code>tests</code></td>
-  <td>inchangées</td>
-  <td>Rien aujourd'hui. Le jour où une marque veut sa propre police ou ses propres rayons, la valeur part dans <code>brand.params</code> et la variable de <code>components</code> est repointée.</td>
-  <td class="n">—</td>
-</tr>
-</tbody></table></div>
-
-<div class="note prose">Dans Figma, une nouvelle colonne de mode recopie les valeurs de la première. Une marque qui n'est pas encore renseignée paraît donc couverte. Relire chacune de ses variables avant de la publier.</div>
-
-<h2>Le plugin Palettes, et le reste</h2>
-<div class="split">
-  <div class="mine">
-    <h3>Ce que le plugin couvre</h3>
-    <ul>
-      <li>La recette versionnée : courbes, parts de chroma, teintes de bout, crans retouchés, sortie en sRGB.</li>
-      <li>Les réglages derrière l'engrenage : les deux courbes, les parts <code>soft</code> et <code>vivid</code>, le seuil des profils confondus. Une alerte « courbe hors garantie » signale une courbe qui ne tient plus 600 à 3:1 ou 700 à 4,5:1.</li>
-      <li>Les quatre rampes de chaque palette, marques et utilitaires, et l'éditeur de dérive.</li>
-      <li>La vérification de la table des emplois, états compris, sur les deux profils.</li>
-      <li>Le cran le plus proche de chaque couleur de charte, et l'alerte quand elle est plus claire que le bouton au 700.</li>
-      <li>La planche, faite de cadres Figma. <strong>Aucune variable.</strong></li>
-    </ul>
-  </div>
-  <div>
-    <h3>Ce qui reste à faire à côté</h3>
-    <ul>
-      <li>Créer <code>brand</code> (6 modes) et <code>theme</code> (2 modes), puis saisir les hexas des palettes.</li>
-      <li>Remplir <code>theme</code> : un nom, deux pointeurs.</li>
-      <li>Repointer <code>components</code> sur les crans de la table des emplois, état par état.</li>
-      <li>Écrire les contrôles sur <code>tokens.json</code> : graphe d'alias, couverture marque × thème, paires texte et fond lues dans les contrats. Aucun n'existe.</li>
-      <li>Côté code, poser <code>data-brand</code> et <code>data-theme</code> ; <code>ucm tokens css</code> produit la feuille.</li>
-    </ul>
-  </div>
-</div>
-
-<h2 id="reste">Décidé, et à décider</h2>
-<div class="done" aria-label="Décisions prises">
-  <span>Collection <code>theme</code></span>
-  <span>Profils <code>soft</code> et <code>vivid</code></span>
-  <span>Sortie en sRGB</span>
-  <span>Utilitaires communs, deux profils, commutés par le thème</span>
-  <span>Rampes de marque à une intensité</span>
-  <span>Chemin : famille, profil, thème, cran</span>
-  <span><code>params</code> et <code>exception</code> réservés</span>
-  <span>Aucun rôle câblé : table des emplois fixe</span>
-  <span>Bouton au 700 dans toutes les marques</span>
-  <span>Couleur de charte au cran le plus proche</span>
-  <span>Pas d'inversion du texte</span>
-</div>
-<ul class="open prose">
-  <li>Les valeurs des deux courbes, des parts de chroma et du seuil de 0,02 : à régler à l'œil dans le plugin, sur de vraies palettes.</li>
-  <li>Les teintes de bout sombre proposées par défaut, famille par famille.</li>
-  <li>Les contrôles automatiques sur <code>tokens.json</code>.</li>
-</ul>
-<p class="prose">Avant d'étendre la cible à la bibliothèque, un prototype à six marques éprouve les cas limites : un jaune clair, un bleu très sombre, une teinte très vive, une marque presque grise. Il y pose un bouton plein et son survol, une alerte, un champ avec focus, une exception en sombre, et un élément <code>soft</code> à côté d'un élément <code>vivid</code>.</p>
-
-<h2 id="memo">Aide-mémoire du designer</h2>
-<p class="prose">Ce qu'il faut savoir au quotidien dans Figma, et rien d'autre.</p>
-
-<div class="memo">
-  <section>
-    <h3>Poser le contexte</h3>
-    <ul>
-      <li>Sélectionne le cadre, puis règle ses modes de variables dans le panneau de droite : <code>brand</code> pour la marque, <code>theme</code> pour clair ou sombre.</li>
-      <li>Un encart sombre dans une page claire : change <code>theme</code> sur cet encart seulement.</li>
-    </ul>
-  </section>
-  <section>
-    <h3>Lier une couleur</h3>
-    <ul>
-      <li>Dans une maquette : une variable de <code>theme</code>.</li>
-      <li>Dans un composant : une variable de <code>components</code>, qui pointe vers <code>theme</code>.</li>
-      <li>Toujours famille, profil quand la famille en a deux, cran : <code>primary/700</code>, <code>danger/soft/100</code>.</li>
-      <li>Le cran vient de la table des emplois, le même pour toutes les marques.</li>
-    </ul>
-  </section>
-  <section>
-    <h3>Choisir le cran</h3>
-    <div class="crans">
-      <b>50</b><span>fond de page</span>
-      <b>100</b><span>fond teinté discret</span>
-      <b>200</b><span>ce fond, survolé</span>
-      <b>300</b><span>séparateur, filet</span>
-      <b>600</b><span class="hl">bordure de champ, focus (3:1)</span>
-      <b>700</b><span class="hl">texte, bouton plein (4,5:1)</span>
-      <b>800</b><span>bouton survolé, texte appuyé</span>
-      <b>900</b><span>bouton appuyé</span>
+  <div class="narrow">
+    <h1>Architecture des tokens : du Playground au design system</h1>
+    <p class="lede">Ce document part des tokens actuels du Playground (<code>UCM-Playground/src/tokens/tokens.json</code>) et propose l’architecture du futur design system : six marques, un thème clair et un thème sombre, une gamme complète de composants. Chaque collection conservée, modifiée, ajoutée ou supprimée renvoie à une décision numérotée, avec sa raison, l’option écartée et son origine.</p>
+    <p>Il s’appuie sur la <a href="RECHERCHE-ARCHI-MULTIMARQUES.md">recherche</a>, la <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a>, <a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a>, tes décisions de mainteneur rangées dans l’historique du dépôt, et les propositions d’écriture des variables par <a href="../Plugin%20Palettes/RECHERCHE-CONCURRENCE-PALETTES.md">UCM Palettes</a>.</p>
+    <div class="callout">
+      <b>Les écarts avec ARCHITECTURE-FINALE</b>, marqués « Nouvelle décision ». Leur intégration dans ARCHITECTURE-FINALE, le code et les spécifications est inventoriée dans <a href="PLAN-INTEGRATION-ARCHITECTURE.md">PLAN-INTEGRATION-ARCHITECTURE.md</a> :
+      <ul>
+        <li><a href="#d5">D5</a> : les palettes nommées de <code>primitives › colors</code> (terracota, sky, grass…) sont conservées. ARCHITECTURE-FINALE les supprimait sans raison écrite.</li>
+        <li><a href="#d6">D6</a> : <code>color-utilities</code> est conservée pour les rôles communs à toutes les marques (<code>success</code> choisit <code>grass</code>).</li>
+        <li><a href="#d10">D10</a> : le blanc et le noir deviennent des constantes.</li>
+        <li><a href="#d13">D13</a> à <a href="#d17">D17</a> : une collection <code>usage</code> qui porte la table des emplois, l’accès encadré aux nuances hors table, trois niveaux d’élévation, une même table pour UCM Palettes, l’architecture et UCM Exporter, et quatre rangs d’état.</li>
+      </ul>
     </div>
-  </section>
-  <section>
-    <h3>Profils et états</h3>
+  </div>
+
+  <h2>Le panneau des variables, aujourd’hui et demain</h2>
+  <p class="narrow">Choisis une vue, puis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour ouvrir la variable qu’il vise. Dans la vue Demain, la barre à gauche d’une ligne indique ce qui change, et l’encadré de chaque collection renvoie à sa décision.</p>
+
+  <div class="fx" id="fx">
+    <div class="fx-top">
+      <div class="seg" role="group" aria-label="Vue">
+        <button type="button" data-view="today" aria-pressed="true">Aujourd’hui</button>
+        <button type="button" data-view="tomorrow" aria-pressed="false">Demain</button>
+      </div>
+      <div class="legend" id="legend" hidden>
+        <span><i style="background:var(--add)"></i>ajouté</span>
+        <span><i style="background:var(--mod)"></i>renommé ou valeur modifiée</span>
+        <span><i style="background:var(--del)"></i>supprimé</span>
+        <span>sans barre : inchangé</span>
+      </div>
+    </div>
+    <div class="fx-body">
+      <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
+      <div class="fx-main">
+        <div class="fx-head" id="fx-head"></div>
+        <div class="fx-note" id="fx-note"></div>
+        <div class="fx-tw"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <p class="cap narrow">Vue Aujourd’hui : variables et couleurs réelles du Playground. Vue Demain : couleurs calculées par cette page avec la courbe de clarté proposée ; UCM Palettes produira les valeurs définitives. marque-3 et ses palettes <code>mimosa</code> et <code>ardoise</code> sont fictives et montrent l’ajout d’une marque. Chaque collection n’affiche que quelques lignes par groupe ; les lignes en italique résument le reste.</p>
+
+  <div class="narrow">
+  <h2>Les décisions</h2>
+  <p>L’origine de chaque décision est indiquée : ta décision de mainteneur (avec le commit), une recommandation de la revue critique, ou une proposition nouvelle de ce document.</p>
+
+  <div class="dec" id="d1">
+    <div class="dec-h"><span class="id">D1</span><h3>Deux axes sur deux collections : <code>brand</code> pour la marque, <code>theme</code> pour le thème</h3><span class="tag same">Décision du mainteneur</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Un seul axe, porté par <code>color-brand-tokens</code> : deux modes, dix variables. Aucun axe de thème.</dd>
+      <dt>Après</dt><dd><code>brand</code> a un mode par marque, <code>theme</code> les modes <code>light</code> et <code>dark</code>. Figma règle le mode de chaque collection séparément sur un cadre. Le code pose <code>data-brand</code> et <code>data-theme</code>, que <code>ucm tokens css</code> déduit du nom des collections.</dd>
+      <dt>Pourquoi</dt><dd>Six marques et deux thèmes font douze combinaisons. Une collection à douze modes dépasse les dix modes par collection de l’offre Figma Professional. Deux collections permettent aussi un encart sombre dans une page claire, sans répéter la marque.</dd>
+      <dt>Écarté</dt><dd>Une collection à douze modes <code>intencial-light</code>, <code>intencial-dark</code>… : plafond Professional, et la marque se répète sur chaque encart. Le thème rangé en dossiers <code>light</code> et <code>dark</code>, comme dans le fichier de production relevé par la recherche : toute la surface s’écrit deux fois.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §5.1 et §7, revue critique §7, commit 5306c1a.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d2">
+    <div class="dec-h"><span class="id">D2</span><h3><code>theme</code> est le seul endroit où le thème se choisit, et elle ne contient aucun choix du designer</h3><span class="tag new">Ajout</span></div>
+    <dl>
+      <dt>Avant</dt><dd>256 des 306 couleurs de composants (84 %) visent <code>color-utilities</code> ou <code>primitives</code>, qui n’ont pas de mode. Exemple : le fond de l’alerte d’information vise <code>primitives.colors.sky.50</code>.</dd>
+      <dt>Après</dt><dd><code>theme</code> contient 124 variables : 121 nuances et 3 niveaux d’élévation (D15). Chacune a deux alias, selon une règle fixe : <code>theme.X.N</code> vise <code>X.light.N</code> en <code>light</code> et <code>X.dark.N</code> en <code>dark</code>, dans <code>brand</code> pour <code>primary</code> et <code>secondary</code>, dans <code>color-utilities</code> pour le reste. Toute couleur d’un composant traverse <code>theme</code> : par <code>usage</code> pour la table des emplois (D13), directement pour une nuance hors table (D14).</dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li>Un mode ne change que les variables de sa propre collection. Pour qu’un composant suive le thème, chacune de ses couleurs doit traverser une collection à modes.</li>
+        <li>Les choix (quelle palette pour quelle marque, quelle palette pour <code>success</code>) sont rangés ailleurs (D3, D6). <code>theme</code> se déduit donc entièrement de sa règle : un script peut le vérifier, UCM Palettes peut l’écrire sans décision du designer.</li>
+        <li>Les variables de <code>primitives</code>, <code>color-utilities</code>, <code>brand</code> et <code>theme</code> reçoivent des portées vides (<code>scopes = []</code>) : elles disparaissent des sélecteurs des calques. Un calque se lie à <code>usage</code> ou à <code>components</code> (D14).</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd>Poser un mode sur <code>color-utilities</code> et <code>primitives</code> : les 39 citations de teintes brutes y échapperaient, et chaque collection porterait son propre axe à synchroniser.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §2.1 et §4, commit 5306c1a ; portées : comparaison avec le marché §3.3.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:theme">Voir theme dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d3">
+    <div class="dec-h"><span class="id">D3</span><h3><code>color-brand-tokens</code> devient <code>brand</code>, et <code>color-brands</code> y est fusionnée</h3><span class="tag mod">Renommage et fusion</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>color-brands</code>, sans mode, range un dossier par marque : <code>intencial/primary/500</code> vise <code>colors/terracota/500</code>. <code>color-brand-tokens</code>, à deux modes, choisit dans ces dossiers.</dd>
+      <dt>Après</dt><dd><code>brand</code> a une colonne par marque. <code>palette/primary/light/N</code>, <code>palette/primary/dark/N</code> et leurs équivalents <code>secondary</code> sont des alias vers une palette de <code>primitives</code> : la colonne intencial vise <code>terracota</code>, la colonne marque-2 vise <code>sky</code>. <code>identity/primary</code> garde la couleur de charte (D9).</dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li>Un choix qui dépend de la marque doit être rangé dans une collection à un mode par marque, sinon il ne suit pas <code>data-brand</code>. Les dossiers de <code>color-brands</code> ne suivent aucun mode : il faut aujourd’hui une seconde collection pour choisir entre eux. La fusion retire cet intermédiaire.</li>
+        <li>Renommer <code>color-brand-tokens</code> conserve ses modes <code>intencial</code> et <code>marque-2</code> et l’identifiant Figma de ses variables.</li>
+        <li>Ajouter une marque revient à ajouter une colonne, sans créer de variable.</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd>Deux collections à six modes, par exemple une pour les palettes et une pour les exceptions : Figma règle leurs modes séparément, et une maquette peut afficher la marque A dans l’une et la marque B dans l’autre.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §5.2, revue critique §3.6, commit 5306c1a.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:brand">Voir brand dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d4">
+    <div class="dec-h"><span class="id">D4</span><h3>Les dix rôles <code>subtlest</code>, <code>subtle</code>, <code>default</code>, <code>emphasis</code>, <code>strong</code> sont supprimés ; une table des emplois les remplace</h3><span class="tag del">Suppression</span></div>
+    <dl>
+      <dt>Avant</dt><dd><ul>
+        <li><code>primary/default</code> sert au fond du bouton plein, au texte du bouton outlined et à sa bordure.</li>
+        <li>Chaque marque relie un rôle à la nuance de son choix : <code>secondary/default</code> vise 700 chez intencial, 500 chez marque-2.</li>
+        <li>Texte blanc sur le bouton principal de marque-2 : <span class="bad">2,70:1</span>, au survol <span class="bad">3,99:1</span> (minimum 4,5:1). Anneau de focus contre le fond : <span class="bad">1,38:1</span> (minimum 3:1). Survol et appui ont la même couleur.</li>
+      </ul></dd>
+      <dt>Après</dt><dd>La <a href="#emplois">table des emplois</a> fixe la nuance de chaque usage : fond plein 700, survol 800, appui 900, bordure de champ 600, etc. Elle est la même pour toutes les marques. Un composant la cite par son nom, <code>usage.primary.solid.default</code> (D13).</dd>
+      <dt>Pourquoi</dt><dd>Un rôle relié par marque oblige à relier aussi chaque état (survol, appui, focus) dans chaque marque et chaque thème. Avec une courbe de clarté commune (D7), un numéro de nuance donne le même contraste dans toutes les palettes : la table se vérifie une fois, sur la courbe, au lieu de marque par marque.</dd>
+      <dt>Écarté</dt><dd>Des rôles facultatifs à côté des nuances : un composant qui cite une nuance échappe alors aux contrôles des rôles (revue critique §3.5).</dd>
+      <dt>Limite</dt><dd>Une marque dont la couleur est plus claire que la nuance 700, un jaune par exemple, a un bouton plus foncé que sa charte.</dd>
+      <dt>Origine</dt><dd class="org">Commit 9ea3adc ; ARCHITECTURE-FINALE §4 ; spécification du plugin, décision D9.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="today:color-brand-tokens">Voir les rôles aujourd’hui</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d5">
+    <div class="dec-h"><span class="id">D5</span><h3><code>primitives › colors</code> est conservé : un catalogue de palettes nommées, chacune en <code>light</code> et <code>dark</code></h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Neuf palettes dessinées à l’œil : terracota, deep, sky, rose, grass, orange, poppy, blue, titanium. Une seule version, sans thème.</dd>
+      <dt>Après</dt><dd>Chaque palette garde son nom et reçoit deux versions : <code>colors/terracota/light/700</code>, <code>colors/terracota/dark/700</code>. Une palette à deux intensités ajoute un segment : <code>colors/grass/soft/light/700</code>. UCM Palettes recalcule les valeurs sur la courbe commune. Chaque nouvelle marque y ajoute ses palettes.</dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li>Une palette se fabrique une fois, indépendamment de son rôle. <code>brand</code> et <code>color-utilities</code> ne font que la choisir. La revue critique recommande cette séparation (§4) : « Famille primitive : définir une rampe et sa recette, indépendamment d’un emploi » ; « Marque : choisir ses familles ».</li>
+        <li>Le choix se lit dans Figma. La colonne marque-2 de <code>brand</code> affiche <code>colors/sky/…</code>, alors qu’une colonne d’hexas ne dit pas de quelle palette ils viennent.</li>
+        <li>Une colonne de mode ajoutée recopie la première. Avec des alias, la colonne d’une nouvelle marque affiche <code>terracota</code> tant qu’elle n’est pas renseignée. Avec des hexas, une valeur copiée ne se distingue pas d’une valeur choisie.</li>
+        <li>Deux rôles qui partagent une palette le montrent. Aujourd’hui, <code>info</code> et la palette principale de marque-2 visent toutes deux <code>sky</code>.</li>
+        <li>UCM Palettes écrit chaque palette à un seul endroit, sous le nom que le designer lui donne. Changer le rôle d’une palette change un alias et ne déplace aucune variable : Figma ne sait pas déplacer une variable d’une collection à une autre (<code>variableCollectionId</code> est en lecture seule).</li>
+      </ul></dd>
+      <dt>Coût</dt><dd>Un alias de plus dans chaque chaîne. <code>primitives</code> compte 464 couleurs pour six marques, au lieu de 198 dans ARCHITECTURE-FINALE, où <code>brand</code> portait les hexas.</dd>
+      <dt>Écarté</dt><dd>Les hexas directement dans <code>brand</code> (ARCHITECTURE-FINALE §2) : plus court d’un alias, mais les quatre raisons ci-dessus sont perdues, et aucun document n’en donnait la raison.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §5.1 ; revue critique §4 ; ce document.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:primitives">Voir primitives dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d6">
+    <div class="dec-h"><span class="id">D6</span><h3><code>color-utilities</code> est conservée : les rôles communs à toutes les marques</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>success/700</code> vise <code>colors/grass/700</code>, <code>neutral/50</code> vise <code>colors/titanium/50</code>. Une version, une intensité.</dd>
+      <dt>Après</dt><dd><code>success/soft/light/N</code> vise <code>colors/grass/soft/light/N</code>, et de même pour <code>vivid</code>, <code>dark</code> et les trois autres statuts. <code>neutral/light/N</code> et <code>neutral/dark/N</code> visent <code>titanium</code>. 198 alias, sans mode.</dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li>C’est l’équivalent de <code>brand</code> pour ce qui ne dépend pas de la marque : un nom de rôle choisit une palette. Sans elle, ce choix irait dans <code>theme</code>, qui ne serait plus déductible de sa règle (D2).</li>
+        <li>Si une marque veut un jour son propre vert de succès, les alias <code>theme.success.*</code> passent de <code>color-utilities</code> à <code>brand</code>, sans toucher aux composants.</li>
+        <li>La collection existe déjà : elle garde son identifiant, et ses variables sont renommées ou ajoutées.</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd>Ranger les statuts dans <code>primitives</code> sous leur nom de rôle, <code>primitives.success.soft.light.700</code> (ARCHITECTURE-FINALE) : le rôle se mélange au catalogue, et une palette ne peut plus servir deux rôles.</dd>
+      <dt>Origine</dt><dd class="org">Ce document. Le chemin famille, intensité, thème, nuance du commit 5306c1a est gardé.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir color-utilities dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d7">
+    <div class="dec-h"><span class="id">D7</span><h3>Une courbe de clarté commune, et onze nuances de 50 à 950 dans toutes les palettes, dont 400 et 950 obligatoires</h3><span class="tag mod">Modification</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Contre le fond, la nuance 500 mesure <span class="bad">2,2:1</span> en <code>success</code> et <span class="bad">6,9:1</span> en <code>intencial/secondary</code>. Dans cette dernière, les nuances 700 à 950 mesurent toutes entre 15,7:1 et 17,8:1. Le neutre a 14 nuances, les statuts 10, les marques 11.</dd>
+      <dt>Après</dt><dd>La nuance N a la même clarté OKLCH dans toutes les palettes. Contre le fond de page, sur 360 teintes, deux intensités et deux thèmes : 600 mesure de 3,63 à 4,72:1, 700 de 5,23 à 6,79:1. En <code>dark</code>, les numéros s’inversent : 50 est le fond, le plus sombre.</dd>
+      <dt>Pourquoi</dt><dd>C’est ce qui rend la table des emplois (D4) valable pour toutes les palettes. Les mêmes numéros partout permettent une seule table. Le quatrième rang d’état (D17) vise 400 et 950 : les deux deviennent obligatoires, et le préréglage à 9 nuances disparaît. Seule la 500 n’a aucun emploi.</dd>
+      <dt>Limite</dt><dd>La clarté OKLCH et le contraste WCAG ne coïncident pas exactement. Les bornes ci-dessus sont mesurées par <a href="verifier-courbes.mjs"><code>verifier-courbes.mjs</code></a>, pas déduites.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §2.3 et §6.3, ARCHITECTURE-FINALE §1.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d8">
+    <div class="dec-h"><span class="id">D8</span><h3>Deux intensités, <code>soft</code> et <code>vivid</code>, pour les statuts ; une seule pour les palettes de marque et le neutre</h3><span class="tag same">Décision du mainteneur</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Une seule intensité partout.</dd>
+      <dt>Après</dt><dd>Les statuts existent en <code>soft</code> (45 % de la chroma maximale) et en <code>vivid</code> (95 %), disponibles ensemble. Une palette de marque prend la chroma de sa couleur de charte. Le neutre est gris.</dd>
+      <dt>Pourquoi</dt><dd>Le besoin initial demande des couleurs douces et vives utilisables côte à côte, par exemple un badge doux à côté d’une alerte vive. Les deux intensités ont la même clarté, donc les mêmes contrastes. Une palette de marque à deux intensités ne garderait la couleur de charte exacte que dans l’une des deux.</dd>
+      <dt>Écarté</dt><dd>Un troisième axe <code>soft</code>/<code>vivid</code> : 24 contextes pour six marques et deux thèmes, et un seul choix pour tout un écran (revue critique §3.1).</dd>
+      <dt>Origine</dt><dd class="org">Commits 5306c1a et e3f8e28.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d9">
+    <div class="dec-h"><span class="id">D9</span><h3>La couleur de charte est rangée à part, dans <code>brand › identity</code></h3><span class="tag new">Ajout</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Aucune variable. La couleur de charte est une nuance parmi d’autres, par exemple <code>colors/terracota/500</code>.</dd>
+      <dt>Après</dt><dd><code>brand.identity.primary</code> contient la couleur saisie, par marque. Aucun composant ne la cite : elle sert au logo et aux aplats imposés par la charte.</dd>
+      <dt>Pourquoi</dt><dd>La courbe commune fixe la clarté de chaque nuance, et une couleur de charte tombe rarement pile sur l’une d’elles. La ranger à part évite de déformer la courbe pour elle. C’est un fait de la marque : sa place est dans <code>brand</code>, comme les réglages.</dd>
+      <dt>Origine</dt><dd class="org">Revue critique §3.4, ARCHITECTURE-FINALE §3.4.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d10">
+    <div class="dec-h"><span class="id">D10</span><h3>Le blanc et le noir deviennent des constantes, hors des palettes</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>colors/titanium/0</code> (#FFFFFF) et <code>colors/titanium/1200</code> (#000000) font partie de la rampe neutre. Des composants les citent pour un texte ou un fond, par exemple le texte des alertes pleines.</dd>
+      <dt>Après</dt><dd><code>colors/white</code> et <code>colors/black</code>, dans <code>primitives</code>, hors de toute palette. Les citations actuelles passent au neutre : le texte des alertes pleines prend <code>theme.neutral.50</code>, comme celui des boutons.</dd>
+      <dt>Pourquoi</dt><dd>Un texte ou un fond doit suivre le thème, donc il passe par le neutre. Le blanc et le noir fixes n’ont pas de place sur la courbe de 50 à 950. La gamme de composants visée aura des voiles de modale et des ombres, dont la couleur ne change pas avec le thème. Les garder coûte deux variables ; une variable de <code>theme</code> les exposera au premier composant qui en a besoin.</dd>
+      <dt>Origine</dt><dd class="org">Ce document.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d11">
+    <div class="dec-h"><span class="id">D11</span><h3>Les noms de <code>components</code> sont conservés ; leurs 306 alias de couleur sont repointés vers <code>usage</code></h3><span class="tag mod">Valeurs modifiées</span></div>
+    <dl>
+      <dt>Pourquoi</dt><dd>Garder les noms garde les calques Figma liés et les variables CSS des composants. Chaque alias vise l’emploi qui correspond à ce qu’il peint. Une même ancienne cible peut en donner plusieurs : <code>primary/default</code> devient <code>primary/solid/default</code> pour un fond, <code>primary/text/default</code> pour un texte, <code>primary/border-control/default</code> pour une bordure. Une couleur hors table vise une nuance de <code>theme</code> (D14).</dd>
+      <dt>Origine</dt><dd class="org">Recherche §10, ARCHITECTURE-FINALE §4.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:components">Voir components dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d12">
+    <div class="dec-h"><span class="id">D12</span><h3><code>layouts</code> et <code>typography</code> sont conservées ; les réglages et exceptions de marque sont réservés dans <code>brand</code></h3><span class="tag same">Décision du mainteneur</span></div>
+    <dl>
+      <dt>Après</dt><dd><code>brand › params</code> recevra une valeur autre qu’une couleur propre à une marque, par exemple <code>params/radius/button</code>. <code>brand › exception</code> et <code>theme › exception</code> recevront une couleur propre à une marque dans un seul thème. Les deux groupes restent vides.</dd>
+      <dt>Pourquoi</dt><dd>Aucune marque ne diverge aujourd’hui. Ranger réglages et exceptions dans <code>brand</code> garde une seule collection pour l’axe des marques (D3). Un composant lié à <code>components</code> ne change pas quand on repointe sa variable vers un réglage ou une exception.</dd>
+      <dt>Origine</dt><dd class="org">Commit 5306c1a, revue critique §3.6 et §3.8.</dd>
+    </dl>
+  </div>
+
+  <h2 id="recherche-usage">Noms d’usage ou nuances numérotées</h2>
+  <p>Deux extrêmes posent problème. Des nuances seules, de 50 à 950, laissent 121 choix dans chaque sélecteur, et rien ne vérifie qu’un composant applique la table. Une collection de noms par composant et par état fige chaque décision et retire la liberté de citer une autre nuance. Les systèmes établis se placent entre les deux :</p>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Système</th><th>Ce qu’un composant cite</th><th>Ce que ce document en retient</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">Radix Colors</a></td><td>Douze numéros, chacun avec un usage écrit : 3 fond d’élément, 4 son survol, 5 son appui, 9 fond plein, 10 son survol, 11 et 12 texte</td><td>Un numéro peut porter un usage, états compris : c’est notre table des emplois</td></tr>
+      <tr><td><a href="https://m3.material.io/styles/color/roles">Material 3</a></td><td>Des rôles appariés : <code>primary</code> et <code>on-primary</code>, <code>primary-container</code> et <code>on-primary-container</code> ; des surfaces opaques par niveau, <code>surface-container-lowest</code> à <code>highest</code>, qui ont <a href="https://docs.flutter.dev/release/breaking-changes/new-color-scheme-roles">remplacé le voile translucide</a> de l’élévation</td><td>Un nom qui dit sa paire (<code>on-solid</code>) ; l’élévation en surfaces opaques (D15)</td></tr>
+      <tr><td><a href="https://atlassian.design/llms-tokens.txt">Atlassian</a></td><td>Plus de 80 tokens de couleur : propriété, rôle, insistance, état, comme <code>color.background.brand.bold.hovered</code> ; <code>elevation.surface</code>, <code>.raised</code>, <code>.overlay</code>, <code>.sunken</code></td><td>Les états dans le nom ; les niveaux d’élévation nommés. Pas la précision : 80 noms figent des décisions par type d’élément</td></tr>
+      <tr><td><a href="https://primer.style/product/primitives/token-names/">Primer</a></td><td>Trois niveaux : base (valeur brute), fonctionnel (motif global), composant</td><td>La même séparation : <code>primitives</code>, <code>usage</code>, <code>components</code></td></tr>
+      <tr><td><a href="https://carbondesignsystem.com/elements/color/usage/">Carbon</a></td><td>Des couches empilées <code>layer-01</code> à <code>layer-03</code>, chacune avec ses champs et ses bordures</td><td>Un nombre borné de niveaux, avec leurs règles de contraste</td></tr>
+    </tbody>
+  </table></div>
+  <p>Les guides de tokens convergent sur un point : un composant ne cite pas une valeur brute, et une exception passe par un token de composant (<a href="https://designsystemproblems.com/token-management/semantic-vs-primitive-tokens/">Design System Problems</a>). Côté Figma, les <a href="https://help.figma.com/hc/en-us/articles/15145852043927-Create-and-manage-variables-and-collections">portées</a> filtrent les variables qu’un sélecteur de propriété propose : une couleur de texte, un remplissage, un contour.</p>
+
+  <div class="dec" id="d13">
+    <div class="dec-h"><span class="id">D13</span><h3>Une collection <code>usage</code>, sans mode : la table des emplois devient des variables</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Aucun nom d’usage. La table n’existe que dans la documentation et dans le code d’UCM Palettes (<code>TABLE_DES_EMPLOIS</code>, <code>packages/couleur/src/emplois.ts</code>). Dans ARCHITECTURE-FINALE, un composant cite une nuance, <code>theme.primary.700</code>.</dd>
+      <dt>Après</dt><dd><ul>
+        <li>Pour chaque palette, 20 variables : les 8 emplois du code d’UCM Palettes, et quatre rangs d’état pour ceux qui en ont (D17). <code>usage.primary.solid.default</code> vise <code>theme.primary.700</code>, <code>.hover</code> 800, <code>.active</code> 900, <code>.active-hover</code> 950. Les rangs portent les noms que publie UCM Palettes.</li>
+        <li>Les statuts ajoutent l’intensité : <code>usage.success.soft.surface.default</code>.</li>
+        <li>Le neutre ajoute trois usages propres : <code>text-strong</code> (900, le corps de texte), <code>text-disabled</code> (500), <code>fill-disabled</code> (200).</li>
+        <li><code>components</code> vise <code>usage</code>.</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li><b>Moins de choix.</b> Avec les portées (D14), un sélecteur de couleur de texte ne propose que les usages de texte : 4 par palette, contre 11 nuances.</li>
+        <li><b>Chaque nom dit sa paire.</b> <code>solid.hover</code> va avec <code>on-solid</code>, <code>surface.hover</code> avec <code>text.hover</code>. « Texte 700 sur fond 200 » se lit comme <code>text.default</code> sur <code>surface.hover</code> : l’écart d’état se voit dans les noms.</li>
+        <li><b>La table vit à un seul endroit.</b> Faire passer le fond plein de 700 à 800 change 3 alias par palette. Sans <code>usage</code>, il faut retrouver chaque token de composant qui cite 700 pour un fond plein, et seulement ceux-là.</li>
+        <li><b>Les mêmes noms dans les trois outils</b> (D16).</li>
+        <li><b>Aucune liaison par marque.</b> Chaque alias a la même cible pour toutes les marques. L’objection du commit 9ea3adc, relier chaque état dans chaque marque et chaque thème, ne s’applique pas.</li>
+      </ul></dd>
+      <dt>Précision bornée</dt><dd><code>usage</code> ne contient que la table : 8 emplois, 4 rangs d’état, plus 3 usages du neutre et 3 niveaux d’élévation. Aucun nom de composant : <code>button</code> ou <code>card</code> restent dans <code>components</code>. C’est le niveau de Radix, pas celui d’Atlassian.</dd>
+      <dt>Écarté</dt><dd><ul>
+        <li>Les nuances seules (ARCHITECTURE-FINALE) : 121 choix par sélecteur, et une table qu’aucun outil ne peut vérifier sur un composant.</li>
+        <li>Des rôles par marque (recherche §5.3) : les liaisons que le commit 9ea3adc a retirées.</li>
+        <li>Les usages dans <code>theme</code> : ils se mêleraient aux nuances dans le même groupe du sélecteur, <code>primary/700</code> à côté de <code>primary/solid</code>, ce que la recherche relevait déjà (§5.3). Les séparer demanderait de renommer les 121 nuances.</li>
+      </ul></dd>
+      <dt>Coût</dt><dd>226 variables et un alias de plus dans chaque chaîne. Elles se déduisent de la table : UCM Palettes les écrit.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:usage">Voir usage dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d14">
+    <div class="dec-h"><span class="id">D14</span><h3>Une nuance hors de la table reste possible : par un token de composant, délibéré et relevé</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>La question</dt><dd>Un graphique a besoin d’une échelle de 100 à 800, une illustration d’un 400 : aucune de ces nuances n’a d’emploi.</dd>
+      <dt>Après</dt><dd><ul>
+        <li>Un calque se lie à <code>usage</code> ou à <code>components</code>. <code>theme</code> et les collections du dessous ont des portées vides et n’apparaissent dans aucun sélecteur de calque.</li>
+        <li>Pour une nuance hors table, crée un token de composant qui la vise dans <code>theme</code>. Exemple réel du Playground : <code>components.stresstest.info.scalewrap.colors.scale-5</code> vise aujourd’hui <code>primitives.colors.orange.600</code> ; demain <code>theme.warning.vivid.600</code>.</li>
+        <li>Les portées de <code>usage</code> suivent ce que chaque emploi peint (tableau ci-dessous).</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li><b>La liberté reste entière :</b> toute nuance de toute palette, dans les deux thèmes, suit la marque et le thème.</li>
+        <li><b>Le choix devient délibéré :</b> on ne tombe pas sur une nuance hors table en parcourant un sélecteur, il faut nommer un token.</li>
+        <li><b>Il reste traçable :</b> le premier alias du token vise <code>theme</code> et non <code>usage</code>, et le contrôle de D16 relève ce token, avec son contraste mesuré.</li>
+        <li><b>La table s’enrichit par l’usage :</b> quand deux composants ont le même besoin hors table, il devient un emploi de la table, qu’UCM Palettes vérifie ensuite sur chaque palette.</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd>Interdire toute nuance hors table : aucun graphique ni aucune illustration ne suivrait le thème. Laisser les nuances visibles dans tous les sélecteurs : retour aux 121 choix.</dd>
+      <dt>À vérifier dans Figma</dt><dd>La documentation décrit l’effet des portées sur les sélecteurs des propriétés, pas sur le choix d’un alias dans le panneau des variables. Si ce choix filtre aussi par portée, les nuances de <code>theme</code> gardent les portées de remplissage et de contour, et le contrôle de D16 reste la seule barrière.</dd>
+    </dl>
+    <div class="tw"><table class="plain">
+      <thead><tr><th>Emploi</th><th>Ce qu’il peint (UCM Exporter)</th><th>Portées Figma</th></tr></thead>
+      <tbody>
+        <tr><td><code>solid</code>, <code>surface</code>, <code>surface-card</code>, <code>fill-disabled</code>, <code>elevation.*</code></td><td><code>background</code></td><td>remplissage de cadre et de forme</td></tr>
+        <tr><td><code>text</code>, <code>text-strong</code>, <code>text-disabled</code>, <code>on-solid</code></td><td><code>foreground</code>, <code>icon</code></td><td>remplissage de texte et de forme (icônes)</td></tr>
+        <tr><td><code>border-control</code>, <code>border-decorative</code></td><td><code>border</code></td><td>contour</td></tr>
+        <tr><td><code>focus</code></td><td><code>ring</code></td><td>contour</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dec" id="d15">
+    <div class="dec-h"><span class="id">D15</span><h3>Trois niveaux d’élévation, opaques : <code>page</code>, <code>raised</code>, <code>overlay</code></h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Aucun document ne traite l’élévation. <code>surface-card</code> (nuance 50) a la couleur du fond de page ; une carte dans une modale, un menu sur une carte ne sont pas couverts.</dd>
+      <dt>Après</dt><dd><code>usage.elevation.page</code>, <code>.raised</code>, <code>.overlay</code> visent <code>theme.elevation.*</code>, qui vise <code>color-utilities.elevation.light|dark.*</code> :
+        <div class="tw" style="margin:8px 0"><table class="plain">
+          <thead><tr><th>Niveau</th><th>Usage</th><th>light</th><th>dark</th></tr></thead>
+          <tbody>
+            <tr><td><code>page</code></td><td>fond d’écran</td><td>neutre 50, #F7F7F7</td><td>neutre 50, #121212</td></tr>
+            <tr><td><code>raised</code></td><td>carte, panneau</td><td>blanc + ombre</td><td>neutre 100, #1C1C1C + ombre</td></tr>
+            <tr><td><code>overlay</code></td><td>menu, modale</td><td>blanc + ombre plus forte</td><td>neutre 100 + ombre plus forte</td></tr>
+          </tbody>
+        </table></div></dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li><b>Les numéros s’inversent entre thèmes.</b> En sombre, monter d’un niveau revient à éclaircir, donc à prendre un numéro plus grand. En clair, un numéro plus grand est plus foncé : une carte surélevée serait plus sombre que la page. Les niveaux sont donc des noms dont la valeur claire et la valeur sombre sont choisies séparément, dans <code>color-utilities</code>. <code>theme</code> reste mécanique.</li>
+        <li><b>Opaque plutôt que translucide.</b> La table garantit des contrastes entre couleurs opaques, et une couleur translucide change selon ce qu’elle recouvre. En clair, un voile blanc sur le fond ne se voit pas : blanc contre #F7F7F7 mesure 1,07:1. Material 3 a remplacé son voile d’élévation par des surfaces opaques.</li>
+        <li><b><code>overlay</code> reste à la nuance 100 en sombre.</b> Mesuré sur 360 teintes et les deux intensités, sur la nuance 100 : texte de couleur 700 au moins 4,88:1, bordure 600 au moins 3,41:1. Sur la nuance 200, ils tombent à 4,23:1 et 2,96:1, sous les seuils. <code>raised</code> et <code>overlay</code> se distinguent donc par l’ombre. Garder deux noms permet de changer la valeur d’<code>overlay</code> plus tard sans toucher aux composants.</li>
+        <li><b>Au-delà de trois niveaux,</b> un élément posé sur un support de même niveau prend <code>border-decorative</code>, pas un niveau de plus.</li>
+      </ul></dd>
+      <dt>Les ombres</dt><dd>Des effect styles Figma, dont la couleur se lie à une variable noire translucide, plus opaque en sombre. UCM Exporter lit déjà les effect styles et leurs réglages liés à des variables. La transparence reste pour ce cas et pour le voile derrière une modale.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir les niveaux dans color-utilities</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d16">
+    <div class="dec-h"><span class="id">D16</span><h3>Une seule table des emplois pour UCM Palettes, l’architecture et UCM Exporter</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Avant</dt><dd><ul>
+        <li>UCM Palettes définit les 8 emplois et leurs 16 paires, sur trois rangs d’état, (<code>emplois.ts</code>, <code>promesses.ts</code>) et les juge sur chaque palette.</li>
+        <li>UCM Exporter lit dans le dernier segment d’un token de composant ce qu’il peint (<code>background</code>, <code>foreground</code>, <code>icon</code>, <code>border</code>, <code>ring</code>) et signale un rôle posé sur le mauvais support.</li>
+        <li>Aucun outil ne vérifie qu’un composant applique la table.</li>
+      </ul></dd>
+      <dt>Après</dt><dd><ul>
+        <li><b>UCM Palettes</b> écrit <code>usage</code> à partir de <code>TABLE_DES_EMPLOIS</code>, et <code>theme</code> à partir de sa règle. Sa planche nomme déjà chaque nuance par les emplois qu’elle sert (<code>emploisDuCran</code>), c’est-à-dire par les noms des variables de <code>usage</code>.</li>
+        <li><b>UCM Exporter</b> garde la chaîne d’alias dans <code>tokens.json</code>. Pour chaque couleur d’un composant, <code>ucm check</code> lit ce que la couleur peint, publié par le contrat, et l’emploi qu’elle vise, par son premier alias vers <code>usage</code>.</li>
+        <li><b>Trois contrôles, avec les paires d’UCM Palettes :</b>
+          <ol>
+            <li>support : un emploi de texte posé sur un contour, ou de bordure en remplissage, donne un avertissement ; c’est l’extension de l’avertissement actuel ;</li>
+            <li>paire : dans un variant, un <code>foreground</code> et le <code>background</code> sur lequel il est posé doivent former une paire de la table, au même état ; sinon, un avertissement donne le contraste mesuré dans chaque marque et chaque thème ;</li>
+            <li>hors table : une couleur qui vise <code>theme</code> directement est relevée avec son contraste mesuré (D14).</li>
+          </ol></li>
+        <li>Les paires passent de 16 à 19 avec le quatrième rang (D17), et s’étendent aux niveaux d’élévation : texte et bordure sur <code>raised</code> et <code>overlay</code> (D15).</li>
+        <li>Un quatrième contrôle compare l’état de chaque variant au rang des usages qu’il vise (D17).</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd>Une seule définition des emplois et de leurs paires, lue par les trois outils. Aujourd’hui la table est garantie sur les palettes, et rien ne vérifie qu’un composant l’applique : c’est là que le Playground échoue (D4).</dd>
+      <dt>Coût</dt><dd>Le kit, qui porte <code>ucm check</code>, dépend du moteur <code>ucm-couleur</code>. La spécification d’UCM Palettes l’anticipe (D7 : « le moteur entre dans le kit le jour où un lecteur de <code>tokens.json</code> en a besoin »). Aucun de ces contrôles n’est écrit.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d17">
+    <div class="dec-h"><span class="id">D17</span><h3>Quatre rangs d’état, et une correspondance écrite entre l’état d’un composant et son rang</h3><span class="tag prop">Nouvelle décision</span></div>
+    <dl>
+      <dt>Le problème</dt><dd>Avec trois rangs, <code>active</code> sert à l’appui et à la sélection. Un élément sélectionné qu’on survole n’a plus de nuance. Et pour un développeur, <code>:active</code> désigne l’appui en CSS.</dd>
+      <dt>Après</dt><dd><ul>
+        <li>Quatre rangs, sous les noms d’UCM Palettes : <code>default</code> (+0), <code>hover</code> (+1), <code>active</code> (+2), <code>active-hover</code> (+3). Un rang nomme une nuance de la paire, pas une interaction.</li>
+        <li>Les noms d’interaction restent dans <code>components</code> (<code>…press.background</code>, <code>…selected.background</code>). Une table de <code>ucm-couleur</code> dit quel rang chaque état vise :
+          <div class="tw" style="margin:8px 0"><table class="plain">
+            <thead><tr><th>État du composant</th><th>Rang</th></tr></thead>
+            <tbody>
+              <tr><td>repos</td><td><code>default</code></td></tr>
+              <tr><td>survol</td><td><code>hover</code></td></tr>
+              <tr><td>appui</td><td><code>active</code></td></tr>
+              <tr><td>sélectionné</td><td><code>active</code></td></tr>
+              <tr><td>sélectionné et survolé, sélectionné et appuyé</td><td><code>active-hover</code></td></tr>
+              <tr><td>focus</td><td><code>default</code>, et l’anneau <code>focus</code></td></tr>
+              <tr><td>désactivé</td><td><code>neutral.fill-disabled</code>, <code>neutral.text-disabled</code></td></tr>
+            </tbody>
+          </table></div></li>
+        <li><code>ucm check</code> compare l’état de chaque variant, publié par le contrat (axe <code>State</code>), au rang des usages que ses couleurs visent. Une ligne sélectionnée qui viserait <code>surface.hover</code> donne un avertissement.</li>
+        <li>400 et 950 deviennent obligatoires dans toute liste de nuances. Le préréglage à 9 nuances, qui les retirait, est supprimé ; une recette qui le porte passe à 11 nuances.</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li>Les paires du quatrième rang tiennent largement, mesurées sur 360 teintes, deux intensités et deux thèmes : <code>text</code> 950 sur <code>surface</code> 400, 6,61:1 ; <code>on-solid</code> sur <code>solid</code> 950, 13,66:1 ; <code>border-control</code> 900 sur <code>surface</code> 400, 5,32:1.</li>
+        <li>Le sens de <code>active</code> ne repose plus sur un nom : il est écrit dans une table et contrôlé. Le développeur lit un token de composant, <code>…selected.background</code>, dont le contrôle garantit le rang.</li>
+        <li>Radix range de même l’appui et la sélection sur une seule nuance.</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd>Les noms d’Atlassian, <code>pressed</code>, <code>selected</code>, <code>selected-hover</code> : cinq noms par emploi au lieu de quatre, dont deux visent la même nuance. Garder <code>active</code> au survol d’un élément sélectionné : le survol ne se verrait pas.</dd>
+      <dt>Limite</dt><dd>En clair, le pas de clarté de 300 à 400 vaut 0,085, contre 0,060 de 200 à 300 : ce survol est plus marqué que les autres. Un texte laissé à 700 sur un fond 400 tombe à 2,75:1 : le texte avance avec le fond.</dd>
+    </dl>
+  </div>
+
+  <h2 id="emplois">La table des emplois, en variables</h2>
+  <p>La table que tu utilises en créant un composant. Elle vaut pour toutes les palettes, de marque et de statut, dans les deux intensités. <code>{p}</code> désigne la palette : <code>primary</code>, <code>secondary</code>, <code>neutral</code>, ou un statut avec son intensité, <code>success.soft</code>.</p>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Usage</th><th>Variable de <code>usage</code></th><th>Nuance</th><th>Contraste le plus faible mesuré</th></tr></thead>
+    <tbody>
+      <tr><td>Fond plein : bouton, badge</td><td><code>{p}.solid.default|hover|active|active-hover</code></td><td class="c">700 · 800 · 900 · 950</td><td>avec <code>on-solid</code> : 5,23 · 7,45 · 10,50 · 13,66</td></tr>
+      <tr><td>Texte sur un fond plein</td><td><code>{p}.on-solid</code></td><td class="c">neutre 50</td><td></td></tr>
+      <tr><td>Texte ou lien de couleur</td><td><code>{p}.text.default|hover|active|active-hover</code></td><td class="c">700 · 800 · 900 · 950</td><td>sur la page : 5,23 ; sur <code>surface</code> au même rang : 4,95 · 6,32 · 7,28 · 6,61</td></tr>
+      <tr><td>Fond teinté : ligne sélectionnée, alerte, tuile</td><td><code>{p}.surface.default|hover|active|active-hover</code></td><td class="c">100 · 200 · 300 · 400</td><td></td></tr>
+      <tr><td>Carte teintée</td><td><code>{p}.surface-card</code></td><td class="c">50</td><td>texte 700 : 5,30 ; bordure 600 : 3,68</td></tr>
+      <tr><td>Bordure de champ, de bouton outlined</td><td><code>{p}.border-control.default|hover|active|active-hover</code></td><td class="c">600 · 700 · 800 · 900</td><td>sur <code>surface</code> au même rang : 3,45 · 4,36 · 5,25 · 5,32</td></tr>
+      <tr><td>Séparateur décoratif</td><td><code>{p}.border-decorative</code></td><td class="c">300</td><td>aucun seuil</td></tr>
+      <tr><td>Anneau de focus, séparé du composant par un espace</td><td><code>{p}.focus</code></td><td class="c">600</td><td>3,63</td></tr>
+      <tr><td>Corps de texte</td><td><code>neutral.text-strong</code></td><td class="c">900</td><td>sur la page : 10,94 en light, 11,90 en dark ; sur <code>raised</code> : 10,82</td></tr>
+      <tr><td>Désactivé</td><td><code>neutral.fill-disabled</code>, <code>neutral.text-disabled</code></td><td class="c">200 · 500</td><td>exempté par WCAG</td></tr>
+      <tr><td>Élévation</td><td><code>elevation.page|raised|overlay</code></td><td class="c">voir D15</td><td>texte 700 : 4,88 ; bordure 600 : 3,41</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="rules">
+    <li>Un rang nomme une nuance de la paire, pas une interaction. L’appui et la sélection visent <code>active</code> ; une sélection survolée vise <code>active-hover</code> (D17).</li>
+    <li>Un état fait avancer fond et texte ensemble : <code>text.hover</code> sur <code>surface.hover</code>. Un texte 700 resté sur un fond 200 descend à 4,46:1.</li>
+    <li>Au contact d’un fond 700, un anneau 600 mesure 1,40:1 : l’espace entre l’anneau et le composant est obligatoire.</li>
+  </ul>
+
+  <h2>Ce qui fait tenir l’architecture</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Règle</th><th>Ce qui la fait respecter</th><th>État</th></tr></thead>
+    <tbody>
+      <tr><td>Un calque se lie à <code>usage</code> ou à <code>components</code></td><td>Portées vides sur <code>theme</code> et les collections du dessous ; portées de <code>usage</code> par emploi (D14)</td><td>À poser à la migration</td></tr>
+      <tr><td>La table est la même partout</td><td><code>TABLE_DES_EMPLOIS</code> d’<code>ucm-couleur</code>, dont UCM Palettes écrit <code>usage</code> (D16)</td><td>Table écrite ; écriture des variables à faire</td></tr>
+      <tr><td><code>theme</code> suit sa règle</td><td>Un contrôle compare chaque alias de <code>theme</code> à sa règle</td><td>À écrire</td></tr>
+      <tr><td>Chaque marque et chaque thème ont une valeur</td><td><code>ucm tokens css</code> nomme un token sans valeur dans un contexte ; un contrôle de couverture reste à écrire</td><td>En partie</td></tr>
+      <tr><td>Une colonne de marque n’est pas une copie de la première</td><td>Les alias montrent la palette visée (D5) ; UCM Palettes marque chaque valeur qu’il écrit</td><td>À relire, puis par le plugin</td></tr>
+      <tr><td>Les paires tiennent sur les palettes</td><td><code>verifier-courbes.mjs</code> sur la courbe ; UCM Palettes sur chaque palette</td><td>Écrit</td></tr>
+      <tr><td>Les composants appliquent la table</td><td><code>ucm check</code> : support, paire, hors table (D16)</td><td>À écrire</td></tr>
+      <tr><td>Un état vise son rang</td><td>Table état → rang d’<code>ucm-couleur</code>, comparée par <code>ucm check</code> à l’état publié par le contrat (D17)</td><td>À écrire</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Le volume</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Collection, six marques</th><th class="n">Variables de couleur</th><th class="n">Colonnes</th><th class="n">Valeurs</th></tr></thead>
+    <tbody>
+      <tr><td><code>primitives › colors</code> : 12 palettes de marque × 22, 4 statuts × 44, neutre 22, blanc et noir</td><td class="n">464</td><td class="n">1</td><td class="n">464</td></tr>
+      <tr><td><code>brand</code> : 44 alias et la couleur de charte</td><td class="n">45</td><td class="n">6</td><td class="n">270</td></tr>
+      <tr><td><code>color-utilities</code> : neutre 22, statuts 176, élévation 6</td><td class="n">204</td><td class="n">1</td><td class="n">204</td></tr>
+      <tr><td><code>theme</code> : 121 nuances, 3 niveaux d’élévation</td><td class="n">124</td><td class="n">2</td><td class="n">248</td></tr>
+      <tr><td><code>usage</code> : 10 palettes de couleur × 20, neutre 23, élévation 3</td><td class="n">226</td><td class="n">1</td><td class="n">226</td></tr>
+    </tbody>
+    <tfoot><tr><td>Total</td><td class="n">1 063</td><td></td><td class="n">1 412</td></tr></tfoot>
+  </table></div>
+  <p>ARCHITECTURE-FINALE en comptait 710. Tes décisions restent les mêmes : pour chaque marque, deux palettes et une couleur de charte ; pour les rôles communs, cinq palettes ; six niveaux d’élévation. Les autres valeurs suivent une règle, et UCM Palettes les écrit. Le compte des valeurs pèse sur la taille de la feuille CSS, que <code>ucm tokens css</code> imprime à chaque écriture.</p>
+
+  <h2>À décider</h2>
+  <ul class="rules">
+    <li>Les modifications que ces décisions entraînent dans ARCHITECTURE-FINALE, <code>ucm-couleur</code>, UCM Palettes et le kit sont inventoriées dans <a href="PLAN-INTEGRATION-ARCHITECTURE.md">PLAN-INTEGRATION-ARCHITECTURE.md</a>, pour l’agent qui les appliquera.</li>
+    <li>Deux essais dans Figma : le choix d’un alias filtre-t-il par portée (D14) ; la description d’une variable s’affiche-t-elle dans le sélecteur, pour y écrire la paire de chaque usage.</li>
+    <li>Le fond de page en clair : la nuance 50 à 0,975 donne #F7F7F7, le fond visé est #f8fafc. Tu règles la palette neutre et la clarté de sa nuance 50.</li>
+    <li>Un essai sur six marques avant de généraliser : un jaune clair, un bleu très sombre, une couleur très vive, une marque presque grise.</li>
+  </ul>
+
+  <footer>
+    Sources dans ce dossier et dans le dépôt :
     <ul>
-      <li><code>soft</code> : répété, secondaire. <code>vivid</code> : à remarquer.</li>
-      <li>Le profil ne change pas le contraste. Aux crans 50, 100 et 950, il ne se voit pas.</li>
-      <li>Survol +1 cran, appui +2, fond et texte ensemble.</li>
-      <li>Texte sur un fond plein : <code>neutral/50</code>, dans toutes les marques.</li>
-      <li>Anneau de focus au 600, décollé du contrôle.</li>
-      <li>Désactivé : neutres, fond 200 et texte 500.</li>
+      <li><a href="RECHERCHE-ARCHI-MULTIMARQUES.md">Recherche</a> et <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a> ; elles nomment <code>scheme</code> la collection <code>theme</code>.</li>
+      <li><a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a> : courbes, table des emplois, fabrication des palettes.</li>
+      <li><a href="verifier-courbes.mjs"><code>verifier-courbes.mjs</code></a>, <a href="mesurer-duplication.mjs"><code>mesurer-duplication.mjs</code></a>, <a href="mesurer-rampes.mjs"><code>mesurer-rampes.mjs</code></a> : les mesures citées.</li>
+      <li><a href="../Plugin%20Palettes/RECHERCHE-CONCURRENCE-PALETTES.md">UCM Palettes et les outils du marché</a>, section 3 : l’écriture des variables.</li>
     </ul>
-  </section>
-  <section class="never">
-    <h3>Jamais</h3>
-    <ul>
-      <li>Un texte sous le cran 600.</li>
-      <li>Une couleur liée à <code>brand</code> ou <code>primitives</code>.</li>
-      <li>Un hexa posé à la main sur un calque.</li>
-      <li><code>identity.primary</code> ailleurs que pour le logo ou un aplat de charte.</li>
-    </ul>
-  </section>
-  <section>
-    <h3>Une marque veut autre chose</h3>
-    <ul>
-      <li>Dans l'ordre : changer la couleur de sa palette, un réglage <code>params</code>, une exception, une variante.</li>
-      <li>Nouvelle marque : sa colonne recopie la première. Relis tout avant de publier.</li>
-    </ul>
-  </section>
-</div>
+  </footer>
+  </div>
 </main>
 
 <script>
 (function(){
-  var crans=[50,100,200,300,400,500,600,700,800,900,950];
-  var L={light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.18,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]};
+  /* Aujourd'hui : relevé de UCM-Playground/src/tokens/tokens.json */
+  var D={"prim":{"titanium":{"0":"#FFFFFF","50":"#FCFCFD","100":"#F8FAFC","200":"#EEF2F6","300":"#E3E8EF","400":"#CDD5DF","500":"#9AA4B2","600":"#697586","700":"#4B5565","800":"#364152","900":"#202939","1000":"#121926","1100":"#0D121C","1200":"#000000"},"rose":{"50":"#FFF1F2","100":"#FFE4E6","200":"#FECDD3","300":"#FDA4AF","400":"#FB7185","500":"#F43F5E","600":"#E11D48","700":"#BE123C","800":"#9F1239","900":"#881337","950":"#4C0519"},"orange":{"50":"#FFF7ED","100":"#FFEDD5","200":"#FED7AA","300":"#FDBA74","400":"#FB923C","500":"#F97316","600":"#EA580C","700":"#C2410C","800":"#9A3412","900":"#7C2D12","950":"#431407"},"terracota":{"50":"#FFF4F4","100":"#FDE3E2","200":"#FDCECD","300":"#F4B8B7","400":"#DB9392","500":"#B15152","600":"#95383B","700":"#7A1E25","800":"#5E0010","900":"#3A0006","950":"#270003"},"sky":{"50":"#F0F9FF","100":"#E0F2FE","200":"#BAE6FD","300":"#7DD3FC","400":"#38BDF8","500":"#0EA5E9","600":"#0284C7","700":"#0369A1","800":"#075985","900":"#0C4A6E","950":"#082F49"},"grass":{"50":"#F0FDF4","100":"#DCFCE7","200":"#BBF7D0","300":"#86EFAC","400":"#4ADE80","500":"#22C55E","600":"#16A34A","700":"#15803D","800":"#166534","900":"#14532D","950":"#052E16"},"poppy":{"50":"#FEF2F2","100":"#FEE2E2","200":"#FECACA","300":"#FCA5A5","400":"#F87171","500":"#EF4444","600":"#DC2626","700":"#B91C1C","800":"#991B1B","900":"#7F1D1D","950":"#450A0A"},"deep":{"50":"#F2F1FD","100":"#E8E7F8","200":"#BFBCEC","300":"#9792DF","400":"#7168D1","500":"#4C3EBA","600":"#2D2478","700":"#161046","800":"#120D3A","900":"#0E0A2E","950":"#09061D"},"blue":{"50":"#EFF6FF","100":"#DBEAFE","200":"#BFDBFE","300":"#93C5FD","400":"#60A5FA","500":"#3B82F6","600":"#2563EB","700":"#1D4ED8","800":"#1E40AF","900":"#1E3A8A","950":"#172554"}},"brands":{"intencial/primary":{"50":"primitives.colors.terracota.50","100":"primitives.colors.terracota.100","200":"primitives.colors.terracota.200","300":"primitives.colors.terracota.300","400":"primitives.colors.terracota.400","500":"primitives.colors.terracota.500","600":"primitives.colors.terracota.600","700":"primitives.colors.terracota.700","800":"primitives.colors.terracota.800","900":"primitives.colors.terracota.900","950":"primitives.colors.terracota.950"},"intencial/secondary":{"50":"primitives.colors.deep.50","100":"primitives.colors.deep.100","200":"primitives.colors.deep.200","300":"primitives.colors.deep.300","400":"primitives.colors.deep.400","500":"primitives.colors.deep.500","600":"primitives.colors.deep.600","700":"primitives.colors.deep.700","800":"primitives.colors.deep.800","900":"primitives.colors.deep.900","950":"primitives.colors.deep.950"},"marque-2/primary":{"50":"primitives.colors.sky.50","100":"primitives.colors.sky.100","200":"primitives.colors.sky.200","300":"primitives.colors.sky.300","400":"primitives.colors.sky.400","500":"primitives.colors.sky.500","600":"primitives.colors.sky.600","700":"primitives.colors.sky.700","800":"primitives.colors.sky.800","900":"primitives.colors.sky.900","950":"primitives.colors.sky.950"},"marque-2/secondary":{"50":"primitives.colors.rose.50","100":"primitives.colors.rose.100","200":"primitives.colors.rose.200","300":"primitives.colors.rose.300","400":"primitives.colors.rose.400","500":"primitives.colors.rose.500","600":"primitives.colors.rose.600","700":"primitives.colors.rose.700","800":"primitives.colors.rose.800","900":"primitives.colors.rose.900","950":"primitives.colors.rose.950"}},"roles":{"primary/default":{"intencial":"color-brands.intencial.primary.500","marque-2":"color-brands.marque-2.primary.500"},"primary/subtle":{"intencial":"color-brands.intencial.primary.200","marque-2":"color-brands.marque-2.primary.200"},"primary/emphasis":{"intencial":"color-brands.intencial.primary.600","marque-2":"color-brands.marque-2.primary.600"},"primary/strong":{"intencial":"color-brands.intencial.primary.700","marque-2":"color-brands.marque-2.primary.700"},"primary/subtlest":{"intencial":"color-brands.intencial.primary.50","marque-2":"color-brands.marque-2.primary.50"},"secondary/subtle":{"intencial":"color-brands.intencial.secondary.200","marque-2":"color-brands.marque-2.secondary.200"},"secondary/default":{"intencial":"color-brands.intencial.secondary.700","marque-2":"color-brands.marque-2.secondary.500"},"secondary/emphasis":{"intencial":"color-brands.intencial.secondary.800","marque-2":"color-brands.marque-2.secondary.700"},"secondary/subtlest":{"intencial":"color-brands.intencial.secondary.100","marque-2":"color-brands.marque-2.secondary.50"},"secondary/strong":{"intencial":"color-brands.intencial.secondary.900","marque-2":"color-brands.marque-2.secondary.900"}},"util":{"success":{"50":"primitives.colors.grass.50","100":"primitives.colors.grass.100","200":"primitives.colors.grass.200","300":"primitives.colors.grass.300","400":"primitives.colors.grass.400","500":"primitives.colors.grass.500","600":"primitives.colors.grass.600","700":"primitives.colors.grass.700","800":"primitives.colors.grass.800","900":"primitives.colors.grass.900"},"warning":{"50":"primitives.colors.orange.50","100":"primitives.colors.orange.100","200":"primitives.colors.orange.200","300":"primitives.colors.orange.300","400":"primitives.colors.orange.400","500":"primitives.colors.orange.500","600":"primitives.colors.orange.600","700":"primitives.colors.orange.700","800":"primitives.colors.orange.800","900":"primitives.colors.orange.900"},"info":{"50":"primitives.colors.sky.50","100":"primitives.colors.sky.100","200":"primitives.colors.sky.200","300":"primitives.colors.sky.300","400":"primitives.colors.sky.400","500":"primitives.colors.sky.500","600":"primitives.colors.sky.600","700":"primitives.colors.sky.700","800":"primitives.colors.sky.800","900":"primitives.colors.sky.900"},"danger":{"50":"primitives.colors.poppy.50","100":"primitives.colors.poppy.100","200":"primitives.colors.poppy.200","300":"primitives.colors.poppy.300","400":"primitives.colors.poppy.400","500":"primitives.colors.poppy.500","600":"primitives.colors.poppy.600","700":"primitives.colors.poppy.700","800":"primitives.colors.poppy.800","900":"primitives.colors.poppy.900"},"neutral":{"50":"primitives.colors.titanium.50","100":"primitives.colors.titanium.100","200":"primitives.colors.titanium.200","300":"primitives.colors.titanium.300","400":"primitives.colors.titanium.400","500":"primitives.colors.titanium.500","600":"primitives.colors.titanium.600","700":"primitives.colors.titanium.700","800":"primitives.colors.titanium.800","900":"primitives.colors.titanium.900","1000":"primitives.colors.titanium.1000","1100":"primitives.colors.titanium.1100","white":"primitives.colors.titanium.0","black":"primitives.colors.titanium.1200"}}};
 
-  /* rampes grises */
-  function fill(id,arr){
-    var row=document.getElementById(id);
-    arr.forEach(function(l,i){
-      var d=document.createElement('div');d.className='sw';
-      d.style.background='oklch('+l+' 0 0)';
-      d.style.color=l>0.6?'#111':'#fff';
-      d.innerHTML='<b>'+crans[i]+'</b>'+String(l).replace(/^0?\./,'0,');
-      row.appendChild(d);
-    });
+  function hexToday(path,mode){
+    var p=path.split("."),col=p[0];
+    if(col==="primitives")return D.prim[p[2]][p[3]];
+    if(col==="color-brands")return hexToday(D.brands[p[1]+"/"+p[2]][p[3]],mode);
+    if(col==="color-utilities")return hexToday(D.util[p[1]][p[2]],mode);
+    if(col==="color-brand-tokens")return hexToday(D.roles[p[1]+"/"+p[2]][mode||"intencial"],mode);
+    return null;
   }
-  fill('r-light',L.light);fill('r-dark',L.dark);
-  var notes={50:'fond de page',600:'bordure, focus ≥ 3:1',700:'texte ≥ 4,5:1',800:'texte appuyé'};
-  var mk=document.getElementById('r-marks');
-  crans.forEach(function(c){var s=document.createElement('span');if(notes[c]){s.textContent=notes[c];if(c>=600&&c<=700)s.className='on';}mk.appendChild(s);});
 
-  /* OKLCH -> sRGB, chroma en part du maximum affichable */
-  function lin(Lv,C,h){
+  /* Demain : palettes calculées sur la courbe de clarté proposée. */
+  var CR=[50,100,200,300,400,500,600,700,800,900,950];
+  var LC={light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.18,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]};
+  var PART={soft:.45,vivid:.95};
+  function lin(L,C,h){
     var a=C*Math.cos(h*Math.PI/180),b=C*Math.sin(h*Math.PI/180);
-    var l=Math.pow(Lv+.3963377774*a+.2158037573*b,3),m=Math.pow(Lv-.1055613458*a-.0638541728*b,3),s=Math.pow(Lv-.0894841775*a-1.291485548*b,3);
+    var l=Math.pow(L+.3963377774*a+.2158037573*b,3),m=Math.pow(L-.1055613458*a-.0638541728*b,3),s=Math.pow(L-.0894841775*a-1.291485548*b,3);
     return [4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
   }
-  function inG(v){return v.every(function(x){return x>=-1e-4&&x<=1+1e-4});}
-  function maxC(Lv,h){var lo=0,hi=.4;for(var i=0;i<24;i++){var mid=(lo+hi)/2;if(inG(lin(Lv,mid,h)))lo=mid;else hi=mid;}return lo;}
-  function hex(Lv,C,h){
-    return '#'+lin(Lv,C,h).map(function(x){x=Math.min(1,Math.max(0,x));x=x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055;return ('0'+Math.round(x*255).toString(16)).slice(-2);}).join('').toUpperCase();
+  function inG(v){return v.every(function(x){return x>=-1e-4&&x<=1+1e-4;});}
+  function maxC(L,h){var lo=0,hi=.4;for(var i=0;i<22;i++){var mid=(lo+hi)/2;if(inG(lin(L,mid,h)))lo=mid;else hi=mid;}return lo;}
+  function enc(x){x=Math.min(1,Math.max(0,x));return x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055;}
+  function toHex(v){return "#"+v.map(function(x){return ("0"+Math.round(enc(x)*255).toString(16)).slice(-2);}).join("").toUpperCase();}
+  function dec(hex){return [1,3,5].map(function(i){var c=parseInt(hex.substr(i,2),16)/255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);});}
+  function oklch(hex){
+    var v=dec(hex),r=v[0],g=v[1],b=v[2];
+    var l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
+    var L=.2104542553*l+.793617785*m-.0040720468*s,A=1.9779984951*l-2.428592205*m+.4505937099*s,B=.0259040371*l+.7827717662*m-.808675766*s;
+    return {L:L,C:Math.hypot(A,B),h:(Math.atan2(B,A)*180/Math.PI+360)%360};
   }
-  var PART={soft:.45,vivid:.95};
-  function ramp(h,prof,th,cran){var Lv=L[th][crans.indexOf(cran)];return hex(Lv,prof?maxC(Lv,h)*PART[prof]:0,h);}
-  var HU={success:150,warning:75,info:245,danger:25};
-  var BR={A:{primary:262,secondary:185},B:{primary:330,secondary:45},C:{primary:95,secondary:262}};
-  var N=function(th,c){return ramp(0,null,th,c);};
-  var U=function(f,p,th,c){return ramp(HU[f],p,th,c);};
-  var P=function(br,r,p,th,c){return ramp(BR[br][r],p,th,c);};
-  var IDC=hex(.85,maxC(.85,95)*.9,95);
-
-  function V(h){return {v:h};}
-  function A(name,h){return {a:name,h:h};}
-  function cell(c){
-    if(!c)return '';
-    if(c.t)return '<span class="txt">'+c.t+'</span>';
-    if(c.v)return '<span class="val"><span class="sq" style="background:'+c.v+'"></span>'+c.v+'</span>';
-    return '<span class="chip">'+(c.h?'<span class="sq" style="background:'+c.h+'"></span>':'')+c.a+'</span>';
-  }
-
-  var C={
-    primitives:{modes:['Valeur'],info:'aucun mode · 198 couleurs, plus dimensions, typographie, durées',rows:[
-      {g:'neutral / light'},
-      {n:'50',c:[V(N('light',50))]},{n:'500',c:[V(N('light',500))]},{n:'700',c:[V(N('light',700))]},{n:'950',c:[V(N('light',950))]},
-      {more:'+ 7 autres crans'},
-      {g:'neutral / dark'},
-      {n:'50',c:[V(N('dark',50))]},{n:'700',c:[V(N('dark',700))]},
-      {more:'+ 9 autres crans'},
-      {g:'success / soft / light'},
-      {n:'100',c:[V(U('success','soft','light',100))]},{n:'700',c:[V(U('success','soft','light',700))]},
-      {g:'success / vivid / light'},
-      {n:'100',c:[V(U('success','vivid','light',100))]},{n:'700',c:[V(U('success','vivid','light',700))]},
-      {g:'success / vivid / dark'},
-      {n:'700',c:[V(U('success','vivid','dark',700))]},
-      {more:'+ success/soft/dark, puis warning, info et danger sur le même modèle'},
-      {g:'dimensions, fontsize, fontweight…',res:true},
-      {more:'inchangés'}
-    ]},
-    brand:{modes:['Marque A','Marque B','Marque C'],info:'6 modes · 45 variables par marque',rows:[
-      {g:'palette / primary / light'},
-      {n:'100',c:['A','B','C'].map(function(b){return V(P(b,'primary','vivid','light',100));})},
-      {n:'700',c:['A','B','C'].map(function(b){return V(P(b,'primary','vivid','light',700));})},
-      {g:'palette / primary / dark'},
-      {n:'700',c:['A','B','C'].map(function(b){return V(P(b,'primary','vivid','dark',700));})},
-      {more:'+ les autres crans, primary/dark et secondary : 44 couleurs par marque'},
-      {g:'identity'},
-      {n:'primary',c:[V(P('A','primary','vivid','light',600)),V(P('B','primary','vivid','light',500)),V(IDC)]},
-      {more:'la couleur exacte de la charte : logo et aplats, jamais citée par un composant'},
-      {g:'params · réservé, aucune variable',res:true},
-      {g:'exception / light · exception / dark · réservé, aucune variable',res:true}
-    ]},
-    theme:{modes:['Light','Dark'],info:'2 modes · 121 variables',rows:[
-      {g:'neutral'},
-      {n:'50',c:[A('neutral/light/50',N('light',50)),A('neutral/dark/50',N('dark',50))]},
-      {n:'700',c:[A('neutral/light/700',N('light',700)),A('neutral/dark/700',N('dark',700))]},
-      {more:'+ 9 autres crans'},
-      {g:'success / soft'},
-      {n:'100',c:[A('success/soft/light/100',U('success','soft','light',100)),A('success/soft/dark/100',U('success','soft','dark',100))]},
-      {n:'700',c:[A('success/soft/light/700',U('success','soft','light',700)),A('success/soft/dark/700',U('success','soft','dark',700))]},
-      {g:'success / vivid'},
-      {n:'700',c:[A('success/vivid/light/700',U('success','vivid','light',700)),A('success/vivid/dark/700',U('success','vivid','dark',700))]},
-      {more:'+ warning, info, danger : 88 variables pour les utilitaires'},
-      {g:'primary'},
-      {n:'700',c:[A('palette/primary/light/700',P('A','primary','vivid','light',700)),A('palette/primary/dark/700',P('A','primary','vivid','dark',700))]},
-      {n:'800',c:[A('palette/primary/light/800',P('A','primary','vivid','light',800)),A('palette/primary/dark/800',P('A','primary','vivid','dark',800))]},
-      {more:'+ les autres crans et secondary : 22 variables de marque'},
-      {g:'exception · réservé, aucune variable',res:true}
-    ]},
-    components:{modes:['Valeur'],info:'aucun mode · cite theme',rows:[
-      {g:'button / primary / contained'},
-      {n:'default/background',c:[A('primary/700',P('A','primary','vivid','light',700))]},
-      {n:'hover/background',c:[A('primary/800',P('A','primary','vivid','light',800))]},
-      {n:'press/background',c:[A('primary/900',P('A','primary','vivid','light',900))]},
-      {n:'foreground',c:[A('neutral/50',N('light',50))]},
-      {g:'button / primary / outlined'},
-      {n:'default/border',c:[A('primary/600',P('A','primary','vivid','light',600))]},
-      {n:'default/foreground',c:[A('primary/700',P('A','primary','vivid','light',700))]},
-      {g:'badge / success'},
-      {n:'background',c:[A('success/soft/100',U('success','soft','light',100))]},
-      {n:'foreground',c:[A('success/soft/700',U('success','soft','light',700))]},
-      {g:'alert / danger'},
-      {n:'background',c:[A('danger/vivid/700',U('danger','vivid','light',700))]},
-      {n:'foreground',c:[A('neutral/50',N('light',50))]},
-      {g:'button / radius'},
-      {n:'radius',c:[{t:'→ radius/md, plus tard brand/params/radius/button'}]},
-      {more:'+ les autres composants, sur le même principe'}
-    ]}
+  /* Les fonds 50 à 300 du thème sombre perdent de la chroma : facteur 0,30 au 50, 1 au 400. */
+  function fac(t,i){if(t!=="dark"||i>3)return 1;return .30+.70*(LC.dark[i]-.18)/(.40-.18);}
+  function ramp(h,part,t){return LC[t].map(function(l,i){return toHex(lin(l,maxC(l,h)*part*fac(t,i),h));});}
+  function nearest(t,L){var best=0;LC[t].forEach(function(l,i){if(Math.abs(l-L)<Math.abs(LC[t][best]-L))best=i;});return best;}
+  /* Palette à une intensité : la chroma de la référence, la référence à sa nuance la plus proche. */
+  function one(ref){var o=oklch(ref),part=Math.min(1,o.C/Math.max(1e-6,maxC(o.L,o.h))),P={ref:ref};
+    ["light","dark"].forEach(function(t){var a=ramp(o.h,part,t);a[nearest(t,o.L)]=ref;P[t]=a;});return P;}
+  /* Palette à deux intensités : soft et vivid à la teinte de la référence. */
+  function two(ref){var o=oklch(ref),P={ref:ref};["soft","vivid"].forEach(function(p){P[p]={light:ramp(o.h,PART[p],"light"),dark:ramp(o.h,PART[p],"dark")};});return P;}
+  var PAL={
+    terracota:one("#B15152"),deep:one("#4C3EBA"),sky:one("#0EA5E9"),rose:one("#F43F5E"),mimosa:one("#F2CF4A"),ardoise:one("#2F3E5C"),
+    grass:two("#22C55E"),orange:two("#F97316"),blue:two("#3B82F6"),poppy:two("#EF4444"),
+    titanium:{light:ramp(0,0,"light"),dark:ramp(0,0,"dark")}
   };
-  var order=['primitives','brand','theme','components'];
-  var tabs=document.getElementById('fig-tabs'),head=document.getElementById('fig-head'),table=document.getElementById('fig-table');
-  var modesLabel={primitives:'—',brand:'6',theme:'2',components:'—'};
-  function show(k){
-    var col=C[k];
-    head.innerHTML='<b>'+k+'</b><span>'+col.info+'</span>';
-    var h='<thead><tr><th>Nom</th>'+col.modes.map(function(m){return '<th>'+m+'</th>';}).join('')+'</tr></thead><tbody>';
-    var span=col.modes.length+1;
-    col.rows.forEach(function(r){
-      if(r.g)h+='<tr class="g'+(r.res?' res':'')+'"><td colspan="'+span+'">'+r.g+'</td></tr>';
-      else if(r.more)h+='<tr class="more"><td colspan="'+span+'" style="padding-left:24px">'+r.more+'</td></tr>';
-      else h+='<tr><td class="nm">'+r.n+'</td>'+r.c.map(function(c){return '<td>'+cell(c)+'</td>';}).join('')+'</tr>';
-    });
-    table.innerHTML=h+'</tbody>';
-    Array.prototype.forEach.call(tabs.querySelectorAll('button'),function(b){b.setAttribute('aria-selected',b.dataset.k===k?'true':'false');});
+  var BRANDS=["intencial","marque-2","marque-3"];
+  var BRAND_PAL={"intencial":{primary:"terracota",secondary:"deep"},"marque-2":{primary:"sky",secondary:"rose"},"marque-3":{primary:"mimosa",secondary:"ardoise"}};
+  var UTIL_PAL={success:"grass",warning:"orange",info:"blue",danger:"poppy",neutral:"titanium"};
+  function idx(n){return CR.indexOf(+n);}
+
+  /* La table des emplois d'ucm-couleur (emplois.ts) : nuance de repos, puis un rang par état. */
+  var EMP={"solid":700,"text":700,"surface":100,"surface-card":50,"border-control":600,"border-decorative":300,"focus":600};
+  var ETAT={"default":0,"hover":1,"active":2,"active-hover":3};
+  var STATUTS=["success","warning","info","danger"];
+  var ELEV={light:{page:"primitives.colors.titanium.light.50",raised:"primitives.colors.white",overlay:"primitives.colors.white"},
+            dark:{page:"primitives.colors.titanium.dark.50",raised:"primitives.colors.titanium.dark.100",overlay:"primitives.colors.titanium.dark.100"}};
+  function usageTarget(p){
+    if(p[1]==="elevation")return "theme.elevation."+p[2];
+    var fam=p[1],i=2,inten="";
+    if(STATUTS.indexOf(fam)>=0){inten="."+p[2];i=3;}
+    var emp=p[i],etat=p[i+1];
+    if(emp==="on-solid")return "theme.neutral.50";
+    if(emp==="text-strong")return "theme.neutral.900";
+    if(emp==="text-disabled")return "theme.neutral.500";
+    if(emp==="fill-disabled")return "theme.neutral.200";
+    return "theme."+fam+inten+"."+CR[CR.indexOf(EMP[emp])+(ETAT[etat]||0)];
   }
-  order.forEach(function(k){
-    var b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.dataset.k=k;
-    b.innerHTML='<span>'+k+'</span><span>'+(modesLabel[k]==='—'?'1 mode':modesLabel[k]+' modes')+'</span>';
-    b.addEventListener('click',function(){show(k);});
-    tabs.appendChild(b);
-  });
-  ['typography','layouts'].forEach(function(k){
-    var b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.dataset.k=k;
-    b.innerHTML='<span>'+k+'</span><span>inchangée</span>';
-    b.addEventListener('click',function(){
-      head.innerHTML='<b>'+k+'</b><span>aucun mode · inchangée</span>';
-      table.innerHTML='<tbody><tr class="more"><td style="padding:16px">Cette collection ne change pas. Si une marque veut un jour sa propre valeur (police, rayon), la valeur part dans brand/params et la variable de components qui la citait est repointée.</td></tr></tbody>';
-      Array.prototype.forEach.call(tabs.querySelectorAll('button'),function(x){x.setAttribute('aria-selected',x===b?'true':'false');});
+
+  /* L'alias suivant d'une variable de demain, dans une marque et un thème donnés ; null pour une valeur. */
+  function next(path,brand,t){
+    var p=path.split(".");
+    t=t||"light";
+    if(p[0]==="usage")return usageTarget(p);
+    if(p[0]==="theme"&&p[1]==="elevation")return "color-utilities.elevation."+t+"."+p[2];
+    if(p[0]==="color-utilities"&&p[1]==="elevation")return ELEV[p[2]][p[3]];
+    if(p[0]==="theme"){
+      if(p[1]==="primary"||p[1]==="secondary")return "brand.palette."+p[1]+"."+t+"."+p[2];
+      if(p[1]==="neutral")return "color-utilities.neutral."+t+"."+p[2];
+      return "color-utilities."+p[1]+"."+p[2]+"."+t+"."+p[3];
+    }
+    if(p[0]==="brand")return "primitives.colors."+BRAND_PAL[brand||"intencial"][p[2]]+"."+p[3]+"."+p[4];
+    if(p[0]==="color-utilities"){
+      if(p[1]==="neutral")return "primitives.colors.titanium."+p[2]+"."+p[3];
+      return "primitives.colors."+UTIL_PAL[p[1]]+"."+p[2]+"."+p[3]+"."+p[4];
+    }
+    return null;
+  }
+  function valueOf(path){
+    var p=path.split("."),pal=PAL[p[2]];
+    if(p[2]==="white")return "#FFFFFF";
+    if(p[2]==="black")return "#000000";
+    if(p.length===6)return pal[p[3]][p[4]][idx(p[5])];
+    return pal[p[3]][idx(p[4])];
+  }
+  function hexTomorrow(path,brand,t){var n=next(path,brand,t||"light");return n?hexTomorrow(n,brand,t):valueOf(path);}
+
+  /* Constructeurs de lignes */
+  function G(g,tag,cls){return {g:g,tag:tag,cls:cls};}
+  function R(g,n,cells,st,old){return {k:g+"/"+n,n:n,c:cells,st:st||"",old:old};}
+  function M(text,st){return {more:text,st:st||""};}
+  function A(path,hex){return {a:path,hex:hex};}
+  function H(hex){return {h:hex};}
+  function T(text){return {t:text};}
+
+  var COMP=[
+    ["button/colors/primary/contained","default/background","color-brand-tokens.primary.default","usage.primary.solid.default"],
+    ["button/colors/primary/contained","hover/background","color-brand-tokens.primary.emphasis","usage.primary.solid.hover"],
+    ["button/colors/primary/contained","press/background","color-brand-tokens.primary.emphasis","usage.primary.solid.active"],
+    ["button/colors/primary/contained","default/foreground","color-utilities.neutral.50","usage.primary.on-solid"],
+    ["button/colors/primary/contained","focus/ring","color-brand-tokens.primary.subtle","usage.primary.focus"],
+    ["button/colors/primary/outlined","default/foreground","color-brand-tokens.primary.default","usage.primary.text.default"],
+    ["button/colors/primary/outlined","default/border","color-brand-tokens.primary.default","usage.primary.border-control.default"],
+    ["alert/colors/info/standard","background","primitives.colors.sky.50","usage.info.vivid.surface.default"],
+    ["alert/colors/info/standard","foreground","primitives.colors.sky.700","usage.info.vivid.text.default"],
+    ["alert/colors/success/filled","background","color-utilities.success.700","usage.success.vivid.solid.default"],
+    ["alert/colors/success/filled","foreground","primitives.colors.titanium.0","usage.success.vivid.on-solid"],
+    ["stresstest/info/scalewrap/colors","scale-5","primitives.colors.orange.600","theme.warning.vivid.600","hors table (D14)"]
+  ];
+  function compRows(tomorrow){
+    var out=[],last="";
+    COMP.forEach(function(c){
+      if(c[0]!==last){out.push(G(c[0],tomorrow?c[4]:null));last=c[0];}
+      if(tomorrow)out.push(R(c[0],c[1],[A(c[3],hexTomorrow(c[3]))],"mod",{a:c[2],hex:hexToday(c[2])}));
+      else out.push(R(c[0],c[1],[A(c[2],hexToday(c[2]))]));
     });
-    tabs.appendChild(b);
+    out.push(M(tomorrow?"Les 294 autres couleurs visent un usage de la table, ou une nuance de theme hors table. Les 63 dimensions ne changent pas.":"… 294 autres couleurs, et 63 dimensions"));
+    return out;
+  }
+  var EMP_SANS_ETAT=["on-solid","surface-card","border-decorative","focus"];
+  var EMP_A_ETATS=["solid","text","surface","border-control"];
+  function usageRows(){
+    var out=[];
+    function row(g,n,path){var tgt=next(path);return R(g,n,[A(tgt,hexTomorrow(tgt))],"new");}
+    out.push(G("primary","ajouté"));
+    EMP_SANS_ETAT.forEach(function(e){out.push(row("primary",e,"usage.primary."+e));});
+    EMP_A_ETATS.forEach(function(e){
+      var g="primary/"+e;out.push(G(g,"ajouté"));
+      ["default","hover","active","active-hover"].forEach(function(s){out.push(row(g,s,"usage.primary."+e+"."+s));});
+    });
+    out.push(M("… secondary : les mêmes 20 usages, vers theme.secondary.*","new"));
+    [["info/vivid/surface","default","usage.info.vivid.surface.default"],["info/vivid/text","default","usage.info.vivid.text.default"],["success/vivid/solid","default","usage.success.vivid.solid.default"],["success/vivid","on-solid","usage.success.vivid.on-solid"]].forEach(function(e){
+      out.push(G(e[0],"ajouté"));out.push(row(e[0],e[1],e[2]));
+    });
+    out.push(M("… chaque statut, en soft et en vivid : les mêmes 20 usages","new"));
+    out.push(G("neutral","ajouté"));
+    ["text-strong","text-disabled","fill-disabled"].forEach(function(e){out.push(row("neutral",e,"usage.neutral."+e));});
+    out.push(M("… neutral porte aussi les 20 usages de la table","new"));
+    out.push(G("elevation","ajouté"));
+    ["page","raised","overlay"].forEach(function(e){out.push(row("elevation",e,"usage.elevation."+e));});
+    return out;
+  }
+
+  /* Aujourd'hui */
+  function brandsGroup(g,crans){
+    var out=[G(g)];
+    crans.forEach(function(n){var a=D.brands[g][n];out.push(R(g,n,[A(a,hexToday(a))]));});
+    out.push(M("… 6 autres nuances"));
+    return out;
+  }
+  var ROLE_ORDER=["subtlest","subtle","default","emphasis","strong"];
+  function rolesToday(){
+    var out=[];
+    ["primary","secondary"].forEach(function(p){
+      out.push(G(p));
+      ROLE_ORDER.forEach(function(r){var m=D.roles[p+"/"+r];out.push(R(p,r,[A(m.intencial,hexToday(m.intencial)),A(m["marque-2"],hexToday(m["marque-2"]))]));});
+    });
+    return out;
+  }
+  function utilToday(){
+    var out=[G("success")];
+    ["50","100","700"].forEach(function(n){var a=D.util.success[n];out.push(R("success",n,[A(a,hexToday(a))]));});
+    out.push(M("… 7 autres nuances (10 au total, de 50 à 900)"));
+    out.push(G("warning, info, danger"));
+    out.push(M("même forme : 10 nuances chacun, alias vers orange, sky et poppy"));
+    out.push(G("neutral"));
+    ["50","200","500","1100","white","black"].forEach(function(n){var a=D.util.neutral[n];out.push(R("neutral",n,[A(a,hexToday(a))]));});
+    out.push(M("… 8 autres nuances (14 au total)"));
+    return out;
+  }
+  function primToday(){
+    var out=[];
+    [["terracota",["100","600","700","800","900"]],["sky",["50","500","700"]],["grass",["50","700"]],["titanium",["0","50","200","500","700","1200"]]].forEach(function(e){
+      var g="colors/"+e[0];out.push(G(g));
+      e[1].forEach(function(n){out.push(R(g,n,[H(D.prim[e[0]][n])]));});
+    });
+    out.push(M("… colors/deep, rose, orange, poppy, blue : même forme, 11 nuances chacune"));
+    out.push(G("dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily"));
+    out.push(M("73 variables sans couleur"));
+    return out;
+  }
+
+  /* Demain */
+  function themeRows(){
+    var out=[G("primary","ajouté")];
+    function pair(src){return [A(src.replace("{t}","light"),hexTomorrow(src.replace("{t}","light"),"intencial","light")),A(src.replace("{t}","dark"),hexTomorrow(src.replace("{t}","dark"),"intencial","dark"))];}
+    ["50","100","200","300","400","600","700","800","900","950"].forEach(function(n){out.push(R("primary",n,pair("brand.palette.primary.{t}."+n),"new"));});
+    out.push(M("… 500 : aucun emploi ; un token de composant peut la viser (D14)","new"));
+    out.push(G("secondary","ajouté"));
+    out.push(R("secondary","700",pair("brand.palette.secondary.{t}.700"),"new"));
+    out.push(M("… 10 autres nuances","new"));
+    out.push(G("neutral","ajouté"));
+    ["50","200","300","500","600","700","800","900"].forEach(function(n){out.push(R("neutral",n,pair("color-utilities.neutral.{t}."+n),"new"));});
+    out.push(M("… 3 autres nuances","new"));
+    [["info","vivid",["100","700"]],["success","soft",["100"]],["success","vivid",["700"]],["warning","vivid",["600"]]].forEach(function(e){
+      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      e[2].forEach(function(n){out.push(R(g,n,pair("color-utilities."+e[0]+"."+e[1]+".{t}."+n),"new"));});
+    });
+    out.push(M("… 4 statuts × soft et vivid × 11 nuances : 88 variables","new"));
+    out.push(G("elevation","ajouté"));
+    ["page","raised","overlay"].forEach(function(n){out.push(R("elevation",n,pair("color-utilities.elevation.{t}."+n),"new"));});
+    out.push(G("exception","réservé, vide"));
+    return out;
+  }
+  function brandRows(){
+    var out=[];
+    function aliasRow(g,role,t,n){return R(g,n,BRANDS.map(function(b){var path="primitives.colors."+BRAND_PAL[b][role]+"."+t+"."+n;return A(path,valueOf(path));}).concat([T("…")]),"new");}
+    [["primary","light"],["primary","dark"]].forEach(function(e){
+      var g="palette/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      ["100","600","700","800","900"].forEach(function(n){out.push(aliasRow(g,e[0],e[1],n));});
+      out.push(M("… 6 autres nuances","new"));
+    });
+    [["secondary","light"],["secondary","dark"]].forEach(function(e){
+      var g="palette/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      out.push(aliasRow(g,e[0],e[1],"700"));
+      out.push(M("… 10 autres nuances","new"));
+    });
+    out.push(G("identity","ajouté"));
+    out.push(R("identity","primary",BRANDS.map(function(b){return H(PAL[BRAND_PAL[b].primary].ref);}).concat([T("…")]),"new"));
+    out.push(G("params","réservé, vide"));
+    out.push(G("exception","réservé, vide"));
+    out.push(G("primary","supprimé"));
+    ROLE_ORDER.forEach(function(r){out.push(R("primary",r,[T("rôle supprimé (D4)"),T(""),T(""),T("")],"del"));});
+    out.push(G("secondary","supprimé"));
+    out.push(M("subtlest, subtle, default, emphasis, strong : 5 rôles supprimés","del"));
+    return out;
+  }
+  function utilRows(){
+    var out=[];
+    function aliasRow(g,path,n){return R(g,n,[A(path,valueOf(path))],"new");}
+    [["soft","light",["100","700"]],["soft","dark",["100","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
+      var g="success/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      e[2].forEach(function(n){out.push(aliasRow(g,"primitives.colors.grass."+e[0]+"."+e[1]+"."+n,n));});
+    });
+    out.push(M("… success : 44 alias au total","new"));
+    [["vivid","light"],["vivid","dark"]].forEach(function(e){
+      var g="info/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      ["100","700"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.blue."+e[0]+"."+e[1]+"."+n,n));});
+    });
+    out.push(G("warning/vivid/light","ajouté"));
+    out.push(aliasRow("warning/vivid/light","primitives.colors.orange.vivid.light.600","600"));
+    out.push(M("… info vise blue, qui n’est plus la palette de marque-2 ; warning vise orange, danger vise poppy : 44 alias chacun","new"));
+    ["light","dark"].forEach(function(t){
+      var g="neutral/"+t;out.push(G(g,"ajouté"));
+      ["50","200","300","500","600","700","800","900"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+t+"."+n,n));});
+      out.push(M("… 3 autres nuances","new"));
+    });
+    ["light","dark"].forEach(function(t){
+      var g="elevation/"+t;out.push(G(g,"ajouté"));
+      ["page","raised","overlay"].forEach(function(n){out.push(aliasRow(g,ELEV[t][n],n));});
+    });
+    out.push(G("success, warning, info, danger : 50 à 900, sans thème ni intensité","supprimé"));
+    out.push(M("40 variables remplacées par les groupes ci-dessus","del"));
+    out.push(G("neutral : 1000, 1100, white, black","supprimé"));
+    out.push(M("hors de la courbe de 50 à 950 ; white et black deviennent colors/white et colors/black dans primitives (D10)","del"));
+    return out;
+  }
+  function primRows(){
+    var out=[];
+    var g="colors/terracota/light";out.push(G(g,"renommé, recalculé"));
+    ["100","600","700","800","900"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.light[idx(n)])],"mod",{label:"colors/terracota/"+n,hex:D.prim.terracota[n]}));});
+    out.push(M("… 6 autres nuances","mod"));
+    g="colors/terracota/dark";out.push(G(g,"ajouté"));
+    ["100","600","700","800","900"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.dark[idx(n)])],"new"));});
+    out.push(M("… 6 autres nuances","new"));
+    [["deep","mod"],["sky","mod"],["rose","mod"],["mimosa","new"],["ardoise","new"]].forEach(function(e){
+      ["light","dark"].forEach(function(t){
+        var gg="colors/"+e[0]+"/"+t,st=(t==="dark"||e[1]==="new")?"new":"mod";
+        out.push(G(gg,st==="new"?"ajouté":"renommé, recalculé"));
+        out.push(R(gg,"700",[H(PAL[e[0]][t][7])],st,st==="mod"?{label:"colors/"+e[0]+"/700",hex:D.prim[e[0]]["700"]}:null));
+      });
+    });
+    out.push(M("… chaque palette de marque : 11 nuances en light, 11 en dark. mimosa et ardoise sont les palettes de marque-3","new"));
+    [["soft","light",["100","700"]],["soft","dark",["100","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
+      var gg="colors/grass/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
+      e[2].forEach(function(n){out.push(R(gg,n,[H(PAL.grass[e[0]][e[1]][idx(n)])],"new"));});
+    });
+    [["vivid","light"],["vivid","dark"]].forEach(function(e){
+      var gg="colors/blue/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
+      ["100","700"].forEach(function(n){out.push(R(gg,n,[H(PAL.blue[e[0]][e[1]][idx(n)])],"new"));});
+    });
+    out.push(G("colors/orange/vivid/light","ajouté"));
+    out.push(R("colors/orange/vivid/light","600",[H(PAL.orange.vivid.light[idx("600")])],"new"));
+    out.push(M("… orange et poppy, et blue en soft : même forme, 44 nuances par palette. Les anciennes nuances de grass, orange, poppy et blue sont remplacées","new"));
+    ["light","dark"].forEach(function(t){
+      var gg="colors/titanium/"+t;out.push(G(gg,t==="light"?"renommé, recalculé":"ajouté"));
+      ["50","100","200","500","700","900"].forEach(function(n){out.push(R(gg,n,[H(PAL.titanium[t][idx(n)])],t==="light"?"mod":"new",t==="light"?{label:"colors/titanium/"+n,hex:D.prim.titanium[n]}:null));});
+      out.push(M("… 5 autres nuances",t==="light"?"mod":"new"));
+    });
+    out.push(G("colors","renommé"));
+    out.push(R("colors","white",[H("#FFFFFF")],"mod",{label:"colors/titanium/0"}));
+    out.push(R("colors","black",[H("#000000")],"mod",{label:"colors/titanium/1200"}));
+    out.push(G("colors/titanium : 1000, 1100","supprimé"));
+    out.push(M("hors de la courbe de 50 à 950","del"));
+    out.push(G("dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily","inchangé"));
+    out.push(M("73 variables sans couleur"));
+    return out;
+  }
+
+  function lnk(id){return '<a href="#'+id+'">'+id.toUpperCase()+"</a>";}
+  var VIEWS={
+    today:[
+      {id:"components",info:"aucun mode · 369 variables",modes:["Valeur"],rows:compRows(false),tag:["mod","valeurs modifiées"],
+        note:["Les couleurs des composants. Chacune vise directement color-brand-tokens, color-utilities ou primitives.","256 des 306 couleurs visent une collection sans mode : aucune ne peut suivre un thème."]},
+      {id:"color-brand-tokens",info:"2 modes · 10 variables",modes:["intencial","marque-2"],rows:rolesToday(),tag:["mod","devient brand"],
+        note:["La seule collection à modes : une colonne par marque. Chaque rôle choisit une nuance dans color-brands.","Les nuances choisies diffèrent selon la marque : secondary/default vise 700 chez intencial et 500 chez marque-2."]},
+      {id:"color-brands",info:"aucun mode · 44 variables",modes:["Valeur"],rows:[].concat(brandsGroup("intencial/primary",["50","200","500","600","700"]),brandsGroup("intencial/secondary",["100","200","700","800","900"]),brandsGroup("marque-2/primary",["50","200","500","600","700"]),brandsGroup("marque-2/secondary",["50","200","500","700","900"])),tag:["del","fusionnée"],
+        note:["Un dossier par marque, sans mode. Chaque nuance vise une palette de primitives : intencial/primary vise terracota."]},
+      {id:"color-utilities",info:"aucun mode · 54 variables",modes:["Valeur"],rows:utilToday(),tag:["mod","conservée"],
+        note:["Les rôles communs à toutes les marques : success vise grass, info vise sky. Une seule version, sans thème."]},
+      {id:"primitives",info:"aucun mode · 175 variables",modes:["Valeur"],rows:primToday(),tag:["mod","conservée"],
+        note:["Neuf palettes dessinées à l’œil, plus les dimensions et la typographie.","39 couleurs de composants visent ces palettes directement."]},
+      {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke"),M("31 dimensions, en alias vers primitives")],tag:["same","inchangée"],note:["Aucune couleur."]},
+      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label"),M("60 variables de texte, en alias vers primitives")],tag:["same","inchangée"],note:["Aucune couleur."]}
+    ],
+    tomorrow:[
+      {id:"components",info:"aucun mode · mêmes noms",modes:["Valeur"],rows:compRows(true),tag:["mod","valeurs modifiées"],
+        note:["Mêmes noms. Chaque couleur vise l’usage de la table qui correspond à ce qu’elle peint ; sous chaque valeur, l’alias d’aujourd’hui.","Une couleur hors table vise une nuance de theme par un token nommé, comme scale-5 en bas. "+lnk("d11")+" · "+lnk("d13")+" · "+lnk("d14")]},
+      {id:"usage",info:"aucun mode · 226 variables",modes:["Valeur"],rows:usageRows(),tag:["prop","nouvelle"],
+        note:["La table des emplois en variables : 20 usages par palette, sur quatre rangs d’état, avec les noms du code d’UCM Palettes. Chaque usage vise une nuance de theme, la même pour toutes les marques.","Chaque usage n’apparaît que dans les sélecteurs de ce qu’il peint : texte, remplissage ou contour. "+lnk("d13")+" · "+lnk("d14")+" · "+lnk("d16")]},
+      {id:"theme",info:"2 modes · 124 variables",modes:["light","dark"],rows:themeRows(),tag:["new","nouvelle"],
+        note:["Le seul endroit où le thème se choisit. Chaque nuance vise la même nuance en version light et en version dark ; aucune valeur ne se choisit ici. Portées vides : theme n’apparaît dans aucun sélecteur de calque.","En dark, les numéros s’inversent : 50 est le fond, le plus sombre ; 700 reste une couleur de texte lisible. Le groupe elevation vise color-utilities, où ses valeurs se choisissent. "+lnk("d2")+" · "+lnk("d15")]},
+      {id:"brand",info:"1 mode par marque · 45 variables",modes:["intencial","marque-2","marque-3","… jusqu’à 6"],newCol:2,rows:brandRows(),tag:["mod","ex-color-brand-tokens"],
+        note:["color-brand-tokens renommée. Chaque colonne choisit les palettes de sa marque dans primitives, par alias. identity/primary garde la couleur de charte.","Les 10 rôles sont supprimés. La colonne marque-3 montre l’ajout d’une marque : une colonne, aucune variable. "+lnk("d3")+" · "+lnk("d4")+" · "+lnk("d9")]},
+      {id:"color-utilities",info:"aucun mode · 204 variables",modes:["Valeur"],rows:utilRows(),tag:["prop","conservée, modifiée"],
+        note:["Les rôles communs à toutes les marques. Chaque statut existe en soft et vivid, en light et dark ; le neutre en light et dark.","info vise maintenant blue : il ne partage plus sky avec la palette principale de marque-2. Les niveaux d’élévation choisissent leur valeur claire et leur valeur sombre séparément. "+lnk("d6")+" · "+lnk("d8")+" · "+lnk("d15")]},
+      {id:"primitives",info:"aucun mode · 464 couleurs pour 6 marques",modes:["Valeur"],rows:primRows(),tag:["prop","conservée, modifiée"],
+        note:["Le catalogue des palettes, sous leur nom. Chacune reçoit une version light et une version dark, recalculées sur la courbe commune. Sous une valeur recalculée, la valeur d’aujourd’hui.","Dimensions et typographie inchangées. "+lnk("d5")+" · "+lnk("d7")+" · "+lnk("d10")]},
+      {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke","inchangé"),M("31 dimensions")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
+      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label","inchangé"),M("60 variables de texte")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
+      {id:"color-brands",gone:true,info:"supprimée",modes:["Valeur"],rows:[G("intencial/…, marque-2/…","supprimé"),M("44 variables","del")],tag:["del","fusionnée"],
+        note:["Supprimée. Ses choix de palettes sont dans les colonnes de brand, groupe palette. "+lnk("d3")]}
+    ]
+  };
+
+  var state={view:"today",col:"components"};
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+  function sq(h){return '<span class="sq" style="background:'+h+'"></span>';}
+  function label(path){var p=path.split(".");return '<span class="col">'+p[0]+' ›</span> '+p.slice(1).join("/");}
+  function cell(c){
+    if(!c)return "";
+    if(c.a)return '<button type="button" class="chip" data-path="'+c.a+'">'+(c.hex?sq(c.hex):"")+label(c.a)+"</button>";
+    if(c.h)return '<span class="val">'+sq(c.h)+c.h+"</span>";
+    return esc(c.t||"");
+  }
+  function oldHtml(o){
+    var s='<span class="old">avant : <s>'+(o.a?label(o.a):esc(o.label))+"</s>";
+    if(o.hex)s+=" "+sq(o.hex)+o.hex;
+    return s+"</span>";
+  }
+  var TAGCLS={"ajouté":"new","supprimé":"del","inchangé":"same","renommé":"mod","renommé, recalculé":"mod","hors table (D14)":"mod"};
+  function render(hl){
+    var cols=VIEWS[state.view],col=cols.filter(function(c){return c.id===state.col;})[0]||cols[0];
+    state.col=col.id;
+    document.querySelectorAll(".seg button").forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-view")===state.view));});
+    $("legend").hidden=state.view!=="tomorrow";
+    $("fx-cols").innerHTML='<span class="lab">Collections</span>'+cols.map(function(c){
+      return '<button type="button" data-col="'+c.id+'" class="'+(c.gone?"gone":"")+'" aria-current="'+(c.id===col.id)+'"><span class="cn">'+c.id+'</span><span class="tag '+c.tag[0]+'">'+c.tag[1]+"</span></button>";
+    }).join("");
+    $("fx-head").innerHTML="<b>"+col.id+"</b><span>"+col.info+"</span>";
+    $("fx-note").innerHTML=col.note.map(function(n){return "<p>"+n+"</p>";}).join("");
+    $("fx-thead").innerHTML="<tr><th>Nom</th>"+col.modes.map(function(m,i){var nw=col.newCol===i;return '<th class="'+(nw?"newcol":"")+'">'+esc(m)+(nw?" (marque ajoutée)":"")+"</th>";}).join("")+"</tr>";
+    var span=col.modes.length+1;
+    $("fx-tbody").innerHTML=col.rows.map(function(r){
+      if(r.g!==undefined){var tg=r.tag?'<span class="tag '+(TAGCLS[r.tag]||"same")+'">'+esc(r.tag)+"</span>":"";return '<tr class="g"><td colspan="'+span+'">'+esc(r.g)+tg+"</td></tr>";}
+      if(r.more!==undefined)return '<tr class="more '+r.st+'"><td colspan="'+span+'">'+esc(r.more)+"</td></tr>";
+      var cells=r.c.map(function(c,i){var h=cell(c);if(i===0&&r.old)h+=oldHtml(r.old);return "<td>"+h+"</td>";});
+      while(cells.length<col.modes.length)cells.push("<td></td>");
+      return '<tr class="'+r.st+(hl&&hl===r.k?" hl":"")+'" data-k="'+r.k+'"><td class="nm">'+esc(r.n)+"</td>"+cells.join("")+"</tr>";
+    }).join("");
+    if(hl){var row=document.querySelector('#fx-tbody tr[data-k="'+hl+'"]');if(row&&row.scrollIntoView)row.scrollIntoView({block:"nearest"});}
+  }
+  function go(path){
+    var p=path.split("."),col=p[0],k=p.slice(1).join("/");
+    if(!VIEWS[state.view].some(function(c){return c.id===col;}))return;
+    state.col=col;render(k);
+  }
+  var SWAP={today:{"color-brand-tokens":"brand"},tomorrow:{"brand":"color-brand-tokens","theme":"components","usage":"components","color-brands":"color-brands"}};
+  $("fx").addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t)return;
+    if(t.hasAttribute("data-view")){
+      var v=t.getAttribute("data-view");
+      if(v!==state.view){state.col=SWAP[state.view][state.col]||state.col;state.view=v;render();}
+    }
+    else if(t.hasAttribute("data-col")){state.col=t.getAttribute("data-col");render();}
+    else if(t.hasAttribute("data-path"))go(t.getAttribute("data-path"));
   });
-  show('theme');
+  document.querySelectorAll("[data-go]").forEach(function(b){
+    b.addEventListener("click",function(){var p=b.getAttribute("data-go").split(":");state.view=p[0];state.col=p[1];render();$("fx").scrollIntoView({behavior:"smooth",block:"start"});});
+  });
+  render();
 })();
 </script>
-</body>
-</html>
+</body></html>

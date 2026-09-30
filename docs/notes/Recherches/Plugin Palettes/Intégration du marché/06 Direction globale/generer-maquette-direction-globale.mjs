@@ -1,0 +1,2255 @@
+#!/usr/bin/env node
+/**
+ * Écrit MAQUETTE-DIRECTION-GLOBALE.html à côté de ce script, depuis la racine
+ * du dépôt :
+ *
+ *   node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/06 Direction globale/generer-maquette-direction-globale.mjs"
+ *
+ * La page embarque le moteur du dépôt, lié par esbuild, et les fonctions de la
+ * direction que ce module exporte : régularité d'une rampe, correction
+ * proposée, plan des variables, comparaison à trois valeurs, vision simulée.
+ * `mesurer-direction-globale.mjs` importe les mêmes fonctions : la mesure et
+ * la maquette calculent avec le même code. Chaque fonction reçoit le moteur en
+ * paramètre `M` et ne lit rien d'autre, pour que son texte se recopie tel quel
+ * dans la page.
+ */
+import { readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ICI = path.dirname(fileURLToPath(import.meta.url));
+const RACINE = path.resolve(ICI, '../../../../../../');
+
+// ------------------------------------------------------------ données communes
+
+/** Le système de démonstration : deux marques, les couleurs communes, un essai. */
+export const SYSTEME_DE_DEMONSTRATION = {
+  marques: [{ id: 'm-a', nom: 'Marque A' }, { id: 'm-b', nom: 'Marque B' }],
+  palettes: [
+    { id: 'p-0000000a', nom: 'Neutre', reference: '#808080', intensites: 1, destination: { type: 'communes', famille: 'neutral' } },
+    { id: 'p-0000000b', nom: 'Rouge', reference: '#DC2626', intensites: 2, destination: { type: 'communes', famille: 'danger' } },
+    { id: 'p-0000000c', nom: 'Ambre', reference: '#D97706', intensites: 2, destination: { type: 'communes', famille: 'warning' } },
+    { id: 'p-0000000d', nom: 'Vert', reference: '#16A34A', intensites: 2, destination: { type: 'communes', famille: 'success' } },
+    { id: 'p-0000000e', nom: 'Azur', reference: '#2563EB', intensites: 2, destination: { type: 'communes', famille: 'info' } },
+    { id: 'p-00000001', nom: 'Bleu A', reference: '#1E6FD9', intensites: 1, destination: { type: 'marque', marque: 'm-a', famille: 'primary' } },
+    { id: 'p-00000002', nom: 'Orange A', reference: '#E08A00', intensites: 1, destination: { type: 'marque', marque: 'm-a', famille: 'secondary' } },
+    { id: 'p-00000003', nom: 'Bleu B', reference: '#1D4ED8', intensites: 1, destination: { type: 'marque', marque: 'm-b', famille: 'primary' } },
+    { id: 'p-00000004', nom: 'Sarcelle B', reference: '#00A389', intensites: 1, destination: { type: 'marque', marque: 'm-b', famille: 'secondary' } },
+  ],
+};
+
+/**
+ * Les rampes faites à l'œil que la direction mesure, Thème Light, de 50 à
+ * 950. Bleu A vient de la proposition en trois étapes ; rouge, vert, ambre et
+ * bleu sont les rampes de Tailwind 3, dessinées à la main par leurs auteurs ;
+ * Orange A a un 700 trop clair que le designer tient à garder.
+ */
+export const RAMPES_LUES = {
+  'Bleu A': { reference: '#1E6FD9', intensites: 1, lue: ['#E8F1FD', '#C7DCFA', '#9DC2F6', '#6FA5F0', '#4A8EEA', '#3480E6', '#1E6FD9', '#1B63C4', '#1856A9', '#134385', '#0D2E5C'] },
+  'Rouge (Tailwind red)': { reference: '#DC2626', intensites: 2, lue: ['#FEF2F2', '#FEE2E2', '#FECACA', '#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'] },
+  'Vert (Tailwind green)': { reference: '#16A34A', intensites: 2, lue: ['#F0FDF4', '#DCFCE7', '#BBF7D0', '#86EFAC', '#4ADE80', '#22C55E', '#16A34A', '#15803D', '#166534', '#14532D', '#052E16'] },
+  'Ambre (Tailwind amber)': { reference: '#D97706', intensites: 2, lue: ['#FFFBEB', '#FEF3C7', '#FDE68A', '#FCD34D', '#FBBF24', '#F59E0B', '#D97706', '#B45309', '#92400E', '#78350F', '#451A03'] },
+  'Azur (Tailwind blue)': { reference: '#2563EB', intensites: 2, lue: ['#EFF6FF', '#DBEAFE', '#BFDBFE', '#93C5FD', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#1E40AF', '#1E3A8A', '#172554'] },
+  'Orange A': { reference: '#E08A00', intensites: 1, lue: ['#FFF7ED', '#FFEDD5', '#FED7AA', '#FDBA74', '#FB923C', '#E08A00', '#D96A00', '#D35400', '#A33F00', '#7C2D12', '#431407'], verrous: [700] },
+};
+
+/** Les bornes du critère de régularité : un pas corrigé reste entre la moitié du plus court et une fois et demie le plus long des deux pas qu'il mêle. */
+export const REGULARITE = { court: 0.5, long: 1.5 };
+
+// ------------------------------------------------------------ fonctions de la direction
+
+/** La clé d'une nuance : intensité, thème, numéro. */
+function cleDeNuance(intensite, mode, cran) {
+  return `${intensite}/${mode}/${cran}`;
+}
+
+/** Les rampes calculées d'une palette, en hexas : `{ intensite: { light: [...], dark: [...] } }`. */
+function rampesCalculees(M, recette, palette) {
+  const brutes = M.rampesDe(recette, palette);
+  const sortie = {};
+  for (const intensite of Object.keys(brutes)) {
+    sortie[intensite] = { light: brutes[intensite].light.map((c) => M.ecrireHexa(c.couleur)), dark: brutes[intensite].dark.map((c) => M.ecrireHexa(c.couleur)) };
+  }
+  return sortie;
+}
+
+/** Les rampes effectives : les rampes calculées où chaque retouche adoptée remplace sa nuance. */
+function rampesEffectives(M, recette, palette, retouches) {
+  const rampes = rampesCalculees(M, recette, palette);
+  for (const [cle, hexa] of Object.entries(retouches || {})) {
+    const [intensite, mode, cran] = cle.split('/');
+    const rang = recette.crans.indexOf(Number(cran));
+    if (rampes[intensite] && rang >= 0) rampes[intensite][mode][rang] = hexa;
+  }
+  return rampes;
+}
+
+/**
+ * Les garanties d'une palette jugées sur ses rampes effectives : les paires
+ * du moteur, dont chaque contraste se recalcule sur la nuance retouchée.
+ */
+function garantiesEffectives(M, recette, palette, retouches) {
+  const rampes = rampesEffectives(M, recette, palette, retouches);
+  return M.verifierPromesses(recette, palette).map((promesse) => {
+    const couleur = (membre) => (membre.nature === 'cran'
+      ? M.lireHexa(rampes[promesse.profil][promesse.mode][recette.crans.indexOf(membre.cran)])
+      : membre.couleur);
+    const valeur = M.contraste(couleur(promesse.premier), couleur(promesse.second));
+    return { ...promesse, contraste: valeur, verdict: M.atteintLeSeuil(valeur, promesse.seuil) ? 'tenue' : 'manquee' };
+  });
+}
+
+/**
+ * Le critère de régularité d'une rampe corrigée. Monotonie : la clarté OKLCH
+ * baisse à chaque nuance en Thème Light et monte en Thème Dark. Pas borné :
+ * l'écart ΔEok entre deux voisines reste entre `court` fois le plus court et
+ * `long` fois le plus long des écarts que les deux rampes d'origine donnent à
+ * la même paire. Une rampe qui ne mêle rien passe toujours.
+ */
+function regularite(M, rampe, lue, calculee, mode, bornes) {
+  const clarte = (hexa) => M.rgb8VersOklch(M.lireHexa(hexa)).L;
+  const pas = (a, b) => M.distanceOk(M.lireHexa(a), M.lireHexa(b));
+  const defauts = [];
+  for (let rang = 1; rang < rampe.length; rang += 1) {
+    const avant = clarte(rampe[rang - 1]);
+    const apres = clarte(rampe[rang]);
+    if (mode === 'light' ? !(apres < avant) : !(apres > avant)) defauts.push({ rang, raison: 'monotonie' });
+    const ici = pas(rampe[rang - 1], rampe[rang]);
+    const deLue = pas(lue[rang - 1], lue[rang]);
+    const deCalculee = pas(calculee[rang - 1], calculee[rang]);
+    const bas = bornes.court * Math.min(deLue, deCalculee);
+    const haut = bornes.long * Math.max(deLue, deCalculee);
+    if (ici < bas) defauts.push({ rang, raison: 'pas-court', pas: ici, borne: bas });
+    else if (ici > haut) defauts.push({ rang, raison: 'pas-long', pas: ici, borne: haut });
+  }
+  return { reguliere: defauts.length === 0, defauts };
+}
+
+/**
+ * La correction proposée d'une rampe reprise : l'ensemble le plus petit de
+ * nuances retouchées à rétablir pour que la rampe manque au plus autant de
+ * garanties que la rampe calculée, en restant régulière. La recherche essaie
+ * tous les ensembles, 2^n pour n nuances retouchées ; à taille égale, le plus
+ * petit écart ΔEok cumulé l'emporte. Une nuance verrouillée par le designer
+ * n'entre dans aucun ensemble. Sans ensemble qui atteint la cible, la
+ * meilleure correction régulière est rendue, avec `atteinte` à faux.
+ */
+function corrigerRampe(M, recette, palette, retouches, intensite, mode, verrous, bornes) {
+  const calculee = rampesCalculees(M, recette, palette)[intensite][mode];
+  const lue = rampesEffectives(M, recette, palette, retouches)[intensite][mode];
+  const promesses = M.verifierPromesses(recette, palette).filter((p) => p.profil === intensite && p.mode === mode);
+  const manquees = (rampe) => promesses.filter((p) => {
+    const couleur = (membre) => (membre.nature === 'cran' ? M.lireHexa(rampe[recette.crans.indexOf(membre.cran)]) : membre.couleur);
+    return !M.atteintLeSeuil(M.contraste(couleur(p.premier), couleur(p.second)), p.seuil);
+  });
+  const cible = manquees(calculee).length;
+  const reprises = recette.crans.map((cran, rang) => rang).filter((rang) => lue[rang] !== calculee[rang]);
+  const libres = reprises.filter((rang) => !(verrous || []).includes(recette.crans[rang]));
+  const ecart = (rang) => M.distanceOk(M.lireHexa(lue[rang]), M.lireHexa(calculee[rang]));
+  let minimale = null;
+  let meilleure = null;
+  let meilleureSansCible = null;
+  for (let masque = 0; masque < (1 << libres.length); masque += 1) {
+    const retablies = libres.filter((_, j) => masque & (1 << j));
+    const rampe = lue.map((hexa, rang) => (retablies.includes(rang) ? calculee[rang] : hexa));
+    const manque = manquees(rampe).length;
+    const cout = retablies.reduce((total, rang) => total + ecart(rang), 0);
+    if (manque <= cible && (!minimale || retablies.length < minimale.length)) minimale = retablies;
+    const reguliere = regularite(M, rampe, lue, calculee, mode, bornes).reguliere;
+    if (!reguliere) continue;
+    const candidate = { retablies, manque, cout, rampe };
+    if (manque <= cible) {
+      if (!meilleure || retablies.length < meilleure.retablies.length || (retablies.length === meilleure.retablies.length && cout < meilleure.cout)) meilleure = candidate;
+    } else if (!meilleureSansCible || manque < meilleureSansCible.manque
+      || (manque === meilleureSansCible.manque && retablies.length < meilleureSansCible.retablies.length)) {
+      meilleureSansCible = candidate;
+    }
+  }
+  const retenue = meilleure || meilleureSansCible;
+  const numeros = (rangs) => (rangs || []).map((rang) => recette.crans[rang]);
+  return {
+    intensite,
+    mode,
+    cible,
+    avant: manquees(lue).length,
+    reprises: numeros(reprises),
+    minimaleSansRegularite: numeros(minimale),
+    retablies: numeros(retenue ? retenue.retablies : []),
+    apres: retenue ? retenue.manque : manquees(lue).length,
+    atteinte: Boolean(meilleure),
+    toutes: Boolean(meilleure) && meilleure.retablies.length === libres.length && libres.length > 0,
+    rampe: retenue ? retenue.rampe : lue,
+    lue,
+    calculee,
+  };
+}
+
+/**
+ * Une rampe lue devient des retouches de l'intensité porteuse. La nuance où
+ * le moteur ancre la référence n'en reçoit aucune ([MOT-17]). Une nuance lue
+ * égale à la référence, ailleurs que sur ce cran, ferait un doublon : elle
+ * prend la valeur calculée, et la lecture le dit. Un thème absent de la
+ * lecture garde la rampe calculée.
+ */
+function lireUneRampe(M, recette, palette, lue) {
+  const ancrage = M.ancrageDe(recette, palette);
+  const intensite = ancrage.profil;
+  const calculees = rampesCalculees(M, recette, palette)[intensite];
+  const retouches = {};
+  const doublons = [];
+  const ecarts = {};
+  for (const mode of ['light', 'dark']) {
+    const rampe = lue[mode];
+    if (!rampe) continue;
+    ecarts[mode] = rampe.map((hexa, rang) => M.distanceOk(M.lireHexa(hexa), M.lireHexa(calculees[mode][rang])));
+    rampe.forEach((hexa, rang) => {
+      const cran = recette.crans[rang];
+      if (rang === ancrage.rangs[mode]) return;
+      if (hexa.toUpperCase() === palette.reference.toUpperCase()) {
+        doublons.push({ mode, cran });
+        return;
+      }
+      if (hexa.toUpperCase() !== calculees[mode][rang]) retouches[cleDeNuance(intensite, mode, cran)] = hexa.toUpperCase();
+    });
+  }
+  const rangLu = lue.light ? lue.light.findIndex((hexa) => hexa.toUpperCase() === palette.reference.toUpperCase()) : -1;
+  return {
+    intensite,
+    retouches,
+    doublons,
+    ecarts,
+    ancrage: ancrage.crans,
+    referenceLue: rangLu >= 0 ? recette.crans[rangLu] : null,
+    themesLus: ['light', 'dark'].filter((mode) => lue[mode]),
+  };
+}
+
+/** Les matrices de libDaltonLens, en sRGB linéaire : Viénot 1999 pour la protanopie et la deutéranopie, Brettel 1997 pour la tritanopie. */
+const MATRICES_DE_VISION = {
+  protanopie: [0.11238, 0.88762, 0.0, 0.11238, 0.88762, 0.0, 0.00401, -0.00401, 1.0],
+  deuteranopie: [0.29275, 0.70725, 0.0, 0.29275, 0.70725, 0.0, -0.02234, 0.02234, 1.0],
+  tritanopie1: [1.01277, 0.13548, -0.14826, -0.01243, 0.86812, 0.14431, 0.07589, 0.805, 0.11911],
+  tritanopie2: [0.93678, 0.18979, -0.12657, 0.06154, 0.81526, 0.1232, -0.37562, 1.12767, 0.24796],
+  plan: [0.0345, -0.02354, -0.01096],
+};
+
+/** La couleur que voit une vision dichromate complète ; la vision normale la rend telle quelle. */
+function simulerVision(M, vision, couleur) {
+  if (vision === 'normale') return couleur;
+  const appliquer = (m, [r, g, b]) => [m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b];
+  const borner = (t) => t.map((x) => Math.min(1, Math.max(0, x)));
+  const lineaire = M.rgb8VersLineaire(couleur);
+  let matrice = MATRICES_DE_VISION[vision];
+  if (vision === 'tritanopie') {
+    const cote = lineaire[0] * MATRICES_DE_VISION.plan[0] + lineaire[1] * MATRICES_DE_VISION.plan[1] + lineaire[2] * MATRICES_DE_VISION.plan[2];
+    matrice = cote >= 0 ? MATRICES_DE_VISION.tritanopie1 : MATRICES_DE_VISION.tritanopie2;
+  }
+  return M.lineaireVersRgb8(borner(appliquer(matrice, lineaire)));
+}
+
+/**
+ * La distance de l'alerte « Palettes proches » dans une vision : ΔEok moyen sur
+ * 500, 600 et 700, Thème Light, sur les rampes que `distanceDePalettes`
+ * compare ([VER-17]). En vision normale, elle vaut celle du moteur.
+ */
+function distanceEnVision(M, recette, a, b, vision) {
+  if (vision === 'normale') return M.distanceDePalettes(recette, a, b);
+  const rangs = [500, 600, 700].map((cran) => recette.crans.indexOf(cran));
+  if (rangs.some((rang) => rang < 0)) return null;
+  const cotes = (p) => (p.intensites === 1 ? ['unique'] : ['soft', 'vivid']);
+  const paires = (a.intensites === 1 || b.intensites === 1)
+    ? cotes(a).flatMap((x) => cotes(b).map((y) => [x, y]))
+    : [['vivid', 'vivid']];
+  const rampesA = M.rampesDe(recette, a);
+  const rampesB = M.rampesDe(recette, b);
+  return Math.min(...paires.map(([x, y]) => rangs.reduce((total, rang) => total
+    + M.distanceOk(simulerVision(M, vision, rampesA[x].light[rang].couleur), simulerVision(M, vision, rampesB[y].light[rang].couleur)), 0) / rangs.length));
+}
+
+/**
+ * Deux palettes se comparent quand elles peuvent s'afficher ensemble : deux
+ * palettes de deux marques différentes ne partagent jamais un mode de
+ * `brand`. Une palette sans marque se compare à toutes.
+ */
+function secomparent(meta, a, b) {
+  const da = (meta[a.id] || {}).destination || { type: 'aucune' };
+  const db = (meta[b.id] || {}).destination || { type: 'aucune' };
+  return !(da.type === 'marque' && db.type === 'marque' && da.marque !== db.marque);
+}
+
+/**
+ * Le plan des variables d'un système : une cible par valeur de variable, dans
+ * l'ordre d'écriture, `primitives`, `brand`, puis `theme`. Le nom d'une
+ * variable joint ses segments par `/`, parce que Figma refuse le point dans un
+ * nom ; UCM Exporter en fait le chemin à points de `tokens.json`. Une valeur
+ * est un hexa, ou un alias vers `collection:nom`.
+ */
+function planDesVariables(M, recette, meta, marques) {
+  const cibles = [];
+  const aliasDeMarque = new Set();
+  for (const palette of recette.palettes) {
+    const destination = (meta[palette.id] || {}).destination;
+    if (!destination || destination.type === 'aucune' || destination.type === 'variables') continue;
+    const rampes = rampesEffectives(M, recette, palette, (meta[palette.id] || {}).retouches);
+    const intensites = Object.keys(rampes);
+    const segment = (intensite) => (intensite === 'unique' ? [] : [intensite]);
+    for (const intensite of intensites) {
+      for (const mode of ['light', 'dark']) {
+        recette.crans.forEach((cran, rang) => {
+          const valeur = rampes[intensite][mode][rang];
+          if (destination.type === 'communes') {
+            cibles.push({ palette: palette.id, collection: 'primitives', nom: [destination.famille, ...segment(intensite), mode, cran].join('/'), mode: 'defaut', valeur, nuance: cleDeNuance(intensite, mode, cran) });
+          } else {
+            cibles.push({ palette: palette.id, collection: 'brand', nom: ['palette', destination.famille, mode, cran].join('/'), mode: destination.marque, valeur, nuance: cleDeNuance(intensite, mode, cran) });
+          }
+        });
+      }
+    }
+    if (destination.type === 'marque') {
+      cibles.push({ palette: palette.id, collection: 'brand', nom: `identity/${destination.famille}`, mode: destination.marque, valeur: (palette.originale || palette.reference).toUpperCase(), nuance: 'identite' });
+    }
+    for (const intensite of intensites) {
+      recette.crans.forEach((cran) => {
+        const nom = [destination.famille, ...segment(intensite), cran].join('/');
+        if (destination.type === 'marque') {
+          if (aliasDeMarque.has(nom)) return;
+          aliasDeMarque.add(nom);
+        }
+        for (const mode of ['light', 'dark']) {
+          const vers = destination.type === 'communes'
+            ? `primitives:${[destination.famille, ...segment(intensite), mode, cran].join('/')}`
+            : `brand:${['palette', destination.famille, mode, cran].join('/')}`;
+          cibles.push({ palette: destination.type === 'communes' ? palette.id : null, famille: destination.famille, collection: 'theme', nom, mode, valeur: { alias: vers }, nuance: cleDeNuance(intensite, mode, cran) });
+        }
+      });
+    }
+  }
+  const rang = { primitives: 0, brand: 1, theme: 2 };
+  const ordre = (m) => (m === 'defaut' ? 0 : (marques.findIndex((x) => x.id === m) + 1) || 99);
+  return cibles.sort((a, b) => rang[a.collection] - rang[b.collection] || ordre(a.mode) - ordre(b.mode));
+}
+
+/** Vrai quand deux valeurs de variable sont égales : deux hexas, ou deux alias vers la même cible. */
+function memeValeur(a, b) {
+  if (a === undefined || a === null || b === undefined || b === null) return false;
+  if (typeof a === 'string' && typeof b === 'string') return a.toUpperCase() === b.toUpperCase();
+  return typeof a === 'object' && typeof b === 'object' && a.alias === b.alias;
+}
+
+/**
+ * La comparaison à trois valeurs d'une cible : la dernière valeur que le
+ * plugin a écrite, celle de la recette et celle de Figma. Une variable sans
+ * donnée du plugin, ou une valeur de mode que le plugin n'a jamais écrite, est
+ * sans provenance.
+ */
+function comparerTroisValeurs(cible, figma, derniere, variableExiste) {
+  if (!variableExiste) return 'a-creer';
+  if (derniere === undefined) return memeValeur(figma, cible.valeur) ? 'sans-provenance-egale' : 'sans-provenance';
+  const figmaBouge = !memeValeur(figma, derniere);
+  const recetteBouge = !memeValeur(cible.valeur, derniere);
+  if (!figmaBouge && !recetteBouge) return 'a-jour';
+  if (!figmaBouge && recetteBouge) return 'a-ecrire';
+  if (figmaBouge && !recetteBouge) return 'retouche';
+  if (memeValeur(figma, cible.valeur)) return 'rejointe';
+  return 'retouche-double';
+}
+
+/**
+ * Les comptes de l'architecture pour un système : variables et valeurs par
+ * mode de chaque collection, à `nuances` nuances et `marques` marques, avec une
+ * identité par famille de marque.
+ */
+function comptesDeLArchitecture(nuances, marques, famillesDeMarque, utilitaires) {
+  const primitives = 2 * nuances + utilitaires * 2 * 2 * nuances;
+  const brand = famillesDeMarque * (2 * nuances + 1);
+  const theme = nuances + utilitaires * 2 * nuances + famillesDeMarque * nuances;
+  return {
+    primitives: { variables: primitives, valeurs: primitives },
+    brand: { variables: brand, valeurs: brand * marques },
+    theme: { variables: theme, valeurs: theme * 2 },
+    variables: primitives + brand + theme,
+    valeurs: primitives + brand * marques + theme * 2,
+    cadres: 1 + utilitaires + famillesDeMarque * marques,
+  };
+}
+
+/** Les fonctions que la page recopie, dans l'ordre où elles se citent. */
+export const FONCTIONS_DE_LA_DIRECTION = [
+  cleDeNuance, rampesCalculees, rampesEffectives, garantiesEffectives, regularite, corrigerRampe,
+  lireUneRampe, simulerVision, distanceEnVision, secomparent, planDesVariables, memeValeur,
+  comparerTroisValeurs, comptesDeLArchitecture,
+];
+
+export {
+  cleDeNuance, rampesCalculees, rampesEffectives, garantiesEffectives, regularite, corrigerRampe,
+  lireUneRampe, simulerVision, distanceEnVision, secomparent, planDesVariables, memeValeur,
+  comparerTroisValeurs, comptesDeLArchitecture, MATRICES_DE_VISION,
+};
+
+// ------------------------------------------------------------ l'application de la page
+
+/**
+ * L'application de la maquette, recopiée dans la page par son texte : le
+ * plugin simulé, le document Figma simulé, le journal et les scénarios. Elle
+ * appelle les fonctions de la direction, déclarées avant elle dans la page, et
+ * le moteur `M`. Aucun résultat que le moteur sait calculer n'y est écrit en
+ * dur : couleurs, garanties, distances et comptes sortent des calculs.
+ */
+function application(M) {
+  const $ = (selecteur, racine = document) => racine.querySelector(selecteur);
+  const echapper = (valeur) => String(valeur).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const virgule = (x, n = 2) => x.toFixed(n).replace('.', ',');
+  const ratio = (x) => M.ecrireContraste(x);
+  const R0 = M.recetteParDefaut();
+  const NOMS_COMMUNES = { neutral: 'Neutre', danger: 'Danger', warning: 'Avertissement', success: 'Succès', info: 'Information' };
+  const FAMILLES_COMMUNES = ['neutral', 'danger', 'warning', 'success', 'info'];
+  const FAMILLES_DE_MARQUE = ['primary', 'secondary'];
+  const A_DECIDER = ['retouche', 'retouche-double', 'sans-provenance', 'sans-provenance-egale'];
+  const A_ECRIRE = ['a-creer', 'mode-a-creer', 'a-ecrire', 'collection-homonyme'];
+  const MOTS_DES_EMPLOIS = { text: 'texte coloré', surface: 'fond léger', 'surface-card': 'fond de carte', 'border-control': 'bordure de champ', solid: 'fond plein', focus: 'anneau de focus', 'border-decorative': 'séparateur', 'on-solid': 'texte sur fond plein' };
+  const ETATS = ['default', 'hover', 'active'];
+  const erreurs = [];
+  window.addEventListener('error', (e) => erreurs.push(String(e.message)));
+
+  let E = null;
+  let compteurId = 1;
+  const nouvelId = (prefixe) => `${prefixe}${(compteurId++).toString(16).padStart(4, '0')}`;
+  const copie = (x) => JSON.parse(JSON.stringify(x));
+
+  // ------------------------------------------------ recette et palettes
+  const palettes = () => E.recette.palettes;
+  const paletteDe = (id) => palettes().find((p) => p.id === id);
+  const metaDe = (id) => (E.meta[id] = E.meta[id] || { destination: { type: 'aucune' }, retouches: {} });
+  const nomDe = (id) => (paletteDe(id) ? paletteDe(id).nom || paletteDe(id).reference : (E.supprimees[id] || id));
+  const marqueDe = (id) => E.marques.find((m) => m.id === id);
+  const intensitesDeLaDestination = (d, choix) => (d.type === 'communes' ? (d.famille === 'neutral' ? 1 : 2) : d.type === 'marque' ? 1 : choix);
+  function paletteNeuve(recette, id, nom, reference, intensites) {
+    const p = M.nouvellePalette(recette, id, reference, intensites);
+    return p ? { ...p, nom } : null;
+  }
+  function remplacer(palette) {
+    E.recette = { ...E.recette, palettes: palettes().map((p) => (p.id === palette.id ? palette : p)) };
+  }
+  function toucher(id) {
+    E.poste.add(id);
+    E.autrePoste.delete(id);
+  }
+  const effectives = (recette, meta, p) => rampesEffectives(M, recette, p, (meta[p.id] || {}).retouches);
+  const garanties = (recette, meta, p) => garantiesEffectives(M, recette, p, (meta[p.id] || {}).retouches);
+  const manqueesDe = (recette, meta, p) => garanties(recette, meta, p).filter((g) => g.verdict === 'manquee');
+  const libelleDestination = (d) => {
+    if (!d || d.type === 'aucune') return 'Sans destination';
+    if (d.type === 'communes') return `Couleurs communes · ${d.famille}`;
+    if (d.type === 'variables') return `Mes variables · ${d.collection}`;
+    return `${(marqueDe(d.marque) || { nom: '?' }).nom} · ${d.famille}`;
+  };
+  const cheminDe = (d, p) => {
+    if (!d || d.type === 'aucune') return 'aucune variable : la planche seule';
+    const seg = p && p.intensites !== 1 ? '{soft, vivid}/' : '';
+    if (d.type === 'communes') return `primitives · ${d.famille}/${seg}{light, dark}/{nuance}`;
+    if (d.type === 'variables') return `${d.collection} · ${d.motif}`;
+    return `brand · palette/${d.famille}/{light, dark}/{nuance} et identity/${d.famille}, mode ${(marqueDe(d.marque) || {}).nom}`;
+  };
+
+  // ------------------------------------------------ document simulé
+  function docVide() {
+    return { collections: [], cadres: {}, polices: true, limiteModes: 10, selection: null, suivi: { collections: {}, modes: {}, variables: {} } };
+  }
+  const collectionSuivie = (cle) => E.doc.collections.find((c) => c.id === E.doc.suivi.collections[cle]);
+  const collectionHomonyme = (cle) => E.doc.collections.find((c) => c.nom === E.collectionsNoms[cle] && c.id !== E.doc.suivi.collections[cle]);
+  function modeIdDe(collection, cible) {
+    if (cible.collection === 'primitives') return collection.modes[0] && collection.modes[0].id;
+    if (cible.collection === 'theme') return (collection.modes.find((m) => m.nom === cible.mode) || {}).id;
+    return E.doc.suivi.modes[cible.mode];
+  }
+  function variableDe(collection, cible) {
+    const id = E.doc.suivi.variables[`${cible.collection}:${cible.nom}`];
+    return collection.variables.find((v) => v.id === id) || collection.variables.find((v) => v.nom === cible.nom && !v.donnees) || null;
+  }
+  const dansLaPortee = (cible, portee, meta) => {
+    if (!portee) return true;
+    if (cible.palette) return portee.has(cible.palette);
+    return [...portee].some((id) => {
+      const d = (meta[id] || {}).destination;
+      return d && d.type === 'marque' && d.famille === cible.famille;
+    });
+  };
+  /** La comparaison à trois valeurs de chaque cible du plan, contre le document simulé. */
+  function analyser(recette, meta, portee, reprises) {
+    const plan = planDesVariables(M, recette, meta, E.marques);
+    return plan.filter((c) => dansLaPortee(c, portee, meta)).map((cible) => {
+      let collection = collectionSuivie(cible.collection);
+      let etat = null;
+      if (!collection) {
+        const homonyme = collectionHomonyme(cible.collection);
+        if (homonyme && reprises && reprises.has(cible.collection)) collection = homonyme;
+        else if (homonyme) etat = 'collection-homonyme';
+        else etat = 'a-creer';
+      }
+      const modeId = collection ? modeIdDe(collection, cible) : null;
+      const variable = collection ? variableDe(collection, cible) : null;
+      const figma = variable && modeId ? variable.valeurs[modeId] : undefined;
+      const derniere = variable && variable.donnees && modeId ? variable.donnees.derniere[modeId] : undefined;
+      if (!etat) {
+        if (!modeId) etat = variable ? 'mode-a-creer' : 'a-creer';
+        else if (!variable) etat = 'a-creer';
+        else if (!variable.donnees) etat = memeValeur(figma, cible.valeur) ? 'sans-provenance-egale' : 'sans-provenance';
+        else etat = comparerTroisValeurs(cible, figma, derniere, true);
+      }
+      return { cible, etat, figma, derniere, cle: `${cible.collection}:${cible.nom}|${cible.mode}` };
+    });
+  }
+  const empreinteDuCadre = (recette, meta, p) => JSON.stringify([p.nom, effectives(recette, meta, p)]);
+  function etatDuCadre(id) {
+    const cadre = E.doc.cadres[id];
+    const p = paletteDe(id);
+    if (!cadre) return 'jamais';
+    if (!p) return 'orphelin';
+    return cadre.empreinte === empreinteDuCadre(E.recette, E.meta, p) ? 'a-jour' : 'perimee';
+  }
+  /** Les calculs d'un rendu, faits une fois. */
+  let cache = null;
+  function calculs() {
+    if (cache) return cache;
+    const lignes = analyser(E.recette, E.meta, null, null);
+    const parPalette = {};
+    for (const p of palettes()) parPalette[p.id] = [];
+    for (const l of lignes) {
+      const ids = l.cible.palette ? [l.cible.palette] : palettes().filter((p) => {
+        const d = metaDe(p.id).destination;
+        return d.type === 'marque' && d.famille === l.cible.famille;
+      }).map((p) => p.id);
+      for (const id of ids) if (parPalette[id]) parPalette[id].push(l);
+    }
+    const etats = {};
+    for (const p of palettes()) {
+      const d = metaDe(p.id).destination;
+      const siennes = parPalette[p.id].filter((l) => l.cible.palette === p.id || l.cible.collection === 'theme');
+      const decisions = siennes.filter((l) => A_DECIDER.includes(l.etat));
+      const ecrire = siennes.filter((l) => A_ECRIRE.includes(l.etat));
+      const variables = d.type === 'aucune' ? 'aucune' : decisions.length ? 'a-decider' : ecrire.length ? 'a-ecrire' : 'a-jour';
+      etats[p.id] = { variables, decisions, ecrire, cadre: etatDuCadre(p.id), manquees: manqueesDe(E.recette, E.meta, p) };
+    }
+    const cibles = new Set(lignes.map((l) => `${l.cible.collection}:${l.cible.nom}`));
+    const orphelines = [];
+    for (const col of E.doc.collections) {
+      const cle = Object.keys(E.doc.suivi.collections).find((k) => E.doc.suivi.collections[k] === col.id);
+      if (!cle) continue;
+      for (const v of col.variables) if (v.donnees && !cibles.has(`${cle}:${v.nom}`)) orphelines.push({ collection: cle, variable: v });
+    }
+    const sansPalette = [];
+    const brand = collectionSuivie('brand');
+    if (brand) {
+      for (const [marque, modeId] of Object.entries(E.doc.suivi.modes)) {
+        for (const famille of FAMILLES_DE_MARQUE.concat(famillesAjoutees())) {
+          const presente = palettes().some((p) => { const d = metaDe(p.id).destination; return d.type === 'marque' && d.marque === marque && d.famille === famille; });
+          const variables = brand.variables.filter((v) => v.nom.startsWith(`palette/${famille}/`) && v.valeurs[modeId] !== undefined && !(v.donnees && v.donnees.derniere[modeId] !== undefined));
+          if (!presente && variables.length) sansPalette.push({ marque, famille, valeurs: variables.length });
+        }
+      }
+    }
+    const horsPlugin = brand ? brand.modes.filter((m) => !Object.values(E.doc.suivi.modes).includes(m.id)) : [];
+    cache = { lignes, parPalette, etats, orphelines, sansPalette, horsPlugin };
+    return cache;
+  }
+  const famillesAjoutees = () => [...new Set(palettes().map((p) => metaDe(p.id).destination).filter((d) => d.type === 'marque' && !FAMILLES_DE_MARQUE.includes(d.famille)).map((d) => d.famille))];
+
+  // ------------------------------------------------ écrire dans le document simulé
+  function assurerCollection(cle, reprendre) {
+    let col = collectionSuivie(cle);
+    if (col) return { col, creee: false };
+    if (reprendre) {
+      col = collectionHomonyme(cle);
+      E.doc.suivi.collections[cle] = col.id;
+      return { col, creee: false };
+    }
+    col = { id: nouvelId('VariableCollectionId:'), nom: E.collectionsNoms[cle], modes: [{ id: nouvelId('m:'), nom: 'Mode 1' }], variables: [] };
+    E.doc.collections.push(col);
+    E.doc.suivi.collections[cle] = col.id;
+    if (cle === 'theme') {
+      col.modes[0].nom = 'light';
+      col.modes.push({ id: nouvelId('m:'), nom: 'dark' });
+    } else if (cle === 'primitives') {
+      col.modes[0].nom = 'Valeur';
+    }
+    return { col, creee: true };
+  }
+  /** Le mode d'une marque dans `brand`, créé au besoin ; Figma refuse au-delà de la limite de l'offre. */
+  function assurerMode(col, marque) {
+    if (E.doc.suivi.modes[marque]) return { id: E.doc.suivi.modes[marque], cree: false };
+    const nom = (marqueDe(marque) || { nom: marque }).nom;
+    const libre = col.modes.find((m) => m.nom === 'Mode 1' && !Object.values(E.doc.suivi.modes).includes(m.id));
+    if (libre) {
+      libre.nom = nom;
+      E.doc.suivi.modes[marque] = libre.id;
+      return { id: libre.id, cree: true };
+    }
+    if (col.modes.length >= E.doc.limiteModes) throw new Error(`in addMode: Limited to ${E.doc.limiteModes} modes only`);
+    const mode = { id: nouvelId('m:'), nom };
+    const premier = col.modes[0].id;
+    for (const v of col.variables) v.valeurs[mode.id] = v.valeurs[premier];
+    col.modes.push(mode);
+    E.doc.suivi.modes[marque] = mode.id;
+    return { id: mode.id, cree: true };
+  }
+  function assurerVariable(col, cible) {
+    let v = variableDe(col, cible);
+    if (v) {
+      if (!v.donnees) v.donnees = { palette: cible.palette, derniere: {} };
+      E.doc.suivi.variables[`${cible.collection}:${cible.nom}`] = v.id;
+      return { v, creee: false };
+    }
+    v = { id: nouvelId('VariableID:'), nom: cible.nom, valeurs: {}, donnees: { palette: cible.palette, derniere: {} } };
+    col.variables.push(v);
+    E.doc.suivi.variables[`${cible.collection}:${cible.nom}`] = v.id;
+    return { v, creee: true };
+  }
+  function poserValeur(col, v, modeId, valeur) {
+    const vide = Object.keys(v.valeurs).length === 0;
+    v.valeurs[modeId] = copie(valeur);
+    v.donnees.derniere[modeId] = copie(valeur);
+    // Hypothèse de l'essai 3 : Figma remplit les autres modes d'une variable neuve avec la première valeur posée.
+    if (vide) for (const m of col.modes) if (m.id !== modeId) v.valeurs[m.id] = copie(valeur);
+  }
+  function instantane() {
+    return copie({ recette: E.recette, meta: E.meta, marques: E.marques, collectionsNoms: E.collectionsNoms, doc: E.doc, supprimees: E.supprimees });
+  }
+
+  /** La recette et les métadonnées après les adoptions de la revue. */
+  function apresDecisions(revue) {
+    let recette = E.recette;
+    const meta = copie(E.meta);
+    for (const [cle, choix] of Object.entries(revue.decisions)) {
+      if (choix !== 'adopter') continue;
+      const ligne = revue.avant.find((l) => l.cle === cle);
+      if (!ligne || !ligne.cible.palette || typeof ligne.figma !== 'string') continue;
+      const p = recette.palettes.find((x) => x.id === ligne.cible.palette);
+      if (!p) continue;
+      if (ligne.nature === 'reference' || ligne.nature === 'identite') {
+        const neuve = { ...M.changerReference(recette, p, ligne.figma), nom: p.nom };
+        recette = { ...recette, palettes: recette.palettes.map((x) => (x.id === p.id ? neuve : x)) };
+        meta[p.id].retouches = {};
+      } else if (ligne.cible.nuance) {
+        meta[p.id].retouches = { ...meta[p.id].retouches, [ligne.cible.nuance]: ligne.figma.toUpperCase() };
+      }
+    }
+    return { recette, meta };
+  }
+  /** La nature d'une valeur à décider : le cran ◆, l'identité, ou une nuance ordinaire. */
+  function natureDe(ligne, recette) {
+    if (ligne.cible.nuance === 'identite') return 'identite';
+    const p = recette.palettes.find((x) => x.id === ligne.cible.palette);
+    if (!p || !ligne.cible.nuance || ligne.cible.collection === 'theme') return 'nuance';
+    const [intensite, mode, cran] = ligne.cible.nuance.split('/');
+    const a = M.ancrageDe(recette, p);
+    return a.profil === intensite && a.crans[mode] === Number(cran) ? 'reference' : 'nuance';
+  }
+
+  /** Ouvre la revue d'une portée : une palette, ou toutes celles qui attendent. */
+  function ouvrirRevue(portee, titre) {
+    const c = calculs();
+    const ids = portee || palettes().filter((p) => c.etats[p.id].variables === 'a-ecrire' || c.etats[p.id].variables === 'a-decider' || c.etats[p.id].cadre !== 'a-jour').map((p) => p.id);
+    const exclues = new Set(ids.filter((id) => E.autrePoste.has(id) && !E.poste.has(id)));
+    E.revue = { ids, titre, exclues, sorties: { variables: true, planche: true }, decisions: {}, reprises: new Set(), message: null, bouges: [], retour: document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.geste : null };
+    preparerRevue();
+    E.revue.instantane = empreinteDuPlan(E.revue.avant);
+    rendre();
+    const premier = $('#p-modale [data-geste]');
+    if (premier) premier.focus();
+  }
+  function preparerRevue() {
+    const r = E.revue;
+    const portee = new Set(r.ids.filter((id) => !r.exclues.has(id)));
+    r.avant = analyser(E.recette, E.meta, portee, r.reprises).map((l) => ({ ...l, nature: natureDe(l, E.recette) }));
+    const apres = apresDecisions(r);
+    r.recetteApres = apres.recette;
+    r.metaApres = apres.meta;
+    r.apres = analyser(apres.recette, apres.meta, portee, r.reprises);
+    r.homonymes = ['primitives', 'brand', 'theme'].filter((cle) => r.avant.some((l) => l.cible.collection === cle && l.etat === 'collection-homonyme'));
+  }
+  const empreinteDuPlan = (lignes) => JSON.stringify(lignes.map((l) => [l.cle, l.etat, l.figma]));
+  /** Ce que la revue écrirait : les trois unités, sur les valeurs finales. */
+  function comptesDeLaRevue(r) {
+    const ecrites = r.sorties.variables ? r.apres.filter((l) => {
+      if (A_ECRIRE.includes(l.etat)) return !(l.etat === 'collection-homonyme');
+      const choix = r.decisions[l.cle];
+      return (l.etat === 'retouche' || l.etat === 'retouche-double') ? choix === 'remettre' : (l.etat === 'sans-provenance' && choix === 'remplacer');
+    }) : [];
+    const variables = new Set(ecrites.filter((l) => l.etat === 'a-creer').map((l) => `${l.cible.collection}:${l.cible.nom}`)).size;
+    const modes = new Set(ecrites.filter((l) => l.cible.collection === 'brand' && !E.doc.suivi.modes[l.cible.mode]).map((l) => l.cible.mode)).size;
+    const nonDecidees = r.avant.filter((l) => A_DECIDER.includes(l.etat) && !r.decisions[l.cle]).length;
+    const cadres = r.sorties.planche && E.doc.polices ? r.ids.filter((id) => !r.exclues.has(id) && paletteDe(id)
+      && E.doc.cadres[id]?.empreinte !== empreinteDuCadre(r.recetteApres, r.metaApres, r.recetteApres.palettes.find((p) => p.id === id))).length : 0;
+    return { variables, valeurs: ecrites.length, modes, cadres, nonDecidees, ecrites };
+  }
+
+  /** Les cinq temps : relire, préparer, contrôler, écrire sortie par sortie, faire le bilan. */
+  function appliquer() {
+    const r = E.revue;
+    if (E.crochetAuClic) {
+      const crochet = E.crochetAuClic;
+      E.crochetAuClic = null;
+      crochet();
+      cache = null;
+    }
+    const portee = new Set(r.ids.filter((id) => !r.exclues.has(id)));
+    const relu = analyser(E.recette, E.meta, portee, r.reprises);
+    if (empreinteDuPlan(relu) !== r.instantane) {
+      const avant = new Map(r.avant.map((l) => [l.cle, l]));
+      r.bouges = relu.filter((l) => { const a = avant.get(l.cle); return !a || a.etat !== l.etat || !memeValeur(a.figma, l.figma); }).map((l) => l.cle);
+      for (const cle of r.bouges) delete r.decisions[cle];
+      r.message = `Le fichier a changé depuis l'ouverture de cette revue. Rien n'a été écrit. ${r.bouges.length} valeur${r.bouges.length > 1 ? 's ont' : ' a'} bougé : ${r.bouges.map((c) => c.split('|')[0].split(':')[1]).join(', ')}. Décidez-la de nouveau, puis appliquez.`;
+      E.journal.unshift({ titre: 'Relecture au clic : le fichier a changé, rien n’est écrit', unites: { variables: 0, valeurs: 0, cadres: 0 } });
+      preparerRevue();
+      r.instantane = empreinteDuPlan(r.avant);
+      rendre();
+      return;
+    }
+    const comptes = comptesDeLaRevue(r);
+    E.pile.push({ titre: r.titre, etat: instantane() });
+    E.recette = r.recetteApres;
+    E.meta = r.metaApres;
+    const bilan = { titre: r.titre, variables: 0, valeurs: 0, modes: 0, cadres: 0, erreurs: [], nonDecidees: comptes.nonDecidees, planche: null, restent: [] };
+    const modesEnEchec = new Set();
+    if (r.sorties.variables) {
+      for (const l of comptes.ecrites) {
+        if (l.cible.collection === 'brand' && modesEnEchec.has(l.cible.mode)) continue;
+        const { col } = assurerCollection(l.cible.collection, r.reprises.has(l.cible.collection));
+        let modeId = modeIdDe(col, l.cible);
+        if (l.cible.collection === 'brand') {
+          try {
+            const mode = assurerMode(col, l.cible.mode);
+            modeId = mode.id;
+            if (mode.cree) bilan.modes += 1;
+          } catch (erreur) {
+            modesEnEchec.add(l.cible.mode);
+            const nom = (marqueDe(l.cible.mode) || {}).nom;
+            bilan.erreurs.push({ texte: `Figma refuse de créer le mode ${nom} : brand a atteint ${E.doc.limiteModes} modes, le nombre que l'offre du fichier admet. Les autres valeurs sont écrites.`, technique: erreur.message, marque: l.cible.mode });
+            continue;
+          }
+        }
+        const { v, creee } = assurerVariable(col, l.cible);
+        if (creee) bilan.variables += 1;
+        poserValeur(col, v, modeId, l.cible.valeur);
+        bilan.valeurs += 1;
+      }
+      for (const l of r.apres) {
+        const choix = r.decisions[l.cle];
+        const prendre = l.etat === 'rejointe' || (l.etat.startsWith('sans-provenance') && choix === 'reprendre') || (l.etat === 'sans-provenance-egale' && choix === 'remplacer');
+        if (!prendre) continue;
+        const col = collectionSuivie(l.cible.collection) || (r.reprises.has(l.cible.collection) ? collectionHomonyme(l.cible.collection) : null);
+        if (!col) continue;
+        const modeId = modeIdDe(col, l.cible);
+        const { v } = assurerVariable(col, l.cible);
+        if (modeId) v.donnees.derniere[modeId] = copie(v.valeurs[modeId]);
+      }
+    }
+    if (r.sorties.planche) {
+      if (!E.doc.polices) {
+        bilan.planche = 'police';
+      } else {
+        for (const id of portee) {
+          const p = paletteDe(id);
+          if (!p) continue;
+          const empreinte = empreinteDuCadre(E.recette, E.meta, p);
+          if (E.doc.cadres[id]?.empreinte === empreinte) continue;
+          E.doc.cadres[id] = { id: nouvelId('cadre:'), empreinte };
+          bilan.cadres += 1;
+        }
+      }
+    }
+    for (const marque of modesEnEchec) bilan.restent.push(...r.ids.filter((id) => metaDe(id).destination.marque === marque));
+    E.journal.unshift({ titre: r.titre, unites: { variables: bilan.variables, valeurs: bilan.valeurs, cadres: bilan.cadres }, modes: bilan.modes, nonDecidees: bilan.nonDecidees, erreurs: bilan.erreurs.map((e) => e.technique).concat(bilan.planche === 'police' ? ['Police Inter Semi Bold indisponible'] : []), laissees: calculsFrais().orphelines.length });
+    E.bilan = { ...bilan, portee: r.ids };
+    E.revue = null;
+    E.ui.onglet = 'systeme';
+    rendre();
+    const cible = $('[data-objet="bilan"]');
+    if (cible) cible.focus();
+  }
+  const calculsFrais = () => { cache = null; return calculs(); };
+
+  /** Dessine un cadre sans revue : aucune variable n'est concernée. */
+  function dessinerLeCadre(id) {
+    const p = paletteDe(id);
+    if (!p) return;
+    if (!E.doc.polices) {
+      E.bilan = { titre: `Cadre de ${p.nom}`, variables: 0, valeurs: 0, modes: 0, cadres: 0, erreurs: [], planche: 'police', nonDecidees: 0, restent: [] };
+      E.journal.unshift({ titre: `Dessin du cadre de ${p.nom} : police absente, rien n'est posé`, unites: { variables: 0, valeurs: 0, cadres: 0 } });
+    } else {
+      E.pile.push({ titre: `Cadre de ${p.nom}`, etat: instantane() });
+      E.doc.cadres[id] = { id: nouvelId('cadre:'), empreinte: empreinteDuCadre(E.recette, E.meta, p) };
+      E.bilan = { titre: `Cadre de ${p.nom}`, variables: 0, valeurs: 0, modes: 0, cadres: 1, erreurs: [], planche: null, nonDecidees: 0, restent: [] };
+      E.journal.unshift({ titre: `Dessin du cadre de ${p.nom}, sans revue`, unites: { variables: 0, valeurs: 0, cadres: 1 } });
+    }
+    E.ui.onglet = 'systeme';
+    rendre();
+  }
+  function annulerDansFigma() {
+    const pas = E.pile.pop();
+    if (!pas) return;
+    const avant = pas.etat;
+    Object.assign(E, { recette: avant.recette, meta: avant.meta, marques: avant.marques, collectionsNoms: avant.collectionsNoms, doc: avant.doc, supprimees: avant.supprimees });
+    E.journal.unshift({ titre: `Ctrl+Z dans Figma : l’écriture « ${pas.titre} » est défaite, retouches adoptées comprises (hypothèse d’un seul commitUndo par écriture, essai 1)`, unites: { variables: 0, valeurs: 0, cadres: 0 } });
+    E.bilan = null;
+    rendre();
+  }
+
+  // ------------------------------------------------ systèmes de départ
+  function systeme(options = {}) {
+    const recette = options.recette || R0;
+    const liste = (options.palettes || SYSTEME_DE_DEMONSTRATION.palettes);
+    E.marques = copie(options.marques || SYSTEME_DE_DEMONSTRATION.marques);
+    E.recette = { ...recette, palettes: liste.map((p) => paletteNeuve(recette, p.id, p.nom, p.reference, p.intensites)) };
+    E.meta = {};
+    for (const p of liste) E.meta[p.id] = { destination: copie(p.destination), retouches: {} };
+  }
+  /** Écrit tout le système sans revue, pour l'état de départ d'un scénario ; rien n'entre au journal. */
+  function toutEcrire() {
+    ouvrirRevueSilencieuse();
+    appliquer();
+    E.journal = [];
+    E.pile = [];
+    E.bilan = null;
+    E.poste = new Set();
+    E.ui.onglet = 'systeme';
+  }
+  function ouvrirRevueSilencieuse() {
+    const ids = palettes().map((p) => p.id);
+    E.revue = { ids, titre: 'État de départ', exclues: new Set(), sorties: { variables: true, planche: true }, decisions: {}, reprises: new Set(), bouges: [] };
+    preparerRevue();
+    E.revue.instantane = empreinteDuPlan(E.revue.avant);
+  }
+  function modifierDansFigma(collection, nom, modeCle, valeur) {
+    const col = collectionSuivie(collection);
+    const v = col.variables.find((x) => x.nom === nom);
+    const modeId = collection === 'brand' ? E.doc.suivi.modes[modeCle] : collection === 'theme' ? col.modes.find((m) => m.nom === modeCle).id : col.modes[0].id;
+    v.valeurs[modeId] = valeur;
+  }
+
+  // ------------------------------------------------ scénarios
+  const RAMPE = (nom) => RAMPES_LUES[nom].lue;
+  const SCENARIOS = [
+    {
+      id: 'S01', titre: 'Fichier vide, jeu de départ à deux marques, première écriture', notes: 'DG-11, DG-01, M-043, M-024, M-052',
+      consigne: 'Le fichier n’a ni recette ni variable. Choisissez « D’un jeu de départ », ajoutez une deuxième marque, créez les palettes, puis appliquez tout depuis l’onglet Système. Prédisez les trois comptes avant le clic.',
+      attendu: 'Le journal compte 365 variables créées, 532 couleurs écrites et 9 cadres. Le document porte primitives, brand à deux modes et theme à deux modes.',
+      preparer() { E.recette = { ...R0, palettes: [] }; E.meta = {}; E.marques = []; E.ui.onglet = 'palette'; },
+      pas: [{ clic: '[data-geste="depart"][data-arg="jeu"]' }, { clic: '[data-geste="jeu-ajouter-marque"]' }, { clic: '[data-geste="creer-jeu"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 365, valeurs: 532, cadres: 9 }) && E.doc.collections.length === 3,
+    },
+    {
+      id: 'S02', titre: 'Une marque ajoutée à un système écrit', notes: 'DG-10, M-026, M-054',
+      consigne: 'Le système de deux marques est écrit. Ajoutez « Marque C » depuis l’onglet Système, créez ses deux familles depuis leurs cases vides (#7A1FA2, puis #C2185B), puis appliquez.',
+      attendu: 'Le journal compte 1 mode créé, 0 variable créée, 46 couleurs écrites et 2 cadres : une marque ajoute des valeurs, pas des variables.',
+      preparer() { systeme(); toutEcrire(); },
+      pas: [{ clic: '[data-geste="ajouter-marque"]' }, { saisir: ['[data-champ="nom-marque"]', 'Marque C'] }, { clic: '[data-geste="valider-marque"]' },
+        { clic: '[data-geste="creer-dans-case"][data-arg="primary"]' }, { saisir: ['[data-champ="nouvelle-reference"]', '#7A1FA2'] }, { saisir: ['[data-champ="nouveau-nom"]', 'Violet C'] }, { clic: '[data-geste="creer-palette"]' },
+        { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="creer-dans-case"][data-arg="secondary"]' }, { saisir: ['[data-champ="nouvelle-reference"]', '#C2185B'] }, { saisir: ['[data-champ="nouveau-nom"]', 'Framboise C'] }, { clic: '[data-geste="creer-palette"]' },
+        { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 46, cadres: 2 }) && E.journal[0].modes === 1,
+    },
+    {
+      id: 'S03', titre: 'Une référence changée, puis l’écriture de cette seule palette', notes: 'DG-01, DG-08, M-046, M-052',
+      consigne: 'Ouvrez Bleu A dans l’onglet Palette, remplacez sa référence par #2F6FE0, passez par Vérifier, puis « Appliquer cette palette… ».',
+      attendu: 'Le journal compte 0 variable créée, 23 couleurs écrites dans le mode Marque A (identité comprise) et 1 cadre. Les autres palettes ne bougent pas.',
+      preparer() { systeme(); toutEcrire(); E.ui.onglet = 'palette'; E.ui.ouverte = 'p-00000001'; },
+      pas: [{ saisir: ['[data-champ="reference"]', '#2F6FE0'] }, { clic: '[data-geste="vers-verifier"]' }, { clic: '[data-geste="appliquer-palette"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 23, cadres: 1 }),
+    },
+    {
+      id: 'S04', titre: 'Un réglage commun changé (Soft à 0,50), puis tout le système', notes: 'DG-14, M-019, M-052',
+      consigne: 'Ouvrez les Réglages communs (engrenage). Passez l’intensité Soft à 0,50 et lisez ce que la carte annonce. Revenez, puis appliquez depuis l’onglet Système.',
+      attendu: 'La carte annonce 4 palettes et 87 couleurs écrites qui changent. Le journal compte 0 variable créée, 87 couleurs écrites et 4 cadres.',
+      preparer() { systeme(); toutEcrire(); },
+      pas: [{ clic: '[data-geste="reglages"]' }, { saisir: ['[data-champ="part-soft"]', '0,50'] }, { clic: '[data-geste="retour-reglages"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 87, cadres: 4 }),
+    },
+    {
+      id: 'S05', titre: 'Une retouche faite dans Figma, adoptée ou remise', notes: 'DG-04, DG-21, M-035, M-038, M-052',
+      consigne: 'Dans Figma, danger/vivid/light/700 vaut #DC2626 au lieu de la recette. Repérez la retouche dans l’onglet Système et dans Vérifier, puis adoptez-la dans la revue. Recommencez et remettez la recette pour comparer.',
+      attendu: 'Adoptée : la recette porte la retouche, Figma garde #DC2626, 0 couleur écrite, 1 cadre redessiné, Rouge manque 2 garanties. Remise : 1 couleur écrite, 0 garantie manquée.',
+      preparer() { systeme(); toutEcrire(); modifierDansFigma('primitives', 'danger/vivid/light/700', 'defaut', '#DC2626'); },
+      pas: [{ clic: '[data-geste="relire-retouches"]' }, { clic: '[data-geste="decider"][data-arg="primitives:danger/vivid/light/700|defaut"][data-choix="adopter"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 0, cadres: 1 }) && E.meta['p-0000000b'].retouches['vivid/light/700'] === '#DC2626',
+    },
+    {
+      id: 'S06', titre: 'Trois retouches dans une palette', notes: 'DG-04, M-052, M-035',
+      consigne: 'Rouge a trois nuances retouchées dans Figma : 700, 800 et 900 en Vivid, Thème Light. Adoptez les trois d’un geste, lisez les garanties, puis remettez seulement la 700.',
+      attendu: 'Les trois adoptées font manquer 2 garanties. Avec la 700 remise : 0 garantie manquée ; le journal compte 1 couleur écrite, et la recette garde 800 et 900.',
+      preparer() { systeme(); toutEcrire(); modifierDansFigma('primitives', 'danger/vivid/light/700', 'defaut', '#DC2626'); modifierDansFigma('primitives', 'danger/vivid/light/800', 'defaut', '#991B1B'); modifierDansFigma('primitives', 'danger/vivid/light/900', 'defaut', '#7F1D1D'); },
+      pas: [{ clic: '[data-geste="relire-retouches"]' }, { clic: '[data-geste="decider-tout"][data-arg="p-0000000b"][data-choix="adopter"]' }, { clic: '[data-geste="decider"][data-arg="primitives:danger/vivid/light/700|defaut"][data-choix="remettre"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 1, cadres: 1 }) && Object.keys(E.meta['p-0000000b'].retouches).length === 2,
+    },
+    {
+      id: 'S07', titre: 'Une retouche sur le cran de la référence, et sur brand.identity', notes: 'DG-04, M-006, M-052',
+      consigne: 'Dans Figma, la nuance ◆ de Rouge (Vivid, Light, 600) vaut #D42020, et identity/primary de Marque A vaut #1A6BD6. Adoptez la première comme nouvelle référence, remettez la seconde.',
+      attendu: 'Rouge a pour référence #D42020 et ses autres couleurs sont récrites ; identity/primary reprend #1E6FD9 dans Figma. Aucune retouche n’entre sur le cran ◆.',
+      preparer() { systeme(); toutEcrire(); modifierDansFigma('primitives', 'danger/vivid/light/600', 'defaut', '#D42020'); modifierDansFigma('brand', 'identity/primary', 'm-a', '#1A6BD6'); },
+      pas: [{ clic: '[data-geste="relire-retouches"]' }, { clic: '[data-geste="decider"][data-arg="primitives:danger/vivid/light/600|defaut"][data-choix="adopter"]' }, { clic: '[data-geste="decider"][data-arg="brand:identity/primary|m-a"][data-choix="remettre"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => paletteDe('p-0000000b').reference === '#D42020' && valeurFigma('brand', 'identity/primary', 'm-a') === '#1E6FD9' && Object.keys(E.meta['p-0000000b'].retouches).length === 0,
+    },
+    {
+      id: 'S08', titre: 'Une variable créée à la main au bon chemin', notes: 'DG-04, M-052, cas limite 2',
+      consigne: 'Le fichier a déjà success/vivid/light/700 dans primitives, créée à la main. Appliquez Vert : la revue la montre sans provenance. Remplacez-la par la recette.',
+      attendu: 'La variable garde son identifiant : aucune seconde variable du même nom. Le journal compte 43 variables créées pour Vert dans primitives, plus ses 22 alias de theme.',
+      preparer() {
+        systeme({ palettes: SYSTEME_DE_DEMONSTRATION.palettes.filter((p) => p.id === 'p-0000000d') });
+        E.doc.collections.push({ id: 'VariableCollectionId:main', nom: 'primitives', modes: [{ id: 'm:main', nom: 'Valeur' }], variables: [{ id: 'VariableID:main', nom: 'success/vivid/light/700', valeurs: { 'm:main': '#15803D' }, donnees: null }] });
+        E.doc.suivi.collections.primitives = 'VariableCollectionId:main';
+        E.ui.onglet = 'systeme';
+      },
+      pas: [{ clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="decider"][data-arg="primitives:success/vivid/light/700|defaut"][data-choix="remplacer"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => E.doc.collections[0].variables.filter((v) => v.nom === 'success/vivid/light/700').length === 1 && valeurFigma('primitives', 'success/vivid/light/700', 'defaut') !== '#15803D' && E.journal[0].unites.variables === 65,
+    },
+    {
+      id: 'S09', titre: 'Un mode de brand créé hors du plugin', notes: 'DG-10, M-054, cas limite 6',
+      consigne: 'Un designer a ajouté le mode « Marque C » à la main dans brand : Figma y a recopié Marque A. Suivez ce mode depuis l’onglet Système.',
+      attendu: 'La recette gagne Marque C, reliée au mode existant ; deux cases vides l’annoncent. Rien n’est écrit tant que ses palettes n’existent pas, et ses 46 valeurs recopiées restent signalées sans palette.',
+      preparer() {
+        systeme(); toutEcrire();
+        const brand = collectionSuivie('brand');
+        const mode = { id: 'm:hors', nom: 'Marque C' };
+        for (const v of brand.variables) v.valeurs[mode.id] = v.valeurs[brand.modes[0].id];
+        brand.modes.push(mode);
+      },
+      pas: [{ clic: '[data-geste="suivre-mode"][data-arg="m:hors"]' }],
+      attendre: () => E.marques.some((m) => m.nom === 'Marque C') && Object.values(E.doc.suivi.modes).includes('m:hors') && E.journal.length === 0,
+    },
+    {
+      id: 'S10', titre: 'Une famille qui manque dans une marque', notes: 'DG-11, M-054, cas limite 5',
+      consigne: 'Marque B n’a pas de secondary : Figma a recopié celle de Marque A dans son mode. Créez la palette depuis la case vide (#00A389), puis appliquez et remplacez les valeurs recopiées.',
+      attendu: 'Avant : une case vide et 23 valeurs de Marque B sans palette. Après : 0 variable créée, 23 couleurs écrites dans Marque B, plus 1 cadre.',
+      preparer() { systeme({ palettes: SYSTEME_DE_DEMONSTRATION.palettes.filter((p) => p.id !== 'p-00000004') }); toutEcrire(); },
+      pas: [{ clic: '[data-geste="creer-dans-case"][data-arg="secondary"]' }, { saisir: ['[data-champ="nouvelle-reference"]', '#00A389'] }, { saisir: ['[data-champ="nouveau-nom"]', 'Sarcelle B'] }, { clic: '[data-geste="creer-palette"]' },
+        { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="decider-tout"][data-arg="sans-provenance"][data-choix="remplacer"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 23, cadres: 1 }),
+    },
+    {
+      id: 'S11', titre: 'Le fichier change pendant la relecture', notes: 'DG-04, M-016, M-052, cas limite 3',
+      consigne: 'Bleu A a une nouvelle référence. Ouvrez la revue de la palette et appliquez : au même instant, un autre designer change palette/primary/light/700 dans Figma.',
+      attendu: 'Le premier clic n’écrit rien et nomme la valeur qui a bougé. Remettez-la, appliquez : 23 couleurs écrites.',
+      preparer() {
+        systeme(); toutEcrire();
+        const p = paletteDe('p-00000001');
+        remplacer({ ...M.changerReference(E.recette, p, '#2F6FE0'), nom: p.nom });
+        E.ui.onglet = 'verifier'; E.ui.ouverte = 'p-00000001';
+        E.crochetAuClic = () => modifierDansFigma('brand', 'palette/primary/light/700', 'm-a', '#1856A9');
+      },
+      pas: [{ clic: '[data-geste="appliquer-palette"]' }, { clic: '[data-geste="revue-appliquer"]' }, { clic: '[data-geste="decider"][data-arg="brand:palette/primary/light/700|m-a"][data-choix="remettre"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 23, cadres: 1 }) && E.journal[1].titre.startsWith('Relecture'),
+    },
+    {
+      id: 'S12', titre: 'Une police absente au moment d’écrire', notes: 'DG-04, DG-09, M-031, cas limite 4',
+      consigne: 'Inter Semi Bold manque sur ce poste (panneau Document). Bleu A a une nouvelle référence. Appliquez la palette : lisez ce que la revue dit de la planche.',
+      attendu: 'La sortie Planche est décochée avec sa raison ; les variables s’écrivent : 23 couleurs, 0 cadre. Le cadre de Bleu A reste « À actualiser ».',
+      preparer() { systeme(); toutEcrire(); const p = paletteDe('p-00000001'); remplacer({ ...M.changerReference(E.recette, p, '#2F6FE0'), nom: p.nom }); E.doc.polices = false; E.ui.onglet = 'verifier'; E.ui.ouverte = 'p-00000001'; },
+      pas: [{ clic: '[data-geste="appliquer-palette"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 23, cadres: 0 }) && etatDuCadre('p-00000001') === 'perimee',
+    },
+    {
+      id: 'S13', titre: 'La limite de modes atteinte, puis la reprise', notes: 'DG-10, M-053, cas limite 4',
+      consigne: 'brand porte déjà dix marques, la limite de l’offre Professional. Marque K a ses deux palettes. Appliquez, lisez le bilan, passez l’offre à Organization dans le panneau Document, puis « Réessayer ».',
+      attendu: 'Premier bilan : les cadres sont dessinés, les 46 valeurs de Marque K restent, avec la cause en mots et le message de Figma replié. Après la reprise : 1 mode créé, 46 couleurs écrites, aucune variable en double.',
+      preparer() {
+        const marques = 'ABCDEFGHIJ'.split('').map((l) => ({ id: `m-${l.toLowerCase()}`, nom: `Marque ${l}` }));
+        const teintes = ['#1E6FD9', '#7A1FA2', '#00A389', '#C2185B', '#2E7D32', '#EF6C00', '#5D4037', '#0277BD', '#AD1457', '#6A1B9A'];
+        const liste = SYSTEME_DE_DEMONSTRATION.palettes.filter((p) => p.destination.type === 'communes');
+        marques.forEach((m, i) => { liste.push({ id: `p-1000000${i}`, nom: `Primaire ${m.nom.slice(-1)}`, reference: teintes[i], intensites: 1, destination: { type: 'marque', marque: m.id, famille: 'primary' } }); liste.push({ id: `p-2000000${i}`, nom: `Secondaire ${m.nom.slice(-1)}`, reference: teintes[(i + 3) % 10], intensites: 1, destination: { type: 'marque', marque: m.id, famille: 'secondary' } }); });
+        systeme({ palettes: liste, marques });
+        toutEcrire();
+        E.marques.push({ id: 'm-k', nom: 'Marque K' });
+        E.recette = { ...E.recette, palettes: [...palettes(), paletteNeuve(R0, 'p-1000000a', 'Primaire K', '#00838F', 1), paletteNeuve(R0, 'p-2000000a', 'Secondaire K', '#F9A825', 1)] };
+        E.meta['p-1000000a'] = { destination: { type: 'marque', marque: 'm-k', famille: 'primary' }, retouches: {} };
+        E.meta['p-2000000a'] = { destination: { type: 'marque', marque: 'm-k', famille: 'secondary' }, retouches: {} };
+        E.ui.groupesFermes = new Set(E.marques.slice(0, 10).map((m) => m.id).concat(['communes']));
+      },
+      pas: [{ clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }, { clic: '[data-geste="offre-organization"]' }, { clic: '[data-geste="reessayer"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 46, cadres: 0 }) && E.journal[0].modes === 1 && E.journal[1].erreurs.length === 1,
+    },
+    {
+      id: 'S14', titre: 'Le nombre de nuances passé de 11 à 13, puis de 13 à 11', notes: 'DG-08, M-021, cas limite 9',
+      consigne: 'Dans les Réglages communs, passez à 13 nuances : lisez l’aperçu, confirmez, appliquez. Revenez à 11 nuances, confirmez, appliquez.',
+      attendu: 'À 13 : 66 variables créées et 96 couleurs écrites, 9 cadres. À 11 : 0 variable supprimée, 66 variables signalées sans palette dans l’onglet Système.',
+      preparer() { systeme(); toutEcrire(); },
+      pas: [{ clic: '[data-geste="reglages"]' }, { clic: '[data-geste="nuances"][data-arg="13"]' }, { clic: '[data-geste="confirmer-nuances"]' }, { clic: '[data-geste="retour-reglages"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' },
+        { clic: '[data-geste="reglages"]' }, { clic: '[data-geste="nuances"][data-arg="11"]' }, { clic: '[data-geste="confirmer-nuances"]' }, { clic: '[data-geste="retour-reglages"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => E.journal[1].unites.variables === 66 && E.journal[1].unites.valeurs === 96 && calculs().orphelines.length === 66 && nombreDeVariables() === 431,
+    },
+    {
+      id: 'S15', titre: 'Une palette supprimée qui a des variables et un cadre', notes: 'DG-04, M-017, M-032, cas limite 9',
+      consigne: 'Supprimez Vert depuis le menu « … » de l’onglet Palette. Lisez sa carte dans l’onglet Système, puis supprimez ses variables par le geste séparé.',
+      attendu: 'La carte dit que le cadre et 66 variables restent. « Supprimer les variables… » demande une confirmation, puis retire 66 variables ; le cadre reste jusqu’à « Supprimer le cadre ».',
+      preparer() { systeme(); toutEcrire(); E.ui.onglet = 'palette'; E.ui.ouverte = 'p-0000000d'; },
+      pas: [{ clic: '[data-geste="menu-palette"]' }, { clic: '[data-geste="supprimer-palette"]' }, { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="supprimer-variables"][data-arg="p-0000000d"]' }, { clic: '[data-geste="confirmer-suppression"]' }],
+      attendre: () => nombreDeVariables() === 365 - 66 && Boolean(E.doc.cadres['p-0000000d']),
+    },
+    {
+      id: 'S16', titre: 'Une rampe faite à l’œil, reprise et corrigée', notes: 'DG-05, DG-06, M-009, M-010, M-056',
+      consigne: 'La sélection porte les onze pastilles de Bleu A dessinées à la main. « + Nouvelle », « De couleurs existantes », rangez-la dans Marque A · primary, puis lisez la correction dans Vérifier et corrigez.',
+      attendu: 'Vérifier annonce 4 garanties manquées en Thème Light ; la plus petite correction (100, 200, 300) est refusée par le critère ; la correction régulière rétablit 50 à 500 et garde 700 à 950. Après : 0 garantie manquée, 4 nuances du designer gardées.',
+      preparer() { systeme({ palettes: SYSTEME_DE_DEMONSTRATION.palettes.filter((p) => p.id !== 'p-00000001') }); toutEcrire(); E.doc.selection = { nom: 'Bleu A, dessiné à la main', pastilles: RAMPE('Bleu A') }; E.ui.onglet = 'palette'; E.ui.ouverte = 'p-00000002'; },
+      pas: [{ clic: '[data-geste="nouvelle"]' }, { clic: '[data-geste="depart"][data-arg="existantes"]' }, { saisir: ['[data-champ="nouveau-nom"]', 'Bleu A'] }, { clic: '[data-geste="destination-neuve"][data-arg="marque"]' }, { choisir: ['[data-champ="neuve-marque"]', 'm-a'] }, { choisir: ['[data-champ="neuve-famille"]', 'primary'] }, { clic: '[data-geste="creer-existantes"]' }, { clic: '[data-geste="corriger"]' }],
+      attendre: () => { const p = palettes().find((x) => x.nom === 'Bleu A'); return p && Object.keys(E.meta[p.id].retouches).length === 4 && manqueesDe(E.recette, E.meta, p).length === 0; },
+    },
+    {
+      id: 'S17', titre: 'Une rampe faite à l’œil que la correction ne ramène pas au résultat calculé', notes: 'DG-05, M-009, M-056',
+      consigne: 'Orange A vient d’une rampe dessinée à la main. Dans Vérifier, retirez la nuance 700 de la correction : c’est le bouton de la marque.',
+      attendu: 'L’écran dit qu’aucune correction ne rend les garanties tant que la 700 reste, et en donne la raison ; la meilleure correction régulière laisse 4 garanties manquées. Rien ne s’écrit : la recette garde ses 10 nuances reprises.',
+      preparer() {
+        systeme(); toutEcrire();
+        const p = paletteDe('p-00000002');
+        const lecture = lireUneRampe(M, E.recette, p, { light: RAMPE('Orange A') });
+        E.meta[p.id].retouches = lecture.retouches;
+        E.ui.onglet = 'verifier'; E.ui.ouverte = p.id;
+      },
+      pas: [{ clic: '[data-geste="verrou"][data-arg="unique/light/700"]' }],
+      attendre: () => Object.keys(E.meta['p-00000002'].retouches).length === 10 && Boolean($('[data-objet="correction-impossible"]')),
+    },
+    {
+      id: 'S18', titre: 'Une palette calculée qui manque une garantie', notes: 'DG-05, M-037, M-050',
+      consigne: 'Vert, calculé par le moteur, manque deux garanties. Dans Vérifier, suivez « Ajuster la référence », descendez de deux pas et appliquez.',
+      attendu: 'Vérifier dit qu’aucune nuance n’est à rétablir et propose les deux réglages ; à −2 pas, la référence devient #029D44 et la palette tient toutes ses garanties.',
+      preparer() { systeme(); toutEcrire(); E.ui.onglet = 'verifier'; E.ui.ouverte = 'p-0000000d'; },
+      pas: [{ clic: '[data-geste="ajuster"]' }, { clic: '[data-geste="ajuster-moins"]' }, { clic: '[data-geste="ajuster-moins"]' }, { clic: '[data-geste="ajuster-appliquer"]' }],
+      attendre: () => paletteDe('p-0000000d').reference === '#029D44' && manqueesDe(E.recette, E.meta, paletteDe('p-0000000d')).length === 0,
+    },
+    {
+      id: 'S19', titre: 'La planche seule redessinée, sans toucher aux variables', notes: 'DG-09, M-027, M-042',
+      consigne: 'Le cadre de Rouge est à actualiser, ses variables sont à jour. Redessinez-le depuis sa fiche, sans revue.',
+      attendu: 'Le journal compte 0 variable, 0 couleur et 1 cadre ; aucune revue ne s’ouvre.',
+      preparer() { systeme(); toutEcrire(); E.doc.cadres['p-0000000b'].empreinte = 'ancienne'; },
+      pas: [{ clic: '[data-geste="dessiner-cadre"][data-arg="p-0000000b"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 0, cadres: 1 }) && !E.revue,
+    },
+    {
+      id: 'S20', titre: 'Palettes proches de deux marques, et une marque proche d’un statut', notes: 'DG-12, DG-13, M-036, M-055',
+      consigne: 'Ouvrez « Distinguer les statuts » dans l’onglet Système, avec Marque A. Comparez la vision normale et la deutéranopie. Ouvrez ensuite Bleu A dans Vérifier et comparez-la à Bleu B.',
+      attendu: 'En vision normale, Orange A et Ambre sont signalés (0,026). En deutéranopie s’ajoutent Rouge et Ambre (0,015). Bleu A et Bleu B (0,040) ne sont jamais signalés : deux marques ne s’affichent pas ensemble.',
+      preparer() { systeme(); toutEcrire(); },
+      pas: [{ clic: '[data-geste="ouvrir-statuts"]' }, { choisir: ['[data-champ="vision"]', 'deuteranopie'] }],
+      attendre: () => { const t = ($('[data-objet="paires-proches"]') || {}).textContent || ''; return t.includes('Rouge et Ambre') && t.includes('Ambre et Orange A') && !t.includes('Bleu B'); },
+    },
+    {
+      id: 'S21', titre: 'Une palette reliée à des variables existantes (lot 7, à discuter)', notes: 'DG-07, M-023',
+      consigne: 'Le fichier porte une collection « Colors » à deux modes, avec color/blue/50 à 900. Donnez à la palette Essai la destination « Mes variables », motif color/blue/{nuance}, reliez, puis appliquez en remplaçant les valeurs présentes par la recette.',
+      attendu: 'La table trouve 10 variables sur 11 et propose de créer color/blue/950. La revue groupe 20 valeurs sans provenance, dont 11 égales à la recette. Après : 1 variable créée et 11 couleurs écrites, 9 remplacées et 2 pour color/blue/950.',
+      preparer() {
+        systeme(); toutEcrire();
+        E.recette = { ...E.recette, palettes: [...palettes(), paletteNeuve(R0, 'p-0000abcd', 'Essai', '#1E6FD9', 1)] };
+        E.meta['p-0000abcd'] = { destination: { type: 'aucune' }, retouches: {} };
+        const calc = rampesCalculees(M, E.recette, paletteDe('p-0000abcd')).unique;
+        const col = { id: 'VariableCollectionId:colors', nom: 'Colors', modes: [{ id: 'm:cl', nom: 'Light' }, { id: 'm:cd', nom: 'Dark' }], variables: [] };
+        R0.crans.slice(0, 10).forEach((n, i) => col.variables.push({ id: `VariableID:c${n}`, nom: `color/blue/${n}`, valeurs: { 'm:cl': RAMPE('Bleu A')[i], 'm:cd': calc.dark[i] }, donnees: null }));
+        E.doc.collections.push(col);
+        E.ui.onglet = 'palette'; E.ui.ouverte = 'p-0000abcd';
+      },
+      pas: [{ clic: '[data-geste="destination"][data-arg="variables"]' }, { clic: '[data-geste="relier"]' }, { clic: '[data-geste="vers-verifier"]' }, { clic: '[data-geste="appliquer-palette"]' }, { clic: '[data-geste="decider-tout"][data-arg="sans-provenance"][data-choix="remplacer"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => E.journal[0] && E.journal[0].unites.variables === 1 && E.journal[0].unites.valeurs === 11,
+    },
+    {
+      id: 'S22', titre: 'Une destination changée : l’aperçu de conversion', notes: 'DG-03, M-023, cas limite 9',
+      consigne: 'Azur est une couleur commune à deux intensités. Rangez-la dans Marque B, famille « tertiary » : lisez l’aperçu de conversion, confirmez, appliquez.',
+      attendu: 'L’aperçu dit que Soft disparaît, compte les garanties avant et après, 34 variables à créer (brand et theme) et 66 variables qui resteront sans palette. Après l’écriture, l’onglet Système montre ces 66 variables sans palette.',
+      preparer() { systeme(); toutEcrire(); E.ui.onglet = 'palette'; E.ui.ouverte = 'p-0000000e'; },
+      pas: [{ clic: '[data-geste="destination"][data-arg="marque"]' }, { choisir: ['[data-champ="conversion-marque"]', 'm-b'] }, { choisir: ['[data-champ="conversion-famille"]', 'autre'] }, { saisir: ['[data-champ="conversion-autre"]', 'tertiary'] }, { clic: '[data-geste="confirmer-conversion"]' }, { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => E.journal[0] && E.journal[0].unites.variables === 34 && calculs().orphelines.length === 66,
+    },
+    {
+      id: 'S23', titre: 'Deux palettes à la même destination, et une collection homonyme', notes: 'DG-03, DG-04, M-014, cas limite 10',
+      consigne: 'Donnez à la palette Essai la destination Marque A · primary : la rangée refuse. Puis appliquez les couleurs communes : une collection « primitives » existe déjà, créée à la main. Reprenez-la.',
+      attendu: 'La destination est refusée avec le nom de la palette qui l’occupe. La revue demande quoi faire de la collection homonyme ; reprise, elle reçoit les variables, et aucune seconde collection « primitives » n’existe.',
+      preparer() {
+        systeme({ palettes: SYSTEME_DE_DEMONSTRATION.palettes.filter((p) => p.destination.type === 'communes' || p.id === 'p-00000001') });
+        E.recette = { ...E.recette, palettes: [...palettes(), paletteNeuve(R0, 'p-0000abcd', 'Essai', '#3D5AFE', 1)] };
+        E.meta['p-0000abcd'] = { destination: { type: 'aucune' }, retouches: {} };
+        E.doc.collections.push({ id: 'VariableCollectionId:hors', nom: 'primitives', modes: [{ id: 'm:hors', nom: 'Mode 1' }], variables: [] });
+        E.ui.onglet = 'palette'; E.ui.ouverte = 'p-0000abcd';
+      },
+      pas: [{ clic: '[data-geste="destination"][data-arg="marque"]' }, { choisir: ['[data-champ="conversion-marque"]', 'm-a'] }, { choisir: ['[data-champ="conversion-famille"]', 'primary'] }, { clic: '[data-geste="annuler-conversion"]' }, { clic: '[data-onglet="systeme"]' }, { clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="reprendre-collection"][data-arg="primitives"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => E.doc.collections.filter((c) => c.nom === 'primitives').length === 1 && collectionSuivie('primitives').id === 'VariableCollectionId:hors' && collectionSuivie('primitives').variables.length === 198,
+    },
+    {
+      id: 'S24', titre: 'L’annulation d’une écriture', notes: 'DG-04, M-067, cas limite 11',
+      consigne: 'Changez la référence de Bleu A (#2F6FE0), appliquez la palette, puis faites Ctrl+Z dans Figma depuis le panneau Document.',
+      attendu: 'Le Ctrl+Z défait l’écriture seule : les 23 valeurs de Figma reprennent leur valeur d’avant, et Bleu A, qui garde #2F6FE0 dans la recette, redevient « À appliquer ». Le rangement de la référence est un pas d’annulation distinct, comme aujourd’hui. Le journal le dit, avec l’hypothèse à prouver dans Figma.',
+      preparer() { systeme(); toutEcrire(); E.ui.onglet = 'palette'; E.ui.ouverte = 'p-00000001'; },
+      pas: [{ saisir: ['[data-champ="reference"]', '#2F6FE0'] }, { clic: '[data-geste="appliquer-depuis-palette"]' }, { clic: '[data-geste="revue-appliquer"]' }, { clic: '[data-geste="ctrl-z"]' }],
+      attendre: () => paletteDe('p-00000001').reference === '#2F6FE0' && calculs().etats['p-00000001'].variables === 'a-ecrire' && valeurFigma('brand', 'palette/primary/light/600', 'm-a') === '#1E6FD9' && E.journal[0].titre.startsWith('Ctrl+Z'),
+    },
+    {
+      id: 'S25', titre: 'Plusieurs designers dans le même fichier', notes: 'DG-16, M-090',
+      consigne: 'Sur ce poste, vous avez changé Bleu A. Sur un autre poste, un designer a changé la référence d’Ambre sans l’appliquer. Appliquez depuis l’onglet Système.',
+      attendu: 'La revue coche Bleu A et laisse Ambre décochée, avec « Réglée sur un autre poste ». Le journal compte 23 couleurs écrites, celles de Bleu A seulement.',
+      preparer() {
+        systeme(); toutEcrire();
+        const a = paletteDe('p-0000000c'); remplacer({ ...M.changerReference(E.recette, a, '#E68A00'), nom: a.nom }); E.autrePoste.add(a.id);
+        const b = paletteDe('p-00000001'); remplacer({ ...M.changerReference(E.recette, b, '#2F6FE0'), nom: b.nom }); E.poste.add(b.id);
+      },
+      pas: [{ clic: '[data-geste="appliquer-systeme"]' }, { clic: '[data-geste="revue-appliquer"]' }],
+      attendre: () => journal0({ variables: 0, valeurs: 23, cadres: 1 }),
+    },
+    {
+      id: 'S26', titre: 'La charte qui tombe sur un autre cran que celui où le moteur l’ancre', notes: 'DG-06, M-010',
+      consigne: 'La sélection porte la rampe ambre de Tailwind, dont la charte #D97706 est le 600. Créez la palette « De couleurs existantes » et lisez ce que la carte dit de la charte.',
+      attendu: 'La carte dit que la clarté de la charte la range au 500 : la palette la porte au 500, et votre 600, qui la répète, prend la valeur calculée. La palette créée ne porte aucune retouche au 500 ni au 600.',
+      preparer() { systeme(); toutEcrire(); E.doc.selection = { nom: 'Ambre, Tailwind 3', pastilles: RAMPE('Ambre (Tailwind amber)') }; E.ui.onglet = 'palette'; E.ui.ouverte = 'p-0000000c'; },
+      pas: [{ clic: '[data-geste="nouvelle"]' }, { clic: '[data-geste="depart"][data-arg="existantes"]' }, { saisir: ['[data-champ="nouveau-nom"]', 'Ambre à l’œil'] }, { clic: '[data-geste="creer-existantes"]' }],
+      attendre: () => { const p = palettes().find((x) => x.nom === 'Ambre à l’œil'); if (!p) return false; const r = E.meta[p.id].retouches; return !Object.keys(r).some((k) => k.endsWith('/500') || k.endsWith('/600')); },
+    },
+  ];
+  function journal0(u) {
+    const j = E.journal[0];
+    return Boolean(j) && j.unites.variables === u.variables && j.unites.valeurs === u.valeurs && j.unites.cadres === u.cadres;
+  }
+  function valeurFigma(collection, nom, modeCle) {
+    const col = collectionSuivie(collection);
+    const v = col && col.variables.find((x) => x.nom === nom);
+    if (!v) return undefined;
+    const modeId = collection === 'brand' ? E.doc.suivi.modes[modeCle] : collection === 'theme' ? col.modes.find((m) => m.nom === modeCle).id : col.modes[0].id;
+    return v.valeurs[modeId];
+  }
+  const nombreDeVariables = () => E.doc.collections.reduce((t, c) => t + c.variables.length, 0);
+
+  function charger(id) {
+    const s = SCENARIOS.find((x) => x.id === id) || SCENARIOS[0];
+    compteurId = 1;
+    E = {
+      scenario: s.id, recette: { ...R0, palettes: [] }, meta: {}, marques: [], supprimees: {}, collectionsNoms: { primitives: 'primitives', brand: 'brand', theme: 'theme' },
+      prochesADessein: [], doc: docVide(), journal: [], pile: [], bilan: null, revue: null, modale: null, crochetAuClic: null, poste: new Set(), autrePoste: new Set(),
+      ui: { onglet: 'systeme', ouverte: null, themeApercu: 'light', themeFiches: 'light', creation: null, conversion: null, reglages: false, verrous: {}, groupesFermes: new Set(), statuts: false, vision: 'normale', avecMarque: null, comparer: null, ajout: false, renommer: null, apercuNuances: null, menu: false, tout: false },
+    };
+    cache = null;
+    s.preparer();
+    if (!E.ui.ouverte && palettes().length) E.ui.ouverte = palettes()[0].id;
+    cache = null;
+    rendre();
+  }
+
+  // ------------------------------------------------ rendu : briques
+  const note = (ids) => `<span class="note" aria-hidden="true">${echapper(ids)}</span>`;
+  const bouton = (geste, texte, { arg, choix, classe = '', desactive = false, principal = false, danger = false, etiquette, presse } = {}) => `<button type="button" class="b ${principal ? 'principal' : ''} ${danger ? 'danger' : ''} ${classe}" data-geste="${geste}"${arg !== undefined ? ` data-arg="${echapper(arg)}"` : ''}${choix ? ` data-choix="${choix}"` : ''}${desactive ? ' disabled' : ''}${etiquette ? ` aria-label="${echapper(etiquette)}"` : ''}${presse !== undefined ? ` aria-pressed="${presse}"` : ''}>${texte}</button>`;
+  const encre = (hexa) => (M.contraste(M.lireHexa(hexa), [0, 0, 0]) >= M.contraste(M.lireHexa(hexa), [255, 255, 255]) ? '#111111' : '#FFFFFF');
+  function rampe(hexas, { reperes = {}, hauteur = 22, numeros = false, etiquette = '' } = {}) {
+    const crans = E.recette.crans;
+    return `<div class="rampe" style="--h:${hauteur}px;--n:${hexas.length}" role="img" aria-label="${echapper(etiquette)}">${hexas.map((h, i) => `<i style="background:${h};color:${encre(h)}" title="${crans[i]} ${h}">${reperes[i] || ''}</i>`).join('')}</div>${numeros ? `<div class="rampe numeros" style="--n:${crans.length}" aria-hidden="true">${crans.map((n) => `<span>${n}</span>`).join('')}</div>` : ''}`;
+  }
+  function pastille(etat) {
+    const carte = {
+      'a-jour': ['À jour', 'succes'], 'a-ecrire': ['À appliquer', 'avert'], 'a-decider': ['À décider', 'avert'], perimee: ['À actualiser', 'avert'], jamais: ['Pas encore sur Figma', 'avert'], aucune: ['Planche seule', 'neutre'],
+    }[etat] || [etat, 'neutre'];
+    return `<span class="pastille ${carte[1]}">${carte[0]}</span>`;
+  }
+  /** La pastille d'une fiche : l'état le plus urgent de ses deux sorties. */
+  function etatUrgent(id) {
+    const e = calculs().etats[id];
+    if (e.variables === 'a-decider') return 'a-decider';
+    if (e.variables === 'a-ecrire') return 'a-ecrire';
+    if (e.cadre === 'perimee') return 'perimee';
+    if (e.cadre === 'jamais') return 'jamais';
+    return 'a-jour';
+  }
+  function resumeSorties(id) {
+    const e = calculs().etats[id];
+    const cadre = { 'a-jour': 'Cadre à jour', perimee: 'Cadre à actualiser', jamais: 'Pas encore de cadre' }[e.cadre] || '';
+    if (e.variables === 'aucune') return cadre;
+    const variables = e.variables === 'a-decider' ? `${e.decisions.length} valeur${e.decisions.length > 1 ? 's' : ''} à décider` : e.variables === 'a-ecrire' ? `${e.ecrire.length} couleur${e.ecrire.length > 1 ? 's' : ''} à écrire` : 'Variables à jour';
+    return `${cadre} · ${variables}`;
+  }
+  const resumeGaranties = (id) => {
+    const p = paletteDe(id);
+    const n = calculs().etats[id].manquees.length;
+    return p.crans ? 'Palette libre' : n ? `<span class="danger-texte">Garanties ✗ ${n}</span>` : 'Garanties ✓';
+  };
+  function barreSelecteur() {
+    const groupes = [['Couleurs communes', (d) => d.type === 'communes'], ...E.marques.map((m) => [m.nom, (d) => d.type === 'marque' && d.marque === m.id]), ['Sans destination', (d) => d.type === 'aucune' || d.type === 'variables']];
+    const options = groupes.map(([titre, test]) => {
+      const liste = palettes().filter((p) => test(metaDe(p.id).destination));
+      return liste.length ? `<optgroup label="${echapper(titre)}">${liste.map((p) => `<option value="${p.id}" ${p.id === E.ui.ouverte ? 'selected' : ''}>${echapper(p.nom)}</option>`).join('')}</optgroup>` : '';
+    }).join('');
+    return `<div class="barre" data-objet="selecteur" data-rang="1"><label class="masque" for="choix-palette">Palette ouverte</label><select id="choix-palette" data-champ="palette">${options}</select>${bouton('nouvelle', '+ Nouvelle')}${bouton('menu-palette', '…', { etiquette: 'Gestes de la palette', presse: E.ui.menu })}</div>${E.ui.menu ? `<div class="menu" role="menu">${bouton('supprimer-palette', 'Supprimer la palette', { danger: true })}</div>` : ''}`;
+  }
+  function apercu(p) {
+    const rampes = effectives(E.recette, E.meta, p);
+    const a = M.ancrageDe(E.recette, p);
+    const mode = E.ui.themeApercu;
+    const retouches = metaDe(p.id).retouches;
+    const lignes = Object.keys(rampes).map((i) => {
+      const reperes = {};
+      E.recette.crans.forEach((n, r) => { if (retouches[`${i}/${mode}/${n}`]) reperes[r] = '✎'; });
+      if (i === a.profil) reperes[a.rangs[mode]] = '◆';
+      return `<div class="ligne-rampe"><span class="profil">${i === 'unique' ? '' : i === 'soft' ? 'Soft' : 'Vivid'}</span>${rampe(rampes[i][mode], { reperes, etiquette: `${p.nom}, ${i}, thème ${mode}` })}</div>`;
+    }).join('');
+    return `<div class="carte" data-objet="apercu" data-rang="2"><div class="tete-carte"><div class="bascule" role="group" aria-label="Thème de l'aperçu">${['light', 'dark'].map((m) => bouton('theme-apercu', m === 'light' ? 'Thème Light' : 'Thème Dark', { arg: m, presse: mode === m })).join('')}</div><span class="second">Fond ${E.recette.fonds[mode]}</span></div>
+      <div class="surface" style="background:${E.recette.fonds[mode]};color:${mode === 'light' ? '#1E1E1E' : '#EDEDED'}"><div class="ligne-rampe"><span class="profil"></span><div class="rampe numeros" style="--n:${E.recette.crans.length}">${E.recette.crans.map((n) => `<span>${n}</span>`).join('')}</div></div>${lignes}</div>
+      <p class="second petit">◆ Référence : ${a.profil === 'unique' ? '' : `${a.profil === 'soft' ? 'Soft' : 'Vivid'} · `}nuance ${a.crans[mode]}${Object.keys(retouches).length ? ` · ✎ ${Object.keys(retouches).length} nuance${Object.keys(retouches).length > 1 ? 's' : ''} reprise${Object.keys(retouches).length > 1 ? 's' : ''} ou retouchée${Object.keys(retouches).length > 1 ? 's' : ''}` : ''}</p></div>`;
+  }
+
+  // ------------------------------------------------ onglet Palette
+  function vuePalette() {
+    if (E.ui.creation) return vueCreation();
+    if (!palettes().length) return vueDepart();
+    const p = paletteDe(E.ui.ouverte) || palettes()[0];
+    E.ui.ouverte = p.id;
+    const m = metaDe(p.id);
+    const e = calculs().etats[p.id];
+    const d = m.destination;
+    const conv = E.ui.conversion;
+    const segments = [['aucune', 'Aucune'], ['communes', 'Couleurs communes'], ['marque', 'Une marque'], ['variables', 'Mes variables']];
+    const lienEcrire = e.variables === 'a-ecrire' || e.variables === 'a-decider' ? bouton('appliquer-depuis-palette', e.variables === 'a-decider' ? 'Décider…' : 'Appliquer cette palette…', { classe: 'lien' }) : e.cadre !== 'a-jour' && e.variables !== 'a-decider' ? bouton('dessiner-cadre', 'Dessiner le cadre', { arg: p.id, classe: 'lien' }) : '';
+    const proches = alertesProches(p);
+    const corps = `${barreSelecteur()}
+      <h2 data-objet="titre" data-rang="1">Palette ${echapper(p.nom)}</h2>
+      <p class="etat-ligne" data-objet="etat-figma" data-rang="3">${pastille(etatUrgent(p.id))} <span class="second">${resumeSorties(p.id)}</span> ${lienEcrire}${note('DG-02, M-046')}</p>
+      <div class="carte" data-objet="configuration" data-rang="2"><h3>Configuration de la palette</h3>
+        <div class="deux"><label class="champ">Nom de la palette<input data-champ="nom" value="${echapper(p.nom)}"></label><label class="champ">Couleur de référence<span class="saisie-couleur"><i style="background:${p.reference}"></i><input data-champ="reference" value="${p.reference}" spellcheck="false" maxlength="7"></span></label></div>
+        <div class="champ">Destination dans Figma${note('DG-03, M-023')}<div class="segments" role="group" aria-label="Destination dans Figma">${segments.map(([k, t]) => bouton('destination', t + (k === 'variables' ? ' <small>lot 7</small>' : ''), { arg: k, presse: (conv ? conv.type : d.type) === k })).join('')}</div></div>
+        ${conv ? vueConversion(p, conv) : `<p class="second petit">${echapper(libelleDestination(d))} · <code>${echapper(cheminDe(d, p))}</code></p>
+        ${d.type === 'aucune' ? `<p class="second petit">Intensités : ${p.intensites === 1 ? 'Une' : 'Deux, Soft et Vivid'}. Sans destination, le nombre d'intensités reste libre.</p>` : ''}
+        ${p.intensites !== 1 ? `<p class="second petit">Référence exacte dans : Auto a choisi ${M.profilPorteur(E.recette, p) === 'vivid' ? 'Vivid' : 'Soft'}.</p>` : ''}
+        ${d.type === 'variables' ? `<p class="second petit">${d.trouvees} variables reliées dans ${echapper(d.collection)}, ${d.creer} à créer.</p>` : ''}`}
+      </div>
+      ${proches}
+      ${apercu(p)}
+      <details class="carte repliee" data-objet="tsl"><summary>Teinte, saturation, luminosité <span class="second">Aucun réglage</span></summary>${rampe(effectives(E.recette, E.meta, p)[M.ancrageDe(E.recette, p).profil][E.ui.themeApercu], { hauteur: 10, etiquette: 'Rampe témoin' })}<p class="second petit">Rampe témoin : elle suit chaque geste de la carte${note('DG-14, M-047')}. Les curseurs de la carte actuelle ne sont pas rejoués ici.</p></details>
+      <details class="carte repliee" data-objet="derive"><summary>Dérive de teinte <span class="second">Tailwind · synchronisée</span></summary>${rampe(effectives(E.recette, E.meta, p)[M.ancrageDe(E.recette, p).profil][E.ui.themeApercu], { hauteur: 10, etiquette: 'Rampe témoin' })}<p class="second petit">L'éditeur de dérive actuel reste tel quel.</p></details>`;
+    const n = e.manquees.length;
+    const pied = conv ? { aide: 'La destination ne change qu’à la confirmation.', geste: 'confirmer-conversion', texte: conv.type === 'variables' ? 'Relier' : 'Changer la destination', desactive: Boolean(conv.refus) || !conv.pret } : { aide: p.crans ? 'Palette libre : sans garanties' : `${garanties(E.recette, E.meta, p).length} garanties · ${n ? `${n} manquée${n > 1 ? 's' : ''}` : 'toutes tenues'}`, geste: 'vers-verifier', texte: 'Vérifier' };
+    return { corps, pied };
+  }
+  function alertesProches(p) {
+    const liste = palettes().filter((q) => q.id !== p.id && secomparent(E.meta, p, q)).map((q) => ({ q, d: M.distanceDePalettes(E.recette, p, q) }))
+      .filter(({ q, d }) => d !== null && d < E.recette.seuils.palettesProches && !E.prochesADessein.some((x) => x.includes(p.id) && x.includes(q.id)));
+    return liste.map(({ q, d }) => `<div class="message avert" data-objet="proches" data-rang="2"><b>${echapper(p.nom)} ressemble à ${echapper(q.nom)}</b> <span class="second">écart ${virgule(d, 3)}, seuil ${virgule(E.recette.seuils.palettesProches, 2)}</span> ${bouton('proches-a-dessein', 'Proches à dessein', { arg: q.id, classe: 'lien' })}${note('DG-12, M-036')}</div>`).join('');
+  }
+  function vueConversion(p, conv) {
+    const cible = conv.cible();
+    let refus = null;
+    if (cible.type === 'marque' && cible.marque && cible.famille) {
+      const occupant = palettes().find((q) => q.id !== p.id && JSON.stringify(metaDe(q.id).destination) === JSON.stringify(cible));
+      if (occupant) refus = `${cible.famille} est déjà la famille de ${occupant.nom} dans ${marqueDe(cible.marque).nom}. Choisissez une autre famille, ou changez d’abord la destination de ${occupant.nom}.`;
+    }
+    if (cible.type === 'communes' && cible.famille) {
+      const occupant = palettes().find((q) => q.id !== p.id && JSON.stringify(metaDe(q.id).destination) === JSON.stringify(cible));
+      if (occupant) refus = `${cible.famille} est déjà la famille de ${occupant.nom} dans les couleurs communes.`;
+    }
+    conv.refus = refus;
+    conv.pret = cible.type === 'aucune' || (cible.type === 'marque' && cible.marque && cible.famille) || (cible.type === 'communes' && cible.famille) || cible.type === 'variables';
+    const champs = cible.type === 'marque'
+      ? `<div class="deux"><label class="champ">Marque<select data-champ="conversion-marque"><option value="">Choisir…</option>${E.marques.map((m) => `<option value="${m.id}" ${conv.marque === m.id ? 'selected' : ''}>${echapper(m.nom)}</option>`).join('')}</select></label><label class="champ">Famille<select data-champ="conversion-famille"><option value="">Choisir…</option>${FAMILLES_DE_MARQUE.map((f) => `<option ${conv.famille === f ? 'selected' : ''}>${f}</option>`).join('')}<option value="autre" ${conv.famille === 'autre' ? 'selected' : ''}>Autre famille…</option></select></label></div>${conv.famille === 'autre' ? `<label class="champ">Nom de la famille<input data-champ="conversion-autre" value="${echapper(conv.autre || '')}" spellcheck="false"></label>` : ''}`
+      : cible.type === 'communes'
+        ? `<label class="champ">Famille<select data-champ="conversion-famille"><option value="">Choisir…</option>${FAMILLES_COMMUNES.map((f) => `<option value="${f}" ${conv.famille === f ? 'selected' : ''}>${f} · ${NOMS_COMMUNES[f]}</option>`).join('')}</select></label>`
+        : cible.type === 'variables' ? vueLiaison(p, conv) : '';
+    let bilan = '';
+    if (conv.pret && !refus && cible.type !== 'variables') {
+      const nombre = intensitesDeLaDestination(cible, p.intensites);
+      const neuve = nombre === (p.intensites === 1 ? 1 : 2) ? p : { ...M.choisirLesIntensites(E.recette, p, nombre), nom: p.nom };
+      const recette = { ...E.recette, palettes: palettes().map((q) => (q.id === p.id ? neuve : q)) };
+      const meta = { ...E.meta, [p.id]: { ...metaDe(p.id), destination: cible } };
+      const avantR = effectives(E.recette, E.meta, p);
+      const apresR = effectives(recette, meta, neuve);
+      const avantG = manqueesDe(E.recette, E.meta, p).length;
+      const apresG = manqueesDe(recette, meta, neuve).length;
+      const planApres = planDesVariables(M, recette, meta, E.marques);
+      const planAvant = planDesVariables(M, E.recette, E.meta, E.marques);
+      const nomsAvant = new Set(planAvant.map((c) => `${c.collection}:${c.nom}`));
+      const nomsApres = new Set(planApres.map((c) => `${c.collection}:${c.nom}`));
+      const existantes = new Set(E.doc.collections.flatMap((c) => c.variables.filter((v) => v.donnees).map((v) => `${Object.keys(E.doc.suivi.collections).find((k) => E.doc.suivi.collections[k] === c.id)}:${v.nom}`)));
+      const creer = [...nomsApres].filter((n) => !existantes.has(n)).length;
+      const laissees = [...nomsAvant].filter((n) => !nomsApres.has(n) && existantes.has(n)).length;
+      const retiree = Object.keys(avantR).filter((i) => !apresR[i]);
+      bilan = `<div class="apercu-conversion" data-objet="conversion">
+        <p><b>Ce qui change à la confirmation</b>${note('DG-03, M-023')}</p>
+        ${retiree.length ? `<p class="petit">${retiree.map((i) => (i === 'soft' ? 'Soft' : 'Vivid')).join(' et ')} disparaît : l’architecture donne une intensité à une rampe de marque. La rampe qui porte la référence reste.</p>` : ''}
+        <div class="avant-apres"><span class="second petit">Avant</span>${rampe(avantR[Object.keys(avantR).pop()].light, { hauteur: 14, etiquette: 'Avant' })}<span class="second petit">Après</span>${rampe(apresR[Object.keys(apresR).pop()].light, { hauteur: 14, etiquette: 'Après' })}</div>
+        <p class="petit">Garanties manquées : ${avantG} avant, ${apresG} après. Variables : ${creer} à créer ; ${laissees} resteront dans Figma sans palette, calques liés compris. Le cadre passera « À actualiser ».</p></div>`;
+    }
+    return `${champs}${refus ? `<p class="message danger" role="alert" data-objet="refus-destination">${echapper(refus)}</p>` : ''}${bilan}<p>${bouton('annuler-conversion', 'Annuler')}</p>`;
+  }
+  function vueLiaison(p, conv) {
+    const cols = E.doc.collections.filter((c) => !Object.values(E.doc.suivi.collections).includes(c.id));
+    conv.collection = conv.collection || (cols[0] && cols[0].nom);
+    conv.motif = conv.motif || 'color/blue/{nuance}';
+    const col = cols.find((c) => c.nom === conv.collection);
+    const noms = E.recette.crans.map((n) => conv.motif.replace('{nuance}', n));
+    const trouvees = col ? noms.filter((n) => col.variables.some((v) => v.nom === n)) : [];
+    conv.trouvees = trouvees.length;
+    conv.creer = noms.length - trouvees.length;
+    return `<p class="message info">Lot 7, à discuter : la direction ne le met dans aucun des premiers lots.${note('DG-07')}</p>
+      <div class="deux"><label class="champ">Collection<select data-champ="liaison-collection">${cols.map((c) => `<option ${c.nom === conv.collection ? 'selected' : ''}>${echapper(c.nom)}</option>`).join('')}</select></label><label class="champ">Nom des variables<input data-champ="liaison-motif" value="${echapper(conv.motif)}" spellcheck="false"></label></div>
+      <p class="second petit">Thème Light dans le mode ${col ? echapper(col.modes[0].nom) : '?'} · Thème Dark dans le mode ${col && col.modes[1] ? echapper(col.modes[1].nom) : '?'}</p>
+      <p class="petit" data-objet="table-liaison">${trouvees.length} variables trouvées sur ${noms.length}. ${noms.filter((n) => !trouvees.includes(n)).map((n) => `<code>${n}</code>`).join(', ')} ${conv.creer ? 'n’existe pas : elle sera créée si vous reliez.' : ''} Une valeur qui est un alias ne sera jamais remplacée.</p>
+      <p>${bouton('relier', 'Relier', { principal: false })}</p>`;
+  }
+
+  function vueDepart() {
+    const choix = [['couleur', 'D’une couleur', 'Une couleur de charte, saisie ou prise dans la sélection. Le plugin calcule la rampe.'], ['existantes', 'De couleurs existantes', 'Les pastilles sélectionnées. Le plugin les garde, les mesure et propose une correction.'], ['jeu', 'D’un jeu de départ', 'Un neutre, quatre couleurs de statut et une ligne par marque. Pour un design system neuf.']];
+    const corps = `<h2 data-objet="titre" data-rang="1">D’où partez-vous ?</h2><p class="second">Choisissez ce que vous avez déjà. Tout se règle ensuite.${note('DG-01, DG-11, M-043')}</p>
+      ${choix.map(([k, t, d]) => `<button type="button" class="choix" data-geste="depart" data-arg="${k}" ${k === 'existantes' && !(E.doc.selection && E.doc.selection.pastilles) ? 'disabled' : ''}><b>${t}</b><span class="second">${d}</span></button>`).join('')}
+      ${palettes().length ? `<p>${bouton('fermer-creation', 'Annuler')}</p>` : ''}`;
+    return { corps, pied: null };
+  }
+  function vueCreation() {
+    const c = E.ui.creation;
+    if (c.type === 'depart') return vueDepart();
+    if (c.type === 'jeu') return vueJeu();
+    const existantes = c.type === 'existantes';
+    const pastilles = E.doc.selection ? E.doc.selection.pastilles : [];
+    const d = c.destination;
+    const ref = existantes ? pastilles[c.rangReference] : c.reference;
+    let lecture = '';
+    if (existantes) {
+      const essai = paletteNeuve(R0, 'p-ffffffff', 'essai', ref, d.type === 'communes' && d.famille !== 'neutral' ? 2 : 1);
+      const recette = { ...E.recette, palettes: [essai] };
+      const lu = lireUneRampe(M, recette, essai, { light: pastilles });
+      c.lecture = lu;
+      const deplacee = lu.referenceLue !== lu.ancrage.light;
+      lecture = `<div class="carte"><p class="petit">${pastilles.length} pastilles lues dans la sélection « ${echapper(E.doc.selection.nom)} », de la plus claire à la plus foncée.</p>${rampe(pastilles, { reperes: { [c.rangReference]: '◆' }, numeros: true, etiquette: 'Rampe lue' })}
+        <label class="champ">Votre couleur de référence<select data-champ="rang-reference">${pastilles.map((h, i) => `<option value="${i}" ${i === c.rangReference ? 'selected' : ''}>${E.recette.crans[i]} · ${h}</option>`).join('')}</select></label>
+        ${deplacee ? `<p class="message avert" data-objet="charte-deplacee" data-rang="2">Votre charte ${ref} est votre ${lu.referenceLue}. Sa clarté la range au ${lu.ancrage.light} : la palette la porte au ${lu.ancrage.light}. Votre ${lu.ancrage.light} cède sa place à la charte${lu.doublons.length ? `, et votre ${lu.doublons.map((x) => x.cran).join(', ')}, qui la répète, prend la valeur calculée` : ''}.${note('DG-06, M-010')}</p>` : ''}
+        <p class="second petit">Thème Light : ${pastilles.length} nuances lues, ${Object.keys(lu.retouches).length} reprises. Thème Dark : rampe calculée, aucune nuance lue.</p></div>`;
+    }
+    const occupant = d.type !== 'aucune' && palettes().find((q) => JSON.stringify(metaDe(q.id).destination) === JSON.stringify(d));
+    const selection = !existantes && pastilles.length ? `<div class="dans-selection" data-objet="selection"><span class="second petit">Dans la sélection</span>${pastilles.slice(0, 8).map((h, i) => `<button type="button" class="mini" data-geste="prendre-selection" data-arg="${h}" aria-label="Pastille ${i + 1} de la sélection, ${h}" style="background:${h}"></button>`).join('')}${pastilles.length > 8 ? `<span class="second petit">+${pastilles.length - 8}</span>` : ''}${note('DG-20, M-048')}</div>` : '';
+    const corps = `<h2 data-objet="titre" data-rang="1">${existantes ? 'De couleurs existantes' : 'Nouvelle palette'}</h2>
+      ${lecture}
+      <div class="carte" data-objet="creation" data-rang="2"><div class="deux"><label class="champ">Nom de la palette<input data-champ="nouveau-nom" value="${echapper(c.nom || '')}"></label>${existantes ? '' : `<label class="champ">Couleur de référence<span class="saisie-couleur"><i style="background:${M.lireHexa(c.reference || '') ? c.reference : 'transparent'}"></i><input data-champ="nouvelle-reference" value="${echapper(c.reference || '')}" spellcheck="false" maxlength="7"></span></label>`}</div>
+      ${selection}
+      <div class="champ">Destination dans Figma<div class="segments" role="group" aria-label="Destination">${[['aucune', 'Aucune'], ['communes', 'Couleurs communes'], ['marque', 'Une marque']].map(([k, t]) => bouton('destination-neuve', t, { arg: k, presse: d.type === k })).join('')}</div></div>
+      ${d.type === 'marque' ? `<div class="deux"><label class="champ">Marque<select data-champ="neuve-marque"><option value="">Choisir…</option>${E.marques.map((m) => `<option value="${m.id}" ${d.marque === m.id ? 'selected' : ''}>${echapper(m.nom)}</option>`).join('')}</select></label><label class="champ">Famille<select data-champ="neuve-famille"><option value="">Choisir…</option>${FAMILLES_DE_MARQUE.map((f) => `<option ${d.famille === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label></div>` : ''}
+      ${d.type === 'communes' ? `<label class="champ">Famille<select data-champ="neuve-famille"><option value="">Choisir…</option>${FAMILLES_COMMUNES.map((f) => `<option value="${f}" ${d.famille === f ? 'selected' : ''}>${f} · ${NOMS_COMMUNES[f]}</option>`).join('')}</select></label>` : ''}
+      <p class="second petit">${d.type === 'aucune' ? 'Un essai : la planche seule, une intensité. La destination se choisit plus tard.' : `Intensités : ${intensitesDeLaDestination(d, 1) === 1 ? 'une, fixée par l’architecture' : 'deux, Soft et Vivid ; « Référence exacte dans » suit'}. ${d.famille ? `<code>${echapper(cheminDe(d, { intensites: intensitesDeLaDestination(d, 1) }))}</code>` : ''}`}</p>
+      ${occupant ? `<p class="message danger" role="alert">${d.famille} est déjà la famille de ${echapper(occupant.nom)}${d.type === 'marque' ? ` dans ${echapper(marqueDe(d.marque).nom)}` : ''}.</p>` : ''}
+      <p>${bouton('fermer-creation', 'Annuler')}</p></div>`;
+    const pret = (existantes || M.lireHexa(c.reference || '')) && !occupant && (d.type === 'aucune' || d.famille) && (d.type !== 'marque' || d.marque);
+    return { corps, pied: { aide: 'Crée la palette dans la recette du fichier. Rien ne s’écrit dans les variables avant « Appliquer ».', geste: existantes ? 'creer-existantes' : 'creer-palette', texte: existantes ? 'Créer et vérifier' : 'Créer la palette', desactive: !pret } };
+  }
+  function vueJeu() {
+    const c = E.ui.creation;
+    const n = 5 + c.marques.length * (c.secondaire ? 2 : 1);
+    const corps = `<h2 data-objet="titre" data-rang="1">Jeu de départ</h2>
+      <div class="carte" data-rang="2"><h3>Couleurs communes à toutes les marques</h3>${FAMILLES_COMMUNES.map((f, i) => `<label class="ligne-jeu"><span>${NOMS_COMMUNES[f]} <code>${f}</code></span><span class="saisie-couleur"><i style="background:${c.communes[i]}"></i><input data-champ="jeu-commune" data-arg="${i}" value="${c.communes[i]}" maxlength="7"></span></label>`).join('')}</div>
+      <div class="carte" data-rang="2"><h3>Marques</h3><table class="table-jeu"><thead><tr><th>Marque</th><th>primary</th>${c.secondaire ? '<th>secondary</th>' : ''}<th></th></tr></thead><tbody>${c.marques.map((m, i) => `<tr><td><input aria-label="Nom de la marque ${i + 1}" data-champ="jeu-marque-nom" data-arg="${i}" value="${echapper(m.nom)}"></td><td><input aria-label="primary de ${echapper(m.nom)}" data-champ="jeu-marque-primary" data-arg="${i}" value="${m.primary}" maxlength="7"></td>${c.secondaire ? `<td><input aria-label="secondary de ${echapper(m.nom)}" data-champ="jeu-marque-secondary" data-arg="${i}" value="${m.secondary}" maxlength="7"></td>` : ''}<td>${i ? bouton('jeu-retirer-marque', '×', { arg: i, etiquette: `Retirer ${m.nom}` }) : ''}</td></tr>`).join('')}</tbody></table>
+      <p>${bouton('jeu-ajouter-marque', '+ Ajouter une marque')}</p>
+      <label class="case"><input type="checkbox" data-champ="jeu-secondaire" ${c.secondaire ? 'checked' : ''}> Une famille secondary dans chaque marque</label>
+      <p class="second petit">Une famille vaut pour toutes les marques : brand porte les mêmes variables dans chaque mode.${note('DG-11, M-024')}</p></div>
+      <p>${bouton('fermer-creation', 'Annuler')}</p>`;
+    return { corps, pied: { aide: `Crée ${n} palettes dans la recette du fichier. Rien ne s’écrit dans les variables ni sur la planche avant « Appliquer à Figma… ».`, geste: 'creer-jeu', texte: `Créer ${n} palettes` } };
+  }
+
+  // ------------------------------------------------ onglet Vérifier
+  function vueVerifier() {
+    if (!palettes().length) return { corps: '<p class="second">Aucune palette à vérifier.</p>', pied: null };
+    const p = paletteDe(E.ui.ouverte) || palettes()[0];
+    const g = garanties(E.recette, E.meta, p);
+    const manquees = g.filter((x) => x.verdict === 'manquee');
+    const parTheme = ['light', 'dark'].map((m) => [m, manquees.filter((x) => x.mode === m).length]).filter(([, n]) => n);
+    const verdict = p.crans ? 'Palette libre : sans garanties' : manquees.length ? `${manquees.length} garantie${manquees.length > 1 ? 's' : ''} manquée${manquees.length > 1 ? 's' : ''}, ${parTheme.map(([m]) => (m === 'light' ? 'Thème Light' : 'Thème Dark')).join(' et ')}` : `Toutes les garanties tenues · ${g.length} contrôles`;
+    const e = calculs().etats[p.id];
+    const retouchesFigma = e.decisions.filter((l) => l.etat === 'retouche' || l.etat === 'retouche-double');
+    let bandeau = '';
+    if (retouchesFigma.length) {
+      const dansFigma = { ...metaDe(p.id).retouches };
+      for (const l of retouchesFigma) if (l.cible.nuance && typeof l.figma === 'string') dansFigma[l.cible.nuance] = l.figma;
+      const n = garantiesEffectives(M, E.recette, p, dansFigma).filter((x) => x.verdict === 'manquee').length;
+      bandeau = `<div class="message avert" data-objet="valeurs-figma" data-rang="2"><b>Figma porte ${retouchesFigma.length} valeur${retouchesFigma.length > 1 ? 's' : ''} différente${retouchesFigma.length > 1 ? 's' : ''} de la recette.</b> Les composants la voient. Avec ${retouchesFigma.length > 1 ? 'elles' : 'elle'} : ${n} garantie${n > 1 ? 's' : ''} manquée${n > 1 ? 's' : ''}. ${bouton('appliquer-palette', 'Décider dans la revue…', { classe: 'lien' })}${note('DG-02, M-038')}</div>`;
+    }
+    const corps = `${barreSelecteur()}
+      <h2 data-objet="titre">Vérifier ${echapper(p.nom)}</h2>
+      <p class="verdict ${manquees.length ? 'ko' : 'ok'}" data-objet="verdict" data-rang="1">${verdict}</p>
+      ${bandeau}
+      ${vueCorrection(p, manquees)}
+      ${alertesProches(p)}
+      <details class="carte repliee" data-objet="garanties" ${manquees.length ? 'open' : ''}><summary>Garanties de contraste <span class="second">${g.length} contrôles</span></summary>${listeGaranties(p, g)}</details>
+      <details class="carte repliee" data-objet="contexte"><summary>En contexte <span class="second">un écran peint de la palette</span></summary>${specimen(p)}</details>
+      <details class="carte repliee" data-objet="comparer" ${E.ui.comparer ? 'open' : ''}><summary>Comparer à une autre palette</summary>${vueComparer(p)}</details>`;
+    const pied = metaDe(p.id).destination.type === 'aucune'
+      ? { aide: 'Sans destination : la planche seule.', geste: 'dessiner-cadre', arg: p.id, texte: 'Dessiner le cadre', desactive: e.cadre === 'a-jour' }
+      : { aide: resumeSorties(p.id), geste: 'appliquer-palette', texte: e.variables === 'a-decider' ? 'Décider et appliquer…' : 'Appliquer cette palette…', desactive: e.variables === 'a-jour' && e.cadre === 'a-jour' };
+    return { corps, pied };
+  }
+  function listeGaranties(p, g) {
+    const lignes = (E.ui.tout ? g : g.filter((x) => x.verdict === 'manquee'));
+    const nom = (x) => { const a = M.associationDe(x.paire); return `${a.premier} sur ${a.second === 'fond' ? 'le fond' : a.second} · ${ETATS[M.etatDeLaPaire(x.paire)]}`; };
+    return `${lignes.length ? `<table class="table-garanties"><thead><tr><th>Garantie</th><th>Thème</th><th>Contraste</th></tr></thead><tbody>${lignes.map((x) => `<tr class="${x.verdict === 'manquee' ? 'ko' : ''}"><td>${nom(x)}${x.profil === 'unique' ? '' : ` · ${x.profil}`}</td><td>${x.mode === 'light' ? 'Light' : 'Dark'}</td><td>${x.verdict === 'manquee' ? '✗' : '✓'} ${ratio(x.contraste)} / ${virgule(x.seuil, 1)}</td></tr>`).join('')}</tbody></table>` : '<p class="second petit">Aucune garantie manquée.</p>'}<p>${bouton('voir-tout', E.ui.tout ? 'Voir les manquées' : `Voir les ${g.length}`, { classe: 'lien' })}</p>`;
+  }
+  function specimen(p) {
+    const r = effectives(E.recette, E.meta, p);
+    const i = M.ancrageDe(E.recette, p).profil;
+    const m = E.ui.themeApercu;
+    const h = (n) => r[i][m][E.recette.crans.indexOf(n)];
+    return `<div class="specimen" style="background:${E.recette.fonds[m]};color:${h(700)}"><b>Paramètres du compte</b><div class="alerte-specimen" style="background:${h(100)};color:${h(700)};border:1px solid ${h(600)}">Vos modifications sont prêtes.</div><span class="bouton-specimen" style="background:${h(700)};color:${E.recette.fonds[m]}">Enregistrer</span></div>`;
+  }
+  function vueComparer(p) {
+    const autres = palettes().filter((q) => q.id !== p.id);
+    const q = paletteDe(E.ui.comparer);
+    let contenu = '';
+    if (q) {
+      const d = M.distanceDePalettes(E.recette, p, q);
+      const ensemble = secomparent(E.meta, p, q);
+      const rp = effectives(E.recette, E.meta, p); const rq = effectives(E.recette, E.meta, q);
+      const ip = M.ancrageDe(E.recette, p).profil; const iq = M.ancrageDe(E.recette, q).profil;
+      const delta = rp[ip].light.map((h, k) => virgule(M.distanceOk(M.lireHexa(h), M.lireHexa(rq[iq].light[k])), 2));
+      contenu = `${rampe(rp[ip].light, { hauteur: 14, etiquette: p.nom })}${rampe(rq[iq].light, { hauteur: 14, etiquette: q.nom })}<div class="rampe numeros delta" style="--n:${delta.length}">${delta.map((x) => `<span>${x}</span>`).join('')}</div><p class="petit" data-objet="comparaison">Écart ${d === null ? '—' : virgule(d, 3)} sur 500, 600 et 700. ${ensemble ? 'Ces palettes s’affichent ensemble.' : 'Deux marques : elles ne s’affichent jamais ensemble, et l’alerte se tait.'}</p>`;
+    }
+    return `<label class="champ">Palette<select data-champ="comparer"><option value="">Choisir…</option>${autres.map((x) => `<option value="${x.id}" ${x.id === E.ui.comparer ? 'selected' : ''}>${echapper(x.nom)}</option>`).join('')}</select></label>${contenu}`;
+  }
+  function vueCorrection(p, manquees) {
+    const retouches = metaDe(p.id).retouches;
+    const cles = Object.keys(retouches);
+    if (!cles.length) {
+      if (!manquees.length) return '';
+      return `<div class="carte" data-objet="correction" data-rang="2"><h3>Aucune nuance à rétablir</h3><p class="petit">La rampe est calculée par le moteur. Deux réglages peuvent rendre ces garanties : la luminosité de la référence, ou la teinte et la saturation de la palette.${note('DG-05, M-037, M-050')}</p><p>${bouton('ajuster', 'Ajuster la référence…', { classe: 'lien' })} ${bouton('vers-palette', 'Teinte, saturation, luminosité', { classe: 'lien' })}</p></div>`;
+    }
+    const groupes = [...new Set(cles.map((k) => k.split('/').slice(0, 2).join('/')))];
+    return groupes.map((groupe) => {
+      const [intensite, mode] = groupe.split('/');
+      const verrous = (E.ui.verrous[p.id] || []).filter((k) => k.startsWith(`${groupe}/`)).map((k) => Number(k.split('/')[2]));
+      const c = corrigerRampe(M, E.recette, p, retouches, intensite, mode, verrous, REGULARITE);
+      if (c.avant <= c.cible && !verrous.length) return `<div class="carte" data-objet="correction" data-rang="2"><p class="petit">${c.reprises.length} nuances reprises en ${mode === 'light' ? 'Thème Light' : 'Thème Dark'} : elles tiennent autant de garanties que la rampe calculée. Rien à corriger.</p></div>`;
+      const sansForme = c.minimaleSansRegularite.join(', ');
+      const garde = c.reprises.filter((n) => !c.retablies.includes(n));
+      const theme = mode === 'light' ? 'Thème Light' : 'Thème Dark';
+      const puces = c.reprises.map((n) => {
+        const cle = `${groupe}/${n}`;
+        const verrou = verrous.includes(n);
+        return `<button type="button" class="puce ${c.retablies.includes(n) ? 'active' : ''} ${verrou ? 'verrou' : ''}" data-geste="verrou" data-arg="${cle}" aria-pressed="${!verrou}" aria-label="Nuance ${n} : ${verrou ? 'gardée par vous, hors de la correction' : c.retablies.includes(n) ? 'rétablie par la correction' : 'gardée'}">${n}${verrou ? ' 🔒' : ''}</button>`;
+      }).join('');
+      let tete;
+      if (!c.atteinte) {
+        const bloque = verrous.join(', ');
+        tete = `<div class="message danger" data-objet="correction-impossible" data-rang="2"><b>Aucune correction ne rend ces garanties tant que vous gardez votre ${bloque}.</b> ${c.apres ? `Votre ${bloque} ${verrous.length > 1 ? 'servent' : 'sert'} aux garanties qui manquent : la meilleure correction régulière en laisse ${c.apres}.` : ''} La palette peut s’appliquer ainsi : une garantie manquée n’empêche pas d’écrire. ${bouton('verrou', `Remettre ${bloque} dans la correction`, { arg: `${groupe}/${verrous[0]}`, classe: 'lien' })}${note('DG-05, M-009')}</div>`;
+      } else if (c.toutes) {
+        tete = `<div class="message avert" data-objet="correction-toutes">Aucune correction régulière ne garde vos nuances : il faut les rétablir toutes. ${bouton('corriger', 'Reprendre la rampe calculée', { classe: 'lien' })}</div>`;
+      } else {
+        tete = `<p class="petit"><b>Correction proposée : rétablir ${c.retablies.length} nuance${c.retablies.length > 1 ? 's' : ''} sur ${c.reprises.length}</b> (${c.retablies.join(', ')}). Vos ${garde.length} autres nuances restent : ${garde.join(', ')}.</p>${sansForme && sansForme !== c.retablies.join(', ') ? `<p class="second petit" data-objet="sans-forme">La plus petite correction, ${sansForme}, rendrait les garanties mais casserait la forme de la rampe : elle est écartée.</p>` : ''}`;
+      }
+      return `<div class="carte" data-objet="correction" data-rang="2"><h3>Correction proposée · ${theme}${intensite === 'unique' ? '' : ` · ${intensite}`}</h3>${note('DG-05, M-009, M-056')}
+        <p class="petit">${c.avant} garantie${c.avant > 1 ? 's' : ''} manquée${c.avant > 1 ? 's' : ''} avec vos nuances, ${c.cible} avec la rampe calculée.</p>${tete}
+        <div class="avant-apres"><span class="second petit">Avant</span>${rampe(c.lue, { hauteur: 16, etiquette: 'Avant la correction' })}<span class="second petit">Après</span>${rampe(c.rampe, { hauteur: 16, etiquette: 'Après la correction' })}</div>
+        <p class="petit" data-objet="apres-correction">Après : ${c.apres} garantie${c.apres > 1 ? 's' : ''} manquée${c.apres > 1 ? 's' : ''} · rampe régulière (pas entre voisines borné, clarté monotone).</p>
+        <div class="puces" role="group" aria-label="Nuances de la correction">${puces}</div><p class="second petit">Une nuance retirée de la correction reste la vôtre.</p>
+        ${c.atteinte && c.retablies.length ? `<p>${bouton('corriger', `Corriger ces ${c.retablies.length} nuances`, { arg: groupe })}</p>` : ''}
+        ${mode === 'light' && !Object.keys(retouches).some((k) => k.includes('/dark/')) ? '<p class="second petit">Thème Dark : rampe calculée, aucune nuance lue.</p>' : ''}</div>`;
+    }).join('');
+  }
+
+  // ------------------------------------------------ onglet Système
+  function vueSysteme() {
+    if (!palettes().length && !E.marques.length) return { corps: '<h2 data-objet="titre" data-rang="1">Système</h2><p class="second">Aucune palette dans ce fichier. L’onglet Palette propose le point de départ.</p>', pied: null };
+    const c = calculs();
+    const aDecider = palettes().filter((p) => c.etats[p.id].variables === 'a-decider');
+    const aAppliquer = palettes().filter((p) => etatUrgent(p.id) !== 'a-jour');
+    const decisions = aDecider.reduce((t, p) => t + c.etats[p.id].decisions.length, 0);
+    const bandeau = aDecider.length ? `<div class="message avert" data-objet="bandeau-retouches" data-rang="2"><b>${decisions} valeur${decisions > 1 ? 's' : ''} de Figma ${decisions > 1 ? 'diffèrent' : 'diffère'} de la recette</b>, dans ${aDecider.map((p) => echapper(p.nom)).join(', ')}. Rien ne s’écrit sans votre décision. ${bouton('relire-retouches', 'Relire…', { classe: 'lien' })}${note('DG-02, M-054')}</div>` : '';
+    const fiche = (p) => {
+      const e = c.etats[p.id];
+      const r = effectives(E.recette, E.meta, p);
+      const i = M.ancrageDe(E.recette, p).profil;
+      return `<div class="fiche" data-palette="${p.id}"><div class="fiche-tete"><b>${echapper(p.nom)}</b>${pastille(etatUrgent(p.id))}</div>${rampe(r[i][E.ui.themeFiches], { hauteur: 12, etiquette: p.nom })}<p class="petit second">${p.reference} · ${resumeGaranties(p.id)} · ${resumeSorties(p.id)}</p><p class="gestes">${e.cadre !== 'jamais' ? bouton('afficher', 'Afficher', { arg: p.id, classe: 'compact' }) : ''}${bouton('modifier', 'Modifier', { arg: p.id, classe: 'compact' })}${e.cadre !== 'a-jour' && e.variables !== 'a-decider' ? bouton('dessiner-cadre', e.cadre === 'jamais' ? 'Dessiner le cadre' : 'Redessiner le cadre', { arg: p.id, classe: 'compact' }) : ''}</p></div>`;
+    };
+    const groupe = (cle, titre, code, contenu, menu = '') => {
+      const ferme = E.ui.groupesFermes.has(cle);
+      return `<section class="groupe" data-objet="groupe-${cle}"><div class="groupe-tete"><button type="button" class="b-groupe" data-geste="replier" data-arg="${cle}" aria-expanded="${!ferme}">${ferme ? '▸' : '▾'} ${echapper(titre)} <code>${code}</code></button>${menu}</div>${ferme ? '' : contenu}</section>`;
+    };
+    const communes = palettes().filter((p) => metaDe(p.id).destination.type === 'communes');
+    let corps = `<div class="tete-onglet"><h2 data-objet="titre" data-rang="1">${palettes().length} palettes · ${E.marques.length} marque${E.marques.length > 1 ? 's' : ''}</h2><div class="bascule" role="group" aria-label="Thème des fiches">${['light', 'dark'].map((m) => bouton('theme-fiches', m === 'light' ? 'Light' : 'Dark', { arg: m, presse: E.ui.themeFiches === m })).join('')}</div></div>
+      ${E.bilan ? vueBilan() : ''}${bandeau}`;
+    corps += groupe('communes', 'Couleurs communes', 'primitives', `${communes.map(fiche).join('')}${communes.filter((p) => p.intensites !== 1).length >= 2 ? vueStatuts() : ''}`);
+    for (const m of E.marques) {
+      const siennes = palettes().filter((p) => { const d = metaDe(p.id).destination; return d.type === 'marque' && d.marque === m.id; });
+      const familles = [...new Set(FAMILLES_DE_MARQUE.filter((f) => palettes().some((p) => metaDe(p.id).destination.famille === f && metaDe(p.id).destination.type === 'marque')).concat(famillesAjoutees()))];
+      const manquantes = familles.filter((f) => !siennes.some((p) => metaDe(p.id).destination.famille === f));
+      if (!siennes.length && !familles.length) manquantes.push(...FAMILLES_DE_MARQUE);
+      const cases = manquantes.map((f) => {
+        const sp = c.sansPalette.find((x) => x.marque === m.id && x.famille === f);
+        return `<div class="case-vide" data-objet="case-vide"><b><code>${f}</code> manque dans ${echapper(m.nom)}</b><p class="petit second">${sp ? `${sp.valeurs} valeurs de ce mode sont sans palette : Figma y a recopié la première marque.` : 'Aucune valeur écrite pour cette famille dans ce mode.'}${note('DG-11, M-054')}</p><p class="gestes">${bouton('creer-dans-case', 'Créer la palette', { arg: f, classe: 'compact', etiquette: `Créer ${f} dans ${m.nom}` }).replace('data-geste', `data-marque="${m.id}" data-geste`)}</p></div>`;
+      }).join('');
+      const mode = E.doc.suivi.modes[m.id];
+      const nomMode = mode && collectionSuivie('brand') ? (collectionSuivie('brand').modes.find((x) => x.id === mode) || {}).nom : null;
+      const menu = `${bouton('renommer-marque', '⋯', { arg: m.id, etiquette: `Renommer ${m.nom}` })}`;
+      const renommage = E.ui.renommer === m.id ? `<div class="ligne-form"><label class="champ">Nouveau nom<input data-champ="renommer-marque" value="${echapper(m.nom)}"></label>${bouton('valider-renommage', 'Renommer')}</div>` : '';
+      corps += groupe(m.id, m.nom, `brand · mode ${nomMode ? echapper(nomMode) : 'à créer'}`, `${renommage}${nomMode && nomMode !== m.nom ? `<p class="petit second">Le mode « ${echapper(nomMode)} » prendra le nom « ${echapper(m.nom)} » à la prochaine écriture.</p>` : ''}${siennes.map(fiche).join('')}${cases}`, menu);
+    }
+    for (const mode of c.horsPlugin) {
+      corps += `<section class="groupe" data-objet="mode-hors"><div class="case-vide"><b>Mode « ${echapper(mode.nom)} », créé hors du plugin</b><p class="petit second">Figma y a recopié la première marque. Aucune palette ne suit ces valeurs.${note('DG-10, M-054')}</p><p class="gestes">${bouton('suivre-mode', 'Suivre ce mode…', { arg: mode.id, classe: 'compact' })}</p></div></section>`;
+    }
+    corps += E.ui.ajout
+      ? `<div class="ligne-form" data-objet="ajout-marque"><label class="champ">Nom de la marque<input data-champ="nom-marque" value=""></label>${bouton('valider-marque', 'Ajouter')}${bouton('annuler-marque', 'Annuler')}${collectionSuivie('brand') && collectionSuivie('brand').modes.length >= 10 ? `<p class="petit second">brand porte ${collectionSuivie('brand').modes.length} modes : l’offre Professional en admet 10, Organization 20.</p>` : ''}</div>`
+      : `<p>${bouton('ajouter-marque', '+ Ajouter une marque')}${note('DG-10, M-026')}</p>`;
+    const autres = palettes().filter((p) => ['aucune', 'variables'].includes(metaDe(p.id).destination.type));
+    if (autres.length) corps += groupe('aucune', 'Sans destination', 'planche seule', autres.map(fiche).join(''));
+    const parPalette = {};
+    for (const o of c.orphelines) { const k = o.variable.donnees.palette && !paletteDe(o.variable.donnees.palette) ? o.variable.donnees.palette : 'nuances'; (parPalette[k] = parPalette[k] || []).push(o); }
+    for (const [id, liste] of Object.entries(parPalette)) {
+      if (id === 'nuances') continue;
+      corps += `<div class="carte supprimee" data-objet="supprimee"><b>${echapper(nomDe(id))}, supprimée</b><p class="petit">Son cadre ${E.doc.cadres[id] ? 'et ' : ''}ses ${liste.length} variables restent dans Figma. Les calques liés restent liés.${note('M-017, M-032')}</p><p class="gestes">${E.doc.cadres[id] ? bouton('supprimer-cadre', 'Supprimer le cadre', { arg: id, classe: 'compact' }) : ''}${bouton('supprimer-variables', 'Supprimer les variables…', { arg: id, danger: true, classe: 'compact' })}</p></div>`;
+    }
+    for (const [id] of Object.entries(E.doc.cadres)) {
+      if (!paletteDe(id) && !parPalette[id]) corps += `<div class="carte supprimee"><b>${echapper(nomDe(id))}, supprimée</b><p class="petit">Son cadre reste dans Figma.</p><p class="gestes">${bouton('supprimer-cadre', 'Supprimer le cadre', { arg: id, classe: 'compact' })}</p></div>`;
+    }
+    if (parPalette.nuances) corps += `<div class="carte supprimee" data-objet="sans-palette"><b>${parPalette.nuances.length} variables sans palette</b><p class="petit">Des nuances retirées ou une destination changée les ont laissées. Une actualisation ne supprime jamais une variable.${note('DG-04, M-021')}</p><p class="gestes">${bouton('supprimer-variables', 'Supprimer ces variables…', { arg: 'nuances', danger: true, classe: 'compact' })}</p></div>`;
+    corps += `<details class="carte repliee" data-objet="recette-rapport"><summary>Recette et rapport</summary><p class="gestes">${bouton('fichier', 'Exporter la recette', { arg: 'palettes.recette.json', classe: 'compact' })}${bouton('fichier', 'Importer une recette…', { arg: 'import', classe: 'compact' })}${bouton('fichier', 'Exporter le rapport', { arg: 'palettes.rapport.json', classe: 'compact' })}${bouton('fichier', 'Redessiner tous les cadres', { arg: 'tout', classe: 'compact' })}${bouton('fichier', 'Chercher dans tout le fichier', { arg: 'chercher', classe: 'compact' })}</p>${note('DG-02, M-104')}</details>`;
+    const pied = { aide: aAppliquer.length ? `${aAppliquer.length} palette${aAppliquer.length > 1 ? 's' : ''} à appliquer${decisions ? ` · ${decisions} décision${decisions > 1 ? 's' : ''}` : ''}` : 'Tout est à jour dans Figma.', geste: 'appliquer-systeme', texte: `Appliquer à Figma…${aAppliquer.length ? ` (${aAppliquer.length})` : ''}`, desactive: !aAppliquer.length };
+    return { corps, pied };
+  }
+  function vueBilan() {
+    const b = E.bilan;
+    const partiel = b.erreurs.length || b.planche === 'police';
+    return `<div class="carte bilan ${partiel ? 'partiel' : ''}" tabindex="-1" data-objet="bilan" data-rang="1" role="status"><b>${partiel ? 'Écriture incomplète' : 'Écriture terminée'} · ${echapper(b.titre)}</b>${note('DG-04, M-053')}
+      <p class="petit">Variables : ${b.variables} créée${b.variables > 1 ? 's' : ''}, ${b.valeurs} couleur${b.valeurs > 1 ? 's' : ''} écrite${b.valeurs > 1 ? 's' : ''}${b.modes ? `, ${b.modes} mode créé` : ''}. Planche : ${b.planche === 'police' ? 'rien n’est dessiné, la police Inter Semi Bold manque sur ce poste' : `${b.cadres} cadre${b.cadres > 1 ? 's' : ''} dessiné${b.cadres > 1 ? 's' : ''}`}.${b.nonDecidees ? ` ${b.nonDecidees} valeur${b.nonDecidees > 1 ? 's' : ''} non décidée${b.nonDecidees > 1 ? 's' : ''} : ni Figma ni la recette ne changent.` : ''}</p>
+      ${b.erreurs.map((e) => `<p class="petit danger-texte">${echapper(e.texte)}</p><details class="petit"><summary>Détail technique</summary><code>${echapper(e.technique)}</code></details>`).join('')}
+      ${partiel ? `<p>${bouton('reessayer', 'Réessayer', { classe: 'lien' })} <span class="second petit">relit le fichier ; ce qui est écrit ne se refait pas.</span></p>` : ''}</div>`;
+  }
+  function vueStatuts() {
+    const utilitaires = palettes().filter((p) => { const d = metaDe(p.id).destination; return d.type === 'communes' && d.famille !== 'neutral'; });
+    const marque = E.ui.avecMarque || (E.marques[0] && E.marques[0].id);
+    const siennes = palettes().filter((p) => { const d = metaDe(p.id).destination; return d.type === 'marque' && d.marque === marque; });
+    const vision = E.ui.vision;
+    const ensemble = utilitaires.concat(siennes);
+    const paires = [];
+    ensemble.forEach((a, i) => ensemble.slice(i + 1).forEach((b) => {
+      if (siennes.includes(a) && siennes.includes(b)) return;
+      const d = distanceEnVision(M, E.recette, a, b, vision);
+      if (d !== null && d < E.recette.seuils.palettesProches) paires.push(`${a.nom} et ${b.nom} : ${virgule(d, 3)}`);
+    }));
+    const vue = (p) => {
+      const r = effectives(E.recette, E.meta, p);
+      const i = p.intensites === 1 ? 'unique' : 'vivid';
+      const h = (n) => M.ecrireHexa(simulerVision(M, vision, M.lireHexa(r[i].light[E.recette.crans.indexOf(n)])));
+      const icone = { danger: '✕', warning: '!', success: '✓', info: 'i' }[metaDe(p.id).destination.famille] || '★';
+      return `<div class="alerte-specimen" style="background:${h(100)};color:${h(700)};border:1px solid ${h(600)}"><b>${icone}</b> ${echapper(p.nom)}</div>`;
+    };
+    const ouvert = E.ui.statuts;
+    return `<div class="carte" data-objet="statuts"><button type="button" class="b-groupe" data-geste="ouvrir-statuts" aria-expanded="${ouvert}">${ouvert ? '▾' : '▸'} Distinguer les statuts <span class="second">${vision === 'normale' ? 'vision normale' : vision}</span></button>${note('DG-13, M-055')}
+      ${ouvert ? `<div class="deux"><label class="champ">Vision<select data-champ="vision">${['normale', 'protanopie', 'deuteranopie', 'tritanopie'].map((v) => `<option value="${v}" ${v === vision ? 'selected' : ''}>${{ normale: 'Normale', protanopie: 'Protanopie', deuteranopie: 'Deutéranopie', tritanopie: 'Tritanopie' }[v]}</option>`).join('')}</select></label><label class="champ">Avec<select data-champ="avec-marque">${E.marques.map((m) => `<option value="${m.id}" ${m.id === marque ? 'selected' : ''}>${echapper(m.nom)}</option>`).join('')}</select></label></div>
+      <div class="specimens" style="background:${E.recette.fonds.light}">${ensemble.map(vue).join('')}</div>
+      <p class="petit" data-objet="paires-proches">${paires.length ? `Sous le seuil de ${virgule(E.recette.seuils.palettesProches, 2)} dans cette vision : ${paires.join(' ; ')}.` : 'Aucune paire sous le seuil dans cette vision.'}</p>
+      <p class="second petit">Simulation d’une dichromacie complète : Viénot 1999 pour la protanopie et la deutéranopie, Brettel 1997 pour la tritanopie. Elle ne prouve pas la lisibilité d’un composant. Un statut ne se porte pas par la couleur seule (WCAG 1.4.1) : une icône et un texte l’accompagnent. Les garanties restent jugées en vision normale.</p>` : ''}</div>`;
+  }
+
+  // ------------------------------------------------ Réglages communs
+  function vueReglages() {
+    const soft = E.recette.profils.soft.part;
+    const ecrites = calculs().lignes.filter((l) => l.etat === 'a-ecrire').length;
+    const nombre = M.nombreDeNuancesDe(E.recette.crans);
+    const ap = E.ui.apercuNuances;
+    let apercuN = '';
+    if (ap) {
+      const grille = M.grilleAuPrereglage({ crans: E.recette.crans, courbes: E.recette.courbes }, ap);
+      const recette = { ...E.recette, ...grille };
+      const avant = new Set(planDesVariables(M, E.recette, E.meta, E.marques).map((c) => `${c.collection}:${c.nom}`));
+      const plan = planDesVariables(M, recette, E.meta, E.marques);
+      const apres = new Set(plan.map((c) => `${c.collection}:${c.nom}`));
+      const creees = [...apres].filter((n) => !avant.has(n)).length;
+      const laissees = [...avant].filter((n) => !apres.has(n)).length;
+      const ajoutes = grille.crans.filter((n) => !E.recette.crans.includes(n));
+      const retires = E.recette.crans.filter((n) => !grille.crans.includes(n));
+      apercuN = `<div class="apercu-conversion" data-objet="apercu-nuances"><p class="petit"><b>Passer à ${ap} nuances</b> : ${ajoutes.length ? `ajoute ${ajoutes.join(' et ')}` : ''}${retires.length ? `retire ${retires.join(' et ')}` : ''}. Aucune couleur d’une nuance gardée ne change. ${palettes().filter((p) => E.doc.cadres[p.id]).length} cadres passeront « À actualiser ». Variables : ${creees} à créer ; ${laissees} resteront dans Figma sans palette, jamais supprimées.${note('DG-08, M-021')}</p><p>${bouton('confirmer-nuances', `Passer à ${ap} nuances`)} ${bouton('annuler-nuances', 'Annuler')}</p></div>`;
+    }
+    const corps = `<div class="tete-onglet"><h2 data-objet="titre" data-rang="1">Réglages communs</h2>${bouton('retour-reglages', '← Retour')}</div>
+      <div class="carte" data-objet="intensites"><h3>Intensités <span class="second">${palettes().filter((p) => p.intensites !== 1).length} palettes concernées</span></h3>
+        <label class="champ">Intensité Soft<input data-champ="part-soft" value="${virgule(soft, 2)}" inputmode="decimal"></label>
+        <p class="petit" data-objet="effet-reglage">${ecrites ? `${ecrites} couleur${ecrites > 1 ? 's' : ''} déjà écrite${ecrites > 1 ? 's' : ''} dans Figma change${ecrites > 1 ? 'nt' : ''}, en ${palettes().filter((p) => calculs().etats[p.id].variables === 'a-ecrire').length} palettes. Rien ne s’écrit avant « Appliquer à Figma… ».` : 'Aucune couleur écrite ne change.'}${note('DG-14, M-019')}</p></div>
+      <div class="carte" data-objet="luminosite"><h3>Luminosité des nuances</h3><div class="segments" role="group" aria-label="Nombre de nuances">${[9, 11, 13].map((n) => bouton('nuances', `${n} nuances`, { arg: n, presse: n === nombre })).join('')}</div>${apercuN}</div>
+      <details class="carte repliee" data-objet="collections"><summary>Collections des variables <span class="second">primitives · brand · theme</span></summary>${['primitives', 'brand', 'theme'].map((k) => `<label class="champ">${k}<input data-champ="nom-collection" data-arg="${k}" value="${echapper(E.collectionsNoms[k])}"></label>`).join('')}<p class="second petit">Les variables de primitives et de brand n’apparaissent dans aucun sélecteur de Figma : leur liste de portées est vide. theme garde les portées de remplissage et de contour. La syntaxe de code Web vient de tokenCssVariable.${note('DG-19, M-020')}</p></details>`;
+    return { corps, pied: null };
+  }
+
+  // ------------------------------------------------ modales
+  function modaleRevue() {
+    const r = E.revue;
+    const comptes = comptesDeLaRevue(r);
+    const avantParPalette = {};
+    for (const l of r.avant) if (A_DECIDER.includes(l.etat)) (avantParPalette[l.cible.palette || l.cible.famille] = avantParPalette[l.cible.palette || l.cible.famille] || []).push(l);
+    const perdues = r.ids.filter((id) => !r.exclues.has(id) && paletteDe(id)).map((id) => {
+      const avant = manqueesDe(E.recette, E.meta, paletteDe(id)).length;
+      const pApres = r.recetteApres.palettes.find((p) => p.id === id);
+      const apres = pApres ? garantiesEffectives(M, r.recetteApres, pApres, r.metaApres[id].retouches).filter((x) => x.verdict === 'manquee').length : 0;
+      return { id, avant, apres };
+    });
+    const pertes = perdues.filter((x) => x.apres > x.avant);
+    const phrase = !comptes.valeurs && !comptes.cadres && comptes.nonDecidees ? `Rien ne change encore : ${comptes.nonDecidees} valeur${comptes.nonDecidees > 1 ? 's attendent' : ' attend'} votre décision.` : `${comptes.valeurs} couleur${comptes.valeurs > 1 ? 's' : ''} ${comptes.valeurs > 1 ? 'changent' : 'change'} dans Figma${comptes.variables ? `, ${comptes.variables} variable${comptes.variables > 1 ? 's' : ''} ${comptes.variables > 1 ? 'sont créées' : 'est créée'}` : ''}${comptes.modes ? `, ${comptes.modes} mode${comptes.modes > 1 ? 's créés' : ' créé'}` : ''} et ${comptes.cadres} cadre${comptes.cadres > 1 ? 's sont redessinés' : ' est redessiné'}.`;
+    const raison = (id) => {
+      if (E.autrePoste.has(id) && !E.poste.has(id)) return 'Réglée sur un autre poste depuis la dernière écriture';
+      const e = calculs().etats[id];
+      if (!e) return '';
+      if (e.variables === 'a-decider') return `${e.decisions.length} valeur${e.decisions.length > 1 ? 's' : ''} à décider`;
+      if (e.ecrire.some((l) => l.etat === 'a-creer' || l.etat === 'mode-a-creer')) return 'Première écriture';
+      if (e.variables === 'a-ecrire') return `${e.ecrire.length} couleur${e.ecrire.length > 1 ? 's' : ''} à écrire`;
+      return e.cadre === 'a-jour' ? 'À jour' : 'Cadre seul';
+    };
+    const lignesPalettes = r.ids.map((id) => `<label class="case ligne-palette"><input type="checkbox" data-champ="revue-palette" data-arg="${id}" ${r.exclues.has(id) ? '' : 'checked'}> <b>${echapper(nomDe(id))}</b> <span class="second petit">${raison(id)}</span></label>`).join('');
+    const choix = (l) => {
+      const actuel = r.decisions[l.cle];
+      const bouge = r.bouges.includes(l.cle);
+      const p = paletteDe(l.cible.palette);
+      const sansProv = l.etat.startsWith('sans-provenance');
+      const options = sansProv ? [['reprendre', `Reprendre ${typeof l.figma === 'string' ? l.figma : 'la valeur'} de Figma dans la recette`], ['remplacer', `Remplacer par la recette, ${l.cible.valeur}`]]
+        : l.nature === 'reference' ? [['adopter', `Adopter ${l.figma} comme nouvelle référence de ${p ? p.nom : ''}`], ['remettre', `Remettre ${l.cible.valeur} dans Figma`]]
+          : l.nature === 'identite' ? [['adopter', `Adopter ${l.figma} comme couleur de charte`], ['remettre', `Remettre ${l.cible.valeur} dans Figma`]]
+            : [['adopter', `Adopter ${l.figma} dans la recette`], ['remettre', `Remettre ${l.cible.valeur} dans Figma`]];
+      let effet = '';
+      if (actuel && p) {
+        const pApres = r.recetteApres.palettes.find((x) => x.id === p.id);
+        const n = garantiesEffectives(M, r.recetteApres, pApres, r.metaApres[p.id].retouches).filter((x) => x.verdict === 'manquee').length;
+        effet = `<p class="petit ${n ? 'danger-texte' : ''}">Avec ce choix : ${n} garantie${n > 1 ? 's' : ''} manquée${n > 1 ? 's' : ''} pour ${echapper(p.nom)}.</p>`;
+      }
+      const emplois = l.cible.nuance && l.cible.nuance !== 'identite' ? M.emploisDuCran(E.recette.crans, E.recette.crans.indexOf(Number(l.cible.nuance.split('/')[2]))).map((x) => `${x.emploi} ${ETATS[x.decalage]}`).join(', ') : '';
+      return `<div class="decision ${bouge ? 'bouge' : ''}" data-objet="decision"><p class="petit"><code>${echapper(l.cible.collection)} · ${echapper(l.cible.nom)}</code>${l.cible.collection === 'brand' ? ` · ${echapper((marqueDe(l.cible.mode) || {}).nom || '')}` : ''}${l.nature === 'reference' ? ' · nuance ◆' : ''}${emplois ? ` · <span class="second">sert à ${emplois}</span>` : ''}</p>
+        <div class="trois">${l.derniere !== undefined ? `<span><i style="background:${l.derniere}"></i>Dernière écrite <code>${l.derniere}</code></span>` : '<span class="second">Jamais écrite par le plugin</span>'}<span><i style="background:${l.cible.valeur}"></i>Recette <code>${l.cible.valeur}</code></span><span><i style="background:${l.figma}"></i>Figma <code>${l.figma}</code></span></div>
+        <div class="segments">${options.map(([k, t]) => bouton('decider', t, { arg: l.cle, choix: k, presse: actuel === k })).join('')}</div>${actuel ? '' : '<p class="second petit">Sans choix, cette valeur ne s’écrit pas : Figma et la recette gardent chacun la leur.</p>'}${effet}</div>`;
+    };
+    const blocs = Object.entries(avantParPalette).map(([id, liste]) => {
+      const sansProv = liste.every((l) => l.etat.startsWith('sans-provenance'));
+      const groupe = liste.length > 1 ? `<p class="segments">${bouton('decider-tout', sansProv ? `Reprendre les ${liste.length} de Figma` : `Adopter les ${liste.length} dans la recette`, { arg: sansProv ? 'sans-provenance' : id, choix: sansProv ? 'reprendre' : 'adopter' })}${bouton('decider-tout', sansProv ? `Remplacer les ${liste.length} par la recette` : `Remettre les ${liste.length} dans Figma`, { arg: sansProv ? 'sans-provenance' : id, choix: sansProv ? 'remplacer' : 'remettre' })}</p>` : '';
+      return `<section class="bloc-decisions"><h4>${echapper(nomDe(id))} : ${liste.length} valeur${liste.length > 1 ? 's' : ''} ${sansProv ? 'sans provenance' : 'changée' + (liste.length > 1 ? 's' : '') + ' dans Figma'}</h4>${groupe}${liste.length > 6 ? `<p class="second petit">${liste.length} valeurs : ${liste.slice(0, 3).map((l) => `<code>${echapper(l.cible.nom)}</code>`).join(', ')}…</p>` : liste.map(choix).join('')}</section>`;
+    }).join('');
+    const homonymes = r.homonymes.map((cle) => `<div class="decision" data-objet="homonyme"><p class="petit"><b>Une collection « ${echapper(E.collectionsNoms[cle])} » existe, créée hors du plugin.</b> Le plugin ne crée jamais un second nom identique.</p><div class="segments">${bouton('reprendre-collection', 'Reprendre cette collection', { arg: cle })}${bouton('renommer-collection', 'Choisir un autre nom…', { arg: cle })}</div><p class="second petit">Sans choix, rien ne s’écrit dans cette collection.</p></div>`).join('');
+    const parCollection = ['primitives', 'brand', 'theme'].map((k) => {
+      const ecr = comptes.ecrites.filter((l) => l.cible.collection === k);
+      const vars = new Set(ecr.filter((l) => l.etat === 'a-creer').map((l) => l.cible.nom)).size;
+      return ecr.length ? `<tr><td><code>${k}</code></td><td>${vars}</td><td>${ecr.length}</td></tr>` : '';
+    }).join('');
+    const laissees = calculs().orphelines.length;
+    const sp = calculs().sansPalette;
+    const planche = r.sorties.planche;
+    const police = !E.doc.polices;
+    return `<div class="voile"></div><div class="dialogue" role="dialog" aria-modal="true" aria-labelledby="titre-revue" data-objet="revue">
+      <div class="dialogue-tete"><h2 id="titre-revue">Appliquer à Figma</h2><p class="second petit">${echapper(r.titre)}</p></div>
+      <div class="dialogue-corps">
+        ${r.message ? `<p class="message danger" role="alert" data-objet="revue-invalidee">${echapper(r.message)}</p>` : ''}
+        <p data-objet="phrase-revue" data-rang="1"><b>${phrase}</b>${note('DG-08, M-052')}</p>
+        ${pertes.map((x) => `<p class="message danger">${echapper(nomDe(x.id))} passe de ${x.avant} à ${x.apres} garanties manquées avec ces choix.</p>`).join('')}
+        <div class="sorties"><label class="case"><input type="checkbox" data-champ="sortie-variables" ${r.sorties.variables ? 'checked' : ''}> <b>Variables et alias</b> <span class="second petit">${comptes.variables} créées · ${comptes.valeurs} couleurs écrites</span></label>
+        <label class="case"><input type="checkbox" data-champ="sortie-planche" ${planche && !police ? 'checked' : ''} ${police ? 'disabled' : ''}> <b>Planche</b> <span class="second petit">${police ? 'Police Inter Semi Bold indisponible sur ce poste : la planche ne se dessine pas, les variables restent possibles.' : `${comptes.cadres} cadre${comptes.cadres > 1 ? 's' : ''} à dessiner`}</span></label></div>
+        ${homonymes}
+        ${blocs}
+        ${r.ids.length > 1 ? `<details class="petit" ${r.exclues.size ? 'open' : ''}><summary>Palettes (${r.ids.length - r.exclues.size} sur ${r.ids.length})</summary>${lignesPalettes}</details>` : ''}
+        <details class="petit" data-objet="detail-technique"><summary>Détail technique</summary><table class="table-garanties"><thead><tr><th>Collection</th><th>Variables créées</th><th>Valeurs par mode écrites</th></tr></thead><tbody>${parCollection || '<tr><td colspan="3">Aucune</td></tr>'}</tbody></table><p>${comptes.modes} mode${comptes.modes > 1 ? 's' : ''} créé${comptes.modes > 1 ? 's' : ''}. ${laissees} variable${laissees > 1 ? 's' : ''} sans palette ${laissees > 1 ? 'restent' : 'reste'}, jamais supprimée${laissees > 1 ? 's' : ''}.${sp.length ? ` ${sp.map((x) => `${x.valeurs} valeurs de ${(marqueDe(x.marque) || {}).nom} sans palette (${x.famille})`).join(', ')}.` : ''} Le document se relit au clic.</p></details>
+      </div>
+      <div class="dialogue-pied"><span class="second petit">${comptes.nonDecidees ? `${comptes.nonDecidees} valeur${comptes.nonDecidees > 1 ? 's' : ''} non décidée${comptes.nonDecidees > 1 ? 's' : ''} : elle${comptes.nonDecidees > 1 ? 's' : ''} ne s’écri${comptes.nonDecidees > 1 ? 'vent' : 't'} pas.` : 'Le document sera relu au clic.'}</span>${bouton('revue-annuler', 'Annuler')}${bouton('revue-appliquer', 'Appliquer à Figma', { principal: true, desactive: !comptes.valeurs && !comptes.cadres && !Object.keys(r.decisions).length })}</div></div>`;
+  }
+  function modaleAjuster() {
+    const p = paletteDe(E.ui.ouverte);
+    const a = E.modale;
+    const q = M.paletteAuPas(E.recette, p, a.pas);
+    const avant = manqueesDe(E.recette, E.meta, p).length;
+    const apres = q ? manqueesDe({ ...E.recette, palettes: palettes().map((x) => (x.id === p.id ? q : x)) }, E.meta, q).length : avant;
+    return `<div class="voile"></div><div class="dialogue" role="dialog" aria-modal="true" aria-labelledby="titre-ajuster" data-objet="ajuster"><div class="dialogue-tete"><h2 id="titre-ajuster">Ajuster la référence</h2></div>
+      <div class="dialogue-corps"><p class="petit">La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour les bordures de champ.</p>
+      <div class="deux"><div><span class="second petit">Originale</span><div class="grande" style="background:${p.originale || p.reference}"></div><code>${p.originale || p.reference}</code></div><div><span class="second petit">Proposition</span><div class="grande" style="background:${q ? q.reference : p.reference}"></div><code data-objet="proposition">${q ? q.reference : '—'}</code></div></div>
+      <p>${bouton('ajuster-moins', '−', { etiquette: 'Un pas plus sombre' })} <span>${a.pas} pas</span> ${bouton('ajuster-plus', '+', { etiquette: 'Un pas plus clair' })}</p>
+      <p class="petit">Garanties manquées : ${avant} avant, ${apres} après.${note('M-050')}</p></div>
+      <div class="dialogue-pied"><span></span>${bouton('modale-annuler', 'Annuler')}${bouton('ajuster-appliquer', 'Appliquer', { principal: true, desactive: !q || a.pas === 0 })}</div></div>`;
+  }
+  function modaleSuppression() {
+    const a = E.modale;
+    return `<div class="voile"></div><div class="dialogue" role="dialog" aria-modal="true" aria-labelledby="titre-suppr" data-objet="suppression"><div class="dialogue-tete"><h2 id="titre-suppr">Supprimer ${a.n} variables ?</h2></div><div class="dialogue-corps"><p>Les calques liés à ces variables perdront leur lien. UCM Exporter ne les exportera plus. Ctrl+Z dans Figma les rend.</p></div><div class="dialogue-pied"><span></span>${bouton('modale-annuler', 'Annuler')}${bouton('confirmer-suppression', 'Supprimer les variables', { danger: true })}</div></div>`;
+  }
+
+  // ------------------------------------------------ rendu
+  function rendre() {
+    cache = null;
+    const actif = document.activeElement;
+    const memoire = actif && actif.dataset ? { geste: actif.dataset.geste, arg: actif.dataset.arg, champ: actif.dataset.champ, choix: actif.dataset.choix, onglet: actif.dataset.onglet } : null;
+    const vue = E.ui.reglages ? vueReglages() : E.ui.onglet === 'palette' ? vuePalette() : E.ui.onglet === 'verifier' ? vueVerifier() : vueSysteme();
+    const plugin = $('#plugin');
+    const onglets = [['palette', 'Palette'], ['verifier', 'Vérifier'], ['systeme', 'Système']];
+    plugin.innerHTML = `<header class="p-tete" ${E.revue || E.modale ? 'inert' : ''}><b>UCM Palettes</b>${bouton('reglages', '⚙', { etiquette: 'Réglages communs', presse: E.ui.reglages })}</header>
+      <nav class="p-onglets" role="tablist" aria-label="Onglets" ${E.revue || E.modale ? 'inert' : ''} data-objet="onglets">${onglets.map(([k, t]) => `<button type="button" role="tab" data-onglet="${k}" aria-selected="${!E.ui.reglages && E.ui.onglet === k}">${t}</button>`).join('')}${note('DG-01, M-040')}</nav>
+      <main class="p-corps" tabindex="-1" ${E.revue || E.modale ? 'inert' : ''}>${vue.corps}</main>
+      ${vue.pied ? `<footer class="p-pied" ${E.revue || E.modale ? 'inert' : ''} data-objet="pied"><span class="second petit">${vue.pied.aide}</span>${bouton(vue.pied.geste, vue.pied.texte, { arg: vue.pied.arg, principal: true, desactive: vue.pied.desactive })}</footer>` : ''}
+      <div id="p-modale">${E.revue ? modaleRevue() : E.modale && E.modale.type === 'ajuster' ? modaleAjuster() : E.modale && E.modale.type === 'suppression' ? modaleSuppression() : ''}</div>`;
+    rendrePage();
+    const dialogue = $('#p-modale .dialogue');
+    if (dialogue && !dialogue.contains(document.activeElement)) {
+      const premier = dialogue.querySelector('button:not([disabled]), input:not([disabled]), select');
+      if (premier) premier.focus();
+      return;
+    }
+    if (memoire) {
+      const sel = memoire.champ ? `[data-champ="${memoire.champ}"]${memoire.arg ? `[data-arg="${memoire.arg}"]` : ''}` : memoire.onglet ? `[data-onglet="${memoire.onglet}"]` : memoire.geste ? `[data-geste="${memoire.geste}"]${memoire.arg ? `[data-arg="${CSS.escape(memoire.arg)}"]` : ''}${memoire.choix ? `[data-choix="${memoire.choix}"]` : ''}` : null;
+      const cible = sel && plugin.querySelector(sel);
+      if (cible && !cible.disabled) cible.focus({ preventScroll: true });
+    }
+  }
+  function rendrePage() {
+    const s = SCENARIOS.find((x) => x.id === E.scenario);
+    $('#liste-scenarios').innerHTML = SCENARIOS.map((x) => `<li><button type="button" class="${x.id === E.scenario ? 'actif' : ''}" data-scenario="${x.id}" aria-current="${x.id === E.scenario}"><b>${x.id}</b> ${echapper(x.titre)}</button></li>`).join('');
+    $('#consigne').innerHTML = `<h2>${s.id} · ${echapper(s.titre)}</h2><p><b>Consigne.</b> ${echapper(s.consigne)}</p><p><b>Résultat attendu.</b> ${echapper(s.attendu)}</p><p class="note-page">Fondé sur : ${echapper(s.notes)}</p>`;
+    const docu = E.doc;
+    const collections = docu.collections.map((c) => {
+      const cle = Object.keys(docu.suivi.collections).find((k) => docu.suivi.collections[k] === c.id);
+      const valeurs = c.variables.reduce((t, v) => t + Object.keys(v.valeurs).length, 0);
+      const sansProv = c.variables.filter((v) => !v.donnees).length;
+      return `<details><summary><b>${echapper(c.nom)}</b> · ${c.variables.length} variables · ${valeurs} valeurs · modes ${c.modes.map((m) => echapper(m.nom)).join(', ')}${cle ? '' : ' · hors du plugin'}${sansProv ? ` · ${sansProv} sans donnée du plugin` : ''}</summary><div class="table-doc">${c.variables.slice(0, 80).map((v) => `<div><code>${echapper(v.nom)}</code>${c.modes.map((m) => { const x = v.valeurs[m.id]; return x === undefined ? '<span class="vide">·</span>' : typeof x === 'string' ? `<i style="background:${x}" title="${m.nom} ${x}"></i>` : `<span title="${echapper(x.alias)}">↗</span>`; }).join('')}</div>`).join('')}${c.variables.length > 80 ? `<p class="second">… ${c.variables.length - 80} de plus</p>` : ''}</div></details>`;
+    }).join('') || '<p class="second">Aucune collection.</p>';
+    const cadres = Object.keys(docu.cadres).map((id) => `${echapper(nomDe(id))} (${etatDuCadre(id) === 'a-jour' ? 'à jour' : etatDuCadre(id) === 'orphelin' ? 'palette supprimée' : 'à actualiser'})`).join(', ') || 'aucun';
+    $('#document').innerHTML = `<p><b>Recette rangée</b> : ${palettes().length} palettes, ${E.marques.length} marques, ${E.recette.crans.length} nuances.</p>${collections}<p><b>Planche</b> : ${cadres}</p>
+      <p><label class="case"><input type="checkbox" id="doc-polices" ${docu.polices ? 'checked' : ''}> Police Inter Semi Bold disponible sur ce poste</label></p>
+      <p>Limite de modes de l’offre : <b>${docu.limiteModes}</b> ${docu.limiteModes < 20 ? `<button type="button" data-geste="offre-organization">Passer l’offre à Organization (20)</button>` : ''}</p>
+      <p>Sélection dans Figma : ${docu.selection ? `${docu.selection.pastilles.length} pastilles, « ${echapper(docu.selection.nom)} »` : 'rien'}</p>
+      <p><button type="button" data-geste="ctrl-z" ${E.pile.length ? '' : 'disabled'}>Ctrl+Z dans Figma</button> <span class="second">défait la dernière écriture du plugin</span></p>`;
+    $('#journal').innerHTML = E.journal.length ? E.journal.map((j) => `<li><b>${echapper(j.titre)}</b><br>${j.unites.variables} variable${j.unites.variables > 1 ? 's' : ''} créée${j.unites.variables > 1 ? 's' : ''} · ${j.unites.valeurs} valeur${j.unites.valeurs > 1 ? 's' : ''} par mode écrite${j.unites.valeurs > 1 ? 's' : ''} · ${j.unites.cadres} cadre${j.unites.cadres > 1 ? 's' : ''} dessiné${j.unites.cadres > 1 ? 's' : ''}${j.modes ? ` · ${j.modes} mode créé` : ''}${j.laissees ? ` · ${j.laissees} variables laissées sans palette` : ''}${j.nonDecidees ? ` · ${j.nonDecidees} non décidées, laissées` : ''}${j.erreurs && j.erreurs.length ? `<br><span class="erreur">${j.erreurs.map(echapper).join(' ; ')}</span>` : ''}</li>`).join('') : '<li class="second">Aucune écriture.</li>';
+  }
+
+  // ------------------------------------------------ gestes
+  function gerer(geste, el) {
+    const arg = el.dataset.arg;
+    const p = paletteDe(E.ui.ouverte);
+    switch (geste) {
+      case 'reglages': E.ui.reglages = !E.ui.reglages; E.ui.apercuNuances = null; break;
+      case 'retour-reglages': E.ui.reglages = false; break;
+      case 'nouvelle': E.ui.creation = { type: 'depart' }; E.ui.onglet = 'palette'; E.ui.menu = false; break;
+      case 'menu-palette': E.ui.menu = !E.ui.menu; break;
+      case 'supprimer-palette': {
+        E.supprimees[p.id] = p.nom;
+        E.recette = { ...E.recette, palettes: palettes().filter((x) => x.id !== p.id) };
+        E.ui.menu = false; E.ui.ouverte = palettes()[0] ? palettes()[0].id : null; break;
+      }
+      case 'depart': {
+        if (arg === 'jeu') E.ui.creation = { type: 'jeu', communes: ['#808080', '#DC2626', '#D97706', '#16A34A', '#2563EB'], marques: [{ nom: 'Marque A', primary: '#1E6FD9', secondary: '#E08A00' }], secondaire: true };
+        else if (arg === 'existantes') E.ui.creation = { type: 'existantes', nom: '', destination: { type: 'aucune' }, rangReference: 6 };
+        else E.ui.creation = { type: 'couleur', nom: '', reference: '', destination: { type: 'aucune' } };
+        break;
+      }
+      case 'fermer-creation': E.ui.creation = null; break;
+      case 'jeu-ajouter-marque': { const c = E.ui.creation; const suivantes = [['Marque B', '#1D4ED8', '#00A389'], ['Marque C', '#7A1FA2', '#C2185B'], ['Marque D', '#2E7D32', '#EF6C00']]; const s = suivantes[c.marques.length - 1] || [`Marque ${c.marques.length + 1}`, '#5D4037', '#0277BD']; c.marques.push({ nom: s[0], primary: s[1], secondary: s[2] }); break; }
+      case 'jeu-retirer-marque': E.ui.creation.marques.splice(Number(arg), 1); break;
+      case 'creer-jeu': creerJeu(); break;
+      case 'destination-neuve': E.ui.creation.destination = { type: arg }; break;
+      case 'prendre-selection': E.ui.creation.reference = arg; break;
+      case 'creer-palette': creerPalette(); break;
+      case 'creer-existantes': creerExistantes(); break;
+      case 'creer-dans-case': {
+        const marque = el.dataset.marque;
+        E.ui.creation = { type: 'couleur', nom: '', reference: '', destination: { type: 'marque', marque, famille: arg } };
+        E.ui.onglet = 'palette'; break;
+      }
+      case 'destination': {
+        if (arg === metaDe(p.id).destination.type && !E.ui.conversion) break;
+        const conv = { type: arg, marque: '', famille: '', autre: '' };
+        conv.cible = () => {
+          if (conv.type === 'aucune') return { type: 'aucune' };
+          if (conv.type === 'variables') return { type: 'variables' };
+          const famille = conv.famille === 'autre' ? (/^[a-z][a-z0-9-]*$/.test(conv.autre || '') ? conv.autre : '') : conv.famille;
+          return conv.type === 'communes' ? { type: 'communes', famille } : { type: 'marque', marque: conv.marque, famille };
+        };
+        E.ui.conversion = conv; break;
+      }
+      case 'annuler-conversion': E.ui.conversion = null; break;
+      case 'relier':
+      case 'confirmer-conversion': confirmerConversion(); break;
+      case 'vers-verifier': E.ui.onglet = 'verifier'; break;
+      case 'vers-palette': E.ui.onglet = 'palette'; break;
+      case 'theme-apercu': E.ui.themeApercu = arg; break;
+      case 'theme-fiches': E.ui.themeFiches = arg; break;
+      case 'appliquer-palette':
+      case 'appliquer-depuis-palette': ouvrirRevue([p.id], `${p.nom} seulement`); return;
+      case 'appliquer-systeme': ouvrirRevue(null, 'Toutes les palettes à appliquer'); return;
+      case 'relire-retouches': ouvrirRevue(palettes().filter((x) => calculs().etats[x.id].variables === 'a-decider').map((x) => x.id), 'Valeurs changées dans Figma'); return;
+      case 'reessayer': { const ids = E.bilan.portee; E.bilan = null; ouvrirRevue(ids, 'Reprise'); return; }
+      case 'revue-annuler': { const retour = E.revue.retour; E.revue = null; rendre(); const b = retour && $(`[data-geste="${retour}"]`); if (b) b.focus(); return; }
+      case 'revue-appliquer': appliquer(); return;
+      case 'decider': E.revue.decisions[arg] = el.dataset.choix; E.revue.bouges = E.revue.bouges.filter((x) => x !== arg); preparerRevue(); break;
+      case 'decider-tout': {
+        for (const l of E.revue.avant) {
+          if (!A_DECIDER.includes(l.etat)) continue;
+          if (arg === 'sans-provenance' ? l.etat.startsWith('sans-provenance') : l.cible.palette === arg) E.revue.decisions[l.cle] = el.dataset.choix;
+        }
+        preparerRevue(); break;
+      }
+      case 'reprendre-collection': E.revue.reprises.add(arg); preparerRevue(); E.revue.instantane = empreinteDuPlan(E.revue.avant); break;
+      case 'renommer-collection': E.revue = null; E.ui.reglages = true; break;
+      case 'dessiner-cadre': dessinerLeCadre(arg); return;
+      case 'afficher': E.journal.unshift({ titre: `Afficher dans Figma : la page de la planche s’ouvre sur le cadre de ${nomDe(arg)}, sans rien écrire`, unites: { variables: 0, valeurs: 0, cadres: 0 } }); break;
+      case 'modifier': E.ui.ouverte = arg; E.ui.onglet = 'palette'; break;
+      case 'replier': if (E.ui.groupesFermes.has(arg)) E.ui.groupesFermes.delete(arg); else E.ui.groupesFermes.add(arg); break;
+      case 'ajouter-marque': E.ui.ajout = true; break;
+      case 'annuler-marque': E.ui.ajout = false; break;
+      case 'valider-marque': {
+        const nom = ($('[data-champ="nom-marque"]') || {}).value || '';
+        if (!nom.trim()) break;
+        E.marques.push({ id: nouvelId('m-'), nom: nom.trim() }); E.ui.ajout = false; break;
+      }
+      case 'renommer-marque': E.ui.renommer = E.ui.renommer === arg ? null : arg; break;
+      case 'valider-renommage': { const m = marqueDe(E.ui.renommer); const v = ($('[data-champ="renommer-marque"]') || {}).value; if (m && v && v.trim()) m.nom = v.trim(); E.ui.renommer = null; break; }
+      case 'suivre-mode': {
+        const brand = collectionSuivie('brand');
+        const mode = brand.modes.find((m) => m.id === arg);
+        const id = nouvelId('m-');
+        E.marques.push({ id, nom: mode.nom });
+        E.doc.suivi.modes[id] = mode.id; break;
+      }
+      case 'supprimer-variables': {
+        const liste = calculs().orphelines.filter((o) => (arg === 'nuances' ? !o.variable.donnees.palette || paletteDe(o.variable.donnees.palette) : o.variable.donnees.palette === arg));
+        E.modale = { type: 'suppression', ids: liste.map((o) => o.variable.id), n: liste.length, retour: `[data-geste="supprimer-variables"][data-arg="${arg}"]` }; break;
+      }
+      case 'confirmer-suppression': {
+        E.pile.push({ titre: 'Suppression de variables', etat: instantane() });
+        for (const c of E.doc.collections) c.variables = c.variables.filter((v) => !E.modale.ids.includes(v.id));
+        E.journal.unshift({ titre: `${E.modale.n} variables supprimées, geste séparé et confirmé`, unites: { variables: 0, valeurs: 0, cadres: 0 } });
+        E.modale = null; break;
+      }
+      case 'supprimer-cadre': delete E.doc.cadres[arg]; E.journal.unshift({ titre: `Cadre de ${nomDe(arg)} supprimé`, unites: { variables: 0, valeurs: 0, cadres: 0 } }); break;
+      case 'modale-annuler': { const retour = E.modale && E.modale.retour; E.modale = null; rendre(); const b = retour && $(retour); if (b) b.focus(); return; }
+      case 'ajuster': E.modale = { type: 'ajuster', pas: M.pasALOuverture(E.recette, p), retour: '[data-geste="ajuster"]' }; rendre(); ($('#p-modale [data-geste="ajuster-moins"]') || {}).focus?.(); return;
+      case 'ajuster-moins': E.modale.pas = Math.max(-5, E.modale.pas - 1); break;
+      case 'ajuster-plus': E.modale.pas = Math.min(2, E.modale.pas + 1); break;
+      case 'ajuster-appliquer': { const q = M.paletteAuPas(E.recette, p, E.modale.pas); remplacer({ ...q, nom: p.nom }); toucher(p.id); E.modale = null; break; }
+      case 'corriger': {
+        const c = metaDe(p.id);
+        const groupes = arg ? [arg] : [...new Set(Object.keys(c.retouches).map((k) => k.split('/').slice(0, 2).join('/')))];
+        for (const groupe of groupes) {
+          const [intensite, mode] = groupe.split('/');
+          const verrous = (E.ui.verrous[p.id] || []).filter((k) => k.startsWith(`${groupe}/`)).map((k) => Number(k.split('/')[2]));
+          const res = corrigerRampe(M, E.recette, p, c.retouches, intensite, mode, verrous, REGULARITE);
+          const retablies = res.toutes && !arg ? res.reprises : res.retablies;
+          for (const n of retablies) delete c.retouches[`${groupe}/${n}`];
+        }
+        toucher(p.id); break;
+      }
+      case 'verrou': {
+        const liste = E.ui.verrous[p.id] = E.ui.verrous[p.id] || [];
+        const i = liste.indexOf(arg);
+        if (i >= 0) liste.splice(i, 1); else liste.push(arg);
+        break;
+      }
+      case 'proches-a-dessein': E.prochesADessein.push([p.id, arg]); toucher(p.id); break;
+      case 'voir-tout': E.ui.tout = !E.ui.tout; break;
+      case 'ouvrir-statuts': E.ui.statuts = !E.ui.statuts; break;
+      case 'nuances': E.ui.apercuNuances = Number(arg) === M.nombreDeNuancesDe(E.recette.crans) ? null : Number(arg); break;
+      case 'annuler-nuances': E.ui.apercuNuances = null; break;
+      case 'confirmer-nuances': {
+        const grille = M.grilleAuPrereglage({ crans: E.recette.crans, courbes: E.recette.courbes }, E.ui.apercuNuances);
+        E.recette = { ...E.recette, ...grille }; E.ui.apercuNuances = null; palettes().forEach((x) => toucher(x.id)); break;
+      }
+      case 'offre-organization': E.doc.limiteModes = 20; break;
+      case 'ctrl-z': annulerDansFigma(); return;
+      case 'fichier': E.journal.unshift({ titre: arg === 'import' ? 'Importer une recette : l’écart s’affiche avant tout rangement (non joué ici)' : arg === 'tout' ? 'Redessiner tous les cadres : geste de réparation, planche seule (non joué ici)' : arg === 'chercher' ? 'Chercher dans tout le fichier : lecture seule' : `Fichier proposé : ${arg}`, unites: { variables: 0, valeurs: 0, cadres: 0 } }); break;
+      default: break;
+    }
+    rendre();
+  }
+  function creerPalette() {
+    const c = E.ui.creation;
+    const d = c.destination;
+    const id = nouvelId('p-a000');
+    const n = intensitesDeLaDestination(d, 1);
+    const p = paletteNeuve(E.recette, `p-${id.slice(-8).padStart(8, '0')}`, c.nom || c.reference, c.reference, n);
+    if (!p) return;
+    E.recette = { ...E.recette, palettes: [...palettes(), p] };
+    E.meta[p.id] = { destination: copie(d), retouches: {} };
+    toucher(p.id);
+    E.ui.creation = null; E.ui.ouverte = p.id; E.ui.onglet = 'palette';
+  }
+  function creerExistantes() {
+    const c = E.ui.creation;
+    const d = c.destination;
+    const ref = E.doc.selection.pastilles[c.rangReference];
+    const n = intensitesDeLaDestination(d, 1);
+    const p = paletteNeuve(E.recette, `p-${nouvelId('b').slice(-8).padStart(8, '0')}`, c.nom || ref, ref, n);
+    E.recette = { ...E.recette, palettes: [...palettes(), p] };
+    const lu = lireUneRampe(M, E.recette, p, { light: E.doc.selection.pastilles });
+    E.meta[p.id] = { destination: copie(d), retouches: lu.retouches };
+    toucher(p.id);
+    E.ui.creation = null; E.ui.ouverte = p.id; E.ui.onglet = 'verifier';
+  }
+  function creerJeu() {
+    const c = E.ui.creation;
+    const liste = [];
+    FAMILLES_COMMUNES.forEach((f, i) => liste.push({ id: `p-0000000${'abcde'[i]}`, nom: NOMS_COMMUNES[f] === 'Neutre' ? 'Neutre' : ['Rouge', 'Ambre', 'Vert', 'Azur'][i - 1], reference: c.communes[i], intensites: f === 'neutral' ? 1 : 2, destination: { type: 'communes', famille: f } }));
+    E.marques = c.marques.map((m, i) => ({ id: `m-${'abcdefghij'[i]}`, nom: m.nom }));
+    c.marques.forEach((m, i) => {
+      const lettre = m.nom.split(' ').pop();
+      liste.push({ id: `p-0000000${2 * i + 1}`, nom: i === 0 ? 'Bleu A' : i === 1 ? 'Bleu B' : `Primaire ${lettre}`, reference: m.primary, intensites: 1, destination: { type: 'marque', marque: E.marques[i].id, famille: 'primary' } });
+      if (c.secondaire) liste.push({ id: `p-0000000${2 * i + 2}`, nom: i === 0 ? 'Orange A' : i === 1 ? 'Sarcelle B' : `Secondaire ${lettre}`, reference: m.secondary, intensites: 1, destination: { type: 'marque', marque: E.marques[i].id, famille: 'secondary' } });
+    });
+    E.recette = { ...E.recette, palettes: liste.map((p) => paletteNeuve(E.recette, p.id, p.nom, p.reference, p.intensites)) };
+    E.meta = {};
+    for (const p of liste) { E.meta[p.id] = { destination: p.destination, retouches: {} }; E.poste.add(p.id); }
+    E.ui.creation = null; E.ui.onglet = 'systeme'; E.ui.ouverte = liste[0].id;
+  }
+  function confirmerConversion() {
+    const p = paletteDe(E.ui.ouverte);
+    const conv = E.ui.conversion;
+    if (!conv || conv.refus) return;
+    if (conv.type === 'variables') {
+      metaDe(p.id).destination = { type: 'variables', collection: conv.collection, motif: conv.motif, trouvees: conv.trouvees, creer: conv.creer };
+      const col = E.doc.collections.find((c) => c.nom === conv.collection);
+      E.doc.suivi.collections[`liaison:${p.id}`] = col.id;
+    } else {
+      const cible = conv.cible();
+      const nombre = intensitesDeLaDestination(cible, p.intensites === 1 ? 1 : 2);
+      const neuve = { ...M.choisirLesIntensites(E.recette, p, nombre), nom: p.nom };
+      remplacer(neuve);
+      metaDe(p.id).destination = cible;
+      if (nombre === 1) metaDe(p.id).retouches = {};
+    }
+    toucher(p.id);
+    E.ui.conversion = null;
+  }
+
+  // ------------------------------------------------ « Mes variables » : plan propre à la liaison
+  const planDeBase = planDesVariables;
+  planDesVariables = function planAvecLiaisons(Mo, recette, meta, marques) {
+    const cibles = planDeBase(Mo, recette, meta, marques);
+    for (const p of recette.palettes) {
+      const d = (meta[p.id] || {}).destination;
+      if (!d || d.type !== 'variables') continue;
+      const r = rampesEffectives(Mo, recette, p, meta[p.id].retouches).unique || rampesEffectives(Mo, recette, p, meta[p.id].retouches).vivid;
+      for (const mode of ['light', 'dark']) recette.crans.forEach((n, i) => cibles.push({ palette: p.id, collection: `liaison:${p.id}`, nom: d.motif.replace('{nuance}', n), mode, valeur: r[mode][i], nuance: `${p.intensites === 1 ? 'unique' : 'vivid'}/${mode}/${n}` }));
+    }
+    return cibles;
+  };
+  const modeIdDeBase = modeIdDe;
+  modeIdDe = function modeIdAvecLiaisons(collection, cible) {
+    if (cible.collection.startsWith('liaison:')) return (collection.modes[cible.mode === 'light' ? 0 : 1] || {}).id;
+    return modeIdDeBase(collection, cible);
+  };
+
+  // ------------------------------------------------ événements
+  document.addEventListener('click', (e) => {
+    const s = e.target.closest('[data-scenario]');
+    if (s) { charger(s.dataset.scenario); return; }
+    const o = e.target.closest('[data-onglet]');
+    if (o) { E.ui.onglet = o.dataset.onglet; E.ui.reglages = false; E.ui.creation = null; E.ui.conversion = null; E.ui.menu = false; rendre(); return; }
+    const b = e.target.closest('[data-geste]');
+    if (b && !b.disabled) gerer(b.dataset.geste, b);
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    const champ = t.dataset && t.dataset.champ;
+    if (t.id === 'doc-polices') { E.doc.polices = t.checked; rendre(); return; }
+    if (!champ) return;
+    const p = paletteDe(E.ui.ouverte);
+    const c = E.ui.creation;
+    const conv = E.ui.conversion;
+    switch (champ) {
+      case 'palette': E.ui.ouverte = t.value; E.ui.conversion = null; E.ui.comparer = null; break;
+      case 'nom': remplacer({ ...p, nom: t.value.trim() || p.reference }); toucher(p.id); break;
+      case 'reference': { const q = M.changerReference(E.recette, p, t.value); if (!q) { t.setAttribute('aria-invalid', 'true'); return; } remplacer({ ...q, nom: p.nom }); metaDe(p.id).retouches = {}; toucher(p.id); break; }
+      case 'nouveau-nom': c.nom = t.value; break;
+      case 'nouvelle-reference': c.reference = M.lireHexa(t.value) ? M.ecrireHexa(M.lireHexa(t.value)) : t.value; break;
+      case 'neuve-marque': c.destination.marque = t.value; break;
+      case 'neuve-famille': c.destination.famille = t.value; break;
+      case 'rang-reference': c.rangReference = Number(t.value); break;
+      case 'conversion-marque': conv.marque = t.value; break;
+      case 'conversion-famille': conv.famille = t.value; break;
+      case 'conversion-autre': conv.autre = t.value.trim(); break;
+      case 'liaison-collection': conv.collection = t.value; break;
+      case 'liaison-motif': conv.motif = t.value; break;
+      case 'jeu-commune': c.communes[Number(t.dataset.arg)] = t.value.toUpperCase(); break;
+      case 'jeu-marque-nom': c.marques[Number(t.dataset.arg)].nom = t.value; break;
+      case 'jeu-marque-primary': c.marques[Number(t.dataset.arg)].primary = t.value.toUpperCase(); break;
+      case 'jeu-marque-secondary': c.marques[Number(t.dataset.arg)].secondary = t.value.toUpperCase(); break;
+      case 'jeu-secondaire': c.secondaire = t.checked; break;
+      case 'part-soft': {
+        const v = Number(t.value.replace(',', '.'));
+        if (!(v >= 0 && v <= E.recette.profils.vivid.part)) return;
+        E.recette = { ...E.recette, profils: { ...E.recette.profils, soft: { part: Math.round(v * 1000) / 1000 } } };
+        palettes().forEach((x) => { if (x.intensites !== 1) toucher(x.id); });
+        break;
+      }
+      case 'nom-collection': E.collectionsNoms[t.dataset.arg] = t.value.trim() || E.collectionsNoms[t.dataset.arg]; break;
+      case 'revue-palette': if (t.checked) E.revue.exclues.delete(t.dataset.arg); else E.revue.exclues.add(t.dataset.arg); preparerRevue(); E.revue.instantane = empreinteDuPlan(E.revue.avant); break;
+      case 'sortie-variables': E.revue.sorties.variables = t.checked; break;
+      case 'sortie-planche': E.revue.sorties.planche = t.checked; break;
+      case 'vision': E.ui.vision = t.value; break;
+      case 'avec-marque': E.ui.avecMarque = t.value; break;
+      case 'comparer': E.ui.comparer = t.value || null; break;
+      default: return;
+    }
+    rendre();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches && e.target.matches('input[data-champ]') && e.target.type !== 'checkbox') { e.target.dispatchEvent(new Event('change', { bubbles: true })); return; }
+    const dialogue = $('#p-modale .dialogue');
+    if (!dialogue) return;
+    if (e.key === 'Escape') { e.preventDefault(); gerer(E.revue ? 'revue-annuler' : 'modale-annuler', dialogue); return; }
+    if (e.key === 'Tab') {
+      const focables = [...dialogue.querySelectorAll('button:not([disabled]), input:not([disabled]), select, summary, [tabindex="0"]')];
+      if (!focables.length) return;
+      const premier = focables[0];
+      const dernier = focables[focables.length - 1];
+      if (e.shiftKey && document.activeElement === premier) { e.preventDefault(); dernier.focus(); } else if (!e.shiftKey && document.activeElement === dernier) { e.preventDefault(); premier.focus(); } else if (!dialogue.contains(document.activeElement)) { e.preventDefault(); premier.focus(); }
+    }
+  });
+  $('#recommencer').addEventListener('click', () => charger(E.scenario));
+  for (const b of document.querySelectorAll('[data-taille]')) b.addEventListener('click', () => { const [l, h] = b.dataset.taille.split('x').map(Number); taille(l, h); });
+  for (const b of document.querySelectorAll('[data-theme-figma]')) b.addEventListener('click', () => theme(b.dataset.themeFigma));
+  $('#notes').addEventListener('change', (e) => document.body.classList.toggle('notes-visibles', e.target.checked));
+  function taille(l, h) {
+    const plugin = $('#plugin');
+    plugin.style.width = `${l}px`;
+    plugin.style.height = `${h}px`;
+    for (const b of document.querySelectorAll('[data-taille]')) b.setAttribute('aria-pressed', String(b.dataset.taille === `${l}x${h}`));
+  }
+  function theme(t) {
+    $('#plugin').classList.toggle('figma-dark', t === 'sombre');
+    for (const b of document.querySelectorAll('[data-theme-figma]')) b.setAttribute('aria-pressed', String(b.dataset.themeFigma === t));
+  }
+
+  window.__maquette = {
+    scenarios: SCENARIOS.map((s) => ({ id: s.id, titre: s.titre, pas: s.pas })),
+    charger, taille, theme,
+    attendu: (id) => { const s = SCENARIOS.find((x) => x.id === id); try { return { ok: Boolean(s.attendre()), journal: E.journal.map((j) => ({ titre: j.titre, ...j.unites })) }; } catch (err) { return { ok: false, erreur: String(err) }; } },
+    erreurs,
+    etat: () => E,
+    mesurerLaHauteur: () => {
+      const h = (s) => { const el = $(s); return el ? Math.round(el.getBoundingClientRect().height) : 0; };
+      return { entete: h('.p-tete'), onglets: h('.p-onglets'), pied: h('.p-pied'), corps: h('.p-corps') };
+    },
+    objetsVisibles: () => {
+      const corps = $('.p-corps');
+      if (!corps) return [];
+      const cadre = corps.getBoundingClientRect();
+      return [...document.querySelectorAll('#plugin [data-objet]')].map((el) => {
+        const r = el.getBoundingClientRect();
+        const dansCorps = corps.contains(el);
+        const visible = !dansCorps || (r.top >= cadre.top - 1 && r.bottom <= cadre.bottom + 1);
+        return { objet: el.dataset.objet, rang: el.dataset.rang || null, visible, haut: Math.round(r.top - cadre.top) };
+      });
+    },
+  };
+  charger('S01');
+}
+
+// ------------------------------------------------------------ la page
+
+/** Les variables de thème de Figma, décalquées comme dans la galerie : elles servent à juger une place, jamais un contraste. */
+const THEME_FIGMA = readFileSync(path.join(RACINE, 'packages/plugin-socle/galerie/theme-figma.css'), 'utf8').replace(/^\/\*[\s\S]*?\*\/\s*/, '');
+
+const STYLES = `
+${THEME_FIGMA}
+#plugin {
+  --fond: var(--figma-color-bg); --fond-survol: var(--figma-color-bg-hover); --fond-bloc: var(--figma-color-bg-secondary);
+  --fond-note: var(--figma-color-bg-tertiary); --fond-marque: var(--figma-color-bg-brand); --fond-avert: var(--figma-color-bg-warning-tertiary);
+  --fond-succes: var(--figma-color-bg-success-tertiary); --fond-danger: var(--figma-color-bg-danger-tertiary); --fond-danger-plein: var(--figma-color-bg-danger);
+  --bordure: #d2d2d2; --texte: var(--figma-color-text); --texte-second: var(--figma-color-text-secondary); --texte-danger: var(--figma-color-text-danger);
+  --texte-succes: var(--figma-color-text-success); --texte-avert: var(--figma-color-text-warning); --texte-marque: var(--figma-color-text-brand);
+}
+#plugin.figma-dark { --bordure: #5e5e5e; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 13px/1.45 Inter, ui-sans-serif, system-ui, sans-serif; background: #eef0f3; color: #1e1e1e; }
+.page { display: grid; grid-template-columns: minmax(250px, 320px) auto minmax(280px, 1fr); gap: 20px; padding: 20px; align-items: start; }
+@media (max-width: 1300px) { .page { grid-template-columns: minmax(250px, 320px) 1fr; } .page > .colonne-doc { grid-column: 1 / -1; } }
+@media (max-width: 900px) { .page { grid-template-columns: 1fr; } }
+.page h1 { font-size: 20px; margin: 0 0 6px; }
+.page .aide-page { color: #555; margin: 0 0 10px; }
+.reglages-page { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
+.reglages-page button, .reglages-page label { font: inherit; padding: 4px 8px; border: 1px solid #bbb; border-radius: 6px; background: #fff; cursor: pointer; }
+.reglages-page button[aria-pressed="true"] { background: #1e1e1e; color: #fff; }
+#liste-scenarios { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 520px; overflow: auto; }
+#liste-scenarios button { font: inherit; text-align: left; width: 100%; padding: 5px 8px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+#liste-scenarios button.actif { background: #1e1e1e; color: #fff; }
+#consigne { background: #fff; border-radius: 8px; padding: 12px; margin-top: 12px; }
+#consigne h2 { font-size: 14px; margin: 0 0 6px; }
+#consigne p { margin: 6px 0; }
+.note-page { color: #666; font-size: 12px; }
+.colonne-plugin { display: grid; gap: 8px; justify-items: start; }
+.colonne-doc section { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.colonne-doc h2 { font-size: 14px; margin: 0 0 8px; }
+#document details { margin: 4px 0; }
+#document summary { cursor: pointer; }
+.table-doc { max-height: 220px; overflow: auto; font-size: 11px; }
+.table-doc div { display: flex; gap: 3px; align-items: center; }
+.table-doc code { min-width: 190px; }
+.table-doc i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+#journal { margin: 0; padding-left: 18px; font-size: 12px; }
+#journal li { margin-bottom: 6px; }
+.erreur { color: #b42318; }
+
+#plugin { position: relative; display: flex; flex-direction: column; width: 600px; height: 720px; overflow: hidden; background: var(--fond); color: var(--texte);
+  font-size: 11px; line-height: 16px; border: 1px solid #999; border-radius: 6px; box-shadow: 0 4px 18px rgba(0,0,0,.15); }
+#plugin button, #plugin input, #plugin select { font: inherit; color: inherit; }
+#plugin h2 { font-size: 15px; line-height: 20px; margin: 4px 0 6px; font-weight: 600; overflow-wrap: anywhere; }
+#plugin h3 { font-size: 12px; margin: 0 0 6px; font-weight: 600; }
+#plugin h4 { font-size: 12px; margin: 8px 0 4px; }
+#plugin p { margin: 4px 0; }
+#plugin code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; overflow-wrap: anywhere; }
+.p-tete { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px 6px; font-size: 15px; }
+.p-tete button { width: 28px; height: 28px; border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond); cursor: pointer; }
+.p-onglets { display: flex; gap: 4px; padding: 0 16px 8px; border-bottom: 1px solid var(--bordure); align-items: center; flex-wrap: wrap; }
+.p-onglets button { border: 0; background: transparent; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: var(--texte-second); cursor: pointer; }
+.p-onglets button[aria-selected="true"] { background: var(--fond-note); color: var(--texte); }
+.p-corps { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 16px; scrollbar-gutter: stable; }
+.p-pied { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--bordure); background: var(--fond); }
+.p-pied .second { min-width: 0; }
+.b { border: 1px solid var(--bordure); background: var(--fond); border-radius: 6px; padding: 5px 10px; cursor: pointer; min-height: 28px; }
+.b.principal { background: var(--fond-marque); border-color: var(--fond-marque); color: #fff; font-weight: 600; flex: 0 0 auto; }
+.b.danger { background: var(--fond-danger-plein); border-color: var(--fond-danger-plein); color: #fff; }
+.b.compact { min-height: 24px; padding: 2px 8px; }
+.b.lien { border: 0; background: transparent; color: var(--texte-marque); padding: 0 2px; min-height: 0; text-decoration: underline; text-align: left; }
+.b[disabled] { opacity: .45; cursor: default; }
+.b[aria-pressed="true"]:not(.lien) { background: var(--fond-note); font-weight: 600; }
+#plugin :focus-visible { outline: 2px solid var(--fond-marque); outline-offset: 2px; }
+.barre { display: flex; gap: 6px; align-items: stretch; margin-bottom: 8px; }
+.barre select { flex: 1 1 auto; min-width: 0; height: 30px; border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond); padding: 0 6px; }
+.menu { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
+.masque { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.second { color: var(--texte-second); }
+.petit { font-size: 11px; }
+.danger-texte { color: var(--texte-danger); }
+.etat-ligne { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pastille { border-radius: 10px; padding: 1px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.pastille.succes { background: var(--fond-succes); color: var(--texte-succes); }
+.pastille.avert { background: var(--fond-avert); color: var(--texte-avert); }
+.pastille.neutre { background: var(--fond-note); }
+.carte { background: var(--fond-bloc); border: 1px solid var(--bordure); border-radius: 8px; padding: 10px; margin: 8px 0; }
+.carte.repliee > summary { cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.carte.repliee > summary .second { font-weight: 400; }
+.carte.supprimee { background: var(--fond-avert); }
+.carte.bilan { border-color: var(--texte-succes); }
+.carte.bilan.partiel { border-color: var(--texte-danger); }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.champ { display: grid; gap: 3px; margin: 6px 0; min-width: 0; }
+.champ input, .champ select, .table-jeu input, .ligne-jeu input { height: 28px; border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond); padding: 0 6px; min-width: 0; width: 100%; }
+.saisie-couleur { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.saisie-couleur i { flex: 0 0 24px; height: 24px; border-radius: 4px; border: 1px solid var(--bordure); }
+.segments, .bascule { display: flex; flex-wrap: wrap; gap: 4px; }
+.segments .b small { font-weight: 400; color: var(--texte-second); }
+.tete-carte, .tete-onglet { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.surface { border-radius: 6px; padding: 8px; margin: 6px 0; }
+.ligne-rampe { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 4px; }
+.profil { font-weight: 600; font-size: 10px; }
+.rampe { display: grid; grid-template-columns: repeat(var(--n, 11), minmax(0, 1fr)); gap: 2px; margin: 2px 0; }
+.rampe i { height: var(--h); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 10px; }
+.rampe.numeros span { text-align: center; font-size: 9px; color: inherit; opacity: .8; }
+.message { border-left: 3px solid var(--texte-second); padding: 6px 8px; margin: 8px 0; background: var(--fond-bloc); border-radius: 0 6px 6px 0; }
+.message.avert { border-color: var(--texte-avert); }
+.message.danger { border-color: var(--texte-danger); }
+.message.info { border-color: var(--texte-marque); }
+.verdict { font-weight: 600; font-size: 12px; }
+.verdict.ko { color: var(--texte-danger); }
+.verdict.ok { color: var(--texte-succes); }
+.avant-apres { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px; align-items: center; margin: 6px 0; }
+.puces { display: flex; flex-wrap: wrap; gap: 4px; }
+.puce { border: 1px solid var(--bordure); border-radius: 10px; padding: 1px 8px; background: var(--fond); cursor: pointer; }
+.puce.active { background: var(--fond-marque); color: #fff; border-color: var(--fond-marque); }
+.puce.verrou { border-style: dashed; }
+.table-garanties { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+.table-garanties td, .table-garanties th { text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--bordure); overflow-wrap: anywhere; }
+.table-garanties tr.ko td { color: var(--texte-danger); }
+.specimen { border-radius: 6px; padding: 10px; display: grid; gap: 8px; }
+.alerte-specimen { border-radius: 6px; padding: 6px 8px; }
+.bouton-specimen { justify-self: start; border-radius: 6px; padding: 5px 10px; font-weight: 600; }
+.specimens { display: grid; gap: 4px; padding: 8px; border-radius: 6px; }
+.groupe { margin: 10px 0; }
+.groupe-tete { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.b-groupe { border: 0; background: transparent; font-weight: 600; font-size: 12px; cursor: pointer; padding: 2px 0; text-align: left; }
+.fiche { background: var(--fond-bloc); border: 1px solid var(--bordure); border-radius: 8px; padding: 8px; margin: 6px 0; }
+.fiche-tete { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.gestes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.case-vide { border: 1px dashed var(--texte-second); border-radius: 8px; padding: 8px; margin: 6px 0; }
+.ligne-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: end; }
+.choix { display: grid; gap: 2px; width: 100%; text-align: left; border: 1px solid var(--bordure); border-radius: 8px; padding: 10px; background: var(--fond-bloc); margin: 6px 0; cursor: pointer; }
+.choix[disabled] { opacity: .5; cursor: default; }
+.ligne-jeu { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 6px; align-items: center; margin: 3px 0; }
+.table-jeu { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.table-jeu th { text-align: left; font-weight: 600; }
+.table-jeu td { padding: 2px; }
+.table-jeu th:last-child, .table-jeu td:last-child { width: 34px; }
+.case { display: flex; gap: 6px; align-items: center; margin: 4px 0; flex-wrap: wrap; }
+.dans-selection { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.mini { width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--bordure); cursor: pointer; }
+.apercu-conversion { border-top: 1px solid var(--bordure); margin-top: 6px; padding-top: 6px; }
+#p-modale .voile { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+.dialogue { position: absolute; left: 16px; right: 16px; top: 16px; bottom: 16px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column;
+  background: var(--fond); border: 1px solid var(--bordure); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+.dialogue-tete { padding: 12px 14px 4px; }
+.dialogue-corps { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 14px 10px; }
+.dialogue-pied { display: flex; gap: 6px; align-items: center; justify-content: flex-end; padding: 8px 14px; border-top: 1px solid var(--bordure); flex-wrap: wrap; }
+.dialogue-pied > span { margin-right: auto; }
+.decision { border: 1px solid var(--bordure); border-radius: 6px; padding: 6px 8px; margin: 6px 0; }
+.decision.bouge { border-color: var(--texte-danger); }
+.trois { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 4px 0; }
+.trois span { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; font-size: 10px; }
+.trois i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--bordure); }
+.grande { width: 100%; height: 36px; border-radius: 6px; border: 1px solid var(--bordure); }
+.sorties { border: 1px solid var(--bordure); border-radius: 6px; padding: 4px 8px; }
+.ligne-palette { margin: 2px 0; }
+.note { display: none; margin-left: 4px; padding: 0 4px; border-radius: 4px; background: #fde68a; color: #422006; font-size: 9px; font-weight: 600; }
+.notes-visibles .note { display: inline-block; }
+`;
+
+const GABARIT = ({ moteur, fonctions, donnees, app }) => `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UCM Palettes, direction globale</title>
+<style>${STYLES}</style>
+</head>
+<body>
+<div class="page">
+  <div class="colonne-scenarios">
+    <h1>UCM Palettes · direction globale</h1>
+    <p class="aide-page">Maquette de DIRECTION-GLOBALE.md. Choisissez un scénario, lisez sa consigne, prédisez ce qui va s’écrire, jouez-le dans le plugin, puis comparez au journal. Le moteur du dépôt calcule chaque couleur, garantie, distance et compte ; le document Figma est simulé en mémoire, et « Recommencer » le remet à l’état de départ.</p>
+    <div class="reglages-page" role="group" aria-label="Réglages de la maquette">
+      <button type="button" data-taille="600x720" aria-pressed="true">600 × 720</button>
+      <button type="button" data-taille="500x520" aria-pressed="false">500 × 520</button>
+      <button type="button" data-theme-figma="clair" aria-pressed="true">Figma clair</button>
+      <button type="button" data-theme-figma="sombre" aria-pressed="false">Figma sombre</button>
+      <label><input type="checkbox" id="notes"> Afficher les notes</label>
+      <button type="button" id="recommencer">Recommencer</button>
+    </div>
+    <h2 class="masque">Scénarios</h2>
+    <ol id="liste-scenarios"></ol>
+    <div id="consigne" aria-live="polite"></div>
+  </div>
+  <div class="colonne-plugin"><div id="plugin" aria-label="Plugin UCM Palettes simulé"></div></div>
+  <div class="colonne-doc">
+    <section><h2>Document Figma simulé</h2><div id="document"></div></section>
+    <section><h2>Journal des écritures</h2><ol id="journal"></ol></section>
+  </div>
+</div>
+<script id="moteur-ucm">${moteur}</script>
+<script>
+${fonctions}
+${donnees}
+(${app})(UCM);
+</script>
+</body>
+</html>
+`;
+
+/** Lie le moteur du dépôt en un script autonome, exposé sous `UCM`. */
+async function lierLeMoteur() {
+  const { build } = await import('esbuild');
+  const resultat = await build({
+    stdin: {
+      contents: [
+        "export * from './packages/couleur/src/index.ts';",
+        "export { nouvellePalette, changerReference, choisirLesIntensites, reglerSaturation } from './packages/plugin-palettes/src/edition.ts';",
+        "export { paletteAuPas, pasALOuverture } from './packages/plugin-palettes/src/ajustementDeLaReference.ts';",
+      ].join('\n'),
+      resolveDir: RACINE,
+      sourcefile: 'moteur-direction-globale.ts',
+    },
+    bundle: true, write: false, format: 'iife', globalName: 'UCM', minify: true, legalComments: 'none', target: 'es2020',
+  });
+  return resultat.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
+}
+
+/** Écrit la page ; les fonctions de la direction y entrent par leur texte, avant l'application. */
+export async function ecrireLaMaquette() {
+  const moteur = await lierLeMoteur();
+  const fonctions = FONCTIONS_DE_LA_DIRECTION.map((f) => f.toString()).join('\n\n');
+  const donnees = [
+    `var MATRICES_DE_VISION = ${JSON.stringify(MATRICES_DE_VISION)};`,
+    `var REGULARITE = ${JSON.stringify(REGULARITE)};`,
+    `var SYSTEME_DE_DEMONSTRATION = ${JSON.stringify(SYSTEME_DE_DEMONSTRATION)};`,
+    `var RAMPES_LUES = ${JSON.stringify(RAMPES_LUES)};`,
+  ].join('\n');
+  const html = GABARIT({ moteur, fonctions, donnees, app: application.toString() });
+  const cible = path.join(ICI, 'MAQUETTE-DIRECTION-GLOBALE.html');
+  writeFileSync(cible, html);
+  return { cible, octets: Buffer.byteLength(html) };
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { cible, octets } = await ecrireLaMaquette();
+  console.log(`Écrit : ${path.relative(RACINE, cible)} (${Math.round(octets / 1024)} ko)`);
+}

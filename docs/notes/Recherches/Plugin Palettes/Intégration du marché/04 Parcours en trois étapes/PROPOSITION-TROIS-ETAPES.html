@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UCM Palettes, trois étapes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+:root { --sol: #F4F3EF; --papier: #FFFFFF; --encre: #1B1D1F; --encre-2: #5E6368; --filet: #DEDCD5; --accent: #0D99FF; --vert: #1A7F4B; --rouge: #C23A22; --ambre: #9A5B00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sol: #16171A; --papier: #1F2125; --encre: #ECEDEF; --encre-2: #A2A7AE; --filet: #34373D; --vert: #5CCB8E; --rouge: #FF8A73; --ambre: #F2B24C; } }
+:root[data-theme="dark"] { --sol: #16171A; --papier: #1F2125; --encre: #ECEDEF; --encre-2: #A2A7AE; --filet: #34373D; --vert: #5CCB8E; --rouge: #FF8A73; --ambre: #F2B24C; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--sol); color: var(--encre); font: 16px/1.6 Inter, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 56px 16px 96px; display: grid; gap: 88px; }
+h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+h2 { font-size: 28px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; max-width: 66ch; }
+.sur { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--encre-2); }
+.bloc { display: grid; gap: 22px; }
+.intro { display: grid; gap: 20px; }
+.lead { font-size: 20px; color: var(--encre-2); max-width: 52ch; }
+.trois-q { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.q { background: var(--papier); border: 1px solid var(--filet); border-radius: 14px; padding: 20px; display: grid; gap: 6px; }
+.q em { font-style: normal; font-weight: 700; color: var(--accent); }
+.q b { font-size: 19px; }
+.q span { color: var(--encre-2); font-size: 15px; }
+.regles { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; max-width: 70ch; }
+.regles b { font-weight: 600; }
+.defile { overflow-x: auto; padding-bottom: 8px; }
+.rangee { display: flex; gap: 20px; align-items: flex-start; width: max-content; }
+.ecran { display: grid; gap: 10px; width: 420px; }
+.legende { font-size: 14px; color: var(--encre-2); }
+.legende b { color: var(--encre); display: block; }
+.fleche { align-self: center; font-size: 26px; color: var(--encre-2); }
+.situations { display: grid; gap: 14px; }
+.sit { background: var(--papier); border: 1px solid var(--filet); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; }
+.sit-tete { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.sit-tete b { font-size: 18px; }
+.sit-tete a { font-size: 14px; color: var(--encre-2); }
+.etapes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.etapes > div { display: grid; gap: 2px; font-size: 14px; align-content: start; }
+.etapes em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--accent); }
+.etapes b { font-size: 14px; }
+.etapes span { color: var(--encre-2); }
+@media (max-width: 720px) { .etapes { grid-template-columns: 1fr; } }
+.deux-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.boite { background: var(--papier); border: 1px solid var(--filet); border-radius: 14px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+.boite h3 { margin: 0; font-size: 17px; }
+.boite ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 15px; }
+.table { background: var(--papier); border: 1px solid var(--filet); border-radius: 14px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--filet); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--encre-2); }
+
+/* Le plugin, thème clair de Figma */
+.plugin { position: relative; width: 420px; height: 560px; background: #FFF; color: #1E1E1E; border: 1px solid #E3E3E3; border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.12); font: 11px/16px Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+.plugin .sec { color: #6B6B6B; }
+.p-tete { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #EDEDED; }
+.p-tete b { font-size: 12px; }
+.p-onglets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px 14px; border-bottom: 1px solid #EDEDED; }
+.p-onglets span { height: 26px; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 6px; font-weight: 600; color: #6B6B6B; }
+.p-onglets em { font-style: normal; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; border: 1px solid #C9C9C9; }
+.p-onglets .on { background: #F0F0F0; color: #1E1E1E; }
+.p-onglets .on em { background: #1E1E1E; color: #FFF; border-color: #1E1E1E; }
+.p-corps { flex: 1; overflow: hidden; padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
+.p-corps h3 { margin: 0; font-size: 15px; }
+.p-corps p { font-size: 11px; }
+.p-pied { border-top: 1px solid #EDEDED; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.p-select { display: flex; gap: 8px; }
+.p-select .champ { flex: 1; justify-content: space-between; }
+.titre { display: grid; gap: 0; }
+.champ { height: 28px; border: 1px solid #E3E3E3; border-radius: 6px; padding: 0 8px; display: flex; align-items: center; gap: 6px; }
+.lib { display: block; color: #6B6B6B; margin-bottom: 3px; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.b { height: 28px; padding: 0 12px; border: 1px solid #E3E3E3; border-radius: 6px; display: inline-flex; align-items: center; font-weight: 600; white-space: nowrap; background: #FFF; }
+.b.principal { background: var(--accent); border-color: var(--accent); color: #FFF; }
+.pastille { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; vertical-align: -2px; }
+.carte { border: 1px solid #EDEDED; background: #FAFAFA; border-radius: 8px; padding: 10px; display: grid; gap: 8px; }
+.ligne { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.petit { font-size: 10px; }
+.bascule { display: inline-flex; background: #F0F0F0; border-radius: 6px; padding: 2px; gap: 2px; }
+.bascule span { padding: 3px 10px; border-radius: 4px; color: #6B6B6B; font-weight: 600; }
+.bascule .on { background: #FFF; color: #1E1E1E; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.bascule.large { display: grid; grid-template-columns: 1fr 1fr; text-align: center; }
+.surface { border-radius: 6px; padding: 8px; display: grid; gap: 4px; }
+.rampe { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; }
+.rampe i { height: var(--h); border-radius: 3px; font-style: normal; display: grid; place-items: center; font-size: 10px; position: relative; }
+.rampe .point { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: #F5A524; box-shadow: 0 0 0 1.5px #FFF; }
+.rampe.numeros span { text-align: center; font-size: 9px; opacity: .6; }
+.sect { border: 1px solid #EDEDED; border-radius: 8px; }
+.sect-tete { display: flex; gap: 8px; align-items: center; padding: 9px 10px; }
+.sect-tete .sec { margin-left: auto; text-align: right; }
+.chev { color: #6B6B6B; width: 10px; }
+.sect-corps { padding: 0 10px 10px; display: grid; gap: 8px; }
+.verdict { border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; }
+.verdict.ko { background: #FDECEA; color: #8A2414; }
+.verdict.att { background: #FFF4DE; color: #7A4B00; }
+.verdict.ok-fond { background: #E8F6EE; color: #17603A; }
+.correction { border-color: #BFE0FF; background: #F3F9FF; }
+.avap { display: grid; grid-template-columns: 40px 1fr; gap: 4px 8px; align-items: center; }
+.avap .surface { padding: 4px; }
+.plugin .ok { color: #17784A; font-weight: 600; }
+.plugin .ko { color: #B42318; font-weight: 600; }
+.lien { color: var(--accent); font-weight: 600; }
+.choix-grand { border: 1px solid #E3E3E3; border-radius: 8px; padding: 12px; display: grid; gap: 2px; }
+.choix-grand b { font-size: 12px; }
+.liste { gap: 0; padding: 4px 10px; background: #FFF; }
+.ligne-pal { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid #F0F0F0; }
+.ligne-pal:first-child { border-top: 0; }
+.ligne-pal .sec { margin-left: auto; }
+.case { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #BDBDBD; display: grid; place-items: center; font-size: 9px; color: #FFF; }
+.case.on { background: var(--accent); border-color: var(--accent); }
+.ligne-jeu { display: grid; grid-template-columns: 90px 70px 1fr; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid #F0F0F0; }
+.ligne-jeu:first-child { border-top: 0; }
+.mono, .plugin code { font-family: "IBM Plex Mono", monospace; font-size: 10px; }
+.voile { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: flex-end; }
+.feuille { background: #FFF; width: 100%; max-height: 92%; border-radius: 12px 12px 0 0; display: flex; flex-direction: column; }
+.f-tete { padding: 12px 14px; border-bottom: 1px solid #EDEDED; display: flex; justify-content: space-between; }
+.f-tete b { font-size: 13px; }
+.f-corps { padding: 12px 14px; display: grid; gap: 10px; overflow: hidden; }
+.f-pied { padding: 10px 14px; border-top: 1px solid #EDEDED; display: flex; justify-content: flex-end; gap: 8px; }
+.decision { background: #FFFBF2; border-color: #F3D9A4; }
+.deux-couleurs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.deux-couleurs div { display: grid; grid-template-columns: 28px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; }
+.deux-couleurs i { grid-row: span 2; width: 28px; height: 28px; border-radius: 6px; }
+.option { display: grid; grid-template-columns: 14px 1fr; gap: 8px; border: 1px solid #E3E3E3; border-radius: 6px; padding: 7px 8px; background: #FFF; }
+.option > div { display: grid; }
+.option.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.radio { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #BDBDBD; margin-top: 1px; }
+.radio.on { border: 4px solid var(--accent); }
+.statuts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; border-radius: 6px; }
+.statut { border: 1px solid; border-radius: 6px; padding: 5px 7px; font-weight: 600; display: flex; gap: 6px; align-items: center; font-size: 10px; }
+</style>
+</head>
+<body>
+<main>
+
+<section class="intro">
+  <span class="sur">UCM Palettes · proposition d'expérience</span>
+  <h1>Palettes.<br>Vérifier.<br>Appliquer.</h1>
+  <p class="lead">Un plugin en trois étapes, toujours les mêmes, toujours dans cet ordre. Chaque situation de travail d'un designer devient un chemin dans ces trois écrans, pas une fonction de plus.</p>
+  <p>Cette page reprend le parcours de <a href="../02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html">la proposition de l'atelier</a>, qui était le bon, et le complète là où les situations de travail l'exigent. Elle remplace les pistes et les décisions des propositions précédentes pour tout ce qui touche au parcours. Les couleurs et les contrastes affichés viennent du moteur du plugin.</p>
+</section>
+
+<section class="bloc">
+  <span class="sur">Le constat</span>
+  <h2>Trois questions, quelle que soit la situation</h2>
+  <p>Créer un système neuf, ajouter une marque, corriger des palettes faites à l'œil ou remplir une structure de tokens existante : le designer se pose chaque fois les mêmes trois questions, dans le même ordre.</p>
+  <div class="trois-q">
+    <div class="q"><em>1</em><b>D'où je pars ?</b><span>De rien, d'une couleur de charte, ou de couleurs qui existent déjà dans le fichier.</span></div>
+    <div class="q"><em>2</em><b>Est-ce que ça marche ?</b><span>Les textes sont-ils lisibles, en Light et en Dark ? La palette se distingue-t-elle des autres ?</span></div>
+    <div class="q"><em>3</em><b>Qu'est-ce que ça change dans Figma ?</b><span>Quelles couleurs bougent, lesquelles ont été retouchées à la main, et qu'est-ce que je décide.</span></div>
+  </div>
+  <p>Les propositions précédentes rangeaient l'interface selon ce que le plugin produit : planche, variables, collections <code>primitives</code>, <code>brand</code>, <code>theme</code>. Le designer devait traduire sa question en structure technique avant d'agir. La dernière version ajoutait quatorze pistes et vingt décisions à cette structure : chaque situation y gagnait sa fonction, et le plugin devenait plus difficile à comprendre.</p>
+</section>
+
+<section class="bloc">
+  <span class="sur">Les règles</span>
+  <h2>Cinq règles, et rien d'autre</h2>
+  <ol class="regles">
+    <li><b>Trois onglets numérotés : Palettes, Vérifier, Appliquer.</b> Ils suivent les trois questions. Réglages communs reste derrière l'engrenage.</li>
+    <li><b>Un seul bouton principal par écran, en bas, qui mène à l'étape suivante.</b> Le designer n'a jamais à chercher quoi faire ensuite. Il peut aussi sauter une étape par les onglets.</li>
+    <li><b>Les mots du designer à l'écran, les mots techniques dans le détail.</b> « Marque A · primary », « Dans mes variables », « 89 couleurs changent ». Collections, chemins et alias se lisent dans « Détail technique », replié.</li>
+    <li><b>Un problème vient avec sa correction.</b> Vérifier ne se contente pas de compter les paires sous leur seuil : il propose la plus petite modification qui les corrige, avec l'avant et l'après.</li>
+    <li><b>Rien ne s'écrit dans Figma sans relecture, et rien n'est choisi à la place du designer.</b> Une couleur modifiée à la main dans Figma se décide dans la relecture ; sans choix, elle reste telle quelle et le reste s'applique.</li>
+  </ol>
+</section>
+
+<section class="bloc" id="parcours">
+  <span class="sur">Le parcours</span>
+  <h2>Le même chemin pour tout</h2>
+  <p>Régler la palette, la vérifier, voir ce qui va changer, appliquer. L'aperçu reste en haut de l'étape 1 ; les réglages, la destination et l'écran de démonstration sont repliés dessous.</p>
+  <div class="defile"><div class="rangee">
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class="on"><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Bleu A</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      <div class="titre"><h3>Bleu A</h3><span class="sec">Marque A · primary · 10 nuances reprises de vos couleurs</span></div>
+    <div class="deux"><div><span class="lib">Nom</span><div class="champ">Bleu A</div></div><div><span class="lib">Couleur de référence</span><div class="champ"><i class="pastille" style="background:#1E6FD9"></i>#1E6FD9</div></div></div>
+    <div class="carte">
+      <div class="ligne"><span class="bascule"><span class="on">Light</span><span>Dark</span></span><span class="sec">Fond #F7F7F7</span></div>
+      <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="rampe numeros"><span>50</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span><span>600</span><span>700</span><span>800</span><span>900</span><span>950</span></div><div class="rampe" style="--h:22px"><i style="background:#E8F1FD;color:#111"></i><i style="background:#C7DCFA;color:#111"></i><i style="background:#9DC2F6;color:#111"></i><i style="background:#6FA5F0;color:#111"></i><i style="background:#4A8EEA;color:#111"></i><i style="background:#3480E6;color:#111"></i><i style="background:#1E6FD9;color:#FFF">◆</i><i style="background:#1B63C4;color:#FFF"></i><i style="background:#1856A9;color:#FFF"></i><i style="background:#134385;color:#FFF"></i><i style="background:#0D2E5C;color:#FFF"></i></div><div class="ligne petit"><span>◆ Votre couleur, exacte</span></div></div>
+    </div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Destination dans Figma</b><span class="sec">Marque A · primary</span></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Réglages de couleur</b><span class="sec">Teinte, saturation, luminosité</span></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>En contexte</b><span class="sec">Un écran peint avec cette palette</span></div></div>
+    </div>
+    <div class="p-pied"><span class="sec">32 paires de contraste · 2 thèmes</span><span class="b principal">Vérifier →</span></div>
+    
+  </div><div class="legende"><b>1 · Palettes</b>Bleu A, reprise des pastilles d'une charte faite à l'œil. Le nom, la couleur, l'aperçu ; trois sections repliées. En bas : « Vérifier ».</div></div>
+    <span class="fleche">→</span>
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class=""><em>1</em>Palettes</span><span class="on"><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Bleu A</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      <div class="titre"><h3>Vérifier Bleu A</h3><span class="sec">32 contrastes mesurés, Light et Dark</span></div>
+    <div class="verdict ko"><b>4 contrastes trop faibles, Thème Light</b><span>texte 700 sur fond coloré 100 : 4,15:1, minimum 4,5:1</span><span>texte 800 sur fond coloré 200 : 3,90:1, minimum 4,5:1</span><span>texte 900 sur fond coloré 300 : 3,83:1, minimum 4,5:1</span><span>bordure de champ 800 sur fond coloré 300 : 2,83:1, minimum 3,0:1</span></div>
+    <div class="carte correction">
+      <b>Correction proposée : changer 3 nuances sur 11</b>
+      <span class="sec">Les nuances 100, 200 et 300 prennent la valeur calculée. Les 7 autres gardent votre dessin.</span>
+      <div class="avap">
+        <span class="sec petit">Avant</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="rampe" style="--h:18px"><i style="background:#E8F1FD;color:#111"></i><i style="background:#C7DCFA;color:#111"><b class="point"></b></i><i style="background:#9DC2F6;color:#111"><b class="point"></b></i><i style="background:#6FA5F0;color:#111"><b class="point"></b></i><i style="background:#4A8EEA;color:#111"></i><i style="background:#3480E6;color:#111"></i><i style="background:#1E6FD9;color:#FFF">◆</i><i style="background:#1B63C4;color:#FFF"></i><i style="background:#1856A9;color:#FFF"></i><i style="background:#134385;color:#FFF"></i><i style="background:#0D2E5C;color:#FFF"></i></div></div>
+        <span class="sec petit">Après</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="rampe" style="--h:18px"><i style="background:#E8F1FD;color:#111"></i><i style="background:#E4F0FD;color:#111"></i><i style="background:#CCE2FC;color:#111"></i><i style="background:#ABD0FA;color:#111"></i><i style="background:#4A8EEA;color:#111"></i><i style="background:#3480E6;color:#111"></i><i style="background:#1E6FD9;color:#FFF">◆</i><i style="background:#1B63C4;color:#FFF"></i><i style="background:#1856A9;color:#FFF"></i><i style="background:#134385;color:#FFF"></i><i style="background:#0D2E5C;color:#FFF"></i></div></div>
+      </div>
+      <div class="ligne"><span class="ok">Après : toutes les paires atteignent leur seuil</span><span class="b ">Corriger ces nuances</span></div>
+    </div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Toutes les paires</b><span class="sec">32 paires, Light et Dark</span></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Distinguer les statuts</b><span class="sec">Avec Marque A · daltonisme</span></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Comparer à une autre palette</b><span class="sec"></span></div></div>
+    </div>
+    <div class="p-pied"><span class="sec">La correction ne touche que la recette. Figma change à l’étape 3.</span><span class="b principal">Préparer l’application →</span></div>
+    
+  </div><div class="legende"><b>2 · Vérifier</b>Le verdict en mots, puis la plus petite correction : 3 nuances sur 11. Le designer garde ses foncés.</div></div>
+    <span class="fleche">→</span>
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class=""><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class="on"><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Bleu A</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      <div class="titre"><h3>Appliquer</h3><span class="sec">Ce qui sera mis à jour dans ce fichier</span></div>
+    <div class="bascule large"><span>Bleu A seulement</span><span class="on">Toutes les palettes modifiées (4)</span></div>
+    <div class="carte liste">
+      <div class="ligne-pal"><span class="case on">✓</span><i class="pastille" style="background:#1E6FD9"></i><b>Bleu A</b><span class="sec">3 nuances corrigées</span></div><div class="ligne-pal"><span class="case on">✓</span><i class="pastille" style="background:#DC2626"></i><b>Rouge</b><span class="sec">1 couleur modifiée dans Figma</span></div><div class="ligne-pal"><span class="case on">✓</span><i class="pastille" style="background:#D97706"></i><b>Ambre</b><span class="sec">Réglages communs</span></div><div class="ligne-pal"><span class="case on">✓</span><i class="pastille" style="background:#16A34A"></i><b>Vert</b><span class="sec">Réglages communs</span></div>
+    </div>
+    <div class="carte liste">
+      <div class="ligne-pal"><span class="case on">✓</span><b>Variables</b><span class="sec">les couleurs que les composants utilisent</span></div>
+      <div class="ligne-pal"><span class="case on">✓</span><b>Planches</b><span class="sec">la documentation sur la page « Palettes »</span></div>
+    </div>
+    </div>
+    <div class="p-pied"><span class="sec">Rien n’est écrit avant la relecture.</span><span class="b principal">Relire les changements →</span></div>
+    
+  </div><div class="legende"><b>3 · Appliquer</b>Bleu A, ou toutes les palettes qui ont changé depuis la dernière application. Variables et planches, cochées.</div></div>
+    <span class="fleche">→</span>
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class=""><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class="on"><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Bleu A</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      
+    </div>
+    
+    <div class="voile"><div class="feuille">
+    <div class="f-tete"><b>Relire avant d'appliquer</b><span class="sec">4 palettes</span></div>
+    <div class="f-corps">
+      <p><b>47 couleurs changent dans Figma, et 4 planches sont redessinées.</b> Aucune couleur n'est créée ni supprimée.</p>
+      <div class="carte decision">
+        <b>Rouge : une couleur a été modifiée dans Figma</b>
+        <span class="sec">Vivid · Light · nuance 700. Elle sert au texte et aux boutons pleins.</span>
+        <div class="deux-couleurs"><div><i style="background:#B61D1D"></i><span>Plugin</span><code>#B61D1D</code></div><div><i style="background:#DC2626"></i><span>Figma</span><code>#DC2626</code></div></div>
+        <div class="option"><span class="radio"></span><div><b>Garder la couleur de Figma</b><span class="ko">2 textes passent sous 4,5:1</span></div></div>
+        <div class="option"><span class="radio"></span><div><b>Remettre la couleur du plugin</b><span class="ok">Tous les contrastes tiennent</span></div></div>
+        <span class="sec petit">Sans choix, cette couleur reste telle quelle et le reste s'applique.</span>
+      </div>
+      <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Détail technique</b><span class="sec">collections, variables, valeurs par mode</span></div></div>
+    </div>
+    <div class="f-pied"><span class="b ">Annuler</span><span class="b principal">Appliquer à Figma</span></div>
+  </div></div>
+  </div><div class="legende"><b>Relire</b>Une phrase qui dit ce qui change. Une couleur retouchée dans Figma se décide ici, avec l'effet de chaque choix.</div></div>
+  </div></div>
+</section>
+
+<section class="bloc" id="situations">
+  <span class="sur">Les situations</span>
+  <h2>Chaque situation, dans les trois étapes</h2>
+  <p>Aucune situation n'ajoute d'onglet ni de bouton principal. Chacune utilise les mêmes écrans, avec au plus un choix qui lui est propre.</p>
+  <div class="situations">
+    <div class="sit"><div class="sit-tete"><b>Un design system neuf</b><a href="#jeu">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>« D’un jeu de départ » : les couleurs communes, une ligne par marque.</span></div><div><em>2</em><b>Vérifier</b><span>Chaque palette, une par une, ou seulement celles qui ont un écart.</span></div><div><em>3</em><b>Appliquer</b><span>« Toutes les palettes modifiées » : variables et planches d’un coup.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Un système multi-marques à créer</b><a href="#statuts">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Le jeu de départ avec une ligne par marque. Une marque ajoutée plus tard : « + Nouvelle », destination « Marque C ».</span></div><div><em>2</em><b>Vérifier</b><span>« Distinguer les statuts » avec chaque marque : une couleur de marque proche d’un statut se voit ici.</span></div><div><em>3</em><b>Appliquer</b><span>Toutes les palettes de la marque en une relecture.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Un système multi-marques à mettre à jour</b><a href="#parcours">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Ouvrir la palette, changer la couleur de référence.</span></div><div><em>2</em><b>Vérifier</b><span>Voir si la nouvelle couleur tient les contrastes.</span></div><div><em>3</em><b>Appliquer</b><span>« Bleu A seulement », relire, appliquer.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Light et Dark, à créer ou à mettre à jour</b><a href="#parcours">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Chaque palette porte ses deux thèmes ; la bascule Light · Dark de l’aperçu les montre.</span></div><div><em>2</em><b>Vérifier</b><span>Les paires se jugent sur les deux thèmes ; le verdict dit lequel pose problème.</span></div><div><em>3</em><b>Appliquer</b><span>Les deux modes s’écrivent ensemble.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Une structure de tokens non conventionnelle</b><a href="#destination">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Destination « Dans mes variables » : une collection, un nom avec {nuance}, un mode par thème.</span></div><div><em>2</em><b>Vérifier</b><span>Comme toute palette.</span></div><div><em>3</em><b>Appliquer</b><span>Le plugin remplit ces variables et n’en crée aucune sans le demander.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Des palettes faites à l’œil</b><a href="#oeil">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>« De couleurs existantes » : les pastilles sélectionnées ou les variables du fichier.</span></div><div><em>2</em><b>Vérifier</b><span>Le plugin propose la plus petite correction : ici, 3 nuances sur 11.</span></div><div><em>3</em><b>Appliquer</b><span>Les variables existantes prennent les couleurs corrigées.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Une palette pour un nouveau composant</b><a href="#destination">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>« + Nouvelle », « D’une couleur ». Destination : une nouvelle famille, ou nulle part tant que c’est un essai.</span></div><div><em>2</em><b>Vérifier</b><span>« En contexte » et « Distinguer les statuts » montrent si elle se confond avec une couleur existante.</span></div><div><em>3</em><b>Appliquer</b><span>Seulement cette palette.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Plusieurs palettes proches mais différentes</b><a href="#statuts">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Dupliquer, puis régler.</span></div><div><em>2</em><b>Vérifier</b><span>« Comparer à une autre palette » : les deux rampes nuance par nuance. Deux marques différentes ne sont jamais signalées comme trop proches.</span></div><div><em>3</em><b>Appliquer</b><span>Les palettes gardées.</span></div></div></div><div class="sit"><div class="sit-tete"><b>Des palettes « jolies »</b><a href="#parcours">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>« Réglages de couleur » sous l’aperçu, « En contexte » pour juger sur un écran.</span></div><div><em>2</em><b>Vérifier</b><span>Vérifier ne dit que si c’est lisible : la beauté se juge à l’étape 1.</span></div><div><em>3</em><b>Appliquer</b><span>—</span></div></div></div><div class="sit"><div class="sit-tete"><b>Une couleur modifiée à la main dans Figma</b><a href="#parcours">Voir l'écran</a></div><div class="etapes"><div><em>1</em><b>Palettes</b><span>Rien à faire.</span></div><div><em>2</em><b>Vérifier</b><span>Rien à faire.</span></div><div><em>3</em><b>Appliquer</b><span>La relecture montre la couleur, les deux choix et leur effet sur les contrastes.</span></div></div></div>
+  </div>
+</section>
+
+<section class="bloc" id="jeu">
+  <span class="sur">Étape 1 · le point de départ</span>
+  <h2>« D'où partez-vous ? »</h2>
+  <p>La seule question que pose un fichier vide, et « + Nouvelle » ensuite. Trois réponses couvrent toutes les situations : une couleur, des couleurs existantes, un jeu de départ.</p>
+  <div class="defile"><div class="rangee">
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class="on"><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      
+      <h3>D'où partez-vous ?</h3>
+    <p class="sec">Choisissez ce que vous avez déjà. Tout se règle ensuite.</p>
+    <div class="choix-grand"><b>D'une couleur</b><span class="sec">Une couleur de charte, saisie ou prise dans la sélection. Le plugin calcule la rampe.</span></div>
+    <div class="choix-grand"><b>De couleurs existantes</b><span class="sec">Les pastilles sélectionnées, ou un groupe de variables du fichier. Le plugin les mesure et propose des corrections.</span></div>
+    <div class="choix-grand"><b>D'un jeu de départ</b><span class="sec">Un neutre, quatre couleurs de statut et une ligne par marque. Pour un design system neuf.</span></div>
+    </div>
+    
+    
+  </div><div class="legende"><b>Fichier vide, ou « + Nouvelle »</b>Trois choix, décrits par ce que le designer a déjà.</div></div>
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class="on"><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      
+      <h3>Jeu de départ</h3>
+    <span class="lib">Couleurs communes à toutes les marques</span>
+    <div class="carte liste"><div class="ligne-jeu"><b>Neutre</b><span class="mono">#808080</span><div class="rampe" style="--h:10px"><i style="background:#F7F7F7;color:#111"></i><i style="background:#EEEEEE;color:#111"></i><i style="background:#DFDFDF;color:#111"></i><i style="background:#CCCCCC;color:#111"></i><i style="background:#B1B1B1;color:#111"></i><i style="background:#959595;color:#111"></i><i style="background:#808080;color:#111"></i><i style="background:#636363;color:#FFF"></i><i style="background:#4D4D4D;color:#FFF"></i><i style="background:#383838;color:#FFF"></i><i style="background:#262626;color:#FFF"></i></div></div><div class="ligne-jeu"><b>Danger</b><span class="mono">#DC2626</span><div class="rampe" style="--h:10px"><i style="background:#FEF4F3;color:#111"></i><i style="background:#FEE9E6;color:#111"></i><i style="background:#FCD5D0;color:#111"></i><i style="background:#FBB9B1;color:#111"></i><i style="background:#F98F83;color:#111"></i><i style="background:#F7564C;color:#111"></i><i style="background:#DC2626;color:#FFF"></i><i style="background:#B61D1D;color:#FFF"></i><i style="background:#8F1515;color:#FFF"></i><i style="background:#6B0D0C;color:#FFF"></i><i style="background:#4D0706;color:#FFF"></i></div></div><div class="ligne-jeu"><b>Avertissement</b><span class="mono">#D97706</span><div class="rampe" style="--h:10px"><i style="background:#FFF5EA;color:#111"></i><i style="background:#FFEBD6;color:#111"></i><i style="background:#FFD8B1;color:#111"></i><i style="background:#FFBD7D;color:#111"></i><i style="background:#FD9309;color:#111"></i><i style="background:#D97706;color:#111"></i><i style="background:#BA6004;color:#111"></i><i style="background:#994A03;color:#FFF"></i><i style="background:#7B3602;color:#FFF"></i><i style="background:#5D2501;color:#FFF"></i><i style="background:#441600;color:#FFF"></i></div></div><div class="ligne-jeu"><b>Succès</b><span class="mono">#16A34A</span><div class="rampe" style="--h:10px"><i style="background:#E6FFE9;color:#111"></i><i style="background:#C9FED2;color:#111"></i><i style="background:#87FEA2;color:#111"></i><i style="background:#27F372;color:#111"></i><i style="background:#20D362;color:#111"></i><i style="background:#19B252;color:#111"></i><i style="background:#16A34A;color:#111"></i><i style="background:#0D7734;color:#FFF"></i><i style="background:#085D27;color:#FFF"></i><i style="background:#04441B;color:#FFF"></i><i style="background:#023011;color:#FFF"></i></div></div><div class="ligne-jeu"><b>Information</b><span class="mono">#2563EB</span><div class="rampe" style="--h:10px"><i style="background:#F2F7FE;color:#111"></i><i style="background:#E6EFFD;color:#111"></i><i style="background:#CFE1FB;color:#111"></i><i style="background:#B2CEF8;color:#111"></i><i style="background:#89B2F4;color:#111"></i><i style="background:#5E93F0;color:#111"></i><i style="background:#2563EB;color:#FFF"></i><i style="background:#154FE4;color:#FFF"></i><i style="background:#092AD0;color:#FFF"></i><i style="background:#0D1C9C;color:#FFF"></i><i style="background:#0A1270;color:#FFF"></i></div></div></div>
+    <span class="lib">Marques</span>
+    <div class="carte liste">
+      <div class="ligne-jeu entete"><span class="sec">Marque</span><span class="sec">Principale</span><span class="sec">Secondaire</span></div>
+      <div class="ligne-jeu"><b>Marque A</b><span><i class="pastille" style="background:#1E6FD9"></i> #1E6FD9</span><span><i class="pastille" style="background:#E08A00"></i> #E08A00</span></div>
+      <span class="lien">+ Ajouter une marque</span>
+    </div>
+    <p class="sec">Un design system à une marque garde une seule ligne.</p>
+    </div>
+    <div class="p-pied"><span class="sec">7 palettes</span><span class="b principal">Créer et vérifier →</span></div>
+    
+  </div><div class="legende"><b>Jeu de départ</b>Les couleurs communes remplies d'avance, une ligne par marque.</div></div>
+    <div class="ecran" id="oeil"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class="on"><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      
+      <h3>De couleurs existantes</h3>
+    <p class="sec">11 pastilles lues dans la sélection, rangées du plus clair au plus foncé.</p>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="rampe numeros"><span>50</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span><span>600</span><span>700</span><span>800</span><span>900</span><span>950</span></div><div class="rampe" style="--h:22px"><i style="background:#E8F1FD;color:#111"></i><i style="background:#C7DCFA;color:#111"></i><i style="background:#9DC2F6;color:#111"></i><i style="background:#6FA5F0;color:#111"></i><i style="background:#4A8EEA;color:#111"></i><i style="background:#3480E6;color:#111"></i><i style="background:#1E6FD9;color:#FFF">◆</i><i style="background:#1B63C4;color:#FFF"></i><i style="background:#1856A9;color:#FFF"></i><i style="background:#134385;color:#FFF"></i><i style="background:#0D2E5C;color:#FFF"></i></div></div>
+    <div class="deux"><div><span class="lib">Nom</span><div class="champ">Bleu A</div></div><div><span class="lib">Votre couleur de référence</span><div class="champ"><i class="pastille" style="background:#1E6FD9"></i>600 · #1E6FD9 ▾</div></div></div>
+    <p class="sec">La palette garde vos couleurs. L'étape Vérifier dira lesquelles posent un problème de contraste.</p>
+    </div>
+    <div class="p-pied"><span class="sec"></span><span class="b principal">Créer et vérifier →</span></div>
+    
+  </div><div class="legende"><b>Couleurs existantes</b>Les pastilles d'une palette faite à l'œil. Le plugin les garde ; l'étape 2 dit ce qui ne va pas et propose la correction.</div></div>
+  </div></div>
+</section>
+
+<section class="bloc" id="destination">
+  <span class="sur">Étape 1 · la destination</span>
+  <h2>« Où vont ces couleurs ? »</h2>
+  <p>Une section repliée de l'étape 1, qui répond par une phrase. Le système UCM pour un design system construit avec le plugin. Mes variables pour une structure de tokens qui existe déjà. Nulle part pour un essai. Le designer choisit sa couleur d'abord, et la range ensuite.</p>
+  <div class="defile"><div class="rangee">
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class="on"><em>1</em>Palettes</span><span class=""><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Bleu</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      <div class="titre"><h3>Bleu</h3></div>
+    <div class="sect ouverte"><div class="sect-tete"><span class="chev">▾</span><b>Destination dans Figma</b><span class="sec"></span></div><div class="sect-corps">
+      <span class="lib">Où vont ces couleurs ?</span>
+      <div class="option"><span class="radio"></span><div><b>Dans le système UCM</b><span class="sec">Une marque et une famille : le plugin crée les variables et leurs alias.</span></div></div>
+      <div class="option on"><span class="radio on"></span><div><b>Dans mes variables</b><span class="sec">Le plugin remplit des variables qui existent déjà.</span></div></div>
+      <div class="deux"><div><span class="lib">Collection</span><div class="champ">Colors ▾</div></div><div><span class="lib">Nom des variables</span><div class="champ">color/blue/{nuance}</div></div></div>
+      <div class="deux"><div><span class="lib">Light dans le mode</span><div class="champ">Light ▾</div></div><div><span class="lib">Dark dans le mode</span><div class="champ">Dark ▾</div></div></div>
+      <span class="ok">10 variables trouvées sur 11.</span> <span class="sec">color/blue/950 n'existe pas : elle sera créée si vous le demandez.</span>
+      <div class="option"><span class="radio"></span><div><b>Nulle part</b><span class="sec">Seulement une planche de documentation.</span></div></div></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Réglages de couleur</b><span class="sec"></span></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>En contexte</b><span class="sec"></span></div></div>
+    </div>
+    <div class="p-pied"><span class="sec">32 paires · 2 thèmes</span><span class="b principal">Vérifier →</span></div>
+    
+  </div><div class="legende"><b>Une structure de tokens existante</b>Une collection, un nom avec {nuance}, un mode par thème. Le plugin dit ce qu'il a trouvé avant d'écrire quoi que ce soit.</div></div>
+  </div></div>
+</section>
+
+<section class="bloc" id="statuts">
+  <span class="sur">Étape 2 · les autres palettes</span>
+  <h2>« Est-ce qu'elle se distingue ? »</h2>
+  <p>Une palette ne vit jamais seule. « Distinguer les statuts » la montre avec les couleurs d'alerte et celles de sa marque, en vision normale ou simulée. « Comparer à une autre palette » pose deux rampes nuance par nuance. Deux palettes de deux marques ne sont jamais signalées comme trop proches : elles ne s'affichent jamais ensemble.</p>
+  <div class="defile"><div class="rangee">
+    <div class="ecran"><div class="plugin">
+    <div class="p-tete"><b>UCM Palettes</b><span class="sec">⚙ Réglages</span></div>
+    <div class="p-onglets"><span class=""><em>1</em>Palettes</span><span class="on"><em>2</em>Vérifier</span><span class=""><em>3</em>Appliquer</span></div>
+    <div class="p-corps">
+      <div class="p-select"><div class="champ"><span>Orange A</span><span class="sec">▾</span></div><span class="b ">+ Nouvelle</span></div>
+      <div class="titre"><h3>Vérifier Orange A</h3><span class="sec">Marque A · secondary</span></div>
+    <div class="verdict ok-fond"><b>Toutes les paires atteignent leur seuil</b></div>
+    <div class="sect ouverte"><div class="sect-tete"><span class="chev">▾</span><b>Distinguer les statuts</b><span class="sec">Vision normale · avec Marque A</span></div><div class="sect-corps">
+      <div class="deux"><div><span class="lib">Vision</span><div class="champ">Normale ▾</div></div><div><span class="lib">Avec</span><div class="champ">Marque A ▾</div></div></div>
+      <div class="statuts" style="background:#F7F7F7"><div class="statut" style="background:#FEE9E6;border-color:#DC2626;color:#B61D1D"><span>✕</span>Paiement refusé</div><div class="statut" style="background:#FFEBD6;border-color:#BA6004;color:#994A03"><span>!</span>Session bientôt expirée</div><div class="statut" style="background:#C9FED2;border-color:#16A34A;color:#0D7734"><span>✓</span>Profil enregistré</div><div class="statut" style="background:#E6EFFD;border-color:#2563EB;color:#154FE4"><span>i</span>Nouvelle version</div><div class="statut" style="background:#E4F0FD;border-color:#1E6FD9;color:#185EC1"><span>→</span>Action · Bleu A</div><div class="statut" style="background:#FFECCF;border-color:#B46600;color:#954E00"><span>★</span>Mise en avant · Orange A</div></div>
+      <div class="verdict att"><b>Orange A ressemble à Ambre, votre couleur d'avertissement</b><span>Écart 0,026, seuil 0,05. Un avertissement risque d'être lu comme une mise en avant.</span></div></div></div>
+    <div class="sect"><div class="sect-tete"><span class="chev">▸</span><b>Comparer à une autre palette</b><span class="sec">Bleu K, d'une autre marque : écart 0,040, jamais affichés ensemble</span></div></div>
+    </div>
+    <div class="p-pied"><span class="sec">Ces écarts n’empêchent pas d’appliquer.</span><span class="b principal">Préparer l’application →</span></div>
+    
+  </div><div class="legende"><b>Une couleur de marque proche d'un statut</b>Orange A et Ambre, écart 0,026 : le plugin le dit avec les mots du problème.</div></div>
+  </div></div>
+</section>
+
+<section class="bloc">
+  <span class="sur">Par rapport aux propositions précédentes</span>
+  <h2>Ce qui est gardé, ajouté, retiré</h2>
+  <div class="deux-col">
+    <div class="boite"><h3>Gardé de l'atelier</h3><ul>
+      <li>Les trois onglets Palettes, Vérifier, Appliquer, et la barre d'action en bas.</li>
+      <li>La destination dans Figma, séparée de la palette.</li>
+      <li>Deux sorties cochables, variables et planches.</li>
+      <li>La relecture, sans choix par défaut, relue au moment d'écrire.</li>
+    </ul></div>
+    <div class="boite"><h3>Ajouté pour les situations</h3><ul>
+      <li>« D'où partez-vous ? » avec les couleurs existantes, pour les palettes faites à l'œil.</li>
+      <li>La correction proposée dans Vérifier.</li>
+      <li>« Dans mes variables », pour une structure de tokens existante.</li>
+      <li>« Toutes les palettes modifiées » dans Appliquer, pour les réglages communs et les marques.</li>
+      <li>La marque à côté des statuts, et la comparaison de deux palettes.</li>
+    </ul></div>
+    <div class="boite"><h3>Retiré</h3><ul>
+      <li>Le rôle en quatre segments à la création. La destination le remplace, après le choix de la couleur.</li>
+      <li>Le rangement par collections dans le travail courant.</li>
+      <li>L'onglet Système, les cases vides, le bouton dans chaque fiche, la rampe témoin.</li>
+      <li>Les pistes et les décisions numérotées comme cadre de lecture.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="bloc">
+  <span class="sur">L'essai</span>
+  <h2>Ce que ton essai doit montrer</h2>
+  <p>Tu testes seul. Avant chaque clic, dis ce qui va se passer ; après, compare. Un écart est un défaut de l'interface, pas une erreur de ta part.</p>
+  <div class="table"><table>
+    <thead><tr><th>Tâche</th><th>Réussie si</th></tr></thead>
+    <tbody>
+      <tr><td>Créer un design system à deux marques depuis un fichier vide</td><td>Chaque étape se trouve par le bouton du bas, sans chercher</td></tr>
+      <tr><td>Reprendre une palette faite à l'œil et la corriger</td><td>Tu sais avant d'appliquer quelles nuances changent, et pourquoi</td></tr>
+      <tr><td>Changer la couleur d'une marque et l'appliquer</td><td>Aucun changement d'onglet en dehors des trois étapes</td></tr>
+      <tr><td>Remplir une collection de variables existante</td><td>Tu sais quelles variables seront écrites avant de relire</td></tr>
+      <tr><td>Décider d'une couleur retouchée dans Figma</td><td>Tu dis quelle couleur restera et ce que devient le contraste</td></tr>
+      <tr><td>Redessiner une planche sans toucher aux variables</td><td>Aucune variable modifiée</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="bloc">
+  <span class="sur">À trancher</span>
+  <h2>Trois questions pour toi</h2>
+  <ol class="regles">
+    <li><b>Trois onglets au lieu de deux.</b> La règle actuelle en fixe deux. Cette proposition la change : la vérification devient une étape visible.</li>
+    <li><b>« Dans mes variables ».</b> Le plugin écrirait hors de l'architecture UCM. Utile pour les systèmes existants, plus coûteux à construire.</li>
+    <li><b>La correction proposée.</b> Le plugin choisit les nuances à changer ; le designer accepte ou non. Faut-il aussi permettre de corriger nuance par nuance dans Vérifier ?</li>
+  </ol>
+</section>
+
+</main>
+</body>
+</html>

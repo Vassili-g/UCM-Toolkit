@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intégrer le marché</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  --sol: #F3F4F6; --papier: #FFFFFF; --encre: #17191E; --encre-2: #555C69; --filet: #D9DCE2;
+  --accent: #A8511B; --accent-fond: #FBEDE3; --ok: #17784A; --ko: #C7321B; --att: #9A5B00;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --sol: #15171B; --papier: #1D2026; --encre: #ECEEF2; --encre-2: #A3AAB7;
+    --filet: #343944; --accent: #F0A06A; --accent-fond: #3A2618; --ok: #5BD08F; --ko: #FF8C78; --att: #F2B35B;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --sol: #15171B; --papier: #1D2026; --encre: #ECEEF2; --encre-2: #A3AAB7;
+  --filet: #343944; --accent: #F0A06A; --accent-fond: #3A2618; --ok: #5BD08F; --ko: #FF8C78; --att: #F2B35B;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--sol); color: var(--encre); font: 15px/1.55 var(--sans); padding: 32px 16px 64px; }
+main { max-width: 1200px; margin: 0 auto; display: grid; gap: 64px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 22px; font-weight: 600; }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; max-width: 74ch; }
+ul, ol { margin: 0; padding-left: 1.3em; max-width: 74ch; }
+li + li { margin-top: 6px; }
+code { font-family: var(--mono); font-size: 0.88em; }
+a { color: var(--accent); }
+.intro, .bloc { display: grid; gap: 16px; min-width: 0; }
+.tete { display: grid; gap: 8px; }
+.sur { font: 500 12px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--encre-2); }
+.statut.reco { color: var(--ok); font-weight: 600; }
+.statut.adiscuter { color: var(--accent); font-weight: 600; }
+.sommaire { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px 24px; font-size: 14px; }
+.sommaire a { text-decoration: none; }
+.sommaire span { color: var(--encre-2); }
+.encadre { background: var(--papier); border: 1px solid var(--filet); border-radius: 12px; padding: 16px 20px; display: grid; gap: 10px; }
+.faits { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.faits > div, .option { background: var(--papier); border: 1px solid var(--filet); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.faits b { font-size: 14px; }
+.faits span, .option p { font-size: 14px; color: var(--encre-2); }
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.option.choisie { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.option h3 { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 15px; }
+.chip { font: 600 11px/1 var(--sans); color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.table { background: var(--papier); border: 1px solid var(--filet); border-radius: 12px; overflow-x: auto; }
+.table table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.table th, .table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--filet); vertical-align: top; }
+.table tr:last-child td { border-bottom: 0; }
+.table th { font-weight: 600; color: var(--encre-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.table td.num { font-family: var(--mono); white-space: nowrap; }
+.scene { overflow-x: auto; padding: 4px 0 12px; }
+.scene-rangee { display: flex; gap: 24px; align-items: flex-start; width: max-content; }
+.legende { font-size: 13px; color: var(--encre-2); width: 370px; display: grid; gap: 8px; }
+.legende > b { color: var(--encre); }
+
+/* Le parcours */
+.parcours { display: flex; gap: 8px; flex-wrap: wrap; }
+.etape { flex: 1 1 150px; border: 1px solid var(--filet); background: var(--papier); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; font-size: 13px; position: relative; }
+.etape span { color: var(--encre-2); }
+.etape.manuel { border-color: var(--ko); border-style: dashed; }
+.etape.manuel b { color: var(--ko); }
+.etape.change { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.parcours-titre { font: 600 12px/1 var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--encre-2); }
+
+/* Le panneau Figma, thème sombre */
+.fp {
+  --f-fond: #2C2C2C; --f-bloc: #383838; --f-tertiaire: #4A4A4A; --f-bord: #5E5E5E; --f-champ: #2C2C2C; --f-onglet: #505050;
+  --f-texte: #FFFFFF; --f-texte-2: #B3B3B3; --f-marque: #0D99FF; --f-lien: #7CC4F8; --f-succes: #85E0A3; --f-att: #F5B74E; --f-att-fond: #4A3714; --f-ok-fond: #1F3D2A;
+  flex: none; position: relative; background: var(--f-fond); color: var(--f-texte); font: 11px/16px Inter, system-ui, sans-serif;
+  border: 1px solid #1B1B1B; border-radius: 8px; box-shadow: 0 10px 28px rgba(0,0,0,.35); overflow: hidden;
+}
+.fp-haut { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.fp-titre { font-size: 14px; font-weight: 600; }
+.fp-onglets { display: flex; gap: 4px; padding: 0 0 8px; margin: 0 16px; border-bottom: 1px solid var(--f-bord); }
+.fp-onglets span, .onglets-theme span { height: 24px; padding: 0 8px; border-radius: 4px; display: grid; place-items: center; color: var(--f-texte-2); font-weight: 600; white-space: nowrap; }
+.fp-onglets .on, .onglets-theme .on { background: var(--f-onglet); color: var(--f-texte); }
+.onglets-theme { display: flex; gap: 4px; }
+.fp-corps { padding: 12px 16px 16px; display: grid; gap: 12px; }
+.fp-select { display: flex; gap: 8px; align-items: center; }
+.filet { height: 1px; background: var(--f-bord); margin: 3px 0; }
+.titre-1 { font-size: 16px; line-height: 24px; font-weight: 600; }
+.champ { height: 28px; border: 1px solid var(--f-bord); border-radius: 6px; display: flex; align-items: center; gap: 6px; padding: 0 8px; background: var(--f-champ); min-width: 0; }
+.champ.grand { height: 32px; flex: 1; }
+.champ.etroit { width: 120px; flex: none; }
+.champ.inactif { color: var(--f-texte-2); border-style: dashed; }
+.champ .coupe { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.champ .fleche { color: var(--f-texte-2); }
+.rond { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.pastille { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; flex: none; }
+.b { height: 28px; padding: 0 10px; border: 1px solid var(--f-bord); border-radius: 6px; display: inline-grid; place-items: center; font-weight: 600; white-space: nowrap; }
+.b.grand { height: 32px; padding: 0 12px; }
+.b.compact { height: 24px; padding: 0 8px; border-radius: 5px; }
+.b.principal { background: var(--f-marque); border-color: var(--f-marque); color: #fff; }
+.bouton-icone { width: 28px; height: 28px; border: 1px solid var(--f-bord); border-radius: 6px; display: grid; place-items: center; flex: none; }
+.bouton-icone.grand { width: 32px; height: 32px; }
+.carte { background: var(--f-bloc); border: 1px solid var(--f-bord); border-radius: 8px; padding: 12px; display: grid; gap: 10px; align-content: start; }
+.carte-titre { font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.carte-titre .droite { display: flex; gap: 10px; align-items: center; font-size: 11px; font-weight: 400; }
+.libelle, .aide, .sec { color: var(--f-texte-2); }
+.libelle { display: block; margin-bottom: 4px; }
+.aide.petit, .petit { font-size: 10px; line-height: 13px; }
+.aide.petit { display: block; margin-top: 4px; }
+.lien { color: var(--f-lien); }
+.souligne { text-decoration: underline; }
+.att-t { color: var(--f-att); }
+.deux-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.trois { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.rangee { display: grid; gap: 0; justify-items: start; }
+.champ-ligne { display: flex; gap: 6px; align-items: center; }
+.pipette { width: 28px; height: 28px; border-radius: 6px; border: 3px solid var(--f-champ); outline: 1px solid var(--f-bord); flex: none; }
+.pipette.petite { width: 18px; height: 18px; border-width: 2px; border-radius: 4px; }
+.segment { display: flex; border: 1px solid var(--f-bord); border-radius: 6px; height: 28px; padding: 2px; gap: 2px; background: var(--f-champ); }
+.segment span { flex: 1; display: grid; place-items: center; border-radius: 4px; color: var(--f-texte-2); white-space: nowrap; padding: 0 10px; }
+.segment .on { background: var(--f-tertiaire); color: var(--f-texte); font-weight: 600; }
+.segment.court { min-width: 220px; }
+.segment.role { min-width: 380px; }
+.segment.petit { height: 22px; }
+.segment.petit span { padding: 0 6px; font-size: 10px; }
+.gestes { display: flex; gap: 8px; flex-wrap: wrap; }
+.gestes.a-droite { justify-content: flex-end; }
+.accordeon { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; background: var(--f-bloc); border: 1px solid var(--f-bord); border-radius: 8px; }
+.accordeon b { font-size: 12px; }
+.accordeon .resume, .groupe-tete .resume { margin-left: auto; color: var(--f-texte-2); }
+.chevron { color: var(--f-texte-2); width: 10px; }
+.c { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; padding: 0 4px; border-radius: 3px; background: rgba(255,255,255,.08); color: var(--f-texte); }
+.note-maquette { color: var(--f-texte-2); font-style: italic; padding: 2px 4px; }
+.choix-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choix-carte { display: grid; gap: 6px; align-content: start; padding: 10px; border: 1px solid var(--f-bord); border-radius: 8px; background: var(--f-fond); }
+.choix-carte.on { border-color: var(--f-marque); box-shadow: inset 0 0 0 1px var(--f-marque); }
+.choix-tete { display: flex; gap: 8px; align-items: center; }
+.radio { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--f-texte-2); }
+.radio.on { border: 4px solid var(--f-marque); background: #fff; }
+
+/* Nuancier */
+.surface { border-radius: 6px; padding: 8px; }
+.grille { display: grid; grid-template-columns: 34px repeat(11, 1fr); gap: 3px; align-items: center; }
+.grille.nue { grid-template-columns: repeat(11, 1fr); }
+.grille .num { text-align: center; font-size: 9.5px; line-height: 12px; opacity: .7; font-variant-numeric: tabular-nums; }
+.grille .prof { font-size: 10px; font-weight: 600; }
+.sw { display: grid; place-items: center; border-radius: 4px; font-style: normal; font-size: 10px; position: relative; min-width: 0; }
+.sw.pointe::before { content: ""; position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: #F5B74E; box-shadow: 0 0 0 1.5px rgba(0,0,0,.55); }
+.sw.choisie { box-shadow: 0 0 0 2px #F7F7F7, 0 0 0 4px #1E1E1E; }
+.apercu-mini .surface { padding: 6px; }
+.tete-apercu { display: flex; justify-content: space-between; align-items: center; }
+.ref-ligne { font-weight: 600; }
+
+/* Onglet Palettes */
+.tete-onglet { display: flex; align-items: center; gap: 10px; }
+.tete-onglet > b { margin-right: auto; }
+.vision { display: flex; gap: 6px; align-items: center; }
+.groupe { display: grid; gap: 8px; }
+.groupe-tete { display: flex; align-items: center; gap: 8px; min-height: 28px; border-bottom: 1px solid var(--f-bord); padding-bottom: 4px; }
+.groupe-tete b { font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.groupe-corps { display: grid; gap: 8px; }
+.fiche { gap: 8px; }
+.fiche .surface { padding: 5px; }
+.fiche .grille { grid-template-columns: 30px repeat(11, 1fr); gap: 2px; }
+.fiche-tete { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fiche-nom { font-size: 13px; margin-right: 4px; }
+.fiche-ligne { display: flex; justify-content: space-between; gap: 12px; }
+.ligne-variables { display: flex; gap: 8px; align-items: center; }
+.etat-puce { height: 20px; padding: 0 8px; border-radius: 10px; display: inline-grid; place-items: center; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.etat-puce.ok { background: var(--f-ok-fond); color: var(--f-succes); }
+.etat-puce.attention { background: var(--f-att-fond); color: var(--f-att); }
+.information { border-left: 3px solid var(--f-texte-2); padding: 4px 0 4px 10px; color: var(--f-texte-2); }
+
+/* Revue */
+.voile { position: absolute; inset: 0; top: 86px; background: rgba(0,0,0,.55); display: grid; justify-items: center; align-items: start; padding: 24px 16px; }
+.modale { width: 520px; background: var(--f-bloc); border: 1px solid var(--f-bord); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.55); padding: 16px; display: grid; gap: 10px; }
+.modale-titre { font-size: 13px; font-weight: 600; }
+.revue-bloc { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--f-bord); border-radius: 6px; background: var(--f-fond); }
+.revue-bloc.attention { border-color: #7A5A1E; }
+.revue-sous { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--f-texte-2); }
+.revue-sous .c, .groupe-liste .c { text-transform: none; letter-spacing: 0; }
+.modale > *, .revue-bloc > * { min-width: 0; }
+.revue-retouche .c { overflow-wrap: anywhere; }
+.revue-ligne { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; }
+.revue-ligne .petit { grid-column: 1 / -1; }
+.revue-retouche { display: grid; grid-template-columns: minmax(0, 1fr) 88px 88px auto; gap: 8px; align-items: center; }
+.duo { display: grid; grid-template-columns: 22px 1fr; gap: 4px; align-items: center; }
+
+/* Détail d'une nuance */
+.detail { border-radius: 6px; padding: 10px; display: grid; gap: 8px; }
+.d-tete { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; }
+.d-titre { font-size: 13px; }
+.d-encart { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid rgba(128,128,128,.35); border-radius: 6px; }
+.d-encart .sw { display: inline-grid; width: 24px; vertical-align: middle; }
+.d-sous { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .72; }
+.detail .c { background: rgba(0,0,0,.07); color: inherit; }
+.sec-l { opacity: .72; }
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.bdg { display: inline-block; padding: 0 3px; border: 1px solid currentColor; border-radius: 3px; font: 600 9px/12px Inter, sans-serif; }
+
+/* Jeu de départ */
+.depart-bloc { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--f-bord); border-radius: 6px; background: var(--f-fond); }
+.depart-ligne { display: grid; grid-template-columns: 16px 90px 18px 64px 1fr; gap: 8px; align-items: center; }
+.depart-ligne .surface { padding: 3px; }
+.depart-ligne .grille { gap: 2px; }
+.case { width: 14px; height: 14px; border-radius: 3px; display: grid; place-items: center; font-size: 9px; background: var(--f-marque); color: #fff; }
+.marque-ligne { display: grid; grid-template-columns: 1.2fr 1fr 1fr 16px; gap: 8px; align-items: center; }
+.marque-ligne .champ-ligne { height: 28px; border: 1px solid var(--f-bord); border-radius: 6px; padding: 0 8px; }
+.marque-ligne.entete .libelle { margin: 0; }
+
+/* Sélecteur de couleur */
+.ancre-picker { position: absolute; top: 96px; right: 12px; z-index: 2; }
+.picker { width: 232px; background: #2C2C2C; border: 1px solid #444; border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.55); padding: 10px; display: grid; gap: 10px; }
+.sv { position: relative; height: 130px; border-radius: 6px; }
+.sv i, .hue i { position: absolute; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.4); transform: translate(-50%, -50%); }
+.hue { position: relative; height: 10px; border-radius: 5px; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.hue i { top: 50%; }
+.picker-ligne { display: flex; gap: 6px; }
+.picker-ligne .champ.etroit { width: 64px; }
+.picker-sep { height: 1px; background: #444; margin: 0 -10px; }
+.picker-titre { color: var(--f-texte-2); }
+.picker-pastilles { display: flex; flex-wrap: wrap; gap: 3px; }
+.picker-pastilles > i { width: 16px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
+.sel-puce { display: inline-flex; gap: 4px; align-items: center; height: 22px; padding: 0 6px 0 3px; border: 1px solid var(--f-bord); border-radius: 11px; }
+.sel-puce i { width: 16px; height: 16px; border-radius: 50%; }
+
+/* Vision */
+.bande-visions { display: grid; grid-template-columns: 80px repeat(4, 1fr); gap: 6px 12px; align-items: center; background: var(--papier); border: 1px solid var(--filet); border-radius: 10px; padding: 12px 14px; font-size: 13px; min-width: 520px; }
+.bv-tete { font-size: 12px; color: var(--encre-2); }
+.bande-titre { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.bande-visions { max-width: 900px; }
+.bv-rampe { display: flex; gap: 2px; }
+.bv-rampe i { flex: 1; height: 22px; border-radius: 3px; }
+
+/* Réglages */
+.table-marques { display: grid; border: 1px solid var(--f-bord); border-radius: 6px; }
+.tm-ligne { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; padding: 6px 8px; border-top: 1px solid var(--f-bord); }
+.tm-ligne:first-child { border-top: 0; }
+.tm-ligne.entete { color: var(--f-texte-2); }
+.ligne-inter { display: flex; gap: 8px; align-items: center; }
+.inter { width: 28px; height: 16px; border-radius: 8px; background: var(--f-bord); display: inline-flex; align-items: center; padding: 2px; flex: none; }
+.inter b { width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+.inter.on { background: var(--f-marque); justify-content: flex-end; }
+.aide-rond { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--f-texte-2); font-size: 9px; margin-left: 4px; color: var(--f-texte); }
+.bulle { position: absolute; top: 20px; left: 150px; width: 240px; background: #1E1E1E; border: 1px solid #444; border-radius: 6px; padding: 8px 10px; box-shadow: 0 8px 20px rgba(0,0,0,.5); }
+
+/* Sélecteur de palettes ouvert */
+.menu-liste { display: grid; gap: 1px; background: #1E1E1E; border: 1px solid #444; border-radius: 6px; padding: 6px; }
+.groupe-liste { padding: 6px 6px 2px; color: var(--f-texte-2); font-size: 10px; }
+.entree-liste { display: flex; gap: 8px; align-items: center; padding: 4px 8px; border-radius: 4px; }
+.entree-liste em { margin-left: auto; font-style: normal; color: var(--f-texte-2); font-family: "IBM Plex Mono", monospace; font-size: 10px; }
+.entree-liste.on { background: var(--f-marque); }
+.entree-liste.on em { color: #fff; }
+
+/* Vignettes des rôles */
+.vignettes { display: grid; grid-template-columns: repeat(3, 380px); gap: 16px; align-items: start; max-width: 100%; overflow-x: auto; padding-bottom: 8px; }
+.vignette { display: grid; gap: 6px; align-content: start; }
+.vignette-titre { font: 600 12px/1 var(--sans); color: var(--encre-2); text-transform: uppercase; letter-spacing: .06em; }
+.vignette-fp { width: 380px; }
+.vignette-fp .segment.role { min-width: 0; width: 100%; }
+
+@media (max-width: 700px) {
+  h1 { font-size: 24px; }
+  .vignettes { grid-template-columns: 380px; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<section class="intro">
+  <div class="tete"><span class="sur">UCM Palettes · propositions d'intégration</span><h1>Intégrer au plugin ce que le marché fait mieux</h1></div>
+  <p>Ce document traduit en écrans les propositions de <a href="../../RECHERCHE-CONCURRENCE-PALETTES.md">la comparaison avec les outils du marché</a>. Il s'adresse au mainteneur, qui valide ou écarte chaque piste avant qu'un plan d'implémentation ne soit écrit. Le texte des décisions et l'ordre des lots sont dans <a href="./PROPOSITION-INITIALE.md">PROPOSITION-INITIALE.md</a>.</p>
+  <p>Les couleurs sortent du moteur, dans la recette par défaut. Les panneaux ont la largeur par défaut de la fenêtre, 770 px, dans le thème sombre de Figma. Une ligne en italique dans un panneau remplace un contenu que la maquette n'a pas besoin de répéter.</p>
+  <div class="encadre">
+    <h3>Le principe commun</h3>
+    <p>Une palette a un rôle dans le système : marque, utilitaire, neutre, ou autre. Ce rôle fixe ses intensités et le nom de ses variables. Chaque palette a ensuite un seul état face à Figma, qui couvre son cadre et ses variables, et un seul geste pour le mettre à jour : « Actualiser sur Figma ». Toute écriture de variables passe par une revue, qui montre ce qui change et les valeurs retouchées à la main.</p>
+  </div>
+  <div class="parcours-titre">Aujourd'hui</div>
+  <div class="parcours">
+  <div class="etape fait"><b>Composer et juger</b><span>Onglet Création</span></div>
+  <div class="etape fait"><b>Documenter</b><span>Onglet Palettes, planche</span></div>
+  <div class="etape manuel"><b>Créer 710 variables</b><span>Panneau des variables, à la main</span></div>
+  <div class="etape fait"><b>Publier la bibliothèque</b><span>Figma</span></div>
+  <div class="etape fait"><b>Exporter les tokens</b><span>UCM Exporter</span></div>
+</div>
+  <div class="parcours-titre">Proposé</div>
+  <div class="parcours">
+  <div class="etape change"><b>Composer, avec un rôle</b><span>Onglet Création</span></div>
+  <div class="etape change"><b>Juger</b><span>Garanties, vision simulée</span></div>
+  <div class="etape change"><b>Actualiser sur Figma</b><span>Planche et variables, un geste, une revue</span></div>
+  <div class="etape fait"><b>Publier la bibliothèque</b><span>Figma</span></div>
+  <div class="etape fait"><b>Exporter les tokens</b><span>UCM Exporter, inchangé</span></div>
+</div>
+  <nav class="sommaire">
+    <a href="#p1">1. Le rôle de la palette <span>· structure</span></a>
+    <a href="#p2">2. Un état Figma par palette <span>· structure</span></a>
+    <a href="#p3">3. La revue avant écriture <span>· structure</span></a>
+    <a href="#p4">4. Les retouches dans la recette <span>· structure</span></a>
+    <a href="#p5">5. Le jeu de départ <span>· prise en main</span></a>
+    <a href="#p6">6. La couleur de la sélection <span>· prise en main</span></a>
+    <a href="#p7">7. La vision simulée <span>· vérification</span></a>
+    <a href="#p8">8. Les fonds lus sur le neutre <span>· vérification</span></a>
+    <a href="#p9">9. La carte Variables <span>· réglages</span></a>
+    <a href="#p10">10. Aides et langue des planches <span>· textes</span></a>
+    <a href="#ecartes">Ce qui reste écarté</a>
+    <a href="#decisions">Les décisions à valider</a>
+  </nav>
+</section>
+
+
+<section class="bloc" id="p1">
+  <div class="tete"><span class="sur">Piste 1 · Structure · <span class="statut reco">recommandée</span></span><h2>Le rôle de la palette remplace le Modèle, les Intensités et la destination</h2></div>
+  <p>La recherche ajoute une rangée « Variables » sous les Intensités : un segment « Aucune · Primitives · Marque », un champ de famille et une liste de marques. La carte compterait alors trois choix liés entre eux, et une combinaison sur deux serait refusée à la saisie : une palette de marque à deux intensités, un utilitaire à une intensité.</p>
+  <p>La piste remplace ces trois choix par un seul, « Rôle dans le système ». Chaque rôle fixe les intensités que l'architecture lui donne, et la carte ne montre que les champs qui manquent : la marque et la famille pour une rampe de marque, la famille et « Référence exacte dans » pour un utilitaire, rien pour le neutre. « Autre » rend la carte actuelle, Modèle et intensités compris, sans variables. Une combinaison refusée ne peut plus se saisir.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span class="on">Création</span><span>Palettes</span></div><div class="fp-corps"><div class="fp-select"><div class="champ grand"><i class="rond" style="background:#E08A00"></i><span class="coupe"><b>Orange A</b></span><span class="fleche">▾</span></div>
+  <span class="b principal grand">Nouvelle palette</span><span class="bouton-icone grand">⋯</span></div><div class="filet"></div><div class="carte">
+    <div class="carte-titre">Nouvelle palette</div>
+    <div class="deux-col">
+      <div><span class="libelle">Nom de la palette</span><div class="champ "><span class="coupe">Bleu A</span></div></div>
+      <div><span class="libelle">Couleur de référence</span><div class="champ-ligne"><i class="pipette" style="background:#1E6FD9"></i><div class="champ grand"><span class="coupe">#1E6FD9</span></div></div><span class="aide petit">Reprise de la sélection : « Charte / Bleu Marque A »</span></div>
+    </div>
+    <div class="rangee"><span class="libelle">Rôle dans le système</span><div class="segment role"><span class="on">Marque</span><span>Utilitaire</span><span>Neutre</span><span>Autre</span></div></div>
+    <div class="deux-col">
+        <div><span class="libelle">Marque</span><div class="champ "><span class="coupe">Marque A</span><span class="fleche">▾</span></div></div>
+        <div><span class="libelle">Famille</span><div class="champ "><span class="coupe">primary</span></div><span class="aide petit">Proposées : primary · secondary</span></div>
+      </div>
+      <span class="aide">Une intensité, comme toute rampe de marque. Variables : <code class="c">brand.palette.primary.{light,dark}.{50…950}</code> et <code class="c">brand.identity.primary</code>, dans le mode « Marque A ».</span>
+    <div class="apercu-mini"><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><span class="num">50</span><span class="num">100</span><span class="num">200</span><span class="num">300</span><span class="num">400</span><span class="num">500</span><span class="num">600</span><span class="num">700</span><span class="num">800</span><span class="num">900</span><span class="num">950</span><i class="sw" style="background:#F1F8FE;color:#111111;height:16px"></i><i class="sw" style="background:#E4F0FD;color:#111111;height:16px"></i><i class="sw" style="background:#CCE2FC;color:#111111;height:16px"></i><i class="sw" style="background:#ABD0FA;color:#111111;height:16px"></i><i class="sw" style="background:#7EB5F7;color:#111111;height:16px"></i><i class="sw" style="background:#4B96F4;color:#111111;height:16px"></i><i class="sw" style="background:#1E6FD9;color:#FFFFFF;height:16px">◆</i><i class="sw" style="background:#185EC1;color:#FFFFFF;height:16px"></i><i class="sw" style="background:#10479E;color:#FFFFFF;height:16px"></i><i class="sw" style="background:#08317B;color:#FFFFFF;height:16px"></i><i class="sw" style="background:#041F5E;color:#FFFFFF;height:16px"></i></div></div></div>
+    <div class="gestes"><span class="b principal">Créer la palette</span><span class="b ">Annuler</span></div>
+  </div>
+    <div class="titre-1">Palette Orange A</div>
+    <div class="accordeon"><span class="chevron">›</span><b>Configuration de la palette</b><span class="resume">Marque A · <code class="c">secondary</code></span></div></div></div><div class="legende"><b>Création d'une palette de marque.</b><span>La couleur et le nom viennent de la sélection (piste 6). La ligne sous les champs donne le chemin des variables, que le plugin assemble sans choisir de nom.</span><span>L'aperçu garde la rampe que les cartes d'intensité montraient.</span><b>Le sélecteur, rangé par rôle.</b><div class="fp" style="width:360px"><div class="fp-corps">
+  <div class="menu-liste">
+    <span class="groupe-liste"><code class="c">primitives</code></span>
+    <span class="entree-liste"><i class="pastille" style="background:#808080"></i>Neutre<em>neutral</em></span><span class="entree-liste"><i class="pastille" style="background:#DC2626"></i>Rouge<em>danger</em></span><span class="entree-liste"><i class="pastille" style="background:#D97706"></i>Ambre<em>warning</em></span><span class="entree-liste"><i class="pastille" style="background:#16A34A"></i>Vert<em>success</em></span><span class="entree-liste"><i class="pastille" style="background:#2563EB"></i>Azur<em>info</em></span>
+    <span class="groupe-liste"><code class="c">brand</code> · Marque A</span>
+    <span class="entree-liste"><i class="pastille" style="background:#1E6FD9"></i>Bleu A<em>primary</em></span><span class="entree-liste on"><i class="pastille" style="background:#E08A00"></i>Orange A<em>secondary</em></span>
+    <span class="groupe-liste"><code class="c">brand</code> · Marque B</span>
+    <span class="entree-liste"><i class="pastille" style="background:#7A1FA2"></i>Violet B<em>primary</em></span><span class="entree-liste"><i class="pastille" style="background:#00A389"></i>Sarcelle B<em>secondary</em></span>
+    <span class="groupe-liste">Hors variables</span>
+    <span class="entree-liste"><i class="pastille" style="background:#C2185B"></i>Framboise</span>
+  </div></div></div></div></div></div>
+  
+  <div class="faits"><div><b>Ce qui change</b><span>Création et Configuration de la palette : la rangée Rôle en tête, la suite du choix dessous. Le sélecteur de palette range ses entrées par collection et par marque.</span></div><div><b>Recette</b><span>Format 7 : un rôle par palette, sa famille et sa marque ; la liste des marques. Une recette au format 6 migre en rôle « Autre » : aucune variable ne s'écrit sans un geste du designer.</span></div><div><b>Règles modifiées</b><span>D3 : le plugin connaît la marque et la famille que le designer saisit, et ne nomme toujours rien seul. [ENT-14] : le choix des intensités ne reste libre que pour le rôle « Autre ».</span></div><div><b>Changer de rôle</b><span>Passer d'utilitaire à marque retire une intensité, comme « Une · Deux » aujourd'hui. Les variables déjà écrites restent dans Figma, comme un cadre de palette supprimée ([PLA-27]).</span></div></div>
+  <div class="vignettes"><div class="vignette"><span class="vignette-titre">Utilitaire</span>
+    <div class="fp vignette-fp"><div class="fp-corps"><div class="carte">
+      <div class="rangee"><span class="libelle">Rôle dans le système</span><div class="segment role"><span>Marque</span><span class="on">Utilitaire</span><span>Neutre</span><span>Autre</span></div></div>
+      <div class="deux-col">
+        <div><span class="libelle">Famille</span><div class="champ "><span class="coupe">danger</span></div><span class="aide petit">Libres : warning · success · info</span></div>
+        <div><span class="libelle">Référence exacte dans</span><div class="segment "><span class="on">Auto</span><span>Soft</span><span>Vivid</span></div><span class="aide petit">Auto choisira Vivid</span></div>
+      </div>
+      <span class="aide">Deux intensités, Soft et Vivid. Variables : <code class="c">primitives.danger.{soft,vivid}.{light,dark}.{50…950}</code>, communes aux marques.</span>
+    </div></div></div></div><div class="vignette"><span class="vignette-titre">Neutre</span>
+    <div class="fp vignette-fp"><div class="fp-corps"><div class="carte">
+      <div class="rangee"><span class="libelle">Rôle dans le système</span><div class="segment role"><span>Marque</span><span>Utilitaire</span><span class="on">Neutre</span><span>Autre</span></div></div>
+      <span class="aide">Une intensité, famille <code class="c">neutral</code>. Variables : <code class="c">primitives.neutral.{light,dark}.{50…950}</code>. Son cran 50 est le fond de page des deux thèmes.</span>
+    </div></div></div></div><div class="vignette"><span class="vignette-titre">Autre</span>
+    <div class="fp vignette-fp"><div class="fp-corps"><div class="carte">
+      <div class="rangee"><span class="libelle">Rôle dans le système</span><div class="segment role"><span>Marque</span><span>Utilitaire</span><span>Neutre</span><span class="on">Autre</span></div></div>
+      <div class="rangee"><span class="libelle">Modèle</span><div class="segment court"><span class="on">Standard</span><span>Libre</span></div></div>
+    <div class="choix-cartes">
+      <div class="choix-carte on"><div class="choix-tete"><i class="radio on"></i><b>Une intensité</b></div><span class="aide">Une seule variante, à l'intensité de la couleur de référence.</span></div>
+      <div class="choix-carte"><div class="choix-tete"><i class="radio"></i><b>Deux intensités</b></div><span class="aide">Une variante douce « Soft » et une variante vive « Vivid ».</span></div>
+    </div>
+    <span class="aide">Palette hors des variables : essai, illustration, données. Seule la planche la montre.</span>
+    </div></div></div></div></div>
+  <div class="options">
+    <div class="option choisie"><h3>A. Le rôle <span class="chip">recommandée</span></h3><p>Un choix, qui porte les intensités et la destination. Il enseigne l'architecture au designer à la création même.</p></div>
+    <div class="option"><h3>B. La rangée « Variables » de la recherche</h3><p>Moins de changements dans l'écran actuel. Les combinaisons interdites se refusent après coup, avec un message à écrire et un état de galerie par refus.</p></div>
+  </div>
+</section>
+
+
+<section class="bloc" id="p2">
+  <div class="tete"><span class="sur">Piste 2 · Structure · <span class="statut reco">recommandée</span></span><h2>Un état Figma par palette, et l'onglet Palettes rangé par collection</h2></div>
+  <p>La recherche donne à chaque fiche une seconde ligne : une pastille pour les variables et un geste « Écrire les variables », à côté de la pastille et du geste du cadre. La fiche porterait deux états et deux boutons principaux. « Écrire toutes les variables » s'ajouterait à « Actualiser tout ».</p>
+  <p>La piste garde une pastille et un geste. La pastille prend l'état le plus grave du cadre et des variables, et la ligne de la référence dit ce qui manque : « Cadre à jour · 23 variables à écrire ». « Générer sur Figma » et « Actualiser sur Figma » écrivent le cadre et les variables de la palette, puis ses alias de <code>theme</code>. Les fiches se rangent sous leur collection, comme dans le panneau des variables de Figma. Le groupe <code>theme</code> n'a pas de fiche : ses alias se déduisent des palettes et suivent leurs gestes.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span>Création</span><span class="on">Palettes</span></div><div class="fp-corps"><div class="tete-onglet"><b>10 palettes</b>
+  <div class="onglets-theme"><span class="on">Thème Light</span><span>Thème Dark</span></div>
+  <div class="vision"><span class="sec">Vision</span><div class="champ etroit"><span class="coupe">Normale</span><span class="fleche">▾</span></div></div>
+  <span class="b ">Actualiser</span></div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">⌄</span><b><code class="c">primitives</code> Neutre et utilitaires</b><span class="resume">5 palettes · 1 à actualiser</span></div>
+  <div class="groupe-corps">
+    <div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Neutre</b> <code class="c">neutral</code></span><span class="etat-puce ok">À jour</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof"></span><i class="sw" style="background:#F7F7F7;color:#111111;height:14px"></i><i class="sw" style="background:#EEEEEE;color:#111111;height:14px"></i><i class="sw" style="background:#DFDFDF;color:#111111;height:14px"></i><i class="sw" style="background:#CCCCCC;color:#111111;height:14px"></i><i class="sw" style="background:#B1B1B1;color:#111111;height:14px"></i><i class="sw" style="background:#959595;color:#111111;height:14px"></i><i class="sw" style="background:#808080;color:#111111;height:14px">◆</i><i class="sw" style="background:#636363;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#4D4D4D;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#383838;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#262626;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#808080"></i> #808080 ◆ nuance 600</span><span class="sec">Garanties ✓</span></div>
+    <div class="gestes"><span class="b compact">Afficher</span><span class="b compact">Modifier</span></div>
+  </div>
+    <div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Rouge</b> <code class="c">danger</code></span><span class="etat-puce attention">Retouches (3)</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof">Soft</span><i class="sw" style="background:#FAF5F5;color:#111111;height:14px"></i><i class="sw" style="background:#F6ECEA;color:#111111;height:14px"></i><i class="sw" style="background:#EEDAD8;color:#111111;height:14px"></i><i class="sw" style="background:#E4C3BF;color:#111111;height:14px"></i><i class="sw" style="background:#D7A29B;color:#111111;height:14px"></i><i class="sw" style="background:#CA7D74;color:#111111;height:14px"></i><i class="sw" style="background:#B36158;color:#111111;height:14px"></i><i class="sw" style="background:#904D46;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#713B35;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#542A26;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#3B1C19;color:#FFFFFF;height:14px"></i><span class="prof">Vivid</span><i class="sw" style="background:#FEF4F3;color:#111111;height:14px"></i><i class="sw" style="background:#FEE9E6;color:#111111;height:14px"></i><i class="sw" style="background:#FCD5D0;color:#111111;height:14px"></i><i class="sw" style="background:#FBB9B1;color:#111111;height:14px"></i><i class="sw" style="background:#F98F83;color:#111111;height:14px"></i><i class="sw" style="background:#F7564C;color:#111111;height:14px"></i><i class="sw" style="background:#DC2626;color:#FFFFFF;height:14px">◆</i><i class="sw pointe" style="background:#B61D1D;color:#FFFFFF;height:14px"></i><i class="sw pointe" style="background:#8F1515;color:#FFFFFF;height:14px"></i><i class="sw pointe" style="background:#6B0D0C;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#4D0706;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#DC2626"></i> #DC2626 ◆ Vivid · nuance 600 · <span class="att-t">Cadre à jour · 3 variables retouchées dans Figma</span></span><span class="sec">Soft ✓ · Vivid ✓</span></div>
+    <div class="gestes"><span class="b principal compact">Actualiser sur Figma</span><span class="b compact">Afficher</span><span class="b compact">Modifier</span></div>
+  </div>
+    <span class="note-maquette">Ambre, Vert et Azur suivent, à jour.</span></div></div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">⌄</span><b><code class="c">brand</code> Marque A</b><span class="resume">2 palettes · 1 pas encore sur Figma</span></div>
+  <div class="groupe-corps">
+    <div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Bleu A</b> <code class="c">primary</code></span><span class="etat-puce attention">Pas encore sur Figma</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof"></span><i class="sw" style="background:#F1F8FE;color:#111111;height:14px"></i><i class="sw" style="background:#E4F0FD;color:#111111;height:14px"></i><i class="sw" style="background:#CCE2FC;color:#111111;height:14px"></i><i class="sw" style="background:#ABD0FA;color:#111111;height:14px"></i><i class="sw" style="background:#7EB5F7;color:#111111;height:14px"></i><i class="sw" style="background:#4B96F4;color:#111111;height:14px"></i><i class="sw" style="background:#1E6FD9;color:#FFFFFF;height:14px">◆</i><i class="sw" style="background:#185EC1;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#10479E;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#08317B;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#041F5E;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#1E6FD9"></i> #1E6FD9 ◆ nuance 600 · <span class="att-t">Cadre et 23 variables à créer</span></span><span class="sec">Garanties ✓</span></div>
+    <div class="gestes"><span class="b principal compact">Générer sur Figma</span><span class="b compact">Modifier</span></div>
+  </div>
+    <span class="note-maquette">Orange A suit, à jour.</span></div></div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">›</span><b><code class="c">brand</code> Marque B</b><span class="resume">2 palettes · à jour</span></div>
+  </div>
+  <div class="information">Mode « Marque C » ajouté dans Figma : ses 46 valeurs sont celles de Marque A, recopiées par Figma. Aucune palette ne l'alimente. <span class="lien">Créer ses palettes</span></div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">›</span><b><code class="c">theme</code> Alias des composants</b><span class="resume">121 alias · 23 à créer avec Bleu A</span></div>
+  </div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">›</span><b>Hors variables</b><span class="resume">1 palette · à jour</span></div>
+  </div>
+  <div class="gestes"><span class="b principal grand">Actualiser tout (2 palettes)</span><span class="b grand">Générer tout (10 palettes)</span></div>
+  <div class="accordeon"><span class="chevron">›</span><b>Palettes et réglages</b><span class="resume">Exporter · Importer · Rapport</span></div></div></div><div class="legende"><b>Avant, selon la recherche.</b><div class="fp" style="width:370px"><div class="fp-corps"><div class="carte fiche">
+  <div class="fiche-tete"><b class="fiche-nom">Bleu A</b><span class="etat-puce ok">À jour</span></div>
+  <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof"></span><i class="sw" style="background:#F1F8FE;color:#111111;height:14px"></i><i class="sw" style="background:#E4F0FD;color:#111111;height:14px"></i><i class="sw" style="background:#CCE2FC;color:#111111;height:14px"></i><i class="sw" style="background:#ABD0FA;color:#111111;height:14px"></i><i class="sw" style="background:#7EB5F7;color:#111111;height:14px"></i><i class="sw" style="background:#4B96F4;color:#111111;height:14px"></i><i class="sw" style="background:#1E6FD9;color:#FFFFFF;height:14px">◆</i><i class="sw" style="background:#185EC1;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#10479E;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#08317B;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#041F5E;color:#FFFFFF;height:14px"></i></div></div>
+  <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#1E6FD9"></i> #1E6FD9 ◆ nuance 600</span><span class="sec">Garanties ✓</span></div>
+  <div class="ligne-variables"><span class="sec">Variables</span><span class="etat-puce attention">À écrire</span><span class="b compact">Écrire les variables</span></div>
+  <div class="gestes"><span class="b compact">Afficher</span><span class="b compact">Modifier</span></div>
+</div></div></div><b>Après.</b><div class="fp" style="width:370px"><div class="fp-corps"><div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Bleu A</b> <code class="c">primary</code></span><span class="etat-puce attention">À actualiser</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof"></span><i class="sw" style="background:#F1F8FE;color:#111111;height:14px"></i><i class="sw" style="background:#E4F0FD;color:#111111;height:14px"></i><i class="sw" style="background:#CCE2FC;color:#111111;height:14px"></i><i class="sw" style="background:#ABD0FA;color:#111111;height:14px"></i><i class="sw" style="background:#7EB5F7;color:#111111;height:14px"></i><i class="sw" style="background:#4B96F4;color:#111111;height:14px"></i><i class="sw" style="background:#1E6FD9;color:#FFFFFF;height:14px">◆</i><i class="sw" style="background:#185EC1;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#10479E;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#08317B;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#041F5E;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#1E6FD9"></i> #1E6FD9 ◆ nuance 600 · <span class="att-t">Cadre à jour · 23 variables à écrire</span></span><span class="sec">Garanties ✓</span></div>
+    <div class="gestes"><span class="b principal compact">Actualiser sur Figma</span><span class="b compact">Afficher</span><span class="b compact">Modifier</span></div>
+  </div></div></div><span>La fiche garde le compte d'objets d'aujourd'hui : le nom, la famille en code, une pastille, l'aperçu, une ligne et ses gestes.</span></div></div></div>
+  
+  <div class="faits"><div><b>États de la pastille</b><span>« À jour », « À actualiser », « Pas encore sur Figma », « Retouches (n) » en avertissement ; « Cadre introuvable » et « Lecture impossible » en danger. Une palette « Autre » ne montre que l'état de son cadre.</span></div><div><b>Groupes</b><span>primitives, une marque par groupe sous brand, theme, puis « Hors variables ». Chaque en-tête se replie et résume son état. L'ordre de la recette tient à l'intérieur d'un groupe.</span></div><div><b>Marque ajoutée dans Figma</b><span>Figma recopie la première colonne dans un mode ajouté à la main. Une information sous les groupes de marque le dit, avec « Créer ses palettes », qui ouvre le jeu de départ sur cette marque.</span></div><div><b>Règles modifiées</b><span>D2 et la section 5 : le plugin écrit des variables. [UI-05] : le premier geste dit l'état du cadre et des variables. Surfaces d'UCM Palettes : la fiche décrite dans CONTRIBUTING prend la famille et le détail de sa ligne.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p3">
+  <div class="tete"><span class="sur">Piste 3 · Structure · <span class="statut reco">recommandée</span></span><h2>La revue avant écriture</h2></div>
+  <p>Un geste qui écrit des variables passe par une modale, sur le modèle de l'écart d'un import (<code>[REC-08]</code>) et de la modale « Ajuster la référence » (<code>[UI-15]</code>). Elle compte ce qui sera créé, modifié et renommé, par collection et par mode, et liste chaque retouche avec deux choix. Un redessin de cadre seul reste direct, comme aujourd'hui.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span>Création</span><span class="on">Palettes</span></div><div class="fp-corps"><div class="tete-onglet"><b>10 palettes</b>
+  <div class="onglets-theme"><span class="on">Thème Light</span><span>Thème Dark</span></div>
+  <div class="vision"><span class="sec">Vision</span><div class="champ etroit"><span class="coupe">Normale</span><span class="fleche">▾</span></div></div>
+  <span class="b ">Actualiser</span></div><div style="height:640px"></div></div><div class="voile"><div class="modale">
+  <div class="modale-titre">Actualiser sur Figma : 2 palettes</div>
+  <span class="aide">Rouge et Bleu A. Un seul « Annuler » de Figma défait toute l'écriture.</span>
+  <div class="revue-bloc"><span class="revue-sous">Planche</span>
+    <div class="revue-ligne"><span>Cadre de Bleu A</span><b>créé</b><span class="sec petit">page « UCM Palettes »</span></div>
+  </div>
+  <div class="revue-bloc"><span class="revue-sous"><code class="c">brand</code> · mode « Marque A »</span>
+    <div class="revue-ligne"><span>Variables créées</span><b>23</b><span class="sec petit"><code class="c">brand.palette.primary.…</code> et <code class="c">brand.identity.primary</code></span></div>
+  </div>
+  <div class="revue-bloc"><span class="revue-sous"><code class="c">theme</code></span>
+    <div class="revue-ligne"><span>Alias créés</span><b>22</b><span class="sec petit"><code class="c">theme.primary.50</code> à <code class="c">theme.primary.950</code>, deux colonnes</span></div>
+  </div>
+  <div class="revue-bloc attention"><span class="revue-sous">Retouches dans Figma · Rouge</span>
+    <span class="aide petit">Ces valeurs ne sont plus celles que la recette a écrites. Garder les inscrit dans la recette, et les garanties se jugent sur elles.</span>
+    <div class="revue-retouche">
+  <code class="c">primitives.danger.vivid.light.700</code>
+  <span class="duo"><i class="sw" style="background:#B91C1C;color:#FFFFFF;height:18px"></i><span class="sec petit">Figma #B91C1C</span></span>
+  <span class="duo"><i class="sw" style="background:#B61D1D;color:#FFFFFF;height:18px"></i><span class="sec petit">Recette #B61D1D</span></span>
+  <div class="segment petit"><span class="on">Garder</span><span>Remplacer</span></div>
+</div><div class="revue-retouche">
+  <code class="c">primitives.danger.vivid.light.800</code>
+  <span class="duo"><i class="sw" style="background:#991B1B;color:#FFFFFF;height:18px"></i><span class="sec petit">Figma #991B1B</span></span>
+  <span class="duo"><i class="sw" style="background:#8F1515;color:#FFFFFF;height:18px"></i><span class="sec petit">Recette #8F1515</span></span>
+  <div class="segment petit"><span class="on">Garder</span><span>Remplacer</span></div>
+</div><div class="revue-retouche">
+  <code class="c">primitives.danger.vivid.light.900</code>
+  <span class="duo"><i class="sw" style="background:#7F1D1D;color:#FFFFFF;height:18px"></i><span class="sec petit">Figma #7F1D1D</span></span>
+  <span class="duo"><i class="sw" style="background:#6B0D0C;color:#FFFFFF;height:18px"></i><span class="sec petit">Recette #6B0D0C</span></span>
+  <div class="segment petit"><span class="on">Garder</span><span>Remplacer</span></div>
+</div>
+  </div>
+  <div class="gestes a-droite"><span class="b ">Annuler</span><span class="b principal">Actualiser (2 palettes)</span></div>
+</div></div></div><div class="legende"><b>Deux palettes actualisées ensemble.</b><span>Le cadre et les variables de Bleu A sont créés ; Rouge porte trois valeurs retouchées dans Figma.</span><span>« Garder » est choisi par défaut : il ne détruit rien dans Figma, et « Rétablir la valeur calculée » le défait dans l'onglet Création (piste 4).</span><span>La modale suit <code>[UI-15]</code> : 520 px au plus, voile, Tab retenu, Échap et le voile referment sans rien écrire.</span></div></div></div>
+  
+  <div class="faits"><div><b>Ce qui se liste</b><span>Cadres créés ou redessinés ; variables créées, modifiées, renommées ; modes créés ; alias de theme ; retouches. Une ligne sans changement ne s'affiche pas.</span></div><div><b>Annuler</b><span>Un seul commitUndo clôt l'écriture, comme le dessin d'une planche. Annuler dans la modale ne touche à rien.</span></div><div><b>Écriture interrompue</b><span>Même traitement que la génération interrompue : ce qui est écrit est nommé, la reprise est possible, la marque posée sur chaque valeur permet de reprendre sans doublon.</span></div><div><b>Coût</b><span>Un écran, ses états de galerie (création, retouches, renommage, mode créé, interruption) et les textes, à relire.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p4">
+  <div class="tete"><span class="sur">Piste 4 · Structure · <span class="statut reco">recommandée</span></span><h2>Les retouches entrent dans la recette</h2></div>
+  <p>Une retouche gardée entre dans la recette, sous la liste des crans retouchés que l'architecture prévoit (section 3.5). L'aperçu la peint et la marque d'un ✎ ; les garanties se jugent sur elle ; la planche la montre, marquée. Le détail de la nuance dit la valeur calculée et propose « Rétablir la valeur calculée ». Sans cette liste, la recette ne décrirait plus le document, et D10 ne tiendrait plus.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span class="on">Création</span><span>Palettes</span></div><div class="fp-corps"><div class="fp-select"><div class="champ grand"><i class="rond" style="background:#DC2626"></i><span class="coupe"><b>Rouge</b></span><span class="fleche">▾</span></div>
+  <span class="b principal grand">Nouvelle palette</span><span class="bouton-icone grand">⋯</span></div><div class="filet"></div><div class="titre-1">Palette Rouge</div>
+  <div class="accordeon"><span class="chevron">›</span><b>Configuration de la palette</b><span class="resume">Utilitaire · <code class="c">danger</code></span></div>
+  <div class="carte">
+    <div class="tete-apercu"><div class="onglets-theme"><span class="on">Thème Light</span><span>Thème Dark</span></div><span class="sec">Fond ▢ #F7F7F7</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span></span><span class="num">50</span><span class="num">100</span><span class="num">200</span><span class="num">300</span><span class="num">400</span><span class="num">500</span><span class="num">600</span><span class="num">700</span><span class="num">800</span><span class="num">900</span><span class="num">950</span><span class="prof">Soft</span><i class="sw" style="background:#FAF5F5;color:#111111;height:26px"></i><i class="sw" style="background:#F6ECEA;color:#111111;height:26px"></i><i class="sw" style="background:#EEDAD8;color:#111111;height:26px"></i><i class="sw" style="background:#E4C3BF;color:#111111;height:26px"></i><i class="sw" style="background:#D7A29B;color:#111111;height:26px"></i><i class="sw" style="background:#CA7D74;color:#111111;height:26px"></i><i class="sw" style="background:#B36158;color:#111111;height:26px"></i><i class="sw" style="background:#904D46;color:#FFFFFF;height:26px"></i><i class="sw" style="background:#713B35;color:#FFFFFF;height:26px"></i><i class="sw" style="background:#542A26;color:#FFFFFF;height:26px"></i><i class="sw" style="background:#3B1C19;color:#FFFFFF;height:26px"></i><span class="prof">Vivid</span><i class="sw" style="background:#FEF4F3;color:#111111;height:26px"></i><i class="sw" style="background:#FEE9E6;color:#111111;height:26px"></i><i class="sw" style="background:#FCD5D0;color:#111111;height:26px"></i><i class="sw" style="background:#FBB9B1;color:#111111;height:26px"></i><i class="sw" style="background:#F98F83;color:#111111;height:26px"></i><i class="sw" style="background:#F7564C;color:#111111;height:26px"></i><i class="sw" style="background:#DC2626;color:#FFFFFF;height:26px">◆</i><i class="sw choisie" style="background:#B91C1C;color:#FFFFFF;height:26px">✎</i><i class="sw" style="background:#991B1B;color:#FFFFFF;height:26px">✎</i><i class="sw" style="background:#7F1D1D;color:#FFFFFF;height:26px">✎</i><i class="sw" style="background:#4D0706;color:#FFFFFF;height:26px"></i></div></div>
+    <div class="detail" style="background:#F7F7F7;color:#1E1E1E">
+  <div class="d-tete"><i class="sw" style="background:#B91C1C;color:#FFFFFF;height:40px">✎</i><div><b class="d-titre">Vivid · 700</b><br><span class="mono">#B91C1C</span> <span class="souligne">Copier</span></div></div>
+  <div class="d-encart"><span class="d-sous">Retouchée dans Figma</span>
+    <span>Valeur calculée : <span class="mono">#B61D1D</span> <i class="sw" style="background:#B61D1D;color:#FFFFFF;height:12px"></i></span>
+    <span class="souligne">Rétablir la valeur calculée</span>
+    <span class="sec-l">La prochaine actualisation écrira alors la valeur calculée.</span>
+  </div>
+  <div class="d-encart"><span class="d-sous">Sert à</span>
+    <span><code class="c">text</code> · default, texte coloré : ✓ sur <code class="c">surface</code> 100 : 5,55:1 <span class="bdg">AA</span></span>
+    <span><code class="c">solid</code> · hover, fond plein au survol : ✓ sous <code class="c">on-solid</code> : 6,04:1 <span class="bdg">AA</span></span>
+  </div>
+</div>
+    <span class="ref-ligne">◆ Référence : Vivid · nuance 600 · ✎ 3 nuances retouchées dans Figma</span>
+  </div></div></div><div class="legende"><b>Trois crans de Rouge recollés depuis Tailwind, puis gardés.</b><span>Dans l'onglet Palettes, avant la revue, les mêmes crans portent une pastille orange : la retouche attend une décision (voir la fiche de Rouge, piste 2).</span><span>Le ✎ se lit comme le ◆ : un repère fixe, sans couleur sémantique.</span></div></div></div>
+  
+  <div class="faits"><div><b>Recette</b><span>Une entrée par cran retouché : profil, thème, cran, hexa gardé. L'empreinte en tient compte. Un changement de référence ou de courbe garde la retouche et la signale dans la revue suivante.</span></div><div><b>Garanties</b><span>Une retouche qui rompt une garantie la fait échouer comme un réglage, avec le lien « Rétablir la valeur calculée » parmi les réglages qui agissent.</span></div><div><b>Rapport</b><span>Chaque cran dit sa valeur calculée et sa valeur gardée.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p5">
+  <div class="tete"><span class="sur">Piste 5 · Prise en main · <span class="statut reco">recommandée</span></span><h2>Le jeu de départ</h2></div>
+  <p>Dans un fichier sans palette, la carte de création propose « Une palette » ou « Le jeu de départ ». Le jeu crée le neutre et les quatre utilitaires, avec leur rôle, puis deux palettes par marque saisie. Les références des utilitaires sont les 600 de Tailwind ; chacune se change dans la carte. Le menu « … » du sélecteur propose « Compléter le jeu de départ » : la même carte, où les palettes déjà présentes sont cochées et figées.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span class="on">Création</span><span>Palettes</span></div><div class="fp-corps"><div class="fp-select"><div class="champ grand"><span class="coupe sec">Sélectionner une palette</span><span class="fleche">▾</span></div>
+  <span class="b principal grand">Nouvelle palette</span></div><div class="filet"></div>
+  <div class="carte">
+    <div class="carte-titre">Nouvelle palette</div>
+    <div class="segment court"><span>Une palette</span><span class="on">Le jeu de départ</span></div>
+    <span class="aide">Les palettes que l'architecture multi-marques demande, chacune avec son rôle. Chaque référence se change ici ou après création.</span>
+    <div class="depart-bloc"><span class="revue-sous"><code class="c">primitives</code> · communes aux marques</span>
+      <div class="depart-ligne"><span class="case on">✓</span><code class="c">neutral</code><i class="pipette petite" style="background:#808080"></i><span class="mono sec">#808080</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><i class="sw" style="background:#F7F7F7;color:#111111;height:8px"></i><i class="sw" style="background:#EEEEEE;color:#111111;height:8px"></i><i class="sw" style="background:#DFDFDF;color:#111111;height:8px"></i><i class="sw" style="background:#CCCCCC;color:#111111;height:8px"></i><i class="sw" style="background:#B1B1B1;color:#111111;height:8px"></i><i class="sw" style="background:#959595;color:#111111;height:8px"></i><i class="sw" style="background:#808080;color:#111111;height:8px">◆</i><i class="sw" style="background:#636363;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#4D4D4D;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#383838;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#262626;color:#FFFFFF;height:8px"></i></div></div></div><div class="depart-ligne"><span class="case on">✓</span><code class="c">danger</code><i class="pipette petite" style="background:#DC2626"></i><span class="mono sec">#DC2626</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><i class="sw" style="background:#FAF5F5;color:#111111;height:8px"></i><i class="sw" style="background:#F6ECEA;color:#111111;height:8px"></i><i class="sw" style="background:#EEDAD8;color:#111111;height:8px"></i><i class="sw" style="background:#E4C3BF;color:#111111;height:8px"></i><i class="sw" style="background:#D7A29B;color:#111111;height:8px"></i><i class="sw" style="background:#CA7D74;color:#111111;height:8px"></i><i class="sw" style="background:#B36158;color:#111111;height:8px"></i><i class="sw" style="background:#904D46;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#713B35;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#542A26;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#3B1C19;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#FEF4F3;color:#111111;height:8px"></i><i class="sw" style="background:#FEE9E6;color:#111111;height:8px"></i><i class="sw" style="background:#FCD5D0;color:#111111;height:8px"></i><i class="sw" style="background:#FBB9B1;color:#111111;height:8px"></i><i class="sw" style="background:#F98F83;color:#111111;height:8px"></i><i class="sw" style="background:#F7564C;color:#111111;height:8px"></i><i class="sw" style="background:#DC2626;color:#FFFFFF;height:8px">◆</i><i class="sw" style="background:#B61D1D;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#8F1515;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#6B0D0C;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#4D0706;color:#FFFFFF;height:8px"></i></div></div></div><div class="depart-ligne"><span class="case on">✓</span><code class="c">warning</code><i class="pipette petite" style="background:#D97706"></i><span class="mono sec">#D97706</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><i class="sw" style="background:#FAF6F1;color:#111111;height:8px"></i><i class="sw" style="background:#F6EDE3;color:#111111;height:8px"></i><i class="sw" style="background:#EEDCCB;color:#111111;height:8px"></i><i class="sw" style="background:#E4C6AB;color:#111111;height:8px"></i><i class="sw" style="background:#D6A67D;color:#111111;height:8px"></i><i class="sw" style="background:#B78B69;color:#111111;height:8px"></i><i class="sw" style="background:#9A7256;color:#111111;height:8px"></i><i class="sw" style="background:#7E5A44;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#644534;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#4A3125;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#352118;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#FFF5EA;color:#111111;height:8px"></i><i class="sw" style="background:#FFEBD6;color:#111111;height:8px"></i><i class="sw" style="background:#FFD8B1;color:#111111;height:8px"></i><i class="sw" style="background:#FFBD7D;color:#111111;height:8px"></i><i class="sw" style="background:#FD9309;color:#111111;height:8px"></i><i class="sw" style="background:#D97706;color:#111111;height:8px">◆</i><i class="sw" style="background:#BA6004;color:#111111;height:8px"></i><i class="sw" style="background:#994A03;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#7B3602;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#5D2501;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#441600;color:#FFFFFF;height:8px"></i></div></div></div><div class="depart-ligne"><span class="case on">✓</span><code class="c">success</code><i class="pipette petite" style="background:#16A34A"></i><span class="mono sec">#16A34A</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><i class="sw" style="background:#EFFAF0;color:#111111;height:8px"></i><i class="sw" style="background:#DEF6E1;color:#111111;height:8px"></i><i class="sw" style="background:#BCEFC4;color:#111111;height:8px"></i><i class="sw" style="background:#9AE0A6;color:#111111;height:8px"></i><i class="sw" style="background:#85C290;color:#111111;height:8px"></i><i class="sw" style="background:#70A479;color:#111111;height:8px"></i><i class="sw" style="background:#5C8864;color:#111111;height:8px"></i><i class="sw" style="background:#496E4F;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#38553D;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#283E2C;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#1A2B1D;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#E6FFE9;color:#111111;height:8px"></i><i class="sw" style="background:#C9FED2;color:#111111;height:8px"></i><i class="sw" style="background:#87FEA2;color:#111111;height:8px"></i><i class="sw" style="background:#27F372;color:#111111;height:8px"></i><i class="sw" style="background:#20D362;color:#111111;height:8px"></i><i class="sw" style="background:#19B252;color:#111111;height:8px"></i><i class="sw" style="background:#16A34A;color:#111111;height:8px">◆</i><i class="sw" style="background:#0D7734;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#085D27;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#04441B;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#023011;color:#FFFFFF;height:8px"></i></div></div></div><div class="depart-ligne"><span class="case on">✓</span><code class="c">info</code><i class="pipette petite" style="background:#2563EB"></i><span class="mono sec">#2563EB</span><div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille nue"><i class="sw" style="background:#F4F7FA;color:#111111;height:8px"></i><i class="sw" style="background:#EAEFF6;color:#111111;height:8px"></i><i class="sw" style="background:#D7E0EE;color:#111111;height:8px"></i><i class="sw" style="background:#BECDE3;color:#111111;height:8px"></i><i class="sw" style="background:#9DB2D5;color:#111111;height:8px"></i><i class="sw" style="background:#7A96C6;color:#111111;height:8px"></i><i class="sw" style="background:#5A7BB8;color:#111111;height:8px"></i><i class="sw" style="background:#3E60A8;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#294793;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#1F336D;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#15234E;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#F2F7FE;color:#111111;height:8px"></i><i class="sw" style="background:#E6EFFD;color:#111111;height:8px"></i><i class="sw" style="background:#CFE1FB;color:#111111;height:8px"></i><i class="sw" style="background:#B2CEF8;color:#111111;height:8px"></i><i class="sw" style="background:#89B2F4;color:#111111;height:8px"></i><i class="sw" style="background:#5E93F0;color:#111111;height:8px"></i><i class="sw" style="background:#2563EB;color:#FFFFFF;height:8px">◆</i><i class="sw" style="background:#154FE4;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#092AD0;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#0D1C9C;color:#FFFFFF;height:8px"></i><i class="sw" style="background:#0A1270;color:#FFFFFF;height:8px"></i></div></div></div>
+    </div>
+    <div class="depart-bloc"><span class="revue-sous"><code class="c">brand</code> · une rangée par marque</span>
+      <div class="marque-ligne entete"><span class="libelle">Marque</span><span class="libelle">Primaire</span><span class="libelle">Secondaire</span><span></span></div>
+      <div class="marque-ligne"><div class="champ "><span class="coupe">Marque A</span></div><div class="champ-ligne"><i class="pastille" style="background:#1E6FD9"></i><span class="mono">#1E6FD9</span></div><div class="champ-ligne"><i class="pastille" style="background:#E08A00"></i><span class="mono">#E08A00</span></div><span class="sec">✕</span></div>
+      <div class="marque-ligne"><div class="champ "><span class="coupe">Marque B</span></div><div class="champ-ligne"><i class="pastille" style="background:#7A1FA2"></i><span class="mono">#7A1FA2</span></div><div class="champ-ligne"><span class="sec">Secondaire, facultative</span></div><span class="sec">✕</span></div>
+      <span class="lien">+ Ajouter une marque</span>
+    </div>
+    <span class="aide">Crée 8 palettes. Rien n'est écrit dans Figma avant « Générer sur Figma », dans l'onglet Palettes.</span>
+    <div class="gestes"><span class="b principal">Créer 8 palettes</span><span class="b ">Annuler</span></div>
+  </div></div></div><div class="legende"><b>Premier lancement, deux marques saisies.</b><span>La carte reste une carte de création : aucune invitation ne reçoit de geste propre, et la règle des surfaces tient.</span><span>La rangée d'une marque accepte la couleur de la sélection (piste 6), prise sur la charte posée dans le document.</span></div></div></div>
+  
+  <div class="faits"><div><b>Ce qui se crée</b><span>Neutre et quatre utilitaires : 5 palettes et 198 variables dans primitives. Par marque : 2 palettes et 46 variables dans brand. Rien n'est écrit dans Figma avant « Générer sur Figma ».</span></div><div><b>Dépend de</b><span>Piste 1 : sans rôle, le jeu épargne cinq créations et ne prépare aucune variable.</span></div><div><b>Références proposées</b><span>Les 600 de Tailwind. Danger et warning restent proches en deutéranopie quelles que soient les teintes mesurées (piste 7) : la réponse est dans les composants, et le jeu ne cherche pas à la corriger.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p6">
+  <div class="tete"><span class="sur">Piste 6 · Prise en main · <span class="statut reco">recommandée</span></span><h2>La couleur de la sélection, partout où une couleur se saisit</h2></div>
+  <p>La recherche préremplit « Nouvelle palette » depuis un calque sélectionné. La piste place la même source dans le sélecteur de couleur embarqué : une rangée « Dans la sélection » liste les remplissages unis des calques choisis, jusqu'à huit, chacun avec le nom de son calque. Elle sert à la référence, aux fonds, et aux rangées du jeu de départ. Un seul calque à remplissage uni préremplit aussi la création, avec une ligne qui dit d'où vient la couleur.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:520px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span class="on">Création</span><span>Palettes</span></div><div class="fp-corps"><div class="fp-select"><div class="champ grand"><i class="rond" style="background:#1E6FD9"></i><span class="coupe"><b>Bleu A</b></span><span class="fleche">▾</span></div>
+  <span class="b principal grand">Nouvelle palette</span><span class="bouton-icone grand">⋯</span></div><div class="filet"></div>
+  <div class="carte" style="position:relative;min-height:470px">
+    <div class="carte-titre">Configuration de la palette</div>
+    <div class="deux-col">
+      <div><span class="libelle">Nom de la palette</span><div class="champ "><span class="coupe">Bleu A</span></div></div>
+      <div><span class="libelle">Couleur de référence</span><div class="champ-ligne"><i class="pipette" style="background:#1E6FD9"></i><div class="champ grand"><span class="coupe">#1E6FD9</span></div></div></div>
+    </div>
+    <div class="ancre-picker"><div class="picker">
+  <div class="sv" style="background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(214 76% 48%))"><i style="left:86%;top:15%"></i></div>
+  <div class="hue"><i style="left:59%"></i></div>
+  <div class="picker-ligne"><div class="champ etroit"><span class="coupe">Hex</span><span class="fleche">▾</span></div><div class="champ grand"><span class="coupe">#1E6FD9</span></div></div>
+  <div class="picker-sep"></div>
+  <span class="picker-titre">Dans la sélection · 3 calques</span>
+  <div class="picker-pastilles"><span class="sel-puce"><i style="background:#1E6FD9"></i>Logo</span><span class="sel-puce"><i style="background:#E08A00"></i>Accent</span><span class="sel-puce"><i style="background:#0B2545"></i>Titre</span></div>
+  <div class="picker-sep"></div>
+  <span class="picker-titre">Nuances Vivid du Thème Light</span>
+  <div class="picker-pastilles"><i style="background:#F1F8FE"></i><i style="background:#E4F0FD"></i><i style="background:#CCE2FC"></i><i style="background:#ABD0FA"></i><i style="background:#7EB5F7"></i><i style="background:#4B96F4"></i><i style="background:#1E6FD9"></i><i style="background:#185EC1"></i><i style="background:#10479E"></i><i style="background:#08317B"></i><i style="background:#041F5E"></i></div>
+</div></div>
+  </div></div></div><div class="legende"><b>Trois calques d'une charte sélectionnés.</b><span>Le sandbox suit <code>selectionchange</code> et lit la couleur résolue, variable liée comprise. Un dégradé, une image ou un calque à plusieurs remplissages ne donne rien.</span><span>La rangée se cache quand la sélection ne porte aucune couleur unie.</span></div></div></div>
+  
+  <div class="faits"><div><b>Ce qui change</b><span>Le sélecteur de couleur gagne une rangée ; la création se préremplit. [UI-13] : la création propose des pastilles quand la sélection en porte.</span></div><div><b>Messages</b><span>Le sandbox envoie la liste des couleurs de la sélection à chaque changement. Un message de plus dans messages.ts, et son état de galerie.</span></div><div><b>Coût</b><span>Faible. Aucune écriture dans le document.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p7">
+  <div class="tete"><span class="sur">Piste 7 · Vérification · <span class="statut reco">recommandée</span></span><h2>La vision simulée</h2></div>
+  <p>Une liste « Vision » rejoint le choix du thème en tête de l'onglet Palettes : normale, protanopie, deutéranopie, tritanopie. Elle repeint l'aperçu de chaque fiche. Sous une vision simulée, une information nomme les paires d'utilitaires qui passent sous le seuil des palettes proches, et rappelle le critère 1.4.1. Aucune alerte ne sonne : aucun réglage ne sépare danger et warning sans rompre la règle « un numéro de cran vaut un contraste ».</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">UCM Palettes</span><span class="bouton-icone">⚙</span></div>
+       <div class="fp-onglets"><span>Création</span><span class="on">Palettes</span></div><div class="fp-corps"><div class="tete-onglet"><b>10 palettes</b>
+  <div class="onglets-theme"><span class="on">Thème Light</span><span>Thème Dark</span></div>
+  <div class="vision"><span class="sec">Vision</span><div class="champ etroit"><span class="coupe">Deutéranopie</span><span class="fleche">▾</span></div></div>
+  <span class="b ">Actualiser</span></div>
+  <div class="information">Vision simulée : deutéranopie, dichromacie complète (Viénot 1999). Les garanties restent jugées en vision normale.
+    Sous cette vision, Rouge et Ambre (0,015), Rouge et Vert (0,042) passent sous le seuil des palettes proches, 0,05. Un composant qui porte un statut l'accompagne d'une icône ou d'un texte (WCAG 1.4.1).</div>
+  <div class="groupe">
+  <div class="groupe-tete"><span class="chevron">⌄</span><b><code class="c">primitives</code> Neutre et utilitaires</b><span class="resume">5 palettes</span></div>
+  <div class="groupe-corps"><div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Rouge</b> <code class="c">danger</code></span><span class="etat-puce ok">À jour</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof">Soft</span><i class="sw" style="background:#F6F6F5;color:#111111;height:14px"></i><i class="sw" style="background:#EFEFEA;color:#111111;height:14px"></i><i class="sw" style="background:#E0E0D8;color:#111111;height:14px"></i><i class="sw" style="background:#CDCDBE;color:#111111;height:14px"></i><i class="sw" style="background:#B4B499;color:#111111;height:14px"></i><i class="sw" style="background:#999971;color:#111111;height:14px"></i><i class="sw" style="background:#808055;color:#111111;height:14px"></i><i class="sw" style="background:#666643;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#505033;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#3A3A24;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#282818;color:#FFFFFF;height:14px"></i><span class="prof">Vivid</span><i class="sw" style="background:#F7F7F3;color:#111111;height:14px"></i><i class="sw" style="background:#EFEFE5;color:#111111;height:14px"></i><i class="sw" style="background:#E1E1CF;color:#111111;height:14px"></i><i class="sw" style="background:#CFCFAF;color:#111111;height:14px"></i><i class="sw" style="background:#B7B77F;color:#111111;height:14px"></i><i class="sw" style="background:#9D9D41;color:#111111;height:14px"></i><i class="sw" style="background:#82820C;color:#111111;height:14px">◆</i><i class="sw" style="background:#6B6B07;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#535305;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#3C3C02;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#2A2A01;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#DC2626"></i> #DC2626 ◆ Vivid · nuance 600</span><span class="sec">Soft ✓ · Vivid ✓</span></div>
+    
+  </div><div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Ambre</b> <code class="c">warning</code></span><span class="etat-puce ok">À jour</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof">Soft</span><i class="sw" style="background:#F7F7F1;color:#111111;height:14px"></i><i class="sw" style="background:#F0F0E3;color:#111111;height:14px"></i><i class="sw" style="background:#E1E1CB;color:#111111;height:14px"></i><i class="sw" style="background:#CFCFAA;color:#111111;height:14px"></i><i class="sw" style="background:#B6B67B;color:#111111;height:14px"></i><i class="sw" style="background:#9A9A67;color:#111111;height:14px"></i><i class="sw" style="background:#7F7F54;color:#111111;height:14px"></i><i class="sw" style="background:#666643;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#505033;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#3A3A24;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#282817;color:#FFFFFF;height:14px"></i><span class="prof">Vivid</span><i class="sw" style="background:#F8F8EA;color:#111111;height:14px"></i><i class="sw" style="background:#F1F1D5;color:#111111;height:14px"></i><i class="sw" style="background:#E4E4B0;color:#111111;height:14px"></i><i class="sw" style="background:#D3D37A;color:#111111;height:14px"></i><i class="sw" style="background:#BABA00;color:#111111;height:14px"></i><i class="sw" style="background:#9C9C00;color:#111111;height:14px">◆</i><i class="sw" style="background:#838300;color:#111111;height:14px"></i><i class="sw" style="background:#696900;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#525200;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#3C3C00;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#292900;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#D97706"></i> #D97706 ◆ Vivid · nuance 500</span><span class="sec">Soft ✓ · Vivid ✓</span></div>
+    
+  </div><div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Vert</b> <code class="c">success</code></span><span class="etat-puce ok">À jour</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof">Soft</span><i class="sw" style="background:#F7F7F0;color:#111111;height:14px"></i><i class="sw" style="background:#EFEFE2;color:#111111;height:14px"></i><i class="sw" style="background:#E2E2C5;color:#111111;height:14px"></i><i class="sw" style="background:#CFCFA8;color:#111111;height:14px"></i><i class="sw" style="background:#B3B392;color:#111111;height:14px"></i><i class="sw" style="background:#97977A;color:#111111;height:14px"></i><i class="sw" style="background:#7D7D65;color:#111111;height:14px"></i><i class="sw" style="background:#656550;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#4E4E3E;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#39392D;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#27271D;color:#FFFFFF;height:14px"></i><span class="prof">Vivid</span><i class="sw" style="background:#F8F8EA;color:#111111;height:14px"></i><i class="sw" style="background:#F0F0D3;color:#111111;height:14px"></i><i class="sw" style="background:#E3E3A5;color:#111111;height:14px"></i><i class="sw" style="background:#D1D178;color:#111111;height:14px"></i><i class="sw" style="background:#B6B667;color:#111111;height:14px"></i><i class="sw" style="background:#999956;color:#111111;height:14px"></i><i class="sw" style="background:#8C8C4E;color:#111111;height:14px">◆</i><i class="sw" style="background:#666637;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#4F4F2A;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#39391D;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#282812;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#16A34A"></i> #16A34A ◆ Vivid · nuance 600</span><span class="sec">Soft ✓ · Vivid ✓</span></div>
+    
+  </div><div class="carte fiche">
+    <div class="fiche-tete"><span><b class="fiche-nom">Azur</b> <code class="c">info</code></span><span class="etat-puce ok">À jour</span></div>
+    <div class="surface" style="background:#F7F7F7;color:#1E1E1E"><div class="grille"><span class="prof">Soft</span><i class="sw" style="background:#F6F6FA;color:#111111;height:14px"></i><i class="sw" style="background:#EEEEF6;color:#111111;height:14px"></i><i class="sw" style="background:#DDDDEE;color:#111111;height:14px"></i><i class="sw" style="background:#C9C9E3;color:#111111;height:14px"></i><i class="sw" style="background:#ACACD5;color:#111111;height:14px"></i><i class="sw" style="background:#8F8FC6;color:#111111;height:14px"></i><i class="sw" style="background:#7373B8;color:#111111;height:14px"></i><i class="sw" style="background:#5858A8;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#404093;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#2E2E6D;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#20204E;color:#FFFFFF;height:14px"></i><span class="prof">Vivid</span><i class="sw" style="background:#F6F6FE;color:#111111;height:14px"></i><i class="sw" style="background:#ECECFD;color:#111111;height:14px"></i><i class="sw" style="background:#DCDCFB;color:#111111;height:14px"></i><i class="sw" style="background:#C6C6F8;color:#111111;height:14px"></i><i class="sw" style="background:#A7A7F5;color:#111111;height:14px"></i><i class="sw" style="background:#8686F0;color:#111111;height:14px"></i><i class="sw" style="background:#5656EB;color:#FFFFFF;height:14px">◆</i><i class="sw" style="background:#4444E4;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#2323D0;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#18189C;color:#FFFFFF;height:14px"></i><i class="sw" style="background:#101070;color:#FFFFFF;height:14px"></i></div></div>
+    <div class="fiche-ligne"><span class="sec"><i class="pastille" style="background:#2563EB"></i> #2563EB ◆ Vivid · nuance 600</span><span class="sec">Soft ✓ · Vivid ✓</span></div>
+    
+  </div></div></div></div></div><div class="legende"><b>Deutéranopie choisie.</b><span>Les rampes de chaque fiche sont repeintes ; le texte, les pastilles d'état et les garanties ne changent pas.</span><span>La liste ne dure que la session et ne se range pas. Le rapport gagne les distances de chaque paire, par vision.</span><span>Le neutre, gris, se lit de même dans les quatre visions.</span></div></div></div>
+  <div class="scene"><div class="bande-titre">Crans 500, 600 et 700 Vivid des utilitaires, Thème Light, dans les quatre visions</div><div class="bande-visions"><span></span><span class="bv-tete">Normale</span><span class="bv-tete">Protanopie</span><span class="bv-tete">Deutéranopie</span><span class="bv-tete">Tritanopie</span><span class="mono">danger</span><span class="bv-rampe"><i style="background:#F7564C"></i><i style="background:#DC2626"></i><i style="background:#B61D1D"></i></span><span class="bv-rampe"><i style="background:#78784E"></i><i style="background:#585829"></i><i style="background:#474720"></i></span><span class="bv-rampe"><i style="background:#9D9D41"></i><i style="background:#82820C"></i><i style="background:#6B6B07"></i></span><span class="bv-rampe"><i style="background:#F9506D"></i><i style="background:#DD1B4C"></i><i style="background:#B7133D"></i></span><span class="mono">warning</span><span class="bv-rampe"><i style="background:#D97706"></i><i style="background:#BA6004"></i><i style="background:#994A03"></i></span><span class="bv-rampe"><i style="background:#87870D"></i><i style="background:#6F6F09"></i><i style="background:#585806"></i></span><span class="bv-rampe"><i style="background:#9C9C00"></i><i style="background:#838300"></i><i style="background:#696900"></i></span><span class="bv-rampe"><i style="background:#DE6D7C"></i><i style="background:#BE5766"></i><i style="background:#9C4350"></i></span><span class="mono">success</span><span class="bv-rampe"><i style="background:#19B252"></i><i style="background:#16A34A"></i><i style="background:#0D7734"></i></span><span class="bv-rampe"><i style="background:#A9A951"></i><i style="background:#9B9B49"></i><i style="background:#717133"></i></span><span class="bv-rampe"><i style="background:#999956"></i><i style="background:#8C8C4E"></i><i style="background:#666637"></i></span><span class="bv-rampe"><i style="background:#51A5BF"></i><i style="background:#4A97AF"></i><i style="background:#346E80"></i></span><span class="mono">info</span><span class="bv-rampe"><i style="background:#5E93F0"></i><i style="background:#2563EB"></i><i style="background:#154FE4"></i></span><span class="bv-rampe"><i style="background:#8E8EF0"></i><i style="background:#5E5EEB"></i><i style="background:#4B4BE4"></i></span><span class="bv-rampe"><i style="background:#8686F0"></i><i style="background:#5656EB"></i><i style="background:#4444E4"></i></span><span class="bv-rampe"><i style="background:#3FA0BC"></i><i style="background:#007D9E"></i><i style="background:#006F90"></i></span></div></div>
+  <div class="faits"><div><b>Moteur</b><span>Un module pur, vision.ts, dans ucm-couleur. Ses tests comparent ses sorties aux vecteurs de libDaltonLens.</span></div><div><b>Garanties</b><span>Inchangées : elles se jugent en vision normale. La vision simulée ne repeint que les pastilles.</span></div><div><b>Question ouverte</b><span>L'information sous la liste est un message de rang 3, sans filet de sévérité. La recherche écartait l'alerte ; elle ne disait rien d'une information.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p8">
+  <div class="tete"><span class="sur">Piste 8 · Vérification · <span class="statut adiscuter">à discuter</span></span><h2>Les fonds lus sur le neutre</h2></div>
+  <p>Le cran 50 du neutre gris vaut #F7F7F7 en Thème Light et #121212 en Thème Dark : ce sont les deux fonds par défaut de la recette. L'architecture fait du cran 50 le fond de page. Quand une palette porte le rôle Neutre, la carte « Couleurs de fond » peut lire ses fonds sur elle. Un neutre réchauffé déplace alors le fond contre lequel toutes les garanties se jugent, au lieu de laisser deux valeurs du même fond diverger.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:770px"><div class="fp-haut"><span class="fp-titre">Réglages communs</span><span class="b ">Retour aux palettes et à la planche</span></div><div class="fp-corps"><div class="carte">
+    <div class="carte-titre">Couleurs de fond<span class="droite"><span class="sec">10 palettes concernées</span><span class="b compact">Rétablir</span></span></div>
+    <div class="rangee"><span class="libelle">Source</span><div class="segment court"><span>Saisies</span><span class="on">Cran 50 du neutre</span></div></div>
+    <div class="deux-col">
+      <div><span class="libelle">Fond du thème Light</span><div class="champ-ligne"><i class="pipette" style="background:#F7F7F7"></i><div class="champ grand inactif"><span class="coupe">#F7F7F7 · <code class="c">neutral.light.50</code></span></div></div></div>
+      <div><span class="libelle">Fond du thème Dark</span><div class="champ-ligne"><i class="pipette" style="background:#121212"></i><div class="champ grand inactif"><span class="coupe">#121212 · <code class="c">neutral.dark.50</code></span></div></div></div>
+    </div>
+    <span class="aide">Les contrastes se mesurent contre le fond de page que les composants peignent. Pour changer les fonds, régler la palette Neutre.</span>
+  </div>
+  <div class="carte">
+    <div class="carte-titre">Variables<span class="droite"><span class="sec">9 palettes à rôle</span></span></div>
+    <div class="trois">
+      <div><span class="libelle">Collection des primitives</span><div class="champ "><span class="coupe">primitives</span></div></div>
+      <div><span class="libelle">Collection des marques</span><div class="champ "><span class="coupe">brand</span></div></div>
+      <div><span class="libelle">Collection des alias</span><div class="champ "><span class="coupe">theme</span></div></div>
+    </div>
+    <div class="ligne-inter"><span class="inter on"><b></b></span><span>Écrire les alias de <code class="c">theme</code></span></div>
+    <span class="aide">Dev Mode montre la propriété de <code class="c">ucm tokens css</code> : <code class="c">theme.danger.vivid.700</code> s'affiche <code class="c">var(--theme-danger-vivid-700)</code>. Les variables de <code class="c">primitives</code> et <code class="c">brand</code> n'apparaissent dans aucun sélecteur de Figma.</span>
+    <span class="libelle">Marques, une par mode de <code class="c">brand</code></span>
+    <div class="table-marques">
+      <div class="tm-ligne entete"><span>Mode</span><span>Palettes</span><span></span></div>
+      <div class="tm-ligne"><span>Marque A</span><span class="sec">primary · secondary</span><span class="lien">Renommer</span></div>
+      <div class="tm-ligne"><span>Marque B</span><span class="sec">primary · secondary</span><span class="lien">Renommer</span></div>
+      <div class="tm-ligne"><span>Marque C</span><span class="att-t">aucune : 46 valeurs recopiées par Figma</span><span class="lien">Renommer</span></div>
+    </div>
+  </div>
+  <div class="accordeon"><span class="chevron">›</span><b>Contenu des planches</b><span class="resume">Tout est généré · Français</span></div></div></div><div class="legende"><b>Réglages communs.</b><span>« Saisies » garde le fonctionnement actuel, et reste le défaut sans palette Neutre.</span><span>La carte Variables (piste 9) suit la carte des fonds.</span></div></div></div>
+  
+  <div class="faits"><div><b>Règles modifiées</b><span>D8 : le plugin fabrique une rampe neutre dès que le rôle existe. [UI-04] : la pastille du fond de l'aperçu ouvre le neutre au lieu du sélecteur quand les fonds sont liés.</span></div><div><b>Risque</b><span>Régler la référence du neutre change toutes les garanties d'un coup. La revue et la carte des garanties le montrent, sans alerte nouvelle.</span></div><div><b>Proposition</b><span>À discuter, après les pistes 1 à 3.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p9">
+  <div class="tete"><span class="sur">Piste 9 · Réglages · <span class="statut reco">recommandée</span></span><h2>La carte Variables et les marques</h2></div>
+  <p>Les Réglages communs gagnent une carte « Variables », repliée à l'ouverture : les noms des trois collections, l'écriture des alias de <code>theme</code>, et la liste des marques, une par mode de <code>brand</code>. Renommer une marque renomme son mode dans Figma à la prochaine actualisation. Une marque sans palette, créée à la main dans Figma, se lit dans la liste avec ses valeurs recopiées.</p>
+  <div class="scene"><div class="scene-rangee"><div class="legende" style="max-width:640px"><b>Voir le panneau de la piste 8</b><span>La carte Variables y suit la carte des fonds. Chaque réglage passe par la revue avant d'agir sur Figma.</span><span>Portées : les variables de primitives et de brand prennent scopes = [] et n'apparaissent dans aucun sélecteur ; theme garde les portées de remplissage et de contour. La syntaxe de code Web vient de tokenCssVariable du kit.</span></div></div></div>
+  
+  <div class="faits"><div><b>Ce qui change</b><span>Une carte des Réglages communs. Le compte de palettes concernées devient « 9 palettes à rôle ».</span></div><div><b>Limite Figma</b><span>Dix modes par collection en Professional, vingt en Organization : six marques tiennent dans les deux offres.</span></div></div>
+  
+</section>
+
+
+<section class="bloc" id="p10">
+  <div class="tete"><span class="sur">Piste 10 · Textes · <span class="statut reco">recommandée</span></span><h2>Les aides de vocabulaire et la langue des planches</h2></div>
+  <p>Soft, Vivid, « Référence exacte dans » et « Dérive de teinte » reçoivent une aide d'une phrase, derrière un ? à côté du libellé. La langue des planches devient un réglage de « Contenu des planches », rangé dans la recette. Les textes suivent le circuit de TEXTES-A-VALIDER.md.</p>
+  <div class="scene"><div class="scene-rangee"><div class="fp" style="width:420px"><div class="fp-corps"><div class="carte" style="position:relative;min-height:170px">
+  <div class="rangee"><span class="libelle">Référence exacte dans <span class="aide-rond">?</span></span><div class="segment court"><span class="on">Auto</span><span>Soft</span><span>Vivid</span></div></div>
+  <div class="bulle">L'intensité qui contient votre couleur telle quelle. L'autre intensité se calcule autour d'elle. Auto choisit celle dont la saturation est la plus proche.</div>
+</div></div></div><div class="fp" style="width:520px"><div class="fp-corps"><div class="carte">
+  <div class="carte-titre">⌄ Contenu des planches<span class="droite"><span class="sec">Tout est généré · Français</span></span></div>
+  <div class="rangee"><span class="libelle">Langue des planches</span><div class="segment court"><span class="on">Français</span><span>English</span></div></div>
+  <span class="aide">Rangée dans la recette : deux designers qui génèrent la même palette obtiennent la même planche, quelle que soit la langue de leur interface.</span>
+  <span class="sec petit">Suivent les interrupteurs actuels, un par partie et par thème.</span>
+</div></div></div></div></div>
+  
+  <div class="faits"><div><b>Règle modifiée</b><span>[UI-16] : les planches suivent la langue de la recette, français par défaut, et non plus toujours le français.</span></div><div><b>Coût</b><span>Faible pour les aides. La langue des planches demande le catalogue anglais de planche/textes.ts.</span></div></div>
+  
+</section>
+
+<section class="bloc" id="ecartes">
+  <div class="tete"><span class="sur">Hors des pistes</span><h2>Ce qui reste écarté</h2></div>
+  <div class="table"><table>
+    <tr><th>Idée</th><th>Raison</th></tr>
+    <tr><td>Exporter du CSS, du Tailwind ou du DTCG depuis Palettes</td><td>La chaîne passe par les variables, UCM Exporter et <code>ucm tokens css</code>. Une seconde route contournerait les alias de <code>theme</code> (recherche, section 4).</td></tr>
+    <tr><td>Afficher APCA</td><td>Aucune obligation d'Apicil ne se mesure en APCA ; deux nombres côte à côte poseraient la question de celui qui compte (section 5).</td></tr>
+    <tr><td>Fabriquer en Display P3</td><td>Toutes les valeurs changeraient, et chaque promesse se jugerait deux fois (section 6).</td></tr>
+    <tr><td>Rendre la table des emplois réglable</td><td>La garantie « un numéro de cran vaut un contraste » vaut pour toutes les marques parce que la table ne change pas (section 9).</td></tr>
+    <tr><td>Une liste des palettes à gauche et l'éditeur à droite, sans onglets</td><td>L'aperçu demande la largeur du panneau pour ses onze colonnes, et la vision simulée demande les rampes côte à côte. À 500 px, la liste devrait se replier, et le sélecteur reviendrait.</td></tr>
+    <tr><td>Renommer l'onglet Palettes en « Figma »</td><td>Le rangement par collection suffit à dire ce que l'onglet montre, sans nouveau nom à apprendre.</td></tr>
+    <tr><td>Une association sémantique par modèle de langage</td><td>Les alias de <code>theme</code> se déduisent d'une règle fixe (section 3.4).</td></tr>
+  </table></div>
+</section>
+
+<section class="bloc" id="decisions">
+  <div class="tete"><span class="sur">À valider</span><h2>Les décisions</h2></div>
+  <p>Répondre par numéro : « oui », « non », ou la variante choisie. Les décisions V1 à V4 conditionnent le plan ; les autres se prennent séparément.</p>
+  <div class="table"><table>
+    <tr><th>#</th><th>Décision</th><th>Proposition</th></tr>
+    <tr><td class="num">V1</td><td>Le rôle de la palette remplace Modèle, Intensités et destination (piste 1)</td><td>Oui, variante A</td></tr>
+    <tr><td class="num">V2</td><td>Une pastille et un geste par palette, cadre et variables ensemble (piste 2)</td><td>Oui</td></tr>
+    <tr><td class="num">V3</td><td>L'onglet Palettes se range par collection et par marque (piste 2)</td><td>Oui</td></tr>
+    <tr><td class="num">V4</td><td>Toute écriture de variables passe par la revue ; une retouche est gardée par défaut (piste 3)</td><td>Oui</td></tr>
+    <tr><td class="num">V5</td><td><code>brand.identity.{famille}</code> reçoit l'hexa de la référence, en valeur, une par palette de marque : 46 variables par marque au lieu des 45 de l'architecture</td><td>Oui</td></tr>
+    <tr><td class="num">V6</td><td>Une retouche gardée entre dans la recette, et les garanties se jugent sur elle (piste 4)</td><td>Oui</td></tr>
+    <tr><td class="num">V7</td><td>Le jeu de départ dans la carte de création d'un fichier vide, et « Compléter le jeu de départ » dans « … » (piste 5)</td><td>Oui</td></tr>
+    <tr><td class="num">V8</td><td>Les couleurs de la sélection dans le sélecteur de couleur, et le préremplissage de la création (piste 6)</td><td>Oui</td></tr>
+    <tr><td class="num">V9</td><td>La vision simulée dans l'onglet Palettes, avec une information sur les paires proches (piste 7)</td><td>Oui</td></tr>
+    <tr><td class="num">V10</td><td>Les fonds lus sur le cran 50 du neutre (piste 8)</td><td>À discuter</td></tr>
+    <tr><td class="num">V11</td><td>La carte Variables des Réglages communs, marques comprises (piste 9)</td><td>Oui</td></tr>
+    <tr><td class="num">V12</td><td>Les aides de vocabulaire et la langue des planches dans la recette (piste 10)</td><td>Oui</td></tr>
+    <tr><td class="num">V13</td><td>Écrire <code>primitives</code> et <code>brand</code> dans un premier lot, <code>theme</code> dans un second</td><td>Oui, comme la recherche</td></tr>
+  </table></div>
+</section>
+
+</main>
+</body>
+</html>

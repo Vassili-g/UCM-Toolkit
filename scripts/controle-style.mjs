@@ -41,14 +41,14 @@ const TIRET_CADRATIN = '—';
  */
 export const ACRONYMES = [
   'AA', 'AAA', 'APCA', 'API', 'ASCII', 'BASE', 'BOM', 'BOOLEAN', 'CI', 'CLI', 'COLOR', 'COMPONENT',
-  'CRLF', 'CSS', 'DOM', 'DS', 'DTCG', 'EACCES', 'EASING', 'ENOTDIR', 'ESM',
+  'CRLF', 'CSS', 'DOM', 'DS', 'DTCG', 'EAA', 'EACCES', 'EASING', 'EN', 'ENOTDIR', 'ESM',
   'FIXED',
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HTML', 'HTTP',
   'HTTPS', 'HUG', 'IA', 'ID', 'ISO', 'JS', 'JSON', 'JSX', 'JWT', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
   'NPM', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'PAT', 'PATH', 'PDF', 'POLYGON', 'POST', 'PR', 'PUT',
   'RECTANGLE',
-  'REST', 'RGB', 'RTL', 'SET', 'SHA', 'SLOT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
+  'REST', 'RGAA', 'RGB', 'RTL', 'SET', 'SHA', 'SLOT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
   // `TODO(sujet)` est le marqueur conventionnel d'un point à reprendre, que les
   // éditeurs et `grep` retrouvent. Le sujet entre parenthèses nomme la tâche qui
   // le retirera.

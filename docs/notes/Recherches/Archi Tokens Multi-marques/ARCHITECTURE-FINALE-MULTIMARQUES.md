@@ -9,6 +9,13 @@ critique](./SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md), qui emploient encore
 l'ancien nom `scheme` de la collection `theme`. L'outil qui fabrique les
 palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md).
 
+Les décisions D1 à D17 de la [vue illustrée](./VUE-ILLUSTREE-MULTIMARQUES.html)
+modifient cette forme : palettes nommées dans `primitives`, `color-utilities`
+conservée, collection `usage`, élévation, quatre rangs d'état. Tant que ce
+document n'est pas réécrit, la vue illustrée fait foi sur ces points, et
+[PLAN-INTEGRATION-ARCHITECTURE.md](./PLAN-INTEGRATION-ARCHITECTURE.md) liste
+les changements à y apporter.
+
 [VUE-ILLUSTREE-MULTIMARQUES.html](./VUE-ILLUSTREE-MULTIMARQUES.html) montre
 la même architecture en schémas, à ouvrir dans un navigateur : le chemin d'un
 token, l'aperçu du panneau des variables de Figma et l'aide-mémoire du
@@ -54,8 +61,7 @@ deux thèmes.
 | Clair | 0,975 | 0,950 | 0,905 | 0,845 | 0,760 | 0,670 | 0,585 | 0,500 | 0,420 | 0,340 | 0,270 |
 | Sombre | 0,180 | 0,225 | 0,275 | 0,330 | 0,400 | 0,490 | 0,580 | 0,670 | 0,760 | 0,850 | 0,930 |
 
-Ces vingt-deux clartés sont posées à l'œil, près des rampes du Playground. Elles
-se règlent sur des palettes réelles. Toutes les rampes d'un fichier ont le même
+Le mainteneur a retenu ces vingt-deux clartés. Toutes les rampes d'un fichier ont le même
 nombre de crans, choisi parmi trois préréglages ; le Playground en emploie
 aujourd'hui dix, onze ou douze selon la rampe, et son cran 500 y va de 2,2:1 à
 6,9:1.
@@ -189,8 +195,8 @@ diffèrent.
 ### 3.2 Les profils `soft` et `vivid`
 
 Les deux profils ont la même clarté, donc les mêmes contrastes. Ils diffèrent
-par la part de chroma, 0,45 pour `soft` et 0,95 pour `vivid`, valeurs à régler
-à l'œil. Les utilitaires portent les deux profils ; une rampe de marque n'en a
+par la part de chroma, 0,45 pour `soft` et 0,95 pour `vivid`, valeurs retenues
+par le mainteneur. Les utilitaires portent les deux profils ; une rampe de marque n'en a
 qu'une, à la part de chroma de la couleur de marque, qui reste exacte à son
 cran ; le neutre n'en a qu'un. Aucun profil ne se lie à un thème : une
 couleur douce ou vive sert dans les deux.
@@ -392,9 +398,11 @@ ses variables avant de la publier.
 
 ## 8. Ce qui reste à décider
 
-- Les deux courbes de clarté, posées à l'œil.
-- Les parts de chroma des profils, et le seuil de 0,02 qui dit où deux profils
-  se confondent.
+- Le fond de page en clair : le cran 50 de la courbe donne `#F7F7F7`, le
+  fond visé est `#f8fafc` (clarté 0,984, teinte 248°). La palette neutre et la
+  clarté de sa nuance 50 sont à régler en conséquence ; le mainteneur s'en
+  charge.
+- Le seuil de 0,02 qui dit où deux profils se confondent.
 - Les teintes de bout sombre proposées par défaut, famille par famille.
 - Les contrôles automatiques sur `tokens.json` : graphe d'alias, couverture de
   chaque marque et de chaque thème, paires de la table des emplois. Aucun n'est
