@@ -317,8 +317,8 @@ le moteur.
   qu’une saturation du designer colore la rampe d’un gris neutre : le
   designer choisit alors la teinte que l’octet imposait (C7).
 - **R5, les parts `grise` disparaissent.** R1 et R2 les remplacent. La
-  version 5 de la recette ne les accepte plus ; la lecture d’une recette 4
-  les retire. `ajusterPartsGrises` disparaît, et ses appelants
+  version 6 de la recette ne les accepte plus ; la lecture d’une recette 4
+  ou 5 les retire (G3.1). `ajusterPartsGrises` disparaît, et ses appelants
   (`edition.ts`, `configuration.ts`) avec lui.
 - **R6, les alertes.** `couleur-presque-grise` quitte la table 11.3 : une note
   dans la carte de la dérive dit pourquoi elle est désactivée. Son texte
@@ -350,11 +350,13 @@ le moteur.
 G0, puis G1 jusqu’à validation. G2 à G5 attendent que Z10.5 et Z10.6 soient
 commités : ils touchent les mêmes fichiers (`palette.ts`, `recette.ts`,
 `edition.ts`, `ongletPalettes.ts`, `reglagesDeLaPalette.ts`). La version de
-la recette se décide en G3.1. G6 et G7 ferment le plan.
+la recette se décide en G3.1. G6 et G7 ferment le plan. G8 vient de la
+revue G0, faite après G6 : ses trois premières cases attendent le
+mainteneur, et G7 les suit.
 
 ## Lot G0 : revue indépendante
 
-- [ ] **G0.1** Un agent de revue relit ce plan, le code de
+- [x] **G0.1** Un agent de revue relit ce plan, le code de
   `packages/couleur/src` (`palette.ts`, `rampe.ts`, `tailwind.ts`,
   `alertes.ts`, `recette.ts`, `contraste.ts`) et la recherche sur les
   intensités. Points à examiner : la continuité de R1 aux bornes, R1 avec une
@@ -366,6 +368,52 @@ la recette se décide en G3.1. G6 et G7 ferment le plan.
   sature ; la part d’une palette à une intensité hors de l’étendue (R3).
   Ses conclusions se vérifient dans le code et s’écrivent sous cette case,
   retenues ou rejetées avec leur raison.
+  Faite après G2 à G6, sur le code du commit `fac7af4` : la revue a mesuré
+  le moteur avant et après, par des scripts hors du dépôt. Conclusions
+  vérifiées dans le code :
+  1. Retenue, à décider (G8.1). Avec Vivid porteur, forcé ou figé, Soft
+     saute de `p × s / v` à `s` quand `p` passe `s` : `#7E5DB2` donne Soft
+     0,212 et Vivid 0,448, `#7E5DB3` donne 0,45 et 0,451, et « Profils
+     confondus » sonne. R1 écrit ce saut, et `partsDesProfils` l’applique.
+     Le test de continuité ne couvre que Soft porteur, continu à 0,45.
+  2. Retenue, à décider (G8.2). À une intensité, le curseur de saturation
+     montre la part de R3, et `referenceReglee` applique la part à la clarté
+     de la référence. Hors de l’étendue, poser la valeur affichée change la
+     référence : `#1A0000` montre 0,506 et devient `#120503`, et la rampe
+     tombe à 0,287 sous un curseur qui montre 0,506.
+  3. Retenue, à décider (G8.3). Un gris neutre saturé déverrouille la teinte,
+     mais à ±30° d’une teinte lue sur ses octets : 0° pour `#808080`,
+     `#000000` et `#FFFFFF`, 286° pour `#7F7F80`, 107° pour `#060605`.
+     Depuis `#808080`, aucun bleu ni vert. R4 et G7.2 promettent que le
+     designer choisit la teinte.
+  4. Retenue, sans code. R3 tient les vecteurs de la section 6.8 et
+     l’ancrage de 12 000 palettes tirées. Une garantie sur 16 000 se perd,
+     `#C24AEB`, 4,498 au lieu de 4,5, et deux se regagnent. Hors de
+     l’étendue, des références colorées perdent de la part et changent de
+     porteur : `#1A0000`, `#000012` et `#FFFDE0` passent de 1 à 0,51, 0,36
+     et 0,49, et de Vivid à Soft. 25 palettes sur 12 000 changent de porteur.
+     G7.1 le fait constater.
+  5. Retenue, sans code. Les couleurs changent pour 1 993 palettes Auto à
+     deux intensités sur 2 000 : presque tous les cadres existants passent
+     « À actualiser », sans annonce. C’est la conséquence de la réponse Q2 ;
+     G7.1 le fait constater.
+  6. Retenue et corrigée. Une recette 5 au seuil de gris ou aux parts
+     `grise` mal formés se lisait migrée. `MIGRATIONS[5]` ne retire plus
+     que des nombres, et `recette.test.ts` tient qu’une telle recette reste
+     illisible. La version 6 est justifiée : `fbb2662` rangeait déjà la 5.
+  7. Retenue et corrigée. Vivid de `#6B7280` vaut 0,198, et non 0,199, dans
+     la recherche sur les intensités. La table C4 reste une mesure datée.
+  8. Retenue, à faire (G8.4). L’état `alertes-seules` garde son identifiant,
+     mais plus aucun état ne montre une notice repliée sous les curseurs.
+  9. Rejetée. Soft porteur est continu à `s`, Soft ne dépasse jamais Vivid
+     sur 12 000 palettes, et le saut à 0,70 est celui que Q2 bis accepte.
+  10. Rejetée. R4 et `[MOT-13]` tiennent : la dérive Tailwind n’est nulle
+      que pour un gris pur, et une analyse coûte de 0,20 à 0,53 ms.
+  11. Rejetée. « Les deux » garde l’écart des parts, comme la
+      spécification de Z10 l’écrit. Ses limites vont à G7.2.
+  12. Retenue et corrigée. Le compte du seuil « Profils confondus »
+      comptait les palettes à une intensité ; `configuration.test.ts` le
+      tient.
 
 ## Lot G1 : maquette et textes à valider
 
@@ -565,10 +613,40 @@ Chaque loi se voit rouge sur mutation avant d’être crue.
   gris neutre, puis `#060605`. À chaque pas : les voisines de la référence
   lui ressemblent, Vivid reste plus vif que Soft, la dérive reste réglable
   jusqu’au gris neutre, et aucun point à vérifier ne contredit l’éditeur.
+  Sur un fichier qui a déjà des planches, presque tous les cadres passent
+  « À actualiser » (G0.1, conclusion 5). Une référence colorée très sombre,
+  `#1A0000`, passe de Vivid à Soft (conclusion 4).
 - [ ] **G7.2** Dans la carte « Teinte, saturation, luminosité » : Soft et
   Vivid de `#7C717B` se règlent avec leur teinte ; à une intensité, la
   saturation descend sous l’ancien seuil sans verrouiller la teinte ; Vivid
-  saturé sur `#808080` laisse choisir sa teinte.
+  saturé sur `#808080` laisse choisir sa teinte, dans les bornes que G8.3
+  décide. « Les deux » garde l’écart des parts : `#7C717B` à 30 % donne
+  0,3 et 0,387, avec « Profils confondus » ; `#808080` à 30 % donne deux
+  profils identiques.
+
+## Lot G8 : suites de la revue G0
+
+Les trois premières cases changent des couleurs ou un contrôle : chacune
+attend la réponse du mainteneur avant le code.
+
+- [ ] **G8.1** Continuité de R1 avec Vivid porteur. Proposition de la revue :
+  Soft à `min(s, p × s / v)`, continu en `s` et en `v`. En Auto, Soft
+  descend alors entre 0,33 et 0,45 pour une référence entre 0,70 et 0,95 :
+  `#1E6FD9` passe de 0,45 à 0,424. Test de continuité côté Vivid, vu rouge
+  sur mutation.
+- [ ] **G8.2** Part d’une palette à une intensité hors de l’étendue.
+  Proposition de la revue : `referenceReglee` mesure la part à la clarté
+  bornée, comme R3, et la piste peinte suit. Un geste à la valeur affichée
+  garde alors les octets de 6 références sur 7 ; `#000012` bouge encore
+  de 0,012 ΔEok. `reglages.part` change de sens : les recettes 6 déjà
+  rangées se lisent autrement. Test dans `reglages.test.ts`.
+- [ ] **G8.3** Teinte d’un gris neutre saturé : bornes de ±180° quand le
+  départ est un gris pur (`reglerTeinte`, validation de `reglages.teinte`,
+  `CURSEURS` de la carte), ou R4 et G7.2 récrits pour dire ±30° autour de
+  la teinte des octets.
+- [ ] **G8.4** Galerie : un état aux parts du designer, Jaune à 0,3 et 0,8,
+  dont la notice `reference-plus-vive` se replie sous les curseurs, et un
+  test d’interface qui la trouve repliée.
 
 ## Hors périmètre
 

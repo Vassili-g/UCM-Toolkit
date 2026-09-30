@@ -89,15 +89,16 @@ export function poserPartie(recette: Recette, partie: keyof ContenuDesPlanches, 
  * modifient toutes. Une part de profil épargne les palettes qui portent leurs
  * parts propres et celles à une intensité, qui prennent la part de leur
  * référence ([ENT-14]). Le seuil des profils
- * confondus épargne les palettes aux profils ternes (`aDesProfilsTernes`),
- * pour lesquelles l'alerte se tait. Le seuil des palettes proches compare deux
+ * confondus épargne les palettes à une intensité, qui n'ont qu'un profil, et
+ * celles aux profils ternes (`aDesProfilsTernes`), pour lesquelles l'alerte se
+ * tait. Le seuil des palettes proches compare deux
  * palettes : seul, une palette n'en a aucune à comparer.
  */
 export function palettesModifiees(recette: Recette, groupe: GroupeDeConfiguration): number {
   const { palettes } = recette;
   switch (groupe) {
     case 'parts': return palettes.filter((palette) => !palette.parts && !aUneIntensite(palette)).length;
-    case 'profilsConfondus': return palettes.filter((palette) => !aDesProfilsTernes(recette, palette)).length;
+    case 'profilsConfondus': return palettes.filter((palette) => !aUneIntensite(palette) && !aDesProfilsTernes(recette, palette)).length;
     case 'palettesProches': return palettes.length < 2 ? 0 : palettes.length;
     default: return palettes.length;
   }

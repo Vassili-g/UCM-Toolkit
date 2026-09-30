@@ -83,7 +83,7 @@ Cinq références, recette par défaut, deux intensités, dérive Tailwind.
 | Vert `#16A34A` | Vivid | 600 Light, 700 Dark | 0,965 | Vivid ✗ 2 |
 | Rouge `#DC2626` | Vivid | 600 Light, 600 Dark | 0,914 | toutes tenues |
 | Sauge `#A0B599` | Soft | 400 Light, 800 Dark | 0,198 | toutes tenues |
-| Gris `#6B7280` | Soft | 600 Light, 600 Dark | 0,094 | toutes tenues, parts `grise` ; depuis la version 6 de la recette, Soft à 0,094 et Vivid à 0,199 ([palettes désaturées](./PLAN-PALETTES-DESATUREES.md)) |
+| Gris `#6B7280` | Soft | 600 Light, 600 Dark | 0,094 | toutes tenues, parts `grise` ; depuis la version 6 de la recette, Soft à 0,094 et Vivid à 0,198 ([palettes désaturées](./PLAN-PALETTES-DESATUREES.md)) |
 
 **E1, la référence tournée.** Tourner la teinte de la référence à clarté
 égale fait perdre de la chroma quand la teinte d’arrivée a un plafond plus

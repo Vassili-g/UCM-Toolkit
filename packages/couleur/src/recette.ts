@@ -593,7 +593,7 @@ export const MIGRATIONS: Migrations = {
   5: (ancienne) => ({
     ...ancienne,
     formatVersion: 6,
-    ...(estObjet(ancienne.seuils) ? { seuils: sansCle(ancienne.seuils, 'chromaGrise') } : {}),
+    ...(estObjet(ancienne.seuils) && typeof ancienne.seuils.chromaGrise === 'number' ? { seuils: sansCle(ancienne.seuils, 'chromaGrise') } : {}),
     ...(Array.isArray(ancienne.palettes) ? { palettes: ancienne.palettes.map(sansPartsGrises) } : {}),
   }),
 };
@@ -604,9 +604,11 @@ function sansCle(objet: Objet, cle: string): Objet {
   return reste;
 }
 
-/** Une palette rangée sans ses parts d'origine `grise` ; toute autre valeur reste. */
+/** Une palette rangée sans ses parts d'origine `grise`, deux nombres ; toute autre valeur reste. */
 function sansPartsGrises(palette: unknown): unknown {
-  return estObjet(palette) && estObjet(palette.parts) && palette.parts.origine === 'grise' ? sansCle(palette, 'parts') : palette;
+  const parts = estObjet(palette) ? palette.parts : undefined;
+  const grises = estObjet(parts) && parts.origine === 'grise' && typeof parts.soft === 'number' && typeof parts.vivid === 'number';
+  return grises ? sansCle(palette as Objet, 'parts') : palette;
 }
 
 /** Ce que la lecture conclut d'une recette rangée ([REC-03]). */

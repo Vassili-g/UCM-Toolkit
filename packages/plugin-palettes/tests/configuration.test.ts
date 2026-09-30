@@ -54,6 +54,9 @@ test('[ENT-07] une courbe touche toutes les palettes, une part épargne les part
   assert.deepEqual(groupes.map((groupe) => palettesModifiees(recette, groupe)), [3, 2, 3, 3, 2, 3]);
   const seule = ajouter(DEFAUT, nouvellePalette(DEFAUT, 'p-0000000a', '#1E6FD9', 2)!);
   assert.equal(palettesModifiees(seule, 'palettesProches'), 0, 'une palette seule n’a aucune voisine');
+  // Une palette à une intensité n'a qu'un profil : le seuil des profils confondus ne la touche pas (revue G0.1).
+  const avecUne = ajouter(recette, nouvellePalette(recette, 'p-0000000d', '#16A34A', 1)!);
+  assert.equal(palettesModifiees(avecUne, 'profilsConfondus'), 2);
   assert.deepEqual([palettesConcernees(0), palettesConcernees(1), palettesConcernees(3)], ['Aucune palette concernée', '1 palette concernée', '3 palettes concernées']);
 });
 

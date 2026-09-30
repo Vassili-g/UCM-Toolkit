@@ -134,6 +134,15 @@ test('[REC-03] [ENT-09] une recette 4 ou 5 perd ses parts grises et son seuil de
   assert.ok('refus' in validerRecette({ ...recette, seuils: { ...recette.seuils, chromaGrise: 0.03 } }));
 });
 
+test('[REC-03] une recette 5 dont le seuil de gris ou les parts grises sont mal formés reste illisible', () => {
+  const recette = valide();
+  const [bleu] = recette.palettes;
+  const seuilCasse = { ...recette, formatVersion: 5, seuils: { ...recette.seuils, chromaGrise: 'abc' } };
+  assert.equal(classerRecette(JSON.stringify(seuilCasse)).etat, 'illisible');
+  const partsCassees = { ...recette, formatVersion: 5, seuils: { ...recette.seuils, chromaGrise: 0.03 }, palettes: [{ ...bleu, parts: { soft: 'x', vivid: 0.1, origine: 'grise' } }] };
+  assert.equal(classerRecette(JSON.stringify(partsCassees)).etat, 'illisible');
+});
+
 test('[REC-03] une recette 6 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
   assert.equal(recette.formatVersion, 6);
