@@ -97,7 +97,7 @@ test('le bouton de création suit l’offre de la page : actif, inactif sous sa 
     await envoyer(cible('d', 'document-sans-source'));
     assert.equal(await creer(page).isVisible(), true);
     assert.equal(await creer(page).isDisabled(), true);
-    assert.match(await noteDeCreation(page).innerText(), /Aucune instance de « .componentRules »/);
+    assert.match(await noteDeCreation(page).innerText(), /Le modèle de règles « .componentRules » est absent du document/);
 
     await envoyer(cible('e', null));
     assert.equal(await creer(page).count(), 0);
