@@ -1,6 +1,7 @@
 /**
  * L'onglet Création (section 13.2) : le choix ou la création d'une palette.
- * Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
+ * Dans un fichier sans palette, un encart invite à créer la première
+ * ([UI-22]). Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
  * « Palette [nom] » seul sur sa ligne, puis les cartes :
  * Configuration de la palette, aperçu, Réglage global et Color shift
  * repliables, et l'Interface de test en dernier ([UI-12]). Les messages de
@@ -19,6 +20,7 @@
 import {
   aUneIntensite,
   cleDuPorteur,
+  rampeDe,
   estPaletteGrise,
   partDeLaReference,
   profilAutomatique,
@@ -136,6 +138,9 @@ export interface OngletCreationUi {
   };
 }
 
+/** La couleur dont l'encart d'un fichier sans palette montre la rampe : celle que le champ de création suggère. */
+const COULEUR_D_EXEMPLE = '#1E6FD9';
+
 function construireVues(i18n: Localisation) {
   const ecrireArrondi = i18n.arrondi;
   const { createButton } = creerSocleLocalise(i18n);
@@ -153,7 +158,7 @@ function construireVues(i18n: Localisation) {
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -187,9 +192,40 @@ function construireVues(i18n: Localisation) {
       onAnnuler: () => {
         creationOuverte = false;
         rendre();
-        barre.focaliserNouvelle();
+        // Dans un fichier sans palette, la barre est cachée : le focus revient à l'encart.
+        if (appel.hidden) barre.focaliserNouvelle();
+        else premiereNouvelle.focus();
       },
     });
+
+    /*
+     * L'encart d'un fichier sans palette ([UI-22]) : une rampe d'exemple, un
+     * titre, une phrase et « Nouvelle palette », qui le remplace par la carte
+     * de création. La rampe est celle que le moteur calcule pour la couleur
+     * d'exemple du champ de création.
+     */
+    const appel = document.createElement('section');
+    appel.className = 'appel';
+    const rampeDExemple = document.createElement('div');
+    rampeDExemple.className = 'appel-rampe';
+    rampeDExemple.setAttribute('aria-hidden', 'true');
+    const titreDeLAppel = document.createElement('h2');
+    i18n.lier(titreDeLAppel, 'textContent', TEXTES.premierePaletteTitre);
+    const texteDeLAppel = document.createElement('p');
+    i18n.lier(texteDeLAppel, 'textContent', TEXTES.premierePalette);
+    const premiereNouvelle = createButton({ label: TEXTES.nouvellePalette, onClick: () => ouvrirLaCreation() });
+    appel.append(rampeDExemple, titreDeLAppel, texteDeLAppel, premiereNouvelle);
+
+    function peindreLExemple(lue: Recette): void {
+      if (rampeDExemple.childElementCount > 0) return;
+      const exemple = nouvellePalette(lue, 'p-00000000', COULEUR_D_EXEMPLE, 1);
+      if (!exemple) return;
+      for (const cran of rampeDe(analyserPalette(lue, exemple).rampes, 'unique').light) {
+        const pastille = document.createElement('span');
+        pastille.style.background = cran.hexa;
+        rampeDExemple.append(pastille);
+      }
+    }
 
     const zoneDeLaNote = document.createElement('div');
 
@@ -458,7 +494,8 @@ function construireVues(i18n: Localisation) {
     function ouvrirLaCreation(): void {
       creationOuverte = true;
       barre.fermerLaConfirmation();
-      creation.ouvrir((etat.recette()?.palettes.length ?? 0) > 0);
+      // « Annuler » ramène à la barre, ou à l'encart d'un fichier sans palette.
+      creation.ouvrir(true);
       rendre();
       creation.focaliser();
     }
@@ -589,7 +626,7 @@ function construireVues(i18n: Localisation) {
     const ligneVide = ligneDEtat('');
     const vide = document.createElement('div');
     vide.className = 'page-stack colonne';
-    vide.append(ligneVide);
+    vide.append(ligneVide, appel);
     // Sans palette choisie : un titre et une phrase, sans geste propre ; les gestes sont ceux de la barre (maquette Z3.3, D1).
     const invitation = document.createElement('div');
     invitation.className = 'invitation';
@@ -720,6 +757,8 @@ function construireVues(i18n: Localisation) {
       rendreRefus();
       if (!classementLu) {
         montrer(vide);
+        ligneVide.hidden = false;
+        appel.hidden = true;
         i18n.lier(ligneVide, 'textContent', TEXTES.lectureEnCours);
         return;
       }
@@ -732,19 +771,23 @@ function construireVues(i18n: Localisation) {
       }
       if (!recette || recette.palettes.length === 0) {
         montrer(vide);
-        i18n.lier(ligneVide, 'textContent', classementLu.etat === 'absente' ? TEXTES.recetteAbsente : palettesDuFichier(0));
+        ligneVide.hidden = true;
+        if (recette) peindreLExemple(recette);
+        appel.hidden = creationOuverte;
         placerLaCreation(vide, null);
-        creation.element.hidden = false;
+        creation.element.hidden = !creationOuverte;
         return;
       }
+      appel.hidden = true;
       const courante = ouverte();
       montrer(vue);
       rendreLeChoix(courante);
       if (courante) rendrePalette(courante, recette);
     }
 
-    creation.ouvrir(false);
+    creation.ouvrir(true);
     creation.element.hidden = true;
+    appel.hidden = true;
     vide.append(creation.element);
     rendre();
 

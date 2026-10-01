@@ -256,7 +256,12 @@ Gestion, portés par `ongletCreation.ts`, `ongletVerification.ts` et
 `ongletGestion.ts`. Création et Vérification partagent la barre du sélecteur,
 qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
 
-- à l’ouverture du plugin, aucune palette n’est choisie : la barre du
+- dans un fichier sans palette, un encart au fond teinté de la couleur de
+  marque porte la seule action de l’onglet, « Nouvelle palette », sous une
+  rampe d’exemple, un titre et une phrase ; la barre du sélecteur ne paraît
+  pas, et la carte de création remplace l’encart ;
+- dans un fichier qui porte des palettes, aucune n’est choisie à l’arrivée
+  dans l’onglet : la barre du
   sélecteur, puis, sous le filet, une invitation, un titre de premier rang et
   une phrase, sans geste propre ; les gestes sont ceux de la barre ;
 - la barre du sélecteur vient en tête : la liste déroulante prend toute la

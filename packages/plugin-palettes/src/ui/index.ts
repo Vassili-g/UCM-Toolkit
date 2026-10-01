@@ -242,6 +242,13 @@ export function creerVuesIndex(i18n: Localisation) {
    */
   let dernierEtat: Extract<PluginMessage, { type: 'etat' }> | null = null;
 
+  /**
+   * Vrai jusqu'au premier état lu, qui choisit l'onglet d'ouverture
+   * ([UI-21]) : Gestion quand la recette porte une palette, Création sinon.
+   * Aucun état suivant ne change d'onglet.
+   */
+  let ouverture = true;
+
   function afficherLaPlanche(): void {
     if (!dernierEtat || onglets.actif() !== 'gestion') return;
     ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
@@ -261,7 +268,8 @@ export function creerVuesIndex(i18n: Localisation) {
     ongletVerification.montrer(id === 'verification');
     if (id !== 'gestion') return;
     afficherLaPlanche();
-    relireLaPlanche();
+    // À l'ouverture du plugin, l'état vient d'être lu : Gestion ne le redemande pas.
+    if (!ouverture) relireLaPlanche();
   });
 
   const PANNEAUX = { creation: ongletCreation.element, verification: ongletVerification.element, gestion: ongletGestion.element };
@@ -410,6 +418,10 @@ export function creerVuesIndex(i18n: Localisation) {
       ongletCreation.afficher(message.classement);
       panneauDeConfiguration.afficher();
       dernierEtat = message;
+      if (ouverture) {
+        if ((ongletCreation.recette()?.palettes.length ?? 0) > 0) onglets.selectionner('gestion');
+        ouverture = false;
+      }
       afficherLaPlanche();
     } else if (message.type === 'rangement') {
       frontiere.recevoirRangement(message);

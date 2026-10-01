@@ -205,7 +205,7 @@ const ETATS = [
     id: 'premier-lancement',
     titre: 'Premier lancement',
     quand: 'Le fichier ne porte aucune recette : la recette par défaut est proposée, sans palette.',
-    regarder: 'Les deux onglets, l’engrenage, et une seule ligne d’état en couleur secondaire.',
+    regarder: 'L’encart au fond bleuté : la rampe d’exemple, « Créez votre première palette », une phrase et « Nouvelle palette ». Ni barre de palette ni carte de création.',
     existe: true,
     atteinte: [etatDuFichier('')],
   },
@@ -296,6 +296,7 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(''),
+      { clic: '.appel .btn-primary' },
       { saisie: { dans: '.champ-creation', valeur: '#1E6FD9' } },
       { clic: '.creation .btn-primary' },
       { message: { type: 'rangement', demande: 2, issue: { issue: 'rangee', empreinte: '5e0c1a7b' } } },
@@ -963,15 +964,17 @@ const ETATS = [
 const ouvrirLaPremierePalette = [{ clic: '.selecteur-bouton' }, { clic: '.selecteur-option' }];
 
 /**
- * Un état dont le premier état lu porte des palettes montre la première,
- * choisie par le designer, sauf s'il montre l'onglet sans palette choisie.
+ * Un fichier qui porte des palettes s'ouvre sur Gestion ([UI-21]) : l'état
+ * passe d'abord à Création. Il y montre la première palette, choisie par le
+ * designer, sauf s'il montre l'onglet sans palette choisie. `ouvertSurGestion`
+ * garde l'onglet d'ouverture.
  */
 function avecLaPremierePalette(etat) {
   if (!etat.atteinte) return etat;
   const [lu, ...suite] = etat.atteinte;
   const palettes = lu.message?.type === 'etat' ? lu.message.classement.recette?.palettes ?? [] : [];
-  if (etat.sansPaletteChoisie || palettes.length === 0) return etat;
-  return { ...etat, atteinte: [lu, ...ouvrirLaPremierePalette, ...suite] };
+  if (palettes.length === 0 || etat.ouvertSurGestion) return etat;
+  return { ...etat, atteinte: [lu, { clic: '#onglet-creation' }, ...(etat.sansPaletteChoisie ? [] : ouvrirLaPremierePalette), ...suite] };
 }
 
 ETATS.push({

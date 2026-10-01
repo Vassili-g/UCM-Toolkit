@@ -55,10 +55,12 @@ export const TEXTES = {
   ongletVerification: "Verify",
   ongletGestion: "Manage",
   lectureEnCours: "Loading palettes and settings…",
-  recetteAbsente: "Create your first palette. The default settings will be used.",
   choisirUnePalette: "Choose a palette",
   // N134 : le sélecteur sans palette choisie, puis l'invitation dessous (maquette Z3.3, D1, texte a).
   selectionnerUnePalette: "Select a palette",
+  // L'encart d'un fichier sans palette ([UI-22]).
+  premierePaletteTitre: "Create your first palette",
+  premierePalette: "Start from a reference colour. The plugin calculates its shades and checks their contrast.",
   invitationTitre: "Choose a palette",
   invitation: "Select a palette or choose “New palette”.",
   dessiner: "Generate in Figma",
@@ -906,12 +908,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       };
     }
   }
-}
-
-/** Le nombre de palettes que le fichier porte. */
-export function palettesDuFichier(nombre: number): string {
-  if (nombre === 0) return "This file contains no palettes.";
-  return nombre === 1 ? "This file contains 1 palette." : `This file contains ${nombre} palettes.`;
 }
 
 /** Un message en trois parties. */

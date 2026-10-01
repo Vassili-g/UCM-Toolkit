@@ -51,10 +51,12 @@ export const TEXTES = {
   ongletVerification: 'Vérification',
   ongletGestion: 'Gestion',
   lectureEnCours: 'Chargement des palettes et des réglages…',
-  recetteAbsente: 'Créez votre première palette. Les réglages par défaut seront utilisés.',
   choisirUnePalette: 'Choisir une palette',
   // N134 : le sélecteur sans palette choisie, puis l'invitation dessous (maquette Z3.3, D1, texte a).
   selectionnerUnePalette: 'Sélectionner une palette',
+  // L'encart d'un fichier sans palette ([UI-22]).
+  premierePaletteTitre: 'Créez votre première palette',
+  premierePalette: 'Partez d’une couleur de référence. Le plugin calcule ses nuances et vérifie leurs contrastes.',
   invitationTitre: 'Choisissez une palette',
   invitation: "Sélectionnez une palette ou créez-en une avec « Nouvelle palette ».",
   dessiner: 'Générer sur Figma',
@@ -902,12 +904,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       };
     }
   }
-}
-
-/** Le nombre de palettes que le fichier porte. */
-export function palettesDuFichier(nombre: number): string {
-  if (nombre === 0) return 'Ce fichier ne contient aucune palette.';
-  return nombre === 1 ? 'Ce fichier contient 1 palette.' : `Ce fichier contient ${nombre} palettes.`;
 }
 
 /** Un message en trois parties. */

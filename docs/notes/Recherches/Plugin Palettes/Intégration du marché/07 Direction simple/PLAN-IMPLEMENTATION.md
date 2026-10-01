@@ -60,7 +60,7 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.9.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
@@ -187,13 +187,13 @@ construit dessus.
   `src/rapport.ts` garde l'écart et le minimum dans le rapport exporté ; s'il
   les lisait dans le constat, lui donner sa propre écriture. Tests :
   `tests/textes.test.ts` et `tests/rapport.test.ts`.
-- [ ] **P2.10** Le fichier vide (M1). Sans palette, Création montre un encart
+- [x] **P2.10** Le fichier vide (M1). Sans palette, Création montre un encart
   au fond bleuté, `color-mix` du rôle `--fond-marque` et du fond, une rampe
   d'exemple, « Créez votre première palette », une phrase et « Nouvelle
   palette ». Le bouton remplace l'encart par la carte de création actuelle ;
   « Annuler » y ramène. La ligne vers Gestion attend la phase 7. État de
   galerie `premier-lancement` réécrit.
-- [ ] **P2.11** L'ouverture (S1). Au premier état reçu du sandbox, le plugin
+- [x] **P2.11** L'ouverture (S1). Au premier état reçu du sandbox, le plugin
   ouvre Gestion si la recette porte au moins une palette, Création sinon.
   Aucun état suivant ne change d'onglet. Test d'interface dans les deux cas.
 - [ ] **P2.12** Réécrire les tests d'interface que la phase périme : ceux du

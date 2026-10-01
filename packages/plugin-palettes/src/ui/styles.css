@@ -1271,6 +1271,47 @@
 }
 
 /* Sans palette choisie : le titre de premier rang et une phrase, sous le filet (maquette Z3.3, D1). */
+/* L'encart d'un fichier sans palette ([UI-22]) : le bleu de marque y signale l'action à faire. */
+.appel {
+  display: grid;
+  justify-items: center;
+  gap: var(--espace-bloc);
+  padding: 32px var(--espace-page);
+  border: 1px solid color-mix(in srgb, var(--fond-marque) 35%, var(--bordure));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--fond-marque) 9%, var(--fond));
+  text-align: center;
+}
+
+.appel h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.appel p {
+  max-width: 380px;
+  margin: 0;
+  color: var(--texte-second);
+}
+
+.appel .btn {
+  min-height: 40px;
+  padding: 0 24px;
+  font-size: 13px;
+}
+
+.appel-rampe {
+  display: flex;
+  gap: 3px;
+}
+
+.appel-rampe span {
+  width: 22px;
+  height: 30px;
+  border-radius: 4px;
+}
+
 .invitation {
   display: grid;
   justify-items: start;
