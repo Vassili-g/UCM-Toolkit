@@ -419,6 +419,7 @@ Les interactions du plugin se vérifient dans Chromium :
 ```sh
 npm run test:ui --workspace ucm-exporter-plugin
 npm run test:ui --workspace ucm-palettes-plugin
+npm run test:ui --workspace ucm-explorateur-plugin
 ```
 
 Chaque commande reconstruit l'interface de son plugin. Celle d'UCM Palettes

@@ -1,0 +1,33 @@
+/*
+ * Les couleurs de l'explorateur, toujours sombres. Cette feuille précède celle
+ * du socle : `styles.css` affecte ensuite ces valeurs aux rôles du socle, si
+ * bien que ni le thème clair de Figma ni celui du système ne changent les
+ * surfaces. Les modes des tokens inspectés ne touchent que les valeurs et les
+ * pastilles.
+ */
+:root {
+  --sombre-page: #1e1e1e;
+  --sombre-fond: #2c2c2c;
+  --sombre-survol: #383838;
+  --sombre-bloc: #333333;
+  --sombre-note: #444444;
+  --sombre-marque: #0d99ff;
+  --sombre-marque-survol: #3ab0ff;
+  --sombre-selection: #26394f;
+  --sombre-succes: #1d3a28;
+  --sombre-avertissement: #4a3a10;
+  --sombre-danger: #4d1f17;
+  --sombre-danger-plein: #e03e1a;
+  --sombre-danger-plein-survol: #c4381c;
+  --sombre-bordure: #4a4a4a;
+  --sombre-bordure-forte: #6a6a6a;
+  --sombre-texte: #ffffff;
+  --sombre-texte-second: #b3b3b3;
+  --sombre-texte-marque: #7cc4f8;
+  --sombre-texte-danger: #ffafa3;
+  --sombre-texte-succes: #85e0a3;
+  --sombre-texte-avertissement: #ffc470;
+  --sombre-texte-sur-marque: #ffffff;
+  --sombre-damier-clair: #8a8a8a;
+  --sombre-damier-fonce: #5a5a5a;
+}

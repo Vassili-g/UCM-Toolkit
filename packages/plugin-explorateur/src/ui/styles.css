@@ -1,0 +1,879 @@
+/*
+ * La feuille de l'explorateur, après celle du socle. Elle affecte les couleurs
+ * sombres de `roles.css` aux rôles du socle, sous `:root` comme sous
+ * `.figma-dark` : l'interface reste sombre quel que soit le thème de l'hôte.
+ * Aucune couleur n'est écrite ici en dur.
+ */
+:root,
+.figma-dark {
+  color-scheme: dark;
+  --fond-page: var(--sombre-page);
+  --fond: var(--sombre-fond);
+  --fond-survol: var(--sombre-survol);
+  --fond-bloc: var(--sombre-bloc);
+  --fond-note: var(--sombre-note);
+  --fond-marque: var(--sombre-marque);
+  --fond-marque-survol: var(--sombre-marque-survol);
+  --fond-selection: var(--sombre-selection);
+  --fond-succes: var(--sombre-succes);
+  --fond-avertissement: var(--sombre-avertissement);
+  --fond-danger: var(--sombre-danger);
+  --fond-danger-plein: var(--sombre-danger-plein);
+  --fond-danger-plein-survol: var(--sombre-danger-plein-survol);
+  --bordure: var(--sombre-bordure);
+  --bordure-marque: var(--sombre-marque);
+  --bordure-visee: var(--sombre-bordure-forte);
+  --texte: var(--sombre-texte);
+  --texte-second: var(--sombre-texte-second);
+  --texte-marque: var(--sombre-texte-marque);
+  --texte-danger: var(--sombre-texte-danger);
+  --texte-succes: var(--sombre-texte-succes);
+  --texte-avertissement: var(--sombre-texte-avertissement);
+  --texte-sur-marque: var(--sombre-texte-sur-marque);
+  --texte-sur-danger: var(--sombre-texte-sur-marque);
+  --damier-clair: var(--sombre-damier-clair);
+  --damier-fonce: var(--sombre-damier-fonce);
+}
+
+/* La fenêtre ne défile pas : chaque zone défile seule. */
+html {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--fond-page);
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 1px;
+}
+
+.application {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+}
+
+/* La barre : produit, retour, contexte, recherche et lecture. */
+.barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.produit {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+  margin-right: auto;
+}
+
+.logo {
+  display: inline-grid;
+  width: var(--hauteur-secondaire);
+  height: var(--hauteur-secondaire);
+  place-items: center;
+  border-radius: var(--rayon);
+  background: var(--fond-note);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.produit-nom {
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+.contextes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-controle);
+}
+
+.contexte-champ,
+.filtre {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-serre);
+}
+
+.contexte-nom,
+.filtre-nom {
+  color: var(--texte-second);
+}
+
+.choix,
+.recherche,
+.saisie {
+  height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.recherche {
+  width: min(280px, 40vw);
+}
+
+.saisie {
+  min-width: 160px;
+  flex: 1;
+}
+
+.bouton-discret {
+  height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  cursor: pointer;
+}
+
+.bouton-discret:hover:not(:disabled) {
+  background: var(--fond-survol);
+}
+
+.bouton-discret:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.bandeau-simulation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) var(--espace-bloc);
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+/* Les trois colonnes : arbre, centre, inspecteur. */
+.corps {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 240px minmax(0, 1fr) 340px;
+}
+
+.arbre {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle);
+  border-right: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.arbre-lignes {
+  flex: 1;
+}
+
+.liste-virtuelle {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+
+.liste-espace {
+  position: relative;
+}
+
+.arbre-ligne,
+.table-ligne {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.arbre-ligne {
+  display: flex;
+  right: 0;
+  align-items: center;
+  gap: 2px;
+}
+
+.chevron,
+.chevron-vide {
+  flex: none;
+  width: 16px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+}
+
+.arbre-choix {
+  display: flex;
+  min-width: 0;
+  height: 22px;
+  flex: 1;
+  align-items: center;
+  gap: var(--espace-serre);
+  padding: 0 var(--espace-serre);
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.arbre-choix:hover {
+  background: var(--fond-survol);
+}
+
+.arbre-choix[aria-current='true'] {
+  background: var(--fond-selection);
+}
+
+.arbre-libelle {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment-vide,
+.valeur-vide {
+  color: var(--texte-second);
+  font-style: italic;
+}
+
+.arbre-compte {
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+.pastille-texte {
+  padding: 0 var(--espace-serre);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  color: var(--texte-second);
+  font-size: 10px;
+}
+
+.surtitre {
+  margin: 0;
+  color: var(--texte-second);
+  font-size: var(--corps);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+/* Le centre : onglets, puis le panneau de l'onglet actif. */
+.centre {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--fond);
+}
+
+/* Les libellés des onglets sont plus longs que ceux des deux autres plugins. */
+.centre .onglets {
+  overflow-x: auto;
+  padding: var(--espace-serre) var(--espace-controle);
+}
+
+.centre .onglet {
+  width: auto;
+  min-width: 0;
+}
+
+.accueil {
+  display: grid;
+  justify-items: start;
+  gap: var(--espace-bloc);
+  padding: var(--espace-page);
+}
+
+.accueil-texte {
+  max-width: 60ch;
+}
+
+.panneau {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.panneau:focus-visible {
+  outline-offset: -2px;
+}
+
+.table {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.table-tete {
+  display: grid;
+  gap: 2px;
+  padding: var(--espace-controle) var(--espace-bloc) 0;
+}
+
+.emplacement {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+.table-titre,
+.vue-titre,
+.inspecteur-titre {
+  margin: 0;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+  overflow-wrap: anywhere;
+}
+
+.filtres,
+.gestes,
+.ligne-de-champs,
+.copies {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.filtres {
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.table-corps {
+  flex: 1;
+  border-top: 1px solid var(--bordure);
+}
+
+.table-entete,
+.table-ligne {
+  display: grid;
+  min-width: var(--largeur-minimale);
+  grid-template-columns: var(--colonnes);
+}
+
+.table-entete {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  background: var(--fond-bloc);
+}
+
+.table-ligne {
+  right: 0;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.table-ligne.ligne-choisie,
+.table-ligne.ligne-choisie .cellule-nom {
+  background: var(--fond-selection);
+}
+
+.cellule-entete {
+  overflow: hidden;
+  padding: var(--espace-serre) var(--espace-controle);
+  color: var(--texte-second);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellule-entete:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--fond-bloc);
+}
+
+.cellule-nom {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  padding: 0 var(--espace-controle);
+  background: var(--fond);
+}
+
+.nom-de-token,
+.lien,
+.alias {
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nom-de-token {
+  font-weight: 600;
+}
+
+.lien,
+.alias {
+  color: var(--texte-marque);
+}
+
+.nom-de-token:hover,
+.lien:hover,
+.alias:hover {
+  text-decoration: underline;
+}
+
+.cellule-type {
+  align-self: center;
+  padding: 0 var(--espace-controle);
+  color: var(--texte-second);
+}
+
+.cellule-valeur {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  padding: 0 var(--espace-controle);
+}
+
+.cellule-source,
+.cellule-resultat {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.vide {
+  padding: var(--espace-page);
+  color: var(--texte-second);
+}
+
+/* Une valeur : pastille et texte exact. */
+.valeur {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: var(--espace-serre);
+  vertical-align: middle;
+}
+
+.valeur-texte {
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valeur-grande .valeur-texte {
+  font-size: var(--libelle);
+}
+
+.pastille {
+  display: inline-block;
+  overflow: hidden;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--bordure-visee);
+  border-radius: 3px;
+  background: conic-gradient(var(--damier-clair) 25%, var(--damier-fonce) 0 50%, var(--damier-clair) 0 75%, var(--damier-fonce) 0) 0 0 / 8px 8px;
+}
+
+.pastille-remplissage {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.statut-echec {
+  color: var(--texte-danger);
+  font-weight: 600;
+}
+
+/* L'inspecteur épinglé. */
+.inspecteur {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: var(--espace-bloc);
+  overflow: auto;
+  padding: var(--espace-bloc);
+  border-left: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.inspecteur-tete {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.section {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.carte-valeur,
+.carte-comparee {
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.carte-comparee {
+  display: grid;
+  align-content: start;
+  gap: var(--espace-controle);
+}
+
+.chaine {
+  display: grid;
+  gap: var(--espace-serre);
+  margin: 0;
+  padding-left: 18px;
+}
+
+.etape {
+  display: grid;
+}
+
+.etape-marquee {
+  border-left: 2px solid var(--bordure-marque);
+  margin-left: -6px;
+  padding-left: 4px;
+}
+
+.etape-nom {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.etape-source {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.etape-fin {
+  list-style: none;
+  margin-left: -18px;
+}
+
+.constat {
+  display: grid;
+  gap: 2px;
+  padding: var(--espace-controle);
+  border-left: 3px solid var(--fond-danger-plein);
+  border-radius: var(--rayon);
+  background: var(--fond-danger);
+  list-style: none;
+}
+
+.constat-titre {
+  color: var(--texte-danger);
+}
+
+.constat-detail,
+.constat-action {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.constat-action {
+  font-weight: 600;
+}
+
+.proprietes {
+  display: grid;
+  gap: var(--espace-serre);
+  margin: 0;
+}
+
+.propriete {
+  display: grid;
+  grid-template-columns: minmax(80px, 30%) minmax(0, 1fr);
+  gap: var(--espace-controle);
+}
+
+.propriete-active .propriete-nom {
+  color: var(--texte-marque);
+}
+
+.propriete-nom {
+  color: var(--texte-second);
+}
+
+.propriete-valeur {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.liens {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne-de-lien,
+.occurrence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.occurrence-nom,
+.calque-nom,
+.interrupteur-nom {
+  font-weight: 600;
+}
+
+.verdict {
+  margin: 0;
+  font-weight: 600;
+}
+
+.verdict[data-contraste='atteint'] {
+  color: var(--texte-succes);
+}
+
+.verdict[data-contraste='manque'] {
+  color: var(--texte-danger);
+}
+
+.code {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+/* Les vues des onglets. */
+.vue {
+  display: grid;
+  align-content: start;
+  gap: var(--espace-bloc);
+  padding: var(--espace-bloc);
+}
+
+.grille-comparee {
+  display: grid;
+  gap: var(--espace-bloc);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grille-de-couches {
+  display: grid;
+  gap: var(--espace-controle);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.calque,
+.verification {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.calque > .bouton-discret {
+  justify-self: start;
+}
+
+.interrupteur-ligne {
+  display: flex;
+  align-items: start;
+  gap: var(--espace-controle);
+}
+
+.choix-de-fichier {
+  display: flex;
+}
+
+.champ-fichier {
+  max-width: 100%;
+}
+
+.graphe-cadre {
+  overflow: auto;
+  max-height: 360px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-page);
+}
+
+.graphe {
+  display: block;
+}
+
+.graphe-arete {
+  fill: none;
+  stroke: var(--bordure-visee);
+  stroke-width: 1;
+}
+
+.graphe-arete-active {
+  stroke: var(--bordure-marque);
+  stroke-width: 2;
+}
+
+.graphe-noeud {
+  cursor: pointer;
+}
+
+.graphe-noeud rect {
+  fill: var(--fond-bloc);
+  stroke: var(--bordure);
+}
+
+.graphe-noeud text {
+  fill: var(--texte);
+  font-size: 11px;
+}
+
+.graphe-centre rect {
+  fill: var(--fond-selection);
+  stroke: var(--bordure-marque);
+}
+
+/* La bulle de la chaîne, au survol et au focus. */
+.bulle {
+  position: fixed;
+  z-index: 10;
+  display: grid;
+  max-width: min(420px, calc(100vw - 16px));
+  gap: var(--espace-serre);
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure-visee);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+  pointer-events: none;
+}
+
+.bulle-titre {
+  font-weight: 600;
+}
+
+/* Le pied : périmètre, fraîcheur et lecture seule. */
+.pied {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-bloc);
+  padding: var(--espace-serre) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+  color: var(--texte-second);
+}
+
+.pied-perimetre,
+.pied-fraicheur {
+  white-space: nowrap;
+}
+
+.pied-lecture {
+  margin-left: auto;
+  padding-right: var(--espace-page);
+}
+
+.annonce {
+  position: fixed;
+  z-index: 11;
+  right: var(--espace-page);
+  bottom: 32px;
+  display: grid;
+  max-width: min(420px, calc(100vw - 32px));
+  gap: var(--espace-serre);
+}
+
+.annonce > span:not(:empty) {
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure-visee);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.secours {
+  min-height: 64px;
+  border: 1px solid var(--bordure-marque);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.zone-hors-champ {
+  position: fixed;
+  left: -9999px;
+}
+
+/* Sous 900 px, l'inspecteur passe au-dessus du centre et se ferme. */
+@media (min-width: 900px) {
+  .fermer-inspecteur {
+    display: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .corps {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .inspecteur {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    width: min(340px, 90vw);
+    box-shadow: -8px 0 24px var(--fond-page);
+  }
+
+  .inspecteur.inspecteur-ouvert {
+    display: grid;
+  }
+}
+
+@media (max-width: 699px) {
+  .corps {
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+
+  .arbre > .note,
+  .produit-nom {
+    display: none;
+  }
+}

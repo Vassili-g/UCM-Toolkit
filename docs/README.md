@@ -70,6 +70,7 @@ autorité. Les autres y renvoient.
 | [format/FORMAT.md](./format/FORMAT.md) | La forme de ce qui est publié, et ce que l'absence d'un champ signifie |
 | [../packages/plugin-exporter/README.md](../packages/plugin-exporter/README.md) | Où obtenir le plugin, ce que ses commandes écrivent, et ce qu'il ne fait pas |
 | [../packages/plugin-exporter/SPEC.md](../packages/plugin-exporter/SPEC.md) | Ce que le plugin lit dans Figma, ce qu'il élit, ce dont il avertit |
+| [../packages/plugin-explorateur/SPEC.md](../packages/plugin-explorateur/SPEC.md) | Ce que l'explorateur de tokens lit, comment il résout une chaîne, ce qu'il refuse de conclure |
 | [format/COMPATIBILITE.md](./format/COMPATIBILITE.md) | Les classes de changement, la fenêtre de lecture, les états de la version du format de tokens et les responsabilités de migration |
 | [format/CHANGELOG-FORMAT.md](./format/CHANGELOG-FORMAT.md) | Ce que chaque version du contrat, et chaque version du format de tokens, a publié |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Les règles de code, de test, de message et de rédaction |
@@ -98,3 +99,5 @@ partie du produit n'en dépend.
 | [notes/Recherches/Plugin Palettes/Color shift/PLAN-IMPLEMENTATION.md](./notes/Recherches/Plugin%20Palettes/Color%20shift/PLAN-IMPLEMENTATION.md) | La liste ordonnée des tâches du Color shift, de la mise en page stable et du plan d'intégration de l'architecture, avec les arbitrages entre eux |
 | [notes/Recherches/Plugin Palettes/Intégration du marché/README.md](./notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/README.md) | Les propositions qui intègrent au plugin les apports du marché, leurs maquettes et leurs revues, dans l'ordre où les lire, et la direction globale qui les assemble |
 | [notes/Recherches/Archi Tokens Multi-marques/RECHERCHE-ARCHI-MULTIMARQUES.md](./notes/Recherches/Archi%20Tokens%20Multi-marques/RECHERCHE-ARCHI-MULTIMARQUES.md) | La collection de commutation qui manque au Playground pour porter le mode sombre sur six marques sans borner ce qu'un composant peut exprimer, et le script qui relève la duplication d'un `tokens.json` |
+| [notes/Recherches/Plugin Explorateur Tokens/RECHERCHE-EXPLORATEUR-TOKENS.md](./notes/Recherches/Plugin%20Explorateur%20Tokens/RECHERCHE-EXPLORATEUR-TOKENS.md) | Le besoin d'un explorateur de tokens pour toute architecture Figma, les outils existants, les intégrations UCM facultatives et sa maquette |
+| [notes/Recherches/Plugin Explorateur Tokens/PLAN-IMPLEMENTATION.md](./notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md) | Les lots qui ont construit UCM Token Explorer, et [leur suivi](./notes/Recherches/Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) : preuves, mesures et recette Figma restante |

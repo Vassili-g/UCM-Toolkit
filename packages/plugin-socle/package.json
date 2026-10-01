@@ -11,6 +11,9 @@
     "./galerie/*": "./galerie/*",
     "./lois/*": "./lois/*.ts"
   },
+  "dependencies": {
+    "@ucm-kit/core": "*"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "node build/run-tests.cjs"

@@ -94,3 +94,4 @@ jobs:
       - run: npm run cascade
       - run: npm run test:ui --workspace ucm-exporter-plugin
       - run: npm run test:ui --workspace ucm-palettes-plugin
+      - run: npm run test:ui --workspace ucm-explorateur-plugin

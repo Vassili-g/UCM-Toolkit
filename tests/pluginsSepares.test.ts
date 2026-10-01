@@ -1,10 +1,10 @@
 /**
- * Aucun des deux plugins n'importe l'autre (section 14.4 de la spécification
- * d'UCM Palettes). Ce qu'ils partagent passe par `ucm-plugin-socle` ou par le
- * moteur `ucm-couleur`.
+ * Aucun plugin n'importe un autre plugin (section 14.4 de la spécification
+ * d'UCM Palettes). Ce qu'ils partagent passe par `ucm-plugin-socle`, par le
+ * moteur `ucm-couleur` ou par le kit.
  *
- * La loi vit à la racine : un seul test lit les deux sens, sans qu'aucun des
- * deux paquets ne lise les sources de l'autre. Borne : elle lit les
+ * La loi vit à la racine : un seul test lit chaque paire dans les deux sens,
+ * sans qu'aucun paquet ne lise les sources d'un autre. Borne : elle lit les
  * spécificateurs de `from '…'`, `import('…')` et `require('…')`, et les
  * dépendances du `package.json`.
  */
@@ -18,6 +18,7 @@ const racine = path.resolve(__dirname, '..');
 const PLUGINS = [
   { dossier: 'plugin-exporter', nom: 'ucm-exporter-plugin' },
   { dossier: 'plugin-palettes', nom: 'ucm-palettes-plugin' },
+  { dossier: 'plugin-explorateur', nom: 'ucm-explorateur-plugin' },
 ];
 
 /** Les sources d'un paquet, hors `node_modules` et `dist`. */

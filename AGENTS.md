@@ -197,6 +197,7 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/tailwind.ts          le préréglage Tailwind et son relevé
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
   src/recette.ts           la forme de la recette, sa validation, son classement à la lecture, sans conversion d'un format antérieur
+  src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
@@ -219,6 +220,7 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   build/manifest.cjs       le manifest de distribution
   build/run-tests.cjs      le découvreur de tests, que chaque plugin appelle
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
+  src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
   src/ui/                  bouton, onglets, interrupteur, poignée de redimensionnement, engrenage et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
@@ -286,6 +288,34 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   scripts/mesurer-glisser-couleur.mjs  le coût d'un glisser dans le sélecteur de couleur et ses rendus par image, hors des tests
   manifest.json            identifiant attribué par Figma (point M1)
 
+packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plugin, privé, en lecture seule
+  src/code.ts              routage des demandes de l'interface ; aucune route n'écrit dans le document
+  src/messages.ts          les deux sens de la frontière sandbox ↔ interface, numérotés par demande
+  src/lecture.ts           collections et variables locales, cibles d'alias lues par identifiant, huit à la fois
+  src/modele.ts            le relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
+  src/groupes.ts           l'arbre des groupes, des seuls segments `/` des noms Figma
+  src/indexation.ts        l'index d'identité, les familles de collections et les références inverses par mode
+  src/resolution.ts        la chaîne explicative dans un contexte de modes, et sa mémoire
+  src/comparaison.ts       deux contextes : première cible différente, mode différent, valeurs égales ou non
+  src/diagnostics.ts       les chaînes qui n'aboutissent pas, regroupées par cause
+  src/copie.ts             les formats de copie et leur précision
+  src/contraste.ts         le contraste d'une paire choisie, par le calcul du kit
+  src/consommateurs.ts     les liaisons des calques et des styles, par périmètre choisi
+  src/occurrences.ts       les occurrences directes et par alias d'une variable dans une analyse
+  src/navigation.ts        afficher un calque, et `resolveForConsumer` sur un calque existant
+  src/rapport.ts           le rapport versionné des diagnostics
+  src/releves.ts           le relevé exporté, réimporté et comparé à un autre
+  src/simulation.ts        une substitution dans une copie en mémoire
+  src/graphe.ts            le graphe local d'une variable, sur la chaîne de `resolution.ts`
+  src/preferences.ts       vue compacte, intégrations et associations, dans clientStorage
+  src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM
+  src/ui/                  la barre, l'arbre, la table, l'inspecteur, la bulle de chaîne et les vues des onglets
+  src/ui/roles.css         les couleurs sombres, placées avant la feuille du socle
+  galerie/                 les états de l'interface, à 1200 × 800 et à 560 × 480
+  tests/                   dont la loi de lecture seule, les doubles de Figma, et interface/ pour Chromium
+  scripts/mesurer.mjs      la mesure sur 10 000 variables, hors des tests
+  SPEC.md                  ce que le plugin lit, résout et refuse de conclure
+
 docs/                    la documentation classée par sujet
   README.md              le sommaire par profil de lecteur, et la table des autorités
   format/                la forme publiée, sa compatibilité et son historique
@@ -318,7 +348,7 @@ tests/                   les tests du monorepo lui-même
   registrePortableDocuments.test.ts  aucun document portable ne promet une stack
   versionSuitLeContenu.test.mjs  un numéro publié annonce bien ce qu'il publie
   monorepoCoherent.test.mjs  chaque paquet lit le kit d'à côté, jamais le registre
-  pluginsSepares.test.ts  aucun des deux plugins n'importe l'autre
+  pluginsSepares.test.ts  aucun des trois plugins n'importe un autre
 ```
 
 ## Invariants
@@ -1173,6 +1203,53 @@ La spécification en lien porte le raisonnement.
   pressent Fin au-delà d'une borne. Borne : une valeur rangée qu'un autre
   réglage a sortie de sa plage reste en place ([DER-23]).
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
+
+### Explorateur de tokens
+
+- L'explorateur n'écrit jamais dans le document. Hors de `src/ui/`, aucun
+  fichier n'appelle une création, une suppression, un setter de variable, un
+  import distant, `setPluginData`, `setSharedPluginData`, `commitUndo` ni
+  `loadAllPagesAsync`. Seule `src/code.ts` change la page courante, la
+  sélection et la vue, au geste « Afficher dans Figma ».
+  `packages/plugin-explorateur/tests/loiDeLectureSeule.test.ts` lit les
+  sources ; les doubles de `tests/figmaDeTest.ts` lèvent à toute affectation
+  et à tout appel hors des lectures permises. Borne : la loi lit le texte
+  ligne à ligne.
+  → [spec](./packages/plugin-explorateur/SPEC.md#lecture-seule)
+- Le noyau, `modele.ts`, `groupes.ts`, `indexation.ts`, `resolution.ts`,
+  `comparaison.ts` et `diagnostics.ts`, ne lit ni `figma`, ni le DOM, ni une
+  intégration UCM, et aucune règle hors de `src/integrations/` ne nomme une
+  collection. Un groupe vient des seuls segments `/` du nom Figma et
+  s'identifie par sa collection et ses segments (`cleDeGroupe`). La même loi
+  le tient, avec `tests/groupes.test.ts`.
+  → [spec](./packages/plugin-explorateur/SPEC.md#architecture-libre)
+- Un contexte choisit un mode par famille, une collection et ses extensions.
+  Une famille absente prend le `defaultModeId` de sa collection ; un mode
+  n'est jamais rapproché par son nom d'une collection à l'autre. Un cycle se
+  détecte sur les couples variable–mode du chemin, et une chaîne de plus de
+  `BORNE_DES_ETAPES` étapes est interrompue sans être déclarée cyclique.
+  `tests/resolution.test.ts` le tient.
+  → [spec](./packages/plugin-explorateur/SPEC.md#résolution)
+- Une cible que Figma ne rend pas reste introuvable, une lecture qui lève
+  reste refusée : aucune n'est déclarée supprimée, et aucune variable
+  distante n'est importée. Au plus `CONCURRENCE` lectures par identifiant
+  sont en vol, une seule par identifiant. `tests/lecture.test.ts` le tient.
+  → [spec](./packages/plugin-explorateur/SPEC.md#lecture)
+- L'interface est sombre quel que soit le thème de l'hôte : `src/ui/roles.css`
+  précède la feuille du socle et `styles.css` affecte ses couleurs à chaque
+  rôle. `tests/stylesUi.test.ts` refuse un rôle oublié et toute lecture de
+  `--figma-color` ; les tests d'interface relisent les fonds sous les deux
+  thèmes.
+- Une réponse du sandbox porte le numéro de sa demande, et l'interface ignore
+  celle d'une lecture remplacée (`src/ui/index.ts`). Les tests de
+  `tests/interface/interface.test.mjs` le tiennent.
+- Les intégrations s'activent explicitement et leur absence ne produit aucun
+  constat. Le profil UCM ne contrôle que les collections que le designer
+  associe à une couche (`src/integrations/profilUcm.ts`). Les contrats et
+  `tokens.json` se lisent sans `@ucm-kit/core/lecteurs`, et
+  `tests/contrats.test.ts` compare leurs verdicts à ceux du kit ;
+  `tests/bundle.test.ts` refuse toute dépendance Node dans les deux bundles.
+  → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
 
 ## Vérification
 

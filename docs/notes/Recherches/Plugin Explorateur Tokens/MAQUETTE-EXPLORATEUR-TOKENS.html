@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UCM · Explorateur de tokens</title>
+<style>
+:root{color-scheme:dark;--bg:#141414;--paper:#222222;--ink:#ededed;--muted:#adadad;--line:#414141;--blue:#91b8ff;--selection:#293b58;--soft:#2c2c2c;--danger:#ffaaa0;--mono:ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;font:13px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}button,input,select{font:inherit}button,a,select{touch-action:manipulation}button{cursor:pointer;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:7px 10px;color:inherit}button:hover{background:var(--soft)}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}a{color:var(--blue)}h1{font-size:24px;letter-spacing:-.6px;margin:0}h2{font-size:17px;margin:0 0 12px}h3{font-size:13px;margin:20px 0 8px}p{margin:8px 0}code{font:12px/1.5 var(--mono);overflow-wrap:anywhere}.muted{color:var(--muted)}.intro{max-width:1540px;margin:auto;padding:28px 30px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px}.intro p{margin:5px 0}.eyebrow{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}.pill{border:1px solid var(--line);border-radius:5px;padding:3px 7px;font-size:11px;white-space:nowrap}.shell{margin:0 24px 24px;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 10px 35px #19233b08}.toolbar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:13px 18px;border-bottom:1px solid var(--line)}.logo{display:inline-grid;place-items:center;width:30px;height:30px;background:#232937;color:white;border-radius:7px;font-weight:650;font-size:11px}.brand{display:flex;align-items:center;gap:9px;margin-right:auto}.context{display:flex;gap:12px;flex-wrap:wrap}.context label,.field{display:flex;gap:7px;align-items:center;color:var(--muted)}select,input{border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);padding:7px 9px}input[type=search]{width:min(280px,100%)}.layout{display:grid;grid-template-columns:205px minmax(360px,1fr) 355px;min-height:675px}.collections{border-right:1px solid var(--line);padding:20px 10px;background:#fbfcfd}.collections .eyebrow{padding:0 10px 10px;display:block}.collection{display:flex;align-items:center;justify-content:space-between;text-align:left;width:100%;border:0;background:transparent;margin:3px 0;padding:10px;font-family:var(--mono);font-size:12px}.collection[aria-current=true]{background:var(--selection);color:var(--blue)}.count{font:11px system-ui;color:var(--muted)}.aside-note{margin:26px 10px 0;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--muted)}.content{min-width:0}.content-head{padding:20px 20px 12px}.breadcrumb{font:11px var(--mono);color:var(--muted);margin-bottom:6px}.content-head h2{font-size:21px;margin-bottom:5px}.tabs{display:flex;gap:19px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:0 20px}.tabs button{border:0;border-radius:0;padding:12px 0;background:transparent;color:var(--muted)}.tabs button[aria-pressed=true]{border-bottom:2px solid var(--blue);color:var(--ink)}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;text-align:left}th{font-weight:500;font-size:11px;color:var(--muted);background:var(--soft);padding:11px 16px;border-bottom:1px solid var(--line)}td{padding:11px 16px;border-bottom:1px solid #edf0f3;vertical-align:top}tr.selected{background:var(--selection)}.token-name{display:block;background:none;border:0;padding:0;text-align:left;font:12px/1.5 var(--mono)}.token-sub{font-size:10px;color:var(--muted);display:block;margin-top:4px}.alias{display:flex;gap:7px;align-items:center;max-width:100%;background:#f2f4f7;border:1px solid #e1e5eb;padding:4px 7px;border-radius:5px;text-align:left;font:11px/1.5 var(--mono);overflow-wrap:anywhere}.alias:hover{border-color:#95afe8;background:var(--selection)}.swatch{width:14px;height:14px;display:inline-block;border:1px solid #0002;border-radius:3px;flex-shrink:0;vertical-align:middle}.resolved{display:flex;align-items:center;gap:7px;white-space:nowrap;font:11px var(--mono);padding-top:5px}.inspector{border-left:1px solid var(--line);padding:20px;min-width:0}.inspector h2{font:14px/1.6 var(--mono);overflow-wrap:anywhere;margin:10px 0}.value-card{padding:15px;background:var(--soft);border:1px solid var(--line);border-radius:8px;margin:18px 0 10px}.value-line{display:flex;gap:12px;align-items:center;font:21px var(--mono);margin:8px 0}.value-line .swatch{width:34px;height:34px;border-radius:6px}.actions{display:flex;gap:7px;flex-wrap:wrap}.primary{background:var(--blue);color:white;border-color:var(--blue)}.primary:hover{background:#184cb9}.chain{padding:0;list-style:none;margin:12px 0}.chain li{position:relative;border-left:2px solid #dae2f3;margin-left:5px;padding:0 0 16px 17px}.chain li:last-child{border-left-color:transparent;padding-bottom:0}.chain li:before{content:"";position:absolute;width:8px;height:8px;border:2px solid #8799b9;border-radius:50%;background:var(--paper);left:-5px;top:5px}.chain button{border:0;padding:0;background:none;display:block;text-align:left;width:100%;font:11px/1.6 var(--mono);overflow-wrap:anywhere}.chain small{display:block;color:var(--muted);margin:2px 0;font-size:10px}.section{padding:20px}.notice{padding:12px;border-left:3px solid #b65a30;background:#fff8f1;margin:12px 0}.issue{padding:16px 0;border-bottom:1px solid var(--line)}.issue h3{margin:0 0 6px}.issue button{margin-top:8px}.status{color:var(--danger)}.empty{padding:32px;color:var(--muted)}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-card{border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}.compare-card .context{margin:10px 0}.compare-card select{max-width:130px}.feature-note{margin:20px 0 0;color:var(--muted);font-size:12px}.role-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.role-row b{width:100px;flex-shrink:0}.consumer{padding:12px;border:1px solid var(--line);border-radius:6px;margin:8px 0}.footer{padding:10px 18px;background:var(--soft);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:11px}.help{max-width:1400px;margin:0 auto 30px;padding:0 30px;display:flex;gap:24px;flex-wrap:wrap;color:var(--muted);font-size:12px}.help b{color:var(--ink)}#tooltip{position:fixed;z-index:20;width:390px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--paper);border:1px solid #aebcd6;box-shadow:0 12px 35px #1b29432b;border-radius:9px;padding:15px;pointer-events:none}#tooltip[hidden]{display:none}#tooltip .chain{margin-bottom:0}#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#242c3c;color:white;padding:12px 20px;border-radius:8px;z-index:30;max-width:90vw}#toast:empty{display:none}.legend{display:flex;gap:9px;align-items:center;margin:14px 0;font-size:12px}.sample{border:1px solid var(--line);padding:20px;border-radius:8px;display:flex;justify-content:center;margin:14px 0}.sample span{padding:8px 20px;border-radius:6px;font-weight:600}
+@media(min-width:1600px){.shell{max-width:1492px;margin-inline:auto}}
+@media(max-width:1150px){.layout{grid-template-columns:175px minmax(300px,1fr)}.inspector{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}.inspector .chain{display:flex;flex-wrap:wrap;gap:10px}.inspector .chain li{max-width:230px}.value-card{max-width:430px}.toolbar{gap:12px}}
+@media(max-width:650px){.intro{padding:20px 14px;align-items:flex-start}.intro>a{display:none}.shell{margin:0 8px 16px}.layout{display:block}.collections{border-right:0;border-bottom:1px solid var(--line);display:flex;gap:5px;overflow:auto;padding:10px}.collection{width:auto;gap:8px;margin:0;white-space:nowrap}.collections>.eyebrow,.aside-note{display:none}.compare-grid{grid-template-columns:1fr}.tabs{gap:13px}.footer{flex-direction:column;gap:3px}.help{padding:0 15px}.content-head{padding:16px}.brand{width:100%}h1{font-size:21px}}
+</style>
+<style>
+.collections{background:#1c1c1c;max-height:850px;overflow:auto}.alias{background:#303030;border-color:var(--line)}.alias:hover{border-color:var(--blue)}td{border-bottom-color:#373737}.swatch{border-color:#ffffff40}.chain li{border-left-color:#505762}.chain li:before{border-color:#98a5bc}.notice{background:#382a20;border-left-color:#e3ac7d}.primary{background:#3867b3;border-color:#3867b3;color:#fff}.primary:hover{background:#4678c9}#tooltip{border-color:#667080}#toast{background:#e4e7ee;color:#1d2027}
+.tree-row{display:flex;align-items:center;min-width:0}.tree-row .collection{min-width:0;gap:6px;padding:7px 5px;margin:1px 0}.tree-row .collection>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tree-toggle,.tree-spacer{width:23px;flex-shrink:0}.tree-toggle{border:0;background:transparent;padding:4px 0;color:var(--muted)}.tree-list{list-style:none;padding:0;margin:0}.tree-children{margin-left:12px;border-left:1px solid var(--line);padding-left:4px}.tree-group{font-size:11px}.tree-group[aria-current=true]{background:var(--selection);color:var(--blue)}
+@media(max-width:650px){.collections{display:block;max-height:280px}.collections>.eyebrow{display:block}.tree-row .collection{width:100%}.tree-children{margin-left:16px}}
+</style>
+</head>
+<body>
+<header class="intro"><div><div class="eyebrow">Recherche produit / UCM Toolkit</div><h1>Explorer une architecture de tokens</h1><p class="muted">Toute architecture Figma, avec ou sans UCM et sans contrat requis.</p></div><a href="RECHERCHE-EXPLORATEUR-TOKENS.md">Lire la recherche ↗</a></header>
+<main class="shell">
+<div class="toolbar"><div class="brand"><span class="logo">UCM</span><b>Explorateur de tokens</b><span class="pill">Maquette · données fictives</span></div><label class="field">Projet <select id="project"><option value="free">Projet libre · sans UCM</option><option value="ucm">UCM · multimarques</option></select></label><div id="contexts"></div><input id="search" type="search" placeholder="Rechercher dans les collections…" aria-label="Rechercher un token"></div>
+<div class="layout"><nav class="collections" aria-label="Collections" id="collections"></nav><section class="content"><div class="content-head"><div class="breadcrumb">Bibliothèque de démonstration / Variables locales</div><h2 id="collection-title">components</h2><div class="muted" id="collection-description"></div></div><nav class="tabs" aria-label="Vues"><button data-tab="table" aria-pressed="true">Variables</button><button data-tab="compare" aria-pressed="false">Comparer</button><button data-tab="ucm" aria-pressed="false">Usages UCM</button><button data-tab="issues" aria-pressed="false">Diagnostics · 2</button></nav><div id="view"></div></section><aside class="inspector" id="inspector" aria-label="Inspecteur du token"></aside></div>
+<footer class="footer"><span id="scope"></span><span>Lecture seule · aucune connexion à Figma</span></footer>
+</main>
+<div class="help"><span><b>01</b> Cliquez sur une référence pour suivre l'alias.</span><span><b>02</b> Survolez-la pour voir la chaîne.</span><span><b>03</b> Cliquez sur le nom pour épingler son détail.</span><span><b>04</b> Changez la marque ou le thème.</span></div>
+<div id="tooltip" role="tooltip" hidden></div><div id="toast" role="status" aria-live="polite"></div>
+<script>
+// Jeu fictif autonome : les couleurs illustrent la navigation, sans validation par le moteur UCM.
+let tokens = [];
+const add = (id, collection, name, values, extra = {}) => tokens.push({id,collection,name,values,type:'COLOR',...extra});
+const ref = id => ({alias:id});
+let collections = ['components','usage','theme','brand','color-utilities','primitives'];
+const descriptions = {components:'Les propriétés visuelles des composants.',usage:'Les emplois et leurs rangs dans les palettes.',theme:'Le choix Light ou Dark, indépendant de la marque.',brand:'Les palettes affectées à chaque marque.', 'color-utilities':'Le neutre et les statuts communs aux marques.',primitives:'Les valeurs terminales des palettes nommées.'};
+const palettes = {terracota:{light:{50:'#FFF7F4',100:'#FBE9E2',600:'#B75B40',700:'#94432D',800:'#773323'},dark:{50:'#211814',100:'#34221C',600:'#BB7258',700:'#D5967D',800:'#E6B8A5'}},ruby:{light:{50:'#FFF5F6',100:'#FBE4E9',600:'#C34261',700:'#A32C48',800:'#832138'},dark:{50:'#221519',100:'#351D24',600:'#C86B82',700:'#DF96A7',800:'#EDBDCA'}},grass:{light:{50:'#F5FAF4',100:'#E5F0DF',600:'#547F3A',700:'#3F632B',800:'#315021'},dark:{50:'#151D13',100:'#20301B',600:'#7C9C68',700:'#A2BA91',800:'#C5D6B9'}},titanium:{light:{50:'#F7F8FA',100:'#ECEEF1',600:'#757B87',700:'#5B606B',800:'#434852'},dark:{50:'#17191E',100:'#23262D',600:'#9196A1',700:'#B3B7C0',800:'#D0D3DA'}}};
+for (const [palette, modes] of Object.entries(palettes)) for (const [mode, shades] of Object.entries(modes)) for (const [shade,value] of Object.entries(shades)) {
+ const intensity = palette === 'grass' ? '.soft' : '';
+ add(`p.${palette}.${mode}.${shade}`,'primitives',`colors.${palette}${intensity}.${mode}.${shade}`,{default:value},{palette,shade});
+}
+for(const mode of ['light','dark']) for(const shade of ['50','100','600','700','800']){
+ add(`b.${mode}.${shade}`,'brand',`palette.primary.${mode}.${shade}`,{intencial:ref(`p.terracota.${mode}.${shade}`),apicil:ref(`p.ruby.${mode}.${shade}`)});
+ add(`cu.success.${mode}.${shade}`,'color-utilities',`success.soft.${mode}.${shade}`,{default:ref(`p.grass.${mode}.${shade}`)});
+ add(`cu.neutral.${mode}.${shade}`,'color-utilities',`neutral.${mode}.${shade}`,{default:ref(`p.titanium.${mode}.${shade}`)});
+}
+for(const shade of ['50','100','600','700','800']){
+ add(`t.primary.${shade}`,'theme',`primary.${shade}`,{light:ref(`b.light.${shade}`),dark:ref(`b.dark.${shade}`)});
+ add(`t.success.${shade}`,'theme',`success.soft.${shade}`,{light:ref(`cu.success.light.${shade}`),dark:ref(`cu.success.dark.${shade}`)});
+ add(`t.neutral.${shade}`,'theme',`neutral.${shade}`,{light:ref(`cu.neutral.light.${shade}`),dark:ref(`cu.neutral.dark.${shade}`)});
+}
+add('u.primary.solid','usage','primary.solid.default',{default:ref('t.primary.700')},{role:'primary',job:'solid',rank:'default',paint:'background',shade:700});
+add('u.primary.hover','usage','primary.solid.hover',{default:ref('t.primary.800')},{role:'primary',job:'solid',rank:'hover',paint:'background',shade:800});
+add('u.primary.on','usage','primary.on-solid',{default:ref('t.neutral.50')},{role:'primary',job:'on-solid',paint:'foreground · icon',shade:50});
+add('u.primary.focus','usage','primary.focus',{default:ref('t.primary.600')},{role:'primary',job:'focus',paint:'ring',shade:600});
+add('u.success.surface','usage','success.soft.surface.default',{default:ref('t.success.100')},{role:'success',job:'surface',rank:'default',paint:'background',shade:100});
+add('u.success.text','usage','success.soft.text.default',{default:ref('t.success.700')},{role:'success',job:'text',rank:'default',paint:'foreground · icon',shade:700});
+add('c.button.bg','components','button.primary.background',{default:ref('u.primary.solid')},{contract:'Button · primary / default · background'});
+add('c.button.hover','components','button.primary.background-hover',{default:ref('u.primary.hover')},{contract:'Button · primary / hover · background'});
+add('c.button.text','components','button.primary.foreground',{default:ref('u.primary.on')},{contract:'Button · primary / default · foreground'});
+add('c.button.focus','components','button.primary.ring',{default:ref('u.primary.focus')},{contract:'Button · primary / focus · ring'});
+add('c.alert.bg','components','alert.success.background',{default:ref('u.success.surface')},{contract:'Alert · success / default · background'});
+add('c.alert.text','components','alert.success.foreground',{default:ref('u.success.text')},{contract:'Alert · success / default · foreground'});
+add('c.bad','components','button.legacy.border',{default:ref('remote.inaccessible')});
+add('c.cycle','components','debug.cycle-a',{default:ref('c.cycle-b')});
+add('c.cycle-b','components','debug.cycle-b',{default:ref('c.cycle')});
+const ucmTokens = tokens;
+// Les noms source utilisent les groupes Figma ; les chemins d'export restent distincts.
+ucmTokens.forEach(token=>{token.exportName=token.name;token.name=token.name.replaceAll('.','/');});
+const freeTokens = [
+ {id:'free.card',collection:'Interface',name:'card/fill',type:'COLOR',values:{default:ref('free.surface')}},
+ {id:'free.gap',collection:'Interface',name:'card/gap',type:'FLOAT',values:{default:ref('free.space')}},
+ {id:'free.header.fill',collection:'Interface',name:'card/header/fill',type:'COLOR',values:{default:ref('free.surface')}},
+ {id:'free.header.label',collection:'Interface',name:'card/header/title',type:'STRING',values:{default:'Mon espace'}},
+ {id:'free.label',collection:'Interface',name:'action/label',type:'STRING',values:{default:'Continuer'}},
+ {id:'free.visible',collection:'Interface',name:'badge/visible',type:'BOOLEAN',values:{default:false}},
+ {id:'free.zero',collection:'Mesures',name:'zero',type:'FLOAT',values:{Compact:0,Confort:0}},
+ {id:'free.space',collection:'Mesures',name:'spacing/card',type:'FLOAT',values:{Compact:12,Confort:24}},
+ {id:'free.surface',collection:'Couleurs',name:'surface',type:'COLOR',values:{Jour:ref('free.white'),Nuit:ref('free.ink')}},
+ {id:'free.white',collection:'Couleurs',name:'papier',type:'COLOR',values:{Jour:'#F7F8FA',Nuit:'#F7F8FA'}},
+ {id:'free.ink',collection:'Couleurs',name:'encre',type:'COLOR',values:{Jour:'#222630',Nuit:'#222630'}},
+ {id:'free.bad',collection:'Interface',name:'legacy/border',type:'COLOR',values:{default:ref('remote.inaccessible')}},
+ {id:'free.cycle',collection:'Interface',name:'essai/a',type:'COLOR',values:{default:ref('free.cycle-b')}},
+ {id:'free.cycle-b',collection:'Interface',name:'essai/b',type:'COLOR',values:{default:ref('free.cycle')}}
+];
+let project='free';
+let index = new Map(tokens.map(t=>[t.id,t]));
+let collection='components', selected='c.button.bg', tab='table', history=[], search='', toastTimer;
+let group='', collapsed=new Set();
+let context={brand:'intencial',theme:'light'}, comparison={brand:'apicil',theme:'dark'};
+const $=id=>document.getElementById(id);
+const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const full=t=>`${t.collection}.${t.name}`;
+const groupsOf=token=>token.name.split('/').slice(0,-1);
+const inGroup=(token,path)=>!path||token.name.startsWith(path+'/');
+const treeKey=(name,path)=>JSON.stringify([name,path]);
+function revealGroup(name,path){
+ collapsed.delete(treeKey(name,''));
+ const parts=path?path.split('/'):[];
+ parts.forEach((_,i)=>collapsed.delete(treeKey(name,parts.slice(0,i+1).join('/'))));
+}
+function renderTree(){
+ function branch(name,path,label){
+  const rows=tokens.filter(t=>t.collection===name&&inGroup(t,path));
+  const depth=path?path.split('/').length:0;
+  const children=[...new Set(rows.map(t=>groupsOf(t)[depth]).filter(Boolean))];
+  const key=treeKey(name,path),expanded=!collapsed.has(key),current=name===collection&&path===group&&!search;
+  return `<li><div class="tree-row">${children.length?`<button class="tree-toggle" data-toggle="${escapeHtml(key)}" aria-expanded="${expanded}" aria-label="${expanded?'Replier':'Déplier'} ${escapeHtml(name+(path?'/'+path:''))}">${expanded?'▾':'▸'}</button>`:'<span class="tree-spacer"></span>'}<button class="collection ${path?'tree-group':''}" data-collection="${escapeHtml(name)}" data-group="${escapeHtml(path)}" aria-current="${current}" title="${escapeHtml(name+(path?'/'+path:''))}"><span>${escapeHtml(label)}</span><span class="count">${rows.length}</span></button></div>${children.length&&expanded?`<ul class="tree-list tree-children">${children.map(child=>branch(name,path?path+'/'+child:child,child)).join('')}</ul>`:''}</li>`;
+ }
+ $('collections').innerHTML=`<span class="eyebrow">Collections et groupes</span><ul class="tree-list">${collections.map(c=>branch(c,'',c)).join('')}</ul><p class="aside-note">Le parent affiche tout son sous-arbre. Les chevrons replient uniquement la navigation.</p>`;
+}
+const modesOf=collection=>[...new Set(tokens.filter(t=>t.collection===collection).flatMap(t=>Object.keys(t.values)))];
+const axes=()=>collections.filter(c=>modesOf(c).length>1);
+const modeFor=(t,ctx)=>ctx[t.collection]??modesOf(t.collection)[0];
+const contextLabel=ctx=>axes().map(c=>`${c} : ${ctx[c]}`).join(' / ')||'Mode unique';
+const showValue=value=>value===undefined?'':JSON.stringify(value);
+function switchProject(value){
+ project=value;tokens=project==='ucm'?ucmTokens:freeTokens;
+ collections=[...new Set(tokens.map(t=>t.collection))];index=new Map(tokens.map(t=>[t.id,t]));
+ context=Object.fromEntries(axes().map(c=>[c,modesOf(c)[0]]));
+ comparison=Object.fromEntries(axes().map(c=>[c,modesOf(c).at(-1)]));
+ collection=project==='ucm'?'components':'Interface';selected=project==='ucm'?'c.button.bg':'free.card';
+ tab='table';history=[];search='';group='';collapsed=new Set(collections.filter(c=>c!==collection).map(c=>treeKey(c,'')));$('search').value='';hideTooltip();render();
+}
+function resolve(id,ctx=context){
+ const chain=[], seen=new Set(); let current=id;
+ while(current){
+  if(seen.has(current)) return {chain,error:'Cycle détecté',detail:`La chaîne revient à ${full(index.get(current))}.`};
+  seen.add(current);const token=index.get(current);
+  if(!token) return {chain,error:'Cible inaccessible',detail:`La référence ${current} n'est pas chargée. Sa suppression n'est pas établie.`};
+  const mode=modeFor(token,ctx), value=token.values[mode];chain.push({token,mode,value});
+  if(value===undefined)return {chain,error:'Mode absent',detail:`Aucune valeur pour ${mode}.`};
+  if(typeof value==='object' && value.alias){current=value.alias;continue;}
+  return {chain,value};
+ }
+}
+function chainHtml(result,interactive=true){return `<ol class="chain">${result.chain.map(({token,mode})=>`<li>${interactive?`<button data-open="${token.id}">${escapeHtml(full(token))}</button>`:`<code>${escapeHtml(full(token))}</code>`}<small>${token.collection} · ${mode==='default'?'mode unique':mode}</small></li>`).join('')}</ol>${result.error?`<p class="status">${result.error}</p><p class="muted">${escapeHtml(result.detail)}</p>`:''}`;}
+function swatch(value){return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?`<i class="swatch" style="background:${escapeHtml(value)}"></i>`:'';}
+function openToken(id){if(!index.has(id)){announce('Cible inaccessible dans le jeu de démonstration.');return;}history.push({selected,collection,group,search,tab});selected=id;collection=index.get(id).collection;group=groupsOf(index.get(id)).join('/');revealGroup(collection,group);search='';$('search').value='';tab='table';hideTooltip();render();document.querySelector('tr.selected')?.scrollIntoView({block:'nearest'});}
+function goBack(){const previous=history.pop();if(previous){({selected,collection,group,search,tab}=previous);revealGroup(collection,group);$('search').value=search;render();}}
+function render(){
+ $('contexts').innerHTML=contextControls(context,'courant','context');
+ document.querySelector('[data-tab="ucm"]').textContent=project==='ucm'?'Usages UCM':'Dépendants';
+ renderTree();
+ $('collection-title').textContent=search?'Résultats de recherche':collection+(group?' / '+group:'');
+ $('collection-description').textContent=search?'Toutes les collections du jeu de démonstration.':descriptions[collection]||'Variables du fichier · noms et organisation libres.';
+ document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===tab));
+ if(tab==='table')renderTable();if(tab==='compare')renderCompare();if(tab==='ucm')renderUcm();if(tab==='issues')renderIssues();renderInspector();
+ $('scope').textContent=`${tokens.length} variables fictives · ${collections.length} collections · contexte ${escapeHtml(contextLabel(context))}`;
+}
+function renderTable(){
+ const list=tokens.filter(t=>search?`${full(t)} ${resolve(t.id).value??''}`.toLowerCase().includes(search.toLowerCase()):t.collection===collection&&inGroup(t,group));
+ $('view').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Nom de la variable</th><th>Valeur ou alias direct</th><th>Résultat</th></tr></thead><tbody>${list.map(t=>{const mode=modeFor(t,context),value=t.values[mode],result=resolve(t.id);return `<tr class="${t.id===selected?'selected':''}"><td><button class="token-name" data-select="${t.id}">${escapeHtml(t.name)}</button><span class="token-sub">${t.collection} · ${mode==='default'?'mode unique':mode}</span></td><td>${value?.alias?`<button class="alias" data-follow="${value.alias}" data-preview="${t.id}" aria-label="Suivre l'alias de ${escapeHtml(t.name)}">↗ ${escapeHtml(index.has(value.alias)?full(index.get(value.alias)):value.alias)}</button>`:`<code>${escapeHtml(showValue(value))}</code>`}</td><td><span class="resolved ${result.error?'status':''}">${swatch(result.value)}${escapeHtml(result.error??showValue(result.value))}</span></td></tr>`;}).join('')}</tbody></table></div>${!list.length?'<p class="empty">Aucune variable ne correspond. Modifiez la recherche.</p>':''}<p class="section muted">Cliquez sur le nom pour inspecter. La référence ouvre directement sa cible.</p>`;
+}
+function renderInspector(){
+ const t=index.get(selected),result=resolve(selected);
+ $('inspector').innerHTML=`<div class="actions"><button id="back" ${history.length?'':'disabled'}>← Retour</button><span class="pill">${t.type}</span></div><h2>${escapeHtml(full(t))}</h2><span class="muted">${escapeHtml(contextLabel(context))} · contexte simulé</span><div class="value-card"><span class="eyebrow">Valeur terminale</span><div class="value-line">${swatch(result.value)}<span style="font-size:${result.error?'15':'21'}px">${escapeHtml(result.error??showValue(result.value))}</span></div><span class="muted">${result.error?'Résolution interrompue.':t.type==='COLOR'?'Hex sRGB opaque · démonstration':'Valeur source · aucune unité ajoutée'}</span></div><div class="actions"><button class="primary" data-copy="value" ${result.error?'disabled':''}>Copier la valeur</button><button data-copy="reference">Copier la référence</button></div><h3>Chaîne de résolution · ${result.chain.length} étapes</h3>${chainHtml(result)}<button data-copy="chain">Copier la chaîne</button><h3>Provenance</h3><p class="muted">Jeu local de la maquette<br>Identifiant : <code>${t.id}</code><br>Aucun calque Figma analysé</p>`;
+}
+function contextControls(ctx,prefix,attribute='compare'){
+ return '<div class="context">'+axes().map(c=>`<label>${escapeHtml(c)} <select aria-label="${escapeHtml(c)} ${prefix}" data-${attribute}="${escapeHtml(c)}">${modesOf(c).map(m=>`<option value="${escapeHtml(m)}" ${ctx[c]===m?'selected':''}>${escapeHtml(m)}</option>`).join('')}</select></label>`).join('')+'</div>';
+}
+function renderCompare(){
+ const left=resolve(selected),right=resolve(selected,comparison);
+ const n=Math.max(left.chain.length,right.chain.length);let difference=-1;
+ for(let i=0;i<n;i++)if(left.chain[i]?.token.id!==right.chain[i]?.token.id){difference=i;break;}
+ const cause=difference>0?left.chain[difference-1]?.token:null;
+ $('view').innerHTML=`<div class="section"><h2>Un token, deux contextes</h2><p><code>${escapeHtml(full(index.get(selected)))}</code></p><div class="compare-grid"><div class="compare-card"><b>Contexte A</b><p class="muted">${escapeHtml(contextLabel(context))}<br>Réglages de la barre supérieure</p><div class="legend">${swatch(left.value)}<code>${escapeHtml(left.error??showValue(left.value))}</code></div>${chainHtml(left)}</div><div class="compare-card"><b>Contexte B</b>${contextControls(comparison,'comparée')}<div class="legend">${swatch(right.value)}<code>${escapeHtml(right.error??showValue(right.value))}</code></div>${chainHtml(right)}</div></div><div class="notice">${left.error||right.error?'Comparaison partielle : une chaîne ne peut pas être résolue.':cause?`Premier changement de cible dans <code>${escapeHtml(full(cause))}</code>. Les valeurs terminales ${left.value===right.value?'sont identiques':'diffèrent'}.`:'Les deux contextes suivent les mêmes références.'}</div></div>`;
+}
+function dependents(id){return tokens.filter(t=>t.id!==id&&resolve(t.id).chain.some(step=>step.token.id===id));}
+function renderUcm(){
+ if(project!=='ucm'){
+  const depend=dependents(selected);
+  $('view').innerHTML=`<div class="section"><h2>Variables dépendantes · ${depend.length}</h2><p class="muted">Références entrantes dans le jeu chargé. Aucun contrat requis.</p>${depend.map(t=>`<p><button class="alias" data-open="${t.id}">${escapeHtml(full(t))}</button></p>`).join('')||'<p>Aucune référence entrante dans ce périmètre.</p>'}</div>`;
+  return;
+ }
+ const result=resolve(selected),usage=result.chain.find(s=>s.token.collection==='usage')?.token;
+ const terminal=result.chain.at(-1)?.token, depend=dependents(selected), contracts=[index.get(selected),...depend].filter(t=>t.contract);
+ const role=usage?`${usage.role}${usage.role==='success'?' · soft':''}`:'Non déduit pour ce token';
+ $('view').innerHTML=`<div class="section"><h2>De la palette à son emploi</h2><p class="muted">Associations illustratives. Le futur plugin devra les établir depuis les sources chargées.</p><div class="role-row"><b>Palette source</b><span>${terminal?.palette||'Non résolue'} ${terminal?.shade?`· cran ${terminal.shade}`:''}</span></div><div class="role-row"><b>Rôle</b><span>${role}</span></div><div class="role-row"><b>Emploi</b><span>${usage?`${usage.job} · ${usage.paint}`:'Aucun usage dans cette chaîne'}</span></div><div class="role-row"><b>Rang</b><span>${usage?.rank||'Sans rang'}</span></div>${selected==='c.button.bg'?`<div class="sample" style="background:${palettes.titanium[context.theme][50]}"><span style="background:${result.value};color:${palettes.titanium[context.theme][50]}">Continuer</span></div><p class="muted">Spécimen du fond sélectionné. Aucun verdict de contraste n'est calculé.</p>`:''}<h3>Contrats associés · ${contracts.length} exemple${contracts.length===1?'':'s'}</h3>${contracts.map(t=>`<div class="consumer"><b>${t.contract.split(' · ')[0]}</b><p><code>${escapeHtml(t.contract)}</code></p><span class="muted">Occurrence fictive · aucun fichier importé</span></div>`).join('')||'<p class="muted">Aucun contrat associé dans ce jeu.</p>'}<h3>Variables dépendantes · ${depend.length}</h3>${depend.map(t=>`<p><button class="alias" data-open="${t.id}">${escapeHtml(full(t))}</button></p>`).join('')||'<p class="muted">Aucune référence entrante dans le jeu chargé.</p>'}<p class="feature-note">Périmètre : variables du jeu. Les calques et styles Figma ne sont pas analysés.</p></div>`;
+}
+function renderIssues(){
+ $('view').innerHTML=`<div class="section"><h2>2 chaînes à examiner</h2><p class="muted">Scénarios fictifs pour évaluer les messages et la navigation.</p><article class="issue"><h3>Cible inaccessible</h3><code>${project==='ucm'?'components.button.legacy.border':'Interface.legacy/border'}</code><p>La valeur ne peut pas être résolue. Vérifiez l'accès à la bibliothèque de la cible avant de modifier cet alias.</p><button data-open="${project==='ucm'?'c.bad':'free.bad'}">Examiner la chaîne</button></article><article class="issue"><h3>Cycle entre deux variables</h3><code>${project==='ucm'?'components.debug.cycle-a / cycle-b':'Interface.essai/a / essai/b'}</code><p>La chaîne revient à son point de départ. Le designer doit remplacer un des alias par la cible attendue dans Figma.</p><button data-open="${project==='ucm'?'c.cycle':'free.cycle'}">Examiner le cycle</button></article><p class="feature-note">Le plugin proposé ne répare pas automatiquement les références.</p></div>`;
+}
+function announce(message){$('toast').textContent=message;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').textContent='',3500);}
+async function copy(kind){
+ const result=resolve(selected),t=index.get(selected);let text;
+ if(kind==='value'){if(result.error)return;text=typeof result.value==='string'?result.value:showValue(result.value);}
+ if(kind==='reference')text=project==='ucm'?`{${t.collection}.${t.exportName}}`:full(t);
+ if(kind==='chain')text=`${escapeHtml(contextLabel(context))}\n${result.chain.map(s=>`${full(s.token)} [${s.mode}]`).join('\n→ ')}\n${result.error??showValue(result.value)}`;
+ try{await navigator.clipboard.writeText(text);announce(`Copié : ${kind==='chain'?'chaîne de résolution':text}`);}catch{
+  const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.left='-9999px';document.body.append(area);area.select();const ok=document.execCommand('copy');area.remove();announce(ok?'Texte copié.':'Copie indisponible dans ce navigateur. Sélectionnez le texte affiché.');
+ }
+}
+function showTooltip(button){
+ const result=resolve(button.dataset.preview),box=button.getBoundingClientRect(),tooltip=$('tooltip');
+ tooltip.innerHTML=`<b>Chaîne complète</b><p class="muted">${escapeHtml(contextLabel(context))}</p>${chainHtml(result,false)}${result.value!==undefined?`<div class="legend">${swatch(result.value)}<code>${escapeHtml(showValue(result.value))}</code></div>`:''}`;
+ tooltip.hidden=false;button.setAttribute('aria-describedby','tooltip');const rect=tooltip.getBoundingClientRect();
+ tooltip.style.left=`${Math.max(12,Math.min(box.left,innerWidth-rect.width-12))}px`;
+ tooltip.style.top=`${Math.max(12,Math.min(box.bottom+8,innerHeight-rect.height-12))}px`;
+}
+function hideTooltip(){$('tooltip').hidden=true;document.querySelectorAll('[aria-describedby="tooltip"]').forEach(b=>b.removeAttribute('aria-describedby'));}
+document.addEventListener('click',event=>{
+ const button=event.target.closest('button');if(!button)return;
+ if(button.dataset.toggle){const key=button.dataset.toggle;collapsed.has(key)?collapsed.delete(key):collapsed.add(key);renderTree();document.querySelector(`[data-toggle="${CSS.escape(key)}"]`)?.focus();}
+ if(button.dataset.collection){collection=button.dataset.collection;group=button.dataset.group||'';search='';$('search').value='';tab='table';hideTooltip();render();}
+ if(button.dataset.tab){tab=button.dataset.tab;hideTooltip();render();}
+ if(button.dataset.select){selected=button.dataset.select;hideTooltip();render();}
+ if(button.dataset.open)openToken(button.dataset.open);
+ if(button.dataset.follow)openToken(button.dataset.follow);
+ if(button.id==='back')goBack();if(button.dataset.copy)copy(button.dataset.copy);
+});
+document.addEventListener('mouseover',event=>{const button=event.target.closest('[data-preview]');if(button)showTooltip(button);});
+document.addEventListener('mouseout',event=>{if(event.target.closest('[data-preview]'))hideTooltip();});
+document.addEventListener('focusin',event=>{const button=event.target.closest('[data-preview]');if(button)showTooltip(button);});
+document.addEventListener('focusout',hideTooltip);document.addEventListener('keydown',event=>{if(event.key==='Escape')hideTooltip();});
+document.addEventListener('scroll',hideTooltip,true);
+document.addEventListener('change',event=>{if(event.target.dataset.compare){comparison[event.target.dataset.compare]=event.target.value;renderCompare();}});
+document.addEventListener('change',event=>{if(event.target.dataset.context){context[event.target.dataset.context]=event.target.value;hideTooltip();render();}});
+ $('project').addEventListener('change',event=>switchProject(event.target.value));
+ $('search').addEventListener('input',event=>{search=event.target.value;tab='table';hideTooltip();render();});
+switchProject('free');
+</script>
+</body>
+</html>

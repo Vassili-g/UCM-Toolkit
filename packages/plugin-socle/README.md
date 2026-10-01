@@ -1,6 +1,6 @@
 # ucm-plugin-socle
 
-Le socle partagé des deux plugins Figma de [UCM Toolkit](../../README.md).
+Le socle partagé des trois plugins Figma de [UCM Toolkit](../../README.md).
 Ce paquet privé est consommé en source. Il regroupe le build des interfaces,
 les composants communs et les outils de vérification des plugins.
 
@@ -12,6 +12,7 @@ les composants communs et les outils de vérification des plugins.
 | `build/manifest.cjs` | Produit le manifeste importable depuis `dist/` |
 | `build/run-tests.cjs` | Découvre et exécute les tests d'un paquet |
 | `src/fenetre.ts` | Borne la taille de fenêtre et la conserve dans `clientStorage` |
+| `src/cheminsDeTokens.ts` | Construit le chemin publié d'un token, que l'exporteur écrit et que l'explorateur recalcule |
 | `src/ui/` | Bouton, onglets, interrupteur, redimensionnement et commandes d'en-tête |
 | `socle.css` | Échelles de texte, espacements, couleurs et replis sombres |
 | `galerie/` | Construit et capture les états d'interface hors de Figma |
@@ -30,6 +31,7 @@ npm run test --workspace ucm-plugin-socle
 npm run typecheck --workspace ucm-plugin-socle
 npm run galerie --workspace ucm-exporter-plugin
 npm run galerie --workspace ucm-palettes-plugin
+npm run galerie --workspace ucm-explorateur-plugin
 ```
 
 Une modification partagée se relit dans les deux galeries. Les captures se

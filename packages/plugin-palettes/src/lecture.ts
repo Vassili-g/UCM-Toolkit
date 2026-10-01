@@ -3,13 +3,9 @@
  * emploi ([REC-03]), son empreinte, le profil de couleur du document, les
  * cadres de la planche et la couleur de la sélection. Rien ici n'écrit.
  */
-import { classerRecette, ecrireHexa, fnv1a, octetsUtf8, p3VersRgb8, type Classement } from 'ucm-couleur';
+import { CLE_RECETTE, ESPACE_PARTAGE, classerRecette, ecrireHexa, fnv1a, octetsUtf8, p3VersRgb8, type Classement } from 'ucm-couleur';
 
-/** L'espace de noms partagé : il survit à un changement d'identifiant du plugin ([REC-01]). */
-export const ESPACE_PARTAGE = 'ucm_palettes';
-
-/** La clé de la recette dans l'espace partagé. */
-export const CLE_RECETTE = 'recette';
+export { CLE_RECETTE, ESPACE_PARTAGE };
 
 /**
  * La clé de la planche : la page et les cadres dessinés. Elle vit hors de la

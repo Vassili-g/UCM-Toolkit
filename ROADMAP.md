@@ -44,6 +44,7 @@ un composant composé. Couvrir un catalogue entier n'en fait pas partie.
 | Forges | Le plugin publie sur GitHub et sur gitlab.com : une branche, un fichier et une demande de fusion par export. `ucm init` écrit la CI de la forge du repository. Le parcours GitLab de la [recette](./docs/guides/RECETTE.md#parcours-gitlab) a été joué sur un projet gitlab.com |
 | Interopérabilité | JSON Schema publié dans `schema/`, dérivé de `types.ts`. Il décrit la forme, jamais la cohérence. Il ne bloque aucune fusion |
 | Validation Figma | Quatre composants exportés à la forme courante, puis reconstruits à froid depuis leur seul contrat. Le Playground porte ce corpus, et son contrôle est vert |
+| Explorateur de tokens | UCM Token Explorer parcourt les variables de toute architecture, résout leurs chaînes par mode et lit leurs consommateurs, en lecture seule. Ses tests portent sur des relevés fabriqués et sur l’interface compilée dans Chromium ; son [suivi](./docs/notes/Recherches/Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) tient les mesures |
 
 Aucun contrôle n'exécute le rendu.
 
@@ -57,6 +58,7 @@ Aucun contrôle n'exécute le rendu.
 | Les protections de branche sont indisponibles sur le plan GitHub actuel | La CI détecte l'écart sans empêcher la fusion. Une pull request rouge reste fusionnable |
 | Le manifeste du plugin ne déclare que `api.github.com` et `gitlab.com` | Une équipe sur une instance GitLab auto-hébergée ne publie pas depuis Figma. Sa CI, elle, fonctionne |
 | La version 1 du format de tokens n'est éprouvée qu'en sRGB | Un export Figma réel la produit, déposé par le plugin de la Community, et le CSS du consommateur ne bouge pas d'un bit. Le Display P3 n'a pas d'export réel : un écran qui ne le rend pas prive Figma du réglage de profil |
+| L’explorateur de tokens n’a pas été ouvert dans Figma | Sa résolution des modes hérités, des collections étendues et des bibliothèques distantes n’est pas comparée à `resolveForConsumer` sur un fichier réel |
 | Aucun cas mesuré de mode fixé dans un composant ne change une valeur publiée | Le contrat ne décrit pas encore un mode fixé sur un calque. Un cas réel doit montrer une perte avant l'ajout d'un champ |
 
 ## Fragilités connues

@@ -1,19 +1,20 @@
 # UCM Toolkit
 
 UCM Toolkit regroupe les outils de conception et de contrôle d'un design system :
-deux plugins Figma, un format de contrat de composant et les commandes qui
+trois plugins Figma, un format de contrat de composant et les commandes qui
 vérifient ces contrats dans le repository consommateur.
 
 | Outil | Usage | Documentation |
 |---|---|---|
 | UCM Contract Exporter | Exporter les composants en contrats JSON et les variables en tokens DTCG ; publier sur GitHub ou GitLab | [Plugin Exporter](./packages/plugin-exporter/README.md) |
 | UCM Palettes | Construire des palettes, examiner leurs contrastes et dessiner leurs planches dans Figma | [Plugin Palettes](./packages/plugin-palettes/README.md) |
+| UCM Token Explorer | Parcourir les variables de toute architecture, suivre leurs alias et expliquer leurs valeurs par mode, en lecture seule | [Plugin Explorateur](./packages/plugin-explorateur/README.md) |
 | `@ucm-kit/cli` | Initialiser un repository, contrôler les contrats, produire le CSS des tokens et préparer l'implémentation | [CLI](./packages/cli/README.md) |
 | `@ucm-kit/core` | Lire le format, valider les contrats et leurs références depuis du code | [Kit](./packages/kit/README.md) |
 | `@ucm-kit/adapter-typescript` | Comparer l'API TypeScript et la composition JSX aux contrats ; dériver les unions de types | [Adaptateur](./packages/adapter-typescript/README.md) |
 
-**UCM Toolkit** est le nom du projet. **UCM Contract Exporter** et **UCM Palettes**
-sont les noms de ses plugins. Les paquets publics gardent le préfixe `@ucm-kit/`.
+**UCM Toolkit** est le nom du projet. **UCM Contract Exporter**, **UCM Palettes**
+et **UCM Token Explorer** sont les noms de ses plugins ; le dernier est provisoire. Les paquets publics gardent le préfixe `@ucm-kit/`.
 
 ## Le problème
 
@@ -60,7 +61,7 @@ qui avertit, et le geste attendu pour chaque écart.
 | **Designer** | Vos variantes, vos tokens et vos règles d'usage arrivent au développeur sans être retapés, et la demande de fusion vous dit ce qui manque | [Ouvrir le plugin](#ouvrir-le-plugin), puis [docs/guides/POUR-LES-DESIGNERS.md](./docs/guides/POUR-LES-DESIGNERS.md) |
 | **Développeur d'un repository consommateur** | Une source unique pour l'API visuelle d'un composant, et une CI qui signale les écarts avant la fusion | [Brancher un repository](#brancher-un-repository) |
 | **Designer de palettes** | Des rampes, leurs contrastes et une planche partageable dans Figma | [Utiliser UCM Palettes](./packages/plugin-palettes/README.md) |
-| **Contributeur** | Les sources des deux plugins et des paquets de contrôle | [Construire les plugins](#construire-le-plugin-depuis-ce-dépôt), puis [AGENTS.md](./AGENTS.md) |
+| **Contributeur** | Les sources des trois plugins et des paquets de contrôle | [Construire les plugins](#construire-le-plugin-depuis-ce-dépôt), puis [AGENTS.md](./AGENTS.md) |
 
 ## Ouvrir le plugin
 
@@ -202,7 +203,7 @@ npm install @ucm-kit/core@0.3.0
 
 ## Construire le plugin depuis ce dépôt
 
-Ce chemin construit les deux plugins. Il demande Node 22,
+Ce chemin construit les trois plugins. Il demande Node 22,
 la version de la CI, et l'application de bureau Figma.
 
 ```sh
@@ -214,16 +215,18 @@ Dans Figma, utilisez `Plugins > Development > Import plugin from manifest`
 pour importer le manifeste du plugin à ouvrir :
 
 - `packages/plugin-exporter/dist/manifest.json` pour UCM Contract Exporter ;
-- `packages/plugin-palettes/dist/manifest.json` pour UCM Palettes.
+- `packages/plugin-palettes/dist/manifest.json` pour UCM Palettes ;
+- `packages/plugin-explorateur/dist/manifest.json` pour UCM Token Explorer.
 
 | Commande | Rôle |
 |---|---|
-| `npm test` | Tests des sept paquets et contrôles du monorepo |
+| `npm test` | Tests des huit paquets et contrôles du monorepo |
 | `npm run typecheck` | Vérification TypeScript |
-| `npm run build` | Construit le kit et les deux plugins, avec vérification des types de chaque build |
+| `npm run build` | Construit le kit et les trois plugins, avec vérification des types de chaque build |
 | `npm run test:ui --workspace ucm-exporter-plugin` | Tests d'interaction de l'exporteur dans Chromium |
 | `npm run test:ui --workspace ucm-palettes-plugin` | Tests d'interaction de Palettes dans Chromium |
-| `npm run galerie --workspace <plugin>` | Construit la galerie de `ucm-exporter-plugin` ou `ucm-palettes-plugin` |
+| `npm run test:ui --workspace ucm-explorateur-plugin` | Tests d'interaction de l'explorateur dans Chromium |
+| `npm run galerie --workspace <plugin>` | Construit la galerie de `ucm-exporter-plugin`, `ucm-palettes-plugin` ou `ucm-explorateur-plugin` |
 | `npm run schema` | Régénère le JSON Schema depuis `types.ts`, après tout changement de ce fichier |
 | `npm run cascade` | Rend la feuille des tokens dans Chromium, Firefox et WebKit ; les navigateurs s'installent par `npx playwright install chromium firefox webkit` |
 

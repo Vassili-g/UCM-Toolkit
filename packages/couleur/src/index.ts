@@ -11,6 +11,7 @@ export * from './tailwind';
 export * from './contraste';
 export * from '@ucm-kit/core/emplois';
 export * from './recette';
+export * from './protocole';
 export * from './empreinte';
 export * from './palette';
 export * from './reglages';
