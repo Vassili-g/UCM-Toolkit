@@ -2641,9 +2641,12 @@ geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
   porte des identifiants de palette, l'empreinte lue de la recette, et pour
   chaque palette modifiée dans Figma le choix `remettre`. Elle refuse si
   l'empreinte de la recette rangée diffère, relit le suivi et les variables,
-  puis recalcule le plan et l'état. Une variable suivie qui a disparu se
-  recrée. Rien ne se supprime. Chaque variable créée naît vide, puis reçoit
-  sa valeur. Le suivi se range après les valeurs, et un seul
+  puis recalcule le plan et l'état. La liste des variables locales fait
+  foi : une variable suivie qui n'y est plus a disparu, et se recrée. Rien
+  ne se supprime. Chaque variable créée naît sans portée (`scopes` vide,
+  D14), puis reçoit sa valeur ; une valeur déjà égale à celle du plan ne se
+  réécrit pas. Dans un document `DISPLAY_P3`, les composantes écrites sont
+  en P3, comme sur la planche. Le suivi se range après les valeurs, et un seul
   `figma.commitUndo()` clôt l'écriture. Une erreur au milieu d'une palette
   retire les variables que cette écriture venait de créer pour elle ; les
   autres palettes continuent. Le résultat nomme, par palette, ce qui est
@@ -2652,13 +2655,17 @@ geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
   variable du même nom qu'il ne suit pas. S'il en trouve une, il arrête
   l'écriture de cette palette sans rien créer, et la fiche nomme la
   variable : le designer renomme la palette ou change de groupe.
-- `[VAR-09]` La collection d'une palette est celle de son suivi, sinon celle
-  que la destination désigne par identifiant, sinon une collection créée au
-  nom donné. Une collection locale du même nom, que le plugin n'a pas créée,
-  n'est jamais reprise sans que la destination la désigne par identifiant.
+- `[VAR-09]` La collection d'une palette est celle de son suivi tant que la
+  destination n'a pas changé depuis son écriture, sinon celle que la
+  destination désigne par identifiant, sinon une collection créée au nom
+  donné. La collection créée devient la destination, par son identifiant :
+  la palette suivante la rejoint. Une collection locale du même nom, que le
+  plugin n'a pas créée, n'est jamais reprise sans que la destination la
+  désigne par identifiant. Une collection désignée que le fichier ne porte
+  plus arrête la palette.
 - `[VAR-10]` Avec les thèmes en modes, le sandbox trouve ou crée les modes
-  `Light` et `Dark` ; le premier mode d'une collection neuve se renomme
-  `Light`. Un refus d'`addMode` arrête la palette, et la fiche montre le
+  `Light` et `Dark`, par leur nom, sans casse ; le seul mode d'une
+  collection sans variable se renomme `Light`. Un refus d'`addMode` arrête la palette, et la fiche montre le
   message de Figma replié. Avec les thèmes dans le chemin, dans une
   collection qui porte plusieurs modes, la même valeur s'écrit dans tous les
   modes.

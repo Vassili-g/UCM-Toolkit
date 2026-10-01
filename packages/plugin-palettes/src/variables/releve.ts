@@ -4,7 +4,7 @@
  * envoie à l'interface. `src/lectureDesVariables.ts` le produit ; l'état et
  * la détection le lisent. Pur.
  */
-import { ecrireHexa } from 'ucm-couleur';
+import { ecrireHexa, lireHexa, p3VersRgb8, rgb8VersP3 } from 'ucm-couleur';
 
 export interface ModeLu {
   readonly id: string;
@@ -53,4 +53,30 @@ export function hexaDeFigma(couleur: { readonly r: number; readonly g: number; r
   const hexa = ecrireHexa([octet(couleur.r), octet(couleur.g), octet(couleur.b)]).toUpperCase();
   const alpha = octet(couleur.a ?? 1);
   return alpha === 255 ? hexa : `${hexa}${alpha.toString(16).padStart(2, '0').toUpperCase()}`;
+}
+
+/** Le profil de couleur du document : dans un document `DISPLAY_P3`, les composantes d'une variable sont en P3. */
+type Profil = 'SRGB' | 'DISPLAY_P3' | 'LEGACY';
+
+/**
+ * La couleur d'une variable, lue dans le profil du document, en hexa sRGB
+ * majuscule. Dans un document `DISPLAY_P3`, ses composantes passent en sRGB
+ * à 8 bits avant la comparaison ([MOT-26]).
+ */
+export function hexaLu(couleur: { readonly r: number; readonly g: number; readonly b: number; readonly a?: number }, profil: Profil): string {
+  if (profil !== 'DISPLAY_P3') return hexaDeFigma(couleur);
+  const [r, g, b] = p3VersRgb8([couleur.r, couleur.g, couleur.b]).couleur;
+  return hexaDeFigma({ r: r / 255, g: g / 255, b: b / 255, a: couleur.a });
+}
+
+/**
+ * Les composantes qu'une variable reçoit pour une couleur du plan : les
+ * octets sRGB divisés par 255, ou leurs composantes Display P3 dans un
+ * document `DISPLAY_P3`, comme la planche les peint (section 6.7).
+ */
+export function couleurPourFigma(hexa: string, profil: Profil): { r: number; g: number; b: number; a: number } {
+  const couleur = lireHexa(hexa);
+  if (!couleur) throw new Error(`Couleur illisible : ${hexa}.`);
+  const [r, g, b] = profil === 'DISPLAY_P3' ? rgb8VersP3(couleur) : [couleur[0] / 255, couleur[1] / 255, couleur[2] / 255];
+  return { r, g, b, a: 1 };
 }

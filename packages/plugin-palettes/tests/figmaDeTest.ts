@@ -1,9 +1,10 @@
 /**
- * Un double de l'API Figma, réduit à ce que le dessin de la planche emploie.
- * Il refuse ce que Figma refuse et que le dessin doit éviter : lire les
- * enfants d'une page non chargée (`documentAccess: "dynamic-page"`), y
- * chercher, poser un texte dans une police non chargée. Un journal garde
- * l'ordre des opérations.
+ * Un double de l'API Figma, réduit à ce que le dessin de la planche et
+ * l'écriture des variables emploient. Il refuse ce que Figma refuse : lire
+ * les enfants d'une page non chargée (`documentAccess: "dynamic-page"`), y
+ * chercher, poser un texte dans une police non chargée, créer une variable
+ * dont le nom est déjà pris dans sa collection, ajouter un mode au-delà de
+ * la limite de l'offre. Un journal garde l'ordre des opérations.
  */
 import type { FigmaDuDessin } from '../src/ecriture/planche';
 
@@ -183,8 +184,146 @@ class Section extends Noeud {
   }
 }
 
+/** Ce qui porte des données de plugin partagées sans être un nœud : une collection, une variable. */
+class Porteur {
+  readonly donnees = new Map<string, string>();
+
+  getSharedPluginData(espace: string, cle: string): string {
+    return this.donnees.get(`${espace}/${cle}`) ?? '';
+  }
+
+  setSharedPluginData(espace: string, cle: string, valeur: string): void {
+    this.donnees.set(`${espace}/${cle}`, valeur);
+  }
+}
+
+type ValeurDeVariable = { r: number; g: number; b: number; a: number } | { type: 'VARIABLE_ALIAS'; id: string };
+
+/** Une collection locale de variables : ses modes, dans leur ordre, et ses variables. */
+export class FausseCollection extends Porteur {
+  readonly id = `VariableCollectionId:${(compteur += 1)}:0`;
+  readonly remote = false;
+  modes: { modeId: string; name: string }[];
+  variableIds: string[] = [];
+
+  constructor(public name: string, readonly figma: FauxFigma) {
+    super();
+    this.modes = [{ modeId: `${(compteur += 1)}:0`, name: 'Mode 1' }];
+  }
+
+  get defaultModeId(): string {
+    return this.modes[0].modeId;
+  }
+
+  addMode(nom: string): string {
+    if (this.modes.length >= this.figma.limiteDeModes) throw new Error(`in addMode: Limited to ${this.figma.limiteDeModes} modes only`);
+    const modeId = `${(compteur += 1)}:0`;
+    this.modes.push({ modeId, name: nom });
+    this.figma.journal.push(`ajouter mode ${nom}`);
+    return modeId;
+  }
+
+  renameMode(modeId: string, nom: string): void {
+    const mode = this.modes.find((candidat) => candidat.modeId === modeId);
+    if (!mode) throw new Error(`mode inconnu : ${modeId}`);
+    mode.name = nom;
+    this.figma.journal.push(`renommer mode ${nom}`);
+  }
+}
+
+/** Une variable locale de couleur. Créée, elle porte dans chaque mode le blanc que Figma lui donne. */
+export class FausseVariable extends Porteur {
+  readonly id = `VariableID:${(compteur += 1)}:0`;
+  readonly remote = false;
+  readonly resolvedType = 'COLOR';
+  scopes: string[] = ['ALL_SCOPES'];
+  valuesByMode: { [mode: string]: ValeurDeVariable } = {};
+  private nom: string;
+
+  constructor(nom: string, readonly collection: FausseCollection, readonly figma: FauxFigma) {
+    super();
+    this.nom = nom;
+    for (const mode of collection.modes) this.valuesByMode[mode.modeId] = { r: 1, g: 1, b: 1, a: 1 };
+  }
+
+  get name(): string {
+    return this.nom;
+  }
+
+  set name(nom: string) {
+    if (this.figma.variablesDe(this.collection).some((autre) => autre !== this && autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+    this.nom = nom;
+  }
+
+  get variableCollectionId(): string {
+    return this.collection.id;
+  }
+
+  setValueForMode(mode: string, valeur: ValeurDeVariable): void {
+    if (!this.collection.modes.some((candidat) => candidat.modeId === mode)) throw new Error(`mode inconnu : ${mode}`);
+    if (this.figma.echouerALaValeur !== null && (this.figma.echouerALaValeur -= 1) < 0) {
+      // Une seule écriture échoue : les palettes suivantes s'écrivent.
+      this.figma.echouerALaValeur = null;
+      throw new Error('écriture de valeur refusée');
+    }
+    this.valuesByMode[mode] = valeur;
+    this.figma.journal.push(`valeur ${this.nom}`);
+  }
+
+  remove(): void {
+    this.figma.locales.delete(this.id);
+    this.collection.variableIds = this.collection.variableIds.filter((id) => id !== this.id);
+    this.figma.journal.push(`retirer variable ${this.nom}`);
+  }
+}
+
 export class FauxFigma {
   readonly registre = new Map<string, Noeud>();
+  /** Les collections et les variables locales, dans l'ordre de leur création. */
+  readonly collections = new Map<string, FausseCollection>();
+  readonly locales = new Map<string, FausseVariable>();
+  /** Le nombre de modes qu'une collection porte au plus : l'offre gratuite de Figma s'arrête à un. */
+  limiteDeModes = 4;
+  /** Le nombre de valeurs écrites avant que l'écriture suivante lève, une fois ; `null`, jamais. */
+  echouerALaValeur: number | null = null;
+
+  /** L'API des variables : ce que Figma appelle `figma.variables`. */
+  readonly variables = {
+    createVariableCollection: (nom: string): FausseCollection => {
+      const collection = new FausseCollection(nom, this);
+      this.collections.set(collection.id, collection);
+      this.journal.push(`créer collection ${nom}`);
+      return collection;
+    },
+    createVariable: (nom: string, collection: FausseCollection, type: string): FausseVariable => {
+      if (type !== 'COLOR') throw new Error(`type hors du double : ${type}`);
+      if (this.variablesDe(collection).some((autre) => autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+      const variable = new FausseVariable(nom, collection, this);
+      this.locales.set(variable.id, variable);
+      collection.variableIds.push(variable.id);
+      this.journal.push(`créer variable ${nom}`);
+      return variable;
+    },
+    getLocalVariableCollectionsAsync: async (): Promise<FausseCollection[]> => [...this.collections.values()],
+    getLocalVariablesAsync: async (type?: string): Promise<FausseVariable[]> => {
+      this.journal.push('lire variables');
+      return [...this.locales.values()].filter((variable) => type === undefined || variable.resolvedType === type);
+    },
+    getVariableByIdAsync: async (id: string): Promise<FausseVariable | null> => this.locales.get(id) ?? null,
+    getVariableCollectionByIdAsync: async (id: string): Promise<FausseCollection | null> => this.collections.get(id) ?? null,
+  };
+
+  /** Les variables d'une collection, dans l'ordre de leur création. */
+  variablesDe(collection: FausseCollection): FausseVariable[] {
+    return collection.variableIds.map((id) => this.locales.get(id)!).filter(Boolean);
+  }
+
+  /** La variable locale de ce nom, dans n'importe quelle collection. */
+  variable(nom: string): FausseVariable {
+    const trouvee = [...this.locales.values()].find((variable) => variable.name === nom);
+    if (!trouvee) throw new Error(`aucune variable ${nom}`);
+    return trouvee;
+  }
   /** Les identifiants que Figma refuse de lire : `getNodeByIdAsync` lève. */
   readonly illisibles = new Set<string>();
   readonly journal: string[] = [];

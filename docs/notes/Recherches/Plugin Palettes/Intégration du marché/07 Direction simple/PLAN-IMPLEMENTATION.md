@@ -60,7 +60,9 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
+P5.1 à P5.3 et P5.5. P5.4 attend l'interface : un message n'entre dans
+`messages.ts` qu'avec l'état de galerie qui le met en scène.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
@@ -98,6 +100,12 @@ unitaires et le build la tiennent seuls.
   une destination changée ; `src/variables/releve.ts` porte la forme de ce
   que la lecture rend ; une palette renommée garde les noms de ses
   variables, puisque le plugin ne renomme rien.
+- Écarts de l'écriture des variables : la lecture ne relit pas les
+  variables du suivi par identifiant, parce que `getVariableByIdAsync` rend
+  encore une variable supprimée qu'un calque cite ; la liste locale fait
+  foi. L'essai R4 ne se mesure pas sur le double : la lecture se fait à
+  chaque `lire-etat`, à revoir si Figma dépasse 300 ms. Une variable créée
+  naît sans portée, comme l'architecture le demande pour `primitives` (D14).
 
 ## Arbitrages
 
@@ -337,7 +345,7 @@ Aucune interface, aucun appel à Figma. Tout se teste dans Node.
 
 Maquettes : M9 en entier, M11.
 
-- [ ] **P5.1** `src/lectureDesVariables.ts`, seul lecteur de
+- [x] **P5.1** `src/lectureDesVariables.ts`, seul lecteur de
   `figma.variables` : les collections locales, nom, identifiant, modes et
   nombre de variables ; les variables locales de couleur avec leur valeur par
   mode, alias non suivis ; les variables du suivi relues par identifiant,
@@ -346,13 +354,13 @@ Maquettes : M9 en entier, M11.
   lecture se fait à chaque `lire-etat`. Si elle dépasse 300 ms sur le double
   chargé de 500 variables, ne la faire qu'à l'ouverture de Gestion et à
   « Synchroniser ».
-- [ ] **P5.2** Étendre `tests/figmaDeTest.ts` : collections, modes,
+- [x] **P5.2** Étendre `tests/figmaDeTest.ts` : collections, modes,
   variables, `createVariableCollection`, `createVariable`, `addMode`,
   `renameMode`, `setValueForMode`, `getVariableByIdAsync`,
   `getLocalVariablesAsync`, `getLocalVariableCollectionsAsync`, données
   partagées sur une variable, refus d'un nom déjà pris et refus d'un mode de
   trop.
-- [ ] **P5.3** `src/ecriture/variables.ts` : `ecrireLesVariables(figma,
+- [x] **P5.3** `src/ecriture/variables.ts` : `ecrireLesVariables(figma,
   demande)`. La demande porte des identifiants de palette, l'empreinte lue de
   la recette, et pour chaque palette modifiée dans Figma le choix `remettre`.
   Dans l'ordre :
@@ -385,7 +393,7 @@ Maquettes : M9 en entier, M11.
   loiDEcriture.test.ts` : la loi `[ARC-13]` réécrite, les deux fichiers
   autorisés nommés, tout autre appel à `figma.variables` refusé. AGENTS.md :
   l'invariant, les portes, la carte du code.
-- [ ] **P5.5** `tests/variables.test.ts`, sur le double : première écriture,
+- [x] **P5.5** `tests/variables.test.ts`, sur le double : première écriture,
   réécriture sans doublon, variable disparue recréée, nom déjà pris, palette
   modifiée refusée sans choix, erreur au milieu, thèmes en modes, collection
   existante à deux modes, recette changée depuis la lecture, suivi futur, un

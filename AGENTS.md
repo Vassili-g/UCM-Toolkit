@@ -245,6 +245,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/planche/peints.ts    les couleurs relues sur la planche, comparées à celles de l'aperçu
   src/ecriture/recette.ts  le rangement de la recette : validation, empreinte lue, commitUndo
   src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée ; le choix de la page des planches, qui y déplace les cadres possédés
+  src/lectureDesVariables.ts  les collections locales, les variables de couleur et le suivi rangé ; avec l'écriture, le seul appel à `figma.variables`
   src/variables/           le modèle pur des variables, sans Figma ni DOM
   src/variables/destination.ts  où les palettes s'écrivent : collection, groupe, thèmes ; son défaut et sa validation
   src/variables/noms.ts    le segment d'une palette dans le chemin de ses variables, et la collision de deux palettes
@@ -253,6 +254,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/releve.ts  ce que la lecture rend : collections, variables de couleur, et une couleur de Figma arrondie à l'octet
   src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
   src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
+  src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
@@ -1101,9 +1103,11 @@ La spécification en lien porte le raisonnement.
   `figma.ui.resize`. `src/ui/` en est exclu : l'iframe n'a pas de global
   `figma`. Borne : une affectation absente de la liste lui échappe.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#143-le-plugin)
-- Aucun fichier de `src/`, interface et écriture comprises, n'appelle
-  `figma.variables`, `loadAllPagesAsync` ni une API de style. La même loi le
-  tient.
+- Seuls `src/ecriture/variables.ts`, qui écrit, et
+  `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables` ou une
+  méthode de son API. Aucun fichier de `src/`, interface et écriture
+  comprises, n'appelle `loadAllPagesAsync` ni une API de style. La même loi
+  le tient.
 - `src/code.ts` est le seul fichier qui importe `src/ecriture/`, avec une porte
   par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre` et
   `choisir-page`.
@@ -1180,6 +1184,22 @@ La spécification en lien porte le raisonnement.
   rangée. `packages/plugin-palettes/tests/importation.test.ts` et les tests
   d'interface le tiennent.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#101-la-recette-exportée)
+- L'écriture des variables part de la recette rangée, jamais de couleurs
+  envoyées par l'interface : la demande ne porte que des identifiants de
+  palette, l'empreinte lue et les palettes dont le designer remet les
+  couleurs. Le plugin reconnaît ses variables par l'identifiant que le suivi
+  garde, jamais par leur nom, et la liste locale fait foi : une variable
+  suivie qui n'y est plus se recrée. Une palette dont Figma a changé une
+  couleur ne s'écrit pas sans ce choix. Un nom déjà pris par une variable
+  hors du suivi arrête la palette avant toute création. Une variable créée
+  naît sans portée (D14). Une erreur au milieu d'une palette retire les
+  variables que l'écriture venait de créer pour elle, et les autres palettes
+  continuent. Aucune écriture ne renomme ni ne déplace une variable ; seul
+  `retirerLesVariables` en retire, pour une palette que la recette rangée ne
+  contient plus. Le suivi se range après les valeurs, et un seul
+  `commitUndo` clôt l'écriture. `packages/plugin-palettes/tests/variables.test.ts`
+  le tient, contre le double de `tests/figmaDeTest.ts`.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#173-lécriture)
 - Le plan des variables d'une palette prend ses couleurs dans `rampesDe`,
   celles de l'aperçu et de la planche, et donne à chaque entrée une clé
   `{intensité}/{thème}/{nuance}` qui ne dépend ni du nom de la palette ni de

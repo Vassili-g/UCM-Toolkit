@@ -16,6 +16,7 @@ import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
+import type { VariablesDuFichier } from './lectureDesVariables';
 import type { VueDeGestion } from './preferences';
 
 /** Ce que l'interface demande au sandbox. */
@@ -62,9 +63,10 @@ export type PluginMessage =
   /**
    * L'état du fichier, en réponse à `lire-etat` : la recette classée
    * ([REC-03]), l'empreinte du texte rangé, `null` sans recette, le profil
-   * de couleur du document et les cadres de la planche.
+   * de couleur du document, les cadres de la planche, et les variables du
+   * fichier : collections locales, variables de couleur et suivi ([VAR-04]).
    */
-  | { type: 'etat'; demande: number; classement: Classement; texte: string; empreinte: string | null; profil: ProfilDuDocument; planche: EtatDeLaPlanche }
+  | { type: 'etat'; demande: number; classement: Classement; texte: string; empreinte: string | null; profil: ProfilDuDocument; planche: EtatDeLaPlanche; variables: VariablesDuFichier }
   /** L'issue d'un rangement : la nouvelle empreinte, ou le refus ([REC-10]). */
   | { type: 'rangement'; demande: number; issue: IssueDuRangement }
   /** Le cadre en cours de dessin ([PLA-24]). */

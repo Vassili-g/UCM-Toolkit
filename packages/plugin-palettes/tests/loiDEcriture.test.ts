@@ -1,7 +1,9 @@
 /**
- * Seuls les fichiers de `src/ecriture/` écrivent dans le document ([ARC-12]),
- * et aucun fichier de `src/` ne touche aux variables, au chargement de toutes
- * les pages ni aux styles ([ARC-13]).
+ * Seuls les fichiers de `src/ecriture/` écrivent dans le document ([ARC-12]).
+ * Seuls `src/ecriture/variables.ts`, qui écrit, et
+ * `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables`, et
+ * aucun fichier de `src/` ne charge toutes les pages ni ne touche aux styles
+ * ([ARC-13]).
  *
  * Borne : la loi lit la source ligne à ligne et cherche une liste explicite de
  * motifs. Une affectation absente de la liste, une écriture par crochets
@@ -37,9 +39,17 @@ const ECRITURES: { motif: RegExp; quoi: string }[] = [
   { motif: /(?<!figma\.ui)\.resize\s*\(/, quoi: 'dimension de node' },
 ];
 
+/** Les deux seuls fichiers qui appellent `figma.variables` : l'un écrit, l'autre lit. */
+const VARIABLES = [path.join(ECRITURE, 'variables.ts'), path.join(SOURCE, 'lectureDesVariables.ts')];
+
+/** L'API des variables, quel que soit le nom de la liaison qui porte `figma`. */
+const API_DES_VARIABLES: { motif: RegExp; quoi: string }[] = [
+  { motif: /\bfigma\w*\.variables\b/i, quoi: 'variables' },
+  { motif: /\.(createVariable|createVariableCollection|setValueForMode|addMode|renameMode|getLocalVariablesAsync|getLocalVariableCollectionsAsync|getVariableByIdAsync|getVariableCollectionByIdAsync|importVariableByKeyAsync)\s*\(/, quoi: 'variables' },
+];
+
 /** Ce qu'aucun fichier de `src/` n'appelle, écriture et interface comprises. */
 const INTERDITS: { motif: RegExp; quoi: string }[] = [
-  { motif: /figma\.variables\b/, quoi: 'variables' },
   { motif: /loadAllPagesAsync/, quoi: 'chargement de toutes les pages' },
   { motif: /\b(get|create|import)\w*Style\w*\s*\(/, quoi: 'API de style' },
   { motif: /\.(fill|stroke|text|effect|grid)StyleId\b|set\w*StyleIdAsync/, quoi: 'API de style' },
@@ -79,8 +89,15 @@ test('[ARC-12] seul src/ecriture/ écrit dans le document', () => {
   assert.deepEqual(fautes(balayes, ECRITURES), []);
 });
 
-test('[ARC-13] aucun fichier de src/ ne touche aux variables, à toutes les pages ni aux styles', () => {
+test('[ARC-13] aucun fichier de src/ ne charge toutes les pages ni ne touche aux styles', () => {
   assert.deepEqual(fautes(fichiers(SOURCE), INTERDITS), []);
+});
+
+test('[ARC-13] seuls src/ecriture/variables.ts et src/lectureDesVariables.ts appellent figma.variables', () => {
+  for (const fichier of VARIABLES) assert.ok(fs.existsSync(fichier), `${path.relative(racine, fichier)} n’existe plus`);
+  assert.deepEqual(fautes(fichiers(SOURCE).filter((fichier) => !VARIABLES.includes(fichier)), API_DES_VARIABLES), []);
+  // Les deux fichiers nommés l'appellent bien : une liste périmée exempterait un fichier pour rien.
+  for (const fichier of VARIABLES) assert.ok(fautes([fichier], API_DES_VARIABLES).length > 0, path.relative(racine, fichier));
 });
 
 /**

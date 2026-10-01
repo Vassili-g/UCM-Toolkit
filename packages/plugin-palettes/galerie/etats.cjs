@@ -39,8 +39,15 @@ const { modeleDeCadre } = compiler(path.resolve(__dirname, '../src/planche/model
 /** Une planche sans page, avant tout dessin. */
 const PLANCHE_VIDE = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false, pages: [{ id: '0:1', nom: 'Page 1', cadres: 0 }] };
 
+/** Un fichier sans variable, et un suivi que rien n'a encore écrit. */
+const VARIABLES_VIDES = {
+  collections: [],
+  variables: [],
+  suivi: { version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }, confirmee: false, palettes: {} },
+};
+
 /** L'état que le sandbox envoie pour un texte rangé sous la clé de la recette, en réponse à la demande `demande`. */
-function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1) {
+function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1, variables = VARIABLES_VIDES) {
   return {
     message: {
       type: 'etat',
@@ -50,6 +57,7 @@ function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande =
       empreinte: texte === '' ? null : fnv1a(octetsUtf8(texte)),
       profil,
       planche,
+      variables,
     },
   };
 }

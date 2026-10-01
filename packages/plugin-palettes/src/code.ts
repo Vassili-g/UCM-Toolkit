@@ -9,6 +9,7 @@ import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecritu
 import { rangerRecette } from './ecriture/recette';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
+import { lireLesVariablesDuFichier } from './lectureDesVariables';
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
 import { creerPreferences } from './preferences';
@@ -34,7 +35,7 @@ function versUi(message: PluginMessage): void {
 }
 
 async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<void> {
-  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages) });
+  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages), variables: await lireLesVariablesDuFichier(figma) });
 }
 
 async function traiterMessage(message: UiRequest): Promise<void> {
