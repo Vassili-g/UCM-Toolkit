@@ -61,14 +61,22 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1 à P8.6, P9.1 à P9.5.
+P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1 à P8.6, P9.1 à P9.5, puis
+P10.1 à P10.3 et P10.7 à P10.9.
+
+Restent quatre cases, qui demandent toutes Chromium : P2.12, les tests
+d'interface ; P10.4, les captures de la galerie ; P10.5, les mesures d'un
+glisser ; P10.6, pour sa seule commande `npm run test:ui`. `npm test` à la
+racine, le typecheck et le build du plugin sont verts.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
-la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
-vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
-des phases 3 et 5 à 9 n'a tourné dans aucun navigateur : le typecheck, les
-tests unitaires et le build la tiennent seuls. Ce que Gestion compte et
-décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
+la recette dans Figma avant, avec
+[RECETTE-DIRECTION-SIMPLE.md](./RECETTE-DIRECTION-SIMPLE.md). `npm run
+test:ui` n'est donc ni lancé ni tenu vert, et aucune capture de galerie n'est
+comparée aux maquettes. L'interface des phases 3 et 5 à 9 n'a tourné dans
+aucun navigateur : le typecheck, les tests unitaires et le build la tiennent
+seuls. Ce que Gestion compte et décide des tokens vit dans
+`src/variables/gestion.ts`, testé dans Node.
 
 - Dette de tests d'interface : `node --test tests/interface/interface.test.mjs`
   donne des tests rouges, ceux qui visaient la carte des garanties dans
@@ -591,13 +599,13 @@ la variable au fichier.
 
 ## Phase 10 : la clôture
 
-- [ ] **P10.1** Spécification relue contre le code, section par section.
+- [x] **P10.1** Spécification relue contre le code, section par section.
   AGENTS.md : carte du code, invariants « Écriture d'UCM Palettes » et
   « Interface d'UCM Palettes », portes de `code.ts`.
   `tests/inventaireInvariants.test.ts` passe.
-- [ ] **P10.2** `packages/plugin-palettes/README.md` : les trois onglets, les
+- [x] **P10.2** `packages/plugin-palettes/README.md` : les trois onglets, les
   deux sorties, la destination, ce que le plugin n'écrit jamais.
-- [ ] **P10.3** Relecture des textes par la skill `rediger-diagnostics-ucm`,
+- [x] **P10.3** Relecture des textes par la skill `rediger-diagnostics-ucm`,
   dans les deux langues ; `tests/i18n.test.ts` et `tests/loiDesTextes.test.ts`
   passent.
 - [ ] **P10.4** Galerie capturée en thème sombre aux deux tailles ; chaque
@@ -609,9 +617,9 @@ la variable au fichier.
   des autres palettes ne coûte rien pendant un glisser.
 - [ ] **P10.6** `npm test` à la racine, `npm run typecheck`, `npm run build`
   et `npm run test:ui` dans le plugin, tous verts.
-- [ ] **P10.7** Mettre à jour le README du dossier, le statut de la direction
+- [x] **P10.7** Mettre à jour le README du dossier, le statut de la direction
   simple, et la mémoire du projet.
-- [ ] **P10.8** Écrire `RECETTE-DIRECTION-SIMPLE.md` à côté de ce plan, pour
+- [x] **P10.8** Écrire `RECETTE-DIRECTION-SIMPLE.md` à côté de ce plan, pour
   le mainteneur : un parcours pas à pas dans Figma qui traverse chaque écran,
   puis les essais R1 à R10. Chaque essai donne le geste, le résultat que le
   code suppose, et le fichier à changer si Figma répond autrement :
@@ -629,7 +637,7 @@ la variable au fichier.
   | R9 | Le refus d'un second mode arrive par une erreur d'`addMode` | Le message de la fiche |
   | R10 | `teamLibrary` liste sans valeurs ; l'import ajoute la variable au fichier | La phase 9 se retire, ou la fiche montre ses couleurs dès la liste |
 
-- [ ] **P10.9** Dernier message au mainteneur : ce qui est livré, ce qui
+- [x] **P10.9** Dernier message au mainteneur : ce qui est livré, ce qui
   s'écarte de la direction et pourquoi, le lien vers la recette, et la
   question S14 restée ouverte.
 

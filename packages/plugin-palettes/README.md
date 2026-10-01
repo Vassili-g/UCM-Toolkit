@@ -2,8 +2,8 @@
 
 UCM Palettes est le plugin de [UCM Toolkit](../../README.md) consacré aux
 palettes de couleurs. Il calcule les rampes Light et Dark depuis une couleur
-de référence, affiche les contrastes des associations d'usage et dessine une
-planche dans le document Figma.
+de référence, affiche les contrastes des associations d'usage, écrit chaque
+palette dans les variables de couleur du fichier et dessine sa planche.
 
 ## Ouvrir le plugin
 
@@ -18,51 +18,116 @@ npm run build --workspace ucm-palettes-plugin
 Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 et choisissez `packages/plugin-palettes/dist/manifest.json`.
 
+## Trois onglets
+
+Le plugin s'ouvre sur **Création** dans un fichier sans palette, sur
+**Gestion** sinon.
+
+| Onglet | Portée | Ce que le designer y fait |
+|---|---|---|
+| Création | La palette ouverte | Nommer, choisir la référence, régler, essayer sur l'interface de test |
+| Vérification | La palette ouverte, le verdict de toutes | Lire le verdict, les messages et les garanties de contraste |
+| Gestion | Le fichier | Écrire chaque palette dans les variables, créer sa planche, suivre leur état |
+
 ## Composer une palette
 
-Dans l'onglet **Palettes**, créez une palette avec un nom, une couleur de
-référence et un modèle de nuances. Choisissez une intensité unique ou deux
-intensités, Soft et Vivid. Le sélecteur de couleur accepte Hex, RGB et HSL.
+Dans **Création**, créez une palette avec un nom, une couleur de référence
+et un modèle de nuances. Choisissez une intensité unique ou deux intensités,
+Soft et Vivid. Le sélecteur de couleur accepte Hex, RGB et HSL.
 
 L'aperçu montre les nuances sur le fond de chaque thème. Sélectionnez une
-nuance pour examiner ses valeurs et ses emplois. Les cartes présentent les
-garanties de contraste et les alertes de la palette ouverte. Le panneau
-« Ajuster la référence » compare une proposition à la couleur d'origine avant
-son application.
+nuance pour examiner ses valeurs et ses emplois. Les cartes « Réglage
+global » et « Color shift » règlent la saturation, la teinte et la luminosité
+le long des rampes. Le pied compte les garanties et les points à vérifier ;
+« Vérifier » ouvre l'onglet suivant sur la même palette.
 
-Les réglages communs définissent les fonds, les intensités, les courbes de
-luminosité et les seuils de signalement. Une palette peut avoir ses propres
-intensités. L'éditeur de dérive règle la variation de teinte le long des rampes.
+Les réglages communs, derrière l'engrenage, définissent les fonds, les
+intensités, les courbes de luminosité et les seuils de signalement.
+
+## Vérifier une palette
+
+**Vérification** montre le verdict de la palette ouverte, ses messages et la
+carte des garanties de contraste. Le lien d'un message nomme le geste et
+ouvre le réglage où il se fait. Le sélecteur porte le verdict de chaque
+palette.
 
 Les contrastes portent sur les associations affichées. Ils ne constituent pas
 un audit d'accessibilité de l'interface qui utilisera ces couleurs.
 
-## Dessiner et mettre à jour les planches
+## Écrire dans Figma : deux sorties
 
-L'onglet **Planches** présente l'état du cadre de chaque palette. Générez une
-planche, mettez à jour les cadres périmés ou utilisez « Afficher dans Figma »
-pour les retrouver. Les réglages du contenu choisissent les thèmes, les usages
-et les grilles à dessiner.
+**Gestion** porte une fiche par palette, avec une ligne par sortie.
 
-Le plugin remplace ses cadres à leur emplacement. La présence de calques
-étrangers demande confirmation avant leur remplacement. Une copie de cadre
-faite par le designer reste distincte du cadre suivi. Supprimer une palette
-conserve son ancien cadre jusqu'au retrait explicite depuis l'onglet Planches.
+| Sortie | Ce que le plugin écrit | États |
+|---|---|---|
+| Tokens Figma | Les variables de couleur de la palette, une par intensité, thème et nuance | Pas encore écrits, À jour, À mettre à jour, Modifiés dans Figma, Introuvables |
+| Planche | Un cadre par palette, sur la page des planches | Pas encore créée, À jour, À actualiser, Introuvable, Lecture impossible |
+
+Le bloc « Connexion à Figma » ouvre l'onglet. « Synchroniser » relit le
+fichier sans rien écrire. « Tout mettre à jour » écrit les tokens et dessine
+les planches en retard, après une confirmation qui compte ce qu'il écrit.
+
+### La destination des tokens
+
+Une destination vaut pour toutes les palettes : une collection, un groupe et
+la forme des thèmes. Par défaut, le plugin crée la collection `primitives`
+et écrit sous `colors/{palette}/{soft, vivid}/{light, dark}/{nuance}` : 44
+variables pour deux intensités et onze nuances. Avec les thèmes en modes, la
+collection porte les modes Light et Dark, et la même palette crée 22
+variables. « Changer », sur la ligne « Tokens », ouvre la carte de la
+destination et sa simulation.
+
+Avant une première écriture, la fiche dit combien de variables elle crée,
+dans quelle collection et sous quels noms. Quand des couleurs ont été
+changées à la main dans Figma, la fiche les liste et propose « Remettre les
+couleurs du plugin » ou « Laisser les couleurs de Figma ».
+
+### Les palettes déjà dans le fichier
+
+Sous les palettes du plugin, « Déjà dans le fichier » liste les palettes que
+les variables locales portent déjà : des variables de couleur dont le dernier
+segment du nom est un nombre, cinq au moins sous le même chemin. « Modifier
+dans le plugin » en reprend une : ses variables d'origine restent ses tokens,
+à leur place, et « Mettre à jour » remplace leurs couleurs. Les palettes des
+bibliothèques activées paraissent aussi ; « Copier dans le plugin » en fait
+une palette du plugin, qui s'écrit dans la destination.
+
+### Les planches
+
+« Créer la planche » dessine le cadre d'une palette. Les réglages du contenu
+choisissent les thèmes, les usages et les grilles. Le plugin remplace ses
+cadres à leur emplacement ; des calques étrangers demandent confirmation
+avant leur remplacement. Une copie de cadre faite par le designer reste
+distincte du cadre suivi. « Changer », sur la ligne « Planches », choisit la
+page et y déplace les planches déjà créées.
+
+### Ce que le plugin n'écrit jamais
+
+- Il n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias.
+- Il ne renomme ni ne déplace une variable.
+- Il ne supprime une variable que par « Supprimer les variables… », sur la
+  carte d'une palette supprimée du plugin.
+- Il n'écrit jamais dans une bibliothèque.
+- Il n'écrase pas une couleur changée dans Figma sans le choix du designer.
+- Il ne lie aucune pastille de planche à une variable.
 
 ## Conserver et échanger la recette
 
 Les modifications de palette sont enregistrées dans les données du document.
-Le dessin des planches reste un geste distinct. La recette courante utilise le
-format **4**, défini dans [le moteur de couleur](../couleur/README.md).
+L'écriture des tokens et le dessin des planches restent des gestes distincts.
+La recette courante utilise le format **8**, défini dans [le moteur de
+couleur](../couleur/README.md). Une recette d'un format antérieur ne se
+convertit pas.
 
-L'onglet Planches propose l'export de la recette JSON et du rapport de
-vérification. L'import présente les différences et demande confirmation avant
-de remplacer la recette. Il ne redessine pas les cadres. Une modification
-concurrente du document suspend l'enregistrement pour éviter d'écraser une
-recette plus récente.
+En bas de Gestion, la carte « Palettes et réglages » propose l'export de la
+recette JSON et du rapport de vérification. L'import présente les différences
+et demande confirmation avant de remplacer la recette. Il ne redessine aucun
+cadre et n'écrit aucune variable. Une modification concurrente du document
+suspend l'enregistrement pour éviter d'écraser une recette plus récente.
 
-Le plugin fonctionne sans accès réseau. Il ne crée pas de variables Figma et
-ne produit pas de `tokens.json`. L'export des variables locales appartient à
+Le plugin fonctionne sans accès réseau. Son manifest déclare la permission
+`teamlibrary`, pour lire les collections des bibliothèques activées. Il ne
+produit pas de `tokens.json` : l'export des variables locales appartient à
 [UCM Contract Exporter](../plugin-exporter/README.md).
 
 ## Vérifier une modification

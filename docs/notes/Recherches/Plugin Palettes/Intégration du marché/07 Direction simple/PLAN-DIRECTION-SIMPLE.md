@@ -14,7 +14,10 @@ restent, les essais à faire dans Figma et l'ordre des lots.
 lots.
 
 **Statut.** Les points de la [section 6](#6-ce-qui-est-validé) sont validés ;
-le reste ne décide rien. La
+le reste ne décide rien. Les lots 1 à 5 sont implémentés, par [le plan
+d'implémentation](./PLAN-IMPLEMENTATION.md), sans la planche liée aux tokens
+(S14) ; [la recette](./RECETTE-DIRECTION-SIMPLE.md) donne le parcours à faire
+dans Figma et les essais de la [section 8](#8-les-recherches). La
 [spécification](../../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et [l'architecture
 multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)

@@ -7,7 +7,7 @@ vérifient ces contrats dans le repository consommateur.
 | Outil | Usage | Documentation |
 |---|---|---|
 | UCM Contract Exporter | Exporter les composants en contrats JSON et les variables en tokens DTCG ; publier sur GitHub ou GitLab | [Plugin Exporter](./packages/plugin-exporter/README.md) |
-| UCM Palettes | Construire des palettes, examiner leurs contrastes et dessiner leurs planches dans Figma | [Plugin Palettes](./packages/plugin-palettes/README.md) |
+| UCM Palettes | Construire des palettes, examiner leurs contrastes, les écrire dans les variables de Figma et dessiner leurs planches | [Plugin Palettes](./packages/plugin-palettes/README.md) |
 | UCM Token Explorer | Parcourir les variables de toute architecture, suivre leurs alias et expliquer leurs valeurs par mode, en lecture seule | [Plugin Explorateur](./packages/plugin-explorateur/README.md) |
 | `@ucm-kit/cli` | Initialiser un repository, contrôler les contrats, produire le CSS des tokens et préparer l'implémentation | [CLI](./packages/cli/README.md) |
 | `@ucm-kit/core` | Lire le format, valider les contrats et leurs références depuis du code | [Kit](./packages/kit/README.md) |
@@ -60,7 +60,7 @@ qui avertit, et le geste attendu pour chaque écart.
 |---|---|---|
 | **Designer** | Vos variantes, vos tokens et vos règles d'usage arrivent au développeur sans être retapés, et la demande de fusion vous dit ce qui manque | [Ouvrir le plugin](#ouvrir-le-plugin), puis [docs/guides/POUR-LES-DESIGNERS.md](./docs/guides/POUR-LES-DESIGNERS.md) |
 | **Développeur d'un repository consommateur** | Une source unique pour l'API visuelle d'un composant, et une CI qui signale les écarts avant la fusion | [Brancher un repository](#brancher-un-repository) |
-| **Designer de palettes** | Des rampes, leurs contrastes et une planche partageable dans Figma | [Utiliser UCM Palettes](./packages/plugin-palettes/README.md) |
+| **Designer de palettes** | Des rampes, leurs contrastes, leurs variables de couleur et une planche partageable dans Figma | [Utiliser UCM Palettes](./packages/plugin-palettes/README.md) |
 | **Contributeur** | Les sources des trois plugins et des paquets de contrôle | [Construire les plugins](#construire-le-plugin-depuis-ce-dépôt), puis [AGENTS.md](./AGENTS.md) |
 
 ## Ouvrir le plugin
