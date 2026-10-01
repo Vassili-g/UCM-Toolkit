@@ -250,13 +250,13 @@ function construireVues(i18n: Localisation) {
       libelle.className = 'field-label';
       i18n.lier(libelle, 'textContent', TEXTES_DES_INTENSITES.libelle(NOM_DU_PROFIL[profil]));
       const piste = document.createElement('span');
-      piste.className = 'reglette-piste';
+      piste.className = 'piste-d-intensite';
       const curseur = document.createElement('input');
       curseur.type = 'range';
       curseur.min = '0';
       curseur.max = '1';
       curseur.step = '0.01';
-      curseur.className = 'reglette-curseur';
+      curseur.className = 'curseur-d-intensite';
       i18n.lier(curseur, 'aria-label', TEXTES_DES_INTENSITES.libelle(NOM_DU_PROFIL[profil]));
       curseur.addEventListener('input', () => glisser(profil, curseur, false));
       curseur.addEventListener('change', () => glisser(profil, curseur, true));
@@ -275,13 +275,13 @@ function construireVues(i18n: Localisation) {
     libelleDesFondsSombres.className = 'field-label';
     i18n.lier(libelleDesFondsSombres, 'textContent', TEXTES_DE_CONFIGURATION.fondsSombres);
     const pisteDesFondsSombres = document.createElement('span');
-    pisteDesFondsSombres.className = 'reglette-piste';
+    pisteDesFondsSombres.className = 'piste-d-intensite';
     const curseurDesFondsSombres = document.createElement('input');
     curseurDesFondsSombres.type = 'range';
     curseurDesFondsSombres.min = '0';
     curseurDesFondsSombres.max = '1';
     curseurDesFondsSombres.step = '0.01';
-    curseurDesFondsSombres.className = 'reglette-curseur';
+    curseurDesFondsSombres.className = 'curseur-d-intensite';
     i18n.lier(curseurDesFondsSombres, 'aria-label', TEXTES_DE_CONFIGURATION.fondsSombres);
     const glisserLesFondsSombres = (fin: boolean) => {
       const lue = recette.lire();

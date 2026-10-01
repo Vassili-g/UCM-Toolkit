@@ -1419,20 +1419,6 @@
   white-space: nowrap;
 }
 
-/* La section « Ajuster la palette » : son titre et sa phrase, avant les deux cartes de réglage ([UI-12]). */
-.section-d-ajustement {
-  display: grid;
-  gap: 2px;
-  margin-top: var(--espace-controle);
-}
-
-.titre-de-section {
-  margin: 0;
-  font-size: var(--libelle);
-  font-weight: 600;
-  line-height: var(--libelle-interligne);
-}
-
 .carte-chevron::before {
   display: inline-block;
   width: 10px;
@@ -1444,6 +1430,11 @@
 /* Le même chevron, tourné : « ⌄ » se dessinait plus petit et plus bas que le titre. */
 .carte-bascule[aria-expanded='true'] .carte-chevron::before {
   transform: rotate(90deg);
+}
+
+/* Dépliée, l'en-tête rend sa marge basse et en ajoute 4 px : le contenu ne colle plus au titre (recette v7). */
+.carte-bascule[aria-expanded='true'] {
+  margin-bottom: var(--espace-serre);
 }
 
 .carte-bascule:disabled {
@@ -1464,9 +1455,9 @@
 }
 
 /*
- * Disposition P2 (maquette Y2.6) : le nom et la couleur de référence en deux
- * colonnes égales, libellé au-dessus du champ ([UI-11]) ; le modèle et les
- * intensités viennent dessous, chacun sur sa rangée.
+ * Deux colonnes égales, libellé au-dessus du champ ([UI-11]) : le nom puis le
+ * modèle, la couleur de référence puis les intensités (recette v7). Les
+ * intensités s'alignent sur la couleur de référence.
  */
 .colonnes-de-base {
   display: grid;
@@ -1476,6 +1467,7 @@
 
 /* Les segments du modèle et du profil porteur gardent leur largeur naturelle sur leur rangée. */
 .carte-corps > .champ-colonne > .bascule-de-base,
+.colonnes-de-base > .champ-colonne > .bascule-de-base,
 .segments-des-intensites .bascule-de-base,
 .cible-des-reglages .bascule-de-base {
   justify-self: start;
@@ -1489,8 +1481,13 @@
   gap: var(--espace-serre);
 }
 
+/*
+ * Le libellé d'un champ prend le texte principal, l'aide qui suit le champ le
+ * texte secondaire : les deux ne se confondent plus (recette v7).
+ */
 .libelle-de-champ {
-  color: var(--texte-second);
+  color: var(--texte);
+  font-weight: 500;
 }
 
 /*
@@ -2343,6 +2340,25 @@
 .intensite .champ-nombre {
   flex: 0 0 56px;
   width: 56px;
+}
+
+/* Un curseur natif, distinct de la réglette du Color shift et du réglage global (`derive/reglette.ts`). */
+.piste-d-intensite {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.curseur-d-intensite {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--fond-marque);
+}
+
+.curseur-d-intensite:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
 }
 
 /*

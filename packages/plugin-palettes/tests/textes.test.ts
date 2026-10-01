@@ -52,13 +52,13 @@ test('W6.3 : un refus du format 3 nomme la palette, la nuance fautive et le gest
     texteDuRefus({ regle: 'crans-libres-numeros', chemin: 'palettes[0].crans[1]', valeur: 225 }),
     'Palette 1, 2e nuance : « 225 » n’est pas accepté. Utilisez un multiple de 50 entre 50 et 1050, plus grand que le numéro précédent.',
   );
-  assert.equal(texteDuRefus({ regle: 'crans-libres-nombre', chemin: 'palettes[0].crans', valeur: 3 }), 'Palette 1, nuances de la palette libre : choisissez entre 4 et 13 nuances. Nombre trouvé : 3.');
+  assert.equal(texteDuRefus({ regle: 'crans-libres-nombre', chemin: 'palettes[0].crans', valeur: 3 }), 'Palette 1, nuances de la palette libre : 3 nuances. Choisissez un nombre entre 4 et 13.');
 });
 
 test('un refus porte le champ et la valeur, virgule décimale', () => {
   assert.equal(
     texteDuRefus({ regle: 'courbe-claire-decroissante', chemin: 'courbes.light[5]', valeur: 0.8 }),
-    'Luminosité du thème Light, 6e nuance : la luminosité doit être inférieure à celle de la nuance précédente. Valeur reçue : 0,8.',
+    'Luminosité du thème Light, 6e nuance : 0,8. Choisissez une luminosité plus basse que la nuance précédente.',
   );
 });
 
@@ -150,15 +150,15 @@ test('[VER-06] un groupe de promesses nomme l’association, l’état, le thèm
   };
   const constat = constatDeGroupe(groupe, 'Bleu');
   assert.equal(constat.ou, 'Texte coloré (text) sur Fond léger (surface), état hover · Bleu, thème Dark');
-  assert.equal(constat.quoi, 'Cette association n’atteint pas le contraste demandé, pour un minimum de 4,5:1.');
+  assert.equal(constat.quoi, 'Contraste insuffisant. Minimum : 4,5:1.');
   assert.deepEqual(constat.mesures, ['Soft : 4,62:1 · Respectée', 'Vivid : 4,31:1 · À corriger']);
-  assert.ok(constat.geste.includes('réglages communs'));
+  assert.equal(constat.geste, 'Modifiez le réglage global ou le Color shift, puis vérifiez le contraste.');
 });
 
-test('[VER-07] « Prête » quand tout est respecté, sinon le nombre de promesses à corriger', () => {
+test('[VER-07] « Prête » quand tout est respecté, sinon le nombre de contrastes à corriger', () => {
   assert.equal(verdict(0), 'Prête');
-  assert.equal(verdict(1), '1 promesse à corriger');
-  assert.equal(verdict(3), '3 promesses à corriger');
+  assert.equal(verdict(1), '1 contraste à corriger');
+  assert.equal(verdict(3), '3 contrastes à corriger');
   assert.equal(titreDeGroupe('Promesses à corriger', 3), 'Promesses à corriger · 3');
 });
 
@@ -218,19 +218,12 @@ test('l’exception de Figma et l’exemple d’écart se lisent dans le détail
   assert.match(ecart.detail ?? '', /soft\/light\/50 : couleur absente dans l’aperçu, #FAF5F5 sur la planche/);
 });
 
-test('[UI-12] une carte repliée se résume : préréglage, grandeurs réglées et synchronisation, origine et intensités, points à vérifier', () => {
-  assert.equal(resumeDeLaDerive(RECETTE.palettes[0], false, 0), 'Soft : Tailwind · Teinte −7,5° / +5,1° · Vivid : Personnalisé · Teinte +6,0° / 0,0° · désynchronisé');
-  const liee = { ...RECETTE.palettes[0], derive: { ...RECETTE.palettes[0].derive, lien: true } };
-  assert.equal(resumeDeLaDerive(liee, false, 1), 'Personnalisé · Teinte +6,0° / 0,0° · synchronisé · 1 point à vérifier');
-  const saturee = { ...liee, derive: { ...liee.derive, vivid: { ...liee.derive.vivid, saturation: { clair: -0.4, sombre: 0 }, clarte: { clair: 0, sombre: 0.02 } } } };
-  assert.equal(resumeDeLaDerive(saturee, false, 0), 'Personnalisé · Teinte +6,0° / 0,0° · Saturation −40 % / 0 % · Luminosité 0,000 / +0,020 · synchronisé');
-  assert.equal(resumeDeLaDerive(liee, true, 0), 'Aucun réglage · synchronisé', 'une palette grise ne montre que sa luminosité');
-  assert.equal(resumeDeLaDerive(saturee, true, 0), 'Luminosité 0,000 / +0,020 · synchronisé');
-  const parts = [{ nom: 'Soft', part: 0.45 }, { nom: 'Vivid', part: 0.95 }];
-  const aucun = [{ nom: 'Soft', teinte: 0, clarte: 0 }, { nom: 'Vivid', teinte: 0, clarte: 0 }];
-  assert.equal(resumeDesReglages(aucun, parts, 0), 'Aucun réglage · Soft 45 % · Vivid 95 %');
-  assert.equal(resumeDesReglages([{ nom: 'Soft', teinte: 8, clarte: 0 }, { nom: 'Vivid', teinte: -2.5, clarte: -0.02 }], parts, 2), 'Soft +8° · Vivid −2,5° −0,02 · Soft 45 % · Vivid 95 % · 2 points à vérifier');
-  assert.equal(resumeDesReglages([{ nom: '', teinte: 0, clarte: 0.015 }], [{ nom: '', part: 0.894 }], 0), '+0,015 · Saturation 89 %', 'une intensité : sans nom de profil');
+test('[UI-12] une carte repliée se résume par son état, sans valeurs, puis la synchronisation et les points à vérifier (recette v7)', () => {
+  assert.equal(resumeDeLaDerive(false, null, 0), 'Aucun réglage');
+  assert.equal(resumeDeLaDerive(true, false, 0), 'Réglé · désynchronisé');
+  assert.equal(resumeDeLaDerive(true, true, 1), 'Réglé · synchronisé · 1 point à vérifier');
+  assert.equal(resumeDesReglages(false, 0), 'Aucun réglage');
+  assert.equal(resumeDesReglages(true, 2), 'Réglé · 2 points à vérifier');
 });
 
 test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {
@@ -243,7 +236,7 @@ test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {
 
 test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l’effet et la conséquence sur la planche', () => {
   assert.equal(ligneDesValeurs([{ nom: 'Bleu', champs: ['reference', 'base'] }]), 'Palette à modifier : Bleu (couleur de référence, palette de base).');
-  assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Minimums des promesses : le résultat des garanties peut changer, sans changer les couleurs.']);
+  assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Contrastes minimums : les garanties peuvent changer, les couleurs restent identiques.']);
   assert.equal(consequenceSurLaPlanche([], []), 'Sur la planche : aucun cadre à jour n’est touché.');
   assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À actualiser » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
 });

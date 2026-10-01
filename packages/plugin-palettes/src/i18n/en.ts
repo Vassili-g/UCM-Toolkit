@@ -12,7 +12,6 @@ import type { EtatDuCadre } from '../planche/fraicheur';
 import {
   FORMAT_RECETTE,
   RANGS,
-  decalageRange,
   ecrireArrondi as arrondiFrancais,
   ecrireContraste as contrasteFrancais,
   niveauxWcag,
@@ -21,7 +20,6 @@ import {
   type Association,
   type Bout,
   type CauseDeLaBorne,
-  type DeriveRangee,
   type Emploi,
   type EmploiDUnCran,
   type EtatDePaire,
@@ -46,7 +44,7 @@ const ecrireContraste = (valeur: number): string => contrasteFrancais(valeur).re
 export const TEXTES = {
   numeroDeNuance: (numero: number) => `shade ${numero}`,
   langue: 'Language',
-  langueNonRangee: 'Your language choice could not be saved. Try again to keep it for your next session.',
+  langueNonRangee: "Language not saved. Try again.",
   reessayerLangue: 'Save language again',
   titre: 'UCM Palettes',
   titreConfiguration: "Shared settings",
@@ -61,7 +59,7 @@ export const TEXTES = {
   // N134 : le sélecteur sans palette choisie, puis l'invitation dessous (maquette Z3.3, D1, texte a).
   selectionnerUnePalette: "Select a palette",
   invitationTitre: "Choose a palette",
-  invitation: "Select a palette from the list to edit it, or choose “New palette” to create one.",
+  invitation: "Select a palette or choose “New palette”.",
   dessiner: "Generate in Figma",
   prete: "Ready",
   reference: "Reference colour",
@@ -70,7 +68,7 @@ export const TEXTES = {
   modesDeLApercu: "Preview theme",
   modeClair: "Light theme",
   modeSombre: "Dark theme",
-  titrePromesses: "Unmet contrast requirements",
+  titrePromesses: "Contrasts to fix",
   titreAlertes: "Points to check",
   titreNotices: "Notes",
   // N075, N086 : le bouton de la barre, puis le titre de la carte qu'il ouvre.
@@ -90,7 +88,7 @@ export const TEXTES = {
   detailTechnique: "Technical details",
   ouvrirLesReglages: "Open shared settings",
   reglagesCommuns: "Shared settings",
-  retour: "Back to palettes and board",
+  retour: "Back to palettes",
   // N102 : le bilan d'une palette libre, à la place des résultats Soft et Vivid (W3.5, W6.6).
   paletteLibre: (nombre: number) => `Freeform palette · ${nombre} shades`,
 } as const;
@@ -105,10 +103,8 @@ export const TEXTES_DE_L_ONGLET = {
   configuration: "Palette settings",
   apercu: "Preview",
   garanties: "Contrast guarantees",
-  ajuster: "Adjust the palette",
-  phraseDAjustement: "The global adjustment moves the whole ramp. The Color shift then spreads the light and dark shades away from the reference, which stays fixed.",
   derive: "Color shift",
-  sousTitreDeLaDerive: "Light and dark shades, around the reference ◆",
+  sousTitreDeLaDerive: "Adjust shades around the reference ◆",
 } as const;
 
 /** Le pied de l'onglet Création et son volet ([UI-18]). */
@@ -117,7 +113,7 @@ export const TEXTES_DU_PIED = {
   details: "Details",
   titre: "Guarantees and alerts",
   fermer: "Close",
-  aucun: "No unmet guarantee, no alert.",
+  aucun: "All guarantees met. No alerts.",
 } as const;
 
 /**
@@ -157,20 +153,20 @@ export const TEXTES_DE_CONFIGURATION = {
   seuilProfilsConfondus: "Minimum difference between Soft and Vivid",
   fonds: "Background colours",
   fondDuMode: { light: "Light theme background", dark: "Dark theme background" },
-  seuilsDeContraste: "Minimum contrast requirements",
+  seuilsDeContraste: "Minimum contrast",
   seuilTexte: "Text",
   seuilNonTexte: "Graphical elements",
   couleursProches: "Similar colour detection",
   seuilPalettesProches: "Minimum difference between two palettes",
-  sansRecette: "The saved palettes and settings could not be read. Import a valid backup to access the settings.",
-  aideCourbes: "Set the lightness of each shade between 0 and 1. Changes apply to all palettes.",
-  aideEcarts: "This threshold flags colours that are too similar. Increase it to flag more similarities. Unit: ΔEok, the distance between two colours in Oklab.",
-  aideMinimums: "These values set the minimum contrast for your requirements. Changing them affects the results, without changing the colours or WCAG levels.",
+  sansRecette: "Could not read palettes and settings. Import a valid backup.",
+  aideCourbes: "Lightness from 0 to 1, for all palettes.",
+  aideEcarts: "A higher threshold flags more similar colours. Differences are measured in ΔEok.",
+  aideMinimums: "These thresholds change guarantee results, not colours or WCAG levels.",
   retablir: "Reset",
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
-  garantieCommune: "This check covers the shared curves across all hues. For an individual palette, see its “Contrast guarantees” card.",
+  garantieCommune: "Checked across all hues. Also check each palette’s “Contrast guarantees” card.",
   // N060, réécrit en W6.4 : « Rétablir » des courbes, quand la liste des nuances vient d'un import.
-  courbesSansDefaut: "This shade list was imported. There are no default curves for it.",
+  courbesSansDefaut: "No default curves for this imported shade list.",
   // N091 : le titre de chaque ligne de la table des courbes, et le nom de la table (W4.3).
   courbeDuMode: { light: 'Light', dark: 'Dark' },
   tableDesCourbes: "Lightness of each shade, Light then Dark",
@@ -178,10 +174,10 @@ export const TEXTES_DE_CONFIGURATION = {
   aideSeuilTexte: "For text on surface, on-solid on solid, and text on the background.",
   aideSeuilNonTexte: "For input borders, focus rings and solid fills in the hover state.",
   aideProfilsConfondus: "Measured between the two profiles of the same shade.",
-  aidePalettesProches: "Measured on shades 500, 600 and 700 in the Light theme: Vivid against Vivid for palettes with two intensities, otherwise the closest colour scale.",
+  aidePalettesProches: "Compares shades 500, 600 and 700 in Light. Uses Vivid for two palettes with two intensities, otherwise the closest colour scales.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
   fondsSombres: "Dark theme backgrounds",
-  aideFondsSombres: "Fraction of intensity retained by Dark theme shades 50 to 300, starting at shade 50 and rising to 1 at shade 400. The Light theme is unchanged.",
+  aideFondsSombres: "Intensity kept at shade 50 in Dark. It rises to 100% at shade 400. No effect in Light.",
   // La carte « Contenu des planches » ([PLA-28], maquette Y2.3, C1).
   contenu: "Board content",
   // N061 : les unités des mesures avancées (V9.8).
@@ -294,7 +290,7 @@ export function nombreEcrit(valeur: number): string {
 
 /** Une saisie qui n'est pas un nombre. */
 export function nombreInvalide(saisie: string): string {
-  return `Enter a number, for example 0.5. “${saisie}” is not accepted.`;
+  return `“${saisie}”: invalid number. Example: 0.5.`;
 }
 
 /** Un contraste mesuré avec son unité : « 4,31:1 ». */
@@ -309,15 +305,15 @@ const seuilEcrit = (valeur: number): string => ecrireArrondi(valeur, 1).replace(
 export function constatDeGarantie(manque: ManqueDeGarantie): Constat {
   return {
     ou: `${NOM_DU_MODE[manque.mode]} theme, shade ${manque.cran}, profile ${manque.profil}`,
-    quoi: `This curve gives a contrast of ${contrasteEcrit(manque.contraste)} against shade 50 at a hue of ${manque.teinte}°. The required minimum is ${seuilEcrit(manque.seuil)}:1.`,
-    geste: `Increase the lightness difference between shades ${manque.cran} and 50. If you keep these values, check the contrast of each palette.`,
+    quoi: `Contrast against shade 50: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
+    geste: `Move shade ${manque.cran} further from shade 50 in lightness.`,
   };
 }
 
 /** Les réglages propres à une palette (section 8.1, [ENT-09]). */
 export const TEXTES_AVANCES = {
   avance: "Settings for this palette",
-  reprendre: "Use shared intensity settings",
+  reprendre: "Use shared intensities",
 } as const;
 
 /** Les intensités sous le nuancier (section 8.1). */
@@ -332,8 +328,8 @@ export const TEXTES_DES_INTENSITES = {
  * parts propres, ou un gris pur (T4). Sans l'un ni l'autre, aucune ligne (T3).
  */
 export function origineDesParts(propres: boolean, grise: boolean): string | null {
-  if (propres) return "This palette uses its own intensities. Changes to the shared intensity settings no longer apply to it.";
-  if (grise) return "Your reference colour is a pure grey. Soft and Vivid are grey.";
+  if (propres) return "Custom intensities: shared intensities no longer apply.";
+  if (grise) return "Grey reference: Soft and Vivid stay grey.";
   return null;
 }
 
@@ -348,14 +344,10 @@ export const TEXTES_DE_LA_BASE = {
   choixAVenir: (profil: Profil) => `Auto will select ${NOM_DU_PROFIL[profil]}`,
 } as const;
 
-/**
- * La carte « Réglage global » (Z10.6, maquette Z10.4, forme A, décision Q8).
- * Les deux avertissements sont validés ; les autres textes attendent la
- * validation (N143 à N146, TEXTES-A-VALIDER).
- */
+/** Les textes de la carte « Réglage global ». */
 export const TEXTES_DES_REGLAGES = {
   titre: "Global adjustment",
-  sousTitre: "Hue, saturation and lightness of the whole ramp",
+  sousTitre: "Palette hue, saturation and lightness",
   regler: "Adjust",
   cible: "Profile to adjust",
   lesDeux: "Both",
@@ -364,12 +356,11 @@ export const TEXTES_DES_REGLAGES = {
   retablir: "Reset",
   retablirLa: (grandeur: string) => `Reset ${grandeur.toLowerCase()}`,
   etiquette: (grandeur: string, profil: string) => `${profil} ${grandeur.toLowerCase()}`,
-  avertissementAvant: "Warning: this adjustment will change your reference colour.",
-  avertissementApres: "Warning: your reference colour has been changed.",
-  neutre: "This adjustment doesn't change the reference colour.",
-  pied: "The Color shift applies next, around the reference.",
-  grise: "This palette is entirely grey. There is no hue to adjust.",
-  porteurFige: (profil: Profil) => `Reference in ${NOM_DU_PROFIL[profil]}, fixed by the adjustments. Changing profile will change your reference colour.`,
+  avertissementAvant: "This adjustment will change your reference colour.",
+  avertissementApres: "Your reference colour has changed.",
+  neutre: "Reference colour unchanged.",
+  grise: "Grey palette: no hue to adjust.",
+  porteurFige: (profil: Profil) => `Reference in ${NOM_DU_PROFIL[profil]}. Changing profile will change its colour.`,
 } as const;
 
 /** Une teinte réglée, signée, au centième : « +6° », « −12,5° ». */
@@ -388,19 +379,11 @@ export function saturationReglee(valeur: number): string {
 }
 
 /**
- * Le résumé de la carte repliée (N146) : les réglages de chaque profil, ou
- * « Aucun réglage », puis la saturation de chaque profil. Un profil sans nom
- * est la rampe d'une palette à une intensité.
+ * Le résumé de la carte repliée (N146, recette v7) : son état seul, sans les
+ * valeurs réglées, puis les points à vérifier.
  */
-export function resumeDesReglages(
-  reglages: readonly { readonly nom: string; readonly teinte: number; readonly clarte: number }[],
-  saturations: readonly { readonly nom: string; readonly part: number }[],
-  points: number,
-): string {
-  const regles = reglages.filter(({ teinte, clarte }) => teinte !== 0 || clarte !== 0)
-    .map(({ nom, teinte, clarte }) => [nom, teinte !== 0 ? teinteReglee(teinte) : '', clarte !== 0 ? luminositeReglee(clarte) : ''].filter(Boolean).join(' '));
-  const saturation = saturations.map(({ nom, part }) => `${nom || "Saturation"} ${saturationReglee(part)}`).join(' · ');
-  return `${regles.length > 0 ? regles.join(' · ') : "No adjustment"} · ${saturation}${pointsAVerifier(points)}`;
+export function resumeDesReglages(modifie: boolean, points: number): string {
+  return `${modifie ? "Adjusted" : "No adjustment"}${pointsAVerifier(points)}`;
 }
 
 /** Le choix des intensités d'une palette, en deux cartes ([ENT-14], maquettes Y2.1 et Y2.6). */
@@ -424,10 +407,10 @@ export const TEXTES_DU_MODELE = {
 
 /** Les libellés de la carte « Color shift » (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
-  aide: "Each shade moves in proportion to its distance from the reference. Hatched zones would break a contrast guarantee.",
-  grise: "This palette is entirely grey: hue and saturation don't show. Lightness remains adjustable.",
-  sansSegmentClair: "The reference colour is lighter than every shade: only the dark shades can be adjusted.",
-  sansSegmentSombre: "The reference colour is darker than every shade: only the light shades can be adjusted.",
+  aide: "The further a shade is from the reference, the stronger the effect. Hatched zones exceed contrast or lightness limits.",
+  grise: "Grey palette: only lightness can be adjusted.",
+  sansSegmentClair: "No shades lighter than the reference. Adjust the dark shades.",
+  sansSegmentSombre: "No shades darker than the reference. Adjust the light shades.",
   grandeurs: { teinte: "Hue", saturation: "Saturation", clarte: "Lightness" },
   onglets: "Adjusted quantity",
   prereglage: "Hue preset",
@@ -438,7 +421,7 @@ export const TEXTES_DE_LA_DERIVE = {
   profilRegle: "Profile to edit",
   aligner: "Align",
   annuler: "Cancel",
-  confirmationDuLien: "Align Soft with Vivid? Soft's Color shift will be replaced by Vivid's: hue, saturation and lightness.",
+  confirmationDuLien: "Replace Soft’s Color shift with Vivid’s? Hue, saturation and lightness will be copied.",
   toutRetablir: "Reset all",
   boutonTailwind: 'Tailwind',
   retablir: "Reset",
@@ -492,7 +475,7 @@ function membreEcrit(membre: MembrePaire, designation: { readonly nature: 'cran'
 
 /** Ce qui arrête une borne, un pas au-delà ([DER-22]). */
 function auDela(cause: CauseDeLaBorne): string {
-  if (cause.nature === 'ordre') return "Beyond it, two neighbouring shades would come closer than 0.01 in lightness.";
+  if (cause.nature === 'ordre') return "Beyond this, the lightness gap between two shades would be less than 0.01.";
   const { promesse } = cause;
   const ou = promesse.profil === 'unique' ? NOM_DU_MODE[promesse.mode] : `${NOM_DU_PROFIL[promesse.profil]}, ${NOM_DU_MODE[promesse.mode]}`;
   const paire = `${membreEcrit(promesse.paire.premier, promesse.premier)} / ${membreEcrit(promesse.paire.second, promesse.second)}`;
@@ -506,7 +489,7 @@ export function buteeDuColorShift(grandeur: GrandeurDuColorShift, bout: Bout, bo
 
 /** Un bout dont la valeur rangée est sortie de sa plage sûre ([DER-23]). */
 export function horsDeLaPlage(bout: Bout): string {
-  return `${TEXTES_DE_LA_DERIVE.bout[bout]} outside the safe range: another setting narrowed it.`;
+  return `${TEXTES_DE_LA_DERIVE.bout[bout]}: out of range after another adjustment. Move the value back into the safe range.`;
 }
 
 /** La ligne de la plage sûre du réglage global : « Plage sûre · teinte −30° à +12° · luminosité −0,05 à +0,02 ». */
@@ -555,12 +538,12 @@ export function nomDeLaCopie(nom: string): string {
 
 /** Un hexa que le champ refuse : il le dit sous le champ, l'aperçu ne change pas. */
 export function hexaInvalide(saisie: string): string {
-  return `Enter a 6-digit hex colour code, for example #1E6FD9. “${saisie}” is not accepted.`;
+  return `“${saisie}”: invalid hex code. Example: #1E6FD9.`;
 }
 
 /** La confirmation d'une suppression ([ENT-03]). */
 export function confirmationDeSuppression(nom: string): string {
-  return `Palette “${nom}” will be deleted from the plugin. Its frame will remain on the board, but you will no longer be able to update it.`;
+  return `Delete “${nom}” from the plugin? Its Figma frame will stay, without updates.`;
 }
 
 /**
@@ -571,8 +554,8 @@ export function confirmationDeSuppression(nom: string): string {
 export function recetteModifieeAilleurs(): Constat {
   return {
     ou: "Changes not saved",
-    quoi: "The palettes or settings in this file have changed since they were loaded. Your latest change was not saved.",
-    geste: "Export your changes to keep them, then reload the palettes to retrieve the file’s version.",
+    quoi: "The file’s palettes or settings have changed. Your latest change was not saved.",
+    geste: "Export your changes to keep them, then reload the palettes.",
   };
 }
 
@@ -621,8 +604,6 @@ export function ligneDeLaReference(ancrage: Ancrage, mode: Mode): string {
   return `Reference: ${avecLeNom(ancrage.profil, `shade ${ancrage.crans[mode]}`)}`;
 }
 
-const ORIGINES: Record<DeriveRangee['origine'], string> = { tailwind: 'Tailwind', constante: "Constant hue", libre: "Custom" };
-
 /** Le nombre de points à vérifier qu'une carte repliée annonce ([UI-12]). */
 function pointsAVerifier(nombre: number): string {
   if (nombre === 0) return '';
@@ -630,24 +611,14 @@ function pointsAVerifier(nombre: number): string {
 }
 
 /**
- * Le résumé de la carte Color shift ([UI-12]) : le préréglage de la teinte,
- * chaque grandeur réglée, bout clair puis bout sombre, et la synchronisation.
- * Une palette grise ne montre que sa luminosité ([DER-15]).
+ * Le résumé de la carte Color shift ([UI-12], recette v7) : son état seul,
+ * sans les valeurs réglées, la synchronisation des deux intensités, puis les
+ * points à vérifier. `lien` vaut `null` à une intensité : rien à synchroniser
+ * ([ENT-14]).
  */
-export function resumeDeLaDerive(palette: Palette, grise: boolean, points: number): string {
-  const decrire = (derive: DeriveRangee): string => {
-    const parties = grise ? [] : [ORIGINES[derive.origine], `Hue ${angleEcrit(derive.clair)} / ${angleEcrit(derive.sombre)}`];
-    for (const grandeur of grise ? (['clarte'] as const) : (['saturation', 'clarte'] as const)) {
-      const { clair, sombre } = decalageRange(derive, grandeur);
-      if (clair !== 0 || sombre !== 0) parties.push(`${TEXTES_DE_LA_DERIVE.grandeurs[grandeur]} ${decalageEcrit(grandeur, clair)} / ${decalageEcrit(grandeur, sombre)}`);
-    }
-    return parties.length > 0 ? parties.join(' · ') : "No adjustment";
-  };
-  const { lien, soft, vivid } = palette.derive;
-  // Une palette à une intensité n'a qu'un Color shift : rien à synchroniser ([ENT-14]).
-  if (palette.intensites === 1) return `${decrire(vivid)}${pointsAVerifier(points)}`;
-  const reglage = lien ? `${decrire(vivid)} · synced` : `Soft: ${decrire(soft)} · Vivid: ${decrire(vivid)} · not synced`;
-  return `${reglage}${pointsAVerifier(points)}`;
+export function resumeDeLaDerive(modifie: boolean, lien: boolean | null, points: number): string {
+  const etat = modifie ? "Adjusted" : "No adjustment";
+  return `${lien === null ? etat : `${etat} · ${lien ? "synced" : "not synced"}`}${pointsAVerifier(points)}`;
 }
 
 /** Le nom français d'un rôle, sous son nom en police de code (N030) ; la clé reste celle des données. */
@@ -696,8 +667,8 @@ export const TEXTES_DES_GARANTIES = {
   minimum: (seuil: number) => `minimum ${seuilEcrit(seuil)}:1`,
   sur: "on",
   fond: "background",
-  legende: "Solid line: default · dashed: hover · dotted: active · dash-dot: active-hover. Each state moves both text and background forward by one shade.",
-  onSolid: "on-solid is the theme’s page background, neutral.50 in the design system.",
+  legende: "Solid: default · dashed: hover · dotted: active · dash-dot: active-hover. Each state moves text and background to the next shade.",
+  onSolid: "on-solid uses the page background colour (neutral.50).",
   decoratif: (numero: number) => `${numero} · separator, no minimum contrast`,
   specimenBouton: "Button",
   specimenTexte: "Text",
@@ -718,7 +689,7 @@ export const TEXTES_DU_DETAIL = {
   sertA: "Used for",
   // Une nuance qu'aucun rôle ne vise ; « libre » désigne une palette sortie du modèle (N102).
   sansRole: "No role",
-  aucunRole: "No role in the model uses this shade.",
+  aucunRole: "No predefined use for this shade.",
   contrastes: "Shade contrast",
   fondDuTheme: "Theme background",
   blanc: "White",
@@ -851,8 +822,8 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
   };
   return {
     ou: `${associationEcrite(groupe.association, groupe.etat)} · ${nom}, ${NOM_DU_MODE[groupe.mode]} theme`,
-    quoi: `This pairing falls below the required minimum contrast of ${seuilEcrit(groupe.seuil)}:1.`,
-    geste: "Adjust this palette’s global adjustment or Color shift, then check the pairing again. Shade lightness can also be adjusted in the shared settings.",
+    quoi: `Contrast too low. Minimum: ${seuilEcrit(groupe.seuil)}:1.`,
+    geste: "Change the global adjustment or Color shift, then check the contrast.",
     mesures: groupe.resultats.map(resultat),
   };
 }
@@ -877,36 +848,36 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       const crans = alerte.crans.map((cran) => `${NOM_DU_MODE[cran.mode]} ${cran.cran}`).join(', ');
       return {
         ou: `${contexte.nomDe(alerte.palette)}: shades ${crans}`,
-        quoi: "Soft and Vivid are very similar at these shades.",
-        geste: "Increase the difference between Soft and Vivid intensities. Use this palette’s settings if it has custom intensities; otherwise, use the shared settings.",
+        quoi: "Soft and Vivid are almost identical at these shades.",
+        geste: "Separate the Soft and Vivid saturation values in “Global adjustment”.",
         mesures: [`Smallest difference: ${ecrireArrondi(plusProche, 3)} ΔEok, against a minimum of ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     }
     case 'palettes-proches':
       return {
         ou: `Palettes to compare: ${contexte.nomDe(alerte.palettes[0])} and ${contexte.nomDe(alerte.palettes[1])}`,
-        quoi: "Vivid shades 500, 600 and 700 are very similar in these two palettes in the Light theme.",
-        geste: "If these palettes need to be distinct, change their reference colours. You can also delete the duplicate palette.",
+        quoi: "Shades 500, 600 and 700 in these palettes are very similar in Light.",
+        geste: "Change a reference colour or delete the duplicate palette.",
         mesures: [`Average difference: ${ecrireArrondi(alerte.distance, 3)} ΔEok, against a minimum of ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     case 'reference-plus-terne':
       return {
         ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `The shades generated around your reference colour use a higher intensity. Reference intensity: ${ecrireArrondi(alerte.part, 2)}; Soft: ${ecrireArrondi(alerte.partSoft, 2)}.`,
-        geste: "Reduce the intensities in “Settings for this palette” to get closer to the reference colour.",
+        quoi: `The reference is less vivid than Soft. Intensity: ${ecrireArrondi(alerte.part, 2)}, against ${ecrireArrondi(alerte.partSoft, 2)}.`,
+        geste: "Lower saturation in “Global adjustment” to get closer to the reference.",
       };
     case 'reference-plus-vive':
       return {
         ou: `${contexte.nomDe(alerte.palette)}: reference colour ${referenceLue(contexte, alerte.palette)}`,
-        quoi: `The Vivid shades generated around your reference colour use a lower intensity. Reference intensity: ${ecrireArrondi(alerte.part, 2)}; Vivid: ${ecrireArrondi(alerte.partVivid, 2)}.`,
-        geste: "Increase the Vivid intensity in “Settings for this palette” to get closer to the reference colour.",
+        quoi: `The reference is more vivid than Vivid. Intensity: ${ecrireArrondi(alerte.part, 2)}, against ${ecrireArrondi(alerte.partVivid, 2)}.`,
+        geste: "Increase Vivid saturation in “Global adjustment” to get closer to the reference.",
       };
     case 'fond-hors-courbe': {
       const sens = alerte.mode === 'light' ? "darker" : "lighter";
       return {
         ou: `Background for ${NOM_DU_MODE[alerte.mode]} theme: ${contexte.recette.fonds[alerte.mode]}`,
-        quoi: `This background is ${sens} than shade 50. Check the contrast requirements against this background. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, compared with ${ecrireArrondi(alerte.cran, 3)}.`,
-        geste: "Check the contrast calculated against your background. If it is too low, use the shared settings to move its lightness closer to shade 50.",
+        quoi: `This background is ${sens} than shade 50. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, against ${ecrireArrondi(alerte.cran, 3)}.`,
+        geste: "Check the guarantees. If any fail, move the background closer to shade 50 in the shared settings.",
       };
     }
   }
@@ -1015,54 +986,54 @@ export function nommerChamp(chemin: string): string {
 
 /** Le texte d'un refus de validation, où et quoi sur la même ligne. */
 const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
-  forme: (champ) => `${champ}: a value is missing or its format is not recognised.`,
-  'cle-inconnue': (champ) => `${champ}: this setting is not recognised by this version of the plugin.`,
+  forme: (champ) => `${champ}: missing value or invalid format.`,
+  'cle-inconnue': (champ) => `${champ}: unknown setting in this plugin version.`,
   'crans-croissants': (_, valeur) => (valeur
     ? `Shades: number ${valeur} is invalid. Use unique whole numbers in ascending order.`
     : "Add at least two shade numbers and sort them in ascending order."),
-  'courbes-longueur': (champ, valeur) => `${champ} contains ${valeur} values. Enter a lightness value for each shade.`,
-  'courbes-bornes': (champ, valeur) => `${champ}: enter a lightness between 0 and 1. Received: ${valeur}.`,
-  'courbe-claire-decroissante': (champ, valeur) => `${champ}: lightness must be lower than the previous shade. Received: ${valeur}.`,
-  'courbe-sombre-croissante': (champ, valeur) => `${champ}: lightness must be higher than the previous shade. Received: ${valeur}.`,
-  'parts-bornes': (champ, valeur) => `${champ}: enter an intensity between 0 and 1. Received: ${valeur}.`,
-  'parts-ordre': (champ) => `${champ}: Soft intensity must be less than or equal to Vivid intensity.`,
+  'courbes-longueur': (champ, valeur) => `${champ}: ${valeur} values. Provide one lightness value per shade.`,
+  'courbes-bornes': (champ, valeur) => `${champ}: ${valeur}. Enter lightness from 0 to 1.`,
+  'courbe-claire-decroissante': (champ, valeur) => `${champ}: ${valeur}. Use a lower lightness than the previous shade.`,
+  'courbe-sombre-croissante': (champ, valeur) => `${champ}: ${valeur}. Use a higher lightness than the previous shade.`,
+  'parts-bornes': (champ, valeur) => `${champ}: ${valeur}. Enter intensity from 0 to 1.`,
+  'parts-ordre': (champ) => `${champ}: keep Soft intensity at or below Vivid.`,
   'gamut-inconnu': (_, valeur) => `Colour space “${valeur}” is not supported. Use sRGB.`,
-  'hexa-invalide': (champ, valeur) => `${champ}: replace “${valeur}” with a 6-digit hex colour code, for example #1E6FD9.`,
-  'seuils-positifs': (champ, valeur) => `${champ}: enter a number greater than 0. Received: ${valeur}.`,
-  'derives-nombre': (_, valeur) => `The Tailwind preset must contain at least two colour families. Found: ${valeur}.`,
-  'derives-noms': (_, valeur) => `Tailwind preset: the name “${valeur}” is used twice. Give each colour family a different name.`,
-  'derives-teintes': (champ, valeur) => `${champ}: enter a hue from 0° inclusive to 360° exclusive. Received: ${valeur}°.`,
-  'derives-teintes-claires': (_, valeur) => `Tailwind preset: two colour families use the same hue at the light end (${valeur}°). Give them different hues.`,
-  'derive-bornes': (champ, valeur) => `${champ}: enter an offset between −90° and +90°. Received: ${valeur}°.`,
-  'derive-lien': (champ) => `${champ}: linked profiles, but different Color shifts. Give them the same values or turn off the sync.`,
+  'hexa-invalide': (champ, valeur) => `${champ}: invalid “${valeur}”. Use a hex code such as #1E6FD9.`,
+  'seuils-positifs': (champ, valeur) => `${champ}: ${valeur}. Enter a number greater than 0.`,
+  'derives-nombre': (champ, valeur) => `Tailwind preset: ${valeur} colour families. At least two are required.`,
+  'derives-noms': (champ, valeur) => `Tailwind preset: duplicate “${valeur}”. Rename one colour family.`,
+  'derives-teintes': (champ, valeur) => `${champ}: ${valeur}°. Enter a hue from 0° inclusive to 360° exclusive.`,
+  'derives-teintes-claires': (champ, valeur) => `Tailwind preset: duplicate light-end hue ${valeur}°. Change one hue.`,
+  'derive-bornes': (champ, valeur) => `${champ}: ${valeur}°. Enter an offset from −90° to +90°.`,
+  'derive-lien': (champ) => `${champ}: different Color shifts with sync enabled. Match their values or turn off sync.`,
   // Les trois règles du format 7 ([MOT-30]).
-  'derive-saturation': (champ, valeur) => `${champ}: saturation shift ${valeur}, outside −1 to 1. Correct this field in the imported file.`,
-  'derive-clarte': (champ, valeur) => `${champ}: lightness shift ${valeur}, outside −0.15 to 0.15. Correct this field in the imported file.`,
-  'derive-nulle': (champ) => `${champ}: both shifts are zero. Remove this field from the imported file.`,
-  'origine-inconnue': (champ, valeur) => `${champ}: the origin “${valeur}” is not recognised. Have this field checked in the imported file.`,
-  'identifiant-forme': (_, valeur) => `Palette ID “${valeur}” has an unexpected format. Have this ID checked in the imported file.`,
-  'identifiants-uniques': (_, valeur) => `Two palettes use the ID “${valeur}”. Give each palette a different ID in the imported file.`,
-  'base-inconnue': (champ, valeur) => `${champ}: “${valeur}” is not recognised. Use soft or vivid, or remove this field for automatic selection. Have this field checked in the imported file.`,
-  'crans-emplois': (_, valeur) => `Shade ${valeur} is missing. Add it: the plugin needs it for usage examples and contrast checks.`,
+  'derive-saturation': (champ, valeur) => `${champ}: ${valeur}. Enter a saturation shift from −1 to 1.`,
+  'derive-clarte': (champ, valeur) => `${champ}: ${valeur}. Enter a lightness shift from −0.15 to 0.15.`,
+  'derive-nulle': (champ) => `${champ}: both shifts are zero. Remove this field from the file.`,
+  'origine-inconnue': (champ, valeur) => `${champ}: unknown origin “${valeur}”. Have this field corrected in the file.`,
+  'identifiant-forme': (champ, valeur) => `Invalid ID “${valeur}”. Use p- followed by eight characters from 0–9 and a–f.`,
+  'identifiants-uniques': (champ, valeur) => `Duplicate ID “${valeur}”. Give each palette a unique ID.`,
+  'base-inconnue': (champ, valeur) => `${champ}: invalid “${valeur}”. Use soft or vivid, or remove the field for automatic selection.`,
+  'crans-emplois': (champ, valeur) => `Add shade ${valeur}, required for usage examples and contrast checks.`,
   // N101 : les quatre règles du format 3 (W6.3, W7.2).
-  'crans-libres-nombre': (champ, valeur) => `${champ}: choose between 4 and 13 shades. Found: ${valeur}.`,
+  'crans-libres-nombre': (champ, valeur) => `${champ}: ${valeur} shades. Choose a count from 4 to 13.`,
   'crans-libres-numeros': (champ, valeur) => `${champ}: “${valeur}” is not accepted. Use a multiple of 50 between 50 and 1050, greater than the previous number.`,
-  'base-libre': (champ) => `${champ}: a freeform palette has no base palette. Remove this field from the imported file.`,
-  'originale-identique': (champ) => `${champ}: this is identical to the reference colour. Remove this field from the imported file.`,
+  'base-libre': (champ) => `${champ}: no effect on a freeform palette. Remove this field from the file.`,
+  'originale-identique': (champ) => `${champ}: identical to the reference. Remove this field from the file.`,
   // Les quatre règles du format 4 ([ENT-14], [MOT-28], [PLA-28]).
-  'intensites-valeur': (champ, valeur) => `${champ}: “${valeur}” is not accepted. Use 1 for a single intensity, or remove this field for Soft and Vivid.`,
-  'intensites-incompatible': (champ) => `${champ}: a single-intensity palette has no base palette, custom intensities or freeform shades, and its Color shifts stay linked. Remove this field from the imported file.`,
-  'fonds-sombres-bornes': (champ, valeur) => `${champ}: enter an intensity between 0 and 1. Received: ${valeur}.`,
+  'intensites-valeur': (champ, valeur) => `${champ}: invalid “${valeur}”. Use 1, or remove this field for Soft and Vivid.`,
+  'intensites-incompatible': (champ) => `${champ}: incompatible with one intensity. Remove base, parts and crans from the file, then enable Color shift sync.`,
+  'fonds-sombres-bornes': (champ, valeur) => `${champ}: ${valeur}. Enter intensity from 0 to 1.`,
   'contenu-sans-theme': (champ) => `${champ}: keep at least one theme, Light or Dark.`,
   // Les huit règles du format 5 (Z10.5, N141).
   'reglages-bornes': (champ, valeur) => `${champ}: “${valeur}” is out of range. Hue goes from −30° to +30°, lightness from −0.05 to +0.02, saturation from 0 to 1.`,
-  'reglage-nul': (champ) => `${champ}: a zero adjustment is not saved. Remove this field from the imported file.`,
-  'reglages-intensites': (champ) => `${champ}: this adjustment does not match the palette’s number of intensities. Remove this field from the imported file.`,
-  'porteur-base': (champ) => `${champ}: the base palette already sets the profile that holds the reference. Remove this field from the imported file.`,
-  'porteur-manquant': (champ) => `${champ}: set the profile that holds the reference, soft or vivid, in the imported file.`,
-  'reglages-sans-originale': (champ) => `${champ}: these adjustments move the reference, but the original colour is missing. Have this field checked in the imported file.`,
-  'depart-sans-reglage': (champ) => `${champ}: no adjustment starts from this colour. Remove this field from the imported file.`,
-  'depart-identique': (champ) => `${champ}: it is identical to the original colour. Remove this field from the imported file.`,
+  'reglage-nul': (champ) => `${champ}: zero adjustment. Remove this field from the file.`,
+  'reglages-intensites': (champ) => `${champ}: incompatible with the number of intensities. Remove this field from the file.`,
+  'porteur-base': (champ) => `${champ}: profile already defined by base. Remove this field from the file.`,
+  'porteur-manquant': (champ) => `${champ}: enter soft or vivid to locate the reference.`,
+  'reglages-sans-originale': (champ) => `${champ}: original colour missing. Have the backup corrected.`,
+  'depart-sans-reglage': (champ) => `${champ}: no associated adjustment. Remove this field from the file.`,
+  'depart-identique': (champ) => `${champ}: identical to the original colour. Remove this field from the file.`,
 };
 
 /** Le texte d'un refus de [REC-05]. */
@@ -1074,8 +1045,8 @@ export function texteDuRefus(refus: Refus): string {
 export function recetteFuture(version: number): Constat {
   return {
     ou: `Backup format ${version}`,
-    quoi: `This backup requires a newer version of UCM Palettes. Your plugin supports format ${FORMAT_RECETTE} and cannot generate the board.`,
-    geste: "Update UCM Palettes. You can export the current data to keep it before importing another backup or resetting the plugin.",
+    quoi: `This plugin supports format ${FORMAT_RECETTE}. This newer backup blocks generation.`,
+    geste: "Update UCM Palettes. Export your data before replacing or resetting it.",
   };
 }
 
@@ -1088,7 +1059,7 @@ export function recetteIllisible(refus: readonly Refus[]): Constat {
   return {
     ou: "Could not read palettes and settings",
     quoi: `Generation is unavailable: ${erreursDeValidation(refus)}. First error: ${texteDuRefus(refus[0])}`,
-    geste: "Import a valid backup. To keep the current data, export it before choosing “Reset palettes and settings”.",
+    geste: "Export your data to keep it. Import a valid backup or reset palettes and settings.",
   };
 }
 
@@ -1101,9 +1072,9 @@ export const TEXTES_DE_LA_RECETTE = {
   confirmerLImport: "Replace with this backup",
   confirmerLeDepart: "Reset",
   annuler: "Cancel",
-  sansEcart: "This backup contains the same palettes and settings.",
-  importSansDessin: "Importing will replace the palettes and settings in this Figma file. The board will stay as it is until you next update it.",
-  confirmationDuDepart: "All palettes will be removed from the plugin and settings will return to their defaults. Export your data first if you want to keep it.",
+  sansEcart: "Identical palettes and settings.",
+  importSansDessin: "Import replaces palettes and settings. Figma frames stay unchanged.",
+  confirmationDuDepart: "All palettes will be removed from the plugin and settings reset. Export them first to keep a copy.",
   titre: "Palettes and settings",
 } as const;
 
@@ -1170,7 +1141,7 @@ export function ligneDesValeurs(palettes: readonly { readonly nom: string; reado
 export function lignesDeNature(nature: { readonly couleurs: boolean; readonly minimums: boolean; readonly detection: boolean }): string[] {
   return [
     nature.couleurs ? "Colours: shades in the affected palettes will change." : null,
-    nature.minimums ? "Minimum contrast requirements: guarantee results may change without changing the colours." : null,
+    nature.minimums ? "Minimum contrast: guarantees may change, colours stay the same." : null,
     nature.detection ? "Similar colour detection: only the warnings may change." : null,
   ].filter((ligne): ligne is string => ligne !== null);
 }
@@ -1190,7 +1161,7 @@ export function importInvalide(fichier: string, refus: readonly Refus[]): Consta
   return {
     ou: `Could not import: ${fichier}`,
     quoi: `This file contains ${erreursDeValidation(refus)}. First error: ${texteDuRefus(refus[0])} Your current palettes and settings are kept.`,
-    geste: "Correct the indicated file, then try importing again. You can also choose another backup.",
+    geste: "Correct this file or import another backup.",
   };
 }
 
@@ -1198,8 +1169,8 @@ export function importInvalide(fichier: string, refus: readonly Refus[]): Consta
 export function importFutur(fichier: string, version: number): Constat {
   return {
     ou: `Could not import: ${fichier}, format ${version}`,
-    quoi: `This backup requires a newer version of the plugin, which currently supports format ${FORMAT_RECETTE}. Your current palettes and settings are kept.`,
-    geste: "Install a newer version of UCM Palettes, then import this backup again.",
+    quoi: `Supported format: ${FORMAT_RECETTE}. This backup is newer. Your palettes and settings are kept.`,
+    geste: "Update UCM Palettes, then import this file again.",
   };
 }
 
@@ -1215,7 +1186,7 @@ export const TEXTES_DU_DESSIN = {
   reessayer: "Try again",
   confirmer: "Generate in Figma",
   annuler: "Cancel",
-  plancheSansPalette: "Create a palette in the “Create” tab to generate its board here.",
+  plancheSansPalette: "Create a palette in the “Create” tab, then generate it here.",
   versLesPalettes: "Create a palette",
   // N009, N010, puis N043 à N047 ; un cadre jamais généré a sa pastille (Y2.2).
   pasEncore: "Not yet in Figma",
@@ -1284,7 +1255,7 @@ export function rechercheBornee(nomDeLaPage: string | null, introuvables: readon
   const seul = introuvables.length === 1;
   return {
     ou: seul ? `Frame not found: ${citer(introuvables)}` : `Frames not found: ${citer(introuvables)}`,
-    quoi: `The plugin searched for ${seul ? "this frame" : "these frames"} on page ${nomDeLaPage ? `“${nomDeLaPage}”` : "used for the board"} only. A frame that was deleted, or cut and pasted onto another page, is no longer there. Generating the palette creates a new frame.`,
+    quoi: `Search limited to ${nomDeLaPage ? `page “${nomDeLaPage}”` : "the board page"}. Generating again would create ${seul ? "another frame" : "more frames"}.`,
     geste: "Search the entire file before generating to avoid creating a duplicate.",
   };
 }
@@ -1293,7 +1264,7 @@ export function rechercheBornee(nomDeLaPage: string | null, introuvables: readon
 export function lectureImpossible(noms: readonly string[]): Constat {
   return {
     ou: `Could not read frame: ${citer(noms)}`,
-    quoi: `Figma could not read the existing frame for ${noms.length === 1 ? "this palette" : "these palettes"}. No palettes were generated, to avoid creating duplicate frames.`,
+    quoi: `Figma cannot read ${noms.length === 1 ? "this frame" : "these frames"}. Generation cancelled to avoid duplicates.`,
     geste: "Refresh the Palettes tab, then try generating again.",
   };
 }
@@ -1302,7 +1273,7 @@ export function lectureImpossible(noms: readonly string[]): Constat {
 export function suiviFutur(): Constat {
   return {
     ou: "Board from a newer version",
-    quoi: "The frames in this file were generated by a newer version of UCM Palettes. This version cannot read or update them.",
+    quoi: "These frames need a newer plugin version. Reading and updating are unavailable.",
     geste: "Update the plugin to generate the palettes.",
   };
 }
@@ -1320,7 +1291,7 @@ export function progressionDuDessin(fait: number, total: number, nom: string): s
 
 /** La confirmation avant de générer beaucoup de palettes ([PLA-24], D-I). */
 export function confirmationDuDessin(nombre: number): string {
-  return `Generating ${nombre} palettes will add more than 1,500 layers per palette. Confirm to start generating.`;
+  return `Generate ${nombre} palettes? Each palette may add more than 1,500 layers.`;
 }
 
 /** Le blocage d'une police indisponible ([PLA-22]). */
@@ -1357,8 +1328,8 @@ export function dessinInterrompu(nom: string, message: string, creees: readonly 
 export function dessinSurUneAutreRecette(): Constat {
   return {
     ou: "The file’s data has changed",
-    quoi: "The palettes or settings have changed since they were loaded. Generation was cancelled to avoid creating a board that differs from the preview.",
-    geste: "Reload the palettes, check the preview, then generate again.",
+    quoi: "Palettes or settings have changed. Generation cancelled: the preview is out of date.",
+    geste: "Reload the palettes, then check the preview before generating.",
   };
 }
 
@@ -1373,8 +1344,8 @@ export function constatDesCalquesEtrangers(nom: string, calques: readonly string
       ? `Updating will delete the layer ${citer(calques)} that you added to this frame.`
       : `Updating will delete the ${calques.length} layers you added to this frame: ${citer(calques)}.`,
     geste: seul
-      ? "Move this layer outside the frame to keep it. Otherwise, confirm the replacement."
-      : "Move these layers outside the frame to keep them. Otherwise, confirm the replacement.",
+      ? "Move this layer out of the frame to keep it, or confirm its deletion."
+      : "Move these layers out of the frame to keep them, or confirm their deletion.",
   };
 }
 
@@ -1399,8 +1370,8 @@ export function suppressionRefusee(nom: string): Constat {
 export function copieDeCadre(nom: string): Constat {
   return {
     ou: `Copy of frame “${nom}”`,
-    quoi: "The plugin updates only the original frame. The colours in this copy may be out of date.",
-    geste: "Update the palette, then duplicate its original frame to get a new copy.",
+    quoi: "This copy does not receive palette updates.",
+    geste: "Update the original frame, then duplicate it.",
   };
 }
 
@@ -1408,8 +1379,8 @@ export function copieDeCadre(nom: string): Constat {
 export function noticeDisplayP3(): Constat {
   return {
     ou: "Display P3 Figma file",
-    quoi: "In this Display P3 file, the eyedropper may show a different code from the sRGB code on the card.",
-    geste: "To get the palette’s sRGB code, copy the hex code on the card.",
+    quoi: "The eyedropper reads a Display P3 code, which differs from the card’s sRGB code.",
+    geste: "Copy the hex code on the card to get sRGB.",
   };
 }
 
@@ -1420,7 +1391,7 @@ export function ecartDePeinture(nom: string, ecarts: readonly { readonly nom: st
   return {
     ou: `Preview and board differ: ${nom}`,
     quoi: `${compte} the preview.`,
-    geste: "Update the palette on the board. If the difference persists, send this message to the plugin maintainer.",
+    geste: "Update the palette in Figma. If the difference persists, send this message to the plugin maintainer.",
     detail: `Example, ${premier.nom}: ${premier.apercu ?? "missing colour"} in the preview, ${premier.peint} on the board.`,
   };
 }
@@ -1465,7 +1436,7 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
   profil: "Preview profile",
   vue: "Test interface view",
   vues: { ecran: "Screen", etats: "States" },
-  ecran: "Team screen using the palette",
+  ecran: "Screen using the palette colours",
   etats: "Palette components by state",
   equipe: {
     organisation: 'Studio Nord',
@@ -1516,11 +1487,11 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   plusClair: "One step lighter",
   code: "Proposed colour code",
   garanties: "Guarantees",
-  aucuneGarantieManquee: "All guarantees met, before and after.",
+  aucuneGarantieManquee: "All guarantees met before and after.",
   appliquer: "Apply",
   annuler: "Cancel",
   ajusteeDepuis: (hexa: string) => `Adjusted from ${hexa}`,
-  telleQuelle: "Reference colour used as is.",
+  telleQuelle: "Reference colour unchanged.",
   revenir: "Restore original",
   colonnes: { garantie: "Guarantee", theme: "Theme", avant: "Before", apres: "After" },
   sur: "on",
@@ -1603,8 +1574,8 @@ export function bilanDeLAjustement(profil: Intensite, avant: number, apres: numb
 export function originaleRetiree(originale: string): Constat {
   return {
     ou: `Original colour removed: ${originale}`,
-    quoi: "The colour you entered becomes the new reference. The palette no longer keeps the original colour from the adjustment.",
-    geste: "To restore it, undo with Ctrl+Z or enter it again.",
+    quoi: "The new reference replaces the original colour.",
+    geste: "To restore it, press Ctrl+Z or enter it again.",
   };
 }
 

@@ -5,7 +5,7 @@ import test from 'node:test';
 import { recetteParDefaut, verifierPromesses, type Alerte, type Recette } from 'ucm-couleur';
 
 import { changerReference } from '../src/edition';
-import { accoladesDe, ciblesDeLAlerte, groupesManques, placeDeLAlerte } from '../src/presentation';
+import { accoladesDe, ciblesDeLAlerte, colorShiftModifie, groupesManques, placeDeLAlerte, reglageGlobalModifie } from '../src/presentation';
 
 const DEFAUT = recetteParDefaut();
 const BLEU = changerReference(DEFAUT, {
@@ -70,4 +70,22 @@ test('[UI-04] les accolades se déduisent de la table des emplois : deux lignes,
     // surface-card, une colonne entre on-solid et surface, passe sur la seconde ligne : son libellé s'y centre.
     ['surface-card 0-0 [-2-2 center]', 'border-decorative 3-3 [3-5 start]', 'border-control·focus 6-9 [6-10 start]'],
   ]);
+});
+
+test('[UI-12] une carte repliée se dit réglée dès qu’une valeur quitte celle d’une palette neuve (recette v7)', () => {
+  assert.equal(reglageGlobalModifie(BLEU), false);
+  assert.equal(reglageGlobalModifie({ ...BLEU, reglages: { teinte: { soft: 8 } } }), true);
+  assert.equal(reglageGlobalModifie({ ...BLEU, reglages: { clarte: { vivid: 0 } } }), false, 'un décalage nul ne compte pas');
+  assert.equal(reglageGlobalModifie({ ...BLEU, parts: { soft: 0.3, vivid: 0.9, origine: 'designer' } }), true);
+  assert.equal(reglageGlobalModifie({ ...BLEU, intensites: 1, reglages: { part: 0.6 } }), true);
+  assert.equal(reglageGlobalModifie({ ...BLEU, intensites: 1, reglages: { teinte: { soft: 8 } } }), false, 'à une intensité, seul Vivid porte les réglages');
+
+  assert.equal(colorShiftModifie(BLEU, false), false, 'le préréglage Tailwind d’une palette neuve');
+  const libre = { ...BLEU, derive: { ...BLEU.derive, vivid: { clair: 6, sombre: 0, origine: 'libre' as const } } };
+  assert.equal(colorShiftModifie(libre, false), true);
+  assert.equal(colorShiftModifie(libre, true), false, 'une palette grise ne lit que sa luminosité');
+  const eclaircie = { ...BLEU, derive: { ...BLEU.derive, vivid: { ...BLEU.derive.vivid, clarte: { clair: 0, sombre: 0.02 } } } };
+  assert.equal(colorShiftModifie(eclaircie, true), true);
+  assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: true, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), false, 'liés, les profils se lisent sur Vivid');
+  assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: false, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), true);
 });

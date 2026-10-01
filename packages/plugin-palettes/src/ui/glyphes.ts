@@ -1,26 +1,27 @@
 /**
- * Le glyphe de chaque carte titrée ([UI-19]) : un dessin de 44 × 28 unités,
+ * Le glyphe d'une carte titrée ([UI-19]) : un dessin de 44 × 28 unités,
  * affiché en 38 × 24 px, d'un trait de 1,8. Chaque forme porte un rôle, et la
  * feuille le peint d'un rôle de couleur : aucun glyphe n'écrit une couleur de
  * donnée. La planche des glyphes de la maquette du Color shift se dessine
  * depuis les mêmes formes.
  */
 
-/** Les cartes titrées qui portent un glyphe. Une fiche titrée par un nom de palette n'en a pas. */
+/**
+ * Les cartes titrées qui portent un glyphe. Une fiche titrée par un nom de
+ * palette n'en a pas, ni, depuis la recette v7, la configuration de la
+ * palette, la création et « Palettes et réglages ».
+ */
 export type NomDeGlyphe =
-  | 'configuration'
   | 'reglageGlobal'
   | 'colorShift'
   | 'garanties'
   | 'interfaceDeTest'
-  | 'creation'
   | 'fonds'
   | 'intensites'
   | 'courbes'
   | 'minimums'
   | 'proches'
-  | 'contenu'
-  | 'palettesEtReglages';
+  | 'contenu';
 
 /**
  * Le rôle d'une forme. Un trait ou un aplat est secondaire, pâle ou de marque ;
@@ -46,8 +47,6 @@ const rampe = (y: number, role: RoleDeForme): FormeDeGlyphe[] => Array.from({ le
 
 /** Les formes de chaque glyphe, dans l'ordre où elles se peignent. */
 export const GLYPHES: { readonly [N in NomDeGlyphe]: readonly FormeDeGlyphe[] } = {
-  // La référence et son nom : une pastille de marque, puis deux lignes de texte.
-  configuration: [rect(4, 6, 14, 16, 'aplat-marque', 2), ligne(23, 10, 40, 10, 'trait'), ligne(23, 18, 34, 18, 'trait')],
   // Validé : une rampe pâle, puis la même translatée, de marque.
   reglageGlobal: [...rampe(6, 'aplat-pale'), ...rampe(13, 'aplat-marque')],
   // Validé : deux bouts qui pivotent autour du losange de la référence.
@@ -62,8 +61,6 @@ export const GLYPHES: { readonly [N in NomDeGlyphe]: readonly FormeDeGlyphe[] } 
   garanties: [rect(4, 6, 20, 16, 'aplat-marque', 2), ligne(9, 14, 19, 14, 'fond'), trace('28,14 32,19 40,8', 'trait')],
   // Une fenêtre : sa barre, une ligne de texte et un bouton plein.
   interfaceDeTest: [rect(4, 4, 36, 20, 'fond', 2), ligne(4, 9, 40, 9, 'trait'), ligne(9, 14, 25, 14, 'trait'), rect(9, 17, 14, 4, 'aplat-marque', 2)],
-  // Trois pastilles d'une rampe, et le signe plus d'une palette à créer.
-  creation: [rect(4, 9, 6, 10, 'aplat-pale'), rect(11, 9, 6, 10, 'aplat'), rect(18, 9, 6, 10, 'aplat-marque'), ligne(29, 14, 40, 14, 'trait-marque'), ligne(34.5, 8.5, 34.5, 19.5, 'trait-marque')],
   // Une page, et la pastille de son fond dans un coin.
   fonds: [rect(4, 4, 36, 20, 'fond', 2), rect(27, 13, 10, 8, 'aplat-marque', 1.5)],
   // Soft et Vivid : un rond cerné, un rond plein.
@@ -76,8 +73,6 @@ export const GLYPHES: { readonly [N in NomDeGlyphe]: readonly FormeDeGlyphe[] } 
   proches: [rond(17, 14, 8, 'trait'), rond(27, 14, 8, 'trait-marque')],
   // Un cadre de la planche : une rangée de pastilles, puis deux lignes de texte.
   contenu: [rect(4, 3, 36, 22, 'fond', 2), ...[0, 1, 2, 3, 4].map((rang) => rect(8 + rang * 6, 7, 4.6, 5, 'aplat-marque')), ligne(8, 16, 36, 16, 'trait'), ligne(8, 21, 28, 21, 'trait')],
-  // Le fichier de la recette : une page cornée et la rampe qu'elle range.
-  palettesEtReglages: [chemin('M11 3 H28 L34 9 V25 H11 Z', 'fond'), trace('28,3 28,9 34,9', 'trait'), ...[0, 1, 2].map((rang) => rect(15 + rang * 5.5, 14, 4, 6, rang === 0 ? 'aplat-pale' : 'aplat-marque'))],
 };
 
 const SVG = 'http://www.w3.org/2000/svg';

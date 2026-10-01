@@ -144,8 +144,8 @@ async function glisserReel(onglet, cdp, commande, temoin, pauses) {
   };
 }
 
-/** Les cartes repliées à l'ouverture, qui ne se rendent que dépliées : Dérive, Garanties, Interface de test. */
-const DEPLIER = ['Dérive de teinte', 'Garanties de contraste', 'Interface de test'].map((titre) => `[aria-label="${titre}"] .carte-bascule`);
+/** Les cartes repliées à l'ouverture, qui ne se rendent que dépliées : Réglage global, Color shift, Garanties, Interface de test. */
+const DEPLIER = ['Réglage global', 'Color shift', 'Garanties de contraste', 'Interface de test'].map((titre) => `[aria-label="${titre}"] .carte-bascule`);
 const PIPETTE = '[aria-label="Configuration de la palette"] .pipette';
 const GARANTIES = '[aria-label="Garanties de contraste"] .carte-corps';
 

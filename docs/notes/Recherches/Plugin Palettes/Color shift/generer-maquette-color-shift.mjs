@@ -59,11 +59,10 @@ const DECISIONS = [
 ];
 const OUVERTES = [];
 
-/** Les cartes titrées et leur glyphe, dans l'ordre de leurs onglets ([UI-19]). */
+/** Les cartes titrées et leur glyphe, dans l'ordre de leurs onglets ([UI-19]) ; la recette v7 en a retiré trois. */
 const CARTES_DES_GLYPHES = [
-  ['Onglet Création', [['configuration', 'Configuration de la palette'], ['reglageGlobal', 'Réglage global'], ['colorShift', 'Color shift'], ['garanties', 'Garanties de contraste'], ['interfaceDeTest', 'Interface de test'], ['creation', 'Nouvelle palette']]],
+  ['Onglet Création', [['reglageGlobal', 'Réglage global'], ['colorShift', 'Color shift'], ['garanties', 'Garanties de contraste'], ['interfaceDeTest', 'Interface de test']]],
   ['Réglages communs', [['fonds', 'Couleurs de fond'], ['intensites', 'Intensités'], ['courbes', 'Luminosité des nuances'], ['minimums', 'Minimums des promesses'], ['proches', 'Détection des couleurs proches'], ['contenu', 'Contenu des planches']]],
-  ['Onglet Palettes', [['palettesEtReglages', 'Palettes et réglages']]],
 ];
 
 /** Le SVG d'un glyphe, avec les classes de rôle que la feuille du plugin peint. */

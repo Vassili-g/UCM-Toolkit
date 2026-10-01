@@ -201,9 +201,6 @@ function construireVues(i18n: Localisation) {
     erreur.className = 'field-error';
     erreur.hidden = true;
     const plage = createLigneFixe();
-    const pied = document.createElement('p');
-    pied.className = 'ligne-secondaire';
-    i18n.lier(pied, 'textContent', TEXTES_DES_REGLAGES.pied);
     // L'origine des parts, et le retour aux réglages communs quand le designer a posé les siennes.
     const origine = createLigneFixe();
     const reprendre = document.createElement('button');
@@ -219,7 +216,7 @@ function construireVues(i18n: Localisation) {
     lienDeLAlerte.addEventListener('click', () => {
       if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
     });
-    element.append(cible, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, pied, origine.element, alerte.element);
+    element.append(cible, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');

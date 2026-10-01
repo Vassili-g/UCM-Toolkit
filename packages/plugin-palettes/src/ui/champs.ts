@@ -22,12 +22,12 @@ export interface ChoixDeBaseUi {
 /** Ce que les segments des intensités montrent. */
 export interface EtatDesSegmentsDesIntensites {
   readonly intensites: 1 | 2;
-  /** La part de la couleur de référence, écrite ; `null` avant une couleur lisible. */
-  readonly part: Texte | null;
 }
 
 /** Ce que les deux cartes du choix des intensités montrent. */
 export interface EtatDuChoixDesIntensites extends EtatDesSegmentsDesIntensites {
+  /** La part de la couleur de référence, écrite ; `null` avant une couleur lisible. */
+  readonly part: Texte | null;
   /** La rampe que chaque choix donnerait, en Thème Light ; `null` avant une couleur de référence lisible. */
   readonly apercu: ((intensites: 1 | 2) => HTMLElement) | null;
 }
@@ -179,11 +179,11 @@ function construireVues(i18n: Localisation) {
 
   /**
    * Le choix des intensités dans la configuration d'une palette : deux
-   * segments « Une · Deux », comme le choix du modèle (Q6.2). Les deux cartes
-   * et leurs rampes restent à la création. Sous les segments, l'aide du choix
-   * pressé, puis sa suite : la part de la référence pour une intensité,
-   * « Référence exacte dans » pour deux. Un clic appelle `surChoix` ;
-   * l'appelant pose l'état pressé.
+   * segments « Une · Deux », comme le choix du modèle (Q6.2). Les deux cartes,
+   * leurs rampes et la part de la référence restent à la création (recette
+   * v7). Sous les segments, l'aide du choix pressé, puis « Référence exacte
+   * dans » pour deux. Un clic appelle `surChoix` ; l'appelant pose l'état
+   * pressé.
    */
   function createSegmentsDesIntensites(surChoix: (intensites: 1 | 2) => void, surBase: (choix: ChoixDeBase) => void): SegmentsDesIntensitesUi {
     const t = TEXTES_DES_INTENSITES_DE_PALETTE;
@@ -203,22 +203,18 @@ function construireVues(i18n: Localisation) {
     const base = createChoixDeBase(surBase);
     const aide = document.createElement('span');
     aide.className = 'ligne-secondaire';
-    const part = document.createElement('span');
-    part.className = 'ligne-secondaire';
     const libelle = document.createElement('span');
     libelle.className = 'libelle-de-champ';
     i18n.lier(libelle, 'textContent', t.libelle);
     const element = document.createElement('div');
     element.className = 'champ-colonne segments-des-intensites';
-    element.append(libelle, segments, aide, part, base.element);
+    element.append(libelle, segments, aide, base.element);
     return {
       element,
       base,
-      poser({ intensites, part: partEcrite }) {
+      poser({ intensites }) {
         for (const { nombre, bouton } of boutons) bouton.setAttribute('aria-pressed', String(nombre === intensites));
         i18n.lier(aide, 'textContent', intensites === 1 ? t.une.texte : t.deux.texte);
-        i18n.lier(part, 'textContent', partEcrite === null ? '' : t.partDeLaReference(partEcrite));
-        part.hidden = intensites !== 1 || partEcrite === null;
         base.element.hidden = intensites !== 2;
       },
     };

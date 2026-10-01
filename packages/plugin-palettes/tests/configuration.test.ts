@@ -63,8 +63,8 @@ test('[ENT-07] une courbe touche toutes les palettes, une part épargne les part
 test('[ENT-10] une courbe hors garantie nomme le cran, le mode, le profil, la teinte et le contraste', () => {
   const constat = constatDeGarantie({ mode: 'light', cran: 700, profil: 'soft', teinte: 147, contraste: 4.189, seuil: 4.5 });
   assert.equal(constat.ou, 'Thème Light, nuance 700, profil soft');
-  assert.equal(constat.quoi, 'Cette courbe donne un contraste de 4,18:1 avec la nuance 50 pour une teinte de 147°. Le minimum demandé est de 4,5:1.');
-  assert.ok(constat.geste.includes('nuances 700 et 50'));
+  assert.equal(constat.quoi, 'Contraste avec la nuance 50 : 4,18:1, minimum 4,5:1. Teinte : 147°.');
+  assert.equal(constat.geste, 'Éloignez la luminosité de la nuance 700 de celle de la nuance 50.');
 });
 
 test('[ENT-05] un fond se saisit en hexa, s’écrit en majuscules, et une saisie qui n’est pas une couleur se refuse', () => {

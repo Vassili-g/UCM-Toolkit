@@ -2,7 +2,7 @@
  * Ce que l'interface fait des résultats du moteur, avant leur mise en mots :
  * les promesses manquées groupées par association, mode et état ([VER-06]),
  * la place de chaque alerte, et le réglage que chaque message ouvre
- * ([VER-15]). Pur : ni DOM, ni texte.
+ * ([VER-15]), et si une carte repliée est réglée. Pur : ni DOM, ni texte.
  */
 import {
   ASSOCIATIONS,
@@ -11,8 +11,10 @@ import {
   TABLE_DES_EMPLOIS,
   associationDe,
   cleDeLAssociation,
+  decalageRange,
   decalagesDeLEmploi,
   etatDeLaPaire,
+  intensitesDe,
   type Alerte,
   type Association,
   type Emploi,
@@ -189,4 +191,35 @@ export function accoladesDe(crans: readonly number[]): Accolade[][] {
       return { ...groupe, libelle };
     });
   });
+}
+
+/**
+ * Le réglage global d'une palette est réglé (recette v7) : une teinte ou une
+ * luminosité non nulle sur l'une de ses rampes, la saturation d'une palette à
+ * une intensité, ou des parts propres.
+ */
+export function reglageGlobalModifie(palette: Palette): boolean {
+  const { reglages } = palette;
+  const decalee = intensitesDe(palette).some((intensite) => {
+    const profil = intensite === 'unique' ? 'vivid' : intensite;
+    return (reglages?.teinte?.[profil] ?? 0) !== 0 || (reglages?.clarte?.[profil] ?? 0) !== 0;
+  });
+  return decalee || reglages?.part !== undefined || palette.parts !== undefined;
+}
+
+/**
+ * Le Color shift d'une palette s'écarte de celui d'une palette neuve (recette
+ * v7) : une teinte hors du préréglage Tailwind, ou une saturation ou une
+ * luminosité décalée. Liés, les profils se lisent sur Vivid. Une palette
+ * grise ne règle que sa luminosité ([DER-15]).
+ */
+export function colorShiftModifie(palette: Palette, grise: boolean): boolean {
+  const { lien, soft, vivid } = palette.derive;
+  const derives = palette.intensites === 1 || lien ? [vivid] : [soft, vivid];
+  const grandeurs = grise ? (['clarte'] as const) : (['saturation', 'clarte'] as const);
+  return derives.some((derive) => (!grise && derive.origine !== 'tailwind')
+    || grandeurs.some((grandeur) => {
+      const { clair, sombre } = decalageRange(derive, grandeur);
+      return clair !== 0 || sombre !== 0;
+    }));
 }

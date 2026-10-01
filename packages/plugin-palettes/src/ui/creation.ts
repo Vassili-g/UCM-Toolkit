@@ -11,7 +11,6 @@ import type { Profil } from 'ucm-couleur';
 
 import { MOTIF_HEXA } from '../edition';
 import { createCarte } from './carte';
-import { creerGlyphe } from './glyphes';
 import { type ChoixDeBase, type ChoixDuModele } from './champs';
 import { creerVuesChamps } from './champs';
 import { creerVuesSelecteur } from './couleur/selecteur';
@@ -49,7 +48,7 @@ function construireVues(i18n: Localisation) {
     apercuDeLaSaisie: (saisie: string) => ApercuDeLaSaisie | null;
     onAnnuler: () => void;
   }): CreationUi {
-    const carte = createCarte({ titre: TEXTES.titreDeLaCreation, glyphe: creerGlyphe('creation') }, i18n);
+    const carte = createCarte({ titre: TEXTES.titreDeLaCreation }, i18n);
 
     const champDuNom = document.createElement('input');
     champDuNom.type = 'text';

@@ -2064,8 +2064,8 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
   try {
     const soft = page.getByRole('textbox', { name: 'Saturation de Soft' });
     assert.equal(await soft.isVisible(), false, 'la carte est repliée à l’ouverture');
-    // Vivid porte #FACC15 et prend sa saturation, 0,983 ([ENT-11]).
-    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Aucun réglage · Soft 45 % · Vivid 98 %');
+    // Le résumé ne dit que l'état, sans les valeurs (recette v7).
+    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Aucun réglage');
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     // Le profil proposé d'abord ne porte pas la référence : Vivid la porte.
     assert.equal(await soft.inputValue(), '45 %');
@@ -2460,7 +2460,7 @@ test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, l
     assert.deepEqual(await intensitesMontrees(page), { apercu: ['unique'], basculeDesGaranties: false, basculeDeLEssai: false, carteDesReglages: true, cibleDesReglages: false, synchronisation: false });
     assert.equal(await page.locator('.repere-de-la-reference').textContent(), '◆ Référence : nuance 600', 'la référence ne nomme plus de profil');
     assert.equal(await configuration.getByRole('group', { name: 'Référence exacte dans' }).isVisible(), false);
-    assert.match(await configuration.getByText(/^Intensité : /).textContent(), /^Intensité : 0,\d+$/);
+    assert.equal(await configuration.getByText(/^Intensité : /).count(), 0, 'la part de la référence reste à la création (recette v7)');
     await envoyer(page, rangee(rangement.demande));
     const suivant = await compte(page);
     await deux.click();
@@ -3326,8 +3326,7 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
     assert.equal(await avertissement.getAttribute('data-ton'), 'avertissement');
     assert.equal(await texteDeLAvertissement(), 'Attention, votre couleur de référence a été modifiée.');
     assert.equal(await referenceMontree(page), '#1669D2');
-    // Vivid porte la référence assombrie et prend sa saturation ([ENT-11]).
-    assert.equal(await carte.locator('.carte-resume').textContent(), 'Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 93 %');
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Réglé', 'le résumé ne dit que l’état (recette v7)');
   } finally {
     await page.close();
   }
