@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-import { recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { ajouter, nouvellePalette } from '../src/edition';
@@ -346,4 +346,24 @@ test('[VAR-12] les chemins de la bibliothèque Intencial : chaque rampe de coule
   assert.ok(rampes.includes('primitives/colors/titanium'), rampes.join(', '));
   assert.ok(rampes.length >= 9, rampes.join(', '));
   assert.ok(palettes.every((palette) => palette.nuances.length >= 5));
+});
+
+// ------------------------------------------------------------ une palette figée (format 8)
+
+test('[VAR-13] une palette figée s’analyse sans garantie, et son plan écrit ses couleurs telles quelles, une variable par thème et par nuance', () => {
+  const nuances = [50, 100, 200, 300, 400];
+  const light = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8'];
+  const dark = ['#020617', '#0F172A', '#1E293B', '#334155', '#475569'];
+  const { parts: _parts, ...sansParts } = GRIS;
+  const figee: Palette = { ...sansParts, id: 'p-0000000f', nom: 'slate', reference: '#E2E8F0', crans: nuances, figees: { light, dark } };
+  const recette = ajouter(VIDE, figee);
+  assert.deepEqual(validerRecette(recette), { recette });
+  const analyse = analyserPalette(recette, figee);
+  assert.equal(analyse.libre, true);
+  assert.deepEqual(analyse.promesses, []);
+  assert.deepEqual(analyse.intensites, ['unique']);
+  assert.equal(analyse.ancrage.crans.light, 200);
+  const plan = planDesVariables(recette, figee, DESTINATION_PAR_DEFAUT);
+  assert.deepEqual(plan.map((entree) => entree.hexa), [...light, ...dark]);
+  assert.deepEqual([plan[0].nom, plan[9].nom], ['colors/slate/light/50', 'colors/slate/dark/400']);
 });

@@ -14,12 +14,13 @@ import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Profil 
 import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
 
 /**
- * La version de la forme de la recette que ce paquet écrit. La version 7
- * exige 400 et 950 dans `crans` et ajoute `saturation` et `clarte` au Color
- * shift d'une palette. Une recette d'une autre version n'est pas convertie
- * ([REC-03]) : plus ancienne, elle est illisible ; plus récente, future.
+ * La version de la forme de la recette que ce paquet écrit. La version 8
+ * ajoute les couleurs figées d'une palette reprise du fichier, `figees`, et
+ * laisse une palette à une intensité porter sa propre liste de nuances. Une
+ * recette d'une autre version n'est pas convertie ([REC-03]) : plus
+ * ancienne, elle est illisible ; plus récente, future.
  */
-export const FORMAT_RECETTE = 7;
+export const FORMAT_RECETTE = 8;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -79,6 +80,17 @@ export interface Reglages {
 /** Les bornes des réglages : la teinte en degrés, la clarté en décalage OKLCH (mesures E4 bis de la recherche). */
 export const BORNES_DES_REGLAGES = { teinte: 30, clarte: { bas: -0.05, haut: 0.02 } } as const;
 
+/**
+ * Les couleurs figées d'une palette reprise « telle quelle » des variables
+ * du fichier ([VAR-13]) : un hexa par nuance de sa liste, dans son ordre.
+ * `dark` est absent quand la collection d'origine n'a pas de mode Dark : le
+ * thème Dark montre alors les couleurs de `light`.
+ */
+export interface CouleursFigees {
+  readonly light: readonly string[];
+  readonly dark?: readonly string[];
+}
+
 export interface Palette {
   readonly id: string;
   readonly nom?: string;
@@ -102,6 +114,13 @@ export interface Palette {
   readonly intensites?: 1;
   /** Teinte, saturation et luminosité de la carte (Z10.5). Absent, aucun réglage. */
   readonly reglages?: Reglages;
+  /**
+   * Les couleurs d'une palette figée ([VAR-13]) : ses rampes ne se calculent
+   * pas, elles rendent ces couleurs. Une palette figée porte sa liste de
+   * nuances et une seule intensité ; elle n'a ni rôles, ni garanties, ni
+   * réglage global, ni Color shift.
+   */
+  readonly figees?: CouleursFigees;
 }
 
 /** Les parties d'un cadre de la planche que le designer choisit de dessiner ([PLA-28]). */
@@ -201,7 +220,11 @@ export type RegleRecette =
   | 'porteur-manquant'
   | 'reglages-sans-originale'
   | 'depart-sans-reglage'
-  | 'depart-identique';
+  | 'depart-identique'
+  | 'figees-sans-liste'
+  | 'figees-longueur'
+  | 'figees-incompatible'
+  | 'crans-figes';
 
 /** Un refus : la règle, le chemin du champ fautif, et la valeur lue quand elle se montre. */
 export interface Refus {
@@ -339,6 +362,46 @@ function validerCransLibres(releve: Releve, crans: unknown, chemin: string): voi
   });
 }
 
+/**
+ * La liste d'une palette figée : les nuances lues dans les noms des
+ * variables, des entiers positifs ou nuls, strictement croissants. Elle
+ * n'obéit pas aux bornes d'une liste libre : rien ne se calcule sur elle.
+ */
+function validerCransFiges(releve: Releve, crans: unknown, chemin: string): void {
+  if (!releve.nombres(crans, chemin)) return;
+  if (crans.length === 0) releve.refuser('crans-figes', chemin, 0);
+  crans.forEach((cran, rang) => {
+    if (!Number.isInteger(cran) || cran < 0 || (rang > 0 && cran <= crans[rang - 1])) releve.refuser('crans-figes', `${chemin}[${rang}]`, cran);
+  });
+}
+
+/**
+ * Les couleurs figées ([VAR-13]) : la palette porte sa liste et une seule
+ * intensité, chaque thème a un hexa par nuance, et rien de ce qui règle une
+ * rampe calculée ne les accompagne.
+ */
+function validerFigees(releve: Releve, palette: Objet, chemin: string): void {
+  if (!('figees' in palette)) return;
+  const ici = `${chemin}.figees`;
+  const figees = palette.figees;
+  if (!Array.isArray(palette.crans) || palette.intensites !== 1) releve.refuser('figees-sans-liste', ici);
+  for (const cle of ['base', 'parts', 'reglages', 'originale']) {
+    if (cle in palette) releve.refuser('figees-incompatible', `${chemin}.${cle}`);
+  }
+  if (!releve.objet(figees, ici, ['light'], ['dark'])) return;
+  const nombre = Array.isArray(palette.crans) ? palette.crans.length : null;
+  for (const mode of ['light', 'dark'] as const) {
+    if (!(mode in figees)) continue;
+    const couleurs = figees[mode];
+    if (!Array.isArray(couleurs)) {
+      releve.refuser('forme', `${ici}.${mode}`);
+      continue;
+    }
+    if (nombre !== null && couleurs.length !== nombre) releve.refuser('figees-longueur', `${ici}.${mode}`, couleurs.length);
+    couleurs.forEach((couleur, rang) => releve.hexa(couleur, `${ici}.${mode}[${rang}]`));
+  }
+}
+
 const ORIGINES_DERIVE: readonly string[] = ['tailwind', 'constante', 'libre'];
 const ORIGINES_PARTS: readonly string[] = ['designer'];
 
@@ -391,7 +454,8 @@ function valeursDuColorShift(derive: Objet): unknown[] {
 function validerIntensites(releve: Releve, palette: Objet, chemin: string): void {
   if (!('intensites' in palette)) return;
   if (palette.intensites !== 1) releve.refuser('intensites-valeur', `${chemin}.intensites`, palette.intensites);
-  for (const cle of ['base', 'parts', 'crans']) {
+  // Une palette à une intensité porte sa liste de nuances : une palette reprise du fichier garde les siennes ([VAR-13]).
+  for (const cle of ['base', 'parts']) {
     if (cle in palette) releve.refuser('intensites-incompatible', `${chemin}.${cle}`);
   }
   if (estObjet(palette.derive) && palette.derive.lien === false) releve.refuser('intensites-incompatible', `${chemin}.derive.lien`);
@@ -475,7 +539,7 @@ function validerReglages(releve: Releve, palette: Objet, chemin: string): void {
 }
 
 function validerPalette(releve: Releve, palette: unknown, chemin: string): void {
-  if (!releve.objet(palette, chemin, ['id', 'reference', 'derive'], ['nom', 'parts', 'base', 'crans', 'originale', 'intensites', 'reglages'])) return;
+  if (!releve.objet(palette, chemin, ['id', 'reference', 'derive'], ['nom', 'parts', 'base', 'crans', 'originale', 'intensites', 'reglages', 'figees'])) return;
   if (typeof palette.id !== 'string' || !MOTIF_IDENTIFIANT.test(palette.id)) {
     releve.refuser('identifiant-forme', `${chemin}.id`, palette.id);
   }
@@ -483,9 +547,11 @@ function validerPalette(releve: Releve, palette: unknown, chemin: string): void 
   if ('base' in palette && palette.base !== 'soft' && palette.base !== 'vivid') releve.refuser('base-inconnue', `${chemin}.base`, palette.base);
   releve.hexa(palette.reference, `${chemin}.reference`);
   if ('crans' in palette) {
-    validerCransLibres(releve, palette.crans, `${chemin}.crans`);
+    if ('figees' in palette) validerCransFiges(releve, palette.crans, `${chemin}.crans`);
+    else validerCransLibres(releve, palette.crans, `${chemin}.crans`);
     if ('base' in palette) releve.refuser('base-libre', `${chemin}.base`, palette.base as string);
   }
+  validerFigees(releve, palette, chemin);
   if ('originale' in palette) {
     releve.hexa(palette.originale, `${chemin}.originale`);
     // Un réglage fin du porteur rend souvent les octets de l'originale : elle reste alors, comme départ (Z10.5).

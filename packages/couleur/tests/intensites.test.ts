@@ -106,7 +106,7 @@ test('[ENT-14] [VER-11] une palette à une intensité n’a ni profils confondus
   assert.ok(alertesDePalette(recetteAvec(deux), deux).some((alerte) => alerte.code === 'reference-plus-terne'), 'la même référence à deux intensités sonne');
 });
 
-test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette de base, des parts, une liste libre et une dérive déliée', () => {
+test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette de base, des parts et une dérive déliée, et porte sa liste de nuances', () => {
   const recette = recetteAvec(unique('p-000000c5', '#1E6FD9'));
   assert.ok('recette' in validerRecette(copie(recette)));
   const refus = (modifier: (palette: any) => void) => {
@@ -118,7 +118,8 @@ test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette
   assert.deepEqual(refus((palette) => { palette.intensites = 2; }), ['intensites-valeur palettes[0].intensites']);
   assert.deepEqual(refus((palette) => { palette.base = 'vivid'; }), ['intensites-incompatible palettes[0].base']);
   assert.deepEqual(refus((palette) => { palette.parts = { soft: 0.3, vivid: 0.8, origine: 'designer' }; }), ['intensites-incompatible palettes[0].parts']);
-  assert.deepEqual(refus((palette) => { palette.crans = [100, 300, 500, 700]; }), ['intensites-incompatible palettes[0].crans']);
+  // Format 8 : une palette reprise du fichier garde ses nuances, à une intensité ([VAR-13]).
+  assert.deepEqual(refus((palette) => { palette.crans = [100, 300, 500, 700]; }), []);
   assert.deepEqual(refus((palette) => { palette.derive.lien = false; }), ['intensites-incompatible palettes[0].derive.lien']);
 });
 
@@ -142,5 +143,5 @@ test('[VER-17] « Palettes proches » : Vivid contre Vivid à deux intensités, 
   assert.equal(distanceDePalettes(recette, sauge, autre), distanceSur(recette, sauge, 'unique', autre, 'unique'));
   const bleu = paletteTailwind('p-000000cb', '#1E6FD9');
   assert.equal(distanceDePalettes(recette, bleu, deux), distanceSur(recette, bleu, 'vivid', deux, 'vivid'), 'deux intensités : Vivid contre Vivid, comme au format 3');
-  assert.equal(recetteParDefaut().formatVersion, 7);
+  assert.equal(recetteParDefaut().formatVersion, 8);
 });

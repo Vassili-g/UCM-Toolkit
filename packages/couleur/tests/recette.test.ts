@@ -5,10 +5,14 @@ import test from 'node:test';
 import {
   CRANS_DES_EMPLOIS,
   FORMAT_RECETTE,
+  ancrageDe,
   classerRecette,
   jsonCanonique,
+  rampesDe,
   recetteParDefaut,
   validerRecette,
+  verifierPromesses,
+  type Palette,
   type RegleRecette,
 } from '../src/index';
 import { copie, paletteTailwind, recetteAvec } from './fabrique';
@@ -130,14 +134,14 @@ test('[REC-03] une recette de la version courante est lue', () => {
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une recette 7 exportée puis relue est égale', () => {
+test('[REC-03] une recette 8 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 7);
+  assert.equal(recette.formatVersion, 8);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
 test('[REC-03] une recette d’un format antérieur est illisible, sans conversion, par le refus de formatVersion', () => {
-  for (const version of [0, 3, 6]) {
+  for (const version of [0, 3, 7]) {
     assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: version })), {
       etat: 'illisible',
       refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version }],
@@ -174,4 +178,67 @@ test('[REC-04] une recette illisible est refusée sans recette de remplacement',
     assert.equal(classement.etat, 'illisible', texte);
     assert.ok(!('recette' in classement), texte);
   }
+});
+
+// ------------------------------------------------------------ les couleurs figées (format 8)
+
+const NUANCES_FIGEES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const SLATE = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
+
+/** Slate, reprise telle quelle des variables du fichier : sa liste, une intensité, ses couleurs. */
+function figee(reglages: Partial<Palette> = {}): Palette {
+  const { parts: _parts, ...sansParts } = paletteTailwind('p-000000f1', '#475569');
+  return { ...sansParts, intensites: 1, derive: { ...sansParts.derive, lien: true, soft: sansParts.derive.vivid }, crans: NUANCES_FIGEES, figees: { light: SLATE }, ...reglages };
+}
+
+const refusDeLaPalette = (palette: unknown): string[] => {
+  const lue = validerRecette({ ...valide(), palettes: [palette] });
+  return 'refus' in lue ? lue.refus.map(({ regle, chemin }) => `${regle} ${chemin}`) : [];
+};
+
+test('[VAR-13] une palette figée se valide, et ses rampes rendent ses couleurs telles quelles, sans calcul', () => {
+  const palette = figee();
+  assert.deepEqual(refusDeLaPalette(palette), []);
+  const recette = { ...valide(), palettes: [palette] };
+  const rampes = rampesDe(recette, palette);
+  assert.deepEqual(Object.keys(rampes), ['unique']);
+  assert.deepEqual(rampes.unique!.light.map((cran) => cran.hexa), SLATE);
+  // Sans mode Dark à l'origine, le thème Dark rend les couleurs de Light.
+  assert.deepEqual(rampes.unique!.dark.map((cran) => cran.hexa), SLATE);
+  const sombre = [...SLATE].reverse();
+  assert.deepEqual(rampesDe(recette, figee({ figees: { light: SLATE, dark: sombre } })).unique!.dark.map((cran) => cran.hexa), sombre);
+  // Chaque cran porte sa lecture OKLCH : la planche et le détail d'une nuance la montrent.
+  assert.ok(rampes.unique!.light.every((cran) => cran.L >= 0 && cran.L <= 1));
+});
+
+test('[VAR-13] la référence d’une palette figée est la nuance qui en porte la couleur, et une palette figée n’a pas de garantie', () => {
+  const palette = figee();
+  const recette = { ...valide(), palettes: [palette] };
+  assert.deepEqual(ancrageDe(recette, palette), { profil: 'unique', rangs: { light: 6, dark: 6 }, crans: { light: 600, dark: 600 } });
+  // Une référence que la liste ne porte pas retombe sur la première nuance.
+  assert.equal(ancrageDe(recette, figee({ reference: '#123456' })).crans.light, 50);
+  assert.deepEqual(verifierPromesses(recette, palette), []);
+});
+
+test('[VAR-13] des nuances lues dans des noms de variables ne suivent pas les bornes d’une liste libre', () => {
+  const tons = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100, 1200];
+  const couleurs = tons.map((_, rang) => SLATE[rang % SLATE.length]);
+  assert.deepEqual(refusDeLaPalette(figee({ crans: tons, figees: { light: couleurs } })), []);
+  assert.deepEqual(refusDeLaPalette(figee({ crans: [10, 10, 5, 2.5], figees: { light: SLATE.slice(0, 4) } })), [
+    'crans-figes palettes[0].crans[1]', 'crans-figes palettes[0].crans[2]', 'crans-figes palettes[0].crans[3]',
+  ]);
+  assert.deepEqual(refusDeLaPalette(figee({ crans: [], figees: { light: [] } })), ['crans-figes palettes[0].crans']);
+});
+
+test('[VAR-13] des couleurs figées refusent une liste absente, deux intensités, une longueur fausse, un hexa illisible et un réglage de rampe', () => {
+  const { crans: _crans, ...sansListe } = figee();
+  assert.deepEqual(refusDeLaPalette(sansListe), ['figees-sans-liste palettes[0].figees']);
+  const { intensites: _intensites, ...deux } = figee();
+  assert.deepEqual(refusDeLaPalette(deux), ['figees-sans-liste palettes[0].figees']);
+  assert.deepEqual(refusDeLaPalette(figee({ figees: { light: SLATE.slice(1) } })), ['figees-longueur palettes[0].figees.light']);
+  assert.deepEqual(refusDeLaPalette(figee({ figees: { light: SLATE, dark: SLATE.slice(2) } })), ['figees-longueur palettes[0].figees.dark']);
+  assert.deepEqual(refusDeLaPalette(figee({ figees: { light: ['bleu', ...SLATE.slice(1)] } })), ['hexa-invalide palettes[0].figees.light[0]']);
+  assert.deepEqual(refusDeLaPalette({ ...figee(), figees: { dark: SLATE } }), ['forme palettes[0].figees.light']);
+  assert.deepEqual(refusDeLaPalette(figee({ originale: '#334155' })), ['figees-incompatible palettes[0].originale']);
+  assert.deepEqual(refusDeLaPalette({ ...figee(), reglages: { part: 0.5 } }).filter((refus) => refus.startsWith('figees')), ['figees-incompatible palettes[0].reglages']);
 });

@@ -5,7 +5,7 @@
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
 import { CHROMA_SANS_TEINTE, ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
-import { PREREGLAGES, boutsDe, estLibre, etendueDe, grilleDe } from './nuances';
+import { PREREGLAGES, boutsDe, estFigee, estLibre, etendueDe, grilleDe } from './nuances';
 import { plafond } from './plafond';
 import {
   arrondir,
@@ -263,6 +263,11 @@ export interface Ancrage {
  * ou sa liste libre.
  */
 export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
+  if (estFigee(palette)) {
+    // Une palette figée ne calcule rien : la référence est la nuance qui en porte la couleur, la première de sa liste sinon.
+    const rang = Math.max(0, palette.figees.light.findIndex((hexa) => hexa.toUpperCase() === palette.reference.toUpperCase()));
+    return { profil: 'unique', rangs: { light: rang, dark: rang }, crans: { light: palette.crans[rang], dark: palette.crans[rang] } };
+  }
   // Le départ, fixe pendant les gestes : la luminosité du porteur translate sa rampe sans changer la nuance du ◆ (Z10.5).
   const clarte = rgb8VersOklch(departDe(recette, palette)).L;
   const { crans, courbes } = grilleDe(recette, palette);
@@ -312,6 +317,11 @@ function parametresDesRampes(recette: Recette, palette: Palette): (intensite: In
  * rapport lisent ces rampes-ci.
  */
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
+  if (estFigee(palette)) {
+    // Les couleurs lues dans le fichier, telles quelles ; sans mode Dark à l'origine, le thème Dark rend celles de Light.
+    const rampe = (couleurs: readonly string[]): Cran[] => couleurs.map((hexa) => cranDeLaReference(lireHexa(hexa) ?? [0, 0, 0]));
+    return { unique: { light: rampe(palette.figees.light), dark: rampe(palette.figees.dark ?? palette.figees.light) } };
+  }
   const reference = referenceDe(palette);
   const ancrage = ancrageDe(recette, palette);
   const parametres = parametresDesRampes(recette, palette);

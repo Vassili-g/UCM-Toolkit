@@ -1045,7 +1045,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'originale-identique': (champ) => `${champ}: identical to the reference. Remove this field from the file.`,
   // Les quatre règles du format 4 ([ENT-14], [MOT-28], [PLA-28]).
   'intensites-valeur': (champ, valeur) => `${champ}: invalid “${valeur}”. Use 1, or remove this field for Soft and Vivid.`,
-  'intensites-incompatible': (champ) => `${champ}: incompatible with one intensity. Remove base, parts and crans from the file, then enable Color shift sync.`,
+  'intensites-incompatible': (champ) => `${champ}: incompatible with one intensity. Remove base and parts from the file, then enable Color shift sync.`,
   'fonds-sombres-bornes': (champ, valeur) => `${champ}: ${valeur}. Enter intensity from 0 to 1.`,
   'contenu-sans-theme': (champ) => `${champ}: keep at least one theme, Light or Dark.`,
   // Les huit règles du format 5 (Z10.5, N141).
@@ -1057,6 +1057,11 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'reglages-sans-originale': (champ) => `${champ}: original colour missing. Have the backup corrected.`,
   'depart-sans-reglage': (champ) => `${champ}: no associated adjustment. Remove this field from the file.`,
   'depart-identique': (champ) => `${champ}: identical to the original colour. Remove this field from the file.`,
+  // Les quatre règles du format 8 : les couleurs figées d'une palette reprise du fichier ([VAR-13]).
+  'figees-sans-liste': (champ) => `${champ}: frozen colours without a shade list, or with two intensities. Add crans and intensites: 1, or remove this field from the file.`,
+  'figees-longueur': (champ, valeur) => `${champ}: ${valeur} colours for a different number of shades. Give one colour per shade.`,
+  'figees-incompatible': (champ) => `${champ}: incompatible with frozen colours. Remove this field from the file.`,
+  'crans-figes': (champ, valeur) => `${champ}: “${valeur}” is invalid. Shades are positive integers, in increasing order.`,
 };
 
 /** Le texte d'un refus de [REC-05]. */

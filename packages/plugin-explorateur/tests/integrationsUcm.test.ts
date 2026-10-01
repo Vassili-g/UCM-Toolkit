@@ -97,3 +97,18 @@ test('une exception du designer retire l’écart ; un calque hors des couches c
   assert.equal(sans.some((constat) => exceptions.has(constat.cle)), false);
   assert.equal(sans.length, avec.length - 2);
 });
+
+test('une recette au format 8 se lit avec une palette figée : sa liste de nuances est la sienne, à une seule intensité', () => {
+  const nuances = [0, 10, 20, 30, 40];
+  const nulle = { clair: 0, sombre: 0, origine: 'tailwind' };
+  const figee = { id: 'p-000000f8', nom: 'slate', reference: '#475569', derive: { lien: true, soft: nulle, vivid: nulle }, intensites: 1 as const, crans: nuances, figees: { light: ['#FFFFFF', '#E2E8F0', '#94A3B8', '#475569', '#0F172A'] } };
+  const lue = lireLaRecette(JSON.stringify({ ...recetteParDefaut(), palettes: [figee] }));
+  assert.equal(lue.etat, 'courante');
+  if (lue.etat !== 'courante') return;
+  assert.equal(lue.recette.formatVersion, FORMAT_RECETTE);
+  const index = indexer(projetLibre());
+  const variable = [...index.variables.values()].find((candidate) => candidate.type === 'COLOR')!.id;
+  assert.equal(validerAssociation(index, lue.recette, variable, { palette: figee.id, intensite: null, theme: 'light', cran: 30 }), null);
+  assert.equal(validerAssociation(index, lue.recette, variable, { palette: figee.id, intensite: null, theme: 'light', cran: 50 }), 'cran');
+  assert.equal(validerAssociation(index, lue.recette, variable, { palette: figee.id, intensite: 'soft', theme: 'light', cran: 30 }), 'intensite');
+});

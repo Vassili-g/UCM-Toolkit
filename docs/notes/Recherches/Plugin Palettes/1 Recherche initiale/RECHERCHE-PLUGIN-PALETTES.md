@@ -523,14 +523,24 @@ Une palette porte :
 | `base` | Facultatif : `soft` ou `vivid`, la palette de base qui force le profil porteur (`[ENT-11]`). Absent, le classement automatique décide |
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
 | `originale` | Facultatif : le code de la référence avant le premier ajustement ou le premier réglage du porteur, en majuscules. Différent de `reference`, sauf sous un réglage du porteur, dont le résultat peut rendre les mêmes octets. Absent, aucun ajustement |
-| `intensites` | Facultatif : `1` pour une palette à une intensité (`[ENT-14]`), sans `base`, sans `parts`, sans `crans`, dérive liée. Absent, la palette porte Soft et Vivid |
+| `intensites` | Facultatif : `1` pour une palette à une intensité (`[ENT-14]`), sans `base`, sans `parts`, dérive liée. Elle peut porter `crans` : une palette reprise du fichier garde ses nuances (`[VAR-13]`). Absent, la palette porte Soft et Vivid |
 | `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,05, +0,02]` au millième ; `part`, la saturation de la référence, donc celle de son profil porteur, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
+
+Une palette reprise « telle quelle » des variables du fichier porte en plus
+(`[VAR-13]`) :
+
+| Clé | Contenu |
+|---|---|
+| `figees` | Facultatif : `light`, un hexa par nuance de `crans`, dans son ordre, et `dark`, facultatif, de même longueur. Les rampes de la palette rendent ces couleurs sans calcul ; sans `dark`, le thème Dark rend celles de `light`. Exige `crans` et `intensites: 1`, et refuse `base`, `parts`, `reglages` et `originale`. Sous `figees`, `crans` porte les nuances lues dans les noms des variables : des entiers positifs ou nuls, croissants, hors des bornes d'une liste libre |
+
+Une palette figée est libre : ni rôles, ni garanties, ni réglage global, ni
+Color shift. Sa référence est la nuance qui en porte la couleur.
 
 ### 7.2 Exemple
 
 ```json
 {
-  "formatVersion": 7,
+  "formatVersion": 8,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
@@ -611,17 +621,19 @@ dix-sept paires.
   identifiant a la forme `p-` et huit chiffres hexadécimaux. Une palette libre
   porte 4 à 13 numéros, multiples de 50 de 50 à 1050, croissants, et pas de
   `base` ; `originale` est un hexa différent de `reference`. `intensites` ne
-  vaut que 1, et refuse à côté de lui `base`, `parts`, `crans` et une dérive
-  déliée ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
+  vaut que 1, et refuse à côté de lui `base`, `parts` et une dérive
+  déliée ; `figees` exige `crans` et `intensites: 1`, porte un hexa par
+  nuance dans chaque thème présent, et refuse `base`, `parts`, `reglages` et
+  `originale` ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
   `contenuDesPlanches` garde un thème au moins. `reglages` porte au moins
   une teinte, une clarté ou `part`, dans leurs bornes, sans zéro ni objet
   vide ; une clé `soft` ne va qu'à deux intensités ; `porteur` accompagne des réglages à deux intensités sans `base`,
   et jamais `base` ; un réglage du porteur exige `originale` ; `depart`
   exige un réglage du porteur et diffère d'`originale`. La validation ne
   recalcule pas la référence réglée : deux moteurs JavaScript peuvent
-  différer au dernier bit, et la recette deviendrait illisible. La version 7
-  exige 400 et 950 dans `crans` et ajoute `saturation` et `clarte` au Color
-  shift. Une recette d'une version antérieure est refusée sans conversion :
+  différer au dernier bit, et la recette deviendrait illisible. La version 8
+  ajoute `figees` et laisse une palette à une intensité porter `crans`. Une
+  recette d'une version antérieure est refusée sans conversion :
   seul le mainteneur en a rangé, pour ses essais. Un changement de forme
   reprendra sa conversion et ses tests le jour où des recettes seront rangées
   hors de ces essais. La validation rend tous ses refus, chacun avec sa règle

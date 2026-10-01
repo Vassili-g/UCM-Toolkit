@@ -1037,7 +1037,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'originale-identique': (champ) => `${champ} : identique à la référence. Retirez ce champ du fichier.`,
   // Les quatre règles du format 4 ([ENT-14], [MOT-28], [PLA-28]).
   'intensites-valeur': (champ, valeur) => `${champ} : « ${valeur} » invalide. Indiquez 1, ou retirez ce champ pour avoir Soft et Vivid.`,
-  'intensites-incompatible': (champ) => `${champ} : incompatible avec une seule intensité. Retirez base, parts et crans du fichier, puis activez la synchronisation du Color shift.`,
+  'intensites-incompatible': (champ) => `${champ} : incompatible avec une seule intensité. Retirez base et parts du fichier, puis activez la synchronisation du Color shift.`,
   'fonds-sombres-bornes': (champ, valeur) => `${champ} : ${valeur}. Saisissez une intensité entre 0 et 1.`,
   'contenu-sans-theme': (champ) => `${champ} : gardez au moins un thème, Light ou Dark.`,
   // Les huit règles du format 5 (Z10.5, N141).
@@ -1049,6 +1049,11 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'reglages-sans-originale': (champ) => `${champ} : couleur d’origine manquante. Faites corriger la sauvegarde.`,
   'depart-sans-reglage': (champ) => `${champ} : aucun réglage associé. Retirez ce champ du fichier.`,
   'depart-identique': (champ) => `${champ} : identique à la couleur d’origine. Retirez ce champ du fichier.`,
+  // Les quatre règles du format 8 : les couleurs figées d'une palette reprise du fichier ([VAR-13]).
+  'figees-sans-liste': (champ) => `${champ} : couleurs figées sans liste de nuances ou à deux intensités. Ajoutez crans et intensites: 1, ou retirez ce champ du fichier.`,
+  'figees-longueur': (champ, valeur) => `${champ} : ${valeur} couleurs pour un autre nombre de nuances. Donnez une couleur par nuance.`,
+  'figees-incompatible': (champ) => `${champ} : incompatible avec des couleurs figées. Retirez ce champ du fichier.`,
+  'crans-figes': (champ, valeur) => `${champ} : « ${valeur} » invalide. Les nuances sont des entiers positifs, en ordre croissant.`,
 };
 
 /** Le texte d'un refus de [REC-05]. */

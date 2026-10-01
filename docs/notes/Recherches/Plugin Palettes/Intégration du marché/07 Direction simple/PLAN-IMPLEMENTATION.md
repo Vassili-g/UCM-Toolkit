@@ -61,7 +61,7 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4.
+P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
@@ -115,6 +115,14 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
   « Mettre à jour » qui le rouvre ; la carte d'une palette supprimée sans
   cadre prend pour nom le chemin commun de ses variables, la recette ne
   portant plus son nom.
+- Le format 8 de la recette : `figees` porte `light` et, quand la collection
+  d'origine a un mode Dark, `dark`, un hexa par nuance. Une palette à une
+  intensité peut porter `crans`, ce que le format 7 refusait : une palette
+  reprise garde ses nuances. Sous `figees`, `crans` accepte tout entier
+  positif croissant, pour les nuances d'un fichier qui ne suivent pas les
+  multiples de 50. Une recette de format 7 se lit « illisible », sans
+  conversion : un fichier d'essai d'avant ce format se vide par « Repartir de
+  la recette par défaut », ou s'exporte et se corrige à la main.
 
 ## Arbitrages
 
@@ -487,7 +495,7 @@ Une palette du fichier a une rampe par mode, pas d'intensités. Reprise, elle
 devient une palette du plugin à une intensité, et ses variables d'origine
 restent ses tokens.
 
-- [ ] **P8.1** `packages/couleur` : le format 8 de la recette. Une palette
+- [x] **P8.1** `packages/couleur` : le format 8 de la recette. Une palette
   peut porter `figees`, les couleurs d'une rampe par thème et par nuance ;
   `rampesDe` les rend telles quelles. Une palette figée est libre : ni rôles,
   ni garanties, ni réglage global, ni Color shift. `validerRecette` refuse une

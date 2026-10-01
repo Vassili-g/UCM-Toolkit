@@ -98,6 +98,11 @@ export function etendueDe(grille: Grille): Bouts {
   return { clair: courbe[0], sombre: courbe[courbe.length - 1] };
 }
 
+/** Vrai pour une palette figée, dont les rampes rendent les couleurs lues dans le fichier ([VAR-13]). */
+export function estFigee(palette: Palette): palette is Palette & { readonly crans: readonly number[]; readonly figees: NonNullable<Palette['figees']> } {
+  return palette.figees !== undefined && palette.crans !== undefined;
+}
+
 /** Vrai pour une palette libre, qui porte sa propre liste de numéros. */
 export function estLibre(palette: Palette): palette is Palette & { readonly crans: readonly number[] } {
   return palette.crans !== undefined;
