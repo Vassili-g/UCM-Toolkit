@@ -2365,8 +2365,11 @@ qui le créera.
 | Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change |
 | Reprise dans Gestion | La ligne des tokens dit la collection et le chemin d'origine, l'encart de remplacement |
 | Reprise refusée | Le sandbox ne retrouve pas la palette du fichier : le message sous le bloc de la connexion |
-| Bibliothèques | Une palette de bibliothèque dans « Déjà dans le fichier », collections en lecture seule dans la destination ; case P9.5 |
-| Copie de bibliothèque | La confirmation qui compte les variables ajoutées au fichier ; case P9.5 |
+| Bibliothèques | Une palette de bibliothèque dans « Déjà dans le fichier », collections en lecture seule dans la destination |
+| Copie de bibliothèque | La confirmation qui compte les variables ajoutées au fichier |
+| Destination des tokens, collections de bibliothèque | Les collections de bibliothèque grisées, en lecture seule, avec leur compte |
+| Copie de bibliothèque refusée | Figma refuse l'import : le message sous le bloc de la connexion |
+| Bibliothèques illisibles | Figma n'a pas rendu les collections : la notice, et Gestion qui fonctionne |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
 | Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités des Réglages communs |
 | Cadre déplacé | Un cadre rangé dans une section ou sur une autre page, retrouvé par son identité |
@@ -2752,22 +2755,22 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   recette. Une palette reprise puis supprimée rend ses variables à la liste
   des palettes du fichier.
 - `[VAR-14]` Le manifest déclare la permission `teamlibrary`. La lecture
-  liste les collections de bibliothèque activées, nom, clé et nombre de
-  variables, et leurs palettes détectées sur les seuls noms : une valeur ne
-  se lit qu'après l'import de sa variable. Une collection de bibliothèque
-  n'est jamais une destination. « Copier dans le plugin », par la porte
-  `copier-palette`, importe les variables de cette seule palette, lit leurs
-  couleurs, puis la reprend en mode `recalculees` avec une liaison
-  `destination` : la copie s'écrira dans la destination des tokens, jamais
-  dans la bibliothèque. La confirmation dit combien de variables de la
-  bibliothèque s'ajoutent au fichier. Si `figma.teamLibrary` manque ou lève,
-  la lecture rend une liste vide et un constat, et le reste de Gestion
-  fonctionne.
-- `[VAR-15]` `src/lectureDesVariables.ts` est le seul lecteur de
-  `figma.variables` : les collections locales, les variables locales de
-  couleur avec leur valeur par mode, et les variables du suivi relues par
-  identifiant, dans un seul `Promise.all`. `lire-etat` joint cette lecture à
-  l'état.
+  liste les collections de bibliothèque activées, nom, clé, bibliothèque et
+  nombre de variables, et leurs palettes détectées sur les seuls noms
+  (`src/variables/bibliotheques.ts`) : une valeur ne se lit qu'après
+  l'import de sa variable. Figma rend ces collections par une lecture par
+  collection : le sandbox les lit au premier état, puis à « Synchroniser »,
+  et les garde entre deux. Une collection de bibliothèque n'est jamais une
+  destination. « Copier dans le plugin », par la porte `copier-palette`,
+  importe les variables de cette seule palette, lit leurs couleurs, puis la
+  reprend en mode `recalculees` et range la recette, sous un seul
+  `figma.commitUndo()`. La copie n'a pas de liaison de reprise : elle
+  s'écrira dans la destination des tokens, jamais dans la bibliothèque. La
+  confirmation, dans la fiche, dit combien de variables de la bibliothèque
+  s'ajoutent au fichier. Des variables qui ne portent que des alias n'ont
+  aucune couleur à copier. Si `figma.teamLibrary` manque ou lève, la lecture
+  rend une liste vide, dite illisible, une notice le dit, et le reste de
+  Gestion fonctionne.
 
 ### 17.5 Ce que le plugin n'écrit jamais
 

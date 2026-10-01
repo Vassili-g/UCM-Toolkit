@@ -14,7 +14,7 @@ import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
-import type { IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
+import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
@@ -70,9 +70,17 @@ export type UiRequest =
    * ([VAR-13]).
    */
   | { type: 'reprendre-palette'; demande: number; recette: Recette; empreinteLue: string | null; palette: string; source: { collection: string; chemin: string } }
+  /**
+   * Neuvième écriture : « Copier dans le plugin ». `palette` est
+   * l'identifiant de la palette à créer ; `source` désigne la palette de
+   * bibliothèque par la clé de sa collection et son chemin. Le sandbox
+   * importe ses variables, lit leurs couleurs et range la recette
+   * ([VAR-14]).
+   */
+  | { type: 'copier-palette'; demande: number; empreinteLue: string | null; palette: string; source: { collection: string; chemin: string } }
   | DemandeDeTaille;
 
-export type { IssueDeLaDestination, IssueDeLaPage, IssueDeLaReprise, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
+export type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaPage, IssueDeLaReprise, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
@@ -102,4 +110,6 @@ export type PluginMessage =
   /** L'issue de « Supprimer les variables… », en réponse à `retirer-variables`. */
   | { type: 'variables-retirees'; demande: number; issue: IssueDuRetraitDesVariables }
   /** L'issue de « Modifier dans le plugin », en réponse à `reprendre-palette`. */
-  | { type: 'reprise'; demande: number; issue: IssueDeLaReprise };
+  | { type: 'reprise'; demande: number; issue: IssueDeLaReprise }
+  /** L'issue de « Copier dans le plugin », en réponse à `copier-palette`. */
+  | { type: 'copie'; demande: number; issue: IssueDeLaCopie };

@@ -1605,6 +1605,10 @@ export const TEXTES_DE_LA_GESTION = {
   horsDuPlugin: 'Lues dans les variables du fichier, hors du plugin.',
   variablesDuFichier: 'Variables du fichier',
   modifierDansLePlugin: 'Modifier dans le plugin',
+  bibliotheque: 'Bibliothèque',
+  couleursLuesALaCopie: 'Couleurs lues à la copie',
+  copierDansLePlugin: 'Copier dans le plugin',
+  copier: 'Copier',
 } as const;
 
 /** L'état de la planche d'une palette, dans sa ligne de sortie ([UI-26]). */
@@ -1964,5 +1968,67 @@ export function repriseRefusee(): Constat {
     ou: 'Palette non reprise',
     quoi: 'Le fichier ne porte plus cette palette dans ses variables.',
     geste: 'Synchronisez dans l’onglet Gestion.',
+  };
+}
+
+/** Le nombre de variables d'une collection de bibliothèque, qui ne se choisit pas comme destination ([UI-30], [VAR-14]). */
+export function lectureSeule(nombre: number): string {
+  return `${variables(nombre)} · lecture seule`;
+}
+
+/** Une collection de bibliothèque et son nombre de variables : deux collections du même nom se distinguent ainsi ([UI-33]). */
+export function collectionDeBibliotheque(nom: string, nombre: number): string {
+  return `${nom} (${variables(nombre)})`;
+}
+
+/** Le nombre de couleurs d'une palette de bibliothèque, dont les modes ne sont pas connus avant la copie ([UI-33]). */
+export function couleursDeBibliotheque(nombre: number): string {
+  return couleurs(nombre);
+}
+
+/** Le titre de la confirmation de « Copier dans le plugin » ([VAR-14]). */
+export function titreDeLaCopie(nom: string): string {
+  return `Copier ${nom} dans le plugin ?`;
+}
+
+/** Ce que la copie ajoute au fichier ([VAR-14]). */
+export function texteDeLaCopie(nombre: number): string {
+  return nombre === 1 ? '1 variable de la bibliothèque sera ajoutée au fichier.' : `${nombre} variables de la bibliothèque seront ajoutées au fichier.`;
+}
+
+/** La bibliothèque ne porte plus la palette ([VAR-14]). */
+export function copieRefusee(): Constat {
+  return {
+    ou: 'Palette non copiée',
+    quoi: 'La bibliothèque ne porte plus cette palette.',
+    geste: 'Synchronisez dans l’onglet Gestion.',
+  };
+}
+
+/** Les variables importées ne portent que des alias ([VAR-14]). */
+export function copieSansCouleur(): Constat {
+  return {
+    ou: 'Palette non copiée',
+    quoi: 'Ses variables ne portent que des alias : aucune couleur à lire.',
+    geste: 'Copiez la palette que ces alias citent.',
+  };
+}
+
+/** Figma a levé en listant ou en important les variables de la bibliothèque ([VAR-14]). */
+export function bibliothequeIllisible(message: string): ConstatIllustre {
+  return {
+    ou: 'Palette non copiée',
+    quoi: 'Figma n’a pas rendu les variables de la bibliothèque.',
+    geste: 'Vérifiez que la bibliothèque est activée dans ce fichier, puis synchronisez.',
+    detail: `Détail de l’erreur : ${message}`,
+  };
+}
+
+/** Figma n'a pas rendu les collections des bibliothèques : leurs palettes ne paraissent pas ([VAR-14]). */
+export function bibliothequesIllisibles(): Constat {
+  return {
+    ou: 'Bibliothèques',
+    quoi: 'Figma n’a pas rendu les collections des bibliothèques. Leurs palettes ne paraissent pas ici.',
+    geste: 'Synchronisez pour les relire.',
   };
 }

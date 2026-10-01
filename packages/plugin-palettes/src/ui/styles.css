@@ -1444,6 +1444,16 @@
   height: var(--hauteur-secondaire);
 }
 
+/* Une collection de bibliothèque se lit sans se choisir : grisée ([VAR-14]). */
+.choix[data-distante] {
+  color: var(--texte-second);
+  cursor: default;
+}
+
+.choix[data-distante] .choix-nom {
+  font-weight: 400;
+}
+
 .choix-nom {
   display: flex;
   min-width: 0;

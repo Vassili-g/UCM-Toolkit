@@ -42,6 +42,7 @@ const PLANCHE_VIDE = { page: null, nomDeLaPage: null, cadres: [], manquants: [],
 
 /** Un fichier sans variable, et un suivi que rien n'a encore écrit. */
 const VARIABLES_VIDES = {
+  bibliotheques: { collections: [], palettes: [], lisibles: true },
   collections: [],
   variables: [],
   suivi: { version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }, confirmee: false, palettes: {} },
@@ -124,6 +125,25 @@ function repriseDeSlate(figee) {
     fichier: {
       ...fichier,
       suivi: { ...fichier.suivi, palettes: { [reprise.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', modes: { light: '7:0' }, variables, liaison: 'reprise' } } },
+    },
+  };
+}
+
+/**
+ * Les variables d'un fichier où deux bibliothèques publient chacune une
+ * collection « primitive base », de 323 et de 6 variables ; la première
+ * porte la palette `gray`, dont les couleurs ne se lisent qu'à la copie.
+ */
+function avecLesBibliotheques(fichier) {
+  return {
+    ...fichier,
+    bibliotheques: {
+      collections: [
+        { cle: 'cle-de-collection-1', nom: 'primitive base', bibliotheque: 'Design system', variables: 323 },
+        { cle: 'cle-de-collection-2', nom: 'primitive base', bibliotheque: 'Ancien kit', variables: 6 },
+      ],
+      palettes: [{ collection: 'cle-de-collection-1', nomDeLaCollection: 'primitive base', variablesDeLaCollection: 323, chemin: 'gray', nuances: NUANCES_DU_FICHIER }],
+      lisibles: true,
     },
   };
 }
@@ -900,6 +920,67 @@ const ETATS = [
       ouvrirLaPlanche,
       { clic: '#panneau-gestion [data-geste="reprendre"]' },
       { message: { type: 'reprise', demande: 3, issue: { issue: 'palette-introuvable' } } },
+    ],
+  },
+  {
+    id: 'bibliotheques',
+    titre: 'Bibliothèques',
+    quand: 'Deux bibliothèques activées publient chacune une collection « primitive base » ; la première porte la palette gray.',
+    regarder: '« Déjà dans le fichier · 3 » : après slate et brand/emerald, la fiche de gray en tirets, l’étiquette « Bibliothèque » et « Copier dans le plugin », des pastilles vides, « primitive base (323 variables) », « gray / 50 … 950 », « 11 couleurs · Couleurs lues à la copie ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])))),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'destination-avec-bibliotheques',
+    titre: 'Destination des tokens, collections de bibliothèque',
+    quand: 'Sur le même fichier, le designer clique « Changer » sur la ligne « Tokens ».',
+    regarder: 'Dans la liste des collections, après les collections locales : deux « primitive base » grisées, l’étiquette « Bibliothèque », « 323 variables · lecture seule » et « 6 variables · lecture seule », leur choix inactif.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])))),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
+    ],
+  },
+  {
+    id: 'copie-de-bibliotheque',
+    titre: 'Copie de bibliothèque',
+    quand: 'Le designer clique « Copier dans le plugin » sur la palette gray de la bibliothèque.',
+    regarder: 'Dans la fiche de gray, l’encart : « Copier gray dans le plugin ? », « 11 variables de la bibliothèque seront ajoutées au fichier. », puis « Annuler » et « Copier », qui porte le focus.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="copier"]' },
+    ],
+  },
+  {
+    id: 'copie-refusee',
+    titre: 'Copie de bibliothèque refusée',
+    quand: 'Le designer confirme la copie de gray ; Figma refuse l’import des variables de la bibliothèque.',
+    regarder: 'Sous le bloc de la connexion, le message « Palette non copiée », qui dit que Figma n’a pas rendu les variables et demande de vérifier que la bibliothèque est activée, avec le détail de l’erreur replié ; la confirmation restée ouverte dans la fiche.',
+    existe: true,
+    // L'ouverture de l'onglet relit l'état (demande 2) : la copie porte la demande 3.
+    atteinte: [
+      gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="copier"]' },
+      { clic: '#panneau-gestion [data-geste="confirmer-copie"]' },
+      { message: { type: 'copie', demande: 3, issue: { issue: 'bibliotheque-illisible', message: 'in importVariableByKeyAsync: could not find variable' } } },
+    ],
+  },
+  {
+    id: 'bibliotheques-illisibles',
+    titre: 'Bibliothèques illisibles',
+    quand: 'Figma n’a pas rendu les collections des bibliothèques.',
+    regarder: 'Gestion fonctionne : fiches, tokens et planches. Sous les listes, la notice « Bibliothèques », qui dit que leurs palettes ne paraissent pas et demande de synchroniser.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes({ ...tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]), bibliotheques: { collections: [], palettes: [], lisibles: false } }),
+      ouvrirLaPlanche,
     ],
   },
   {

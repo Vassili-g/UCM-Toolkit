@@ -90,6 +90,14 @@ export interface Frontiere {
    * ouvre le conflit d'enregistrement.
    */
   recevoirReprise(message: Extract<PluginMessage, { type: 'reprise' }>): boolean;
+  /**
+   * Copie une palette de bibliothèque dans le plugin ([VAR-14]). La copie
+   * range la recette : elle suit les règles de la reprise, et la réponse est
+   * `false` quand rien ne part.
+   */
+  copier(palette: string, source: { collection: string; chemin: string }): boolean;
+  /** Vrai quand l'issue répond à la dernière copie demandée ; réussie, elle apporte l'empreinte de la recette. */
+  recevoirCopie(message: Extract<PluginMessage, { type: 'copie' }>): boolean;
   /** Vrai quand la progression ou le résultat répond au dernier dessin demandé. */
   accepterDessin(message: Extract<PluginMessage, { type: 'progression' | 'dessin' }>): boolean;
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
@@ -123,6 +131,7 @@ export function createFrontiere(
   let destinationEnVol = false;
   let dernierRetraitDesVariables = 0;
   let derniereReprise = 0;
+  let derniereCopie = 0;
   let courant: StatutDuRangement = 'lu';
 
   function numeroter(): number {
@@ -247,6 +256,23 @@ export function createFrontiere(
       // Un geste arrivé pendant la reprise portait la recette d'avant : il s'abandonne, et l'état relu rend la recette rangée.
       enAttente = null;
       if (message.issue.issue === 'reprise') {
+        empreinte = message.issue.empreinte;
+        poser('range');
+      } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');
+      return true;
+    },
+    copier(palette, source) {
+      if (courant === 'refuse' || enVol || enAttente) return false;
+      derniereCopie = numeroter();
+      enVol = true;
+      envoyer({ type: 'copier-palette', demande: derniereCopie, empreinteLue: empreinte, palette, source });
+      return true;
+    },
+    recevoirCopie(message) {
+      if (message.demande !== derniereCopie) return false;
+      enVol = false;
+      enAttente = null;
+      if (message.issue.issue === 'copiee') {
         empreinte = message.issue.empreinte;
         poser('range');
       } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');

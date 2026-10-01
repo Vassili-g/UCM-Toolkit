@@ -61,12 +61,12 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1 à P8.6.
+P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1 à P8.6, P9.1 à P9.5.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
 vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
-des phases 3, 5, 6, 7 et 8 n'a tourné dans aucun navigateur : le typecheck, les
+des phases 3 et 5 à 9 n'a tourné dans aucun navigateur : le typecheck, les
 tests unitaires et le build la tiennent seuls. Ce que Gestion compte et
 décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
 
@@ -83,7 +83,8 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
   `gestion-page-des-planches`, `page-des-planches-refusee`, les états de
   l'ancien onglet Palettes, les treize états des tokens, de
   `tokens-jamais-ecrits` à `variables-supprimees`, les trois états des
-  palettes du fichier, et les quatre états de la reprise.
+  palettes du fichier, les quatre états de la reprise, et les cinq états
+  des bibliothèques.
 - `generer-maquettes-direction-simple.mjs` transformait l'ancien onglet
   Palettes pour dessiner M9 à M15. Il ne s'applique plus au DOM de Gestion :
   les maquettes rendues restent la référence, et le plugin construit les
@@ -135,6 +136,13 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
   rangement ordinaire : son suivi reste rangé, sans effet, et ses variables
   reviennent à « Déjà dans le fichier ». Une variable n'est pas suivie dans
   le thème où elle porte un alias.
+- Les bibliothèques reposent sur l'essai R10, que le double seul a tenu :
+  `teamLibrary` liste les collections et leurs variables sans valeurs, et
+  `importVariableByKeyAsync` rend une variable dont les couleurs se lisent.
+  Le sandbox garde les collections lues entre deux « Synchroniser », pour ne
+  pas refaire une lecture par collection à chaque état. La porte
+  `copier-palette` reçoit la clé de la collection et le chemin, et retrouve
+  elle-même les variables à importer.
 
 ## Arbitrages
 
@@ -557,26 +565,26 @@ bibliothèque activées et leurs variables, nom, clé et type, sans leurs
 valeurs ; une valeur ne se lit qu'après `importVariableByKeyAsync`, qui ajoute
 la variable au fichier.
 
-- [ ] **P9.1** Manifest : la permission `teamlibrary`.
+- [x] **P9.1** Manifest : la permission `teamlibrary`.
   `src/lectureDesVariables.ts` : les collections de bibliothèque, nom, clé et
   nombre de variables, et leurs palettes détectées sur les seuls noms.
   `tests/manifest.test.ts` suit, et AGENTS.md dit que le manifest déclare
   cette permission.
-- [ ] **P9.2** La carte de la destination liste ces collections après les
+- [x] **P9.2** La carte de la destination liste ces collections après les
   locales, grisées, non choisissables, avec « Bibliothèque », leur nombre de
   variables et « lecture seule ». Deux collections du même nom se
   distinguent par leur compte.
-- [ ] **P9.3** « Déjà dans le fichier » montre leurs palettes, étiquette
+- [x] **P9.3** « Déjà dans le fichier » montre leurs palettes, étiquette
   « Bibliothèque », chemin précédé du nom de la collection et de son nombre de
   variables. La rampe n'a pas de couleurs avant la copie : la fiche montre
   des pastilles vides et « Couleurs lues à la copie ».
-- [ ] **P9.4** « Copier dans le plugin » : porte `copier-palette`. Le sandbox
+- [x] **P9.4** « Copier dans le plugin » : porte `copier-palette`. Le sandbox
   importe les variables de cette seule palette, lit leurs couleurs, puis
   reprend par `reprendreDuFichier` en mode `recalculees`, avec une liaison
   `destination` : la copie s'écrira dans la destination des tokens, jamais
   dans la bibliothèque. La confirmation dit que N variables de la
   bibliothèque sont ajoutées au fichier.
-- [ ] **P9.5** Tests sur le double, états de galerie `bibliotheques`,
+- [x] **P9.5** Tests sur le double, états de galerie `bibliotheques`,
   `copie-de-bibliotheque`. Si `teamLibrary` manque au double ou lève, la
   lecture rend une liste vide et un constat, et le reste de Gestion
   fonctionne.

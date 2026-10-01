@@ -216,6 +216,15 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
     rangerLaDestination: (destination) => frontiere.rangerLaDestination(destination),
     retirerLesVariables: (palette) => frontiere.retirerLesVariables(palette),
+    // « Copier dans le plugin » : le sandbox importe les variables et range la recette ; Création s'ouvre sur la copie à l'état relu.
+    copier(source) {
+      const recette = ongletCreation.recette();
+      if (!recette) return false;
+      const id = nouvelIdentifiant(recette, tirer);
+      if (!frontiere.copier(id, { collection: source.collection, chemin: source.chemin })) return false;
+      paletteReprise = id;
+      return true;
+    },
     // « Modifier dans le plugin » : la palette reprise, recalculée, part avec la recette ; Création s'ouvre sur elle à l'état relu.
     reprendre(source) {
       const recette = ongletCreation.recette();
@@ -234,7 +243,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
   }, vue);
 
-  /** La palette qu'une reprise vient de ranger : Création s'ouvre sur elle quand l'état relu la porte ([UI-34]). */
+  /** La palette qu'une reprise ou une copie vient de ranger : Création s'ouvre sur elle quand l'état relu la porte ([UI-34]). */
   let paletteReprise: string | null = null;
   let repriseRangee = false;
 
@@ -480,6 +489,11 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       repriseRangee = message.issue.issue === 'reprise';
       if (!repriseRangee) paletteReprise = null;
       // La recette rangée par la reprise se relit : l'onglet Création la reçoit par l'état.
+      if (message.issue.issue !== 'modifiee-ailleurs') frontiere.lireLEtat();
+    } else if (message.type === 'copie' && frontiere.recevoirCopie(message)) {
+      ongletGestion.recevoirCopie(message.issue);
+      repriseRangee = message.issue.issue === 'copiee';
+      if (!repriseRangee) paletteReprise = null;
       if (message.issue.issue !== 'modifiee-ailleurs') frontiere.lireLEtat();
     } else if (message.type === 'rangement') {
       frontiere.recevoirRangement(message);

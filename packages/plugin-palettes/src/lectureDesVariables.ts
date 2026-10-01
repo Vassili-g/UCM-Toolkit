@@ -1,8 +1,10 @@
 /**
  * Ce que le plugin lit des variables du fichier ([VAR-04], [VAR-12]) : les
  * collections locales, les variables locales de couleur avec leur valeur
- * par mode, et le suivi rangé. Avec `src/ecriture/variables.ts`, c'est le
- * seul fichier qui appelle `figma.variables` ([ARC-13]). Rien ici n'écrit.
+ * par mode, le suivi rangé, et les collections des bibliothèques activées
+ * ([VAR-14]). Avec `src/ecriture/variables.ts`, c'est le seul fichier qui
+ * appelle `figma.variables` et `figma.teamLibrary` ([ARC-13]). Rien ici
+ * n'écrit.
  *
  * La liste locale fait foi : une variable du suivi qui n'y est plus est
  * introuvable. `getVariableByIdAsync` rend encore une variable supprimée
@@ -11,6 +13,7 @@
 import { ESPACE_PARTAGE } from 'ucm-couleur';
 
 import type { ProfilDuDocument } from './lecture';
+import { SANS_BIBLIOTHEQUE, palettesDeLaCollection, type Bibliotheques, type CollectionDeBibliotheque, type VariableDeBibliotheque } from './variables/bibliotheques';
 import { RELEVE_VIDE, hexaLu, type CollectionLue, type ReleveDesVariables, type VariableLue } from './variables/releve';
 import { CLE_VARIABLES, SUIVI_VIDE, lireLeSuivi, type SuiviDesVariables } from './variables/suivi';
 
@@ -22,10 +25,44 @@ export interface FigmaDesVariables {
 /** Les variables du fichier, telles que l'état les envoie à l'interface. */
 export interface VariablesDuFichier extends ReleveDesVariables {
   readonly suivi: SuiviDesVariables;
+  /** Les collections des bibliothèques activées et leurs palettes ; absent d'un état qui ne les a pas lues. */
+  readonly bibliotheques?: Bibliotheques;
 }
 
 /** Un fichier sans variable ni suivi. */
-export const VARIABLES_SANS_SUIVI: VariablesDuFichier = { ...RELEVE_VIDE, suivi: SUIVI_VIDE };
+export const VARIABLES_SANS_SUIVI: VariablesDuFichier = { ...RELEVE_VIDE, suivi: SUIVI_VIDE, bibliotheques: SANS_BIBLIOTHEQUE };
+
+/** Ce que la lecture des bibliothèques demande à Figma ; `teamLibrary` manque sans la permission du manifest. */
+export interface FigmaDesBibliotheques {
+  readonly teamLibrary?: Pick<TeamLibraryAPI, 'getAvailableLibraryVariableCollectionsAsync' | 'getVariablesInLibraryCollectionAsync'>;
+}
+
+/** Les variables d'une collection de bibliothèque, réduites à leur nom, leur clé et leur type. */
+export async function variablesDeLaBibliotheque(figma: Required<FigmaDesBibliotheques>, cle: string): Promise<VariableDeBibliotheque[]> {
+  return (await figma.teamLibrary.getVariablesInLibraryCollectionAsync(cle)).map((variable) => ({ nom: variable.name, cle: variable.key, couleur: variable.resolvedType === 'COLOR' }));
+}
+
+/**
+ * Les collections des bibliothèques activées, et leurs palettes détectées
+ * sur les seuls noms ([VAR-14]). Si `figma.teamLibrary` manque ou lève, la
+ * lecture rend une liste vide, marquée illisible : le reste de Gestion
+ * fonctionne.
+ */
+export async function lireLesBibliotheques(figma: FigmaDesBibliotheques): Promise<Bibliotheques> {
+  const { teamLibrary } = figma;
+  if (!teamLibrary) return { ...SANS_BIBLIOTHEQUE, lisibles: false };
+  try {
+    const disponibles = await teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+    const lues = await Promise.all(disponibles.map(async (collection) => {
+      const variables = await variablesDeLaBibliotheque({ teamLibrary }, collection.key);
+      const lue: CollectionDeBibliotheque = { cle: collection.key, nom: collection.name, bibliotheque: collection.libraryName, variables: variables.length };
+      return { collection: lue, palettes: palettesDeLaCollection(lue, variables) };
+    }));
+    return { collections: lues.map(({ collection }) => collection), palettes: lues.flatMap(({ palettes }) => palettes), lisibles: true };
+  } catch {
+    return { ...SANS_BIBLIOTHEQUE, lisibles: false };
+  }
+}
 
 /** Le suivi des variables, rangé à la racine du document. */
 export function lireLeSuiviRange(racine: { getSharedPluginData(espace: string, cle: string): string }): SuiviDesVariables {
@@ -69,9 +106,14 @@ export async function lireLesVariables(figma: FigmaDesVariables, profil: ProfilD
   };
 }
 
-/** Ce que `lire-etat` ajoute à l'état : le relevé et le suivi. */
+/**
+ * Ce que `lire-etat` ajoute à l'état : le relevé, le suivi, et les
+ * bibliothèques que l'appelant a lues. Les bibliothèques ne se relisent pas
+ * à chaque état : le sandbox les garde, et les relit à « Synchroniser ».
+ */
 export async function lireLesVariablesDuFichier(
   figma: FigmaDesVariables & { readonly root: { getSharedPluginData(espace: string, cle: string): string; readonly documentColorProfile: ProfilDuDocument } },
+  bibliotheques: Bibliotheques = SANS_BIBLIOTHEQUE,
 ): Promise<VariablesDuFichier> {
-  return { ...(await lireLesVariables(figma, figma.root.documentColorProfile)), suivi: lireLeSuiviRange(figma.root) };
+  return { ...(await lireLesVariables(figma, figma.root.documentColorProfile)), suivi: lireLeSuiviRange(figma.root), bibliotheques };
 }

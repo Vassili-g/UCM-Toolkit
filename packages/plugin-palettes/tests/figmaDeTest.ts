@@ -202,7 +202,11 @@ type ValeurDeVariable = { r: number; g: number; b: number; a: number } | { type:
 /** Une collection locale de variables : ses modes, dans leur ordre, et ses variables. */
 export class FausseCollection extends Porteur {
   readonly id = `VariableCollectionId:${(compteur += 1)}:0`;
-  readonly remote = false;
+  /** Vrai pour une collection de bibliothèque : elle n'est pas locale, et ses variables ne s'écrivent pas. */
+  remote = false;
+  /** La clé d'une collection de bibliothèque, et le nom du fichier qui la publie. */
+  readonly key = `cle-de-collection-${(compteur += 1)}`;
+  bibliotheque = '';
   modes: { modeId: string; name: string }[];
   variableIds: string[] = [];
 
@@ -234,7 +238,10 @@ export class FausseCollection extends Porteur {
 /** Une variable locale de couleur. Créée, elle porte dans chaque mode le blanc que Figma lui donne. */
 export class FausseVariable extends Porteur {
   readonly id = `VariableID:${(compteur += 1)}:0`;
-  readonly remote = false;
+  readonly key = `cle-de-variable-${(compteur += 1)}`;
+  get remote(): boolean {
+    return this.collection.remote;
+  }
   readonly resolvedType = 'COLOR';
   scopes: string[] = ['ALL_SCOPES'];
   valuesByMode: { [mode: string]: ValeurDeVariable } = {};
@@ -310,8 +317,61 @@ export class FauxFigma {
       return [...this.locales.values()].filter((variable) => type === undefined || variable.resolvedType === type);
     },
     getVariableByIdAsync: async (id: string): Promise<FausseVariable | null> => this.locales.get(id) ?? null,
-    getVariableCollectionByIdAsync: async (id: string): Promise<FausseCollection | null> => this.collections.get(id) ?? null,
+    getVariableCollectionByIdAsync: async (id: string): Promise<FausseCollection | null> => this.collections.get(id) ?? this.distantes.find((collection) => collection.id === id) ?? null,
+    importVariableByKeyAsync: async (cle: string): Promise<FausseVariable> => {
+      const variable = this.distantes.flatMap((collection) => collection.publiees).find((candidate) => candidate.key === cle);
+      if (!variable || this.importsRefuses) throw new Error(`import refusé : ${cle}`);
+      this.importees.add(variable.id);
+      this.journal.push(`importer ${variable.name}`);
+      return variable;
+    },
   };
+
+  /** Les collections des bibliothèques activées, avec les variables qu'elles publient. */
+  readonly distantes: (FausseCollection & { publiees: FausseVariable[]; autres: string[] })[] = [];
+  /** Les variables de bibliothèque que le fichier a importées. */
+  readonly importees = new Set<string>();
+  /** Vrai quand Figma refuse la lecture des bibliothèques, ou l'import d'une variable. */
+  bibliothequesRefusees = false;
+  importsRefuses = false;
+
+  /** L'API des bibliothèques : ce que Figma appelle `figma.teamLibrary`. Elle ne rend aucune valeur. */
+  readonly teamLibrary = {
+    getAvailableLibraryVariableCollectionsAsync: async (): Promise<{ name: string; key: string; libraryName: string }[]> => {
+      if (this.bibliothequesRefusees) throw new Error('bibliothèques indisponibles');
+      return this.distantes.map((collection) => ({ name: collection.name, key: collection.key, libraryName: collection.bibliotheque }));
+    },
+    getVariablesInLibraryCollectionAsync: async (cle: string): Promise<{ name: string; key: string; resolvedType: string }[]> => {
+      if (this.bibliothequesRefusees) throw new Error('bibliothèques indisponibles');
+      const collection = this.distantes.find((candidate) => candidate.key === cle);
+      if (!collection) throw new Error(`collection inconnue : ${cle}`);
+      return [
+        ...collection.publiees.map((variable) => ({ name: variable.name, key: variable.key, resolvedType: 'COLOR' })),
+        ...collection.autres.map((nom, rang) => ({ name: nom, key: `${cle}-autre-${rang}`, resolvedType: 'FLOAT' })),
+      ];
+    },
+  };
+
+  /**
+   * Une collection de bibliothèque : ses modes, ses variables de couleur, un
+   * hexa par mode, et les noms de ses variables d'un autre type.
+   */
+  bibliotheque(nomDeLaBibliotheque: string, nomDeLaCollection: string, modes: readonly string[], couleurs: { readonly [nom: string]: readonly string[] }, autres: readonly string[] = []): FausseCollection {
+    const collection = Object.assign(new FausseCollection(nomDeLaCollection, this), { publiees: [] as FausseVariable[], autres: [...autres] });
+    collection.remote = true;
+    collection.bibliotheque = nomDeLaBibliotheque;
+    collection.modes = modes.map((nom) => ({ modeId: `${(compteur += 1)}:0`, name: nom }));
+    for (const [nom, hexas] of Object.entries(couleurs)) {
+      const variable = new FausseVariable(nom, collection, this);
+      collection.modes.forEach((mode, rang) => {
+        const hexa = hexas[rang];
+        variable.valuesByMode[mode.modeId] = { r: parseInt(hexa.slice(1, 3), 16) / 255, g: parseInt(hexa.slice(3, 5), 16) / 255, b: parseInt(hexa.slice(5, 7), 16) / 255, a: 1 };
+      });
+      collection.publiees.push(variable);
+    }
+    this.distantes.push(collection as FausseCollection & { publiees: FausseVariable[]; autres: string[] });
+    return collection;
+  }
 
   /** Les variables d'une collection, dans l'ordre de leur création. */
   variablesDe(collection: FausseCollection): FausseVariable[] {

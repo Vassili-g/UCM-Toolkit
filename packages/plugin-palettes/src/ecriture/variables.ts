@@ -9,12 +9,14 @@
  * suivi garde, jamais par leur nom. Il ne renomme ni ne déplace une
  * variable, et n'en retire que sur « Supprimer les variables… ».
  */
-import { jsonCanonique, validerRecette, type Refus } from 'ucm-couleur';
+import { jsonCanonique, validerRecette, type Recette, type Refus } from 'ucm-couleur';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
-import { collectionLue, lireLeSuiviRange, variableLue } from '../lectureDesVariables';
+import { ajouter, reprendreDuFichier } from '../edition';
+import { collectionLue, lireLeSuiviRange, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
+import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
-import { palettesDuFichier } from '../variables/detection';
+import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
 import { suiviDeLaReprise } from '../variables/reprise';
 import { planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
@@ -383,4 +385,85 @@ export async function reprendreLaPalette(figma: FigmaDesVariablesEcrites, demand
   figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suiviDeLaReprise(source) } }));
   figma.commitUndo();
   return { issue: 'reprise', empreinte: empreinteDuTexte(texte) as string };
+}
+
+/** L'API que la copie d'une palette de bibliothèque emploie. */
+export interface FigmaDeLaCopie extends FigmaDesBibliotheques {
+  readonly root: FigmaDesVariablesEcrites['root'];
+  readonly variables: Pick<VariablesAPI, 'importVariableByKeyAsync' | 'getVariableCollectionByIdAsync'>;
+  commitUndo(): void;
+}
+
+/** Ce que « Copier dans le plugin » demande : l'identifiant de la palette à créer, et la palette de bibliothèque à copier. */
+export interface DemandeDeCopie {
+  readonly empreinteLue: string | null;
+  /** L'identifiant, tiré par l'interface, de la palette que la copie crée. */
+  readonly palette: string;
+  /** La palette de bibliothèque : la clé de sa collection et le chemin commun de ses variables. */
+  readonly source: { readonly collection: string; readonly chemin: string };
+}
+
+/** L'issue de « Copier dans le plugin » ([VAR-14]). */
+export type IssueDeLaCopie =
+  /** La recette porte la palette copiée ; `importees` variables de la bibliothèque ont rejoint le fichier. */
+  | { readonly issue: 'copiee'; readonly empreinte: string; readonly importees: number }
+  /** La recette rangée n'est plus celle que l'interface a lue ([REC-10]). */
+  | { readonly issue: 'modifiee-ailleurs' }
+  /** La bibliothèque ne porte plus cette palette. */
+  | { readonly issue: 'palette-introuvable' }
+  /** Aucune des variables importées ne porte de couleur dans le thème Light : rien à copier. */
+  | { readonly issue: 'sans-couleur' }
+  /** Figma a levé en listant ou en important les variables de la bibliothèque. */
+  | { readonly issue: 'bibliotheque-illisible'; readonly message: string }
+  | { readonly issue: 'invalide'; readonly refus: readonly Refus[] };
+
+/**
+ * Copie une palette de bibliothèque dans le plugin ([VAR-14]) : importe les
+ * variables de cette seule palette, lit leurs couleurs, puis la reprend en
+ * mode `recalculees` et range la recette, sous un seul `commitUndo`. La
+ * copie n'a pas de liaison de reprise : elle s'écrira dans la destination
+ * des tokens, jamais dans la bibliothèque.
+ */
+export async function copierLaPalette(figma: FigmaDeLaCopie, demande: DemandeDeCopie): Promise<IssueDeLaCopie> {
+  const avant = lireEtat(figma.root);
+  if (avant.empreinte !== demande.empreinteLue) return { issue: 'modifiee-ailleurs' };
+  if (avant.classement.etat !== 'courante' && avant.classement.etat !== 'absente') return { issue: 'invalide', refus: [] };
+  const recette: Recette = avant.classement.recette;
+  const { teamLibrary } = figma;
+  if (!teamLibrary) return { issue: 'bibliotheque-illisible', message: 'figma.teamLibrary' };
+
+  let importees: Variable[];
+  let nuances: number[];
+  try {
+    const rampe = variablesDeLaRampe(await variablesDeLaBibliotheque({ teamLibrary }, demande.source.collection), demande.source.chemin);
+    if (rampe.size < SEUIL_DE_PALETTE) return { issue: 'palette-introuvable' };
+    nuances = [...rampe.keys()].sort((a, b) => a - b);
+    importees = await Promise.all(nuances.map((nuance) => figma.variables.importVariableByKeyAsync(rampe.get(nuance)!.cle)));
+  } catch (erreur) {
+    return { issue: 'bibliotheque-illisible', message: messageDe(erreur) };
+  }
+
+  const profil = figma.root.documentColorProfile;
+  const collection = await figma.variables.getVariableCollectionByIdAsync(importees[0].variableCollectionId);
+  if (!collection) return { issue: 'palette-introuvable' };
+  const { modes, nom } = collectionLue(collection);
+  const lues = importees.map((variable) => variableLue(variable, profil));
+  const source: PaletteDuFichier = {
+    collection: collection.id,
+    nomDeLaCollection: nom,
+    chemin: demande.source.chemin,
+    nuances,
+    variables: lues.map((variable) => variable.id),
+    modes,
+    couleurs: Object.fromEntries(modes.map((mode) => [mode.id, lues.map((variable) => variable.valeurs[mode.id] ?? null)])),
+    reference: nuanceDeReference(nuances),
+  };
+  const palette = reprendreDuFichier(recette, demande.palette, source, 'recalculees');
+  if (!palette) return { issue: 'sans-couleur' };
+  const validee = validerRecette(ajouter(recette, palette));
+  if ('refus' in validee) return { issue: 'invalide', refus: validee.refus };
+  const texte = jsonCanonique(validee.recette);
+  figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE, texte);
+  figma.commitUndo();
+  return { issue: 'copiee', empreinte: empreinteDuTexte(texte) as string, importees: importees.length };
 }

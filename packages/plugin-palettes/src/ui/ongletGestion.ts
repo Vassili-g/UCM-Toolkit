@@ -27,12 +27,13 @@ import { MODES, rampeDe, type Classement, type Mode, type Recette } from 'ucm-co
 
 import { analyserPalette } from '../analyse';
 import type { IssueDeLaPage, IssueDuRetrait } from '../ecriture/planche';
-import type { IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from '../ecriture/variables';
+import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from '../ecriture/variables';
 import { VERSION_DU_SUIVI, type CadreLu, type EtatDeLaPlanche, type ProfilDuDocument } from '../lecture';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
 import type { VueDeGestion } from '../preferences';
 import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
+import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
 import { palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
 import { miseAJourDesTokens, tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
@@ -73,6 +74,8 @@ export interface OngletGestionUi {
   recevoirRetraitDesVariables(issue: IssueDuRetraitDesVariables): void;
   /** L'issue de « Modifier dans le plugin » ([VAR-13]) ; réussie, l'état relu ouvre Création sur la palette. */
   recevoirReprise(issue: IssueDeLaReprise): void;
+  /** L'issue de « Copier dans le plugin » ([VAR-14]) ; réussie, l'état relu ouvre Création sur la copie. */
+  recevoirCopie(issue: IssueDeLaCopie): void;
 }
 
 export interface GestesDeLaGestion extends GestesDuResultat {
@@ -98,6 +101,8 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   retirerLesVariables(palette: string): boolean;
   /** Reprend une palette du fichier dans le plugin ; `false` quand rien ne part ([VAR-13]). */
   reprendre(source: PaletteDuFichier): boolean;
+  /** Copie une palette de bibliothèque dans le plugin ; `false` quand rien ne part ([VAR-14]). */
+  copier(source: PaletteDeBibliotheque): boolean;
   /** Les gestes de la recette en fichier, dans la carte « Palettes et réglages » (V8.5). */
   recetteEnFichier: GestesDeLaRecetteUi;
 }
@@ -116,6 +121,7 @@ function construireVues(i18n: Localisation) {
   const {
     TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DE_LA_REPRISE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
     couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, titreDuRemplacement,
+    bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, confirmationDeLaMiseAJour, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, dejaDansLeFichier, detailsTechniques,
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaFicheEcrit, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, palettesDuPlugin, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
@@ -400,8 +406,12 @@ function construireVues(i18n: Localisation) {
     /** La palette supprimée dont la suppression des variables attend sa confirmation, puis son issue. */
     let variablesAConfirmer: string | null = null;
     let retraitDesVariablesEnCours = false;
-    /** Vrai entre « Modifier dans le plugin » et son issue : aucune autre reprise ne part. */
+    /** Vrai entre « Modifier dans le plugin » ou « Copier dans le plugin » et son issue : aucune autre reprise ne part. */
     let repriseEnCours = false;
+    /** Les collections des bibliothèques activées et leurs palettes ([VAR-14]). */
+    let bibliotheques: Bibliotheques = SANS_BIBLIOTHEQUE;
+    /** La palette de bibliothèque dont la copie attend sa confirmation : sa collection et son chemin. */
+    let copieAConfirmer: string | null = null;
     /** Le retrait demandé, jusqu'à son issue : le cadre, son nom et le rang de sa carte. */
     let retraitEnCours: { readonly cadre: string; readonly nom: string; readonly rang: number } | null = null;
     /** Le rang de la carte retirée, que le focus rejoint au rendu qui la fait disparaître. */
@@ -418,7 +428,7 @@ function construireVues(i18n: Localisation) {
         geste.disabled = inactif;
         i18n.lier(geste, 'title', blocage ?? '');
       }
-      for (const geste of [...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')), ...Array.from(listeDuFichier.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre"]'))]) {
+      for (const geste of [...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')), ...Array.from(listeDuFichier.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre"], [data-geste="copier"], [data-geste="confirmer-copie"]'))]) {
         geste.disabled = inactif || repriseEnCours;
         i18n.lier(geste, 'title', blocage === null ? '' : TEXTES_DE_LA_GESTION.variablesEnConflit);
       }
@@ -986,27 +996,137 @@ function construireVues(i18n: Localisation) {
       return fiche.element;
     }
 
-    /** La ligne d'une palette du fichier, dans le tableau : son nom, sa rampe, et l'étiquette à la place des états ([UI-27]). */
-    function ligneDuFichier(palette: PaletteDuFichier): HTMLTableRowElement {
+    /** La ligne d'une palette du fichier ou d'une bibliothèque, dans le tableau : son nom, sa rampe, et l'étiquette à la place des états ([UI-27]). */
+    function ligneHorsDuPlugin(nom: string, pastilles: readonly HTMLSpanElement[], libelle: Texte): HTMLTableRowElement {
       const rangee = document.createElement('tr');
       rangee.className = 'table-ligne-du-fichier';
       const enTeteDeLigne = document.createElement('th');
       enTeteDeLigne.scope = 'row';
-      enTeteDeLigne.textContent = nomDuFichier(palette);
+      enTeteDeLigne.textContent = nom;
       const nuances = document.createElement('td');
       const rampe = document.createElement('div');
       rampe.className = 'mini-rampe';
       rampe.setAttribute('aria-hidden', 'true');
-      rampe.append(...pastillesDuFichier(palette));
+      rampe.append(...pastilles);
       nuances.append(rampe);
       const etats = document.createElement('td');
       etats.colSpan = tokens.size > 0 ? 2 : 1;
       const etiquette = document.createElement('span');
       etiquette.className = 'etiquette';
-      i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.variablesDuFichier);
+      i18n.lier(etiquette, 'textContent', libelle);
       etats.append(etiquette);
       rangee.append(enTeteDeLigne, nuances, etats);
       return rangee;
+    }
+
+    const ligneDuFichier = (palette: PaletteDuFichier): HTMLTableRowElement =>
+      ligneHorsDuPlugin(nomDuFichier(palette), pastillesDuFichier(palette), TEXTES_DE_LA_GESTION.variablesDuFichier);
+
+    /** Ce qui désigne une palette de bibliothèque : la clé de sa collection et son chemin. */
+    const cleDeBibliotheque = (palette: PaletteDeBibliotheque): string => `${palette.collection}/${palette.chemin}`;
+    const nomDeBibliotheque = (palette: PaletteDeBibliotheque): string => palette.chemin || palette.nomDeLaCollection;
+
+    /** Une pastille vide par nuance : la couleur d'une variable de bibliothèque ne se lit qu'à la copie. */
+    const pastillesVides = (palette: PaletteDeBibliotheque): HTMLSpanElement[] => palette.nuances.map(() => document.createElement('span'));
+
+    const ligneDeBibliotheque = (palette: PaletteDeBibliotheque): HTMLTableRowElement =>
+      ligneHorsDuPlugin(nomDeBibliotheque(palette), pastillesVides(palette), TEXTES_DE_LA_GESTION.bibliotheque);
+
+    /**
+     * La fiche d'une palette de bibliothèque ([UI-33], [VAR-14]) : l'étiquette
+     * « Bibliothèque », des pastilles vides, le nom de sa collection avec son
+     * nombre de variables, puis « Copier dans le plugin », qui demande
+     * confirmation dans la fiche : la copie ajoute des variables au fichier.
+     */
+    function ficheDeBibliotheque(palette: PaletteDeBibliotheque): HTMLElement {
+      const cle = cleDeBibliotheque(palette);
+      const nom = nomDeBibliotheque(palette);
+      const fiche = createCarte({ titre: nom }, i18n);
+      fiche.element.classList.add('fiche-planche', 'fiche-du-fichier');
+      fiche.element.dataset.bibliotheque = cle;
+      const tete = document.createElement('span');
+      tete.className = 'tete-gestes';
+      const etiquette = document.createElement('span');
+      etiquette.className = 'etiquette';
+      i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.bibliotheque);
+      tete.append(etiquette);
+      if (copieAConfirmer !== cle) {
+        const copier = bouton(TEXTES_DE_LA_GESTION.copierDansLePlugin, 'bouton-discret', () => {
+          copieAConfirmer = cle;
+          rendre();
+          listeDuFichier.querySelector<HTMLElement>('[data-geste="confirmer-copie"]')?.focus();
+        });
+        copier.dataset.geste = 'copier';
+        tete.append(copier);
+      }
+      fiche.tete.append(tete);
+
+      const apercu = document.createElement('div');
+      apercu.className = 'fiche-apercu';
+      apercu.style.setProperty('--colonnes', String(palette.nuances.length));
+      apercu.setAttribute('aria-hidden', 'true');
+      const rangee = document.createElement('div');
+      rangee.className = 'fiche-rangee';
+      const profil = document.createElement('span');
+      profil.className = 'fiche-profil';
+      rangee.append(profil, ...pastillesVides(palette).map((nuance) => {
+        nuance.className = 'fiche-pastille';
+        return nuance;
+      }));
+      apercu.append(rangee);
+
+      const information = document.createElement('div');
+      information.className = 'fiche-information';
+      const ligne = document.createElement('span');
+      ligne.className = 'ligne-secondaire chemin';
+      const collection = i18n.noeud(collectionDeBibliotheque(palette.nomDeLaCollection, palette.variablesDeLaCollection));
+      const chemin = document.createElement('code');
+      const bouts = `${palette.nuances[0]} … ${palette.nuances[palette.nuances.length - 1]}`;
+      chemin.textContent = [...palette.chemin.split('/').filter(Boolean), bouts].join(' / ');
+      ligne.append(collection, chemin, i18n.noeud(i18n.composer`${couleursDeBibliotheque(palette.nuances.length)} · ${TEXTES_DE_LA_GESTION.couleursLuesALaCopie}`));
+      information.append(ligne);
+      fiche.corps.append(apercu, information);
+
+      if (copieAConfirmer === cle) {
+        const bloc = document.createElement('div');
+        bloc.className = 'encart';
+        bloc.dataset.encart = 'copie';
+        const titre = document.createElement('p');
+        titre.className = 'encart-titre';
+        i18n.lier(titre, 'textContent', titreDeLaCopie(nom));
+        const texte = document.createElement('p');
+        texte.className = 'ligne-secondaire';
+        i18n.lier(texte, 'textContent', texteDeLaCopie(palette.nuances.length));
+        const choix = document.createElement('div');
+        choix.className = 'confirmation-gestes';
+        const annuler = createButton({
+          label: TEXTES_DE_LA_GESTION.annuler,
+          variant: 'secondary',
+          compact: true,
+          onClick: () => {
+            copieAConfirmer = null;
+            rendre();
+            listeDuFichier.querySelector<HTMLElement>(`[data-bibliotheque="${cle}"] [data-geste="copier"]`)?.focus();
+          },
+        });
+        annuler.dataset.geste = 'annuler-copie';
+        const confirmerLaCopie = createButton({
+          label: TEXTES_DE_LA_GESTION.copier,
+          compact: true,
+          onClick: () => {
+            if (repriseEnCours || !gestes.copier(palette)) return;
+            repriseEnCours = true;
+            zoneDesVariables.replaceChildren();
+            zoneDesVariables.hidden = true;
+            rendreLesGestes();
+          },
+        });
+        confirmerLaCopie.dataset.geste = 'confirmer-copie';
+        choix.append(annuler, confirmerLaCopie);
+        bloc.append(titre, texte, choix);
+        fiche.corps.append(bloc);
+      }
+      return fiche.element;
     }
 
     /** Une notice sur un cadre, avec le geste qui le montre dans Figma (E18). */
@@ -1076,14 +1196,19 @@ function construireVues(i18n: Localisation) {
       gesteAFocaliser = null;
       const complete = vue === 'complete';
       liste.hidden = !complete;
-      table.hidden = complete || (palettes.length === 0 && duFichier.length === 0);
+      const horsDuPlugin = duFichier.length + bibliotheques.palettes.length;
+      table.hidden = complete || (palettes.length === 0 && horsDuPlugin === 0);
       liste.replaceChildren(...(complete ? etatDesCadres.palettes.map((cadre) => ficheDePalette(lue, cadre.palette, cadre, sansGeneration)) : []));
-      corpsDeTable.replaceChildren(...(complete ? [] : [...etatDesCadres.palettes.map((cadre) => ligneDeTable(lue, cadre.palette, cadre)), ...duFichier.map(ligneDuFichier)]));
-      // En vue complète, les palettes du fichier ont leur liste ; en vue condensée, elles sont des lignes du tableau.
-      separation.hidden = !complete || duFichier.length === 0;
+      corpsDeTable.replaceChildren(...(complete ? [] : [
+        ...etatDesCadres.palettes.map((cadre) => ligneDeTable(lue, cadre.palette, cadre)),
+        ...duFichier.map(ligneDuFichier),
+        ...bibliotheques.palettes.map(ligneDeBibliotheque),
+      ]));
+      // En vue complète, les palettes du fichier et des bibliothèques ont leur liste ; en vue condensée, elles sont des lignes du tableau.
+      separation.hidden = !complete || horsDuPlugin === 0;
       listeDuFichier.hidden = separation.hidden;
-      i18n.lier(titreDuFichier, 'textContent', dejaDansLeFichier(duFichier.length));
-      listeDuFichier.replaceChildren(...(separation.hidden ? [] : duFichier.map(ficheDuFichier)));
+      i18n.lier(titreDuFichier, 'textContent', dejaDansLeFichier(horsDuPlugin));
+      listeDuFichier.replaceChildren(...(separation.hidden ? [] : [...duFichier.map(ficheDuFichier), ...bibliotheques.palettes.map(ficheDeBibliotheque)]));
       if (ficheAMontrer !== null) {
         const fiche = liste.querySelector<HTMLElement>(`.fiche-planche[data-palette="${ficheAMontrer}"]`);
         ficheAMontrer = null;
@@ -1114,6 +1239,7 @@ function construireVues(i18n: Localisation) {
 
       notices.replaceChildren(
         ...etatDesCadres.copies.map(({ nom, cadre, page }) => noticeDeCadre(copieDeCadre(nom), page, cadre)),
+        ...(bibliotheques.lisibles ? [] : [blocDeConstat(bibliothequesIllisibles(), 'notice')]),
         ...(profil === 'DISPLAY_P3' ? [blocDeConstat(noticeDisplayP3(), 'notice')] : []),
       );
       notices.hidden = notices.childElementCount === 0;
@@ -1160,6 +1286,8 @@ function construireVues(i18n: Localisation) {
         recette = lue;
         planche = plancheLue;
         variables = variablesLues;
+        bibliotheques = variablesLues.bibliotheques ?? SANS_BIBLIOTHEQUE;
+        if (copieAConfirmer !== null && !bibliotheques.palettes.some((palette) => cleDeBibliotheque(palette) === copieAConfirmer)) copieAConfirmer = null;
         profil = profilLu;
         empreinte = empreinteLue;
         luLe = luLeRecu;
@@ -1274,6 +1402,17 @@ function construireVues(i18n: Localisation) {
         else zoneDesVariables.replaceChildren();
         zoneDesVariables.hidden = zoneDesVariables.childElementCount === 0;
         rendreLesGestes();
+      },
+      recevoirCopie(issue) {
+        repriseEnCours = false;
+        if (issue.issue === 'copiee') copieAConfirmer = null;
+        // Une recette changée ailleurs ouvre le conflit d'enregistrement, que l'onglet Création dit.
+        if (issue.issue === 'palette-introuvable' || issue.issue === 'invalide') zoneDesVariables.replaceChildren(blocDeConstat(copieRefusee(), 'alerte'));
+        else if (issue.issue === 'sans-couleur') zoneDesVariables.replaceChildren(blocDeConstat(copieSansCouleur(), 'alerte'));
+        else if (issue.issue === 'bibliotheque-illisible') zoneDesVariables.replaceChildren(blocDeConstat(bibliothequeIllisible(issue.message), 'alerte'));
+        else zoneDesVariables.replaceChildren();
+        zoneDesVariables.hidden = zoneDesVariables.childElementCount === 0;
+        rendre();
       },
       recevoirRetraitDesVariables(issue) {
         retraitDesVariablesEnCours = false;

@@ -5,17 +5,18 @@
  * Le routage n'a qu'une porte par geste d'écriture ([ARC-14]) : « ranger la
  * recette », « dessiner », « retirer un cadre », « choisir la page »,
  * « écrire les variables », « ranger la destination », « retirer les
- * variables » et « reprendre une palette ».
+ * variables », « reprendre une palette » et « copier une palette ».
  */
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
-import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
+import { copierLaPalette, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
-import { lireLesVariablesDuFichier } from './lectureDesVariables';
+import { lireLesBibliotheques, lireLesVariablesDuFichier } from './lectureDesVariables';
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
 import { creerPreferences } from './preferences';
+import type { Bibliotheques } from './variables/bibliotheques';
 
 const preferences = creerPreferences(figma.clientStorage);
 
@@ -37,8 +38,16 @@ function versUi(message: PluginMessage): void {
   figma.ui.postMessage(message);
 }
 
+/**
+ * Les collections des bibliothèques activées ([VAR-14]). Figma les rend par
+ * une lecture par collection : elles se lisent au premier état, puis à
+ * « Synchroniser », et le sandbox les garde entre deux.
+ */
+let bibliotheques: Bibliotheques | null = null;
+
 async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<void> {
-  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages), variables: await lireLesVariablesDuFichier(figma) });
+  if (bibliotheques === null || toutesLesPages) bibliotheques = await lireLesBibliotheques(figma);
+  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages), variables: await lireLesVariablesDuFichier(figma, bibliotheques) });
 }
 
 async function traiterMessage(message: UiRequest): Promise<void> {
@@ -98,6 +107,11 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
   if (message.type === 'reprendre-palette') {
     versUi({ type: 'reprise', demande: message.demande, issue: await reprendreLaPalette(figma, message) });
+    return;
+  }
+
+  if (message.type === 'copier-palette') {
+    versUi({ type: 'copie', demande: message.demande, issue: await copierLaPalette(figma, message) });
     return;
   }
 

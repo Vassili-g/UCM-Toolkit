@@ -21,3 +21,7 @@ test('le manifest charge les pages à la demande, dans Figma seul', () => {
   assert.equal(manifest.documentAccess, 'dynamic-page');
   assert.deepEqual(manifest.editorType, ['figma']);
 });
+
+test('[VAR-14] le manifest déclare la permission teamlibrary, et elle seule : la lecture des collections de bibliothèque la demande', () => {
+  assert.deepEqual(manifest.permissions, ['teamlibrary']);
+});

@@ -1,7 +1,8 @@
 /**
  * Seuls les fichiers de `src/ecriture/` écrivent dans le document ([ARC-12]).
  * Seuls `src/ecriture/variables.ts`, qui écrit, et
- * `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables`, et
+ * `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables` et
+ * `figma.teamLibrary`, et
  * aucun fichier de `src/` ne charge toutes les pages ni ne touche aux styles
  * ([ARC-13]).
  *
@@ -45,6 +46,8 @@ const VARIABLES = [path.join(ECRITURE, 'variables.ts'), path.join(SOURCE, 'lectu
 /** L'API des variables, quel que soit le nom de la liaison qui porte `figma`. */
 const API_DES_VARIABLES: { motif: RegExp; quoi: string }[] = [
   { motif: /\bfigma\w*\.variables\b/i, quoi: 'variables' },
+  { motif: /\bteamLibrary\s*[.?]/, quoi: 'bibliothèques' },
+  { motif: /\.(getAvailableLibraryVariableCollectionsAsync|getVariablesInLibraryCollectionAsync)\s*\(/, quoi: 'bibliothèques' },
   { motif: /\.(createVariable|createVariableCollection|setValueForMode|addMode|renameMode|getLocalVariablesAsync|getLocalVariableCollectionsAsync|getVariableByIdAsync|getVariableCollectionByIdAsync|importVariableByKeyAsync)\s*\(/, quoi: 'variables' },
 ];
 

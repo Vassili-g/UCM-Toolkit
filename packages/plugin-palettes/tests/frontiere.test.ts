@@ -234,3 +234,21 @@ test('[VAR-13] une reprise sur une recette changée ailleurs ouvre le conflit, e
   assert.equal(frontiere.reprendre(AUTRE, 'p-000000a1', source), false);
   assert.equal(envoyees.length, 2);
 });
+
+test('[VAR-14] une copie de bibliothèque range la recette : elle porte l’empreinte lue, retient les rangements, et apporte la nouvelle empreinte', () => {
+  const { frontiere, envoyees, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  const source = { collection: 'cle', chemin: 'gray' };
+  assert.equal(frontiere.copier('p-000000b1', source), true);
+  assert.deepEqual(envoyees[1], { type: 'copier-palette', demande: 2, empreinteLue: 'aaaaaaaa', palette: 'p-000000b1', source });
+  assert.equal(frontiere.copier('p-000000b2', source), false);
+  assert.equal(frontiere.reprendre(AUTRE, 'p-000000b3', source), false, 'une reprise attend l’issue de la copie');
+  assert.equal(frontiere.recevoirCopie({ type: 'copie', demande: 1, issue: { issue: 'sans-couleur' } }), false);
+  assert.equal(frontiere.recevoirCopie({ type: 'copie', demande: 2, issue: { issue: 'copiee', empreinte: 'cccccccc', importees: 11 } }), true);
+  assert.equal(frontiere.empreinte(), 'cccccccc');
+  assert.equal(frontiere.copier('p-000000b2', source), true);
+  frontiere.recevoirCopie({ type: 'copie', demande: 3, issue: { issue: 'modifiee-ailleurs' } });
+  assert.equal(frontiere.statut(), 'refuse');
+  assert.equal(frontiere.copier('p-000000b2', source), false);
+});

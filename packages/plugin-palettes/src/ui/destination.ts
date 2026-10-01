@@ -3,7 +3,8 @@
  * « Tokens », l'ouvre à la place du bloc de la connexion. Trois champs, sans
  * texte d'aide : la collection, en liste à choix unique, « Nouvelle
  * collection » et son champ puis chaque collection locale avec son nombre de
- * variables ; le groupe et les thèmes sur une rangée. Dessous, une
+ * variables, puis les collections de bibliothèque, grisées et non
+ * choisissables ([VAR-14]) ; le groupe et les thèmes sur une rangée. Dessous, une
  * simulation prend la forme du panneau des variables de Figma et suit chaque
  * choix, sans rien ranger. « Enregistrer » range la destination ([VAR-16]) ;
  * un refus se lit dans la carte, qui reste ouverte.
@@ -43,7 +44,7 @@ const NUANCES_DEPLIEES = 3;
 function construireVues(i18n: Localisation) {
   const { createButton } = creerSocleLocalise(i18n);
   const { blocDeConstat } = creerVuesConstats(i18n);
-  const { TEXTES, TEXTES_DE_LA_GESTION, autresNuances, nombreDeVariables, refusDeLaDestination, resumeDeLaSimulation, suiviFutur } = i18n.messages;
+  const { TEXTES, TEXTES_DE_LA_GESTION, autresNuances, lectureSeule, nombreDeVariables, refusDeLaDestination, resumeDeLaSimulation, suiviFutur } = i18n.messages;
 
   function createDestination(gestes: GestesDeLaDestination): DestinationUi {
     const carte = createCarte({ titre: TEXTES_DE_LA_GESTION.destinationDesTokens }, i18n);
@@ -272,6 +273,16 @@ function construireVues(i18n: Localisation) {
         liste.replaceChildren(
           choix('', [i18n.noeud(TEXTES_DE_LA_GESTION.nouvelleCollection), nomDeLaNouvelle], '', rangee === ''),
           ...lu.collections.map((collection) => choix(collection.id, [collection.nom], nombreDeVariables(collection.variables), collection.id === rangee)),
+          // Une bibliothèque ne s'écrit que depuis son propre fichier : ses collections se lisent, sans se choisir.
+          ...(lu.bibliotheques?.collections ?? []).map((collection) => {
+            const etiquette = document.createElement('span');
+            etiquette.className = 'etiquette';
+            i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.bibliotheque);
+            const ligne = choix(`bibliotheque:${collection.cle}`, [collection.nom, etiquette], lectureSeule(collection.variables), false);
+            ligne.dataset.distante = 'true';
+            ligne.querySelector<HTMLInputElement>('input')!.disabled = true;
+            return ligne;
+          }),
         );
         carte.element.hidden = false;
         rendre();

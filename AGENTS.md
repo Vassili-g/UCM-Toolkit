@@ -245,7 +245,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/planche/peints.ts    les couleurs relues sur la planche, comparées à celles de l'aperçu
   src/ecriture/recette.ts  le rangement de la recette : validation, empreinte lue, commitUndo
   src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée ; le choix de la page des planches, qui y déplace les cadres possédés
-  src/lectureDesVariables.ts  les collections locales, les variables de couleur et le suivi rangé ; avec l'écriture, le seul appel à `figma.variables`
+  src/lectureDesVariables.ts  les collections locales, les variables de couleur, le suivi rangé et les collections des bibliothèques activées ; avec l'écriture, le seul appel à `figma.variables` et à `figma.teamLibrary`
   src/variables/           le modèle pur des variables, sans Figma ni DOM
   src/variables/destination.ts  où les palettes s'écrivent : collection, groupe, thèmes ; son défaut et sa validation
   src/variables/noms.ts    le segment d'une palette dans le chemin de ses variables, et la collision de deux palettes
@@ -255,8 +255,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
   src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
   src/variables/reprise.ts la reprise d'une palette du fichier : le mode que chaque thème vise, la liaison du suivi, et la palette du fichier qu'une liaison désigne
+  src/variables/bibliotheques.ts  les collections de bibliothèque et les palettes que leurs noms de variables dessinent, sans leurs couleurs
   src/variables/gestion.ts ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, la simulation d'une destination, les variables d'une palette supprimée
-  src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée
+  src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée ; la reprise d'une palette du fichier ; la copie d'une palette de bibliothèque
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
@@ -1107,14 +1108,14 @@ La spécification en lien porte le raisonnement.
   `figma`. Borne : une affectation absente de la liste lui échappe.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#143-le-plugin)
 - Seuls `src/ecriture/variables.ts`, qui écrit, et
-  `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables` ou une
-  méthode de son API. Aucun fichier de `src/`, interface et écriture
+  `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables`,
+  `figma.teamLibrary` ou une méthode de leur API. Aucun fichier de `src/`, interface et écriture
   comprises, n'appelle `loadAllPagesAsync` ni une API de style. La même loi
   le tient.
 - `src/code.ts` est le seul fichier qui importe `src/ecriture/`, avec une porte
   par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre`,
   `choisir-page`, `ecrire-variables`, `ranger-destination`,
-  `retirer-variables` et `reprendre-palette`.
+  `retirer-variables`, `reprendre-palette` et `copier-palette`.
 - Le plugin ne retire un cadre de Figma que sur « Supprimer définitivement »,
   geste explicite du designer. Le sandbox relit la recette rangée et le cadre :
   il ne retire qu'un cadre possédé qui porte encore l'identifiant de sa
@@ -1236,7 +1237,20 @@ La spécification en lien porte le raisonnement.
   `packages/plugin-palettes/tests/modeleDesVariables.test.ts` tient ces deux
   règles.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#172-la-propriété-et-létat)
-- Le manifest n'ouvre aucun domaine et ne déclare pas `enablePrivatePluginApi`.
+- Une collection de bibliothèque se lit sans s'écrire. La lecture liste les
+  collections activées et les palettes que leurs noms dessinent, sans
+  importer une variable ; si `figma.teamLibrary` manque ou lève, elle rend
+  une liste vide, dite illisible, et le reste de Gestion fonctionne. Seul
+  « Copier dans le plugin » importe des variables : celles de la palette
+  copiée, par `copierLaPalette`, qui range la recette sous un seul
+  `commitUndo`. La copie n'a pas de liaison de reprise : elle s'écrit dans
+  la destination des tokens, jamais dans la bibliothèque.
+  `packages/plugin-palettes/tests/bibliotheques.test.ts` le tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#174-les-palettes-du-fichier)
+- Le manifest n'ouvre aucun domaine et ne déclare pas
+  `enablePrivatePluginApi`. Il déclare la seule permission `teamlibrary`,
+  que la lecture des collections de bibliothèque demande.
+  `packages/plugin-palettes/tests/manifest.test.ts` le tient.
 - Aucun des deux plugins n'importe l'autre : `tests/pluginsSepares.test.ts` lit
   les deux sens, à la racine, sans qu'un paquet lise les sources de l'autre.
 
