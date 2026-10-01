@@ -33,8 +33,8 @@ export interface OuvertureDuSelecteur {
   /** Une couleur choisie, en `#RRGGBB` ; `fin` à la fin du geste. */
   saisir(hexa: string, fin: boolean): void;
   /**
-   * La fin d'un aperçu qui n'enregistre rien : Échap, fermeture, ou pointeur
-   * perdu en plein glisser. Le contrôle rend ce que l'aperçu avait différé,
+   * La fin d'un aperçu qui n'enregistre rien : Échap ou fermeture en plein
+   * glisser. Le contrôle rend ce que l'aperçu avait différé,
    * sans ranger (Z4.6). Appelé une fois, après la dernière couleur transmise.
    */
   abandonner?(): void;
@@ -273,33 +273,60 @@ function construireVues(i18n: Localisation) {
       saisieEnAttente = null;
     }
 
+    /** Retire le suivi du glisser en cours sur le document ; `null` hors d'un glisser. */
+    let arreterLeSuivi: (() => void) | null = null;
+
+    /*
+     * Le glisser se suit sur le document, comme celui d'une réglette : dans
+     * Figma, un mouvement arrive avec `buttons` à 0 et Chromium retire alors
+     * la capture. Le geste ne lit donc ni `buttons` ni la capture pour
+     * continuer. Il finit au relâcher, n'importe où dans le document, ou à la
+     * sortie de la fenêtre quand la capture est perdue : le relâcher n'y
+     * serait pas vu.
+     */
     function suivrePointeur(commande: HTMLElement, lire: (x: number, y: number) => Hsv): void {
       const depuis = (evenement: PointerEvent): Hsv => {
         const cadre = commande.getBoundingClientRect();
         return lire(bornerA((evenement.clientX - cadre.left) / cadre.width, 0, 1), bornerA((evenement.clientY - cadre.top) / cadre.height, 0, 1));
       };
+      let pointeur: number | null = null;
+      const bouger = (evenement: PointerEvent): void => {
+        if (glisse && evenement.pointerId === pointeur) poser(depuis(evenement), false);
+      };
+      const finir = (suivante: Hsv): void => {
+        arreterLeSuivi?.();
+        if (!glisse) return;
+        glisse = false;
+        poser(suivante, true);
+      };
+      const relacher = (evenement: PointerEvent): void => {
+        if (evenement.pointerId === pointeur) finir(depuis(evenement));
+      };
+      const sortir = (evenement: PointerEvent): void => {
+        if (evenement.pointerId !== pointeur || evenement.relatedTarget !== null) return;
+        if (!commande.hasPointerCapture(evenement.pointerId)) finir(position);
+      };
       commande.addEventListener('pointerdown', (evenement) => {
         if (evenement.button !== 0) return;
         evenement.preventDefault();
+        arreterLeSuivi?.();
         commande.focus({ preventScroll: true });
         commande.setPointerCapture(evenement.pointerId);
+        pointeur = evenement.pointerId;
+        window.addEventListener('pointermove', bouger, true);
+        window.addEventListener('pointerup', relacher, true);
+        window.addEventListener('pointercancel', relacher, true);
+        document.addEventListener('pointerout', sortir, true);
+        arreterLeSuivi = () => {
+          window.removeEventListener('pointermove', bouger, true);
+          window.removeEventListener('pointerup', relacher, true);
+          window.removeEventListener('pointercancel', relacher, true);
+          document.removeEventListener('pointerout', sortir, true);
+          pointeur = null;
+          arreterLeSuivi = null;
+        };
         glisse = true;
         poser(depuis(evenement), false);
-      });
-      const finir = (evenement: PointerEvent): void => {
-        if (!glisse) return;
-        glisse = false;
-        poser(depuis(evenement), true);
-      };
-      // Le geste ne lit pas `buttons` : quand il le lisait, le glisser ne fonctionnait plus dans Figma.
-      commande.addEventListener('pointermove', (evenement) => {
-        if (glisse && commande.hasPointerCapture(evenement.pointerId)) poser(depuis(evenement), false);
-      });
-      commande.addEventListener('pointerup', finir);
-      commande.addEventListener('pointercancel', finir);
-      // La capture perdue sans relâcher, quand la commande disparaît par exemple : le geste s'arrête sans rien enregistrer.
-      commande.addEventListener('lostpointercapture', () => {
-        if (glisse) clore('aussitot');
       });
     }
     suivrePointeur(zone, (x, y) => ({ h: position.h, s: x, v: 1 - y }));
@@ -409,6 +436,7 @@ function construireVues(i18n: Localisation) {
       const attente = saisieEnAttente;
       annulerLaSaisieEnAttente();
       if (attente) transmettre(attente.hexa, false);
+      arreterLeSuivi?.();
       glisse = false;
       const abandon = apercuSansFin ? ouverture?.abandonner : undefined;
       apercuSansFin = false;

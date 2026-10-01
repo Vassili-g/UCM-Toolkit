@@ -8,8 +8,8 @@
  * Chaque réglage s'arrête à sa limite dynamique ([DER-19]) : la limite se
  * calcule sur l'état du début du geste, à l'ouverture, au changement
  * d'onglet et au relâchement, étalée entre les images ; pendant un glisser,
- * elle reste figée comme l'échelle. Une ligne fixe dit la plage sûre, ou la
- * cause de la butée jusqu'au geste suivant ([DER-22]).
+ * elle reste figée comme l'échelle. Une ligne fixe dit la cause de la butée
+ * jusqu'au geste suivant, et reste vide sans butée ([DER-22]).
  *
  * Pendant un glisser, l'aperçu suit sans rien ranger ; le relâchement range
  * (D-D). Ctrl+Z ou Cmd+Z défait le dernier réglage quand le focus est dans la
@@ -90,7 +90,7 @@ interface Butee {
 }
 
 function construireVues(i18n: Localisation) {
-  const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, plageSure, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
+  const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
   const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
@@ -611,14 +611,12 @@ function construireVues(i18n: Localisation) {
         });
       }
 
-      // La ligne fixe : la butée du dernier geste, sinon un bout sorti de sa plage, sinon la plage sûre.
+      // La ligne fixe : la butée du dernier geste, sinon un bout sorti de sa plage, sinon rien.
       const cause = butee && butee.grandeur === affichee ? limites[butee.bout]?.[butee.cote] : null;
       const sorti = BOUTS.find((bout) => !sansSegment[bout] && horsDeLaPlageAuBout[bout]);
-      const plages = BOUTS.filter((bout) => !sansSegment[bout] && limites[bout])
-        .map((bout) => ({ bout, bas: limites[bout]!.bas.valeur, haut: limites[bout]!.haut.valeur }));
       if (butee && cause?.cause) ligneDeLaPlage.poser(buteeDuColorShift(affichee, butee.bout, cause.valeur, cause.cause), 'butee');
       else if (sorti) ligneDeLaPlage.poser(horsDeLaPlage(sorti), 'avertissement');
-      else ligneDeLaPlage.poser(plages.length > 0 ? plageSure(affichee, plages) : '');
+      else ligneDeLaPlage.poser('');
 
       // L'état du calcul des limites, que les tests d'interface attendent avant un geste.
       element.dataset.limites = calculs.enCours() ? 'en-cours' : 'pretes';

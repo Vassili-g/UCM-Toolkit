@@ -9,13 +9,12 @@
  *
  * Chaque réglette s'arrête à la limite dynamique de `[DER-19]`, calculée pour
  * la cible choisie, carte ouverte, et étalée entre les images ; une ligne fixe
- * dit la plage sûre, ou la cause de la butée ([DER-22]). Une ligne fixe dit,
- * avant les réglettes, si un réglage déplace la référence, et ensuite qu'elle
- * a bougé. Sous les réglettes, deux lignes fixes : l'origine des parts et le
- * retour aux réglages communs, puis la note d'une palette grise ou la première
- * alerte qui compare les profils ([VER-10], [VER-11]). Aucune ne change de
- * hauteur pendant un geste ([UI-20]) ; le détail des alertes se lit dans le
- * volet du pied ([UI-18]).
+ * dit la cause de la butée, et reste vide sans butée ([DER-22]). Une ligne
+ * fixe dit, avant les réglettes, si un réglage déplace la référence, et
+ * ensuite qu'elle a bougé. Sous les réglettes, la note d'une palette grise ou
+ * la première alerte qui compare les profils ([VER-10], [VER-11]). Aucune ne
+ * change de hauteur pendant un geste ([UI-20]) ; le détail des alertes se lit
+ * dans le volet du pied ([UI-18]).
  *
  * Un glisser prévisualise une fois par image au plus, la fin du geste
  * enregistre, Échap rend la palette d'avant le geste. Une palette à une
@@ -46,7 +45,6 @@ import {
   reglerSaturation,
   reglerTeinte,
   remplacerPalette,
-  reprendreLesParts,
   retablirLaSaturation,
   valeursDe,
   type CibleDuReglage,
@@ -95,7 +93,7 @@ interface Rangee {
 function construireVues(i18n: Localisation) {
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
-  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_AVANCES, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
+  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
 
   /** Le texte d'un champ : la teinte signée en degrés, la saturation en pour cent, la luminosité signée. */
   const ecrire = (grandeur: Grandeur, valeur: number): Texte =>
@@ -150,7 +148,7 @@ function construireVues(i18n: Localisation) {
     let avantLeGeste: Palette | null = null;
     /** Un aperçu attend l'image suivante : un seul rendu par image pendant un glisser (Z4). */
     let enAttente: { palette: Palette; image: number } | null = null;
-    /** La butée du dernier geste, que la ligne de la plage nomme jusqu'au geste suivant ([DER-22]). */
+    /** La butée du dernier geste, que sa ligne nomme jusqu'au geste suivant ([DER-22]). */
     let butee: { grandeur: Grandeur; cote: keyof Intervalle } | null = null;
     // Les limites des trois réglettes, pour la cible choisie, et la clé de l'état qu'elles jugent.
     let limites: Record<Grandeur, Limite | null> = { teinte: null, saturation: null, luminosite: null };
@@ -201,12 +199,8 @@ function construireVues(i18n: Localisation) {
     erreur.className = 'field-error';
     erreur.hidden = true;
     const plage = createLigneFixe();
-    // L'origine des parts, et le retour aux réglages communs quand le designer a posé les siennes.
+    // Une palette grise dit que ses deux profils restent gris.
     const origine = createLigneFixe();
-    const reprendre = document.createElement('button');
-    reprendre.type = 'button';
-    reprendre.className = 'lien-de-constat';
-    i18n.lier(reprendre, 'textContent', TEXTES_AVANCES.reprendre);
     // La raison qui désactive la teinte ([DER-15]), ou la première alerte de la carte et le réglage qu'elle ouvre.
     const alerte = createLigneFixe();
     const lienDeLAlerte = document.createElement('button');
@@ -287,10 +281,6 @@ function construireVues(i18n: Localisation) {
         valider(profils.reduce((palette, profil) => regler(lue!, palette, profil, 0), courante));
       }
     }
-
-    reprendre.addEventListener('click', () => {
-      if (lue && courante) valider(reprendreLesParts(lue, courante));
-    });
 
     /** Les valeurs d'un profil pour les trois réglettes, et sa teinte absolue. */
     function valeursDuProfil(recette: Recette, palette: Palette, profil: Profil): Record<Grandeur, number> & { absolue: number } {
@@ -414,15 +404,10 @@ function construireVues(i18n: Localisation) {
       // L'état du calcul des limites, que les tests d'interface attendent avant un geste.
       element.dataset.limites = calculs.enCours() ? 'en-cours' : 'pretes';
 
-      // La ligne de la plage : la butée du dernier geste, sinon la plage sûre des réglettes calculées.
+      // La ligne de la butée : la cause de la borne que le dernier geste a touchée, sinon rien. Elle garde sa place vide.
       const borne = butee ? limites[butee.grandeur]?.[butee.cote] : null;
-      const calculees = GRANDEURS.filter((grandeur) => limites[grandeur] && !(grandeur === 'teinte' && grise));
       if (butee && borne?.cause) plage.poser(buteeDuReglage(etiquetteDe(butee.grandeur), ecrire(butee.grandeur, borne.valeur), borne.cause), 'butee');
-      else plage.poser(calculees.length > 0 ? plageSureDuReglage(calculees.map((grandeur) => ({
-        grandeur: TEXTES_DES_REGLAGES.grandeurs[grandeur],
-        bas: ecrire(grandeur, limites[grandeur]!.bas.valeur),
-        haut: ecrire(grandeur, limites[grandeur]!.haut.valeur),
-      }))) : '');
+      else plage.poser('');
     }
 
     return {
@@ -448,10 +433,10 @@ function construireVues(i18n: Localisation) {
         rendre();
         const uneSeule = aUneIntensite(palette);
         const grise = estPaletteGrise(recette, palette);
-        const ligneDOrigine = uneSeule ? null : origineDesParts(palette.parts !== undefined, grise);
-        // Une palette à une intensité n'a pas de parts à situer : la ligne ne paraît qu'avec deux, quelle que soit la saisie.
+        const ligneDOrigine = uneSeule ? null : origineDesParts(grise);
+        // Une palette à une intensité n'a pas de profils à situer : la ligne ne paraît qu'avec deux, quelle que soit la saisie.
         origine.element.hidden = ligneDOrigine === null;
-        origine.poser(ligneDOrigine ?? '', 'neutre', palette.parts?.origine === 'designer' ? [reprendre] : []);
+        origine.poser(ligneDOrigine ?? '');
         // Les informations se lisent dans le volet du pied ; la ligne garde le premier point à vérifier.
         const premiere = messagesDesReglages.find((message) => message.severite !== 'notice');
         cibleDeLAlerte = premiere?.cibles[0] ?? null;

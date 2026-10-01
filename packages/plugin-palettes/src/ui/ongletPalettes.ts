@@ -443,9 +443,9 @@ function construireVues(i18n: Localisation) {
      * Pendant un glisser dans le sélecteur de couleur, un rendu ne peint que
      * l'aperçu : champs, analyse et nuancier suivent le pointeur. Garanties,
      * messages, intensités, dérive et interface de test attendent la fin du
-     * geste, qui range et rend tout, ou son abandon (Échap, fermeture,
-     * pointeur perdu), qui rend tout sans ranger. Aucun rendu complet ne part
-     * en plein geste, même quand le pointeur s'arrête (Z4.6).
+     * geste, qui range et rend tout, ou son abandon (Échap, fermeture), qui
+     * rend tout sans ranger. Aucun rendu complet ne part en plein geste, même
+     * quand le pointeur s'arrête (Z4.6).
      */
     let apercuSeul = false;
     /** Vrai tant qu'un rendu d'aperçu, ou une recette des Réglages, attend le rendu complet. */

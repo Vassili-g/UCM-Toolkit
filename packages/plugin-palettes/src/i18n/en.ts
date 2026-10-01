@@ -105,6 +105,7 @@ export const TEXTES_DE_L_ONGLET = {
   garanties: "Contrast guarantees",
   derive: "Color shift",
   sousTitreDeLaDerive: "Adjust shades around the reference ◆",
+  sousTitreDesGaranties: "The contrast of each use",
 } as const;
 
 /** Le pied de l'onglet Création et son volet ([UI-18]). */
@@ -313,7 +314,6 @@ export function constatDeGarantie(manque: ManqueDeGarantie): Constat {
 /** Les réglages propres à une palette (section 8.1, [ENT-09]). */
 export const TEXTES_AVANCES = {
   avance: "Settings for this palette",
-  reprendre: "Use shared intensities",
 } as const;
 
 /** Les intensités sous le nuancier (section 8.1). */
@@ -323,14 +323,9 @@ export const TEXTES_DES_INTENSITES = {
   detailDeLaReference: "Reference colour intensity",
 } as const;
 
-/**
- * D'où viennent les saturations d'une palette, quand une ligne le dit : ses
- * parts propres, ou un gris pur (T4). Sans l'un ni l'autre, aucune ligne (T3).
- */
-export function origineDesParts(propres: boolean, grise: boolean): string | null {
-  if (propres) return "Custom intensities: shared intensities no longer apply.";
-  if (grise) return "Grey reference: Soft and Vivid stay grey.";
-  return null;
+/** D'où viennent les saturations d'une palette grise (T4) ; aucune ligne pour les autres. */
+export function origineDesParts(grise: boolean): string | null {
+  return grise ? "Grey reference: Soft and Vivid stay grey." : null;
 }
 
 /**
@@ -407,7 +402,7 @@ export const TEXTES_DU_MODELE = {
 
 /** Les libellés de la carte « Color shift » (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
-  aide: "The further a shade is from the reference, the stronger the effect. Hatched zones exceed contrast or lightness limits.",
+  aide: "Hatched zones exceed contrast or lightness limits.",
   grise: "Grey palette: only lightness can be adjusted.",
   sansSegmentClair: "No shades lighter than the reference. Adjust the dark shades.",
   sansSegmentSombre: "No shades darker than the reference. Adjust the light shades.",
@@ -460,11 +455,6 @@ const plageEcrite = (grandeur: GrandeurDuColorShift, bas: number, haut: number):
 export function valeurDePoignee(grandeur: GrandeurDuColorShift, valeur: number, teinte: number, plage: { readonly bas: number; readonly haut: number } | null): string {
   const lue = grandeur === 'teinte' ? `Offset ${angleEcrit(valeur)}, resulting hue: ${Math.round(teinte) % 360}°` : decalageEcrit(grandeur, valeur);
   return plage ? `${lue}. Safe range ${plageEcrite(grandeur, plage.bas, plage.haut)}` : lue;
-}
-
-/** La ligne de la plage sûre ([DER-22]) : « Plage sûre · nuances claires −0,050 à +0,040 · nuances sombres −0,150 à +0,055 ». */
-export function plageSure(grandeur: GrandeurDuColorShift, plages: readonly { readonly bout: Bout; readonly bas: number; readonly haut: number }[]): string {
-  return ["Safe range", ...plages.map(({ bout, bas, haut }) => `${TEXTES_DE_LA_DERIVE.bout[bout].toLowerCase()} ${plageEcrite(grandeur, bas, haut)}`)].join(' · ');
 }
 
 /** Un membre d'une paire jugée, tel que la butée le nomme : « text 700 », « fond ». */
@@ -1432,6 +1422,7 @@ export const TEXTES_DE_LA_PLANCHE = {
  */
 export const TEXTES_DE_L_INTERFACE_DE_TEST = {
   titre: "Test interface",
+  sousTitreDeLaCarte: "The palette on a sample screen",
   resume: (mode: Mode, profil: string | null) => (profil ? `${NOM_DU_MODE[mode]} theme · ${profil}` : `${NOM_DU_MODE[mode]} theme`),
   profil: "Preview profile",
   vue: "Test interface view",

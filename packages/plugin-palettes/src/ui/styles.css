@@ -416,7 +416,7 @@
 /*
  * La couleur ne dit que la sévérité, et le poids suit sa gravité : un blocage
  * et une promesse à corriger portent le filet et le fond du danger, un point à
- * vérifier le seul filet d'avertissement ([VER-14]).
+ * vérifier le filet et le fond de l'avertissement ([VER-14]).
  */
 .constat-bloquant {
   border-left: 3px solid var(--texte-danger);
@@ -430,6 +430,7 @@
 
 .constat-alerte {
   border-left: 2px solid var(--texte-avertissement);
+  background: var(--fond-avertissement);
 }
 
 /* Rang 3 : une information se lit en couleur secondaire, sans filet. */
@@ -734,9 +735,10 @@
   outline-offset: 2px;
 }
 
+/* Les blocs de la carte « Color shift » s'écartent d'un espace de bloc : aide, en-tête, onglets, panneau. */
 .editeur-derive {
   display: grid;
-  gap: var(--espace-controle);
+  gap: var(--espace-bloc);
 }
 
 /* Le graphe suit la largeur de la colonne ; sa hauteur, en pixels, est posée par le graphe (Z8.2). */
@@ -950,7 +952,7 @@
   display: grid;
   min-width: 0;
   align-items: center;
-  padding: 4px 8px;
+  padding: var(--espace-controle) var(--espace-bloc);
   border: 0;
   border-right: 1px solid var(--bordure);
   background: none;
@@ -1003,7 +1005,7 @@
 
 .panneau-de-grandeur {
   display: grid;
-  gap: var(--espace-serre);
+  gap: var(--espace-bloc);
 }
 
 /* La note d'une palette grise ou d'un bout sans segment ([DER-14], [DER-15]), sous le panneau. */
@@ -1315,7 +1317,7 @@
   min-height: var(--hauteur-action);
   flex-wrap: nowrap;
   justify-content: flex-start;
-  margin: calc(-1 * var(--espace-controle)) 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -1432,7 +1434,7 @@
   transform: rotate(90deg);
 }
 
-/* Dépliée, l'en-tête rend sa marge basse et en ajoute 4 px : le contenu ne colle plus au titre (recette v7). */
+/* Dépliée, l'en-tête ajoute 4 px sous lui : le contenu ne colle pas au titre. */
 .carte-bascule[aria-expanded='true'] {
   margin-bottom: var(--espace-serre);
 }
@@ -2676,11 +2678,20 @@
   color: var(--texte-second);
 }
 
+/* Une alerte se lit sur son fond de sévérité ; la ligne garde ses 24 px. */
+.ligne-fixe[data-ton='avertissement'],
+.ligne-fixe[data-ton='danger'] {
+  padding: 0 var(--espace-controle);
+  border-radius: var(--rayon);
+}
+
 .ligne-fixe[data-ton='avertissement'] {
+  background: var(--fond-avertissement);
   color: var(--texte-avertissement);
 }
 
 .ligne-fixe[data-ton='danger'] {
+  background: var(--fond-danger);
   color: var(--texte-danger);
 }
 
@@ -2753,21 +2764,32 @@
 }
 
 /*
- * Le pied de l'onglet Création ([UI-18]) : une ligne collée au bas de la
- * fenêtre, à toute position de défilement, au-dessus du contenu qui défile.
- * Le volet s'ouvre au-dessus de lui, à hauteur fixe : ce qu'il liste défile
+ * Le pied de l'onglet Création ([UI-18]) : une ligne fixée au bas de la
+ * fenêtre, au-dessus du contenu qui défile, y compris quand ce contenu est
+ * plus court que la fenêtre. La palette ouverte lui réserve sa hauteur. Le
+ * volet s'ouvre au-dessus de lui, à hauteur fixe : ce qu'il liste défile
  * dedans.
  */
+.configuration-de-la-palette {
+  padding-bottom: calc(32px - var(--espace-page) + var(--espace-controle));
+}
+
+/* Un élément amené en vue, par le focus ou par un lien de message, s'arrête au-dessus du pied. */
+html {
+  scroll-padding-bottom: calc(32px + var(--espace-controle));
+}
+
 .pied-de-la-palette {
-  position: sticky;
+  position: fixed;
   z-index: 3;
+  right: 0;
   bottom: 0;
+  left: 0;
   display: flex;
   min-width: 0;
   height: 32px;
   align-items: center;
   gap: var(--espace-controle);
-  margin: 0 calc(-1 * var(--espace-controle)) calc(-1 * var(--espace-page));
   padding: 0 calc(var(--espace-controle) + 16px) 0 var(--espace-controle);
   border-top: 1px solid var(--bordure);
   background: var(--fond);

@@ -131,7 +131,7 @@ function construireVues(i18n: Localisation) {
   }
 
   function createGaranties(gestes: GestesDesGaranties): GarantiesUi {
-    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, glyphe: creerGlyphe('garanties'), repliable: { ouverte: false } }, i18n);
+    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDesGaranties, glyphe: creerGlyphe('garanties'), repliable: { ouverte: false } }, i18n);
     const bascule = document.createElement('div');
     bascule.className = 'bascule bascule-des-profils';
     bascule.setAttribute('role', 'group');

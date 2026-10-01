@@ -1337,7 +1337,7 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
 ├────────────────────────────────────────────────────────────────────────────────┤
 │ Nuances claires  [ −7,5 ]°  ◂━━━━━━━━●━━━━━━━━▸   ┊ [Tailwind]                 │
 │ Nuances sombres  [ +5,1 ]°  ◂━━━━━━━━━━●━━━━━━▸   ┊ [Tailwind]                 │
-│ Plage sûre · nuances claires −90° à +90° · nuances sombres −90° à +90°        │
+│                                                                                │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1469,17 +1469,17 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   moteur : la couleur que le bout prendrait pour chaque valeur, à la clarté
   du bout. Au-delà de la limite, la piste est hachurée, et le pouce s'arrête
   sur la borne. Un glisser ou une saisie au-delà d'une borne pose la borne.
-- `[DER-22]` Sous les réglettes, une ligne fixe (`[UI-17]`) dit la plage sûre
-  des deux bouts : « Plage sûre · nuances claires −0,050 à +0,040 · nuances
-  sombres −0,150 à +0,055 ». Quand un geste pose une borne, la même ligne en
-  nomme la cause jusqu'au geste suivant : « Luminosité, nuances claires :
+- `[DER-22]` Sous les réglettes, une ligne fixe (`[UI-17]`) garde sa place
+  vide : les hachures de la piste montrent la plage sûre, et le curseur
+  l'annonce à l'assistance technique. Quand un geste pose une borne, la ligne
+  en nomme la cause jusqu'au geste suivant : « Luminosité, nuances claires :
   limite atteinte à −0,050. Au-delà, text 700 / surface 100 (Soft, Light)
   tomberait à 4,44:1, sous 4,5:1. » ; pour l'ordre, « Au-delà, deux nuances
   voisines se rapprocheraient à moins de 0,01 de luminosité. »
 - `[DER-23]` Le plugin ne ramène jamais une valeur rangée dans sa limite sans
   le geste du designer. Un réglage global, un réglage commun, un changement
   de référence ou un import peut resserrer la plage : la valeur reste en
-  place, son pouce se lit hachuré, et la ligne de la plage sûre dit
+  place, son pouce se lit hachuré, et la ligne de `[DER-22]` dit
   « Nuances sombres hors de la plage sûre : un autre réglage l'a
   resserrée. ». Un bout est hors de sa plage quand une garantie qu'il fait
   manquer serait tenue à sa valeur de départ, la teinte Tailwind ou zéro.
@@ -1791,10 +1791,8 @@ palette » gardent leurs libellés au-dessus des champs.
   un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
   de `[DER-19]` pour la cible choisie, avec `reglerTeinte`,
   `reglerSaturation` ou `reglerClarte` comme candidate, ses hachures
-  (`[DER-21]`) et sa ligne de plage sûre et de butée (`[DER-22]`), sous les
-  réglettes : « Plage sûre · teinte −30° à +12° · saturation 20 % à 100 % ·
-  luminosité −0,05 à +0,005 ». Les limites ne se calculent que carte
-  dépliée. Les
+  (`[DER-21]`) et sa ligne de butée (`[DER-22]`), sous les réglettes, vide
+  sans butée. Les limites ne se calculent que carte dépliée. Les
   Réglages communs restent sans limite : ils touchent toutes les palettes à
   la fois. Un pas au clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur
   chaque piste, la lettre de l'autre profil situe sa valeur quand un seul
@@ -1825,8 +1823,9 @@ palette » gardent leurs libellés au-dessus des champs.
   neutre, avertissement, danger et butée, signalés par une icône en plus de
   la couleur (`[VER-14]`). Ses gestes suivent le texte, qui leur cède sa place
   jusqu'à 24 px restés cliquables. Présente même sans message, elle dit alors l'état
-  neutre : la plage sûre, ou « Ce réglage ne touche pas la couleur de
-  référence. ». Un clic ouvre le texte entier dans une bulle posée
+  neutre, « Ce réglage ne touche pas la couleur de référence. », ou garde sa
+  place vide. Un avertissement et un danger se lisent sur leur fond de
+  sévérité. Un clic ouvre le texte entier dans une bulle posée
   par-dessus les cartes, dans la fenêtre du plugin ; Échap, un clic ailleurs
   et le défilement la ferment. L'ouvrir ou la fermer ne déplace aucun
   élément. `src/ui/ligneFixe.ts` en est le composant.
@@ -1834,8 +1833,9 @@ palette » gardent leurs libellés au-dessus des champs.
   d'une ligne porte le bilan de la palette ouverte : une icône de sévérité,
   le compte des garanties et des alertes, « 76 garanties tenues · aucune
   alerte » ou « 2 garanties manquées sur 76 · 1 alerte », le premier
-  message, et « Détails ». Il reste visible à toute position de défilement,
-  pendant un geste compris. « Détails » ouvre au-dessus du pied un volet
+  message, et « Détails ». Il est fixé au bas de la fenêtre : il reste visible
+  à toute position de défilement, pendant un geste compris, et quand le
+  contenu est plus court que la fenêtre. « Détails » ouvre au-dessus du pied un volet
   superposé, « Garanties et alertes », qui liste les messages par sévérité
   (section 11.4), chacun avec ses parties et son lien vers le réglage
   (`[VER-15]`) ; Échap et « Fermer » le ferment et rendent le focus à
@@ -2058,7 +2058,7 @@ qui le créera.
 | Courbe hors garantie | Alerte sous la courbe : cran, mode, profil, teinte du pire cas et contraste |
 | Hexa invalide | Le champ de référence refuse la saisie, aperçu inchangé |
 | Conflit de sauvegarde | Enregistrement refusé : consultation et export du brouillon possibles, « Recharger » |
-| Color shift lié, teinte Tailwind | Onglet Teinte, une courbe, repères Tailwind confondus avec les poignées, ligne de la plage sûre |
+| Color shift lié, teinte Tailwind | Onglet Teinte, une courbe, repères Tailwind confondus avec les poignées, ligne de la butée vide |
 | Color shift, saturation | Onglet Saturation, échelle en pourcentage, rails hachurés |
 | Color shift, luminosité | Onglet Luminosité, échelle en clarté, rampes sans et avec Color shift |
 | Color shift en butée | Une réglette posée sur sa borne, la ligne qui nomme la cause |

@@ -260,7 +260,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/calculDesLimites.ts les limites dynamiques calculées par tranches entre les images, terminées au début d'un geste
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
   src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
-  src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser
+  src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser suivi sur le document
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
   src/ui/garanties.ts      la carte des garanties : bascule Soft/Vivid pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
@@ -275,13 +275,13 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
   src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : Color shift, réglette des garanties et tracé s'étirent sans grandir
   src/ui/apercuCompact.ts  les rampes présentes d'une palette et le résultat de ses garanties, pour une fiche ou les réglages
-  src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la plage sûre ou la butée, l'origine des parts et la première alerte
+  src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la butée, la note d'une palette grise et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, et ceux des intensités
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
   src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
-  src/ui/derive/           la carte « Color shift » : onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation, plage sûre et butée
+  src/ui/derive/           la carte « Color shift » : onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
   src/ui/derive/reglette.ts la réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne
   src/ui/textes.ts         tous les textes destinés au designer, provisoires jusqu'au point M2
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
@@ -1198,7 +1198,7 @@ La spécification en lien porte le raisonnement.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Un geste du Color shift ou du réglage global ne range jamais une valeur
   au-delà de la limite dynamique calculée au début du geste : la poignée et la
-  réglette s'arrêtent sur la borne, et la ligne de la plage sûre en nomme la
+  réglette s'arrêtent sur la borne, et la ligne fixe sous les réglettes en nomme la
   cause. Le calcul s'étale entre les images (`src/ui/calculDesLimites.ts`) ;
   un geste qui commence avant sa fin le termine d'abord. Les tests `[DER-19]`,
   `[DER-09]` et `[ENT-15]` de `interface.test.mjs` glissent, saisissent et

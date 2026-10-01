@@ -2059,7 +2059,7 @@ test('[UI-05] le résultat d’une génération se lit dans l’onglet Palettes,
   }
 });
 
-test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Teinte, saturation, luminosité », repliée sur son résumé ; Soft reste sous Vivid, et le retour aux réglages communs la retire', async () => {
+test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Teinte, saturation, luminosité », repliée sur son résumé ; Soft reste sous Vivid, et aucune ligne ne commente des saturations propres', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     const soft = page.getByRole('textbox', { name: 'Saturation de Soft' });
@@ -2083,8 +2083,9 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
     assert.deepEqual(bornee.recette.palettes[0].parts, { soft: 0.983, vivid: 0.983, origine: 'designer' });
     await envoyer(page, rangee(bornee.demande));
 
-    await page.getByRole('button', { name: 'Reprendre les intensités communes' }).click();
-    assert.equal((await prochaine(page, avant + 2)).recette.palettes[0].parts, undefined);
+    const lignes = await page.locator('.reglages-de-la-palette > .ligne-fixe:not([hidden]) .ligne-fixe-texte').allTextContents();
+    assert.equal(lignes.some((ligne) => /personnalisées/.test(ligne)), false, JSON.stringify(lignes));
+    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.ligne-fixe .lien-de-constat', { hasText: 'Reprendre' }).count(), 0);
   } finally {
     await page.close();
   }
@@ -2155,7 +2156,6 @@ test('D-G [DER-15] : une palette grise le dit sous les curseurs et n’a pas de 
   try {
     const lignes = await page.locator('.reglages-de-la-palette > .ligne-fixe:not([hidden]) .ligne-fixe-texte').allTextContents();
     assert.ok(lignes.includes('Référence grise : Soft et Vivid restent gris.'), JSON.stringify(lignes));
-    assert.equal(await page.getByRole('button', { name: 'Reprendre les intensités communes' }).isVisible(), false);
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const reglages = carteDeLOnglet(page, CARTE_DES_REGLAGES);
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), true);
@@ -2734,6 +2734,7 @@ async function ouvrirLeGlisser(page) {
     window.bouger = (x, y, buttons = 1) => zone.dispatchEvent(new PointerEvent('pointermove', point(x, y, buttons)));
     window.relacher = () => zone.dispatchEvent(new PointerEvent('pointerup', point(0.8, 0.6, 0)));
     window.perdreLaCapture = () => zone.dispatchEvent(new PointerEvent('lostpointercapture', point(0.8, 0.6)));
+    window.sansCapture = () => { zone.hasPointerCapture = () => false; };
   });
 }
 
@@ -2855,7 +2856,7 @@ test('Z4.9 [UI-13] Échap pendant un glisser rend tout l’onglet une fois, sans
   }
 });
 
-test('Z4.9 [UI-13] un mouvement que le navigateur donne sans bouton prolonge le glisser, et une capture perdue l’arrête sans rien ranger', async () => {
+test('Z4.9 [UI-13] un mouvement que le navigateur donne sans bouton prolonge le glisser, une capture perdue aussi, et le relâcher finit le geste', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
@@ -2870,10 +2871,48 @@ test('Z4.9 [UI-13] un mouvement que le navigateur donne sans bouton prolonge le 
     await page.evaluate(() => window.relacher());
     assert.equal((await rangements(page)).length, 1);
 
+    // Figma retire la capture en plein glisser : le geste se suit sur le document et continue.
     await page.evaluate(() => window.glisser([[0.2, 0.2], [0.3, 0.8]], 'rien'));
-    await page.evaluate(() => { window.garantiesTouchees = 0; window.perdreLaCapture(); });
-    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'la capture perdue rend tout');
+    await imageSuivante(page);
+    const avantLaPerte = await referenceMontree(page);
+    await page.evaluate(() => { window.garantiesTouchees = 0; window.perdreLaCapture(); window.sansCapture(); window.bouger(0.7, 0.3, 0); });
+    await imageSuivante(page);
+    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'la capture perdue ne rend pas tout l’onglet');
+    assert.notEqual(await referenceMontree(page), avantLaPerte, 'l’aperçu suit le mouvement après la perte de la capture');
     assert.equal((await rangements(page)).length, 1, 'la capture perdue ne range rien');
+    // Le premier rangement est encore en vol : le second attend sa réponse, et le relâcher rend tout l'onglet.
+    await page.evaluate(() => window.relacher());
+    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'le relâcher finit le geste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('Z4.9 [UI-13] à la souris, le glisser du sélecteur de couleur continue après un mouvement sans bouton, comme Figma en donne, et le relâcher range une fois', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', { width: 600, height: 720 });
+  try {
+    await carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .pipette').click();
+    const boite = await page.locator('.selecteur-zone').boundingBox();
+    const souris = await sourisReelle(page);
+    const en = (x, y) => [boite.x + boite.width * x, boite.y + boite.height * y];
+    await souris('mouseMoved', ...en(0.2, 0.3), 0);
+    await souris('mousePressed', ...en(0.2, 0.3), 1);
+    await souris('mouseMoved', ...en(0.4, 0.4), 1);
+    await imageSuivante(page);
+    const avant = await referenceMontree(page);
+    // Sans bouton : Chromium y lâche la capture, et le sélecteur abandonnait le geste.
+    await souris('mouseMoved', ...en(0.6, 0.5), 0);
+    await souris('mouseMoved', ...en(0.8, 0.6), 0);
+    await imageSuivante(page);
+    assert.notEqual(await referenceMontree(page), avant, 'l’aperçu suit le pointeur après le mouvement sans bouton');
+    assert.equal((await rangements(page)).length, 0, 'rien ne s’enregistre avant le relâcher');
+    await souris('mouseReleased', ...en(0.8, 0.6), 0);
+    const ranges = await rangements(page);
+    assert.equal(ranges.length, 1);
+    const rangee = await referenceMontree(page);
+    await souris('mouseMoved', ...en(0.1, 0.9), 0);
+    await imageSuivante(page);
+    assert.equal(await referenceMontree(page), rangee, 'après le relâcher, le pointeur ne règle plus rien');
   } finally {
     await page.close();
   }
@@ -4021,7 +4060,7 @@ test('[DER-19] [DER-21] [DER-22] glisser une réglette au-delà de sa limite pos
   try {
     await choisirLOnglet(page, 'Luminosité');
     // Bleu, nuances claires : −0,050 à +0,040, la borne haute tenue par l'ordre des nuances (étude, section 5.2).
-    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), 'Plage sûre · nuances claires −0,050 à +0,040 · nuances sombres −0,150 à +0,055');
+    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), '', 'sans butée, la ligne garde sa place vide');
     const curseur = regletteDuBout(page, 'clair').getByRole('slider');
     assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.05', '0.04']);
     assert.match(await curseur.getAttribute('aria-valuetext'), /^0,000\. Plage sûre de −0,050 à \+0,040$/);
