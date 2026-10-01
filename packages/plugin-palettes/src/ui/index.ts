@@ -11,6 +11,7 @@ import type { GroupeDeConfiguration } from '../configuration';
 import { LANGUES, resoudreLangue } from '../i18n/langues';
 import { lireLImport } from '../importation';
 import type { PluginMessage } from '../messages';
+import { resoudreVue, type VueDeGestion } from '../preferences';
 import { consequenceDeLImport } from '../planche/fraicheur';
 import { ecartsDePeinture, type EcartDePeinture } from '../planche/peints';
 import { CIBLES_COMMUNES, type CibleDAction } from '../presentation';
@@ -29,7 +30,7 @@ import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
 
-export function creerVuesIndex(i18n: Localisation) {
+export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
   const { createBackButton, createButton, createSettingsButton, createOnglets } = creerSocleLocalise(i18n);
   const { createBarreDePalette } = creerVuesBarreDePalette(i18n);
   const { createConfiguration } = creerVuesConfiguration(i18n);
@@ -196,14 +197,20 @@ export function creerVuesIndex(i18n: Localisation) {
       allerA('creation');
       ongletCreation.ouvrirLaPalette(id, mode);
     },
-    actualiser: relireLaPlanche,
+    verifier(id, mode) {
+      ongletCreation.ouvrirLaPalette(id, mode);
+      allerA('verification');
+    },
+    synchroniser: () => relireLaPlanche('fichier'),
+    choisirLaPage: (page) => frontiere.choisirLaPage(page),
+    rangerLaVue: (choisie) => versSandbox({ type: 'ranger-vue', vue: choisie }),
     retirer(palette, cadre) {
       const parti = frontiere.retirer(palette, cadre);
       if (parti) cadreEnRetrait = cadre;
       return parti;
     },
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
-  });
+  }, vue);
 
   /** Le cadre dont le retrait attend son issue ([PLA-27]). */
   let cadreEnRetrait: string | null = null;
@@ -228,8 +235,9 @@ export function creerVuesIndex(i18n: Localisation) {
 
   /**
    * Relit l'état pour la planche (V8.7) : à l'accès à l'onglet, et au geste
-   * « Actualiser » pour ce que les événements de Figma ne disent pas. Comme au
-   * retour du focus, la relecture attend qu'aucun rangement ne soit en vol.
+   * « Synchroniser », qui cherche les cadres sur toutes les pages, pour ce que
+   * les événements de Figma ne disent pas. Comme au retour du focus, la
+   * relecture attend qu'aucun rangement ne soit en vol.
    */
   function relireLaPlanche(recherche?: 'fichier'): void {
     if (frontiere.auRepos() && frontiere.statut() !== 'refuse') frontiere.lireLEtat(recherche);
@@ -242,6 +250,9 @@ export function creerVuesIndex(i18n: Localisation) {
    */
   let dernierEtat: Extract<PluginMessage, { type: 'etat' }> | null = null;
 
+  /** L'heure du dernier état accepté, que le bloc « Connexion à Figma » écrit en durée ([UI-24]). */
+  let dernierEtatLe = Date.now();
+
   /**
    * Vrai jusqu'au premier état lu, qui choisit l'onglet d'ouverture
    * ([UI-21]) : Gestion quand la recette porte une palette, Création sinon.
@@ -251,7 +262,7 @@ export function creerVuesIndex(i18n: Localisation) {
 
   function afficherLaPlanche(): void {
     if (!dernierEtat || onglets.actif() !== 'gestion') return;
-    ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
+    ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte(), dernierEtatLe);
   }
 
   /*
@@ -418,6 +429,7 @@ export function creerVuesIndex(i18n: Localisation) {
       ongletCreation.afficher(message.classement);
       panneauDeConfiguration.afficher();
       dernierEtat = message;
+      dernierEtatLe = Date.now();
       if (ouverture) {
         if ((ongletCreation.recette()?.palettes.length ?? 0) > 0) onglets.selectionner('gestion');
         ouverture = false;
@@ -429,6 +441,10 @@ export function creerVuesIndex(i18n: Localisation) {
       suivi.recevoir(message);
     } else if (message.type === 'retrait' && frontiere.accepterRetrait(message)) {
       recevoirRetrait(message);
+    } else if (message.type === 'page-choisie' && frontiere.accepterPage(message)) {
+      // Une page choisie a pu déplacer des cadres : l'état relu dit où ils sont.
+      ongletGestion.recevoirPage(message.issue);
+      relireLaPlanche();
     }
   };
 
@@ -463,6 +479,6 @@ onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
   if (message?.type !== 'langue') return;
   const i18n = creerLocalisation(resoudreLangue(message.langue));
   i18n.changer(i18n.langue);
-  creerVuesIndex(i18n);
+  creerVuesIndex(i18n, resoudreVue(message.vue));
 };
 versSandbox({ type: 'lire-langue' });

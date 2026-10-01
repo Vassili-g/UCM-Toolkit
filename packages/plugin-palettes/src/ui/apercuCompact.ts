@@ -59,10 +59,14 @@ function construireVues(i18n: Localisation) {
    * intensité, dans un thème, chaque résultat dit en mots pour
    * l'assistance technique. Une palette libre n'a pas de garantie : zéro
    * manquée s'écrirait « ✓ », et le résultat dit « Palette libre · N nuances ».
+   * En `button`, le résultat est un geste : la fiche de Gestion y ouvre
+   * Vérification ([UI-26]).
    */
-  function resultatsDesGaranties(analyse: AnalyseDePalette, mode: Mode): HTMLParagraphElement {
-    const resultats = document.createElement('p');
+  function resultatsDesGaranties(analyse: AnalyseDePalette, mode: Mode, balise: 'p' | 'button' = 'p'): HTMLElement {
+    const resultats = document.createElement(balise);
+    if (resultats instanceof HTMLButtonElement) resultats.type = 'button';
     resultats.className = 'fiche-garanties';
+    if (balise === 'button') resultats.classList.add('fiche-verification');
     if (analyse.libre) {
       i18n.lier(resultats, 'textContent', TEXTES.paletteLibre(analyse.grille.crans.length));
       return resultats;

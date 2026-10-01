@@ -1089,8 +1089,8 @@
 }
 
 /*
- * L'onglet Palettes : le compte, le thème des fiches et « Actualiser » en tête,
- * puis une carte par palette (V8.1).
+ * L'onglet Gestion : le compte des palettes, la vue et le thème des fiches en
+ * tête, puis une carte par palette ([UI-25], [UI-26]).
  */
 .planche-tete {
   display: flex;
@@ -1107,11 +1107,6 @@
 .liste-planche {
   display: grid;
   gap: var(--espace-controle);
-}
-
-/* « Mettre à jour » et « Générer tout » : 10 px de plus que la pile, au-dessus et au-dessous. */
-.gestes-globaux {
-  margin: 10px 0;
 }
 
 /*
@@ -1175,10 +1170,10 @@
 }
 
 /*
- * La fiche en disposition A (maquette Y2.2) : l'état du cadre en pastille à
- * droite du nom, puis la référence et les garanties sur une ligne. La couleur
- * de la pastille dit la sévérité : orange à actualiser ou jamais généré, vert
- * à jour, rouge introuvable ou illisible.
+ * La pastille d'un état : celui d'une fiche à droite de son nom, celui d'une
+ * sortie dans sa ligne, celui d'un compte dans le bilan. Sa couleur dit la
+ * sévérité : orange en retard ou pas encore sur Figma, vert à jour, rouge
+ * introuvable ou illisible.
  */
 .pastille-d-etat {
   flex-shrink: 0;
@@ -1190,7 +1185,10 @@
 }
 
 .pastille-d-etat[data-etat='perimee'],
-.pastille-d-etat[data-etat='jamais-dessinee'] {
+.pastille-d-etat[data-etat='jamais-dessinee'],
+.pastille-d-etat[data-etat='modifiee'],
+.pastille-d-etat[data-etat='a-mettre-a-jour'],
+.pastille-d-etat[data-etat='pas-encore'] {
   background: var(--fond-avertissement);
   color: var(--texte-avertissement);
 }
@@ -1200,7 +1198,8 @@
  * Mêlé à la couleur du texte, il tient 5,07:1 sur le fond de succès du thème
  * clair et 8,54:1 sur celui du thème sombre (Z1.5).
  */
-.pastille-d-etat[data-etat='a-jour'] {
+.pastille-d-etat[data-etat='a-jour'],
+.pastille-d-etat[data-etat='synchronisee'] {
   background: var(--fond-succes);
   color: color-mix(in srgb, var(--texte-succes) 80%, var(--texte));
 }
@@ -1236,6 +1235,281 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--espace-serre);
+}
+
+/* Le résultat des garanties d'une fiche est un geste : il ouvre Vérification ([UI-26]). */
+.fiche-verification {
+  padding: 0 var(--espace-serre);
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fiche-verification:hover {
+  background: var(--fond-survol);
+}
+
+.fiche-verification:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+/* L'en-tête d'une fiche : la pastille d'état, puis « Modifier ». */
+.tete-gestes {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+/* Les lignes de sortie d'une fiche : nom, état, détail, gestes au bord droit ([UI-26]). */
+.sorties {
+  display: grid;
+  border-top: 1px solid var(--bordure);
+}
+
+.sortie {
+  display: grid;
+  min-height: 36px;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+  border-bottom: 1px solid var(--bordure);
+  grid-template-columns: 92px auto minmax(0, 1fr) auto;
+}
+
+.sortie:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.sortie-nom {
+  font-weight: 600;
+}
+
+.sortie-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sortie-gestes {
+  display: flex;
+  gap: var(--espace-serre);
+}
+
+/*
+ * Le bloc « Connexion à Figma » et la carte qui le remplace ([UI-24],
+ * [UI-29]) : gris, sans fond, à 20 px de plus de la barre des palettes que
+ * l'écart courant.
+ */
+.carte.connexion,
+.carte.carte-ouverte {
+  margin-bottom: 20px;
+  background: none;
+}
+
+.connexion .carte-tete {
+  flex-wrap: nowrap;
+}
+
+.connexion .carte-titre {
+  margin-right: auto;
+}
+
+/* « Synchroniser » : un texte gris à icône, sans contour, qui ne se confond pas avec « Changer ». */
+.synchroniser {
+  display: inline-flex;
+  height: var(--hauteur-secondaire);
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--espace-serre);
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.synchroniser:hover:not(:disabled) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.synchroniser:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.synchroniser:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.synchroniser-icone {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.connexion-ligne {
+  display: grid;
+  min-height: 28px;
+  align-items: center;
+  gap: var(--espace-controle);
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+}
+
+.chemin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.chemin code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--fond-note);
+  font-size: 11px;
+}
+
+.connexion-bilan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre);
+  padding-top: var(--espace-controle);
+  border-top: 1px solid var(--bordure);
+}
+
+.connexion-comptes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-serre);
+}
+
+.connexion-bilan .btn {
+  margin-left: auto;
+}
+
+.carte-ouverte .confirmation-gestes {
+  justify-content: flex-end;
+}
+
+/*
+ * Une liste à choix unique, dans une carte ouverte : un fond gris plus foncé
+ * que la carte. Le premier fond sert au moteur qui ne lit pas `color-mix`.
+ */
+.liste-de-choix {
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--fond);
+  background: color-mix(in srgb, var(--fond) 84%, black);
+}
+
+.choix {
+  display: grid;
+  min-height: 36px;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 0 var(--espace-bloc);
+  border-bottom: 1px solid var(--bordure);
+  cursor: pointer;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+}
+
+.choix:last-child {
+  border-bottom: 0;
+}
+
+.choix input[type='radio'] {
+  margin: 0;
+  accent-color: var(--fond-marque);
+}
+
+.choix .input {
+  max-width: 180px;
+  height: var(--hauteur-secondaire);
+}
+
+.choix-nom {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--espace-controle);
+  font-weight: 600;
+}
+
+/* La vue condensée : un tableau sans geste, dont chaque ligne ouvre sa fiche ([UI-27]). */
+.table-des-palettes {
+  width: 100%;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--fond-bloc);
+}
+
+.table-des-palettes th,
+.table-des-palettes td {
+  padding: var(--espace-controle);
+  border-bottom: 1px solid var(--bordure);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table-des-palettes thead th {
+  color: var(--texte-second);
+  font-weight: 500;
+}
+
+.table-ligne {
+  cursor: pointer;
+}
+
+.table-ligne:hover {
+  background: var(--fond-survol);
+}
+
+.table-ligne:last-child th,
+.table-ligne:last-child td {
+  border-bottom: 0;
+}
+
+.table-nom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.table-nom:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.mini-rampe {
+  display: flex;
+}
+
+.mini-rampe span {
+  width: 12px;
+  height: 12px;
 }
 
 .case-a-cocher {
@@ -2523,17 +2797,6 @@
   stroke: var(--fond-bloc);
   stroke-linejoin: round;
   stroke-width: 3px;
-}
-
-.etat-du-cadre {
-  margin: 0;
-  color: var(--texte-second);
-}
-
-/* Un cadre introuvable ou illisible se distingue d'un cadre pas encore généré (V8.2). */
-.etat-du-cadre[data-etat='introuvable'],
-.etat-du-cadre[data-etat='illisible'] {
-  color: var(--texte-danger);
 }
 
 /*

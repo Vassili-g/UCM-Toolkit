@@ -27,6 +27,27 @@ import {
 } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from './analyse';
+import type { EtatDuCadre } from './planche/fraicheur';
+
+/** L'état des tokens d'une palette, dans sa ligne « Tokens Figma » ([VAR-05]). */
+export type EtatDesTokens = 'jamais-ecrits' | 'a-jour' | 'a-mettre-a-jour' | 'modifies' | 'introuvables';
+
+/** L'état d'une fiche de Gestion, du plus urgent au moins urgent ([UI-26]). */
+export const ETATS_DE_FICHE = ['modifiee', 'a-mettre-a-jour', 'pas-encore', 'synchronisee'] as const;
+export type EtatDeLaFiche = (typeof ETATS_DE_FICHE)[number];
+
+/**
+ * L'état d'une fiche : le plus urgent de ses deux sorties ([UI-26]). Une
+ * sortie introuvable ou illisible compte comme à mettre à jour. `tokens`
+ * vaut `null` tant que la palette n'a pas de ligne « Tokens Figma ».
+ */
+export function etatDeLaFiche(tokens: EtatDesTokens | null, planche: EtatDuCadre): EtatDeLaFiche {
+  if (tokens === 'modifies') return 'modifiee';
+  if (tokens === 'a-mettre-a-jour' || tokens === 'introuvables') return 'a-mettre-a-jour';
+  if (planche === 'perimee' || planche === 'introuvable' || planche === 'illisible') return 'a-mettre-a-jour';
+  if (tokens === 'jamais-ecrits' || planche === 'jamais-dessinee') return 'pas-encore';
+  return 'synchronisee';
+}
 
 /** Le verdict d'une palette ([VER-19]) : ce que le sélecteur et l'onglet Vérification en disent. */
 export type Verdict = 'succes' | 'avertissement' | 'danger';

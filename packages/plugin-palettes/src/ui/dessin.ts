@@ -50,7 +50,7 @@ export interface GestesDuResultat {
 function construireVues(i18n: Localisation) {
   const { createButton } = creerSocleLocalise(i18n);
   const { blocDeConstat } = creerVuesConstats(i18n);
-  const { TEXTES, TEXTES_DU_DESSIN, constatDesCalquesEtrangers, dessinInterrompu, ecartDePeinture, dessinSurUneAutreRecette, lectureImpossible, policeIndisponible, suiviFutur } = i18n.messages;
+  const { TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DU_DESSIN, constatDesCalquesEtrangers, dessinInterrompu, ecartDePeinture, dessinSurUneAutreRecette, lectureImpossible, policeIndisponible, suiviFutur } = i18n.messages;
 
   function createSuiviDuDessin(
     frontiere: Frontiere,
@@ -178,7 +178,7 @@ function construireVues(i18n: Localisation) {
     const bloc = blocDeConstat(constat, 'bloquant');
     bloc.append(resultat.issue === 'police'
       ? createButton({ label: TEXTES_DU_DESSIN.reessayer, onClick: () => gestes.reessayer() })
-      : createButton({ label: resultat.issue === 'lecture-impossible' ? TEXTES_DU_DESSIN.actualiser : TEXTES.recharger, onClick: () => gestes.recharger() }));
+      : createButton({ label: resultat.issue === 'lecture-impossible' ? TEXTES_DE_LA_GESTION.synchroniser : TEXTES.recharger, onClick: () => gestes.recharger() }));
     return bloc;
   }
   return { createSuiviDuDessin, blocDuResultat };

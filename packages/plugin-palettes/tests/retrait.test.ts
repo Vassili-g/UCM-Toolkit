@@ -100,6 +100,6 @@ test('[PLA-27] un retrait numérote sa demande, et rend caduc un état demandé 
   assert.deepEqual(envoyees.at(-1), { type: 'retirer-cadre', demande: 2, palette: AMBRE.id, cadre: '1:2' });
   assert.equal(frontiere.accepterRetrait({ type: 'retrait', demande: 2, issue: { issue: 'retire' } }), true);
   assert.equal(frontiere.accepterRetrait({ type: 'retrait', demande: 1, issue: { issue: 'retire' } }), false);
-  const etat = { type: 'etat', demande: 1, classement: { etat: 'absente' }, texte: '', empreinte: null, profil: 'SRGB', planche: { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false } } as const;
+  const etat = { type: 'etat', demande: 1, classement: { etat: 'absente' }, texte: '', empreinte: null, profil: 'SRGB', planche: { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false, pages: [] } } as const;
   assert.equal(frontiere.accepterEtat(etat as never), false);
 });

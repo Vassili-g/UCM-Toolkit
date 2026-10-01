@@ -5,7 +5,7 @@ import test from 'node:test';
 import { recetteParDefaut, verifierPromesses, type Alerte, type Recette } from 'ucm-couleur';
 
 import { changerReference } from '../src/edition';
-import { accoladesDe, ciblesDeLAlerte, colorShiftModifie, groupesManques, placeDeLAlerte, reglageGlobalModifie } from '../src/presentation';
+import { accoladesDe, ciblesDeLAlerte, colorShiftModifie, etatDeLaFiche, groupesManques, placeDeLAlerte, reglageGlobalModifie } from '../src/presentation';
 
 const DEFAUT = recetteParDefaut();
 const BLEU = changerReference(DEFAUT, {
@@ -82,4 +82,20 @@ test('[UI-12] une carte repliée se dit réglée dès qu’une valeur quitte cel
   assert.equal(colorShiftModifie(eclaircie, true), true);
   assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: true, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), false, 'liés, les profils se lisent sur Vivid');
   assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: false, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), true);
+});
+
+test('[UI-26] l’état d’une fiche est le plus urgent de ses sorties : modifiée, à mettre à jour, pas encore, synchronisée', () => {
+  // Sans ligne « Tokens Figma », la planche décide seule.
+  assert.equal(etatDeLaFiche(null, 'a-jour'), 'synchronisee');
+  assert.equal(etatDeLaFiche(null, 'jamais-dessinee'), 'pas-encore');
+  for (const planche of ['perimee', 'introuvable', 'illisible'] as const) assert.equal(etatDeLaFiche(null, planche), 'a-mettre-a-jour');
+  // Des couleurs changées dans Figma passent avant tout le reste.
+  for (const planche of ['a-jour', 'perimee', 'jamais-dessinee'] as const) assert.equal(etatDeLaFiche('modifies', planche), 'modifiee');
+  // Une sortie en retard passe avant une sortie absente.
+  assert.equal(etatDeLaFiche('jamais-ecrits', 'perimee'), 'a-mettre-a-jour');
+  assert.equal(etatDeLaFiche('a-mettre-a-jour', 'jamais-dessinee'), 'a-mettre-a-jour');
+  assert.equal(etatDeLaFiche('introuvables', 'a-jour'), 'a-mettre-a-jour');
+  assert.equal(etatDeLaFiche('jamais-ecrits', 'a-jour'), 'pas-encore');
+  assert.equal(etatDeLaFiche('a-jour', 'jamais-dessinee'), 'pas-encore');
+  assert.equal(etatDeLaFiche('a-jour', 'a-jour'), 'synchronisee');
 });

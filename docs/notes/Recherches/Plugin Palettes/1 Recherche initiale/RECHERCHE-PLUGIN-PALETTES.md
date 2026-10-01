@@ -844,10 +844,11 @@ côte.
   un second cadre possédé de la même palette se signale aussi comme copie, et
   n'est jamais réécrit. Un cadre dont Figma refuse de lire le nom devient
   illisible, sans faire échouer la lecture.
-  Elle ne parcourt toutes les pages qu'au geste « Chercher dans tout le
-  fichier » ; l'onglet Gestion annonce cette limite quand un cadre reste
-  introuvable. Le plugin charge la page de la planche et celles des cadres
-  retrouvés, et aucune autre sans ce geste.
+  Elle ne parcourt toutes les pages qu'au geste « Synchroniser »
+  (`[UI-24]`). Tant que la recherche s'est bornée à la page de la planche,
+  la ligne « Planche » d'un cadre introuvable invite à synchroniser et
+  n'offre aucun geste. Le plugin charge la page de la planche et celles des
+  cadres retrouvés, et aucune autre sans ce geste.
 - `[PLA-02]` Un cadre par palette, posé au premier niveau de la page de la
   planche et nommé du nom de la palette ou de son hexa de référence. Chaque
   cadre porte la donnée de plugin partagée `ucm_palettes/cadre`, qui vaut
@@ -1054,7 +1055,7 @@ toutes les nuances : ses cases ne sont pas des promesses.
 - `[PLA-20]` À l'ouverture et après chaque rangement de la recette, le plugin
   recalcule le modèle de chaque cadre et compare son empreinte à celle du
   cadre. Un écart classe le cadre « À actualiser » dans l'interface, avec le
-  geste « Actualiser sur Figma ». Le plugin ne redessine jamais sans ce geste.
+  geste « Actualiser ». Le plugin ne redessine jamais sans ce geste.
   L'état du cadre se distingue du résultat des garanties : un ratio
   insuffisant n'est pas une panne de génération. L'onglet Gestion relit l'état
   à son ouverture, après chaque génération et au geste « Synchroniser », pour ce
@@ -1695,17 +1696,17 @@ palette » gardent leurs libellés au-dessus des champs.
   une copie de code est un geste distinct de la sélection.
 - `[UI-05]` La génération et l'écriture des variables appartiennent à
   l'onglet Gestion (`[UI-26]`). Le geste de la ligne « Planche » d'une fiche
-  dit l'état du cadre : « Créer la planche » sans cadre ou pour un cadre
-  introuvable, « Actualiser » quand le cadre a changé. Un cadre à jour ou
-  illisible n'en a pas. Ce geste est le bouton principal de la ligne ; suit
-  « Afficher » quand le cadre est localisé. Les gestes prennent la taille
+  dit l'état du cadre : « Créer la planche » sans cadre, ou pour un cadre
+  resté introuvable après une recherche sur toutes les pages (`[PLA-26]`),
+  « Actualiser » quand le cadre a changé. Un cadre à jour ou illisible n'en
+  a pas. « Afficher » suit quand le cadre est localisé. Les gestes prennent la taille
   compacte du bouton du socle, 24 px, comme ceux de la carte d'une palette
   supprimée. Le geste enregistre la palette si un rangement est en attente,
   puis génère son cadre, grille des contrastes comprise : la génération n'a
-  pas d'option. Pendant la génération, les trois onglets sont inertes et la
-  progression prend la place de « Tout mettre à jour ». L'erreur, la
-  confirmation des calques étrangers ou les écarts de peinture se lisent en
-  tête de l'onglet Gestion : un nouveau résultat remplace le précédent. Les
+  pas d'option. Pendant la génération, les trois onglets sont inertes. La
+  progression, l'erreur, la confirmation des calques étrangers ou les écarts
+  de peinture se lisent sous le bloc de la connexion, dans l'onglet
+  Gestion : un nouveau résultat remplace le précédent. Les
   onglets Création et Vérification n'en montrent aucun. « Nouvelle palette »
   est le seul bouton principal de l'onglet Création, et un filet sépare la
   barre du sélecteur et la création de la palette ouverte, à 15 px de
@@ -2148,7 +2149,8 @@ Onglet Gestion, vue complète :
   Une palette du fichier (`[UI-33]`) est une ligne du même tableau.
 - `[UI-28]` « Tout mettre à jour (N) », dans le bilan du bloc et en vue
   complète seulement, écrit les variables puis dessine les planches des N
-  palettes en retard ou absentes. Une confirmation compte d'abord les
+  palettes en retard ou absentes. Une planche introuvable n'y entre qu'après
+  une recherche sur toutes les pages. Une confirmation compte d'abord les
   variables créées, les couleurs écrites et les planches dessinées
   (`[PLA-24]`). Une palette « Modifiés dans Figma » en est exclue, et le
   bilan le dit.

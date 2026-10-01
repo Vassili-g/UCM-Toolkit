@@ -60,21 +60,39 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
-vert, et aucune capture de galerie n'est comparée aux maquettes.
+vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
+de la phase 3 n'a tourné dans aucun navigateur : le typecheck, les tests
+unitaires et le build la tiennent seuls.
 
 - Dette de tests d'interface : `node --test tests/interface/interface.test.mjs`
-  donne une trentaine de tests rouges, ceux qui visaient la carte des
-  garanties dans Création, le volet et « Détails ». Les aides
-  `ouvrirLaVerification` et `carteDesGaranties` sont posées. Restent aussi à
-  écrire les tests d'interface que chaque tâche nomme. P2.12 les regroupe.
+  donne des tests rouges, ceux qui visaient la carte des garanties dans
+  Création, le volet et « Détails », puis ceux de l'ancien onglet Palettes :
+  ses boutons de fiche, « Actualiser tout », « Générer tout », « Actualiser »
+  et « Chercher dans tout le fichier ». Les aides `ouvrirLaVerification` et
+  `carteDesGaranties` sont posées. Restent aussi à écrire les tests
+  d'interface que chaque tâche nomme, ceux de la phase 3 compris. P2.12 les
+  regroupe.
+- Les scénarios des états de galerie de Gestion sont écrits sans avoir été
+  joués : `gestion-complete`, `gestion-condensee`,
+  `gestion-page-des-planches`, `page-des-planches-refusee`, et les états de
+  l'ancien onglet Palettes.
+- `generer-maquettes-direction-simple.mjs` transformait l'ancien onglet
+  Palettes pour dessiner M9 à M15. Il ne s'applique plus au DOM de Gestion :
+  les maquettes rendues restent la référence, et le plugin construit les
+  remplace écran par écran.
 - Écarts à dire au mainteneur : la carte des garanties est toujours fixe,
   sans option ; son en-tête porte une bascule Thème Light et Thème Dark, que
   M8 ne montre pas, parce que Vérification n'a pas l'aperçu qui choisit le
-  thème.
+  thème. Dans Gestion, une planche introuvable n'offre « Créer la planche »
+  qu'après « Synchroniser », qui cherche sur toutes les pages : le plugin ne
+  pose pas un second cadre à côté d'un cadre déplacé. La progression d'une
+  génération se lit sous le bloc de la connexion, et non dans le libellé de
+  « Tout mettre à jour », que la vue condensée ne porte pas. La bascule des
+  thèmes se cache en vue condensée, comme dans M10.
 
 ## Arbitrages
 
@@ -207,7 +225,7 @@ construit dessus.
 Maquettes : M9, M10, M15, sans la ligne « Tokens » ni les lignes « Tokens
 Figma » des fiches.
 
-- [ ] **P3.1** `src/ui/connexion.ts` : le bloc « Connexion à Figma », une
+- [x] **P3.1** `src/ui/connexion.ts` : le bloc « Connexion à Figma », une
   carte grise sans fond. En-tête : le titre, « Synchronisé il y a … » et
   « Synchroniser », texte gris sans contour avec l'icône des deux flèches en
   cercle. « Synchroniser » envoie `lire-etat` avec `recherche: 'fichier'` et
@@ -217,11 +235,11 @@ Figma » des fiches.
   courant le séparent de la barre des palettes. L'ancien bouton
   « Actualiser » et « Chercher dans tout le fichier » disparaissent :
   « Synchroniser » fait les deux.
-- [ ] **P3.2** Les deux vues. Une bascule « Vue complète · Vue condensée »
+- [x] **P3.2** Les deux vues. Une bascule « Vue complète · Vue condensée »
   dans la barre « Palettes du plugin · N », à gauche de la bascule des thèmes.
   La vue se range avec la langue dans `src/preferences.ts`, clé
   `ucm-palettes.vue`, complète par défaut.
-- [ ] **P3.3** La fiche de la vue complète. Dans `ongletGestion.ts`, les
+- [x] **P3.3** La fiche de la vue complète. Dans `ongletGestion.ts`, les
   boutons de la fiche laissent la place aux lignes de sortie de
   `src/ui/sorties.ts` : un nom, une pastille d'état, un détail, des gestes au
   bord droit. La phase ne pose que la ligne « Planche » : « Pas encore
@@ -231,15 +249,15 @@ Figma » des fiches.
   Vivid ✓ » ouvrent Vérification sur la palette. La pastille de l'en-tête
   suit l'ordre d'urgence de la section 3.4 de la direction, écrit dans
   `src/presentation.ts` par `etatDeLaFiche(tokens, planche)` et testé.
-- [ ] **P3.4** La vue condensée (M10) : un tableau, une ligne par palette,
+- [x] **P3.4** La vue condensée (M10) : un tableau, une ligne par palette,
   son nom, sa rampe en miniature, un état par sortie, aucun geste. Un clic ou
   Entrée sur une ligne passe à la vue complète et amène la fiche en vue. Le
   tableau a ses en-têtes de colonne et se lit au clavier.
-- [ ] **P3.5** « Tout mettre à jour (N) » dans le bilan du bloc, en vue
+- [x] **P3.5** « Tout mettre à jour (N) » dans le bilan du bloc, en vue
   complète seulement : il remplace « Actualiser tout » et « Générer tout ».
   Il dessine les planches en retard ou absentes ; la confirmation au-delà de
   six palettes reste (`[PLA-24]`).
-- [ ] **P3.6** La page des planches, dans le sandbox. `src/lecture.ts` :
+- [x] **P3.6** La page des planches, dans le sandbox. `src/lecture.ts` :
   l'état de la planche porte la liste des pages du fichier, identifiant, nom
   et nombre de cadres possédés. `src/ecriture/planche.ts` reçoit
   `choisirLaPage(figma, demande)` : la demande nomme une page existante ou un
@@ -251,14 +269,14 @@ Figma » des fiches.
   portes d'écriture. Tests dans `tests/dessin.test.ts`, sur le double de
   `tests/figmaDeTest.ts` : page existante, page créée, nom déjà pris, cadre
   copié laissé, suivi d'une version plus récente refusé.
-- [ ] **P3.7** La carte « Page des planches » (M15) : « Changer » l'ouvre à
+- [x] **P3.7** La carte « Page des planches » (M15) : « Changer » l'ouvre à
   la place du bloc de la connexion ; « Enregistrer » ou « Annuler » rend le
   bloc et le focus à « Changer ». Une liste à choix unique : chaque page du
   fichier avec son nombre de planches, puis « Nouvelle page » et son champ.
   Aucune simulation. La carte est grise, sans fond ; la liste a un fond gris
   plus foncé. Passer par `src/ui/frontiere.ts` : une demande en vol à la fois,
   et un refus se lit dans la carte.
-- [ ] **P3.8** États de galerie : `gestion-complete`, `gestion-condensee`,
+- [x] **P3.8** États de galerie : `gestion-complete`, `gestion-condensee`,
   `gestion-page-des-planches`, et les états actuels de l'onglet Palettes
   réécrits. Réécrire les tests d'interface de l'onglet.
 

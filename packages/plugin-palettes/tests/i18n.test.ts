@@ -4,7 +4,7 @@ import test from 'node:test';
 import { creerTraducteur, CATALOGUES } from '../src/i18n';
 import { LANGUES, resoudreDansRegistre, resoudreLangue } from '../src/i18n/langues';
 import { arrondi, contraste, pluriel } from '../src/i18n/nombres';
-import { CLE_DE_LANGUE, creerPreferences } from '../src/preferences';
+import { CLE_DE_LANGUE, CLE_DE_VUE, creerPreferences } from '../src/preferences';
 import { creerLocalisation, lireTexte } from '../src/ui/localisation';
 
 function structure(objet: object, prefixe = ''): string[] {
@@ -43,8 +43,8 @@ test('les nombres gardent les arrondis du moteur et le séparateur de la langue'
 test('les messages dynamiques nomment les données et accordent les comptes', () => {
   const anglais = creerTraducteur('en').messages;
   const francais = creerTraducteur('fr').messages;
-  assert.deepEqual([0, 1, 2].map(anglais.enTeteDeLaPlanche), ['No palettes', '1 palette', '2 palettes']);
-  assert.deepEqual([0, 1, 2].map(francais.enTeteDeLaPlanche), ['Aucune palette', '1 palette', '2 palettes']);
+  assert.deepEqual([0, 1, 2].map(anglais.planchesDeLaPage), ['', '1 board', '2 boards']);
+  assert.deepEqual([0, 1, 2].map(francais.planchesDeLaPage), ['', '1 planche', '2 planches']);
   assert.equal(anglais.nommerChamp('crans[1]'), '2nd shade');
   assert.equal(anglais.nommerChamp('crans[10]'), '11th shade');
   assert.equal(anglais.nommerChamp('crans[21]'), '22nd shade');
@@ -106,4 +106,18 @@ test('[UI-18] le bilan du pied accorde les garanties et les alertes, dans les de
   assert.equal(anglais.bilanDuPied(1, 0, 1, false), '1 guarantee met · 1 alert');
   assert.equal(anglais.bilanDuPied(76, 1, 2, false), '1 of 76 guarantees unmet · 2 alerts');
   assert.equal(anglais.bilanDuPied(0, 0, 3, true), 'Free palette · 3 alerts');
+});
+
+test('[UI-25] la vue de Gestion se range sous sa clé ; une valeur absente, inconnue ou refusée donne la vue complète', async () => {
+  for (const valeur of [undefined, {}, 'liste', 'complete', 'condensee']) {
+    const preferences = creerPreferences({ getAsync: async (cle) => (cle === CLE_DE_VUE ? valeur : undefined), setAsync: async () => {} });
+    assert.equal(await preferences.lireLaVue(), valeur === 'condensee' ? 'condensee' : 'complete');
+  }
+  const refusees = creerPreferences({ getAsync: async () => { throw new Error('indisponible'); }, setAsync: async () => {} });
+  assert.equal(await refusees.lireLaVue(), 'complete');
+  const rangees: [string, unknown][] = [];
+  const preferences = creerPreferences({ getAsync: async () => undefined, setAsync: async (cle, valeur) => { rangees.push([cle, valeur]); } });
+  assert.equal(await preferences.rangerLaVue('condensee'), true);
+  assert.equal(await preferences.rangerLaVue('inconnue'), true);
+  assert.deepEqual(rangees, [[CLE_DE_VUE, 'condensee'], [CLE_DE_VUE, 'complete']]);
 });

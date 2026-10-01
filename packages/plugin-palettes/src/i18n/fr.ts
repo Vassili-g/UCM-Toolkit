@@ -7,6 +7,7 @@
  * ceux des données ; seul leur affichage se traduit ici.
  */
 import type { ChampDePalette } from '../importation';
+import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
 import {
   FORMAT_RECETTE,
@@ -35,7 +36,7 @@ import {
   type RegleRecette,
 } from 'ucm-couleur';
 
-import type { CibleDAction, GroupeDePromesses, Verdict } from '../presentation';
+import type { CibleDAction, EtatDeLaFiche, GroupeDePromesses, Verdict } from '../presentation';
 
 export const TEXTES = {
   numeroDeNuance: (numero: number) => `nuance ${numero}`,
@@ -1190,10 +1191,6 @@ export function importFutur(fichier: string, version: number): Constat {
 /** Les libellés de la génération et de l'onglet Palettes (section 13.2). */
 export const TEXTES_DU_DESSIN = {
   dessiner: 'Générer sur Figma',
-  // Le premier geste d'une fiche, selon l'état du cadre ([UI-05]).
-  actualiserSurFigma: 'Actualiser sur Figma',
-  aJour: 'À jour',
-  perimee: 'À actualiser',
   redessinerQuandMeme: 'Remplacer le cadre et son contenu',
   voirSurLaPlanche: 'Afficher dans Figma',
   reessayer: 'Réessayer',
@@ -1201,76 +1198,13 @@ export const TEXTES_DU_DESSIN = {
   annuler: 'Annuler',
   plancheSansPalette: "Créez une palette dans l’onglet « Création », puis générez-la ici.",
   versLesPalettes: 'Créer une palette',
-  // N009, N010, puis N043 à N047 ; un cadre jamais généré a sa pastille (Y2.2).
-  pasEncore: 'Pas encore sur Figma',
-  introuvable: 'Cadre introuvable',
-  illisible: 'Lecture impossible',
-  // Les deux autres gestes d'une fiche, après le premier (Y1.9).
-  afficher: 'Afficher',
-  modifier: 'Modifier',
-  actualiser: 'Actualiser',
-  chercherPartout: 'Chercher dans tout le fichier',
   palettesEtReglages: 'Palettes et réglages',
   themeDesFiches: 'Thème des fiches',
 } as const;
 
-/**
- * L'état d'un cadre de palette, tel que la pastille d'une fiche de l'onglet
- * Palettes l'écrit ([PLA-20], V8.2, maquette Y2.2).
- */
-export function etatDuCadreEcrit(etat: EtatDuCadre): string {
-  return {
-    'a-jour': TEXTES_DU_DESSIN.aJour,
-    perimee: TEXTES_DU_DESSIN.perimee,
-    'jamais-dessinee': TEXTES_DU_DESSIN.pasEncore,
-    introuvable: TEXTES_DU_DESSIN.introuvable,
-    illisible: TEXTES_DU_DESSIN.illisible,
-  }[etat];
-}
-
-/**
- * Le premier geste d'une fiche de l'onglet Palettes ([UI-05]) : « Générer sur
- * Figma » sans cadre ou pour un cadre introuvable, « Actualiser sur Figma »
- * quand le cadre a changé. Un cadre à jour ou illisible n'en a pas : `null`.
- */
-export function premierGesteDeLaFiche(etat: EtatDuCadre): string | null {
-  if (etat === 'a-jour' || etat === 'illisible') return null;
-  return etat === 'perimee' ? TEXTES_DU_DESSIN.actualiserSurFigma : TEXTES_DU_DESSIN.dessiner;
-}
-
-/** La page d'un cadre rangé hors de la page de la planche (V8.6, N048). */
-export function pageDuCadre(nom: string): string {
-  return `Page « ${nom} »`;
-}
-
-/** Le nombre de palettes d'un geste global, au singulier pour une seule (Q5.5). */
-function nombreDePalettes(nombre: number): string {
-  return nombre === 1 ? '1 palette' : `${nombre} palettes`;
-}
-
-/** Le geste qui génère les palettes qui ne sont pas à jour (V8.4, Y1.8). */
-export function genererLesPalettesPasAJour(nombre: number): string {
-  return `Actualiser tout (${nombreDePalettes(nombre)})`;
-}
-
-/** Le geste qui génère toutes les palettes (V8.4, Y1.8). */
-export function genererToutesLesPalettes(nombre: number): string {
-  return `Générer tout (${nombreDePalettes(nombre)})`;
-}
-
 /** La ligne technique de la carte « Palettes et réglages » (V8.5, N050). */
 export function detailsTechniques(empreinte: string | null, versionDuSuivi: number): string {
   return `Format des palettes et réglages : ${FORMAT_RECETTE} · empreinte : ${empreinte ?? 'aucune'} · suivi des cadres : version ${versionDuSuivi}`;
-}
-
-/** Un cadre introuvable après une recherche bornée à la page de la planche (V8.6, N051). */
-export function rechercheBornee(nomDeLaPage: string | null, introuvables: readonly string[]): Constat {
-  const seul = introuvables.length === 1;
-  return {
-    ou: seul ? `Cadre introuvable : ${citer(introuvables)}` : `Cadres introuvables : ${citer(introuvables)}`,
-    quoi: `Recherche limitée à la page ${nomDeLaPage ? `« ${nomDeLaPage} »` : 'de la planche'}. Une nouvelle génération créerait ${seul ? 'un autre cadre' : 'd’autres cadres'}.`,
-    geste: 'Cherchez dans tout le fichier avant de générer, pour ne pas créer de doublon.',
-  };
 }
 
 /** Une génération refusée : Figma n'a pas pu lire le cadre existant d'une palette (V8.6, N052). */
@@ -1278,7 +1212,7 @@ export function lectureImpossible(noms: readonly string[]): Constat {
   return {
     ou: `Lecture impossible : ${citer(noms)}`,
     quoi: `Figma ne peut pas lire ${noms.length === 1 ? 'ce cadre' : 'ces cadres'}. Génération annulée pour éviter les doublons.`,
-    geste: 'Actualisez l’onglet Palettes, puis relancez la génération.',
+    geste: 'Synchronisez dans l’onglet Gestion, puis relancez la génération.',
   };
 }
 
@@ -1289,12 +1223,6 @@ export function suiviFutur(): Constat {
     quoi: 'Ces cadres nécessitent une version plus récente du plugin. Lecture et mise à jour indisponibles.',
     geste: 'Mettez le plugin à jour pour générer les palettes.',
   };
-}
-
-/** Le nombre de palettes, en tête de l'onglet Palettes ([UI-02]). */
-export function enTeteDeLaPlanche(nombre: number): string {
-  if (nombre === 0) return 'Aucune palette';
-  return nombre === 1 ? '1 palette' : `${nombre} palettes`;
 }
 
 /** La progression d'une génération, à la place de son bouton ([UI-05], [PLA-24]). */
@@ -1375,7 +1303,7 @@ export function suppressionRefusee(nom: string): Constat {
   return {
     ou: `Cadre non supprimé : ${nom}`,
     quoi: 'Le fichier a changé depuis la dernière lecture : ce cadre n’est plus celui d’une palette supprimée.',
-    geste: 'Actualisez l’onglet Palettes.',
+    geste: 'Synchronisez dans l’onglet Gestion.',
   };
 }
 
@@ -1621,4 +1549,137 @@ export function verdictDuTheme(manquees: number): string {
 /** La légende des grilles, en une ligne ([PLA-16], N099). */
 export function legendeDesContrastes(seuils: Recette['seuils']): string {
   return `Ligne : fond · colonne : texte · gras dès ${seuilEcrit(seuils.texte)}:1 · maigre dès ${seuilEcrit(seuils.nonTexte)}:1 · effacé en dessous · AA dès 4,5:1 · AAA dès 7:1`;
+}
+
+/** Les libellés de l'onglet Gestion ([UI-24] à [UI-29]). */
+export const TEXTES_DE_LA_GESTION = {
+  connexion: 'Connexion à Figma',
+  synchroniser: 'Synchroniser',
+  planches: 'Planches',
+  page: 'page',
+  // Le nom que la page prend au premier dessin, tant qu'aucune n'est choisie ([PLA-01]).
+  pageParDefaut: 'Palettes',
+  pageACreer: 'créée à la première planche',
+  changer: 'Changer',
+  vues: 'Vue',
+  vueComplete: 'Vue complète',
+  vueCondensee: 'Vue condensée',
+  planche: 'Planche',
+  modifier: 'Modifier',
+  creerLaPlanche: 'Créer la planche',
+  actualiser: 'Actualiser',
+  afficher: 'Afficher',
+  colonnePalette: 'Palette',
+  colonneNuances: 'Nuances',
+  pageDesPlanches: 'Page des planches',
+  champDeLaPage: 'Page',
+  nouvellePage: 'Nouvelle page',
+  nomDeLaNouvellePage: 'Nom de la nouvelle page',
+  enregistrer: 'Enregistrer',
+  annuler: 'Annuler',
+  introuvableSurLaPage: 'Synchronisez pour la chercher dans tout le fichier',
+  introuvableDansLeFichier: 'Absente du fichier',
+  illisible: 'Figma refuse de lire son cadre',
+} as const;
+
+/** L'état de la planche d'une palette, dans sa ligne de sortie ([UI-26]). */
+export function etatDeLaPlancheEcrit(etat: EtatDuCadre): string {
+  return {
+    'a-jour': 'À jour',
+    perimee: 'À actualiser',
+    'jamais-dessinee': 'Pas encore créée',
+    introuvable: 'Introuvable',
+    illisible: 'Lecture impossible',
+  }[etat];
+}
+
+/** L'état d'une fiche, le plus urgent de ses sorties ([UI-26]). */
+export function etatDeLaFicheEcrit(etat: EtatDeLaFiche): string {
+  return {
+    modifiee: 'Modifiée dans Figma',
+    'a-mettre-a-jour': 'À mettre à jour',
+    'pas-encore': 'Pas encore sur Figma',
+    synchronisee: 'Synchronisée',
+  }[etat];
+}
+
+/** Le compte des palettes d'un état, dans le bilan du bloc « Connexion à Figma » ([UI-24]). */
+export function bilanDeLEtat(etat: EtatDeLaFiche, nombre: number): string {
+  const pluriel = nombre > 1;
+  return {
+    modifiee: `${nombre} ${pluriel ? 'modifiées' : 'modifiée'} dans Figma`,
+    'a-mettre-a-jour': `${nombre} à mettre à jour`,
+    'pas-encore': `${nombre} pas encore sur Figma`,
+    synchronisee: `${nombre} ${pluriel ? 'synchronisées' : 'synchronisée'}`,
+  }[etat];
+}
+
+/** Le temps écoulé depuis le dernier état lu dans le fichier ([UI-24]). */
+export function synchroniseIlYA(secondes: number): string {
+  if (secondes < 60) return 'Synchronisé à l’instant';
+  const minutes = Math.floor(secondes / 60);
+  if (minutes < 60) return `Synchronisé il y a ${minutes} min`;
+  return `Synchronisé il y a ${Math.floor(minutes / 60)} h`;
+}
+
+/** Le titre de la barre des palettes du plugin ([UI-25]). */
+export function palettesDuPlugin(nombre: number): string {
+  return `Palettes du plugin · ${nombre}`;
+}
+
+/** « Tout mettre à jour », avec le nombre de palettes en retard ([UI-28]). */
+export function toutMettreAJour(nombre: number): string {
+  return `Tout mettre à jour (${nombre})`;
+}
+
+/** Où la planche d'une palette se trouve, dans sa ligne de sortie. */
+export function pageDeLaPlanche(nom: string): string {
+  return `page ${nom}`;
+}
+
+/** Le nombre de planches qu'une page porte, dans la carte « Page des planches » ; rien pour une page sans planche. */
+export function planchesDeLaPage(nombre: number): string {
+  if (nombre === 0) return '';
+  return nombre === 1 ? '1 planche' : `${nombre} planches`;
+}
+
+/** L'infobulle du résultat des garanties d'une fiche, qui ouvre Vérification ([UI-26]). */
+export function verifierLaPalette(nom: string): string {
+  return `Vérifier ${nom}`;
+}
+
+/** Le nom accessible d'une ligne de la vue condensée, qui ouvre la fiche ([UI-27]). */
+export function ouvrirLaFiche(nom: string): string {
+  return `Ouvrir la fiche de ${nom}`;
+}
+
+/** Un refus de « Enregistrer », dans la carte « Page des planches » ([PLA-29]). */
+export function refusDeLaPage(issue: Exclude<IssueDeLaPage, { issue: 'choisie' | 'suivi-futur' }>): ConstatIllustre {
+  switch (issue.issue) {
+    case 'nom-pris':
+      return {
+        ou: `Nouvelle page : ${issue.nom}`,
+        quoi: 'Une page du fichier porte déjà ce nom.',
+        geste: 'Choisissez cette page dans la liste, ou donnez un autre nom.',
+      };
+    case 'nom-vide':
+      return {
+        ou: 'Nouvelle page',
+        quoi: 'La page n’a pas de nom.',
+        geste: 'Saisissez un nom, puis enregistrez.',
+      };
+    case 'page-introuvable':
+      return {
+        ou: 'Page des planches',
+        quoi: 'Cette page n’existe plus dans le fichier.',
+        geste: 'Annulez, synchronisez, puis choisissez une autre page.',
+      };
+    case 'interrompue':
+      return {
+        ou: 'Page des planches',
+        quoi: issue.deplaces === 1 ? 'Figma a interrompu le déplacement. 1 planche a rejoint la page.' : `Figma a interrompu le déplacement. ${issue.deplaces} planches ont rejoint la page.`,
+        geste: 'Synchronisez, puis enregistrez de nouveau la page.',
+        detail: issue.message,
+      };
+  }
 }

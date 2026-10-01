@@ -80,6 +80,13 @@ export interface CadreManquant {
   readonly raison: 'introuvable' | 'illisible';
 }
 
+/** Une page du fichier, et le nombre de cadres possédés qu'elle porte ([PLA-29]). */
+export interface PageDuFichier {
+  readonly id: string;
+  readonly nom: string;
+  readonly cadres: number;
+}
+
 /** La planche telle que le document la porte. */
 export interface EtatDeLaPlanche {
   /** La page où se posent les cadres neufs, et son nom ; `null` avant tout dessin. */
@@ -95,9 +102,11 @@ export interface EtatDeLaPlanche {
   readonly recherche: 'page' | 'fichier';
   /** Le suivi vient d'une version plus récente du plugin : rien ne s'y lit, rien ne s'y écrit. */
   readonly suiviFutur: boolean;
+  /** Les pages du fichier, dans leur ordre : la carte « Page des planches » en propose une ([PLA-29]). */
+  readonly pages: readonly PageDuFichier[];
 }
 
-export const PLANCHE_SANS_CADRE: EtatDeLaPlanche = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false };
+export const PLANCHE_SANS_CADRE: EtatDeLaPlanche = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false, pages: [] };
 
 /** Ce que la résolution demande à un nœud. */
 interface NoeudLu {
@@ -253,7 +262,10 @@ function cadreLu(noeud: NoeudLu, page: PageLue, possede: boolean): CadreLu {
  */
 export async function lireLaPlanche(figma: FigmaDeLaLecture, toutesLesPages = false): Promise<EtatDeLaPlanche> {
   const recherche = toutesLesPages ? 'fichier' : 'page';
-  if (lirePlanche(figma.root).version > VERSION_DU_SUIVI) return { ...PLANCHE_SANS_CADRE, recherche, suiviFutur: true };
+  // Le nom et l'identifiant d'une page se lisent sans la charger.
+  const pagesDuFichier = (compter: (id: string) => number): PageDuFichier[] =>
+    (figma.root.children as readonly PageLue[]).filter((page) => page.type === 'PAGE').map((page) => ({ id: page.id, nom: page.name, cadres: compter(page.id) }));
+  if (lirePlanche(figma.root).version > VERSION_DU_SUIVI) return { ...PLANCHE_SANS_CADRE, recherche, suiviFutur: true, pages: pagesDuFichier(() => 0) };
   const resolus = await resoudreLesCadres<NoeudLu>(figma, toutesLesPages);
   // Figma peut lever en lisant le nom d'un nœud qu'il annonce : un cadre possédé devient illisible, une copie se tait.
   const cadres: CadreLu[] = [];
@@ -272,7 +284,8 @@ export async function lireLaPlanche(figma: FigmaDeLaLecture, toutesLesPages = fa
       continue;
     }
   }
-  return { page: resolus.page?.id ?? null, nomDeLaPage: resolus.page?.name ?? null, cadres, manquants, recherche, suiviFutur: false };
+  const pages = pagesDuFichier((id) => cadres.filter((cadre) => cadre.possede && cadre.page === id).length);
+  return { page: resolus.page?.id ?? null, nomDeLaPage: resolus.page?.name ?? null, cadres, manquants, recherche, suiviFutur: false, pages };
 }
 
 export type ProfilDuDocument = DocumentNode['documentColorProfile'];

@@ -133,3 +133,23 @@ test('V12.1 : pendant un conflit, un dessin ne part pas et s’abandonne, jusqu�
   assert.equal(envoyees.at(-1)?.type, 'dessiner');
   assert.equal(abandons, 1);
 });
+
+test('[PLA-29] un seul choix de page est en vol, aucun ne part pendant un conflit, et son issue ne s’accepte que sous son numéro', () => {
+  const { frontiere, envoyees, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  assert.equal(frontiere.choisirLaPage({ id: '12:1' }), true);
+  assert.deepEqual(envoyees[1], { type: 'choisir-page', demande: 2, page: { id: '12:1' } });
+  assert.equal(frontiere.choisirLaPage({ nom: 'Couleurs' }), false, 'un second choix attend l’issue du premier');
+  assert.equal(envoyees.length, 2);
+  assert.equal(frontiere.accepterPage({ type: 'page-choisie', demande: 1, issue: { issue: 'nom-vide' } }), false);
+  assert.equal(frontiere.accepterPage({ type: 'page-choisie', demande: 2, issue: { issue: 'nom-vide' } }), true);
+  assert.equal(frontiere.choisirLaPage({ nom: 'Couleurs' }), true);
+  assert.equal(frontiere.accepterPage({ type: 'page-choisie', demande: 3, issue: { issue: 'choisie', page: '13:1', nom: 'Couleurs', deplaces: 0 } }), true);
+
+  frontiere.ranger(RECETTE);
+  frontiere.recevoirRangement({ type: 'rangement', demande: 4, issue: { issue: 'modifiee-ailleurs' } });
+  assert.equal(frontiere.statut(), 'refuse');
+  assert.equal(frontiere.choisirLaPage({ id: '12:1' }), false, 'rien ne part pendant un conflit');
+  assert.equal(envoyees.filter((demande) => (demande as { type: string }).type === 'choisir-page').length, 2);
+});

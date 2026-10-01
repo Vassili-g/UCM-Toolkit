@@ -62,16 +62,21 @@ test('[PLA-01] la lecture charge la seule page de la planche et relève ses cadr
     manquants: [],
     recherche: 'page',
     suiviFutur: false,
+    // [PLA-29] : chaque page du fichier, avec ses cadres possédés ; la copie ne compte pas.
+    pages: [{ id: figma.root.enfants[0].id, nom: 'Page 1', cadres: 0 }, { id: page.id, nom: 'Palettes', cadres: 2 }],
   });
 });
 
 test('[PLA-04] sans planche rangée, la planche est vide ; quand sa page a disparu, ses cadres sont introuvables', async () => {
-  assert.deepEqual(await lireLaPlanche(new FauxFigma().api()), PLANCHE_SANS_CADRE);
+  const neuf = new FauxFigma();
+  const pages = (figma: FauxFigma) => [{ id: figma.root.enfants[0].id, nom: 'Page 1', cadres: 0 }];
+  assert.deepEqual(await lireLaPlanche(neuf.api()), { ...PLANCHE_SANS_CADRE, pages: pages(neuf) });
   const figma = await plancheDessinee();
   const [bleu, ambre] = figma.page('Palettes').enfants;
   figma.page('Palettes').remove();
   assert.deepEqual(await lireLaPlanche(figma.api()), {
     ...PLANCHE_SANS_CADRE,
+    pages: pages(figma),
     manquants: [{ palette: BLEU.id, cadre: bleu.id, raison: 'introuvable' }, { palette: AMBRE.id, cadre: ambre.id, raison: 'introuvable' }],
   });
 });
@@ -153,7 +158,8 @@ test('[PLA-26] V8.6 : un nœud qui lève pendant la recherche de secours ne fait
 test('[PLA-01] V8.8 : un suivi des cadres d’une version plus récente ne se lit pas', async () => {
   const figma = await plancheDessinee();
   figma.root.setSharedPluginData('ucm_palettes', 'planche', JSON.stringify({ version: 3, page: figma.page('Palettes').id, cadres: {} }));
-  assert.deepEqual(await lireLaPlanche(figma.api()), { ...PLANCHE_SANS_CADRE, suiviFutur: true });
+  const pages = [{ id: figma.root.enfants[0].id, nom: 'Page 1', cadres: 0 }, { id: figma.page('Palettes').id, nom: 'Palettes', cadres: 0 }];
+  assert.deepEqual(await lireLaPlanche(figma.api()), { ...PLANCHE_SANS_CADRE, suiviFutur: true, pages });
 });
 
 const etats = (fraicheur: ReturnType<typeof fraicheurDeLaPlanche>) => fraicheur.palettes.map(({ palette, etat }) => `${palette} ${etat}`);

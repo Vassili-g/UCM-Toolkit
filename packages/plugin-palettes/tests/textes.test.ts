@@ -17,13 +17,16 @@ import {
   ecartDePeinture,
   ligneDesValeurs,
   garantiesManqueesDeLaReference,
-  genererLesPalettesPasAJour,
-  genererToutesLesPalettes,
+  etatDeLaFicheEcrit,
+  etatDeLaPlancheEcrit,
+  bilanDeLEtat,
+  planchesDeLaPage,
+  synchroniseIlYA,
+  toutMettreAJour,
   jugementDuSeuil,
   lignesDeNature,
   niveauEcrit,
   nommerChamp,
-  premierGesteDeLaFiche,
   recetteFuture,
   recetteIllisible,
   resultatDuProfil,
@@ -203,19 +206,20 @@ test('[VER-13] Q4.2 : un minimum réglé à 6:1 manque la promesse, et le badge 
   }
 });
 
-test('[UI-05] le premier geste d’une fiche suit l’état du cadre : Générer, Actualiser, ou aucun pour un cadre à jour ou illisible', () => {
-  assert.equal(premierGesteDeLaFiche('jamais-dessinee'), 'Générer sur Figma');
-  assert.equal(premierGesteDeLaFiche('perimee'), 'Actualiser sur Figma');
-  assert.equal(premierGesteDeLaFiche('introuvable'), 'Générer sur Figma');
-  assert.equal(premierGesteDeLaFiche('a-jour'), null);
-  assert.equal(premierGesteDeLaFiche('illisible'), null);
+test('[UI-26] la ligne « Planche » et la pastille d’une fiche disent leur état dans les mots de la direction', () => {
+  assert.deepEqual((['jamais-dessinee', 'a-jour', 'perimee', 'introuvable', 'illisible'] as const).map(etatDeLaPlancheEcrit), ['Pas encore créée', 'À jour', 'À actualiser', 'Introuvable', 'Lecture impossible']);
+  assert.deepEqual((['modifiee', 'a-mettre-a-jour', 'pas-encore', 'synchronisee'] as const).map(etatDeLaFicheEcrit), ['Modifiée dans Figma', 'À mettre à jour', 'Pas encore sur Figma', 'Synchronisée']);
 });
 
-test('Q5.5 : les gestes globaux comptent les palettes en minuscules, au singulier pour une seule', () => {
-  assert.equal(genererLesPalettesPasAJour(2), 'Actualiser tout (2 palettes)');
-  assert.equal(genererLesPalettesPasAJour(1), 'Actualiser tout (1 palette)');
-  assert.equal(genererToutesLesPalettes(7), 'Générer tout (7 palettes)');
-  assert.equal(genererToutesLesPalettes(1), 'Générer tout (1 palette)');
+test('[UI-24] le bilan accorde chaque compte, et la synchronisation se dit en durée relative', () => {
+  assert.equal(bilanDeLEtat('synchronisee', 1), '1 synchronisée');
+  assert.equal(bilanDeLEtat('synchronisee', 2), '2 synchronisées');
+  assert.equal(bilanDeLEtat('modifiee', 2), '2 modifiées dans Figma');
+  assert.equal(bilanDeLEtat('a-mettre-a-jour', 1), '1 à mettre à jour');
+  assert.equal(bilanDeLEtat('pas-encore', 3), '3 pas encore sur Figma');
+  assert.deepEqual([0, 59, 60, 3599, 3600, 7300].map(synchroniseIlYA), ['Synchronisé à l’instant', 'Synchronisé à l’instant', 'Synchronisé il y a 1 min', 'Synchronisé il y a 59 min', 'Synchronisé il y a 1 h', 'Synchronisé il y a 2 h']);
+  assert.equal(toutMettreAJour(2), 'Tout mettre à jour (2)');
+  assert.deepEqual([0, 1, 2].map(planchesDeLaPage), ['', '1 planche', '2 planches']);
 });
 
 test('l’exception de Figma et l’exemple d’écart se lisent dans le détail, pas dans le message', () => {

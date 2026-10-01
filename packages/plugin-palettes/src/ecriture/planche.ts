@@ -1,7 +1,7 @@
 /**
- * Dessine les cadres de palette dans la page de la planche (section 9.1), et
- * retire le cadre d'une palette supprimée ([PLA-27]). Avec la recette, ce
- * sont les écritures du plugin. Le modèle décide de tout ([ARC-07]) ; ce
+ * Dessine les cadres de palette dans la page de la planche (section 9.1),
+ * retire le cadre d'une palette supprimée ([PLA-27]) et change la page des
+ * planches ([PLA-29]). Le modèle décide de tout ([ARC-07]) ; ce
  * fichier le traduit en nodes Figma.
  *
  * Un cadre se construit entier avant de remplacer l'ancien : une erreur en
@@ -453,4 +453,93 @@ export async function retirerLeCadre(figma: FigmaDuRetrait, demande: DemandeDeRe
   }
   figma.commitUndo();
   return { issue: present ? 'retire' : 'deja-absent' };
+}
+
+/** L'API que le choix de la page emploie. */
+export type FigmaDeLaPage = Pick<PluginAPI, 'root' | 'createPage' | 'getNodeByIdAsync' | 'commitUndo'>;
+
+/** Ce que l'interface demande : une page du fichier, par son identifiant, ou une page à créer, par son nom. */
+export interface DemandeDePage {
+  readonly page: { readonly id: string } | { readonly nom: string };
+}
+
+/** L'issue de « Enregistrer », dans la carte « Page des planches » ([PLA-29]). */
+export type IssueDeLaPage =
+  /** La page est rangée, et `deplaces` cadres possédés l'ont rejointe. */
+  | { readonly issue: 'choisie'; readonly page: string; readonly nom: string; readonly deplaces: number }
+  /** La page nommée par son identifiant n'existe plus : rien n'est écrit. */
+  | { readonly issue: 'page-introuvable' }
+  /** Une page du fichier porte déjà le nom de la page à créer : rien n'est écrit. */
+  | { readonly issue: 'nom-pris'; readonly nom: string }
+  | { readonly issue: 'nom-vide' }
+  /** Figma a levé pendant un déplacement : les cadres déjà déplacés restent sur la page choisie. */
+  | { readonly issue: 'interrompue'; readonly message: string; readonly deplaces: number }
+  /** Le suivi vient d'une version plus récente du plugin : rien n'est écrit (V8.8). */
+  | { readonly issue: 'suivi-futur' };
+
+/**
+ * Change la page des planches ([PLA-29]) : range la page dans le suivi, puis
+ * déplace vers elle chaque cadre possédé qui vit ailleurs, à la place que
+ * `placeDUnCadreNeuf` donne. Un cadre déjà sur la page, dans une section
+ * comprise, garde sa place. Une copie, que le plugin ne possède pas, ne bouge
+ * pas ([PLA-25]). Un seul `commitUndo` clôt l'écriture.
+ */
+export async function choisirLaPage(figma: FigmaDeLaPage, demande: DemandeDePage): Promise<IssueDeLaPage> {
+  const rangee = lirePlanche(figma.root);
+  if (rangee.version > VERSION_DU_SUIVI) return { issue: 'suivi-futur' };
+
+  let cible: PageNode;
+  if ('id' in demande.page) {
+    let trouvee: BaseNode | null;
+    try {
+      trouvee = await figma.getNodeByIdAsync(demande.page.id);
+    } catch {
+      trouvee = null;
+    }
+    if (!trouvee || trouvee.removed || trouvee.type !== 'PAGE') return { issue: 'page-introuvable' };
+    cible = trouvee;
+  } else {
+    const nom = demande.page.nom.trim();
+    if (nom === '') return { issue: 'nom-vide' };
+    if (figma.root.children.some((existante) => existante.name === nom)) return { issue: 'nom-pris', nom };
+    cible = figma.createPage();
+    cible.name = nom;
+  }
+  await cible.loadAsync();
+
+  const resolus = await resoudreLesCadres<FrameNode>(figma);
+  const pageDe = (noeud: BaseNode): BaseNode | null => {
+    let courant: BaseNode | null = noeud.parent;
+    while (courant && courant.type !== 'PAGE') courant = courant.parent;
+    return courant;
+  };
+  const surLaCible = [...resolus.possedes.values()].map(({ noeud }) => noeud).filter((noeud) => noeud.parent === cible);
+  const ranger = () => {
+    const suivante: PlancheRangee = {
+      version: VERSION_DU_SUIVI,
+      page: cible.id,
+      cadres: { ...rangee.cadres, ...Object.fromEntries([...resolus.possedes].map(([palette, { noeud }]) => [palette, noeud.id])) },
+    };
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_PLANCHE, JSON.stringify(suivante));
+  };
+
+  let deplaces = 0;
+  try {
+    for (const { noeud } of resolus.possedes.values()) {
+      if (pageDe(noeud) === cible) continue;
+      const place = placeDUnCadreNeuf(surLaCible);
+      cible.appendChild(noeud);
+      noeud.x = place.x;
+      noeud.y = place.y;
+      surLaCible.push(noeud);
+      deplaces += 1;
+    }
+  } catch (erreur) {
+    ranger();
+    figma.commitUndo();
+    return { issue: 'interrompue', message: erreur instanceof Error ? erreur.message : String(erreur), deplaces };
+  }
+  ranger();
+  figma.commitUndo();
+  return { issue: 'choisie', page: cible.id, nom: cible.name, deplaces };
 }

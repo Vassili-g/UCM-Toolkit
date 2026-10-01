@@ -3,9 +3,9 @@
  * fichier et route les demandes de l'interface.
  *
  * Le routage n'a qu'une porte par geste d'écriture ([ARC-14]) : « ranger la
- * recette », « dessiner » et « retirer un cadre ».
+ * recette », « dessiner », « retirer un cadre » et « choisir la page ».
  */
-import { dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
+import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
@@ -39,11 +39,15 @@ async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<vo
 
 async function traiterMessage(message: UiRequest): Promise<void> {
   if (message.type === 'lire-langue') {
-    versUi({ type: 'langue', langue: await preferences.lire() });
+    versUi({ type: 'langue', langue: await preferences.lire(), vue: await preferences.lireLaVue() });
     return;
   }
   if (message.type === 'ranger-langue') {
     versUi({ type: 'langue-rangee', selection: message.selection, reussie: await preferences.ranger(message.langue) });
+    return;
+  }
+  if (message.type === 'ranger-vue') {
+    await preferences.rangerLaVue(message.vue);
     return;
   }
   if (message.type === 'lire-etat') {
@@ -65,6 +69,11 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
   if (message.type === 'retirer-cadre') {
     versUi({ type: 'retrait', demande: message.demande, issue: await retirerLeCadre(figma, message) });
+    return;
+  }
+
+  if (message.type === 'choisir-page') {
+    versUi({ type: 'page-choisie', demande: message.demande, issue: await choisirLaPage(figma, message) });
     return;
   }
 

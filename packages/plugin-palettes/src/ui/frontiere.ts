@@ -45,6 +45,14 @@ export interface Frontiere {
   retirer(palette: string, cadre: string): boolean;
   /** Vrai quand l'issue répond au dernier retrait demandé. */
   accepterRetrait(message: Extract<PluginMessage, { type: 'retrait' }>): boolean;
+  /**
+   * Change la page des planches ([PLA-29]). Une seule demande est en vol, et
+   * rien ne part pendant un conflit d'enregistrement : la réponse est `false`.
+   * La demande rend caduc un état demandé avant elle.
+   */
+  choisirLaPage(page: { id: string } | { nom: string }): boolean;
+  /** Vrai quand l'issue répond au dernier choix de page demandé : la demande n'est plus en vol. */
+  accepterPage(message: Extract<PluginMessage, { type: 'page-choisie' }>): boolean;
   /** Vrai quand la progression ou le résultat répond au dernier dessin demandé. */
   accepterDessin(message: Extract<PluginMessage, { type: 'progression' | 'dessin' }>): boolean;
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
@@ -70,6 +78,8 @@ export function createFrontiere(
   let dessinEnAttente: { demande: DemandeDeDessin; surAbandon: () => void } | null = null;
   let dernierDessin = 0;
   let dernierRetrait = 0;
+  let dernierChoixDePage = 0;
+  let pageEnVol = false;
   let courant: StatutDuRangement = 'lu';
 
   function numeroter(): number {
@@ -130,6 +140,18 @@ export function createFrontiere(
     },
     accepterRetrait(message) {
       return message.demande === dernierRetrait;
+    },
+    choisirLaPage(page) {
+      if (courant === 'refuse' || pageEnVol) return false;
+      dernierChoixDePage = numeroter();
+      pageEnVol = true;
+      envoyer({ type: 'choisir-page', demande: dernierChoixDePage, page });
+      return true;
+    },
+    accepterPage(message) {
+      if (message.demande !== dernierChoixDePage) return false;
+      pageEnVol = false;
+      return true;
     },
     accepterDessin(message) {
       return message.demande === dernierDessin;

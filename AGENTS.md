@@ -232,23 +232,23 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
 packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/code.ts              routage des demandes de l'interface, une porte par geste d'écriture
   src/messages.ts          les deux sens de la frontière sandbox ↔ interface
-  src/lecture.ts           la recette rangée, classée, son empreinte, le profil du document, et les cadres retrouvés où qu'ils soient
+  src/lecture.ts           la recette rangée, classée, son empreinte, le profil du document, les cadres retrouvés où qu'ils soient, et les pages du fichier
   src/analyse.ts           une palette pour l'onglet : rampes, promesses, alertes et notices triées
   src/edition.ts           ce qu'une saisie fait à une palette, avant tout rangement, ajustement de la référence compris
   src/ajustementDeLaReference.ts  le panneau d'ajustement sans DOM : pas, proposition, nuance visée, annonce d'un pas, garanties avant et après
   src/configuration.ts     les champs de la configuration, fonds et seuils compris, les palettes que chacun touche, et « Rétablir » par carte
   src/importation.ts       un fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et la nature de cet écart
   src/rapport.ts           le rapport de vérification : crans, promesses, alertes, empreinte et écarts du dernier dessin
-  src/presentation.ts      les promesses manquées groupées, la place de chaque alerte, le réglage que chaque message ouvre, les accolades de l'aperçu, le verdict d'une palette
+  src/presentation.ts      les promesses manquées groupées, la place de chaque alerte, le réglage que chaque message ouvre, les accolades de l'aperçu, le verdict d'une palette, l'état d'une fiche de Gestion
   src/planche/modele.ts    le modèle pur d'un cadre de planche : par thème, rampes, usages de chaque intensité et leurs garanties avec leur niveau WCAG, grilles, selon les parties choisies ; styles nommés, empreinte
   src/planche/fraicheur.ts chaque cadre à jour, périmé, jamais dessiné, introuvable ou illisible, les cadres orphelins et copiés, et l'effet d'un import
   src/planche/peints.ts    les couleurs relues sur la planche, comparées à celles de l'aperçu
   src/ecriture/recette.ts  le rangement de la recette : validation, empreinte lue, commitUndo
-  src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée
+  src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée ; le choix de la page des planches, qui y déplace les cadres possédés
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
-  src/preferences.ts       la langue de l'interface, lue et rangée dans clientStorage, rangements ordonnés
+  src/preferences.ts       la langue de l'interface et la vue de Gestion, lues et rangées dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet
@@ -271,8 +271,11 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
-  src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui
-  src/ui/ongletGestion.ts  l'onglet Gestion : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
+  src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui, un seul choix de page en vol
+  src/ui/ongletGestion.ts  l'onglet Gestion : le bloc de la connexion, la barre des palettes et ses deux vues ; en vue complète une fiche par palette, état en pastille, « Modifier », rampes, référence, garanties et lignes de sortie ; en vue condensée un tableau ; une carte par palette supprimée, notices, recette repliée
+  src/ui/connexion.ts      le bloc « Connexion à Figma » : heure du dernier état lu, « Synchroniser », page des planches, bilan par état et « Tout mettre à jour »
+  src/ui/pageDesPlanches.ts la carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et le refus du sandbox
+  src/ui/sorties.ts        les lignes de sortie d'une fiche : nom, pastille d'état, détail, gestes
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
   src/ui/configuration.ts  les Réglages communs en cartes : aperçu de la palette ouverte, fonds, intensités et fonds du thème Dark, courbes ; seuils et contenu des planches repliés
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
@@ -1094,7 +1097,8 @@ La spécification en lien porte le raisonnement.
   `figma.variables`, `loadAllPagesAsync` ni une API de style. La même loi le
   tient.
 - `src/code.ts` est le seul fichier qui importe `src/ecriture/`, avec une porte
-  par geste d'écriture : `ranger-recette`, `dessiner` et `retirer-cadre`.
+  par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre` et
+  `choisir-page`.
 - Le plugin ne retire un cadre de Figma que sur « Supprimer définitivement »,
   geste explicite du designer. Le sandbox relit la recette rangée et le cadre :
   il ne retire qu'un cadre possédé qui porte encore l'identifiant de sa
@@ -1104,6 +1108,15 @@ La spécification en lien porte le raisonnement.
   suivi plus récent refuse avant toute écriture.
   `packages/plugin-palettes/tests/retrait.test.ts` le tient, contre le double
   de `tests/figmaDeTest.ts`.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
+- Changer la page des planches range la page dans le suivi, puis déplace
+  vers elle chaque cadre possédé qui vit ailleurs, à la place qu'un cadre
+  neuf y prendrait. Un cadre déjà sur la page, section comprise, garde sa
+  place, et une copie ne bouge pas. `choisirLaPage`
+  (`src/ecriture/planche.ts`) refuse avant toute écriture une page que
+  Figma ne connaît plus, un nom de page neuve vide ou déjà porté, et un
+  suivi d'une version plus récente. Un seul `commitUndo` clôt le
+  changement. `packages/plugin-palettes/tests/dessin.test.ts` le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
 - Le dessin part de la recette rangée, jamais de couleurs envoyées par
   l'interface : la demande ne porte que des identifiants de palette et
@@ -1129,7 +1142,7 @@ La spécification en lien porte le raisonnement.
   que la recette donne aujourd'hui, styles de texte compris. La lecture
   retrouve chaque cadre par son identifiant rangé, sur n'importe quelle page,
   puis parcourt la seule page de la planche, sections comprises ; elle ne
-  parcourt toutes les pages qu'au geste « Chercher dans tout le fichier ». Un
+  parcourt toutes les pages qu'au geste « Synchroniser ». Un
   cadre rangé que Figma ne connaît plus est introuvable, un cadre qu'il
   refuse de lire est illisible : aucun des deux n'est « jamais dessiné ».
   L'interface recalcule la fraîcheur après chaque état lu et chaque
@@ -1147,7 +1160,8 @@ La spécification en lien porte le raisonnement.
   rangement est en vol : un geste suivant attend l'empreinte que la réponse
   apporte. Après un refus, rien ne se range ni ne se dessine avant
   « Recharger », et le brouillon reste exportable. Un dessin demandé pendant
-  un rangement part après lui ; un refus l'abandonne.
+  un rangement part après lui ; un refus l'abandonne. Un seul choix de page
+  est en vol, et aucun ne part pendant un conflit.
   `src/ui/frontiere.ts` en est l'unique autorité, et
   `packages/plugin-palettes/tests/frontiere.test.ts` le tient.
 - Un import ne range rien avant la confirmation du designer : le fichier se
@@ -1169,7 +1183,9 @@ La spécification en lien porte le raisonnement.
   range dans `figma.clientStorage` sous `ucm-palettes.langue`, jamais dans
   le document. `src/preferences.ts` ne reçoit que `getAsync` et `setAsync`,
   et ordonne ses rangements : le dernier choix est celui de l'ouverture
-  suivante. `packages/plugin-palettes/tests/i18n.test.ts` le tient.
+  suivante. La vue de Gestion s'y range de même, sous `ucm-palettes.vue` ;
+  une valeur absente ou inconnue donne la vue complète.
+  `packages/plugin-palettes/tests/i18n.test.ts` le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets)
 - Les vues de `src/ui/` ne posent aucun mot en dur : chaque texte, infobulle
   et nom accessible vient des catalogues de `src/i18n/`, et les catalogues

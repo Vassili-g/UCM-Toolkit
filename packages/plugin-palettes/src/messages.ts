@@ -13,14 +13,17 @@ import type { Classement, Recette } from 'ucm-couleur';
 import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
-import type { IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
+import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
+import type { VueDeGestion } from './preferences';
 
 /** Ce que l'interface demande au sandbox. */
 export type UiRequest =
   | { type: 'lire-langue' }
   | { type: 'ranger-langue'; selection: number; langue: Langue }
+  /** La vue de Gestion, rangée avec la langue ([UI-25]) ; sans réponse : la vue choisie vaut pour la session. */
+  | { type: 'ranger-vue'; vue: VueDeGestion }
   /**
    * `recherche: 'fichier'` étend la recherche des cadres à toutes les pages,
    * au geste explicite du designer (V8.6) ; sinon, la seule page de la planche.
@@ -42,13 +45,19 @@ export type UiRequest =
    * supprimée, que le sandbox vérifie avant de le retirer ([PLA-27]).
    */
   | { type: 'retirer-cadre'; demande: number; palette: string; cadre: string }
+  /**
+   * Quatrième écriture : la page des planches, une page du fichier ou une page
+   * à créer, vers laquelle le sandbox déplace les cadres possédés ([PLA-29]).
+   */
+  | { type: 'choisir-page'; demande: number; page: { id: string } | { nom: string } }
   | DemandeDeTaille;
 
-export type { IssueDuRetrait, ResultatDuDessin };
+export type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
-  | { type: 'langue'; langue: Langue }
+  /** Les préférences, lues avant le premier rendu : la langue et la vue de Gestion. */
+  | { type: 'langue'; langue: Langue; vue: VueDeGestion }
   | { type: 'langue-rangee'; selection: number; reussie: boolean }
   /**
    * L'état du fichier, en réponse à `lire-etat` : la recette classée
@@ -62,4 +71,6 @@ export type PluginMessage =
   | { type: 'progression'; demande: number; fait: number; total: number; nom: string }
   | { type: 'dessin'; demande: number; resultat: ResultatDuDessin }
   /** L'issue de « Supprimer définitivement », en réponse à `retirer-cadre`. */
-  | { type: 'retrait'; demande: number; issue: IssueDuRetrait };
+  | { type: 'retrait'; demande: number; issue: IssueDuRetrait }
+  /** L'issue de « Enregistrer » dans la carte « Page des planches », en réponse à `choisir-page`. */
+  | { type: 'page-choisie'; demande: number; issue: IssueDeLaPage };

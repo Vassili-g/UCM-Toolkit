@@ -5,7 +5,7 @@ import test from 'node:test';
 import { fnv1a, jsonCanonique, octetsUtf8, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, nouvellePalette } from '../src/edition';
-import { ECART_ENTRE_CADRES, dessinerLaPlanche, dessinerLaRecetteRangee } from '../src/ecriture/planche';
+import { ECART_ENTRE_CADRES, choisirLaPage, dessinerLaPlanche, dessinerLaRecetteRangee } from '../src/ecriture/planche';
 import { lirePlanche } from '../src/lecture';
 import { compterCalques, modeleDeCadre } from '../src/planche/modele';
 import { FauxFigma } from './figmaDeTest';
@@ -414,4 +414,78 @@ test('[PLA-04] un dessin qui ne remplace que des cadres rangés ailleurs, ou qui
   figma.page('Archives').enfants[0].appendChild(note);
   assert.equal((await dessiner(figma, [BLEU])).issue, 'etrangers');
   assert.deepEqual(figma.root.enfants.filter((page) => !page.removed).map((page) => page.name), ['Page 1', 'Archives']);
+});
+
+test('[PLA-29] choisir une page du fichier la range et y déplace les cadres possédés, à 200 px l’un de l’autre, sous un seul commitUndo', async () => {
+  const figma = new FauxFigma(['Page 1', 'Design system']);
+  await dessiner(figma, [BLEU, AMBRE]);
+  const [bleu, ambre] = cadres(figma);
+  const cible = figma.page('Design system');
+  cible.charge = false;
+  figma.journal.length = 0;
+
+  const issue = await choisirLaPage(figma.api(), { page: { id: cible.id } });
+  assert.deepEqual(issue, { issue: 'choisie', page: cible.id, nom: 'Design system', deplaces: 2 });
+  assert.deepEqual(cible.enfants, [bleu, ambre]);
+  assert.deepEqual(cadres(figma), []);
+  assert.deepEqual([bleu.x, bleu.y, ambre.x, ambre.y], [0, 0, bleu.width + ECART_ENTRE_CADRES, 0]);
+  assert.deepEqual(lirePlanche(figma.root), { version: 2, page: cible.id, cadres: { [BLEU.id]: bleu.id, [AMBRE.id]: ambre.id } });
+  assert.equal(figma.journal.filter((ligne) => ligne === 'commitUndo').length, 1);
+  assert.ok(figma.journal.indexOf('charger Design system') < figma.journal.indexOf('commitUndo'), figma.journal.join(' | '));
+
+  // Un cadre neuf se pose ensuite sur la page choisie, et aucune page « Palettes » ne se recrée.
+  await dessiner(figma, [VERT]);
+  assert.equal(cible.enfants.length, 3);
+  assert.equal(figma.root.enfants.filter((page) => page.name.startsWith('Palettes')).length, 1);
+});
+
+test('[PLA-29] choisir une page à créer la crée à ce nom ; un nom vide ou déjà pris n’écrit rien', async () => {
+  const figma = new FauxFigma();
+  await dessiner(figma, [BLEU]);
+  const [bleu] = cadres(figma);
+  const avant = figma.root.getSharedPluginData('ucm_palettes', 'planche');
+  figma.journal.length = 0;
+
+  assert.deepEqual(await choisirLaPage(figma.api(), { page: { nom: ' Palettes ' } }), { issue: 'nom-pris', nom: 'Palettes' });
+  assert.deepEqual(await choisirLaPage(figma.api(), { page: { nom: '   ' } }), { issue: 'nom-vide' });
+  assert.deepEqual(await choisirLaPage(figma.api(), { page: { id: 'n:inconnu' } }), { issue: 'page-introuvable' });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'planche'), avant);
+  assert.deepEqual(figma.journal.filter((ligne) => ligne === 'commitUndo' || ligne === 'créer page'), []);
+
+  const issue = await choisirLaPage(figma.api(), { page: { nom: 'Couleurs' } });
+  const cible = figma.page('Couleurs');
+  assert.deepEqual(issue, { issue: 'choisie', page: cible.id, nom: 'Couleurs', deplaces: 1 });
+  assert.deepEqual(cible.enfants, [bleu]);
+});
+
+test('[PLA-29] [PLA-25] une copie ne bouge pas, et un cadre déjà rangé dans une section de la page choisie garde sa place', async () => {
+  const figma = new FauxFigma(['Page 1', 'Couleurs']);
+  await dessiner(figma, [BLEU, AMBRE]);
+  const [bleu, ambre] = cadres(figma);
+  const copie = figma.createFrame();
+  figma.page('Palettes').appendChild(copie);
+  for (const cle of ['cadre', 'proprietaire', 'empreinte']) copie.setSharedPluginData('ucm_palettes', cle, bleu.getSharedPluginData('ucm_palettes', cle));
+  const cible = figma.page('Couleurs');
+  const section = figma.section(cible);
+  section.appendChild(ambre);
+  ambre.x = 77;
+
+  const issue = await choisirLaPage(figma.api(), { page: { id: cible.id } });
+  assert.equal(issue.issue === 'choisie' && issue.deplaces, 1);
+  assert.deepEqual(cadres(figma), [copie]);
+  assert.equal(ambre.parent, section);
+  assert.equal(ambre.x, 77);
+  assert.equal(bleu.parent, cible);
+});
+
+test('[PLA-29] V8.8 : un suivi d’une version plus récente refuse le choix de la page avant toute écriture', async () => {
+  const figma = new FauxFigma(['Page 1', 'Couleurs']);
+  await dessiner(figma, [BLEU]);
+  const futur = JSON.stringify({ version: 3, page: figma.page('Palettes').id, cadres: {} });
+  figma.root.setSharedPluginData('ucm_palettes', 'planche', futur);
+  figma.journal.length = 0;
+  assert.deepEqual(await choisirLaPage(figma.api(), { page: { id: figma.page('Couleurs').id } }), { issue: 'suivi-futur' });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'planche'), futur);
+  assert.equal(cadres(figma).length, 1);
+  assert.deepEqual(figma.journal, []);
 });

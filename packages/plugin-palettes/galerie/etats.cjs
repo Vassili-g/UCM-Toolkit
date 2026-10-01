@@ -37,7 +37,7 @@ const {
 const { modeleDeCadre } = compiler(path.resolve(__dirname, '../src/planche/modele.ts'), 'galerie-modele');
 
 /** Une planche sans page, avant tout dessin. */
-const PLANCHE_VIDE = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false };
+const PLANCHE_VIDE = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false, pages: [{ id: '0:1', nom: 'Page 1', cadres: 0 }] };
 
 /** L'état que le sandbox envoie pour un texte rangé sous la clé de la recette, en réponse à la demande `demande`. */
 function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1) {
@@ -104,12 +104,21 @@ const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_
 const ouvrirLaPlanche = { clic: '#onglet-gestion' };
 const ouvrirLaVerification = { clic: '#onglet-verification' };
 
-/** Le designer choisit un fichier de recette dans l'onglet Palettes. */
+/** Le designer choisit un fichier de recette dans l'onglet Gestion. */
 const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
 
 const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
-/** Le premier geste de la première fiche de l'onglet Palettes, qui doit être ouvert. */
+/** Le geste de la ligne « Planche » de la première fiche qui en demande un, dans l'onglet Gestion ouvert. */
 const dessinerLaPalette = { clic: '#panneau-gestion .fiche-planche [data-geste="generer"]' };
+/** « Tout mettre à jour », dans le bilan du bloc « Connexion à Figma ». */
+const toutMettreAJour = { clic: '#panneau-gestion [data-geste="tout-mettre-a-jour"]' };
+/** Les pages d'un fichier dont la planche porte deux cadres. */
+const PAGES_DU_FICHIER = [{ id: '0:1', nom: 'Cover', cadres: 0 }, { id: '12:1', nom: 'Design system', cadres: 0 }, { id: PAGE_DE_LA_PLANCHE, nom: 'Palettes', cadres: 2 }];
+/** Bleu à jour, Jaune périmée, Ardoise jamais dessinée, dans un fichier de trois pages. */
+const gestionDeTroisPalettes = () => etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue(
+  [cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })],
+  { pages: PAGES_DU_FICHIER },
+));
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
 const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)' };
 
@@ -452,20 +461,20 @@ const ETATS = [
   {
     id: 'confirmation-six-palettes',
     titre: 'Confirmation au-delà de six palettes',
-    quand: 'Le designer clique « Actualiser tout (7 palettes) » sur un fichier de sept palettes jamais générées.',
-    regarder: 'La confirmation qui compte les palettes et les calques, sous les fiches, et ses deux gestes.',
+    quand: 'Le designer clique « Tout mettre à jour (7) » sur un fichier de sept palettes jamais générées.',
+    regarder: 'La confirmation qui compte les palettes et les calques, sous le bloc « Connexion à Figma », et ses deux gestes.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(SEPT_PALETTES)),
       { clic: '#onglet-gestion' },
-      { clic: '#panneau-gestion .creation-ligne .btn' },
+      toutMettreAJour,
     ],
   },
   {
     id: 'planche-sans-palette',
-    titre: 'Onglet Palettes sans palette',
-    quand: 'Le designer ouvre l’onglet Palettes d’un fichier sans palette.',
-    regarder: 'Le texte qui dit qu’il n’y a rien à dessiner, et le geste vers l’onglet Création.',
+    titre: 'Onglet Gestion sans palette',
+    quand: 'Le designer ouvre l’onglet Gestion d’un fichier sans palette.',
+    regarder: 'Le bloc « Connexion à Figma » sans bilan, la page « Palettes » à créer ; « Palettes du plugin · 0 » ; le texte qui dit qu’il n’y a rien à dessiner, et le geste vers l’onglet Création.',
     existe: true,
     atteinte: [etatDuFichier(''), { clic: '#onglet-gestion' }],
   },
@@ -486,7 +495,7 @@ const ETATS = [
     id: 'pastilles-des-etats',
     titre: 'Pastilles des cinq états',
     quand: 'Cinq palettes : Bleu à jour, Jaune périmée, Ardoise jamais générée, Rouge au cadre introuvable, Vert au cadre illisible.',
-    regarder: 'Les pastilles : « À jour » sur fond vert ; « À actualiser » et « Pas encore sur Figma » en orange ; « Cadre introuvable » et « Lecture impossible » en rouge. Chaque texte lisible sur son fond.',
+    regarder: 'Les pastilles des lignes « Planche » : « À jour » sur fond vert ; « À actualiser » et « Pas encore créée » en orange ; « Introuvable » et « Lecture impossible » en rouge. En tête de fiche, « Synchronisée » en vert, « À mettre à jour » et « Pas encore sur Figma » en orange. La planche introuvable invite à synchroniser et n’offre aucun geste. Chaque texte lisible sur son fond.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(CINQ_ETATS), 'SRGB', plancheLue(
@@ -500,7 +509,7 @@ const ETATS = [
     id: 'planche-a-jour',
     titre: 'Planche à jour',
     quand: 'Bleu et Jaune ont été dessinées, et la recette n’a pas changé depuis.',
-    regarder: 'Deux fiches « À jour », chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis « Afficher » et « Modifier » sans premier geste ; en pied, « Générer tout (2 palettes) » seul.',
+    regarder: 'Le bilan « 2 synchronisées », sans « Tout mettre à jour ». Deux fiches « Synchronisée », « Modifier » dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')])),
@@ -511,7 +520,7 @@ const ETATS = [
     id: 'planche-perimee',
     titre: 'Planche périmée',
     quand: 'Le cadre de Jaune a été dessiné sur une recette d’avant ; Ardoise n’a jamais été dessinée.',
-    regarder: 'Bleu « À jour » sans premier geste ; Jaune « À actualiser », « Actualiser sur Figma » en bleu puis « Afficher » et « Modifier », tous trois de 24 px ; Ardoise « Pas encore sur Figma » en orange, « Générer sur Figma » et « Modifier » sans « Afficher » ; en pied, « Actualiser tout (2 palettes) » et « Générer tout (3 palettes) », détachés des fiches.',
+    regarder: 'Le bilan « 1 à mettre à jour », « 1 pas encore sur Figma », « 1 synchronisée » et « Tout mettre à jour (2) ». Bleu « Synchronisée », sa planche « À jour » avec « Afficher » ; Jaune « À mettre à jour », sa planche « À actualiser » avec « Actualiser » et « Afficher », de 24 px ; Ardoise « Pas encore sur Figma », sa planche « Pas encore créée » avec « Créer la planche ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
@@ -519,10 +528,50 @@ const ETATS = [
     ],
   },
   {
+    id: 'gestion-complete',
+    titre: 'Gestion, vue complète',
+    quand: 'Trois palettes dans un fichier de trois pages : Bleu à jour, Jaune périmée, Ardoise jamais dessinée.',
+    regarder: 'Le bloc « Connexion à Figma », gris et sans fond : « Synchronisé à l’instant », « Synchroniser » en texte gris à icône, la ligne « Planches », « page Palettes » et « Changer », puis le bilan et « Tout mettre à jour (2) ». 20 px de plus avant la barre « Palettes du plugin · 3 », ses bascules « Vue complète · Vue condensée » et Light, Dark. Une fiche par palette, sa pastille et « Modifier » en tête, sa ligne « Planche » en pied.',
+    existe: true,
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche],
+  },
+  {
+    id: 'gestion-condensee',
+    titre: 'Gestion, vue condensée',
+    quand: 'Le designer presse « Vue condensée » sur le même fichier.',
+    regarder: 'Le bloc de la connexion sans « Tout mettre à jour » ; la bascule des thèmes absente ; un tableau sous ses en-têtes « Palette », « Nuances » et « Planche » : une ligne par palette, sa teinte et son nom, sa rampe en miniature, l’état de sa planche. Aucun geste.',
+    existe: true,
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '#panneau-gestion [data-bascule="vue"] .bascule-option:nth-child(2)' }],
+  },
+  {
+    id: 'gestion-page-des-planches',
+    titre: 'Gestion : la page des planches',
+    quand: 'Le designer clique « Changer » sur la ligne « Planches ».',
+    regarder: 'La carte « Page des planches » à la place du bloc, grise et sans fond ; la liste sur un fond gris plus foncé : Cover, Design system, Palettes cochée avec « 2 planches », puis « Nouvelle page » et son champ ; « Annuler » et « Enregistrer » au bord droit, « Enregistrer » inactif ; le focus sur la page cochée.',
+    existe: true,
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '#panneau-gestion [data-geste="changer-la-page"]' }],
+  },
+  {
+    id: 'page-des-planches-refusee',
+    titre: 'Gestion : un nom de page déjà pris',
+    quand: 'Le designer saisit « Palettes » comme nom de page neuve, puis enregistre : une page du fichier porte ce nom.',
+    regarder: 'La carte restée ouverte, « Nouvelle page » cochée, et sous la liste le message qui nomme la page et propose de la choisir dans la liste ou de donner un autre nom.',
+    existe: true,
+    // L'ouverture de l'onglet relit l'état (demande 2) : le choix de la page porte la demande 3.
+    atteinte: [
+      gestionDeTroisPalettes(),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="changer-la-page"]' },
+      { saisie: { dans: '#panneau-gestion .choix .input', valeur: 'Palettes' } },
+      { clic: '#panneau-gestion [data-geste="enregistrer"]' },
+      { message: { type: 'page-choisie', demande: 3, issue: { issue: 'nom-pris', nom: 'Palettes' } } },
+    ],
+  },
+  {
     id: 'palette-supprimee',
     titre: 'Palette supprimée',
     quand: 'Les palettes Ardoise et Rouge ont été supprimées ; leurs cadres sont restés dans Figma.',
-    regarder: 'Une carte par palette supprimée sous les gestes de génération, d’un orange proche du fond de la page : son nom, sa phrase, « Afficher dans Figma » et « Supprimer définitivement », de la hauteur des gestes des fiches.',
+    regarder: 'Une carte par palette supprimée sous les fiches, d’un orange proche du fond de la page : son nom, sa phrase, « Afficher dans Figma » et « Supprimer définitivement », de la hauteur des gestes des fiches.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), ...CADRES_SUPPRIMES])),
@@ -556,7 +605,7 @@ const ETATS = [
   {
     id: 'calques-etrangers',
     titre: 'Calques étrangers',
-    quand: 'Le designer a posé une note et une flèche dans le cadre périmé de Bleu, puis clique « Actualiser sur Figma ».',
+    quand: 'Le designer a posé une note et une flèche dans le cadre périmé de Bleu, puis clique « Actualiser » sur la ligne « Planche ».',
     regarder: 'La confirmation qui nomme les deux calques, et ses gestes « Redessiner quand même » et « Annuler ».',
     existe: true,
     atteinte: [
@@ -639,7 +688,7 @@ const ETATS = [
     id: 'generation-reussie',
     titre: 'Génération réussie',
     quand: 'Bleu vient d’être générée depuis sa fiche, et l’état du fichier est relu.',
-    regarder: 'La fiche de Bleu « À jour », sans premier geste, avec « Afficher » et « Modifier », sans message de succès empilé.',
+    regarder: 'La fiche de Bleu « Synchronisée », sa planche « À jour » avec « Afficher », sans message de succès empilé.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU])),
@@ -709,13 +758,13 @@ const ETATS = [
     id: 'generation-partielle',
     titre: 'Génération partielle',
     quand: 'Sur trois palettes, la deuxième s’arrête : la première est créée, la troisième attend.',
-    regarder: 'Le bloquant en tête de l’onglet Palettes : Jaune interrompue, Bleu conservée, Ardoise en attente, et « Réessayer », qui reprend à Jaune.',
+    regarder: 'Le bloquant sous le bloc « Connexion à Figma » : Jaune interrompue, Bleu conservée, Ardoise en attente, et « Réessayer », qui reprend à Jaune.',
     existe: true,
     // L'ouverture de l'onglet relit l'état (demande 2) : la génération porte la demande 3.
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES)),
       ouvrirLaPlanche,
-      { clic: '#panneau-gestion .creation-ligne .btn' },
+      toutMettreAJour,
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'interrompue', palette: JAUNE.id, message: 'in set_characters: font not loaded', dessines: 1 } } },
     ],
   },
@@ -723,7 +772,7 @@ const ETATS = [
     id: 'cadre-deplace',
     titre: 'Cadre déplacé',
     quand: 'Le designer a rangé le cadre de Bleu dans une section de la page « Archives », et coupé puis collé celui de Jaune, qui change alors d’identifiant.',
-    regarder: 'Bleu « À jour · Page « Archives » » avec « Afficher dans Figma », Jaune « Cadre introuvable » en rouge, et la notice qui dit que la recherche s’est bornée à la page « Palettes », avec « Chercher dans tout le fichier ».',
+    regarder: 'La planche de Bleu « À jour », « page Archives », avec « Afficher » ; celle de Jaune « Introuvable » en rouge, « Synchronisez pour la chercher dans tout le fichier », sans geste ; le bilan « 1 à mettre à jour », « 1 synchronisée », sans « Tout mettre à jour ».',
     existe: true,
     atteinte: [
       etatDuFichier(
