@@ -50,17 +50,11 @@ test('[VER-10] [VER-11] les alertes qui comparent les intensités se lisent prè
   );
 });
 
-test('[VER-15] des profils confondus mènent aux intensités de la palette si elle a les siennes, sinon aux intensités communes', () => {
-  const alerte: Alerte = { code: 'profils-confondus', palette: BLEU.id, crans: [], seuil: 0.02 };
-  assert.deepEqual(ciblesDeLAlerte(alerte, BLEU), ['intensites-communes']);
-  assert.deepEqual(ciblesDeLAlerte(alerte, { ...BLEU, parts: { soft: 0.3, vivid: 0.9, origine: 'designer' } }), ['intensites-palette']);
-  assert.deepEqual(ciblesDeLAlerte({ code: 'fond-hors-courbe', mode: 'light', clarte: 0.9, cran: 0.975 }, BLEU), ['fonds']);
-});
-
-test('[VER-11] [ENT-11] des profils confondus sous une palette de base forcée mènent aux intensités de la palette', () => {
-  const alerte: Alerte = { code: 'profils-confondus', palette: BLEU.id, crans: [], seuil: 0.02 };
-  assert.deepEqual(ciblesDeLAlerte(alerte, { ...BLEU, base: 'vivid' }), ['intensites-palette']);
-  assert.deepEqual(ciblesDeLAlerte(alerte, BLEU), ['intensites-communes']);
+test('[VER-15] chaque alerte ouvre le réglage de sa cause : des profils confondus, la saturation de la palette', () => {
+  assert.deepEqual(ciblesDeLAlerte({ code: 'profils-confondus', palette: BLEU.id, crans: [], seuil: 0.02 }), ['saturation-palette']);
+  assert.deepEqual(ciblesDeLAlerte({ code: 'reference-plus-terne', palette: BLEU.id, part: 0.2, partSoft: 0.45 }), ['intensites-palette']);
+  assert.deepEqual(ciblesDeLAlerte({ code: 'palettes-proches', palettes: [BLEU.id, 'p-0000000b'], distance: 0.03, seuil: 0.05 }), ['reference']);
+  assert.deepEqual(ciblesDeLAlerte({ code: 'fond-hors-courbe', mode: 'light', clarte: 0.9, cran: 0.975 }), ['fonds']);
 });
 
 test('[UI-04] les accolades se déduisent de la table des emplois : deux lignes, des libellés qui ne se chevauchent pas', () => {

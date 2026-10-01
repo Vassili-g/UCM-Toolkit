@@ -8,6 +8,7 @@ import { nouvellePalette } from '../src/edition';
 
 import type { GroupeDePromesses } from '../src/presentation';
 import {
+  LIBELLES_DES_CIBLES,
   TEXTES_DES_GARANTIES,
   consequenceSurLaPlanche,
   constatDAlerte,
@@ -113,12 +114,20 @@ test('[VER-09] chaque alerte a ses trois parties, où, quoi et geste', () => {
   }
 });
 
-test('[VER-08] la mesure d’une proximité et son unité quittent le titre et l’action pour les mesures', () => {
-  for (const code of ['profils-confondus', 'palettes-proches'] as const) {
-    const constat = constatDAlerte(ALERTES[code], CONTEXTE);
-    assert.ok(!/ΔEok/.test(constat.ou + constat.quoi + constat.geste), code);
-    assert.match(constat.mesures?.[0] ?? '', /ΔEok/);
+test('[VER-08] une alerte ne donne aucune ligne de mesure : une proximité se lit sans ΔEok', () => {
+  for (const alerte of Object.values(ALERTES)) {
+    const constat = constatDAlerte(alerte, CONTEXTE);
+    assert.equal(constat.mesures, undefined, alerte.code);
+    assert.ok(!/ΔEok/.test(constat.ou + constat.quoi + constat.geste), alerte.code);
   }
+});
+
+test('[VER-15] le geste d’une alerte cite la carte que son lien ouvre', () => {
+  const geste = (code: Alerte['code']) => constatDAlerte(ALERTES[code], CONTEXTE).geste;
+  for (const code of ['profils-confondus', 'reference-plus-terne', 'reference-plus-vive'] as const) assert.match(geste(code), /« Réglage global »/, code);
+  assert.match(geste('fond-hors-courbe'), /« Couleurs de fond »/);
+  assert.match(geste('palettes-proches'), /couleur de référence/);
+  assert.equal(LIBELLES_DES_CIBLES['saturation-palette'], 'Ajuster la saturation');
 });
 
 test('un fond hors de la courbe nomme son thème et son hexa', () => {

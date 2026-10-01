@@ -33,7 +33,7 @@ function construireVues(i18n: Localisation) {
       message: {
         severite: severiteDeLAlerte(alerte),
         constat: constatDAlerte(alerte, contexte),
-        cibles: ciblesDeLAlerte(alerte, palette),
+        cibles: ciblesDeLAlerte(alerte),
         compte: 1,
       } satisfies Message,
     }));

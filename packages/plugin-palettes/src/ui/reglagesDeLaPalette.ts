@@ -65,6 +65,8 @@ export interface ReglagesDeLaPaletteUi {
   afficher(recette: Recette, palette: Palette, messages: readonly Message[], ouverte: boolean): void;
   /** Focalise le premier contrôle, quand un message y mène ([VER-15]). */
   ouvrir(): void;
+  /** Focalise la réglette de saturation, pour des profils presque identiques ([VER-15]). */
+  focaliserLaSaturation(): void;
 }
 
 export interface GestesDesReglages {
@@ -414,6 +416,9 @@ function construireVues(i18n: Localisation) {
       element,
       ouvrir() {
         (cible.hidden ? rangees[0].reglette.curseur : boutonsDeCible[0].bouton).focus();
+      },
+      focaliserLaSaturation() {
+        rangees.find(({ grandeur }) => grandeur === 'saturation')?.reglette.curseur.focus();
       },
       afficher(recette, palette, messagesDesReglages, ouverteLue) {
         if (courante?.id !== palette.id) {

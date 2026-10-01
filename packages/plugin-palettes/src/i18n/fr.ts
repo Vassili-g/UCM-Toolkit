@@ -166,13 +166,13 @@ export function titreDeGroupe(titre: string, nombre: number): string {
 
 /** Le libellé du lien qu'un message pose vers un réglage ([VER-15]). */
 export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
-  reference: 'Couleur de référence',
-  // Le nom de la carte qui règle la saturation des profils (Z10.6, N147).
-  'intensites-palette': 'Réglage global',
-  derive: 'Color shift',
-  'luminosite-commune': 'Luminosité des nuances',
-  fonds: 'Couleurs de fond',
-  'intensites-communes': 'Intensités communes',
+  reference: 'Changer la couleur de référence',
+  'saturation-palette': 'Ajuster la saturation',
+  'intensites-palette': 'Ajuster le réglage global',
+  derive: 'Ajuster le Color shift',
+  'luminosite-commune': 'Ajuster la luminosité des nuances',
+  fonds: 'Changer les couleurs de fond',
+  'intensites-communes': 'Ajuster les intensités communes',
   'ajuster-reference': 'Ajuster la référence',
 };
 
@@ -861,19 +861,18 @@ const referenceLue = (contexte: ContexteDAlerte, id: string): string =>
   contexte.recette.palettes.find((palette) => palette.id === id)?.reference ?? '';
 
 /**
- * Une alerte de la section 11.3. Le titre et l'action ne portent aucune
- * mesure : la mesure et son unité se lisent dans `mesures`.
+ * Une alerte de la section 11.3 : où, quoi et le geste, qui cite la carte que
+ * son lien ouvre ([VER-15]). Une proximité ne donne pas sa mesure en ΔEok :
+ * le rapport exporté la garde ([VER-08]).
  */
 export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): ConstatIllustre {
   switch (alerte.code) {
     case 'profils-confondus': {
-      const plusProche = Math.min(...alerte.crans.map((cran) => cran.distance));
       const crans = alerte.crans.map((cran) => `${NOM_DU_MODE[cran.mode]} ${cran.cran}`).join(', ');
       return {
         ou: `${contexte.nomDe(alerte.palette)} : nuances ${crans}`,
         quoi: 'Soft et Vivid sont presque identiques sur ces nuances.',
         geste: 'Écartez les saturations de Soft et Vivid dans « Réglage global ».',
-        mesures: [`Écart le plus faible : ${ecrireArrondi(plusProche, 3)} ΔEok, pour un minimum de ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     }
     case 'palettes-proches':
@@ -881,7 +880,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         ou: `Palettes à comparer : ${contexte.nomDe(alerte.palettes[0])} et ${contexte.nomDe(alerte.palettes[1])}`,
         quoi: 'Les nuances 500, 600 et 700 de ces palettes sont très proches en Light.',
         geste: 'Changez une couleur de référence ou supprimez la palette en double.',
-        mesures: [`Écart moyen : ${ecrireArrondi(alerte.distance, 3)} ΔEok, pour un minimum de ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     case 'reference-plus-terne':
       return {
@@ -900,7 +898,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       return {
         ou: `Fond du thème ${NOM_DU_MODE[alerte.mode]} : ${contexte.recette.fonds[alerte.mode]}`,
         quoi: `Ce fond est ${sens} que la nuance 50. Luminosité : ${ecrireArrondi(alerte.clarte, 3)}, contre ${ecrireArrondi(alerte.cran, 3)}.`,
-        geste: 'Vérifiez les garanties. Si elles échouent, rapprochez le fond de la nuance 50 dans les réglages communs.',
+        geste: 'Vérifiez les garanties. Si elles échouent, rapprochez le fond de la nuance 50 dans « Couleurs de fond ».',
       };
     }
   }

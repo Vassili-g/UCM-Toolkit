@@ -1275,8 +1275,9 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
   Vivid l'emporte : la part d'une rampe unique est quelconque, et elle
   ressemble au profil le plus proche d'elle.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
-  change, et mène au réglage qui la lève. La mesure, sa valeur et le seuil se
-  lisent dans le détail et dans le rapport. Une référence grise, noire,
+  change, et mène au réglage qui la lève. Son message ne porte aucune ligne
+  de mesure : la valeur et le seuil se lisent dans le rapport
+  (`[VER-01]`). Une référence grise, noire,
   blanche ou hors de l'étendue de la liste ne produit aucun message : une
   palette peut partir de `#000000` ou de `#FFFFFF`. Sans parts du designer, le
   profil porteur a la part de la référence (`[ENT-11]`) : ni « Référence plus
@@ -1292,9 +1293,8 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
   les crans sonne pour 320 teintes, aux crans 50, 100 et 950. Bornée aux crans
   de la table, elle sonne encore pour 249 teintes : `surface` vise le cran 100,
   qui confond les deux profils sur 216 teintes en clair et 39 en sombre.
-  L'interface la montre près du réglage d'intensité qui peut la lever : celui
-  de la palette quand elle porte ses propres intensités, sinon celui des
-  Réglages communs. Les nuances concernées gardent un indice discret dans
+  L'interface la montre dans la carte « Réglage global » de la palette, et
+  son lien y focalise la réglette de saturation (`[VER-15]`). Les nuances concernées gardent un indice discret dans
   l'aperçu.
 
 ### 11.4 Sévérités et messages
@@ -1320,11 +1320,24 @@ comme sRGB (section 6.7), et le rapport garde le profil.
   intervention immédiate s'annonce par `role="alert"` : un blocage, jamais un
   mouvement de poignée.
 - `[VER-15]` Le geste d'un message est une cible typée, indépendante de sa
-  phrase : réglage global de la palette, Color shift, luminosité commune, fonds,
-  intensités communes. Une fonction de présentation la choisit selon la cause
-  connue et la portée du réglage ; le lien ouvre et focalise ce réglage, et le
-  retour garde la palette, le thème, la nuance choisie et la position de
-  lecture.
+  phrase. Une fonction de présentation la choisit selon la cause connue. Le
+  lien nomme le geste, ouvre la carte où il se fait, dépliée, et y focalise
+  le réglage ; le message cite la même carte que son lien. Depuis
+  Vérification, un lien vers un réglage de Création change d'onglet ; un lien
+  vers les Réglages communs garde Vérification, où le retour rend le focus
+  au lien. Le retour garde la palette, le thème, la nuance choisie et la
+  position de lecture.
+
+  | Le lien ouvre | Libellé |
+  |---|---|
+  | Création, « Réglage global », sur la réglette de saturation | Ajuster la saturation |
+  | Création, « Réglage global » | Ajuster le réglage global |
+  | Création, « Color shift » | Ajuster le Color shift |
+  | Création, le champ de la référence | Changer la couleur de référence |
+  | La modale « Ajuster la référence » | Ajuster la référence |
+  | Réglages communs, « Luminosité des nuances » | Ajuster la luminosité des nuances |
+  | Réglages communs, « Couleurs de fond » | Changer les couleurs de fond |
+  | Réglages communs, « Intensités communes » | Ajuster les intensités communes |
 
 ## 12. Le Color shift
 

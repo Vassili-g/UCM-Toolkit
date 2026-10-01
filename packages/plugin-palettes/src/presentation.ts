@@ -52,11 +52,14 @@ export function verdictDeLaPalette(analyse: AnalyseDePalette): Verdict {
 }
 
 /**
- * Le réglage qu'un message ouvre et focalise ([VER-15]). Les trois premiers
- * sont dans l'onglet Création, les trois derniers dans les Réglages communs.
+ * Le réglage qu'un message ouvre et focalise ([VER-15]). Les quatre premiers
+ * sont dans l'onglet Création, les trois suivants dans les Réglages communs.
+ * `saturation-palette` ouvre la carte « Réglage global » sur sa réglette de
+ * saturation, `intensites-palette` sur son premier contrôle.
  */
 export type CibleDAction =
   | 'reference'
+  | 'saturation-palette'
   | 'intensites-palette'
   | 'derive'
   | 'luminosite-commune'
@@ -138,15 +141,14 @@ export function ciblesDeLaPromesse(): CibleDAction[] {
 }
 
 /**
- * Le réglage qu'une alerte ouvre, selon sa cause et la portée du réglage. Une
- * palette aux intensités propres ne suit plus les intensités communes : le
- * geste utile est alors le sien.
+ * Le réglage qu'une alerte ouvre, selon sa cause. Des profils presque
+ * identiques s'écartent par la saturation de la palette, que ses intensités
+ * soient les siennes ou celles des Réglages communs.
  */
-export function ciblesDeLAlerte(alerte: Alerte, palette: Palette | null): CibleDAction[] {
+export function ciblesDeLAlerte(alerte: Alerte): CibleDAction[] {
   switch (alerte.code) {
     case 'profils-confondus':
-      // Une palette de base forcée garde l'intensité de sa référence : son geste utile est dans la palette.
-      return palette?.parts?.origine === 'designer' || palette?.base ? ['intensites-palette'] : ['intensites-communes'];
+      return ['saturation-palette'];
     case 'reference-plus-terne':
     case 'reference-plus-vive':
       return ['intensites-palette'];

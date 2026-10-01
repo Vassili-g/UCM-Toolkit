@@ -392,9 +392,10 @@ function construireVues(i18n: Localisation) {
         hexa.select();
       } else if (cible === 'ajuster-reference') {
         ouvrirLAjustement();
-      } else if (cible === 'intensites-palette') {
+      } else if (cible === 'intensites-palette' || cible === 'saturation-palette') {
         carteDesIntensites.ouvrir();
-        intensites.ouvrir();
+        if (cible === 'saturation-palette') intensites.focaliserLaSaturation();
+        else intensites.ouvrir();
       } else {
         carteDeLaDerive.ouvrir();
         if (carteDeLaDerive.estOuverte()) editeur.focaliser();

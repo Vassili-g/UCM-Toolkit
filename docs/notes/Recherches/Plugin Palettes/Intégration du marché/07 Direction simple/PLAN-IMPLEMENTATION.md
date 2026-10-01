@@ -60,7 +60,7 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.7.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.9.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
@@ -173,7 +173,7 @@ construit dessus.
   palette ouverte. Le pied garde sa ligne, son ton et son annonce
   `aria-live`. Réécrire `[UI-18]` dans la spécification et l'invariant
   « Interface d'UCM Palettes » d'AGENTS.md, qui citait le volet.
-- [ ] **P2.8** Les liens des messages. `src/presentation.ts` : ajouter la
+- [x] **P2.8** Les liens des messages. `src/presentation.ts` : ajouter la
   cible `saturation-palette`, qui ouvre la carte « Réglage global » et
   focalise la réglette de saturation ; `ciblesDeLAlerte` rend
   `['saturation-palette']` pour `profils-confondus`, dans tous les cas.
@@ -182,7 +182,7 @@ construit dessus.
   carte et la focalise ; vers les Réglages communs, le retour ramène à
   Vérification et rend le focus au lien (`[VER-15]`). Relire chaque message
   d'alerte de `fr.ts` et de `en.ts` : il cite la carte que son lien ouvre.
-- [ ] **P2.9** La ligne de mesure. Le constat d'une alerte ne porte plus
+- [x] **P2.9** La ligne de mesure. Le constat d'une alerte ne porte plus
   `mesures` : la ligne « Écart le plus faible : … ΔEok » quitte l'interface.
   `src/rapport.ts` garde l'écart et le minimum dans le rapport exporté ; s'il
   les lisait dans le constat, lui donner sa propre écriture. Tests :

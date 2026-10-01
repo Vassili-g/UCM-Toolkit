@@ -170,12 +170,13 @@ export function titreDeGroupe(titre: string, nombre: number): string {
 
 /** Le libellé du lien qu'un message pose vers un réglage ([VER-15]). */
 export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
-  reference: "Reference colour",
-  'intensites-palette': "Global adjustment",
-  derive: "Color shift",
-  'luminosite-commune': "Shade lightness",
-  fonds: "Background colours",
-  'intensites-communes': "Shared intensities",
+  reference: "Change reference colour",
+  'saturation-palette': "Adjust saturation",
+  'intensites-palette': "Edit global adjustment",
+  derive: "Adjust Color shift",
+  'luminosite-commune': "Adjust shade lightness",
+  fonds: "Change background colours",
+  'intensites-communes': "Adjust shared intensities",
   'ajuster-reference': "Adjust reference colour",
 };
 
@@ -864,19 +865,18 @@ const referenceLue = (contexte: ContexteDAlerte, id: string): string =>
   contexte.recette.palettes.find((palette) => palette.id === id)?.reference ?? '';
 
 /**
- * Une alerte de la section 11.3. Le titre et l'action ne portent aucune
- * mesure : la mesure et son unité se lisent dans `mesures`.
+ * Une alerte de la section 11.3 : où, quoi et le geste, qui cite la carte que
+ * son lien ouvre ([VER-15]). Une proximité ne donne pas sa mesure en ΔEok :
+ * le rapport exporté la garde ([VER-08]).
  */
 export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): ConstatIllustre {
   switch (alerte.code) {
     case 'profils-confondus': {
-      const plusProche = Math.min(...alerte.crans.map((cran) => cran.distance));
       const crans = alerte.crans.map((cran) => `${NOM_DU_MODE[cran.mode]} ${cran.cran}`).join(', ');
       return {
         ou: `${contexte.nomDe(alerte.palette)}: shades ${crans}`,
         quoi: "Soft and Vivid are almost identical at these shades.",
         geste: "Separate the Soft and Vivid saturation values in “Global adjustment”.",
-        mesures: [`Smallest difference: ${ecrireArrondi(plusProche, 3)} ΔEok, against a minimum of ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     }
     case 'palettes-proches':
@@ -884,7 +884,6 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
         ou: `Palettes to compare: ${contexte.nomDe(alerte.palettes[0])} and ${contexte.nomDe(alerte.palettes[1])}`,
         quoi: "Shades 500, 600 and 700 in these palettes are very similar in Light.",
         geste: "Change a reference colour or delete the duplicate palette.",
-        mesures: [`Average difference: ${ecrireArrondi(alerte.distance, 3)} ΔEok, against a minimum of ${ecrireArrondi(alerte.seuil, 2)} ΔEok`],
       };
     case 'reference-plus-terne':
       return {
@@ -903,7 +902,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       return {
         ou: `Background for ${NOM_DU_MODE[alerte.mode]} theme: ${contexte.recette.fonds[alerte.mode]}`,
         quoi: `This background is ${sens} than shade 50. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, against ${ecrireArrondi(alerte.cran, 3)}.`,
-        geste: "Check the guarantees. If any fail, move the background closer to shade 50 in the shared settings.",
+        geste: "Check the guarantees. If any fail, move the background closer to shade 50 in “Background colours”.",
       };
     }
   }
