@@ -9,6 +9,7 @@ import { ecrireLesVariables, rangerLaDestination, retirerLesVariables, type Figm
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import type { Destination } from '../src/variables/destination';
 import { etatDesTokens } from '../src/variables/etat';
+import { miseAJourDesTokens, simulationDeLaDestination, tokensDeLaPalette, variablesDesPalettesSupprimees } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi } from '../src/variables/suivi';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
@@ -331,4 +332,82 @@ test('[MOT-26] dans un document Display P3, les composantes écrites sont en P3,
   // Lues comme du sRGB, les composantes P3 ne redonnent pas l'hexa de la référence.
   assert.notEqual(hexa(figma, reference.nom), '#1E6FD9');
   assert.equal((await etat(figma, BLEU)).etat, 'a-jour');
+});
+
+// ------------------------------------------------------------ ce que Gestion en montre
+
+test('[UI-31] avant une première écriture, la fiche compte 44 variables à créer dans « primitives », et rien à remplacer', async () => {
+  const figma = fichier();
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const tokens = tokensDeLaPalette(RECETTE, BLEU, lu);
+  assert.equal(tokens.etat, 'jamais-ecrits');
+  assert.equal(tokens.variables, 44);
+  assert.equal(tokens.aCreer.length, 44);
+  assert.deepEqual([tokens.aCreer[0], tokens.aCreer[43]], ['colors/bleu/soft/light/50', 'colors/bleu/vivid/dark/950']);
+  assert.equal(tokens.aRemplacer, 0);
+  assert.equal(tokens.collection, 'primitives');
+});
+
+test('[UI-26] le compte d’une fiche est celui que l’écriture fait : créées et remplacées, palette à jour, changée, amputée, vers une autre destination', async () => {
+  const figma = fichier();
+  await ecrire(figma, [BLEU, GRIS]);
+  const compter = async (palette: Palette, recette: Recette = RECETTE) => {
+    const tokens = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+    return [tokens.etat, tokens.aCreer.length, tokens.aRemplacer];
+  };
+  assert.deepEqual(await compter(BLEU), ['a-jour', 0, 0]);
+
+  const changee = remplacerPalette(RECETTE, changerReference(RECETTE, BLEU, '#2563EB')!);
+  const [, , aRemplacer] = await compter(changee.palettes[0], changee);
+  ranger(figma, changee);
+  assert.deepEqual(await ecrire(figma, [BLEU], changee), [{ palette: BLEU.id, issue: 'ecrite', creees: 0, ecrites: aRemplacer }]);
+
+  figma.variable('colors/gris/light/50').remove();
+  assert.deepEqual(await compter(GRIS, changee), ['introuvables', 1, 0]);
+
+  const [collection] = [...figma.collections.values()];
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'colors', themes: 'modes' });
+  // En modes, la palette crée 11 variables neuves : les anciennes restent, hors du compte.
+  assert.deepEqual(await compter(GRIS, changee), ['introuvables', 11, 0]);
+  figma.limiteDeModes = 4;
+  assert.deepEqual(await ecrire(figma, [GRIS], changee), [{ palette: GRIS.id, issue: 'ecrite', creees: 11, ecrites: 22 }]);
+});
+
+test('[UI-28] « Tout mettre à jour » compte les palettes en retard, et exclut une palette modifiée dans Figma', async () => {
+  const figma = fichier();
+  await ecrire(figma, [BLEU]);
+  const retouchee = figma.variable('colors/bleu/soft/light/50');
+  retouchee.setValueForMode(retouchee.collection.defaultModeId, { r: 1, g: 0, b: 0, a: 1 });
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const tokens = new Map(RECETTE.palettes.map((palette) => [palette.id, tokensDeLaPalette(RECETTE, palette, lu)]));
+  assert.deepEqual(miseAJourDesTokens(RECETTE, tokens), { palettes: [GRIS.id], creees: 22, ecrites: 0, modifiees: 1 });
+});
+
+test('[UI-30] la simulation suit la destination : quatre groupes d’une colonne dans le chemin, deux groupes de deux colonnes en modes', () => {
+  const chemin = simulationDeLaDestination(RECETTE, { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' })!;
+  assert.deepEqual(chemin.colonnes, ['unique']);
+  assert.equal(chemin.variables, 44);
+  assert.deepEqual(chemin.groupes.map((groupe) => [groupe.chemin, groupe.lignes.length]), [
+    ['colors/bleu/soft/light', 11], ['colors/bleu/soft/dark', 11], ['colors/bleu/vivid/light', 11], ['colors/bleu/vivid/dark', 11],
+  ]);
+  const plan = planDesVariables(RECETTE, BLEU, { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' });
+  assert.deepEqual(chemin.groupes[0].lignes[0], { nuance: '50', valeurs: [plan[0].hexa] });
+
+  const modes = simulationDeLaDestination(RECETTE, { collection: { nom: 'primitives' }, groupe: '', themes: 'modes' })!;
+  assert.deepEqual(modes.colonnes, ['light', 'dark']);
+  assert.equal(modes.variables, 22);
+  assert.deepEqual(modes.groupes.map((groupe) => [groupe.chemin, groupe.lignes.length]), [['bleu/soft', 11], ['bleu/vivid', 11]]);
+  assert.deepEqual(modes.groupes[0].lignes[0], { nuance: '50', valeurs: [plan[0].hexa, plan[11].hexa] });
+  assert.equal(simulationDeLaDestination(VIDE, { collection: { nom: 'primitives' }, groupe: '', themes: 'modes' }), null);
+});
+
+test('[UI-35] une palette supprimée laisse ses variables : leur nombre et leur chemin commun, tant que le fichier les porte', async () => {
+  const figma = fichier();
+  await ecrire(figma, [BLEU, GRIS]);
+  const sansGris = supprimer(RECETTE, GRIS.id);
+  assert.deepEqual(variablesDesPalettesSupprimees(RECETTE, await lireLesVariablesDuFichier(api(figma))), []);
+  assert.deepEqual(variablesDesPalettesSupprimees(sansGris, await lireLesVariablesDuFichier(api(figma))), [{ palette: GRIS.id, variables: 22, chemin: 'colors/gris' }]);
+  ranger(figma, sansGris);
+  await retirerLesVariables(api(figma), { palette: GRIS.id });
+  assert.deepEqual(variablesDesPalettesSupprimees(sansGris, await lireLesVariablesDuFichier(api(figma))), []);
 });

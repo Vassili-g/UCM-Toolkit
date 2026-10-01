@@ -61,14 +61,14 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.3 et P5.5. P5.4 attend l'interface : un message n'entre dans
-`messages.ts` qu'avec l'état de galerie qui le met en scène.
+P5.1 à P5.13, P6.1 à P6.3.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
 vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
-de la phase 3 n'a tourné dans aucun navigateur : le typecheck, les tests
-unitaires et le build la tiennent seuls.
+des phases 3, 5 et 6 n'a tourné dans aucun navigateur : le typecheck, les
+tests unitaires et le build la tiennent seuls. Ce que Gestion compte et
+décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
 
 - Dette de tests d'interface : `node --test tests/interface/interface.test.mjs`
   donne des tests rouges, ceux qui visaient la carte des garanties dans
@@ -80,8 +80,9 @@ unitaires et le build la tiennent seuls.
   regroupe.
 - Les scénarios des états de galerie de Gestion sont écrits sans avoir été
   joués : `gestion-complete`, `gestion-condensee`,
-  `gestion-page-des-planches`, `page-des-planches-refusee`, et les états de
-  l'ancien onglet Palettes.
+  `gestion-page-des-planches`, `page-des-planches-refusee`, les états de
+  l'ancien onglet Palettes, et les treize états des tokens, de
+  `tokens-jamais-ecrits` à `variables-supprimees`.
 - `generer-maquettes-direction-simple.mjs` transformait l'ancien onglet
   Palettes pour dessiner M9 à M15. Il ne s'applique plus au DOM de Gestion :
   les maquettes rendues restent la référence, et le plugin construit les
@@ -106,6 +107,13 @@ unitaires et le build la tiennent seuls.
   foi. L'essai R4 ne se mesure pas sur le double : la lecture se fait à
   chaque `lire-etat`, à revoir si Figma dépasse 300 ms. Une variable créée
   naît sans portée, comme l'architecture le demande pour `primitives` (D14).
+- Écarts de l'interface des tokens : « Mettre à jour » ouvre l'encart de la
+  première écriture dès qu'il doit créer des variables ; « Tout mettre à
+  jour » demande toujours confirmation, et non au-delà de six palettes ; une
+  palette dont l'encart des couleurs changées est replié garde un geste
+  « Mettre à jour » qui le rouvre ; la carte d'une palette supprimée sans
+  cadre prend pour nom le chemin commun de ses variables, la recette ne
+  portant plus son nom.
 
 ## Arbitrages
 
@@ -386,7 +394,7 @@ Maquettes : M9 en entier, M11.
   Une erreur au milieu d'une palette retire les variables que cette écriture
   venait de créer pour elle ; les autres palettes continuent. Le résultat
   nomme, par palette, ce qui est créé, écrit, refusé et pourquoi.
-- [ ] **P5.4** `src/ecriture/variables.ts` : `rangerLaDestination(figma,
+- [x] **P5.4** `src/ecriture/variables.ts` : `rangerLaDestination(figma,
   destination)`, qui valide, range dans le suivi et marque `confirmee`.
   `code.ts` : portes `ecrire-variables` et `ranger-destination`.
   `src/messages.ts` : les demandes et les réponses, numérotées. `tests/
@@ -398,42 +406,42 @@ Maquettes : M9 en entier, M11.
   modifiée refusée sans choix, erreur au milieu, thèmes en modes, collection
   existante à deux modes, recette changée depuis la lecture, suivi futur, un
   seul `commitUndo`.
-- [ ] **P5.6** `src/ui/frontiere.ts` : une écriture de variables suit les
+- [x] **P5.6** `src/ui/frontiere.ts` : une écriture de variables suit les
   règles du dessin. Elle part après le rangement en vol, un refus l'abandonne,
   et rien ne s'écrit pendant un conflit.
-- [ ] **P5.7** La ligne « Tokens Figma » des fiches, par `sorties.ts`, avec
+- [x] **P5.7** La ligne « Tokens Figma » des fiches, par `sorties.ts`, avec
   les cinq états et leur détail : « 44 variables », « 6 couleurs ont changé
   dans le plugin », « 44 variables à créer ». La ligne « Tokens » du bloc de
   la connexion : la collection, le groupe et « Changer ». Le bilan et « Tout
   mettre à jour » comptent les deux sorties.
-- [ ] **P5.8** La première écriture (M11, bas). « Écrire dans les tokens »
+- [x] **P5.8** La première écriture (M11, bas). « Écrire dans les tokens »
   ouvre dans la fiche un encart : le nombre de variables, la collection, le
   premier et le dernier nom, « Annuler » et « Écrire N variables ». Tant que
   la destination n'est pas confirmée, le geste ouvre d'abord la carte de la
   destination. « Mettre à jour » écrit sans encart : il ne crée rien et
   n'écrase aucune valeur de Figma.
-- [ ] **P5.9** La carte « Destination des tokens » (M11), ouverte à la place
+- [x] **P5.9** La carte « Destination des tokens » (M11), ouverte à la place
   du bloc de la connexion. La collection en liste à choix unique : « Nouvelle
   collection » et son champ, puis chaque collection locale avec son nombre de
   variables. Le groupe et les thèmes sur une rangée. Aucun texte d'aide. La
   carte est grise, sans fond ; la liste et la simulation ont un fond gris
   plus foncé ; « Annuler » et « Enregistrer » au bord droit.
-- [ ] **P5.10** La simulation de la carte : la forme du panneau des variables
+- [x] **P5.10** La simulation de la carte : la forme du panneau des variables
   de Figma. Le nom de la collection, un groupe par rampe avec son compte, le
   premier groupe déplié sur ses trois premières nuances, couleur et hexa, puis
   « N autres nuances ». En modes, deux colonnes de valeur, Light et Dark. Elle
   se calcule par `planDesVariables` sur la première palette du plugin, et suit
   chaque choix sans rien ranger.
-- [ ] **P5.11** « Tout mettre à jour » : une confirmation qui compte les
+- [x] **P5.11** « Tout mettre à jour » : une confirmation qui compte les
   variables créées, les couleurs écrites et les planches dessinées, puis les
   variables, puis les planches. Une palette `modifies` en est exclue et le
   bilan le dit.
-- [ ] **P5.12** Une palette supprimée : sa carte, qui propose déjà de retirer
+- [x] **P5.12** Une palette supprimée : sa carte, qui propose déjà de retirer
   le cadre, propose aussi « Supprimer les variables… », geste `danger`
   confirmé. Porte `retirer-variables` : le sandbox ne retire que les variables
   du suivi de cette palette, quand la recette ne la contient plus ; un seul
   `commitUndo`. Tests sur le modèle de `tests/retrait.test.ts`.
-- [ ] **P5.13** États de galerie : `tokens-jamais-ecrits`, `tokens-a-jour`,
+- [x] **P5.13** États de galerie : `tokens-jamais-ecrits`, `tokens-a-jour`,
   `tokens-a-mettre-a-jour`, `tokens-introuvables`, `premiere-ecriture`,
   `destination-ouverte`, `destination-en-modes`, `nom-deja-pris`,
   `ecriture-partielle`, `palette-supprimee-avec-variables`. Tests d'interface
@@ -443,14 +451,14 @@ Maquettes : M9 en entier, M11.
 
 Maquette : M12.
 
-- [ ] **P6.1** L'état `modifies` dans la fiche : la ligne dit « Modifiés dans
+- [x] **P6.1** L'état `modifies` dans la fiche : la ligne dit « Modifiés dans
   Figma » et le nombre de couleurs ; un encart d'avertissement liste chaque
   couleur, son nom de variable, la valeur de Figma et celle du plugin, six au
   plus puis « Et N autres ».
-- [ ] **P6.2** « Remettre les couleurs du plugin » envoie `ecrire-variables`
+- [x] **P6.2** « Remettre les couleurs du plugin » envoie `ecrire-variables`
   avec le choix `remettre`. « Laisser les couleurs de Figma » replie l'encart
   pour la session, sans rien ranger : l'état reste « Modifiés dans Figma ».
-- [ ] **P6.3** Tests d'interface des deux choix, et état de galerie
+- [x] **P6.3** Tests d'interface des deux choix, et état de galerie
   `tokens-modifies`.
 
 ## Phase 7 : les palettes du fichier

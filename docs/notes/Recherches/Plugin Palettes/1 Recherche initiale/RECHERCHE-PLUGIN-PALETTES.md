@@ -1079,8 +1079,8 @@ toutes les nuances : ses cases ne sont pas des promesses.
   Aucune légende ne prend une couleur de la palette : seuls les spécimens et
   les grilles en portent.
 - `[PLA-24]` Le dessin se fait palette par palette, avec un message de
-  progression. Une génération groupée demande une confirmation au-delà de six
-  palettes. Interrompue, elle nomme les palettes déjà générées et celles qui
+  progression. « Tout mettre à jour » demande une confirmation
+  (`[UI-28]`). Interrompue, elle nomme les palettes déjà générées et celles qui
   attendent ; « Réessayer » reprend à la palette fautive. Elle ne s'annule pas
   en cours de route. Le lot 6 mesure le temps de dessin de douze palettes
   et revoit ce seuil ; au-delà de dix secondes pour douze, le dessin d'une
@@ -2151,9 +2151,10 @@ Onglet Gestion, vue complète :
   complète seulement, écrit les variables puis dessine les planches des N
   palettes en retard ou absentes. Une planche introuvable n'y entre qu'après
   une recherche sur toutes les pages. Une confirmation compte d'abord les
-  variables créées, les couleurs écrites et les planches dessinées
-  (`[PLA-24]`). Une palette « Modifiés dans Figma » en est exclue, et le
-  bilan le dit.
+  variables créées, les couleurs écrites et les planches dessinées, quel que
+  soit leur nombre. Une palette « Modifiés dans Figma » en est exclue, et la
+  confirmation le dit. Tant que la destination n'est pas confirmée, le geste
+  ouvre d'abord la carte de `[UI-30]`.
 - `[UI-29]` « Changer », sur la ligne « Planches », ouvre la carte « Page
   des planches » à la place du bloc de la connexion : une liste à choix
   unique, chaque page du fichier avec son nombre de planches, puis
@@ -2178,15 +2179,21 @@ Onglet Gestion, vue complète :
 - `[UI-31]` « Écrire dans les tokens » ouvre dans la fiche un encart : le
   nombre de variables, la collection, le premier et le dernier nom,
   « Annuler » et « Écrire N variables ». Tant que la destination n'est pas
-  confirmée, le geste ouvre d'abord la carte de `[UI-30]`. « Mettre à jour »
-  écrit sans encart : il ne crée rien et n'écrase aucune valeur changée dans
-  Figma.
+  confirmée, le geste ouvre d'abord la carte de `[UI-30]`, puis l'encart
+  quand elle est rangée. « Mettre à jour » écrit sans encart tant qu'il ne
+  crée rien, et n'écrase aucune valeur changée dans Figma. Quand il doit
+  créer des variables, après un changement de destination ou la disparition
+  d'une variable, il ouvre le même encart, qui compte aussi les couleurs
+  déjà écrites qu'il remplace. Ce que le sandbox refuse à une palette, un
+  nom déjà pris ou un mode refusé, se lit dans sa fiche jusqu'à l'écriture
+  suivante.
 - `[UI-32]` Une palette « Modifiés dans Figma » montre dans sa fiche un
   encart d'avertissement : chaque couleur changée, son nom de variable, la
   valeur de Figma et celle du plugin, six au plus puis « Et N autres ».
   « Remettre les couleurs du plugin » écrit avec le choix `remettre`
   (`[VAR-06]`). « Laisser les couleurs de Figma » replie l'encart pour la
-  session, sans rien ranger : l'état reste « Modifiés dans Figma ».
+  session, sans rien ranger : l'état reste « Modifiés dans Figma », et la
+  ligne offre « Mettre à jour », qui le rouvre.
 - `[UI-33]` Sous un filet, la liste « Déjà dans le fichier · N » montre les
   palettes que les variables du fichier portent et que le plugin n'a pas
   écrites (`[VAR-12]`) : une fiche en tirets, sans fond, l'étiquette
@@ -2209,7 +2216,8 @@ Onglet Gestion, vue complète :
   « Annuler » et « Remplacer N couleurs ».
 - `[UI-35]` Une palette supprimée dont le cadre ou des variables restent
   dans Figma garde sa carte (`[PLA-27]`), qui propose aussi « Supprimer les
-  variables… », geste `danger` confirmé (`[VAR-11]`). Sous les listes,
+  variables… », geste `danger` confirmé dans la carte (`[VAR-11]`). Sans
+  cadre, la carte porte le chemin commun des variables pour nom. Sous les listes,
   l'onglet range dans une section secondaire l'export et l'import des
   palettes et réglages et l'export du rapport.
 
@@ -2565,7 +2573,8 @@ Ce qui ne se prouve pas hors de Figma se rejoue à la main.
 Le plugin écrit chaque palette dans les variables de couleur du fichier, au
 geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
 `src/variables/` ; `src/ecriture/variables.ts` écrit, et
-`src/lectureDesVariables.ts` lit.
+`src/lectureDesVariables.ts` lit. `src/variables/gestion.ts` compte ce
+qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
 
 ### 17.1 La forme et la destination
 

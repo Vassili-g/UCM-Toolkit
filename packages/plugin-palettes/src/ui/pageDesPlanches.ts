@@ -63,6 +63,7 @@ function construireVues(i18n: Localisation) {
     pied.className = 'confirmation-gestes';
     pied.append(annuler, enregistrer);
 
+    carte.corps.classList.add('carte-aeree');
     carte.corps.append(champ, refus, pied);
 
     /** La page rangée à l'ouverture : la choisir de nouveau ne demande rien. */

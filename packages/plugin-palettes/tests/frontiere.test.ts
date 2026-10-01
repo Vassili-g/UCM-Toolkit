@@ -154,3 +154,52 @@ test('[PLA-29] un seul choix de page est en vol, aucun ne part pendant un confli
   assert.equal(frontiere.choisirLaPage({ id: '12:1' }), false, 'rien ne part pendant un conflit');
   assert.equal(envoyees.filter((demande) => (demande as { type: string }).type === 'choisir-page').length, 2);
 });
+
+test('[VAR-16] une écriture de variables suit les règles du dessin : après le rangement en vol, sur l’empreinte qu’il rend', () => {
+  const { frontiere, envoyees, etat, rangee } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  frontiere.ranger(AUTRE);
+  frontiere.ecrireLesVariables({ palettes: ['p-0000000a'], remettre: ['p-0000000a'] }, () => assert.fail('aucun abandon'));
+  frontiere.dessiner({ palettes: ['p-0000000a'], etrangersConfirmes: [] }, () => assert.fail('aucun abandon'));
+  assert.equal(envoyees.length, 2, 'l’écriture attend le rangement');
+  rangee(2, 'bbbbbbbb');
+  // Les variables partent avant le dessin.
+  assert.deepEqual(envoyees[2], { type: 'ecrire-variables', demande: 3, palettes: ['p-0000000a'], empreinteLue: 'bbbbbbbb', remettre: ['p-0000000a'] });
+  assert.equal((envoyees[3] as { type: string }).type, 'dessiner');
+  assert.equal(frontiere.accepterVariables({ type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [] } }), true);
+  assert.equal(frontiere.accepterVariables({ type: 'variables-ecrites', demande: 2, resultat: { issue: 'ecrites', palettes: [] } }), false);
+});
+
+test('[VAR-16] un rangement refusé abandonne l’écriture de variables qui l’attendait, et rien ne s’écrit pendant le conflit', () => {
+  const { frontiere, envoyees, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  frontiere.ranger(RECETTE);
+  let abandons = 0;
+  frontiere.ecrireLesVariables({ palettes: ['p-0000000a'], remettre: [] }, () => { abandons += 1; });
+  frontiere.recevoirRangement({ type: 'rangement', demande: 2, issue: { issue: 'modifiee-ailleurs' } });
+  assert.equal(abandons, 1);
+  frontiere.ecrireLesVariables({ palettes: ['p-0000000a'], remettre: [] }, () => { abandons += 1; });
+  assert.equal(abandons, 2);
+  assert.equal(frontiere.rangerLaDestination({ collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }), false);
+  assert.equal(frontiere.retirerLesVariables('p-0000000a'), false);
+  assert.deepEqual(envoyees.map((demande) => (demande as { type: string }).type), ['lire-etat', 'ranger-recette']);
+});
+
+test('[VAR-16] un seul rangement de destination est en vol, et le retrait des variables numérote sa demande', () => {
+  const { frontiere, envoyees, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  const destination = { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' } as const;
+  assert.equal(frontiere.rangerLaDestination(destination), true);
+  assert.equal(frontiere.rangerLaDestination(destination), false);
+  assert.deepEqual(envoyees[1], { type: 'ranger-destination', demande: 2, destination });
+  assert.equal(frontiere.accepterDestination({ type: 'destination-rangee', demande: 1, issue: { issue: 'suivi-futur' } }), false);
+  assert.equal(frontiere.accepterDestination({ type: 'destination-rangee', demande: 2, issue: { issue: 'rangee', destination } }), true);
+  assert.equal(frontiere.rangerLaDestination(destination), true);
+  assert.equal(frontiere.retirerLesVariables('p-0000000a'), true);
+  assert.deepEqual(envoyees[3], { type: 'retirer-variables', demande: 4, palette: 'p-0000000a' });
+  assert.equal(frontiere.accepterRetraitDesVariables({ type: 'variables-retirees', demande: 4, issue: { issue: 'retirees', retirees: 22 } }), true);
+  assert.equal(frontiere.accepterRetraitDesVariables({ type: 'variables-retirees', demande: 3, issue: { issue: 'refuse' } }), false);
+});

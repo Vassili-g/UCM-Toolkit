@@ -14,10 +14,12 @@ import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
+import type { IssueDeLaDestination, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
 import type { VueDeGestion } from './preferences';
+import type { Destination } from './variables/destination';
 
 /** Ce que l'interface demande au sandbox. */
 export type UiRequest =
@@ -51,9 +53,19 @@ export type UiRequest =
    * à créer, vers laquelle le sandbox déplace les cadres possédés ([PLA-29]).
    */
   | { type: 'choisir-page'; demande: number; page: { id: string } | { nom: string } }
+  /**
+   * Cinquième écriture : les variables des palettes nommées, depuis la
+   * recette rangée. `remettre` nomme les palettes dont le designer remet les
+   * couleurs que Figma a changées ([VAR-06], [VAR-07]).
+   */
+  | { type: 'ecrire-variables'; demande: number; palettes: string[]; empreinteLue: string | null; remettre: string[] }
+  /** Sixième écriture : la destination des tokens, rangée dans le suivi et confirmée ([VAR-16]). */
+  | { type: 'ranger-destination'; demande: number; destination: Destination }
+  /** Septième écriture : le retrait des variables d'une palette supprimée ([VAR-11]). */
+  | { type: 'retirer-variables'; demande: number; palette: string }
   | DemandeDeTaille;
 
-export type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin };
+export type { IssueDeLaDestination, IssueDeLaPage, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
@@ -75,4 +87,10 @@ export type PluginMessage =
   /** L'issue de « Supprimer définitivement », en réponse à `retirer-cadre`. */
   | { type: 'retrait'; demande: number; issue: IssueDuRetrait }
   /** L'issue de « Enregistrer » dans la carte « Page des planches », en réponse à `choisir-page`. */
-  | { type: 'page-choisie'; demande: number; issue: IssueDeLaPage };
+  | { type: 'page-choisie'; demande: number; issue: IssueDeLaPage }
+  /** Ce que l'écriture a fait de chaque palette, en réponse à `ecrire-variables`. */
+  | { type: 'variables-ecrites'; demande: number; resultat: ResultatDeLEcriture }
+  /** L'issue de « Enregistrer » dans la carte « Destination des tokens », en réponse à `ranger-destination`. */
+  | { type: 'destination-rangee'; demande: number; issue: IssueDeLaDestination }
+  /** L'issue de « Supprimer les variables… », en réponse à `retirer-variables`. */
+  | { type: 'variables-retirees'; demande: number; issue: IssueDuRetraitDesVariables };

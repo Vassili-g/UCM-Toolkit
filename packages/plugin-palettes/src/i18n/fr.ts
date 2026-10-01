@@ -36,7 +36,8 @@ import {
   type RegleRecette,
 } from 'ucm-couleur';
 
-import type { CibleDAction, EtatDeLaFiche, GroupeDePromesses, Verdict } from '../presentation';
+import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Verdict } from '../presentation';
+import type { RefusDeDestination } from '../variables/destination';
 
 export const TEXTES = {
   numeroDeNuance: (numero: number) => `nuance ${numero}`,
@@ -1230,11 +1231,6 @@ export function progressionDuDessin(fait: number, total: number, nom: string): s
   return total === 1 ? `Génération de « ${nom} »…` : `Palette ${fait + 1} sur ${total} : génération de « ${nom} »…`;
 }
 
-/** La confirmation avant de générer beaucoup de palettes ([PLA-24], D-I). */
-export function confirmationDuDessin(nombre: number): string {
-  return `Générer ${nombre} palettes ? Chaque palette peut ajouter plus de 1 500 calques.`;
-}
-
 /** Le blocage d'une police indisponible ([PLA-22]). */
 export function policeIndisponible(style: string): Constat {
   return {
@@ -1580,6 +1576,27 @@ export const TEXTES_DE_LA_GESTION = {
   introuvableSurLaPage: 'Synchronisez pour la chercher dans tout le fichier',
   introuvableDansLeFichier: 'Absente du fichier',
   illisible: 'Figma refuse de lire son cadre',
+  tokens: 'Tokens',
+  tokensFigma: 'Tokens Figma',
+  ecrireDansLesTokens: 'Écrire dans les tokens',
+  mettreAJour: 'Mettre à jour',
+  destinationChangee: 'La destination a changé',
+  destinationDesTokens: 'Destination des tokens',
+  collection: 'Collection',
+  nouvelleCollection: 'Nouvelle collection',
+  nomDeLaNouvelleCollection: 'Nom de la nouvelle collection',
+  collectionIntrouvable: 'collection introuvable',
+  groupe: 'Groupe',
+  themes: 'Thèmes Light et Dark',
+  dansLeChemin: 'Dans le chemin',
+  enModes: 'En modes',
+  simulation: 'Simulation',
+  valeur: 'Valeur',
+  remettre: 'Remettre les couleurs du plugin',
+  laisser: 'Laisser les couleurs de Figma',
+  aliasDansFigma: 'un alias dans Figma',
+  supprimerLesVariables: 'Supprimer les variables…',
+  variablesEnConflit: 'Exportez vos modifications ou rechargez les palettes avant d’écrire dans les tokens.',
 } as const;
 
 /** L'état de la planche d'une palette, dans sa ligne de sortie ([UI-26]). */
@@ -1682,4 +1699,192 @@ export function refusDeLaPage(issue: Exclude<IssueDeLaPage, { issue: 'choisie' |
         detail: issue.message,
       };
   }
+}
+
+/** L'état des tokens d'une palette, dans sa ligne de sortie ([UI-26], [VAR-05]). */
+export function etatDesTokensEcrit(etat: EtatDesTokens): string {
+  return {
+    'jamais-ecrits': 'Pas encore écrits',
+    'a-jour': 'À jour',
+    'a-mettre-a-jour': 'À mettre à jour',
+    modifies: 'Modifiés dans Figma',
+    introuvables: 'Introuvables',
+  }[etat];
+}
+
+const variables = (nombre: number): string => (nombre === 1 ? '1 variable' : `${nombre} variables`);
+const couleurs = (nombre: number): string => (nombre === 1 ? '1 couleur' : `${nombre} couleurs`);
+
+/** Le nombre de variables d'une palette à jour, ou d'une collection de la liste ([UI-26], [UI-30]). */
+export function nombreDeVariables(nombre: number): string {
+  return variables(nombre);
+}
+
+/** Ce qu'une première écriture, ou une écriture vers une autre destination, crée. */
+export function variablesACreer(nombre: number): string {
+  return `${variables(nombre)} à créer`;
+}
+
+/** Ce que le plugin a changé depuis la dernière écriture. */
+export function couleursChangeesDansLePlugin(nombre: number): string {
+  return nombre === 1 ? '1 couleur a changé dans le plugin' : `${nombre} couleurs ont changé dans le plugin`;
+}
+
+/** Ce que le designer a changé dans Figma depuis la dernière écriture ([VAR-06]). */
+export function couleursChangeesALaMain(nombre: number): string {
+  return nombre === 1 ? '1 couleur changée à la main' : `${nombre} couleurs changées à la main`;
+}
+
+/** Les variables du suivi que le fichier ne porte plus. */
+export function variablesDisparues(nombre: number): string {
+  return nombre === 1 ? '1 variable a disparu du fichier' : `${nombre} variables ont disparu du fichier`;
+}
+
+/** Le titre de l'encart d'une écriture qui crée des variables ([UI-31]). */
+export function titreDeLEcriture(nom: string): string {
+  return `Écrire ${nom} dans les tokens Figma ?`;
+}
+
+/** Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace ([UI-31]). */
+export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number): string {
+  const naissance = creees === 1
+    ? `1 variable de couleur sera créée dans la collection « ${collection} » : ${premier}.`
+    : `${creees} variables de couleur seront créées dans la collection « ${collection} », de ${premier} à ${dernier}.`;
+  const suite = remplacees === 0
+    ? 'Aucune variable existante n’est modifiée.'
+    : remplacees === 1 ? '1 couleur déjà écrite sera remplacée.' : `${remplacees} couleurs déjà écrites seront remplacées.`;
+  return `${naissance} ${suite}`;
+}
+
+/** Le bouton qui confirme l'écriture ([UI-31]). */
+export function ecrireNVariables(nombre: number): string {
+  return `Écrire ${variables(nombre)}`;
+}
+
+/** Le résumé de la simulation : ce que la destination donne pour une palette ([UI-30]). */
+export function resumeDeLaSimulation(nombre: number, modes: number): string {
+  return `${variables(nombre)} · ${modes === 1 ? '1 mode' : `${modes} modes`}`;
+}
+
+/** Les nuances que la simulation ne déplie pas ([UI-30]). */
+export function autresNuances(nombre: number): string {
+  return nombre === 1 ? '1 autre nuance' : `${nombre} autres nuances`;
+}
+
+/** Le titre de l'encart d'une palette « Modifiés dans Figma » ([UI-32]). */
+export function titreDesModifiees(nombre: number, nom: string): string {
+  return nombre === 1 ? `1 couleur de ${nom} n’est plus celle du plugin.` : `${nombre} couleurs de ${nom} ne sont plus celles du plugin.`;
+}
+
+export function valeurDansFigma(hexa: string): string {
+  return `${hexa} dans Figma`;
+}
+
+export function valeurDansLePlugin(hexa: string): string {
+  return `${hexa} dans le plugin`;
+}
+
+/** Les couleurs que l'encart ne liste pas ([UI-32]). */
+export function etNAutres(nombre: number): string {
+  return nombre === 1 ? 'Et 1 autre.' : `Et ${nombre} autres.`;
+}
+
+/** La confirmation de « Tout mettre à jour » : ce qu'elle écrit, et ce qu'elle laisse ([UI-28]). */
+export function confirmationDeLaMiseAJour(compte: { creees: number; ecrites: number; planches: number; modifiees: number }): string {
+  const parties = [
+    ...(compte.creees > 0 ? [`${variables(compte.creees)} à créer`] : []),
+    ...(compte.ecrites > 0 ? [`${couleurs(compte.ecrites)} à écrire`] : []),
+    ...(compte.planches > 0 ? [compte.planches === 1 ? '1 planche à dessiner' : `${compte.planches} planches à dessiner`] : []),
+  ];
+  const laissees = compte.modifiees === 0
+    ? ''
+    : compte.modifiees === 1 ? ' 1 palette modifiée dans Figma reste telle quelle.' : ` ${compte.modifiees} palettes modifiées dans Figma restent telles quelles.`;
+  return `Tout mettre à jour ? ${parties.join(', ')}.${laissees}`;
+}
+
+/** Un nom de variable déjà pris dans la collection ([VAR-08]). */
+export function nomDejaPris(palette: string, nom: string): Constat {
+  return {
+    ou: `Tokens non écrits : ${palette}`,
+    quoi: `La collection porte déjà une variable « ${nom} », que le plugin n’a pas écrite.`,
+    geste: 'Renommez la palette, ou changez le groupe de la destination des tokens.',
+  };
+}
+
+/** La collection de la destination a quitté le fichier ([VAR-09]). */
+export function collectionDisparue(palette: string): Constat {
+  return {
+    ou: `Tokens non écrits : ${palette}`,
+    quoi: 'La collection de la destination n’est plus dans le fichier.',
+    geste: 'Changez la destination des tokens, puis écrivez de nouveau.',
+  };
+}
+
+/** Figma a refusé un mode Light ou Dark ([VAR-10]). */
+export function modesRefuses(palette: string, message: string): ConstatIllustre {
+  return {
+    ou: `Tokens non écrits : ${palette}`,
+    quoi: 'Figma a refusé d’ajouter un mode Light ou Dark à la collection.',
+    geste: 'Choisissez « Dans le chemin » dans la destination des tokens, ou une collection qui porte déjà ces deux modes.',
+    detail: `Détail de l’erreur : ${message}`,
+  };
+}
+
+/** Figma a levé au milieu d'une palette ([VAR-07]). */
+export function ecritureInterrompue(palette: string, message: string): ConstatIllustre {
+  return {
+    ou: `Écriture interrompue : ${palette}`,
+    quoi: 'Figma a interrompu l’écriture. Les variables créées pour cette palette ont été retirées.',
+    geste: 'Écrivez de nouveau la palette.',
+    detail: `Détail de l’erreur : ${message}`,
+  };
+}
+
+/** La recette rangée a changé depuis la lecture : rien n'est écrit ([VAR-07]). */
+export function variablesSurUneAutreRecette(): Constat {
+  return {
+    ou: 'Les données du fichier ont changé',
+    quoi: 'Les palettes ou réglages ont changé. Écriture annulée : l’aperçu n’est plus à jour.',
+    geste: 'Rechargez les palettes, puis écrivez de nouveau.',
+  };
+}
+
+/** Un refus de « Enregistrer », dans la carte « Destination des tokens » ([VAR-16]). */
+export function refusDeLaDestination(refus: RefusDeDestination): Constat {
+  return {
+    collection: {
+      ou: 'Collection',
+      quoi: 'La collection n’a pas de nom, ou n’est plus dans le fichier.',
+      geste: 'Saisissez un nom, ou choisissez une collection de la liste.',
+    },
+    groupe: {
+      ou: 'Groupe',
+      quoi: 'Figma refuse « . », « { », « } » et un « $ » en tête dans un nom de variable.',
+      geste: 'Retirez ces caractères du groupe.',
+    },
+    themes: {
+      ou: 'Thèmes Light et Dark',
+      quoi: 'Aucun choix n’est fait.',
+      geste: 'Choisissez « Dans le chemin » ou « En modes ».',
+    },
+  }[refus];
+}
+
+/** Les textes des variables d'une palette supprimée ([UI-35], [VAR-11]). */
+export const TEXTES_DES_VARIABLES_SUPPRIMEES = {
+  texte: (nombre: number) => (nombre === 1
+    ? 'Palette supprimée du plugin. 1 variable de cette palette reste dans Figma.'
+    : `Palette supprimée du plugin. ${nombre} variables de cette palette restent dans Figma.`),
+  confirmation: (nombre: number) => `Supprimer ${variables(nombre)} de Figma ? Les calques qui les citent perdent cette liaison.`,
+  confirmer: (nombre: number) => `Supprimer ${variables(nombre)}`,
+  supprimees: (nombre: number) => (nombre === 1 ? '1 variable supprimée. Ctrl+Z dans Figma la rétablit.' : `${nombre} variables supprimées. Ctrl+Z dans Figma les rétablit.`),
+} as const;
+
+/** Le sandbox a refusé « Supprimer les variables… » : la recette porte de nouveau la palette ([VAR-11]). */
+export function suppressionDesVariablesRefusee(): Constat {
+  return {
+    ou: 'Variables non supprimées',
+    quoi: 'Le fichier a changé depuis la dernière lecture : cette palette n’est plus supprimée.',
+    geste: 'Synchronisez dans l’onglet Gestion.',
+  };
 }

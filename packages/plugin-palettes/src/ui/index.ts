@@ -10,6 +10,7 @@ import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { GroupeDeConfiguration } from '../configuration';
 import { LANGUES, resoudreLangue } from '../i18n/langues';
 import { lireLImport } from '../importation';
+import { VARIABLES_SANS_SUIVI } from '../lectureDesVariables';
 import type { PluginMessage } from '../messages';
 import { resoudreVue, type VueDeGestion } from '../preferences';
 import { consequenceDeLImport } from '../planche/fraicheur';
@@ -204,6 +205,10 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     synchroniser: () => relireLaPlanche('fichier'),
     choisirLaPage: (page) => frontiere.choisirLaPage(page),
     rangerLaVue: (choisie) => versSandbox({ type: 'ranger-vue', vue: choisie }),
+    // Un rangement refusé abandonne l'écriture qui l'attendait : l'onglet rend ses gestes.
+    ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
+    rangerLaDestination: (destination) => frontiere.rangerLaDestination(destination),
+    retirerLesVariables: (palette) => frontiere.retirerLesVariables(palette),
     retirer(palette, cadre) {
       const parti = frontiere.retirer(palette, cadre);
       if (parti) cadreEnRetrait = cadre;
@@ -262,7 +267,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
 
   function afficherLaPlanche(): void {
     if (!dernierEtat || onglets.actif() !== 'gestion') return;
-    ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte(), dernierEtatLe);
+    ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte(), dernierEtat.variables ?? VARIABLES_SANS_SUIVI, dernierEtatLe);
   }
 
   /*
@@ -444,6 +449,16 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     } else if (message.type === 'page-choisie' && frontiere.accepterPage(message)) {
       // Une page choisie a pu déplacer des cadres : l'état relu dit où ils sont.
       ongletGestion.recevoirPage(message.issue);
+      relireLaPlanche();
+    } else if (message.type === 'variables-ecrites' && frontiere.accepterVariables(message)) {
+      // L'onglet peut enchaîner sur le dessin des planches, qui relit l'état à sa fin ; sinon l'état se relit ici.
+      ongletGestion.recevoirVariables(message.resultat);
+      if (suivi.etat().phase !== 'en-cours') relireLaPlanche();
+    } else if (message.type === 'destination-rangee' && frontiere.accepterDestination(message)) {
+      ongletGestion.recevoirDestination(message.issue);
+      relireLaPlanche();
+    } else if (message.type === 'variables-retirees' && frontiere.accepterRetraitDesVariables(message)) {
+      ongletGestion.recevoirRetraitDesVariables(message.issue);
       relireLaPlanche();
     }
   };

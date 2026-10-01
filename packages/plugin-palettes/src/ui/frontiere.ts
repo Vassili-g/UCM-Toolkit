@@ -7,12 +7,13 @@
  * rangement décrirait la recette d'avant. Un seul rangement est en vol ; un
  * geste qui arrive pendant ce temps attend la réponse, puis part avec
  * l'empreinte qu'elle apporte. Après un refus, rien ne se range avant
- * « Recharger ». Un dessin part quand plus rien n'est à ranger : il se fait
- * sur la recette que l'aperçu montre.
+ * « Recharger ». Un dessin ou une écriture de variables part quand plus rien
+ * n'est à ranger : ils se font sur la recette que l'aperçu montre.
  */
 import type { Recette, Refus } from 'ucm-couleur';
 
 import type { PluginMessage, UiRequest } from '../messages';
+import type { Destination } from '../variables/destination';
 
 /** Ce que l'indication de rangement affiche. */
 export type StatutDuRangement = 'lu' | 'en-cours' | 'range' | 'refuse' | 'invalide';
@@ -21,6 +22,12 @@ export type StatutDuRangement = 'lu' | 'en-cours' | 'range' | 'refuse' | 'invali
 export interface DemandeDeDessin {
   readonly palettes: readonly string[];
   readonly etrangersConfirmes: readonly string[];
+}
+
+/** Ce qu'une écriture de variables demande : des palettes, et celles dont le designer remet les couleurs ([VAR-06]). */
+export interface DemandeDeVariables {
+  readonly palettes: readonly string[];
+  readonly remettre: readonly string[];
 }
 
 export interface Frontiere {
@@ -53,6 +60,23 @@ export interface Frontiere {
   choisirLaPage(page: { id: string } | { nom: string }): boolean;
   /** Vrai quand l'issue répond au dernier choix de page demandé : la demande n'est plus en vol. */
   accepterPage(message: Extract<PluginMessage, { type: 'page-choisie' }>): boolean;
+  /**
+   * Écrit les variables des palettes nommées, dès que la recette affichée
+   * est rangée ([VAR-16]). Comme un dessin : elle part après le rangement en
+   * vol, un refus l'abandonne et `surAbandon` le dit, et rien ne part
+   * pendant un conflit.
+   */
+  ecrireLesVariables(demande: DemandeDeVariables, surAbandon: () => void): void;
+  /** Vrai quand le résultat répond à la dernière écriture de variables demandée. */
+  accepterVariables(message: Extract<PluginMessage, { type: 'variables-ecrites' }>): boolean;
+  /** Range la destination des tokens ; `false` quand rien ne part : une demande est en vol, ou un conflit est en cours. */
+  rangerLaDestination(destination: Destination): boolean;
+  /** Vrai quand l'issue répond au dernier rangement de destination : la demande n'est plus en vol. */
+  accepterDestination(message: Extract<PluginMessage, { type: 'destination-rangee' }>): boolean;
+  /** Retire les variables d'une palette supprimée ([VAR-11]) ; `false` pendant un conflit. */
+  retirerLesVariables(palette: string): boolean;
+  /** Vrai quand l'issue répond au dernier retrait de variables demandé. */
+  accepterRetraitDesVariables(message: Extract<PluginMessage, { type: 'variables-retirees' }>): boolean;
   /** Vrai quand la progression ou le résultat répond au dernier dessin demandé. */
   accepterDessin(message: Extract<PluginMessage, { type: 'progression' | 'dessin' }>): boolean;
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
@@ -80,6 +104,11 @@ export function createFrontiere(
   let dernierRetrait = 0;
   let dernierChoixDePage = 0;
   let pageEnVol = false;
+  let variablesEnAttente: { demande: DemandeDeVariables; surAbandon: () => void } | null = null;
+  let dernieresVariables = 0;
+  let derniereDestination = 0;
+  let destinationEnVol = false;
+  let dernierRetraitDesVariables = 0;
   let courant: StatutDuRangement = 'lu';
 
   function numeroter(): number {
@@ -102,6 +131,11 @@ export function createFrontiere(
       empreinteLue: empreinte,
       etrangersConfirmes: [...etrangersConfirmes],
     });
+  }
+
+  function envoyerVariables({ palettes, remettre }: DemandeDeVariables): void {
+    dernieresVariables = numeroter();
+    envoyer({ type: 'ecrire-variables', demande: dernieresVariables, palettes: [...palettes], empreinteLue: empreinte, remettre: [...remettre] });
   }
 
   function envoyerRangement(recette: Recette): void {
@@ -153,6 +187,38 @@ export function createFrontiere(
       pageEnVol = false;
       return true;
     },
+    ecrireLesVariables(demande, surAbandon) {
+      if (courant === 'refuse') {
+        surAbandon();
+        return;
+      }
+      if (enVol || enAttente) variablesEnAttente = { demande, surAbandon };
+      else envoyerVariables(demande);
+    },
+    accepterVariables(message) {
+      return message.demande === dernieresVariables;
+    },
+    rangerLaDestination(destination) {
+      if (courant === 'refuse' || destinationEnVol) return false;
+      derniereDestination = numeroter();
+      destinationEnVol = true;
+      envoyer({ type: 'ranger-destination', demande: derniereDestination, destination });
+      return true;
+    },
+    accepterDestination(message) {
+      if (message.demande !== derniereDestination) return false;
+      destinationEnVol = false;
+      return true;
+    },
+    retirerLesVariables(palette) {
+      if (courant === 'refuse') return false;
+      dernierRetraitDesVariables = numeroter();
+      envoyer({ type: 'retirer-variables', demande: dernierRetraitDesVariables, palette });
+      return true;
+    },
+    accepterRetraitDesVariables(message) {
+      return message.demande === dernierRetraitDesVariables;
+    },
     accepterDessin(message) {
       return message.demande === dernierDessin;
     },
@@ -175,6 +241,10 @@ export function createFrontiere(
         if (suivante) envoyerRangement(suivante);
         else {
           poser('range');
+          // Les variables partent avant le dessin : « Tout mettre à jour » écrit les tokens, puis les planches.
+          const variables = variablesEnAttente;
+          variablesEnAttente = null;
+          if (variables) envoyerVariables(variables.demande);
           const dessin = dessinEnAttente;
           dessinEnAttente = null;
           if (dessin) envoyerDessin(dessin.demande);
@@ -183,9 +253,12 @@ export function createFrontiere(
         enAttente = null;
         const abandonne = dessinEnAttente;
         dessinEnAttente = null;
+        const abandonnees = variablesEnAttente;
+        variablesEnAttente = null;
         if (issue.issue === 'modifiee-ailleurs') poser('refuse');
         else poser('invalide', issue.refus);
         abandonne?.surAbandon();
+        abandonnees?.surAbandon();
       }
     },
     empreinte: () => empreinte,

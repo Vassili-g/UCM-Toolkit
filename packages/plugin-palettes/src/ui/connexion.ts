@@ -2,16 +2,22 @@
  * Le bloc « Connexion à Figma » ([UI-24]) : ce qui relie le plugin au
  * fichier, en tête de l'onglet Gestion dans les deux vues. Son en-tête porte
  * l'heure du dernier état lu et « Synchroniser », qui relit le fichier sans
- * rien écrire. Son corps porte la page des planches et « Changer », puis le
- * bilan : un compte de palettes par état, et « Tout mettre à jour » en vue
- * complète ([UI-28]).
+ * rien écrire. Son corps porte la destination des tokens et la page des
+ * planches, chacune avec « Changer », puis le bilan : un compte de palettes
+ * par état, et « Tout mettre à jour » en vue complète ([UI-28]).
  */
 import { ETATS_DE_FICHE, type EtatDeLaFiche } from '../presentation';
 import { createCarte } from './carte';
-import { memoriserVues, type Localisation } from './localisation';
+import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerSocleLocalise } from './socleLocalise';
 
 export interface EtatDeLaConnexion {
+  /**
+   * La destination des tokens : le nom de sa collection, ou ce qui se dit
+   * d'une collection que le fichier ne porte plus, et son groupe. `null`
+   * quand le suivi des variables ne se lit pas : la ligne se cache.
+   */
+  readonly tokens: { readonly collection: Texte; readonly groupe: string } | null;
   /** Le nom de la page des planches ; `null` tant qu'aucune page n'est rangée. */
   readonly nomDeLaPage: string | null;
   /** Le nombre de palettes de chaque état ; un état absent ne se montre pas. */
@@ -25,6 +31,8 @@ export interface EtatDeLaConnexion {
 export interface ConnexionUi {
   readonly element: HTMLElement;
   readonly synchroniser: HTMLButtonElement;
+  /** « Changer », sur la ligne des tokens : le focus y revient quand la carte de la destination se ferme. */
+  readonly changerLaDestination: HTMLButtonElement;
   /** « Changer », sur la ligne des planches : le focus y revient quand la carte de la page se ferme. */
   readonly changerLaPage: HTMLButtonElement;
   readonly toutMettreAJour: HTMLButtonElement;
@@ -33,6 +41,7 @@ export interface ConnexionUi {
 
 export interface GestesDeLaConnexion {
   synchroniser(): void;
+  changerLaDestination(): void;
   changerLaPage(): void;
   toutMettreAJour(): void;
 }
@@ -73,15 +82,37 @@ function construireVues(i18n: Localisation) {
     synchroniser.addEventListener('click', () => gestes.synchroniser());
     carte.tete.append(heure, synchroniser);
 
-    // La ligne des planches : le nom de la sortie, sa page, « Changer ».
-    const ligne = document.createElement('div');
-    ligne.className = 'connexion-ligne';
-    ligne.dataset.sortie = 'planche';
-    const nom = document.createElement('span');
-    nom.className = 'sortie-nom';
-    i18n.lier(nom, 'textContent', TEXTES_DE_LA_GESTION.planches);
-    const chemin = document.createElement('span');
-    chemin.className = 'chemin';
+    /** Une ligne du bloc : le nom de la sortie, où elle s'écrit, « Changer ». */
+    function ligneDeSortie(sortie: 'tokens' | 'planche', libelle: Texte, geste: string, surClic: () => void) {
+      const element = document.createElement('div');
+      element.className = 'connexion-ligne';
+      element.dataset.sortie = sortie;
+      const titre = document.createElement('span');
+      titre.className = 'sortie-nom';
+      i18n.lier(titre, 'textContent', libelle);
+      const ou = document.createElement('span');
+      ou.className = 'chemin';
+      const changer = document.createElement('button');
+      changer.type = 'button';
+      changer.className = 'bouton-discret';
+      changer.dataset.geste = geste;
+      i18n.lier(changer, 'textContent', TEXTES_DE_LA_GESTION.changer);
+      changer.addEventListener('click', surClic);
+      element.append(titre, ou, changer);
+      return { element, chemin: ou, changer };
+    }
+
+    // La ligne des tokens : la collection, puis le groupe où les palettes s'écrivent.
+    const tokens = ligneDeSortie('tokens', TEXTES_DE_LA_GESTION.tokens, 'changer-la-destination', () => gestes.changerLaDestination());
+    const collection = document.createElement('code');
+    const fleche = document.createElement('span');
+    fleche.setAttribute('aria-hidden', 'true');
+    fleche.append('›');
+    const groupe = document.createElement('code');
+    tokens.chemin.append(collection, fleche, groupe);
+
+    // La ligne des planches : sa page.
+    const { element: ligne, chemin, changer: changerLaPage } = ligneDeSortie('planche', TEXTES_DE_LA_GESTION.planches, 'changer-la-page', () => gestes.changerLaPage());
     const mot = document.createElement('span');
     mot.className = 'ligne-secondaire';
     i18n.lier(mot, 'textContent', TEXTES_DE_LA_GESTION.page);
@@ -90,13 +121,6 @@ function construireVues(i18n: Localisation) {
     aCreer.className = 'ligne-secondaire';
     i18n.lier(aCreer, 'textContent', TEXTES_DE_LA_GESTION.pageACreer);
     chemin.append(mot, page, aCreer);
-    const changerLaPage = document.createElement('button');
-    changerLaPage.type = 'button';
-    changerLaPage.className = 'bouton-discret';
-    changerLaPage.dataset.geste = 'changer-la-page';
-    i18n.lier(changerLaPage, 'textContent', TEXTES_DE_LA_GESTION.changer);
-    changerLaPage.addEventListener('click', () => gestes.changerLaPage());
-    ligne.append(nom, chemin, changerLaPage);
 
     const bilan = document.createElement('div');
     bilan.className = 'connexion-bilan';
@@ -106,15 +130,24 @@ function construireVues(i18n: Localisation) {
     toutMettre.dataset.geste = 'tout-mettre-a-jour';
     bilan.append(comptes, toutMettre);
 
-    carte.corps.append(ligne, bilan);
+    carte.corps.append(tokens.element, ligne, bilan);
 
     return {
       element: carte.element,
       synchroniser,
+      changerLaDestination: tokens.changer,
       changerLaPage,
       toutMettreAJour: toutMettre,
       afficher(etat) {
         i18n.lier(heure, 'textContent', synchroniseIlYA(Math.max(0, Math.floor((Date.now() - etat.luLe) / 1000))));
+        tokens.element.hidden = etat.tokens === null;
+        if (etat.tokens) {
+          i18n.lier(collection, 'textContent', etat.tokens.collection);
+          // Le groupe se lit comme un dossier : « colors/… » ; vide, les palettes sont à la racine de la collection.
+          groupe.textContent = etat.tokens.groupe === '' ? '' : `${etat.tokens.groupe}/…`;
+          groupe.hidden = etat.tokens.groupe === '';
+          fleche.hidden = etat.tokens.groupe === '';
+        }
         // Sans page rangée, le premier dessin crée la page par défaut ([PLA-01]).
         if (etat.nomDeLaPage === null) i18n.lier(page, 'textContent', TEXTES_DE_LA_GESTION.pageParDefaut);
         else i18n.lier(page, 'textContent', etat.nomDeLaPage);

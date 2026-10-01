@@ -1186,6 +1186,8 @@
 
 .pastille-d-etat[data-etat='perimee'],
 .pastille-d-etat[data-etat='jamais-dessinee'],
+.pastille-d-etat[data-etat='jamais-ecrits'],
+.pastille-d-etat[data-etat='modifies'],
 .pastille-d-etat[data-etat='modifiee'],
 .pastille-d-etat[data-etat='a-mettre-a-jour'],
 .pastille-d-etat[data-etat='pas-encore'] {
@@ -1205,6 +1207,7 @@
 }
 
 .pastille-d-etat[data-etat='introuvable'],
+.pastille-d-etat[data-etat='introuvables'],
 .pastille-d-etat[data-etat='illisible'] {
   background: var(--fond-danger);
   color: var(--texte-danger);
@@ -1447,6 +1450,155 @@
   align-items: center;
   gap: var(--espace-controle);
   font-weight: 600;
+}
+
+/* Une carte ouverte espace ses champs comme une page : collection, groupe et thèmes, simulation ([UI-30]). */
+.carte-aeree {
+  gap: var(--espace-page);
+}
+
+.carte-aeree .colonnes-de-base {
+  gap: var(--espace-bloc);
+}
+
+.carte-aeree .bascule-de-base {
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+}
+
+.carte-aeree .bascule-option {
+  white-space: nowrap;
+}
+
+/* La simulation de la destination prend la forme du panneau des variables de Figma. */
+.simulation {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.simulation-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.panneau {
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--fond);
+  background: color-mix(in srgb, var(--fond) 84%, black);
+}
+
+.panneau-tete,
+.panneau-ligne {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) 132px;
+}
+
+.panneau[data-colonnes='2'] .panneau-tete,
+.panneau[data-colonnes='2'] .panneau-ligne {
+  grid-template-columns: minmax(0, 1fr) 96px 96px;
+}
+
+.panneau-tete {
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-bottom: 1px solid var(--bordure);
+  font-weight: 600;
+}
+
+.panneau-tete span + span {
+  color: var(--texte-second);
+  font-weight: 400;
+}
+
+.panneau-groupe {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc) var(--espace-serre);
+  color: var(--texte-second);
+}
+
+.panneau-groupe code {
+  font-size: 11px;
+}
+
+.panneau-groupe:last-child {
+  padding-bottom: var(--espace-controle);
+}
+
+.panneau-ligne {
+  height: 28px;
+  padding: 0 var(--espace-bloc) 0 28px;
+}
+
+.panneau-suite {
+  padding: 2px var(--espace-bloc) var(--espace-serre) 28px;
+  color: var(--texte-second);
+}
+
+/* Une couleur écrite : sa pastille, puis son code. */
+.valeur {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.valeur i {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--bordure);
+  border-radius: 3px;
+}
+
+/*
+ * Un encart, dans une fiche : une décision d'écriture se prend là, sans
+ * modale ([UI-31], [UI-32]). Le ton d'avertissement mêle la couleur du socle
+ * au fond de la page ; le premier couple sert au moteur qui ne lit pas
+ * `color-mix`.
+ */
+.encart {
+  display: grid;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+
+.encart[data-ton='avertissement'] {
+  border-color: var(--texte-avertissement);
+  background: var(--fond-avertissement);
+  border-color: color-mix(in srgb, var(--texte-avertissement) 35%, var(--bordure));
+  background: color-mix(in srgb, var(--fond-avertissement) 45%, var(--fond));
+}
+
+.encart .confirmation-gestes {
+  justify-content: flex-end;
+}
+
+.encart-titre {
+  font-weight: 600;
+}
+
+/* Une couleur changée dans Figma : le nom de sa variable, sa valeur dans Figma, sa valeur dans le plugin. */
+.ecart {
+  display: grid;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.ecart code {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* La vue condensée : un tableau sans geste, dont chaque ligne ouvre sa fiche ([UI-27]). */

@@ -254,6 +254,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/releve.ts  ce que la lecture rend : collections, variables de couleur, et une couleur de Figma arrondie à l'octet
   src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
   src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
+  src/variables/gestion.ts ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, la simulation d'une destination, les variables d'une palette supprimée
   src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
@@ -281,9 +282,10 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
-  src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui, un seul choix de page en vol
-  src/ui/ongletGestion.ts  l'onglet Gestion : le bloc de la connexion, la barre des palettes et ses deux vues ; en vue complète une fiche par palette, état en pastille, « Modifier », rampes, référence, garanties et lignes de sortie ; en vue condensée un tableau ; une carte par palette supprimée, notices, recette repliée
-  src/ui/connexion.ts      le bloc « Connexion à Figma » : heure du dernier état lu, « Synchroniser », page des planches, bilan par état et « Tout mettre à jour »
+  src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, l'écriture des variables et le dessin après lui, un seul choix de page et un seul rangement de destination en vol
+  src/ui/ongletGestion.ts  l'onglet Gestion : le bloc de la connexion, la barre des palettes et ses deux vues ; en vue complète une fiche par palette, état en pastille, « Modifier », rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; en vue condensée un tableau ; « Tout mettre à jour » confirmé ; une carte par palette supprimée, notices, recette repliée
+  src/ui/connexion.ts      le bloc « Connexion à Figma » : heure du dernier état lu, « Synchroniser », destination des tokens, page des planches, bilan par état et « Tout mettre à jour »
+  src/ui/destination.ts    la carte « Destination des tokens » : collection en liste à choix unique, groupe, thèmes, simulation du panneau des variables, et le refus du sandbox
   src/ui/pageDesPlanches.ts la carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et le refus du sandbox
   src/ui/sorties.ts        les lignes de sortie d'une fiche : nom, pastille d'état, détail, gestes
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
@@ -1109,8 +1111,9 @@ La spécification en lien porte le raisonnement.
   comprises, n'appelle `loadAllPagesAsync` ni une API de style. La même loi
   le tient.
 - `src/code.ts` est le seul fichier qui importe `src/ecriture/`, avec une porte
-  par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre` et
-  `choisir-page`.
+  par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre`,
+  `choisir-page`, `ecrire-variables`, `ranger-destination` et
+  `retirer-variables`.
 - Le plugin ne retire un cadre de Figma que sur « Supprimer définitivement »,
   geste explicite du designer. Le sandbox relit la recette rangée et le cadre :
   il ne retire qu'un cadre possédé qui porte encore l'identifiant de sa
@@ -1172,8 +1175,10 @@ La spécification en lien porte le raisonnement.
   rangement est en vol : un geste suivant attend l'empreinte que la réponse
   apporte. Après un refus, rien ne se range ni ne se dessine avant
   « Recharger », et le brouillon reste exportable. Un dessin demandé pendant
-  un rangement part après lui ; un refus l'abandonne. Un seul choix de page
-  est en vol, et aucun ne part pendant un conflit.
+  un rangement part après lui ; un refus l'abandonne. Une écriture de
+  variables suit la même règle, et part avant le dessin. Un seul choix de
+  page et un seul rangement de destination sont en vol, et aucune écriture
+  ne part pendant un conflit.
   `src/ui/frontiere.ts` en est l'unique autorité, et
   `packages/plugin-palettes/tests/frontiere.test.ts` le tient.
 - Un import ne range rien avant la confirmation du designer : le fichier se

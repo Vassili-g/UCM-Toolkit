@@ -35,6 +35,7 @@ const {
   rgb8VersOklch,
 } = chargerLeMoteur();
 const { modeleDeCadre } = compiler(path.resolve(__dirname, '../src/planche/modele.ts'), 'galerie-modele');
+const { planDesVariables } = compiler(path.resolve(__dirname, '../src/variables/plan.ts'), 'galerie-plan');
 
 /** Une planche sans page, avant tout dessin. */
 const PLANCHE_VIDE = { page: null, nomDeLaPage: null, cadres: [], manquants: [], recherche: 'page', suiviFutur: false, pages: [{ id: '0:1', nom: 'Page 1', cadres: 0 }] };
@@ -45,6 +46,39 @@ const VARIABLES_VIDES = {
   variables: [],
   suivi: { version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }, confirmee: false, palettes: {} },
 };
+
+/** La collection où les états de la galerie écrivent leurs palettes, et la destination qui la désigne. */
+const COLLECTION_DES_TOKENS = { id: 'VariableCollectionId:7:1', nom: 'primitives', modes: [{ id: '7:0', nom: 'Mode 1' }], variables: 0 };
+const DESTINATION_DES_TOKENS = { collection: { id: COLLECTION_DES_TOKENS.id }, groupe: 'colors', themes: 'chemin' };
+
+/**
+ * Les variables d'un fichier où les palettes `ecrites` portent leurs tokens,
+ * tels que le plan de la recette rangée les calcule. Les réglages faussent
+ * une lecture : `lue` change la couleur que Figma porte, `ecrite` la
+ * dernière couleur écrite, `disparue` retire une variable du fichier. Une
+ * palette de `ecrites` absente de la recette garde ses variables : celles
+ * d'une palette supprimée.
+ */
+function tokensEcrits(texte, ecrites, { lue = (hexa) => hexa, ecrite = (hexa) => hexa, disparue = () => false, confirmee = true } = {}) {
+  const recette = classerRecette(texte).recette;
+  const variables = [];
+  const palettes = {};
+  for (const palette of ecrites) {
+    const complete = { ...recette, palettes: recette.palettes.some((candidate) => candidate.id === palette.id) ? recette.palettes : [...recette.palettes, palette] };
+    const suivies = {};
+    planDesVariables(complete, complete.palettes.find((candidate) => candidate.id === palette.id), DESTINATION_DES_TOKENS).forEach((entree, rang) => {
+      const id = `VariableID:${palette.id}:${rang}`;
+      suivies[entree.cle] = { id, ecrite: ecrite(entree.hexa, entree, palette) };
+      if (!disparue(entree, palette)) variables.push({ id, nom: entree.nom, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': lue(ecrite(entree.hexa, entree, palette), entree, palette) } });
+    });
+    palettes[palette.id] = { collection: COLLECTION_DES_TOKENS.id, groupe: 'colors', modes: { unique: '7:0' }, variables: suivies, liaison: 'destination' };
+  }
+  return {
+    collections: [{ ...COLLECTION_DES_TOKENS, variables: variables.length }, { id: 'VariableCollectionId:8:1', nom: 'Brand', modes: [{ id: '8:0', nom: 'Light' }, { id: '8:1', nom: 'Dark' }], variables: 48 }],
+    variables,
+    suivi: { version: 1, destination: DESTINATION_DES_TOKENS, confirmee, palettes },
+  };
+}
 
 /** L'état que le sandbox envoie pour un texte rangé sous la clé de la recette, en réponse à la demande `demande`. */
 function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1, variables = VARIABLES_VIDES) {
@@ -122,11 +156,18 @@ const dessinerLaPalette = { clic: '#panneau-gestion .fiche-planche [data-geste="
 const toutMettreAJour = { clic: '#panneau-gestion [data-geste="tout-mettre-a-jour"]' };
 /** Les pages d'un fichier dont la planche porte deux cadres. */
 const PAGES_DU_FICHIER = [{ id: '0:1', nom: 'Cover', cadres: 0 }, { id: '12:1', nom: 'Design system', cadres: 0 }, { id: PAGE_DE_LA_PLANCHE, nom: 'Palettes', cadres: 2 }];
-/** Bleu à jour, Jaune périmée, Ardoise jamais dessinée, dans un fichier de trois pages. */
-const gestionDeTroisPalettes = () => etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue(
+/**
+ * Bleu à jour, Jaune périmée, Ardoise jamais dessinée, dans un fichier de
+ * trois pages. `variables` donne l'état de leurs tokens ; sans lui, aucune
+ * palette n'est écrite et la destination n'est pas confirmée.
+ */
+const gestionDeTroisPalettes = (variables = VARIABLES_VIDES) => etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue(
   [cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })],
   { pages: PAGES_DU_FICHIER },
-));
+), 1, variables);
+/** Une couleur lue ou écrite faussée sur les nuances 700 et 800 de Vivid en Light, pour la seule palette nommée. */
+const fausser = (cible, remplacements) => (hexa, entree, palette) =>
+  (palette.id === cible.id && remplacements[entree.cle] ? remplacements[entree.cle] : hexa);
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
 const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)' };
 
@@ -469,11 +510,11 @@ const ETATS = [
   {
     id: 'confirmation-six-palettes',
     titre: 'Confirmation au-delà de six palettes',
-    quand: 'Le designer clique « Tout mettre à jour (7) » sur un fichier de sept palettes jamais générées.',
-    regarder: 'La confirmation qui compte les palettes et les calques, sous le bloc « Connexion à Figma », et ses deux gestes.',
+    quand: 'Le designer clique « Tout mettre à jour (7) » sur un fichier de sept palettes ni écrites ni dessinées, destination confirmée.',
+    regarder: 'La confirmation, sous le bloc « Connexion à Figma » : « Tout mettre à jour ? 308 variables à créer, 7 planches à dessiner. », et ses deux gestes, « Confirmer » au focus.',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee(SEPT_PALETTES)),
+      etatDuFichier(rangee(SEPT_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(SEPT_PALETTES), [])),
       { clic: '#onglet-gestion' },
       toutMettreAJour,
     ],
@@ -573,6 +614,171 @@ const ETATS = [
       { saisie: { dans: '#panneau-gestion .choix .input', valeur: 'Palettes' } },
       { clic: '#panneau-gestion [data-geste="enregistrer"]' },
       { message: { type: 'page-choisie', demande: 3, issue: { issue: 'nom-pris', nom: 'Palettes' } } },
+    ],
+  },
+  {
+    id: 'tokens-jamais-ecrits',
+    titre: 'Tokens pas encore écrits',
+    quand: 'Aucune palette n’est écrite dans les variables, et la destination n’a jamais été confirmée.',
+    regarder: 'La ligne « Tokens » du bloc : « primitives », « colors/… » et « Changer ». Dans chaque fiche, la ligne « Tokens Figma » avant la ligne « Planche » : « Pas encore écrits », « 44 variables à créer » et « Écrire dans les tokens » en bleu. Le bilan compte les trois palettes à écrire.',
+    existe: true,
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche],
+  },
+  {
+    id: 'tokens-a-jour',
+    titre: 'Tokens à jour',
+    quand: 'Bleu et Jaune sont écrites dans la collection « primitives », et leurs planches sont à jour.',
+    regarder: 'Deux fiches « Synchronisée » : « Tokens Figma », « À jour », « 44 variables », sans geste ; le bilan « 2 synchronisées », sans « Tout mettre à jour ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')]), 1, tokensEcrits(rangee([BLEU, JAUNE]), [BLEU, JAUNE])),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'tokens-a-mettre-a-jour',
+    titre: 'Tokens à mettre à jour',
+    quand: 'Deux couleurs de Jaune ont changé dans le plugin depuis la dernière écriture.',
+    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « À mettre à jour », « 2 couleurs ont changé dans le plugin » et « Mettre à jour » en bleu, sans encart ; « Tout mettre à jour » compte Jaune et Ardoise.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'tokens-introuvables',
+    titre: 'Tokens introuvables',
+    quand: 'Trois variables de Jaune ont été supprimées du fichier.',
+    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « Introuvables » en rouge, « 3 variables ont disparu du fichier » et « Mettre à jour ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { disparue: (entree, palette) => palette.id === JAUNE.id && ['soft/light/50', 'soft/light/100', 'soft/light/200'].includes(entree.cle) })),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'tokens-modifies',
+    titre: 'Couleurs changées dans Figma',
+    quand: 'Le designer a changé à la main deux variables de Jaune dans Figma.',
+    regarder: 'Jaune « Modifiée dans Figma » : « Tokens Figma », « Modifiés dans Figma », « 2 couleurs changées à la main », sans geste sur la ligne ; dessous, l’encart d’avertissement : « 2 couleurs de Jaune ne sont plus celles du plugin. », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, puis « Laisser les couleurs de Figma » et « Remettre les couleurs du plugin ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { lue: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'premiere-ecriture',
+    titre: 'Première écriture',
+    quand: 'La destination est confirmée ; le designer clique « Écrire dans les tokens » sur Ardoise.',
+    regarder: 'L’encart sous les lignes de sortie d’Ardoise : « Écrire Ardoise dans les tokens Figma ? », 44 variables, la collection « primitives », le premier et le dernier nom, « Aucune variable existante n’est modifiée. », puis « Annuler » et « Écrire 44 variables », qui porte le focus. La ligne « Tokens Figma » n’a plus de geste.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion .fiche-planche [data-geste="ecrire"]' },
+    ],
+  },
+  {
+    id: 'destination-ouverte',
+    titre: 'Destination des tokens',
+    quand: 'Le designer clique « Changer » sur la ligne « Tokens ».',
+    regarder: 'La carte « Destination des tokens » à la place du bloc, grise et sans fond. La liste des collections sur un fond gris plus foncé : « Nouvelle collection » et son champ, « primitives » cochée avec son nombre de variables, « Brand » et « 48 variables ». « Groupe » et « Thèmes Light et Dark » sur une rangée, « Dans le chemin » pressé. La simulation : « 44 variables · 1 mode », le panneau au nom de la collection, quatre groupes, le premier déplié sur trois nuances avec couleur et code, « 8 autres nuances ». « Annuler » et « Enregistrer » au bord droit.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
+    ],
+  },
+  {
+    id: 'destination-en-modes',
+    titre: 'Destination des tokens, thèmes en modes',
+    quand: 'Dans la carte de la destination, le designer presse « En modes ».',
+    regarder: 'La simulation suit le choix : « 22 variables · 2 modes », deux colonnes de valeur, Light et Dark, et deux groupes, Soft et Vivid, sans segment de thème.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
+      { clic: '#panneau-gestion .carte-ouverte .bascule-option:nth-child(2)' },
+    ],
+  },
+  {
+    id: 'destination-refusee',
+    titre: 'Destination refusée',
+    quand: 'Le designer saisit le groupe « colors.brand », puis enregistre : Figma refuse le point dans un nom de variable.',
+    regarder: 'La carte restée ouverte, et sous la simulation le message « Groupe », qui nomme les caractères refusés et demande de les retirer.',
+    existe: true,
+    // L'ouverture de l'onglet relit l'état (demande 2) : le rangement de la destination porte la demande 3.
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
+      { saisie: { dans: '#panneau-gestion .colonnes-de-base .input', valeur: 'colors.brand' } },
+      { clic: '#panneau-gestion .carte-ouverte [data-geste="enregistrer"]' },
+      { message: { type: 'destination-rangee', demande: 3, issue: { issue: 'invalide', refus: 'groupe' } } },
+    ],
+  },
+  {
+    id: 'nom-deja-pris',
+    titre: 'Nom de variable déjà pris',
+    quand: 'Le designer écrit Ardoise ; la collection porte déjà une variable « colors/ardoise/soft/light/50 » que le plugin n’a pas écrite.',
+    regarder: 'Sous l’encart d’Ardoise, resté ouvert, le message « Tokens non écrits : Ardoise », qui nomme la variable et propose de renommer la palette ou de changer le groupe.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion .fiche-planche [data-geste="ecrire"]' },
+      { clic: '#panneau-gestion .fiche-planche [data-geste="confirmer-ecriture"]' },
+      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'nom-pris', nom: 'colors/ardoise/soft/light/50' }] } } },
+    ],
+  },
+  {
+    id: 'ecriture-partielle',
+    titre: 'Écriture partielle',
+    quand: 'Le designer confirme « Tout mettre à jour » : Figma interrompt l’écriture de Jaune, et Ardoise s’écrit.',
+    regarder: 'Dans la fiche de Jaune, le message « Écriture interrompue : Jaune » et son détail replié ; aucun message dans celle d’Ardoise ; sous le bloc de la connexion, la progression du dessin des planches, qui suit l’écriture des tokens.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00' }) })),
+      ouvrirLaPlanche,
+      toutMettreAJour,
+      { clic: '#panneau-gestion .confirmation [data-geste="confirmer"]' },
+      {
+        message: {
+          type: 'variables-ecrites',
+          demande: 3,
+          resultat: { issue: 'ecrites', palettes: [{ palette: JAUNE.id, issue: 'interrompue', message: 'in setValueForMode: invalid mode' }, { palette: 'p-5c1d0e77', issue: 'ecrite', creees: 44, ecrites: 44 }] },
+        },
+      },
+    ],
+  },
+  {
+    id: 'palette-supprimee-avec-variables',
+    titre: 'Palette supprimée, variables restées',
+    quand: 'Ardoise a été supprimée du plugin ; son cadre et ses 44 variables sont restés dans Figma. Le designer clique « Supprimer les variables… ».',
+    regarder: 'La carte d’Ardoise, d’un orange proche du fond : la phrase qui compte ses variables, « Afficher dans Figma » et « Supprimer définitivement », puis la confirmation « Supprimer 44 variables de Figma ? », ses gestes « Supprimer 44 variables », qui porte le focus, et « Annuler ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), CADRES_SUPPRIMES[0]]), 1, tokensEcrits(rangee([BLEU]), [BLEU, palette('p-5c1d0e77', 'Ardoise', '#6B7280')])),
+      ouvrirLaPlanche,
+      { clic: '.carte-supprimee [data-geste="supprimer-variables"]' },
+    ],
+  },
+  {
+    id: 'variables-supprimees',
+    titre: 'Variables supprimées',
+    quand: 'Le designer confirme la suppression des variables d’Ardoise ; le sandbox les retire.',
+    regarder: 'La ligne qui dit que 44 variables sont supprimées et que Ctrl+Z dans Figma les rétablit ; la confirmation refermée.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), CADRES_SUPPRIMES[0]]), 1, tokensEcrits(rangee([BLEU]), [BLEU, palette('p-5c1d0e77', 'Ardoise', '#6B7280')])),
+      ouvrirLaPlanche,
+      { clic: '.carte-supprimee [data-geste="supprimer-variables"]' },
+      { clic: '.carte-supprimee [data-geste="confirmer-variables"]' },
+      { message: { type: 'variables-retirees', demande: 3, issue: { issue: 'retirees', retirees: 44 } } },
     ],
   },
   {
@@ -770,9 +976,10 @@ const ETATS = [
     existe: true,
     // L'ouverture de l'onglet relit l'état (demande 2) : la génération porte la demande 3.
     atteinte: [
-      etatDuFichier(rangee(TROIS_PALETTES)),
+      etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(TROIS_PALETTES), TROIS_PALETTES)),
       ouvrirLaPlanche,
       toutMettreAJour,
+      { clic: '#panneau-gestion .confirmation [data-geste="confirmer"]' },
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'interrompue', palette: JAUNE.id, message: 'in set_characters: font not loaded', dessines: 1 } } },
     ],
   },
