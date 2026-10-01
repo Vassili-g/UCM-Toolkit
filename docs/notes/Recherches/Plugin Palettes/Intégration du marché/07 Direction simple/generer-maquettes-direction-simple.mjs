@@ -44,6 +44,27 @@ const STYLES_DES_MAQUETTES = `
 .m-marque[data-ton='succes'] { color: var(--texte-succes); }
 .m-marque[data-ton='avertissement'] { color: var(--texte-avertissement); }
 .m-marque[data-ton='danger'] { color: var(--texte-danger); }
+.m-connexion { border-color: color-mix(in srgb, var(--fond-marque) 45%, var(--bordure)); background: color-mix(in srgb, var(--fond-marque) 8%, var(--fond-bloc)); }
+.m-connexion .carte-tete { flex-wrap: nowrap; }
+.m-connexion .carte-titre { margin-right: auto; }
+.m-connexion-ligne { display: grid; min-height: 28px; align-items: center; gap: var(--espace-controle); grid-template-columns: 92px minmax(0, 1fr) auto; }
+.m-connexion-bilan { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-serre); padding-top: var(--espace-controle); border-top: 1px solid var(--bordure); }
+.m-connexion-bilan .btn { margin-left: auto; }
+.m-aere { gap: var(--espace-page); }
+.m-aere .colonnes-de-base { gap: var(--espace-bloc); }
+.m-aere .bascule-de-base { width: 100%; justify-self: stretch; }
+.m-aere .bascule-option { white-space: nowrap; }
+.m-aere select.input { width: 100%; height: var(--hauteur-action); }
+.m-simulation { display: grid; gap: var(--espace-controle); }
+.m-simulation-tete { display: flex; align-items: baseline; justify-content: space-between; }
+.m-variables { overflow: hidden; border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond); }
+.m-variables-collection { padding: var(--espace-controle) var(--espace-bloc); border-bottom: 1px solid var(--bordure); font-weight: 600; }
+.m-variable { display: grid; height: 32px; align-items: center; gap: var(--espace-controle); padding: 0 var(--espace-bloc); border-bottom: 1px solid var(--bordure); grid-template-columns: 16px minmax(0, 1fr) auto; }
+.m-variable:last-child { border-bottom: 0; }
+.m-variable i { width: 16px; height: 16px; border: 1px solid var(--bordure); border-radius: 4px; }
+.m-variable code { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.m-variable span { color: var(--texte-second); font-variant-numeric: tabular-nums; }
+.m-variable-suite { color: var(--texte-second); text-align: center; }
 .m-chemin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
 .m-chemin code { padding: 1px 6px; border-radius: 4px; background: var(--fond-note); font-size: 11px; }
 .m-chemin .bouton-discret { margin-left: auto; }
@@ -107,6 +128,26 @@ function poserLesOutils() {
       const boutons = gestes.map(([texte, classe]) => `<button type="button" class="btn ${classe} btn-compact"><span>${texte}</span></button>`).join('');
       return `<div class="m-sortie"><span class="m-sortie-nom">${nom}</span><span class="pastille-d-etat" data-etat="${etat}">${libelle}</span><span class="ligne-secondaire m-sortie-detail">${detail}</span><span class="m-sortie-gestes">${boutons}</span></div>`;
     },
+    /**
+     * Le bloc « Connexion à Figma » : la synchronisation, la destination des
+     * tokens, la page des planches, puis le bilan des palettes. `miseAJour`
+     * pose « Tout mettre à jour » dans le bilan.
+     */
+    connexion(miseAJour) {
+      const etat = (code, libelle) => `<span class="pastille-d-etat" data-etat="${code}">${libelle}</span>`;
+      const geste = miseAJour ? '<button type="button" class="btn btn-primary btn-compact"><span>Tout mettre à jour (2)</span></button>' : '';
+      return el(`<section class="carte m-connexion" aria-label="Connexion à Figma"><div class="carte-tete"><h3 class="carte-titre">Connexion à Figma</h3><span class="ligne-secondaire">Synchronisé il y a 2 min</span><button type="button" class="btn btn-secondary btn-compact"><span>Synchroniser</span></button></div><div class="carte-corps"><div class="m-connexion-ligne"><span class="m-sortie-nom">Tokens</span><span class="m-chemin"><code>primitives</code><span>›</span><code>colors/…</code></span><button type="button" class="bouton-discret">Changer</button></div><div class="m-connexion-ligne"><span class="m-sortie-nom">Planches</span><span class="m-chemin"><span class="ligne-secondaire">page</span><code>Palettes</code></span></div><div class="m-connexion-bilan">${etat('a-jour', '1 synchronisée')}${etat('perimee', '1 à mettre à jour')}${etat('jamais-dessinee', '1 pas encore sur Figma')}${geste}</div></div></section>`);
+    },
+    /** La tête des listes de Gestion : le compte, puis la bascule des deux vues. */
+    teteDeGestion(panneau, condensee) {
+      const tete = panneau.querySelector('.planche-tete');
+      panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
+      tete.querySelector('.bouton-discret').remove();
+      const vues = el(`<div class="bascule" role="group" aria-label="Vue"><button type="button" class="bascule-option" aria-pressed="${!condensee}">Vue complète</button><button type="button" class="bascule-option" aria-pressed="${condensee}">Vue condensée</button></div>`);
+      if (condensee) tete.querySelector('.bascule').replaceWith(vues);
+      else tete.querySelector('.bascule').before(vues);
+      tete.before(M.connexion(!condensee));
+    },
     /** La fiche d'une palette lue dans les variables du fichier : en tirets, sans geste d'écriture. */
     ficheDuFichier(nom, chemin, detail, rampe, geste) {
       const pastilles = rampe.map((hexa) => `<span class="fiche-pastille" style="background:${hexa}"></span>`).join('');
@@ -152,6 +193,10 @@ function verification(verdicts) {
   // Un point à vérifier ne donne plus ses mesures : où, quoi, le geste, le lien.
   for (const mesures of messages?.querySelectorAll('.constat-alerte .constat-mesures') ?? []) mesures.remove();
 
+  // Un lien nomme le geste et ouvre la carte où il se fait. Des profils presque identiques se règlent par la saturation, dans « Réglage global ».
+  const gestes = { 'Réglage global': 'Ajuster le réglage global', 'Color shift': 'Ajuster le Color shift', 'Luminosité des nuances': 'Ajuster la luminosité des nuances', 'Intensités communes': 'Ajuster la saturation', 'Couleur de référence': 'Changer la couleur de référence', 'Couleurs de fond': 'Changer les couleurs de fond' };
+  for (const lien of messages?.querySelectorAll('.lien-de-constat') ?? []) lien.textContent = gestes[lien.textContent] ?? lien.textContent;
+
   // La carte des garanties reste ouverte : son en-tête n'est plus un bouton.
   const bascule = garanties.querySelector('.carte-bascule');
   bascule.querySelector('.carte-chevron').remove();
@@ -175,10 +220,7 @@ function verification(verdicts) {
 function gestion({ slate, emeraude, destination = false, modifiee = false }) {
   M.onglets('Gestion');
   const panneau = document.querySelector('#panneau-planche');
-  const tete = panneau.querySelector('.planche-tete');
-  panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
-  tete.querySelector('.bouton-discret').textContent = 'Relire';
-  tete.querySelector('.bascule').before(M.el('<div class="bascule" role="group" aria-label="Vue"><button type="button" class="bascule-option" aria-pressed="true">Complète</button><button type="button" class="bascule-option" aria-pressed="false">Condensée</button></div>'));
+  M.teteDeGestion(panneau, false);
   const fiche = (nom) => panneau.querySelector(`.fiche-planche[aria-label="${nom}"]`);
   const poser = (nom, pastille, tokens, planche, encart) => {
     const cible = fiche(nom);
@@ -208,15 +250,18 @@ function gestion({ slate, emeraude, destination = false, modifiee = false }) {
   const recette = panneau.querySelector('.carte[aria-label="Palettes et réglages"]');
 
   if (destination) {
-    // La destination, ouverte : une collection, un groupe, la place des thèmes, et le chemin qui en sort.
-    liste.before(M.el('<section class="carte" aria-label="Destination des tokens"><div class="carte-tete"><h3 class="carte-titre">Destination des tokens</h3><span class="carte-resume">Pour toutes les palettes du plugin</span></div><div class="carte-corps"><div class="colonnes-de-base"><label class="champ-colonne"><span class="libelle-de-champ">Collection</span><select class="input"><option>primitives (nouvelle collection)</option><option>Primitives</option><option>Brand</option><option>Autre nom…</option></select><span class="ligne-secondaire">Une collection du fichier, ou une nouvelle.</span></label><label class="champ-colonne"><span class="libelle-de-champ">Groupe</span><input type="text" class="input" value="colors"><span class="ligne-secondaire">Le dossier des palettes dans la collection. Vide : à la racine.</span></label></div><div class="champ-colonne"><span class="libelle-de-champ">Thèmes Light et Dark</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Dans le chemin</button><button type="button" class="bascule-option" aria-pressed="false">En modes</button></div><span class="ligne-secondaire">Dans le chemin : une variable par thème, un seul mode.</span></div><div class="m-chemin"><span class="ligne-secondaire">Exemple</span><code>primitives</code><span>›</span><code>colors/ardoise/vivid/light/600</code></div><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>'));
+    // La destination, ouverte sous la connexion : trois choix, puis ce qu'ils donnent dans le panneau des variables de Figma.
+    const hexa = (pastille) => `#${pastille.style.background.match(/\d+/g).map((octet) => Number(octet).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+    const [soft, vivid] = [...fiche('Ardoise').querySelectorAll('.fiche-rangee')].map((rangee) => [...rangee.querySelectorAll('.fiche-pastille')]);
+    const variable = (chemin, pastille) => `<div class="m-variable"><i style="background:${pastille.style.background}"></i><code>${chemin}</code><span>${hexa(pastille)}</span></div>`;
+    const simulation = `<div class="m-simulation"><div class="m-simulation-tete"><span class="libelle-de-champ">Simulation</span><span class="ligne-secondaire">44 variables · 1 mode</span></div><div class="m-variables"><div class="m-variables-collection">primitives</div>${variable('colors/ardoise/soft/light/50', soft[0])}${variable('colors/ardoise/soft/light/100', soft[1])}<div class="m-variable m-variable-suite"><span></span><span>⋯</span><span></span></div>${variable('colors/ardoise/vivid/light/900', vivid[9])}${variable('colors/ardoise/vivid/light/950', vivid[10])}</div></div>`;
+    liste.before(M.el(`<section class="carte" aria-label="Destination des tokens"><div class="carte-tete"><h3 class="carte-titre">Destination des tokens</h3></div><div class="carte-corps m-aere"><div class="colonnes-de-base"><label class="champ-colonne"><span class="libelle-de-champ">Collection</span><select class="input"><option>Nouvelle : primitives</option><option>Primitives</option><option>Brand</option></select></label><label class="champ-colonne"><span class="libelle-de-champ">Groupe</span><input type="text" class="input" value="colors"></label></div><div class="champ-colonne"><span class="libelle-de-champ">Thèmes Light et Dark</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Dans le chemin</button><button type="button" class="bascule-option" aria-pressed="false">En modes</button></div></div>${simulation}<div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
     fiche('Bleu').remove();
     fiche('Jaune').remove();
     globaux.remove();
     recette.remove();
     return;
   }
-  liste.before(M.el('<p class="m-chemin"><span class="ligne-secondaire">Tokens écrits dans</span><code>primitives</code><span>›</span><code>colors/…</code><button type="button" class="bouton-discret">Changer</button></p>'));
   if (modifiee) {
     fiche('Bleu').remove();
     fiche('Ardoise').remove();
@@ -224,13 +269,13 @@ function gestion({ slate, emeraude, destination = false, modifiee = false }) {
     recette.remove();
     return;
   }
-  globaux.innerHTML = '<button type="button" class="btn btn-primary"><span>Tout mettre à jour (2 palettes)</span></button>';
   const duFichier = M.el('<div class="liste-planche"></div>');
   duFichier.append(
     M.ficheDuFichier('slate', 'Primitives / slate / 50 … 950', '11 couleurs · 1 mode', slate, 'Modifier dans le plugin'),
     M.ficheDuFichier('brand/emerald', 'Brand / brand / emerald / 50 … 950', '11 couleurs · modes Light, Dark', emeraude, 'Modifier dans le plugin'),
   );
-  globaux.after(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 2</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'), duFichier);
+  globaux.replaceWith(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 2</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'));
+  panneau.querySelector('.m-separation').after(duFichier);
   panneau.append(recette);
 }
 
@@ -238,10 +283,7 @@ function gestion({ slate, emeraude, destination = false, modifiee = false }) {
 function gestionCondensee({ slate, emeraude }) {
   M.onglets('Gestion');
   const panneau = document.querySelector('#panneau-planche');
-  const tete = panneau.querySelector('.planche-tete');
-  panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
-  tete.querySelector('.bouton-discret').textContent = 'Relire';
-  tete.querySelector('.bascule').replaceWith(M.el('<div class="bascule" role="group" aria-label="Vue"><button type="button" class="bascule-option" aria-pressed="false">Complète</button><button type="button" class="bascule-option" aria-pressed="true">Condensée</button></div>'));
+  M.teteDeGestion(panneau, true);
   const etat = (code, libelle) => `<span class="pastille-d-etat" data-etat="${code}">${libelle}</span>`;
   const etats = {
     Bleu: [etat('a-jour', 'À jour'), etat('a-jour', 'À jour')],
@@ -284,10 +326,10 @@ const MAQUETTES = [
     argument: { 1: 'avertissement', 2: 'succes' },
     hauteur: 760,
     change: [
-      'La barre est celle de Création : liste déroulante, « Nouvelle palette », menu. Ouverte ici, la liste porte le verdict de chaque palette, ✓, ! ou ✗ ; le bouton porte celui de la palette ouverte.',
-      'Le point à vérifier perd sa ligne de mesure, « Écart le plus faible : … ΔEok » : il garde où, quoi, le geste et le lien.',
+      'La liste déroulante de Création, avec le verdict de chaque palette : validée.',
+      'Le lien d’un message nomme le geste, et ouvre la carte où il se fait. Ici « Ajuster la saturation » ouvre Création sur « Réglage global », dépliée.',
     ],
-    questions: ['S5 : la place et la forme du verdict dans la liste.', 'S6 : le message simplifié.'],
+    questions: ['S17 : les libellés des liens, listés dans le plan.'],
   },
   {
     id: 'M9',
@@ -295,13 +337,13 @@ const MAQUETTES = [
     etat: 'planche-perimee',
     transformer: gestion,
     argument: RAMPES_DU_FICHIER,
-    hauteur: 1250,
+    hauteur: 1330,
     change: [
-      'Une bascule « Complète · Condensée » en tête ; la vue complète est celle de l’ouverture.',
-      'Sous la tête, une ligne dit où les tokens s’écrivent, et « Changer » ouvre la carte de M11.',
-      'Une palette du fichier porte « Modifier dans le plugin ».',
+      'Un bloc « Connexion à Figma » ouvre l’onglet : « Synchroniser », où les tokens s’écrivent, la page des planches, puis le bilan des palettes et « Tout mettre à jour ».',
+      '« Synchroniser » relit le fichier et rafraîchit les états. Il n’écrit rien.',
+      'La bascule dit « Vue complète · Vue condensée ».',
     ],
-    questions: ['S8 : la bascule des deux vues.', 'S13 : ce que fait « Modifier dans le plugin ».', 'S15 : la ligne de la destination.'],
+    questions: ['S18 : le bloc et son contenu.', 'S19 : « Synchroniser » relit sans écrire ; « Tout mettre à jour » écrit.', 'S13 : ce que fait « Modifier dans le plugin ».'],
   },
   {
     id: 'M10',
@@ -309,13 +351,11 @@ const MAQUETTES = [
     etat: 'planche-perimee',
     transformer: gestionCondensee,
     argument: RAMPES_DU_FICHIER,
-    hauteur: 420,
+    hauteur: 560,
     change: [
-      'Une ligne par palette : son nom, sa rampe en miniature, l’état de ses tokens, l’état de sa planche. Aucun geste.',
-      'Une palette du fichier est une ligne du même tableau, marquée « Variables du fichier ».',
-      'Un clic sur une ligne ouvre la vue complète sur cette palette.',
+      'Validée. Le bloc « Connexion à Figma » reste en tête, sans « Tout mettre à jour ».',
     ],
-    questions: ['S8 : ce que la vue condensée montre.', 'S16 : « Tout mettre à jour » absent de cette vue.'],
+    questions: ['S18 : le bloc dans cette vue.'],
   },
   {
     id: 'M11',
@@ -323,23 +363,23 @@ const MAQUETTES = [
     etat: 'planche-perimee',
     transformer: gestion,
     argument: { ...RAMPES_DU_FICHIER, destination: true },
-    hauteur: 860,
+    hauteur: 1180,
     change: [
-      'Une carte « Destination des tokens », réglée une fois pour le fichier : la collection, choisie parmi celles du fichier ou créée, le groupe, et la place des thèmes Light et Dark.',
-      'L’exemple montre le chemin d’une variable avec ces choix.',
-      'La confirmation d’une première écriture reprend la destination : collection, premier et dernier chemin, nombre de variables.',
+      '« Changer », dans le bloc de la connexion, ouvre la carte : trois champs, sans texte d’aide.',
+      'La simulation montre la collection telle que le panneau des variables de Figma l’affichera : les chemins, les couleurs, le nombre de variables et de modes. Elle suit chaque choix.',
     ],
-    questions: ['S15 : une destination pour le fichier, réglée dans Gestion.', 'S10 : les thèmes dans le chemin ou en modes.'],
+    questions: ['S20 : la forme de la carte et de la simulation.'],
   },
   {
     id: 'M12',
+    validee: true,
     titre: 'Gestion : des couleurs changées dans Figma',
     etat: 'planche-perimee',
     transformer: gestion,
     argument: { ...RAMPES_DU_FICHIER, modifiee: true },
-    hauteur: 520,
+    hauteur: 700,
     change: ['La fiche liste les couleurs changées à la main, valeur de Figma et valeur du plugin côte à côte, et propose deux choix pour la palette entière.'],
-    questions: ['S11 : les deux choix.'],
+    questions: ['S11.'],
   },
   {
     id: 'M1',
@@ -436,7 +476,7 @@ const page = `<!doctype html>
 </head>
 <body>
 <h1>UCM Palettes : maquettes de la direction simple</h1>
-<p>Second passage, en thème sombre. Les questions sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
+<p>Troisième passage, en thème sombre. Les questions sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
 <p class="legende">Chaque cadre fait 560 px de large et défile comme le plugin. Il est statique : aucun bouton ne répond. Les écrans partent du plugin construit ; les couleurs des palettes du plugin sortent du moteur.</p>
 <h2 class="partie">À valider</h2>
 <nav>${MAQUETTES.filter((maquette) => !maquette.validee).map(lien).join('')}</nav>

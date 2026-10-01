@@ -22,9 +22,9 @@ sur la forme des variables. Un lot modifie d'abord la spécification.
 
 **Les maquettes.**
 [MAQUETTES-DIRECTION-SIMPLE.html](./MAQUETTES-DIRECTION-SIMPLE.html) s'ouvre
-d'un double clic, en thème sombre, à 560 px de large : cinq écrans à valider,
-M8 à M12, puis trois écrans validés, M1, M2 et M4. Les écrans M3, M5, M6 et M7
-du premier passage sont remplacés. Chaque écran part du plugin construit. Pour
+d'un double clic, en thème sombre, à 560 px de large : quatre écrans à
+valider, M8 à M11, puis quatre écrans validés, M12, M1, M2 et M4. Les écrans
+M3, M5, M6 et M7 du premier passage sont remplacés. Chaque écran part du plugin construit. Pour
 les régénérer, depuis la racine du dépôt :
 
 ```sh
@@ -85,9 +85,38 @@ Un point à vérifier ne donne plus sa ligne de mesure, « Écart le plus faible
 0,010 ΔEok, pour un minimum de 0,02 ΔEok » : il garde où, quoi, le geste et le
 lien. Le rapport exporté garde la mesure.
 
+Le lien d'un message nomme le geste et ouvre la carte où ce geste se fait,
+dépliée. Le message cite la même carte que son lien.
+
+| Le lien ouvre | Libellé |
+|---|---|
+| Création, « Réglage global », pour des profils presque identiques | Ajuster la saturation |
+| Création, « Réglage global », pour un contraste | Ajuster le réglage global |
+| Création, « Color shift » | Ajuster le Color shift |
+| Création, le champ de la référence | Changer la couleur de référence |
+| La modale « Ajuster la référence » | Ajuster la référence |
+| Réglages communs, « Luminosité des nuances » | Ajuster la luminosité des nuances |
+| Réglages communs, « Couleurs de fond » | Changer les couleurs de fond |
+| Réglages communs, « Intensités communes » | Ajuster les intensités communes |
+
+Aujourd'hui, l'alerte des profils presque identiques dit « Réglage global »
+et son lien ouvre « Intensités communes » : le lien passe à « Réglage
+global ».
+
 ### 3.4 Gestion (M9 à M12)
 
-**Deux vues.** Une bascule « Complète · Condensée » en tête de l'onglet. La
+**La connexion à Figma (M9).** Un bloc ouvre l'onglet, dans les deux vues. Il
+porte ce qui relie le plugin au fichier :
+
+- « Synchroniser », qui relit le fichier et rafraîchit les états, sans rien
+  écrire, et la date de la dernière synchronisation ;
+- la destination des tokens, collection et groupe, et « Changer » ;
+- la page des planches ;
+- le bilan des palettes, un compte par état, et « Tout mettre à jour », qui
+  écrit les tokens et les planches en retard après une confirmation. La vue
+  condensée ne porte pas ce bouton.
+
+**Deux vues.** Une bascule « Vue complète · Vue condensée » sous le bloc. La
 vue complète est celle de l'ouverture.
 
 **La vue complète (M9).** Deux listes, séparées par un filet et un titre.
@@ -115,9 +144,8 @@ le nombre de couleurs, et porte « Modifier dans le plugin ».
 sa rampe en miniature, l'état de ses tokens et l'état de sa planche. Aucun
 geste. Une palette du fichier est une ligne du même tableau.
 
-**La destination (M11).** Sous la tête de la vue complète, une ligne dit où
-les tokens s'écrivent, et « Changer » ouvre la carte « Destination des
-tokens » :
+**La destination (M11).** « Changer », dans le bloc de la connexion, ouvre la
+carte « Destination des tokens » :
 
 | Champ | Choix | Défaut |
 |---|---|---|
@@ -125,8 +153,11 @@ tokens » :
 | Groupe | Le dossier des palettes dans la collection ; vide, les palettes sont à la racine | `colors` |
 | Thèmes Light et Dark | Dans le chemin, ou en modes de la collection | Dans le chemin |
 
-La carte montre le chemin d'une variable avec ces choix. La destination vaut
-pour toutes les palettes du plugin et se range dans le fichier. Tant qu'elle
+Sous les trois champs, sans texte d'aide, une simulation montre la collection
+comme le panneau des variables de Figma l'affichera : son nom, les premiers et
+les derniers chemins avec leur couleur, le nombre de variables et de modes.
+Elle suit chaque choix. La destination vaut pour toutes les palettes du plugin
+et se range dans le fichier. Tant qu'elle
 n'a pas été confirmée une fois, « Écrire dans les tokens » ouvre la carte
 avant d'écrire.
 
@@ -213,16 +244,18 @@ Réponses du mainteneur au premier passage des maquettes.
 | S2 | Le fichier vide | L'encart de M1 ; la ligne vers Gestion quand le fichier porte des palettes |
 | S3 | L'interface de test | Elle reste dans Création |
 | S4 | Le pied de Création | Il garde le bilan ; « Vérifier » remplace « Détails » |
-| S5 | Le choix de la palette dans Vérification | La liste déroulante de Création, avec « Nouvelle palette » et le menu ; un verdict par option. Les puces sont écartées |
-| S6 | Le contenu de Vérification | Verdict, messages, garanties, dans cet ordre ; la ligne de mesure d'un point à vérifier est retirée partout |
+| S5 | Le choix de la palette dans Vérification | La liste déroulante de Création, avec « Nouvelle palette » et le menu ; un verdict par option, à droite. Les puces sont écartées |
+| S6 | Le contenu de Vérification | Verdict, messages, garanties, dans cet ordre ; la ligne de mesure d'un point à vérifier est retirée partout ; le lien d'un message nomme le geste et ouvre la carte où il se fait |
 | S7 | Écrire une palette qui manque des garanties | Permis |
-| S8 | La forme de Gestion | Les deux vues, par une bascule ; la complète à l'ouverture ; la condensée ne montre que les états |
+| S8 | La forme de Gestion | Les deux vues, par une bascule « Vue complète · Vue condensée » ; la complète à l'ouverture ; la condensée ne montre que les états |
 | S9 | Les mots des états | Ceux de la section 3.4 ; « Tokens Figma » pour la ligne, « variables » dans le détail |
+| S10 | Les thèmes Light et Dark dans les variables | Un choix de la destination, « Dans le chemin » par défaut |
+| S11 | Des couleurs changées dans Figma | Deux choix pour la palette entière, sans reprise dans la recette |
 | S12 | Les palettes du fichier | Dernier segment numérique, cinq variables au moins, variables locales |
 | S13 | Le geste d'une palette du fichier | Il se nomme « Modifier dans le plugin » |
-
-Les maquettes M8, M9 et M10 montrent S5, S6, S8 et S13 tels que validés : leur
-forme reste à confirmer.
+| S15 | Où les variables s'écrivent | Une destination pour le fichier, réglée dans Gestion : collection, groupe, thèmes |
+| S16 | « Tout mettre à jour » dans la vue condensée | Absent |
+| — | Le mot du bouton qui relit le fichier | « Synchroniser » |
 
 ## 7. Les questions qui restent
 
@@ -230,12 +263,12 @@ Répondre par numéro : oui, non, ou une variante.
 
 | # | Question | Recommandation | Autre option |
 |---|---|---|---|
-| S10 | Les thèmes Light et Dark dans les variables | Un choix de la destination (M11), « Dans le chemin » par défaut : c'est la forme de l'architecture | Une seule forme, sans choix |
-| S11 | Des couleurs changées dans Figma (M12) | Deux choix pour la palette entière, sans reprise dans la recette | Un choix par couleur |
 | S13 | Ce que fait « Modifier dans le plugin » | Le geste ouvre Création sur une palette neuve, à son nom et à sa référence, la nuance 600 ou la plus proche. Le plugin recalcule la rampe et suit désormais ces variables : rien ne s'écrit avant « Mettre à jour » dans Gestion, qui liste les couleurs qui changent | Une palette libre aux couleurs lues, sans recalcul ni garanties |
 | S14 | Lier la planche aux tokens | Non : la planche garde ses couleurs écrites, et son état se lit dans Gestion | Les pastilles de la planche liées aux variables, quand elles existent |
-| S15 | Où les variables s'écrivent (M11) | Une destination pour le fichier, réglée dans Gestion : collection, groupe, thèmes. Par défaut une nouvelle collection `primitives` et le groupe `colors` | Une destination par palette ; ou la carte dans les Réglages communs |
-| S16 | « Tout mettre à jour » dans la vue condensée | Absent : la vue condensée ne porte aucun geste | Le garder sous le tableau |
+| S17 | Les libellés des liens de message (M8) | Ceux de la table de la section 3.3 | D'autres mots |
+| S18 | Le bloc « Connexion à Figma » (M9, M10) | Synchronisation, destination des tokens, page des planches, bilan et « Tout mettre à jour » | Sans le bilan ; ou sans la page des planches |
+| S19 | Ce que fait « Synchroniser » | Il relit le fichier sans écrire ; « Tout mettre à jour » écrit | Un seul bouton, qui relit puis écrit ce qui est en retard |
+| S20 | La carte de la destination et sa simulation (M11) | Trois champs, puis la simulation en forme de panneau de variables | Une autre forme |
 
 ## 8. Les recherches
 
@@ -246,7 +279,7 @@ Répondre par numéro : oui, non, ou une variante.
 | R1 | Créer par l'API une variable dont le nom existe déjà dans la collection : refus ou doublon | La règle 7 |
 | R2 | Écrire 44 variables et la recette, puis Ctrl+Z : combien de pas | Le `commitUndo` unique de la règle 6 |
 | R3 | La donnée de plugin partagée d'une variable après publication de la bibliothèque et copie du fichier | Le suivi de la règle 3 |
-| R4 | Le temps de lecture de 500 variables locales par `getLocalVariablesAsync`, à l'ouverture de Gestion | Lire à l'ouverture ou au clic sur « Relire » |
+| R4 | Le temps de lecture de 500 variables locales par `getLocalVariablesAsync`, à l'ouverture de Gestion | Lire à l'ouverture ou au seul clic sur « Synchroniser » |
 | R5 | Une couleur changée à la main : la valeur relue diffère-t-elle de la valeur écrite au-delà de l'arrondi | Le seuil d'égalité de la règle 4 |
 | R6 | Les caractères refusés dans un nom de variable, sur un nom de palette accentué ou à espace | Le nom écrit, et le message quand il est refusé |
 | R7 | La règle de détection sur le fichier de la bibliothèque Intencial | Ce qu'elle trouve, ce qu'elle manque |
@@ -267,10 +300,10 @@ Répondre par numéro : oui, non, ou une variante.
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste et les messages simplifiés, Gestion en deux vues avec la seule ligne Planche | Validé ; la forme de M8, M9 et M10 |
+| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste, les messages simplifiés et leurs liens, Gestion en deux vues avec le bloc de la connexion et la seule ligne Planche | Validé ; S17, S18, S19 |
 | 2 | Les essais R1 à R9 et les trois recherches du dépôt | Aucun |
-| 3 | L'écriture des tokens : destination, suivi, états, première écriture, « Tout mettre à jour » | Lot 2, S10, S15 |
-| 4 | Les couleurs changées dans Figma, et les palettes du fichier en lecture seule | Lot 3, S11 |
+| 3 | L'écriture des tokens : destination et simulation, suivi, états, première écriture, « Tout mettre à jour » | Lot 2, S20 |
+| 4 | Les couleurs changées dans Figma, et les palettes du fichier en lecture seule | Lot 3 |
 | 5 | « Modifier dans le plugin », et la planche liée aux tokens si elle est retenue | S13, S14 |
 
 Le lot 1 se livre seul : il réorganise le plugin sans toucher à ce qu'il écrit.
