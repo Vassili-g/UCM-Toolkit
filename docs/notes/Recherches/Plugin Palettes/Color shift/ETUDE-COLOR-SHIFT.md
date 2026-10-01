@@ -186,6 +186,13 @@ Une limite, deux bornes d'une grandeur à un bout, se calcule en 28 ms en
 moyenne dans Node, par balayage au pas de la grandeur. La maquette recalcule
 la grandeur de l'onglet ouvert au relâchement.
 
+La mesure refaite avec le moteur (`packages/couleur/scripts/mesurer-limites.mjs`),
+sur les dix-neuf paires de la table, rend le même tableau : mêmes bornes, mêmes
+causes, mêmes limites croisées. Les trois paires du quatrième rang ne bornent
+aucun réglage des six références. Sur 72 limites, une limite prend 24 ms en
+moyenne et 49 à 53 ms au plus selon l'exécution. La plus longue est une teinte
+libre sur ±90°, soit 180 palettes candidates à 0,2 ms chacune.
+
 ### 5.3 Ce que les limites ne couvrent pas
 
 Les curseurs du Color shift s'arrêtent avant de casser une garantie. Les

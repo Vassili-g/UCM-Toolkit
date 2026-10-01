@@ -28,11 +28,24 @@ export type Intensite = Profil | 'unique';
 export const PROFILS: readonly Profil[] = ['soft', 'vivid'];
 export const MODES: readonly Mode[] = ['light', 'dark'];
 
-/** Une dérive de teinte, en degrés signés, à chaque bout de la rampe (section 6.4). */
-export interface Derive {
+/** Un décalage du Color shift à chaque bout de la rampe ([MOT-30]). */
+export interface DecalageAuxBouts {
   readonly clair: number;
   readonly sombre: number;
 }
+
+/**
+ * Le Color shift d'un profil ([MOT-30]) : `clair` et `sombre` portent la
+ * teinte, en degrés signés (section 6.4) ; `saturation` et `clarte`, absents,
+ * valent zéro aux deux bouts.
+ */
+export interface Derive extends DecalageAuxBouts {
+  readonly saturation?: DecalageAuxBouts;
+  readonly clarte?: DecalageAuxBouts;
+}
+
+/** Un bout de la rampe : celui des nuances claires, ou celui des nuances sombres. */
+export type Bout = keyof DecalageAuxBouts;
 
 /** Une dérive se borne à `[-90, 90]` degrés ([MOT-15]). */
 export const DERIVE_MAXIMALE = 90;
@@ -43,6 +56,12 @@ export const DERIVE_MAXIMALE = 90;
  * décalage de clarté OKLCH.
  */
 export const BORNES_DU_COLOR_SHIFT = { teinte: DERIVE_MAXIMALE, saturation: 1, clarte: 0.15 } as const;
+
+/** Les trois grandeurs du Color shift ([MOT-30]). */
+export type GrandeurDuColorShift = keyof typeof BORNES_DU_COLOR_SHIFT;
+
+/** Le pas de chaque grandeur ([DER-07]) : 1°, 1 % de la part, 0,005 de clarté. Le glisser, le clavier et le balayage des limites le suivent. */
+export const PAS_DU_COLOR_SHIFT: { readonly [G in GrandeurDuColorShift]: number } = { teinte: 1, saturation: 0.01, clarte: 0.005 };
 
 /** Les deux clartés qui bornent la dérive : celles des numéros 50 et 950 en Light (`boutsDe`, nuances.ts). */
 export interface Bouts {
@@ -68,22 +87,40 @@ export function arrondir(x: number, decimales: number): number {
   return x < 0 && arrondi !== 0 ? -arrondi : arrondi;
 }
 
+/** Le bout qu'une clarté regarde, et la fraction de son réglage qu'elle reçoit. */
+export interface Poids {
+  readonly bout: Bout;
+  readonly poids: number;
+}
+
+/**
+ * Le poids d'une nuance de clarté `L` (section 6.4, [MOT-30]) : 0 à la clarté
+ * du pivot, 1 au bout, linéaire entre les deux. Une clarté plus claire que le
+ * pivot regarde le bout clair, une plus sombre le bout sombre. Hors de
+ * `[Ls, Lc]`, le poids vaut 1 ([MOT-14]) ; un bout sans segment donne 0 au
+ * bout clair et 1 au bout sombre.
+ */
+export function poidsA(L: number, reference: Oklch, bouts: Bouts): Poids {
+  if (L >= reference.L) {
+    const u = bouts.clair > reference.L
+      ? Math.min(1, Math.max(0, (L - reference.L) / (bouts.clair - reference.L)))
+      : 0;
+    return { bout: 'clair', poids: u };
+  }
+  const v = reference.L > bouts.sombre
+    ? Math.min(1, Math.max(0, (reference.L - L) / (reference.L - bouts.sombre)))
+    : 1;
+  return { bout: 'sombre', poids: v };
+}
+
 /**
  * La teinte à la clarté `L` (section 6.4). La référence est le pivot : à sa
  * clarté, la teinte vaut la sienne quelle que soit la dérive. Une clarté hors
  * de `[Ls, Lc]` prend la dérive entière du bout le plus proche ([MOT-14]).
  */
 export function teinteA(L: number, reference: Oklch, derive: Derive, bouts: Bouts): number {
-  if (L >= reference.L) {
-    const u = bouts.clair > reference.L
-      ? Math.min(1, Math.max(0, (L - reference.L) / (bouts.clair - reference.L)))
-      : 0;
-    return normaliserTeinte(reference.H + derive.clair * u);
-  }
-  const v = reference.L > bouts.sombre
-    ? Math.min(1, Math.max(0, (reference.L - L) / (reference.L - bouts.sombre)))
-    : 1;
-  return normaliserTeinte(reference.H + derive.sombre * v);
+  const { bout, poids } = poidsA(L, reference, bouts);
+  return normaliserTeinte(reference.H + derive[bout] * poids);
 }
 
 /** Un cran produit : la couleur à 8 bits et sa lecture OKLCH recalculée ([MOT-09], [MOT-11]). */
@@ -158,22 +195,41 @@ export interface ParametresRampe {
   readonly decalage?: number;
 }
 
+const borner = (x: number): number => Math.min(1, Math.max(0, x));
+
+/** La clarté à laquelle un cran de clarté de courbe `L` se fabrique, bornée à [0, 1] ([MOT-29], [MOT-30]). */
+function clarteDuCran(L: number, { bout, poids }: Poids, parametres: ParametresRampe): number {
+  return borner(L + (parametres.decalage ?? 0) + (parametres.derive.clarte?.[bout] ?? 0) * poids);
+}
+
 /**
  * Les crans d'une rampe, dans l'ordre de la courbe. Un décalage de clarté
- * translate la courbe, le pivot et les bouts ensemble : la teinte et le
- * facteur des fonds se lisent sur la clarté de la courbe, la couleur se
- * fabrique à la clarté décalée, bornée à [0, 1].
+ * translate la courbe, le pivot et les bouts ensemble ; le Color shift
+ * décale ensuite la part et la clarté de chaque cran selon son poids
+ * ([MOT-30]). Le poids, la teinte et le facteur des fonds se lisent sur la
+ * clarté de la courbe ; la couleur se fabrique à la clarté décalée, et la part
+ * décalée, bornées à [0, 1].
  */
 export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
-  const { sombre } = parametres;
-  const decalage = parametres.decalage ?? 0;
-  return parametres.courbe.map((L) =>
-    fabriquerCran(
-      Math.min(1, Math.max(0, L + decalage)),
-      teinteA(L, parametres.reference, parametres.derive, parametres.bouts),
-      sombre ? parametres.part * facteurSombre(L, sombre) : parametres.part,
+  const { derive, sombre } = parametres;
+  return parametres.courbe.map((L) => {
+    const poids = poidsA(L, parametres.reference, parametres.bouts);
+    const part = borner(parametres.part * (1 + (derive.saturation?.[poids.bout] ?? 0) * poids.poids));
+    return fabriquerCran(
+      clarteDuCran(L, poids, parametres),
+      teinteA(L, parametres.reference, derive, parametres.bouts),
+      sombre ? part * facteurSombre(L, sombre) : part,
       parametres.gamut,
-    ));
+    );
+  });
+}
+
+/**
+ * Les clartés auxquelles `fabriquerRampe` fabrique les crans, avant l'arrondi
+ * à 8 bits. L'ordre des nuances se juge sur elles ([DER-19]).
+ */
+export function clartesVisees(parametres: ParametresRampe): number[] {
+  return parametres.courbe.map((L) => clarteDuCran(L, poidsA(L, parametres.reference, parametres.bouts), parametres));
 }
 
 /** Une part de chroma par profil. */

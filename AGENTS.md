@@ -192,23 +192,25 @@ packages/adapter-typescript/  l'adaptateur opt-in : parité TS/TSX et types gén
 packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source
   src/conversions.ts       hexa, sRGB, linéaire, Oklab, OKLCH et Display P3
   src/plafond.ts           la plus grande chroma que sRGB porte, mémorisée
-  src/rampe.ts             un cran, la teinte pivotée, le facteur des fonds du thème Dark, les rampes des deux profils
+  src/rampe.ts             un cran, le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
   src/tailwind.ts          le préréglage Tailwind et son relevé
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
   src/recette.ts           la forme de la recette, sa validation, son classement à la lecture, sans conversion d'un format antérieur
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
-  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
+  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
   src/nuances.ts           les deux préréglages de nuances, 11 et 13, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
   src/promesses.ts         les dix-neuf paires du kit, jugées par mode et par intensité présente
   src/alertes.ts           les alertes de conception et la notice
   src/garantie.ts          la garantie des courbes : crans 600 et 700 contre le cran 50 gris, sur 360 teintes
+  src/limites.ts           la limite dynamique d'un réglage et la cause de chaque borne, balayée un pas à la fois
   src/constats.ts          les sévérités et leur ordre d'affichage
   src/index.ts             la porte du paquet, qui republie `@ucm-kit/core/emplois`
   scripts/mesurer-temps.mjs  la médiane de cent palettes, hors des tests
   scripts/mesurer-garantie.mjs  la médiane de vingt garanties des courbes, hors des tests
   scripts/mesurer-ancrage.mjs   l'effet de l'ancrage sur les voisines et les promesses, hors des tests
+  scripts/mesurer-limites.mjs   les limites du Color shift sur six références, et leur durée, hors des tests
   tests/                   vecteurs figés, propriétés, et la loi de pureté
 
 packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé, lu en source
@@ -949,14 +951,18 @@ La spécification en lien porte le raisonnement.
   test lit les instructions d'import, pas un chemin calculé.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
-  quelle que soit la dérive. `teinteA` (`packages/couleur/src/rampe.ts`) en est
+  quel que soit le Color shift. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.
+  La saturation et la luminosité du Color shift lisent le même poids, `poidsA` :
+  nul à la clarté du pivot, il n'y décale aucune des trois grandeurs, et
+  `proprietes.test.ts` l'éprouve sur vingt mille tirages. Sans saturation ni
+  luminosité, chaque cran est celui de la teinte seule, à l'octet, et une part
+  nulle reste nulle : une palette grise reste grise sous toute saturation.
   Sous des réglages de teinte ou de luminosité, chaque profil pivote sur son
   départ : à la clarté du départ, sa teinte vaut celle de son pivot, et un
   décalage de clarté ne change la teinte d'aucun cran. `pivotDe`
   (`packages/couleur/src/palette.ts`) en est l'unique autorité, et
   `packages/couleur/tests/reglages.test.ts` l'éprouve sur des tirages.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
 - Dans son intensité porteuse, chaque mode d'une palette contient les octets
   exacts de sa couleur de référence, au cran de clarté la plus proche. Les
@@ -964,7 +970,7 @@ La spécification en lien porte le raisonnement.
   référence : promesses, alertes, planche, rapport et éditeur de dérive lisent
   `rampesDe` et `ancrageDe` (`packages/couleur/src/palette.ts`), qui en sont
   l'unique autorité. `packages/couleur/tests/ancrage.test.ts` l'éprouve sur deux
-  mille tirages. Le cran porteur se lit sur la clarté du départ des réglages :
+  mille références, puis sous vingt mille Color shift tirés au hasard. Le cran porteur se lit sur la clarté du départ des réglages :
   une luminosité réglée translate la rampe sans changer la nuance du ◆. La
   référence réglée sort de `referenceReglee` (`packages/couleur/src/reglages.ts`),
   que seuls les gestes appellent ; la validation ne la recalcule pas, et
@@ -1010,6 +1016,17 @@ La spécification en lien porte le raisonnement.
   bande de la dérive appellent, ne l'applique pas. `packages/couleur/tests/fondsSombres.test.ts`
   le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
+- Chaque valeur de la limite dynamique d'un réglage garde les promesses tenues
+  au départ du geste et, pour la luminosité, 0,01 de clarté entre nuances
+  voisines. Une promesse manquée au départ ne borne rien. Chaque borne porte
+  sa cause : la première promesse qui manquerait un pas au-delà, ou l'ordre
+  des nuances. `balayerLaLimite` et `limiteDynamique`
+  (`packages/couleur/src/limites.ts`) en sont l'unique autorité : le Color
+  shift et le réglage global leur passent leur palette candidate.
+  `packages/couleur/tests/limites.test.ts` le tient sur Bleu, Rouge, Jaune et
+  Sauge. Borne : le balayage juge les valeurs au pas du réglage, pas entre
+  deux pas.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
 
 ### Écriture d'UCM Palettes
 

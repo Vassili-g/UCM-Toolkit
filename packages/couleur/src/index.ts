@@ -17,4 +17,5 @@ export * from './reglages';
 export * from './promesses';
 export * from './alertes';
 export * from './garantie';
+export * from './limites';
 export * from './constats';

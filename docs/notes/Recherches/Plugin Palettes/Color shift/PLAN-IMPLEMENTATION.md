@@ -153,21 +153,21 @@ les messages qu'elles produisent vont déjà au pied.
 
 ## Phase 5 : le moteur du Color shift et ses limites
 
-- [ ] **C2** `packages/couleur/src/rampe.ts` : extraire `poidsA` de
+- [x] **C2** `packages/couleur/src/rampe.ts` : extraire `poidsA` de
   `teinteA`, sans changer `teinteA` ; `Derive` porte la teinte, la saturation
   et la clarté de chaque bout ; `fabriquerRampe` applique la part
   `part × (1 + s × poids)` bornée à [0, 1], puis la clarté
   `L + décalage + c × poids`. Poids et facteur des fonds se lisent sur la
   clarté de la courbe. `palette.ts` passe la dérive entière à
   `fabriquerPalette` et à `rampeUnique`.
-- [ ] **C3** Tests de propriétés dans `packages/couleur/tests/` :
+- [x] **C3** Tests de propriétés dans `packages/couleur/tests/` :
   - décalage nul à la clarté du pivot, pour les trois grandeurs ;
   - les octets de la référence au cran porteur, sous vingt mille tirages de
     décalages, dans `ancrage.test.ts` ;
   - `proprietes.test.ts` et les vecteurs figés inchangés quand saturation et
     clarté manquent ;
   - une palette grise reste grise sous toute saturation.
-- [ ] **C4** Nouveau `packages/couleur/src/limites.ts`, pur :
+- [x] **C4** Nouveau `packages/couleur/src/limites.ts`, pur :
   `limiteDynamique` reçoit la recette, la palette, une fonction qui rend la
   palette candidate pour une valeur, les bornes fixes, le pas, et l'exigence
   d'ordre des nuances. Elle rend les deux bornes et leur cause : la première
@@ -175,17 +175,22 @@ les messages qu'elles produisent vont déjà au pied.
   l'ordre. Une promesse manquée au départ ne borne rien. La fonction ne
   dépend ni d'`edition.ts` ni du plugin : le Color shift et le réglage global
   lui passent chacun leur candidate.
-- [ ] **C5** Mesure : `packages/couleur/scripts/mesurer-limites.mjs`, sur le
+- [x] **C5** Mesure : `packages/couleur/scripts/mesurer-limites.mjs`, sur le
   modèle de `mesurer-temps.mjs`, relève la durée d'une limite dans Node et
   rejoue le tableau de l'étude sur les dix-neuf paires. Mettre à jour la
   section 5.2 de l'étude avec ces nombres. Si une limite dépasse 50 ms,
   écrire la mesure et s'arrêter : le mainteneur choisit entre un balayage
   grossier puis fin et un calcul hors du fil de l'interface.
-- [ ] **C6** Tests de `limites.ts` : toute valeur dans la limite garde les
+  Mesure : 24 ms en moyenne, 49 à 53 ms au plus. Choix fait en autonomie, à
+  valider : le calcul exact, étalé entre les images. `balayerLaLimite` rend la
+  main après chaque candidate ; l'interface l'avance par tranches, et un geste
+  qui commence avant la fin termine d'abord le calcul. Un balayage grossier
+  pourrait sauter une bande interdite plus étroite que son pas.
+- [x] **C6** Tests de `limites.ts` : toute valeur dans la limite garde les
   promesses tenues au départ ; la valeur d'un pas au-delà d'une borne à cause
   en fait manquer une ; les limites se croisent (luminosité en butée, puis
   teinte bornée) sur Bleu, Rouge, Jaune et Sauge.
-- [ ] **C7** AGENTS.md, invariants du moteur de couleur : l'invariant de
+- [x] **C7** AGENTS.md, invariants du moteur de couleur : l'invariant de
   `teinteA` couvre les trois grandeurs ; un invariant nouveau pour
   `limiteDynamique` et le test qui le tient. Carte du code : `limites.ts`.
 

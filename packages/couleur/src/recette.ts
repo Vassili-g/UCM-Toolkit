@@ -10,7 +10,7 @@ import { CRANS_DES_EMPLOIS } from '@ucm-kit/core/emplois';
 
 import { lireHexa } from './conversions';
 import { PREREGLAGES } from './nuances';
-import { BORNES_DU_COLOR_SHIFT, type Profil } from './rampe';
+import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Profil } from './rampe';
 import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
 
 /**
@@ -23,23 +23,13 @@ export const FORMAT_RECETTE = 7;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
-/** Un décalage du Color shift à chaque bout de la rampe ([MOT-30]). */
-export interface DecalageAuxBouts {
-  readonly clair: number;
-  readonly sombre: number;
-}
-
 /**
- * Le Color shift d'un profil ([MOT-30]). `clair`, `sombre` et `origine`
- * portent la teinte ; `saturation` et `clarte` sont absents quand leurs deux
- * bouts valent zéro. `origine` ne mesure que la teinte.
+ * Le Color shift rangé d'un profil ([MOT-30]) : `saturation` et `clarte` sont
+ * absents quand leurs deux bouts valent zéro, et `origine` ne mesure que la
+ * teinte.
  */
-export interface DeriveRangee {
-  readonly clair: number;
-  readonly sombre: number;
+export interface DeriveRangee extends Derive {
   readonly origine: OrigineDerive;
-  readonly saturation?: DecalageAuxBouts;
-  readonly clarte?: DecalageAuxBouts;
 }
 
 /** Les deux décalages facultatifs du Color shift. */

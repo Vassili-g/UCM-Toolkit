@@ -163,3 +163,26 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
   }
   assert.deepEqual(fautes.slice(0, 5), []);
 });
+
+test('[MOT-17] [MOT-30] sous vingt mille Color shift tirés au hasard, le cran porteur garde les octets de la référence, et l’ancrage ne bouge pas', () => {
+  const tirer = generateur(20261001);
+  const references = ['#1E6FD9', '#16A34A', '#DC2626', '#EAB308', '#A0B599', '#6B7280', '#B00100', '#7C717B', '#000000', '#FFFCF5'];
+  const fautes: string[] = [];
+  for (let essai = 0; essai < 20000; essai += 1) {
+    const hexa = references[essai % references.length];
+    const bouts = (borne: number) => ({ clair: (2 * tirer() - 1) * borne, sombre: (2 * tirer() - 1) * borne });
+    const derive = (): Palette['derive']['soft'] => ({ ...bouts(90), saturation: bouts(1), clarte: bouts(0.15), origine: 'libre' });
+    const sans = paletteTailwind('p-000000a3', hexa, essai % 3 === 0 ? { intensites: 1 } : {});
+    const palette: Palette = { ...sans, derive: essai % 2 === 0 ? { lien: false, soft: derive(), vivid: derive() } : { lien: true, soft: derive(), vivid: derive() } };
+    const synchronisee: Palette = palette.derive.lien ? { ...palette, derive: { ...palette.derive, soft: palette.derive.vivid } } : palette;
+    const recette = { ...recetteParDefaut(), palettes: [synchronisee] };
+    const ancrage = ancrageDe(recette, synchronisee);
+    if (JSON.stringify(ancrage) !== JSON.stringify(ancrageDe({ ...recetteParDefaut(), palettes: [sans] }, sans))) fautes.push(`${hexa} : l’ancrage a bougé`);
+    const rampes = rampesDe(recette, synchronisee);
+    for (const mode of MODES) {
+      const cran = rampes[ancrage.profil]![mode][ancrage.rangs[mode]];
+      if (cran.hexa !== hexa) fautes.push(`${hexa} ${ancrage.profil} ${mode} : ${cran.hexa}`);
+    }
+  }
+  assert.deepEqual(fautes.slice(0, 5), []);
+});

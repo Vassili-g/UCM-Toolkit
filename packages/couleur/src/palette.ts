@@ -9,7 +9,7 @@ import { PREREGLAGES, boutsDe, estLibre, etendueDe, grilleDe } from './nuances';
 import { plafond } from './plafond';
 import {
   arrondir,
-  fabriquerPalette,
+  clartesVisees,
   fabriquerRampe,
   MODES,
   partsEffectives,
@@ -19,6 +19,7 @@ import {
   type FondsSombres,
   type Intensite,
   type Mode,
+  type ParametresRampe,
   type Parts,
   type Profil,
   type RampeParMode,
@@ -268,23 +269,27 @@ function cranDeLaReference(reference: Rgb8): Cran {
 }
 
 /**
- * La rampe d'une palette à une intensité ([ENT-14]) : celle que le profil
- * porteur forcé donnerait, à la part de la référence, avec la dérive liée.
+ * Ce que la rampe d'une intensité et d'un mode demande à `fabriquerRampe`,
+ * avant l'ancrage de la référence : la courbe de la grille, le pivot du
+ * profil, son Color shift, sa part et son décalage de clarté. Une palette à
+ * une intensité lit la dérive de `vivid` et la part de sa référence
+ * ([ENT-14]).
  */
-function rampeUnique(recette: Recette, palette: Palette): RampeParMode {
-  const pivot = pivotDe(recette, palette, 'unique');
+function parametresDesRampes(recette: Recette, palette: Palette): (intensite: Intensite, mode: Mode) => ParametresRampe {
   const { courbes } = grilleDe(recette, palette);
-  const rampe = (mode: Mode): Cran[] => fabriquerRampe({
+  const bouts = boutsDe(recette);
+  const parts = partsDe(recette, palette);
+  const sombre = fondsSombresDe(recette);
+  return (intensite, mode) => ({
     courbe: courbes[mode],
-    bouts: boutsDe(recette),
-    reference: pivot,
-    derive: palette.derive.vivid,
-    part: partDeLaReference(recette, palette),
+    bouts,
+    reference: pivotDe(recette, palette, intensite),
+    derive: palette.derive[intensite === 'unique' ? 'vivid' : intensite],
+    part: parts[intensite] ?? 0,
     gamut: recette.gamut,
-    sombre: mode === 'dark' ? fondsSombresDe(recette) : undefined,
-    decalage: decalageDe(palette, 'unique'),
+    sombre: mode === 'dark' ? sombre : undefined,
+    decalage: decalageDe(palette, intensite),
   });
-  return { light: rampe('light'), dark: rampe('dark') };
 }
 
 /**
@@ -297,22 +302,33 @@ function rampeUnique(recette: Recette, palette: Palette): RampeParMode {
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
   const reference = referenceDe(palette);
   const ancrage = ancrageDe(recette, palette);
-  const ancrer = (rampe: RampeParMode): RampeParMode => {
-    const ancree = (mode: Mode): Cran[] => rampe[mode]
-      .map((cran, rang) => (rang === ancrage.rangs[mode] ? cranDeLaReference(reference) : cran));
-    return { light: ancree('light'), dark: ancree('dark') };
-  };
-  if (aUneIntensite(palette)) return { unique: ancrer(rampeUnique(recette, palette)) };
-  const communes = fabriquerPalette({
-    reference,
-    courbes: grilleDe(recette, palette).courbes,
-    bouts: boutsDe(recette),
-    parts: partsDesProfils(recette, palette),
-    derives: { soft: palette.derive.soft, vivid: palette.derive.vivid },
-    gamut: recette.gamut,
-    sombre: fondsSombresDe(recette),
-    pivots: { soft: pivotDe(recette, palette, 'soft'), vivid: pivotDe(recette, palette, 'vivid') },
-    decalages: { soft: decalageDe(palette, 'soft'), vivid: decalageDe(palette, 'vivid') },
-  });
-  return { ...communes, [ancrage.profil]: ancrer(communes[ancrage.profil as Profil]) };
+  const parametres = parametresDesRampes(recette, palette);
+  const rampes: { [I in Intensite]?: RampeParMode } = {};
+  for (const intensite of intensitesDe(palette)) {
+    const rampe = (mode: Mode): Cran[] => fabriquerRampe(parametres(intensite, mode))
+      .map((cran, rang) => (intensite === ancrage.profil && rang === ancrage.rangs[mode] ? cranDeLaReference(reference) : cran));
+    rampes[intensite] = { light: rampe('light'), dark: rampe('dark') };
+  }
+  return rampes;
+}
+
+/** Une liste de clartés par thème. */
+export type ClartesParMode = { readonly [M in Mode]: readonly number[] };
+
+/**
+ * Les clartés auxquelles les crans d'une palette se fabriquent, par intensité
+ * présente, la clarté de la référence à son cran ([MOT-17]). L'ordre des
+ * nuances se juge sur elles ([DER-19]).
+ */
+export function clartesDe(recette: Recette, palette: Palette): { readonly [I in Intensite]?: ClartesParMode } {
+  const L = rgb8VersOklch(referenceDe(palette)).L;
+  const ancrage = ancrageDe(recette, palette);
+  const parametres = parametresDesRampes(recette, palette);
+  const clartes: { [I in Intensite]?: ClartesParMode } = {};
+  for (const intensite of intensitesDe(palette)) {
+    const parMode = (mode: Mode): number[] => clartesVisees(parametres(intensite, mode))
+      .map((clarte, rang) => (intensite === ancrage.profil && rang === ancrage.rangs[mode] ? L : clarte));
+    clartes[intensite] = { light: parMode('light'), dark: parMode('dark') };
+  }
+  return clartes;
 }
