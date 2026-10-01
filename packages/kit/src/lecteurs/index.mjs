@@ -126,6 +126,17 @@ export {
 } from "./diagnostic-tokens.mjs";
 
 /**
+ * Les couleurs d'un contrat contre la table des emplois de
+ * `@ucm-kit/core/emplois` : support, paire, état, hors de la table.
+ */
+export {
+  porteLaTableDesEmplois,
+  constatsDesEmplois,
+  sectionEmplois,
+  resumeTerminalEmplois,
+} from "./diagnostic-emplois.mjs";
+
+/**
  * L'écart contrat ↔ code : le juger et le dire.
  *
  * Le mesurer reste chez l'adaptateur ; décider si le relevé qu'il rend

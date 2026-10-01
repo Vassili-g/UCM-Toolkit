@@ -18,6 +18,7 @@ import { avertissementsCorrigeables, resumeTerminalAvertissements, sectionAverti
 import { aUnEcartDeParite, resumeTerminalEcartsDeParite, sectionEcartsDeParite } from "./diagnostic-parite.mjs";
 import { diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnostic-tests.mjs";
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
+import { constatsDesEmplois, resumeTerminalEmplois, sectionEmplois } from "./diagnostic-emplois.mjs";
 import { resumeTerminalTokensManquants, sectionTokensManquants } from "./diagnostic-tokens.mjs";
 import { cheminImplementation, implementationPresente } from "./implementation.mjs";
 import { collecterReferences, sansEchantillon } from "./references-token.mjs";
@@ -84,7 +85,7 @@ function analyser(chemin, contexte, erreursGraphe = []) {
   const vide = {
     fichier, relatif, illisible: false, champsAbsents: [], version: null,
     avertissements: [],
-    manquants: [], typesTypographiques: [], total: 0,
+    manquants: [], typesTypographiques: [], total: 0, emplois: [],
     graphe: erreursGraphe,
     parite: pariteVide(),
     // **Un relevé vide n'est pas un relevé vierge**, et les confondre était un
@@ -169,6 +170,8 @@ function analyser(chemin, contexte, erreursGraphe = []) {
     parite,
     manquants: referencesAbsentes(citees, tokensExistants),
     typesTypographiques: erreursTypesTypographiques(contrat, tokensDtcg),
+    // Les couleurs contre la table des emplois, quand `tokens.json` porte la collection `usage`.
+    emplois: constatsDesEmplois(contrat, tokensDtcg),
     total: citees.size,
   };
 }
@@ -308,6 +311,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
       `${libelleNombre(bilans.length, "contrat")} et ${libelleNombre(tokens, "référence")} de token contrôlés. Les contrôles bloquants sont passés.`,
     ];
     lignes.push(...sectionTokensManquants(bilansTokensManquants, { tokensModifies, sourceTokens }));
+    lignes.push(...sectionEmplois(bilansTokensManquants));
     // Le verdict est exact, mais il ne porte que sur ce qui a été exporté. Une
     // propriété que l'export n'a pas pu décrire n'est citée par personne et ne
     // produit donc aucun écart : sans ce rappel, elle passerait sous un ✅.
@@ -333,6 +337,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   // citations à chaque section.
   lignes.push(...sectionAvertissementsExport(bilansDuRapport, { bloquant: true }));
   lignes.push(...sectionTokensManquants(bilansTokensManquants, { tokensModifies, sourceTokens }));
+  lignes.push(...sectionEmplois(bilansTokensManquants));
 
   for (const bilan of fautifs) {
     if (bilan.illisible) {
@@ -829,6 +834,9 @@ export function controlerRepository(racine, {
   if (resumeAvertissements) terminal.push({ flux: "error", texte: `\n${resumeAvertissements}` });
   const resumeTokensManquants = resumeTerminalTokensManquants(bilans, sourceTokens);
   if (resumeTokensManquants) terminal.push({ flux: "warn", texte: `\n${resumeTokensManquants}` });
+  // Comme dans le rapport : une demande de tokens rappelle les écarts de tous les contrats, une autre ceux qu'elle touche.
+  const resumeEmplois = resumeTerminalEmplois(tokensModifies ? bilans : bilansDuRapport);
+  if (resumeEmplois) terminal.push({ flux: "warn", texte: `\n${resumeEmplois}` });
 
   // Le rapport porte le verdict complet : le verdict couvre donc ce que ce
   // module a relayé comme ce qu'il a constaté, sans quoi la chaîne pourrait

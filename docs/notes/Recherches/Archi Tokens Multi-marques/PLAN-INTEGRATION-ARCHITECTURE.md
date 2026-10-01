@@ -266,12 +266,12 @@ l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
 
 ## Lot A4 : `ucm check`
 
-- [ ] **A4.1** Le diagnostic lit la table, les paires, les rangs et le
+- [x] **A4.1** Le diagnostic lit la table, les paires, les rangs et le
   contraste dans `@ucm-kit/core/emplois` (lot A1). Une couleur de
   `tokens.json` passe à 8 bits avant le contraste, comme dans UCM Palettes
   (décision D11 de sa spécification). Une couleur hors sRGB est relevée comme
   non jugée.
-- [ ] **A4.2** Nouveau diagnostic dans `packages/kit/src/lecteurs/`, non
+- [x] **A4.2** Nouveau diagnostic dans `packages/kit/src/lecteurs/`, non
   bloquant, sur le modèle de `diagnostic-tokens.mjs`. Pour chaque couleur d'un
   contrat, il résout le premier alias dans `tokens.json` et rend quatre
   constats :
@@ -287,9 +287,9 @@ l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
 
   La règle qui dit sur quel `background` un `foreground` est posé se déduit de
   l'arbre publié par le contrat : l'écrire dans FORMAT.md avant le code.
-- [ ] **A4.3** `controle-repository.mjs` rend ce diagnostic ; les messages
+- [x] **A4.3** `controle-repository.mjs` rend ce diagnostic ; les messages
   suivent la skill `rediger-diagnostics-ucm`.
-- [ ] **A4.4** Tests : un contrat par constat, et un contrat conforme sans
+- [x] **A4.4** Tests : un contrat par constat, et un contrat conforme sans
   constat.
 
 ## Lot A5 : les essais dans Figma

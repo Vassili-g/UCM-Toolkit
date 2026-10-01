@@ -261,7 +261,7 @@ les messages qu'elles produisent vont déjà au pied.
 
 ## Phase 7 : `ucm check`
 
-- [ ] **A4.1 à A4.4** Le diagnostic des emplois, lu dans
+- [x] **A4.1 à A4.4** Le diagnostic des emplois, lu dans
   `@ucm-kit/core/emplois`, comme le plan d'intégration le décrit. Cette phase
   ne dépend que de la phase 3 ; elle peut précéder la phase 5 si le mainteneur
   le demande.

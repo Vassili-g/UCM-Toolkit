@@ -217,6 +217,16 @@ un nom de calque. Deux couleurs **empilées sur un même calque** sont publiées
 toutes les deux et reçoivent le même chemin, mais leur ordre reste
 irreprésentable : un warning le signale.
 
+**Le fond d'une couleur se lit sur ces chemins.** Dans un variant, une couleur
+`foreground`, `icon` ou `border` placée au chemin P est posée sur la couleur
+`background` dont un chemin de `paintPlacements.fills` est le plus long
+préfixe de P, P compris. Un `ring` se dessine hors de la boîte : son fond est
+le plus long préfixe strictement plus court que P. Sans un tel préfixe, la
+couleur est posée sur le fond de la page. Deux `background` empilés sur le
+chemin retenu laissent le fond indéterminé. Le contrat ne publie rien de plus
+pour cela : `ucm check` applique cette règle pour juger une couleur et son
+fond contre la table des emplois.
+
 Le chemin publié est celui du calque **publié** qui porte la peinture. Une
 couleur posée **sous une feuille** appartient à cette feuille : le contrat ne
 descend pas dans les tracés d'une icône importée, alors que le fill d'une icône

@@ -146,6 +146,28 @@ test("référence absente des tokens : avertissement, et la fusion reste ouverte
   assert.match(rapport, /Cet avertissement ne bloque pas la fusion\./);
 });
 
+test("[A4] un usage posé sur un support qu’il ne peint pas avertit dans le rapport et le terminal, sans bloquer", () => {
+  const document = contrat();
+  document.variantViews.v1.paintPlacements = "p1";
+  document.viewPaintPlacements = { p1: { fills: { foreground: [["label"]] } } };
+  document.variants[0].tokens = { foreground: "{components.widget.texte}" };
+  const couleur = (canal) => ({ colorSpace: "srgb", components: [canal, canal, canal], alpha: 1 });
+  const tokens = {
+    ...TOKENS,
+    theme: { neutral: { 900: { $type: "color", $value: couleur(0.1) } } },
+    usage: { neutral: { solid: { default: { $type: "color", $value: "{theme.neutral.900}" } } } },
+    components: { widget: { texte: { $type: "color", $value: "{usage.neutral.solid.default}" } } },
+  };
+  const { bloquant, rapport, terminal } = verdict({ composants: { Widget: { contrat: document, tsx: TSX } }, tokens });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /### ⚠️ Des couleurs s'écartent de la table des emplois \(1 écart\)/);
+  assert.match(rapport, /`usage\.neutral\.solid\.default` peint un background, posé ici en foreground/);
+  assert.ok(terminal.some(({ texte }) => /1 écart à la table des emplois/.test(texte)));
+  // Sans collection `usage`, le diagnostic se tait.
+  assert.doesNotMatch(verdict().rapport, /table des emplois/);
+});
+
 test("une référence sous un champ inconnu de 10 000 niveaux est relevée sans épuiser la pile", () => {
   // Le texte s'écrit à la main : `JSON.stringify` épuise lui-même la pile à
   // cette profondeur, alors que `JSON.parse` la lit.

@@ -153,6 +153,7 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     perimetre-rapport.mjs        ce que la demande de fusion touche, et si elle concerne UCM
     avertissements-export.mjs    ce que l'export n'a pas su décrire
     diagnostic-tokens.mjs        les références que la source de tokens ne porte pas
+    diagnostic-emplois.mjs       les couleurs d'un contrat contre la table des emplois : support, paire, état, hors de la table
     diagnostic-parite.mjs        l'écart contrat ↔ code : le juger et le dire
     diagnostic-tests.mjs         ce qu'une suite de tests rouge dit au designer
     diagnostic-markdown.mjs      le rendu markdown d'un diagnostic
@@ -728,6 +729,17 @@ La spécification en lien porte le raisonnement.
   définies dans la spécification bloquent. Unique exception, motivée plus bas :
   l’échantillon de maquette ne réclame jamais rien.
   → [échantillon](#échantillon-de-maquette)
+- `ucm check` juge les couleurs d'un contrat contre la table des emplois de
+  `@ucm-kit/core/emplois`, la même que celle d'UCM Palettes, quand
+  `tokens.json` porte la collection `usage`, et n'en bloque jamais la fusion.
+  Le fond d'une couleur suit la règle de FORMAT.md, section 2 : le plus long
+  préfixe de son chemin qui porte un `background`. Un contraste se mesure à
+  8 bits dans chaque marque et chaque thème, et une couleur hors de sRGB ou
+  translucide n'est pas jugée. `diagnostic-emplois.mjs` en est l'unique
+  autorité ; `packages/kit/tests/diagnostic-emplois.test.mjs` tient un
+  contrat par constat et un contrat conforme. Borne : le diagnostic ne lit que
+  le premier alias d'un token de composant.
+  → [format](./docs/format/FORMAT.md#2-tokens-de-variantes)
 - On n’avertit que sur ce qu’on publie. Une valeur que le contrat va jeter,
   comme les dimensions du calque de référence quand `sizes` existe, n’est ni
   relevée ni signalée.

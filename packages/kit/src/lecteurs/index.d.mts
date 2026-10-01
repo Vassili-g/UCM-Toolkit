@@ -467,6 +467,42 @@ declare module "@ucm-kit/core/lecteurs" {
     sourceTokens: string,
   ): string | null;
 
+  /** Ce qu'un constat juge : l'emploi et son support, une paire, l'état et son rang, ou une couleur hors de la table. */
+  export type NatureDeConstatDEmploi = "support" | "paire" | "etat" | "hors-table";
+
+  /** Un écart d'une couleur de contrat à la table des emplois. */
+  export interface ConstatDEmploi {
+    nature: NatureDeConstatDEmploi;
+    /** Les coordonnées du variant : « state=hover ». */
+    variant: string;
+    cle: string;
+    role: string;
+    reference: string;
+    usage?: string;
+    vise?: string | null;
+    fond?: string;
+    usageDuFond?: string;
+    peint?: string[];
+    etat?: string;
+    rangAttendu?: string;
+    rang?: string;
+    usagesAttendus?: string[];
+    /** Le contraste sur le fond, par contexte de marque et de thème ; `null` pour une couleur non jugée. */
+    contrastes?: { contexte: string; valeur: number | null }[];
+  }
+
+  /** Vrai quand le fichier de tokens porte la collection `usage` : le diagnostic s'applique. */
+  export function porteLaTableDesEmplois(document: unknown): boolean;
+
+  /** Les écarts d'un contrat à la table des emplois ; `[]` sans collection `usage`. */
+  export function constatsDesEmplois(contrat: unknown, document: unknown): ConstatDEmploi[];
+
+  /** La section du rapport, non bloquante ; `[]` sans écart. */
+  export function sectionEmplois(bilans: ReadonlyArray<{ fichier: string; emplois?: ConstatDEmploi[] }>): string[];
+
+  /** Le rappel du terminal, ou `null` sans écart. */
+  export function resumeTerminalEmplois(bilans: ReadonlyArray<{ emplois?: ConstatDEmploi[] }>): string | null;
+
   /** Ce relevé de parité porte-t-il un écart ? */
   export function pariteEnEcart(ecarts: EcartsDeParite): boolean;
 

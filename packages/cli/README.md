@@ -16,7 +16,7 @@ matches them.
 Requires Node 20 or later. At the root of the repository:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.51 init
+npx --yes @ucm-kit/cli@0.1.52 init
 ```
 
 1. Commit and push the files `init` wrote.
@@ -27,7 +27,7 @@ npx --yes @ucm-kit/cli@0.1.51 init
 To run the check locally:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.51 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.52 check --report ci-report.md
 ```
 
 `--yes` skips the npx confirmation prompt. Pin an exact version, without `^`:
@@ -78,7 +78,7 @@ contract would resolve to the same file. A repository that does not write React
 states its own extension:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.51 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
+npx --yes @ucm-kit/cli@0.1.52 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
 ```
 
 The three path options act only on a first install. `ucm init` never overwrites
@@ -188,7 +188,7 @@ directory. It writes a minimal report when the check stopped before writing
 one, then posts the report:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.51 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
+npx --yes @ucm-kit/cli@0.1.52 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
 ```
 
 | Option | Effect |
@@ -232,7 +232,7 @@ Without `--base`, the report covers the whole repository.
 The report is written for the **designer** who validates the export. Every
 reason a merge is refused appears in it, so the designer never opens a CI log.
 
-Six checks run on each contract. **A check blocks when the file on disk cannot
+Seven checks run on each contract. **A check blocks when the file on disk cannot
 be read as it stands**, and warns when the read succeeds and the gap points at
 the code or at the token file.
 
@@ -244,6 +244,7 @@ the code or at the token file.
 | Typography tokens have the expected type | Blocks |
 | Every `{token.path}` cited exists in the token file | Warns, but a missing or unreadable token file blocks |
 | The code exposes the props the contract declares, with a stack adapter installed | Warns |
+| Each colour follows the usage table, when the token file has a `usage` collection | Warns |
 
 The direction of a version gap names who fixes it. A contract that is too old
 is re-exported by the designer. A contract that is too new needs this package
@@ -254,6 +255,15 @@ token file. A version newer than this package reads blocks the merge, and a
 developer upgrades the UCM packages. A mark that is not a version blocks too,
 and the designer runs the token export again. Both apply even in a repository
 with no contract yet.
+
+The usage table is the one UCM Palettes judges its palettes with, from
+`@ucm-kit/core/emplois`. Each colour of a variant is read through the first
+alias of its token. The check warns when a usage paints something it is not
+meant for, a text usage on a border for instance; when a text and the
+background it sits on, found by the rule of FORMAT.md section 2, are not a pair
+of the table at the same rank; when a variant's state does not aim at the rank
+the table gives it; and when a colour aims at `theme` directly. A pair and an
+off-table colour come with their contrast in each brand and theme.
 
 A gap with the code warns: a developer closes it, and the merge goes through. A
 token removed from the design system warns too, so an older contract does not
