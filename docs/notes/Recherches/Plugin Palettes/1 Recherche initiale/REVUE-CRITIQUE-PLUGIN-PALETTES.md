@@ -215,7 +215,7 @@ chaque paire de palettes comparée ([section 11.3](./RECHERCHE-PLUGIN-PALETTES.m
 - **L'écriture des variables sort du premier périmètre.** La première version
   écrivait les rampes dans `brand` « aux chemins convenus », sans chemin
   convenu. Ce geste devient une option ultérieure, et ce qu'elle devra trancher
-  est listé en [section 17](./RECHERCHE-PLUGIN-PALETTES.md#17-option-ultérieure--créer-les-variables).
+  est listé en [section 17](./RECHERCHE-PLUGIN-PALETTES.md#17-sortie-2--les-variables).
 
 ## Ce qui reste hors de portée du plugin
 

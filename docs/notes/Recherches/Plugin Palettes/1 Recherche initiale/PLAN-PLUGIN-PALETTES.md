@@ -587,7 +587,7 @@ et repris.
 ## Lot 7 : reste de la configuration, import, export, rapport
 
 Spécification : [section 8.3](./RECHERCHE-PLUGIN-PALETTES.md#83-la-recette-commune),
-[section 10](./RECHERCHE-PLUGIN-PALETTES.md#10-sortie-2--la-recette-et-le-rapport).
+[section 10](./RECHERCHE-PLUGIN-PALETTES.md#10-sortie-3--la-recette-et-le-rapport).
 
 - [x] **L7.1** Configuration, à la suite de 4c : fonds et autres seuils ;
   nombre de palettes touchées par champ [ENT-05] [ENT-07] [ENT-08].

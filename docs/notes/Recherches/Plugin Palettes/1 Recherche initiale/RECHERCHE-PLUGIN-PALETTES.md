@@ -37,6 +37,7 @@ critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md).
 | `ENT` | Entrées du designer |
 | `DER` | Le Color shift : sa carte et ses limites |
 | `PLA` | Planche : les palettes dessinées dans Figma |
+| `VAR` | Variables : les palettes écrites dans les variables de Figma |
 | `VER` | Vérifications et alertes |
 | `ARC` | Architecture du code et réemploi |
 | `UI` | Interface du plugin |
@@ -76,7 +77,7 @@ aussi.
 | # | Décision | Conséquence |
 |---|---|---|
 | D1 | Plugin séparé d'UCM Exporter, dans ce monorepo | UCM Exporter garde sa garantie : l'analyse et la publication n'écrivent jamais dans le document |
-| D2 | Le résultat est une planche : des cadres Figma qui dessinent chaque palette et ses informations | Le plugin ne crée ni ne modifie aucune variable. Créer les variables est une option ultérieure ([section 17](#17-option-ultérieure--créer-les-variables)) |
+| D2 | Chaque palette a deux sorties dans Figma : une planche, des cadres qui la dessinent avec ses informations, et ses variables de couleur ([section 17](#17-sortie-2--les-variables)) | Le plugin n'écrit de variables que dans la destination que le designer a confirmée, ou dans les variables qu'il a reprises du fichier. Il n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias |
 | D3 | L'unité est la palette, sans notion de marque ni de famille | Le plugin ne nomme jamais une couleur `primary` ou `danger` ; le nom éventuel vient du designer |
 | D4 | Le Color shift règle la teinte, la saturation et la luminosité aux deux bouts, autour de la couleur de référence | La couleur de référence reste fixe ; les autres crans suivent le réglage en direct, dans des limites qui gardent les garanties tenues ([section 12](#12-le-color-shift)) |
 | D5 | Un préréglage « Tailwind » calcule les deux dérives de teinte depuis le relevé des rampes Tailwind | Reproduire le comportement de Tailwind tient en un clic. La saturation et la luminosité n'ont pas de préréglage |
@@ -121,16 +122,22 @@ Le plugin fait :
 - vérifier les promesses de la table des emplois ;
 - signaler les alertes ;
 - dessiner un cadre par palette, et le redessiner quand la recette change ;
+- écrire chaque palette dans les variables de couleur de la destination que
+  le designer choisit, et suivre leur état ;
+- lire les palettes que les variables du fichier portent déjà, et les
+  reprendre au geste du designer ;
 - ranger la recette dans le fichier, l'exporter et l'importer en JSON ;
 - exporter un rapport des vérifications.
 
 Le plugin ne fait pas :
 
-- créer, lire ou modifier une variable ou un style ;
+- créer ou modifier un style ;
+- écrire une variable `brand`, `theme` ou `usage`, ni un alias ;
 - deviner l'emploi d'une palette ;
 - publier vers GitHub ou GitLab ;
 - créer ou modifier un composant ;
-- écrire hors de la page de la planche, sauf la recette rangée sur le document ;
+- écrire hors de la page de la planche, de la recette et des suivis rangés
+  sur le document, et des variables de la [section 17](#17-sortie-2--les-variables) ;
 - juger APCA ou tout autre modèle que le contraste WCAG 2.
 
 ## 6. Le moteur de couleur
@@ -657,7 +664,7 @@ dix-sept paires.
   sandbox : le moteur est inclus dans l'interface.
 - `[ENT-03]` Une palette se crée, se renomme, se duplique, se réordonne et se
   supprime dans l'onglet Création. Supprimer une palette ne supprime pas son
-  cadre de la planche : l'onglet Palettes montre le cadre comme celui d'une
+  cadre de la planche : l'onglet Gestion montre le cadre comme celui d'une
   palette supprimée, que « Supprimer définitivement » retire (`[PLA-27]`).
 - `[ENT-04]` Une palette se crée depuis un code saisi ou choisi au sélecteur
   de couleur ; le plugin ne lit pas la couleur de la sélection Figma. La
@@ -820,7 +827,8 @@ côte.
 
 - `[PLA-01]` La planche vit sur une page dédiée, « Palettes », créée au premier
   dessin. Si une page de ce nom existe déjà sans être celle du plugin, le
-  plugin crée « Palettes (UCM) ». Le suivi des cadres est rangé sous la clé
+  plugin crée « Palettes (UCM) ». Le designer choisit une autre page dans
+  Gestion (`[PLA-29]`). Le suivi des cadres est rangé sous la clé
   `ucm_palettes/planche` : sa version, l'identifiant de la page et celui du
   cadre de chaque palette. Sa version est distincte de celle de la recette ;
   un suivi sans version se lit comme la version 1, et un suivi d'une version
@@ -837,7 +845,7 @@ côte.
   n'est jamais réécrit. Un cadre dont Figma refuse de lire le nom devient
   illisible, sans faire échouer la lecture.
   Elle ne parcourt toutes les pages qu'au geste « Chercher dans tout le
-  fichier » ; l'onglet Palettes annonce cette limite quand un cadre reste
+  fichier » ; l'onglet Gestion annonce cette limite quand un cadre reste
   introuvable. Le plugin charge la page de la planche et celles des cadres
   retrouvés, et aucune autre sans ce geste.
 - `[PLA-02]` Un cadre par palette, posé au premier niveau de la page de la
@@ -865,10 +873,9 @@ côte.
   `recette.palettes`, 200 px entre eux. Un cadre déplacé à la main garde sa
   nouvelle position. Un cadre neuf se pose à 200 px à droite du cadre possédé
   le plus à droite, aligné sur le haut du premier cadre.
-- `[PLA-06]` Le geste « Générer sur Figma » porte sur une palette : la palette
-  ouverte dans l'onglet Création, ou celle d'une fiche de l'onglet Palettes.
-  L'onglet Palettes propose aussi de générer les palettes à actualiser, et
-  toutes les palettes. Après une génération, le plugin appelle
+- `[PLA-06]` Le geste « Créer la planche » porte sur une palette : celle
+  d'une fiche de l'onglet Gestion. « Tout mettre à jour » dessine aussi les
+  planches en retard ou absentes (`[UI-28]`). Après une génération, le plugin appelle
   `figma.commitUndo()` : un Ctrl+Z défait cette génération entière, et elle
   seule. Le résultat propose « Afficher dans Figma », qui ouvre la page du
   cadre et le cadre (`setCurrentPageAsync`, puis `scrollAndZoomIntoView`).
@@ -886,6 +893,17 @@ côte.
   entrée, sans erreur. Le geste est inactif pendant un conflit
   d'enregistrement, et un suivi d'une version plus récente le refuse avant
   toute écriture.
+- `[PLA-29]` La page des planches se choisit dans Gestion (`[UI-29]`) : une
+  page du fichier, ou une page neuve dont le designer donne le nom. L'état lu
+  porte la liste des pages, chacune avec son identifiant, son nom et son
+  nombre de cadres possédés. `choisirLaPage` (`src/ecriture/planche.ts`),
+  par la porte `choisir-page`, range la page dans le suivi `planche`, puis
+  déplace chaque cadre possédé vers elle, à la place qu'un cadre neuf y
+  prendrait (`[PLA-05]`), après `loadAsync` de la page ; un seul
+  `figma.commitUndo()` clôt le changement. Un cadre copié, que le plugin ne
+  possède pas, ne bouge pas. Un nom de page neuve déjà porté par une page du
+  fichier est refusé, comme un suivi d'une version plus récente, avant toute
+  écriture.
 
 ### 9.2 Le cadre d'une palette
 
@@ -956,8 +974,8 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 - `[PLA-14]` Le calque de la pastille se nomme `{profil}/{mode}/{cran}`,
   `vivid/light/700` par exemple, sous le cadre de sa palette ; `{mode}/{cran}`
   pour la rampe d'une palette à une intensité. Ce nom permet de
-  retrouver chaque couleur dans le panneau des calques, et sert de clé à
-  l'option de la [section 17](#17-option-ultérieure--créer-les-variables).
+  retrouver chaque couleur dans le panneau des calques, et reprend les
+  segments de la clé d'une variable (`[VAR-01]`).
   Aucun autre calque ne porte ce nom : les pastilles des grilles se nomment
   `teinte {cran}`.
 - `[PLA-15]` Une pastille où les deux profils se confondent porte ≈, sur tous
@@ -1005,8 +1023,8 @@ l'état, son numéro, puis ses garanties.
 - `[PLA-28]` `contenuDesPlanches` choisit les parties qu'un cadre dessine :
   la note sous les rampes, les usages, les grilles de contrastes, et chaque
   thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
-  pastilles sont ce que la [section 17](#17-option-ultérieure--créer-les-variables)
-  lira. Une partie retirée change l'empreinte du modèle : les cadres générés
+  pastilles portent les couleurs que la palette écrit dans ses variables
+  ([section 17](#17-sortie-2--les-variables)). Une partie retirée change l'empreinte du modèle : les cadres générés
   passent « À actualiser ». La carte « Contenu des planches », repliée en
   dernier dans les Réglages communs, porte un interrupteur par partie et le
   nombre de calques qu'elle pèse dans le cadre de la palette ouverte.
@@ -1038,8 +1056,8 @@ toutes les nuances : ses cases ne sont pas des promesses.
   cadre. Un écart classe le cadre « À actualiser » dans l'interface, avec le
   geste « Actualiser sur Figma ». Le plugin ne redessine jamais sans ce geste.
   L'état du cadre se distingue du résultat des garanties : un ratio
-  insuffisant n'est pas une panne de génération. L'onglet Palettes relit l'état
-  à son ouverture, après chaque génération et au geste « Actualiser », pour ce
+  insuffisant n'est pas une panne de génération. L'onglet Gestion relit l'état
+  à son ouverture, après chaque génération et au geste « Synchroniser », pour ce
   que les événements de Figma ne signalent pas. Le cadre ne montre rien des
   autres palettes : les renommer ne le périme pas.
 
@@ -1067,7 +1085,7 @@ toutes les nuances : ses cases ne sont pas des promesses.
   et revoit ce seuil ; au-delà de dix secondes pour douze, le dessin d'une
   seule palette reste le geste par défaut.
 
-## 10. Sortie 2 : la recette et le rapport
+## 10. Sortie 3 : la recette et le rapport
 
 ### 10.1 La recette exportée
 
@@ -1527,25 +1545,22 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   ou à la sortie de la fenêtre quand la capture est perdue ; après lui, un
   survol ne redimensionne rien. Le sandbox n'applique qu'une taille qui
   change, et ne range la taille qu'une fois, à la fin du geste.
-- `[UI-02]` Deux onglets, **Création** et **Palettes**, et un bouton en forme
-  d'engrenage dans l'en-tête, qui ouvre les Réglages communs (section 8.3)
-  comme celui d'UCM Exporter ouvre sa configuration. Le code garde les noms
-  d'origine : `ongletPalettes.ts` et le panneau `#panneau-palettes` portent
-  l'onglet Création, `ongletPlanche.ts` et `#panneau-planche` l'onglet
-  Palettes. L'onglet Création ne
-  génère rien : la génération appartient à l'onglet Palettes (`[UI-05]`), qui
-  montre chaque palette, dans l'ordre de la recette : son nom, ses rampes Soft
-  et Vivid dans le thème choisi en tête de l'onglet, sa référence, le résultat
-  Soft et Vivid de ses garanties et l'état de son cadre en pastille, avec ses
-  gestes. La pastille dit la sévérité : « À jour » sur le fond de succès ;
-  « À actualiser » et « Pas encore sur Figma » en avertissement ; « Cadre
-  introuvable » et « Lecture impossible » en danger. L'onglet
-  propose aussi « Actualiser tout (2 palettes) », qui génère les palettes à
-  actualiser et celles qui ne sont pas encore sur Figma, et « Générer tout
-  (3 palettes) », au singulier pour une palette. Il range dans une section secondaire l'export et l'import des palettes et réglages et l'export du
-  rapport. Chaque palette supprimée dont le cadre reste dans Figma a sa
-  carte : son nom, une phrase, « Afficher dans Figma » et « Supprimer
-  définitivement » (`[PLA-27]`).
+- `[UI-02]` Trois onglets, **Création**, **Vérification** et **Gestion**, et
+  un bouton en forme d'engrenage dans l'en-tête, qui ouvre les Réglages
+  communs (section 8.3) comme celui d'UCM Exporter ouvre sa configuration. Le
+  designer crée une palette, vérifie ses contrastes, puis l'écrit dans
+  Figma : chaque étape a son onglet. Création et Vérification portent sur la
+  palette ouverte et partagent la barre du sélecteur (`[UI-23]`) ; Gestion
+  porte sur le fichier. Le code nomme les onglets `creation`, `verification`
+  et `gestion` : `ongletCreation.ts` et `#panneau-creation`,
+  `ongletVerification.ts` et `#panneau-verification`, `ongletGestion.ts` et
+  `#panneau-gestion`. L'onglet Création ne génère rien et n'écrit aucune
+  variable : ces gestes appartiennent à Gestion (`[UI-05]`). Le pied de
+  Création mène à Vérification (`[UI-18]`), et le pied de Vérification à
+  Gestion (`[VER-18]`).
+- `[UI-21]` Au premier état lu dans le fichier, le plugin ouvre Gestion si la
+  recette porte au moins une palette, Création sinon. Aucun état lu ensuite
+  ne change d'onglet.
 - `[UI-03]` La hiérarchie de l'information de
   [CONTRIBUTING.md](../../../../../CONTRIBUTING.md#la-hiérarchie-de-linformation)
   s'applique, avec les surfaces propres à
@@ -1604,18 +1619,23 @@ Onglet Création, une palette ouverte :
 │ Le réglage global déplace toute la rampe. Le Color shift écarte …    │
 │ ┌ › ▭ Réglage global ─────────── Aucun réglage · Soft 45 % · … ┐    │
 │ ┌ › ◆ Color shift ───────────── Tailwind · Teinte −7,5° / +5,1° ┐   │
-│ ┌ ⌄ Garanties de contraste ─────────────────────── Thème Dark ────┐  │
-│ │ [Soft ✓ | Vivid ✗ 2]                                            │  │
-│ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
-│ │ Textes lisibles                                 minimum 4,5:1   │  │
-│ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
-│ │   texte coloré…     ✓ 5,78 AA   ✓ 7,11 AAA  ✓ 8,04 AAA          │  │
-│ │ Éléments visibles                                 minimum 3:1   │  │
-│ │ border-decorative 300 · séparateur, sans minimum de contraste   │  │
-│ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌ › Interface de test ─────────────────────── Thème Light · Vivid ─┐ │
 ├──────────────────────────────────────────────────────────────────────┤
-│ ✗ 2 garanties manquées sur 76 · 1 alerte · text 700 / …  [Détails]  │
+│ ✗ 2 garanties manquées sur 76 · 1 alerte · text 700 / …  [Vérifier] │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Onglet Création, fichier sans palette :
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ ┌ encart au fond bleuté ──────────────────────────────────────────┐  │
+│ │ ▪▪▪▪▪▪▪▪▪▪▪  rampe d'exemple                                    │  │
+│ │ Créez votre première palette                                    │  │
+│ │ une phrase                                                      │  │
+│ │ [Nouvelle palette]                                              │  │
+│ └─────────────────────────────────────────────────────────────────┘  │
+│ Ce fichier porte déjà 3 palettes dans ses variables. Les voir dans … │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1660,26 +1680,27 @@ palette » gardent leurs libellés au-dessus des champs.
   referme le détail, et le focus reste sur elle ; le survol signale la
   cible sans déplacer la page. Les flèches, Origine et Fin déplacent le focus ;
   une copie de code est un geste distinct de la sélection.
-- `[UI-05]` La génération appartient à l'onglet Palettes. Le premier geste
-  d'une fiche dit l'état du cadre : « Générer sur Figma » sans cadre ou pour
-  un cadre introuvable, « Actualiser sur Figma » quand le cadre a changé. Un
-  cadre à jour ou illisible n'en a pas. Ce geste est le bouton principal de la
-  fiche ; suivent « Afficher » quand le cadre est localisé, puis « Modifier ».
-  Les trois prennent la taille compacte du bouton du socle, 24 px, comme les
-  gestes de la carte d'une palette supprimée. Le geste enregistre la palette
-  si un rangement est en attente, puis génère son cadre, grille des contrastes
-  comprise : la génération n'a pas d'option. Pendant la génération, les deux
-  onglets sont inertes et la progression prend la place de « Générer tout ».
-  L'erreur, la confirmation des calques étrangers ou les écarts de peinture se
-  lisent en tête de l'onglet Palettes : un nouveau résultat remplace le
-  précédent. L'onglet Création n'en montre aucun. « Nouvelle palette » est le
-  seul bouton principal de l'onglet Création, et un filet sépare la barre du
-  sélecteur et la création de la palette ouverte, à 15 px de chacune.
-- `[UI-09]` La carte « Garanties de contraste » suit le Color shift et
-  montre le thème que l'aperçu a choisi, qu'elle nomme dans son en-tête.
-  Repliée à l'ouverture, comme toutes les cartes repliables de l'onglet, elle
-  garde son état pendant la session ; repliée, son en-tête garde le
-  résultat des intensités de la palette sur les deux thèmes. Une bascule
+- `[UI-05]` La génération et l'écriture des variables appartiennent à
+  l'onglet Gestion (`[UI-26]`). Le geste de la ligne « Planche » d'une fiche
+  dit l'état du cadre : « Créer la planche » sans cadre ou pour un cadre
+  introuvable, « Actualiser » quand le cadre a changé. Un cadre à jour ou
+  illisible n'en a pas. Ce geste est le bouton principal de la ligne ; suit
+  « Afficher » quand le cadre est localisé. Les gestes prennent la taille
+  compacte du bouton du socle, 24 px, comme ceux de la carte d'une palette
+  supprimée. Le geste enregistre la palette si un rangement est en attente,
+  puis génère son cadre, grille des contrastes comprise : la génération n'a
+  pas d'option. Pendant la génération, les trois onglets sont inertes et la
+  progression prend la place de « Tout mettre à jour ». L'erreur, la
+  confirmation des calques étrangers ou les écarts de peinture se lisent en
+  tête de l'onglet Gestion : un nouveau résultat remplace le précédent. Les
+  onglets Création et Vérification n'en montrent aucun. « Nouvelle palette »
+  est le seul bouton principal de l'onglet Création, et un filet sépare la
+  barre du sélecteur et la création de la palette ouverte, à 15 px de
+  chacune.
+- `[UI-09]` La carte « Garanties de contraste » est dans l'onglet
+  Vérification (`[VER-18]`), fixe et toujours ouverte, sans chevron ni
+  résumé. Elle suit le Color shift et montre le thème que l'aperçu de
+  Création a choisi, qu'elle nomme dans son en-tête. Une bascule
   Soft/Vivid choisit le profil affiché ; une palette à une intensité n'en a
   pas, et son résultat s'écrit « Garanties ✓ » ou « Garanties ✗ 2 »
   (`[ENT-14]`). Chaque segment porte le résultat de son profil dans le
@@ -1728,7 +1749,8 @@ palette » gardent leurs libellés au-dessus des champs.
   par usage de la nuance : un spécimen, le rôle et l'état (« `solid` ·
   default »), le nom français du rôle, puis la garantie qui le concerne avec le
   numéro du partenaire et son badge (« ✓ sur `surface` 100 : 5,78:1 AA »). Un clic sur la
-  garantie la choisit dans la carte des garanties. La pastille `on-solid` a son
+  garantie ouvre Vérification et l'y choisit dans la carte des garanties
+  (`[VER-20]`). La pastille `on-solid` a son
   propre détail : le fond de page du thème, `neutral.50` du design system,
   posé en texte sur `solid` 700 à 950, avec les garanties de ces quatre états.
   Une nuance sans rôle a l'encadré « Sans rôle », qui dit qu'aucun rôle du
@@ -1814,9 +1836,9 @@ palette » gardent leurs libellés au-dessus des champs.
   ni profil à choisir (`[ENT-14]`). Repliée, une carte annonce dans son
   résumé le point à vérifier qui la concerne, des profils confondus par
   exemple. Un lien de message qui vise un réglage déplie sa carte avant de
-  focaliser le contrôle. Les deux cartes suivent l'aperçu, avant les
-  Garanties de contraste (`[UI-09]`) : la palette se règle avant de se
-  juger. L'Interface de test (`[UI-14]`) ferme l'onglet.
+  focaliser le contrôle. Les deux cartes suivent l'aperçu, et l'Interface de
+  test (`[UI-14]`) ferme l'onglet : la palette se règle dans Création et se
+  juge dans Vérification (`[VER-18]`).
 - `[UI-17]` Une ligne fixe porte un message sur une ligne de 24 px, qui ne
   change jamais de hauteur. Son texte se coupe par une ellipse ; le texte
   entier est dans `title` et dans le nom accessible. Elle a quatre tons,
@@ -1833,13 +1855,11 @@ palette » gardent leurs libellés au-dessus des champs.
   d'une ligne porte le bilan de la palette ouverte : une icône de sévérité,
   le compte des garanties et des alertes, « 76 garanties tenues · aucune
   alerte » ou « 2 garanties manquées sur 76 · 1 alerte », le premier
-  message, et « Détails ». Il est fixé au bas de la fenêtre : il reste visible
+  message, et « Vérifier ». Il est fixé au bas de la fenêtre : il reste visible
   à toute position de défilement, pendant un geste compris, et quand le
-  contenu est plus court que la fenêtre. « Détails » ouvre au-dessus du pied un volet
-  superposé, « Garanties et alertes », qui liste les messages par sévérité
-  (section 11.4), chacun avec ses parties et son lien vers le réglage
-  (`[VER-15]`) ; Échap et « Fermer » le ferment et rendent le focus à
-  « Détails ». Le volet garde sa taille et fait défiler son contenu. Une
+  contenu est plus court que la fenêtre. « Vérifier » ouvre l'onglet
+  Vérification sur la palette ouverte, où se lisent les messages et leurs
+  liens (`[VER-18]`) ; le pied n'a pas de volet. Une
   région `aria-live="polite"` du pied annonce le bilan à la fin d'un geste,
   jamais pendant. Un blocage, refus d'enregistrement ou conflit, reste sous
   le titre (`[UI-11]`). Sans palette ouverte, le pied ne paraît pas ; une
@@ -1851,26 +1871,25 @@ palette » gardent leurs libellés au-dessus des champs.
   sans couleur de donnée, `aria-hidden`. Le glyphe du réglage global montre
   une rampe translatée, celui du Color shift deux bouts qui pivotent autour
   d'un losange. Les autres cartes titrées en reçoivent un du même style :
-  dans l'onglet Création, Configuration de la palette, Garanties de
-  contraste, Interface de test et la création d'une palette ; dans les
+  dans l'onglet Création, Configuration de la palette, Interface de test et
+  la création d'une palette ; dans l'onglet Vérification, Garanties de
+  contraste ; dans les
   Réglages communs, Couleurs de fond, Intensités, Luminosité des nuances,
   Minimums des promesses, Détection des couleurs proches et Contenu des
-  planches ; dans l'onglet Palettes, Palettes et réglages. Une fiche ou une
+  planches ; dans l'onglet Gestion, Palettes et réglages. Une fiche ou une
   carte titrée par un nom de palette n'en a pas. `src/ui/glyphes.ts` les
   dessine, d'après la planche des glyphes de la maquette du Color shift.
 - `[UI-20]` Pendant un geste, aucun contrôle de l'onglet Création ne se
-  déplace, et aucun élément ne change de hauteur. Six règles le tiennent :
+  déplace, et aucun élément ne change de hauteur. Cinq règles le tiennent :
   1. chaque avertissement tient sur une ligne fixe (`[UI-17]`), présente
      même sans avertissement ;
   2. son texte entier s'ouvre au clic, dans une bulle superposée ;
   3. le bilan des garanties et des alertes passe dans le pied (`[UI-18]`),
-     et son détail dans un volet superposé ;
+     et son détail dans l'onglet Vérification, qui ne se rend que visible ;
   4. le résumé d'une carte repliable tient sur une ligne, coupé par une
      ellipse, texte entier au survol et pour le lecteur d'écran ; le titre ne
      se coupe pas ;
-  5. un volet ouvert garde sa taille pendant un geste et fait défiler son
-     contenu ;
-  6. les messages s'annoncent au lecteur d'écran une fois, à la fin du geste.
+  5. les messages s'annoncent au lecteur d'écran une fois, à la fin du geste.
 
   L'état du geste se pose à un seul endroit, celui où la prévisualisation et
   la validation passent. Un test d'interface Chromium glisse les curseurs de
@@ -1959,7 +1978,8 @@ palette » gardent leurs libellés au-dessus des champs.
   « Nouvelle palette », sans geste propre. Un choix dure jusqu'à la
   fermeture du plugin et ne se range pas. Une palette choisie qui disparaît,
   par un import ou une autre session, ramène à cet état ; une palette
-  supprimée ouvre la suivante. Un fichier sans palette montre la création. Sa liste déroulante prend toute la
+  supprimée ouvre la suivante. Un fichier sans palette montre l'encart de
+  `[UI-22]`. Sa liste déroulante prend toute la
   largeur libre de sa ligne, et un nom long s'y coupe par des points de
   suspension. « Nouvelle palette » et « … » gardent leur largeur naturelle
   et prennent la hauteur de la liste. « Nouvelle palette » ouvre la création
@@ -1973,27 +1993,222 @@ palette » gardent leurs libellés au-dessus des champs.
   palette » et « Annuler ». Entrée crée ;
   Échap annule quand « Annuler » est offert. Après création, la palette est
   ouverte ; après annulation, le focus revient à « Nouvelle palette ».
+- `[UI-22]` Dans un fichier sans palette, l'onglet Création montre un encart
+  au fond bleuté, mélange du rôle `--fond-marque` et du fond de la page : une
+  rampe d'exemple, le titre « Créez votre première palette », une phrase et
+  le bouton « Nouvelle palette ». Le bouton remplace l'encart par la carte de
+  création de `[UI-06]` ; « Annuler » y ramène. Quand les variables du
+  fichier portent au moins une palette (`[VAR-12]`), une ligne sous l'encart
+  le dit, « Ce fichier porte déjà 3 palettes dans ses variables. », et son
+  lien « Les voir dans Gestion » ouvre l'onglet Gestion.
+- `[UI-23]` La barre du sélecteur, liste déroulante, « Nouvelle palette » et
+  menu « … », avec la confirmation de suppression, existe en un seul
+  exemplaire (`src/ui/barreDePalette.ts`). Elle se place dans le panneau de
+  l'onglet actif, Création ou Vérification, au changement d'onglet : aucun de
+  ses éléments ne se reconstruit, et elle garde sa palette et son état ouvert
+  ou fermé. Depuis Vérification, « Nouvelle palette » passe d'abord à
+  Création. Chaque option de la liste porte à droite le verdict de sa
+  palette (`[VER-19]`), ✓, ! ou ✗, et le bouton porte celui de la palette
+  ouverte ; le nom accessible de l'option dit le verdict en mots.
 
-Onglet Palettes :
+Onglet Vérification :
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│ 3 palettes             [Thème Light] [Thème Dark] [Actualiser] │
-│ ┌ Bleu ──────────────────────────────────── (À actualiser) ┐ │
-│ │ Soft  ▪▪▪▪▪▪▪▪▪▪▪                                        │ │
-│ │ Vivid ▪▪▪▪▪▪◆▪▪▪▪                                        │ │
-│ │ ■ #1E6FD9 ◆ Vivid · nuance 600         Soft ✓  Vivid ✗ 2 │ │
-│ │ [Actualiser sur Figma] [Afficher] [Modifier]             │ │
-│ └──────────────────────────────────────────────────────────┘ │
-│ … une fiche par palette                                       │
-│ [Actualiser tout (2 palettes)] [Générer tout (3 palettes)]    │
-│ ┌ Ardoise ──────────────────────────── teinte d'avertissement ┐ │
-│ │ phrase courte : palette supprimée, cadre resté dans Figma  │ │
-│ │ [Afficher dans Figma] [Supprimer définitivement]           │ │
-│ └────────────────────────────────────────────────────────────┘ │
-│ Informations : cadre introuvable, copie, P3                   │
-│ ▸ Palettes et réglages : exporter, importer, rapport          │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│ [● Bleu marque                          ✗ ▾] [Nouvelle palette] [⋯]  │
+│ Palette Bleu marque                                                   │
+│ ┌ ✗ 2 garanties manquées sur 76 · 1 point à vérifier ──────────────┐ │
+│ Garanties à corriger (2)                                              │
+│ │ où · quoi · geste                          [Ajuster le Color shift] │
+│ Points à vérifier (1)                                                 │
+│ │ où · quoi · geste                          [Ajuster la saturation]  │
+│ ┌ Garanties de contraste ─────────────────────────── Thème Dark ───┐ │
+│ │ [Soft ✓ | Vivid ✗ 2]                                            │  │
+│ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
+│ │ Textes lisibles                                 minimum 4,5:1   │  │
+│ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
+│ │ Éléments visibles                                 minimum 3:1   │  │
+│ └─────────────────────────────────────────────────────────────────┘  │
+│ Corrigez la palette dans Création, ou écrivez-la …  [Retour à Création] │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+- `[VER-18]` L'onglet Vérification montre, de haut en bas : la barre du
+  sélecteur (`[UI-23]`) ; le titre « Palette [nom] » ; le verdict de la
+  palette ouverte sur son fond de sévérité, avec le compte des garanties et
+  des points à vérifier ; ses messages, groupés par sévérité (`[VER-14]`),
+  les garanties à corriger en premier, chacun avec ses liens (`[VER-15]`) ;
+  la carte « Garanties de contraste » (`[UI-09]`) ; le pied. Une palette
+  libre n'a pas la carte des garanties, et son verdict dit « Palette libre ·
+  N nuances ». Le pied dit « La palette tient ses garanties. » et porte
+  « Passer à Gestion » ; quand une garantie manque, il dit « Corrigez la
+  palette dans Création, ou écrivez-la telle quelle dans Gestion. » et porte
+  « Retour à Création ». Sans palette choisie, l'onglet montre la barre et
+  l'invitation de `[UI-06]`. L'onglet ne se rend que visible, et à la fin
+  d'un geste : un glisser dans Création ne le recalcule pas.
+- `[VER-19]` Chaque palette a un verdict : `danger` dès qu'une garantie
+  manque, `avertissement` dès qu'un point à vérifier existe, `succes` sinon ;
+  une palette libre est `succes`. `verdictDeLaPalette`
+  (`src/presentation.ts`) en est l'unique autorité. Le verdict des palettes
+  que le sélecteur liste se recalcule à la fin d'un geste, jamais pendant, et
+  seulement pour une palette dont le JSON ou celui des réglages communs a
+  changé : un glisser n'analyse que la palette ouverte.
+- `[VER-20]` La carte des garanties et l'aperçu de Création montrent le même
+  thème. Dans le détail d'une nuance (`[UI-10]`), un clic sur une garantie
+  ouvre Vérification et y choisit sa ligne. Dans la carte, le lien vers
+  l'autre thème change le thème montré sans quitter Vérification, et
+  « Revenir au thème » ramène au thème d'avant.
+
+Onglet Gestion, vue complète :
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ ┌ Connexion à Figma ──────────── Synchronisé il y a 2 min  ⟳ Synchroniser ┐
+│ │ Tokens     primitives · colors                           [Changer] │
+│ │ Planches   Page « Palettes »                             [Changer] │
+│ │ 1 à jour · 2 à mettre à jour             [Tout mettre à jour (2)]  │
+│ └────────────────────────────────────────────────────────────────────┘
+│                                                                      │
+│ Palettes du plugin · 3    [Vue complète|Vue condensée] [Light|Dark]  │
+│ ┌ Bleu ────────────────────────── (À mettre à jour) [Modifier] ───┐  │
+│ │ Soft  ▪▪▪▪▪▪▪▪▪▪▪                                               │  │
+│ │ Vivid ▪▪▪▪▪▪◆▪▪▪▪                                               │  │
+│ │ ■ #1E6FD9 ◆ Vivid · nuance 600            Soft ✓  Vivid ✗ 2     │  │
+│ │ Tokens Figma  (À mettre à jour) 6 couleurs ont changé  [Mettre à jour] │
+│ │ Planche       (À jour)                                 [Afficher] │
+│ └─────────────────────────────────────────────────────────────────┘  │
+│ … une fiche par palette                                              │
+│ ┌ Ardoise ───────────────────────────── teinte d'avertissement ───┐  │
+│ │ palette supprimée, cadre ou variables restés dans Figma         │  │
+│ │ [Afficher dans Figma] [Supprimer définitivement] [Supprimer les variables…] │
+│ └─────────────────────────────────────────────────────────────────┘  │
+│ ──────────────────────────────────────────────────────────────────── │
+│ Déjà dans le fichier · 2                                             │
+│ ┌╌ gray ╌╌ (Variables du fichier) ╌╌╌╌╌╌ [Modifier dans le plugin] ╌┐ │
+│ ╎ ▪▪▪▪▪▪▪▪▪▪▪   primitives · colors/gray · 11 couleurs · Light, Dark ╎ │
+│ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │
+│ Informations : cadre introuvable, copie, P3                          │
+│ ▸ Palettes et réglages : exporter, importer, rapport                 │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+- `[UI-24]` Le bloc « Connexion à Figma » ouvre l'onglet Gestion dans les
+  deux vues : une carte grise, sans fond (`src/ui/connexion.ts`). Son en-tête
+  porte le titre, « Synchronisé il y a … » et « Synchroniser », un texte gris
+  sans contour précédé de l'icône des deux flèches en cercle, qui ne se
+  confond pas avec « Changer ». « Synchroniser » relit le fichier, cadres
+  cherchés sur toutes les pages (`[PLA-26]`), et n'écrit rien ; l'heure est
+  celle du dernier état reçu, écrite en durée relative et rafraîchie au
+  rendu. Le corps porte la ligne « Tokens », collection et groupe de la
+  destination (`[VAR-02]`), et la ligne « Planches », nom de la page
+  (`[PLA-29]`), chacune avec « Changer » ; puis le bilan, un compte de
+  palettes par état. 20 px de plus que l'écart courant séparent le bloc de la
+  barre « Palettes du plugin ».
+- `[UI-25]` La barre « Palettes du plugin · N » porte la bascule « Vue
+  complète · Vue condensée », à gauche de la bascule des thèmes. La vue se
+  range dans `figma.clientStorage` sous `ucm-palettes.vue`, avec la langue
+  (`src/preferences.ts`) ; une valeur absente ou inconnue donne la vue
+  complète.
+- `[UI-26]` Dans la vue complète, une fiche par palette, dans l'ordre de la
+  recette : sur sa première ligne le nom, la pastille d'état et
+  « Modifier », qui ouvre Création sur la palette ; puis les rampes de ses
+  intensités dans le thème choisi, sa référence et le résultat de ses
+  garanties, qui ouvre Vérification sur la palette ; puis une ligne par
+  sortie (`src/ui/sorties.ts`) : un nom, une pastille d'état, un détail, des
+  gestes au bord droit.
+
+  | Ligne | États | Gestes |
+  |---|---|---|
+  | Tokens Figma | Pas encore écrits · À jour · À mettre à jour · Modifiés dans Figma · Introuvables | « Écrire dans les tokens », « Mettre à jour », ou la décision de `[VAR-06]` |
+  | Planche | Pas encore créée · À jour · À actualiser · Introuvable · Lecture impossible | « Créer la planche », « Actualiser », « Afficher » |
+
+  La pastille de l'en-tête donne l'état le plus urgent des deux lignes, dans
+  cet ordre : modifiée dans Figma, à mettre à jour, pas encore sur Figma,
+  synchronisée. `etatDeLaFiche` (`src/presentation.ts`) en est l'unique
+  autorité. Une sortie introuvable ou illisible compte comme à mettre à
+  jour. Une palette qui manque des garanties s'écrit comme une autre : sa
+  fiche montre « Soft ✗ ».
+- `[UI-27]` La vue condensée est un tableau : une ligne par palette, avec
+  son nom, sa rampe en miniature, l'état de ses tokens et l'état de sa
+  planche, sous des en-têtes de colonne. Elle ne porte aucun geste. Un clic
+  ou Entrée sur une ligne passe à la vue complète et amène la fiche en vue.
+  Une palette du fichier (`[UI-33]`) est une ligne du même tableau.
+- `[UI-28]` « Tout mettre à jour (N) », dans le bilan du bloc et en vue
+  complète seulement, écrit les variables puis dessine les planches des N
+  palettes en retard ou absentes. Une confirmation compte d'abord les
+  variables créées, les couleurs écrites et les planches dessinées
+  (`[PLA-24]`). Une palette « Modifiés dans Figma » en est exclue, et le
+  bilan le dit.
+- `[UI-29]` « Changer », sur la ligne « Planches », ouvre la carte « Page
+  des planches » à la place du bloc de la connexion : une liste à choix
+  unique, chaque page du fichier avec son nombre de planches, puis
+  « Nouvelle page » et son champ. La carte est grise, sans fond, comme le
+  bloc ; la liste a un fond gris plus foncé ; elle n'a pas de simulation.
+  « Enregistrer » demande le changement (`[PLA-29]`) ; « Enregistrer » ou
+  « Annuler » rend le bloc et le focus à « Changer ». Un refus se lit dans
+  la carte, qui reste ouverte.
+- `[UI-30]` « Changer », sur la ligne « Tokens », ouvre la carte
+  « Destination des tokens » à la place du bloc, de même facture que
+  `[UI-29]`. Trois champs, sans texte d'aide : la collection, en liste à
+  choix unique, « Nouvelle collection » et son champ, puis chaque collection
+  locale avec son nombre de variables, puis les collections de bibliothèque,
+  grisées et non choisissables (`[VAR-14]`) ; le groupe et les thèmes sur une
+  rangée. Dessous, une simulation prend la forme du panneau des variables de
+  Figma : le nom de la collection, un groupe par rampe avec son compte, le
+  premier groupe déplié sur ses trois premières nuances, couleur et hexa,
+  puis « N autres nuances » ; en modes, deux colonnes de valeur, Light et
+  Dark. Elle se calcule par `planDesVariables` (`[VAR-01]`) sur la première
+  palette du plugin et suit chaque choix sans rien ranger. « Enregistrer »
+  range la destination (`[VAR-02]`).
+- `[UI-31]` « Écrire dans les tokens » ouvre dans la fiche un encart : le
+  nombre de variables, la collection, le premier et le dernier nom,
+  « Annuler » et « Écrire N variables ». Tant que la destination n'est pas
+  confirmée, le geste ouvre d'abord la carte de `[UI-30]`. « Mettre à jour »
+  écrit sans encart : il ne crée rien et n'écrase aucune valeur changée dans
+  Figma.
+- `[UI-32]` Une palette « Modifiés dans Figma » montre dans sa fiche un
+  encart d'avertissement : chaque couleur changée, son nom de variable, la
+  valeur de Figma et celle du plugin, six au plus puis « Et N autres ».
+  « Remettre les couleurs du plugin » écrit avec le choix `remettre`
+  (`[VAR-06]`). « Laisser les couleurs de Figma » replie l'encart pour la
+  session, sans rien ranger : l'état reste « Modifiés dans Figma ».
+- `[UI-33]` Sous un filet, la liste « Déjà dans le fichier · N » montre les
+  palettes que les variables du fichier portent et que le plugin n'a pas
+  écrites (`[VAR-12]`) : une fiche en tirets, sans fond, l'étiquette
+  « Variables du fichier », la rampe du premier mode, la collection, le
+  chemin, le nombre de couleurs et les modes. Son en-tête porte « Modifier
+  dans le plugin » au bord droit (`[VAR-13]`). Une palette d'une
+  bibliothèque distante porte l'étiquette « Bibliothèque », son chemin est
+  précédé du nom de la collection et de son nombre de variables, sa rampe
+  montre des pastilles vides et « Couleurs lues à la copie », et son geste
+  est « Copier dans le plugin » (`[VAR-14]`).
+- `[UI-34]` « Modifier dans le plugin » ouvre Création sur la palette
+  reprise et y pose un encart sous le titre : les deux rampes, « Fichier »
+  et « Plugin », la bascule « Recalculées · Telles quelles », le nombre de
+  couleurs qui changeront, et « Annuler la reprise », qui supprime la
+  palette et son suivi. L'encart reste tant que les tokens de la palette ne
+  sont pas « À jour ». Dans Gestion, la ligne des tokens d'une palette
+  reprise dit sa collection et son chemin d'origine, et « Mettre à jour »
+  ouvre un encart de remplacement : les couleurs qui changent, « Et N
+  autres », la phrase « Les variables gardent leur nom et leurs liaisons. »,
+  « Annuler » et « Remplacer N couleurs ».
+- `[UI-35]` Une palette supprimée dont le cadre ou des variables restent
+  dans Figma garde sa carte (`[PLA-27]`), qui propose aussi « Supprimer les
+  variables… », geste `danger` confirmé (`[VAR-11]`). Sous les listes,
+  l'onglet range dans une section secondaire l'export et l'import des
+  palettes et réglages et l'export du rapport.
+
+Onglet Gestion, vue condensée :
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ ┌ Connexion à Figma ─ … le même bloc, sans « Tout mettre à jour » ──┐ │
+│ Palettes du plugin · 3    [Vue complète|Vue condensée] [Light|Dark]  │
+│ Palette      Rampe          Tokens Figma        Planche              │
+│ Bleu         ▪▪▪▪▪▪▪▪▪▪▪    À mettre à jour     À jour               │
+│ Vert         ▪▪▪▪▪▪▪▪▪▪▪    Pas encore écrits   Pas encore créée     │
+│ gray         ▪▪▪▪▪▪▪▪▪▪▪    Variables du fichier                     │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 Réglages communs, derrière l'engrenage :
@@ -2025,7 +2240,8 @@ qui le créera.
 
 | État | Ce qu'il montre |
 |---|---|
-| Premier lancement | Aucune recette rangée, recette par défaut proposée, aucune palette |
+| Premier lancement | Aucune recette rangée : l'encart au fond bleuté, sa rampe d'exemple et « Nouvelle palette » (`[UI-22]`) |
+| Fichier vide avec variables | L'encart, puis la ligne qui compte les palettes des variables et mène à Gestion ; case P7.4 |
 | Onglet Création sans palette choisie | « Sélectionner une palette », l'invitation sous le filet, ni menu ni palette |
 | Premier lancement, palette créée | La première palette ouverte, recette rangée |
 | Création ouverte | La carte de création sous le sélecteur, en P2 : nom et couleur de référence, Modèle, « Une intensité » choisie, « Créer la palette » et « Annuler » |
@@ -2039,9 +2255,11 @@ qui le créera.
 | Un profil réglé seul | Soft tourné de 8°, aucun avertissement, la lettre de Vivid sur chaque piste, le repère de la référence |
 | Avant un réglage du porteur | Vivid ◆ choisi, l'avertissement avant tout geste |
 | Référence modifiée | L'avertissement après le geste, « Ajustée depuis » sous le code, le porteur fixé par les réglages |
-| Garanties respectées | Bascule ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs |
-| Garantie en échec | Bascule ✗ sur le profil, première ligne en échec choisie, arc de danger, lien vers le réglage |
-| Garantie de l'autre thème | Ligne qui compte les garanties manquées de l'autre thème, aperçu basculé, « Revenir au thème » |
+| Vérification tenue | Onglet Vérification : verdict de succès, bascule ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs, « Passer à Gestion » |
+| Vérification manquée | Verdict de danger, messages à corriger avec leurs liens, première ligne en échec choisie, arc de danger, « Retour à Création » |
+| Vérification d'une palette libre | « Palette libre · N nuances », aucune carte des garanties |
+| Garantie de l'autre thème | Ligne qui compte les garanties manquées de l'autre thème, thème basculé, « Revenir au thème » |
+| Verdicts dans le sélecteur | La liste ouverte sur trois palettes : ✓, ! et ✗ à droite de chaque option et sur le bouton |
 | Détail de la référence | La nuance de la référence choisie : usages, garanties avec numéros, repère ◆ |
 | Nuance sans rôle | « Sans rôle », puis la table des contrastes, fond du thème, blanc et noir, chacun avec son badge |
 | Nuance désélectionnée | La nuance choisie recliquée : détail refermé, focus resté sur la pastille |
@@ -2069,20 +2287,40 @@ qui le créera.
 | Palette très désaturée | `#7C717B` : deux profils distincts, aucun point à vérifier, teinte réglable |
 | Palette grise | `#808080` : onglets Teinte et Saturation et piste de teinte désactivés, luminosité réglable, la note et la ligne du gris pur |
 | Avertissement long | La ligne fixe la plus longue coupée par une ellipse, sa bulle ouverte, à la taille par défaut et à 500 × 520 |
-| Volet ouvert | Le pied et le volet « Garanties et alertes » ouvert sur vingt messages, à la taille par défaut et à 500 × 520 |
+| Vingt messages | L'onglet Vérification sur vingt messages, à la taille par défaut et à 500 × 520 |
 | Presque noir | `#060605` : un gris pur, rampes grises, aucun point à vérifier |
 | Palette avec points à vérifier seuls | Garanties respectées, points à vérifier sous la carte qu'ils concernent |
-| Génération en cours | Progression à la place de « Générer tout », aucun geste possible |
-| Génération réussie | La fiche « À jour » sans premier geste, « Afficher » et « Modifier » |
+| Génération en cours | Progression à la place de « Tout mettre à jour », aucun geste possible |
+| Génération réussie | La ligne « Planche » dit « À jour », sans premier geste, avec « Afficher » |
 | Titre seul | « Palette [nom] » seul sur sa ligne, un nom long coupé |
 | Génération partielle | Palettes déjà créées nommées, palette fautive, reprise possible |
 | Génération interrompue | Arrêt nommé, cadre précédent conservé, détail technique replié, « Réessayer » |
-| Confirmation au-delà de six palettes | « Générer tout » demande confirmation |
-| Onglet Palettes sans palette | Aucune palette à générer, geste vers l'onglet Création |
-| Planche à jour | Chaque fiche dit « À jour » |
-| Planche à actualiser | Fiches « À actualiser » ou « Pas encore sur Figma », en orange, génération groupée |
-| Fiche d’une palette | Disposition A : nom et état en pastille, rampes, référence et garanties sur une ligne, gestes |
-| Pastilles des cinq états | « À jour » sur fond de succès, « À actualiser » et « Pas encore sur Figma » en avertissement, introuvable et illisible en danger |
+| Confirmation au-delà de six palettes | « Tout mettre à jour » demande confirmation |
+| Onglet Gestion sans palette | Aucune palette à générer, geste vers l'onglet Création |
+| Gestion, vue complète | Le bloc « Connexion à Figma », la barre et ses deux bascules, une fiche par palette et ses lignes de sortie |
+| Gestion, vue condensée | Le même bloc sans « Tout mettre à jour », le tableau des palettes, aucun geste |
+| Page des planches | La carte à la place du bloc : les pages du fichier et leur nombre de planches, « Nouvelle page » |
+| Planche à jour | Chaque ligne « Planche » dit « À jour » |
+| Planche à actualiser | Lignes « À actualiser » ou « Pas encore créée », en avertissement, « Tout mettre à jour » |
+| Fiche d’une palette | Nom, pastille d'état et « Modifier » ; rampes ; référence et garanties sur une ligne ; lignes de sortie |
+| Pastilles des cinq états | « À jour » sur fond de succès, « À actualiser » et « Pas encore créée » en avertissement, introuvable et illisible en danger |
+| Tokens jamais écrits | La ligne « Tokens Figma » dit « Pas encore écrits » et « 44 variables à créer » ; case P5.13 |
+| Tokens à jour | « À jour · 44 variables » ; case P5.13 |
+| Tokens à mettre à jour | « 6 couleurs ont changé dans le plugin » et « Mettre à jour » ; case P5.13 |
+| Tokens introuvables | Des variables suivies ont disparu : « Introuvables » et « Mettre à jour » ; case P5.13 |
+| Première écriture | L'encart de la fiche : nombre de variables, collection, premier et dernier nom ; case P5.13 |
+| Destination ouverte | La carte « Destination des tokens » et sa simulation, thèmes dans le chemin ; case P5.13 |
+| Destination en modes | La simulation à deux colonnes, Light et Dark ; case P5.13 |
+| Nom déjà pris | La fiche nomme la variable qui porte déjà le nom ; case P5.13 |
+| Écriture partielle | Une palette écrite, une refusée avec sa raison ; case P5.13 |
+| Palette supprimée avec variables | La carte propose « Supprimer les variables… » ; case P5.13 |
+| Tokens modifiés dans Figma | L'encart qui liste les couleurs changées et les deux choix ; case P6.3 |
+| Palettes du fichier | La liste « Déjà dans le fichier », fiches en tirets ; case P7.4 |
+| Reprise recalculée | L'encart de Création, « Recalculées » pressé, le nombre de couleurs qui changeront ; case P8.6 |
+| Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change ; case P8.6 |
+| Reprise dans Gestion | La ligne des tokens dit la collection et le chemin d'origine, l'encart de remplacement ; case P8.6 |
+| Bibliothèques | Une palette de bibliothèque dans « Déjà dans le fichier », collections en lecture seule dans la destination ; case P9.5 |
+| Copie de bibliothèque | La confirmation qui compte les variables ajoutées au fichier ; case P9.5 |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
 | Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités des Réglages communs |
 | Cadre déplacé | Un cadre rangé dans une section ou sur une autre page, retrouvé par son identité |
@@ -2101,10 +2339,13 @@ qui le créera.
 - `[UI-07]` `messages.ts` déclare les deux sens de la frontière. L'interface
   envoie des demandes : lire l'état, ranger la
   recette, dessiner une palette ou toutes, importer, voir sur la planche,
-  retirer le cadre d'une palette supprimée, redimensionner, lire et ranger la
-  langue (`[UI-16]`). Le sandbox envoie
-  l'état (recette rangée, profil du document, état de chaque cadre), la
-  la progression et les résultats. Un message entre dans `messages.ts` au lot qui le met en scène
+  retirer le cadre d'une palette supprimée, choisir la page des planches,
+  ranger la destination, écrire ou retirer des variables, reprendre ou
+  copier une palette du fichier, redimensionner, lire et ranger les
+  préférences (`[UI-16]`, `[UI-25]`). Le sandbox envoie
+  l'état (recette rangée, profil du document, état de chaque cadre, pages du
+  fichier, collections, suivi et variables lues), la progression et les
+  résultats. Un message entre dans `messages.ts` au lot qui le met en scène
   dans la galerie.
 - `[UI-08]` Chaque résultat porte le numéro de la demande qui l'a produit.
   L'interface écarte un résultat plus ancien que la dernière demande du même
@@ -2146,15 +2387,18 @@ packages/plugin-palettes/        le plugin UCM Palettes              [ARC-03]
   src/code.ts                      routage des demandes de l'interface
   src/messages.ts                  les deux sens de la frontière sandbox et interface
   src/planche/modele.ts            de la recette calculée à l'arbre de cadres à dessiner, pur
-  src/ecriture/planche.ts          dessine un modèle de planche dans la page
+  src/ecriture/planche.ts          dessine un modèle de planche dans la page, et change de page
   src/ecriture/recette.ts          range la recette dans le fichier
-  src/lecture.ts                   la recette rangée, la page, les cadres, la couleur sélectionnée
+  src/ecriture/variables.ts        écrit les variables d'une palette, range la destination
+  src/variables/                   le modèle pur des variables : destination, noms, plan, suivi, état, détection
+  src/lecture.ts                   la recette rangée, la page, les cadres, les pages du fichier
+  src/lectureDesVariables.ts       les collections et les variables de couleur, seul lecteur de `figma.variables`
   src/navigation.ts                la page courante, le cadrage et la sélection
   src/ui/                          l'interface
   src/ui/textes.ts                 tous les textes destinés au designer
   src/ui/derive/                   le Color shift : onglets, graphe, poignées, réglettes
   src/ui/ligneFixe.ts              la ligne d'un message, de hauteur fixe, et sa bulle
-  src/ui/piedDeLaPalette.ts        le pied de l'onglet Création et son volet
+  src/ui/piedDeLaPalette.ts        le pied de l'onglet Création
   src/ui/glyphes.ts                le glyphe de chaque carte titrée
   galerie/etats.cjs                les états de l'interface
   tests/
@@ -2226,13 +2470,17 @@ du chemin qui le précède.
   `.strokes =`, `.name =`, `.characters =`, `.resize(`, `.x =`, `.y =`,
   `.layoutMode =`, `.fontName =`, `.fontSize =`. Une affectation absente de la
   liste lui échappe.
-- `[ARC-13]` Aucun fichier de `src/` n'appelle `figma.variables`,
-  `loadAllPagesAsync` ou une API de style.
+- `[ARC-13]` Seuls `src/ecriture/variables.ts`, qui écrit, et
+  `src/lectureDesVariables.ts`, qui lit, appellent `figma.variables` et
+  `figma.teamLibrary`. Aucun fichier de `src/` n'appelle `loadAllPagesAsync`
+  ou une API de style.
 - `[ARC-15]` La navigation (`setCurrentPageAsync`, `scrollAndZoomIntoView`,
   `selection`) est dans `src/navigation.ts`, hors de la loi d'écriture : elle
   ne modifie pas le document.
 - `[ARC-14]` Le routage de `code.ts` n'a qu'une porte par geste d'écriture :
-  « dessiner », « ranger la recette » et « retirer un cadre » (`[PLA-27]`).
+  « dessiner », « ranger la recette », « retirer un cadre » (`[PLA-27]`),
+  « choisir la page » (`[PLA-29]`), et les portes des variables de la
+  [section 17](#17-sortie-2--les-variables).
 
 ### 14.4 Invariants
 
@@ -2246,8 +2494,8 @@ test qui la tient.
 | Une valeur dans la limite du Color shift ou du réglage global garde chaque promesse tenue au début du geste | `packages/couleur/tests/limites.test.ts` |
 | Pendant un geste, aucun contrôle de l'onglet Création ne se déplace | Test d'interface Chromium (`[UI-20]`) |
 | Seul `src/ecriture/` écrit dans le document | Loi d'écriture, patron de `loiDuDocumentIntact` |
-| Le plugin ne touche aucune variable | Loi d'écriture : `figma.variables` absent de `src/` |
-| Le plugin n'écrit que dans les cadres qu'il possède et dans la recette | Tests du modèle et de l'écriture |
+| Seuls `src/ecriture/variables.ts` et `src/lectureDesVariables.ts` appellent `figma.variables` | Loi d'écriture : tout autre appel est refusé |
+| Le plugin n'écrit que dans les cadres qu'il possède, dans la recette et dans les variables qu'il suit | Tests du modèle et de l'écriture |
 | Le manifest n'ouvre aucun domaine | Test du manifest |
 | Aucun des deux plugins n'importe l'autre | Loi d'import à la racine du dépôt, `tests/pluginsSepares.test.ts`, qui lit les deux sens |
 | Aucune vue ne pose un mot hors des catalogues de `src/i18n/`, et les catalogues ont les mêmes clés | `tests/loiDesTextes.test.ts` et `tests/i18n.test.ts` |
@@ -2297,24 +2545,170 @@ Ce qui ne se prouve pas hors de Figma se rejoue à la main.
    sans saccade visible.
 8. Copier un code depuis une pastille de la planche.
 
-## 17. Option ultérieure : créer les variables
+## 17. Sortie 2 : les variables
 
-Cette option n'entre dans aucun lot. Elle se décide après usage du plugin, si
-la planche convient. Ce qui suit liste ce qu'elle devra trancher, pour que la
-décision parte de faits connus.
+Le plugin écrit chaque palette dans les variables de couleur du fichier, au
+geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
+`src/variables/` ; `src/ecriture/variables.ts` écrit, et
+`src/lectureDesVariables.ts` lit.
 
-- **Les noms.** Le plugin ne connaît que le nom éventuel de la palette, le
-  profil, le mode et le cran. Le designer devra dire dans quelle collection et
-  sous quel chemin chaque palette entre ; le nom de calque des pastilles
-  (`[PLA-14]`) donne déjà la fin de ce chemin.
-- **Les modes Figma.** Si une collection porte un mode par marque, Figma remplit
-  un mode ajouté avec les valeurs du premier. Une valeur copiée ne doit pas
-  passer pour une valeur écrite ou retouchée.
-- **Les retouches.** Une valeur modifiée à la main dans Figma ne s'écrase pas.
-- **Le profil du document.** La table de la [section 6.7](#67-peindre-dans-lespace-du-document)
-  vaut aussi pour la valeur d'une variable, à vérifier de même.
-- **UCM Exporter.** Les variables écrites seront exportées comme les autres ; son
-  moteur n'a pas à changer.
+### 17.1 La forme et la destination
+
+- `[VAR-01]` `planDesVariables(recette, palette, destination)`
+  (`src/variables/plan.ts`) rend la liste ordonnée de ce qu'une palette
+  écrit. Chaque entrée porte sa clé stable, `{intensité}/{thème}/{nuance}`,
+  son nom de variable, son mode, `unique`, `light` ou `dark`, et sa couleur
+  en hexa. Les couleurs viennent de `rampesDe` du moteur, jamais de
+  l'interface. Avec la destination par défaut, une palette s'écrit sous
+  `colors/{palette}/{soft, vivid}/{light, dark}/{nuance}` : 44 entrées et 44
+  variables pour deux intensités et onze nuances. Une palette à une
+  intensité n'a pas de segment d'intensité. Une palette libre écrit ses
+  seules nuances. Avec les thèmes en modes, le chemin perd son segment de
+  thème : 44 entrées pour 22 variables, chacune à deux modes.
+- `[VAR-02]` La destination vaut pour toutes les palettes du plugin
+  (`src/variables/destination.ts`) : une collection, désignée par son
+  identifiant ou par le nom d'une collection à créer ; un groupe, qui peut
+  être vide ; les thèmes, `chemin` ou `modes`. Son défaut est la collection
+  neuve `primitives`, le groupe `colors` et les thèmes dans le chemin. Elle
+  se range dans le suivi (`[VAR-04]`), jamais dans la recette : un export de
+  recette reste indépendant du fichier. Tant qu'elle n'a pas été confirmée
+  une fois, « Écrire dans les tokens » ouvre sa carte avant d'écrire
+  (`[UI-31]`). La changer ne déplace aucune variable : une palette déjà
+  écrite garde les siennes, que Gestion montre « À mettre à jour » vers la
+  nouvelle destination, et les anciennes variables restent dans le fichier.
+- `[VAR-03]` Le segment d'une palette vient de son nom
+  (`src/variables/noms.ts`) : `normalizeName` du kit, lu par
+  `packages/plugin-socle`, puis le retrait de `.`, `{`, `}` et du `$` de
+  tête, que Figma refuse. Une palette sans nom, ou dont le nom ne laisse
+  aucun caractère, prend son identifiant. Deux palettes au même segment : la
+  seconde, dans l'ordre de la recette, prend son identifiant en suffixe, et
+  sa fiche le dit.
+
+### 17.2 La propriété et l'état
+
+- `[VAR-04]` Le plugin reconnaît ses variables par identifiant, jamais par
+  leur nom. Le suivi rangé sous la clé partagée `ucm_palettes/variables`
+  (`src/variables/suivi.ts`) porte sa version, la destination, si elle est
+  confirmée, et pour chaque palette : sa collection, ses modes, sa liaison,
+  `destination` ou `reprise`, et pour chaque clé du plan l'identifiant de la
+  variable et la dernière couleur écrite. Il se lit comme le suivi des
+  cadres (`[PLA-01]`) : une forme inattendue se lit comme un suivi vide, et
+  un suivi d'une version plus récente refuse toute écriture. Chaque variable
+  écrite porte aussi la donnée partagée de sa palette et de sa clé, qui ne
+  sert que de repère.
+- `[VAR-05]` `etatDesTokens(plan, suivi, lues)` (`src/variables/etat.ts`)
+  compare trois lectures : la couleur que le plugin calcule, la dernière
+  écrite, la couleur lue dans Figma.
+
+  | État | Condition, dans cet ordre |
+  |---|---|
+  | Pas encore écrits | Le suivi n'a aucune variable pour la palette |
+  | Introuvables | Une variable du suivi n'existe plus dans le fichier |
+  | Modifiés dans Figma | Une couleur lue diffère de la dernière écrite |
+  | À mettre à jour | Une couleur calculée diffère de la dernière écrite, une clé du plan n'est pas dans le suivi, ou la destination a changé depuis l'écriture |
+  | À jour | Aucune des conditions précédentes |
+
+  Deux couleurs sont égales quand leurs trois octets sRGB le sont, après
+  arrondi des composantes de Figma. L'état porte la liste des entrées
+  concernées : celles que Figma a changées, valeur de Figma et valeur du
+  plugin, et celles que le plugin a changées.
+- `[VAR-06]` Le plugin n'écrase jamais une couleur changée dans Figma sans
+  le choix du designer, qui porte sur la palette entière. « Remettre les
+  couleurs du plugin » écrit avec le choix `remettre` ; « Laisser les
+  couleurs de Figma » garde l'état « Modifiés dans Figma », et la recette ne
+  reprend pas ces couleurs (`[UI-32]`).
+
+### 17.3 L'écriture
+
+- `[VAR-07]` `ecrireLesVariables(figma, demande)`
+  (`src/ecriture/variables.ts`), par la porte `ecrire-variables`, part de la
+  recette rangée, jamais de couleurs envoyées par l'interface : la demande
+  porte des identifiants de palette, l'empreinte lue de la recette, et pour
+  chaque palette modifiée dans Figma le choix `remettre`. Elle refuse si
+  l'empreinte de la recette rangée diffère, relit le suivi et les variables,
+  puis recalcule le plan et l'état. Une variable suivie qui a disparu se
+  recrée. Rien ne se supprime. Chaque variable créée naît vide, puis reçoit
+  sa valeur. Le suivi se range après les valeurs, et un seul
+  `figma.commitUndo()` clôt l'écriture. Une erreur au milieu d'une palette
+  retire les variables que cette écriture venait de créer pour elle ; les
+  autres palettes continuent. Le résultat nomme, par palette, ce qui est
+  créé, écrit, refusé et pourquoi.
+- `[VAR-08]` Avant toute création, le sandbox cherche dans la collection une
+  variable du même nom qu'il ne suit pas. S'il en trouve une, il arrête
+  l'écriture de cette palette sans rien créer, et la fiche nomme la
+  variable : le designer renomme la palette ou change de groupe.
+- `[VAR-09]` La collection d'une palette est celle de son suivi, sinon celle
+  que la destination désigne par identifiant, sinon une collection créée au
+  nom donné. Une collection locale du même nom, que le plugin n'a pas créée,
+  n'est jamais reprise sans que la destination la désigne par identifiant.
+- `[VAR-10]` Avec les thèmes en modes, le sandbox trouve ou crée les modes
+  `Light` et `Dark` ; le premier mode d'une collection neuve se renomme
+  `Light`. Un refus d'`addMode` arrête la palette, et la fiche montre le
+  message de Figma replié. Avec les thèmes dans le chemin, dans une
+  collection qui porte plusieurs modes, la même valeur s'écrit dans tous les
+  modes.
+- `[VAR-11]` Une palette supprimée laisse ses variables dans le fichier.
+  « Supprimer les variables… », sur sa carte, les retire par la porte
+  `retirer-variables` : le sandbox ne retire que les variables du suivi de
+  cette palette, quand la recette rangée se lit et ne la contient plus, dans
+  une écriture close par un seul `figma.commitUndo()`. Aucun autre geste ne
+  supprime ni ne renomme une variable.
+- `[VAR-16]` `rangerLaDestination`, par la porte `ranger-destination`,
+  valide la destination, la range dans le suivi et la marque confirmée. Une
+  écriture de variables suit les règles du dessin (`src/ui/frontiere.ts`) :
+  elle part après le rangement en vol, un refus l'abandonne, et rien ne
+  s'écrit pendant un conflit.
+
+### 17.4 Les palettes du fichier
+
+- `[VAR-12]` `palettesDuFichier(variables)` (`src/variables/detection.ts`)
+  groupe les variables de couleur dont le dernier segment du nom est un
+  nombre et dont le reste du chemin est le même. Un groupe d'au moins cinq
+  variables est une palette. Les variables que le suivi possède sont
+  écartées. Chaque palette rend sa collection, son chemin, ses nuances
+  triées, ses couleurs par mode, et la nuance 600 ou la plus proche. La
+  lecture ne suit pas les alias.
+- `[VAR-13]` « Modifier dans le plugin » reprend une palette du fichier par
+  la porte `reprendre-palette`, qui range la recette et le suivi ensemble,
+  sous un seul `figma.commitUndo()`. `reprendreDuFichier`
+  (`src/edition.ts`) crée une palette à une intensité, au nom du dernier
+  segment non numérique du chemin, à la référence de la nuance 600 ou de la
+  plus proche. En mode `recalculees`, elle est libre, avec les nuances lues,
+  quand celles-ci ne sont pas celles de la recette. En mode
+  `telles-quelles`, elle est figée aux couleurs lues. Son suivi prend la
+  liaison `reprise` : ses clés désignent les variables d'origine, par
+  identifiant. Le thème Light vise le premier mode de la collection, ou le
+  mode dont le nom contient « light », sans casse ; le thème Dark vise le
+  mode dont le nom contient « dark », et ne s'écrit pas s'il n'existe pas.
+  La dernière couleur écrite prend la couleur lue : une palette reprise
+  telle quelle est « À jour » sans écriture. Pour une liaison de reprise, le
+  plan ne rend que les entrées que le suivi désigne, et l'écriture ne crée,
+  ne renomme ni ne déplace aucune variable.
+- `[VAR-14]` Le manifest déclare la permission `teamlibrary`. La lecture
+  liste les collections de bibliothèque activées, nom, clé et nombre de
+  variables, et leurs palettes détectées sur les seuls noms : une valeur ne
+  se lit qu'après l'import de sa variable. Une collection de bibliothèque
+  n'est jamais une destination. « Copier dans le plugin », par la porte
+  `copier-palette`, importe les variables de cette seule palette, lit leurs
+  couleurs, puis la reprend en mode `recalculees` avec une liaison
+  `destination` : la copie s'écrira dans la destination des tokens, jamais
+  dans la bibliothèque. La confirmation dit combien de variables de la
+  bibliothèque s'ajoutent au fichier. Si `figma.teamLibrary` manque ou lève,
+  la lecture rend une liste vide et un constat, et le reste de Gestion
+  fonctionne.
+- `[VAR-15]` `src/lectureDesVariables.ts` est le seul lecteur de
+  `figma.variables` : les collections locales, les variables locales de
+  couleur avec leur valeur par mode, et les variables du suivi relues par
+  identifiant, dans un seul `Promise.all`. `lire-etat` joint cette lecture à
+  l'état.
+
+### 17.5 Ce que le plugin n'écrit jamais
+
+Le plugin n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias. Il ne crée
+ni marque, ni destination par palette. Il ne lie aucune pastille de planche
+à une variable : la planche garde ses couleurs écrites, et son état se lit
+dans Gestion. Les variables écrites s'exportent par UCM Exporter comme les
+autres, sans changement de son moteur.
 
 ## 18. Risques
 

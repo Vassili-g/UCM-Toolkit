@@ -173,7 +173,7 @@ l'architecture écrit cette forme.
 
 ### 3.3 Les questions de la section 17
 
-La [section 17](./RECHERCHE-PLUGIN-PALETTES.md#17-option-ultérieure--créer-les-variables)
+La [section 17](./RECHERCHE-PLUGIN-PALETTES.md#17-sortie-2--les-variables)
 de la spécification liste ce que l'option devra trancher. Voici une réponse
 par question.
 

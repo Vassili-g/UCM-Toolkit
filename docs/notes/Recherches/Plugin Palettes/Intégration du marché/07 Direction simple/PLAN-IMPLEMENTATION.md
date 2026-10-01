@@ -75,7 +75,7 @@ l'hypothèse est fausse.
 
 Maquettes : aucune. Cette phase ne change aucun comportement.
 
-- [ ] **P1.1** Spécification
+- [x] **P1.1** Spécification
   ([RECHERCHE-PLUGIN-PALETTES.md](../../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)),
   section 13 : réécrire « Fenêtre et onglets » et « Écrans » pour les trois
   onglets, d'après les sections 2 et 3 de la direction. Garder les numéros
@@ -83,7 +83,7 @@ Maquettes : aucune. Cette phase ne change aucun comportement.
   nouveau prend le numéro suivant de sa série. Créer une série `[VAR-xx]` pour
   l'écriture des variables, section 4 de la direction, et une section
   « Sortie 2 : les variables » à côté de « Sortie 1 : la planche ».
-- [ ] **P1.2** Spécification, section 14.3 : l'invariant « aucun fichier de
+- [x] **P1.2** Spécification, section 14.3 : l'invariant « aucun fichier de
   `src/` n'appelle `figma.variables` » devient « seuls
   `src/ecriture/variables.ts` et `src/lectureDesVariables.ts` l'appellent ».
 - [ ] **P1.3** Renommer, sans changer une ligne de comportement :
