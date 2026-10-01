@@ -151,7 +151,7 @@ function poserLesOutils() {
       document.querySelector('.onglets').innerHTML = ['Création', 'Vérification', 'Gestion']
         .map((nom) => `<button type="button" class="onglet" role="tab" aria-selected="${nom === actif}">${nom}</button>`).join('');
     },
-    carte: (titre) => document.querySelector(`#panneau-palettes .carte[aria-label="${titre}"]`),
+    carte: (titre) => document.querySelector(`#panneau-creation .carte[aria-label="${titre}"]`),
     /** Une ligne de sortie d'une fiche : son nom, son état, son détail, ses gestes. */
     sortie(nom, etat, libelle, detail, gestes) {
       const boutons = gestes.map(([texte, classe]) => `<button type="button" class="btn ${classe} btn-compact"><span>${texte}</span></button>`).join('');
@@ -192,7 +192,7 @@ function poserLesOutils() {
 function fichierVide() {
   M.onglets('Création');
   const rampe = ['#F1F8FE', '#E4F0FD', '#CCE2FC', '#ABD0FA', '#7EB5F7', '#4B96F4', '#1E6FD9', '#185EC1', '#10479E', '#08317B', '#041F5E'];
-  const panneau = document.querySelector('#panneau-palettes');
+  const panneau = document.querySelector('#panneau-creation');
   panneau.innerHTML = `<section class="m-appel"><div class="m-appel-rampe">${rampe.map((hexa) => `<span style="background:${hexa}"></span>`).join('')}</div><h2>Créez votre première palette</h2><p>Partez d’une couleur de référence. Le plugin calcule ses nuances et vérifie leurs contrastes.</p><button type="button" class="btn btn-primary"><span>Nouvelle palette</span></button></section><p class="m-lien-de-fichier">Ce fichier porte déjà 2 palettes dans ses variables. <a>Les voir dans Gestion</a></p>`;
 }
 
@@ -215,7 +215,7 @@ function reprise({ slate }) {
   nom.value = 'slate';
   hexa.value = '#475569';
   const mini = (couleurs) => `<div class="m-mini-rampe">${couleurs.map((couleur) => `<span style="background:${couleur}"></span>`).join('')}</div>`;
-  const calculee = [...document.querySelectorAll('#panneau-planche .fiche-planche[aria-label="Ardoise"] .fiche-rangee')].at(0);
+  const calculee = [...document.querySelectorAll('#panneau-gestion .fiche-planche[aria-label="Ardoise"] .fiche-rangee')].at(0);
   const duPlugin = [...calculee.querySelectorAll('.fiche-pastille')].map((pastille) => pastille.style.background);
   document.querySelector('.tete-de-la-palette').after(M.el(`<div class="m-encart"><p><strong>Reprise de « slate », lue dans les variables du fichier</strong></p><div class="m-comparaison"><span class="ligne-secondaire">Fichier</span>${mini(slate)}<span class="ligne-secondaire">Plugin</span>${mini(duPlugin)}</div><div class="champ-colonne"><span class="libelle-de-champ">Nuances</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Recalculées</button><button type="button" class="bascule-option" aria-pressed="false">Telles quelles</button></div></div><p class="ligne-secondaire">9 couleurs sur 11 changeront dans Figma. Rien ne s’écrit avant « Mettre à jour », dans Gestion.</p><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler la reprise</span></button></div></div>`));
 }
@@ -267,7 +267,7 @@ function verification(verdicts) {
  */
 function gestion({ slate, emeraude, destination = false, modifiee = false, planches = false, reprise = false }) {
   M.onglets('Gestion');
-  const panneau = document.querySelector('#panneau-planche');
+  const panneau = document.querySelector('#panneau-gestion');
   M.teteDeGestion(panneau, false);
   const fiche = (nom) => panneau.querySelector(`.fiche-planche[aria-label="${nom}"]`);
   const poser = (nom, pastille, tokens, planche, encart) => {
@@ -358,7 +358,7 @@ function gestion({ slate, emeraude, destination = false, modifiee = false, planc
 /** Gestion, vue condensée : une ligne par palette, un état par sortie, aucun geste. */
 function gestionCondensee({ slate, emeraude }) {
   M.onglets('Gestion');
-  const panneau = document.querySelector('#panneau-planche');
+  const panneau = document.querySelector('#panneau-gestion');
   M.teteDeGestion(panneau, true);
   const etat = (code, libelle) => `<span class="pastille-d-etat" data-etat="${code}">${libelle}</span>`;
   const etats = {
@@ -381,8 +381,8 @@ function gestionCondensee({ slate, emeraude }) {
 
 // ------------------------------------------------------------ les maquettes
 
-const VERS_CREATION = '#onglet-palettes';
-const DEPLIER_LES_GARANTIES = '#panneau-palettes .carte[aria-label="Garanties de contraste"] .carte-bascule';
+const VERS_CREATION = '#onglet-creation';
+const DEPLIER_LES_GARANTIES = '#panneau-creation .carte[aria-label="Garanties de contraste"] .carte-bascule';
 const OUVRIR_LE_VOLET = '.pied-de-la-palette .bouton-discret';
 const OUVRIR_LA_LISTE = '.selecteur-bouton';
 /** Les deux palettes « du fichier » : slate et emerald de Tailwind. */

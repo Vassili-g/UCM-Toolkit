@@ -46,9 +46,9 @@ export const TEXTES = {
   titreConfiguration: 'Réglages communs',
   largeurDeLaFenetre: (largeur: number) => `${largeur} px`,
   etiquetteDesOnglets: 'Navigation du plugin',
-  // N130. Les clés gardent le nom de leur module (Q6.1) : `ongletPalettes.ts` porte l'onglet Création.
-  ongletPalettes: 'Création',
-  ongletPlanche: 'Palettes',
+  // N130. Les clés portent le nom de leur module (Q6.1).
+  ongletCreation: 'Création',
+  ongletGestion: 'Palettes',
   lectureEnCours: 'Chargement des palettes et des réglages…',
   recetteAbsente: 'Créez votre première palette. Les réglages par défaut seront utilisés.',
   choisirUnePalette: 'Choisir une palette',

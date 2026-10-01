@@ -251,10 +251,9 @@ Quatre bornes, sans quoi la table ne tient pas :
 
 La table des rangs, la borne des deux moyens et le rôle de la couleur
 sémantique valent pour UCM Palettes. La règle des deux cartes décrit l’écran
-d’UCM Exporter. UCM Palettes a deux onglets, Création et Palettes ; le code
-garde les noms d’origine, `ongletPalettes.ts` pour l’onglet Création et
-`ongletPlanche.ts` pour l’onglet Palettes. L’onglet Création applique
-celles-ci :
+d’UCM Exporter. UCM Palettes a deux onglets, Création et Palettes :
+`ongletCreation.ts` porte l’onglet Création et `ongletGestion.ts` l’onglet
+Palettes. L’onglet Création applique celles-ci :
 
 - à l’ouverture du plugin, aucune palette n’est choisie : la barre du
   sélecteur, puis, sous le filet, une invitation, un titre de premier rang et

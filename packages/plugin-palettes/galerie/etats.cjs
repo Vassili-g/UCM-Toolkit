@@ -101,14 +101,14 @@ const CADRES_SUPPRIMES = [
 
 /** La planche que la lecture relève : sa page, ses cadres, et ce qu'elle n'a pas trouvé. */
 const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', cadres, ...reglages });
-const ouvrirLaPlanche = { clic: '#onglet-planche' };
+const ouvrirLaPlanche = { clic: '#onglet-gestion' };
 
 /** Le designer choisit un fichier de recette dans l'onglet Palettes. */
-const importer = (contenu) => ({ fichier: { dans: '#panneau-planche input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
+const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
 
 const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
 /** Le premier geste de la première fiche de l'onglet Palettes, qui doit être ouvert. */
-const dessinerLaPalette = { clic: '#panneau-planche .fiche-planche [data-geste="generer"]' };
+const dessinerLaPalette = { clic: '#panneau-gestion .fiche-planche [data-geste="generer"]' };
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
 const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)' };
 
@@ -232,7 +232,7 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU])),
-      { saisie: { dans: '#panneau-palettes .champ-hexa', valeur: '#7C3AED' } },
+      { saisie: { dans: '#panneau-creation .champ-hexa', valeur: '#7C3AED' } },
       { clic: '[aria-label^="Profil Vivid, nuance 700,"]' },
     ],
   },
@@ -306,7 +306,7 @@ const ETATS = [
     quand: 'Le designer tape une lettre qui n’est pas hexadécimale dans la référence.',
     regarder: 'L’erreur sous le champ, en rouge, et l’aperçu resté celui de #1E6FD9.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU])), { saisie: { dans: '#panneau-palettes .champ-hexa', valeur: '#1E6FZ9' } }],
+    atteinte: [etatDuFichier(rangee([BLEU])), { saisie: { dans: '#panneau-creation .champ-hexa', valeur: '#1E6FZ9' } }],
   },
   {
     id: 'recette-modifiee-ailleurs',
@@ -455,8 +455,8 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(rangee(SEPT_PALETTES)),
-      { clic: '#onglet-planche' },
-      { clic: '#panneau-planche .creation-ligne .btn' },
+      { clic: '#onglet-gestion' },
+      { clic: '#panneau-gestion .creation-ligne .btn' },
     ],
   },
   {
@@ -465,7 +465,7 @@ const ETATS = [
     quand: 'Le designer ouvre l’onglet Palettes d’un fichier sans palette.',
     regarder: 'Le texte qui dit qu’il n’y a rien à dessiner, et le geste vers l’onglet Création.',
     existe: true,
-    atteinte: [etatDuFichier(''), { clic: '#onglet-planche' }],
+    atteinte: [etatDuFichier(''), { clic: '#onglet-gestion' }],
   },
   {
     id: 'police-indisponible',
@@ -713,7 +713,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES)),
       ouvrirLaPlanche,
-      { clic: '#panneau-planche .creation-ligne .btn' },
+      { clic: '#panneau-gestion .creation-ligne .btn' },
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'interrompue', palette: JAUNE.id, message: 'in set_characters: font not loaded', dessines: 1 } } },
     ],
   },

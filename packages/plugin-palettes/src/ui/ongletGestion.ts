@@ -31,7 +31,7 @@ import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerSocleLocalise } from './socleLocalise';
 import { type Constat } from './textes';
 
-export interface OngletPlancheUi {
+export interface OngletGestionUi {
   element: HTMLDivElement;
   afficher(classement: Classement, recette: Recette | null, planche: EtatDeLaPlanche, profil: ProfilDuDocument, empreinte: string | null): void;
   afficherDessin(etat: EtatDuDessin, noms: { readonly [id: string]: string }): void;
@@ -45,7 +45,7 @@ export interface OngletPlancheUi {
   recevoirRetrait(issue: IssueDuRetrait): void;
 }
 
-export interface GestesDeLaPlanche extends GestesDuResultat {
+export interface GestesDeLaGestion extends GestesDuResultat {
   dessiner(palettes: readonly string[], noms: { readonly [id: string]: string }): void;
   versLesPalettes(): void;
   /** Ouvre la palette dans l'onglet Création, dans le thème des fiches (V8.3). */
@@ -80,7 +80,7 @@ function construireVues(i18n: Localisation) {
     return element;
   }
 
-  function createOngletPlanche(gestes: GestesDeLaPlanche): OngletPlancheUi {
+  function createOngletGestion(gestes: GestesDeLaGestion): OngletGestionUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
@@ -445,7 +445,7 @@ function construireVues(i18n: Localisation) {
       },
     };
   }
-  return { SEUIL_DE_CONFIRMATION, createOngletPlanche };
+  return { SEUIL_DE_CONFIRMATION, createOngletGestion };
 }
 
-export const creerVuesOngletPlanche = memoriserVues(construireVues);
+export const creerVuesOngletGestion = memoriserVues(construireVues);

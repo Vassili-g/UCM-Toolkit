@@ -86,7 +86,7 @@ Maquettes : aucune. Cette phase ne change aucun comportement.
 - [x] **P1.2** Spécification, section 14.3 : l'invariant « aucun fichier de
   `src/` n'appelle `figma.variables` » devient « seuls
   `src/ecriture/variables.ts` et `src/lectureDesVariables.ts` l'appellent ».
-- [ ] **P1.3** Renommer, sans changer une ligne de comportement :
+- [x] **P1.3** Renommer, sans changer une ligne de comportement :
   `src/ui/ongletPalettes.ts` en `ongletCreation.ts`, `ongletPlanche.ts` en
   `ongletGestion.ts`, leurs fabriques et leurs types ; les identifiants
   d'onglet `palettes` et `planche` de `src/ui/index.ts` en `creation` et

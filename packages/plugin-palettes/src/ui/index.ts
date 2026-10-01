@@ -19,8 +19,8 @@ import { creerVuesDessin, type GestesDuResultat } from './dessin';
 import { createFrontiere } from './frontiere';
 import { creerVuesGestesDeLaRecette, type DemandesDeLaRecette } from './gestesDeLaRecette';
 import { creerLocalisation, type Localisation } from './localisation';
-import { creerVuesOngletPalettes } from './ongletPalettes';
-import { creerVuesOngletPlanche } from './ongletPlanche';
+import { creerVuesOngletCreation } from './ongletCreation';
+import { creerVuesOngletGestion } from './ongletGestion';
 import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
@@ -30,8 +30,8 @@ export function creerVuesIndex(i18n: Localisation) {
   const { createConfiguration } = creerVuesConfiguration(i18n);
   const { createSuiviDuDessin } = creerVuesDessin(i18n);
   const { createGestesDeLaRecette } = creerVuesGestesDeLaRecette(i18n);
-  const { createOngletPalettes } = creerVuesOngletPalettes(i18n);
-  const { createOngletPlanche } = creerVuesOngletPlanche(i18n);
+  const { createOngletCreation } = creerVuesOngletCreation(i18n);
+  const { createOngletGestion } = creerVuesOngletGestion(i18n);
   const { TEXTES, nomDeLaPalette } = i18n.messages;
 
   /** `index.html` déclare ce conteneur ; `tests/buildUi.test.ts` tient le gabarit. */
@@ -71,15 +71,15 @@ export function creerVuesIndex(i18n: Localisation) {
   enTete.append(ligneDuHaut);
 
   const frontiere = createFrontiere(versSandbox, (statut, refus) => {
-    ongletPalettes.poserStatut(statut, refus);
-    ongletPlanche.bloquer(statut === 'refuse' ? TEXTES.conflitEnCours : null);
+    ongletCreation.poserStatut(statut, refus);
+    ongletGestion.bloquer(statut === 'refuse' ? TEXTES.conflitEnCours : null);
     // Une recette rangée peut périmer des cadres ([PLA-20]).
     if (statut === 'range') afficherLaPlanche();
   });
 
   // Un dessin fini a posé des cadres : l'état relu dit lesquels à l'onglet Palettes.
   const suivi = createSuiviDuDessin(frontiere, () => frontiere.lireLEtat(), (resultat) => {
-    const recette = ongletPalettes.recette();
+    const recette = ongletCreation.recette();
     return resultat.issue === 'dessinee' && recette ? ecartsDePeinture(recette, resultat.peints) : [];
   });
 
@@ -99,7 +99,7 @@ export function creerVuesIndex(i18n: Localisation) {
   function texteAExporter(): string {
     const classement = dernierEtat?.classement;
     if (dernierEtat && (classement?.etat === 'future' || classement?.etat === 'illisible')) return dernierEtat.texte;
-    return jsonCanonique(ongletPalettes.recette() ?? recetteParDefaut());
+    return jsonCanonique(ongletCreation.recette() ?? recetteParDefaut());
   }
 
   /**
@@ -108,7 +108,7 @@ export function creerVuesIndex(i18n: Localisation) {
    * d'être illisible.
    */
   function remplacerLaRecette(recette: Recette): void {
-    ongletPalettes.importer(recette);
+    ongletCreation.importer(recette);
     if (dernierEtat) dernierEtat = { ...dernierEtat, classement: { etat: 'courante', recette } };
     panneauDeConfiguration.afficher();
   }
@@ -119,23 +119,23 @@ export function creerVuesIndex(i18n: Localisation) {
   const demandesDeLaRecette: DemandesDeLaRecette = {
     exporter: () => telecharger('palettes-et-reglages.json', texteAExporter()),
     exporterLeRapport() {
-      const recette = ongletPalettes.recette();
+      const recette = ongletCreation.recette();
       if (!recette) return;
       const rapport = rapportDeLaRecette(recette, frontiere.empreinte(), dernierEtat?.profil ?? 'SRGB', ecartsDuDernierDessin);
       telecharger('rapport-palettes.json', JSON.stringify(rapport, null, 2));
     },
-    lire: (texte) => lireLImport(texte, ongletPalettes.recette()),
+    lire: (texte) => lireLImport(texte, ongletCreation.recette()),
     remplacer: remplacerLaRecette,
     recetteParDefaut,
     consequence(importee) {
-      const actuelle = ongletPalettes.recette();
+      const actuelle = ongletCreation.recette();
       if (!actuelle || !dernierEtat) return null;
       const { aMettreAJour, orphelins } = consequenceDeLImport(actuelle, importee, dernierEtat.profil, dernierEtat.planche);
       return { aMettreAJour: aMettreAJour.map(nomDeLaPalette), orphelins: orphelins.map(nomDeLaPalette) };
     },
   };
 
-  const ongletPalettes = createOngletPalettes({
+  const ongletCreation = createOngletCreation({
     ranger: (recette) => frontiere.ranger(recette),
     recharger: () => frontiere.lireLEtat(),
     exporterLeBrouillon: () => demandesDeLaRecette.exporter(),
@@ -147,13 +147,13 @@ export function creerVuesIndex(i18n: Localisation) {
     },
   });
 
-  const ongletPlanche = createOngletPlanche({
+  const ongletGestion = createOngletGestion({
     ...gestesDuResultat,
     dessiner: (palettes, noms) => suivi.dessiner(palettes, noms),
-    versLesPalettes: () => onglets.selectionner('palettes'),
+    versLesPalettes: () => onglets.selectionner('creation'),
     modifier(id, mode) {
-      onglets.selectionner('palettes');
-      ongletPalettes.ouvrirLaPalette(id, mode);
+      onglets.selectionner('creation');
+      ongletCreation.ouvrirLaPalette(id, mode);
     },
     actualiser: relireLaPlanche,
     retirer(palette, cadre) {
@@ -175,7 +175,7 @@ export function creerVuesIndex(i18n: Localisation) {
   function recevoirRetrait(message: Extract<PluginMessage, { type: 'retrait' }>): void {
     const cadre = cadreEnRetrait;
     cadreEnRetrait = null;
-    ongletPlanche.recevoirRetrait(message.issue);
+    ongletGestion.recevoirRetrait(message.issue);
     const parti = message.issue.issue === 'retire' || message.issue.issue === 'deja-absent';
     if (parti && cadre && dernierEtat) {
       const planche = dernierEtat.planche;
@@ -202,16 +202,16 @@ export function creerVuesIndex(i18n: Localisation) {
   let dernierEtat: Extract<PluginMessage, { type: 'etat' }> | null = null;
 
   function afficherLaPlanche(): void {
-    if (!dernierEtat || onglets.actif() !== 'planche') return;
-    ongletPlanche.afficher(dernierEtat.classement, ongletPalettes.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
+    if (!dernierEtat || onglets.actif() !== 'gestion') return;
+    ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
   }
 
   // La recette change dans l'onglet Création : l'onglet Palettes la relit à son ouverture.
   const onglets = createOnglets(TEXTES.etiquetteDesOnglets, [
-    { id: 'palettes', libelle: TEXTES.ongletPalettes, panneau: ongletPalettes.element },
-    { id: 'planche', libelle: TEXTES.ongletPlanche, panneau: ongletPlanche.element },
+    { id: 'creation', libelle: TEXTES.ongletCreation, panneau: ongletCreation.element },
+    { id: 'gestion', libelle: TEXTES.ongletGestion, panneau: ongletGestion.element },
   ], (id) => {
-    if (id !== 'planche') return;
+    if (id !== 'gestion') return;
     afficherLaPlanche();
     relireLaPlanche();
   });
@@ -220,24 +220,24 @@ export function creerVuesIndex(i18n: Localisation) {
 
   travail.className = 'page-stack colonne';
 
-  travail.append(onglets.liste, ongletPalettes.element, ongletPlanche.element);
+  travail.append(onglets.liste, ongletCreation.element, ongletGestion.element);
 
   // Pendant un dessin, les panneaux se figent et la progression se lit ; l'engrenage reste ouvert, pour la langue.
   suivi.abonner((etat) => {
     if (etat.phase === 'fini' && etat.resultat.issue === 'dessinee') ecartsDuDernierDessin = etat.ecarts;
     const enCours = etat.phase === 'en-cours';
-    ongletPalettes.element.inert = enCours;
-    ongletPlanche.element.inert = enCours;
-    ongletPlanche.afficherDessin(etat, suivi.noms());
+    ongletCreation.element.inert = enCours;
+    ongletGestion.element.inert = enCours;
+    ongletGestion.afficherDessin(etat, suivi.noms());
   });
 
   const panneauDeConfiguration = createConfiguration({
-    lire: () => ongletPalettes.recette(),
-    ouverte: () => ongletPalettes.ouverte(),
-    previsualiser: (recette) => ongletPalettes.previsualiser(recette),
-    appliquer: (recette) => ongletPalettes.appliquer(recette),
+    lire: () => ongletCreation.recette(),
+    ouverte: () => ongletCreation.ouverte(),
+    previsualiser: (recette) => ongletCreation.previsualiser(recette),
+    appliquer: (recette) => ongletCreation.appliquer(recette),
     cadresAMettreAJour: (proposee) => {
-      const actuelle = ongletPalettes.recette();
+      const actuelle = ongletCreation.recette();
       if (!actuelle || !dernierEtat) return 0;
       return consequenceDeLImport(actuelle, proposee, dernierEtat.profil, dernierEtat.planche).aMettreAJour.length;
     },
@@ -313,7 +313,7 @@ export function creerVuesIndex(i18n: Localisation) {
   function ouvrirTravail(): void {
     montrerTravail(bascule());
     // Une saisie des Réglages communs a laissé l'onglet en aperçu : il se rend, visible, avant que le défilement revienne.
-    ongletPalettes.rendreSiDiffere();
+    ongletCreation.rendreSiDiffere();
     i18n.lier(titre, 'textContent', TEXTES.titre);
     const point = pointDeLecture;
     pointDeLecture = null;
@@ -339,7 +339,7 @@ export function creerVuesIndex(i18n: Localisation) {
       return;
     }
     if (message.type === 'etat' && frontiere.accepterEtat(message)) {
-      ongletPalettes.afficher(message.classement);
+      ongletCreation.afficher(message.classement);
       panneauDeConfiguration.afficher();
       dernierEtat = message;
       afficherLaPlanche();

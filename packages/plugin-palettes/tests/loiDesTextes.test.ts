@@ -44,7 +44,7 @@ function fichiers(dossier: string): string[] {
 
 test('aucune vue ne pose un mot hors des catalogues', () => {
   const balayes = fichiers(INTERFACE);
-  assert.ok(balayes.some((fichier) => fichier.endsWith('ongletPalettes.ts')), 'src/ui/ n’est plus balayé');
+  assert.ok(balayes.some((fichier) => fichier.endsWith('ongletCreation.ts')), 'src/ui/ n’est plus balayé');
   const fautes: string[] = [];
   const exceptionsVues = new Set<string>();
   for (const fichier of balayes) {

@@ -97,7 +97,7 @@ export interface DemandesDeLOnglet {
   ouvrirReglages(cible: CibleDAction): void;
 }
 
-export interface OngletPalettesUi {
+export interface OngletCreationUi {
   element: HTMLDivElement;
   afficher(classement: Classement): void;
   poserStatut(statut: StatutDuRangement, refus: readonly Refus[]): void;
@@ -149,7 +149,7 @@ function construireVues(i18n: Localisation) {
     return ligne;
   }
 
-  function createOngletPalettes(demandes: DemandesDeLOnglet): OngletPalettesUi {
+  function createOngletCreation(demandes: DemandesDeLOnglet): OngletCreationUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
@@ -815,7 +815,7 @@ function construireVues(i18n: Localisation) {
       },
     };
   }
-  return { createOngletPalettes };
+  return { createOngletCreation };
 }
 
-export const creerVuesOngletPalettes = memoriserVues(construireVues);
+export const creerVuesOngletCreation = memoriserVues(construireVues);

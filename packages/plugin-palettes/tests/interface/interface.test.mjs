@@ -62,12 +62,12 @@ test('un dessin en cours garde sa demande et son résultat à travers une bascul
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
-    assert.equal(await page.locator('#panneau-planche').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
+    assert.equal(await page.locator('#panneau-gestion').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
     assert.equal(await page.locator('.carte-de-reglage').first().evaluate((element) => element.closest('[inert]') !== null), true);
     await envoyer(page, dessinDe(demande.demande, { issue: 'etrangers', cadres: [{ palette: ID_DU_BLEU, calques: [{ id: 'x', nom: 'Note personnelle' }] }] }));
     await page.getByRole('button', { name: 'Back to palettes' }).click();
     await page.getByText('Content added to the frame for “Bleu”').waitFor();
-    assert.match(await page.locator('#panneau-planche').textContent(), /Note personnelle/);
+    assert.match(await page.locator('#panneau-gestion').textContent(), /Note personnelle/);
     assert.equal(await page.evaluate(() => window.demandes.filter((d) => d.type === 'dessiner').length), 1);
   } finally { await page.close(); }
 });
@@ -124,8 +124,8 @@ test('la fenêtre s’ouvre sur l’onglet Création et demande l’état du fic
     const palettes = page.getByRole('tab', { name: 'Création', exact: true });
     assert.equal(await palettes.getAttribute('aria-selected'), 'true');
     assert.equal(await page.getByRole('tab', { name: 'Palettes', exact: true }).getAttribute('aria-selected'), 'false');
-    assert.equal(await page.locator('#panneau-palettes').isVisible(), true);
-    assert.equal(await page.locator('#panneau-planche').isVisible(), false);
+    assert.equal(await page.locator('#panneau-creation').isVisible(), true);
+    assert.equal(await page.locator('#panneau-gestion').isVisible(), false);
     await page.waitForFunction(() => window.demandes.length > 0);
     assert.deepEqual(await page.evaluate(() => window.demandes), [{ type: 'lire-etat', demande: 1 }]);
   } finally {
@@ -153,10 +153,10 @@ test('un état plus ancien que la dernière lecture est écarté', async () => {
     const etat = (demande, classement) => ({ type: 'etat', demande, classement, empreinte: null, profil: 'SRGB' });
     await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), etat(0, { etat: 'future', version: 9 }));
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
-    assert.equal(await page.locator('#panneau-palettes .constat-bloquant').count(), 0);
+    assert.equal(await page.locator('#panneau-creation .constat-bloquant').count(), 0);
     await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), etat(1, { etat: 'future', version: 9 }));
-    await page.locator('#panneau-palettes .constat-bloquant').waitFor();
-    assert.match(await page.locator('#panneau-palettes .constat-ou').textContent(), /format 9/);
+    await page.locator('#panneau-creation .constat-bloquant').waitFor();
+    assert.match(await page.locator('#panneau-creation .constat-ou').textContent(), /format 9/);
   } finally {
     await page.close();
   }
@@ -183,7 +183,7 @@ async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
 }
 
 /** Une carte d'un onglet, par son titre ; l'onglet Création par défaut. */
-const carteDeLOnglet = (page, titre, panneau = '#panneau-palettes') => page.locator(`${panneau} .carte[aria-label="${titre}"]`);
+const carteDeLOnglet = (page, titre, panneau = '#panneau-creation') => page.locator(`${panneau} .carte[aria-label="${titre}"]`);
 /** L'en-tête d'une carte repliable : le bouton qui la déplie ([UI-12]). */
 const bascule = (page, titre, panneau) => carteDeLOnglet(page, titre, panneau).locator('> .carte-bascule');
 
@@ -240,7 +240,7 @@ test('[UI-03] [UI-11] à 600 × 720, la carte « Configuration de la palette » 
     for (const [nom, locator] of Object.entries(visibles)) assert.equal(await dansLaFenetre(locator), true, `${nom} hors de la fenêtre`);
     assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop), 0);
     // La génération appartient à l'onglet Palettes : la tête de la palette ne porte que le titre, dans le flux ([UI-05]).
-    const tete = page.locator('#panneau-palettes .tete-de-la-palette');
+    const tete = page.locator('#panneau-creation .tete-de-la-palette');
     assert.equal(await tete.textContent(), 'Palette Bleu');
     assert.equal(await tete.locator('button, [role="status"], [aria-live]').count(), 0, 'ni geste, ni état, ni progression sous le titre');
     assert.equal(await tete.evaluate((element) => getComputedStyle(element).position), 'static');
@@ -324,7 +324,7 @@ test('[UI-04] [UI-10] un clic sur une nuance donne son code, ses rôles et ses c
 test('[UI-12] l’onglet se règle avant de se juger : titre, configuration, aperçu, Teinte, saturation, luminosité, Dérive de teinte, Garanties de contraste, Interface de test, les cartes repliables repliées', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    const configuration = page.locator('#panneau-palettes .configuration-de-la-palette');
+    const configuration = page.locator('#panneau-creation .configuration-de-la-palette');
     assert.equal(await configuration.locator('> :first-child').getAttribute('class'), 'tete-de-la-palette');
     assert.deepEqual(await configuration.locator('> .carte').evaluateAll((cartes) => cartes.map((carte) => [carte.getAttribute('aria-label'), carte.dataset.ouverte])), [
       ['Configuration de la palette', 'true'],
@@ -557,7 +557,7 @@ test('[ENT-02] une référence saisie recalcule l’aperçu et la dérive sans p
     const avant = await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label');
     // #FACC15 est le 300 de vivid en Light, #1E6FD9 son 600 : le pivot de la dérive change de colonne.
     assert.equal(await colonneDuPivot(page), 3);
-    await page.locator('#panneau-palettes .champ-hexa').fill('#1E6FD9');
+    await page.locator('#panneau-creation .champ-hexa').fill('#1E6FD9');
     assert.notEqual(await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label'), avant);
     assert.equal(await colonneDuPivot(page), 6);
     assert.deepEqual(await page.evaluate(() => window.demandes.map((demande) => demande.type)), ['lire-etat']);
@@ -576,7 +576,7 @@ test('[UI-06] le sélecteur liste les palettes et ouvre celle qu’on choisit au
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     assert.equal(await page.getByRole('listbox').isVisible(), false);
-    assert.equal(await page.locator('#panneau-palettes .champ-hexa').inputValue(), '#1E6FD9');
+    assert.equal(await page.locator('#panneau-creation .champ-hexa').inputValue(), '#1E6FD9');
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Bleu');
   } finally {
     await page.close();
@@ -596,7 +596,7 @@ test('le banc de galerie joue un clic : le détail de la nuance choisie s’affi
   const page = await pageDeGalerie('palette-en-saisie');
   try {
     assert.equal(await page.locator('.nuancier-detail .detail-titre').textContent(), 'Vivid · 700');
-    assert.equal(await page.locator('#panneau-palettes .champ-hexa').inputValue(), '#7C3AED');
+    assert.equal(await page.locator('#panneau-creation .champ-hexa').inputValue(), '#7C3AED');
   } finally {
     await page.close();
   }
@@ -638,7 +638,7 @@ test('[ENT-03] au premier lancement, créer une palette la range, sans empreinte
     assert.match(demande.recette.palettes[0].id, /^p-[0-9a-f]{8}$/);
     // Un enregistrement réussi ne s'annonce pas : la ligne du titre ne porte que « Palette [nom] ».
     await envoyer(page, rangee(demande.demande));
-    assert.equal(await page.locator('#panneau-palettes .tete-de-la-palette').textContent(), 'Palette #1E6FD9');
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette').textContent(), 'Palette #1E6FD9');
   } finally {
     await page.close();
   }
@@ -755,8 +755,8 @@ test('un hexa impossible se signale sous le champ, et l’aperçu ne change pas'
   const page = await ouvrirSur('alertes-seules');
   try {
     const avant = await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label');
-    await page.locator('#panneau-palettes .champ-hexa').fill('#FACZ15');
-    assert.equal(await page.locator('#panneau-palettes .champ-hexa').getAttribute('aria-invalid'), 'true');
+    await page.locator('#panneau-creation .champ-hexa').fill('#FACZ15');
+    assert.equal(await page.locator('#panneau-creation .champ-hexa').getAttribute('aria-invalid'), 'true');
     assert.match(await carteDeLOnglet(page, 'Configuration de la palette').locator('.field-error:visible').textContent(), /code hexadécimal invalide/);
     assert.equal(await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label'), avant);
   } finally {
@@ -1455,8 +1455,8 @@ test('[DER-15] une palette grise ne règle que sa luminosité : Teinte et Satura
 test('[VER-08] Q4 : un presque noir donne des rampes grises, sans point à vérifier ni note de poignée masquée', async () => {
   const page = await ouvrirSur('presque-noir');
   try {
-    assert.equal(await page.locator('#panneau-palettes .constat-alerte').count(), 0);
-    assert.equal(await page.locator('#panneau-palettes .constat-notice').count(), 0);
+    assert.equal(await page.locator('#panneau-creation .constat-alerte').count(), 0);
+    assert.equal(await page.locator('#panneau-creation .constat-notice').count(), 0);
     await deplier(page);
     // Gris pur et plus sombre que le bout sombre : la note de la palette grise passe avant celle de [DER-14].
     assert.match(await page.locator('.note-du-color-shift').textContent(), /^Palette grise/);
@@ -1671,7 +1671,7 @@ async function prochaineDuType(page, type, rang) {
 /** Ouvre l'onglet Palettes et clique le premier geste de la fiche d'une palette ([UI-05]). */
 async function genererDepuisLaFiche(page, palette) {
   await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
-  await page.locator(`#panneau-planche .fiche-planche[data-palette="${palette}"] [data-geste="generer"]`).click();
+  await page.locator(`#panneau-gestion .fiche-planche[data-palette="${palette}"] [data-geste="generer"]`).click();
 }
 
 test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette, dit la progression, rend les onglets inertes, puis montre l’état du cadre relu', async () => {
@@ -1681,18 +1681,18 @@ test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette
     const demande = await dessinEnvoye(page, 1);
     // La génération n'a pas d'option : la grille des contrastes est toujours dessinée.
     assert.deepEqual(demande, { type: 'dessiner', demande: demande.demande, palettes: [ID_DU_BLEU], empreinteLue: messageDe('dessin-en-cours').empreinte, etrangersConfirmes: [] });
-    assert.equal(await page.locator('#panneau-palettes').evaluate((panneau) => panneau.inert), true);
-    assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), true);
+    assert.equal(await page.locator('#panneau-creation').evaluate((panneau) => panneau.inert), true);
+    assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
     assert.equal(await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).isDisabled(), false);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
-    assert.equal(await page.locator('#panneau-planche .gestes-globaux .btn-secondary').textContent(), 'Génération de « Bleu »…', 'la progression prend la place de « Générer tout »');
+    assert.equal(await page.locator('#panneau-gestion .gestes-globaux .btn-secondary').textContent(), 'Génération de « Bleu »…', 'la progression prend la place de « Générer tout »');
 
     const cadres = [{ palette: ID_DU_BLEU, cadre: '12:34' }];
     const avant = await compte(page);
     await envoyer(page, dessinDe(demande.demande, { issue: 'dessinee', page: '5:6', cadres, peints: [] }));
-    assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), false);
-    assert.equal(await page.locator('#panneau-planche .gestes-globaux .btn-secondary').textContent(), 'Générer tout (1 palette)');
-    assert.equal(await page.locator('#panneau-planche .constat').count(), 0, 'aucun message de succès empilé');
+    assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), false);
+    assert.equal(await page.locator('#panneau-gestion .gestes-globaux .btn-secondary').textContent(), 'Générer tout (1 palette)');
+    assert.equal(await page.locator('#panneau-gestion .constat').count(), 0, 'aucun message de succès empilé');
     // Un dessin fini a posé des cadres : l'état se relit, et la fiche dit l'état du cadre.
     const relecture = await prochaineDuType(page, 'lire-etat', avant);
     await envoyer(page, { ...ETATS.find(({ id }) => id === 'generation-reussie').atteinte.findLast((etape) => etape.message?.type === 'etat').message, demande: relecture.demande });
@@ -1714,11 +1714,11 @@ test('[PLA-24] D-I : au-delà de six palettes, tout dessiner se confirme, grille
     assert.equal(await page.locator('.fiche-planche[data-palette]').count(), 7);
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Générer tout (7 palettes)' }).click();
-    assert.equal(await page.locator('#panneau-planche .confirmation').textContent(), 'Générer 7 palettes ? Chaque palette peut ajouter plus de 1 500 calques.Générer sur FigmaAnnuler');
+    assert.equal(await page.locator('#panneau-gestion .confirmation').textContent(), 'Générer 7 palettes ? Chaque palette peut ajouter plus de 1 500 calques.Générer sur FigmaAnnuler');
     await page.getByRole('button', { name: 'Annuler' }).click();
-    assert.equal(await page.locator('#panneau-planche .confirmation').isVisible(), false);
+    assert.equal(await page.locator('#panneau-gestion .confirmation').isVisible(), false);
     await page.getByRole('button', { name: 'Générer tout (7 palettes)' }).click();
-    await page.locator('#panneau-planche .confirmation').getByRole('button', { name: 'Générer sur Figma' }).click();
+    await page.locator('#panneau-gestion .confirmation').getByRole('button', { name: 'Générer sur Figma' }).click();
     const demande = await prochaine(page, avant);
     assert.equal(demande.type, 'dessiner');
     assert.equal(demande.palettes.length, 7);
@@ -1736,8 +1736,8 @@ test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification en
     assert.equal(await fiche.locator('[data-geste="generer"]').count(), 0);
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
     const avant = await compte(page);
-    await page.locator('#panneau-palettes .champ-hexa').fill('#2563EB');
-    await page.locator('#panneau-palettes .champ-hexa').press('Tab');
+    await page.locator('#panneau-creation .champ-hexa').fill('#2563EB');
+    await page.locator('#panneau-creation .champ-hexa').press('Tab');
     const rangement = await prochaineDuType(page, 'ranger-recette', avant);
     await envoyer(page, rangee(rangement.demande));
     await ouvrirLaPlanche(page);
@@ -1762,7 +1762,7 @@ test('[PLA-24] six palettes se dessinent sans confirmation', async () => {
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Générer tout (6 palettes)' }).click();
     assert.equal((await dessinEnvoye(page, 1)).palettes.length, 6);
-    assert.equal(await page.locator('#panneau-planche .confirmation').isVisible(), false);
+    assert.equal(await page.locator('#panneau-gestion .confirmation').isVisible(), false);
   } finally {
     await page.close();
   }
@@ -1774,9 +1774,9 @@ test('[PLA-22] un dessin interrompu se relance à l’identique par « Réessaye
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     const premiere = await dessinEnvoye(page, 1);
     await envoyer(page, dessinDe(premiere.demande, { issue: 'interrompue', palette: ID_DU_BLEU, message: 'refus', dessines: 0 }));
-    assert.equal(await page.locator('#panneau-planche .constat-bloquant .constat-quoi').textContent(), 'La génération s’est arrêtée : aucun nouveau cadre créé.');
-    assert.equal(await page.locator('#panneau-palettes .constat-bloquant').count(), 0, 'le résultat ne s’affiche que dans l’onglet Palettes');
-    await page.locator('#panneau-planche').getByRole('button', { name: 'Réessayer' }).click();
+    assert.equal(await page.locator('#panneau-gestion .constat-bloquant .constat-quoi').textContent(), 'La génération s’est arrêtée : aucun nouveau cadre créé.');
+    assert.equal(await page.locator('#panneau-creation .constat-bloquant').count(), 0, 'le résultat ne s’affiche que dans l’onglet Palettes');
+    await page.locator('#panneau-gestion').getByRole('button', { name: 'Réessayer' }).click();
     const reprise = await dessinEnvoye(page, 2);
     assert.deepEqual({ ...reprise, demande: 0 }, { ...premiere, demande: 0 });
     assert.ok(reprise.demande > premiere.demande);
@@ -1794,7 +1794,7 @@ test('E13 : un dessin refusé sur une autre recette propose de recharger', async
     await envoyer(page, dessinDe(demande.demande, { issue: 'modifiee-ailleurs' }));
     // La fin du dessin relit déjà l'état : le clic doit en demander une seconde lecture, et aucun dessin.
     assert.equal((await prochaine(page, avant)).type, 'lire-etat');
-    await page.locator('#panneau-planche .constat-bloquant').getByRole('button', { name: 'Recharger les palettes' }).click();
+    await page.locator('#panneau-gestion .constat-bloquant').getByRole('button', { name: 'Recharger les palettes' }).click();
     assert.equal((await prochaine(page, avant + 1)).type, 'lire-etat');
     assert.equal(await compte(page), avant + 2);
   } finally {
@@ -1807,7 +1807,7 @@ test('l’onglet Palettes d’un fichier sans palette renvoie vers l’onglet Cr
   try {
     await envoyer(page, messageDe('planche-sans-palette'));
     await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
-    assert.equal(await page.locator('#panneau-planche .gestes-globaux').isVisible(), false);
+    assert.equal(await page.locator('#panneau-gestion .gestes-globaux').isVisible(), false);
     await page.getByRole('button', { name: 'Créer une palette' }).click();
     assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
   } finally {
@@ -1824,11 +1824,11 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
     const rangement = await prochaine(page, avant);
     // Un rangement en vol : l'onglet Palettes ne relit pas l'état à son ouverture.
     await ouvrirLaPlanche(page);
-    await page.locator(`#panneau-planche .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
-    assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), true);
+    await page.locator(`#panneau-gestion .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
+    assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
     await envoyer(page, { type: 'rangement', demande: rangement.demande, issue: { issue: 'modifiee-ailleurs' } });
-    assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), false);
-    assert.equal(await page.locator('#panneau-palettes').evaluate((panneau) => panneau.inert), false);
+    assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), false);
+    assert.equal(await page.locator('#panneau-creation').evaluate((panneau) => panneau.inert), false);
     assert.deepEqual((await demandes(page)).slice(avant).map((demande) => demande.type), ['ranger-recette']);
   } finally {
     await page.close();
@@ -1913,7 +1913,7 @@ test('[ENT-03] [UI-02] une palette supprimée se lit en une carte, et « Affiche
     assert.deepEqual(await page.locator('.carte-supprimee .carte-titre').allTextContents(), ['Ardoise', 'Rouge']);
     const ardoise = carteSupprimee(page, '40:4');
     assert.equal(await ardoise.locator('p').first().textContent(), 'Palette supprimée du plugin. Ce cadre ne sera plus mis à jour.');
-    assert.equal(await page.locator('#panneau-planche .constat-notice').count(), 0, 'plus de notice pour un cadre sans palette');
+    assert.equal(await page.locator('#panneau-gestion .constat-notice').count(), 0, 'plus de notice pour un cadre sans palette');
     const couleurs = await ardoise.evaluate((carte) => [getComputedStyle(carte).backgroundColor, getComputedStyle(document.querySelector('.fiche-planche[data-palette]')).backgroundColor]);
     assert.notEqual(couleurs[0], couleurs[1], 'la carte porte sa teinte d’avertissement');
     const avant = await compte(page);
@@ -1937,7 +1937,7 @@ test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte
     avant = await compte(page);
     await envoyer(page, { type: 'retrait', demande: demande.demande, issue: { issue: 'retire' } });
     assert.equal(await carteSupprimee(page, '40:4').count(), 0);
-    assert.equal(await page.locator('#panneau-planche [role="status"]').textContent(), 'Cadre « Ardoise » supprimé. Ctrl+Z dans Figma le rétablit.');
+    assert.equal(await page.locator('#panneau-gestion [role="status"]').textContent(), 'Cadre « Ardoise » supprimé. Ctrl+Z dans Figma le rétablit.');
     assert.equal(await carteSupprimee(page, '40:6').getByRole('button', { name: 'Afficher dans Figma' }).evaluate((bouton) => bouton === document.activeElement), true);
     assert.equal((await prochaine(page, avant)).type, 'lire-etat', 'l’état se relit');
 
@@ -1961,7 +1961,7 @@ test('[PLA-27] un retrait refusé laisse la carte et le dit ; pendant un conflit
     const demande = await prochaine(page, avant);
     await envoyer(page, { type: 'retrait', demande: demande.demande, issue: { issue: 'refuse' } });
     assert.equal(await carteSupprimee(page, '40:4').count(), 1);
-    assert.equal(await page.locator('#panneau-planche [role="status"] .constat-ou').textContent(), 'Cadre non supprimé : Ardoise');
+    assert.equal(await page.locator('#panneau-gestion [role="status"] .constat-ou').textContent(), 'Cadre non supprimé : Ardoise');
 
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
     avant = await compte(page);
@@ -1983,7 +1983,7 @@ test('[PLA-25] une copie de cadre se signale, et ne compte pas comme le cadre de
   try {
     await ouvrirLaPlanche(page);
     assert.deepEqual(await etatsDesLignes(page), ['a-jour']);
-    assert.equal(await page.locator('#panneau-planche .constat-notice .constat-ou').textContent(), 'Copie du cadre « Bleu copie »');
+    assert.equal(await page.locator('#panneau-gestion .constat-notice .constat-ou').textContent(), 'Copie du cadre « Bleu copie »');
   } finally {
     await page.close();
   }
@@ -1994,7 +1994,7 @@ test('E11 : un document Display P3 dit de copier l’hexa depuis la carte', asyn
   try {
     await ouvrirLaPlanche(page);
     assert.deepEqual(await etatsDesLignes(page), ['a-jour']);
-    assert.equal(await page.locator('#panneau-planche .constat-notice .constat-ou').textContent(), 'Fichier Figma en Display P3');
+    assert.equal(await page.locator('#panneau-gestion .constat-notice .constat-ou').textContent(), 'Fichier Figma en Display P3');
   } finally {
     await page.close();
   }
@@ -2007,14 +2007,14 @@ test('D-H : des calques étrangers se confirment ; « Annuler » ne dessine rien
     // Le cadre est périmé : « Actualiser sur Figma » de sa fiche le redessine.
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     await envoyer(page, dessinDe((await dessinEnvoye(page, 1)).demande, ETRANGERS));
-    const confirmation = page.locator('#panneau-planche .confirmation', { hasText: 'La mise à jour supprimera' });
+    const confirmation = page.locator('#panneau-gestion .confirmation', { hasText: 'La mise à jour supprimera' });
     assert.equal(await confirmation.locator('.constat-quoi').textContent(), 'La mise à jour supprimera les 2 calques que vous avez ajoutés dans ce cadre : « Note », « Flèche ».');
-    assert.equal(await page.locator('#panneau-planche').evaluate((panneau) => panneau.inert), false);
+    assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), false);
     await confirmation.getByRole('button', { name: 'Annuler' }).click();
     assert.equal(await confirmation.count(), 0);
     assert.equal((await dessinsEnvoyes(page)).length, 1, 'annuler ne dessine rien');
 
-    await page.locator(`#panneau-planche .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
+    await page.locator(`#panneau-gestion .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
     const seconde = await dessinEnvoye(page, 2);
     await envoyer(page, dessinDe(seconde.demande, ETRANGERS));
     await page.getByRole('button', { name: 'Remplacer le cadre et son contenu' }).click();
@@ -2029,12 +2029,12 @@ test('L6.14 : une couleur peinte autrement que l’aperçu est un point à véri
   const page = await ouvrirSur('dessin-en-cours');
   try {
     const cadres = [{ palette: ID_DU_BLEU, cadre: '12:34' }];
-    const zone = page.locator('#panneau-planche');
+    const zone = page.locator('#panneau-gestion');
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     await envoyer(page, dessinDe((await dessinEnvoye(page, 1)).demande, { issue: 'dessinee', page: '5:6', cadres, peints: [] }));
     assert.equal(await zone.locator('.constat').count(), 0);
 
-    await page.locator(`#panneau-planche .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
+    await page.locator(`#panneau-gestion .fiche-planche[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
     const peints = [{ palette: ID_DU_BLEU, nom: 'vivid/light/700', hexa: '#000000' }];
     await envoyer(page, dessinDe((await dessinEnvoye(page, 2)).demande, { issue: 'dessinee', page: '5:6', cadres, peints }));
     assert.equal(await zone.locator('.constat-alerte .constat-quoi').textContent(), '1 couleur ne correspond pas à l’aperçu.');
@@ -2051,9 +2051,9 @@ test('[UI-05] le résultat d’une génération se lit dans l’onglet Palettes,
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     const demande = await dessinEnvoye(page, 1);
     await envoyer(page, dessinDe(demande.demande, ETRANGERS));
-    assert.equal(await page.locator('#panneau-planche .confirmation', { hasText: 'La mise à jour supprimera' }).count(), 1);
+    assert.equal(await page.locator('#panneau-gestion .confirmation', { hasText: 'La mise à jour supprimera' }).count(), 1);
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
-    assert.doesNotMatch(await page.locator('#panneau-palettes').textContent(), /La mise à jour supprimera|Remplacer le cadre/);
+    assert.doesNotMatch(await page.locator('#panneau-creation').textContent(), /La mise à jour supprimera|Remplacer le cadre/);
   } finally {
     await page.close();
   }
@@ -2128,7 +2128,7 @@ test('[VER-10] la saturation de la référence se situe par un repère sur la pi
     assert.equal(await reperes.evaluate((repere) => repere.closest('.reglage-de-la-palette').querySelector('.reglette-curseur').getAttribute('aria-label')), 'Saturation de Soft');
     assert.equal(await page.locator('.reglages-de-la-palette > .constats .constat').count(), 0, 'aucune notice permanente');
     assert.equal(await page.locator('.reglages-de-la-palette > .constat-detail').isVisible(), false, 'aucune notice à déplier : Vivid porte la référence à sa saturation');
-    assert.equal(await page.locator('#panneau-palettes .constats-titre-notice').count(), 0);
+    assert.equal(await page.locator('#panneau-creation .constats-titre-notice').count(), 0);
   } finally {
     await page.close();
   }
@@ -2189,7 +2189,7 @@ test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine
     assert.ok(lignes.length > 0, 'les lignes fixes de la carte se relèvent');
     assert.ok(!lignes.some((ligne) => /réglages communs|gris pur/.test(ligne)), JSON.stringify(lignes));
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
-    assert.equal(await page.locator('#panneau-palettes .ligne-fixe[data-ton="avertissement"]').filter({ hasText: 'soft et vivid' }).count(), 0, 'aucun point à vérifier, « Profils confondus » compris');
+    assert.equal(await page.locator('#panneau-creation .ligne-fixe[data-ton="avertissement"]').filter({ hasText: 'soft et vivid' }).count(), 0, 'aucun point à vérifier, « Profils confondus » compris');
     assert.match(await page.locator('.pied-texte').textContent(), / · aucune alerte$/);
   } finally {
     await page.close();
@@ -2232,7 +2232,7 @@ test('L7.7 : exporter la recette, modifier le JSON, l’importer, voir l’écar
   try {
     await ouvrirLaPlanche(page);
     assert.equal(await page.getByRole('button', { name: 'Réinitialiser les palettes et les réglages' }).count(), 0, 'une recette lisible ne se remplace que par un import');
-    const exporte = await exporter(page, '#panneau-planche');
+    const exporte = await exporter(page, '#panneau-gestion');
     assert.equal(exporte.nom, 'palettes-et-reglages.json');
     assert.equal(exporte.contenu, messageDe('planche-a-jour').texte, '[REC-07] le JSON canonique de la recette rangée');
 
@@ -2240,8 +2240,8 @@ test('L7.7 : exporter la recette, modifier le JSON, l’importer, voir l’écar
     modifiee.palettes[0].nom = 'Bleu roi';
     modifiee.seuils.texte = 7;
     const avant = await compte(page);
-    await importerLeFichier(page, '#panneau-planche', JSON.stringify(modifiee, null, 2));
-    const confirmation = page.locator('#panneau-planche .confirmation', { hasText: 'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?' });
+    await importerLeFichier(page, '#panneau-gestion', JSON.stringify(modifiee, null, 2));
+    const confirmation = page.locator('#panneau-gestion .confirmation', { hasText: 'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?' });
     assert.deepEqual(await confirmation.locator('p').allTextContents(), [
       'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?',
       'Palette à modifier : Bleu roi (nom).',
@@ -2274,7 +2274,7 @@ test('[REC-11] E19 : une recette illisible s’exporte telle qu’elle est rang�
   try {
     const illisible = messageDe('recette-illisible');
     await envoyer(page, illisible);
-    const bloquant = '#panneau-palettes';
+    const bloquant = '#panneau-creation';
     assert.equal((await exporter(page, bloquant)).contenu, illisible.texte);
     const avant = await compte(page);
     await page.locator(bloquant).getByRole('button', { name: 'Réinitialiser les palettes et les réglages' }).click();
@@ -2283,11 +2283,11 @@ test('[REC-11] E19 : une recette illisible s’exporte telle qu’elle est rang�
     const rangement = await prochaine(page, avant);
     assert.deepEqual(rangement.recette.palettes, []);
     assert.equal(rangement.empreinteLue, illisible.empreinte);
-    assert.equal(await page.locator('#panneau-palettes .constat-bloquant:visible').count(), 0);
+    assert.equal(await page.locator('#panneau-creation .constat-bloquant:visible').count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Réinitialiser les palettes et les réglages' }).count(), 0);
     await envoyer(page, rangee(rangement.demande));
     await ouvrirLaPlanche(page);
-    assert.equal(await page.locator('#panneau-planche .constat-bloquant:visible').count(), 0, 'l’onglet Palettes quitte aussi le bloquant');
+    assert.equal(await page.locator('#panneau-gestion .constat-bloquant:visible').count(), 0, 'l’onglet Palettes quitte aussi le bloquant');
     assert.equal(await page.getByText('Créez une palette dans l’onglet « Création », puis générez-la ici.').isVisible(), true);
   } finally {
     await page.close();
@@ -2298,10 +2298,10 @@ test('[REC-08] un fichier d’une version future ou cassé se refuse, et rien ne
   const page = await ouvrirSur('alertes-seules');
   try {
     await ouvrirLaPlanche(page);
-    await importerLeFichier(page, '#panneau-planche', JSON.stringify({ formatVersion: 99 }));
-    assert.equal(await page.locator('#panneau-planche .constat-bloquant .constat-ou').textContent(), 'Import impossible : palettes-et-reglages.json, format 99');
-    await importerLeFichier(page, '#panneau-planche', '{pas du json');
-    assert.match(await page.locator('#panneau-planche .constat-bloquant .constat-quoi').textContent(), /Vos palettes et vos réglages actuels sont conservés\.$/);
+    await importerLeFichier(page, '#panneau-gestion', JSON.stringify({ formatVersion: 99 }));
+    assert.equal(await page.locator('#panneau-gestion .constat-bloquant .constat-ou').textContent(), 'Import impossible : palettes-et-reglages.json, format 99');
+    await importerLeFichier(page, '#panneau-gestion', '{pas du json');
+    assert.match(await page.locator('#panneau-gestion .constat-bloquant .constat-quoi').textContent(), /Vos palettes et vos réglages actuels sont conservés\.$/);
     // L'onglet Palettes relit l'état à son ouverture ([PLA-20]) : seul un rangement compte ici.
     assert.deepEqual((await demandes(page)).filter((demande) => demande.type === 'ranger-recette'), []);
   } finally {
@@ -2312,7 +2312,7 @@ test('[REC-08] un fichier d’une version future ou cassé se refuse, et rien ne
 test('le banc de galerie joue un fichier : l’écart d’import attend sa confirmation', async () => {
   const page = await pageDeGalerie('ecart-d-import');
   try {
-    const confirmation = page.locator('#panneau-planche .confirmation', { hasText: 'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?' });
+    const confirmation = page.locator('#panneau-gestion .confirmation', { hasText: 'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?' });
     assert.equal(await confirmation.locator('p').nth(1).textContent(), 'Palette à ajouter : Ardoise.');
   } finally {
     await page.close();
@@ -2321,7 +2321,7 @@ test('le banc de galerie joue un fichier : l’écart d’import attend sa confi
 
 /** Le rapport que « Exporter le rapport » propose, relu en JSON. */
 async function exporterLeRapport(page) {
-  await deplierLaCarte(page, 'Palettes et réglages', '#panneau-planche');
+  await deplierLaCarte(page, 'Palettes et réglages', '#panneau-gestion');
   const [telechargement] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Exporter le rapport de vérification' }).click(),
@@ -2415,7 +2415,7 @@ test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la 
   const page = await ouvrirSur('palette-supprimee');
   try {
     await ouvrirLaPlanche(page);
-    const hauteurs = await page.locator('#panneau-planche .fiche-gestes button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getBoundingClientRect().height]));
+    const hauteurs = await page.locator('#panneau-gestion .fiche-gestes button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getBoundingClientRect().height]));
     assert.ok(hauteurs.some(([texte]) => texte === 'Supprimer définitivement'), JSON.stringify(hauteurs));
     assert.ok(hauteurs.some(([texte]) => texte === 'Modifier'), JSON.stringify(hauteurs));
     assert.deepEqual([...new Set(hauteurs.map(([, hauteur]) => hauteur))], [24], JSON.stringify(hauteurs));
@@ -2599,7 +2599,7 @@ test('Z1.6 : le code hexa prend la largeur de sa colonne, moins la pastille, dan
       assert.ok(reference.right <= (await configuration.boundingBox()).x + (await configuration.boundingBox()).width, `${taille.width} px : la référence tient dans la carte`);
 
       await page.locator('.bouton-de-barre').click();
-      const creation = page.locator('#panneau-palettes .champ-creation');
+      const creation = page.locator('#panneau-creation .champ-creation');
       const saisie = await largeurDuCode(creation);
       assert.ok(Math.abs(saisie.code - saisie.libre) < 1, `${taille.width} px : le code de la création mesure ${saisie.code} px pour ${saisie.libre} px libres`);
     } finally {
@@ -2611,7 +2611,7 @@ test('Z1.6 : le code hexa prend la largeur de sa colonne, moins la pastille, dan
 /** Ce que l'onglet Création montre de lui-même : le sélecteur, le menu, l'invitation et la palette. */
 const vueDeLaCreation = (page) => page.evaluate(() => {
   const visible = (selecteur) => {
-    const element = document.querySelector(`#panneau-palettes ${selecteur}`);
+    const element = document.querySelector(`#panneau-creation ${selecteur}`);
     return Boolean(element && element.getClientRects().length > 0);
   };
   return {
@@ -2630,7 +2630,7 @@ test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : « Sélect
   try {
     assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
     assert.equal(await page.locator('.invitation button').count(), 0, 'les gestes sont ceux de la barre');
-    assert.equal(await page.locator('#panneau-palettes .titre-de-premier-rang:visible').textContent(), 'Choisissez une palette');
+    assert.equal(await page.locator('#panneau-creation .titre-de-premier-rang:visible').textContent(), 'Choisissez une palette');
     await page.locator('.selecteur-bouton').click();
     assert.deepEqual(await page.locator('.selecteur-option').evaluateAll((options) => options.map((option) => option.getAttribute('aria-selected'))), ['false', 'false', 'false']);
     assert.equal(await page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length), 0, 'ouvrir sans choisir ne range rien');
@@ -2653,7 +2653,7 @@ test('Z2.5 [UI-06] deux gestes mènent à une palette : la liste, puis une optio
   try {
     await creation.locator('.bouton-de-barre').click();
     assert.equal((await vueDeLaCreation(creation)).invitation, null, 'la création ouverte remplace l’invitation');
-    await creation.locator('#panneau-palettes .champ-creation').fill('#7C3AED');
+    await creation.locator('#panneau-creation .champ-creation').fill('#7C3AED');
     const avant = await compte(creation);
     await creation.getByRole('button', { name: 'Créer la palette' }).click();
     const rangement = await prochaineDuType(creation, 'ranger-recette', avant);
@@ -2679,7 +2679,7 @@ test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre sessi
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
     await page.getByRole('button', { name: 'Actions sur la palette' }).click();
     await page.getByRole('menuitem', { name: 'Supprimer la palette' }).click();
-    await page.locator('#panneau-palettes .confirmation').getByRole('button', { name: 'Supprimer la palette' }).click();
+    await page.locator('#panneau-creation .confirmation').getByRole('button', { name: 'Supprimer la palette' }).click();
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Ardoise', 'la suivante s’ouvre (Q6.3)');
   } finally {
     await page.close();
@@ -2935,7 +2935,7 @@ test('Z4.9 [UI-13] la réponse d’un rangement reçue en plein glisser ne rend 
     await page.evaluate(() => window.glisser([[0.4, 0.4], [0.7, 0.7]], 'rien'));
     await imageSuivante(page);
     await envoyer(page, { type: 'rangement', demande: second.demande, issue: { issue: 'modifiee-ailleurs' } });
-    assert.equal(await page.locator('#panneau-palettes [role="alert"]').count(), 1, 'le refus se lit pendant le geste');
+    assert.equal(await page.locator('#panneau-creation [role="alert"]').count(), 1, 'le refus se lit pendant le geste');
   } finally {
     await page.close();
   }
@@ -3434,7 +3434,7 @@ test('Z11.1 chaque segment garde une marge autour de son libellé, « Vivid ◆ 
     const page = await ouvrirSurEn('reglages-profil-delie', MINIMALE, langue);
     try {
       await page.locator('.carte-bascule[aria-expanded="false"]').first().waitFor();
-      await page.evaluate(() => document.querySelectorAll('#panneau-palettes .carte-bascule[aria-expanded="false"]').forEach((bouton) => bouton.click()));
+      await page.evaluate(() => document.querySelectorAll('#panneau-creation .carte-bascule[aria-expanded="false"]').forEach((bouton) => bouton.click()));
       const serres = await page.evaluate(() => [...document.querySelectorAll('.bascule-de-base .bascule-option')]
         .filter((bouton) => bouton.getClientRects().length > 0)
         .map((bouton) => {
@@ -3478,7 +3478,7 @@ test('Z11.2 la lettre de l’autre profil se lit au-dessus du curseur, sans touc
 test('Z11.3 à 500 px, le titre d’une carte tient sur une ligne ; un résumé trop long passe dessous sans le chevaucher', async () => {
   const page = await ouvrirSur('reglages-profil-delie', MINIMALE);
   try {
-    const titres = await page.evaluate(() => [...document.querySelectorAll('#panneau-palettes .carte-bascule')]
+    const titres = await page.evaluate(() => [...document.querySelectorAll('#panneau-creation .carte-bascule')]
       .filter((bouton) => bouton.getClientRects().length > 0)
       .map((bouton) => {
         const titre = bouton.querySelector('.carte-titre');
@@ -3510,7 +3510,7 @@ test('Z11.4 [DER-05] aucune ligne de la dérive ne barre l’étiquette d’une 
         await champ.press('Tab');
       }
       const conflits = await page.evaluate(() => {
-        const svg = document.querySelector('#panneau-palettes .derive-graphe');
+        const svg = document.querySelector('#panneau-creation .derive-graphe');
         const boite = (texte) => texte.getBBox();
         const etiquettes = [...svg.querySelectorAll('.derive-poignee text:not(.derive-poignee-lettre)')].map(boite);
         const noms = [...svg.querySelectorAll('.derive-nom-de-courbe')].map(boite);
@@ -3688,7 +3688,7 @@ test('le glisser d’un curseur de la carte des réglages, sans capture, finit �
     await ui.locator('.selecteur-bouton').click();
     await ui.locator('.selecteur-option').first().click();
     await ui.locator('.tete-de-la-palette .titre-de-premier-rang').waitFor();
-    const carte = ui.locator(`#panneau-palettes .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
+    const carte = ui.locator(`#panneau-creation .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
     if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-bascule').click();
     const curseur = ui.getByRole('slider', { name: 'Teinte de Soft' });
     await curseur.scrollIntoViewIfNeeded();

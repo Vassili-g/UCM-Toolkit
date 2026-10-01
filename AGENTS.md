@@ -251,7 +251,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/preferences.ts       la langue de l'interface, lue et rangée dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création et Palettes, la configuration
-  src/ui/ongletPalettes.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/ongletCreation.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
   src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, volet des messages, annonce en fin de geste
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
@@ -269,7 +269,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui
-  src/ui/ongletPlanche.ts  l'onglet Palettes : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
+  src/ui/ongletGestion.ts  l'onglet Palettes : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
   src/ui/configuration.ts  les Réglages communs en cartes : aperçu de la palette ouverte, fonds, intensités et fonds du thème Dark, courbes ; seuils et contenu des planches repliés
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
@@ -1186,7 +1186,7 @@ La spécification en lien porte le raisonnement.
   24 px, présente même sans message (`src/ui/ligneFixe.ts`) ; le bilan des
   garanties et des alertes passe dans le pied, dont le volet garde sa hauteur
   (`src/ui/piedDeLaPalette.ts`) ; le résumé d'une carte repliable tient sur
-  une ligne. `ongletPalettes.ts` pose l'état du geste là où la
+  une ligne. `ongletCreation.ts` pose l'état du geste là où la
   prévisualisation et la validation passent, et le pied n'annonce son bilan
   qu'à la fin d'un geste. Les tests `[UI-20]` de
   `packages/plugin-palettes/tests/interface/interface.test.mjs` relèvent,
