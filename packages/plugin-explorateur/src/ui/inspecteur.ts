@@ -43,10 +43,11 @@ export function creerInspecteur(app: Application): Composant {
   let fondChoisi = '';
   let seuil: number = SEUILS[1];
 
-  function boutonDeCopie(variable: string, format: FormatDeCopie, desactive: boolean): HTMLButtonElement {
+  function boutonDeCopie(variable: string, format: FormatDeCopie, desactive: boolean, principal = false): HTMLButtonElement {
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'bouton-discret';
+    bouton.classList.toggle('bouton-principal', principal);
     bouton.textContent = TEXTES.copies[format];
     bouton.disabled = desactive;
     bouton.addEventListener('click', () => void app.copier(variable, format));
@@ -136,10 +137,14 @@ export function creerInspecteur(app: Application): Composant {
         etat.position = { ...etat.position, inspectee: null };
         app.rendre(['inspecteur', 'table', 'vue']);
       });
-      tete.append(titre, fermer);
+      const type = document.createElement('span');
+      type.className = 'pastille-texte';
+      type.textContent = trouvee ? TEXTES.types[trouvee.type] : '';
+      type.hidden = !trouvee;
+      tete.append(type, fermer);
       const sousTitre = document.createElement('p');
       sousTitre.className = 'note';
-      sousTitre.textContent = trouvee ? `${index.collections.get(trouvee.collection)?.nom ?? ''} · ${TEXTES.types[trouvee.type]}` : '';
+      sousTitre.textContent = trouvee ? index.collections.get(trouvee.collection)?.nom ?? '' : '';
 
       const valeur = section(TEXTES.valeurTerminale);
       valeur.classList.add('carte-valeur');
@@ -154,19 +159,26 @@ export function creerInspecteur(app: Application): Composant {
       copies.setAttribute('aria-label', TEXTES.copier);
       const resolu = resultat.statut === 'resolu';
       const couleur = resolu && resultat.valeur.nature === 'couleur';
+      const copier = document.createElement('span');
+      copier.className = 'note';
+      copier.textContent = TEXTES.copier;
+      copier.setAttribute('aria-hidden', 'true');
       copies.append(
-        boutonDeCopie(variable, 'valeur', !resolu),
+        copier,
+        boutonDeCopie(variable, 'valeur', !resolu, true),
         ...(couleur ? [boutonDeCopie(variable, 'hexa', false), boutonDeCopie(variable, 'composantes', false)] : []),
         boutonDeCopie(variable, 'nom', !trouvee),
         boutonDeCopie(variable, 'chaine', false),
         boutonDeCopie(variable, 'source', resultat.etapes.length === 0),
       );
-      valeur.append(copies);
+      const haut = document.createElement('div');
+      haut.className = 'inspecteur-haut';
+      haut.append(tete, titre, sousTitre);
 
       const chaine = section(TEXTES.chaineDeResolution);
       chaine.append(rendreChaine(app, resultat, (cible) => app.suivre(cible)));
 
-      const parties: HTMLElement[] = [tete, sousTitre, valeur, chaine];
+      const parties: HTMLElement[] = [haut, valeur, copies, chaine];
 
       if (trouvee) {
         const collection = index.collections.get(trouvee.collection);

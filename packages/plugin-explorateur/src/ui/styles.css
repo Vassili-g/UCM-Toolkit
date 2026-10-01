@@ -3,15 +3,22 @@
  * sombres de `roles.css` aux rôles du socle, sous `:root` comme sous
  * `.figma-dark` : l'interface reste sombre quel que soit le thème de l'hôte.
  * Aucune couleur n'est écrite ici en dur.
+ *
+ * Le dessin suit MAQUETTE-EXPLORATEUR-TOKENS.html : trois surfaces étagées,
+ * les noms de variable en chasse fixe, un alias en pastille, la chaîne en
+ * frise. L'échelle de texte monte d'un cran par rapport au socle : la fenêtre
+ * est une table de lecture, large de 1200 px, et non un panneau de 380 px.
  */
 :root,
 .figma-dark {
   color-scheme: dark;
   --fond-page: var(--sombre-page);
   --fond: var(--sombre-fond);
+  --fond-arbre: var(--sombre-arbre);
   --fond-survol: var(--sombre-survol);
   --fond-bloc: var(--sombre-bloc);
   --fond-note: var(--sombre-note);
+  --fond-logo: var(--sombre-logo);
   --fond-marque: var(--sombre-marque);
   --fond-marque-survol: var(--sombre-marque-survol);
   --fond-selection: var(--sombre-selection);
@@ -21,8 +28,14 @@
   --fond-danger-plein: var(--sombre-danger-plein);
   --fond-danger-plein-survol: var(--sombre-danger-plein-survol);
   --bordure: var(--sombre-bordure);
-  --bordure-marque: var(--sombre-marque);
+  --bordure-marque: var(--sombre-focus);
   --bordure-visee: var(--sombre-bordure-forte);
+  --bordure-pastille: var(--sombre-pastille);
+  --filet: var(--sombre-filet);
+  --filet-avertissement: var(--sombre-filet-avertissement);
+  --rail: var(--sombre-rail);
+  --noeud: var(--sombre-noeud);
+  --ombre: var(--sombre-ombre);
   --texte: var(--sombre-texte);
   --texte-second: var(--sombre-texte-second);
   --texte-marque: var(--sombre-texte-marque);
@@ -33,6 +46,16 @@
   --texte-sur-danger: var(--sombre-texte-sur-marque);
   --damier-clair: var(--sombre-damier-clair);
   --damier-fonce: var(--sombre-damier-fonce);
+
+  --corps: 12px;
+  --corps-interligne: 18px;
+  --libelle: 13px;
+  --libelle-interligne: 20px;
+  --titre: 20px;
+  --titre-interligne: 28px;
+  --petit: 11px;
+  --hauteur-secondaire: 28px;
+  --chasse-fixe: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
 /* La fenêtre ne défile pas : chaque zone défile seule. */
@@ -64,6 +87,7 @@ textarea {
   display: flex;
   height: 100vh;
   flex-direction: column;
+  background: var(--fond);
 }
 
 /* La barre : produit, retour, contexte, recherche et lecture. */
@@ -71,8 +95,8 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-bloc);
+  gap: var(--espace-controle) var(--espace-bloc);
+  padding: 10px var(--espace-page);
   border-bottom: 1px solid var(--bordure);
   background: var(--fond);
 }
@@ -80,22 +104,23 @@ textarea {
 .produit {
   display: flex;
   align-items: center;
-  gap: var(--espace-controle);
+  gap: 9px;
   margin-right: auto;
 }
 
 .logo {
   display: inline-grid;
-  width: var(--hauteur-secondaire);
-  height: var(--hauteur-secondaire);
+  width: 30px;
+  height: 30px;
   place-items: center;
-  border-radius: var(--rayon);
-  background: var(--fond-note);
-  font-size: 9px;
-  font-weight: 700;
+  border-radius: 7px;
+  background: var(--fond-logo);
+  font-size: 10px;
+  font-weight: 650;
 }
 
 .produit-nom {
+  margin: 0;
   font-size: var(--libelle);
   font-weight: 600;
 }
@@ -103,14 +128,14 @@ textarea {
 .contextes {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espace-controle);
+  gap: var(--espace-controle) var(--espace-bloc);
 }
 
 .contexte-champ,
 .filtre {
   display: inline-flex;
   align-items: center;
-  gap: var(--espace-serre);
+  gap: 6px;
 }
 
 .contexte-nom,
@@ -122,14 +147,24 @@ textarea {
 .recherche,
 .saisie {
   height: var(--hauteur-secondaire);
-  padding: 0 var(--espace-controle);
+  padding: 0 9px;
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
-  background: var(--fond-bloc);
+  background: var(--fond);
+}
+
+.choix:hover,
+.recherche:hover,
+.saisie:hover {
+  border-color: var(--bordure-visee);
 }
 
 .recherche {
   width: min(280px, 40vw);
+}
+
+.recherche::placeholder {
+  color: var(--texte-second);
 }
 
 .saisie {
@@ -139,11 +174,12 @@ textarea {
 
 .bouton-discret {
   height: var(--hauteur-secondaire);
-  padding: 0 var(--espace-controle);
+  padding: 0 10px;
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
   background: var(--fond);
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .bouton-discret:hover:not(:disabled) {
@@ -152,7 +188,19 @@ textarea {
 
 .bouton-discret:disabled {
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.45;
+}
+
+/* Le seul geste plein de l'écran : copier la valeur terminale. */
+.bouton-principal {
+  border-color: var(--fond-marque);
+  background: var(--fond-marque);
+  color: var(--texte-sur-marque);
+}
+
+.bouton-principal:hover:not(:disabled) {
+  border-color: var(--fond-marque-survol);
+  background: var(--fond-marque-survol);
 }
 
 .bandeau-simulation {
@@ -160,7 +208,8 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: var(--espace-controle);
-  padding: var(--espace-serre) var(--espace-bloc);
+  padding: var(--espace-controle) var(--espace-page);
+  border-left: 3px solid var(--filet-avertissement);
   background: var(--fond-avertissement);
   color: var(--texte-avertissement);
 }
@@ -171,17 +220,27 @@ textarea {
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: 240px minmax(0, 1fr) 340px;
+  grid-template-columns: 220px minmax(0, 1fr) 350px;
 }
 
 .arbre {
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: var(--espace-serre);
-  padding: var(--espace-controle);
+  gap: var(--espace-controle);
+  padding: var(--espace-page) var(--espace-controle) var(--espace-bloc);
   border-right: 1px solid var(--bordure);
-  background: var(--fond);
+  background: var(--fond-arbre);
+}
+
+.arbre > .surtitre {
+  padding: 0 var(--espace-controle);
+}
+
+.arbre > .note {
+  margin: 0 var(--espace-controle);
+  padding-top: var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
 }
 
 .arbre-lignes {
@@ -209,34 +268,55 @@ textarea {
   display: flex;
   right: 0;
   align-items: center;
-  gap: 2px;
+}
+
+/* Un trait par niveau d'ancêtre, sous le chevron de chacun. */
+.arbre-ligne::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  width: calc(var(--profondeur) * 12px);
+  background: repeating-linear-gradient(to right, var(--bordure) 0 1px, transparent 1px 12px);
+  content: '';
+  pointer-events: none;
 }
 
 .chevron,
 .chevron-vide {
   flex: none;
-  width: 16px;
-  height: 20px;
+  width: 20px;
+  height: 24px;
   padding: 0;
   border: 0;
+  border-radius: var(--rayon);
   background: none;
   color: var(--texte-second);
   cursor: pointer;
 }
 
+.chevron:hover {
+  color: var(--texte);
+}
+
 .arbre-choix {
   display: flex;
   min-width: 0;
-  height: 22px;
+  height: 24px;
   flex: 1;
   align-items: center;
-  gap: var(--espace-serre);
-  padding: 0 var(--espace-serre);
+  gap: 6px;
+  padding: 0 var(--espace-controle) 0 6px;
   border: 0;
   border-radius: var(--rayon);
   background: none;
   cursor: pointer;
+  font-family: var(--chasse-fixe);
   text-align: left;
+}
+
+.arbre-groupe {
+  font-size: var(--petit);
 }
 
 .arbre-choix:hover {
@@ -245,6 +325,7 @@ textarea {
 
 .arbre-choix[aria-current='true'] {
   background: var(--fond-selection);
+  color: var(--texte-marque);
 }
 
 .arbre-libelle {
@@ -262,24 +343,42 @@ textarea {
 
 .arbre-compte {
   color: var(--texte-second);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
   font-variant-numeric: tabular-nums;
 }
 
 .pastille-texte {
-  padding: 0 var(--espace-serre);
+  flex: none;
+  padding: 1px 7px;
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-  color: var(--texte-second);
-  font-size: 10px;
+  border-radius: 5px;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
+  line-height: 16px;
+  white-space: nowrap;
 }
 
+/* Le surtitre d'une zone : petites capitales espacées. */
 .surtitre {
   margin: 0;
   color: var(--texte-second);
-  font-size: var(--corps);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: var(--petit);
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 16px;
   text-transform: uppercase;
+}
+
+/* Le titre d'une section : il se lit comme un titre, sans capitales. */
+.section:not(.carte-valeur) > .surtitre,
+.vue > .surtitre {
+  color: var(--texte);
+  font-size: var(--libelle);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: var(--libelle-interligne);
+  text-transform: none;
 }
 
 .note {
@@ -287,7 +386,7 @@ textarea {
   color: var(--texte-second);
 }
 
-/* Le centre : onglets, puis le panneau de l'onglet actif. */
+/* Le centre : le groupe ouvert, les onglets, puis le panneau de l'onglet actif. */
 .centre {
   display: flex;
   min-width: 0;
@@ -296,26 +395,87 @@ textarea {
   background: var(--fond);
 }
 
-/* Les libellés des onglets sont plus longs que ceux des deux autres plugins. */
+.table-tete {
+  display: grid;
+  gap: 2px;
+  padding: var(--espace-page) 20px var(--espace-controle);
+}
+
+.emplacement {
+  margin: 0;
+  color: var(--texte-second);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.table-titre,
+.vue-titre,
+.inspecteur-titre {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.table-titre {
+  font-size: var(--titre);
+  line-height: var(--titre-interligne);
+}
+
+.vue-titre {
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.inspecteur-titre {
+  font-family: var(--chasse-fixe);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* Les onglets soulignés de la maquette, à la place des segments du socle. */
 .centre .onglets {
   overflow-x: auto;
-  padding: var(--espace-serre) var(--espace-controle);
+  flex: none;
+  gap: 18px;
+  padding: 0 20px;
 }
 
 .centre .onglet {
   width: auto;
   min-width: 0;
+  height: 38px;
+  padding: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.centre .onglet:hover:not([aria-selected='true']),
+.centre .onglet[aria-selected='true'] {
+  background: none;
+}
+
+.centre .onglet[aria-selected='true'] {
+  border-bottom-color: var(--texte-marque);
+}
+
+.centre .onglet:focus-visible {
+  outline-offset: -2px;
 }
 
 .accueil {
   display: grid;
   justify-items: start;
   gap: var(--espace-bloc);
-  padding: var(--espace-page);
+  padding: 32px;
 }
 
 .accueil-texte {
   max-width: 60ch;
+  color: var(--texte-second);
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
 }
 
 .panneau {
@@ -334,27 +494,6 @@ textarea {
   flex-direction: column;
 }
 
-.table-tete {
-  display: grid;
-  gap: 2px;
-  padding: var(--espace-controle) var(--espace-bloc) 0;
-}
-
-.emplacement {
-  margin: 0;
-  color: var(--texte-second);
-}
-
-.table-titre,
-.vue-titre,
-.inspecteur-titre {
-  margin: 0;
-  font-size: var(--titre);
-  font-weight: 600;
-  line-height: var(--titre-interligne);
-  overflow-wrap: anywhere;
-}
-
 .filtres,
 .gestes,
 .ligne-de-champs,
@@ -366,7 +505,8 @@ textarea {
 }
 
 .filtres {
-  padding: var(--espace-controle) var(--espace-bloc);
+  gap: var(--espace-controle) 10px;
+  padding: var(--espace-bloc) 20px;
 }
 
 .table-corps {
@@ -385,12 +525,18 @@ textarea {
   position: sticky;
   z-index: 2;
   top: 0;
+  border-bottom: 1px solid var(--bordure);
   background: var(--fond-bloc);
 }
 
 .table-ligne {
   right: 0;
-  border-bottom: 1px solid var(--bordure);
+  border-bottom: 1px solid var(--filet);
+}
+
+.table-ligne:hover,
+.table-ligne:hover .cellule-nom {
+  background: var(--fond-arbre);
 }
 
 .table-ligne.ligne-choisie,
@@ -400,9 +546,11 @@ textarea {
 
 .cellule-entete {
   overflow: hidden;
-  padding: var(--espace-serre) var(--espace-controle);
+  padding: 10px var(--espace-page);
   color: var(--texte-second);
-  font-weight: 600;
+  font-size: var(--petit);
+  font-weight: 500;
+  line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -420,61 +568,87 @@ textarea {
   display: grid;
   min-width: 0;
   align-content: center;
-  padding: 0 var(--espace-controle);
+  padding: 0 var(--espace-page);
   background: var(--fond);
 }
 
 .nom-de-token,
-.lien,
-.alias {
+.lien {
   overflow: hidden;
   max-width: 100%;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
+  font-family: var(--chasse-fixe);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.nom-de-token {
-  font-weight: 600;
-}
-
-.lien,
-.alias {
+.lien {
   color: var(--texte-marque);
+  font-size: var(--petit);
 }
 
 .nom-de-token:hover,
-.lien:hover,
-.alias:hover {
+.lien:hover {
   text-decoration: underline;
+}
+
+/* Ce qui se suit : un alias, ou une variable citée dans une liste. */
+.alias,
+.liens .lien {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  background: var(--fond-note);
+  color: var(--texte);
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 16px;
+  text-align: left;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.alias:hover,
+.liens .lien:hover {
+  border-color: var(--texte-marque);
+  background: var(--fond-selection);
+  text-decoration: none;
 }
 
 .cellule-type {
   align-self: center;
-  padding: 0 var(--espace-controle);
+  padding: 0 var(--espace-page);
   color: var(--texte-second);
+  font-size: var(--petit);
 }
 
 .cellule-valeur {
   display: grid;
   min-width: 0;
   align-content: center;
-  padding: 0 var(--espace-controle);
+  gap: 3px;
+  padding: 0 var(--espace-page);
 }
 
 .cellule-source,
 .cellule-resultat {
   overflow: hidden;
   min-width: 0;
+  line-height: 16px;
   white-space: nowrap;
 }
 
 .vide {
-  padding: var(--espace-page);
+  padding: 32px;
   color: var(--texte-second);
 }
 
@@ -484,19 +658,25 @@ textarea {
   min-width: 0;
   max-width: 100%;
   align-items: center;
-  gap: var(--espace-serre);
+  gap: 7px;
   vertical-align: middle;
 }
 
 .valeur-texte {
   overflow: hidden;
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.valeur-grande {
+  gap: var(--espace-bloc);
+}
+
 .valeur-grande .valeur-texte {
-  font-size: var(--libelle);
+  font-size: 20px;
+  line-height: 32px;
 }
 
 .pastille {
@@ -505,9 +685,15 @@ textarea {
   width: 14px;
   height: 14px;
   flex: none;
-  border: 1px solid var(--bordure-visee);
+  border: 1px solid var(--bordure-pastille);
   border-radius: 3px;
   background: conic-gradient(var(--damier-clair) 25%, var(--damier-fonce) 0 50%, var(--damier-clair) 0 75%, var(--damier-fonce) 0) 0 0 / 8px 8px;
+}
+
+.valeur-grande .pastille {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--rayon);
 }
 
 .pastille-remplissage {
@@ -518,7 +704,13 @@ textarea {
 
 .statut-echec {
   color: var(--texte-danger);
-  font-weight: 600;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.statut-echec.valeur-grande {
+  font-size: 15px;
+  line-height: 24px;
 }
 
 /* L'inspecteur épinglé. */
@@ -526,82 +718,128 @@ textarea {
   display: grid;
   min-height: 0;
   align-content: start;
-  gap: var(--espace-bloc);
-  overflow: auto;
-  padding: var(--espace-bloc);
+  gap: var(--espace-page);
+  overflow: hidden auto;
+  padding: 20px;
+  grid-template-columns: minmax(0, 1fr);
   border-left: 1px solid var(--bordure);
   background: var(--fond);
 }
 
+.inspecteur-haut {
+  display: grid;
+  gap: 6px;
+}
+
 .inspecteur-tete {
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--espace-controle);
 }
 
 .section {
   display: grid;
-  gap: var(--espace-serre);
+  gap: var(--espace-controle);
 }
 
-.carte-valeur,
-.carte-comparee {
-  padding: var(--espace-controle);
+.carte-valeur {
+  padding: 14px;
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
+  border-radius: 8px;
   background: var(--fond-bloc);
 }
 
 .carte-comparee {
   display: grid;
+  min-width: 0;
   align-content: start;
-  gap: var(--espace-controle);
+  gap: var(--espace-bloc);
+  padding: 14px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
 }
 
+/* La chaîne en frise : un rail, un nœud par étape, la valeur au bout. */
 .chaine {
-  display: grid;
-  gap: var(--espace-serre);
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
 }
 
-.etape {
+.etape,
+.etape-fin {
+  position: relative;
   display: grid;
-}
-
-.etape-marquee {
-  border-left: 2px solid var(--bordure-marque);
-  margin-left: -6px;
-  padding-left: 4px;
-}
-
-.etape-nom {
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.etape-source {
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  margin-left: 4px;
+  padding: 0 0 14px 17px;
+  border-left: 2px solid var(--rail);
 }
 
 .etape-fin {
-  list-style: none;
-  margin-left: -18px;
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.etape::before,
+.etape-fin::before {
+  position: absolute;
+  top: 4px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.etape-fin::before {
+  background: var(--noeud);
+}
+
+.etape-marquee::before {
+  border-color: var(--texte-marque);
+  background: var(--texte-marque);
+}
+
+.etape > .lien,
+.etape-nom {
+  color: var(--texte);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.etape-marquee > .lien {
+  color: var(--texte-marque);
+}
+
+.etape > .note {
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.etape-source {
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
 }
 
 .constat {
   display: grid;
-  gap: 2px;
-  padding: var(--espace-controle);
-  border-left: 3px solid var(--fond-danger-plein);
-  border-radius: var(--rayon);
+  gap: var(--espace-serre);
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--texte-danger);
+  border-radius: 0 var(--rayon) var(--rayon) 0;
   background: var(--fond-danger);
   list-style: none;
 }
 
 .constat-titre {
   color: var(--texte-danger);
+  font-size: var(--libelle);
 }
 
 .constat-detail,
@@ -616,14 +854,19 @@ textarea {
 
 .proprietes {
   display: grid;
-  gap: var(--espace-serre);
   margin: 0;
 }
 
 .propriete {
   display: grid;
-  grid-template-columns: minmax(80px, 30%) minmax(0, 1fr);
-  gap: var(--espace-controle);
+  grid-template-columns: minmax(80px, 32%) minmax(0, 1fr);
+  gap: var(--espace-bloc);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--filet);
+}
+
+.propriete:last-child {
+  border-bottom: 0;
 }
 
 .propriete-active .propriete-nom {
@@ -637,13 +880,16 @@ textarea {
 .propriete-valeur {
   display: grid;
   min-width: 0;
+  justify-items: start;
+  gap: 3px;
   margin: 0;
   overflow-wrap: anywhere;
 }
 
 .liens {
   display: grid;
-  gap: 2px;
+  justify-items: start;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -668,6 +914,14 @@ textarea {
   font-weight: 600;
 }
 
+/* Le verdict d'une comparaison se lit comme une note, avant les deux cartes. */
+.verdict[data-ecart] {
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--filet-avertissement);
+  background: var(--fond-avertissement);
+  font-weight: 400;
+}
+
 .verdict[data-contraste='atteint'] {
   color: var(--texte-succes);
 }
@@ -678,7 +932,7 @@ textarea {
 
 .code {
   margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: var(--chasse-fixe);
   overflow-wrap: anywhere;
 }
 
@@ -686,13 +940,13 @@ textarea {
 .vue {
   display: grid;
   align-content: start;
-  gap: var(--espace-bloc);
-  padding: var(--espace-bloc);
+  gap: 14px;
+  padding: 20px;
 }
 
 .grille-comparee {
   display: grid;
-  gap: var(--espace-bloc);
+  gap: 14px;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
@@ -705,8 +959,8 @@ textarea {
 .calque,
 .verification {
   display: grid;
-  gap: var(--espace-serre);
-  padding: var(--espace-controle);
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
 }
@@ -718,7 +972,9 @@ textarea {
 .interrupteur-ligne {
   display: flex;
   align-items: start;
-  gap: var(--espace-controle);
+  gap: var(--espace-bloc);
+  padding: var(--espace-bloc) 0;
+  border-bottom: 1px solid var(--bordure);
 }
 
 .choix-de-fichier {
@@ -733,8 +989,8 @@ textarea {
   overflow: auto;
   max-height: 360px;
   border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-  background: var(--fond-page);
+  border-radius: 8px;
+  background: var(--fond-arbre);
 }
 
 .graphe {
@@ -743,12 +999,12 @@ textarea {
 
 .graphe-arete {
   fill: none;
-  stroke: var(--bordure-visee);
+  stroke: var(--rail);
   stroke-width: 1;
 }
 
 .graphe-arete-active {
-  stroke: var(--bordure-marque);
+  stroke: var(--texte-marque);
   stroke-width: 2;
 }
 
@@ -757,18 +1013,19 @@ textarea {
 }
 
 .graphe-noeud rect {
-  fill: var(--fond-bloc);
+  fill: var(--fond-note);
   stroke: var(--bordure);
 }
 
 .graphe-noeud text {
   fill: var(--texte);
+  font-family: var(--chasse-fixe);
   font-size: 11px;
 }
 
 .graphe-centre rect {
   fill: var(--fond-selection);
-  stroke: var(--bordure-marque);
+  stroke: var(--texte-marque);
 }
 
 /* La bulle de la chaîne, au survol et au focus. */
@@ -776,16 +1033,20 @@ textarea {
   position: fixed;
   z-index: 10;
   display: grid;
-  max-width: min(420px, calc(100vw - 16px));
-  gap: var(--espace-serre);
-  padding: var(--espace-controle);
+  overflow: auto;
+  max-width: min(390px, calc(100vw - 16px));
+  max-height: 70vh;
+  gap: var(--espace-bloc);
+  padding: 14px;
   border: 1px solid var(--bordure-visee);
-  border-radius: var(--rayon);
-  background: var(--fond-bloc);
+  border-radius: 9px;
+  background: var(--fond);
+  box-shadow: 0 12px 35px var(--ombre);
   pointer-events: none;
 }
 
 .bulle-titre {
+  font-size: var(--libelle);
   font-weight: 600;
 }
 
@@ -793,11 +1054,13 @@ textarea {
 .pied {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espace-bloc);
-  padding: var(--espace-serre) var(--espace-bloc);
+  gap: var(--espace-serre) var(--espace-page);
+  padding: var(--espace-controle) var(--espace-page);
   border-top: 1px solid var(--bordure);
-  background: var(--fond);
+  background: var(--fond-bloc);
   color: var(--texte-second);
+  font-size: var(--petit);
+  line-height: 16px;
 }
 
 .pied-perimetre,
@@ -810,24 +1073,29 @@ textarea {
   padding-right: var(--espace-page);
 }
 
+/* L'annonce : centrée au-dessus du pied, claire sur l'écran sombre. */
 .annonce {
   position: fixed;
   z-index: 11;
-  right: var(--espace-page);
-  bottom: 32px;
+  bottom: 44px;
+  left: 50%;
   display: grid;
   max-width: min(420px, calc(100vw - 32px));
+  justify-items: center;
   gap: var(--espace-serre);
+  transform: translateX(-50%);
 }
 
 .annonce > span:not(:empty) {
-  padding: var(--espace-controle);
-  border: 1px solid var(--bordure-visee);
-  border-radius: var(--rayon);
-  background: var(--fond-bloc);
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--texte);
+  box-shadow: 0 12px 35px var(--ombre);
+  color: var(--fond-page);
 }
 
 .secours {
+  min-width: min(360px, calc(100vw - 32px));
   min-height: 64px;
   border: 1px solid var(--bordure-marque);
   border-radius: var(--rayon);
@@ -858,8 +1126,8 @@ textarea {
     right: 0;
     bottom: 0;
     display: none;
-    width: min(340px, 90vw);
-    box-shadow: -8px 0 24px var(--fond-page);
+    width: min(350px, 90vw);
+    box-shadow: -12px 0 35px var(--ombre);
   }
 
   .inspecteur.inspecteur-ouvert {
@@ -869,11 +1137,26 @@ textarea {
 
 @media (max-width: 699px) {
   .corps {
-    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-columns: 168px minmax(0, 1fr);
   }
 
   .arbre > .note,
   .produit-nom {
     display: none;
+  }
+
+  .table-tete {
+    padding: var(--espace-bloc) var(--espace-bloc) var(--espace-serre);
+  }
+
+  .table-titre {
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .centre .onglets,
+  .filtres {
+    padding-right: var(--espace-bloc);
+    padding-left: var(--espace-bloc);
   }
 }

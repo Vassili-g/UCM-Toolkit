@@ -7,6 +7,9 @@
  *
  * Les lignes sont virtualisées : une table de dix mille variables ne monte
  * que les lignes visibles.
+ *
+ * `tete` nomme le groupe ouvert. L'entrée la place au-dessus des onglets :
+ * elle se lit dans chaque vue, et se met à jour même quand la table est cachée.
  */
 import { texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
 import { valeurPourLeMode } from '../resolution';
@@ -16,12 +19,12 @@ import { TEXTES } from './textes';
 import { nomDeCible, rendreResultat, rendreSource } from './valeurs';
 import { creerListeVirtuelle } from './virtualisation';
 
-export const HAUTEUR_DE_LIGNE = 44;
+export const HAUTEUR_DE_LIGNE = 56;
 
 /** Les largeurs de colonne, en pixels : nom, type, puis chaque valeur. */
-const LARGEUR_DU_NOM = 220;
-const LARGEUR_DU_TYPE = 72;
-const LARGEUR_D_UNE_VALEUR = 190;
+const LARGEUR_DU_NOM = 240;
+const LARGEUR_DU_TYPE = 84;
+const LARGEUR_D_UNE_VALEUR = 220;
 
 function choixDeFiltre<C extends string>(etiquette: string, valeurs: ReadonlyArray<[C, string]>, actuel: C, changer: (valeur: C) => void): HTMLLabelElement {
   const champ = document.createElement('label');
@@ -43,7 +46,7 @@ function choixDeFiltre<C extends string>(etiquette: string, valeurs: ReadonlyArr
   return champ;
 }
 
-export function creerTable(app: Application): Composant & { montrer(variable: string): void; defilement(): number; rendues(): number } {
+export function creerTable(app: Application): Composant & { readonly tete: HTMLElement; montrer(variable: string): void; defilement(): number; rendues(): number } {
   const element = document.createElement('section');
   element.className = 'table';
 
@@ -72,7 +75,7 @@ export function creerTable(app: Application): Composant & { montrer(variable: st
   const vide = document.createElement('div');
   vide.className = 'vide';
 
-  element.append(tete, filtres, liste.element, vide);
+  element.append(filtres, liste.element, vide);
 
   let lignes: VariableRelevee[] = [];
   let modes: CollectionRelevee['modes'] = [];
@@ -188,9 +191,9 @@ export function creerTable(app: Application): Composant & { montrer(variable: st
 
   return {
     element,
+    tete,
     mettreAJour() {
       const { etat } = app;
-      element.hidden = etat.onglet !== 'table';
       if (!etat.index) {
         tete.hidden = true;
         filtres.hidden = true;
@@ -209,6 +212,7 @@ export function creerTable(app: Application): Composant & { montrer(variable: st
       emplacement.textContent = recherche ? TEXTES.rechercheEtiquette : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
       titre.textContent = recherche ? TEXTES.resultatsDeRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
       resume.textContent = recherche ? TEXTES.rechercheGlobale(lignes.length) : `${TEXTES.compte(lignes.length)}. ${TEXTES.autresCollections}`;
+      if (etat.onglet !== 'table') return;
       poserFiltres();
 
       const colonnes = [`${LARGEUR_DU_NOM}px`, `${LARGEUR_DU_TYPE}px`, ...(modes.length === 0 ? [`minmax(${LARGEUR_D_UNE_VALEUR}px, 1fr)`] : modes.map(() => `minmax(${LARGEUR_D_UNE_VALEUR}px, 1fr)`))];

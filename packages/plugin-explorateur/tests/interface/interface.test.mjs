@@ -262,7 +262,7 @@ test('le clavier atteint l’arbre, la table, l’inspecteur, ses copies et les 
     await page.keyboard.press('ArrowLeft');
     await page.locator('.recherche').focus();
     await page.keyboard.type('papier');
-    assert.match(await page.locator('#panneau-table .table-tete .note').textContent(), /1 résultat/);
+    assert.match(await page.locator('.table-tete .note').textContent(), /1 résultat/);
   } finally { await fermer(page); }
 });
 

@@ -62,7 +62,7 @@ accueil.className = 'accueil';
 
 const centre = document.createElement('main');
 centre.className = 'centre';
-centre.append(accueil, onglets.liste, ...ONGLETS.map((onglet) => panneaux[onglet]));
+centre.append(accueil, table.tete, onglets.liste, ...ONGLETS.map((onglet) => panneaux[onglet]));
 
 const pied = document.createElement('footer');
 pied.className = 'pied';
@@ -139,8 +139,8 @@ branchements = {
     if (demandees.has('arbre')) arbre.mettreAJour();
     if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
     if (demandees.has('table') || demandees.has('vue')) {
-      if (etat.onglet === 'table') table.mettreAJour();
-      else vues[etat.onglet].mettreAJour();
+      table.mettreAJour();
+      if (etat.onglet !== 'table') vues[etat.onglet].mettreAJour();
     }
     if (demandees.has('inspecteur')) inspecteur.mettreAJour();
     rendreAccueil();

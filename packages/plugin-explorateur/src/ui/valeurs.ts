@@ -80,7 +80,7 @@ export function rendreSource(index: Index, source: ValeurSource, suivre: (cible:
   bouton.type = 'button';
   bouton.className = 'alias';
   const nom = nomDeCible(index, source.cible);
-  bouton.textContent = `→ ${index.variables.get(source.cible)?.nom ?? nom}`;
+  bouton.textContent = `↗ ${index.variables.get(source.cible)?.nom ?? nom}`;
   bouton.setAttribute('aria-label', TEXTES.suivreAlias(nom));
   if (survol) {
     bouton.dataset.chaine = survol.variable;

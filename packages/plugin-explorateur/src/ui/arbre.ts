@@ -9,7 +9,7 @@ import type { Application, Composant } from './application';
 import { TEXTES } from './textes';
 import { creerListeVirtuelle } from './virtualisation';
 
-export const HAUTEUR_DE_LIGNE_D_ARBRE = 24;
+export const HAUTEUR_DE_LIGNE_D_ARBRE = 28;
 
 export function creerArbre(app: Application): Composant {
   const element = document.createElement('nav');
@@ -43,6 +43,7 @@ export function creerArbre(app: Application): Composant {
     rangee.className = 'arbre-ligne';
     rangee.setAttribute('role', 'listitem');
     rangee.style.paddingLeft = `${ligne.profondeur * 12}px`;
+    rangee.style.setProperty('--profondeur', String(ligne.profondeur));
     if (ligne.aDesEnfants) {
       const chevron = document.createElement('button');
       chevron.type = 'button';
@@ -62,6 +63,7 @@ export function creerArbre(app: Application): Composant {
     const choix = document.createElement('button');
     choix.type = 'button';
     choix.className = 'arbre-choix';
+    choix.classList.toggle('arbre-groupe', ligne.profondeur > 0);
     choix.dataset.focus = `choix:${ligne.noeud.cle}`;
     choix.dataset.rang = String(rang);
     const actif = !etat.position.recherche && etat.position.collection === ligne.noeud.collection && etat.position.groupe.length === ligne.noeud.segments.length && etat.position.groupe.every((segment, profondeur) => segment === ligne.noeud.segments[profondeur]);
