@@ -11,5 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tests/tsconfig.json",
     "test": "node scripts/run-tests.cjs"
+  },
+  "dependencies": {
+    "@ucm-kit/core": "*"
   }
 }

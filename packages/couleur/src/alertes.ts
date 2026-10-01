@@ -4,12 +4,12 @@
  * rien ; elle porte la mesure, le seuil et ce qu'ils visent, et l'interface
  * les met en mots.
  */
+import { EMPLOIS, EMPLOIS_FACULTATIFS, TABLE_DES_EMPLOIS, decalagesDeLEmploi, rangDuCranLeger } from '@ucm-kit/core/emplois';
+
 import { lireHexa, rgb8VersOklch } from './conversions';
 import { distanceOk } from './contraste';
-import { EMPLOIS, EMPLOIS_FACULTATIFS, TABLE_DES_EMPLOIS, rangDuCranLeger } from './emplois';
 import { aUneIntensite, fondsSombresDe, intensitesDe, partDeLaReference, partsDe, rampesDe } from './palette';
 import { estLibre, grilleDe } from './nuances';
-import { decalagesDeLEmploi } from './promesses';
 import { facteurSombre, MODES, rampeDe, type Intensite, type Mode } from './rampe';
 import type { Palette, Recette } from './recette';
 
@@ -34,6 +34,13 @@ export const TOLERANCE_FOND = 0.005;
 export const CRANS_PALETTES_PROCHES: readonly number[] = [500, 600, 700];
 
 /**
+ * Le dernier état que « Profils confondus » compare. Le quatrième rang vise
+ * 950, où les deux profils se confondent sur la plupart des teintes, comme à
+ * la 50, sans qu'aucun réglage les sépare.
+ */
+const DECALAGE_MAXIMAL_DES_CONFUSIONS = 2;
+
+/**
  * Les rangs des crans que la table des emplois vise dans `crans`, états `+1`
  * et `+2` compris quand l'emploi les prend dans une paire ([VER-11]). La 50
  * de `surface-card` n'en est pas : les deux profils s'y confondent sur la
@@ -45,7 +52,7 @@ export function rangsDesEmplois(recette: Recette): number[] {
     const cible = TABLE_DES_EMPLOIS[nom];
     if (cible === 'fond' || EMPLOIS_FACULTATIFS.includes(nom)) continue;
     const rang = recette.crans.indexOf(cible);
-    for (const decalage of decalagesDeLEmploi(nom)) {
+    for (const decalage of decalagesDeLEmploi(nom).filter((decalage) => decalage <= DECALAGE_MAXIMAL_DES_CONFUSIONS)) {
       if (rang >= 0 && rang + decalage < recette.crans.length) rangs.add(rang + decalage);
     }
   }

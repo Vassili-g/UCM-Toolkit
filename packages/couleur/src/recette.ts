@@ -6,29 +6,52 @@
  * La validation ne rédige aucune phrase. Elle rend des refus structurés, la
  * règle et le chemin du champ fautif ; l'interface les met en mots.
  */
+import { CRANS_DES_EMPLOIS } from '@ucm-kit/core/emplois';
+
 import { lireHexa } from './conversions';
-import { CRANS_DES_EMPLOIS } from './emplois';
 import { PREREGLAGES } from './nuances';
-import { DERIVE_MAXIMALE, type Profil } from './rampe';
+import { BORNES_DU_COLOR_SHIFT, type Profil } from './rampe';
 import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
 
 /**
- * La version de la forme de la recette que ce paquet écrit. La version 2
- * ajoute `base` à une palette ; la version 3, `crans` et `originale` ; la
- * version 4, `intensites` à une palette, `intensiteDesFondsSombres` et
- * `contenuDesPlanches` à la recette ; la version 5, `reglages` à une
- * palette ; la version 6 retire les parts d'origine `grise` et
- * `seuils.chromaGrise`. Un plugin qui lit une version antérieure classe donc
- * la recette « future » au lieu de refuser une clé inconnue.
+ * La version de la forme de la recette que ce paquet écrit. La version 7
+ * exige 400 et 950 dans `crans` et ajoute `saturation` et `clarte` au Color
+ * shift d'une palette. Une recette d'une autre version n'est pas convertie
+ * ([REC-03]) : plus ancienne, elle est illisible ; plus récente, future.
  */
-export const FORMAT_RECETTE = 6;
+export const FORMAT_RECETTE = 7;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
+/** Un décalage du Color shift à chaque bout de la rampe ([MOT-30]). */
+export interface DecalageAuxBouts {
+  readonly clair: number;
+  readonly sombre: number;
+}
+
+/**
+ * Le Color shift d'un profil ([MOT-30]). `clair`, `sombre` et `origine`
+ * portent la teinte ; `saturation` et `clarte` sont absents quand leurs deux
+ * bouts valent zéro. `origine` ne mesure que la teinte.
+ */
 export interface DeriveRangee {
   readonly clair: number;
   readonly sombre: number;
   readonly origine: OrigineDerive;
+  readonly saturation?: DecalageAuxBouts;
+  readonly clarte?: DecalageAuxBouts;
+}
+
+/** Les deux décalages facultatifs du Color shift. */
+export const DECALAGES_DU_COLOR_SHIFT = ['saturation', 'clarte'] as const;
+
+export type DecalageDuColorShift = (typeof DECALAGES_DU_COLOR_SHIFT)[number];
+
+const DECALAGE_NUL: DecalageAuxBouts = { clair: 0, sombre: 0 };
+
+/** Le décalage d'une grandeur du Color shift, zéro aux deux bouts quand la recette ne le range pas. */
+export function decalageRange(derive: DeriveRangee, grandeur: DecalageDuColorShift): DecalageAuxBouts {
+  return derive[grandeur] ?? DECALAGE_NUL;
 }
 
 /** Des parts propres viennent toujours du designer ([ENT-09]). */
@@ -163,6 +186,9 @@ export type RegleRecette =
   | 'derives-teintes'
   | 'derives-teintes-claires'
   | 'derive-bornes'
+  | 'derive-saturation'
+  | 'derive-clarte'
+  | 'derive-nulle'
   | 'derive-lien'
   | 'origine-inconnue'
   | 'identifiant-forme'
@@ -325,17 +351,44 @@ function validerCransLibres(releve: Releve, crans: unknown, chemin: string): voi
 const ORIGINES_DERIVE: readonly string[] = ['tailwind', 'constante', 'libre'];
 const ORIGINES_PARTS: readonly string[] = ['designer'];
 
+const REGLE_DE_LA_BORNE: { readonly [G in DecalageDuColorShift]: RegleRecette } = {
+  saturation: 'derive-saturation',
+  clarte: 'derive-clarte',
+};
+
+/** Un décalage aux deux bouts : deux nombres dans leur borne, pas tous deux nuls ([REC-05]). */
+function validerDecalage(releve: Releve, decalage: unknown, chemin: string, grandeur: DecalageDuColorShift): void {
+  if (!releve.objet(decalage, chemin, ['clair', 'sombre'])) return;
+  const borne = BORNES_DU_COLOR_SHIFT[grandeur];
+  const lus = (['clair', 'sombre'] as const).filter((bout) => {
+    const valeur = decalage[bout];
+    if (!releve.nombre(valeur, `${chemin}.${bout}`)) return false;
+    if (Math.abs(valeur) > borne) releve.refuser(REGLE_DE_LA_BORNE[grandeur], `${chemin}.${bout}`, valeur);
+    return true;
+  });
+  if (lus.length === 2 && decalage.clair === 0 && decalage.sombre === 0) releve.refuser('derive-nulle', chemin);
+}
+
 function validerDerivePalette(releve: Releve, derive: unknown, chemin: string): void {
-  if (!releve.objet(derive, chemin, ['clair', 'sombre', 'origine'])) return;
+  if (!releve.objet(derive, chemin, ['clair', 'sombre', 'origine'], DECALAGES_DU_COLOR_SHIFT)) return;
   for (const bout of ['clair', 'sombre'] as const) {
     const angle = derive[bout];
-    if (releve.nombre(angle, `${chemin}.${bout}`) && Math.abs(angle) > DERIVE_MAXIMALE) {
+    if (releve.nombre(angle, `${chemin}.${bout}`) && Math.abs(angle) > BORNES_DU_COLOR_SHIFT.teinte) {
       releve.refuser('derive-bornes', `${chemin}.${bout}`, angle);
     }
   }
   if (!ORIGINES_DERIVE.includes(derive.origine as string)) {
     releve.refuser('origine-inconnue', `${chemin}.origine`, derive.origine);
   }
+  for (const grandeur of DECALAGES_DU_COLOR_SHIFT) {
+    if (grandeur in derive) validerDecalage(releve, derive[grandeur], `${chemin}.${grandeur}`, grandeur);
+  }
+}
+
+/** Le Color shift d'un profil en sept valeurs, un décalage absent valant zéro aux deux bouts. */
+function valeursDuColorShift(derive: Objet): unknown[] {
+  const bouts = (decalage: unknown): unknown[] => (estObjet(decalage) ? [decalage.clair, decalage.sombre] : [0, 0]);
+  return [derive.clair, derive.sombre, derive.origine, ...bouts(derive.saturation), ...bouts(derive.clarte)];
 }
 
 /**
@@ -459,10 +512,10 @@ function validerPalette(releve: Releve, palette: unknown, chemin: string): void 
     if (typeof derive.lien !== 'boolean') releve.refuser('forme', `${chemin}.derive.lien`);
     validerDerivePalette(releve, derive.soft, `${chemin}.derive.soft`);
     validerDerivePalette(releve, derive.vivid, `${chemin}.derive.vivid`);
-    const soft = derive.soft as Objet;
-    const vivid = derive.vivid as Objet;
+    const soft = derive.soft;
+    const vivid = derive.vivid;
     const identiques = estObjet(soft) && estObjet(vivid)
-      && ['clair', 'sombre', 'origine'].every((cle) => soft[cle] === vivid[cle]);
+      && valeursDuColorShift(soft).every((valeur, rang) => valeur === valeursDuColorShift(vivid)[rang]);
     if (derive.lien === true && !identiques) releve.refuser('derive-lien', `${chemin}.derive`);
   }
 
@@ -563,71 +616,21 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   return releve.refus.length > 0 ? { refus: releve.refus } : { recette: entree as unknown as Recette };
 }
 
-/** Une migration fait passer un objet de la version `n` à la version `n + 1`. */
-export type Migrations = Readonly<Record<number, (ancienne: Objet) => Objet>>;
-
-/**
- * Les migrations connues. De 1 à 2, `base`, et de 2 à 3, `crans` et
- * `originale`, sont facultatifs : rien d'autre ne change dans le texte. Les
- * couleurs d'une liste importée qui ne porte pas 50 ou 950 changent pourtant,
- * les bouts de la dérive se lisant désormais à ces numéros. De 3 à 4,
- * `intensites` est facultatif et chaque palette garde ses deux intensités ;
- * la recette reçoit les valeurs par défaut de `intensiteDesFondsSombres` et
- * de `contenuDesPlanches`. Les fonds du thème Dark changent donc de couleur.
- * De 4 à 5, `reglages` est facultatif : aucune palette n'en reçoit, et
- * aucune couleur ne change. De 5 à 6, les parts d'origine `grise` et
- * `seuils.chromaGrise` se retirent : ces palettes prennent les parts de
- * `partsDesProfils`, et leurs couleurs changent. Un champ qui n'a pas la
- * forme attendue reste tel quel, pour que la validation le refuse.
- */
-export const MIGRATIONS: Migrations = {
-  1: (ancienne) => ({ ...ancienne, formatVersion: 2 }),
-  2: (ancienne) => ({ ...ancienne, formatVersion: 3 }),
-  3: (ancienne) => ({
-    ...ancienne,
-    formatVersion: 4,
-    intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
-    contenuDesPlanches: { ...CONTENU_COMPLET },
-  }),
-  4: (ancienne) => ({ ...ancienne, formatVersion: 5 }),
-  5: (ancienne) => ({
-    ...ancienne,
-    formatVersion: 6,
-    ...(estObjet(ancienne.seuils) && typeof ancienne.seuils.chromaGrise === 'number' ? { seuils: sansCle(ancienne.seuils, 'chromaGrise') } : {}),
-    ...(Array.isArray(ancienne.palettes) ? { palettes: ancienne.palettes.map(sansPartsGrises) } : {}),
-  }),
-};
-
-/** Un objet sans `cle`. */
-function sansCle(objet: Objet, cle: string): Objet {
-  const { [cle]: _retiree, ...reste } = objet;
-  return reste;
-}
-
-/** Une palette rangée sans ses parts d'origine `grise`, deux nombres ; toute autre valeur reste. */
-function sansPartsGrises(palette: unknown): unknown {
-  const parts = estObjet(palette) ? palette.parts : undefined;
-  const grises = estObjet(parts) && parts.origine === 'grise' && typeof parts.soft === 'number' && typeof parts.vivid === 'number';
-  return grises ? sansCle(palette as Objet, 'parts') : palette;
-}
-
 /** Ce que la lecture conclut d'une recette rangée ([REC-03]). */
 export type Classement =
   | { readonly etat: 'absente'; readonly recette: Recette }
   | { readonly etat: 'courante'; readonly recette: Recette }
-  | { readonly etat: 'migree'; readonly recette: Recette; readonly depuis: number }
   | { readonly etat: 'future'; readonly version: number }
   | { readonly etat: 'illisible'; readonly refus: readonly Refus[] };
 
 /**
  * Classe le texte rangé sous la clé de la recette avant tout emploi
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
- * supérieure est `future`. Une version antérieure passe par chaque migration
- * jusqu'à la courante, en mémoire ; une étape manquante la rend illisible.
- * Aucune branche n'écrit : le refus laisse la recette rangée intacte
- * ([REC-04]).
+ * supérieure est `future`. Une version antérieure est illisible, par le refus
+ * de `formatVersion`, sans conversion. Aucune branche n'écrit : le refus
+ * laisse la recette rangée intacte ([REC-04]).
  */
-export function classerRecette(texte: string | undefined, migrations: Migrations = MIGRATIONS): Classement {
+export function classerRecette(texte: string | undefined): Classement {
   if (texte === undefined || texte === '') return { etat: 'absente', recette: recetteParDefaut() };
 
   let objet: unknown;
@@ -643,17 +646,10 @@ export function classerRecette(texte: string | undefined, migrations: Migrations
     return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion' }] };
   }
   if ((version as number) > FORMAT_RECETTE) return { etat: 'future', version: version as number };
-
-  let courante: Objet = objet;
-  for (let depuis = version as number; depuis < FORMAT_RECETTE; depuis += 1) {
-    const etape = migrations[depuis];
-    if (!etape) return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version as number }] };
-    courante = etape(courante);
+  if ((version as number) < FORMAT_RECETTE) {
+    return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version as number }] };
   }
 
-  const lue = validerRecette(courante);
-  if ('refus' in lue) return { etat: 'illisible', refus: lue.refus };
-  return version === FORMAT_RECETTE
-    ? { etat: 'courante', recette: lue.recette }
-    : { etat: 'migree', recette: lue.recette, depuis: version as number };
+  const lue = validerRecette(objet);
+  return 'refus' in lue ? { etat: 'illisible', refus: lue.refus } : { etat: 'courante', recette: lue.recette };
 }

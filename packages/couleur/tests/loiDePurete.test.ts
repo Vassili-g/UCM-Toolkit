@@ -5,8 +5,10 @@
  * `performance` : son `tsconfig.json` ne charge aucun type d'environnement.
  * Cette loi porte sur ce que le compilateur accepte parce que ES2020 le
  * déclare : `Date`, `Math.random`, `Intl` et `toLocaleString`. `TextEncoder`
- * s'y ajoute, absent du sandbox Figma. Borne : la lecture est textuelle, ligne
- * à ligne, commentaires retirés ; un accès par une chaîne calculée lui échappe.
+ * s'y ajoute, absent du sandbox Figma. Le vocabulaire que le moteur importe de
+ * `@ucm-kit/core/emplois` y est soumis aussi. Borne : la lecture est
+ * textuelle, ligne à ligne, commentaires retirés ; un accès par une chaîne
+ * calculée lui échappe.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -14,7 +16,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src');
+const ici = path.dirname(fileURLToPath(import.meta.url));
+const SOURCES = [
+  { dossier: path.resolve(ici, '..', 'src'), nom: 'src' },
+  { dossier: path.resolve(ici, '..', '..', 'kit', 'src', 'emplois'), nom: 'kit/src/emplois' },
+];
 
 const INTERDITS = ['Date', 'Math.random', 'Intl', 'toLocaleString', 'TextEncoder'];
 
@@ -25,17 +31,18 @@ function lignesDeCode(contenu: string): string[] {
 }
 
 test('loi de pureté : aucun fichier du moteur ne lit l’heure, le hasard ou la langue', () => {
-  const fichiers = fs.readdirSync(source).filter((nom) => nom.endsWith('.ts'));
-  assert.ok(fichiers.length >= 5, `seuls ${fichiers.length} fichiers trouvés sous src/`);
-
   const fautes: string[] = [];
-  for (const nom of fichiers) {
-    lignesDeCode(fs.readFileSync(path.join(source, nom), 'utf8')).forEach((ligne, rang) => {
-      for (const interdit of INTERDITS) {
-        const motif = new RegExp(`(?<![A-Za-z0-9_$])${interdit.replace('.', '\\.')}(?![A-Za-z0-9_$])`);
-        if (motif.test(ligne)) fautes.push(`src/${nom}:${rang + 1} emploie ${interdit}`);
-      }
-    });
+  for (const { dossier, nom: racine } of SOURCES) {
+    const fichiers = fs.readdirSync(dossier).filter((nom) => nom.endsWith('.ts'));
+    assert.ok(fichiers.length >= 5, `seuls ${fichiers.length} fichiers trouvés sous ${racine}/`);
+    for (const nom of fichiers) {
+      lignesDeCode(fs.readFileSync(path.join(dossier, nom), 'utf8')).forEach((ligne, rang) => {
+        for (const interdit of INTERDITS) {
+          const motif = new RegExp(`(?<![A-Za-z0-9_$])${interdit.replace('.', '\\.')}(?![A-Za-z0-9_$])`);
+          if (motif.test(ligne)) fautes.push(`${racine}/${nom}:${rang + 1} emploie ${interdit}`);
+        }
+      });
+    }
   }
   assert.deepEqual(fautes, []);
 });

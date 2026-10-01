@@ -5,8 +5,8 @@ import test from 'node:test';
 import {
   CRANS_DES_EMPLOIS,
   FORMAT_RECETTE,
-  MIGRATIONS,
   classerRecette,
+  jsonCanonique,
   recetteParDefaut,
   validerRecette,
   type RegleRecette,
@@ -52,6 +52,31 @@ const CAS: [RegleRecette, string, (r: any) => void][] = [
     r.palettes[0].derive.soft.clair = 95;
   }],
   ['derive-lien', 'palettes[0].derive', (r) => { r.palettes[0].derive.vivid.sombre += 1; }],
+  ['derive-lien', 'palettes[0].derive', (r) => { r.palettes[0].derive.vivid.saturation = { clair: 0.3, sombre: 0 }; }],
+  ['derive-lien', 'palettes[0].derive', (r) => {
+    r.palettes[0].derive.soft.clarte = { clair: 0, sombre: -0.02 };
+    r.palettes[0].derive.vivid.clarte = { clair: 0, sombre: -0.03 };
+  }],
+  ['derive-saturation', 'palettes[0].derive.soft.saturation.clair', (r) => {
+    r.palettes[0].derive.lien = false;
+    r.palettes[0].derive.soft.saturation = { clair: 1.2, sombre: 0 };
+  }],
+  ['derive-clarte', 'palettes[0].derive.vivid.clarte.sombre', (r) => {
+    r.palettes[0].derive.lien = false;
+    r.palettes[0].derive.vivid.clarte = { clair: 0, sombre: -0.2 };
+  }],
+  ['derive-nulle', 'palettes[0].derive.soft.saturation', (r) => {
+    r.palettes[0].derive.lien = false;
+    r.palettes[0].derive.soft.saturation = { clair: 0, sombre: 0 };
+  }],
+  ['forme', 'palettes[0].derive.soft.clarte.clair', (r) => {
+    r.palettes[0].derive.lien = false;
+    r.palettes[0].derive.soft.clarte = { sombre: 0.1 };
+  }],
+  ['cle-inconnue', 'palettes[0].derive.soft.clarte.milieu', (r) => {
+    r.palettes[0].derive.lien = false;
+    r.palettes[0].derive.soft.clarte = { clair: 0.1, sombre: 0, milieu: 0 };
+  }],
   ['origine-inconnue', 'palettes[1].derive.vivid.origine', (r) => {
     r.palettes[1].derive.lien = false;
     r.palettes[1].derive.vivid.origine = 'auto';
@@ -105,52 +130,33 @@ test('[REC-03] une recette de la version courante est lue', () => {
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une version antérieure connue est migrée en mémoire', () => {
-  const ancienne = { ...valide(), formatVersion: 0 };
-  const migrations = { ...MIGRATIONS, 0: (objet: Record<string, unknown>) => ({ ...objet, formatVersion: 1 }) };
-  const classement = classerRecette(JSON.stringify(ancienne), migrations);
-  assert.equal(classement.etat, 'migree');
-  assert.ok(classement.etat === 'migree' && classement.depuis === 0 && classement.recette.formatVersion === FORMAT_RECETTE);
-});
-
-test('[REC-03] [ENT-09] une recette 4 ou 5 perd ses parts grises et son seuil de gris ; les parts du designer restent', () => {
-  const recette = valide();
-  const [bleu, ambre] = recette.palettes;
-  const designer = { ...ambre, parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } };
-  for (const version of [4, 5]) {
-    const ancienne = {
-      ...recette,
-      formatVersion: version,
-      seuils: { ...recette.seuils, chromaGrise: 0.03 },
-      palettes: [{ ...bleu, parts: { soft: 0.094, vivid: 0.094, origine: 'grise' } }, designer],
-    };
-    const classement = classerRecette(JSON.stringify(ancienne));
-    assert.ok(classement.etat === 'migree' && classement.depuis === version, `${version} : ${JSON.stringify(classement).slice(0, 200)}`);
-    assert.deepEqual(classement.recette, { ...recette, palettes: [bleu, designer] });
-  }
-  // La version 6 n'accepte plus l'origine `grise`, ni le seuil.
-  const refus = validerRecette({ ...recette, palettes: [{ ...bleu, parts: { soft: 0.1, vivid: 0.1, origine: 'grise' } }] });
-  assert.ok('refus' in refus);
-  assert.ok('refus' in validerRecette({ ...recette, seuils: { ...recette.seuils, chromaGrise: 0.03 } }));
-});
-
-test('[REC-03] une recette 5 dont le seuil de gris ou les parts grises sont mal formés reste illisible', () => {
-  const recette = valide();
-  const [bleu] = recette.palettes;
-  const seuilCasse = { ...recette, formatVersion: 5, seuils: { ...recette.seuils, chromaGrise: 'abc' } };
-  assert.equal(classerRecette(JSON.stringify(seuilCasse)).etat, 'illisible');
-  const partsCassees = { ...recette, formatVersion: 5, seuils: { ...recette.seuils, chromaGrise: 0.03 }, palettes: [{ ...bleu, parts: { soft: 'x', vivid: 0.1, origine: 'grise' } }] };
-  assert.equal(classerRecette(JSON.stringify(partsCassees)).etat, 'illisible');
-});
-
-test('[REC-03] une recette 6 exportée puis relue est égale', () => {
+test('[REC-03] une recette 7 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 6);
+  assert.equal(recette.formatVersion, 7);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une version antérieure sans migration est illisible', () => {
-  assert.equal(classerRecette(JSON.stringify({ ...valide(), formatVersion: 0 })).etat, 'illisible');
+test('[REC-03] une recette d’un format antérieur est illisible, sans conversion, par le refus de formatVersion', () => {
+  for (const version of [0, 3, 6]) {
+    assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: version })), {
+      etat: 'illisible',
+      refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version }],
+    });
+  }
+});
+
+test('[REC-05] [MOT-30] une recette dont le Color shift porte saturation et clarté se valide et se relit à l’octet', () => {
+  const recette = valide();
+  const colorShift = { saturation: { clair: -0.4, sombre: 0.25 }, clarte: { clair: 0.012, sombre: -0.08 } };
+  recette.palettes[0].derive.soft = { ...recette.palettes[0].derive.soft, ...colorShift };
+  recette.palettes[0].derive.vivid = { ...recette.palettes[0].derive.vivid, ...colorShift };
+  recette.palettes[1].derive.lien = false;
+  recette.palettes[1].derive.vivid = { ...recette.palettes[1].derive.vivid, clarte: { clair: 0.15, sombre: -0.15 } };
+  assert.deepEqual(validerRecette(copie(recette)), { recette });
+  const texte = jsonCanonique(recette);
+  const lue = classerRecette(texte);
+  assert.ok(lue.etat === 'courante');
+  assert.equal(jsonCanonique(lue.recette), texte);
 });
 
 test('[REC-03] une version supérieure est future', () => {

@@ -7,7 +7,7 @@
     "rootDir": "src",
     "noEmit": false
   },
-  // Seul le sous-chemin format se compile : les lecteurs qui le rejoindront en
-  // Phase 2 sont du JavaScript pur et se publieront tels quels.
-  "include": ["src/format/**/*"]
+  // Seuls les sous-chemins format et emplois se compilent : les lecteurs sont
+  // du JavaScript pur et se publient tels quels.
+  "include": ["src/format/**/*", "src/emplois/**/*"]
 }

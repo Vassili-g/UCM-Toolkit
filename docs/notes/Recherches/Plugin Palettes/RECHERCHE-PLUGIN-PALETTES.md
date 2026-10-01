@@ -1718,7 +1718,7 @@ palette » gardent leurs libellés au-dessus des champs.
   numéro du partenaire et son badge (« ✓ sur `surface` 100 : 5,78:1 AA »). Un clic sur la
   garantie la choisit dans la carte des garanties. La pastille `on-solid` a son
   propre détail : le fond de page du thème, `neutral.50` du design system,
-  posé en texte sur `solid` 700 à 900, avec les garanties de ces trois états.
+  posé en texte sur `solid` 700 à 950, avec les garanties de ces quatre états.
   Une nuance sans rôle a l'encadré « Sans rôle », qui dit qu'aucun rôle du
   modèle ne la vise. Toute nuance porte ensuite l'encadré « Contrastes de la
   nuance » : fond du thème, blanc et noir, chacun avec son ratio et son badge

@@ -74,10 +74,10 @@ test('[ENT-14] sur cinq cents références, la rampe unique est celle du profil 
   assert.deepEqual(fautes.slice(0, 5), []);
 });
 
-test('[ENT-14] une palette à une intensité juge trente-deux promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
+test('[ENT-14] une palette à une intensité juge trente-huit promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
   const bleu = unique('p-000000c3', '#1E6FD9');
   const promesses = verifierPromesses(recetteAvec(bleu), bleu);
-  assert.equal(promesses.length, 32);
+  assert.equal(promesses.length, 38);
   assert.deepEqual([...new Set(promesses.map((promesse) => promesse.profil))], ['unique']);
   // La courbe claire place le 700 à 0,55 : `text` sur `surface` manque en clair, et seules les promesses de la rampe unique comptent.
   const recette = recetteAvec(bleu);
@@ -122,23 +122,6 @@ test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette
   assert.deepEqual(refus((palette) => { palette.derive.lien = false; }), ['intensites-incompatible palettes[0].derive.lien']);
 });
 
-test('[REC-03] une recette de format 3 se relit avec deux intensités par palette, ses palettes et ses couleurs Light intactes', () => {
-  const bleu = paletteTailwind('p-000000c6', '#1E6FD9');
-  const jaune = paletteTailwind('p-000000c7', '#FACC15', { base: 'soft' });
-  const actuelle = recetteAvec(bleu, jaune);
-  const { intensiteDesFondsSombres: _facteur, contenuDesPlanches: _contenu, ...sansFormat4 } = actuelle;
-  const classement = classerRecette(jsonCanonique({ ...sansFormat4, formatVersion: 3 }));
-  assert.ok(classement.etat === 'migree' && classement.depuis === 3, JSON.stringify(classement).slice(0, 200));
-  assert.deepEqual(classement.recette.palettes, [bleu, jaune]);
-  assert.equal(classement.recette.intensiteDesFondsSombres, 0.3);
-  assert.deepEqual(classement.recette.contenuDesPlanches, { note: true, usages: true, grilles: true, light: true, dark: true });
-  for (const palette of [bleu, jaune]) {
-    assert.deepEqual(intensitesDe(palette), ['soft', 'vivid']);
-    const lues = rampesDe(classement.recette, palette);
-    for (const profil of PROFILS) assert.deepEqual(lues[profil]!.light, rampesDe(actuelle, palette)[profil]!.light);
-  }
-});
-
 /** La distance de deux palettes sur une rampe donnée de chacune, crans 500, 600 et 700 en clair. */
 function distanceSur(recette: Recette, a: Palette, cote: Intensite, b: Palette, autre: Intensite): number {
   const rangs = CRANS_PALETTES_PROCHES.map((cran) => recette.crans.indexOf(cran));
@@ -159,5 +142,5 @@ test('[VER-17] « Palettes proches » : Vivid contre Vivid à deux intensités, 
   assert.equal(distanceDePalettes(recette, sauge, autre), distanceSur(recette, sauge, 'unique', autre, 'unique'));
   const bleu = paletteTailwind('p-000000cb', '#1E6FD9');
   assert.equal(distanceDePalettes(recette, bleu, deux), distanceSur(recette, bleu, 'vivid', deux, 'vivid'), 'deux intensités : Vivid contre Vivid, comme au format 3');
-  assert.equal(recetteParDefaut().formatVersion, 6);
+  assert.equal(recetteParDefaut().formatVersion, 7);
 });

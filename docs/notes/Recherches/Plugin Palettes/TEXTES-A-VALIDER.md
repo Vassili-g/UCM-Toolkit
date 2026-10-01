@@ -347,6 +347,21 @@ Libellés de l'écart d'un import : « Color shift, teinte », « Color shift,
 saturation », « Color shift, luminosité » ; « Color shift, hue », « Color
 shift, saturation », « Color shift, lightness ».
 
+Le plugin écrit ces refus avec un geste, comme les autres refus de
+validation : « Corrigez ce champ dans le fichier importé. » pour une borne,
+« Retirez ce champ dans le fichier importé. » pour deux décalages nuls,
+« Donnez-leur les mêmes valeurs ou désactivez la synchronisation. » pour
+`derive-lien`. Leurs clés sont `derive-saturation`, `derive-clarte` et
+`derive-nulle`.
+
+### Quatrième rang
+
+| Texte | Français | Anglais | Retenue |
+|---|---|---|---|
+| Nom du rang | active-hover | active-hover | |
+| État d'un emploi | {emploi}, état active-hover | {emploi}, active-hover state | |
+| Légende des arcs de la carte des garanties | Trait plein : default · tireté : hover · pointillé : active · tiret-point : active-hover. L'état avance d'une nuance, texte et fond ensemble. | Solid line: default · dashed: hover · dotted: active · dash-dot: active-hover. Each state moves both text and background forward by one shade. | |
+
 ## Questions pour le mainteneur
 
 - La notice « Référence plus vive que vivid » n'a de geste que si la rampe doit

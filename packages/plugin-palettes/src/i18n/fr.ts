@@ -12,6 +12,7 @@ import type { ChampDePalette } from '../importation';
 import type { EtatDuCadre } from '../planche/fraicheur';
 import {
   FORMAT_RECETTE,
+  RANGS,
   ecrireArrondi,
   ecrireContraste,
   niveauxWcag,
@@ -572,7 +573,7 @@ export const NOM_DE_L_EMPLOI = Object.fromEntries(
 ) as Record<Emploi, string>;
 
 /** L'état d'une paire, sous son spécimen, dans le vocabulaire des composants (N033, N100, W5.7). */
-export const NOM_DE_L_ETAT: Record<EtatDePaire, string> = { 0: 'default', 1: 'hover', 2: 'active' };
+export const NOM_DE_L_ETAT: Record<EtatDePaire, string> = { ...RANGS };
 
 /**
  * Le résultat d'une intensité (N035) : « Vivid ✓ », « Vivid ✗ 2 », et pour la
@@ -600,7 +601,7 @@ export const TEXTES_DES_GARANTIES = {
   minimum: (seuil: number) => `minimum ${seuilEcrit(seuil)}:1`,
   sur: 'sur',
   fond: 'fond',
-  legende: 'Trait plein : default · tireté : hover · pointillé : active. L’état avance d’une nuance, texte et fond ensemble.',
+  legende: 'Trait plein : default · tireté : hover · pointillé : active · tiret-point : active-hover. L’état avance d’une nuance, texte et fond ensemble.',
   onSolid: 'on-solid est le fond de page du thème, neutral.50 du design system.',
   decoratif: (numero: number) => `${numero} · séparateur, sans minimum de contraste`,
   specimenBouton: 'Bouton',
@@ -681,7 +682,7 @@ export const TEXTES_DU_NUANCIER = {
   etiquetteDuFond: (hexa: string) => `on-solid, fond du thème, couleur ${hexa}`,
 } as const;
 
-const ETATS_DU_DECALAGE = ['', ', état hover', ', état active'];
+const ETATS_DU_DECALAGE = ['', ', état hover', ', état active', ', état active-hover'];
 
 /** Un emploi et son état : « Texte coloré (text), état hover ». */
 export function emploiEcrit({ emploi, decalage }: EmploiDUnCran): string {
@@ -842,15 +843,17 @@ const CLES_DE_PALETTE: Record<string, string> = {
   id: 'identifiant de la palette',
   nom: 'nom de la palette',
   reference: 'couleur de référence',
-  derive: 'dérive de teinte',
+  derive: 'Color shift',
   parts: 'intensités personnalisées',
   base: 'palette de base',
   intensites: 'intensités',
   crans: 'nuances de la palette libre',
   originale: 'couleur de référence d’origine',
-  clair: 'côté clair',
-  sombre: 'côté sombre',
-  lien: 'liaison des teintes',
+  clair: 'nuances claires',
+  sombre: 'nuances sombres',
+  saturation: 'saturation',
+  clarte: 'luminosité',
+  lien: 'synchronisation de Soft et Vivid',
   origine: 'origine du réglage',
 };
 /** Les parties d'un cadre, dans un chemin `contenuDesPlanches.…` ([PLA-28]). */
@@ -891,6 +894,8 @@ export function nommerChamp(chemin: string): string {
   if (trouve) return `Préréglage Tailwind, gamme ${Number(trouve[1]) + 1}`;
   trouve = /^palettes\[(\d+)\]\.crans\[(\d+)\]$/.exec(chemin);
   if (trouve) return `Palette ${Number(trouve[1]) + 1}, ${rangEcrit(Number(trouve[2]))} nuance`;
+  trouve = /^palettes\[(\d+)\]\.derive\.(soft|vivid)\.(clair|sombre)$/.exec(chemin);
+  if (trouve) return `Palette ${Number(trouve[1]) + 1}, Color shift, ${trouve[2]}, teinte, ${CLES_DE_PALETTE[trouve[3]]}`;
   trouve = /^palettes\[(\d+)\]((?:\.\w+)*)$/.exec(chemin);
   if (trouve) {
     const suite = trouve[2].split('.').filter(Boolean).map((cle) => CLES_DE_PALETTE[cle] ?? cle);
@@ -930,7 +935,11 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'derives-teintes': (champ, valeur) => `${champ} : saisissez une teinte entre 0° inclus et 360° exclu. Valeur reçue : ${valeur}°.`,
   'derives-teintes-claires': (_, valeur) => `Préréglage Tailwind : deux gammes utilisent la même teinte côté clair (${valeur}°). Attribuez-leur des teintes différentes.`,
   'derive-bornes': (champ, valeur) => `${champ} : saisissez un décalage entre −90° et +90°. Valeur reçue : ${valeur}°.`,
-  'derive-lien': (champ) => `${champ} : soft et vivid sont liés, mais leurs variations de teinte diffèrent. Donnez-leur les mêmes valeurs ou désactivez la liaison.`,
+  'derive-lien': (champ) => `${champ} : profils liés, mais Color shift différents. Donnez-leur les mêmes valeurs ou désactivez la synchronisation.`,
+  // Les trois règles du format 7 ([MOT-30]).
+  'derive-saturation': (champ, valeur) => `${champ} : décalage de saturation ${valeur}, hors de −1 à 1. Corrigez ce champ dans le fichier importé.`,
+  'derive-clarte': (champ, valeur) => `${champ} : décalage de luminosité ${valeur}, hors de −0,15 à 0,15. Corrigez ce champ dans le fichier importé.`,
+  'derive-nulle': (champ) => `${champ} : les deux décalages valent zéro. Retirez ce champ dans le fichier importé.`,
   'origine-inconnue': (champ, valeur) => `${champ} : l’origine « ${valeur} » n’est pas reconnue. Faites vérifier ce champ dans le fichier importé.`,
   'identifiant-forme': (_, valeur) => `L’identifiant de palette « ${valeur} » n’a pas le format attendu. Faites vérifier cet identifiant dans le fichier importé.`,
   'identifiants-uniques': (_, valeur) => `Deux palettes utilisent l’identifiant « ${valeur} ». Attribuez un identifiant différent à chacune dans le fichier importé.`,
@@ -1042,7 +1051,9 @@ const NOMS_DES_CHAMPS: Record<ChampDePalette, string> = {
   intensites: 'nombre d’intensités',
   base: 'palette de base',
   parts: 'intensités propres',
-  derive: 'dérive de teinte',
+  deriveTeinte: 'Color shift, teinte',
+  deriveSaturation: 'Color shift, saturation',
+  deriveClarte: 'Color shift, luminosité',
   // N101 : les deux champs du format 3.
   crans: 'nuances de la palette libre',
   originale: 'couleur de référence d’origine',

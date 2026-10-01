@@ -73,15 +73,6 @@ test('Z10.5 [REC-05] un réglage du porteur qui rend les octets de l’originale
   assert.ok(refus(paletteTailwind('p-000000ed', BLEU, { originale: BLEU })).includes('originale-identique palettes[0].originale'));
 });
 
-test('Z10.5 [REC-03] une recette 4 se lit en 5 sans rien changer d’autre que son format', () => {
-  const ajustee = paletteTailwind('p-000000ee', '#0DA047', { originale: '#16A34A' });
-  const ancienne = { ...recetteAvec(paletteTailwind('p-000000ef', BLEU), ajustee), formatVersion: 4 };
-  const classement = classerRecette(jsonCanonique(ancienne));
-  assert.ok(classement.etat === 'migree' && classement.depuis === 4);
-  assert.equal(jsonCanonique({ ...classement.recette, formatVersion: 4 }), jsonCanonique(ancienne));
-  assert.deepEqual(rampesDe(classement.recette, ajustee), rampesDe({ ...ancienne, formatVersion: 5 }, ajustee));
-});
-
 test('Z10.5 la référence réglée : zéro rend le départ à l’octet, la clarté seule égale l’ajustement de la version 4', () => {
   // Refabriquées depuis leur OKLCH, ces couleurs très sombres changent d'octets : #000012 donnerait #00010F.
   for (const sombre of [[0, 0, 6], [0, 0, 18], [0, 0, 12]] as const) assert.deepEqual(referenceReglee(sombre, 0, 0, undefined, 'srgb'), sombre);

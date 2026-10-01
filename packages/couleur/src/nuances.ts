@@ -1,5 +1,5 @@
 /**
- * Les listes de nuances : les trois préréglages communs, la luminosité d'un
+ * Les listes de nuances : les deux préréglages communs, la luminosité d'un
  * numéro que la liste commune ne porte pas, les bouts de la dérive, et la
  * liste d'une palette libre (conception W6, `CONCEPTION-NUANCES-ET-FORMAT-3.md`).
  */
@@ -12,7 +12,7 @@ export interface Grille {
   readonly courbes: Courbes;
 }
 
-export type NombreDeNuances = 9 | 11 | 13;
+export type NombreDeNuances = 11 | 13;
 
 const ONZE: Grille = {
   crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
@@ -22,23 +22,13 @@ const ONZE: Grille = {
   },
 };
 
-/** Une grille de onze nuances, sans les numéros retirés. */
-function sans(retires: readonly number[]): Grille {
-  const garde = (_: number, rang: number) => !retires.includes(ONZE.crans[rang]);
-  return {
-    crans: ONZE.crans.filter((cran) => !retires.includes(cran)),
-    courbes: { light: ONZE.courbes.light.filter(garde), dark: ONZE.courbes.dark.filter(garde) },
-  };
-}
-
 /**
- * Les trois préréglages et leurs courbes par défaut (W6.1). Treize nuances
- * ajoutent 1000 et 1050 après 950 ; neuf retirent 400 et 950. Aucun
- * n'insère de nuance entre deux numéros d'emploi : les états gardent leurs
- * numéros.
+ * Les deux préréglages et leurs courbes par défaut (W6.1). Treize nuances
+ * ajoutent 1000 et 1050 après 950. Aucun n'insère de nuance entre deux
+ * numéros d'emploi : les rangs gardent leurs numéros, et chaque liste porte
+ * 400 et 950, que le quatrième rang vise.
  */
 export const PREREGLAGES: { readonly [N in NombreDeNuances]: Grille } = {
-  9: sans([400, 950]),
   11: ONZE,
   13: {
     crans: [...ONZE.crans, 1000, 1050],
@@ -48,7 +38,7 @@ export const PREREGLAGES: { readonly [N in NombreDeNuances]: Grille } = {
 
 /** Le préréglage qu'une liste de numéros reconnaît, `null` pour une liste importée. */
 export function nombreDeNuancesDe(crans: readonly number[]): NombreDeNuances | null {
-  for (const nombre of [9, 11, 13] as const) {
+  for (const nombre of [11, 13] as const) {
     const attendus = PREREGLAGES[nombre].crans;
     if (attendus.length === crans.length && attendus.every((cran, rang) => cran === crans[rang])) return nombre;
   }

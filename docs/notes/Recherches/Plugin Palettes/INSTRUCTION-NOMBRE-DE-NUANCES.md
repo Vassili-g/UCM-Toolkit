@@ -15,8 +15,9 @@ rang dans la liste**. Ajouter 150 ou 750 change donc le survol de `surface` ou
 de `text`, que l’architecture fixe à 200 et 800. Seules des nuances ajoutées
 entre 300 et 600, ou après 900, gardent les rôles à leurs numéros.
 
-Recommandation : trois préréglages dans les Réglages communs, 9, 11 et 13
-nuances, plutôt qu’une liste libre. Le nombre vaut pour toutes les palettes du
+Recommandation : deux préréglages dans les Réglages communs, 11 et 13
+nuances, plutôt qu’une liste libre. Le quatrième rang d’état vise 400 et 950 :
+une liste qui les omet est refusée, et aucun préréglage ne les retire. Le nombre vaut pour toutes les palettes du
 fichier, comme la luminosité. Il faut aussi décider si l’architecture
 multi-marques accepte un autre nombre que onze (voir « Écart avec
 l’architecture »).
@@ -25,7 +26,7 @@ l’architecture »).
 
 | Endroit | Ce qu’il suppose | Effet d’une autre liste |
 |---|---|---|
-| Validation de la recette, [`recette.ts`](../../../../packages/couleur/src/recette.ts), règles `crans-emplois` et `courbes-longueur` | Les sept nuances de la table des emplois, `CRANS_DES_EMPLOIS` : 100, 200, 300, 600, 700, 800, 900. Une luminosité par nuance | Une liste sans l’une d’elles est refusée. Rien d’autre n’est imposé |
+| Validation de la recette, [`recette.ts`](../../../../packages/couleur/src/recette.ts), règles `crans-emplois` et `courbes-longueur` | Les neuf nuances de la table des emplois, `CRANS_DES_EMPLOIS` : 100, 200, 300, 400, 600, 700, 800, 900, 950. Une luminosité par nuance | Une liste sans l’une d’elles est refusée. Rien d’autre n’est imposé |
 | États des rôles, `decalagesDeLEmploi` et `emploisDuCran` | Un état avance d’un rang : le survol de `text` 700 est la nuance suivante | Une nuance insérée entre 100 et 300, ou entre 600 et 900, décale les états (tableau plus bas) |
 | Garantie des courbes et alerte de fond, [`garantie.ts`](../../../../packages/couleur/src/garantie.ts) et [`alertes.ts`](../../../../packages/couleur/src/alertes.ts) (`[ENT-06]`, `[ENT-10]`) | La première nuance de la liste sert de fond de page | Une nuance ajoutée avant 50 devient le fond de référence : le sens de 50 change |
 | Alerte « Palettes proches », `CRANS_PALETTES_PROCHES` | 500, 600 et 700 | Sans 500, la distance vaut `null` : l’alerte se tait, sans message |
@@ -45,7 +46,6 @@ fait échouer la garantie des courbes.
 
 | Variante | Rampe Vivid, thème Light | Survol de `text` sur `surface` | Garanties manquées, `#1E6FD9` / `#16A34A` |
 |---|---|---|---|
-| 9 : sans 400 ni 950 | 50 `#F1F8FF` · 100 `#E3F0FE` · 200 `#CAE3FD` · 300 `#A9D0FD` · 500 `#4496FA` · 600 `#1E6FD9` · 700 `#0E5DC7` · 800 `#0845A4` · 900 `#032F82` | 800 / 200 | 0 / 2 |
 | 11 : par défaut | 50 `#F1F8FF` · 100 `#E3F0FE` · 200 `#CAE2FD` · 300 `#A9D0FD` · 400 `#7AB5FB` · 500 `#4596FA` · 600 `#1E6FD9` · 700 `#0E5DC6` · 800 `#0846A3` · 900 `#043080` · 950 `#021E61` | 800 / 200 | 0 / 2 |
 | 13 : avec 450 et 550 | … 400 `#7AB5FB` · 450 `#60A5FB` · 500 `#4596FA` · 550 `#2686F9` · 600 `#1E6FD9` … | 800 / 200 | 0 / 0 |
 | 13 : avec 150 et 750, à écarter | … 100 `#E3F0FE` · 150 `#D7E9FE` · 200 … 700 `#0E5DC6` · 750 `#0B51B5` · 800 … | **750 / 150** | 0 / 2 |
@@ -57,8 +57,8 @@ Deux effets à connaître :
   garanties manquées disparaissent, parce que la nuance 600 redevient une
   nuance calculée. Un composant qui citait la couleur exacte au 600 ne la
   retrouve plus.
-- **Une nuance supprimée en dehors des emplois ne change aucun rôle.** Sans
-  400 ni 950, les rôles, les états et les garanties restent identiques.
+- **Seule la 500 n’a aucun emploi.** Les autres nuances de la liste de onze
+  sont visées par un rôle ou un état ; les retirer casse une garantie.
 
 Insertions qui gardent les rôles à leurs numéros : entre 300 et 600 (400, 450,
 500, 550), et après 900 (950, 975). Avant 50, l’insertion change le fond de
@@ -72,7 +72,6 @@ pixels entre deux colonnes.
 
 | Nuances | Largeur d’une colonne |
 |---|---|
-| 9 | 37 px |
 | 11 | 30 px |
 | 13 | 25 px |
 | 15 | 21 px |
@@ -86,7 +85,7 @@ dans Figma avant de fixer la borne.
 
 | Geste | Pour | Contre |
 |---|---|---|
-| Trois préréglages : 9, 11, 13 | Aucune liste qui casse un état ; courbes par défaut fournies pour chacun ; « Rétablir » reste utile | Pas de numérotation libre |
+| Deux préréglages : 11, 13 | Aucune liste qui casse un état ; courbes par défaut fournies pour chacun ; « Rétablir » reste utile | Pas de numérotation libre |
 | Liste de numéros libre, validée | Toute numérotation d’un design system existant | Le designer peut insérer 150 ou 750 ; il faut une validation de plus et une luminosité à régler pour chaque ajout |
 | Ajouter ou retirer une nuance à la fois, dans la table des courbes | Proche de la table actuelle | Même risque que la liste libre ; geste plus long |
 
@@ -99,7 +98,6 @@ marque.
 
 | Nuances | `theme` | `brand` par marque |
 |---|---|---|
-| 9 | 117 | 73 |
 | 11 | 143 | 89 |
 | 13 | 169 | 105 |
 
@@ -108,16 +106,16 @@ marque.
   nuances différents dans un même fichier. Le nombre doit donc rester un
   réglage commun, jamais un réglage de palette.
 - **Le principe « un numéro vaut un contraste ».** Il tient tant que les
-  numéros gardent leur luminosité. Les préréglages 9 et 13 ci-dessus gardent
-  celle de chaque numéro existant ; une liste libre ne le garantit pas.
+  numéros gardent leur luminosité. Le préréglage 13 garde celle de chaque
+  numéro existant ; une liste libre ne le garantit pas.
 - **Ce que l’architecture devrait dire.** Soit elle garde onze nuances, et le
   plugin ne propose le réglage que hors de ce design system. Soit elle admet
   les préréglages, et sa section 1 nomme les numéros autorisés.
 
 ## Décisions demandées au mainteneur
 
-1. Le geste : trois préréglages (recommandé), liste libre, ou ajout un à un.
-2. Les numéros : 9 sans 400 ni 950, 13 avec 450 et 550, ou d’autres.
+1. Le geste : deux préréglages (recommandé), liste libre, ou ajout un à un.
+2. Les numéros : 13 avec 450 et 550, ou d’autres.
 3. La borne à 500 px : 13 (recommandé) ou 15.
 4. L’architecture multi-marques : reste à onze, ou admet les préréglages.
 

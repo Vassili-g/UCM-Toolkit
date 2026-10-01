@@ -9,7 +9,7 @@ export * from './nuances';
 export * from './ajustement';
 export * from './tailwind';
 export * from './contraste';
-export * from './emplois';
+export * from '@ucm-kit/core/emplois';
 export * from './recette';
 export * from './empreinte';
 export * from './palette';

@@ -4,15 +4,47 @@
  * l'identifiant, et paramètre commun par paramètre commun. Rien ne se range
  * avant la confirmation du designer.
  */
-import { classerRecette, jsonCanonique, type Palette, type Recette, type Refus, type Seuils } from 'ucm-couleur';
+import { classerRecette, decalageRange, jsonCanonique, type Palette, type Recette, type Refus, type Seuils } from 'ucm-couleur';
 
 /** Les paramètres communs, dans l'ordre où l'écart les nomme. */
 export const PARAMETRES_COMMUNS = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'seuils', 'derives', 'gamut', 'contenuDesPlanches'] as const;
 export type ParametreCommun = (typeof PARAMETRES_COMMUNS)[number];
 
-/** Les champs d'une palette que l'écart nomme, palette de base, liste libre, originale et intensités comprises (V12.2, W6.3). */
-export const CHAMPS_DE_PALETTE = ['nom', 'reference', 'intensites', 'base', 'parts', 'derive', 'crans', 'originale', 'reglages'] as const;
+/**
+ * Les champs d'une palette que l'écart nomme, palette de base, liste libre,
+ * originale et intensités comprises (V12.2, W6.3). Le Color shift se nomme par
+ * grandeur : sa teinte porte aussi l'origine et la synchronisation.
+ */
+export const CHAMPS_DE_PALETTE = [
+  'nom',
+  'reference',
+  'intensites',
+  'base',
+  'parts',
+  'deriveTeinte',
+  'deriveSaturation',
+  'deriveClarte',
+  'crans',
+  'originale',
+  'reglages',
+] as const;
 export type ChampDePalette = (typeof CHAMPS_DE_PALETTE)[number];
+
+/** La valeur qu'un champ de l'écart compare : une clé de la palette, ou une grandeur de son Color shift par profil. */
+function valeurDuChamp(palette: Palette | undefined, champ: ChampDePalette): unknown {
+  if (palette === undefined) return undefined;
+  const { lien, soft, vivid } = palette.derive;
+  switch (champ) {
+    case 'deriveTeinte':
+      return { lien, soft: [soft.clair, soft.sombre, soft.origine], vivid: [vivid.clair, vivid.sombre, vivid.origine] };
+    case 'deriveSaturation':
+      return { soft: decalageRange(soft, 'saturation'), vivid: decalageRange(vivid, 'saturation') };
+    case 'deriveClarte':
+      return { soft: decalageRange(soft, 'clarte'), vivid: decalageRange(vivid, 'clarte') };
+    default:
+      return palette[champ];
+  }
+}
 
 export interface EcartDImport {
   readonly ajoutees: readonly Palette[];
@@ -40,7 +72,7 @@ export interface NatureDeLEcart {
 // `contenuDesPlanches` ne peint aucune nuance : il ne change que les cadres de la planche.
 const PARAMETRES_DE_COULEUR: readonly ParametreCommun[] = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'derives', 'gamut'];
 // `originale` ne peint rien : la référence porte la couleur, et son champ change avec elle.
-const CHAMPS_DE_COULEUR: readonly ChampDePalette[] = ['reference', 'intensites', 'base', 'parts', 'derive', 'crans', 'reglages'];
+const CHAMPS_DE_COULEUR: readonly ChampDePalette[] = ['reference', 'intensites', 'base', 'parts', 'deriveTeinte', 'deriveSaturation', 'deriveClarte', 'crans', 'reglages'];
 
 export function natureDeLEcart(ecart: EcartDImport): NatureDeLEcart {
   const palettesColorees = Object.values(ecart.champs).some((champs) => champs.some((champ) => CHAMPS_DE_COULEUR.includes(champ)));
@@ -71,7 +103,7 @@ export function ecartDImport(actuelle: Recette | null, importee: Recette): Ecart
     ajoutees: importee.palettes.filter((palette) => !avant.has(palette.id)),
     retirees: (actuelle?.palettes ?? []).filter((palette) => !apres.has(palette.id)),
     modifiees,
-    champs: Object.fromEntries(modifiees.map((palette) => [palette.id, CHAMPS_DE_PALETTE.filter((champ) => !identique(avant.get(palette.id)?.[champ], palette[champ]))])),
+    champs: Object.fromEntries(modifiees.map((palette) => [palette.id, CHAMPS_DE_PALETTE.filter((champ) => !identique(valeurDuChamp(avant.get(palette.id), champ), valeurDuChamp(palette, champ)))])),
     parametres,
     seuils: parametres.includes('seuils') ? seuils : [],
   };

@@ -51,6 +51,9 @@ const PROMESSES: [string, number, Membre, Membre, number][] = [
   ['solid survolé sur fond de page', 3, 800, 'fond', 7.45],
   ['text sur surface-card', 4.5, 700, 50, 5.3],
   ['border-control sur surface-card', 3, 600, 50, 3.68],
+  ['text sur surface au quatrième rang', 4.5, 950, 400, 6.62],
+  ['on-solid sur solid au quatrième rang', 4.5, 'fond', 950, 13.65],
+  ['border-control sur surface au quatrième rang', 3, 900, 400, 5.31],
 ];
 
 /** Les fonds du thème Dark de la recette par défaut : 0,30 au numéro 50, 1 dès le 400 ([MOT-28]). */
@@ -92,7 +95,7 @@ for (const [nom, , a, b, releve] of PROMESSES) {
   });
 }
 
-test('vecteur : à dérive nulle, les seize promesses tiennent après arrondi à 8 bits', () => {
+test('vecteur : à dérive nulle, les dix-neuf promesses tiennent après arrondi à 8 bits', () => {
   const manquees = PROMESSES
     .map(([nom, seuil, a, b]) => ({ nom, seuil, obtenu: minimum(a, b, aHuitBits) }))
     .filter(({ seuil, obtenu }) => !atteintLeSeuil(obtenu, seuil))

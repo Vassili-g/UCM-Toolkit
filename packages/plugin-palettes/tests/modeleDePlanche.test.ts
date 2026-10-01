@@ -130,17 +130,18 @@ test('[PLA-14] quarante-quatre pastilles nommées profil/mode/cran, chacune une 
 /** Les usages d'un profil dans un thème ([PLA-18]). */
 const usagesDe = (racine: NoeudCadre, mode: 'light' | 'dark', profil: 'soft' | 'vivid') => trouver(trouver(racine, `thème ${mode}`), `quelle nuance pour quel usage ${profil}`);
 
-test('[PLA-18] W3.6 X6 : les usages de chaque profil, Soft puis Vivid, un état par colonne, default, hover et active ; la carte, l’anneau et le séparateur n’en ont qu’un', () => {
+test('[PLA-18] W3.6 X6 D17 : les usages de chaque profil, Soft puis Vivid, un état par colonne, de default à active-hover ; la carte, l’anneau et le séparateur n’en ont qu’un', () => {
   assert.equal((usagesDe(MODELE.racine, 'light', 'soft').enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quel usage · Soft');
   const usages = usagesDe(MODELE.racine, 'light', 'vivid');
   assert.equal((usages.enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quel usage · Vivid');
-  assert.deepEqual(textes(trouver(usages, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'active']);
+  assert.deepEqual(textes(trouver(usages, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'active', 'active-hover']);
   const lignes = usages.enfants.filter((noeud) => noeud.nom.startsWith('usage '));
   assert.deepEqual(lignes.map((noeud) => [noeud.nom, (noeud as NoeudCadre).enfants.length - 1]), [
-    ['usage surface-card', 1], ['usage surface', 3], ['usage text', 3], ['usage solid', 3], ['usage border-control', 3], ['usage focus', 1], ['usage border-decorative', 1],
+    ['usage surface-card', 1], ['usage surface', 4], ['usage text', 4], ['usage solid', 4], ['usage border-control', 4], ['usage focus', 1], ['usage border-decorative', 1],
   ]);
   const numero = (nom: string) => textes(trouver(usages, nom)).find((noeud) => noeud.nom === 'numéro')!.contenu;
-  assert.deepEqual(['text default', 'text hover', 'text active'].map(numero), ['700', '800', '900']);
+  assert.deepEqual(['text default', 'text hover', 'text active', 'text active-hover'].map(numero), ['700', '800', '900', '950']);
+  assert.equal(numero('surface active-hover'), '400');
   assert.equal(numero('focus default'), '600');
   assert.equal(numero('surface-card default'), '50');
   assert.equal(trouver(trouver(usages, 'surface-card default'), 'spécimen').fond?.hexa, MODELE.peints.find(({ nom }) => nom === 'vivid/light/50')?.hexa);
@@ -351,7 +352,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Relevé du lot Y5.4 : 1 966 calques à deux intensités, 1 008 à une ; 1 632 pour le cadre d'avant, qui montrait un seul profil d'usages.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1966);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 1008);
+  // Quatre états par usage : 2 070 calques à deux intensités, 1 060 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 2070);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 1060);
 });

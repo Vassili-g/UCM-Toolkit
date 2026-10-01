@@ -20,9 +20,11 @@ import {
   associationDe,
   cleDeLAssociation,
   etatDeLaPaire,
+  RANGS,
   lireHexa,
   rampeDe,
   type Association,
+  type EtatDePaire,
   type Mode,
   type Palette,
   type Intensite,
@@ -90,7 +92,7 @@ function construireVues(i18n: Localisation) {
 
   const PIXELS_PAR_UNITE = 451 / 491.5;
 
-  const TIRETS: Record<number, string> = { 0: '', 1: '4 3', 2: '1.5 2.5' };
+  const TIRETS: Record<EtatDePaire, string> = { 0: '', 1: '4 3', 2: '1.5 2.5', 3: '6 2 1.5 2' };
 
   function element<K extends keyof SVGElementTagNameMap>(nom: K, attributs: Record<string, string | number>): SVGElementTagNameMap[K] {
     const noeud = document.createElementNS(SVG, nom);
@@ -195,7 +197,7 @@ function construireVues(i18n: Localisation) {
         const etat = etatDeLaPaire(promesse.paire);
         const [x1, x2] = [centre(promesse, 'premier'), centre(promesse, 'second')];
         const haut = 6 + 4 * etat;
-        const arc = element('path', { d: `M${x1} 48 C${x1} ${haut}, ${x2} ${haut}, ${x2} 48`, 'stroke-dasharray': TIRETS[etat] ?? '' });
+        const arc = element('path', { d: `M${x1} 48 C${x1} ${haut}, ${x2} ${haut}, ${x2} 48`, 'stroke-dasharray': TIRETS[etat] });
         arc.classList.add('reglette-arc');
         arc.dataset.verdict = promesse.verdict;
         svg.append(arc);
@@ -349,7 +351,8 @@ function construireVues(i18n: Localisation) {
         const colonnes = document.createElement('div');
         colonnes.className = 'garanties-colonnes';
         colonnes.setAttribute('aria-hidden', 'true');
-        colonnes.append(document.createElement('span'), ...([0, 1, 2] as const).map((etat) => {
+        colonnes.append(document.createElement('span'), ...RANGS.map((_, rang) => {
+          const etat = rang as EtatDePaire;
           const nom = i18n.noeud(NOM_DE_L_ETAT[etat]);
           nom.dataset.rang = String(etat);
           return nom;

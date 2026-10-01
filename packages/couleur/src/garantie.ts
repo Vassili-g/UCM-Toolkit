@@ -6,8 +6,8 @@
  * sonne « courbe hors garantie ». L'alerte n'empêche ni le rangement ni le
  * dessin.
  */
-import { atteintLeSeuil, contraste } from './contraste';
-import { TABLE_DES_EMPLOIS, rangDuCranLeger } from './emplois';
+import { TABLE_DES_EMPLOIS, atteintLeSeuil, contraste, rangDuCranLeger } from '@ucm-kit/core/emplois';
+
 import { fabriquerCran, MODES, PROFILS, type Mode, type Profil } from './rampe';
 import type { Recette } from './recette';
 

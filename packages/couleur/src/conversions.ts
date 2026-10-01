@@ -3,14 +3,19 @@
  * P3 ([MOT-01] à [MOT-05], [MOT-26]).
  *
  * Ce module est le seul domicile des matrices d'Ottosson et de CSS Color 4 dans
- * le code livré. Toutes les fonctions sont pures.
+ * le code livré. Toutes les fonctions sont pures. Le décodage sRGB, que le
+ * contraste WCAG lit, est dans `@ucm-kit/core/emplois`.
  */
 
-/** Trois canaux entiers de 0 à 255 : la couleur que le plugin produit ([MOT-09]). */
-export type Rgb8 = readonly [number, number, number];
+import { decoder, rgb8VersLineaire, type Rgb8, type Triplet } from '@ucm-kit/core/emplois';
 
-/** Trois composantes réelles, sans borne : un vecteur linéaire, Oklab ou P3. */
-export type Triplet = readonly [number, number, number];
+/**
+ * `Rgb8`, la couleur que le plugin produit ([MOT-09]), `Triplet`, un vecteur
+ * linéaire, Oklab ou P3, et le décodage sRGB viennent du kit, que le
+ * contraste WCAG lit aussi.
+ */
+export { decoder, rgb8VersLineaire };
+export type { Rgb8, Triplet };
 
 /** Une couleur en OKLCH : clarté, chroma, teinte en degrés dans `[0, 360)`. */
 export interface Oklch {
@@ -50,16 +55,6 @@ export function ecrireHexa(couleur: Rgb8): string {
 /** Fonction de transfert sRGB, du linéaire vers l'encodé ([MOT-02]). */
 export function encoder(lineaire: number): number {
   return lineaire <= 0.0031308 ? 12.92 * lineaire : 1.055 * lineaire ** (1 / 2.4) - 0.055;
-}
-
-/** Fonction de transfert sRGB, de l'encodé vers le linéaire ([MOT-02]). */
-export function decoder(encode: number): number {
-  return encode <= 0.04045 ? encode / 12.92 : ((encode + 0.055) / 1.055) ** 2.4;
-}
-
-/** Les trois canaux d'une couleur à 8 bits, en sRGB linéaire. */
-export function rgb8VersLineaire(couleur: Rgb8): Triplet {
-  return [decoder(couleur[0] / 255), decoder(couleur[1] / 255), decoder(couleur[2] / 255)];
 }
 
 const borner = (x: number): number => Math.min(1, Math.max(0, x));

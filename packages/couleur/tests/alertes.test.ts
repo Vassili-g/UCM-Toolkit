@@ -29,9 +29,10 @@ test('[VER-08] profils confondus : sonne au cran 100 clair de #1E6FD9, avec la m
   assert.equal(alerte.seuil, 0.02);
 });
 
-test('[VER-11] profils confondus : ne regarde que les crans de la table des emplois, états compris', () => {
+test('[VER-11] profils confondus : ne regarde que les crans de la table des emplois, états +1 et +2 compris', () => {
   const recette = recetteParDefaut();
-  assert.deepEqual(rangsDesEmplois(recette).map((rang) => recette.crans[rang]), [...CRANS_DES_EMPLOIS]);
+  // Le quatrième rang vise 400, que `surface+2` n'atteint pas, et 950, où les profils se confondent comme à la 50.
+  assert.deepEqual(rangsDesEmplois(recette).map((rang) => recette.crans[rang]), CRANS_DES_EMPLOIS.filter((cran) => cran !== 400 && cran !== 950));
 });
 
 test('[ENT-09] profils confondus : se tait pour des profils ternes par construction, sonne pour les mêmes parts du designer', () => {

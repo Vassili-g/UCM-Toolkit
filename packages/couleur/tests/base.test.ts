@@ -143,22 +143,6 @@ test('[REC-05] une palette de base autre que soft ou vivid est refusée', () => 
   assert.deepEqual(lue.refus, [{ regle: 'base-inconnue', chemin: 'palettes[0].base', valeur: 'auto' }]);
 });
 
-test('[REC-03] une recette de format 1 se migre jusqu’au format 6 : ses parts grises se retirent, les parts du designer restent', () => {
-  assert.equal(FORMAT_RECETTE, 6);
-  const gris = paletteTailwind('p-000000b2', '#6B7280');
-  const designer = paletteTailwind('p-000000b3', '#1E6FD9', { parts: { soft: 0.3, vivid: 0.8, origine: 'designer' } });
-  const ancienne = {
-    ...recetteParDefaut(),
-    formatVersion: 1,
-    seuils: { ...recetteParDefaut().seuils, chromaGrise: 0.03 },
-    palettes: [{ ...gris, parts: { soft: 0.094, vivid: 0.094, origine: 'grise' } }, designer],
-  };
-  const classement = classerRecette(jsonCanonique(ancienne));
-  assert.ok(classement.etat === 'migree' && classement.depuis === 1, JSON.stringify(classement).slice(0, 300));
-  assert.deepEqual(classement.recette.palettes, [gris, designer]);
-  assert.equal(classement.recette.formatVersion, 6);
-});
-
 /** Un hexa depuis teinte, saturation et luminosité HSL, en entiers. */
 function hsl(teinte: number, saturation: number, luminosite: number): string {
   const s = saturation / 100;

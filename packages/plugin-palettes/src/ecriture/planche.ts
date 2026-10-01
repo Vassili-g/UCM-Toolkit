@@ -253,7 +253,7 @@ export async function dessinerLaRecetteRangee(
   const lu = lireEtat(figma.root);
   if (lu.empreinte !== demande.empreinteLue) return { issue: 'modifiee-ailleurs' };
   const { classement } = lu;
-  if (classement.etat !== 'courante' && classement.etat !== 'migree') return { issue: 'sans-recette' };
+  if (classement.etat !== 'courante') return { issue: 'sans-recette' };
   const palettes = classement.recette.palettes.filter((palette) => demande.palettes.includes(palette.id));
   return dessinerLaPlanche(figma, {
     recette: classement.recette,
@@ -419,7 +419,7 @@ export async function retirerLeCadre(figma: FigmaDuRetrait, demande: DemandeDeRe
   const rangee = lirePlanche(figma.root);
   if (rangee.version > VERSION_DU_SUIVI) return { issue: 'suivi-futur' };
   const { classement } = lireEtat(figma.root);
-  if (classement.etat !== 'courante' && classement.etat !== 'migree') return { issue: 'refuse' };
+  if (classement.etat !== 'courante') return { issue: 'refuse' };
   if (classement.recette.palettes.some((palette) => palette.id === demande.palette)) return { issue: 'refuse' };
 
   let cadre: BaseNode | null;

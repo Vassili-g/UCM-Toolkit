@@ -66,8 +66,8 @@ test('[VER-11] [ENT-11] des profils confondus sous une palette de base forcée m
 test('[UI-04] les accolades se déduisent de la table des emplois : deux lignes, des libellés qui ne se chevauchent pas', () => {
   const decrire = accoladesDe(DEFAUT.crans).map((ligne) => ligne.map((accolade) => `${accolade.emplois.join('·')} ${accolade.debut}-${accolade.fin} [${accolade.libelle.debut}-${accolade.libelle.fin} ${accolade.libelle.alignement}]`));
   assert.deepEqual(decrire, [
-    ['on-solid -1--1 [-2-0 center]', 'surface 1-3 [1-6 start]', 'solid·text 7-9 [7-10 start]'],
+    ['on-solid -1--1 [-2-0 center]', 'surface 1-4 [1-6 start]', 'solid·text 7-10 [7-10 start]'],
     // surface-card, une colonne entre on-solid et surface, passe sur la seconde ligne : son libellé s'y centre.
-    ['surface-card 0-0 [-2-2 center]', 'border-decorative 3-3 [3-5 start]', 'border-control·focus 6-8 [6-10 start]'],
+    ['surface-card 0-0 [-2-2 center]', 'border-decorative 3-3 [3-5 start]', 'border-control·focus 6-9 [6-10 start]'],
   ]);
 });

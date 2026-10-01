@@ -1,54 +1,18 @@
 /**
- * Contraste WCAG 2, distance Oklab et part de chroma, mesurés sur la couleur à
- * 8 bits ([MOT-21] à [MOT-24]), et leur écriture décimale à virgule.
+ * Niveaux WCAG, distance Oklab et part de chroma, mesurés sur la couleur à
+ * 8 bits ([MOT-22] à [MOT-24]), et leur écriture décimale à virgule. Le
+ * contraste et sa comparaison à un seuil viennent de `@ucm-kit/core/emplois`.
  */
+import { aDixDecimales, atteintLeSeuil } from '@ucm-kit/core/emplois';
+
 import {
   CHROMA_SANS_TEINTE,
   lineaireVersOklab,
   rgb8VersLineaire,
   rgb8VersOklch,
   type Rgb8,
-  type Triplet,
 } from './conversions';
 import { plafond, type Gamut } from './plafond';
-
-/** La luminance relative de WCAG 2, sur des composantes sRGB linéaires. */
-export function luminanceLineaire(lineaire: Triplet): number {
-  return 0.2126 * lineaire[0] + 0.7152 * lineaire[1] + 0.0722 * lineaire[2];
-}
-
-/** La luminance relative de WCAG 2 d'une couleur à 8 bits ([MOT-21]). */
-export function luminanceRelative(couleur: Rgb8): number {
-  return luminanceLineaire(rgb8VersLineaire(couleur));
-}
-
-/** Le rapport de contraste de deux luminances relatives, le plus clair en haut. */
-export function rapportDeLuminances(ya: number, yb: number): number {
-  return (Math.max(ya, yb) + 0.05) / (Math.min(ya, yb) + 0.05);
-}
-
-/** Le contraste WCAG 2 de deux couleurs, dans un ordre quelconque ([MOT-21]). */
-export function contraste(a: Rgb8, b: Rgb8): number {
-  return rapportDeLuminances(luminanceRelative(a), luminanceRelative(b));
-}
-
-/**
- * La valeur que lisent le verdict et l'affichage : le contraste écrit à dix
- * décimales. `4.35` vaut `4.3499999999999996` en binaire, et une troncature
- * sur cette valeur afficherait 4,34.
- */
-function aDixDecimales(x: number): string {
-  return x.toFixed(10);
-}
-
-/**
- * Vrai quand un contraste atteint un seuil ([MOT-22]). La comparaison lit la
- * valeur à dix décimales que l'affichage tronque : un contraste affiché 4,50
- * tient 4,5, et 4,499 échoue.
- */
-export function atteintLeSeuil(valeur: number, seuil: number): boolean {
-  return Number(aDixDecimales(valeur)) >= seuil;
-}
 
 /** Un niveau WCAG de contraste de texte, `null` quand le minimum AA n'est pas atteint. */
 export type NiveauDeTexte = 'AAA' | 'AA' | null;

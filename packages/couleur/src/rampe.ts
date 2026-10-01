@@ -37,6 +37,13 @@ export interface Derive {
 /** Une dérive se borne à `[-90, 90]` degrés ([MOT-15]). */
 export const DERIVE_MAXIMALE = 90;
 
+/**
+ * Les bornes du Color shift à chaque bout ([MOT-15]) : la teinte en degrés,
+ * la saturation en fraction signée de la part du profil, la luminosité en
+ * décalage de clarté OKLCH.
+ */
+export const BORNES_DU_COLOR_SHIFT = { teinte: DERIVE_MAXIMALE, saturation: 1, clarte: 0.15 } as const;
+
 /** Les deux clartés qui bornent la dérive : celles des numéros 50 et 950 en Light (`boutsDe`, nuances.ts). */
 export interface Bouts {
   readonly clair: number;

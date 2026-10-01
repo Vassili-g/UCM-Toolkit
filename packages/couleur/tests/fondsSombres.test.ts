@@ -49,14 +49,14 @@ test('[MOT-28] le facteur vaut 0,30 au numéro 50 de la courbe Dark, remonte lin
   assert.equal(facteurSombre(0.93, fonds), 1);
 });
 
-test('[MOT-28] W6.4 : passer à neuf nuances, qui retire le 400, ne déplace pas la borne des fonds : aucune nuance gardée ne change de couleur', () => {
+test('[MOT-28] W6.4 : passer à treize nuances ne déplace pas la borne des fonds : aucune nuance gardée ne change de couleur', () => {
   const onze = recetteAvec(...PALETTES);
-  const neuf: Recette = { ...onze, ...grilleAuPrereglage(onze, 9) };
-  assert.deepEqual(fondsSombresDe(neuf), fondsSombresDe(onze));
+  const treize: Recette = { ...onze, ...grilleAuPrereglage(onze, 13) };
+  assert.deepEqual(fondsSombresDe(treize), fondsSombresDe(onze));
   for (const palette of PALETTES) {
     for (const intensite of intensitesDe(palette)) {
-      const [avant, apres] = [rampesDe(onze, palette)[intensite]!.dark, rampesDe(neuf, palette)[intensite]!.dark];
-      neuf.crans.forEach((cran, rang) => assert.equal(apres[rang].hexa, avant[onze.crans.indexOf(cran)].hexa, `${palette.reference} ${intensite} ${cran}`));
+      const [avant, apres] = [rampesDe(onze, palette)[intensite]!.dark, rampesDe(treize, palette)[intensite]!.dark];
+      onze.crans.forEach((cran, rang) => assert.equal(apres[rang].hexa, avant[rang].hexa, `${palette.reference} ${intensite} ${cran}`));
     }
   }
 });

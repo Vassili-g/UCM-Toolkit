@@ -300,7 +300,7 @@ function construireVues(i18n: Localisation) {
     choixDuNombre.className = 'bascule bascule-de-base bascule-du-prereglage';
     choixDuNombre.setAttribute('role', 'group');
     i18n.lier(choixDuNombre, 'aria-label', TEXTES_DU_PREREGLAGE.libelle);
-    const boutonsDuNombre = ([9, 11, 13] as const).map((nombre) => {
+    const boutonsDuNombre = ([11, 13] as const).map((nombre) => {
       const bouton = document.createElement('button');
       bouton.type = 'button';
       bouton.className = 'bascule-option';

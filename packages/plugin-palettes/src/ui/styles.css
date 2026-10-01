@@ -1838,7 +1838,7 @@
   display: grid;
   column-gap: var(--espace-controle);
   /* 150 px : le spécimen de 64 px, 6 px, puis « ✗ 21,00 » et « AA ✗ », le résultat le plus large. */
-  grid-template-columns: minmax(0, 1fr) repeat(3, 150px);
+  grid-template-columns: minmax(0, 1fr) repeat(4, 150px);
 }
 
 .garanties-colonnes {
@@ -1926,6 +1926,11 @@
   grid-column: 4;
 }
 
+.garanties-colonnes > [data-rang='3'],
+.garantie-etat[data-rang='3'] {
+  grid-column: 5;
+}
+
 .garantie-numeros {
   font-family: ui-monospace, 'SF Mono', Consolas, monospace;
   font-size: 10px;
@@ -1960,16 +1965,17 @@
 }
 
 /*
- * Sous 700 px (maquette Z3.5, N2) : chaque rangée garde le nom et ses trois
- * états sur une ligne, dans des cases de 92 px ; le spécimen passe au-dessus
- * des numéros et du ratio, et le nom de chaque état se centre sur sa colonne.
+ * Sous 900 px, quatre états et le nom ne tiennent plus sur une ligne : le nom
+ * passe au-dessus de ses quatre cases, qui se partagent la largeur, et le
+ * spécimen au-dessus des numéros et du ratio. Le nom de chaque état se centre
+ * sur sa colonne.
  */
-@media (max-width: 699px) {
+@media (max-width: 899px) {
   .garanties-colonnes,
   .garantie,
   .garantie-echec {
     column-gap: 6px;
-    grid-template-columns: minmax(0, 1fr) repeat(3, 92px);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .garanties-colonnes {
@@ -1977,8 +1983,40 @@
     padding-left: 14px;
   }
 
+  .garanties-colonnes > :not([data-rang]) {
+    display: none;
+  }
+
   .garanties-colonnes > [data-rang] {
     text-align: center;
+  }
+
+  .garanties-colonnes > [data-rang='0'],
+  .garantie-etat[data-rang='0'] {
+    grid-column: 1;
+  }
+
+  .garanties-colonnes > [data-rang='1'],
+  .garantie-etat[data-rang='1'] {
+    grid-column: 2;
+  }
+
+  .garanties-colonnes > [data-rang='2'],
+  .garantie-etat[data-rang='2'] {
+    grid-column: 3;
+  }
+
+  .garanties-colonnes > [data-rang='3'],
+  .garantie-etat[data-rang='3'] {
+    grid-column: 4;
+  }
+
+  .garantie-qui {
+    grid-column: 1 / -1;
+  }
+
+  .garantie-etat {
+    grid-row: 2;
   }
 
   .garantie {

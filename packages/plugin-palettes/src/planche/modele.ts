@@ -8,7 +8,7 @@
  * Le cadre répond à une question : quelle nuance pour quel usage (récit R1,
  * maquette W3.6). Chaque thème, peint de son fond, montre les rampes des
  * intensités de la palette, puis les usages de chacune dans leurs états
- * `default`, `hover` et `active`, chacun avec les garanties qu'il porte et
+ * `default`, `hover`, `active` et `active-hover`, chacun avec les garanties qu'il porte et
  * leur niveau WCAG, puis les grilles des contrastes, alignées sur les rampes
  * ([PLA-18]). La recette dit quelles parties se dessinent ([PLA-28]).
  * L'interface d'exemple n'est pas sur la planche : l'onglet Création la
@@ -16,6 +16,7 @@
  */
 import {
   MODES,
+  RANGS,
   TABLE_DES_EMPLOIS,
   atteintLeSeuil,
   contraste,
@@ -157,8 +158,12 @@ export const COLONNE = { largeur: 56, libelle: 48 } as const;
 /** La hauteur d'une pastille de rampe. */
 const HAUTEUR_DE_PASTILLE = 32;
 
-/** Les colonnes des usages : libellé, puis une colonne par état. */
-const USAGE = { libelle: 176, etat: 168 } as const;
+/**
+ * Les colonnes des usages : libellé, puis une colonne par état. Les quatre
+ * états tiennent dans la largeur des rampes de onze nuances : 160 + 4 × 128,
+ * et quatre espacements de 16, font 736 px pour 752.
+ */
+const USAGE = { libelle: 160, etat: 128 } as const;
 
 /** Un spécimen d'usage. */
 const SPECIMEN = { largeur: 96, hauteur: 32 } as const;
@@ -171,7 +176,7 @@ const SPECIMEN = { largeur: 96, hauteur: 32 } as const;
 const USAGES: readonly Emploi[] = ['surface-card', 'surface', 'text', 'solid', 'border-control', 'focus', 'border-decorative'];
 
 /** Les états d'un emploi, dans le vocabulaire des composants (W3.6), rangés par décalage. */
-export const ETATS = ['default', 'hover', 'active'] as const;
+export const ETATS = RANGS;
 
 /**
  * Une composante P3 arrondie au millionième. `**` ne rend pas le même dernier bit d'un moteur JavaScript à

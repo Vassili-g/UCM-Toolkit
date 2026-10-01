@@ -159,9 +159,6 @@ test('Z10.8 une recette réglée, exportée puis relue, est égale', () => {
   const classement = classerRecette(jsonCanonique(recette));
   assert.equal(classement.etat, 'courante');
   assert.ok(classement.etat === 'courante' && jsonCanonique(classement.recette) === jsonCanonique(recette));
-  const recette4 = { ...ajouter(RECETTE, BLEU), formatVersion: 4 };
-  const lue = classerRecette(jsonCanonique(recette4));
-  assert.ok(lue.etat === 'migree' && jsonCanonique(lue.recette.palettes) === jsonCanonique(recette4.palettes), 'une recette 4 se lit');
 });
 
 test('Z10.8 après toute suite de gestes, la référence est celle que referenceReglee tire du départ, et la recette se valide', () => {

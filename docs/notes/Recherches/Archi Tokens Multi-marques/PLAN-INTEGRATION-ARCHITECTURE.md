@@ -146,7 +146,7 @@ sous un nouveau point d'entrée `@ucm-kit/core/emplois`. La fabrication des
 palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
 [décision R1](#r1-ce-qui-entre-dans-le-kit).
 
-- [ ] **A1.1** Créer `packages/kit/src/emplois/` et l'export `./emplois` du
+- [x] **A1.1** Créer `packages/kit/src/emplois/` et l'export `./emplois` du
   `package.json` du kit. Y déplacer, sans changer leur comportement :
   - `EMPLOIS`, `TABLE_DES_EMPLOIS`, `CRANS_DES_EMPLOIS`,
     `EMPLOIS_FACULTATIFS`, `emploiPresent`, `rangDuCranLeger` (aujourd'hui
@@ -159,14 +159,14 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
     `rapportDeLuminances`, `contraste`, `atteintLeSeuil` et sa règle des dix
     décimales (aujourd'hui dans `contraste.ts`), avec le passage d'une couleur
     à 8 bits en sRGB linéaire qu'ils lisent.
-- [ ] **A1.2** Dans le kit : `CRANS_DES_EMPLOIS` devient
+- [x] **A1.2** Dans le kit : `CRANS_DES_EMPLOIS` devient
   `[100, 200, 300, 400, 600, 700, 800, 900, 950]` ; `MembrePaire.decalage` et
   `EtatDePaire` vont de 0 à 3. Trois paires s'ajoutent à la fin de `PAIRES`,
   sous les numéros 17 à 19, pour que les numéros 1 à 16 cités par la
   spécification et les rapports ne bougent pas : `text+3` sur `surface+3`
   (texte), `on-solid` sur `solid+3` (texte), `border-control+3` sur
   `surface+3` (non-texte). Les associations restent dix.
-- [ ] **A1.3** Dans le kit, un module des rangs et des usages :
+- [x] **A1.3** Dans le kit, un module des rangs et des usages :
   - `RANGS = ['default', 'hover', 'active', 'active-hover']`, les noms publiés,
     que l'interface et la planche lisent au lieu de les redéfinir ;
   - la table de l'état d'un composant vers son rang (repos 0, survol 1, appui 2,
@@ -176,25 +176,25 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
     `icon`, `border`, `ring`) et vers ses portées Figma (D14) ;
   - une fonction qui rend les noms des variables de `usage` d'une palette,
     pour qu'UCM Palettes et `ucm check` les dérivent de la même source (D16).
-- [ ] **A1.4** `ucm-couleur` dépend de `@ucm-kit/core` et importe ce
+- [x] **A1.4** `ucm-couleur` dépend de `@ucm-kit/core` et importe ce
   vocabulaire ; ses fichiers `emplois.ts`, `promesses.ts` et `contraste.ts`
   ne gardent que ce qui juge une palette (`verifierPromesses` et ce qui lit la
   recette et les rampes), la distance Oklab et la part de chroma. Un test
   vérifie que le kit n'importe rien de `ucm-couleur`.
-- [ ] **A1.5** `nuances.ts` : `NombreDeNuances` devient `11 | 13` ; le
+- [x] **A1.5** `nuances.ts` : `NombreDeNuances` devient `11 | 13` ; le
   préréglage 9 et sa branche de `nombreDeNuancesDe` disparaissent.
-- [ ] **A1.6** `recette.ts` : `FORMAT_RECETTE` passe à 7 (voir la [réponse
+- [x] **A1.6** `recette.ts` : `FORMAT_RECETTE` passe à 7 (voir la [réponse
   R2](#r2-le-format-de-la-recette)). Aucune migration : une recette d'un format
   antérieur est refusée, avec le message de refus de `formatVersion` qui
   existe déjà. Les conversions de 3 à 6 sont retirées avec leurs tests.
   `[REC-05]` refuse une liste qui omet 400 ou 950.
-- [ ] **A1.7** Tests : ceux du kit pour le vocabulaire (19 paires, nuances
+- [x] **A1.7** Tests : ceux du kit pour le vocabulaire (19 paires, nuances
   visées, rangs, table des états, contraste à dix décimales) ;
   `packages/couleur/tests/` pour `nuances.test.ts` (préréglage retiré),
   `recette.test.ts` (une recette 6 refusée ; une liste sans 400 ou sans 950
   refusée), `promesses.test.ts` et `alertes.test.ts`.
   `packages/couleur/scripts/mesurer-ancrage.mjs` suit s'il lit `PAIRES`.
-- [ ] **A1.8** Version : `@ucm-kit/core` monte d'une version mineure, un point
+- [x] **A1.8** Version : `@ucm-kit/core` monte d'une version mineure, un point
   d'entrée s'ajoutant sans rien retirer. Le README du kit décrit le point
   d'entrée `./emplois`.
 
@@ -214,22 +214,22 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
   `ucm-couleur` ; le vocabulaire commun (emplois, paires, rangs, contraste
   WCAG) est dans `@ucm-kit/core/emplois` (réponse R1). `[ARC-01]` et
   `[ARC-04]` suivent.
-- [ ] **A2.4** `i18n/fr.ts` et `i18n/en.ts` : `NOM_DE_L_ETAT` lit `RANGS`
+- [x] **A2.4** `i18n/fr.ts` et `i18n/en.ts` : `NOM_DE_L_ETAT` lit `RANGS`
   d'`ucm-couleur` ; `ETATS_DU_DECALAGE`, la légende des traits (un quatrième
   style pour `active-hover`) et la liste des états prennent le quatrième rang.
   Les textes nouveaux passent par
   [TEXTES-A-VALIDER.md](../Plugin%20Palettes/TEXTES-A-VALIDER.md) et
   l'[inventaire des textes](../Plugin%20Palettes/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
-- [ ] **A2.5** `planche/modele.ts` : `ETATS` lit `RANGS`. L'empreinte du
+- [x] **A2.5** `planche/modele.ts` : `ETATS` lit `RANGS`. L'empreinte du
   modèle change : les cadres passent « À actualiser », comme prévu.
-- [ ] **A2.6** `ui/garanties.ts`, `ui/nuancier.ts`, `presentation.ts`,
+- [x] **A2.6** `ui/garanties.ts`, `ui/nuancier.ts`, `presentation.ts`,
   `ajustement.ts` : chaque boucle sur les états couvre les quatre rangs.
-- [ ] **A2.7** `configuration.ts` et `ui/configuration.ts` : les boutons du
+- [x] **A2.7** `configuration.ts` et `ui/configuration.ts` : les boutons du
   nombre de nuances deviennent 11 et 13 ; `effetDuPrereglage` suit.
-- [ ] **A2.8** Tests et galerie : `modeleDePlanche.test.ts`,
+- [x] **A2.8** Tests et galerie : `modeleDePlanche.test.ts`,
   `textes.test.ts`, `tests/interface/interface.test.mjs` (le cas des 9
   nuances), un état de galerie par écran qui montre les quatre rangs.
-- [ ] **A2.9** [AGENTS.md](../../../../AGENTS.md), carte du code : le point
+- [x] **A2.9** [AGENTS.md](../../../../AGENTS.md), carte du code : le point
   d'entrée `@ucm-kit/core/emplois` porte les emplois, les dix-neuf paires, les
   rangs et le contraste ; `ucm-couleur` les importe.
   [INSTRUCTION-NOMBRE-DE-NUANCES.md](../Plugin%20Palettes/INSTRUCTION-NOMBRE-DE-NUANCES.md)

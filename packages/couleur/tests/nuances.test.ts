@@ -34,7 +34,7 @@ import { copie, paletteTailwind, recetteAvec } from './fabrique';
 const proche = (valeur: number, attendue: number) => assert.ok(Math.abs(valeur - attendue) < 1e-9, `${valeur} ≠ ${attendue}`);
 
 /** La recette par défaut passée à un préréglage, avec les palettes données. */
-function recetteA(nombre: 9 | 11 | 13, ...palettes: Palette[]): Recette {
+function recetteA(nombre: 11 | 13, ...palettes: Palette[]): Recette {
   const { crans, courbes } = grilleAuPrereglage(recetteParDefaut(), nombre);
   return { ...recetteAvec(...palettes), crans, courbes };
 }
@@ -50,19 +50,19 @@ function hexasParNuance(recette: Recette, palette: Palette): Map<string, string>
   return hexas;
 }
 
-test('W6 : les trois préréglages se reconnaissent, et la recette par défaut est celle de onze nuances', () => {
+test('W6 : les deux préréglages se reconnaissent, et la recette par défaut est celle de onze nuances', () => {
   assert.equal(nombreDeNuancesDe(recetteParDefaut().crans), 11);
-  assert.equal(nombreDeNuancesDe(PREREGLAGES[9].crans), 9);
   assert.equal(nombreDeNuancesDe(PREREGLAGES[13].crans), 13);
   assert.equal(nombreDeNuancesDe([50, 100, 200, 300, 400, 500, 600, 700, 800, 900]), null);
   assert.deepEqual(PREREGLAGES[13].crans.slice(-2), [1000, 1050]);
-  for (const nombre of [9, 11, 13] as const) assert.ok('recette' in validerRecette(recetteA(nombre)), String(nombre));
+  for (const nombre of [11, 13] as const) assert.ok('recette' in validerRecette(recetteA(nombre)), String(nombre));
+  assert.deepEqual(Object.keys(PREREGLAGES), ['11', '13'], 'le préréglage à neuf nuances, sans 400 ni 950, est retiré');
 });
 
 test('W6.8 : chaque préréglage garde les rôles et leurs états à leurs numéros', () => {
   const emploisParNumero = (recette: Recette) => new Map(recette.crans.map((cran, rang) => [cran, emploisDuCran(recette.crans, rang)]));
   const onze = emploisParNumero(recetteParDefaut());
-  for (const nombre of [9, 13] as const) {
+  for (const nombre of [13] as const) {
     const autres = emploisParNumero(recetteA(nombre));
     for (const [cran, emplois] of onze) if (emplois.length > 0) assert.deepEqual(autres.get(cran), emplois, `${nombre} : ${cran}`);
   }
@@ -86,8 +86,8 @@ test('W6 : la luminosité d’un numéro, dans la liste, entre deux numéros, ap
   assert.ok(cinquante > 0.95 && cinquante < 1, String(cinquante));
 });
 
-test('W6 : les bouts de la dérive se lisent aux numéros 50 et 950, préréglage 9 compris', () => {
-  for (const nombre of [9, 11, 13] as const) {
+test('W6 : les bouts de la dérive se lisent aux numéros 50 et 950, préréglage 13 compris', () => {
+  for (const nombre of [11, 13] as const) {
     const bouts = boutsDe(PREREGLAGES[nombre]);
     proche(bouts.clair, 0.975);
     proche(bouts.sombre, 0.27);
@@ -109,16 +109,9 @@ test('W6 : passer de 11 à 13 nuances ne change aucune couleur existante, hors d
   assert.equal(ancrageDe(recetteA(13, auDessus), auDessus).crans.light, 950, 'au-dessus du seuil, l’ancrage reste au 950');
 });
 
-test('W6 : passer de 11 à 9 nuances déplace l’ancrage d’une référence au 400', () => {
-  const palette = paletteTailwind('p-0000000a', '#8FB8F0');
-  assert.equal(ancrageDe(recetteA(11, palette), palette).crans.light, 400);
-  assert.equal(ancrageDe(recetteA(9, palette), palette).crans.light, 300);
-});
-
 test('W6.4 : un préréglage garde les luminosités réglées ; un numéro ajouté prend la sienne, ou la règle quand ses voisines l’empêchent', () => {
-  const neuf = recetteA(9);
-  const retour = grilleAuPrereglage(neuf, 11);
-  assert.deepEqual(retour.courbes, recetteParDefaut().courbes, '9 → 11 rend les courbes par défaut');
+  const retour = grilleAuPrereglage(recetteA(13), 11);
+  assert.deepEqual(retour.courbes, recetteParDefaut().courbes, '13 → 11 rend les courbes par défaut');
   const reglee = { ...recetteParDefaut(), courbes: { ...recetteParDefaut().courbes, light: recetteParDefaut().courbes.light.map((L, rang) => (rang === 10 ? 0.2 : L)) } };
   const treize = grilleAuPrereglage(reglee, 13);
   assert.equal(treize.courbes.light[10], 0.2, 'la valeur réglée est gardée');
@@ -171,25 +164,6 @@ test('W6.3 : les règles du format 3 refusent une liste libre hors bornes, une b
   assert.deepEqual(refus({ ...base, originale: '#1e6fd9' }), ['originale-identique palettes[0].originale']);
   assert.deepEqual(refus({ ...base, originale: '#12' }), ['hexa-invalide palettes[0].originale']);
   assert.deepEqual(refus({ ...base, crans: [...recetteParDefaut().crans], originale: '#16A34A' }), [], 'une liste égale à la liste commune est admise');
-});
-
-test('W6.3 : une recette de format 2 se migre au format 3 sans changer son texte, et une liste importée sans 950 change de couleurs', () => {
-  const palette = paletteTailwind('p-0000000a', '#1E6FD9');
-  const ancienne = { ...recetteAvec(palette), formatVersion: 2 };
-  const classement = classerRecette(jsonCanonique(ancienne));
-  assert.ok(classement.etat === 'migree' && classement.depuis === 2 && classement.recette.formatVersion === FORMAT_RECETTE);
-  assert.deepEqual(classement.recette.palettes, [palette]);
-  // Une liste de neuf nuances rangée en format 2 lisait son bout sombre au 900, 0,34 ; elle le lit désormais à 950, 0,27.
-  const neuf = recetteA(9, palette);
-  const rampes = (bouts: { clair: number; sombre: number }) => fabriquerPalette({
-    reference: lireHexa(palette.reference)!,
-    courbes: neuf.courbes,
-    bouts,
-    parts: { soft: neuf.profils.soft.part, vivid: neuf.profils.vivid.part },
-    derives: { soft: palette.derive.soft, vivid: palette.derive.vivid },
-    gamut: neuf.gamut,
-  }).vivid.light.map(({ hexa }) => hexa);
-  assert.notDeepEqual(rampes(boutsDe(neuf)), rampes({ clair: 0.975, sombre: 0.34 }));
 });
 
 test('W7.6 : un pas sombre sur #16A34A donne #0DA047, zéro pas rend l’originale, et le pas se retrouve depuis la référence', () => {

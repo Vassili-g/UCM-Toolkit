@@ -5,6 +5,7 @@ import test from 'node:test';
 import { FORMAT_RECETTE, jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
 
 import { ajouter, nouvellePalette, renommer } from '../src/edition';
+import { ligneDesValeurs } from '../src/i18n/fr';
 import { ecartDImport, lireLImport, natureDeLEcart } from '../src/importation';
 
 const VIDE = recetteParDefaut();
@@ -76,4 +77,14 @@ test('W6.3 : une liste libre et une originale importées se nomment dans l’éc
   assert.deepEqual(ecart.champs, { [BLEU.id]: ['crans'], [AMBRE.id]: ['originale'] });
   assert.equal(natureDeLEcart(ecart).couleurs, true);
   assert.equal(natureDeLEcart(ecartDImport(ACTUELLE, { ...ACTUELLE, palettes: [BLEU, ajustee] })).couleurs, false);
+});
+
+test('[MOT-30] C1 : l’écart nomme le Color shift par grandeur, et chaque grandeur change les couleurs', () => {
+  const saturation = { soft: { ...BLEU.derive.soft, saturation: { clair: -0.4, sombre: 0 } }, vivid: { ...BLEU.derive.vivid, saturation: { clair: -0.4, sombre: 0 } } };
+  const sature = { ...BLEU, derive: { ...BLEU.derive, ...saturation } };
+  const eclairci = { ...AMBRE, derive: { ...AMBRE.derive, lien: false, vivid: { ...AMBRE.derive.vivid, clarte: { clair: 0.02, sombre: 0 } } } };
+  const ecart = ecartDImport(ACTUELLE, { ...ACTUELLE, palettes: [sature, eclairci] });
+  assert.deepEqual(ecart.champs, { [BLEU.id]: ['deriveSaturation'], [AMBRE.id]: ['deriveTeinte', 'deriveClarte'] });
+  assert.equal(natureDeLEcart(ecart).couleurs, true);
+  assert.equal(ligneDesValeurs([{ nom: 'Bleu', champs: ecart.champs[BLEU.id] }]), 'Palette à modifier : Bleu (Color shift, saturation).');
 });

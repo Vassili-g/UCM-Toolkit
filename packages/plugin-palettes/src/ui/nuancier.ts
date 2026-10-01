@@ -24,6 +24,7 @@ import {
   type Association,
   type Cran,
   type Emploi,
+  type EtatDePaire,
   type Mode,
   type Intensite,
   type Promesse,
@@ -340,7 +341,7 @@ function construireVues(i18n: Localisation) {
       const quoi = document.createElement('div');
       quoi.className = 'usage-quoi';
       const role = document.createElement('p');
-      role.append(codeDuRole(emploi), i18n.noeud(i18n.composer` · ${NOM_DE_L_ETAT[decalage as 0 | 1 | 2] ?? decalage}`));
+      role.append(codeDuRole(emploi), i18n.noeud(i18n.composer` · ${NOM_DE_L_ETAT[decalage as EtatDePaire] ?? decalage}`));
       const garanties = document.createElement('p');
       garanties.className = 'usage-garanties';
       for (const promesse of promesses) garanties.append(lienDeGarantie(promesse, emploi, decalage));
@@ -441,7 +442,8 @@ function construireVues(i18n: Localisation) {
       const { recette, analyse } = entrees;
       const fondDuMode = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
       const depart = recette.crans.indexOf(TABLE_DES_EMPLOIS.solid);
-      const fin = recette.crans[Math.min(recette.crans.length - 1, depart + Math.max(...decalagesDeLEmploi('on-solid')))];
+      // `on-solid` reste au fond ; c'est `solid`, son partenaire, qui avance d'un cran par état.
+      const fin = recette.crans[Math.min(recette.crans.length - 1, depart + Math.max(...decalagesDeLEmploi('solid')))];
       const lignes: HTMLElement[] = [];
       for (const profil of analyse.intensites) {
         const promesses = promessesDuRole(analyse, profil, 'on-solid', 0).sort((a, b) => etatDeLaPaire(a.paire) - etatDeLaPaire(b.paire));

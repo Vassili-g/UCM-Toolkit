@@ -27,7 +27,7 @@ function importerAvecNode(souschemin) {
   );
 }
 
-for (const souschemin of ["@ucm-kit/core/format", "@ucm-kit/core/lecteurs"]) {
+for (const souschemin of ["@ucm-kit/core/format", "@ucm-kit/core/emplois", "@ucm-kit/core/lecteurs"]) {
   test(`${souschemin} s'importe avec Node, sans tsx`, () => {
     const resultat = importerAvecNode(souschemin);
     assert.equal(

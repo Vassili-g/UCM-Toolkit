@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.1.42
+npm install @ucm-kit/core@0.2.0
 ```
 
 Most repositories never call this package directly. They run
@@ -103,10 +103,11 @@ succeeds. Style Dictionary 5 writes the same for every `duration` unless the
 reader registers a transform for that type. Check the generated output before
 merging the first export in a new format version.
 
-## The three entry points
+## The four entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
+import { PAIRES, RANGS, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
 import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteurs";
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 ```
@@ -115,6 +116,14 @@ import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 naming rules, and the shape of a token reference. **This subpath depends on
 nothing**: not Node, not Figma, not a third-party package. It runs inside a
 Figma plugin bundle and inside a browser.
+
+**`@ucm-kit/core/emplois`** holds the color vocabulary that the UCM Palettes
+plugin and `ucm check` share: the table of color uses (`solid`, `text`,
+`surface` and five more) and the shade each one targets, the nineteen contrast
+pairs, the four state ranks `default`, `hover`, `active` and `active-hover`,
+the table from a component state to its rank, the names of the `usage`
+variables, and the WCAG 2 contrast compared on its value written to ten
+decimals. Like `format`, it depends on nothing.
 
 **`@ucm-kit/core/lecteurs`** holds everything that judges a contract already
 written: its shape, its composition graph, its token references, the meaning of

@@ -126,6 +126,13 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     identite.ts              « ces deux contrats sont-ils le même composant ? »
     typography.ts            les graisses et styles DTCG qu'un text style emploie
     index.ts                 ce que le sous-chemin publie
+  src/emplois/             sous-chemin SANS dépendance : le vocabulaire qu'UCM Palettes et `ucm check` partagent
+    emplois.ts               la table fixe des emplois et les crans que la recette doit porter, 400 et 950 compris
+    paires.ts                les dix-neuf paires, leurs dix associations et les emplois d'un cran
+    rangs.ts                 les quatre rangs d'état et la table de l'état d'un composant vers son rang
+    usages.ts                la collection `usage` : noms, cibles, ce que chaque usage peint et ses portées Figma
+    contraste.ts             le contraste WCAG 2 et sa comparaison au seuil à dix décimales
+    index.ts                 ce que le sous-chemin publie
   src/lecteurs/            ce qui juge un contrat écrit ; `ajv` et `node:fs`
     validation-contrat.mjs       la forme d'un contrat, champ par champ
     validation-graphe-contrats.mjs  composition, doublons et collisions d'identifiant
@@ -187,19 +194,18 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/plafond.ts           la plus grande chroma que sRGB porte, mémorisée
   src/rampe.ts             un cran, la teinte pivotée, le facteur des fonds du thème Dark, les rampes des deux profils
   src/tailwind.ts          le préréglage Tailwind et son relevé
-  src/contraste.ts         contraste WCAG 2, ΔEok, part de chroma, écriture à virgule
-  src/emplois.ts           la table fixe des emplois et les crans que la recette doit porter
-  src/recette.ts           la forme de la recette, sa validation, son classement à la lecture
+  src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
+  src/recette.ts           la forme de la recette, sa validation, son classement à la lecture, sans conversion d'un format antérieur
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées et les bornes des fonds du thème Dark
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
-  src/nuances.ts           les trois préréglages de nuances, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
+  src/nuances.ts           les deux préréglages de nuances, 11 et 13, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
-  src/promesses.ts         les seize paires, jugées par mode et par intensité présente, et les emplois d'un cran
+  src/promesses.ts         les dix-neuf paires du kit, jugées par mode et par intensité présente
   src/alertes.ts           les alertes de conception et la notice
   src/garantie.ts          la garantie des courbes : crans 600 et 700 contre le cran 50 gris, sur 360 teintes
   src/constats.ts          les sévérités et leur ordre d'affichage
-  src/index.ts             la porte du paquet
+  src/index.ts             la porte du paquet, qui republie `@ucm-kit/core/emplois`
   scripts/mesurer-temps.mjs  la médiane de cent palettes, hors des tests
   scripts/mesurer-garantie.mjs  la médiane de vingt garanties des courbes, hors des tests
   scripts/mesurer-ancrage.mjs   l'effet de l'ancrage sur les voisines et les promesses, hors des tests
@@ -931,9 +937,17 @@ La spécification en lien porte le raisonnement.
   dans l'iframe d'un plugin et dans le sandbox Figma. Le `tsconfig.json` de
   `packages/couleur` compile `src/` en ES2020 sans type d'environnement, et
   `packages/couleur/tests/loiDePurete.test.ts` refuse ce qu'ES2020 déclare :
-  `Date`, `Math.random`, `Intl`, `toLocaleString`, avec `TextEncoder`. Borne :
-  la loi lit le texte ligne à ligne, commentaires retirés.
+  `Date`, `Math.random`, `Intl`, `toLocaleString`, avec `TextEncoder`. La même
+  loi lit `packages/kit/src/emplois/`, que le moteur importe. Borne : la loi
+  lit le texte ligne à ligne, commentaires retirés.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
+- La table des emplois, les dix-neuf paires, les quatre rangs, la table des
+  états, la collection `usage` et le contraste WCAG 2 ont une seule source,
+  `@ucm-kit/core/emplois` (`packages/kit/src/emplois/`). `ucm-couleur`
+  l'importe et la republie sans la recopier, et le kit n'importe rien de
+  `ucm-couleur` : `packages/kit/tests/emplois.test.ts` le tient. Borne : le
+  test lit les instructions d'import, pas un chemin calculé.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quelle que soit la dérive. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.

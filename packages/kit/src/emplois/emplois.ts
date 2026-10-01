@@ -1,6 +1,7 @@
 /**
- * La table des emplois de l'architecture (section 11.2 de la spécification) :
- * fixe, commune à toutes les palettes, aux deux profils et aux deux modes.
+ * La table des emplois de l'architecture : fixe, commune à toutes les
+ * palettes, aux deux intensités et aux deux thèmes (section 4
+ * d'ARCHITECTURE-FINALE, section 11.2 de la spécification d'UCM Palettes).
  * Aucune recette ne la porte.
  */
 
@@ -26,7 +27,7 @@ export const EMPLOIS: readonly Emploi[] = [
   'focus',
 ];
 
-/** Le cran de chaque emploi. `on-solid` prend le fond de référence du mode. */
+/** Le cran de chaque emploi, au rang `default`. `on-solid` prend le fond de référence du thème. */
 export const TABLE_DES_EMPLOIS = {
   solid: 700,
   'on-solid': 'fond',
@@ -39,16 +40,17 @@ export const TABLE_DES_EMPLOIS = {
 } as const satisfies { readonly [E in Emploi]: number | 'fond' };
 
 /**
- * Les crans que les paires visent, états `+1` et `+2` compris, sur les crans
- * par défaut ([VER-05]). `[REC-05]` refuse une recette dont `crans` en omet
- * un : aucune paire ne vise alors un cran absent ni ne déborde de la rampe.
+ * Les crans que les paires visent, rangs `hover` à `active-hover` compris,
+ * sur les crans par défaut ([VER-05]). Une liste qui en omet un est refusée :
+ * aucune paire ne vise alors un cran absent ni ne déborde de la rampe. Le
+ * quatrième rang vise 400 (`surface`) et 950 (`solid`, `text`).
  */
-export const CRANS_DES_EMPLOIS: readonly number[] = [100, 200, 300, 600, 700, 800, 900];
+export const CRANS_DES_EMPLOIS: readonly number[] = [100, 200, 300, 400, 600, 700, 800, 900, 950];
 
 /**
  * Les emplois qu'une liste peut ne pas porter : `surface-card` n'existe, avec
- * ses paires, que dans une liste qui a la 50. Les trois préréglages l'ont ;
- * une liste importée qui commence à 100 reste lisible ([VER-05]).
+ * ses paires, que dans une liste qui a la 50. Les préréglages l'ont ; une
+ * liste importée qui commence à 100 reste lisible ([VER-05]).
  */
 export const EMPLOIS_FACULTATIFS: readonly Emploi[] = ['surface-card'];
 

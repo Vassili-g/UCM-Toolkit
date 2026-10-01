@@ -251,6 +251,10 @@ test('[UI-04] les flèches déplacent le focus sur les pastilles ; Entrée chois
     // La pastille on-solid précède les rampes : Origine s'y pose, la flèche droite rend la première nuance.
     await page.keyboard.press('Home');
     assert.match(await focalisee(), /^on-solid, fond du thème,/);
+    // Le fond se pose en texte sur solid à ses quatre états : 700 à 950, pas 700 à 700.
+    await page.keyboard.press('Enter');
+    assert.match(await page.locator('.nuancier-detail').innerText(), /Il se pose en texte sur solid 700 à 950\./);
+    await page.keyboard.press('Enter');
     await page.keyboard.press('ArrowRight');
     assert.match(await focalisee(), /^Profil Soft, nuance 50,/);
     assert.equal(await page.locator('.nuancier-detail').isVisible(), false, 'le focus seul n’ouvre pas le détail');
@@ -405,7 +409,7 @@ test('[UI-09] repliées, les garanties gardent le résultat des deux profils ; l
     const choisie = () => garanties.locator('.garantie[aria-pressed="true"]').getAttribute('data-association');
     const arcs = () => garanties.locator('.reglette-arc').evaluateAll((traits) => traits.map((trait) => trait.dataset.verdict));
     assert.equal(await choisie(), 'text/surface');
-    assert.deepEqual(await arcs(), ['manquee', 'tenue', 'tenue']);
+    assert.deepEqual(await arcs(), ['manquee', 'tenue', 'tenue', 'tenue']);
     assert.match(await garanties.locator('.garantie-echec').first().innerText(), /^État default : 4,19:1 pour un minimum de 4,5:1/);
     await garanties.locator('.garantie[data-association="text/fond"]').click();
     assert.equal(await choisie(), 'text/fond');
@@ -413,7 +417,7 @@ test('[UI-09] repliées, les garanties gardent le résultat des deux profils ; l
     await garanties.locator('.garantie[data-association="on-solid/solid"]').focus();
     await page.keyboard.press('Enter');
     assert.equal(await choisie(), 'on-solid/solid');
-    assert.equal((await arcs()).length, 3);
+    assert.equal((await arcs()).length, 4);
     // Le choix se conserve au changement de profil.
     await garanties.locator('.bascule-des-profils button').first().click();
     assert.equal(await choisie(), 'on-solid/solid');
@@ -462,7 +466,7 @@ test('Z6.3 [UI-09] un encadré par minimum ; les états nommés une fois, en tê
     for (const bloc of await blocs.all()) {
       const texte = await bloc.evaluate((element) => [...element.querySelectorAll('.garantie')].map((ligne) => ligne.innerText).join(' '));
       for (const etat of ['default', 'hover', 'active']) assert.equal(texte.includes(etat), false, `« ${etat} » se répète dans les lignes`);
-      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['default', 'hover', 'active']);
+      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['default', 'hover', 'active', 'active-hover']);
     }
     // Chaque case tombe sous le nom de son état.
     const alignees = await carte.evaluate((element) => [...element.querySelectorAll('.garantie-etat')].every((cellule) => {
@@ -1201,9 +1205,10 @@ test('W6.4 le préréglage se choisit dans « Luminosité des nuances » : l’e
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     const carte = page.locator('[aria-label="Luminosité des nuances"]');
     assert.equal(await carte.getByRole('button', { name: '11 nuances' }).getAttribute('aria-pressed'), 'true');
+    assert.deepEqual(await carte.locator('.bascule-du-prereglage .bascule-option').allTextContents(), ['11', '13'], 'le préréglage à neuf nuances, sans 400 ni 950, est retiré');
     const avant = await compte(page);
-    await carte.getByRole('button', { name: '9 nuances' }).click();
-    assert.equal(await carte.locator('.confirmation p').textContent(), 'Passer à 9 nuances retire 400 et 950. Les rôles gardent leurs numéros. Aucune nuance gardée ne change de couleur.');
+    await carte.getByRole('button', { name: '13 nuances' }).click();
+    assert.match(await carte.locator('.confirmation p').textContent(), /^Passer à 13 nuances ajoute 1000 et 1050\./);
     await carte.getByRole('button', { name: 'Annuler' }).click();
     assert.equal(await carte.locator('.confirmation').isVisible(), false);
     assert.equal(await compte(page), avant, 'Annuler ne range rien');
@@ -2310,7 +2315,7 @@ test('[VER-01] [VER-02] le rapport porte l’empreinte de la recette, ses palett
     assert.equal(avant.empreinte, messageDe('planche-a-jour').empreinte);
     assert.deepEqual(avant.palettes.map(({ nom }) => nom), ['Bleu', 'Jaune']);
     // Seize paires par profil et par thème, dont les deux de surface-card (X6).
-    assert.equal(avant.palettes[0].promesses.length, 64);
+    assert.equal(avant.palettes[0].promesses.length, 76);
     assert.equal(avant.ecartsDuDernierDessin, null, 'aucun dessin depuis l’ouverture');
 
     await page.getByRole('button', { name: 'Générer tout (2 palettes)' }).click();
@@ -3891,7 +3896,7 @@ test('[UI-18] le pied compte les garanties et les alertes à toute position de d
   const page = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
   try {
     const pied = page.locator('.pied-de-la-palette');
-    assert.match(await pied.locator('.pied-texte').textContent(), /^\d+ garanties manquées sur 64 · /);
+    assert.match(await pied.locator('.pied-texte').textContent(), /^\d+ garanties manquées sur 76 · /);
     assert.equal(await pied.getAttribute('data-ton'), 'danger');
     for (const position of [0, 400, 100000]) {
       await page.evaluate((y) => window.scrollTo(0, y), position);

@@ -119,32 +119,32 @@ moteur ni du Color shift.
 - [x] **M9** AGENTS.md, invariant de l'interface : pendant un geste, aucun
   contrôle de l'onglet Création ne se déplace ; le test M1 le tient. Carte du
   code : `ligneFixe.ts` et `piedDeLaPalette.ts`.
-- [ ] **M10** Arrêt : le mainteneur essaie le plugin dans Figma, glisse près
+- [x] **M10** Arrêt : le mainteneur essaie le plugin dans Figma, glisse près
   d'un seuil et confirme l'absence de clignotement.
 
 ## Phase 3 : le vocabulaire commun et le format 7
 
-- [ ] **A1.1 à A1.5** Le point d'entrée `@ucm-kit/core/emplois`, les
+- [x] **A1.1 à A1.5** Le point d'entrée `@ucm-kit/core/emplois`, les
   dix-neuf paires, les rangs, l'import par `ucm-couleur`, le préréglage à neuf
   nuances retiré.
-- [ ] **Arrêt** avant A1.6 : prévenir le mainteneur que ses recettes d'essai
+- [x] **Arrêt** avant A1.6 : prévenir le mainteneur que ses recettes d'essai
   de format 6 seront refusées. Il les exporte s'il veut garder leurs
   références.
-- [ ] **A1.6** `FORMAT_RECETTE` passe à 7, conversions retirées, `[REC-05]`
+- [x] **A1.6** `FORMAT_RECETTE` passe à 7, conversions retirées, `[REC-05]`
   exige 400 et 950.
-- [ ] **C1** Dans le même format 7, `recette.ts` : `DeriveRangee` gagne
+- [x] **C1** Dans le même format 7, `recette.ts` : `DeriveRangee` gagne
   `saturation` et `clarte`, facultatifs ; validation des bornes, ±1 au
   centième et ±0,15 au millième ; `derive-lien` compare les trois grandeurs ;
   message de refus de chaque borne, anglais et français, avec le libellé du
   champ dans l'écart d'un import (`importation.ts`, catalogues).
-- [ ] **A1.7, A1.8** Les tests du vocabulaire et du moteur, la version
+- [x] **A1.7, A1.8** Les tests du vocabulaire et du moteur, la version
   mineure du kit. Ajouter pour C1 : une recette avec les deux objets se valide
   et se range à l'octet ; une borne dépassée est refusée ; deux dérives liées
   qui diffèrent par la saturation sont refusées.
 
 ## Phase 4 : les quatre rangs dans UCM Palettes
 
-- [ ] **A2.4 à A2.9** Noms des rangs lus dans le kit, planche, garanties,
+- [x] **A2.4 à A2.9** Noms des rangs lus dans le kit, planche, garanties,
   nuancier, présentation et ajustement sur quatre rangs, boutons 11 et 13,
   tests, galerie, carte du code.
 

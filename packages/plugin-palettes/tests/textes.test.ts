@@ -39,7 +39,8 @@ test('un chemin de champ s’écrit en mots du designer', () => {
   assert.equal(nommerChamp('crans[0]'), '1re nuance');
   assert.equal(nommerChamp('courbes.light[5]'), 'Luminosité du thème Light, 6e nuance');
   assert.equal(nommerChamp('fonds.dark'), 'Fond du thème Dark');
-  assert.equal(nommerChamp('palettes[1].derive.soft.clair'), 'Palette 2, dérive de teinte, soft, côté clair');
+  assert.equal(nommerChamp('palettes[1].derive.soft.clair'), 'Palette 2, Color shift, soft, teinte, nuances claires');
+  assert.equal(nommerChamp('palettes[1].derive.vivid.clarte.sombre'), 'Palette 2, Color shift, vivid, luminosité, nuances sombres');
   assert.equal(nommerChamp('seuils.texte'), 'Minimum ou seuil : texte');
   assert.equal(nommerChamp(''), 'Palettes et réglages');
 });
