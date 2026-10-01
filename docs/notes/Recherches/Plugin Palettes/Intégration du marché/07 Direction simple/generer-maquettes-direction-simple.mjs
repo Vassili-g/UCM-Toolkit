@@ -44,7 +44,18 @@ const STYLES_DES_MAQUETTES = `
 .m-marque[data-ton='succes'] { color: var(--texte-succes); }
 .m-marque[data-ton='avertissement'] { color: var(--texte-avertissement); }
 .m-marque[data-ton='danger'] { color: var(--texte-danger); }
-.m-connexion { border-color: color-mix(in srgb, var(--fond-marque) 45%, var(--bordure)); background: color-mix(in srgb, var(--fond-marque) 8%, var(--fond-bloc)); }
+.m-connexion { background: none; }
+.m-comparaison { display: grid; align-items: center; gap: var(--espace-serre) var(--espace-controle); grid-template-columns: auto minmax(0, 1fr); }
+.m-comparaison .m-mini-rampe span { height: 18px; flex: 1 1 0; }
+.m-page-choisie { font-weight: 600; }
+.m-collections { overflow: hidden; border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond); }
+.m-collection { display: grid; min-height: 36px; align-items: center; gap: var(--espace-controle); padding: 0 var(--espace-bloc); border-bottom: 1px solid var(--bordure); grid-template-columns: 16px minmax(0, 1fr) auto; }
+.m-collection:last-child { border-bottom: 0; }
+.m-collection input[type='radio'] { margin: 0; accent-color: var(--fond-marque); }
+.m-collection .input { height: var(--hauteur-secondaire); max-width: 180px; }
+.m-collection-nom { display: flex; align-items: center; gap: var(--espace-controle); font-weight: 600; }
+.m-collection[data-distante] { color: var(--texte-second); }
+.m-collection[data-distante] .m-collection-nom { font-weight: 400; }
 .m-connexion .carte-tete { flex-wrap: nowrap; }
 .m-connexion .carte-titre { margin-right: auto; }
 .m-connexion-ligne { display: grid; min-height: 28px; align-items: center; gap: var(--espace-controle); grid-template-columns: 92px minmax(0, 1fr) auto; }
@@ -136,7 +147,7 @@ function poserLesOutils() {
     connexion(miseAJour) {
       const etat = (code, libelle) => `<span class="pastille-d-etat" data-etat="${code}">${libelle}</span>`;
       const geste = miseAJour ? '<button type="button" class="btn btn-primary btn-compact"><span>Tout mettre à jour (2)</span></button>' : '';
-      return el(`<section class="carte m-connexion" aria-label="Connexion à Figma"><div class="carte-tete"><h3 class="carte-titre">Connexion à Figma</h3><span class="ligne-secondaire">Synchronisé il y a 2 min</span><button type="button" class="btn btn-secondary btn-compact"><span>Synchroniser</span></button></div><div class="carte-corps"><div class="m-connexion-ligne"><span class="m-sortie-nom">Tokens</span><span class="m-chemin"><code>primitives</code><span>›</span><code>colors/…</code></span><button type="button" class="bouton-discret">Changer</button></div><div class="m-connexion-ligne"><span class="m-sortie-nom">Planches</span><span class="m-chemin"><span class="ligne-secondaire">page</span><code>Palettes</code></span></div><div class="m-connexion-bilan">${etat('a-jour', '1 synchronisée')}${etat('perimee', '1 à mettre à jour')}${etat('jamais-dessinee', '1 pas encore sur Figma')}${geste}</div></div></section>`);
+      return el(`<section class="carte m-connexion" aria-label="Connexion à Figma"><div class="carte-tete"><h3 class="carte-titre">Connexion à Figma</h3><span class="ligne-secondaire">Synchronisé il y a 2 min</span><button type="button" class="btn btn-secondary btn-compact"><span>Synchroniser</span></button></div><div class="carte-corps"><div class="m-connexion-ligne"><span class="m-sortie-nom">Tokens</span><span class="m-chemin"><code>primitives</code><span>›</span><code>colors/…</code></span><button type="button" class="bouton-discret">Changer</button></div><div class="m-connexion-ligne"><span class="m-sortie-nom">Planches</span><span class="m-chemin"><span class="ligne-secondaire">page</span><code>Palettes</code></span><button type="button" class="bouton-discret">Changer</button></div><div class="m-connexion-bilan">${etat('a-jour', '1 synchronisée')}${etat('perimee', '1 à mettre à jour')}${etat('jamais-dessinee', '1 pas encore sur Figma')}${geste}</div></div></section>`);
     },
     /** La tête des listes de Gestion : le compte, puis la bascule des deux vues. */
     teteDeGestion(panneau, condensee) {
@@ -149,9 +160,9 @@ function poserLesOutils() {
       tete.before(M.connexion(!condensee));
     },
     /** La fiche d'une palette lue dans les variables du fichier : en tirets, sans geste d'écriture. */
-    ficheDuFichier(nom, chemin, detail, rampe, geste) {
+    ficheDuFichier(nom, chemin, detail, rampe, geste, etiquette = 'Variables du fichier') {
       const pastilles = rampe.map((hexa) => `<span class="fiche-pastille" style="background:${hexa}"></span>`).join('');
-      return el(`<section class="carte fiche-planche m-du-fichier" aria-label="${nom}"><div class="carte-tete"><h3 class="carte-titre">${nom}</h3><span class="m-etiquette">Variables du fichier</span></div><div class="carte-corps"><div class="fiche-apercu" style="--colonnes:${rampe.length}"><div class="fiche-rangee"><span class="fiche-profil"></span>${pastilles}</div></div><div class="fiche-information"><span class="ligne-secondaire"><code>${chemin}</code> · ${detail}</span>${geste ? `<button type="button" class="btn btn-secondary btn-compact"><span>${geste}</span></button>` : ''}</div></div></section>`);
+      return el(`<section class="carte fiche-planche m-du-fichier" aria-label="${nom}"><div class="carte-tete"><h3 class="carte-titre">${nom}</h3><span class="m-tete-gestes"><span class="m-etiquette">${etiquette}</span>${geste ? `<button type="button" class="bouton-discret">${geste}</button>` : ''}</span></div><div class="carte-corps"><div class="fiche-apercu" style="--colonnes:${rampe.length}"><div class="fiche-rangee"><span class="fiche-profil"></span>${pastilles}</div></div><div class="fiche-information"><span class="ligne-secondaire"><code>${chemin}</code> · ${detail}</span></div></div></section>`);
     },
   };
 }
@@ -171,6 +182,23 @@ function creation() {
   M.onglets('Création');
   M.carte('Garanties de contraste').remove();
   document.querySelector('.pied-de-la-palette .bouton-discret').textContent = 'Vérifier';
+}
+
+/** Création, ouverte par « Modifier dans le plugin » sur la palette « slate » du fichier. */
+function reprise({ slate }) {
+  M.onglets('Création');
+  M.carte('Garanties de contraste').remove();
+  document.querySelector('.pied-de-la-palette .bouton-discret').textContent = 'Vérifier';
+  // La palette grise de la galerie tient lieu de slate recalculée.
+  document.querySelector('.selecteur-nom').textContent = 'slate';
+  document.querySelector('.tete-de-la-palette .titre-de-premier-rang').textContent = 'Palette slate';
+  const [nom, hexa] = M.carte('Configuration de la palette').querySelectorAll('input[type="text"]');
+  nom.value = 'slate';
+  hexa.value = '#475569';
+  const mini = (couleurs) => `<div class="m-mini-rampe">${couleurs.map((couleur) => `<span style="background:${couleur}"></span>`).join('')}</div>`;
+  const calculee = [...document.querySelectorAll('#panneau-planche .fiche-planche[aria-label="Ardoise"] .fiche-rangee')].at(0);
+  const duPlugin = [...calculee.querySelectorAll('.fiche-pastille')].map((pastille) => pastille.style.background);
+  document.querySelector('.tete-de-la-palette').after(M.el(`<div class="m-encart"><p><strong>Reprise de « slate », lue dans les variables du fichier</strong></p><div class="m-comparaison"><span class="ligne-secondaire">Fichier</span>${mini(slate)}<span class="ligne-secondaire">Plugin</span>${mini(duPlugin)}</div><div class="champ-colonne"><span class="libelle-de-champ">Nuances</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Recalculées</button><button type="button" class="bascule-option" aria-pressed="false">Telles quelles</button></div></div><p class="ligne-secondaire">9 couleurs sur 11 changeront dans Figma. Rien ne s’écrit avant « Mettre à jour », dans Gestion.</p><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler la reprise</span></button></div></div>`));
 }
 
 /** Vérification : la carte des garanties dépliée, les messages du volet, et la liste déroulante avec ses verdicts. */
@@ -213,11 +241,12 @@ function verification(verdicts) {
 
 /**
  * Gestion, vue complète : les fiches de l'onglet Palettes, deux lignes de
- * sortie par fiche. `destination` ouvre la carte de la destination et ne
- * garde que la fiche d'une première écriture ; `modifiee` ne garde que la
- * fiche dont Figma a changé des couleurs.
+ * sortie par fiche. `destination` et `planches` ouvrent leur carte à la place
+ * du bloc de la connexion ; `modifiee` ne garde que la fiche dont Figma a
+ * changé des couleurs ; `reprise` montre « slate » après « Modifier dans le
+ * plugin ».
  */
-function gestion({ slate, emeraude, destination = false, modifiee = false }) {
+function gestion({ slate, emeraude, destination = false, modifiee = false, planches = false, reprise = false }) {
   M.onglets('Gestion');
   const panneau = document.querySelector('#panneau-planche');
   M.teteDeGestion(panneau, false);
@@ -255,10 +284,36 @@ function gestion({ slate, emeraude, destination = false, modifiee = false }) {
     const [soft, vivid] = [...fiche('Ardoise').querySelectorAll('.fiche-rangee')].map((rangee) => [...rangee.querySelectorAll('.fiche-pastille')]);
     const variable = (chemin, pastille) => `<div class="m-variable"><i style="background:${pastille.style.background}"></i><code>${chemin}</code><span>${hexa(pastille)}</span></div>`;
     const simulation = `<div class="m-simulation"><div class="m-simulation-tete"><span class="libelle-de-champ">Simulation</span><span class="ligne-secondaire">44 variables · 1 mode</span></div><div class="m-variables"><div class="m-variables-collection">primitives</div>${variable('colors/ardoise/soft/light/50', soft[0])}${variable('colors/ardoise/soft/light/100', soft[1])}<div class="m-variable m-variable-suite"><span></span><span>⋯</span><span></span></div>${variable('colors/ardoise/vivid/light/900', vivid[9])}${variable('colors/ardoise/vivid/light/950', vivid[10])}</div></div>`;
-    liste.before(M.el(`<section class="carte" aria-label="Destination des tokens"><div class="carte-tete"><h3 class="carte-titre">Destination des tokens</h3></div><div class="carte-corps m-aere"><div class="colonnes-de-base"><label class="champ-colonne"><span class="libelle-de-champ">Collection</span><select class="input"><option>Nouvelle : primitives</option><option>Primitives</option><option>Brand</option></select></label><label class="champ-colonne"><span class="libelle-de-champ">Groupe</span><input type="text" class="input" value="colors"></label></div><div class="champ-colonne"><span class="libelle-de-champ">Thèmes Light et Dark</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Dans le chemin</button><button type="button" class="bascule-option" aria-pressed="false">En modes</button></div></div>${simulation}<div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
+    panneau.querySelector('.m-connexion').replaceWith(M.el(`<section class="carte m-connexion" aria-label="Destination des tokens"><div class="carte-tete"><h3 class="carte-titre">Destination des tokens</h3></div><div class="carte-corps m-aere"><div class="champ-colonne"><span class="libelle-de-champ">Collection</span><div class="m-collections" role="radiogroup"><label class="m-collection"><input type="radio" name="collection" checked><span class="m-collection-nom">Nouvelle collection<input type="text" class="input" value="primitives"></span><span></span></label><label class="m-collection"><input type="radio" name="collection"><span class="m-collection-nom">Primitives</span><span class="ligne-secondaire">48 variables</span></label><label class="m-collection" data-distante><input type="radio" name="collection" disabled><span class="m-collection-nom">primitive base<span class="m-etiquette">Bibliothèque</span></span><span>323 variables · lecture seule</span></label><label class="m-collection" data-distante><input type="radio" name="collection" disabled><span class="m-collection-nom">primitive base<span class="m-etiquette">Bibliothèque</span></span><span>6 variables · lecture seule</span></label></div></div><div class="colonnes-de-base"><label class="champ-colonne"><span class="libelle-de-champ">Groupe</span><input type="text" class="input" value="colors"></label><div class="champ-colonne"><span class="libelle-de-champ">Thèmes Light et Dark</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Dans le chemin</button><button type="button" class="bascule-option" aria-pressed="false">En modes</button></div></div></div>${simulation}<div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
     fiche('Bleu').remove();
     fiche('Jaune').remove();
     globaux.remove();
+    recette.remove();
+    return;
+  }
+  if (planches) {
+    // La page des planches, ouverte à la place du bloc : une page du fichier, ou une nouvelle.
+    const page = (nom, choisie) => `<div class="m-variable${choisie ? ' m-page-choisie' : ''}"><span>${choisie ? '›' : ''}</span><code>${nom}</code><span>${choisie ? '3 planches' : ''}</span></div>`;
+    panneau.querySelector('.m-connexion').replaceWith(M.el(`<section class="carte m-connexion" aria-label="Page des planches"><div class="carte-tete"><h3 class="carte-titre">Page des planches</h3></div><div class="carte-corps m-aere"><label class="champ-colonne"><span class="libelle-de-champ">Page</span><select class="input"><option>Palettes</option><option>Cover</option><option>Design system</option><option>Nouvelle page…</option></select></label><div class="m-simulation"><div class="m-simulation-tete"><span class="libelle-de-champ">Simulation</span><span class="ligne-secondaire">2 planches déplacées · 1 à créer</span></div><div class="m-variables"><div class="m-variables-collection">Pages du fichier</div>${page('Cover', false)}${page('Design system', false)}${page('Palettes', true)}</div></div><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
+    globaux.remove();
+    recette.remove();
+    return;
+  }
+  if (reprise) {
+    // Après « Modifier dans le plugin » : slate est une palette du plugin, et ses variables attendent la mise à jour.
+    fiche('Bleu').remove();
+    fiche('Jaune').remove();
+    const reprise_ = fiche('Ardoise');
+    reprise_.querySelector('.carte-titre').textContent = 'slate';
+    reprise_.querySelector('.etat-du-cadre').dataset.etat = 'perimee';
+    reprise_.querySelector('.etat-du-cadre').textContent = 'À mettre à jour';
+    reprise_.querySelector('.m-sorties').replaceWith(
+      M.el(`<div class="m-sorties">${M.sortie('Tokens Figma', 'perimee', 'À mettre à jour', 'Primitives / slate · 9 couleurs sur 11 changent', [])}${M.sortie('Planche', 'jamais-dessinee', 'Pas encore créée', '', [['Créer la planche', 'btn-secondary']])}</div>`),
+      M.el(`<div class="m-encart" data-ton="avertissement"><p><strong>Remplacer 9 couleurs de slate dans Figma ?</strong></p>${ecart('slate/700', '#334155', '#3B4660')}${ecart('slate/800', '#1E293B', '#2D3649')}<p class="ligne-secondaire">Et 7 autres. Les variables gardent leur nom et leurs liaisons.</p><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Remplacer 9 couleurs</span></button></div></div>`),
+    );
+    const restantes = M.el('<div class="liste-planche"></div>');
+    restantes.append(M.ficheDuFichier('brand/emerald', 'Brand / brand / emerald / 50 … 950', '11 couleurs · modes Light, Dark', emeraude, 'Modifier dans le plugin'));
+    globaux.replaceWith(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 1</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'), restantes);
     recette.remove();
     return;
   }
@@ -273,8 +328,9 @@ function gestion({ slate, emeraude, destination = false, modifiee = false }) {
   duFichier.append(
     M.ficheDuFichier('slate', 'Primitives / slate / 50 … 950', '11 couleurs · 1 mode', slate, 'Modifier dans le plugin'),
     M.ficheDuFichier('brand/emerald', 'Brand / brand / emerald / 50 … 950', '11 couleurs · modes Light, Dark', emeraude, 'Modifier dans le plugin'),
+    M.ficheDuFichier('gray', 'primitive base (323 variables) / gray / 50 … 950', '11 couleurs', ['#F9FAFB', '#F3F4F6', '#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151', '#1F2937', '#111827', '#030712'], 'Copier dans le plugin', 'Bibliothèque'),
   );
-  globaux.replaceWith(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 2</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'));
+  globaux.replaceWith(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 3</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'));
   panneau.querySelector('.m-separation').after(duFichier);
   panneau.append(recette);
 }
@@ -318,44 +374,19 @@ const RAMPES_DU_FICHIER = {
 /** Les maquettes qui attendent une réponse, puis celles que le mainteneur a validées. */
 const MAQUETTES = [
   {
-    id: 'M8',
-    titre: 'Vérification : la liste déroulante et ses verdicts',
-    etat: 'planche-perimee',
-    gestes: [VERS_CREATION, DEPLIER_LES_GARANTIES, OUVRIR_LE_VOLET, OUVRIR_LA_LISTE],
-    transformer: verification,
-    argument: { 1: 'avertissement', 2: 'succes' },
-    hauteur: 760,
-    change: [
-      'La liste déroulante de Création, avec le verdict de chaque palette : validée.',
-      'Le lien d’un message nomme le geste, et ouvre la carte où il se fait. Ici « Ajuster la saturation » ouvre Création sur « Réglage global », dépliée.',
-    ],
-    questions: ['S17 : les libellés des liens, listés dans le plan.'],
-  },
-  {
     id: 'M9',
     titre: 'Gestion, vue complète',
     etat: 'planche-perimee',
     transformer: gestion,
     argument: RAMPES_DU_FICHIER,
-    hauteur: 1330,
+    hauteur: 1460,
     change: [
-      'Un bloc « Connexion à Figma » ouvre l’onglet : « Synchroniser », où les tokens s’écrivent, la page des planches, puis le bilan des palettes et « Tout mettre à jour ».',
-      '« Synchroniser » relit le fichier et rafraîchit les états. Il n’écrit rien.',
-      'La bascule dit « Vue complète · Vue condensée ».',
+      'Le bloc « Connexion à Figma » est gris, sans fond.',
+      'La ligne « Planches » porte « Changer », comme la ligne « Tokens ».',
+      'Sur une palette du fichier, « Modifier dans le plugin » est dans l’en-tête, au bord droit, quelle que soit la longueur du chemin.',
+      'Une palette d’une bibliothèque distante est marquée « Bibliothèque ». Son chemin nomme la collection et son nombre de variables, ce qui sépare deux collections du même nom. Le plugin ne peut pas l’écrire : le geste devient « Copier dans le plugin ».',
     ],
-    questions: ['S18 : le bloc et son contenu.', 'S19 : « Synchroniser » relit sans écrire ; « Tout mettre à jour » écrit.', 'S13 : ce que fait « Modifier dans le plugin ».'],
-  },
-  {
-    id: 'M10',
-    titre: 'Gestion, vue condensée',
-    etat: 'planche-perimee',
-    transformer: gestionCondensee,
-    argument: RAMPES_DU_FICHIER,
-    hauteur: 560,
-    change: [
-      'Validée. Le bloc « Connexion à Figma » reste en tête, sans « Tout mettre à jour ».',
-    ],
-    questions: ['S18 : le bloc dans cette vue.'],
+    questions: ['La forme du bloc et la place du bouton.', 'S22 : les palettes des bibliothèques distantes.'],
   },
   {
     id: 'M11',
@@ -363,12 +394,77 @@ const MAQUETTES = [
     etat: 'planche-perimee',
     transformer: gestion,
     argument: { ...RAMPES_DU_FICHIER, destination: true },
-    hauteur: 1180,
+    hauteur: 1100,
     change: [
-      '« Changer », dans le bloc de la connexion, ouvre la carte : trois champs, sans texte d’aide.',
-      'La simulation montre la collection telle que le panneau des variables de Figma l’affichera : les chemins, les couleurs, le nombre de variables et de modes. Elle suit chaque choix.',
+      '« Changer », sur la ligne « Tokens », ouvre la carte à la place du bloc « Connexion à Figma ». « Enregistrer » ou « Annuler » rend le bloc.',
+      'Les collections se choisissent dans une liste visible, à la place de la liste déroulante : chacune dit son origine et son nombre de variables. Deux « primitive base » de bibliothèque se distinguent par leur compte, et ne se choisissent pas : une bibliothèque ne s’écrit que depuis son propre fichier.',
     ],
-    questions: ['S20 : la forme de la carte et de la simulation.'],
+    questions: ['La carte à la place du bloc.', 'S22 : les collections de bibliothèque, montrées en lecture seule.'],
+  },
+  {
+    id: 'M15',
+    titre: 'Gestion : la page des planches',
+    etat: 'planche-perimee',
+    transformer: gestion,
+    argument: { ...RAMPES_DU_FICHIER, planches: true },
+    hauteur: 900,
+    change: [
+      'Aujourd’hui, le plugin crée une page « Palettes » au premier dessin, sans rien demander.',
+      '« Changer », sur la ligne « Planches », ouvre cette carte à la place du bloc : une page du fichier, ou une nouvelle.',
+      'La simulation montre la page choisie parmi celles du fichier, et ce que le choix déplace.',
+    ],
+    questions: ['S21 : le choix de la page, et le sort des planches déjà créées.'],
+  },
+  {
+    id: 'M13',
+    titre: '« Modifier dans le plugin » : Création s’ouvre sur la palette reprise',
+    etat: 'planche-perimee',
+    gestes: [VERS_CREATION, OUVRIR_LA_LISTE, '.selecteur-option:nth-child(3)'],
+    transformer: reprise,
+    argument: RAMPES_DU_FICHIER,
+    hauteur: 760,
+    change: [
+      'Le geste crée une palette du plugin au nom de celle du fichier, avec sa nuance 600 pour référence, et ouvre Création dessus.',
+      'Un encart compare la rampe du fichier à celle que le plugin calcule, et laisse choisir : « Recalculées », avec rôles et garanties, ou « Telles quelles », en palette libre sans garanties.',
+      'Rien ne s’écrit dans Figma à ce stade. « Annuler la reprise » supprime la palette du plugin et rend celle du fichier à sa liste.',
+    ],
+    questions: ['S13 : ce parcours, et le choix « Recalculées · Telles quelles ».'],
+  },
+  {
+    id: 'M14',
+    titre: '« Modifier dans le plugin » : la palette reprise dans Gestion',
+    etat: 'planche-perimee',
+    transformer: gestion,
+    argument: { ...RAMPES_DU_FICHIER, reprise: true },
+    hauteur: 900,
+    change: [
+      'La palette passe de « Déjà dans le fichier » aux palettes du plugin. Ses tokens sont ses variables d’origine, à leur place : ni collection ni nom ne changent.',
+      '« Mettre à jour » liste les couleurs qui changent avant de les remplacer. Les calques liés à ces variables suivent.',
+    ],
+    questions: ['S13 : les variables d’origine gardées à leur place, hors de la destination des tokens.'],
+  },
+  {
+    id: 'M8',
+    validee: true,
+    titre: 'Vérification : la liste déroulante et ses verdicts',
+    etat: 'planche-perimee',
+    gestes: [VERS_CREATION, DEPLIER_LES_GARANTIES, OUVRIR_LE_VOLET, OUVRIR_LA_LISTE],
+    transformer: verification,
+    argument: { 1: 'avertissement', 2: 'succes' },
+    hauteur: 760,
+    change: ['La liste déroulante de Création, avec le verdict de chaque palette.', 'Le lien d’un message nomme le geste, et ouvre la carte où il se fait.'],
+    questions: ['S5, S6 et S17.'],
+  },
+  {
+    id: 'M10',
+    validee: true,
+    titre: 'Gestion, vue condensée',
+    etat: 'planche-perimee',
+    transformer: gestionCondensee,
+    argument: RAMPES_DU_FICHIER,
+    hauteur: 560,
+    change: ['Une ligne par palette, ses deux états, aucun geste.'],
+    questions: ['S8 et S16.'],
   },
   {
     id: 'M12',
@@ -378,7 +474,7 @@ const MAQUETTES = [
     transformer: gestion,
     argument: { ...RAMPES_DU_FICHIER, modifiee: true },
     hauteur: 700,
-    change: ['La fiche liste les couleurs changées à la main, valeur de Figma et valeur du plugin côte à côte, et propose deux choix pour la palette entière.'],
+    change: ['La fiche liste les couleurs changées à la main et propose deux choix pour la palette entière.'],
     questions: ['S11.'],
   },
   {
@@ -388,7 +484,7 @@ const MAQUETTES = [
     etat: 'premier-lancement',
     transformer: fichierVide,
     hauteur: 420,
-    change: ['Un encart au fond bleuté, et « Nouvelle palette » qui ouvre la carte de création à sa place.', 'La ligne vers Gestion ne paraît que si les variables du fichier portent des palettes.'],
+    change: ['Un encart au fond bleuté, et « Nouvelle palette » qui ouvre la carte de création à sa place.'],
     questions: ['S1 et S2.'],
   },
   {
@@ -398,7 +494,7 @@ const MAQUETTES = [
     etat: 'cartes-repliees',
     transformer: creation,
     hauteur: 760,
-    change: ['L’onglet actuel sans la carte « Garanties de contraste » ; l’interface de test reste.', 'Le pied garde le bilan, et son bouton « Vérifier » ouvre Vérification.'],
+    change: ['L’onglet actuel sans la carte « Garanties de contraste » ; le pied mène à Vérification.'],
     questions: ['S3 et S4.'],
   },
   {
@@ -410,7 +506,7 @@ const MAQUETTES = [
     transformer: verification,
     argument: { 1: 'avertissement' },
     hauteur: 760,
-    change: ['Le verdict passe au rouge, les contrastes à corriger viennent en premier.', 'Une palette qui manque des garanties s’écrit quand même depuis Gestion.'],
+    change: ['Le verdict passe au rouge, les contrastes à corriger viennent en premier.'],
     questions: ['S7.'],
   },
 ];
@@ -476,7 +572,7 @@ const page = `<!doctype html>
 </head>
 <body>
 <h1>UCM Palettes : maquettes de la direction simple</h1>
-<p>Troisième passage, en thème sombre. Les questions sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
+<p>Quatrième passage, en thème sombre. Les questions sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
 <p class="legende">Chaque cadre fait 560 px de large et défile comme le plugin. Il est statique : aucun bouton ne répond. Les écrans partent du plugin construit ; les couleurs des palettes du plugin sortent du moteur.</p>
 <h2 class="partie">À valider</h2>
 <nav>${MAQUETTES.filter((maquette) => !maquette.validee).map(lien).join('')}</nav>

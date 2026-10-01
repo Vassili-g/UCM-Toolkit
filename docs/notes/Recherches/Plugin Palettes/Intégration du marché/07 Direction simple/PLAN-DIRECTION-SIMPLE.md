@@ -22,9 +22,9 @@ sur la forme des variables. Un lot modifie d'abord la spécification.
 
 **Les maquettes.**
 [MAQUETTES-DIRECTION-SIMPLE.html](./MAQUETTES-DIRECTION-SIMPLE.html) s'ouvre
-d'un double clic, en thème sombre, à 560 px de large : quatre écrans à
-valider, M8 à M11, puis quatre écrans validés, M12, M1, M2 et M4. Les écrans
-M3, M5, M6 et M7 du premier passage sont remplacés. Chaque écran part du plugin construit. Pour
+d'un double clic, en thème sombre, à 560 px de large : cinq écrans à valider,
+M9, M11, M15, M13 et M14, puis six écrans validés, M8, M10, M12, M1, M2 et M4.
+Les écrans M3, M5, M6 et M7 du premier passage sont remplacés. Chaque écran part du plugin construit. Pour
 les régénérer, depuis la racine du dépôt :
 
 ```sh
@@ -105,13 +105,13 @@ global ».
 
 ### 3.4 Gestion (M9 à M12)
 
-**La connexion à Figma (M9).** Un bloc ouvre l'onglet, dans les deux vues. Il
-porte ce qui relie le plugin au fichier :
+**La connexion à Figma (M9).** Un bloc gris, sans fond, ouvre l'onglet dans
+les deux vues. Il porte ce qui relie le plugin au fichier :
 
 - « Synchroniser », qui relit le fichier et rafraîchit les états, sans rien
   écrire, et la date de la dernière synchronisation ;
 - la destination des tokens, collection et groupe, et « Changer » ;
-- la page des planches ;
+- la page des planches, et « Changer » ;
 - le bilan des palettes, un compte par état, et « Tout mettre à jour », qui
   écrit les tokens et les planches en retard après une confirmation. La vue
   condensée ne porte pas ce bouton.
@@ -138,18 +138,25 @@ des garanties s'écrit comme une autre : sa fiche montre « Soft ✗ ».
 Déjà dans le fichier : les palettes lues dans les variables locales et que le
 plugin n'a pas écrites. Leur fiche est en tirets, sans fond, marquée
 « Variables du fichier » ; elle montre la rampe, la collection, le chemin et
-le nombre de couleurs, et porte « Modifier dans le plugin ».
+le nombre de couleurs, et porte « Modifier dans le plugin » dans son en-tête,
+au bord droit.
+
+Une palette d'une bibliothèque distante est marquée « Bibliothèque ». Son
+chemin nomme la collection et son nombre de variables : deux collections du
+même nom se distinguent ainsi. Le plugin ne peut pas écrire dans une
+bibliothèque ; le geste devient « Copier dans le plugin ».
 
 **La vue condensée (M10).** Un tableau : une ligne par palette, avec son nom,
 sa rampe en miniature, l'état de ses tokens et l'état de sa planche. Aucun
 geste. Une palette du fichier est une ligne du même tableau.
 
-**La destination (M11).** « Changer », dans le bloc de la connexion, ouvre la
-carte « Destination des tokens » :
+**La destination (M11).** « Changer », sur la ligne des tokens, ouvre la carte
+« Destination des tokens » à la place du bloc de la connexion ; « Enregistrer »
+ou « Annuler » rend le bloc.
 
 | Champ | Choix | Défaut |
 |---|---|---|
-| Collection | Une collection locale du fichier, ou une nouvelle dont le designer donne le nom | Une nouvelle collection `primitives` |
+| Collection | Une liste : une nouvelle collection dont le designer donne le nom, puis chaque collection locale avec son nombre de variables. Les collections de bibliothèque paraissent en lecture seule, avec leur compte | Une nouvelle collection `primitives` |
 | Groupe | Le dossier des palettes dans la collection ; vide, les palettes sont à la racine | `colors` |
 | Thèmes Light et Dark | Dans le chemin, ou en modes de la collection | Dans le chemin |
 
@@ -160,6 +167,21 @@ Elle suit chaque choix. La destination vaut pour toutes les palettes du plugin
 et se range dans le fichier. Tant qu'elle
 n'a pas été confirmée une fois, « Écrire dans les tokens » ouvre la carte
 avant d'écrire.
+
+**La page des planches (M15).** Aujourd'hui, le plugin crée une page
+« Palettes » au premier dessin. « Changer », sur la ligne des planches, ouvre
+à la place du bloc une carte « Page des planches » : une page du fichier, ou
+une nouvelle. Sa simulation montre la page choisie parmi celles du fichier et
+ce que le choix déplace.
+
+**« Modifier dans le plugin » (M13, M14).** Le geste crée une palette du
+plugin au nom de celle du fichier, avec sa nuance 600 pour référence, et ouvre
+Création dessus. Un encart y compare la rampe du fichier à celle que le plugin
+calcule, et laisse choisir « Recalculées », avec rôles et garanties, ou
+« Telles quelles », en palette libre. Rien ne s'écrit à ce stade. Dans
+Gestion, la palette rejoint celles du plugin ; ses tokens sont ses variables
+d'origine, à leur place, et « Mettre à jour » liste les couleurs qui changent
+avant de les remplacer.
 
 **Les deux décisions (M11, M12).** Elles se prennent dans la fiche, sans
 modale :
@@ -255,7 +277,10 @@ Réponses du mainteneur au premier passage des maquettes.
 | S13 | Le geste d'une palette du fichier | Il se nomme « Modifier dans le plugin » |
 | S15 | Où les variables s'écrivent | Une destination pour le fichier, réglée dans Gestion : collection, groupe, thèmes |
 | S16 | « Tout mettre à jour » dans la vue condensée | Absent |
-| — | Le mot du bouton qui relit le fichier | « Synchroniser » |
+| S17 | Les libellés des liens de message | Ceux de la table de la section 3.3 |
+| S18 | Le bloc « Connexion à Figma » | Synchronisation, destination des tokens, page des planches, bilan et « Tout mettre à jour » ; gris, sans fond |
+| S19 | « Synchroniser » | Il relit le fichier sans écrire ; « Tout mettre à jour » écrit |
+| S20 | La carte de la destination | Trois champs et la simulation ; elle s'ouvre à la place du bloc de la connexion |
 
 ## 7. Les questions qui restent
 
@@ -263,12 +288,10 @@ Répondre par numéro : oui, non, ou une variante.
 
 | # | Question | Recommandation | Autre option |
 |---|---|---|---|
-| S13 | Ce que fait « Modifier dans le plugin » | Le geste ouvre Création sur une palette neuve, à son nom et à sa référence, la nuance 600 ou la plus proche. Le plugin recalcule la rampe et suit désormais ces variables : rien ne s'écrit avant « Mettre à jour » dans Gestion, qui liste les couleurs qui changent | Une palette libre aux couleurs lues, sans recalcul ni garanties |
+| S13 | Ce que fait « Modifier dans le plugin » (M13, M14) | Création s'ouvre sur une palette neuve au nom de celle du fichier ; un encart compare les deux rampes et laisse choisir « Recalculées » ou « Telles quelles » ; les variables d'origine restent à leur place et se remplacent par « Mettre à jour » | Sans le choix : toujours recalculées, ou toujours telles quelles |
 | S14 | Lier la planche aux tokens | Non : la planche garde ses couleurs écrites, et son état se lit dans Gestion | Les pastilles de la planche liées aux variables, quand elles existent |
-| S17 | Les libellés des liens de message (M8) | Ceux de la table de la section 3.3 | D'autres mots |
-| S18 | Le bloc « Connexion à Figma » (M9, M10) | Synchronisation, destination des tokens, page des planches, bilan et « Tout mettre à jour » | Sans le bilan ; ou sans la page des planches |
-| S19 | Ce que fait « Synchroniser » | Il relit le fichier sans écrire ; « Tout mettre à jour » écrit | Un seul bouton, qui relit puis écrit ce qui est en retard |
-| S20 | La carte de la destination et sa simulation (M11) | Trois champs, puis la simulation en forme de panneau de variables | Une autre forme |
+| S21 | La page des planches (M15) | Une page choisie dans Gestion, « Palettes » par défaut. Changer de page y déplace les planches déjà créées | Les planches déjà créées restent où elles sont ; seules les nouvelles vont sur la page choisie |
+| S22 | Les collections de bibliothèque distante (M9, M11) | Leurs palettes paraissent dans « Déjà dans le fichier », marquées « Bibliothèque », avec « Copier dans le plugin » ; elles ne sont jamais une destination. Deux collections du même nom se distinguent par leur nombre de variables | Les taire : le plugin ne montre que les variables locales |
 
 ## 8. Les recherches
 
@@ -284,6 +307,7 @@ Répondre par numéro : oui, non, ou une variante.
 | R6 | Les caractères refusés dans un nom de variable, sur un nom de palette accentué ou à espace | Le nom écrit, et le message quand il est refusé |
 | R7 | La règle de détection sur le fichier de la bibliothèque Intencial | Ce qu'elle trouve, ce qu'elle manque |
 | R8 | Écrire dans une collection existante qui porte déjà plusieurs modes, thèmes dans le chemin : la valeur des autres modes | La règle 1 pour une collection choisie dans la liste |
+| R10 | Lire les collections de bibliothèque : `teamLibrary` demande une permission au manifest et ne donne que les collections activées ; le plugin lit-il sans elle les variables distantes que le fichier emploie | S22 : ce que Gestion peut montrer des deux « primitive base », 6 et 323 variables |
 | R9 | Ajouter les modes Light et Dark à une collection, selon l'offre Figma du fichier | Le message quand l'offre refuse un second mode |
 
 **Dans le dépôt, par l'agent.**
@@ -300,10 +324,10 @@ Répondre par numéro : oui, non, ou une variante.
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste, les messages simplifiés et leurs liens, Gestion en deux vues avec le bloc de la connexion et la seule ligne Planche | Validé ; S17, S18, S19 |
+| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste, les messages simplifiés et leurs liens, Gestion en deux vues avec le bloc de la connexion, la page des planches et la seule ligne Planche | Validé ; S21 |
 | 2 | Les essais R1 à R9 et les trois recherches du dépôt | Aucun |
-| 3 | L'écriture des tokens : destination et simulation, suivi, états, première écriture, « Tout mettre à jour » | Lot 2, S20 |
+| 3 | L'écriture des tokens : destination et simulation, suivi, états, première écriture, « Tout mettre à jour » | Lot 2 |
 | 4 | Les couleurs changées dans Figma, et les palettes du fichier en lecture seule | Lot 3 |
-| 5 | « Modifier dans le plugin », et la planche liée aux tokens si elle est retenue | S13, S14 |
+| 5 | « Modifier dans le plugin », les palettes de bibliothèque, et la planche liée aux tokens si elle est retenue | S13, S14, S22, R10 |
 
 Le lot 1 se livre seul : il réorganise le plugin sans toucher à ce qu'il écrit.
