@@ -109,6 +109,25 @@ function avecLesPalettesDuFichier(fichier) {
   };
 }
 
+/**
+ * `slate`, reprise des variables du fichier par « Modifier dans le plugin » :
+ * la palette du plugin, recalculée ou figée aux couleurs lues, et le fichier
+ * dont le suivi la lie à ses variables d'origine.
+ */
+function repriseDeSlate(figee) {
+  const calculee = { ...palette('p-51a7e000', 'slate', '#475569'), intensites: 1 };
+  const reprise = figee ? { ...calculee, crans: NUANCES_DU_FICHIER, figees: { light: RAMPES_DU_FICHIER.slate } } : calculee;
+  const fichier = avecLesPalettesDuFichier(VARIABLES_VIDES);
+  const variables = Object.fromEntries(NUANCES_DU_FICHIER.map((nuance, rang) => [`unique/light/${nuance}`, { id: `VariableID:slate:${nuance}`, ecrite: RAMPES_DU_FICHIER.slate[rang] }]));
+  return {
+    palette: reprise,
+    fichier: {
+      ...fichier,
+      suivi: { ...fichier.suivi, palettes: { [reprise.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', modes: { light: '7:0' }, variables, liaison: 'reprise' } } },
+    },
+  };
+}
+
 /** L'état que le sandbox envoie pour un texte rangé sous la clé de la recette, en réponse à la demande `demande`. */
 function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1, variables = VARIABLES_VIDES) {
   return {
@@ -814,7 +833,7 @@ const ETATS = [
     id: 'palettes-du-fichier',
     titre: 'Palettes du fichier',
     quand: 'Les variables du fichier portent deux palettes que le plugin n’a pas écrites : slate, et emerald dans une collection à deux modes.',
-    regarder: 'Sous les fiches du plugin, un filet, « Déjà dans le fichier · 2 » et sa phrase. Deux fiches en tirets, sans fond : l’étiquette « Variables du fichier » et « Modifier dans le plugin », inactif, en tête ; la rampe du premier mode ; « primitives / slate / 50 … 950 » et « 11 couleurs · 1 mode », puis « Brand / brand / emerald / 50 … 950 » et « 11 couleurs · modes Light, Dark ».',
+    regarder: 'Sous les fiches du plugin, un filet, « Déjà dans le fichier · 2 » et sa phrase. Deux fiches en tirets, sans fond : l’étiquette « Variables du fichier » et « Modifier dans le plugin » en tête ; la rampe du premier mode ; « primitives / slate / 50 … 950 » et « 11 couleurs · 1 mode », puis « Brand / brand / emerald / 50 … 950 » et « 11 couleurs · modes Light, Dark ».',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
@@ -840,6 +859,48 @@ const ETATS = [
     regarder: 'L’encart au fond bleuté, puis dessous la ligne « Ce fichier porte déjà 2 palettes dans ses variables. » et son lien « Les voir dans Gestion ».',
     existe: true,
     atteinte: [etatDuFichier('', 'SRGB', PLANCHE_VIDE, 1, avecLesPalettesDuFichier(VARIABLES_VIDES))],
+  },
+  {
+    id: 'reprise-recalculee',
+    titre: 'Reprise recalculée',
+    quand: 'Le designer a cliqué « Modifier dans le plugin » sur slate : Création s’ouvre sur la palette reprise.',
+    regarder: 'Sous le titre « Palette slate », l’encart : « Palette reprise des variables du fichier », la rampe « Fichier » et la rampe « Plugin » l’une sous l’autre, la bascule « Recalculées · Telles quelles » avec « Recalculées » pressé, le nombre de couleurs qui changeront, et « Annuler la reprise ». Les cartes de réglage suivent, sans le choix des intensités.',
+    existe: true,
+    atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false))],
+  },
+  {
+    id: 'reprise-telle-quelle',
+    titre: 'Reprise telle quelle',
+    quand: 'Dans l’encart de la palette reprise, le designer presse « Telles quelles ».',
+    regarder: '« Telles quelles » pressé ; les deux rampes identiques ; « Aucune couleur ne change. » ; le nom seul dans la carte de configuration ; ni « Réglage global » ni « Color shift » ; le pied « Palette libre ».',
+    existe: true,
+    atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(true))],
+  },
+  {
+    id: 'reprise-dans-gestion',
+    titre: 'Reprise dans Gestion',
+    quand: 'Dans Gestion, le designer clique « Mettre à jour » sur la ligne des tokens de slate, reprise et recalculée.',
+    regarder: 'La fiche de slate parmi les palettes du plugin : « Tokens Figma », « À mettre à jour », « primitives / slate » et le nombre de couleurs qui changent. Dessous, l’encart de remplacement : « Remplacer N couleurs de slate dans Figma ? », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, six au plus, « Et N autres. Les variables gardent leur nom et leurs liaisons. », puis « Annuler » et « Remplacer N couleurs ». « Déjà dans le fichier · 1 » ne liste plus que brand/emerald.',
+    existe: true,
+    atteinte: [
+      ((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false)),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion .fiche-planche [data-geste="mettre-a-jour"]' },
+    ],
+  },
+  {
+    id: 'reprise-refusee',
+    titre: 'Reprise refusée',
+    quand: 'Le designer clique « Modifier dans le plugin » sur slate ; le fichier ne porte plus ces variables.',
+    regarder: 'Sous le bloc de la connexion, le message « Palette non reprise », qui dit que le fichier ne porte plus la palette et demande de synchroniser ; « Modifier dans le plugin » de nouveau actif.',
+    existe: true,
+    // L'ouverture de l'onglet relit l'état (demande 2) : la reprise porte la demande 3.
+    atteinte: [
+      gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-geste="reprendre"]' },
+      { message: { type: 'reprise', demande: 3, issue: { issue: 'palette-introuvable' } } },
+    ],
   },
   {
     id: 'palette-supprimee',

@@ -32,7 +32,7 @@ export interface PaletteDuFichier {
 }
 
 /** La nuance la plus proche de 600 ; à distance égale, la plus grande. */
-function nuanceDeReference(nuances: readonly number[]): number {
+export function nuanceDeReference(nuances: readonly number[]): number {
   return nuances.reduce((choisie, nuance) => {
     const ecart = Math.abs(nuance - NUANCE_DE_REFERENCE) - Math.abs(choisie - NUANCE_DE_REFERENCE);
     return ecart < 0 || (ecart === 0 && nuance > choisie) ? nuance : choisie;

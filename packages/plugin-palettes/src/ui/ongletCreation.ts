@@ -18,6 +18,7 @@
  * pendant la saisie.
  */
 import {
+  estFigee,
   aUneIntensite,
   cleDuPorteur,
   rampeDe,
@@ -36,6 +37,8 @@ import {
 import { analyserPalette } from '../analyse';
 import { poserFond } from '../configuration';
 import {
+  reprendreDuFichier,
+  type ModeDeReprise,
   MOTIF_HEXA,
   ajouter,
   basculerNuance,
@@ -56,6 +59,10 @@ import {
   supprimer,
 } from '../edition';
 import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, reglageGlobalModifie, type CibleDAction } from '../presentation';
+import type { VariablesDuFichier } from '../lectureDesVariables';
+import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
+import { planDesVariables } from '../variables/plan';
+import { sourceDeLaReprise } from '../variables/reprise';
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
 import type { BarreDePaletteUi, GestesDeLaBarre } from './barreDePalette';
@@ -126,6 +133,8 @@ export interface OngletCreationUi {
   ouvrirLaPalette(id: string, mode: Mode): void;
   /** Le nombre de palettes que les variables du fichier portent hors du plugin : l'encart d'un fichier sans palette y mène ([UI-22]). */
   poserLesPalettesDuFichier(nombre: number): void;
+  /** Les variables du dernier état lu, avant son rendu : l'encart d'une palette reprise du fichier les lit ([UI-34]). */
+  poserLesVariables(fichier: VariablesDuFichier): void;
   /** Ce que la barre de la palette demande ([UI-23]) : l'onglet porte la recette, donc ses gestes. */
   readonly gestesDeLaBarre: GestesDeLaBarre;
   /** Reprend la barre en tête de l'onglet, quand il redevient l'onglet actif. */
@@ -162,7 +171,7 @@ function construireVues(i18n: Localisation) {
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -428,11 +437,110 @@ function construireVues(i18n: Localisation) {
     // Le bilan de la palette, dans un pied qui reste en vue ([UI-18]).
     const pied = createPiedDeLaPalette(() => demandes.verifier());
 
+    /*
+     * L'encart d'une palette reprise du fichier ([UI-34]) : la rampe que le
+     * fichier porte et celle que le plugin calcule, le choix « Recalculées ·
+     * Telles quelles », ce que la mise à jour changera, et « Annuler la
+     * reprise ». Rien ne s'écrit dans Figma ici : la bascule range la recette,
+     * et Gestion remplace les couleurs. Sa structure ne se reconstruit pas.
+     */
+    const encartDeReprise = document.createElement('div');
+    encartDeReprise.className = 'encart';
+    encartDeReprise.dataset.encart = 'reprise';
+    encartDeReprise.hidden = true;
+    const titreDeLaReprise = document.createElement('p');
+    titreDeLaReprise.className = 'encart-titre';
+    i18n.lier(titreDeLaReprise, 'textContent', TEXTES_DE_LA_REPRISE.titre);
+    const comparaison = document.createElement('div');
+    comparaison.className = 'comparaison';
+    const rampeDeComparaison = (libelle: Texte): HTMLDivElement => {
+      const nomDeLaRampe = document.createElement('span');
+      nomDeLaRampe.className = 'ligne-secondaire';
+      i18n.lier(nomDeLaRampe, 'textContent', libelle);
+      const rampe = document.createElement('div');
+      rampe.className = 'mini-rampe';
+      rampe.setAttribute('aria-hidden', 'true');
+      comparaison.append(nomDeLaRampe, rampe);
+      return rampe;
+    };
+    const rampeDuFichier = rampeDeComparaison(TEXTES_DE_LA_REPRISE.fichier);
+    const rampeDuPlugin = rampeDeComparaison(TEXTES_DE_LA_REPRISE.plugin);
+    const basculeDeReprise = document.createElement('div');
+    basculeDeReprise.className = 'bascule bascule-de-base';
+    basculeDeReprise.setAttribute('role', 'group');
+    i18n.lier(basculeDeReprise, 'aria-label', TEXTES_DE_LA_REPRISE.choix);
+    const choixDeReprise = ([['recalculees', TEXTES_DE_LA_REPRISE.recalculees], ['telles-quelles', TEXTES_DE_LA_REPRISE.tellesQuelles]] as const).map(([mode, libelle]) => {
+      const choixDuMode = document.createElement('button');
+      choixDuMode.type = 'button';
+      choixDuMode.className = 'bascule-option';
+      choixDuMode.dataset.reprise = mode;
+      i18n.lier(choixDuMode, 'textContent', libelle);
+      choixDuMode.addEventListener('click', () => basculerLaReprise(mode));
+      basculeDeReprise.append(choixDuMode);
+      return { mode, choixDuMode };
+    });
+    const texteDeLaReprise = document.createElement('p');
+    texteDeLaReprise.className = 'ligne-secondaire';
+    const annulerLaReprise = document.createElement('button');
+    annulerLaReprise.type = 'button';
+    annulerLaReprise.className = 'bouton-discret';
+    annulerLaReprise.dataset.geste = 'annuler-la-reprise';
+    i18n.lier(annulerLaReprise, 'textContent', TEXTES_DE_LA_REPRISE.annuler);
+    // La palette quitte le plugin, et ses variables reviennent à la liste « Déjà dans le fichier » de Gestion.
+    annulerLaReprise.addEventListener('click', () => confirmerLaSuppression());
+    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise, annulerLaReprise);
+
+    /** Les variables du dernier état lu : la liaison d'une palette reprise, et les couleurs que Figma porte. */
+    let fichier: VariablesDuFichier | null = null;
+
+    /** La liaison de reprise de la palette, quand elle vient des variables du fichier. */
+    const lienDeReprise = (palette: Palette) => {
+      const suivie = fichier?.suivi.palettes[palette.id];
+      return suivie?.liaison === 'reprise' ? suivie : null;
+    };
+
+    /** Reprend de nouveau la palette du fichier, dans l'autre mode : un rangement ordinaire, qui garde son nom. */
+    function basculerLaReprise(mode: ModeDeReprise): void {
+      const courante = ouverte();
+      const recette = etat.recette();
+      if (!recette || !courante || !fichier || estFigee(courante) === (mode === 'telles-quelles')) return;
+      const suivie = lienDeReprise(courante);
+      const source = suivie ? sourceDeLaReprise(suivie, fichier) : null;
+      const reprise = source ? reprendreDuFichier(recette, courante.id, source, mode) : null;
+      if (!reprise) return;
+      valider(remplacerPalette(recette, courante.nom === undefined ? reprise : { ...reprise, nom: courante.nom }));
+    }
+
+    /**
+     * L'encart reste tant que les tokens de la palette ne sont pas « À
+     * jour » ; une palette figée le garde, seul endroit où revenir aux
+     * couleurs recalculées.
+     */
+    function rendreLaReprise(courante: Palette, lue: Recette): void {
+      const suivie = lienDeReprise(courante);
+      const tokens: TokensDUnePalette | null = suivie && fichier ? tokensDeLaPalette(lue, courante, fichier) : null;
+      const figee = estFigee(courante);
+      encartDeReprise.hidden = !suivie || !tokens || !fichier || (!figee && tokens.etat === 'a-jour');
+      if (encartDeReprise.hidden || !suivie || !tokens || !fichier) return;
+      const lues = new Map(fichier.variables.map((variable) => [variable.id, variable]));
+      const clair = planDesVariables(lue, courante, fichier.suivi.destination, suivie).filter((entree) => entree.mode === 'light');
+      const nuance = (couleur: string | null | undefined): HTMLSpanElement => {
+        const element = document.createElement('span');
+        if (couleur) element.style.background = couleur.slice(0, 7);
+        return element;
+      };
+      rampeDuFichier.replaceChildren(...clair.map((entree) => nuance(suivie.modes.light === undefined ? null : lues.get(suivie.variables[entree.cle].id)?.valeurs[suivie.modes.light])));
+      rampeDuPlugin.replaceChildren(...clair.map((entree) => nuance(entree.hexa)));
+      for (const { mode, choixDuMode } of choixDeReprise) choixDuMode.setAttribute('aria-pressed', String((mode === 'telles-quelles') === figee));
+      i18n.lier(texteDeLaReprise, 'textContent', figee ? TEXTES_DE_LA_REPRISE.figee : couleursQuiChangeront(tokens.aRemplacer, tokens.variables === 0 ? 0 : Object.keys(suivie.variables).length));
+    }
+
     // La palette se règle ici, et se juge dans Vérification ([UI-12]).
     const configuration = document.createElement('div');
     configuration.className = 'configuration-de-la-palette';
     configuration.append(
       teteDeLaPalette,
+      encartDeReprise,
       carteDeBase.element,
       carteDApercu.element,
       carteDesIntensites.element,
@@ -715,9 +823,16 @@ function construireVues(i18n: Localisation) {
       choixDuModele.poser(analyse.libre ? 'libre' : 'modele');
       const une = aUneIntensite(courante);
       choixDesIntensites.poser({ intensites: une ? 1 : 2 });
-      choixDesIntensites.element.hidden = analyse.libre;
+      // Une palette figée ne se règle pas : seul son nom reste, avec l'encart qui la rend aux couleurs recalculées ([VAR-13]).
+      // Une palette reprise garde une intensité : ses variables d'origine n'en portent qu'une.
+      const figee = estFigee(courante);
+      colonneDeLaReference.hidden = figee;
+      choixDuModele.element.hidden = figee;
+      choixDesIntensites.element.hidden = analyse.libre || lienDeReprise(courante) !== null;
       choixDeBase.poser(courante.base ?? 'auto');
-      puces.element.hidden = !analyse.libre;
+      puces.element.hidden = !analyse.libre || figee;
+      carteDesIntensites.element.hidden = figee;
+      carteDeLaDerive.element.hidden = figee;
       puces.poser(analyse.grille.crans);
       // Des réglages figent le porteur, et changer de profil déplacerait la référence : l'aide le dit avant le geste (Z10.5).
       // Sa ligne garde sa place, vide sous une palette de base : un premier réglage ne la fait pas paraître ([UI-20]).
@@ -735,9 +850,10 @@ function construireVues(i18n: Localisation) {
         const trouvee = lue.palettes.find((candidate) => candidate.id === id);
         return trouvee ? nomDeLaPalette(trouvee) : id;
       };
+      rendreLaReprise(courante, lue);
       const messages = messagesDeLaPalette(analyse, courante, { recette: lue, nomDe });
       // Toute palette a la carte, une intensité comprise : c'est là qu'elle affine sa référence (Z10.4, question 4).
-      intensites.afficher(lue, courante, messages.intensite, carteDesIntensites.estOuverte());
+      if (!figee) intensites.afficher(lue, courante, messages.intensite, carteDesIntensites.estOuverte());
       const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
       carteDesIntensites.poserResume(resumeDesReglages(reglageGlobalModifie(courante), pointsDIntensite));
       pied.afficher({
@@ -751,7 +867,7 @@ function construireVues(i18n: Localisation) {
       const grise = estPaletteGrise(lue, courante);
       const pointsDeDerive = messages.liste.filter((message) => carteDuMessage(message.cibles) === 'derive').length;
       carteDeLaDerive.poserResume(resumeDeLaDerive(colorShiftModifie(courante, grise), aUneIntensite(courante) ? null : courante.derive.lien, pointsDeDerive));
-      if (carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, nuancier.mode());
+      if (!figee && carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, nuancier.mode());
       interfaceDeTest.afficher(lue, analyse, nuancier.mode(), courante.id);
     }
 
@@ -854,6 +970,9 @@ function construireVues(i18n: Localisation) {
         // Une réponse du sandbox en plein aperçu ne montre que le refus : le rendu complet attend la fin du geste.
         if (renduDiffere) rendreRefus();
         else rendre();
+      },
+      poserLesVariables(lu) {
+        fichier = lu;
       },
       poserLesPalettesDuFichier(nombre) {
         palettesDuFichier = nombre;

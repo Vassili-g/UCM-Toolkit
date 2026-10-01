@@ -130,10 +130,17 @@ export function texteDuSuivi(suivi: SuiviDesVariables): string {
   return JSON.stringify({ ...suivi, version: VERSION_DU_SUIVI_DES_VARIABLES });
 }
 
-/** Les identifiants de toutes les variables que le suivi désigne, toutes palettes confondues. */
-export function variablesSuivies(suivi: SuiviDesVariables): Set<string> {
+/**
+ * Les identifiants des variables que le plugin tient pour siennes. Les
+ * variables qu'il a créées le restent, palette supprimée comprise. Celles
+ * d'une palette reprise du fichier ne le sont que tant que la recette porte
+ * la palette : `presentes` nomme les palettes de la recette, et une reprise
+ * supprimée rend ses variables à la liste « Déjà dans le fichier ».
+ */
+export function variablesSuivies(suivi: SuiviDesVariables, presentes?: ReadonlySet<string>): Set<string> {
   const ids = new Set<string>();
-  for (const palette of Object.values(suivi.palettes)) {
+  for (const [id, palette] of Object.entries(suivi.palettes)) {
+    if (palette.liaison === 'reprise' && presentes && !presentes.has(id)) continue;
     for (const variable of Object.values(palette.variables)) ids.add(variable.id);
   }
   return ids;

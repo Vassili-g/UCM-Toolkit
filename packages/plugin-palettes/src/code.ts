@@ -4,12 +4,12 @@
  *
  * Le routage n'a qu'une porte par geste d'écriture ([ARC-14]) : « ranger la
  * recette », « dessiner », « retirer un cadre », « choisir la page »,
- * « écrire les variables », « ranger la destination » et « retirer les
- * variables ».
+ * « écrire les variables », « ranger la destination », « retirer les
+ * variables » et « reprendre une palette ».
  */
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
-import { ecrireLesVariables, rangerLaDestination, retirerLesVariables } from './ecriture/variables';
+import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
 import { lireLesVariablesDuFichier } from './lectureDesVariables';
@@ -93,6 +93,11 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
   if (message.type === 'retirer-variables') {
     versUi({ type: 'variables-retirees', demande: message.demande, issue: await retirerLesVariables(figma, message) });
+    return;
+  }
+
+  if (message.type === 'reprendre-palette') {
+    versUi({ type: 'reprise', demande: message.demande, issue: await reprendreLaPalette(figma, message) });
     return;
   }
 

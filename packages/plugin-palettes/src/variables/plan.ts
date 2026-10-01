@@ -8,6 +8,7 @@ import { MODES, grilleDe, intensitesDe, rampeDe, rampesDe, type Intensite, type 
 
 import { segmentsDuGroupe, type Destination } from './destination';
 import { segmentDeLaPalette } from './noms';
+import type { PaletteSuivie } from './suivi';
 
 /** Le mode qu'une entrée écrit : le seul mode suivi quand les thèmes sont dans le chemin, sinon son thème. */
 export type ModeDuPlan = 'unique' | Mode;
@@ -34,8 +35,28 @@ export function cleDuPlan(intensite: Intensite, mode: Mode, nuance: number): str
  * entrées Light et Dark d'une nuance portent le même nom. Une palette à une
  * intensité n'a pas de segment d'intensité, et une palette libre écrit ses
  * seules nuances.
+ *
+ * Pour une palette reprise du fichier, `suivie` porte une liaison de
+ * reprise : le plan ne rend que les entrées que le suivi désigne, sans nom,
+ * chacune dans le mode de son thème. La destination ne la concerne pas
+ * ([VAR-13]).
  */
-export function planDesVariables(recette: Recette, palette: Palette, destination: Destination): EntreeDuPlan[] {
+export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie): EntreeDuPlan[] {
+  if (suivie?.liaison === 'reprise') {
+    const rampes = rampesDe(recette, palette);
+    const nuances = grilleDe(recette, palette).crans;
+    const reprises: EntreeDuPlan[] = [];
+    for (const intensite of intensitesDe(palette)) {
+      const rampe = rampeDe(rampes, intensite);
+      for (const mode of MODES) {
+        nuances.forEach((nuance, rang) => {
+          const cle = cleDuPlan(intensite, mode, nuance);
+          if (suivie.variables[cle]) reprises.push({ cle, nom: '', mode, hexa: rampe[mode][rang].hexa.toUpperCase() });
+        });
+      }
+    }
+    return reprises;
+  }
   const groupe = segmentsDuGroupe(destination.groupe) ?? [];
   const { segment } = segmentDeLaPalette(recette, palette);
   const rampes = rampesDe(recette, palette);

@@ -14,7 +14,8 @@
  * tableau sans geste, une ligne par palette.
  *
  * Sous un filet, « Déjà dans le fichier » liste les palettes que les
- * variables du fichier portent hors du plugin, en fiches à tirets ([UI-33]).
+ * variables du fichier portent hors du plugin, en fiches à tirets ([UI-33]) ;
+ * « Modifier dans le plugin » en reprend une ([UI-34]).
  *
  * Suivent une carte par palette supprimée dont le cadre ou des variables
  * restent dans Figma ([PLA-27], [VAR-11]), les notices, puis la carte
@@ -26,7 +27,7 @@ import { MODES, rampeDe, type Classement, type Mode, type Recette } from 'ucm-co
 
 import { analyserPalette } from '../analyse';
 import type { IssueDeLaPage, IssueDuRetrait } from '../ecriture/planche';
-import type { IssueDeLaDestination, IssueDuRetraitDesVariables, ResultatDeLEcriture } from '../ecriture/variables';
+import type { IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from '../ecriture/variables';
 import { VERSION_DU_SUIVI, type CadreLu, type EtatDeLaPlanche, type ProfilDuDocument } from '../lecture';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
@@ -70,6 +71,8 @@ export interface OngletGestionUi {
   recevoirDestination(issue: IssueDeLaDestination): void;
   /** L'issue de « Supprimer les variables… » ([VAR-11]). */
   recevoirRetraitDesVariables(issue: IssueDuRetraitDesVariables): void;
+  /** L'issue de « Modifier dans le plugin » ([VAR-13]) ; réussie, l'état relu ouvre Création sur la palette. */
+  recevoirReprise(issue: IssueDeLaReprise): void;
 }
 
 export interface GestesDeLaGestion extends GestesDuResultat {
@@ -93,6 +96,8 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   rangerLaDestination(destination: Destination): boolean;
   /** Demande le retrait des variables d'une palette supprimée ; `false` quand rien ne part ([VAR-11]). */
   retirerLesVariables(palette: string): boolean;
+  /** Reprend une palette du fichier dans le plugin ; `false` quand rien ne part ([VAR-13]). */
+  reprendre(source: PaletteDuFichier): boolean;
   /** Les gestes de la recette en fichier, dans la carte « Palettes et réglages » (V8.5). */
   recetteEnFichier: GestesDeLaRecetteUi;
 }
@@ -109,7 +114,8 @@ function construireVues(i18n: Localisation) {
   const { createDestination } = creerVuesDestination(i18n);
   const { createPageDesPlanches } = creerVuesPageDesPlanches(i18n);
   const {
-    TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
+    TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DE_LA_REPRISE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
+    couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, titreDuRemplacement,
     avecLeNom, collectionDisparue, confirmationDeLaMiseAJour, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, dejaDansLeFichier, detailsTechniques,
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaFicheEcrit, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, palettesDuPlugin, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
@@ -394,6 +400,8 @@ function construireVues(i18n: Localisation) {
     /** La palette supprimée dont la suppression des variables attend sa confirmation, puis son issue. */
     let variablesAConfirmer: string | null = null;
     let retraitDesVariablesEnCours = false;
+    /** Vrai entre « Modifier dans le plugin » et son issue : aucune autre reprise ne part. */
+    let repriseEnCours = false;
     /** Le retrait demandé, jusqu'à son issue : le cadre, son nom et le rang de sa carte. */
     let retraitEnCours: { readonly cadre: string; readonly nom: string; readonly rang: number } | null = null;
     /** Le rang de la carte retirée, que le focus rejoint au rendu qui la fait disparaître. */
@@ -410,8 +418,8 @@ function construireVues(i18n: Localisation) {
         geste.disabled = inactif;
         i18n.lier(geste, 'title', blocage ?? '');
       }
-      for (const geste of Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]'))) {
-        geste.disabled = inactif;
+      for (const geste of [...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')), ...Array.from(listeDuFichier.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre"]'))]) {
+        geste.disabled = inactif || repriseEnCours;
         i18n.lier(geste, 'title', blocage === null ? '' : TEXTES_DE_LA_GESTION.variablesEnConflit);
       }
       // Un suivi d'une version plus récente refuse le changement avant toute écriture ([PLA-29], [VAR-16]).
@@ -571,10 +579,15 @@ function construireVues(i18n: Localisation) {
       return element;
     }
 
-    /** Ouvre l'encart d'écriture d'une palette ; sans destination confirmée, la carte de la destination d'abord ([UI-31]). */
+    /**
+     * Ouvre l'encart d'écriture d'une palette ; sans destination confirmée, la
+     * carte de la destination d'abord ([UI-31]). Une palette reprise du
+     * fichier écrit dans ses variables d'origine : la destination ne la
+     * concerne pas.
+     */
     function ouvrirLEcriture(id: string): void {
       if (!variables) return;
-      if (!variables.suivi.confirmee) {
+      if (!variables.suivi.confirmee && !tokens.get(id)?.reprise) {
         ouvrirLaDestination(id);
         return;
       }
@@ -596,13 +609,20 @@ function construireVues(i18n: Localisation) {
             laissees.delete(id);
             gesteAFocaliser = { palette: id, geste: 'remettre' };
             rendre();
-          } else if (etat.aCreer.length > 0) ouvrirLEcriture(id);
+          } else if (etat.aCreer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
           else {
             gesteAFocaliser = { palette: id, geste: 'modifier' };
             ecrire([id], []);
           }
         },
       )]);
+      if (etat.reprise && (etat.etat === 'a-jour' || etat.etat === 'a-mettre-a-jour')) {
+        // Une palette reprise : sa collection et son chemin d'origine, puis ce que la mise à jour remplacerait ([UI-34]).
+        const origine = origineDesTokens(etat.collection ?? TEXTES_DE_LA_GESTION.collectionIntrouvable, etat.origine ?? '');
+        return etat.etat === 'a-jour'
+          ? { ...ligne, detail: i18n.composer`${origine} · ${nombreDeVariables(etat.variables)}`, gestes: [] }
+          : { ...ligne, detail: i18n.composer`${origine} · ${couleursSurNChangent(etat.aRemplacer, etat.variables)}`, gestes: mettreAJour('primary') };
+      }
       switch (etat.etat) {
         case 'jamais-ecrits':
           return {
@@ -657,6 +677,56 @@ function construireVues(i18n: Localisation) {
         ecrire([id], []);
       }));
       bloc.append(titre, texte, choix);
+      return bloc;
+    }
+
+    /**
+     * L'encart de remplacement d'une palette reprise ([UI-34]) : les couleurs
+     * qui changent, la valeur de Figma et celle du plugin côte à côte, ce que
+     * les variables gardent, puis « Remplacer N couleurs ».
+     */
+    function encartDuRemplacement(id: string, nom: string, etat: TokensDUnePalette): HTMLDivElement {
+      const bloc = document.createElement('div');
+      bloc.className = 'encart';
+      bloc.dataset.encart = 'remplacement';
+      bloc.dataset.ton = 'avertissement';
+      const titre = document.createElement('p');
+      titre.className = 'encart-titre';
+      i18n.lier(titre, 'textContent', titreDuRemplacement(etat.aRemplacer, nom));
+      bloc.append(titre);
+      const changees = etat.aEcrire.filter((couleur) => couleur.ecrite !== null);
+      for (const couleur of changees.slice(0, COULEURS_LISTEES)) {
+        const ecart = document.createElement('div');
+        ecart.className = 'ecart';
+        const variable = document.createElement('code');
+        variable.textContent = couleur.nom;
+        ecart.append(variable, valeur(couleur.ecrite, valeurDansFigma(couleur.ecrite!)), valeur(couleur.plugin, valeurDansLePlugin(couleur.plugin)));
+        bloc.append(ecart);
+      }
+      const suite = document.createElement('p');
+      suite.className = 'ligne-secondaire';
+      i18n.lier(suite, 'textContent', changees.length > COULEURS_LISTEES
+        ? i18n.composer`${etNAutres(changees.length - COULEURS_LISTEES)} ${TEXTES_DE_LA_REPRISE.gardentLeurNom}`
+        : TEXTES_DE_LA_REPRISE.gardentLeurNom);
+      bloc.append(suite);
+      const choix = document.createElement('div');
+      choix.className = 'confirmation-gestes';
+      const annuler = createButton({
+        label: TEXTES_DE_LA_GESTION.annuler,
+        variant: 'secondary',
+        compact: true,
+        onClick: () => {
+          encart = null;
+          gesteAFocaliser = { palette: id, geste: 'mettre-a-jour' };
+          rendre();
+        },
+      });
+      annuler.dataset.geste = 'annuler-ecriture';
+      choix.append(annuler, gesteDEcriture(remplacerNCouleurs(etat.aRemplacer), 'primary', 'confirmer-ecriture', () => {
+        gesteAFocaliser = { palette: id, geste: 'modifier' };
+        ecrire([id], []);
+      }));
+      bloc.append(choix);
       return bloc;
     }
 
@@ -787,7 +857,7 @@ function construireVues(i18n: Localisation) {
 
       const sorties = [...(etatDesTokens ? [ligneDesTokens(id, etatDesTokens)] : []), ligneDeLaPlanche(id, cadre, sansGeneration)];
       fiche.corps.append(apercuCompact(lue, analyse, mode), information, lignesDeSortie(sorties, i18n));
-      if (etatDesTokens && encart === id) fiche.corps.append(encartDeLEcriture(id, nom, etatDesTokens));
+      if (etatDesTokens && encart === id) fiche.corps.append(etatDesTokens.reprise ? encartDuRemplacement(id, nom, etatDesTokens) : encartDeLEcriture(id, nom, etatDesTokens));
       else if (etatDesTokens?.etat === 'modifies' && !laissees.has(id)) fiche.corps.append(encartDesModifiees(id, nom, etatDesTokens));
       const refus = refusDesTokens.get(id);
       if (refus) fiche.corps.append(blocDeConstat(refus, 'alerte'));
@@ -866,8 +936,8 @@ function construireVues(i18n: Localisation) {
      * La fiche d'une palette du fichier : en tirets, sans fond, l'étiquette
      * « Variables du fichier » et « Modifier dans le plugin » en tête, la
      * rampe de son premier mode, puis sa collection, son chemin, son nombre
-     * de couleurs et ses modes ([UI-33]). Le geste attend la reprise
-     * ([UI-34]) : il reste inactif.
+     * de couleurs et ses modes ([UI-33]). Le geste la reprend dans le plugin
+     * ([UI-34]).
      */
     function ficheDuFichier(palette: PaletteDuFichier): HTMLElement {
       const fiche = createCarte({ titre: nomDuFichier(palette) }, i18n);
@@ -878,9 +948,14 @@ function construireVues(i18n: Localisation) {
       const etiquette = document.createElement('span');
       etiquette.className = 'etiquette';
       i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.variablesDuFichier);
-      const reprendre = bouton(TEXTES_DE_LA_GESTION.modifierDansLePlugin, 'bouton-discret', () => {});
+      const reprendre = bouton(TEXTES_DE_LA_GESTION.modifierDansLePlugin, 'bouton-discret', () => {
+        if (repriseEnCours || !gestes.reprendre(palette)) return;
+        repriseEnCours = true;
+        zoneDesVariables.replaceChildren();
+        zoneDesVariables.hidden = true;
+        rendreLesGestes();
+      });
       reprendre.dataset.geste = 'reprendre';
-      reprendre.disabled = true;
       tete.append(etiquette, reprendre);
       fiche.tete.append(tete);
 
@@ -1050,7 +1125,7 @@ function construireVues(i18n: Localisation) {
       orphelines = [];
       duFichier = [];
       if (!recette || !variables || suiviDesVariablesFutur(variables.suivi)) return;
-      duFichier = palettesDuFichier(variables.variables, variables.collections, variablesSuivies(variables.suivi));
+      duFichier = palettesDuFichier(variables.variables, variables.collections, variablesSuivies(variables.suivi, new Set(recette.palettes.map((palette) => palette.id))));
       for (const palette of recette.palettes) tokens.set(palette.id, tokensDeLaPalette(recette, palette, variables));
       orphelines = variablesDesPalettesSupprimees(recette, variables);
     }
@@ -1094,8 +1169,9 @@ function construireVues(i18n: Localisation) {
         absentes = new Set(plancheLue.recherche === 'fichier' ? introuvables : introuvables.filter((id) => dejaAbsentes.has(id)));
         analyses.clear();
         calculerLesTokens();
-        // Un encart ouvert sur une palette que la recette ne porte plus, ou qui n'a plus rien à créer, se ferme.
-        if (encart !== null && (tokens.get(encart)?.aCreer.length ?? 0) === 0) encart = null;
+        // Un encart ouvert sur une palette que la recette ne porte plus, ou qui n'a plus rien à créer ni à remplacer, se ferme.
+        const ouvert = encart === null ? undefined : tokens.get(encart);
+        if (encart !== null && (!ouvert || (ouvert.reprise ? ouvert.aRemplacer : ouvert.aCreer.length) === 0)) encart = null;
         if (variablesAConfirmer !== null && !orphelines.some((orpheline) => orpheline.palette === variablesAConfirmer)) variablesAConfirmer = null;
         rendre();
       },
@@ -1189,6 +1265,15 @@ function construireVues(i18n: Localisation) {
           gesteAFocaliser = { palette: ensuite, geste: 'confirmer-ecriture' };
         }
         rendre();
+      },
+      recevoirReprise(issue) {
+        repriseEnCours = false;
+        // Une recette changée ailleurs ouvre le conflit d'enregistrement, que l'onglet Création dit.
+        if (issue.issue === 'palette-introuvable' || issue.issue === 'invalide') zoneDesVariables.replaceChildren(blocDeConstat(repriseRefusee(), 'alerte'));
+        else if (issue.issue === 'suivi-futur') zoneDesVariables.replaceChildren(blocDeConstat(suiviFutur(), 'bloquant'));
+        else zoneDesVariables.replaceChildren();
+        zoneDesVariables.hidden = zoneDesVariables.childElementCount === 0;
+        rendreLesGestes();
       },
       recevoirRetraitDesVariables(issue) {
         retraitDesVariablesEnCours = false;

@@ -1586,6 +1586,24 @@
   font-weight: 600;
 }
 
+/* La rampe du fichier et celle du plugin, l'une sous l'autre, dans l'encart d'une palette reprise ([UI-34]). */
+.comparaison {
+  display: grid;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.comparaison .mini-rampe span {
+  width: auto;
+  height: 18px;
+  flex: 1 1 0;
+}
+
+.encart .bouton-discret {
+  justify-self: start;
+}
+
 /* Une couleur changée dans Figma : le nom de sa variable, sa valeur dans Figma, sa valeur dans le plugin. */
 .ecart {
   display: grid;

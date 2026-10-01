@@ -11,6 +11,7 @@ import type { Destination } from './destination';
 import { etatDesTokens, type EtatDesTokensDUnePalette } from './etat';
 import { nomsDuPlan, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from './plan';
 import type { VariableLue } from './releve';
+import { cheminCommun } from './reprise';
 
 export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   /** Le nombre de variables que la palette porte sous la destination d'aujourd'hui. */
@@ -21,6 +22,10 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly aRemplacer: number;
   /** Le nom de la collection où l'écriture se ferait ; `null` quand la destination désigne une collection que le fichier ne porte plus. */
   readonly collection: string | null;
+  /** Vrai pour une palette reprise du fichier : ses tokens sont ses variables d'origine, à leur place ([VAR-13]). */
+  readonly reprise: boolean;
+  /** Pour une palette reprise, le chemin commun de ses variables d'origine ; `null` sinon. */
+  readonly origine: string | null;
 }
 
 /**
@@ -31,11 +36,22 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
  */
 export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: VariablesDuFichier): TokensDUnePalette {
   const { destination } = fichier.suivi;
-  const plan = planDesVariables(recette, palette, destination);
-  const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
   const suivie = fichier.suivi.palettes[palette.id];
+  const plan = planDesVariables(recette, palette, destination, suivie);
+  const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
   const etat = etatDesTokens(plan, suivie, lues, destination);
   const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
+  if (suivie?.liaison === 'reprise') {
+    // Une palette reprise n'a pour tokens que ses variables d'origine : aucune écriture n'en crée.
+    const presentes = new Set(plan.map((entree) => suivie.variables[entree.cle].id).filter((id) => lues.has(id)));
+    const aRemplacer = plan.filter((entree) => {
+      const lue = lues.get(suivie.variables[entree.cle].id);
+      const mode = suivie.modes[entree.mode];
+      return lue !== undefined && mode !== undefined && lue.valeurs[mode] !== entree.hexa;
+    }).length;
+    const origine = cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
+    return { ...etat, variables: presentes.size, aCreer: [], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine };
+  }
   const garde = suivie && !etat.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
 
   const resolus = new Set<string>();
@@ -52,7 +68,7 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
   const collection = garde
     ? collections.get(garde.collection)!
     : 'id' in destination.collection ? collections.get(destination.collection.id) ?? null : destination.collection.nom;
-  return { ...etat, variables: noms.length, aCreer: noms.filter((nom) => !resolus.has(nom)), aRemplacer, collection };
+  return { ...etat, variables: noms.length, aCreer: noms.filter((nom) => !resolus.has(nom)), aRemplacer, collection, reprise: false, origine: null };
 }
 
 /** Les variables qu'une palette supprimée de la recette laisse dans le fichier. */
@@ -79,10 +95,7 @@ export function variablesDesPalettesSupprimees(recette: Pick<Recette, 'palettes'
       .map((id) => lues.get(id)?.nom)
       .filter((nom): nom is string => nom !== undefined);
     if (noms.length === 0) continue;
-    const segments = noms.map((nom) => nom.split('/'));
-    const commun: string[] = [];
-    for (let rang = 0; segments.every((liste) => rang < liste.length - 1 && liste[rang] === segments[0][rang]); rang += 1) commun.push(segments[0][rang]);
-    orphelines.push({ palette, variables: noms.length, chemin: commun.join('/') || noms[0] });
+    orphelines.push({ palette, variables: noms.length, chemin: cheminCommun(noms) || noms[0] });
   }
   return orphelines;
 }

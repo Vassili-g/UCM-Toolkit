@@ -203,3 +203,34 @@ test('[VAR-16] un seul rangement de destination est en vol, et le retrait des va
   assert.equal(frontiere.accepterRetraitDesVariables({ type: 'variables-retirees', demande: 4, issue: { issue: 'retirees', retirees: 22 } }), true);
   assert.equal(frontiere.accepterRetraitDesVariables({ type: 'variables-retirees', demande: 3, issue: { issue: 'refuse' } }), false);
 });
+
+test('[VAR-13] une reprise range la recette : elle porte l’empreinte lue, retient les rangements, et apporte la nouvelle empreinte', () => {
+  const { frontiere, envoyees, statuts, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  const source = { collection: 'C', chemin: 'slate' };
+  assert.equal(frontiere.reprendre(AUTRE, 'p-000000a1', source), true);
+  assert.deepEqual(envoyees[1], { type: 'reprendre-palette', demande: 2, recette: AUTRE, empreinteLue: 'aaaaaaaa', palette: 'p-000000a1', source });
+  assert.equal(frontiere.reprendre(AUTRE, 'p-000000a2', source), false, 'une reprise en vol retient la suivante');
+  frontiere.ranger(RECETTE);
+  assert.equal(envoyees.length, 2, 'un rangement attend l’issue de la reprise');
+  assert.equal(frontiere.recevoirReprise({ type: 'reprise', demande: 1, issue: { issue: 'suivi-futur' } }), false);
+  assert.equal(frontiere.recevoirReprise({ type: 'reprise', demande: 2, issue: { issue: 'reprise', empreinte: 'bbbbbbbb' } }), true);
+  assert.equal(frontiere.empreinte(), 'bbbbbbbb');
+  assert.equal(statuts.at(-1), 'range');
+  // Le rangement arrivé pendant la reprise portait la recette d'avant : il ne part pas.
+  assert.equal(envoyees.length, 2);
+  assert.equal(frontiere.auRepos(), true);
+});
+
+test('[VAR-13] une reprise sur une recette changée ailleurs ouvre le conflit, et aucune reprise ne part pendant un conflit', () => {
+  const { frontiere, envoyees, etat } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  const source = { collection: 'C', chemin: 'slate' };
+  frontiere.reprendre(AUTRE, 'p-000000a1', source);
+  frontiere.recevoirReprise({ type: 'reprise', demande: 2, issue: { issue: 'modifiee-ailleurs' } });
+  assert.equal(frontiere.statut(), 'refuse');
+  assert.equal(frontiere.reprendre(AUTRE, 'p-000000a1', source), false);
+  assert.equal(envoyees.length, 2);
+});

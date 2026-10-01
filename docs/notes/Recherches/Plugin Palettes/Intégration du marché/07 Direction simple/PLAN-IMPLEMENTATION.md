@@ -61,12 +61,12 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1.
+P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4, P8.1 à P8.6.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
 vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
-des phases 3, 5, 6 et 7 n'a tourné dans aucun navigateur : le typecheck, les
+des phases 3, 5, 6, 7 et 8 n'a tourné dans aucun navigateur : le typecheck, les
 tests unitaires et le build la tiennent seuls. Ce que Gestion compte et
 décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
 
@@ -82,8 +82,8 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
   joués : `gestion-complete`, `gestion-condensee`,
   `gestion-page-des-planches`, `page-des-planches-refusee`, les états de
   l'ancien onglet Palettes, les treize états des tokens, de
-  `tokens-jamais-ecrits` à `variables-supprimees`, et les trois états des
-  palettes du fichier.
+  `tokens-jamais-ecrits` à `variables-supprimees`, les trois états des
+  palettes du fichier, et les quatre états de la reprise.
 - `generer-maquettes-direction-simple.mjs` transformait l'ancien onglet
   Palettes pour dessiner M9 à M15. Il ne s'applique plus au DOM de Gestion :
   les maquettes rendues restent la référence, et le plugin construit les
@@ -123,6 +123,18 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
   multiples de 50. Une recette de format 7 se lit « illisible », sans
   conversion : un fichier d'essai d'avant ce format se vide par « Repartir de
   la recette par défaut », ou s'exporte et se corrige à la main.
+- Écarts de la reprise : la porte `reprendre-palette` ne reçoit pas la
+  liaison de l'interface, elle retrouve la palette du fichier par sa
+  collection et son chemin. La couleur de la nuance 600 devient la
+  référence, mais le plugin l'ancre à la nuance de sa luminosité : pour
+  slate, la 800, et presque toutes les couleurs changent en « Recalculées ».
+  Une palette dont les nuances ne font pas une liste libre valide suit la
+  liste commune, et seules les nuances communes s'écrivent. L'encart de
+  Création reste pour une palette figée, pour pouvoir revenir à
+  « Recalculées ». « Annuler la reprise » supprime la palette par un
+  rangement ordinaire : son suivi reste rangé, sans effet, et ses variables
+  reviennent à « Déjà dans le fichier ». Une variable n'est pas suivie dans
+  le thème où elle porte un alias.
 
 ## Arbitrages
 
@@ -504,13 +516,13 @@ restent ses tokens.
   Vérifier ce que `packages/plugin-explorateur/src/integrations/` lit de la
   recette, et lui faire accepter le format 8. Tests du moteur et des deux
   plugins.
-- [ ] **P8.2** `src/edition.ts` : `reprendreDuFichier(recette, id,
+- [x] **P8.2** `src/edition.ts` : `reprendreDuFichier(recette, id,
   paletteDuFichier, mode)`. Mode `recalculees` : une palette à une intensité,
   au nom du dernier segment de chemin non numérique, à la référence de la
   nuance 600 ou de la plus proche ; libre, avec les nuances lues, quand elles
   ne sont pas celles de la recette. Mode `telles-quelles` : la même, figée
   aux couleurs lues. Tests.
-- [ ] **P8.3** La liaison. Le suivi de la palette prend `liaison:
+- [x] **P8.3** La liaison. Le suivi de la palette prend `liaison:
   'reprise'` : ses clés pointent les variables d'origine, par identifiant. Le
   thème Light vise le premier mode de la collection, ou le mode dont le nom
   contient « light », sans casse ; le thème Dark vise le mode dont le nom
@@ -520,18 +532,18 @@ restent ses tokens.
   entrées que le suivi pointe, et l'écriture ne crée, ne renomme ni ne
   déplace aucune variable. Porte `reprendre-palette`, qui range la recette et
   le suivi ensemble, sous un seul `commitUndo`.
-- [ ] **P8.4** Le geste (M13). « Modifier dans le plugin » reprend en mode
+- [x] **P8.4** Le geste (M13). « Modifier dans le plugin » reprend en mode
   `recalculees`, ouvre Création sur la palette et y pose un encart sous le
   titre : les deux rampes, « Fichier » et « Plugin », la bascule
   « Recalculées · Telles quelles », le nombre de couleurs qui changeront, et
   « Annuler la reprise », qui supprime la palette et son suivi. L'encart
   reste tant que les tokens de la palette ne sont pas « À jour ».
-- [ ] **P8.5** Gestion (M14). La palette quitte « Déjà dans le fichier ». Sa
+- [x] **P8.5** Gestion (M14). La palette quitte « Déjà dans le fichier ». Sa
   ligne des tokens dit la collection et le chemin d'origine. « Mettre à
   jour » ouvre l'encart de remplacement : les couleurs qui changent, « Et N
   autres », la phrase « Les variables gardent leur nom et leurs liaisons. »,
   « Annuler » et « Remplacer N couleurs ».
-- [ ] **P8.6** États de galerie `reprise-recalculee`, `reprise-telle-quelle`,
+- [x] **P8.6** États de galerie `reprise-recalculee`, `reprise-telle-quelle`,
   `reprise-dans-gestion`, tests d'interface, et les tests de `variables.
   test.ts` pour la liaison de reprise : une collection à un mode, à deux
   modes Light et Dark, à deux modes sans nom reconnu.

@@ -14,7 +14,7 @@ import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
-import type { IssueDeLaDestination, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
+import type { IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
@@ -63,9 +63,16 @@ export type UiRequest =
   | { type: 'ranger-destination'; demande: number; destination: Destination }
   /** Septième écriture : le retrait des variables d'une palette supprimée ([VAR-11]). */
   | { type: 'retirer-variables'; demande: number; palette: string }
+  /**
+   * Huitième écriture : « Modifier dans le plugin ». La recette porte la
+   * palette reprise ; `source` désigne la palette du fichier, que le sandbox
+   * retrouve lui-même avant de ranger la recette et la liaison ensemble
+   * ([VAR-13]).
+   */
+  | { type: 'reprendre-palette'; demande: number; recette: Recette; empreinteLue: string | null; palette: string; source: { collection: string; chemin: string } }
   | DemandeDeTaille;
 
-export type { IssueDeLaDestination, IssueDeLaPage, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
+export type { IssueDeLaDestination, IssueDeLaPage, IssueDeLaReprise, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
@@ -93,4 +100,6 @@ export type PluginMessage =
   /** L'issue de « Enregistrer » dans la carte « Destination des tokens », en réponse à `ranger-destination`. */
   | { type: 'destination-rangee'; demande: number; issue: IssueDeLaDestination }
   /** L'issue de « Supprimer les variables… », en réponse à `retirer-variables`. */
-  | { type: 'variables-retirees'; demande: number; issue: IssueDuRetraitDesVariables };
+  | { type: 'variables-retirees'; demande: number; issue: IssueDuRetraitDesVariables }
+  /** L'issue de « Modifier dans le plugin », en réponse à `reprendre-palette`. */
+  | { type: 'reprise'; demande: number; issue: IssueDeLaReprise };

@@ -234,7 +234,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/messages.ts          les deux sens de la frontière sandbox ↔ interface
   src/lecture.ts           la recette rangée, classée, son empreinte, le profil du document, les cadres retrouvés où qu'ils soient, et les pages du fichier
   src/analyse.ts           une palette pour l'onglet : rampes, promesses, alertes et notices triées
-  src/edition.ts           ce qu'une saisie fait à une palette, avant tout rangement, ajustement de la référence compris
+  src/edition.ts           ce qu'une saisie fait à une palette, avant tout rangement, ajustement de la référence compris ; la palette du plugin qu'une palette du fichier devient, recalculée ou figée
   src/ajustementDeLaReference.ts  le panneau d'ajustement sans DOM : pas, proposition, nuance visée, annonce d'un pas, garanties avant et après
   src/configuration.ts     les champs de la configuration, fonds et seuils compris, les palettes que chacun touche, et « Rétablir » par carte
   src/importation.ts       un fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et la nature de cet écart
@@ -254,6 +254,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/releve.ts  ce que la lecture rend : collections, variables de couleur, et une couleur de Figma arrondie à l'octet
   src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
   src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
+  src/variables/reprise.ts la reprise d'une palette du fichier : le mode que chaque thème vise, la liaison du suivi, et la palette du fichier qu'une liaison désigne
   src/variables/gestion.ts ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, la simulation d'une destination, les variables d'une palette supprimée
   src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
@@ -264,7 +265,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet
   src/ui/barreDePalette.ts la barre de la palette ouverte, en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
-  src/ui/ongletCreation.ts l'onglet Création : la barre, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/ongletCreation.ts l'onglet Création : la barre, le titre « Palette [nom] », l'encart d'une palette reprise du fichier, les cartes, puis le pied qui compte les messages ; l'état du geste en cours
   src/ui/ongletVerification.ts l'onglet Vérification : la barre, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
   src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, « Vérifier », annonce en fin de geste
@@ -1112,8 +1113,8 @@ La spécification en lien porte le raisonnement.
   le tient.
 - `src/code.ts` est le seul fichier qui importe `src/ecriture/`, avec une porte
   par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre`,
-  `choisir-page`, `ecrire-variables`, `ranger-destination` et
-  `retirer-variables`.
+  `choisir-page`, `ecrire-variables`, `ranger-destination`,
+  `retirer-variables` et `reprendre-palette`.
 - Le plugin ne retire un cadre de Figma que sur « Supprimer définitivement »,
   geste explicite du designer. Le sandbox relit la recette rangée et le cadre :
   il ne retire qu'un cadre possédé qui porte encore l'identifiant de sa
@@ -1205,6 +1206,18 @@ La spécification en lien porte le raisonnement.
   `commitUndo` clôt l'écriture. `packages/plugin-palettes/tests/variables.test.ts`
   le tient, contre le double de `tests/figmaDeTest.ts`.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#173-lécriture)
+- Une palette reprise du fichier garde ses variables d'origine pour tokens.
+  `reprendreLaPalette` range la recette qui la porte et la liaison de
+  reprise de son suivi ensemble, sous un seul `commitUndo`, sans écrire une
+  variable ; le sandbox retrouve lui-même la palette du fichier, et la
+  liaison ne vient jamais de l'interface. Sous cette liaison, le plan ne
+  rend que les entrées que le suivi désigne, et l'écriture remplace des
+  couleurs sans créer, renommer ni déplacer une variable : une variable
+  disparue quitte le suivi, et un thème sans mode ne s'écrit pas. Le suivi
+  ne suit pas une variable dans le thème où elle porte un alias. Une palette
+  reprise puis supprimée rend ses variables à « Déjà dans le fichier ».
+  `packages/plugin-palettes/tests/reprise.test.ts` le tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#174-les-palettes-du-fichier)
 - Le plan des variables d'une palette prend ses couleurs dans `rampesDe`,
   celles de l'aperçu et de la planche, et donne à chaque entrée une clé
   `{intensité}/{thème}/{nuance}` qui ne dépend ni du nom de la palette ni de

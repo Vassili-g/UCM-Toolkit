@@ -2217,16 +2217,22 @@ Onglet Gestion, vue complète :
   précédé du nom de la collection et de son nombre de variables, sa rampe
   montre des pastilles vides et « Couleurs lues à la copie », et son geste
   est « Copier dans le plugin » (`[VAR-14]`).
-- `[UI-34]` « Modifier dans le plugin » ouvre Création sur la palette
-  reprise et y pose un encart sous le titre : les deux rampes, « Fichier »
-  et « Plugin », la bascule « Recalculées · Telles quelles », le nombre de
-  couleurs qui changeront, et « Annuler la reprise », qui supprime la
-  palette et son suivi. L'encart reste tant que les tokens de la palette ne
-  sont pas « À jour ». Dans Gestion, la ligne des tokens d'une palette
-  reprise dit sa collection et son chemin d'origine, et « Mettre à jour »
-  ouvre un encart de remplacement : les couleurs qui changent, « Et N
-  autres », la phrase « Les variables gardent leur nom et leurs liaisons. »,
-  « Annuler » et « Remplacer N couleurs ».
+- `[UI-34]` « Modifier dans le plugin » reprend la palette en mode
+  `recalculees`, puis ouvre Création sur elle et y pose un encart sous le
+  titre : les deux rampes, « Fichier » et « Plugin », la bascule
+  « Recalculées · Telles quelles », le nombre de couleurs qui changeront, et
+  « Annuler la reprise », qui supprime la palette du plugin. L'encart reste
+  tant que les tokens de la palette ne sont pas « À jour » ; une palette
+  figée le garde, seul endroit où revenir aux couleurs recalculées. Une
+  palette figée ne montre ni la référence, ni le modèle, ni « Réglage
+  global », ni « Color shift » ; une palette reprise ne propose pas deux
+  intensités. Dans Gestion, la ligne des tokens d'une palette reprise dit sa
+  collection et son chemin d'origine, et « Mettre à jour » ouvre un encart
+  de remplacement : les couleurs qui changent, valeur de Figma et valeur du
+  plugin, six au plus puis « Et N autres », la phrase « Les variables
+  gardent leur nom et leurs liaisons. », « Annuler » et « Remplacer N
+  couleurs ». Une reprise que le sandbox refuse se dit sous le bloc de la
+  connexion.
 - `[UI-35]` Une palette supprimée dont le cadre ou des variables restent
   dans Figma garde sa carte (`[PLA-27]`), qui propose aussi « Supprimer les
   variables… », geste `danger` confirmé dans la carte (`[VAR-11]`). Sans
@@ -2355,9 +2361,10 @@ qui le créera.
 | Tokens modifiés dans Figma | L'encart qui liste les couleurs changées et les deux choix |
 | Palettes du fichier | La liste « Déjà dans le fichier », fiches en tirets |
 | Palettes du fichier, vue condensée | Une ligne du tableau par palette du fichier, avec l'étiquette « Variables du fichier » |
-| Reprise recalculée | L'encart de Création, « Recalculées » pressé, le nombre de couleurs qui changeront ; case P8.6 |
-| Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change ; case P8.6 |
-| Reprise dans Gestion | La ligne des tokens dit la collection et le chemin d'origine, l'encart de remplacement ; case P8.6 |
+| Reprise recalculée | L'encart de Création, « Recalculées » pressé, le nombre de couleurs qui changeront |
+| Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change |
+| Reprise dans Gestion | La ligne des tokens dit la collection et le chemin d'origine, l'encart de remplacement |
+| Reprise refusée | Le sandbox ne retrouve pas la palette du fichier : le message sous le bloc de la connexion |
 | Bibliothèques | Une palette de bibliothèque dans « Déjà dans le fichier », collections en lecture seule dans la destination ; case P9.5 |
 | Copie de bibliothèque | La confirmation qui compte les variables ajoutées au fichier ; case P9.5 |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
@@ -2719,20 +2726,31 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   palette.
 - `[VAR-13]` « Modifier dans le plugin » reprend une palette du fichier par
   la porte `reprendre-palette`, qui range la recette et le suivi ensemble,
-  sous un seul `figma.commitUndo()`. `reprendreDuFichier`
-  (`src/edition.ts`) crée une palette à une intensité, au nom du dernier
-  segment non numérique du chemin, à la référence de la nuance 600 ou de la
-  plus proche. En mode `recalculees`, elle est libre, avec les nuances lues,
-  quand celles-ci ne sont pas celles de la recette. En mode
-  `telles-quelles`, elle est figée aux couleurs lues. Son suivi prend la
-  liaison `reprise` : ses clés désignent les variables d'origine, par
-  identifiant. Le thème Light vise le premier mode de la collection, ou le
-  mode dont le nom contient « light », sans casse ; le thème Dark vise le
-  mode dont le nom contient « dark », et ne s'écrit pas s'il n'existe pas.
-  La dernière couleur écrite prend la couleur lue : une palette reprise
-  telle quelle est « À jour » sans écriture. Pour une liaison de reprise, le
-  plan ne rend que les entrées que le suivi désigne, et l'écriture ne crée,
-  ne renomme ni ne déplace aucune variable.
+  sous un seul `figma.commitUndo()`, sans écrire une variable. La demande
+  porte la recette et désigne la palette du fichier par sa collection et son
+  chemin ; le sandbox relit les variables et la retrouve lui-même.
+  `reprendreDuFichier` (`src/edition.ts`) crée une palette à une intensité,
+  au nom du dernier segment non numérique du chemin, à la référence de la
+  nuance 600 ou de la nuance colorée la plus proche. Le plugin ancre cette
+  référence à la nuance de sa luminosité, qui peut différer de 600.
+  En mode `recalculees`, elle est libre, avec les nuances lues, quand
+  celles-ci ne sont pas celles de la recette et qu'une liste libre les
+  accepte ; sinon elle suit la liste commune, et seules les nuances communes
+  s'écrivent. En mode `telles-quelles`, elle est figée aux couleurs lues
+  (`figees`, section 7.1), sur les seules nuances que le thème Light colore.
+  Son suivi prend la liaison `reprise` : ses clés désignent les variables
+  d'origine, par identifiant. Le thème Light vise le mode dont le nom
+  contient « light », sans casse, sinon le premier mode de la collection ;
+  le thème Dark vise un autre mode dont le nom contient « dark », et ne
+  s'écrit pas s'il n'existe pas. Une variable n'est pas suivie dans le thème
+  où elle porte un alias. La dernière couleur écrite prend la couleur lue :
+  une palette reprise telle quelle est « À jour » sans écriture. Pour une
+  liaison de reprise, le plan ne rend que les entrées que le suivi désigne,
+  et l'écriture ne crée, ne renomme ni ne déplace aucune variable ; une
+  variable disparue quitte le suivi. Passer de « Recalculées » à « Telles
+  quelles », ou annuler la reprise, est un rangement ordinaire de la
+  recette. Une palette reprise puis supprimée rend ses variables à la liste
+  des palettes du fichier.
 - `[VAR-14]` Le manifest déclare la permission `teamlibrary`. La lecture
   liste les collections de bibliothèque activées, nom, clé et nombre de
   variables, et leurs palettes détectées sur les seuls noms : une valeur ne

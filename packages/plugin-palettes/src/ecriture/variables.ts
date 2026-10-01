@@ -9,13 +9,17 @@
  * suivi garde, jamais par leur nom. Il ne renomme ni ne déplace une
  * variable, et n'en retire que sur « Supprimer les variables… ».
  */
-import { lireEtat, ESPACE_PARTAGE } from '../lecture';
-import { lireLeSuiviRange, variableLue } from '../lectureDesVariables';
+import { jsonCanonique, validerRecette, type Refus } from 'ucm-couleur';
+
+import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
+import { collectionLue, lireLeSuiviRange, variableLue } from '../lectureDesVariables';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
+import { palettesDuFichier } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
+import { suiviDeLaReprise } from '../variables/reprise';
 import { planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
-import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, suiviFutur, texteDuSuivi, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
+import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, suiviFutur, texteDuSuivi, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
 
 /** L'API que l'écriture des variables emploie. */
 export interface FigmaDesVariablesEcrites {
@@ -97,13 +101,47 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
   /** Vrai dès qu'une collection, un mode, une variable ou une valeur a changé : le suivi se range et l'écriture se clôt. */
   let ecrit = false;
 
+  /**
+   * Remplace les couleurs des variables d'origine d'une palette reprise
+   * ([VAR-13]). Rien ne se crée, ne se renomme ni ne se déplace : une
+   * variable que le fichier ne porte plus quitte le suivi, et un thème dont
+   * le mode a disparu ne s'écrit pas.
+   */
+  function ecrireLaReprise(id: string, suivie: PaletteSuivie, plan: readonly EntreeDuPlan[]): IssueDeLaPalette {
+    const collection = collections.get(suivie.collection);
+    if (!collection) return { palette: id, issue: 'collection-introuvable' };
+    const gardees: { [cle: string]: VariableSuivie } = {};
+    let valeurs = 0;
+    try {
+      for (const entree of plan) {
+        const connue = suivie.variables[entree.cle];
+        const variable = locales.get(connue.id);
+        const mode = suivie.modes[entree.mode];
+        if (!variable || mode === undefined || !collection.modes.some((candidat) => candidat.modeId === mode)) continue;
+        if (lues.get(variable.id)?.valeurs[mode] !== entree.hexa) {
+          variable.setValueForMode(mode, couleurPourFigma(entree.hexa, profil));
+          valeurs += 1;
+          ecrit = true;
+        }
+        gardees[entree.cle] = { id: variable.id, ecrite: entree.hexa };
+      }
+    } catch (erreur) {
+      // Les valeurs déjà écrites le restent : le suivi les retient, pour ne pas les lire comme changées dans Figma.
+      suivies[id] = { ...suivie, variables: { ...suivie.variables, ...gardees } };
+      return { palette: id, issue: 'interrompue', message: messageDe(erreur) };
+    }
+    suivies[id] = { ...suivie, variables: gardees };
+    return { palette: id, issue: 'ecrite', creees: 0, ecrites: valeurs };
+  }
+
   function ecrireLaPalette(id: string): IssueDeLaPalette {
     const palette = recette.palettes.find((candidate) => candidate.id === id);
     if (!palette) return { palette: id, issue: 'absente' };
-    const plan = planDesVariables(recette, palette, destination);
     const suivie = suivies[id];
+    const plan = planDesVariables(recette, palette, destination, suivie);
     const tokens = etatDesTokens(plan, suivie, lues, destination);
     if (tokens.etat === 'modifies' && !remettre.has(id)) return { palette: id, issue: 'modifiee', couleurs: tokens.modifiees.length };
+    if (suivie?.liaison === 'reprise') return ecrireLaReprise(id, suivie, plan);
 
     // La collection du suivi, tant que la destination n'a pas changé ; sinon celle de la destination ([VAR-09]).
     const garde = suivie && !tokens.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
@@ -289,4 +327,60 @@ export async function retirerLesVariables(figma: FigmaDesVariablesEcrites, deman
   figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes }));
   figma.commitUndo();
   return { issue: 'retirees', retirees };
+}
+
+/** Ce que « Modifier dans le plugin » demande : la recette qui porte la palette reprise, et la palette du fichier qu'elle reprend. */
+export interface DemandeDeReprise {
+  readonly recette: unknown;
+  readonly empreinteLue: string | null;
+  /** L'identifiant de la palette reprise, dans la recette demandée. */
+  readonly palette: string;
+  /** La palette du fichier : sa collection et le chemin commun de ses variables. */
+  readonly source: { readonly collection: string; readonly chemin: string };
+}
+
+/** L'issue de « Modifier dans le plugin » ([VAR-13]). */
+export type IssueDeLaReprise =
+  /** La recette et la liaison sont rangées ensemble ; `empreinte` est celle de la recette rangée. */
+  | { readonly issue: 'reprise'; readonly empreinte: string }
+  /** La recette rangée n'est plus celle que l'interface a lue ([REC-10]). */
+  | { readonly issue: 'modifiee-ailleurs' }
+  | { readonly issue: 'invalide'; readonly refus: readonly Refus[] }
+  /** Le fichier ne porte plus cette palette dans ses variables, ou le plugin la tient déjà pour sienne. */
+  | { readonly issue: 'palette-introuvable' }
+  | { readonly issue: 'suivi-futur' };
+
+/**
+ * Reprend une palette du fichier ([VAR-13]) : range la recette qui la porte
+ * et la liaison de reprise de son suivi, ensemble, sous un seul
+ * `commitUndo`. Le sandbox relit les variables et retrouve lui-même la
+ * palette du fichier : la liaison ne vient jamais de l'interface. Aucune
+ * variable n'est écrite.
+ */
+export async function reprendreLaPalette(figma: FigmaDesVariablesEcrites, demande: DemandeDeReprise): Promise<IssueDeLaReprise> {
+  const rangee = lireLeSuiviRange(figma.root);
+  if (suiviFutur(rangee)) return { issue: 'suivi-futur' };
+  const validee = validerRecette(demande.recette);
+  if ('refus' in validee) return { issue: 'invalide', refus: validee.refus };
+  const { recette } = validee;
+  if (!recette.palettes.some((palette) => palette.id === demande.palette)) return { issue: 'palette-introuvable' };
+  const avant = lireEtat(figma.root);
+  if (avant.empreinte !== demande.empreinteLue) return { issue: 'modifiee-ailleurs' };
+
+  const profil = figma.root.documentColorProfile;
+  const [collections, variables] = await Promise.all([
+    figma.variables.getLocalVariableCollectionsAsync(),
+    figma.variables.getLocalVariablesAsync('COLOR'),
+  ]);
+  // Les variables que le plugin tient pour siennes sous la recette d'avant ne se reprennent pas.
+  const presentes = new Set(avant.classement.etat === 'courante' ? avant.classement.recette.palettes.map((palette) => palette.id) : []);
+  const source = palettesDuFichier(variables.map((variable) => variableLue(variable, profil)), collections.map(collectionLue), variablesSuivies(rangee, presentes))
+    .find((candidate) => candidate.collection === demande.source.collection && candidate.chemin === demande.source.chemin);
+  if (!source) return { issue: 'palette-introuvable' };
+
+  const texte = jsonCanonique(recette);
+  figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE, texte);
+  figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suiviDeLaReprise(source) } }));
+  figma.commitUndo();
+  return { issue: 'reprise', empreinte: empreinteDuTexte(texte) as string };
 }

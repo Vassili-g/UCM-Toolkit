@@ -1924,3 +1924,52 @@ export function palettesDansLesVariables(nombre: number): string {
 export function voirDansGestion(nombre: number): string {
   return nombre === 1 ? "See it in Manage" : "See them in Manage";
 }
+
+/** Les libellés de la reprise d'une palette du fichier ([UI-34]). */
+export const TEXTES_DE_LA_REPRISE = {
+  titre: "Palette taken from the file’s variables",
+  fichier: "File",
+  plugin: "Plugin",
+  choix: "Palette colors",
+  recalculees: "Recalculated",
+  tellesQuelles: "As is",
+  figee: "No color changes. The palette keeps the file’s colors, without roles or guarantees.",
+  annuler: "Cancel takeover",
+  gardentLeurNom: "Variables keep their name and their bindings.",
+} as const;
+
+/** Ce que la mise à jour changera dans Figma, sous la bascule de l'encart de Création ([UI-34]). */
+export function couleursQuiChangeront(nombre: number, total: number): string {
+  if (nombre === 0) return "No color changes in Figma.";
+  const compte = nombre === 1 ? `1 color out of ${total} will change` : `${nombre} colors out of ${total} will change`;
+  return `${compte} in Figma, on update in the Manage tab.`;
+}
+
+/** La ligne des tokens d'une palette reprise : sa collection et son chemin d'origine ([UI-34]). */
+export function origineDesTokens(collection: string, chemin: string): string {
+  return chemin === "" ? collection : `${collection} / ${chemin}`;
+}
+
+/** Les couleurs que « Mettre à jour » remplacerait, sur le nombre de variables de la palette ([UI-34]). */
+export function couleursSurNChangent(nombre: number, total: number): string {
+  return nombre === 1 ? `1 color out of ${total} changes` : `${nombre} colors out of ${total} change`;
+}
+
+/** Le titre de l'encart de remplacement ([UI-34]). */
+export function titreDuRemplacement(nombre: number, nom: string): string {
+  return nombre === 1 ? `Replace 1 color of ${nom} in Figma?` : `Replace ${nombre} colors of ${nom} in Figma?`;
+}
+
+/** Le bouton qui confirme le remplacement ([UI-34]). */
+export function remplacerNCouleurs(nombre: number): string {
+  return nombre === 1 ? "Replace 1 color" : `Replace ${nombre} colors`;
+}
+
+/** Le sandbox n'a pas retrouvé la palette du fichier ([VAR-13]). */
+export function repriseRefusee(): Constat {
+  return {
+    ou: "Palette not taken",
+    quoi: "The file no longer has this palette in its variables.",
+    geste: "Sync in the Manage tab.",
+  };
+}

@@ -8,6 +8,7 @@ import { montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'uc
 import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { GroupeDeConfiguration } from '../configuration';
+import { ajouter, nouvelIdentifiant, reprendreDuFichier } from '../edition';
 import { LANGUES, resoudreLangue } from '../i18n/langues';
 import { lireLImport } from '../importation';
 import { VARIABLES_SANS_SUIVI } from '../lectureDesVariables';
@@ -145,6 +146,9 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     },
   };
 
+  /** Un entier de 32 bits tiré au hasard, pour les identifiants de palette (D-K). */
+  const tirer = (): number => crypto.getRandomValues(new Uint32Array(1))[0];
+
   /** La recette affichée et la palette ouverte, que les onglets partagent ([UI-23]). */
   const paletteOuverte = creerPaletteOuverte();
 
@@ -164,7 +168,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     ranger: (recette) => frontiere.ranger(recette),
     recharger: () => frontiere.lireLEtat(),
     exporterLeBrouillon: () => demandesDeLaRecette.exporter(),
-    tirer: () => crypto.getRandomValues(new Uint32Array(1))[0],
+    tirer,
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
     ouvrirReglages(cible) {
       ouvrirConfiguration();
@@ -212,6 +216,16 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
     rangerLaDestination: (destination) => frontiere.rangerLaDestination(destination),
     retirerLesVariables: (palette) => frontiere.retirerLesVariables(palette),
+    // « Modifier dans le plugin » : la palette reprise, recalculée, part avec la recette ; Création s'ouvre sur elle à l'état relu.
+    reprendre(source) {
+      const recette = ongletCreation.recette();
+      if (!recette) return false;
+      const id = nouvelIdentifiant(recette, tirer);
+      const palette = reprendreDuFichier(recette, id, source, 'recalculees');
+      if (!palette || !frontiere.reprendre(ajouter(recette, palette), id, { collection: source.collection, chemin: source.chemin })) return false;
+      paletteReprise = id;
+      return true;
+    },
     retirer(palette, cadre) {
       const parti = frontiere.retirer(palette, cadre);
       if (parti) cadreEnRetrait = cadre;
@@ -219,6 +233,10 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     },
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
   }, vue);
+
+  /** La palette qu'une reprise vient de ranger : Création s'ouvre sur elle quand l'état relu la porte ([UI-34]). */
+  let paletteReprise: string | null = null;
+  let repriseRangee = false;
 
   /** Le cadre dont le retrait attend son issue ([PLA-27]). */
   let cadreEnRetrait: string | null = null;
@@ -434,18 +452,35 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       return;
     }
     if (message.type === 'etat' && frontiere.accepterEtat(message)) {
+      ongletCreation.poserLesVariables(message.variables ?? VARIABLES_SANS_SUIVI);
       ongletCreation.afficher(message.classement);
       panneauDeConfiguration.afficher();
       dernierEtat = message;
       dernierEtatLe = Date.now();
       // Un suivi d'une version plus récente ne dit pas quelles variables sont celles du plugin : aucune palette du fichier ne se compte.
       const lues = message.variables ?? VARIABLES_SANS_SUIVI;
-      ongletCreation.poserLesPalettesDuFichier(suiviFutur(lues.suivi) ? 0 : palettesDuFichier(lues.variables, lues.collections, variablesSuivies(lues.suivi)).length);
+      ongletCreation.poserLesPalettesDuFichier(suiviFutur(lues.suivi) ? 0 : palettesDuFichier(lues.variables, lues.collections, variablesSuivies(lues.suivi, new Set((ongletCreation.recette()?.palettes ?? []).map((palette) => palette.id)))).length);
       if (ouverture) {
         if ((ongletCreation.recette()?.palettes.length ?? 0) > 0) onglets.selectionner('gestion');
         ouverture = false;
       }
       afficherLaPlanche();
+      // L'état relu après une reprise porte la palette : Création s'ouvre sur elle.
+      if (repriseRangee && paletteReprise !== null) {
+        const reprise = paletteReprise;
+        paletteReprise = null;
+        repriseRangee = false;
+        if (ongletCreation.recette()?.palettes.some((palette) => palette.id === reprise)) {
+          allerA('creation');
+          ongletCreation.ouvrirLaPalette(reprise, 'light');
+        }
+      }
+    } else if (message.type === 'reprise' && frontiere.recevoirReprise(message)) {
+      ongletGestion.recevoirReprise(message.issue);
+      repriseRangee = message.issue.issue === 'reprise';
+      if (!repriseRangee) paletteReprise = null;
+      // La recette rangée par la reprise se relit : l'onglet Création la reçoit par l'état.
+      if (message.issue.issue !== 'modifiee-ailleurs') frontiere.lireLEtat();
     } else if (message.type === 'rangement') {
       frontiere.recevoirRangement(message);
     } else if (message.type === 'progression' || message.type === 'dessin') {

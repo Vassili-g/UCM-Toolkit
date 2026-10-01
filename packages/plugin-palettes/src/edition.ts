@@ -38,6 +38,9 @@ import {
   type Rgb8,
 } from 'ucm-couleur';
 
+import type { PaletteDuFichier } from './variables/detection';
+import { couleursDeLaReprise } from './variables/reprise';
+
 /** Un hexa de six chiffres, avec ou sans dièse. */
 export const MOTIF_HEXA = /^#?[0-9a-f]{6}$/i;
 
@@ -566,3 +569,52 @@ export function basculerNuance(palette: Palette, numero: number): Palette {
   return crans.length < nombre[0] || crans.length > nombre[1] ? palette : { ...palette, crans };
 }
 
+
+/** Ce que « Modifier dans le plugin » fait des couleurs lues : les recalculer, ou les figer ([VAR-13]). */
+export type ModeDeReprise = 'recalculees' | 'telles-quelles';
+
+/** Vrai quand des nuances lues peuvent faire la liste d'une palette libre : 4 à 13 multiples de 50, de 50 à 1050. */
+function nuancesLibres(nuances: readonly number[]): boolean {
+  const { nombre, pas, premier, dernier } = BORNES_DES_CRANS_LIBRES;
+  return nuances.length >= nombre[0] && nuances.length <= nombre[1]
+    && nuances.every((nuance) => Number.isInteger(nuance) && nuance % pas === 0 && nuance >= premier && nuance <= dernier);
+}
+
+/** Le nom d'une palette reprise : le dernier segment non numérique de son chemin, ou sa collection. */
+export function nomDeLaReprise(source: PaletteDuFichier): string {
+  const segments = source.chemin.split('/').map((segment) => segment.trim()).filter((segment) => segment !== '' && !/^\d+$/.test(segment));
+  return segments[segments.length - 1] ?? source.nomDeLaCollection;
+}
+
+/**
+ * La palette du plugin qu'une palette du fichier devient ([VAR-13]) : une
+ * intensité, le nom de son dernier segment de chemin, et pour référence la
+ * couleur de sa nuance 600, ou de la nuance colorée la plus proche. `null`
+ * quand aucune de ses nuances ne porte de couleur dans le thème Light.
+ *
+ * `recalculees` : le plugin calcule ses rampes. Elle garde les nuances lues,
+ * en palette libre, quand elles ne sont pas celles de la recette et qu'une
+ * liste libre les accepte ; sinon elle suit la liste commune.
+ * `telles-quelles` : elle est figée aux couleurs lues, sur les seules
+ * nuances que le thème Light colore ; un alias du thème Dark y prend la
+ * couleur de Light.
+ */
+export function reprendreDuFichier(recette: Recette, id: string, source: PaletteDuFichier, mode: ModeDeReprise): Palette | null {
+  const lues = couleursDeLaReprise(source);
+  const colorees = lues.nuances.map((nuance, rang) => ({ nuance, rang })).filter(({ rang }) => lues.light[rang] !== null);
+  if (colorees.length === 0) return null;
+  const porteuse = colorees.reduce((choisie, candidate) => {
+    const ecart = Math.abs(candidate.nuance - source.reference) - Math.abs(choisie.nuance - source.reference);
+    return ecart < 0 || (ecart === 0 && candidate.nuance > choisie.nuance) ? candidate : choisie;
+  });
+  const neuve = nouvellePalette(recette, id, lues.light[porteuse.rang]!, 1);
+  if (!neuve) return null;
+  const nommee: Palette = { ...neuve, nom: nomDeLaReprise(source) };
+  if (mode === 'recalculees') {
+    const communes = lues.nuances.length === recette.crans.length && lues.nuances.every((nuance, rang) => nuance === recette.crans[rang]);
+    return communes || !nuancesLibres(lues.nuances) ? nommee : { ...nommee, crans: [...lues.nuances] };
+  }
+  const light = colorees.map(({ rang }) => lues.light[rang]!.slice(0, 7));
+  const dark = lues.dark ? colorees.map(({ rang }, place) => (lues.dark![rang] ?? light[place]).slice(0, 7)) : undefined;
+  return { ...nommee, crans: colorees.map(({ nuance }) => nuance), figees: dark ? { light, dark } : { light } };
+}

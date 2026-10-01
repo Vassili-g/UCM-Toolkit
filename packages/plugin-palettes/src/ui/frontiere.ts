@@ -77,6 +77,19 @@ export interface Frontiere {
   retirerLesVariables(palette: string): boolean;
   /** Vrai quand l'issue répond au dernier retrait de variables demandé. */
   accepterRetraitDesVariables(message: Extract<PluginMessage, { type: 'variables-retirees' }>): boolean;
+  /**
+   * Reprend une palette du fichier ([VAR-13]) : la recette qui la porte et
+   * sa liaison se rangent ensemble. Rien ne part pendant un conflit, ni tant
+   * qu'un rangement ou une autre reprise est en vol : la réponse est
+   * `false`. Jusqu'à l'issue, aucun rangement ne part.
+   */
+  reprendre(recette: Recette, palette: string, source: { collection: string; chemin: string }): boolean;
+  /**
+   * Vrai quand l'issue répond à la dernière reprise demandée. Une reprise
+   * rangée apporte l'empreinte de la recette ; une recette changée ailleurs
+   * ouvre le conflit d'enregistrement.
+   */
+  recevoirReprise(message: Extract<PluginMessage, { type: 'reprise' }>): boolean;
   /** Vrai quand la progression ou le résultat répond au dernier dessin demandé. */
   accepterDessin(message: Extract<PluginMessage, { type: 'progression' | 'dessin' }>): boolean;
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
@@ -109,6 +122,7 @@ export function createFrontiere(
   let derniereDestination = 0;
   let destinationEnVol = false;
   let dernierRetraitDesVariables = 0;
+  let derniereReprise = 0;
   let courant: StatutDuRangement = 'lu';
 
   function numeroter(): number {
@@ -218,6 +232,25 @@ export function createFrontiere(
     },
     accepterRetraitDesVariables(message) {
       return message.demande === dernierRetraitDesVariables;
+    },
+    reprendre(recette, palette, source) {
+      if (courant === 'refuse' || enVol || enAttente) return false;
+      derniereReprise = numeroter();
+      // La reprise range la recette : un geste qui arrive entre-temps attend son issue, comme pendant un rangement.
+      enVol = true;
+      envoyer({ type: 'reprendre-palette', demande: derniereReprise, recette, empreinteLue: empreinte, palette, source });
+      return true;
+    },
+    recevoirReprise(message) {
+      if (message.demande !== derniereReprise) return false;
+      enVol = false;
+      // Un geste arrivé pendant la reprise portait la recette d'avant : il s'abandonne, et l'état relu rend la recette rangée.
+      enAttente = null;
+      if (message.issue.issue === 'reprise') {
+        empreinte = message.issue.empreinte;
+        poser('range');
+      } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');
+      return true;
     },
     accepterDessin(message) {
       return message.demande === dernierDessin;
