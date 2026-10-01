@@ -73,7 +73,7 @@ suivante.
   limites (décision Q6) ; le titre de section « Ajuster la palette » ; un
   glyphe par carte ; les six règles de la mise en page stable (étude,
   section 7.2) ; le pied et le volet.
-- [x] **S5** [TEXTES-A-VALIDER.md](../TEXTES-A-VALIDER.md) : chaque texte
+- [x] **S5** [TEXTES-A-VALIDER.md](../Textes et langues/TEXTES-A-VALIDER.md) : chaque texte
   nouveau, en anglais et en français, dont « Color shift » dans les deux
   langues et « Réglage global ».
 

@@ -7,7 +7,7 @@ et le neutre. Le détail des arguments est dans [la
 recherche](./RECHERCHE-ARCHI-MULTIMARQUES.md) et [la revue
 critique](./SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md), qui emploient encore
 l'ancien nom `scheme` de la collection `theme`. L'outil qui fabrique les
-palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md).
+palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md).
 
 [VUE-ILLUSTREE-MULTIMARQUES.html](./VUE-ILLUSTREE-MULTIMARQUES.html) montre
 la même architecture en schémas, à ouvrir dans un navigateur : le panneau des

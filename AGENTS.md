@@ -957,14 +957,14 @@ La spécification en lien porte le raisonnement.
   `Date`, `Math.random`, `Intl`, `toLocaleString`, avec `TextEncoder`. La même
   loi lit `packages/kit/src/emplois/`, que le moteur importe. Borne : la loi
   lit le texte ligne à ligne, commentaires retirés.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
 - La table des emplois, les dix-neuf paires, les quatre rangs, la table des
   états, la collection `usage` et le contraste WCAG 2 ont une seule source,
   `@ucm-kit/core/emplois` (`packages/kit/src/emplois/`). `ucm-couleur`
   l'importe et la republie sans la recopier, et le kit n'importe rien de
   `ucm-couleur` : `packages/kit/tests/emplois.test.ts` le tient. Borne : le
   test lit les instructions d'import, pas un chemin calculé.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quel que soit le Color shift. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.
@@ -978,7 +978,7 @@ La spécification en lien porte le raisonnement.
   décalage de clarté ne change la teinte d'aucun cran. `pivotDe`
   (`packages/couleur/src/palette.ts`) en est l'unique autorité, et
   `packages/couleur/tests/reglages.test.ts` l'éprouve sur des tirages.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
 - Dans son intensité porteuse, chaque mode d'une palette contient les octets
   exacts de sa couleur de référence, au cran de clarté la plus proche. Les
   autres crans gardent le calcul commun, et aucune vue ne recalcule une
@@ -991,7 +991,7 @@ La spécification en lien porte le raisonnement.
   que seuls les gestes appellent ; la validation ne la recalcule pas, et
   `packages/plugin-palettes/tests/reglages.test.ts` tient l'égalité. Borne :
   l'ancrage ne promet pas qu'une promesse reste tenue.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
 - À deux intensités, le profil porteur prend la part de chroma de la
   référence, qu'une palette de base Soft ou Vivid le force (l'interface
   l'appelle « Référence exacte dans »), que `reglages.porteur` le fige ou que
@@ -1010,7 +1010,7 @@ La spécification en lien porte le raisonnement.
   clartés et des parts communes variées, et
   `packages/couleur/tests/desaturees.test.ts` sur les gris et les références
   ternes.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
 - Une palette porte une intensité ou deux. À une intensité, elle n'a qu'une
   rampe par mode, sans nom de profil, égale à celle du profil porteur forcé :
   la part de la référence, la référence exacte à son cran. Aucune vue ne
@@ -1019,7 +1019,7 @@ La spécification en lien porte le raisonnement.
   (`packages/couleur/src/palette.ts`), unique autorité.
   `packages/couleur/tests/intensites.test.ts` le tient, sur cinq cents
   références pour l'égalité au profil forcé.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette)
 - En Dark, les nuances de fond, 50 à 300, prennent la part de leur intensité
   multipliée par un facteur réglé dans la recette ; les nuances 400 et
   au-delà, et tout le thème Light, restent identiques à l'octet. Le facteur
@@ -1030,7 +1030,7 @@ La spécification en lien porte le raisonnement.
   atténuées. `fabriquerCran`, que la garantie des courbes, l'ajustement et les
   pistes peintes des réglettes appellent, ne l'applique pas. `packages/couleur/tests/fondsSombres.test.ts`
   le tient.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
 - Chaque valeur de la limite dynamique d'un réglage garde les promesses tenues
   au départ du geste et, pour la luminosité, 0,01 de clarté entre nuances
   voisines. Une promesse manquée au départ ne borne rien. Chaque borne porte
@@ -1041,7 +1041,7 @@ La spécification en lien porte le raisonnement.
   `packages/couleur/tests/limites.test.ts` le tient sur Bleu, Rouge, Jaune et
   Sauge. Borne : le balayage juge les valeurs au pas du réglage, pas entre
   deux pas.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
 
 ### Écriture d'UCM Palettes
 
@@ -1053,7 +1053,7 @@ La spécification en lien porte le raisonnement.
   `x`, `y`, `layoutMode`, `fontName` et `fontSize`, et `.resize(` hors de
   `figma.ui.resize`. `src/ui/` en est exclu : l'iframe n'a pas de global
   `figma`. Borne : une affectation absente de la liste lui échappe.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#143-le-plugin)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#143-le-plugin)
 - Aucun fichier de `src/`, interface et écriture comprises, n'appelle
   `figma.variables`, `loadAllPagesAsync` ni une API de style. La même loi le
   tient.
@@ -1068,7 +1068,7 @@ La spécification en lien porte le raisonnement.
   suivi plus récent refuse avant toute écriture.
   `packages/plugin-palettes/tests/retrait.test.ts` le tient, contre le double
   de `tests/figmaDeTest.ts`.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
 - Le dessin part de la recette rangée, jamais de couleurs envoyées par
   l'interface : la demande ne porte que des identifiants de palette et
   l'empreinte lue, et une recette rangée depuis n'est pas dessinée. Un cadre
@@ -1081,14 +1081,14 @@ La spécification en lien porte le raisonnement.
   lire arrête le dessin de sa palette, et un suivi des cadres d'une version
   plus récente arrête tout dessin. Un seul `commitUndo` clôt le dessin. `packages/plugin-palettes/tests/dessin.test.ts`
   le tient, contre le double de `tests/figmaDeTest.ts`.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#9-sortie-1--la-planche)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#9-sortie-1--la-planche)
 - Chaque calque posé porte le marqueur `ucm_palettes/calque`. Un calque sans
   marqueur dans un cadre à redessiner arrête le dessin avant tout calque, et
   l'interface le nomme ; le dessin ne part qu'avec l'identifiant de chaque
   calque confirmé par le designer. Chaque dessin relit la peinture des
   pastilles qu'il a posées, et l'interface compare ces hexas à son aperçu.
   `packages/plugin-palettes/tests/dessin.test.ts` le tient.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété)
 - Un cadre est à jour quand l'empreinte qu'il range égale celle du modèle
   que la recette donne aujourd'hui, styles de texte compris. La lecture
   retrouve chaque cadre par son identifiant rangé, sur n'importe quelle page,
@@ -1100,13 +1100,13 @@ La spécification en lien porte le raisonnement.
   rangement, sur l'onglet Palettes ouvert ; elle ne redessine jamais sans le
   geste du designer. `packages/plugin-palettes/tests/fraicheur.test.ts`
   le tient.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#96-fraîcheur)
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#9-sortie-1--la-planche)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#96-fraîcheur)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#9-sortie-1--la-planche)
 - La recette se range sous la clé partagée `ucm_palettes/recette`, en JSON
   canonique, si elle passe la validation et si la recette rangée porte encore
   l'empreinte que l'interface a lue. `commitUndo` suit l'écriture. Un refus
   n'écrit rien. `packages/plugin-palettes/tests/rangement.test.ts` le tient.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#73-rangement-et-version)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#73-rangement-et-version)
 - L'interface range à la fin d'un geste, jamais pendant une saisie, et un seul
   rangement est en vol : un geste suivant attend l'empreinte que la réponse
   apporte. Après un refus, rien ne se range ni ne se dessine avant
@@ -1121,7 +1121,7 @@ La spécification en lien porte le raisonnement.
   périmerait. Une recette illisible ou future s'exporte telle qu'elle est
   rangée. `packages/plugin-palettes/tests/importation.test.ts` et les tests
   d'interface le tiennent.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#101-la-recette-exportée)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#101-la-recette-exportée)
 - Le manifest n'ouvre aucun domaine et ne déclare pas `enablePrivatePluginApi`.
 - Aucun des deux plugins n'importe l'autre : `tests/pluginsSepares.test.ts` lit
   les deux sens, à la racine, sans qu'un paquet lise les sources de l'autre.
@@ -1134,7 +1134,7 @@ La spécification en lien porte le raisonnement.
   le document. `src/preferences.ts` ne reçoit que `getAsync` et `setAsync`,
   et ordonne ses rangements : le dernier choix est celui de l'ouverture
   suivante. `packages/plugin-palettes/tests/i18n.test.ts` le tient.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets)
 - Les vues de `src/ui/` ne posent aucun mot en dur : chaque texte, infobulle
   et nom accessible vient des catalogues de `src/i18n/`, et les catalogues
   ont les mêmes clés et les mêmes types. `packages/plugin-palettes/tests/loiDesTextes.test.ts`
@@ -1163,7 +1163,7 @@ La spécification en lien porte le raisonnement.
   échouent au premier pixel d'écart. Borne : ils ne relèvent que ces trois
   contrôles, et un élément placé sous le contrôle saisi peut encore changer
   de hauteur.
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Un geste du Color shift ou du réglage global ne range jamais une valeur
   au-delà de la limite dynamique calculée au début du geste : la poignée et la
   réglette s'arrêtent sur la borne, et la ligne de la plage sûre en nomme la
@@ -1172,7 +1172,7 @@ La spécification en lien porte le raisonnement.
   `[DER-09]` et `[ENT-15]` de `interface.test.mjs` glissent, saisissent et
   pressent Fin au-delà d'une borne. Borne : une valeur rangée qu'un autre
   réglage a sortie de sa plage reste en place ([DER-23]).
-  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
 
 ## Vérification
 

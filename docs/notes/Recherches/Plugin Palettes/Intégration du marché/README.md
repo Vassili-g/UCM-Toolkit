@@ -2,12 +2,12 @@
 
 Ce dossier range les propositions qui placent dans UCM Palettes les apports
 retenus par [la comparaison avec les outils du
-marché](../RECHERCHE-CONCURRENCE-PALETTES.md) : l'écriture des variables
+marché](../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md) : l'écriture des variables
 `primitives`, `brand` et `theme`, la couleur de la sélection, le jeu de départ
 et la vision simulée. Il s'adresse au mainteneur, qui décide, et à l'agent qui
 écrira le plan d'implémentation.
 
-Aucun document de ce dossier ne décide. La [spécification](../RECHERCHE-PLUGIN-PALETTES.md)
+Aucun document de ce dossier ne décide. La [spécification](../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin.
 
 ## Ordre de lecture

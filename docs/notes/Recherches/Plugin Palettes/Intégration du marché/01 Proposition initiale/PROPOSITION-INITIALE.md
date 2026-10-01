@@ -1,7 +1,7 @@
 # UCM Palettes : intégrer les apports du marché
 
 Ce document propose une place dans le plugin pour chaque élément que
-[la comparaison avec les outils du marché](../../RECHERCHE-CONCURRENCE-PALETTES.md)
+[la comparaison avec les outils du marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md)
 retient. Il s'adresse au mainteneur, qui valide ou écarte chaque piste, puis à
 l'agent qui écrira le plan d'implémentation des pistes retenues.
 
@@ -13,7 +13,7 @@ régénère ainsi :
 node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/01 Proposition initiale/generer-maquettes-proposition-initiale.mjs"
 ```
 
-Ce document ne décide rien. La [spécification](../../RECHERCHE-PLUGIN-PALETTES.md)
+Ce document ne décide rien. La [spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et une piste retenue la modifie
 d'abord.
 

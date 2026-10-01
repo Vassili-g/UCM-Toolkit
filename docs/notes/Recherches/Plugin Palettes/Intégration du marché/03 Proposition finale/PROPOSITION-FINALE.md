@@ -2,7 +2,7 @@
 
 Ce document s'adresse au mainteneur d'UCM Palettes. Il propose une place dans
 le plugin pour chaque apport que [la comparaison avec les outils du
-marché](../../RECHERCHE-CONCURRENCE-PALETTES.md) retient. Il fusionne deux
+marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md) retient. Il fusionne deux
 propositions : [la proposition 1](../01%20Proposition%20initiale/PROPOSITION-INITIALE.md), qui
 couvre les dix pistes, et [la revue de l'atelier](../02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html),
 qui la critique en quinze constats. Chaque point repris ou écarté a été vérifié
@@ -17,7 +17,7 @@ les pistes 11 à 14. Le mainteneur valide ou écarte chacune des
 [l'essai par le mainteneur](#lessai-par-le-mainteneur). L'agent qui écrira le
 plan d'implémentation part des décisions validées.
 
-Ce document ne décide rien. La [spécification](../../RECHERCHE-PLUGIN-PALETTES.md)
+Ce document ne décide rien. La [spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et une piste retenue la modifie
 d'abord. L'[architecture multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
 reste l'autorité sur la forme des variables.
@@ -140,7 +140,7 @@ proposition, la dernière colonne donne la correction.
 
 Deux situations restent hors du plugin. Une palette de données, faite de
 teintes distinctes à clarté égale, ne suit pas la table des emplois ; la
-[recherche](../../RECHERCHE-CONCURRENCE-PALETTES.md) l'écarte déjà. Un thème à
+[recherche](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md) l'écarte déjà. Un thème à
 contraste renforcé demande un troisième mode de `theme`, que l'architecture ne
 prévoit pas.
 
@@ -973,7 +973,7 @@ contre le code.
 
 **Spécification et recette.** `[UI-16]` : la langue des planches suit la
 recette. `contenuDesPlanches` gagne `langue`. Les textes suivent le circuit de
-[TEXTES-A-VALIDER.md](../../TEXTES-A-VALIDER.md).
+[TEXTES-A-VALIDER.md](../../Textes et langues/TEXTES-A-VALIDER.md).
 
 **Coût.** Faible pour les aides. La langue des planches demande le catalogue
 anglais de `planche/textes.ts`.
@@ -1347,7 +1347,7 @@ V4, les trois suivants V0.
 *La limite de l'essai.* Le mainteneur connaît le vocabulaire du plugin : un
 libellé obscur pour un autre designer ne le gênera pas. Pour la réduire, il
 relit les textes de chaque écran nouveau une semaine après les avoir écrits,
-selon le circuit de [TEXTES-A-VALIDER.md](../../TEXTES-A-VALIDER.md), et note
+selon le circuit de [TEXTES-A-VALIDER.md](../../Textes et langues/TEXTES-A-VALIDER.md), et note
 chaque mot qu'il doit s'expliquer.
 
 ### Les essais dans Figma

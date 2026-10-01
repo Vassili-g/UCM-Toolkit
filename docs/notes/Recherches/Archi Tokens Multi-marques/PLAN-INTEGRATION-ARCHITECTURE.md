@@ -35,7 +35,7 @@ Lire dans cet ordre :
 3. [ARCHITECTURE-FINALE-MULTIMARQUES.md](./ARCHITECTURE-FINALE-MULTIMARQUES.md),
    pour les courbes, la fabrication des palettes et les mesures qui ne
    changent pas ;
-4. la [spécification d'UCM Palettes](../Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md) ;
+4. la [spécification d'UCM Palettes](../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) ;
 5. [AGENTS.md](../../../../AGENTS.md), [CONTRIBUTING.md](../../../../CONTRIBUTING.md),
    la skill [`rediger-sans-tics-ia`](../../../../.agents/skills/rediger-sans-tics-ia/SKILL.md)
    avant toute phrase, et la skill
@@ -218,8 +218,8 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
   d'`ucm-couleur` ; `ETATS_DU_DECALAGE`, la légende des traits (un quatrième
   style pour `active-hover`) et la liste des états prennent le quatrième rang.
   Les textes nouveaux passent par
-  [TEXTES-A-VALIDER.md](../Plugin%20Palettes/TEXTES-A-VALIDER.md) et
-  l'[inventaire des textes](../Plugin%20Palettes/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
+  [TEXTES-A-VALIDER.md](../Plugin%20Palettes/Textes%20et%20langues/TEXTES-A-VALIDER.md) et
+  l'[inventaire des textes](../Plugin%20Palettes/Textes%20et%20langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
 - [x] **A2.5** `planche/modele.ts` : `ETATS` lit `RANGS`. L'empreinte du
   modèle change : les cadres passent « À actualiser », comme prévu.
 - [x] **A2.6** `ui/garanties.ts`, `ui/nuancier.ts`, `presentation.ts`,
@@ -232,7 +232,7 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
 - [x] **A2.9** [AGENTS.md](../../../../AGENTS.md), carte du code : le point
   d'entrée `@ucm-kit/core/emplois` porte les emplois, les dix-neuf paires, les
   rangs et le contraste ; `ucm-couleur` les importe.
-  [INSTRUCTION-NOMBRE-DE-NUANCES.md](../Plugin%20Palettes/INSTRUCTION-NOMBRE-DE-NUANCES.md)
+  [INSTRUCTION-NOMBRE-DE-NUANCES.md](../Plugin%20Palettes/2%20Ergonomie/INSTRUCTION-NOMBRE-DE-NUANCES.md)
   perd le préréglage 9.
 
 ## Lot A3 : l'écriture des variables
@@ -257,7 +257,7 @@ l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
   `color-utilities` et `theme` ; par emploi sur `usage`, d'après
   `@ucm-kit/core/emplois` (D14). Les niveaux d'élévation s'écrivent dans `color-utilities` (D15).
 - [ ] **A3.5** [La comparaison avec le
-  marché](../Plugin%20Palettes/RECHERCHE-CONCURRENCE-PALETTES.md), sections 3.2
+  marché](../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md), sections 3.2
   à 3.4 : les chemins et la couche `theme` suivent la nouvelle forme.
 - [ ] **A3.6** Le format de recette que la direction ajoute pour les rôles, les
   familles et les marques prend le numéro qui suit le 7 du lot A1. Il n'a pas

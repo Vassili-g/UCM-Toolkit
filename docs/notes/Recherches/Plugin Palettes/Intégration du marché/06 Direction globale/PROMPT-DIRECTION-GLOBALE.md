@@ -44,7 +44,7 @@ L'architecture multi-marques range les couleurs en trois collections :
 marque) et `theme` (les alias que les composants citent, en `light` et
 `dark`). Pour six marques, le designer saisit aujourd'hui 710 valeurs à la
 main. La [comparaison avec les outils du
-marché](../../RECHERCHE-CONCURRENCE-PALETTES.md) est la demande initiale : elle
+marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md) est la demande initiale : elle
 retient l'écriture de ces variables comme apport principal, puis la couleur
 de la sélection, le jeu de départ et la vision simulée. Elle juge toute
 proposition sur quatre questions de sa section 1 ; ta direction y répond.
@@ -71,7 +71,7 @@ reste, les sections nommées suffisent.
    « Rédiger un document ».
 3. La skill [`rediger-sans-tics-ia`](../../../../../../.agents/skills/rediger-sans-tics-ia/SKILL.md),
    avant d'écrire la moindre phrase.
-4. [La spécification](../../RECHERCHE-PLUGIN-PALETTES.md) : décisions D1 à
+4. [La spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md) : décisions D1 à
    D10, sections 5, 6.7, 8, 9, 11, 16, 17 et 18, et toutes les exigences
    `[UI-*]`, `[ENT-*]`, `[PLA-*]`, `[REC-*]` et `[VER-*]`.
 5. [L'architecture
@@ -82,7 +82,7 @@ reste, les sections nommées suffisent.
    d'intégration](../../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) :
    six collections de couleur au lieu de trois. La section « Le contexte »
    ci-dessous décrit encore l'ancienne forme.
-6. [La comparaison avec le marché](../../RECHERCHE-CONCURRENCE-PALETTES.md).
+6. [La comparaison avec le marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md).
 7. Ce dossier, dans l'ordre de [README.md](../README.md) : la proposition
    initiale pour l'origine des pistes, la revue de l'atelier et le code de son
    prototype, la proposition finale en entier avec son annexe, la proposition
@@ -282,7 +282,7 @@ Le document suit ce plan.
 8. **L'inventaire des modifications.** Voir plus bas.
 9. **Les textes.** Chaque texte nouveau ou changé de l'interface, en
    français et en anglais, avec l'écran où il paraît. Ces textes passeront
-   par [TEXTES-A-VALIDER.md](../../TEXTES-A-VALIDER.md).
+   par [TEXTES-A-VALIDER.md](../../Textes et langues/TEXTES-A-VALIDER.md).
 10. **Les lots.** L'ordre, le contenu de chaque lot, ses prérequis, les
     essais dans Figma qui le précèdent.
 11. **L'essai du mainteneur.** Le protocole de la proposition finale

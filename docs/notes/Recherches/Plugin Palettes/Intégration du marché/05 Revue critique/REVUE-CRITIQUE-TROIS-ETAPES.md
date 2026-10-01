@@ -4,13 +4,13 @@ Ce document juge [la proposition d'expérience](../04%20Parcours%20en%20trois%20
 dernière des quatre propositions de ce dossier, avant qu'un plan
 d'implémentation soit écrit. Il s'adresse au mainteneur, qui décide, puis à
 l'agent qui écrira le plan. Il confronte la proposition à la demande initiale,
-[la comparaison avec les outils du marché](../../RECHERCHE-CONCURRENCE-PALETTES.md),
+[la comparaison avec les outils du marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md),
 et aux trois propositions qui la précèdent :
 [la proposition 1](../01%20Proposition%20initiale/PROPOSITION-INITIALE.md),
 [la revue de l'atelier](../02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html) et
 [la proposition finale](../03%20Proposition%20finale/PROPOSITION-FINALE.md).
 
-Ce document ne décide rien. La [spécification](../../RECHERCHE-PLUGIN-PALETTES.md)
+Ce document ne décide rien. La [spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin.
 
 Les mesures citées sortent du moteur, sur la recette par défaut et avec les

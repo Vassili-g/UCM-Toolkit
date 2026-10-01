@@ -16,7 +16,7 @@ chaque décision ; puis l'agent qui écrira le plan d'implémentation à partir
 des décisions validées.
 
 **Statut.** Ce document ne décide rien. La
-[spécification](../../RECHERCHE-PLUGIN-PALETTES.md) reste l'autorité sur le
+[spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md) reste l'autorité sur le
 comportement du plugin, et [l'architecture
 multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
 sur la forme des variables. Une décision validée les modifie d'abord, selon
@@ -854,7 +854,7 @@ et DG-18 fixent la forme du plan.
 ## 8. L'inventaire des modifications
 
 Une ligne par modification. « Spec » désigne
-[la spécification](../../RECHERCHE-PLUGIN-PALETTES.md), citée par ligne ;
+[la spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md), citée par ligne ;
 un chemin de code part de `packages/`. La colonne Écran nomme l'écran ou le
 scénario de la maquette qui montre la modification.
 
@@ -1006,7 +1006,7 @@ donne, pour chacun, la modification ou la raison du refus.
 ## 9. Les textes
 
 Chaque texte nouveau ou changé de l'interface. Tous passent par
-[TEXTES-A-VALIDER.md](../../TEXTES-A-VALIDER.md) ; l'anglais est la langue
+[TEXTES-A-VALIDER.md](../../Textes et langues/TEXTES-A-VALIDER.md) ; l'anglais est la langue
 d'ouverture (`[UI-16]`).
 
 | Écran | Français | Anglais |
@@ -1258,7 +1258,7 @@ version 1.138 installée dans le dépôt ;
 **Vision.** [DaltonLens](https://daltonlens.org/opensource-cvd-simulation/) ;
 [WCAG 2.2, critère 1.4.1](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html).
 
-**Dépôt.** [La comparaison avec le marché](../../RECHERCHE-CONCURRENCE-PALETTES.md),
+**Dépôt.** [La comparaison avec le marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md),
 [la proposition initiale](../01%20Proposition%20initiale/PROPOSITION-INITIALE.md),
 [la revue de l'atelier](../02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html),
 [la proposition finale](../03%20Proposition%20finale/PROPOSITION-FINALE.md),
