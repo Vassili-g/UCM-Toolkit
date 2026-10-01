@@ -8,13 +8,13 @@
  *
  * Chaque maquette part d'un état de la galerie, donc du plugin construit : le
  * script l'ouvre dans Chromium, le transforme dans la page, puis recopie son
- * balisage et la feuille du plugin dans un cadre de 560 px. Les couleurs des
+ * balisage et sa feuille, thème sombre de Figma compris, dans un cadre de 560 px. Les couleurs des
  * palettes du plugin sortent ainsi du moteur. Ce que la direction ajoute porte
  * une classe `m-`, stylée par `STYLES_DES_MAQUETTES` : ces règles n'existent
  * pas dans le plugin. Les palettes « du fichier » sont deux rampes de
  * Tailwind, écrites en dur.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -25,8 +25,9 @@ const RACINE = path.resolve(ICI, '../../../../../../');
 const DIST = path.join(RACINE, 'packages/plugin-palettes/dist');
 const LARGEUR = 560;
 
-/** La feuille du plugin construit : le socle, puis celle d'UCM Palettes. */
-const FEUILLE_DU_PLUGIN = [...readFileSync(path.join(DIST, 'ui.html'), 'utf8').matchAll(/<style>([\s\S]*?)<\/style>/g)].map((bloc) => bloc[1]).join('\n');
+/** Le mainteneur travaille en thème sombre : la galerie sombre, et la classe que Figma pose sur la racine. */
+const THEME = 'sombre';
+const CLASSE_DU_THEME = 'figma-dark';
 
 /** Les règles que la direction ajoute. Leur préfixe `m-` les sépare de celles du plugin. */
 const STYLES_DES_MAQUETTES = `
@@ -38,13 +39,14 @@ const STYLES_DES_MAQUETTES = `
 .m-appel-rampe span { width: 22px; height: 30px; border-radius: 4px; }
 .m-lien-de-fichier { margin: 0; color: var(--texte-second); text-align: center; }
 .m-lien-de-fichier a { color: var(--texte-marque); font-weight: 600; }
-.m-puces { display: flex; flex-wrap: wrap; gap: var(--espace-serre); }
-.m-puce { display: inline-flex; height: var(--hauteur-secondaire); align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--bordure); border-radius: 14px; background: var(--fond); color: var(--texte); font: inherit; }
-.m-puce[aria-pressed='true'] { border-color: var(--bordure-marque); box-shadow: inset 0 0 0 1px var(--bordure-marque); font-weight: 600; }
-.m-puce i { width: 10px; height: 10px; border-radius: 50%; }
-.m-puce b[data-ton='succes'] { color: var(--texte-succes); }
-.m-puce b[data-ton='avertissement'] { color: var(--texte-avertissement); }
-.m-puce b[data-ton='danger'] { color: var(--texte-danger); }
+.m-marque { margin-left: auto; padding-left: var(--espace-controle); font-weight: 700; }
+.selecteur-nom + .m-marque { margin-left: 0; }
+.m-marque[data-ton='succes'] { color: var(--texte-succes); }
+.m-marque[data-ton='avertissement'] { color: var(--texte-avertissement); }
+.m-marque[data-ton='danger'] { color: var(--texte-danger); }
+.m-chemin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.m-chemin code { padding: 1px 6px; border-radius: 4px; background: var(--fond-note); font-size: 11px; }
+.m-chemin .bouton-discret { margin-left: auto; }
 .m-verdict { display: flex; align-items: center; gap: var(--espace-controle); padding: var(--espace-bloc); border-radius: 8px; }
 .m-verdict[data-ton='succes'] { background: var(--fond-succes); }
 .m-verdict[data-ton='avertissement'] { background: var(--fond-avertissement); }
@@ -78,9 +80,8 @@ const STYLES_DES_MAQUETTES = `
 .m-table tr:last-child td { border-bottom: 0; }
 .m-table .m-nom { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 .m-table .m-nom i { width: 12px; height: 12px; border-radius: 3px; }
-.m-mini-rampe { display: flex; margin-top: 4px; }
-.m-mini-rampe span { width: 9px; height: 9px; }
-.m-cellule { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-serre); }
+.m-mini-rampe { display: flex; }
+.m-mini-rampe span { width: 12px; height: 12px; }
 .m-pied { justify-content: space-between; }
 `;
 
@@ -131,8 +132,9 @@ function creation() {
   document.querySelector('.pied-de-la-palette .bouton-discret').textContent = 'Vérifier';
 }
 
-/** M3 : l'onglet Vérification, bâti sur la carte des garanties dépliée et sur les messages du volet. */
+/** Vérification : la carte des garanties dépliée, les messages du volet, et la liste déroulante avec ses verdicts. */
 function verification(verdicts) {
+  const signes = { succes: '✓', avertissement: '!', danger: '✗' };
   M.onglets('Vérification');
   const configuration = document.querySelector('.configuration-de-la-palette');
   const pied = configuration.querySelector('.pied-de-la-palette');
@@ -142,14 +144,13 @@ function verification(verdicts) {
   const garanties = M.carte('Garanties de contraste');
   const tete = configuration.querySelector('.tete-de-la-palette');
 
-  // Une puce par palette, avec son verdict : elle choisit la palette et montre l'état des autres.
-  const options = [...document.querySelectorAll('.selecteur-option')];
-  const signes = { succes: '✓', avertissement: '!', danger: '✗' };
-  const puces = options.map((option, rang) => {
-    const verdict = rang === 0 ? ton : (verdicts[rang] ?? 'succes');
-    return `<button type="button" class="m-puce" aria-pressed="${rang === 0}"><i style="background:${option.querySelector('.pastille-reference').style.background}"></i>${option.textContent}<b data-ton="${verdict}">${signes[verdict]}</b></button>`;
-  }).join('');
-  document.querySelector('.choix-de-palette').innerHTML = `<div class="m-puces" role="group" aria-label="Palette vérifiée">${puces}</div>`;
+  // La barre de Création reste : chaque option de la liste porte le verdict de sa palette, et le bouton celui de la palette ouverte.
+  const marque = (verdict) => M.el(`<b class="m-marque" data-ton="${verdict}">${signes[verdict]}</b>`);
+  document.querySelectorAll('.selecteur-option').forEach((option, rang) => option.append(marque(rang === 0 ? ton : (verdicts[rang] ?? 'succes'))));
+  document.querySelector('.selecteur-nom').after(marque(ton));
+
+  // Un point à vérifier ne donne plus ses mesures : où, quoi, le geste, le lien.
+  for (const mesures of messages?.querySelectorAll('.constat-alerte .constat-mesures') ?? []) mesures.remove();
 
   // La carte des garanties reste ouverte : son en-tête n'est plus un bouton.
   const bascule = garanties.querySelector('.carte-bascule');
@@ -157,204 +158,220 @@ function verification(verdicts) {
   bascule.querySelector('.carte-resume').remove();
   bascule.style.cursor = 'default';
 
-  const verdict = M.el(`<div class="m-verdict" data-ton="${ton}"><span class="m-verdict-icone">${signes[ton]}</span><div><strong>${bilan}</strong><br><span>${alertes === 'aucune alerte' ? 'Aucun point à vérifier' : alertes.replace('alerte', 'point à vérifier').replace('alertes', 'points à vérifier')}</span></div></div>`);
+  const points = alertes === 'aucune alerte' ? 'Aucun point à vérifier' : alertes.replace('alertes', 'points à vérifier').replace('alerte', 'point à vérifier');
+  const verdict = M.el(`<div class="m-verdict" data-ton="${ton}"><span class="m-verdict-icone">${signes[ton]}</span><div><strong>${bilan}</strong><br><span>${points}</span></div></div>`);
   const suite = ton === 'danger'
-    ? '<span class="pied-texte">Corrigez la palette dans Création avant de l’écrire dans Figma.</span><button type="button" class="btn btn-secondary btn-compact"><span>Retour à Création</span></button>'
+    ? '<span class="pied-texte">Corrigez la palette dans Création, ou écrivez-la telle quelle dans Gestion.</span><button type="button" class="btn btn-secondary btn-compact"><span>Retour à Création</span></button>'
     : '<span class="pied-texte">La palette tient ses garanties.</span><button type="button" class="btn btn-primary btn-compact"><span>Passer à Gestion</span></button>';
   configuration.replaceChildren(tete, verdict, ...(messages ? [messages] : []), garanties, M.el(`<div class="pied-de-la-palette m-pied">${suite}</div>`));
 }
 
-/** M4 : l'onglet Gestion, bâti sur les fiches de l'onglet Palettes. */
-function gestion() {
+/**
+ * Gestion, vue complète : les fiches de l'onglet Palettes, deux lignes de
+ * sortie par fiche. `destination` ouvre la carte de la destination et ne
+ * garde que la fiche d'une première écriture ; `modifiee` ne garde que la
+ * fiche dont Figma a changé des couleurs.
+ */
+function gestion({ slate, emeraude, destination = false, modifiee = false }) {
   M.onglets('Gestion');
   const panneau = document.querySelector('#panneau-planche');
-  const etats = {
-    Bleu: { pastille: ['a-jour', 'Synchronisée'], tokens: ['a-jour', 'À jour', '44 variables · collection primitives', []], planche: ['a-jour', 'À jour', 'page Palettes', [['Afficher', 'btn-secondary']]] },
-    Jaune: { pastille: ['perimee', 'À mettre à jour'], tokens: ['perimee', 'À mettre à jour', '6 couleurs ont changé dans le plugin', [['Mettre à jour', 'btn-primary']]], planche: ['perimee', 'À actualiser', 'page Palettes', [['Actualiser', 'btn-secondary'], ['Afficher', 'btn-secondary']]] },
-    Ardoise: { pastille: ['jamais-dessinee', 'Pas encore sur Figma'], tokens: ['jamais-dessinee', 'Pas encore écrits', '44 variables à créer', [['Écrire dans les tokens', 'btn-primary']]], planche: ['jamais-dessinee', 'Pas encore créée', '', [['Créer la planche', 'btn-secondary']]] },
-  };
+  const tete = panneau.querySelector('.planche-tete');
   panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
-  panneau.querySelector('.planche-tete .bouton-discret').textContent = 'Relire le fichier';
-  for (const fiche of panneau.querySelectorAll('.fiche-planche')) {
-    const etat = etats[fiche.getAttribute('aria-label')];
-    const pastille = fiche.querySelector('.etat-du-cadre');
-    pastille.dataset.etat = etat.pastille[0];
-    pastille.textContent = etat.pastille[1];
-    // « Modifier » rejoint l'état dans l'en-tête : il ramène à Création.
-    const tete = M.el('<span class="m-tete-gestes"></span>');
-    pastille.replaceWith(tete);
-    tete.append(pastille, M.el('<button type="button" class="bouton-discret">Modifier</button>'));
-    fiche.querySelector('.fiche-gestes').replaceWith(M.el(`<div class="m-sorties">${M.sortie('Tokens Figma', ...etat.tokens)}${M.sortie('Planche', ...etat.planche)}</div>`));
-  }
-  const globaux = panneau.querySelector('.gestes-globaux');
-  globaux.innerHTML = '<button type="button" class="btn btn-primary"><span>Tout mettre à jour (2 palettes)</span></button>';
-
-  const separation = M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 2</h3><p>Lues dans les variables du fichier. Le plugin ne les modifie jamais.</p></div>');
-  const slate = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
-  const emeraude = ['#ECFDF5', '#D1FAE5', '#A7F3D0', '#6EE7B7', '#34D399', '#10B981', '#059669', '#047857', '#065F46', '#064E3B', '#022C22'];
-  const duFichier = M.el('<div class="liste-planche"></div>');
-  duFichier.append(
-    M.ficheDuFichier('slate', 'Primitives / slate / 50 … 950', '11 couleurs · 1 mode', slate, 'Reprendre dans le plugin'),
-    M.ficheDuFichier('brand/emerald', 'Brand / brand / emerald / 50 … 950', '11 couleurs · modes Light, Dark', emeraude, 'Reprendre dans le plugin'),
-  );
-  globaux.after(separation, duFichier);
-  // La carte « Palettes et réglages » ferme l'onglet, sous les deux listes.
-  panneau.append(panneau.querySelector('.carte[aria-label="Palettes et réglages"]'));
-}
-
-/** M5 : les deux moments où Gestion demande une décision. */
-function gestionDecisions() {
-  M.onglets('Gestion');
-  const panneau = document.querySelector('#panneau-planche');
-  panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
-  panneau.querySelector('.planche-tete .bouton-discret').textContent = 'Relire le fichier';
+  tete.querySelector('.bouton-discret').textContent = 'Relire';
+  tete.querySelector('.bascule').before(M.el('<div class="bascule" role="group" aria-label="Vue"><button type="button" class="bascule-option" aria-pressed="true">Complète</button><button type="button" class="bascule-option" aria-pressed="false">Condensée</button></div>'));
   const fiche = (nom) => panneau.querySelector(`.fiche-planche[aria-label="${nom}"]`);
-  fiche('Bleu').remove();
-  panneau.querySelector('.gestes-globaux').remove();
-  panneau.querySelector('.carte[aria-label="Palettes et réglages"]').remove();
-  const poser = (nom, pastille, sorties, encart) => {
+  const poser = (nom, pastille, tokens, planche, encart) => {
     const cible = fiche(nom);
     const etat = cible.querySelector('.etat-du-cadre');
     etat.dataset.etat = pastille[0];
     etat.textContent = pastille[1];
-    cible.querySelector('.fiche-gestes').replaceWith(M.el(`<div class="m-sorties">${sorties}</div>`), M.el(encart));
+    // « Modifier » rejoint l'état dans l'en-tête : il ramène à Création.
+    const gestes = M.el('<span class="m-tete-gestes"></span>');
+    etat.replaceWith(gestes);
+    gestes.append(etat, M.el('<button type="button" class="bouton-discret">Modifier</button>'));
+    cible.querySelector('.fiche-gestes').replaceWith(M.el(`<div class="m-sorties">${M.sortie('Tokens Figma', ...tokens)}${M.sortie('Planche', ...planche)}</div>`), ...(encart ? [M.el(encart)] : []));
   };
-  poser('Ardoise', ['jamais-dessinee', 'Pas encore sur Figma'],
-    M.sortie('Tokens Figma', 'jamais-dessinee', 'Pas encore écrits', '44 variables à créer', []) + M.sortie('Planche', 'jamais-dessinee', 'Pas encore créée', '', [['Créer la planche', 'btn-secondary']]),
-    '<div class="m-encart"><p><strong>Écrire Ardoise dans les tokens Figma ?</strong></p><p class="ligne-secondaire">44 variables de couleur seront créées dans la collection <code>primitives</code>, de <code>colors/ardoise/soft/light/50</code> à <code>colors/ardoise/vivid/dark/950</code>. Aucune variable existante n’est modifiée.</p><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Écrire 44 variables</span></button></div></div>');
+  const premiereEcriture = '<div class="m-encart"><p><strong>Écrire Ardoise dans les tokens Figma ?</strong></p><p class="ligne-secondaire">44 variables de couleur seront créées dans la collection <code>primitives</code>, de <code>colors/ardoise/soft/light/50</code> à <code>colors/ardoise/vivid/dark/950</code>. Aucune variable existante n’est modifiée.</p><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Écrire 44 variables</span></button></div></div>';
   const ecart = (chemin, figma, plugin) => `<div class="m-ecart"><code>${chemin}</code><span class="m-valeur"><i style="background:${figma}"></i>${figma} dans Figma</span><span class="m-valeur"><i style="background:${plugin}"></i>${plugin} dans le plugin</span></div>`;
-  poser('Jaune', ['perimee', 'Modifiée dans Figma'],
-    M.sortie('Tokens Figma', 'perimee', 'Modifiés dans Figma', '2 couleurs changées à la main', []) + M.sortie('Planche', 'a-jour', 'À jour', 'page Palettes', [['Afficher', 'btn-secondary']]),
-    `<div class="m-encart" data-ton="avertissement"><p><strong>2 couleurs de Jaune ne sont plus celles du plugin.</strong></p>${ecart('colors/jaune/vivid/light/700', '#8A5A00', '#845925')}${ecart('colors/jaune/vivid/light/800', '#6E4500', '#6B431B')}<div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Laisser les couleurs de Figma</span></button><button type="button" class="btn btn-primary btn-compact"><span>Remettre les couleurs du plugin</span></button></div></div>`);
-  panneau.querySelector('.liste-planche').prepend(fiche('Ardoise'));
+  const changees = `<div class="m-encart" data-ton="avertissement"><p><strong>2 couleurs de Jaune ne sont plus celles du plugin.</strong></p>${ecart('colors/jaune/vivid/light/700', '#8A5A00', '#845925')}${ecart('colors/jaune/vivid/light/800', '#6E4500', '#6B431B')}<div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Laisser les couleurs de Figma</span></button><button type="button" class="btn btn-primary btn-compact"><span>Remettre les couleurs du plugin</span></button></div></div>`;
+
+  poser('Bleu', ['a-jour', 'Synchronisée'], ['a-jour', 'À jour', '44 variables', []], ['a-jour', 'À jour', 'page Palettes', [['Afficher', 'btn-secondary']]]);
+  if (modifiee) poser('Jaune', ['perimee', 'Modifiée dans Figma'], ['perimee', 'Modifiés dans Figma', '2 couleurs changées à la main', []], ['a-jour', 'À jour', 'page Palettes', [['Afficher', 'btn-secondary']]], changees);
+  else poser('Jaune', ['perimee', 'À mettre à jour'], ['perimee', 'À mettre à jour', '6 couleurs ont changé dans le plugin', [['Mettre à jour', 'btn-primary']]], ['perimee', 'À actualiser', 'page Palettes', [['Actualiser', 'btn-secondary'], ['Afficher', 'btn-secondary']]]);
+  poser('Ardoise', ['jamais-dessinee', 'Pas encore sur Figma'],
+    ['jamais-dessinee', 'Pas encore écrits', '44 variables à créer', destination ? [] : [['Écrire dans les tokens', 'btn-primary']]],
+    ['jamais-dessinee', 'Pas encore créée', '', [['Créer la planche', 'btn-secondary']]],
+    destination ? premiereEcriture : null);
+
+  const liste = panneau.querySelector('.liste-planche');
+  const globaux = panneau.querySelector('.gestes-globaux');
+  const recette = panneau.querySelector('.carte[aria-label="Palettes et réglages"]');
+
+  if (destination) {
+    // La destination, ouverte : une collection, un groupe, la place des thèmes, et le chemin qui en sort.
+    liste.before(M.el('<section class="carte" aria-label="Destination des tokens"><div class="carte-tete"><h3 class="carte-titre">Destination des tokens</h3><span class="carte-resume">Pour toutes les palettes du plugin</span></div><div class="carte-corps"><div class="colonnes-de-base"><label class="champ-colonne"><span class="libelle-de-champ">Collection</span><select class="input"><option>primitives (nouvelle collection)</option><option>Primitives</option><option>Brand</option><option>Autre nom…</option></select><span class="ligne-secondaire">Une collection du fichier, ou une nouvelle.</span></label><label class="champ-colonne"><span class="libelle-de-champ">Groupe</span><input type="text" class="input" value="colors"><span class="ligne-secondaire">Le dossier des palettes dans la collection. Vide : à la racine.</span></label></div><div class="champ-colonne"><span class="libelle-de-champ">Thèmes Light et Dark</span><div class="bascule bascule-de-base" role="group"><button type="button" class="bascule-option" aria-pressed="true">Dans le chemin</button><button type="button" class="bascule-option" aria-pressed="false">En modes</button></div><span class="ligne-secondaire">Dans le chemin : une variable par thème, un seul mode.</span></div><div class="m-chemin"><span class="ligne-secondaire">Exemple</span><code>primitives</code><span>›</span><code>colors/ardoise/vivid/light/600</code></div><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>'));
+    fiche('Bleu').remove();
+    fiche('Jaune').remove();
+    globaux.remove();
+    recette.remove();
+    return;
+  }
+  liste.before(M.el('<p class="m-chemin"><span class="ligne-secondaire">Tokens écrits dans</span><code>primitives</code><span>›</span><code>colors/…</code><button type="button" class="bouton-discret">Changer</button></p>'));
+  if (modifiee) {
+    fiche('Bleu').remove();
+    fiche('Ardoise').remove();
+    globaux.remove();
+    recette.remove();
+    return;
+  }
+  globaux.innerHTML = '<button type="button" class="btn btn-primary"><span>Tout mettre à jour (2 palettes)</span></button>';
+  const duFichier = M.el('<div class="liste-planche"></div>');
+  duFichier.append(
+    M.ficheDuFichier('slate', 'Primitives / slate / 50 … 950', '11 couleurs · 1 mode', slate, 'Modifier dans le plugin'),
+    M.ficheDuFichier('brand/emerald', 'Brand / brand / emerald / 50 … 950', '11 couleurs · modes Light, Dark', emeraude, 'Modifier dans le plugin'),
+  );
+  globaux.after(M.el('<div class="m-separation"><h3 class="m-titre-de-section">Déjà dans le fichier · 2</h3><p>Lues dans les variables du fichier, hors du plugin.</p></div>'), duFichier);
+  panneau.append(recette);
 }
 
-/** M6 : la variante en tableau de l'onglet Gestion. */
-function gestionEnTableau() {
+/** Gestion, vue condensée : une ligne par palette, un état par sortie, aucun geste. */
+function gestionCondensee({ slate, emeraude }) {
   M.onglets('Gestion');
   const panneau = document.querySelector('#panneau-planche');
+  const tete = panneau.querySelector('.planche-tete');
   panneau.querySelector('.planche-compte').textContent = 'Palettes du plugin · 3';
-  panneau.querySelector('.planche-tete .bouton-discret').textContent = 'Relire le fichier';
-  panneau.querySelector('.planche-tete .bascule').remove();
+  tete.querySelector('.bouton-discret').textContent = 'Relire';
+  tete.querySelector('.bascule').replaceWith(M.el('<div class="bascule" role="group" aria-label="Vue"><button type="button" class="bascule-option" aria-pressed="false">Complète</button><button type="button" class="bascule-option" aria-pressed="true">Condensée</button></div>'));
   const etat = (code, libelle) => `<span class="pastille-d-etat" data-etat="${code}">${libelle}</span>`;
-  const geste = (texte, classe = 'btn-secondary') => `<button type="button" class="btn ${classe} btn-compact"><span>${texte}</span></button>`;
-  const cellules = {
-    Bleu: [etat('a-jour', 'À jour'), etat('a-jour', 'À jour') + geste('Afficher')],
-    Jaune: [etat('perimee', 'À mettre à jour') + geste('Mettre à jour'), etat('perimee', 'À actualiser') + geste('Actualiser')],
-    Ardoise: [etat('jamais-dessinee', 'Pas encore écrits') + geste('Écrire'), etat('jamais-dessinee', 'Pas encore créée') + geste('Créer')],
+  const etats = {
+    Bleu: [etat('a-jour', 'À jour'), etat('a-jour', 'À jour')],
+    Jaune: [etat('perimee', 'À mettre à jour'), etat('perimee', 'À actualiser')],
+    Ardoise: [etat('jamais-dessinee', 'Pas encore écrits'), etat('jamais-dessinee', 'Pas encore créée')],
   };
+  const mini = (rampe) => `<div class="m-mini-rampe">${rampe.map((couleur) => `<span style="background:${couleur}"></span>`).join('')}</div>`;
   const lignes = [...panneau.querySelectorAll('.fiche-planche')].map((fiche) => {
     const nom = fiche.getAttribute('aria-label');
     const rangee = [...fiche.querySelectorAll('.fiche-rangee')].at(-1);
-    const rampe = [...rangee.querySelectorAll('.fiche-pastille')].map((pastille) => `<span style="background:${pastille.style.background}"></span>`).join('');
-    return `<tr><td><span class="m-nom"><i style="background:${fiche.querySelector('.fiche-teinte').style.background}"></i>${nom}</span><div class="m-mini-rampe">${rampe}</div></td><td><div class="m-cellule">${cellules[nom][0]}</div></td><td><div class="m-cellule">${cellules[nom][1]}</div></td></tr>`;
+    const rampe = [...rangee.querySelectorAll('.fiche-pastille')].map((pastille) => pastille.style.background);
+    return `<tr><td><span class="m-nom"><i style="background:${fiche.querySelector('.fiche-teinte').style.background}"></i>${nom}</span></td><td>${mini(rampe)}</td><td>${etats[nom][0]}</td><td>${etats[nom][1]}</td></tr>`;
   }).join('');
-  const slate = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
-  const duFichier = `<tr><td><span class="m-nom">slate <span class="m-etiquette">Variables du fichier</span></span><div class="m-mini-rampe">${slate.map((hexa) => `<span style="background:${hexa}"></span>`).join('')}</div></td><td><span class="ligne-secondaire">Primitives / slate · 11 couleurs</span></td><td><span class="ligne-secondaire">Aucune</span></td></tr>`;
-  panneau.querySelector('.liste-planche').replaceWith(M.el(`<table class="m-table"><thead><tr><th>Palette</th><th>Tokens Figma</th><th>Planche</th></tr></thead><tbody>${lignes}${duFichier}</tbody></table>`));
-  panneau.querySelector('.gestes-globaux').innerHTML = '<button type="button" class="btn btn-primary"><span>Tout mettre à jour (2 palettes)</span></button>';
+  const duFichier = [['slate', slate], ['brand/emerald', emeraude]].map(([nom, rampe]) => `<tr><td><span class="m-nom">${nom}</span></td><td>${mini(rampe)}</td><td colspan="2"><span class="m-etiquette">Variables du fichier</span></td></tr>`).join('');
+  panneau.querySelector('.liste-planche').replaceWith(M.el(`<table class="m-table"><thead><tr><th>Palette</th><th></th><th>Tokens Figma</th><th>Planche</th></tr></thead><tbody>${lignes}${duFichier}</tbody></table>`));
+  panneau.querySelector('.gestes-globaux').remove();
+  panneau.querySelector('.carte[aria-label="Palettes et réglages"]').remove();
 }
 
 // ------------------------------------------------------------ les maquettes
 
+const VERS_CREATION = '#onglet-palettes';
 const DEPLIER_LES_GARANTIES = '#panneau-palettes .carte[aria-label="Garanties de contraste"] .carte-bascule';
 const OUVRIR_LE_VOLET = '.pied-de-la-palette .bouton-discret';
+const OUVRIR_LA_LISTE = '.selecteur-bouton';
+/** Les deux palettes « du fichier » : slate et emerald de Tailwind. */
+const RAMPES_DU_FICHIER = {
+  slate: ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'],
+  emeraude: ['#ECFDF5', '#D1FAE5', '#A7F3D0', '#6EE7B7', '#34D399', '#10B981', '#059669', '#047857', '#065F46', '#064E3B', '#022C22'],
+};
 
+/** Les maquettes qui attendent une réponse, puis celles que le mainteneur a validées. */
 const MAQUETTES = [
+  {
+    id: 'M8',
+    titre: 'Vérification : la liste déroulante et ses verdicts',
+    etat: 'planche-perimee',
+    gestes: [VERS_CREATION, DEPLIER_LES_GARANTIES, OUVRIR_LE_VOLET, OUVRIR_LA_LISTE],
+    transformer: verification,
+    argument: { 1: 'avertissement', 2: 'succes' },
+    hauteur: 760,
+    change: [
+      'La barre est celle de Création : liste déroulante, « Nouvelle palette », menu. Ouverte ici, la liste porte le verdict de chaque palette, ✓, ! ou ✗ ; le bouton porte celui de la palette ouverte.',
+      'Le point à vérifier perd sa ligne de mesure, « Écart le plus faible : … ΔEok » : il garde où, quoi, le geste et le lien.',
+    ],
+    questions: ['S5 : la place et la forme du verdict dans la liste.', 'S6 : le message simplifié.'],
+  },
+  {
+    id: 'M9',
+    titre: 'Gestion, vue complète',
+    etat: 'planche-perimee',
+    transformer: gestion,
+    argument: RAMPES_DU_FICHIER,
+    hauteur: 1250,
+    change: [
+      'Une bascule « Complète · Condensée » en tête ; la vue complète est celle de l’ouverture.',
+      'Sous la tête, une ligne dit où les tokens s’écrivent, et « Changer » ouvre la carte de M11.',
+      'Une palette du fichier porte « Modifier dans le plugin ».',
+    ],
+    questions: ['S8 : la bascule des deux vues.', 'S13 : ce que fait « Modifier dans le plugin ».', 'S15 : la ligne de la destination.'],
+  },
+  {
+    id: 'M10',
+    titre: 'Gestion, vue condensée',
+    etat: 'planche-perimee',
+    transformer: gestionCondensee,
+    argument: RAMPES_DU_FICHIER,
+    hauteur: 420,
+    change: [
+      'Une ligne par palette : son nom, sa rampe en miniature, l’état de ses tokens, l’état de sa planche. Aucun geste.',
+      'Une palette du fichier est une ligne du même tableau, marquée « Variables du fichier ».',
+      'Un clic sur une ligne ouvre la vue complète sur cette palette.',
+    ],
+    questions: ['S8 : ce que la vue condensée montre.', 'S16 : « Tout mettre à jour » absent de cette vue.'],
+  },
+  {
+    id: 'M11',
+    titre: 'Gestion : où les variables s’écrivent',
+    etat: 'planche-perimee',
+    transformer: gestion,
+    argument: { ...RAMPES_DU_FICHIER, destination: true },
+    hauteur: 860,
+    change: [
+      'Une carte « Destination des tokens », réglée une fois pour le fichier : la collection, choisie parmi celles du fichier ou créée, le groupe, et la place des thèmes Light et Dark.',
+      'L’exemple montre le chemin d’une variable avec ces choix.',
+      'La confirmation d’une première écriture reprend la destination : collection, premier et dernier chemin, nombre de variables.',
+    ],
+    questions: ['S15 : une destination pour le fichier, réglée dans Gestion.', 'S10 : les thèmes dans le chemin ou en modes.'],
+  },
+  {
+    id: 'M12',
+    titre: 'Gestion : des couleurs changées dans Figma',
+    etat: 'planche-perimee',
+    transformer: gestion,
+    argument: { ...RAMPES_DU_FICHIER, modifiee: true },
+    hauteur: 520,
+    change: ['La fiche liste les couleurs changées à la main, valeur de Figma et valeur du plugin côte à côte, et propose deux choix pour la palette entière.'],
+    questions: ['S11 : les deux choix.'],
+  },
   {
     id: 'M1',
     titre: 'Fichier vide',
+    validee: true,
     etat: 'premier-lancement',
     transformer: fichierVide,
     hauteur: 420,
-    change: [
-      'Un encart au fond bleuté remplace la ligne grise et la carte de création ouverte d’office.',
-      '« Nouvelle palette » ouvre la carte de création actuelle, à la place de l’encart.',
-      'Si les variables du fichier portent déjà des palettes, une ligne mène à Gestion ; sinon elle n’existe pas.',
-    ],
-    questions: ['S1 : les trois onglets et leurs noms.', 'S2 : l’encart, et la ligne vers Gestion.'],
+    change: ['Un encart au fond bleuté, et « Nouvelle palette » qui ouvre la carte de création à sa place.', 'La ligne vers Gestion ne paraît que si les variables du fichier portent des palettes.'],
+    questions: ['S1 et S2.'],
   },
   {
     id: 'M2',
     titre: 'Création',
+    validee: true,
     etat: 'cartes-repliees',
     transformer: creation,
     hauteur: 760,
-    change: [
-      'La carte « Garanties de contraste » quitte l’onglet. Le reste ne bouge pas : configuration, aperçu, Réglage global, Color shift, Interface de test.',
-      'Le pied garde le bilan de la palette. Son bouton devient « Vérifier » et ouvre Vérification sur la même palette ; le volet « Détails » disparaît.',
-    ],
-    questions: ['S3 : l’Interface de test reste-t-elle ici ?', 'S4 : le pied et son bouton « Vérifier ».'],
-  },
-  {
-    id: 'M3',
-    titre: 'Vérification, des garanties tenues et un point à vérifier',
-    etat: 'planche-perimee',
-    gestes: ['#onglet-palettes', DEPLIER_LES_GARANTIES, OUVRIR_LE_VOLET],
-    transformer: verification,
-    argument: { 1: 'succes', 2: 'succes' },
-    hauteur: 760,
-    change: [
-      'Une puce par palette porte son verdict : elle choisit la palette, et les trois verdicts se lisent sans ouvrir de liste.',
-      'Le verdict de la palette, puis ses messages, ceux du volet « Détails » actuel, puis la carte des garanties, toujours ouverte.',
-      'Un lien de message ouvre Création sur le réglage qu’il nomme.',
-      'Le pied mène à l’étape suivante.',
-    ],
-    questions: ['S5 : des puces ou la liste déroulante de Création.', 'S6 : le contenu de l’onglet et son ordre.'],
+    change: ['L’onglet actuel sans la carte « Garanties de contraste » ; l’interface de test reste.', 'Le pied garde le bilan, et son bouton « Vérifier » ouvre Vérification.'],
+    questions: ['S3 et S4.'],
   },
   {
     id: 'M4',
     titre: 'Vérification, des garanties manquées',
+    validee: true,
     etat: 'promesses-manquees',
     gestes: [DEPLIER_LES_GARANTIES, OUVRIR_LE_VOLET],
     transformer: verification,
     argument: { 1: 'avertissement' },
     hauteur: 760,
-    change: [
-      'Le verdict passe au rouge, et les contrastes à corriger viennent en premier.',
-      'Le pied ramène à Création. Gestion reste accessible : écrire une palette qui manque des garanties n’est pas interdit, la fiche le dit.',
-    ],
-    questions: ['S7 : une palette qui manque des garanties peut-elle s’écrire dans Figma ?'],
-  },
-  {
-    id: 'M5',
-    titre: 'Gestion, variante A : une fiche par palette',
-    etat: 'planche-perimee',
-    transformer: gestion,
-    hauteur: 1190,
-    change: [
-      'Chaque fiche du plugin porte deux lignes, « Tokens Figma » et « Planche » : un état et un geste par sortie. La pastille de l’en-tête résume les deux.',
-      '« Modifier » ramène à Création, « Soft ✓ · Vivid ✓ » à Vérification.',
-      'Sous un filet, « Déjà dans le fichier » : les palettes lues dans les variables, en tirets, sans état ni geste d’écriture.',
-      '« Tout mettre à jour » écrit les tokens et les planches en retard, après une seule confirmation.',
-    ],
-    questions: ['S8 : variante A ou B.', 'S9 : les états et leurs mots.', 'S12 : la détection des palettes du fichier.', 'S13 : « Reprendre dans le plugin ».'],
-  },
-  {
-    id: 'M6',
-    titre: 'Gestion : les deux décisions',
-    etat: 'planche-perimee',
-    transformer: gestionDecisions,
-    hauteur: 860,
-    change: [
-      'Première écriture : la fiche dit combien de variables elle crée, dans quelle collection et sous quels noms, puis attend « Écrire ».',
-      'Couleurs changées à la main dans Figma : la fiche les liste, valeur de Figma et valeur du plugin côte à côte, et propose deux choix pour la palette entière.',
-      'Aucune modale, aucune revue : la décision se prend dans la fiche.',
-    ],
-    questions: ['S10 : la forme des variables écrites.', 'S11 : les deux choix quand Figma a changé.'],
-  },
-  {
-    id: 'M7',
-    titre: 'Gestion, variante B : un tableau',
-    etat: 'planche-perimee',
-    transformer: gestionEnTableau,
-    hauteur: 480,
-    change: [
-      'Une ligne par palette, une colonne par sortie : la synchronisation se lit en croix.',
-      'Plus dense : douze palettes tiennent dans la fenêtre par défaut. La rampe passe en miniature, et la référence, les garanties et le détail des variables ne se lisent plus ici.',
-      'Une palette du fichier est une ligne du même tableau, marquée « Variables du fichier ».',
-    ],
-    questions: ['S8 : variante A ou B.'],
+    change: ['Le verdict passe au rouge, les contrastes à corriger viennent en premier.', 'Une palette qui manque des garanties s’écrit quand même depuis Gestion.'],
+    questions: ['S7.'],
   },
 ];
 
@@ -363,13 +380,17 @@ const MAQUETTES = [
 /** Un texte posé dans un `<script type="text/plain">` : seule sa balise fermante se neutralise, et la page la rétablit. */
 const enTexte = (texte) => texte.replace(/<\/script/gi, '<\\/script');
 
+/** La feuille de la page de galerie, variables du thème de Figma comprises : la même pour chaque état. */
+let feuilleDuPlugin = '';
+
 async function rendre(navigateur, maquette) {
   const page = await navigateur.newPage({ viewport: { width: LARGEUR, height: 720 } });
-  await page.goto(pathToFileURL(path.join(DIST, 'galerie/clair', `${maquette.etat}.html`)).href);
+  await page.goto(pathToFileURL(path.join(DIST, 'galerie', THEME, `${maquette.etat}.html`)).href);
   await page.waitForFunction(() => document.documentElement.dataset.galerie === 'pret');
   for (const geste of maquette.gestes ?? []) await page.locator(geste).first().click();
   await page.evaluate(poserLesOutils);
   await page.evaluate(maquette.transformer, maquette.argument);
+  feuilleDuPlugin ||= await page.evaluate(() => [...document.querySelectorAll('style')].map((style) => style.textContent).join('\n'));
   const corps = await page.evaluate(() => {
     for (const script of document.querySelectorAll('script')) script.remove();
     for (const banc of document.querySelectorAll('.resize-grip, .largeur-fenetre')) banc.remove();
@@ -381,15 +402,15 @@ async function rendre(navigateur, maquette) {
   });
   await page.close();
   const liste = (lignes) => `<ul>${lignes.map((ligne) => `<li>${ligne}</li>`).join('')}</ul>`;
-  return `<section class="maquette" id="${maquette.id}"><h2>${maquette.id} · ${maquette.titre}</h2><div class="rangee"><iframe title="${maquette.id}" width="${LARGEUR}" height="${maquette.hauteur}"></iframe><script type="text/plain" class="corps">${enTexte(corps)}</script><div class="notes"><h3>Ce qui change</h3>${liste(maquette.change)}<h3>À valider</h3>${liste(maquette.questions)}</div></div></section>`;
+  return `<section class="maquette" id="${maquette.id}"><h2>${maquette.id} · ${maquette.titre}</h2><div class="rangee"><iframe title="${maquette.id}" width="${LARGEUR}" height="${maquette.hauteur}"></iframe><script type="text/plain" class="corps">${enTexte(corps)}</script><div class="notes"><h3>Ce qui change</h3>${liste(maquette.change)}<h3>${maquette.validee ? 'Validé' : 'À valider'}</h3>${liste(maquette.questions)}</div></div></section>`;
 }
 
 const navigateur = await chromium.launch();
-const sections = [];
-for (const maquette of MAQUETTES) sections.push(await rendre(navigateur, maquette));
+const sections = { attente: [], validees: [] };
+for (const maquette of MAQUETTES) sections[maquette.validee ? 'validees' : 'attente'].push(await rendre(navigateur, maquette));
 await navigateur.close();
 
-const sommaire = MAQUETTES.map((maquette) => `<a href="#${maquette.id}">${maquette.id} · ${maquette.titre}</a>`).join('');
+const lien = (maquette) => `<a href="#${maquette.id}">${maquette.id} · ${maquette.titre}</a>`;
 const page = `<!doctype html>
 <html lang="fr">
 <head>
@@ -397,34 +418,40 @@ const page = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UCM Palettes : maquettes de la direction simple</title>
 <style>
-  body { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; background: #f3f4f6; color: #111827; font: 14px/1.5 system-ui, sans-serif; }
+  body { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; background: #17181c; color: #e5e7eb; font: 14px/1.5 system-ui, sans-serif; }
   h1 { margin: 0 0 8px; font-size: 24px; }
   h2 { margin: 48px 0 12px; font-size: 18px; }
-  h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #4b5563; }
-  nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-  nav a { padding: 4px 10px; border: 1px solid #d1d5db; border-radius: 14px; background: #fff; color: #1d4ed8; text-decoration: none; }
+  h2.partie { margin-top: 64px; padding-top: 24px; border-top: 1px solid #3f4350; font-size: 21px; }
+  h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #9ca3af; }
+  a { color: #7cc4ff; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  nav a { padding: 4px 10px; border: 1px solid #3f4350; border-radius: 14px; background: #23252b; text-decoration: none; }
   .rangee { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
-  iframe { flex: none; border: 1px solid #9ca3af; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+  iframe { flex: none; border: 1px solid #4b5060; border-radius: 8px; background: #2c2c2c; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
   .notes { min-width: 260px; flex: 1 1 260px; }
   .notes ul { margin: 0 0 20px; padding-left: 18px; }
   .notes li { margin-bottom: 6px; }
-  .legende { margin: 12px 0 0; color: #4b5563; }
+  .legende { margin: 12px 0 0; color: #9ca3af; }
 </style>
 </head>
 <body>
 <h1>UCM Palettes : maquettes de la direction simple</h1>
-<p>Trois onglets, Création, Vérification et Gestion, et un encart pour le fichier vide. Les questions S1 à S14 sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
+<p>Second passage, en thème sombre. Les questions sont dans <a href="./PLAN-DIRECTION-SIMPLE.md">PLAN-DIRECTION-SIMPLE.md</a>.</p>
 <p class="legende">Chaque cadre fait 560 px de large et défile comme le plugin. Il est statique : aucun bouton ne répond. Les écrans partent du plugin construit ; les couleurs des palettes du plugin sortent du moteur.</p>
-<nav>${sommaire}</nav>
-${sections.join('\n')}
-<script type="text/plain" id="feuille">${enTexte(`${FEUILLE_DU_PLUGIN}\n${STYLES_DES_MAQUETTES}`)}</script>
+<h2 class="partie">À valider</h2>
+<nav>${MAQUETTES.filter((maquette) => !maquette.validee).map(lien).join('')}</nav>
+${sections.attente.join('\n')}
+<h2 class="partie">Validées, en thème sombre</h2>
+<nav>${MAQUETTES.filter((maquette) => maquette.validee).map(lien).join('')}</nav>
+${sections.validees.join('\n')}
+<script type="text/plain" id="feuille">${enTexte(`${feuilleDuPlugin}\n${STYLES_DES_MAQUETTES}`)}</script>
 <script>
   // La feuille du plugin n'est écrite qu'une fois : chaque cadre la reçoit avec son balisage.
   const retablir = (texte) => texte.replace(/<\\\\\\/script/gi, '</' + 'script');
   const feuille = retablir(document.getElementById('feuille').textContent);
   for (const maquette of document.querySelectorAll('.maquette')) {
     const corps = retablir(maquette.querySelector('.corps').textContent);
-    maquette.querySelector('iframe').srcdoc = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><style>' + feuille + '</style></head><body>' + corps + '</body></html>';
+    maquette.querySelector('iframe').srcdoc = '<!doctype html><html lang="fr" class="${CLASSE_DU_THEME}"><head><meta charset="utf-8"><style>' + feuille + '</style></head><body>' + corps + '</body></html>';
   }
 </script>
 </body>
