@@ -99,6 +99,8 @@ export interface DemandesDeLOnglet {
   verifier(): void;
   /** Une garantie du détail d'une nuance : elle se choisit dans la carte de Vérification ([VER-20]). */
   choisirGarantie(association: Association): void;
+  /** Le lien sous l'encart d'un fichier sans palette : ouvre Gestion sur les palettes de ses variables ([UI-22]). */
+  versGestion(): void;
 }
 
 export interface OngletCreationUi {
@@ -122,6 +124,8 @@ export interface OngletCreationUi {
   importer(recette: Recette): void;
   /** Ouvre une palette dans le thème que sa fiche de l'onglet Palettes montrait (V8.3). */
   ouvrirLaPalette(id: string, mode: Mode): void;
+  /** Le nombre de palettes que les variables du fichier portent hors du plugin : l'encart d'un fichier sans palette y mène ([UI-22]). */
+  poserLesPalettesDuFichier(nombre: number): void;
   /** Ce que la barre de la palette demande ([UI-23]) : l'onglet porte la recette, donc ses gestes. */
   readonly gestesDeLaBarre: GestesDeLaBarre;
   /** Reprend la barre en tête de l'onglet, quand il redevient l'onglet actif. */
@@ -158,7 +162,7 @@ function construireVues(i18n: Localisation) {
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -215,6 +219,26 @@ function construireVues(i18n: Localisation) {
     i18n.lier(texteDeLAppel, 'textContent', TEXTES.premierePalette);
     const premiereNouvelle = createButton({ label: TEXTES.nouvellePalette, onClick: () => ouvrirLaCreation() });
     appel.append(rampeDExemple, titreDeLAppel, texteDeLAppel, premiereNouvelle);
+
+    // Sous l'encart : les palettes que les variables du fichier portent déjà, et le lien vers Gestion ([UI-22]).
+    const ligneDuFichier = document.createElement('p');
+    ligneDuFichier.className = 'lien-de-fichier';
+    ligneDuFichier.hidden = true;
+    const texteDuFichier = document.createElement('span');
+    const lienDuFichier = document.createElement('button');
+    lienDuFichier.type = 'button';
+    lienDuFichier.className = 'lien-de-constat';
+    lienDuFichier.addEventListener('click', () => demandes.versGestion());
+    ligneDuFichier.append(texteDuFichier, lienDuFichier);
+    let palettesDuFichier = 0;
+
+    /** La ligne ne paraît qu'avec l'encart, quand le fichier porte au moins une palette. */
+    function rendreLaLigneDuFichier(): void {
+      ligneDuFichier.hidden = appel.hidden || palettesDuFichier === 0;
+      if (ligneDuFichier.hidden) return;
+      i18n.lier(texteDuFichier, 'textContent', palettesDansLesVariables(palettesDuFichier));
+      i18n.lier(lienDuFichier, 'textContent', voirDansGestion(palettesDuFichier));
+    }
 
     function peindreLExemple(lue: Recette): void {
       if (rampeDExemple.childElementCount > 0) return;
@@ -626,7 +650,7 @@ function construireVues(i18n: Localisation) {
     const ligneVide = ligneDEtat('');
     const vide = document.createElement('div');
     vide.className = 'page-stack colonne';
-    vide.append(ligneVide, appel);
+    vide.append(ligneVide, appel, ligneDuFichier);
     // Sans palette choisie : un titre et une phrase, sans geste propre ; les gestes sont ceux de la barre (maquette Z3.3, D1).
     const invitation = document.createElement('div');
     invitation.className = 'invitation';
@@ -752,6 +776,11 @@ function construireVues(i18n: Localisation) {
     }
 
     function rendreLesZones(): void {
+      rendreLesZonesDeLaRecette();
+      rendreLaLigneDuFichier();
+    }
+
+    function rendreLesZonesDeLaRecette(): void {
       const recette = etat.recette();
       if (!apercuSeul) renduDiffere = false;
       rendreRefus();
@@ -825,6 +854,10 @@ function construireVues(i18n: Localisation) {
         // Une réponse du sandbox en plein aperçu ne montre que le refus : le rendu complet attend la fin du geste.
         if (renduDiffere) rendreRefus();
         else rendre();
+      },
+      poserLesPalettesDuFichier(nombre) {
+        palettesDuFichier = nombre;
+        rendreLaLigneDuFichier();
       },
       ouvrirLaPalette(id, mode) {
         etat.ouvrir(id);

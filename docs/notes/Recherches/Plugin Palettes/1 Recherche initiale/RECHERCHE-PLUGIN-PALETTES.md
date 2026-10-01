@@ -2199,7 +2199,8 @@ Onglet Gestion, vue complète :
   écrites (`[VAR-12]`) : une fiche en tirets, sans fond, l'étiquette
   « Variables du fichier », la rampe du premier mode, la collection, le
   chemin, le nombre de couleurs et les modes. Son en-tête porte « Modifier
-  dans le plugin » au bord droit (`[VAR-13]`). Une palette d'une
+  dans le plugin » au bord droit (`[VAR-13]`). En vue condensée, la liste
+  laisse la place aux lignes du tableau (`[UI-27]`). Une palette d'une
   bibliothèque distante porte l'étiquette « Bibliothèque », son chemin est
   précédé du nom de la collection et de son nombre de variables, sa rampe
   montre des pastilles vides et « Couleurs lues à la copie », et son geste
@@ -2264,7 +2265,7 @@ qui le créera.
 | État | Ce qu'il montre |
 |---|---|
 | Premier lancement | Aucune recette rangée : l'encart au fond bleuté, sa rampe d'exemple et « Nouvelle palette » (`[UI-22]`) |
-| Fichier vide avec variables | L'encart, puis la ligne qui compte les palettes des variables et mène à Gestion ; case P7.4 |
+| Fichier vide avec variables | L'encart, puis la ligne qui compte les palettes des variables et mène à Gestion |
 | Onglet Création sans palette choisie | « Sélectionner une palette », l'invitation sous le filet, ni menu ni palette |
 | Premier lancement, palette créée | La première palette ouverte, recette rangée |
 | Création ouverte | La carte de création sous le sélecteur, en P2 : nom et couleur de référence, Modèle, « Une intensité » choisie, « Créer la palette » et « Annuler » |
@@ -2327,18 +2328,21 @@ qui le créera.
 | Planche à actualiser | Lignes « À actualiser » ou « Pas encore créée », en avertissement, « Tout mettre à jour » |
 | Fiche d’une palette | Nom, pastille d'état et « Modifier » ; rampes ; référence et garanties sur une ligne ; lignes de sortie |
 | Pastilles des cinq états | « À jour » sur fond de succès, « À actualiser » et « Pas encore créée » en avertissement, introuvable et illisible en danger |
-| Tokens jamais écrits | La ligne « Tokens Figma » dit « Pas encore écrits » et « 44 variables à créer » ; case P5.13 |
-| Tokens à jour | « À jour · 44 variables » ; case P5.13 |
-| Tokens à mettre à jour | « 6 couleurs ont changé dans le plugin » et « Mettre à jour » ; case P5.13 |
-| Tokens introuvables | Des variables suivies ont disparu : « Introuvables » et « Mettre à jour » ; case P5.13 |
-| Première écriture | L'encart de la fiche : nombre de variables, collection, premier et dernier nom ; case P5.13 |
-| Destination ouverte | La carte « Destination des tokens » et sa simulation, thèmes dans le chemin ; case P5.13 |
-| Destination en modes | La simulation à deux colonnes, Light et Dark ; case P5.13 |
-| Nom déjà pris | La fiche nomme la variable qui porte déjà le nom ; case P5.13 |
-| Écriture partielle | Une palette écrite, une refusée avec sa raison ; case P5.13 |
-| Palette supprimée avec variables | La carte propose « Supprimer les variables… » ; case P5.13 |
-| Tokens modifiés dans Figma | L'encart qui liste les couleurs changées et les deux choix ; case P6.3 |
-| Palettes du fichier | La liste « Déjà dans le fichier », fiches en tirets ; case P7.4 |
+| Tokens jamais écrits | La ligne « Tokens Figma » dit « Pas encore écrits » et « 44 variables à créer » |
+| Tokens à jour | « À jour · 44 variables » |
+| Tokens à mettre à jour | « 2 couleurs ont changé dans le plugin » et « Mettre à jour » |
+| Tokens introuvables | Des variables suivies ont disparu : « Introuvables » et « Mettre à jour » |
+| Première écriture | L'encart de la fiche : nombre de variables, collection, premier et dernier nom |
+| Destination ouverte | La carte « Destination des tokens » et sa simulation, thèmes dans le chemin |
+| Destination en modes | La simulation à deux colonnes, Light et Dark |
+| Nom déjà pris | La fiche nomme la variable qui porte déjà le nom |
+| Écriture partielle | Une palette écrite, une interrompue avec sa raison dans sa fiche |
+| Destination refusée | Le refus du sandbox dans la carte, qui nomme le champ |
+| Variables supprimées | La ligne qui compte les variables retirées, après la confirmation |
+| Palette supprimée avec variables | La carte propose « Supprimer les variables… » |
+| Tokens modifiés dans Figma | L'encart qui liste les couleurs changées et les deux choix |
+| Palettes du fichier | La liste « Déjà dans le fichier », fiches en tirets |
+| Palettes du fichier, vue condensée | Une ligne du tableau par palette du fichier, avec l'étiquette « Variables du fichier » |
 | Reprise recalculée | L'encart de Création, « Recalculées » pressé, le nombre de couleurs qui changeront ; case P8.6 |
 | Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change ; case P8.6 |
 | Reprise dans Gestion | La ligne des tokens dit la collection et le chemin d'origine, l'encart de remplacement ; case P8.6 |

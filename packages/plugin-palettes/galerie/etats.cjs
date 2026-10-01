@@ -80,6 +80,35 @@ function tokensEcrits(texte, ecrites, { lue = (hexa) => hexa, ecrite = (hexa) =>
   };
 }
 
+/** Deux rampes de Tailwind, comme un fichier les porte dans ses variables sans le plugin. */
+const RAMPES_DU_FICHIER = {
+  slate: ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'],
+  emerald: ['#ECFDF5', '#D1FAE5', '#A7F3D0', '#6EE7B7', '#34D399', '#10B981', '#059669', '#047857', '#065F46', '#064E3B', '#022C22'],
+};
+const NUANCES_DU_FICHIER = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+
+/**
+ * Les variables d'un fichier, augmentées de deux palettes que le plugin n'a
+ * pas écrites : `slate`, à la racine de « primitives », et `brand/emerald`,
+ * dans la collection « Brand » à deux modes.
+ */
+function avecLesPalettesDuFichier(fichier) {
+  const primitives = fichier.collections.find((collection) => collection.id === COLLECTION_DES_TOKENS.id) ?? COLLECTION_DES_TOKENS;
+  const brand = fichier.collections.find((collection) => collection.nom === 'Brand') ?? { id: 'VariableCollectionId:8:1', nom: 'Brand', modes: [{ id: '8:0', nom: 'Light' }, { id: '8:1', nom: 'Dark' }], variables: 48 };
+  const slate = NUANCES_DU_FICHIER.map((nuance, rang) => ({ id: `VariableID:slate:${nuance}`, nom: `slate/${nuance}`, collection: primitives.id, valeurs: { '7:0': RAMPES_DU_FICHIER.slate[rang] } }));
+  const emerald = NUANCES_DU_FICHIER.map((nuance, rang) => ({
+    id: `VariableID:emerald:${nuance}`,
+    nom: `brand/emerald/${nuance}`,
+    collection: brand.id,
+    valeurs: { '8:0': RAMPES_DU_FICHIER.emerald[rang], '8:1': RAMPES_DU_FICHIER.emerald[10 - rang] },
+  }));
+  return {
+    ...fichier,
+    collections: [...new Map([...fichier.collections, primitives, brand].map((collection) => [collection.id, collection])).values()],
+    variables: [...fichier.variables, ...slate, ...emerald],
+  };
+}
+
 /** L'état que le sandbox envoie pour un texte rangé sous la clé de la recette, en réponse à la demande `demande`. */
 function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande = 1, variables = VARIABLES_VIDES) {
   return {
@@ -780,6 +809,37 @@ const ETATS = [
       { clic: '.carte-supprimee [data-geste="confirmer-variables"]' },
       { message: { type: 'variables-retirees', demande: 3, issue: { issue: 'retirees', retirees: 44 } } },
     ],
+  },
+  {
+    id: 'palettes-du-fichier',
+    titre: 'Palettes du fichier',
+    quand: 'Les variables du fichier portent deux palettes que le plugin n’a pas écrites : slate, et emerald dans une collection à deux modes.',
+    regarder: 'Sous les fiches du plugin, un filet, « Déjà dans le fichier · 2 » et sa phrase. Deux fiches en tirets, sans fond : l’étiquette « Variables du fichier » et « Modifier dans le plugin », inactif, en tête ; la rampe du premier mode ; « primitives / slate / 50 … 950 » et « 11 couleurs · 1 mode », puis « Brand / brand / emerald / 50 … 950 » et « 11 couleurs · modes Light, Dark ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'palettes-du-fichier-condensees',
+    titre: 'Palettes du fichier, vue condensée',
+    quand: 'Le designer presse « Vue condensée » sur le même fichier.',
+    regarder: 'Le tableau : une ligne par palette du plugin, puis une ligne par palette du fichier, son nom, sa rampe et l’étiquette « Variables du fichier » à la place des deux états.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion [data-bascule="vue"] .bascule-option:nth-child(2)' },
+    ],
+  },
+  {
+    id: 'fichier-vide-avec-variables',
+    titre: 'Fichier vide avec variables',
+    quand: 'Le fichier n’a aucune palette du plugin, et ses variables en portent deux.',
+    regarder: 'L’encart au fond bleuté, puis dessous la ligne « Ce fichier porte déjà 2 palettes dans ses variables. » et son lien « Les voir dans Gestion ».',
+    existe: true,
+    atteinte: [etatDuFichier('', 'SRGB', PLANCHE_VIDE, 1, avecLesPalettesDuFichier(VARIABLES_VIDES))],
   },
   {
     id: 'palette-supprimee',

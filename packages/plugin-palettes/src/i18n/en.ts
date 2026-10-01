@@ -1605,6 +1605,9 @@ export const TEXTES_DE_LA_GESTION = {
   aliasDansFigma: "an alias in Figma",
   supprimerLesVariables: "Delete variables…",
   variablesEnConflit: "Export your changes or reload the palettes before writing to tokens.",
+  horsDuPlugin: "Read from the file’s variables, outside the plugin.",
+  variablesDuFichier: "File variables",
+  modifierDansLePlugin: "Edit in the plugin",
 } as const;
 
 /** L'état de la planche d'une palette, dans sa ligne de sortie ([UI-26]). */
@@ -1894,4 +1897,25 @@ export function suppressionDesVariablesRefusee(): Constat {
     quoi: "The file has changed since the last read: this palette is no longer deleted.",
     geste: "Sync in the Manage tab.",
   };
+}
+
+/** Le titre de la liste des palettes que le fichier porte dans ses variables ([UI-33]). */
+export function dejaDansLeFichier(nombre: number): string {
+  return `Already in the file · ${nombre}`;
+}
+
+/** Ce qu'une palette du fichier porte : ses couleurs, et les modes de sa collection ([UI-33]). */
+export function couleursDeLaPaletteDuFichier(nombre: number, modes: readonly string[]): string {
+  const compte = nombre === 1 ? "1 color" : `${nombre} colors`;
+  return modes.length === 1 ? `${compte} · 1 mode` : `${compte} · modes ${modes.join(", ")}`;
+}
+
+/** La ligne sous l'encart d'un fichier sans palette, quand ses variables en portent ([UI-22]). */
+export function palettesDansLesVariables(nombre: number): string {
+  return nombre === 1 ? "This file already has 1 palette in its variables." : `This file already has ${nombre} palettes in its variables.`;
+}
+
+/** Le lien de cette ligne, vers l'onglet Gestion. */
+export function voirDansGestion(nombre: number): string {
+  return nombre === 1 ? "See it in Manage" : "See them in Manage";
 }

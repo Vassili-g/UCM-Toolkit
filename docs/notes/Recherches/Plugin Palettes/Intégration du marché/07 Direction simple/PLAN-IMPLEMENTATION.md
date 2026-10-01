@@ -61,12 +61,12 @@ l'hypothèse est fausse.
 ## Point de reprise
 
 Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6,
-P5.1 à P5.13, P6.1 à P6.3.
+P5.1 à P5.13, P6.1 à P6.3, P7.1 à P7.4.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
 vert, et aucune capture de galerie n'est comparée aux maquettes. L'interface
-des phases 3, 5 et 6 n'a tourné dans aucun navigateur : le typecheck, les
+des phases 3, 5, 6 et 7 n'a tourné dans aucun navigateur : le typecheck, les
 tests unitaires et le build la tiennent seuls. Ce que Gestion compte et
 décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
 
@@ -81,8 +81,9 @@ décide des tokens vit dans `src/variables/gestion.ts`, testé dans Node.
 - Les scénarios des états de galerie de Gestion sont écrits sans avoir été
   joués : `gestion-complete`, `gestion-condensee`,
   `gestion-page-des-planches`, `page-des-planches-refusee`, les états de
-  l'ancien onglet Palettes, et les treize états des tokens, de
-  `tokens-jamais-ecrits` à `variables-supprimees`.
+  l'ancien onglet Palettes, les treize états des tokens, de
+  `tokens-jamais-ecrits` à `variables-supprimees`, et les trois états des
+  palettes du fichier.
 - `generer-maquettes-direction-simple.mjs` transformait l'ancien onglet
   Palettes pour dessiner M9 à M15. Il ne s'applique plus au DOM de Gestion :
   les maquettes rendues restent la référence, et le plugin construit les
@@ -465,17 +466,17 @@ Maquette : M12.
 
 Maquette : M9, bas.
 
-- [ ] **P7.1** `lire-etat` rend les palettes détectées par
+- [x] **P7.1** `lire-etat` rend les palettes détectées par
   `palettesDuFichier`. La liste « Déjà dans le fichier · N », sous un filet :
   une fiche en tirets, sans fond, l'étiquette « Variables du fichier », la
   rampe du premier mode, le chemin, le nombre de couleurs et les modes. Le
   bouton « Modifier dans le plugin » est dans l'en-tête, au bord droit ; il
   reste inactif jusqu'à la phase 8.
-- [ ] **P7.2** La vue condensée reçoit une ligne par palette du fichier.
-- [ ] **P7.3** Le fichier vide (M1) : la ligne « Ce fichier porte déjà N
+- [x] **P7.2** La vue condensée reçoit une ligne par palette du fichier.
+- [x] **P7.3** Le fichier vide (M1) : la ligne « Ce fichier porte déjà N
   palettes dans ses variables. Les voir dans Gestion » paraît sous l'encart
   quand N vaut au moins 1.
-- [ ] **P7.4** États de galerie `palettes-du-fichier`, `fichier-vide-avec-
+- [x] **P7.4** États de galerie `palettes-du-fichier`, `fichier-vide-avec-
   variables`, et leurs tests d'interface.
 
 ## Phase 8 : « Modifier dans le plugin »

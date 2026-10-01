@@ -13,6 +13,9 @@
  * celui des couleurs changées dans Figma ([UI-32]). En vue condensée, un
  * tableau sans geste, une ligne par palette.
  *
+ * Sous un filet, « Déjà dans le fichier » liste les palettes que les
+ * variables du fichier portent hors du plugin, en fiches à tirets ([UI-33]).
+ *
  * Suivent une carte par palette supprimée dont le cadre ou des variables
  * restent dans Figma ([PLA-27], [VAR-11]), les notices, puis la carte
  * repliée « Palettes et réglages » (V8.5). Chaque génération dessine les
@@ -30,8 +33,9 @@ import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche 
 import type { VueDeGestion } from '../preferences';
 import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
 import type { Destination } from '../variables/destination';
+import { palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
 import { miseAJourDesTokens, tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
-import { suiviFutur as suiviDesVariablesFutur } from '../variables/suivi';
+import { suiviFutur as suiviDesVariablesFutur, variablesSuivies } from '../variables/suivi';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
 import { creerVuesConnexion } from './connexion';
@@ -106,7 +110,7 @@ function construireVues(i18n: Localisation) {
   const { createPageDesPlanches } = creerVuesPageDesPlanches(i18n);
   const {
     TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
-    avecLeNom, collectionDisparue, confirmationDeLaMiseAJour, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, detailsTechniques,
+    avecLeNom, collectionDisparue, confirmationDeLaMiseAJour, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, dejaDansLeFichier, detailsTechniques,
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaFicheEcrit, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, palettesDuPlugin, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
@@ -331,9 +335,21 @@ function construireVues(i18n: Localisation) {
     annonceDuRetrait.setAttribute('role', 'status');
     annonceDuRetrait.hidden = true;
 
+    // Les palettes que les variables du fichier portent hors du plugin, sous un filet et un titre ([UI-33]).
+    const separation = document.createElement('div');
+    separation.className = 'separation';
+    const titreDuFichier = document.createElement('h3');
+    titreDuFichier.className = 'titre-de-section';
+    const sousTitreDuFichier = document.createElement('p');
+    i18n.lier(sousTitreDuFichier, 'textContent', TEXTES_DE_LA_GESTION.horsDuPlugin);
+    separation.append(titreDuFichier, sousTitreDuFichier);
+    separation.hidden = true;
+    const listeDuFichier = document.createElement('div');
+    listeDuFichier.className = 'liste-planche';
+
     element.append(
       connexion.element, destination.element, pageDesPlanches.element, confirmation, zoneDesVariables, zoneDuResultat,
-      enTete, vide, liste, table, supprimees, annonceDuRetrait, notices, carteDeLaRecette.element,
+      enTete, vide, liste, table, supprimees, annonceDuRetrait, separation, listeDuFichier, notices, carteDeLaRecette.element,
     );
 
     let recette: Recette | null = null;
@@ -349,6 +365,8 @@ function construireVues(i18n: Localisation) {
     /** L'état des tokens de chaque palette ; vide quand le suivi des variables vient d'une version plus récente. */
     let tokens = new Map<string, TokensDUnePalette>();
     let orphelines: readonly VariablesOrphelines[] = [];
+    /** Les palettes que les variables du fichier portent et que le suivi ne désigne pas ([VAR-12]). */
+    let duFichier: readonly PaletteDuFichier[] = [];
     let profil: ProfilDuDocument = 'SRGB';
     let luLe = Date.now();
     /** Les palettes dont « Tout mettre à jour » dessinerait la planche, dans l'ordre de la recette ([UI-28]). */
@@ -830,6 +848,92 @@ function construireVues(i18n: Localisation) {
       return rangee;
     }
 
+    /** Le nom d'une palette du fichier : son chemin, ou sa collection quand ses variables sont à la racine. */
+    const nomDuFichier = (palette: PaletteDuFichier): string => palette.chemin || palette.nomDeLaCollection;
+
+    /** Les couleurs du premier mode d'une palette du fichier, une pastille par nuance ; un alias laisse la sienne vide. */
+    function pastillesDuFichier(palette: PaletteDuFichier): HTMLSpanElement[] {
+      const couleurs = palette.modes.length > 0 ? palette.couleurs[palette.modes[0].id] ?? [] : [];
+      return palette.nuances.map((_, rang) => {
+        const nuance = document.createElement('span');
+        const couleur = couleurs[rang];
+        if (couleur) nuance.style.background = couleur.slice(0, 7);
+        return nuance;
+      });
+    }
+
+    /**
+     * La fiche d'une palette du fichier : en tirets, sans fond, l'étiquette
+     * « Variables du fichier » et « Modifier dans le plugin » en tête, la
+     * rampe de son premier mode, puis sa collection, son chemin, son nombre
+     * de couleurs et ses modes ([UI-33]). Le geste attend la reprise
+     * ([UI-34]) : il reste inactif.
+     */
+    function ficheDuFichier(palette: PaletteDuFichier): HTMLElement {
+      const fiche = createCarte({ titre: nomDuFichier(palette) }, i18n);
+      fiche.element.classList.add('fiche-planche', 'fiche-du-fichier');
+      fiche.element.dataset.duFichier = `${palette.collection}/${palette.chemin}`;
+      const tete = document.createElement('span');
+      tete.className = 'tete-gestes';
+      const etiquette = document.createElement('span');
+      etiquette.className = 'etiquette';
+      i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.variablesDuFichier);
+      const reprendre = bouton(TEXTES_DE_LA_GESTION.modifierDansLePlugin, 'bouton-discret', () => {});
+      reprendre.dataset.geste = 'reprendre';
+      reprendre.disabled = true;
+      tete.append(etiquette, reprendre);
+      fiche.tete.append(tete);
+
+      const apercu = document.createElement('div');
+      apercu.className = 'fiche-apercu';
+      apercu.style.setProperty('--colonnes', String(palette.nuances.length));
+      apercu.setAttribute('aria-hidden', 'true');
+      const rangee = document.createElement('div');
+      rangee.className = 'fiche-rangee';
+      const profil = document.createElement('span');
+      profil.className = 'fiche-profil';
+      rangee.append(profil, ...pastillesDuFichier(palette).map((nuance) => {
+        nuance.className = 'fiche-pastille';
+        return nuance;
+      }));
+      apercu.append(rangee);
+
+      const information = document.createElement('div');
+      information.className = 'fiche-information';
+      const ligne = document.createElement('span');
+      ligne.className = 'ligne-secondaire chemin';
+      const chemin = document.createElement('code');
+      const bouts = `${palette.nuances[0]} … ${palette.nuances[palette.nuances.length - 1]}`;
+      chemin.textContent = [palette.nomDeLaCollection, ...palette.chemin.split('/').filter(Boolean), bouts].join(' / ');
+      ligne.append(chemin, i18n.noeud(couleursDeLaPaletteDuFichier(palette.nuances.length, palette.modes.map((modeLu) => modeLu.nom))));
+      information.append(ligne);
+      fiche.corps.append(apercu, information);
+      return fiche.element;
+    }
+
+    /** La ligne d'une palette du fichier, dans le tableau : son nom, sa rampe, et l'étiquette à la place des états ([UI-27]). */
+    function ligneDuFichier(palette: PaletteDuFichier): HTMLTableRowElement {
+      const rangee = document.createElement('tr');
+      rangee.className = 'table-ligne-du-fichier';
+      const enTeteDeLigne = document.createElement('th');
+      enTeteDeLigne.scope = 'row';
+      enTeteDeLigne.textContent = nomDuFichier(palette);
+      const nuances = document.createElement('td');
+      const rampe = document.createElement('div');
+      rampe.className = 'mini-rampe';
+      rampe.setAttribute('aria-hidden', 'true');
+      rampe.append(...pastillesDuFichier(palette));
+      nuances.append(rampe);
+      const etats = document.createElement('td');
+      etats.colSpan = tokens.size > 0 ? 2 : 1;
+      const etiquette = document.createElement('span');
+      etiquette.className = 'etiquette';
+      i18n.lier(etiquette, 'textContent', TEXTES_DE_LA_GESTION.variablesDuFichier);
+      etats.append(etiquette);
+      rangee.append(enTeteDeLigne, nuances, etats);
+      return rangee;
+    }
+
     /** Une notice sur un cadre, avec le geste qui le montre dans Figma (E18). */
     function noticeDeCadre(constat: Constat, page: string, cadre: string): HTMLDivElement {
       const bloc = blocDeConstat(constat, 'notice');
@@ -897,9 +1001,14 @@ function construireVues(i18n: Localisation) {
       gesteAFocaliser = null;
       const complete = vue === 'complete';
       liste.hidden = !complete;
-      table.hidden = complete || palettes.length === 0;
+      table.hidden = complete || (palettes.length === 0 && duFichier.length === 0);
       liste.replaceChildren(...(complete ? etatDesCadres.palettes.map((cadre) => ficheDePalette(lue, cadre.palette, cadre, sansGeneration)) : []));
-      corpsDeTable.replaceChildren(...(complete ? [] : etatDesCadres.palettes.map((cadre) => ligneDeTable(lue, cadre.palette, cadre))));
+      corpsDeTable.replaceChildren(...(complete ? [] : [...etatDesCadres.palettes.map((cadre) => ligneDeTable(lue, cadre.palette, cadre)), ...duFichier.map(ligneDuFichier)]));
+      // En vue complète, les palettes du fichier ont leur liste ; en vue condensée, elles sont des lignes du tableau.
+      separation.hidden = !complete || duFichier.length === 0;
+      listeDuFichier.hidden = separation.hidden;
+      i18n.lier(titreDuFichier, 'textContent', dejaDansLeFichier(duFichier.length));
+      listeDuFichier.replaceChildren(...(separation.hidden ? [] : duFichier.map(ficheDuFichier)));
       if (ficheAMontrer !== null) {
         const fiche = liste.querySelector<HTMLElement>(`.fiche-planche[data-palette="${ficheAMontrer}"]`);
         ficheAMontrer = null;
@@ -939,7 +1048,9 @@ function construireVues(i18n: Localisation) {
     function calculerLesTokens(): void {
       tokens = new Map();
       orphelines = [];
+      duFichier = [];
       if (!recette || !variables || suiviDesVariablesFutur(variables.suivi)) return;
+      duFichier = palettesDuFichier(variables.variables, variables.collections, variablesSuivies(variables.suivi));
       for (const palette of recette.palettes) tokens.set(palette.id, tokensDeLaPalette(recette, palette, variables));
       orphelines = variablesDesPalettesSupprimees(recette, variables);
     }
@@ -958,7 +1069,9 @@ function construireVues(i18n: Localisation) {
           destination.fermer();
           enTete.hidden = true;
           table.hidden = true;
+          separation.hidden = true;
           liste.replaceChildren();
+          listeDuFichier.replaceChildren();
           notices.replaceChildren();
           const constat = classement.etat === 'future' ? recetteFuture(classement.version) : recetteIllisible(classement.refus);
           vide.replaceChildren(blocDeConstat(constat, 'bloquant'));

@@ -1601,6 +1601,63 @@
   white-space: nowrap;
 }
 
+/* Sous l'encart d'un fichier sans palette : les palettes que ses variables portent, et le lien vers Gestion ([UI-22]). */
+.lien-de-fichier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--espace-serre);
+  margin: 0;
+  color: var(--texte-second);
+}
+
+/* « Déjà dans le fichier » : un filet, un titre et une phrase séparent les deux listes de Gestion ([UI-33]). */
+.separation {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--espace-bloc);
+  padding-top: var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.separation p {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+.titre-de-section {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+/* Une palette du fichier n'est pas celle du plugin : sa fiche est en tirets, sans fond. */
+.carte.fiche-du-fichier {
+  border-style: dashed;
+  background: none;
+}
+
+.fiche-du-fichier .fiche-apercu {
+  --bordure-surface: var(--bordure);
+
+  border-style: dashed;
+}
+
+.etiquette {
+  flex: none;
+  padding: 0 var(--espace-controle);
+  border: 1px dashed var(--bordure);
+  border-radius: 10px;
+  color: var(--texte-second);
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.table-ligne-du-fichier th {
+  font-weight: 600;
+}
+
 /* La vue condensée : un tableau sans geste, dont chaque ligne ouvre sa fiche ([UI-27]). */
 .table-des-palettes {
   width: 100%;
@@ -1632,8 +1689,8 @@
   background: var(--fond-survol);
 }
 
-.table-ligne:last-child th,
-.table-ligne:last-child td {
+.table-des-palettes tbody tr:last-child th,
+.table-des-palettes tbody tr:last-child td {
   border-bottom: 0;
 }
 

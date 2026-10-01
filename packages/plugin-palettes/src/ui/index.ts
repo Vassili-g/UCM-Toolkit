@@ -13,6 +13,8 @@ import { lireLImport } from '../importation';
 import { VARIABLES_SANS_SUIVI } from '../lectureDesVariables';
 import type { PluginMessage } from '../messages';
 import { resoudreVue, type VueDeGestion } from '../preferences';
+import { palettesDuFichier } from '../variables/detection';
+import { suiviFutur, variablesSuivies } from '../variables/suivi';
 import { consequenceDeLImport } from '../planche/fraicheur';
 import { ecartsDePeinture, type EcartDePeinture } from '../planche/peints';
 import { CIBLES_COMMUNES, type CibleDAction } from '../presentation';
@@ -169,6 +171,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       panneauDeConfiguration.focaliser(GROUPE_DE_LA_CIBLE[cible] ?? 'courbes');
     },
     verifier: () => allerA('verification'),
+    versGestion: () => allerA('gestion'),
     choisirGarantie(association) {
       allerA('verification');
       ongletVerification.choisirGarantie(association);
@@ -435,6 +438,9 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       panneauDeConfiguration.afficher();
       dernierEtat = message;
       dernierEtatLe = Date.now();
+      // Un suivi d'une version plus récente ne dit pas quelles variables sont celles du plugin : aucune palette du fichier ne se compte.
+      const lues = message.variables ?? VARIABLES_SANS_SUIVI;
+      ongletCreation.poserLesPalettesDuFichier(suiviFutur(lues.suivi) ? 0 : palettesDuFichier(lues.variables, lues.collections, variablesSuivies(lues.suivi)).length);
       if (ouverture) {
         if ((ongletCreation.recette()?.palettes.length ?? 0) > 0) onglets.selectionner('gestion');
         ouverture = false;
