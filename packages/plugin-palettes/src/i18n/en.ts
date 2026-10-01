@@ -36,7 +36,7 @@ import {
   type RegleRecette,
 } from 'ucm-couleur';
 
-import type { CibleDAction, GroupeDePromesses } from '../presentation';
+import type { CibleDAction, GroupeDePromesses, Verdict } from '../presentation';
 
 const ecrireArrondi = (valeur: number, precision: number): string => arrondiFrancais(valeur, precision).replace(',', '.');
 const ecrireContraste = (valeur: number): string => contrasteFrancais(valeur).replace(',', '.');
@@ -52,7 +52,8 @@ export const TEXTES = {
   etiquetteDesOnglets: "Plugin navigation",
   // N130. Les clés portent le nom de leur module (Q6.1).
   ongletCreation: "Create",
-  ongletGestion: 'Palettes',
+  ongletVerification: "Verify",
+  ongletGestion: "Manage",
   lectureEnCours: "Loading palettes and settings…",
   recetteAbsente: "Create your first palette. The default settings will be used.",
   choisirUnePalette: "Choose a palette",
@@ -94,6 +95,21 @@ export const TEXTES = {
 } as const;
 
 /**
+ * Le verdict d'une palette dans le sélecteur ([UI-23], [VER-19]) : les mots que
+ * l'assistance technique lit à la place du signe ✓, ! ou ✗.
+ */
+export const VERDICT_EN_MOTS: Record<Verdict, string> = {
+  succes: "nothing to fix",
+  avertissement: "points to check",
+  danger: "contrasts to fix",
+};
+
+/** Le nom accessible du bouton du sélecteur quand une palette est ouverte ([UI-23]). */
+export function paletteOuverteEcrite(nom: string, verdict: string): string {
+  return `Choose a palette. Open palette: ${nom}, ${verdict}`;
+}
+
+/**
  * Le titre de premier rang de l'onglet Création et les titres de ses cartes
  * (N076, N077, N027). La carte d'aperçu ne montre pas son titre : il reste son
  * nom accessible.
@@ -108,14 +124,33 @@ export const TEXTES_DE_L_ONGLET = {
   sousTitreDesGaranties: "The contrast of each use",
 } as const;
 
-/** Le pied de l'onglet Création et son volet ([UI-18]). */
+/** Le pied de l'onglet Création ([UI-18]). */
 export const TEXTES_DU_PIED = {
   region: "Palette summary",
-  details: "Details",
-  titre: "Guarantees and alerts",
-  fermer: "Close",
-  aucun: "All guarantees met. No alerts.",
+  verifier: "Verify",
 } as const;
+
+/** L'onglet Vérification ([VER-18]) : son verdict et son pied. */
+export const TEXTES_DE_LA_VERIFICATION = {
+  region: "Next step",
+  tenue: "The palette meets its guarantees.",
+  manquee: "Fix the palette in Create, or write it as is in Manage.",
+  libre: "A free palette has no guarantee to verify.",
+  versGestion: "Go to Manage",
+  versCreation: "Back to Create",
+} as const;
+
+/** Le verdict de l'onglet Vérification : « 76 guarantees met », « 2 of 76 guarantees unmet ». */
+export function verdictDesGaranties(garanties: number, manquees: number): string {
+  if (manquees === 0) return `${garanties} ${garanties === 1 ? "guarantee met" : "guarantees met"}`;
+  return `${manquees} of ${garanties} ${garanties === 1 ? "guarantee" : "guarantees"} unmet`;
+}
+
+/** Sous le verdict : « No points to check », « 1 point to check », « 3 points to check ». */
+export function pointsDuVerdict(nombre: number): string {
+  if (nombre === 0) return "No points to check";
+  return nombre === 1 ? "1 point to check" : `${nombre} points to check`;
+}
 
 /**
  * Le bilan du pied ([UI-18]) : « 76 guarantees met · no alerts »,
@@ -652,6 +687,7 @@ export function resultatDuProfilEnMots(profil: Intensite, manquees: number): str
 export const TEXTES_DES_GARANTIES = {
   theme: (mode: Mode) => `${NOM_DU_MODE[mode]} theme`,
   profils: "Guarantee profile",
+  themes: "Guarantee theme",
   textes: "Readable text",
   visibles: "Visible elements",
   minimum: (seuil: number) => `minimum ${seuilEcrit(seuil)}:1`,

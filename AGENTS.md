@@ -250,11 +250,13 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
   src/preferences.ts       la langue de l'interface, lue et rangée dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
-  src/ui/                  l'en-tête du socle, les onglets Création et Palettes, la configuration
+  src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet
-  src/ui/ongletCreation.ts l'onglet Création : le sélecteur, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/barreDePalette.ts la barre de la palette ouverte, en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
+  src/ui/ongletCreation.ts l'onglet Création : la barre, le titre « Palette [nom] », les cartes, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/ongletVerification.ts l'onglet Vérification : la barre, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
-  src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, volet des messages, annonce en fin de geste
+  src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, « Vérifier », annonce en fin de geste
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé
   src/ui/glyphes.ts        le glyphe de chaque carte titrée, en formes à rôle de couleur, que la maquette du Color shift dessine aussi
@@ -264,20 +266,20 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser suivi sur le document
   src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
-  src/ui/garanties.ts      la carte des garanties : bascule Soft/Vivid pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
+  src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : thème Light ou Dark, bascule Soft/Vivid pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
-  src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence
+  src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, le dessin après lui
-  src/ui/ongletGestion.ts  l'onglet Palettes : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
+  src/ui/ongletGestion.ts  l'onglet Gestion : une fiche par palette, nom et état du cadre en pastille, rampes, référence et garanties, trois gestes ; génération groupée, une carte par palette supprimée, notices, recette repliée
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
   src/ui/configuration.ts  les Réglages communs en cartes : aperçu de la palette ouverte, fonds, intensités et fonds du thème Dark, courbes ; seuils et contenu des planches repliés
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
   src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : Color shift, réglette des garanties et tracé s'étirent sans grandir
   src/ui/apercuCompact.ts  les rampes présentes d'une palette et le résultat de ses garanties, pour une fiche ou les réglages
   src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la butée, la note d'une palette grise et la première alerte
-  src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, et ceux des intensités
+  src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, ceux des intensités, et la liste entière de Vérification
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
   src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
@@ -288,6 +290,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
   tests/                   dont la loi d'écriture, et interface/ pour Chromium
   scripts/mesurer-glisser.mjs  le coût d'un mouvement de poignée, hors des tests
+  scripts/capturer-etats.mjs   des états de la galerie en thème sombre, aux deux tailles, hors des tests
   scripts/mesurer-glisser-couleur.mjs  le coût d'un glisser dans le sélecteur de couleur et ses rendus par image, hors des tests
   manifest.json            identifiant attribué par Figma (point M1)
 
@@ -1130,7 +1133,7 @@ La spécification en lien porte le raisonnement.
   cadre rangé que Figma ne connaît plus est introuvable, un cadre qu'il
   refuse de lire est illisible : aucun des deux n'est « jamais dessiné ».
   L'interface recalcule la fraîcheur après chaque état lu et chaque
-  rangement, sur l'onglet Palettes ouvert ; elle ne redessine jamais sans le
+  rangement, sur l'onglet Gestion ouvert ; elle ne redessine jamais sans le
   geste du designer. `packages/plugin-palettes/tests/fraicheur.test.ts`
   le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#96-fraîcheur)
@@ -1185,9 +1188,11 @@ La spécification en lien porte le raisonnement.
 - Pendant un geste, aucun contrôle de l'onglet Création ne se déplace. Un
   message qui peut paraître pendant un glisser tient dans une ligne fixe de
   24 px, présente même sans message (`src/ui/ligneFixe.ts`) ; le bilan des
-  garanties et des alertes passe dans le pied, dont le volet garde sa hauteur
+  garanties et des alertes passe dans le pied, qui garde sa hauteur
   (`src/ui/piedDeLaPalette.ts`) ; le résumé d'une carte repliable tient sur
-  une ligne. `ongletCreation.ts` pose l'état du geste là où la
+  une ligne. Les messages et la carte des garanties se lisent dans l'onglet
+  Vérification, qui ne se rend que visible et à la fin d'un geste
+  (`src/ui/ongletVerification.ts`). `ongletCreation.ts` pose l'état du geste là où la
   prévisualisation et la validation passent, et le pied n'annonce son bilan
   qu'à la fin d'un geste. Les tests `[UI-20]` de
   `packages/plugin-palettes/tests/interface/interface.test.mjs` relèvent,

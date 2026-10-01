@@ -20,6 +20,17 @@
 }
 
 /*
+ * La barre de la palette et sa confirmation de suppression ([UI-23]) : un seul
+ * bloc, que l'onglet actif place en tête de son panneau.
+ */
+.barre-de-palette {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-controle);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
  * La liste prend la largeur libre et un nom long s'y coupe ; « + Nouvelle
  * palette » et le menu gardent leur largeur et prennent la hauteur d'action de
  * la liste ([UI-06]).
@@ -178,6 +189,34 @@
 
 .selecteur-option[aria-selected='true'] {
   font-weight: 600;
+}
+
+/* Le nom prend la place libre : le verdict se lit au bord droit de l'option ([UI-23]). */
+.selecteur-option-nom {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/*
+ * Le verdict d'une palette ([VER-19]) : un signe, et la couleur de sa
+ * sévérité. Dans le bouton, il suit le nom et précède la flèche.
+ */
+.marque-de-verdict {
+  flex: none;
+  padding-left: var(--espace-controle);
+  font-weight: 700;
+}
+
+.marque-de-verdict[data-ton='succes'] {
+  color: var(--texte-succes);
+}
+
+.marque-de-verdict[data-ton='avertissement'] {
+  color: var(--texte-avertissement);
+}
+
+.marque-de-verdict[data-ton='danger'] {
+  color: var(--texte-danger);
 }
 
 .selecteur-bouton:focus-visible,
@@ -2764,11 +2803,10 @@
 }
 
 /*
- * Le pied de l'onglet Création ([UI-18]) : une ligne fixée au bas de la
- * fenêtre, au-dessus du contenu qui défile, y compris quand ce contenu est
- * plus court que la fenêtre. La palette ouverte lui réserve sa hauteur. Le
- * volet s'ouvre au-dessus de lui, à hauteur fixe : ce qu'il liste défile
- * dedans.
+ * Le pied des onglets Création et Vérification ([UI-18], [VER-18]) : une
+ * ligne fixée au bas de la fenêtre, au-dessus du contenu qui défile, y
+ * compris quand ce contenu est plus court que la fenêtre. La palette ouverte
+ * lui réserve sa hauteur.
  */
 .configuration-de-la-palette {
   padding-bottom: calc(32px - var(--espace-page) + var(--espace-controle));
@@ -2835,31 +2873,62 @@ html {
   white-space: nowrap;
 }
 
-.volet-de-la-palette {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  left: 0;
-  display: grid;
-  height: min(320px, 60vh);
-  grid-template-rows: auto minmax(0, 1fr);
-  border-top: 1px solid var(--bordure);
-  background: var(--fond);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+/* Le pied de Vérification : sa phrase à gauche, le geste vers l'onglet suivant à droite. */
+.pied-de-la-verification {
+  justify-content: space-between;
 }
 
-.volet-tete {
+/*
+ * Le verdict de la palette ouverte, dans Vérification ([VER-18]) : un rang 1,
+ * sur le fond de sa sévérité, avec un signe en plus de la couleur.
+ */
+.verdict {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--espace-controle);
-  padding: var(--espace-serre) var(--espace-controle);
-  border-bottom: 1px solid var(--bordure);
+  padding: var(--espace-bloc);
+  border-radius: 8px;
 }
 
-.volet-corps {
-  overflow: auto;
-  padding: var(--espace-controle);
+.verdict[data-ton='succes'] {
+  background: var(--fond-succes);
+}
+
+.verdict[data-ton='avertissement'] {
+  background: var(--fond-avertissement);
+}
+
+.verdict[data-ton='danger'] {
+  background: var(--fond-danger);
+}
+
+.verdict-icone {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--fond);
+  font-weight: 700;
+  place-items: center;
+}
+
+.verdict-texte {
+  display: grid;
+  min-width: 0;
+}
+
+.verdict-texte strong {
+  font-size: 13px;
+}
+
+.verdict-texte span {
+  color: var(--texte-second);
+}
+
+.messages-de-la-verification {
+  display: grid;
+  min-width: 0;
 }
 
 /*

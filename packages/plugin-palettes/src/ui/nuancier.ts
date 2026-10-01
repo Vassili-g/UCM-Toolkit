@@ -72,8 +72,12 @@ export interface NuancierUi {
   mode(): Mode;
   /** Montre un autre thème, et offre de revenir à celui d'avant ([UI-09]). */
   montrerLeTheme(mode: Mode): void;
-  /** Pose le thème, sans retour : celui qu'une fiche de l'onglet Palettes montrait (V8.3). */
+  /** Pose le thème, sans retour : celui qu'une fiche de l'onglet Gestion montrait (V8.3). */
   choisirLeTheme(mode: Mode): void;
+  /** Le thème d'avant `montrerLeTheme`, `null` sans retour à offrir : Vérification offre le même retour ([VER-20]). */
+  modeDAvant(): Mode | null;
+  /** Revient au thème d'avant `montrerLeTheme`. */
+  revenir(): void;
 }
 
 export type Choix =
@@ -240,11 +244,12 @@ function construireVues(i18n: Localisation) {
       bascule.append(choixDuMode);
       return { valeur, choixDuMode };
     });
-    retour.addEventListener('click', () => {
+    function revenir(): void {
       const cible = modeDAvant;
       modeDAvant = null;
       if (cible) changerDeMode(cible);
-    });
+    }
+    retour.addEventListener('click', revenir);
 
     function changerDeMode(suivant: Mode): void {
       mode = suivant;
@@ -680,6 +685,8 @@ function construireVues(i18n: Localisation) {
         if (suivant === mode) dessiner();
         else changerDeMode(suivant);
       },
+      modeDAvant: () => modeDAvant,
+      revenir,
     };
   }
   return { encresSur, memeChoix, createNuancier };

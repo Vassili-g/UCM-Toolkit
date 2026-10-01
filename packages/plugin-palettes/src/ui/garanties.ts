@@ -1,5 +1,7 @@
 /**
- * La carte « Garanties de contraste » ([UI-09]) : pour le thème de l'aperçu,
+ * La carte « Garanties de contraste » de l'onglet Vérification ([UI-09]),
+ * fixe et toujours ouverte : dans son en-tête, le thème montré, que l'aperçu
+ * de Création partage ([VER-20]) ; puis
  * une bascule Soft/Vivid qui porte le résultat de chaque profil, une réglette
  * des nuances où la garantie choisie se trace en arcs, puis un encadré par
  * minimum (maquette Z3.2, G2) : les états nommés une fois en tête de
@@ -46,8 +48,13 @@ import { creerVuesSpecimens } from './specimens';
 export interface GestesDesGaranties {
   /** Ouvre le réglage qu'une ligne en échec nomme ([VER-15]). */
   ouvrir(cible: CibleDAction): void;
-  /** Montre l'autre thème dans l'aperçu, avec un retour ([UI-09]). */
+  /** Montre l'autre thème, avec un retour ([UI-09]). */
   montrerLeTheme(mode: Mode): void;
+  /** Pose le thème, sans retour. */
+  choisirLeTheme(mode: Mode): void;
+  /** Le thème d'avant `montrerLeTheme`, `null` sans retour à offrir. */
+  themeDAvant(): Mode | null;
+  revenirAuTheme(): void;
 }
 
 export interface EntreesDesGaranties {
@@ -60,17 +67,15 @@ export interface EntreesDesGaranties {
 export interface GarantiesUi {
   element: HTMLElement;
   afficher(entrees: EntreesDesGaranties): void;
-  /** Choisit une garantie, depuis le détail d'une nuance : la carte s'ouvre et la montre. */
+  /** Choisit une garantie, depuis le détail d'une nuance, et l'amène en vue. */
   choisir(association: Association): void;
-  /** Déplie la carte, repliée à l'ouverture ([UI-09]). */
-  ouvrir(): void;
 }
 
 function construireVues(i18n: Localisation) {
   const { badgeDeNiveau } = creerVuesBadge(i18n);
   const { encresSur } = creerVuesNuancier(i18n);
   const { specimenDuRole } = creerVuesSpecimens(i18n);
-  const { LIBELLES_DES_CIBLES, NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES_DES_GARANTIES, TEXTES_DE_L_ONGLET, contrasteEcrit, jugementDuSeuil, niveauEcrit, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
+  const { LIBELLES_DES_CIBLES, NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DES_GARANTIES, TEXTES_DE_L_ONGLET, TEXTES_DU_NUANCIER, contrasteEcrit, jugementDuSeuil, niveauEcrit, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
 
   const SVG = 'http://www.w3.org/2000/svg';
 
@@ -131,7 +136,22 @@ function construireVues(i18n: Localisation) {
   }
 
   function createGaranties(gestes: GestesDesGaranties): GarantiesUi {
-    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDesGaranties, glyphe: creerGlyphe('garanties'), repliable: { ouverte: false } }, i18n);
+    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDesGaranties, glyphe: creerGlyphe('garanties') }, i18n);
+    // Le thème montré, à droite du titre : Vérification n'a pas l'aperçu, qui le choisit dans Création.
+    const themes = document.createElement('div');
+    themes.className = 'bascule';
+    themes.setAttribute('role', 'group');
+    i18n.lier(themes, 'aria-label', TEXTES_DES_GARANTIES.themes);
+    const boutonsDeTheme = MODES.map((valeur) => {
+      const bouton = document.createElement('button');
+      bouton.type = 'button';
+      bouton.className = 'bascule-option';
+      i18n.lier(bouton, 'textContent', valeur === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
+      bouton.addEventListener('click', () => gestes.choisirLeTheme(valeur));
+      themes.append(bouton);
+      return { valeur, bouton };
+    });
+    carte.tete.append(themes);
     const bascule = document.createElement('div');
     bascule.className = 'bascule bascule-des-profils';
     bascule.setAttribute('role', 'group');
@@ -168,7 +188,6 @@ function construireVues(i18n: Localisation) {
       bascule.append(bouton);
       return { valeur, bouton };
     });
-    carte.surBascule(() => rendre());
 
     const promessesDe = (analyse: AnalyseDePalette, mode: Mode, duProfil: Intensite): Promesse[] =>
       analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.profil === duProfil);
@@ -314,9 +333,7 @@ function construireVues(i18n: Localisation) {
       const { recette, analyse, mode } = entrees;
       const autre: Mode = MODES.find((candidat) => candidat !== mode) ?? mode;
       const parProfil = (duProfil: Intensite, dansLeMode: Mode) => manquees(promessesDe(analyse, dansLeMode, duProfil));
-      carte.poserResume(carte.estOuverte()
-        ? TEXTES_DES_GARANTIES.theme(mode)
-        : i18n.joindre(analyse.intensites.map((duProfil) => resultatDuProfil(duProfil, MODES.reduce((total, dansLeMode) => total + parProfil(duProfil, dansLeMode), 0))), ' · '));
+      for (const { valeur, bouton } of boutonsDeTheme) bouton.setAttribute('aria-pressed', String(valeur === mode));
       // Une palette à une intensité n'a pas de profil à choisir : la bascule se retire ([ENT-14]).
       bascule.hidden = analyse.intensites.length === 1;
       for (const { valeur, bouton } of boutonsDeProfil) {
@@ -372,16 +389,29 @@ function construireVues(i18n: Localisation) {
       lignes.push(decoratif);
       liste.replaceChildren(...lignes);
 
+      // L'autre thème : ses garanties manquées et le lien qui le montre ; après ce lien, le retour au thème d'avant.
       const ailleurs = analyse.intensites.reduce((total, duProfil) => total + parProfil(duProfil, autre), 0);
-      autreTheme.hidden = ailleurs === 0;
-      if (ailleurs > 0) {
-        const voir = document.createElement('button');
-        voir.type = 'button';
-        voir.className = 'lien-de-constat';
-        i18n.lier(voir, 'textContent', TEXTES_DES_GARANTIES.voirLeTheme(autre));
-        voir.addEventListener('click', () => gestes.montrerLeTheme(autre));
-        autreTheme.replaceChildren(i18n.noeud(i18n.composer`${TEXTES_DES_GARANTIES.autreTheme(autre, ailleurs)} · `), voir);
+      const avant = gestes.themeDAvant();
+      autreTheme.hidden = ailleurs === 0 && avant === null;
+      const lien = document.createElement('button');
+      lien.type = 'button';
+      lien.className = 'lien-de-constat';
+      if (avant !== null) {
+        lien.dataset.geste = 'revenir';
+        i18n.lier(lien, 'textContent', TEXTES_DU_NUANCIER.revenirAuTheme(avant));
+        lien.addEventListener('click', () => {
+          gestes.revenirAuTheme();
+          autreTheme.querySelector<HTMLElement>('.lien-de-constat')?.focus();
+        });
+      } else {
+        lien.dataset.geste = 'voir';
+        i18n.lier(lien, 'textContent', TEXTES_DES_GARANTIES.voirLeTheme(autre));
+        lien.addEventListener('click', () => {
+          gestes.montrerLeTheme(autre);
+          autreTheme.querySelector<HTMLElement>('.lien-de-constat')?.focus();
+        });
       }
+      autreTheme.replaceChildren(...(ailleurs > 0 ? [i18n.noeud(i18n.composer`${TEXTES_DES_GARANTIES.autreTheme(autre, ailleurs)} · `)] : []), lien);
     }
 
     return {
@@ -397,15 +427,10 @@ function construireVues(i18n: Localisation) {
         entrees = suivantes;
         rendre();
       },
-      ouvrir() {
-        carte.ouvrir();
-        rendre();
-      },
       choisir(association) {
         choisie = cleDeLAssociation(association);
-        carte.ouvrir();
         rendre();
-        carte.element.scrollIntoView({ block: 'nearest' });
+        liste.querySelector<HTMLElement>(`[data-association="${choisie}"]`)?.scrollIntoView({ block: 'nearest' });
       },
     };
   }

@@ -251,9 +251,10 @@ Quatre bornes, sans quoi la table ne tient pas :
 
 La table des rangs, la borne des deux moyens et le rôle de la couleur
 sémantique valent pour UCM Palettes. La règle des deux cartes décrit l’écran
-d’UCM Exporter. UCM Palettes a deux onglets, Création et Palettes :
-`ongletCreation.ts` porte l’onglet Création et `ongletGestion.ts` l’onglet
-Palettes. L’onglet Création applique celles-ci :
+d’UCM Exporter. UCM Palettes a trois onglets, Création, Vérification et
+Gestion, portés par `ongletCreation.ts`, `ongletVerification.ts` et
+`ongletGestion.ts`. Création et Vérification partagent la barre du sélecteur,
+qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
 
 - à l’ouverture du plugin, aucune palette n’est choisie : la barre du
   sélecteur, puis, sous le filet, une invitation, un titre de premier rang et
@@ -281,8 +282,10 @@ Palettes. L’onglet Création applique celles-ci :
   « Une · Deux », de même facture que le Modèle, les remplacent, la suite du
   choix dessous ;
 - les cartes se suivent dans cet ordre : Configuration de la palette, carte
-  d’aperçu, Teinte, saturation, luminosité, Dérive de teinte, Garanties de
-  contraste, puis Interface de test. La palette se règle avant de se juger.
+  d’aperçu, Teinte, saturation, luminosité, Dérive de teinte, puis Interface
+  de test. La carte « Garanties de contraste » est dans l’onglet
+  Vérification, fixe et toujours ouverte : la palette se règle dans Création
+  et se juge dans Vérification.
   Une palette à une intensité n’a ni segments « Vivid · Soft · Les deux », ni
   bascule Soft et Vivid : aucune surface ne montre un profil que la palette
   ne porte pas. Le module de la carte « Teinte, saturation, luminosité » est
@@ -296,7 +299,7 @@ Palettes. L’onglet Création applique celles-ci :
   surface peinte du fond du thème choisi, à l’intérieur de sa carte. Il peut
   occuper la plus grande part du panneau. La ligne « ◆ Référence » se lit sous
   lui ;
-- la génération appartient à l’onglet Palettes : sa progression et son
+- la génération appartient à l’onglet Gestion : sa progression et son
   résultat s’y lisent, et un nouveau résultat remplace le précédent au même
   endroit. Sous le titre de l’onglet Création ne se lisent que le refus d’un
   enregistrement et le conflit ; un enregistrement réussi ne s’annonce pas ;
@@ -307,7 +310,8 @@ Palettes. L’onglet Création applique celles-ci :
 - un geste destructif prend la variante `danger` du bouton du socle : fond et
   survol de danger, jamais la couleur de marque ;
 - un message qui n’est pas une garantie de contraste n’a pas de carte : il
-  se compte dans le pied de l’onglet et se lit dans son volet. Un message qui
+  se compte dans le pied de l’onglet Création, dont « Vérifier » ouvre
+  l’onglet Vérification, où il se lit sous le verdict. Un message qui
   peut paraître pendant un geste tient dans une ligne fixe de 24 px, présente
   même sans message : aucun contrôle ne se déplace sous le pointeur ;
 - un résultat nomme toujours la palette ouverte. Un résultat d’une autre
@@ -322,7 +326,7 @@ Palettes. L’onglet Création applique celles-ci :
   Intensités, sous Soft et Vivid, parce qu’il agit sur la part de chroma de
   toutes les palettes. Une carte fixe porte son compte de palettes et
   « Rétablir » à droite de son titre ;
-- dans l’onglet Palettes, une fiche porte sur sa première ligne le nom de la
+- dans l’onglet Gestion, une fiche porte sur sa première ligne le nom de la
   palette et l’état de son cadre en pastille, puis l’aperçu, puis la
   référence et les garanties sur une ligne, puis ses gestes. Les gestes prennent la taille compacte
   du bouton du socle, 24 px : le premier geste, quand le cadre en demande un,

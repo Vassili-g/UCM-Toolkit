@@ -60,27 +60,17 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1, P1.2, P1.3 et P2.1.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.7.
 
-Dans la copie de travail, non commités, parce que `npm run test:ui` y est
-rouge : P2.2 à P2.7. Le code est écrit, `npm run typecheck` et `npm test`
-passent (261 tests), les galeries se construisent.
+Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
+la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
+vert, et aucune capture de galerie n'est comparée aux maquettes.
 
-- Fichiers nouveaux : `src/ui/barreDePalette.ts`,
-  `src/ui/ongletVerification.ts`, `scripts/capturer-etats.mjs`.
-- Fichiers modifiés : `src/ui/` (`index.ts`, `ongletCreation.ts`,
-  `selecteur.ts`, `garanties.ts`, `nuancier.ts`, `piedDeLaPalette.ts`,
-  `messagesDePalette.ts`, `styles.css`), `src/i18n/fr.ts`, `src/i18n/en.ts`,
-  `galerie/etats.cjs`, `tests/interface/interface.test.mjs`.
-- Reste à faire avant de commiter ce groupe : réécrire la trentaine de tests
-  d'interface que `node --test tests/interface/interface.test.mjs` donne
-  rouges. Ils visaient la carte des garanties dans Création, le volet et
-  « Détails ». Les aides `ouvrirLaVerification` et `carteDesGaranties` sont
-  posées. Le témoin d'un rendu complet des tests de glisser devient le corps
-  de la carte « Interface de test ». Ajouter les tests de P2.2, la barre
-  gardée d'un onglet à l'autre, et de P2.3, les verdicts sur trois palettes.
-  Puis AGENTS.md, carte du code et invariant « Interface d'UCM Palettes »,
-  CONTRIBUTING.md, et les cases P2.2 à P2.7.
+- Dette de tests d'interface : `node --test tests/interface/interface.test.mjs`
+  donne une trentaine de tests rouges, ceux qui visaient la carte des
+  garanties dans Création, le volet et « Détails ». Les aides
+  `ouvrirLaVerification` et `carteDesGaranties` sont posées. Restent aussi à
+  écrire les tests d'interface que chaque tâche nomme. P2.12 les regroupe.
 - Écarts à dire au mainteneur : la carte des garanties est toujours fixe,
   sans option ; son en-tête porte une bascule Thème Light et Thème Dark, que
   M8 ne montre pas, parce que Vérification n'a pas l'aperçu qui choisit le
@@ -140,14 +130,14 @@ construit dessus.
   testé par `tests/paletteOuverte.test.ts` : un abonné reçoit la palette
   ouverte après un changement de palette, après une saisie validée, et rien
   pendant un rendu d'aperçu (`apercuSeul`).
-- [ ] **P2.2** Sortir la barre de `ongletCreation.ts` vers
+- [x] **P2.2** Sortir la barre de `ongletCreation.ts` vers
   `src/ui/barreDePalette.ts` : la liste déroulante, « Nouvelle palette », le
   menu, la confirmation de suppression. Une seule instance : elle se déplace
   dans le panneau de l'onglet actif, Création ou Vérification, au changement
   d'onglet. Aucun élément ne se reconstruit. Depuis Vérification, « Nouvelle
   palette » passe d'abord à Création. Test d'interface : la barre garde sa
   palette et son état ouvert ou fermé d'un onglet à l'autre.
-- [ ] **P2.3** Le verdict de chaque palette. `src/presentation.ts` reçoit
+- [x] **P2.3** Le verdict de chaque palette. `src/presentation.ts` reçoit
   `verdictDeLaPalette(analyse)` : `danger` dès qu'une garantie manque,
   `avertissement` dès qu'un message de sévérité alerte existe, `succes`
   sinon ; une palette libre est `succes`. `paletteOuverte.ts` garde un verdict
@@ -158,10 +148,10 @@ construit dessus.
   le verdict en mots. Tests : la fonction pure, puis l'interface sur un
   fichier à trois palettes, et un glisser de la référence qui ne recalcule
   que la palette ouverte.
-- [ ] **P2.4** `src/ui/carte.ts` : une carte titrée fixe garde son glyphe et
+- [x] **P2.4** `src/ui/carte.ts` : une carte titrée fixe garde son glyphe et
   son sous-titre. `src/ui/garanties.ts` prend une option qui la rend fixe,
   toujours ouverte, sans chevron ni résumé.
-- [ ] **P2.5** Créer `src/ui/ongletVerification.ts`, abonné à
+- [x] **P2.5** Créer `src/ui/ongletVerification.ts`, abonné à
   `paletteOuverte.ts`. De haut en bas : la barre, le titre « Palette [nom] »,
   le verdict sur son fond de sévérité, la liste des messages par
   `listeDesMessages` de `constats.ts`, la carte des garanties fixe, le pied.
@@ -171,14 +161,14 @@ construit dessus.
   la fin d'un geste. Sans palette choisie : la barre et l'invitation
   actuelle. États de galerie : `verification-tenue`, `verification-manquee`,
   `verification-libre`.
-- [ ] **P2.6** `src/ui/index.ts` : trois onglets, Création, Vérification,
+- [x] **P2.6** `src/ui/index.ts` : trois onglets, Création, Vérification,
   Gestion. Retirer de `ongletCreation.ts` la carte des garanties et tout ce
   qui la rendait. Le clic sur une garantie qui choisissait une rangée du
   nuancier (`[UI-13]`) agit maintenant depuis Vérification : il passe à
   Création et y choisit la rangée, ou reste dans Vérification si le nuancier
   n'y est pas ; choisir la seconde lecture si la première demande plus qu'un
   appel, et l'écrire dans la spécification.
-- [ ] **P2.7** `src/ui/piedDeLaPalette.ts` : le volet et « Détails »
+- [x] **P2.7** `src/ui/piedDeLaPalette.ts` : le volet et « Détails »
   disparaissent ; le bouton devient « Vérifier » et ouvre Vérification sur la
   palette ouverte. Le pied garde sa ligne, son ton et son annonce
   `aria-live`. Réécrire `[UI-18]` dans la spécification et l'invariant

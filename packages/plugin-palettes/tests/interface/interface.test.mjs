@@ -123,7 +123,7 @@ test('la fenêtre s’ouvre sur l’onglet Création et demande l’état du fic
   try {
     const palettes = page.getByRole('tab', { name: 'Création', exact: true });
     assert.equal(await palettes.getAttribute('aria-selected'), 'true');
-    assert.equal(await page.getByRole('tab', { name: 'Palettes', exact: true }).getAttribute('aria-selected'), 'false');
+    assert.equal(await page.getByRole('tab', { name: 'Gestion', exact: true }).getAttribute('aria-selected'), 'false');
     assert.equal(await page.locator('#panneau-creation').isVisible(), true);
     assert.equal(await page.locator('#panneau-gestion').isVisible(), false);
     await page.waitForFunction(() => window.demandes.length > 0);
@@ -170,7 +170,7 @@ const messageDe = (id) => ETATS.find((etat) => etat.id === id).atteinte[0].messa
 async function ouvrirLaPremierePalette(page) {
   await page.locator('.selecteur-bouton').click();
   await page.locator('.selecteur-option').first().click();
-  await page.locator('.tete-de-la-palette .titre-de-premier-rang').waitFor();
+  await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
 }
 
 /** Ouvre l'interface sur le premier message d'un état de la galerie, puis sur sa première palette, sauf `sansPalette`. */
@@ -201,6 +201,18 @@ async function deplierLaCarte(page, titre, panneau) {
 async function limitesCalculees(carte) {
   if ((await carte.locator('[data-limites]').count()) > 0) await carte.locator('[data-limites="pretes"]').waitFor();
 }
+
+/** Ouvre l'onglet Vérification sur la palette ouverte ([VER-18]). */
+async function ouvrirLaVerification(page) {
+  await page.getByRole('tab', { name: 'Vérification', exact: true }).click();
+  await page.locator('#panneau-verification .verdict').waitFor();
+}
+
+/** Revient à l'onglet Création. */
+const ouvrirLaCreation = (page) => page.getByRole('tab', { name: 'Création', exact: true }).click();
+
+/** La carte « Garanties de contraste », dans l'onglet Vérification ([UI-09]). */
+const carteDesGaranties = (page) => carteDeLOnglet(page, 'Garanties de contraste', '#panneau-verification');
 
 /** La carte « Réglage global » de l'onglet Création (Z10.6, [UI-12]). */
 const CARTE_DES_REGLAGES = 'Réglage global';
@@ -234,7 +246,7 @@ test('[UI-03] [UI-11] à 600 × 720, la carte « Configuration de la palette » 
   try {
     const visibles = {
       sélecteur: page.locator('.selecteur-bouton'),
-      titre: page.locator('.tete-de-la-palette .titre-de-premier-rang'),
+      titre: page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang'),
       'nom et référence': page.locator('[aria-label="Configuration de la palette"] .colonnes-de-base'),
     };
     for (const [nom, locator] of Object.entries(visibles)) assert.equal(await dansLaFenetre(locator), true, `${nom} hors de la fenêtre`);
@@ -321,7 +333,7 @@ test('[UI-04] [UI-10] un clic sur une nuance donne son code, ses rôles et ses c
   }
 });
 
-test('[UI-12] l’onglet se règle avant de se juger : titre, configuration, aperçu, Teinte, saturation, luminosité, Dérive de teinte, Garanties de contraste, Interface de test, les cartes repliables repliées', async () => {
+test('[UI-12] Création règle la palette, Vérification la juge : titre, configuration, aperçu, Réglage global, Color shift, Interface de test, les cartes repliables repliées, et aucune carte des garanties', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     const configuration = page.locator('#panneau-creation .configuration-de-la-palette');
@@ -331,9 +343,9 @@ test('[UI-12] l’onglet se règle avant de se juger : titre, configuration, ape
       ['Aperçu', 'true'],
       [CARTE_DES_REGLAGES, 'false'],
       [CARTE_DE_LA_DERIVE, 'false'],
-      ['Garanties de contraste', 'false'],
       ['Interface de test', 'false'],
     ]);
+    assert.equal(await page.locator('#panneau-creation [aria-label="Garanties de contraste"]').count(), 0);
     // La carte Dérive de teinte ne redit pas les garanties : ni bilan, ni lien vers leur carte.
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const derive = carteDeLOnglet(page, CARTE_DE_LA_DERIVE);
@@ -409,14 +421,17 @@ test('[UI-04] le nuancier porte le fond du thème choisi, et ses textes s’y li
   }
 });
 
-test('[UI-09] repliées, les garanties gardent le résultat des deux profils ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
+test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron ni résumé, son thème dans l’en-tête ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
   const page = await ouvrirSur('promesses-manquees');
   try {
-    const garanties = carteDeLOnglet(page, 'Garanties de contraste');
-    assert.equal(await garanties.getAttribute('data-ouverte'), 'false');
-    assert.equal(await garanties.locator('.carte-resume').textContent(), 'Soft ✗ 1 · Vivid ✗ 1');
-    await deplierLaCarte(page, 'Garanties de contraste');
-    assert.equal(await garanties.locator('.carte-resume').textContent(), 'Thème Light');
+    const garanties = carteDesGaranties(page);
+    await ouvrirLaVerification(page);
+    assert.equal(await garanties.getAttribute('data-ouverte'), 'true');
+    assert.equal(await garanties.locator('.carte-bascule, .carte-chevron').count(), 0, 'l’en-tête n’est pas un bouton');
+    assert.equal(await garanties.locator('.carte-resume').isVisible(), false);
+    assert.equal(await garanties.locator('.carte-tete .glyphe').count(), 1, 'la carte fixe garde son glyphe');
+    assert.equal(await garanties.locator('.carte-sous-titre').textContent(), 'Les contrastes de chaque usage');
+    assert.deepEqual(await garanties.locator('.carte-tete .bascule-option').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Thème Light', 'true'], ['Thème Dark', 'false']]);
     // Le profil porteur est choisi, et chaque segment porte le résultat de son profil.
     assert.deepEqual(await garanties.locator('.bascule-des-profils button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft ✗ 1', 'false'], ['Vivid ✗ 1', 'true']]);
     const choisie = () => garanties.locator('.garantie[aria-pressed="true"]').getAttribute('data-association');
@@ -449,8 +464,8 @@ test('Z6.3 [UI-09] à 500 et à 770 px, chaque badge reste sur la ligne de son r
   for (const viewport of [MINIMALE, { width: 770, height: 720 }]) {
     const page = await ouvrirSur('garantie-en-echec', viewport);
     try {
-      await deplierLaCarte(page, 'Garanties de contraste');
-      const carte = carteDeLOnglet(page, 'Garanties de contraste');
+      await ouvrirLaVerification(page);
+      const carte = carteDesGaranties(page);
       assert.equal(await badgesALaLigne(carte), 0, `${viewport.width} px, contenu réel`);
       // Le pire contenu : « ✗ 21,00 » et le badge le plus large, dans chaque case.
       await carte.evaluate((element) => {
@@ -472,8 +487,8 @@ test('Z6.3 [UI-09] à 500 et à 770 px, chaque badge reste sur la ligne de son r
 test('Z6.3 [UI-09] un encadré par minimum ; les états nommés une fois, en tête de colonne ; le code d’un rôle à la taille du texte qui l’entoure', async () => {
   const page = await ouvrirSur('garantie-en-echec', { width: 770, height: 720 });
   try {
-    await deplierLaCarte(page, 'Garanties de contraste');
-    const carte = carteDeLOnglet(page, 'Garanties de contraste');
+    await ouvrirLaVerification(page);
+    const carte = carteDesGaranties(page);
     const blocs = carte.locator('.garanties-bloc');
     assert.deepEqual(await blocs.evaluateAll((liste) => liste.map((bloc) => bloc.getAttribute('aria-label'))), ['Textes lisibles', 'Éléments visibles']);
     for (const bloc of await blocs.all()) {
@@ -498,8 +513,8 @@ test('Z6.3 [UI-09] un encadré par minimum ; les états nommés une fois, en tê
 test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le focus se voit, et une garantie en échec garde ses liens', async () => {
   const page = await ouvrirSur('garantie-en-echec', { width: 770, height: 720 });
   try {
-    await deplierLaCarte(page, 'Garanties de contraste');
-    const carte = carteDeLOnglet(page, 'Garanties de contraste');
+    await ouvrirLaVerification(page);
+    const carte = carteDesGaranties(page);
     const choisie = carte.locator('.garantie[aria-pressed="true"]');
     const { barre, ecart, fond, fondLibre } = await choisie.evaluate((ligne) => {
       const avant = getComputedStyle(ligne, '::before');
@@ -520,19 +535,29 @@ test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le foc
   }
 });
 
-test('[UI-09] des garanties manquées dans l’autre thème se comptent, basculent l’aperçu sur ce thème, et un bouton ramène au thème d’avant', async () => {
+test('[UI-09] [VER-20] la carte suit le thème de l’aperçu ; des garanties manquées dans l’autre thème se comptent, le lien montre ce thème sans quitter Vérification, et un lien ramène au thème d’avant', async () => {
   // Le cran 700 plus clair fait manquer text sur surface en Light ; l'aperçu montre Dark.
   const page = await ouvrirSur('garantie-en-echec');
   try {
     await page.getByRole('button', { name: 'Thème Dark', exact: true }).click();
-    await deplierLaCarte(page, 'Garanties de contraste');
-    const autre = carteDeLOnglet(page, 'Garanties de contraste').locator('.autre-theme');
-    assert.equal(await autre.isVisible(), true);
+    await ouvrirLaVerification(page);
+    const carte = carteDesGaranties(page);
+    const presse = (nom) => carte.locator('.carte-tete').getByRole('button', { name: nom, exact: true }).getAttribute('aria-pressed');
+    assert.equal(await presse('Thème Dark'), 'true', 'la carte montre le thème que l’aperçu a choisi');
+    const autre = carte.locator('.autre-theme');
+    assert.match(await autre.textContent(), /^Thème Light : \d+ garanties? manquées? · Voir le thème Light$/);
     await autre.locator('.lien-de-constat').click();
-    assert.equal(await page.getByRole('button', { name: 'Thème Light', exact: true }).getAttribute('aria-pressed'), 'true');
-    assert.equal(await carteDeLOnglet(page, 'Garanties de contraste').locator('.carte-resume').textContent(), 'Thème Light');
-    await page.getByRole('button', { name: 'Revenir au thème Dark' }).click();
-    assert.equal(await page.getByRole('button', { name: 'Thème Dark', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await presse('Thème Light'), 'true');
+    assert.ok(await carte.locator('.garantie-echec').count() > 0, 'la carte montre les échecs du thème Light');
+    await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
+    assert.equal(await presse('Thème Dark'), 'true');
+    assert.equal(await autre.getByRole('button', { name: 'Voir le thème Light' }).isVisible(), true);
+    // La bascule de l'en-tête pose le thème sans retour, et l'aperçu de Création le suit.
+    await carte.locator('.carte-tete').getByRole('button', { name: 'Thème Light', exact: true }).click();
+    assert.equal(await autre.isVisible(), false, 'le thème Dark n’a pas de garantie manquée, et aucun retour n’est offert');
+    await ouvrirLaCreation(page);
+    assert.equal(await page.locator('.nuancier-tete').getByRole('button', { name: 'Thème Light', exact: true }).getAttribute('aria-pressed'), 'true');
   } finally {
     await page.close();
   }
@@ -572,7 +597,7 @@ test('[UI-06] le sélecteur liste les palettes et ouvre celle qu’on choisit au
     await page.locator('.selecteur-bouton').focus();
     await page.keyboard.press('ArrowDown');
     assert.equal(await page.getByRole('listbox').isVisible(), true);
-    assert.deepEqual(await page.getByRole('option').allTextContents(), ['Jaune', 'Bleu']);
+    assert.deepEqual(await page.locator('.selecteur-option-nom').allTextContents(), ['Jaune', 'Bleu']);
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     assert.equal(await page.getByRole('listbox').isVisible(), false);
@@ -786,11 +811,11 @@ test('[UI-03] un nom de palette long ne pousse ni les gestes ni le champ du nom 
     // Le bord droit du contenu est celui de l'en-tête : il est hors des grilles de l'onglet.
     const enTete = await page.locator('.header').boundingBox();
     const largeur = enTete.x + enTete.width;
-    for (const locator of [page.getByRole('button', { name: 'Actions sur la palette' }), page.locator('.tete-de-la-palette .titre-de-premier-rang'), page.getByRole('textbox', { name: 'Nom de la palette' })]) {
+    for (const locator of [page.getByRole('button', { name: 'Actions sur la palette' }), page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang'), page.getByRole('textbox', { name: 'Nom de la palette' })]) {
       const boite = await locator.boundingBox();
       assert.ok(boite.x + boite.width <= largeur, JSON.stringify(boite));
     }
-    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').evaluate((element) => element.scrollWidth > element.clientWidth), true, 'le nom long se coupe');
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').evaluate((element) => element.scrollWidth > element.clientWidth), true, 'le nom long se coupe');
   } finally {
     await page.close();
   }
@@ -821,7 +846,7 @@ test('[UI-06] à 500 px, la liste prend la largeur libre, les deux gestes ont sa
 test('[UI-11] le titre dit « Palette [nom] » et suit la saisie du nom, sans retirer le focus du champ', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    const titre = page.locator('.tete-de-la-palette .titre-de-premier-rang');
+    const titre = page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang');
     assert.equal(await titre.textContent(), 'Palette Jaune');
     assert.equal(await page.locator('[aria-label="Configuration de la palette"] .carte-titre').textContent(), 'Configuration de la palette');
     const nom = page.getByRole('textbox', { name: 'Nom de la palette' });
@@ -875,7 +900,7 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
       (({ nom, reference, base, intensites }) => ({ nom, reference, base, intensites }))(demande.recette.palettes.at(-1)),
       { nom: 'Menthe', reference: '#16A34A', base: 'vivid', intensites: undefined },
     );
-    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Menthe');
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Menthe');
     await envoyer(page, rangee(demande.demande));
 
     // À une intensité, la palette ne porte ni profil porteur ni parts : `intensites: 1`.
@@ -1047,7 +1072,7 @@ test('W4.2 le sélecteur de la référence : nuances Vivid, formats, code invali
     assert.equal(await vivid500.getAttribute('aria-pressed'), 'true');
 
     // Un clic hors du sélecteur le referme.
-    await page.locator('.tete-de-la-palette .titre-de-premier-rang').click();
+    await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').click();
     assert.equal(await selecteur.isVisible(), false);
   } finally {
     await page.close();
@@ -1670,7 +1695,7 @@ async function prochaineDuType(page, type, rang) {
 
 /** Ouvre l'onglet Palettes et clique le premier geste de la fiche d'une palette ([UI-05]). */
 async function genererDepuisLaFiche(page, palette) {
-  await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
+  await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
   await page.locator(`#panneau-gestion .fiche-planche[data-palette="${palette}"] [data-geste="generer"]`).click();
 }
 
@@ -1710,7 +1735,7 @@ test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette
 test('[PLA-24] D-I : au-delà de six palettes, tout dessiner se confirme, grille des contrastes comprise', async () => {
   const page = await ouvrirSur('confirmation-six-palettes');
   try {
-    await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
+    await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
     assert.equal(await page.locator('.fiche-planche[data-palette]').count(), 7);
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Générer tout (7 palettes)' }).click();
@@ -1758,7 +1783,7 @@ test('[PLA-24] six palettes se dessinent sans confirmation', async () => {
     const recette = JSON.parse(JSON.stringify(sept.classement.recette));
     recette.palettes = recette.palettes.slice(0, 6);
     await envoyer(page, { ...sept, classement: { ...sept.classement, recette } });
-    await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
+    await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Générer tout (6 palettes)' }).click();
     assert.equal((await dessinEnvoye(page, 1)).palettes.length, 6);
@@ -1806,7 +1831,7 @@ test('l’onglet Palettes d’un fichier sans palette renvoie vers l’onglet Cr
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('planche-sans-palette'));
-    await page.getByRole('tab', { name: 'Palettes', exact: true }).click();
+    await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
     assert.equal(await page.locator('#panneau-gestion .gestes-globaux').isVisible(), false);
     await page.getByRole('button', { name: 'Créer une palette' }).click();
     assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
@@ -1836,7 +1861,7 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
 });
 
 const ID_DU_JAUNE = 'p-08b7d4a0';
-const ouvrirLaPlanche = (page) => page.getByRole('tab', { name: 'Palettes', exact: true }).click();
+const ouvrirLaPlanche = (page) => page.getByRole('tab', { name: 'Gestion', exact: true }).click();
 const etatsDesLignes = (page) => page.locator('.fiche-planche[data-palette]').evaluateAll((lignes) => lignes.map((ligne) => ligne.dataset.etat));
 const dessinsEnvoyes = async (page) => (await demandes(page)).filter((demande) => demande.type === 'dessiner');
 /** Attend le `rang`-ième dessin envoyé, compté à partir de 1. */
@@ -2190,7 +2215,7 @@ test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine
     assert.ok(!lignes.some((ligne) => /réglages communs|gris pur/.test(ligne)), JSON.stringify(lignes));
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
     assert.equal(await page.locator('#panneau-creation .ligne-fixe[data-ton="avertissement"]').filter({ hasText: 'soft et vivid' }).count(), 0, 'aucun point à vérifier, « Profils confondus » compris');
-    assert.match(await page.locator('.pied-texte').textContent(), / · aucune alerte$/);
+    assert.match(await page.locator('#panneau-creation .pied-texte').textContent(), / · aucune alerte$/);
   } finally {
     await page.close();
   }
@@ -2199,7 +2224,7 @@ test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine
 test('[VER-15] un lien de message ouvre les Réglages communs sur son groupe, et le retour rend le focus au lien', async () => {
   const page = await ouvrirSur('fond-personnalise');
   try {
-    await page.locator('.pied-de-la-palette').getByRole('button', { name: 'Détails' }).click();
+    await page.locator('#panneau-creation .pied-de-la-palette').getByRole('button', { name: 'Détails' }).click();
     const lien = page.locator('.volet-de-la-palette .constat-alerte').getByRole('button', { name: 'Couleurs de fond' });
     await lien.click();
     assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Fond du thème Light');
@@ -2369,7 +2394,7 @@ const fonds = (locator) => locator.evaluate((element) => [getComputedStyle(eleme
 test('Y1.4 : l’onglet actif des trois bascules, Thème, Soft et Vivid, Écran et États, a le même fond, distinct de sa carte, aux deux thèmes de Figma', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    await deplierLaCarte(page, 'Garanties de contraste');
+    await ouvrirLaVerification(page);
     await deplierLaCarte(page, 'Interface de test');
     const actifs = [
       page.locator('.nuancier-tete .bascule-option[aria-pressed="true"]'),
@@ -2439,7 +2464,7 @@ async function intensitesMontrees(page) {
 test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, les garanties, l’interface de test, le choix du profil à régler et la dérive ; le retour les rend', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
-    await deplierLaCarte(page, 'Garanties de contraste');
+    await ouvrirLaVerification(page);
     await deplierLaCarte(page, 'Interface de test');
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const configuration = carteDeLOnglet(page, 'Configuration de la palette');
@@ -2645,7 +2670,7 @@ test('Z2.5 [UI-06] deux gestes mènent à une palette : la liste, puis une optio
     await page.locator('.selecteur-bouton').click();
     await page.getByRole('option', { name: 'Jaune' }).click();
     assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Jaune', invitation: null, menu: true, nouvelle: true, palette: true });
-    assert.equal(await page.locator('.tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Jaune');
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Jaune');
   } finally {
     await page.close();
   }
@@ -2710,7 +2735,7 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
  * n'arrivent qu'avec un rendu complet.
  */
 async function ouvrirLeGlisser(page) {
-  await deplierLaCarte(page, 'Garanties de contraste');
+  await ouvrirLaVerification(page);
   await deplierLaCarte(page, 'Interface de test');
   await carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .pipette').click();
   await page.evaluate(() => {
@@ -3170,9 +3195,9 @@ test('Z5.3 [UI-13] [UI-15] la pastille de la référence n’ouvre que le choix 
     assert.equal(await selecteur.getByRole('button', { name: 'Ajuster' }).count(), 0, 'plus d’onglet « Ajuster »');
     assert.equal(await selecteur.getByText('Ajuster la référence').count(), 0);
     await page.keyboard.press('Escape');
-    await deplierLaCarte(page, 'Garanties de contraste');
-    await carteDeLOnglet(page, 'Garanties de contraste').locator('.garantie[data-verdict="manquee"], .garantie:has([data-verdict="manquee"])').first().click();
-    await carteDeLOnglet(page, 'Garanties de contraste').getByRole('button', { name: 'Ajuster la référence' }).first().click();
+    await ouvrirLaVerification(page);
+    await carteDesGaranties(page).locator('.garantie[data-verdict="manquee"], .garantie:has([data-verdict="manquee"])').first().click();
+    await carteDesGaranties(page).getByRole('button', { name: 'Ajuster la référence' }).first().click();
     assert.equal(await page.getByRole('dialog', { name: 'Ajuster la référence' }).isVisible(), true);
   } finally {
     await page.close();
@@ -3207,7 +3232,7 @@ test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette ga
   const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
   try {
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
-    await deplierLaCarte(page, 'Garanties de contraste');
+    await ouvrirLaVerification(page);
     await imageSuivante(page);
     const mesurer = async () => ({
       derive: await rendu(page, '.derive-graphe', ['.derive-graduation', '.derive-poignee-lettre'], '.derive-trait'),
@@ -3954,7 +3979,7 @@ test('[UI-17] une ligne fixe coupée s’ouvre au clic dans une bulle, sans rien
 test('[UI-18] le pied compte les garanties et les alertes à toute position de défilement ; « Détails » ouvre le volet, de hauteur fixe, et Échap le referme', async () => {
   const page = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
   try {
-    const pied = page.locator('.pied-de-la-palette');
+    const pied = page.locator('#panneau-creation .pied-de-la-palette');
     assert.match(await pied.locator('.pied-texte').textContent(), /^\d+ garanties manquées sur 76 · /);
     assert.equal(await pied.getAttribute('data-ton'), 'danger');
     for (const position of [0, 400, 100000]) {
@@ -4008,7 +4033,7 @@ test('[UI-20] le bilan ne s’annonce au lecteur d’écran qu’à la fin d’u
       pendant.push(await annonce.textContent());
     }
     assert.deepEqual([...new Set(pendant)], [avant], 'rien ne s’annonce pendant le glisser');
-    const bilanPendant = await page.locator('.pied-texte').textContent();
+    const bilanPendant = await page.locator('#panneau-creation .pied-texte').textContent();
     await souris('mouseReleased', x(-0.02), y, 0);
     await deuxImages(page);
     assert.notEqual(await annonce.textContent(), avant, 'le bilan changé s’annonce au relâcher');

@@ -1,6 +1,7 @@
 /**
- * Point d'entrée de l'interface d'UCM Palettes : l'en-tête du socle, deux
- * onglets et la configuration derrière l'engrenage ([UI-02]).
+ * Point d'entrée de l'interface d'UCM Palettes : l'en-tête du socle, les
+ * onglets Création, Vérification et Gestion, et la configuration derrière
+ * l'engrenage ([UI-02]).
  */
 import { jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
 import { montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
@@ -12,8 +13,9 @@ import { lireLImport } from '../importation';
 import type { PluginMessage } from '../messages';
 import { consequenceDeLImport } from '../planche/fraicheur';
 import { ecartsDePeinture, type EcartDePeinture } from '../planche/peints';
-import type { CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, type CibleDAction } from '../presentation';
 import { rapportDeLaRecette } from '../rapport';
+import { creerVuesBarreDePalette } from './barreDePalette';
 import { creerVuesConfiguration } from './configuration';
 import { creerVuesDessin, type GestesDuResultat } from './dessin';
 import { createFrontiere } from './frontiere';
@@ -21,6 +23,7 @@ import { creerVuesGestesDeLaRecette, type DemandesDeLaRecette } from './gestesDe
 import { creerLocalisation, type Localisation } from './localisation';
 import { creerVuesOngletCreation } from './ongletCreation';
 import { creerVuesOngletGestion } from './ongletGestion';
+import { creerVuesOngletVerification } from './ongletVerification';
 import { creerPaletteOuverte } from './paletteOuverte';
 import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
@@ -28,11 +31,13 @@ import { telecharger } from './telechargement';
 
 export function creerVuesIndex(i18n: Localisation) {
   const { createBackButton, createButton, createSettingsButton, createOnglets } = creerSocleLocalise(i18n);
+  const { createBarreDePalette } = creerVuesBarreDePalette(i18n);
   const { createConfiguration } = creerVuesConfiguration(i18n);
   const { createSuiviDuDessin } = creerVuesDessin(i18n);
   const { createGestesDeLaRecette } = creerVuesGestesDeLaRecette(i18n);
   const { createOngletCreation } = creerVuesOngletCreation(i18n);
   const { createOngletGestion } = creerVuesOngletGestion(i18n);
+  const { createOngletVerification } = creerVuesOngletVerification(i18n);
   const { TEXTES, nomDeLaPalette } = i18n.messages;
 
   /** `index.html` déclare ce conteneur ; `tests/buildUi.test.ts` tient le gabarit. */
@@ -139,6 +144,18 @@ export function creerVuesIndex(i18n: Localisation) {
   /** La recette affichée et la palette ouverte, que les onglets partagent ([UI-23]). */
   const paletteOuverte = creerPaletteOuverte();
 
+  // La barre de la palette n'existe qu'une fois : l'onglet Création porte ses gestes.
+  const barre = createBarreDePalette({
+    choisir: (id) => ongletCreation.gestesDeLaBarre.choisir(id),
+    // La création s'ouvre dans Création : depuis Vérification, l'onglet change d'abord.
+    nouvelle() {
+      onglets.selectionner('creation');
+      ongletCreation.gestesDeLaBarre.nouvelle();
+    },
+    agir: (geste) => ongletCreation.gestesDeLaBarre.agir(geste),
+    supprimer: () => ongletCreation.gestesDeLaBarre.supprimer(),
+  });
+
   const ongletCreation = createOngletCreation({
     ranger: (recette) => frontiere.ranger(recette),
     recharger: () => frontiere.lireLEtat(),
@@ -149,14 +166,34 @@ export function creerVuesIndex(i18n: Localisation) {
       ouvrirConfiguration();
       panneauDeConfiguration.focaliser(GROUPE_DE_LA_CIBLE[cible] ?? 'courbes');
     },
-  }, paletteOuverte);
+    verifier: () => allerA('verification'),
+    choisirGarantie(association) {
+      allerA('verification');
+      ongletVerification.choisirGarantie(association);
+    },
+  }, paletteOuverte, barre);
+
+  const ongletVerification = createOngletVerification(paletteOuverte, barre, {
+    // Un réglage de Création s'ouvre dans Création ; un réglage commun garde l'onglet, où le retour ramène ([VER-15]).
+    ouvrir(cible) {
+      if (!CIBLES_COMMUNES.includes(cible)) onglets.selectionner('creation');
+      ongletCreation.ouvrir(cible);
+    },
+    versCreation: () => allerA('creation'),
+    versGestion: () => allerA('gestion'),
+    mode: () => ongletCreation.theme.mode(),
+    choisirLeTheme: (mode) => ongletCreation.theme.choisir(mode),
+    montrerLeTheme: (mode) => ongletCreation.theme.montrer(mode),
+    themeDAvant: () => ongletCreation.theme.dAvant(),
+    revenirAuTheme: () => ongletCreation.theme.revenir(),
+  });
 
   const ongletGestion = createOngletGestion({
     ...gestesDuResultat,
     dessiner: (palettes, noms) => suivi.dessiner(palettes, noms),
-    versLesPalettes: () => onglets.selectionner('creation'),
+    versLesPalettes: () => allerA('creation'),
     modifier(id, mode) {
-      onglets.selectionner('creation');
+      allerA('creation');
       ongletCreation.ouvrirLaPalette(id, mode);
     },
     actualiser: relireLaPlanche,
@@ -210,27 +247,48 @@ export function creerVuesIndex(i18n: Localisation) {
     ongletGestion.afficher(dernierEtat.classement, ongletCreation.recette(), dernierEtat.planche, dernierEtat.profil, frontiere.empreinte());
   }
 
-  // La recette change dans l'onglet Création : l'onglet Palettes la relit à son ouverture.
+  /*
+   * La barre de la palette suit l'onglet actif, Création ou Vérification
+   * ([UI-23]). La recette change dans l'onglet Création : Vérification se rend
+   * à son ouverture, et Gestion relit la planche à la sienne.
+   */
   const onglets = createOnglets(TEXTES.etiquetteDesOnglets, [
     { id: 'creation', libelle: TEXTES.ongletCreation, panneau: ongletCreation.element },
+    { id: 'verification', libelle: TEXTES.ongletVerification, panneau: ongletVerification.element },
     { id: 'gestion', libelle: TEXTES.ongletGestion, panneau: ongletGestion.element },
   ], (id) => {
+    if (id === 'creation') ongletCreation.placerLaBarre();
+    ongletVerification.montrer(id === 'verification');
     if (id !== 'gestion') return;
     afficherLaPlanche();
     relireLaPlanche();
   });
 
+  const PANNEAUX = { creation: ongletCreation.element, verification: ongletVerification.element, gestion: ongletGestion.element };
+
+  /**
+   * Change d'onglet par un geste de l'interface, un pied ou un lien : le
+   * panneau s'ouvre en haut et prend le focus, que le bouton cliqué vient de
+   * perdre en se cachant.
+   */
+  function allerA(id: keyof typeof PANNEAUX): void {
+    onglets.selectionner(id);
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    PANNEAUX[id].focus({ preventScroll: true });
+  }
+
   const travail = document.createElement('div');
 
   travail.className = 'page-stack colonne';
 
-  travail.append(onglets.liste, ongletCreation.element, ongletGestion.element);
+  travail.append(onglets.liste, ongletCreation.element, ongletVerification.element, ongletGestion.element);
 
   // Pendant un dessin, les panneaux se figent et la progression se lit ; l'engrenage reste ouvert, pour la langue.
   suivi.abonner((etat) => {
     if (etat.phase === 'fini' && etat.resultat.issue === 'dessinee') ecartsDuDernierDessin = etat.ecarts;
     const enCours = etat.phase === 'en-cours';
     ongletCreation.element.inert = enCours;
+    ongletVerification.element.inert = enCours;
     ongletGestion.element.inert = enCours;
     ongletGestion.afficherDessin(etat, suivi.noms());
   });
@@ -305,10 +363,15 @@ export function creerVuesIndex(i18n: Localisation) {
    * les a ouverts ([VER-15]). La palette, le thème et la nuance choisie restent,
    * leurs éléments n'étant jamais reconstruits.
    */
-  let pointDeLecture: { defilement: number; focus: HTMLElement | null } | null = null;
+  let pointDeLecture: { defilement: number; focus: HTMLElement | null; lienDeVerification: number } | null = null;
 
   function ouvrirConfiguration(): void {
-    pointDeLecture = { defilement: document.scrollingElement?.scrollTop ?? 0, focus: document.activeElement as HTMLElement | null };
+    pointDeLecture = {
+      defilement: document.scrollingElement?.scrollTop ?? 0,
+      focus: document.activeElement as HTMLElement | null,
+      // Un réglage commun changé rend Vérification : son lien se reconstruit, et se retrouve par son rang.
+      lienDeVerification: ongletVerification.rangDuLien(document.activeElement),
+    };
     panneauDeConfiguration.afficher();
     montrerConfiguration(bascule());
     i18n.lier(titre, 'textContent', TEXTES.titreConfiguration);
@@ -324,6 +387,7 @@ export function creerVuesIndex(i18n: Localisation) {
     if (!point) return;
     if (document.scrollingElement) document.scrollingElement.scrollTop = point.defilement;
     if (point.focus?.isConnected && point.focus !== document.body) point.focus.focus({ preventScroll: true });
+    else if (point.lienDeVerification >= 0) ongletVerification.focaliserLeLien(point.lienDeVerification);
   }
 
   const largeurFenetre = document.createElement('div');

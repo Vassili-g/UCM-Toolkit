@@ -2,11 +2,11 @@
  * L'onglet Création (section 13.2) : le choix ou la création d'une palette.
  * Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
  * « Palette [nom] » seul sur sa ligne, puis les cartes :
- * Configuration de la palette, aperçu, Intensités et Dérive de teinte
- * repliables, Garanties de contraste, et l'Interface de test en dernier
- * ([UI-12]). Les messages de la palette se comptent dans le pied, et se
- * lisent dans son volet ([UI-18]). La génération appartient à l'onglet
- * Palettes ([UI-05]).
+ * Configuration de la palette, aperçu, Réglage global et Color shift
+ * repliables, et l'Interface de test en dernier ([UI-12]). Les messages de
+ * la palette se comptent dans le pied, dont « Vérifier » ouvre l'onglet
+ * Vérification, où ils se lisent avec les garanties ([UI-18], [VER-18]). La
+ * génération appartient à l'onglet Gestion ([UI-05]).
  *
  * Pendant un geste, aucun contrôle ne se déplace ([UI-20]) : un message tient
  * dans une ligne fixe, ou passe au pied.
@@ -26,9 +26,9 @@ import {
   type Classement,
   type Mode,
   type Palette,
+  type Association,
   type Recette,
   type Refus,
-  ORDRE_DES_SEVERITES,
 } from 'ucm-couleur';
 
 import { analyserPalette } from '../analyse';
@@ -53,14 +53,14 @@ import {
   revenirAuModele,
   supprimer,
 } from '../edition';
-import { CIBLES_COMMUNES, carteDuMessage, ciblesDeLaPromesse, colorShiftModifie, groupesManques, reglageGlobalModifie, type CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, reglageGlobalModifie, type CibleDAction } from '../presentation';
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
+import type { BarreDePaletteUi, GestesDeLaBarre } from './barreDePalette';
 import { createCarte } from './carte';
 import { creerGlyphe } from './glyphes';
 import { type ChoixDeBase } from './champs';
 import { creerVuesChamps } from './champs';
-import { type Message } from './constats';
 import { creerVuesConstats } from './constats';
 import { creerVuesPropositions } from './couleur/propositions';
 import { creerVuesSelecteur as creerVuesSelecteurCouleur } from './couleur/selecteur';
@@ -68,19 +68,16 @@ import { type ApercuDeLaSaisie } from './creation';
 import { creerVuesCreation } from './creation';
 import { creerVuesEditeur } from './derive/editeur';
 import type { StatutDuRangement } from './frontiere';
-import { creerVuesGaranties } from './garanties';
 import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
 import { creerVuesInterfaceDeTest } from './interfaceDeTest';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import type { PaletteOuverte } from './paletteOuverte';
 import { type GesteDePalette } from './menuPalette';
-import { creerVuesMenuPalette } from './menuPalette';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
 import { creerVuesNuancier } from './nuancier';
 import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
 import { creerVuesReglagesDeLaPalette } from './reglagesDeLaPalette';
-import { creerVuesSelecteur } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
 import { type Constat } from './textes';
 
@@ -96,6 +93,10 @@ export interface DemandesDeLOnglet {
   recetteEnFichier: GestesDeLaRecetteUi;
   /** Ouvre les Réglages communs sur le groupe qu'un message nomme ([VER-15]). */
   ouvrirReglages(cible: CibleDAction): void;
+  /** « Vérifier », dans le pied : ouvre l'onglet Vérification sur la palette ouverte ([UI-18]). */
+  verifier(): void;
+  /** Une garantie du détail d'une nuance : elle se choisit dans la carte de Vérification ([VER-20]). */
+  choisirGarantie(association: Association): void;
 }
 
 export interface OngletCreationUi {
@@ -119,6 +120,20 @@ export interface OngletCreationUi {
   importer(recette: Recette): void;
   /** Ouvre une palette dans le thème que sa fiche de l'onglet Palettes montrait (V8.3). */
   ouvrirLaPalette(id: string, mode: Mode): void;
+  /** Ce que la barre de la palette demande ([UI-23]) : l'onglet porte la recette, donc ses gestes. */
+  readonly gestesDeLaBarre: GestesDeLaBarre;
+  /** Reprend la barre en tête de l'onglet, quand il redevient l'onglet actif. */
+  placerLaBarre(): void;
+  /** Ouvre et focalise le réglage qu'un message de Vérification nomme ([VER-15]). */
+  ouvrir(cible: CibleDAction): void;
+  /** Le thème de l'aperçu, que la carte des garanties de Vérification suit et change ([VER-20]). */
+  readonly theme: {
+    mode(): Mode;
+    choisir(mode: Mode): void;
+    montrer(mode: Mode): void;
+    dAvant(): Mode | null;
+    revenir(): void;
+  };
 }
 
 function construireVues(i18n: Localisation) {
@@ -134,14 +149,11 @@ function construireVues(i18n: Localisation) {
   const { createPipette } = creerVuesSelecteurCouleur(i18n);
   const { createCreation } = creerVuesCreation(i18n);
   const { createEditeur } = creerVuesEditeur(i18n);
-  const { createGaranties } = creerVuesGaranties(i18n);
   const { createReglagesDeLaPalette } = creerVuesReglagesDeLaPalette(i18n);
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
-  const { createMenuPalette } = creerVuesMenuPalette(i18n);
-  const { messagesDeLaPalette } = creerVuesMessagesDePalette(i18n);
+  const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { createSelecteur } = creerVuesSelecteur(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, confirmationDeSuppression, constatDeGroupe, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, originaleRetiree, palettesDuFichier, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -150,32 +162,20 @@ function construireVues(i18n: Localisation) {
     return ligne;
   }
 
-  /** `etat` porte la recette affichée, la palette ouverte et l'état du geste, que Vérification lit aussi ([UI-23]). */
-  function createOngletCreation(demandes: DemandesDeLOnglet, etat: PaletteOuverte): OngletCreationUi {
+  /**
+   * `etat` porte la recette affichée, la palette ouverte et l'état du geste,
+   * que Vérification lit aussi ; `barre` rend la barre de la palette, qui
+   * n'existe qu'une fois ([UI-23]).
+   */
+  function createOngletCreation(demandes: DemandesDeLOnglet, etat: PaletteOuverte, barre: BarreDePaletteUi): OngletCreationUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
     let classementLu: Classement | null = null;
     let creationOuverte = false;
-    let suppressionDemandee = false;
     let note: Constat | null = null;
     let statut: StatutDuRangement = 'lu';
     let refus: Constat | null = null;
-
-    // Le choix ou la création d'une palette, en tête de l'onglet : la liste prend la largeur libre ([UI-06]).
-    const selecteur = createSelecteur((id) => {
-      etat.ouvrir(id);
-      suppressionDemandee = false;
-      rendre();
-    });
-    // L'action principale de l'onglet : créer une palette.
-    const plus = createButton({ label: TEXTES.nouvellePalette, onClick: () => ouvrirLaCreation() });
-    plus.classList.add('bouton-de-barre');
-    plus.setAttribute('aria-expanded', 'false');
-    const menu = createMenuPalette(agir);
-    const barre = document.createElement('div');
-    barre.className = 'barre-gestes';
-    barre.append(selecteur.element, plus, menu.element);
 
     const creation = createCreation({
       onCreer: (saisie, nom, intensites, base, crans) => creer(saisie, nom, intensites, base, crans),
@@ -187,34 +187,17 @@ function construireVues(i18n: Localisation) {
       onAnnuler: () => {
         creationOuverte = false;
         rendre();
-        plus.focus();
+        barre.focaliserNouvelle();
       },
     });
 
-    const confirmation = document.createElement('div');
-    confirmation.className = 'confirmation';
-    const texteDeConfirmation = document.createElement('p');
-    const gestesDeConfirmation = document.createElement('div');
-    gestesDeConfirmation.className = 'confirmation-gestes';
-    const supprimerVraiment = createButton({ label: TEXTES.supprimer, variant: 'danger', onClick: () => confirmerLaSuppression() });
-    gestesDeConfirmation.append(
-      supprimerVraiment,
-      createButton({
-        label: TEXTES.annuler,
-        variant: 'secondary',
-        onClick: () => {
-          suppressionDemandee = false;
-          rendre();
-          menu.focaliser();
-        },
-      }),
-    );
-    confirmation.append(texteDeConfirmation, gestesDeConfirmation);
     const zoneDeLaNote = document.createElement('div');
 
+    // Le choix ou la création d'une palette, en tête de l'onglet : la barre partagée, la création, puis la note.
     const choix = document.createElement('div');
     choix.className = 'choix-de-palette';
-    choix.append(barre, confirmation, zoneDeLaNote);
+    choix.append(zoneDeLaNote);
+    barre.placerDans(choix);
 
     // Le titre de premier rang, « Palette [nom] », seul sur sa ligne ([UI-11]) : un nom long se coupe.
     const titreDeConfiguration = document.createElement('h2');
@@ -344,19 +327,13 @@ function construireVues(i18n: Localisation) {
       surMode: () => rendre(),
       saisirFond: (mode, hexa, fin) => saisirFond(mode, hexa, fin),
       abandonnerLeFond: () => rendre(),
-      choisirGarantie: (association) => garanties.choisir(association),
+      choisirGarantie: (association) => demandes.choisirGarantie(association),
     });
     const carteDApercu = createCarte({ titre: TEXTES_DE_L_ONGLET.apercu, sansTitre: true }, i18n);
     carteDApercu.tete.append(nuancier.tete);
     const repereDeReference = document.createElement('p');
     repereDeReference.className = 'repere-de-la-reference';
     carteDApercu.corps.append(nuancier.element, repereDeReference);
-
-    // Carte Garanties de contraste ([UI-09]) : elle suit le thème de l'aperçu.
-    const garanties = createGaranties({
-      ouvrir: (cible) => ouvrir(cible),
-      montrerLeTheme: (mode) => nuancier.montrerLeTheme(mode),
-    });
 
     // Les cartes « Réglage global » et « Color shift », sans titre de section (recette v7, [UI-12]).
     const carteDesIntensites = createCarte({ titre: TEXTES_DES_REGLAGES.titre, sousTitre: TEXTES_DES_REGLAGES.sousTitre, glyphe: creerGlyphe('reglageGlobal'), repliable: { ouverte: false } }, i18n);
@@ -389,13 +366,9 @@ function construireVues(i18n: Localisation) {
     interfaceDeTest.surBascule(() => rendre());
 
     // Le bilan de la palette, dans un pied qui reste en vue ([UI-18]).
-    // Un lien du volet vers un réglage de l'onglet referme le volet, qui le couvrirait ; vers les Réglages communs, il le garde pour le retour ([VER-15]).
-    const pied = createPiedDeLaPalette((cible) => {
-      if (!CIBLES_COMMUNES.includes(cible)) pied.fermer();
-      ouvrir(cible);
-    });
+    const pied = createPiedDeLaPalette(() => demandes.verifier());
 
-    // La palette se règle, puis se juge : Intensités et Dérive sous l'aperçu, les Garanties ensuite ([UI-12]).
+    // La palette se règle ici, et se juge dans Vérification ([UI-12]).
     const configuration = document.createElement('div');
     configuration.className = 'configuration-de-la-palette';
     configuration.append(
@@ -404,7 +377,6 @@ function construireVues(i18n: Localisation) {
       carteDApercu.element,
       carteDesIntensites.element,
       carteDeLaDerive.element,
-      garanties.element,
       interfaceDeTest.element,
       pied.element,
     );
@@ -484,7 +456,7 @@ function construireVues(i18n: Localisation) {
 
     function ouvrirLaCreation(): void {
       creationOuverte = true;
-      suppressionDemandee = false;
+      barre.fermerLaConfirmation();
       creation.ouvrir((etat.recette()?.palettes.length ?? 0) > 0);
       rendre();
       creation.focaliser();
@@ -548,10 +520,9 @@ function construireVues(i18n: Localisation) {
       } else if (geste === 'monter' || geste === 'descendre') {
         valider(deplacer(recette, courante.id, geste === 'monter' ? -1 : 1));
       } else {
-        suppressionDemandee = true;
+        // La barre ouvre sa confirmation : la création lui laisse la place.
         creationOuverte = false;
         rendre();
-        supprimerVraiment.focus();
       }
     }
 
@@ -562,9 +533,8 @@ function construireVues(i18n: Localisation) {
       const rang = recette.palettes.indexOf(courante);
       const suivante = supprimer(recette, courante.id);
       etat.ouvrir(suivante.palettes[Math.min(rang, suivante.palettes.length - 1)]?.id ?? '');
-      suppressionDemandee = false;
       valider(suivante);
-      selecteur.focaliser();
+      barre.focaliserLeSelecteur();
     }
 
     /** Une saisie d'hexa : l'aperçu suit une valeur complète, une valeur impossible se signale. */
@@ -654,17 +624,10 @@ function construireVues(i18n: Localisation) {
       zoneDuRefus.replaceChildren(bloc);
     }
 
-    /** La barre, la création, la confirmation et la note, avec ou sans palette choisie. */
-    function rendreLaBarre(lue: Recette, courante: Palette | null): void {
-      selecteur.afficher(lue.palettes, courante?.id ?? '');
-      // Le menu porte sur la palette choisie : sans elle, il se cache.
-      menu.element.hidden = !courante;
-      if (courante) menu.afficher(lue.palettes.indexOf(courante), lue.palettes.length);
-      placerLaCreation(choix, confirmation);
+    /** La création et la note, avec ou sans palette choisie ; la barre se rend à part. */
+    function rendreLeChoix(courante: Palette | null): void {
+      placerLaCreation(choix, zoneDeLaNote);
       creation.element.hidden = !creationOuverte;
-      plus.setAttribute('aria-expanded', String(creationOuverte));
-      i18n.lier(texteDeConfirmation, 'textContent', courante ? confirmationDeSuppression(nomDeLaPalette(courante)) : '');
-      confirmation.hidden = !suppressionDemandee || !courante;
       zoneDeLaNote.replaceChildren(...(note ? [blocDeConstat(note, 'notice')] : []));
       zoneDeLaNote.hidden = !note;
       // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
@@ -711,9 +674,6 @@ function construireVues(i18n: Localisation) {
         return trouvee ? nomDeLaPalette(trouvee) : id;
       };
       const messages = messagesDeLaPalette(analyse, courante, { recette: lue, nomDe });
-      // Une palette libre n'a pas de garantie : sa carte se retire (W6.5).
-      garanties.element.hidden = analyse.libre;
-      if (!analyse.libre) garanties.afficher({ recette: lue, palette: courante, analyse, mode: nuancier.mode() });
       // Toute palette a la carte, une intensité comprise : c'est là qu'elle affine sa référence (Z10.4, question 4).
       intensites.afficher(lue, courante, messages.intensite, carteDesIntensites.estOuverte());
       const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
@@ -722,7 +682,7 @@ function construireVues(i18n: Localisation) {
         garanties: analyse.libre ? 0 : analyse.promesses.length,
         manquees: analyse.manquees,
         libre: analyse.libre,
-        messages: messagesDuPied([...messages.liste, ...messages.intensite], groupesManques(analyse.promesses), nomDeLaPalette(courante)),
+        messages: tousLesMessages(analyse, courante, { recette: lue, nomDe }),
       }, !etat.enGeste());
 
       // Une palette grise ne règle que sa luminosité : la carte reste ouverte, ses onglets Teinte et Saturation se désactivent ([DER-15]).
@@ -734,21 +694,6 @@ function construireVues(i18n: Localisation) {
     }
 
     /**
-     * Les messages du volet, dans l'ordre des sévérités : chaque groupe de
-     * promesses manquées, puis les alertes, puis les informations ([VER-14]).
-     */
-    function messagesDuPied(alertes: readonly Message[], groupes: ReturnType<typeof groupesManques>, nom: string): Message[] {
-      const promesses: Message[] = groupes.map((groupe) => ({
-        severite: 'promesse',
-        constat: constatDeGroupe(groupe, nom),
-        cibles: ciblesDeLaPromesse(),
-        compte: groupe.manquees,
-      }));
-      const rang = (message: Message) => ORDRE_DES_SEVERITES.indexOf(message.severite);
-      return [...promesses, ...alertes].sort((a, b) => rang(a) - rang(b));
-    }
-
-    /**
      * Montre une seule des trois zones. La visibilité se pose avant le
      * remplissage : un élément caché ne reçoit pas le focus, et la poignée
      * redessinée de l'éditeur doit le reprendre.
@@ -757,10 +702,15 @@ function construireVues(i18n: Localisation) {
       for (const candidate of [zoneDuBloquant, vide, vue]) candidate.hidden = candidate !== zone;
     }
 
-    /** Rend l'onglet, puis le déclare à l'état partagé : un rendu complet prévient Vérification. */
+    /**
+     * Rend l'onglet, puis le déclare à l'état partagé : un rendu complet
+     * recalcule les verdicts à la fin d'un geste et prévient Vérification. La
+     * barre se rend ensuite, avec ces verdicts.
+     */
     function rendre(): void {
       rendreLesZones();
       etat.rendu(apercuSeul ? 'apercu' : 'complet');
+      barre.afficher({ palettes: etat.recette()?.palettes ?? [], idOuvert: etat.id(), verdicts: etat.verdicts(), creationOuverte });
     }
 
     function rendreLesZones(): void {
@@ -788,7 +738,7 @@ function construireVues(i18n: Localisation) {
       }
       const courante = ouverte();
       montrer(vue);
-      rendreLaBarre(recette, courante);
+      rendreLeChoix(courante);
       if (courante) rendrePalette(courante, recette);
     }
 
@@ -834,10 +784,28 @@ function construireVues(i18n: Localisation) {
       },
       ouvrirLaPalette(id, mode) {
         etat.ouvrir(id);
-        suppressionDemandee = false;
+        barre.fermerLaConfirmation();
         creationOuverte = false;
         rendre();
         nuancier.choisirLeTheme(mode);
+      },
+      gestesDeLaBarre: {
+        choisir(id) {
+          etat.ouvrir(id);
+          rendre();
+        },
+        nouvelle: () => ouvrirLaCreation(),
+        agir,
+        supprimer: () => confirmerLaSuppression(),
+      },
+      placerLaBarre: () => barre.placerDans(choix),
+      ouvrir,
+      theme: {
+        mode: () => nuancier.mode(),
+        choisir: (mode) => nuancier.choisirLeTheme(mode),
+        montrer: (mode) => nuancier.montrerLeTheme(mode),
+        dAvant: () => nuancier.modeDAvant(),
+        revenir: () => nuancier.revenir(),
       },
     };
   }

@@ -102,6 +102,7 @@ const CADRES_SUPPRIMES = [
 /** La planche que la lecture relève : sa page, ses cadres, et ce qu'elle n'a pas trouvé. */
 const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', cadres, ...reglages });
 const ouvrirLaPlanche = { clic: '#onglet-gestion' };
+const ouvrirLaVerification = { clic: '#onglet-verification' };
 
 /** Le designer choisit un fichier de recette dans l'onglet Palettes. */
 const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
@@ -195,10 +196,10 @@ const ETATS = [
   {
     id: 'garanties-refaites',
     titre: 'Garanties de contraste, refaites',
-    quand: 'Bleu, deux intensités, une garantie en échec choisie.',
+    quand: 'Bleu, deux intensités, une garantie en échec choisie, dans l’onglet Vérification.',
     regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte. Sous 700 px, le spécimen au-dessus des numéros, chaque rangée sur une ligne.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), { clic: '[aria-label="Garanties de contraste"] .carte-bascule' }],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification],
   },
   {
     id: 'premier-lancement',
@@ -240,7 +241,7 @@ const ETATS = [
     id: 'promesses-manquees',
     titre: 'Palette avec promesses manquées',
     quand: 'La courbe claire place le cran 700 à 0,55 : text sur surface ne tient plus 4,5 en clair.',
-    regarder: 'La bascule « Soft ✗ » et « Vivid ✗ » des garanties, la ligne text sur surface choisie en échec, et le focus clavier déplacé sur la rampe.',
+    regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied en danger, son compte et « Vérifier » ; le ✗ du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)),
@@ -658,26 +659,26 @@ const ETATS = [
   {
     id: 'garanties-respectees',
     titre: 'Garanties respectées',
-    quand: 'Bleu tient toutes ses garanties : la carte s’ouvre sur text sur surface.',
-    regarder: 'La bascule « Soft ✓ » et « Vivid ✓ », Vivid pressé, trois arcs de 100 vers 700, 200 vers 800 et 300 vers 900 sur la réglette, et les numéros sous chaque spécimen.',
+    quand: 'Bleu tient toutes ses garanties ; le designer ouvre Vérification : la carte est sur text sur surface.',
+    regarder: 'Le verdict d’avertissement, « 76 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron, son thème dans l’en-tête ; la bascule « Soft ✓ » et « Vivid ✓ », Vivid pressé, trois arcs de 100 vers 700, 200 vers 800 et 300 vers 900 sur la réglette, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU]))],
+    atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification],
   },
   {
     id: 'garantie-en-echec',
     titre: 'Garantie en échec',
     quand: 'La courbe claire place le cran 700 à 0,55 : text sur surface manque 4,5 en Light.',
-    regarder: 'La bascule « ✗ », la ligne en échec choisie d’office, son arc de la couleur de danger, l’état fautif et ses liens vers les réglages.',
+    regarder: 'Dans Vérification : la bascule « ✗ », la ligne en échec choisie d’office, son arc de la couleur de danger, l’état fautif et ses liens vers les réglages.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair))],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification],
   },
   {
     id: 'garantie-autre-theme',
     titre: 'Garantie de l’autre thème',
-    quand: 'L’aperçu montre le thème Dark, et le thème Light a des garanties manquées : le designer suit la ligne qui les compte.',
-    regarder: 'L’aperçu revenu au thème Light, « Revenir au thème Dark » dans son en-tête, et la carte des garanties sur les échecs du thème Light.',
+    quand: 'La carte des garanties montre le thème Dark, et le thème Light a des garanties manquées : le designer suit la ligne qui les compte.',
+    regarder: 'La carte revenue au thème Light, pressé dans son en-tête, sur les échecs de ce thème, et « Revenir au thème Dark » sous la liste.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), { clic: '.nuancier-tete .bascule-option:nth-child(2)' }, { clic: '.autre-theme .lien-de-constat' }],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, { clic: '[aria-label="Garanties de contraste"] .carte-tete .bascule-option:nth-child(2)' }, { clic: '.autre-theme .lien-de-constat' }],
   },
   {
     id: 'detail-de-la-reference',
@@ -754,7 +755,7 @@ const ETATS = [
     id: 'palette-libre',
     titre: 'Palette libre',
     quand: 'Une palette sort du modèle du design system : six nuances, numérotées par le designer.',
-    regarder: 'Le modèle Libre pressé et « Sans rôles ni garanties » sur sa rangée, pas de choix des intensités, les puces 100, 200, 400, 600, 800 et 900 allumées, l’aperçu à six colonnes sans on-solid ni accolades, et aucune carte des garanties.',
+    regarder: 'Le modèle Libre pressé et « Sans rôles ni garanties » sur sa rangée, pas de choix des intensités, les puces 100, 200, 400, 600, 800 et 900 allumées, l’aperçu à six colonnes sans on-solid ni accolades ; le pied dit « Palette libre ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, crans: [100, 200, 400, 600, 800, 900] }]))],
   },
@@ -778,15 +779,39 @@ const ETATS = [
     ],
   },
   {
-    id: 'volet-ouvert',
-    titre: 'Pied et volet des garanties et alertes',
-    quand: 'La courbe claire place le cran 700 à 0,55 : Bleu manque des garanties ; le designer ouvre « Détails » dans le pied.',
-    regarder: 'Le pied au bas de la fenêtre : ✗ en danger, « N garanties manquées sur 64 · aucune alerte · » et le premier message, coupé, puis « Détails ». Le volet au-dessus du pied, de hauteur fixe : « Garanties et alertes », « Fermer », les groupes de promesses à corriger avec leurs liens, qui défilent dans le volet. À 500 × 520, le volet couvre le haut de la page sans sortir de la fenêtre.',
+    id: 'verification-manquee',
+    titre: 'Vérification, des garanties manquées',
+    quand: 'La courbe claire place le cran 700 à 0,55 : Bleu manque des garanties ; le designer suit « Vérifier », dans le pied de Création.',
+    regarder: 'L’onglet Vérification : le ✗ sur le bouton du sélecteur ; « Palette Bleu » ; le verdict sur son fond de danger, « N garanties manquées sur 76 » et les points à vérifier ; « Contrastes à corriger » en premier, chaque message avec ses liens, qui nomment le geste ; la carte des garanties, fixe ; le pied « Corrigez la palette dans Création, ou écrivez-la telle quelle dans Gestion. » et « Retour à Création ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)),
-      { clic: '.pied-de-la-palette [aria-controls="volet-de-la-palette"]' },
+      { clic: '#panneau-creation .pied-de-la-palette .bouton-discret' },
     ],
+  },
+  {
+    id: 'verification-tenue',
+    titre: 'Vérification, des garanties tenues',
+    quand: 'Jaune tient ses garanties, sans point à vérifier ; le designer ouvre Vérification.',
+    regarder: 'Le ✓ du verdict sur le bouton du sélecteur ; « Palette Jaune » ; le verdict sur son fond de succès, « 76 garanties tenues » et « Aucun point à vérifier » ; aucun message ; la carte des garanties ; le pied « La palette tient ses garanties. » et « Passer à Gestion », bouton principal.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([JAUNE, BLEU])), ouvrirLaVerification],
+  },
+  {
+    id: 'verification-libre',
+    titre: 'Vérification d’une palette libre',
+    quand: 'Une palette libre, sortie du modèle : ni rôles, ni garanties ; le designer ouvre Vérification.',
+    regarder: '« Palette libre · 6 nuances » en verdict de succès, aucune carte des garanties, et le pied « Une palette libre n’a pas de garantie à vérifier. » avec « Passer à Gestion ».',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, crans: [100, 200, 400, 600, 800, 900] }])), ouvrirLaVerification],
+  },
+  {
+    id: 'verdicts-du-selecteur',
+    titre: 'Verdicts dans le sélecteur',
+    quand: 'Le fichier porte Vert, qui manque des garanties, Bleu, qui a un point à vérifier, et Jaune ; le designer ouvre la liste.',
+    regarder: 'À droite de chaque option, ✗ en danger pour Vert, ! en avertissement pour Bleu, ✓ en succès pour Jaune ; le ✗ de Vert, la palette ouverte, sur le bouton, avant la flèche.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A'), BLEU, JAUNE])), { clic: '.selecteur-bouton' }],
   },
   {
     id: 'ajustement-ouvert',
