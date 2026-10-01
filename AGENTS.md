@@ -250,7 +250,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
   src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, volet des messages, annonce en fin de geste
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
-  src/ui/carte.ts          une carte de la configuration, fixe ou repliable, avec son résumé
+  src/ui/carte.ts          une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé
+  src/ui/glyphes.ts        le glyphe de chaque carte titrée, en formes à rôle de couleur, que la maquette du Color shift dessine aussi
+  src/ui/calculDesLimites.ts les limites dynamiques calculées par tranches entre les images, terminées au début d'un geste
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
   src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser
@@ -266,15 +268,16 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/dessin.ts         le suivi d'un dessin : progression, résultat, confirmation des calques étrangers, écarts de peinture
   src/ui/configuration.ts  les Réglages communs en cartes : aperçu de la palette ouverte, fonds, intensités et fonds du thème Dark, courbes ; seuils et contenu des planches repliés
   src/ui/traceDesCourbes.ts le tracé des deux courbes au-dessus de leur table, et le ◆ de la référence insérée
-  src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : dérive, réglette et tracé s'étirent sans grandir
+  src/ui/largeur.ts        la largeur affichée d'un graphe, suivie une fois par image : Color shift, réglette des garanties et tracé s'étirent sans grandir
   src/ui/apercuCompact.ts  les rampes présentes d'une palette et le résultat de ses garanties, pour une fiche ou les réglages
-  src/ui/reglagesDeLaPalette.ts la carte « Teinte, saturation, luminosité » : profil visé, trois curseurs peints, et en lignes fixes l'avertissement de la référence, l'origine des parts et la première alerte
+  src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la plage sûre ou la butée, l'origine des parts et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, et ceux des intensités
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
   src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
-  src/ui/derive/           l'éditeur de dérive : géométrie pure, graphe SVG ; glisser, clavier, réglettes, préréglage, lien, annulation
+  src/ui/derive/           la carte « Color shift » : onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation, plage sûre et butée
+  src/ui/derive/reglette.ts la réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne
   src/ui/textes.ts         tous les textes destinés au designer, provisoires jusqu'au point M2
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
   tests/                   dont la loi d'écriture, et interface/ pour Chromium
@@ -967,7 +970,7 @@ La spécification en lien porte le raisonnement.
 - Dans son intensité porteuse, chaque mode d'une palette contient les octets
   exacts de sa couleur de référence, au cran de clarté la plus proche. Les
   autres crans gardent le calcul commun, et aucune vue ne recalcule une
-  référence : promesses, alertes, planche, rapport et éditeur de dérive lisent
+  référence : promesses, alertes, planche, rapport et Color shift lisent
   `rampesDe` et `ancrageDe` (`packages/couleur/src/palette.ts`), qui en sont
   l'unique autorité. `packages/couleur/tests/ancrage.test.ts` l'éprouve sur deux
   mille références, puis sous vingt mille Color shift tirés au hasard. Le cran porteur se lit sur la clarté du départ des réglages :
@@ -989,7 +992,7 @@ La spécification en lien porte le raisonnement.
   `partsDe`, `partDeLaReference` et `profilPorteur`
   (`packages/couleur/src/palette.ts`) en sont l'unique autorité, et des parts
   propres du designer passent avant elles. Sans palette de base, le premier
-  réglage de la carte « Teinte, saturation, luminosité » fige le porteur dans
+  réglage de la carte « Réglage global » fige le porteur dans
   `reglages.porteur`, qui passe avant le classement automatique.
   `packages/couleur/tests/base.test.ts` l'éprouve sur des teintes, des
   clartés et des parts communes variées, et
@@ -1143,11 +1146,21 @@ La spécification en lien porte le raisonnement.
   prévisualisation et la validation passent, et le pied n'annonce son bilan
   qu'à la fin d'un geste. Les tests `[UI-20]` de
   `packages/plugin-palettes/tests/interface/interface.test.mjs` relèvent,
-  fenêtre sans défilement, la position d'un curseur de la carte des réglages
-  et du graphe de la dérive à chaque image d'un glisser, et échouent au
-  premier pixel d'écart. Borne : ils ne relèvent que ces deux contrôles, et un
-  élément placé sous le contrôle saisi peut encore changer de hauteur.
+  fenêtre sans défilement, la position d'une réglette du réglage global, du
+  graphe et d'une réglette du Color shift à chaque image d'un glisser, et
+  échouent au premier pixel d'écart. Borne : ils ne relèvent que ces trois
+  contrôles, et un élément placé sous le contrôle saisi peut encore changer
+  de hauteur.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
+- Un geste du Color shift ou du réglage global ne range jamais une valeur
+  au-delà de la limite dynamique calculée au début du geste : la poignée et la
+  réglette s'arrêtent sur la borne, et la ligne de la plage sûre en nomme la
+  cause. Le calcul s'étale entre les images (`src/ui/calculDesLimites.ts`) ;
+  un geste qui commence avant sa fin le termine d'abord. Les tests `[DER-19]`,
+  `[DER-09]` et `[ENT-15]` de `interface.test.mjs` glissent, saisissent et
+  pressent Fin au-delà d'une borne. Borne : une valeur rangée qu'un autre
+  réglage a sortie de sa plage reste en place ([DER-23]).
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
 
 ## Vérification
 

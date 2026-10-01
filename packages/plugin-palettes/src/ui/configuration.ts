@@ -50,6 +50,7 @@ import {
 import { calquesDesParties } from '../planche/modele';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte, type CarteUi } from './carte';
+import { creerGlyphe, type NomDeGlyphe } from './glyphes';
 import { creerVuesChamps } from './champs';
 import { creerVuesConstats } from './constats';
 import { creerVuesPropositions } from './couleur/propositions';
@@ -120,6 +121,16 @@ function construireVues(i18n: Localisation) {
     contenu: TEXTES_DE_CONFIGURATION.contenu,
   };
 
+  /** Le glyphe de chaque carte ([UI-19]). */
+  const GLYPHES_DES_CARTES: Record<CarteDesReglages, NomDeGlyphe> = {
+    fonds: 'fonds',
+    parts: 'intensites',
+    courbes: 'courbes',
+    minimums: 'minimums',
+    proches: 'proches',
+    contenu: 'contenu',
+  };
+
   /** Les parties d'un cadre que le designer choisit, dans l'ordre de la carte ([PLA-28]). */
   const PARTIES: readonly (keyof ContenuDesPlanches)[] = ['note', 'usages', 'grilles', 'light', 'dark'];
 
@@ -133,7 +144,7 @@ function construireVues(i18n: Localisation) {
     const cartes = {} as Record<CarteDesReglages, { readonly ui: CarteUi; readonly erreur: HTMLParagraphElement; readonly retablir: HTMLButtonElement }>;
     for (const carte of Object.keys(TITRES) as CarteDesReglages[]) {
       const repliee = carte === 'minimums' || carte === 'proches' || carte === 'contenu';
-      const ui = createCarte({ titre: TITRES[carte], ...(repliee ? { repliable: { ouverte: false } } : {}) }, i18n);
+      const ui = createCarte({ titre: TITRES[carte], glyphe: creerGlyphe(GLYPHES_DES_CARTES[carte]), ...(repliee ? { repliable: { ouverte: false } } : {}) }, i18n);
       ui.element.classList.add('carte-de-reglage');
       const erreur = paragraphe('', 'field-error');
       erreur.hidden = true;

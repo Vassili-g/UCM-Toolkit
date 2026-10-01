@@ -114,8 +114,21 @@ const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)'
 
 /** Vert, ajusté d'un pas plus sombre : #16A34A devient #0DA047, et l'originale se garde (W7). */
 const VERT_AJUSTE = { ...palette('p-2b3c4d5e', 'Vert', '#0DA047'), originale: '#16A34A' };
-const deplierLaDerive = { clic: '[aria-label="Dérive de teinte"] .carte-bascule' };
-const deplierLesReglages = { clic: '[aria-label="Teinte, saturation, luminosité"] .carte-bascule' };
+/** Déplier une carte de réglage attend la fin du calcul de ses limites ([DER-20]). */
+const deplierLaDerive = { clic: '[aria-label="Color shift"] .carte-bascule', attendre: '.editeur-derive[data-limites="pretes"]' };
+const deplierLesReglages = { clic: '[aria-label="Réglage global"] .carte-bascule', attendre: '.reglages-de-la-palette[data-limites="pretes"]' };
+/** Un onglet de grandeur du Color shift ([DER-18]). */
+const ongletDuColorShift = (grandeur) => ({ clic: `.editeur-derive [role="tab"][data-grandeur="${grandeur}"]`, attendre: '.editeur-derive[data-limites="pretes"]' });
+
+/** Bleu, dont le Color shift règle aussi la saturation et la luminosité, aux deux profils liés. */
+const BLEU_COLOR_SHIFT = {
+  ...palette('p-1e6fd900', 'Bleu', '#1E6FD9'),
+};
+BLEU_COLOR_SHIFT.derive = {
+  ...BLEU_COLOR_SHIFT.derive,
+  soft: { ...BLEU_COLOR_SHIFT.derive.soft, saturation: { clair: -0.4, sombre: 0.25 }, clarte: { clair: 0.02, sombre: -0.05 } },
+  vivid: { ...BLEU_COLOR_SHIFT.derive.vivid, saturation: { clair: -0.4, sombre: 0.25 }, clarte: { clair: 0.02, sombre: -0.05 } },
+};
 
 /**
  * Bleu réglé dans la carte « Teinte, saturation, luminosité » (Z10.5) : Soft
@@ -254,7 +267,7 @@ const ETATS = [
     id: 'palette-tres-desaturee',
     titre: 'Palette très désaturée',
     quand: 'La référence #7C717B, saturation 8 % : sa teinte se lit encore, et la dérive Tailwind s’y applique.',
-    regarder: 'Soft et Vivid distincts, Vivid plus vif ; aucun point à vérifier, « Profils confondus » compris ; la dérive de teinte et la piste de teinte de la carte « Teinte, saturation, luminosité » réglables.',
+    regarder: 'Soft et Vivid distincts, Vivid plus vif ; aucun point à vérifier, « Profils confondus » compris ; le Color shift et la piste de teinte de la carte « Réglage global » réglables.',
     existe: true,
     atteinte: [etatDuFichier(rangee([palette('p-7c717b00', 'Taupe', '#7C717B')])), deplierLesReglages],
   },
@@ -262,15 +275,15 @@ const ETATS = [
     id: 'palette-grise',
     titre: 'Palette grise',
     quand: 'La référence #808080 est un gris pur : toutes les nuances sont grises, dans les deux profils et les deux thèmes.',
-    regarder: 'La dérive de teinte désactivée, résumée « Désactivée pour une palette grise » ; dans la carte « Teinte, saturation, luminosité », la piste de teinte désactivée, la note « Cette palette est entièrement grise. Il n’y a pas de teinte à régler. » dessous, et la ligne « Votre couleur de référence est un gris pur. Soft et Vivid sont gris. » ; aucun point à vérifier.',
+    regarder: 'Dans la carte « Réglage global », la piste de teinte désactivée, la note « Cette palette est entièrement grise. Il n’y a pas de teinte à régler. » dessous, et la ligne « Votre couleur de référence est un gris pur. Soft et Vivid sont gris. » ; dans le Color shift, les onglets Teinte et Saturation désactivés, l’onglet Luminosité choisi et réglable, et la note « Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable. » ; aucun point à vérifier.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-80808000', 'Gris', '#808080')])), deplierLesReglages],
+    atteinte: [etatDuFichier(rangee([palette('p-80808000', 'Gris', '#808080')])), deplierLesReglages, deplierLaDerive],
   },
   {
     id: 'presque-noir',
     titre: 'Presque noir',
     quand: 'La référence #060605 : R, G et B ne diffèrent que d’une unité, c’est un gris pur, plus sombre que toutes les nuances.',
-    regarder: 'Des rampes grises, sans teinte crème dans les clairs ; la référence à la place du 950 en Light ; aucun point à vérifier, ni « hors de la rampe » ; la dérive de teinte désactivée, sans la note de la poignée masquée.',
+    regarder: 'Des rampes grises, sans teinte crème dans les clairs ; la référence à la place du 950 en Light ; aucun point à vérifier, ni « hors de la rampe » ; le Color shift sur l’onglet Luminosité, sa note de palette grise à la place de celle de la poignée masquée.',
     existe: true,
     atteinte: [etatDuFichier(rangee([palette('p-06060500', 'Encre', '#060605')])), deplierLaDerive],
   },
@@ -338,21 +351,65 @@ const ETATS = [
   },
   {
     id: 'derive-liee-tailwind',
-    titre: 'Dérive liée, préréglage Tailwind',
-    quand: 'Le designer déplie l’éditeur d’une palette au préréglage, soft et vivid liés.',
-    regarder: 'Une seule ligne brisée, le pivot sur 0° dans la colonne 600, qui porte #1E6FD9, les deux poignées et leurs étiquettes, la bande et la rampe sous les mêmes colonnes.',
+    titre: 'Color shift lié, teinte Tailwind',
+    quand: 'Le designer déplie le Color shift d’une palette au préréglage, Soft et Vivid synchronisés.',
+    regarder: 'L’onglet Teinte choisi, ses deux valeurs ; une seule ligne brisée, le pivot sur 0° dans la colonne 600, qui porte #1E6FD9, les deux poignées sur leurs rails, leurs étiquettes, les rampes sans et avec Color shift sous les mêmes colonnes ; les repères Tailwind confondus avec les pouces des réglettes ; la ligne « Plage sûre · nuances claires −90,0° à +90,0° · nuances sombres −90,0° à +90,0° ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), deplierLaDerive],
   },
   {
     id: 'derive-deliee-libre',
-    titre: 'Dérive déliée et libre',
-    quand: 'soft garde le préréglage, vivid a une dérive libre : les profils sont déliés.',
-    regarder: 'Deux lignes, pleine et tiretée, et les poignées marquées de l’initiale du profil réglé.',
+    titre: 'Color shift délié et personnalisé',
+    quand: 'Soft garde la teinte Tailwind, Vivid une teinte personnalisée : les profils sont désynchronisés.',
+    regarder: 'Deux lignes, pleine et tiretée, les poignées marquées de l’initiale du profil réglé, et les repères Tailwind à l’écart des pouces.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([{ ...BLEU, derive: { lien: false, soft: BLEU.derive.soft, vivid: { clair: 20, sombre: -25, origine: 'libre' } } }])),
       deplierLaDerive,
+    ],
+  },
+  {
+    id: 'color-shift-saturation',
+    titre: 'Color shift, saturation',
+    quand: 'Bleu : le Color shift retire 40 % de saturation aux nuances claires et en ajoute 25 % aux sombres ; le designer choisit l’onglet Saturation.',
+    regarder: 'L’onglet Saturation choisi, « −40 % · +25 % », la pastille de chaque onglet réglé ; l’échelle en pourcentage, ±50 % ; les rails des poignées, sans hachure quand toute la plage est sûre ; les réglettes peintes du gris au vif.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU_COLOR_SHIFT])), deplierLaDerive, ongletDuColorShift('saturation')],
+  },
+  {
+    id: 'color-shift-luminosite',
+    titre: 'Color shift, luminosité',
+    quand: 'Bleu : le Color shift éclaircit les nuances claires de 0,020 et assombrit les sombres de 0,050 ; le designer choisit l’onglet Luminosité.',
+    regarder: 'L’onglet Luminosité choisi, « +0,020 · −0,050 » ; l’échelle en clarté, ±0,10 ; les rails hachurés au-delà de la plage sûre ; la rampe sans Color shift et la rampe avec, plus claire à gauche et plus sombre à droite ; la ligne de la plage sûre des deux bouts.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU_COLOR_SHIFT])), deplierLaDerive, ongletDuColorShift('clarte')],
+  },
+  {
+    id: 'color-shift-en-butee',
+    titre: 'Color shift en butée',
+    quand: 'Bleu, onglet Luminosité : le designer pousse les nuances claires à leur borne permise, puis d’un pas au-delà.',
+    regarder: 'Le pouce des nuances claires posé à +0,040, contre la zone hachurée ; la ligne en ton de butée « Luminosité, nuances claires : limite atteinte à +0,040. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité. ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU])),
+      deplierLaDerive,
+      ongletDuColorShift('clarte'),
+      { touche: { dans: '.editeur-derive .reglettes > .reglette:first-child .reglette-curseur', cle: 'End' } },
+      { touche: { dans: '.editeur-derive .reglettes > .reglette:first-child .reglette-curseur', cle: 'ArrowRight' } },
+    ],
+  },
+  {
+    id: 'reglage-global-en-butee',
+    titre: 'Réglage global en butée',
+    quand: 'Vert, deux intensités, « Les deux » : le designer pousse la luminosité à sa borne permise, +0,005, puis d’un pas au-delà.',
+    regarder: 'Le pouce de la luminosité contre sa zone hachurée ; la ligne en ton de butée « Luminosité de Soft et Vivid : limite atteinte à +0,005. Au-delà, … tomberait à …, sous 3:1. ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
+      deplierLesReglages,
+      { clic: '.cible-des-reglages .bascule-option:nth-child(3)', attendre: '.reglages-de-la-palette[data-limites="pretes"]' },
+      { touche: { dans: '.reglages-de-la-palette > .reglette:nth-child(5) .reglette-curseur', cle: 'End' } },
+      { touche: { dans: '.reglages-de-la-palette > .reglette:nth-child(5) .reglette-curseur', cle: 'ArrowRight' } },
     ],
   },
   {
@@ -555,8 +612,8 @@ const ETATS = [
   {
     id: 'reference-soft',
     titre: 'Référence Soft',
-    quand: 'Une référence peu intense, #A0B599 : Soft la porte, dans les deux thèmes. Le designer déplie la dérive.',
-    regarder: 'La ligne « Référence : Soft · nuance 400 », le ◆ dans la pastille Soft 400, puis dans l’éditeur la ligne et la rampe de Soft, et le pivot dans la colonne 400.',
+    quand: 'Une référence peu intense, #A0B599 : Soft la porte, dans les deux thèmes. Le designer déplie le Color shift.',
+    regarder: 'La ligne « Référence : Soft · nuance 400 », le ◆ dans la pastille Soft 400, puis dans le Color shift la ligne et les rampes de Soft, et le pivot dans la colonne 400.',
     existe: true,
     atteinte: [etatDuFichier(rangee([palette('p-6a0b5990', 'Sauge', '#A0B599')])), deplierLaDerive],
   },
@@ -641,8 +698,8 @@ const ETATS = [
   {
     id: 'cartes-repliees',
     titre: 'Cartes repliées',
-    quand: 'Bleu à l’ouverture : les cartes Intensités et Dérive de teinte sont repliées.',
-    regarder: 'Les deux cartes repliées sur une ligne chacune, leur chevron, et leur résumé aligné à droite.',
+    quand: 'Bleu à l’ouverture : la section « Ajuster la palette » et ses cartes « Réglage global » et « Color shift » repliées.',
+    regarder: 'Le titre de section et sa phrase ; les deux cartes repliées, leur chevron, leur glyphe, leur titre et leur sous-titre, et leur résumé aligné à droite sur une ligne, « Tailwind · Teinte −7,5° / +5,1° · synchronisé » pour le Color shift ; le glyphe de chaque autre carte titrée de l’onglet.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU]))],
   },
@@ -796,7 +853,7 @@ const ETATS = [
     id: 'palette-une-intensite',
     titre: 'Palette à une intensité',
     quand: 'Bleu porte une seule intensité, celle de sa couleur de référence.',
-    regarder: 'Le segment « Une » des intensités pressé, son aide, et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; la carte « Teinte, saturation, luminosité » repliée, ni bascule Soft et Vivid dans les garanties, ni lien de synchronisation dans la dérive.',
+    regarder: 'Le segment « Une » des intensités pressé, son aide, et « Intensité : 0,89 » dessous ; l’aperçu à une rangée par thème, sans nom de profil ; la carte « Réglage global » repliée, ni bascule Soft et Vivid dans les garanties, ni synchronisation dans le Color shift.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }]))],
   },
@@ -810,15 +867,15 @@ const ETATS = [
   },
   {
     id: 'reglages-une-intensite',
-    titre: 'Teinte, saturation, luminosité, à une intensité',
-    quand: 'Bleu porte une seule intensité ; le designer déplie la carte « Teinte, saturation, luminosité ».',
-    regarder: 'Aucun choix de profil ; l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » en tête ; trois rangées, Teinte, Saturation et Luminosité, chacune avec sa piste peinte, son champ et « Rétablir », la teinte absolue après son champ ; la saturation à celle de la référence, sans repère ; « La dérive de teinte s’applique ensuite. ».',
+    titre: 'Réglage global, à une intensité',
+    quand: 'Bleu porte une seule intensité ; le designer déplie la carte « Réglage global ».',
+    regarder: 'Aucun choix de profil ; l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » en tête ; trois réglettes, Teinte, Saturation et Luminosité, chacune avec son champ, sa piste peinte et « Rétablir », la teinte absolue après son champ ; la saturation à celle de la référence, sans repère ; la ligne de la plage sûre, puis « Le Color shift s’applique ensuite, autour de la référence. ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }])), deplierLesReglages],
   },
   {
     id: 'reglages-profil-delie',
-    titre: 'Teinte, saturation, luminosité, un profil réglé seul',
+    titre: 'Réglage global, un profil réglé seul',
     quand: 'Bleu, deux intensités : Soft tourné de 8° ; le designer déplie la carte, ouverte sur Soft.',
     regarder: 'Les segments « Vivid ◆ · Soft · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Soft +8° · Soft 45 % · Vivid 89 % · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
     existe: true,
@@ -826,7 +883,7 @@ const ETATS = [
   },
   {
     id: 'reglages-avant-le-porteur',
-    titre: 'Teinte, saturation, luminosité, avant un réglage du porteur',
+    titre: 'Réglage global, avant un réglage du porteur',
     quand: 'Bleu, deux intensités ; le designer déplie la carte et choisit Vivid, qui porte la référence.',
     regarder: 'Vivid ◆ pressé, et dessous, avant tout geste, l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » sur fond d’avertissement ; la lettre S qui situe Soft sur chaque piste.',
     existe: true,
@@ -834,7 +891,7 @@ const ETATS = [
   },
   {
     id: 'reglages-reference-modifiee',
-    titre: 'Teinte, saturation, luminosité, référence modifiée',
+    titre: 'Réglage global, référence modifiée',
     quand: 'Bleu : Soft tourné de 8°, Vivid assombri de 0,02, ce qui a déplacé la référence ; le designer rouvre la carte sur Vivid.',
     regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Soft +8° · Vivid −0,02 · Soft 45 % · Vivid 93 % ».',
     existe: true,

@@ -8,12 +8,14 @@
  * La page embarque le moteur du dépôt, lié par esbuild, et le texte des
  * fonctions de `modele-color-shift.mjs` : couleurs, garanties et limites y
  * sortent du même code que la mesure. Les cartes de la maquette suivent les
- * rôles de couleur du socle des plugins.
+ * rôles de couleur du socle des plugins. La planche des glyphes se dessine
+ * depuis `GLYPHES`, les formes que le plugin pose sur ses cartes.
  */
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { GLYPHES } from '../../../../../packages/plugin-palettes/src/ui/glyphes.ts';
 import {
   ECART_MINIMAL,
   GRANDEURS,
@@ -56,6 +58,29 @@ const DECISIONS = [
   ['Q10', 'Glyphes', 'Chaque carte titrée reçoit un glyphe dans le style des deux cartes d’ajustement.'],
 ];
 const OUVERTES = [];
+
+/** Les cartes titrées et leur glyphe, dans l'ordre de leurs onglets ([UI-19]). */
+const CARTES_DES_GLYPHES = [
+  ['Onglet Création', [['configuration', 'Configuration de la palette'], ['reglageGlobal', 'Réglage global'], ['colorShift', 'Color shift'], ['garanties', 'Garanties de contraste'], ['interfaceDeTest', 'Interface de test'], ['creation', 'Nouvelle palette']]],
+  ['Réglages communs', [['fonds', 'Couleurs de fond'], ['intensites', 'Intensités'], ['courbes', 'Luminosité des nuances'], ['minimums', 'Minimums des promesses'], ['proches', 'Détection des couleurs proches'], ['contenu', 'Contenu des planches']]],
+  ['Onglet Palettes', [['palettesEtReglages', 'Palettes et réglages']]],
+];
+
+/** Le SVG d'un glyphe, avec les classes de rôle que la feuille du plugin peint. */
+function svgDuGlyphe(nom) {
+  const formes = GLYPHES[nom].map(({ element, attributs, role }) => {
+    const valeurs = Object.entries(attributs).map(([cle, valeur]) => `${cle}="${valeur}"`).join(' ');
+    return `<${element} ${valeurs} class="glyphe-${role}"/>`;
+  });
+  return `<svg viewBox="0 0 44 28" class="glyphe" aria-hidden="true">${formes.join('')}</svg>`;
+}
+
+/** La planche des glyphes, dans un thème de Figma : chaque carte, son glyphe et son titre. */
+function plancheDesGlyphes(sombre) {
+  const groupes = CARTES_DES_GLYPHES.map(([onglet, cartes]) => `<h3>${onglet}</h3><ul>${cartes
+    .map(([nom, titre]) => `<li>${svgDuGlyphe(nom)}<span class="carte-titre">${titre}</span><span class="nom-du-glyphe">${nom}</span></li>`).join('')}</ul>`);
+  return `<div class="planche-glyphes${sombre ? ' figma-dark' : ''}" aria-label="Glyphes, thème ${sombre ? 'sombre' : 'clair'} de Figma"><h2>Thème ${sombre ? 'sombre' : 'clair'} de Figma</h2>${groupes.join('')}</div>`;
+}
 
 // ------------------------------------------------------------ l'application
 
@@ -1086,6 +1111,25 @@ header.page p { margin: 0; color: var(--page-second); max-width: 900px; }
 .carte-corps { display: none; padding: 4px 12px 12px; border-top: 1px solid var(--bordure); }
 .ouverte .carte-corps { display: grid; gap: 8px; }
 .glyphe { width: 38px; height: 24px; flex: none; }
+/* La planche des glyphes : les rôles de couleur du plugin, dans chaque thème de Figma ([UI-19]). */
+.planches-des-glyphes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; padding: 0 24px 32px; }
+.planches-des-glyphes > h2 { grid-column: 1 / -1; margin: 0; }
+.planche-glyphes {
+  --fond: #ffffff; --fond-bloc: #f5f5f5; --bordure: #d2d2d2; --texte: #1e1e1e; --texte-second: #6b6b6b; --texte-marque: #007be5;
+  background: var(--fond-bloc); color: var(--texte); border: 1px solid var(--bordure); border-radius: 10px; padding: 12px 16px; font: 11px/16px Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.planche-glyphes.figma-dark { --fond: #2c2c2c; --fond-bloc: #383838; --bordure: #5e5e5e; --texte: #ffffff; --texte-second: #b3b3b3; --texte-marque: #7cc4f8; }
+.planche-glyphes h2 { font-size: 12px; margin: 0 0 4px; }
+.planche-glyphes h3 { font-size: 11px; margin: 10px 0 4px; color: var(--texte-second); font-weight: 600; }
+.planche-glyphes ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.planche-glyphes li { display: flex; align-items: center; gap: 8px; }
+.planche-glyphes .nom-du-glyphe { margin-left: auto; color: var(--texte-second); font-family: ui-monospace, Consolas, monospace; font-size: 10px; }
+.glyphe-trait { fill: none; stroke: var(--texte-second); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.glyphe-trait-marque { fill: none; stroke: var(--texte-marque); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.glyphe-aplat { fill: var(--texte-second); }
+.glyphe-aplat-pale { fill: var(--texte-second); opacity: .35; }
+.glyphe-aplat-marque { fill: var(--texte-marque); }
+.glyphe-fond { fill: var(--fond); stroke: var(--texte-second); stroke-width: 1.8; stroke-linejoin: round; }
 .glyphe-avant rect { fill: var(--texte-second); opacity: .35; }
 .glyphe-apres rect { fill: var(--texte-marque); }
 .glyphe-axe { stroke: var(--bordure); stroke-width: 1.2; }
@@ -1241,6 +1285,11 @@ const GABARIT = ({ moteur, fonctions, donnees, app }) => `<!doctype html>
   <main><div id="plugin" aria-label="Plugin UCM Palettes simulé"></div></main>
   <aside class="explications">${EXPLICATIONS}</aside>
 </div>
+<section class="planches-des-glyphes" aria-label="Planche des glyphes">
+  <h2>Planche des glyphes</h2>
+  ${plancheDesGlyphes(false)}
+  ${plancheDesGlyphes(true)}
+</section>
 <script id="moteur-ucm">${moteur}</script>
 <script>
 ${donnees}

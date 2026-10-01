@@ -1,25 +1,31 @@
 /**
- * La carte « Teinte, saturation, luminosité » de la palette ouverte (Z10.6,
- * maquette Z10.4, forme A) : le profil à régler en segments, Vivid, Soft ou
- * les deux, puis trois curseurs peints par le moteur, chacun avec son champ,
- * sa valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa
- * valeur sur chaque piste, et un repère situe la saturation de la référence
- * sur celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
- * régler ([DER-15]). Une ligne fixe dit, avant les curseurs, si un réglage
- * déplace la référence, et ensuite qu'elle a bougé. Sous les curseurs, deux
- * lignes fixes : l'origine des parts et le retour aux réglages communs, puis
- * la note d'une palette grise ou la première alerte qui compare les profils
- * ([VER-10], [VER-11]). Aucune ne change de hauteur pendant un geste
- * ([UI-20]) ; le détail des alertes se lit dans le volet du pied ([UI-18]).
+ * La carte « Réglage global » de la palette ouverte ([UI-12], Z10.6, maquette
+ * Z10.4, forme A) : le profil à régler en segments, Vivid, Soft ou les deux,
+ * puis trois réglettes peintes par le moteur, chacune avec son champ, sa
+ * valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa valeur
+ * sur chaque piste, et un repère situe la saturation de la référence sur
+ * celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
+ * régler ([DER-15]).
+ *
+ * Chaque réglette s'arrête à la limite dynamique de `[DER-19]`, calculée pour
+ * la cible choisie, carte ouverte, et étalée entre les images ; une ligne fixe
+ * dit la plage sûre, ou la cause de la butée ([DER-22]). Une ligne fixe dit,
+ * avant les réglettes, si un réglage déplace la référence, et ensuite qu'elle
+ * a bougé. Sous les réglettes, deux lignes fixes : l'origine des parts et le
+ * retour aux réglages communs, puis la note d'une palette grise ou la première
+ * alerte qui compare les profils ([VER-10], [VER-11]). Aucune ne change de
+ * hauteur pendant un geste ([UI-20]) ; le détail des alertes se lit dans le
+ * volet du pied ([UI-18]).
  *
  * Un glisser prévisualise une fois par image au plus, la fin du geste
  * enregistre, Échap rend la palette d'avant le geste. Une palette à une
- * intensité n'a pas de segments : ses curseurs règlent sa rampe et sa
+ * intensité n'a pas de segments : ses réglettes règlent sa rampe et sa
  * référence ([ENT-14]).
  */
 import {
   aUnReglageDuPorteur,
   aUneIntensite,
+  balayerLaLimite,
   estPaletteGrise,
   fabriquerCran,
   partDeLaReference,
@@ -28,6 +34,7 @@ import {
   profilPorteur,
   validerRecette,
   BORNES_DES_REGLAGES,
+  type Limite,
   type Palette,
   type Profil,
   type Recette,
@@ -45,14 +52,19 @@ import {
   type CibleDuReglage,
 } from '../edition';
 import type { CibleDAction } from '../presentation';
+import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
+import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
 export interface ReglagesDeLaPaletteUi {
   element: HTMLDivElement;
-  /** `messages` : les alertes qui comparent les profils, sous les curseurs. */
-  afficher(recette: Recette, palette: Palette, messages: readonly Message[]): void;
+  /**
+   * `messages` : les alertes qui comparent les profils, sous les réglettes.
+   * `ouverte` : la carte est dépliée, et ses limites se calculent.
+   */
+  afficher(recette: Recette, palette: Palette, messages: readonly Message[], ouverte: boolean): void;
   /** Focalise le premier contrôle, quand un message y mène ([VER-15]). */
   ouvrir(): void;
 }
@@ -67,31 +79,23 @@ type Grandeur = 'teinte' | 'saturation' | 'luminosite';
 
 const GRANDEURS: readonly Grandeur[] = ['teinte', 'saturation', 'luminosite'];
 
-/** Les bornes, le pas au clavier et le pas avec Maj de chaque curseur (maquette Z10.4, question 2). */
+/** Les bornes, le pas au clavier et le pas avec Maj de chaque réglette (maquette Z10.4, question 2). */
 const CURSEURS: Record<Grandeur, { readonly min: number; readonly max: number; readonly pas: number; readonly grandPas: number }> = {
   teinte: { min: -BORNES_DES_REGLAGES.teinte, max: BORNES_DES_REGLAGES.teinte, pas: 1, grandPas: 5 },
   saturation: { min: 0, max: 1, pas: 0.01, grandPas: 0.05 },
   luminosite: { min: BORNES_DES_REGLAGES.clarte.bas, max: BORNES_DES_REGLAGES.clarte.haut, pas: 0.005, grandPas: 0.02 },
 };
 
-/** La moitié de la largeur du pouce (`.curseur-peint::-webkit-slider-thumb`) : son centre parcourt la piste moins deux demi-pouces. */
-const DEMI_POUCE = 7;
-
 interface Rangee {
   readonly grandeur: Grandeur;
-  readonly ligne: HTMLDivElement;
-  readonly curseur: HTMLInputElement;
-  readonly piste: HTMLSpanElement;
-  readonly fantome: HTMLSpanElement;
-  readonly repere: HTMLSpanElement;
-  readonly champ: HTMLInputElement;
+  readonly reglette: RegletteUi;
   readonly absolu: HTMLSpanElement;
-  readonly retablir: HTMLButtonElement;
 }
 
 function construireVues(i18n: Localisation) {
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
-  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_AVANCES, TEXTES_DE_LA_DERIVE, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
+  const { createReglette } = creerVuesReglette(i18n);
+  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_AVANCES, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
 
   /** Le texte d'un champ : la teinte signée en degrés, la saturation en pour cent, la luminosité signée. */
   const ecrire = (grandeur: Grandeur, valeur: number): Texte =>
@@ -123,7 +127,9 @@ function construireVues(i18n: Localisation) {
       bouton.type = 'button';
       bouton.className = 'bascule-option';
       bouton.addEventListener('click', () => {
+        if (choisie === valeur) return;
         choisie = valeur;
+        butee = null;
         rendre();
       });
       segments.append(bouton);
@@ -134,90 +140,67 @@ function construireVues(i18n: Localisation) {
     const avertissement = createLigneFixe();
     avertissement.element.classList.add('avertissement-des-reglages');
 
+    let lue: Recette | null = null;
+    let courante: Palette | null = null;
+    /** La carte est dépliée : ses limites se calculent. */
+    let ouverte = false;
+    /** Le profil que les réglettes règlent ; il revient à l'autre profil que le porteur quand la palette change. */
+    let choisie: CibleDuReglage = 'soft';
+    /** La palette d'avant le geste en cours, qu'Échap rétablit. */
+    let avantLeGeste: Palette | null = null;
+    /** Un aperçu attend l'image suivante : un seul rendu par image pendant un glisser (Z4). */
+    let enAttente: { palette: Palette; image: number } | null = null;
+    /** La butée du dernier geste, que la ligne de la plage nomme jusqu'au geste suivant ([DER-22]). */
+    let butee: { grandeur: Grandeur; cote: keyof Intervalle } | null = null;
+    // Les limites des trois réglettes, pour la cible choisie, et la clé de l'état qu'elles jugent.
+    let limites: Record<Grandeur, Limite | null> = { teinte: null, saturation: null, luminosite: null };
+    let cleDesLimites: { readonly etat: string; readonly cible: CibleDuReglage } | null = null;
+    const calculs = createCalculsDeLimites(() => {
+      if (element.offsetParent !== null) rendre();
+    });
+
+    const une = (): boolean => (courante ? aUneIntensite(courante) : false);
+    /** La cible que les gestes reçoivent : `vivid` pour une palette à une intensité. */
+    const cibleDuGeste = (): CibleDuReglage => (une() ? 'vivid' : choisie);
+
+    function avecLaValeur(grandeur: Grandeur, valeur: number, recette: Recette | null = lue, palette: Palette | null = courante): Palette | null {
+      if (!recette || !palette) return null;
+      const regler = grandeur === 'teinte' ? reglerTeinte : grandeur === 'saturation' ? reglerSaturation : reglerClarte;
+      return regler(recette, palette, cibleDuGeste(), valeur);
+    }
+
     const rangees: Rangee[] = GRANDEURS.map((grandeur) => {
-      const ligne = document.createElement('div');
-      ligne.className = 'reglage-de-la-palette';
-      const libelle = document.createElement('span');
-      libelle.className = 'field-label';
-      i18n.lier(libelle, 'textContent', TEXTES_DES_REGLAGES.grandeurs[grandeur]);
-      const piste = document.createElement('span');
-      piste.className = 'reglette-piste piste-peinte';
-      const { min, max, pas } = CURSEURS[grandeur];
-      const curseur = document.createElement('input');
-      curseur.type = 'range';
-      curseur.min = String(min);
-      curseur.max = String(max);
-      curseur.step = String(pas);
-      curseur.className = 'reglette-curseur curseur-peint';
-      const fantome = document.createElement('span');
-      fantome.className = 'fantome-du-profil';
-      fantome.setAttribute('aria-hidden', 'true');
-      const repere = document.createElement('span');
-      repere.className = 'reglette-repere repere-de-reference';
-      piste.append(curseur, fantome, repere);
-      const champ = document.createElement('input');
-      champ.type = 'text';
-      champ.inputMode = 'decimal';
-      champ.className = 'input champ-nombre champ-du-reglage';
-      champ.spellcheck = false;
       const absolu = document.createElement('span');
       absolu.className = 'ligne-secondaire absolu-du-reglage';
-      const retablir = document.createElement('button');
-      retablir.type = 'button';
-      retablir.className = 'bouton-discret';
-      i18n.lier(retablir, 'textContent', TEXTES_DES_REGLAGES.retablir);
-      i18n.lier(retablir, 'aria-label', TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]));
-      retablir.addEventListener('click', () => retablirLaGrandeur(grandeur));
-      curseur.addEventListener('dblclick', () => retablirLaGrandeur(grandeur));
-      curseur.addEventListener('pointerdown', (evenement) => commencer(grandeur, curseur, evenement));
-      curseur.addEventListener('input', () => {
-        if (abandonne === curseur) {
-          curseur.value = valeurDAvant;
-          return;
-        }
-        prevoir(grandeur, Number(curseur.value));
-      });
-      curseur.addEventListener('change', () => terminer(grandeur, Number(curseur.value)));
-      curseur.addEventListener('keydown', (evenement) => {
-        if (evenement.key === 'Escape' && avantLeGeste) {
-          evenement.preventDefault();
-          annuler();
-          abandonne = curseur;
-          valeurDAvant = curseur.value;
-          return;
-        }
-        if (evenement.key !== 'Escape') abandonne = null;
-        // Maj : le grand pas ; sans Maj, le pas du curseur, que le navigateur applique.
-        const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
-        if (!evenement.shiftKey || sens === undefined) return;
-        evenement.preventDefault();
-        const { grandPas } = CURSEURS[grandeur];
-        terminer(grandeur, Math.min(max, Math.max(min, Number(curseur.value) + sens * grandPas)));
-      });
-      champ.addEventListener('input', () => {
-        const valeur = lire(grandeur, champ.value);
-        if (valeur !== null && valeur >= min && valeur <= max) prevoir(grandeur, valeur);
-      });
-      champ.addEventListener('change', () => {
-        const valeur = lire(grandeur, champ.value);
-        if (valeur === null) {
-          signaler(nombreInvalide(champ.value));
-          return;
-        }
-        terminer(grandeur, valeur);
-      });
-      champ.addEventListener('keydown', (evenement) => {
-        if (evenement.key !== 'Escape' || !avantLeGeste) return;
-        evenement.preventDefault();
-        annuler();
-      });
-      ligne.append(libelle, piste, champ, absolu, retablir);
-      return { grandeur, ligne, curseur, piste, fantome, repere, champ, absolu, retablir };
+      const reglette = createReglette(TEXTES_DES_REGLAGES.grandeurs[grandeur], {
+        commencer() {
+          const termine = calculs.terminer();
+          butee = null;
+          if (!avantLeGeste) avantLeGeste = courante;
+          // La réglette relit ses bornes permises avant de borner le geste.
+          if (termine) rendre();
+        },
+        previsualiser: (valeur) => prevoir(grandeur, valeur),
+        valider: (valeur) => terminer(grandeur, valeur),
+        annuler,
+        retablir: () => retablirLaGrandeur(grandeur),
+        lire(saisie) {
+          const valeur = lire(grandeur, saisie);
+          if (valeur === null) signaler(nombreInvalide(saisie));
+          return valeur;
+        },
+        buter(cote) {
+          if (limites[grandeur]?.[cote].cause) butee = { grandeur, cote };
+        },
+      }, grandeur === 'teinte' ? absolu : undefined);
+      reglette.element.classList.add('reglage-de-la-palette');
+      return { grandeur, reglette, absolu };
     });
 
     const erreur = document.createElement('p');
     erreur.className = 'field-error';
     erreur.hidden = true;
+    const plage = createLigneFixe();
     const pied = document.createElement('p');
     pied.className = 'ligne-secondaire';
     i18n.lier(pied, 'textContent', TEXTES_DES_REGLAGES.pied);
@@ -236,98 +219,11 @@ function construireVues(i18n: Localisation) {
     lienDeLAlerte.addEventListener('click', () => {
       if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
     });
-    element.append(cible, avertissement.element, ...rangees.map(({ ligne }) => ligne), erreur, pied, origine.element, alerte.element);
-
-    let lue: Recette | null = null;
-    let courante: Palette | null = null;
-    /** Le profil que les curseurs règlent ; il revient à l'autre profil que le porteur quand la palette change. */
-    let choisie: CibleDuReglage = 'soft';
-    /** La palette d'avant le geste en cours, qu'Échap rétablit. */
-    let avantLeGeste: Palette | null = null;
-    /** Un aperçu attend l'image suivante : un seul rendu par image pendant un glisser (Z4). */
-    let enAttente: { palette: Palette; image: number } | null = null;
-    /** Le curseur dont Échap a abandonné le glisser : il ne bouge plus jusqu'au relâcher. */
-    let abandonne: HTMLInputElement | null = null;
-    /** La valeur qu'un curseur abandonné garde jusqu'au relâcher. */
-    let valeurDAvant = '';
-    /** Le glisser en cours : sa grandeur, son curseur, son pointeur et la valeur au premier appui. */
-    let glisse: { grandeur: Grandeur; curseur: HTMLInputElement; pointeur: number; depart: string } | null = null;
-
-    /*
-     * Le glisser d'un curseur se suit sur le document. Dans Figma, un mouvement arrive avec `buttons` à 0 bouton
-     * enfoncé, et Chromium retire alors toute capture : le glisser natif s'arrête dès que la souris quitte la piste.
-     * Le geste ne lit donc ni `buttons` ni la capture, et finit au relâcher, n'importe où dans le document. Sans
-     * capture, le relâcher hors de la fenêtre n'arrive pas : la sortie de la fenêtre finit le geste à la dernière
-     * valeur. `input` et `change` ne viennent plus que du clavier. Échap abandonne le geste : le curseur garde la
-     * valeur d'avant jusqu'au relâcher, qui n'enregistre rien.
-     */
-    function commencer(grandeur: Grandeur, curseur: HTMLInputElement, evenement: PointerEvent): void {
-      if (evenement.button !== 0 || curseur.disabled) return;
-      evenement.preventDefault();
-      curseur.focus({ preventScroll: true });
-      curseur.setPointerCapture(evenement.pointerId);
-      abandonne = null;
-      glisse = { grandeur, curseur, pointeur: evenement.pointerId, depart: curseur.value };
-      window.addEventListener('pointermove', bouger, true);
-      window.addEventListener('pointerup', relacher, true);
-      window.addEventListener('pointercancel', relacher, true);
-      document.addEventListener('pointerout', sortir, true);
-      suivre(evenement);
-    }
-
-    /** Pose la valeur sous le pointeur, arrondie au pas par le navigateur, puis la prévisualise. */
-    function suivre(evenement: PointerEvent): void {
-      if (!glisse || abandonne === glisse.curseur) return;
-      const { grandeur, curseur } = glisse;
-      const { min, max } = CURSEURS[grandeur];
-      const cadre = curseur.getBoundingClientRect();
-      const course = cadre.width - 2 * DEMI_POUCE;
-      const rapport = course > 0 ? Math.min(1, Math.max(0, (evenement.clientX - cadre.left - DEMI_POUCE) / course)) : 0;
-      const avant = curseur.value;
-      curseur.value = String(min + rapport * (max - min));
-      if (curseur.value !== avant) prevoir(grandeur, Number(curseur.value));
-    }
-
-    function bouger(evenement: PointerEvent): void {
-      if (glisse && evenement.pointerId === glisse.pointeur) suivre(evenement);
-    }
-
-    function relacher(evenement: PointerEvent): void {
-      if (glisse && evenement.pointerId === glisse.pointeur) finirLeGlisser();
-    }
-
-    /** Le pointeur quitte la fenêtre sans capture : le relâcher n'y serait pas vu. */
-    function sortir(evenement: PointerEvent): void {
-      if (!glisse || evenement.pointerId !== glisse.pointeur || evenement.relatedTarget !== null) return;
-      if (!glisse.curseur.hasPointerCapture(glisse.pointeur)) finirLeGlisser();
-    }
-
-    function finirLeGlisser(): void {
-      if (!glisse) return;
-      const { grandeur, curseur, depart } = glisse;
-      glisse = null;
-      window.removeEventListener('pointermove', bouger, true);
-      window.removeEventListener('pointerup', relacher, true);
-      window.removeEventListener('pointercancel', relacher, true);
-      document.removeEventListener('pointerout', sortir, true);
-      if (abandonne === curseur) return;
-      if (curseur.value !== depart) terminer(grandeur, Number(curseur.value));
-      else if (avantLeGeste) annuler();
-    }
+    element.append(cible, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, pied, origine.element, alerte.element);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
       erreur.hidden = texte === null;
-    }
-
-    const une = (): boolean => (courante ? aUneIntensite(courante) : false);
-    /** La cible que les gestes reçoivent : `vivid` pour une palette à une intensité. */
-    const cibleDuGeste = (): CibleDuReglage => (une() ? 'vivid' : choisie);
-
-    function avecLaValeur(grandeur: Grandeur, valeur: number): Palette | null {
-      if (!lue || !courante) return null;
-      const regler = grandeur === 'teinte' ? reglerTeinte : grandeur === 'saturation' ? reglerSaturation : reglerClarte;
-      return regler(lue, courante, cibleDuGeste(), valeur);
     }
 
     function annulerLAttente(): void {
@@ -366,7 +262,8 @@ function construireVues(i18n: Localisation) {
     }
 
     function terminer(grandeur: Grandeur, valeur: number): void {
-      valider(avecLaValeur(grandeur, valeur));
+      // Le geste part de la palette d'avant lui : la prévisualisation l'a déjà remplacée dans l'onglet.
+      valider(avecLaValeur(grandeur, valeur, lue, avantLeGeste ?? courante));
     }
 
     function annuler(): void {
@@ -377,17 +274,14 @@ function construireVues(i18n: Localisation) {
         gestes.previsualiser(avant);
         courante = avant;
       }
-      // Le contrôle a le focus, et un rendu ne récrit pas sa valeur : l'abandon la rend. Quitter le champ ensuite
-      // n'émet pas `change`.
-      rendre(true);
+      rendre();
     }
 
-    /**
-     * « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. Après un double-clic,
-     * le curseur a le focus, qu'un rendu ne récrit pas : le rendu forcé le rend à sa valeur.
-     */
+    /** « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
     function retablirLaGrandeur(grandeur: Grandeur): void {
       if (!lue || !courante) return;
+      calculs.terminer();
+      butee = null;
       if (grandeur === 'saturation') {
         valider(retablirLaSaturation(lue, courante, cibleDuGeste()));
       } else {
@@ -395,14 +289,13 @@ function construireVues(i18n: Localisation) {
         const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
         valider(profils.reduce((palette, profil) => regler(lue!, palette, profil, 0), courante));
       }
-      rendre(true);
     }
 
     reprendre.addEventListener('click', () => {
       if (lue && courante) valider(reprendreLesParts(lue, courante));
     });
 
-    /** Les valeurs d'un profil pour les trois curseurs, et sa teinte absolue. */
+    /** Les valeurs d'un profil pour les trois réglettes, et sa teinte absolue. */
     function valeursDuProfil(recette: Recette, palette: Palette, profil: Profil): Record<Grandeur, number> & { absolue: number } {
       const { teinte, clarte } = valeursDe(palette);
       const saturation = aUneIntensite(palette) ? (palette.reglages?.part ?? partDeLaReference(recette, palette)) : partsDesProfils(recette, palette)[profil];
@@ -429,13 +322,32 @@ function construireVues(i18n: Localisation) {
       return `linear-gradient(to right, ${couleurs.join(', ')})`;
     }
 
-    const position = (grandeur: Grandeur, valeur: number): number => {
-      const { min, max } = CURSEURS[grandeur];
-      return ((Math.min(max, Math.max(min, valeur)) - min) / (max - min)) * 100;
-    };
+    /** Lance le calcul des trois limites quand l'état jugé ou la cible a changé, carte ouverte, hors d'un geste ([DER-20]). */
+    function lancerLesLimites(recette: Recette, palette: Palette, valeurs: Record<Grandeur, number>, grise: boolean): void {
+      if (!ouverte || avantLeGeste) return;
+      const etat = JSON.stringify([{ ...recette, palettes: [] }, palette]);
+      const cibleLue = cibleDuGeste();
+      if (cleDesLimites?.etat === etat && cleDesLimites.cible === cibleLue) return;
+      if (cleDesLimites?.cible !== cibleLue) limites = { teinte: null, saturation: null, luminosite: null };
+      cleDesLimites = { etat, cible: cibleLue };
+      for (const grandeur of GRANDEURS) {
+        if (grandeur === 'teinte' && grise) continue;
+        const { min, max, pas } = CURSEURS[grandeur];
+        calculs.lancer(grandeur, balayerLaLimite({
+          recette,
+          palette,
+          candidate: (valeur) => avecLaValeur(grandeur, valeur, recette, palette) ?? palette,
+          valeur: valeurs[grandeur],
+          bornes: { bas: min, haut: max },
+          pas,
+          ordre: grandeur === 'luminosite',
+        }), (limite) => {
+          limites[grandeur] = limite;
+        });
+      }
+    }
 
-    /** `forcer` récrit aussi le curseur et le champ qui ont le focus. */
-    function rendre(forcer = false): void {
+    function rendre(): void {
       if (!lue || !courante) return;
       const recette = lue;
       const palette = courante;
@@ -456,54 +368,86 @@ function construireVues(i18n: Localisation) {
       const autre: Profil = profil === 'soft' ? 'vivid' : 'soft';
       const valeurs = valeursDuProfil(recette, palette, profil);
       const valeursDeLAutre = valeursDuProfil(recette, palette, autre);
-      // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme la dérive ([DER-15]).
+      // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme le Color shift ([DER-15]).
       const grise = estPaletteGrise(recette, palette);
+      lancerLesLimites(recette, palette, valeurs, grise);
       const partDeReference = partDeLaReference(recette, palette);
       const nomDeLaCible = choisie === 'deux' ? TEXTES_DES_REGLAGES.deuxProfils : NOM_DU_PROFIL[choisie];
-      for (const { grandeur, curseur, piste, fantome, repere, champ, absolu, retablir } of rangees) {
+      const etiquetteDe = (grandeur: Grandeur): Texte =>
+        // Une palette à une intensité n'a qu'un profil : la réglette porte le nom de sa grandeur.
+        uneSeule ? TEXTES_DES_REGLAGES.grandeurs[grandeur] : TEXTES_DES_REGLAGES.etiquette(TEXTES_DES_REGLAGES.grandeurs[grandeur], nomDeLaCible);
+      const permisesDe = (grandeur: Grandeur): Intervalle | null => {
+        const limite = limites[grandeur];
+        return limite ? { bas: limite.bas.valeur, haut: limite.haut.valeur } : null;
+      };
+      for (const { grandeur, reglette, absolu } of rangees) {
         const inactive = grandeur === 'teinte' && grise;
         const valeur = valeurs[grandeur];
-        curseur.disabled = inactive;
-        champ.disabled = inactive;
-        // Une teinte rangée se remet toujours à zéro, même sur une palette devenue grise.
-        retablir.disabled = inactive && valeur === 0;
-        if (forcer || document.activeElement !== curseur) curseur.value = String(valeur);
-        if (forcer || document.activeElement !== champ) champ.value = lireTexte(ecrire(grandeur, valeur));
-        // Une palette à une intensité n'a qu'un profil : le curseur porte le nom de sa grandeur.
-        const etiquette = uneSeule ? TEXTES_DES_REGLAGES.grandeurs[grandeur] : TEXTES_DES_REGLAGES.etiquette(TEXTES_DES_REGLAGES.grandeurs[grandeur], nomDeLaCible);
-        i18n.lier(curseur, 'aria-label', etiquette);
-        i18n.lier(champ, 'aria-label', etiquette);
-        i18n.lier(curseur, 'aria-valuetext', ecrire(grandeur, valeur));
-        piste.style.setProperty('--piste', peindre(recette, palette, profil, grandeur, valeurs));
-        i18n.lier(absolu, 'textContent', grandeur === 'teinte' ? `${Math.round(valeurs.absolue) % 360}°` : '');
+        const { min, max, pas, grandPas } = CURSEURS[grandeur];
+        const reperes: RepereDeReglette[] = [];
         // La lettre de l'autre profil situe sa valeur, quand un seul profil se règle.
-        fantome.hidden = uneSeule || choisie === 'deux';
-        fantome.style.left = `${position(grandeur, valeursDeLAutre[grandeur])}%`;
-        const nomDeLAutre = NOM_DU_PROFIL[autre];
-        i18n.lier(fantome, 'textContent', { lire: () => lireTexte(nomDeLAutre).charAt(0) });
-        i18n.lier(fantome, 'title', NOM_DU_PROFIL[autre]);
+        if (!uneSeule && choisie !== 'deux') {
+          const nomDeLAutre = NOM_DU_PROFIL[autre];
+          reperes.push({ valeur: valeursDeLAutre[grandeur], classe: 'fantome-du-profil', titre: nomDeLAutre, lettre: { lire: () => lireTexte(nomDeLAutre).charAt(0) } });
+        }
         // À une intensité, la saturation est celle de la référence : le repère n'y situerait qu'elle-même.
-        repere.hidden = grandeur !== 'saturation' || uneSeule;
-        repere.style.left = `${position('saturation', partDeReference)}%`;
-        i18n.lier(repere, 'title', grandeur === 'saturation' ? TEXTES_DES_INTENSITES.repere(nombreEcrit(Math.round(partDeReference * 100) / 100)) : '');
+        if (grandeur === 'saturation' && !uneSeule) {
+          reperes.push({ valeur: partDeReference, classe: 'repere-de-reference', titre: TEXTES_DES_INTENSITES.repere(nombreEcrit(Math.round(partDeReference * 100) / 100)) });
+        }
+        const permises = inactive ? null : permisesDe(grandeur);
+        reglette.poser({
+          valeur,
+          bornes: { bas: min, haut: max },
+          permises,
+          pas,
+          grandPas,
+          piste: peindre(recette, palette, profil, grandeur, valeurs),
+          texte: ecrire(grandeur, valeur),
+          etiquette: etiquetteDe(grandeur),
+          annonce: permises ? i18n.composer`${ecrire(grandeur, valeur)}, ${plageSureDuReglage([{ grandeur: TEXTES_DES_REGLAGES.grandeurs[grandeur], bas: ecrire(grandeur, permises.bas), haut: ecrire(grandeur, permises.haut) }])}` : ecrire(grandeur, valeur),
+          reperes,
+          desactivee: inactive,
+          horsDeLaPlage: false,
+          // Une teinte rangée se remet toujours à zéro, même sur une palette devenue grise.
+          bouton: { texte: TEXTES_DES_REGLAGES.retablir, etiquette: TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]), inactif: inactive && valeur === 0 },
+        });
+        i18n.lier(absolu, 'textContent', grandeur === 'teinte' ? `${Math.round(valeurs.absolue) % 360}°` : '');
       }
+
+      // L'état du calcul des limites, que les tests d'interface attendent avant un geste.
+      element.dataset.limites = calculs.enCours() ? 'en-cours' : 'pretes';
+
+      // La ligne de la plage : la butée du dernier geste, sinon la plage sûre des réglettes calculées.
+      const borne = butee ? limites[butee.grandeur]?.[butee.cote] : null;
+      const calculees = GRANDEURS.filter((grandeur) => limites[grandeur] && !(grandeur === 'teinte' && grise));
+      if (butee && borne?.cause) plage.poser(buteeDuReglage(etiquetteDe(butee.grandeur), ecrire(butee.grandeur, borne.valeur), borne.cause), 'butee');
+      else plage.poser(calculees.length > 0 ? plageSureDuReglage(calculees.map((grandeur) => ({
+        grandeur: TEXTES_DES_REGLAGES.grandeurs[grandeur],
+        bas: ecrire(grandeur, limites[grandeur]!.bas.valeur),
+        haut: ecrire(grandeur, limites[grandeur]!.haut.valeur),
+      }))) : '');
     }
 
     return {
       element,
       ouvrir() {
-        (cible.hidden ? rangees[0].curseur : boutonsDeCible[0].bouton).focus();
+        (cible.hidden ? rangees[0].reglette.curseur : boutonsDeCible[0].bouton).focus();
       },
-      afficher(recette, palette, messagesDesReglages) {
+      afficher(recette, palette, messagesDesReglages, ouverteLue) {
         if (courante?.id !== palette.id) {
           signaler(null);
           annulerLAttente();
           avantLeGeste = null;
+          butee = null;
+          calculs.abandonner();
+          cleDesLimites = null;
+          limites = { teinte: null, saturation: null, luminosite: null };
           // Le premier geste proposé ne déplace pas la référence : l'autre profil que le porteur.
           choisie = aUneIntensite(palette) ? 'vivid' : profilPorteur(recette, palette) === 'vivid' ? 'soft' : 'vivid';
         }
         lue = recette;
         courante = palette;
+        ouverte = ouverteLue;
         rendre();
         const uneSeule = aUneIntensite(palette);
         const grise = estPaletteGrise(recette, palette);
@@ -515,7 +459,7 @@ function construireVues(i18n: Localisation) {
         const premiere = messagesDesReglages.find((message) => message.severite !== 'notice');
         cibleDeLAlerte = premiere?.cibles[0] ?? null;
         i18n.lier(lienDeLAlerte, 'textContent', cibleDeLAlerte ? LIBELLES_DES_CIBLES[cibleDeLAlerte] : '');
-        if (grise) alerte.poser(TEXTES_DE_LA_DERIVE.grisDesactive);
+        if (grise) alerte.poser(TEXTES_DES_REGLAGES.grise);
         else if (premiere) alerte.poser(i18n.composer`${premiere.constat.ou} · ${premiere.constat.quoi}`, 'avertissement', cibleDeLAlerte ? [lienDeLAlerte] : []);
         else alerte.poser('');
       },

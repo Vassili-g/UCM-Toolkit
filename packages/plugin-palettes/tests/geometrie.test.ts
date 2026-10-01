@@ -1,4 +1,4 @@
-/** La géométrie du graphe de dérive ([DER-01], [DER-07], [DER-14], [ARC-08]). */
+/** La géométrie du graphe du Color shift ([DER-01], [DER-07], [DER-14], [ARC-08]). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,13 +7,13 @@ import { boutsDe, lireHexa, recetteParDefaut, rgb8VersOklch } from 'ucm-couleur'
 import {
   echelleDe,
   abscisse,
-  angleDe,
-  angleDuGlisser,
-  deriveDuCran,
+  decalageDuCran,
   ligneBrisee,
   ordonnee,
   rangDuPivot,
   reperes,
+  valeurDe,
+  valeurDuGlisser,
   type Cadre,
 } from '../src/ui/derive/geometrie';
 
@@ -21,7 +21,7 @@ const CADRE: Cadre = { largeur: 340, hauteur: 200, gauche: 42, droite: 0, haut: 
 const COURBE = recetteParDefaut().courbes.light;
 const BOUTS = boutsDe(recetteParDefaut());
 const BLEU = rgb8VersOklch(lireHexa('#1E6FD9')!);
-const DERIVE = { clair: -7.53, sombre: 5.11 };
+const DERIVE = { clair: -7.53, sombre: 5.11, saturation: { clair: -0.4, sombre: 0.2 }, clarte: { clair: 0.02, sombre: -0.05 } };
 
 test('[DER-01] onze colonnes régulières, du bout clair à gauche au bout sombre à droite', () => {
   // (340 - 42) / 11 : une colonne de 27,09 px, au-dessus des 24 px de [DER-16].
@@ -33,25 +33,35 @@ test('[DER-01] onze colonnes régulières, du bout clair à gauche au bout sombr
   }
 });
 
-test('[DER-01] +90° en haut, 0° au milieu, -90° en bas, et des repères tous les 15°', () => {
-  assert.equal(ordonnee(90, CADRE), 10);
-  assert.equal(ordonnee(0, CADRE), 100);
-  assert.equal(ordonnee(-90, CADRE), 190);
-  assert.deepEqual(reperes(90), [-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90]);
-  assert.deepEqual(reperes(30), [-30, -15, 0, 15, 30]);
+test('[DER-01] +90° en haut, 0° au milieu, -90° en bas ; des repères tous les 15°, gradués de 30° en 30° au-delà de ±45°', () => {
+  assert.equal(ordonnee(90, CADRE, 90), 10);
+  assert.equal(ordonnee(0, CADRE, 90), 100);
+  assert.equal(ordonnee(-90, CADRE, 90), 190);
+  assert.deepEqual(reperes('teinte', 90).map(({ valeur }) => valeur), [-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90]);
+  assert.deepEqual(reperes('teinte', 90).filter(({ gradue }) => gradue).map(({ valeur }) => valeur), [-90, -60, -30, 0, 30, 60, 90]);
+  assert.deepEqual(reperes('teinte', 30).map(({ valeur, gradue }) => [valeur, gradue]), [[-30, true], [-15, true], [0, true], [15, true], [30, true]]);
 });
 
-test('une ordonnée rend son angle, borné à ±90°', () => {
-  for (const angle of [-90, -37.5, 0, 12.25, 90]) assert.ok(Math.abs(angleDe(ordonnee(angle, CADRE), CADRE) - angle) < 1e-9);
-  assert.equal(angleDe(-50, CADRE), 90);
-  assert.equal(angleDe(400, CADRE), -90);
+test('[DER-01] les repères de la saturation et de la luminosité suivent leurs paliers', () => {
+  assert.deepEqual(reperes('saturation', 1).filter(({ gradue }) => gradue).map(({ valeur }) => valeur), [-1, -0.5, 0, 0.5, 1]);
+  assert.deepEqual(reperes('saturation', 0.25).map(({ valeur }) => valeur), [-0.25, -0.125, 0, 0.125, 0.25]);
+  assert.deepEqual(reperes('clarte', 0.05).map(({ valeur }) => valeur), [-0.05, -0.025, 0, 0.025, 0.05]);
+  assert.deepEqual(reperes('clarte', 0.15).map(({ valeur }) => valeur), [-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15]);
 });
 
-test('[DER-07] un glisser rend un angle au degré près, aux 5° avec Maj', () => {
-  const y = ordonnee(12.4, CADRE);
-  assert.equal(angleDuGlisser(y, CADRE, 1), 12);
-  assert.equal(angleDuGlisser(y, CADRE, 5), 10);
-  assert.ok(Object.is(angleDuGlisser(ordonnee(-0.2, CADRE), CADRE, 1), 0), 'zéro sans signe');
+test('une ordonnée rend sa valeur, bornée par l’échelle', () => {
+  for (const angle of [-90, -37.5, 0, 12.25, 90]) assert.ok(Math.abs(valeurDe(ordonnee(angle, CADRE, 90), CADRE, 90) - angle) < 1e-9);
+  assert.equal(valeurDe(-50, CADRE, 90), 90);
+  assert.equal(valeurDe(400, CADRE, 0.15), -0.15);
+});
+
+test('[DER-07] un glisser rend une valeur au pas, au grand pas avec Maj, sans zéro négatif', () => {
+  const y = ordonnee(12.4, CADRE, 90);
+  assert.equal(valeurDuGlisser(y, CADRE, 1, 90), 12);
+  assert.equal(valeurDuGlisser(y, CADRE, 5, 90), 10);
+  assert.ok(Object.is(valeurDuGlisser(ordonnee(-0.2, CADRE, 90), CADRE, 1, 90), 0), 'zéro sans signe');
+  assert.equal(valeurDuGlisser(ordonnee(0.0237, CADRE, 0.05), CADRE, 0.005, 0.05), 0.025);
+  assert.equal(valeurDuGlisser(ordonnee(-0.413, CADRE, 1), CADRE, 0.01, 1), -0.41);
 });
 
 test('[DER-01] le pivot se place entre les deux crans qui encadrent sa clarté', () => {
@@ -66,38 +76,46 @@ test('[DER-14] une référence hors de la courbe claire n’a pas de pivot sur l
   assert.equal(rangDuPivot(0.2, COURBE), null);
 });
 
-test('[DER-01] la ligne brisée passe par la dérive de chaque cran et par le pivot à 0°', () => {
-  const ligne = ligneBrisee(COURBE, BLEU, DERIVE, BOUTS);
-  assert.equal(ligne.length, 12);
-  assert.deepEqual(ligne.map((sommet) => sommet.rang), [...ligne.map((sommet) => sommet.rang)].sort((a, b) => a - b));
-  // Aux bouts, la dérive entière du bout ; au pivot, aucune.
-  assert.ok(Math.abs(ligne[0].angle - DERIVE.clair) < 1e-9);
-  assert.ok(Math.abs(ligne[11].angle - DERIVE.sombre) < 1e-9);
-  assert.equal(ligne.find((sommet) => !Number.isInteger(sommet.rang))?.angle, 0);
-  assert.ok(Math.abs(deriveDuCran(COURBE[3], BLEU, DERIVE, BOUTS)) < Math.abs(DERIVE.clair));
+test('[DER-01] [MOT-30] la ligne brisée passe par le décalage de chaque cran et par le pivot à 0, pour les trois grandeurs', () => {
+  for (const grandeur of ['teinte', 'saturation', 'clarte'] as const) {
+    const ligne = ligneBrisee(grandeur, COURBE, BLEU, DERIVE, BOUTS);
+    const bouts = grandeur === 'teinte' ? DERIVE : DERIVE[grandeur];
+    assert.equal(ligne.length, 12);
+    assert.deepEqual(ligne.map((sommet) => sommet.rang), [...ligne.map((sommet) => sommet.rang)].sort((a, b) => a - b));
+    // Aux bouts, le réglage entier du bout ; au pivot, aucun.
+    assert.ok(Math.abs(ligne[0].valeur - bouts.clair) < 1e-9, grandeur);
+    assert.ok(Math.abs(ligne[11].valeur - bouts.sombre) < 1e-9, grandeur);
+    assert.equal(ligne.find((sommet) => !Number.isInteger(sommet.rang))?.valeur, 0);
+    assert.ok(Math.abs(decalageDuCran(grandeur, COURBE[3], BLEU, DERIVE, BOUTS)) < Math.abs(bouts.clair));
+  }
 });
 
-test('[DER-02] la ligne du profil porteur passe à 0° sur le rang clair de sa référence, sans pivot entre deux crans', () => {
+test('[DER-02] la ligne du profil porteur passe à 0 sur le rang clair de sa référence, sans pivot entre deux crans', () => {
   // #1E6FD9 est le 600 de vivid : rang 6 de la courbe claire.
-  const ligne = ligneBrisee(COURBE, BLEU, DERIVE, BOUTS, 6);
+  const ligne = ligneBrisee('teinte', COURBE, BLEU, DERIVE, BOUTS, 6);
   assert.equal(ligne.length, 11);
   assert.ok(ligne.every((sommet) => Number.isInteger(sommet.rang)));
-  assert.equal(ligne[6].angle, 0);
-  assert.ok(Math.abs(ligne[7].angle - deriveDuCran(COURBE[7], BLEU, DERIVE, BOUTS)) < 1e-12);
+  assert.equal(ligne[6].valeur, 0);
+  assert.ok(Math.abs(ligne[7].valeur - decalageDuCran('teinte', COURBE[7], BLEU, DERIVE, BOUTS)) < 1e-12);
 });
 
-test('[DER-01] l’échelle vaut ±30° quand les dérives y tiennent, puis s’élargit par paliers jusqu’à ±90°', () => {
-  assert.equal(echelleDe([-7.53, 5.11]), 30);
-  assert.equal(echelleDe([0, 0]), 30);
+test('[DER-01] l’échelle tient les valeurs au plus petit palier, puis s’élargit jusqu’à la borne', () => {
+  assert.equal(echelleDe('teinte', [-7.53, 5.11]), 30);
+  assert.equal(echelleDe('teinte', [0, 0]), 30);
   // Une poignée posée au bord élargit l’échelle : le glisser suivant peut aller plus loin.
-  assert.equal(echelleDe([30, 0]), 45);
-  assert.equal(echelleDe([-50]), 60);
-  assert.equal(echelleDe([75]), 90);
-  assert.equal(echelleDe([90]), 90);
+  assert.equal(echelleDe('teinte', [30, 0]), 45);
+  assert.equal(echelleDe('teinte', [-50]), 60);
+  assert.equal(echelleDe('teinte', [75]), 90);
+  assert.equal(echelleDe('teinte', [90]), 90);
+  assert.equal(echelleDe('saturation', [-0.4, 0]), 0.5);
+  assert.equal(echelleDe('saturation', [1]), 1);
+  assert.equal(echelleDe('clarte', [0.02]), 0.05);
+  assert.equal(echelleDe('clarte', [0.05]), 0.1);
+  assert.equal(echelleDe('clarte', [-0.15]), 0.15);
 });
 
 test('[DER-07] un glisser reste borné par l’échelle figée du geste', () => {
-  assert.equal(angleDuGlisser(0, CADRE, 1, 30), 30);
-  assert.equal(angleDuGlisser(ordonnee(12, CADRE, 30), CADRE, 1, 30), 12);
-  assert.ok(Math.abs(angleDe(ordonnee(-22.5, CADRE, 45), CADRE, 45) + 22.5) < 1e-9);
+  assert.equal(valeurDuGlisser(0, CADRE, 1, 30), 30);
+  assert.equal(valeurDuGlisser(ordonnee(12, CADRE, 30), CADRE, 1, 30), 12);
+  assert.ok(Math.abs(valeurDe(ordonnee(-22.5, CADRE, 45), CADRE, 45) + 22.5) < 1e-9);
 });

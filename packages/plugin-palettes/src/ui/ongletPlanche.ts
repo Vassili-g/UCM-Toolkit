@@ -23,6 +23,7 @@ import { VERSION_DU_SUIVI, type CadreLu, type EtatDeLaPlanche, type ProfilDuDocu
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
+import { creerGlyphe } from './glyphes';
 import { creerVuesConstats } from './constats';
 import { type EtatDuDessin, type GestesDuResultat } from './dessin';
 import { creerVuesDessin } from './dessin';
@@ -148,7 +149,7 @@ function construireVues(i18n: Localisation) {
     pied.append(genererPasAJour, genererTout);
 
     // Import, export, rapport et détails techniques, repliés (V8.5).
-    const carteDeLaRecette = createCarte({ titre: TEXTES_DU_DESSIN.palettesEtReglages, repliable: { ouverte: false } }, i18n);
+    const carteDeLaRecette = createCarte({ titre: TEXTES_DU_DESSIN.palettesEtReglages, glyphe: creerGlyphe('palettesEtReglages'), repliable: { ouverte: false } }, i18n);
     const details = document.createElement('p');
     details.className = 'ligne-secondaire';
     carteDeLaRecette.corps.append(gestes.recetteEnFichier.element, details);

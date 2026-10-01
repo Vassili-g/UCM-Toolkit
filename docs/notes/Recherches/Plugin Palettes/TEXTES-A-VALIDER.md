@@ -334,6 +334,29 @@ Le singulier suit chaque compte : « 1 garantie manquée sur 76 · 1 alerte »,
 titres des groupes de messages : « Promesses à corriger · {n} », « Points à
 vérifier · {n} », « À savoir · {n} ».
 
+### Textes ajoutés par l'implémentation du Color shift
+
+L'implémentation (phase 6 du plan) a écrit ces textes, que les tableaux
+précédents ne couvraient pas. Ceux de l'assistance technique ne s'affichent
+pas.
+
+| Texte | Français | Anglais | Retenue |
+|---|---|---|---|
+| Nom des onglets, assistance technique | Grandeur réglée | Adjusted quantity | |
+| Nom du préréglage, assistance technique | Préréglage de la teinte | Hue preset | |
+| Rampes sous le graphe | sans · avec ; au survol, Rampe sans Color shift · Rampe avec Color shift | off · on ; Ramp without Color shift · Ramp with Color shift | |
+| Geste de la confirmation du lien | Aligner | Align | |
+| Nom d'un curseur, d'un champ et d'une poignée | {Grandeur}, nuances claires | {Quantity}, light shades | |
+| Bouton d'un bout, assistance technique | Ramener la teinte Tailwind des nuances claires ; Rétablir la saturation des nuances claires | Reset light shades to the Tailwind hue ; Reset light shades saturation | |
+| Annonce d'une poignée | Décalage de −7,5°, teinte obtenue : 250°. Plage sûre de −90,0° à +90,0° | Offset −7.5°, resulting hue: 250°. Safe range −90.0° to +90.0° | |
+| Bout sans segment | La couleur de référence est plus claire que toutes les nuances : seules les nuances sombres se règlent. | The reference colour is lighter than every shade: only the dark shades can be adjusted. | |
+| Résumé, profils désynchronisés | Soft : Tailwind · Teinte −7,5° / +5,1° · Vivid : Personnalisé · Teinte +6,0° / 0,0° · désynchronisé | Soft: Tailwind · Hue −7.5° / +5.1° · Vivid: Custom · Hue +6.0° / 0.0° · not synced | |
+| Résumé, palette grise | Luminosité 0,000 / +0,020 · synchronisé, ou Aucun réglage | Lightness 0.000 / +0.020 · synced, or No adjustment | |
+| Plage sûre du réglage global | Plage sûre · teinte −30° à +12° · saturation 20 % à 100 % · luminosité −0,05 à +0,005 | Safe range · hue −30° to +12° · saturation 20% to 100% · lightness −0.05 to +0.005 | |
+| Butée du réglage global | Luminosité de Soft et Vivid : limite atteinte à +0,005. Au-delà, border-control 600 / fond (Vivid, Light) tomberait à 2,97:1, sous 3:1. | Soft and Vivid lightness: limit reached at +0.005. Beyond it, border-control 600 / background (Vivid, Light) would drop to 2.97:1, below 3:1. | |
+| Geste d'une promesse manquée | Ajustez le réglage global ou le Color shift de cette palette, puis vérifiez cette association. La luminosité des nuances se règle aussi dans les réglages communs. | Adjust this palette’s global adjustment or Color shift, then check the pairing again. Shade lightness can also be adjusted in the shared settings. | |
+| Refus `intensites-incompatible`, fin | … et son Color shift reste lié. | … and its Color shifts stay linked. | |
+
 ### Refus de validation du format 7
 
 | Règle | Français | Anglais | Retenue |

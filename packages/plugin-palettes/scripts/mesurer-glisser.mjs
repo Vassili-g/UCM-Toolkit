@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 
 import { recetteParDefaut } from 'ucm-couleur';
 import { analyserPalette } from '../src/analyse.ts';
-import { nouvellePalette, reglerBout } from '../src/edition.ts';
+import { nouvellePalette, reglerDecalage } from '../src/edition.ts';
 
 const mediane = (durees) => [...durees].sort((a, b) => a - b)[Math.floor(durees.length / 2)];
 
@@ -26,7 +26,7 @@ const palette = nouvellePalette(recette, 'p-0000000a', '#1E6FD9');
 const avec = { ...recette, palettes: [palette] };
 const durees = [];
 for (let rang = 0; rang < 50; rang += 1) {
-  const suivante = reglerBout(avec, palette, 'vivid', 'clair', rang - 25);
+  const suivante = reglerDecalage(avec, palette, 'vivid', 'teinte', 'clair', rang - 25);
   const debut = performance.now();
   analyserPalette({ ...avec, palettes: [suivante] }, suivante, 'SRGB');
   durees.push(performance.now() - debut);

@@ -13,16 +13,20 @@ import type { EtatDuCadre } from '../planche/fraicheur';
 import {
   FORMAT_RECETTE,
   RANGS,
+  decalageRange,
   ecrireArrondi,
   ecrireContraste,
   niveauxWcag,
   type Alerte,
   type Ancrage,
   type Association,
+  type Bout,
+  type CauseDeLaBorne,
   type DeriveRangee,
   type Emploi,
   type EmploiDUnCran,
   type EtatDePaire,
+  type GrandeurDuColorShift,
   type ManqueDeGarantie,
   type MembrePaire,
   type Mode,
@@ -99,7 +103,10 @@ export const TEXTES_DE_L_ONGLET = {
   configuration: 'Configuration de la palette',
   apercu: 'Aperçu',
   garanties: 'Garanties de contraste',
-  derive: 'Dérive de teinte',
+  ajuster: 'Ajuster la palette',
+  phraseDAjustement: 'Le réglage global déplace toute la rampe. Le Color shift écarte ensuite les nuances claires et sombres de la référence, qui ne bouge pas.',
+  derive: 'Color shift',
+  sousTitreDeLaDerive: 'Nuances claires et sombres, autour de la référence ◆',
 } as const;
 
 /** Le pied de l'onglet Création et son volet ([UI-18]). */
@@ -131,8 +138,8 @@ export function titreDeGroupe(titre: string, nombre: number): string {
 export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
   reference: 'Couleur de référence',
   // Le nom de la carte qui règle la saturation des profils (Z10.6, N147).
-  'intensites-palette': 'Teinte, saturation, luminosité',
-  derive: 'Dérive de teinte',
+  'intensites-palette': 'Réglage global',
+  derive: 'Color shift',
   'luminosite-commune': 'Luminosité des nuances',
   fonds: 'Couleurs de fond',
   'intensites-communes': 'Intensités communes',
@@ -341,12 +348,13 @@ export const TEXTES_DE_LA_BASE = {
 } as const;
 
 /**
- * La carte « Teinte, saturation, luminosité » (Z10.6, maquette Z10.4, forme
- * A). Le titre et les deux avertissements sont validés ; les autres textes
- * attendent la validation (N143 à N146).
+ * La carte « Réglage global » (Z10.6, maquette Z10.4, forme A, décision Q8).
+ * Les deux avertissements sont validés ; les autres textes attendent la
+ * validation (N143 à N146, TEXTES-A-VALIDER).
  */
 export const TEXTES_DES_REGLAGES = {
-  titre: 'Teinte, saturation, luminosité',
+  titre: 'Réglage global',
+  sousTitre: 'Teinte, saturation et luminosité de toute la rampe',
   regler: 'Régler',
   cible: 'Profil à régler',
   lesDeux: 'Les deux',
@@ -358,7 +366,8 @@ export const TEXTES_DES_REGLAGES = {
   avertissementAvant: 'Attention : ce réglage va modifier votre couleur de référence.',
   avertissementApres: 'Attention, votre couleur de référence a été modifiée.',
   neutre: 'Ce réglage ne touche pas la couleur de référence.',
-  pied: 'La dérive de teinte s’applique ensuite.',
+  pied: 'Le Color shift s’applique ensuite, autour de la référence.',
+  grise: 'Cette palette est entièrement grise. Il n’y a pas de teinte à régler.',
   porteurFige: (profil: Profil) => `Référence dans ${NOM_DU_PROFIL[profil]}, fixée par les réglages. Changer de profil va modifier votre couleur de référence.`,
 } as const;
 
@@ -412,29 +421,101 @@ export const TEXTES_DU_MODELE = {
   puce: (numero: number) => `Nuance ${numero}`,
 } as const;
 
-/** Les libellés de l'éditeur de dérive (section 12). */
+/** Les libellés de la carte « Color shift » (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
-  regler: 'Configuration de la dérive',
-  grisDesactive: 'Cette palette est entièrement grise. Il n’y a pas de teinte à régler.',
-  sansSegmentClair: 'La couleur de référence est plus claire que toutes les nuances. Seul le réglage de teinte du côté sombre est disponible.',
-  sansSegmentSombre: 'La couleur de référence est plus sombre que toutes les nuances. Seul le réglage de teinte du côté clair est disponible.',
-  prereglage: 'Dérive de teinte',
-  tailwind: 'Tailwind',
+  aide: 'Chaque nuance s’écarte en proportion de sa distance à la référence. Les zones hachurées feraient manquer une garantie de contraste.',
+  grise: 'Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable.',
+  sansSegmentClair: 'La couleur de référence est plus claire que toutes les nuances : seules les nuances sombres se règlent.',
+  sansSegmentSombre: 'La couleur de référence est plus sombre que toutes les nuances : seules les nuances claires se règlent.',
+  grandeurs: { teinte: 'Teinte', saturation: 'Saturation', clarte: 'Luminosité' },
+  onglets: 'Grandeur réglée',
+  prereglage: 'Préréglage de la teinte',
+  tailwind: 'Teinte Tailwind',
   constante: 'Teinte constante',
-  libre: 'Personnalisée',
-  lien: 'Synchroniser la dérive de soft et vivid',
+  libre: 'Personnalisé',
+  lien: 'Synchroniser Soft et Vivid',
   profilRegle: 'Profil à modifier',
-  aligner: 'Appliquer à soft',
+  aligner: 'Aligner',
   annuler: 'Annuler',
-  confirmationDuLien: 'La dérive de teinte de vivid sera appliquée à soft. Les deux profils partageront ensuite les mêmes réglages.',
+  confirmationDuLien: 'Aligner Soft sur Vivid ? Le Color shift de Soft sera remplacé par celui de Vivid : teinte, saturation et luminosité.',
+  toutRetablir: 'Tout rétablir',
+  boutonTailwind: 'Tailwind',
+  retablir: 'Rétablir',
   bout: { clair: 'Nuances claires', sombre: 'Nuances sombres' },
-  deriveAuBout: { clair: 'Décalage de teinte des nuances claires', sombre: 'Décalage de teinte des nuances sombres' },
-  ramenerAuPrereglage: { clair: 'Rétablir la dérive Tailwind des nuances claires', sombre: 'Rétablir la dérive Tailwind des nuances sombres' },
+  rampeSans: 'sans',
+  rampeAvec: 'avec',
+  titreDeLaRampeSans: 'Rampe sans Color shift',
+  titreDeLaRampeAvec: 'Rampe avec Color shift',
 } as const;
 
-/** Ce qu'une poignée annonce au lecteur d'écran ([DER-09]) : l'angle et la teinte absolue. */
-export function valeurDePoignee(angle: number, teinte: number): string {
-  return `Décalage de ${angleEcrit(angle)}, teinte obtenue : ${Math.round(teinte) % 360}°`;
+/** Un décalage du Color shift, signé : « −7,5° », « −40 % », « +0,020 ». */
+export function decalageEcrit(grandeur: GrandeurDuColorShift, valeur: number): string {
+  if (grandeur === 'teinte') return angleEcrit(valeur);
+  const signe = valeur > 0 ? '+' : valeur < 0 ? '−' : '';
+  return grandeur === 'saturation' ? `${signe}${Math.round(Math.abs(valeur) * 100)} %` : `${signe}${ecrireArrondi(Math.abs(valeur), 3)}`;
+}
+
+/** Une grandeur à un bout, nom d'un curseur, d'un champ et d'une poignée : « Teinte, nuances claires ». */
+export function grandeurAuBout(grandeur: GrandeurDuColorShift, bout: Bout): string {
+  return `${TEXTES_DE_LA_DERIVE.grandeurs[grandeur]}, ${TEXTES_DE_LA_DERIVE.bout[bout].toLowerCase()}`;
+}
+
+/** Le bouton d'un bout ([DER-09]) : la teinte Tailwind, ou zéro pour la saturation et la luminosité. */
+export function retablirAuBout(grandeur: GrandeurDuColorShift, bout: Bout): string {
+  const nuances = TEXTES_DE_LA_DERIVE.bout[bout].toLowerCase();
+  return grandeur === 'teinte' ? `Ramener la teinte Tailwind des ${nuances}` : `Rétablir la ${TEXTES_DE_LA_DERIVE.grandeurs[grandeur].toLowerCase()} des ${nuances}`;
+}
+
+/** Une plage sûre : « −0,050 à +0,040 ». */
+const plageEcrite = (grandeur: GrandeurDuColorShift, bas: number, haut: number): string => `${decalageEcrit(grandeur, bas)} à ${decalageEcrit(grandeur, haut)}`;
+
+/**
+ * Ce qu'une poignée ou une réglette annonce ([DER-09]) : la valeur, la teinte
+ * absolue pour la teinte, puis la plage sûre quand elle est calculée.
+ */
+export function valeurDePoignee(grandeur: GrandeurDuColorShift, valeur: number, teinte: number, plage: { readonly bas: number; readonly haut: number } | null): string {
+  const lue = grandeur === 'teinte' ? `Décalage de ${angleEcrit(valeur)}, teinte obtenue : ${Math.round(teinte) % 360}°` : decalageEcrit(grandeur, valeur);
+  return plage ? `${lue}. Plage sûre de ${plageEcrite(grandeur, plage.bas, plage.haut)}` : lue;
+}
+
+/** La ligne de la plage sûre ([DER-22]) : « Plage sûre · nuances claires −0,050 à +0,040 · nuances sombres −0,150 à +0,055 ». */
+export function plageSure(grandeur: GrandeurDuColorShift, plages: readonly { readonly bout: Bout; readonly bas: number; readonly haut: number }[]): string {
+  return ['Plage sûre', ...plages.map(({ bout, bas, haut }) => `${TEXTES_DE_LA_DERIVE.bout[bout].toLowerCase()} ${plageEcrite(grandeur, bas, haut)}`)].join(' · ');
+}
+
+/** Un membre d'une paire jugée, tel que la butée le nomme : « text 700 », « fond ». */
+function membreEcrit(membre: MembrePaire, designation: { readonly nature: 'cran'; readonly cran: number } | { readonly nature: 'fond' }): string {
+  if ('fond' in membre) return 'fond';
+  return designation.nature === 'cran' ? `${membre.emploi} ${designation.cran}` : membre.emploi;
+}
+
+/** Ce qui arrête une borne, un pas au-delà ([DER-22]). */
+function auDela(cause: CauseDeLaBorne): string {
+  if (cause.nature === 'ordre') return 'Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité.';
+  const { promesse } = cause;
+  const ou = promesse.profil === 'unique' ? NOM_DU_MODE[promesse.mode] : `${NOM_DU_PROFIL[promesse.profil]}, ${NOM_DU_MODE[promesse.mode]}`;
+  const paire = `${membreEcrit(promesse.paire.premier, promesse.premier)} / ${membreEcrit(promesse.paire.second, promesse.second)}`;
+  return `Au-delà, ${paire} (${ou}) tomberait à ${contrasteEcrit(promesse.contraste)}, sous ${seuilEcrit(promesse.seuil)}:1.`;
+}
+
+/** La butée d'un bout ([DER-22]) : « Luminosité, nuances claires : limite atteinte à −0,050. Au-delà, … ». */
+export function buteeDuColorShift(grandeur: GrandeurDuColorShift, bout: Bout, borne: number, cause: CauseDeLaBorne): string {
+  return `${grandeurAuBout(grandeur, bout)} : limite atteinte à ${decalageEcrit(grandeur, borne)}. ${auDela(cause)}`;
+}
+
+/** Un bout dont la valeur rangée est sortie de sa plage sûre ([DER-23]). */
+export function horsDeLaPlage(bout: Bout): string {
+  return `${TEXTES_DE_LA_DERIVE.bout[bout]} hors de la plage sûre : un autre réglage l’a resserrée.`;
+}
+
+/** La ligne de la plage sûre du réglage global : « Plage sûre · teinte −30° à +12° · luminosité −0,05 à +0,02 ». */
+export function plageSureDuReglage(plages: readonly { readonly grandeur: string; readonly bas: string; readonly haut: string }[]): string {
+  return ['Plage sûre', ...plages.map(({ grandeur, bas, haut }) => `${grandeur.toLowerCase()} ${bas} à ${haut}`)].join(' · ');
+}
+
+/** La butée d'un curseur du réglage global : « Luminosité de Soft : limite atteinte à −0,03. Au-delà, … ». */
+export function buteeDuReglage(etiquette: string, borne: string, cause: CauseDeLaBorne): string {
+  return `${etiquette} : limite atteinte à ${borne}. ${auDela(cause)}`;
 }
 
 /** Le repère Tailwind d'une réglette ([DER-06]). */
@@ -448,14 +529,16 @@ export function angleEcrit(degres: number): string {
   return `${signe}${ecrireArrondi(Math.abs(degres), 1)}°`;
 }
 
-/** Une graduation du graphe : « +30° », « 0° ». */
-export function graduation(degres: number): string {
-  return `${degres > 0 ? '+' : degres < 0 ? '−' : ''}${Math.abs(degres)}°`;
+/** Une graduation du graphe : « +30° », « −50 % », « +0,05 ». */
+export function graduation(grandeur: GrandeurDuColorShift, valeur: number): string {
+  const signe = valeur > 0 ? '+' : valeur < 0 ? '−' : '';
+  if (grandeur === 'teinte') return `${signe}${Math.abs(valeur)}°`;
+  return grandeur === 'saturation' ? `${signe}${Math.round(Math.abs(valeur) * 100)} %` : `${signe}${nombreEcrit(Math.round(Math.abs(valeur) * 1000) / 1000)}`;
 }
 
-/** L'étiquette d'une poignée ([DER-03]) : l'angle signé et la teinte absolue. */
-export function etiquetteDePoignee(angle: number, teinte: number): string {
-  return `Décalage ${angleEcrit(angle)} · teinte ${Math.round(teinte) % 360}°`;
+/** L'étiquette d'une poignée ([DER-03]) : la valeur signée, et la teinte absolue pour la teinte. */
+export function etiquetteDePoignee(grandeur: GrandeurDuColorShift, valeur: number, teinte: number): string {
+  return grandeur === 'teinte' ? `Décalage ${angleEcrit(valeur)} · teinte ${Math.round(teinte) % 360}°` : decalageEcrit(grandeur, valeur);
 }
 
 /** L'infobulle du pivot ([DER-02]) : la teinte de la référence, et la nuance qui la porte dans chaque thème. */
@@ -537,7 +620,7 @@ export function ligneDeLaReference(ancrage: Ancrage, mode: Mode): string {
   return `Référence : ${avecLeNom(ancrage.profil, `nuance ${ancrage.crans[mode]}`)}`;
 }
 
-const ORIGINES: Record<DeriveRangee['origine'], string> = { tailwind: 'Tailwind', constante: 'Teinte constante', libre: 'Personnalisée' };
+const ORIGINES: Record<DeriveRangee['origine'], string> = { tailwind: 'Tailwind', constante: 'Teinte constante', libre: 'Personnalisé' };
 
 /** Le nombre de points à vérifier qu'une carte repliée annonce ([UI-12]). */
 function pointsAVerifier(nombre: number): string {
@@ -545,13 +628,24 @@ function pointsAVerifier(nombre: number): string {
   return nombre === 1 ? ' · 1 point à vérifier' : ` · ${nombre} points à vérifier`;
 }
 
-/** Le résumé de la carte Dérive de teinte (N041) : le préréglage et la synchronisation. */
+/**
+ * Le résumé de la carte Color shift ([UI-12]) : le préréglage de la teinte,
+ * chaque grandeur réglée, bout clair puis bout sombre, et la synchronisation.
+ * Une palette grise ne montre que sa luminosité ([DER-15]).
+ */
 export function resumeDeLaDerive(palette: Palette, grise: boolean, points: number): string {
-  if (grise) return 'Désactivée pour une palette grise';
+  const decrire = (derive: DeriveRangee): string => {
+    const parties = grise ? [] : [ORIGINES[derive.origine], `Teinte ${angleEcrit(derive.clair)} / ${angleEcrit(derive.sombre)}`];
+    for (const grandeur of grise ? (['clarte'] as const) : (['saturation', 'clarte'] as const)) {
+      const { clair, sombre } = decalageRange(derive, grandeur);
+      if (clair !== 0 || sombre !== 0) parties.push(`${TEXTES_DE_LA_DERIVE.grandeurs[grandeur]} ${decalageEcrit(grandeur, clair)} / ${decalageEcrit(grandeur, sombre)}`);
+    }
+    return parties.length > 0 ? parties.join(' · ') : 'Aucun réglage';
+  };
   const { lien, soft, vivid } = palette.derive;
-  // Une palette à une intensité n'a qu'une dérive : rien à synchroniser ([ENT-14]).
-  if (palette.intensites === 1) return `${ORIGINES[vivid.origine]}${pointsAVerifier(points)}`;
-  const reglage = lien ? `${ORIGINES[vivid.origine]} · synchronisée` : `Soft ${ORIGINES[soft.origine]} · Vivid ${ORIGINES[vivid.origine]} · désynchronisée`;
+  // Une palette à une intensité n'a qu'un Color shift : rien à synchroniser ([ENT-14]).
+  if (palette.intensites === 1) return `${decrire(vivid)}${pointsAVerifier(points)}`;
+  const reglage = lien ? `${decrire(vivid)} · synchronisé` : `Soft : ${decrire(soft)} · Vivid : ${decrire(vivid)} · désynchronisé`;
   return `${reglage}${pointsAVerifier(points)}`;
 }
 
@@ -757,7 +851,7 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
   return {
     ou: `${associationEcrite(groupe.association, groupe.etat)} · ${nom}, thème ${NOM_DU_MODE[groupe.mode]}`,
     quoi: `Cette association n’atteint pas le contraste demandé, pour un minimum de ${seuilEcrit(groupe.seuil)}:1.`,
-    geste: 'Ajustez l’intensité ou la dérive de teinte de cette palette, puis vérifiez cette association. Le réglage de luminosité est disponible dans les réglages communs.',
+    geste: 'Ajustez le réglage global ou le Color shift de cette palette, puis vérifiez cette association. La luminosité des nuances se règle aussi dans les réglages communs.',
     mesures: groupe.resultats.map(resultat),
   };
 }
@@ -873,8 +967,8 @@ const NOMS_DES_SEUILS: Record<string, string> = {
 
 /**
  * Le chemin d'un champ en mots du designer : `crans[3]` devient « 4e nuance »,
- * `palettes[1].derive.soft.clair` « Palette 2, dérive de teinte, soft, côté
- * clair ». Un chemin que la table ne connaît pas s'écrit tel quel.
+ * `palettes[1].derive.soft.clair` « Palette 2, Color shift, soft, teinte,
+ * nuances claires ». Un chemin que la table ne connaît pas s'écrit tel quel.
  */
 export function nommerChamp(chemin: string): string {
   if (chemin === '') return 'Palettes et réglages';
@@ -952,7 +1046,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'originale-identique': (champ) => `${champ} : elle est identique à la couleur de référence. Retirez ce champ dans le fichier importé.`,
   // Les quatre règles du format 4 ([ENT-14], [MOT-28], [PLA-28]).
   'intensites-valeur': (champ, valeur) => `${champ} : « ${valeur} » n’est pas accepté. Indiquez 1 pour une seule intensité, ou retirez ce champ pour Soft et Vivid.`,
-  'intensites-incompatible': (champ) => `${champ} : une palette à une intensité n’a ni palette de base, ni intensités propres, ni nuances libres, et sa dérive reste liée. Retirez ce champ dans le fichier importé.`,
+  'intensites-incompatible': (champ) => `${champ} : une palette à une intensité n’a ni palette de base, ni intensités propres, ni nuances libres, et son Color shift reste lié. Retirez ce champ dans le fichier importé.`,
   'fonds-sombres-bornes': (champ, valeur) => `${champ} : saisissez une intensité entre 0 et 1. Valeur reçue : ${valeur}.`,
   'contenu-sans-theme': (champ) => `${champ} : gardez au moins un thème, Light ou Dark.`,
   // Les huit règles du format 5 (Z10.5, N141).

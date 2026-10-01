@@ -1,21 +1,43 @@
 /**
- * L'éditeur de dérive (section 12), déplié sous sa ligne par « Régler » (E22).
+ * La carte « Color shift » (section 12) : trois onglets choisissent la
+ * grandeur, teinte, saturation ou luminosité, que le graphe et les deux
+ * réglettes règlent aux deux bouts ([DER-18]). Le préréglage de la teinte, la
+ * synchronisation des profils et « Tout rétablir » sont en tête ([DER-11],
+ * [DER-12]).
  *
- * Il règle les deux bouts de la dérive par trois chemins liés : la poignée du
- * graphe, le champ numérique et la réglette ([DER-07] à [DER-10]). Le
- * préréglage et le lien des profils s'y choisissent ([DER-11], [DER-12]).
+ * Chaque réglage s'arrête à sa limite dynamique ([DER-19]) : la limite se
+ * calcule sur l'état du début du geste, à l'ouverture, au changement
+ * d'onglet et au relâchement, étalée entre les images ; pendant un glisser,
+ * elle reste figée comme l'échelle. Une ligne fixe dit la plage sûre, ou la
+ * cause de la butée jusqu'au geste suivant ([DER-22]).
+ *
  * Pendant un glisser, l'aperçu suit sans rien ranger ; le relâchement range
- * (D-D). Ctrl+Z ou Cmd+Z défait le dernier réglage quand le focus est dans
- * l'éditeur, hors d'un champ texte : cinquante réglages, sans rétablissement
+ * (D-D). Ctrl+Z ou Cmd+Z défait le dernier réglage quand le focus est dans la
+ * carte, hors d'un champ texte : cinquante réglages, sans rétablissement
  * (E21).
  */
 import {
+  BORNES_DU_COLOR_SHIFT,
+  PAS_DU_COLOR_SHIFT,
   aUneIntensite,
+  balayerLaLimite,
   boutsDe,
-  rampeDe,
+  decalageDe,
+  decalageRange,
+  estPaletteGrise,
+  fabriquerCran,
+  partsDe,
   pivotDe,
+  rampeDe,
+  rampesDe,
   teinteA,
+  verifierPromesses,
   type Ancrage,
+  type Bout,
+  type GrandeurDuColorShift,
+  type Intensite,
+  type Limite,
+  type Mode,
   type Palette,
   type Profil,
   type Rampes,
@@ -24,10 +46,13 @@ import {
 
 import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
-import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerBout } from '../../edition';
-import { memoriserVues, lireTexte, type Localisation, type Texte } from '../localisation';
-import { angleDuGlisser, echelleDe } from './geometrie';
+import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerDecalage, toutRetablir } from '../../edition';
+import { createCalculsDeLimites } from '../calculDesLimites';
+import { creerVuesLigneFixe } from '../ligneFixe';
+import { memoriserVues, type Localisation, type Texte } from '../localisation';
+import { echelleDe, valeurDuGlisser } from './geometrie';
 import { creerVuesGraphe } from './graphe';
+import { creerVuesReglette, type Intervalle, type RegletteUi } from './reglette';
 
 /** Ce que l'éditeur demande à l'onglet. */
 export interface GestesDeLEditeur {
@@ -39,30 +64,36 @@ export interface GestesDeLEditeur {
 
 export interface EditeurUi {
   element: HTMLDivElement;
-  /** Les rampes ancrées de la palette et son ancrage ([MOT-17]) : la rampe Light du profil réglé se peint sous la bande. */
-  afficher(recette: Recette, palette: Palette, rampes: Rampes, ancrage: Ancrage, analyse: AnalyseDePalette): void;
-  /** Focalise le premier réglage de l'éditeur déplié, quand un message y mène ([VER-15]). */
+  /**
+   * Les rampes ancrées de la palette et son ancrage ([MOT-17]) ; `mode`, le
+   * thème de l'aperçu, où se peignent les rampes sous le graphe ([DER-04]).
+   */
+  afficher(recette: Recette, palette: Palette, rampes: Rampes, ancrage: Ancrage, analyse: AnalyseDePalette, mode: Mode): void;
+  /** Focalise l'onglet choisi, quand un message y mène ([VER-15]). */
   focaliser(): void;
 }
 
-type Bout = 'clair' | 'sombre';
+const GRANDEURS: readonly GrandeurDuColorShift[] = ['teinte', 'saturation', 'clarte'];
+const BOUTS: readonly Bout[] = ['clair', 'sombre'];
 
-interface Reglette {
-  ligne: HTMLDivElement;
-  champ: HTMLInputElement;
-  curseur: HTMLInputElement;
-  repere: HTMLSpanElement;
+/** Le grand pas de chaque grandeur, avec Maj ([DER-07]) : 5°, 5 %, 0,02. */
+const GRAND_PAS: { readonly [G in GrandeurDuColorShift]: number } = { teinte: 5, saturation: 0.05, clarte: 0.02 };
+
+/** La profondeur de la pile d'annulation (E21). */
+const PROFONDEUR = 50;
+
+/** Une butée posée par un geste, que la ligne fixe nomme jusqu'au geste suivant ([DER-22]). */
+interface Butee {
+  readonly grandeur: GrandeurDuColorShift;
+  readonly bout: Bout;
+  readonly cote: keyof Intervalle;
 }
 
 function construireVues(i18n: Localisation) {
-  const ecrireArrondi = i18n.arrondi;
-  const { TEXTES_DE_LA_DERIVE, repereTailwind, valeurDePoignee } = i18n.messages;
+  const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, plageSure, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
   const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
-
-  const BOUTS: readonly Bout[] = ['clair', 'sombre'];
-
-  /** La profondeur de la pile d'annulation (E21). */
-  const PROFONDEUR = 50;
+  const { createReglette } = creerVuesReglette(i18n);
+  const { createLigneFixe } = creerVuesLigneFixe(i18n);
 
   function bouton(texte: Texte, classe: 'bouton-discret' | 'bascule-option'): HTMLButtonElement {
     const element = document.createElement('button');
@@ -73,41 +104,119 @@ function construireVues(i18n: Localisation) {
     return element;
   }
 
+  /** La valeur d'une grandeur à un bout : la teinte en degrés, la saturation et la luminosité rangées, zéro absentes. */
+  const valeurAuBout = (palette: Palette, profil: Profil, grandeur: GrandeurDuColorShift, bout: Bout): number =>
+    (grandeur === 'teinte' ? palette.derive[profil][bout] : decalageRange(palette.derive[profil], grandeur)[bout]);
+
+  /** La valeur de départ d'une grandeur ([DER-18]) : la teinte Tailwind, zéro pour les deux autres. */
+  const depart = (recette: Recette, palette: Palette, grandeur: GrandeurDuColorShift, bout: Bout): number =>
+    (grandeur === 'teinte' ? prereglageDe(recette, palette)[bout] : 0);
+
+  /** La valeur d'une saisie : des degrés, un pourcentage pour la saturation, un décalage de clarté. */
+  function lire(grandeur: GrandeurDuColorShift, saisie: string): number | null {
+    const nombre = lireNombre(saisie.replace(/[°%\s+]/g, '').replace('−', '-'));
+    if (nombre === null) return null;
+    return grandeur === 'saturation' ? nombre / 100 : nombre;
+  }
+
   function createEditeur(gestes: GestesDeLEditeur): EditeurUi {
     const element = document.createElement('div');
     element.className = 'editeur-derive';
 
     let recette: Recette | null = null;
     let palette: Palette | null = null;
+    let rampes: Rampes | null = null;
+    let analyse: AnalyseDePalette | null = null;
+    let ancrage: Ancrage | null = null;
+    let mode: Mode = 'light';
     let profil: Profil = 'vivid';
+    /** L'onglet choisi ; il dure la session ([DER-18]). */
+    let grandeur: GrandeurDuColorShift = 'teinte';
     let confirmationOuverte = false;
     /** La palette d'avant le geste en cours : glisser, réglette ou champ. */
     let avantLeGeste: Palette | null = null;
     const pile: Palette[] = [];
+    let butee: Butee | null = null;
+
+    // Les limites de la grandeur affichée, pour le profil réglé, et la clé de l'état qu'elles jugent.
+    let limites: Record<Bout, Limite | null> = { clair: null, sombre: null };
+    let horsDeLaPlageAuBout: Record<Bout, boolean> = { clair: false, sombre: false };
+    let cleDesLimites: { readonly etat: string; readonly grandeur: GrandeurDuColorShift; readonly profil: Profil } | null = null;
+    // Une carte repliée ne se redessine pas : son dépliage la redessine ([DER-01]).
+    const calculs = createCalculsDeLimites(() => {
+      if (element.offsetParent !== null) dessiner();
+    });
 
     function empiler(avant: Palette): void {
       pile.push(avant);
       if (pile.length > PROFONDEUR) pile.shift();
     }
 
-    /** Un geste fini : la palette d'avant entre dans la pile, la nouvelle se range. */
+    /**
+     * Un geste fini : la palette d'avant entre dans la pile, la nouvelle se
+     * range. Un geste arrêté sur sa borne ne change rien : la carte se
+     * redessine pour annoncer la butée ([DER-22]).
+     */
     function terminer(suivante: Palette): void {
       const avant = avantLeGeste ?? palette;
       avantLeGeste = null;
-      if (!avant || JSON.stringify(avant.derive) === JSON.stringify(suivante.derive)) return;
+      if (!avant || JSON.stringify(avant.derive) === JSON.stringify(suivante.derive)) {
+        if (butee) dessiner();
+        return;
+      }
       empiler(avant);
       gestes.valider(suivante);
     }
 
-    function regler(bout: Bout, angle: number, fin: boolean): void {
+    /**
+     * Un geste commence : la limite en calcul se termine, et la butée d'avant
+     * se tait. Le glisser d'une poignée lit la limite sans redessiner : un
+     * redessin entre les deux clics d'un double-clic remplacerait la poignée.
+     * Une réglette relit ses bornes permises : `parLaReglette` la redessine.
+     */
+    function commencer(parLaReglette = false): void {
+      const termine = calculs.terminer();
+      butee = null;
+      if (!avantLeGeste) avantLeGeste = palette;
+      if (termine && parLaReglette) dessiner();
+    }
+
+    /** La grandeur que la carte montre : une palette grise ne règle que sa luminosité ([DER-15]). */
+    const grandeurAffichee = (): GrandeurDuColorShift => (recette && palette && estPaletteGrise(recette, palette) ? 'clarte' : grandeur);
+
+    const permisesDe = (bout: Bout): Intervalle | null => {
+      const limite = limites[bout];
+      return limite ? { bas: limite.bas.valeur, haut: limite.haut.valeur } : null;
+    };
+
+    /** La valeur demandée, bornée par la limite ; une borne atteinte devient la butée qu'annonce la ligne fixe. */
+    function borner(bout: Bout, valeur: number): number {
+      const affichee = grandeurAffichee();
+      const fixe = BORNES_DU_COLOR_SHIFT[affichee];
+      const permises = permisesDe(bout) ?? { bas: -fixe, haut: fixe };
+      if (valeur < permises.bas) {
+        if (limites[bout]?.bas.cause) butee = { grandeur: affichee, bout, cote: 'bas' };
+        return permises.bas;
+      }
+      if (valeur > permises.haut) {
+        if (limites[bout]?.haut.cause) butee = { grandeur: affichee, bout, cote: 'haut' };
+        return permises.haut;
+      }
+      return valeur;
+    }
+
+    function regler(bout: Bout, valeur: number, fin: boolean): void {
       if (!recette || !palette) return;
       if (!fin && !avantLeGeste) avantLeGeste = palette;
-      const suivante = reglerBout(recette, palette, profil, bout, angle);
+      const suivante = reglerDecalage(recette, palette, profil, grandeurAffichee(), bout, borner(bout, valeur));
       if (fin) terminer(suivante);
       else gestes.previsualiser(suivante);
     }
 
-    // En-tête : préréglage, lien des profils, profil réglé quand ils sont déliés.
+    // L'aide, puis l'en-tête : préréglage de la teinte, synchronisation, profil réglé, « Tout rétablir ».
+    const aide = document.createElement('p');
+    aide.className = 'ligne-secondaire';
+    i18n.lier(aide, 'textContent', TEXTES_DE_LA_DERIVE.aide);
     const entete = document.createElement('div');
     entete.className = 'editeur-entete';
     const choixDuPrereglage = document.createElement('select');
@@ -117,7 +226,7 @@ function construireVues(i18n: Localisation) {
       const option = document.createElement('option');
       option.value = valeur;
       i18n.lier(option, 'textContent', texte);
-      // « Libre » s'affiche dès qu'une valeur s'écarte du préréglage ; il ne se choisit pas ([DER-11]).
+      // « Personnalisé » s'affiche dès qu'une teinte s'écarte du préréglage ; il ne se choisit pas ([DER-11]).
       option.disabled = valeur === 'libre';
       choixDuPrereglage.append(option);
     }
@@ -138,9 +247,7 @@ function construireVues(i18n: Localisation) {
     lien.addEventListener('change', () => {
       if (!palette) return;
       if (lien.checked) {
-        const { soft, vivid } = palette.derive;
-        const egales = soft.clair === vivid.clair && soft.sombre === vivid.sombre && soft.origine === vivid.origine;
-        if (egales) terminer(lierLesProfils(palette, true));
+        if (JSON.stringify(palette.derive.soft) === JSON.stringify(palette.derive.vivid)) terminer(lierLesProfils(palette, true));
         else {
           lien.checked = false;
           confirmationOuverte = true;
@@ -163,7 +270,11 @@ function construireVues(i18n: Localisation) {
       profils.append(choix);
       return { valeur, choix };
     });
-    entete.append(choixDuPrereglage, etiquetteDuLien, profils);
+    const retablirTout = bouton(TEXTES_DE_LA_DERIVE.toutRetablir, 'bouton-discret');
+    retablirTout.addEventListener('click', () => {
+      if (recette && palette) terminer(toutRetablir(recette, palette, profil));
+    });
+    entete.append(choixDuPrereglage, etiquetteDuLien, profils, retablirTout);
 
     const confirmation = document.createElement('div');
     confirmation.className = 'confirmation';
@@ -184,16 +295,63 @@ function construireVues(i18n: Localisation) {
     gestesDeConfirmation.append(aligner, renoncer);
     confirmation.append(texteDeConfirmation, gestesDeConfirmation);
 
+    // Les onglets de grandeur ([DER-18]) : le nom, les deux valeurs, et une pastille quand la grandeur s'écarte de son départ.
+    const onglets = document.createElement('div');
+    onglets.className = 'onglets-de-grandeur';
+    onglets.setAttribute('role', 'tablist');
+    i18n.lier(onglets, 'aria-label', TEXTES_DE_LA_DERIVE.onglets);
+    const boutonsDOnglet = GRANDEURS.map((valeur) => {
+      const onglet = document.createElement('button');
+      onglet.type = 'button';
+      onglet.className = 'onglet-de-grandeur';
+      onglet.setAttribute('role', 'tab');
+      onglet.dataset.grandeur = valeur;
+      const nom = document.createElement('span');
+      nom.className = 'onglet-de-grandeur-nom';
+      i18n.lier(nom, 'textContent', TEXTES_DE_LA_DERIVE.grandeurs[valeur]);
+      const pastille = document.createElement('span');
+      pastille.className = 'pastille-reglee';
+      pastille.setAttribute('aria-hidden', 'true');
+      const valeurs = document.createElement('span');
+      valeurs.className = 'onglet-de-grandeur-valeurs';
+      onglet.append(nom, pastille, valeurs);
+      onglet.addEventListener('click', () => {
+        if (grandeur === valeur) return;
+        grandeur = valeur;
+        butee = null;
+        dessiner();
+      });
+      onglets.append(onglet);
+      return { valeur, onglet, pastille, valeurs };
+    });
+    onglets.addEventListener('keydown', (evenement) => {
+      const sens = { ArrowRight: 1, ArrowLeft: -1 }[evenement.key];
+      if (!sens) return;
+      const actifs = boutonsDOnglet.filter(({ onglet }) => !onglet.disabled);
+      const rang = actifs.findIndex(({ onglet }) => onglet === document.activeElement);
+      if (rang < 0) return;
+      evenement.preventDefault();
+      const suivant = actifs[(rang + sens + actifs.length) % actifs.length];
+      suivant.onglet.focus();
+      suivant.onglet.click();
+    });
+
     // Le graphe : glisser, double-clic et clavier sur les poignées.
     const graphe = createGraphe();
     const svg = graphe.element;
     graphe.surLargeur(() => dessiner());
+    const panneau = document.createElement('div');
+    panneau.className = 'panneau-de-grandeur';
+    panneau.setAttribute('role', 'tabpanel');
     let glisse: { bout: Bout; pointeur: number } | null = null;
     /** L'échelle figée pendant un glisser : la poignée ne saute pas sous le pointeur ([DER-01]). */
     let echelleFigee: number | null = null;
-    const echelleCourante = (): number => echelleFigee ?? (palette
-      ? echelleDe([palette.derive.soft.clair, palette.derive.soft.sombre, palette.derive.vivid.clair, palette.derive.vivid.sombre])
-      : 90);
+    const echelleCourante = (): number => {
+      if (echelleFigee !== null) return echelleFigee;
+      const affichee = grandeurAffichee();
+      if (!palette) return BORNES_DU_COLOR_SHIFT[affichee];
+      return echelleDe(affichee, (['soft', 'vivid'] as const).flatMap((cible) => BOUTS.map((bout) => valeurAuBout(palette!, cible, affichee, bout))));
+    };
     /** La capture du pointeur fait viser le SVG aux clics suivants : le double-clic lit le bout pressé. */
     let boutPresse: Bout | null = null;
     const boutDe = (cible: EventTarget | null): Bout | null => {
@@ -209,16 +367,18 @@ function construireVues(i18n: Localisation) {
       const bout = boutDe(evenement.target);
       if (!bout) return;
       evenement.preventDefault();
+      commencer();
       // Le graphe se redessine à chaque mouvement : la capture tient sur le SVG, pas sur la poignée.
       svg.setPointerCapture(evenement.pointerId);
       echelleFigee = echelleCourante();
       glisse = { bout, pointeur: evenement.pointerId };
       boutPresse = bout;
-      avantLeGeste = palette;
     });
     svg.addEventListener('pointermove', (evenement) => {
       if (!glisse || evenement.pointerId !== glisse.pointeur) return;
-      regler(glisse.bout, angleDuGlisser(ordonneeDuPointeur(evenement), CADRE, evenement.shiftKey ? 5 : 1, echelleCourante()), false);
+      const affichee = grandeurAffichee();
+      const pas = evenement.shiftKey ? GRAND_PAS[affichee] : PAS_DU_COLOR_SHIFT[affichee];
+      regler(glisse.bout, valeurDuGlisser(ordonneeDuPointeur(evenement), CADRE, pas, echelleCourante()), false);
     });
     const relacher = (evenement: PointerEvent) => {
       if (!glisse || evenement.pointerId !== glisse.pointeur) return;
@@ -230,87 +390,67 @@ function construireVues(i18n: Localisation) {
     svg.addEventListener('pointercancel', relacher);
     svg.addEventListener('dblclick', (evenement) => {
       const bout = boutDe(evenement.target) ?? boutPresse;
-      if (bout && recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
+      if (!bout || !recette || !palette) return;
+      commencer();
+      regler(bout, depart(recette, palette, grandeurAffichee(), bout), true);
     });
     svg.addEventListener('keydown', (evenement) => {
       const bout = boutDe(evenement.target);
       if (!bout || !palette) return;
-      const actuel = palette.derive[profil][bout];
-      const pas = evenement.shiftKey ? 5 : 1;
-      // Origine et Fin gardent le sens du motif clavier d'un curseur : le minimum et le maximum (E20).
+      const affichee = grandeurAffichee();
+      const actuel = valeurAuBout(palette, profil, affichee, bout);
+      const pas = evenement.shiftKey ? GRAND_PAS[affichee] : PAS_DU_COLOR_SHIFT[affichee];
+      const fixe = BORNES_DU_COLOR_SHIFT[affichee];
+      const permises = permisesDe(bout) ?? { bas: -fixe, haut: fixe };
+      // Origine et Fin vont aux bornes permises ([DER-09]).
       const cibles: Record<string, number> = {
         ArrowUp: actuel + pas,
         ArrowRight: actuel + pas,
         ArrowDown: actuel - pas,
         ArrowLeft: actuel - pas,
-        Home: -90,
-        End: 90,
+        Home: permises.bas,
+        End: permises.haut,
       };
       const cible = cibles[evenement.key];
       if (cible === undefined) return;
       evenement.preventDefault();
+      commencer();
       regler(bout, cible, true);
     });
 
-    // Les réglettes : un champ numérique et un curseur par bout, liés au graphe ([DER-08]).
-    const reglettes = {} as Record<Bout, Reglette>;
+    // Les réglettes : une par bout, liée au graphe ([DER-08], [DER-21]).
+    const reglettes = {} as Record<Bout, RegletteUi>;
+    for (const bout of BOUTS) {
+      reglettes[bout] = createReglette(TEXTES_DE_LA_DERIVE.bout[bout], {
+        commencer: () => commencer(true),
+        previsualiser: (valeur) => regler(bout, valeur, false),
+        valider: (valeur) => regler(bout, valeur, true),
+        annuler() {
+          const avant = avantLeGeste;
+          avantLeGeste = null;
+          if (avant) gestes.previsualiser(avant);
+        },
+        retablir() {
+          if (!recette || !palette) return;
+          commencer();
+          regler(bout, depart(recette, palette, grandeurAffichee(), bout), true);
+        },
+        lire: (saisie) => lire(grandeurAffichee(), saisie),
+        buter(cote) {
+          butee = { grandeur: grandeurAffichee(), bout, cote };
+        },
+      });
+    }
     const zoneDesReglettes = document.createElement('div');
     zoneDesReglettes.className = 'reglettes';
-    for (const bout of BOUTS) {
-      const ligne = document.createElement('div');
-      ligne.className = 'reglette';
-      const libelle = document.createElement('span');
-      libelle.className = 'field-label';
-      i18n.lier(libelle, 'textContent', TEXTES_DE_LA_DERIVE.bout[bout]);
-      const champ = document.createElement('input');
-      champ.type = 'text';
-      champ.inputMode = 'decimal';
-      champ.className = 'input champ-nombre';
-      i18n.lier(champ, 'aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
-      champ.addEventListener('input', () => {
-        const valeur = lireNombre(champ.value);
-        if (valeur !== null) regler(bout, valeur, false);
-      });
-      champ.addEventListener('change', () => {
-        const valeur = lireNombre(champ.value);
-        if (valeur !== null) regler(bout, valeur, true);
-      });
-      const piste = document.createElement('span');
-      piste.className = 'reglette-piste';
-      const curseur = document.createElement('input');
-      curseur.type = 'range';
-      curseur.min = '-90';
-      curseur.max = '90';
-      curseur.step = '1';
-      curseur.className = 'reglette-curseur';
-      i18n.lier(curseur, 'aria-label', TEXTES_DE_LA_DERIVE.deriveAuBout[bout]);
-      curseur.addEventListener('input', () => regler(bout, Number(curseur.value), false));
-      curseur.addEventListener('change', () => regler(bout, Number(curseur.value), true));
-      curseur.addEventListener('keydown', (evenement) => {
-        // Le curseur natif avance d'un degré ; Maj le fait avancer de cinq ([DER-09]).
-        if (!evenement.shiftKey || !palette) return;
-        const sens = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[evenement.key];
-        if (!sens) return;
-        evenement.preventDefault();
-        regler(bout, palette.derive[profil][bout] + 5 * sens, true);
-      });
-      const repere = document.createElement('span');
-      repere.className = 'reglette-repere';
-      piste.append(curseur, repere);
-      const tailwind = bouton(TEXTES_DE_LA_DERIVE.tailwind, 'bouton-discret');
-      i18n.lier(tailwind, 'aria-label', TEXTES_DE_LA_DERIVE.ramenerAuPrereglage[bout]);
-      tailwind.addEventListener('click', () => {
-        if (recette && palette) regler(bout, prereglageDe(recette, palette)[bout], true);
-      });
-      ligne.append(libelle, champ, piste, tailwind);
-      zoneDesReglettes.append(ligne);
-      reglettes[bout] = { ligne, champ, curseur, repere };
-    }
+    zoneDesReglettes.append(reglettes.clair.element, reglettes.sombre.element);
+    const ligneDeLaPlage = createLigneFixe();
+    panneau.append(svg, zoneDesReglettes, ligneDeLaPlage.element);
 
     const note = document.createElement('p');
-    note.className = 'ligne-secondaire';
+    note.className = 'ligne-secondaire note-du-color-shift';
 
-    element.append(entete, confirmation, svg, zoneDesReglettes, note);
+    element.append(aide, entete, confirmation, onglets, panneau, note);
 
     // Ctrl+Z ou Cmd+Z défait le dernier réglage, hors d'un champ texte (E21).
     element.addEventListener('keydown', (evenement) => {
@@ -322,66 +462,192 @@ function construireVues(i18n: Localisation) {
       if (precedente) gestes.valider(precedente);
     });
 
-    let rampes: Rampes | null = null;
-    let analyse: AnalyseDePalette | null = null;
-    let ancrage: Ancrage | null = null;
+    /**
+     * Lance le calcul des limites quand l'état jugé a changé, jamais pendant un
+     * geste ([DER-20]). Une autre grandeur ou un autre profil efface les
+     * limites d'avant ; sinon elles restent montrées jusqu'aux nouvelles.
+     */
+    function lancerLesLimites(recetteLue: Recette, paletteLue: Palette, affichee: GrandeurDuColorShift, sansSegment: Record<Bout, boolean>): void {
+      if (avantLeGeste) return;
+      const etat = JSON.stringify([{ ...recetteLue, palettes: [] }, paletteLue]);
+      if (cleDesLimites?.etat === etat && cleDesLimites.grandeur === affichee && cleDesLimites.profil === profil) return;
+      if (cleDesLimites?.grandeur !== affichee || cleDesLimites.profil !== profil) {
+        limites = { clair: null, sombre: null };
+        horsDeLaPlageAuBout = { clair: false, sombre: false };
+      }
+      cleDesLimites = { etat, grandeur: affichee, profil };
+      const reglee = profil;
+      const fixe = BORNES_DU_COLOR_SHIFT[affichee];
+      for (const bout of BOUTS) {
+        if (sansSegment[bout]) {
+          limites[bout] = null;
+          continue;
+        }
+        const candidate = (valeur: number): Palette => reglerDecalage(recetteLue, paletteLue, reglee, affichee, bout, valeur);
+        calculs.lancer(bout, balayerLaLimite({
+          recette: recetteLue,
+          palette: paletteLue,
+          candidate,
+          valeur: valeurAuBout(paletteLue, reglee, affichee, bout),
+          bornes: { bas: -fixe, haut: fixe },
+          pas: PAS_DU_COLOR_SHIFT[affichee],
+          ordre: affichee === 'clarte',
+        }), (limite) => {
+          limites[bout] = limite;
+          horsDeLaPlageAuBout[bout] = sortieDeLaPlage(recetteLue, paletteLue, candidate(depart(recetteLue, paletteLue, affichee, bout)));
+        });
+      }
+    }
+
+    /**
+     * Vrai quand une garantie manquée l'est à cause du réglage du bout : elle
+     * serait tenue à sa valeur de départ ([DER-23]). Un autre réglage a
+     * resserré la plage autour de la valeur rangée.
+     */
+    function sortieDeLaPlage(recetteLue: Recette, paletteLue: Palette, auDepart: Palette): boolean {
+      const cle = (promesse: { mode: Mode; profil: Intensite; paire: { numero: number } }) => `${promesse.mode}/${promesse.profil}/${promesse.paire.numero}`;
+      const tenuesAuDepart = new Set(verifierPromesses(recetteLue, auDepart).filter((promesse) => promesse.verdict === 'tenue').map(cle));
+      return verifierPromesses(recetteLue, paletteLue).some((promesse) => promesse.verdict === 'manquee' && tenuesAuDepart.has(cle(promesse)));
+    }
+
+    /** La piste d'une réglette ([DER-21]) : la couleur que le bout prendrait pour chaque valeur, à la clarté du bout. */
+    function piste(recetteLue: Recette, paletteLue: Palette, intensite: Intensite, affichee: GrandeurDuColorShift, bout: Bout): string {
+      const pivot = pivotDe(recetteLue, paletteLue, intensite);
+      const derive = paletteLue.derive[profil];
+      const clarte = boutsDe(recetteLue)[bout];
+      const part = partsDe(recetteLue, paletteLue)[intensite] ?? 0;
+      const fixe = BORNES_DU_COLOR_SHIFT[affichee];
+      const couleurs = Array.from({ length: 9 }, (_, rang) => {
+        const x = -fixe + (2 * fixe * rang) / 8;
+        const teinte = pivot.H + (affichee === 'teinte' ? x : derive[bout]);
+        const saturation = affichee === 'saturation' ? x : decalageRange(derive, 'saturation')[bout];
+        const decalage = affichee === 'clarte' ? x : decalageRange(derive, 'clarte')[bout];
+        const L = Math.min(1, Math.max(0, clarte + decalageDe(paletteLue, intensite) + decalage));
+        return fabriquerCran(L, teinte, Math.min(1, Math.max(0, part * (1 + saturation))), recetteLue.gamut).hexa;
+      });
+      return `linear-gradient(to right, ${couleurs.join(', ')})`;
+    }
 
     function dessiner(): void {
-      if (!recette || !palette || !rampes || !ancrage) return;
+      if (!recette || !palette || !rampes || !ancrage || !analyse) return;
+      const lue = recette;
+      const courante = palette;
       const focalisee = boutDe(document.activeElement);
-      const lie = palette.derive.lien;
-      // Une palette à une intensité n'a qu'une dérive, rangée liée sous les deux clés ([ENT-14]) : un seul tracé, et ni lien ni profil à choisir.
-      const une = aUneIntensite(palette);
-      // Synchronisés, les deux profils se règlent ensemble : l'éditeur montre le porteur de la référence.
-      if (lie) profil = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
-      if (!analyse) return;
-      graphe.afficher({ recette, palette, profil, rampe: rampeDe(rampes, une ? 'unique' : profil).light, ancrage, grille: analyse.grille, echelle: echelleCourante() });
-      // Le graphe s'est redessiné : la poignée qui avait le focus le reprend.
-      if (focalisee) graphe.poignees()[focalisee]?.focus();
+      const une = aUneIntensite(courante);
+      const lie = courante.derive.lien;
+      // Synchronisés, les deux profils se règlent ensemble : la carte montre le porteur de la référence.
+      if (lie || une) profil = ancrage.profil === 'unique' ? 'vivid' : ancrage.profil;
+      const intensite: Intensite = une ? 'unique' : profil;
+      const grise = estPaletteGrise(lue, courante);
+      const affichee = grandeurAffichee();
+      const reference = pivotDe(lue, courante, intensite);
+      const bouts = boutsDe(lue);
+      // Un segment se juge sur les bouts de la dérive, aux numéros 50 et 950, et non sur les extrémités de la liste (W6).
+      const sansSegment: Record<Bout, boolean> = { clair: reference.L > bouts.clair, sombre: reference.L < bouts.sombre };
+      lancerLesLimites(lue, courante, affichee, sansSegment);
 
-      const derive = palette.derive[profil];
+      const derive = courante.derive[profil];
       choixDuPrereglage.value = derive.origine;
+      choixDuPrereglage.disabled = grise;
       lien.checked = lie;
       etiquetteDuLien.hidden = une;
-      profils.hidden = lie;
+      profils.hidden = lie || une;
       for (const { valeur, choix } of boutonsDeProfil) choix.setAttribute('aria-pressed', String(valeur === profil));
       confirmation.hidden = !confirmationOuverte;
 
-      const reference = pivotDe(recette, palette, aUneIntensite(palette) ? 'unique' : profil);
-      const bouts = boutsDe(recette);
-      const tailwind = prereglageDe(recette, palette);
-      // Un segment se juge sur les bouts de la dérive, aux numéros 50 et 950, et non sur les extrémités de la liste (W6).
-      const sansSegment: Record<Bout, boolean> = { clair: reference.L > bouts.clair, sombre: reference.L < bouts.sombre };
-      for (const bout of BOUTS) {
-        const { ligne, champ, curseur, repere } = reglettes[bout];
-        // Un bout que la référence dépasse n'a pas de segment à régler ([DER-14]).
-        ligne.hidden = sansSegment[bout];
-        if (document.activeElement !== champ) champ.value = lireTexte(ecrireArrondi(derive[bout], 1));
-        if (document.activeElement !== curseur) curseur.value = String(Math.round(derive[bout]));
-        const teinte = teinteA(bouts[bout], reference, derive, bouts);
-        i18n.lier(curseur, 'aria-valuetext', valeurDePoignee(derive[bout], teinte));
-        // Le repère Tailwind reste visible même quand la dérive est libre ([DER-06]).
-        repere.style.left = `${((tailwind[bout] + 90) / 180) * 100}%`;
-        i18n.lier(repere, 'title', repereTailwind(tailwind[bout]));
+      for (const { valeur, onglet, pastille, valeurs } of boutonsDOnglet) {
+        const choisi = valeur === affichee;
+        onglet.setAttribute('aria-selected', String(choisi));
+        onglet.tabIndex = choisi ? 0 : -1;
+        // Une palette grise ne montre ni teinte ni saturation ([DER-15]).
+        onglet.disabled = grise && valeur !== 'clarte';
+        const clair = valeurAuBout(courante, profil, valeur, 'clair');
+        const sombre = valeurAuBout(courante, profil, valeur, 'sombre');
+        pastille.hidden = clair === depart(lue, courante, valeur, 'clair') && sombre === depart(lue, courante, valeur, 'sombre');
+        i18n.lier(valeurs, 'textContent', i18n.composer`${decalageEcrit(valeur, clair)} · ${decalageEcrit(valeur, sombre)}`);
       }
-      i18n.lier(note, 'textContent', sansSegment.clair
-        ? TEXTES_DE_LA_DERIVE.sansSegmentClair
-        : sansSegment.sombre ? TEXTES_DE_LA_DERIVE.sansSegmentSombre : '');
-      note.hidden = note.textContent === '';
+      i18n.lier(panneau, 'aria-label', TEXTES_DE_LA_DERIVE.grandeurs[affichee]);
+
+      const sans = rampesDe(lue, { ...courante, derive: { ...courante.derive, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } } });
+      graphe.afficher({
+        recette: lue,
+        palette: courante,
+        grandeur: affichee,
+        profil,
+        rampes: { sans: rampeDe(sans, intensite)[mode], avec: rampeDe(rampes, intensite)[mode] },
+        ancrage,
+        grille: analyse.grille,
+        echelle: echelleCourante(),
+        permises: { clair: permisesDe('clair'), sombre: permisesDe('sombre') },
+      });
+      // Le graphe s'est redessiné : la poignée qui avait le focus le reprend.
+      if (focalisee) graphe.poignees()[focalisee]?.focus();
+
+      const fixe = BORNES_DU_COLOR_SHIFT[affichee];
+      const tailwind = prereglageDe(lue, courante);
+      for (const bout of BOUTS) {
+        const reglette = reglettes[bout];
+        // Un bout que la référence dépasse n'a pas de segment à régler ([DER-14]).
+        reglette.element.hidden = sansSegment[bout];
+        const valeur = valeurAuBout(courante, profil, affichee, bout);
+        const permises = permisesDe(bout);
+        const teinte = teinteA(bouts[bout], reference, derive, bouts);
+        const auDepart = valeur === depart(lue, courante, affichee, bout);
+        reglette.poser({
+          valeur,
+          bornes: { bas: -fixe, haut: fixe },
+          permises,
+          pas: PAS_DU_COLOR_SHIFT[affichee],
+          grandPas: GRAND_PAS[affichee],
+          piste: piste(lue, courante, intensite, affichee, bout),
+          texte: decalageEcrit(affichee, valeur),
+          etiquette: grandeurAuBout(affichee, bout),
+          annonce: valeurDePoignee(affichee, valeur, teinte, permises),
+          // Le repère Tailwind reste visible même quand la teinte est personnalisée ([DER-06]).
+          reperes: affichee === 'teinte' ? [{ valeur: tailwind[bout], classe: 'reglette-repere', titre: repereTailwind(tailwind[bout]) }] : [],
+          desactivee: false,
+          horsDeLaPlage: horsDeLaPlageAuBout[bout],
+          bouton: { texte: affichee === 'teinte' ? TEXTES_DE_LA_DERIVE.boutonTailwind : TEXTES_DE_LA_DERIVE.retablir, etiquette: retablirAuBout(affichee, bout), inactif: auDepart },
+        });
+      }
+
+      // La ligne fixe : la butée du dernier geste, sinon un bout sorti de sa plage, sinon la plage sûre.
+      const cause = butee && butee.grandeur === affichee ? limites[butee.bout]?.[butee.cote] : null;
+      const sorti = BOUTS.find((bout) => !sansSegment[bout] && horsDeLaPlageAuBout[bout]);
+      const plages = BOUTS.filter((bout) => !sansSegment[bout] && limites[bout])
+        .map((bout) => ({ bout, bas: limites[bout]!.bas.valeur, haut: limites[bout]!.haut.valeur }));
+      if (butee && cause?.cause) ligneDeLaPlage.poser(buteeDuColorShift(affichee, butee.bout, cause.valeur, cause.cause), 'butee');
+      else if (sorti) ligneDeLaPlage.poser(horsDeLaPlage(sorti), 'avertissement');
+      else ligneDeLaPlage.poser(plages.length > 0 ? plageSure(affichee, plages) : '');
+
+      // L'état du calcul des limites, que les tests d'interface attendent avant un geste.
+      element.dataset.limites = calculs.enCours() ? 'en-cours' : 'pretes';
+
+      const texteDeLaNote = grise ? TEXTES_DE_LA_DERIVE.grise
+        : sansSegment.clair ? TEXTES_DE_LA_DERIVE.sansSegmentClair
+          : sansSegment.sombre ? TEXTES_DE_LA_DERIVE.sansSegmentSombre : '';
+      i18n.lier(note, 'textContent', texteDeLaNote);
+      note.hidden = texteDeLaNote === '';
     }
 
     return {
       element,
       focaliser() {
-        choixDuPrereglage.focus();
+        boutonsDOnglet.find(({ onglet }) => onglet.getAttribute('aria-selected') === 'true')?.onglet.focus();
       },
-      afficher(recetteLue, paletteLue, rampesLues, ancrageLu, analyseLue) {
+      afficher(recetteLue, paletteLue, rampesLues, ancrageLu, analyseLue, modeLu) {
+        if (palette && paletteLue.id !== palette.id) {
+          confirmationOuverte = false;
+          butee = null;
+          calculs.abandonner();
+          cleDesLimites = null;
+        }
         analyse = analyseLue;
-        if (palette && paletteLue.id !== palette.id) confirmationOuverte = false;
         recette = recetteLue;
         palette = paletteLue;
         rampes = rampesLues;
         ancrage = ancrageLu;
+        mode = modeLu;
         dessiner();
       },
     };

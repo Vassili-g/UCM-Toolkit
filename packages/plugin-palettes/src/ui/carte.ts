@@ -1,10 +1,10 @@
 /**
  * Une carte de la configuration d'une palette (`[UI-09]` à `[UI-12]`) : fond
  * secondaire, bordure du socle, titre de carte. Une carte repliable a pour
- * en-tête un bouton qui porte le chevron, le titre et un résumé aligné à
- * droite, sur une ligne : un résumé trop long se coupe par une ellipse, et son
- * texte entier se lit au survol ([UI-20]). Son état ouvert dure autant que
- * l'élément, donc la session.
+ * en-tête un bouton qui porte le chevron, le glyphe ([UI-19]), le titre et
+ * son sous-titre, et un résumé aligné à droite, sur une ligne : un résumé trop
+ * long se coupe par une ellipse, et son texte entier se lit au survol
+ * ([UI-20]). Son état ouvert dure autant que l'élément, donc la session.
  */
 import type { Localisation, Texte } from './localisation';
 
@@ -14,6 +14,10 @@ export interface OptionsDeCarte {
   readonly repliable?: { readonly ouverte: boolean };
   /** Le titre ne sert que de nom accessible : l'en-tête ne porte que les contrôles que l'appelant y pose ([UI-04]). */
   readonly sansTitre?: boolean;
+  /** Une ligne sous le titre, qui dit ce que la carte règle ([UI-12]). */
+  readonly sousTitre?: Texte;
+  /** Le dessin posé à gauche du titre ([UI-19]). */
+  readonly glyphe?: Element;
 }
 
 export interface CarteUi {
@@ -47,6 +51,17 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
   resume.className = 'carte-resume';
   resume.hidden = true;
   i18n.lier(element, 'aria-label', options.titre);
+  // Le titre et son sous-titre forment l'intitulé ; sans sous-titre, le titre reste seul.
+  let intitule: HTMLElement = titre;
+  if (options.sousTitre) {
+    intitule = document.createElement('span');
+    intitule.className = 'carte-intitule';
+    const sousTitre = document.createElement('span');
+    sousTitre.className = 'carte-sous-titre';
+    i18n.lier(sousTitre, 'textContent', options.sousTitre);
+    intitule.append(titre, sousTitre);
+  }
+  const avantLeTitre: Element[] = options.glyphe ? [options.glyphe] : [];
 
   let ouverte = options.repliable?.ouverte ?? true;
   const actions: ((ouverte: boolean) => void)[] = [];
@@ -61,7 +76,7 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
     const chevron = document.createElement('span');
     chevron.className = 'carte-chevron';
     chevron.setAttribute('aria-hidden', 'true');
-    bouton.append(chevron, titre, resume);
+    bouton.append(chevron, ...avantLeTitre, intitule, resume);
     bouton.addEventListener('click', () => {
       ouverte = !ouverte;
       rendre();
@@ -72,7 +87,7 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
     tete = document.createElement('div');
     tete.className = 'carte-tete';
     if (options.sansTitre) tete.append(resume);
-    else tete.append(titre, resume);
+    else tete.append(...avantLeTitre, intitule, resume);
   }
   element.append(tete, corps);
 

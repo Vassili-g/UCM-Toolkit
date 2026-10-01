@@ -1382,8 +1382,9 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   hachuré au-delà de la limite de `[DER-19]`.
 - `[DER-04]` Sous le graphe, deux rampes du profil réglé, alignées sur les
   colonnes, dans le thème de l'aperçu : la rampe sans Color shift, puis la
-  rampe avec. Quand les profils sont synchronisés, celles du profil porteur.
-  Les deux se mettent à jour pendant le geste.
+  rampe avec, nommées « sans » et « avec » dans la marge des graduations.
+  Quand les profils sont synchronisés, celles du profil porteur. Les deux se
+  mettent à jour pendant le geste.
 - `[DER-05]` Quand `soft` et `vivid` ont des réglages distincts, le graphe
   trace deux courbes de deux motifs de trait, plein et tireté, chacune avec
   le nom de son profil, pour rester lisibles sans la couleur. Chaque poignée
@@ -1454,7 +1455,11 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   l'ouverture de la carte, au changement d'onglet, au relâchement. Pendant un
   glisser, elle reste figée comme l'échelle du graphe. Une limite se croise
   avec les autres : une luminosité posée en butée resserre la teinte et la
-  saturation du même bout.
+  saturation du même bout. Une limite prend 24 ms en moyenne dans Node et
+  jusqu'à 53 ms (`mesurer-limites.mjs`) : son calcul s'étale entre les images,
+  `balayerLaLimite` rendant la main après chaque candidate, et un geste qui
+  commence avant la fin du calcul le termine d'abord
+  (`src/ui/calculDesLimites.ts`).
 - `[DER-21]` Une réglette par bout suit le graphe. Sa piste est peinte par le
   moteur : la couleur que le bout prendrait pour chaque valeur, à la clarté
   du bout. Au-delà de la limite, la piste est hachurée, et le pouce s'arrête
@@ -1469,9 +1474,11 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
 - `[DER-23]` Le plugin ne ramène jamais une valeur rangée dans sa limite sans
   le geste du designer. Un réglage global, un réglage commun, un changement
   de référence ou un import peut resserrer la plage : la valeur reste en
-  place, son pouce se lit dans la zone hachurée, et la ligne de la plage
-  sûre dit « Nuances sombres hors de la plage sûre : un autre réglage l'a
-  resserrée. ». Une garantie manquée s'affiche comme toute garantie.
+  place, son pouce se lit hachuré, et la ligne de la plage sûre dit
+  « Nuances sombres hors de la plage sûre : un autre réglage l'a
+  resserrée. ». Un bout est hors de sa plage quand une garantie qu'il fait
+  manquer serait tenue à sa valeur de départ, la teinte Tailwind ou zéro.
+  Une garantie manquée s'affiche comme toute garantie.
 
 ### 12.4 Cas limites
 
@@ -1779,7 +1786,10 @@ palette » gardent leurs libellés au-dessus des champs.
   un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
   de `[DER-19]` pour la cible choisie, avec `reglerTeinte`,
   `reglerSaturation` ou `reglerClarte` comme candidate, ses hachures
-  (`[DER-21]`) et sa ligne de plage sûre et de butée (`[DER-22]`). Les
+  (`[DER-21]`) et sa ligne de plage sûre et de butée (`[DER-22]`), sous les
+  réglettes : « Plage sûre · teinte −30° à +12° · saturation 20 % à 100 % ·
+  luminosité −0,05 à +0,005 ». Les limites ne se calculent que carte
+  dépliée. Les
   Réglages communs restent sans limite : ils touchent toutes les palettes à
   la fois. Un pas au clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur
   chaque piste, la lettre de l'autre profil situe sa valeur quand un seul

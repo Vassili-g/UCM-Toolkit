@@ -820,10 +820,12 @@
   gap: var(--espace-serre);
 }
 
+/* Une rangée : libellé, champ, curseur qui prend la place libre, puis le bouton de départ ([DER-21]). */
 .reglette {
   display: flex;
-  flex-wrap: wrap;
+  min-height: 28px;
   align-items: center;
+  padding-top: 8px;
   gap: var(--espace-controle);
 }
 
@@ -836,21 +838,23 @@
 .reglette .champ-nombre {
   flex: 0 0 56px;
   width: 56px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-/* La piste porte le curseur natif et, par-dessus, le repère du préréglage ([DER-06]). */
-.reglette-piste {
+.reglette .bouton-discret {
+  flex-shrink: 0;
+}
+
+/* Le glisser se suit en script (`reglette.ts`) : aucun geste tactile ne le double. */
+.reglette-curseur {
   position: relative;
-  display: flex;
+  height: 22px;
   min-width: 0;
   flex: 1 1 auto;
-  align-items: center;
-}
-
-.reglette-curseur {
-  width: 100%;
-  margin: 0;
-  accent-color: var(--fond-marque);
+  border-radius: 4px;
+  cursor: pointer;
+  touch-action: none;
 }
 
 .reglette-curseur:focus-visible {
@@ -858,14 +862,180 @@
   outline-offset: 2px;
 }
 
-.reglette-repere {
+.reglette-curseur[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* La piste montre, peintes par le moteur, les couleurs que le curseur donnerait. */
+.reglette-piste {
+  position: absolute;
+  top: 7px;
+  right: 0;
+  left: 0;
+  height: 8px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--bordure);
+}
+
+/* La course du pouce : la piste moins deux demi-pouces, pour que le pouce reste dans la réglette. */
+.reglette-course {
   position: absolute;
   top: 0;
+  right: 7px;
   bottom: 0;
+  left: 7px;
+}
+
+/* Au-delà de la limite, la piste est hachurée et le pouce s'arrête sur la borne ([DER-21]). */
+.reglette-interdit {
+  position: absolute;
+  top: 5px;
+  height: 12px;
+  background: repeating-linear-gradient(135deg, var(--texte-danger) 0 1.5px, transparent 1.5px 4.5px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Les zones débordent de la course jusqu'aux bords de la piste : leur largeur ajoute le demi-pouce (`reglette.ts`). */
+.reglette-interdit-bas {
+  left: -7px;
+  border-right: 2px solid var(--texte-danger);
+  border-radius: 4px 0 0 4px;
+}
+
+.reglette-interdit-haut {
+  border-left: 2px solid var(--texte-danger);
+  border-radius: 0 4px 4px 0;
+}
+
+.reglette-pouce {
+  position: absolute;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border: 2px solid var(--texte);
+  border-radius: 50%;
+  background: var(--fond);
+  pointer-events: none;
+}
+
+/* Une valeur rangée hors de sa plage sûre ([DER-23]) : le pouce se lit hachuré. */
+.reglette-curseur[data-hors-de-la-plage='true'] .reglette-pouce {
+  border-color: var(--texte-danger);
+  background: repeating-linear-gradient(135deg, var(--texte-danger) 0 1.5px, var(--fond) 1.5px 4px);
+}
+
+.reglette-repere {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
   width: 2px;
   margin-left: -1px;
   background: var(--texte-second);
   pointer-events: none;
+}
+
+/* Les onglets de grandeur ([DER-18]) : le nom, sa pastille, et les deux valeurs dessous. */
+.onglets-de-grandeur {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.onglet-de-grandeur {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  padding: 4px 8px;
+  border: 0;
+  border-right: 1px solid var(--bordure);
+  background: none;
+  color: var(--texte);
+  column-gap: 4px;
+  cursor: pointer;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  text-align: left;
+}
+
+.onglet-de-grandeur:last-child {
+  border-right: 0;
+}
+
+.onglet-de-grandeur[aria-selected='true'] {
+  background: var(--fond-note);
+  box-shadow: inset 0 -2px 0 var(--bordure-marque);
+}
+
+.onglet-de-grandeur:disabled {
+  color: var(--texte-second);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.onglet-de-grandeur:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: -2px;
+}
+
+.onglet-de-grandeur-nom {
+  font-weight: 600;
+}
+
+.pastille-reglee {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bordure-marque);
+}
+
+.onglet-de-grandeur-valeurs {
+  overflow: hidden;
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+  grid-column: 1 / -1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panneau-de-grandeur {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+/* La note d'une palette grise ou d'un bout sans segment ([DER-14], [DER-15]), sous le panneau. */
+.note-du-color-shift {
+  margin: 0;
+}
+
+/* Une case des rampes sans et avec Color shift ([DER-04]) : un liseré la détache du fond de la carte. */
+.derive-cran {
+  stroke: var(--bordure);
+  stroke-width: 0.5;
+}
+
+/* Le rail d'une poignée ([DER-03]) : la partie permise en léger, l'interdite hachurée. */
+.derive-rail {
+  fill: var(--bordure);
+  opacity: 0.5;
+}
+
+.derive-rail-interdit {
+  fill: url('#hachures-du-color-shift');
+  stroke: var(--texte-danger);
+  stroke-width: 1;
+}
+
+.derive-hachures-fond {
+  fill: var(--fond-bloc);
+}
+
+.derive-hachures-trait {
+  stroke: var(--texte-danger);
+  stroke-width: 1.5;
 }
 
 .derive-poignee:focus {
@@ -1166,6 +1336,101 @@
 .carte-bascule .carte-titre {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/*
+ * Le glyphe d'une carte titrée ([UI-19]) : 44 × 28 unités affichées en 38 × 24 px, d'un trait de 1,8, peint des
+ * rôles de la feuille. Le titre qui le suit pousse le résumé et les contrôles de l'en-tête au bord droit.
+ */
+.glyphe {
+  width: 38px;
+  height: 24px;
+  flex: none;
+}
+
+.glyphe + .carte-titre,
+.glyphe + .carte-intitule {
+  margin-right: auto;
+}
+
+.glyphe-trait,
+.glyphe-trait-marque {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.glyphe-trait {
+  stroke: var(--texte-second);
+}
+
+.glyphe-trait-marque {
+  stroke: var(--texte-marque);
+}
+
+.glyphe-aplat {
+  fill: var(--texte-second);
+}
+
+.glyphe-aplat-pale {
+  fill: var(--texte-second);
+  opacity: 0.35;
+}
+
+.glyphe-aplat-marque {
+  fill: var(--texte-marque);
+}
+
+.glyphe-point {
+  fill: var(--fond-bloc);
+  stroke: var(--texte-marque);
+  stroke-width: 1.6;
+}
+
+.glyphe-axe {
+  stroke: var(--bordure);
+  stroke-width: 1.2;
+}
+
+.glyphe-losange {
+  fill: var(--texte);
+}
+
+.glyphe-fond {
+  fill: var(--fond-bloc);
+  stroke: var(--texte-second);
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+/* Le titre et son sous-titre, l'un sous l'autre ([UI-12]) ; le sous-titre se coupe, le titre jamais. */
+.carte-intitule {
+  display: grid;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.carte-sous-titre {
+  overflow: hidden;
+  color: var(--texte-second);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La section « Ajuster la palette » : son titre et sa phrase, avant les deux cartes de réglage ([UI-12]). */
+.section-d-ajustement {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--espace-controle);
+}
+
+.titre-de-section {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
 }
 
 .carte-chevron::before {
@@ -2081,9 +2346,9 @@
 }
 
 /*
- * La carte « Teinte, saturation, luminosité » (Z10.6, maquette Z10.4, forme
- * A) : la cible en segments, puis une rangée par grandeur, libellé, piste
- * peinte, champ, valeur absolue et « Rétablir ».
+ * La carte « Réglage global » (Z10.6, maquette Z10.4, forme A) : la cible en
+ * segments, puis une réglette par grandeur, libellé, champ, valeur absolue,
+ * piste peinte et « Rétablir ».
  */
 .reglages-de-la-palette {
   display: grid;
@@ -2111,54 +2376,6 @@
   white-space: nowrap;
 }
 
-/* Au-dessus de la piste, la lettre de l'autre profil : la rangée lui laisse sa place. */
-.reglage-de-la-palette {
-  min-height: 28px;
-  padding-top: 8px;
-}
-
-/* La piste montre, peintes par le moteur, les couleurs que le curseur donnerait. */
-.piste-peinte {
-  height: 22px;
-}
-
-.piste-peinte::before {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--piste);
-  box-shadow: inset 0 0 0 1px var(--bordure);
-  content: '';
-  transform: translateY(-50%);
-}
-
-/* Le glisser se suit en script (`reglagesDeLaPalette.ts`) : aucun geste tactile ne le double. */
-.curseur-peint {
-  position: relative;
-  height: 22px;
-  appearance: none;
-  background: transparent;
-  touch-action: none;
-}
-
-.curseur-peint::-webkit-slider-runnable-track {
-  height: 22px;
-  background: transparent;
-}
-
-.curseur-peint::-webkit-slider-thumb {
-  width: 14px;
-  height: 14px;
-  margin-top: 4px;
-  border: 2px solid var(--texte);
-  border-radius: 50%;
-  appearance: none;
-  background: var(--fond);
-}
-
 /* La lettre de l'autre profil, au-dessus de sa valeur. */
 .fantome-du-profil {
   position: absolute;
@@ -2184,13 +2401,6 @@
 /* La saturation de la couleur de référence, un repère plein sur la piste de saturation ([VER-10]). */
 .repere-de-reference {
   background: var(--texte);
-}
-
-.champ-du-reglage {
-  flex: 0 0 56px;
-  width: 56px;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
 }
 
 .absolu-du-reglage {

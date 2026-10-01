@@ -218,11 +218,14 @@ test('l’exception de Figma et l’exemple d’écart se lisent dans le détail
   assert.match(ecart.detail ?? '', /soft\/light\/50 : couleur absente dans l’aperçu, #FAF5F5 sur la planche/);
 });
 
-test('[UI-12] une carte repliée se résume : préréglage et synchronisation, origine et intensités, points à vérifier', () => {
-  assert.equal(resumeDeLaDerive(RECETTE.palettes[0], false, 0), 'Soft Tailwind · Vivid Personnalisée · désynchronisée');
+test('[UI-12] une carte repliée se résume : préréglage, grandeurs réglées et synchronisation, origine et intensités, points à vérifier', () => {
+  assert.equal(resumeDeLaDerive(RECETTE.palettes[0], false, 0), 'Soft : Tailwind · Teinte −7,5° / +5,1° · Vivid : Personnalisé · Teinte +6,0° / 0,0° · désynchronisé');
   const liee = { ...RECETTE.palettes[0], derive: { ...RECETTE.palettes[0].derive, lien: true } };
-  assert.equal(resumeDeLaDerive(liee, false, 1), 'Personnalisée · synchronisée · 1 point à vérifier');
-  assert.equal(resumeDeLaDerive(liee, true, 0), 'Désactivée pour une palette grise');
+  assert.equal(resumeDeLaDerive(liee, false, 1), 'Personnalisé · Teinte +6,0° / 0,0° · synchronisé · 1 point à vérifier');
+  const saturee = { ...liee, derive: { ...liee.derive, vivid: { ...liee.derive.vivid, saturation: { clair: -0.4, sombre: 0 }, clarte: { clair: 0, sombre: 0.02 } } } };
+  assert.equal(resumeDeLaDerive(saturee, false, 0), 'Personnalisé · Teinte +6,0° / 0,0° · Saturation −40 % / 0 % · Luminosité 0,000 / +0,020 · synchronisé');
+  assert.equal(resumeDeLaDerive(liee, true, 0), 'Aucun réglage · synchronisé', 'une palette grise ne montre que sa luminosité');
+  assert.equal(resumeDeLaDerive(saturee, true, 0), 'Luminosité 0,000 / +0,020 · synchronisé');
   const parts = [{ nom: 'Soft', part: 0.45 }, { nom: 'Vivid', part: 0.95 }];
   const aucun = [{ nom: 'Soft', teinte: 0, clarte: 0 }, { nom: 'Vivid', teinte: 0, clarte: 0 }];
   assert.equal(resumeDesReglages(aucun, parts, 0), 'Aucun réglage · Soft 45 % · Vivid 95 %');

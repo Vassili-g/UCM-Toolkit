@@ -14,6 +14,7 @@ import { PROFILS, TABLE_DES_EMPLOIS, lireHexa, rampeDe, type Emploi, type Intens
 
 import type { AnalyseDePalette } from '../analyse';
 import { createCarte } from './carte';
+import { creerGlyphe } from './glyphes';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerVuesNuancier } from './nuancier';
 
@@ -330,7 +331,7 @@ function construireVues(i18n: Localisation) {
   }
 
   function createInterfaceDeTest(): InterfaceDeTestUi {
-    const carte = createCarte({ titre: TEXTES_DE_L_INTERFACE_DE_TEST.titre, repliable: { ouverte: false } }, i18n);
+    const carte = createCarte({ titre: TEXTES_DE_L_INTERFACE_DE_TEST.titre, glyphe: creerGlyphe('interfaceDeTest'), repliable: { ouverte: false } }, i18n);
     let vue: Vue = 'ecran';
     let dernier: { recette: Recette; analyse: AnalyseDePalette; mode: Mode } | null = null;
     /** Le profil peint d'une palette à deux intensités, ouvert sur son porteur (Y2.6) ; la palette dont il est le choix. */

@@ -59,6 +59,7 @@ import { CIBLES_COMMUNES, carteDuMessage, ciblesDeLaPromesse, groupesManques, ty
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
+import { creerGlyphe } from './glyphes';
 import { type ChoixDeBase } from './champs';
 import { creerVuesChamps } from './champs';
 import { type Message } from './constats';
@@ -327,7 +328,7 @@ function construireVues(i18n: Localisation) {
     const colonnes = document.createElement('div');
     colonnes.className = 'colonnes-de-base';
     colonnes.append(champEnColonne(TEXTES.nom, nom), colonneDeLaReference);
-    const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration }, i18n);
+    const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration, glyphe: creerGlyphe('configuration') }, i18n);
     carteDeBase.corps.append(colonnes, choixDuModele.element, choixDesIntensites.element, puces.element);
 
     // Carte d'aperçu sans titre ([UI-04]) : thèmes et fond dans l'en-tête, la référence sous la surface.
@@ -349,8 +350,17 @@ function construireVues(i18n: Localisation) {
       montrerLeTheme: (mode) => nuancier.montrerLeTheme(mode),
     });
 
-    // Cartes repliables « Teinte, saturation, luminosité » et Dérive de teinte ([UI-12], Z10.6).
-    const carteDesIntensites = createCarte({ titre: TEXTES_DES_REGLAGES.titre, repliable: { ouverte: false } }, i18n);
+    // La section « Ajuster la palette » : sa phrase, puis les cartes « Réglage global » et « Color shift » ([UI-12]).
+    const sectionDAjustement = document.createElement('div');
+    sectionDAjustement.className = 'section-d-ajustement';
+    const titreDAjustement = document.createElement('h3');
+    titreDAjustement.className = 'titre-de-section';
+    i18n.lier(titreDAjustement, 'textContent', TEXTES_DE_L_ONGLET.ajuster);
+    const phraseDAjustement = document.createElement('p');
+    phraseDAjustement.className = 'ligne-secondaire';
+    i18n.lier(phraseDAjustement, 'textContent', TEXTES_DE_L_ONGLET.phraseDAjustement);
+    sectionDAjustement.append(titreDAjustement, phraseDAjustement);
+    const carteDesIntensites = createCarte({ titre: TEXTES_DES_REGLAGES.titre, sousTitre: TEXTES_DES_REGLAGES.sousTitre, glyphe: creerGlyphe('reglageGlobal'), repliable: { ouverte: false } }, i18n);
     const intensites = createReglagesDeLaPalette({
       previsualiser: (suivante) => modifier(suivante),
       valider: (suivante) => {
@@ -359,8 +369,10 @@ function construireVues(i18n: Localisation) {
       ouvrir: (cible) => ouvrir(cible),
     });
     carteDesIntensites.corps.append(intensites.element);
+    // Les limites du réglage global ne se calculent que carte ouverte : l'ouvrir les lance.
+    carteDesIntensites.surBascule(() => rendre());
 
-    const carteDeLaDerive = createCarte({ titre: TEXTES_DE_L_ONGLET.derive, repliable: { ouverte: false } }, i18n);
+    const carteDeLaDerive = createCarte({ titre: TEXTES_DE_L_ONGLET.derive, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDeLaDerive, glyphe: creerGlyphe('colorShift'), repliable: { ouverte: false } }, i18n);
     const editeur = createEditeur({
       previsualiser: (suivante) => modifier(suivante),
       valider: (suivante) => {
@@ -389,6 +401,7 @@ function construireVues(i18n: Localisation) {
       teteDeLaPalette,
       carteDeBase.element,
       carteDApercu.element,
+      sectionDAjustement,
       carteDesIntensites.element,
       carteDeLaDerive.element,
       garanties.element,
@@ -696,7 +709,7 @@ function construireVues(i18n: Localisation) {
       garanties.element.hidden = analyse.libre;
       if (!analyse.libre) garanties.afficher({ recette: lue, palette: courante, analyse, mode: nuancier.mode() });
       // Toute palette a la carte, une intensité comprise : c'est là qu'elle affine sa référence (Z10.4, question 4).
-      intensites.afficher(lue, courante, messages.intensite);
+      intensites.afficher(lue, courante, messages.intensite, carteDesIntensites.estOuverte());
       const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
       carteDesIntensites.poserResume(resumeDesReglages(
         intensitesDe(courante).map((intensite) => ({ nom: intensite === 'unique' ? '' : NOM_DU_PROFIL[intensite], teinte: courante.reglages?.teinte?.[intensite === 'unique' ? 'vivid' : intensite] ?? 0, clarte: courante.reglages?.clarte?.[intensite === 'unique' ? 'vivid' : intensite] ?? 0 })),
@@ -712,12 +725,11 @@ function construireVues(i18n: Localisation) {
         messages: messagesDuPied([...messages.liste, ...messages.intensite], groupesManques(analyse.promesses), nomDeLaPalette(courante)),
       }, !enGeste);
 
-      // Une palette grise n'a pas de teinte à montrer : l'éditeur se désactive ([DER-15]).
+      // Une palette grise ne règle que sa luminosité : la carte reste ouverte, ses onglets Teinte et Saturation se désactivent ([DER-15]).
       const grise = estPaletteGrise(lue, courante);
       const pointsDeDerive = messages.liste.filter((message) => carteDuMessage(message.cibles) === 'derive').length;
       carteDeLaDerive.poserResume(resumeDeLaDerive(courante, grise, pointsDeDerive));
-      carteDeLaDerive.desactiver(grise ? TEXTES_DE_LA_DERIVE.grisDesactive : null);
-      if (carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse);
+      if (carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, nuancier.mode());
       interfaceDeTest.afficher(lue, analyse, nuancier.mode(), courante.id);
     }
 

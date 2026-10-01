@@ -198,7 +198,7 @@ les messages qu'elles produisent vont déjà au pied.
 
 ### Édition
 
-- [ ] **C8** `src/edition.ts` : `reglerDecalage(recette, palette, profil,
+- [x] **C8** `src/edition.ts` : `reglerDecalage(recette, palette, profil,
   grandeur, bout, valeur)` remplace `reglerBout` ; les préréglages ne règlent
   que la teinte ; `lierLesProfils` copie les trois grandeurs de Vivid ;
   « Tout rétablir » rend la teinte Tailwind, la saturation et la clarté à
@@ -206,19 +206,19 @@ les messages qu'elles produisent vont déjà au pied.
 
 ### Le Color shift
 
-- [ ] **C9** Nouveau `src/ui/derive/reglette.ts` : piste peinte par le moteur,
+- [x] **C9** Nouveau `src/ui/derive/reglette.ts` : piste peinte par le moteur,
   zones hachurées hors limite, repère Tailwind pour la teinte, champ, bouton
   « Tailwind » ou « Rétablir », clavier (flèches, Maj, Origine et Fin aux
   bornes permises), `aria-valuemin`, `aria-valuemax` et `aria-valuetext` sur
   les bornes permises.
-- [ ] **C10** `src/ui/derive/editeur.ts`, `graphe.ts`, `geometrie.ts` : trois
+- [x] **C10** `src/ui/derive/editeur.ts`, `graphe.ts`, `geometrie.ts` : trois
   onglets de grandeur avec leurs valeurs et leur pastille ; échelles par
   grandeur ; rails permis et hachurés aux poignées ; rampes sans et avec Color
   shift sous le graphe ; ligne fixe de la plage sûre, qui devient la butée et
   sa cause. La limite se calcule au début de l'éditeur et au relâchement,
   jamais pendant un glisser. Palette grise : teinte et saturation désactivées,
   luminosité active.
-- [ ] **C11** `src/ui/ongletPalettes.ts` : titre de section « Ajuster la
+- [x] **C11** `src/ui/ongletPalettes.ts` : titre de section « Ajuster la
   palette » et sa phrase ; carte « Réglage global » puis carte « Color
   shift », titres et sous-titres de l'étude ; pied de la carte globale « Le
   Color shift s'applique ensuite, autour de la référence. » ; résumé replié du
@@ -228,19 +228,19 @@ les messages qu'elles produisent vont déjà au pied.
 
 ### Le réglage global borné (décision Q6)
 
-- [ ] **C12** `src/ui/reglagesDeLaPalette.ts` : chaque curseur prend la
+- [x] **C12** `src/ui/reglagesDeLaPalette.ts` : chaque curseur prend la
   limite de `limiteDynamique`, avec `reglerTeinte`, `reglerSaturation` ou
   `reglerClarte` comme candidate, pour la cible choisie (Vivid, Soft, les
   deux). Même réglette à zones hachurées, même ligne de plage sûre et de
   butée. Les Réglages communs restent sans limite.
-- [ ] **C13** Tests d'interface Chromium : onglets, glisser borné, clavier,
+- [x] **C13** Tests d'interface Chromium : onglets, glisser borné, clavier,
   annulation, butée annoncée, curseur global borné, déplacement nul (M1)
   pendant chaque geste du Color shift. Galerie : un état par onglet, un état
   en butée, un état de palette grise, à la taille par défaut et à 500 × 520.
 
 ### Les glyphes des cartes
 
-- [ ] **G1** Maquette : un glyphe par carte titrée, dans le style des deux
+- [x] **G1** Maquette : un glyphe par carte titrée, dans le style des deux
   glyphes validés (cadre de 44 × 28, affiché en 38 × 24, trait de 1,8, rôles
   `--texte-second` et `--texte-marque`, aucune couleur de donnée). Cartes de
   l'onglet Création : référence et configuration, Réglage global, Color
@@ -250,12 +250,14 @@ les messages qu'elles produisent vont déjà au pied.
   réglages. Les fiches et les cadres, titrés par un nom de palette, n'en ont
   pas. Ajouter la planche des glyphes à la maquette de l'étude, dans les deux
   thèmes de Figma.
-- [ ] **G2** Arrêt : le mainteneur valide la planche des glyphes.
-- [ ] **G3** Nouveau `src/ui/glyphes.ts` : un SVG par carte, `aria-hidden`,
+- [ ] **G2** Arrêt : le mainteneur valide la planche des glyphes. La planche
+  est dans la maquette, sous le plugin simulé ; G3 et G4 posent les glyphes
+  en attendant la réponse, et une retouche ne change que `src/ui/glyphes.ts`.
+- [x] **G3** Nouveau `src/ui/glyphes.ts` : un SVG par carte, `aria-hidden`,
   couleurs par les rôles de la feuille. `carte.ts` accepte un glyphe à gauche
   du titre ; chaque appel à `createCarte` qui porte un titre de la liste G1
   passe le sien. La loi des styles du socle passe.
-- [ ] **G4** Galerie : les cartes avec leur glyphe, dans les deux thèmes.
+- [x] **G4** Galerie : les cartes avec leur glyphe, dans les deux thèmes.
 
 ## Phase 7 : `ucm check`
 

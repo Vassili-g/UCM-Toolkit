@@ -5,13 +5,14 @@
 import {
   BORNES_DES_CRANS_LIBRES,
   BORNES_DES_REGLAGES,
-  DERIVE_MAXIMALE,
+  BORNES_DU_COLOR_SHIFT,
   PROFILS,
   aUnReglageDuPorteur,
   aUneIntensite,
   arrondir,
   boutsDe,
   cleDuPorteur,
+  decalageRange,
   departDe,
   ecrireHexa,
   estGrisPur,
@@ -23,8 +24,10 @@ import {
   profilPorteur,
   referenceReglee,
   rgb8VersOklch,
+  type Bout,
   type Derive,
   type DeriveRangee,
+  type GrandeurDuColorShift,
   type Palette,
   type ParProfil,
   type Profil,
@@ -53,7 +56,7 @@ function prereglageDeLaCouleur(recette: Recette, couleur: Rgb8): Derive {
 function poserReference(recette: Recette, palette: Palette, couleur: Rgb8): Palette {
   const prereglage = prereglageDeLaCouleur(recette, couleur);
   const suivre = (derive: DeriveRangee): DeriveRangee =>
-    derive.origine === 'tailwind' ? { ...prereglage, origine: 'tailwind' } : derive;
+    derive.origine === 'tailwind' ? { ...derive, clair: prereglage.clair, sombre: prereglage.sombre } : derive;
   const { originale: _originale, ...sansOriginale } = palette;
   return {
     ...sansOriginale,
@@ -376,35 +379,66 @@ export function profilsTouches(palette: Palette, profil: Profil): readonly Profi
   return palette.derive.lien ? PROFILS : [profil];
 }
 
-function poserDerive(recette: Recette, palette: Palette, profils: readonly Profil[], derive: Derive): Palette {
-  const rangee: DeriveRangee = {
-    clair: arrondir(Math.max(-DERIVE_MAXIMALE, Math.min(DERIVE_MAXIMALE, derive.clair)), 2) + 0,
-    sombre: arrondir(Math.max(-DERIVE_MAXIMALE, Math.min(DERIVE_MAXIMALE, derive.sombre)), 2) + 0,
-    origine: 'libre',
-  };
-  const avecOrigine = { ...rangee, origine: origineDe(recette, palette, rangee) };
+/** Le nombre de décimales auquel chaque grandeur du Color shift se range ([MOT-27]). */
+const DECIMALES_DU_COLOR_SHIFT: { readonly [G in GrandeurDuColorShift]: number } = { teinte: 2, saturation: 2, clarte: 3 };
+
+/** Une valeur bornée à [MOT-15] et arrondie comme elle se range. Le `+ 0` écrit zéro sans signe. */
+function valeurRangee(grandeur: GrandeurDuColorShift, valeur: number): number {
+  const borne = BORNES_DU_COLOR_SHIFT[grandeur];
+  return arrondir(Math.max(-borne, Math.min(borne, valeur)), DECIMALES_DU_COLOR_SHIFT[grandeur]) + 0;
+}
+
+/**
+ * Le Color shift d'un profil où `grandeur` prend `valeur` au `bout`. Une
+ * saturation ou une luminosité nulle aux deux bouts quitte la recette
+ * ([REC-05]). L'origine suit la teinte ([DER-11]).
+ */
+function avecLeDecalage(recette: Recette, palette: Palette, derive: DeriveRangee, grandeur: GrandeurDuColorShift, bout: Bout, valeur: number): DeriveRangee {
+  if (grandeur === 'teinte') {
+    const teinte = { ...derive, [bout]: valeur };
+    return { ...teinte, origine: origineDe(recette, palette, teinte) };
+  }
+  const decalage = { ...decalageRange(derive, grandeur), [bout]: valeur };
+  const { [grandeur]: _retire, ...sans } = derive;
+  return decalage.clair === 0 && decalage.sombre === 0 ? sans : { ...sans, [grandeur]: decalage };
+}
+
+/** La palette où chaque profil de `profils` prend le Color shift `derive`. */
+function poserDerive(palette: Palette, profils: readonly Profil[], derive: DeriveRangee): Palette {
   const suivante = { ...palette.derive };
-  for (const cible of profils) suivante[cible] = avecOrigine;
+  for (const cible of profils) suivante[cible] = derive;
   return { ...palette, derive: suivante };
 }
 
 /**
- * La palette dont un bout de la dérive prend `angle` ([DER-07], [DER-08]),
- * borné à ±90° et arrondi au centième ([MOT-27]), pour le profil réglé, ou les
- * deux quand ils sont liés.
+ * La palette dont `grandeur` prend `valeur` au `bout` ([DER-07], [DER-08]),
+ * pour le profil réglé, ou les deux quand ils sont liés. La valeur se borne
+ * à [MOT-15] et s'arrondit comme elle se range ([MOT-27]) : la teinte et la
+ * saturation au centième, la luminosité au millième.
  */
-export function reglerBout(recette: Recette, palette: Palette, profil: Profil, bout: 'clair' | 'sombre', angle: number): Palette {
-  const actuelle = palette.derive[profil];
-  return poserDerive(recette, palette, profilsTouches(palette, profil), { ...actuelle, [bout]: angle });
+export function reglerDecalage(recette: Recette, palette: Palette, profil: Profil, grandeur: GrandeurDuColorShift, bout: Bout, valeur: number): Palette {
+  const derive = avecLeDecalage(recette, palette, palette.derive[profil], grandeur, bout, valeurRangee(grandeur, valeur));
+  return poserDerive(palette, profilsTouches(palette, profil), derive);
 }
 
-/** La palette dont les deux dérives prennent un préréglage ([DER-11]) : Tailwind, ou 0° et 0°. */
+/**
+ * La palette dont la teinte prend un préréglage ([DER-11]) : Tailwind, ou 0°
+ * et 0°. La saturation et la luminosité du Color shift restent.
+ */
 export function appliquerPrereglage(recette: Recette, palette: Palette, profil: Profil, prereglage: 'tailwind' | 'constante'): Palette {
-  const derive = prereglage === 'tailwind' ? prereglageDe(recette, palette) : { clair: 0, sombre: 0 };
-  return poserDerive(recette, palette, profilsTouches(palette, profil), derive);
+  const teinte = prereglage === 'tailwind' ? prereglageDe(recette, palette) : { clair: 0, sombre: 0 };
+  const derive = { ...palette.derive[profil], clair: valeurRangee('teinte', teinte.clair), sombre: valeurRangee('teinte', teinte.sombre) };
+  return poserDerive(palette, profilsTouches(palette, profil), { ...derive, origine: origineDe(recette, palette, derive) });
 }
 
-/** Délier garde les deux dérives telles quelles ; lier aligne soft sur vivid ([DER-12]). */
+/** « Tout rétablir » ([DER-11]) : la teinte Tailwind, la saturation et la luminosité à zéro, aux deux bouts. */
+export function toutRetablir(recette: Recette, palette: Palette, profil: Profil): Palette {
+  const tailwind = prereglageDe(recette, palette);
+  const derive: DeriveRangee = { clair: valeurRangee('teinte', tailwind.clair), sombre: valeurRangee('teinte', tailwind.sombre), origine: 'tailwind' };
+  return poserDerive(palette, profilsTouches(palette, profil), derive);
+}
+
+/** Délier garde les deux Color shift tels quels ; lier copie les trois grandeurs de vivid dans soft ([DER-12]). */
 export function lierLesProfils(palette: Palette, lien: boolean): Palette {
   const { soft, vivid } = palette.derive;
   return { ...palette, derive: { lien, soft: lien ? vivid : soft, vivid } };

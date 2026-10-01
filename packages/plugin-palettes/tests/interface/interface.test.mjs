@@ -32,7 +32,7 @@ test('la préférence anglaise, son enregistrement et sa récupération sont ind
 test('la bascule conserve les champs incomplets, les cartes ouvertes et les éléments montés', async () => {
   const page = await ouvrirSur('dessin-en-cours');
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     const champ = page.locator('input[data-mode="light"][data-rang="7"]');
     await champ.fill('0,');
@@ -48,7 +48,7 @@ test('la bascule conserve les champs incomplets, les cartes ouvertes et les él�
     assert.equal(await page.evaluate(() => window.cartesConservees.every((element) => element.isConnected)), true);
     assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop === window.defilementAvant), true);
     await page.getByRole('button', { name: 'Back to palettes and board' }).click();
-    assert.equal(await page.locator('.carte[aria-label="Hue shift"]').getAttribute('data-ouverte'), 'true');
+    assert.equal(await page.locator('.carte[aria-label="Color shift"]').getAttribute('data-ouverte'), 'true');
     assert.equal(await page.locator('body').textContent().then((texte) => texte.includes('[object Object]')), false);
     assert.equal(await page.evaluate(() => window.demandes.filter((d) => ['ranger-recette', 'dessiner', 'retirer-cadre'].includes(d.type)).length), 0);
   } finally { await page.close(); }
@@ -187,13 +187,26 @@ const carteDeLOnglet = (page, titre, panneau = '#panneau-palettes') => page.loca
 /** L'en-tête d'une carte repliable : le bouton qui la déplie ([UI-12]). */
 const bascule = (page, titre, panneau) => carteDeLOnglet(page, titre, panneau).locator('> .carte-bascule');
 
-/** Déplie une carte repliée à l'ouverture ([UI-09], [UI-12], [UI-14], V8.5) ; une carte ouverte le reste. */
+/**
+ * Déplie une carte repliée à l'ouverture ([UI-09], [UI-12], [UI-14], V8.5) ; une carte ouverte le reste. Une carte
+ * dont les réglages ont une limite dynamique attend la fin de son calcul ([DER-20]) : un geste lit la limite complète.
+ */
 async function deplierLaCarte(page, titre, panneau) {
-  if ((await carteDeLOnglet(page, titre, panneau).getAttribute('data-ouverte')) !== 'true') await bascule(page, titre, panneau).click();
+  const carte = carteDeLOnglet(page, titre, panneau);
+  if ((await carte.getAttribute('data-ouverte')) !== 'true') await bascule(page, titre, panneau).click();
+  await limitesCalculees(carte);
 }
 
-/** La carte « Teinte, saturation, luminosité » de l'onglet Création (Z10.6). */
-const CARTE_DES_REGLAGES = 'Teinte, saturation, luminosité';
+/** Attend la fin du calcul des limites d'une carte, quand elle en a. */
+async function limitesCalculees(carte) {
+  if ((await carte.locator('[data-limites]').count()) > 0) await carte.locator('[data-limites="pretes"]').waitFor();
+}
+
+/** La carte « Réglage global » de l'onglet Création (Z10.6, [UI-12]). */
+const CARTE_DES_REGLAGES = 'Réglage global';
+
+/** La carte « Color shift » de l'onglet Création (section 12). */
+const CARTE_DE_LA_DERIVE = 'Color shift';
 
 /** Une carte des Réglages communs, par son titre ([ENT-12]) : le panneau masque l'onglet, qui a lui aussi une carte Intensités. */
 const reglage = (page, titre) => page.locator(`.carte[aria-label="${titre}"]:visible`);
@@ -317,13 +330,13 @@ test('[UI-12] l’onglet se règle avant de se juger : titre, configuration, ape
       ['Configuration de la palette', 'true'],
       ['Aperçu', 'true'],
       [CARTE_DES_REGLAGES, 'false'],
-      ['Dérive de teinte', 'false'],
+      [CARTE_DE_LA_DERIVE, 'false'],
       ['Garanties de contraste', 'false'],
       ['Interface de test', 'false'],
     ]);
     // La carte Dérive de teinte ne redit pas les garanties : ni bilan, ni lien vers leur carte.
-    await deplierLaCarte(page, 'Dérive de teinte');
-    const derive = carteDeLOnglet(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    const derive = carteDeLOnglet(page, CARTE_DE_LA_DERIVE);
     assert.equal(await derive.getByRole('button', { name: 'Voir les garanties' }).count(), 0);
     assert.doesNotMatch(await derive.textContent(), /Garanties :/);
   } finally {
@@ -501,7 +514,7 @@ test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le foc
     await page.keyboard.press('Tab');
     const contour = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
     assert.notEqual(contour, 'none', 'le focus se voit');
-    assert.deepEqual(await carte.locator('.garantie-echec .lien-de-constat').allTextContents(), [CARTE_DES_REGLAGES, 'Dérive de teinte', 'Luminosité des nuances', 'Ajuster la référence']);
+    assert.deepEqual(await carte.locator('.garantie-echec .lien-de-constat').allTextContents(), [CARTE_DES_REGLAGES, CARTE_DE_LA_DERIVE, 'Luminosité des nuances', 'Ajuster la référence']);
   } finally {
     await page.close();
   }
@@ -540,7 +553,7 @@ test('la bascule montre la rampe sombre', async () => {
 test('[ENT-02] une référence saisie recalcule l’aperçu et la dérive sans passer par le sandbox', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const avant = await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label');
     // #FACC15 est le 300 de vivid en Light, #1E6FD9 son 600 : le pivot de la dérive change de colonne.
     assert.equal(await colonneDuPivot(page), 3);
@@ -1329,7 +1342,7 @@ test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se ra
   }
 });
 
-const deplier = (page) => deplierLaCarte(page, 'Dérive de teinte');
+const deplier = (page) => deplierLaCarte(page, CARTE_DE_LA_DERIVE);
 
 test('[DER-01] le bouton de la dérive déplie le graphe : une ligne, le pivot, deux poignées, onze colonnes alignées', async () => {
   const page = await ouvrirSur('alertes-seules');
@@ -1339,13 +1352,17 @@ test('[DER-01] le bouton de la dérive déplie le graphe : une ligne, le pivot, 
     assert.equal(await page.locator('.derive-trait').count(), 1);
     assert.equal(await page.locator('.derive-pivot').count(), 1);
     assert.equal(await page.locator('.derive-poignee').count(), 2);
+    // [DER-04] : la rampe sans Color shift puis la rampe avec, sur les mêmes colonnes.
     const colonnes = await page.evaluate(() => {
-      const cases = [...document.querySelectorAll('.derive-graphe rect')];
-      return cases.map((rect) => Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')) / 2);
+      const cases = [...document.querySelectorAll('.derive-graphe .derive-cran')];
+      return cases.map((rect) => [rect.dataset.rampe, Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')) / 2]);
     });
-    assert.equal(colonnes.length, 22, 'onze cases de bande, onze crans');
-    for (let rang = 0; rang < 11; rang += 1) assert.ok(Math.abs(colonnes[2 * rang] - colonnes[2 * rang + 1]) < 1e-6);
-    assert.equal(await bascule(page, 'Dérive de teinte').getAttribute('aria-expanded'), 'true');
+    assert.equal(colonnes.length, 22, 'onze crans sans Color shift, onze avec');
+    for (let rang = 0; rang < 11; rang += 1) {
+      assert.deepEqual([colonnes[2 * rang][0], colonnes[2 * rang + 1][0]], ['sans', 'avec']);
+      assert.ok(Math.abs(colonnes[2 * rang][1] - colonnes[2 * rang + 1][1]) < 1e-6);
+    }
+    assert.equal(await bascule(page, CARTE_DE_LA_DERIVE).getAttribute('aria-expanded'), 'true');
   } finally {
     await page.close();
   }
@@ -1377,7 +1394,7 @@ test('[DER-14] une référence plus sombre que le bout sombre masque la poignée
     // La référence exacte porte la dernière nuance claire : le pivot tombe dans cette colonne ([DER-02]).
     assert.equal(await page.locator('.derive-pivot').count(), 1);
     assert.equal(await colonneDuPivot(page), 10);
-    assert.match(await page.locator('.editeur-derive > .ligne-secondaire').textContent(), /plus sombre que toutes les nuances/);
+    assert.match(await page.locator('.note-du-color-shift').textContent(), /plus sombre que toutes les nuances/);
   } finally {
     await page.close();
   }
@@ -1387,7 +1404,7 @@ test('[DER-14] une référence plus sombre que le bout sombre masque la poignée
 async function colonneDuPivot(page) {
   return page.evaluate(() => {
     const x = Number(/^M ([\d.]+)/.exec(document.querySelector('.derive-pivot').getAttribute('d'))[1]);
-    const cases = [...document.querySelectorAll('.derive-graphe rect')].filter((_, rang) => rang % 2 === 1);
+    const cases = [...document.querySelectorAll('.derive-graphe .derive-cran[data-rampe="avec"]')];
     return cases.findIndex((rect) => Math.abs(Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')) / 2 - x) < 1e-6);
   });
 }
@@ -1398,7 +1415,7 @@ test('[DER-04] synchronisés, les profils montrent le porteur : la rampe de Soft
     await deplier(page);
     assert.equal(await page.locator('.repere-de-la-reference').textContent(), '◆ Référence : Soft · nuance 400');
     assert.equal(await colonneDuPivot(page), 4);
-    const rampe = await page.evaluate(() => [...document.querySelectorAll('.derive-graphe rect')].filter((_, rang) => rang % 2 === 1).map((rect) => rect.getAttribute('fill')));
+    const rampe = await page.evaluate(() => [...document.querySelectorAll('.derive-graphe .derive-cran[data-rampe="avec"]')].map((rect) => rect.getAttribute('fill')));
     assert.equal(rampe[4], '#A0B599');
   } finally {
     await page.close();
@@ -1417,12 +1434,18 @@ test('[DER-02] le pivot tombe dans la colonne de la nuance qui porte la référe
   }
 });
 
-test('[DER-15] une palette grise désactive l’éditeur ; une palette très désaturée le garde', async () => {
-  for (const [id, desactive] of [['palette-grise', true], ['palette-tres-desaturee', false]]) {
+test('[DER-15] une palette grise ne règle que sa luminosité : Teinte et Saturation se désactivent ; une palette très désaturée garde les trois', async () => {
+  for (const [id, grise] of [['palette-grise', true], ['palette-tres-desaturee', false]]) {
     const page = await ouvrirSur(id);
     try {
-      assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), desactive, id);
-      if (desactive) assert.equal(await carteDeLOnglet(page, 'Dérive de teinte').locator('.carte-resume').textContent(), 'Désactivée pour une palette grise');
+      assert.equal(await bascule(page, CARTE_DE_LA_DERIVE).isDisabled(), false, id);
+      await deplier(page);
+      const onglets = carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('tab');
+      assert.deepEqual(await onglets.evaluateAll((liste) => liste.map((onglet) => onglet.disabled)), [grise, grise, false], id);
+      if (grise) {
+        assert.equal(await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Luminosité');
+        assert.equal(await page.locator('.note-du-color-shift').textContent(), 'Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable.');
+      }
     } finally {
       await page.close();
     }
@@ -1434,8 +1457,9 @@ test('[VER-08] Q4 : un presque noir donne des rampes grises, sans point à véri
   try {
     assert.equal(await page.locator('#panneau-palettes .constat-alerte').count(), 0);
     assert.equal(await page.locator('#panneau-palettes .constat-notice').count(), 0);
-    assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), true);
-    assert.equal(await page.locator('.editeur-derive > .ligne-secondaire:visible').count(), 0, 'la note de [DER-14] se tait quand l’éditeur est désactivé');
+    await deplier(page);
+    // Gris pur et plus sombre que le bout sombre : la note de la palette grise passe avant celle de [DER-14].
+    assert.match(await page.locator('.note-du-color-shift').textContent(), /^Cette palette est entièrement grise/);
   } finally {
     await page.close();
   }
@@ -1499,7 +1523,7 @@ test('[DER-09] au clavier, une poignée avance d’un degré, de cinq avec Maj, 
     await page.keyboard.press('Home');
     palette = await rangementDe(page, avant);
     assert.equal(palette.derive.vivid.sombre, -90);
-    assert.match(await poignee(page, 'sombre').getAttribute('aria-valuetext'), /^Décalage de −90,0°, teinte obtenue : \d+°$/);
+    assert.match(await poignee(page, 'sombre').getAttribute('aria-valuetext'), /^Décalage de −90,0°, teinte obtenue : \d+°\. Plage sûre de −90,0° à \+90,0°$/);
   } finally {
     await page.close();
   }
@@ -1526,7 +1550,7 @@ test('[DER-10] un double-clic ramène la poignée au préréglage Tailwind', asy
 test('[DER-08] le champ et la réglette règlent le bout, virgule acceptée, Maj pour cinq degrés', async () => {
   const page = await editeurSur('alertes-seules');
   try {
-    const champ = page.locator('.reglette').first().locator('.champ-nombre');
+    const champ = page.locator('.editeur-derive .reglette').first().locator('.champ-nombre');
     let avant = await compte(page);
     await champ.fill('12,5');
     await champ.press('Tab');
@@ -1534,7 +1558,7 @@ test('[DER-08] le champ et la réglette règlent le bout, virgule acceptée, Maj
     assert.equal(palette.derive.vivid.clair, 12.5);
     assert.equal(Number(await poignee(page, 'clair').getAttribute('aria-valuenow')), 12.5, 'le graphe suit le champ');
     avant = await compte(page);
-    await page.locator('.reglette').first().locator('.reglette-curseur').focus();
+    await page.locator('.editeur-derive .reglette').first().locator('.reglette-curseur').focus();
     await page.keyboard.press('Shift+ArrowRight');
     palette = await rangementDe(page, avant);
     assert.equal(palette.derive.vivid.clair, 17.5);
@@ -1547,7 +1571,7 @@ test('[DER-11] le préréglage Constante pose deux dérives nulles', async () =>
   const page = await editeurSur('alertes-seules');
   try {
     const avant = await compte(page);
-    await page.getByRole('combobox', { name: 'Dérive de teinte' }).selectOption('constante');
+    await page.getByRole('combobox', { name: 'Préréglage de la teinte' }).selectOption('constante');
     const palette = await rangementDe(page, avant);
     assert.deepEqual(palette.derive.vivid, { clair: 0, sombre: 0, origine: 'constante' });
     assert.deepEqual(palette.derive.soft, palette.derive.vivid);
@@ -1560,7 +1584,7 @@ test('[DER-12] délier règle un seul profil, relier demande confirmation et ali
   const page = await editeurSur('alertes-seules');
   try {
     let avant = await compte(page);
-    await page.getByRole('checkbox', { name: 'Synchroniser la dérive de soft et vivid' }).click();
+    await page.getByRole('checkbox', { name: 'Synchroniser Soft et Vivid' }).click();
     let palette = await rangementDe(page, avant);
     assert.equal(palette.derive.lien, false);
     await page.getByRole('group', { name: 'Profil à modifier' }).getByRole('button', { name: 'soft' }).click();
@@ -1571,10 +1595,10 @@ test('[DER-12] délier règle un seul profil, relier demande confirmation et ali
     assert.notDeepEqual(palette.derive.soft, palette.derive.vivid);
     const vivid = palette.derive.vivid;
     avant = await compte(page);
-    await page.getByRole('checkbox', { name: 'Synchroniser la dérive de soft et vivid' }).click();
+    await page.getByRole('checkbox', { name: 'Synchroniser Soft et Vivid' }).click();
     assert.equal(await page.locator('.editeur-derive .confirmation').isVisible(), true);
     assert.equal(await compte(page), avant, 'relier attend la confirmation');
-    await page.getByRole('button', { name: 'Appliquer à soft' }).click();
+    await page.getByRole('button', { name: 'Aligner', exact: true }).click();
     palette = await rangementDe(page, avant);
     assert.equal(palette.derive.lien, true);
     assert.deepEqual(palette.derive.soft, vivid);
@@ -1599,7 +1623,7 @@ test('E21 : Ctrl+Z dans l’éditeur défait le dernier réglage, hors d’un ch
     const palette = await rangementDe(page, avant);
     assert.equal(palette.derive.vivid.clair, Math.round((depart + 1) * 100) / 100);
     // Un réglage reste dans la pile : Ctrl+Z dans le champ ne doit pas le défaire.
-    const champ = page.locator('.reglette').first().locator('.champ-nombre');
+    const champ = page.locator('.editeur-derive .reglette').first().locator('.champ-nombre');
     await champ.focus();
     avant = await compte(page);
     await page.keyboard.press('Control+z');
@@ -2073,17 +2097,16 @@ test('[ENT-09] Z10.8 un glisser de teinte, de saturation ou de luminosité prév
     const nuance = page.locator('[aria-label^="Profil Soft, nuance 50,"]');
     const avantLApercu = await nuance.getAttribute('aria-label');
     const avant = await compte(page);
-    for (const [grandeur, valeur] of [['Teinte', '20'], ['Saturation', '0.2'], ['Luminosité', '-0.05']]) {
-      const curseur = page.getByRole('slider', { name: `${grandeur} de Soft` });
-      await curseur.evaluate((element, v) => {
-        element.value = v;
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-      }, valeur);
+    // Une saisie dans les bornes permises prévisualise comme un glisser ; la saturation se saisit en pour cent.
+    for (const [grandeur, valeur] of [['Teinte', '5'], ['Saturation', '40'], ['Luminosité', '-0,01']]) {
+      const champ = page.getByRole('textbox', { name: `${grandeur} de Soft` });
+      await champ.fill(valeur);
       // L'aperçu se rend à l'image suivante : un seul rendu par image pendant un glisser (Z4).
       await page.waitForFunction((a) => document.querySelector('[aria-label^="Profil Soft, nuance 50,"]').getAttribute('aria-label') !== a, avantLApercu, { timeout: 2000 });
       assert.equal(await compte(page), avant, `${grandeur} : rien ne s’enregistre pendant le geste`);
-      await curseur.press('Escape');
+      await champ.press('Escape');
       assert.equal(await nuance.getAttribute('aria-label'), avantLApercu, `${grandeur} : Échap rend l’aperçu d’avant`);
+      await champ.press('Tab');
     }
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     assert.equal(await nuance.getAttribute('aria-label'), avantLApercu, 'aucun aperçu en attente ne revient après Échap');
@@ -2101,7 +2124,7 @@ test('[VER-10] la saturation de la référence se situe par un repère sur la pi
     const reperes = page.locator('.reglages-de-la-palette .repere-de-reference:visible');
     assert.equal(await reperes.count(), 1);
     assert.match(await reperes.getAttribute('title'), /^Intensité de la couleur de référence : 0,98$/);
-    assert.equal(await reperes.evaluate((repere) => repere.closest('.reglage-de-la-palette').querySelector('input[type="range"]').getAttribute('aria-label')), 'Saturation de Soft');
+    assert.equal(await reperes.evaluate((repere) => repere.closest('.reglage-de-la-palette').querySelector('.reglette-curseur').getAttribute('aria-label')), 'Saturation de Soft');
     assert.equal(await page.locator('.reglages-de-la-palette > .constats .constat').count(), 0, 'aucune notice permanente');
     assert.equal(await page.locator('.reglages-de-la-palette > .constat-detail').isVisible(), false, 'aucune notice à déplier : Vivid porte la référence à sa saturation');
     assert.equal(await page.locator('#panneau-palettes .constats-titre-notice').count(), 0);
@@ -2151,7 +2174,7 @@ test('D-G [DER-15] : une palette grise le dit sous les curseurs et n’a pas de 
     await envoyer(page, rangee(rangement.demande));
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
     assert.equal(await reglages.getByText('Cette palette est entièrement grise. Il n’y a pas de teinte à régler.').isVisible(), false);
-    assert.equal(await bascule(page, 'Dérive de teinte').isDisabled(), false);
+    assert.equal(await bascule(page, CARTE_DE_LA_DERIVE).isDisabled(), false);
   } finally {
     await page.close();
   }
@@ -2409,7 +2432,7 @@ async function intensitesMontrees(page) {
     basculeDeLEssai: await page.locator('.bascule-du-profil-essaye').isVisible(),
     carteDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).isVisible(),
     cibleDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.cible-des-reglages').evaluate((cible) => !cible.hidden),
-    synchronisation: await carteDeLOnglet(page, 'Dérive de teinte').getByText('Synchroniser', { exact: false }).isVisible(),
+    synchronisation: await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByText('Synchroniser', { exact: false }).isVisible(),
   };
 }
 
@@ -2418,7 +2441,7 @@ test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, l
   try {
     await deplierLaCarte(page, 'Garanties de contraste');
     await deplierLaCarte(page, 'Interface de test');
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const configuration = carteDeLOnglet(page, 'Configuration de la palette');
     assert.deepEqual(await intensitesMontrees(page), { apercu: ['soft', 'vivid'], basculeDesGaranties: true, basculeDeLEssai: true, carteDesReglages: true, cibleDesReglages: true, synchronisation: true });
     // La configuration choisit par des segments, comme le modèle ; les deux cartes et leurs rampes restent à la création.
@@ -3126,7 +3149,8 @@ const rendu = (page, svg, textes, trait) => page.locator(svg).first().evaluate((
   const echelle = cadre.height / element.viewBox.baseVal.height;
   const hauteurs = Object.fromEntries(textes.map((classe) => [classe, Math.round(element.querySelector(classe).getBoundingClientRect().height * 10) / 10]));
   // L'étendue du dessin : du bord gauche de la première case, ou du premier point, au bord droit de la dernière.
-  const formes = [...element.querySelectorAll('rect, circle')].map((forme) => forme.getBoundingClientRect());
+  // Le motif des hachures, dans `defs`, ne se dessine pas à sa place.
+  const formes = [...element.querySelectorAll('rect, circle')].filter((forme) => !forme.closest('defs')).map((forme) => forme.getBoundingClientRect());
   const [gauche, droite] = [Math.min(...formes.map((forme) => forme.left)), Math.max(...formes.map((forme) => forme.right))];
   const dedans = gauche >= cadre.left - 1 && droite <= cadre.right + 1;
   return { largeur: cadre.width, etendue: droite - gauche, dedans, hauteur: Math.round(cadre.height * 10) / 10, ...hauteurs, trait: parseFloat(getComputedStyle(element.querySelector(trait)).strokeWidth) * echelle };
@@ -3143,7 +3167,7 @@ const pareils = (petit, grand, nom) => {
 test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette gardent la taille de leurs textes, de leurs traits et leur hauteur ; seules leurs colonnes s’étirent', async () => {
   const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     await deplierLaCarte(page, 'Garanties de contraste');
     await imageSuivante(page);
     const mesurer = async () => ({
@@ -3156,10 +3180,10 @@ test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette ga
     const grand = await mesurer();
     pareils(petit.derive, grand.derive, 'dérive');
     pareils(petit.reglette, grand.reglette, 'réglette');
-    // Les numéros, la bande et la rampe tombent sur les mêmes colonnes.
+    // Les numéros et les deux rampes tombent sur les mêmes colonnes ([DER-04]).
     const decalages = await page.locator('.derive-graphe').evaluate((svg) => {
       const numeros = [...svg.querySelectorAll('text.derive-graduation')].filter((texte) => /^\d+$/.test(texte.textContent));
-      const cases = [...svg.querySelectorAll('rect[rx]')];
+      const cases = [...svg.querySelectorAll('.derive-cran[data-rampe="avec"]')];
       return numeros.map((numero, rang) => {
         const a = numero.getBoundingClientRect();
         const b = cases[rang].getBoundingClientRect();
@@ -3167,12 +3191,6 @@ test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette ga
       });
     });
     assert.ok(decalages.length === 11 && decalages.every((ecart) => ecart < 1), `décalages : ${decalages}`);
-    // La bande de teintes est continue : chaque case touche la suivante.
-    const trous = await page.locator('.derive-graphe').evaluate((svg) => {
-      const bande = [...svg.querySelectorAll('rect:not([rx])')].map((forme) => forme.getBoundingClientRect());
-      return bande.slice(1).map((forme, rang) => Math.abs(forme.left - bande[rang].right));
-    });
-    assert.ok(trous.every((trou) => trou < 1), `trous dans la bande : ${trous}`);
   } finally {
     await page.close();
   }
@@ -3196,7 +3214,7 @@ test('Z8.5 [UI-02] à 500 et à 1 000 px, le tracé des courbes garde ses traits
 test('Z8.5 [DER-07] à 1 000 px, une poignée glissée sur le repère de +15° prend 15°', async () => {
   const page = await ouvrirSur('derive-deliee-libre', { width: 1000, height: 720 });
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     await imageSuivante(page);
     const poignee = page.locator('.derive-poignee[data-bout="sombre"]');
     await page.locator('.derive-graphe').evaluate((svg) => svg.scrollIntoView({ block: 'center' }));
@@ -3220,9 +3238,9 @@ test('Z8.5 [DER-07] à 1 000 px, une poignée glissée sur le repère de +15° p
 test('Z8.5 [DER-01] carte repliée, un changement de largeur ne redessine pas la dérive ; dépliée, elle se redessine à sa largeur', async () => {
   const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     await imageSuivante(page);
-    await bascule(page, 'Dérive de teinte').click();
+    await bascule(page, CARTE_DE_LA_DERIVE).click();
     await page.evaluate(() => {
       window.redessins = 0;
       new MutationObserver(() => { window.redessins += 1; }).observe(document.querySelector('.derive-graphe'), { childList: true });
@@ -3231,7 +3249,7 @@ test('Z8.5 [DER-01] carte repliée, un changement de largeur ne redessine pas la
     await imageSuivante(page);
     await imageSuivante(page);
     assert.equal(await page.evaluate(() => window.redessins), 0, 'repliée, aucun redessin');
-    await bascule(page, 'Dérive de teinte').click();
+    await bascule(page, CARTE_DE_LA_DERIVE).click();
     await imageSuivante(page);
     const { viewBox, largeur } = await page.locator('.derive-graphe').evaluate((svg) => ({ viewBox: svg.viewBox.baseVal.width, largeur: svg.getBoundingClientRect().width }));
     assert.ok(Math.abs(viewBox * (451 / 396) - largeur) < 1, `dépliée, le viewBox suit la largeur : ${viewBox} unités pour ${largeur} px`);
@@ -3404,7 +3422,7 @@ test('Z11.2 la lettre de l’autre profil se lit au-dessus du curseur, sans touc
       .filter((ligne) => ligne.getClientRects().length > 0)
       .map((ligne) => {
         const lettre = ligne.querySelector('.fantome-du-profil').getBoundingClientRect();
-        const curseur = ligne.querySelector('.curseur-peint').getBoundingClientRect();
+        const curseur = ligne.querySelector('.reglette-curseur').getBoundingClientRect();
         const dessus = ligne.previousElementSibling.getBoundingClientRect();
         // Le curseur rond fait 14 px et commence 4 px sous le haut de sa piste de 22 px.
         return { sousLeCurseur: lettre.bottom - (curseur.top + 4), contreLaRangee: dessus.bottom + 2 - lettre.top };
@@ -3434,7 +3452,7 @@ test('Z11.3 à 500 px, le titre d’une carte tient sur une ligne ; un résumé 
         const chevauche = r.width > 0 && t.left < r.right && r.left < t.right && t.top < r.bottom && r.top < t.bottom;
         return { titre: titre.textContent, lignes, chevauche };
       }));
-    assert.ok(titres.some(({ titre }) => titre === 'Teinte, saturation, luminosité'));
+    assert.ok(titres.some(({ titre }) => titre === CARTE_DES_REGLAGES));
     assert.deepEqual(titres.filter(({ lignes, chevauche }) => lignes !== 1 || chevauche), []);
   } finally {
     await page.close();
@@ -3447,9 +3465,9 @@ test('Z11.4 [DER-05] aucune ligne de la dérive ne barre l’étiquette d’une 
   for (const [viewport, sombre] of [[MINIMALE, null], [{ width: 600, height: 720 }, null], [{ width: 1000, height: 720 }, null], [MINIMALE, '20'], [{ width: 600, height: 720 }, '20'], [MINIMALE, '3'], [{ width: 600, height: 720 }, '3']]) {
     const page = await ouvrirSur('derive-deliee-libre', viewport);
     try {
-      await deplierLaCarte(page, 'Dérive de teinte');
+      await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
       if (sombre) {
-        const champ = carteDeLOnglet(page, 'Dérive de teinte').getByRole('textbox', { name: 'Nuances sombres' });
+        const champ = carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('textbox', { name: 'Nuances sombres' });
         await champ.fill(sombre);
         await champ.press('Tab');
       }
@@ -3504,18 +3522,18 @@ test('Z11.5 Échap pendant un glisser de la carte des réglages : le curseur rev
     const curseur = page.getByRole('slider', { name: 'Teinte de Soft' });
     await curseur.scrollIntoViewIfNeeded();
     const boite = await curseur.boundingBox();
-    const avant = await curseur.inputValue();
+    const avant = await curseur.getAttribute('aria-valuenow');
     const ranges = (await rangements(page)).length;
     await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
     await page.mouse.down();
     await page.mouse.move(boite.x + boite.width * 0.8, boite.y + boite.height / 2, { steps: 5 });
     await page.keyboard.press('Escape');
-    assert.equal(await curseur.inputValue(), avant, 'Échap rend la valeur d’avant au curseur');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), avant, 'Échap rend la valeur d’avant au curseur');
     await page.mouse.move(boite.x + boite.width * 0.9, boite.y + boite.height / 2, { steps: 3 });
     await page.mouse.up();
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     assert.equal((await rangements(page)).length, ranges, 'le relâcher après Échap n’enregistre rien');
-    assert.equal(await curseur.inputValue(), avant);
+    assert.equal(await curseur.getAttribute('aria-valuenow'), avant);
   } finally {
     await page.close();
   }
@@ -3587,7 +3605,7 @@ test('le glisser d’un curseur de la carte des réglages continue hors de sa pi
     // Sous la piste, sans bouton : Chromium y lâche toute capture, et le curseur natif s'arrêtait là.
     await souris('mouseMoved', boite.x + boite.width * 0.6, y + 60, 0);
     await souris('mouseMoved', boite.x + boite.width * 0.9, y + 60, 0);
-    assert.equal(await curseur.inputValue(), '25', 'la valeur suit le pointeur hors de la piste');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '25', 'la valeur suit le pointeur hors de la piste');
     assert.equal(await curseur.evaluate((element) => document.activeElement === element), true, 'le curseur garde le focus');
     assert.equal((await rangements(page)).length, 0, 'rien ne s’enregistre avant le relâcher');
     await souris('mouseReleased', boite.x + boite.width * 0.9, y + 60, 0);
@@ -3596,7 +3614,7 @@ test('le glisser d’un curseur de la carte des réglages continue hors de sa pi
     assert.equal(ranges.length, 1);
     assert.equal(ranges[0].recette.palettes.find(({ reglages }) => reglages?.teinte?.soft !== undefined)?.reglages.teinte.soft, 25);
     await souris('mouseMoved', boite.x + boite.width * 0.1, y, 0);
-    assert.equal(await curseur.inputValue(), '25', 'après le relâcher, le pointeur ne règle plus rien');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '25', 'après le relâcher, le pointeur ne règle plus rien');
   } finally {
     await page.close();
   }
@@ -3643,14 +3661,14 @@ test('le glisser d’un curseur de la carte des réglages, sans capture, finit �
     await souris('mousePressed', boite.x + boite.width / 2, y, 1);
     await souris('mouseMoved', boite.x + boite.width * 0.6, y, 1);
     await souris('mouseMoved', boite.x + boite.width * 0.8, y + 40, 0);
-    const derniere = await curseur.inputValue();
+    const derniere = await curseur.getAttribute('aria-valuenow');
     assert.ok(Number(derniere) > 6, 'la valeur suit le pointeur hors de la piste');
     // Hors de l'iframe, le relâcher ne s'y verrait pas : le geste finit à la sortie.
     await souris('mouseMoved', 40, y, 0);
     await page.waitForFunction(() => window.demandes.some(({ type }) => type === 'ranger-recette'));
     await souris('mouseReleased', 40, y, 0);
     await souris('mouseMoved', boite.x + boite.width * 0.2, y, 0);
-    assert.equal(await curseur.inputValue(), derniere, 'revenu dans le plugin, le pointeur ne règle plus rien');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), derniere, 'revenu dans le plugin, le pointeur ne règle plus rien');
     const ranges = await page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette'));
     assert.equal(ranges.length, 1);
     assert.equal(ranges[0].recette.palettes.find(({ reglages }) => reglages?.teinte?.soft !== undefined)?.reglages.teinte.soft, Number(derniere));
@@ -3671,11 +3689,11 @@ test('un double-clic sur un curseur de la carte des réglages rend la valeur de 
     };
     // Un premier clic range la teinte : le résumé de la carte change et peut la décaler, d'où une seconde mesure.
     await curseur.click({ position: await aLaValeur() });
-    assert.notEqual(await curseur.inputValue(), '0');
+    assert.notEqual(await curseur.getAttribute('aria-valuenow'), '0');
     await envoyer(page, rangee((await rangements(page))[0].demande));
     await curseur.dblclick({ position: await aLaValeur() });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
-    assert.equal(await curseur.inputValue(), '0');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '0');
     await page.waitForFunction(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length === 2);
     const derniere = (await rangements(page)).at(-1);
     assert.equal(derniere.recette.palettes.some(({ reglages }) => reglages?.teinte?.soft), false, 'la teinte de Soft rangée revient à zéro');
@@ -3807,7 +3825,7 @@ const deuxImages = (page) => page.evaluate(() => new Promise((resolve) => reques
  */
 const SANS_DEFILEMENT = (largeur) => ({ width: largeur, height: 1600 });
 
-test('[UI-20] glisser la luminosité de Soft et Vivid de 0 à +0,02 sur Vert, près d’un seuil, ne déplace pas le curseur d’un pixel', async () => {
+test('[UI-20] [ENT-15] glisser la luminosité de Soft et Vivid de 0 vers +0,02 sur Vert, près d’un seuil, ne déplace pas le curseur d’un pixel, et le curseur s’arrête à sa limite', async () => {
   const page = await ouvrirSur('ajuster-en-modale', SANS_DEFILEMENT(600));
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
@@ -3830,7 +3848,10 @@ test('[UI-20] glisser la luminosité de Soft et Vivid de 0 à +0,02 sur Vert, pr
     }
     const ecarts = await ecartsReleves(page);
     await souris('mouseReleased', x(0.02), y, 0);
-    assert.equal(await curseur.inputValue(), '0.02', 'le geste a porté la luminosité à +0,02');
+    // À +0,010, deux garanties tenues au départ manqueraient : le curseur s'arrête à +0,005, et la ligne de la plage dit pourquoi ([DER-22]).
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.005', 'le geste s’arrête à la limite');
+    const plage = carte.locator('.reglages-de-la-palette > .ligne-fixe[data-ton="butee"] .ligne-fixe-texte');
+    assert.match(await plage.textContent(), /^Luminosité de Soft et Vivid : limite atteinte à \+0,005\. Au-delà, .+ tomberait à \d+,\d+:1, sous \d(,\d)?:1\.$/);
     assert.deepEqual([...new Set(ecarts)], [0], `écarts relevés à chaque image : ${ecarts.join(', ')} px`);
   } finally {
     await page.close();
@@ -3840,7 +3861,7 @@ test('[UI-20] glisser la luminosité de Soft et Vivid de 0 à +0,02 sur Vert, pr
 test('[UI-20] à 500 px, glisser la poignée claire de la dérive sur Jaune ne déplace pas le graphe d’un pixel', async () => {
   const page = await ouvrirSur('alertes-seules', SANS_DEFILEMENT(500));
   try {
-    await deplierLaCarte(page, 'Dérive de teinte');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const rond = poignee(page, 'clair').locator('circle');
     await rond.scrollIntoViewIfNeeded();
     const boite = await rond.boundingBox();
@@ -3917,9 +3938,9 @@ test('[UI-18] le pied compte les garanties et les alertes à toute position de d
     await details.click();
     assert.equal((await volet.boundingBox()).height, hauteur);
     // Un lien vers un réglage de l'onglet referme le volet, qui couvrirait ce réglage.
-    await volet.getByRole('button', { name: 'Dérive de teinte' }).first().click();
+    await volet.getByRole('button', { name: CARTE_DE_LA_DERIVE }).first().click();
     assert.equal(await volet.isVisible(), false);
-    assert.equal(await carteDeLOnglet(page, 'Dérive de teinte').getAttribute('data-ouverte'), 'true');
+    assert.equal(await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getAttribute('data-ouverte'), 'true');
   } finally {
     await page.close();
   }
@@ -3942,17 +3963,214 @@ test('[UI-20] le bilan ne s’annonce au lecteur d’écran qu’à la fin d’u
     await souris('mouseMoved', x(0), y, 0);
     await souris('mousePressed', x(0), y, 1);
     const pendant = [];
-    for (const valeur of [0.005, 0.01, 0.015, 0.02]) {
+    // Vers le bas, Vert répare ses deux garanties manquées : la limite laisse passer ce qui répare ([DER-19]).
+    for (const valeur of [-0.005, -0.01, -0.015, -0.02]) {
       await souris('mouseMoved', x(valeur), y, 1);
       await deuxImages(page);
       pendant.push(await annonce.textContent());
     }
     assert.deepEqual([...new Set(pendant)], [avant], 'rien ne s’annonce pendant le glisser');
     const bilanPendant = await page.locator('.pied-texte').textContent();
-    await souris('mouseReleased', x(0.02), y, 0);
+    await souris('mouseReleased', x(-0.02), y, 0);
     await deuxImages(page);
     assert.notEqual(await annonce.textContent(), avant, 'le bilan changé s’annonce au relâcher');
     assert.ok(bilanPendant.startsWith(await annonce.textContent()), 'l’annonce reprend le bilan du pied');
+  } finally {
+    await page.close();
+  }
+});
+
+/** Une réglette du Color shift, par son bout ([DER-21]). */
+const regletteDuBout = (page, bout) => page.locator(`.editeur-derive .reglettes > .reglette:nth-child(${bout === 'clair' ? 1 : 2})`);
+/** Choisit un onglet de grandeur du Color shift, et attend sa limite ([DER-18], [DER-20]). */
+async function choisirLOnglet(page, nom) {
+  await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('tab', { name: new RegExp(`^${nom}`) }).click();
+  await limitesCalculees(carteDeLOnglet(page, CARTE_DE_LA_DERIVE));
+}
+/** La ligne fixe de la plage sûre, sous les réglettes ([DER-22]). */
+const ligneDeLaPlage = (page) => page.locator('.panneau-de-grandeur > .ligne-fixe');
+
+test('[DER-18] trois onglets choisissent la grandeur ; chacun porte ses deux valeurs et une pastille quand il s’écarte de son départ ; le choix dure', async () => {
+  const page = await editeurSur('color-shift-saturation');
+  try {
+    await choisirLOnglet(page, 'Saturation');
+    const carte = carteDeLOnglet(page, CARTE_DE_LA_DERIVE);
+    const onglets = carte.getByRole('tab');
+    assert.deepEqual(await onglets.locator('.onglet-de-grandeur-nom').allTextContents(), ['Teinte', 'Saturation', 'Luminosité']);
+    assert.deepEqual(await onglets.locator('.onglet-de-grandeur-valeurs').allTextContents(), ['−7,5° · +5,1°', '−40 % · +25 %', '+0,020 · −0,050']);
+    // La teinte vaut Tailwind, son départ : pas de pastille ; la saturation et la luminosité s'écartent de zéro.
+    assert.deepEqual(await onglets.locator('.pastille-reglee').evaluateAll((pastilles) => pastilles.map((pastille) => !pastille.hidden)), [false, true, true]);
+    assert.equal(await carte.getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Saturation');
+    assert.match(await page.locator('.derive-graduation').allTextContents().then((textes) => textes.join(' ')), /\+25 %/);
+    // Les flèches passent d'un onglet à l'autre, au clavier comme le motif des onglets.
+    await carte.getByRole('tab', { selected: true }).focus();
+    await page.keyboard.press('ArrowRight');
+    await limitesCalculees(carte);
+    assert.equal(await carte.getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Luminosité');
+    assert.deepEqual(await regletteDuBout(page, 'clair').locator('.champ-nombre').inputValue(), '+0,020');
+    // Replier et rouvrir la carte garde l'onglet choisi.
+    await bascule(page, CARTE_DE_LA_DERIVE).click();
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    assert.equal(await carte.getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Luminosité');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[DER-19] [DER-21] [DER-22] glisser une réglette au-delà de sa limite pose la borne et nomme la cause ; le relâcher range la borne', async () => {
+  const page = await editeurSur('derive-liee-tailwind');
+  try {
+    await choisirLOnglet(page, 'Luminosité');
+    // Bleu, nuances claires : −0,050 à +0,040, la borne haute tenue par l'ordre des nuances (étude, section 5.2).
+    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), 'Plage sûre · nuances claires −0,050 à +0,040 · nuances sombres −0,150 à +0,055');
+    const curseur = regletteDuBout(page, 'clair').getByRole('slider');
+    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.05', '0.04']);
+    assert.match(await curseur.getAttribute('aria-valuetext'), /^0,000\. Plage sûre de −0,050 à \+0,040$/);
+    assert.equal(await regletteDuBout(page, 'clair').locator('.reglette-interdit-haut').isVisible(), true, 'la piste est hachurée au-delà de la limite');
+    await curseur.scrollIntoViewIfNeeded();
+    const boite = await curseur.boundingBox();
+    const avant = await compte(page);
+    await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(boite.x + boite.width - 2, boite.y + boite.height / 2, { steps: 6 });
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.04', 'le pouce s’arrête sur la borne');
+    assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
+    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), 'Luminosité, nuances claires : limite atteinte à +0,040. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité.');
+    assert.equal(await compte(page), avant, 'rien ne se range pendant le glisser');
+    await page.mouse.up();
+    const palette = await rangementDe(page, avant);
+    assert.deepEqual(palette.derive.vivid.clarte, { clair: 0.04, sombre: 0 });
+    assert.deepEqual(palette.derive.soft, palette.derive.vivid, 'synchronisés, les deux profils suivent');
+    assert.equal(palette.derive.vivid.origine, 'tailwind', 'la luminosité ne change pas l’origine de la teinte');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[DER-09] [DER-19] au clavier, Fin et Origine posent une poignée sur ses bornes permises, et un pas au-delà annonce la cause', async () => {
+  const page = await editeurSur('derive-liee-tailwind');
+  try {
+    await choisirLOnglet(page, 'Luminosité');
+    const sombre = poignee(page, 'sombre');
+    assert.deepEqual([await sombre.getAttribute('aria-valuemin'), await sombre.getAttribute('aria-valuemax')], ['-0.15', '0.055']);
+    await sombre.focus();
+    let avant = await compte(page);
+    await page.keyboard.press('End');
+    let palette = await rangementDe(page, avant);
+    assert.equal(palette.derive.vivid.clarte.sombre, 0.055, 'Fin va à la borne permise');
+    await limitesCalculees(carteDeLOnglet(page, CARTE_DE_LA_DERIVE));
+    avant = await compte(page);
+    await poignee(page, 'sombre').focus();
+    await page.keyboard.press('ArrowUp');
+    assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
+    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,055\. Au-delà, border-control 600 \/ surface 100 \(Vivid, Dark\) tomberait à 2,9\d:1, sous 3:1\.$/);
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
+    // Les nuances sombres en butée, la borne basse des nuances claires se lit sur l'état du geste.
+    const clair = poignee(page, 'clair');
+    const basse = Number(await clair.getAttribute('aria-valuemin'));
+    await clair.focus();
+    await page.keyboard.press('Home');
+    palette = await rangementDe(page, avant);
+    assert.equal(palette.derive.vivid.clarte.clair, basse);
+    assert.ok(basse < 0, String(basse));
+  } finally {
+    await page.close();
+  }
+});
+
+test('[DER-13] Ctrl+Z défait le dernier réglage du Color shift, quelle que soit sa grandeur', async () => {
+  const page = await editeurSur('derive-liee-tailwind');
+  try {
+    await choisirLOnglet(page, 'Saturation');
+    const champ = regletteDuBout(page, 'sombre').locator('.champ-nombre');
+    let avant = await compte(page);
+    await champ.fill('30');
+    await champ.press('Enter');
+    let palette = await rangementDe(page, avant);
+    assert.deepEqual(palette.derive.vivid.saturation, { clair: 0, sombre: 0.3 });
+    await choisirLOnglet(page, 'Teinte');
+    await poignee(page, 'clair').focus();
+    avant = await compte(page);
+    await page.keyboard.press('ArrowUp');
+    await rangementDe(page, avant);
+    avant = await compte(page);
+    await page.keyboard.press('Control+z');
+    palette = await rangementDe(page, avant);
+    assert.equal(palette.derive.vivid.clair, -7.53, 'la teinte revient');
+    assert.deepEqual(palette.derive.vivid.saturation, { clair: 0, sombre: 0.3 }, 'la saturation reste');
+    avant = await compte(page);
+    await poignee(page, 'clair').focus();
+    await page.keyboard.press('Control+z');
+    palette = await rangementDe(page, avant);
+    assert.equal('saturation' in palette.derive.vivid, false, 'puis la saturation revient à zéro, et quitte la recette');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[DER-11] « Tout rétablir » rend la teinte Tailwind, la saturation et la luminosité à zéro', async () => {
+  const page = await editeurSur('color-shift-saturation');
+  try {
+    const avant = await compte(page);
+    await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('button', { name: 'Tout rétablir' }).click();
+    const palette = await rangementDe(page, avant);
+    assert.deepEqual(palette.derive.vivid, { clair: -7.53, sombre: 5.11, origine: 'tailwind' });
+    assert.deepEqual(palette.derive.soft, palette.derive.vivid);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-20] glisser une réglette du Color shift sur Vert jusqu’à sa butée ne déplace pas le curseur d’un pixel', async () => {
+  const page = await ouvrirSur('ajuster-en-modale', SANS_DEFILEMENT(600));
+  try {
+    await page.keyboard.press('Escape');
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    await choisirLOnglet(page, 'Luminosité');
+    const curseur = regletteDuBout(page, 'sombre').getByRole('slider');
+    const boite = await curseur.boundingBox();
+    const souris = await sourisReelle(page);
+    const y = boite.y + boite.height / 2;
+    await releverLesEcarts(page, '.editeur-derive .reglettes > .reglette:nth-child(2) .reglette-curseur');
+    await souris('mouseMoved', boite.x + boite.width / 2, y, 0);
+    await souris('mousePressed', boite.x + boite.width / 2, y, 1);
+    for (let pas = 1; pas <= 8; pas += 1) {
+      await souris('mouseMoved', boite.x + boite.width / 2 + (pas * boite.width) / 16, y, 1);
+      await deuxImages(page);
+    }
+    const ecarts = await ecartsReleves(page);
+    await souris('mouseReleased', boite.x + boite.width - 2, y, 0);
+    assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee', 'la butée s’annonce dans la même ligne');
+    assert.deepEqual([...new Set(ecarts)], [0], `écarts relevés à chaque image : ${ecarts.join(', ')} px`);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[ENT-15] [DER-19] au clavier, Fin pose la luminosité du réglage global à sa borne permise, et un pas au-delà annonce la cause', async () => {
+  const page = await ouvrirSur('ajuster-en-modale', { width: 600, height: 900 });
+  try {
+    await page.keyboard.press('Escape');
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    await carte.getByRole('button', { name: 'Les deux' }).click();
+    await limitesCalculees(carte);
+    const curseur = carte.getByRole('slider', { name: 'Luminosité de Soft et Vivid' });
+    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.05', '0.005']);
+    let avant = await compte(page);
+    await curseur.focus();
+    await page.keyboard.press('End');
+    const rangement = await prochaine(page, avant);
+    assert.deepEqual(rangement.recette.palettes[0].reglages.clarte, { soft: 0.005, vivid: 0.005 });
+    await envoyer(page, rangee(rangement.demande));
+    avant = await compte(page);
+    await curseur.focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.005');
+    assert.match(await carte.locator('.reglages-de-la-palette > .ligne-fixe[data-ton="butee"] .ligne-fixe-texte').textContent(), /^Luminosité de Soft et Vivid : limite atteinte à \+0,005\./);
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
   } finally {
     await page.close();
   }

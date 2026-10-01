@@ -40,6 +40,8 @@ function neutraliserBalises(texte) {
 /**
  * Le pilote. Il attend une image stable avant de se déclarer prêt : la capture
  * s'appuie sur `data-galerie` pour ne pas photographier un écran à moitié joué.
+ * Une étape qui porte `attendre` attend ensuite que ce sélecteur trouve un
+ * élément : un calcul étalé entre les images, comme une limite dynamique.
  */
 function pilote(etat) {
   const scenario = neutraliserBalises(JSON.stringify(etat.atteinte));
@@ -81,6 +83,12 @@ function pilote(etat) {
         entree.dispatchEvent(new Event('change', { bubbles: true }));
         // L'interface lit le fichier de façon asynchrone.
         await pause(40);
+      }
+      if (etape.attendre) {
+        for (var essai = 0; !document.querySelector(etape.attendre); essai += 1) {
+          if (essai > 400) throw new Error('Galerie : rien ne répond à ' + etape.attendre);
+          await pause(8);
+        }
       }
       await pause(8);
     }

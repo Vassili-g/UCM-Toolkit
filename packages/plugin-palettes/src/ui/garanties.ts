@@ -37,6 +37,7 @@ import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { createCarte } from './carte';
+import { creerGlyphe } from './glyphes';
 import { suivreLaLargeur } from './largeur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerVuesNuancier } from './nuancier';
@@ -130,7 +131,7 @@ function construireVues(i18n: Localisation) {
   }
 
   function createGaranties(gestes: GestesDesGaranties): GarantiesUi {
-    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, repliable: { ouverte: false } }, i18n);
+    const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, glyphe: creerGlyphe('garanties'), repliable: { ouverte: false } }, i18n);
     const bascule = document.createElement('div');
     bascule.className = 'bascule bascule-des-profils';
     bascule.setAttribute('role', 'group');

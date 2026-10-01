@@ -40,7 +40,7 @@ export type DecalageDuColorShift = (typeof DECALAGES_DU_COLOR_SHIFT)[number];
 const DECALAGE_NUL: DecalageAuxBouts = { clair: 0, sombre: 0 };
 
 /** Le décalage d'une grandeur du Color shift, zéro aux deux bouts quand la recette ne le range pas. */
-export function decalageRange(derive: DeriveRangee, grandeur: DecalageDuColorShift): DecalageAuxBouts {
+export function decalageRange(derive: Derive, grandeur: DecalageDuColorShift): DecalageAuxBouts {
   return derive[grandeur] ?? DECALAGE_NUL;
 }
 
