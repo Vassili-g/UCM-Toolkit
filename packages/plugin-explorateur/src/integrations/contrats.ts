@@ -3,14 +3,13 @@
  * explicitement par le designer et gardés en mémoire. Le socle de
  * l'explorateur ne lit jamais ce module : sans import, rien ne change.
  *
- * Les lecteurs Node du kit (`@ucm-kit/core/lecteurs`) tirent `ajv` et
- * `node:fs` et ne s'embarquent pas dans un plugin. Ce module reprend les
- * règles qu'il lui faut avec les seules portes du format : la référence
- * (`isTokenReference`), la version courante du contrat et du fichier de
- * tokens. `tests/contrats.test.ts` compare ses verdicts à ceux des lecteurs
- * du kit sur les mêmes entrées.
+ * Version, forme champ par champ, références et index DTCG viennent de la
+ * porte `@ucm-kit/core/lecteurs/navigateur`, qui n'embarque ni `node:fs` ni
+ * Ajv : un contrat se juge ici comme `ucm check` le juge. Le JSON Schema
+ * reste dans la porte Node.
  */
-import { CONTRACT_VERSION, etatDuFormatDeTokens, isTokenReference, normalizeName, versionDeContrat } from '@ucm-kit/core/format';
+import { etatDuFormatDeTokens, isTokenReference, normalizeName, versionDeContrat } from '@ucm-kit/core/format';
+import { champsInvalidesDuContrat, indexerTokensDtcg, nomFigmaDuVariant, sansEchantillon, verdictDeVersion } from '@ucm-kit/core/lecteurs/navigateur';
 import { joinTokenPath } from 'ucm-plugin-socle/src/cheminsDeTokens';
 
 import type { Index } from '../indexation';
@@ -19,21 +18,6 @@ import type { Couleur, ValeurSource, VariableRelevee } from '../modele';
 /** Les bornes d'un import, en octets. */
 export const TAILLE_MAXIMALE_D_UN_FICHIER = 20 * 1024 * 1024;
 export const TAILLE_MAXIMALE_DE_L_ENSEMBLE = 50 * 1024 * 1024;
-
-/**
- * La fenêtre de lecture des contrats : la majeure courante et la précédente,
- * comme `VERSION_CONTRAT_MINIMALE` et `VERSION_CONTRAT_MAXIMALE` du kit.
- */
-export function versionDeContratLue(version: string): 'ok' | 'ancien' | 'recent' {
-  const lue = /^(\d+)\.(\d+)$/.exec(version);
-  const courante = /^(\d+)\.(\d+)$/.exec(CONTRACT_VERSION);
-  if (!lue || !courante) return 'ancien';
-  const [majeure, mineure] = [Number(lue[1]), Number(lue[2])];
-  const [majeureCourante, mineureCourante] = [Number(courante[1]), Number(courante[2])];
-  if (majeure < majeureCourante - 1) return 'ancien';
-  if (majeure > majeureCourante || (majeure === majeureCourante && mineure > mineureCourante)) return 'recent';
-  return 'ok';
-}
 
 /** Une référence citée par un contrat, avec son adresse exacte. */
 export interface OccurrenceContractuelle {
@@ -81,20 +65,24 @@ export type RefusDImport =
 
 const estObjet = (valeur: unknown): valeur is Record<string, unknown> => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
 
-/** Le libellé d'un variant : son nom Figma, ou ses valeurs d'axes. */
+/** Le libellé d'un variant : son nom Figma rebâti par le kit, ou ses valeurs d'axes. */
 function libelleDuVariant(contrat: Record<string, unknown>, variant: unknown): string {
   if (!estObjet(variant)) return '';
-  if (typeof variant.figmaName === 'string') return variant.figmaName;
+  const nom = nomFigmaDuVariant(contrat, variant);
+  if (typeof nom === 'string') return nom;
   const valeurs = estObjet(variant.values) ? variant.values : {};
-  const etiquettes = estObjet(contrat.figmaVariantLabels) ? contrat.figmaVariantLabels : {};
-  const axes = estObjet(etiquettes.axes) ? etiquettes.axes : {};
-  const parValeur = estObjet(etiquettes.values) ? etiquettes.values : {};
-  return Object.entries(valeurs).map(([axe, valeur]) => {
-    const nomDAxe = typeof axes[axe] === 'string' ? axes[axe] : axe;
-    const etiquette = estObjet(parValeur[axe]) && typeof parValeur[axe][String(valeur)] === 'string' ? parValeur[axe][String(valeur)] : valeur;
-    return `${nomDAxe}=${etiquette}`;
-  }).join(', ') || String(contrat.name ?? '');
+  return Object.entries(valeurs).map(([axe, valeur]) => `${axe}=${String(valeur)}`).join(', ') || String(contrat.name ?? '');
 }
+
+/** La partie d'une vue exacte qui renvoie à chaque catalogue, comme `vueExacteDuVariant` du kit les lit. */
+const PARTIE_DU_CATALOGUE: Readonly<Record<string, string>> = {
+  viewStructures: 'structure',
+  viewTypographies: 'typography',
+  viewComposes: 'composes',
+  viewIcons: 'icons',
+  viewPaintPlacements: 'paintPlacements',
+  viewEffects: 'effects',
+};
 
 /**
  * Les références normatives d'un contrat, situées. `samples` et `meta` sont
@@ -103,15 +91,15 @@ function libelleDuVariant(contrat: Record<string, unknown>, variant: unknown): s
 export function occurrencesDuContrat(contrat: Record<string, unknown>): OccurrenceContractuelle[] {
   const variants = Array.isArray(contrat.variants) ? contrat.variants : [];
   const vues = estObjet(contrat.variantViews) ? contrat.variantViews : {};
-  /** Pour un catalogue `viewX` et sa clé, les variants dont la vue y renvoie. */
+  /** Pour un catalogue de parties et sa clé, les variants dont la vue y renvoie. */
   const variantsDuCatalogue = (catalogue: string, cle: string): string[] => {
-    const partie = catalogue.replace(/^view/, '').replace(/^./, (lettre) => lettre.toLowerCase());
+    const partie = PARTIE_DU_CATALOGUE[catalogue];
+    if (!partie) return [];
     const vuesConcernees = new Set(Object.entries(vues).filter(([, vue]) => estObjet(vue) && vue[partie] === cle).map(([nom]) => nom));
     return variants.filter((variant) => estObjet(variant) && vuesConcernees.has(String(variant.view))).map((variant) => libelleDuVariant(contrat, variant));
   };
   const trouvees: OccurrenceContractuelle[] = [];
-  const pile: Array<{ valeur: unknown; chemin: Array<string | number> }> = Object.entries(contrat)
-    .filter(([cle]) => cle !== 'samples' && cle !== 'meta')
+  const pile: Array<{ valeur: unknown; chemin: Array<string | number> }> = Object.entries(sansEchantillon(contrat) as Record<string, unknown>)
     .reverse()
     .map(([cle, valeur]) => ({ valeur, chemin: [cle] }));
   while (pile.length > 0) {
@@ -121,7 +109,7 @@ export function occurrencesDuContrat(contrat: Record<string, unknown>): Occurren
       const [racine, second] = chemin;
       let concernes: string[] = [];
       if (racine === 'variants' && typeof second === 'number') concernes = [libelleDuVariant(contrat, variants[second])];
-      else if (typeof racine === 'string' && racine.startsWith('view') && typeof second === 'string') concernes = variantsDuCatalogue(racine, second);
+      else if (typeof racine === 'string' && typeof second === 'string') concernes = variantsDuCatalogue(racine, second);
       const proprietes = chemin.filter((segment): segment is string => typeof segment === 'string');
       trouvees.push({ reference: valeur, adresse: adresseDe(chemin), variants: concernes, propriete: proprietes[proprietes.length - 1] ?? '' });
       continue;
@@ -139,24 +127,9 @@ function adresseDe(chemin: ReadonlyArray<string | number>): string {
   return chemin.map((segment, rang) => (typeof segment === 'number' ? `[${segment}]` : rang === 0 ? segment : `.${segment}`)).join('');
 }
 
-/** Les feuilles d'un arbre DTCG par chemin pointé, `$type` hérité du groupe le plus proche. */
+/** Les feuilles d'un arbre DTCG par chemin pointé, `$type` hérité du groupe le plus proche, par l'index du kit. */
 export function feuillesDtcg(document: Record<string, unknown>): Map<string, FeuilleDeTokens> {
-  const feuilles = new Map<string, FeuilleDeTokens>();
-  const pile: Array<{ valeur: unknown; chemin: string; type: string | undefined }> = [{ valeur: document, chemin: '', type: undefined }];
-  while (pile.length > 0) {
-    const { valeur, chemin, type } = pile.pop()!;
-    if (!estObjet(valeur)) continue;
-    const typeLu = typeof valeur.$type === 'string' ? valeur.$type : type;
-    if ('$value' in valeur) {
-      feuilles.set(chemin, { ...(valeur as unknown as FeuilleDeTokens), ...(typeLu ? { $type: typeLu } : {}) });
-      continue;
-    }
-    for (const [cle, enfant] of Object.entries(valeur).reverse()) {
-      if (cle.startsWith('$')) continue;
-      pile.push({ valeur: enfant, chemin: chemin ? `${chemin}.${cle}` : cle, type: typeLu });
-    }
-  }
-  return feuilles;
+  return indexerTokensDtcg(document) as Map<string, FeuilleDeTokens>;
 }
 
 /**
@@ -176,10 +149,10 @@ export function classerImport(fichier: string, texte: string, tailleDesAutres: n
   if (!estObjet(objet)) return { refus: { raison: 'inconnu' } };
   const version = versionDeContrat(objet);
   if (version !== null) {
-    if (versionDeContratLue(version) !== 'ok') return { refus: { raison: 'version', version } };
-    if (typeof objet.name !== 'string') return { refus: { raison: 'structure', detail: 'name' } };
-    if (!Array.isArray(objet.variants)) return { refus: { raison: 'structure', detail: 'variants' } };
-    return { import: { genre: 'contrat', fichier, version, composant: objet.name, occurrences: occurrencesDuContrat(objet), taille } };
+    if (verdictDeVersion(version) !== 'ok') return { refus: { raison: 'version', version } };
+    const invalides = champsInvalidesDuContrat(objet);
+    if (invalides.length > 0) return { refus: { raison: 'structure', detail: invalides.slice(0, 3).join(', ') } };
+    return { import: { genre: 'contrat', fichier, version, composant: String(objet.name), occurrences: occurrencesDuContrat(objet), taille } };
   }
   const etat = etatDuFormatDeTokens(objet);
   const feuilles = feuillesDtcg(objet);

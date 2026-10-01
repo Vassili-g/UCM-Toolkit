@@ -159,6 +159,8 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     diagnostic-markdown.mjs      le rendu markdown d'un diagnostic
     index.mjs                    la porte publique `@ucm-kit/core/lecteurs`
     index.d.mts                  ce que cette porte promet à un consommateur TS
+    navigateur.mjs               la porte `@ucm-kit/core/lecteurs/navigateur` : les lecteurs sans Node ni Ajv, pour un plugin ou une page
+    navigateur.d.mts             ce que cette porte promet à un consommateur TS
   scripts/build-schema.ts  génère le schéma depuis types.ts
   scripts/generer-refus.mjs  les refus de version, rendus pour la relecture
   schema/                  le schéma commité, publié en `@ucm-kit/core/schema`
@@ -1246,9 +1248,10 @@ La spécification en lien porte le raisonnement.
 - Les intégrations s'activent explicitement et leur absence ne produit aucun
   constat. Le profil UCM ne contrôle que les collections que le designer
   associe à une couche (`src/integrations/profilUcm.ts`). Les contrats et
-  `tokens.json` se lisent sans `@ucm-kit/core/lecteurs`, et
-  `tests/contrats.test.ts` compare leurs verdicts à ceux du kit ;
-  `tests/bundle.test.ts` refuse toute dépendance Node dans les deux bundles.
+  `tokens.json` se jugent par `@ucm-kit/core/lecteurs/navigateur`, jamais par
+  la porte Node ; `tests/bundle.test.ts` refuse toute dépendance Node dans les
+  deux bundles, et `packages/kit/tests/porteNavigateur.test.mjs` la tient
+  dans le kit.
   → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
 
 ## Vérification

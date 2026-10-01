@@ -1,6 +1,6 @@
 {
   "name": "@ucm-kit/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Le format de contrat UCM et ses lecteurs : types, version, règles de nommage, schéma et validateurs.",
   "type": "module",
   "license": "MIT",
@@ -33,6 +33,10 @@
     "./lecteurs": {
       "types": "./src/lecteurs/index.d.mts",
       "default": "./src/lecteurs/index.mjs"
+    },
+    "./lecteurs/navigateur": {
+      "types": "./src/lecteurs/navigateur.d.mts",
+      "default": "./src/lecteurs/navigateur.mjs"
     },
     "./schema": "./schema/ucm-contract.schema.json",
     "./package.json": "./package.json"

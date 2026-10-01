@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.3.0
+npm install @ucm-kit/core@0.4.0
 ```
 
 Most repositories never call this package directly. They run
@@ -103,13 +103,14 @@ succeeds. Style Dictionary 5 writes the same for every `duration` unless the
 reader registers a transform for that type. Check the generated output before
 merging the first export in a new format version.
 
-## The four entry points
+## The five entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
 import { PAIRES, RANGS, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
 import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteurs";
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
+import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
 ```
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
@@ -127,8 +128,15 @@ decimals. Like `format`, it depends on nothing.
 
 **`@ucm-kit/core/lecteurs`** holds everything that judges a contract already
 written: its shape, its composition graph, its token references, the meaning of
-a version gap. These modules use `ajv` and `node:fs`, so they stay out of a
-plugin bundle.
+a version gap. Some of these modules use `ajv` and `node:fs`, so this subpath
+stays out of a plugin bundle.
+
+**`@ucm-kit/core/lecteurs/navigateur`** republishes, under the same names, every
+reader of `lecteurs` that touches neither Node nor Ajv: version verdict, field
+by field validation, composition graph, token references, the DTCG index, token
+modes and the diagnostic sections. A Figma plugin or a web page bundles it.
+Finding contracts on disk, reading `ucm.config.json` and validating against the
+JSON Schema stay in `lecteurs`.
 
 **`@ucm-kit/core/schema`** is the JSON Schema as a file, for binding
 `*.contract.json` to validation in an editor. From code, `lireLeSchema()`

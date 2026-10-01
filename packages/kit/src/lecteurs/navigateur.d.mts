@@ -1,0 +1,62 @@
+/**
+ * Ce que le sous-chemin `lecteurs/navigateur` promet à un consommateur
+ * TypeScript : les signatures de `@ucm-kit/core/lecteurs`, pour les seuls
+ * lecteurs que la porte navigateur republie.
+ */
+/// <reference path="./index.d.mts" />
+
+declare module "@ucm-kit/core/lecteurs/navigateur" {
+  export {
+    VERSION_CONTRAT_MINIMALE,
+    VERSION_CONTRAT_MAXIMALE,
+    verdictDeVersion,
+    champsInvalidesDuContrat,
+    validerGrapheDesContrats,
+    validerAdressesDEchantillons,
+    vueExacteDuVariant,
+    compositionsExactesDuVariant,
+    projectionDeReference,
+    nomFigmaDuVariant,
+    nodeIdDeLiaison,
+    messagesDExport,
+    sansEchantillon,
+    collecterReferences,
+    erreursTypesTypographiques,
+    indexerTokensDtcg,
+    cheminDeReference,
+    referencesAbsentes,
+    BORNE_DES_CYCLES,
+    axesDeTokens,
+    axesDuContrat,
+    conesDesAxes,
+    contextesDesAxes,
+    contextesDeVerification,
+    cyclesActifs,
+    valeurDansLeContexte,
+    CARACTERISTIQUES,
+    CHAMPS,
+    SANS_AIDE,
+    caracteristiquesDuContrat,
+    avertissementsCorrigeables,
+    TITRE_AVERTISSEMENTS,
+    sectionAvertissementsExport,
+    resumeTerminalAvertissements,
+    libelleNombre,
+    rendreDiagnostic,
+    bilanEstBloquant,
+    enteteDuVerdict,
+    sectionTokensManquants,
+    resumeTerminalTokensManquants,
+    porteLaTableDesEmplois,
+    constatsDesEmplois,
+    sectionEmplois,
+    resumeTerminalEmplois,
+    pariteEnEcart,
+    aUnEcartDeParite,
+    sectionEcartsDeParite,
+    resumeTerminalEcartsDeParite,
+    repartirEchecs,
+    diagnosticEchecsDeTests,
+    resumeTerminalEchecsDeTests,
+  } from "@ucm-kit/core/lecteurs";
+}

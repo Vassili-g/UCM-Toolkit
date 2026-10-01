@@ -1,14 +1,14 @@
 /**
- * L'intégration des contrats et de `tokens.json`. Les règles reprises des
- * lecteurs Node du kit rendent ici les mêmes verdicts qu'eux, sur les mêmes
- * entrées : la fenêtre de version, le relevé des références et l'index DTCG.
- * Les contrats de test sont fabriqués en code.
+ * L'intégration des contrats et de `tokens.json`. Les verdicts viennent de la
+ * porte navigateur du kit ; ces tests vérifient que l'explorateur les
+ * emploie, et ce qu'il ajoute : l'adresse de chaque référence, le
+ * rapprochement par chemin et la comparaison avec l'export. Les contrats de
+ * test sont fabriqués en code.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CONTRACT_VERSION } from '@ucm-kit/core/format';
-import { collecterReferences, indexerTokensDtcg, sansEchantillon, verdictDeVersion } from '@ucm-kit/core/lecteurs';
+import { collecterReferences, sansEchantillon } from '@ucm-kit/core/lecteurs';
 import { joinTokenPath } from 'ucm-plugin-socle/src/cheminsDeTokens';
 
 import {
@@ -17,41 +17,46 @@ import {
   classerImport,
   correspondance,
   ecartsAvecLExport,
-  feuillesDtcg,
   occurrencesDeLaVariable,
   occurrencesDuContrat,
   variablesParChemin,
-  versionDeContratLue,
   type ContratImporte,
   type TokensImportes,
 } from '../src/integrations/contrats';
 import { indexer } from '../src/indexation';
 import { constructeur, couleur, nombre, projetLibre } from './fixtures';
 
-function contrat(version = CONTRACT_VERSION): Record<string, unknown> {
+/** Un contrat 14.0 que `champsInvalidesDuContrat` accepte. */
+function contrat(version = '14.0'): Record<string, unknown> {
   return {
     name: 'Card',
-    meta: { contractVersion: version, warnings: ['{interface.ne.compte.pas}'] },
+    meta: { contractVersion: version, exportedAt: '2026-01-01T00:00:00.000Z', figma: { fileName: 'f', nodeId: '1:1' }, coverage: { portable: 'complete' } },
     figmaVariantLabels: { axes: { size: 'Size' }, values: { size: { s: 'Small', l: 'Large' } } },
-    viewStructures: { s0: { children: [] } },
-    viewPaintPlacements: { p0: { background: { token: '{interface.card.fill}' } } },
-    variantViews: { v0: { structure: 's0', paintPlacements: 'p0' }, v1: { structure: 's0' } },
+    viewStructures: { s0: { layout: 'flex-row', gap: '{interface.card.gap}', sizing: { width: 'fit-content', height: 'fit-content' } } },
+    viewPaintPlacements: { p0: { fills: { background: [[]] } } },
+    variantViews: { v0: { structure: 's0', paintPlacements: 'p0' }, v1: { structure: 's0', paintPlacements: 'p0' } },
     variants: [
-      { nodeId: '1:1', values: { size: 's' }, view: 'v0', tokens: { gap: '{interface.card.gap}' } },
-      { nodeId: '1:2', values: { size: 'l' }, view: 'v1', tokens: { gap: '{interface.card.gap}' } },
+      { nodeId: '1:1', values: { size: 's' }, view: 'v0', tokens: { background: '{interface.card.fill}' } },
+      { nodeId: '1:2', values: { size: 'l' }, view: 'v1', tokens: { background: '{interface.card.fill}' } },
     ],
-    samples: { texte: '{interface.card.fill}', libelle: '{montant.total}' },
+    structure: { view: 's0', variantAxes: ['size'] },
+    rendering: { roles: {} },
   };
 }
 
-test('la fenêtre de version rend les verdicts du kit', () => {
-  const [majeure] = CONTRACT_VERSION.split('.').map(Number);
-  const essais = ['0.1', `${majeure - 2}.9`, `${majeure - 1}.0`, `${majeure - 1}.7`, CONTRACT_VERSION, `${majeure}.1`, `${majeure + 1}.0`, 'abc', '14'];
-  for (const version of essais) assert.equal(versionDeContratLue(version), verdictDeVersion(version), version);
+test('un contrat valide s’importe ; hors de la fenêtre de version ou mal formé, il est refusé par les verdicts du kit', () => {
+  const accepte = classerImport('card.contract.json', JSON.stringify(contrat()), 0);
+  assert.ok('import' in accepte && accepte.import.genre === 'contrat' && accepte.import.composant === 'Card');
+  assert.deepEqual(classerImport('a.json', JSON.stringify(contrat('2.0')), 0), { refus: { raison: 'version', version: '2.0' } });
+  assert.deepEqual(classerImport('a.json', JSON.stringify(contrat('99.0')), 0), { refus: { raison: 'version', version: '99.0' } });
+  const casse = { ...contrat(), variants: [{ nodeId: '1:1', view: 'inconnue' }] };
+  const refus = classerImport('casse.json', JSON.stringify(casse), 0);
+  assert.ok('refus' in refus && refus.refus.raison === 'structure');
 });
 
-test('le relevé des références rend l’ensemble du kit, échantillons et méta exclus', () => {
-  const brut = contrat();
+test('le relevé des références rend l 19ensemble du kit, échantillons et méta exclus', () => {
+  // Le texte d'une maquette ressemble à une référence sans en être une.
+  const brut = { ...contrat(), samples: { texte: '{montant.total}' } };
   const notre = new Set(occurrencesDuContrat(brut).map((occurrence) => occurrence.reference));
   assert.deepEqual([...notre].sort(), [...collecterReferences(sansEchantillon(brut))].sort());
   assert.equal(notre.has('{montant.total}'), false);
@@ -60,18 +65,10 @@ test('le relevé des références rend l’ensemble du kit, échantillons et mé
 test('chaque référence est située : adresse, variants concernés et propriété', () => {
   const occurrences = occurrencesDuContrat(contrat());
   assert.deepEqual(occurrences.map((occurrence) => [occurrence.adresse, occurrence.variants, occurrence.propriete]), [
-    ['viewPaintPlacements.p0.background.token', ['Size=Small'], 'token'],
-    ['variants[0].tokens.gap', ['Size=Small'], 'gap'],
-    ['variants[1].tokens.gap', ['Size=Large'], 'gap'],
+    ['viewStructures.s0.gap', ['Size=Small', 'Size=Large'], 'gap'],
+    ['variants[0].tokens.background', ['Size=Small'], 'background'],
+    ['variants[1].tokens.background', ['Size=Large'], 'background'],
   ]);
-});
-
-test('l’index DTCG rend les chemins et les types hérités du kit', () => {
-  const document = { $extensions: { 'com.ucm.formatVersion': 2 }, interface: { $type: 'color', card: { fill: { $value: '{couleurs.surface}' } } }, mesures: { zero: { $value: 0, $type: 'number' } } };
-  const notre = feuillesDtcg(document);
-  const kit = indexerTokensDtcg(document) as Map<string, { $type?: string }>;
-  assert.deepEqual([...notre.keys()].sort(), [...kit.keys()].sort());
-  for (const [chemin, feuille] of notre) assert.equal(feuille.$type, kit.get(chemin)?.$type, chemin);
 });
 
 test('un import trop grand, illisible, inconnu ou d’une version refusée est refusé sans rien ajouter', () => {
@@ -79,10 +76,7 @@ test('un import trop grand, illisible, inconnu ou d’une version refusée est r
   assert.deepEqual(classerImport('a.json', '{}', 50 * 1024 * 1024), { refus: { raison: 'ensemble', limite: 50 } });
   assert.deepEqual(classerImport('a.json', '{ casse', 0), { refus: { raison: 'illisible' } });
   assert.deepEqual(classerImport('a.json', '{"x": 1}', 0), { refus: { raison: 'inconnu' } });
-  assert.deepEqual(classerImport('a.json', JSON.stringify(contrat('2.0')), 0), { refus: { raison: 'version', version: '2.0' } });
   assert.deepEqual(classerImport('a.json', JSON.stringify({ $extensions: { 'com.ucm.formatVersion': 99 }, a: { $value: 1 } }), 0), { refus: { raison: 'version', version: '99' } });
-  const accepte = classerImport('card.contract.json', JSON.stringify(contrat()), 0);
-  assert.ok('import' in accepte && accepte.import.genre === 'contrat' && accepte.import.composant === 'Card');
 });
 
 /** Le tokens.json qu'UCM Exporter écrirait pour une partie du projet libre. */
@@ -130,8 +124,9 @@ test('les occurrences contractuelles d’une variable passent par sa référence
   const index = indexer(projetLibre());
   const issue = classerImport('card.contract.json', JSON.stringify(contrat()), 0);
   const importe = ('import' in issue ? issue.import : null) as ContratImporte;
-  const trouvees = occurrencesDeLaVariable(index, [importe], 'carte-gap');
-  assert.deepEqual(trouvees.map((entree) => entree.occurrence.adresse), ['variants[0].tokens.gap', 'variants[1].tokens.gap']);
+  const trouvees = occurrencesDeLaVariable(index, [importe], 'carte-fond');
+  assert.deepEqual(trouvees.map((entree) => entree.occurrence.adresse), ['variants[0].tokens.background', 'variants[1].tokens.background']);
+  assert.deepEqual(occurrencesDeLaVariable(index, [importe], 'carte-gap').map((entree) => entree.occurrence.variants), [['Size=Small', 'Size=Large']]);
   assert.deepEqual(occurrencesDeLaVariable(index, [importe], 'papier'), []);
   // Une couleur égale ne suffit pas : papier vaut la même couleur dans les deux modes sans être citée.
   assert.equal(couleur('#F7F8FA').nature, 'couleur');

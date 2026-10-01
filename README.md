@@ -84,7 +84,7 @@ un simple dossier de contrats se branche de la même façon.
 1. À la racine du repository, lancez :
 
    ```sh
-   npx --yes @ucm-kit/cli@0.1.52 init
+   npx --yes @ucm-kit/cli@0.1.53 init
    ```
 
    `init` écrit `ucm.config.json`, la CI du contrôle et les fichiers lus par un
@@ -105,7 +105,7 @@ un simple dossier de contrats se branche de la même façon.
 autrement les passe à la première installation :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.52 init \
+npx --yes @ucm-kit/cli@0.1.53 init \
   --components src/components \
   --tokens src/tokens \
   --implementation '{dir}/{id}.vue'
@@ -126,7 +126,7 @@ de contrôler.
 Pour lancer le contrôle sur le poste :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.52 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.53 check --report ci-report.md
 ```
 
 Sans Node sur le poste, la CI fait le contrôle. Les fichiers écrits, les autres
@@ -156,7 +156,7 @@ du repository.
 Les cinq premiers contrôles ne lisent que des contrats et des tokens, quelle que
 soit la technologie du repository. La parité lit le code par un adaptateur
 propre à la stack. Le seul existant,
-[`@ucm-kit/adapter-typescript@0.1.45`](./packages/adapter-typescript/README.md),
+[`@ucm-kit/adapter-typescript@0.1.46`](./packages/adapter-typescript/README.md),
 couvre TypeScript et React : le repository l'installe lui-même, et il demande un
 `tsconfig.json` à la racine.
 
@@ -190,13 +190,14 @@ Un repository branché par `ucm init` n'en a pas besoin. Pour appeler les
 lecteurs depuis votre propre code :
 
 ```sh
-npm install @ucm-kit/core@0.3.0
+npm install @ucm-kit/core@0.4.0
 ```
 
 | Entrée | Usage |
 |---|---|
 | `@ucm-kit/core/format` | Types TypeScript, version, règles de nommage. Aucune dépendance, utilisable dans un navigateur ou dans le bundle Figma |
 | `@ucm-kit/core/lecteurs` | Validateurs, collecte de références, verdict de version, rendu du diagnostic. Nécessite Node |
+| `@ucm-kit/core/lecteurs/navigateur` | Les mêmes lecteurs, sauf ceux qui lisent le disque ou le JSON Schema. Utilisable dans un navigateur ou dans le bundle Figma |
 | `@ucm-kit/core/schema` | JSON Schema, pour les éditeurs et les consommateurs qui ne lisent pas TypeScript |
 
 [packages/kit/README.md](./packages/kit/README.md) détaille chaque entrée.

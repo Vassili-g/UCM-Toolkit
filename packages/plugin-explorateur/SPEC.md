@@ -162,8 +162,10 @@ Désactiver une intégration retire ses constats et ses sections de
 l'inspecteur, sans changer la table ni la navigation.
 
 **Contrats et tokens.** Un fichier dépasse 20 Mo, ou l'ensemble 50 Mo : il
-est refusé, et les imports précédents restent. Un contrat se lit dans la
-fenêtre de versions du kit, la majeure courante et la précédente. Ses
+est refusé, et les imports précédents restent. Un contrat se juge par
+`@ucm-kit/core/lecteurs/navigateur`, comme `ucm check` le juge : la fenêtre de
+versions du kit, puis `champsInvalidesDuContrat`, champ par champ. Le JSON
+Schema n'est pas appliqué : son lecteur charge le schéma depuis le disque. Ses
 références se relèvent hors de `samples` et `meta`, chacune avec son adresse,
 ses variants et sa propriété. Une variable se rapproche d'un token par le
 chemin qu'UCM Exporter publie (`joinTokenPath` du socle), jamais par sa

@@ -395,7 +395,7 @@ Prérequis : lot 7. Sortie : lien vérifié entre données publiées et variable
 - [x] Appliquer une borne initiale de 20 Mo par fichier et 50 Mo par ensemble,
   avec refus lisible. Valider la structure avant le parcours ; les dépassements
   ou erreurs ne doivent pas effacer l'ensemble précédent encore valide.
-- [ ] Réutiliser validation de version, schéma et sémantique des lecteurs.
+- [x] Réutiliser validation de version, schéma et sémantique des lecteurs.
   Extraire si nécessaire leurs fonctions pures dans une porte du kit utilisable
   en navigateur, avec injection du schéma ; conserver les exports Node existants.
 - [x] Vérifier le bundle pour exclure `node:fs` et toute dépendance Node de

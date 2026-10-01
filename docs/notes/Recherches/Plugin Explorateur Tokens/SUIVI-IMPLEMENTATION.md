@@ -17,7 +17,7 @@ reprendre le travail sans l'historique de conversation.
 | 6. Comparaison et diagnostics | Livré | `tests/comparaison.test.ts`, `tests/annexes.test.ts` (rapport) |
 | 7. Galerie, volume | Livré | 31 états aux deux tailles ; `npm run mesure` ; test « dix mille variables » |
 | 8. Consommateurs et contrastes | Livré, recette Figma restante | `tests/consommateurs.test.ts`, `tests/annexes.test.ts` (contraste) |
-| 9. Contrats et tokens | Livré, avec un écart au plan | `tests/contrats.test.ts`, `tests/bundle.test.ts` |
+| 9. Contrats et tokens | Livré | `tests/contrats.test.ts`, `tests/bundle.test.ts`, `packages/kit/tests/porteNavigateur.test.mjs` |
 | 10. Palettes et profil UCM | Livré | `tests/integrationsUcm.test.ts` |
 | 11. Graphe, relevés, simulation | Livré | `tests/explorationEtendue.test.ts` ; test d'interface « simulation » |
 | 12. Livraison et recette Figma | Documentation livrée ; recette Figma non exécutée | Ce suivi, `README.md` du paquet, `AGENTS.md` |
@@ -33,7 +33,7 @@ mainteneur. Préparer le fichier de recette, puis importer
 | Nom | **UCM Token Explorer**, provisoire. Il ne s'écrit que dans `manifest.json`, `src/ui/textes.ts` et `src/ui/index.html` ; `tests/loiDesTextes.test.ts` le vérifie. Le paquet reste `ucm-explorateur-plugin` |
 | Identifiant du plugin | Aucun dans le manifeste. Le README du paquet décrit l'attribution par `Plugins > Development > New plugin…` |
 | Thème | `src/ui/roles.css` précède la feuille du socle ; `showUI` part avec `themeColors: false` |
-| Lecture des contrats (lot 9) | Les règles nécessaires sont reprises dans `src/integrations/contrats.ts` avec les seules portes `@ucm-kit/core/format`. Une porte navigateur dans le kit aurait demandé une montée de version et une publication npm, que le plan réserve à une autorisation. `tests/contrats.test.ts` compare les verdicts aux lecteurs Node du kit |
+| Lecture des contrats (lot 9) | Le kit publie `@ucm-kit/core/lecteurs/navigateur` en 0.4.0 : les lecteurs sans Node ni Ajv, sous les mêmes noms. L’explorateur y prend la fenêtre de version, `champsInvalidesDuContrat`, `sansEchantillon`, `nomFigmaDuVariant` et `indexerTokensDtcg`. `@ucm-kit/cli` passe en 0.1.53 et `@ucm-kit/adapter-typescript` en 0.1.46 pour épingler ce kit. Le JSON Schema reste hors du plugin : son lecteur charge le schéma depuis le disque |
 | Chemin publié d'un token | `joinTokenPath` et `prefixeDeCollection` passent de l'exporteur à `packages/plugin-socle/src/cheminsDeTokens.ts` ; `plugin-exporter/src/variables.ts` les réexporte. Les tests de l'exporteur restent verts |
 | Protocole de la recette | `ESPACE_PARTAGE` et `CLE_RECETTE` passent dans `packages/couleur/src/protocole.ts` ; `plugin-palettes/src/lecture.ts` les réexporte |
 | Profil UCM | Couches et cibles d'après ARCHITECTURE-FINALE ; contrôles limités aux variables de couleur des collections associées |
@@ -58,7 +58,7 @@ Typings installés : `@figma/plugin-typings` 1.138.0.
 |---|---|
 | `npm test` (ligne de base, avant tout changement) | 7 échecs préexistants : 1 dans `ucm-couleur`, 6 dans `ucm-palettes-plugin`, sur des textes modifiés dans la copie de travail |
 | `npm test` (après intégration) | 2 307 tests, 6 échecs : les 6 de la ligne de base dans `ucm-palettes-plugin` ; l'échec de `ucm-couleur` ne se reproduit plus |
-| `npm run test --workspace ucm-explorateur-plugin` | 107 tests, 0 échec |
+| `npm run test --workspace ucm-explorateur-plugin` | 106 tests, 0 échec |
 | `npm run typecheck` | Vert |
 | `npm run build` | Vert, trois plugins |
 | `npm run test:ui --workspace ucm-explorateur-plugin` | 12 tests, 0 échec, clavier compris |
