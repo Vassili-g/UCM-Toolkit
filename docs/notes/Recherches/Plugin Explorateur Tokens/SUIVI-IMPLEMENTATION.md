@@ -68,6 +68,7 @@ Typings installés : `@figma/plugin-typings` 1.138.0.
 | `npx tsx --test tests/pluginsSepares.test.ts` | 6 paires vertes |
 | `npx tsx --test tests/docLinks.test.ts` | Vert |
 | `git diff --check` | Vert |
+| CI du commit `58dfae8` | Verte au troisième passage. Les deux premiers ont échoué sur deux puis trois tests de minutage d’UCM Palettes, différents d’un passage à l’autre ; le même commit, dans un worktree propre, passe 158 sur 158 deux fois de suite |
 | `node scripts/controle-style.mjs` sur chaque document modifié | Conforme |
 
 
