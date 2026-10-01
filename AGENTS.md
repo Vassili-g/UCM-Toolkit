@@ -1027,8 +1027,8 @@ La spécification en lien porte le raisonnement.
   référence exacte garde ses octets. `facteurSombre`
   (`packages/couleur/src/rampe.ts`) en est l'unique autorité : `fabriquerRampe`
   l'applique, et « Profils confondus » le lit pour se taire sur les nuances
-  atténuées. `fabriquerCran`, que la garantie des courbes, l'ajustement et la
-  bande de la dérive appellent, ne l'applique pas. `packages/couleur/tests/fondsSombres.test.ts`
+  atténuées. `fabriquerCran`, que la garantie des courbes, l'ajustement et les
+  pistes peintes des réglettes appellent, ne l'applique pas. `packages/couleur/tests/fondsSombres.test.ts`
   le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
 - Chaque valeur de la limite dynamique d'un réglage garde les promesses tenues

@@ -268,9 +268,9 @@ les messages qu'elles produisent vont déjà au pied.
 
 ## Phase 8 : clôture
 
-- [ ] **F1** AGENTS.md : relire la carte du code et les invariants touchés par
+- [x] **F1** AGENTS.md : relire la carte du code et les invariants touchés par
   les phases 2 à 7 ; `tests/inventaireInvariants.test.ts` passe.
-- [ ] **F2** [docs/README.md](../../../../README.md) : l'étude et ce plan ont
+- [x] **F2** [docs/README.md](../../../../README.md) : l'étude et ce plan ont
   leur ligne ; la ligne du plan d'intégration de l'architecture renvoie à ce
   plan pour l'ordre des tâches.
 - [ ] **F3** Arrêt : essais du mainteneur dans Figma. Pour le Color shift, les
