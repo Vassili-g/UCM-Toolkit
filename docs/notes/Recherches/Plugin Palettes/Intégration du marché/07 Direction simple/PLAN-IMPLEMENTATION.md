@@ -60,7 +60,7 @@ l'hypothèse est fausse.
 
 ## Point de reprise
 
-Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8.
+Sur `main`, poussés : P1.1 à P1.3, P2.1 à P2.11, P3.1 à P3.8, P4.1 à P4.6.
 
 Le mainteneur a suspendu les tests Chromium pour la suite du plan : il fait
 la recette dans Figma avant. `npm run test:ui` n'est donc ni lancé ni tenu
@@ -93,6 +93,11 @@ unitaires et le build la tiennent seuls.
   génération se lit sous le bloc de la connexion, et non dans le libellé de
   « Tout mettre à jour », que la vue condensée ne porte pas. La bascule des
   thèmes se cache en vue condensée, comme dans M10.
+- Choix du modèle des variables, à relire à la recette : le suivi d'une
+  palette garde aussi le groupe de sa dernière écriture, pour reconnaître
+  une destination changée ; `src/variables/releve.ts` porte la forme de ce
+  que la lecture rend ; une palette renommée garde les noms de ses
+  variables, puisque le plugin ne renomme rien.
 
 ## Arbitrages
 
@@ -284,17 +289,17 @@ Figma » des fiches.
 
 Aucune interface, aucun appel à Figma. Tout se teste dans Node.
 
-- [ ] **P4.1** `src/variables/destination.ts` : le type `Destination`,
+- [x] **P4.1** `src/variables/destination.ts` : le type `Destination`,
   `{ collection: { id } | { nom }, groupe, themes: 'chemin' | 'modes' }`, son
   défaut, `{ nom: 'primitives' }`, `colors`, `chemin`, et sa validation. Le
   groupe peut être vide.
-- [ ] **P4.2** `src/variables/noms.ts` : le segment d'une palette, tiré de
+- [x] **P4.2** `src/variables/noms.ts` : le segment d'une palette, tiré de
   son nom. Reprendre `normalizeName` par `packages/plugin-socle`, comme
   `cheminsDeTokens.ts` le fait, puis retirer `.`, `{`, `}` et le `$` de tête,
   que Figma refuse. Deux palettes au même segment : la seconde prend son
   identifiant en suffixe, et la fiche le dit. Une palette sans nom prend son
   identifiant. Tests : accents, espaces, casse, collision.
-- [ ] **P4.3** `src/variables/plan.ts` : `planDesVariables(recette, palette,
+- [x] **P4.3** `src/variables/plan.ts` : `planDesVariables(recette, palette,
   destination)` rend la liste ordonnée de ce que la palette écrit, chaque
   entrée avec sa clé stable, `{intensité}/{thème}/{nuance}`, son nom de
   variable, son mode, `unique`, `light` ou `dark`, et sa couleur en hexa. Les
@@ -304,13 +309,13 @@ Aucune interface, aucun appel à Figma. Tout se teste dans Node.
   une intensité n'a pas de segment d'intensité. Une palette libre écrit ses
   seules nuances. Tests sur les quatre cas, et l'égalité avec les couleurs de
   l'aperçu.
-- [ ] **P4.4** `src/variables/suivi.ts` : la forme rangée sous
+- [x] **P4.4** `src/variables/suivi.ts` : la forme rangée sous
   `ucm_palettes/variables`. `{ version, destination, confirmee, palettes:
   { [id]: { collection, modes: { light?, dark?, unique? }, variables:
   { [clé]: { id, ecrite } } , liaison: 'destination' | 'reprise' } } }`.
   Lecture tolérante et versionnée comme `lirePlanche` ; un suivi d'une
   version plus récente refuse toute écriture.
-- [ ] **P4.5** `src/variables/etat.ts` : `etatDesTokens(plan, suivi, lues)`
+- [x] **P4.5** `src/variables/etat.ts` : `etatDesTokens(plan, suivi, lues)`
   rend `jamais-ecrits`, `a-jour`, `a-mettre-a-jour`, `modifies` ou
   `introuvables`, par la règle 4 de la direction, avec la liste des entrées
   concernées : celles que Figma a changées, valeur de Figma et valeur du
@@ -319,7 +324,7 @@ Aucune interface, aucun appel à Figma. Tout se teste dans Node.
   hypothèse de l'essai R5. Une palette dont la destination a changé depuis
   son écriture est `a-mettre-a-jour`. Tests : la table de la règle 4 ligne à
   ligne, une variable disparue, une destination changée.
-- [ ] **P4.6** `src/variables/detection.ts` : `palettesDuFichier(variables)`
+- [x] **P4.6** `src/variables/detection.ts` : `palettesDuFichier(variables)`
   groupe les variables de couleur dont le dernier segment est un nombre et
   dont le reste du chemin est le même ; cinq au moins font une palette ; les
   variables que le suivi possède sont écartées. Chaque palette rend sa

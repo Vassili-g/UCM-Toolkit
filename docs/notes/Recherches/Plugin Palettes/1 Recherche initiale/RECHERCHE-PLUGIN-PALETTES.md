@@ -2604,9 +2604,9 @@ geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
 - `[VAR-04]` Le plugin reconnaît ses variables par identifiant, jamais par
   leur nom. Le suivi rangé sous la clé partagée `ucm_palettes/variables`
   (`src/variables/suivi.ts`) porte sa version, la destination, si elle est
-  confirmée, et pour chaque palette : sa collection, ses modes, sa liaison,
-  `destination` ou `reprise`, et pour chaque clé du plan l'identifiant de la
-  variable et la dernière couleur écrite. Il se lit comme le suivi des
+  confirmée, et pour chaque palette : sa collection, son groupe, ses modes,
+  sa liaison, `destination` ou `reprise`, et pour chaque clé du plan
+  l'identifiant de la variable et la dernière couleur écrite. Il se lit comme le suivi des
   cadres (`[PLA-01]`) : une forme inattendue se lit comme un suivi vide, et
   un suivi d'une version plus récente refuse toute écriture. Chaque variable
   écrite porte aussi la donnée partagée de sa palette et de sa clé, qui ne
@@ -2681,8 +2681,10 @@ geste du designer, depuis l'onglet Gestion. Le modèle est pur et vit dans
   nombre et dont le reste du chemin est le même. Un groupe d'au moins cinq
   variables est une palette. Les variables que le suivi possède sont
   écartées. Chaque palette rend sa collection, son chemin, ses nuances
-  triées, ses couleurs par mode, et la nuance 600 ou la plus proche. La
-  lecture ne suit pas les alias.
+  triées, ses couleurs par mode, et la nuance 600 ou la plus proche ; à
+  distance égale, la plus sombre. La lecture ne suit pas les alias : une
+  variable qui ne porte qu'un alias dans tous ses modes n'entre dans aucune
+  palette.
 - `[VAR-13]` « Modifier dans le plugin » reprend une palette du fichier par
   la porte `reprendre-palette`, qui range la recette et le suivi ensemble,
   sous un seul `figma.commitUndo()`. `reprendreDuFichier`

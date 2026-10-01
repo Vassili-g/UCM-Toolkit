@@ -245,6 +245,14 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/planche/peints.ts    les couleurs relues sur la planche, comparées à celles de l'aperçu
   src/ecriture/recette.ts  le rangement de la recette : validation, empreinte lue, commitUndo
   src/ecriture/planche.ts  le dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; le retrait du cadre d'une palette supprimée ; le choix de la page des planches, qui y déplace les cadres possédés
+  src/variables/           le modèle pur des variables, sans Figma ni DOM
+  src/variables/destination.ts  où les palettes s'écrivent : collection, groupe, thèmes ; son défaut et sa validation
+  src/variables/noms.ts    le segment d'une palette dans le chemin de ses variables, et la collision de deux palettes
+  src/variables/plan.ts    ce qu'une palette écrit : clé stable, nom de variable, mode et couleur de chaque entrée
+  src/variables/suivi.ts   le suivi rangé sous `ucm_palettes/variables` : destination, variables de chaque palette, lecture tolérante et versionnée
+  src/variables/releve.ts  ce que la lecture rend : collections, variables de couleur, et une couleur de Figma arrondie à l'octet
+  src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
+  src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
@@ -1172,6 +1180,24 @@ La spécification en lien porte le raisonnement.
   rangée. `packages/plugin-palettes/tests/importation.test.ts` et les tests
   d'interface le tiennent.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#101-la-recette-exportée)
+- Le plan des variables d'une palette prend ses couleurs dans `rampesDe`,
+  celles de l'aperçu et de la planche, et donne à chaque entrée une clé
+  `{intensité}/{thème}/{nuance}` qui ne dépend ni du nom de la palette ni de
+  la destination. `planDesVariables` (`src/variables/plan.ts`) en est
+  l'unique autorité.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#171-la-forme-et-la-destination)
+- L'état des tokens d'une palette se décide sur trois lectures, dans cet
+  ordre : une variable suivie absente du fichier, introuvables ; une couleur
+  lue différente de la dernière écrite, modifiés dans Figma ; une couleur
+  calculée différente de la dernière écrite, une clé du plan hors du suivi
+  ou une destination changée, à mettre à jour. Deux couleurs sont égales à
+  l'octet, après arrondi des composantes de Figma (`hexaDeFigma`,
+  `src/variables/releve.ts`). Un suivi d'une forme inattendue se lit vide,
+  et un suivi d'une version plus récente ne se lit pas. `etatDesTokens`
+  (`src/variables/etat.ts`) en est l'unique autorité.
+  `packages/plugin-palettes/tests/modeleDesVariables.test.ts` tient ces deux
+  règles.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#172-la-propriété-et-létat)
 - Le manifest n'ouvre aucun domaine et ne déclare pas `enablePrivatePluginApi`.
 - Aucun des deux plugins n'importe l'autre : `tests/pluginsSepares.test.ts` lit
   les deux sens, à la racine, sans qu'un paquet lise les sources de l'autre.
