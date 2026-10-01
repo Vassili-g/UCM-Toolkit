@@ -195,7 +195,7 @@ function verification(verdicts) {
 
   // Un lien nomme le geste et ouvre la carte où il se fait. Des profils presque identiques se règlent par la saturation, dans « Réglage global ».
   const gestes = { 'Réglage global': 'Ajuster le réglage global', 'Color shift': 'Ajuster le Color shift', 'Luminosité des nuances': 'Ajuster la luminosité des nuances', 'Intensités communes': 'Ajuster la saturation', 'Couleur de référence': 'Changer la couleur de référence', 'Couleurs de fond': 'Changer les couleurs de fond' };
-  for (const lien of messages?.querySelectorAll('.lien-de-constat') ?? []) lien.textContent = gestes[lien.textContent] ?? lien.textContent;
+  for (const lien of document.querySelectorAll('.lien-de-constat')) lien.textContent = gestes[lien.textContent] ?? lien.textContent;
 
   // La carte des garanties reste ouverte : son en-tête n'est plus un bouton.
   const bascule = garanties.querySelector('.carte-bascule');
