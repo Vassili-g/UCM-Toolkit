@@ -22,8 +22,9 @@ sur la forme des variables. Un lot modifie d'abord la spécification.
 
 **Les maquettes.**
 [MAQUETTES-DIRECTION-SIMPLE.html](./MAQUETTES-DIRECTION-SIMPLE.html) s'ouvre
-d'un double clic, en thème sombre, à 560 px de large : cinq écrans à valider,
-M9, M11, M15, M13 et M14, puis six écrans validés, M8, M10, M12, M1, M2 et M4.
+d'un double clic, en thème sombre, à 560 px de large : deux écrans retouchés
+à revoir, M11 et M15, puis neuf écrans validés, M9, M13, M14, M8, M10, M12, M1,
+M2 et M4.
 Les écrans M3, M5, M6 et M7 du premier passage sont remplacés. Chaque écran part du plugin construit. Pour
 les régénérer, depuis la racine du dépôt :
 
@@ -274,13 +275,15 @@ Réponses du mainteneur au premier passage des maquettes.
 | S10 | Les thèmes Light et Dark dans les variables | Un choix de la destination, « Dans le chemin » par défaut |
 | S11 | Des couleurs changées dans Figma | Deux choix pour la palette entière, sans reprise dans la recette |
 | S12 | Les palettes du fichier | Dernier segment numérique, cinq variables au moins, variables locales |
-| S13 | Le geste d'une palette du fichier | Il se nomme « Modifier dans le plugin » |
+| S13 | Le geste d'une palette du fichier | Il se nomme « Modifier dans le plugin ». Création s'ouvre sur une palette neuve au nom de celle du fichier ; un encart compare les deux rampes et laisse choisir « Recalculées » ou « Telles quelles » ; les variables d'origine restent à leur place et se remplacent par « Mettre à jour » |
 | S15 | Où les variables s'écrivent | Une destination pour le fichier, réglée dans Gestion : collection, groupe, thèmes |
 | S16 | « Tout mettre à jour » dans la vue condensée | Absent |
 | S17 | Les libellés des liens de message | Ceux de la table de la section 3.3 |
-| S18 | Le bloc « Connexion à Figma » | Synchronisation, destination des tokens, page des planches, bilan et « Tout mettre à jour » ; gris, sans fond |
-| S19 | « Synchroniser » | Il relit le fichier sans écrire ; « Tout mettre à jour » écrit |
-| S20 | La carte de la destination | Trois champs et la simulation ; elle s'ouvre à la place du bloc de la connexion |
+| S18 | Le bloc « Connexion à Figma » | Synchronisation, destination des tokens, page des planches, bilan et « Tout mettre à jour » ; gris, sans fond, à 20 px de plus de la barre « Palettes du plugin » que l'écart courant |
+| S19 | « Synchroniser » | Il relit le fichier sans écrire ; « Tout mettre à jour » écrit. Texte gris, sans contour, avec l'icône des deux flèches en cercle, pour ne pas se confondre avec « Changer » |
+| S20 | La carte de la destination | Trois champs et la simulation ; elle s'ouvre à la place du bloc de la connexion. La carte est grise, sans fond, comme le bloc ; la liste des collections et la simulation y ont un fond gris plus foncé ; la carte de la page des planches a la même facture |
+| S21 | La page des planches | Une page choisie dans Gestion, « Palettes » par défaut. Changer de page y déplace les planches déjà créées |
+| S22 | Les collections de bibliothèque distante | Leurs palettes paraissent dans « Déjà dans le fichier », marquées « Bibliothèque », avec « Copier dans le plugin » ; elles ne sont jamais une destination. Deux collections du même nom se distinguent par leur nombre de variables |
 
 ## 7. Les questions qui restent
 
@@ -288,10 +291,7 @@ Répondre par numéro : oui, non, ou une variante.
 
 | # | Question | Recommandation | Autre option |
 |---|---|---|---|
-| S13 | Ce que fait « Modifier dans le plugin » (M13, M14) | Création s'ouvre sur une palette neuve au nom de celle du fichier ; un encart compare les deux rampes et laisse choisir « Recalculées » ou « Telles quelles » ; les variables d'origine restent à leur place et se remplacent par « Mettre à jour » | Sans le choix : toujours recalculées, ou toujours telles quelles |
 | S14 | Lier la planche aux tokens | Non : la planche garde ses couleurs écrites, et son état se lit dans Gestion | Les pastilles de la planche liées aux variables, quand elles existent |
-| S21 | La page des planches (M15) | Une page choisie dans Gestion, « Palettes » par défaut. Changer de page y déplace les planches déjà créées | Les planches déjà créées restent où elles sont ; seules les nouvelles vont sur la page choisie |
-| S22 | Les collections de bibliothèque distante (M9, M11) | Leurs palettes paraissent dans « Déjà dans le fichier », marquées « Bibliothèque », avec « Copier dans le plugin » ; elles ne sont jamais une destination. Deux collections du même nom se distinguent par leur nombre de variables | Les taire : le plugin ne montre que les variables locales |
 
 ## 8. Les recherches
 
@@ -324,10 +324,10 @@ Répondre par numéro : oui, non, ou une variante.
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste, les messages simplifiés et leurs liens, Gestion en deux vues avec le bloc de la connexion, la page des planches et la seule ligne Planche | Validé ; S21 |
+| 1 | Les trois onglets, sans écriture nouvelle : l'encart du fichier vide, Création sans les garanties, Vérification avec les verdicts dans la liste, les messages simplifiés et leurs liens, Gestion en deux vues avec le bloc de la connexion, la page des planches et la seule ligne Planche | Validé |
 | 2 | Les essais R1 à R9 et les trois recherches du dépôt | Aucun |
 | 3 | L'écriture des tokens : destination et simulation, suivi, états, première écriture, « Tout mettre à jour » | Lot 2 |
 | 4 | Les couleurs changées dans Figma, et les palettes du fichier en lecture seule | Lot 3 |
-| 5 | « Modifier dans le plugin », les palettes de bibliothèque, et la planche liée aux tokens si elle est retenue | S13, S14, S22, R10 |
+| 5 | « Modifier dans le plugin », les palettes de bibliothèque, et la planche liée aux tokens si elle est retenue | S14, R10 |
 
 Le lot 1 se livre seul : il réorganise le plugin sans toucher à ce qu'il écrit.
