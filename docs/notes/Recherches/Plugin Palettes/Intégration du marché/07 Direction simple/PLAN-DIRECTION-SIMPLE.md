@@ -172,8 +172,8 @@ avant d'écrire.
 **La page des planches (M15).** Aujourd'hui, le plugin crée une page
 « Palettes » au premier dessin. « Changer », sur la ligne des planches, ouvre
 à la place du bloc une carte « Page des planches » : une page du fichier, ou
-une nouvelle. Sa simulation montre la page choisie parmi celles du fichier et
-ce que le choix déplace.
+une nouvelle, dans une liste qui donne le nombre de planches de chaque page.
+La carte n'a pas de simulation.
 
 **« Modifier dans le plugin » (M13, M14).** Le geste crée une palette du
 plugin au nom de celle du fichier, avec sa nuance 600 pour référence, et ouvre

@@ -47,7 +47,7 @@ const STYLES_DES_MAQUETTES = `
 .m-connexion { background: none; }
 .m-connexion, .m-carte-ouverte { margin-bottom: 20px; }
 .m-carte-ouverte { background: none; }
-.m-carte-ouverte .m-collections, .m-carte-ouverte .m-panneau, .m-carte-ouverte .m-canevas { background: color-mix(in srgb, var(--fond) 84%, black); }
+.m-carte-ouverte .m-collections, .m-carte-ouverte .m-panneau { background: color-mix(in srgb, var(--fond) 84%, black); }
 .m-carte-ouverte .confirmation-gestes { justify-content: flex-end; }
 .m-panneau { overflow: hidden; border: 1px solid var(--bordure); border-radius: 8px; }
 .m-panneau-tete, .m-panneau-ligne { display: grid; align-items: center; grid-template-columns: minmax(0, 1fr) 132px; }
@@ -60,14 +60,6 @@ const STYLES_DES_MAQUETTES = `
 .m-panneau-ligne { height: 28px; padding: 0 var(--espace-bloc) 0 28px; }
 .m-panneau-ligne .m-valeur i { width: 16px; height: 16px; border-radius: 4px; }
 .m-panneau-suite { padding: 2px var(--espace-bloc) var(--espace-serre) 28px; color: var(--texte-second); }
-.m-canevas { display: grid; gap: var(--espace-controle); padding: var(--espace-bloc); border: 1px solid var(--bordure); border-radius: 8px; }
-.m-canevas-page { font-weight: 600; }
-.m-cadres { display: grid; gap: var(--espace-bloc); grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.m-cadre { display: grid; gap: var(--espace-serre); }
-.m-cadre-nom { color: var(--texte-second); font-size: 11px; }
-.m-cadre-corps { display: grid; gap: 3px; padding: var(--espace-controle); border-radius: 4px; background: #f7f7f7; }
-.m-cadre-corps .m-mini-rampe span { height: 12px; flex: 1 1 0; }
-.m-cadre[data-a-creer] .m-cadre-corps { outline: 1px dashed var(--texte-second); outline-offset: 2px; opacity: 0.45; }
 .m-collection .ligne-secondaire { white-space: nowrap; }
 .m-synchroniser { display: inline-flex; height: var(--hauteur-secondaire); flex: none; align-items: center; gap: 6px; padding: 0 var(--espace-serre); border: 0; border-radius: var(--rayon); background: none; color: var(--texte-second); cursor: pointer; font-weight: 600; }
 .m-synchroniser:hover { background: var(--fond-survol); color: var(--texte); }
@@ -322,9 +314,7 @@ function gestion({ slate, emeraude, destination = false, modifiee = false, planc
   if (planches) {
     // La page des planches, ouverte à la place du bloc : une page du fichier, ou une nouvelle.
     const page = (nom, detail, choisie) => `<label class="m-collection"><input type="radio" name="page"${choisie ? ' checked' : ''}><span class="m-collection-nom">${nom}</span><span class="ligne-secondaire">${detail}</span></label>`;
-    const rampes = (nom) => [...fiche(nom).querySelectorAll('.fiche-rangee')].map((rangee) => `<div class="m-mini-rampe">${[...rangee.querySelectorAll('.fiche-pastille')].map((pastille) => `<span style="background:${pastille.style.background}"></span>`).join('')}</div>`).join('');
-    const cadre = (nom, aCreer) => `<div class="m-cadre"${aCreer ? ' data-a-creer' : ''}><span class="m-cadre-nom">${nom}${aCreer ? ' · à créer' : ''}</span><div class="m-cadre-corps">${rampes(nom)}</div></div>`;
-    panneau.querySelector('.m-connexion').replaceWith(M.el(`<section class="carte m-carte-ouverte" aria-label="Page des planches"><div class="carte-tete"><h3 class="carte-titre">Page des planches</h3></div><div class="carte-corps m-aere"><div class="champ-colonne"><span class="libelle-de-champ">Page</span><div class="m-collections" role="radiogroup">${page('Palettes', '2 planches', true)}${page('Cover', '', false)}${page('Design system', '', false)}<label class="m-collection"><input type="radio" name="page"><span class="m-collection-nom">Nouvelle page<input type="text" class="input" placeholder="Nom"></span><span></span></label></div></div><div class="m-simulation"><div class="m-simulation-tete"><span class="libelle-de-champ">Simulation</span><span class="ligne-secondaire">2 planches en place · 1 à créer</span></div><div class="m-canevas"><span class="m-canevas-page">Palettes</span><div class="m-cadres">${cadre('Bleu', false)}${cadre('Jaune', false)}${cadre('Ardoise', true)}</div></div></div><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
+    panneau.querySelector('.m-connexion').replaceWith(M.el(`<section class="carte m-carte-ouverte" aria-label="Page des planches"><div class="carte-tete"><h3 class="carte-titre">Page des planches</h3></div><div class="carte-corps m-aere"><div class="champ-colonne"><span class="libelle-de-champ">Page</span><div class="m-collections" role="radiogroup">${page('Palettes', '2 planches', true)}${page('Cover', '', false)}${page('Design system', '', false)}<label class="m-collection"><input type="radio" name="page"><span class="m-collection-nom">Nouvelle page<input type="text" class="input" placeholder="Nom"></span><span></span></label></div></div><div class="confirmation-gestes"><button type="button" class="btn btn-secondary btn-compact"><span>Annuler</span></button><button type="button" class="btn btn-primary btn-compact"><span>Enregistrer</span></button></div></div></section>`));
     globaux.remove();
     recette.remove();
     return;
@@ -444,7 +434,7 @@ const MAQUETTES = [
       '« Changer », sur la ligne « Planches », ouvre cette carte à la place du bloc : une page du fichier, ou une nouvelle.',
       'La simulation montre la page choisie parmi celles du fichier, et ce que le choix déplace.',
       'La carte reste grise, sans fond. La page se choisit dans une liste, comme la collection : les pages du fichier, ou une nouvelle.',
-      'La simulation montre la page choisie avec ses planches : celles qui y sont, celles qui y arrivent, celle à créer.',
+      'Aucune simulation : la liste suffit.',
     ],
     questions: ['Le fond de la carte.'],
   },
