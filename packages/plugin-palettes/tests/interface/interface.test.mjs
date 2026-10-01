@@ -20,7 +20,7 @@ test('la préférence anglaise, son enregistrement et sa récupération sont ind
     assert.deepEqual(await langue.locator('option').allTextContents(), ['English', 'Français']);
     await langue.selectOption('fr');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).waitFor();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).waitFor();
     await page.waitForFunction(() => window.langueRangee === 'fr');
     const suivante = await ouvrir(MINIMALE, await page.evaluate(() => window.langueRangee));
     try { await suivante.getByRole('tab', { name: 'Création', exact: true }).waitFor(); }
@@ -47,7 +47,7 @@ test('la bascule conserve les champs incomplets, les cartes ouvertes et les él�
     assert.equal(await champ.evaluate((element) => element === window.champConserve && document.activeElement === element), true);
     assert.equal(await page.evaluate(() => window.cartesConservees.every((element) => element.isConnected)), true);
     assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop === window.defilementAvant), true);
-    await page.getByRole('button', { name: 'Back to palettes and board' }).click();
+    await page.getByRole('button', { name: 'Back to palettes' }).click();
     assert.equal(await page.locator('.carte[aria-label="Color shift"]').getAttribute('data-ouverte'), 'true');
     assert.equal(await page.locator('body').textContent().then((texte) => texte.includes('[object Object]')), false);
     assert.equal(await page.evaluate(() => window.demandes.filter((d) => ['ranger-recette', 'dessiner', 'retirer-cadre'].includes(d.type)).length), 0);
@@ -65,7 +65,7 @@ test('un dessin en cours garde sa demande et son résultat à travers une bascul
     assert.equal(await page.locator('#panneau-planche').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
     assert.equal(await page.locator('.carte-de-reglage').first().evaluate((element) => element.closest('[inert]') !== null), true);
     await envoyer(page, dessinDe(demande.demande, { issue: 'etrangers', cadres: [{ palette: ID_DU_BLEU, calques: [{ id: 'x', nom: 'Note personnelle' }] }] }));
-    await page.getByRole('button', { name: 'Back to palettes and board' }).click();
+    await page.getByRole('button', { name: 'Back to palettes' }).click();
     await page.getByText('Content added to the frame for “Bleu”').waitFor();
     assert.match(await page.locator('#panneau-planche').textContent(), /Note personnelle/);
     assert.equal(await page.evaluate(() => window.demandes.filter((d) => d.type === 'dessiner').length), 1);
@@ -139,7 +139,7 @@ test('l’engrenage ouvre la configuration, le retour ramène aux onglets', asyn
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     assert.equal(await page.getByRole('tablist').isVisible(), false);
     assert.equal(await page.locator('.page-title').textContent(), 'Réglages communs');
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.equal(await page.getByRole('tablist').isVisible(), true);
     assert.equal(await page.locator('.page-title').textContent(), 'UCM Palettes');
   } finally {
@@ -757,7 +757,7 @@ test('un hexa impossible se signale sous le champ, et l’aperçu ne change pas'
     const avant = await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label');
     await page.locator('#panneau-palettes .champ-hexa').fill('#FACZ15');
     assert.equal(await page.locator('#panneau-palettes .champ-hexa').getAttribute('aria-invalid'), 'true');
-    assert.match(await carteDeLOnglet(page, 'Configuration de la palette').locator('.field-error:visible').textContent(), /n’est pas accepté/);
+    assert.match(await carteDeLOnglet(page, 'Configuration de la palette').locator('.field-error:visible').textContent(), /code hexadécimal invalide/);
     assert.equal(await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label'), avant);
   } finally {
     await page.close();
@@ -1124,7 +1124,7 @@ test('W4.4 Minimums et détection : une ligne par seuil, l’aide lisible sans s
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
-    for (const [titre, lignes] of [['Minimums des promesses', 2], ['Détection des couleurs proches', 2]]) {
+    for (const [titre, lignes] of [['Contrastes minimums', 2], ['Détection des couleurs proches', 2]]) {
       const carte = page.locator(`[aria-label="${titre}"]`);
       await carte.locator('.carte-bascule').click();
       const mesures = await carte.locator('.ligne-de-seuil').evaluateAll((elements) => elements.map((ligne) => ({
@@ -1264,7 +1264,7 @@ test('[ENT-10] une clarté éditée fait sonner la garantie, se range à la vali
     assert.equal(await reglage(page, 'Luminosité des nuances').locator('.constat-alerte').count(), 0);
     await clair700.fill('0,56');
     await clair700.press('Tab');
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.notEqual(await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label'), avantLAperçu);
   } finally {
     await page.close();
@@ -1281,7 +1281,7 @@ test('[REC-05] une clarté qui casse la courbe se refuse sous le groupe, et rien
     await clair700.press('Tab');
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant);
-    assert.match(await reglage(page, 'Luminosité des nuances').locator('.field-error').textContent(), /doit être inférieure/);
+    assert.match(await reglage(page, 'Luminosité des nuances').locator('.field-error').textContent(), /plus basse que la nuance précédente/);
   } finally {
     await page.close();
   }
@@ -1298,7 +1298,7 @@ test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes q
       '3 palettes concernées',
     ]);
     const comptes = [];
-    for (const titre of ['Minimums des promesses', 'Détection des couleurs proches']) {
+    for (const titre of ['Contrastes minimums', 'Détection des couleurs proches']) {
       assert.equal(await reglage(page, titre).getAttribute('data-ouverte'), 'false');
       await reglage(page, titre).locator('> .carte-bascule').click();
       comptes.push(...await reglage(page, titre).locator('.carte-corps .ligne-secondaire').evaluateAll((lignes) => lignes.map((ligne) => ligne.textContent).filter((texte) => /concernée/.test(texte))));
@@ -1329,10 +1329,10 @@ test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se ra
 
     await fond.fill('#12');
     await fond.press('Tab');
-    assert.equal(await reglage(page, 'Couleurs de fond').locator('.field-error:visible').textContent(), 'Saisissez un code couleur à 6 caractères, par exemple #1E6FD9. « #12 » n’est pas accepté.');
+    assert.equal(await reglage(page, 'Couleurs de fond').locator('.field-error:visible').textContent(), '« #12 » : code hexadécimal invalide. Exemple : #1E6FD9.');
     assert.equal(await compte(page), avant + 1, 'une couleur refusée ne se range pas');
 
-    await reglage(page, 'Minimums des promesses').locator('> .carte-bascule').click();
+    await reglage(page, 'Contrastes minimums').locator('> .carte-bascule').click();
     const texte = page.getByRole('textbox', { name: 'Texte', exact: true });
     await texte.fill('7');
     await texte.press('Tab');
@@ -1394,7 +1394,7 @@ test('[DER-14] une référence plus sombre que le bout sombre masque la poignée
     // La référence exacte porte la dernière nuance claire : le pivot tombe dans cette colonne ([DER-02]).
     assert.equal(await page.locator('.derive-pivot').count(), 1);
     assert.equal(await colonneDuPivot(page), 10);
-    assert.match(await page.locator('.note-du-color-shift').textContent(), /plus sombre que toutes les nuances/);
+    assert.match(await page.locator('.note-du-color-shift').textContent(), /Aucune nuance plus sombre que la référence/);
   } finally {
     await page.close();
   }
@@ -1444,7 +1444,7 @@ test('[DER-15] une palette grise ne règle que sa luminosité : Teinte et Satura
       assert.deepEqual(await onglets.evaluateAll((liste) => liste.map((onglet) => onglet.disabled)), [grise, grise, false], id);
       if (grise) {
         assert.equal(await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Luminosité');
-        assert.equal(await page.locator('.note-du-color-shift').textContent(), 'Cette palette est entièrement grise : teinte et saturation ne se voient pas. La luminosité reste réglable.');
+        assert.equal(await page.locator('.note-du-color-shift').textContent(), 'Palette grise : seule la luminosité se règle.');
       }
     } finally {
       await page.close();
@@ -1459,7 +1459,7 @@ test('[VER-08] Q4 : un presque noir donne des rampes grises, sans point à véri
     assert.equal(await page.locator('#panneau-palettes .constat-notice').count(), 0);
     await deplier(page);
     // Gris pur et plus sombre que le bout sombre : la note de la palette grise passe avant celle de [DER-14].
-    assert.match(await page.locator('.note-du-color-shift').textContent(), /^Cette palette est entièrement grise/);
+    assert.match(await page.locator('.note-du-color-shift').textContent(), /^Palette grise/);
   } finally {
     await page.close();
   }
@@ -1714,7 +1714,7 @@ test('[PLA-24] D-I : au-delà de six palettes, tout dessiner se confirme, grille
     assert.equal(await page.locator('.fiche-planche[data-palette]').count(), 7);
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Générer tout (7 palettes)' }).click();
-    assert.equal(await page.locator('#panneau-planche .confirmation').textContent(), 'La génération de 7 palettes ajoutera plus de 1 500 calques par palette. Confirmez pour lancer la génération.Générer sur FigmaAnnuler');
+    assert.equal(await page.locator('#panneau-planche .confirmation').textContent(), 'Générer 7 palettes ? Chaque palette peut ajouter plus de 1 500 calques.Générer sur FigmaAnnuler');
     await page.getByRole('button', { name: 'Annuler' }).click();
     assert.equal(await page.locator('#panneau-planche .confirmation').isVisible(), false);
     await page.getByRole('button', { name: 'Générer tout (7 palettes)' }).click();
@@ -1774,7 +1774,7 @@ test('[PLA-22] un dessin interrompu se relance à l’identique par « Réessaye
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     const premiere = await dessinEnvoye(page, 1);
     await envoyer(page, dessinDe(premiere.demande, { issue: 'interrompue', palette: ID_DU_BLEU, message: 'refus', dessines: 0 }));
-    assert.equal(await page.locator('#panneau-planche .constat-bloquant .constat-quoi').textContent(), 'La génération s’est arrêtée : aucune nouvelle présentation de palette n’a été créée.');
+    assert.equal(await page.locator('#panneau-planche .constat-bloquant .constat-quoi').textContent(), 'La génération s’est arrêtée : aucun nouveau cadre créé.');
     assert.equal(await page.locator('#panneau-palettes .constat-bloquant').count(), 0, 'le résultat ne s’affiche que dans l’onglet Palettes');
     await page.locator('#panneau-planche').getByRole('button', { name: 'Réessayer' }).click();
     const reprise = await dessinEnvoye(page, 2);
@@ -1897,7 +1897,7 @@ test('[PLA-20] une courbe rangée depuis la configuration, ouverte sur l’ongle
     await clair700.fill('0,56');
     await clair700.press('Tab');
     await envoyer(page, rangee((await prochaine(page, avant)).demande));
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.deepEqual(await etatsDesLignes(page), ['perimee', 'perimee']);
   } finally {
     await page.close();
@@ -2083,7 +2083,7 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
     assert.deepEqual(bornee.recette.palettes[0].parts, { soft: 0.983, vivid: 0.983, origine: 'designer' });
     await envoyer(page, rangee(bornee.demande));
 
-    await page.getByRole('button', { name: 'Utiliser les réglages communs pour l’intensité' }).click();
+    await page.getByRole('button', { name: 'Reprendre les intensités communes' }).click();
     assert.equal((await prochaine(page, avant + 2)).recette.palettes[0].parts, undefined);
   } finally {
     await page.close();
@@ -2140,7 +2140,7 @@ test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const message = page.locator('.reglages-de-la-palette .ligne-fixe[data-ton="avertissement"]').filter({ hasText: 'soft et vivid' });
     // L'alerte ne nomme que les nuances des emplois ; le repère de l'aperçu porte sur toute la liste ([PLA-15]).
-    assert.equal(await message.locator('.ligne-fixe-texte').textContent(), 'Bleu : nuances Light 100 · Les couleurs soft et vivid sont très proches sur ces nuances.');
+    assert.equal(await message.locator('.ligne-fixe-texte').textContent(), 'Bleu : nuances Light 100 · Soft et Vivid sont presque identiques sur ces nuances.');
     assert.equal((await message.boundingBox()).height, 24);
     assert.deepEqual(await page.locator('.pastille[data-confondue="true"]').evaluateAll((pastilles) => pastilles.map((pastille) => `${pastille.dataset.profil} ${pastille.dataset.cran}`)), ['soft 50', 'soft 100', 'vivid 50', 'vivid 100']);
     await message.getByRole('button', { name: 'Intensités communes' }).click();
@@ -2154,13 +2154,13 @@ test('D-G [DER-15] : une palette grise le dit sous les curseurs et n’a pas de 
   const page = await ouvrirSur('palette-grise');
   try {
     const lignes = await page.locator('.reglages-de-la-palette > .ligne-fixe:not([hidden]) .ligne-fixe-texte').allTextContents();
-    assert.ok(lignes.includes('Votre couleur de référence est un gris pur. Soft et Vivid sont gris.'), JSON.stringify(lignes));
-    assert.equal(await page.getByRole('button', { name: 'Utiliser les réglages communs pour l’intensité' }).isVisible(), false);
+    assert.ok(lignes.includes('Référence grise : Soft et Vivid restent gris.'), JSON.stringify(lignes));
+    assert.equal(await page.getByRole('button', { name: 'Reprendre les intensités communes' }).isVisible(), false);
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const reglages = carteDeLOnglet(page, CARTE_DES_REGLAGES);
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), true);
     assert.equal(await reglages.getByRole('textbox', { name: /^Teinte de / }).isDisabled(), true);
-    assert.equal(await reglages.getByText('Cette palette est entièrement grise. Il n’y a pas de teinte à régler.').isVisible(), true);
+    assert.equal(await reglages.getByText('Palette grise : aucune teinte à régler.').isVisible(), true);
     assert.equal(await reglages.getByRole('slider', { name: /^Saturation de / }).isDisabled(), false);
     assert.equal(await reglages.getByRole('slider', { name: /^Luminosité de / }).isDisabled(), false);
 
@@ -2173,7 +2173,7 @@ test('D-G [DER-15] : une palette grise le dit sous les curseurs et n’a pas de 
     assert.deepEqual(rangement.recette.palettes[0].parts, { soft: 0, vivid: 0.3, origine: 'designer' });
     await envoyer(page, rangee(rangement.demande));
     assert.equal(await reglages.getByRole('slider', { name: /^Teinte de / }).isDisabled(), false);
-    assert.equal(await reglages.getByText('Cette palette est entièrement grise. Il n’y a pas de teinte à régler.').isVisible(), false);
+    assert.equal(await reglages.getByText('Palette grise : aucune teinte à régler.').isVisible(), false);
     assert.equal(await bascule(page, CARTE_DE_LA_DERIVE).isDisabled(), false);
   } finally {
     await page.close();
@@ -2203,7 +2203,7 @@ test('[VER-15] un lien de message ouvre les Réglages communs sur son groupe, et
     const lien = page.locator('.volet-de-la-palette .constat-alerte').getByRole('button', { name: 'Couleurs de fond' });
     await lien.click();
     assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Fond du thème Light');
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Couleurs de fond');
   } finally {
     await page.close();
@@ -2246,9 +2246,9 @@ test('L7.7 : exporter la recette, modifier le JSON, l’importer, voir l’écar
       'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?',
       'Palette à modifier : Bleu roi (nom).',
       'Réglage commun à modifier : minimum des textes.',
-      'Minimums des promesses : le résultat des garanties peut changer, sans changer les couleurs.',
+      'Contrastes minimums : les garanties peuvent changer, les couleurs restent identiques.',
       'Sur la planche : 2 cadres passeront « À actualiser » (Bleu roi, Jaune).',
-      'L’import remplacera vos palettes et vos réglages dans ce fichier Figma. La planche restera telle quelle jusqu’à sa prochaine mise à jour.',
+      'L’import remplace les palettes et les réglages. Les cadres Figma restent inchangés.',
     ]);
     assert.equal(await compte(page), avant, 'rien ne se range avant la confirmation');
     await confirmation.getByRole('button', { name: 'Remplacer par cette sauvegarde' }).click();
@@ -2288,7 +2288,7 @@ test('[REC-11] E19 : une recette illisible s’exporte telle qu’elle est rang�
     await envoyer(page, rangee(rangement.demande));
     await ouvrirLaPlanche(page);
     assert.equal(await page.locator('#panneau-planche .constat-bloquant:visible').count(), 0, 'l’onglet Palettes quitte aussi le bloquant');
-    assert.equal(await page.getByText('Créez une palette dans l’onglet « Création » pour pouvoir générer sa présentation ici.').isVisible(), true);
+    assert.equal(await page.getByText('Créez une palette dans l’onglet « Création », puis générez-la ici.').isVisible(), true);
   } finally {
     await page.close();
   }
@@ -2623,7 +2623,7 @@ const vueDeLaCreation = (page) => page.evaluate(() => {
   };
 });
 
-const INVITATION = ['Choisissez une palette', 'Sélectionnez une palette dans la liste pour la régler, ou créez-en une avec « Nouvelle palette ».'];
+const INVITATION = ['Choisissez une palette', 'Sélectionnez une palette ou créez-en une avec « Nouvelle palette ».'];
 
 test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : « Sélectionner une palette », l’invitation, ni menu ni palette ; la liste ne coche rien', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
@@ -2692,7 +2692,7 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     assert.equal(await page.locator('.reglages-apercu').isVisible(), false);
     assert.equal(await reglage(page, 'Couleurs de fond').isVisible(), true);
-    await page.getByRole('button', { name: 'Retour aux palettes et à la planche' }).click();
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
   } finally {
     await page.close();
@@ -3285,7 +3285,7 @@ test('Z5.1 [UI-11] [UI-17] sous le code, une référence qui manque des garantie
   const sansManque = await ouvrirSur('garanties-respectees');
   try {
     const colonne = carteDeLOnglet(sansManque, 'Configuration de la palette').locator('.colonnes-de-base');
-    assert.equal(await colonne.locator('.ligne-de-la-reference .ligne-fixe-texte').textContent(), 'Couleur de référence employée telle quelle.');
+    assert.equal(await colonne.locator('.ligne-de-la-reference .ligne-fixe-texte').textContent(), 'Couleur de référence inchangée.');
     assert.equal(await colonne.locator('.ligne-de-la-reference').getAttribute('data-ton'), 'neutre');
     assert.equal(await colonne.getByRole('button', { name: 'Ajuster la référence' }).count(), 0);
   } finally {
@@ -3303,7 +3303,7 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
     // Bleu : Vivid porte la référence, et la carte s'ouvre sur Soft, qui ne la déplace pas.
     assert.equal(await carte.getByRole('button', { name: 'Soft', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.equal(await avertissement.getAttribute('data-ton'), 'neutre');
-    assert.equal(await texteDeLAvertissement(), 'Ce réglage ne touche pas la couleur de référence.');
+    assert.equal(await texteDeLAvertissement(), 'Couleur de référence inchangée.');
     const avant = await compte(page);
     await carte.getByRole('textbox', { name: 'Teinte de Soft' }).fill('8');
     await carte.getByRole('textbox', { name: 'Teinte de Soft' }).press('Tab');
@@ -3315,7 +3315,7 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
 
     await carte.getByRole('button', { name: 'Vivid ◆' }).click();
     assert.equal(await avertissement.getAttribute('data-ton'), 'avertissement', 'l’avertissement précède le geste');
-    assert.equal(await texteDeLAvertissement(), 'Attention : ce réglage va modifier votre couleur de référence.');
+    assert.equal(await texteDeLAvertissement(), 'Ce réglage modifiera votre couleur de référence.');
     await carte.getByRole('textbox', { name: 'Luminosité de Vivid' }).fill('-0,02');
     await carte.getByRole('textbox', { name: 'Luminosité de Vivid' }).press('Tab');
     const vivid = await prochaine(page, avant + 1);
@@ -3324,7 +3324,7 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
     assert.equal(vivid.recette.palettes[0].originale, '#1E6FD9');
     await envoyer(page, rangee(vivid.demande));
     assert.equal(await avertissement.getAttribute('data-ton'), 'avertissement');
-    assert.equal(await texteDeLAvertissement(), 'Attention, votre couleur de référence a été modifiée.');
+    assert.equal(await texteDeLAvertissement(), 'Votre couleur de référence a été modifiée.');
     assert.equal(await referenceMontree(page), '#1669D2');
     assert.equal(await carte.locator('.carte-resume').textContent(), 'Réglé', 'le résumé ne dit que l’état (recette v7)');
   } finally {
@@ -3339,7 +3339,7 @@ test('Z10.8 « Les deux » déplace les deux profils du même écart et prévien
     const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
     await carte.getByRole('button', { name: 'Les deux' }).click();
     assert.equal(await carte.locator('.avertissement-des-reglages').getAttribute('data-ton'), 'avertissement');
-    assert.equal(await carte.locator('.avertissement-des-reglages .ligne-fixe-texte').textContent(), 'Attention : ce réglage va modifier votre couleur de référence.');
+    assert.equal(await carte.locator('.avertissement-des-reglages .ligne-fixe-texte').textContent(), 'Ce réglage modifiera votre couleur de référence.');
     assert.equal(await carte.locator('.fantome-du-profil:visible').count(), 0, 'aucun repère de l’autre profil quand les deux se règlent');
     const avant = await compte(page);
     const champ = carte.getByRole('textbox', { name: 'Teinte de Soft et Vivid' });
@@ -3368,7 +3368,7 @@ test('Z10.6 [ENT-14] une palette à une intensité a la carte, sans choix de pro
     const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
     assert.equal(await carte.locator('.cible-des-reglages').isVisible(), false);
     assert.equal(await carte.locator('.avertissement-des-reglages').getAttribute('data-ton'), 'avertissement');
-    assert.equal(await carte.locator('.avertissement-des-reglages .ligne-fixe-texte').textContent(), 'Attention : ce réglage va modifier votre couleur de référence.');
+    assert.equal(await carte.locator('.avertissement-des-reglages .ligne-fixe-texte').textContent(), 'Ce réglage modifiera votre couleur de référence.');
     assert.equal(await carte.locator('.repere-de-reference:visible').count(), 0, 'la saturation est celle de la référence : aucun repère');
     const avant = await compte(page);
     await carte.getByRole('textbox', { name: 'Saturation', exact: true }).fill('50');
@@ -3928,7 +3928,7 @@ test('[UI-18] le pied compte les garanties et les alertes à toute position de d
     const volet = page.getByRole('dialog', { name: 'Garanties et alertes' });
     assert.equal(await volet.isVisible(), true);
     assert.equal(await details.getAttribute('aria-expanded'), 'true');
-    assert.match(await volet.locator('.constats-titre').first().textContent(), /^Promesses à corriger · \d+$/);
+    assert.match(await volet.locator('.constats-titre').first().textContent(), /^Contrastes à corriger · \d+$/);
     const hauteur = (await volet.boundingBox()).height;
     assert.ok(await volet.locator('.volet-corps').evaluate((corps) => corps.scrollHeight > corps.clientHeight), 'le volet fait défiler ce qu’il liste');
     await page.keyboard.press('Escape');
@@ -4034,7 +4034,7 @@ test('[DER-19] [DER-21] [DER-22] glisser une réglette au-delà de sa limite pos
     await page.mouse.move(boite.x + boite.width - 2, boite.y + boite.height / 2, { steps: 6 });
     assert.equal(await curseur.getAttribute('aria-valuenow'), '0.04', 'le pouce s’arrête sur la borne');
     assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
-    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), 'Luminosité, nuances claires : limite atteinte à +0,040. Au-delà, deux nuances voisines se rapprocheraient à moins de 0,01 de luminosité.');
+    assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), 'Luminosité, nuances claires : limite atteinte à +0,040. Au-delà, l’écart de luminosité entre deux nuances serait inférieur à 0,01.');
     assert.equal(await compte(page), avant, 'rien ne se range pendant le glisser');
     await page.mouse.up();
     const palette = await rangementDe(page, avant);
