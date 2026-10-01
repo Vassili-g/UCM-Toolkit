@@ -20,8 +20,8 @@ phase 10. Aucune case de ce plan n'attend sa réponse.
 
 ## Avant de commencer
 
-- [ ] Lire [AGENTS.md](../../../../../AGENTS.md), puis
-  [CONTRIBUTING.md](../../../../../CONTRIBUTING.md), sections « Interface du
+- [ ] Lire [AGENTS.md](../../../../../../AGENTS.md), puis
+  [CONTRIBUTING.md](../../../../../../CONTRIBUTING.md), sections « Interface du
   plugin » et « Tests », puis la direction simple en entier.
 - [ ] Ouvrir les maquettes dans un navigateur. Chaque phase cite les siennes.
   Les règles préfixées `m-` de `generer-maquettes-direction-simple.mjs`
