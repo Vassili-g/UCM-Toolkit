@@ -63,7 +63,8 @@ export interface ParProfil {
  * Teinte, saturation et luminosité réglées dans la carte (Z10.5, spécification
  * de la refonte des intensités). `teinte` se mesure depuis le départ, en
  * degrés ; `clarte` décale la rampe d'un profil ; `part` est la saturation
- * de la référence d'une palette à une intensité. `porteur` fige le profil
+ * de la référence, donc celle du profil qui la porte, à une intensité comme
+ * à deux. `porteur` fige le profil
  * qui porte la référence, et `depart` garde le départ d'une référence
  * ajustée avant la version 5.
  */
@@ -459,7 +460,6 @@ function validerReglages(releve: Releve, palette: Objet, chemin: string): void {
     }
     if ('porteur' in reglages) releve.refuser('reglages-intensites', `${ici}.porteur`);
   } else {
-    if ('part' in reglages) releve.refuser('reglages-intensites', `${ici}.part`);
     if ('base' in palette && 'porteur' in reglages) releve.refuser('porteur-base', `${ici}.porteur`);
     if (!('base' in palette) && !('porteur' in reglages)) releve.refuser('porteur-manquant', ici);
   }

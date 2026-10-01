@@ -67,8 +67,13 @@ export function estGrisPur(couleur: Rgb8): boolean {
  * liste de la palette : près du noir ou du blanc, le plafond à sa propre
  * clarté est minuscule, et la part mesurée là colorerait les nuances du
  * milieu. Une référence dans l'étendue garde la part de `partDeChroma`.
+ * Une saturation réglée dans la carte (`reglages.part`) est la part de la
+ * référence : `referenceReglee` l'a fabriquée à cette part, à sa clarté
+ * propre, comme un cran de la rampe. La rampe, le curseur et les alertes
+ * lisent alors ce nombre, et non une mesure à la clarté bornée.
  */
 export function partDeLaReference(recette: Recette, palette: Palette): number {
+  if (palette.reglages?.part !== undefined) return palette.reglages.part;
   const reference = referenceDe(palette);
   const lue = rgb8VersOklch(reference);
   if (estGrisPur(reference) || lue.C < CHROMA_SANS_TEINTE) return 0;
@@ -95,15 +100,22 @@ export function partsDe(recette: Recette, palette: Palette): PartsDePalette {
  * figé ou classé. Sous la part commune de soft, l'autre profil garde le
  * rapport des parts communes : une référence terne donne deux profils ternes
  * et distincts. Au-dessus, l'autre garde sa part commune, bornée pour que
- * soft ne dépasse pas vivid.
+ * soft ne dépasse pas vivid. Une saturation réglée de la référence
+ * (`reglages.part`) est toujours celle du porteur, parts du designer
+ * comprises : la référence et ses voisines ont la même part.
  */
 export function partsDesProfils(recette: Recette, palette: Palette): Parts {
   const communes = { soft: recette.profils.soft.part, vivid: recette.profils.vivid.part };
-  if (palette.parts) return partsEffectives(communes, palette.parts);
+  const porteur = profilPorteur(recette, palette);
+  const reglee = palette.reglages?.part;
+  if (palette.parts) {
+    const propres = partsEffectives(communes, palette.parts);
+    return reglee === undefined ? propres : { ...propres, [porteur]: reglee };
+  }
   const part = partDeLaReference(recette, palette);
   const terne = part < communes.soft;
   const rapport = communes.soft > 0 ? communes.vivid / communes.soft : 1;
-  if (profilPorteur(recette, palette) === 'soft') {
+  if (porteur === 'soft') {
     return { soft: part, vivid: terne ? Math.min(1, arrondir(part * rapport, 3)) : Math.max(communes.vivid, part) };
   }
   return { soft: terne ? arrondir(part / rapport, 3) : Math.min(communes.soft, part), vivid: part };

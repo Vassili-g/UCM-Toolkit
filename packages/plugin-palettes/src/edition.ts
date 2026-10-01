@@ -17,6 +17,7 @@ import {
   ecrireHexa,
   estGrisPur,
   lireHexa,
+  partDeLaReference,
   partsDesProfils,
   PREREGLAGE_CONSTANTE,
   prereglageTailwind,
@@ -30,6 +31,7 @@ import {
   type GrandeurDuColorShift,
   type Palette,
   type ParProfil,
+  type Parts,
   type Profil,
   type Recette,
   type Reglages,
@@ -83,7 +85,7 @@ export function originaleDe(palette: Palette): string {
   return palette.originale ?? palette.reference;
 }
 
-/** Les valeurs réglables d'une palette : teinte et clarté par profil, et la part d'une palette à une intensité. */
+/** Les valeurs réglables d'une palette : teinte et clarté par profil, et la part de la référence. */
 export interface ValeursReglees {
   readonly teinte: ParProfil;
   readonly clarte: ParProfil;
@@ -122,7 +124,7 @@ function appliquerLesReglages(
   const une = aUneIntensite(avant);
   const teinte = sansZero(valeurs.teinte);
   const clarte = sansZero(valeurs.clarte);
-  const part = une ? valeurs.part : undefined;
+  const part = valeurs.part;
   const reglages: { -readonly [K in keyof Reglages]: Reglages[K] } = {};
   if (teinte) reglages.teinte = teinte;
   if (clarte) reglages.clarte = clarte;
@@ -193,22 +195,44 @@ export function reglerClarte(recette: Recette, palette: Palette, cible: CibleDuR
 }
 
 /**
- * La saturation (Z10.5). À une intensité, la part de la référence, qui la
- * récrit. À deux, la part d'un profil, bornée pour que Soft ne dépasse pas
- * Vivid, ou les deux parts du même écart ; elles passent au designer
- * ([ENT-09]) et ne déplacent pas la référence.
+ * La référence à la saturation `part`, tirée de son départ : la part se range
+ * dans `reglages.part`, sauf quand elle vaut celle du départ. Revenir à la
+ * valeur que le curseur montrait rend alors les octets du départ, et non une
+ * couleur refabriquée à un octet près.
+ */
+function avecLaPartDeLaReference(recette: Recette, palette: Palette, part: number): Palette {
+  const { teinte, clarte } = valeursDe(palette);
+  const sansPart = appliquerLesReglages(recette, palette, { teinte, clarte });
+  return part === partDeLaReference(recette, sansPart) ? sansPart : appliquerLesReglages(recette, palette, { teinte, clarte, part });
+}
+
+/**
+ * Les parts du designer d'une palette à deux intensités ([ENT-09]). La
+ * référence prend celle du profil qui la porte : sans quoi elle garderait sa
+ * saturation au milieu de voisines plus ternes ou plus vives.
+ */
+function poserLesParts(recette: Recette, palette: Palette, parts: Parts): Palette {
+  const reglee = avecLaPartDeLaReference(recette, palette, parts[profilPorteur(recette, palette)]);
+  return { ...reglee, parts: { soft: parts.soft, vivid: parts.vivid, origine: 'designer' } };
+}
+
+/**
+ * La saturation (Z10.5). À une intensité, la part de la référence. À deux,
+ * la part d'un profil, bornée pour que Soft ne dépasse pas Vivid, ou les deux
+ * parts du même écart ; elles passent au designer ([ENT-09]). La part du
+ * profil porteur est celle de la référence, qui se récrit à cette saturation.
  */
 export function reglerSaturation(recette: Recette, palette: Palette, cible: CibleDuReglage, valeur: number): Palette {
   const bornee = arrondir(Math.min(1, Math.max(0, valeur)), 3) + 0;
-  if (aUneIntensite(palette)) return appliquerLesReglages(recette, palette, { ...valeursDe(palette), part: bornee });
+  if (aUneIntensite(palette)) return avecLaPartDeLaReference(recette, palette, bornee);
   const parts = partsDesProfils(recette, palette);
   const porteur = profilPorteur(recette, palette);
   if (cible === 'deux') {
     const ecart = Math.min(1 - parts.vivid, Math.max(-parts.soft, bornee - parts[porteur]));
-    return { ...palette, parts: { soft: arrondir(parts.soft + ecart, 3) + 0, vivid: arrondir(parts.vivid + ecart, 3) + 0, origine: 'designer' } };
+    return poserLesParts(recette, palette, { soft: arrondir(parts.soft + ecart, 3) + 0, vivid: arrondir(parts.vivid + ecart, 3) + 0 });
   }
   const limitee = cible === 'soft' ? Math.min(bornee, parts.vivid) : Math.max(bornee, parts.soft);
-  return { ...palette, parts: { ...parts, [cible]: limitee, origine: 'designer' } };
+  return poserLesParts(recette, palette, { ...parts, [cible]: limitee });
 }
 
 /**
@@ -227,7 +251,8 @@ export function retablirLaSaturation(recette: Recette, palette: Palette, cible: 
   const retablie = reglerSaturation(recette, palette, cible, partsDesProfils(recette, communes)[cible]);
   const parts = partsDesProfils(recette, retablie);
   const partsCommunes = partsDesProfils(recette, communes);
-  return PROFILS.every((profil) => parts[profil] === partsCommunes[profil]) ? communes : retablie;
+  const commune = retablie.reference === communes.reference && PROFILS.every((profil) => parts[profil] === partsCommunes[profil]);
+  return commune ? communes : retablie;
 }
 
 /**
@@ -288,19 +313,17 @@ export function choisirLesIntensites(recette: Recette, palette: Palette, nombre:
 }
 
 /**
- * Deux intensités depuis une : `part` se retire et la référence se récrit
- * sans elle, depuis son départ ; le porteur se classe sur la nouvelle
- * référence, et les réglages de la rampe unique se rangent sous lui (Z10.5).
+ * Deux intensités depuis une : la référence garde ses octets et sa
+ * saturation, qui devient celle du profil porteur ; le porteur se classe sur
+ * elle, et les réglages de la rampe unique se rangent sous lui (Z10.5).
  */
 function versDeuxIntensites(recette: Recette, palette: Palette): Palette {
-  const { teinte, clarte } = valeursDe(palette);
-  // La référence se récrit sans `part`, encore à une intensité.
-  const sansPart = appliquerLesReglages(recette, palette, { teinte, clarte }, { porteur: 'vivid' });
-  // Le porteur se classe sur la nouvelle référence, sans réglage qui le fige.
-  const { intensites: _intensites, reglages, ...deux } = sansPart;
+  const { teinte, clarte, part } = valeursDe(palette);
+  // Le porteur se classe sur la référence telle qu'elle est, sans réglage qui le fige.
+  const { intensites: _intensites, reglages, ...deux } = palette;
   const porteur = profilAutomatique(recette, deux);
   const sous = (valeurs: ParProfil): ParProfil => (valeurs.vivid === undefined ? {} : { [porteur]: valeurs.vivid });
-  const valeurs = { teinte: sous(teinte), clarte: sous(clarte) };
+  const valeurs = { teinte: sous(teinte), clarte: sous(clarte), ...(part === undefined ? {} : { part }) };
   // Les réglages, rangés sous le porteur, gardent leur départ : la référence ne change plus.
   const avant: Palette = reglages ? { ...deux, reglages: { ...reglages, ...valeurs, porteur } } : deux;
   return appliquerLesReglages(recette, avant, valeurs, { porteur });
@@ -309,15 +332,16 @@ function versDeuxIntensites(recette: Recette, palette: Palette): Palette {
 /**
  * Une intensité depuis deux : les réglages du porteur se rangent sous
  * `vivid`, ceux de l'autre et `porteur` se retirent, la dérive du porteur
- * se garde, liée ; la référence ne change pas (Z10.5).
+ * se garde, liée, comme la saturation réglée de la référence ; la référence
+ * ne change pas (Z10.5).
  */
 function versUneIntensite(recette: Recette, palette: Palette): Palette {
   const porteur = profilPorteur(recette, palette);
   const porteuse = palette.derive[porteur];
-  const { teinte, clarte } = valeursDe(palette);
+  const { teinte, clarte, part } = valeursDe(palette);
   const { base: _base, parts: _parts, ...sansProfil } = palette;
   const une: Palette = { ...sansProfil, derive: { lien: true, soft: porteuse, vivid: porteuse }, intensites: 1 };
-  return appliquerLesReglages(recette, une, { teinte: { vivid: teinte[porteur] }, clarte: { vivid: clarte[porteur] } }, { porteur: 'vivid' });
+  return appliquerLesReglages(recette, une, { teinte: { vivid: teinte[porteur] }, clarte: { vivid: clarte[porteur] }, part }, { porteur: 'vivid' });
 }
 
 /** La recette avec la palette ajoutée en dernier. */
@@ -457,14 +481,19 @@ export function remplacerPalette(recette: Recette, palette: Palette): Recette {
 export function poserPart(recette: Recette, palette: Palette, profil: Profil, part: number): Palette {
   // Une palette à une intensité prend la part de sa référence : elle n'a pas de part propre ([ENT-14]).
   if (aUneIntensite(palette)) return palette;
-  const employees = partsDesProfils(recette, palette);
-  return { ...palette, parts: { ...employees, [profil]: arrondir(part, 3), origine: 'designer' } };
+  return poserLesParts(recette, palette, { ...partsDesProfils(recette, palette), [profil]: arrondir(part, 3) });
 }
 
-/** La palette sans parts propres : elle reprend celles que `partsDesProfils` lui donne. */
-export function reprendreLesParts(_recette: Recette, palette: Palette): Palette {
+/**
+ * La palette sans parts propres : elle reprend celles que `partsDesProfils`
+ * lui donne. À deux intensités, la référence reprend aussi la saturation de
+ * son départ.
+ */
+export function reprendreLesParts(recette: Recette, palette: Palette): Palette {
   const { parts: _retirees, ...sansParts } = palette;
-  return sansParts;
+  if (aUneIntensite(palette)) return sansParts;
+  const { teinte, clarte } = valeursDe(palette);
+  return appliquerLesReglages(recette, sansParts, { teinte, clarte });
 }
 
 /**

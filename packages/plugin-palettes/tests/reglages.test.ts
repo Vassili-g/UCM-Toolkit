@@ -13,6 +13,7 @@ import {
   departDe,
   ecrireHexa,
   estPaletteGrise,
+  fabriquerCran,
   jsonCanonique,
   lireHexa,
   partsDesProfils,
@@ -36,6 +37,7 @@ import {
   reglerClarte,
   reglerSaturation,
   reglerTeinte,
+  reprendreLesParts,
   retablirLaSaturation,
   revenirALOriginale,
   revenirAuModele,
@@ -131,8 +133,10 @@ test('Z10.8 passer à une intensité et revenir à deux replie les réglages san
   assert.notEqual(saturee.reference, une.reference, 'à une intensité, la saturation récrit la référence');
   const deux = choisirLesIntensites(RECETTE, saturee, 2);
   valide(deux);
-  assert.equal(deux.reglages?.part, undefined);
-  assert.equal(deux.reference, une.reference, 'sans part, la référence reprend la saturation de son départ');
+  assert.equal(deux.reglages?.part, 0.4);
+  assert.equal(deux.reference, saturee.reference, 'la référence garde sa saturation, et son porteur la prend');
+  assert.equal(partsDesProfils(RECETTE, deux)[profilPorteur(RECETTE, deux)], 0.4);
+  assert.equal(choisirLesIntensites(RECETTE, deux, 1).reference, saturee.reference);
   const libre = passerEnLibre(RECETTE, saturee);
   valide(libre);
   const modele = revenirAuModele(RECETTE, libre);
@@ -238,4 +242,53 @@ test('G5.3 saturer Vivid d’un gris neutre colore ses nuances : la palette cess
   assert.deepEqual(saturee.parts, { soft: 0, vivid: 0.3, origine: 'designer' });
   assert.equal(estPaletteGrise(RECETTE, saturee), false);
   assert.equal(saturee.reference, '#808080', 'à deux intensités, la saturation ne déplace pas la référence');
+});
+
+/** Vrai quand la référence est le cran que sa rampe aurait calculé à sa place : même part, à sa clarté. */
+const fondueDansSaRampe = (palette: Palette): boolean => {
+  const lue = rgb8VersOklch(lireHexa(palette.reference)!);
+  return fabriquerCran(lue.L, lue.H, partsDesProfils(RECETTE, palette)[profilPorteur(RECETTE, palette)], RECETTE.gamut).hexa === palette.reference;
+};
+
+test('[ENT-09] à deux intensités, la saturation du porteur récrit la référence à la part de ses voisines', () => {
+  const mauve = nouvellePalette(RECETTE, 'p-00000020', '#897288', 2)!;
+  assert.equal(profilPorteur(RECETTE, mauve), 'soft');
+  for (const cible of ['soft', 'deux'] as const) {
+    const terne = reglerSaturation(RECETTE, mauve, cible, 0.08);
+    valide(terne);
+    assert.equal(partsDesProfils(RECETTE, terne).soft, 0.08, cible);
+    assert.equal(terne.reglages?.part, 0.08, cible);
+    assert.equal(terne.originale, '#897288', cible);
+    assert.equal(profilPorteur(RECETTE, terne), 'soft', `${cible} : le porteur est figé`);
+    assert.ok(fondueDansSaRampe(terne), `${cible} : ${terne.reference}`);
+    assert.ok(rgb8VersOklch(lireHexa(terne.reference)!).C < rgb8VersOklch(lireHexa('#897288')!).C / 1.5, cible);
+  }
+  const vive = reglerSaturation(RECETTE, mauve, 'vivid', 0.5);
+  assert.equal(vive.reference, '#897288', 'la saturation de l’autre profil ne déplace pas la référence');
+  assert.equal(vive.reglages, undefined);
+});
+
+test('[ENT-09] « Rétablir » et « Reprendre » rendent à la référence la saturation de son départ, à l’octet', () => {
+  const terne = reglerSaturation(RECETTE, reglerTeinte(RECETTE, BLEU, PORTEUR, 6), PORTEUR, 0.3);
+  const tournee = reglerTeinte(RECETTE, BLEU, PORTEUR, 6);
+  for (const rendue of [retablirLaSaturation(RECETTE, terne, PORTEUR), retablirLaSaturation(RECETTE, terne, 'deux'), reprendreLesParts(RECETTE, terne)]) {
+    valide(rendue);
+    assert.equal(rendue.reference, tournee.reference);
+    assert.equal(rendue.reglages?.part, undefined);
+    assert.equal(rendue.reglages?.teinte?.[PORTEUR], 6, 'la teinte réglée reste');
+  }
+  const affichee = reglerSaturation(RECETTE, BLEU, PORTEUR, partsDesProfils(RECETTE, BLEU)[PORTEUR]);
+  assert.equal(affichee.reference, BLEU.reference, 'poser la valeur affichée garde les octets');
+  assert.equal(affichee.reglages, undefined);
+});
+
+test('[ENT-09] des parts du designer rangées sans la référence se réaccordent au geste suivant', () => {
+  // Une palette réglée avant que la référence suive son porteur : Soft à 0,08 autour de #897288 intacte.
+  const ancienne: Palette = { ...nouvellePalette(RECETTE, 'p-00000021', '#897288', 2)!, parts: { soft: 0.08, vivid: 0.338, origine: 'designer' } };
+  valide(ancienne);
+  assert.equal(fondueDansSaRampe(ancienne), false);
+  const reaccordee = reglerSaturation(RECETTE, ancienne, 'vivid', 0.4);
+  valide(reaccordee);
+  assert.deepEqual(partsDesProfils(RECETTE, reaccordee), { soft: 0.08, vivid: 0.4 });
+  assert.ok(fondueDansSaRampe(reaccordee));
 });

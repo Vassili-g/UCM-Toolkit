@@ -634,12 +634,16 @@ attend la réponse du mainteneur avant le code.
   descend alors entre 0,33 et 0,45 pour une référence entre 0,70 et 0,95 :
   `#1E6FD9` passe de 0,45 à 0,424. Test de continuité côté Vivid, vu rouge
   sur mutation.
-- [ ] **G8.2** Part d’une palette à une intensité hors de l’étendue.
+- [x] **G8.2** Part d’une palette à une intensité hors de l’étendue.
   Proposition de la revue : `referenceReglee` mesure la part à la clarté
   bornée, comme R3, et la piste peinte suit. Un geste à la valeur affichée
   garde alors les octets de 6 références sur 7 ; `#000012` bouge encore
   de 0,012 ΔEok. `reglages.part` change de sens : les recettes 6 déjà
   rangées se lisent autrement. Test dans `reglages.test.ts`.
+  Réglé par G9, sans changer le sens de `reglages.part` : la rampe lit la
+  part rangée au lieu de la remesurer, et une part égale à celle du départ
+  ne se range pas. `#1A0000`, `#000012` et `#FFFDE0` gardent leurs octets à
+  la valeur affichée.
 - [ ] **G8.3** Teinte d’un gris neutre saturé : bornes de ±180° quand le
   départ est un gris pur (`reglerTeinte`, validation de `reglages.teinte`,
   `CURSEURS` de la carte), ou R4 et G7.2 récrits pour dire ±30° autour de
@@ -647,6 +651,35 @@ attend la réponse du mainteneur avant le code.
 - [ ] **G8.4** Galerie : un état aux parts du designer, Jaune à 0,3 et 0,8,
   dont la notice `reference-plus-vive` se replie sous les curseurs, et un
   test d’interface qui la trouve repliée.
+
+## Lot G9 : la référence suit la saturation de son porteur
+
+Signalement du mainteneur : « quand on baisse la
+saturation via "Réglage global" du plugin palette, la couleur de référence
+reste dans sa saturation initiale ».
+
+Cause : à deux intensités, `reglerSaturation` rangeait des parts du designer
+sans récrire la référence, et `rampesDe` recolle ses octets à son cran.
+`#897288` en Soft à 8 % gardait une chroma de 0,043 entre des voisines à
+0,026 et 0,017. R1 ne couvrait que les parts calculées, pas celles du
+designer.
+
+- [x] **G9.1** Moteur : `reglages.part` est la saturation de la référence,
+  à une intensité comme à deux. `partDeLaReference` la rend telle quelle,
+  et `partsDesProfils` la donne au porteur, parts du designer comprises. La
+  validation accepte `part` à deux intensités, sans changer la version de
+  la recette.
+- [x] **G9.2** Gestes : la saturation du porteur, ou « Les deux », récrit
+  la référence par `referenceReglee` à la part du porteur. La saturation de
+  l’autre profil ne la déplace pas. « Rétablir », « Reprendre » et le retour
+  à la valeur du départ rendent ses octets. Le passage d’une intensité à
+  deux garde la référence et sa saturation.
+- [x] **G9.3** Tests : `reglages.test.ts` du moteur et du plugin. Les deux
+  règles du moteur ont été vues rouges sur mutation.
+- [ ] **G9.4** Recette du mainteneur dans Figma : `#897288` à deux
+  intensités, Soft baissé à 8 % ; la référence se fond dans Soft. Une palette
+  dont les parts du designer ont été rangées avant G9 garde sa référence
+  jusqu’au geste de saturation suivant.
 
 ## Hors périmètre
 

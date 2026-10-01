@@ -14,6 +14,8 @@ import {
   jsonCanonique,
   lireHexa,
   normaliserTeinte,
+  partDeLaReference,
+  partsDesProfils,
   pivotDe,
   propositionDAjustement,
   rampesDe,
@@ -49,6 +51,7 @@ test('Z10.5 [REC-05] des réglages bornés, jamais nuls, adaptés au nombre d’
   assert.deepEqual(refus(bleuRegle({ teinte: { vivid: 8 }, clarte: { soft: -0.02 } })), []);
   assert.deepEqual(refus(paletteTailwind('p-000000e2', BLEU, { reglages: { porteur: 'vivid', teinte: { soft: 6 } } })), [], 'un réglage de l’autre profil ne demande pas d’originale');
   assert.deepEqual(refus({ ...paletteTailwind('p-000000e3', BLEU), intensites: 1, originale: '#1E6FDA', reglages: { part: 0 } }), [], 'une part nulle est une saturation, pas un réglage vide');
+  assert.deepEqual(refus(paletteTailwind('p-000000e7', '#1E70DA', { originale: BLEU, reglages: { porteur: 'vivid', part: 0.5 } })), [], 'à deux intensités, la part est celle du porteur');
 });
 
 test('Z10.5 [REC-05] chaque règle des réglages refuse sa faute', () => {
@@ -59,7 +62,6 @@ test('Z10.5 [REC-05] chaque règle des réglages refuse sa faute', () => {
     [paletteTailwind('p-000000e4', BLEU, { reglages: { porteur: 'vivid' } }), 'reglage-nul palettes[0].reglages'],
     [paletteTailwind('p-000000e5', BLEU, { reglages: { teinte: { soft: 5 } } }), 'porteur-manquant palettes[0].reglages'],
     [paletteTailwind('p-000000e6', BLEU, { base: 'vivid', reglages: { porteur: 'vivid', teinte: { soft: 5 } } }), 'porteur-base palettes[0].reglages.porteur'],
-    [paletteTailwind('p-000000e7', BLEU, { reglages: { porteur: 'vivid', part: 0.5 } }), 'reglages-intensites palettes[0].reglages.part'],
     [{ ...paletteTailwind('p-000000e8', BLEU), intensites: 1, reglages: { teinte: { soft: 5 } } }, 'reglages-intensites palettes[0].reglages.teinte.soft'],
     [paletteTailwind('p-000000e9', '#1E70DA', { reglages: { porteur: 'vivid', teinte: { vivid: 2 } } }), 'reglages-sans-originale palettes[0].reglages'],
     [paletteTailwind('p-000000ea', BLEU, { originale: '#2A7FDB', reglages: { porteur: 'vivid', teinte: { soft: 5 }, depart: '#1E70DA' } }), 'depart-sans-reglage palettes[0].reglages.depart'],
@@ -144,4 +146,19 @@ test('Z10.5 [MOT-17] le porteur figé par les réglages l’emporte sur le class
   assert.deepEqual(refus(figee), []);
   assert.equal(ancrageDe(recette, figee).profil, autre);
   assert.equal(rampesDe(recette, figee)[autre]!.light[ancrageDe(recette, figee).rangs.light].hexa, BLEU);
+});
+
+test('[ENT-09] la saturation réglée de la référence est la part de son porteur, parts du designer comprises', () => {
+  const recette = recetteParDefaut();
+  const depart = lireHexa(BLEU)!;
+  const reference = ecrireHexa(referenceReglee(depart, 0, 0, 0.2, 'srgb'));
+  const reglee = paletteTailwind('p-000000f4', reference, { originale: BLEU, reglages: { porteur: 'vivid', part: 0.2 } });
+  assert.deepEqual(refus(reglee), []);
+  assert.equal(partDeLaReference(recette, reglee), 0.2);
+  const designer: Palette = { ...reglee, parts: { soft: 0.1, vivid: 0.6, origine: 'designer' } };
+  assert.deepEqual(partsDesProfils(recette, designer), { soft: 0.1, vivid: 0.2 }, 'la part rangée du porteur cède à celle de la référence');
+  // La référence est un cran de sa rampe : à sa clarté, le calcul rend ses octets.
+  const lue = rgb8VersOklch(lireHexa(reference)!);
+  const cran = fabriquerCran(lue.L, lue.H, partsDesProfils(recette, reglee).vivid, 'srgb');
+  assert.equal(cran.hexa, reference);
 });

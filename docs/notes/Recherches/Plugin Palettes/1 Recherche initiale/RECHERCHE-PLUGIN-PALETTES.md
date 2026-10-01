@@ -517,7 +517,7 @@ Une palette porte :
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
 | `originale` | Facultatif : le code de la référence avant le premier ajustement ou le premier réglage du porteur, en majuscules. Différent de `reference`, sauf sous un réglage du porteur, dont le résultat peut rendre les mêmes octets. Absent, aucun ajustement |
 | `intensites` | Facultatif : `1` pour une palette à une intensité (`[ENT-14]`), sans `base`, sans `parts`, sans `crans`, dérive liée. Absent, la palette porte Soft et Vivid |
-| `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,05, +0,02]` au millième ; `part`, la saturation de la référence d'une palette à une intensité, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
+| `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,05, +0,02]` au millième ; `part`, la saturation de la référence, donc celle de son profil porteur, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
 
 ### 7.2 Exemple
 
@@ -608,8 +608,7 @@ dix-sept paires.
   déliée ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
   `contenuDesPlanches` garde un thème au moins. `reglages` porte au moins
   une teinte, une clarté ou `part`, dans leurs bornes, sans zéro ni objet
-  vide ; `part` et une clé `soft` ne vont qu'au nombre d'intensités qui les
-  admet ; `porteur` accompagne des réglages à deux intensités sans `base`,
+  vide ; une clé `soft` ne va qu'à deux intensités ; `porteur` accompagne des réglages à deux intensités sans `base`,
   et jamais `base` ; un réglage du porteur exige `originale` ; `depart`
   exige un réglage du porteur et diffère d'`originale`. La validation ne
   recalcule pas la référence réglée : deux moteurs JavaScript peuvent
@@ -708,9 +707,9 @@ dix-sept paires.
   sans choix de profil. Passer de deux à une ne demande pas de
   confirmation : la palette garde la dérive et les réglages de son intensité
   porteuse, et perd `base`, ses parts et les réglages de l'autre profil ; la
-  référence ne change pas. Passer de une à deux rend Soft et Vivid, retire
-  `part` et récrit la référence sans elle, puis range les réglages sous le
-  profil que le classement automatique désigne. Une
+  référence ne change pas. Passer de une à deux rend Soft et Vivid ; la
+  référence garde ses octets et `part`, que son profil porteur prend. Les
+  réglages se rangent sous le profil que le classement automatique désigne. Une
   palette libre n'a pas ce choix ; la rendre au modèle la remet à une
   intensité. `intensitesDe` (`packages/couleur`) en est l'autorité : toute
   vue parcourt les intensités qu'elle rend.
@@ -723,10 +722,16 @@ dix-sept paires.
   teinte d'un profil se mesure depuis le départ (`[MOT-29]`), en degrés, de
   −30 à +30. La luminosité décale toute la rampe du profil, de −0,05 à +0,02.
   La saturation d'un profil est sa part (`[ENT-09]`), bornée pour que
-  `soft` ne dépasse pas `vivid`, et ne déplace pas la référence. Le premier
+  `soft` ne dépasse pas `vivid`. La saturation du porteur est celle de la
+  référence : le geste la range aussi dans `reglages.part`, et la référence
+  se récrit à cette part, comme un cran de sa rampe. Sans cela, la référence
+  garderait sa saturation entre des voisines plus ternes ou plus vives. Une
+  part égale à celle du départ ne se range pas : poser la valeur que le
+  curseur montrait rend les octets du départ. « Rétablir » et « Reprendre »
+  retirent `part` avec les parts du designer. Le premier
   réglage fige le porteur dans `reglages.porteur`, sauf sous une palette de
-  base. Un réglage du porteur (sa teinte, sa clarté, ou `part` à une
-  intensité) déplace la référence : le geste garde `originale`, puis récrit
+  base. Un réglage du porteur (sa teinte, sa clarté ou `part`) déplace la
+  référence : le geste garde `originale`, puis récrit
   `reference = referenceReglee(S, teinte[P], clarte[P], part)`
   (`packages/couleur/src/reglages.ts`). Aucun geste ne part de la référence
   déjà arrondie : un aller-retour de ±10° rend ses octets. Au premier
