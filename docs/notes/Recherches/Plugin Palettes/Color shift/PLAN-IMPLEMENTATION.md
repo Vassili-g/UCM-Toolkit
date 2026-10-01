@@ -181,8 +181,8 @@ les messages qu'elles produisent vont déjà au pied.
   section 5.2 de l'étude avec ces nombres. Si une limite dépasse 50 ms,
   écrire la mesure et s'arrêter : le mainteneur choisit entre un balayage
   grossier puis fin et un calcul hors du fil de l'interface.
-  Mesure : 24 ms en moyenne, 49 à 53 ms au plus. Choix fait en autonomie, à
-  valider : le calcul exact, étalé entre les images. `balayerLaLimite` rend la
+  Mesure : 24 ms en moyenne, 49 à 53 ms au plus. Choix validé par le
+  mainteneur : le calcul exact, étalé entre les images. `balayerLaLimite` rend la
   main après chaque candidate ; l'interface l'avance par tranches, et un geste
   qui commence avant la fin termine d'abord le calcul. Un balayage grossier
   pourrait sauter une bande interdite plus étroite que son pas.
@@ -250,9 +250,8 @@ les messages qu'elles produisent vont déjà au pied.
   réglages. Les fiches et les cadres, titrés par un nom de palette, n'en ont
   pas. Ajouter la planche des glyphes à la maquette de l'étude, dans les deux
   thèmes de Figma.
-- [ ] **G2** Arrêt : le mainteneur valide la planche des glyphes. La planche
-  est dans la maquette, sous le plugin simulé ; G3 et G4 posent les glyphes
-  en attendant la réponse, et une retouche ne change que `src/ui/glyphes.ts`.
+- [x] **G2** Arrêt : le mainteneur valide la planche des glyphes. Validée telle
+  que la maquette la montre, sous le plugin simulé.
 - [x] **G3** Nouveau `src/ui/glyphes.ts` : un SVG par carte, `aria-hidden`,
   couleurs par les rôles de la feuille. `carte.ts` accepte un glyphe à gauche
   du titre ; chaque appel à `createCarte` qui porte un titre de la liste G1
