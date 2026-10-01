@@ -58,6 +58,34 @@ font dans Figma. Le code se construit sur l'hypothèse écrite dans la tâche, e
 la recette de la phase 10 dit au mainteneur quoi vérifier et ce qui change si
 l'hypothèse est fausse.
 
+## Point de reprise
+
+Sur `main`, poussés : P1.1, P1.2, P1.3 et P2.1.
+
+Dans la copie de travail, non commités, parce que `npm run test:ui` y est
+rouge : P2.2 à P2.7. Le code est écrit, `npm run typecheck` et `npm test`
+passent (261 tests), les galeries se construisent.
+
+- Fichiers nouveaux : `src/ui/barreDePalette.ts`,
+  `src/ui/ongletVerification.ts`, `scripts/capturer-etats.mjs`.
+- Fichiers modifiés : `src/ui/` (`index.ts`, `ongletCreation.ts`,
+  `selecteur.ts`, `garanties.ts`, `nuancier.ts`, `piedDeLaPalette.ts`,
+  `messagesDePalette.ts`, `styles.css`), `src/i18n/fr.ts`, `src/i18n/en.ts`,
+  `galerie/etats.cjs`, `tests/interface/interface.test.mjs`.
+- Reste à faire avant de commiter ce groupe : réécrire la trentaine de tests
+  d'interface que `node --test tests/interface/interface.test.mjs` donne
+  rouges. Ils visaient la carte des garanties dans Création, le volet et
+  « Détails ». Les aides `ouvrirLaVerification` et `carteDesGaranties` sont
+  posées. Le témoin d'un rendu complet des tests de glisser devient le corps
+  de la carte « Interface de test ». Ajouter les tests de P2.2, la barre
+  gardée d'un onglet à l'autre, et de P2.3, les verdicts sur trois palettes.
+  Puis AGENTS.md, carte du code et invariant « Interface d'UCM Palettes »,
+  CONTRIBUTING.md, et les cases P2.2 à P2.7.
+- Écarts à dire au mainteneur : la carte des garanties est toujours fixe,
+  sans option ; son en-tête porte une bascule Thème Light et Thème Dark, que
+  M8 ne montre pas, parce que Vérification n'a pas l'aperçu qui choisit le
+  thème.
+
 ## Arbitrages
 
 | Point | Ce que ce plan retient |
