@@ -21,6 +21,7 @@ import { creerVuesGestesDeLaRecette, type DemandesDeLaRecette } from './gestesDe
 import { creerLocalisation, type Localisation } from './localisation';
 import { creerVuesOngletCreation } from './ongletCreation';
 import { creerVuesOngletGestion } from './ongletGestion';
+import { creerPaletteOuverte } from './paletteOuverte';
 import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
@@ -135,6 +136,9 @@ export function creerVuesIndex(i18n: Localisation) {
     },
   };
 
+  /** La recette affichée et la palette ouverte, que les onglets partagent ([UI-23]). */
+  const paletteOuverte = creerPaletteOuverte();
+
   const ongletCreation = createOngletCreation({
     ranger: (recette) => frontiere.ranger(recette),
     recharger: () => frontiere.lireLEtat(),
@@ -145,7 +149,7 @@ export function creerVuesIndex(i18n: Localisation) {
       ouvrirConfiguration();
       panneauDeConfiguration.focaliser(GROUPE_DE_LA_CIBLE[cible] ?? 'courbes');
     },
-  });
+  }, paletteOuverte);
 
   const ongletGestion = createOngletGestion({
     ...gestesDuResultat,

@@ -2,7 +2,8 @@
  * Ce que l'interface fait des résultats du moteur, avant leur mise en mots :
  * les promesses manquées groupées par association, mode et état ([VER-06]),
  * la place de chaque alerte, et le réglage que chaque message ouvre
- * ([VER-15]), et si une carte repliée est réglée. Pur : ni DOM, ni texte.
+ * ([VER-15]), si une carte repliée est réglée, et le verdict d'une palette
+ * ([VER-19]). Pur : ni DOM, ni texte.
  */
 import {
   ASSOCIATIONS,
@@ -15,6 +16,7 @@ import {
   decalagesDeLEmploi,
   etatDeLaPaire,
   intensitesDe,
+  severiteDeLAlerte,
   type Alerte,
   type Association,
   type Emploi,
@@ -23,6 +25,31 @@ import {
   type Palette,
   type Promesse,
 } from 'ucm-couleur';
+
+import type { AnalyseDePalette } from './analyse';
+
+/** Le verdict d'une palette ([VER-19]) : ce que le sélecteur et l'onglet Vérification en disent. */
+export type Verdict = 'succes' | 'avertissement' | 'danger';
+
+/**
+ * Le verdict que donnent des faits déjà comptés : `danger` dès qu'une
+ * garantie manque, `avertissement` dès qu'une alerte de sévérité « alerte »
+ * existe, `succes` sinon. Une palette libre est `succes`.
+ */
+export function verdictDe(faits: { readonly libre: boolean; readonly manquees: number; readonly alertes: number }): Verdict {
+  if (faits.libre) return 'succes';
+  if (faits.manquees > 0) return 'danger';
+  return faits.alertes > 0 ? 'avertissement' : 'succes';
+}
+
+/** Le verdict d'une palette analysée ([VER-19]). Une notice ne le change pas. */
+export function verdictDeLaPalette(analyse: AnalyseDePalette): Verdict {
+  return verdictDe({
+    libre: analyse.libre,
+    manquees: analyse.manquees,
+    alertes: analyse.alertes.filter((alerte) => severiteDeLAlerte(alerte) === 'alerte').length,
+  });
+}
 
 /**
  * Le réglage qu'un message ouvre et focalise ([VER-15]). Les trois premiers

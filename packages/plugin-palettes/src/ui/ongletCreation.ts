@@ -73,6 +73,7 @@ import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
 import { creerVuesInterfaceDeTest } from './interfaceDeTest';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
+import type { PaletteOuverte } from './paletteOuverte';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMenuPalette } from './menuPalette';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
@@ -149,13 +150,12 @@ function construireVues(i18n: Localisation) {
     return ligne;
   }
 
-  function createOngletCreation(demandes: DemandesDeLOnglet): OngletCreationUi {
+  /** `etat` porte la recette affichée, la palette ouverte et l'état du geste, que Vérification lit aussi ([UI-23]). */
+  function createOngletCreation(demandes: DemandesDeLOnglet, etat: PaletteOuverte): OngletCreationUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
-    let recette: Recette | null = null;
     let classementLu: Classement | null = null;
-    let idOuvert = '';
     let creationOuverte = false;
     let suppressionDemandee = false;
     let note: Constat | null = null;
@@ -164,7 +164,7 @@ function construireVues(i18n: Localisation) {
 
     // Le choix ou la création d'une palette, en tête de l'onglet : la liste prend la largeur libre ([UI-06]).
     const selecteur = createSelecteur((id) => {
-      idOuvert = id;
+      etat.ouvrir(id);
       suppressionDemandee = false;
       rendre();
     });
@@ -179,7 +179,10 @@ function construireVues(i18n: Localisation) {
 
     const creation = createCreation({
       onCreer: (saisie, nom, intensites, base, crans) => creer(saisie, nom, intensites, base, crans),
-      cransLibres: () => (recette ? cransLibresParDefaut(recette) : []),
+      cransLibres: () => {
+        const recette = etat.recette();
+        return recette ? cransLibresParDefaut(recette) : [];
+      },
       apercuDeLaSaisie: (saisie) => apercuDeLaSaisie(saisie),
       onAnnuler: () => {
         creationOuverte = false;
@@ -224,12 +227,13 @@ function construireVues(i18n: Localisation) {
     // La pastille ouvre le sélecteur de couleur, qui propose les nuances Vivid du thème montré (W4.1).
     const pipette = createPipette(TEXTES.reference, () => {
       const courante = ouverte();
-      if (!recette || !courante) return null;
+      const analyse = etat.analyse();
+      if (!courante || !analyse) return null;
       originaleAvantSaisie = courante.originale ?? null;
       return {
         hexa: courante.reference,
         titreDesPastilles: TEXTES_DU_SELECTEUR.nuancesDeLaPalette,
-        pastilles: nuancesProposees(analyserPalette(recette, courante), nuancier.mode()),
+        pastilles: nuancesProposees(analyse, nuancier.mode()),
         saisir: (saisie, fin) => saisirReference(saisie, fin, true),
         abandonner: () => rendre(),
       };
@@ -263,6 +267,7 @@ function construireVues(i18n: Localisation) {
     i18n.lier(revenir, 'textContent', TEXTES_DE_L_AJUSTEMENT.revenir);
     revenir.addEventListener('click', () => {
       const courante = ouverte();
+      const recette = etat.recette();
       if (!recette || !courante) return;
       note = null;
       valider(remplacerPalette(recette, revenirALOriginale(recette, courante)));
@@ -283,6 +288,7 @@ function construireVues(i18n: Localisation) {
       // R1 : le pas choisi devient la luminosité du porteur, comme dans la carte (Z10.4).
       appliquer: (pas) => {
         const courante = ouverte();
+        const recette = etat.recette();
         if (!recette || !courante) return;
         note = null;
         valider(remplacerPalette(recette, reglerClarte(recette, courante, cleDuPorteur(recette, courante), pas / 100)));
@@ -292,6 +298,7 @@ function construireVues(i18n: Localisation) {
 
     function ouvrirLAjustement(): void {
       const courante = ouverte();
+      const recette = etat.recette();
       if (recette && courante) ajustement.ouvrir(recette, courante);
     }
     /*
@@ -301,9 +308,11 @@ function construireVues(i18n: Localisation) {
      */
     const choixDesIntensites = createSegmentsDesIntensites((nombre) => {
       const courante = ouverte();
+      const recette = etat.recette();
       if (recette && courante) valider(remplacerPalette(recette, choisirLesIntensites(recette, courante, nombre)));
     }, (valeur) => {
       const courante = ouverte();
+      const recette = etat.recette();
       if (recette && courante) valider(remplacerPalette(recette, choisirLaBase(recette, courante, valeur)));
     });
     const choixDeBase = choixDesIntensites.base;
@@ -315,11 +324,13 @@ function construireVues(i18n: Localisation) {
      */
     const choixDuModele = createChoixDuModele((valeur) => {
       const courante = ouverte();
+      const recette = etat.recette();
       if (!recette || !courante) return;
       valider(remplacerPalette(recette, valeur === 'libre' ? passerEnLibre(recette, courante) : revenirAuModele(recette, courante)));
     });
     const puces = createPuces((numero) => {
       const courante = ouverte();
+      const recette = etat.recette();
       if (recette && courante) valider(remplacerPalette(recette, basculerNuance(courante, numero)));
     });
     const colonnes = document.createElement('div');
@@ -352,6 +363,7 @@ function construireVues(i18n: Localisation) {
     const intensites = createReglagesDeLaPalette({
       previsualiser: (suivante) => modifier(suivante),
       valider: (suivante) => {
+        const recette = etat.recette();
         if (recette) valider(remplacerPalette(recette, suivante));
       },
       ouvrir: (cible) => ouvrir(cible),
@@ -364,6 +376,7 @@ function construireVues(i18n: Localisation) {
     const editeur = createEditeur({
       previsualiser: (suivante) => modifier(suivante),
       valider: (suivante) => {
+        const recette = etat.recette();
         if (recette) valider(remplacerPalette(recette, suivante));
       },
     });
@@ -422,20 +435,19 @@ function construireVues(i18n: Localisation) {
      * session ([UI-06]) : l'onglet attend alors un choix.
      */
     function ouverte(): Palette | null {
-      return recette?.palettes.find((candidate) => candidate.id === idOuvert) ?? null;
+      return etat.palette();
     }
 
-    /*
-     * Un geste en cours : une saisie prévisualisée, que `valider` termine. Le
-     * pied n'annonce son bilan qu'en dehors d'un geste ([UI-20]).
+    /**
+     * Remplace la recette affichée, sans l'enregistrer : une saisie en cours,
+     * que `valider` termine. Le pied n'annonce son bilan qu'en dehors d'un
+     * geste ([UI-20]).
      */
-    let enGeste = false;
-
-    /** Remplace la recette affichée, sans l'enregistrer : une saisie en cours. */
     function modifier(suivante: Palette): void {
+      const recette = etat.recette();
       if (!recette) return;
-      recette = remplacerPalette(recette, suivante);
-      enGeste = true;
+      etat.poserRecette(remplacerPalette(recette, suivante));
+      etat.poserGeste(true);
       rendre();
     }
 
@@ -452,7 +464,7 @@ function construireVues(i18n: Localisation) {
     let renduDiffere = false;
 
     function rendreLApercu(): void {
-      enGeste = true;
+      etat.poserGeste(true);
       apercuSeul = true;
       try {
         rendre();
@@ -464,8 +476,8 @@ function construireVues(i18n: Localisation) {
 
     /** La fin d'un geste : la recette s'enregistre. */
     function valider(suivante: Recette): void {
-      recette = suivante;
-      enGeste = false;
+      etat.poserRecette(suivante);
+      etat.poserGeste(false);
       rendre();
       demandes.ranger(suivante);
     }
@@ -473,14 +485,14 @@ function construireVues(i18n: Localisation) {
     function ouvrirLaCreation(): void {
       creationOuverte = true;
       suppressionDemandee = false;
-      creation.ouvrir(Boolean(recette && recette.palettes.length > 0));
+      creation.ouvrir((etat.recette()?.palettes.length ?? 0) > 0);
       rendre();
       creation.focaliser();
     }
 
     /** Ce que la couleur saisie dans la création donnerait, à une intensité et à deux ([ENT-14]). */
     function apercuDeLaSaisie(saisie: string): ApercuDeLaSaisie | null {
-      const lue = recette;
+      const lue = etat.recette();
       if (!lue || !MOTIF_HEXA.test(saisie.trim())) return null;
       const [une, deux] = [nouvellePalette(lue, 'p-00000000', saisie, 1), nouvellePalette(lue, 'p-00000000', saisie, 2)];
       if (!une || !deux) return null;
@@ -492,6 +504,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function creer(saisie: string, nomSaisi: string, intensites: 1 | 2, base: ChoixDeBase, crans: readonly number[] | null): void {
+      const recette = etat.recette();
       if (!recette) return;
       const id = nouvelIdentifiant(recette, demandes.tirer);
       const palette = nouvellePalette(recette, id, saisie, crans ? 2 : intensites);
@@ -499,7 +512,7 @@ function construireVues(i18n: Localisation) {
         creation.signaler(hexaInvalide(saisie));
         return;
       }
-      idOuvert = id;
+      etat.ouvrir(id);
       creationOuverte = false;
       note = null;
       const dansLeModele = choisirLaBase(recette, renommer(palette, nomSaisi), base);
@@ -512,23 +525,25 @@ function construireVues(i18n: Localisation) {
      * `fonds` par `poserFond`, comme les Réglages communs, qui le relisent.
      */
     function saisirFond(mode: Mode, hexa: string, fin: boolean): void {
+      const recette = etat.recette();
       const suivante = recette ? poserFond(recette, mode, hexa) : null;
       if (!suivante) return;
       if (fin) valider(suivante);
       else {
-        recette = suivante;
+        etat.poserRecette(suivante);
         rendreLApercu();
       }
     }
 
     function agir(geste: GesteDePalette): void {
       const courante = ouverte();
+      const recette = etat.recette();
       if (!recette || !courante) return;
       note = null;
       if (geste === 'dupliquer') {
         const id = nouvelIdentifiant(recette, demandes.tirer);
         const suivante = dupliquer(recette, courante.id, id, nomDeLaCopie(nomDeLaPalette(courante)));
-        idOuvert = id;
+        etat.ouvrir(id);
         valider(suivante);
       } else if (geste === 'monter' || geste === 'descendre') {
         valider(deplacer(recette, courante.id, geste === 'monter' ? -1 : 1));
@@ -542,10 +557,11 @@ function construireVues(i18n: Localisation) {
 
     function confirmerLaSuppression(): void {
       const courante = ouverte();
+      const recette = etat.recette();
       if (!recette || !courante) return;
       const rang = recette.palettes.indexOf(courante);
       const suivante = supprimer(recette, courante.id);
-      idOuvert = suivante.palettes[Math.min(rang, suivante.palettes.length - 1)]?.id ?? '';
+      etat.ouvrir(suivante.palettes[Math.min(rang, suivante.palettes.length - 1)]?.id ?? '');
       suppressionDemandee = false;
       valider(suivante);
       selecteur.focaliser();
@@ -554,6 +570,7 @@ function construireVues(i18n: Localisation) {
     /** Une saisie d'hexa : l'aperçu suit une valeur complète, une valeur impossible se signale. */
     function saisirReference(saisie: string, fin: boolean, depuisLeSelecteur = false): void {
       const courante = ouverte();
+      const recette = etat.recette();
       if (!recette || !courante) return;
       const suivante = changerReference(recette, courante, saisie);
       const impossible = !/^#?[0-9a-f]{0,6}$/i.test(saisie.trim()) || (fin && !MOTIF_HEXA.test(saisie.trim()));
@@ -568,7 +585,7 @@ function construireVues(i18n: Localisation) {
         originaleAvantSaisie = null;
         valider(remplacerPalette(recette, suivante));
       } else if (depuisLeSelecteur) {
-        recette = remplacerPalette(recette, suivante);
+        etat.poserRecette(remplacerPalette(recette, suivante));
         rendreLApercu();
       } else modifier(suivante);
     }
@@ -580,6 +597,7 @@ function construireVues(i18n: Localisation) {
       if (courante) modifier(renommer(courante, nom.value));
     });
     nom.addEventListener('change', () => {
+      const recette = etat.recette();
       if (recette) valider(recette);
     });
 
@@ -655,7 +673,8 @@ function construireVues(i18n: Localisation) {
     }
 
     function rendrePalette(courante: Palette, lue: Recette): void {
-      const analyse = analyserPalette(lue, courante);
+      const analyse = etat.analyse();
+      if (!analyse) return;
       poser(hexa, courante.reference);
       pipette.poser(courante.reference);
       const manquees = (mode: Mode) => analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.verdict === 'manquee').length;
@@ -704,7 +723,7 @@ function construireVues(i18n: Localisation) {
         manquees: analyse.manquees,
         libre: analyse.libre,
         messages: messagesDuPied([...messages.liste, ...messages.intensite], groupesManques(analyse.promesses), nomDeLaPalette(courante)),
-      }, !enGeste);
+      }, !etat.enGeste());
 
       // Une palette grise ne règle que sa luminosité : la carte reste ouverte, ses onglets Teinte et Saturation se désactivent ([DER-15]).
       const grise = estPaletteGrise(lue, courante);
@@ -738,7 +757,14 @@ function construireVues(i18n: Localisation) {
       for (const candidate of [zoneDuBloquant, vide, vue]) candidate.hidden = candidate !== zone;
     }
 
+    /** Rend l'onglet, puis le déclare à l'état partagé : un rendu complet prévient Vérification. */
     function rendre(): void {
+      rendreLesZones();
+      etat.rendu(apercuSeul ? 'apercu' : 'complet');
+    }
+
+    function rendreLesZones(): void {
+      const recette = etat.recette();
       if (!apercuSeul) renduDiffere = false;
       rendreRefus();
       if (!classementLu) {
@@ -775,18 +801,18 @@ function construireVues(i18n: Localisation) {
       element,
       afficher(classement) {
         classementLu = classement;
-        recette = classement.etat === 'future' || classement.etat === 'illisible' ? null : classement.recette;
+        etat.poserRecette(classement.etat === 'future' || classement.etat === 'illisible' ? null : classement.recette);
         refus = null;
         rendre();
       },
-      recette: () => recette,
+      recette: () => etat.recette(),
       ouverte() {
         const courante = ouverte();
         return courante ? { id: courante.id, mode: nuancier.mode() } : null;
       },
       // Les Réglages communs couvrent l'onglet : leur saisie ne le rend pas, leur fin passe par `appliquer`.
       previsualiser(suivante) {
-        recette = suivante;
+        etat.poserRecette(suivante);
         renduDiffere = true;
       },
       rendreSiDiffere() {
@@ -807,7 +833,7 @@ function construireVues(i18n: Localisation) {
         else rendre();
       },
       ouvrirLaPalette(id, mode) {
-        idOuvert = id;
+        etat.ouvrir(id);
         suppressionDemandee = false;
         creationOuverte = false;
         rendre();

@@ -105,7 +105,7 @@ L'état que les deux onglets partagent vit aujourd'hui dans
 en cours. Vérification lit le même état. La phase l'extrait d'abord, puis
 construit dessus.
 
-- [ ] **P2.1** Créer `src/ui/paletteOuverte.ts` : la recette affichée,
+- [x] **P2.1** Créer `src/ui/paletteOuverte.ts` : la recette affichée,
   l'identifiant de la palette ouverte, l'analyse de cette palette, et une
   liste d'abonnés prévenus à chaque rendu complet. `ongletCreation.ts` y range
   ce qu'il gardait en variables locales et s'y abonne. Pur de tout DOM, donc
