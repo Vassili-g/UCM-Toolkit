@@ -151,3 +151,5 @@ export function grandReleve(collections = 20, parCollection = 500, modes = 4): R
   }
   return c.releve();
 }
+
+export { composantBouton, composantComplexe, composantInterrompu, composantSansToken, composantSimple, composantTuile } from './fixturesDeComposant';

@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UCM · Vue composant de l'explorateur</title>
+<style>
+/* Les couleurs du plugin sont celles de packages/plugin-explorateur/src/ui/roles.css. */
+:root{color-scheme:dark;--page:#141414;--fond:#222222;--arbre:#1c1c1c;--survol:#2c2c2c;--bordure:#414141;--filet:#373737;--rail:#505762;--noeud:#98a5bc;--focus:#91b8ff;--texte:#ededed;--second:#adadad;--marque:#91b8ff;--selection:#293b58;--avert:#f0c9a4;--pastille:#ffffff40;--violet:#b69cff;--mono:ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;font:13px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--texte);background:var(--page)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+a{color:var(--marque)}
+.entete{max-width:1180px;margin:auto;padding:24px 24px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.entete h1{font-size:21px;letter-spacing:-.4px;margin:2px 0 0}
+.sur{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--second)}
+.variantes{display:flex;align-items:center;gap:8px 14px;color:var(--second);font-size:12px;flex-wrap:wrap}
+.variantes label{display:flex;align-items:center;gap:8px}
+.segments{display:inline-flex;border:1px solid var(--bordure);border-radius:7px;overflow:hidden}
+.segments button{background:transparent;border:0;padding:5px 11px;color:var(--second)}
+.segments button[aria-pressed=true]{background:var(--selection);color:var(--texte)}
+.scene{max-width:1180px;margin:0 auto 18px;padding:0 24px}
+
+/* Tout ce cadre simule Figma. Seule la fenêtre flottante de droite est le plugin. */
+.figma{border:1px solid var(--bordure);border-radius:10px;overflow:hidden;background:#2c2c2c}
+.figma-barre{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:12px;color:var(--second);border-bottom:1px solid #00000066}
+.figma-barre b{color:var(--texte);font-weight:600}
+.figma-barre i{width:9px;height:9px;border-radius:50%;background:#5a5a5a}
+.figma-corps{position:relative;display:grid;grid-template-columns:190px minmax(0,1fr)}
+.calques{background:#2c2c2c;border-right:1px solid #00000066;padding:12px 6px;font-size:12px;max-height:860px;overflow:auto}
+.calques .sur{display:block;padding:0 8px 8px}
+.calques button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:5px;padding:3px 8px;color:var(--second);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.calques button.comp{color:var(--violet)}
+.calques button:hover{background:#ffffff0f}
+.calques button[aria-pressed=true]{background:#4c9bff40;color:var(--texte)}
+.canevas{position:relative;min-height:860px;background:#1e1e1e;background-image:radial-gradient(#ffffff0d 1px,transparent 1px);background-size:18px 18px;padding:22px 400px 26px 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-content:start}
+.canevas-note{grid-column:1/-1;color:var(--second);font-size:12px;margin:0}
+.calque{display:block;text-align:left;background:transparent;border:0;padding:0;width:100%;min-width:0}
+.calque.large{grid-column:1/-1}
+.calque-nom{display:block;font-size:11px;color:var(--violet);margin-bottom:5px}
+.cadre{display:grid;place-items:center;min-height:96px;border-radius:6px;outline:1px solid #ffffff14;padding:14px;background:#f7f8fa;overflow:hidden}
+.calque[aria-pressed=true] .cadre{outline:2px solid #4c9bff}
+.calque:hover .cadre{outline-color:#4c9bff99}
+.echelle{position:relative;overflow:hidden}
+.echelle>*{position:absolute;left:0;top:0;transform-origin:0 0}
+
+/* Les aperçus reprennent les valeurs finales des tokens de UCM Playground. */
+.ap{color:#202939;font:14px/1.4 "Open Sans",system-ui,sans-serif;text-align:left}
+.ap-bouton{display:inline-flex;background:#b15152;color:#fcfcfd;border-radius:6px;font-weight:600;font-size:14px;white-space:nowrap}
+.ap-bouton-in{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.ap-bouton i{font-style:normal;width:20px;text-align:center}
+.ap-alerte{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:6px;background:#f0f9ff;color:#0369a1;min-width:400px}
+.ap-alerte-texte{flex:1;display:flex;flex-direction:column}
+.ap-alerte-texte b{font-size:16px}
+.ap-alerte-texte span{font-size:12px}
+.ap-info{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font:700 12px/1 Georgia,serif}
+.ap-tuile{width:96px;height:96px;display:grid;place-items:center;background:#f0f9ff;color:#0369a1;border-radius:6px;font-size:28px;line-height:1}
+.ap-tuile i{font-style:normal}
+.ap-tag{border:1px solid #c34261;color:#a32c48;border-radius:99px;padding:3px 11px;font-size:12px;display:inline-block}
+.ap-avatar{width:44px;height:44px;border-radius:50%;background:#d7dbe3;color:#434852;display:grid;place-items:center;font-weight:600}
+.ap-stress{width:600px;display:flex;flex-direction:column;gap:20px;padding:20px;border-radius:6px;background:#fff;box-shadow:inset 0 0 0 1px #9aa4b2}
+.ap-stress .tete-s{display:flex;flex-direction:column;gap:4px;color:#000}
+.ap-stress .tete-s b{font-size:20px;line-height:28px}
+.ap-stress .grille{display:grid;grid-template-columns:repeat(6,1fr);column-gap:20px;row-gap:10px}
+.ap-stress .grille i{height:30px;background:#f0f9ff;border-radius:4px;box-shadow:inset 0 0 0 1px #dbeefd}
+.ap-stress .saisie{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 10px 48px;border-radius:6px;background:#eff6ff;box-shadow:inset 0 0 0 1px #2563eb}
+.ap-stress .etiquette{background:#172554;color:#fff;border-radius:6px;padding:4px 10px;font-size:12px}
+.ap-stress .colonnes{display:flex;gap:20px}
+.ap-stress .colonnes>div{flex:1;display:flex;flex-direction:column;gap:6px}
+.ap-stress .colonnes b{color:#000;font-size:16px}
+.ap-stress .colonnes span{font-size:12px}
+.ap-stress .colonnes u{color:#697586;font-size:12px}
+.ap-stress .filet{height:1px;max-width:350px;background:#e3e8ef}
+.ap-stress .tuiles{display:flex;flex-wrap:wrap;column-gap:10px;row-gap:20px}
+.ap-stress .echelons{display:flex;height:20px}
+.ap-stress .echelons i{flex:1}
+.ap-stress .echelons i:first-child{border-radius:6px 0 0 12px}
+.ap-stress .echelons i:last-child{border-radius:0 2px 24px 0}
+.ap-imb{display:inline-flex}
+.ap-imb.bloc{display:flex}
+.vise{outline:3px solid #ff5fa2!important;outline-offset:-3px}
+.cible{outline:3px solid #4c9bff;outline-offset:-3px}
+
+/* La fenêtre du plugin. */
+.plugin{border:1px solid var(--bordure);border-radius:10px;background:var(--fond);overflow:hidden;box-shadow:0 14px 40px #000000a0;display:flex;flex-direction:column;position:absolute;top:16px;right:16px;height:680px;width:364px}
+.barre{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--filet);font-size:12px;color:var(--second);background:var(--arbre)}
+.corps{flex:1;overflow:auto;position:relative}
+.vide{height:100%;display:grid;place-items:center;text-align:center;color:var(--second)}
+.vide svg{display:block;margin:0 auto 14px;opacity:.7}
+.vide p{margin:0;font-size:13px}
+.fil{display:flex;align-items:center;gap:5px;padding:8px 16px 0;font-size:11.5px;color:var(--second);white-space:nowrap;overflow:hidden}
+.fil button{background:transparent;border:0;padding:0;color:var(--marque)}
+.fil span:last-child{color:var(--texte);overflow:hidden;text-overflow:ellipsis}
+.tete{padding:12px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tete h2{font-size:15px;margin:0;font-weight:600;display:flex;align-items:center;gap:7px}
+.tete h2 span{color:var(--violet);font-size:12px}
+.sous{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:2px;color:var(--second);font-size:12px}
+.mode{border:1px solid var(--bordure);border-radius:99px;padding:0 7px;font-size:10.5px;line-height:17px;color:var(--second);white-space:nowrap}
+.outils{display:flex;gap:2px}
+.icone{background:transparent;border:1px solid transparent;border-radius:6px;width:26px;height:26px;display:grid;place-items:center;color:var(--second);flex-shrink:0}
+.icone:hover,.icone[aria-pressed=true]{background:var(--survol);color:var(--texte)}
+.apercu{margin:0 16px;border-radius:8px;min-height:72px;display:grid;place-items:center;padding:10px;border:1px solid var(--filet);background:#f7f8fa;overflow:hidden}
+.imbriques{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
+.imbriques button{background:transparent;border:1px solid var(--bordure);border-radius:6px;padding:1px 8px;font-size:11.5px;color:var(--violet);display:inline-flex;gap:5px;align-items:center}
+.imbriques button:hover{background:var(--survol)}
+.imbriques small{color:var(--second);font-size:10.5px}
+.filtre{padding:10px 16px 0}
+.filtre input{width:100%;background:var(--arbre);border:1px solid var(--bordure);border-radius:6px;padding:4px 9px;font-size:12px}
+.liste{padding-top:6px}
+.section-tete{width:100%;background:transparent;border:0;text-align:left;display:flex;align-items:center;gap:6px;padding:9px 16px 3px;font-size:10px;letter-spacing:.9px;text-transform:uppercase;color:var(--second)}
+.section-tete:hover{color:var(--texte)}
+.section-tete i{font-style:normal;width:9px;font-size:10px;color:var(--noeud)}
+.section-tete b{font-weight:400;letter-spacing:0;color:var(--rail)}
+.section-tete em{font-style:normal;letter-spacing:0;text-transform:none;color:var(--rail)}
+.resume{display:flex;flex-wrap:wrap;gap:3px;align-items:center;padding:2px 16px 8px 30px;font:11px/1.5 var(--mono);color:var(--second)}
+.resume button{width:14px;height:14px;border-radius:3px;border:1px solid var(--pastille);padding:0}
+.resume button:hover{transform:scale(1.25)}
+.resume span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.resume button+span{margin-left:6px}
+.token{border-top:1px solid var(--filet)}
+.section-tete+.token{border-top:0}
+.ligne{width:100%;background:transparent;border:0;text-align:left;display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:5px 16px}
+.ligne:hover{background:var(--survol)}
+.detaillee .ligne{padding:8px 16px}
+.pastille{width:16px;height:16px;border-radius:4px;border:1px solid var(--pastille);display:grid;place-items:center;font:700 9px/1 system-ui,sans-serif;font-style:normal}
+.pastille.contour{background:transparent!important;border-width:3px}
+.pastille.nombre{border-color:transparent;color:var(--second);font:11px/1 system-ui,sans-serif}
+.prop{display:none;font-size:12.5px;line-height:1.35}
+.detaillee .prop{display:block}
+.nom{display:block;font:11.5px/1.5 var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+.detaillee .nom{font-size:11px;color:var(--second)}
+.fin{display:flex;align-items:center;gap:7px}
+.valeur{font:11.5px/1.35 var(--mono);white-space:nowrap}
+.valeur.rompue{color:var(--avert)}
+.fois{font-size:10.5px;color:var(--second);min-width:20px;text-align:right}
+.points{display:inline-flex;gap:3px}
+.points i{width:4px;height:4px;border-radius:50%;background:var(--rail)}
+.points i:last-child{background:var(--noeud)}
+.chaine{list-style:none;margin:0;padding:4px 16px 4px 22px}
+.chaine li{position:relative;border-left:1px solid var(--rail);padding:0 0 8px 18px}
+.chaine li:last-child{border-left-color:transparent;padding-bottom:0}
+.chaine li:before{content:"";position:absolute;left:-4px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--fond);border:1px solid var(--noeud)}
+.chaine li.terme:before{background:var(--noeud)}
+.chaine li.rompue:before{border-color:var(--avert)}
+.etape-col{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--second);line-height:17px}
+.etape-nom{display:block;font:11.5px/1.45 var(--mono);overflow-wrap:anywhere}
+.copie{background:transparent;border:0;padding:0;font:12px var(--mono);display:inline-flex;gap:7px;align-items:center}
+.copie:hover{color:var(--marque)}
+.copie .pastille{width:14px;height:14px;border-radius:3px}
+.rompue-texte{color:var(--avert);font-size:11.5px}
+.sur-calques{padding:4px 16px 10px 43px;font-size:11px;color:var(--second)}
+.champs{list-style:none;margin:0;padding:2px 16px 4px 43px}
+.champs li{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:8px;font-size:11.5px;padding:2px 0;align-items:baseline}
+.champs span{color:var(--second)}
+.champs em{font-style:normal;font-size:10.5px;color:var(--rail);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.champs code{font:11.5px var(--mono)}
+.aucun{padding:14px 16px;color:var(--second);font-size:12px}
+.pied{display:flex;justify-content:space-between;gap:10px;padding:7px 16px;border-top:1px solid var(--filet);font-size:11px;color:var(--second);background:var(--arbre)}
+.pied button{background:transparent;border:0;padding:0;color:var(--second);text-decoration:underline dotted;text-underline-offset:3px}
+.directes{list-style:none;margin:0;padding:0 16px 12px}
+.directes li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 0;border-top:1px solid var(--filet)}
+.directes code{font:11.5px var(--mono);color:var(--second)}
+.annonce{position:sticky;left:0;bottom:12px;width:max-content;margin:0 auto;background:#e4e7ee;color:#1d2027;border-radius:6px;padding:5px 12px;font-size:12px;white-space:nowrap}
+.annonce:empty{display:none}
+.valider{max-width:1180px;margin:0 auto 34px;padding:0 24px;color:var(--second);font-size:12px;display:flex;gap:8px 22px;flex-wrap:wrap}
+.valider b{color:var(--texte);font-weight:600}
+@media(max-width:900px){.figma-corps{display:block}.calques{display:none}.plugin{position:static;width:auto;margin:12px}.canevas{min-height:0;padding:16px}}
+@media(max-width:480px){.canevas{grid-template-columns:1fr}.entete,.scene,.valider{padding-inline:16px}}
+</style>
+</head>
+<body>
+<header class="entete">
+  <div><div class="sur">Maquette · composants de UCM Playground</div><h1>Vue composant de l'explorateur</h1></div>
+  <div class="variantes">
+    <label>Regroupement
+      <span class="segments" role="group" aria-label="Regroupement des tokens">
+        <button data-regroupement="nature" aria-pressed="true">Nature</button>
+        <button data-regroupement="partie" aria-pressed="false">Partie</button>
+      </span>
+    </label>
+    <label>Ligne
+      <span class="segments" role="group" aria-label="Densité de la ligne">
+        <button data-densite="compacte" aria-pressed="true">Compacte</button>
+        <button data-densite="detaillee" aria-pressed="false">Détaillée</button>
+      </span>
+    </label>
+    <a href="PLAN-RECHERCHE-VUE-COMPOSANT.md">Plan ↗</a>
+  </div>
+</header>
+
+<main class="scene">
+  <div class="figma">
+    <div class="figma-barre"><i></i><i></i><i></i><b>Figma</b><span>simulation · fichier sans variable locale</span></div>
+    <div class="figma-corps">
+      <nav class="calques" id="calques" aria-label="Calques Figma simulés"></nav>
+      <section class="canevas" id="canevas" aria-label="Canevas Figma simulé">
+        <p class="canevas-note">Canevas Figma. Cliquez sur un composant, puis sur un de ses calques dans la colonne de gauche : le plugin suit la sélection. Cliquez sur le fond pour désélectionner.</p>
+      </section>
+      <aside class="plugin" aria-label="Fenêtre du plugin">
+        <div class="barre"><span>UCM Token Explorer</span><span aria-hidden="true">✕</span></div>
+        <div class="corps" id="corps"></div>
+        <div class="pied" id="pied" hidden></div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div class="valider">
+  <span><b>D9</b> Une ligne par token, ×N calques</span>
+  <span><b>D10</b> Un composant imbriqué s'ouvre, il ne se déroule pas</span>
+  <span><b>D11</b> Au-delà de 12 lignes, sections repliées avec résumé</span>
+  <span><b>D12</b> Un calque sélectionné restreint la vue</span>
+  <span><b>D13</b> Nature ou Partie</span>
+  <span><b>D14</b> Ligne compacte ou détaillée</span>
+  <span><b>D15</b> Survol d'une ligne : ses calques dans l'aperçu</span>
+</div>
+
+<script>
+// Button, Alert, TileLink et StressTest : premier variant de chaque contrat de UCM Playground,
+// chaînes lues dans son tokens.json. Tag et Avatar sont fictifs et portent les états D4 et D5.
+const JEU = [{"nom":"Button","variant":"primary · contained · default","calques":[{"nom":"Button","parent":null,"p":0},{"nom":".sizeWrapperButton","parent":0,"p":1},{"nom":"arrow-left-long","parent":1,"p":2},{"nom":"Suivant","parent":1,"p":2},{"nom":"arrow-right-long","parent":1,"p":2}],"liaisons":[{"calque":1,"nature":"Forme","prop":"Rayon","ref":"{components.button.sizes.medium.border-radius}"},{"calque":1,"nature":"Espacement","prop":"Écart","ref":"{components.button.sizes.medium.gap}"},{"calque":1,"nature":"Espacement","prop":"Marge horizontale","ref":"{components.button.sizes.medium.padding-x}"},{"calque":1,"nature":"Espacement","prop":"Marge verticale","ref":"{components.button.sizes.medium.padding-y}"},{"calque":2,"nature":"Taille","prop":"Taille","ref":"{components.icons.sizes.sm}"},{"calque":4,"nature":"Taille","prop":"Taille","ref":"{components.icons.sizes.sm}"},{"calque":1,"nature":"Couleur","prop":"Fond","ref":"{components.button.colors.primary.contained.default.background}"},{"calque":2,"nature":"Couleur","prop":"Fond","ref":"{components.button.colors.primary.contained.default.foreground}"},{"calque":3,"nature":"Couleur","prop":"Texte","ref":"{components.button.colors.primary.contained.default.foreground}"},{"calque":4,"nature":"Couleur","prop":"Fond","ref":"{components.button.colors.primary.contained.default.foreground}"},{"calque":3,"nature":"Texte","prop":"Style","style":"Label/Large"}],"styles":{"Label/Large":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.label.large.fontsize}"},{"champ":"fontWeight","ref":"{typography.label.large.fontweight}"},{"champ":"lineHeight","ref":"{typography.label.large.lineheight}"},{"champ":"letterSpacing","ref":"{typography.label.large.letterspacing}"}]},"refs":{"{components.button.sizes.medium.border-radius}":{"etapes":[{"c":"components","n":"button/sizes/medium/border-radius"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.button.sizes.medium.gap}":{"etapes":[{"c":"components","n":"button/sizes/medium/gap"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.button.sizes.medium.padding-x}":{"etapes":[{"c":"components","n":"button/sizes/medium/padding-x"},{"c":"primitives","n":"dimensions/14"}],"valeur":"14","type":"dimension"},"{components.button.sizes.medium.padding-y}":{"etapes":[{"c":"components","n":"button/sizes/medium/padding-y"},{"c":"primitives","n":"dimensions/12"}],"valeur":"12","type":"dimension"},"{components.icons.sizes.sm}":{"etapes":[{"c":"components","n":"icons/sizes/sm"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.button.colors.primary.contained.default.background}":{"etapes":[{"c":"components","n":"button/colors/primary/contained/default/background"},{"c":"color-brand-tokens","n":"primary/default","m":"intencial"},{"c":"color-brands","n":"intencial/primary/500"},{"c":"primitives","n":"colors/terracota/500"}],"valeur":"#B15152","type":"color"},"{components.button.colors.primary.contained.default.foreground}":{"etapes":[{"c":"components","n":"button/colors/primary/contained/default/foreground"},{"c":"color-utilities","n":"neutral/50"},{"c":"primitives","n":"colors/titanium/50"}],"valeur":"#FCFCFD","type":"color"},"{primitives.fontfamily.base}":{"etapes":[{"c":"primitives","n":"fontfamily/base"}],"valeur":"Open Sans","type":"fontFamily"},"{typography.label.large.fontsize}":{"etapes":[{"c":"typography","n":"label/large/fontsize"},{"c":"primitives","n":"fontsize/sm"}],"valeur":"14","type":"dimension"},"{typography.label.large.fontweight}":{"etapes":[{"c":"typography","n":"label/large/fontweight"},{"c":"primitives","n":"fontweight/600"}],"valeur":"600","type":"number"},"{typography.label.large.lineheight}":{"etapes":[{"c":"typography","n":"label/large/lineheight"},{"c":"primitives","n":"lineheight/xs"}],"valeur":"16","type":"dimension"},"{typography.label.large.letterspacing}":{"etapes":[{"c":"typography","n":"label/large/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"}}},{"nom":"Alert","variant":"info · standard","calques":[{"nom":"Alert","parent":null,"p":0},{"nom":"circle-info","parent":0,"p":1},{"nom":"Text","parent":0,"p":1},{"nom":"Titre","parent":2,"p":2},{"nom":"Description","parent":2,"p":2},{"nom":"Action","parent":0,"p":1},{"nom":"Button","parent":5,"p":2,"composant":"Button"}],"liaisons":[{"calque":0,"nature":"Espacement","prop":"Écart","ref":"{components.alert.sizes.gap}"},{"calque":0,"nature":"Espacement","prop":"Marge horizontale","ref":"{components.alert.sizes.padding-x}"},{"calque":0,"nature":"Espacement","prop":"Marge verticale","ref":"{components.alert.sizes.padding-y}"},{"calque":0,"nature":"Forme","prop":"Rayon","ref":"{components.alert.sizes.border-radius}"},{"calque":1,"nature":"Taille","prop":"Taille","ref":"{components.icons.sizes.base}"},{"calque":0,"nature":"Couleur","prop":"Fond","ref":"{components.alert.colors.info.standard.background}"},{"calque":1,"nature":"Couleur","prop":"Fond","ref":"{components.alert.colors.info.standard.icon}"},{"calque":3,"nature":"Couleur","prop":"Texte","ref":"{components.alert.colors.info.standard.foreground}"},{"calque":4,"nature":"Couleur","prop":"Texte","ref":"{components.alert.colors.info.standard.foreground}"},{"calque":3,"nature":"Texte","prop":"Style","style":"Body/Large"},{"calque":4,"nature":"Texte","prop":"Style","style":"Body/Small"}],"styles":{"Body/Large":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.body.large.fontsize}"},{"champ":"fontWeight","ref":"{typography.body.large.fontweight}"},{"champ":"lineHeight","ref":"{typography.body.large.lineheight}"},{"champ":"letterSpacing","ref":"{typography.body.large.letterspacing}"}],"Body/Small":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.body.small.fontsize}"},{"champ":"fontWeight","ref":"{typography.body.small.fontweight}"},{"champ":"lineHeight","ref":"{typography.body.small.lineheight}"},{"champ":"letterSpacing","ref":"{typography.body.small.letterspacing}"}]},"refs":{"{components.alert.sizes.gap}":{"etapes":[{"c":"components","n":"alert/sizes/gap"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.alert.sizes.padding-x}":{"etapes":[{"c":"components","n":"alert/sizes/padding-x"},{"c":"primitives","n":"dimensions/14"}],"valeur":"14","type":"dimension"},"{components.alert.sizes.padding-y}":{"etapes":[{"c":"components","n":"alert/sizes/padding-y"},{"c":"primitives","n":"dimensions/8"}],"valeur":"8","type":"dimension"},"{components.alert.sizes.border-radius}":{"etapes":[{"c":"components","n":"alert/sizes/border-radius"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.icons.sizes.base}":{"etapes":[{"c":"components","n":"icons/sizes/base"},{"c":"primitives","n":"dimensions/22"}],"valeur":"22","type":"dimension"},"{components.alert.colors.info.standard.background}":{"etapes":[{"c":"components","n":"alert/colors/info/standard/background"},{"c":"primitives","n":"colors/sky/50"}],"valeur":"#F0F9FF","type":"color"},"{components.alert.colors.info.standard.icon}":{"etapes":[{"c":"components","n":"alert/colors/info/standard/icon"},{"c":"primitives","n":"colors/sky/700"}],"valeur":"#0369A1","type":"color"},"{components.alert.colors.info.standard.foreground}":{"etapes":[{"c":"components","n":"alert/colors/info/standard/foreground"},{"c":"primitives","n":"colors/sky/700"}],"valeur":"#0369A1","type":"color"},"{primitives.fontfamily.base}":{"etapes":[{"c":"primitives","n":"fontfamily/base"}],"valeur":"Open Sans","type":"fontFamily"},"{typography.body.large.fontsize}":{"etapes":[{"c":"typography","n":"body/large/fontsize"},{"c":"primitives","n":"fontsize/base"}],"valeur":"16","type":"dimension"},"{typography.body.large.fontweight}":{"etapes":[{"c":"typography","n":"body/large/fontweight"},{"c":"primitives","n":"fontweight/600"}],"valeur":"600","type":"number"},"{typography.body.large.lineheight}":{"etapes":[{"c":"typography","n":"body/large/lineheight"},{"c":"primitives","n":"lineheight/lg"}],"valeur":"24","type":"dimension"},"{typography.body.large.letterspacing}":{"etapes":[{"c":"typography","n":"body/large/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"},"{typography.body.small.fontsize}":{"etapes":[{"c":"typography","n":"body/small/fontsize"},{"c":"primitives","n":"fontsize/sm"}],"valeur":"14","type":"dimension"},"{typography.body.small.fontweight}":{"etapes":[{"c":"typography","n":"body/small/fontweight"},{"c":"primitives","n":"fontweight/400"}],"valeur":"400","type":"number"},"{typography.body.small.lineheight}":{"etapes":[{"c":"typography","n":"body/small/lineheight"},{"c":"primitives","n":"lineheight/sm"}],"valeur":"20","type":"dimension"},"{typography.body.small.letterspacing}":{"etapes":[{"c":"typography","n":"body/small/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"}}},{"nom":"TileLink","variant":"info · default","calques":[{"nom":"TileLink","parent":null,"p":0},{"nom":"chess","parent":0,"p":1}],"liaisons":[{"calque":0,"nature":"Taille","prop":"Taille largeur","ref":"{components.tilelink.sizes.width}"},{"calque":0,"nature":"Taille","prop":"Taille hauteur","ref":"{components.tilelink.sizes.height}"},{"calque":1,"nature":"Taille","prop":"Taille","ref":"{components.tilelink.sizes.icon}"},{"calque":0,"nature":"Couleur","prop":"Fond","ref":"{components.tilelink.colors.info.default.background}"},{"calque":1,"nature":"Couleur","prop":"Fond","ref":"{components.tilelink.colors.info.default.foreground}"}],"styles":{},"refs":{"{components.tilelink.sizes.width}":{"etapes":[{"c":"components","n":"tilelink/sizes/width"},{"c":"primitives","n":"dimensions/96"}],"valeur":"96","type":"dimension"},"{components.tilelink.sizes.height}":{"etapes":[{"c":"components","n":"tilelink/sizes/height"},{"c":"primitives","n":"dimensions/96"}],"valeur":"96","type":"dimension"},"{components.tilelink.sizes.icon}":{"etapes":[{"c":"components","n":"tilelink/sizes/icon"},{"c":"components","n":"icons/sizes/xl"},{"c":"primitives","n":"dimensions/28"}],"valeur":"28","type":"dimension"},"{components.tilelink.colors.info.default.background}":{"etapes":[{"c":"components","n":"tilelink/colors/info/default/background"},{"c":"color-utilities","n":"info/50"},{"c":"primitives","n":"colors/sky/50"}],"valeur":"#F0F9FF","type":"color"},"{components.tilelink.colors.info.default.foreground}":{"etapes":[{"c":"components","n":"tilelink/colors/info/default/foreground"},{"c":"color-utilities","n":"info/700"},{"c":"primitives","n":"colors/sky/700"}],"valeur":"#0369A1","type":"color"}}},{"nom":"StressTest","variant":"info","calques":[{"nom":"StressTest","parent":null,"p":0},{"nom":"Head","parent":0,"p":1},{"nom":"Titre","parent":1,"p":2},{"nom":"Première variante du comp…","parent":1,"p":2},{"nom":"Alert","parent":0,"p":1,"composant":"Alert"},{"nom":"TilesGrid","parent":0,"p":1},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"Tile","parent":5,"p":2},{"nom":"UserInput","parent":0,"p":1},{"nom":"Button","parent":18,"p":2,"composant":"Button"},{"nom":"Tag","parent":18,"p":2},{"nom":"ou","parent":20,"p":3},{"nom":"Button","parent":18,"p":2,"composant":"Button"},{"nom":"TextColumns","parent":0,"p":1},{"nom":"Col","parent":23,"p":2},{"nom":"Point 1","parent":24,"p":3},{"nom":"Ce qui est important de f…","parent":24,"p":3},{"nom":"Lien vers ressource 1","parent":24,"p":3},{"nom":"Col","parent":23,"p":2},{"nom":"Point 2","parent":28,"p":3},{"nom":"Ce qui est important de f…","parent":28,"p":3},{"nom":"Lien vers ressource 2","parent":28,"p":3},{"nom":"Col","parent":23,"p":2},{"nom":"Point 3","parent":32,"p":3},{"nom":"Ce qui est important de f…","parent":32,"p":3},{"nom":"Lien vers ressource 3","parent":32,"p":3},{"nom":"Divider","parent":0,"p":1},{"nom":"TileLinksWrap","parent":0,"p":1},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"TileLink","parent":37,"p":2,"composant":"TileLink"},{"nom":"ScaleWrap","parent":0,"p":1},{"nom":"Step","parent":45,"p":2},{"nom":"Step","parent":45,"p":2},{"nom":"Step","parent":45,"p":2},{"nom":"Step","parent":45,"p":2},{"nom":"Step","parent":45,"p":2},{"nom":"Step","parent":45,"p":2}],"liaisons":[{"calque":0,"nature":"Taille","prop":"Borne largeur max","ref":"{components.stresstest.info.base.sizes.max-width}"},{"calque":0,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.base.sizes.gap}"},{"calque":0,"nature":"Espacement","prop":"Marge horizontale","ref":"{components.stresstest.info.base.sizes.padding}"},{"calque":0,"nature":"Espacement","prop":"Marge verticale","ref":"{components.stresstest.info.base.sizes.padding}"},{"calque":0,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.base.sizes.border-radius}"},{"calque":1,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.head.sizes.gap}"},{"calque":5,"nature":"Espacement","prop":"Écart colonnes","ref":"{components.stresstest.info.tilesgrid.sizes.gap-col}"},{"calque":5,"nature":"Espacement","prop":"Écart lignes","ref":"{components.stresstest.info.tilesgrid.sizes.gap-rows}"},{"calque":6,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":7,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":8,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":9,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":10,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":11,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":12,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":13,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":14,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":15,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":16,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":17,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.tilesgrid.sizes.radius}"},{"calque":18,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.userinput.sizes.border-radius}"},{"calque":18,"nature":"Espacement","prop":"Marge horizontale gauche","ref":"{components.stresstest.info.userinput.sizes.padding-left}"},{"calque":18,"nature":"Espacement","prop":"Marge horizontale droite","ref":"{components.stresstest.info.userinput.sizes.padding-right}"},{"calque":18,"nature":"Espacement","prop":"Marge verticale haut","ref":"{components.stresstest.info.userinput.sizes.padding-top}"},{"calque":18,"nature":"Espacement","prop":"Marge verticale bas","ref":"{components.stresstest.info.userinput.sizes.padding-bottom}"},{"calque":20,"nature":"Forme","prop":"Rayon","ref":"{components.stresstest.info.userinput.sizes.border-radius-tag}"},{"calque":20,"nature":"Espacement","prop":"Marge horizontale","ref":"{components.stresstest.info.userinput.sizes.padding-x-tag}"},{"calque":20,"nature":"Espacement","prop":"Marge verticale","ref":"{components.stresstest.info.userinput.sizes.padding-y-tag}"},{"calque":23,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.textcolumns.sizes.gap}"},{"calque":24,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.textcolumns.sizes.gap-col}"},{"calque":28,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.textcolumns.sizes.gap-col}"},{"calque":32,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.textcolumns.sizes.gap-col}"},{"calque":36,"nature":"Taille","prop":"Taille hauteur","ref":"{components.stresstest.info.divider.sizes.height}"},{"calque":36,"nature":"Taille","prop":"Borne largeur max","ref":"{components.stresstest.info.divider.sizes.max-width}"},{"calque":37,"nature":"Espacement","prop":"Écart","ref":"{components.stresstest.info.tilelinkswrap.sizes.gap-x}"},{"calque":37,"nature":"Espacement","prop":"Écart lignes","ref":"{components.stresstest.info.tilelinkswrap.sizes.gap-y}"},{"calque":45,"nature":"Taille","prop":"Taille hauteur","ref":"{components.stresstest.info.scalewrap.sizes.height}"},{"calque":46,"nature":"Forme","prop":"Rayon haut gauche","ref":"{components.stresstest.info.scalewrap.sizes.radius-top-left}"},{"calque":46,"nature":"Forme","prop":"Rayon bas gauche","ref":"{components.stresstest.info.scalewrap.sizes.radius-bottom-left}"},{"calque":51,"nature":"Forme","prop":"Rayon haut droit","ref":"{components.stresstest.info.scalewrap.sizes.radius-top-right}"},{"calque":51,"nature":"Forme","prop":"Rayon bas droit","ref":"{components.stresstest.info.scalewrap.sizes.radius-bottom-right}"},{"calque":0,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.base.colors.background}"},{"calque":2,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.head.colors.text}"},{"calque":3,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.head.colors.text}"},{"calque":6,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":7,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":8,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":9,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":10,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":11,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":12,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":13,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":14,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":15,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":16,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":17,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.tilesgrid.colors.tile}"},{"calque":18,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.userinput.colors.background}"},{"calque":20,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.userinput.colors.background-tag}"},{"calque":21,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.userinput.colors.text-color-tag}"},{"calque":25,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.title}"},{"calque":29,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.title}"},{"calque":33,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.title}"},{"calque":26,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.description}"},{"calque":30,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.description}"},{"calque":34,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.description}"},{"calque":27,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.link}"},{"calque":31,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.link}"},{"calque":35,"nature":"Couleur","prop":"Texte","ref":"{components.stresstest.info.textcolumns.colors.link}"},{"calque":36,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.divider.colors.background}"},{"calque":46,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-1}"},{"calque":47,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-2}"},{"calque":48,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-3}"},{"calque":49,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-4}"},{"calque":50,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-5}"},{"calque":51,"nature":"Couleur","prop":"Fond","ref":"{components.stresstest.info.scalewrap.colors.scale-6}"},{"calque":0,"nature":"Couleur","prop":"Contour","ref":"{components.stresstest.info.base.colors.border}"},{"calque":0,"nature":"Forme","prop":"Épaisseur","ref":"{components.stresstest.info.base.sizes.border-width}"},{"calque":18,"nature":"Couleur","prop":"Contour","ref":"{components.stresstest.info.userinput.colors.border}"},{"calque":18,"nature":"Forme","prop":"Épaisseur","ref":"{components.stresstest.info.userinput.sizes.border-width}"},{"calque":2,"nature":"Texte","prop":"Style","style":"Title/Medium"},{"calque":3,"nature":"Texte","prop":"Style","style":"Body/Medium"},{"calque":21,"nature":"Texte","prop":"Style","style":"Label/Small"},{"calque":25,"nature":"Texte","prop":"Style","style":"Body/Large"},{"calque":26,"nature":"Texte","prop":"Style","style":"Body/Small"},{"calque":27,"nature":"Texte","prop":"Style","style":"Label/Small"},{"calque":29,"nature":"Texte","prop":"Style","style":"Body/Large"},{"calque":30,"nature":"Texte","prop":"Style","style":"Body/Small"},{"calque":31,"nature":"Texte","prop":"Style","style":"Label/Small"},{"calque":33,"nature":"Texte","prop":"Style","style":"Body/Large"},{"calque":34,"nature":"Texte","prop":"Style","style":"Body/Small"},{"calque":35,"nature":"Texte","prop":"Style","style":"Label/Small"}],"styles":{"Title/Medium":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.title.medium.fontsize}"},{"champ":"fontWeight","ref":"{typography.title.medium.fontweight}"},{"champ":"lineHeight","ref":"{typography.title.medium.lineheight}"},{"champ":"letterSpacing","ref":"{typography.title.medium.letterspacing}"}],"Body/Medium":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.body.medium.fontsize}"},{"champ":"fontWeight","ref":"{typography.body.medium.fontweight}"},{"champ":"lineHeight","ref":"{typography.body.medium.lineheight}"},{"champ":"letterSpacing","ref":"{typography.body.medium.letterspacing}"}],"Label/Small":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.label.small.fontsize}"},{"champ":"fontWeight","ref":"{typography.label.small.fontweight}"},{"champ":"lineHeight","ref":"{typography.label.small.lineheight}"},{"champ":"letterSpacing","ref":"{typography.label.small.letterspacing}"}],"Body/Large":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.body.large.fontsize}"},{"champ":"fontWeight","ref":"{typography.body.large.fontweight}"},{"champ":"lineHeight","ref":"{typography.body.large.lineheight}"},{"champ":"letterSpacing","ref":"{typography.body.large.letterspacing}"}],"Body/Small":[{"champ":"fontFamily","ref":"{primitives.fontfamily.base}"},{"champ":"fontSize","ref":"{typography.body.small.fontsize}"},{"champ":"fontWeight","ref":"{typography.body.small.fontweight}"},{"champ":"lineHeight","ref":"{typography.body.small.lineheight}"},{"champ":"letterSpacing","ref":"{typography.body.small.letterspacing}"}]},"refs":{"{components.stresstest.info.base.sizes.max-width}":{"etapes":[{"c":"components","n":"stresstest/info/base/sizes/max-width"}],"valeur":"600","type":"dimension"},"{components.stresstest.info.base.sizes.gap}":{"etapes":[{"c":"components","n":"stresstest/info/base/sizes/gap"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.base.sizes.padding}":{"etapes":[{"c":"components","n":"stresstest/info/base/sizes/padding"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.base.sizes.border-radius}":{"etapes":[{"c":"components","n":"stresstest/info/base/sizes/border-radius"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.stresstest.info.head.sizes.gap}":{"etapes":[{"c":"components","n":"stresstest/info/head/sizes/gap"},{"c":"primitives","n":"dimensions/4"}],"valeur":"4","type":"dimension"},"{components.stresstest.info.tilesgrid.sizes.gap-col}":{"etapes":[{"c":"components","n":"stresstest/info/tilesgrid/sizes/gap-col"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.tilesgrid.sizes.gap-rows}":{"etapes":[{"c":"components","n":"stresstest/info/tilesgrid/sizes/gap-rows"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.tilesgrid.sizes.radius}":{"etapes":[{"c":"components","n":"stresstest/info/tilesgrid/sizes/radius"},{"c":"layouts","n":"radius/sm"},{"c":"primitives","n":"dimensions/4"}],"valeur":"4","type":"dimension"},"{components.stresstest.info.userinput.sizes.border-radius}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/border-radius"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-left}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-left"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-right}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-right"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-top}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-top"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-bottom}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-bottom"},{"c":"primitives","n":"dimensions/48"}],"valeur":"48","type":"dimension"},"{components.stresstest.info.userinput.sizes.border-radius-tag}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/border-radius-tag"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-x-tag}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-x-tag"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.userinput.sizes.padding-y-tag}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/padding-y-tag"},{"c":"primitives","n":"dimensions/4"}],"valeur":"4","type":"dimension"},"{components.stresstest.info.textcolumns.sizes.gap}":{"etapes":[{"c":"components","n":"stresstest/info/textcolumns/sizes/gap"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.textcolumns.sizes.gap-col}":{"etapes":[{"c":"components","n":"stresstest/info/textcolumns/sizes/gap-col"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.stresstest.info.divider.sizes.height}":{"etapes":[{"c":"components","n":"stresstest/info/divider/sizes/height"},{"c":"primitives","n":"dimensions/1"}],"valeur":"1","type":"dimension"},"{components.stresstest.info.divider.sizes.max-width}":{"etapes":[{"c":"components","n":"stresstest/info/divider/sizes/max-width"}],"valeur":"350","type":"dimension"},"{components.stresstest.info.tilelinkswrap.sizes.gap-x}":{"etapes":[{"c":"components","n":"stresstest/info/tilelinkswrap/sizes/gap-x"},{"c":"primitives","n":"dimensions/10"}],"valeur":"10","type":"dimension"},"{components.stresstest.info.tilelinkswrap.sizes.gap-y}":{"etapes":[{"c":"components","n":"stresstest/info/tilelinkswrap/sizes/gap-y"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.scalewrap.sizes.height}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/sizes/height"},{"c":"primitives","n":"dimensions/20"}],"valeur":"20","type":"dimension"},"{components.stresstest.info.scalewrap.sizes.radius-top-left}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/sizes/radius-top-left"},{"c":"layouts","n":"radius/md"},{"c":"primitives","n":"dimensions/6"}],"valeur":"6","type":"dimension"},"{components.stresstest.info.scalewrap.sizes.radius-bottom-left}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/sizes/radius-bottom-left"},{"c":"layouts","n":"radius/xl"},{"c":"primitives","n":"dimensions/12"}],"valeur":"12","type":"dimension"},"{components.stresstest.info.scalewrap.sizes.radius-top-right}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/sizes/radius-top-right"},{"c":"layouts","n":"radius/xs"},{"c":"primitives","n":"dimensions/2"}],"valeur":"2","type":"dimension"},"{components.stresstest.info.scalewrap.sizes.radius-bottom-right}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/sizes/radius-bottom-right"},{"c":"layouts","n":"radius/3xl"},{"c":"primitives","n":"dimensions/24"}],"valeur":"24","type":"dimension"},"{components.stresstest.info.base.colors.background}":{"etapes":[{"c":"components","n":"stresstest/info/base/colors/background"},{"c":"primitives","n":"colors/titanium/0"}],"valeur":"#FFFFFF","type":"color"},"{components.stresstest.info.head.colors.text}":{"etapes":[{"c":"components","n":"stresstest/info/head/colors/text"},{"c":"primitives","n":"colors/titanium/1200"}],"valeur":"#000000","type":"color"},"{components.stresstest.info.tilesgrid.colors.tile}":{"etapes":[{"c":"components","n":"stresstest/info/tilesgrid/colors/tile"},{"c":"primitives","n":"colors/sky/50"}],"valeur":"#F0F9FF","type":"color"},"{components.stresstest.info.userinput.colors.background}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/colors/background"},{"c":"primitives","n":"colors/blue/50"}],"valeur":"#EFF6FF","type":"color"},"{components.stresstest.info.userinput.colors.background-tag}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/colors/background-tag"},{"c":"primitives","n":"colors/blue/950"}],"valeur":"#172554","type":"color"},"{components.stresstest.info.userinput.colors.text-color-tag}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/colors/text-color-tag"},{"c":"primitives","n":"colors/titanium/0"}],"valeur":"#FFFFFF","type":"color"},"{components.stresstest.info.textcolumns.colors.title}":{"etapes":[{"c":"components","n":"stresstest/info/textcolumns/colors/title"},{"c":"primitives","n":"colors/titanium/1200"}],"valeur":"#000000","type":"color"},"{components.stresstest.info.textcolumns.colors.description}":{"etapes":[{"c":"components","n":"stresstest/info/textcolumns/colors/description"},{"c":"primitives","n":"colors/titanium/900"}],"valeur":"#202939","type":"color"},"{components.stresstest.info.textcolumns.colors.link}":{"etapes":[{"c":"components","n":"stresstest/info/textcolumns/colors/link"},{"c":"primitives","n":"colors/titanium/600"}],"valeur":"#697586","type":"color"},"{components.stresstest.info.divider.colors.background}":{"etapes":[{"c":"components","n":"stresstest/info/divider/colors/background"},{"c":"primitives","n":"colors/titanium/300"}],"valeur":"#E3E8EF","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-1}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-1"},{"c":"primitives","n":"colors/orange/100"}],"valeur":"#FFEDD5","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-2}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-2"},{"c":"primitives","n":"colors/orange/200"}],"valeur":"#FED7AA","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-3}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-3"},{"c":"primitives","n":"colors/orange/300"}],"valeur":"#FDBA74","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-4}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-4"},{"c":"primitives","n":"colors/orange/400"}],"valeur":"#FB923C","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-5}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-5"},{"c":"primitives","n":"colors/orange/600"}],"valeur":"#EA580C","type":"color"},"{components.stresstest.info.scalewrap.colors.scale-6}":{"etapes":[{"c":"components","n":"stresstest/info/scalewrap/colors/scale-6"},{"c":"primitives","n":"colors/orange/800"}],"valeur":"#9A3412","type":"color"},"{components.stresstest.info.base.colors.border}":{"etapes":[{"c":"components","n":"stresstest/info/base/colors/border"},{"c":"primitives","n":"colors/titanium/500"}],"valeur":"#9AA4B2","type":"color"},"{components.stresstest.info.base.sizes.border-width}":{"etapes":[{"c":"components","n":"stresstest/info/base/sizes/border-width"},{"c":"primitives","n":"dimensions/1"}],"valeur":"1","type":"dimension"},"{components.stresstest.info.userinput.colors.border}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/colors/border"},{"c":"primitives","n":"colors/blue/600"}],"valeur":"#2563EB","type":"color"},"{components.stresstest.info.userinput.sizes.border-width}":{"etapes":[{"c":"components","n":"stresstest/info/userinput/sizes/border-width"},{"c":"primitives","n":"dimensions/1"}],"valeur":"1","type":"dimension"},"{primitives.fontfamily.base}":{"etapes":[{"c":"primitives","n":"fontfamily/base"}],"valeur":"Open Sans","type":"fontFamily"},"{typography.title.medium.fontsize}":{"etapes":[{"c":"typography","n":"title/medium/fontsize"},{"c":"primitives","n":"fontsize/xl"}],"valeur":"20","type":"dimension"},"{typography.title.medium.fontweight}":{"etapes":[{"c":"typography","n":"title/medium/fontweight"},{"c":"primitives","n":"fontweight/600"}],"valeur":"600","type":"number"},"{typography.title.medium.lineheight}":{"etapes":[{"c":"typography","n":"title/medium/lineheight"},{"c":"primitives","n":"lineheight/xl"}],"valeur":"28","type":"dimension"},"{typography.title.medium.letterspacing}":{"etapes":[{"c":"typography","n":"title/medium/letterspacing"},{"c":"primitives","n":"letterspacing/sm"}],"valeur":"-0.25","type":"dimension"},"{typography.body.medium.fontsize}":{"etapes":[{"c":"typography","n":"body/medium/fontsize"},{"c":"primitives","n":"fontsize/base"}],"valeur":"16","type":"dimension"},"{typography.body.medium.fontweight}":{"etapes":[{"c":"typography","n":"body/medium/fontweight"},{"c":"primitives","n":"fontweight/400"}],"valeur":"400","type":"number"},"{typography.body.medium.lineheight}":{"etapes":[{"c":"typography","n":"body/medium/lineheight"},{"c":"primitives","n":"lineheight/base"}],"valeur":"22","type":"dimension"},"{typography.body.medium.letterspacing}":{"etapes":[{"c":"typography","n":"body/medium/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"},"{typography.label.small.fontsize}":{"etapes":[{"c":"typography","n":"label/small/fontsize"},{"c":"primitives","n":"fontsize/3xs"}],"valeur":"10","type":"dimension"},"{typography.label.small.fontweight}":{"etapes":[{"c":"typography","n":"label/small/fontweight"},{"c":"primitives","n":"fontweight/600"}],"valeur":"600","type":"number"},"{typography.label.small.lineheight}":{"etapes":[{"c":"typography","n":"label/small/lineheight"},{"c":"primitives","n":"lineheight/3xs"}],"valeur":"12","type":"dimension"},"{typography.label.small.letterspacing}":{"etapes":[{"c":"typography","n":"label/small/letterspacing"},{"c":"primitives","n":"letterspacing/lg"}],"valeur":"0.25","type":"dimension"},"{typography.body.large.fontsize}":{"etapes":[{"c":"typography","n":"body/large/fontsize"},{"c":"primitives","n":"fontsize/base"}],"valeur":"16","type":"dimension"},"{typography.body.large.fontweight}":{"etapes":[{"c":"typography","n":"body/large/fontweight"},{"c":"primitives","n":"fontweight/600"}],"valeur":"600","type":"number"},"{typography.body.large.lineheight}":{"etapes":[{"c":"typography","n":"body/large/lineheight"},{"c":"primitives","n":"lineheight/lg"}],"valeur":"24","type":"dimension"},"{typography.body.large.letterspacing}":{"etapes":[{"c":"typography","n":"body/large/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"},"{typography.body.small.fontsize}":{"etapes":[{"c":"typography","n":"body/small/fontsize"},{"c":"primitives","n":"fontsize/sm"}],"valeur":"14","type":"dimension"},"{typography.body.small.fontweight}":{"etapes":[{"c":"typography","n":"body/small/fontweight"},{"c":"primitives","n":"fontweight/400"}],"valeur":"400","type":"number"},"{typography.body.small.lineheight}":{"etapes":[{"c":"typography","n":"body/small/lineheight"},{"c":"primitives","n":"lineheight/sm"}],"valeur":"20","type":"dimension"},"{typography.body.small.letterspacing}":{"etapes":[{"c":"typography","n":"body/small/letterspacing"},{"c":"primitives","n":"letterspacing/base"}],"valeur":"0","type":"dimension"}}}];
+const etape = (c, n, m) => ({ c, n, ...(m ? { m } : {}) });
+const FICTIFS = [
+  {
+    nom: 'Tag', variant: 'Outline',
+    calques: [{ nom: 'Tag', parent: null, p: 0 }, { nom: 'Label', parent: 0, p: 1 }],
+    liaisons: [{ calque: 0, nature: 'Couleur', prop: 'Contour', ref: 'bord' }, { calque: 1, nature: 'Couleur', prop: 'Texte', ref: 'texte' }],
+    styles: {},
+    refs: {
+      bord: { type: 'color', valeur: '#C34261', etapes: [etape('components', 'tag/outline/border'), etape('usage', 'primary/border/default'), etape('theme', 'primary/600', 'Light'), etape('brand', 'palette/primary/light/600', 'Apicil'), etape('primitives', 'colors/ruby/light/600')] },
+      texte: { type: 'color', rupture: 'Bibliothèque inaccessible', etapes: [etape('components', 'tag/outline/foreground'), etape('usage', 'primary/text/default')] },
+    },
+    directes: [{ prop: 'Marge horizontale', valeur: '11' }],
+  },
+  {
+    nom: 'Avatar', variant: 'Initiales',
+    calques: [{ nom: 'Avatar', parent: null, p: 0 }], liaisons: [], styles: {}, refs: {},
+    directes: [{ prop: 'Fond', valeur: '#D7DBE3' }, { prop: 'Texte', valeur: '#434852' }, { prop: 'Rayon', valeur: '22' }],
+  },
+];
+const COMPOSANTS = [...JEU, ...FICTIFS];
+const PAR_NOM = Object.fromEntries(COMPOSANTS.map((composant) => [composant.nom, composant]));
+const NATURES = ['Couleur', 'Forme', 'Espacement', 'Taille', 'Texte'];
+const SIGNES = { Forme: '◜', Espacement: '↔', Taille: '⤢', Texte: 'Aa' };
+const SEUIL = 12;
+
+// Dans un aperçu, un composant imbriqué ne garde que le nom de son calque.
+const imbrique = (nom, html, bloc) => `<span class="ap-imb${bloc ? ' bloc' : ''}" data-c="${nom}">${html.replace(/ data-c="[^"]*"/g, '')}</span>`;
+const APERCUS = {
+  Button: () => '<span class="ap ap-bouton" data-c="Button"><span class="ap-bouton-in" data-c=".sizeWrapperButton"><i data-c="arrow-left-long">←</i><span data-c="Suivant">Suivant</span><i data-c="arrow-right-long">→</i></span></span>',
+  Alert: () => `<div class="ap ap-alerte" data-c="Alert"><i class="ap-info" data-c="circle-info">i</i><div class="ap-alerte-texte" data-c="Text"><b data-c="Titre">Titre</b><span data-c="Description">Description</span></div><div data-c="Action">${imbrique('Button', APERCUS.Button())}</div></div>`,
+  TileLink: () => '<span class="ap ap-tuile" data-c="TileLink"><i data-c="chess">♞</i></span>',
+  Tag: () => '<span class="ap ap-tag" data-c="Tag"><span data-c="Label">Nouveau</span></span>',
+  Avatar: () => '<span class="ap ap-avatar" data-c="Avatar">VG</span>',
+  StressTest: () => {
+    const calques = PAR_NOM.StressTest.calques;
+    const colonne = (rang) => `<div data-c="Col"><b data-c="${calques[25 + rang * 4].nom}">Point ${rang + 1}</b><span data-c="${calques[26 + rang * 4].nom}">Ce qui est important de faire pour le point ${rang + 1}</span><u data-c="${calques[27 + rang * 4].nom}">Lien vers ressource ${rang + 1}</u></div>`;
+    const teintes = ['#ffedd5', '#fed7aa', '#fdba74', '#fb923c', '#ea580c', '#9a3412'];
+    return `<div class="ap ap-stress" data-c="StressTest">
+      <div class="tete-s" data-c="Head"><b data-c="Titre">Titre</b><span data-c="${calques[3].nom}">Première variante du composant StressTest qui teste l'imbrication de composants.</span></div>
+      ${imbrique('Alert', APERCUS.Alert(), true)}
+      <div class="grille" data-c="TilesGrid">${'<i data-c="Tile"></i>'.repeat(12)}</div>
+      <div class="saisie" data-c="UserInput">${imbrique('Button', APERCUS.Button())}<span class="etiquette" data-c="Tag"><span data-c="ou">ou</span></span>${imbrique('Button', APERCUS.Button())}</div>
+      <div class="colonnes" data-c="TextColumns">${[0, 1, 2].map(colonne).join('')}</div>
+      <div class="filet" data-c="Divider"></div>
+      <div class="tuiles" data-c="TileLinksWrap">${imbrique('TileLink', APERCUS.TileLink()).repeat(7)}</div>
+      <div class="echelons" data-c="ScaleWrap">${teintes.map((teinte) => `<i data-c="Step" style="background:${teinte}"></i>`).join('')}</div>
+    </div>`;
+  },
+};
+
+// Sélection simulée. `pile` porte le composant lu, puis chaque composant imbriqué ouvert.
+let racine = null;
+let pile = [];
+let regroupement = 'nature';
+let densite = 'compacte';
+let ouverts = new Set();
+let sections = new Map();
+let directesOuvertes = false;
+let filtre = '';
+let filtreOuvert = false;
+let minuterie;
+const $ = (id) => document.getElementById(id);
+const echapper = (texte) => String(texte).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const courant = () => pile[pile.length - 1];
+
+function selectionner(nouvellePile) {
+  pile = nouvellePile;
+  ouverts = new Set(); sections = new Map(); directesOuvertes = false; filtre = ''; filtreOuvert = false;
+  rendreCanevas(); rendrePlugin();
+}
+
+// Le calque visé et ses descendants. Le contrat ne publie rien sous un composant imbriqué.
+function portee(composant, calque) {
+  const ids = new Set([calque]);
+  composant.calques.forEach((candidat, id) => { if (ids.has(candidat.parent)) ids.add(id); });
+  return ids;
+}
+
+// Le préfixe que partagent les noms du composant, écrit une fois dans la première étape de la chaîne.
+function prefixe(composant) {
+  const noms = [...new Set(composant.liaisons.filter((liaison) => liaison.ref).map((liaison) => composant.refs[liaison.ref].etapes[0].n))];
+  const tetes = {};
+  noms.forEach((nom) => { const tete = nom.split('/')[0]; tetes[tete] = (tetes[tete] || 0) + 1; });
+  const tete = Object.keys(tetes).sort((a, b) => tetes[b] - tetes[a])[0];
+  const groupe = noms.filter((nom) => nom.split('/')[0] === tete).map((nom) => nom.split('/'));
+  if (groupe.length < 2) return '';
+  let commun = 0;
+  while (groupe.every((segments) => segments.length > commun + 1 && segments[commun] === groupe[0][commun])) commun += 1;
+  return commun ? `${groupe[0].slice(0, commun).join('/')}/` : '';
+}
+
+// Une ligne par token ou par style de texte, avec les calques qui le portent.
+function lignesDe(composant, ids) {
+  const table = new Map();
+  for (const liaison of composant.liaisons) {
+    if (!ids.has(liaison.calque)) continue;
+    const cle = liaison.ref || `style:${liaison.style}`;
+    if (!table.has(cle)) table.set(cle, { cle, nature: liaison.nature, props: new Set(), calques: [], ref: liaison.ref, style: liaison.style });
+    table.get(cle).props.add(liaison.prop);
+    table.get(cle).calques.push(liaison.calque);
+  }
+  const debut = prefixe(composant);
+  return [...table.values()].map((ligne) => {
+    if (ligne.style) {
+      const champs = composant.styles[ligne.style].map(({ champ, ref }) => ({ champ, ...composant.refs[ref] }));
+      const valeur = (champ) => champs.find((candidat) => candidat.champ === champ)?.valeur;
+      return { ...ligne, nom: ligne.style, complet: ligne.style, champs, valeur: [valeur('fontSize'), valeur('lineHeight')].filter(Boolean).join('/') };
+    }
+    const lu = composant.refs[ligne.ref];
+    const complet = lu.etapes[0].n;
+    return { ...ligne, ...lu, complet, nom: complet.startsWith(debut) ? complet.slice(debut.length) : complet };
+  }).sort((a, b) => NATURES.indexOf(a.nature) - NATURES.indexOf(b.nature));
+}
+
+function sectionsDe(composant, calque) {
+  if (regroupement === 'nature') {
+    const lignes = lignesDe(composant, portee(composant, calque));
+    return NATURES.map((nature) => ({ titre: nature, lignes: lignes.filter((ligne) => ligne.nature === nature) })).filter((section) => section.lignes.length);
+  }
+  const parties = new Map([[composant.calques[calque].nom, { ids: new Set([calque]), fois: 1 }]]);
+  composant.calques.forEach((candidat, id) => {
+    if (candidat.parent !== calque || candidat.composant) return;
+    const partie = parties.get(candidat.nom) || { ids: new Set(), fois: 0 };
+    portee(composant, id).forEach((descendant) => partie.ids.add(descendant));
+    partie.fois += 1;
+    parties.set(candidat.nom, partie);
+  });
+  return [...parties].map(([titre, partie]) => ({ titre, fois: partie.fois, lignes: lignesDe(composant, partie.ids) })).filter((section) => section.lignes.length);
+}
+
+function garde(ligne) {
+  const cherche = filtre.trim().toLowerCase();
+  return !cherche || `${ligne.complet} ${ligne.valeur || ''} ${[...ligne.props].join(' ')}`.toLowerCase().includes(cherche);
+}
+
+const estClair = (hexa) => { const n = parseInt(hexa.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
+function pastille(ligne) {
+  if (ligne.type === 'color' && ligne.valeur) {
+    const props = [...ligne.props].join();
+    if (props === 'Contour') return `<i class="pastille contour" style="border-color:${ligne.valeur}"></i>`;
+    return `<i class="pastille" style="background:${ligne.valeur};color:${estClair(ligne.valeur) ? '#111' : '#fff'}">${props === 'Texte' ? 'A' : ''}</i>`;
+  }
+  if (ligne.type === 'color') return '<i class="pastille nombre">?</i>';
+  return `<i class="pastille nombre">${[...ligne.props][0] === 'Épaisseur' ? '─' : SIGNES[ligne.nature]}</i>`;
+}
+
+function calquesHtml(composant, ligne) {
+  const compte = new Map();
+  ligne.calques.forEach((id) => { const nom = composant.calques[id].nom; compte.set(nom, (compte.get(nom) || 0) + 1); });
+  return [...compte].map(([nom, fois]) => `${echapper(nom)}${fois > 1 ? ` ×${fois}` : ''}`).join(' · ');
+}
+
+function chaineHtml(composant, ligne) {
+  if (ligne.champs) {
+    return `<ul class="champs">${ligne.champs.map((champ) => `<li><span>${echapper(champ.champ)}</span><em>${champ.etapes.map((pas) => echapper(pas.c)).join(' › ')}</em><code>${echapper(champ.valeur ?? '—')}</code></li>`).join('')}</ul><div class="sur-calques">${calquesHtml(composant, ligne)}</div>`;
+  }
+  const etapes = ligne.etapes.map((pas) => `<li><span class="etape-col">${echapper(pas.c)}${pas.m ? `<span class="mode">${echapper(pas.m)}</span>` : ''}</span><span class="etape-nom">${echapper(pas.n)}</span></li>`).join('');
+  const fin = ligne.rupture
+    ? `<li class="rompue"><span class="rompue-texte">${echapper(ligne.rupture)}</span></li>`
+    : `<li class="terme"><button class="copie" data-copier="${echapper(ligne.valeur)}" aria-label="Copier ${echapper(ligne.valeur)}">${ligne.type === 'color' ? `<i class="pastille" style="background:${ligne.valeur}"></i>` : ''}${echapper(ligne.valeur)}</button></li>`;
+  return `<ol class="chaine">${etapes}${fin}</ol><div class="sur-calques">${[...ligne.props].join(', ')} · ${calquesHtml(composant, ligne)}</div>`;
+}
+
+function ligneHtml(composant, ligne) {
+  const ouvert = ouverts.has(ligne.cle);
+  const points = ligne.etapes ? `<span class="points" title="${ligne.etapes.length} étapes">${ligne.etapes.map(() => '<i></i>').join('')}</span>` : '';
+  const valeur = ligne.rupture ? '<span class="valeur rompue">interrompue</span>' : `<span class="valeur">${echapper(ligne.valeur)}</span>`;
+  const fois = ligne.calques.length > 1 ? `×${ligne.calques.length}` : '';
+  const titre = `${[...ligne.props].join(', ')} · ${calquesHtml(composant, ligne)}`;
+  return `<div class="token"><button class="ligne" data-cle="${echapper(ligne.cle)}" aria-expanded="${ouvert}" title="${titre}">${pastille(ligne)}<span><span class="prop">${echapper([...ligne.props].join(', '))}</span><span class="nom"><bdi>${echapper(ligne.nom)}</bdi></span></span><span class="fin">${ouvert ? '' : points}${valeur}</span><span class="fois">${fois}</span></button>${ouvert ? chaineHtml(composant, ligne) : ''}</div>`;
+}
+
+// Le résumé d'une section repliée : les pastilles des couleurs, puis les valeurs ou les styles.
+function resumeHtml(section) {
+  const couleurs = section.lignes.filter((ligne) => ligne.type === 'color' && ligne.valeur);
+  const autres = section.lignes.filter((ligne) => !couleurs.includes(ligne));
+  const pastilles = couleurs.map((ligne) => `<button data-ouvrir="${echapper(ligne.cle)}" style="background:${ligne.valeur}" title="${echapper(ligne.nom)} · ${ligne.valeur}" aria-label="${echapper(ligne.nom)}"></button>`).join('');
+  let texte = '';
+  if (regroupement === 'partie') texte = autres.length && couleurs.length ? `+${autres.length}` : '';
+  else if (section.titre === 'Texte') texte = autres.map((ligne) => ligne.nom).join(' · ');
+  else texte = [...new Set(autres.map((ligne) => ligne.valeur).filter(Boolean))].sort((a, b) => a - b).join(' · ');
+  return pastilles || texte ? `<div class="resume">${pastilles}${texte ? `<span>${echapper(texte)}</span>` : ''}</div>` : '';
+}
+
+function listeHtml(composant, calque) {
+  const toutes = sectionsDe(composant, calque);
+  const total = regroupement === 'nature' ? toutes.reduce((somme, section) => somme + section.lignes.length, 0) : lignesDe(composant, portee(composant, calque)).length;
+  const html = toutes.map((section) => {
+    const lignes = section.lignes.filter(garde);
+    if (!lignes.length) return '';
+    const cle = `${regroupement}:${section.titre}`;
+    const ouverte = filtre.trim() ? true : sections.has(cle) ? sections.get(cle) : total <= SEUIL;
+    const nom = `${echapper(section.titre)}${section.fois > 1 ? ` <em>×${section.fois}</em>` : ''}`;
+    return `<button class="section-tete" data-section="${echapper(cle)}" aria-expanded="${ouverte}"><i aria-hidden="true">${ouverte ? '▾' : '▸'}</i><span>${nom}</span><b>${lignes.length}</b></button>${ouverte ? lignes.map((ligne) => ligneHtml(composant, ligne)).join('') : resumeHtml({ ...section, lignes })}`;
+  }).join('');
+  return html || (filtre.trim() ? '<p class="aucun">Aucun token ne correspond.</p>' : '');
+}
+
+// Réduit un aperçu à la boîte qui le reçoit, sans le recadrer.
+function ajuster(boite, largeur, hauteur) {
+  const contenu = boite.firstElementChild;
+  if (!contenu) return;
+  contenu.style.transform = 'none';
+  const { offsetWidth: l, offsetHeight: h } = contenu;
+  const facteur = Math.min(1, largeur / l, hauteur / h);
+  contenu.style.transform = `scale(${facteur})`;
+  boite.style.width = `${l * facteur}px`;
+  boite.style.height = `${h * facteur}px`;
+}
+
+function rendreCanevas() {
+  const note = $('canevas').querySelector('.canevas-note');
+  $('canevas').replaceChildren(note);
+  for (const composant of COMPOSANTS) {
+    const bouton = document.createElement('button');
+    bouton.className = `calque${composant.nom === 'StressTest' || composant.nom === 'Alert' ? ' large' : ''}`;
+    bouton.dataset.composant = composant.nom;
+    bouton.setAttribute('aria-pressed', String(racine === composant.nom));
+    bouton.innerHTML = `<span class="calque-nom">◇ ${echapper(composant.nom)}</span><span class="cadre"><span class="echelle">${APERCUS[composant.nom]()}</span></span>`;
+    $('canevas').append(bouton);
+    ajuster(bouton.querySelector('.echelle'), bouton.querySelector('.cadre').clientWidth - 28, 900);
+  }
+  const composant = PAR_NOM[racine];
+  if (!composant) { $('calques').innerHTML = '<span class="sur">Calques</span>'; return; }
+  const vise = pile.length > 1 ? pile[1].depuis : pile[0].calque;
+  $('calques').innerHTML = `<span class="sur">Calques</span>${composant.calques.map((calque, id) => `<button class="${calque.composant || id === 0 ? 'comp' : ''}" data-calque="${id}" aria-pressed="${id === vise}" style="padding-left:${8 + calque.p * 12}px">${calque.composant || id === 0 ? '◇ ' : ''}${echapper(calque.nom)}</button>`).join('')}`;
+}
+
+function rendreListe() {
+  const { comp, calque } = courant();
+  $('liste').innerHTML = listeHtml(PAR_NOM[comp], calque);
+}
+
+function rendrePlugin() {
+  const pied = $('pied');
+  if (!pile.length) {
+    pied.hidden = true;
+    $('corps').innerHTML = '<div class="vide"><div><svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="3 3" aria-hidden="true"><path d="M22 4 40 22 22 40 4 22Z"/></svg><p>Sélectionnez un composant</p></div></div><div class="annonce" id="annonce" role="status"></div>';
+    return;
+  }
+  const { comp, calque } = courant();
+  const composant = PAR_NOM[comp];
+  const ids = portee(composant, calque);
+  const lignes = lignesDe(composant, ids);
+  const miettes = pile.map((niveau, rang) => ({ nom: niveau.comp, rang, calque: 0 }));
+  if (calque) miettes.push({ nom: composant.calques[calque].nom });
+  const fil = miettes.length > 1
+    ? `<nav class="fil" aria-label="Fil d'Ariane">${miettes.map((miette, rang) => (rang < miettes.length - 1 ? `<button data-miette="${miette.rang}">${echapper(miette.nom)}</button><span aria-hidden="true">›</span>` : `<span>${echapper(miette.nom)}</span>`)).join('')}</nav>`
+    : '';
+  const modes = [...new Set(lignes.flatMap((ligne) => (ligne.etapes || []).map((pas) => pas.m).filter(Boolean)))];
+  const repliables = lignes.length > SEUIL;
+  const outils = lignes.length
+    ? `<div class="outils"><button class="icone" id="chercher" aria-pressed="${filtreOuvert}" aria-label="Filtrer" title="Filtrer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4"/><path d="m8.5 8.5 3.5 3.5"/></svg></button><button class="icone" id="tout" aria-label="Tout déplier ou replier" title="Tout déplier ou replier">${repliables ? '▾' : '▴'}</button></div>`
+    : '';
+  const tete = `<div class="tete"><div><h2><span aria-hidden="true">${calque ? "#" : "◇"}</span>${echapper(composant.calques[calque].nom)}</h2><div class="sous">${calque ? "" : `<span>${echapper(composant.variant)}</span>`}${modes.map((mode) => `<span class="mode">${echapper(mode)}</span>`).join('')}</div></div>${outils}</div>`;
+  const apercu = `<div class="apercu" aria-label="Aperçu du composant lu"><span class="echelle" id="apercu">${APERCUS[comp]()}</span></div>`;
+  const internes = new Map();
+  ids.forEach((id) => { const interne = composant.calques[id]; if (interne.composant && id !== calque) internes.set(interne.composant, { fois: (internes.get(interne.composant)?.fois || 0) + 1, depuis: internes.get(interne.composant)?.depuis ?? id }); });
+  const imbriques = internes.size
+    ? `<div class="imbriques">${[...internes].map(([nom, { fois, depuis }]) => `<button data-imbrique="${echapper(nom)}" data-depuis="${depuis}" title="Ouvrir ${echapper(nom)}">◇ ${echapper(nom)}${fois > 1 ? `<small>×${fois}</small>` : ''}</button>`).join('')}</div>`
+    : '';
+  const champ = filtreOuvert ? `<div class="filtre"><input id="filtre" type="search" placeholder="Filtrer" aria-label="Filtrer les tokens" value="${echapper(filtre)}"></div>` : '';
+  const sansToken = lignes.length === 0;
+  const directes = composant.directes || [];
+  const listeDirectes = (sansToken || directesOuvertes) && directes.length
+    ? `<div class="section-tete"><span>${sansToken ? 'Aucun token · valeurs directes' : 'Sans token'}</span></div><ul class="directes">${directes.map((ligne) => `<li><span>${echapper(ligne.prop)}</span><code>${echapper(ligne.valeur)}</code></li>`).join('')}</ul>`
+    : sansToken ? '<p class="aucun">Aucun token sur ce calque.</p>' : '';
+  $('corps').className = `corps ${densite}`;
+  $('corps').innerHTML = `${fil}${tete}${apercu}${imbriques}${champ}<div class="liste" id="liste"></div>${listeDirectes}<div class="annonce" id="annonce" role="status"></div>`;
+  rendreListe();
+  ajuster($('apercu'), 310, 170);
+  if (calque) viser([composant.calques[calque].nom], 'cible');
+  pied.hidden = false;
+  const liaisons = composant.liaisons.filter((liaison) => ids.has(liaison.calque)).length;
+  pied.innerHTML = `<span>${lignes.length} token${lignes.length > 1 ? 's' : ''}${liaisons > lignes.length ? ` · ${liaisons} liaisons` : ''}</span>${!sansToken && directes.length ? `<button id="directes" aria-expanded="${directesOuvertes}">${directes.length} sans token</button>` : '<span></span>'}`;
+}
+
+function viser(noms, classe) {
+  const apercu = $('apercu');
+  if (!apercu) return;
+  apercu.querySelectorAll(`.${classe}`).forEach((element) => element.classList.remove(classe));
+  apercu.querySelectorAll('[data-c]').forEach((element) => { if (noms.includes(element.dataset.c)) element.classList.add(classe); });
+}
+
+function annoncer(message) {
+  const annonce = $('annonce');
+  if (!annonce) return;
+  annonce.textContent = message;
+  clearTimeout(minuterie);
+  minuterie = setTimeout(() => { annonce.textContent = ''; }, 1800);
+}
+
+document.addEventListener('mouseover', (evenement) => {
+  const ligne = evenement.target.closest?.('.ligne[data-cle]');
+  if (!ligne || !pile.length) { viser([], 'vise'); return; }
+  const { comp, calque } = courant();
+  const composant = PAR_NOM[comp];
+  const trouvee = lignesDe(composant, portee(composant, calque)).find((candidate) => candidate.cle === ligne.dataset.cle);
+  viser(trouvee ? trouvee.calques.map((id) => composant.calques[id].nom) : [], 'vise');
+});
+
+document.addEventListener('input', (evenement) => {
+  if (evenement.target.id !== 'filtre') return;
+  filtre = evenement.target.value;
+  rendreListe();
+});
+
+document.addEventListener('click', async (evenement) => {
+  const bouton = evenement.target.closest('button');
+  if (!bouton) {
+    if (evenement.target.closest('#canevas')) { racine = null; selectionner([]); }
+    return;
+  }
+  const donnees = bouton.dataset;
+  if (donnees.composant) {
+    racine = donnees.composant;
+    selectionner([{ comp: racine, calque: 0 }]);
+  } else if (donnees.calque !== undefined) {
+    const id = Number(donnees.calque);
+    const calque = PAR_NOM[racine].calques[id];
+    selectionner(calque.composant ? [{ comp: racine, calque: 0 }, { comp: calque.composant, calque: 0, depuis: id }] : [{ comp: racine, calque: id }]);
+  } else if (donnees.imbrique) {
+    const parents = pile.map((niveau) => ({ ...niveau }));
+    selectionner([...parents, { comp: donnees.imbrique, calque: 0, depuis: Number(donnees.depuis) }]);
+  } else if (donnees.miette !== undefined) {
+    selectionner(pile.slice(0, Number(donnees.miette) + 1).map((niveau, rang, liste) => (rang === liste.length - 1 ? { ...niveau, calque: 0 } : niveau)));
+  } else if (donnees.regroupement) {
+    regroupement = donnees.regroupement; sections = new Map();
+    document.querySelectorAll('[data-regroupement]').forEach((segment) => segment.setAttribute('aria-pressed', String(segment === bouton)));
+    rendrePlugin();
+  } else if (donnees.densite) {
+    densite = donnees.densite;
+    document.querySelectorAll('[data-densite]').forEach((segment) => segment.setAttribute('aria-pressed', String(segment === bouton)));
+    rendrePlugin();
+  } else if (donnees.section) {
+    sections.set(donnees.section, bouton.getAttribute('aria-expanded') !== 'true');
+    rendreListe();
+    document.querySelector(`[data-section="${CSS.escape(donnees.section)}"]`)?.focus();
+  } else if (donnees.ouvrir) {
+    const section = bouton.closest('.resume').previousElementSibling.dataset.section;
+    sections.set(section, true); ouverts.add(donnees.ouvrir);
+    rendreListe();
+    document.querySelector(`.ligne[data-cle="${CSS.escape(donnees.ouvrir)}"]`)?.scrollIntoView({ block: 'nearest' });
+  } else if (donnees.cle) {
+    ouverts.has(donnees.cle) ? ouverts.delete(donnees.cle) : ouverts.add(donnees.cle);
+    rendreListe();
+    document.querySelector(`.ligne[data-cle="${CSS.escape(donnees.cle)}"]`)?.focus();
+  } else if (bouton.id === 'tout') {
+    const titres = [...document.querySelectorAll('[data-section]')];
+    const fermees = titres.filter((titre) => titre.getAttribute('aria-expanded') !== 'true');
+    titres.forEach((titre) => sections.set(titre.dataset.section, fermees.length > 0));
+    if (!fermees.length) ouverts = new Set();
+    rendreListe();
+  } else if (bouton.id === 'chercher') {
+    filtreOuvert = !filtreOuvert; filtre = '';
+    rendrePlugin();
+    $('filtre')?.focus();
+  } else if (bouton.id === 'directes') {
+    directesOuvertes = !directesOuvertes;
+    rendrePlugin();
+  } else if (donnees.copier) {
+    try { await navigator.clipboard.writeText(donnees.copier); annoncer(`Copié : ${donnees.copier}`); } catch { annoncer('Copie indisponible ici'); }
+  }
+});
+
+rendreCanevas();
+rendrePlugin();
+</script>
+</body>
+</html>
