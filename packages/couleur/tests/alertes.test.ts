@@ -21,11 +21,14 @@ const BLEU = paletteTailwind('p-0000000a', '#1E6FD9');
 const codes = (alertes: Alerte[]) => alertes.map((a) => a.code);
 const dePalette = (palette: Palette) => alertesDePalette(recetteAvec(palette), palette);
 
-test('[VER-08] profils confondus : sonne au cran 100 clair de #1E6FD9, avec la mesure et le seuil', () => {
-  const alerte = dePalette(BLEU).find((a) => a.code === 'profils-confondus');
+test('[VER-08] profils confondus : sonne à partir de trois nuances, avec la mesure et le seuil', () => {
+  // #1E6FD9 ne confond ses profils qu'au cran 100 clair : sous trois nuances, la palette passe.
+  assert.ok(!codes(dePalette(BLEU)).includes('profils-confondus'));
+  const serrees = { ...BLEU, parts: { soft: 0.1, vivid: 0.105, origine: 'designer' as const } };
+  const alerte = dePalette(serrees).find((a) => a.code === 'profils-confondus');
   assert.ok(alerte && alerte.code === 'profils-confondus');
-  assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), ['light 100']);
-  assert.ok(alerte.crans[0].distance < alerte.seuil);
+  assert.ok(alerte.crans.length >= 3);
+  for (const confusion of alerte.crans) assert.ok(confusion.distance < alerte.seuil);
   assert.equal(alerte.seuil, 0.02);
 });
 

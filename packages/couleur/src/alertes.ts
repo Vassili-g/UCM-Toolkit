@@ -89,8 +89,11 @@ export function confusionsDe(recette: Recette, palette: Palette): Confusion[] {
 /**
  * L'alerte ne vise que les nuances des emplois ([VER-11]) : une palette libre
  * n'en a pas. Elle se tait sur les fonds du thème Dark dont la part baisse
- * ([MOT-28]) : les deux profils s'y rapprochent par construction.
+ * ([MOT-28]) : les deux profils s'y rapprochent par construction. En dessous
+ * de `MINIMUM_DE_NUANCES_CONFONDUES` nuances, la palette passe sans alerte.
  */
+const MINIMUM_DE_NUANCES_CONFONDUES = 3;
+
 function profilsConfondus(recette: Recette, palette: Palette): Alerte | null {
   if (estLibre(palette)) return null;
   const emplois = new Set(rangsDesEmplois(recette).map((rang) => recette.crans[rang]));
@@ -98,7 +101,7 @@ function profilsConfondus(recette: Recette, palette: Palette): Alerte | null {
   const attenue = ({ mode, cran }: Confusion): boolean =>
     mode === 'dark' && facteurSombre(recette.courbes.dark[recette.crans.indexOf(cran)], fonds) < 1;
   const crans = confusionsDe(recette, palette).filter((confusion) => emplois.has(confusion.cran) && !attenue(confusion));
-  return crans.length > 0
+  return crans.length >= MINIMUM_DE_NUANCES_CONFONDUES
     ? { code: 'profils-confondus', palette: palette.id, crans, seuil: recette.seuils.profilsConfondus }
     : null;
 }

@@ -20,8 +20,8 @@ const CYAN = nouvelle('p-0000000a', '#0891B2');
 const VOISIN = nouvelle('p-0000000b', '#0992B3');
 const ARDOISE = nouvelle('p-0000000c', '#6B7280');
 const JAUNE = nouvelle('p-0000000d', '#FACC15');
-/** Bleu confond ses deux profils, Vert manque deux garanties en Thème Light. */
-const BLEU = nouvelle('p-0000000e', '#1E6FD9');
+/** Bleu confond ses deux profils sur trois nuances au moins, Vert manque deux garanties en Thème Light. */
+const BLEU: Palette = { ...nouvelle('p-0000000e', '#1E6FD9'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } };
 const VERT = nouvelle('p-0000000f', '#16A34A');
 const avec = (...palettes: Palette[]): Recette => ({ ...DEFAUT, palettes });
 
