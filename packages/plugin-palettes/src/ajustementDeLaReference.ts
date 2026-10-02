@@ -1,8 +1,9 @@
 /**
  * Ce que la modale « Ajuster la référence » calcule (W7, réponse R1 de la
  * maquette Z10.4), sans DOM : elle règle la luminosité du profil porteur, par
- * pas de 0,01, dans les bornes de la carte (Z10.5). Un pas translate la rampe
- * du porteur, la référence avec elle. Rien ne se range ici : seul
+ * pas de 0,01, dans les bornes de la carte (Z10.5) et tant que les nuances
+ * gardent leur ordre. Un pas translate la rampe du porteur, la référence avec
+ * elle. Rien ne se range ici : seul
  * « Appliquer » change la palette, par le geste de luminosité de la carte.
  */
 import {
@@ -12,6 +13,7 @@ import {
   cleDuPorteur,
   intensitesDe,
   lireHexa,
+  ordreTenu,
   verifierPromesses,
   type Intensite,
   type Mode,
@@ -33,10 +35,17 @@ export function pasALOuverture(recette: Recette, palette: Palette): number {
   return Math.min(PAS_EXTREMES.haut, Math.max(PAS_EXTREMES.bas, Math.round(clarte / PAS)));
 }
 
-/** La palette à `pas` pas de luminosité du porteur, telle qu'« Appliquer » la rangerait ; `null` hors des bornes. */
+/**
+ * La palette à `pas` pas de luminosité du porteur, telle qu'« Appliquer » la
+ * rangerait. `null` hors des bornes, et dès que deux nuances voisines se
+ * confondraient ([DER-19]) ; une palette dont l'ordre ne tient pas à
+ * l'ouverture n'est bornée que par les bornes de la carte.
+ */
 export function paletteAuPas(recette: Recette, palette: Palette, pas: number): Palette | null {
   if (pas < PAS_EXTREMES.bas || pas > PAS_EXTREMES.haut) return null;
-  return reglerClarte(recette, palette, cleDuPorteur(recette, palette), pas * PAS);
+  const candidate = reglerClarte(recette, palette, cleDuPorteur(recette, palette), pas * PAS);
+  if (!ordreTenu(recette, candidate) && ordreTenu(recette, palette)) return null;
+  return candidate;
 }
 
 /** La référence que la palette aurait à `pas` pas, en hexa ; `null` hors des bornes. */

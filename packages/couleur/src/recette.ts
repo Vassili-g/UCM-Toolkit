@@ -77,8 +77,13 @@ export interface Reglages {
   readonly depart?: string;
 }
 
-/** Les bornes des réglages : la teinte en degrés, la clarté en décalage OKLCH (mesures E4 bis de la recherche). */
-export const BORNES_DES_REGLAGES = { teinte: 30, clarte: { bas: -0.05, haut: 0.02 } } as const;
+/**
+ * Les bornes des réglages : la teinte en degrés, la clarté en décalage OKLCH.
+ * La borne de clarté ne garde pas l'ordre des nuances : sur les courbes par
+ * défaut, les nuances 50 et 100 du thème Light se confondent dès +0,05. La
+ * limite dynamique (`limites.ts`) et la modale d'ajustement s'arrêtent avant.
+ */
+export const BORNES_DES_REGLAGES = { teinte: 30, clarte: { bas: -0.1, haut: 0.1 } } as const;
 
 /**
  * Les couleurs figées d'une palette reprise « telle quelle » des variables

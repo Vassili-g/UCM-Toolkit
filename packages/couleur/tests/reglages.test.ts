@@ -57,7 +57,7 @@ test('Z10.5 [REC-05] des réglages bornés, jamais nuls, adaptés au nombre d’
 test('Z10.5 [REC-05] chaque règle des réglages refuse sa faute', () => {
   const cas: [Palette, string][] = [
     [bleuRegle({ teinte: { vivid: 31 } }), 'reglages-bornes palettes[0].reglages.teinte.vivid'],
-    [bleuRegle({ clarte: { vivid: 0.03 } }), 'reglages-bornes palettes[0].reglages.clarte.vivid'],
+    [bleuRegle({ clarte: { vivid: 0.11 } }), 'reglages-bornes palettes[0].reglages.clarte.vivid'],
     [bleuRegle({ teinte: { soft: 0 } }), 'reglage-nul palettes[0].reglages.teinte.soft'],
     [paletteTailwind('p-000000e4', BLEU, { reglages: { porteur: 'vivid' } }), 'reglage-nul palettes[0].reglages'],
     [paletteTailwind('p-000000e5', BLEU, { reglages: { teinte: { soft: 5 } } }), 'porteur-manquant palettes[0].reglages'],

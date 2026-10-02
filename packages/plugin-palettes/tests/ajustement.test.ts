@@ -28,9 +28,17 @@ test('W7.2 : sans pas, la proposition est l’originale elle-même ; un pas somb
   assert.equal(pasALOuverture(RECETTE, VERT), 0);
   assert.equal(propositionAuPas(RECETTE, VERT, 0), '#16A34A');
   assert.equal(propositionAuPas(RECETTE, VERT, -1), '#0DA047');
-  assert.ok(propositionAuPas(RECETTE, VERT, -5));
-  assert.equal(propositionAuPas(RECETTE, VERT, -6), null, 'au-delà de −0,05, aucun pas');
-  assert.equal(propositionAuPas(RECETTE, VERT, 3), null, 'au-delà de +0,02, aucun pas');
+  assert.ok(propositionAuPas(RECETTE, VERT, -10));
+  assert.equal(propositionAuPas(RECETTE, VERT, -11), null, 'au-delà de −0,10, aucun pas');
+  assert.ok(propositionAuPas(RECETTE, VERT, 4));
+  assert.equal(propositionAuPas(RECETTE, VERT, 5), null, 'à +0,05, les nuances 50 et 100 du thème Light se confondraient');
+});
+
+test('[DER-19] une palette dont l’ordre des nuances ne tient pas à l’ouverture garde tous les pas des bornes', () => {
+  const confondue: Palette = { ...VERT, reglages: { porteur: 'vivid', clarte: { soft: 0.08 } } };
+  assert.ok('recette' in validerRecette(ajouter(RECETTE, confondue)));
+  assert.ok(propositionAuPas(RECETTE, confondue, 10));
+  assert.equal(propositionAuPas(RECETTE, confondue, 11), null);
 });
 
 test('R1 : Appliquer pose la luminosité du porteur, garde l’originale, et le ◆ garde sa nuance', () => {
@@ -60,8 +68,8 @@ test('W7.5 : un code saisi dans la configuration est une nouvelle référence, q
 });
 
 test('R1 : un pas de luminosité ne change plus le numéro de la référence', () => {
-  for (let pas = -5; pas < 2; pas += 1) assert.deepEqual(changementAuPasVoisin(RECETTE, VERT, pas, 1), [], `pas ${pas}`);
-  assert.equal(changementAuPasVoisin(RECETTE, VERT, 2, 1), null, 'hors des bornes');
+  for (let pas = -10; pas < 4; pas += 1) assert.deepEqual(changementAuPasVoisin(RECETTE, VERT, pas, 1), [], `pas ${pas}`);
+  assert.equal(changementAuPasVoisin(RECETTE, VERT, 4, 1), null, 'au-delà du dernier pas');
 });
 
 test('W7.2 : les garanties se comparent avant et après : #16A34A en manque en Light, deux pas plus sombres les tiennent', () => {
@@ -80,5 +88,5 @@ test('W7.2 : les garanties se comparent avant et après : #16A34A en manque en L
 test('W7.2 : un code saisi dans la modale prend le pas dont la proposition lui ressemble le plus', () => {
   assert.equal(pasLePlusProche(RECETTE, VERT, '#0DA047'), -1);
   assert.equal(pasLePlusProche(RECETTE, VERT, '#16A34A'), 0);
-  assert.equal(pasLePlusProche(RECETTE, VERT, '#000000'), -5, 'le pas extrême le plus proche');
+  assert.equal(pasLePlusProche(RECETTE, VERT, '#000000'), -10, 'le pas extrême le plus proche');
 });
