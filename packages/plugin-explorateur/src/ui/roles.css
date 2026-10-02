@@ -43,4 +43,10 @@
   --sombre-ombre: #00000066;
   --sombre-damier-clair: #8a8a8a;
   --sombre-damier-fonce: #5a5a5a;
+  /* La vue composant, d'après MAQUETTE-VUE-COMPOSANT.html : le violet d'un composant, le fond clair de son aperçu, l'encre d'une pastille claire et les deux cadres posés sur l'aperçu. */
+  --sombre-composant: #b69cff;
+  --sombre-apercu: #f7f8fa;
+  --sombre-encre: #111111;
+  --sombre-cadre-survol: #ff5fa2;
+  --sombre-cadre-portee: #4c9bff;
 }

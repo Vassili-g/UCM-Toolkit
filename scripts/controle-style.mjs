@@ -46,7 +46,7 @@ export const ACRONYMES = [
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HTML', 'HTTP',
   'HTTPS', 'HUG', 'IA', 'ID', 'ISO', 'JS', 'JSON', 'JSX', 'JWT', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
-  'NPM', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'PAT', 'PATH', 'PDF', 'POLYGON', 'POST', 'PR', 'PUT',
+  'NPM', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT',
   'RECTANGLE',
   'REST', 'RGAA', 'RGB', 'RTL', 'SET', 'SHA', 'SLOT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
   // `TODO(sujet)` est le marqueur conventionnel d'un point à reprendre, que les

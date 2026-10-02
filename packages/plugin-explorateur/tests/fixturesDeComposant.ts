@@ -7,10 +7,12 @@
  * Chaque liaison de la maquette donne une liaison ici : une marge horizontale
  * tient sur `paddingLeft` seul, un rayon sur `topLeftRadius` seul. Les comptes
  * du pied égalent ainsi ceux de la maquette. Une boîte est celle du calque
- * dans le dessin de la maquette, à l'échelle 1.
+ * dans le dessin de la maquette, sans réduction.
  */
-import type { LectureDeComposant } from '../src/composant';
-import type { TypeDeVariable, ValeurSource } from '../src/modele';
+import type { BoiteDeCalque, LectureDeComposant } from '../src/composant';
+import { indexer } from '../src/indexation';
+import { texteDeValeur, type TypeDeVariable, type ValeurSource } from '../src/modele';
+import { resoudre } from '../src/resolution';
 import { alias, constructeur, couleur, nombre, texte } from './fixtures';
 
 type Jeton = readonly [type: TypeDeVariable, valeur: ValeurSource];
@@ -521,3 +523,39 @@ export const composantInterrompu = (): LectureDeComposant => lectureDe(TAG);
 
 /** Avatar : aucun token, trois valeurs sans token. */
 export const composantSansToken = (): LectureDeComposant => lectureDe(AVATAR);
+
+/** Ce qu'un calque peint dans une image d'aperçu de test : sa boîte, sa couleur, et s'il s'agit d'un texte. */
+export interface PeintureDeTest {
+  readonly boite: BoiteDeCalque;
+  readonly hexa: string;
+  readonly texte: boolean;
+  /** Vrai pour un contour : seul le bord de la boîte se peint. */
+  readonly contour: boolean;
+}
+
+/** La couleur d'un composant imbriqué dans une image de test : ses calques ne sont pas lus. */
+const GRIS_DES_FRONTIERES = '#C9CED6';
+
+/**
+ * Les peintures d'une lecture, parent avant enfant : la galerie en tire une
+ * image schématique, à la place de celle que Figma exporterait.
+ */
+export function peinturesDe(lecture: LectureDeComposant): PeintureDeTest[] {
+  const index = indexer(lecture.releve);
+  const peintures: PeintureDeTest[] = [];
+  for (const calque of lecture.calques) {
+    if (!calque.boite) continue;
+    if (calque.frontiere) {
+      peintures.push({ boite: calque.boite, hexa: GRIS_DES_FRONTIERES, texte: false, contour: false });
+      continue;
+    }
+    for (const propriete of ['fills[0]', 'strokes[0]']) {
+      const liaison = lecture.liaisons.find((candidate) => candidate.calque === calque.id && candidate.propriete === propriete);
+      const resultat = liaison ? resoudre(index, liaison.variable, {}) : null;
+      const directe = lecture.directes.find((candidate) => candidate.calque === calque.id && candidate.propriete === propriete);
+      const hexa = resultat?.statut === 'resolu' ? texteDeValeur(resultat.valeur) : directe?.valeur;
+      if (hexa) peintures.push({ boite: calque.boite, hexa, texte: calque.type === 'TEXT', contour: propriete === 'strokes[0]' });
+    }
+  }
+  return peintures;
+}

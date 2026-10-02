@@ -31,8 +31,37 @@ export interface NoeudLu {
   readonly layoutGrids?: unknown;
   readonly resolvedVariableModes?: Readonly<Record<string, string>>;
   readonly explicitVariableModes?: Readonly<Record<string, string>>;
-  getStyledTextSegments?(champs: string[]): ReadonlyArray<{ start: number; end: number; boundVariables?: unknown; fills?: unknown }>;
+  getStyledTextSegments?(champs: string[]): ReadonlyArray<{ start: number; end: number; boundVariables?: unknown; fills?: unknown; textStyleId?: string }>;
   findAll?(): readonly NoeudLu[];
+  /** Ce que la vue composant lit en plus. Une propriété mixte porte un symbole, d'où `unknown`. */
+  readonly children?: readonly NoeudLu[];
+  readonly overrides?: ReadonlyArray<{ readonly id: string; readonly overriddenFields: readonly string[] }>;
+  readonly textStyleId?: unknown;
+  getMainComponentAsync?(): Promise<NoeudLu | null>;
+  readonly defaultVariant?: NoeudLu;
+  readonly absoluteBoundingBox?: RectangleLu | null;
+  readonly absoluteRenderBounds?: RectangleLu | null;
+  readonly cornerRadius?: unknown;
+  readonly topLeftRadius?: unknown;
+  readonly topRightRadius?: unknown;
+  readonly bottomLeftRadius?: unknown;
+  readonly bottomRightRadius?: unknown;
+  readonly strokeWeight?: unknown;
+  readonly layoutMode?: unknown;
+  readonly itemSpacing?: unknown;
+  readonly paddingLeft?: unknown;
+  readonly paddingRight?: unknown;
+  readonly paddingTop?: unknown;
+  readonly paddingBottom?: unknown;
+  readonly fontSize?: unknown;
+}
+
+/** Un rectangle dans le repère de la page, tel que Figma le donne. */
+export interface RectangleLu {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface PageLue {
