@@ -37,7 +37,7 @@ porter dans le plugin, qui lit des calques Figma.
 - [x] Cocher une tâche quand son résultat et sa preuve existent. Un test non
   exécuté reste non vérifié.
 - [x] Après chaque lot, mettre à jour les cases de ce plan et le suivi.
-- [ ] Avant une interruption, écrire dans le suivi la prochaine commande utile.
+- [x] Avant une interruption, écrire dans le suivi la prochaine commande utile.
 
 ### Travail dans l'arbre partagé
 
@@ -46,13 +46,13 @@ Une autre session modifie le même arbre de travail. Au lancement de ce plan,
 non commités, dont `src/lecture.ts`, `src/ui/index.ts`, `src/ui/styles.css`,
 `src/ui/textes.ts`, `SPEC.md` et `AGENTS.md`.
 
-- [ ] Construire sur l'état du disque. Ne jamais lancer `git stash`,
+- [x] Construire sur l'état du disque. Ne jamais lancer `git stash`,
   `git checkout -- <fichier>` ni `git reset` dans cet arbre.
-- [ ] Rester sur `main`, sans branche. Un commit par lot, par chemins
+- [x] Rester sur `main`, sans branche. Un commit par lot, par chemins
   explicites, jamais `git add -A`.
-- [ ] Commiter un fichier quand toutes ses modifications viennent de ce plan.
+- [x] Commiter un fichier quand toutes ses modifications viennent de ce plan.
   Sinon, le laisser non commité et le noter dans le suivi.
-- [ ] Avant chaque commit, lancer les commandes de la section 6.
+- [x] Avant chaque commit, lancer les commandes de la section 6.
 
 ### Limites de l'autonomie
 
@@ -156,23 +156,23 @@ Les fixtures `composantSimple` et `composantComplexe` reprennent les noms, les
 valeurs et les comptes que la maquette affiche pour Alert et StressTest. La
 capture de la galerie et celle de la maquette montrent alors le même contenu.
 
-- [ ] Écrire `galerie/comparer-maquette.cjs` : il ouvre la maquette et la
+- [x] Écrire `galerie/comparer-maquette.cjs` : il ouvre la maquette et la
   galerie étroite dans Chromium, joue les mêmes gestes, capture la fenêtre
   `.plugin` et l'état de galerie, et range les deux images côte à côte dans
   `dist/fidelite/`.
-- [ ] Le script mesure aussi, par `getBoundingClientRect` et
+- [x] Le script mesure aussi, par `getBoundingClientRect` et
   `getComputedStyle`, les éléments du tableau dans les deux pages, et imprime
   chaque écart de taille, de marge, de police ou de couleur. La tolérance est
   de 1 px sur une position et de zéro sur une taille de police, une couleur et
   un texte.
-- [ ] Paires à comparer : Alert ouvert ; chaîne dépliée ; style de texte
+- [x] Paires à comparer : Alert ouvert ; chaîne dépliée ; style de texte
   déplié ; StressTest replié ; section Couleur dépliée ; calque `UserInput`
   sélectionné ; Button ouvert depuis StressTest ; filtre « radius » ; Tag avec
   chaîne interrompue et valeurs sans token ; Avatar sans token ; état vide.
 - [ ] À la fin des lots 4, 5 et 6, lancer le script, ouvrir chaque paire
   d'images et corriger jusqu'à un relevé sans écart. Un lot dont le relevé
   porte un écart sans accord du mainteneur n'est pas livré.
-- [ ] Ranger le relevé du dernier passage dans le suivi.
+- [x] Ranger le relevé du dernier passage dans le suivi.
 
 ## 4. Organisation cible
 
@@ -322,39 +322,39 @@ lui-même : il appelle `resoudre` avec les modes du calque.
 Prérequis : lot 1. Sortie : `src/lectureDuComposant.ts`, `src/lecture.ts`
 étendu, `tests/lectureDuComposant.test.ts`.
 
-- [ ] Dans `src/lecture.ts`, extraire de `lireLeReleve` la lecture par vagues
+- [x] Dans `src/lecture.ts`, extraire de `lireLeReleve` la lecture par vagues
   des cibles d'alias en `lireLesVariables(port, departs, suivi)`. Les
   identifiants de `departs` se lisent par `getVariableByIdAsync` seul. Les
   cibles d'alias gardent l'import par clé. `lireLeReleve` appelle cette
   fonction et ses tests restent verts sans changement.
-- [ ] `separerLesModes` rend la table des modes renommés, par collection.
+- [x] `separerLesModes` rend la table des modes renommés, par collection.
   `traduireLesModes(table, modes)` l'applique aux modes d'un calque.
-- [ ] Déclarer `PortDuComposant` dans `src/lectureDuComposant.ts` : la
+- [x] Déclarer `PortDuComposant` dans `src/lectureDuComposant.ts` : la
   sélection, `getNodeByIdAsync`, `getStyleByIdAsync`, le port de lecture des
   variables, `pause`. `NoeudLu` reçoit en facultatif `children`, `overrides`,
   `textStyleId`, `getMainComponentAsync`, `defaultVariant`,
   `absoluteBoundingBox`, `absoluteRenderBounds` et les propriétés du tableau
   des valeurs sans token.
-- [ ] `sujetDe(noeud)` remonte au plus proche `COMPONENT`, `INSTANCE` ou
+- [x] `sujetDe(noeud)` remonte au plus proche `COMPONENT`, `INSTANCE` ou
   `COMPONENT_SET` et rend le sujet, la portée demandée et les ancêtres de ces
   types. Un `COMPONENT` enfant d'un `COMPONENT_SET` prend le nom du jeu et son
   propre nom comme variant.
-- [ ] `lireLeComposant(port, depart, suivi)` parcourt les calques du sujet par
+- [x] `lireLeComposant(port, depart, suivi)` parcourt les calques du sujet par
   `children`, s'arrête à chaque `INSTANCE`, et relève pour chaque calque
   `liaisonsDuNoeud` et `modesDuNoeud`. Une erreur sur un calque se range dans
   `erreurs` et le parcours continue.
-- [ ] Pour chaque instance frontière : son nom vient de
+- [x] Pour chaque instance frontière : son nom vient de
   `getMainComponentAsync`, du jeu parent quand il existe, du nom du calque
   quand la lecture échoue. Ses surcharges viennent d'`overrides` : pour chaque
   entrée dont `overriddenFields` cite `fills`, `strokes`, `effects`,
   `boundVariables` ou un champ de la table des natures, lire les liaisons du
   calque visé, garder celles de ces champs, les rattacher au calque de
   l'instance.
-- [ ] Pour chaque calque `TEXT` : un `textStyleId` de type chaîne se lit par
+- [x] Pour chaque calque `TEXT` : un `textStyleId` de type chaîne se lit par
   `getStyleByIdAsync`, une fois par identifiant. Un `textStyleId` mixte se lit
   par `getStyledTextSegments(['textStyleId'])`. Les liaisons du calque dont le
   champ et la variable égalent ceux du style sont retirées.
-- [ ] Relever les valeurs sans token. Une valeur compte quand aucune liaison ne
+- [x] Relever les valeurs sans token. Une valeur compte quand aucune liaison ne
   couvre la propriété sur ce calque.
 
   | Propriété | Condition | Valeur affichée |
@@ -366,16 +366,16 @@ Prérequis : lot 1. Sortie : `src/lectureDuComposant.ts`, `src/lecture.ts`
   | `itemSpacing`, marges | auto-layout et non nul | Nombre |
   | `fontSize` | calque `TEXT` sans style de texte | Nombre |
 
-- [ ] Lire les variables atteintes par `lireLesVariables`, puis traduire les
+- [x] Lire les variables atteintes par `lireLesVariables`, puis traduire les
   modes de chaque calque par la table de `separerLesModes`.
-- [ ] Joindre `valeurDeFigma` à chaque liaison par `resolveForConsumer` sur son
+- [x] Joindre `valeurDeFigma` à chaque liaison par `resolveForConsumer` sur son
   calque, convertie par `convertirValeur`. Une levée laisse le champ absent.
-- [ ] Appeler `port.pause()` tous les `LOT` calques et vérifier
+- [x] Appeler `port.pause()` tous les `LOT` calques et vérifier
   `suivi.annulee()`. Au-delà de `BORNE_DES_CALQUES`, arrêter le parcours et
   compter le reste dans `calquesNonLus`.
-- [ ] Ajouter les doubles à `tests/figmaDeTest.ts`, enveloppés par
+- [x] Ajouter les doubles à `tests/figmaDeTest.ts`, enveloppés par
   `enLectureSeule` : calque, instance avec `overrides`, style de texte.
-- [ ] Tests de `tests/lectureDuComposant.test.ts` : le sujet depuis un calque
+- [x] Tests de `tests/lectureDuComposant.test.ts` : le sujet depuis un calque
   profond, depuis une instance imbriquée, depuis un calque hors composant ;
   aucun calque d'une frontière dans la lecture ; une surcharge de `fills`
   rattachée à l'instance ; une surcharge sans liaison ignorée ; le style de
@@ -385,7 +385,7 @@ Prérequis : lot 1. Sortie : `src/lectureDuComposant.ts`, `src/lecture.ts`
   calque traduits quand deux collections distantes partagent un identifiant de
   mode ; l'annulation ; la borne des calques ; aucune écriture relevée par le
   journal d'`enLectureSeule`.
-- [ ] Étendre `tests/loiDeLectureSeule.test.ts` : seuls `code.ts` et
+- [x] Étendre `tests/loiDeLectureSeule.test.ts` : seuls `code.ts` et
   `apercu.ts` appellent `exportAsync`.
 
 ### Lot 3 : messages, routes et disposition de la fenêtre
@@ -393,31 +393,31 @@ Prérequis : lot 1. Sortie : `src/lectureDuComposant.ts`, `src/lecture.ts`
 Prérequis : lot 2. Sortie : `src/messages.ts`, `src/code.ts`, `src/fenetre.ts`,
 `src/apercu.ts`, leurs tests.
 
-- [ ] Ajouter à `UiRequest` :
+- [x] Ajouter à `UiRequest` :
   `{ type: 'lire-composant'; demande: number; calque: string | null }`. `null`
   lit la sélection. Un identifiant lit ce calque sans changer la sélection : il
   sert au fil d'Ariane, aux frontières et au choix d'un variant.
-- [ ] Ajouter à `PluginMessage` :
+- [x] Ajouter à `PluginMessage` :
   - `{ type: 'composant'; demande: number; lecture: LectureDeComposant | null }` ;
   - `{ type: 'apercu-du-composant'; demande: number; sujet: string; octets: Uint8Array; largeur: number; hauteur: number; origine: { x: number; y: number } }` ;
   - `{ type: 'disposition'; disposition: 'etroite' | 'large' }`.
-- [ ] Le message `selection` reçoit `sujet: { id: string; portee: string } | null`
+- [x] Le message `selection` reçoit `sujet: { id: string; portee: string } | null`
   et `ignores: number`, calculés par `sujetDe`.
-- [ ] `src/apercu.ts` : `exporterLApercu(port, sujet)` appelle `exportAsync`
+- [x] `src/apercu.ts` : `exporterLApercu(port, sujet)` appelle `exportAsync`
   avec `{ format: 'PNG', constraint: { type: 'WIDTH', value } }`, `value` étant
   la largeur du sujet bornée à 720. Une levée rend `null`, et la vue affiche le
   composant sans image.
-- [ ] `src/code.ts` : la route `lire-composant` envoie `composant`, puis
+- [x] `src/code.ts` : la route `lire-composant` envoie `composant`, puis
   `apercu-du-composant`. La demande suit `annulees` comme `lire-releve`.
-- [ ] `src/fenetre.ts` : ajouter `TAILLE_ETROITE = 364 × 680`,
+- [x] `src/fenetre.ts` : ajouter `TAILLE_ETROITE = 364 × 680`,
   `TAILLE_MINIMALE_ETROITE = 320 × 420` et la clé
   `ucm-explorateur/tailleFenetreEtroite`. Les bornes larges ne changent pas.
-- [ ] `src/code.ts` : ouvrir l'interface avec `visible: false`, lire
+- [x] `src/code.ts` : ouvrir l'interface avec `visible: false`, lire
   `getLocalVariablesAsync`, choisir `etroite` quand la liste est vide, poser la
   taille rangée pour cette disposition, appeler `figma.ui.show()`, puis envoyer
   `disposition` en réponse à `lire-preferences`. Une levée de la lecture choisit
   `large`.
-- [ ] Tests : `tests/fenetre.test.ts` pour les deux jeux de bornes ;
+- [x] Tests : `tests/fenetre.test.ts` pour les deux jeux de bornes ;
   `tests/apercu.test.ts` pour la borne de largeur, l'origine et la levée.
 
 ### Lot 4 : la vue, états simples
@@ -425,50 +425,50 @@ Prérequis : lot 2. Sortie : `src/messages.ts`, `src/code.ts`, `src/fenetre.ts`,
 Prérequis : lot 3. Sortie : `src/ui/vues/composant.ts` branché, états de
 galerie, tests d'interface.
 
-- [ ] `src/ui/etat.ts` : ajouter l'onglet `composant` après `table`, le champ
+- [x] `src/ui/etat.ts` : ajouter l'onglet `composant` après `table`, le champ
   `disposition`, et `composant: { demande, statut, lecture, index, pile, portee, apercu }`.
   `pile` porte les sujets ouverts depuis une frontière.
-- [ ] `src/ui/index.ts` : recevoir `disposition`, `composant` et
+- [x] `src/ui/index.ts` : recevoir `disposition`, `composant` et
   `apercu-du-composant`, en ignorant une réponse dont la demande est remplacée.
   En disposition étroite, la racine ne monte que la vue, l'annonce et la poignée.
-- [ ] À la réception de `selection` : même sujet que la lecture en mémoire,
+- [x] À la réception de `selection` : même sujet que la lecture en mémoire,
   changer `portee` et rendre ; autre sujet, vider la pile et envoyer
   `lire-composant` avec `null` ; `sujet` nul, afficher l'état vide.
-- [ ] Rendre, dans l'ordre de la maquette : fil d'Ariane, en-tête, aperçu,
+- [x] Rendre, dans l'ordre de la maquette : fil d'Ariane, en-tête, aperçu,
   frontières, filtre, sections, valeurs sans token, pied.
-- [ ] En-tête : `◇` et le nom du sujet, ou `#` et le nom du calque quand la
+- [x] En-tête : `◇` et le nom du sujet, ou `#` et le nom du calque quand la
   portée n'est pas le sujet ; le variant ; une pastille par mode nommé dans les
   chaînes de la portée ; les boutons « Filtrer » et « Tout déplier ou replier ».
-- [ ] Ligne compacte : pastille, nom court, points, valeur, `×N`. La pastille
+- [x] Ligne compacte : pastille, nom court, points, valeur, `×N`. La pastille
   suit la maquette : pleine pour un fond, évidée pour un contour, marquée « A »
   pour un texte, signe de la nature pour un nombre. L'infobulle porte les
   libellés et les calques.
-- [ ] Ligne dépliée d'un token : la chaîne de `rendreChaine` de
+- [x] Ligne dépliée d'un token : la chaîne de `rendreChaine` de
   `src/ui/chaine.ts`, la valeur copiable par `copierTexte`, puis les libellés et
   les calques. Si `rendreChaine` impose l'application du relevé du fichier, en
   extraire une fonction qui reçoit l'index.
-- [ ] Ligne dépliée d'un style : une ligne par champ, avec les collections
+- [x] Ligne dépliée d'un style : une ligne par champ, avec les collections
   traversées et la valeur.
-- [ ] Chaîne non résolue : la ligne affiche le titre du constat de
+- [x] Chaîne non résolue : la ligne affiche le titre du constat de
   `constatDeChaine`, la chaîne dépliée s'arrête sur la cause, sans valeur.
-- [ ] Écart avec Figma : la ligne garde la valeur de la chaîne et reçoit une
+- [x] Écart avec Figma : la ligne garde la valeur de la chaîne et reçoit une
   marque d'avertissement. La ligne dépliée affiche les deux valeurs.
-- [ ] Pied : nombre de tokens, nombre de liaisons quand il est supérieur,
+- [x] Pied : nombre de tokens, nombre de liaisons quand il est supérieur,
   calques non lus, calques ignorés de la sélection, bouton des valeurs sans
   token.
-- [ ] États sans token : « Aucun token », puis les valeurs sans token.
-- [ ] Clavier : chaque ligne, section, frontière et miette est un `button`.
+- [x] États sans token : « Aucun token », puis les valeurs sans token.
+- [x] Clavier : chaque ligne, section, frontière et miette est un `button`.
   `aria-expanded` suit le repli. Le focus revient sur l'élément actionné après
   un rendu.
-- [ ] Textes dans `src/ui/textes.ts`, classes dans `src/ui/styles.css` avec les
+- [x] Textes dans `src/ui/textes.ts`, classes dans `src/ui/styles.css` avec les
   rôles existants. Aucune couleur en dur hors de `roles.css`.
-- [ ] États de `galerie/etats.cjs`, en disposition étroite : vide, composant
+- [x] États de `galerie/etats.cjs`, en disposition étroite : vide, composant
   simple, chaîne dépliée, chaîne interrompue, composant sans token, valeurs sans
   token dépliées, lecture en cours, écart avec Figma. En disposition large :
   l'onglet « Composant ».
-- [ ] `galerie/build-galerie.cjs` construit une troisième galerie à 364 × 680,
+- [x] `galerie/build-galerie.cjs` construit une troisième galerie à 364 × 680,
   dans `dist/galerie-etroite/`.
-- [ ] Tests d'interface dans `tests/interface/interface.test.mjs` : une
+- [x] Tests d'interface dans `tests/interface/interface.test.mjs` : une
   sélection affiche le composant ; un clic déplie la chaîne et la copie écrit la
   valeur ; une réponse d'une demande remplacée est ignorée ; la disposition
   étroite ne monte ni arbre ni onglets ; le texte d'un nom de calque s'insère
@@ -478,25 +478,25 @@ galerie, tests d'interface.
 
 Prérequis : lot 4. Sortie : repli, résumés, frontières, portée, filtre.
 
-- [ ] Au-delà de `SEUIL_DE_REPLI` lignes dans la portée, chaque section s'ouvre
+- [x] Au-delà de `SEUIL_DE_REPLI` lignes dans la portée, chaque section s'ouvre
   repliée, avec son résumé. Un choix du designer sur une section tient jusqu'au
   changement de sujet.
-- [ ] Un clic sur une pastille du résumé ouvre la section, déplie la ligne et
+- [x] Un clic sur une pastille du résumé ouvre la section, déplie la ligne et
   la fait défiler dans la vue.
-- [ ] « Tout déplier ou replier » : une section fermée, tout ouvrir ; sinon
+- [x] « Tout déplier ou replier » : une section fermée, tout ouvrir ; sinon
   fermer les lignes et rendre aux sections leur état par défaut.
-- [ ] Rangée des frontières : `◇ Nom ×N`. Un clic empile le sujet courant et
+- [x] Rangée des frontières : `◇ Nom ×N`. Un clic empile le sujet courant et
   envoie `lire-composant` avec l'identifiant de la première instance.
-- [ ] Fil d'Ariane : les ancêtres de la lecture, la pile, puis le calque de la
+- [x] Fil d'Ariane : les ancêtres de la lecture, la pile, puis le calque de la
   portée. Une miette de la pile dépile sans relecture si sa lecture est en
   mémoire. Une miette d'ancêtre envoie `lire-composant`.
-- [ ] `<select>` des variants quand `sujet.variants` en porte plus d'un.
-- [ ] Filtre : le champ s'ouvre par la loupe, filtre à la frappe, ouvre toutes
+- [x] `<select>` des variants quand `sujet.variants` en porte plus d'un.
+- [x] Filtre : le champ s'ouvre par la loupe, filtre à la frappe, ouvre toutes
   les sections tant qu'il porte un texte. « Aucun token ne correspond » quand
   la liste est vide.
-- [ ] États de galerie : composant complexe replié, section dépliée, portée
+- [x] États de galerie : composant complexe replié, section dépliée, portée
   d'un calque, frontière ouverte avec fil d'Ariane, filtre, variants.
-- [ ] Tests d'interface : `composantComplexe` replié tient sans défilement à
+- [x] Tests d'interface : `composantComplexe` replié tient sans défilement à
   364 × 680 ; la pastille ouvre sa ligne ; la frontière envoie
   `lire-composant` avec le bon identifiant ; la miette revient ; un message
   `selection` sous le même sujet n'envoie aucune demande.
@@ -505,26 +505,26 @@ Prérequis : lot 4. Sortie : repli, résumés, frontières, portée, filtre.
 
 Prérequis : lot 5. Sortie : image et boîtes dans la vue.
 
-- [ ] L'aperçu affiche l'image par une URL de blob, révoquée au changement de
+- [x] L'aperçu affiche l'image par une URL de blob, révoquée au changement de
   sujet. Il tient dans 332 × 170 px, réduit sans rognage. Sans image, la zone
   disparaît.
-- [ ] Le survol ou le focus d'une ligne pose un cadre sur chaque boîte de ses
+- [x] Le survol ou le focus d'une ligne pose un cadre sur chaque boîte de ses
   calques, réduit du même facteur que l'image. La portée d'un calque pose un cadre d'une
   autre couleur de rôle.
-- [ ] Une boîte hors de l'image ou absente ne pose aucun cadre.
-- [ ] États de galerie : aperçu avec survol, aperçu absent.
-- [ ] Tests d'interface : le nombre de cadres au survol d'une ligne à
+- [x] Une boîte hors de l'image ou absente ne pose aucun cadre.
+- [x] États de galerie : aperçu avec survol, aperçu absent.
+- [x] Tests d'interface : le nombre de cadres au survol d'une ligne à
   12 calques ; aucun cadre sans boîte.
 
 ### Lot 7 : documentation et lois
 
 Prérequis : lot 6. Sortie : documents d'autorité à jour.
 
-- [ ] `packages/plugin-explorateur/SPEC.md` : une section « Vue composant » qui
+- [x] `packages/plugin-explorateur/SPEC.md` : une section « Vue composant » qui
   porte le sujet, la frontière et les surcharges, l'unité de la liste, le
   style de texte, les modes, l'écart avec Figma, la borne des calques, la
   disposition de la fenêtre.
-- [ ] [AGENTS.md](../../../../../AGENTS.md) : ajouter les trois fichiers à la
+- [x] [AGENTS.md](../../../../../AGENTS.md) : ajouter les trois fichiers à la
   carte du code, et les invariants suivants au groupe de l'explorateur, chacun
   avec son autorité et son test :
   - une variable liée à un calque ne s'importe jamais, seules ses cibles
@@ -533,11 +533,11 @@ Prérequis : lot 6. Sortie : documents d'autorité à jour.
     que les surcharges du parent ;
   - seuls `code.ts` et `apercu.ts` appellent `exportAsync` ;
   - les modes d'un calque suivent la table de `separerLesModes`.
-- [ ] Vérifier que `tests/inventaireInvariants.test.ts` passe : il compare
+- [x] Vérifier que `tests/inventaireInvariants.test.ts` passe : il compare
   AGENTS.md et le code dans les deux sens.
-- [ ] `packages/plugin-explorateur/README.md` : la vue, ses deux dispositions,
+- [x] `packages/plugin-explorateur/README.md` : la vue, ses deux dispositions,
   ses limites.
-- [ ] Plan de recherche : renvoyer vers ce plan à l'étape 5.
+- [x] Plan de recherche : renvoyer vers ce plan à l'étape 5.
 
 ### Lot 8 : recette Figma
 
