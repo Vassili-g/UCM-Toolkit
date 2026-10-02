@@ -5,6 +5,7 @@
  *
  * Le nom du produit est provisoire et ne s'écrit qu'ici et dans le manifest.
  */
+import type { Nature } from '../composant';
 import type { NatureDeConstat } from '../diagnostics';
 import type { TypeDeVariable } from '../modele';
 import type { OrigineDuMode, StatutDeResolution } from '../resolution';
@@ -18,19 +19,22 @@ export const TEXTES = {
   actualiser: 'Actualiser',
   actualiserAide: 'Relire les variables du fichier',
   annuler: 'Annuler',
-  rechercher: 'Rechercher un nom, une collection ou une valeur',
+  rechercher: 'Rechercher',
   rechercheEtiquette: 'Recherche dans toutes les collections',
-  contexteEtiquette: 'Contexte des collections',
+  rechercheAide: 'Cherche dans le nom, la collection, la description et la valeur',
   contexteDeFamille: (nom: string) => `Mode de ${nom}`,
   defautDeFamille: (mode: string) => `${mode} (défaut)`,
-  retour: '← Retour',
-  retourAide: 'Revenir au groupe, au token et à la position précédents',
+  modes: {
+    etiquette: 'Mode de l’explorateur',
+    noms: { large: 'Tokens', etroite: 'Composant' },
+    aides: { large: 'Explorer les collections de variables du fichier', etroite: 'Lire les tokens du composant sélectionné dans Figma' },
+  },
 
   // Lecture
   pret: 'Lire les variables de ce fichier pour commencer.',
   lire: 'Lire les variables',
   lectureEnCours: 'Lecture des variables…',
-  phase: { collections: 'Collections', variables: 'Variables locales', references: 'Cibles des alias', calques: 'Calques' } as Record<string, string>,
+  phase: { collections: 'Collections', variables: 'Variables locales', references: 'Cibles des alias' } as Record<string, string>,
   progression: (phase: string, fait: number, total: number) => (total > 1 ? `${phase} : ${fait} sur ${total}` : `${phase}…`),
   lectureAnnulee: 'Lecture annulée. Aucune donnée partielle n’est affichée.',
   lectureEchouee: (message: string) => `La lecture a échoué : ${message}. Actualisez pour réessayer.`,
@@ -41,11 +45,13 @@ export const TEXTES = {
   manquees: (nombre: number) => `${nombre} cible${nombre > 1 ? 's' : ''} non lue${nombre > 1 ? 's' : ''}`,
 
   // Arbre
-  arbreEtiquette: 'Collections et groupes',
-  arbreNote: 'Une collection ou un groupe montre tout son contenu. Le chevron replie seulement l’arbre.',
+  arbreEtiquette: 'Collections',
   deplier: (nom: string) => `Déplier ${nom}`,
   replier: (nom: string) => `Replier ${nom}`,
   segmentVide: '(sans nom)',
+  largeurDe: (nom: string) => `Largeur de ${nom}`,
+  largeurDeLArbre: 'Largeur des collections',
+  largeurAide: 'Glissez pour régler la largeur. Double-cliquez pour rétablir la largeur par défaut.',
   distante: 'distante',
   etendue: 'étendue',
 
@@ -56,8 +62,6 @@ export const TEXTES = {
     comparer: 'Comparer',
     dependants: 'Dépendants',
     diagnostics: 'Diagnostics',
-    calques: 'Calques',
-    graphe: 'Graphe',
     integrations: 'Intégrations',
     releves: 'Relevés',
   },
@@ -69,7 +73,7 @@ export const TEXTES = {
   colonneCollection: 'Collection',
   vueCompacte: 'Vue compacte',
   vueCompacteAide: 'Une seule colonne : le contexte actif',
-  autresCollections: 'Les autres collections suivent le contexte de la barre.',
+  autresCollections: 'Les autres collections suivent le contexte A de l’onglet Comparer.',
   resultatsDeRecherche: 'Résultats de recherche',
   rechercheGlobale: (nombre: number) => `${nombre} résultat${nombre > 1 ? 's' : ''} dans toutes les collections`,
   aucunResultat: 'Aucune variable ne correspond. Videz la recherche ou les filtres.',
@@ -109,6 +113,7 @@ export const TEXTES = {
     'calque-herite': 'hérité par le calque',
   } satisfies Record<OrigineDuMode, string>,
   cibleInconnue: (id: string) => `Variable ${id}`,
+  opaciteDeLAlias: (pourcentage: string) => `Alias à ${pourcentage} d’opacité`,
 
   // Survol
   chaineComplete: 'Chaîne complète',
@@ -159,8 +164,8 @@ export const TEXTES = {
   constat: {
     inaccessible: {
       titre: 'Cible inaccessible',
-      detail: (nom: string) => `L’alias vise ${nom}, que le relevé n’a pas pu lire. Sa suppression n’est pas établie.`,
-      action: 'Vérifiez l’accès à la bibliothèque qui publie cette variable, puis actualisez.',
+      detail: (nom: string) => `L’alias vise ${nom}, que le relevé n’a pu ni lire ni importer. Sa suppression n’est pas établie.`,
+      action: 'Vérifiez que la bibliothèque publie encore cette variable et que vous y avez accès, puis actualisez.',
     },
     'mode-absent': {
       titre: 'Mode absent',
@@ -191,7 +196,7 @@ export const TEXTES = {
 
   // Comparer
   comparerTitre: 'Un token, deux contextes',
-  contexteA: 'Contexte A · barre',
+  contexteA: 'Contexte A · actif',
   contexteB: 'Contexte B',
   contexteBEtiquette: (nom: string) => `Mode de ${nom}, contexte B`,
   ecart: {
@@ -217,49 +222,20 @@ export const TEXTES = {
 
   // Diagnostics
   diagnosticsTitre: (nombre: number) => (nombre === 0 ? 'Aucune chaîne à examiner' : `${nombre} constat${nombre > 1 ? 's' : ''} à examiner`),
-  diagnosticsPortee: (resolutions: number) => `${resolutions} résolutions : chaque variable dans chaque mode de sa collection, les autres collections au contexte de la barre.`,
+  diagnosticsPortee: (resolutions: number) => `${resolutions} résolutions : chaque variable dans chaque mode de sa collection, les autres collections au contexte A.`,
   diagnosticsPartiel: 'Analyse partielle : des cibles n’ont pas été lues.',
   occurrences: (nombre: number) => `${nombre} point${nombre > 1 ? 's' : ''} de départ concerné${nombre > 1 ? 's' : ''}`,
   inspecterLaCible: 'Inspecter la cible',
   voirLeDepart: 'Inspecter le départ',
   limitesTitre: 'Limites du relevé',
-  limitesLecture: 'Le relevé lit les variables locales et les cibles de leurs alias que Figma rend. Il n’importe aucune variable distante.',
+  limitesLecture: 'Le relevé lit les variables locales et les cibles de leurs alias. Une cible de bibliothèque que Figma ne rend pas est importée par sa clé ; aucune variable locale n’est créée.',
   limitesEtendues: 'Les collections étendues sont résolues par leurs surcharges ; comparez avec Figma avant de conclure.',
   manqueeIntrouvable: (nom: string) => `${nom} : Figma ne rend aucune variable pour cet identifiant.`,
   manqueeRefusee: (nom: string, message: string) => `${nom} : la lecture a été refusée (${message}).`,
   exporterJson: 'Exporter le rapport JSON',
   exporterTexte: 'Exporter le rapport texte',
 
-  // Calques
-  calquesTitre: 'Consommateurs dans Figma',
-  perimetreEtiquette: 'Périmètre',
-  perimetres: { selection: 'Sélection', page: 'Page courante', document: 'Document' },
-  analyser: 'Analyser',
-  analyseEnCours: 'Analyse des calques…',
-  analyseAnnulee: 'Analyse annulée. Aucun résultat partiel n’est affiché.',
-  resumeAnalyse: (calques: number, consommateurs: number, occurrences: number) => `${calques} calques lus · ${consommateurs} consommateurs · ${occurrences} propriétés liées`,
-  pagesAnalysees: (pages: string) => `Pages analysées : ${pages}`,
-  aucunConsommateur: (perimetre: string) => `Aucun trouvé dans le périmètre analysé (${perimetre}). Cela ne prouve pas que la variable est inutilisée.`,
-  consommateursDuToken: (direct: number, indirect: number) => `${direct} liaison${direct > 1 ? 's' : ''} directe${direct > 1 ? 's' : ''} · ${indirect} par un alias`,
-  direct: 'directe',
-  parAlias: (nom: string) => `par ${nom}`,
-  afficherDansFigma: 'Afficher dans Figma',
-  calqueIntrouvable: 'Ce calque n’existe plus. Relancez l’analyse.',
-  nonInspecte: 'Non inspecté : réactions de prototype, valeurs par défaut des propriétés de composant, calques masqués des instances.',
-  erreursDeLecture: (nombre: number) => `${nombre} calque${nombre > 1 ? 's' : ''} illisible${nombre > 1 ? 's' : ''}, ignoré${nombre > 1 ? 's' : ''}.`,
-  analysePerimee: 'La sélection ou la page a changé depuis cette analyse. Relancez-la.',
-  selectionTitre: 'Sélection',
-  selectionVide: 'Aucun calque sélectionné dans Figma.',
-  selectionMultiple: (nombre: number) => `${nombre} calques sélectionnés : chacun garde ses propres modes.`,
-  modesDuCalque: 'Modes du calque',
-  explicite: 'explicite',
-  herite: 'hérité',
-  verifierAvecFigma: 'Comparer avec Figma',
-  valeurFigma: 'Figma',
-  valeurExplorateur: 'Explorateur',
-  concordance: 'Les deux valeurs concordent.',
-  divergence: 'Les valeurs diffèrent : notez le calque et le contexte pour la recette.',
-  erreurFigma: (message: string) => `Figma a refusé la lecture : ${message}`,
+  // Contraste
   contrasteTitre: 'Contraste d’une paire',
   contrasteAvec: 'Fond',
   contrasteSeuil: 'Seuil',
@@ -316,9 +292,6 @@ export const TEXTES = {
   emploisDuCran: (cran: string) => `Emplois du cran ${cran}`,
   aucunEmploi: 'Aucun emploi de la table ne vise ce cran.',
   sourceRecette: 'Source : recette, association manuelle',
-  proprietesPeintes: (proprietes: string) => `Propriétés peintes, d’après l’analyse des calques : ${proprietes}`,
-  aucuneProprietePeinte: 'Aucune propriété liée directement dans le périmètre analysé.',
-  proprietesNonAnalysees: 'Les propriétés peintes viennent de l’onglet Calques : lancez une analyse.',
   profilTitre: 'Profil d’architecture UCM',
   profilActiver: 'Appliquer le profil UCM',
   profilAide: 'Associez chaque collection à sa couche ; une collection sans couche n’est pas contrôlée.',
@@ -342,25 +315,10 @@ export const TEXTES = {
       detail: (nom: string, attendue: string) => `${nom} devrait viser theme / ${attendue} d’après la recette.`,
       action: 'Faites pointer l’alias vers ce cran de theme.',
     },
-    calque: {
-      detail: (calque: string, propriete: string, nom: string) => `Le calque ${calque} cite ${nom} sur ${propriete}, hors des couches usage et components.`,
-      action: 'Liez cette propriété à une variable de usage ou de components.',
-    },
   },
   emploiDuToken: (usage: string, rang: string | null, peint: string, portees: string) => `Emploi ${usage}${rang ? ` · rang ${rang}` : ''} · peint ${peint} · portées ${portees}`,
   exception: 'Ignorer cet écart',
   exceptionAide: 'L’exception reste dans vos préférences, pour ce fichier.',
-
-  // Graphe
-  grapheTitre: 'Graphe local',
-  grapheAncetres: 'Cibles',
-  grapheDependants: 'Dépendants',
-  deployer: (nom: string) => `Déployer ${nom}`,
-  grapheMasques: (nombre: number) => `${nombre} nœud${nombre > 1 ? 's' : ''} masqué${nombre > 1 ? 's' : ''} au-delà de 200`,
-  zoomPlus: 'Agrandir',
-  zoomMoins: 'Réduire',
-  recentrer: 'Recentrer',
-  grapheListe: 'Liste équivalente',
 
   // Relevés et simulation
   relevesTitre: 'Relevés',
@@ -391,6 +349,55 @@ export const TEXTES = {
     valeur: 'Refusé : la valeur ne se lit pas pour ce type.',
   },
   simulationEffets: (nombre: number) => `${nombre} variable${nombre > 1 ? 's' : ''} du relevé changent de valeur dans ce contexte`,
+
+  // Vue composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html
+  composant: {
+    vide: 'Sélectionnez un composant',
+    lecture: 'Lecture du composant…',
+    lectureEchouee: (message: string) => `La lecture du composant a échoué : ${message}. Sélectionnez-le de nouveau dans Figma.`,
+    filDAriane: 'Fil d’Ariane',
+    apercu: 'Aperçu du composant lu',
+    filtrer: 'Filtrer',
+    filtrerLesTokens: 'Filtrer les tokens',
+    toutDeplier: 'Tout déplier ou replier',
+    ouvrir: (nom: string) => `Ouvrir ${nom}`,
+    variantLu: 'Variant lu',
+    etapes: (nombre: number) => `${nombre} étape${nombre > 1 ? 's' : ''}`,
+    interrompue: 'interrompue',
+    copier: (valeur: string) => `Copier ${valeur}`,
+    ecartAvecFigma: (valeur: string) => `Figma rend ${valeur}`,
+    ecartAide: 'Figma rend une autre valeur que cette chaîne. Dépliez la ligne pour lire les deux.',
+    aucunNeCorrespond: 'Aucun token ne correspond.',
+    aucunToken: 'Aucun token · valeurs directes',
+    sansToken: 'Sans token',
+    aucunSurCeCalque: 'Aucun token sur ce calque.',
+    tokens: (nombre: number) => `${nombre} token${nombre > 1 ? 's' : ''}`,
+    liaisons: (nombre: number) => `${nombre} liaisons`,
+    nombreSansToken: (nombre: number) => `${nombre} sans token`,
+    calquesNonLus: (nombre: number) => `${nombre} calque${nombre > 1 ? 's' : ''} non lu${nombre > 1 ? 's' : ''}`,
+    calquesIgnores: (nombre: number) => `${nombre} calque${nombre > 1 ? 's' : ''} ignoré${nombre > 1 ? 's' : ''}`,
+    valeurAbsente: '—',
+    natures: { couleur: 'Couleur', forme: 'Forme', espacement: 'Espacement', taille: 'Taille', texte: 'Texte', autre: 'Autre' } satisfies Record<Nature, string>,
+    libelles: { texte: 'Texte', fond: 'Fond', contour: 'Contour', effet: 'Effet', rayon: 'Rayon', epaisseur: 'Épaisseur', opacite: 'Opacité', ecart: 'Écart', marge: 'Marge', taille: 'Taille', police: 'Texte', style: 'Style' } as Record<string, string>,
+    glyphes: {
+      composant: '◇',
+      calque: '#',
+      sectionFermee: '▸',
+      sectionOuverte: '▾',
+      toutReplier: '▴',
+      forme: '◜',
+      espacement: '↔',
+      taille: '⤢',
+      epaisseur: '─',
+      style: 'Aa',
+      texte: 'A',
+      autre: '·',
+      couleurInconnue: '?',
+      miette: '›',
+      ecart: '≠',
+    },
+    fois: (nombre: number) => `×${nombre}`,
+  },
 };
 
 /** Le titre d'un constat de chaîne. */

@@ -21,6 +21,27 @@ test('une chaîne traverse cinq collections, chaque étape garde sa variable, sa
   ]);
 });
 
+test('l’opacité d’un alias multiplie l’alpha de la couleur terminale, et les opacités d’une chaîne se multiplient', () => {
+  const c = constructeur();
+  c.collection('c', 'Couleurs', ['M']);
+  c.variable('bleu', 'c', 'bleu', 'COLOR', { M: couleur('#0000FF') });
+  c.variable('voile', 'c', 'voile', 'COLOR', { M: couleur('#0000FF', 0.8) });
+  c.variable('nul', 'c', 'bordure', 'COLOR', { M: { nature: 'alias', cible: 'bleu', opacite: 0 } });
+  c.variable('demi', 'c', 'demi', 'COLOR', { M: { nature: 'alias', cible: 'voile', opacite: 0.5 } });
+  c.variable('quart', 'c', 'quart', 'COLOR', { M: { nature: 'alias', cible: 'demi', opacite: 0.5 } });
+  c.variable('plein', 'c', 'plein', 'COLOR', { M: alias('voile') });
+  const index = indexer(c.releve());
+  const alpha = (id: string) => {
+    const resultat = resoudre(index, id, {});
+    return resultat.statut === 'resolu' && resultat.valeur.nature === 'couleur' ? resultat.valeur.couleur.a : null;
+  };
+  assert.equal(alpha('nul'), 0);
+  assert.equal(alpha('demi'), 0.4);
+  assert.equal(alpha('quart'), 0.2);
+  assert.equal(alpha('plein'), 0.8);
+  assert.equal(resoudre(index, 'nul', {}).etapes.length, 2);
+});
+
 test('une famille absente du contexte prend le mode par défaut déclaré, pas la première colonne', () => {
   const index = indexer(cinqCollections());
   const resultat = resoudre(index, 'theme-primary', {});

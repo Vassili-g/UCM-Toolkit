@@ -4,15 +4,21 @@
  * le constat qui l'arrête. Le survol et l'inspecteur emploient ce même rendu.
  */
 import { nomDeMode, texteDeSource } from '../copie';
+import type { Index } from '../indexation';
+import { pourcentageDOpacite } from '../modele';
 import { BORNE_DES_ETAPES, type Resultat } from '../resolution';
 import type { Application } from './application';
 import { TEXTES } from './textes';
 import { nomDeCible, rendreResultat } from './valeurs';
 
-/** Le constat d'une chaîne qui n'aboutit pas : titre, détail et geste. */
+/** Le constat d'une chaîne qui n'aboutit pas, dans le relevé du fichier : titre, détail et geste. */
 export function constatDeChaine(app: Application, resultat: Resultat): { titre: string; detail: string; action: string } | null {
-  const index = app.etat.index;
-  if (!index || resultat.statut === 'resolu') return null;
+  return app.etat.index ? constatDeResultat(app.etat.index, resultat) : null;
+}
+
+/** Le même constat pour un index donné : la vue composant indexe son propre relevé. */
+export function constatDeResultat(index: Index, resultat: Resultat): { titre: string; detail: string; action: string } | null {
+  if (resultat.statut === 'resolu') return null;
   const nom = (id: string) => nomDeCible(index, id);
   switch (resultat.statut) {
     case 'inaccessible':
@@ -94,6 +100,12 @@ export function rendreChaine(app: Application, resultat: Resultat, ouvrir?: (var
       source.className = 'etape-source';
       source.textContent = texteDeSource(index, etape.source);
       element.append(source);
+    }
+    if (etape.source.nature === 'alias' && etape.source.opacite !== undefined) {
+      const opacite = document.createElement('span');
+      opacite.className = 'etape-source';
+      opacite.textContent = TEXTES.opaciteDeLAlias(pourcentageDOpacite(etape.source.opacite));
+      element.append(opacite);
     }
     liste.append(element);
   });

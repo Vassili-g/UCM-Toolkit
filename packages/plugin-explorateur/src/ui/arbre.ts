@@ -1,15 +1,21 @@
 /**
- * L'arbre des collections et des groupes, en boutons accessibles : le chevron
+ * L'arbre des collections et des groupes, sous la recherche qui porte sur
+ * toutes les collections. Les lignes sont des boutons accessibles : le chevron
  * replie, le libellé choisit. Les deux gestes sont séparés : replier un parent
  * ne change pas la table. Les lignes sont virtualisées ; Haut et Bas déplacent
  * le focus d'un libellé à l'autre, Droite déplie et Gauche replie.
  */
 import { lignesVisibles, type LigneDArbre } from '../groupes';
 import type { Application, Composant } from './application';
+import { creerPoignee } from './poignee';
 import { TEXTES } from './textes';
 import { creerListeVirtuelle } from './virtualisation';
 
 export const HAUTEUR_DE_LIGNE_D_ARBRE = 28;
+
+/** Les bornes de la largeur réglée, en pixels. La feuille la borne aussi à une part de la fenêtre. */
+const LARGEUR_MINIMALE = 140;
+const LARGEUR_MAXIMALE = 480;
 
 export function creerArbre(app: Application): Composant {
   const element = document.createElement('nav');
@@ -20,10 +26,47 @@ export function creerArbre(app: Application): Composant {
   titre.textContent = TEXTES.arbreEtiquette;
   const liste = creerListeVirtuelle(HAUTEUR_DE_LIGNE_D_ARBRE, 'list');
   liste.element.classList.add('arbre-lignes');
-  const note = document.createElement('p');
-  note.className = 'note';
-  note.textContent = TEXTES.arbreNote;
-  element.append(titre, liste.element, note);
+  const recherche = document.createElement('input');
+  recherche.type = 'search';
+  recherche.className = 'recherche';
+  recherche.placeholder = TEXTES.rechercher;
+  recherche.title = TEXTES.rechercheAide;
+  recherche.setAttribute('aria-label', TEXTES.rechercheEtiquette);
+  recherche.addEventListener('input', () => app.rechercher(recherche.value));
+  recherche.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Escape' && recherche.value) {
+      recherche.value = '';
+      app.rechercher('');
+    }
+  });
+
+  /** La largeur réglée se pose sur la racine : la grille de `.corps` la lit, et prend son défaut sans elle. */
+  function poserLargeur(largeur: number | undefined): void {
+    if (largeur === undefined) document.documentElement.style.removeProperty('--largeur-arbre');
+    else document.documentElement.style.setProperty('--largeur-arbre', `${Math.max(LARGEUR_MINIMALE, Math.min(LARGEUR_MAXIMALE, largeur))}px`);
+  }
+
+  function rangerLargeur(largeur: number | undefined): void {
+    const { arbre: _retiree, ...autres } = app.etat.preferences.largeurs;
+    app.rangerPreferences({ ...app.etat.preferences, largeurs: largeur === undefined ? autres : { ...autres, arbre: largeur } });
+  }
+
+  const poignee = creerPoignee({
+    etiquette: TEXTES.largeurDeLArbre,
+    infobulle: TEXTES.largeurAide,
+    min: LARGEUR_MINIMALE,
+    max: LARGEUR_MAXIMALE,
+    lire: () => element.getBoundingClientRect().width,
+    poser(largeur, fin) {
+      poserLargeur(largeur);
+      if (fin) rangerLargeur(largeur);
+    },
+    retablir() {
+      poserLargeur(undefined);
+      rangerLargeur(undefined);
+    },
+  });
+  element.append(titre, recherche, liste.element, poignee);
 
   let lignes: LigneDArbre[] = [];
 
@@ -108,6 +151,9 @@ export function creerArbre(app: Application): Composant {
   return {
     element,
     mettreAJour() {
+      poserLargeur(app.etat.preferences.largeurs.arbre);
+      if (recherche.value !== app.etat.position.recherche) recherche.value = app.etat.position.recherche;
+      recherche.disabled = !app.etat.index;
       lignes = lignesVisibles(app.etat.arbres, app.etat.replies);
       liste.poser(lignes.length, rendreLigne, true);
     },

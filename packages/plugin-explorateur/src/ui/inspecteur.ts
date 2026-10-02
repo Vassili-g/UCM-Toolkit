@@ -1,6 +1,6 @@
 /**
- * L'inspecteur épinglé : la variable choisie par son nom, dans le contexte de
- * la barre. Il garde la même variable quand le contexte change ; son résultat
+ * L'inspecteur épinglé : la variable choisie par son nom, dans le contexte
+ * actif. Il garde la même variable quand le contexte change ; son résultat
  * se recalcule. Les copies impossibles sont désactivées, les autres restent
  * accessibles même quand la chaîne n'aboutit pas.
  */
@@ -11,7 +11,7 @@ import { modePour, valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
 import { constatDeChaine, rendreChaine, rendreConstat } from './chaine';
 import { TEXTES } from './textes';
-import { rendreResultat, rendreSource } from './valeurs';
+import { rendreResultat, rendreValeurResolue } from './valeurs';
 
 function section(titre: string): HTMLElement {
   const element = document.createElement('section');
@@ -196,12 +196,7 @@ export function creerInspecteur(app: Application): Composant {
           const contenu = document.createElement('dd');
           contenu.className = 'propriete-valeur';
           const source = valeurPourLeMode(index, variable, trouvee.collection, mode.id)?.valeur;
-          if (source) contenu.append(rendreSource(index, source, (cible) => app.suivre(cible), { variable, mode: mode.id }));
-          const resultatDuMode = app.resultat(variable, mode.id);
-          const rendu = rendreResultat(resultatDuMode);
-          rendu.dataset.chaine = variable;
-          rendu.dataset.mode = mode.id;
-          contenu.append(rendu);
+          contenu.append(rendreValeurResolue(index, source, app.resultat(variable, mode.id), (cible) => app.suivre(cible), { variable, mode: mode.id }));
           ligne.append(nom, contenu);
           liste.append(ligne);
         }

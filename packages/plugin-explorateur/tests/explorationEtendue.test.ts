@@ -1,37 +1,12 @@
-/** L'exploration étendue : graphe local, relevés exportés et comparés, simulation en mémoire. */
+/** L'exploration étendue : relevés exportés et comparés, simulation en mémoire. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { grapheLocal, NOEUDS_MAXIMAUX } from '../src/graphe';
 import { indexer } from '../src/indexation';
 import { comparerReleves, exporterReleve, importerReleve } from '../src/releves';
 import { resoudre } from '../src/resolution';
 import { effetsDeLaSimulation, lireSaisie, simuler } from '../src/simulation';
-import { alias, cinqCollections, constructeur, couleur, nombre, projetLibre } from './fixtures';
-
-test('le graphe et la table rendent la même chaîne : les arêtes actives sont celles de resoudre', () => {
-  const index = indexer(cinqCollections());
-  const contexte = { theme: 'theme:Light', marque: 'marque:Beta' };
-  const graphe = grapheLocal(index, 'theme-primary', contexte, new Set(['marque-500-clair', 'usage-surface']));
-  const chaine = resoudre(index, 'theme-primary', contexte).etapes.map((etape) => etape.variable);
-  const actives = graphe.aretes.filter((arete) => arete.active).map((arete) => `${arete.de}>${arete.vers}`);
-  assert.deepEqual(actives, chaine.slice(0, -1).map((id, rang) => `${id}>${chaine[rang + 1]}`).filter((cle) => actives.includes(cle)));
-  assert.ok(actives.includes('theme-primary>marque-500-clair'));
-  assert.ok(actives.includes('marque-500-clair>vert-500'));
-  assert.deepEqual(graphe.noeuds.filter((noeud) => noeud.colonne < 0).map((noeud) => noeud.id), ['usage-surface', 'bouton-fond']);
-  // Une branche non déployée s'annonce déployable.
-  assert.equal(graphe.noeuds.find((noeud) => noeud.id === 'marque-500-sombre')?.deployable, true);
-});
-
-test(`le premier affichage du graphe s’arrête à ${NOEUDS_MAXIMAUX} nœuds et compte le reste`, () => {
-  const c = constructeur();
-  c.collection('x', 'X', ['M']);
-  c.variable('centre', 'x', 'centre', 'FLOAT', { M: nombre(1) });
-  for (let rang = 0; rang < 260; rang += 1) c.variable(`d${rang}`, 'x', `d${rang}`, 'FLOAT', { M: alias('centre') });
-  const graphe = grapheLocal(indexer(c.releve()), 'centre', {}, new Set());
-  assert.equal(graphe.noeuds.length, NOEUDS_MAXIMAUX);
-  assert.equal(graphe.masques, 61);
-});
+import { alias, couleur, nombre, projetLibre } from './fixtures';
 
 test('un relevé exporté puis importé garde références, contextes et provenance', () => {
   const releve = projetLibre();

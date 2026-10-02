@@ -10,6 +10,9 @@
  * du chemin courant : deux branches qui atteignent la même cible n'en forment
  * pas un. Au-delà de `BORNE_DES_ETAPES`, le résultat est « interrompu », sans
  * conclure à un cycle.
+ *
+ * Un alias de couleur peut porter une opacité. Elle multiplie l'alpha de la
+ * couleur terminale, et les opacités d'une chaîne se multiplient entre elles.
  */
 import { descendDe, familleDe, type Index } from './indexation';
 import { natureAttendue, type CollectionRelevee, type TypeDeVariable, type ValeurSource, type ValeurTerminale } from './modele';
@@ -105,6 +108,7 @@ export function resoudre(index: Index, depart: string, contexte: Contexte, optio
   const visites = new Map<string, number>();
   const typeDeDepart = index.variables.get(depart)?.type;
   let courante = depart;
+  let opacite = 1;
   while (etapes.length < BORNE_DES_ETAPES) {
     const variable = index.variables.get(courante);
     const collection = variable ? index.collections.get(variable.collection) : undefined;
@@ -123,11 +127,13 @@ export function resoudre(index: Index, depart: string, contexte: Contexte, optio
     const valeur = lue.valeur;
     if (valeur.nature === 'alias') {
       courante = valeur.cible;
+      opacite *= valeur.opacite ?? 1;
       continue;
     }
     if (valeur.nature === 'non-prise-en-charge') return { statut: 'non-pris-en-charge', etapes, brut: valeur.brut };
     const attendue = natureAttendue(variable.type);
     if (attendue !== null && attendue !== valeur.nature) return { statut: 'type-incompatible', etapes, variable: courante, attendu: variable.type, obtenu: valeur.nature };
+    if (valeur.nature === 'couleur' && opacite !== 1) return { statut: 'resolu', etapes, valeur: { nature: 'couleur', couleur: { ...valeur.couleur, a: valeur.couleur.a * opacite } } };
     return { statut: 'resolu', etapes, valeur };
   }
   return { statut: 'interrompu', etapes };

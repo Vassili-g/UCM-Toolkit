@@ -7,6 +7,10 @@
 
 export const CLE_DES_PREFERENCES = 'ucm-explorateur.preferences';
 
+/** Ce dont le designer règle la largeur, et que la fenêtre suivante retrouve. */
+export const LARGEURS_REGLABLES = ['arbre', 'nom', 'type'] as const;
+export type LargeurReglable = (typeof LARGEURS_REGLABLES)[number];
+
 export interface Preferences {
   /** Une seule colonne de valeur, celle du contexte actif, au lieu d'une colonne par mode. */
   readonly vueCompacte: boolean;
@@ -20,9 +24,11 @@ export interface Preferences {
   readonly associations: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Les écarts au profil que le designer a choisi d'ignorer, par nom de fichier. */
   readonly exceptions: Readonly<Record<string, readonly string[]>>;
+  /** Les largeurs réglées, en pixels. Une largeur absente prend son défaut ; l'interface borne chacune à l'affichage. */
+  readonly largeurs: Readonly<Partial<Record<LargeurReglable, number>>>;
 }
 
-export const PREFERENCES_PAR_DEFAUT: Preferences = { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {} };
+export const PREFERENCES_PAR_DEFAUT: Preferences = { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, largeurs: {} };
 
 const estObjet = (valeur: unknown): valeur is Record<string, unknown> => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
 
@@ -44,7 +50,14 @@ export function preferencesValides(brut: unknown): Preferences {
       if (Array.isArray(cles)) exceptions[fichier] = cles.filter((cle): cle is string => typeof cle === 'string');
     }
   }
-  return { vueCompacte: booleen('vueCompacte'), palettes: booleen('palettes'), profilUcm: booleen('profilUcm'), associations, exceptions };
+  const largeurs: Partial<Record<LargeurReglable, number>> = {};
+  if (estObjet(brut.largeurs)) {
+    for (const cle of LARGEURS_REGLABLES) {
+      const largeur = brut.largeurs[cle];
+      if (typeof largeur === 'number' && Number.isFinite(largeur) && largeur > 0) largeurs[cle] = largeur;
+    }
+  }
+  return { vueCompacte: booleen('vueCompacte'), palettes: booleen('palettes'), profilUcm: booleen('profilUcm'), associations, exceptions, largeurs };
 }
 
 export interface StockageDePreferences {

@@ -106,7 +106,7 @@ function renderTree(){
   const key=treeKey(name,path),expanded=!collapsed.has(key),current=name===collection&&path===group&&!search;
   return `<li><div class="tree-row">${children.length?`<button class="tree-toggle" data-toggle="${escapeHtml(key)}" aria-expanded="${expanded}" aria-label="${expanded?'Replier':'Déplier'} ${escapeHtml(name+(path?'/'+path:''))}">${expanded?'▾':'▸'}</button>`:'<span class="tree-spacer"></span>'}<button class="collection ${path?'tree-group':''}" data-collection="${escapeHtml(name)}" data-group="${escapeHtml(path)}" aria-current="${current}" title="${escapeHtml(name+(path?'/'+path:''))}"><span>${escapeHtml(label)}</span><span class="count">${rows.length}</span></button></div>${children.length&&expanded?`<ul class="tree-list tree-children">${children.map(child=>branch(name,path?path+'/'+child:child,child)).join('')}</ul>`:''}</li>`;
  }
- $('collections').innerHTML=`<span class="eyebrow">Collections et groupes</span><ul class="tree-list">${collections.map(c=>branch(c,'',c)).join('')}</ul><p class="aside-note">Le parent affiche tout son sous-arbre. Les chevrons replient uniquement la navigation.</p>`;
+ $('collections').innerHTML=`<span class="eyebrow">Collections</span><ul class="tree-list">${collections.map(c=>branch(c,'',c)).join('')}</ul><p class="aside-note">Le parent affiche tout son sous-arbre. Les chevrons replient uniquement la navigation.</p>`;
 }
 const modesOf=collection=>[...new Set(tokens.filter(t=>t.collection===collection).flatMap(t=>Object.keys(t.values)))];
 const axes=()=>collections.filter(c=>modesOf(c).length>1);

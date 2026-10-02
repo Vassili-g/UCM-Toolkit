@@ -1,18 +1,49 @@
 /**
- * Comparer : la variable inspectée dans deux contextes indépendants. Le
- * contexte A est celui de la barre ; le contexte B se choisit ici, famille par
- * famille. Rien n'est modifié, ni les valeurs, ni le mode d'un calque.
+ * Comparer : la variable inspectée dans deux contextes indépendants, choisis
+ * ici famille par famille. Le contexte A est le contexte actif : la table,
+ * l'inspecteur et les diagnostics le suivent. Une famille à un seul mode n'a
+ * rien à choisir. Rien n'est modifié, ni les valeurs, ni le mode d'un calque.
  */
 import { comparer, type Ecart } from '../../comparaison';
 import { nomComplet } from '../../copie';
-import type { Resultat } from '../../resolution';
+import { familles, modesDeFamille, type Index } from '../../indexation';
+import type { Contexte, Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
-import { selecteursDeContexte } from '../barre';
 import { constatDeChaine, rendreChaine, rendreConstat } from '../chaine';
 import { variablesAffichees } from '../etat';
 import { TEXTES } from '../textes';
 import { rendreResultat } from '../valeurs';
 import { lienVersVariable, liste, note, titreDeVue } from './outils';
+
+/** Les sélecteurs de mode d'un contexte, un par famille à plusieurs modes. */
+function selecteursDeContexte(index: Index, contexte: Contexte, cote: 'A' | 'B', changer: (famille: string, mode: string) => void): HTMLElement[] {
+  return familles(index).flatMap((famille) => {
+    const modes = modesDeFamille(index, famille.id);
+    if (modes.length < 2) return [];
+    const champ = document.createElement('label');
+    champ.className = 'contexte-champ';
+    const nom = document.createElement('span');
+    nom.className = 'contexte-nom';
+    nom.textContent = famille.nom;
+    const choix = document.createElement('select');
+    choix.className = 'choix';
+    choix.dataset.famille = famille.id;
+    choix.dataset.cote = cote;
+    choix.setAttribute('aria-label', cote === 'A' ? TEXTES.contexteDeFamille(famille.nom) : TEXTES.contexteBEtiquette(famille.nom));
+    const retenu = contexte[famille.id] ?? famille.modeParDefaut;
+    for (const { collection, mode } of modes) {
+      const option = document.createElement('option');
+      option.value = mode.id;
+      const libelle = collection.id === famille.id ? mode.nom : `${collection.nom} · ${mode.nom}`;
+      option.textContent = mode.id === famille.modeParDefaut ? TEXTES.defautDeFamille(libelle) : libelle;
+      option.selected = mode.id === retenu;
+      choix.append(option);
+    }
+    choix.addEventListener('change', () => changer(famille.id, choix.value));
+    champ.append(nom, choix);
+    return [champ];
+  });
+}
 
 /** Le texte d'un écart, numéroté à partir de 1 pour le designer. */
 export function texteDEcart(ecart: Ecart): string {
@@ -82,9 +113,9 @@ export function creerVueComparer(app: Application): Composant {
         verdict.textContent = `${texteDEcart(ecart)}${egalite}`;
         const grille = document.createElement('div');
         grille.className = 'grille-comparee';
-        const lectureSeule = selecteursDeContexte(index, etat.contexte, 'A', (famille, mode) => app.changerContexte(famille, mode, 'A'));
+        const choixA = selecteursDeContexte(index, etat.contexte, 'A', (famille, mode) => app.changerContexte(famille, mode, 'A'));
         const choixB = selecteursDeContexte(index, etat.contexteB, 'B', (famille, mode) => app.changerContexte(famille, mode, 'B'));
-        grille.append(carte(TEXTES.contexteA, a, rang, lectureSeule), carte(TEXTES.contexteB, b, rang, choixB));
+        grille.append(carte(TEXTES.contexteA, a, rang, choixA), carte(TEXTES.contexteB, b, rang, choixB));
         parties.push(nom, verdict, grille);
       }
       const affichees = variablesAffichees(etat, () => '').slice(0, COMPARAISONS_MAXIMALES);

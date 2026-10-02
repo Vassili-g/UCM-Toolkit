@@ -8,7 +8,7 @@
  * (`referencePubliee`) : un nom Figma ne donne pas une référence DTCG.
  */
 import type { Index } from './indexation';
-import { composantesDeCouleur, hexaDeCouleur, texteDeValeur, type ValeurSource } from './modele';
+import { composantesDeCouleur, hexaDeCouleur, pourcentageDOpacite, texteDeValeur, type ValeurSource } from './modele';
 import type { Etape, Resultat } from './resolution';
 
 export type FormatDeCopie = 'nom' | 'valeur' | 'hexa' | 'composantes' | 'chaine' | 'source' | 'reference';
@@ -38,7 +38,8 @@ export function nomDeMode(index: Index, mode: string): string {
 
 /** Une valeur source en texte : un alias nomme sa cible. */
 export function texteDeSource(index: Index, source: ValeurSource): string {
-  return source.nature === 'alias' ? `→ ${nomComplet(index, source.cible)}` : texteDeValeur(source);
+  if (source.nature !== 'alias') return texteDeValeur(source);
+  return `→ ${nomComplet(index, source.cible)}${source.opacite === undefined ? '' : ` · ${pourcentageDOpacite(source.opacite)}`}`;
 }
 
 /** La chaîne en texte, une étape par ligne, avec le constat quand elle n'aboutit pas. */

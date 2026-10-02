@@ -1,9 +1,14 @@
 /**
  * La table des variables : nom, type, puis une colonne par mode de la
- * collection affichée. Chaque cellule montre la valeur rangée ou l'alias
- * direct, puis le résultat. Les autres collections traversées suivent le
- * contexte de la barre. La vue compacte et la recherche n'ont qu'une colonne,
- * celle du contexte actif.
+ * collection affichée. Chaque cellule montre sur une ligne la valeur rangée,
+ * ou l'alias direct suivi de ce qu'il rend. Les autres collections traversées
+ * suivent le contexte actif. La vue compacte et la recherche n'ont
+ * qu'une colonne, celle du contexte actif.
+ *
+ * Chaque colonne se règle par la poignée de son en-tête. Les largeurs du nom
+ * et du type se rangent dans les préférences. Celle d'une colonne de valeur
+ * vaut jusqu'à la fermeture du plugin : un identifiant de mode se répète d'un
+ * fichier à l'autre.
  *
  * Les lignes sont virtualisées : une table de dix mille variables ne monte
  * que les lignes visibles.
@@ -15,16 +20,25 @@ import { texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type Variable
 import { valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
 import { FILTRES_PAR_DEFAUT, variablesAffichees, type Filtres } from './etat';
+import { creerPoignee } from './poignee';
 import { TEXTES } from './textes';
-import { nomDeCible, rendreResultat, rendreSource } from './valeurs';
+import { nomDeCible, rendreValeurResolue } from './valeurs';
 import { creerListeVirtuelle } from './virtualisation';
 
-export const HAUTEUR_DE_LIGNE = 56;
+export const HAUTEUR_DE_LIGNE = 40;
 
-/** Les largeurs de colonne, en pixels : nom, type, puis chaque valeur. */
-const LARGEUR_DU_NOM = 240;
-const LARGEUR_DU_TYPE = 84;
-const LARGEUR_D_UNE_VALEUR = 220;
+/**
+ * Les largeurs de colonne, en pixels : défaut, puis bornes du réglage. Une
+ * colonne de valeur non réglée part de son défaut et partage la place libre.
+ */
+const COLONNES = {
+  nom: { defaut: 240, min: 120, max: 640 },
+  type: { defaut: 84, min: 60, max: 200 },
+  valeur: { defaut: 220, min: 120, max: 800 },
+} as const;
+
+/** La clé de la colonne unique de la vue compacte et de la recherche. */
+const COLONNE_DU_CONTEXTE = 'contexte';
 
 function choixDeFiltre<C extends string>(etiquette: string, valeurs: ReadonlyArray<[C, string]>, actuel: C, changer: (valeur: C) => void): HTMLLabelElement {
   const champ = document.createElement('label');
@@ -46,7 +60,7 @@ function choixDeFiltre<C extends string>(etiquette: string, valeurs: ReadonlyArr
   return champ;
 }
 
-export function creerTable(app: Application): Composant & { readonly tete: HTMLElement; montrer(variable: string): void; defilement(): number; rendues(): number } {
+export function creerTable(app: Application): Composant & { readonly tete: HTMLElement; montrer(variable: string): void; rendues(): number } {
   const element = document.createElement('section');
   element.className = 'table';
 
@@ -80,17 +94,61 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
   let lignes: VariableRelevee[] = [];
   let modes: CollectionRelevee['modes'] = [];
   let cleDeVue = '';
+  /** Les colonnes de valeur affichées, par clé, et les largeurs réglées depuis l'ouverture. */
+  let colonnesDeValeur: string[] = [];
+  const largeursDeValeur = new Map<string, number>();
+  /** La largeur du nom ou du type pendant un geste, avant son rangement. */
+  const enCours: { nom?: number; type?: number } = {};
+
+  const borner = (colonne: keyof typeof COLONNES, largeur: number): number => Math.max(COLONNES[colonne].min, Math.min(COLONNES[colonne].max, largeur));
+  const largeurFixe = (colonne: 'nom' | 'type'): number => borner(colonne, enCours[colonne] ?? app.etat.preferences.largeurs[colonne] ?? COLONNES[colonne].defaut);
+
+  function poserColonnes(): void {
+    const valeurs = colonnesDeValeur.map((cle) => largeursDeValeur.get(cle));
+    const colonnes = [`${largeurFixe('nom')}px`, `${largeurFixe('type')}px`, ...valeurs.map((largeur) => (largeur === undefined ? `minmax(${COLONNES.valeur.defaut}px, 1fr)` : `${largeur}px`))];
+    liste.element.style.setProperty('--colonnes', colonnes.join(' '));
+    liste.element.style.setProperty('--largeur-minimale', `${largeurFixe('nom') + largeurFixe('type') + valeurs.reduce<number>((somme, largeur) => somme + (largeur ?? COLONNES.valeur.defaut), 0)}px`);
+  }
+
+  function rangerLargeur(colonne: 'nom' | 'type', largeur: number | undefined): void {
+    const { [colonne]: _retiree, ...autres } = app.etat.preferences.largeurs;
+    delete enCours[colonne];
+    app.rangerPreferences({ ...app.etat.preferences, largeurs: largeur === undefined ? autres : { ...autres, [colonne]: largeur } });
+    poserColonnes();
+  }
 
   const valeurCherchee = (id: string): string => {
     const resultat = app.resultat(id);
     return resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur) : '';
   };
 
-  function cellule(texte: string): HTMLDivElement {
+  /** L'en-tête d'une colonne et sa poignée. `cle` désigne une colonne de valeur ; sans elle, `colonne` est le nom ou le type. */
+  function cellule(texte: string, colonne: keyof typeof COLONNES, cle?: string): HTMLDivElement {
     const element = document.createElement('div');
     element.className = 'cellule-entete';
     element.setAttribute('role', 'columnheader');
-    element.textContent = texte;
+    const libelle = document.createElement('span');
+    libelle.className = 'cellule-entete-nom';
+    libelle.textContent = texte;
+    const poignee = creerPoignee({
+      etiquette: TEXTES.largeurDe(texte),
+      infobulle: TEXTES.largeurAide,
+      min: COLONNES[colonne].min,
+      max: COLONNES[colonne].max,
+      lire: () => element.getBoundingClientRect().width,
+      poser(largeur, fin) {
+        if (cle !== undefined) largeursDeValeur.set(cle, largeur);
+        else if (colonne !== 'valeur' && fin) return rangerLargeur(colonne, largeur);
+        else if (colonne !== 'valeur') enCours[colonne] = largeur;
+        poserColonnes();
+      },
+      retablir() {
+        if (cle !== undefined) largeursDeValeur.delete(cle);
+        else if (colonne !== 'valeur') return rangerLargeur(colonne, undefined);
+        poserColonnes();
+      },
+    });
+    element.append(libelle, poignee);
     return element;
   }
 
@@ -103,16 +161,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     const resultat = app.resultat(variable.id, mode);
     const premiere = resultat.etapes[0];
     const source = mode ? valeurPourLeMode(index, variable.id, variable.collection, mode)?.valeur : premiere?.source;
-    const haut = document.createElement('div');
-    haut.className = 'cellule-source';
-    if (source) haut.append(rendreSource(index, source, (cible) => app.suivre(cible), { variable: variable.id, mode: mode ?? '' }));
-    const bas = document.createElement('div');
-    bas.className = 'cellule-resultat';
-    bas.dataset.chaine = variable.id;
-    bas.dataset.mode = mode ?? '';
-    bas.tabIndex = -1;
-    bas.append(rendreResultat(resultat));
-    contenu.append(haut, bas);
+    contenu.append(rendreValeurResolue(index, source, resultat, (cible) => app.suivre(cible), { variable: variable.id, mode: mode ?? '' }));
     return contenu;
   }
 
@@ -132,7 +181,12 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     bouton.dataset.focus = `nom:${variable.id}`;
     bouton.dataset.chaine = variable.id;
     bouton.dataset.mode = '';
-    bouton.textContent = etat.position.recherche ? variable.nom : variable.nom.slice(etat.position.groupe.join('/').length + (etat.position.groupe.length ? 1 : 0));
+    const nomAffiche = etat.position.recherche ? variable.nom : variable.nom.slice(etat.position.groupe.join('/').length + (etat.position.groupe.length ? 1 : 0));
+    const debutDuNom = nomAffiche.lastIndexOf('/') + 1;
+    const chemin = document.createElement('span');
+    chemin.className = 'nom-de-token-chemin';
+    chemin.textContent = nomAffiche.slice(0, debutDuNom);
+    bouton.append(chemin, document.createTextNode(nomAffiche.slice(debutDuNom)));
     bouton.setAttribute('aria-label', TEXTES.ouvrir(nomDeCible(etat.index!, variable.id)));
     bouton.addEventListener('click', () => app.inspecter(variable.id));
     nom.append(bouton);
@@ -215,13 +269,14 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       if (etat.onglet !== 'table') return;
       poserFiltres();
 
-      const colonnes = [`${LARGEUR_DU_NOM}px`, `${LARGEUR_DU_TYPE}px`, ...(modes.length === 0 ? [`minmax(${LARGEUR_D_UNE_VALEUR}px, 1fr)`] : modes.map(() => `minmax(${LARGEUR_D_UNE_VALEUR}px, 1fr)`))];
-      liste.element.style.setProperty('--colonnes', colonnes.join(' '));
-      liste.element.style.setProperty('--largeur-minimale', `${LARGEUR_DU_NOM + LARGEUR_DU_TYPE + Math.max(1, modes.length) * LARGEUR_D_UNE_VALEUR}px`);
+      colonnesDeValeur = modes.length === 0 ? [COLONNE_DU_CONTEXTE] : modes.map((mode) => `${collection?.id}:${mode.id}`);
+      poserColonnes();
       entete.replaceChildren(
-        cellule(TEXTES.colonneNom),
-        cellule(TEXTES.colonneType),
-        ...(modes.length === 0 ? [cellule(TEXTES.colonneContexte)] : modes.map((mode) => cellule(mode.id === collection?.modeParDefaut ? TEXTES.defautDeFamille(mode.nom) : mode.nom))),
+        cellule(TEXTES.colonneNom, 'nom'),
+        cellule(TEXTES.colonneType, 'type'),
+        ...(modes.length === 0
+          ? [cellule(TEXTES.colonneContexte, 'valeur', COLONNE_DU_CONTEXTE)]
+          : modes.map((mode, rang) => cellule(mode.id === collection?.modeParDefaut ? TEXTES.defautDeFamille(mode.nom) : mode.nom, 'valeur', colonnesDeValeur[rang]))),
       );
 
       const cle = JSON.stringify([position.collection, position.groupe, position.recherche, position.filtres, modes.length, etat.preferences.vueCompacte, etat.releve?.revision]);
@@ -231,7 +286,6 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       vide.hidden = lignes.length > 0;
       vide.textContent = recherche || JSON.stringify(position.filtres) !== JSON.stringify(FILTRES_PAR_DEFAUT) ? TEXTES.aucunResultat : TEXTES.aucuneVariableIci;
       liste.poser(lignes.length, rendreLigne, memeVue);
-      if (!memeVue && position.defilement > 0) liste.defiler(position.defilement);
     },
     montrer(variable) {
       const rang = lignes.findIndex((ligne) => ligne.id === variable);
@@ -239,8 +293,6 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       liste.montrer(rang);
       liste.element.querySelector<HTMLElement>(`[data-focus="${CSS.escape(`nom:${variable}`)}"]`)?.focus({ preventScroll: true });
     },
-    defilement: () => liste.defilement(),
     rendues: () => liste.rendues(),
   };
 }
-

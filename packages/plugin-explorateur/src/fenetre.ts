@@ -2,10 +2,11 @@
  * La fenêtre de l'explorateur : ses deux dispositions, leurs bornes et leurs
  * clés. La lecture, le rangement et le bornage sont ceux du socle.
  *
- * La disposition large porte l'arbre, la table et l'inspecteur. La
- * disposition étroite porte la vue composant seule : le sandbox la choisit
- * dans un fichier sans variable locale. Chaque disposition range sa taille
- * sous sa propre clé.
+ * La disposition large porte l'explorateur de tokens : l'arbre, la table et
+ * l'inspecteur. La disposition étroite porte la vue composant. Le sandbox
+ * ouvre l'étroite dans un fichier sans variable locale, et la bascule de la
+ * barre passe de l'une à l'autre. Chaque disposition range sa taille sous sa
+ * propre clé.
  */
 import * as socle from 'ucm-plugin-socle/src/fenetre';
 
@@ -20,8 +21,8 @@ export const TAILLE_MINIMALE = { largeur: 560, hauteur: 480 } as const;
 /** Une clé propre au plugin, distincte de celles des deux autres plugins. */
 export const CLE_DE_LA_FENETRE = 'ucm-explorateur/tailleFenetre';
 
-/** La taille d'ouverture de la vue composant seule : une colonne. */
-export const TAILLE_ETROITE = { largeur: 364, hauteur: 680 } as const;
+/** La taille d'ouverture de la vue composant : une colonne de 680 px sous la barre de 44 px. */
+export const TAILLE_ETROITE = { largeur: 364, hauteur: 724 } as const;
 
 /** En dessous, une ligne ne montre plus son nom à côté de sa valeur. */
 export const TAILLE_MINIMALE_ETROITE = { largeur: 320, hauteur: 420 } as const;

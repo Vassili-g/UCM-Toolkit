@@ -14,12 +14,13 @@ function compiler(entree, nom) {
   require('esbuild').buildSync({ entryPoints: [entree], outfile: compile, bundle: true, format: 'cjs', platform: 'node' });
   return require(compile);
 }
-const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur } = compiler(path.resolve(__dirname, '../tests/fixtures.ts'), 'galerie-fixtures');
+const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe } = compiler(path.resolve(__dirname, '../tests/fixtures.ts'), 'galerie-fixtures');
+const { imagePng } = require('./image.cjs');
 
 const releve = (donnees, demande = 1) => ({ message: { type: 'releve', demande, releve: donnees } });
 const libre = releve(projetLibre());
 const multimarque = releve(cinqCollections());
-const preferences = (valeurs = {}) => ({ message: { type: 'preferences', preferences: { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, ...valeurs } } });
+const preferences = (valeurs = {}) => ({ message: { type: 'preferences', preferences: { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, largeurs: {}, ...valeurs } } });
 const onglet = (nom) => ({ clic: `#onglet-${nom}` });
 const inspecter = (id) => ({ clic: `[data-focus="nom:${id}"]` });
 const groupe = (collection, ...segments) => ({ clic: `[data-focus='choix:${JSON.stringify([collection, ...segments])}']` });
@@ -44,40 +45,65 @@ function releveLong() {
   return c.releve();
 }
 
-const consommateurs = {
-  message: {
-    type: 'consommateurs',
-    demande: 2,
-    resultat: {
-      perimetre: 'page',
-      pages: [{ id: '0:1', nom: 'Écrans' }],
-      calques: 42,
-      styles: 0,
-      occurrences: [
-        { consommateur: '1:2', genre: 'calque', nom: 'Carte principale', page: { id: '0:1', nom: 'Écrans' }, propriete: 'fills[0]', variable: 'carte-fond', modes: { couleurs: { mode: 'couleurs:Jour', explicite: true } } },
-        { consommateur: '1:3', genre: 'calque', nom: 'En-tête', page: { id: '0:1', nom: 'Écrans' }, propriete: 'fills[0]', variable: 'entete-fond', modes: { couleurs: { mode: 'couleurs:Nuit', explicite: false } } },
-        { consommateur: '1:4', genre: 'calque', nom: 'Fond libre', page: { id: '0:1', nom: 'Écrans' }, propriete: 'strokes[0]', variable: 'surface', modes: {} },
-      ],
-      erreurs: [],
-      nonInspecte: ['reactions', 'valeurs-par-defaut', 'calques-masques-des-instances'],
-    },
-  },
-};
+/*
+ * La vue composant. Le sandbox annonce la disposition, puis la sélection ;
+ * l'interface demande alors le composant, sous la demande 2, la demande 1
+ * étant celle du relevé. Un composant imbriqué ouvert prend la demande 3.
+ */
+const alert = composantSimple();
+const stressTest = composantComplexe();
+const bouton = composantBouton();
+const tag = composantInterrompu();
+const avatar = composantSansToken();
+const etroite = { message: { type: 'disposition', disposition: 'etroite' } };
+const choisir = (lecture, portee = lecture.sujet.id, ignores = 0) => ({ message: { type: 'selection', sujet: { id: lecture.sujet.id, portee }, ignores } });
+const sansSelection = { message: { type: 'selection', sujet: null, ignores: 0 } };
+const bascule = (disposition) => ({ clic: `.bascule-choix[data-mode="${disposition}"]` });
+const composant = (lecture, demande = 2) => ({ message: { type: 'composant', demande, lecture } });
 
-const selection = {
-  message: {
-    type: 'selection',
-    page: '0:1',
-    calques: [{ id: '1:2', nom: 'Carte principale', type: 'FRAME', modes: { couleurs: { mode: 'couleurs:Jour', explicite: true }, mesures: { mode: 'mesures:Compact', explicite: false } }, liaisons: [{ propriete: 'fills[0]', variable: 'carte-fond' }, { propriete: 'itemSpacing', variable: 'carte-gap' }] }],
-  },
-};
+/** L'image d'un composant de test : chaque calque peint sa boîte. Les octets voyagent en tableau, que le JSON du pilote garde. */
+function apercu(lecture, demande = 2) {
+  const { largeur, hauteur } = lecture.calques[0].boite;
+  return { message: { type: 'apercu-du-composant', demande, sujet: lecture.sujet.id, octets: [...imagePng(largeur, hauteur, peinturesDe(lecture))], largeur, hauteur, origine: { x: 0, y: 0 } } };
+}
 
-const ETATS = [
+const ouvrir = (lecture) => [preferences(), etroite, choisir(lecture), composant(lecture), apercu(lecture)];
+const ligne = (debut) => ({ clic: `[data-focus^='ligne:${debut}']` });
+const calqueNomme = (lecture, nom) => lecture.calques.find((calque) => calque.nom === nom).id;
+
+/** Alert dont Figma rend, pour le fond, une autre couleur que la chaîne. */
+const alertAvecEcart = { ...alert, liaisons: alert.liaisons.map((liaison) => (liaison.variable.endsWith('/background') ? { ...liaison, valeurDeFigma: couleur('#E0F2FE') } : liaison)) };
+/** Alert lu depuis un jeu de trois variants. */
+const alertAVariants = { ...alert, sujet: { ...alert.sujet, type: 'COMPONENT_SET', variants: [{ id: alert.calques[0].id, nom: 'info · standard' }, { id: 'alert:erreur', nom: 'error · standard' }, { id: 'alert:succes', nom: 'success · standard' }] } };
+
+const ETATS_DU_COMPOSANT = [
+  { id: 'composant-vide', titre: 'Aucun composant sélectionné', quand: 'Le fichier n’a aucune variable locale et rien n’est sélectionné.', regarder: 'La barre et sa bascule sur « Composant », puis le pictogramme et « Sélectionnez un composant » ; ni arbre, ni onglets.', existe: true, atteinte: [preferences(), etroite, sansSelection] },
+  { id: 'composant-lecture', titre: 'Lecture d’un composant', quand: 'Un composant vient d’être sélectionné.', regarder: 'La lecture s’annonce à la place de la liste.', existe: true, atteinte: [preferences(), etroite, choisir(alert)] },
+  { id: 'composant-simple', titre: 'Composant simple', quand: 'Alert est sélectionné : 10 lignes.', regarder: 'Nom, variant, aperçu, composant imbriqué, puis une ligne par token, sections ouvertes.', existe: true, atteinte: ouvrir(alert) },
+  { id: 'composant-chaine', titre: 'Chaîne dépliée', quand: 'Le rayon d’Alert est déplié.', regarder: 'Trois étapes, la valeur à copier, puis le libellé et le calque.', existe: true, atteinte: [...ouvrir(alert), ligne('components/alert/sizes/border-radius')] },
+  { id: 'composant-style', titre: 'Style de texte déplié', quand: 'Body/Large est déplié.', regarder: 'Une ligne par champ : collections traversées et valeur.', existe: true, atteinte: [...ouvrir(alert), ligne('style:S:Body/Large')] },
+  { id: 'composant-interrompu', titre: 'Chaîne interrompue', quand: 'Le texte de Tag vise une variable non lue.', regarder: '« interrompue » sur la ligne ; la chaîne s’arrête sur la cause, sans valeur.', existe: true, atteinte: [...ouvrir(tag), ligne('components/tag/outline/foreground')] },
+  { id: 'composant-valeurs-sans-token', titre: 'Valeurs sans token', quand: 'Le pied de Tag est ouvert.', regarder: 'La section « Sans token » liste la marge posée à la main.', existe: true, atteinte: [...ouvrir(tag), { clic: '[data-focus="directes"]' }] },
+  { id: 'composant-sans-token', titre: 'Composant sans token', quand: 'Avatar ne porte aucune variable.', regarder: '« Aucun token · valeurs directes », puis les trois valeurs ; aucun outil.', existe: true, atteinte: ouvrir(avatar) },
+  { id: 'composant-ecart', titre: 'Écart avec Figma', quand: 'Figma rend une autre couleur que la chaîne du fond.', regarder: 'La ligne garde la valeur de la chaîne et porte la marque ; dépliée, elle donne les deux valeurs.', existe: true, atteinte: [...ouvrir(alertAvecEcart), ligne('components/alert/colors/info/standard/background')] },
+  { id: 'composant-sans-apercu', titre: 'Aperçu absent', quand: 'L’export de l’image a échoué.', regarder: 'La zone d’aperçu disparaît ; la liste reste entière.', existe: true, atteinte: [preferences(), etroite, choisir(alert), composant(alert)] },
+  { id: 'composant-complexe', titre: 'Composant complexe replié', quand: 'StressTest est sélectionné : 52 lignes.', regarder: 'Cinq sections repliées avec leur résumé, sans défilement.', existe: true, atteinte: ouvrir(stressTest) },
+  { id: 'composant-section', titre: 'Section dépliée', quand: 'La section Couleur de StressTest est ouverte.', regarder: '18 lignes, le compte ×12 sur les tuiles.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }] },
+  { id: 'composant-portee', titre: 'Portée d’un calque', quand: 'Le calque UserInput est sélectionné dans StressTest.', regarder: 'Le fil d’Ariane, le calque en titre, ses 14 tokens, son cadre dans l’aperçu.', existe: true, atteinte: [preferences(), etroite, choisir(stressTest, calqueNomme(stressTest, 'UserInput')), composant(stressTest), apercu(stressTest)] },
+  { id: 'composant-frontiere', titre: 'Composant imbriqué ouvert', quand: 'Button est ouvert depuis StressTest.', regarder: 'Le fil d’Ariane ramène à StressTest ; les tokens sont ceux de Button.', existe: true, atteinte: [...ouvrir(stressTest), { clic: `[data-frontiere="${calqueNomme(stressTest, 'Button')}"]` }, composant(bouton, 3), apercu(bouton, 3)] },
+  { id: 'composant-filtre', titre: 'Filtre', quand: 'Le designer filtre StressTest sur « radius ».', regarder: 'Les sections s’ouvrent sur les seules lignes gardées.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-focus="outil:filtre"]' }, { saisie: { dans: '.vc-filtre input', valeur: 'radius' } }] },
+  { id: 'composant-filtre-vide', titre: 'Filtre sans résultat', quand: 'Aucun token ne porte le texte cherché.', regarder: '« Aucun token ne correspond. »', existe: true, atteinte: [...ouvrir(alert), { clic: '[data-focus="outil:filtre"]' }, { saisie: { dans: '.vc-filtre input', valeur: 'introuvable-xyz' } }] },
+  { id: 'composant-variants', titre: 'Jeu de variants', quand: 'Le jeu Alert est sélectionné.', regarder: 'Le choix du variant remplace le nom du variant dans l’en-tête.', existe: true, atteinte: ouvrir(alertAVariants) },
+  { id: 'composant-survol', titre: 'Survol d’une ligne', quand: 'Le pointeur est sur la couleur des tuiles de StressTest.', regarder: 'Douze cadres sur les tuiles de l’aperçu.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }, { survol: "[data-focus^='ligne:components/stresstest/info/tilesgrid/colors/tile']" }] },
+  { id: 'bascule-composant', titre: 'Bascule vers la vue composant', quand: 'Le designer quitte l’explorateur de tokens par la bascule, Alert sélectionné.', regarder: 'Le segment « Composant » est en aplat ; Actualiser a quitté la barre ; la vue lit la sélection.', existe: true, atteinte: [preferences(), libre, bascule('etroite'), choisir(alert), composant(alert), apercu(alert)] },
+].map((etat) => ({ ...etat, disposition: 'etroite' }));
+
+const ETATS_LARGES = [
   { id: 'chargement', titre: 'Lecture en cours', quand: 'Le sandbox lit les cibles des alias.', regarder: 'La progression nomme la phase et le compte ; aucune table vide ne la précède.', existe: true, atteinte: [{ message: { type: 'progression', demande: 1, phase: 'references', fait: 12, total: 40 } }] },
   { id: 'vide', titre: 'Fichier sans variable', quand: 'Le relevé ne contient aucune collection.', regarder: 'L’accueil le dit, sans alerte d’absence d’UCM.', existe: true, atteinte: [releve(constructeur('Vide').releve())] },
   { id: 'lecture-refusee', titre: 'Lecture refusée', quand: 'La première lecture lève.', regarder: 'Le message nomme l’échec et propose d’actualiser.', existe: true, atteinte: [{ message: { type: 'lecture-echouee', demande: 1, message: 'Accès refusé' } }] },
   { id: 'lecture-annulee', titre: 'Lecture annulée', quand: 'Le designer annule la première lecture.', regarder: 'Aucune donnée partielle ; le bouton relance la lecture.', existe: true, atteinte: [{ message: { type: 'annulation', demande: 1 } }] },
-  { id: 'table-libre', titre: 'Projet libre, collection entière', quand: 'Un fichier sans UCM, collection Interface ouverte.', regarder: 'Les quatre types, zéro, faux et texte vide affichés ; aucun onglet ni alerte UCM.', existe: true, atteinte: [preferences(), libre] },
+  { id: 'table-libre', titre: 'Projet libre, collection entière', quand: 'Un fichier sans UCM, collection Interface ouverte.', regarder: 'La bascule sur « Tokens », la recherche sous le titre de l’arbre ; les quatre types, zéro, faux et texte vide affichés ; aucun onglet ni alerte UCM.', existe: true, atteinte: [preferences(), libre] },
   { id: 'groupe-parent', titre: 'Groupe et descendants', quand: 'Clic sur le groupe card.', regarder: 'card/fill, card/gap et card/header/* ; cardinal exclu ; le chemin est visible.', existe: true, atteinte: [preferences(), libre, chevron('interface', 'card'), groupe('interface', 'card')] },
   { id: 'arbre-replie', titre: 'Parent replié, filtre conservé', quand: 'Le groupe card est choisi puis replié.', regarder: 'L’arbre cache header ; la table garde le contenu de card.', existe: true, atteinte: [preferences(), libre, chevron('interface', 'card'), groupe('interface', 'card'), chevron('interface', 'card')] },
   { id: 'arbre-profond', titre: 'Arbre profond, nom long', quand: 'Huit niveaux de groupes, un segment vide.', regarder: 'Les libellés coupés gardent leur infobulle ; le segment vide se nomme.', existe: true, atteinte: [preferences(), releve(releveProfond()), chevron('profond', 'navigation'), groupe('profond', 'navigation', 'barre latérale', 'section', 'groupe', 'élément')] },
@@ -94,16 +120,17 @@ const ETATS = [
   { id: 'diagnostics', titre: 'Diagnostics groupés', quand: 'Le projet libre porte un cycle et une cible inaccessible.', regarder: 'Un constat par cause, son geste, ses départs et les limites du relevé.', existe: true, atteinte: [preferences(), libre, onglet('diagnostics')] },
   { id: 'types-non-couleur', titre: 'Nombres par mode', quand: 'La collection Mesures a deux modes.', regarder: 'Deux colonnes, zéro affiché, aucune unité ajoutée.', existe: true, atteinte: [preferences(), libre, groupe('mesures')] },
   { id: 'vue-compacte', titre: 'Vue compacte', quand: 'La préférence vue compacte est rangée.', regarder: 'Une seule colonne, celle du contexte actif.', existe: true, atteinte: [preferences({ vueCompacte: true }), libre, groupe('mesures')] },
-  { id: 'releve-perime', titre: 'Relevé précédent après un échec', quand: 'Une actualisation échoue après une lecture réussie.', regarder: 'Les données restent ; leur heure et l’échec sont annoncés.', existe: true, atteinte: [preferences(), libre, { clic: '.barre .bouton-discret:nth-of-type(2)' }, { message: { type: 'lecture-echouee', demande: 2, message: 'Délai dépassé' } }] },
-  { id: 'calques', titre: 'Consommateurs et sélection', quand: 'Une analyse de page est lue et un calque est sélectionné.', regarder: 'Liaisons directes et par alias ; modes du calque explicites ou hérités.', existe: true, atteinte: [preferences(), libre, groupe('couleurs'), inspecter('surface'), onglet('calques'), { clic: '#panneau-calques .gestes .bouton-discret' }, consommateurs, selection] },
-  { id: 'verification-figma', titre: 'Comparaison avec Figma', quand: 'Le designer compare le calque sélectionné avec Figma.', regarder: 'Valeur de Figma, valeur de l’explorateur et verdict.', existe: true, atteinte: [preferences(), libre, onglet('calques'), selection, { clic: '#panneau-calques .calque .bouton-discret' }, { message: { type: 'valeurs-de-figma', demande: 2, calque: '1:2', valeurs: [{ variable: 'carte-fond', valeur: { nature: 'couleur', couleur: { r: 0.9686274509803922, g: 0.9725490196078431, b: 0.9803921568627451, a: 1 } } }, { variable: 'carte-gap', valeur: { nature: 'nombre', nombre: 12 } }] } }] },
-  { id: 'calque-introuvable', titre: 'Calque supprimé depuis l’analyse', quand: 'Afficher dans Figma vise un calque disparu.', regarder: 'L’annonce demande de relancer l’analyse.', existe: true, atteinte: [preferences(), libre, { message: { type: 'calque-affiche', demande: 3, calque: '1:9', issue: 'introuvable' } }] },
+  { id: 'largeurs-reglees', titre: 'Largeurs réglées', quand: 'Le designer a élargi l’arbre et la colonne du nom.', regarder: 'L’arbre et la colonne gardent leur largeur ; les colonnes de valeur prennent le reste.', existe: true, atteinte: [preferences({ largeurs: { arbre: 320, nom: 320, type: 110 } }), multimarque] },
+  { id: 'releve-perime', titre: 'Relevé précédent après un échec', quand: 'Une actualisation échoue après une lecture réussie.', regarder: 'Les données restent ; leur heure et l’échec sont annoncés.', existe: true, atteinte: [preferences(), libre, { clic: '.barre-lecture .bouton-discret:first-child' }, { message: { type: 'lecture-echouee', demande: 2, message: 'Délai dépassé' } }] },
   { id: 'integrations', titre: 'Intégrations désactivées', quand: 'Aucune intégration n’est active.', regarder: 'Le socle est complet ; les intégrations se décrivent sans alerte.', existe: true, atteinte: [preferences(), libre, onglet('integrations')] },
   { id: 'recette-palettes', titre: 'Recette UCM Palettes absente', quand: 'L’intégration est active sur un fichier sans recette.', regarder: 'L’absence est dite, sans geste imposé.', existe: true, atteinte: [preferences({ palettes: true }), libre, { message: { type: 'recette-palettes', demande: 2, texte: '' } }, onglet('integrations')] },
   { id: 'preferences-rangees', titre: 'Préférence rangée', quand: 'Le sandbox confirme un rangement.', regarder: 'Rien ne bouge à l’écran.', existe: true, atteinte: [preferences(), libre, { message: { type: 'preferences-rangees', reussie: true } }] },
-  { id: 'graphe', titre: 'Graphe local', quand: 'Le fond du bouton est inspecté.', regarder: 'La chaîne active est surlignée ; la liste équivalente suit.', existe: true, atteinte: [preferences(), multimarque, inspecter('bouton-fond'), onglet('graphe')] },
   { id: 'releves', titre: 'Relevés et simulation', quand: 'L’onglet Relevés est ouvert sur un token.', regarder: 'Export, import et simulation se lisent sans rien modifier.', existe: true, atteinte: [preferences(), libre, groupe('mesures'), inspecter('espace-carte'), onglet('releves')] },
   { id: 'grand-releve', titre: 'Dix mille variables', quand: 'Vingt collections de cinq cents variables, quatre modes.', regarder: 'La table ne rend que les lignes visibles ; l’arbre reste replié.', existe: true, atteinte: [preferences(), releve(grandReleve())] },
+  { id: 'bascule-tokens', titre: 'Bascule vers l’explorateur de tokens', quand: 'La fenêtre s’est ouverte sur la vue composant, et le designer choisit « Tokens ».', regarder: 'L’arbre, la table et l’inspecteur prennent la place de la vue ; Actualiser revient dans la barre.', existe: true, atteinte: [preferences(), etroite, libre, bascule('large')] },
 ];
+
+/** Tous les états ; `disposition` range ceux de la fenêtre étroite dans leur galerie. */
+const ETATS = [...ETATS_LARGES, ...ETATS_DU_COMPOSANT];
 
 module.exports = { ETATS };

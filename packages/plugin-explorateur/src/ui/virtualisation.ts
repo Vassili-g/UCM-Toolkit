@@ -13,8 +13,6 @@ export interface ListeVirtuelle {
   montrer(rang: number): void;
   /** Rend de nouveau les lignes visibles, après un changement de contexte. */
   rafraichir(): void;
-  defilement(): number;
-  defiler(position: number): void;
   /** Le nombre de lignes présentes dans le DOM, pour les tests. */
   rendues(): number;
 }
@@ -81,11 +79,6 @@ export function creerListeVirtuelle(hauteurDeLigne: number, role: string, entete
       dessiner(true);
     },
     rafraichir: () => dessiner(true),
-    defilement: () => element.scrollTop,
-    defiler(position) {
-      element.scrollTop = position;
-      dessiner(true);
-    },
     rendues: () => espace.childElementCount,
   };
 }

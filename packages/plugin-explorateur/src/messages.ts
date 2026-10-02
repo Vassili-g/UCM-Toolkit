@@ -12,55 +12,60 @@
  */
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
-import type { PerimetreDAnalyse, ResultatDesConsommateurs } from './consommateurs';
+import type { LectureDeComposant } from './composant';
+import type { Disposition } from './fenetre';
 import type { PhaseDeLecture } from './lecture';
-import type { Releve, ValeurSource } from './modele';
+import type { Releve } from './modele';
 import type { Preferences } from './preferences';
-import type { ModeDeCalque } from './resolution';
 
-/** Un calque sélectionné, avec ses modes effectifs et ses liaisons directes. */
-export interface CalqueSelectionne {
+/** Le composant que la sélection désigne, et le calque sélectionné dans ce composant. */
+export interface SujetSelectionne {
   readonly id: string;
-  readonly nom: string;
-  readonly type: string;
-  readonly modes: Readonly<Record<string, ModeDeCalque>>;
-  readonly liaisons: ReadonlyArray<{ readonly propriete: string; readonly variable: string }>;
+  readonly portee: string;
 }
-
-/** La valeur que `resolveForConsumer` donne pour une variable sur un calque, ou l'erreur qu'il lève. */
-export type ValeurDeFigma =
-  | { readonly variable: string; readonly valeur: ValeurSource }
-  | { readonly variable: string; readonly erreur: string };
 
 /** Ce que l'interface demande au sandbox. */
 export type UiRequest =
   | { type: 'lire-preferences' }
   | { type: 'ranger-preferences'; preferences: Preferences }
   | { type: 'lire-releve'; demande: number }
-  /** Arrête la lecture ou l'analyse en cours ; aucun résultat partiel n'est publié. */
+  /** Arrête la lecture en cours ; aucun résultat partiel n'est publié. */
   | { type: 'annuler'; demande: number }
-  | { type: 'chercher-consommateurs'; demande: number; perimetre: PerimetreDAnalyse }
-  /** Sélectionne un calque existant et centre la vue, sans toucher au document. */
-  | { type: 'afficher-calque'; demande: number; calque: string }
-  /** Compare le résolveur à `resolveForConsumer`, sur un calque existant, sans consommateur temporaire. */
-  | { type: 'verifier-sur-calque'; demande: number; calque: string; variables: string[] }
   /** Lit le texte de la recette d'UCM Palettes, sans le valider ni le migrer. */
   | { type: 'lire-recette-palettes'; demande: number }
+  /**
+   * Lit le composant de la sélection quand `calque` est `null`. Un identifiant
+   * lit le composant de ce calque sans changer la sélection : un ancêtre, un
+   * composant imbriqué ou un variant.
+   */
+  | { type: 'lire-composant'; demande: number; calque: string | null }
+  /** Passe d'un mode à l'autre : le sandbox donne à la fenêtre la taille rangée pour cette disposition. */
+  | { type: 'changer-disposition'; disposition: Disposition }
   | DemandeDeTaille;
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
   | { type: 'preferences'; preferences: Preferences }
   | { type: 'preferences-rangees'; reussie: boolean }
-  | { type: 'progression'; demande: number; phase: PhaseDeLecture | 'calques'; fait: number; total: number }
+  | { type: 'progression'; demande: number; phase: PhaseDeLecture; fait: number; total: number }
   | { type: 'releve'; demande: number; releve: Releve }
   /** La lecture a levé : l'interface garde le relevé précédent, signalé comme ancien. */
   | { type: 'lecture-echouee'; demande: number; message: string }
   | { type: 'annulation'; demande: number }
-  | { type: 'consommateurs'; demande: number; resultat: ResultatDesConsommateurs }
-  /** La sélection ou la page a changé : les calques sélectionnés, sans leurs descendants, et la page courante. */
-  | { type: 'selection'; page: string; calques: CalqueSelectionne[] }
-  | { type: 'calque-affiche'; demande: number; calque: string; issue: 'affiche' | 'introuvable' }
-  | { type: 'valeurs-de-figma'; demande: number; calque: string; valeurs: ValeurDeFigma[] }
+  /**
+   * La sélection ou la page a changé. `sujet` vient du premier calque
+   * sélectionné ; `ignores` compte les autres.
+   */
+  | { type: 'selection'; sujet: SujetSelectionne | null; ignores: number }
   /** Le texte rangé sous la clé partagée de la recette ; vide quand le fichier n'en porte pas. */
-  | { type: 'recette-palettes'; demande: number; texte: string };
+  | { type: 'recette-palettes'; demande: number; texte: string }
+  /** Le composant lu ; `null` quand le calque demandé n'est dans aucun composant. */
+  | { type: 'composant'; demande: number; lecture: LectureDeComposant | null }
+  /** L'image du sujet, envoyée après sa lecture. `largeur`, `hauteur` et `origine` situent la zone rendue dans la page. */
+  | { type: 'apercu-du-composant'; demande: number; sujet: string; octets: Uint8Array; largeur: number; hauteur: number; origine: { x: number; y: number } }
+  /**
+   * La disposition de la fenêtre : celle que le sandbox choisit à l'ouverture,
+   * étroite dans un fichier sans variable locale, puis celle que l'interface
+   * demande.
+   */
+  | { type: 'disposition'; disposition: Disposition };

@@ -22,11 +22,12 @@ export interface Couleur {
 
 /**
  * La valeur rangée pour un mode, avant toute résolution. Un alias garde
- * l'identifiant de sa cible. Une valeur que le plugin ne sait pas décrire
- * garde sa forme brute, lisible, sans valeur terminale inventée.
+ * l'identifiant de sa cible, et l'opacité que Figma range avec un alias de
+ * couleur, de 0 à 1. Une valeur que le plugin ne sait pas décrire garde sa
+ * forme brute, lisible, sans valeur terminale inventée.
  */
 export type ValeurSource =
-  | { readonly nature: 'alias'; readonly cible: string }
+  | { readonly nature: 'alias'; readonly cible: string; readonly opacite?: number }
   | { readonly nature: 'couleur'; readonly couleur: Couleur }
   | { readonly nature: 'nombre'; readonly nombre: number }
   | { readonly nature: 'texte'; readonly texte: string }
@@ -118,6 +119,11 @@ export interface Releve {
 }
 
 /** Le texte d'une valeur terminale, sans unité supposée ni transformation. */
+/** Une opacité de 0 à 1 en pourcentage, à la virgule française : `12,5 %`. */
+export function pourcentageDOpacite(opacite: number): string {
+  return `${String(Math.round(opacite * 1000) / 10).replace('.', ',')} %`;
+}
+
 export function texteDeValeur(valeur: ValeurTerminale): string {
   switch (valeur.nature) {
     case 'couleur':

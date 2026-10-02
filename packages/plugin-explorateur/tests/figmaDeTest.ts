@@ -1,10 +1,13 @@
 /**
  * Les doubles de Figma des tests : des objets en lecture seule. Toute
  * affectation lève, tout appel hors de la liste des lectures permises lève.
- * Un test qui passe par ces doubles prouve qu'aucun setter, aucune création,
- * aucun import ni aucune écriture de données n'a été appelé.
+ * Un test qui passe par ces doubles prouve qu'aucun setter, aucune création
+ * ni aucune écriture de données n'a été appelé. Le port de lecture permet un
+ * seul import, celui d'une variable par sa clé.
  */
+import type { NoeudLu, StyleLu } from '../src/consommateurs';
 import type { CollectionFigma, PortDeLecture, VariableFigma } from '../src/lecture';
+import type { PortDuComposant } from '../src/lectureDuComposant';
 
 export class MutationInterdite extends Error {}
 
@@ -54,6 +57,8 @@ export interface OptionsDuPort {
   readonly delai?: number;
   /** Les identifiants dont la lecture lève. */
   readonly refusees?: ReadonlySet<string>;
+  /** Les variables que la lecture par identifiant ne rend pas, et que l'import par clé rend. */
+  readonly importables?: readonly VariableFigma[];
 }
 
 /** Un port de lecture sur des données fixes, qui compte ses appels et les lectures en vol. */
@@ -68,7 +73,8 @@ export function portDeTest(collections: CollectionFigma[], locales: VariableFigm
     await new Promise((resolve) => setTimeout(resolve, options.delai ?? 0));
     enVol -= 1;
   };
-  const figer = <T extends object>(objet: T): T => enLectureSeule({ ...objet, ...MUTATIONS } as T);
+  // `resolveForConsumer` rend la valeur de Figma sur un calque : la seule méthode permise d'une variable.
+  const figer = <T extends object>(objet: T): T => enLectureSeule({ ...objet, ...MUTATIONS } as T, ['resolveForConsumer']);
   const port: PortDeLecture = {
     async getLocalVariableCollectionsAsync() {
       return collections.map(figer);
@@ -89,9 +95,16 @@ export function portDeTest(collections: CollectionFigma[], locales: VariableFigm
       const trouvee = [...collections, ...collectionsDistantes].find((collection) => collection.id === id);
       return trouvee ? figer(trouvee) : null;
     },
+    async importVariableByKeyAsync(cle) {
+      compter(`import:${cle}`);
+      await attendre();
+      const trouvee = options.importables?.find((variable) => variable.key === cle);
+      if (!trouvee) throw new Error('Clé absente de la bibliothèque');
+      return figer(trouvee);
+    },
   };
   return {
-    port: enLectureSeule(port, ['getLocalVariableCollectionsAsync', 'getLocalVariablesAsync', 'getVariableByIdAsync', 'getVariableCollectionByIdAsync']),
+    port: enLectureSeule(port, ['getLocalVariableCollectionsAsync', 'getLocalVariablesAsync', 'getVariableByIdAsync', 'getVariableCollectionByIdAsync', 'importVariableByKeyAsync']),
     appels,
     maximumEnVol: () => maximum,
   };
@@ -105,4 +118,79 @@ export function variableFigma(id: string, collection: string, name: string, reso
 /** Une collection Figma minimale ; ses modes s'identifient `${id}:${nom}`. */
 export function collectionFigma(id: string, name: string, modes: string[], variableIds: string[], remote = false, defaut = modes[0]): CollectionFigma {
   return { id, name, key: `cle-${id}`, remote, hiddenFromPublishing: false, isExtension: false, modes: modes.map((mode) => ({ modeId: `${id}:${mode}`, name: mode })), defaultModeId: `${id}:${defaut}`, variableIds };
+}
+
+/** Les lectures qu'un calque permet. `exportAsync` produit des octets en mémoire. */
+const LECTURES_DE_CALQUE = ['getStyledTextSegments', 'getMainComponentAsync', 'exportAsync', 'findAll'];
+
+/** Les méthodes d'écriture qu'un calque ou un style porte, présentes pour que leur appel lève. */
+const MUTATIONS_DE_CALQUE = {
+  remove() {},
+  resize() {},
+  appendChild() {},
+  insertChild() {},
+  setBoundVariable() {},
+  setExplicitVariableModeForCollection() {},
+  setPluginData() {},
+  setSharedPluginData() {},
+  setTextStyleIdAsync() {},
+  swapComponent() {},
+  removeOverrides() {},
+};
+
+/**
+ * Un atelier de calques, de styles de texte et de leur port, tous en lecture
+ * seule. `journal` relève chaque méthode appelée : il ne contient que des
+ * lectures quand le code lu n'a rien écrit.
+ */
+export function atelierDeCalques() {
+  const journal: string[] = [];
+  const noeuds = new Map<string, NoeudLu>();
+  const styles = new Map<string, StyleLu>();
+  const bruts = new WeakMap<object, { parent: NoeudLu | null }>();
+  const lectures = new Map<string, number>();
+  let pauses = 0;
+  return {
+    journal,
+    lectures,
+    pauses: () => pauses,
+    /** Un calque ; ses enfants reçoivent ce calque pour parent. Son nom est `Calque <id>` sauf `name` dans `champs`. */
+    calque(id: string, type: string, champs: Record<string, unknown> = {}, enfants: readonly NoeudLu[] = []): NoeudLu {
+      // Les descripteurs sont copiés tels quels : un accesseur qui lève ne lève qu'à la lecture du code testé.
+      const brut = Object.defineProperties({ id, name: `Calque ${id}`, type, parent: null as NoeudLu | null, ...MUTATIONS_DE_CALQUE, children: enfants }, Object.getOwnPropertyDescriptors(champs));
+      const fige = enLectureSeule(brut, LECTURES_DE_CALQUE, journal) as unknown as NoeudLu;
+      bruts.set(fige, brut);
+      noeuds.set(id, fige);
+      for (const enfant of enfants) {
+        const brutDeLEnfant = bruts.get(enfant);
+        if (brutDeLEnfant) brutDeLEnfant.parent = fige;
+      }
+      return fige;
+    },
+    /** Un style de texte et les variables qu'il lie, par champ. */
+    styleDeTexte(id: string, name: string, boundVariables: Record<string, unknown>): StyleLu {
+      const fige = enLectureSeule({ id, name, type: 'TEXT', boundVariables, ...MUTATIONS_DE_CALQUE }, [], journal) as StyleLu;
+      styles.set(id, fige);
+      return fige;
+    },
+    /** Le port de la lecture d'un composant, sur les calques et les styles de l'atelier. */
+    port(variables: PortDeLecture, selection: readonly NoeudLu[] = []): PortDuComposant {
+      const compter = (cle: string) => lectures.set(cle, (lectures.get(cle) ?? 0) + 1);
+      return enLectureSeule({
+        selection: () => selection,
+        async getNodeByIdAsync(id: string) {
+          compter(`calque:${id}`);
+          return noeuds.get(id) ?? null;
+        },
+        async getStyleByIdAsync(id: string) {
+          compter(`style:${id}`);
+          return styles.get(id) ?? null;
+        },
+        variables,
+        async pause() {
+          pauses += 1;
+        },
+      }, ['selection', 'getNodeByIdAsync', 'getStyleByIdAsync', 'pause'], journal);
+    },
+  };
 }

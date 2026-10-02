@@ -86,16 +86,14 @@ test('sans association, le profil ne contrôle rien : un groupe nommé usage n�
   assert.deepEqual(controlerLeProfil(fichierAssocie(), {}), []);
 });
 
-test('une exception du designer retire l’écart ; un calque hors des couches citées est signalé', () => {
+test('une exception du designer retire l’écart', () => {
   const index = fichierAssocie();
   const couches = { c: 'components', u: 'usage', t: 'theme', p: 'primitives' } as const;
-  const occurrences = [{ consommateur: '1:1', genre: 'calque' as const, nom: 'Bouton', page: null, propriete: 'fills[0]', variable: 'cat', modes: {} }];
-  const avec = controlerLeProfil(index, couches, { occurrences });
-  assert.ok(avec.some((constat) => constat.regle === 'calque' && constat.calque?.id === '1:1'));
-  const exceptions = new Set(['calque:1:1:fills[0]', 'couche:saut:c:M']);
-  const sans = controlerLeProfil(index, couches, { occurrences, exceptions });
+  const avec = controlerLeProfil(index, couches);
+  const exceptions = new Set(['couche:saut:c:M']);
+  const sans = controlerLeProfil(index, couches, { exceptions });
   assert.equal(sans.some((constat) => exceptions.has(constat.cle)), false);
-  assert.equal(sans.length, avec.length - 2);
+  assert.equal(sans.length, avec.length - 1);
 });
 
 test('une recette au format 8 se lit avec une palette figée : sa liste de nuances est la sienne, à une seule intensité', () => {

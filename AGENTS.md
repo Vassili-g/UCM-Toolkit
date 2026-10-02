@@ -254,7 +254,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/releve.ts  ce que la lecture rend : collections, variables de couleur, et une couleur de Figma arrondie à l'octet
   src/variables/etat.ts    l'état des tokens d'une palette, sur trois lectures, avec les couleurs concernées
   src/variables/detection.ts  les palettes que le fichier porte déjà dans ses variables
-  src/variables/reprise.ts la reprise d'une palette du fichier : le mode que chaque thème vise, la liaison du suivi, et la palette du fichier qu'une liaison désigne
+  src/variables/reprise.ts la reprise d'une palette du fichier : le mode que chaque thème vise, la liaison du suivi, la palette du fichier qu'une liaison désigne, et l'origine sous laquelle ses autres variables se créent
   src/variables/bibliotheques.ts  les collections de bibliothèque et les palettes que leurs noms de variables dessinent, sans leurs couleurs
   src/variables/gestion.ts ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, la simulation d'une destination, les variables d'une palette supprimée
   src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée ; la reprise d'une palette du fichier ; la copie d'une palette de bibliothèque
@@ -285,8 +285,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, l'écriture des variables et le dessin après lui, un seul choix de page et un seul rangement de destination en vol
-  src/ui/ongletGestion.ts  l'onglet Gestion : le bloc de la connexion, la barre des palettes et ses deux vues ; en vue complète une fiche par palette, état en pastille, « Modifier », rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; en vue condensée un tableau ; « Tout mettre à jour » confirmé ; une carte par palette supprimée ; « Déjà dans le fichier », les palettes des variables hors du plugin ; notices, recette repliée
-  src/ui/connexion.ts      le bloc « Connexion à Figma » : heure du dernier état lu, « Synchroniser », destination des tokens, page des planches, bilan par état et « Tout mettre à jour »
+  src/ui/ongletGestion.ts  l'onglet Gestion : les sections repliables, les palettes du plugin et leurs deux vues ; en vue complète une fiche par palette, « Modifier », rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; en vue condensée un tableau ; une carte par palette supprimée ; « Déjà dans le fichier », les palettes des variables hors du plugin ; notices, recette repliée
+  src/ui/connexion.ts      la section « Connexion à Figma » : destination des tokens et page des planches en résumé ; dépliée, leurs gestes « Changer », l’heure du dernier état lu et « Synchroniser »
   src/ui/destination.ts    la carte « Destination des tokens » : collection en liste à choix unique, groupe, thèmes, simulation du panneau des variables, et le refus du sandbox
   src/ui/pageDesPlanches.ts la carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et le refus du sandbox
   src/ui/sorties.ts        les lignes de sortie d'une fiche : nom, pastille d'état, détail, gestes
@@ -314,7 +314,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
 packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plugin, privé, en lecture seule
   src/code.ts              routage des demandes de l'interface ; aucune route n'écrit dans le document
   src/messages.ts          les deux sens de la frontière sandbox ↔ interface, numérotés par demande
-  src/lecture.ts           collections et variables locales, cibles d'alias lues par identifiant, huit à la fois
+  src/lecture.ts           collections et variables locales, cibles d'alias lues par identifiant, huit à la fois, importées par leur clé quand Figma ne les rend pas
   src/modele.ts            le relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
   src/groupes.ts           l'arbre des groupes, des seuls segments `/` des noms Figma
   src/indexation.ts        l'index d'identité, les familles de collections et les références inverses par mode
@@ -323,18 +323,20 @@ packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plu
   src/diagnostics.ts       les chaînes qui n'aboutissent pas, regroupées par cause
   src/copie.ts             les formats de copie et leur précision
   src/contraste.ts         le contraste d'une paire choisie, par le calcul du kit
-  src/consommateurs.ts     les liaisons des calques et des styles, par périmètre choisi
-  src/occurrences.ts       les occurrences directes et par alias d'une variable dans une analyse
-  src/navigation.ts        afficher un calque, et `resolveForConsumer` sur un calque existant
+  src/consommateurs.ts     les liaisons d'un calque et d'un style, et les modes effectifs d'un calque
+  src/composant.ts         le modèle pur de la vue composant : natures, lignes, sections, résumés, portée, préfixe
+  src/lectureDuComposant.ts  le sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
+  src/apercu.ts            l'image du sujet, exportée en mémoire, et la boîte de chaque calque
+  src/fenetre.ts           les deux dispositions de la fenêtre, une par mode, leurs bornes et leurs clés
   src/rapport.ts           le rapport versionné des diagnostics
   src/releves.ts           le relevé exporté, réimporté et comparé à un autre
   src/simulation.ts        une substitution dans une copie en mémoire
-  src/graphe.ts            le graphe local d'une variable, sur la chaîne de `resolution.ts`
-  src/preferences.ts       vue compacte, intégrations et associations, dans clientStorage
+  src/preferences.ts       vue compacte, intégrations, associations et largeurs réglées, dans clientStorage
   src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM
-  src/ui/                  la barre, l'arbre, la table, l'inspecteur, la bulle de chaîne et les vues des onglets
+  src/ui/                  la barre et sa bascule de mode, l'arbre et sa recherche, la table, l'inspecteur, la bulle de chaîne, la poignée des largeurs et les vues des onglets
+  src/ui/vues/composant.ts la vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied
   src/ui/roles.css         les couleurs sombres, placées avant la feuille du socle
-  galerie/                 les états de l'interface, à 1200 × 800 et à 560 × 480
+  galerie/                 les états de l'interface, à 1200 × 800, à 560 × 480 et à 364 × 724, et la comparaison à la maquette de la vue composant
   tests/                   dont la loi de lecture seule, les doubles de Figma, et interface/ pour Chromium
   scripts/mesurer.mjs      la mesure sur 10 000 variables, hors des tests
   SPEC.md                  ce que le plugin lit, résout et refuse de conclure
@@ -1308,11 +1310,12 @@ La spécification en lien porte le raisonnement.
 
 ### Explorateur de tokens
 
-- L'explorateur n'écrit jamais dans le document. Hors de `src/ui/`, aucun
-  fichier n'appelle une création, une suppression, un setter de variable, un
-  import distant, `setPluginData`, `setSharedPluginData`, `commitUndo` ni
-  `loadAllPagesAsync`. Seule `src/code.ts` change la page courante, la
-  sélection et la vue, au geste « Afficher dans Figma ».
+- L'explorateur ne crée ni ne modifie rien dans le document. Hors de
+  `src/ui/`, aucun fichier n'appelle une création, une suppression, un setter
+  de variable, un import de composant ou de style, `setPluginData`,
+  `setSharedPluginData`, `commitUndo` ni `loadAllPagesAsync`, et aucun ne
+  change la page courante, la sélection ni la vue du designer. Seule
+  `src/lecture.ts` appelle `importVariableByKeyAsync`.
   `packages/plugin-explorateur/tests/loiDeLectureSeule.test.ts` lit les
   sources ; les doubles de `tests/figmaDeTest.ts` lèvent à toute affectation
   et à tout appel hors des lectures permises. Borne : la loi lit le texte
@@ -1332,10 +1335,41 @@ La spécification en lien porte le raisonnement.
   `BORNE_DES_ETAPES` étapes est interrompue sans être déclarée cyclique.
   `tests/resolution.test.ts` le tient.
   → [spec](./packages/plugin-explorateur/SPEC.md#résolution)
-- Une cible que Figma ne rend pas reste introuvable, une lecture qui lève
-  reste refusée : aucune n'est déclarée supprimée, et aucune variable
-  distante n'est importée. Au plus `CONCURRENCE` lectures par identifiant
-  sont en vol, une seule par identifiant. `tests/lecture.test.ts` le tient.
+- Une cible d'alias que `getVariableByIdAsync` ne rend pas s'importe par la
+  clé que porte son identifiant de bibliothèque (`cleDeBibliotheque`,
+  `src/lecture.ts`). Aucune autre variable n'est importée : ni un identifiant
+  local, ni une variable qu'aucun alias du relevé ne vise. Une cible que
+  l'import ne rend pas non plus reste introuvable, ou refusée quand la
+  lecture a levé ; aucune n'est déclarée supprimée. Au plus `CONCURRENCE`
+  lectures par identifiant sont en vol, une seule par identifiant.
+  `tests/lecture.test.ts` le tient.
+- Un identifiant de mode désigne une seule collection du relevé. Figma
+  numérote les modes par fichier : quand plusieurs collections déclarent le
+  même identifiant, la collection locale le garde, et chaque collection
+  distante le reçoit préfixé du sien. `separerLesModes` (`src/lecture.ts`) en
+  est l'unique autorité, et `tests/lecture.test.ts` le tient.
+  → [spec](./packages/plugin-explorateur/SPEC.md#lecture)
+- Une variable liée à un calque ne s'importe jamais : seules les cibles de
+  ses alias le peuvent. `lireLesVariables` (`src/lecture.ts`) lit chaque
+  départ par `getVariableByIdAsync` seul, et `src/lectureDuComposant.ts`
+  n'appelle aucun import. `tests/lectureDuComposant.test.ts` et
+  `tests/loiDeLectureSeule.test.ts` le tiennent. Borne : une variable de
+  départ que Figma ne rend pas par son identifiant reste introuvable.
+  → [spec](./packages/plugin-explorateur/SPEC.md#vue-composant)
+- La vue composant ne parcourt aucun calque sous une instance imbriquée.
+  `lireLeComposant` (`src/lectureDuComposant.ts`) s'arrête à toute `INSTANCE`
+  strictement sous le sujet, et n'en lit que les liaisons des champs que
+  `InstanceNode.overrides` dit surchargés par le parent, rattachées au calque
+  de l'instance. `tests/lectureDuComposant.test.ts` le tient.
+  → [spec](./packages/plugin-explorateur/SPEC.md#vue-composant)
+- Seuls `src/code.ts` et `src/apercu.ts` appellent `exportAsync`, qui rend
+  des octets en mémoire. `tests/loiDeLectureSeule.test.ts` lit les sources, et
+  `tests/apercu.test.ts` tient la borne de 720 px et l'export qui lève.
+- Les modes d'un calque suivent la table de `separerLesModes` :
+  `traduireLesModes` (`src/lecture.ts`) la leur applique avant toute
+  résolution de la vue composant, si bien qu'un mode de bibliothèque renommé
+  se rapproche encore du mode du calque. `tests/lectureDuComposant.test.ts`
+  le tient.
   → [spec](./packages/plugin-explorateur/SPEC.md#lecture)
 - L'interface est sombre quel que soit le thème de l'hôte : `src/ui/roles.css`
   précède la feuille du socle et `styles.css` affecte ses couleurs à chaque

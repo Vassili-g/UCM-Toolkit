@@ -44,6 +44,8 @@ test('le rapport est versionné et garde contexte, révision, portée, chaîne e
 test('les préférences illisibles prennent leur défaut, et les rangements gardent leur ordre', async () => {
   assert.deepEqual(preferencesValides(null), PREFERENCES_PAR_DEFAUT);
   assert.deepEqual(preferencesValides({ vueCompacte: 'oui', associations: { f: { c: 'usage', d: 3 } }, exceptions: { f: ['a', 2] } }), { ...PREFERENCES_PAR_DEFAUT, associations: { f: { c: 'usage' } }, exceptions: { f: ['a'] } });
+  assert.deepEqual(preferencesValides({ largeurs: { arbre: 300, nom: '240', type: -4, autre: 12 } }).largeurs, { arbre: 300 });
+  assert.deepEqual(preferencesValides({ largeurs: [300] }).largeurs, {});
   const ranges: unknown[] = [];
   let refuser = true;
   const preferences = creerPreferences({

@@ -15,7 +15,6 @@ import {
   type RefusDImport,
   type TokensImportes,
 } from '../../integrations/contrats';
-import { occurrencesDuToken } from '../../occurrences';
 import { cransDeLaPalette, emploisDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
 import { COUCHES, controlerLeProfil, emploiDuNom, estCouche, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
 import type { Recette } from 'ucm-couleur';
@@ -66,10 +65,10 @@ export function couchesDuFichier(app: Application): AssociationDesCouches {
 
 /** Les écarts au profil, quand le profil est actif. */
 export function constatsDuProfil(app: Application): ConstatDuProfil[] {
-  const { index, preferences, releve, analyse } = app.etat;
+  const { index, preferences, releve } = app.etat;
   if (!index || !preferences.profilUcm) return [];
   const exceptions = new Set(preferences.exceptions[releve?.fichier ?? ''] ?? []);
-  return controlerLeProfil(index, couchesDuFichier(app), { recette: recetteLue(app), occurrences: analyse.resultat?.occurrences ?? [], exceptions });
+  return controlerLeProfil(index, couchesDuFichier(app), { recette: recetteLue(app), exceptions });
 }
 
 export function creerVueIntegrations(app: Application): Composant {
@@ -241,8 +240,6 @@ function texteDuConstatDuProfil(app: Application, constat: ConstatDuProfil): str
       return TEXTES.profilRegles.portee.detail(nom, constat.attendue || TEXTES.aucune);
     case 'cible':
       return TEXTES.profilRegles.cible.detail(nom, constat.attendue ?? '');
-    case 'calque':
-      return TEXTES.profilRegles.calque.detail(constat.calque?.nom ?? '', constat.calque?.propriete ?? '', nom);
   }
 }
 
@@ -343,13 +340,6 @@ function sectionPalettesDeLInspecteur(app: Application, variable: string): HTMLE
     const emplois = emploisDeLAssociation(recette, actuelle);
     bloc.append(sousTitre(TEXTES.emploisDuCran(String(actuelle.cran))));
     bloc.append(note(emplois.length === 0 ? TEXTES.aucunEmploi : emplois.map((emploi) => (emploi.rang ? `${emploi.emploi} · ${emploi.rang}` : emploi.emploi)).join(', ')));
-  }
-  // La propriété peinte vient des calques analysés, jamais du nom de la variable.
-  const resultat = app.etat.analyse.resultat;
-  if (!resultat) bloc.append(note(TEXTES.proprietesNonAnalysees));
-  else {
-    const peintes = [...new Set(occurrencesDuToken(index, resultat.occurrences, variable, app.etat.contexte).directes.map((occurrence) => occurrence.propriete.replace(/\[\d+\]/g, '')))];
-    bloc.append(note(peintes.length === 0 ? TEXTES.aucuneProprietePeinte : TEXTES.proprietesPeintes(peintes.join(', '))));
   }
   return bloc;
 }

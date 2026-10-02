@@ -12,6 +12,7 @@
     "build:manifest": "node scripts/build-manifest.cjs",
     "galerie": "npm run build:ui && node galerie/build-galerie.cjs",
     "galerie:captures": "node galerie/capturer.cjs",
+    "fidelite": "node galerie/comparer-maquette.cjs",
     "test:ui": "npm run galerie && node --test tests/interface/interface.test.mjs",
     "mesure": "node --expose-gc scripts/mesurer.mjs",
     "build": "npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",

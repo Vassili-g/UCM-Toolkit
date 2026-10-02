@@ -11,7 +11,6 @@
  */
 import { EMPLOIS, RANGS, SUPPORT_DES_USAGES, USAGES_DU_NEUTRE, usagesDElevation, usagesDeLaPalette, usagesPropresAuNeutre, type Emploi, type Rang, type Recette, type Support } from 'ucm-couleur';
 
-import type { OccurrenceDeVariable } from '../consommateurs';
 import type { Index } from '../indexation';
 import type { VariableRelevee } from '../modele';
 
@@ -32,10 +31,7 @@ export const CIBLES_DES_COUCHES: { readonly [C in Couche]: readonly Couche[] } =
 /** Les couches dont les variables ne paraissent dans aucun sélecteur de calque : portées vides. */
 const COUCHES_SANS_PORTEE: readonly Couche[] = ['primitives', 'brand', 'color-utilities', 'theme'];
 
-/** Les couches qu'un calque cite. */
-const COUCHES_CITEES: readonly Couche[] = ['usage', 'components'];
-
-export type RegleDuProfil = 'couche' | 'valeur-directe' | 'portee' | 'cible' | 'calque';
+export type RegleDuProfil = 'couche' | 'valeur-directe' | 'portee' | 'cible';
 
 export interface ConstatDuProfil {
   readonly regle: RegleDuProfil;
@@ -47,8 +43,6 @@ export interface ConstatDuProfil {
   readonly cible?: string;
   readonly attendue?: string;
   readonly coucheCible?: Couche;
-  /** Pour la règle `calque` : le calque et sa propriété. */
-  readonly calque?: { readonly id: string; readonly nom: string; readonly propriete: string };
 }
 
 /** L'association de chaque collection à sa couche, par identifiant. */
@@ -95,10 +89,10 @@ function memeEnsemble(a: readonly string[], b: readonly string[]): boolean {
 
 /**
  * Les écarts au profil, sur les variables de couleur des collections
- * associées. `recette` permet le contrôle de la cible attendue ;
- * `occurrences`, celui des calques. Les exceptions du designer sont retirées.
+ * associées. `recette` permet le contrôle de la cible attendue. Les
+ * exceptions du designer sont retirées.
  */
-export function controlerLeProfil(index: Index, couches: AssociationDesCouches, options: { recette?: Recette | null; occurrences?: readonly OccurrenceDeVariable[]; exceptions?: ReadonlySet<string> } = {}): ConstatDuProfil[] {
+export function controlerLeProfil(index: Index, couches: AssociationDesCouches, options: { recette?: Recette | null; exceptions?: ReadonlySet<string> } = {}): ConstatDuProfil[] {
   const constats: ConstatDuProfil[] = [];
   const coucheDe = (variable: VariableRelevee | undefined): Couche | undefined => (variable ? couches[variable.collection] : undefined);
   for (const variable of index.releve.variables) {
@@ -130,17 +124,6 @@ export function controlerLeProfil(index: Index, couches: AssociationDesCouches, 
         constats.push({ regle: 'portee', cle: `portee:${variable.id}`, variable: variable.id, attendue: emploi.support.portees.join(', ') });
       }
     }
-  }
-  for (const occurrence of options.occurrences ?? []) {
-    const variable = index.variables.get(occurrence.variable);
-    const couche = coucheDe(variable);
-    if (!variable || !couche || variable.type !== 'COLOR' || occurrence.genre !== 'calque' || COUCHES_CITEES.includes(couche)) continue;
-    constats.push({
-      regle: 'calque',
-      cle: `calque:${occurrence.consommateur}:${occurrence.propriete}`,
-      variable: variable.id,
-      calque: { id: occurrence.consommateur, nom: occurrence.nom, propriete: occurrence.propriete },
-    });
   }
   const exceptions = options.exceptions ?? new Set<string>();
   return constats.filter((constat) => !exceptions.has(constat.cle));

@@ -238,6 +238,8 @@ function memeValeur(index: Index, source: ValeurSource, publiee: unknown): boole
   const dtcg = valeurDtcg(publiee);
   if (!dtcg) return null;
   if (source.nature === 'alias') {
+    // Un alias à opacité ne se compare pas : la forme que l'export lui donne n'est pas établie.
+    if (source.opacite !== undefined) return null;
     const cible = index.variables.get(source.cible);
     return dtcg.nature === 'alias' && cible !== undefined && dtcg.chemin === cheminPublie(index, cible);
   }

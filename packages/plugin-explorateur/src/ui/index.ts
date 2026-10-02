@@ -1,12 +1,17 @@
 /**
- * Point d'entrée de l'interface : la barre, l'arbre, les onglets et
- * l'inspecteur, puis la réception des messages du sandbox. Une réponse dont
- * la demande a été remplacée est ignorée : elle ne remplace pas le sujet
- * courant.
+ * Point d'entrée de l'interface : la barre, puis l'un des deux modes, et la
+ * réception des messages du sandbox. Une réponse dont la demande a été
+ * remplacée est ignorée : elle ne remplace pas le sujet courant.
+ *
+ * La disposition large monte l'explorateur de tokens : l'arbre, les onglets
+ * et l'inspecteur. La disposition étroite monte la vue composant. Le sandbox
+ * annonce celle de l'ouverture, et la bascule de la barre passe de l'une à
+ * l'autre.
  */
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
+import type { Disposition } from '../fenetre';
 import type { PluginMessage } from '../messages';
 import { creerApplication, type Branchements, type Composant, type Zone } from './application';
 import { creerArbre } from './arbre';
@@ -17,11 +22,10 @@ import { versSandbox } from './pont';
 import { installerSurvol } from './survol';
 import { creerTable } from './table';
 import { TEXTES } from './textes';
-import { creerVueCalques } from './vues/calques';
 import { creerVueComparer } from './vues/comparer';
+import { creerVueComposant } from './vues/composant';
 import { creerVueDependants } from './vues/dependants';
 import { creerVueDiagnostics } from './vues/diagnostics';
-import { creerVueGraphe } from './vues/graphe';
 import { creerVueIntegrations } from './vues/integrations';
 import { creerVueReleves, simulationActive } from './vues/releves';
 
@@ -37,12 +41,11 @@ const barre = creerBarre(app);
 const arbre = creerArbre(app);
 const table = creerTable(app);
 const inspecteur = creerInspecteur(app);
+const vueComposant = creerVueComposant(app);
 const vues: Record<Exclude<Onglet, 'table'>, Composant> = {
   comparer: creerVueComparer(app),
   dependants: creerVueDependants(app),
   diagnostics: creerVueDiagnostics(app),
-  calques: creerVueCalques(app),
-  graphe: creerVueGraphe(app),
   integrations: creerVueIntegrations(app),
   releves: creerVueReleves(app),
 };
@@ -97,7 +100,19 @@ corps.className = 'corps';
 corps.append(arbre.element, centre, inspecteur.element);
 
 const bulle = installerSurvol(app);
-racine.replaceChildren(barre.element, bandeau, corps, pied, annonce, bulle, createResizeGrip(versSandbox));
+const poignee = createResizeGrip(versSandbox);
+racine.replaceChildren(barre.element, bandeau, corps, pied, annonce, bulle, poignee);
+
+/** Monte le mode de la disposition sous la barre. L'annonce et la poignée restent dans les deux. */
+function poserLaDisposition(disposition: Disposition): void {
+  if (etat.disposition === disposition) return;
+  etat.disposition = disposition;
+  racine.classList.toggle('application-etroite', disposition === 'etroite');
+  if (disposition === 'etroite') racine.replaceChildren(barre.element, vueComposant.element, annonce, poignee);
+  else racine.replaceChildren(barre.element, bandeau, corps, pied, annonce, bulle, poignee);
+  app.rendre();
+  vueComposant.activer();
+}
 
 const heure = (millisecondes: number) => new Date(millisecondes).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
 
@@ -146,7 +161,6 @@ branchements = {
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
   },
-  lireDefilement: () => table.defilement(),
   montrerDansLaTable: (variable) => table.montrer(variable),
   annoncer(texte, zoneDeSecours) {
     annonceTexte.textContent = texte;
@@ -157,6 +171,7 @@ branchements = {
       secours.select();
     }
   },
+  disposer: poserLaDisposition,
 };
 
 /** Vrai quand la réponse vient de la lecture en cours ; une réponse d'une demande remplacée est ignorée. */
@@ -167,7 +182,7 @@ function recevoir(message: PluginMessage): void {
     case 'preferences':
       etat.preferences = message.preferences;
       if (etat.preferences.palettes) versSandbox({ type: 'lire-recette-palettes', demande: app.nouvelleDemande() });
-      app.rendre(['table']);
+      app.rendre(['arbre', 'table']);
       return;
     case 'preferences-rangees':
       return;
@@ -175,9 +190,6 @@ function recevoir(message: PluginMessage): void {
       if (demandeCourante(message.demande)) {
         etat.lecture = { statut: 'en-cours', demande: message.demande, phase: message.phase, fait: message.fait, total: message.total };
         app.rendre(['barre']);
-      } else if (etat.analyse.statut === 'en-cours' && etat.analyse.demande === message.demande) {
-        etat.analyse = { ...etat.analyse, fait: message.fait, total: message.total };
-        app.rendre(['vue']);
       }
       return;
     case 'releve':
@@ -190,38 +202,25 @@ function recevoir(message: PluginMessage): void {
       if (demandeCourante(message.demande)) {
         etat.lecture = { statut: 'echouee', message: message.message };
         app.rendre(['barre', 'pied']);
-      }
+      } else vueComposant.recevoirEchec(message.demande, message.message);
       return;
     case 'annulation':
       if (demandeCourante(message.demande)) {
         etat.lecture = etat.releve ? { statut: 'attente' } : { statut: 'annulee' };
         app.rendre(['barre', 'pied', 'table']);
-      } else if (etat.analyse.demande === message.demande) {
-        etat.analyse = { ...etat.analyse, statut: 'annulee', resultat: null };
-        app.rendre(['vue']);
       }
-      return;
-    case 'consommateurs':
-      if (etat.analyse.demande !== message.demande) return;
-      etat.analyse = { statut: 'lue', demande: message.demande, fait: 0, total: 0, resultat: message.resultat, perimee: false };
-      app.rendre(['vue']);
       return;
     case 'selection':
-      etat.selection = message.calques;
-      if (etat.analyse.statut === 'lue' && etat.analyse.resultat) {
-        const { perimetre: analyse, pages } = etat.analyse.resultat;
-        const perimee = analyse === 'selection' || (analyse === 'page' && pages[0]?.id !== message.page);
-        if (perimee) etat.analyse = { ...etat.analyse, perimee: true };
-      }
-      if (etat.onglet === 'calques') app.rendre(['vue']);
+      vueComposant.recevoirSelection(message.sujet, message.ignores);
       return;
-    case 'calque-affiche':
-      if (message.issue === 'introuvable') app.annoncer(TEXTES.calqueIntrouvable);
+    case 'disposition':
+      poserLaDisposition(message.disposition);
       return;
-    case 'valeurs-de-figma':
-      if (etat.verification?.demande !== message.demande) return;
-      etat.verification = { demande: message.demande, calque: message.calque, valeurs: message.valeurs };
-      app.rendre(['vue']);
+    case 'composant':
+      vueComposant.recevoirLecture(message.demande, message.lecture);
+      return;
+    case 'apercu-du-composant':
+      vueComposant.recevoirApercu(message);
       return;
     case 'recette-palettes':
       etat.recette = { demande: message.demande, texte: message.texte };

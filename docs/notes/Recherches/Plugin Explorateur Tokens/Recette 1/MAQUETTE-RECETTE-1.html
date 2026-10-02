@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UCM Token Explorer · Recette 1</title>
+<style>
+:root{color-scheme:dark;--page:#141414;--fond:#222222;--arbre:#1c1c1c;--survol:#2c2c2c;--logo:#232937;--selection:#293b58;--bordure:#414141;--texte:#ededed;--second:#adadad;--marque:#91b8ff;--composant:#b69cff;--apercu:#f7f8fa;--danger:#ffaaa0;--retire:#e3ac7d;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 30px 60px;background:var(--page);color:var(--texte);font:13px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{margin:0;font-size:24px;letter-spacing:-.4px}
+h2{margin:44px 0 6px;font-size:17px}
+p{margin:6px 0;max-width:820px}
+.second{color:var(--second)}
+.surtitre{color:var(--second);font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--marque);outline-offset:1px}
+
+/* La fenêtre de Figma : sa barre de titre, puis le plugin. */
+.scene{overflow-x:auto;padding:14px 0 6px}
+.fenetre{display:flex;flex-direction:column;width:1200px;height:832px;overflow:hidden;border:1px solid var(--bordure);border-radius:10px;background:var(--fond);box-shadow:0 18px 50px #00000066;transition:width .18s ease,height .18s ease}
+.fenetre.etroite{width:364px;height:756px}
+.titre-figma{display:flex;flex:none;align-items:center;justify-content:space-between;height:32px;padding:0 12px;border-bottom:1px solid var(--bordure);background:#2c2c2c;font-size:12px;font-weight:600}
+.plugin{display:flex;min-height:0;flex:1;flex-direction:column}
+
+/* La barre : produit, bascule, lecture du relevé. */
+.barre{display:flex;flex:none;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--bordure)}
+.etroite .barre{height:44px;padding:0 16px}
+.produit{display:flex;align-items:center;gap:9px}
+.logo{display:inline-grid;width:30px;height:30px;place-items:center;border-radius:7px;background:var(--logo);font-size:10px;font-weight:650}
+.produit-nom{margin:0;font-size:13px;font-weight:600}
+.etroite .produit-nom,.etroite .lecture{display:none}
+.bascule{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--bordure);border-radius:6px;background:var(--arbre)}
+.bascule button{height:24px;padding:0 12px;border:0;border-radius:4px;background:none;color:var(--second);font-weight:500;cursor:pointer}
+.bascule button:hover:not([aria-pressed="true"]){background:var(--survol);color:var(--texte)}
+.bascule button[aria-pressed="true"]{background:var(--selection);color:var(--texte)}
+.lecture{margin-left:auto}
+.discret{height:28px;padding:0 10px;border:1px solid var(--bordure);border-radius:6px;background:var(--fond);white-space:nowrap}
+
+/* Le mode Tokens : arbre, centre, inspecteur. */
+.corps{display:grid;min-height:0;flex:1;grid-template-columns:220px minmax(0,1fr) 350px}
+.arbre{display:flex;flex-direction:column;gap:8px;padding:16px 8px 12px;border-right:1px solid var(--bordure);background:var(--arbre)}
+.arbre .surtitre{padding:0 8px}
+.recherche{height:28px;margin:0 8px;padding:0 9px;border:1px solid var(--bordure);border-radius:6px;background:var(--fond)}
+.recherche::placeholder{color:var(--second)}
+.ligne-arbre{display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 8px 0 24px;border-radius:6px;font-family:var(--mono);font-size:12px}
+.ligne-arbre.groupe{padding-left:38px}
+.ligne-arbre[aria-current="true"]{background:var(--selection)}
+.ligne-arbre span:last-child{color:var(--second)}
+.centre{display:flex;min-width:0;flex-direction:column}
+.tete{padding:16px 20px 8px}
+.emplacement{color:var(--second);font:11px var(--mono)}
+.tete h3{margin:0;font-size:20px;line-height:28px}
+.onglets{display:flex;gap:18px;padding:0 20px;border-bottom:1px solid var(--bordure)}
+.onglets span{height:38px;border-bottom:2px solid transparent;line-height:38px;font-weight:500;color:var(--second)}
+.onglets span.actif{border-bottom-color:var(--marque);color:var(--texte)}
+.table{font-size:12px}
+.rangee{display:grid;grid-template-columns:240px 84px 1fr;align-items:center;height:40px;padding:0 16px;border-bottom:1px solid #373737}
+.rangee.entete{background:var(--survol);color:var(--second)}
+.rangee code,.rangee .valeur{font:12px var(--mono)}
+.nom-chemin{color:var(--second)}
+.rangee .type{color:var(--second)}
+.vide{padding:24px 20px;color:var(--second)}
+.inspecteur{padding:20px;border-left:1px solid var(--bordure);color:var(--second)}
+.pied{display:flex;flex:none;gap:16px;padding:8px 16px;border-top:1px solid var(--bordure);color:var(--second);font-size:12px}
+.pied span:last-child{margin-left:auto}
+
+/* Le mode Composant : la vue de MAQUETTE-VUE-COMPOSANT.html, réduite à ses repères. */
+.vc{display:none;min-height:0;flex:1;flex-direction:column}
+.vc-tete{padding:14px 16px 10px}
+.vc-tete h3{margin:0;font-size:15px}
+.vc-tete h3 span{margin-right:6px;color:var(--composant)}
+.vc-apercu{height:86px;margin:0 16px 12px;border-radius:8px;background:var(--apercu)}
+.vc-section{padding:6px 16px 2px}
+.vc-ligne{display:flex;align-items:center;gap:10px;height:28px;padding:0 16px;border-bottom:1px solid #373737;font:11.5px var(--mono)}
+.vc-ligne i{width:16px;height:16px;border-radius:4px;border:1px solid #ffffff40}
+.vc-ligne b{margin-left:auto;font-weight:600}
+.vc-pied{margin-top:auto;padding:10px 16px;border-top:1px solid var(--bordure);color:var(--second);font-size:12px}
+.etroite .corps,.etroite .pied{display:none}
+.etroite .vc{display:flex}
+
+/* Avant et après. */
+.comparaison{display:grid;gap:10px;max-width:1200px}
+.bande{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--bordure);border-radius:8px;background:var(--fond)}
+.bande .etiquette{flex:none;width:52px}
+.retire{position:relative;opacity:.55;text-decoration:line-through;text-decoration-color:var(--retire)}
+.champ{height:28px;padding:0 9px;border:1px solid var(--bordure);border-radius:6px;line-height:26px;color:var(--second)}
+.colonnes{display:flex;flex-wrap:wrap;gap:16px}
+.colonne{width:220px;padding:14px 8px;border:1px solid var(--bordure);border-radius:8px;background:var(--arbre)}
+.colonne .surtitre,.colonne p{padding:0 8px}
+.colonne p{margin:8px 0 0;font-size:12px}
+table{border-collapse:collapse;max-width:1100px;margin-top:10px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--bordure);text-align:left;vertical-align:top}
+th{color:var(--second);font-weight:500}
+</style>
+</head>
+<body>
+<p class="surtitre">Plugin Explorateur Tokens · Recette 1</p>
+<h1>Barre du haut, bascule des deux modes et recherche dans l’arbre</h1>
+<p class="second">Cette maquette montre la barre après la recette 1. La bascule et la recherche répondent : cliquez « Composant », puis « Tokens » ; saisissez « surface » dans l’arbre.</p>
+
+<h2>1. La fenêtre du plugin</h2>
+<p class="second">La bascule change de mode et de taille de fenêtre : 1200 × 800 pour « Tokens », 364 × 724 pour « Composant ». Chaque mode retrouve la taille que le designer lui a donnée.</p>
+<div class="scene">
+  <div class="fenetre" id="fenetre">
+    <div class="titre-figma"><span>UCM Token Explorer</span><span aria-hidden="true">✕</span></div>
+    <div class="plugin">
+      <header class="barre">
+        <div class="produit"><span class="logo" aria-hidden="true">UCM</span><p class="produit-nom">UCM Token Explorer</p></div>
+        <div class="bascule" role="group" aria-label="Mode de l’explorateur">
+          <button type="button" data-mode="large" aria-pressed="true" title="Explorer les collections de variables du fichier">Tokens</button>
+          <button type="button" data-mode="etroite" aria-pressed="false" title="Lire les tokens du composant sélectionné dans Figma">Composant</button>
+        </div>
+        <div class="lecture"><button type="button" class="discret">Actualiser</button></div>
+      </header>
+
+      <div class="corps">
+        <nav class="arbre" aria-label="Collections">
+          <span class="surtitre">Collections</span>
+          <input class="recherche" id="recherche" type="search" placeholder="Rechercher" aria-label="Recherche dans toutes les collections" title="Cherche dans le nom, la collection, la description et la valeur">
+          <div id="lignes">
+            <div class="ligne-arbre" aria-current="true"><span>▾ Interface</span><span>5</span></div>
+            <div class="ligne-arbre groupe"><span>card</span><span>3</span></div>
+            <div class="ligne-arbre groupe"><span>usage</span><span>1</span></div>
+            <div class="ligne-arbre groupe"><span>badge</span><span>1</span></div>
+            <div class="ligne-arbre"><span>▸ Mesures</span><span>2</span></div>
+            <div class="ligne-arbre"><span>Couleurs</span><span>3</span></div>
+          </div>
+        </nav>
+        <main class="centre">
+          <div class="tete">
+            <div class="emplacement" id="emplacement">Interface</div>
+            <h3 id="titre">Interface</h3>
+            <div class="second" id="resume">5 variables. Les autres collections suivent le contexte A de l’onglet Comparer.</div>
+          </div>
+          <div class="onglets"><span class="actif">Variables</span><span>Comparer</span><span>Dépendants</span><span>Diagnostics</span><span>Intégrations</span><span>Relevés</span></div>
+          <div class="table">
+            <div class="rangee entete"><span>Nom</span><span>Type</span><span id="colonne">Valeur (défaut)</span></div>
+            <div id="rangees"></div>
+            <div class="vide" id="vide" hidden>Aucune variable ne correspond. Videz la recherche ou les filtres.</div>
+          </div>
+        </main>
+        <aside class="inspecteur">Choisissez une variable par son nom pour l’inspecter.</aside>
+      </div>
+      <footer class="pied"><span>10 variables · 3 collections</span><span>Lu à 10:42 · relevé 1</span><span>Lecture seule</span></footer>
+
+      <div class="vc">
+        <div class="vc-tete"><h3><span>◇</span>Alert</h3><div class="second">info · standard</div></div>
+        <div class="vc-apercu"></div>
+        <div class="vc-section surtitre">Couleur 2</div>
+        <div class="vc-ligne"><i style="background:#f0f9ff"></i>colors/info/standard/background<b>#F0F9FF</b></div>
+        <div class="vc-ligne"><i style="background:#0369a1"></i>colors/info/standard/icon<b>#0369A1</b></div>
+        <div class="vc-section surtitre">Forme 1</div>
+        <div class="vc-ligne">◜ sizes/border-radius<b>6</b></div>
+        <div class="vc-section surtitre">Espacement 2</div>
+        <div class="vc-ligne">↔ sizes/gap<b>10</b></div>
+        <div class="vc-ligne">↔ sizes/padding-x<b>14</b></div>
+        <div class="vc-pied">5 tokens · 6 liaisons</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>2. La barre, avant et après</h2>
+<div class="comparaison">
+  <div class="bande"><span class="surtitre etiquette">Avant</span><span class="logo">UCM</span><b>UCM Token Explorer</b><span class="champ retire">← Retour</span><span class="champ retire">theme&nbsp; Dark (défaut) ▾</span><span class="champ retire">brand&nbsp; Alpha (défaut) ▾</span><span class="champ retire" style="width:240px">Rechercher un nom, une collection…</span><span class="champ">Actualiser</span></div>
+  <div class="bande"><span class="surtitre etiquette">Après</span><span class="logo">UCM</span><b>UCM Token Explorer</b><span class="bascule"><button type="button" aria-pressed="true" tabindex="-1">Tokens</button><button type="button" tabindex="-1">Composant</button></span><span class="champ" style="margin-left:auto">Actualiser</span></div>
+  <div class="bande" style="width:364px"><span class="surtitre etiquette">Étroite</span><span class="logo">UCM</span><span class="bascule"><button type="button" tabindex="-1">Tokens</button><button type="button" aria-pressed="true" tabindex="-1">Composant</button></span></div>
+</div>
+
+<h2>3. L’arbre, avant et après</h2>
+<div class="colonnes">
+  <div class="colonne"><span class="surtitre">Avant</span><div class="ligne-arbre" aria-current="true"><span>▾ Interface</span><span>11</span></div><div class="ligne-arbre"><span>Couleurs</span><span>4</span></div><p class="second retire">Une collection ou un groupe montre tout son contenu. Le chevron replie seulement l’arbre.</p></div>
+  <div class="colonne"><span class="surtitre">Après</span><div class="champ" style="margin:8px 8px">Rechercher</div><div class="ligne-arbre" aria-current="true"><span>▾ Interface</span><span>11</span></div><div class="ligne-arbre"><span>Couleurs</span><span>4</span></div></div>
+</div>
+
+<h2>4. Lecture des chemins</h2>
+<p><code><span class="nom-chemin">light/background/</span>white</code></p>
+<p class="second">Le dernier segment reste blanc. Le chemin qui le précède prend la couleur secondaire, dans une collection, un groupe et les résultats de recherche.</p>
+
+<h2>5. Onglets conservés</h2>
+<table>
+  <tr><th>Onglet</th><th>Utilité actuelle</th><th>Condition ou limite</th></tr>
+  <tr><td>Variables</td><td>Lire les valeurs et alias, filtrer les variables et ouvrir leur chaîne</td><td>Une colonne par mode ; la vue compacte et la recherche suivent le contexte A</td></tr>
+  <tr><td>Comparer</td><td>Comparer la chaîne et la valeur d’un token sous deux contextes de modes</td><td>Choisir une variable ; le contexte A sert aussi à la table, à l’inspecteur et aux diagnostics</td></tr>
+  <tr><td>Dépendants</td><td>Retrouver les variables qui dépendent du token choisi, directement ou par plusieurs alias</td><td>Le relevé seul est parcouru ; les usages dans les calques et les autres fichiers ne sont pas recensés</td></tr>
+  <tr><td>Diagnostics</td><td>Repérer les cycles, les cibles inaccessibles et les chaînes qui n’aboutissent pas ; exporter le rapport</td><td>Les limites de lecture sont affichées ; aucune réparation dans Figma</td></tr>
+  <tr><td>Intégrations</td><td>Rapprocher les variables des exports UCM, des crans d’UCM Palettes ou des couches de l’architecture UCM</td><td>Importer ou activer chaque intégration ; facultatif pour explorer des tokens</td></tr>
+  <tr><td>Relevés</td><td>Exporter un relevé, le comparer à un relevé importé ou simuler une valeur et ses effets</td><td>La simulation reste en mémoire et s’annule par Réinitialiser</td></tr>
+</table>
+
+<script>
+const VARIABLES = [
+  ['Interface', 'card/fill', 'Couleur', '→ surface  #222630'],
+  ['Interface', 'card/gap', 'Nombre', '→ spacing/card  12'],
+  ['Interface', 'card/header/title', 'Texte', 'Mon espace'],
+  ['Interface', 'usage/surface', 'Couleur', '→ surface  #222630'],
+  ['Interface', 'badge/visible', 'Booléen', 'false'],
+  ['Mesures', 'spacing/card', 'Nombre', '12'],
+  ['Mesures', 'zero', 'Nombre', '0'],
+  ['Couleurs', 'surface', 'Couleur', '→ ink  #222630'],
+  ['Couleurs', 'ink', 'Couleur', '#222630'],
+  ['Couleurs', 'paper', 'Couleur', '#F7F8FA'],
+];
+const fenetre = document.getElementById('fenetre');
+const rangees = document.getElementById('rangees');
+
+function rendre(terme) {
+  const cherche = terme.trim().toLowerCase();
+  const visibles = VARIABLES.filter(([collection, nom, , valeur]) => (cherche ? `${nom}\n${collection}\n${valeur}`.toLowerCase().includes(cherche) : collection === 'Interface'));
+  rangees.replaceChildren(...visibles.map(([collection, nom, type, valeur]) => {
+    const rangee = document.createElement('div');
+    rangee.className = 'rangee';
+    const code = document.createElement('code');
+    const debutDuNom = nom.lastIndexOf('/') + 1;
+    const chemin = document.createElement('span');
+    chemin.className = 'nom-chemin';
+    chemin.textContent = nom.slice(0, debutDuNom);
+    code.append(chemin, document.createTextNode(nom.slice(debutDuNom)));
+    const genre = document.createElement('span');
+    genre.className = 'type';
+    genre.textContent = cherche ? `${type} · ${collection}` : type;
+    const rendu = document.createElement('span');
+    rendu.className = 'valeur';
+    rendu.textContent = valeur;
+    rangee.append(code, genre, rendu);
+    return rangee;
+  }));
+  document.getElementById('vide').hidden = visibles.length > 0;
+  document.getElementById('emplacement').textContent = cherche ? 'Recherche dans toutes les collections' : 'Interface';
+  document.getElementById('titre').textContent = cherche ? 'Résultats de recherche' : 'Interface';
+  document.getElementById('resume').textContent = cherche ? `${visibles.length} résultat${visibles.length > 1 ? 's' : ''} dans toutes les collections` : '5 variables. Les autres collections suivent le contexte A de l’onglet Comparer.';
+  document.getElementById('colonne').textContent = cherche ? 'Contexte actif' : 'Valeur (défaut)';
+  document.querySelector('#lignes [aria-current]')?.removeAttribute('aria-current');
+  if (!cherche) document.querySelector('#lignes .ligne-arbre').setAttribute('aria-current', 'true');
+}
+
+document.getElementById('recherche').addEventListener('input', (evenement) => rendre(evenement.target.value));
+document.getElementById('recherche').addEventListener('keydown', (evenement) => {
+  if (evenement.key === 'Escape') {
+    evenement.target.value = '';
+    rendre('');
+  }
+});
+for (const bouton of document.querySelectorAll('#fenetre .bascule button')) {
+  bouton.addEventListener('click', () => {
+    fenetre.classList.toggle('etroite', bouton.dataset.mode === 'etroite');
+    for (const autre of document.querySelectorAll('#fenetre .bascule button')) autre.setAttribute('aria-pressed', String(autre === bouton));
+  });
+}
+rendre('');
+</script>
+</body>
+</html>

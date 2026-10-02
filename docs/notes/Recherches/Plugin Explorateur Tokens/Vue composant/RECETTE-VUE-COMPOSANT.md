@@ -24,7 +24,7 @@ faire quand une étape échoue.
 
 | # | Question | Geste | Attendu | Constat |
 |---|---|---|---|---|
-| 1 | D1, D8 | Ouvrir le plugin | La fenêtre s'ouvre à 364 × 680, sur « Sélectionnez un composant », sans barre, arbre ni onglets | - [ ] |
+| 1 | D1, D8 | Ouvrir le plugin | La fenêtre s'ouvre à 364 × 724, sur « Sélectionnez un composant ». La barre porte la bascule sur « Composant » ; ni arbre ni onglets | - [ ] |
 | 2 | R1 | Sélectionner Alert | Chaque ligne nomme son token. Aucune n'affiche un identifiant `VariableID:…` | - [ ] |
 | 3 | R1 | Déplier le rayon d'Alert | Les étapes de la chaîne, chacune avec sa collection, puis la valeur 6 | - [ ] |
 | 4 | R2 | Lier un calque à un token dont une cible est masquée à la publication, puis le sélectionner | La chaîne se lit jusqu'à la primitive, ou s'arrête sur « Cible inaccessible » après les étapes lues | - [ ] |
@@ -47,8 +47,8 @@ faire quand une étape échoue.
 
 | # | Question | Geste | Attendu | Constat |
 |---|---|---|---|---|
-| 19 | D6 | Ouvrir le plugin | La fenêtre s'ouvre à 1200 × 800, avec l'onglet « Composant » après « Variables » | - [ ] |
-| 20 | D6 | Sélectionner Alert, ouvrir l'onglet « Composant » | La même vue que dans le fichier A, dans le panneau de l'onglet | - [ ] |
+| 19 | D6 | Ouvrir le plugin | La fenêtre s'ouvre à 1200 × 800, la bascule de la barre sur « Tokens » | - [ ] |
+| 20 | D6 | Sélectionner Alert, choisir « Composant » dans la barre | La fenêtre passe à 364 × 724 et montre la même vue que dans le fichier A. « Tokens » ramène la fenêtre de 1200 × 800 | - [ ] |
 | 21 | D8 | Redimensionner chaque fenêtre, fermer, rouvrir dans chaque fichier | Chaque disposition retrouve sa propre taille | - [ ] |
 
 ## Seconde bibliothèque

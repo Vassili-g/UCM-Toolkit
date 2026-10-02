@@ -4,11 +4,12 @@
  * geste, sans modifier l'état elles-mêmes.
  */
 import { copier as texteACopier, type FormatDeCopie } from '../copie';
-import { cleDeGroupe, clesDesAncetres, segmentsDeGroupe } from '../groupes';
+import { clesDesAncetres, segmentsDeGroupe } from '../groupes';
 import { modesDeFamille } from '../indexation';
+import type { Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
-import { memoriser, revenir, type Etat, type Filtres, type Onglet } from './etat';
+import type { Etat, Filtres, Onglet } from './etat';
 import { versSandbox } from './pont';
 import { copierTexte } from './pressePapiers';
 import { TEXTES, titreDeConstat } from './textes';
@@ -35,32 +36,31 @@ export interface Application {
   /** Le résultat d'une variable dans le contexte B. */
   resultatB(variable: string): Resultat;
   nouvelleDemande(): number;
-  inspecter(variable: string, options?: { memoriser?: boolean }): void;
+  inspecter(variable: string): void;
   suivre(variable: string): void;
   ouvrirGroupe(collection: string, segments: readonly string[]): void;
   basculerRepli(cle: string): void;
-  retour(): void;
   rechercher(texte: string): void;
   filtrer(filtres: Partial<Filtres>): void;
   changerContexte(famille: string, mode: string, cote: 'A' | 'B'): void;
   changerOnglet(onglet: Onglet): void;
+  /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
+  changerDisposition(disposition: Disposition): void;
   actualiser(): void;
   annulerLecture(): void;
   copier(variable: string, format: FormatDeCopie, reference?: string | null): Promise<void>;
   /** Annonce un texte à la zone `aria-live` ; `zoneDeSecours` montre un texte à copier à la main. */
   annoncer(texte: string, zoneDeSecours?: string): void;
   rangerPreferences(preferences: Preferences): void;
-  /** Enregistre la position de défilement de la table, que Retour restaure. */
-  lireDefilement: () => number;
   /** Fait défiler la table jusqu'à la variable. */
   montrerDansLaTable: (variable: string) => void;
 }
 
 export interface Branchements {
-  readonly lireDefilement: () => number;
   readonly montrerDansLaTable: (variable: string) => void;
   readonly rendre: (zones: readonly Zone[]) => void;
   readonly annoncer: (texte: string, zoneDeSecours?: string) => void;
+  readonly disposer: (disposition: Disposition) => void;
 }
 
 export function creerApplication(etat: Etat, branchements: () => Branchements): Application {
@@ -86,28 +86,25 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       compteur += 1;
       return compteur;
     },
-    inspecter(variable, options = {}) {
-      if (options.memoriser !== false && etat.position.inspectee !== variable) memoriserAvecDefilement();
+    inspecter(variable) {
       etat.position = { ...etat.position, inspectee: variable };
       app.rendre(['table', 'inspecteur', 'vue', 'barre']);
     },
     suivre(cible) {
       const variable = etat.index?.variables.get(cible);
-      memoriserAvecDefilement();
       if (!variable) {
         etat.position = { ...etat.position, inspectee: cible };
         app.rendre();
         return;
       }
       for (const cle of clesDesAncetres(variable)) etat.replies.delete(cle);
-      etat.position = { ...etat.position, collection: variable.collection, groupe: segmentsDeGroupe(variable.nom), recherche: '', inspectee: cible, defilement: 0 };
+      etat.position = { ...etat.position, collection: variable.collection, groupe: segmentsDeGroupe(variable.nom), recherche: '', inspectee: cible };
       etat.onglet = 'table';
       app.rendre();
       branchements().montrerDansLaTable(cible);
     },
     ouvrirGroupe(collection, segments) {
-      memoriserAvecDefilement();
-      etat.position = { ...etat.position, collection, groupe: [...segments], recherche: '', defilement: 0 };
+      etat.position = { ...etat.position, collection, groupe: [...segments], recherche: '' };
       app.rendre(['barre', 'arbre', 'table', 'vue', 'pied']);
     },
     basculerRepli(cle) {
@@ -115,18 +112,12 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       else etat.replies.add(cle);
       app.rendre(['arbre']);
     },
-    retour() {
-      if (!revenir(etat)) return;
-      const { collection, groupe } = etat.position;
-      if (collection) for (let profondeur = 0; profondeur <= groupe.length; profondeur += 1) etat.replies.delete(cleDeGroupe(collection, groupe.slice(0, profondeur)));
-      app.rendre();
-    },
     rechercher(texte) {
-      etat.position = { ...etat.position, recherche: texte, defilement: 0 };
+      etat.position = { ...etat.position, recherche: texte };
       app.rendre(['arbre', 'table', 'vue', 'pied']);
     },
     filtrer(filtres) {
-      etat.position = { ...etat.position, filtres: { ...etat.position.filtres, ...filtres }, defilement: 0 };
+      etat.position = { ...etat.position, filtres: { ...etat.position.filtres, ...filtres } };
       app.rendre(['table', 'vue']);
     },
     changerContexte(famille, mode, cote) {
@@ -138,6 +129,11 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     changerOnglet(onglet) {
       etat.onglet = onglet;
       app.rendre(['vue', 'table']);
+    },
+    changerDisposition(disposition) {
+      if (etat.disposition === disposition) return;
+      versSandbox({ type: 'changer-disposition', disposition });
+      branchements().disposer(disposition);
     },
     actualiser() {
       const demande = app.nouvelleDemande();
@@ -172,14 +168,8 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       etat.preferences = preferences;
       versSandbox({ type: 'ranger-preferences', preferences });
     },
-    lireDefilement: () => branchements().lireDefilement(),
     montrerDansLaTable: (variable) => branchements().montrerDansLaTable(variable),
   };
-
-  function memoriserAvecDefilement(): void {
-    etat.position = { ...etat.position, defilement: branchements().lireDefilement() };
-    memoriser(etat);
-  }
 
   return app;
 }

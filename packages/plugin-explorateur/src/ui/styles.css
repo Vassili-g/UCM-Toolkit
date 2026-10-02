@@ -46,6 +46,11 @@
   --texte-sur-danger: var(--sombre-texte-sur-marque);
   --damier-clair: var(--sombre-damier-clair);
   --damier-fonce: var(--sombre-damier-fonce);
+  --texte-composant: var(--sombre-composant);
+  --fond-apercu: var(--sombre-apercu);
+  --encre: var(--sombre-encre);
+  --cadre-survol: var(--sombre-cadre-survol);
+  --cadre-portee: var(--sombre-cadre-portee);
 
   --corps: 12px;
   --corps-interligne: 18px;
@@ -90,12 +95,12 @@ textarea {
   background: var(--fond);
 }
 
-/* La barre : produit, retour, contexte, recherche et lecture. */
+/* La barre : produit, bascule des deux modes, puis lecture du relevé. */
 .barre {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
   align-items: center;
-  gap: var(--espace-controle) var(--espace-bloc);
+  gap: var(--espace-bloc);
   padding: 10px var(--espace-page);
   border-bottom: 1px solid var(--bordure);
   background: var(--fond);
@@ -105,7 +110,6 @@ textarea {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-right: auto;
 }
 
 .logo {
@@ -123,6 +127,44 @@ textarea {
   margin: 0;
   font-size: var(--libelle);
   font-weight: 600;
+}
+
+/* La bascule : deux segments, celui du mode affiché en aplat. */
+.bascule {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-arbre);
+}
+
+.bascule-choix {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--rayon) - 2px);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bascule-choix:hover:not([aria-pressed='true']) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.bascule-choix[aria-pressed='true'] {
+  background: var(--fond-selection);
+  color: var(--texte);
+}
+
+.barre-lecture {
+  display: flex;
+  gap: var(--espace-controle);
+  margin-left: auto;
 }
 
 .contextes {
@@ -159,8 +201,11 @@ textarea {
   border-color: var(--bordure-visee);
 }
 
+/* La recherche tient la largeur de l'arbre, sous son titre. */
 .recherche {
-  width: min(280px, 40vw);
+  flex: none;
+  min-width: 0;
+  margin: 0 var(--espace-controle);
 }
 
 .recherche::placeholder {
@@ -220,10 +265,11 @@ textarea {
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: 220px minmax(0, 1fr) 350px;
+  grid-template-columns: min(var(--largeur-arbre, 220px), 40vw) minmax(0, 1fr) 350px;
 }
 
 .arbre {
+  position: relative;
   display: flex;
   min-height: 0;
   flex-direction: column;
@@ -235,12 +281,6 @@ textarea {
 
 .arbre > .surtitre {
   padding: 0 var(--espace-controle);
-}
-
-.arbre > .note {
-  margin: 0 var(--espace-controle);
-  padding-top: var(--espace-bloc);
-  border-top: 1px solid var(--bordure);
 }
 
 .arbre-lignes {
@@ -357,6 +397,60 @@ textarea {
   font-size: var(--petit);
   line-height: 16px;
   white-space: nowrap;
+}
+
+/*
+ * La poignée d'une largeur : une bande de 9 px sur le bord droit, dont le
+ * trait ne paraît qu'au survol, au focus et pendant le geste.
+ */
+.poignee {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.arbre > .poignee {
+  right: -5px;
+}
+
+.poignee::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+  content: '';
+}
+
+.cellule-entete > .poignee::after {
+  top: 9px;
+  bottom: 9px;
+  background: var(--bordure);
+}
+
+.poignee:hover::after,
+.poignee:focus-visible::after,
+.poignee-active::after {
+  left: 3px;
+  width: 2px;
+  background: var(--bordure-marque);
+}
+
+.poignee:focus-visible {
+  outline: none;
+}
+
+/* Pendant le geste, le curseur reste celui du réglage et aucun texte ne se sélectionne. */
+.reglage-en-cours,
+.reglage-en-cours * {
+  cursor: col-resize;
+  user-select: none;
 }
 
 /* Le surtitre d'une zone : petites capitales espacées. */
@@ -545,12 +639,18 @@ textarea {
 }
 
 .cellule-entete {
-  overflow: hidden;
+  position: relative;
+  min-width: 0;
   padding: 10px var(--espace-page);
   color: var(--texte-second);
   font-size: var(--petit);
   font-weight: 500;
   line-height: 16px;
+}
+
+.cellule-entete-nom {
+  display: block;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -570,6 +670,14 @@ textarea {
   align-content: center;
   padding: 0 var(--espace-page);
   background: var(--fond);
+}
+
+.nom-de-token {
+  color: var(--texte);
+}
+
+.nom-de-token-chemin {
+  color: var(--texte-second);
 }
 
 .nom-de-token,
@@ -599,9 +707,11 @@ textarea {
 /* Ce qui se suit : un alias, ou une variable citée dans une liste. */
 .alias,
 .liens .lien {
-  display: inline-block;
+  display: inline-flex;
   overflow: hidden;
   max-width: 100%;
+  align-items: center;
+  gap: 6px;
   padding: 2px 7px;
   border: 1px solid var(--bordure);
   border-radius: 5px;
@@ -632,19 +742,46 @@ textarea {
 }
 
 .cellule-valeur {
-  display: grid;
+  display: flex;
+  overflow: hidden;
   min-width: 0;
-  align-content: center;
-  gap: 3px;
+  align-items: center;
   padding: 0 var(--espace-page);
 }
 
-.cellule-source,
-.cellule-resultat {
+/* Une valeur dans son contexte : l'alias cède la place, ce qu'il rend reste entier. */
+.valeur-resolue {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+.valeur-resolue > .alias {
+  min-width: 40px;
+  flex: 0 1 auto;
+}
+
+.alias-nom {
   overflow: hidden;
   min-width: 0;
-  line-height: 16px;
-  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.alias-opacite {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.valeur-rendue {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.propriete-valeur > .valeur-resolue {
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
 
 .vide {
@@ -688,6 +825,11 @@ textarea {
   border: 1px solid var(--bordure-pastille);
   border-radius: 3px;
   background: conic-gradient(var(--damier-clair) 25%, var(--damier-fonce) 0 50%, var(--damier-clair) 0 75%, var(--damier-fonce) 0) 0 0 / 8px 8px;
+}
+
+/* Le contour d'une couleur opaque : cette couleur, à peine éclaircie. */
+.pastille-opaque {
+  border-color: color-mix(in srgb, var(--pastille-couleur) 84%, var(--texte));
 }
 
 .valeur-grande .pastille {
@@ -895,16 +1037,13 @@ textarea {
   list-style: none;
 }
 
-.ligne-de-lien,
-.occurrence {
+.ligne-de-lien {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--espace-controle);
 }
 
-.occurrence-nom,
-.calque-nom,
 .interrupteur-nom {
   font-weight: 600;
 }
@@ -956,19 +1095,6 @@ textarea {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
-.calque,
-.verification {
-  display: grid;
-  gap: var(--espace-controle);
-  padding: var(--espace-bloc);
-  border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-}
-
-.calque > .bouton-discret {
-  justify-self: start;
-}
-
 .interrupteur-ligne {
   display: flex;
   align-items: start;
@@ -983,49 +1109,6 @@ textarea {
 
 .champ-fichier {
   max-width: 100%;
-}
-
-.graphe-cadre {
-  overflow: auto;
-  max-height: 360px;
-  border: 1px solid var(--bordure);
-  border-radius: 8px;
-  background: var(--fond-arbre);
-}
-
-.graphe {
-  display: block;
-}
-
-.graphe-arete {
-  fill: none;
-  stroke: var(--rail);
-  stroke-width: 1;
-}
-
-.graphe-arete-active {
-  stroke: var(--texte-marque);
-  stroke-width: 2;
-}
-
-.graphe-noeud {
-  cursor: pointer;
-}
-
-.graphe-noeud rect {
-  fill: var(--fond-note);
-  stroke: var(--bordure);
-}
-
-.graphe-noeud text {
-  fill: var(--texte);
-  font-family: var(--chasse-fixe);
-  font-size: 11px;
-}
-
-.graphe-centre rect {
-  fill: var(--fond-selection);
-  stroke: var(--texte-marque);
 }
 
 /* La bulle de la chaîne, au survol et au focus. */
@@ -1116,7 +1199,7 @@ textarea {
 
 @media (max-width: 899px) {
   .corps {
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: min(var(--largeur-arbre, 200px), 40vw) minmax(0, 1fr);
   }
 
   .inspecteur {
@@ -1137,10 +1220,9 @@ textarea {
 
 @media (max-width: 699px) {
   .corps {
-    grid-template-columns: 168px minmax(0, 1fr);
+    grid-template-columns: min(var(--largeur-arbre, 168px), 40vw) minmax(0, 1fr);
   }
 
-  .arbre > .note,
   .produit-nom {
     display: none;
   }
@@ -1159,4 +1241,577 @@ textarea {
     padding-right: var(--espace-bloc);
     padding-left: var(--espace-bloc);
   }
+}
+
+/*
+ * La vue composant. Ses règles reprennent une à une celles de la fenêtre du
+ * plugin dans MAQUETTE-VUE-COMPOSANT.html : une colonne de 364 px, un texte
+ * de 13 px à l'interligne 1,5, des noms en chasse fixe de 11,5 px. Elles ne
+ * suivent pas l'échelle de texte des autres zones, faite pour la table.
+ */
+.vc {
+  --chasse-fixe: ui-monospace, Consolas, monospace;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: var(--fond);
+  color: var(--texte);
+  font: 13px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* La fenêtre étroite ne descend pas sous sa largeur minimale. Sa barre fait 44 px : `TAILLE_ETROITE` les ajoute aux 680 px de la vue. */
+.application-etroite {
+  min-width: 320px;
+}
+
+.application-etroite .barre {
+  height: 44px;
+  padding: 0 16px;
+}
+
+.application-etroite .produit-nom {
+  display: none;
+}
+
+.vc button {
+  cursor: pointer;
+}
+
+.vc :focus-visible {
+  outline-offset: 2px;
+}
+
+.vc-corps {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+}
+
+.vc-vide {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 0 16px;
+  color: var(--texte-second);
+  text-align: center;
+}
+
+.vc-vide svg {
+  display: block;
+  margin: 0 auto 14px;
+  opacity: 0.7;
+}
+
+.vc-vide p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.vc-fil {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px 0;
+  color: var(--texte-second);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.vc-fil button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-marque);
+}
+
+.vc-fil span:last-child {
+  overflow: hidden;
+  color: var(--texte);
+  text-overflow: ellipsis;
+}
+
+.vc-tete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+}
+
+.vc-tete h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.vc-tete h2 span {
+  color: var(--texte-composant);
+  font-size: 12px;
+}
+
+.vc-sous {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+/* La pastille d'un mode ; le choix d'un variant en reprend le dessin. */
+.vc-mode,
+.vc-variants {
+  padding: 0 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 99px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+  white-space: nowrap;
+}
+
+.vc-variants {
+  max-width: 100%;
+  background: transparent;
+}
+
+.vc-outils {
+  display: flex;
+  gap: 2px;
+}
+
+.vc-icone {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  place-items: center;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-second);
+}
+
+.vc-icone:hover,
+.vc-icone[aria-pressed='true'] {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.vc-apercu {
+  display: grid;
+  overflow: hidden;
+  min-height: 72px;
+  place-items: center;
+  margin: 0 16px;
+  padding: 10px;
+  border: 1px solid var(--filet);
+  border-radius: 8px;
+  background: var(--fond-apercu);
+}
+
+.vc-echelle {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.vc-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Le cadre d'un calque sur l'aperçu : celui d'une ligne survolée, puis celui de la portée. */
+.vc-cadre {
+  position: absolute;
+  outline: 3px solid var(--cadre-survol);
+  outline-offset: -3px;
+  pointer-events: none;
+}
+
+.vc-cadre-portee {
+  outline-color: var(--cadre-portee);
+}
+
+.vc-imbriques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+
+.vc-imbriques button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-composant);
+  font-size: 11.5px;
+}
+
+.vc-imbriques button:hover {
+  background: var(--fond-survol);
+}
+
+.vc-imbriques small {
+  color: var(--texte-second);
+  font-size: 10.5px;
+}
+
+.vc-filtre {
+  padding: 10px 16px 0;
+}
+
+.vc-filtre input {
+  width: 100%;
+  padding: 4px 9px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: var(--fond-arbre);
+  font-size: 12px;
+}
+
+.vc-liste {
+  padding-top: 6px;
+}
+
+.vc-section-tete {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  font-size: 10px;
+  letter-spacing: 0.9px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.vc-section-tete:hover {
+  color: var(--texte);
+}
+
+.vc-section-tete i {
+  width: 9px;
+  color: var(--noeud);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.vc-section-tete b {
+  color: var(--rail);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.vc-resume {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 16px 8px 30px;
+  color: var(--texte-second);
+  font: 11px/1.5 var(--chasse-fixe);
+}
+
+.vc-resume button {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 3px;
+}
+
+.vc-resume button:hover {
+  transform: scale(1.25);
+}
+
+.vc-resume span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-resume button + span {
+  margin-left: 6px;
+}
+
+.vc-token {
+  border-top: 1px solid var(--filet);
+}
+
+.vc-section-tete + .vc-token {
+  border-top: 0;
+}
+
+.vc-ligne {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 16px;
+  border: 0;
+  background: transparent;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  text-align: left;
+}
+
+.vc-ligne:hover {
+  background: var(--fond-survol);
+}
+
+.vc-pastille {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 4px;
+  font: 700 9px/1 system-ui, sans-serif;
+  font-style: normal;
+}
+
+.vc-pastille-claire {
+  color: var(--encre);
+}
+
+.vc-pastille-sombre {
+  color: var(--texte-sur-marque);
+}
+
+.vc-pastille-contour {
+  border-width: 3px;
+  background: transparent;
+}
+
+.vc-pastille-nombre {
+  border-color: transparent;
+  color: var(--texte-second);
+  font: 11px/1 system-ui, sans-serif;
+}
+
+.vc-nom {
+  display: block;
+  overflow: hidden;
+  direction: rtl;
+  font: 11.5px/1.5 var(--chasse-fixe);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-fin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.vc-valeur {
+  font: 11.5px/1.35 var(--chasse-fixe);
+  white-space: nowrap;
+}
+
+/* Une chaîne interrompue, et la marque d'un écart avec Figma. */
+.vc-rompue-valeur {
+  color: var(--texte-avertissement);
+}
+
+.vc-fois {
+  min-width: 20px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  text-align: right;
+}
+
+.vc-points {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.vc-points i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rail);
+}
+
+.vc-points i:last-child {
+  background: var(--noeud);
+}
+
+.vc-chaine {
+  margin: 0;
+  padding: 4px 16px 4px 22px;
+  list-style: none;
+}
+
+.vc-chaine li {
+  position: relative;
+  padding: 0 0 8px 18px;
+  border-left: 1px solid var(--rail);
+}
+
+.vc-chaine li:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.vc-chaine li::before {
+  position: absolute;
+  top: 5px;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.vc-chaine li.vc-terme::before {
+  background: var(--noeud);
+}
+
+.vc-chaine li.vc-rompue::before {
+  border-color: var(--texte-avertissement);
+}
+
+.vc-etape-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+}
+
+.vc-etape-nom {
+  display: block;
+  font: 11.5px/1.45 var(--chasse-fixe);
+  overflow-wrap: anywhere;
+}
+
+.vc-copie {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 12px var(--chasse-fixe);
+}
+
+.vc-copie:hover {
+  color: var(--texte-marque);
+}
+
+.vc-copie .vc-pastille {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.vc-rompue-texte {
+  color: var(--texte-avertissement);
+  font-size: 11.5px;
+}
+
+.vc-sur-calques {
+  padding: 4px 16px 10px 43px;
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-champs {
+  margin: 0;
+  padding: 2px 16px 4px 43px;
+  list-style: none;
+}
+
+.vc-champs li {
+  display: grid;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11.5px;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+}
+
+.vc-champs span {
+  color: var(--texte-second);
+}
+
+.vc-champs em {
+  overflow: hidden;
+  color: var(--rail);
+  font-size: 10.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-champs code {
+  font: 11.5px var(--chasse-fixe);
+}
+
+.vc-aucun {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+.vc-pied {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 16px;
+  border-top: 1px solid var(--filet);
+  background: var(--fond-arbre);
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-pied button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.vc-directes {
+  margin: 0;
+  padding: 0 16px 12px;
+  list-style: none;
+}
+
+.vc-directes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--filet);
+  font-size: 12px;
+}
+
+.vc-directes code {
+  color: var(--texte-second);
+  font: 11.5px var(--chasse-fixe);
 }

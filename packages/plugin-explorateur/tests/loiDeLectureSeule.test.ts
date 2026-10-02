@@ -1,13 +1,17 @@
 /**
- * L'explorateur n'écrit jamais dans le document. Aucun fichier de `src/` hors
- * de l'interface n'appelle une création, une suppression, un setter de
- * variable, un import distant, une écriture de données ou le chargement de
- * toutes les pages. `src/ui/` en est exclu : l'iframe n'a pas de global
- * `figma`, et ses `appendChild` construisent le panneau du plugin.
+ * L'explorateur ne crée ni ne modifie rien dans le document. Aucun fichier de
+ * `src/` hors de l'interface n'appelle une création, une suppression, un
+ * setter de variable, un import de composant ou de style, une écriture de
+ * données ou le chargement de toutes les pages. `src/ui/` en est exclu :
+ * l'iframe n'a pas de global `figma`, et ses `appendChild` construisent le
+ * panneau du plugin.
  *
- * Les seuls gestes permis touchent la vue du designer, à sa demande : page
- * courante, sélection et zoom de `code.ts`, et `clientStorage` pour ses
- * préférences.
+ * Un seul import est permis : celui d'une variable par sa clé, dans
+ * `lecture.ts`, pour lire la cible d'un alias que Figma ne rend pas par son
+ * identifiant.
+ *
+ * `clientStorage` reçoit la taille de la fenêtre et les préférences du
+ * designer, et `figma.ui.resize` redimensionne la fenêtre du plugin.
  *
  * Borne : la loi lit le texte ligne à ligne. Une écriture par crochets ou
  * répartie sur deux lignes lui échappe ; les doubles de `figmaDeTest.ts`
@@ -28,14 +32,12 @@ const INTERDITS: { motif: RegExp; quoi: string }[] = [
   { motif: /\.appendChild\s*\(|\.insertChild\s*\(/, quoi: 'déplacement de node' },
   { motif: /setValueForMode|setBoundVariable|setExplicitVariableMode|setVariableCodeSyntax|removeOverride/, quoi: 'setter de variable' },
   { motif: /createVariable|extend\s*\(|addMode|renameMode|removeMode/, quoi: 'création ou modification de collection' },
-  { motif: /import(Variable|Component|ComponentSet|Style)ByKeyAsync/, quoi: 'import distant' },
+  { motif: /import(Component|ComponentSet|Style)ByKeyAsync/, quoi: 'import de composant ou de style' },
   { motif: /loadAllPagesAsync|commitUndo/, quoi: 'chargement de toutes les pages ou point d’annulation' },
   { motif: /\.(fills|strokes|effects|name|characters|x|y|opacity|visible|description|scopes|hiddenFromPublishing)\s*[-+*/]?=(?!=)/, quoi: 'propriété de node ou de variable' },
   { motif: /(?<!figma\.ui)\.resize\s*\(/, quoi: 'dimension de node' },
+  { motif: /\.selection\s*=(?!=)|setCurrentPageAsync|scrollAndZoomIntoView/, quoi: 'page courante, sélection ou vue du designer' },
 ];
-
-/** Les affectations permises : elles changent la vue du designer, jamais le document. */
-const PERMISES: RegExp[] = [/figma\.currentPage\.selection\s*=/];
 
 function fichiers(dossier: string): string[] {
   return fs.readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {
@@ -54,15 +56,30 @@ test('aucun fichier du sandbox ni du noyau n’écrit dans le document', () => {
     fs.readFileSync(fichier, 'utf8').split('\n').forEach((ligne, rang) => {
       const nu = ligne.trim();
       if (nu.startsWith('*') || nu.startsWith('//') || nu.startsWith('/*')) return;
-      if (PERMISES.some((permis) => permis.test(ligne))) return;
       for (const { motif, quoi } of INTERDITS) if (motif.test(ligne)) fautes.push(`${path.relative(racine, fichier)}:${rang + 1} ${quoi}`);
     });
   }
   assert.deepEqual(fautes, []);
 });
 
+test('seule la lecture importe une variable, par sa clé', () => {
+  const importateurs = fichiers(SOURCE).filter((fichier) => {
+    const texte = fs.readFileSync(fichier, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    return /importVariableByKeyAsync/.test(texte);
+  });
+  assert.deepEqual(importateurs.map((fichier) => path.relative(SOURCE, fichier)), ['lecture.ts']);
+});
+
+test('seuls le routage et l’aperçu exportent une image', () => {
+  const exportateurs = fichiers(SOURCE).filter((fichier) => {
+    const texte = fs.readFileSync(fichier, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    return /exportAsync/.test(texte);
+  });
+  assert.deepEqual(exportateurs.map((fichier) => path.relative(SOURCE, fichier)).filter((fichier) => fichier !== 'code.ts'), ['apercu.ts']);
+});
+
 test('le noyau ne lit ni Figma, ni le DOM, ni UCM', () => {
-  const noyau = ['modele.ts', 'groupes.ts', 'indexation.ts', 'resolution.ts', 'comparaison.ts', 'diagnostics.ts', 'copie.ts', 'graphe.ts', 'simulation.ts', 'releves.ts'];
+  const noyau = ['modele.ts', 'groupes.ts', 'indexation.ts', 'resolution.ts', 'comparaison.ts', 'diagnostics.ts', 'copie.ts', 'simulation.ts', 'releves.ts', 'composant.ts'];
   const fautes: string[] = [];
   for (const nom of noyau) {
     const texte = fs.readFileSync(path.join(SOURCE, nom), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');

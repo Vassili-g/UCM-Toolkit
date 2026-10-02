@@ -1,24 +1,66 @@
 /**
- * L'état de l'interface : le relevé courant et ses dérivés, la navigation,
- * l'historique du bouton Retour et les deux contextes. Les vues lisent cet
- * état et demandent un rendu ; aucune ne garde de copie du relevé.
+ * L'état de l'interface : le relevé courant et ses dérivés, la navigation
+ * et les deux contextes. Les vues lisent cet état et demandent un rendu ;
+ * aucune ne garde de copie du relevé.
  *
  * Un nouveau relevé, ou une simulation, reconstruit l'index et le résolveur :
  * toutes les résolutions mémorisées tombent d'un coup.
  */
-import type { ResultatDesConsommateurs } from '../consommateurs';
+import type { LectureDeComposant } from '../composant';
+import type { Disposition } from '../fenetre';
 import { arbreDeCollection, commencePar, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
 import { familles, indexer, modesDeFamille, type Index } from '../indexation';
 import type { Import } from '../integrations/contrats';
 import type { AssociationDeCran } from '../integrations/palettes';
-import type { CalqueSelectionne, ValeurDeFigma } from '../messages';
+import type { SujetSelectionne } from '../messages';
 import type { Releve, TypeDeVariable, VariableRelevee } from '../modele';
 import { PREFERENCES_PAR_DEFAUT, type Preferences } from '../preferences';
 import { creerResolveur, type Contexte, type Resolveur } from '../resolution';
 
-export type Onglet = 'table' | 'comparer' | 'dependants' | 'diagnostics' | 'calques' | 'graphe' | 'integrations' | 'releves';
+export type Onglet = 'table' | 'comparer' | 'dependants' | 'diagnostics' | 'integrations' | 'releves';
 
-export const ONGLETS: readonly Onglet[] = ['table', 'comparer', 'dependants', 'diagnostics', 'calques', 'graphe', 'integrations', 'releves'];
+export const ONGLETS: readonly Onglet[] = ['table', 'comparer', 'dependants', 'diagnostics', 'integrations', 'releves'];
+
+/** L'image d'un sujet, gardée sous une URL de blob, et la zone qu'elle couvre dans la page. */
+export interface ApercuRecu {
+  readonly sujet: string;
+  readonly url: string;
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly origine: { readonly x: number; readonly y: number };
+}
+
+/** Un composant lu et affiché : sa lecture, l'index de son relevé, le calque de sa portée et son image. */
+export interface ComposantAffiche {
+  readonly lecture: LectureDeComposant;
+  readonly index: Index;
+  readonly portee: string;
+  readonly apercu: ApercuRecu | null;
+}
+
+/**
+ * La vue composant. `demande` numérote la dernière lecture demandée : une
+ * réponse d'une autre demande est ignorée. `pile` porte les composants
+ * quittés pour ouvrir l'un de leurs composants imbriqués.
+ */
+export interface EtatDuComposant {
+  demande: number;
+  statut: 'vide' | 'en-cours' | 'lu' | 'echouee';
+  /** Le message de la lecture qui a levé. */
+  message: string;
+  lecture: LectureDeComposant | null;
+  index: Index | null;
+  pile: ComposantAffiche[];
+  portee: string | null;
+  apercu: ApercuRecu | null;
+  /** Ce que la sélection de Figma désigne, d'après le dernier message `selection`. */
+  selection: SujetSelectionne | null;
+  ignores: number;
+  /** Ce que la réponse attendue fait du composant affiché : vrai l'empile, faux le remplace. */
+  empiler: boolean;
+  /** Vrai quand la lecture attendue est celle de la sélection : sa portée vient alors de la sélection. */
+  deLaSelection: boolean;
+}
 
 export interface Filtres {
   readonly type: TypeDeVariable | 'tous';
@@ -30,14 +72,13 @@ export interface Filtres {
 
 export const FILTRES_PAR_DEFAUT: Filtres = { type: 'tous', nature: 'toutes', provenance: 'toutes', concernees: false };
 
-/** Ce que Retour restaure. */
+/** Ce que la table montre et la variable que l'inspecteur épingle. */
 export interface Position {
   readonly collection: string | null;
   readonly groupe: readonly string[];
   readonly recherche: string;
   readonly filtres: Filtres;
   readonly inspectee: string | null;
-  readonly defilement: number;
 }
 
 export type Lecture =
@@ -45,16 +86,6 @@ export type Lecture =
   | { readonly statut: 'en-cours'; readonly demande: number; readonly phase: string; readonly fait: number; readonly total: number }
   | { readonly statut: 'annulee' }
   | { readonly statut: 'echouee'; readonly message: string };
-
-export interface Analyse {
-  readonly statut: 'attente' | 'en-cours' | 'annulee' | 'lue';
-  readonly demande: number;
-  readonly fait: number;
-  readonly total: number;
-  readonly resultat: ResultatDesConsommateurs | null;
-  /** Vrai quand la sélection ou la page a changé depuis l'analyse. */
-  readonly perimee: boolean;
-}
 
 export interface Etat {
   releve: Releve | null;
@@ -65,7 +96,6 @@ export interface Etat {
   arbres: NoeudDeGroupe[];
   lecture: Lecture;
   position: Position;
-  historique: Position[];
   replies: Set<string>;
   onglet: Onglet;
   contexte: Contexte;
@@ -73,16 +103,15 @@ export interface Etat {
   preferences: Preferences;
   /** Les variables que les constats concernent, calculées à l'ouverture des diagnostics. */
   concernees: Set<string> | null;
-  analyse: Analyse;
-  selection: CalqueSelectionne[];
-  /** La dernière comparaison avec `resolveForConsumer`, pour un calque. */
-  verification: { readonly demande: number; readonly calque: string; readonly valeurs: readonly ValeurDeFigma[] | null } | null;
   /** Les contrats et fichiers de tokens importés, en mémoire. */
   imports: Import[];
   /** Le texte de la recette UCM Palettes lu à la dernière demande ; `null` avant toute lecture. */
   recette: { readonly demande: number; readonly texte: string | null } | null;
   /** Les associations de variables à un cran de palette, en mémoire. */
   crans: Map<string, AssociationDeCran>;
+  /** La disposition de la fenêtre, large avant l'annonce du sandbox. La bascule de la barre la change. */
+  disposition: Disposition;
+  composant: EtatDuComposant;
 }
 
 export function etatInitial(): Etat {
@@ -93,20 +122,18 @@ export function etatInitial(): Etat {
     resolveur: null,
     arbres: [],
     lecture: { statut: 'attente' },
-    position: { collection: null, groupe: [], recherche: '', filtres: FILTRES_PAR_DEFAUT, inspectee: null, defilement: 0 },
-    historique: [],
+    position: { collection: null, groupe: [], recherche: '', filtres: FILTRES_PAR_DEFAUT, inspectee: null },
     replies: new Set(),
     onglet: 'table',
     contexte: {},
     contexteB: {},
     preferences: PREFERENCES_PAR_DEFAUT,
     concernees: null,
-    analyse: { statut: 'attente', demande: 0, fait: 0, total: 0, resultat: null, perimee: false },
-    selection: [],
-    verification: null,
     imports: [],
     recette: null,
     crans: new Map(),
+    disposition: 'large',
+    composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
   };
 }
 
@@ -138,7 +165,6 @@ export function poserReleve(etat: Etat, releve: Releve, original = true): void {
   const collection = position.collection && index.collections.has(position.collection) ? position.collection : (releve.collections[0]?.id ?? null);
   const inspectee = position.inspectee && index.variables.has(position.inspectee) ? position.inspectee : null;
   etat.position = { ...position, collection, groupe: collection === position.collection ? position.groupe : [], inspectee };
-  etat.historique = etat.historique.filter((ancienne) => !ancienne.collection || index.collections.has(ancienne.collection));
   // À la première lecture, l'arbre montre les collections et les groupes de premier niveau de la collection ouverte.
   if (etat.replies.size === 0) {
     for (const arbre of etat.arbres) {
@@ -146,20 +172,6 @@ export function poserReleve(etat: Etat, releve: Releve, original = true): void {
       for (const enfant of arbre.enfants) etat.replies.add(enfant.cle);
     }
   }
-}
-
-/** Mémorise la position courante avant une navigation que Retour défera. */
-export function memoriser(etat: Etat): void {
-  etat.historique.push(etat.position);
-  if (etat.historique.length > 100) etat.historique.shift();
-}
-
-/** Restaure la dernière position mémorisée ; faux quand l'historique est vide. */
-export function revenir(etat: Etat): boolean {
-  const precedente = etat.historique.pop();
-  if (!precedente) return false;
-  etat.position = precedente;
-  return true;
 }
 
 /** Vrai quand une variable passe les filtres. La recherche est traitée à part. */
