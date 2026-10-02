@@ -1,6 +1,6 @@
 # Textes à valider avant L6 et L9
 
-Porte H1 du [plan](./PLAN-DIAGNOSTICS-COMPOSANT-REEL.md). Chaque message
+Matériau éditorial du [chantier des diagnostics](./README.md). Chaque message
 nouveau ou modifié par L6 et L9 est proposé en deux ou trois rédactions, ses
 trois parties séparées. L'exemple rendu reprend le composant de la section 1
 du plan sous des noms neutres : un component set « Button » de 140 variants,
@@ -171,10 +171,9 @@ Le composant exporté est nommé en premier, le contrat déjà présent en secon
 
 ### Opacité sans variable (E2)
 
-Retenu à la porte H1 du [plan d'évolution](./PLAN-EVOLUTION-MOTEUR.md), avec
-les autres textes de ce plan, que le journal
-[PREUVES-EVOLUTION-MOTEUR.md](./PREUVES-EVOLUTION-MOTEUR.md) recopie en
-entier. Un texte entre ici avec le lot qui l'écrit.
+Les formulations retenues pour l'opacité et les effets sont reproduites
+ci-dessous. Le [bilan](./README.md) décrit les comportements implémentés et
+les validations restantes.
 
 | Cible | Titre | Impact | Action |
 |---|---|---|---|

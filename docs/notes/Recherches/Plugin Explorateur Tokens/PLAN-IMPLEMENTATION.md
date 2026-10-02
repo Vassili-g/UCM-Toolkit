@@ -1,5 +1,10 @@
 # Plan d'implémentation de l'explorateur de tokens
 
+**Statut : implémenté.** Les modules sont présents dans
+`packages/plugin-explorateur`. Le [suivi](./SUIVI-IMPLEMENTATION.md) conserve
+les preuves et les réserves Figma ; les consignes ci-dessous décrivent le
+plan exécuté, pas un développement à lancer.
+
 Ce plan transforme la [recherche](./RECHERCHE-EXPLORATEUR-TOKENS.md) et la
 [maquette](./MAQUETTE-EXPLORATEUR-TOKENS.html) en tâches exécutables. Le
 [suivi](./SUIVI-IMPLEMENTATION.md) porte l’état de son exécution. Ce plan porte

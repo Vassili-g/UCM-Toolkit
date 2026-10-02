@@ -1,5 +1,10 @@
 # Un explorateur de tokens Figma, avec intégrations UCM facultatives
 
+**Statut : étude mise en œuvre.** Le produit est décrit par sa
+[spécification](../../../../packages/plugin-explorateur/SPEC.md).
+Cette étude conserve le besoin initial et les comparaisons ; les fonctions
+d'un outil externe doivent être revérifiées avant une nouvelle décision.
+
 Étude de produit, sans décision d'implémentation. Les outils concurrents n'ont pas été essayés
 dans Figma. L'état du code ci-dessous inclut les modifications présentes dans
 le workspace, sans présumer de leur publication.

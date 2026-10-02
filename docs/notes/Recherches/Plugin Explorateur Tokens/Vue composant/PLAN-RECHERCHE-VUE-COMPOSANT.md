@@ -1,5 +1,10 @@
 # Vue composant de l'explorateur : plan de recherche
 
+**Statut : étude mise en œuvre.** Le
+[suivi](./SUIVI-VUE-COMPOSANT.md) et la
+[recette](./RECETTE-VUE-COMPOSANT.md) distinguent l'implémentation de sa
+validation dans Figma. La maquette reste utilisée par le contrôle de fidélité.
+
 Plan de recherche, sans décision d'implémentation. La
 [maquette](./MAQUETTE-VUE-COMPOSANT.html) s'ouvre dans un navigateur, sans
 connexion à Figma, sur quatre composants de UCM Playground. Aucun essai n'a encore été fait dans Figma :

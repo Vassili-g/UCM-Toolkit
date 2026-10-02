@@ -1,5 +1,10 @@
 # UCM Palettes : plan d’internationalisation de l’interface
 
+**Statut : implémenté.** Les catalogues, le choix de langue et la préférence
+locale sont présents. Les [cases ouvertes](#cases-ouvertes) concernent la
+validation ; le [README du plugin](../../../../../packages/plugin-palettes/README.md#ajouter-une-langue)
+donne la procédure actuelle pour ajouter une langue.
+
 ## Résultat attendu
 
 UCM Palettes s’ouvre en anglais par défaut. Le panneau de configuration propose

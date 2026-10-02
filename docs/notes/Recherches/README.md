@@ -1,0 +1,63 @@
+# État des recherches UCM
+
+Ce sommaire classe les sujets d'après les sources présentes dans les dépôts.
+**Implémenté** signifie que le comportement existe dans le code ; une recette
+Figma non consignée reste une validation à faire, sans rouvrir l'implémentation.
+
+Les plans anciens servent à retrouver une décision ou une expérience. Pour
+modifier le produit, partez des références de [docs/README.md](../../README.md)
+et du code, pas d'une ancienne liste de tâches.
+
+## Sujets implémentés
+
+| Sujet | Éléments présents | Référence à conserver |
+|---|---|---|
+| Diagnostics de l'exporteur et propriétés visuelles du contrat 14.0 | Regroupement des constats, opacité, styles d'effets, placement des enfants de cadres libres | [Bilan et réserves](./Diagnostics%20d'un%20composant%20réel/README.md) ; les deux plans et leurs journaux d'exécution sont remplacés par ce bilan |
+| Plugin Palettes, ergonomie et réglages | Moteur, planches, modèles de nuances, référence réglable et interface de test | [Bilan Palettes](./Plugin%20Palettes/README.md) ; spécification et mesures conservées |
+| Palettes désaturées et grises | Ancrage dans `palette.ts`, réglages dans `reglages.ts`, tests du moteur | [Conception et cas limites](./Plugin%20Palettes/3%20Palettes%20désaturées/PLAN-PALETTES-DESATUREES.md) |
+| Color shift et limites | Trois grandeurs, réglage global borné, calcul des limites par tranches dans l'interface | [Étude](./Plugin%20Palettes/Color%20shift/ETUDE-COLOR-SHIFT.md) ; l'écriture des couches de marque et la migration du Playground sont des sujets distincts |
+| Langues de Palettes | Catalogues anglais et français, préférence locale, traduction immédiate | [Plan et limites de validation](./Plugin%20Palettes/Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes) ; décisions éditoriales et export des validations conservés |
+| Direction simple de Palettes | Création, Vérification, Gestion, variables locales, reprise, copie de bibliothèque, sections repliables et simulation des chemins | [Parcours et recette](./Plugin%20Palettes/Intégration%20du%20marché/README.md) |
+| Explorateur de tokens | Résolution, comparaison, diagnostics, intégrations, relevés et simulation | [Spécification](../../../packages/plugin-explorateur/SPEC.md) et [suivi des preuves](./Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) |
+| Vue composant de l'explorateur | Sélection, frontières de composition, aperçu, tokens par nature et chaînes | [Suivi](./Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md) et [recette Figma](./Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md) |
+
+## Sujets partiellement implémentés
+
+| Sujet | Acquis | Suite distincte |
+|---|---|---|
+| [Performance de l'analyse](./Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) | Maître résolu une fois par analyse, index par page, annulation, traces et avancement dans le build courant | Préchauffage conditionné par les sondes, accélérations après mesure, reprise d'un index modifié ; conserver les sondes et le plan |
+| [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Vocabulaire commun dans `packages/kit/src/emplois`, dix-neuf paires, quatre rangs, diagnostic des emplois et crans 400/950 | Déployer les six collections dans Figma et migrer les consommateurs ; Palettes écrit les palettes primitives, sans générer `brand`, `theme` ou `usage` |
+
+Le Playground et `intencial-library` portent encore l'axe
+`color-brand-tokens`, à deux marques, sans axe de thème dans leurs exports.
+La présence du vocabulaire dans le kit ne prouve donc pas la migration des
+bibliothèques.
+
+## Pistes conservées pour la suite
+
+| Sujet | État et raison de conservation |
+|---|---|
+| [Direction artistique](./Direction%20artistique/README.md) | Propositions non validées, dont Capitule ; conserver les planches, leurs générateurs et les SVG |
+| [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
+| [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Piste non implémentée ; la parité TypeScript ne compare pas le rendu |
+| [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur dans le monorepo |
+| [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Pistes au-delà de l'écriture des variables : vision simulée, Display P3, APCA, sélection et jeu de départ |
+| [Évolutions globales](./Evolutions%20globales/PISTES-EVOLUTION.md) | Catalogue d'options ; confronter chaque option au format courant avant de l'engager |
+
+Les comparatifs externes sont des matériaux de recherche. Leurs tarifs,
+versions et fonctions doivent être revérifiés avant une nouvelle décision.
+
+## Documents anciens conservés pour validation du tri
+
+Deux ensembles mêlent des propositions remplacées et des choix du mainteneur :
+
+- `Plugin Palettes/2 Ergonomie` : six plans successifs, maquettes et générateurs.
+  Les comportements actuels sont documentés dans la spécification ; les textes
+  contiennent aussi des retours et des variantes graphiques.
+- `Plugin Palettes/Intégration du marché/01` à `06` : parcours remplacés
+  par la direction simple, mais propositions de gestion des marques, de jeu
+  de départ et de vision simulée encore utiles.
+
+Ces ensembles restent présents jusqu'à validation de leur suppression.
+La spécification de Palettes, les mesures, les validations éditoriales et les
+maquettes utilisées par une vérification restent des références à conserver.

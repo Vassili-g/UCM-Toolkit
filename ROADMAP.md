@@ -43,10 +43,13 @@ un composant composé. Couvrir un catalogue entier n'en fait pas partie.
 | Rapport CI | Constats et avertissements agrégés dans le terminal, le résumé CI, le commentaire de pull request sur GitHub et la note de merge request sur GitLab |
 | Forges | Le plugin publie sur GitHub et sur gitlab.com : une branche, un fichier et une demande de fusion par export. `ucm init` écrit la CI de la forge du repository. Le parcours GitLab de la [recette](./docs/guides/RECETTE.md#parcours-gitlab) a été joué sur un projet gitlab.com |
 | Interopérabilité | JSON Schema publié dans `schema/`, dérivé de `types.ts`. Il décrit la forme, jamais la cohérence. Il ne bloque aucune fusion |
-| Validation Figma | Quatre composants exportés à la forme courante, puis reconstruits à froid depuis leur seul contrat. Le Playground porte ce corpus, et son contrôle est vert |
+| Corpus de recette | Le Playground contient quatre contrats en 13.0 et leurs implémentations jetables. Le build de l'exporteur produit désormais du 14.0 ; ce corpus ne prouve donc pas les ajouts de cette version |
+| Palettes | Création, Vérification et Gestion, recette 8, Color shift borné, palettes grises, interface anglaise et française, écriture des variables et reprise de palettes locales |
+| Emplois des couleurs | Le kit partage dix-neuf paires et quatre rangs entre Palettes et le diagnostic des emplois de `ucm check`. L'architecture cible n'est pas encore déployée dans les exports des deux consommateurs |
 | Explorateur de tokens | UCM Token Explorer parcourt les variables de toute architecture, résout leurs chaînes par mode et lit leurs consommateurs, en lecture seule. Ses tests portent sur des relevés fabriqués et sur l’interface compilée dans Chromium ; son [suivi](./docs/notes/Recherches/Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) tient les mesures |
 
-Aucun contrôle n'exécute le rendu.
+Les [recherches](./docs/notes/Recherches/README.md) distinguent les chantiers
+implémentés des pistes ouvertes. Aucun contrôle de contrat ne compare le rendu à Figma.
 
 ## Ce qui n'est pas prouvé
 
@@ -58,7 +61,7 @@ Aucun contrôle n'exécute le rendu.
 | Les protections de branche sont indisponibles sur le plan GitHub actuel | La CI détecte l'écart sans empêcher la fusion. Une pull request rouge reste fusionnable |
 | Le manifeste du plugin ne déclare que `api.github.com` et `gitlab.com` | Une équipe sur une instance GitLab auto-hébergée ne publie pas depuis Figma. Sa CI, elle, fonctionne |
 | La version 1 du format de tokens n'est éprouvée qu'en sRGB | Un export Figma réel la produit, déposé par le plugin de la Community, et le CSS du consommateur ne bouge pas d'un bit. Le Display P3 n'a pas d'export réel : un écran qui ne le rend pas prive Figma du réglage de profil |
-| L’explorateur de tokens n’a pas été ouvert dans Figma | Sa résolution des modes hérités, des collections étendues et des bibliothèques distantes n’est pas comparée à `resolveForConsumer` sur un fichier réel |
+| La recette de l'explorateur dans Figma n'est pas consignée | Sa résolution des modes hérités, des collections étendues et des bibliothèques distantes reste à confirmer sur un fichier réel |
 | Aucun cas mesuré de mode fixé dans un composant ne change une valeur publiée | Le contrat ne décrit pas encore un mode fixé sur un calque. Un cas réel doit montrer une perte avant l'ajout d'un champ |
 
 ## Fragilités connues
@@ -98,6 +101,12 @@ que porte la skill `consommer-contrat`. La copie non jetable deviendrait alors
 la vérité.
 
 ## Prochaines validations
+
+Les validations ci-dessous concernent le contrat et son parcours de publication.
+Pour les plugins et les moteurs déjà implémentés, les réserves propres à
+chaque chantier figurent dans l'[état des recherches](./docs/notes/Recherches/README.md).
+L'ordre des ombres du contrat 14.0 demande notamment une comparaison Figma,
+décrite dans le [bilan des propriétés visuelles](./docs/notes/Recherches/Diagnostics%20d'un%20composant%20réel/README.md).
 
 ### 1. Fermer la validation de projection
 

@@ -1,49 +1,55 @@
-# Intégration du marché dans UCM Palettes
+# Écriture des variables et parcours de Palettes
 
-Ce dossier range les propositions qui placent dans UCM Palettes les apports
-retenus par [la comparaison avec les outils du
-marché](../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md) : l'écriture des variables
-`primitives`, `brand` et `theme`, la couleur de la sélection, le jeu de départ
-et la vision simulée. Il s'adresse au mainteneur, qui décide, et à l'agent qui
-écrira le plan d'implémentation.
+Le parcours **Création, Vérification, Gestion** est implémenté. Le plugin
+écrit les palettes dans les variables locales, reprend les palettes du fichier
+et copie celles des bibliothèques activées.
 
-Aucun document de ce dossier ne décide. La [spécification](../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
-reste l'autorité sur le comportement du plugin.
+Le [README du plugin](../../../../../packages/plugin-palettes/README.md)
+décrit le comportement actuel. La
+[spécification](../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
+porte ses règles.
 
-## Ordre de lecture
+## Références du parcours implémenté
 
-Chaque dossier corrige le précédent. Le dernier fait foi sur les points qu'il
-traite ; un point qu'il ne traite pas se lit dans le dossier qui l'a traité en
-dernier.
+| Document | Usage |
+|---|---|
+| [07 Direction simple](./07%20Direction%20simple/PLAN-DIRECTION-SIMPLE.md) | Décisions de parcours et périmètre de l'écriture |
+| [Recette Figma](./07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md) | Gestes à vérifier et essais des écritures |
+| [Plan d'implémentation](./07%20Direction%20simple/PLAN-IMPLEMENTATION.md) | Décomposition du travail déjà réalisé ; les cases de validation ne constituent pas une liste de fonctions absentes |
+| [08 Recette direction simple](./08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) | Variantes visuelles de Gestion ; sections repliables, séparation des bibliothèques et simulation des chemins sont présentes dans le code |
 
-| Dossier | Contenu | Statut |
-|---|---|---|
-| [01 Proposition initiale](./01%20Proposition%20initiale/PROPOSITION-INITIALE.md) | Dix pistes : rôle de la palette, un état et un geste par palette, revue avant écriture, retouches, jeu de départ, sélection, vision simulée, fonds, carte Variables, aides. Maquettes et leur générateur | Remplacée par 03 |
-| [02 Revue atelier](./02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html) | Quinze constats sur la proposition initiale, et un prototype interactif en trois onglets Palettes, Vérifier, Appliquer, moteur embarqué | Constats repris par 03 ; parcours repris par 04 |
-| [03 Proposition finale](./03%20Proposition%20finale/PROPOSITION-FINALE.md) | Fusion de 01 et 02, revue par douze scénarios : onglets Système et Palette, quatorze pistes, dix-neuf décisions, règles d'écriture des variables, cas limites, essais dans Figma. Maquettes et leur générateur | Référence pour les règles d'écriture et les cas limites |
-| [04 Parcours en trois étapes](./04%20Parcours%20en%20trois%20%C3%A9tapes/PROPOSITION-TROIS-ETAPES.html) | Retour au parcours de l'atelier : trois questions du designer, cinq règles, neuf écrans | Référence pour l'organisation des écrans et les mots, sous les réserves de 05 |
-| [05 Revue critique](./05%20Revue%20critique/REVUE-CRITIQUE-TROIS-ETAPES.md) | Revue de 04 contre la demande initiale et les propositions 01 à 03 : cas limites absents, vue du système retirée, correction qui abîme la rampe, destination sans contraintes. Script de mesure | À prendre en compte par 06 |
-| [06 Direction globale](./06%20Direction%20globale/DIRECTION-GLOBALE.md) | La direction qui assemble 03, 04 et 05 : trois onglets Palette, Vérifier et Système, les règles d'écriture des variables, la correction bornée par la régularité, onze cas limites, vingt et une décisions, l'inventaire de toutes les modifications ; une maquette interactive à vingt-six scénarios, ses scripts de génération, de mesure et de vérification | Remplacée par 07 pour le parcours ; référence pour les essais dans Figma et les cas limites de l'écriture |
-| [07 Direction simple](./07%20Direction%20simple/PLAN-DIRECTION-SIMPLE.md) | Le parcours en trois onglets, Création, Vérification et Gestion : l'encart du fichier vide, l'écriture d'une palette dans les variables, l'état des tokens et de la planche par palette, les palettes que le fichier porte déjà. Sans marques ni jeu de départ. Onze maquettes en thème sombre et leur générateur ; [le plan d'implémentation](./07%20Direction%20simple/PLAN-IMPLEMENTATION.md), dix phases ; [la recette](./07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md), le parcours à faire dans Figma et les essais R1 à R10 | Validée, sauf S14 ; implémentée, phases 1 à 9 ; à recetter dans Figma |
-| [08 Recette direction simple](./08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) | Trois retours de la recette de l'onglet Gestion, en maquettes : quatre propositions pour distinguer ses sections, « Déjà dans le fichier » réservé aux variables locales, trois propositions pour une simulation de la destination réduite aux chemins créés. Quinze cadres en thème sombre et leur générateur | À valider |
+La gestion actuelle effectue les écritures depuis chaque fiche. Une palette
+reprise conserve les identifiants de ses variables ; la reprise peut renommer
+leurs chemins. Le plugin ne génère ni couches de marque, ni alias de thème.
 
-## Régénérer les pages
+## Propositions remplacées
 
-Les couleurs, les garanties et les comptes des pages sortent du moteur. Chaque
-page se régénère depuis la racine du dépôt :
+| Ensemble | État et intérêt restant |
+|---|---|
+| [01 Proposition initiale](./01%20Proposition%20initiale/PROPOSITION-INITIALE.md) | Parcours remplacé ; premières pistes de sélection, jeu de départ et vision simulée |
+| [02 Revue atelier](./02%20Revue%20atelier/REVUE-ET-PROTOTYPE-ATELIER.html) | Prototype de parcours remplacé |
+| [03 Proposition finale](./03%20Proposition%20finale/PROPOSITION-FINALE.md) | Parcours remplacé ; cas limites des écritures |
+| [04 Parcours en trois étapes](./04%20Parcours%20en%20trois%20étapes/PROPOSITION-TROIS-ETAPES.html) | Organisation remplacée par Création, Vérification et Gestion |
+| [05 Revue critique](./05%20Revue%20critique/REVUE-CRITIQUE-TROIS-ETAPES.md) | Réserves sur les corrections qui abîment une rampe et les destinations ambiguës |
+| [06 Direction globale](./06%20Direction%20globale/DIRECTION-GLOBALE.md) | Parcours remplacé ; propositions de marques, de jeu de départ et de vision simulée hors du périmètre actuel |
+
+Ces propositions restent conservées jusqu'à validation du tri. Leur ordre ne
+constitue plus un parcours de lecture du produit. La
+[comparaison du marché](../1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md)
+et l'[architecture multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+conservent les besoins futurs.
+
+## Maquettes et générateurs
+
+Chaque générateur reste à côté de sa page. Les prototypes 01 à 06 décrivent
+des états de conception. Ceux de 07 et 08 partent d'une galerie construite,
+dont le DOM a évolué : utilisez la galerie du plugin pour examiner l'état actuel.
+
+Depuis la racine du dépôt :
 
 ```sh
-node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/01 Proposition initiale/generer-maquettes-proposition-initiale.mjs"
-node "docs/notes/Recherches/Plugin Palettes/Intégration du marché/02 Revue atelier/integrer-moteur-prototype-atelier.mjs"
-node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/03 Proposition finale/generer-maquettes-proposition-finale.mjs"
-node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/04 Parcours en trois étapes/generer-proposition-trois-etapes.mjs"
-node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/05 Revue critique/mesurer-revue-critique.mjs"
-node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/06 Direction globale/generer-maquette-direction-globale.mjs"
 npm run galerie --workspace ucm-palettes-plugin
-node "docs/notes/Recherches/Plugin Palettes/Intégration du marché/07 Direction simple/generer-maquettes-direction-simple.mjs"
-node "docs/notes/Recherches/Plugin Palettes/Intégration du marché/08 Recette direction simple/generer-maquettes-recette.mjs"
 ```
 
-Le script de l'atelier réécrit le moteur embarqué dans sa page ; les autres
-réécrivent leur page entière. Ceux de la direction simple et de sa recette partent de la galerie
-du plugin construit, que `npm run galerie` écrit.
+Les tests de l'interface et leurs prérequis sont décrits dans le
+[README du plugin](../../../../../packages/plugin-palettes/README.md#vérifier-une-modification).

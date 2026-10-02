@@ -1,7 +1,7 @@
 # Suivi de la vue composant de l'explorateur
 
 Ce suivi porte l'état du [plan d'implémentation](./PLAN-IMPLEMENTATION-VUE-COMPOSANT.md) :
-lots livrés, preuves, fichiers non commités et recette Figma restante. Il
+lots livrés, preuves et recette Figma restante. Il
 suffit pour reprendre le travail sans l'historique de conversation.
 
 ## État
@@ -9,60 +9,18 @@ suffit pour reprendre le travail sans l'historique de conversation.
 | Lot | État | Preuve principale |
 |---|---|---|
 | 0. État des lieux | Livré | Ligne de base ci-dessous, typings relus |
-| 1. Modèle pur | Livré, commité | `tests/composant.test.ts`, 13 tests |
-| 2. Lecture dans le sandbox | Livré, non commité en partie | `tests/lectureDuComposant.test.ts`, 12 tests ; `tests/lecture.test.ts` vert sans changement |
-| 3. Messages, routes, fenêtre | Livré, non commité en partie | `tests/fenetre.test.ts`, `tests/apercu.test.ts`, `tests/galerie.test.ts` |
-| 4. La vue, états simples | Livré, non commité | 9 états de galerie étroite et l'onglet de la fenêtre large ; tests d'interface « une sélection affiche le composant », « un clic déplie la chaîne », « une réponse […] remplacée », « le nom d'un calque […] HTML » |
-| 5. Composant complexe | Livré, non commité | 7 états de galerie ; tests d'interface « un composant complexe replié tient sans défilement », « une frontière envoie lire-composant », « le filtre s'ouvre par la loupe » |
-| 6. Aperçu et survol | Livré, non commité | 2 états de galerie ; test d'interface « le survol d'une ligne à 12 calques pose 12 cadres » |
-| 7. Documentation et lois | Livré, non commité en partie | `SPEC.md`, `AGENTS.md`, `README.md` du paquet ; `tests/inventaireInvariants.test.ts` et `tests/docLinks.test.ts` verts |
+| 1. Modèle pur | Livré | `tests/composant.test.ts`, 13 tests |
+| 2. Lecture dans le sandbox | Livré | `tests/lectureDuComposant.test.ts`, 12 tests ; `tests/lecture.test.ts` vert sans changement |
+| 3. Messages, routes, fenêtre | Livré | `tests/fenetre.test.ts`, `tests/apercu.test.ts`, `tests/galerie.test.ts` |
+| 4. La vue, états simples | Livré | 9 états de galerie étroite et l'onglet de la fenêtre large ; tests d'interface « une sélection affiche le composant », « un clic déplie la chaîne », « une réponse […] remplacée », « le nom d'un calque […] HTML » |
+| 5. Composant complexe | Livré | 7 états de galerie ; tests d'interface « un composant complexe replié tient sans défilement », « une frontière envoie lire-composant », « le filtre s'ouvre par la loupe » |
+| 6. Aperçu et survol | Livré | 2 états de galerie ; test d'interface « le survol d'une ligne à 12 calques pose 12 cadres » |
+| 7. Documentation et lois | Livré | `SPEC.md`, `AGENTS.md`, `README.md` du paquet ; `tests/inventaireInvariants.test.ts` et `tests/docLinks.test.ts` verts |
 | 8. Recette Figma | Recette écrite, non exécutée | [RECETTE-VUE-COMPOSANT.md](./RECETTE-VUE-COMPOSANT.md) |
 
-**Prochaine tâche** : trois décisions du mainteneur.
-
-1. Commiter les fichiers du paquet qu'une autre session a modifiés. Les
-   modifications de ce plan y sont mêlées, et la vue ne peut pas entrer dans
-   le dépôt sans eux.
-2. Accepter ou refuser les deux écarts de texte du relevé de fidélité.
-3. Exécuter la recette Figma.
-
-**Prochaine commande utile** : `git status --short`, puis
-`npm run test:ui --workspace ucm-explorateur-plugin` avant tout commit des
-fichiers de l'interface.
-
-## Arbre partagé
-
-Au lancement, `git status --short` montrait ces fichiers du paquet modifiés et
-non commités par une autre session :
-
-`SPEC.md`, `galerie/etats.cjs`, `src/copie.ts`, `src/integrations/contrats.ts`,
-`src/lecture.ts`, `src/modele.ts`, `src/preferences.ts`, `src/resolution.ts`,
-`src/ui/arbre.ts`, `src/ui/chaine.ts`, `src/ui/index.ts`,
-`src/ui/inspecteur.ts`, `src/ui/styles.css`, `src/ui/table.ts`,
-`src/ui/textes.ts`, `src/ui/valeurs.ts`, `tests/annexes.test.ts`,
-`tests/figmaDeTest.ts`, `tests/interface/interface.test.mjs`,
-`tests/lecture.test.ts`, `tests/loiDeLectureSeule.test.ts`,
-`tests/resolution.test.ts`, et `src/ui/poignee.ts` non suivi. Hors du paquet :
-`AGENTS.md`.
-
-Un fichier de cette liste que ce plan modifie reste non commité. Un fichier
-propre à ce plan reste aussi non commité quand il ne compile pas sans eux : le
-dépôt garderait sinon une tête qui échoue au typage.
-
-| Fichier | État | Raison |
-|---|---|---|
-| `src/composant.ts`, `tests/composant.test.ts`, `tests/fixtures.ts`, `tests/fixturesDeComposant.ts` | Commité | Propres à ce plan |
-| `src/apercu.ts`, `tests/apercu.test.ts`, `src/consommateurs.ts`, `src/fenetre.ts`, `tests/fenetre.test.ts`, `src/ui/roles.css`, `galerie/image.cjs`, `scripts/controle-style.mjs` | Commité | Propres à ce plan |
-| Ce dossier | Commité | Propre à ce plan |
-| `src/lecture.ts`, `tests/figmaDeTest.ts`, `tests/loiDeLectureSeule.test.ts` | Non commité | Portent les modifications de l'autre session |
-| `src/lectureDuComposant.ts`, `tests/lectureDuComposant.test.ts` | Non commité | Appellent `lireLesVariables` et les doubles de calques, non commités |
-| `src/messages.ts`, `src/code.ts`, `src/ui/etat.ts`, `src/ui/vues/composant.ts` | Non commité | Demandent les textes, les états de galerie et le montage de `src/ui/index.ts`, non commités |
-| `src/ui/index.ts`, `src/ui/textes.ts`, `src/ui/styles.css`, `src/ui/chaine.ts`, `galerie/etats.cjs`, `tests/interface/interface.test.mjs` | Non commité | Portent les modifications de l'autre session |
-| `galerie/build-galerie.cjs`, `galerie/comparer-maquette.cjs`, `package.json`, `README.md` | Non commité | Décrivent ou construisent la galerie étroite, absente de la tête |
-| `SPEC.md`, `AGENTS.md` | Non commité | Portent les modifications de l'autre session |
-
-Dans `AGENTS.md`, ce plan a aussi retiré un lien `→ [spec]` que l'autre
-session avait écrit deux fois de suite sous l'invariant de `separerLesModes`.
+**Validations restantes** : relire les écarts de fidélité ci-dessous et
+exécuter la recette Figma. Les modules de la vue composant sont suivis dans le
+dépôt ; aucune reprise d'un arbre de travail partagé n'est nécessaire.
 
 ## Typings relus
 

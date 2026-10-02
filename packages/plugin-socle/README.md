@@ -14,7 +14,7 @@ les composants communs et les outils de vérification des plugins.
 | `src/fenetre.ts` | Borne la taille de fenêtre et la conserve dans `clientStorage` |
 | `src/cheminsDeTokens.ts` | Construit le chemin publié d'un token, que l'exporteur écrit et que l'explorateur recalcule |
 | `src/ui/` | Bouton, onglets, interrupteur, redimensionnement et commandes d'en-tête |
-| `socle.css` | Échelles de texte, espacements, couleurs et replis sombres |
+| `src/ui/socle.css` | Échelles de texte, espacements, couleurs et replis sombres |
 | `galerie/` | Construit et capture les états d'interface hors de Figma |
 | `lois/` | Vérifie les styles, le gabarit, le manifeste et la galerie d'un plugin |
 
@@ -34,14 +34,15 @@ npm run galerie --workspace ucm-palettes-plugin
 npm run galerie --workspace ucm-explorateur-plugin
 ```
 
-Une modification partagée se relit dans les deux galeries. Les captures se
+Une modification partagée se relit dans les trois galeries. Les captures se
 lancent avec `npm run galerie:captures --workspace <plugin>`, après construction
 de la galerie et installation de Chromium par `npx playwright install chromium`.
 Les tests d'interaction restent dans chaque plugin.
 
 [CONTRIBUTING.md](../../CONTRIBUTING.md#interface-du-plugin) définit la
 hiérarchie de l'information et le protocole de relecture. Les README de
-[l'exporteur](../plugin-exporter/README.md) et de [Palettes](../plugin-palettes/README.md)
+[l'exporteur](../plugin-exporter/README.md), de [Palettes](../plugin-palettes/README.md)
+et de [l'explorateur](../plugin-explorateur/README.md)
 décrivent leurs fonctions propres.
 
 ## Licence

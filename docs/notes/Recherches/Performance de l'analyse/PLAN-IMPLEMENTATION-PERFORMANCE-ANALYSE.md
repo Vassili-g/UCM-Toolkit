@@ -1,5 +1,10 @@
 # Plan d'implémentation : accélérer l'analyse d'un composant
 
+**Statut : partiellement implémenté.** Résolution des maîtres, index par page,
+annulation, traces et avancement sont présents. Le préchauffage et les
+accélérations conditionnelles restent ouverts. Les mesures et sondes du plan
+sont conservées ; une recette manquante ne rend pas les lots livrés absents.
+
 ## Résultat attendu
 
 L'analyse ne charge plus que les pages qui portent les maîtres des

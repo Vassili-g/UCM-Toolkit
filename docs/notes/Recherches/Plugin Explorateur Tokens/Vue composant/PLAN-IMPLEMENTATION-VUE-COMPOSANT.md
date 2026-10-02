@@ -1,5 +1,9 @@
 # Vue composant de l'explorateur : plan d'implémentation
 
+**Statut : implémenté.** La vue composant est dans le plugin ; le
+[suivi](./SUIVI-VUE-COMPOSANT.md) indique les preuves et la recette restante.
+Les questions Figma encore ouvertes ne sont pas des fonctions absentes.
+
 Ce plan transforme le [plan de recherche](./PLAN-RECHERCHE-VUE-COMPOSANT.md) et
 la [maquette](./MAQUETTE-VUE-COMPOSANT.html) en tâches exécutables dans
 `packages/plugin-explorateur`. Le mainteneur a validé D1 à D5 et D9 à D15. Aucun

@@ -1,104 +1,68 @@
-# La documentation d'UCM
+# Documentation UCM
 
-Chaque document a un lecteur et une autorité. Cette page dit lequel lire et dans
-quel ordre.
+Le [README du dépôt](../README.md) présente les outils et les dépôts UCM.
+Ce sommaire oriente vers les guides d'utilisation, les références techniques
+et les recherches encore utiles.
 
-## Par profil
+## Utiliser les outils
 
-### Vous êtes designer et vous travaillez dans Figma
+| Tâche | Document |
+|---|---|
+| Créer, vérifier et écrire une palette dans Figma | [UCM Palettes](../packages/plugin-palettes/README.md) |
+| Lire les alias ou les tokens d'un composant | [UCM Token Explorer](../packages/plugin-explorateur/README.md) |
+| Ouvrir l'exporteur et choisir sa commande | [UCM Contract Exporter](../packages/plugin-exporter/README.md) |
+| Préparer un composant, exporter et relire sa demande de fusion | [Guide designer](./guides/POUR-LES-DESIGNERS.md) |
+| Installer les maîtres des règles d'usage | [Kit de règles](./guides/KIT-DE-REGLES.md) |
+| Brancher un dépôt consommateur | [Installation](../README.md#brancher-un-repository), puis [CLI](../packages/cli/README.md) |
+| Implémenter un contrat | `ucm guide <contrat>`, décrit dans le [guide du CLI](../packages/cli/README.md#the-guide-of-a-contract) |
+| Ajouter la parité TypeScript | [Adaptateur](../packages/adapter-typescript/README.md) |
+| Appeler les lecteurs depuis du code | [Kit](../packages/kit/README.md) |
+| Éprouver le parcours Figma, npm et CI | [Recette externe](./guides/RECETTE.md) |
 
-1. [../packages/plugin-exporter/README.md](../packages/plugin-exporter/README.md) : où obtenir le
-   plugin sur la Figma Community, ce que chacune de ses commandes écrit, et le
-   réglage qui fait disparaître celle des tokens.
-2. [guides/POUR-LES-DESIGNERS.md](./guides/POUR-LES-DESIGNERS.md) : ce que le plugin attend
-   d'un composant, comment exporter, comment relire la pull request ou la merge
-   request, et le
-   vocabulaire du projet.
-3. [guides/KIT-DE-REGLES.md](./guides/KIT-DE-REGLES.md) si votre fichier ne
-   porte aucun `.componentRules` : le kit publié sur la Community vous donne
-   les maîtres des règles d'usage.
-4. [../README.md](../README.md) si vous voulez la vue d'ensemble du projet.
+## Contribuer
 
-Vous n'avez besoin d'aucun autre document.
+Commencez par [AGENTS.md](../AGENTS.md) pour les invariants et la carte du code,
+puis [CONTRIBUTING.md](../CONTRIBUTING.md) pour les règles de travail.
+Lisez ensuite la spécification du domaine touché, indiquée ci-dessous.
 
-### Vous branchez UCM sur un repository
-
-1. [../README.md](../README.md#brancher-un-repository) : les commandes qui
-   branchent un repository, et ce qu’elles attendent de lui.
-2. [format/FORMAT.md](./format/FORMAT.md) : la forme de chaque champ d'un contrat et de
-   `tokens.json`. C'est l'autorité sur ce que vous recevez.
-3. [format/FORMAT.md, « Ce que le contrat ne dit pas d'une
-   icône »](./format/FORMAT.md#ce-que-le-contrat-ne-dit-pas-dune-icône) : la seule
-   responsabilité que le contrat vous laisse entière, à trancher avant d'écrire
-   le premier composant.
-4. [../packages/cli/README.md](../packages/cli/README.md) : les commandes, ce
-   qu'`ucm init` installe, les codes de sortie.
-5. [../packages/adapter-typescript/README.md](../packages/adapter-typescript/README.md)
-   si le repository est en TypeScript : c'est ce qui ajoute la parité avec le
-   code et les types dérivés des contrats.
-6. [../packages/kit/README.md](../packages/kit/README.md) si vous appelez les
-   lecteurs depuis votre propre code.
-7. [format/COMPATIBILITE.md](./format/COMPATIBILITE.md) pour savoir ce qui peut fusionner et
-   qui doit migrer lors d'un changement.
-8. [format/CHANGELOG-FORMAT.md](./format/CHANGELOG-FORMAT.md) le jour où une version de
-   contrat ou du format de tokens change.
-
-### Vous modifiez le moteur ou les paquets
-
-1. [../AGENTS.md](../AGENTS.md) : la carte du code et les invariants.
-2. [../CONTRIBUTING.md](../CONTRIBUTING.md) : les règles de code, de test et de
-   rédaction.
-3. [format/FORMAT.md](./format/FORMAT.md) pour la forme publiée,
-   [../packages/plugin-exporter/SPEC.md](../packages/plugin-exporter/SPEC.md) pour ce que le
-   plugin lit dans Figma.
-4. [../ROADMAP.md](../ROADMAP.md) pour la maturité et les limites connues.
-
-### Vous êtes un agent
-
-Commencez par [../AGENTS.md](../AGENTS.md). Il donne l'ordre de lecture, la
-carte du code et les invariants, puis renvoie aux procédures de
-[`.agents/skills/`](../.agents/skills/).
+Les README des paquets privés décrivent leur usage dans le monorepo :
+[moteur de couleur](../packages/couleur/README.md) et
+[socle des plugins](../packages/plugin-socle/README.md).
+Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 
 ## Quel document porte quelle règle
 
-Une même règle écrite à deux endroits finit par diverger. Une seule fait donc
-autorité. Les autres y renvoient.
-
-| Document | Ce dont il fait autorité |
+| Document | Autorité |
 |---|---|
-| [../CONCEPT.md](../CONCEPT.md) | Le problème résolu, les responsabilités et le [positionnement parmi les outils de design system](../CONCEPT.md#7-ucm-parmi-les-outils-de-design-system) |
-| [format/FORMAT.md](./format/FORMAT.md) | La forme de ce qui est publié, et ce que l'absence d'un champ signifie |
-| [../packages/plugin-exporter/README.md](../packages/plugin-exporter/README.md) | Où obtenir le plugin, ce que ses commandes écrivent, et ce qu'il ne fait pas |
-| [../packages/plugin-exporter/SPEC.md](../packages/plugin-exporter/SPEC.md) | Ce que le plugin lit dans Figma, ce qu'il élit, ce dont il avertit |
-| [../packages/plugin-explorateur/SPEC.md](../packages/plugin-explorateur/SPEC.md) | Ce que l'explorateur de tokens lit, comment il résout une chaîne, ce qu'il refuse de conclure |
-| [format/COMPATIBILITE.md](./format/COMPATIBILITE.md) | Les classes de changement, la fenêtre de lecture, les états de la version du format de tokens et les responsabilités de migration |
-| [format/CHANGELOG-FORMAT.md](./format/CHANGELOG-FORMAT.md) | Ce que chaque version du contrat, et chaque version du format de tokens, a publié |
-| [../CONTRIBUTING.md](../CONTRIBUTING.md) | Les règles de code, de test, de message et de rédaction |
-| [../AGENTS.md](../AGENTS.md) | Les invariants, avec leur borne et leur fichier autorité |
-| [../ROADMAP.md](../ROADMAP.md) | L'état du projet et ses limites |
-| [guides/POUR-LES-DESIGNERS.md](./guides/POUR-LES-DESIGNERS.md) | Le geste du designer. Il définit le vocabulaire par renvoi, jamais par une seconde définition |
-| [guides/RECETTE.md](./guides/RECETTE.md) | Comment éprouver le produit à la main, de Figma à la pull request |
-| [guides/KIT-DE-REGLES.md](./guides/KIT-DE-REGLES.md) | Le contenu du kit de règles publié sur la Community, ses vérifications et sa republication |
+| [CONCEPT.md](../CONCEPT.md) | Responsabilités respectives de Figma, du code et des contrôles |
+| [FORMAT.md](./format/FORMAT.md) | Forme du contrat et des tokens, sens des champs et de leur absence |
+| [COMPATIBILITE.md](./format/COMPATIBILITE.md) | Fenêtres de lecture et responsabilités de migration |
+| [CHANGELOG-FORMAT.md](./format/CHANGELOG-FORMAT.md) | Changements des versions du contrat et des tokens |
+| [SPEC de l'exporteur](../packages/plugin-exporter/SPEC.md) | Lecture de Figma, choix des calques et diagnostics |
+| [Spécification Palettes](./notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) | Calculs, recette, écriture des palettes et comportement de l'interface |
+| [SPEC de l'explorateur](../packages/plugin-explorateur/SPEC.md) | Relevés, résolution et limites de lecture |
+| [Architecture multi-marques](./notes/Recherches/Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md) | Architecture cible des collections et emplois ; son déploiement dans les consommateurs reste distinct |
+| [AGENTS.md](../AGENTS.md) | Invariants du produit, bornes et fichiers qui les appliquent |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Code, tests, rédaction et vérifications |
+| [ROADMAP.md](../ROADMAP.md) | Maturité, limites et validations restantes |
 
-## Ce qui n'est pas décidé
+La spécification Palettes est encore rangée dans un dossier de recherche :
+son titre et ses identifiants d'exigences en font une référence du produit.
+Les plans voisins ne la remplacent pas.
 
-Ces notes tiennent des options ouvertes. Elles ne font autorité sur rien. Aucune
-partie du produit n'en dépend.
+## Recherches et décisions
 
-| Document | Contenu |
+L'[état des recherches](./notes/Recherches/README.md) donne le statut de
+chaque chantier et les sources qui attestent son implémentation.
+
+| Ensemble | Entrée |
 |---|---|
-| [notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md](./notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md) | Les modules d'évolution à étudier, leurs conditions et leurs essais |
-| [notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md](./notes/Recherches/Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | La piste d'une vérification générique du rendu, non engagée |
-| [notes/Recherches/Diff Sémantique/PLAN-DIFF-SEMANTIQUE.md](./notes/Recherches/Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Le plan d'un diff sémantique entre deux versions d'un contrat |
-| [notes/Recherches/Performance de l'analyse/PLAN-RECHERCHE-PERFORMANCE-ANALYSE.md](./notes/Recherches/Performance%20de%20l'analyse/PLAN-RECHERCHE-PERFORMANCE-ANALYSE.md) | Les mesures et les essais qui décideront comment réduire le temps d'analyse d'un composant : nombreux variants, calques profonds, fichiers de cinquante pages |
-| [notes/Recherches/Optimisation Tokens/README.md](./notes/Recherches/Optimisation%20Tokens/README.md) | Le dossier de la génération de composants depuis un contrat : son index dit qui fait autorité sur quoi, du coût mesuré au plan du module |
-| [notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md](./notes/Recherches/Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md) | La forme retenue pour six marques en clair et en sombre : les six collections de couleur `primitives`, `brand`, `color-utilities`, `theme`, `usage` et `components`, les intensités `soft` et `vivid`, la table des emplois à quatre rangs et ses contrastes, l'élévation |
-| [notes/Recherches/Archi Tokens Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md](./notes/Recherches/Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Le plan qui applique les décisions D1 à D17 de la vue illustrée à ARCHITECTURE-FINALE, au moteur `ucm-couleur`, à UCM Palettes, à la direction de l'écriture des variables et à `ucm check` ; l'ordre de ses tâches est celui du plan d'implémentation du Color shift |
-| [notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md](./notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | UCM Palettes face aux générateurs de palettes du marché : écriture des variables, export du code, APCA, Display P3, daltonisme et prise en main, chacun avec sa place dans les écrans et son utilité |
-| [notes/Recherches/Plugin Palettes/Color shift/ETUDE-COLOR-SHIFT.md](./notes/Recherches/Plugin%20Palettes/Color%20shift/ETUDE-COLOR-SHIFT.md) | La carte Color shift, qui décale teinte, saturation et luminosité aux deux bouts de la rampe sous des limites qui gardent les garanties, le réglage global borné, et des avertissements qui ne déplacent aucun curseur ; sa maquette et sa mesure |
-| [notes/Recherches/Plugin Palettes/Color shift/PLAN-IMPLEMENTATION.md](./notes/Recherches/Plugin%20Palettes/Color%20shift/PLAN-IMPLEMENTATION.md) | La liste ordonnée des tâches du Color shift, de la mise en page stable et du plan d'intégration de l'architecture, avec les arbitrages entre eux |
-| [notes/Recherches/Plugin Palettes/Intégration du marché/README.md](./notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/README.md) | Les propositions qui intègrent au plugin les apports du marché, leurs maquettes et leurs revues, dans l'ordre où les lire, et la direction globale qui les assemble |
-| [notes/Recherches/Archi Tokens Multi-marques/RECHERCHE-ARCHI-MULTIMARQUES.md](./notes/Recherches/Archi%20Tokens%20Multi-marques/RECHERCHE-ARCHI-MULTIMARQUES.md) | La collection de commutation qui manque au Playground pour porter le mode sombre sur six marques sans borner ce qu'un composant peut exprimer, et le script qui relève la duplication d'un `tokens.json` |
-| [notes/Recherches/Plugin Explorateur Tokens/RECHERCHE-EXPLORATEUR-TOKENS.md](./notes/Recherches/Plugin%20Explorateur%20Tokens/RECHERCHE-EXPLORATEUR-TOKENS.md) | Le besoin d'un explorateur de tokens pour toute architecture Figma, les outils existants, les intégrations UCM facultatives et sa maquette |
-| [notes/Recherches/Plugin Explorateur Tokens/PLAN-IMPLEMENTATION.md](./notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md) | Les lots qui ont construit UCM Token Explorer, et [leur suivi](./notes/Recherches/Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) : preuves, mesures et recette Figma restante |
-| [notes/Recherches/Direction artistique/README.md](./notes/Recherches/Direction%20artistique/README.md) | Les propositions de direction artistique pour les logos d'UCM Toolkit, de ses plugins et du kit : la direction « Calage », puis quatre pistes construites sur des unités ordonnées ; aucune n'est validée |
+| Palettes, ergonomie, langues et écriture des variables | [Bilan Palettes](./notes/Recherches/Plugin%20Palettes/README.md) |
+| Diagnostics et propriétés visuelles du contrat 14.0 | [Bilan exporteur](./notes/Recherches/Diagnostics%20d'un%20composant%20réel/README.md) |
+| Performance de l'export | [Plan partiellement implémenté](./notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) |
+| Coût de génération et projet d'implémenteur | [Études et plan](./notes/Recherches/Optimisation%20Tokens/README.md) |
+| Identité graphique | [Direction artistique](./notes/Recherches/Direction%20artistique/README.md) |
+| Diff sémantique, contrôle du rendu et autres pistes | [Évolutions globales](./notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md) |
+
+Une recette Figma non consignée est une validation restante. Elle ne suffit
+pas à classer une fonction déjà présente dans le code comme non implémentée.

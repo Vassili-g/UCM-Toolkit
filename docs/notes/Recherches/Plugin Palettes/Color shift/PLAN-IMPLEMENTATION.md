@@ -1,5 +1,11 @@
 # Plan d'implémentation : Color shift, mise en page stable et architecture des tokens
 
+**Statut : Color shift implémenté.** Les phases de moteur, d'interface et de
+diagnostic des emplois sont présentes dans le code. Les essais Figma et le
+déploiement de l'architecture chez les consommateurs restent distincts ;
+voir le [bilan](../README.md). Les consignes d'exécution ci-dessous sont celles
+du chantier réalisé.
+
 ## Objet et lecteur
 
 Ce plan s'adresse à l'agent qui écrira le code. Il ordonne en une seule liste

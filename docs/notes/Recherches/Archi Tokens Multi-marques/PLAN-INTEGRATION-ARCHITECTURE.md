@@ -1,5 +1,12 @@
 # Plan d'intégration de l'architecture des tokens
 
+**Statut : partiellement implémenté.** Le kit partage les emplois, les
+dix-neuf paires et les quatre rangs avec Palettes et `ucm check`. L'écriture
+des six collections et la migration des consommateurs ne sont pas livrées.
+La direction simple limite Palettes aux palettes primitives ; les recettes
+anciennes sont refusées sans conversion. Le
+[bilan des recherches](../README.md) distingue ces périmètres.
+
 ## Résultat attendu
 
 L'architecture décrite par les décisions D1 à D17 de la [vue

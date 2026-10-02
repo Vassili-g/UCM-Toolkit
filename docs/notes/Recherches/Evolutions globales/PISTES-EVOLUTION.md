@@ -74,11 +74,17 @@ au build, conformément au concept.
 
 **Besoin et appui dans le code.**
 [unsupportedProperties.ts](../../../../packages/plugin-exporter/src/contract/unsupportedProperties.ts)
-signale les propriétés à effet visuel que le contrat n’écrit pas : effets,
-opacité partielle, mask, peinture non unie, blend mode, pointillé, et pour un
+signale les propriétés à effet visuel que le contrat n’écrit pas : effets
+non pris en charge ou sans style, opacité sans variable, mask, peinture non unie,
+blend mode, pointillé, et pour un
 texte `listSpacing`, `hangingList` et `hangingPunctuation`. Le texte publie une
 valeur uniforme par text style (`literals`) et par calque (les champs d’usage de
 `variantViews.*.typography`).
+
+Le contrat 14.0 publie déjà l'opacité tokenisée, les styles d'effets pris en
+charge et le placement des enfants d'un cadre sans auto layout. Le
+[bilan des propriétés visuelles](../Diagnostics%20d'un%20composant%20réel/README.md)
+précise ces acquis et les réserves ; ils ne constituent plus des extensions à concevoir.
 
 **Solutions à comparer.** Les plages d’un même calque texte peuvent porter des
 réglages différents. Figma rend alors `figma.mixed`, qui ne porte aucune valeur,

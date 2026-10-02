@@ -3,29 +3,26 @@
 UCM Palettes est un plugin Figma qui fabrique des palettes de couleur selon la
 recette de [l'architecture
 multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
-et les dessine dans le fichier Figma. Une palette part d'une couleur de
-référence et produit quatre rampes de onze crans : `soft` et `vivid`, en clair
-et en sombre. La planche dessinée montre, pour chaque cran, son hexa, ses
+et les écrit dans les variables ou les dessine dans le fichier Figma. Une
+palette part d'une couleur de référence et produit une ou deux intensités,
+en clair et en sombre, selon sa liste de nuances. La planche montre les valeurs
+et les associations vérifiées. Pour chaque cran, elle présente son hexa, ses
 valeurs OKLCH, ses contrastes, le seuil qu'il tient et les emplois que la table
 de l'architecture lui confie.
 
-Une palette ne sait pas à quoi elle sert : couleur de marque, utilitaire ou
-autre. Le designer lui donne un nom s'il le souhaite, et ce nom n'a aucun effet
-sur le calcul.
+Le designer nomme la palette. Son nom n'a aucun effet sur le calcul ; sa
+destination détermine le chemin de ses variables.
 
-Ce document est la base du [plan de développement](./PLAN-PLUGIN-PALETTES.md).
-Un agent qui implémente le plugin y trouve chaque formule, chaque écran et
-chaque cadre de la planche ; le plan donne l'ordre des lots et le critère qui
-ferme chacun. Ce qui manquait à la version précédente est dans [la revue
-critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md).
+Ce document est la spécification du produit, malgré son emplacement dans les
+recherches. Le [bilan Palettes](../README.md) distingue les fonctions
+implémentées des pistes conservées.
 
 ## 1. Statut et lecture
 
-- **Statut** : spécification en cours d'implémentation. Le plan coche les lots
-  livrés.
+- **Statut** : référence du plugin implémenté et du moteur de couleur.
 - **Utilisateur** : l'équipe du design system.
-- **Dépôt** : ce monorepo, en paquet séparé d'UCM Exporter. Le renommage du
-  dépôt en UCM-Kit est prévu ; ce plugin ne l'attend pas et ne le prépare pas.
+- **Dépôt** : UCM Toolkit, paquet `packages/plugin-palettes` et moteur
+  `packages/couleur`.
 - **Exigences** : chaque règle vérifiable porte un identifiant entre crochets,
   `[MOT-03]` par exemple. Le plan de développement cite ces identifiants ; un
   test cite dans son nom l'identifiant qu'il vérifie.
@@ -46,9 +43,9 @@ critique](./REVUE-CRITIQUE-PLUGIN-PALETTES.md).
 
 | Terme | Sens |
 |---|---|
-| Palette | Une couleur de référence et ses réglages. Elle produit quatre rampes |
-| Couleur de référence | L'hexa que le designer saisit. Elle ne change jamais ; la palette se construit autour d'elle |
-| Rampe | Onze crans, de 50 à 950, pour une intensité et un mode |
+| Palette | Une couleur de référence et ses réglages. Elle produit une rampe par intensité et par mode |
+| Couleur de référence | La couleur autour de laquelle se calcule la palette ; le réglage global peut la modifier depuis son départ |
+| Rampe | Une liste de nuances de 50 à 950, pour une intensité et un mode ; les préréglages comportent onze ou treize nuances |
 | Cran | Une couleur de la rampe, désignée par son numéro |
 | Profil | `soft` ou `vivid` : la part de la vivacité maximale que l'écran affiche, 0,45 ou 0,95 par défaut |
 | Intensité | Une rampe par mode qu'une palette porte : `soft` et `vivid` pour une palette à deux intensités, la rampe unique, sans nom de profil, pour une palette à une intensité (`[ENT-14]`) |

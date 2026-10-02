@@ -1,6 +1,6 @@
 # Décision sur les propriétés visuelles non portées
 
-Lot L8 du [plan](./PLAN-DIAGNOSTICS-COMPOSANT-REEL.md). Cette note ne change
+Cette comparaison conserve les alternatives du [bilan des diagnostics](./README.md). Elle ne change
 rien au format : elle prépare la porte H3, où le mainteneur décide, sujet par
 sujet, de publier, de garder l'avertissement ou de reporter. Une décision de
 publier ouvre un plan à part, relu par un agent indépendant avant son exécution.
@@ -165,6 +165,5 @@ reporter.
 | 4. Masque | garder l'avertissement |
 
 Les sujets 1 et 2 font monter le contrat en 14.0 (classe 2), le sujet 3 relevant
-de la classe 1 dans la même montée. Ces décisions ouvrent un plan à part, relu
-par un agent indépendant avant son exécution ; le plan des diagnostics d'un
-composant réel ne les implémente pas.
+de la classe 1 dans la même montée. Les choix retenus sont implémentés ; le
+[bilan](./README.md) donne leurs sources et les validations restantes.

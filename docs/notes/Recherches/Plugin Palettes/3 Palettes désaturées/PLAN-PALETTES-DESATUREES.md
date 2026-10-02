@@ -1,5 +1,9 @@
 # UCM Palettes : palettes désaturées et grises
 
+**Statut : implémenté.** `packages/couleur/src/palette.ts` et `reglages.ts`
+portent le traitement des références désaturées et des gris. Ce document
+conserve les cas limites, les mesures et les décisions de conception.
+
 ## Résultat attendu
 
 La couleur de référence se fond dans sa rampe : le profil qui la porte prend

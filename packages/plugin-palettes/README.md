@@ -63,9 +63,15 @@ un audit d'accessibilité de l'interface qui utilisera ces couleurs.
 | Tokens Figma | Les variables de couleur de la palette, une par intensité, thème et nuance | Pas encore écrits, À jour, À mettre à jour, Modifiés dans Figma, Introuvables |
 | Planche | Un cadre par palette, sur la page des planches | Pas encore créée, À jour, À actualiser, Introuvable, Lecture impossible |
 
-Le bloc « Connexion à Figma » ouvre l'onglet. « Synchroniser » relit le
-fichier sans rien écrire. « Tout mettre à jour » écrit les tokens et dessine
-les planches en retard, après une confirmation qui compte ce qu'il écrit.
+Gestion regroupe la connexion, les palettes du plugin, celles du fichier,
+celles des bibliothèques et la recette dans des sections repliables. Seules
+les palettes du plugin sont ouvertes par défaut. Les mises à jour se font
+depuis chaque fiche ; la vue condensée rassemble les palettes dans un tableau
+sans geste d'écriture.
+
+« Connexion à Figma » présente la destination des tokens et la page des
+planches. « Synchroniser » relit le fichier sans rien écrire. Les choix de
+sections ouvertes sont conservés sur le poste dans `figma.clientStorage`.
 
 ### La destination des tokens
 
@@ -91,7 +97,8 @@ dans le plugin » en reprend une : « Mettre à jour » remplace les couleurs de
 renomme sous leur thème et leur intensité, sans rompre leurs liaisons. Les
 nuances, le thème Dark et l'intensité que la palette porte de plus se créent
 sous le même chemin. Les palettes des
-bibliothèques activées paraissent aussi ; « Copier dans le plugin » en fait
+bibliothèques activées paraissent dans « Dans les bibliothèques » ;
+« Copier dans le plugin » en fait
 une palette du plugin, qui s'écrit dans la destination.
 
 ### Les planches
@@ -103,10 +110,11 @@ avant leur remplacement. Une copie de cadre faite par le designer reste
 distincte du cadre suivi. « Changer », sur la ligne « Planches », choisit la
 page et y déplace les planches déjà créées.
 
-### Ce que le plugin n'écrit jamais
+### Limites de l'écriture
 
 - Il n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias.
-- Il ne renomme ni ne déplace une variable.
+- La reprise d'une palette locale peut renommer ses variables sous leur thème
+  et leur intensité. Elle conserve leurs identifiants et leurs liaisons.
 - Il ne supprime une variable que par « Supprimer les variables… », sur la
   carte d'une palette supprimée du plugin.
 - Il n'écrit jamais dans une bibliothèque.
@@ -161,17 +169,12 @@ système. Le champ « Language » des Réglages communs propose l'anglais et le
 français ; le choix prend effet sans recharger et se range dans
 `figma.clientStorage`, sous la clé `ucm-palettes.langue`, sur le poste du
 designer. Il n'écrit rien dans le document. Les textes des planches dessinées
-restent en français. Les plans d'ergonomie décrivent des travaux à réaliser ;
-ils ne prouvent pas leur présence dans le build. Le [sommaire documentaire](../../docs/README.md)
-donne accès aux spécifications et aux plans de Palettes.
+restent en français.
 
-Gestion regroupe la connexion, les palettes du plugin, celles du fichier,
-celles des bibliothèques et la recette dans des sections repliables. Seules
-les palettes du plugin sont ouvertes par défaut. Les choix d’ouverture se
-rangent dans `figma.clientStorage` sous `ucm-palettes.sections`. La connexion
-porte les destinations et « Synchroniser ». Les mises à jour se font depuis
-chaque fiche. La simulation de la destination liste les chemins des rampes,
-leurs bornes de nuances et leur nombre de variables.
+Le parcours Création, Vérification et Gestion, le Color shift, les palettes
+désaturées et la localisation sont implémentés. Le
+[bilan des recherches](../../docs/notes/Recherches/Plugin%20Palettes/README.md)
+indique les références conservées et les validations encore à consigner.
 
 ## Ajouter une langue
 

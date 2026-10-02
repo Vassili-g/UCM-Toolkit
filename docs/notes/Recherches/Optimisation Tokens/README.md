@@ -4,8 +4,10 @@ Ce dossier porte une seule question : comment produire le code d'un composant
 depuis son contrat sans dépenser ce que la reconstruction par un agent dépense
 aujourd'hui.
 
-Huit documents y répondent, et chacun a un sujet et une autorité. Un document
-qui contredit celui qui fait autorité sur un sujet a tort.
+Le module d'implémenteur n'est pas développé dans le monorepo. Les documents
+ci-dessous conservent les mesures, la conception et sa revue critique. Le
+chemin utilisé par les consommateurs reste `ucm guide` suivi d'une
+implémentation par un développeur ou un agent.
 
 ## L'ordre de lecture
 
@@ -15,7 +17,7 @@ qui contredit celui qui fait autorité sur un sujet a tort.
 | 2 | [Formalisation de la solution/BANC-HYPOTHESES.md](./Formalisation%20de%20la%20solution/BANC-HYPOTHESES.md) | Ce qui se mesure avant d'écrire le module, et dans quel ordre |
 | 3 | [Recherches/AUDIT-PREMISSES-IMPLEMENTEUR.md](./Recherches/AUDIT-PREMISSES-IMPLEMENTEUR.md) | La preuve, citée par fichier et par ligne, de chaque affirmation du plan sur le code et le corpus |
 
-Les quatre autres se lisent quand une question précise les appelle.
+Les autres documents se lisent pour une question précise.
 
 ## Qui fait autorité sur quoi
 
@@ -46,10 +48,11 @@ laquelle un document raconte avant de le lire.
 | Agent | Un agent lit le contrat et écrit le fichier. Mesuré à 1,33 USD pour `Button` | Rapport de coût, plan de réduction |
 | Compilé | Un compilateur émet le code ; le modèle ne répond qu'à des questions fermées | Plan de l'implémenteur, banc, audit |
 
-Le chemin compilé est retenu. Le chemin agent reste décrit parce qu'il est ce
-qui existe, parce que sa mesure est la seule référence de coût du projet, et
-parce que ses réglages de harnais restent valables tant qu'un agent travaille
-sur ce repository.
+Le plan propose le chemin compilé. Sa
+[revue critique](./review/review-plan-codex-astra.md) identifie des décisions
+encore nécessaires, notamment sur le coût de construction et les conventions
+exécutables. Les mesures du chemin agent restent une référence expérimentale ;
+elles ne prédisent pas le coût d'un autre modèle ou d'un autre corpus.
 
 ## Ce que la vérification a établi
 
