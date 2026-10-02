@@ -206,6 +206,7 @@ L'agent n'a pas accès à Figma. Tout ce qui suit tient sur des doubles de test.
 | `npm run test:ui --workspace ucm-explorateur-plugin` (arbre de travail) | 23 tests, 0 échec ; trois galeries, dont 18 états à 364 × 680 |
 | `npm test` (arbre de travail) | Vert |
 | `npm run fidelite --workspace ucm-explorateur-plugin` | 4 écarts sur 11 paires, relevé ci-dessus |
+| Tête commitée, dans un worktree séparé, sans les fichiers de l'autre session | Typage vert ; 125 tests du paquet ; 12 tests d'interface ; liens et style des documents verts |
 
 ## Reprendre après un échec
 
