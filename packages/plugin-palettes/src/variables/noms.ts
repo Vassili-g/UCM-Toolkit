@@ -5,15 +5,18 @@
  * variable écrite ici s'exporte sans surprise par UCM Exporter. Pur.
  */
 import type { Palette, Recette } from 'ucm-couleur';
-import { prefixeDeCollection } from 'ucm-plugin-socle/src/cheminsDeTokens';
+import { cheminCitable } from 'ucm-plugin-socle/src/cheminsDeTokens';
 
 /**
- * Le segment d'un nom : normalisé, rendu citable, puis privé du `.` que la
- * normalisation pose à la place d'un `/` et que Figma refuse dans un nom de
- * variable. Vide quand le nom ne laisse aucun caractère.
+ * Le segment d'un nom : espaces en tirets, rendu citable, puis privé du `.`
+ * que Figma refuse dans un nom de variable. Il garde la casse du nom : « Grass »
+ * s'écrit `Grass`. L'export, lui, passe en minuscules (`normalizeName`), si bien
+ * que le chemin du token ne change pas. Vide quand le nom ne laisse aucun
+ * caractère.
  */
 export function segmentDuNom(nom: string): string {
-  return prefixeDeCollection(nom).replace(/\./g, '');
+  const garde = nom.split('/').map((partie) => partie.trim().replace(/\s+/g, '-')).filter(Boolean).join('.');
+  return cheminCitable(garde).replace(/\./g, '');
 }
 
 export interface SegmentDePalette {
@@ -33,9 +36,10 @@ export function segmentsDesPalettes(recette: Pick<Recette, 'palettes'>): Map<str
   const segments = new Map<string, SegmentDePalette>();
   for (const palette of recette.palettes) {
     const propre = segmentDuNom(palette.nom ?? '') || palette.id;
-    const suffixe = pris.has(propre);
+    // Deux noms qui ne diffèrent que par la casse se rejoignent à l'export : ils comptent pour le même segment.
+    const suffixe = pris.has(propre.toLowerCase());
     const segment = suffixe ? `${propre}-${palette.id}` : propre;
-    pris.add(segment);
+    pris.add(segment.toLowerCase());
     segments.set(palette.id, { segment, suffixe });
   }
   return segments;

@@ -55,17 +55,17 @@ test('[VAR-02] deux destinations sont les mêmes par leur collection, leur group
 
 // ------------------------------------------------------------ les noms
 
-test('[VAR-03] le segment d’une palette suit la normalisation du format : minuscules, espaces en tirets, accents gardés', () => {
-  assert.equal(segmentDuNom('Bleu'), 'bleu');
-  assert.equal(segmentDuNom('  Bleu   Pétrole '), 'bleu-pétrole');
-  assert.equal(segmentDuNom('BRAND Primary'), 'brand-primary');
+test('[VAR-03] le segment d’une palette garde la casse du nom : espaces en tirets, accents gardés', () => {
+  assert.equal(segmentDuNom('Bleu'), 'Bleu');
+  assert.equal(segmentDuNom('  Bleu   Pétrole '), 'Bleu-Pétrole');
+  assert.equal(segmentDuNom('BRAND Primary'), 'BRAND-Primary');
 });
 
 test('[VAR-03] le segment perd ce que Figma refuse dans un nom de variable : « . », « { », « } », « / » et le « $ » de tête', () => {
   assert.equal(segmentDuNom('v1.2'), 'v12');
-  assert.equal(segmentDuNom('{Brand}'), 'brand');
+  assert.equal(segmentDuNom('{Brand}'), 'Brand');
   assert.equal(segmentDuNom('$brand'), 'brand');
-  assert.equal(segmentDuNom('Bleu/Roi'), 'bleuroi');
+  assert.equal(segmentDuNom('Bleu/Roi'), 'BleuRoi');
   assert.equal(segmentDuNom('prix $'), 'prix-$');
   assert.equal(segmentDuNom('{}'), '');
 });
@@ -76,10 +76,10 @@ test('[VAR-03] une palette sans nom prend son identifiant, et la seconde palette
   const jumelle: Palette = { ...BLEU, id: 'p-00000003', nom: 'BLEU' };
   const segments = segmentsDesPalettes({ palettes: [BLEU, sansNom, vide, jumelle] });
   assert.deepEqual([...segments], [
-    ['p-0000000a', { segment: 'bleu', suffixe: false }],
+    ['p-0000000a', { segment: 'Bleu', suffixe: false }],
     ['p-00000001', { segment: 'p-00000001', suffixe: false }],
     ['p-00000002', { segment: 'p-00000002', suffixe: false }],
-    ['p-00000003', { segment: 'bleu-p-00000003', suffixe: true }],
+    ['p-00000003', { segment: 'BLEU-p-00000003', suffixe: true }],
   ]);
 });
 
@@ -94,8 +94,8 @@ test('[VAR-01] deux intensités, thèmes dans le chemin : 44 entrées et 44 vari
   const plan = planDesVariables(RECETTE, BLEU, DESTINATION_PAR_DEFAUT);
   assert.equal(plan.length, 44);
   assert.equal(nomsDuPlan(plan).length, 44);
-  assert.deepEqual(plan[0], { cle: 'soft/light/50', nom: 'colors/bleu/soft/light/50', mode: 'unique', hexa: plan[0].hexa });
-  assert.deepEqual([plan[11].nom, plan[22].nom, plan[43].nom], ['colors/bleu/soft/dark/50', 'colors/bleu/vivid/light/50', 'colors/bleu/vivid/dark/950']);
+  assert.deepEqual(plan[0], { cle: 'soft/light/50', nom: 'colors/Bleu/soft/light/50', mode: 'unique', hexa: plan[0].hexa });
+  assert.deepEqual([plan[11].nom, plan[22].nom, plan[43].nom], ['colors/Bleu/soft/dark/50', 'colors/Bleu/vivid/light/50', 'colors/Bleu/vivid/dark/950']);
   assert.ok(plan.every((entree) => entree.mode === 'unique' && /^#[0-9A-F]{6}$/.test(entree.hexa)));
   assert.equal(new Set(plan.map((entree) => entree.cle)).size, 44);
 });
@@ -113,7 +113,7 @@ test('[VAR-01] thèmes en modes : 44 entrées pour 22 variables, chaque nom port
   assert.equal(plan.length, 44);
   const noms = nomsDuPlan(plan);
   assert.equal(noms.length, 22);
-  assert.deepEqual([noms[0], noms[21]], ['colors/bleu/soft/50', 'colors/bleu/vivid/950']);
+  assert.deepEqual([noms[0], noms[21]], ['colors/Bleu/soft/50', 'colors/Bleu/vivid/950']);
   for (const nom of noms) assert.deepEqual(plan.filter((entree) => entree.nom === nom).map((entree) => entree.mode), ['light', 'dark']);
   // Les clés ne dépendent pas de la destination : le suivi retrouve ses variables après un changement.
   assert.deepEqual(plan.map((entree) => entree.cle), planDesVariables(RECETTE, BLEU, DESTINATION_PAR_DEFAUT).map((entree) => entree.cle));
@@ -122,14 +122,14 @@ test('[VAR-01] thèmes en modes : 44 entrées pour 22 variables, chaque nom port
 test('[VAR-01] une palette à une intensité n’a pas de segment d’intensité, et un groupe vide pose la palette à la racine', () => {
   const plan = planDesVariables(RECETTE, GRIS, { ...DESTINATION_PAR_DEFAUT, groupe: '' });
   assert.equal(plan.length, 22);
-  assert.deepEqual([plan[0].nom, plan[0].cle, plan[21].nom, plan[21].cle], ['gris/light/50', 'unique/light/50', 'gris/dark/950', 'unique/dark/950']);
-  assert.deepEqual(planDesVariables(RECETTE, GRIS, { ...EN_MODES, groupe: 'a/b' }).slice(0, 2).map((entree) => entree.nom), ['a/b/gris/50', 'a/b/gris/100']);
+  assert.deepEqual([plan[0].nom, plan[0].cle, plan[21].nom, plan[21].cle], ['Gris/light/50', 'unique/light/50', 'Gris/dark/950', 'unique/dark/950']);
+  assert.deepEqual(planDesVariables(RECETTE, GRIS, { ...EN_MODES, groupe: 'a/b' }).slice(0, 2).map((entree) => entree.nom), ['a/b/Gris/50', 'a/b/Gris/100']);
 });
 
 test('[VAR-01] une palette libre écrit ses seules nuances', () => {
   const plan = planDesVariables(RECETTE, LIBRE, DESTINATION_PAR_DEFAUT);
   assert.equal(plan.length, 20);
-  assert.deepEqual(plan.slice(0, 5).map((entree) => entree.nom), [100, 300, 500, 700, 900].map((nuance) => `colors/libre/soft/light/${nuance}`));
+  assert.deepEqual(plan.slice(0, 5).map((entree) => entree.nom), [100, 300, 500, 700, 900].map((nuance) => `colors/Libre/soft/light/${nuance}`));
 });
 
 // ------------------------------------------------------------ le suivi
@@ -183,8 +183,8 @@ test('[VAR-04] les variables suivies sont celles de toutes les palettes', () => 
 
 const DESTINATION: Destination = { collection: { id: 'C' }, groupe: 'colors', themes: 'chemin' };
 const PLAN: EntreeDuPlan[] = [
-  { cle: 'unique/light/50', nom: 'colors/gris/light/50', mode: 'unique', hexa: '#F0F0F0' },
-  { cle: 'unique/light/100', nom: 'colors/gris/light/100', mode: 'unique', hexa: '#E0E0E0' },
+  { cle: 'unique/light/50', nom: 'colors/Gris/light/50', mode: 'unique', hexa: '#F0F0F0' },
+  { cle: 'unique/light/100', nom: 'colors/Gris/light/100', mode: 'unique', hexa: '#E0E0E0' },
 ];
 const ecrit = (ecrites: readonly string[]): PaletteSuivie => ({
   collection: 'C',
@@ -201,8 +201,8 @@ test('[VAR-05] sans suivi, ou sans variable suivie, les tokens ne sont pas encor
     const etat = etatDesTokens(PLAN, suivi, new Map(), DESTINATION);
     assert.equal(etat.etat, 'jamais-ecrits');
     assert.deepEqual(etat.aEcrire, [
-      { cle: 'unique/light/50', nom: 'colors/gris/light/50', ecrite: null, plugin: '#F0F0F0' },
-      { cle: 'unique/light/100', nom: 'colors/gris/light/100', ecrite: null, plugin: '#E0E0E0' },
+      { cle: 'unique/light/50', nom: 'colors/Gris/light/50', ecrite: null, plugin: '#F0F0F0' },
+      { cle: 'unique/light/100', nom: 'colors/Gris/light/100', ecrite: null, plugin: '#E0E0E0' },
     ]);
   }
 });
@@ -235,7 +235,7 @@ test('[VAR-05] une variable suivie qui a disparu rend les tokens introuvables, a
 test('[VAR-05] une clé du plan absente du suivi est à mettre à jour ; une clé du suivi absente du plan ne compte pas', () => {
   const partiel = etatDesTokens(PLAN, ecrit(['#F0F0F0']), lues(['#F0F0F0']), DESTINATION);
   assert.equal(partiel.etat, 'a-mettre-a-jour');
-  assert.deepEqual(partiel.aEcrire, [{ cle: 'unique/light/100', nom: 'colors/gris/light/100', ecrite: null, plugin: '#E0E0E0' }]);
+  assert.deepEqual(partiel.aEcrire, [{ cle: 'unique/light/100', nom: 'colors/Gris/light/100', ecrite: null, plugin: '#E0E0E0' }]);
   const ancien: PaletteSuivie = { ...ecrit(['#F0F0F0', '#E0E0E0']), variables: { ...ecrit(['#F0F0F0', '#E0E0E0']).variables, 'soft/light/50': { id: 'disparue', ecrite: '#000000' } } };
   assert.equal(etatDesTokens(PLAN, ancien, lues(['#F0F0F0', '#E0E0E0']), DESTINATION).etat, 'a-jour');
 });
@@ -308,7 +308,7 @@ test('[VAR-12] une même palette dans deux collections en fait deux ; les variab
   const locale = collection('C1', 'Primitives');
   const marque = collection('C3', 'Brand');
   const variables = [
-    ...variablesDe(locale, TAILWIND.map((nuance) => `colors/bleu/soft/light/${nuance}`)),
+    ...variablesDe(locale, TAILWIND.map((nuance) => `colors/Bleu/soft/light/${nuance}`)),
     ...variablesDe(locale, TAILWIND.map((nuance) => `slate/${nuance}`)),
     ...variablesDe(marque, TAILWIND.map((nuance) => `slate/${nuance}`)),
     // Une rampe d'alias : aucune couleur à lire.
@@ -316,7 +316,7 @@ test('[VAR-12] une même palette dans deux collections en fait deux ; les variab
     // Deux écritures de la même nuance : la première lue la garde.
     ...variablesDe(marque, ['zinc/050', 'zinc/50', 'zinc/100', 'zinc/200', 'zinc/300', 'zinc/400']),
   ];
-  const possedees = new Set(TAILWIND.map((nuance) => `C1/colors/bleu/soft/light/${nuance}`));
+  const possedees = new Set(TAILWIND.map((nuance) => `C1/colors/Bleu/soft/light/${nuance}`));
   const palettes = palettesDuFichier(variables, [locale, marque], possedees);
   assert.deepEqual(palettes.map((palette) => `${palette.nomDeLaCollection} ${palette.chemin} ${palette.nuances.length}`), ['Primitives slate 11', 'Brand slate 11', 'Brand zinc 5']);
   assert.equal(palettes[2].variables[0], 'C3/zinc/050');

@@ -268,8 +268,8 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
     }
     const aCreer = [...new Set(plan.map((entree) => entree.nom))].filter((nom) => !variableDuNom.has(nom));
     // Avant toute création : un nom déjà pris dans la collection arrête la palette ([VAR-08]).
-    const dansLaCollection = new Set(variablesLocales.filter((variable) => variable.variableCollectionId === collection.id).map((variable) => variable.name));
-    const pris = aCreer.find((nom) => dansLaCollection.has(nom));
+    const dansLaCollection = new Set(variablesLocales.filter((variable) => variable.variableCollectionId === collection.id).map((variable) => variable.name.toLowerCase()));
+    const pris = aCreer.find((nom) => dansLaCollection.has(nom.toLowerCase()));
     if (pris !== undefined) return { palette: id, issue: 'nom-pris', nom: pris };
 
     const creees: Variable[] = [];
