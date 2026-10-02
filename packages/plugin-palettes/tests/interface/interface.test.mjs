@@ -300,18 +300,24 @@ test('[UI-30] S-A simule les chemins sans couleur et suit le groupe et les thèm
 
 /** Choisit la première palette de la liste, comme le designer : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]). */
 async function ouvrirLaPremierePalette(page) {
-  await page.getByRole('tab', { name: 'Création', exact: true }).click();
+  // Par son identifiant : l'onglet se nomme « Create » en anglais.
+  await page.locator('#onglet-creation').click();
   await page.locator('.selecteur-bouton').click();
   await page.locator('.selecteur-option').first().click();
   await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
 }
 
-/** Ouvre l'interface sur le premier message d'un état de la galerie, puis sur sa première palette, sauf `sansPalette`. */
+/**
+ * Ouvre l'interface sur le premier message d'un état de la galerie, puis sur sa première palette, sauf `sansPalette`.
+ * Un fichier qui porte des palettes s'ouvre sur Gestion : `sansPalette` revient à Création, sans rien choisir.
+ */
 async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
   const page = await ouvrir(viewport);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));
-  if (sansPalette) await page.locator('.selecteur-bouton').waitFor();
-  else await ouvrirLaPremierePalette(page);
+  if (sansPalette) {
+    await page.getByRole('tab', { name: 'Création', exact: true }).click();
+    await page.locator('.selecteur-bouton').waitFor();
+  } else await ouvrirLaPremierePalette(page);
   return page;
 }
 
@@ -662,7 +668,7 @@ test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le foc
     await page.keyboard.press('Tab');
     const contour = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
     assert.notEqual(contour, 'none', 'le focus se voit');
-    assert.deepEqual(await carte.locator('.garantie-echec .lien-de-constat').allTextContents(), [CARTE_DES_REGLAGES, CARTE_DE_LA_DERIVE, 'Luminosité des nuances', 'Ajuster la référence']);
+    assert.deepEqual(await carte.locator('.garantie-echec .lien-de-constat').allTextContents(), ['Ajuster le réglage global', 'Ajuster le Color shift', 'Ajuster la luminosité des nuances', 'Ajuster la référence']);
   } finally {
     await page.close();
   }
@@ -787,6 +793,8 @@ test('[ENT-03] au premier lancement, créer une palette la range, sans empreinte
   try {
     await envoyer(page, messageDe('premier-lancement'));
     const avant = await compte(page);
+    // Un fichier sans palette montre l'encart d'appel : « Nouvelle palette » le remplace par la carte de création ([UI-22]).
+    await page.locator('#panneau-creation .appel').getByRole('button', { name: 'Nouvelle palette' }).click();
     await page.locator('.champ-creation').fill('#1E6FD9');
     await page.getByRole('button', { name: 'Créer la palette', exact: true }).click();
     const demande = await prochaine(page, avant);
@@ -1321,7 +1329,10 @@ test('W6.5 passer en Libre retire la palette de base et la carte des garanties ;
     assert.equal('base' in palette, false);
     assert.equal(await configuration.getByRole('group', { name: 'Palette de base' }).isVisible(), false);
     assert.equal(await configuration.getByText('Sans rôles ni garanties').isVisible(), true);
-    assert.equal(await page.locator('[aria-label="Garanties de contraste"]').isVisible(), false);
+    // La carte des garanties vit dans Vérification : une palette libre l'en retire.
+    await page.getByRole('tab', { name: 'Vérification', exact: true }).click();
+    assert.equal(await carteDesGaranties(page).isVisible(), false);
+    await ouvrirLaCreation(page);
     assert.equal(await page.locator('.pastille-on-solid').isVisible(), false);
     assert.equal(await page.locator('.accolades').isVisible(), false);
 
@@ -1342,8 +1353,9 @@ test('W6.5 passer en Libre retire la palette de base et la carte des garanties ;
     const modele = await prochaine(page, avant + 3);
     assert.equal('crans' in modele.recette.palettes[0], false);
     await envoyer(page, rangee(modele.demande));
-    assert.equal(await page.locator('[aria-label="Garanties de contraste"]').isVisible(), true);
     assert.equal(await page.locator('.nuancier-numero').count(), 11);
+    await ouvrirLaVerification(page);
+    assert.equal(await carteDesGaranties(page).isVisible(), true);
   } finally {
     await page.close();
   }
@@ -1832,7 +1844,7 @@ async function genererDepuisLaFiche(page, palette) {
   await page.locator(`#panneau-gestion .fiche-planche[data-palette="${palette}"] [data-geste="generer"]`).click();
 }
 
-test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette, dit la progression, rend les onglets inertes, puis montre l’état du cadre relu', async () => {
+test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, dit la progression, rend les onglets inertes, puis montre l’état du cadre relu', async () => {
   const page = await ouvrirSur('dessin-en-cours');
   try {
     await genererDepuisLaFiche(page, ID_DU_BLEU);
@@ -1855,8 +1867,8 @@ test('[PLA-24] [UI-05] « Générer sur Figma » d’une fiche envoie sa palette
     const relecture = await prochaineDuType(page, 'lire-etat', avant);
     await envoyer(page, { ...ETATS.find(({ id }) => id === 'generation-reussie').atteinte.findLast((etape) => etape.message?.type === 'etat').message, demande: relecture.demande });
     const fiche = page.locator(`.fiche-planche[data-palette="${ID_DU_BLEU}"]`);
-    assert.equal(await fiche.getAttribute('data-etat'), 'a-jour');
-    assert.deepEqual(await fiche.locator('.fiche-gestes button').allTextContents(), ['Afficher', 'Modifier'], 'un cadre à jour n’a pas de premier geste');
+    assert.equal(await pastilleDeLaPlanche(fiche).getAttribute('data-etat'), 'a-jour');
+    assert.deepEqual(await gestesDeLaPlanche(fiche), [['Afficher']], 'un cadre à jour n’a pas de premier geste');
     const vu = await compte(page);
     await fiche.getByRole('button', { name: 'Afficher', exact: true }).click();
     assert.deepEqual(await prochaine(page, vu), { type: 'voir-sur-la-planche', demande: relecture.demande + 1, page: '40:1', cadres: ['40:2'] });
@@ -1878,7 +1890,7 @@ test('[UI-28] 7 palettes gardent leurs gestes individuels sans mise à jour glob
   } finally { await page.close(); }
 });
 
-test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification enregistrée lui donne « Actualiser sur Figma »', async () => {
+test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification enregistrée lui donne « Actualiser »', async () => {
   const page = await ouvrirSur('planche-a-jour');
   try {
     await ouvrirLaPlanche(page);
@@ -1892,7 +1904,7 @@ test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification en
     await envoyer(page, rangee(rangement.demande));
     await ouvrirLaPlanche(page);
     const generer = fiche.locator('[data-geste="generer"]');
-    assert.equal(await generer.textContent(), 'Actualiser sur Figma');
+    assert.equal(await generer.textContent(), 'Actualiser');
     assert.equal(await generer.isDisabled(), false);
     await generer.click();
     assert.deepEqual((await dessinEnvoye(page, 1)).palettes, [ID_DU_BLEU]);
@@ -1983,7 +1995,11 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
 
 const ID_DU_JAUNE = 'p-08b7d4a0';
 const ouvrirLaPlanche = (page) => page.getByRole('tab', { name: 'Gestion', exact: true }).click();
-const etatsDesLignes = (page) => page.locator('.fiche-planche[data-palette]').evaluateAll((lignes) => lignes.map((ligne) => ligne.dataset.etat));
+/** L'état de la planche de chaque fiche, lu sur la pastille de sa ligne « Planche » ([UI-26]) : `data-etat` de la fiche mêle les tokens et la planche. */
+const pastilleDeLaPlanche = (fiche) => fiche.locator('.sortie[data-sortie="planche"] .pastille-d-etat');
+const etatsDesLignes = (page) => pastilleDeLaPlanche(page.locator('.fiche-planche[data-palette]')).evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.etat));
+/** Les gestes de la ligne « Planche » de chaque fiche, dans l'ordre. */
+const gestesDeLaPlanche = (fiches) => fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.sortie[data-sortie="planche"] .sortie-gestes button')].map((bouton) => bouton.textContent)));
 const dessinsEnvoyes = async (page) => (await demandes(page)).filter((demande) => demande.type === 'dessiner');
 /** Attend le `rang`-ième dessin envoyé, compté à partir de 1. */
 async function dessinEnvoye(page, rang) {
@@ -1991,22 +2007,17 @@ async function dessinEnvoye(page, rang) {
   return (await dessinsEnvoyes(page))[rang - 1];
 }
 
-test('[PLA-20] l’onglet Palettes dit l’état de chaque cadre, et « Actualiser sur Figma » envoie la seule palette périmée', async () => {
+test('[PLA-20] l’onglet Palettes dit l’état de chaque cadre, et « Actualiser » envoie la seule palette périmée', async () => {
   const page = await ouvrirSur('planche-perimee');
   try {
     await ouvrirLaPlanche(page);
     assert.deepEqual(await etatsDesLignes(page), ['a-jour', 'perimee', 'jamais-dessinee']);
     const fiches = page.locator('.fiche-planche[data-palette]');
-    // Chaque fiche porte sa pastille d'état, un cadre jamais dessiné compris (Y2.2).
-    assert.deepEqual(await fiches.locator('.etat-du-cadre').allTextContents(), ['À jour', 'À actualiser', 'Pas encore sur Figma']);
-    // Y1.9 : le premier geste quand le cadre en demande un, puis « Afficher » pour un cadre localisé, puis « Modifier ».
-    assert.deepEqual(await fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.fiche-gestes button')].map((bouton) => bouton.textContent))), [
-      ['Afficher', 'Modifier'],
-      ['Actualiser sur Figma', 'Afficher', 'Modifier'],
-      ['Générer sur Figma', 'Modifier'],
-    ]);
-    assert.deepEqual(await fiches.locator('[data-geste="generer"]').evaluateAll((boutons) => boutons.map((bouton) => bouton.classList.contains('btn-primary'))), [true, true], 'le premier geste est le bouton principal');
-    await fiches.nth(1).getByRole('button', { name: 'Actualiser sur Figma' }).click();
+    // La ligne « Planche » de chaque fiche porte sa pastille d'état, un cadre jamais dessiné compris (Y2.2).
+    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée']);
+    // Y1.9 : le geste que le cadre demande, puis « Afficher » pour un cadre localisé.
+    assert.deepEqual(await gestesDeLaPlanche(fiches), [['Afficher'], ['Actualiser', 'Afficher'], ['Créer la planche']]);
+    await fiches.nth(1).getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     assert.deepEqual({ ...demande, demande: 0 }, { type: 'dessiner', demande: 0, palettes: [ID_DU_JAUNE], empreinteLue: messageDe('planche-perimee').empreinte, etrangersConfirmes: [] });
   } finally {
@@ -2071,7 +2082,7 @@ test('[ENT-03] [UI-02] une palette supprimée se lit en une carte, et « Affiche
   }
 });
 
-test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte disparaît, le focus passe à la suivante, puis au compte', async () => {
+test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte disparaît, le focus passe à la suivante, puis à l’en-tête des palettes du plugin', async () => {
   const page = await ouvrirSur('palette-supprimee');
   try {
     await ouvrirLaPlanche(page);
@@ -2092,7 +2103,7 @@ test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte
     const second = await prochaine(page, avant);
     await envoyer(page, { type: 'retrait', demande: second.demande, issue: { issue: 'deja-absent' } });
     assert.equal(await page.locator('.carte-supprimee').count(), 0);
-    assert.equal(await page.locator('.planche-compte').evaluate((ligne) => ligne === document.activeElement), true);
+    assert.equal(await page.locator('[data-section="plugin"] .section-bascule').evaluate((bascule) => bascule === document.activeElement), true);
   } finally {
     await page.close();
   }
@@ -2280,7 +2291,7 @@ test('[VER-10] la saturation de la référence se situe par un repère sur la pi
   }
 });
 
-test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée, se lisent sous ses curseurs, et mènent aux intensités communes', async () => {
+test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée, se lisent sous ses curseurs, et mènent à la saturation de la carte', async () => {
   const page = await ouvrirSur('promesses-manquees');
   try {
     assert.match(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), / · 1 point à vérifier$/);
@@ -2290,8 +2301,8 @@ test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée
     assert.equal(await message.locator('.ligne-fixe-texte').textContent(), 'Bleu : nuances Light 100 · Soft et Vivid sont presque identiques sur ces nuances.');
     assert.equal((await message.boundingBox()).height, 24);
     assert.deepEqual(await page.locator('.pastille[data-confondue="true"]').evaluateAll((pastilles) => pastilles.map((pastille) => `${pastille.dataset.profil} ${pastille.dataset.cran}`)), ['soft 50', 'soft 100', 'vivid 50', 'vivid 100']);
-    await message.getByRole('button', { name: 'Intensités communes' }).click();
-    assert.equal(await page.locator('.page-title').textContent(), 'Réglages communs');
+    await message.getByRole('button', { name: 'Ajuster la saturation' }).click();
+    assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Saturation de Soft');
   } finally {
     await page.close();
   }
@@ -2345,12 +2356,12 @@ test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine
 test('[VER-15] un lien de message ouvre les Réglages communs sur son groupe, et le retour rend le focus au lien', async () => {
   const page = await ouvrirSur('fond-personnalise');
   try {
-    await page.locator('#panneau-creation .pied-de-la-palette').getByRole('button', { name: 'Détails' }).click();
-    const lien = page.locator('.volet-de-la-palette .constat-alerte').getByRole('button', { name: 'Couleurs de fond' });
+    await ouvrirLaVerification(page);
+    const lien = page.locator('.messages-de-la-verification .constat-alerte').getByRole('button', { name: 'Changer les couleurs de fond' });
     await lien.click();
     assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Fond du thème Light');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
-    assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Couleurs de fond');
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Changer les couleurs de fond');
   } finally {
     await page.close();
   }
@@ -2522,8 +2533,9 @@ const fonds = (locator) => locator.evaluate((element) => [getComputedStyle(eleme
 test('Y1.4 : l’onglet actif des trois bascules, Thème, Soft et Vivid, Écran et États, a le même fond, distinct de sa carte, aux deux thèmes de Figma', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    await ouvrirLaVerification(page);
+    // Deux bascules vivent dans Création, la troisième dans la carte des garanties de Vérification : un fond calculé se lit aussi dans un panneau caché.
     await deplierLaCarte(page, 'Interface de test');
+    await ouvrirLaVerification(page);
     const actifs = [
       page.locator('.nuancier-tete .bascule-option[aria-pressed="true"]'),
       page.locator('.bascule-des-profils .bascule-option[aria-pressed="true"]'),
@@ -2568,9 +2580,9 @@ test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la 
   const page = await ouvrirSur('palette-supprimee');
   try {
     await ouvrirLaPlanche(page);
-    const hauteurs = await page.locator('#panneau-gestion .fiche-gestes button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getBoundingClientRect().height]));
+    const hauteurs = await page.locator('#panneau-gestion .fiche-gestes button, #panneau-gestion .sortie-gestes button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getBoundingClientRect().height]));
     assert.ok(hauteurs.some(([texte]) => texte === 'Supprimer définitivement'), JSON.stringify(hauteurs));
-    assert.ok(hauteurs.some(([texte]) => texte === 'Modifier'), JSON.stringify(hauteurs));
+    assert.ok(hauteurs.some(([texte]) => texte === 'Afficher'), JSON.stringify(hauteurs));
     assert.deepEqual([...new Set(hauteurs.map(([, hauteur]) => hauteur))], [24], JSON.stringify(hauteurs));
   } finally {
     await page.close();
@@ -2579,9 +2591,13 @@ test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la 
 
 /** Les intensités que l'aperçu, les garanties et l'interface de test montrent. */
 async function intensitesMontrees(page) {
+  // La bascule des garanties vit dans Vérification ; le reste se lit dans Création.
+  await ouvrirLaVerification(page);
+  const basculeDesGaranties = await page.locator('.bascule-des-profils').isVisible();
+  await ouvrirLaCreation(page);
   return {
     apercu: [...new Set(await page.locator('.nuancier-grille .pastille[data-profil]').evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.profil)))],
-    basculeDesGaranties: await page.locator('.bascule-des-profils').isVisible(),
+    basculeDesGaranties,
     basculeDeLEssai: await page.locator('.bascule-du-profil-essaye').isVisible(),
     carteDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).isVisible(),
     cibleDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.cible-des-reglages').evaluate((cible) => !cible.hidden),
@@ -2592,7 +2608,6 @@ async function intensitesMontrees(page) {
 test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, les garanties, l’interface de test, le choix du profil à régler et la dérive ; le retour les rend', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
-    await ouvrirLaVerification(page);
     await deplierLaCarte(page, 'Interface de test');
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
     const configuration = carteDeLOnglet(page, 'Configuration de la palette');
@@ -2642,19 +2657,19 @@ test('Y4.8 [PLA-20] : changer le nombre d’intensités d’une palette génér�
   }
 });
 
-test('Y6.3 : chaque fiche porte son état en pastille et ses gestes dans l’ordre ; après une génération, le focus revient à la fiche', async () => {
+test('Y6.3 : la ligne « Planche » de chaque fiche porte son état en pastille et ses gestes dans l’ordre ; après une génération, le focus revient à la fiche', async () => {
   const page = await ouvrirSur('fiche-refaite');
   try {
     await ouvrirLaPlanche(page);
     const fiches = page.locator('.fiche-planche[data-palette]');
-    assert.deepEqual(await fiches.locator('.carte-tete .pastille-d-etat').allTextContents(), ['À jour', 'À actualiser', 'Pas encore sur Figma']);
-    assert.deepEqual(await fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.fiche-gestes button')].map((bouton) => bouton.dataset.geste))), [
-      ['voir', 'modifier'],
-      ['generer', 'voir', 'modifier'],
-      ['generer', 'modifier'],
+    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée']);
+    assert.deepEqual(await fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.sortie[data-sortie="planche"] .sortie-gestes button')].map((bouton) => bouton.dataset.geste))), [
+      ['voir'],
+      ['generer', 'voir'],
+      ['generer'],
     ]);
     const jaune = fiches.nth(1);
-    await jaune.getByRole('button', { name: 'Actualiser sur Figma' }).click();
+    await jaune.getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     const avant = await compte(page);
     await envoyer(page, dessinDe(demande.demande, { issue: 'dessinee', page: '40:1', cadres: [{ palette: ID_DU_JAUNE, cadre: '40:3' }], peints: [] }));
@@ -2702,12 +2717,12 @@ function couleursCalculees(element) {
   };
 }
 
-test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; « À actualiser » et « Pas encore sur Figma » l’avertissement ; introuvable et illisible le danger ; chaque texte tient 4,5:1 aux deux thèmes de Figma', async () => {
+test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; « À actualiser » et « Pas encore créée » l’avertissement ; introuvable et illisible le danger ; chaque texte tient 4,5:1 aux deux thèmes de Figma', async () => {
   const page = await ouvrirSur('pastilles-des-etats');
   try {
     await ouvrirLaPlanche(page);
-    const pastilles = page.locator('.fiche-planche[data-palette] .carte-tete .pastille-d-etat');
-    assert.deepEqual(await pastilles.allTextContents(), ['À jour', 'À actualiser', 'Pas encore sur Figma', 'Cadre introuvable', 'Lecture impossible']);
+    const pastilles = pastilleDeLaPlanche(page.locator('.fiche-planche[data-palette]'));
+    assert.deepEqual(await pastilles.allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée', 'Introuvable', 'Lecture impossible']);
     for (const theme of ['clair', 'sombre']) {
       if (theme === 'sombre') await page.evaluate(() => document.documentElement.classList.add('figma-dark'));
       const [aJour, perimee, jamais, introuvable, illisible] = await pastilles.evaluateAll((elements, source) => elements.map(new Function(`return ${source}`)()), couleursCalculees.toString());
@@ -2859,14 +2874,14 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
  * ('rien', 'echap' ou 'relacher'). Les événements sont synthétiques : la
  * capture du pointeur n'existe que pour un vrai pointeur, elle se simule.
  * `compteDesRendus` compte les rendus de l'aperçu, qui repeignent le
- * nuancier ; `garantiesTouchees`, ceux de la carte des garanties, qui
- * n'arrivent qu'avec un rendu complet.
+ * nuancier ; `rendusComplets`, ceux de la carte « Interface de test », qui
+ * n'arrivent qu'avec un rendu complet de l'onglet.
  */
+const TEMOIN_DU_RENDU_COMPLET = '#panneau-creation [aria-label="Interface de test"] .carte-corps';
 async function ouvrirLeGlisser(page) {
-  await ouvrirLaVerification(page);
   await deplierLaCarte(page, 'Interface de test');
   await carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .pipette').click();
-  await page.evaluate(() => {
+  await page.evaluate((temoin) => {
     const zone = document.querySelector('.selecteur-zone');
     zone.setPointerCapture = () => {};
     zone.hasPointerCapture = () => true;
@@ -2874,8 +2889,8 @@ async function ouvrirLeGlisser(page) {
     const point = (x, y, buttons = 1) => ({ bubbles: true, pointerId: 1, isPrimary: true, button: 0, buttons, clientX: cadre.left + cadre.width * x, clientY: cadre.top + cadre.height * y });
     window.compteDesRendus = 0;
     new MutationObserver(() => { window.compteDesRendus += 1; }).observe(document.querySelector('.nuancier-surface'), { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['style'] });
-    window.garantiesTouchees = 0;
-    new MutationObserver(() => { window.garantiesTouchees += 1; }).observe(document.querySelector('[aria-label="Garanties de contraste"] .carte-corps'), { childList: true, characterData: true, subtree: true, attributes: true });
+    window.rendusComplets = 0;
+    new MutationObserver(() => { window.rendusComplets += 1; }).observe(document.querySelector(temoin), { childList: true, characterData: true, subtree: true, attributes: true });
     window.glisser = (mouvements, apres) => {
       zone.dispatchEvent(new PointerEvent('pointerdown', point(0.1, 0.1)));
       for (const [x, y] of mouvements) zone.dispatchEvent(new PointerEvent('pointermove', point(x, y)));
@@ -2888,14 +2903,14 @@ async function ouvrirLeGlisser(page) {
     window.relacher = () => zone.dispatchEvent(new PointerEvent('pointerup', point(0.8, 0.6, 0)));
     window.perdreLaCapture = () => zone.dispatchEvent(new PointerEvent('lostpointercapture', point(0.8, 0.6)));
     window.sansCapture = () => { zone.hasPointerCapture = () => false; };
-  });
+  }, TEMOIN_DU_RENDU_COMPLET);
 }
 
 const referenceMontree = (page) => carteDeLOnglet(page, 'Configuration de la palette').locator('.colonnes-de-base .champ-hexa').inputValue();
 const imageSuivante = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const rangements = (page) => page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette'));
 
-test('Z4.4 [UI-13] pendant un glisser dans le sélecteur de couleur, l’aperçu se rend une fois par image, à la couleur du dernier mouvement ; les garanties attendent', async () => {
+test('Z4.4 [UI-13] pendant un glisser dans le sélecteur de couleur, l’aperçu se rend une fois par image, à la couleur du dernier mouvement ; le reste de l’onglet attend', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
@@ -2903,7 +2918,7 @@ test('Z4.4 [UI-13] pendant un glisser dans le sélecteur de couleur, l’aperçu
     // Les mouvements et la lecture du code tiennent dans une même tâche : aucune image ne passe entre eux.
     const [code, rendusPendant, montreePendant] = await page.evaluate(() => {
       window.compteDesRendus = 0;
-      window.garantiesTouchees = 0;
+      window.rendusComplets = 0;
       // Un observateur ne reçoit sa file qu'après la tâche : takeRecords la lit dans la tâche.
       const pendant = new MutationObserver(() => {});
       pendant.observe(document.querySelector('.repere-de-la-reference'), { childList: true, characterData: true, subtree: true });
@@ -2917,14 +2932,14 @@ test('Z4.4 [UI-13] pendant un glisser dans le sélecteur de couleur, l’aperçu
     await imageSuivante(page);
     assert.equal(await page.evaluate(() => window.compteDesRendus), 1, 'un rendu pour quatre mouvements');
     assert.equal(await referenceMontree(page), code, 'le rendu porte le dernier mouvement');
-    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'les garanties attendent la fin du geste');
+    assert.equal(await page.evaluate(() => window.rendusComplets), 0, 'le rendu complet attend la fin du geste');
     assert.deepEqual(await rangements(page), [], 'rien ne se range pendant le geste');
   } finally {
     await page.close();
   }
 });
 
-test('Z4.4 [UI-13] la fin d’un glisser range une seule fois, à la couleur du dernier mouvement, et rend les garanties', async () => {
+test('Z4.4 [UI-13] la fin d’un glisser range une seule fois, à la couleur du dernier mouvement, et rend tout l’onglet', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
@@ -2932,7 +2947,7 @@ test('Z4.4 [UI-13] la fin d’un glisser range une seule fois, à la couleur du 
     // Une image passe avant le relâcher : l'aperçu seul s'est rendu.
     await imageSuivante(page);
     await page.evaluate(() => {
-      window.garantiesTouchees = 0;
+      window.rendusComplets = 0;
       window.relacher();
     });
     await imageSuivante(page);
@@ -2940,7 +2955,7 @@ test('Z4.4 [UI-13] la fin d’un glisser range une seule fois, à la couleur du 
     assert.equal(ranges.length, 1);
     assert.equal(ranges[0].recette.palettes[0].reference, code);
     assert.equal(await referenceMontree(page), code);
-    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'les garanties suivent la fin du geste');
+    assert.ok(await page.evaluate(() => window.rendusComplets) > 0, 'le rendu complet suit la fin du geste');
   } finally {
     await page.close();
   }
@@ -2951,13 +2966,13 @@ test('Z4.4 [UI-13] Échap pendant un glisser referme le sélecteur, rend le focu
   try {
     await ouvrirLeGlisser(page);
     const code = await page.evaluate(() => {
-      window.garantiesTouchees = 0;
+      window.rendusComplets = 0;
       return window.glisser([[0.4, 0.3], [0.8, 0.7]], 'echap');
     });
     assert.equal(await referenceMontree(page), code, 'l’aperçu garde le dernier mouvement');
     assert.equal(await page.locator('.selecteur-de-couleur').isVisible(), false);
     assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('pipette')), true);
-    await page.waitForFunction(() => window.garantiesTouchees > 0, null, { timeout: 2000 });
+    await page.waitForFunction(() => window.rendusComplets > 0, null, { timeout: 2000 });
     await page.evaluate(() => document.querySelector('.selecteur-zone').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 })));
     assert.deepEqual(await rangements(page), [], 'Échap n’enregistre rien');
   } finally {
@@ -2965,21 +2980,21 @@ test('Z4.4 [UI-13] Échap pendant un glisser referme le sélecteur, rend le focu
   }
 });
 
-test('Z4.9 [UI-13] une pause de 300 ms, bouton enfoncé, ne rend pas tout l’onglet : les garanties attendent le relâcher', async () => {
+test('Z4.9 [UI-13] une pause de 300 ms, bouton enfoncé, ne rend pas tout l’onglet : le rendu complet attend le relâcher', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
     await page.evaluate(() => window.glisser([[0.3, 0.2], [0.6, 0.4]], 'rien'));
     await imageSuivante(page);
-    await page.evaluate(() => { window.garantiesTouchees = 0; });
+    await page.evaluate(() => { window.rendusComplets = 0; });
     await page.waitForTimeout(300);
     await page.evaluate(() => window.bouger(0.7, 0.5));
     await imageSuivante(page);
     await page.waitForTimeout(300);
-    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'aucun rendu complet pendant les pauses');
+    assert.equal(await page.evaluate(() => window.rendusComplets), 0, 'aucun rendu complet pendant les pauses');
     assert.deepEqual(await rangements(page), [], 'rien ne se range pendant le geste');
     await page.evaluate(() => window.relacher());
-    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'le relâcher rend tout');
+    assert.ok(await page.evaluate(() => window.rendusComplets) > 0, 'le relâcher rend tout');
     assert.equal((await rangements(page)).length, 1);
   } finally {
     await page.close();
@@ -2990,18 +3005,18 @@ test('Z4.9 [UI-13] Échap pendant un glisser rend tout l’onglet une fois, sans
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
-    const touchees = await page.evaluate(() => {
+    const touchees = await page.evaluate((temoin) => {
       window.glisser([[0.4, 0.3], [0.8, 0.7]], 'rien');
-      window.garantiesTouchees = 0;
+      window.rendusComplets = 0;
       const pendant = new MutationObserver(() => {});
-      pendant.observe(document.querySelector('[aria-label="Garanties de contraste"] .carte-corps'), { childList: true, characterData: true, subtree: true, attributes: true });
+      pendant.observe(document.querySelector(temoin), { childList: true, characterData: true, subtree: true, attributes: true });
       document.querySelector('.selecteur-de-couleur').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       // Le rendu complet part dans la même tâche que la touche.
       const lus = pendant.takeRecords().length;
       pendant.disconnect();
       return lus;
-    });
-    assert.ok(touchees > 0, 'Échap rend les garanties dans sa propre tâche');
+    }, TEMOIN_DU_RENDU_COMPLET);
+    assert.ok(touchees > 0, 'Échap rend tout l’onglet dans sa propre tâche');
     await imageSuivante(page);
     assert.deepEqual(await rangements(page), [], 'Échap n’enregistre rien');
   } finally {
@@ -3028,14 +3043,14 @@ test('Z4.9 [UI-13] un mouvement que le navigateur donne sans bouton prolonge le 
     await page.evaluate(() => window.glisser([[0.2, 0.2], [0.3, 0.8]], 'rien'));
     await imageSuivante(page);
     const avantLaPerte = await referenceMontree(page);
-    await page.evaluate(() => { window.garantiesTouchees = 0; window.perdreLaCapture(); window.sansCapture(); window.bouger(0.7, 0.3, 0); });
+    await page.evaluate(() => { window.rendusComplets = 0; window.perdreLaCapture(); window.sansCapture(); window.bouger(0.7, 0.3, 0); });
     await imageSuivante(page);
-    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'la capture perdue ne rend pas tout l’onglet');
+    assert.equal(await page.evaluate(() => window.rendusComplets), 0, 'la capture perdue ne rend pas tout l’onglet');
     assert.notEqual(await referenceMontree(page), avantLaPerte, 'l’aperçu suit le mouvement après la perte de la capture');
     assert.equal((await rangements(page)).length, 1, 'la capture perdue ne range rien');
     // Le premier rangement est encore en vol : le second attend sa réponse, et le relâcher rend tout l'onglet.
     await page.evaluate(() => window.relacher());
-    assert.ok(await page.evaluate(() => window.garantiesTouchees) > 0, 'le relâcher finit le geste');
+    assert.ok(await page.evaluate(() => window.rendusComplets) > 0, 'le relâcher finit le geste');
   } finally {
     await page.close();
   }
@@ -3060,6 +3075,8 @@ test('Z4.9 [UI-13] à la souris, le glisser du sélecteur de couleur continue ap
     assert.notEqual(await referenceMontree(page), avant, 'l’aperçu suit le pointeur après le mouvement sans bouton');
     assert.equal((await rangements(page)).length, 0, 'rien ne s’enregistre avant le relâcher');
     await souris('mouseReleased', ...en(0.8, 0.6), 0);
+    // La demande passe par `postMessage` : elle arrive au relevé dans une tâche suivante.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     const ranges = await rangements(page);
     assert.equal(ranges.length, 1);
     const rangee = await referenceMontree(page);
@@ -3079,9 +3096,9 @@ test('Z4.9 [UI-13] la réponse d’un rangement reçue en plein glisser ne rend 
     const [premier] = await rangements(page);
     await page.evaluate(() => window.glisser([[0.2, 0.3], [0.5, 0.6]], 'rien'));
     await imageSuivante(page);
-    await page.evaluate(() => { window.garantiesTouchees = 0; });
+    await page.evaluate(() => { window.rendusComplets = 0; });
     await envoyer(page, rangee(premier.demande));
-    assert.equal(await page.evaluate(() => window.garantiesTouchees), 0, 'la réponse attend la fin du geste');
+    assert.equal(await page.evaluate(() => window.rendusComplets), 0, 'la réponse attend la fin du geste');
     await page.evaluate(() => window.relacher());
     const [, second] = await rangements(page);
     assert.ok(second, 'le relâcher range, la réponse précédente reçue');
@@ -3167,19 +3184,19 @@ test('Z4.9 [UI-02] le glisser d’un fond des Réglages communs ne redessine ni 
   }
 });
 
-test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur une garantie : le clic la choisit, puis l’onglet se rend', async () => {
+test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur la bascule de l’interface de test : le clic la bascule, puis l’onglet se rend', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await ouvrirLeGlisser(page);
     const champ = page.locator('.selecteur-champ').first();
     await champ.fill('2A7FDB');
-    const visee = page.locator('[aria-label="Garanties de contraste"] .garantie[aria-pressed="false"]').nth(2);
-    const association = await visee.getAttribute('data-association');
-    // Le rendu complet rebâtit les lignes des garanties : parti au pointerdown, il perdrait le clic.
+    const visee = page.locator('.bascule-de-l-essai .bascule-option[aria-pressed="false"]');
+    // Le rendu complet rebâtit l'interface de test : parti au pointerdown, il pourrait perdre le clic.
     await visee.click();
     await page.waitForFunction(() => !document.querySelector('.selecteur-de-couleur') || document.querySelector('.selecteur-de-couleur').hidden);
     await imageSuivante(page);
-    assert.equal(await page.locator(`[aria-label="Garanties de contraste"] .garantie[data-association="${association}"]`).getAttribute('aria-pressed'), 'true');
+    assert.equal(await visee.count(), 1, 'la bascule n’a que deux options');
+    assert.equal(await page.locator('.bascule-de-l-essai .bascule-option').nth(1).getAttribute('aria-pressed'), 'true');
     assert.equal(await referenceMontree(page), '#2A7FDB', 'l’aperçu garde le code tapé');
   } finally {
     await page.close();
@@ -3233,6 +3250,8 @@ test('Z5.3 [UI-15] rien ne change avant « Appliquer » ; Appliquer range la pro
     assert.equal(await referenceMontree(page), '#16A34A', 'un pas ne change pas la palette');
     await modale.getByRole('button', { name: 'Appliquer' }).click();
     assert.equal(await modale.isVisible(), false);
+    // La demande passe par `postMessage` : elle arrive au relevé dans une tâche suivante.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     const ranges = await rangements(page);
     assert.equal(ranges.length, 1);
     assert.equal(ranges[0].recette.palettes[0].reference, '#029D44');
@@ -3360,12 +3379,15 @@ test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette ga
   const page = await ouvrirSur('derive-deliee-libre', MINIMALE);
   try {
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
-    await ouvrirLaVerification(page);
-    await imageSuivante(page);
-    const mesurer = async () => ({
-      derive: await rendu(page, '.derive-graphe', ['.derive-graduation', '.derive-poignee-lettre'], '.derive-trait'),
-      reglette: await rendu(page, '.reglette-svg', ['.reglette-numero'], '.reglette-arc'),
-    });
+    // La dérive se mesure dans Création, la réglette des garanties dans Vérification : un graphe caché n'a pas de taille.
+    const mesurer = async () => {
+      await ouvrirLaVerification(page);
+      await imageSuivante(page);
+      const reglette = await rendu(page, '.reglette-svg', ['.reglette-numero'], '.reglette-arc');
+      await ouvrirLaCreation(page);
+      await imageSuivante(page);
+      return { derive: await rendu(page, '.derive-graphe', ['.derive-graduation', '.derive-poignee-lettre'], '.derive-trait'), reglette };
+    };
     const petit = await mesurer();
     await page.setViewportSize({ width: 1000, height: 720 });
     await imageSuivante(page);
@@ -3838,9 +3860,11 @@ test('le glisser d’un curseur de la carte des réglages, sans capture, finit �
   try {
     const ui = await ouvrirDansUneIframe(page);
     await ui.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('alertes-seules'));
+    // Un fichier qui porte des palettes s'ouvre sur Gestion.
+    await ui.locator('#onglet-creation').click();
     await ui.locator('.selecteur-bouton').click();
     await ui.locator('.selecteur-option').first().click();
-    await ui.locator('.tete-de-la-palette .titre-de-premier-rang').waitFor();
+    await ui.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
     const carte = ui.locator(`#panneau-creation .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
     if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-bascule').click();
     const curseur = ui.getByRole('slider', { name: 'Teinte de Soft' });
@@ -4104,7 +4128,7 @@ test('[UI-17] une ligne fixe coupée s’ouvre au clic dans une bulle, sans rien
   }
 });
 
-test('[UI-18] le pied compte les garanties et les alertes à toute position de défilement ; « Détails » ouvre le volet, de hauteur fixe, et Échap le referme', async () => {
+test('[UI-18] le pied compte les garanties et les alertes à toute position de défilement ; « Vérifier » ouvre l’onglet Vérification sur la palette, et un lien de message ramène au réglage', async () => {
   const page = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
   try {
     const pied = page.locator('#panneau-creation .pied-de-la-palette');
@@ -4115,22 +4139,13 @@ test('[UI-18] le pied compte les garanties et les alertes à toute position de d
       const boite = await pied.boundingBox();
       assert.equal(Math.round(boite.y + boite.height), PAR_DEFAUT.height, `le pied reste au bas de la fenêtre, défilement ${position}`);
     }
-    const details = pied.getByRole('button', { name: 'Détails' });
-    await details.click();
-    const volet = page.getByRole('dialog', { name: 'Garanties et alertes' });
-    assert.equal(await volet.isVisible(), true);
-    assert.equal(await details.getAttribute('aria-expanded'), 'true');
-    assert.match(await volet.locator('.constats-titre').first().textContent(), /^Contrastes à corriger · \d+$/);
-    const hauteur = (await volet.boundingBox()).height;
-    assert.ok(await volet.locator('.volet-corps').evaluate((corps) => corps.scrollHeight > corps.clientHeight), 'le volet fait défiler ce qu’il liste');
-    await page.keyboard.press('Escape');
-    assert.equal(await volet.isVisible(), false);
-    assert.equal(await details.evaluate((element) => document.activeElement === element), true);
-    await details.click();
-    assert.equal((await volet.boundingBox()).height, hauteur);
-    // Un lien vers un réglage de l'onglet referme le volet, qui couvrirait ce réglage.
-    await volet.getByRole('button', { name: CARTE_DE_LA_DERIVE }).first().click();
-    assert.equal(await volet.isVisible(), false);
+    await pied.getByRole('button', { name: 'Vérifier' }).click();
+    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#panneau-verification .tete-de-la-palette').textContent(), 'Palette Bleu');
+    assert.match(await page.locator('#panneau-verification .constats-titre').first().textContent(), /^Contrastes à corriger · \d+$/);
+    // Un lien vers un réglage ramène à l'onglet Création, sur la carte dépliée.
+    await page.locator('.messages-de-la-verification').getByRole('button', { name: 'Ajuster le Color shift' }).first().click();
+    assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
     assert.equal(await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getAttribute('data-ouverte'), 'true');
   } finally {
     await page.close();
