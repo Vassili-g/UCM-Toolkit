@@ -371,8 +371,8 @@ function construireVues(i18n: Localisation) {
     const choixAutomatique = choixDeBase.aide;
     /*
      * Deux colonnes (recette v7) : le nom puis le modèle à gauche, la couleur
-     * de référence puis les intensités à droite. Une palette libre n'a pas de
-     * choix d'intensités : ses numéros se choisissent dessous.
+     * de référence puis les intensités à droite. Les numéros d'une palette
+     * libre se choisissent dessous.
      */
     const choixDuModele = createChoixDuModele((valeur) => {
       const courante = ouverte();
@@ -532,7 +532,7 @@ function construireVues(i18n: Localisation) {
       rampeDuFichier.replaceChildren(...clair.map((entree) => nuance(suivie.modes.light === undefined ? null : lues.get(suivie.variables[entree.cle].id)?.valeurs[suivie.modes.light])));
       rampeDuPlugin.replaceChildren(...clair.map((entree) => nuance(entree.hexa)));
       for (const { mode, choixDuMode } of choixDeReprise) choixDuMode.setAttribute('aria-pressed', String((mode === 'telles-quelles') === figee));
-      i18n.lier(texteDeLaReprise, 'textContent', figee ? TEXTES_DE_LA_REPRISE.figee : couleursQuiChangeront(tokens.aRemplacer, tokens.variables === 0 ? 0 : Object.keys(suivie.variables).length));
+      i18n.lier(texteDeLaReprise, 'textContent', figee ? TEXTES_DE_LA_REPRISE.figee : couleursQuiChangeront(tokens.aRemplacer, tokens.variables === 0 ? 0 : Object.keys(suivie.variables).length, tokens.aCreer.length));
     }
 
     // La palette se règle ici, et se juge dans Vérification ([UI-12]).
@@ -649,7 +649,7 @@ function construireVues(i18n: Localisation) {
       const recette = etat.recette();
       if (!recette) return;
       const id = nouvelIdentifiant(recette, demandes.tirer);
-      const palette = nouvellePalette(recette, id, saisie, crans ? 2 : intensites);
+      const palette = nouvellePalette(recette, id, saisie, intensites);
       if (!palette) {
         creation.signaler(hexaInvalide(saisie));
         return;
@@ -824,12 +824,13 @@ function construireVues(i18n: Localisation) {
       const une = aUneIntensite(courante);
       choixDesIntensites.poser({ intensites: une ? 1 : 2 });
       // Une palette figée ne se règle pas : seul son nom reste, avec l'encart qui la rend aux couleurs recalculées ([VAR-13]).
-      // Une palette reprise garde une intensité : ses variables d'origine n'en portent qu'une.
       const figee = estFigee(courante);
       colonneDeLaReference.hidden = figee;
       choixDuModele.element.hidden = figee;
-      choixDesIntensites.element.hidden = analyse.libre || lienDeReprise(courante) !== null;
+      choixDesIntensites.element.hidden = figee;
       choixDeBase.poser(courante.base ?? 'auto');
+      // Une palette libre n'a pas de palette de base : « Référence exacte dans » ne se montre que dans le modèle.
+      if (analyse.libre) choixDeBase.element.hidden = true;
       puces.element.hidden = !analyse.libre || figee;
       carteDesIntensites.element.hidden = figee;
       carteDeLaDerive.element.hidden = figee;

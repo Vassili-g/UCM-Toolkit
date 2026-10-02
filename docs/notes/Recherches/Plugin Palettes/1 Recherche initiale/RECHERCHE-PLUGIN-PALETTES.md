@@ -524,7 +524,7 @@ Une palette porte :
 | `crans` | Facultatif : la liste d’une palette libre, 4 à 13 multiples de 50, de 50 à 1050, croissants. Chaque numéro suit les courbes communes. Absent, la palette suit la liste commune |
 | `originale` | Facultatif : le code de la référence avant le premier ajustement ou le premier réglage du porteur, en majuscules. Différent de `reference`, sauf sous un réglage du porteur, dont le résultat peut rendre les mêmes octets. Absent, aucun ajustement |
 | `intensites` | Facultatif : `1` pour une palette à une intensité (`[ENT-14]`), sans `base`, sans `parts`, dérive liée. Elle peut porter `crans` : une palette reprise du fichier garde ses nuances (`[VAR-13]`). Absent, la palette porte Soft et Vivid |
-| `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,05, +0,02]` au millième ; `part`, la saturation de la référence, donc celle de son profil porteur, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
+| `reglages` | Facultatif (`[ENT-15]`) : `teinte` et `clarte`, une valeur par profil, en degrés dans `[-30, 30]` au centième et en décalage de clarté OKLCH dans `[-0,10, +0,10]` au millième ; `part`, la saturation de la référence, donc celle de son profil porteur, dans `[0, 1]` ; `porteur`, le profil porteur figé ; `depart`, la référence d'une palette ajustée avant la version 5. Une palette à une intensité range sous `vivid`. Absent, aucun réglage |
 
 Une palette reprise « telle quelle » des variables du fichier porte en plus
 (`[VAR-13]`) :
@@ -739,7 +739,9 @@ dix-sept paires.
   pour la cible choisie : une valeur qui ferait manquer une garantie tenue au
   début du geste n'est pas permise. La
   teinte d'un profil se mesure depuis le départ (`[MOT-29]`), en degrés, de
-  −30 à +30. La luminosité décale toute la rampe du profil, de −0,05 à +0,02.
+  −30 à +30. La luminosité décale toute la rampe du profil, de −0,10 à +0,10.
+  La limite dynamique l'arrête avant que deux nuances voisines se confondent :
+  à +0,04 sur les courbes par défaut.
   La saturation d'un profil est sa part (`[ENT-09]`), bornée pour que
   `soft` ne dépasse pas `vivid`. La saturation du porteur est celle de la
   référence : le geste la range aussi dans `reglages.part`, et la référence
@@ -2118,18 +2120,13 @@ Onglet Gestion, vue complète :
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-- `[UI-24]` Le bloc « Connexion à Figma » ouvre l'onglet Gestion dans les
-  deux vues : une carte grise, sans fond (`src/ui/connexion.ts`). Son en-tête
-  porte le titre, « Synchronisé il y a … » et « Synchroniser », un texte gris
-  sans contour précédé de l'icône des deux flèches en cercle, qui ne se
-  confond pas avec « Changer ». « Synchroniser » relit le fichier, cadres
-  cherchés sur toutes les pages (`[PLA-26]`), et n'écrit rien ; l'heure est
-  celle du dernier état reçu, écrite en durée relative et rafraîchie au
-  rendu. Le corps porte la ligne « Tokens », collection et groupe de la
-  destination (`[VAR-02]`), et la ligne « Planches », nom de la page
-  (`[PLA-29]`), chacune avec « Changer » ; puis le bilan, un compte de
-  palettes par état. 20 px de plus que l'écart courant séparent le bloc de la
-  barre « Palettes du plugin ».
+- `[UI-24]` La section repliable « Connexion à Figma » ouvre Gestion dans
+  les deux vues (`src/ui/connexion.ts`). Repliée, elle résume la collection
+  et le groupe des tokens, puis la page des planches. Dépliée, elle porte
+  les lignes « Tokens » et « Planches », chacune avec « Changer », puis
+  l'heure du dernier état lu et « Synchroniser » en pied. « Synchroniser »
+  relit les cadres sur toutes les pages (`[PLA-26]`), sans écrire dans le
+  document. Les statuts des palettes restent dans leurs fiches.
 - `[UI-25]` La barre « Palettes du plugin · N » porte la bascule « Vue
   complète · Vue condensée », à gauche de la bascule des thèmes. La vue se
   range dans `figma.clientStorage` sous `ucm-palettes.vue`, avec la langue
@@ -2159,14 +2156,8 @@ Onglet Gestion, vue complète :
   planche, sous des en-têtes de colonne. Elle ne porte aucun geste. Un clic
   ou Entrée sur une ligne passe à la vue complète et amène la fiche en vue.
   Une palette du fichier (`[UI-33]`) est une ligne du même tableau.
-- `[UI-28]` « Tout mettre à jour (N) », dans le bilan du bloc et en vue
-  complète seulement, écrit les variables puis dessine les planches des N
-  palettes en retard ou absentes. Une planche introuvable n'y entre qu'après
-  une recherche sur toutes les pages. Une confirmation compte d'abord les
-  variables créées, les couleurs écrites et les planches dessinées, quel que
-  soit leur nombre. Une palette « Modifiés dans Figma » en est exclue, et la
-  confirmation le dit. Tant que la destination n'est pas confirmée, le geste
-  ouvre d'abord la carte de `[UI-30]`.
+- `[UI-28]` Les mises à jour se font depuis les sorties de chaque fiche
+  (`[UI-26]`, `[UI-31]`). Gestion ne propose aucun bouton global de mise à jour.
 - `[UI-29]` « Changer », sur la ligne « Planches », ouvre la carte « Page
   des planches » à la place du bloc de la connexion : une liste à choix
   unique, chaque page du fichier avec son nombre de planches, puis
@@ -2181,11 +2172,10 @@ Onglet Gestion, vue complète :
   choix unique, « Nouvelle collection » et son champ, puis chaque collection
   locale avec son nombre de variables, puis les collections de bibliothèque,
   grisées et non choisissables (`[VAR-14]`) ; le groupe et les thèmes sur une
-  rangée. Dessous, une simulation prend la forme du panneau des variables de
-  Figma : le nom de la collection, un groupe par rampe avec son compte, le
-  premier groupe déplié sur ses trois premières nuances, couleur et hexa,
-  puis « N autres nuances » ; en modes, deux colonnes de valeur, Light et
-  Dark. Elle se calcule par `planDesVariables` (`[VAR-01]`) sur la première
+  rangée. Dessous, la simulation S-A liste un chemin par rampe, ses première
+  et dernière nuances et son nombre de variables. L'en-tête nomme la
+  collection et, pour les thèmes en modes, « modes Light, Dark ». Elle
+  n'affiche aucune couleur. Elle se calcule par `planDesVariables` (`[VAR-01]`) sur la première
   palette du plugin et suit chaque choix sans rien ranger. « Enregistrer »
   range la destination (`[VAR-02]`).
 - `[UI-31]` « Écrire dans les tokens » ouvre dans la fiche un encart : le
@@ -2227,18 +2217,35 @@ Onglet Gestion, vue complète :
   palette figée ne montre ni la référence, ni le modèle, ni « Réglage
   global », ni « Color shift » ; une palette reprise ne propose pas deux
   intensités. Dans Gestion, la ligne des tokens d'une palette reprise dit sa
-  collection et son chemin d'origine, et « Mettre à jour » ouvre un encart
-  de remplacement : les couleurs qui changent, valeur de Figma et valeur du
-  plugin, six au plus puis « Et N autres », la phrase « Les variables
-  gardent leur nom et leurs liaisons. », « Annuler » et « Remplacer N
-  couleurs ». Une reprise que le sandbox refuse se dit sous le bloc de la
-  connexion.
+  collection et son chemin d'origine, puis le nombre de variables à créer,
+  sinon les couleurs qui changent, sinon le nombre de variables à renommer.
+  Quand des variables sont à créer, « Mettre à jour » ouvre l'encart
+  d'écriture (`[UI-31]`). Sinon il ouvre un encart de remplacement : les
+  couleurs qui changent, valeur de Figma et valeur du plugin, six au plus
+  puis « Et N autres », la phrase « Les variables gardent leur nom et leurs
+  liaisons. », « Annuler » et « Remplacer N couleurs ». Quand des variables
+  sont à renommer, les deux encarts le disent par l'exemple de la première,
+  ancien nom et nouveau nom, à la place de cette phrase ; sans couleur à
+  remplacer, l'encart de remplacement prend le titre de l'écriture et le
+  bouton « Mettre à jour ». Dans Création, l'encart dit aussi combien de
+  variables la mise à jour créera. Une reprise que le sandbox refuse se dit
+  sous le bloc de la connexion.
 - `[UI-35]` Une palette supprimée dont le cadre ou des variables restent
   dans Figma garde sa carte (`[PLA-27]`), qui propose aussi « Supprimer les
   variables… », geste `danger` confirmé dans la carte (`[VAR-11]`). Sans
   cadre, la carte porte le chemin commun des variables pour nom. Sous les listes,
   l'onglet range dans une section secondaire l'export et l'import des
   palettes et réglages et l'export du rapport.
+
+- `[UI-36]` Gestion regroupe cinq sections repliables, dans cet ordre :
+  « Connexion à Figma », « Palettes du plugin », « Déjà dans le fichier »,
+  « Dans les bibliothèques », « Palettes et réglages ». Les sections du
+  fichier et des bibliothèques se cachent quand elles sont vides ou quand
+  leurs palettes figurent dans le tableau condensé. Les bibliothèques
+  portent la phrase « Publiées par une bibliothèque distante ».
+  Seules les palettes du plugin sont ouvertes par défaut. Les choix du
+  designer se rangent sous `ucm-palettes.sections` dans `figma.clientStorage`.
+  Une recette illisible ouvre la section de la recette sans ranger ce choix.
 
 Onglet Gestion, vue condensée :
 
@@ -2640,7 +2647,8 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   leur nom. Le suivi rangé sous la clé partagée `ucm_palettes/variables`
   (`src/variables/suivi.ts`) porte sa version, la destination, si elle est
   confirmée, et pour chaque palette : sa collection, son groupe, ses modes,
-  sa liaison, `destination` ou `reprise`, et pour chaque clé du plan
+  sa liaison, `destination` ou `reprise`, pour une reprise écrite son
+  chemin d'origine et l'intensité de ses variables d'origine, et pour chaque clé du plan
   l'identifiant de la variable et la dernière couleur écrite. Il se lit comme le suivi des
   cadres (`[PLA-01]`) : une forme inattendue se lit comme un suivi vide, et
   un suivi d'une version plus récente refuse toute écriture. Chaque variable
@@ -2655,7 +2663,7 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   | Pas encore écrits | Le suivi n'a aucune variable pour la palette |
   | Introuvables | Une variable du suivi n'existe plus dans le fichier |
   | Modifiés dans Figma | Une couleur lue diffère de la dernière écrite |
-  | À mettre à jour | Une couleur calculée diffère de la dernière écrite, une clé du plan n'est pas dans le suivi, ou la destination a changé depuis l'écriture |
+  | À mettre à jour | Une couleur calculée diffère de la dernière écrite, une clé du plan n'est pas dans le suivi, la destination a changé depuis l'écriture, ou une variable d'une palette reprise est à renommer (`[VAR-13]`) |
   | À jour | Aucune des conditions précédentes |
 
   Deux couleurs sont égales quand leurs trois octets sRGB le sont, après
@@ -2709,7 +2717,8 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   `retirer-variables` : le sandbox ne retire que les variables du suivi de
   cette palette, quand la recette rangée se lit et ne la contient plus, dans
   une écriture close par un seul `figma.commitUndo()`. Aucun autre geste ne
-  supprime ni ne renomme une variable.
+  supprime une variable, et seule l'écriture d'une palette reprise en
+  renomme (`[VAR-13]`).
 - `[VAR-16]` `rangerLaDestination`, par la porte `ranger-destination`,
   valide la destination, la range dans le suivi et la marque confirmée. Une
   écriture de variables suit les règles du dessin (`src/ui/frontiere.ts`) :
@@ -2748,12 +2757,33 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   s'écrit pas s'il n'existe pas. Une variable n'est pas suivie dans le thème
   où elle porte un alias. La dernière couleur écrite prend la couleur lue :
   une palette reprise telle quelle est « À jour » sans écriture. Pour une
-  liaison de reprise, le plan ne rend que les entrées que le suivi désigne,
-  et l'écriture ne crée, ne renomme ni ne déplace aucune variable ; une
-  variable disparue quitte le suivi. Passer de « Recalculées » à « Telles
-  quelles », ou annuler la reprise, est un rangement ordinaire de la
-  recette. Une palette reprise puis supprimée rend ses variables à la liste
-  des palettes du fichier.
+  palette figée, le plan ne rend que les entrées que le suivi désigne : rien
+  ne se crée ni ne se renomme, et une variable disparue quitte le suivi.
+  Pour une palette recalculée, le plan couvre la palette entière, dans la
+  collection d'origine et sous le chemin commun des variables d'origine
+  (`origineDeLaReprise`, `src/variables/reprise.ts`). Les noms suivent la
+  forme d'une destination : `{chemin}/{intensité}/{thème}/{nuance}`, sans
+  segment d'intensité à une intensité, sans segment de thème quand le thème
+  Dark est en mode. Le thème Dark est en mode quand le suivi garde un mode
+  Dark. Sinon il suit la destination : avec les thèmes en modes, le sandbox
+  trouve ou crée le mode `Dark` de la collection d'origine (`[VAR-10]`) ;
+  avec les thèmes dans le chemin, il crée les variables de `dark`. Un thème
+  Dark créé dans le chemin y reste quand la destination change. Les
+  variables d'origine portent la rampe Light ; à deux intensités, celle de
+  l'intensité qui porte la référence à la première écriture, que le suivi
+  garde ensuite. Une variable suivie dont le nom n'est pas celui du plan est
+  renommée : elle garde son identifiant, donc ses liaisons, et la palette
+  est « À mettre à jour » tant qu'un renommage reste à faire. Elle garde son
+  nom quand une autre variable porte déjà celui du plan. Une variable
+  d'origine disparue se recrée, et toute variable créée naît sans portée. Le
+  suivi garde le chemin d'origine dès la première écriture, parce que les
+  noms renommés ne le rendent plus. Une entrée sans variable dont le nom est
+  celui d'une variable que la palette ne suit pas, ou qui vise un alias,
+  sort du plan : le plugin n'y écrit pas. Une clé d'un plan plus ancien
+  reste suivie tant que sa variable existe. Passer de
+  « Recalculées » à « Telles quelles », ou annuler la reprise, est un
+  rangement ordinaire de la recette. Une palette reprise puis supprimée
+  rend ses variables à la liste des palettes du fichier.
 - `[VAR-14]` Le manifest déclare la permission `teamlibrary`. La lecture
   liste les collections de bibliothèque activées, nom, clé, bibliothèque et
   nombre de variables, et leurs palettes détectées sur les seuls noms

@@ -25,6 +25,7 @@ dernier.
 | [05 Revue critique](./05%20Revue%20critique/REVUE-CRITIQUE-TROIS-ETAPES.md) | Revue de 04 contre la demande initiale et les propositions 01 à 03 : cas limites absents, vue du système retirée, correction qui abîme la rampe, destination sans contraintes. Script de mesure | À prendre en compte par 06 |
 | [06 Direction globale](./06%20Direction%20globale/DIRECTION-GLOBALE.md) | La direction qui assemble 03, 04 et 05 : trois onglets Palette, Vérifier et Système, les règles d'écriture des variables, la correction bornée par la régularité, onze cas limites, vingt et une décisions, l'inventaire de toutes les modifications ; une maquette interactive à vingt-six scénarios, ses scripts de génération, de mesure et de vérification | Remplacée par 07 pour le parcours ; référence pour les essais dans Figma et les cas limites de l'écriture |
 | [07 Direction simple](./07%20Direction%20simple/PLAN-DIRECTION-SIMPLE.md) | Le parcours en trois onglets, Création, Vérification et Gestion : l'encart du fichier vide, l'écriture d'une palette dans les variables, l'état des tokens et de la planche par palette, les palettes que le fichier porte déjà. Sans marques ni jeu de départ. Onze maquettes en thème sombre et leur générateur ; [le plan d'implémentation](./07%20Direction%20simple/PLAN-IMPLEMENTATION.md), dix phases ; [la recette](./07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md), le parcours à faire dans Figma et les essais R1 à R10 | Validée, sauf S14 ; implémentée, phases 1 à 9 ; à recetter dans Figma |
+| [08 Recette direction simple](./08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) | Trois retours de la recette de l'onglet Gestion, en maquettes : quatre propositions pour distinguer ses sections, « Déjà dans le fichier » réservé aux variables locales, trois propositions pour une simulation de la destination réduite aux chemins créés. Quinze cadres en thème sombre et leur générateur | À valider |
 
 ## Régénérer les pages
 
@@ -40,8 +41,9 @@ node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché
 node --import tsx "docs/notes/Recherches/Plugin Palettes/Intégration du marché/06 Direction globale/generer-maquette-direction-globale.mjs"
 npm run galerie --workspace ucm-palettes-plugin
 node "docs/notes/Recherches/Plugin Palettes/Intégration du marché/07 Direction simple/generer-maquettes-direction-simple.mjs"
+node "docs/notes/Recherches/Plugin Palettes/Intégration du marché/08 Recette direction simple/generer-maquettes-recette.mjs"
 ```
 
 Le script de l'atelier réécrit le moteur embarqué dans sa page ; les autres
-réécrivent leur page entière. Celui de la direction simple part de la galerie
-du plugin construit, que la commande qui le précède écrit.
+réécrivent leur page entière. Ceux de la direction simple et de sa recette partent de la galerie
+du plugin construit, que `npm run galerie` écrit.

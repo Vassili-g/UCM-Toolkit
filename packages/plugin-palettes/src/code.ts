@@ -52,7 +52,7 @@ async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<vo
 
 async function traiterMessage(message: UiRequest): Promise<void> {
   if (message.type === 'lire-langue') {
-    versUi({ type: 'langue', langue: await preferences.lire(), vue: await preferences.lireLaVue() });
+    versUi({ type: 'langue', langue: await preferences.lire(), vue: await preferences.lireLaVue(), sections: await preferences.lireLesSections() });
     return;
   }
   if (message.type === 'ranger-langue') {
@@ -61,6 +61,10 @@ async function traiterMessage(message: UiRequest): Promise<void> {
   }
   if (message.type === 'ranger-vue') {
     await preferences.rangerLaVue(message.vue);
+    return;
+  }
+  if (message.type === 'ranger-sections') {
+    await preferences.rangerLesSections(message.sections);
     return;
   }
   if (message.type === 'lire-etat') {

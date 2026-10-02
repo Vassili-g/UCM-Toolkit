@@ -4,7 +4,7 @@ import test from 'node:test';
 import { creerTraducteur, CATALOGUES } from '../src/i18n';
 import { LANGUES, resoudreDansRegistre, resoudreLangue } from '../src/i18n/langues';
 import { arrondi, contraste, pluriel } from '../src/i18n/nombres';
-import { CLE_DE_LANGUE, CLE_DE_VUE, creerPreferences } from '../src/preferences';
+import { CLE_DE_LANGUE, CLE_DE_VUE, CLE_DES_SECTIONS, SECTIONS_PAR_DEFAUT, creerPreferences } from '../src/preferences';
 import { creerLocalisation, lireTexte } from '../src/ui/localisation';
 
 function structure(objet: object, prefixe = ''): string[] {
@@ -120,4 +120,18 @@ test('[UI-25] la vue de Gestion se range sous sa clé ; une valeur absente, inco
   assert.equal(await preferences.rangerLaVue('condensee'), true);
   assert.equal(await preferences.rangerLaVue('inconnue'), true);
   assert.deepEqual(rangees, [[CLE_DE_VUE, 'condensee'], [CLE_DE_VUE, 'complete']]);
+});
+
+test('[UI-36] les sections gardent leurs choix valides et reprennent les défauts pour les autres valeurs', async () => {
+  const rangees: [string, unknown][] = [];
+  const preferences = creerPreferences({
+    getAsync: async () => ({ connexion: true, plugin: false, fichier: 'oui', bibliotheques: true }),
+    setAsync: async (cle, valeur) => { rangees.push([cle, valeur]); },
+  });
+  const sections = await preferences.lireLesSections();
+  assert.deepEqual(sections, { connexion: true, plugin: false, fichier: false, bibliotheques: true, recette: false });
+  await preferences.rangerLesSections(sections);
+  assert.deepEqual(rangees, [[CLE_DES_SECTIONS, sections]]);
+  const refusees = creerPreferences({ getAsync: async () => { throw new Error('indisponible'); }, setAsync: async () => {} });
+  assert.deepEqual(await refusees.lireLesSections(), SECTIONS_PAR_DEFAUT);
 });

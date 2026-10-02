@@ -12,6 +12,11 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.onglet {
+  width: auto;
+  min-width: 0;
+}
+
 /* Rang 3 : ce qui informe sans rien demander. */
 .etat-lecture,
 .ligne-secondaire,
@@ -1099,11 +1104,6 @@
   gap: var(--espace-controle);
 }
 
-.planche-compte {
-  margin: 0 auto 0 0;
-  font-weight: 600;
-}
-
 .liste-planche {
   display: grid;
   gap: var(--espace-controle);
@@ -1304,25 +1304,6 @@
   gap: var(--espace-serre);
 }
 
-/*
- * Le bloc « Connexion à Figma » et la carte qui le remplace ([UI-24],
- * [UI-29]) : gris, sans fond, à 20 px de plus de la barre des palettes que
- * l'écart courant.
- */
-.carte.connexion,
-.carte.carte-ouverte {
-  margin-bottom: 20px;
-  background: none;
-}
-
-.connexion .carte-tete {
-  flex-wrap: nowrap;
-}
-
-.connexion .carte-titre {
-  margin-right: auto;
-}
-
 /* « Synchroniser » : un texte gris à icône, sans contour, qui ne se confond pas avec « Changer ». */
 .synchroniser {
   display: inline-flex;
@@ -1384,7 +1365,7 @@
   font-size: 11px;
 }
 
-.connexion-bilan {
+.connexion-pied {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1393,14 +1374,105 @@
   border-top: 1px solid var(--bordure);
 }
 
-.connexion-comptes {
+.connexion-pied .synchroniser {
+  margin-left: auto;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-controle);
+  padding-top: var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.section-tete {
   display: flex;
-  flex-wrap: wrap;
+  min-height: 24px;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.section-titre {
+  margin: 0;
+  flex: none;
+  font-size: 13px;
+}
+
+.section-bascule {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.section-bascule:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.section[data-ouverte='true'] .carte-chevron {
+  transform: rotate(90deg);
+}
+
+.section-compte {
+  padding: 1px 6px;
+  border-radius: var(--rayon);
+  background: var(--fond-note);
+  color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-resume {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--espace-controle);
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--texte-second);
+  white-space: nowrap;
+}
+
+.section-resume .chemin {
+  flex-wrap: nowrap;
+}
+
+.section-palette {
+  display: inline-flex;
+  align-items: center;
   gap: var(--espace-serre);
 }
 
-.connexion-bilan .btn {
-  margin-left: auto;
+.section-palette .mini-rampe {
+  gap: 1px;
+}
+
+.section-palette .mini-rampe span {
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.section-corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-controle);
+}
+
+.section-corps .planche-tete {
+  justify-content: space-between;
 }
 
 .carte-ouverte .confirmation-gestes {
@@ -1493,7 +1565,7 @@
   justify-content: space-between;
 }
 
-.panneau {
+.chemins {
   overflow: hidden;
   border: 1px solid var(--bordure);
   border-radius: 8px;
@@ -1501,53 +1573,39 @@
   background: color-mix(in srgb, var(--fond) 84%, black);
 }
 
-.panneau-tete,
-.panneau-ligne {
-  display: grid;
-  align-items: center;
-  grid-template-columns: minmax(0, 1fr) 132px;
-}
-
-.panneau[data-colonnes='2'] .panneau-tete,
-.panneau[data-colonnes='2'] .panneau-ligne {
-  grid-template-columns: minmax(0, 1fr) 96px 96px;
-}
-
-.panneau-tete {
+.chemins-tete {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-controle);
   padding: var(--espace-controle) var(--espace-bloc);
   border-bottom: 1px solid var(--bordure);
   font-weight: 600;
 }
 
-.panneau-tete span + span {
+.chemins-tete span + span {
   color: var(--texte-second);
   font-weight: 400;
 }
 
-.panneau-groupe {
+.chemin-cree {
   display: flex;
+  min-height: 28px;
+  align-items: center;
   justify-content: space-between;
   gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-bloc) var(--espace-serre);
-  color: var(--texte-second);
+  padding: 0 var(--espace-bloc);
 }
 
-.panneau-groupe code {
+.chemin-cree code {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 11px;
 }
 
-.panneau-groupe:last-child {
-  padding-bottom: var(--espace-controle);
-}
-
-.panneau-ligne {
-  height: 28px;
-  padding: 0 var(--espace-bloc) 0 28px;
-}
-
-.panneau-suite {
-  padding: 2px var(--espace-bloc) var(--espace-serre) 28px;
+.chemin-nuances,
+.chemin-compte {
   color: var(--texte-second);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Une couleur écrite : sa pastille, puis son code. */
@@ -1640,26 +1698,6 @@
   color: var(--texte-second);
 }
 
-/* « Déjà dans le fichier » : un filet, un titre et une phrase séparent les deux listes de Gestion ([UI-33]). */
-.separation {
-  display: grid;
-  gap: 2px;
-  margin-top: var(--espace-bloc);
-  padding-top: var(--espace-bloc);
-  border-top: 1px solid var(--bordure);
-}
-
-.separation p {
-  margin: 0;
-  color: var(--texte-second);
-}
-
-.titre-de-section {
-  margin: 0;
-  font-size: var(--libelle);
-  font-weight: 600;
-}
-
 /* Une palette du fichier n'est pas celle du plugin : sa fiche est en tirets, sans fond. */
 .carte.fiche-du-fichier {
   border-style: dashed;
@@ -1682,13 +1720,18 @@
   white-space: nowrap;
 }
 
-.table-ligne-du-fichier th {
+.table-des-palettes .table-ligne-du-fichier th {
+  color: var(--texte);
   font-weight: 600;
 }
 
 /* La vue condensée : un tableau sans geste, dont chaque ligne ouvre sa fiche ([UI-27]). */
 .table-des-palettes {
   width: 100%;
+  font-family: inherit;
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
+  font-weight: 400;
   border: 1px solid var(--bordure);
   border-radius: 8px;
   border-collapse: separate;
@@ -1700,13 +1743,27 @@
 .table-des-palettes td {
   padding: var(--espace-controle);
   border-bottom: 1px solid var(--bordure);
+}
+
+.table-des-palettes th {
+  color: var(--texte-second);
+  font-weight: 500;
   text-align: left;
+}
+
+.table-des-palettes td {
   vertical-align: middle;
 }
 
-.table-des-palettes thead th {
-  color: var(--texte-second);
-  font-weight: 500;
+.table-des-palettes .pastille-d-etat,
+.table-des-palettes .etiquette {
+  display: inline;
+  font-size: var(--corps);
+  font-weight: 400;
+  padding: 0 var(--espace-controle);
+  border-radius: 10px;
+  line-height: 20px;
+  white-space: nowrap;
 }
 
 .table-ligne {
@@ -1729,10 +1786,18 @@
   padding: 0;
   border: 0;
   background: none;
-  color: inherit;
+  color: var(--texte);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
+  text-align: left;
+}
+
+.table-nom .fiche-teinte {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: none;
 }
 
 .table-nom:focus-visible {
@@ -1740,13 +1805,16 @@
   outline-offset: 2px;
 }
 
+/* Les pastilles d'une rampe en miniature reprennent l'écart et le rayon de `.fiche-pastille`. */
 .mini-rampe {
   display: flex;
+  gap: 2px;
 }
 
 .mini-rampe span {
   width: 12px;
   height: 12px;
+  border-radius: 3px;
 }
 
 .case-a-cocher {

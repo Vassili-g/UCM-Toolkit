@@ -40,7 +40,7 @@ function construireVues(i18n: Localisation) {
   const { TEXTES, TEXTES_DE_LA_BASE } = i18n.messages;
 
   function createCreation(gestes: {
-    /** `crans` vaut `null` en Standard, la liste des numéros en Libre ; une palette libre n'a qu'une rampe, sans choix d'intensités. */
+    /** `crans` vaut `null` en Standard, la liste des numéros en Libre, qui ne garde pas la palette de base. */
     onCreer: (saisie: string, nom: string, intensites: 1 | 2, base: ChoixDeBase, crans: readonly number[] | null) => void;
     /** Les numéros que Libre allume d'abord, lus dans la recette au moment du choix. */
     cransLibres: () => readonly number[];
@@ -96,7 +96,7 @@ function construireVues(i18n: Localisation) {
       aide.hidden = aide.textContent === '';
     }
 
-    // Le modèle ; en Libre, les puces remplacent le choix des intensités.
+    // Le modèle ; en Libre, les puces s'ajoutent sous le choix des intensités.
     let modele: ChoixDuModele = 'modele';
     let crans: readonly number[] = [];
     const choixDuModele = createChoixDuModele((choix) => {
@@ -112,7 +112,6 @@ function construireVues(i18n: Localisation) {
 
     function rendreLeModele(): void {
       choixDuModele.poser(modele);
-      choixDesIntensites.element.hidden = modele === 'libre';
       puces.element.hidden = modele !== 'libre';
       puces.poser(crans);
     }

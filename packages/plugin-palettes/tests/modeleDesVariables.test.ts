@@ -255,7 +255,10 @@ test('[VAR-05] une destination changée depuis l’écriture demande une mise à
   }
   // Une palette reprise du fichier garde ses variables d'origine : la destination ne la concerne pas.
   const reprise: PaletteSuivie = { ...ecrit(['#F0F0F0', '#E0E0E0']), liaison: 'reprise' };
-  assert.equal(etatDesTokens(PLAN, reprise, lues(['#F0F0F0', '#E0E0E0']), { ...DESTINATION, groupe: 'palettes' }).etat, 'a-jour');
+  const sansNom = PLAN.map((entree) => ({ ...entree, nom: '' }));
+  assert.equal(etatDesTokens(sansNom, reprise, lues(['#F0F0F0', '#E0E0E0']), { ...DESTINATION, groupe: 'palettes' }).etat, 'a-jour');
+  // Le nom que le plan lui donne, quand il diffère de celui du fichier, la demande à renommer.
+  assert.deepEqual(etatDesTokens(PLAN, reprise, lues(['#F0F0F0', '#E0E0E0']), DESTINATION).etat, 'a-mettre-a-jour');
 });
 
 test('[VAR-05] deux couleurs sont égales à l’octet : les composantes de Figma s’arrondissent', () => {

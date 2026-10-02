@@ -39,6 +39,8 @@ export interface EtatDesTokensDUnePalette {
   readonly aEcrire: readonly CouleurAEcrire[];
   /** Vrai quand la palette a été écrite vers une autre collection, un autre groupe ou une autre forme de thèmes. */
   readonly destinationChangee: boolean;
+  /** Les variables d'une palette reprise dont le nom n'est pas celui du plan : l'ancien nom et le nouveau ([VAR-13]). */
+  readonly aRenommer: readonly { readonly de: string; readonly vers: string }[];
 }
 
 /**
@@ -73,11 +75,13 @@ export function etatDesTokens(
       modifiees: [],
       aEcrire: plan.map((entree) => ({ cle: entree.cle, nom: entree.nom, ecrite: null, plugin: entree.hexa })),
       destinationChangee: false,
+      aRenommer: [],
     };
   }
   const introuvables: string[] = [];
   const modifiees: CouleurModifiee[] = [];
   const aEcrire: CouleurAEcrire[] = [];
+  const aRenommer = new Map<string, { de: string; vers: string }>();
   for (const entree of plan) {
     const suivie = suivi.variables[entree.cle];
     if (!suivie) {
@@ -89,6 +93,7 @@ export function etatDesTokens(
       introuvables.push(entree.cle);
       continue;
     }
+    if (suivi.liaison === 'reprise' && entree.nom !== '' && lue.nom !== entree.nom) aRenommer.set(lue.id, { de: lue.nom, vers: entree.nom });
     const mode = suivi.modes[entree.mode];
     const figma = mode === undefined ? null : lue.valeurs[mode] ?? null;
     if (figma !== suivie.ecrite) modifiees.push({ cle: entree.cle, nom: lue.nom, figma, plugin: entree.hexa });
@@ -99,8 +104,8 @@ export function etatDesTokens(
     ? 'introuvables'
     : modifiees.length > 0
       ? 'modifies'
-      : aEcrire.length > 0 || changee
+      : aEcrire.length > 0 || changee || aRenommer.size > 0
         ? 'a-mettre-a-jour'
         : 'a-jour';
-  return { etat, introuvables, modifiees, aEcrire, destinationChangee: changee };
+  return { etat, introuvables, modifiees, aEcrire, destinationChangee: changee, aRenommer: [...aRenommer.values()] };
 }

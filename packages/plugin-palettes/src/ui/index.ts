@@ -13,7 +13,7 @@ import { LANGUES, resoudreLangue } from '../i18n/langues';
 import { lireLImport } from '../importation';
 import { VARIABLES_SANS_SUIVI } from '../lectureDesVariables';
 import type { PluginMessage } from '../messages';
-import { resoudreVue, type VueDeGestion } from '../preferences';
+import { resoudreSections, resoudreVue, type SectionsDeGestion, type VueDeGestion } from '../preferences';
 import { palettesDuFichier } from '../variables/detection';
 import { suiviFutur, variablesSuivies } from '../variables/suivi';
 import { consequenceDeLImport } from '../planche/fraicheur';
@@ -34,7 +34,7 @@ import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
 
-export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
+export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion, sections: SectionsDeGestion) {
   const { createBackButton, createButton, createSettingsButton, createOnglets } = creerSocleLocalise(i18n);
   const { createBarreDePalette } = creerVuesBarreDePalette(i18n);
   const { createConfiguration } = creerVuesConfiguration(i18n);
@@ -212,6 +212,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
     synchroniser: () => relireLaPlanche('fichier'),
     choisirLaPage: (page) => frontiere.choisirLaPage(page),
     rangerLaVue: (choisie) => versSandbox({ type: 'ranger-vue', vue: choisie }),
+    rangerLesSections: (ouvertes) => versSandbox({ type: 'ranger-sections', sections: ouvertes }),
     // Un rangement refusé abandonne l'écriture qui l'attendait : l'onglet rend ses gestes.
     ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
     rangerLaDestination: (destination) => frontiere.rangerLaDestination(destination),
@@ -241,7 +242,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       return parti;
     },
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
-  }, vue);
+  }, vue, sections);
 
   /** La palette qu'une reprise ou une copie vient de ranger : Création s'ouvre sur elle quand l'état relu la porte ([UI-34]). */
   let paletteReprise: string | null = null;
@@ -285,7 +286,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
    */
   let dernierEtat: Extract<PluginMessage, { type: 'etat' }> | null = null;
 
-  /** L'heure du dernier état accepté, que le bloc « Connexion à Figma » écrit en durée ([UI-24]). */
+  /** L'heure du dernier état accepté, que la section « Connexion à Figma » écrit en durée ([UI-24]). */
   let dernierEtatLe = Date.now();
 
   /**
@@ -506,9 +507,8 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion) {
       ongletGestion.recevoirPage(message.issue);
       relireLaPlanche();
     } else if (message.type === 'variables-ecrites' && frontiere.accepterVariables(message)) {
-      // L'onglet peut enchaîner sur le dessin des planches, qui relit l'état à sa fin ; sinon l'état se relit ici.
       ongletGestion.recevoirVariables(message.resultat);
-      if (suivi.etat().phase !== 'en-cours') relireLaPlanche();
+      relireLaPlanche();
     } else if (message.type === 'destination-rangee' && frontiere.accepterDestination(message)) {
       ongletGestion.recevoirDestination(message.issue);
       relireLaPlanche();
@@ -549,6 +549,6 @@ onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
   if (message?.type !== 'langue') return;
   const i18n = creerLocalisation(resoudreLangue(message.langue));
   i18n.changer(i18n.langue);
-  creerVuesIndex(i18n, resoudreVue(message.vue));
+  creerVuesIndex(i18n, resoudreVue(message.vue), resoudreSections(message.sections));
 };
 versSandbox({ type: 'lire-langue' });

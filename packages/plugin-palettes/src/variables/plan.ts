@@ -4,10 +4,11 @@
  * viennent de `rampesDe` du moteur, celles que l'aperçu, la planche et le
  * rapport lisent. Pur : ni Figma, ni DOM.
  */
-import { MODES, grilleDe, intensitesDe, rampeDe, rampesDe, type Intensite, type Mode, type Palette, type Recette } from 'ucm-couleur';
+import { MODES, grilleDe, intensitePorteuse, intensitesDe, rampeDe, rampesDe, type Intensite, type Mode, type Palette, type Recette } from 'ucm-couleur';
 
 import { segmentsDuGroupe, type Destination } from './destination';
 import { segmentDeLaPalette } from './noms';
+import type { OrigineDeLaReprise } from './reprise';
 import type { PaletteSuivie } from './suivi';
 
 /** Le mode qu'une entrée écrit : le seul mode suivi quand les thèmes sont dans le chemin, sinon son thème. */
@@ -37,21 +38,68 @@ export function cleDuPlan(intensite: Intensite, mode: Mode, nuance: number): str
  * seules nuances.
  *
  * Pour une palette reprise du fichier, `suivie` porte une liaison de
- * reprise : le plan ne rend que les entrées que le suivi désigne, sans nom,
- * chacune dans le mode de son thème. La destination ne la concerne pas
- * ([VAR-13]).
+ * reprise, et `origine` ce que le fichier porte autour d'elle ([VAR-13]).
+ * Le plan couvre alors la palette entière, sous le chemin d'origine et dans
+ * la forme d'une destination : un segment d'intensité à deux intensités, un
+ * segment de thème quand le thème Dark n'est pas en mode. Les variables
+ * d'origine portent la rampe Light. Leur intensité s'écrit sous la clé
+ * `unique` : à deux intensités, celle que le suivi garde, sinon celle qui
+ * porte la référence. Une variable suivie dont le nom diffère de celui du
+ * plan est à renommer. Le thème Dark s'écrit en mode quand le suivi garde un
+ * mode Dark, ou quand la destination met les thèmes en modes et que le suivi
+ * n'a aucune variable Dark ; sinon dans le mode du thème Light. Une entrée
+ * sans variable dont le nom est déjà pris, ou qui vise un alias, sort du
+ * plan.
+ *
+ * Une palette figée, ou une origine que le fichier ne porte plus, ne rend
+ * que les entrées que le suivi désigne, sans nom.
  */
-export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie): EntreeDuPlan[] {
+export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null): EntreeDuPlan[] {
   if (suivie?.liaison === 'reprise') {
     const rampes = rampesDe(recette, palette);
     const nuances = grilleDe(recette, palette).crans;
+    const porteuse = intensitePorteuse(recette, palette);
     const reprises: EntreeDuPlan[] = [];
-    for (const intensite of intensitesDe(palette)) {
-      const rampe = rampeDe(rampes, intensite);
+    if (!origine || palette.figees !== undefined) {
+      const rampe = rampeDe(rampes, porteuse);
       for (const mode of MODES) {
         nuances.forEach((nuance, rang) => {
-          const cle = cleDuPlan(intensite, mode, nuance);
+          const cle = cleDuPlan('unique', mode, nuance);
           if (suivie.variables[cle]) reprises.push({ cle, nom: '', mode, hexa: rampe[mode][rang].hexa.toUpperCase() });
+        });
+      }
+      return reprises;
+    }
+    const darkEnMode = suivie.modes.dark !== undefined
+      || (destination.themes === 'modes' && !Object.keys(suivie.variables).some((cle) => cle.includes('/dark/')));
+    const designee = (cle: string) => {
+      const connue = suivie.variables[cle];
+      return connue ? origine.suivies.get(connue.id) : undefined;
+    };
+    for (const intensite of intensitesDe(palette)) {
+      const rampe = rampeDe(rampes, intensite);
+      const dOrigine = intensite === (intensite === 'unique' ? 'unique' : suivie.intensite ?? porteuse);
+      const segment = intensite === 'unique' ? [] : [intensite];
+      for (const mode of MODES) {
+        nuances.forEach((nuance, rang) => {
+          const enMode = mode === 'light' || darkEnMode;
+          const cle = cleDuPlan(dOrigine ? 'unique' : intensite, mode, nuance);
+          const entree = { cle, mode: enMode ? mode : 'light', hexa: rampe[mode][rang].hexa.toUpperCase() } as const;
+          const voulu = [origine.chemin, ...segment, ...(darkEnMode ? [] : [mode]), String(nuance)].filter((partie) => partie !== '').join('/');
+          const propre = designee(cle);
+          // Les deux thèmes d'une nuance en modes écrivent la même variable : la clé de l'autre thème la désigne aussi.
+          const lue = propre ?? (darkEnMode ? designee(cleDuPlan(dOrigine ? 'unique' : intensite, mode === 'light' ? 'dark' : 'light', nuance)) : undefined);
+          const occupant = origine.parNom.get(voulu);
+          const cible = suivie.modes[entree.mode];
+          if (!lue) {
+            // Sans variable, l'entrée en crée une, ou reprend celle de ce nom que la palette suit sous une autre clé.
+            const libre = !occupant || (origine.suivies.has(occupant.id) && !(cible !== undefined && occupant.valeurs[cible] === null));
+            if (libre) reprises.push({ ...entree, nom: voulu });
+            return;
+          }
+          if (!propre && cible !== undefined && lue.valeurs[cible] === null) return;
+          // Une variable garde son nom quand une autre porte déjà celui que le plan lui donne.
+          reprises.push({ ...entree, nom: occupant && occupant.id !== lue.id ? lue.nom : voulu });
         });
       }
     }

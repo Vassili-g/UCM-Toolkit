@@ -5,8 +5,8 @@
  * collection » et son champ puis chaque collection locale avec son nombre de
  * variables, puis les collections de bibliothèque, grisées et non
  * choisissables ([VAR-14]) ; le groupe et les thèmes sur une rangée. Dessous, une
- * simulation prend la forme du panneau des variables de Figma et suit chaque
- * choix, sans rien ranger. « Enregistrer » range la destination ([VAR-16]) ;
+ * simulation liste les chemins que la destination crée, sans couleur ni
+ * valeur, et suit chaque choix, sans rien ranger. « Enregistrer » range la destination ([VAR-16]) ;
  * un refus se lit dans la carte, qui reste ouverte.
  */
 import type { Recette } from 'ucm-couleur';
@@ -38,13 +38,10 @@ export interface GestesDeLaDestination {
   annuler(): void;
 }
 
-/** Le nombre de nuances que la simulation déplie dans son premier groupe. */
-const NUANCES_DEPLIEES = 3;
-
 function construireVues(i18n: Localisation) {
   const { createButton } = creerSocleLocalise(i18n);
   const { blocDeConstat } = creerVuesConstats(i18n);
-  const { TEXTES, TEXTES_DE_LA_GESTION, autresNuances, lectureSeule, nombreDeVariables, refusDeLaDestination, resumeDeLaSimulation, suiviFutur } = i18n.messages;
+  const { TEXTES_DE_LA_GESTION, lectureSeule, nombreDeVariables, refusDeLaDestination, resumeDeLaSimulation, suiviFutur } = i18n.messages;
 
   function createDestination(gestes: GestesDeLaDestination): DestinationUi {
     const carte = createCarte({ titre: TEXTES_DE_LA_GESTION.destinationDesTokens }, i18n);
@@ -147,17 +144,7 @@ function construireVues(i18n: Localisation) {
       };
     }
 
-    function valeur(hexa: string): HTMLSpanElement {
-      const element = document.createElement('span');
-      element.className = 'valeur';
-      const pastille = document.createElement('i');
-      pastille.style.background = hexa;
-      // Le code s'écrit sans dièse, comme dans le panneau des variables de Figma.
-      element.append(pastille, hexa.replace('#', ''));
-      return element;
-    }
-
-    /** La simulation : le nom de la collection, un groupe par rampe, le premier déplié sur ses premières nuances. */
+    /** La simulation : le nom de la collection et ses modes, puis un chemin par rampe, de sa première à sa dernière nuance, et son nombre de variables. */
     function rendreLaSimulation(): void {
       const destination = proposee();
       const simulee = recette ? simulationDeLaDestination(recette, { ...destination, groupe: destination.groupe.split('/').map((segment) => segment.trim()).filter(Boolean).join('/') }) : null;
@@ -170,49 +157,34 @@ function construireVues(i18n: Localisation) {
       i18n.lier(titre, 'textContent', TEXTES_DE_LA_GESTION.simulation);
       const resume = document.createElement('span');
       resume.className = 'ligne-secondaire';
-      i18n.lier(resume, 'textContent', resumeDeLaSimulation(simulee.variables, simulee.colonnes.length));
+      i18n.lier(resume, 'textContent', resumeDeLaSimulation(simulee.variables, simulee.modes));
       tete.append(titre, resume);
 
-      const panneau = document.createElement('div');
-      panneau.className = 'panneau';
-      panneau.dataset.colonnes = String(simulee.colonnes.length);
-      const teteDuPanneau = document.createElement('div');
-      teteDuPanneau.className = 'panneau-tete';
+      const chemins = document.createElement('div');
+      chemins.className = 'chemins';
+      const teteDesChemins = document.createElement('div');
+      teteDesChemins.className = 'chemins-tete';
       const nom = document.createElement('span');
       const radio = choisie();
       nom.textContent = radio && radio.value !== '' ? fichier?.collections.find((collection) => collection.id === radio.value)?.nom ?? '' : nomDeLaNouvelle.value.trim();
-      teteDuPanneau.append(nom, ...simulee.colonnes.map((colonne) => i18n.noeud(colonne === 'unique' ? TEXTES_DE_LA_GESTION.valeur : colonne === 'light' ? TEXTES.modeClair : TEXTES.modeSombre)));
-      panneau.append(teteDuPanneau);
-      simulee.groupes.forEach((groupeSimule, rang) => {
-        const entete = document.createElement('div');
-        entete.className = 'panneau-groupe';
+      teteDesChemins.append(nom);
+      if (simulee.modes > 1) teteDesChemins.append(i18n.noeud(TEXTES_DE_LA_GESTION.modesLightEtDark));
+      chemins.append(teteDesChemins);
+      for (const groupeSimule of simulee.groupes) {
+        const ligne = document.createElement('div');
+        ligne.className = 'chemin-cree';
         const chemin = document.createElement('code');
-        chemin.textContent = groupeSimule.chemin.split('/').join(' / ');
-        entete.append(chemin);
-        panneau.append(entete);
-        if (rang > 0) {
-          const compte = document.createElement('span');
-          compte.textContent = String(groupeSimule.lignes.length);
-          entete.append(compte);
-          return;
-        }
-        for (const ligne of groupeSimule.lignes.slice(0, NUANCES_DEPLIEES)) {
-          const element = document.createElement('div');
-          element.className = 'panneau-ligne';
-          const nuance = document.createElement('span');
-          nuance.textContent = ligne.nuance;
-          element.append(nuance, ...ligne.valeurs.map(valeur));
-          panneau.append(element);
-        }
-        const reste = groupeSimule.lignes.length - NUANCES_DEPLIEES;
-        if (reste > 0) {
-          const suite = document.createElement('div');
-          suite.className = 'panneau-suite';
-          i18n.lier(suite, 'textContent', autresNuances(reste));
-          panneau.append(suite);
-        }
-      });
-      simulation.replaceChildren(tete, panneau);
+        const nuances = document.createElement('span');
+        nuances.className = 'chemin-nuances';
+        nuances.textContent = `${groupeSimule.nuances[0]} … ${groupeSimule.nuances[groupeSimule.nuances.length - 1]}`;
+        chemin.append(`${[...groupeSimule.chemin.split('/').filter(Boolean), ''].join(' / ')}`, nuances);
+        const compte = document.createElement('span');
+        compte.className = 'chemin-compte';
+        compte.textContent = String(groupeSimule.nuances.length);
+        ligne.append(chemin, compte);
+        chemins.append(ligne);
+      }
+      simulation.replaceChildren(tete, chemins);
     }
 
     function rendre(): void {

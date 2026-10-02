@@ -1041,7 +1041,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'fonds-sombres-bornes': (champ, valeur) => `${champ} : ${valeur}. Saisissez une intensité entre 0 et 1.`,
   'contenu-sans-theme': (champ) => `${champ} : gardez au moins un thème, Light ou Dark.`,
   // Les huit règles du format 5 (Z10.5, N141).
-  'reglages-bornes': (champ, valeur) => `${champ} : « ${valeur} » sort des bornes. La teinte va de −30° à +30°, la luminosité de −0,05 à +0,02, la saturation de 0 à 1.`,
+  'reglages-bornes': (champ, valeur) => `${champ} : « ${valeur} » sort des bornes. La teinte va de −30° à +30°, la luminosité de −0,10 à +0,10, la saturation de 0 à 1.`,
   'reglage-nul': (champ) => `${champ} : réglage à zéro. Retirez ce champ du fichier.`,
   'reglages-intensites': (champ) => `${champ} : incompatible avec le nombre d’intensités. Retirez ce champ du fichier.`,
   'porteur-base': (champ) => `${champ} : profil déjà défini par base. Retirez ce champ du fichier.`,
@@ -1596,6 +1596,12 @@ export const TEXTES_DE_LA_GESTION = {
   dansLeChemin: 'Dans le chemin',
   enModes: 'En modes',
   simulation: 'Simulation',
+  modesLightEtDark: 'modes Light, Dark',
+  palettesDuPlugin: 'Palettes du plugin',
+  dejaDansLeFichier: 'Déjà dans le fichier',
+  dansLesBibliotheques: 'Dans les bibliothèques',
+  desBibliotheques: 'Publiées par une bibliothèque distante',
+  resumeDeLaRecette: 'Importer, exporter, rapport',
   valeur: 'Valeur',
   remettre: 'Remettre les couleurs du plugin',
   laisser: 'Laisser les couleurs de Figma',
@@ -1758,10 +1764,11 @@ export function titreDeLEcriture(nom: string): string {
 }
 
 /** Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace ([UI-31]). */
-export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number): string {
+export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number, renommees = 0): string {
   const naissance = creees === 1
     ? `1 variable de couleur sera créée dans la collection « ${collection} » : ${premier}.`
     : `${creees} variables de couleur seront créées dans la collection « ${collection} », de ${premier} à ${dernier}.`;
+  if (remplacees === 0 && renommees > 0) return naissance;
   const suite = remplacees === 0
     ? 'Aucune variable existante n’est modifiée.'
     : remplacees === 1 ? '1 couleur déjà écrite sera remplacée.' : `${remplacees} couleurs déjà écrites seront remplacées.`;
@@ -1936,10 +1943,11 @@ export const TEXTES_DE_LA_REPRISE = {
 } as const;
 
 /** Ce que la mise à jour changera dans Figma, sous la bascule de l'encart de Création ([UI-34]). */
-export function couleursQuiChangeront(nombre: number, total: number): string {
-  if (nombre === 0) return 'Aucune couleur ne change dans Figma.';
+export function couleursQuiChangeront(nombre: number, total: number, creees = 0): string {
+  const naissance = creees === 1 ? '1 variable sera créée' : `${creees} variables seront créées`;
+  if (nombre === 0) return creees === 0 ? 'Aucune couleur ne change dans Figma.' : `${naissance} dans Figma, à la mise à jour dans l’onglet Gestion.`;
   const compte = nombre === 1 ? `1 couleur sur ${total} changera` : `${nombre} couleurs sur ${total} changeront`;
-  return `${compte} dans Figma, à la mise à jour dans l’onglet Gestion.`;
+  return `${creees === 0 ? compte : `${compte} et ${naissance}`} dans Figma, à la mise à jour dans l’onglet Gestion.`;
 }
 
 /** La ligne des tokens d'une palette reprise : sa collection et son chemin d'origine ([UI-34]). */
@@ -1950,6 +1958,18 @@ export function origineDesTokens(collection: string, chemin: string): string {
 /** Les couleurs que « Mettre à jour » remplacerait, sur le nombre de variables de la palette ([UI-34]). */
 export function couleursSurNChangent(nombre: number, total: number): string {
   return nombre === 1 ? `1 couleur sur ${total} change` : `${nombre} couleurs sur ${total} changent`;
+}
+
+/** Les variables d'origine qu'une mise à jour renomme, quand elle ne crée ni ne remplace rien ([UI-34]). */
+export function variablesARenommer(nombre: number): string {
+  return `${variables(nombre)} à renommer`;
+}
+
+/** Ce que la mise à jour renomme, par l'exemple de la première variable ([UI-34]). */
+export function texteDuRenommage(nombre: number, de: string, vers: string): string {
+  return nombre === 1
+    ? `1 variable d’origine sera renommée : ${de} devient ${vers}. Elle garde ses liaisons.`
+    : `${nombre} variables d’origine seront renommées : ${de} devient ${vers}, et les autres de la même façon. Elles gardent leurs liaisons.`;
 }
 
 /** Le titre de l'encart de remplacement ([UI-34]). */

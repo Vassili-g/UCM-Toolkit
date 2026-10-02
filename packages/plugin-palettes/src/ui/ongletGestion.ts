@@ -1,9 +1,9 @@
 /**
- * L'onglet Gestion (section 13.2, [UI-24] à [UI-32], [UI-35]). De haut en
- * bas : le bloc « Connexion à Figma », que la carte « Destination des
- * tokens » ou « Page des planches » remplace le temps d'un choix ; la barre
- * « Palettes du plugin · N » et ses deux bascules, la vue et le thème des
- * fiches ; puis les palettes de la recette, dans son ordre.
+ * L'onglet Gestion (section 13.2, [UI-24] à [UI-36]), en sections
+ * repliables ([UI-36]). De haut en bas : « Connexion à Figma », que la carte
+ * « Destination des tokens » ou « Page des planches » remplace le temps d'un
+ * choix ; « Palettes du plugin », ses deux bascules, la vue et le thème des
+ * fiches, puis les palettes de la recette, dans son ordre.
  *
  * En vue complète, une fiche par palette : le nom, la pastille d'état et
  * « Modifier » sur la première ligne, les rampes dans le thème choisi, la
@@ -13,15 +13,16 @@
  * celui des couleurs changées dans Figma ([UI-32]). En vue condensée, un
  * tableau sans geste, une ligne par palette.
  *
- * Sous un filet, « Déjà dans le fichier » liste les palettes que les
- * variables du fichier portent hors du plugin, en fiches à tirets ([UI-33]) ;
- * « Modifier dans le plugin » en reprend une ([UI-34]).
- *
  * Suivent une carte par palette supprimée dont le cadre ou des variables
- * restent dans Figma ([PLA-27], [VAR-11]), les notices, puis la carte
- * repliée « Palettes et réglages » (V8.5). Chaque génération dessine les
- * parties que la recette choisit ([PLA-28]). « Tout mettre à jour » demande
- * confirmation, en comptant ce qu'il écrit ([UI-28]).
+ * restent dans Figma ([PLA-27], [VAR-11]). « Déjà dans le fichier » liste
+ * les palettes que les variables locales portent hors du plugin, en fiches à
+ * tirets ([UI-33]) ; « Modifier dans le plugin » en reprend une ([UI-34]).
+ * « Dans les bibliothèques » liste celles des bibliothèques activées. Une
+ * section sans palette ne paraît pas.
+ *
+ * Viennent enfin les notices, puis la section « Palettes et réglages »
+ * (V8.5). Chaque génération dessine les parties que la recette choisit
+ * ([PLA-28]).
  */
 import { MODES, rampeDe, type Classement, type Mode, type Recette } from 'ucm-couleur';
 
@@ -31,12 +32,12 @@ import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRet
 import { VERSION_DU_SUIVI, type CadreLu, type EtatDeLaPlanche, type ProfilDuDocument } from '../lecture';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
-import type { VueDeGestion } from '../preferences';
+import type { SectionDeGestion, SectionsDeGestion, VueDeGestion } from '../preferences';
 import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
 import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
 import { palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
-import { miseAJourDesTokens, tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
+import { tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
 import { suiviFutur as suiviDesVariablesFutur, variablesSuivies } from '../variables/suivi';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
@@ -47,13 +48,14 @@ import { creerVuesDestination } from './destination';
 import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerVuesPageDesPlanches } from './pageDesPlanches';
+import { createSection } from './section';
 import { creerSocleLocalise } from './socleLocalise';
 import { lignesDeSortie, type LigneDeSortie } from './sorties';
 import { type Constat, type ConstatIllustre } from './textes';
 
 export interface OngletGestionUi {
   element: HTMLDivElement;
-  /** `luLe` est l'heure du dernier état reçu du sandbox, que le bloc de la connexion écrit en durée ([UI-24]). */
+  /** `luLe` est l'heure du dernier état reçu du sandbox, que la section de la connexion écrit en durée ([UI-24]). */
   afficher(classement: Classement, recette: Recette | null, planche: EtatDeLaPlanche, profil: ProfilDuDocument, empreinte: string | null, variables: VariablesDuFichier, luLe: number): void;
   afficherDessin(etat: EtatDuDessin, noms: { readonly [id: string]: string }): void;
   /** Rend les gestes d'écriture inactifs, avec la raison ; `null` les rend (V12.1). */
@@ -61,7 +63,8 @@ export interface OngletGestionUi {
   /**
    * L'issue de « Supprimer définitivement » ([PLA-27]). Un cadre retiré ou
    * déjà absent quitte la planche par l'état suivant ; sa carte disparaît
-   * alors, et le focus passe à la carte suivante, ou au compte des palettes.
+   * alors, et le focus passe à la carte suivante, ou à l'en-tête des
+   * palettes du plugin.
    */
   recevoirRetrait(issue: IssueDuRetrait): void;
   /** L'issue de « Enregistrer », dans la carte « Page des planches » ([UI-29]). */
@@ -91,6 +94,8 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   choisirLaPage(page: { id: string } | { nom: string }): boolean;
   /** Range la vue choisie avec les préférences ([UI-25]). */
   rangerLaVue(vue: VueDeGestion): void;
+  /** Range les sections ouvertes avec les préférences ([UI-36]). */
+  rangerLesSections(sections: SectionsDeGestion): void;
   /** Demande le retrait du cadre d'une palette supprimée ; `false` quand rien ne part, pendant un conflit. */
   retirer(palette: string, cadre: string): boolean;
   /** Écrit les variables des palettes ; `remettre` nomme celles dont le designer remet les couleurs ([VAR-06], [VAR-07]). */
@@ -120,11 +125,11 @@ function construireVues(i18n: Localisation) {
   const { createPageDesPlanches } = creerVuesPageDesPlanches(i18n);
   const {
     TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DE_LA_REPRISE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
-    couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, titreDuRemplacement,
+    couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, texteDuRenommage, titreDuRemplacement, variablesARenommer,
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
-    avecLeNom, collectionDisparue, confirmationDeLaMiseAJour, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, dejaDansLeFichier, detailsTechniques,
+    avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaFicheEcrit, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
-    nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, palettesDuPlugin, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
+    nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette,
   } = i18n.messages;
@@ -184,14 +189,22 @@ function construireVues(i18n: Localisation) {
     return element;
   }
 
-  function createOngletGestion(gestes: GestesDeLaGestion, vueInitiale: VueDeGestion): OngletGestionUi {
+  function createOngletGestion(gestes: GestesDeLaGestion, vueInitiale: VueDeGestion, sectionsInitiales: SectionsDeGestion): OngletGestionUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
     let vue: VueDeGestion = vueInitiale;
     let mode: Mode = 'light';
 
-    // Le bloc de la connexion, et les deux cartes qui le remplacent le temps d'un choix ([UI-29], [UI-30]).
+    const ouvertes = { ...sectionsInitiales };
+    function basculer(code: SectionDeGestion, ouverte: boolean): void {
+      ouvertes[code] = ouverte;
+      gestes.rangerLesSections({ ...ouvertes });
+    }
+    const section = (code: SectionDeGestion, titre: Texte) =>
+      createSection({ code, titre, ouverte: ouvertes[code], surBascule: (ouverte) => basculer(code, ouverte) }, i18n);
+
+    // La section de la connexion, et les deux cartes qui la remplacent le temps d'un choix ([UI-29], [UI-30]).
     const connexion = createConnexion({
       synchroniser: () => gestes.synchroniser(),
       changerLaDestination: () => ouvrirLaDestination(null),
@@ -201,8 +214,8 @@ function construireVues(i18n: Localisation) {
         destination.fermer();
         pageDesPlanches.ouvrir(planche);
       },
-      toutMettreAJour,
-    });
+      basculer: (ouverte) => basculer('connexion', ouverte),
+    }, ouvertes.connexion);
     const pageDesPlanches = createPageDesPlanches({
       enregistrer: (page) => gestes.choisirLaPage(page),
       annuler: () => rendreLeBloc(connexion.changerLaPage),
@@ -215,10 +228,10 @@ function construireVues(i18n: Localisation) {
       },
     });
 
-    /** Rend le bloc de la connexion à la place d'une carte, et le focus à son « Changer ». */
+    /** Rend la section de la connexion à la place d'une carte, et le focus à son « Changer », ou à son en-tête quand elle est repliée. */
     function rendreLeBloc(changer: HTMLButtonElement): void {
       connexion.element.hidden = false;
-      changer.focus();
+      (connexion.estOuverte() ? changer : connexion.bascule).focus();
     }
 
     /**
@@ -234,11 +247,8 @@ function construireVues(i18n: Localisation) {
       destination.ouvrir(variables, recette);
     }
 
-    // La barre des palettes : leur compte, la vue, puis le thème des fiches ([UI-25]).
-    const compte = document.createElement('p');
-    compte.className = 'planche-compte';
-    // Le focus y revient quand la dernière carte de palette supprimée disparaît.
-    compte.tabIndex = -1;
+    // Les palettes du plugin : la vue, puis le thème des fiches ([UI-25]).
+    const sectionDuPlugin = section('plugin', TEXTES_DE_LA_GESTION.palettesDuPlugin);
     const basculeDesVues = creerBascule<VueDeGestion>(
       TEXTES_DE_LA_GESTION.vues,
       [['complete', TEXTES_DE_LA_GESTION.vueComplete], ['condensee', TEXTES_DE_LA_GESTION.vueCondensee]],
@@ -261,8 +271,12 @@ function construireVues(i18n: Localisation) {
     basculeDesThemes.element.dataset.bascule = 'theme';
     const enTete = document.createElement('div');
     enTete.className = 'planche-tete';
-    enTete.append(compte, basculeDesVues.element, basculeDesThemes.element);
+    enTete.append(basculeDesVues.element, basculeDesThemes.element);
 
+    /** Ce qui empêche de lire l'onglet : une recette illisible ou future, un suivi d'une version plus récente. Hors des sections, pour rester lisible quand elles sont repliées. */
+    const bloquant = document.createElement('div');
+    bloquant.className = 'page-stack';
+    bloquant.hidden = true;
     const zoneDuResultat = document.createElement('div');
     zoneDuResultat.hidden = true;
     /** Ce qu'une écriture de variables refuse pour toutes les palettes : la recette a changé, ou le suivi est d'une version plus récente. */
@@ -289,55 +303,22 @@ function construireVues(i18n: Localisation) {
       [TEXTES_DE_LA_GESTION.planche, document.createElement('th')],
     ] as const) {
       cellule.scope = 'col';
-      i18n.lier(cellule, 'textContent', titre);
+      if (titre === TEXTES_DE_LA_GESTION.colonneNuances) i18n.lier(cellule, 'aria-label', titre);
+      else i18n.lier(cellule, 'textContent', titre);
       titres.append(cellule);
     }
     teteDeTable.append(titres);
     const corpsDeTable = document.createElement('tbody');
     table.append(teteDeTable, corpsDeTable);
     table.hidden = true;
+    sectionDuPlugin.corps.append(enTete, vide, liste, table);
 
-    // La confirmation de « Tout mettre à jour » : elle garde ce qu'elle confirme.
-    const confirmation = document.createElement('div');
-    confirmation.className = 'confirmation';
-    const texteDeConfirmation = document.createElement('p');
-    const gestesDeConfirmation = document.createElement('div');
-    gestesDeConfirmation.className = 'confirmation-gestes';
-    confirmation.append(texteDeConfirmation, gestesDeConfirmation);
-    confirmation.hidden = true;
-    let aConfirmer: { readonly variables: readonly string[]; readonly planches: readonly string[] } | null = null;
-    const confirmer = createButton({
-      label: TEXTES_DU_DESSIN.confirmer,
-      onClick: () => {
-        const confirmees = aConfirmer;
-        aConfirmer = null;
-        confirmation.hidden = true;
-        if (!confirmees) return;
-        // Les tokens d'abord, puis les planches, quand l'écriture est revenue ([UI-28]).
-        if (confirmees.variables.length > 0) {
-          planchesApresLesVariables = confirmees.planches;
-          ecrire(confirmees.variables, []);
-        } else lancer(confirmees.planches);
-      },
-    });
-    confirmer.dataset.geste = 'confirmer';
-    gestesDeConfirmation.append(
-      confirmer,
-      createButton({
-        label: TEXTES_DU_DESSIN.annuler,
-        variant: 'secondary',
-        onClick: () => {
-          aConfirmer = null;
-          confirmation.hidden = true;
-        },
-      }),
-    );
-
-    // Import, export, rapport et détails techniques, repliés (V8.5).
-    const carteDeLaRecette = createCarte({ titre: TEXTES_DU_DESSIN.palettesEtReglages, repliable: { ouverte: false } }, i18n);
+    // Import, export, rapport et détails techniques (V8.5).
+    const sectionDeLaRecette = section('recette', TEXTES_DU_DESSIN.palettesEtReglages);
+    sectionDeLaRecette.poserLeResume([i18n.noeud(TEXTES_DE_LA_GESTION.resumeDeLaRecette)]);
     const details = document.createElement('p');
     details.className = 'ligne-secondaire';
-    carteDeLaRecette.corps.append(gestes.recetteEnFichier.element, details);
+    sectionDeLaRecette.corps.append(gestes.recetteEnFichier.element, details);
 
     // Les palettes supprimées dont le cadre ou des variables restent dans Figma, puis l'issue du dernier retrait ([PLA-27], [VAR-11]).
     const supprimees = document.createElement('div');
@@ -347,21 +328,24 @@ function construireVues(i18n: Localisation) {
     annonceDuRetrait.setAttribute('role', 'status');
     annonceDuRetrait.hidden = true;
 
-    // Les palettes que les variables du fichier portent hors du plugin, sous un filet et un titre ([UI-33]).
-    const separation = document.createElement('div');
-    separation.className = 'separation';
-    const titreDuFichier = document.createElement('h3');
-    titreDuFichier.className = 'titre-de-section';
-    const sousTitreDuFichier = document.createElement('p');
-    i18n.lier(sousTitreDuFichier, 'textContent', TEXTES_DE_LA_GESTION.horsDuPlugin);
-    separation.append(titreDuFichier, sousTitreDuFichier);
-    separation.hidden = true;
-    const listeDuFichier = document.createElement('div');
-    listeDuFichier.className = 'liste-planche';
+    /** Une section de palettes hors du plugin : la phrase qui dit d'où elles viennent, puis leurs fiches ([UI-33]). */
+    function sectionHorsDuPlugin(code: 'fichier' | 'bibliotheques', titre: Texte, phrase: Texte) {
+      const bloc = section(code, titre);
+      const origine = document.createElement('p');
+      origine.className = 'ligne-secondaire';
+      i18n.lier(origine, 'textContent', phrase);
+      const fiches = document.createElement('div');
+      fiches.className = 'liste-planche';
+      bloc.corps.append(origine, fiches);
+      bloc.element.hidden = true;
+      return { ...bloc, fiches };
+    }
+    const sectionDuFichier = sectionHorsDuPlugin('fichier', TEXTES_DE_LA_GESTION.dejaDansLeFichier, TEXTES_DE_LA_GESTION.horsDuPlugin);
+    const sectionDesBibliotheques = sectionHorsDuPlugin('bibliotheques', TEXTES_DE_LA_GESTION.dansLesBibliotheques, TEXTES_DE_LA_GESTION.desBibliotheques);
 
     element.append(
-      connexion.element, destination.element, pageDesPlanches.element, confirmation, zoneDesVariables, zoneDuResultat,
-      enTete, vide, liste, table, supprimees, annonceDuRetrait, separation, listeDuFichier, notices, carteDeLaRecette.element,
+      connexion.element, destination.element, pageDesPlanches.element, bloquant, zoneDesVariables, zoneDuResultat,
+      sectionDuPlugin.element, supprimees, annonceDuRetrait, sectionDuFichier.element, sectionDesBibliotheques.element, notices, sectionDeLaRecette.element,
     );
 
     let recette: Recette | null = null;
@@ -381,8 +365,6 @@ function construireVues(i18n: Localisation) {
     let duFichier: readonly PaletteDuFichier[] = [];
     let profil: ProfilDuDocument = 'SRGB';
     let luLe = Date.now();
-    /** Les palettes dont « Tout mettre à jour » dessinerait la planche, dans l'ordre de la recette ([UI-28]). */
-    let enRetard: readonly string[] = [];
     /**
      * Les palettes dont le cadre reste introuvable après une recherche sur
      * toutes les pages : leur planche se recrée sans risque de doublon. Un
@@ -401,8 +383,6 @@ function construireVues(i18n: Localisation) {
     const laissees = new Set<string>();
     /** Ce que la dernière écriture a refusé à une palette, que sa fiche montre jusqu'à l'écriture suivante. */
     const refusDesTokens = new Map<string, ConstatIllustre>();
-    /** Les planches que « Tout mettre à jour » dessine quand l'écriture des tokens est revenue. */
-    let planchesApresLesVariables: readonly string[] | null = null;
     /** La palette supprimée dont la suppression des variables attend sa confirmation, puis son issue. */
     let variablesAConfirmer: string | null = null;
     let retraitDesVariablesEnCours = false;
@@ -424,11 +404,15 @@ function construireVues(i18n: Localisation) {
     /** Les gestes d'écriture, inactifs pendant un dessin, une écriture de variables ou un conflit d'enregistrement. */
     function rendreLesGestes(): void {
       const inactif = enCours || ecritureEnCours || blocage !== null;
-      for (const geste of [connexion.toutMettreAJour, confirmer, ...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-geste="generer"]'))]) {
+      for (const geste of Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-geste="generer"]'))) {
         geste.disabled = inactif;
         i18n.lier(geste, 'title', blocage ?? '');
       }
-      for (const geste of [...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')), ...Array.from(listeDuFichier.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre"], [data-geste="copier"], [data-geste="confirmer-copie"]'))]) {
+      for (const geste of [
+        ...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')),
+        ...Array.from(sectionDuFichier.fiches.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre"]')),
+        ...Array.from(sectionDesBibliotheques.fiches.querySelectorAll<HTMLButtonElement>('[data-geste="copier"], [data-geste="confirmer-copie"]')),
+      ]) {
         geste.disabled = inactif || repriseEnCours;
         i18n.lier(geste, 'title', blocage === null ? '' : TEXTES_DE_LA_GESTION.variablesEnConflit);
       }
@@ -555,26 +539,6 @@ function construireVues(i18n: Localisation) {
       gestes.ecrireLesVariables(palettes, remettre);
     }
 
-    /**
-     * « Tout mettre à jour » ([UI-28]) : les tokens puis les planches des
-     * palettes en retard ou absentes, après une confirmation qui compte ce
-     * qui s'écrit. Tant que la destination n'est pas confirmée, sa carte
-     * s'ouvre d'abord.
-     */
-    function toutMettreAJour(): void {
-      if (!recette || !variables) return;
-      const mise = miseAJourDesTokens(recette, tokens);
-      if (mise.palettes.length === 0 && enRetard.length === 0) return;
-      if (mise.palettes.length > 0 && !variables.suivi.confirmee) {
-        ouvrirLaDestination(null);
-        return;
-      }
-      aConfirmer = { variables: mise.palettes, planches: enRetard };
-      i18n.lier(texteDeConfirmation, 'textContent', confirmationDeLaMiseAJour({ creees: mise.creees, ecrites: mise.ecrites, planches: enRetard.length, modifiees: mise.modifiees }));
-      confirmation.hidden = false;
-      confirmer.focus();
-    }
-
     function analyseDe(lue: Recette, id: string): ReturnType<typeof analyserPalette> {
       const analyse = analyses.get(id) ?? analyserPalette(lue, lue.palettes.find((candidate) => candidate.id === id)!);
       analyses.set(id, analyse);
@@ -619,7 +583,7 @@ function construireVues(i18n: Localisation) {
             laissees.delete(id);
             gesteAFocaliser = { palette: id, geste: 'remettre' };
             rendre();
-          } else if (etat.aCreer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
+          } else if (etat.aCreer.length > 0 || etat.aRenommer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
           else {
             gesteAFocaliser = { palette: id, geste: 'modifier' };
             ecrire([id], []);
@@ -627,11 +591,13 @@ function construireVues(i18n: Localisation) {
         },
       )]);
       if (etat.reprise && (etat.etat === 'a-jour' || etat.etat === 'a-mettre-a-jour')) {
-        // Une palette reprise : sa collection et son chemin d'origine, puis ce que la mise à jour remplacerait ([UI-34]).
+        // Une palette reprise : sa collection et son chemin d'origine, puis ce que la mise à jour créerait ou remplacerait ([UI-34]).
         const origine = origineDesTokens(etat.collection ?? TEXTES_DE_LA_GESTION.collectionIntrouvable, etat.origine ?? '');
-        return etat.etat === 'a-jour'
-          ? { ...ligne, detail: i18n.composer`${origine} · ${nombreDeVariables(etat.variables)}`, gestes: [] }
-          : { ...ligne, detail: i18n.composer`${origine} · ${couleursSurNChangent(etat.aRemplacer, etat.variables)}`, gestes: mettreAJour('primary') };
+        if (etat.etat === 'a-jour') return { ...ligne, detail: i18n.composer`${origine} · ${nombreDeVariables(etat.variables)}`, gestes: [] };
+        const ecart = etat.aCreer.length > 0
+          ? variablesACreer(etat.aCreer.length)
+          : etat.aRemplacer > 0 ? couleursSurNChangent(etat.aRemplacer, etat.variables) : variablesARenommer(etat.aRenommer.length);
+        return { ...ligne, detail: i18n.composer`${origine} · ${ecart}`, gestes: mettreAJour('primary') };
       }
       switch (etat.etat) {
         case 'jamais-ecrits':
@@ -668,7 +634,7 @@ function construireVues(i18n: Localisation) {
       const texte = document.createElement('p');
       texte.className = 'ligne-secondaire';
       const collection: Texte = etat.collection ?? TEXTES_DE_LA_GESTION.collectionIntrouvable;
-      i18n.lier(texte, 'textContent', texteDeLEcriture(etat.aCreer.length, collection, etat.aCreer[0] ?? '', etat.aCreer[etat.aCreer.length - 1] ?? '', etat.aRemplacer));
+      i18n.lier(texte, 'textContent', texteDeLEcriture(etat.aCreer.length, collection, etat.aCreer[0] ?? '', etat.aCreer[etat.aCreer.length - 1] ?? '', etat.aRemplacer, etat.aRenommer.length));
       const choix = document.createElement('div');
       choix.className = 'confirmation-gestes';
       const annuler = createButton({
@@ -686,8 +652,19 @@ function construireVues(i18n: Localisation) {
         gesteAFocaliser = { palette: id, geste: 'modifier' };
         ecrire([id], []);
       }));
-      bloc.append(titre, texte, choix);
+      bloc.append(titre, texte, ...paragrapheDuRenommage(etat), choix);
       return bloc;
+    }
+
+    /** Ce que la mise à jour d'une palette reprise renomme, par l'exemple de sa première variable ([UI-34]) ; rien sans renommage. */
+    function paragrapheDuRenommage(etat: TokensDUnePalette): HTMLParagraphElement[] {
+      const [premiere] = etat.aRenommer;
+      if (!premiere) return [];
+      const paragraphe = document.createElement('p');
+      paragraphe.className = 'ligne-secondaire';
+      paragraphe.dataset.renommage = 'true';
+      i18n.lier(paragraphe, 'textContent', texteDuRenommage(etat.aRenommer.length, premiere.de, premiere.vers));
+      return [paragraphe];
     }
 
     /**
@@ -702,7 +679,7 @@ function construireVues(i18n: Localisation) {
       bloc.dataset.ton = 'avertissement';
       const titre = document.createElement('p');
       titre.className = 'encart-titre';
-      i18n.lier(titre, 'textContent', titreDuRemplacement(etat.aRemplacer, nom));
+      i18n.lier(titre, 'textContent', etat.aRemplacer === 0 ? titreDeLEcriture(nom) : titreDuRemplacement(etat.aRemplacer, nom));
       bloc.append(titre);
       const changees = etat.aEcrire.filter((couleur) => couleur.ecrite !== null);
       for (const couleur of changees.slice(0, COULEURS_LISTEES)) {
@@ -715,10 +692,12 @@ function construireVues(i18n: Localisation) {
       }
       const suite = document.createElement('p');
       suite.className = 'ligne-secondaire';
+      // Des variables à renommer ne gardent pas leur nom : leur paragraphe le dit à la place.
+      const garde: Texte = etat.aRenommer.length > 0 ? '' : TEXTES_DE_LA_REPRISE.gardentLeurNom;
       i18n.lier(suite, 'textContent', changees.length > COULEURS_LISTEES
-        ? i18n.composer`${etNAutres(changees.length - COULEURS_LISTEES)} ${TEXTES_DE_LA_REPRISE.gardentLeurNom}`
-        : TEXTES_DE_LA_REPRISE.gardentLeurNom);
-      bloc.append(suite);
+        ? i18n.composer`${etNAutres(changees.length - COULEURS_LISTEES)} ${garde}`
+        : garde);
+      bloc.append(suite, ...paragrapheDuRenommage(etat));
       const choix = document.createElement('div');
       choix.className = 'confirmation-gestes';
       const annuler = createButton({
@@ -732,7 +711,7 @@ function construireVues(i18n: Localisation) {
         },
       });
       annuler.dataset.geste = 'annuler-ecriture';
-      choix.append(annuler, gesteDEcriture(remplacerNCouleurs(etat.aRemplacer), 'primary', 'confirmer-ecriture', () => {
+      choix.append(annuler, gesteDEcriture(etat.aRemplacer === 0 ? TEXTES_DE_LA_GESTION.mettreAJour : remplacerNCouleurs(etat.aRemplacer), 'primary', 'confirmer-ecriture', () => {
         gesteAFocaliser = { palette: id, geste: 'modifier' };
         ecrire([id], []);
       }));
@@ -855,6 +834,7 @@ function construireVues(i18n: Localisation) {
       const teinte = document.createElement('i');
       teinte.className = 'fiche-teinte';
       teinte.style.background = palette.reference;
+      teinte.setAttribute('aria-hidden', 'true');
       reference.append(teinte, i18n.noeud(i18n.composer`${palette.reference} ◆ ${avecLeNom(analyse.ancrage.profil, TEXTES.numeroDeNuance(analyse.ancrage.crans[mode]))}`));
       // Le résultat des garanties ouvre Vérification sur la palette : une garantie manquée n'empêche aucune écriture.
       const garanties = resultatsDesGaranties(analyse, mode, 'button');
@@ -867,7 +847,7 @@ function construireVues(i18n: Localisation) {
 
       const sorties = [...(etatDesTokens ? [ligneDesTokens(id, etatDesTokens)] : []), ligneDeLaPlanche(id, cadre, sansGeneration)];
       fiche.corps.append(apercuCompact(lue, analyse, mode), information, lignesDeSortie(sorties, i18n));
-      if (etatDesTokens && encart === id) fiche.corps.append(etatDesTokens.reprise ? encartDuRemplacement(id, nom, etatDesTokens) : encartDeLEcriture(id, nom, etatDesTokens));
+      if (etatDesTokens && encart === id) fiche.corps.append(etatDesTokens.reprise && etatDesTokens.aCreer.length === 0 ? encartDuRemplacement(id, nom, etatDesTokens) : encartDeLEcriture(id, nom, etatDesTokens));
       else if (etatDesTokens?.etat === 'modifies' && !laissees.has(id)) fiche.corps.append(encartDesModifiees(id, nom, etatDesTokens));
       const refus = refusDesTokens.get(id);
       if (refus) fiche.corps.append(blocDeConstat(refus, 'alerte'));
@@ -1054,7 +1034,7 @@ function construireVues(i18n: Localisation) {
         const copier = bouton(TEXTES_DE_LA_GESTION.copierDansLePlugin, 'bouton-discret', () => {
           copieAConfirmer = cle;
           rendre();
-          listeDuFichier.querySelector<HTMLElement>('[data-geste="confirmer-copie"]')?.focus();
+          sectionDesBibliotheques.fiches.querySelector<HTMLElement>('[data-geste="confirmer-copie"]')?.focus();
         });
         copier.dataset.geste = 'copier';
         tete.append(copier);
@@ -1106,7 +1086,7 @@ function construireVues(i18n: Localisation) {
           onClick: () => {
             copieAConfirmer = null;
             rendre();
-            listeDuFichier.querySelector<HTMLElement>(`[data-bibliotheque="${cle}"] [data-geste="copier"]`)?.focus();
+            sectionDesBibliotheques.fiches.querySelector<HTMLElement>(`[data-bibliotheque="${cle}"] [data-geste="copier"]`)?.focus();
           },
         });
         annuler.dataset.geste = 'annuler-copie';
@@ -1136,7 +1116,22 @@ function construireVues(i18n: Localisation) {
       return bloc;
     }
 
-    /** Le nom de la collection de la destination, pour la ligne « Tokens » du bloc. */
+    /** Une palette hors du plugin dans l'en-tête de sa section repliée : sa rampe en miniature quand ses couleurs se lisent, puis son nom. */
+    function resumeDePalette(nom: string, pastilles: readonly HTMLSpanElement[]): HTMLSpanElement {
+      const element = document.createElement('span');
+      element.className = 'section-palette';
+      if (pastilles.length > 0) {
+        const rampe = document.createElement('span');
+        rampe.className = 'mini-rampe';
+        rampe.setAttribute('aria-hidden', 'true');
+        rampe.append(...pastilles);
+        element.append(rampe);
+      }
+      element.append(nom);
+      return element;
+    }
+
+    /** Le nom de la collection de la destination, pour la ligne « Tokens » de la connexion. */
     function collectionDeLaDestination(lues: VariablesDuFichier): Texte {
       const { collection } = lues.suivi.destination;
       if ('nom' in collection) return collection.nom;
@@ -1153,37 +1148,22 @@ function construireVues(i18n: Localisation) {
       const etatDesCadres = fraicheur;
       const palettes = lue.palettes;
       const sansGeneration = planche.suiviFutur;
-      i18n.lier(compte, 'textContent', palettesDuPlugin(palettes.length));
+      sectionDuPlugin.poserLeCompte(palettes.length);
       i18n.lier(details, 'textContent', detailsTechniques(empreinte, VERSION_DU_SUIVI));
 
-      vide.hidden = palettes.length > 0 && !planche.suiviFutur;
-      if (planche.suiviFutur) vide.replaceChildren(blocDeConstat(suiviFutur(), 'bloquant'));
-      else if (palettes.length === 0) {
+      bloquant.replaceChildren(...(planche.suiviFutur ? [blocDeConstat(suiviFutur(), 'bloquant')] : []));
+      bloquant.hidden = !planche.suiviFutur;
+      vide.hidden = palettes.length > 0 || planche.suiviFutur;
+      if (!vide.hidden) {
         const texte = document.createElement('p');
         texte.className = 'etat-lecture';
         i18n.lier(texte, 'textContent', TEXTES_DU_DESSIN.plancheSansPalette);
         vide.replaceChildren(texte, createButton({ label: TEXTES_DU_DESSIN.versLesPalettes, variant: 'secondary', onClick: gestes.versLesPalettes }));
       }
 
-      // Un suivi d'une version plus récente ne dit l'état d'aucune planche : ni bilan, ni mise à jour.
-      enRetard = sansGeneration
-        ? []
-        : etatDesCadres.palettes
-          .filter(({ palette, etat }) => etat === 'perimee' || etat === 'jamais-dessinee' || (etat === 'introuvable' && absentes.has(palette)))
-          .map(({ palette }) => palette);
-      const bilan = new Map<EtatDeLaFiche, number>();
-      if (!sansGeneration) {
-        for (const { palette, etat } of etatDesCadres.palettes) {
-          const code = etatDeLaFiche(tokens.get(palette)?.etat ?? null, etat);
-          bilan.set(code, (bilan.get(code) ?? 0) + 1);
-        }
-      }
-      const aMettreAJour = new Set([...miseAJourDesTokens(lue, tokens).palettes, ...enRetard]);
       connexion.afficher({
         tokens: suiviDesVariablesFutur(variables.suivi) ? null : { collection: collectionDeLaDestination(variables), groupe: variables.suivi.destination.groupe },
         nomDeLaPage: planche.nomDeLaPage,
-        bilan,
-        enRetard: vue === 'complete' ? aMettreAJour.size : 0,
         luLe,
       });
       titreDesTokens.hidden = tokens.size === 0;
@@ -1204,11 +1184,15 @@ function construireVues(i18n: Localisation) {
         ...duFichier.map(ligneDuFichier),
         ...bibliotheques.palettes.map(ligneDeBibliotheque),
       ]));
-      // En vue complète, les palettes du fichier et des bibliothèques ont leur liste ; en vue condensée, elles sont des lignes du tableau.
-      separation.hidden = !complete || horsDuPlugin === 0;
-      listeDuFichier.hidden = separation.hidden;
-      i18n.lier(titreDuFichier, 'textContent', dejaDansLeFichier(horsDuPlugin));
-      listeDuFichier.replaceChildren(...(separation.hidden ? [] : [...duFichier.map(ficheDuFichier), ...bibliotheques.palettes.map(ficheDeBibliotheque)]));
+      // En vue complète, les palettes du fichier et des bibliothèques ont chacune leur section ; en vue condensée, elles sont des lignes du tableau.
+      sectionDuFichier.element.hidden = !complete || duFichier.length === 0;
+      sectionDuFichier.poserLeCompte(duFichier.length);
+      sectionDuFichier.poserLeResume(duFichier.map((palette) => resumeDePalette(nomDuFichier(palette), pastillesDuFichier(palette))));
+      sectionDuFichier.fiches.replaceChildren(...(sectionDuFichier.element.hidden ? [] : duFichier.map(ficheDuFichier)));
+      sectionDesBibliotheques.element.hidden = !complete || bibliotheques.palettes.length === 0;
+      sectionDesBibliotheques.poserLeCompte(bibliotheques.palettes.length);
+      sectionDesBibliotheques.poserLeResume(bibliotheques.palettes.map((palette) => resumeDePalette(nomDeBibliotheque(palette), [])));
+      sectionDesBibliotheques.fiches.replaceChildren(...(sectionDesBibliotheques.element.hidden ? [] : bibliotheques.palettes.map(ficheDeBibliotheque)));
       if (ficheAMontrer !== null) {
         const fiche = liste.querySelector<HTMLElement>(`.fiche-planche[data-palette="${ficheAMontrer}"]`);
         ficheAMontrer = null;
@@ -1231,7 +1215,7 @@ function construireVues(i18n: Localisation) {
       rendreLesGestes();
       if (focusApresRetrait !== null) {
         const suivante = supprimees.querySelectorAll<HTMLElement>('.carte-supprimee')[focusApresRetrait];
-        (suivante?.querySelector<HTMLElement>('button') ?? compte).focus();
+        (suivante?.querySelector<HTMLElement>('button') ?? sectionDuPlugin.bascule).focus();
         focusApresRetrait = null;
       } else if (repereSupprime?.palette && repereSupprime.geste) {
         supprimees.querySelector<HTMLElement>(`.carte-supprimee[data-supprimee="${repereSupprime.palette}"] [data-geste="${repereSupprime.geste}"]`)?.focus();
@@ -1268,21 +1252,22 @@ function construireVues(i18n: Localisation) {
           connexion.element.hidden = true;
           pageDesPlanches.element.hidden = true;
           destination.fermer();
-          enTete.hidden = true;
-          table.hidden = true;
-          separation.hidden = true;
+          sectionDuPlugin.element.hidden = true;
+          sectionDuFichier.element.hidden = true;
+          sectionDesBibliotheques.element.hidden = true;
           liste.replaceChildren();
-          listeDuFichier.replaceChildren();
+          sectionDuFichier.fiches.replaceChildren();
+          sectionDesBibliotheques.fiches.replaceChildren();
           notices.replaceChildren();
           const constat = classement.etat === 'future' ? recetteFuture(classement.version) : recetteIllisible(classement.refus);
-          vide.replaceChildren(blocDeConstat(constat, 'bloquant'));
-          vide.hidden = false;
+          bloquant.replaceChildren(blocDeConstat(constat, 'bloquant'));
+          bloquant.hidden = false;
           // Les gestes de sortie d'une recette illisible ou future se montrent sans clic ([REC-11]).
-          carteDeLaRecette.ouvrir();
+          sectionDeLaRecette.ouvrir();
           return;
         }
         connexion.element.hidden = pageDesPlanches.estOuverte() || destination.estOuverte();
-        enTete.hidden = false;
+        sectionDuPlugin.element.hidden = false;
         recette = lue;
         planche = plancheLue;
         variables = variablesLues;
@@ -1299,7 +1284,7 @@ function construireVues(i18n: Localisation) {
         calculerLesTokens();
         // Un encart ouvert sur une palette que la recette ne porte plus, ou qui n'a plus rien à créer ni à remplacer, se ferme.
         const ouvert = encart === null ? undefined : tokens.get(encart);
-        if (encart !== null && (!ouvert || (ouvert.reprise ? ouvert.aRemplacer : ouvert.aCreer.length) === 0)) encart = null;
+        if (encart !== null && (!ouvert || (ouvert.aCreer.length === 0 && ouvert.aRenommer.length === 0 && !(ouvert.reprise && ouvert.aRemplacer > 0)))) encart = null;
         if (variablesAConfirmer !== null && !orphelines.some((orpheline) => orpheline.palette === variablesAConfirmer)) variablesAConfirmer = null;
         rendre();
       },
@@ -1352,10 +1337,8 @@ function construireVues(i18n: Localisation) {
       },
       recevoirVariables(resultat) {
         ecritureEnCours = false;
-        const planches = planchesApresLesVariables;
-        planchesApresLesVariables = null;
         if (resultat && resultat.issue !== 'ecrites') {
-          // Rien ne s'est écrit, pour aucune palette : le message se lit sous le bloc de la connexion.
+          // Rien ne s'est écrit, pour aucune palette : le message se lit sous la section de la connexion.
           if (resultat.issue === 'recette-changee') {
             const bloc = blocDeConstat(variablesSurUneAutreRecette(), 'bloquant');
             bloc.append(createButton({ label: TEXTES.recharger, onClick: () => gestes.recharger() }));
@@ -1373,14 +1356,12 @@ function construireVues(i18n: Localisation) {
             else if (issue.issue === 'modes-refuses') refusDesTokens.set(issue.palette, modesRefuses(nom(issue.palette), issue.message));
             else if (issue.issue === 'interrompue') refusDesTokens.set(issue.palette, ecritureInterrompue(nom(issue.palette), issue.message));
           }
-          // Les planches de « Tout mettre à jour » suivent les tokens.
-          if (planches) lancer(planches);
         }
         rendre();
       },
       recevoirDestination(issue) {
         if (!destination.recevoir(issue)) return;
-        // La destination rangée vaut tout de suite : la ligne du bloc et l'encart d'écriture la lisent avant l'état relu.
+        // La destination rangée vaut tout de suite : la ligne de la connexion et l'encart d'écriture la lisent avant l'état relu.
         if (issue.issue === 'rangee' && variables) {
           variables = { ...variables, suivi: { ...variables.suivi, destination: issue.destination, confirmee: true } };
           calculerLesTokens();
@@ -1427,7 +1408,7 @@ function construireVues(i18n: Localisation) {
         }
         annonceDuRetrait.hidden = annonceDuRetrait.childElementCount === 0;
         rendre();
-        // La carte disparaît à l'état relu : le focus rejoint alors la carte suivante, ou le compte des palettes.
+        // La carte disparaît à l'état relu : le focus rejoint alors la carte suivante, ou l'en-tête des palettes du plugin.
         if (issue.issue === 'retirees') focusApresRetrait = 0;
       },
     };

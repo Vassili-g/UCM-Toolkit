@@ -139,8 +139,21 @@ test('Z10.8 passer à une intensité et revenir à deux replie les réglages san
   assert.equal(choisirLesIntensites(RECETTE, deux, 1).reference, saturee.reference);
   const libre = passerEnLibre(RECETTE, saturee);
   valide(libre);
+  assert.equal(libre.intensites, 1, 'une palette à une intensité le reste en palette libre');
+  assert.equal(libre.reference, saturee.reference);
+  assert.deepEqual(libre.reglages, saturee.reglages);
+  const libreADeux = choisirLesIntensites(RECETTE, libre, 2);
+  valide(libreADeux);
+  assert.equal(libreADeux.intensites, undefined, 'une palette libre choisit aussi ses intensités');
+  assert.deepEqual(libreADeux.crans, libre.crans);
+  assert.equal(libreADeux.reference, libre.reference);
+  assert.equal(choisirLesIntensites(RECETTE, libreADeux, 1).intensites, 1);
   const modele = revenirAuModele(RECETTE, libre);
   valide(modele);
+  assert.equal(modele.intensites, 1);
+  const modeleADeux = revenirAuModele(RECETTE, libreADeux);
+  valide(modeleADeux);
+  assert.equal(modeleADeux.intensites, undefined, 'revenir au modèle garde le nombre d’intensités');
 });
 
 test('Z10.8 une palette ajustée avant la version 5 garde ses couleurs au premier réglage du porteur', () => {

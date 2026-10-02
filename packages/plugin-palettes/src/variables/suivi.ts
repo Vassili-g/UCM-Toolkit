@@ -29,8 +29,8 @@ export interface VariableSuivie {
 /**
  * `destination` : la palette suit la destination des tokens, et une
  * écriture crée ce qui manque. `reprise` : ses clés désignent les variables
- * d'origine d'une palette du fichier, qu'aucune écriture ne crée, ne renomme
- * ni ne déplace ([VAR-13]).
+ * d'origine d'une palette du fichier, et celles que l'écriture crée sous
+ * leur chemin, dans leur collection ([VAR-13]).
  */
 export type Liaison = 'destination' | 'reprise';
 
@@ -44,6 +44,14 @@ export interface PaletteSuivie {
   /** Par clé du plan. */
   readonly variables: { readonly [cle: string]: VariableSuivie };
   readonly liaison: Liaison;
+  /**
+   * Pour une liaison de reprise déjà écrite, le chemin commun des variables
+   * d'origine à la reprise : l'écriture les range ensuite sous un segment de
+   * thème ou d'intensité, et leurs noms ne le rendent plus.
+   */
+  readonly chemin?: string;
+  /** Pour une liaison de reprise écrite à deux intensités, celle que les variables d'origine portent. */
+  readonly intensite?: 'soft' | 'vivid';
 }
 
 export interface SuiviDesVariables {
@@ -81,6 +89,8 @@ function lireLaPalette(valeur: unknown): PaletteSuivie | null {
     modes,
     variables,
     liaison: valeur.liaison === 'reprise' ? 'reprise' : 'destination',
+    ...(typeof valeur.chemin === 'string' ? { chemin: valeur.chemin } : {}),
+    ...(valeur.intensite === 'soft' || valeur.intensite === 'vivid' ? { intensite: valeur.intensite } : {}),
   };
 }
 

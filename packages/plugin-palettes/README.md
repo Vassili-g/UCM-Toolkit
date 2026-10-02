@@ -87,8 +87,10 @@ couleurs du plugin » ou « Laisser les couleurs de Figma ».
 Sous les palettes du plugin, « Déjà dans le fichier » liste les palettes que
 les variables locales portent déjà : des variables de couleur dont le dernier
 segment du nom est un nombre, cinq au moins sous le même chemin. « Modifier
-dans le plugin » en reprend une : ses variables d'origine restent ses tokens,
-à leur place, et « Mettre à jour » remplace leurs couleurs. Les palettes des
+dans le plugin » en reprend une : « Mettre à jour » remplace les couleurs de ses variables d'origine et les
+renomme sous leur thème et leur intensité, sans rompre leurs liaisons. Les
+nuances, le thème Dark et l'intensité que la palette porte de plus se créent
+sous le même chemin. Les palettes des
 bibliothèques activées paraissent aussi ; « Copier dans le plugin » en fait
 une palette du plugin, qui s'écrit dans la destination.
 
@@ -162,6 +164,14 @@ designer. Il n'écrit rien dans le document. Les textes des planches dessinées
 restent en français. Les plans d'ergonomie décrivent des travaux à réaliser ;
 ils ne prouvent pas leur présence dans le build. Le [sommaire documentaire](../../docs/README.md)
 donne accès aux spécifications et aux plans de Palettes.
+
+Gestion regroupe la connexion, les palettes du plugin, celles du fichier,
+celles des bibliothèques et la recette dans des sections repliables. Seules
+les palettes du plugin sont ouvertes par défaut. Les choix d’ouverture se
+rangent dans `figma.clientStorage` sous `ucm-palettes.sections`. La connexion
+porte les destinations et « Synchroniser ». Les mises à jour se font depuis
+chaque fiche. La simulation de la destination liste les chemins des rampes,
+leurs bornes de nuances et leur nombre de variables.
 
 ## Ajouter une langue
 

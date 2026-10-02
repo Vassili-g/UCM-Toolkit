@@ -9,9 +9,9 @@ import type { Palette, Recette } from 'ucm-couleur';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import type { Destination } from './destination';
 import { etatDesTokens, type EtatDesTokensDUnePalette } from './etat';
-import { nomsDuPlan, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from './plan';
+import { nomsDuPlan, planDesVariables } from './plan';
 import type { VariableLue } from './releve';
-import { cheminCommun } from './reprise';
+import { cheminCommun, origineDeLaReprise, variableDeLEntree } from './reprise';
 
 export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   /** Le nombre de variables que la palette porte sous la destination d'aujourd'hui. */
@@ -22,7 +22,7 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly aRemplacer: number;
   /** Le nom de la collection où l'écriture se ferait ; `null` quand la destination désigne une collection que le fichier ne porte plus. */
   readonly collection: string | null;
-  /** Vrai pour une palette reprise du fichier : ses tokens sont ses variables d'origine, à leur place ([VAR-13]). */
+  /** Vrai pour une palette reprise du fichier : ses variables d'origine gardent leur identifiant, et ses autres variables se créent sous leur chemin ([VAR-13]). */
   readonly reprise: boolean;
   /** Pour une palette reprise, le chemin commun de ses variables d'origine ; `null` sinon. */
   readonly origine: string | null;
@@ -37,20 +37,29 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
 export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: VariablesDuFichier): TokensDUnePalette {
   const { destination } = fichier.suivi;
   const suivie = fichier.suivi.palettes[palette.id];
-  const plan = planDesVariables(recette, palette, destination, suivie);
+  const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, fichier.variables) : null;
+  const plan = planDesVariables(recette, palette, destination, suivie, origine);
   const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
   const etat = etatDesTokens(plan, suivie, lues, destination);
   const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
   if (suivie?.liaison === 'reprise') {
-    // Une palette reprise n'a pour tokens que ses variables d'origine : aucune écriture n'en crée.
-    const presentes = new Set(plan.map((entree) => suivie.variables[entree.cle].id).filter((id) => lues.has(id)));
-    const aRemplacer = plan.filter((entree) => {
-      const lue = lues.get(suivie.variables[entree.cle].id);
+    // Ce que la palette porte de plus que ses variables d'origine se crée sous leur chemin.
+    const presentes = new Set<string>();
+    const aCreer = new Set<string>();
+    let aRemplacer = 0;
+    for (const entree of plan) {
+      const lue = variableDeLEntree(entree, suivie, origine);
+      if (!lue) {
+        if (entree.nom !== '') aCreer.add(entree.nom);
+        continue;
+      }
+      presentes.add(lue.id);
       const mode = suivie.modes[entree.mode];
-      return lue !== undefined && mode !== undefined && lue.valeurs[mode] !== entree.hexa;
-    }).length;
-    const origine = cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
-    return { ...etat, variables: presentes.size, aCreer: [], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine };
+      // Un thème dont le mode reste à trouver s'écrit dans une variable présente : il compte parmi les couleurs remplacées.
+      if (mode === undefined || lue.valeurs[mode] !== entree.hexa) aRemplacer += 1;
+    }
+    const chemin = origine?.chemin ?? cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
+    return { ...etat, variables: presentes.size + aCreer.size, aCreer: [...aCreer], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
   }
   const garde = suivie && !etat.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
 
@@ -100,78 +109,39 @@ export function variablesDesPalettesSupprimees(recette: Pick<Recette, 'palettes'
   return orphelines;
 }
 
-/** Une ligne de la simulation : une nuance, et sa couleur dans chaque colonne. */
-export interface LigneSimulee {
-  readonly nuance: string;
-  readonly valeurs: readonly string[];
-}
-
-/** Un groupe de la simulation : le chemin d'une rampe, et ses nuances. */
+/** Un groupe de la simulation : le chemin d'une rampe, et le nom de ses nuances. */
 export interface GroupeSimule {
   readonly chemin: string;
-  readonly lignes: readonly LigneSimulee[];
+  readonly nuances: readonly string[];
 }
 
 export interface Simulation {
-  /** Les colonnes de valeur : le seul mode, ou Light puis Dark. */
-  readonly colonnes: readonly ModeDuPlan[];
+  /** Le nombre de modes que les variables portent : un seul, ou Light et Dark. */
+  readonly modes: number;
   readonly variables: number;
   readonly groupes: readonly GroupeSimule[];
 }
 
 /**
- * Ce qu'une destination donne dans le panneau des variables de Figma, pour
- * la première palette de la recette ([UI-30]) : un groupe par rampe, dans
- * l'ordre du plan. `null` sans palette.
+ * Les chemins qu'une destination crée dans la collection, pour la première
+ * palette de la recette ([UI-30]) : un groupe par rampe, dans l'ordre du
+ * plan. `null` sans palette.
  */
 export function simulationDeLaDestination(recette: Recette, destination: Destination): Simulation | null {
   const [palette] = recette.palettes;
   if (!palette) return null;
   const plan = planDesVariables(recette, palette, destination);
-  const colonnes: ModeDuPlan[] = destination.themes === 'modes' ? ['light', 'dark'] : ['unique'];
-  const groupes = new Map<string, Map<string, EntreeDuPlan[]>>();
+  const groupes = new Map<string, Set<string>>();
   for (const entree of plan) {
     const coupe = entree.nom.lastIndexOf('/');
     const chemin = coupe < 0 ? '' : entree.nom.slice(0, coupe);
-    const lignes = groupes.get(chemin) ?? new Map<string, EntreeDuPlan[]>();
-    groupes.set(chemin, lignes);
-    const nuance = entree.nom.slice(coupe + 1);
-    lignes.set(nuance, [...(lignes.get(nuance) ?? []), entree]);
+    const nuances = groupes.get(chemin) ?? new Set<string>();
+    groupes.set(chemin, nuances);
+    nuances.add(entree.nom.slice(coupe + 1));
   }
   return {
-    colonnes,
+    modes: destination.themes === 'modes' ? 2 : 1,
     variables: nomsDuPlan(plan).length,
-    groupes: [...groupes].map(([chemin, lignes]) => ({
-      chemin,
-      lignes: [...lignes].map(([nuance, entrees]) => ({ nuance, valeurs: colonnes.map((colonne) => entrees.find((entree) => entree.mode === colonne)?.hexa ?? '') })),
-    })),
+    groupes: [...groupes].map(([chemin, nuances]) => ({ chemin, nuances: [...nuances] })),
   };
-}
-
-/** Ce que « Tout mettre à jour » écrirait dans les tokens ([UI-28]). */
-export interface MiseAJourDesTokens {
-  /** Les palettes à écrire, dans l'ordre de la recette. */
-  readonly palettes: readonly string[];
-  readonly creees: number;
-  readonly ecrites: number;
-  /** Les palettes « Modifiés dans Figma », exclues de l'écriture. */
-  readonly modifiees: number;
-}
-
-export function miseAJourDesTokens(recette: Pick<Recette, 'palettes'>, tokens: ReadonlyMap<string, TokensDUnePalette>): MiseAJourDesTokens {
-  const palettes: string[] = [];
-  let creees = 0;
-  let ecrites = 0;
-  let modifiees = 0;
-  for (const { id } of recette.palettes) {
-    const etat = tokens.get(id);
-    if (!etat) continue;
-    if (etat.etat === 'modifies') modifiees += 1;
-    else if (etat.etat !== 'a-jour') {
-      palettes.push(id);
-      creees += etat.aCreer.length;
-      ecrites += etat.aRemplacer;
-    }
-  }
-  return { palettes, creees, ecrites, modifiees };
 }

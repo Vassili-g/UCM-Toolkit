@@ -6,10 +6,12 @@
  *
  * L'écriture part de la recette rangée, jamais de couleurs envoyées par
  * l'interface. Le plugin reconnaît ses variables par l'identifiant que le
- * suivi garde, jamais par leur nom. Il ne renomme ni ne déplace une
- * variable, et n'en retire que sur « Supprimer les variables… ».
+ * suivi garde, jamais par leur nom. Il ne retire une variable que sur
+ * « Supprimer les variables… ». Une palette reprise du fichier s'écrit dans
+ * sa collection d'origine, sous le chemin de ses variables d'origine, et
+ * elle seule renomme des variables ([VAR-13]).
  */
-import { jsonCanonique, validerRecette, type Recette, type Refus } from 'ucm-couleur';
+import { aUneIntensite, jsonCanonique, profilPorteur, validerRecette, type Recette, type Refus } from 'ucm-couleur';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
 import { ajouter, reprendreDuFichier } from '../edition';
@@ -18,7 +20,7 @@ import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
 import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
-import { suiviDeLaReprise } from '../variables/reprise';
+import { origineDeLaReprise, suiviDeLaReprise, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
 import { planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
 import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, suiviFutur, texteDuSuivi, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
@@ -104,46 +106,113 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
   let ecrit = false;
 
   /**
-   * Remplace les couleurs des variables d'origine d'une palette reprise
-   * ([VAR-13]). Rien ne se crée, ne se renomme ni ne se déplace : une
-   * variable que le fichier ne porte plus quitte le suivi, et un thème dont
-   * le mode a disparu ne s'écrit pas.
+   * Écrit une palette reprise dans sa collection d'origine ([VAR-13]). Les
+   * variables d'origine prennent le nom que le plan leur donne, sous le
+   * segment de leur thème ou de leur intensité ; une entrée du plan sans
+   * variable en crée une sous leur chemin, et le mode Dark se trouve ou
+   * se crée quand le plan écrit ce thème en mode. Une entrée sans nom ne
+   * crée rien : sa variable disparue quitte le suivi. Un thème dont le mode
+   * a disparu ne s'écrit pas.
    */
-  function ecrireLaReprise(id: string, suivie: PaletteSuivie, plan: readonly EntreeDuPlan[]): IssueDeLaPalette {
+  function ecrireLaReprise(id: string, suivie: PaletteSuivie, plan: readonly EntreeDuPlan[], origine: OrigineDeLaReprise | null, intensite: PaletteSuivie['intensite']): IssueDeLaPalette {
     const collection = collections.get(suivie.collection);
     if (!collection) return { palette: id, issue: 'collection-introuvable' };
-    const gardees: { [cle: string]: VariableSuivie } = {};
-    let valeurs = 0;
-    try {
-      for (const entree of plan) {
-        const connue = suivie.variables[entree.cle];
-        const variable = locales.get(connue.id);
-        const mode = suivie.modes[entree.mode];
-        if (!variable || mode === undefined || !collection.modes.some((candidat) => candidat.modeId === mode)) continue;
-        if (lues.get(variable.id)?.valeurs[mode] !== entree.hexa) {
-          variable.setValueForMode(mode, couleurPourFigma(entree.hexa, profil));
-          valeurs += 1;
+    const modes: { [M in ModeDuPlan]?: string } = { ...suivie.modes };
+    if (modes.dark === undefined && plan.some((entree) => entree.mode === 'dark')) {
+      try {
+        const nomme = modeNomme(collection, 'Dark');
+        if (nomme !== undefined && nomme !== modes.light) modes.dark = nomme;
+        else {
+          modes.dark = collection.addMode('Dark');
           ecrit = true;
         }
+      } catch (erreur) {
+        return { palette: id, issue: 'modes-refuses', message: messageDe(erreur) };
+      }
+    }
+    const variableDuNom = new Map<string, Variable>();
+    const creees: Variable[] = [];
+    const gardees: { [cle: string]: VariableSuivie } = {};
+    /** Les clés dont le mode a quitté la collection : elles quittent le suivi. */
+    const sansMode = new Set<string>();
+    let valeurs = 0;
+    /** Le suivi d'après : les clés écrites, celles d'un plan plus ancien dont la variable existe encore, et le chemin d'origine, que les noms ne rendent plus après un renommage. */
+    const suivant = (retenues: { readonly [cle: string]: VariableSuivie }): PaletteSuivie => ({
+      ...suivie,
+      modes,
+      ...(origine ? { chemin: origine.chemin } : {}),
+      ...(intensite ? { intensite } : {}),
+      variables: {
+        ...Object.fromEntries(Object.entries(suivie.variables).filter(([cle, variable]) => !sansMode.has(cle) && locales.has(variable.id))),
+        ...retenues,
+      },
+    });
+    try {
+      for (const entree of plan) {
+        const mode = modes[entree.mode];
+        if (mode === undefined || !collection.modes.some((candidat) => candidat.modeId === mode)) {
+          sansMode.add(entree.cle);
+          continue;
+        }
+        const presente = variableDeLEntree(entree, suivie, origine);
+        let variable = locales.get(suivie.variables[entree.cle]?.id ?? '') ?? (presente ? locales.get(presente.id) : undefined) ?? variableDuNom.get(entree.nom);
+        const couleur = couleurPourFigma(entree.hexa, profil);
+        if (!variable) {
+          if (entree.nom === '') continue;
+          variable = figma.variables.createVariable(entree.nom, collection, 'COLOR');
+          // Une primitive ne paraît dans aucun sélecteur de calque (D14).
+          variable.scopes = [];
+          creees.push(variable);
+          // Une variable neuve porte sa couleur dans tous les modes de la collection, avant ce que le plan écrit dans chacun.
+          for (const cible of collection.modes) variable.setValueForMode(cible.modeId, couleur);
+          valeurs += 1;
+          ecrit = true;
+        } else {
+          // Un renommage garde l'identifiant de la variable, donc ses liaisons.
+          if (entree.nom !== '' && variable.name !== entree.nom) {
+            variable.name = entree.nom;
+            ecrit = true;
+          }
+          if (creees.includes(variable) || lues.get(variable.id)?.valeurs[mode] !== entree.hexa) {
+            variable.setValueForMode(mode, couleur);
+            valeurs += 1;
+            ecrit = true;
+          }
+        }
+        if (entree.nom !== '') variableDuNom.set(entree.nom, variable);
         gardees[entree.cle] = { id: variable.id, ecrite: entree.hexa };
       }
+      for (const variable of creees) {
+        const premiere = plan.find((entree) => variableDuNom.get(entree.nom) === variable)!;
+        variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.palette, id);
+        variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.cle, premiere.cle);
+      }
     } catch (erreur) {
-      // Les valeurs déjà écrites le restent : le suivi les retient, pour ne pas les lire comme changées dans Figma.
-      suivies[id] = { ...suivie, variables: { ...suivie.variables, ...gardees } };
+      for (const variable of creees) {
+        try {
+          variable.remove();
+        } catch {
+          // Une variable que Figma refuse de retirer reste dans le fichier, hors du suivi.
+        }
+      }
+      // Les valeurs déjà écrites dans les variables présentes le restent : le suivi les retient, pour ne pas les lire comme changées dans Figma.
+      const presentes = Object.fromEntries(Object.entries(gardees).filter(([, variable]) => !creees.some((creee) => creee.id === variable.id)));
+      suivies[id] = { ...suivant({}), variables: { ...suivie.variables, ...presentes } };
       return { palette: id, issue: 'interrompue', message: messageDe(erreur) };
     }
-    suivies[id] = { ...suivie, variables: gardees };
-    return { palette: id, issue: 'ecrite', creees: 0, ecrites: valeurs };
+    suivies[id] = suivant(gardees);
+    return { palette: id, issue: 'ecrite', creees: creees.length, ecrites: valeurs };
   }
 
   function ecrireLaPalette(id: string): IssueDeLaPalette {
     const palette = recette.palettes.find((candidate) => candidate.id === id);
     if (!palette) return { palette: id, issue: 'absente' };
     const suivie = suivies[id];
-    const plan = planDesVariables(recette, palette, destination, suivie);
+    const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, [...lues.values()]) : null;
+    const plan = planDesVariables(recette, palette, destination, suivie, origine);
     const tokens = etatDesTokens(plan, suivie, lues, destination);
     if (tokens.etat === 'modifies' && !remettre.has(id)) return { palette: id, issue: 'modifiee', couleurs: tokens.modifiees.length };
-    if (suivie?.liaison === 'reprise') return ecrireLaReprise(id, suivie, plan);
+    if (suivie?.liaison === 'reprise') return ecrireLaReprise(id, suivie, plan, origine, suivie.intensite ?? (aUneIntensite(palette) ? undefined : profilPorteur(recette, palette)));
 
     // La collection du suivi, tant que la destination n'a pas changé ; sinon celle de la destination ([VAR-09]).
     const garde = suivie && !tokens.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;

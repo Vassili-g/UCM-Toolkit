@@ -189,7 +189,7 @@ export function reglerTeinte(recette: Recette, palette: Palette, cible: CibleDuR
   return appliquerLesReglages(recette, palette, { ...valeurs, teinte: suivantes });
 }
 
-/** Le décalage de clarté d'un profil, ou des deux, borné à [−0,05, +0,02] (Z10.5) ; celui du porteur déplace la référence. */
+/** Le décalage de clarté d'un profil, ou des deux, borné à [−0,10, +0,10] (Z10.5) ; celui du porteur déplace la référence. */
 export function reglerClarte(recette: Recette, palette: Palette, cible: CibleDuReglage, valeur: number): Palette {
   const valeurs = valeursDe(palette);
   const { clarte } = BORNES_DES_REGLAGES;
@@ -308,10 +308,11 @@ export function nouvellePalette(recette: Recette, id: string, saisie: string, in
  * La palette à une ou deux intensités ([ENT-14]). Passer à une retire la
  * palette de base et les parts propres, et garde la dérive de l'intensité qui
  * portait la référence, liée ; passer à deux rend Soft et Vivid. Une palette
- * libre n'a pas ce choix : elle reste telle quelle.
+ * libre a le même choix et garde sa liste. Une palette figée n'a qu'une
+ * rampe lue : elle reste telle quelle.
  */
 export function choisirLesIntensites(recette: Recette, palette: Palette, nombre: 1 | 2): Palette {
-  if (palette.crans !== undefined || aUneIntensite(palette) === (nombre === 1)) return palette;
+  if (palette.figees !== undefined || aUneIntensite(palette) === (nombre === 1)) return palette;
   return nombre === 2 ? versDeuxIntensites(recette, palette) : versUneIntensite(recette, palette);
 }
 
@@ -523,13 +524,13 @@ export function choisirLaBase(recette: Recette, palette: Palette, choix: 'auto' 
 /**
  * Passe une palette en palette libre (W6.5), sur la liste commune bornée à
  * treize numéros admis : le designer retire ensuite ce qu'il ne veut pas. Une
- * palette libre n'a ni base (conception W6) ni choix des intensités
- * ([ENT-14]) : retirer la base rend les parts communes à une base forcée.
+ * palette libre n'a pas de base (conception W6) : la retirer rend les parts
+ * communes à une base forcée. Elle garde le nombre d'intensités qu'elle
+ * avait dans le modèle.
  */
 export function passerEnLibre(recette: Recette, palette: Palette): Palette {
   if (palette.crans !== undefined) return palette;
-  // Une palette libre porte deux intensités : une palette à une intensité y passe d'abord, ses réglages repliés (Z10.5).
-  if (aUneIntensite(palette)) return passerEnLibre(recette, versDeuxIntensites(recette, palette));
+  if (aUneIntensite(palette)) return { ...palette, crans: cransLibresParDefaut(recette) };
   const porteur = profilPorteur(recette, palette);
   if (palette.base && palette.reglages) {
     // Sans base, les réglages figent le porteur que la base désignait.
@@ -548,12 +549,11 @@ export function cransLibresParDefaut(recette: Recette): number[] {
 
 /**
  * Rend une palette libre au modèle du design system : elle suit de nouveau la
- * liste commune, à une intensité, le choix par défaut de la création
- * ([ENT-14]). Ses parts propres partent avec le choix des intensités.
+ * liste commune, et garde le nombre d'intensités qu'elle portait ([ENT-14]).
  */
-export function revenirAuModele(recette: Recette, palette: Palette): Palette {
+export function revenirAuModele(_recette: Recette, palette: Palette): Palette {
   const { crans: _retiree, ...commune } = palette;
-  return versUneIntensite(recette, commune);
+  return commune;
 }
 
 /**

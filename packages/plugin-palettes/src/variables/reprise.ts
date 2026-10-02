@@ -1,13 +1,14 @@
 /**
  * La reprise d'une palette du fichier ([VAR-13]) : ce que « Modifier dans le
  * plugin » lit d'elle, et la liaison que le suivi en garde. Une palette
- * reprise garde ses variables d'origine pour tokens : le plugin n'en crée,
- * n'en renomme ni n'en déplace aucune. Pur : ni Figma, ni DOM.
+ * reprise garde ses variables d'origine, avec leurs liaisons : le plugin
+ * les renomme sous le segment de leur thème ou de leur intensité, et crée
+ * sous leur chemin ce que la palette porte de plus. Pur : ni Figma, ni DOM.
  */
 import { MODES, type Mode } from 'ucm-couleur';
 
 import { nuanceDeReference, type PaletteDuFichier } from './detection';
-import { cleDuPlan } from './plan';
+import { cleDuPlan, type EntreeDuPlan } from './plan';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
 import type { PaletteSuivie, VariableSuivie } from './suivi';
 
@@ -67,6 +68,63 @@ export function suiviDeLaReprise(palette: PaletteDuFichier): PaletteSuivie {
   return { collection: palette.collection, groupe: '', modes, variables, liaison: 'reprise' };
 }
 
+/**
+ * Ce que le fichier porte autour d'une palette reprise : le plan y lit le
+ * nom de chaque variable, et l'écriture la variable qu'une entrée vise.
+ */
+export interface OrigineDeLaReprise {
+  /** Le chemin commun des variables d'origine à la reprise, sans leur nuance : celui que le suivi garde, sinon celui de leurs noms. */
+  readonly chemin: string;
+  /** Les variables de couleur de la collection, par nom. */
+  readonly parNom: ReadonlyMap<string, VariableLue>;
+  /** Les variables que le suivi de la palette désigne et que le fichier porte encore, par identifiant. */
+  readonly suivies: ReadonlyMap<string, VariableLue>;
+}
+
+/**
+ * Vrai pour une clé du suivi qui désigne une variable d'origine : la rampe
+ * Light sous `unique`, et le thème Dark quand la collection le porte en
+ * mode. Les autres clés désignent des variables créées sous leur chemin.
+ */
+function estDOrigine(suivie: PaletteSuivie, cle: string): boolean {
+  return cle.startsWith('unique/light/') || (suivie.modes.dark !== undefined && cle.startsWith('unique/dark/'));
+}
+
+/**
+ * L'origine d'une palette reprise, relue dans les variables d'aujourd'hui.
+ * `null` quand le fichier ne porte plus aucune variable d'origine : le
+ * chemin où créer n'est plus connu.
+ */
+export function origineDeLaReprise(suivie: PaletteSuivie, variables: readonly VariableLue[]): OrigineDeLaReprise | null {
+  const lues = new Map(variables.map((variable) => [variable.id, variable]));
+  const suivies = new Map<string, VariableLue>();
+  const origine: string[] = [];
+  for (const [cle, variable] of Object.entries(suivie.variables)) {
+    const lue = lues.get(variable.id);
+    if (!lue) continue;
+    suivies.set(lue.id, lue);
+    if (estDOrigine(suivie, cle)) origine.push(lue.nom);
+  }
+  if (origine.length === 0) return null;
+  const parNom = new Map(variables.filter((variable) => variable.collection === suivie.collection).map((variable) => [variable.nom, variable]));
+  return { chemin: suivie.chemin ?? cheminCommun(origine), parNom, suivies };
+}
+
+/**
+ * La variable qu'une entrée du plan écrit, quand le fichier la porte : celle
+ * que le suivi désigne sous sa clé, sinon une variable de la palette qui
+ * porte déjà son nom, pour un thème en mode que le suivi ne désigne pas
+ * encore.
+ */
+export function variableDeLEntree(entree: Pick<EntreeDuPlan, 'cle' | 'nom'>, suivie: PaletteSuivie, origine: OrigineDeLaReprise | null): VariableLue | undefined {
+  if (!origine) return undefined;
+  const connue = suivie.variables[entree.cle];
+  const designee = connue ? origine.suivies.get(connue.id) : undefined;
+  if (designee) return designee;
+  const homonyme = origine.parNom.get(entree.nom);
+  return homonyme && origine.suivies.has(homonyme.id) ? homonyme : undefined;
+}
+
 /** Les thèmes qu'une liaison de reprise écrit : ceux dont le suivi garde un mode. */
 export function themesDeLaReprise(suivie: PaletteSuivie): Mode[] {
   return MODES.filter((mode) => suivie.modes[mode] !== undefined);
@@ -96,6 +154,7 @@ export function sourceDeLaReprise(
   const lues = new Map(fichier.variables.map((variable) => [variable.id, variable]));
   const parNuance = new Map<number, VariableLue>();
   for (const [cle, variable] of Object.entries(suivie.variables)) {
+    if (!estDOrigine(suivie, cle)) continue;
     const nuance = Number(cle.slice(cle.lastIndexOf('/') + 1));
     const lue = lues.get(variable.id);
     if (lue && Number.isFinite(nuance) && !parNuance.has(nuance)) parNuance.set(nuance, lue);
@@ -107,7 +166,7 @@ export function sourceDeLaReprise(
   return {
     collection: collection.id,
     nomDeLaCollection: collection.nom,
-    chemin: cheminCommun(nuances.map((nuance) => parNuance.get(nuance)!.nom)),
+    chemin: suivie.chemin ?? cheminCommun(nuances.map((nuance) => parNuance.get(nuance)!.nom)),
     nuances,
     variables: nuances.map((nuance) => parNuance.get(nuance)!.id),
     modes,

@@ -9,7 +9,7 @@ import { ecrireLesVariables, rangerLaDestination, retirerLesVariables, type Figm
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import type { Destination } from '../src/variables/destination';
 import { etatDesTokens } from '../src/variables/etat';
-import { miseAJourDesTokens, simulationDeLaDestination, tokensDeLaPalette, variablesDesPalettesSupprimees } from '../src/variables/gestion';
+import { simulationDeLaDestination,tokensDeLaPalette, variablesDesPalettesSupprimees } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi } from '../src/variables/suivi';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
@@ -373,31 +373,19 @@ test('[UI-26] le compte d’une fiche est celui que l’écriture fait : créée
   assert.deepEqual(await ecrire(figma, [GRIS], changee), [{ palette: GRIS.id, issue: 'ecrite', creees: 11, ecrites: 22 }]);
 });
 
-test('[UI-28] « Tout mettre à jour » compte les palettes en retard, et exclut une palette modifiée dans Figma', async () => {
-  const figma = fichier();
-  await ecrire(figma, [BLEU]);
-  const retouchee = figma.variable('colors/bleu/soft/light/50');
-  retouchee.setValueForMode(retouchee.collection.defaultModeId, { r: 1, g: 0, b: 0, a: 1 });
-  const lu = await lireLesVariablesDuFichier(api(figma));
-  const tokens = new Map(RECETTE.palettes.map((palette) => [palette.id, tokensDeLaPalette(RECETTE, palette, lu)]));
-  assert.deepEqual(miseAJourDesTokens(RECETTE, tokens), { palettes: [GRIS.id], creees: 22, ecrites: 0, modifiees: 1 });
-});
-
-test('[UI-30] la simulation suit la destination : quatre groupes d’une colonne dans le chemin, deux groupes de deux colonnes en modes', () => {
+test('[UI-30] la simulation suit la destination : quatre groupes d’un mode dans le chemin, deux groupes de deux modes en modes', () => {
   const chemin = simulationDeLaDestination(RECETTE, { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' })!;
-  assert.deepEqual(chemin.colonnes, ['unique']);
+  assert.equal(chemin.modes, 1);
   assert.equal(chemin.variables, 44);
-  assert.deepEqual(chemin.groupes.map((groupe) => [groupe.chemin, groupe.lignes.length]), [
+  assert.deepEqual(chemin.groupes.map((groupe) => [groupe.chemin, groupe.nuances.length]), [
     ['colors/bleu/soft/light', 11], ['colors/bleu/soft/dark', 11], ['colors/bleu/vivid/light', 11], ['colors/bleu/vivid/dark', 11],
   ]);
-  const plan = planDesVariables(RECETTE, BLEU, { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' });
-  assert.deepEqual(chemin.groupes[0].lignes[0], { nuance: '50', valeurs: [plan[0].hexa] });
+  assert.deepEqual([chemin.groupes[0].nuances[0], chemin.groupes[0].nuances[10]], ['50', '950']);
 
   const modes = simulationDeLaDestination(RECETTE, { collection: { nom: 'primitives' }, groupe: '', themes: 'modes' })!;
-  assert.deepEqual(modes.colonnes, ['light', 'dark']);
+  assert.equal(modes.modes, 2);
   assert.equal(modes.variables, 22);
-  assert.deepEqual(modes.groupes.map((groupe) => [groupe.chemin, groupe.lignes.length]), [['bleu/soft', 11], ['bleu/vivid', 11]]);
-  assert.deepEqual(modes.groupes[0].lignes[0], { nuance: '50', valeurs: [plan[0].hexa, plan[11].hexa] });
+  assert.deepEqual(modes.groupes.map((groupe) => [groupe.chemin, groupe.nuances.length]), [['bleu/soft', 11], ['bleu/vivid', 11]]);
   assert.equal(simulationDeLaDestination(VIDE, { collection: { nom: 'primitives' }, groupe: '', themes: 'modes' }), null);
 });
 

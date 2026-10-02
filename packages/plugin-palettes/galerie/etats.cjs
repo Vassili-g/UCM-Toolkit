@@ -220,8 +220,6 @@ const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="
 const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
 /** Le geste de la ligne « Planche » de la première fiche qui en demande un, dans l'onglet Gestion ouvert. */
 const dessinerLaPalette = { clic: '#panneau-gestion .fiche-planche [data-geste="generer"]' };
-/** « Tout mettre à jour », dans le bilan du bloc « Connexion à Figma ». */
-const toutMettreAJour = { clic: '#panneau-gestion [data-geste="tout-mettre-a-jour"]' };
 /** Les pages d'un fichier dont la planche porte deux cadres. */
 const PAGES_DU_FICHIER = [{ id: '0:1', nom: 'Cover', cadres: 0 }, { id: '12:1', nom: 'Design system', cadres: 0 }, { id: PAGE_DE_LA_PLANCHE, nom: 'Palettes', cadres: 2 }];
 /**
@@ -576,18 +574,6 @@ const ETATS = [
     ],
   },
   {
-    id: 'confirmation-six-palettes',
-    titre: 'Confirmation au-delà de six palettes',
-    quand: 'Le designer clique « Tout mettre à jour (7) » sur un fichier de sept palettes ni écrites ni dessinées, destination confirmée.',
-    regarder: 'La confirmation, sous le bloc « Connexion à Figma » : « Tout mettre à jour ? 308 variables à créer, 7 planches à dessiner. », et ses deux gestes, « Confirmer » au focus.',
-    existe: true,
-    atteinte: [
-      etatDuFichier(rangee(SEPT_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(SEPT_PALETTES), [])),
-      { clic: '#onglet-gestion' },
-      toutMettreAJour,
-    ],
-  },
-  {
     id: 'planche-sans-palette',
     titre: 'Onglet Gestion sans palette',
     quand: 'Le designer ouvre l’onglet Gestion d’un fichier sans palette.',
@@ -626,7 +612,7 @@ const ETATS = [
     id: 'planche-a-jour',
     titre: 'Planche à jour',
     quand: 'Bleu et Jaune ont été dessinées, et la recette n’a pas changé depuis.',
-    regarder: 'Le bilan « 2 synchronisées », sans « Tout mettre à jour ». Deux fiches « Synchronisée », « Modifier » dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
+    regarder: 'Deux fiches « Synchronisée », « Modifier » dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')])),
@@ -637,7 +623,7 @@ const ETATS = [
     id: 'planche-perimee',
     titre: 'Planche périmée',
     quand: 'Le cadre de Jaune a été dessiné sur une recette d’avant ; Ardoise n’a jamais été dessinée.',
-    regarder: 'Le bilan « 1 à mettre à jour », « 1 pas encore sur Figma », « 1 synchronisée » et « Tout mettre à jour (2) ». Bleu « Synchronisée », sa planche « À jour » avec « Afficher » ; Jaune « À mettre à jour », sa planche « À actualiser » avec « Actualiser » et « Afficher », de 24 px ; Ardoise « Pas encore sur Figma », sa planche « Pas encore créée » avec « Créer la planche ».',
+    regarder: 'Bleu « Synchronisée », sa planche « À jour » avec « Afficher » ; Jaune « À mettre à jour », sa planche « À actualiser » avec « Actualiser » et « Afficher », de 24 px ; Ardoise « Pas encore sur Figma », sa planche « Pas encore créée » avec « Créer la planche ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
@@ -648,7 +634,7 @@ const ETATS = [
     id: 'gestion-complete',
     titre: 'Gestion, vue complète',
     quand: 'Trois palettes dans un fichier de trois pages : Bleu à jour, Jaune périmée, Ardoise jamais dessinée.',
-    regarder: 'Le bloc « Connexion à Figma », gris et sans fond : « Synchronisé à l’instant », « Synchroniser » en texte gris à icône, la ligne « Planches », « page Palettes » et « Changer », puis le bilan et « Tout mettre à jour (2) ». 20 px de plus avant la barre « Palettes du plugin · 3 », ses bascules « Vue complète · Vue condensée » et Light, Dark. Une fiche par palette, sa pastille et « Modifier » en tête, sa ligne « Planche » en pied.',
+    regarder: 'La connexion repliée résume ses destinations. « Palettes du plugin · 3 » est ouverte : bascules « Vue complète · Vue condensée » et Light, Dark, puis une fiche par palette, sa pastille et « Modifier » en tête, sa ligne « Planche » en pied.',
     existe: true,
     atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche],
   },
@@ -656,7 +642,7 @@ const ETATS = [
     id: 'gestion-condensee',
     titre: 'Gestion, vue condensée',
     quand: 'Le designer presse « Vue condensée » sur le même fichier.',
-    regarder: 'Le bloc de la connexion sans « Tout mettre à jour » ; la bascule des thèmes absente ; un tableau sous ses en-têtes « Palette », « Nuances » et « Planche » : une ligne par palette, sa teinte et son nom, sa rampe en miniature, l’état de sa planche. Aucun geste.',
+    regarder: 'La connexion repliée ; la bascule des thèmes absente ; un tableau sous ses en-têtes « Palette », « Nuances » et « Planche » : une ligne par palette, sa teinte et son nom, sa rampe en miniature, l’état de sa planche. Aucun geste.',
     existe: true,
     atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '#panneau-gestion [data-bascule="vue"] .bascule-option:nth-child(2)' }],
   },
@@ -666,7 +652,7 @@ const ETATS = [
     quand: 'Le designer clique « Changer » sur la ligne « Planches ».',
     regarder: 'La carte « Page des planches » à la place du bloc, grise et sans fond ; la liste sur un fond gris plus foncé : Cover, Design system, Palettes cochée avec « 2 planches », puis « Nouvelle page » et son champ ; « Annuler » et « Enregistrer » au bord droit, « Enregistrer » inactif ; le focus sur la page cochée.',
     existe: true,
-    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '#panneau-gestion [data-geste="changer-la-page"]' }],
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '[data-section="connexion"] .section-bascule' },  { clic: '#panneau-gestion [data-geste="changer-la-page"]' }],
   },
   {
     id: 'page-des-planches-refusee',
@@ -678,6 +664,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(),
       ouvrirLaPlanche,
+      { clic: '[data-section="connexion"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="changer-la-page"]' },
       { saisie: { dans: '#panneau-gestion .choix .input', valeur: 'Palettes' } },
       { clic: '#panneau-gestion [data-geste="enregistrer"]' },
@@ -696,7 +684,7 @@ const ETATS = [
     id: 'tokens-a-jour',
     titre: 'Tokens à jour',
     quand: 'Bleu et Jaune sont écrites dans la collection « primitives », et leurs planches sont à jour.',
-    regarder: 'Deux fiches « Synchronisée » : « Tokens Figma », « À jour », « 44 variables », sans geste ; le bilan « 2 synchronisées », sans « Tout mettre à jour ».',
+    regarder: 'Deux fiches « Synchronisée » : « Tokens Figma », « À jour », « 44 variables », sans geste.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')]), 1, tokensEcrits(rangee([BLEU, JAUNE]), [BLEU, JAUNE])),
@@ -707,7 +695,7 @@ const ETATS = [
     id: 'tokens-a-mettre-a-jour',
     titre: 'Tokens à mettre à jour',
     quand: 'Deux couleurs de Jaune ont changé dans le plugin depuis la dernière écriture.',
-    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « À mettre à jour », « 2 couleurs ont changé dans le plugin » et « Mettre à jour » en bleu, sans encart ; « Tout mettre à jour » compte Jaune et Ardoise.',
+    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « À mettre à jour », « 2 couleurs ont changé dans le plugin » et « Mettre à jour » en bleu, sans encart.',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
@@ -752,11 +740,13 @@ const ETATS = [
     id: 'destination-ouverte',
     titre: 'Destination des tokens',
     quand: 'Le designer clique « Changer » sur la ligne « Tokens ».',
-    regarder: 'La carte « Destination des tokens » à la place du bloc, grise et sans fond. La liste des collections sur un fond gris plus foncé : « Nouvelle collection » et son champ, « primitives » cochée avec son nombre de variables, « Brand » et « 48 variables ». « Groupe » et « Thèmes Light et Dark » sur une rangée, « Dans le chemin » pressé. La simulation : « 44 variables · 1 mode », le panneau au nom de la collection, quatre groupes, le premier déplié sur trois nuances avec couleur et code, « 8 autres nuances ». « Annuler » et « Enregistrer » au bord droit.',
+    regarder: 'La carte « Destination des tokens » à la place du bloc, grise et sans fond. La liste des collections sur un fond gris plus foncé : « Nouvelle collection » et son champ, « primitives » cochée avec son nombre de variables, « Brand » et « 48 variables ». « Groupe » et « Thèmes Light et Dark » sur une rangée, « Dans le chemin » pressé. La simulation : « 44 variables · 1 mode », le panneau au nom de la collection, quatre chemins, chacun avec « 50 … 950 » et son compte de 11 variables. « Annuler » et « Enregistrer » au bord droit.',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
       ouvrirLaPlanche,
+      { clic: '[data-section="connexion"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
     ],
   },
@@ -764,11 +754,13 @@ const ETATS = [
     id: 'destination-en-modes',
     titre: 'Destination des tokens, thèmes en modes',
     quand: 'Dans la carte de la destination, le designer presse « En modes ».',
-    regarder: 'La simulation suit le choix : « 22 variables · 2 modes », deux colonnes de valeur, Light et Dark, et deux groupes, Soft et Vivid, sans segment de thème.',
+    regarder: 'La simulation suit le choix : « 22 variables · 2 modes », « modes Light, Dark » en tête et deux chemins, Soft et Vivid, sans segment de thème.',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
       ouvrirLaPlanche,
+      { clic: '[data-section="connexion"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
       { clic: '#panneau-gestion .carte-ouverte .bascule-option:nth-child(2)' },
     ],
@@ -783,6 +775,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
       ouvrirLaPlanche,
+      { clic: '[data-section="connexion"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
       { saisie: { dans: '#panneau-gestion .colonnes-de-base .input', valeur: 'colors.brand' } },
       { clic: '#panneau-gestion .carte-ouverte [data-geste="enregistrer"]' },
@@ -801,26 +795,6 @@ const ETATS = [
       { clic: '#panneau-gestion .fiche-planche [data-geste="ecrire"]' },
       { clic: '#panneau-gestion .fiche-planche [data-geste="confirmer-ecriture"]' },
       { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'nom-pris', nom: 'colors/ardoise/soft/light/50' }] } } },
-    ],
-  },
-  {
-    id: 'ecriture-partielle',
-    titre: 'Écriture partielle',
-    quand: 'Le designer confirme « Tout mettre à jour » : Figma interrompt l’écriture de Jaune, et Ardoise s’écrit.',
-    regarder: 'Dans la fiche de Jaune, le message « Écriture interrompue : Jaune » et son détail replié ; aucun message dans celle d’Ardoise ; sous le bloc de la connexion, la progression du dessin des planches, qui suit l’écriture des tokens.',
-    existe: true,
-    atteinte: [
-      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00' }) })),
-      ouvrirLaPlanche,
-      toutMettreAJour,
-      { clic: '#panneau-gestion .confirmation [data-geste="confirmer"]' },
-      {
-        message: {
-          type: 'variables-ecrites',
-          demande: 3,
-          resultat: { issue: 'ecrites', palettes: [{ palette: JAUNE.id, issue: 'interrompue', message: 'in setValueForMode: invalid mode' }, { palette: 'p-5c1d0e77', issue: 'ecrite', creees: 44, ecrites: 44 }] },
-        },
-      },
     ],
   },
   {
@@ -918,6 +892,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
+      { clic: '[data-section="fichier"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="reprendre"]' },
       { message: { type: 'reprise', demande: 3, issue: { issue: 'palette-introuvable' } } },
     ],
@@ -942,6 +918,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])))),
       ouvrirLaPlanche,
+      { clic: '[data-section="connexion"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
     ],
   },
@@ -954,6 +932,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
+      { clic: '[data-section="bibliotheques"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="copier"]' },
     ],
   },
@@ -967,6 +947,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
+      { clic: '[data-section="bibliotheques"] .section-bascule' },
+
       { clic: '#panneau-gestion [data-geste="copier"]' },
       { clic: '#panneau-gestion [data-geste="confirmer-copie"]' },
       { message: { type: 'copie', demande: 3, issue: { issue: 'bibliotheque-illisible', message: 'in importVariableByKeyAsync: could not find variable' } } },
@@ -1171,25 +1153,10 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([BLEU]))],
   },
   {
-    id: 'generation-partielle',
-    titre: 'Génération partielle',
-    quand: 'Sur trois palettes, la deuxième s’arrête : la première est créée, la troisième attend.',
-    regarder: 'Le bloquant sous le bloc « Connexion à Figma » : Jaune interrompue, Bleu conservée, Ardoise en attente, et « Réessayer », qui reprend à Jaune.',
-    existe: true,
-    // L'ouverture de l'onglet relit l'état (demande 2) : la génération porte la demande 3.
-    atteinte: [
-      etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(TROIS_PALETTES), TROIS_PALETTES)),
-      ouvrirLaPlanche,
-      toutMettreAJour,
-      { clic: '#panneau-gestion .confirmation [data-geste="confirmer"]' },
-      { message: { type: 'dessin', demande: 3, resultat: { issue: 'interrompue', palette: JAUNE.id, message: 'in set_characters: font not loaded', dessines: 1 } } },
-    ],
-  },
-  {
     id: 'cadre-deplace',
     titre: 'Cadre déplacé',
     quand: 'Le designer a rangé le cadre de Bleu dans une section de la page « Archives », et coupé puis collé celui de Jaune, qui change alors d’identifiant.',
-    regarder: 'La planche de Bleu « À jour », « page Archives », avec « Afficher » ; celle de Jaune « Introuvable » en rouge, « Synchronisez pour la chercher dans tout le fichier », sans geste ; le bilan « 1 à mettre à jour », « 1 synchronisée », sans « Tout mettre à jour ».',
+    regarder: 'La planche de Bleu « À jour », « page Archives », avec « Afficher » ; celle de Jaune « Introuvable » en rouge, « Synchronisez pour la chercher dans tout le fichier », sans geste.',
     existe: true,
     atteinte: [
       etatDuFichier(
@@ -1442,6 +1409,45 @@ function avecLaPremierePalette(etat) {
   if (palettes.length === 0 || etat.ouvertSurGestion) return etat;
   return { ...etat, atteinte: [lu, { clic: '#onglet-creation' }, ...(etat.sansPaletteChoisie ? [] : ouvrirLaPremierePalette), ...suite] };
 }
+
+ETATS.push(
+  {
+    id: 'sept-palettes',
+    titre: 'Gestion de sept palettes',
+    quand: 'Sept palettes attendent leurs premières sorties dans Figma.',
+    regarder: 'Une fiche par palette ; chaque sortie porte son geste d’écriture ou de dessin.',
+    existe: true,
+    ouvertSurGestion: true,
+    atteinte: [etatDuFichier(rangee(SEPT_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(SEPT_PALETTES), [])), ouvrirLaPlanche],
+  },
+  {
+    id: 'gestion-sections-repliees',
+    titre: 'Gestion, sections repliables',
+    quand: 'Le designer ouvre Gestion sans préférence de sections.',
+    regarder: 'Seule la section « Palettes du plugin » est ouverte. La connexion résume ses destinations ; les palettes du fichier et des bibliothèques restent dans deux sections distinctes.',
+    existe: true,
+    ouvertSurGestion: true,
+    atteinte: [gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])))), ouvrirLaPlanche],
+  },
+  {
+    id: 'gestion-connexion-depliee',
+    titre: 'Gestion, connexion dépliée',
+    quand: 'Le designer déplie « Connexion à Figma ».',
+    regarder: 'La destination des tokens et la page des planches portent « Changer ». Le pied porte l’heure de lecture et « Synchroniser ».',
+    existe: true,
+    ouvertSurGestion: true,
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '[data-section="connexion"] .section-bascule' }],
+  },
+  {
+    id: 'fichier-sans-variable-avec-bibliotheque',
+    titre: 'Fichier sans variable, bibliothèque distante',
+    quand: 'Le fichier ne porte aucune palette ni variable locale ; une bibliothèque activée publie gray.',
+    regarder: 'La section « Dans les bibliothèques » porte gray et « Publiées par une bibliothèque distante ». Son geste est « Copier dans le plugin ».',
+    existe: true,
+    ouvertSurGestion: true,
+    atteinte: [etatDuFichier('', 'SRGB', PLANCHE_VIDE, 1, avecLesBibliotheques(VARIABLES_VIDES)), ouvrirLaPlanche, { clic: '[data-section="bibliotheques"] .section-bascule' }],
+  },
+);
 
 ETATS.push({
   id: 'preference-de-langue',
