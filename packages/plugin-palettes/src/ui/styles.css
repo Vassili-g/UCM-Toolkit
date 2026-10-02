@@ -1170,8 +1170,8 @@
 }
 
 /*
- * La pastille d'un état : celui d'une fiche à droite de son nom, celui d'une
- * sortie dans sa ligne, celui d'un compte dans le bilan. Sa couleur dit la
+ * La pastille d'un état : celui d'une sortie dans sa ligne ou dans sa
+ * cellule du tableau. Sa couleur dit la
  * sévérité : orange en retard ou pas encore sur Figma, vert à jour, rouge
  * introuvable ou illisible.
  */
@@ -1260,7 +1260,7 @@
   outline-offset: 2px;
 }
 
-/* L'en-tête d'une fiche : la pastille d'état, puis « Modifier ». */
+/* Les gestes de l'en-tête d'une fiche : « Modifier », précédé d'une étiquette pour une palette hors du plugin. */
 .tete-gestes {
   display: flex;
   flex: none;

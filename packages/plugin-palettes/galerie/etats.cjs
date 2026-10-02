@@ -598,7 +598,7 @@ const ETATS = [
     id: 'pastilles-des-etats',
     titre: 'Pastilles des cinq états',
     quand: 'Cinq palettes : Bleu à jour, Jaune périmée, Ardoise jamais générée, Rouge au cadre introuvable, Vert au cadre illisible.',
-    regarder: 'Les pastilles des lignes « Planche » : « À jour » sur fond vert ; « À actualiser » et « Pas encore créée » en orange ; « Introuvable » et « Lecture impossible » en rouge. En tête de fiche, « Synchronisée » en vert, « À mettre à jour » et « Pas encore sur Figma » en orange. La planche introuvable invite à synchroniser et n’offre aucun geste. Chaque texte lisible sur son fond.',
+    regarder: 'Les pastilles des lignes « Planche » : « À jour » sur fond vert ; « À actualiser » et « Pas encore créée » en orange ; « Introuvable » et « Lecture impossible » en rouge. L’en-tête de fiche ne porte que « Modifier ». La planche introuvable invite à synchroniser et n’offre aucun geste. Chaque texte lisible sur son fond.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(CINQ_ETATS), 'SRGB', plancheLue(
@@ -612,7 +612,7 @@ const ETATS = [
     id: 'planche-a-jour',
     titre: 'Planche à jour',
     quand: 'Bleu et Jaune ont été dessinées, et la recette n’a pas changé depuis.',
-    regarder: 'Deux fiches « Synchronisée », « Modifier » dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
+    regarder: 'Deux fiches, « Modifier » seul dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')])),
@@ -623,7 +623,7 @@ const ETATS = [
     id: 'planche-perimee',
     titre: 'Planche périmée',
     quand: 'Le cadre de Jaune a été dessiné sur une recette d’avant ; Ardoise n’a jamais été dessinée.',
-    regarder: 'Bleu « Synchronisée », sa planche « À jour » avec « Afficher » ; Jaune « À mettre à jour », sa planche « À actualiser » avec « Actualiser » et « Afficher », de 24 px ; Ardoise « Pas encore sur Figma », sa planche « Pas encore créée » avec « Créer la planche ».',
+    regarder: 'Bleu, sa planche « À jour » avec « Afficher » ; Jaune, sa planche « À actualiser » avec « Actualiser » et « Afficher », de 24 px ; Ardoise, sa planche « Pas encore créée » avec « Créer la planche ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
@@ -684,7 +684,7 @@ const ETATS = [
     id: 'tokens-a-jour',
     titre: 'Tokens à jour',
     quand: 'Bleu et Jaune sont écrites dans la collection « primitives », et leurs planches sont à jour.',
-    regarder: 'Deux fiches « Synchronisée » : « Tokens Figma », « À jour », « 44 variables », sans geste.',
+    regarder: 'Deux fiches : « Tokens Figma », « À jour », « 44 variables », sans geste.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')]), 1, tokensEcrits(rangee([BLEU, JAUNE]), [BLEU, JAUNE])),
@@ -695,7 +695,7 @@ const ETATS = [
     id: 'tokens-a-mettre-a-jour',
     titre: 'Tokens à mettre à jour',
     quand: 'Deux couleurs de Jaune ont changé dans le plugin depuis la dernière écriture.',
-    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « À mettre à jour », « 2 couleurs ont changé dans le plugin » et « Mettre à jour » en bleu, sans encart.',
+    regarder: 'Jaune : « Tokens Figma », « À mettre à jour », « 2 couleurs ont changé dans le plugin » et « Mettre à jour » en bleu, sans encart.',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
@@ -706,7 +706,7 @@ const ETATS = [
     id: 'tokens-introuvables',
     titre: 'Tokens introuvables',
     quand: 'Trois variables de Jaune ont été supprimées du fichier.',
-    regarder: 'Jaune « À mettre à jour » : « Tokens Figma », « Introuvables » en rouge, « 3 variables ont disparu du fichier » et « Mettre à jour ».',
+    regarder: 'Jaune : « Tokens Figma », « Introuvables » en rouge, « 3 variables ont disparu du fichier » et « Mettre à jour ».',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { disparue: (entree, palette) => palette.id === JAUNE.id && ['soft/light/50', 'soft/light/100', 'soft/light/200'].includes(entree.cle) })),
@@ -1086,7 +1086,7 @@ const ETATS = [
     id: 'generation-reussie',
     titre: 'Génération réussie',
     quand: 'Bleu vient d’être générée depuis sa fiche, et l’état du fichier est relu.',
-    regarder: 'La fiche de Bleu « Synchronisée », sa planche « À jour » avec « Afficher », sans message de succès empilé.',
+    regarder: 'La fiche de Bleu, sa planche « À jour » avec « Afficher », sans message de succès empilé.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU])),
@@ -1360,7 +1360,7 @@ const ETATS = [
     id: 'fiche-refaite',
     titre: 'Fiche d’une palette',
     quand: 'Trois palettes dans l’onglet Palettes : Bleu à jour, Jaune périmée, Ardoise jamais générée.',
-    regarder: 'Chaque fiche en disposition A : le nom et l’état en pastille, verte ou orange ; les rampes ; la référence et les garanties sur une ligne ; puis les gestes, sans premier geste pour Bleu.',
+    regarder: 'Chaque fiche en disposition A : le nom et « Modifier » ; les rampes ; la référence et les garanties sur une ligne ; puis les gestes, sans premier geste pour Bleu.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),

@@ -5,8 +5,8 @@
  * choix ; « Palettes du plugin », ses deux bascules, la vue et le thème des
  * fiches, puis les palettes de la recette, dans son ordre.
  *
- * En vue complète, une fiche par palette : le nom, la pastille d'état et
- * « Modifier » sur la première ligne, les rampes dans le thème choisi, la
+ * En vue complète, une fiche par palette : le nom et « Modifier » sur la
+ * première ligne, les rampes dans le thème choisi, la
  * référence et le résultat des garanties, puis une ligne par sortie, tokens
  * et planche. Les deux décisions d'écriture se prennent dans la fiche, sans
  * modale : l'encart d'une écriture qui crée des variables ([UI-31]), et
@@ -128,7 +128,7 @@ function construireVues(i18n: Localisation) {
     couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, texteDuRenommage, titreDuRemplacement, variablesARenommer,
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
-    ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaFicheEcrit, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
+    ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, ouvrirLaFiche, pageDeLaPlanche, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette,
@@ -400,6 +400,30 @@ function construireVues(i18n: Localisation) {
     let ficheAMontrer: string | null = null;
     /** Le geste d'une fiche que le focus rejoint au rendu suivant : l'encart qui s'ouvre, ou le geste qu'il rend. */
     let gesteAFocaliser: { readonly palette: string; readonly geste: string } | null = null;
+
+    /*
+     * Un clic dans la fenêtre lui rend le focus, et ce retour fait relire
+     * l'état. Reçu entre l'appui et le relâchement, il remplacerait le bouton
+     * pressé, et le clic n'aurait plus de cible. L'état reçu pendant un appui
+     * attend donc le relâchement, et s'affiche après le clic.
+     */
+    let appui = false;
+    let etatEnAttente: Parameters<OngletGestionUi['afficher']> | null = null;
+    element.addEventListener('pointerdown', () => {
+      appui = true;
+    });
+    function relacher(): void {
+      if (!appui) return;
+      appui = false;
+      setTimeout(() => {
+        const attendu = etatEnAttente;
+        etatEnAttente = null;
+        if (attendu && !appui) onglet.afficher(...attendu);
+        else etatEnAttente = attendu;
+      });
+    }
+    window.addEventListener('pointerup', relacher);
+    window.addEventListener('pointercancel', relacher);
 
     /** Les gestes d'écriture, inactifs pendant un dessin, une écriture de variables ou un conflit d'enregistrement. */
     function rendreLesGestes(): void {
@@ -820,12 +844,12 @@ function construireVues(i18n: Localisation) {
       fiche.element.dataset.palette = id;
       fiche.element.dataset.etat = etat;
 
-      // L'état le plus urgent des sorties, puis « Modifier », qui ouvre Création sur la palette.
+      // « Modifier » ouvre Création sur la palette. L'état se lit sur chaque ligne de sortie, pas dans l'en-tête.
       const tete = document.createElement('span');
       tete.className = 'tete-gestes';
       const modifier = bouton(TEXTES_DE_LA_GESTION.modifier, 'bouton-discret', () => gestes.modifier(id, mode));
       modifier.dataset.geste = 'modifier';
-      tete.append(pastille(etat, etatDeLaFicheEcrit(etat)), modifier);
+      tete.append(modifier);
       fiche.tete.append(tete);
 
       // La référence : sa pastille, son code, et la nuance qui la porte dans le thème des fiches.
@@ -1242,9 +1266,14 @@ function construireVues(i18n: Localisation) {
 
     let empreinte: string | null = null;
 
-    return {
+    const onglet: OngletGestionUi = {
       element,
       afficher(classement, lue, plancheLue, profilLu, empreinteLue, variablesLues, luLeRecu) {
+        if (appui) {
+          etatEnAttente = [classement, lue, plancheLue, profilLu, empreinteLue, variablesLues, luLeRecu];
+          return;
+        }
+        etatEnAttente = null;
         gestes.recetteEnFichier.afficher(classement);
         if (classement.etat === 'future' || classement.etat === 'illisible') {
           recette = null;
@@ -1412,6 +1441,7 @@ function construireVues(i18n: Localisation) {
         if (issue.issue === 'retirees') focusApresRetrait = 0;
       },
     };
+    return onglet;
   }
   return { createOngletGestion };
 }

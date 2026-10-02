@@ -4367,3 +4367,32 @@ test('[ENT-15] [DER-19] au clavier, Fin pose la luminosité du réglage global �
     await page.close();
   }
 });
+
+test('[UI-26] un état relu entre l’appui et le relâchement ne perd pas le clic sur « Mettre à jour » ; l’en-tête d’une fiche ne porte que « Modifier »', async () => {
+  const page = await ouvrirSur('tokens-a-mettre-a-jour');
+  try {
+    await ouvrirLaPlanche(page);
+    const fiche = page.locator(`#panneau-gestion .fiche-planche[data-palette="${ID_DU_JAUNE}"]`);
+    assert.equal(await page.locator('#panneau-gestion .fiche-planche[data-palette] .carte-tete .pastille-d-etat').count(), 0);
+    assert.deepEqual(await fiche.locator('.carte-tete button').evaluateAll((boutons) => boutons.map((bouton) => bouton.dataset.geste)), ['modifier']);
+    assert.equal(await fiche.locator('.sortie[data-sortie="tokens"] .pastille-d-etat').textContent(), 'À mettre à jour');
+
+    const geste = fiche.locator('[data-geste="mettre-a-jour"]');
+    // La poignée suit le bouton pressé lui-même ; le sélecteur, lui, retrouverait celui qui le remplace.
+    const presse = await geste.elementHandle();
+    await geste.hover();
+    await page.mouse.down();
+    const avant = await compte(page);
+    // Le retour du focus fait relire l'état, et la réponse arrive avant le relâchement.
+    await page.evaluate(() => { window.dispatchEvent(new Event('blur')); window.dispatchEvent(new Event('focus')); });
+    const relecture = await prochaineDuType(page, 'lire-etat', avant);
+    await envoyer(page, { ...messageDe('tokens-a-mettre-a-jour'), demande: relecture.demande });
+    assert.equal(await presse.evaluate((bouton) => bouton.isConnected), true, 'le bouton pressé reste en place');
+    await page.mouse.up();
+    await page.locator(`#panneau-gestion .fiche-planche[data-palette="${ID_DU_JAUNE}"] [data-geste="mettre-a-jour"]:disabled`).waitFor();
+    // L'état attendu s'affiche après le clic : la fiche se reconstruit, et le bouton pressé quitte le document.
+    await page.waitForFunction((bouton) => !bouton.isConnected, presse);
+  } finally {
+    await page.close();
+  }
+});
