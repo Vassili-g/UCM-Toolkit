@@ -82,9 +82,9 @@ valeur uniforme par text style (`literals`) et par calque (les champs d’usage 
 `variantViews.*.typography`).
 
 Le contrat 14.0 publie déjà l'opacité tokenisée, les styles d'effets pris en
-charge et le placement des enfants d'un cadre sans auto layout. Le
-[bilan des propriétés visuelles](../Diagnostics%20d'un%20composant%20réel/README.md)
-précise ces acquis et les réserves ; ils ne constituent plus des extensions à concevoir.
+charge et le placement des enfants d'un cadre sans auto layout. La
+[spécification du moteur](../../../../packages/plugin-exporter/SPEC.md)
+décrit ces acquis et leurs limites ; ils ne constituent plus des extensions à concevoir.
 
 **Solutions à comparer.** Les plages d’un même calque texte peuvent porter des
 réglages différents. Figma rend alors `figma.mixed`, qui ne porte aucune valeur,

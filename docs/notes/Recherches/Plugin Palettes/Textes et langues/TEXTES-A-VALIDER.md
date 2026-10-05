@@ -277,8 +277,7 @@ Lignes simples, sans les trois parties :
 
 ## Textes du Color shift et de la mise en page stable
 
-Ces textes viennent de l'[étude du Color shift](../Color%20shift/ETUDE-COLOR-SHIFT.md)
-et des sections 12 et 13 de la [spécification](../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift).
+Ces textes viennent des sections 12 et 13 de la [spécification](../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift).
 Le français est la rédaction de référence ; l'anglais le traduit phrase par
 phrase. « Color shift » garde son nom dans les deux langues (décision Q1).
 

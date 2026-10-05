@@ -12,10 +12,10 @@ et du code, pas d'une ancienne liste de tâches.
 
 | Sujet | Éléments présents | Référence à conserver |
 |---|---|---|
-| Diagnostics de l'exporteur et propriétés visuelles du contrat 14.0 | Regroupement des constats, opacité, styles d'effets, placement des enfants de cadres libres | [Bilan et réserves](./Diagnostics%20d'un%20composant%20réel/README.md) ; les deux plans et leurs journaux d'exécution sont remplacés par ce bilan |
+| Diagnostics de l'exporteur et propriétés visuelles du contrat 14.0 | Regroupement des constats, opacité, styles d'effets, placement des enfants de cadres libres | [Spécification du moteur](../../../packages/plugin-exporter/SPEC.md) et [format du contrat](../../format/FORMAT.md) |
 | Plugin Palettes, ergonomie et réglages | Moteur, planches, modèles de nuances, référence réglable et interface de test | [Bilan Palettes](./Plugin%20Palettes/README.md) ; spécification et mesures conservées |
-| Palettes désaturées et grises | Ancrage dans `palette.ts`, réglages dans `reglages.ts`, tests du moteur | [Conception et cas limites](./Plugin%20Palettes/3%20Palettes%20désaturées/PLAN-PALETTES-DESATUREES.md) |
-| Color shift et limites | Trois grandeurs, réglage global borné, calcul des limites par tranches dans l'interface | [Étude](./Plugin%20Palettes/Color%20shift/ETUDE-COLOR-SHIFT.md) ; l'écriture des couches de marque et la migration du Playground sont des sujets distincts |
+| Palettes désaturées et grises | Ancrage dans `palette.ts`, réglages dans `reglages.ts`, tests du moteur | [Spécification, section 6.4](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran) |
+| Color shift et limites | Trois grandeurs, réglage global borné, calcul des limites par tranches dans l'interface | [Spécification, section 12](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift) ; l'écriture des couches de marque et la migration du Playground sont des sujets distincts |
 | Langues de Palettes | Catalogues anglais et français, préférence locale, traduction immédiate | [Plan et limites de validation](./Plugin%20Palettes/Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes) ; décisions éditoriales et export des validations conservés |
 | Direction simple de Palettes | Création, Vérification, Gestion, variables locales, reprise, copie de bibliothèque, sections repliables et simulation des chemins | [Parcours et recette](./Plugin%20Palettes/Intégration%20du%20marché/README.md) |
 | Explorateur de tokens | Résolution, comparaison, diagnostics, intégrations, relevés et simulation | [Spécification](../../../packages/plugin-explorateur/SPEC.md) et [suivi des preuves](./Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) |
@@ -26,7 +26,7 @@ et du code, pas d'une ancienne liste de tâches.
 | Sujet | Acquis | Suite distincte |
 |---|---|---|
 | [Performance de l'analyse](./Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) | Maître résolu une fois par analyse, index par page, annulation, traces et avancement dans le build courant | Préchauffage conditionné par les sondes, accélérations après mesure, reprise d'un index modifié ; conserver les sondes et le plan |
-| [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Vocabulaire commun dans `packages/kit/src/emplois`, dix-neuf paires, quatre rangs, diagnostic des emplois et crans 400/950 | Déployer les six collections dans Figma et migrer les consommateurs ; Palettes écrit les palettes primitives, sans générer `brand`, `theme` ou `usage` |
+| [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Vocabulaire commun dans `packages/kit/src/emplois`, dix-neuf paires, quatre rangs, diagnostic des emplois et crans 400/950 | Déployer les six collections dans Figma, migrer les consommateurs et étudier les usages indexés et leurs garanties ; Palettes écrit les palettes primitives, sans générer `brand`, `theme` ou `usage` |
 
 Le Playground et `intencial-library` portent encore l'axe
 `color-brand-tokens`, à deux marques, sans axe de thème dans leurs exports.
@@ -37,6 +37,7 @@ bibliothèques.
 
 | Sujet | État et raison de conservation |
 |---|---|
+| [Collection `usage`](./Archi%20Tokens%20Multi-marques/Collection%20usage/README.md) | Les propositions successives pour la collection `usage`, de la table des emplois aux dossiers à texte constant ; aucune évolution du produit appliquée |
 | [Direction artistique](./Direction%20artistique/README.md) | Propositions non validées, dont Capitule ; conserver les planches, leurs générateurs et les SVG |
 | [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
 | [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Piste non implémentée ; la parité TypeScript ne compare pas le rendu |
@@ -49,15 +50,12 @@ versions et fonctions doivent être revérifiés avant une nouvelle décision.
 
 ## Documents anciens conservés pour validation du tri
 
-Deux ensembles mêlent des propositions remplacées et des choix du mainteneur :
+Un ensemble mêle des propositions remplacées et des choix du mainteneur :
 
-- `Plugin Palettes/2 Ergonomie` : six plans successifs, maquettes et générateurs.
-  Les comportements actuels sont documentés dans la spécification ; les textes
-  contiennent aussi des retours et des variantes graphiques.
 - `Plugin Palettes/Intégration du marché/01` à `06` : parcours remplacés
   par la direction simple, mais propositions de gestion des marques, de jeu
   de départ et de vision simulée encore utiles.
 
-Ces ensembles restent présents jusqu'à validation de leur suppression.
+Cet ensemble reste présent jusqu'à validation de sa suppression.
 La spécification de Palettes, les mesures, les validations éditoriales et les
 maquettes utilisées par une vérification restent des références à conserver.

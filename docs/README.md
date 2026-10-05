@@ -58,7 +58,7 @@ chaque chantier et les sources qui attestent son implémentation.
 | Ensemble | Entrée |
 |---|---|
 | Palettes, ergonomie, langues et écriture des variables | [Bilan Palettes](./notes/Recherches/Plugin%20Palettes/README.md) |
-| Diagnostics et propriétés visuelles du contrat 14.0 | [Bilan exporteur](./notes/Recherches/Diagnostics%20d'un%20composant%20réel/README.md) |
+| Diagnostics et propriétés visuelles du contrat 14.0 | [Spécification du moteur](../packages/plugin-exporter/SPEC.md) et [format](./format/FORMAT.md) |
 | Performance de l'export | [Plan partiellement implémenté](./notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) |
 | Coût de génération et projet d'implémenteur | [Études et plan](./notes/Recherches/Optimisation%20Tokens/README.md) |
 | Identité graphique | [Direction artistique](./notes/Recherches/Direction%20artistique/README.md) |

@@ -239,8 +239,7 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
 - [x] **A2.9** [AGENTS.md](../../../../AGENTS.md), carte du code : le point
   d'entrée `@ucm-kit/core/emplois` porte les emplois, les dix-neuf paires, les
   rangs et le contraste ; `ucm-couleur` les importe.
-  [INSTRUCTION-NOMBRE-DE-NUANCES.md](../Plugin%20Palettes/2%20Ergonomie/INSTRUCTION-NOMBRE-DE-NUANCES.md)
-  perd le préréglage 9.
+  `INSTRUCTION-NOMBRE-DE-NUANCES.md` perd le préréglage 9.
 
 ## Lot A3 : l'écriture des variables
 

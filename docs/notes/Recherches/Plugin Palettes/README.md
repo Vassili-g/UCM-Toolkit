@@ -10,12 +10,13 @@ reste la référence des règles, malgré son emplacement dans ce dossier.
 | Sujet | État | Documents utiles |
 |---|---|---|
 | Moteur et planches | Implémentés dans `packages/couleur` et `packages/plugin-palettes` | Spécification ; [recherche initiale](./1%20Recherche%20initiale/) pour les mesures et la comparaison du marché |
-| Ergonomie, nuances et référence | Implémentées, puis reprises dans le parcours Création, Vérification et Gestion | [Étude des intensités](./2%20Ergonomie/RECHERCHE-REFONTE-INTENSITES.md) et mesures ; les plans V1 à V6 décrivent des étapes remplacées |
-| Palettes désaturées et grises | Implémentées dans `palette.ts` et `reglages.ts` | [Conception](./3%20Palettes%20désaturées/PLAN-PALETTES-DESATUREES.md), cas limites et script de mesure |
-| Color shift et réglage global borné | Implémentés, y compris le calcul des limites par tranches | [Étude](./Color%20shift/ETUDE-COLOR-SHIFT.md), maquette et mesure |
+| Ergonomie, nuances et référence | Implémentées, puis reprises dans le parcours Création, Vérification et Gestion | [Spécification](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md), sections 8 et 9 |
+| Palettes désaturées et grises | Implémentées dans `palette.ts` et `reglages.ts` | [Spécification, section 6.4](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran) |
+| Color shift et réglage global borné | Implémentés, y compris le calcul des limites par tranches | [Spécification, section 12](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift) |
 | Anglais et français | Implémentés ; anglais par défaut, choix conservé sur le poste | [Plan et réserves de validation](./Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes), [décisions éditoriales](./Textes%20et%20langues/DECISIONS-REDACTION-PALETTES.md) |
-| Variables et parcours en trois onglets | Implémentés, avec reprise locale et copie de bibliothèque | [Direction simple et recette](./Intégration%20du%20marché/README.md) |
+| Variables et parcours en trois onglets | Implémentés, avec reprise locale et copie de bibliothèque | [Direction simple et recette](./Intégration%20du%20marché/README.md) ; [règles d'écriture et de reprise](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#17-sortie-2--les-variables) |
 | Sections repliables de Gestion et simulation des chemins | Présentes dans `ongletGestion.ts`, `connexion.ts` et `destination.ts` | [Maquettes de recette](./Intégration%20du%20marché/08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) ; conserver les variantes graphiques jusqu'au tri validé |
+| Liste dépliable de Gestion | Implémentée dans `ongletGestion.ts` : une ligne par palette, sa fiche dépliée dessous | [Maquette validée](./Liste%20dépliable%20dans%20Gestion/MAQUETTE-LISTE-DEPLIABLE.html) |
 
 Une recette non consignée ne remet pas ces fonctions dans les travaux à
 implémenter. Les anciens nombres de tests et états de copie de travail ne
@@ -32,6 +33,14 @@ décrivent pas le build courant.
 - La comparaison et l'harmonisation de plusieurs palettes sont à l'étude :
   le [plan de recherche](./Harmonisation%20entre%20palettes/PLAN-RECHERCHE-HARMONISATION.md)
   porte une première mesure et les questions ouvertes, sans implémentation.
+- Le texte des boutons en Light et en Dark est à l'étude : le
+  [dossier de recherche](./Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)
+  porte les décisions du mainteneur et la proposition du thème inversé, sans
+  implémentation.
+- La place des commandes Light/Dark et Soft/Vivid est décidée, sauf le sens de
+  « Les deux » dans le Color shift : voir le
+  [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md),
+  sans implémentation.
 - La validation éditoriale anglaise et les vérifications propres à Figma
   restent à consigner dans les recettes concernées.
 
@@ -42,7 +51,7 @@ restent utiles. L'export
 [validation-textes-palettes.json](./Textes%20et%20langues/validation-textes-palettes.json)
 conserve les réponses du mainteneur ; il ne doit pas être réécrit.
 
-Les plans successifs et les maquettes remplacées sont conservés en attente
+Les parcours remplacés d'Intégration du marché sont conservés en attente
 du choix de tri indiqué dans l'[état global des recherches](../README.md).
 Les scripts de maquettes peuvent dépendre d'un ancien DOM de galerie :
 leur présence ne garantit pas qu'ils régénèrent le résultat avec le build courant.
