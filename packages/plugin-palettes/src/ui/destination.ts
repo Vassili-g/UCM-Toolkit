@@ -270,7 +270,7 @@ function construireVues(i18n: Localisation) {
           carte.element.hidden = true;
           return true;
         }
-        refus.replaceChildren(issue.issue === 'suivi-futur' ? blocDeConstat(suiviFutur(), 'bloquant') : blocDeConstat(refusDeLaDestination(issue.refus), 'alerte'));
+        refus.replaceChildren(issue.issue === 'interrompue' ? blocDeConstat(i18n.messages.gesteInterrompu(issue.message), 'alerte') : issue.issue === 'suivi-futur' ? blocDeConstat(suiviFutur(), 'bloquant') : blocDeConstat(refusDeLaDestination(issue.refus), 'alerte'));
         refus.hidden = false;
         rendre();
         return false;

@@ -231,6 +231,7 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
 
 packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/code.ts              routage des demandes de l'interface, une porte par geste d'écriture
+  src/fileDuDocument.ts    file commune des lectures et mutations du document ; un refus libère le geste suivant
   src/messages.ts          les deux sens de la frontière sandbox ↔ interface
   src/lecture.ts           la recette rangée, classée, son empreinte, le profil du document, les cadres retrouvés où qu'ils soient, et les pages du fichier
   src/analyse.ts           une palette pour l'onglet : rampes, promesses, alertes et notices triées
@@ -285,7 +286,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
   src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, l'écriture des variables et le dessin après lui, un seul choix de page et un seul rangement de destination en vol
-  src/ui/ongletGestion.ts  l'onglet Gestion : les sections repliables, les palettes du plugin et leurs deux vues ; en vue complète une fiche par palette, « Modifier », rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; en vue condensée un tableau ; une carte par palette supprimée ; « Déjà dans le fichier », les palettes des variables hors du plugin ; notices, recette repliée
+  src/ui/ongletGestion.ts  l'onglet Gestion : les sections repliables, la liste dépliable des palettes ; une ligne par palette, et dépliée « Modifier » et sa fiche : rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; « Déjà dans le fichier » et « Dans les bibliothèques » dans la même liste ; une carte par palette supprimée ; notices, recette repliée
   src/ui/connexion.ts      la section « Connexion à Figma » : destination des tokens et page des planches en résumé ; dépliée, leurs gestes « Changer », l’heure du dernier état lu et « Synchroniser »
   src/ui/destination.ts    la carte « Destination des tokens » : collection en liste à choix unique, groupe, thèmes, simulation du panneau des variables, et le refus du sandbox
   src/ui/pageDesPlanches.ts la carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et le refus du sandbox
@@ -1213,12 +1214,22 @@ La spécification en lien porte le raisonnement.
   `reprendreLaPalette` range la recette qui la porte et la liaison de
   reprise de son suivi ensemble, sous un seul `commitUndo`, sans écrire une
   variable ; le sandbox retrouve lui-même la palette du fichier, et la
-  liaison ne vient jamais de l'interface. Sous cette liaison, le plan ne
-  rend que les entrées que le suivi désigne, et l'écriture remplace des
-  couleurs sans créer, renommer ni déplacer une variable : une variable
-  disparue quitte le suivi, et un thème sans mode ne s'écrit pas. Le suivi
-  ne suit pas une variable dans le thème où elle porte un alias. Une palette
-  reprise puis supprimée rend ses variables à « Déjà dans le fichier ».
+  liaison ne vient jamais de l'interface. Le suivi garde le groupe du chemin
+  source à la reprise, puis celui de la destination après écriture. Le plan
+  emploie le groupe configuré si celui-ci a changé ; sinon il suit le groupe
+  relu dans les variables suivies. Le dernier segment du chemin source nomme
+  la palette. Le suivi garde le chemin cible après écriture. Si toutes les
+  variables d'origine disparaissent, le plan peut les recréer sous ce chemin.
+  Pour une palette figée, le plan ne rend que les entrées que le suivi désigne
+  tant qu'une variable d'origine subsiste. L'écriture remplace les couleurs
+  des variables suivies, peut renommer leurs chemins sans changer leurs
+  identifiants, et crée les entrées manquantes. Un suffixe non vide après un
+  tiret, placé après le numéro de nuance, est conservé lors d'un renommage et
+  ne déclenche pas seul une mise à jour. Un tiret final seul reste un
+  renommage. Un mode suivi disparu refuse l'écriture avant toute mutation.
+  Le suivi ne suit pas une variable dans le thème où elle porte
+  un alias. Une palette reprise puis supprimée rend ses variables à « Déjà
+  dans le fichier ».
   `packages/plugin-palettes/tests/reprise.test.ts` le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#174-les-palettes-du-fichier)
 - Le plan des variables d'une palette prend ses couleurs dans `rampesDe`,
@@ -1231,7 +1242,9 @@ La spécification en lien porte le raisonnement.
   ordre : une variable suivie absente du fichier, introuvables ; une couleur
   lue différente de la dernière écrite, modifiés dans Figma ; une couleur
   calculée différente de la dernière écrite, une clé du plan hors du suivi
-  ou une destination changée, à mettre à jour. Deux couleurs sont égales à
+  ou une destination changée, à mettre à jour. Un ancien groupe rangé ne
+  signale pas de changement si les variables suivies sont déjà dans la
+  collection et aux noms prévus par le plan. Deux couleurs sont égales à
   l'octet, après arrondi des composantes de Figma (`hexaDeFigma`,
   `src/variables/releve.ts`). Un suivi d'une forme inattendue se lit vide,
   et un suivi d'une version plus récente ne se lit pas. `etatDesTokens`
@@ -1263,8 +1276,8 @@ La spécification en lien porte le raisonnement.
   range dans `figma.clientStorage` sous `ucm-palettes.langue`, jamais dans
   le document. `src/preferences.ts` ne reçoit que `getAsync` et `setAsync`,
   et ordonne ses rangements : le dernier choix est celui de l'ouverture
-  suivante. La vue de Gestion s'y range de même, sous `ucm-palettes.vue` ;
-  une valeur absente ou inconnue donne la vue complète.
+  suivante. Les sections ouvertes de Gestion s'y rangent de même, sous
+  `ucm-palettes.sections`.
   `packages/plugin-palettes/tests/i18n.test.ts` le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets)
 - Les vues de `src/ui/` ne posent aucun mot en dur : chaque texte, infobulle

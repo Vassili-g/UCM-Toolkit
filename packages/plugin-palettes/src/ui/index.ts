@@ -13,7 +13,7 @@ import { LANGUES, resoudreLangue } from '../i18n/langues';
 import { lireLImport } from '../importation';
 import { VARIABLES_SANS_SUIVI } from '../lectureDesVariables';
 import type { PluginMessage } from '../messages';
-import { resoudreSections, resoudreVue, type SectionsDeGestion, type VueDeGestion } from '../preferences';
+import { resoudreSections, type SectionsDeGestion } from '../preferences';
 import { palettesDuFichier } from '../variables/detection';
 import { suiviFutur, variablesSuivies } from '../variables/suivi';
 import { consequenceDeLImport } from '../planche/fraicheur';
@@ -34,7 +34,7 @@ import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
 
-export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion, sections: SectionsDeGestion) {
+export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) {
   const { createBackButton, createButton, createSettingsButton, createOnglets } = creerSocleLocalise(i18n);
   const { createBarreDePalette } = creerVuesBarreDePalette(i18n);
   const { createConfiguration } = creerVuesConfiguration(i18n);
@@ -211,7 +211,6 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion, sections: 
     },
     synchroniser: () => relireLaPlanche('fichier'),
     choisirLaPage: (page) => frontiere.choisirLaPage(page),
-    rangerLaVue: (choisie) => versSandbox({ type: 'ranger-vue', vue: choisie }),
     rangerLesSections: (ouvertes) => versSandbox({ type: 'ranger-sections', sections: ouvertes }),
     // Un rangement refusé abandonne l'écriture qui l'attendait : l'onglet rend ses gestes.
     ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
@@ -242,7 +241,7 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion, sections: 
       return parti;
     },
     recetteEnFichier: createGestesDeLaRecette(demandesDeLaRecette),
-  }, vue, sections);
+  }, sections);
 
   /** La palette qu'une reprise ou une copie vient de ranger : Création s'ouvre sur elle quand l'état relu la porte ([UI-34]). */
   let paletteReprise: string | null = null;
@@ -485,6 +484,9 @@ export function creerVuesIndex(i18n: Localisation, vue: VueDeGestion, sections: 
           ongletCreation.ouvrirLaPalette(reprise, 'light');
         }
       }
+    } else if (message.type === 'etat-refuse' && frontiere.accepterErreurDeLecture(message)) {
+      ongletGestion.recevoirErreurDeLecture(message.message);
+      allerA('gestion');
     } else if (message.type === 'reprise' && frontiere.recevoirReprise(message)) {
       ongletGestion.recevoirReprise(message.issue);
       repriseRangee = message.issue.issue === 'reprise';
@@ -549,6 +551,6 @@ onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
   if (message?.type !== 'langue') return;
   const i18n = creerLocalisation(resoudreLangue(message.langue));
   i18n.changer(i18n.langue);
-  creerVuesIndex(i18n, resoudreVue(message.vue), resoudreSections(message.sections));
+  creerVuesIndex(i18n, resoudreSections(message.sections));
 };
 versSandbox({ type: 'lire-langue' });

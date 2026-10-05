@@ -14,6 +14,8 @@ import type { VariableLue } from './releve';
 import { cheminCommun, origineDeLaReprise, variableDeLEntree } from './reprise';
 
 export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
+  readonly nomsOccupes: readonly string[];
+  readonly themes: Destination['themes'] | 'light-seul';
   /** Le nombre de variables que la palette porte sous la destination d'aujourd'hui. */
   readonly variables: number;
   /** Les noms des variables qu'une écriture créerait, dans l'ordre du plan. */
@@ -38,28 +40,33 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
   const { destination } = fichier.suivi;
   const suivie = fichier.suivi.palettes[palette.id];
   const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, fichier.variables) : null;
-  const plan = planDesVariables(recette, palette, destination, suivie, origine);
+  const nomsOccupes: string[] = [];
+  const plan = planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes);
   const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
-  const etat = etatDesTokens(plan, suivie, lues, destination);
+  const lu = etatDesTokens(plan, suivie, lues, destination);
+  const etat = { ...lu, etat: lu.etat === 'a-jour' && nomsOccupes.length > 0 ? 'a-mettre-a-jour' as const : lu.etat, nomsOccupes };
   const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
   if (suivie?.liaison === 'reprise') {
-    // Ce que la palette porte de plus que ses variables d'origine se crée sous leur chemin.
+    // Ce que la palette porte de plus que ses variables d'origine se crée sous le chemin du plan.
     const presentes = new Set<string>();
     const aCreer = new Set<string>();
+    const variablesDuPlan = new Map<string, VariableLue>();
     let aRemplacer = 0;
     for (const entree of plan) {
-      const lue = variableDeLEntree(entree, suivie, origine);
+      const lue = variableDeLEntree(entree, suivie, origine) ?? variablesDuPlan.get(entree.nom);
       if (!lue) {
         if (entree.nom !== '') aCreer.add(entree.nom);
         continue;
       }
+      if (entree.nom !== '') variablesDuPlan.set(entree.nom, lue);
       presentes.add(lue.id);
       const mode = suivie.modes[entree.mode];
       // Un thème dont le mode reste à trouver s'écrit dans une variable présente : il compte parmi les couleurs remplacées.
       if (mode === undefined || lue.valeurs[mode] !== entree.hexa) aRemplacer += 1;
     }
     const chemin = origine?.chemin ?? cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
-    return { ...etat, variables: presentes.size + aCreer.size, aCreer: [...aCreer], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
+    const themes = !plan.some((entree) => entree.cle.includes('/dark/')) ? 'light-seul' : plan.some((entree) => entree.mode === 'dark') ? 'modes' : 'chemin';
+    return { ...etat, themes, variables: presentes.size + aCreer.size, aCreer: [...aCreer], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
   }
   const garde = suivie && !etat.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
 
@@ -71,17 +78,21 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
     if (!lue) continue;
     resolus.add(entree.nom);
     const mode = garde!.modes[entree.mode];
-    if (mode !== undefined && lue.valeurs[mode] !== entree.hexa) aRemplacer += 1;
+    const differente = entree.mode === 'unique'
+      ? fichier.collections.find((collection) => collection.id === garde!.collection)?.modes.some((cible) => lue.valeurs[cible.id] !== entree.hexa)
+      : mode !== undefined && lue.valeurs[mode] !== entree.hexa;
+    if (differente) aRemplacer += 1;
   }
   const noms = nomsDuPlan(plan);
   const collection = garde
     ? collections.get(garde.collection)!
     : 'id' in destination.collection ? collections.get(destination.collection.id) ?? null : destination.collection.nom;
-  return { ...etat, variables: noms.length, aCreer: noms.filter((nom) => !resolus.has(nom)), aRemplacer, collection, reprise: false, origine: null };
+  return { ...etat, themes: destination.themes, variables: noms.length, aCreer: noms.filter((nom) => !resolus.has(nom)), aRemplacer, collection, reprise: false, origine: null };
 }
 
 /** Les variables qu'une palette supprimée de la recette laisse dans le fichier. */
 export interface VariablesOrphelines {
+  readonly ancienne?: boolean;
   readonly palette: string;
   /** Le nombre de variables suivies que le fichier porte encore. */
   readonly variables: number;
@@ -104,7 +115,7 @@ export function variablesDesPalettesSupprimees(recette: Pick<Recette, 'palettes'
       .map((id) => lues.get(id)?.nom)
       .filter((nom): nom is string => nom !== undefined);
     if (noms.length === 0) continue;
-    orphelines.push({ palette, variables: noms.length, chemin: cheminCommun(noms) || noms[0] });
+    orphelines.push({ palette, variables: noms.length, chemin: cheminCommun(noms) || noms[0], ...(suivie.sortieAnterieureDe ? { ancienne: true } : {}) });
   }
   return orphelines;
 }

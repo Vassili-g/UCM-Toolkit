@@ -261,6 +261,17 @@ test('[VAR-05] une destination changée depuis l’écriture demande une mise à
   assert.deepEqual(etatDesTokens(PLAN, reprise, lues(['#F0F0F0', '#E0E0E0']), DESTINATION).etat, 'a-mettre-a-jour');
 });
 
+test('[VAR-05] un groupe renommé dans Figma et dans la destination reste à jour si les variables suivies y sont déjà', () => {
+  const suivi = ecrit(['#F0F0F0', '#E0E0E0']);
+  const plan = PLAN.map((entree) => ({ ...entree, nom: entree.nom.replace('colors/', 'Colors/') }));
+  const variables = new Map([
+    ['v0', { id: 'v0', nom: 'Colors/Gris/light/50', collection: suivi.collection, valeurs: { m: '#F0F0F0' } }],
+    ['v1', { id: 'v1', nom: 'Colors/Gris/light/100', collection: suivi.collection, valeurs: { m: '#E0E0E0' } }],
+  ]);
+  const etat = etatDesTokens(plan, { ...suivi, groupe: 'colors' }, variables, { ...DESTINATION, groupe: 'Colors' });
+  assert.deepEqual([etat.etat, etat.destinationChangee, etat.aEcrire.length], ['a-jour', false, 0]);
+});
+
 test('[VAR-05] deux couleurs sont égales à l’octet : les composantes de Figma s’arrondissent', () => {
   assert.equal(hexaDeFigma({ r: 0.11764705926179886, g: 0.43529412150382996, b: 0.8509804010391235 }), '#1E6FD9');
   assert.equal(hexaDeFigma({ r: 1, g: 1, b: 1, a: 1 }), '#FFFFFF');

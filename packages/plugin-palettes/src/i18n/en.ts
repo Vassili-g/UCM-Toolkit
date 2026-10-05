@@ -1570,9 +1570,6 @@ export const TEXTES_DE_LA_GESTION = {
   pageParDefaut: "Palettes",
   pageACreer: "created with the first board",
   changer: "Change",
-  vues: "View",
-  vueComplete: "Full view",
-  vueCondensee: "Compact view",
   planche: "Board",
   modifier: "Edit",
   creerLaPlanche: "Create board",
@@ -1688,11 +1685,6 @@ export function planchesDeLaPage(nombre: number): string {
 /** L'infobulle du résultat des garanties d'une fiche, qui ouvre Vérification ([UI-26]). */
 export function verifierLaPalette(nom: string): string {
   return `Check ${nom}`;
-}
-
-/** Le nom accessible d'une ligne de la vue condensée, qui ouvre la fiche ([UI-27]). */
-export function ouvrirLaFiche(nom: string): string {
-  return `Open the ${nom} card`;
 }
 
 /** Un refus de « Enregistrer », dans la carte « Page des planches » ([PLA-29]). */
@@ -2052,10 +2044,34 @@ export function bibliothequeIllisible(message: string): ConstatIllustre {
 }
 
 /** Figma n'a pas rendu les collections des bibliothèques : leurs palettes ne paraissent pas ([VAR-14]). */
-export function bibliothequesIllisibles(): Constat {
+export function bibliothequesIllisibles(noms: readonly string[] = []): Constat {
   return {
     ou: "Libraries",
-    quoi: "Figma did not return the library collections. Their palettes are not shown here.",
+    quoi: noms.length > 0 ? `Figma did not return these collections: ${noms.join(', ')}. Their palettes are not shown here.` : "Figma did not return the library collections. Their palettes are not shown here.",
     geste: "Sync to read them again.",
   };
+}
+
+export function tokensPartiels(noms: readonly string[]): Constat {
+  return { ou: 'Palette partly written', quoi: `These names belong to variables outside the palette: ${noms.join(', ')}.`, geste: 'Rename these variables in Figma, or change the destination group, then update.' };
+}
+
+export function formeDesThemes(themes: 'chemin' | 'modes' | 'light-seul'): string {
+  return themes === 'light-seul' ? 'Light only' : themes === 'modes' ? 'Themes in modes' : 'Themes in paths';
+}
+
+export function modeDisparu(palette: string, mode: string): Constat {
+  return { ou: `Tokens not written: ${palette}`, quoi: `The tracked ${mode} mode is no longer in the collection.`, geste: 'Restore the mode with Undo in Figma, or cancel the adoption and adopt the palette again after syncing.' };
+}
+
+export function gesteInterrompu(message: string): ConstatIllustre {
+  return { ou: 'Figma interrupted the request', quoi: 'The request did not complete.', geste: 'Sync in Management, then retry.', detail: `Error details: ${message}` };
+}
+
+export function referencesImportees(noms: readonly string[]): Constat {
+  return { ou: 'Library references imported', quoi: `These references are available in the file: ${noms.join(', ')}. The palette was not copied.`, geste: 'Sync, then retry copying.' };
+}
+
+export function ancienneSortie(nombre: number): string {
+  return `${variables(nombre)} from the previous destination remain in Figma. Deleting them does not affect the current destination.`;
 }

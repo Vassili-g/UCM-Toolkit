@@ -1562,9 +1562,6 @@ export const TEXTES_DE_LA_GESTION = {
   pageParDefaut: 'Palettes',
   pageACreer: 'créée à la première planche',
   changer: 'Changer',
-  vues: 'Vue',
-  vueComplete: 'Vue complète',
-  vueCondensee: 'Vue condensée',
   planche: 'Planche',
   modifier: 'Modifier',
   creerLaPlanche: 'Créer la planche',
@@ -1681,11 +1678,6 @@ export function planchesDeLaPage(nombre: number): string {
 /** L'infobulle du résultat des garanties d'une fiche, qui ouvre Vérification ([UI-26]). */
 export function verifierLaPalette(nom: string): string {
   return `Vérifier ${nom}`;
-}
-
-/** Le nom accessible d'une ligne de la vue condensée, qui ouvre la fiche ([UI-27]). */
-export function ouvrirLaFiche(nom: string): string {
-  return `Ouvrir la fiche de ${nom}`;
 }
 
 /** Un refus de « Enregistrer », dans la carte « Page des planches » ([PLA-29]). */
@@ -2045,10 +2037,34 @@ export function bibliothequeIllisible(message: string): ConstatIllustre {
 }
 
 /** Figma n'a pas rendu les collections des bibliothèques : leurs palettes ne paraissent pas ([VAR-14]). */
-export function bibliothequesIllisibles(): Constat {
+export function bibliothequesIllisibles(noms: readonly string[] = []): Constat {
   return {
     ou: 'Bibliothèques',
-    quoi: 'Figma n’a pas rendu les collections des bibliothèques. Leurs palettes ne paraissent pas ici.',
+    quoi: noms.length > 0 ? `Figma n’a pas rendu ces collections : ${noms.join(', ')}. Leurs palettes ne paraissent pas ici.` : 'Figma n’a pas rendu les collections des bibliothèques. Leurs palettes ne paraissent pas ici.',
     geste: 'Synchronisez pour les relire.',
   };
+}
+
+export function tokensPartiels(noms: readonly string[]): Constat {
+  return { ou: 'Palette partiellement écrite', quoi: `Ces noms sont occupés par des variables hors de la palette : ${noms.join(', ')}.`, geste: 'Renommez ces variables dans Figma, ou changez le groupe de la destination, puis mettez à jour.' };
+}
+
+export function formeDesThemes(themes: 'chemin' | 'modes' | 'light-seul'): string {
+  return themes === 'light-seul' ? 'Light seul' : themes === 'modes' ? 'Thèmes en modes' : 'Thèmes dans le chemin';
+}
+
+export function modeDisparu(palette: string, mode: string): Constat {
+  return { ou: `Tokens non écrits : ${palette}`, quoi: `Le mode ${mode} suivi n’est plus dans la collection.`, geste: 'Rétablissez le mode avec Annuler dans Figma, ou annulez la reprise et reprenez la palette après synchronisation.' };
+}
+
+export function gesteInterrompu(message: string): ConstatIllustre {
+  return { ou: 'Figma a interrompu la demande', quoi: 'La demande n’a pas abouti.', geste: 'Synchronisez dans Gestion, puis réessayez.', detail: `Détail de l’erreur : ${message}` };
+}
+
+export function referencesImportees(noms: readonly string[]): Constat {
+  return { ou: 'Références de bibliothèque importées', quoi: `Ces références sont disponibles dans le fichier : ${noms.join(', ')}. La palette n’a pas été copiée.`, geste: 'Synchronisez, puis réessayez la copie.' };
+}
+
+export function ancienneSortie(nombre: number): string {
+  return `${variables(nombre)} de l’ancienne destination restent dans Figma. Leur suppression ne touche pas la destination actuelle.`;
 }

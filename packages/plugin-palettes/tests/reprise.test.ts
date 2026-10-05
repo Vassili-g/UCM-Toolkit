@@ -5,13 +5,13 @@ import test from 'node:test';
 import { fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nomDeLaReprise, remplacerPalette, reprendreDuFichier, revenirAuModele, supprimer } from '../src/edition';
-import { ecrireLesVariables, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
+import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import { palettesDuFichier, type PaletteDuFichier } from '../src/variables/detection';
 import { tokensDeLaPalette } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
 import { modesDeLaReprise, sourceDeLaReprise, suiviDeLaReprise } from '../src/variables/reprise';
-import { variablesSuivies } from '../src/variables/suivi';
+import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
 
 const VIDE = recetteParDefaut();
@@ -55,6 +55,11 @@ const hexa = (figma: FauxFigma, nom: string, mode?: string): string => {
 };
 
 async function reprendre(figma: FauxFigma, source: PaletteDuFichier, mode: 'recalculees' | 'telles-quelles', avant: Recette = VIDE): Promise<{ recette: Recette; palette: Palette }> {
+  const suivi = lireLeSuiviRange(figma.root);
+  if (!suivi.confirmee) {
+    const groupe = source.chemin.split('/').slice(0, -1).join('/');
+    figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { ...suivi.destination, groupe } }));
+  }
   const palette = reprendreDuFichier(avant, 'p-000000a1', source, mode)!;
   const recette = ajouter(avant, palette);
   const issue = await reprendreLaPalette(api(figma), { recette, empreinteLue: empreinte(avant), palette: palette.id, source: { collection: source.collection, chemin: source.chemin } });
@@ -63,6 +68,53 @@ async function reprendre(figma: FauxFigma, source: PaletteDuFichier, mode: 'reca
 }
 
 const tokens = async (figma: FauxFigma, recette: Recette, palette: Palette) => tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+
+test('[VAR-13] une collision Dark reste visible après l’écriture partielle et se résout après renommage', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+  const etrangere = figma.variables.createVariable('slate/dark/50', collection, 'COLOR');
+  etrangere.setValueForMode(collection.defaultModeId, composantes('#FF0000'));
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  const partielle = await tokens(figma, recette, palette);
+  assert.deepEqual(partielle.nomsOccupes, ['slate/dark/50']);
+  assert.equal(partielle.etat, 'a-mettre-a-jour');
+  assert.equal(partielle.variables, 21);
+  assert.equal(hexa(figma, 'slate/dark/50'), '#FF0000');
+  etrangere.name = 'hors-palette/50';
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+});
+
+test('[VAR-13] un mode suivi supprimé refuse la reprise avant toute mutation et garde le suivi', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  collection.renameMode(collection.defaultModeId, 'Light');
+  const dark = collection.addMode('Dark');
+  for (const variable of figma.variablesDe(collection)) variable.setValueForMode(dark, composantes('#010203'));
+  const { recette, palette } = await reprendre(figma, (await duFichier(figma))[0], 'recalculees');
+  collection.modes = collection.modes.filter((mode) => mode.modeId !== dark);
+  const avant = figma.root.getSharedPluginData('ucm_palettes', 'variables');
+  figma.journal.length = 0;
+  assert.deepEqual(await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id] }), {
+    issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'mode-introuvable', mode: 'dark' }],
+  });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'variables'), avant);
+  assert.ok(!figma.journal.some((ligne) => /^(valeur|renommer|créer|commitUndo)/.test(ligne)));
+});
+
+test('[VAR-13] Telles quelles relit une retouche Dark dans une variable séparée', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  const { recette, palette } = await reprendre(figma, (await duFichier(figma))[0], 'recalculees');
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  figma.variable('slate/dark/600').setValueForMode(collection.defaultModeId, composantes('#AABBCC'));
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const source = sourceDeLaReprise(lu.suivi.palettes[palette.id], lu)!;
+  const figee = reprendreDuFichier(recette, palette.id, source, 'telles-quelles')!;
+  assert.equal(figee.figees?.dark?.[TAILWIND.indexOf(600)], '#AABBCC');
+  assert.equal((await tokens(figma, recette, palette)).themes, 'chemin');
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: '', themes: 'modes' });
+  assert.equal((await tokens(figma, recette, palette)).themes, 'chemin');
+});
 
 // ------------------------------------------------------------ la palette reprise
 
@@ -134,6 +186,30 @@ test('[VAR-13] telle quelle, la palette est figée aux couleurs lues, thème Dar
   assert.deepEqual(reprendreDuFichier(VIDE, 'p-000000a1', (await duFichier(simple))[0], 'telles-quelles')!.figees, { light: SLATE });
 });
 
+test('[VAR-13] une reprise choisit un mode avec des couleurs directes quand Light et Dark ne portent que des alias', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('primitives');
+  collection.renameMode(collection.defaultModeId, 'Light');
+  const dark = collection.addMode('Dark');
+  const marque = collection.addMode('Marque');
+  rampe(figma, collection, 'Colors/Deep', TAILWIND, [SLATE, NUIT, SLATE]);
+  for (const nuance of TAILWIND) {
+    const variable = figma.variable(`Colors/Deep/${nuance}`);
+    variable.setValueForMode(collection.modes[0].modeId, { type: 'VARIABLE_ALIAS', id: variable.id });
+    variable.setValueForMode(dark, { type: 'VARIABLE_ALIAS', id: variable.id });
+  }
+  const [source] = await duFichier(figma);
+  assert.equal(source.modes.find((mode) => mode.id === marque)?.nom, 'Marque');
+  const { recette, palette } = await reprendre(figma, source, 'telles-quelles');
+  const tokensAvant = await tokens(figma, recette, palette);
+  assert.deepEqual([tokensAvant.etat, tokensAvant.variables, tokensAvant.aCreer.length, tokensAvant.origine], ['a-jour', 11, 0, 'Colors/Deep']);
+  const idsAvant = source.variables;
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
+  assert.deepEqual(figma.variablesDe(collection).map((variable) => variable.id), idsAvant);
+  assert.equal(figma.collections.size, 1);
+});
+
 test('[VAR-13] Light vise le mode nommé « light » ou le premier, Dark un autre mode nommé « dark », et rien sans lui', () => {
   const modes = (...noms: string[]) => noms.map((nom, rang) => ({ id: `m${rang}`, nom }));
   assert.deepEqual(modesDeLaReprise(modes('Mode 1')), { light: { id: 'm0', nom: 'Mode 1' }, dark: null });
@@ -154,6 +230,34 @@ test('[VAR-13] la liaison de reprise désigne les variables d’origine, et la d
   assert.deepEqual(suivie.modes, { light: collection.defaultModeId });
   assert.deepEqual(Object.keys(suivie.variables), TAILWIND.map((nuance) => `unique/light/${nuance}`));
   assert.deepEqual(suivie.variables['unique/light/600'], { id: figma.variable('slate/600').id, ecrite: '#475569' });
+});
+
+test('[VAR-13] une reprise sans variables suivies conserve son chemin et peut créer la palette', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+  const suivi = lireLeSuiviRange(figma.root);
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({
+    ...suivi,
+    palettes: { ...suivi.palettes, [palette.id]: { ...suivi.palettes[palette.id], variables: {} } },
+  }));
+  const variables = [...figma.variablesDe(collection)];
+  for (const variable of variables) variable.remove();
+
+  const tokensAvant = await tokens(figma, recette, palette);
+  assert.deepEqual([tokensAvant.etat, tokensAvant.aCreer.length], ['jamais-ecrits', 22]);
+  assert.ok(tokensAvant.aCreer.every((nom) => nom.startsWith('slate/')));
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 22, ecrites: 22 }] });
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+
+  const fixe = fichierAvecSlate();
+  const [sourceFixe] = await duFichier(fixe.figma);
+  const repriseFixe = await reprendre(fixe.figma, sourceFixe, 'telles-quelles');
+  for (const variable of fixe.figma.variablesDe(fixe.collection)) variable.remove();
+  assert.equal((await tokens(fixe.figma, repriseFixe.recette, repriseFixe.palette)).aCreer.length, 22);
+  const resultatFixe = await ecrireLesVariables(api(fixe.figma), { palettes: [repriseFixe.palette.id], empreinteLue: empreinte(repriseFixe.recette), remettre: [] });
+  assert.deepEqual(resultatFixe, { issue: 'ecrites', palettes: [{ palette: repriseFixe.palette.id, issue: 'ecrite', creees: 22, ecrites: 22 }] });
 });
 
 test('[VAR-13] la reprise range la recette et la liaison ensemble, sous un seul commitUndo, sans écrire une variable', async () => {
@@ -201,6 +305,92 @@ test('[VAR-13] recalculée, la palette est à mettre à jour ; l’écriture rem
   assert.deepEqual(await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] }), { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
 });
 
+test('[VAR-13] une reprise suit la casse du chemin quand Figma renomme ses variables sans changer leur structure', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('primitives');
+  rampe(figma, collection, 'Colors/Titanium', TAILWIND, [SLATE]);
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.equal(lireLeSuiviRange(figma.root).palettes[palette.id].chemin, 'Colors/Titanium');
+  for (const variable of figma.variablesDe(collection)) variable.name = variable.name.replace(/^Colors(?=\/)/, 'colors');
+
+  const apres = await tokens(figma, recette, palette);
+  assert.deepEqual([apres.etat, apres.aRenommer.length, apres.origine], ['a-jour', 0, 'colors/Titanium']);
+});
+
+test('[VAR-13] une reprise renomme les variables sous le groupe configuré sans en créer de doublons', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('primitives');
+  rampe(figma, collection, 'Colors/Deep', TAILWIND, [SLATE]);
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'colors', themes: 'modes' });
+  const avant = await tokens(figma, recette, palette);
+  assert.equal(avant.aCreer.length, 0);
+  assert.equal(avant.aRenommer.length, 11);
+  assert.ok(avant.aRenommer.every(({ vers }) => vers.startsWith('colors/Deep/')));
+
+  const ids = figma.variablesDe(collection).map((variable) => variable.id);
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 22 }] });
+  assert.deepEqual(figma.variablesDe(collection).map((variable) => [variable.id, variable.name]), ids.map((id, rang) => [id, `colors/Deep/${TAILWIND[rang]}`]));
+  assert.equal(figma.collections.size, 1);
+  assert.equal(figma.variablesDe(collection).filter((variable) => variable.name.startsWith('Colors/Deep/')).length, 0);
+  assert.equal(figma.variablesDe(collection).filter((variable) => variable.name.startsWith('colors/Deep/')).length, 11);
+  assert.equal(collection.modes.some((mode) => mode.name === 'Dark'), true);
+  assert.deepEqual([(await tokens(figma, recette, palette)).etat, (await tokens(figma, recette, palette)).aCreer.length], ['a-jour', 0]);
+});
+
+test('[VAR-13] Deep sous colors respecte les deux destinations, les identifiants et le compte de Gestion après deux écritures', async () => {
+  for (const themes of ['chemin', 'modes'] as const) {
+    const figma = new FauxFigma();
+    const collection = figma.variables.createVariableCollection('primitives');
+    rampe(figma, collection, 'Colors/Deep', TAILWIND, [SLATE]);
+    const ids = figma.variablesDe(collection).map((variable) => variable.id);
+    const [source] = await duFichier(figma);
+    const { recette, palette } = await reprendre(figma, source, 'recalculees');
+    const destination = { collection: { id: collection.id }, groupe: 'colors', themes };
+    await rangerLaDestination(api(figma), destination);
+    const avant = await tokens(figma, recette, palette);
+    assert.equal(avant.variables, themes === 'chemin' ? 22 : 11);
+    assert.equal(avant.aCreer.length, themes === 'chemin' ? 11 : 0);
+    const demande = { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] };
+    const resultat = await ecrireLesVariables(api(figma), demande);
+    assert.equal(resultat.issue === 'ecrites' && resultat.palettes[0].issue, 'ecrite');
+    const attendu = planDesVariables(recette, palette, destination);
+    assert.deepEqual(figma.variablesDe(collection).map((variable) => variable.name), [...new Set(attendu.map((entree) => entree.nom))]);
+    TAILWIND.forEach((nuance, rang) => assert.equal(figma.variable(`colors/Deep/${themes === 'chemin' ? 'light/' : ''}${nuance}`).id, ids[rang]));
+    const suivi = lireLeSuiviRange(figma.root).palettes[palette.id];
+    for (const entree of attendu) {
+      const mode = entree.mode === 'unique' ? suivi.modes.light : suivi.modes[entree.mode];
+      assert.equal(hexa(figma, entree.nom, mode), entree.hexa);
+    }
+    assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+    const tousLesIds = [...figma.locales.keys()];
+    assert.deepEqual(await ecrireLesVariables(api(figma), demande), { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
+    assert.deepEqual([...figma.locales.keys()], tousLesIds);
+  }
+});
+
+test('[VAR-13] une recette changée pendant la lecture de reprise reste intacte', async () => {
+  const { figma } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const palette = reprendreDuFichier(VIDE, 'p-000000a1', source, 'recalculees')!;
+  const recette = ajouter(VIDE, palette);
+  const lire = figma.variables.getLocalVariablesAsync;
+  const changee = { ...VIDE, seuils: { ...VIDE.seuils, texte: 7 } };
+  figma.variables.getLocalVariablesAsync = async (type) => {
+    const variables = await lire(type);
+    figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(changee));
+    return variables;
+  };
+  assert.deepEqual(await reprendreLaPalette(api(figma), { recette, empreinteLue: null, palette: palette.id, source }), { issue: 'modifiee-ailleurs' });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), jsonCanonique(changee));
+});
+
 test('[VAR-13] une palette reprise qui gagne des nuances et une intensité n’est plus à jour : les nuances se créent à côté des variables d’origine, et chaque intensité prend son segment', async () => {
   const figma = new FauxFigma();
   const collection = figma.variables.createVariableCollection('primitives');
@@ -231,9 +421,15 @@ test('[VAR-13] une palette reprise qui gagne des nuances et une intensité n’e
   figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(double));
   const porteuse = intensitePorteuse(double, deux);
   const autre = porteuse === 'soft' ? 'vivid' : 'soft';
+
+  figma.variable('Colors/Titanium/light/600').name = 'Colors/Titanium/light/600-';
+  const tiretSeul = await tokens(figma, double, deux);
+  assert.ok(tiretSeul.aRenommer.some(({ de, vers }) => de.endsWith('/600-') && vers.endsWith('/600')), 'un tiret seul ne forme pas de suffixe');
+
   const aDeux = await tokens(figma, double, deux);
   assert.equal(aDeux.etat, 'a-mettre-a-jour');
   assert.deepEqual([aDeux.aCreer.length, aDeux.aRenommer.length], [22, 22]);
+  assert.ok(aDeux.aRenommer.some(({ de, vers }) => de.endsWith('/600-') && vers.endsWith(`/${porteuse}/light/600`)));
   for (const rampeACreer of [`${autre}/light`, `${autre}/dark`]) assert.ok(aDeux.aCreer.includes(`Colors/Titanium/${rampeACreer}/950`), rampeACreer);
   assert.ok(aDeux.aRenommer.some(({ de, vers }) => de === 'Colors/Titanium/dark/950' && vers === `Colors/Titanium/${porteuse}/dark/950`));
   await ecrireLesVariables(api(figma), { palettes: [deux.id], empreinteLue: empreinte(double), remettre: [] });
@@ -244,6 +440,19 @@ test('[VAR-13] une palette reprise qui gagne des nuances et une intensité n’e
   assert.equal(hexa(figma, `Colors/Titanium/${autre}/light/600`), complet.find((entree) => entree.cle === `${autre}/light/600`)!.hexa);
   assert.equal((await tokens(figma, double, deux)).etat, 'a-jour');
   assert.deepEqual(await duFichier(figma, double), []);
+
+  figma.variable(`Colors/Titanium/${porteuse}/light/600`).name = `Colors/Titanium/${porteuse}/light/600-base-note`;
+  const suffixeSeul = await tokens(figma, double, deux);
+  assert.deepEqual([suffixeSeul.etat, suffixeSeul.aRenommer.length], ['a-jour', 0]);
+
+  const une = choisirLesIntensites(double, deux, 1);
+  const simple = remplacerPalette(double, une);
+  figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(simple));
+  const avantUne = await tokens(figma, simple, une);
+  assert.ok(avantUne.aRenommer.some(({ de, vers }) => de.endsWith('/600-base-note') && vers.endsWith('/light/600-base-note')));
+  await ecrireLesVariables(api(figma), { palettes: [une.id], empreinteLue: empreinte(simple), remettre: [] });
+  assert.equal(figma.variable('Colors/Titanium/light/600-base-note').name, 'Colors/Titanium/light/600-base-note');
+  assert.equal((await tokens(figma, simple, une)).etat, 'a-jour');
 });
 
 test('[VAR-13] un suivi sans chemin, dont le thème Dark est déjà sous `dark` et la rampe Light à la racine, ne fait que renommer les variables d’origine', async () => {
@@ -287,7 +496,7 @@ test('[VAR-13] [VAR-10] avec les thèmes en modes, une palette reprise trouve ou
   assert.deepEqual(collection.modes.map((mode) => mode.name), ['Mode 1', 'Dark']);
   assert.equal(figma.journal.filter((ligne) => ligne.startsWith('créer variable')).length, 0);
   const plan = planDesVariables(recette, palette, lireLeSuiviRange(figma.root).destination);
-  assert.equal(hexa(figma, 'slate/50', collection.modes[1].modeId), plan.find((entree) => entree.cle === 'unique/dark/50')!.hexa);
+  assert.equal(hexa(figma, 'colors/slate/50', collection.modes[1].modeId), plan.find((entree) => entree.cle === 'unique/dark/50')!.hexa);
   assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
 
   // Une offre limitée à un mode refuse le mode Dark : la palette s'arrête, sans rien écrire.
@@ -324,7 +533,39 @@ test('[VAR-13] une palette reprise ne crée pas sous un nom que le fichier porte
   assert.equal((await tokens(simple, reprise.recette, reprise.palette)).aCreer.length, 10);
   await ecrireLesVariables(api(simple), { palettes: [reprise.palette.id], empreinteLue: empreinte(reprise.recette), remettre: [] });
   assert.equal(hexa(simple, 'slate/dark/50'), '#FF0000');
-  assert.equal((await tokens(simple, reprise.recette, reprise.palette)).etat, 'a-jour');
+  assert.equal((await tokens(simple, reprise.recette, reprise.palette)).etat, 'a-mettre-a-jour');
+});
+
+test('[VAR-13] sans variable restante, une reprise recrée les deux thèmes dans le chemin configuré malgré ses anciens modes', async () => {
+  for (const forme of ['recalculees', 'telles-quelles'] as const) {
+    const { figma, collection } = fichierAvecSlate();
+    collection.renameMode(collection.defaultModeId, 'Light');
+    const dark = collection.addMode('Dark');
+    for (const [rang, variable] of [...figma.locales.values()].entries()) {
+      variable.setValueForMode(dark, composantes(NUIT[rang]));
+    }
+    const { recette, palette } = await reprendre(figma, (await duFichier(figma))[0], forme);
+    await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' });
+    for (const variable of [...figma.locales.values()]) variable.remove();
+    const avant = await tokens(figma, recette, palette);
+    assert.equal(avant.aCreer.length, 22);
+    assert.ok(avant.aCreer.includes('colors/slate/light/50'));
+    assert.ok(avant.aCreer.includes('colors/slate/dark/950'));
+    const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+    assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 22, ecrites: 22 }] });
+    const apres = await tokens(figma, recette, palette);
+    assert.equal(apres.etat, 'a-jour');
+    assert.equal(apres.aCreer.length, 0);
+    const suivi = lireLeSuiviRange(figma.root);
+    const plan = planDesVariables(recette, palette, suivi.destination);
+    for (const entree of plan) {
+      for (const mode of collection.modes) assert.equal(hexa(figma, entree.nom, mode.modeId), entree.hexa, entree.cle);
+    }
+    assert.equal(lireLeSuiviRange(figma.root).palettes[palette.id].modes.dark, undefined);
+    assert.deepEqual(await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] }), {
+      issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }],
+    });
+  }
 });
 
 test('[VAR-13] une collection à deux modes Light et Dark reçoit les deux thèmes ; sans mode reconnu, seul le premier s’écrit', async () => {

@@ -12,6 +12,7 @@ import { etatDesTokens } from '../src/variables/etat';
 import { simulationDeLaDestination,tokensDeLaPalette, variablesDesPalettesSupprimees } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi } from '../src/variables/suivi';
+import { creerFileDuDocument } from '../src/fileDuDocument';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
 
 const VIDE = recetteParDefaut();
@@ -45,6 +46,68 @@ async function ecrire(figma: FauxFigma, palettes: readonly Palette[], recette: R
 }
 
 const commits = (figma: FauxFigma): number => figma.journal.filter((ligne) => ligne === 'commitUndo').length;
+
+test('[VAR-16] la destination attend une écriture retardée et conserve son suivi', async () => {
+  const figma = fichier();
+  const file = creerFileDuDocument();
+  let liberer!: () => void;
+  const attente = new Promise<void>((resolve) => { liberer = resolve; });
+  const lire = figma.variables.getLocalVariablesAsync;
+  figma.variables.getLocalVariablesAsync = async (type) => { await attente; return lire(type); };
+  const ecriture = file(() => ecrire(figma, [GRIS]));
+  const destination = file(() => rangerLaDestination(api(figma), { collection: { nom: 'Autre' }, groupe: 'nouveau', themes: 'modes' }));
+  await Promise.resolve();
+  assert.equal(lireLeSuiviRange(figma.root).destination.groupe, 'colors');
+  liberer();
+  await ecriture;
+  assert.equal((await destination).issue, 'rangee');
+  const suivi = lireLeSuiviRange(figma.root);
+  assert.equal(suivi.destination.groupe, 'nouveau');
+  assert.equal(Object.keys(suivi.palettes[GRIS.id].variables).length, 22);
+});
+
+test('[VAR-07] un refus de lecture ou de création rend une issue et la file poursuit les gestes suivants', async () => {
+  const figma = fichier();
+  const file = creerFileDuDocument();
+  const lire = figma.variables.getLocalVariablesAsync;
+  figma.variables.getLocalVariablesAsync = async () => { throw new Error('lecture refusée'); };
+  assert.deepEqual(await file(() => ecrireLesVariables(api(figma), { palettes: [GRIS.id], empreinteLue: empreinte(RECETTE), remettre: [] })), { issue: 'interrompue', message: 'lecture refusée' });
+  figma.variables.getLocalVariablesAsync = lire;
+  figma.variables.createVariableCollection = () => { throw new Error('création refusée'); };
+  assert.deepEqual(await file(() => ecrire(figma, [GRIS])), [{ palette: GRIS.id, issue: 'interrompue', message: 'création refusée' }]);
+  assert.equal((await file(() => rangerLaDestination(api(figma), { collection: { nom: 'Autre' }, groupe: '', themes: 'chemin' }))).issue, 'rangee');
+});
+
+test('[VAR-11] un retrait partiel conserve les variables restantes et se reprend sans retoucher les autres palettes', async () => {
+  const figma = fichier();
+  await ecrire(figma, [GRIS, BLEU]);
+  ranger(figma, supprimer(RECETTE, GRIS.id));
+  const variable = figma.variable('colors/Gris/light/100');
+  const retirer = variable.remove.bind(variable);
+  variable.remove = () => { throw new Error('retrait refusé'); };
+  assert.deepEqual(await retirerLesVariables(api(figma), { palette: GRIS.id }), { issue: 'interrompue', retirees: 1, message: 'retrait refusé' });
+  assert.equal(Object.keys(lireLeSuiviRange(figma.root).palettes[GRIS.id].variables).length, 21);
+  variable.remove = retirer;
+  assert.deepEqual(await retirerLesVariables(api(figma), { palette: GRIS.id }), { issue: 'retirees', retirees: 21 });
+  assert.equal(figma.locales.size, 44);
+});
+
+test('[VAR-02] une migration conserve son ancienne sortie et son retrait laisse la palette actuelle intacte', async () => {
+  const figma = fichier();
+  await ecrire(figma, [GRIS]);
+  const collection = [...figma.collections.values()][0];
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'nouveau', themes: 'modes' });
+  await ecrire(figma, [GRIS]);
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const [ancienne] = variablesDesPalettesSupprimees(RECETTE, lu);
+  assert.equal(ancienne.ancienne, true);
+  assert.equal(ancienne.variables, 22);
+  assert.equal(ancienne.chemin, 'colors/Gris');
+  assert.deepEqual(await retirerLesVariables(api(figma), { palette: ancienne.palette }), { issue: 'retirees', retirees: 22 });
+  assert.equal(figma.locales.size, 11);
+  assert.equal((await etat(figma, GRIS)).etat, 'a-jour');
+  assert.deepEqual(variablesDesPalettesSupprimees(RECETTE, await lireLesVariablesDuFichier(api(figma))), []);
+});
 const hexa = (figma: FauxFigma, nom: string, mode?: string): string => {
   const variable = figma.variable(nom);
   const valeur = variable.valuesByMode[mode ?? variable.collection.defaultModeId] as { r: number; g: number; b: number };
@@ -199,6 +262,36 @@ test('[VAR-07] une erreur au milieu d’une palette retire les variables que l�
   assert.deepEqual(await ecrire(figma, [BLEU]), [{ palette: BLEU.id, issue: 'ecrite', creees: 44, ecrites: 44 }]);
 });
 
+test('[VAR-06] une variable disparue ne permet pas de remplacer une autre couleur retouchée sans confirmation', async () => {
+  const figma = fichier();
+  await ecrire(figma, [BLEU]);
+  figma.variable('colors/Bleu/soft/light/100').remove();
+  const retouchee = figma.variable('colors/Bleu/soft/light/50');
+  retouchee.setValueForMode(retouchee.collection.defaultModeId, { r: 1, g: 0, b: 0, a: 1 });
+  figma.journal.length = 0;
+  assert.equal((await etat(figma, BLEU)).etat, 'introuvables');
+  assert.deepEqual(await ecrire(figma, [BLEU]), [{ palette: BLEU.id, issue: 'modifiee', couleurs: 1 }]);
+  assert.equal(hexa(figma, retouchee.name), '#FF0000');
+  assert.equal(figma.locales.size, 43);
+  assert.equal(commits(figma), 0);
+  assert.equal((await ecrire(figma, [BLEU], RECETTE, [BLEU]))[0].issue, 'ecrite');
+  assert.equal((await etat(figma, BLEU)).etat, 'a-jour');
+});
+
+test('[VAR-07] une recette changée pendant la lecture des variables arrête l’écriture', async () => {
+  const figma = fichier();
+  const lire = figma.variables.getLocalVariablesAsync;
+  const changee = remplacerPalette(RECETTE, changerReference(RECETTE, BLEU, '#2563EB')!);
+  figma.variables.getLocalVariablesAsync = async (type) => {
+    const variables = await lire(type);
+    ranger(figma, changee);
+    return variables;
+  };
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [BLEU.id], empreinteLue: empreinte(RECETTE), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'recette-changee' });
+  assert.equal(figma.locales.size, 0);
+});
+
 test('[VAR-07] une erreur pendant une mise à jour garde au suivi les valeurs déjà écrites : elles ne se lisent pas comme changées dans Figma', async () => {
   const figma = fichier();
   await ecrire(figma, [BLEU]);
@@ -223,6 +316,49 @@ test('[VAR-10] thèmes en modes : le mode d’une collection neuve se renomme Li
   for (const entree of plan) assert.equal(hexa(figma, entree.nom, entree.mode === 'light' ? light : dark), entree.hexa, entree.cle);
   assert.deepEqual(lireLeSuiviRange(figma.root).palettes[BLEU.id].modes, { light, dark });
   assert.equal((await etat(figma, BLEU)).etat, 'a-jour');
+});
+
+test('[VAR-10] Deep supprimée puis recréée compte ses variables une fois et rétablit Light et Dark', async () => {
+  const deep: Palette = { ...nouvellePalette(VIDE, 'p-0000000c', '#161046', 1)!, nom: 'Deep' };
+  const recette = ajouter(VIDE, deep);
+  for (const themes of ['modes', 'chemin'] as const) {
+    const figma = fichier(recette);
+    poserLaDestination(figma, { collection: { nom: 'primitives' }, groupe: 'colors', themes });
+    await ecrire(figma, [deep], recette);
+    for (const variable of [...figma.locales.values()]) variable.remove();
+    const lu = await lireLesVariablesDuFichier(api(figma));
+    const tokens = tokensDeLaPalette(recette, deep, lu);
+    const nombre = themes === 'modes' ? 11 : 22;
+    assert.equal(tokens.etat, 'introuvables');
+    assert.equal(tokens.introuvables.length, nombre);
+    assert.equal(tokens.aCreer.length, nombre);
+    assert.deepEqual(await ecrire(figma, [deep], recette), [{ palette: deep.id, issue: 'ecrite', creees: nombre, ecrites: 22 }]);
+    const suivi = lireLeSuiviRange(figma.root);
+    const plan = planDesVariables(recette, deep, suivi.destination);
+    for (const entree of plan) {
+      assert.equal(hexa(figma, entree.nom, suivi.palettes[deep.id].modes[entree.mode]), entree.hexa, entree.cle);
+    }
+    assert.equal((await etat(figma, deep, recette)).etat, 'a-jour');
+  }
+});
+
+test('[VAR-06] changer la forme des thèmes compare les couleurs dans les modes de la dernière écriture', async () => {
+  for (const themes of ['chemin', 'modes'] as const) {
+    const figma = fichier();
+    poserLaDestination(figma, { collection: { nom: 'primitives' }, groupe: 'colors', themes });
+    await ecrire(figma, [GRIS]);
+    const suivi = lireLeSuiviRange(figma.root).palettes[GRIS.id];
+    await rangerLaDestination(api(figma), { collection: { id: suivi.collection }, groupe: 'colors', themes: themes === 'chemin' ? 'modes' : 'chemin' });
+    assert.equal((await etat(figma, GRIS)).etat, 'a-mettre-a-jour');
+    assert.deepEqual((await etat(figma, GRIS)).modifiees, []);
+    const nom = `colors/Gris/${themes === 'chemin' ? 'dark/' : ''}50`;
+    const mode = suivi.modes.unique ?? suivi.modes.dark!;
+    figma.variable(nom).setValueForMode(mode, { r: 1, g: 0, b: 0, a: 1 });
+    assert.deepEqual(await ecrire(figma, [GRIS]), [{ palette: GRIS.id, issue: 'modifiee', couleurs: 1 }]);
+    assert.equal(hexa(figma, nom, mode), '#FF0000');
+    assert.equal((await ecrire(figma, [GRIS], RECETTE, [GRIS]))[0].issue, 'ecrite');
+    assert.equal((await etat(figma, GRIS)).etat, 'a-jour');
+  }
 });
 
 test('[VAR-10] thèmes en modes dans une collection existante : les modes nommés Light et Dark se retrouvent sans casse, et un mode qui manque s’ajoute', async () => {
@@ -256,6 +392,27 @@ test('[VAR-10] thèmes dans le chemin, collection à deux modes : la même valeu
   assert.equal((await etat(figma, GRIS)).etat, 'a-jour');
 });
 
+test('[VAR-06] une couleur ou un alias ajouté dans un mode secondaire se signale et ne se remplace que sur confirmation', async () => {
+  for (const alias of [false, true]) {
+    const figma = fichier();
+    const collection = figma.variables.createVariableCollection('Brand');
+    const second = collection.addMode('Marque 2');
+    poserLaDestination(figma, { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' });
+    await ecrire(figma, [GRIS]);
+    const variable = figma.variable('colors/Gris/light/50');
+    const retouche = alias ? { type: 'VARIABLE_ALIAS' as const, id: figma.variable('colors/Gris/light/100').id } : { r: 1, g: 0, b: 0, a: 1 };
+    variable.setValueForMode(second, retouche);
+    assert.equal((await etat(figma, GRIS)).etat, 'modifies');
+    const compte = tokensDeLaPalette(RECETTE, GRIS, await lireLesVariablesDuFichier(api(figma)));
+    assert.equal(compte.aRemplacer, 1);
+    assert.deepEqual(await ecrire(figma, [GRIS]), [{ palette: GRIS.id, issue: 'modifiee', couleurs: 1 }]);
+    assert.deepEqual(variable.valuesByMode[second], retouche);
+    assert.deepEqual(await ecrire(figma, [GRIS], RECETTE, [GRIS]), [{ palette: GRIS.id, issue: 'ecrite', creees: 0, ecrites: 1 }]);
+    assert.deepEqual(variable.valuesByMode[second], variable.valuesByMode[collection.defaultModeId]);
+    assert.equal((await etat(figma, GRIS)).etat, 'a-jour');
+  }
+});
+
 test('[VAR-02] une destination changée ne déplace aucune variable : la palette s’écrit dans la nouvelle, et les anciennes variables restent', async () => {
   const figma = fichier();
   await ecrire(figma, [GRIS]);
@@ -272,6 +429,20 @@ test('[VAR-02] une destination changée ne déplace aucune variable : la palette
   assert.equal(figma.variable('palettes/Gris/light/50').collection, premiere);
   assert.ok(!anciennes.includes(lireLeSuiviRange(figma.root).palettes[GRIS.id].variables['unique/light/50'].id));
   assert.equal((await etat(figma, GRIS)).etat, 'a-jour');
+});
+
+test('[VAR-05] un groupe renommé dans Figma et dans la destination ne crée pas de seconde palette', async () => {
+  const figma = fichier();
+  await ecrire(figma, [GRIS]);
+  const [collection] = [...figma.collections.values()];
+  for (const variable of figma.variablesDe(collection)) variable.name = variable.name.replace(/^colors(?=\/)/, 'Colors');
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'Colors', themes: 'chemin' });
+
+  const etatLu = await etat(figma, GRIS);
+  assert.deepEqual([etatLu.etat, etatLu.destinationChangee], ['a-jour', false]);
+  assert.deepEqual(await ecrire(figma, [GRIS]), [{ palette: GRIS.id, issue: 'ecrite', creees: 0, ecrites: 0 }]);
+  assert.equal(figma.locales.size, 22);
+  assert.equal(lireLeSuiviRange(figma.root).palettes[GRIS.id].groupe, 'Colors');
 });
 
 test('[VAR-07] une recette rangée depuis la lecture, une recette absente ou un suivi futur n’écrivent rien', async () => {

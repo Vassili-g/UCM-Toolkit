@@ -37,6 +37,7 @@ export interface PaletteDeBibliotheque {
 }
 
 export interface Bibliotheques {
+  readonly illisibles?: readonly string[];
   readonly collections: readonly CollectionDeBibliotheque[];
   readonly palettes: readonly PaletteDeBibliotheque[];
   /** Faux quand Figma n'a pas rendu les bibliothèques : l'API manque ou a levé. Le reste de Gestion fonctionne. */

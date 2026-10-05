@@ -44,21 +44,22 @@ export async function variablesDeLaBibliotheque(figma: Required<FigmaDesBiblioth
 
 /**
  * Les collections des bibliothèques activées, et leurs palettes détectées
- * sur les seuls noms ([VAR-14]). Si `figma.teamLibrary` manque ou lève, la
- * lecture rend une liste vide, marquée illisible : le reste de Gestion
- * fonctionne.
+ * sur les seuls noms ([VAR-14]). Un refus sur une collection conserve celles
+ * qui se lisent et nomme les collections illisibles.
  */
 export async function lireLesBibliotheques(figma: FigmaDesBibliotheques): Promise<Bibliotheques> {
   const { teamLibrary } = figma;
   if (!teamLibrary) return { ...SANS_BIBLIOTHEQUE, lisibles: false };
   try {
     const disponibles = await teamLibrary.getAvailableLibraryVariableCollectionsAsync();
-    const lues = await Promise.all(disponibles.map(async (collection) => {
+    const lectures = await Promise.allSettled(disponibles.map(async (collection) => {
       const variables = await variablesDeLaBibliotheque({ teamLibrary }, collection.key);
       const lue: CollectionDeBibliotheque = { cle: collection.key, nom: collection.name, bibliotheque: collection.libraryName, variables: variables.length };
       return { collection: lue, palettes: palettesDeLaCollection(lue, variables) };
     }));
-    return { collections: lues.map(({ collection }) => collection), palettes: lues.flatMap(({ palettes }) => palettes), lisibles: true };
+    const lues = lectures.flatMap((lecture) => lecture.status === 'fulfilled' ? [lecture.value] : []);
+    const illisibles = disponibles.filter((_, rang) => lectures[rang].status === 'rejected').map((collection) => `${collection.libraryName} / ${collection.name}`);
+    return { collections: lues.map(({ collection }) => collection), palettes: lues.flatMap(({ palettes }) => palettes), lisibles: illisibles.length === 0, ...(illisibles.length > 0 ? { illisibles } : {}) };
   } catch {
     return { ...SANS_BIBLIOTHEQUE, lisibles: false };
   }

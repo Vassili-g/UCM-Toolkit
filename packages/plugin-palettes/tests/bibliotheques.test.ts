@@ -30,6 +30,43 @@ const copie = (figma: FauxFigma) => figma as unknown as FigmaDeLaCopie;
 const ecriture = (figma: FauxFigma) => figma as unknown as FigmaDesVariablesEcrites;
 const empreinte = (recette: Recette): string => fnv1a(octetsUtf8(jsonCanonique(recette)));
 
+test('[VAR-14] une collection illisible conserve les palettes des autres bibliothèques', async () => {
+  const figma = fichier();
+  const lire = figma.teamLibrary.getVariablesInLibraryCollectionAsync;
+  figma.teamLibrary.getVariablesInLibraryCollectionAsync = async (cle) => {
+    if (cle === figma.distantes[1].key) throw new Error('bibliothèque refusée');
+    return lire(cle);
+  };
+  const resultat = await lireLesBibliotheques(figma as never);
+  assert.equal(resultat.lisibles, false);
+  assert.deepEqual(resultat.illisibles, ['Ancien kit / primitive base']);
+  assert.deepEqual(resultat.palettes.map((palette) => palette.chemin), ['gray', 'brand/blue']);
+  assert.equal((await copierLaPalette(copie(figma), { empreinteLue: null, palette: 'p-000000b1', source: { collection: figma.distantes[0].key, chemin: 'gray' } })).issue, 'copiee');
+});
+
+test('[VAR-14] un import partiel attend toutes les lectures et nomme les références conservées', async () => {
+  const figma = fichier();
+  const importer = figma.variables.importVariableByKeyAsync;
+  figma.variables.importVariableByKeyAsync = async (cle) => {
+    const variable = figma.distantes[0].publiees.find((variable) => variable.key === cle)!;
+    if (variable.name === 'gray/100') throw new Error('import refusé');
+    await Promise.resolve();
+    return importer(cle);
+  };
+  const resultat = await copierLaPalette(copie(figma), { empreinteLue: null, palette: 'p-000000b1', source: { collection: figma.distantes[0].key, chemin: 'gray' } });
+  assert.equal(resultat.issue, 'bibliotheque-illisible');
+  assert.deepEqual(resultat.importsEffectues, TAILWIND.filter((nuance) => nuance !== 100).map((nuance) => `gray/${nuance}`));
+  assert.equal(figma.importees.size, 10);
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), '');
+});
+
+test('[VAR-14] un identifiant de palette invalide refuse la copie avant tout import', async () => {
+  const figma = fichier();
+  const resultat = await copierLaPalette(copie(figma), { empreinteLue: null, palette: 'invalide', source: { collection: figma.distantes[0].key, chemin: 'gray' } });
+  assert.equal(resultat.issue, 'invalide');
+  assert.equal(figma.importees.size, 0);
+});
+
 test('[VAR-14] la lecture liste les collections des bibliothèques, leur nombre de variables et leurs palettes, sur les seuls noms', async () => {
   const figma = fichier();
   const lues = await lireLesBibliotheques(figma as never);
@@ -146,6 +183,30 @@ test('[VAR-14] des variables de bibliothèque qui ne portent que des alias n’o
   for (const variable of (collection as unknown as { publiees: { valuesByMode: Record<string, unknown> }[] }).publiees) {
     for (const mode of Object.keys(variable.valuesByMode)) variable.valuesByMode[mode] = { type: 'VARIABLE_ALIAS', id: 'VariableID:0:0' };
   }
-  assert.deepEqual(await copierLaPalette(copie(figma), { empreinteLue: null, palette: 'p-000000b1', source: { collection: collection.key, chemin: 'brand' } }), { issue: 'sans-couleur' });
+  assert.deepEqual(await copierLaPalette(copie(figma), { empreinteLue: null, palette: 'p-000000b1', source: { collection: collection.key, chemin: 'brand' } }), { issue: 'sans-couleur', importsEffectues: TAILWIND.map((nuance) => `brand/${nuance}`) });
   assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), '');
+});
+
+test('[VAR-14] une collection importée illisible rend un refus de copie', async () => {
+  const figma = fichier();
+  figma.variables.getVariableCollectionByIdAsync = async () => { throw new Error('collection inaccessible'); };
+  assert.deepEqual(await copierLaPalette(copie(figma), {
+    empreinteLue: null, palette: 'p-000000b1', source: { collection: figma.distantes[0].key, chemin: 'gray' },
+  }), { issue: 'bibliotheque-illisible', message: 'collection inaccessible', importsEffectues: TAILWIND.map((nuance) => `gray/${nuance}`) });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), '');
+});
+
+test('[VAR-14] une recette changée pendant l’import reste intacte', async () => {
+  const figma = fichier();
+  const importer = figma.variables.importVariableByKeyAsync;
+  const changee = { ...recetteParDefaut(), seuils: { ...recetteParDefaut().seuils, texte: 7 } };
+  figma.variables.importVariableByKeyAsync = async (cle) => {
+    const variable = await importer(cle);
+    figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(changee));
+    return variable;
+  };
+  assert.deepEqual(await copierLaPalette(copie(figma), {
+    empreinteLue: null, palette: 'p-000000b1', source: { collection: figma.distantes[0].key, chemin: 'gray' },
+  }), { issue: 'modifiee-ailleurs', importsEffectues: TAILWIND.map((nuance) => `gray/${nuance}`) });
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), jsonCanonique(changee));
 });

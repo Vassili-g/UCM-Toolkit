@@ -35,9 +35,11 @@ export interface VariableSuivie {
 export type Liaison = 'destination' | 'reprise';
 
 export interface PaletteSuivie {
+  /** Une sortie conservée après migration, à retirer avec sa propre confirmation. */
+  readonly sortieAnterieureDe?: string;
   /** L'identifiant de la collection qui porte les variables de la palette. */
   readonly collection: string;
-  /** Le groupe de la destination à la dernière écriture : un groupe différent demande une mise à jour. */
+  /** Le groupe de référence : source de la reprise, puis groupe de la dernière écriture. */
   readonly groupe: string;
   /** L'identifiant du mode de Figma que chaque mode du plan écrit. */
   readonly modes: { readonly [M in ModeDuPlan]?: string };
@@ -89,6 +91,7 @@ function lireLaPalette(valeur: unknown): PaletteSuivie | null {
     modes,
     variables,
     liaison: valeur.liaison === 'reprise' ? 'reprise' : 'destination',
+    ...(typeof valeur.sortieAnterieureDe === 'string' ? { sortieAnterieureDe: valeur.sortieAnterieureDe } : {}),
     ...(typeof valeur.chemin === 'string' ? { chemin: valeur.chemin } : {}),
     ...(valeur.intensite === 'soft' || valeur.intensite === 'vivid' ? { intensite: valeur.intensite } : {}),
   };

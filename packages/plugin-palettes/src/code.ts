@@ -16,9 +16,11 @@ import { lireLesBibliotheques, lireLesVariablesDuFichier } from './lectureDesVar
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
 import { creerPreferences } from './preferences';
+import { creerFileDuDocument } from './fileDuDocument';
 import type { Bibliotheques } from './variables/bibliotheques';
 
 const preferences = creerPreferences(figma.clientStorage);
+const dansLeDocument = creerFileDuDocument();
 
 /*
  * `showUI` part tout de suite à la taille par défaut, puis la fenêtre reprend
@@ -52,15 +54,11 @@ async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<vo
 
 async function traiterMessage(message: UiRequest): Promise<void> {
   if (message.type === 'lire-langue') {
-    versUi({ type: 'langue', langue: await preferences.lire(), vue: await preferences.lireLaVue(), sections: await preferences.lireLesSections() });
+    versUi({ type: 'langue', langue: await preferences.lire(), sections: await preferences.lireLesSections() });
     return;
   }
   if (message.type === 'ranger-langue') {
     versUi({ type: 'langue-rangee', selection: message.selection, reussie: await preferences.ranger(message.langue) });
-    return;
-  }
-  if (message.type === 'ranger-vue') {
-    await preferences.rangerLaVue(message.vue);
     return;
   }
   if (message.type === 'ranger-sections') {
@@ -68,7 +66,11 @@ async function traiterMessage(message: UiRequest): Promise<void> {
     return;
   }
   if (message.type === 'lire-etat') {
-    await envoyerEtat(message.demande, message.recherche === 'fichier');
+    try {
+      await envoyerEtat(message.demande, message.recherche === 'fichier');
+    } catch (erreur) {
+      versUi({ type: 'etat-refuse', demande: message.demande, message: erreur instanceof Error ? erreur.message : String(erreur) });
+    }
     return;
   }
 
@@ -129,5 +131,6 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
 figma.ui.onmessage = async (message: UiRequest) => {
   if (!message || typeof message.type !== 'string') return;
-  await traiterMessage(message);
+  if ('demande' in message) await dansLeDocument(() => traiterMessage(message));
+  else await traiterMessage(message);
 };

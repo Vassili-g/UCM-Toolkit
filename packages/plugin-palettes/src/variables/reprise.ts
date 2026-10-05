@@ -14,14 +14,20 @@ import type { PaletteSuivie, VariableSuivie } from './suivi';
 
 /**
  * Le mode de la collection que chaque thème vise. Light vise le mode dont le
- * nom contient « light », sans casse, sinon le premier mode. Dark vise un
- * autre mode dont le nom contient « dark » ; sans lui, le thème Dark ne
- * s'écrit pas.
+ * nom contient « light », sans casse, sinon le premier mode qui porte une
+ * couleur directe. Dark vise un autre mode dont le nom contient « dark » ;
+ * sans lui, le thème Dark ne s'écrit pas.
  */
-export function modesDeLaReprise(modes: readonly ModeLu[]): { readonly light: ModeLu | null; readonly dark: ModeLu | null } {
+export function modesDeLaReprise(
+  modes: readonly ModeLu[],
+  couleurs?: { readonly [mode: string]: readonly (string | null)[] },
+): { readonly light: ModeLu | null; readonly dark: ModeLu | null } {
   const nomme = (mot: string): ModeLu | undefined => modes.find((mode) => mode.nom.toLowerCase().includes(mot));
-  const light = nomme('light') ?? modes[0] ?? null;
-  const dark = modes.find((mode) => mode !== light && mode.nom.toLowerCase().includes('dark')) ?? null;
+  const porteUneCouleur = (mode: ModeLu): boolean => couleurs === undefined || (couleurs[mode.id] ?? []).some((couleur) => couleur !== null);
+  const light = (nomme('light') && porteUneCouleur(nomme('light')!))
+    ? nomme('light')!
+    : modes.find(porteUneCouleur) ?? nomme('light') ?? modes[0] ?? null;
+  const dark = modes.find((mode) => mode !== light && mode.nom.toLowerCase().includes('dark') && porteUneCouleur(mode)) ?? null;
   return { light, dark };
 }
 
@@ -34,7 +40,7 @@ export interface CouleursDeLaReprise {
 }
 
 export function couleursDeLaReprise(palette: PaletteDuFichier): CouleursDeLaReprise {
-  const { light, dark } = modesDeLaReprise(palette.modes);
+  const { light, dark } = modesDeLaReprise(palette.modes, palette.couleurs);
   const sans = palette.nuances.map(() => null);
   return {
     nuances: palette.nuances,
@@ -51,7 +57,7 @@ export function couleursDeLaReprise(palette: PaletteDuFichier): CouleursDeLaRepr
  * plugin n'écrase pas un alias.
  */
 export function suiviDeLaReprise(palette: PaletteDuFichier): PaletteSuivie {
-  const viser = modesDeLaReprise(palette.modes);
+  const viser = modesDeLaReprise(palette.modes, palette.couleurs);
   const couleurs = couleursDeLaReprise(palette);
   const variables: { [cle: string]: VariableSuivie } = {};
   const modes: { light?: string; dark?: string } = {};
@@ -65,7 +71,14 @@ export function suiviDeLaReprise(palette: PaletteDuFichier): PaletteSuivie {
       if (lue !== null) variables[cleDuPlan('unique', mode, nuance)] = { id: palette.variables[rang], ecrite: lue };
     });
   }
-  return { collection: palette.collection, groupe: '', modes, variables, liaison: 'reprise' };
+  return {
+    collection: palette.collection,
+    groupe: palette.chemin.split('/').slice(0, -1).join('/'),
+    modes,
+    variables,
+    liaison: 'reprise',
+    chemin: palette.chemin,
+  };
 }
 
 /**
@@ -105,9 +118,25 @@ export function origineDeLaReprise(suivie: PaletteSuivie, variables: readonly Va
     suivies.set(lue.id, lue);
     if (estDOrigine(suivie, cle)) origine.push(lue.nom);
   }
-  if (origine.length === 0) return null;
   const parNom = new Map(variables.filter((variable) => variable.collection === suivie.collection).map((variable) => [variable.nom, variable]));
-  return { chemin: suivie.chemin ?? cheminCommun(origine), parNom, suivies };
+  if (origine.length === 0) {
+    return suivie.chemin ? { chemin: suivie.chemin, parNom, suivies } : null;
+  }
+  const cheminRange = suivie.chemin;
+  const profondeur = cheminRange ? cheminRange.split('/').length : 0;
+  const prefixesActuels = profondeur > 0
+    ? origine.map((nom) => nom.split('/').slice(0, profondeur).join('/'))
+    : [];
+  const cheminActuel = prefixesActuels[0];
+  const memeCheminIgnoreLaCasse = cheminRange !== undefined
+    && cheminActuel !== undefined
+    && prefixesActuels.every((prefixe) => prefixe === cheminActuel)
+    && cheminActuel.split('/').every((segment, rang) => segment.toLowerCase() === cheminRange.split('/')[rang]?.toLowerCase());
+  return {
+    chemin: memeCheminIgnoreLaCasse ? cheminActuel : cheminRange ?? cheminCommun(origine),
+    parNom,
+    suivies,
+  };
 }
 
 /**
@@ -163,14 +192,23 @@ export function sourceDeLaReprise(
   const nuances = [...parNuance.keys()].sort((a, b) => a - b);
   // Les modes que la liaison écrit, dans l'ordre de la collection.
   const modes = collection.modes.filter((mode) => mode.id === suivie.modes.light || mode.id === suivie.modes.dark);
+  const darkSepare = suivie.modes.dark === undefined && Object.keys(suivie.variables).some((cle) => cle.startsWith('unique/dark/'));
+  const dark = darkSepare ? nuances.map((nuance) => {
+    const variable = suivie.variables[`unique/dark/${nuance}`];
+    return variable && suivie.modes.light ? lues.get(variable.id)?.valeurs[suivie.modes.light] ?? null : null;
+  }) : null;
+  const modeDark = 'ucm-dark-chemin';
   return {
     collection: collection.id,
     nomDeLaCollection: collection.nom,
     chemin: suivie.chemin ?? cheminCommun(nuances.map((nuance) => parNuance.get(nuance)!.nom)),
     nuances,
     variables: nuances.map((nuance) => parNuance.get(nuance)!.id),
-    modes,
-    couleurs: Object.fromEntries(modes.map((mode) => [mode.id, nuances.map((nuance) => parNuance.get(nuance)!.valeurs[mode.id] ?? null)])),
+    modes: dark ? [...modes, { id: modeDark, nom: 'Dark' }] : modes,
+    couleurs: {
+      ...Object.fromEntries(modes.map((mode) => [mode.id, nuances.map((nuance) => parNuance.get(nuance)!.valeurs[mode.id] ?? null)])),
+      ...(dark ? { [modeDark]: dark } : {}),
+    },
     reference: nuanceDeReference(nuances),
   };
 }

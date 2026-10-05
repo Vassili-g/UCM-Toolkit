@@ -33,6 +33,22 @@ test('[UI-08] un seul compteur numérote les demandes, et un état plus ancien q
   assert.equal(etat(2), true);
 });
 
+test('[VAR-14] Synchroniser pendant une copie ne libère pas le rangement de la recette', () => {
+  const { frontiere, etat, envoyees } = banc();
+  frontiere.lireLEtat();
+  etat(1, 'aaaaaaaa');
+  frontiere.copier('p-000000b1', { collection: 'bibliotheque', chemin: 'bleu' });
+  frontiere.lireLEtat('fichier');
+  assert.equal(etat(3, 'aaaaaaaa'), false);
+  assert.equal(frontiere.auRepos(), false);
+  frontiere.ranger(AUTRE);
+  assert.equal(envoyees.length, 3);
+  frontiere.recevoirCopie({ type: 'copie', demande: 2, issue: { issue: 'copiee', empreinte: 'bbbbbbbb', importees: 11 } });
+  frontiere.lireLEtat();
+  assert.equal(etat(4, 'bbbbbbbb'), true);
+  assert.equal(frontiere.auRepos(), true);
+});
+
 test('[REC-10] un rangement porte l’empreinte lue, puis celle que le rangement précédent a rendue', () => {
   const { frontiere, envoyees, etat, rangee } = banc();
   frontiere.lireLEtat();

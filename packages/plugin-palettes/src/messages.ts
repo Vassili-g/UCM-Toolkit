@@ -18,16 +18,14 @@ import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRet
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
-import type { SectionsDeGestion, VueDeGestion } from './preferences';
+import type { SectionsDeGestion } from './preferences';
 import type { Destination } from './variables/destination';
 
 /** Ce que l'interface demande au sandbox. */
 export type UiRequest =
   | { type: 'lire-langue' }
   | { type: 'ranger-langue'; selection: number; langue: Langue }
-  /** La vue de Gestion, rangée avec la langue ([UI-25]) ; sans réponse : la vue choisie vaut pour la session. */
-  | { type: 'ranger-vue'; vue: VueDeGestion }
-  /** Les sections ouvertes de Gestion ([UI-36]) ; sans réponse, comme la vue. */
+  /** Les sections ouvertes de Gestion ([UI-36]) ; sans réponse : le choix vaut pour la session. */
   | { type: 'ranger-sections'; sections: SectionsDeGestion }
   /**
    * `recherche: 'fichier'` étend la recherche des cadres à toutes les pages,
@@ -86,8 +84,9 @@ export type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaPage, IssueDeLaRepr
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
-  /** Les préférences, lues avant le premier rendu : la langue, la vue de Gestion et ses sections ouvertes. */
-  | { type: 'langue'; langue: Langue; vue: VueDeGestion; sections: SectionsDeGestion }
+  | { type: 'etat-refuse'; demande: number; message: string }
+  /** Les préférences, lues avant le premier rendu : la langue et les sections ouvertes de Gestion. */
+  | { type: 'langue'; langue: Langue; sections: SectionsDeGestion }
   | { type: 'langue-rangee'; selection: number; reussie: boolean }
   /**
    * L'état du fichier, en réponse à `lire-etat` : la recette classée

@@ -1094,8 +1094,8 @@
 }
 
 /*
- * L'onglet Gestion : le compte des palettes, la vue et le thème des fiches en
- * tête, puis une carte par palette ([UI-25], [UI-26]).
+ * L'onglet Gestion : le compte des palettes et le thème des fiches en tête,
+ * puis la liste dépliable ([UI-25], [UI-27]).
  */
 .planche-tete {
   display: flex;
@@ -1119,12 +1119,6 @@
   background: var(--fond-avertissement);
   border-color: color-mix(in srgb, var(--texte-avertissement) 25%, var(--bordure));
   background: color-mix(in srgb, var(--fond-avertissement) 35%, var(--fond));
-}
-
-.fiche-planche .carte-titre {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Les deux rampes d'une fiche, peintes du fond du thème : une pastille par nuance de la recette. */
@@ -1449,22 +1443,6 @@
   flex-wrap: nowrap;
 }
 
-.section-palette {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espace-serre);
-}
-
-.section-palette .mini-rampe {
-  gap: 1px;
-}
-
-.section-palette .mini-rampe span {
-  width: 8px;
-  height: 12px;
-  border-radius: 2px;
-}
-
 .section-corps {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1472,7 +1450,7 @@
 }
 
 .section-corps .planche-tete {
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .carte-ouverte .confirmation-gestes {
@@ -1698,12 +1676,7 @@
   color: var(--texte-second);
 }
 
-/* Une palette du fichier n'est pas celle du plugin : sa fiche est en tirets, sans fond. */
-.carte.fiche-du-fichier {
-  border-style: dashed;
-  background: none;
-}
-
+/* Une palette du fichier n'est pas celle du plugin : l'aperçu de sa fiche est en tirets. */
 .fiche-du-fichier .fiche-apercu {
   --bordure-surface: var(--bordure);
 
@@ -1720,67 +1693,69 @@
   white-space: nowrap;
 }
 
-.table-des-palettes .table-ligne-du-fichier th {
-  color: var(--texte);
-  font-weight: 600;
-}
+/*
+ * La liste dépliable de Gestion ([UI-27]) : une ligne par palette, sous des
+ * en-têtes de colonne. Les colonnes ont une largeur fixe pour s'aligner d'une
+ * ligne à l'autre ; celle des tokens disparaît quand le suivi des variables
+ * vient d'une version plus récente.
+ */
+.liste-des-palettes {
+  --colonne-rampe: 108px;
+  --colonne-tokens: 132px;
+  --colonne-planche: 116px;
+  --colonnes-des-palettes: minmax(0, 1fr) var(--colonne-rampe) var(--colonne-tokens) var(--colonne-planche);
+  --colonnes-des-etats: var(--colonne-tokens) var(--colonne-planche);
 
-/* La vue condensée : un tableau sans geste, dont chaque ligne ouvre sa fiche ([UI-27]). */
-.table-des-palettes {
-  width: 100%;
-  font-family: inherit;
-  font-size: var(--corps);
-  line-height: var(--corps-interligne);
-  font-weight: 400;
+  overflow: hidden;
   border: 1px solid var(--bordure);
   border-radius: 8px;
-  border-collapse: separate;
-  border-spacing: 0;
   background: var(--fond-bloc);
 }
 
-.table-des-palettes th,
-.table-des-palettes td {
-  padding: var(--espace-controle);
-  border-bottom: 1px solid var(--bordure);
+.liste-des-palettes[data-tokens='false'] {
+  --colonnes-des-palettes: minmax(0, 1fr) var(--colonne-rampe) var(--colonne-planche);
+  --colonnes-des-etats: var(--colonne-planche);
 }
 
-.table-des-palettes th {
+.palette-entetes,
+.palette-ligne {
+  display: grid;
+  align-items: center;
+  column-gap: var(--espace-controle);
+  grid-template-columns: var(--colonnes-des-palettes);
+  padding: var(--espace-controle);
+}
+
+.palette-entetes {
+  border-bottom: 1px solid var(--bordure);
   color: var(--texte-second);
   font-weight: 500;
-  text-align: left;
 }
 
-.table-des-palettes td {
-  vertical-align: middle;
+.palette-lignes > * + * {
+  border-top: 1px solid var(--bordure);
 }
 
-.table-des-palettes .pastille-d-etat,
-.table-des-palettes .etiquette {
-  display: inline;
-  font-size: var(--corps);
-  font-weight: 400;
-  padding: 0 var(--espace-controle);
-  border-radius: 10px;
-  line-height: 20px;
-  white-space: nowrap;
+/* Dépliée, une ligne et sa fiche se détachent du fond de la liste. */
+.palette-depliable[data-ouverte='true'] {
+  background: var(--fond);
 }
 
-.table-ligne {
+/* 40 px : la hauteur de « Modifier », pour que la ligne ne change pas de taille en se dépliant. */
+.palette-ligne {
+  min-height: 40px;
   cursor: pointer;
 }
 
-.table-ligne:hover {
-  background: var(--fond-survol);
+/* `--fond-survol` vaut `--fond-bloc` en thème clair : le survol prend le cran de fond suivant. */
+.palette-ligne:hover {
+  background: var(--fond-note);
 }
 
-.table-des-palettes tbody tr:last-child th,
-.table-des-palettes tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.table-nom {
+/* La bascule porte le chevron, la teinte et le nom : elle rend la ligne atteignable au clavier. */
+.palette-bascule {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 6px;
   padding: 0;
@@ -1793,16 +1768,92 @@
   text-align: left;
 }
 
-.table-nom .fiche-teinte {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.palette-bascule:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+/*
+ * Le chevron des sections tourne sous `.section[data-ouverte]`, qui couvre
+ * aussi les lignes de la liste : celle-ci a donc sa propre classe.
+ */
+.palette-chevron::before {
+  display: inline-block;
+  width: 10px;
+  color: var(--texte-second);
+  content: '›';
+  text-align: center;
+}
+
+.palette-bascule[aria-expanded='true'] .palette-chevron::before {
+  transform: rotate(90deg);
+}
+
+.palette-bascule .fiche-teinte {
+  flex: none;
   box-shadow: none;
 }
 
-.table-nom:focus-visible {
-  outline: 2px solid var(--bordure-marque);
-  outline-offset: 2px;
+/* Une palette hors du plugin n'a pas de référence : sa teinte est en tirets. */
+.palette-bascule .teinte-hors-du-plugin {
+  box-sizing: border-box;
+  border: 1px dashed var(--texte-second);
+}
+
+.palette-nom {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-ligne .mini-rampe {
+  overflow: hidden;
+  gap: 2px;
+}
+
+.palette-ligne .mini-rampe span {
+  flex: none;
+  width: 8px;
+  border-radius: 2px;
+}
+
+.palette-etats {
+  display: grid;
+  align-items: center;
+  column-gap: var(--espace-controle);
+  grid-column: 3 / -1;
+  grid-template-columns: var(--colonnes-des-etats);
+}
+
+.palette-etats > * {
+  justify-self: start;
+}
+
+.palette-etats .etiquette {
+  grid-column: 1 / -1;
+}
+
+/* Dépliée, la ligne remplace ses états par ses gestes, au bord droit. */
+.palette-gestes {
+  grid-column: 3 / -1;
+  justify-self: end;
+}
+
+.palette-fiche {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-controle);
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0 var(--espace-controle) var(--espace-bloc);
+}
+
+.palette-intertitre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+  margin: 0;
+  padding: var(--espace-bloc) var(--espace-controle) var(--espace-controle);
 }
 
 /* Les pastilles d'une rampe en miniature reprennent l'écart et le rayon de `.fiche-pastille`. */

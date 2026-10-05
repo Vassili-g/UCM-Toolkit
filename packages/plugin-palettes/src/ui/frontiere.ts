@@ -73,6 +73,7 @@ export interface Frontiere {
   rangerLaDestination(destination: Destination): boolean;
   /** Vrai quand l'issue répond au dernier rangement de destination : la demande n'est plus en vol. */
   accepterDestination(message: Extract<PluginMessage, { type: 'destination-rangee' }>): boolean;
+  accepterErreurDeLecture(message: Extract<PluginMessage, { type: 'etat-refuse' }>): boolean;
   /** Retire les variables d'une palette supprimée ([VAR-11]) ; `false` pendant un conflit. */
   retirerLesVariables(palette: string): boolean;
   /** Vrai quand l'issue répond au dernier retrait de variables demandé. */
@@ -282,12 +283,15 @@ export function createFrontiere(
       return message.demande === dernierDessin;
     },
     accepterEtat(message) {
-      if (message.demande < derniereDemande) return false;
+      if (enVol || message.demande < derniereDemande) return false;
       empreinte = message.empreinte;
       enVol = false;
       enAttente = null;
       poser('lu');
       return true;
+    },
+    accepterErreurDeLecture(message) {
+      return !enVol && message.demande >= derniereDemande;
     },
     recevoirRangement(message) {
       if (message.demande !== dernierRangement) return;

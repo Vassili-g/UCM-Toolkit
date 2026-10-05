@@ -129,6 +129,34 @@ function repriseDeSlate(figee) {
   };
 }
 
+function reprisePartielleDeSlate() {
+  const reprise = repriseDeSlate(false);
+  const recette = classerRecette(rangee([reprise.palette, BLEU])).recette;
+  const destination = { ...DESTINATION_DES_TOKENS, groupe: '' };
+  const variables = [];
+  const suivies = {};
+  for (const entree of planDesVariables(recette, reprise.palette, destination)) {
+    const id = `VariableID:slate:${entree.cle}`;
+    if (entree.cle === 'unique/dark/50') {
+      variables.push({ id: 'VariableID:etrangere:50', nom: entree.nom, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': '#FF0000' } });
+    } else {
+      variables.push({ id, nom: entree.nom, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': entree.hexa } });
+      suivies[entree.cle] = { id, ecrite: entree.hexa };
+    }
+  }
+  return { palette: reprise.palette, fichier: { ...reprise.fichier, variables, suivi: { ...reprise.fichier.suivi, destination, palettes: { [reprise.palette.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', chemin: 'slate', modes: { light: '7:0' }, variables: suivies, liaison: 'reprise' } } } } };
+}
+
+function avecAncienneSortie(fichier, palette) {
+  const suivie = fichier.suivi.palettes[palette.id];
+  const ids = new Set(Object.values(suivie.variables).map((variable) => variable.id));
+  return {
+    ...fichier,
+    variables: [...fichier.variables, ...fichier.variables.filter((variable) => ids.has(variable.id)).map((variable) => ({ ...variable, id: `${variable.id}:ancienne`, nom: variable.nom.replace(/^colors\//, 'anciens/') }))],
+    suivi: { ...fichier.suivi, palettes: { ...fichier.suivi.palettes, [`ancienne:${palette.id}:1`]: { ...suivie, sortieAnterieureDe: palette.id, variables: Object.fromEntries(Object.entries(suivie.variables).map(([cle, variable]) => [cle, { ...variable, id: `${variable.id}:ancienne` }])) } } },
+  };
+}
+
 /**
  * Les variables d'un fichier où deux bibliothèques publient chacune une
  * collection « primitive base », de 323 et de 6 variables ; la première
@@ -218,8 +246,20 @@ const ouvrirLaVerification = { clic: '#onglet-verification' };
 const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
 
 const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
-/** Le geste de la ligne « Planche » de la première fiche qui en demande un, dans l'onglet Gestion ouvert. */
-const dessinerLaPalette = { clic: '#panneau-gestion .fiche-planche [data-geste="generer"]' };
+/** Déplie la ligne d'une palette du plugin dans l'onglet Gestion ouvert ([UI-27]). */
+const deplier = (palette) => ({ clic: `#panneau-gestion .palette-depliable[data-cle="${palette.id}"] [data-geste="deplier"]` });
+/** Déplie la première ligne d'une palette du fichier, ou d'une bibliothèque. */
+const deplierLeFichier = { clic: '#panneau-gestion .palette-depliable[data-cle^="fichier:"] [data-geste="deplier"]' };
+const deplierLaBibliotheque = { clic: '#panneau-gestion .palette-depliable[data-cle^="bibliotheque:"] [data-geste="deplier"]' };
+/**
+ * Déplie la première ligne dont la planche demande un geste, puis clique ce
+ * geste. Une ligne repliée montre sa pastille : une ligne déjà dépliée ne
+ * répond pas au sélecteur.
+ */
+const dessinerLaPalette = [
+  { clic: '#panneau-gestion .palette-depliable[data-palette]:has(.pastille-d-etat:is([data-etat="jamais-dessinee"], [data-etat="perimee"], [data-etat="introuvable"])) [data-geste="deplier"]' },
+  { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="generer"]' },
+];
 /** Les pages d'un fichier dont la planche porte deux cadres. */
 const PAGES_DU_FICHIER = [{ id: '0:1', nom: 'Cover', cadres: 0 }, { id: '12:1', nom: 'Design system', cadres: 0 }, { id: PAGE_DE_LA_PLANCHE, nom: 'Palettes', cadres: 2 }];
 /**
@@ -379,6 +419,14 @@ const ETATS = [
     regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid.',
     existe: true,
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU]))],
+  },
+  {
+    id: 'profils-confondus',
+    titre: 'Profils presque identiques',
+    quand: 'Le designer règle Soft et Vivid sur des parts de chroma voisines.',
+    regarder: 'La carte Réglage global annonce un point à vérifier ; le message nomme les nuances concernées et propose Ajuster la saturation.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } }]))],
   },
   {
     id: 'palette-desaturee',
@@ -556,7 +604,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU])),
       ouvrirLaPlanche,
-      dessinerLaPalette,
+      ...dessinerLaPalette,
       { message: { type: 'progression', demande: 3, fait: 0, total: 1, nom: 'Bleu' } },
     ],
   },
@@ -569,7 +617,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU])),
       ouvrirLaPlanche,
-      dessinerLaPalette,
+      ...dessinerLaPalette,
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'interrompue', palette: BLEU.id, message: 'in set_characters: font not loaded', dessines: 0 } } },
     ],
   },
@@ -590,7 +638,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU])),
       ouvrirLaPlanche,
-      dessinerLaPalette,
+      ...dessinerLaPalette,
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'police', style: 'Inter Medium' } } },
     ],
   },
@@ -612,11 +660,13 @@ const ETATS = [
     id: 'planche-a-jour',
     titre: 'Planche à jour',
     quand: 'Bleu et Jaune ont été dessinées, et la recette n’a pas changé depuis.',
-    regarder: 'Deux fiches, « Modifier » seul dans l’en-tête, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
+    regarder: 'Deux lignes dépliées, « Modifier » seul au bord droit, chacune avec ses rampes Soft et Vivid, le ◆ de la référence, le résultat de ses garanties, puis la ligne « Planche » : « À jour », « page Palettes » et « Afficher ».',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')])),
       ouvrirLaPlanche,
+      deplier(BLEU),
+      deplier(JAUNE),
     ],
   },
   {
@@ -628,23 +678,26 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
       ouvrirLaPlanche,
+      deplier(BLEU),
+      deplier(JAUNE),
+      deplier(TROIS_PALETTES[2]),
     ],
   },
   {
-    id: 'gestion-complete',
-    titre: 'Gestion, vue complète',
+    id: 'gestion-liste',
+    titre: 'Gestion, liste repliée',
     quand: 'Trois palettes dans un fichier de trois pages : Bleu à jour, Jaune périmée, Ardoise jamais dessinée.',
-    regarder: 'La connexion repliée résume ses destinations. « Palettes du plugin · 3 » est ouverte : bascules « Vue complète · Vue condensée » et Light, Dark, puis une fiche par palette, sa pastille et « Modifier » en tête, sa ligne « Planche » en pied.',
+    regarder: 'La connexion repliée résume ses destinations. « Palettes du plugin · 3 » est ouverte : la bascule Light, Dark au bord droit, puis la liste sous ses en-têtes « Palette », « Nuances », « Tokens Figma » et « Planche » : une ligne repliée par palette, son chevron, sa teinte et son nom, sa rampe en miniature, l’état de ses tokens et celui de sa planche.',
     existe: true,
     atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche],
   },
   {
-    id: 'gestion-condensee',
-    titre: 'Gestion, vue condensée',
-    quand: 'Le designer presse « Vue condensée » sur le même fichier.',
-    regarder: 'La connexion repliée ; la bascule des thèmes absente ; un tableau sous ses en-têtes « Palette », « Nuances » et « Planche » : une ligne par palette, sa teinte et son nom, sa rampe en miniature, l’état de sa planche. Aucun geste.',
+    id: 'gestion-depliee',
+    titre: 'Gestion, une palette dépliée',
+    quand: 'Le designer clique la ligne de Bleu.',
+    regarder: 'Le chevron de Bleu tourné, ses deux états remplacés par « Modifier » au bord droit ; dessous, sa fiche : les rampes Soft et Vivid, la référence et les garanties, les lignes « Tokens Figma » et « Planche » avec leurs gestes. Jaune et Ardoise restent repliées ; le focus sur la ligne de Bleu.',
     existe: true,
-    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '#panneau-gestion [data-bascule="vue"] .bascule-option:nth-child(2)' }],
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, deplier(BLEU)],
   },
   {
     id: 'gestion-page-des-planches',
@@ -676,9 +729,9 @@ const ETATS = [
     id: 'tokens-jamais-ecrits',
     titre: 'Tokens pas encore écrits',
     quand: 'Aucune palette n’est écrite dans les variables, et la destination n’a jamais été confirmée.',
-    regarder: 'La ligne « Tokens » du bloc : « primitives », « colors/… » et « Changer ». Dans chaque fiche, la ligne « Tokens Figma » avant la ligne « Planche » : « Pas encore écrits », « 44 variables à créer » et « Écrire dans les tokens » en bleu. Le bilan compte les trois palettes à écrire.',
+    regarder: 'Les trois lignes dépliées. Dans chaque fiche, la ligne « Tokens Figma » avant la ligne « Planche » : « Pas encore écrits », « 44 variables à créer » et « Écrire dans les tokens » en bleu.',
     existe: true,
-    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche],
+    atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, deplier(BLEU), deplier(JAUNE), deplier(TROIS_PALETTES[2])],
   },
   {
     id: 'tokens-a-jour',
@@ -689,6 +742,8 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, JAUNE]), BLEU, '40:2'), cadreDessine(rangee([BLEU, JAUNE]), JAUNE, '40:3')]), 1, tokensEcrits(rangee([BLEU, JAUNE]), [BLEU, JAUNE])),
       ouvrirLaPlanche,
+      deplier(BLEU),
+      deplier(JAUNE),
     ],
   },
   {
@@ -700,6 +755,7 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { ecrite: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
       ouvrirLaPlanche,
+      deplier(JAUNE),
     ],
   },
   {
@@ -711,13 +767,14 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { disparue: (entree, palette) => palette.id === JAUNE.id && ['soft/light/50', 'soft/light/100', 'soft/light/200'].includes(entree.cle) })),
       ouvrirLaPlanche,
+      deplier(JAUNE),
     ],
   },
   {
     id: 'tokens-modifies',
     titre: 'Couleurs changées dans Figma',
     quand: 'Le designer a changé à la main deux variables de Jaune dans Figma.',
-    regarder: 'Jaune « Modifiée dans Figma » : « Tokens Figma », « Modifiés dans Figma », « 2 couleurs changées à la main », sans geste sur la ligne ; dessous, l’encart d’avertissement : « 2 couleurs de Jaune ne sont plus celles du plugin. », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, puis « Laisser les couleurs de Figma » et « Remettre les couleurs du plugin ».',
+    regarder: 'Jaune dépliée seule, sa décision attendant : « Tokens Figma », « Modifiés dans Figma », « 2 couleurs changées à la main », sans geste sur la ligne ; dessous, l’encart d’avertissement : « 2 couleurs de Jaune ne sont plus celles du plugin. », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, puis « Laisser les couleurs de Figma » et « Remettre les couleurs du plugin ».',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]], { lue: fausser(JAUNE, { 'vivid/light/700': '#8A5A00', 'vivid/light/800': '#6E4500' }) })),
@@ -733,7 +790,8 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
       ouvrirLaPlanche,
-      { clic: '#panneau-gestion .fiche-planche [data-geste="ecrire"]' },
+      deplier(TROIS_PALETTES[2]),
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
     ],
   },
   {
@@ -792,8 +850,9 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
       ouvrirLaPlanche,
-      { clic: '#panneau-gestion .fiche-planche [data-geste="ecrire"]' },
-      { clic: '#panneau-gestion .fiche-planche [data-geste="confirmer-ecriture"]' },
+      deplier(TROIS_PALETTES[2]),
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="confirmer-ecriture"]' },
       { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'nom-pris', nom: 'colors/ardoise/soft/light/50' }] } } },
     ],
   },
@@ -827,23 +886,12 @@ const ETATS = [
     id: 'palettes-du-fichier',
     titre: 'Palettes du fichier',
     quand: 'Les variables du fichier portent deux palettes que le plugin n’a pas écrites : slate, et emerald dans une collection à deux modes.',
-    regarder: 'Sous les fiches du plugin, un filet, « Déjà dans le fichier · 2 » et sa phrase. Deux fiches en tirets, sans fond : l’étiquette « Variables du fichier » et « Modifier dans le plugin » en tête ; la rampe du premier mode ; « primitives / slate / 50 … 950 » et « 11 couleurs · 1 mode », puis « Brand / brand / emerald / 50 … 950 » et « 11 couleurs · modes Light, Dark ».',
+    regarder: 'Sous les lignes du plugin, dans la même liste, l’intertitre « Déjà dans le fichier · 2 » et sa phrase. Deux lignes à la teinte en tirets, chacune avec sa rampe et l’étiquette « Variables du fichier ». slate dépliée : « Modifier dans le plugin » au bord droit, la rampe du premier mode en tirets, « primitives / slate / 50 … 950 » et « 11 couleurs · 1 mode ».',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
-    ],
-  },
-  {
-    id: 'palettes-du-fichier-condensees',
-    titre: 'Palettes du fichier, vue condensée',
-    quand: 'Le designer presse « Vue condensée » sur le même fichier.',
-    regarder: 'Le tableau : une ligne par palette du plugin, puis une ligne par palette du fichier, son nom, sa rampe et l’étiquette « Variables du fichier » à la place des deux états.',
-    existe: true,
-    atteinte: [
-      gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
-      ouvrirLaPlanche,
-      { clic: '#panneau-gestion [data-bascule="vue"] .bascule-option:nth-child(2)' },
+      deplierLeFichier,
     ],
   },
   {
@@ -874,13 +922,30 @@ const ETATS = [
     id: 'reprise-dans-gestion',
     titre: 'Reprise dans Gestion',
     quand: 'Dans Gestion, le designer clique « Mettre à jour » sur la ligne des tokens de slate, reprise et recalculée.',
-    regarder: 'La fiche de slate parmi les palettes du plugin : « Tokens Figma », « À mettre à jour », « primitives / slate » et le nombre de couleurs qui changent. Dessous, l’encart de remplacement : « Remplacer N couleurs de slate dans Figma ? », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, six au plus, « Et N autres. Les variables gardent leur nom et leurs liaisons. », puis « Annuler » et « Remplacer N couleurs ». « Déjà dans le fichier · 1 » ne liste plus que brand/emerald.',
+    regarder: 'La fiche de slate parmi les palettes du plugin : « Tokens Figma », « À mettre à jour », « primitives / slate » et le nombre de couleurs qui changent. Dessous, l’encart de remplacement : « Remplacer N couleurs de slate dans Figma ? », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, six au plus, « Et N autres. Les variables gardent leur nom et leurs liaisons. », puis « Annuler » et « Remplacer N couleurs ». L’intertitre « Déjà dans le fichier · 1 » ne précède plus que brand/emerald.',
     existe: true,
     atteinte: [
       ((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false)),
       ouvrirLaPlanche,
-      { clic: '#panneau-gestion .fiche-planche [data-geste="mettre-a-jour"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="deplier"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="mettre-a-jour"]' },
     ],
+  },
+  {
+    id: 'reprise-partielle',
+    titre: 'Reprise partiellement écrite',
+    quand: 'Une variable étrangère occupe slate/dark/50 après écriture des autres nuances.',
+    regarder: 'La palette reste À mettre à jour ; le constat nomme slate/dark/50 et le geste de renommage. La ligne précise Thèmes dans le chemin.',
+    existe: true,
+    atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(reprisePartielleDeSlate()), ouvrirLaPlanche],
+  },
+  {
+    id: 'ancienne-sortie-des-tokens',
+    titre: 'Ancienne destination des tokens',
+    quand: 'Une migration a conservé les variables de la destination précédente.',
+    regarder: 'La carte de l’ancienne sortie nomme son chemin et propose Supprimer les variables avec une confirmation propre.',
+    existe: true,
+    atteinte: [gestionDeTroisPalettes(avecAncienneSortie(tokensEcrits(rangee(TROIS_PALETTES), [BLEU]), BLEU)), ouvrirLaPlanche],
   },
   {
     id: 'reprise-refusee',
@@ -892,7 +957,7 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
-      { clic: '[data-section="fichier"] .section-bascule' },
+      deplierLeFichier,
 
       { clic: '#panneau-gestion [data-geste="reprendre"]' },
       { message: { type: 'reprise', demande: 3, issue: { issue: 'palette-introuvable' } } },
@@ -902,11 +967,12 @@ const ETATS = [
     id: 'bibliotheques',
     titre: 'Bibliothèques',
     quand: 'Deux bibliothèques activées publient chacune une collection « primitive base » ; la première porte la palette gray.',
-    regarder: '« Déjà dans le fichier · 3 » : après slate et brand/emerald, la fiche de gray en tirets, l’étiquette « Bibliothèque » et « Copier dans le plugin », des pastilles vides, « primitive base (323 variables) », « gray / 50 … 950 », « 11 couleurs · Couleurs lues à la copie ».',
+    regarder: 'Après slate et brand/emerald, l’intertitre « Dans les bibliothèques · 1 » et sa phrase, puis la ligne de gray, des pastilles vides. Dépliée : « Copier dans le plugin » au bord droit, des pastilles vides en tirets, « primitive base (323 variables) », « gray / 50 … 950 », « 11 couleurs · Couleurs lues à la copie ».',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])))),
       ouvrirLaPlanche,
+      deplierLaBibliotheque,
     ],
   },
   {
@@ -932,8 +998,7 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
-      { clic: '[data-section="bibliotheques"] .section-bascule' },
-
+      deplierLaBibliotheque,
       { clic: '#panneau-gestion [data-geste="copier"]' },
     ],
   },
@@ -947,8 +1012,7 @@ const ETATS = [
     atteinte: [
       gestionDeTroisPalettes(avecLesBibliotheques(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]))),
       ouvrirLaPlanche,
-      { clic: '[data-section="bibliotheques"] .section-bascule' },
-
+      deplierLaBibliotheque,
       { clic: '#panneau-gestion [data-geste="copier"]' },
       { clic: '#panneau-gestion [data-geste="confirmer-copie"]' },
       { message: { type: 'copie', demande: 3, issue: { issue: 'bibliotheque-illisible', message: 'in importVariableByKeyAsync: could not find variable' } } },
@@ -958,11 +1022,23 @@ const ETATS = [
     id: 'bibliotheques-illisibles',
     titre: 'Bibliothèques illisibles',
     quand: 'Figma n’a pas rendu les collections des bibliothèques.',
-    regarder: 'Gestion fonctionne : fiches, tokens et planches. Sous les listes, la notice « Bibliothèques », qui dit que leurs palettes ne paraissent pas et demande de synchroniser.',
+    regarder: 'Gestion fonctionne : lignes, tokens et planches. Sous la liste, la notice « Bibliothèques », qui dit que leurs palettes ne paraissent pas et demande de synchroniser.',
     existe: true,
     atteinte: [
       gestionDeTroisPalettes({ ...tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]), bibliotheques: { collections: [], palettes: [], lisibles: false } }),
       ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'lecture-des-variables-refusee',
+    titre: 'Lecture des variables refusée',
+    quand: 'Figma refuse de relire les variables locales.',
+    regarder: 'Le refus dans Gestion avec le geste Synchroniser ; les palettes déjà lues restent affichées.',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])),
+      ouvrirLaPlanche,
+      { message: { type: 'etat-refuse', demande: 2, message: 'variables indisponibles' } },
     ],
   },
   {
@@ -1009,7 +1085,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2', { empreinte: '0badc0de' })])),
       ouvrirLaPlanche,
-      dessinerLaPalette,
+      ...dessinerLaPalette,
       {
         message: {
           type: 'dessin',
@@ -1091,7 +1167,7 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU])),
       ouvrirLaPlanche,
-      dessinerLaPalette,
+      ...dessinerLaPalette,
       { message: { type: 'dessin', demande: 3, resultat: { issue: 'dessinee', page: PAGE_DE_LA_PLANCHE, cadres: [{ palette: BLEU.id, cadre: '40:2' }], peints: [] } } },
       etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2')]), 4),
     ],
@@ -1365,6 +1441,9 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee(TROIS_PALETTES), 'SRGB', plancheLue([cadreDessine(rangee(TROIS_PALETTES), BLEU, '40:2'), cadreDessine(rangee(TROIS_PALETTES), JAUNE, '40:3', { empreinte: '0badc0de' })])),
       ouvrirLaPlanche,
+      deplier(BLEU),
+      deplier(JAUNE),
+      deplier(TROIS_PALETTES[2]),
     ],
   },
   {
@@ -1415,7 +1494,7 @@ ETATS.push(
     id: 'sept-palettes',
     titre: 'Gestion de sept palettes',
     quand: 'Sept palettes attendent leurs premières sorties dans Figma.',
-    regarder: 'Une fiche par palette ; chaque sortie porte son geste d’écriture ou de dessin.',
+    regarder: 'Une ligne repliée par palette, l’état de ses tokens et celui de sa planche.',
     existe: true,
     ouvertSurGestion: true,
     atteinte: [etatDuFichier(rangee(SEPT_PALETTES), 'SRGB', PLANCHE_VIDE, 1, tokensEcrits(rangee(SEPT_PALETTES), [])), ouvrirLaPlanche],
@@ -1424,7 +1503,7 @@ ETATS.push(
     id: 'gestion-sections-repliees',
     titre: 'Gestion, sections repliables',
     quand: 'Le designer ouvre Gestion sans préférence de sections.',
-    regarder: 'Seule la section « Palettes du plugin » est ouverte. La connexion résume ses destinations ; les palettes du fichier et des bibliothèques restent dans deux sections distinctes.',
+    regarder: 'Seule la section « Palettes du plugin » est ouverte. La connexion résume ses destinations ; les palettes du fichier et des bibliothèques suivent celles du plugin dans la même liste, chacune sous son intertitre.',
     existe: true,
     ouvertSurGestion: true,
     atteinte: [gestionDeTroisPalettes(avecLesBibliotheques(avecLesPalettesDuFichier(tokensEcrits(rangee(TROIS_PALETTES), [BLEU])))), ouvrirLaPlanche],
@@ -1442,10 +1521,10 @@ ETATS.push(
     id: 'fichier-sans-variable-avec-bibliotheque',
     titre: 'Fichier sans variable, bibliothèque distante',
     quand: 'Le fichier ne porte aucune palette ni variable locale ; une bibliothèque activée publie gray.',
-    regarder: 'La section « Dans les bibliothèques » porte gray et « Publiées par une bibliothèque distante ». Son geste est « Copier dans le plugin ».',
+    regarder: 'Sous l’invitation à créer une palette, la liste : l’intertitre « Dans les bibliothèques · 1 », « Publiées par une bibliothèque distante », puis gray dépliée, son geste « Copier dans le plugin ».',
     existe: true,
     ouvertSurGestion: true,
-    atteinte: [etatDuFichier('', 'SRGB', PLANCHE_VIDE, 1, avecLesBibliotheques(VARIABLES_VIDES)), ouvrirLaPlanche, { clic: '[data-section="bibliotheques"] .section-bascule' }],
+    atteinte: [etatDuFichier('', 'SRGB', PLANCHE_VIDE, 1, avecLesBibliotheques(VARIABLES_VIDES)), ouvrirLaPlanche, deplierLaBibliotheque],
   },
 );
 

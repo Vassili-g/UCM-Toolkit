@@ -66,8 +66,9 @@ un audit d'accessibilité de l'interface qui utilisera ces couleurs.
 Gestion regroupe la connexion, les palettes du plugin, celles du fichier,
 celles des bibliothèques et la recette dans des sections repliables. Seules
 les palettes du plugin sont ouvertes par défaut. Les mises à jour se font
-depuis chaque fiche ; la vue condensée rassemble les palettes dans un tableau
-sans geste d'écriture.
+depuis la fiche de chaque palette : la liste montre une ligne par palette, et
+un clic sur la ligne déplie sa fiche. Une palette qui attend une décision se
+déplie seule.
 
 « Connexion à Figma » présente la destination des tokens et la page des
 planches. « Synchroniser » relit le fichier sans rien écrire. Les choix de
@@ -90,16 +91,30 @@ couleurs du plugin » ou « Laisser les couleurs de Figma ».
 
 ### Les palettes déjà dans le fichier
 
-Sous les palettes du plugin, « Déjà dans le fichier » liste les palettes que
+Après les palettes du plugin, « Déjà dans le fichier » liste les palettes que
 les variables locales portent déjà : des variables de couleur dont le dernier
 segment du nom est un nombre, cinq au moins sous le même chemin. « Modifier
-dans le plugin » en reprend une : « Mettre à jour » remplace les couleurs de ses variables d'origine et les
-renomme sous leur thème et leur intensité, sans rompre leurs liaisons. Les
-nuances, le thème Dark et l'intensité que la palette porte de plus se créent
-sous le même chemin. Les palettes des
-bibliothèques activées paraissent dans « Dans les bibliothèques » ;
+dans le plugin » en reprend une : « Mettre à jour » remplace les couleurs de
+ses variables d'origine et les renomme sous leur thème et leur intensité,
+sans rompre leurs liaisons. Les nuances, le thème Dark et l'intensité que la
+palette porte de plus se créent sous le même chemin. La reprise conserve la
+collection ; un changement du groupe de « Destination des tokens » change
+ses chemins lors de l'écriture. Sa fiche indique la forme réellement utilisée
+pour Light et Dark. Une collision de nom laisse la palette partiellement
+écrite et nomme la variable à renommer. Si Figma ne change que la casse des segments, la reprise
+suit les noms actuels des variables. Si toutes les variables d'origine ont
+disparu, le plugin les recrée sous le chemin d'origine. Un suffixe non vide
+ajouté après un tiret au dernier segment d'une nuance, comme `600-base`, est
+conservé lors de ces renommages et ne déclenche pas à lui seul « À mettre à
+jour ». Un tiret final seul n'est pas un suffixe. Les palettes des
+bibliothèques activées suivent, sous « Dans les bibliothèques » ;
 « Copier dans le plugin » en fait
 une palette du plugin, qui s'écrit dans la destination.
+
+Après un changement de destination, Gestion conserve une carte pour les
+anciennes variables. « Supprimer les variables… » demande confirmation et
+laisse les variables de la destination actuelle. Si Figma interrompt un
+retrait, synchronisez puis réessayez pour retirer les variables restantes.
 
 ### Les planches
 

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { creerTraducteur, CATALOGUES } from '../src/i18n';
 import { LANGUES, resoudreDansRegistre, resoudreLangue } from '../src/i18n/langues';
 import { arrondi, contraste, pluriel } from '../src/i18n/nombres';
-import { CLE_DE_LANGUE, CLE_DE_VUE, CLE_DES_SECTIONS, SECTIONS_PAR_DEFAUT, creerPreferences } from '../src/preferences';
+import { CLE_DE_LANGUE, CLE_DES_SECTIONS, SECTIONS_PAR_DEFAUT, creerPreferences } from '../src/preferences';
 import { creerLocalisation, lireTexte } from '../src/ui/localisation';
 
 function structure(objet: object, prefixe = ''): string[] {
@@ -108,28 +108,14 @@ test('[UI-18] le bilan du pied accorde les garanties et les alertes, dans les de
   assert.equal(anglais.bilanDuPied(0, 0, 3, true), 'Free palette · 3 alerts');
 });
 
-test('[UI-25] la vue de Gestion se range sous sa clé ; une valeur absente, inconnue ou refusée donne la vue complète', async () => {
-  for (const valeur of [undefined, {}, 'liste', 'complete', 'condensee']) {
-    const preferences = creerPreferences({ getAsync: async (cle) => (cle === CLE_DE_VUE ? valeur : undefined), setAsync: async () => {} });
-    assert.equal(await preferences.lireLaVue(), valeur === 'condensee' ? 'condensee' : 'complete');
-  }
-  const refusees = creerPreferences({ getAsync: async () => { throw new Error('indisponible'); }, setAsync: async () => {} });
-  assert.equal(await refusees.lireLaVue(), 'complete');
-  const rangees: [string, unknown][] = [];
-  const preferences = creerPreferences({ getAsync: async () => undefined, setAsync: async (cle, valeur) => { rangees.push([cle, valeur]); } });
-  assert.equal(await preferences.rangerLaVue('condensee'), true);
-  assert.equal(await preferences.rangerLaVue('inconnue'), true);
-  assert.deepEqual(rangees, [[CLE_DE_VUE, 'condensee'], [CLE_DE_VUE, 'complete']]);
-});
-
-test('[UI-36] les sections gardent leurs choix valides et reprennent les défauts pour les autres valeurs', async () => {
+test('[UI-36] les sections gardent leurs choix valides, reprennent les défauts pour les autres valeurs et oublient les sections disparues', async () => {
   const rangees: [string, unknown][] = [];
   const preferences = creerPreferences({
-    getAsync: async () => ({ connexion: true, plugin: false, fichier: 'oui', bibliotheques: true }),
+    getAsync: async () => ({ connexion: true, plugin: 'oui', recette: true, fichier: true, bibliotheques: true }),
     setAsync: async (cle, valeur) => { rangees.push([cle, valeur]); },
   });
   const sections = await preferences.lireLesSections();
-  assert.deepEqual(sections, { connexion: true, plugin: false, fichier: false, bibliotheques: true, recette: false });
+  assert.deepEqual(sections, { connexion: true, plugin: true, recette: true });
   await preferences.rangerLesSections(sections);
   assert.deepEqual(rangees, [[CLE_DES_SECTIONS, sections]]);
   const refusees = creerPreferences({ getAsync: async () => { throw new Error('indisponible'); }, setAsync: async () => {} });
