@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texte des boutons</title>
+<meta name="description" content="UCM Palettes : choisir un texte blanc ou noir sur les boutons en Light et en Dark, et placer la commande Light/Dark de l'aperçu.">
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #f4f4f2; --texte: #1d1d1d; --second: #5c5c5c; --carte: #ffffff; --bordure: #dcdcd7; --accent: #0b63b6; --fond-accent: #e6f0fa;
+  --bon: #13703f; --fond-bon: #dcf1e4; --mauvais: #a8330a; --fond-mauvais: #fbe1d6; --neutre: #5f5f5f; --fond-neutre: #ebebe8;
+  --attention: #8a5300; --fond-attention: #fbefd5;
+  --p-fond: #ffffff; --p-bloc: #f5f5f5; --p-bordure: #e3e3e3; --p-texte: #1e1e1e; --p-second: #6b6b6b; --p-marque: #0d7fe0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #151515; --texte: #ececec; --second: #a6a6a6; --carte: #1f1f1f; --bordure: #383838; --accent: #7cc0f7; --fond-accent: #18324a;
+    --bon: #86dca6; --fond-bon: #173323; --mauvais: #ffad85; --fond-mauvais: #3d1d10; --neutre: #b0b0b0; --fond-neutre: #2b2b2b;
+    --attention: #f3c46b; --fond-attention: #3a2a0c;
+    --p-fond: #2c2c2c; --p-bloc: #383838; --p-bordure: #444444; --p-texte: #f0f0f0; --p-second: #ababab; --p-marque: #5eb0ff;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #151515; --texte: #ececec; --second: #a6a6a6; --carte: #1f1f1f; --bordure: #383838; --accent: #7cc0f7; --fond-accent: #18324a;
+  --bon: #86dca6; --fond-bon: #173323; --mauvais: #ffad85; --fond-mauvais: #3d1d10; --neutre: #b0b0b0; --fond-neutre: #2b2b2b;
+  --attention: #f3c46b; --fond-attention: #3a2a0c;
+  --p-fond: #2c2c2c; --p-bloc: #383838; --p-bordure: #444444; --p-texte: #f0f0f0; --p-second: #ababab; --p-marque: #5eb0ff;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 120px; }
+body { margin: 0; background: var(--page); color: var(--texte); font: 14px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: var(--accent); }
+code { font: 12.5px ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--fond-neutre); padding: 1px 4px; border-radius: 4px; }
+.conteneur { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.tete { padding: 28px 0 12px; }
+header.tete h1 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.tete p { margin: 0 0 6px; color: var(--second); max-width: 860px; }
+nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font-size: 13px; }
+
+/* La barre du scénario : ce qu'on choisit ici repeint toute la page. */
+.scenario { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bordure); }
+.scenario .conteneur { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-top: 10px; padding-bottom: 10px; align-items: center; }
+.groupe { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.groupe > .etiquette { font-size: 12px; font-weight: 600; color: var(--second); }
+.choix { display: inline-flex; border: 1px solid var(--bordure); border-radius: 7px; overflow: hidden; background: var(--carte); }
+.choix button { font: inherit; font-size: 12.5px; border: 0; background: transparent; color: var(--texte); padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.choix button + button { border-left: 1px solid var(--bordure); }
+.choix button[aria-pressed="true"] { background: var(--accent); color: var(--carte); font-weight: 600; }
+.choix button:focus-visible, .p-bascule button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .scenario { position: static; }
+  html { scroll-padding-top: 0; }
+  .choix { flex-wrap: wrap; }
+}
+.puce { width: 12px; height: 12px; border-radius: 3px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); flex: none; }
+
+section.bloc { padding: 34px 0 6px; }
+section.bloc > h2 { font-size: 19px; margin: 0 0 4px; letter-spacing: -0.01em; }
+section.bloc > .chapeau { color: var(--second); margin: 0 0 16px; max-width: 860px; }
+.carte { background: var(--carte); border: 1px solid var(--bordure); border-radius: 12px; padding: 16px; }
+.grille-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .grille-2 { grid-template-columns: minmax(0, 1fr); } }
+.note { font-size: 12.5px; color: var(--second); }
+.legende { font-size: 12.5px; color: var(--second); margin-top: 8px; }
+
+/* En bref : la réponse, avant tout le reste. */
+.reponse { border: 2px solid var(--accent); background: var(--fond-accent); }
+.reponse ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; font-size: 15px; line-height: 1.5; }
+.reponse ol b { font-weight: 650; }
+.avant-apres { display: grid; grid-template-columns: max-content repeat(2, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.avant-apres .entete { font-size: 12px; font-weight: 650; color: var(--second); align-self: end; }
+.avant-apres .theme { font-size: 12px; font-weight: 650; color: var(--second); writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; }
+.avant-apres .ecran { padding: 10px; }
+.avant-apres .ecran-titre { font-size: 13px; }
+.avant-apres .ecran-texte, .avant-apres .ecran-lien { font-size: 12px; }
+.avant-apres .btn { font-size: 12px; padding: 6px 12px; min-width: 70px; }
+.inchange { font-size: 11px; opacity: .8; }
+
+/* Les verdicts : un mot, une couleur de fond, jamais la couleur seule. */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.badge.bon { color: var(--bon); background: var(--fond-bon); }
+.badge.mauvais { color: var(--mauvais); background: var(--fond-mauvais); }
+.badge.neutre { color: var(--neutre); background: var(--fond-neutre); }
+.badge.attention { color: var(--attention); background: var(--fond-attention); }
+
+/* Un écran d'exemple, peint des couleurs du moteur. */
+.ecran { border-radius: 10px; padding: 14px; border: 1px solid rgba(127,127,127,.25); }
+.ecran-entete { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 11.5px; margin-bottom: 10px; opacity: .85; }
+.ecran-titre { font-weight: 650; font-size: 15px; margin-bottom: 8px; }
+.ecran-carte { border: 1px solid; border-radius: 8px; padding: 12px; }
+.ecran-texte { font-size: 13px; margin-bottom: 6px; }
+.ecran-lien { font-size: 13px; font-weight: 600; text-decoration: underline; }
+.ecran-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 7px; min-width: 82px; }
+
+.etats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.etat { display: grid; gap: 4px; justify-items: center; text-align: center; }
+.etat .nom { font-size: 10.5px; opacity: .8; }
+.etat .btn { min-width: 0; width: 100%; padding: 8px 4px; }
+.etat .badge { white-space: normal; justify-content: center; text-align: center; line-height: 1.3; }
+.ligne-14 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 11.5px; margin-top: 10px; }
+.source { font-size: 11px; opacity: .75; margin-top: 6px; }
+
+.solution { display: grid; gap: 10px; align-content: start; }
+.solution-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.solution-tete h3 { margin: 0; font-size: 15.5px; }
+.solution .regle { margin: 0; font-size: 13px; color: var(--second); }
+.solution .themes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.solution .ecran { padding: 10px; }
+.impacts { display: flex; flex-wrap: wrap; gap: 5px; }
+.impacts span { font-size: 11px; border: 1px solid var(--bordure); border-radius: 6px; padding: 1px 6px; color: var(--second); }
+.impacts span b { color: var(--texte); font-weight: 600; }
+.solution[data-recommandee="oui"] { border-color: var(--bon); box-shadow: 0 0 0 1px var(--bon) inset; }
+.schema-s4 { display: grid; gap: 6px; padding: 10px; border: 1px dashed var(--bordure); border-radius: 10px; font-size: 12px; color: var(--second); }
+.schema-s4 .rangee { display: flex; gap: 4px; align-items: center; }
+.schema-s4 .vide { width: 22px; height: 22px; border-radius: 4px; border: 1px dashed var(--second); }
+
+table.mesures { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+table.mesures th, table.mesures td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+table.mesures th { font-size: 11.5px; color: var(--second); font-weight: 600; }
+table.mesures td.nombre { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.defile-x { overflow-x: auto; }
+
+svg.bandes { width: 100%; height: auto; display: block; }
+svg.bandes text { fill: var(--second); font-size: 11px; font-family: inherit; }
+svg.bandes .titre { fill: var(--texte); font-weight: 650; font-size: 12px; }
+svg.bandes .axe { stroke: var(--bordure); }
+svg.bandes .bande-actuelle { fill: var(--fond-bon); stroke: var(--bon); stroke-width: 1; }
+svg.bandes .bande-inversee { fill: var(--fond-attention); stroke: var(--attention); stroke-width: 1; }
+svg.bandes .repere { stroke: var(--texte); stroke-width: 1.5; }
+
+/* Le plugin simulé, aux rôles de couleur de Figma. */
+.plugin-zone { display: grid; grid-template-columns: auto minmax(260px, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .plugin-zone { grid-template-columns: minmax(0, 1fr); } }
+.plugin { position: relative; display: grid; grid-template-rows: 38px minmax(0, 1fr) auto; background: var(--p-fond); color: var(--p-texte); border: 1px solid var(--bordure); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,.14); font: 11px/16px Inter, ui-sans-serif, system-ui, sans-serif; }
+.p-entete { display: flex; align-items: center; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--p-bordure); }
+.p-onglet { padding: 6px 10px; border-radius: 6px; color: var(--p-second); font-weight: 500; }
+.p-onglet.actif { color: var(--p-texte); background: var(--p-bloc); font-weight: 600; }
+.p-entete .espace { flex: 1; }
+.p-defilement { overflow-y: auto; padding: 0 12px 12px; position: relative; }
+.p-barre { display: flex; align-items: center; gap: 6px; padding: 8px 0; background: var(--p-fond); border-bottom: 1px solid transparent; }
+.p-barre.fixe { position: sticky; top: 0; z-index: 5; border-bottom-color: var(--p-bordure); }
+.p-selecteur { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--p-bordure); border-radius: 6px; padding: 3px 8px; font-weight: 600; }
+.p-bouton { border: 1px solid var(--p-bordure); border-radius: 6px; padding: 3px 8px; color: var(--p-texte); }
+.p-barre .espace { flex: 1; }
+.p-titre { font-size: 13px; font-weight: 650; margin: 6px 0 10px; }
+.p-carte { border: 1px solid var(--p-bordure); border-radius: 8px; margin-bottom: 10px; }
+.p-carte > header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+.p-carte > header h4 { margin: 0; font-size: 11.5px; font-weight: 650; }
+.p-carte > header .espace { flex: 1; }
+.p-carte > .corps { padding: 0 10px 10px; display: grid; gap: 8px; }
+.p-bascule { display: inline-flex; align-items: center; gap: 4px; }
+.p-bascule > span { color: var(--p-second); font-size: 10.5px; }
+.p-bascule > div { display: inline-flex; background: var(--p-bloc); border-radius: 6px; padding: 2px; }
+.p-bascule button { font: inherit; font-size: 10.5px; border: 0; background: transparent; color: var(--p-second); padding: 2px 8px; border-radius: 4px; cursor: pointer; }
+.p-bascule button[aria-pressed="true"] { background: var(--p-fond); color: var(--p-texte); font-weight: 600; box-shadow: 0 0 0 1px var(--p-bordure); }
+.p-bascule.mise-en-avant > div { box-shadow: 0 0 0 2px var(--p-marque); }
+.p-nuancier { border-radius: 6px; padding: 8px; display: grid; gap: 4px; }
+.p-rangee { display: grid; grid-template-columns: 46px repeat(11, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.p-rangee.bouton { grid-template-columns: 46px repeat(4, minmax(0, 1fr)) 7fr; }
+.p-rangee > span:first-child { font-size: 9.5px; opacity: .8; }
+.p-pastille { height: 18px; border-radius: 3px; }
+.p-reglette { display: grid; grid-template-columns: 70px 1fr 34px; gap: 6px; align-items: center; color: var(--p-second); }
+.p-piste { height: 4px; border-radius: 2px; background: var(--p-bloc); position: relative; }
+.p-piste::after { content: ""; position: absolute; left: var(--position, 50%); top: -4px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--p-fond); box-shadow: 0 0 0 1px var(--p-second); }
+.p-courbe { width: 100%; height: 70px; display: block; border-radius: 6px; }
+.p-essais { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.p-essais.cote-a-cote { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.p-essais .ecran { padding: 10px; }
+.p-essais .ecran-titre { font-size: 12.5px; }
+.p-essais .ecran-texte, .p-essais .ecran-lien { font-size: 11px; }
+.p-essais .btn { font-size: 11px; padding: 5px 10px; min-width: 64px; }
+.p-pied { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--p-bordure); background: var(--p-fond); }
+.p-pied .espace { flex: 1; }
+.p-pied .p-bouton { background: var(--p-marque); color: #fff; border-color: transparent; font-weight: 600; }
+.p-alerte { display: none; background: var(--fond-attention); color: var(--attention); border-radius: 6px; padding: 4px 8px; font-weight: 600; }
+.p-alerte.visible { display: block; }
+.plugin-cadre { overflow-x: auto; padding-bottom: 6px; }
+.explication-modele h3 { margin: 0 0 6px; font-size: 15px; }
+.explication-modele dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 10px 0 0; font-size: 13px; }
+.explication-modele dt { color: var(--second); }
+.explication-modele dd { margin: 0; }
+
+/* La carte des Réglages communs proposée. */
+.plugin-carte { background: var(--p-fond); color: var(--p-texte); border: 1px solid var(--p-bordure); border-radius: 8px; font: 11px/16px Inter, ui-sans-serif, system-ui, sans-serif; box-shadow: 0 8px 28px rgba(0,0,0,.10); }
+.plugin-carte > .chemin { padding: 8px 12px 0; color: var(--p-second); font-size: 10.5px; }
+.plugin-carte > header { display: flex; align-items: baseline; gap: 8px; padding: 4px 12px 4px; flex-wrap: wrap; }
+.plugin-carte > header h4 { margin: 0; font-size: 12px; }
+.plugin-carte .colonnes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 8px 12px 10px; }
+@media (max-width: 520px) { .plugin-carte .colonnes { grid-template-columns: minmax(0, 1fr); } }
+.plugin-carte .colonne { display: grid; gap: 8px; align-content: start; }
+.plugin-carte .colonne h5 { margin: 0; font-size: 11px; color: var(--p-second); font-weight: 600; }
+.plugin-carte .champ { display: flex; align-items: center; gap: 8px; }
+.plugin-carte .champ .hexa { border: 1px solid var(--p-bordure); border-radius: 5px; padding: 2px 6px; font-family: ui-monospace, Consolas, monospace; }
+.plugin-carte .nouveau { outline: 2px dashed var(--p-marque); outline-offset: 3px; border-radius: 6px; }
+.plugin-carte .apercu-bouton { border-radius: 6px; padding: 8px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.plugin-carte .apercu-bouton span { border-radius: 4px; font-size: 10px; font-weight: 600; text-align: center; padding: 5px 2px; }
+.plugin-carte .notice { color: var(--p-second); font-size: 10.5px; }
+.plugin-carte .pied-carte { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px 10px; border-top: 1px solid var(--p-bordure); color: var(--p-second); }
+.plugin-carte .pied-carte .espace { flex: 1; }
+.plugin-carte .options { padding: 0 12px 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+ol.questions { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 860px; }
+footer.pied { padding: 30px 0 40px; color: var(--second); font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<div class="conteneur">
+  <header class="tete">
+    <h1>UCM Palettes · Texte blanc ou noir sur les boutons, et commande Light/Dark</h1>
+    <p>Maquette de recherche. Les couleurs viennent du moteur du plugin, avec la recette par défaut. Rien n'est encore codé : la page sert à décider.</p>
+    <p>Le mainteneur a tranché les solutions S1 à S6 de cette page : aucune n'est retenue telle quelle, et le modèle A de commande Light/Dark est validé. Les décisions et la nouvelle proposition sont dans le <a href="./DOSSIER-TEXTE-DES-BOUTONS.md">dossier de recherche</a>.</p>
+    <nav class="sommaire" aria-label="Sommaire">
+      <a href="#bref"><b>En bref</b></a>
+      <a href="#constat">1. Pourquoi le texte est noir en Dark</a>
+      <a href="#bande">2. Pourquoi changer seulement le texte ne marche pas</a>
+      <a href="#solutions">3. Les six solutions étudiées</a>
+      <a href="#affichage">4. La commande Light/Dark</a>
+      <a href="#couches">5. Ce qui change dans le projet</a>
+      <a href="#trancher">6. À trancher</a>
+    </nav>
+  </header>
+</div>
+
+<div class="scenario" role="region" aria-label="Réglages de la maquette">
+  <div class="conteneur">
+    <div class="groupe"><span class="etiquette">Palette</span><div class="choix" id="choix-palette" role="group" aria-label="Palette"></div></div>
+    <div class="groupe"><span class="etiquette">Profil</span><div class="choix" id="choix-profil" role="group" aria-label="Profil"></div></div>
+    <div class="groupe"><span class="etiquette">Texte des boutons en Light</span><div class="choix" id="choix-texte-light" role="group" aria-label="Texte des boutons en Light"></div></div>
+    <div class="groupe"><span class="etiquette">en Dark</span><div class="choix" id="choix-texte-dark" role="group" aria-label="Texte des boutons en Dark"></div></div>
+  </div>
+</div>
+
+<main class="conteneur">
+
+  <section class="bloc" id="bref">
+    <h2>En bref</h2>
+    <div class="carte reponse">
+      <ol>
+        <li><b>Où on règle.</b> Dans les Réglages communs (l'engrenage), carte « Couleurs de fond ». Sous le fond de chaque thème, un nouveau choix : « Texte des boutons : Clair | Sombre ». Par défaut rien ne change : Clair en Light, Sombre en Dark. Le choix vaut pour toutes les palettes.</li>
+        <li><b>Ce qui se passe.</b> Un texte blanc ne se lit que sur un bouton foncé. Si tu choisis « Clair » en Dark, le plugin change donc aussi la couleur du bouton : en Dark, le bouton reprend les couleurs du bouton du thème Light. Le texte reste lisible, au moins 5,29:1, comme en Light.</li>
+        <li><b>Ce qui change dans Figma.</b> Les palettes et leurs variables ne changent pas : ces couleurs existent déjà. Seules les planches sont à redessiner ; Gestion les signale « À actualiser ».</li>
+        <li><b>Une chose à décider.</b> En Dark, un bouton foncé se détache moins de la page presque noire. La garantie « bouton survolé contre la page » échoue alors. Les règles WCAG ne l'exigent pas pour un bouton qui porte un texte. Proposition : le plugin ne la vérifie plus dans ce cas, et le dit.</li>
+      </ol>
+    </div>
+
+    <div class="grille-2" style="margin-top:14px">
+      <div>
+        <p class="note" style="margin:0 0 8px">Le réglage tel qu'il apparaîtrait dans le plugin. La partie nouvelle est entourée. Les boutons sont cliquables.</p>
+        <div id="carte-reglage"></div>
+      </div>
+      <div class="carte">
+        <p class="note" style="margin:0 0 10px">Le résultat sur la palette choisie dans la barre du haut.</p>
+        <div class="avant-apres" id="avant-apres"></div>
+      </div>
+    </div>
+
+    <div class="carte" style="margin-top:14px">
+      <h3 style="margin:0 0 6px;font-size:15px">Et la commande Light/Dark ?</h3>
+      <p style="margin:0">Le thème ne sert qu'à l'aperçu : une palette se règle toujours pour les deux thèmes à la fois. Proposition : un seul bouton Light/Dark, placé dans la barre de la palette, qui reste visible en haut quand on fait défiler. Les choix Soft/Vivid restent dans leur carte, avec le mot « Régler » quand ils modifient la palette et « Afficher » quand ils changent seulement l'aperçu. La section <a href="#affichage">4</a> le montre dans un plugin simulé.</p>
+    </div>
+  </section>
+
+  <section class="bloc" id="constat">
+    <h2>1. Pourquoi le texte des boutons est noir en Dark aujourd'hui</h2>
+    <p class="chapeau">Le bouton prend la même nuance, la 700, dans les deux thèmes. En Light, la 700 est foncée, donc le texte est clair. En Dark, les nuances s'inversent : la 700 est claire, donc le texte prend le fond sombre de la page. Le moteur applique sa règle ; c'est cette règle que le réglage proposé permet de changer.</p>
+    <div class="grille-2" id="constat-ecrans"></div>
+    <p class="legende" id="constat-legende"></p>
+  </section>
+
+  <section class="bloc" id="bande">
+    <h2>2. Pourquoi changer seulement la couleur du texte ne marche pas</h2>
+    <p class="chapeau">Le schéma range les nuances de la palette par clarté, de 0 (noir) à 1 (blanc). La zone verte montre où le bouton peut se placer avec le texte d'aujourd'hui. La zone orange montre où il devrait se placer avec le texte inversé, s'il doit à la fois porter son texte à 4,5:1 et se détacher de la page à 3:1. Elle est trop étroite pour quatre états : il faut déplacer le bouton et accepter qu'il se détache moins de la page.</p>
+    <div class="carte">
+      <svg class="bandes" id="schema-bandes" role="img" aria-label="Clartés possibles pour un bouton, par thème et par couleur de texte"></svg>
+      <p class="legende" id="bande-legende"></p>
+    </div>
+  </section>
+
+  <section class="bloc" id="solutions">
+    <h2>3. Les six solutions étudiées</h2>
+    <p class="chapeau">Chaque carte montre les quatre états du bouton dans les deux thèmes, avec le texte choisi dans la barre du haut. Le badge sous chaque bouton dit si le texte se lit (seuil 4,5:1). La ligne du dessous dit si le bouton survolé se détache de la page (garantie 14, seuil 3:1).</p>
+    <div class="grille-2" id="liste-solutions"></div>
+
+    <h3 style="margin:26px 0 8px;font-size:15px">Dans le nuancier du plugin, avec la solution recommandée</h3>
+    <div class="carte" id="nuancier-impact"></div>
+
+    <h3 style="margin:26px 0 8px;font-size:15px">Ce que mesure le script sur quatorze palettes</h3>
+    <p class="note" style="margin:0 0 10px">Quatorze couleurs de référence, à une et à deux intensités, soit 42 rampes par thème : 168 mesures du texte et 42 mesures du bouton survolé par ligne.</p>
+    <div class="carte defile-x"><table class="mesures" id="table-mesures"></table></div>
+  </section>
+
+  <section class="bloc" id="affichage">
+    <h2>4. La commande Light/Dark de l'aperçu</h2>
+    <p class="chapeau">Aujourd'hui, Light/Dark ne se change qu'en haut, dans l'aperçu ; il faut remonter pour voir l'Interface de test dans l'autre thème. Quatre modèles sont comparés ci-dessous. Faites défiler le plugin simulé et changez de thème depuis l'Interface de test.</p>
+    <div class="groupe" style="margin-bottom:12px">
+      <span class="etiquette">Modèle</span><div class="choix" id="choix-modele" role="group" aria-label="Modèle d'affichage"></div>
+      <span class="etiquette" style="margin-left:10px">Taille de la fenêtre</span><div class="choix" id="choix-taille" role="group" aria-label="Taille de la fenêtre"></div>
+    </div>
+    <div class="plugin-zone">
+      <div class="plugin-cadre"><div class="plugin" id="plugin"></div></div>
+      <div class="carte explication-modele" id="explication-modele"></div>
+    </div>
+  </section>
+
+  <section class="bloc" id="couches">
+    <h2>5. Ce que la solution recommandée change dans le projet</h2>
+    <div class="carte defile-x">
+      <table class="mesures">
+        <thead><tr><th>Partie du projet</th><th>Changement</th><th>Pour l'existant</th></tr></thead>
+        <tbody>
+          <tr><td>Recette</td><td>Un réglage par thème : texte des boutons clair ou sombre</td><td>Nouveau format de recette, qui lit l'ancien avec le comportement actuel : aucun réglage enregistré ne change</td></tr>
+          <tr><td>Table des emplois (kit)</td><td>Le texte des boutons (<code>on-solid</code>) suit le réglage ; le bouton (<code>solid</code>) prend les nuances du thème qui porte ce texte</td><td>Le plugin et <code>ucm check</code> lisent la même règle</td></tr>
+          <tr><td>Garanties</td><td>Le bouton est vérifié avec ses nouvelles couleurs ; la garantie « bouton survolé contre la page » n'est plus vérifiée quand le texte est changé</td><td>Une note l'explique dans la carte des garanties et sur la planche</td></tr>
+          <tr><td>Palettes et variables</td><td>Aucun changement</td><td>Les variables restent « À jour » dans Gestion</td></tr>
+          <tr><td>Planches</td><td>Les exemples de boutons et leurs garanties</td><td>Les cadres passent « À actualiser » ; Gestion propose de les redessiner</td></tr>
+          <tr><td>Interface du plugin</td><td>La ligne « Texte des boutons » dans « Couleurs de fond », la rangée « Bouton » du nuancier, l'Interface de test, la carte des garanties</td><td>Tests de l'interface sur les quatre combinaisons</td></tr>
+          <tr><td>Architecture des tokens</td><td>Le bouton et son texte passent par la collection <code>theme</code>, qui choisit leur couleur selon le mode</td><td>+41 variables dans <code>theme</code> pour six marques, quand le plugin écrira cette collection</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bloc" id="trancher">
+    <h2>6. À trancher</h2>
+    <ol class="questions">
+      <li>Retenir la solution S2 (le bouton prend les couleurs de l'autre thème), ou S3 (le bouton descend dans les nuances de son thème) ?</li>
+      <li>Quand le texte est changé, le plugin arrête-t-il de vérifier « bouton survolé contre la page » ? Proposition : oui, avec une note.</li>
+      <li>Le texte clair est-il le gris très clair de la recette (<code>#F7F7F7</code>) ou le blanc pur ? Le texte sombre, le gris très foncé (<code>#121212</code>) ou le noir pur ? Les deux se lisent ; le blanc et le noir purs donnent un peu plus de contraste.</li>
+      <li>Commande Light/Dark : modèle A, B ou C ? Et l'Interface de test peut-elle montrer Light et Dark côte à côte ?</li>
+      <li>Le thème de l'aperçu doit-il être retenu à la réouverture du plugin, comme la langue ?</li>
+      <li>Les mots « Régler » et « Afficher » sur les choix Soft/Vivid conviennent-ils ?</li>
+    </ol>
+  </section>
+</main>
+
+<div class="conteneur"><footer class="pied">Maquette du dossier « Modes et affichage global ». Les couleurs se régénèrent avec le script <code>mesurer-polarites.ts</code>, lancé depuis la racine du dépôt.</footer></div>
+
+<script id="donnees" type="application/json">{"recette":{"crans":[50,100,200,300,400,500,600,700,800,900,950],"courbes":{"light":[0.975,0.95,0.905,0.845,0.76,0.67,0.585,0.5,0.42,0.34,0.27],"dark":[0.18,0.225,0.275,0.33,0.4,0.49,0.58,0.67,0.76,0.85,0.93]},"fonds":{"light":"#F7F7F7","dark":"#121212"},"seuils":{"texte":4.5,"nonTexte":3,"profilsConfondus":0.02,"palettesProches":0.05}},"resume":[{"modele":"texteSeul","theme":"light","texte":"clair","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.290132762757504},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"texteSeul","theme":"light","texte":"sombre","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":0,"minimum":1.0449481721445453},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"texteSeul","theme":"dark","texte":"clair","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":0,"minimum":1.0176640332226876},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"texteSeul","theme":"dark","texte":"sombre","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.684216671091512},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"boutonDeLAutreTheme","theme":"light","texte":"clair","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.290132762757504},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"boutonDeLAutreTheme","theme":"light","texte":"sombre","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.684216671091512},"paire14":{"mesures":42,"tenues":0,"minimum":1.7901517167525072},"reposSurLaPage":{"minimum":2.2662528177373593,"maximum":3.076365993236162},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"boutonDeLAutreTheme","theme":"dark","texte":"clair","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.290132762757504},"paire14":{"mesures":42,"tenues":0,"minimum":1.9987754299467706},"reposSurLaPage":{"minimum":2.761015673186398,"maximum":3.3055372425127874},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"boutonDeLAutreTheme","theme":"dark","texte":"sombre","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.684216671091512},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"nuancesDeplacees","theme":"light","texte":"clair","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.290132762757504},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"nuancesDeplacees","theme":"light","texte":"sombre","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.70066046170005},"paire14":{"mesures":42,"tenues":0,"minimum":1.7901517167525072},"reposSurLaPage":{"minimum":2.2662528177373593,"maximum":3.067492088437259},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.08756205444024269},"chromaDuDernierRang":{"moyenne":0.04533025135531061}},{"modele":"nuancesDeplacees","theme":"dark","texte":"clair","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.501492121843181},"paire14":{"mesures":42,"tenues":0,"minimum":1.8443277342795557},"reposSurLaPage":{"minimum":2.640673781872453,"maximum":3.1785432893200913},"ecartDesEtats":{"minimum":0.05212107831299321},"chromaDuRepos":{"moyenne":0.08466659815056506},"chromaDuDernierRang":{"moyenne":0.03141970729054806}},{"modele":"nuancesDeplacees","theme":"dark","texte":"sombre","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.684216671091512},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"blancOuNoirPurs","theme":"light","texte":"clair","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.667358292614404},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"blancOuNoirPurs","theme":"light","texte":"sombre","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":6.371874221274971},"paire14":{"mesures":42,"tenues":0,"minimum":1.7901517167525072},"reposSurLaPage":{"minimum":2.2662528177373593,"maximum":3.076365993236162},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"blancOuNoirPurs","theme":"dark","texte":"clair","actuel":false,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.667358292614404},"paire14":{"mesures":42,"tenues":0,"minimum":1.9987754299467706},"reposSurLaPage":{"minimum":2.761015673186398,"maximum":3.3055372425127874},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"blancOuNoirPurs","theme":"dark","texte":"sombre","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":6.371874221274971},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}},{"modele":"automatique","theme":"light","texte":"clair","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":5.667358292614404},"paire14":{"mesures":42,"tenues":42,"minimum":7.523798573381386},"reposSurLaPage":{"minimum":5.290132762757504,"maximum":6.333441361798257},"ecartDesEtats":{"minimum":0.06883363058283554},"chromaDuRepos":{"moyenne":0.08589350262410458},"chromaDuDernierRang":{"moyenne":0.051211713201947784}},{"modele":"automatique","theme":"dark","texte":"sombre","actuel":true,"lignes":42,"lisibilite":{"mesures":168,"tenues":168,"minimum":6.371874221274971},"paire14":{"mesures":42,"tenues":42,"minimum":8.282661642093016},"reposSurLaPage":{"minimum":5.684216671091512,"maximum":7.716143021761735},"ecartDesEtats":{"minimum":0.04594491197735544},"chromaDuRepos":{"moyenne":0.0870398528082399},"chromaDuDernierRang":{"moyenne":0.0340760165389233}}],"bandes":[{"theme":"light","texte":"clair","actuel":true,"intervalles":[{"luminance":[0,0.1678024129723164],"clartes":[0,0.5515684299278221]}],"nuancesLight":[700,800,900,950],"nuancesDark":[50,100,200,300,400,500]},{"theme":"light","texte":"sombre","actuel":false,"intervalles":[{"luminance":[0.20221974860285674,0.2767036194584746],"clartes":[0.5869591205825934,0.6516358162417262]}],"nuancesLight":[],"nuancesDark":[]},{"theme":"dark","texte":"clair","actuel":false,"intervalles":[{"luminance":[0.11814649906857115,0.1678024129723164],"clartes":[0.49068971186708027,0.5515684299278221]}],"nuancesLight":[700],"nuancesDark":[]},{"theme":"dark","texte":"sombre","actuel":true,"intervalles":[{"luminance":[0.20221974860285674,1],"clartes":[0.5869591205825934,1]}],"nuancesLight":[50,100,200,300,400,500],"nuancesDark":[700,800,900,950]}],"exemples":[{"reference":"#2563EB","nom":"bleu Tailwind","rampes":{"soft":{"light":["#F4F7FA","#EAEFF6","#D7E0EE","#BECDE3","#9DB2D5","#7A96C6","#5A7BB8","#3E60A8","#294793","#1F336D","#15234E"],"dark":["#0E1119","#151B2A","#1D2640","#23335D","#264289","#3B5DA5","#5979B8","#7A96C6","#9DB2D5","#C1CFE4","#E1E8F2"]},"vivid":{"light":["#F2F7FE","#E6EFFD","#CFE1FB","#B2CEF8","#89B2F4","#5E93F0","#2563EB","#154FE4","#092AD0","#0D1C9C","#0A1270"],"dark":["#0B111F","#101A36","#132256","#122980","#0B26C3","#134BE1","#2563EB","#5E93F0","#89B2F4","#B4D0F8","#DCE9FC"]}}},{"reference":"#EAB308","nom":"jaune","rampes":{"soft":{"light":["#FAF7E8","#F6EFD3","#EEDFB2","#E0CA92","#C6AE7E","#AB9169","#917757","#775E45","#5E4834","#473325","#332218"],"dark":["#14110F","#201A17","#2F251F","#413227","#584330","#735B42","#8F7555","#AB9169","#C6AE7E","#E2CC93","#F2E8C4"]},"vivid":{"light":["#FFF8D5","#FFEFAF","#FFDD6D","#F9C50A","#EAB308","#C38905","#A86E03","#8C5502","#713F01","#562B01","#3F1B00"],"dark":["#17100C","#251911","#382213","#4D2C12","#6A3A01","#885202","#A66C03","#C38905","#EAB308","#FAC70A","#FFE792"]}}},{"reference":"#16A34A","nom":"vert","rampes":{"soft":{"light":["#EFFAF0","#DEF6E1","#BCEFC4","#9AE0A6","#85C290","#70A479","#5C8864","#496E4F","#38553D","#283E2C","#1A2B1D"],"dark":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#476A4D","#5B8763","#70A479","#85C290","#9BE2A8","#CFF3D5"]},"vivid":{"light":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#19B252","#16A34A","#0D7734","#085D27","#04441B","#023011"],"dark":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0D7433","#139342","#16A34A","#20D362","#27F573","#AFFEBD"]}}},{"reference":"#9333EA","nom":"violet","rampes":{"soft":{"light":["#F8F6FA","#F0ECF6","#E3DCEE","#D2C6E3","#BAA7D5","#A187C6","#8A68B9","#70509B","#573E7A","#3F2C5B","#2C1E41"],"dark":["#121017","#1D1925","#2B2338","#3B2D50","#513A72","#6D4E97","#8966B8","#A187C6","#BAA7D5","#D3C8E4","#EAE5F2"]},"vivid":{"light":["#F9F5FE","#F2EBFD","#E7D8FB","#D8BFF8","#C39CF4","#AD73F1","#9333EA","#7E2BCB","#6220A1","#481579","#320C58"],"dark":["#130F1B","#1F162E","#2E1D47","#412167","#5B1D97","#7A29C6","#9333EA","#AD73F1","#C39CF4","#D9C2F8","#EDE2FC"]}}},{"reference":"#737373","nom":"gris","rampes":{"soft":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#737373","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#737373","#959595","#B1B1B1","#CECECE","#E8E8E8"]},"vivid":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"]}}}]}</script>
+<script>
+(function () {
+  'use strict';
+  const D = JSON.parse(document.getElementById('donnees').textContent);
+  if (!D.exemples) {
+    document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="carte">Données absentes : lancer le script de mesure depuis la racine du dépôt.</p>');
+    return;
+  }
+
+  /* Couleur : contraste WCAG et clarté OKLCH, sur des hexas. */
+  const rgb = (h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16));
+  const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const [r, g, b] = rgb(h).map(lin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const contraste = (a, b) => { const x = lum(a); const y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const clarte = (h) => {
+    const [r, g, b] = rgb(h).map(lin);
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    return 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  };
+  const tient = (x, seuil) => x >= seuil - 1e-10;
+  const ecrire = (x) => (Math.floor(x * 100) / 100).toFixed(2).replace('.', ',');
+  const ecrireL = (x) => x.toFixed(2).replace('.', ',');
+
+  const crans = D.recette.crans;
+  const fonds = { light: D.recette.fonds.light, dark: D.recette.fonds.dark };
+  const rang = (cran) => crans.indexOf(cran);
+  const NUANCES_DU_BOUTON = [700, 800, 900, 950].map(rang);
+  const NUANCES_DEPLACEES = [500, 400, 300, 200].map(rang);
+  const ACTUEL = { light: 'clair', dark: 'sombre' };
+  const NOM_THEME = { light: 'Light', dark: 'Dark' };
+  const NOM_TEXTE = { clair: 'texte clair', sombre: 'texte sombre' };
+  const ETATS = ['Repos', 'Survol', 'Appui', 'Appui survolé'];
+  const themeDesNuances = (texte) => (texte === 'clair' ? 'light' : 'dark');
+  const majuscule = (texte) => texte.charAt(0).toUpperCase() + texte.slice(1);
+
+  const etat = {
+    palette: 0,
+    profil: 'vivid',
+    textes: { light: 'clair', dark: 'clair' },
+    pur: false,
+    modele: 'A',
+    taille: 600,
+    theme: 'light',
+    locaux: { nuancier: 'light', derive: 'light', essai: 'light' },
+    regler: 'vivid',
+    reglerGlobal: 'les deux',
+    afficher: 'vivid',
+  };
+
+  const exemple = () => D.exemples[etat.palette];
+  const rampe = (ex, profil, mode) => ex.rampes[profil][mode];
+  const couleurDuTexte = (texte, pur = etat.pur) => (pur ? (texte === 'clair' ? '#FFFFFF' : '#000000') : (texte === 'clair' ? fonds.light : fonds.dark));
+  /** Le texte courant d'une page : celui de l'autre thème. */
+  const texteDePage = (theme) => (theme === 'light' ? fonds.dark : fonds.light);
+  const noirOuBlanc = (fond) => (contraste(fond, '#000000') >= contraste(fond, '#FFFFFF') ? '#000000' : '#FFFFFF');
+  /** Le texte qu'une palette préfère dans S6 : sombre quand sa référence porte mieux le noir. */
+  const texteDeLaPalette = (ex) => (contraste(ex.reference, '#000000') > contraste(ex.reference, '#FFFFFF') ? 'sombre' : null);
+  const estClair = (hexa) => lum(hexa) > 0.5;
+
+  /** Le bouton et la couleur de son texte dans un thème, pour une solution. */
+  function bouton(solution, theme, texte, ex = exemple(), profil = etat.profil) {
+    const R = (mode) => rampe(ex, profil, mode);
+    const change = texte !== ACTUEL[theme];
+    const quatre = (hexa) => [0, 1, 2, 3].map(() => hexa);
+    switch (solution) {
+      case 'S1':
+        return { nuances: NUANCES_DU_BOUTON.map((r) => R(theme)[r]), textes: quatre(couleurDuTexte(texte)), change, source: `nuances 700 à 950 du thème ${NOM_THEME[theme]}` };
+      case 'S2':
+        return { nuances: NUANCES_DU_BOUTON.map((r) => R(themeDesNuances(texte))[r]), textes: quatre(couleurDuTexte(texte)), change, source: `nuances 700 à 950 du thème ${NOM_THEME[themeDesNuances(texte)]}` };
+      case 'S3':
+        return change
+          ? { nuances: NUANCES_DEPLACEES.map((r) => R(theme)[r]), textes: quatre(couleurDuTexte(texte)), change, source: `nuances 500 à 200 du thème ${NOM_THEME[theme]}` }
+          : { nuances: NUANCES_DU_BOUTON.map((r) => R(theme)[r]), textes: quatre(couleurDuTexte(texte)), change, source: `nuances 700 à 950 du thème ${NOM_THEME[theme]}` };
+      case 'S5': {
+        const nuances = NUANCES_DU_BOUTON.map((r) => R(theme)[r]);
+        return { nuances, textes: nuances.map(noirOuBlanc), change: false, source: `nuances 700 à 950 du thème ${NOM_THEME[theme]}, texte noir ou blanc` };
+      }
+      case 'S6': {
+        const propre = texteDeLaPalette(ex);
+        return bouton('S2', theme, propre ?? texte, ex, profil);
+      }
+      default:
+        return null;
+    }
+  }
+
+  /* Les éléments communs. */
+  function badgeTexte(ratio) {
+    return tient(ratio, 4.5)
+      ? `<span class="badge bon">${ecrire(ratio)}:1 · lisible</span>`
+      : `<span class="badge mauvais">${ecrire(ratio)}:1 · illisible</span>`;
+  }
+  function badgePage(ratio, change, nonVerifiee) {
+    if (change && nonVerifiee) return `<span class="badge neutre">${ecrire(ratio)}:1 · non vérifiée</span>`;
+    return tient(ratio, 3) ? `<span class="badge bon">${ecrire(ratio)}:1 · tenue</span>` : `<span class="badge mauvais">${ecrire(ratio)}:1 · manquée</span>`;
+  }
+
+  function ecranExemple(theme, b, ex = exemple(), profil = etat.profil, titre = '', droite = '') {
+    const R = rampe(ex, profil, theme);
+    return `<div class="ecran" style="background:${fonds[theme]};color:${texteDePage(theme)}">
+      <div class="ecran-entete"><span>${titre || `Thème ${NOM_THEME[theme]}`}</span><span>${droite || NOM_TEXTE[estClair(b.textes[0]) ? 'clair' : 'sombre']}</span></div>
+      <div class="ecran-titre">Membres de l'équipe</div>
+      <div class="ecran-carte" style="background:${R[rang(50)]};border-color:${R[rang(300)]}">
+        <div class="ecran-texte">Invitez une personne et choisissez son rôle.</div>
+        <span class="ecran-lien" style="color:${R[rang(700)]}">Voir les rôles</span>
+        <div class="ecran-actions">
+          <span class="btn" style="background:${b.nuances[0]};color:${b.textes[0]}">Inviter</span>
+          <span class="btn" style="background:${R[rang(100)]};color:${R[rang(700)]}">Annuler</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function ecranDesEtats(theme, b, nonVerifiee) {
+    const ratios = b.nuances.map((n, i) => contraste(b.textes[i], n));
+    const survol = contraste(b.nuances[1], fonds[theme]);
+    const texte = estClair(b.textes[0]) ? 'clair' : 'sombre';
+    return `<div class="ecran" style="background:${fonds[theme]};color:${texteDePage(theme)}">
+      <div class="ecran-entete"><span>Thème ${NOM_THEME[theme]}</span><span>${NOM_TEXTE[texte]}${b.change ? ' · changé' : ' · comme aujourd’hui'}</span></div>
+      <div class="etats">${b.nuances.map((n, i) => `<div class="etat"><span class="nom">${ETATS[i]}</span><span class="btn" style="background:${n};color:${b.textes[i]}">Action</span>${badgeTexte(ratios[i])}</div>`).join('')}</div>
+      <div class="ligne-14"><span>Bouton survolé contre la page</span>${badgePage(survol, b.change, nonVerifiee)}</div>
+      <div class="source">Couleurs du bouton : ${b.source}</div>
+    </div>`;
+  }
+
+  function choix(conteneur, options, valeur, poser) {
+    conteneur.innerHTML = '';
+    for (const option of options) {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.innerHTML = option.html ?? option.texte;
+      element.setAttribute('aria-pressed', String(option.valeur === valeur));
+      element.addEventListener('click', () => { poser(option.valeur); rendre(); });
+      conteneur.append(element);
+    }
+  }
+
+  /* La barre du haut. */
+  function rendreBarre() {
+    choix(document.getElementById('choix-palette'), D.exemples.map((ex, i) => ({ valeur: i, html: `<span class="puce" style="background:${ex.reference}"></span>${majuscule(ex.nom)}` })), etat.palette, (v) => { etat.palette = v; });
+    choix(document.getElementById('choix-profil'), [{ valeur: 'soft', texte: 'Soft' }, { valeur: 'vivid', texte: 'Vivid' }], etat.profil, (v) => { etat.profil = v; });
+    for (const theme of ['light', 'dark']) {
+      choix(document.getElementById(`choix-texte-${theme}`), [
+        { valeur: 'clair', texte: `Clair${ACTUEL[theme] === 'clair' ? ' (aujourd’hui)' : ''}` },
+        { valeur: 'sombre', texte: `Sombre${ACTUEL[theme] === 'sombre' ? ' (aujourd’hui)' : ''}` },
+      ], etat.textes[theme], (v) => { etat.textes[theme] = v; });
+    }
+  }
+
+  /* En bref : le réglage proposé et le résultat avant et après. */
+  function rendreBref() {
+    const colonnes = ['light', 'dark'].map((theme) => {
+      const texte = etat.textes[theme];
+      const change = texte !== ACTUEL[theme];
+      let minimum = Infinity;
+      for (const ex of D.exemples) {
+        for (const profil of ['soft', 'vivid']) {
+          const b = bouton('S2', theme, texte, ex, profil);
+          b.nuances.forEach((n, i) => { minimum = Math.min(minimum, contraste(b.textes[i], n)); });
+        }
+      }
+      const b = bouton('S2', theme, texte);
+      const options = ['clair', 'sombre'].map((valeur) => `<button type="button" data-theme="${theme}" data-texte="${valeur}" aria-pressed="${valeur === texte}">${valeur === 'clair' ? 'Clair' : 'Sombre'}</button>`).join('');
+      return `<div class="colonne">
+        <h5>Thème ${NOM_THEME[theme]}</h5>
+        <div class="champ"><span class="puce" style="background:${fonds[theme]};width:18px;height:18px"></span><span class="hexa">${fonds[theme]}</span><span class="notice">Fond de page</span></div>
+        <div class="nouveau" style="display:grid;gap:8px;padding:6px">
+          <div class="p-bascule"><span>Texte des boutons</span><div role="group" aria-label="Texte des boutons, thème ${NOM_THEME[theme]}">${options}</div></div>
+          <div class="apercu-bouton" style="background:${fonds[theme]}">${b.nuances.map((n, i) => `<span style="background:${n};color:${b.textes[i]}">${ETATS[i]}</span>`).join('')}</div>
+          <div class="notice">Texte lisible sur les ${D.exemples.length} palettes : au moins <b>${ecrire(minimum)}:1</b></div>
+          <div class="notice">${change ? `Le bouton prend les couleurs du bouton du thème ${NOM_THEME[themeDesNuances(texte)]}. « Bouton survolé contre la page » n'est plus vérifiée : le texte suffit à repérer le bouton (WCAG 1.4.11).` : 'Comme aujourd’hui.'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    const changes = ['light', 'dark'].filter((theme) => etat.textes[theme] !== ACTUEL[theme]).length;
+    const pied = changes === 0
+      ? 'Valeurs par défaut : rien ne change.'
+      : `Toutes les palettes sont recalculées. Planches à redessiner, variables inchangées.`;
+    const carte = document.getElementById('carte-reglage');
+    carte.innerHTML = `<div class="plugin-carte">
+      <div class="chemin">Réglages communs (engrenage)</div>
+      <header><h4>Couleurs de fond</h4><span class="notice">Fond de page et texte des boutons, par thème</span></header>
+      <div class="colonnes">${colonnes}</div>
+      <div class="options nouveau" style="margin:0 12px 10px;padding:6px"><span class="notice">Couleur exacte du texte</span><div class="p-bascule"><div role="group" aria-label="Couleur exacte du texte"><button type="button" data-pur="false" aria-pressed="${!etat.pur}">Gris de la recette</button><button type="button" data-pur="true" aria-pressed="${etat.pur}">Blanc et noir purs</button></div></div></div>
+      <div class="pied-carte"><span>${pied}</span><span class="espace"></span><span class="p-bouton">Rétablir</span></div>
+    </div>`;
+    carte.querySelectorAll('button[data-texte]').forEach((b) => b.addEventListener('click', () => { etat.textes[b.dataset.theme] = b.dataset.texte; rendre(); }));
+    carte.querySelectorAll('button[data-pur]').forEach((b) => b.addEventListener('click', () => { etat.pur = b.dataset.pur === 'true'; rendre(); }));
+
+    const ex = exemple();
+    let grille = '<span></span><span class="entete">Aujourd’hui</span><span class="entete">Avec le réglage choisi</span>';
+    for (const theme of ['light', 'dark']) {
+      const avant = bouton('S2', theme, ACTUEL[theme], ex, etat.profil, false);
+      const avantReel = { ...avant, textes: avant.textes.map(() => couleurDuTexte(ACTUEL[theme], false)) };
+      const apres = bouton('S2', theme, etat.textes[theme]);
+      const ratioAvant = contraste(avantReel.textes[0], avantReel.nuances[0]);
+      const ratioApres = contraste(apres.textes[0], apres.nuances[0]);
+      grille += `<span class="theme">Thème ${NOM_THEME[theme]}</span>`;
+      grille += ecranExemple(theme, avantReel, ex, etat.profil, `Bouton ${avantReel.nuances[0]}`, `${ecrire(ratioAvant)}:1`);
+      grille += apres.change
+        ? ecranExemple(theme, apres, ex, etat.profil, `Bouton ${apres.nuances[0]}`, `${ecrire(ratioApres)}:1`)
+        : `<div class="ecran" style="background:${fonds[theme]};color:${texteDePage(theme)};display:grid;place-items:center"><span class="inchange">Inchangé : « ${majuscule(NOM_TEXTE[etat.textes[theme]])} » est déjà le réglage actuel.</span></div>`;
+    }
+    document.getElementById('avant-apres').innerHTML = grille;
+  }
+
+  /* 1. Le constat. */
+  function rendreConstat() {
+    const ex = exemple();
+    const ecrans = ['light', 'dark'].map((theme) => {
+      const b = bouton('S2', theme, ACTUEL[theme], ex, etat.profil);
+      const reel = { ...b, textes: b.textes.map(() => couleurDuTexte(ACTUEL[theme], false)) };
+      return ecranExemple(theme, reel, ex, etat.profil, `Aujourd'hui · thème ${NOM_THEME[theme]}`);
+    });
+    document.getElementById('constat-ecrans').innerHTML = ecrans.join('');
+    const b700 = rampe(ex, etat.profil, 'dark')[rang(700)];
+    document.getElementById('constat-legende').innerHTML = `En Dark, le bouton ${b700} a une clarté de ${ecrireL(clarte(b700))} sur 1. Le texte sombre ${fonds.dark} y mesure ${ecrire(contraste(b700, fonds.dark))}:1 ; un texte clair ${fonds.light} n'y mesurerait que ${ecrire(contraste(b700, fonds.light))}:1, illisible.`;
+  }
+
+  /* 2. Les zones de clarté. */
+  function rendreBandes() {
+    const ex = exemple();
+    const largeur = 760;
+    const gauche = 168;
+    const droite = 24;
+    const x = (L) => gauche + L * (largeur - gauche - droite);
+    const hauteurBloc = 150;
+    const svg = document.getElementById('schema-bandes');
+    svg.setAttribute('viewBox', `0 0 ${largeur} ${hauteurBloc * 2 + 30}`);
+    let contenu = '';
+    ['light', 'dark'].forEach((theme, b) => {
+      const haut = b * hauteurBloc + 10;
+      contenu += `<text class="titre" x="0" y="${haut + 12}">Thème ${NOM_THEME[theme]}</text>`;
+      const lignes = [
+        { texte: ACTUEL[theme], y: haut + 32 },
+        { texte: ACTUEL[theme] === 'clair' ? 'sombre' : 'clair', y: haut + 56 },
+      ];
+      for (const ligne of lignes) {
+        const zone = D.bandes.find((entree) => entree.theme === theme && entree.texte === ligne.texte);
+        const classe = zone.actuel ? 'bande-actuelle' : 'bande-inversee';
+        contenu += `<text x="0" y="${ligne.y + 11}">${majuscule(NOM_TEXTE[ligne.texte])}${zone.actuel ? ', aujourd’hui' : ''}</text>`;
+        if (zone.intervalles.length === 0) contenu += `<text x="${gauche}" y="${ligne.y + 11}">impossible</text>`;
+        for (const intervalle of zone.intervalles) {
+          const [bas, hautL] = intervalle.clartes;
+          contenu += `<rect class="${classe}" x="${x(bas)}" y="${ligne.y}" width="${Math.max(2, x(hautL) - x(bas))}" height="15" rx="3"></rect>`;
+          if (!zone.actuel) contenu += `<text x="${x(hautL) + 6}" y="${ligne.y + 11}">de ${ecrireL(bas)} à ${ecrireL(hautL)} seulement</text>`;
+        }
+      }
+      [['light', haut + 88], ['dark', haut + 116]].forEach(([nuances, y]) => {
+        contenu += `<text x="0" y="${y + 13}">Nuances du thème ${NOM_THEME[nuances]}</text>`;
+        contenu += `<line class="axe" x1="${x(0)}" x2="${x(1)}" y1="${y + 9}" y2="${y + 9}"></line>`;
+        const couleurs = rampe(ex, etat.profil, nuances);
+        D.recette.courbes[nuances].forEach((L, i) => {
+          contenu += `<rect x="${x(L) - 7}" y="${y + 2}" width="14" height="14" rx="3" fill="${couleurs[i]}" stroke="rgba(127,127,127,.5)"><title>${crans[i]} · ${couleurs[i]} · clarté ${ecrireL(L)}</title></rect>`;
+          if ([50, 500, 700, 950].includes(crans[i])) contenu += `<text x="${x(L)}" y="${y + 30}" text-anchor="middle">${crans[i]}</text>`;
+        });
+      });
+      const page = clarte(fonds[theme]);
+      contenu += `<line class="repere" x1="${x(page)}" x2="${x(page)}" y1="${haut + 26}" y2="${haut + 140}" stroke-dasharray="3 3"></line>`;
+      contenu += `<text x="${x(page) + (page > 0.5 ? -6 : 6)}" y="${haut + 24}" text-anchor="${page > 0.5 ? 'end' : 'start'}">fond de page ${fonds[theme]}</text>`;
+    });
+    contenu += `<text x="${x(0)}" y="${hauteurBloc * 2 + 24}">noir (0)</text><text x="${x(1)}" y="${hauteurBloc * 2 + 24}" text-anchor="end">blanc (1)</text>`;
+    svg.innerHTML = contenu;
+    const zoneDark = D.bandes.find((entree) => entree.theme === 'dark' && entree.texte === 'clair');
+    const b700 = rampe(ex, etat.profil, 'dark')[rang(700)];
+    document.getElementById('bande-legende').innerHTML = `Un texte clair sur le bouton Dark actuel (${b700}) ne mesure que ${ecrire(contraste(b700, fonds.light))}:1. En Dark avec un texte clair, la zone orange ne contient que ${zoneDark.nuancesLight.length ? `la nuance ${zoneDark.nuancesLight.join(', ')} du thème Light` : 'aucune nuance'}, et aucune nuance du thème Dark : impossible d'y loger quatre états. En revanche, les nuances 700 à 950 du thème Light, déjà utilisées par le bouton en Light, portent un texte clair. D'où la solution recommandée.`;
+  }
+
+  /* 3. Les solutions. */
+  const SOLUTIONS = [
+    { id: 'S1', titre: 'Changer seulement le texte', avis: ['Écartée', 'mauvais'], regle: 'Le texte change de couleur ; le bouton garde sa nuance 700. Le texte devient illisible.', impacts: [['Palettes', 'inchangées'], ['Variables', 'inchangées'], ['Planches', 'à redessiner']] },
+    { id: 'S2', titre: 'Le bouton prend les couleurs de l’autre thème', avis: ['Recommandée', 'bon'], recommandee: true, nonVerifiee: true, regle: 'Un texte clair va sur un bouton foncé : les nuances 700 à 950 du thème Light. Un texte sombre va sur un bouton clair : les nuances 700 à 950 du thème Dark. Un bouton à texte clair a donc les mêmes couleurs en Light et en Dark.', impacts: [['Palettes', 'inchangées'], ['Variables', 'inchangées'], ['Planches', 'à redessiner']] },
+    { id: 'S3', titre: 'Le bouton descend dans les nuances de son thème', avis: ['Variante', 'attention'], nonVerifiee: true, regle: 'Avec le texte changé, le bouton prend les nuances 500, 400, 300 et 200 de son thème. Il reste dans la rampe affichée, mais en Dark ses états appuyés perdent leur couleur et tirent vers le gris.', impacts: [['Palettes', 'inchangées'], ['Variables', 'inchangées'], ['Planches', 'à redessiner']] },
+    { id: 'S4', titre: 'Des nuances de bouton fabriquées exprès', avis: ['Plus tard', 'neutre'], schema: true, regle: 'Le moteur fabrique quatre nuances de bouton par thème. Elles s’ajoutent aux variables de chaque palette : il faut tout recalculer puis réécrire dans Figma.', impacts: [['Palettes', 'nouvelles nuances'], ['Variables', '+8 par palette et intensité'], ['Planches', 'nouvelle grille']] },
+    { id: 'S5', titre: 'Noir ou blanc automatique', avis: ['Ne répond pas', 'neutre'], regle: 'Le texte prend le noir ou le blanc qui se lit le mieux sur chaque bouton. Avec les boutons actuels, le résultat est celui d’aujourd’hui : texte noir en Dark.', impacts: [['Palettes', 'inchangées'], ['Utile pour', 'palettes libres et figées']] },
+    { id: 'S6', titre: 'Texte choisi par palette', avis: ['Plus tard', 'neutre'], nonVerifiee: true, regle: 'Chaque palette choisit son texte, comme le jaune chez Radix. Ici, une palette dont la couleur porte mieux le noir prend un texte sombre ; les autres suivent la barre du haut.', impacts: [['Palettes', 'inchangées'], ['Écran', 'textes mélangés selon la palette']] },
+  ];
+
+  function rendreSolutions() {
+    document.getElementById('liste-solutions').innerHTML = SOLUTIONS.map((solution) => {
+      let corps;
+      if (solution.schema) {
+        corps = `<div class="schema-s4">
+          <div>Pour chaque palette et chaque intensité, huit variables de plus :</div>
+          <div class="rangee"><span style="width:110px">Bouton · Light</span>${'<span class="vide"></span>'.repeat(4)}</div>
+          <div class="rangee"><span style="width:110px">Bouton · Dark</span>${'<span class="vide"></span>'.repeat(4)}</div>
+          <div>Non mesurée. Inutile tant que S2 ou S3 donne des couleurs acceptables.</div>
+        </div>`;
+      } else {
+        corps = `<div class="themes">${['light', 'dark'].map((theme) => ecranDesEtats(theme, bouton(solution.id, theme, etat.textes[theme]), solution.nonVerifiee)).join('')}</div>`;
+        if (solution.id === 'S6') {
+          corps += `<p class="note" style="margin:0">${texteDeLaPalette(exemple()) ? `La palette ${exemple().nom} prend un texte sombre dans les deux thèmes, quel que soit le réglage global.` : `La palette ${exemple().nom} suit le réglage global. Choisissez le jaune dans la barre du haut pour voir la différence.`}</p>`;
+        }
+      }
+      return `<article class="carte solution" data-recommandee="${solution.recommandee ? 'oui' : 'non'}">
+        <div class="solution-tete"><h3>${solution.id} · ${solution.titre}</h3><span class="badge ${solution.avis[1]}">${solution.avis[0]}</span></div>
+        <p class="regle">${solution.regle}</p>
+        ${corps}
+        <div class="impacts">${solution.impacts.map(([nom, valeur]) => `<span><b>${nom}</b> ${valeur}</span>`).join('')}</div>
+      </article>`;
+    }).join('');
+
+    const ex = exemple();
+    document.getElementById('nuancier-impact').innerHTML = `<p class="note" style="margin:0 0 10px">Quand le texte d'un thème est changé, les couleurs du bouton viennent de l'autre thème : elles ne sont plus dans la rampe affichée. Une rangée « Bouton » de quatre pastilles s'ajoute sous les rampes.</p>
+      <div class="grille-2">${['light', 'dark'].map((theme) => `<div><div class="note" style="margin-bottom:4px">Thème ${NOM_THEME[theme]}${etat.textes[theme] !== ACTUEL[theme] ? ' · texte changé' : ' · comme aujourd’hui'}</div>${nuancier(theme, ex, true)}</div>`).join('')}</div>`;
+
+    const NOMS = {
+      texteSeul: 'S1 · changer seulement le texte',
+      boutonDeLAutreTheme: 'S2 · couleurs de l’autre thème',
+      blancOuNoirPurs: 'S2 avec blanc et noir purs',
+      nuancesDeplacees: 'S3 · bouton descendu dans son thème',
+      automatique: 'S5 · noir ou blanc automatique',
+    };
+    const ordre = Object.keys(NOMS);
+    const lignes = D.resume
+      .slice()
+      .sort((a, b) => ordre.indexOf(a.modele) - ordre.indexOf(b.modele))
+      .map((r) => {
+        const lisible = r.lisibilite.tenues === r.lisibilite.mesures ? 'bon' : 'mauvais';
+        const page = r.paire14.tenues === r.paire14.mesures ? 'bon' : (!r.actuel && r.modele !== 'texteSeul' ? 'neutre' : 'mauvais');
+        return `<tr>
+          <td>${NOMS[r.modele]}</td><td>${NOM_THEME[r.theme]}</td><td>${majuscule(NOM_TEXTE[r.texte])}${r.actuel ? ' (aujourd’hui)' : ''}</td>
+          <td class="nombre"><span class="badge ${lisible}">${r.lisibilite.tenues}/${r.lisibilite.mesures}</span> pire cas ${ecrire(r.lisibilite.minimum)}:1</td>
+          <td class="nombre"><span class="badge ${page}">${r.paire14.tenues}/${r.paire14.mesures}</span> pire cas ${ecrire(r.paire14.minimum)}:1</td>
+        </tr>`;
+      }).join('');
+    document.getElementById('table-mesures').innerHTML = `<thead><tr><th>Solution</th><th>Thème</th><th>Texte des boutons</th><th>Texte lisible, quatre états</th><th>Bouton survolé contre la page</th></tr></thead><tbody>${lignes}</tbody>`;
+  }
+
+  function nuancier(theme, ex, legende = false) {
+    const texte = etat.textes[theme];
+    const b = bouton('S2', theme, texte, ex);
+    const rangees = ['soft', 'vivid'].map((profil) => `<div class="p-rangee"><span>${majuscule(profil)}</span>${rampe(ex, profil, theme).map((h) => `<span class="p-pastille" style="background:${h}" title="${h}"></span>`).join('')}</div>`).join('');
+    const rangeeBouton = b.change
+      ? `<div class="p-rangee bouton"><span>Bouton</span>${b.nuances.map((h) => `<span class="p-pastille" style="background:${h}" title="${h}"></span>`).join('')}<span style="font-size:9.5px;padding-left:6px">${legende ? `nuances du thème ${NOM_THEME[themeDesNuances(texte)]}` : ''}</span></div>`
+      : '';
+    return `<div class="p-nuancier" style="background:${fonds[theme]};color:${texteDePage(theme)}">${legende ? '' : `<div style="font-size:9.5px;opacity:.8">Thème ${NOM_THEME[theme]}</div>`}${rangees}${rangeeBouton}</div>`;
+  }
+
+  /* 4. Le plugin simulé. */
+  const MODELES = {
+    A: {
+      titre: 'A · Un seul bouton Light/Dark, dans la barre de la palette',
+      avis: ['Recommandé', 'bon'],
+      texte: 'Light/Dark rejoint la barre de la palette, qui reste en haut pendant le défilement. L’aperçu et la carte des garanties n’ont plus leur propre bouton. Les cartes ne gardent que leurs choix Soft/Vivid, marqués « Régler » ou « Afficher ».',
+      commandes: '1, toujours visible',
+      gestes: '1 clic, sans remonter',
+      risque: 'Une ligne de plus en haut, y compris dans la petite fenêtre.',
+    },
+    B: {
+      titre: 'B · Un bouton dans chaque carte, tous liés',
+      avis: ['Variante', 'attention'],
+      texte: 'Chaque carte qui montre un thème garde son bouton Light/Dark. Changer l’un change les autres.',
+      commandes: '3 dans Création, 1 dans Vérification',
+      gestes: '1 clic dans la carte',
+      risque: 'Plusieurs boutons pour un seul réglage : rien ne montre qu’ils sont liés.',
+    },
+    C: {
+      titre: 'C · Light et Dark côte à côte',
+      avis: ['Option pour l’Interface de test', 'neutre'],
+      texte: 'L’aperçu et l’Interface de test montrent les deux thèmes ensemble. Seul le Color shift garde un bouton, pour son graphe.',
+      commandes: '1, dans le Color shift',
+      gestes: 'Aucun : les deux thèmes sont visibles',
+      risque: 'Dans la petite fenêtre, les deux écrans s’empilent et la carte double de hauteur.',
+    },
+    D: {
+      titre: 'D · Un bouton par carte, indépendants',
+      avis: ['À éviter', 'mauvais'],
+      texte: 'Chaque carte choisit son thème, sans lien avec les autres.',
+      commandes: '3 dans Création',
+      gestes: '1 clic, les autres cartes restent sur leur thème',
+      risque: 'Deux thèmes à l’écran en même temps, sans repère.',
+    },
+  };
+
+  function bascule(etiquette, options, valeur, attribut, miseEnAvant = false) {
+    return `<span class="p-bascule${miseEnAvant ? ' mise-en-avant' : ''}">${etiquette ? `<span>${etiquette}</span>` : ''}<div role="group" aria-label="${etiquette || 'Thème'}">${options.map(([v, t]) => `<button type="button" ${attribut}="${v}" aria-pressed="${v === valeur}">${t}</button>`).join('')}</div></span>`;
+  }
+  const THEMES = [['light', 'Light'], ['dark', 'Dark']];
+  const themeDe = (carte) => (etat.modele === 'D' ? etat.locaux[carte] : etat.theme);
+
+  function courbePlugin(theme, ex) {
+    const couleurs = rampe(ex, etat.regler, theme);
+    const courbe = D.recette.courbes[theme];
+    const points = courbe.map((L, i) => [12 + i * (276 / (courbe.length - 1)), 62 - L * 54]);
+    return `<svg class="p-courbe" viewBox="0 0 300 70" preserveAspectRatio="none" role="img" aria-label="Clarté des nuances, thème ${NOM_THEME[theme]}">
+      <rect x="0" y="0" width="300" height="70" fill="${fonds[theme]}"></rect>
+      <polyline points="${points.map((pt) => pt.join(',')).join(' ')}" fill="none" stroke="${texteDePage(theme)}" stroke-opacity=".45" stroke-width="1.5"></polyline>
+      ${points.map(([px, py], i) => `<circle cx="${px}" cy="${py}" r="5" fill="${couleurs[i]}" stroke="${texteDePage(theme)}" stroke-opacity=".35"></circle>`).join('')}
+    </svg>`;
+  }
+
+  function rendrePlugin() {
+    const racine = document.getElementById('plugin');
+    const ancien = racine.querySelector('.p-defilement');
+    const position = ancien ? ancien.scrollTop : 0;
+    const ex = exemple();
+    const m = etat.modele;
+    racine.style.width = `${etat.taille}px`;
+    racine.style.height = `${etat.taille === 600 ? 720 : 520}px`;
+
+    const basculeTheme = (carte) => bascule('', THEMES, themeDe(carte), `data-theme-carte="${carte}" data-valeur`);
+    const enTeteTheme = (carte) => (m === 'B' || m === 'D' ? basculeTheme(carte) : '');
+
+    const barre = `<div class="p-barre${m === 'A' ? ' fixe' : ''}">
+      <span class="p-selecteur"><span class="puce" style="background:${ex.reference}"></span>${majuscule(ex.nom)} ▾</span>
+      <span class="p-bouton">Nouvelle palette</span><span class="p-bouton">…</span><span class="espace"></span>
+      ${m === 'A' ? bascule('Aperçu', THEMES, etat.theme, 'data-theme-global', true) : ''}
+    </div>`;
+
+    const apercu = m === 'C' ? nuancier('light', ex) + nuancier('dark', ex) : nuancier(themeDe('nuancier'), ex);
+    const themeDerive = m === 'C' ? etat.theme : themeDe('derive');
+    const deriveTete = m === 'C' ? basculeTheme('derive') : enTeteTheme('derive');
+    const themeEssai = themeDe('essai');
+    const essais = m === 'C'
+      ? ['light', 'dark'].map((theme) => ecranExemple(theme, bouton('S2', theme, etat.textes[theme], ex, etat.afficher), ex, etat.afficher)).join('')
+      : ecranExemple(themeEssai, bouton('S2', themeEssai, etat.textes[themeEssai], ex, etat.afficher), ex, etat.afficher);
+    const themesVisibles = m === 'D' ? new Set(Object.values(etat.locaux)) : new Set();
+
+    racine.innerHTML = `
+      <div class="p-entete"><span class="p-onglet actif">Création</span><span class="p-onglet">Vérification</span><span class="p-onglet">Gestion</span><span class="espace"></span><span class="p-onglet" aria-label="Réglages communs">⚙</span></div>
+      <div class="p-defilement">
+        ${barre}
+        <div class="p-alerte${themesVisibles.size > 1 ? ' visible' : ''}">Deux thèmes à l'écran : l'aperçu, le Color shift et l'Interface de test ne montrent pas la même chose.</div>
+        <div class="p-titre">Palette ${majuscule(ex.nom)}</div>
+        <section class="p-carte"><header><h4>Configuration de la palette</h4></header>
+          <div class="corps"><div style="display:flex;gap:10px;flex-wrap:wrap;color:var(--p-second)"><span>Nom ${majuscule(ex.nom)}</span><span>Référence ${ex.reference}</span><span>11 nuances</span><span>Deux intensités</span></div></div></section>
+        <section class="p-carte"><header><h4>Aperçu</h4><span class="espace"></span>${enTeteTheme('nuancier')}</header><div class="corps">${apercu}</div></section>
+        <section class="p-carte"><header><h4>Réglage global</h4><span class="espace"></span>${bascule('Régler', [['soft', 'Soft'], ['vivid', 'Vivid'], ['les deux', 'Les deux']], etat.reglerGlobal, 'data-regler-global')}</header>
+          <div class="corps">${[['Teinte', '50%', '0°'], ['Saturation', '62%', '+4 %'], ['Luminosité', '46%', '−0,01']].map(([nom, pos, val]) => `<div class="p-reglette"><span>${nom}</span><span class="p-piste" style="--position:${pos}"></span><span>${val}</span></div>`).join('')}</div></section>
+        <section class="p-carte"><header><h4>Color shift</h4><span class="espace"></span>${bascule('Régler', [['soft', 'Soft'], ['vivid', 'Vivid']], etat.regler, 'data-regler')}${deriveTete}</header><div class="corps">${courbePlugin(themeDerive, ex)}</div></section>
+        <section class="p-carte"><header><h4>Interface de test</h4><span class="espace"></span>${bascule('Afficher', [['soft', 'Soft'], ['vivid', 'Vivid']], etat.afficher, 'data-afficher')}${enTeteTheme('essai')}</header>
+          <div class="corps"><div class="p-essais${m === 'C' && etat.taille === 600 ? ' cote-a-cote' : ''}">${essais}</div></div></section>
+      </div>
+      <div class="p-pied"><span>Toutes les garanties tiennent</span><span class="espace"></span><span class="p-bouton">Vérifier</span></div>`;
+    racine.querySelector('.p-defilement').scrollTop = position;
+
+    racine.querySelectorAll('[data-theme-global]').forEach((b) => b.addEventListener('click', () => { etat.theme = b.dataset.themeGlobal; rendrePlugin(); }));
+    racine.querySelectorAll('[data-theme-carte]').forEach((b) => b.addEventListener('click', () => {
+      if (m === 'D') etat.locaux[b.dataset.themeCarte] = b.dataset.valeur;
+      else etat.theme = b.dataset.valeur;
+      rendrePlugin();
+    }));
+    racine.querySelectorAll('[data-regler]').forEach((b) => b.addEventListener('click', () => { etat.regler = b.dataset.regler; rendrePlugin(); }));
+    racine.querySelectorAll('[data-regler-global]').forEach((b) => b.addEventListener('click', () => { etat.reglerGlobal = b.dataset.reglerGlobal; rendrePlugin(); }));
+    racine.querySelectorAll('[data-afficher]').forEach((b) => b.addEventListener('click', () => { etat.afficher = b.dataset.afficher; rendrePlugin(); }));
+
+    const modele = MODELES[m];
+    document.getElementById('explication-modele').innerHTML = `<h3>${modele.titre} <span class="badge ${modele.avis[1]}">${modele.avis[0]}</span></h3>
+      <p style="margin:0">${modele.texte}</p>
+      <dl><dt>Boutons Light/Dark</dt><dd>${modele.commandes}</dd><dt>Depuis l'Interface de test</dt><dd>${modele.gestes}</dd><dt>Risque</dt><dd>${modele.risque}</dd></dl>
+      <p class="note" style="margin:12px 0 0">Dans tous les modèles, les choix Soft/Vivid disent ce qu'ils font : « Régler » dans le Réglage global et le Color shift, « Afficher » dans l'Interface de test. Le thème de l'aperçu ne modifie jamais une palette.</p>`;
+  }
+
+  function rendreChoixDuPlugin() {
+    choix(document.getElementById('choix-modele'), Object.keys(MODELES).map((cle) => ({ valeur: cle, texte: cle })), etat.modele, (v) => { etat.modele = v; });
+    choix(document.getElementById('choix-taille'), [{ valeur: 600, texte: '600 × 720' }, { valeur: 500, texte: '500 × 520' }], etat.taille, (v) => { etat.taille = v; });
+  }
+
+  function rendre() {
+    rendreBarre();
+    rendreBref();
+    rendreConstat();
+    rendreBandes();
+    rendreSolutions();
+    rendreChoixDuPlugin();
+    rendrePlugin();
+  }
+  rendre();
+}());
+</script>
+</body>
+</html>

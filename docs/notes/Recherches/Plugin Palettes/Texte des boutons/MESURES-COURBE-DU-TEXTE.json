@@ -1,0 +1,1641 @@
+{
+  "protocole": "Recette par défaut, préréglage Tailwind, quatorze références à une et deux intensités (42 rampes par thème), référence ancrée. Dix-neuf paires par rampe, seuils 4,5 et 3. Texte des boutons en blanc ou noir purs.",
+  "zones": [
+    {
+      "theme": "dark",
+      "contrasteTexteContrePage": 18.733663902900595,
+      "boutonClartes": [
+        0,
+        0.568085640286245
+      ],
+      "texteColoreClartes": [
+        0.5869591205825934,
+        1
+      ],
+      "zone": null
+    },
+    {
+      "theme": "light",
+      "contrasteTexteContrePage": 19.602217167508474,
+      "boutonClartes": [
+        0.5593444710406984,
+        1
+      ],
+      "texteColoreClartes": [
+        0,
+        0.5515684299278221
+      ],
+      "zone": null
+    },
+    {
+      "theme": "light",
+      "contrasteTexteContrePage": 1.07130738428959,
+      "boutonClartes": [
+        0,
+        0.568085640286245
+      ],
+      "texteColoreClartes": [
+        0,
+        0.5515684299278221
+      ],
+      "zone": [
+        0,
+        0.5515684299278221
+      ]
+    },
+    {
+      "theme": "dark",
+      "contrasteTexteContrePage": 1.120976660457141,
+      "boutonClartes": [
+        0.5593444710406984,
+        1
+      ],
+      "texteColoreClartes": [
+        0.5869591205825934,
+        1
+      ],
+      "zone": [
+        0.5869591205825934,
+        1
+      ]
+    }
+  ],
+  "resultats": [
+    {
+      "nom": "Actuel, texte noir pur",
+      "theme": "dark",
+      "courbe": [
+        0.18,
+        0.225,
+        0.275,
+        0.33,
+        0.4,
+        0.49,
+        0.58,
+        0.67,
+        0.76,
+        0.85,
+        0.93
+      ],
+      "rampes": 42,
+      "tenues": 674,
+      "mesures": 674,
+      "echecs": [],
+      "surLAncre": [],
+      "ecartDesEtatsMin": 0.04594491197735544,
+      "chromaDuBoutonMoyenne": 0.0870398528082399,
+      "boutonContreLaPage": {
+        "repos": [
+          5.684216671091512,
+          7.716143021761735
+        ],
+        "survol": [
+          8.282661642093016,
+          9.768295447524672
+        ]
+      }
+    },
+    {
+      "nom": "Texte blanc, courbe et table actuelles",
+      "theme": "dark",
+      "courbe": [
+        0.18,
+        0.225,
+        0.275,
+        0.33,
+        0.4,
+        0.49,
+        0.58,
+        0.67,
+        0.76,
+        0.85,
+        0.93
+      ],
+      "rampes": 42,
+      "tenues": 516,
+      "mesures": 674,
+      "echecs": [
+        {
+          "numero": 5,
+          "tenues": 0,
+          "mesures": 38,
+          "minimum": 2.8865075074955917
+        },
+        {
+          "numero": 6,
+          "tenues": 0,
+          "mesures": 40,
+          "minimum": 1.989486068666863
+        },
+        {
+          "numero": 7,
+          "tenues": 0,
+          "mesures": 40,
+          "minimum": 1.4588610525286936
+        },
+        {
+          "numero": 18,
+          "tenues": 0,
+          "mesures": 40,
+          "minimum": 1.1841432383089139
+        }
+      ],
+      "surLAncre": [
+        {
+          "reference": "#EAB308",
+          "profil": "vivid",
+          "numero": 6,
+          "ratio": 1.9178027531556476
+        },
+        {
+          "reference": "#EAB308",
+          "profil": "unique",
+          "numero": 6,
+          "ratio": 1.9178027531556476
+        },
+        {
+          "reference": "#FACC15",
+          "profil": "vivid",
+          "numero": 7,
+          "ratio": 1.5314188566852418
+        },
+        {
+          "reference": "#FACC15",
+          "profil": "unique",
+          "numero": 7,
+          "ratio": 1.5314188566852418
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 3.2957336053312796
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.2957336053312796
+        },
+        {
+          "reference": "#06B6D4",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 2.4278533783091234
+        },
+        {
+          "reference": "#06B6D4",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 2.4278533783091234
+        },
+        {
+          "reference": "#F5F5F5",
+          "profil": "soft",
+          "numero": 18,
+          "ratio": 1.090230993517392
+        },
+        {
+          "reference": "#F5F5F5",
+          "profil": "unique",
+          "numero": 18,
+          "ratio": 1.090230993517392
+        }
+      ],
+      "ecartDesEtatsMin": 0.04594491197735544,
+      "chromaDuBoutonMoyenne": 0.0870398528082399,
+      "boutonContreLaPage": {
+        "repos": [
+          5.684216671091512,
+          7.716143021761735
+        ],
+        "survol": [
+          8.282661642093016,
+          9.768295447524672
+        ]
+      }
+    },
+    {
+      "nom": "Texte blanc, 700 à 950 recalculées vers le bas, table actuelle",
+      "theme": "dark",
+      "courbe": [
+        0.18,
+        0.225,
+        0.275,
+        0.33,
+        0.4,
+        0.49,
+        0.58,
+        0.55,
+        0.48,
+        0.41,
+        0.34
+      ],
+      "rampes": 42,
+      "tenues": 301,
+      "mesures": 662,
+      "echecs": [
+        {
+          "numero": 1,
+          "tenues": 0,
+          "mesures": 34,
+          "minimum": 3.469336154758879
+        },
+        {
+          "numero": 2,
+          "tenues": 0,
+          "mesures": 32,
+          "minimum": 3.1910925360038638
+        },
+        {
+          "numero": 3,
+          "tenues": 0,
+          "mesures": 42,
+          "minimum": 2.0602045993324336
+        },
+        {
+          "numero": 4,
+          "tenues": 0,
+          "mesures": 42,
+          "minimum": 1.3110598594991425
+        },
+        {
+          "numero": 17,
+          "tenues": 0,
+          "mesures": 42,
+          "minimum": 1.2202759631835844
+        },
+        {
+          "numero": 10,
+          "tenues": 23,
+          "mesures": 34,
+          "minimum": 2.809786785274148
+        },
+        {
+          "numero": 11,
+          "tenues": 0,
+          "mesures": 42,
+          "minimum": 1.7391815313266388
+        },
+        {
+          "numero": 19,
+          "tenues": 0,
+          "mesures": 42,
+          "minimum": 1.0320104406203405
+        },
+        {
+          "numero": 14,
+          "tenues": 2,
+          "mesures": 42,
+          "minimum": 2.5415860499642875
+        },
+        {
+          "numero": 15,
+          "tenues": 0,
+          "mesures": 34,
+          "minimum": 3.4956157955456653
+        }
+      ],
+      "surLAncre": [
+        {
+          "reference": "#1E6FD9",
+          "profil": "vivid",
+          "numero": 1,
+          "ratio": 3.86353312634467
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "vivid",
+          "numero": 2,
+          "ratio": 3.5404031273858587
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "vivid",
+          "numero": 15,
+          "ratio": 3.870623876127884
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "unique",
+          "numero": 1,
+          "ratio": 3.86353312634467
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "unique",
+          "numero": 2,
+          "ratio": 3.5404031273858587
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "unique",
+          "numero": 15,
+          "ratio": 3.870623876127884
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 1,
+          "ratio": 3.624545327093053
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 2,
+          "ratio": 3.3220262947374697
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 10,
+          "ratio": 2.9211994736518685
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 15,
+          "ratio": 3.646607143776817
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 1,
+          "ratio": 3.624545327093053
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 2,
+          "ratio": 3.3220262947374697
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 10,
+          "ratio": 2.9211994736518685
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 15,
+          "ratio": 3.646607143776817
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 1,
+          "ratio": 3.4811090641360702
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 2,
+          "ratio": 3.218406632147077
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 10,
+          "ratio": 2.821780086813008
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 15,
+          "ratio": 3.509698618850503
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 1,
+          "ratio": 3.4811090641360702
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 2,
+          "ratio": 3.218406632147077
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 10,
+          "ratio": 2.821780086813008
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 15,
+          "ratio": 3.509698618850503
+        },
+        {
+          "reference": "#737373",
+          "profil": "soft",
+          "numero": 1,
+          "ratio": 3.9508601480162406
+        },
+        {
+          "reference": "#737373",
+          "profil": "soft",
+          "numero": 2,
+          "ratio": 3.5941086075796056
+        },
+        {
+          "reference": "#737373",
+          "profil": "soft",
+          "numero": 15,
+          "ratio": 3.9508601480162406
+        },
+        {
+          "reference": "#737373",
+          "profil": "unique",
+          "numero": 1,
+          "ratio": 3.9508601480162406
+        },
+        {
+          "reference": "#737373",
+          "profil": "unique",
+          "numero": 2,
+          "ratio": 3.5941086075796056
+        },
+        {
+          "reference": "#737373",
+          "profil": "unique",
+          "numero": 15,
+          "ratio": 3.9508601480162406
+        },
+        {
+          "reference": "#171717",
+          "profil": "soft",
+          "numero": 2,
+          "ratio": 3.673195825056342
+        },
+        {
+          "reference": "#171717",
+          "profil": "unique",
+          "numero": 2,
+          "ratio": 3.673195825056342
+        }
+      ],
+      "ecartDesEtatsMin": 0.06800901854512427,
+      "chromaDuBoutonMoyenne": 0.09123035260959894,
+      "boutonContreLaPage": {
+        "repos": [
+          3.469336154758879,
+          4.115056494757243
+        ],
+        "survol": [
+          2.5415860499642875,
+          3.052725139387487
+        ]
+      }
+    },
+    {
+      "nom": "Actuel, texte blanc pur",
+      "theme": "light",
+      "courbe": [
+        0.975,
+        0.95,
+        0.905,
+        0.845,
+        0.76,
+        0.67,
+        0.585,
+        0.5,
+        0.42,
+        0.34,
+        0.27
+      ],
+      "rampes": 42,
+      "tenues": 692,
+      "mesures": 692,
+      "echecs": [],
+      "surLAncre": [
+        {
+          "reference": "#16A34A",
+          "profil": "vivid",
+          "numero": 9,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "vivid",
+          "numero": 13,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "unique",
+          "numero": 9,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "unique",
+          "numero": 13,
+          "ratio": 2.917643042714528
+        }
+      ],
+      "ecartDesEtatsMin": 0.06883363058283554,
+      "chromaDuBoutonMoyenne": 0.08589350262410458,
+      "boutonContreLaPage": {
+        "repos": [
+          5.290132762757504,
+          6.333441361798257
+        ],
+        "survol": [
+          7.523798573381386,
+          8.748722144136863
+        ]
+      }
+    },
+    {
+      "nom": "Light, texte blanc pur, texte coloré à 800",
+      "theme": "light",
+      "courbe": [
+        0.975,
+        0.95,
+        0.905,
+        0.845,
+        0.76,
+        0.67,
+        0.585,
+        0.5,
+        0.42,
+        0.34,
+        0.27
+      ],
+      "rampes": 42,
+      "tenues": 690,
+      "mesures": 690,
+      "echecs": [],
+      "surLAncre": [
+        {
+          "reference": "#16A34A",
+          "profil": "vivid",
+          "numero": 9,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "vivid",
+          "numero": 13,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "unique",
+          "numero": 9,
+          "ratio": 2.917643042714528
+        },
+        {
+          "reference": "#16A34A",
+          "profil": "unique",
+          "numero": 13,
+          "ratio": 2.917643042714528
+        }
+      ],
+      "ecartDesEtatsMin": 0.06883363058283554,
+      "chromaDuBoutonMoyenne": 0.08589350262410458,
+      "boutonContreLaPage": {
+        "repos": [
+          5.290132762757504,
+          6.333441361798257
+        ],
+        "survol": [
+          7.523798573381386,
+          8.748722144136863
+        ]
+      }
+    }
+  ],
+  "inverses": [
+    {
+      "nom": "Dark, texte blanc, courbe retenue, table inversée, sans 14",
+      "theme": "dark",
+      "courbe": [
+        0.18,
+        0.225,
+        0.275,
+        0.33,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.7,
+        0.85,
+        0.93
+      ],
+      "rampes": 42,
+      "tenues": 624,
+      "mesures": 624,
+      "echecs": [],
+      "surLAncre": [
+        {
+          "reference": "#D94635",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.305206691158441
+        },
+        {
+          "reference": "#D94635",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.305206691158441
+        },
+        {
+          "reference": "#808080",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 3.9494396480491156
+        },
+        {
+          "reference": "#808080",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.9494396480491156
+        },
+        {
+          "reference": "#8B8178",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 3.811868361478989
+        },
+        {
+          "reference": "#8B8178",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.811868361478989
+        }
+      ],
+      "ecartDesEtatsMin": 0.04740556050691694,
+      "chromaDuBoutonMoyenne": 0.09253219260955212,
+      "boutonContreLaPage": {
+        "repos": [
+          3.4811090641360702,
+          4.914562132369128
+        ],
+        "survol": [
+          2.761015673186398,
+          3.3055372425127874
+        ]
+      }
+    },
+    {
+      "nom": "Dark, texte blanc, courbe retenue, table inversée, avec 14",
+      "theme": "dark",
+      "courbe": [
+        0.18,
+        0.225,
+        0.275,
+        0.33,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.7,
+        0.85,
+        0.93
+      ],
+      "rampes": 42,
+      "tenues": 655,
+      "mesures": 666,
+      "echecs": [
+        {
+          "numero": 14,
+          "tenues": 31,
+          "mesures": 42,
+          "minimum": 2.761015673186398
+        }
+      ],
+      "surLAncre": [
+        {
+          "reference": "#D94635",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.305206691158441
+        },
+        {
+          "reference": "#D94635",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.305206691158441
+        },
+        {
+          "reference": "#808080",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 3.9494396480491156
+        },
+        {
+          "reference": "#808080",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.9494396480491156
+        },
+        {
+          "reference": "#8B8178",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 3.811868361478989
+        },
+        {
+          "reference": "#8B8178",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.811868361478989
+        }
+      ],
+      "ecartDesEtatsMin": 0.04740556050691694,
+      "chromaDuBoutonMoyenne": 0.09253219260955212,
+      "boutonContreLaPage": {
+        "repos": [
+          3.4811090641360702,
+          4.914562132369128
+        ],
+        "survol": [
+          2.761015673186398,
+          3.3055372425127874
+        ]
+      }
+    },
+    {
+      "nom": "Light, texte noir, courbe retenue, table inversée, sans 14",
+      "theme": "light",
+      "courbe": [
+        0.975,
+        0.95,
+        0.905,
+        0.845,
+        0.76,
+        0.71,
+        0.66,
+        0.58,
+        0.42,
+        0.34,
+        0.27
+      ],
+      "rampes": 42,
+      "tenues": 636,
+      "mesures": 636,
+      "echecs": [],
+      "surLAncre": [
+        {
+          "reference": "#1E6FD9",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.330930461535385
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.330930461535385
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.0630307164403066
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.0630307164403066
+        },
+        {
+          "reference": "#DC2626",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.34836218450338
+        },
+        {
+          "reference": "#DC2626",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.34836218450338
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 3.902242013402336
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.902242013402336
+        },
+        {
+          "reference": "#737373",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 4.428822014656451
+        },
+        {
+          "reference": "#737373",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.428822014656451
+        }
+      ],
+      "ecartDesEtatsMin": 0.04594491197735544,
+      "chromaDuBoutonMoyenne": 0.0940592963389261,
+      "boutonContreLaPage": {
+        "repos": [
+          3.5581462588412305,
+          5.023321746878905
+        ],
+        "survol": [
+          2.79640543435872,
+          3.197479663813248
+        ]
+      }
+    },
+    {
+      "nom": "Light, texte noir, courbe retenue, table inversée, avec 14",
+      "theme": "light",
+      "courbe": [
+        0.975,
+        0.95,
+        0.905,
+        0.845,
+        0.76,
+        0.71,
+        0.66,
+        0.58,
+        0.42,
+        0.34,
+        0.27
+      ],
+      "rampes": 42,
+      "tenues": 645,
+      "mesures": 676,
+      "echecs": [
+        {
+          "numero": 14,
+          "tenues": 9,
+          "mesures": 40,
+          "minimum": 2.79640543435872
+        }
+      ],
+      "surLAncre": [
+        {
+          "reference": "#1E6FD9",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.330930461535385
+        },
+        {
+          "reference": "#1E6FD9",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.330930461535385
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.0630307164403066
+        },
+        {
+          "reference": "#2563EB",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.0630307164403066
+        },
+        {
+          "reference": "#DC2626",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 4.34836218450338
+        },
+        {
+          "reference": "#DC2626",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.34836218450338
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "vivid",
+          "numero": 5,
+          "ratio": 3.902242013402336
+        },
+        {
+          "reference": "#9333EA",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 3.902242013402336
+        },
+        {
+          "reference": "#737373",
+          "profil": "soft",
+          "numero": 5,
+          "ratio": 4.428822014656451
+        },
+        {
+          "reference": "#737373",
+          "profil": "unique",
+          "numero": 5,
+          "ratio": 4.428822014656451
+        }
+      ],
+      "ecartDesEtatsMin": 0.04594491197735544,
+      "chromaDuBoutonMoyenne": 0.0940592963389261,
+      "boutonContreLaPage": {
+        "repos": [
+          3.5581462588412305,
+          5.023321746878905
+        ],
+        "survol": [
+          2.79640543435872,
+          3.197479663813248
+        ]
+      }
+    }
+  ],
+  "recherche": {
+    "tableTexteSeul": {
+      "dark": [
+        {
+          "valeurs": {
+            "500": 0.42,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.7
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.42,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.74
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.43,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.7
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.43,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.74
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.44,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.7
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.44,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.74
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.7
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.74
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.46,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.7
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        },
+        {
+          "valeurs": {
+            "500": 0.46,
+            "600": 0.54,
+            "700": 0.56,
+            "800": 0.74
+          },
+          "manquees": 2,
+          "echecs": "5:2",
+          "ecart": 0.014
+        }
+      ],
+      "light": [
+        {
+          "valeurs": {
+            "500": 0.65,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.65,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.66,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.66,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.67,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.67,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.69,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        },
+        {
+          "valeurs": {
+            "500": 0.69,
+            "600": 0.62,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.02
+        }
+      ]
+    },
+    "avec14": {
+      "dark": [
+        {
+          "valeurs": {
+            "500": 0.42,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.42,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.43,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.43,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.44,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.44,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.46,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        },
+        {
+          "valeurs": {
+            "500": 0.46,
+            "600": 0.53,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.017
+        }
+      ],
+      "light": [
+        {
+          "valeurs": {
+            "500": 0.67,
+            "600": 0.63,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.67,
+            "600": 0.63,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.63,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.63,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.59,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.59,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.6,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        },
+        {
+          "valeurs": {
+            "500": 0.68,
+            "600": 0.64,
+            "700": 0.6,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.03
+        }
+      ]
+    },
+    "sans14": {
+      "dark": [
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.5,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.047
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.5,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.047
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.53,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.53,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.54,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.54,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.55,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.49,
+            "700": 0.55,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.5,
+            "700": 0.54,
+            "800": 0.7
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.45,
+            "600": 0.5,
+            "700": 0.54,
+            "800": 0.74
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        }
+      ],
+      "light": [
+        {
+          "valeurs": {
+            "500": 0.71,
+            "600": 0.66,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.046
+        },
+        {
+          "valeurs": {
+            "500": 0.71,
+            "600": 0.66,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.046
+        },
+        {
+          "valeurs": {
+            "500": 0.7,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.04
+        },
+        {
+          "valeurs": {
+            "500": 0.7,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.04
+        },
+        {
+          "valeurs": {
+            "500": 0.71,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.04
+        },
+        {
+          "valeurs": {
+            "500": 0.71,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.04
+        },
+        {
+          "valeurs": {
+            "500": 0.69,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.69,
+            "600": 0.65,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.7,
+            "600": 0.66,
+            "700": 0.58,
+            "800": 0.44
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        },
+        {
+          "valeurs": {
+            "500": 0.7,
+            "600": 0.66,
+            "700": 0.58,
+            "800": 0.4
+          },
+          "manquees": 0,
+          "echecs": "",
+          "ecart": 0.039
+        }
+      ]
+    }
+  }
+}

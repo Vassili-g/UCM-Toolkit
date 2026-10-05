@@ -44,7 +44,7 @@ export const ACRONYMES = [
   'CRLF', 'CSS', 'DOM', 'DS', 'DTCG', 'EAA', 'EACCES', 'EASING', 'EN', 'ENOTDIR', 'ESM',
   'FIXED',
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HTML', 'HTTP',
-  'HTTPS', 'HUG', 'IA', 'ID', 'ISO', 'JS', 'JSON', 'JSX', 'JWT', 'LF', 'LGPL',
+  'HTTPS', 'HUG', 'IA', 'ID', 'ISO', 'JND', 'JS', 'JSON', 'JSX', 'JWT', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
   'NPM', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT',
   'RECTANGLE',
@@ -54,7 +54,7 @@ export const ACRONYMES = [
   // le retirera.
   'STRING', 'SVG', 'TAP', 'TAR', 'TEXT', 'TIMING', 'TODO', 'TS', 'UCM', 'UI', 'URI',
   'URL', 'USD',
-  'UTF', 'VECTOR', 'WCAG', 'WRAP', 'YAML', 'ZIP', 'ELLIPSE', 'AUTO',
+  'UTF', 'UX', 'VECTOR', 'WCAG', 'WRAP', 'YAML', 'ZIP', 'ELLIPSE', 'AUTO',
   // Les documents du dépôt, cités par leur nom sans extension.
   'AGENTS', 'CONCEPT', 'CONTRIBUTING', 'LICENSE', 'README', 'ROADMAP',
 ];
@@ -99,10 +99,14 @@ const DATATION = new RegExp(
   'gi',
 );
 
-/** Fichiers suivis par Git, en chemins relatifs à séparateur `/`. */
+/**
+ * Fichiers suivis par Git, en chemins relatifs à séparateur `/`. Git liste
+ * encore un fichier supprimé tant que sa suppression n'est pas commitée : il
+ * sort de la liste.
+ */
 export function fichiersSuivis() {
   const sortie = execFileSync('git', ['ls-files'], { cwd: racine, encoding: 'utf8' });
-  return sortie.split(/\r?\n/).filter(Boolean);
+  return sortie.split(/\r?\n/).filter(Boolean).filter((fichier) => fs.existsSync(path.join(racine, fichier)));
 }
 
 /**

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thème inversé</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #f4f4f2; --texte: #1d1d1d; --second: #5c5c5c; --carte: #ffffff; --bordure: #dcdcd7;
+  --accent: #0b63b6; --fond-accent: #e6f0fa;
+  --bon: #13703f; --fond-bon: #dcf1e4; --mauvais: #a8330a; --fond-mauvais: #fbe1d6;
+  --attention: #8a5300; --fond-attention: #fbefd5; --neutre: #5f5f5f; --fond-neutre: #ebebe8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #151515; --texte: #ececec; --second: #a6a6a6; --carte: #1f1f1f; --bordure: #383838;
+    --accent: #7cc0f7; --fond-accent: #18324a;
+    --bon: #86dca6; --fond-bon: #173323; --mauvais: #ffad85; --fond-mauvais: #3d1d10;
+    --attention: #f3c46b; --fond-attention: #3a2a0c; --neutre: #b0b0b0; --fond-neutre: #2b2b2b;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #151515; --texte: #ececec; --second: #a6a6a6; --carte: #1f1f1f; --bordure: #383838;
+  --accent: #7cc0f7; --fond-accent: #18324a;
+  --bon: #86dca6; --fond-bon: #173323; --mauvais: #ffad85; --fond-mauvais: #3d1d10;
+  --attention: #f3c46b; --fond-attention: #3a2a0c; --neutre: #b0b0b0; --fond-neutre: #2b2b2b;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 120px; }
+body { margin: 0; background: var(--page); color: var(--texte); font: 14px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: var(--accent); }
+code { font: 12.5px ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--fond-neutre); padding: 1px 4px; border-radius: 4px; }
+.conteneur { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.tete { padding: 28px 0 12px; }
+header.tete h1 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.tete p { margin: 0 0 6px; color: var(--second); max-width: 860px; }
+nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font-size: 13px; }
+
+/* La barre du haut : ce qu'on y choisit repeint toute la page. */
+.barre { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bordure); }
+.barre .conteneur { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-top: 10px; padding-bottom: 10px; align-items: center; }
+.groupe { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.groupe > .etiquette { font-size: 12px; font-weight: 600; color: var(--second); }
+.choix { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--bordure); border-radius: 7px; overflow: hidden; background: var(--carte); }
+.choix button { font: inherit; font-size: 12.5px; border: 0; background: transparent; color: var(--texte); padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.choix button + button { border-left: 1px solid var(--bordure); }
+.choix button[aria-pressed="true"] { background: var(--accent); color: var(--carte); font-weight: 600; }
+.choix button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.puce { width: 12px; height: 12px; border-radius: 3px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); flex: none; }
+.etat-reglage { font-size: 12px; color: var(--second); }
+@media (max-width: 700px) { .barre { position: static; } html { scroll-padding-top: 0; } }
+
+section.bloc { padding: 34px 0 6px; }
+section.bloc > h2 { font-size: 19px; margin: 0 0 4px; letter-spacing: -0.01em; }
+section.bloc > .chapeau { color: var(--second); margin: 0 0 16px; max-width: 860px; }
+.carte { background: var(--carte); border: 1px solid var(--bordure); border-radius: 12px; padding: 16px; }
+.reponse { border: 2px solid var(--accent); background: var(--fond-accent); }
+.reponse ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; font-size: 15px; line-height: 1.5; }
+.grille-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .grille-2 { grid-template-columns: minmax(0, 1fr); } }
+.colonne-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 0 0 10px; }
+.colonne-tete h3 { margin: 0; font-size: 15.5px; }
+.note { font-size: 12.5px; color: var(--second); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.badge.bon { color: var(--bon); background: var(--fond-bon); }
+.badge.mauvais { color: var(--mauvais); background: var(--fond-mauvais); }
+.badge.attention { color: var(--attention); background: var(--fond-attention); }
+.badge.neutre { color: var(--neutre); background: var(--fond-neutre); }
+
+/* Le nuancier : onze pastilles et, dessous, une ligne par emploi. */
+.nuancier { border-radius: 10px; padding: 10px; display: grid; gap: 4px; overflow-x: auto; }
+.rangee { display: grid; grid-template-columns: 84px repeat(11, minmax(26px, 1fr)); gap: 3px; align-items: center; min-width: 420px; }
+.rangee > .nom { font-size: 11px; opacity: .85; }
+.pastille { height: 34px; border-radius: 4px; display: grid; place-items: center; font-size: 10px; font-weight: 600; position: relative; }
+.pastille .ancre { position: absolute; top: 1px; right: 3px; font-size: 9px; }
+.marque { height: 20px; border-radius: 4px; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
+.marque.vide { background: transparent; }
+.clarte { font-size: 9.5px; text-align: center; opacity: .75; }
+
+/* L'écran d'essai, peint des couleurs du moteur. */
+.ecran { border-radius: 10px; padding: 14px; border: 1px solid rgba(127,127,127,.25); display: grid; gap: 12px; }
+.ecran-titre { font-weight: 650; font-size: 15px; }
+.ecran-carte { border-radius: 8px; padding: 12px; display: grid; gap: 10px; }
+.ecran-texte { font-size: 13px; }
+.ecran-lien { font-size: 13px; font-weight: 600; text-decoration: underline; }
+.champ { display: grid; gap: 4px; font-size: 12px; }
+.champ .boite { border: 1.5px solid; border-radius: 6px; padding: 6px 8px; font-size: 12.5px; }
+.etats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.etat { display: grid; gap: 4px; justify-items: center; text-align: center; }
+.etat .nom { font-size: 10.5px; opacity: .8; }
+.btn { display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 8px 6px; border-radius: 7px; width: 100%; }
+.ligne { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 11.5px; }
+.focus-demo { display: inline-flex; padding: 7px 14px; border-radius: 7px; font-weight: 600; font-size: 13px; outline-style: solid; outline-width: 2px; outline-offset: 3px; }
+.puces-surface { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.puces-surface span { border-radius: 6px; padding: 5px 4px; font-size: 11.5px; font-weight: 600; text-align: center; }
+
+/* Le tableau des six palettes. */
+table.palettes { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+table.palettes th, table.palettes td { text-align: left; padding: 8px; border-bottom: 1px solid var(--bordure); vertical-align: middle; }
+table.palettes th { font-size: 11.5px; color: var(--second); font-weight: 600; }
+.mini { display: grid; grid-template-columns: repeat(4, minmax(46px, 1fr)); gap: 4px; padding: 6px; border-radius: 8px; min-width: 220px; }
+.mini span { border-radius: 5px; padding: 6px 2px; font-size: 11px; font-weight: 600; text-align: center; }
+.defile-x { overflow-x: auto; }
+
+svg.courbe { width: 100%; height: auto; display: block; }
+svg.courbe text { fill: var(--second); font-size: 11px; font-family: inherit; }
+svg.courbe .axe { stroke: var(--bordure); }
+svg.courbe .actuelle { stroke: var(--second); stroke-dasharray: 4 3; fill: none; stroke-width: 1.5; }
+svg.courbe .inversee { stroke: var(--accent); fill: none; stroke-width: 2; }
+svg.courbe .zone-bouton { fill: var(--fond-attention); }
+svg.courbe .zone-texte { fill: var(--fond-bon); }
+
+ol.decisions { display: grid; gap: 8px; padding-left: 22px; margin: 0; }
+footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
+</style>
+</head>
+<body>
+
+<div class="conteneur">
+  <header class="tete">
+    <h1>UCM Palettes · Le thème inversé</h1>
+    <p>Maquette de la proposition du <a href="./DOSSIER-TEXTE-DES-BOUTONS.md">dossier de recherche</a>, section 5. Les couleurs viennent du moteur du plugin, avec la recette par défaut et le préréglage Tailwind. Rien n'est codé : la page sert à décider.</p>
+    <p>Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de sa page : texte blanc en Dark, ou texte noir en Light.</p>
+    <nav class="sommaire" aria-label="Sommaire">
+      <a href="#bref"><b>En bref</b></a>
+      <a href="#avant-apres">Avant et après</a>
+      <a href="#palettes">Les six palettes</a>
+      <a href="#courbe">La courbe</a>
+      <a href="#decisions">À décider</a>
+    </nav>
+  </header>
+</div>
+
+<div class="barre" role="region" aria-label="Choix de la maquette">
+  <div class="conteneur">
+    <div class="groupe"><span class="etiquette">Palette</span><div class="choix" id="choix-palette"></div></div>
+    <div class="groupe"><span class="etiquette">Thème</span><div class="choix" id="choix-theme"></div></div>
+    <div class="groupe"><span class="etiquette">Texte des boutons dans ce thème</span><div class="choix" id="choix-texte"></div></div>
+    <div class="groupe"><span class="etiquette">Afficher</span><div class="choix" id="choix-profil"></div></div>
+    <span class="etat-reglage" id="etat-reglage" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="conteneur">
+
+  <section class="bloc" id="bref">
+    <h2>En bref</h2>
+    <div class="carte reponse">
+      <ol>
+        <li><b>Le bouton reste la 700</b>, dans toutes les palettes et les deux thèmes.</li>
+        <li><b>Quand le texte des boutons est inversé, la courbe du thème est recalculée.</b> En Dark avec texte blanc, les nuances 500 à 800 passent de 0,49 / 0,58 / 0,67 / 0,76 à 0,45 / 0,50 / 0,55 / 0,70. Aucune palette ni rangée n'est ajoutée.</li>
+        <li><b>Les états du bouton vont vers la page</b> : 700, 600, 500, 400. Ils s'éloignent ainsi de son texte.</li>
+        <li><b>Ce qui se pose sur la page monte d'une nuance</b> : texte coloré à 800, contour à 700. Ils gardent presque leur couleur d'aujourd'hui ; seul le bouton change.</li>
+        <li><b>Texte des boutons en blanc ou noir purs.</b> Anneau de focus à 900, ou 950 dans le thème inversé (décision 7 du dossier).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="bloc" id="avant-apres">
+    <h2>Avant et après</h2>
+    <p class="chapeau">À gauche, le moteur d'aujourd'hui. À droite, la proposition, avec le texte des boutons choisi dans la barre du haut. Sous le nuancier, chaque ligne montre les nuances d'un emploi, numérotées du repos (1) au quatrième état (4). Le losange ◆ marque la nuance où la couleur de référence est posée telle quelle.</p>
+    <div class="grille-2" id="avant-apres-contenu"></div>
+  </section>
+
+  <section class="bloc" id="palettes">
+    <h2>Les six palettes</h2>
+    <p class="chapeau">Les quatre états du bouton dans le thème choisi, aujourd'hui et selon la proposition. Le badge donne le contraste le plus faible du texte sur les quatre états (seuil 4,5:1) ; la dernière colonne, le bouton au repos contre la page (seuil 3:1, garantie 14 jugée au repos).</p>
+    <div class="carte defile-x" id="palettes-contenu"></div>
+  </section>
+
+  <section class="bloc" id="courbe">
+    <h2>La courbe</h2>
+    <p class="chapeau">Clarté de chaque nuance dans le thème choisi. En pointillé, la courbe d'aujourd'hui ; en trait plein, la courbe du thème inversé. Les bandes montrent où un gris porte le texte inversé des boutons à 4,5:1 (orange) et où un texte coloré se lit sur la page à 4,5:1 (vert). Elles ne se touchent pas : une même nuance ne peut pas être les deux.</p>
+    <div class="grille-2">
+      <div class="carte" id="courbe-contenu"></div>
+      <div class="carte" id="courbe-table"></div>
+    </div>
+  </section>
+
+  <section class="bloc" id="decisions">
+    <h2>À décider</h2>
+    <div class="carte">
+      <ol class="decisions">
+        <li><b>La règle du thème inversé</b> : texte coloré à 800, contour à 700, états du bouton vers la page.</li>
+        <li><b>La garantie 14</b> : juger le bouton au repos contre la page (recommandé, 42 rampes sur 42), ou ne pas la vérifier.</li>
+        <li><b>L'ancrage</b> : choisissez le rouge. Sa couleur de référence est posée sur la 700 du thème Dark inversé et n'y porte pas le blanc (4,31:1). La garder et afficher la garantie manquée, la poser sur la nuance voisine, ou ne pas la poser dans le thème inversé.</li>
+        <li><b>Les clartés de la courbe</b> : 0,45, 0,50, 0,55 et 0,70 en Dark, à éprouver dans Figma.</li>
+        <li><b>Le quatrième niveau du texte coloré</b> : la 950 répétée, ou treize nuances.</li>
+        <li><b>Le sens de « Les deux »</b> dans le Color shift.</li>
+        <li><b>L'anneau de focus unique</b> : 900, ou 950 dans le thème inversé.</li>
+      </ol>
+      <p class="note" style="margin:12px 0 0">Le détail et les mesures sont dans la section 9 du <a href="./DOSSIER-TEXTE-DES-BOUTONS.md">dossier</a>.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="conteneur"><footer class="pied">Maquette du dossier « Modes et affichage global ». Les couleurs se régénèrent avec le script <code>generer-maquette-theme-inverse.ts</code>, lancé depuis la racine du dépôt. Le texte neutre des écrans (titres, paragraphes) est un gris fixe : la palette neutre n'est pas en jeu ici.</footer></div>
+
+<script id="donnees" type="application/json">{"crans":[50,100,200,300,400,500,600,700,800,900,950],"fonds":{"light":"#F7F7F7","dark":"#121212"},"courbes":{"actuelles":{"light":[0.975,0.95,0.905,0.845,0.76,0.67,0.585,0.5,0.42,0.34,0.27],"dark":[0.18,0.225,0.275,0.33,0.4,0.49,0.58,0.67,0.76,0.85,0.93]},"inversees":{"light":[0.975,0.95,0.905,0.845,0.76,0.71,0.66,0.58,0.42,0.34,0.27],"dark":[0.18,0.225,0.275,0.33,0.4,0.45,0.5,0.55,0.7,0.85,0.93]}},"palettes":[{"reference":"#2563EB","nom":"Bleu","light":{"actuelle":{"soft":["#F4F7FA","#EAEFF6","#D7E0EE","#BECDE3","#9DB2D5","#7A96C6","#5A7BB8","#3E60A8","#294793","#1F336D","#15234E"],"vivid":["#F2F7FE","#E6EFFD","#CFE1FB","#B2CEF8","#89B2F4","#5E93F0","#2563EB","#154FE4","#092AD0","#0D1C9C","#0A1270"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#F4F7FA","#EAEFF6","#D7E0EE","#BECDE3","#9DB2D5","#89A3CD","#7693C4","#5979B8","#294793","#1F336D","#15234E"],"vivid":["#F2F7FE","#E6EFFD","#CFE1FB","#B2CEF8","#89B2F4","#71A1F2","#5A90F0","#2563EB","#092AD0","#0D1C9C","#0A1270"],"ancre":{"profil":"vivid","cran":700}}},"dark":{"actuelle":{"soft":["#0E1119","#151B2A","#1D2640","#23335D","#264289","#3B5DA5","#5979B8","#7A96C6","#9DB2D5","#C1CFE4","#E1E8F2"],"vivid":["#0B111F","#101A36","#132256","#122980","#0B26C3","#134BE1","#2563EB","#5E93F0","#89B2F4","#B4D0F8","#DCE9FC"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#0E1119","#151B2A","#1D2640","#23335D","#264289","#2D4FA2","#3E60A8","#4E70B3","#859FCB","#C1CFE4","#E1E8F2"],"vivid":["#0B111F","#101A36","#132256","#122980","#0B26C3","#052FE5","#154FE4","#2563EB","#6C9EF2","#B4D0F8","#DCE9FC"],"ancre":{"profil":"vivid","cran":700}}}},{"reference":"#9333EA","nom":"Violet","light":{"actuelle":{"soft":["#F8F6FA","#F0ECF6","#E3DCEE","#D2C6E3","#BAA7D5","#A187C6","#8A68B9","#70509B","#573E7A","#3F2C5B","#2C1E41"],"vivid":["#F9F5FE","#F2EBFD","#E7D8FB","#D8BFF8","#C39CF4","#AD73F1","#9333EA","#7E2BCB","#6220A1","#481579","#320C58"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#F8F6FA","#F0ECF6","#E3DCEE","#D2C6E3","#BAA7D5","#AC95CD","#9E83C5","#8966B8","#573E7A","#3F2C5B","#2C1E41"],"vivid":["#F9F5FE","#F2EBFD","#E7D8FB","#D8BFF8","#C39CF4","#B686F2","#AB6EF0","#9333EA","#6220A1","#481579","#320C58"],"ancre":{"profil":"vivid","cran":700}}},"dark":{"actuelle":{"soft":["#121017","#1D1925","#2B2338","#3B2D50","#513A72","#6D4E97","#8966B8","#A187C6","#BAA7D5","#D3C8E4","#EAE5F2"],"vivid":["#130F1B","#1F162E","#2E1D47","#412167","#5B1D97","#7A29C6","#9333EA","#AD73F1","#C39CF4","#D9C2F8","#EDE2FC"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#121017","#1D1925","#2B2338","#3B2D50","#513A72","#604586","#70509B","#815CB0","#A991CB","#D3C8E4","#EAE5F2"],"vivid":["#130F1B","#1F162E","#2E1D47","#412167","#5B1D97","#6C24B1","#7E2BCB","#9333EA","#B481F2","#D9C2F8","#EDE2FC"],"ancre":{"profil":"vivid","cran":700}}}},{"reference":"#16A34A","nom":"Vert","light":{"actuelle":{"soft":["#EFFAF0","#DEF6E1","#BCEFC4","#9AE0A6","#85C290","#70A479","#5C8864","#496E4F","#38553D","#283E2C","#1A2B1D"],"vivid":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#19B252","#16A34A","#0D7734","#085D27","#04441B","#023011"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#EFFAF0","#DEF6E1","#BCEFC4","#9AE0A6","#85C290","#79B183","#6DA176","#5B8763","#38553D","#283E2C","#1A2B1D"],"vivid":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#1CC159","#16A34A","#139342","#085D27","#04441B","#023011"],"ancre":{"profil":"vivid","cran":600}}},"dark":{"actuelle":{"soft":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#476A4D","#5B8763","#70A479","#85C290","#9BE2A8","#CFF3D5"],"vivid":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0D7433","#139342","#16A34A","#20D362","#27F573","#AFFEBD"],"ancre":{"profil":"vivid","cran":700}},"inversee":{"soft":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#3E5E44","#496E4F","#547D5B","#77AE80","#9BE2A8","#CFF3D5"],"vivid":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0A672C","#0D7734","#11883D","#16A34A","#27F573","#AFFEBD"],"ancre":{"profil":"vivid","cran":800}}}},{"reference":"#EAB308","nom":"Jaune","light":{"actuelle":{"soft":["#FAF7E8","#F6EFD3","#EEDFB2","#E0CA92","#C6AE7E","#AB9169","#917757","#775E45","#5E4834","#473325","#332218"],"vivid":["#FFF8D5","#FFEFAF","#FFDD6D","#F9C50A","#EAB308","#C38905","#A86E03","#8C5502","#713F01","#562B01","#3F1B00"],"ancre":{"profil":"vivid","cran":400}},"inversee":{"soft":["#FAF7E8","#F6EFD3","#EEDFB2","#E0CA92","#C6AE7E","#B79E72","#A88E67","#8F7555","#5E4834","#473325","#332218"],"vivid":["#FFF8D5","#FFEFAF","#FFDD6D","#F9C50A","#EAB308","#D09606","#C08505","#A66C03","#713F01","#562B01","#3F1B00"],"ancre":{"profil":"vivid","cran":400}}},"dark":{"actuelle":{"soft":["#14110F","#201A17","#2F251F","#413227","#584330","#735B42","#8F7555","#AB9169","#C6AE7E","#E2CC93","#F2E8C4"],"vivid":["#17100C","#251911","#382213","#4D2C12","#6A3A01","#885202","#A66C03","#C38905","#EAB308","#FAC70A","#FFE792"],"ancre":{"profil":"vivid","cran":800}},"inversee":{"soft":["#14110F","#201A17","#2F251F","#413227","#584330","#67503A","#775E45","#866C4F","#B49A70","#E2CC93","#F2E8C4"],"vivid":["#17100C","#251911","#382213","#4D2C12","#6A3A01","#7B4701","#8C5502","#9C6303","#CD9206","#EAB308","#FFE792"],"ancre":{"profil":"vivid","cran":900}}}},{"reference":"#D94635","nom":"Rouge","light":{"actuelle":{"soft":["#FAF5F4","#F6ECEA","#EEDBD7","#E4C4BD","#D7A299","#CA7E71","#B26256","#904E44","#713C34","#542A24","#3B1C18"],"vivid":["#FDF5F3","#FBEAE7","#F8D7D1","#F4BDB2","#EF9686","#EA6553","#D94635","#AA3427","#86271D","#641A13","#48100B"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#FAF5F4","#F6ECEA","#EEDBD7","#E4C4BD","#D7A299","#D08E83","#C97A6C","#B06154","#713C34","#542A24","#3B1C18"],"vivid":["#FDF5F3","#FBEAE7","#F8D7D1","#F4BDB2","#EF9686","#ED7C6B","#EA5F4C","#D94635","#86271D","#641A13","#48100B"],"ancre":{"profil":"vivid","cran":700}}},"dark":{"actuelle":{"soft":["#16100F","#241917","#35221F","#4B2C27","#6A3730","#8C4C42","#B06154","#CA7E71","#D7A299","#E5C5BF","#F2E4E1"],"vivid":["#190F0D","#291613","#3E1D18","#58221B","#7E241A","#A63226","#D94635","#EA6553","#EF9686","#F5BFB5","#FAE2DD"],"ancre":{"profil":"vivid","cran":600}},"inversee":{"soft":["#16100F","#241917","#35221F","#4B2C27","#6A3730","#7C423A","#904E44","#A45A4E","#CF8A7E","#E5C5BF","#F2E4E1"],"vivid":["#190F0D","#291613","#3E1D18","#58221B","#7E241A","#942C21","#AA3427","#D94635","#EC7765","#F5BFB5","#FAE2DD"],"ancre":{"profil":"vivid","cran":700}}}},{"reference":"#737373","nom":"Gris","light":{"actuelle":{"soft":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#737373","#636363","#4D4D4D","#383838","#262626"],"vivid":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"ancre":{"profil":"soft","cran":600}},"inversee":{"soft":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#A1A1A1","#929292","#737373","#4D4D4D","#383838","#262626"],"vivid":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#A1A1A1","#929292","#7A7A7A","#4D4D4D","#383838","#262626"],"ancre":{"profil":"soft","cran":700}}},"dark":{"actuelle":{"soft":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#737373","#959595","#B1B1B1","#CECECE","#E8E8E8"],"vivid":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"],"ancre":{"profil":"soft","cran":600}},"inversee":{"soft":["#121212","#1C1C1C","#282828","#353535","#484848","#555555","#636363","#737373","#9E9E9E","#CECECE","#E8E8E8"],"vivid":["#121212","#1C1C1C","#282828","#353535","#484848","#555555","#636363","#717171","#9E9E9E","#CECECE","#E8E8E8"],"ancre":{"profil":"soft","cran":700}}}}]}</script>
+<script>
+const D = JSON.parse(document.getElementById('donnees').textContent);
+const CRANS = D.crans;
+const rang = (cran) => CRANS.indexOf(cran);
+const SEUIL_TEXTE = 4.5;
+const SEUIL_NON_TEXTE = 3;
+
+/** Les tables : la nuance de chaque emploi, du niveau 1 au niveau 4. */
+const TABLE_NORMALE = { solid: [700, 800, 900, 950], text: [700, 800, 900, 950], border: [600, 700, 800, 900], surface: [100, 200, 300, 400], card: 50 };
+const TABLE_INVERSEE = { solid: [700, 600, 500, 400], text: [800, 900, 950, 950], border: [700, 800, 900, 950], surface: [100, 200, 300, 400], card: 50 };
+const NOM_DES_ETATS = ['Repos', 'Survol', 'Appui', 'Appui survolé'];
+const NEUTRE = { light: { texte: '#1D1D1D', second: '#5C5C5C' }, dark: { texte: '#ECECEC', second: '#A6A6A6' } };
+
+/** Le texte normal des boutons : la couleur de la page. */
+const TEXTE_NORMAL = { light: 'blanc', dark: 'noir' };
+
+const etat = { palette: 0, theme: 'dark', textes: { light: 'blanc', dark: 'blanc' }, profil: 'vivid' };
+
+function luminance(hexa) {
+  const v = [1, 3, 5].map((i) => parseInt(hexa.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+function contraste(a, b) {
+  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+const virgule = (x) => x.toFixed(2).replace('.', ',');
+const lisibleSur = (hexa) => (contraste(hexa, '#FFFFFF') >= contraste(hexa, '#000000') ? '#FFFFFF' : '#000000');
+function badge(ratio, seuil, avecSeuil = false) {
+  const tenu = ratio >= seuil;
+  return `<span class="badge ${tenu ? 'bon' : 'mauvais'}">${virgule(ratio)}:1 ${tenu ? 'tenu' : 'manqué'}${avecSeuil ? ` (seuil ${virgule(seuil)})` : ''}</span>`;
+}
+
+/**
+ * Le modèle d'un côté de la comparaison : la rampe, la table, le texte des
+ * boutons et l'anneau de focus. Aujourd'hui : texte gris de la page, focus 600.
+ */
+function modele(palette, theme, cote) {
+  const inverse = cote === 'apres' && etat.textes[theme] !== TEXTE_NORMAL[theme];
+  const source = palette[theme][inverse ? 'inversee' : 'actuelle'];
+  const page = D.fonds[theme];
+  let texteDuBouton;
+  if (cote === 'avant') texteDuBouton = page;
+  else texteDuBouton = etat.textes[theme] === 'blanc' ? '#FFFFFF' : '#000000';
+  return {
+    inverse,
+    rampe: source[etat.profil],
+    ancre: source.ancre.profil === etat.profil ? source.ancre.cran : null,
+    table: inverse ? TABLE_INVERSEE : TABLE_NORMALE,
+    texteDuBouton,
+    focus: cote === 'avant' ? 600 : inverse ? 950 : 900,
+    page,
+    courbe: D.courbes[inverse ? 'inversees' : 'actuelles'][theme],
+  };
+}
+const couleur = (m, cran) => m.rampe[rang(cran)];
+
+function nuancier(m) {
+  const ligne = (nom, crans, fond) => {
+    const cases = CRANS.map((cran) => {
+      const niveaux = crans.map((c, i) => (c === cran ? i + 1 : null)).filter(Boolean);
+      if (!niveaux.length) return '<span class="marque vide"></span>';
+      const c = fond ?? couleur(m, cran);
+      return `<span class="marque" style="background:${c};color:${lisibleSur(c)}">${niveaux.join(',')}</span>`;
+    }).join('');
+    return `<div class="rangee"><span class="nom">${nom}</span>${cases}</div>`;
+  };
+  const pastilles = CRANS.map((cran, i) => {
+    const c = m.rampe[i];
+    return `<span class="pastille" style="background:${c};color:${lisibleSur(c)}" title="${cran} · ${c}">${cran}${m.ancre === cran ? '<span class="ancre">◆</span>' : ''}</span>`;
+  }).join('');
+  const clartes = m.courbe.map((L) => `<span class="clarte">${virgule(L)}</span>`).join('');
+  return `<div class="nuancier" style="background:${m.page};color:${NEUTRE[etatTheme()].texte}">
+    <div class="rangee"><span class="nom">Nuances</span>${pastilles}</div>
+    <div class="rangee"><span class="nom">Clarté visée</span>${clartes}</div>
+    ${ligne('Bouton', m.table.solid)}
+    ${ligne('Texte coloré', m.table.text)}
+    ${ligne('Contour', m.table.border)}
+    ${ligne('Focus', [m.focus])}
+    ${ligne('Surfaces', m.table.surface)}
+  </div>`;
+}
+const etatTheme = () => etat.theme;
+
+function ecran(m, palette) {
+  const theme = etat.theme;
+  const n = NEUTRE[theme];
+  const carte = couleur(m, m.table.card);
+  const texte = couleur(m, m.table.text[0]);
+  const contour = couleur(m, m.table.border[0]);
+  const focus = couleur(m, m.focus);
+  const boutons = m.table.solid.map((cran, i) => {
+    const fond = couleur(m, cran);
+    const r = contraste(m.texteDuBouton, fond);
+    return `<div class="etat"><span class="nom" style="color:${n.second}">${NOM_DES_ETATS[i]} · ${cran}</span>
+      <span class="btn" style="background:${fond};color:${m.texteDuBouton}">Valider</span>${badge(r, SEUIL_TEXTE)}</div>`;
+  }).join('');
+  const surfaces = m.table.surface.map((cran, i) => {
+    const fond = couleur(m, cran);
+    const t = couleur(m, m.table.text[i]);
+    return `<span style="background:${fond};color:${t}" title="Texte ${m.table.text[i]} sur ${cran} : ${virgule(contraste(t, fond))}:1">Filtre ${i + 1}</span>`;
+  }).join('');
+  const repos = contraste(couleur(m, m.table.solid[0]), m.page);
+  const survol = contraste(couleur(m, m.table.solid[1]), m.page);
+  return `<div class="ecran" style="background:${m.page};color:${n.texte}">
+    <div class="ecran-titre">Mon compte</div>
+    <div class="ecran-carte" style="background:${carte};border:1px solid ${couleur(m, 300)}">
+      <div class="ecran-texte">Vos réglages sont enregistrés. <span class="ecran-lien" style="color:${texte}">Voir l'historique</span></div>
+      <div class="ligne">Texte coloré sur la page ${badge(contraste(texte, m.page), SEUIL_TEXTE)} sur la carte ${badge(contraste(texte, carte), SEUIL_TEXTE)}</div>
+      <label class="champ"><span style="color:${n.second}">Adresse</span><span class="boite" style="border-color:${contour}">nom@exemple.fr</span></label>
+      <div class="ligne">Contour (${m.table.border[0]}) ${badge(contraste(contour, carte), SEUIL_NON_TEXTE)}</div>
+      <div class="puces-surface">${surfaces}</div>
+    </div>
+    <div class="etats">${boutons}</div>
+    <div class="ligne">Bouton contre la page : repos ${badge(repos, SEUIL_NON_TEXTE)} survol ${m.inverse
+      ? `<span class="badge neutre">${virgule(survol)}:1, non jugé</span>`
+      : badge(survol, SEUIL_NON_TEXTE)}</div>
+    <div class="ligne"><span class="focus-demo" style="background:${couleur(m, m.table.solid[0])};color:${m.texteDuBouton};outline-color:${focus}">Bouton avec focus</span>
+      anneau ${m.focus} ${badge(contraste(focus, m.page), SEUIL_NON_TEXTE)}</div>
+  </div>`;
+}
+
+function rendreAvantApres() {
+  const palette = D.palettes[etat.palette];
+  const avant = modele(palette, etat.theme, 'avant');
+  const apres = modele(palette, etat.theme, 'apres');
+  const titreApres = apres.inverse ? 'Proposition, thème inversé' : 'Proposition, thème normal';
+  const noteApres = apres.inverse
+    ? `Courbe recalculée, table inversée, texte ${etat.textes[etat.theme]} pur, anneau 950.`
+    : `Courbe et table d'aujourd'hui ; seuls le texte ${etat.textes[etat.theme]} pur et l'anneau 900 changent.`;
+  document.getElementById('avant-apres-contenu').innerHTML = `
+    <div class="carte"><div class="colonne-tete"><h3>Aujourd'hui</h3><span class="note">texte des boutons = gris de la page, focus 600</span></div>${nuancier(avant)}<div style="height:12px"></div>${ecran(avant, palette)}</div>
+    <div class="carte"><div class="colonne-tete"><h3>${titreApres}</h3><span class="note">${noteApres}</span></div>${nuancier(apres)}<div style="height:12px"></div>${ecran(apres, palette)}</div>`;
+}
+
+function rendrePalettes() {
+  const lignes = D.palettes.map((palette, i) => {
+    const cellule = (m) => {
+      const fonds = m.table.solid.map((cran) => couleur(m, cran));
+      const min = Math.min(...fonds.map((f) => contraste(m.texteDuBouton, f)));
+      const mini = fonds.map((f) => `<span style="background:${f};color:${m.texteDuBouton}">Ok</span>`).join('');
+      return `<div class="mini" style="background:${m.page}">${mini}</div><div style="margin-top:4px">${badge(min, SEUIL_TEXTE)}</div>`;
+    };
+    const avant = modele(palette, etat.theme, 'avant');
+    const apres = modele(palette, etat.theme, 'apres');
+    const ancreSurLeBouton = apres.ancre === 700 && contraste(apres.texteDuBouton, couleur(apres, 700)) < SEUIL_TEXTE;
+    return `<tr${i === etat.palette ? ' style="background:var(--fond-accent)"' : ''}>
+      <td><span class="puce" style="background:${palette.reference}"></span> <b>${palette.nom}</b><br><code>${palette.reference}</code></td>
+      <td>${cellule(avant)}</td>
+      <td>${cellule(apres)}${ancreSurLeBouton ? '<div style="margin-top:4px"><span class="badge attention">référence posée sur la 700 ◆</span></div>' : ''}</td>
+      <td>${badge(contraste(couleur(apres, 700), apres.page), SEUIL_NON_TEXTE)}</td>
+    </tr>`;
+  }).join('');
+  const texte = etat.textes[etat.theme];
+  document.getElementById('palettes-contenu').innerHTML = `<table class="palettes">
+    <thead><tr><th>Palette</th><th>Aujourd'hui</th><th>Proposition, texte ${texte}</th><th>Repos contre la page, proposition</th></tr></thead>
+    <tbody>${lignes}</tbody></table>`;
+}
+
+function rendreCourbe() {
+  const theme = etat.theme;
+  const actuelle = D.courbes.actuelles[theme];
+  const inversee = D.courbes.inversees[theme];
+  const L = 560, H = 260, g = 40, d = 16, h = 16, b = 34;
+  const x = (i) => g + (i * (L - g - d)) / (CRANS.length - 1);
+  const y = (v) => h + (1 - v) * (H - h - b);
+  // Les bandes pour un gris : bouton sous le texte inversé, texte coloré sur la page.
+  const yP = luminance(D.fonds[theme]);
+  const inverseBlanc = theme === 'dark';
+  const bouton = inverseBlanc ? [0, Math.cbrt(1.05 / SEUIL_TEXTE - 0.05)] : [Math.cbrt(SEUIL_TEXTE * 0.05 - 0.05), 1];
+  const texte = inverseBlanc ? [Math.cbrt(SEUIL_TEXTE * (yP + 0.05) - 0.05), 1] : [0, Math.cbrt((yP + 0.05) / SEUIL_TEXTE - 0.05)];
+  const bande = (classe, [bas, haut]) => `<rect class="${classe}" x="${g}" width="${L - g - d}" y="${y(haut)}" height="${y(bas) - y(haut)}"/>`;
+  const trace = (courbe, classe) => `<polyline class="${classe}" points="${courbe.map((v, i) => `${x(i)},${y(v)}`).join(' ')}"/>`;
+  const axes = [0, 0.25, 0.5, 0.75, 1].map((v) => `<line class="axe" x1="${g}" x2="${L - d}" y1="${y(v)}" y2="${y(v)}"/><text x="${g - 6}" y="${y(v) + 4}" text-anchor="end">${virgule(v).replace(/,00$/, '').replace(/0$/, '')}</text>`).join('');
+  const etiquettes = CRANS.map((c, i) => `<text x="${x(i)}" y="${H - 12}" text-anchor="middle">${c}</text>`).join('');
+  const points = inversee.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="var(--accent)"/>`).join('');
+  document.getElementById('courbe-contenu').innerHTML = `<svg class="courbe" viewBox="0 0 ${L} ${H}" role="img" aria-label="Courbe ${theme === 'dark' ? 'Dark' : 'Light'} d'aujourd'hui et courbe du thème inversé">
+    ${bande('zone-bouton', bouton)}${bande('zone-texte', texte)}${axes}${trace(actuelle, 'actuelle')}${trace(inversee, 'inversee')}${points}${etiquettes}</svg>
+    <p class="note" style="margin:8px 0 0">Orange : un bouton gris porte le ${inverseBlanc ? 'blanc' : 'noir'} à 4,5:1. Vert : un texte gris se lit sur la page à 4,5:1.</p>`;
+  const lignes = CRANS.map((c, i) => {
+    const change = Math.abs(actuelle[i] - inversee[i]) > 1e-9;
+    return `<tr><td>${c}</td><td>${virgule(actuelle[i])}</td><td>${change ? `<b>${virgule(inversee[i])}</b>` : virgule(inversee[i])}</td></tr>`;
+  }).join('');
+  document.getElementById('courbe-table').innerHTML = `<table class="palettes"><thead><tr><th>Nuance</th><th>Aujourd'hui</th><th>Thème inversé</th></tr></thead><tbody>${lignes}</tbody></table>
+    <p class="note" style="margin:8px 0 0">Seules les nuances en gras changent. Les fonds (50 à 400) et les nuances 900 et 950 gardent leur clarté.</p>`;
+}
+
+function choix(id, options, actif, rappel) {
+  const racine = document.getElementById(id);
+  racine.innerHTML = options.map(([valeur, libelle, puce]) => `<button type="button" aria-pressed="${valeur === actif}" data-valeur="${valeur}">${puce ? `<span class="puce" style="background:${puce}"></span>` : ''}${libelle}</button>`).join('');
+  racine.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => rappel(b.dataset.valeur)));
+}
+
+function rendre() {
+  choix('choix-palette', D.palettes.map((p, i) => [String(i), p.nom, p.reference]), String(etat.palette), (v) => { etat.palette = Number(v); rendre(); });
+  choix('choix-theme', [['light', 'Light'], ['dark', 'Dark']], etat.theme, (v) => { etat.theme = v; rendre(); });
+  choix('choix-texte', [['blanc', 'Blanc'], ['noir', 'Noir']], etat.textes[etat.theme], (v) => { etat.textes[etat.theme] = v; rendre(); });
+  choix('choix-profil', [['soft', 'Soft'], ['vivid', 'Vivid']], etat.profil, (v) => { etat.profil = v; rendre(); });
+  const inverse = etat.textes[etat.theme] !== TEXTE_NORMAL[etat.theme];
+  document.getElementById('etat-reglage').textContent = `Thème ${etat.theme === 'dark' ? 'Dark' : 'Light'} ${inverse ? 'inversé' : 'normal'}`;
+  rendreAvantApres();
+  rendrePalettes();
+  rendreCourbe();
+}
+
+if (!D.palettes) {
+  document.getElementById('avant-apres-contenu').innerHTML = '<p class="note">Données absentes : lancer generer-maquette-theme-inverse.ts.</p>';
+} else {
+  rendre();
+}
+</script>
+</body>
+</html>
