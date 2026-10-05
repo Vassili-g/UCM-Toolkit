@@ -110,6 +110,7 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
       manque: `le ${libelle} de ce calque : le contrat ne cite qu’une couleur unie reliée à une variable, jamais un dégradé ni une image`,
       geste: `Remplacez ce ${libelle} par une couleur unie reliée à une variable si sa couleur doit être transmise au développeur, ou signalez cette limite au mainteneur du plugin`,
       pourLesVariants: {
+        famille: 'non-exportes',
         titre: `${libelle} : dégradé ou image non pris en charge.`,
         impact: `Le contrat ne transmettra pas les ${libelle}s en dégradé ou en image.`,
         action: 'Si ce rendu est nécessaire, signalez cette limite au mainteneur du plugin. '
@@ -125,6 +126,7 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
       manque: 'le mode de fusion de ce calque, qui sera rendu en normal',
       geste: 'Repassez ce calque en blend mode « Normal » si sa fusion n’est pas nécessaire, ou signalez cette limite au mainteneur du plugin',
       pourLesVariants: {
+        famille: 'non-exportes',
         titre: 'blend mode : ce mode de fusion n’est pas pris en charge.',
         impact: 'Le contrat ne transmettra pas le mode de fusion des variants concernés.',
         action: 'Si ce mode de fusion est nécessaire, signalez cette limite au mainteneur du '
@@ -144,6 +146,7 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
       manque: 'le découpage que ce calque applique : sa surface sera rendue par-dessus les calques qu’il masque',
       geste: 'Aplatissez ce mask dans le dessin qu’il découpe si le rendu peut s’en passer, ou signalez cette limite au mainteneur du plugin',
       pourLesVariants: {
+        famille: 'non-exportes',
         titre: 'mask : le masquage n’est pas pris en charge.',
         impact: 'Le contrat ne transmettra pas le découpage produit par ces masks.',
         action: 'Si ce découpage est nécessaire, signalez cette limite au mainteneur du plugin. '
@@ -158,6 +161,7 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
       manque: 'le pointillé de son stroke, qui sera rendu en trait plein',
       geste: 'Repassez ce stroke en trait plein si le pointillé n’est pas nécessaire, ou signalez cette limite au mainteneur du plugin',
       pourLesVariants: {
+        famille: 'non-exportes',
         titre: 'stroke : le pointillé n’est pas pris en charge.',
         impact: 'Le contrat ne transmettra pas le motif de pointillé de ces strokes.',
         action: 'Si le pointillé est nécessaire, signalez cette limite au mainteneur du plugin. '
@@ -325,6 +329,7 @@ export function unsupportedPropertyWarnings(
   return proprietesNonPortees(node).map(({ champ, manque, geste, pourLesVariants }) => {
     if (racineDeVariant && pourLesVariants) return pourLesVariants;
     return pointDe(sujet('Layer', node).texte, {
+      famille: 'non-exportes',
       champ,
       manque: 'ce réglage n’est pas pris en charge par l’export.',
       impact: `Le développeur n’aura pas ${manque}.`,

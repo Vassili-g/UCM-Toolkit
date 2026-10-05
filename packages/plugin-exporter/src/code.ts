@@ -788,6 +788,8 @@ async function analyser(
       versUi({
         type: 'diagnostic',
         ...(point?.severite ? { severite: point.severite } : {}),
+        famille: point?.famille ?? 'fichier',
+        ...(point?.calque ? { calque: point.calque } : {}),
         titre: point?.titre ?? warning,
         ...(point?.elements ? { elements: [...point.elements] } : {}),
         impact: point?.impact ?? '',

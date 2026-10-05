@@ -281,6 +281,7 @@ export function buildLeaf(
     if (raw === undefined) {
       const mode = collection.modes.find((candidate) => candidate.modeId === modeId);
       pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+        famille: 'fichier',
         manque: mode
           ? `le mode « ${mode.name} » n’a pas de valeur.`
           : 'un de ses modes n’a pas de valeur.',
@@ -303,12 +304,14 @@ export function buildLeaf(
       const ecartee = ctx.easingsEcartees.get(alias.id);
       if (!target && ecartee !== undefined) {
         pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+          famille: 'fichier',
           manque: `elle cite la variable « ${ecartee} », que le fichier de tokens ne publie pas.`,
           impact: 'Le développeur n’aura pas sa valeur.',
           action: `Choisissez Linear ou Custom bezier pour « ${ecartee} », puis réexportez.`,
         });
       } else if (!target) {
         pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+          famille: 'fichier',
           manque: 'elle cite une variable introuvable.',
           impact: 'Le développeur n’aura pas sa valeur.',
           action: 'Remplacez sa référence par une variable accessible dans Figma, puis réexportez.',
@@ -331,6 +334,7 @@ export function buildLeaf(
   const formaterSurcharge = (raw: VariableValue, extension: ExtensionDeCollection, mode: string): unknown => {
     if (graisse && typeof raw === 'string' && poidsDeGraisse(raw) === null) {
       pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+        famille: 'fichier',
         manque: `dans le mode « ${mode} » de la collection « ${extension.collection.name} », sa graisse « ${raw} » n’est pas un nom de graisse connu.`,
         impact: 'Le développeur ne pourra pas générer la feuille CSS des tokens.',
         action: 'Choisissez un nom de graisse standard, comme Regular ou Bold, puis réexportez.',
@@ -429,6 +433,7 @@ export function insert(tree: DtcgTree, path: string, leaf: DtcgLeaf, warnings: s
     // Un groupe ne peut pas traverser une feuille existante.
     if (existing && '$value' in existing) {
       pousserSansNode(warnings, `Token « ${path} »`, {
+        famille: 'fichier',
         manque: 'un autre token porte déjà le nom d’un de ses groupes.',
         impact: 'Le développeur n’aura pas ce token.',
         action: 'Renommez ou déplacez l’un des deux, puis réexportez.',
@@ -444,11 +449,13 @@ export function insert(tree: DtcgTree, path: string, leaf: DtcgLeaf, warnings: s
   if (existing) {
     pousserSansNode(warnings, `Token « ${path} »`, '$value' in existing
       ? {
+        famille: 'fichier',
         manque: 'un autre token porte déjà ce nom.',
         impact: 'Seul le premier est exporté.',
         action: 'Renommez l’un des deux, puis réexportez.',
       }
       : {
+        famille: 'fichier',
         manque: 'un groupe de tokens porte déjà ce nom.',
         impact: 'Le développeur n’aura pas ce token.',
         action: 'Renommez ou déplacez l’un des deux, puis réexportez.',
@@ -483,6 +490,7 @@ export function modeCollisionWarnings(collections: VariableCollection[]): PointA
     for (const [name, nombre] of parNom) {
       if (nombre < 2) continue;
       points.push(pointDe(`Collection « ${collection.name} »`, {
+        famille: 'fichier',
         manque: `${nombre === 2 ? 'deux' : nombre} de ses modes donnent le même nom « ${name} » dans le fichier de tokens.`,
         impact: 'Le développeur n’aura que les valeurs du premier, et ne pourra pas générer les modes de cette collection.',
         action: nombre === 2
@@ -555,6 +563,7 @@ function extensionsDeLaCollection(
   for (const collection of etendues.filter((candidate) => nomCssDExtension(candidate) === '')) {
     ecartees = true;
     points.push(pointDe(`Collection « ${collection.name} »`, {
+      famille: 'fichier',
       manque: 'son nom ne donne aucun nom d’extension.',
       impact,
       action: 'Donnez à la collection étendue un nom qui contient une lettre ou un chiffre, puis réexportez.',
@@ -563,6 +572,7 @@ function extensionsDeLaCollection(
   for (const collection of etendues.filter((candidate) => nomCssDExtension(candidate) === 'base')) {
     ecartees = true;
     points.push(pointDe(`Collection « ${collection.name} »`, {
+      famille: 'fichier',
       manque: `son nom donne l’extension « base », qui désigne la collection « ${racine.name} » elle-même.`,
       impact,
       action: 'Renommez la collection étendue, puis réexportez.',
@@ -578,6 +588,7 @@ function extensionsDeLaCollection(
     if (porteurs.length < 2) continue;
     ecartees = true;
     points.push(pointDe(`Collections ${porteurs.map(({ name }) => `« ${name} »`).join(' et ')}`, {
+      famille: 'fichier',
       manque: `leurs noms donnent la même extension « ${nom} » de la collection « ${racine.name} ».`,
       impact,
       action: 'Renommez les collections étendues pour que leurs noms diffèrent, puis réexportez.',
@@ -587,6 +598,7 @@ function extensionsDeLaCollection(
     if (collection.parentVariableCollectionId === racine.id || parId.has(collection.parentVariableCollectionId)) continue;
     ecartees = true;
     points.push(pointDe(`Collection « ${collection.name} »`, {
+      famille: 'fichier',
       manque: 'elle étend une collection qui n’est pas dans ce fichier.',
       impact,
       action: 'Exportez les tokens depuis le fichier qui contient cette collection et sa parente.',
@@ -641,6 +653,7 @@ function ecarterLesExtensionsHomonymesDUnAxe(
     const rivale = parPropriete.get(tokenCssVariable(axeDesExtensions(axe.cle)));
     if (rivale === undefined) continue;
     points.push(pointDe(`Collection « ${nomDe(rivale)} »`, {
+      famille: 'fichier',
       manque: `son nom donne le préfixe « ${axes.get(rivale)?.cle} », que le fichier de tokens réserve aux `
         + `collections étendues de « ${nomDe(id)} ».`,
       impact: `Le développeur ne pourra pas générer les extensions de la collection « ${nomDe(id)} ».`,
@@ -681,6 +694,7 @@ export function axesDesCollections(
     if (cle === '') {
       for (const collection of porteurs) {
         points.push(pointDe(`Collection « ${collection.name} »`, {
+          famille: 'fichier',
           manque: 'son nom ne donne aucun préfixe de token.',
           impact: IMPACT_SANS_AXE,
           action: 'Donnez à la collection un nom qui contient une lettre ou un chiffre, puis réexportez.',
@@ -690,6 +704,7 @@ export function axesDesCollections(
     }
     if (porteurs.length > 1) {
       points.push(pointDe(`Collections ${porteurs.map(({ name }) => `« ${name} »`).join(' et ')}`, {
+        famille: 'fichier',
         manque: `leurs noms donnent le même préfixe « ${cle} » dans le fichier de tokens.`,
         impact: 'Le développeur ne pourra pas générer les modes de ces collections.',
         action: 'Renommez les collections pour que leurs noms diffèrent, puis réexportez.',
@@ -701,6 +716,7 @@ export function axesDesCollections(
     const modes = collection.modes.map((mode) => normalizeName(mode.name));
     if (modes.includes('')) {
       points.push(pointDe(`Collection « ${collection.name} »`, {
+        famille: 'fichier',
         manque: 'un de ses modes n’a pas de nom.',
         impact: IMPACT_SANS_AXE,
         action: 'Nommez chaque mode de la collection, puis réexportez.',
@@ -711,6 +727,7 @@ export function axesDesCollections(
     const defaut = collection.modes.find((mode) => mode.modeId === collection.defaultModeId);
     if (!defaut) {
       points.push(pointDe(`Collection « ${collection.name} »`, {
+        famille: 'fichier',
         manque: 'son mode par défaut est introuvable.',
         impact: IMPACT_SANS_AXE,
         action: 'Choisissez de nouveau le mode par défaut de la collection, puis réexportez.',
@@ -741,6 +758,7 @@ export function axesDesCollections(
         ? `Collection « ${porteurs[0].name} »`
         : `Collections ${porteurs.map(({ name }) => `« ${name} »`).join(' et ')}`,
       {
+        famille: 'fichier',
         manque: seule
           ? 'elle étend une collection d’une bibliothèque.'
           : 'elles étendent une collection d’une bibliothèque.',
@@ -790,6 +808,7 @@ function constatsDeTypesParMode(
       const typeCible = cible === undefined ? undefined : typeParChemin.get(cible);
       if (cible === undefined || typeCible === undefined || typeCible === leaf.$type) return;
       pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+        famille: 'fichier',
         manque: `dans ${ou}, elle cite « ${variableByPath.get(cible)?.name ?? cible} », `
           + `qui est ${LIBELLES_DE_TYPE[typeCible] ?? typeCible}, alors qu’elle est `
           + `${LIBELLES_DE_TYPE[leaf.$type] ?? leaf.$type}.`,
@@ -835,6 +854,7 @@ function constatsDeNomsCss(
     if (propriete.startsWith(PREFIXE_DES_INTERMEDIAIRES)) {
       for (const chemin of porteurs) {
         pousserSansNode(warnings, `Variable « ${nomDe(chemin)} »`, {
+          famille: 'fichier',
           manque: `son token « ${chemin} » commence par un nom que la feuille CSS réserve aux collections étendues.`,
           impact,
           action: 'Renommez la variable ou sa collection, puis réexportez.',
@@ -843,6 +863,7 @@ function constatsDeNomsCss(
     }
     if (porteurs.length < 2) continue;
     pousserSansNode(warnings, `Variables ${porteurs.map((chemin) => `« ${nomDe(chemin)} »`).join(' et ')}`, {
+      famille: 'fichier',
       manque: `leurs tokens ${porteurs.map((chemin) => `« ${chemin} »`).join(' et ')} portent le même nom dans la feuille CSS.`,
       impact,
       action: porteurs.length === 2
@@ -885,6 +906,7 @@ export function avertissementDeProfil(
 ): void {
   if (document.documentColorProfile !== 'LEGACY') return;
   pousserSansNode(warnings, `Fichier « ${document.name} »`, {
+    famille: 'fichier',
     manque: 'aucun profil de couleur n’est choisi.',
     impact: 'Le développeur recevra ces couleurs en sRGB, que Figma les affiche en sRGB ou en '
       + 'Display P3.',
@@ -975,6 +997,7 @@ async function liaisonsDesTextStyles(warnings: string[]): Promise<LiaisonsDeText
     styles = await figma.getLocalTextStylesAsync();
   } catch {
     pousserSansNode(warnings, `Fichier « ${figma.root.name} »`, {
+      famille: 'fichier',
       manque: 'ses styles de texte n’ont pas pu être lus.',
       impact: 'Les variables de police risquent de ne pas être reconnues comme des familles typographiques.',
       action: 'Relancez l’analyse ; si l’erreur persiste, signalez-la au mainteneur du '
@@ -1043,6 +1066,7 @@ function ecarterLesEasingsSansCourbe(
     for (const { modeId, cause } of modes) {
       const mode = collection?.modes.find((candidat) => candidat.modeId === modeId)?.name ?? '';
       pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+        famille: 'fichier',
         manque: manqueDeCourbe(cause, mode),
         impact: 'Le développeur n’aura pas ce token.',
         action: cause === 'abscisse'
@@ -1070,6 +1094,7 @@ function constatsDesFamilles(
     const nom = variableById.get(id)?.name;
     if (!nom) continue;
     pousserSansNode(warnings, `Variable « ${nom} »`, {
+      famille: 'fichier',
       manque: 'elle sert à définir une famille typographique et un autre réglage de texte.',
       impact: 'Cette variable sera exportée comme du texte, sans être identifiée comme une famille typographique.',
       action: 'Séparez les deux usages en deux variables dans Figma, puis réexportez.',
@@ -1079,6 +1104,7 @@ function constatsDesFamilles(
     const nom = variableById.get(id)?.name;
     if (!nom) continue;
     pousserSansNode(warnings, `Variable « ${nom} »`, {
+      famille: 'fichier',
       manque: 'son nom évoque une famille typographique, mais aucun style de texte ni périmètre d’utilisation ne '
         + 'le confirme.',
       impact: 'Cette variable sera exportée comme du texte, sans être identifiée comme une famille typographique.',
@@ -1155,6 +1181,7 @@ export async function handleExportTokens(annoncer: Annonce = () => {}): Promise<
     const collection = collectionById.get(variable.variableCollectionId);
     if (!collection) {
       pousserSansNode(warnings, `Variable « ${variable.name} »`, {
+        famille: 'fichier',
         manque: 'sa collection est introuvable.',
         impact: 'Elle n’est pas exportée.',
         action: 'Vérifiez que cette variable appartient à une collection du fichier, puis '

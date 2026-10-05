@@ -149,7 +149,7 @@ export function createCarteComposant({
 
       if (change) analysee = false;
       rafraichirGeste();
-      if (change) carte.reinitialiser();
+      if (change) carte.changerDeSujet();
     },
 
     marquerAnalysee() {
@@ -162,6 +162,13 @@ export function createCarteComposant({
       analysee = false;
       rafraichirGeste();
       carte.reinitialiser();
+    },
+
+    /** Un autre sujet : le résultat s'efface, et les choix d'ouverture avec lui. */
+    changerDeSujet() {
+      analysee = false;
+      rafraichirGeste();
+      carte.changerDeSujet();
     },
   };
 }

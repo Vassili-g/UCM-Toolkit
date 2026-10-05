@@ -62,6 +62,7 @@ export function insertVariantLeaf<T>(
           warnings,
           `Variants « ${axes.map((a) => values[a] || 'default').join(' / ')} »`,
           {
+            famille: 'proprietes',
             manque: `deux variants portent les mêmes valeurs une fois normalisées `
               + `(majuscules et espaces ignorés).`,
             impact: `Les deux variants sont exportés, mais une partie du contrat ne permet `
@@ -200,6 +201,7 @@ export async function extractVariantTokens(
     reporterLocalisations(variantWarnings, warnings);
     if (leaf.paints.length === 0 && leaf.strokes.length === 0) {
       pousserLocalise(notices, 'Variant', entry.component, {
+        famille: 'variables',
         manque: 'aucun fill ni stroke n’est relié à une variable.',
         impact: 'Aucune couleur n’est exportée pour lui.',
         action: 'Reliez ses fills et ses strokes à des variables Figma, puis réexportez.',
@@ -261,6 +263,7 @@ export async function extractVariantTokens(
         if (known === color.role || reportedRoleConflicts.has(conflit)) continue;
         reportedRoleConflicts.add(conflit);
         pousserSansNode(warnings, `Token ${toRef(color.token)}`, {
+          famille: 'variables',
           manque: `il peint un « ${known} » dans un variant et un « ${color.role} » dans `
             + `un autre.`,
           impact: `Le développeur l'utilisera partout comme un « ${known} ».`,

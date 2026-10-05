@@ -171,6 +171,7 @@ async function traduire(
     const lue = valeur(effet);
     if (cle !== 'color' && (lue === undefined || lue === 0)) continue;
     pousserSansNode(warnings, `Style d’effets « ${style.name} »`, {
+      famille: 'variables',
       champ: libelle,
       manque: 'aucune variable associée.',
       impact: `Le contrat ne transmettra pas ${decrit}.`,
@@ -195,6 +196,7 @@ async function chargerLeStyle(
     const nom = effetNonPris(effet);
     if (nom) {
       pousserSansNode(warnings, `Style d’effets « ${style.name} »`, {
+        famille: 'non-exportes',
         manque: `l’effet ${nom} n’est pas pris en charge.`,
         impact: `Le contrat transmettra ce style sans l’effet ${nom}.`,
         action: 'Si cet effet est nécessaire, signalez cette limite au mainteneur du plugin. '
@@ -220,6 +222,7 @@ function signature(valeur: unknown): string {
 function signalerSansStyle(node: SceneNode, warnings: string[]): void {
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, {
+      famille: 'styles',
       titre: 'effect : aucun style d’effets appliqué.',
       impact: 'Le contrat ne transmettra pas les ombres ou les flous des variants concernés.',
       action: 'Appliquez un style d’effets à chaque variant concerné, puis réexportez.',
@@ -227,6 +230,7 @@ function signalerSansStyle(node: SceneNode, warnings: string[]): void {
     return;
   }
   pousserLocalise(warnings, 'Layer', node, {
+    famille: 'styles',
     champ: 'effect',
     manque: 'aucun style d’effets appliqué.',
     impact: 'Le contrat ne transmettra pas l’ombre ou le flou de ce calque.',
@@ -292,6 +296,7 @@ export async function extractEffectStyles(
       const charge = await charger(id);
       if (!charge) {
         pousserLocalise(warnings, 'Layer', node, {
+          famille: 'styles',
           manque: 'le style d’effets appliqué est introuvable.',
           impact: 'Le contrat ne transmettra pas l’ombre ou le flou de ce calque.',
           action: 'Appliquez de nouveau un style d’effets accessible dans Figma, puis réexportez.',
@@ -301,6 +306,7 @@ export async function extractEffectStyles(
       const effetsDuCalque = (node as unknown as { effects?: unknown }).effects;
       if (signature(effetsDuCalque) !== signature(charge.style.effects)) {
         pousserLocalise(warnings, 'Layer', node, {
+          famille: 'styles',
           manque: `ses effets diffèrent du style « ${charge.style.name} ».`,
           impact: 'Le contrat transmettra les réglages du style, sans les modifications propres '
             + 'à ce calque.',

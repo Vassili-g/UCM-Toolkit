@@ -192,8 +192,8 @@ onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
     const { destination } = message.settings;
     // Un résultat décrit sa destination : il ne survit qu'à des réglages qui la gardent.
     if (destinationCourante !== null && destination !== destinationCourante) {
-      composant.reinitialiser();
-      tokens.reinitialiser();
+      composant.changerDeSujet();
+      tokens.changerDeSujet();
     }
     destinationCourante = destination;
     // Réactivée, la carte revient vide : le sandbox relit les collections. Au

@@ -186,6 +186,7 @@ export function extractContractPropertyModel(
     const owner = owners.get(key);
     if (owner !== undefined) {
       pousserSansNode(warnings, `Propriétés de composant « ${owner} » et « ${figmaName} »`, {
+        famille: 'proprietes',
         manque: `leurs noms donnent le même nom « ${key} » dans le contrat.`,
         impact: `Le contrat ne publie que la première : la seconde manquera au développeur.`,
         action: `Renommez l’une des deux, puis réexportez.`,
@@ -227,6 +228,7 @@ export function extractContractPropertyModel(
       const taken = Boolean(semantic) && semantic !== key && rawKeys.has(semantic as string);
       if (taken) {
         pousserSansNode(warnings, `Propriété de variante « ${rawFigmaName} »`, {
+          famille: 'proprietes',
           manque: `ses valeurs sont des tailles, mais une autre propriété de composant porte `
             + `déjà le nom « ${semantic} ».`,
           impact: `Elle reste exportée sous « ${key} ».`,
@@ -260,6 +262,7 @@ export function extractContractPropertyModel(
           ? (stateDefinition.variantOptions ?? []).find(isDisabledStateValue) ?? 'Disable'
           : 'Disable';
         pousserSansNode(warnings, `Propriété de composant « ${rawFigmaName} »`, {
+          famille: 'proprietes',
           manque: `la propriété de variante « ${stateFigmaName} » a déjà la valeur `
             + `« ${disabledStateName} », que le contrat publie sous le nom « disabled ».`,
           impact: `Le contrat ne publie pas cette propriété booléenne : sa valeur par défaut `

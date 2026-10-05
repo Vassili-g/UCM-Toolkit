@@ -57,47 +57,64 @@ const VERSION_CONTRAT = /CONTRACT_VERSION = '([^']+)'/.exec(
  * paragraphe recoupé pour la capture.
  */
 const AVERTISSEMENT_STROKE = { // extractSlotTokens.ts, strokeAlignment
+  famille: 'non-exportes',
+  calque: 'Border',
   titre: "Layer « Border » : l’alignement du stroke est illisible.",
   impact: "Le contrat ne dira pas s’il est inside, center ou outside.",
   action: "Vérifiez ce réglage dans Figma, puis réexportez.",
 };
 const AVERTISSEMENT_AUTO_LAYOUT = { // extractLayout.ts, warnMissingDirection
+  famille: 'disposition',
+  calque: 'Button / Primary',
   titre: "Layer « Button / Primary » : il n'utilise pas d'auto layout.",
   impact: "Le contrat annonce par défaut une disposition horizontale : le développeur placera ses calques autrement que dans Figma.",
   action: "Appliquez un auto layout à ce calque, puis réexportez.",
 };
 const AVERTISSEMENT_TEXT_STYLE = { // extractVariantTypography.ts — nomme un style, pas un node
+  famille: 'variables',
   titre: "Style de texte « Body / Regular », line height : aucune variable Figma n'est reliée.",
   impact: "Cette propriété typographique manquera au développeur.",
   action: "Reliez-la à une variable dans le style de texte, puis réexportez.",
 };
 const AVERTISSEMENT_SANS_TEXT_STYLE = { // extractVariantTypography.ts, loadTextStyle
+  famille: 'styles',
+  calque: 'text',
   titre: "Layer « text » : aucun style de texte unique n'est appliqué.",
   impact: "Sa typographie manquera au développeur.",
   action: "Appliquez un style de texte au calque entier, puis réexportez.",
 };
 // Les trois messages qui visent la racine de chaque variant du set exporté.
 const AVERTISSEMENT_BORNE_DES_VARIANTS = { // nodeBindings.ts, resolveSizeBounds
+  famille: 'variables',
+  calque: 'Variants',
   titre: "Dimensions minimales ou maximales sans variable associée.",
   impact: "Ces variants définissent un **min width** sans variable. Ces valeurs ne seront pas exportées.",
   action: "Reliez ces paramètres à une variable dans chaque variant concerné, puis réexportez.",
 };
 const AVERTISSEMENT_OMBRE_DES_VARIANTS = { // effectStyles.ts, effet sans effect style
+  famille: 'styles',
+  calque: 'Variants',
   titre: "effect : aucun style d’effets appliqué.",
   impact: "Le contrat ne transmettra pas les ombres ou les flous des variants concernés.",
   action: "Appliquez un style d’effets à chaque variant concerné, puis réexportez.",
 };
 const AVERTISSEMENT_FILL_DES_VARIANTS = { // extractSlotTokens.ts, warnPeinturesLibres
+  famille: 'variables',
+  calque: 'Variants',
   titre: "fill : couleur sans variable associée.",
   impact: "Le contrat ne transmettra pas les couleurs sans variable associée.",
   action: "Reliez chaque couleur concernée à une variable dans les variants sélectionnés, puis réexportez.",
 };
 const AVERTISSEMENT_GAP_DES_VARIANTS = { // nodeBindings.ts, resolveGroup
+  famille: 'variables',
+  calque: 'Variants',
   titre: "gap : aucune variable Figma n’est reliée à cette propriété.",
   impact: "Le contrat n'exportera pas cette propriété.",
   action: "Reliez cette propriété à une variable Figma, puis réexportez.",
 };
 const AVERTISSEMENT_COMPOSE = { // exportComponent.ts, dépendance non placée
+  famille: 'imbriques',
+  calque: 'Icon slot',
   titre: "Layer « Icon slot » : il contient le composant « Icon », mais le contrat ne décrit ce calque nulle part.",
   impact: "Le développeur ne rendra pas « Icon » dans ce composant.",
   action: "Placez ce calque dans le cadre en auto layout qui porte le gap et le padding, puis réexportez.",
@@ -107,6 +124,7 @@ const AVERTISSEMENT_COMPOSE = { // exportComponent.ts, dépendance non placée
 // passer l'énumération en liste, et l'état doit le montrer.
 const IMBRIQUE_SANS_REGLES_BOUTON = {
   severite: 'danger',
+  famille: 'imbriques',
   titre: 'Le composant « Alert » intègre « Button », dont 7 propriétés ne sont pas documentées :',
   elements: ['color', 'variant', 'state', 'size', 'label', 'iconLeft', 'iconRight'],
   impact: 'Le contrat de « Alert » décrit les calques de « Button » sans indiquer qu’il faut réutiliser ce composant.',
@@ -114,6 +132,7 @@ const IMBRIQUE_SANS_REGLES_BOUTON = {
 };
 const IMBRIQUE_SANS_REGLES_ICONE = {
   severite: 'danger',
+  famille: 'imbriques',
   titre: 'Le composant « Alert » intègre « Icon », dont une propriété n’est pas documentée :',
   elements: ['iconName'],
   impact: 'Le contrat de « Alert » décrit les calques de « Icon » sans indiquer qu’il faut réutiliser ce composant.',
@@ -122,6 +141,7 @@ const IMBRIQUE_SANS_REGLES_ICONE = {
 /** Un imbriqué qui ne déclare rien : le point n'a aucune liste à poser. */
 const IMBRIQUE_SANS_REGLES_NU = {
   severite: 'danger',
+  famille: 'imbriques',
   titre: 'Le composant « Alert » intègre « Divider », qui n’a pas ses règles d’usage.',
   impact: 'Sans les règles de « Divider », le contrat de « Alert » décrit les internes de « Divider » au lieu de le réutiliser.',
   action: 'Créez et complétez les règles de « Divider », puis relancez l’analyse de « Alert » avant de l’exporter.',
@@ -129,6 +149,7 @@ const IMBRIQUE_SANS_REGLES_NU = {
 /** Un imbriqué venu d'une bibliothèque : le geste se fait dans un autre fichier. */
 const IMBRIQUE_SANS_REGLES_DISTANT = {
   severite: 'danger',
+  famille: 'imbriques',
   titre: 'Le composant « Alert » intègre « Chip », dont 2 propriétés ne sont pas documentées :',
   elements: ['tone', 'removable'],
   impact: 'Sans les règles de « Chip », le contrat de « Alert » décrit les internes de « Chip » au lieu de le réutiliser.',
@@ -140,6 +161,7 @@ function sixImbriques() {
   const noms = ['Button', 'TileLink', 'Divider', 'Chip', 'Avatar', 'Badge'];
   return noms.map((nom, rang) => diagnostic({
     severite: 'danger',
+    famille: 'imbriques',
     titre: `Le composant « Écran » intègre « ${nom} », dont ${rang + 1} propriétés ne sont pas documentées :`,
     elements: Array.from({ length: rang + 1 }, (_, index) => `prop${index + 1}`),
     impact: `Sans les règles de « ${nom} », le contrat de « Écran » décrit les internes de « ${nom} » au lieu de le réutiliser.`,
@@ -148,6 +170,7 @@ function sixImbriques() {
 }
 
 const AVERTISSEMENT_PROFIL = { // exportTokens.ts, avertissementDeProfil
+  famille: 'fichier',
   titre: 'Fichier « Design System » : aucun profil de couleur n’est choisi.',
   impact: 'Le développeur recevra ces couleurs en sRGB, que Figma les affiche en sRGB ou en Display P3.',
   action: 'Choisissez sRGB ou Display P3 dans le menu File color profile, puis réexportez.',
@@ -398,13 +421,18 @@ const diagnostic = (point, nodeIds) => ({
 
 /** Vingt avertissements réels : le volume que le protocole de relecture exige. */
 function vingtAvertissements() {
-  const modeles = [AVERTISSEMENT_STROKE, AVERTISSEMENT_AUTO_LAYOUT, AVERTISSEMENT_COMPOSE];
+  const modeles = [
+    AVERTISSEMENT_STROKE, AVERTISSEMENT_AUTO_LAYOUT, AVERTISSEMENT_COMPOSE,
+    AVERTISSEMENT_SANS_TEXT_STYLE, AVERTISSEMENT_TEXT_STYLE,
+  ];
   const lignes = [];
   for (let rang = 0; rang < 20; rang += 1) {
     const modele = modeles[rang % modeles.length];
     lignes.push(diagnostic({
       ...modele,
       titre: modele.titre.replace('« Border »', `« Border ${rang + 1} »`),
+      ...(modele.calque === 'Border' ? { calque: `Border ${rang + 1}` } : {}),
+      ...(modele.calque === 'Button / Primary' ? { calque: `Button / Primary ${rang + 1}` } : {}),
     }));
   }
   return lignes;
@@ -558,7 +586,7 @@ const ETATS = [
     quand:
       'Un écran composé de six composants dont aucun n’a ses règles. C’est le pire cas qu’un fichier réel produise, une fois les icônes écartées du relevé.',
     regarder:
-      'Le compteur du titre dit six, et la pile se parcourt au défilement sans repli. Aucun plafond ne les agrège : un point agrégé perdrait le bouton « Sélectionner les calques », seul moyen d’aller voir le composant en cause. C’est l’écran à regarder si un fichier passe la dizaine, pour décider si la forme tient encore.',
+      'Les six bloquants se lisent en tête, sans section ni ligne du total, et la pile se parcourt au défilement. Aucun plafond ne les agrège : un point agrégé perdrait le bouton « Sélectionner les calques », seul moyen d’aller voir le composant en cause. C’est l’écran à regarder si un fichier passe la dizaine, pour décider si la forme tient encore.',
     existe: true,
     atteinte: [
       ...lancerLaCreation(),
@@ -750,7 +778,7 @@ const ETATS = [
     quand:
       'Une analyse qui relève trois strokes illisibles et un composant imbriqué sans règles. Le point bloquant arrive ici après les trois autres : l’interface le place en tête quel que soit son rang d’arrivée.',
     regarder:
-      'Le point bloquant EN PREMIER, alors qu’il est arrivé après les trois autres. C’est l’écran qui dit si la pastille et le fond suffisent à le détacher sans rien ajouter. Le compteur du groupe et le verdict annoncent le même nombre : les quatre points sont des gestes, pas trois gestes et une note.',
+      'Le point bloquant EN PREMIER, alors qu’il est arrivé après les trois autres. C’est l’écran qui dit si la pastille et le fond suffisent à le détacher sans rien ajouter. Sous lui, la ligne du total dit « 3 points, 1 type » : le bloquant n’y est pas compté, il se lit avant. Les trois strokes tiennent dans une seule section, ouverte.',
     existe: true,
     atteinte: [
       ...ouverture('connecte'),
@@ -761,10 +789,12 @@ const ETATS = [
       diagnostic({
         ...AVERTISSEMENT_STROKE,
         titre: AVERTISSEMENT_STROKE.titre.replace('« Border »', '« Divider »'),
+        calque: 'Divider',
       }, ['12:361', '12:362', '12:363']),
       diagnostic({
         ...AVERTISSEMENT_STROKE,
         titre: AVERTISSEMENT_STROKE.titre.replace('« Border »', '« Outline »'),
+        calque: 'Outline',
       }, ['12:364']),
       diagnostic(IMBRIQUE_SANS_REGLES_BOUTON, ['12:365', '12:366']),
       verdict({ code: 'a-publier', genre: 'component', chemin: CHEMIN, source: SOURCE_CONFIG, avertissements: 4 }),
@@ -871,7 +901,7 @@ const ETATS = [
     quand:
       "Une matrice de variants dont le layout n'est pas tokenisé. C'est le volume que le protocole de relecture exige de regarder.",
     regarder:
-      "Le compte rendu tient-il ? Vingt cartes ambre DANS la carte du composant, le compte dans le titre du groupe, et la carte des tokens, quand la gestion des tokens est activée, repoussée très loin sous elles.",
+      "Le compte rendu tient-il ? Cinq sections repliées DANS la carte du composant, chacune avec son compte et les calques qu'elle vise, sous la ligne « 20 points, 5 types » et son bouton « Tout déplier ». La carte des tokens, quand la gestion des tokens est activée, suit juste dessous. « Tout déplier » ouvre les vingt cartes : c'est le pire défilement.",
     existe: true,
     atteinte: [
       ...ouverture('connecte'),
@@ -880,6 +910,52 @@ const ETATS = [
       { message: { type: 'status', state: 'loading', text: 'Analyse du composant…' } },
       ...vingtAvertissements(),
       verdict({ code: 'a-publier', genre: 'component', chemin: CHEMIN, source: SOURCE_CONFIG, avertissements: 20 }),
+    ],
+  },
+  {
+    id: 'resultat-sections-repliees',
+    titre: 'Sections repliées, un bloquant en tête',
+    quand:
+      "Huit points à corriger sur quatre familles, et un composant imbriqué sans règles. Au-delà de cinq points non bloquants et d'une seule famille, les sections arrivent repliées.",
+    regarder:
+      "Le bloquant en tête, avec sa pastille, puis la ligne du total et ses quatre sections repliées. Chaque en-tête porte son compte et, à droite, les calques qu'il vise, sur une ligne coupée par une ellipsis. Aucun bouton de sélection n’existe hors des cartes.",
+    existe: true,
+    atteinte: [
+      ...ouverture('connecte'),
+      SELECTION_PRETE,
+      { clic: '.carte-composant .btn-primary' },
+      { message: { type: 'status', state: 'loading', text: 'Analyse du composant…' } },
+      diagnostic(AVERTISSEMENT_STROKE, ['12:360']),
+      diagnostic(AVERTISSEMENT_AUTO_LAYOUT, ['12:361']),
+      diagnostic(AVERTISSEMENT_AUTO_LAYOUT, ['12:362']),
+      diagnostic(AVERTISSEMENT_TEXT_STYLE),
+      diagnostic(AVERTISSEMENT_BORNE_DES_VARIANTS, Array.from({ length: 12 }, (_, rang) => `20:${rang + 1}`)),
+      diagnostic(AVERTISSEMENT_GAP_DES_VARIANTS, Array.from({ length: 12 }, (_, rang) => `22:${rang + 1}`)),
+      diagnostic(AVERTISSEMENT_FILL_DES_VARIANTS, Array.from({ length: 12 }, (_, rang) => `23:${rang + 1}`)),
+      diagnostic(AVERTISSEMENT_OMBRE_DES_VARIANTS, Array.from({ length: 12 }, (_, rang) => `21:${rang + 1}`)),
+      diagnostic(IMBRIQUE_SANS_REGLES_BOUTON, ['12:365', '12:366']),
+      verdict({ code: 'a-publier', genre: 'component', chemin: CHEMIN, source: SOURCE_CONFIG, avertissements: 9 }),
+    ],
+  },
+  {
+    id: 'resultat-peu-de-points-ouverts',
+    titre: 'Cinq points sur trois familles, tout ouvert',
+    quand:
+      "Cinq points non bloquants répartis sur trois familles. Jusqu'à cinq points, ou avec une seule famille, les sections arrivent ouvertes.",
+    regarder:
+      "Les trois sections ouvertes et leurs cartes, sous « 5 points, 3 types ». Aucun bouton « Tout déplier » : l'état par défaut ouvre déjà tout, et les en-têtes n'ont pas de résumé de calques.",
+    existe: true,
+    atteinte: [
+      ...ouverture('connecte'),
+      SELECTION_PRETE,
+      { clic: '.carte-composant .btn-primary' },
+      { message: { type: 'status', state: 'loading', text: 'Analyse du composant…' } },
+      diagnostic(AVERTISSEMENT_STROKE, ['12:360']),
+      diagnostic(AVERTISSEMENT_AUTO_LAYOUT, ['12:361']),
+      diagnostic({ ...AVERTISSEMENT_AUTO_LAYOUT, calque: 'Icon slot', titre: AVERTISSEMENT_AUTO_LAYOUT.titre.replace('« Button / Primary »', '« Icon slot »') }, ['12:362']),
+      diagnostic(AVERTISSEMENT_TEXT_STYLE),
+      diagnostic(AVERTISSEMENT_BORNE_DES_VARIANTS, ['20:1', '20:2']),
+      verdict({ code: 'a-publier', genre: 'component', chemin: CHEMIN, source: SOURCE_CONFIG, avertissements: 5 }),
     ],
   },
   {

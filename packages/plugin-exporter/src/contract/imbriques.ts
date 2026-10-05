@@ -312,6 +312,7 @@ export function pointsDesImbriques(
     return {
       point: {
         severite: 'danger',
+        famille: 'imbriques',
         titre: cles.length === 0
           ? `Le composant « ${parent} » intègre « ${nom} », qui n’a pas ses règles d’usage.`
           : `Le composant « ${parent} » intègre « ${nom} », ${compte} :`,
@@ -340,6 +341,7 @@ export function pointsDesImbriques(
   points.push({
     point: {
       severite: 'danger',
+      famille: 'imbriques',
       titre: `${compte}. Le composant imbriqué ${porte} n’a pas pu être identifié :`,
       elements: [...orphelines],
       impact: uneSeule

@@ -28,6 +28,8 @@ export interface CarteCommandeUi {
   proposerPublication(action: string | null): BoutonUi;
   marquerOccupee(occupee: boolean): void;
   reinitialiser(): void;
+  /** Comme `reinitialiser()`, et oublie les sections que le designer avait ouvertes ou repliées. */
+  changerDeSujet(): void;
 }
 
 /**
@@ -143,6 +145,12 @@ export function createCarteCommande({
     noteReste.hidden = !noteReste.textContent;
   }
 
+  function reinitialiser() {
+    compteRendu.reinitialiser();
+    publier.hidden = true;
+    ecrireNote('', '');
+  }
+
   return {
     element: section,
     sujet,
@@ -162,10 +170,11 @@ export function createCarteCommande({
       if (occupee) publier.hidden = true;
     },
 
-    reinitialiser() {
-      compteRendu.reinitialiser();
-      publier.hidden = true;
-      ecrireNote('', '');
+    reinitialiser,
+
+    changerDeSujet() {
+      compteRendu.oublierLesChoix();
+      reinitialiser();
     },
   };
 }

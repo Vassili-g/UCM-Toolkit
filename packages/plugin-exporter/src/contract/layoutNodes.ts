@@ -153,6 +153,7 @@ export async function electVariantLayoutNodes(
       : null;
     if (wrapperOwnerId && !instance) {
       pousserLocalise(warnings, 'Variant', variant, {
+        famille: 'imbriques',
         manque: `il ne contient pas l'instance « ${wrapperInstance?.name} », qui porte les `
           + `dimensions des autres variants.`,
         impact: `Le contrat décrit ce variant d'après un autre calque : le développeur peut le `

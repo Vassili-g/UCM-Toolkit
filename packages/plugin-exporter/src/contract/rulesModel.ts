@@ -91,6 +91,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
     // cible est son contenu utile, et exiger un texte le rendrait bavard.
     if (!content && entry.tag !== 'icons' && entry.tag !== 'default') {
       pousserSansNode(warnings, `Règle @${entry.tag}`, {
+        famille: 'regles',
         manque: 'le calque « content » est vide.',
         impact: 'La règle n’est pas exportée.',
         action: 'Écrivez-y le texte de la règle, puis réexportez.',
@@ -102,6 +103,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       if (usage === null) usage = content;
       else {
         pousserSansNode(warnings, 'Règle @usage', {
+          famille: 'regles',
           manque: 'le composant en déclare plusieurs.',
           impact: 'Seule la première est exportée.',
           action: 'Ne gardez qu’un seul @usage, puis réexportez.',
@@ -119,6 +121,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       const propName = normalizePropKey(entry.prop?.trim() ?? '');
       if (!propName) {
         pousserSansNode(warnings, 'Règle @boolean', {
+          famille: 'regles',
           manque: 'le calque « prop » est vide.',
           impact: 'La règle n’est pas exportée.',
           action: 'Écrivez-y le nom de la propriété booléenne du composant, par exemple '
@@ -126,6 +129,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         });
       } else if (booleanDescriptions.has(propName)) {
         pousserSansNode(warnings, `Règle @boolean « ${propName} »`, {
+          famille: 'regles',
           manque: 'elle apparaît deux fois.',
           impact: 'Seule la première est exportée.',
           action: 'Supprimez la seconde, puis réexportez.',
@@ -138,6 +142,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       const separator = cible.indexOf('.');
       if (separator <= 0 || separator === cible.length - 1) {
         pousserSansNode(warnings, 'Règle @default', {
+          famille: 'regles',
           manque: `le calque « prop » contient « ${cible || 'rien'} », alors qu’il faut `
             + `« propriété.valeur », par exemple « color.secondary ».`,
           impact: 'La règle n’est pas exportée.',
@@ -152,6 +157,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       // qui est exactement le défaut que cette règle existe pour fermer.
       if (enumDefaults.has(propName)) {
         pousserSansNode(warnings, `Règle @default « ${propName} »`, {
+          famille: 'regles',
           manque: 'elle apparaît deux fois.',
           impact: 'Seule la première est exportée.',
           action: 'Supprimez la seconde, puis réexportez.',
@@ -163,6 +169,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       const iconName = entry.iconName?.trim() ?? '';
       if (!iconName) {
         pousserSansNode(warnings, 'Règle @icons', {
+          famille: 'regles',
           manque: 'le calque « icon » est vide.',
           impact: 'Cette icône ne sera pas décrite dans le contrat.',
           action: 'Écrivez-y le nom exact du calque d’icône, tel qu’il apparaît dans le '
@@ -170,6 +177,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         });
       } else if (!entry.iconPolicy) {
         pousserSansNode(warnings, `Règle @icons « ${iconName} »`, {
+          famille: 'regles',
           manque: 'les calques « modifiable » et « strict » sont tous les deux visibles ou tous les deux masqués.',
           impact: 'Cette icône ne sera pas décrite dans le contrat.',
           action: 'Rendez visible exactement un des deux calques « modifiable » ou « strict », '
@@ -179,6 +187,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         normalizePropKey(rule.iconName) === normalizePropKey(iconName)
       ))) {
         pousserSansNode(warnings, `Règle @icons « ${iconName} »`, {
+          famille: 'regles',
           manque: 'elle apparaît deux fois.',
           impact: 'Seule la première est exportée.',
           action: 'Supprimez la seconde, puis réexportez.',
@@ -191,6 +200,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       const separator = key.indexOf('.');
       if (separator <= 0 || separator === key.length - 1) {
         pousserSansNode(warnings, 'Règle @prop', {
+          famille: 'regles',
           manque: `le calque « prop » contient « ${key || 'rien'} », alors qu’il faut `
             + `« propriété.valeur », par exemple « variant.contained ».`,
           impact: 'La règle n’est pas exportée.',
@@ -209,6 +219,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
       // designer de trancher, pas à l'export d'arbitrer en silence.
       if (valueDescriptions.has(value)) {
         pousserSansNode(warnings, `Règle @prop « ${propName}.${value} »`, {
+          famille: 'regles',
           manque: 'elle apparaît deux fois.',
           impact: 'Seule la première est exportée.',
           action: 'Supprimez la seconde, puis réexportez.',

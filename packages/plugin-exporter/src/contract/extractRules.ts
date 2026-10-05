@@ -378,12 +378,14 @@ function signalerNonRedigees(
       warnings,
       pointDe(sujetDesRegles.texte, une
         ? {
+          famille: 'regles',
           manque: `une règle @${tag} contient encore ${marqueur}.`,
           impact: 'Le développeur ne recevra pas sa documentation.',
           action: `Remplacez ${marqueur} par le texte de la règle, ou supprimez-la, `
             + 'puis réexportez.',
         }
         : {
+          famille: 'regles',
           manque: `${regles.length} règles @${tag} contiennent encore ${marqueur}.`,
           impact: 'Le développeur ne recevra pas leur documentation.',
           action: `Remplacez ${marqueur} par le texte de chaque règle, ou supprimez-les, `
@@ -419,6 +421,7 @@ function ruleTagOf(instance: InstanceNode, warnings: string[]): RuleTag | null {
 
   if (affiche !== null && range !== null && affiche !== range) {
     pousserLocalise(warnings, 'Layer', instance, {
+      famille: 'regles',
       manque: `il affiche le tag « @${affiche} », mais son variant est « @${range} ».`,
       impact: `Le contrat range cette règle en « @${affiche} », pas en « @${range} ».`,
       action: 'Choisissez le variant qui correspond au tag voulu, puis réexportez.',
@@ -491,6 +494,7 @@ export async function extractRules(
     if (orphelin) {
       const marque = nomOrphelin(orphelin) === 'marque';
       pousserLocalise(absent, 'Layer', orphelin, {
+        famille: 'regles',
         manque: marque
           ? `son calque « ${COMPONENT_NAME_LAYER} » contient encore « ${MARQUEUR_A_COMPLETER} », `
             + 'donc il ne documente aucun composant.'
@@ -510,6 +514,7 @@ export async function extractRules(
         absent,
         sujetSansNode('Layer', RULES_CONTAINER_NAME, 'inexistant'),
         {
+          famille: 'regles',
           manque: `aucune instance de cette page n’écrit « ${componentSet.name} » dans son `
             + `calque « ${COMPONENT_NAME_LAYER} ».`,
           impact: 'Le contrat ne contiendra aucune règle d’usage, '
@@ -551,6 +556,7 @@ export async function extractRules(
     pousserNote(
       warnings,
       pointDe(sujetDuDoublon.texte, {
+        famille: 'regles',
         manque: `${containers.length} instances écrivent « ${componentSet.name} » dans leur `
           + `calque « ${COMPONENT_NAME_LAYER} », et l’export n’en lit qu’une.`,
         impact: ignorees === 1
@@ -570,6 +576,7 @@ export async function extractRules(
     if (!tag) {
       if (nEcritRien(instance)) continue;
       pousserSansNode(warnings, `Une règle de « ${RULES_CONTAINER_NAME} »`, {
+        famille: 'regles',
         manque: 'aucun de ses calques ne porte de tag (@usage, @do, @dont, @pairs, @prop, '
           + '@boolean, @icons, @default).',
         impact: 'Sa documentation manquera au développeur.',
@@ -604,6 +611,7 @@ export async function extractRules(
     pousserNote(
       warnings,
       pointDe(sujetDuConteneur.texte, {
+        famille: 'regles',
         manque: 'il ne contient aucune instance de « .ruleItem » qui porte un tag.',
         impact: 'Le développeur ne recevra aucune règle d’usage pour ce composant.',
         action: 'Ajoutez-y au moins une règle, puis réexportez.',

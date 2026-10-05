@@ -442,6 +442,7 @@ async function contractedOwner(
   const owner = main ? componentOwner(main) : null;
   if (!main || !owner) {
     pousserLocalise(warnings, 'Layer', instance, {
+      famille: 'imbriques',
       manque: `le composant principal de cette instance est introuvable.`,
       impact: `Si ce composant a son propre contrat, le développeur recopiera son contenu `
         + `au lieu de réutiliser le composant.`,

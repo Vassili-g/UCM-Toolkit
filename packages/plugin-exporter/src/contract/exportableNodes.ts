@@ -199,6 +199,7 @@ function releverLesNodes(
     pousserUneFois(
       warnings,
       pointDe(sujetDuCalque.texte, {
+        famille: 'disposition',
         manque: `il est masqué, et aucune propriété booléenne ni variable ne pilote sa `
           + `visibilité.`,
         impact: `Le contrat l'exclut avec tout son contenu : le développeur ne le rendra jamais.`,

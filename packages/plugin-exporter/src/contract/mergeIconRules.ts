@@ -32,12 +32,14 @@ function iconSlot(layer: IconLayerSummary, warnings: string[]): string | undefin
 
   pousserSansNode(warnings, `Icône « ${layer.figmaLayer} »`, layer.slots.length === 1
     ? {
+      famille: 'imbriques',
       manque: `le calque n’est pas placé directement dans le cadre en auto layout qui porte le `
         + `gap et le padding.`,
       impact: `Le développeur ne saura pas où l’afficher.`,
       action: `Déplacez-le dans ce cadre, puis réexportez.`,
     }
     : {
+      famille: 'imbriques',
       manque: `le calque n’occupe pas la même place selon les variants `
         + `(${listValues(layer.slots, 'aucune')}).`,
       impact: `Le développeur ne saura pas où l’afficher.`,
@@ -61,6 +63,7 @@ function iconSize(layer: IconLayerSummary, warnings: string[]): string | undefin
   if (layer.sizes.length <= 1) return undefined;
 
   pousserSansNode(warnings, `Icône « ${layer.figmaLayer} »`, {
+    famille: 'imbriques',
     manque: `sa taille change selon les variants (${listValues(layer.sizes, 'aucune')}).`,
     impact: `Le développeur ne saura pas à quelle taille l’afficher.`,
     action: `Reliez width et height à la même variable dans tous les variants où le calque `
@@ -94,6 +97,7 @@ export function mergeIconRules(
     const layer = layers.find((candidate) => candidate.figmaLayer === rule.iconName);
     if (!layer) {
       pousserSansNode(warnings, `Règle @icons « ${rule.iconName} »`, {
+        famille: 'regles',
         manque: 'aucun calque de ce nom dans le composant.',
         impact: 'Cette icône ne sera pas décrite dans le contrat.',
         action: 'Vérifiez l’orthographe dans le calque « icon » de la règle, puis réexportez.',
@@ -102,6 +106,7 @@ export function mergeIconRules(
     }
     if (layer.maximumOccurrences > 1) {
       pousserSansNode(warnings, `Règle @icons « ${rule.iconName} »`, {
+        famille: 'imbriques',
         manque: `jusqu’à ${layer.maximumOccurrences} calques portent ce nom dans un même `
           + `variant.`,
         impact: `La règle est ignorée.`,
@@ -111,6 +116,7 @@ export function mergeIconRules(
     }
     if (icons.has(key)) {
       pousserSansNode(warnings, `Règle @icons « ${rule.iconName} »`, {
+        famille: 'regles',
         manque: `une autre règle vise déjà un calque au nom équivalent (majuscules et tirets `
           + `ignorés).`,
         impact: `Cette règle en double n’est pas exportée.`,
@@ -125,6 +131,7 @@ export function mergeIconRules(
       : undefined;
     if (layer.visibilityProps.length > 1) {
       pousserSansNode(warnings, `Icône « ${rule.iconName} »`, {
+        famille: 'imbriques',
         manque: `sa visibilité dépend d’une propriété de composant différente selon les variants.`,
         impact: `Le développeur ne saura pas quelle propriété de composant l’affiche.`,
         action: `Utilisez la même propriété de composant dans tous les variants, puis réexportez.`,
@@ -148,6 +155,7 @@ export function mergeIconRules(
       : undefined;
     if (layer.swapProps.length > 1) {
       pousserSansNode(warnings, `Icône « ${rule.iconName} »`, {
+        famille: 'imbriques',
         manque: `son remplacement dépend d’une propriété de remplacement d’instance différente selon les `
           + `variants.`,
         impact: `Le développeur ne pourra pas la remplacer.`,
@@ -160,6 +168,7 @@ export function mergeIconRules(
       const nativeSwap = propByName(props, swapProp);
       if (nativeSwap?.type !== 'instance-swap') {
         pousserSansNode(warnings, `Icône « ${rule.iconName} »`, {
+          famille: 'imbriques',
           manque: `son calque est relié à « ${swapProp} », mais le contrat ne publie aucune `
             + `propriété de remplacement d’instance de ce nom.`,
           impact: `Le développeur ne pourra pas la remplacer.`,
@@ -176,6 +185,7 @@ export function mergeIconRules(
 
     if (visibilityProp && propByName(props, visibilityProp)?.type !== 'boolean') {
       pousserSansNode(warnings, `Icône « ${rule.iconName} » déclarée modifiable`, {
+        famille: 'imbriques',
         manque: `sa visibilité est reliée à « ${visibilityProp} », qui n'est pas une boolean `
           + `property du composant.`,
         impact: `Le développeur ne pourra pas la remplacer.`,
@@ -192,6 +202,7 @@ export function mergeIconRules(
     const runtimeProp = `${visibilityProp ?? key}Name`;
     if (propByName(props, runtimeProp)) {
       pousserSansNode(warnings, `Icône « ${rule.iconName} » déclarée modifiable`, {
+        famille: 'imbriques',
         manque: `le contrat doit publier son remplacement sous « ${runtimeProp} », mais le `
           + `composant a déjà une propriété de composant de ce nom.`,
         impact: `Le développeur ne pourra pas la remplacer.`,

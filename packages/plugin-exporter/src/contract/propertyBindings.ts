@@ -98,6 +98,7 @@ export function extractPropertyBindings(
             pousserNote(
               warnings,
               pointDe(`Propriété de composant « ${figmaPropName.replace(/#.*$/, '')} »`, {
+                famille: 'proprietes',
                 manque: `le calque « ${node.name} » s'en sert pour ${USAGE_DE_LA_LIAISON[target]}, `
                   + `mais le contrat ne la publie pas.`,
                 impact: `Le développeur ne pourra pas piloter ${USAGE_DE_LA_LIAISON[target]} `

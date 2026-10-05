@@ -65,6 +65,7 @@ function strokeAlignment(node: SceneNode, warnings: string[]): StrokeAlignment |
   if (raw === 'OUTSIDE') return 'outside';
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, {
+      famille: 'non-exportes',
       titre: 'stroke : l’alignement ne peut pas être lu.',
       impact: 'Le contrat ne précisera pas si le stroke est placé en inside, center ou outside.',
       action: 'Choisissez de nouveau inside, center ou outside dans chaque variant concerné, '
@@ -73,6 +74,7 @@ function strokeAlignment(node: SceneNode, warnings: string[]): StrokeAlignment |
     return null;
   }
   pousserLocalise(warnings, 'Layer', node, {
+    famille: 'non-exportes',
     manque: 'l’alignement du stroke est illisible.',
     impact: 'Le contrat ne dira pas s’il est inside, center ou outside.',
     action: 'Vérifiez ce réglage dans Figma, puis réexportez.',
@@ -242,6 +244,7 @@ function warnPeinturesLibres(
   // change d'un variant à l'autre, et la fusion se fait sur le texte.
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, {
+      famille: 'variables',
       titre: `${stroke ? 'stroke' : 'fill'} : couleur sans variable associée.`,
       impact: 'Le contrat ne transmettra pas les couleurs sans variable associée.',
       action: 'Reliez chaque couleur concernée à une variable dans les variants sélectionnés, '
@@ -250,6 +253,7 @@ function warnPeinturesLibres(
     return;
   }
   pousserLocalise(warnings, 'Layer', node, {
+    famille: 'variables',
     manque: `${plusieurs ? `${libres} ${nom} ne sont reliés` : `son ${nom} n’est relié`} `
       + `à aucune variable Figma.`,
     impact: `Le contrat ne publie que les couleurs liées : le développeur rendra ce calque `
@@ -352,6 +356,7 @@ export async function getSlotTokens(
       if (estUneRacineDeVariant(warnings, binding.node)) {
         const champ = isStroke ? 'stroke' : 'fill';
         pousserPourLesVariants(warnings, binding.node, {
+          famille: 'non-exportes',
           titre: `${champ} : l’ordre des deux couleurs superposées n’est pas exporté.`,
           impact: 'Le développeur recevra les deux couleurs sans indication de leur ordre de '
             + 'superposition.',
@@ -361,6 +366,7 @@ export async function getSlotTokens(
         });
       } else {
         pousserLocalise(warnings, 'Layer', binding.node, {
+          famille: 'non-exportes',
           manque: `deux ${isStroke ? 'strokes' : 'fills'} y sont reliés à des variables `
             + `différentes (${toRef(dessous)} et ${toRef(binding.token)}).`,
           impact: `Le développeur recevra les deux couleurs sans savoir laquelle passe `
@@ -388,6 +394,7 @@ export async function getSlotTokens(
       }
       if (known.value.role !== value.role) {
         pousserLocalise(warnings, 'Layer', binding.node, {
+          famille: 'variables',
           manque: `le stroke ${toRef(binding.token)} peint ici le rôle « ${value.role} », `
             + `mais le calque « ${known.node.name} » lui donne déjà le rôle `
             + `« ${known.value.role} ».`,
@@ -404,6 +411,7 @@ export async function getSlotTokens(
         continue;
       }
       pousserLocalise(warnings, 'Layer', binding.node, {
+        famille: 'variables',
         manque: `son stroke ${toRef(binding.token)} est déjà posé par le calque `
           + `« ${known.node.name} », avec une stroke weight ou un alignement différents.`,
         impact: `Le contrat ne garde que celui de « ${known.node.name} » : la stroke weight et `
@@ -418,6 +426,7 @@ export async function getSlotTokens(
     if (known) {
       if (known.role !== role) {
         pousserLocalise(warnings, 'Layer', binding.node, {
+          famille: 'variables',
           manque: `la couleur ${toRef(binding.token)} peint ici le rôle « ${role} », mais le `
             + `calque « ${known.node.name} » lui donne déjà le rôle « ${known.role} ».`,
           impact: `Le développeur rendra cette couleur comme sur « ${known.node.name} ».`,

@@ -60,6 +60,11 @@ export function createCarteTokens({
       format.hidden = true;
     },
 
+    changerDeSujet() {
+      carte.changerDeSujet();
+      format.hidden = true;
+    },
+
     attendreLeResume() {
       carte.reinitialiser();
       format.hidden = true;

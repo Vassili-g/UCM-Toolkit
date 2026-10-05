@@ -208,6 +208,7 @@ export function collisionWarnings(index: VariableIndex): PointACorriger[] {
   return Array.from(index.ambiguous.values(), (entry) => {
     if (entry.kind === 'same-path') {
       return pointDe(`Variables « ${entry.owner} » et « ${entry.name} »`, {
+        famille: 'fichier',
         manque: `leurs noms donnent le même token « ${entry.path} ».`,
         impact: `Le développeur n'aura pas « ${entry.name} ».`,
         action: `Renommez l'une des deux, puis réexportez.`,
@@ -217,6 +218,7 @@ export function collisionWarnings(index: VariableIndex): PointACorriger[] {
       `Variables « ${entry.owner} » (« ${entry.ownerPath} ») et « ${entry.name} » `
         + `(« ${entry.path} »)`,
       {
+        famille: 'fichier',
         manque: 'le token de l’une sert de groupe au token de l’autre.',
         impact: `Le développeur n'aura pas « ${entry.name} ».`,
         action: `Renommez ou déplacez l'une des deux, puis réexportez.`,
@@ -281,12 +283,14 @@ export class VariableNameResolver {
       if (warnings) {
         pousserSansNode(warnings, `Variable « ${ambiguous.name} »`, ambiguous.kind === 'same-path'
           ? {
+            famille: 'fichier',
             manque: `son nom donne le même token « ${ambiguous.path} » que la variable `
               + `« ${ambiguous.owner} ».`,
             impact: `Le développeur n'aura pas cette valeur${location}.`,
             action: `Renommez l'une des deux, puis réexportez.`,
           }
           : {
+            famille: 'fichier',
             manque: `son token « ${ambiguous.path} » et le token « ${ambiguous.ownerPath} » de la `
               + `variable « ${ambiguous.owner} » ne peuvent pas coexister : l'un sert de groupe `
               + `à l'autre.`,
@@ -307,6 +311,7 @@ export class VariableNameResolver {
       // y mène quand l'appelant a passé le node : un style de texte n'en a pas.
       pousserVersLeCalque(
         pointDe(`Variable introuvable${location}`, {
+          famille: 'variables',
           manque: `le plugin ne peut pas lire la variable liée.`,
           impact: `Le développeur n'aura pas cette valeur.`,
           action: `Reliez de nouveau une variable existante, puis réexportez.`,
@@ -321,6 +326,7 @@ export class VariableNameResolver {
     if (!collectionName) {
       if (warnings) {
         pousserSansNode(warnings, `Variable « ${variable.name} »${location}`, {
+          famille: 'variables',
           manque: `sa collection est introuvable.`,
           impact: `Le développeur n'aura pas cette valeur.`,
           action: `Republiez la bibliothèque ou reliez une variable locale, puis réexportez.`,

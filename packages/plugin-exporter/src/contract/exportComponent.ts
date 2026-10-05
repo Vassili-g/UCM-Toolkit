@@ -304,6 +304,7 @@ async function exporterLeComposant(
     // plus à survoler dans la pull request.
     const plusieurs = missingVariants.missing > 1;
     pousserLocalise(warnings, 'Component Set', componentSet, {
+      famille: 'proprietes',
       manque: plusieurs
         ? `${missingVariants.missing} combinaisons de valeurs de ses propriétés de variante `
           + `n'ont pas de variant.`
@@ -418,6 +419,7 @@ async function exporterLeComposant(
 
   if (Object.keys(componentSet.componentPropertyDefinitions).length === 0) {
     pousserLocalise(warnings, 'Component Set', componentSet, {
+      famille: 'proprietes',
       manque: 'aucune propriété de composant n’est définie.',
       impact: 'Le contrat ne décrira ni variants ni options.',
       action: 'Si ce composant doit en avoir, déclarez-les dans Figma, puis réexportez.',
@@ -483,12 +485,14 @@ async function exporterLeComposant(
         `Icône « ${definition.figmaName} » du variant « ${variant.figmaName} »`;
       const message = pousserSansNode(warnings, sujetDeLIcone, paths.length === 0
         ? {
+          famille: 'imbriques',
           manque: 'le contrat ne décrit pas son calque dans ce variant.',
           impact: 'Le développeur ne saura pas où la placer et ne la rendra pas.',
           action: 'Rendez son calque visible et placez-le dans le cadre en auto layout qui porte '
             + 'le gap et le padding, puis réexportez.',
         }
         : {
+          famille: 'imbriques',
           manque: 'plusieurs calques de ce variant portent ce nom.',
           impact: 'Le développeur ne saura pas lequel est l’icône.',
           action: 'Donnez un nom distinct à chaque calque, puis réexportez.',
@@ -501,6 +505,7 @@ async function exporterLeComposant(
   const intentionARediger = rules.tagsARediger.some((tag) => TAGS_D_INTENTION.includes(tag));
   if (!intent && !intentionARediger) {
     pousserSansNode(warnings, 'Règles d’usage', {
+      famille: 'regles',
       manque: 'aucune règle @usage, @do, @dont ou @pairs n’est déclarée.',
       impact: 'Le développeur ne recevra aucune consigne sur les cas d’usage du composant.',
       action: 'Ajoutez au moins une règle @usage, puis réexportez.',
@@ -524,6 +529,7 @@ async function exporterLeComposant(
       warnings,
       sujetSansNode('Layer', dependency.figmaLayer, 'nom-publie'),
       {
+        famille: 'imbriques',
         manque: `il contient le composant « ${dependency.component} », mais le contrat ne `
           + `décrit ce calque nulle part.`,
         impact: `Le développeur ne rendra pas « ${dependency.component} » dans ce composant.`,

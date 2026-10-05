@@ -18,6 +18,7 @@ export function mergeBooleanDescriptions(
     const prop = propByName(props, propName);
     if (!prop || prop.type !== 'boolean') {
       pousserSansNode(warnings, `Règle @boolean « ${propName} »`, {
+        famille: 'regles',
         manque: 'le composant n’a aucune propriété booléenne portant ce nom.',
         impact: 'La documentation de cette règle n’entre pas dans le contrat.',
         action: 'Dans le calque « prop », reprenez le nom exact de la propriété booléenne du composant, puis réexportez.',

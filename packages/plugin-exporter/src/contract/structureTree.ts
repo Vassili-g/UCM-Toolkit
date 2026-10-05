@@ -214,6 +214,7 @@ export function depthLimitWarning(
   if (depth < MAX_STRUCTURE_DEPTH) return null;
   if (informationDescendants(node, iconNames, composed).length === 0) return null;
   return pointDe(sujet('Layer', node).texte, {
+    famille: 'disposition',
     manque: `il est imbriqué au-delà de ${MAX_STRUCTURE_DEPTH} niveaux, la profondeur `
       + `maximale que le contrat décrit.`,
     impact: `Le contenu de ce calque sera absent du contrat.`,

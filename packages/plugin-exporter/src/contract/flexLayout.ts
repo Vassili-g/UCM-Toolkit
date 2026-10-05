@@ -80,6 +80,7 @@ export function gridTrackCounts(node: SceneNode): { columns?: number; rows?: num
  */
 function pisteIllisible(nom: string, index: number): Constat {
   return {
+    famille: 'disposition',
     manque: `la taille de la ${nom} ${index + 1} de sa grille est illisible.`,
     impact: `Le développeur rendra cette ${nom} en taille automatique.`,
     action: 'Vérifiez ce réglage dans Figma, puis réexportez.',
@@ -95,6 +96,7 @@ function signalerPisteIllisible(
 ): void {
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, {
+      famille: 'disposition',
       titre: `Grille, ${nom} ${index + 1} : la taille ne peut pas être lue.`,
       impact: `Le contrat indiquera une taille automatique pour cette ${nom}.`,
       action: `Définissez de nouveau la taille de la ${nom} ${index + 1} dans chaque variant `
@@ -592,6 +594,7 @@ export function flexContainerProperties(
 
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, {
+      famille: 'disposition',
       titre: "auto layout : l'alignement ne peut pas être lu.",
       impact: "Le contrat ne transmettra pas l'alignement des calques dans les variants concernés.",
       action: "Définissez de nouveau l'alignement sur les deux axes dans chaque variant "
@@ -600,6 +603,7 @@ export function flexContainerProperties(
     return wrap;
   }
   pousserLocalise(warnings, 'Layer', node, {
+    famille: 'disposition',
     manque: `son alignement d'auto layout est illisible.`,
     impact: `Le contrat ne précisera pas comment aligner les calques qu’il contient.`,
     action: `Réglez l'alignement principal et secondaire dans Figma, puis réexportez.`,
@@ -654,6 +658,7 @@ export function flexItemProperties(
       // Le nom de la racine change d'un variant à l'autre : le message ne le
       // cite pas, pour que les enfants de tous les variants partagent sa phrase.
       pousserLocalise(warnings, 'Layer', child, {
+        famille: 'disposition',
         manque: "son alignement dans l'auto layout ne peut pas être lu.",
         impact: 'Le contrat ne précisera pas comment aligner ce calque dans les variants '
           + 'concernés.',
@@ -662,6 +667,7 @@ export function flexItemProperties(
       });
     } else if (!mapped) {
       pousserLocalise(warnings, 'Layer', child, {
+        famille: 'disposition',
         manque: `son alignement dans l'auto layout « ${parent.name} » est illisible.`,
         impact: `Le développeur ne saura pas comment l'aligner dans « ${parent.name} ».`,
         action: `Réglez son alignement dans cet auto layout, puis réexportez.`,
@@ -683,6 +689,7 @@ export function flexItemProperties(
 
   if (estUneRacineDeVariant(warnings, parent)) {
     pousserLocalise(warnings, 'Layer', child, {
+      famille: 'disposition',
       manque: "son réglage d'étirement n'est pas pris en charge.",
       impact: "Le contrat ne précisera pas si ce calque doit occuper l'espace disponible.",
       action: 'Choisissez Fill ou Fixed pour sa largeur dans un auto layout horizontal, ou pour '
@@ -691,6 +698,7 @@ export function flexItemProperties(
     return result;
   }
   pousserLocalise(warnings, 'Layer', child, {
+    famille: 'disposition',
     manque: `son layout grow vaut « ${String(rawGrow)} » dans l'auto layout `
       + `« ${parent.name} », une valeur que le menu Fill de Figma ne produit pas.`,
     impact: `Le développeur ne saura pas si ce calque s'étire.`,

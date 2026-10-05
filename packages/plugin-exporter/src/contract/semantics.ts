@@ -136,6 +136,7 @@ export function buildStateModel(
     states.set(value, selector ? { selector } : {});
     if (!known) {
       pousserSansNode(warnings, `Propriété de variante « ${axis} »`, {
+        famille: 'proprietes',
         manque: `l'état « ${value} » n'est pas reconnu.`,
         impact: `Le développeur ne saura pas quand afficher ce variant.`,
         action: `Renommez cette valeur en default, hover, focus, press ou disable, puis `

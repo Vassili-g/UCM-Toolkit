@@ -1,26 +1,51 @@
 
-import type { LogLevel, PluginMessage } from '../../messages';
+import type { FamilleDePoint, LogLevel, PluginMessage } from '../../messages';
+import { FAMILLES_DE_POINT } from '../../messages';
 import { versSandbox } from '../pont';
 
 /** Le point à corriger écrit par le moteur, sans son enveloppe de message. */
 export type PointACorriger = Omit<Extract<PluginMessage, { type: 'diagnostic' }>, 'type'>;
 
-/** Un groupe titré du compte rendu ; son titre affiche le nombre d'entrées. */
-interface GroupeUi {
-  element: HTMLDivElement;
-  liste: HTMLDivElement;
-  ajouter(noeud: Node, grave?: boolean): void;
-  vider(): void;
-}
-
 /** Ce que le routeur UI peut demander à un compte rendu. */
 export interface CompteRenduUi {
   element: HTMLElement;
+  /** Une nouvelle analyse efface les points, mais garde les sections que le designer a ouvertes ou repliées. */
   reinitialiser(): void;
+  /** Le sujet a changé : les choix d'ouverture du designer ne valent plus pour lui. */
+  oublierLesChoix(): void;
   ajouterDiagnostic(point: PointACorriger): void;
   ajouterPublication(texte: string, niveau?: LogLevel): void;
   ajouterLien(libelle: string, url: string): void;
 }
+
+/** Les libellés des sections, dans les mots que le designer lit dans Figma. */
+const LIBELLES_DE_FAMILLE: Record<FamilleDePoint, string> = {
+  disposition: 'Auto layout et disposition',
+  proprietes: 'Propriétés et variants',
+  imbriques: 'Composants imbriqués et icônes',
+  variables: 'Variables à relier',
+  styles: 'Styles de texte et d’effets',
+  regles: 'Règles d’usage',
+  'non-exportes': 'Réglages non exportés',
+  fichier: 'Collections et variables du fichier',
+};
+
+/** Au plus ce nombre de points non bloquants, ou une seule famille : tout s'ouvre. */
+const SEUIL_D_OUVERTURE = 5;
+
+/** Une section du compte rendu : l'en-tête, le corps et ce que l'en-tête résume. */
+interface SectionRendue {
+  element: HTMLElement;
+  bascule: HTMLButtonElement;
+  corps: HTMLDivElement;
+  compte: HTMLSpanElement;
+  resume: HTMLSpanElement;
+  points: number;
+  calques: Set<string>;
+}
+
+/** Donne à chaque compte rendu des identifiants de corps qui ne se heurtent pas. */
+let compteursDInstance = 0;
 
 /**
  * Pose un texte dont les passages entre `**` sont en gras.
@@ -43,20 +68,135 @@ function ecrireAvecGras(element: HTMLElement, texte: string): void {
   }));
 }
 
-/** Rend séparément les corrections Figma et le résultat de publication. */
+/**
+ * Rend séparément les corrections Figma et le résultat de publication.
+ *
+ * Les points bloquants se lisent en tête, hors de toute section. Les autres se
+ * rangent sous la ligne du total, une section repliable par famille, dans
+ * l'ordre de `FAMILLES_DE_POINT`.
+ */
 export function createCompteRendu(): CompteRenduUi {
+  compteursDInstance += 1;
+  const instance = compteursDInstance;
+
   const section = document.createElement('section');
   section.className = 'compte-rendu';
 
   section.hidden = true;
 
-  const aCorriger = creerGroupe('À corriger dans Figma');
+  const bloquants = document.createElement('div');
+  bloquants.className = 'groupe-liste';
+  bloquants.hidden = true;
+
+  const total = document.createElement('div');
+  total.className = 'barre-du-total';
+  total.hidden = true;
+  const totalTexte = document.createElement('span');
+  const toutBascule = document.createElement('button');
+  toutBascule.type = 'button';
+  toutBascule.className = 'bouton-discret';
+  total.append(totalTexte, toutBascule);
+
+  const sections = document.createElement('div');
+  sections.className = 'sections';
 
   const publication = document.createElement('div');
   publication.className = 'groupe-liste';
   publication.hidden = true;
 
-  section.append(aCorriger.element, publication);
+  section.append(bloquants, total, sections, publication);
+
+  const rendues = new Map<FamilleDePoint, SectionRendue>();
+  let nonBloquants = 0;
+  // Les choix du designer : une section précise, ou toutes d'un coup. Un clic
+  // sur « Tout déplier » remplace les choix par section.
+  const choix = new Map<FamilleDePoint, boolean>();
+  let choixDeTout: boolean | null = null;
+
+  function ouvertParDefaut(): boolean {
+    return nonBloquants <= SEUIL_D_OUVERTURE || rendues.size === 1;
+  }
+
+  function estOuverte(famille: FamilleDePoint): boolean {
+    return choix.get(famille) ?? choixDeTout ?? ouvertParDefaut();
+  }
+
+  function rafraichir() {
+    for (const [famille, rendue] of rendues) {
+      const ouverte = estOuverte(famille);
+      rendue.element.dataset.ouverte = String(ouverte);
+      rendue.bascule.setAttribute('aria-expanded', String(ouverte));
+      rendue.corps.hidden = !ouverte;
+      rendue.compte.textContent = String(rendue.points);
+      rendue.resume.textContent = [...rendue.calques].join(', ');
+      rendue.resume.hidden = ouverte || rendue.calques.size === 0;
+    }
+    total.hidden = rendues.size === 0;
+    if (rendues.size === 0) return;
+    const points = `${nonBloquants} ${nonBloquants === 1 ? 'point' : 'points'}`;
+    const types = `${rendues.size} ${rendues.size === 1 ? 'type' : 'types'}`;
+    totalTexte.textContent = `À corriger dans Figma · ${points}, ${types}`;
+    const toutesOuvertes = [...rendues.keys()].every(estOuverte);
+    // Sous le seuil, le geste ne paraît qu'une fois une section repliée par le designer.
+    toutBascule.hidden = rendues.size < 2 || (ouvertParDefaut() && toutesOuvertes);
+    toutBascule.textContent = toutesOuvertes ? 'Tout replier' : 'Tout déplier';
+  }
+
+  toutBascule.addEventListener('click', () => {
+    const toutesOuvertes = [...rendues.keys()].every(estOuverte);
+    choix.clear();
+    choixDeTout = !toutesOuvertes;
+    rafraichir();
+  });
+
+  /** La section d'une famille, créée à la première arrivée et rangée dans l'ordre fixe. */
+  function sectionDe(famille: FamilleDePoint): SectionRendue {
+    const existante = rendues.get(famille);
+    if (existante) return existante;
+
+    const element = document.createElement('section');
+    element.className = 'section';
+    element.dataset.famille = famille;
+
+    const corps = document.createElement('div');
+    corps.className = 'section-corps';
+    corps.id = `corps-${instance}-${famille}`;
+
+    const bascule = document.createElement('button');
+    bascule.type = 'button';
+    bascule.className = 'section-bascule';
+    bascule.setAttribute('aria-controls', corps.id);
+    const chevron = document.createElement('span');
+    chevron.className = 'carte-chevron';
+    chevron.setAttribute('aria-hidden', 'true');
+    bascule.append(chevron, document.createTextNode(LIBELLES_DE_FAMILLE[famille]));
+    bascule.addEventListener('click', () => {
+      // Le clic fixe cette section, d'après ce que le designer voit.
+      choix.set(famille, !estOuverte(famille));
+      rafraichir();
+    });
+
+    const titre = document.createElement('h3');
+    titre.className = 'section-titre';
+    titre.append(bascule);
+    const compte = document.createElement('span');
+    compte.className = 'section-compte';
+    const resume = document.createElement('span');
+    resume.className = 'section-resume';
+    const tete = document.createElement('div');
+    tete.className = 'section-tete';
+    tete.append(titre, compte, resume);
+    element.append(tete, corps);
+
+    const rendue: SectionRendue = { element, bascule, corps, compte, resume, points: 0, calques: new Set() };
+    const suivante = FAMILLES_DE_POINT
+      .slice(FAMILLES_DE_POINT.indexOf(famille) + 1)
+      .map((autre) => rendues.get(autre)?.element)
+      .find((candidate) => candidate !== undefined);
+    sections.insertBefore(element, suivante ?? null);
+    rendues.set(famille, rendue);
+    return rendue;
+  }
 
   function ajouterEntree(noeud: Node) {
     section.hidden = false;
@@ -64,57 +204,12 @@ export function createCompteRendu(): CompteRenduUi {
     publication.appendChild(noeud);
   }
 
-  function creerGroupe(titre: string, { compte = true }: { compte?: boolean } = {}): GroupeUi {
-    const element = document.createElement('div');
-    element.className = 'groupe';
-    element.hidden = true;
-
-    const entete = document.createElement('div');
-    entete.className = 'groupe-titre';
-    entete.textContent = titre;
-
-    const liste = document.createElement('div');
-    liste.className = 'groupe-liste';
-
-    element.append(entete, liste);
-    let total = 0;
-    // Les points graves occupent la tête de la liste : le compteur dit où
-    // s'arrête ce bloc, donc où insérer le suivant. Sans lui, un point grave
-    // émis après vingt avertissements se lirait après eux, et le designer
-    // corrigerait vingt détails avant d'apprendre que le contrat est faux.
-    let graves = 0;
-
-    return {
-      element,
-      liste,
-      ajouter(noeud: Node, grave = false) {
-        total += 1;
-        entete.textContent = compte ? `${titre} (${total})` : titre;
-        section.hidden = false;
-        element.hidden = false;
-        if (grave) {
-          liste.insertBefore(noeud, liste.children[graves] ?? null);
-          graves += 1;
-          return;
-        }
-        liste.appendChild(noeud);
-      },
-      vider() {
-        total = 0;
-        graves = 0;
-        entete.textContent = titre;
-        element.hidden = true;
-        liste.replaceChildren();
-      },
-    };
-  }
-
   /**
    * Une carte, pas un paragraphe technique.
    *
-   * Quatre parties, dans l'ordre où on les lit : une pastille qui dit la
-   * sévérité, un titre qui nomme l'élément Figma et le manque, la conséquence
-   * pour le développeur, puis le geste à faire. Les trois dernières viennent du
+   * Quatre parties, dans l'ordre où on les lit : une pastille « Bloquant » sur
+   * la seule carte bloquante, un titre qui nomme l'élément Figma et le manque,
+   * la conséquence pour le développeur, puis le geste à faire. Les trois dernières viennent du
    * moteur découpées ; rien n'est redécoupé ici, et rien n'est réécrit.
    *
    * **Elle n'empile pas les signaux.** La pastille et le fond discret portent la
@@ -141,16 +236,19 @@ export function createCompteRendu(): CompteRenduUi {
     carte.className = 'carte carte-avertissement';
     if (grave) carte.className = 'carte carte-danger';
 
-    const pastille = document.createElement('span');
-    pastille.className = 'pastille pastille-avertissement';
-    if (grave) pastille.className = 'pastille pastille-danger';
-    pastille.textContent = grave ? 'Bloquant' : 'À corriger';
-
     const titre = document.createElement('p');
     titre.className = 'carte-titre';
     ecrireAvecGras(titre, point.titre);
 
-    carte.append(pastille, titre);
+    // La section dit déjà qu'un point est à corriger : seule la carte bloquante
+    // porte une pastille, parce que sa sévérité diffère de celle de ses voisines.
+    if (grave) {
+      const pastille = document.createElement('span');
+      pastille.className = 'pastille pastille-danger';
+      pastille.textContent = 'Bloquant';
+      carte.append(pastille);
+    }
+    carte.append(titre);
 
     // Une liste quand le moteur en a passé une : sept propriétés énumérées dans
     // une phrase ne se relèvent plus une à une dans Figma. Le moteur décide ce
@@ -212,14 +310,37 @@ export function createCompteRendu(): CompteRenduUi {
     element: section,
     /** Un export qui commence efface le compte rendu du précédent, pas la cible. */
     reinitialiser() {
-      aCorriger.vider();
+      bloquants.hidden = true;
+      bloquants.replaceChildren();
+      sections.replaceChildren();
+      rendues.clear();
+      nonBloquants = 0;
+      rafraichir();
       publication.hidden = true;
       publication.replaceChildren();
       section.hidden = true;
     },
+    oublierLesChoix() {
+      choix.clear();
+      choixDeTout = null;
+    },
     /** `point` est ce que le moteur a écrit : titre, impact, action, nodes. */
     ajouterDiagnostic(point: PointACorriger) {
-      aCorriger.ajouter(creerDiagnostic(point), point.severite === 'danger');
+      section.hidden = false;
+      const carte = creerDiagnostic(point);
+      if (point.severite === 'danger') {
+        bloquants.hidden = false;
+        bloquants.appendChild(carte);
+        return;
+      }
+      // Un point sans famille connue ne devrait pas arriver : il se range avec le fichier.
+      const famille = FAMILLES_DE_POINT.includes(point.famille) ? point.famille : 'fichier';
+      const rendue = sectionDe(famille);
+      rendue.corps.appendChild(carte);
+      rendue.points += 1;
+      if (point.calque) rendue.calques.add(point.calque);
+      nonBloquants += 1;
+      rafraichir();
     },
     ajouterPublication(texte: string, niveau: LogLevel = 'info') {
       ajouterEntree(creerLignePublication(texte, niveau));

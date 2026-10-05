@@ -16,6 +16,7 @@ const node = (id: string, name: string) => ({ id, name });
 
 /** Un constat quelconque : ces tests portent sur le mécanisme, pas sur le texte. */
 const constat = {
+  famille: 'variables' as const,
   manque: 'son stroke est illisible.',
   impact: 'Le contrat ne dira pas comment le peindre.',
   action: 'Reliez-le à une variable, puis réexportez.',
@@ -30,6 +31,7 @@ test('le sujet forme le texte et retient le node, sans se répéter ailleurs', (
   assert.deepEqual(sujet('Layer', node('1:2', 'Badge')), {
     texte: 'Layer « Badge »',
     nodeId: '1:2',
+    calque: 'Badge',
   });
   assert.equal(sujet('Component Set', node('3:4', 'Button')).texte, 'Component Set « Button »');
 });
@@ -55,6 +57,8 @@ test('les trois parties voyagent avec la phrase, et la phrase en dérive', () =>
     titre: 'Layer « Badge » : son stroke est illisible.',
     impact: 'Le contrat ne dira pas comment le peindre.',
     action: 'Reliez-le à une variable, puis réexportez.',
+    famille: 'variables',
+    calque: 'Badge',
   });
   assert.equal(`${point?.titre} ${point?.impact} ${point?.action}`, PHRASE);
 });
@@ -62,6 +66,7 @@ test('les trois parties voyagent avec la phrase, et la phrase en dérive', () =>
 test('le champ visé s’écrit entre le sujet et le manque, quand il y en a un', () => {
   const canal: string[] = [];
   pousserLocalise(canal, 'Layer', node('1:2', 'Tile'), {
+    famille: 'variables',
     champ: 'padding',
     manque: 'les côtés diffèrent.',
     impact: 'Rien n’est exporté pour cette valeur.',

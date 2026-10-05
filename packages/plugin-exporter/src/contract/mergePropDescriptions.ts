@@ -18,6 +18,7 @@ import type { ContractProp, StateModel } from '@ucm-kit/core/format';
  */
 function unknownValueWarning(propName: string, value: string): PointACorriger {
   return pointDe(`Règle @prop « ${propName}.${value} »`, {
+    famille: 'regles',
     manque: `la propriété de variante « ${propName} » n’a pas de valeur « ${value} ».`,
     impact: 'La documentation de cette valeur n’entre pas dans le contrat.',
     action: 'Dans le calque « prop », reprenez le nom et la valeur définis sur le composant, puis réexportez.',
@@ -71,6 +72,7 @@ export function mergePropDescriptions(
     const prop = propByName(props, propName);
     if (!prop || prop.type !== 'enum') {
       pousserSansNode(warnings, `Règle @prop « ${propName} »`, {
+        famille: 'regles',
         manque: 'le composant n’a aucune propriété de variante portant ce nom.',
         impact: 'La documentation de cette règle n’entre pas dans le contrat.',
         action: 'Dans le calque « prop », reprenez le nom et la valeur définis sur le composant, puis réexportez.',

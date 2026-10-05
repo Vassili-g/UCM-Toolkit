@@ -65,6 +65,10 @@ const BORNE = {
   action: 'Reliez ces paramètres à une variable dans chaque variant concerné, puis réexportez.',
 };
 
+/** Les trois parties seules : la famille et le calque se vérifient à part. */
+const troisParties = (point?: { titre: string; impact: string; action: string }) =>
+  point && { titre: point.titre, impact: point.impact, action: point.action };
+
 const phrase = (partie: { titre: string; impact: string; action: string }) =>
   `${partie.titre} ${partie.impact} ${partie.action}`;
 
@@ -89,7 +93,7 @@ test('trois racines à min width brut donnent une ligne à trois cibles', async 
 
   const lignes = canal.filter((message) => message.includes('min width'));
   assert.deepEqual([...new Set(lignes)], [phrase(BORNE)]);
-  assert.deepEqual(partiesDe(canal).get(phrase(BORNE)), BORNE);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(BORNE))), BORNE);
   assert.deepEqual(
     localisationsDe(canal).get(phrase(BORNE)),
     racines.map((noeud) => noeud.id),
@@ -168,7 +172,7 @@ test('une ombre sans style d’effets sur les racines donne une ligne, sans nom 
     impact: 'Le contrat ne transmettra pas les ombres ou les flous des variants concernés.',
     action: 'Appliquez un style d’effets à chaque variant concerné, puis réexportez.',
   };
-  assert.deepEqual(partiesDe(canal).get(phrase(attendu)), attendu);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(attendu))), attendu);
   assert.deepEqual(
     localisationsDe(canal).get(phrase(attendu)),
     racines.map((noeud) => noeud.id),
@@ -222,7 +226,7 @@ for (const [nom, reglage, attendu] of PROPRIETES_SANS_CHAMP) {
 
     await extraire(racines, canal);
 
-    assert.deepEqual(partiesDe(canal).get(phrase(attendu)), attendu);
+    assert.deepEqual(troisParties(partiesDe(canal).get(phrase(attendu))), attendu);
     assert.deepEqual(
       localisationsDe(canal).get(phrase(attendu)),
       racines.map((noeud) => noeud.id),
@@ -256,7 +260,7 @@ test('trois racines atténuées sans variable donnent une ligne à trois cibles'
 
   const lignes = [...new Set(canal.filter((message) => message.includes('opacity')))];
   assert.deepEqual(lignes, [phrase(OPACITE)]);
-  assert.deepEqual(partiesDe(canal).get(phrase(OPACITE)), OPACITE);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(OPACITE))), OPACITE);
   assert.deepEqual(
     localisationsDe(canal).get(phrase(OPACITE)),
     racines.map((noeud) => noeud.id),
@@ -275,7 +279,7 @@ test('un gap sans variable sur les racines donne une ligne, sans nom de calque',
     impact: "Le contrat n'exportera pas cette propriété.",
     action: 'Reliez cette propriété à une variable Figma, puis réexportez.',
   };
-  assert.deepEqual(partiesDe(canal).get(phrase(attendu)), attendu);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(attendu))), attendu);
   assert.deepEqual(
     localisationsDe(canal).get(phrase(attendu)),
     racines.map((noeud) => noeud.id),
@@ -380,7 +384,7 @@ test('trois racines sans auto layout donnent une ligne à trois cibles, disposit
       + 'valeurs de gap et de padding à des variables, puis réexportez.',
   };
   for (const attendu of [disposition, espacement]) {
-    assert.deepEqual(partiesDe(canal).get(phrase(attendu)), attendu);
+    assert.deepEqual(troisParties(partiesDe(canal).get(phrase(attendu))), attendu);
     assert.deepEqual(
       localisationsDe(canal).get(phrase(attendu)),
       racines.map((noeud) => noeud.id),
@@ -402,7 +406,7 @@ test('trois racines sans auto layout à la hauteur sans variable donnent une lig
     action: 'Reliez height à une variable dans chaque variant concerné, ou configurez leur '
       + 'taille avec un auto layout, puis réexportez.',
   };
-  assert.deepEqual(partiesDe(canal).get(phrase(hauteur)), hauteur);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(hauteur))), hauteur);
   assert.deepEqual(localisationsDe(canal).get(phrase(hauteur)), racines.map((noeud) => noeud.id));
 });
 
@@ -410,7 +414,7 @@ test('trois racines sans auto layout à la hauteur sans variable donnent une lig
 function uneLignePourTrois(canal: string[], racines: ComponentNode[], attendu: {
   titre: string; impact: string; action: string;
 }): void {
-  assert.deepEqual(partiesDe(canal).get(phrase(attendu)), attendu, canal.join('\n'));
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(attendu))), attendu, canal.join('\n'));
   assert.deepEqual(localisationsDe(canal).get(phrase(attendu)), racines.map((noeud) => noeud.id));
   assert.equal(canal.filter((message) => message.startsWith('Layer «')).length, 0, canal.join('\n'));
 }
@@ -610,7 +614,7 @@ test('un enfant à l’alignement illisible sous trois racines donne une ligne, 
 
   await extraire(racines, canal);
 
-  assert.deepEqual(partiesDe(canal).get(phrase(ALIGNEMENT_DU_LIBELLE)), ALIGNEMENT_DU_LIBELLE);
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(ALIGNEMENT_DU_LIBELLE))), ALIGNEMENT_DU_LIBELLE);
   assert.deepEqual(
     localisationsDe(canal).get(phrase(ALIGNEMENT_DU_LIBELLE)),
     racines.map((noeud) => `label-${noeud.name}`),
@@ -645,7 +649,7 @@ test('un enfant au layout grow hors menu sous trois racines donne une ligne', as
     action: 'Choisissez Fill ou Fixed pour sa largeur dans un auto layout horizontal, ou pour '
       + 'sa hauteur dans un auto layout vertical, puis réexportez.',
   };
-  assert.deepEqual(partiesDe(canal).get(phrase(etirement)), etirement, canal.join('\n'));
+  assert.deepEqual(troisParties(partiesDe(canal).get(phrase(etirement))), etirement, canal.join('\n'));
   assert.deepEqual(
     localisationsDe(canal).get(phrase(etirement)),
     racines.map((noeud) => `label-${noeud.name}`),

@@ -12,6 +12,7 @@ import type { Cible } from './cible';
 import type { CodeVerdict } from './prevol';
 import type { Offre } from './template/sources';
 import type { TraceDeMesure } from './contract/mesure';
+import type { FamilleDePoint } from './contract/famillesDePoint';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 /**
@@ -22,6 +23,9 @@ import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
  * l'attend pour que le texte paraisse avant le calcul qu'il annonce.
  */
 export type Annonce = (etape: string) => void | Promise<void>;
+
+export { FAMILLES_DE_POINT } from './contract/famillesDePoint';
+export type { FamilleDePoint } from './contract/famillesDePoint';
 
 /** Niveau d'une ligne de compte rendu : il décide de sa couleur et de son marqueur. */
 export type LogLevel = 'info' | 'success' | 'error';
@@ -232,6 +236,10 @@ export type PluginMessage =
        * `avertissement`.
        */
       severite?: 'avertissement' | 'danger';
+      /** Le geste que le designer fait dans Figma ; il range le point dans sa section. */
+      famille: FamilleDePoint;
+      /** Le nom du calque visé, quand le point en désigne un. */
+      calque?: string;
       /** « Layer « Border » : l'alignement du stroke est illisible. » */
       titre: string;
       /**

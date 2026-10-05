@@ -136,6 +136,7 @@ async function loadTextStyle(
   const styleId = textNode.textStyleId;
   if (typeof styleId !== 'string' || !styleId) {
     pousserLocalise(warnings, 'Layer', textNode, {
+      famille: 'styles',
       manque: `aucun style de texte unique n'est appliqué.`,
       impact: `Sa typographie manquera au développeur.`,
       action: `Appliquez un style de texte au calque entier, puis réexportez.`,
@@ -146,6 +147,7 @@ async function loadTextStyle(
   const style = await loadStyle(styleId).catch(() => null);
   if (!style || style.type !== 'TEXT') {
     pousserLocalise(warnings, 'Layer', textNode, {
+      famille: 'styles',
       manque: `le style de texte appliqué est introuvable.`,
       impact: `Sa typographie manquera au développeur.`,
       action: `Appliquez de nouveau un style de texte publié, puis réexportez.`,
@@ -159,6 +161,7 @@ async function loadTextStyle(
       warnings,
       `Style de texte « ${style.name} » sur le calque « ${textNode.name} »`,
       {
+        famille: 'styles',
         manque: `son nom ne contient que des espaces ou des « / ».`,
         impact: `Sa typographie manquera au développeur.`,
         action: `Renommez le style, puis réexportez.`,
@@ -189,6 +192,7 @@ async function loadTextStyle(
       continue;
     }
     pousserSansNode(warnings, `Style de texte « ${style.name} »`, {
+      famille: 'variables',
       champ: label,
       manque: `aucune variable Figma n'est reliée.`,
       impact: `Cette propriété typographique manquera au développeur.`,
@@ -232,6 +236,7 @@ function signalerSurcharges(textNode: TextNode, style: TextStyle, warnings: stri
     const valeur = duCalque[propriete];
     if (valeur === undefined || valeur === duStyle[propriete]) continue;
     pousserLocalise(warnings, 'Layer', textNode, {
+      famille: 'styles',
       champ: libelle,
       manque: estMixed(valeur)
         ? `ce calque porte plusieurs valeurs.`
@@ -246,6 +251,7 @@ function signalerSurcharges(textNode: TextNode, style: TextStyle, warnings: stri
   for (const { type, libelle, ajout } of SURCHARGES_SEMANTIQUES) {
     if (!types.has(type)) continue;
     pousserLocalise(warnings, 'Layer', textNode, {
+      famille: 'styles',
       champ: libelle,
       manque: `le calque ajoute ${ajout} au style de texte « ${style.name} ».`,
       impact: `Le développeur rendra le style de police du style de texte.`,
@@ -298,6 +304,7 @@ export async function extractVariantTypography(
     for (const { slotPath, textNode } of textSlots(layoutNode, iconNames, composed)) {
       if (allowedSlotPaths && !allowedSlotPaths.has(JSON.stringify(slotPath))) {
         pousserLocalise(pathNotices, 'Variant', entry.component, {
+          famille: 'disposition',
           champ: `calque « ${textNode.name} »`,
           manque: `il n'occupe pas la même place que dans le variant par défaut.`,
           impact: `Le développeur ne saura pas quel style de texte lui appliquer dans ce variant.`,
@@ -318,6 +325,7 @@ export async function extractVariantTypography(
       const existingId = styleIdByKey.get(loaded.key);
       if (existingId && existingId !== loaded.id) {
         pousserSansNode(warnings, `Style de texte « ${loaded.definition.figmaName} »`, {
+          famille: 'styles',
           manque: `son nom et celui d'un autre style de texte donnent le même nom `
             + `« ${loaded.key} » dans le contrat.`,
           impact: `Le développeur n'aura pas la typographie du calque « ${textNode.name} ».`,
@@ -331,6 +339,7 @@ export async function extractVariantTypography(
       uses.push({ slotPath, style: loaded.key, ...usageDuCalque(textNode) });
       if (tronqueSansMaxLines(textNode)) {
         pousserLocalise(warnings, 'Layer', textNode, {
+          famille: 'styles',
           champ: 'truncate text',
           manque: `le texte est coupé à la taille de sa boîte, sans « Max lines ».`,
           impact: `Le développeur affichera le texte en entier.`,

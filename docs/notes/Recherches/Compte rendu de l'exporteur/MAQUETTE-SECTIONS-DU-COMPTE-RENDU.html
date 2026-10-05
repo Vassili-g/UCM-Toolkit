@@ -1,0 +1,437 @@
+<meta charset="utf-8">
+<title>Points à corriger par type</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : une bande de réglages, puis deux panneaux de plugin côte à côte (avant, proposition), puis les décisions. */
+:root {
+  --page: #f3f4f6;
+  --encre: #17191c;
+  --encre-douce: #5b6068;
+  --filet: #d9dce1;
+  --surface: #ffffff;
+  --accent: #2f5bd3;
+  --accent-fond: #e7edfb;
+  --texte-page: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --texte-code: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #15171a; --encre: #e8eaed; --encre-douce: #9aa0a8; --filet: #31353b;
+    --surface: #1d2024; --accent: #8fb0ff; --accent-fond: #24304d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #15171a; --encre: #e8eaed; --encre-douce: #9aa0a8; --filet: #31353b;
+  --surface: #1d2024; --accent: #8fb0ff; --accent-fond: #24304d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--encre);
+  font: 14px/1.5 var(--texte-page);
+}
+.page { max-width: 1120px; margin: 0 auto; padding: 32px 16px 56px; display: grid; gap: 28px; }
+h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 600; text-wrap: balance; }
+.chapeau { margin: 8px 0 0; color: var(--encre-douce); max-width: 68ch; }
+.reglages { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; }
+.reglage { display: grid; gap: 6px; }
+.reglage > span { font: 500 11px/1 var(--texte-code); letter-spacing: .06em; text-transform: uppercase; color: var(--encre-douce); }
+.segments { display: inline-flex; border: 1px solid var(--filet); border-radius: 8px; padding: 2px; background: var(--surface); flex-wrap: wrap; }
+.segments button {
+  font: 500 13px/1 var(--texte-page); color: var(--encre-douce); background: none; border: 0;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+}
+.segments button[aria-pressed="true"] { background: var(--accent-fond); color: var(--accent); }
+.segments button:focus-visible, .decision:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.comparaison { display: flex; flex-wrap: wrap; gap: 32px; align-items: start; }
+.colonne { display: grid; gap: 10px; min-width: 0; }
+.colonne h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.colonne p.note { margin: 0; color: var(--encre-douce); font-size: 13px; max-width: 46ch; }
+.legende { display: grid; gap: 10px; flex: 1 1 260px; min-width: 0; align-self: stretch; }
+.legende ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.legende li { color: var(--encre); }
+.legende li span { color: var(--encre-douce); }
+.decisions { display: grid; gap: 12px; }
+.decisions h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.liste-decisions { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.decision { background: var(--surface); border: 1px solid var(--filet); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+.decision b { font-weight: 600; }
+.decision p { margin: 0; color: var(--encre-douce); font-size: 13px; }
+.decision .num { font: 500 11px/1 var(--texte-code); color: var(--accent); letter-spacing: .06em; }
+.sources { color: var(--encre-douce); font-size: 13px; }
+.sources a { color: var(--accent); }
+
+/* ---------- Le panneau du plugin : décalque du socle UCM (packages/plugin-socle/src/ui/socle.css) ---------- */
+.plugin {
+  --fond: #ffffff; --fond-survol: #f5f5f5; --fond-bloc: #f5f5f5; --fond-note: #ebebeb;
+  --fond-marque: #0d99ff; --fond-avertissement: #fff1d6; --fond-danger: #ffe0db;
+  --bordure: #d2d2d2; --bordure-marque: #0d99ff;
+  --texte: #1e1e1e; --texte-second: #6b6b6b; --texte-danger: #dc3412; --texte-avertissement: #a55b00; --texte-sur-marque: #ffffff;
+  --espace-page: 16px; --espace-bloc: 12px; --espace-controle: 8px; --espace-serre: 4px;
+  --hauteur-action: 32px; --hauteur-secondaire: 24px; --rayon: 6px;
+  width: 380px; max-width: 100%; height: 540px;
+  display: grid; grid-template-rows: auto 1fr;
+  border-radius: 10px; overflow: hidden;
+  background: var(--fond); color: var(--texte);
+  font: 11px/16px Inter, ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.12), 0 8px 24px rgba(0,0,0,.12);
+}
+.plugin.etroit { width: 320px; }
+.plugin.figma-dark {
+  --fond: #2c2c2c; --fond-survol: #383838; --fond-bloc: #383838; --fond-note: #4d4d4d;
+  --fond-avertissement: #4a3a10; --fond-danger: #4d1f17; --bordure: #5e5e5e;
+  --texte: #ffffff; --texte-second: #b3b3b3; --texte-danger: #ffafa3; --texte-avertissement: #ffc470;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 24px rgba(0,0,0,.4);
+}
+.plugin p { margin: 0; }
+.plugin button { font: inherit; }
+.barre-titre {
+  height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 var(--espace-page);
+  border-bottom: 1px solid var(--bordure); font-weight: 600; font-size: 11px;
+}
+.barre-titre .croix { margin-left: auto; color: var(--texte-second); }
+.defile { overflow-y: auto; padding: var(--espace-page); display: grid; gap: var(--espace-bloc); align-content: start; }
+.carte-commande { display: grid; gap: var(--espace-controle); padding: var(--espace-bloc); border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond-bloc); min-width: 0; }
+.carte-surtitre { color: var(--texte-second); font-weight: 600; }
+.cible-nom { font-size: 15px; line-height: 20px; font-weight: 600; }
+.verdict { color: var(--texte-avertissement); font-weight: 500; }
+.btn { height: var(--hauteur-action); border-radius: var(--rayon); border: 1px solid transparent; padding: 0 12px; cursor: pointer; }
+.btn-principal { background: var(--fond-marque); color: var(--texte-sur-marque); font-weight: 500; justify-self: start; }
+.btn-secondaire { background: var(--fond); color: var(--texte); border-color: var(--bordure); height: var(--hauteur-secondaire); padding: 0 8px; justify-self: start; }
+.btn:focus-visible, .section-bascule:focus-visible, .bouton-discret:focus-visible { outline: 2px solid var(--bordure-marque); outline-offset: 2px; }
+.groupe-titre { color: var(--texte-second); font-weight: 600; }
+.liste { display: grid; gap: var(--espace-controle); min-width: 0; }
+
+.carte { display: grid; gap: var(--espace-serre); justify-items: start; padding: var(--espace-controle); border-radius: 0 var(--rayon) var(--rayon) 0; overflow-wrap: anywhere; min-width: 0; }
+.carte-avertissement { border-left: 2px solid var(--texte-avertissement); background: var(--fond-avertissement); }
+.carte-danger { border-left: 2px solid var(--texte-danger); background: var(--fond-danger); }
+.pastille { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.pastille-avertissement { color: var(--texte-avertissement); }
+.pastille-danger { color: var(--texte-danger); }
+.carte-titre { font-weight: 600; }
+.carte-impact { color: var(--texte-second); }
+.carte-liste { margin: 4px 0 0; padding-left: 16px; }
+.carte .btn-secondaire { margin-top: 4px; }
+
+/* La proposition : la barre du total, puis les sections au modèle de Gestion (UCM Palettes, section.ts). */
+.barre-du-total { display: flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); font-weight: 600; }
+.bouton-discret { margin-left: auto; background: none; border: 0; padding: 0; color: var(--texte-second); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-weight: 400; }
+.sections { display: grid; min-width: 0; }
+.section { display: grid; gap: var(--espace-controle); padding: var(--espace-controle) 0; border-top: 1px solid var(--bordure); min-width: 0; }
+.section:last-child { padding-bottom: 0; }
+.section-tete { display: flex; align-items: center; gap: var(--espace-controle); min-height: 24px; min-width: 0; }
+.section-titre { margin: 0; font-size: 11px; flex: none; }
+.section-bascule { display: inline-flex; align-items: center; gap: var(--espace-controle); padding: 0; border: 0; background: none; color: var(--texte); cursor: pointer; font-weight: 600; }
+.chevron::before { content: "›"; display: inline-block; width: 10px; text-align: center; color: var(--texte-second); transition: transform .12s; }
+.section[data-ouverte="true"] .chevron::before { transform: rotate(90deg); }
+.section-compte { padding: 1px 6px; border-radius: var(--rayon); background: var(--fond-note); color: var(--texte-second); font-variant-numeric: tabular-nums; flex: none; }
+.section-resume { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--texte-second); }
+.section-corps { display: grid; gap: var(--espace-controle); min-width: 0; }
+.plugin.sans-resume .section-resume { display: none; }
+@media (prefers-reduced-motion: reduce) { .chevron::before { transition: none; } }
+</style>
+
+<div class="page">
+  <header>
+    <h1>Points à corriger, rangés par type</h1>
+    <p class="chapeau">Maquette du compte rendu d’UCM Exporter, à valider avant implémentation. À gauche, la liste plate d’aujourd’hui. À droite, la proposition : les bloquants en tête, puis une section repliable par geste à faire dans Figma, chacune avec son compte. Les 17 points viennent des textes du moteur, sur un composant « Alert » à quatre variants.</p>
+  </header>
+
+  <div class="reglages" role="group" aria-label="Réglages de la maquette">
+    <div class="reglage"><span>Contenu</span>
+      <div class="segments" id="choix-contenu">
+        <button type="button" data-valeur="nombreux" aria-pressed="true">17 points</button>
+        <button type="button" data-valeur="peu" aria-pressed="false">3 points</button>
+      </div>
+    </div>
+    <div class="reglage"><span>Thème de Figma</span>
+      <div class="segments" id="choix-theme">
+        <button type="button" data-valeur="clair" aria-pressed="true">Clair</button>
+        <button type="button" data-valeur="sombre" aria-pressed="false">Sombre</button>
+      </div>
+    </div>
+    <div class="reglage"><span>Largeur</span>
+      <div class="segments" id="choix-largeur">
+        <button type="button" data-valeur="380" aria-pressed="true">380 px</button>
+        <button type="button" data-valeur="320" aria-pressed="false">320 px, minimale</button>
+      </div>
+    </div>
+    <div class="reglage"><span>En-tête replié</span>
+      <div class="segments" id="choix-resume">
+        <button type="button" data-valeur="noms" aria-pressed="true">Compte et calques</button>
+        <button type="button" data-valeur="compte" aria-pressed="false">Compte seul</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="comparaison">
+    <section class="colonne" aria-labelledby="titre-avant">
+      <h2 id="titre-avant">Aujourd’hui</h2>
+      <p class="note">Une liste plate. Le designer défile pour savoir ce qui l’attend.</p>
+      <div class="plugin" id="panneau-avant"></div>
+    </section>
+    <section class="colonne" aria-labelledby="titre-proposition">
+      <h2 id="titre-proposition">Proposition</h2>
+      <p class="note">Cliquer un en-tête pour l’ouvrir. Une section ouverte le reste quand l’analyse est relancée.</p>
+      <div class="plugin" id="panneau-proposition"></div>
+    </section>
+    <aside class="legende" aria-labelledby="titre-legende">
+      <h2 id="titre-legende" style="margin:0;font-size:15px;font-weight:600">Ce qui change</h2>
+      <ol>
+        <li>Les bloquants restent hors des sections. <span>Ils décident de la publication, et ce qui doit être lu ne se replie pas.</span></li>
+        <li>Un type par geste dans Figma, dans un ordre fixe. <span>L’auto layout vient d’abord : le poser fait disparaître des points de gap et de padding.</span></li>
+        <li>L’en-tête porte le chevron, le titre et le compte de points. <span>Replié, il nomme à droite les premiers calques visés.</span></li>
+        <li>Au-delà de cinq points, tout est replié à l’arrivée. <span>La liste des types tient alors dans la fenêtre sans défiler.</span></li>
+        <li>Dans une section, la pastille « À corriger » disparaît. <span>Une section ouverte commence par « Sélectionner les N calques ».</span></li>
+      </ol>
+    </aside>
+  </div>
+
+  <section class="decisions" aria-labelledby="titre-decisions">
+    <h2 id="titre-decisions">Décisions à valider</h2>
+    <div class="liste-decisions">
+      <div class="decision"><span class="num">D1</span><b>Bloquants hors des sections</b><p>Ou dans une section « Bloquants » ouverte d’office, au même niveau que les types.</p></div>
+      <div class="decision"><span class="num">D2</span><b>Ordre fixe des types</b><p>Ordre de correction : Auto layout, Propriétés, Imbriqués, Variables, Styles, Règles, Réglages non exportés. Ou un tri par nombre de points.</p></div>
+      <div class="decision"><span class="num">D3</span><b>Seuil de cinq points</b><p>Jusqu’à cinq points, ou un seul type, tout s’ouvre à l’arrivée. Au-delà, tout est replié.</p></div>
+      <div class="decision"><span class="num">D4</span><b>Noms de calques dans l’en-tête replié</b><p>Le réglage « En-tête replié » de la maquette montre les deux variantes.</p></div>
+      <div class="decision"><span class="num">D5</span><b>« Sélectionner les N calques » par section</b><p>Le geste de Roller et de Design Lint. Il reste dans le corps : l’en-tête ne fait que déplier.</p></div>
+      <div class="decision"><span class="num">D6</span><b>Pastille « À corriger » retirée dans une section</b><p>Le titre de section dit déjà la nature. « Bloquant » reste sur les points bloquants.</p></div>
+      <div class="decision"><span class="num">D7</span><b>Libellés des sept types</b><p>Auto layout et disposition, Propriétés et variants, Composants imbriqués et icônes, Variables à relier, Styles de texte et d’effets, Règles d’usage, Réglages non exportés.</p></div>
+    </div>
+    <p class="sources">Sources principales : <a href="https://www.nngroup.com/articles/accordions-on-desktop/">NN/g, accordéons</a>, <a href="https://www.nngroup.com/articles/accordion-icons/">NN/g, icônes d’accordéon</a>, <a href="https://design-system.service.gov.uk/components/accordion/">GOV.UK</a>, <a href="https://carbondesignsystem.com/components/accordion/usage/">Carbon</a>, <a href="https://help.figma.com/hc/en-us/articles/39592284074263-Check-designs-in-Figma">Figma Check designs</a>, <a href="https://github.com/destefanis/Design-Lint">Design Lint</a>. La note complète est RECHERCHE-SECTIONS-DU-COMPTE-RENDU.md, dans le même dossier.</p>
+  </section>
+</div>
+
+<script>
+const TYPES = [
+  ['disposition', 'Auto layout et disposition'],
+  ['proprietes', 'Propriétés et variants'],
+  ['imbriques', 'Composants imbriqués et icônes'],
+  ['variables', 'Variables à relier'],
+  ['styles', 'Styles de texte et d’effets'],
+  ['regles', 'Règles d’usage'],
+  ['non-exportes', 'Réglages non exportés'],
+];
+
+// Textes du moteur ; `calque` est le nom que l'en-tête replié reprend, `noeuds` le nombre de calques sélectionnables.
+const POINTS = [
+  { type: 'imbriques', danger: true, calque: 'Button', noeuds: 2,
+    titre: 'Le composant « Alert » intègre « Button », dont 7 propriétés ne sont pas documentées :',
+    elements: ['color', 'variant', 'state', 'size', 'label', 'iconLeft', 'iconRight'],
+    impact: 'Le contrat de « Alert » décrit les calques de « Button » sans indiquer qu’il faut réutiliser ce composant.',
+    action: 'Sélectionnez le composant principal « Button », puis créez et complétez ses règles d’usage. Relancez ensuite l’analyse de « Alert ».' },
+  { type: 'disposition', calque: 'Button / Primary', noeuds: 1,
+    titre: 'Layer « Button / Primary » : il n’utilise pas d’auto layout.',
+    impact: 'Le contrat annonce par défaut une disposition horizontale : le développeur placera ses calques autrement que dans Figma.',
+    action: 'Appliquez un auto layout à ce calque, puis réexportez.' },
+  { type: 'disposition', calque: 'Content', noeuds: 4,
+    titre: 'Layer « Content » : il range 3 calques mais n’utilise pas d’auto layout.',
+    impact: 'Le développeur ne saura pas comment ces calques se placent les uns par rapport aux autres.',
+    action: 'Appliquez un auto layout à ce calque, puis réexportez.' },
+  { type: 'disposition', calque: 'Card', noeuds: 4,
+    titre: 'Layer « Card », min width : il fixe min width, mais il se trouve entre le composant et les calques qui s’y étirent.',
+    impact: 'La borne ne s’appliquera pas au composant dans le code.',
+    action: 'Déplacez ces bornes sur le composant ou sur le calque qui s’étire, puis réexportez.' },
+  { type: 'disposition', calque: 'Icon', noeuds: 4,
+    titre: 'Layer « Icon » : son réglage d’étirement n’est pas pris en charge.',
+    impact: 'Le développeur ne saura pas si l’icône garde sa taille ou remplit son cadre.',
+    action: 'Choisissez Fill ou Fixed pour ce calque, puis réexportez.' },
+  { type: 'variables', calque: 'Variants', noeuds: 140,
+    titre: 'Dimensions minimales ou maximales sans variable associée.',
+    impact: 'Ces variants définissent un min width sans variable. Ces valeurs ne seront pas exportées.',
+    action: 'Reliez ces paramètres à une variable dans chaque variant concerné, puis réexportez.' },
+  { type: 'variables', calque: 'Variants', noeuds: 140,
+    titre: 'fill : couleur sans variable associée.',
+    impact: 'Le contrat ne transmettra pas les couleurs sans variable associée.',
+    action: 'Reliez chaque couleur concernée à une variable dans les variants sélectionnés, puis réexportez.' },
+  { type: 'variables', calque: 'Variants', noeuds: 140,
+    titre: 'gap : aucune variable Figma n’est reliée à cette propriété.',
+    impact: 'Le contrat n’exportera pas cette propriété.',
+    action: 'Reliez cette propriété à une variable Figma, puis réexportez.' },
+  { type: 'variables', calque: 'Overlay', noeuds: 4,
+    titre: 'Layer « Overlay », opacity : aucune variable associée.',
+    impact: 'L’opacité de ce calque manquera au développeur.',
+    action: 'Reliez opacity à une variable, puis réexportez.' },
+  { type: 'variables', calque: 'Border', noeuds: 4,
+    titre: 'Layer « Border » : les côtés ne sont pas reliés à la même variable (top, bottom).',
+    impact: 'Le contrat ne publiera qu’une épaisseur de bordure.',
+    action: 'Reliez-les tous à la même variable, puis réexportez.' },
+  { type: 'variables', calque: 'Body / Regular', noeuds: 0,
+    titre: 'Style de texte « Body / Regular », line height : aucune variable Figma n’est reliée.',
+    impact: 'Cette propriété typographique manquera au développeur.',
+    action: 'Reliez-la à une variable dans le style de texte, puis réexportez.' },
+  { type: 'styles', calque: 'text', noeuds: 3,
+    titre: 'Layer « text » : aucun style de texte unique n’est appliqué.',
+    impact: 'Sa typographie manquera au développeur.',
+    action: 'Appliquez un style de texte au calque entier, puis réexportez.' },
+  { type: 'styles', calque: 'Variants', noeuds: 28,
+    titre: 'effect : aucun style d’effets appliqué.',
+    impact: 'Le contrat ne transmettra pas les ombres ou les flous des variants concernés.',
+    action: 'Appliquez un style d’effets à chaque variant concerné, puis réexportez.' },
+  { type: 'regles', calque: '.ruleItem', noeuds: 2,
+    titre: '.ruleItem : 2 règles @do contiennent encore « À compléter ».',
+    impact: 'Le développeur lira « À compléter » à la place de la règle.',
+    action: 'Remplacez ce texte par la règle, ou supprimez-la, puis réexportez.' },
+  { type: 'regles', calque: '@prop size.xl', noeuds: 0,
+    titre: 'Règle @prop « size.xl » : la propriété de variante size n’a pas de valeur xl.',
+    impact: 'Cette description ne sera rattachée à aucune valeur.',
+    action: 'Reprenez le nom et la valeur exacts de la propriété, puis réexportez.' },
+  { type: 'imbriques', calque: 'Icon slot', noeuds: 0,
+    titre: 'Layer « Icon slot » : il contient le composant « Icon », mais le contrat ne décrit ce calque nulle part.',
+    impact: 'Le développeur ne rendra pas « Icon » dans ce composant.',
+    action: 'Placez ce calque dans le cadre en auto layout qui porte le gap et le padding, puis réexportez.' },
+  { type: 'non-exportes', calque: 'Border', noeuds: 1,
+    titre: 'Layer « Border » : l’alignement du stroke est illisible.',
+    impact: 'Le contrat ne dira pas s’il est inside, center ou outside.',
+    action: 'Vérifiez ce réglage dans Figma, puis réexportez.' },
+];
+const PEU = [POINTS[1], POINTS[8], POINTS[11]];
+const SEUIL = 5;
+
+const etat = { contenu: 'nombreux', sombre: false, etroit: false, resume: 'noms', ouvertes: new Set(), deplie: null };
+
+function el(tag, classe, texte) {
+  const e = document.createElement(tag);
+  if (classe) e.className = classe;
+  if (texte !== undefined) e.textContent = texte;
+  return e;
+}
+
+function bouton(classe, texte) {
+  const b = el('button', classe, texte);
+  b.type = 'button';
+  return b;
+}
+
+function selectionner(n) {
+  return n === 1 ? 'Sélectionner le calque' : `Sélectionner les ${n} calques`;
+}
+
+function carte(point, avecPastille) {
+  const c = el('div', `carte ${point.danger ? 'carte-danger' : 'carte-avertissement'}`);
+  if (avecPastille || point.danger) {
+    c.append(el('span', `pastille ${point.danger ? 'pastille-danger' : 'pastille-avertissement'}`, point.danger ? 'Bloquant' : 'À corriger'));
+  }
+  c.append(el('p', 'carte-titre', point.titre));
+  if (point.elements) {
+    const ul = el('ul', 'carte-liste');
+    point.elements.forEach((nom) => ul.append(el('li', '', nom)));
+    c.append(ul);
+  }
+  c.append(el('p', 'carte-impact', point.impact), el('p', 'carte-action', point.action));
+  if (point.noeuds > 0) c.append(bouton('btn btn-secondaire', selectionner(point.noeuds)));
+  return c;
+}
+
+function cadre(panneau, corps) {
+  panneau.className = `plugin${etat.sombre ? ' figma-dark' : ''}${etat.etroit ? ' etroit' : ''}${etat.resume === 'compte' ? ' sans-resume' : ''}`;
+  const barre = el('div', 'barre-titre', 'UCM Exporter');
+  barre.append(el('span', 'croix', '✕'));
+  const defile = el('div', 'defile');
+  defile.append(corps);
+  panneau.replaceChildren(barre, defile);
+}
+
+function teteDeCarte(points) {
+  const carteCommande = el('div', 'carte-commande');
+  carteCommande.append(
+    el('span', 'carte-surtitre', 'Composant'),
+    el('span', 'cible-nom', 'Alert'),
+    el('p', 'verdict', `${points.length} points à corriger dans Figma.`),
+    bouton('btn btn-principal', 'Publier quand même'),
+  );
+  return carteCommande;
+}
+
+function rendreAvant(points) {
+  const carteCommande = teteDeCarte(points);
+  const liste = el('div', 'liste');
+  liste.append(el('div', 'groupe-titre', `À corriger dans Figma (${points.length})`));
+  [...points.filter((p) => p.danger), ...points.filter((p) => !p.danger)].forEach((p) => liste.append(carte(p, true)));
+  carteCommande.append(liste);
+  cadre(document.getElementById('panneau-avant'), carteCommande);
+}
+
+function rendreProposition(points) {
+  const carteCommande = teteDeCarte(points);
+  points.filter((p) => p.danger).forEach((p) => carteCommande.append(carte(p, false)));
+
+  const autres = points.filter((p) => !p.danger);
+  const groupes = TYPES.map(([code, titre]) => ({ code, titre, points: autres.filter((p) => p.type === code) })).filter((g) => g.points.length > 0);
+  const toutOuvert = autres.length <= SEUIL || groupes.length === 1;
+  const estOuverte = (code) => etat.deplie ?? (toutOuvert || etat.ouvertes.has(code));
+
+  const total = el('div', 'barre-du-total');
+  const nbTypes = groupes.length === 1 ? '1 type' : `${groupes.length} types`;
+  total.append(el('span', '', `À corriger dans Figma · ${autres.length} ${autres.length === 1 ? 'point' : 'points'}, ${nbTypes}`));
+  if (!toutOuvert) {
+    const tous = groupes.every((g) => estOuverte(g.code));
+    const bascule = bouton('bouton-discret', tous ? 'Tout replier' : 'Tout déplier');
+    bascule.addEventListener('click', () => { etat.deplie = !tous; etat.ouvertes = new Set(); rendre(); });
+    total.append(bascule);
+  }
+
+  const sections = el('div', 'sections');
+  groupes.forEach((g) => {
+    const ouverte = estOuverte(g.code);
+    const section = el('section', 'section');
+    section.dataset.ouverte = String(ouverte);
+    const corpsId = `corps-${g.code}`;
+    const b = bouton('section-bascule');
+    b.setAttribute('aria-expanded', String(ouverte));
+    b.setAttribute('aria-controls', corpsId);
+    b.append(el('span', 'chevron'), document.createTextNode(g.titre));
+    b.addEventListener('click', () => {
+      if (etat.deplie !== null) {
+        etat.ouvertes = new Set(groupes.filter((x) => etat.deplie).map((x) => x.code));
+        etat.deplie = null;
+      }
+      etat.ouvertes.has(g.code) ? etat.ouvertes.delete(g.code) : etat.ouvertes.add(g.code);
+      rendre();
+    });
+    const h = el('h3', 'section-titre');
+    h.append(b);
+    const tete = el('div', 'section-tete');
+    const noms = [...new Set(g.points.map((p) => p.calque))].join(', ');
+    tete.append(h, el('span', 'section-compte', String(g.points.length)));
+    if (!ouverte) tete.append(el('span', 'section-resume', noms));
+    section.append(tete);
+
+    const corps = el('div', 'section-corps');
+    corps.id = corpsId;
+    corps.hidden = !ouverte;
+    const localisables = g.points.filter((p) => p.noeuds > 0);
+    const noeuds = localisables.reduce((n, p) => n + p.noeuds, 0);
+    if (localisables.length > 1) corps.append(bouton('btn btn-secondaire', selectionner(noeuds)));
+    g.points.forEach((p) => corps.append(carte(p, false)));
+    section.append(corps);
+    sections.append(section);
+  });
+
+  const compteRendu = el('div', 'liste');
+  compteRendu.append(total, sections);
+  carteCommande.append(compteRendu);
+  cadre(document.getElementById('panneau-proposition'), carteCommande);
+}
+
+function rendre() {
+  const points = etat.contenu === 'peu' ? PEU : POINTS;
+  rendreAvant(points);
+  rendreProposition(points);
+}
+
+function segments(id, appliquer) {
+  const groupe = document.getElementById(id);
+  groupe.addEventListener('click', (evenement) => {
+    const b = evenement.target.closest('button');
+    if (!b) return;
+    groupe.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    appliquer(b.dataset.valeur);
+    rendre();
+  });
+}
+segments('choix-contenu', (v) => { etat.contenu = v; etat.ouvertes = new Set(); etat.deplie = null; });
+segments('choix-theme', (v) => { etat.sombre = v === 'sombre'; });
+segments('choix-largeur', (v) => { etat.etroit = v === '320'; });
+segments('choix-resume', (v) => { etat.resume = v; });
+rendre();
+</script>

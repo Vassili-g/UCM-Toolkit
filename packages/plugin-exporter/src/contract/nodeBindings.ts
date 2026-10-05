@@ -345,12 +345,14 @@ const TEXTES_SANS_VARIABLE: Readonly<Record<string, {
 }>> = {
   opacity: {
     calque: {
+      famille: 'variables',
       champ: 'opacity',
       manque: 'aucune variable associée.',
       impact: "Le contrat ne transmettra pas l'opacité de ce calque.",
       action: 'Reliez opacity à une variable, puis réexportez.',
     },
     variants: {
+      famille: 'variables',
       titre: 'opacity : aucune variable associée.',
       impact: "Le contrat ne transmettra pas l'opacité des variants concernés.",
       action: 'Reliez opacity à une variable dans chaque variant concerné, puis réexportez.',
@@ -363,6 +365,7 @@ function signalerSansVariable(node: SceneNode, label: string, warnings: string[]
   const propre = TEXTES_SANS_VARIABLE[label];
   if (estUneRacineDeVariant(warnings, node)) {
     pousserPourLesVariants(warnings, node, propre?.variants ?? {
+      famille: 'variables',
       titre: `${label} : aucune variable Figma n’est reliée à cette propriété.`,
       impact: `Le contrat n'exportera pas cette propriété.`,
       action: `Reliez cette propriété à une variable Figma, puis réexportez.`,
@@ -370,6 +373,7 @@ function signalerSansVariable(node: SceneNode, label: string, warnings: string[]
     return;
   }
   pousserLocalise(warnings, 'Layer', node, propre?.calque ?? {
+    famille: 'variables',
     champ: label,
     manque: `aucune variable Figma n'est reliée.`,
     impact: `Le développeur n'aura pas cette valeur.`,
@@ -429,6 +433,7 @@ async function resolveGroup<K extends string>(
     // faire est le même pour les trois.
     if (estUneRacineDeVariant(warnings, node)) {
       pousserPourLesVariants(warnings, node, {
+        famille: 'disposition',
         titre: 'gap et padding : aucun auto layout configuré.',
         impact: 'Le contrat ne transmettra aucune valeur de gap ou de padding pour ces variants.',
         action: 'Pour transmettre ces espacements, configurez un auto layout et reliez les '
@@ -437,6 +442,7 @@ async function resolveGroup<K extends string>(
       return null;
     }
     pousserLocalise(warnings, 'Layer', node, {
+      famille: 'disposition',
       manque: `il n'utilise pas d'auto layout, donc Figma ne lui applique ni gap ni padding.`,
       impact: `Le contrat ne précisera pas les espacements de ce calque.`,
       action: `Appliquez un auto layout au calque si son espacement doit être transmis au développeur, `
@@ -462,6 +468,7 @@ async function resolveGroup<K extends string>(
   if (inapplicable === 'rows-space-between') {
     if (estUneRacineDeVariant(warnings, node)) {
       pousserPourLesVariants(warnings, node, {
+        famille: 'variables',
         titre: "vertical gap : la valeur « Auto » n'est pas exportée.",
         impact: "Le contrat ne transmettra pas la répartition automatique de l'espace entre les "
           + 'lignes.',
@@ -471,6 +478,7 @@ async function resolveGroup<K extends string>(
       return null;
     }
     pousserLocalise(warnings, 'Layer', node, {
+      famille: 'variables',
       manque: `son vertical gap est réglé sur « Auto », donc Figma répartit lui-même `
         + `l'espace entre ses lignes.`,
       impact: `Le contrat ne précisera pas l’espacement entre ses lignes.`,
@@ -527,6 +535,7 @@ async function resolveGroup<K extends string>(
       }
       if (estUneRacineDeVariant(warnings, node)) {
         pousserPourLesVariants(warnings, node, {
+          famille: 'variables',
           titre: `${label} : les ${partiesDuChamp(label)} utilisent des variables différentes.`,
           impact: `Le contrat ne transmettra pas ${objetDuChamp(label)} des variants concernés.`,
           action: `Dans chaque variant concerné, reliez ${label === 'stroke weight'
@@ -536,6 +545,7 @@ async function resolveGroup<K extends string>(
         return null;
       }
       pousserLocalise(warnings, 'Layer', node, {
+        famille: 'variables',
         champ: label,
         manque: `les côtés ne sont pas reliés à la même variable `
           + `(${tokensByAlternative[asymmetricIndex].join(', ')}).`,
@@ -549,6 +559,7 @@ async function resolveGroup<K extends string>(
     if (candidates.length > 1) {
       if (estUneRacineDeVariant(warnings, node)) {
         pousserPourLesVariants(warnings, node, {
+          famille: 'variables',
           titre: `${label} : plusieurs variables définissent la même valeur.`,
           impact: `Le contrat ne transmettra pas ${objetDuChamp(label)} des variants concernés.`,
           action: 'Dans chaque variant concerné, retirez les liaisons contradictoires pour ne '
@@ -557,6 +568,7 @@ async function resolveGroup<K extends string>(
         return null;
       }
       pousserLocalise(warnings, 'Layer', node, {
+        famille: 'variables',
         champ: label,
         manque: `deux réglages Figma se contredisent (${candidates.join(', ')}).`,
         impact: `Le développeur n'aura pas cette valeur.`,
@@ -609,6 +621,7 @@ async function resolveGroup<K extends string>(
         ].filter((manque): manque is string => Boolean(manque));
         for (const manque of manques) {
           pousserPourLesVariants(warnings, node, {
+            famille: 'variables',
             titre: `${label} : ${manque}`,
             impact: `Le contrat transmettra uniquement les valeurs des ${parties} reliés à une `
               + 'variable.',
@@ -618,6 +631,7 @@ async function resolveGroup<K extends string>(
         }
       } else if (details.length > 0) {
         pousserLocalise(warnings, 'Layer', node, {
+          famille: 'variables',
           champ: label,
           manque: `certains côtés n'ont pas de variable exploitable (${details.join(' ; ')}).`,
           impact: `Les valeurs de ces côtés seront absentes du contrat.`,
@@ -655,6 +669,7 @@ async function resolveGroup<K extends string>(
   ].filter((detail): detail is string => Boolean(detail));
 
   pousserLocalise(warnings, 'Layer', node, {
+    famille: 'variables',
     champ: label,
     manque: `certains côtés n'ont pas de variable exploitable (${details.join(' ; ')}).`,
     impact: `Le développeur n'aura pas cette valeur.`,
@@ -940,12 +955,14 @@ export async function resolveSizeBounds(
       ? `un ${enGras[0]}`
       : `${enGras.slice(0, -1).join(', ')} et ${enGras[enGras.length - 1]}`;
     pousserPourLesVariants(warnings, node, {
+      famille: 'variables',
       titre: `Dimensions minimales ou maximales sans variable associée.`,
       impact: `Ces variants définissent ${declarees} sans variable. Ces valeurs ne seront pas exportées.`,
       action: `Reliez ces paramètres à une variable dans chaque variant concerné, puis réexportez.`,
     });
   } else if (unbound.length > 0) {
     pousserLocalise(warnings, 'Layer', node, {
+      famille: 'variables',
       manque: `il fixe ${unbound.map(fieldLabel).join(', ')} sans variable Figma.`,
       impact: `Le contrat ne publie que les bornes reliées à une variable : le développeur `
         + `rendra ce calque sans elles.`,

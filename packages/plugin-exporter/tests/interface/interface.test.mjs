@@ -223,15 +223,18 @@ test('un point bloquant émis en dernier se lit en premier', async () => {
       operation: 1,
     });
     assert.deepEqual(
-      await page.locator('.groupe-liste .carte').evaluateAll(
+      await page.locator('.compte-rendu .carte').evaluateAll(
         (cartes) => cartes.map((carte) => carte.className),
       ),
       ['carte carte-danger', 'carte carte-avertissement', 'carte carte-avertissement'],
     );
+    // Le bloquant reste hors de toute section, et seul il porte une pastille.
+    assert.equal(await page.locator('.section .carte-danger').count(), 0);
+    assert.deepEqual(await page.locator('.compte-rendu .pastille').allTextContents(), ['Bloquant']);
     // L'ordre d'arrivée survit entre eux : deux bloquants se suivent comme le
     // moteur les a écrits, et les avertissements gardent le leur.
     assert.match(
-      await page.locator('.groupe-liste .carte').nth(1).innerText(),
+      await page.locator('.compte-rendu .carte').nth(1).innerText(),
       /« Badge »/,
     );
   } finally {
@@ -268,7 +271,7 @@ const reglages = (destination, tokens = true, depots = [DEPOT]) => ({
 });
 const A = JSON.stringify(['github', 'mon-org/ds', 'main', true]);
 const B = JSON.stringify(['github', 'mon-org/autre', 'main', true]);
-const point = { titre: 'Layer « Border » : l’alignement du stroke est illisible.', impact: 'Impact.', action: 'Action.' };
+const point = { famille: 'non-exportes', titre: 'Layer « Border » : l’alignement du stroke est illisible.', impact: 'Impact.', action: 'Action.' };
 
 /** Analyse le composant sous la destination A, avec un point à corriger. */
 async function analyserSousA(page, envoyer) {
@@ -702,6 +705,306 @@ test('une réponse d’enregistrement arrivée après une erreur de fenêtre ne 
     await envoyer(reglages(A, true, [DEPOT]));
 
     assert.equal(await page.locator('.carte-depot').count(), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+const FAMILLES = [
+  ['disposition', 'Auto layout et disposition'],
+  ['proprietes', 'Propriétés et variants'],
+  ['imbriques', 'Composants imbriqués et icônes'],
+  ['variables', 'Variables à relier'],
+  ['styles', 'Styles de texte et d’effets'],
+  ['regles', 'Règles d’usage'],
+  ['non-exportes', 'Réglages non exportés'],
+  ['fichier', 'Collections et variables du fichier'],
+];
+const titreDe = Object.fromEntries(FAMILLES);
+
+const avertissement = (famille, rang, calque) => ({
+  type: 'diagnostic',
+  famille,
+  ...(calque ? { calque } : {}),
+  titre: `Point ${famille} ${rang}.`,
+  impact: 'Impact.',
+  action: 'Action.',
+});
+const bloquant = (rang = 1) => ({
+  type: 'diagnostic',
+  severite: 'danger',
+  famille: 'imbriques',
+  titre: `Bloquant ${rang}.`,
+  impact: 'Impact.',
+  action: 'Action.',
+});
+
+/** Lance l'analyse et envoie les points un à un, comme le sandbox les émet. */
+async function recevoir(page, envoyer, points, { operation = 1, destination } = {}) {
+  await page.getByRole('button', { name: 'Analyser le composant', exact: true }).click();
+  for (const point of points) await envoyer({ ...point, operation, ...(destination ? { destination } : {}) });
+}
+
+const sections = (page) => page.locator('.carte-composant .section');
+const bascule = (page, famille) => page.locator(`.carte-composant .section[data-famille="${famille}"] .section-bascule`);
+const corps = (page, famille) => page.locator(`.carte-composant .section[data-famille="${famille}"] .section-corps`);
+const resume = (page, famille) => page.locator(`.carte-composant .section[data-famille="${famille}"] .section-resume`);
+const total = (page) => page.locator('.carte-composant .barre-du-total > span');
+const toutBascule = (page) => page.locator('.carte-composant .barre-du-total .bouton-discret');
+const etatDe = (page, famille) => bascule(page, famille).getAttribute('aria-expanded');
+
+/** Six points sur trois familles : au-delà du seuil, tout arrive replié. */
+const SIX_POINTS = [
+  avertissement('variables', 1, 'Variants'),
+  avertissement('styles', 1, 'text'),
+  avertissement('disposition', 1, 'Button / Primary'),
+  avertissement('variables', 2, 'Variants'),
+  avertissement('variables', 3, 'Icon'),
+  avertissement('styles', 2),
+];
+
+test('les sections suivent l’ordre fixe des familles, quel que soit l’ordre d’arrivée', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [...FAMILLES].reverse().map(([famille], rang) => avertissement(famille, rang)));
+    assert.deepEqual(
+      await sections(page).evaluateAll((elements) => elements.map((element) => element.dataset.famille)),
+      FAMILLES.map(([famille]) => famille),
+    );
+    assert.deepEqual(await page.locator('.carte-composant .section-bascule').allInnerTexts(), FAMILLES.map(([, titre]) => titre));
+  } finally {
+    await page.close();
+  }
+});
+
+test('un point sans famille connue va dans la section du fichier', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [{ ...avertissement('disposition', 1), famille: undefined }, avertissement('inconnue', 2)]);
+    assert.equal(await sections(page).count(), 1);
+    assert.equal(await bascule(page, 'fichier').innerText(), titreDe.fichier);
+    assert.equal(await page.locator('.carte-composant .section-compte').innerText(), '2');
+  } finally {
+    await page.close();
+  }
+});
+
+test('chaque en-tête compte les points de sa section, et la ligne du total ceux des sections', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [bloquant(), ...SIX_POINTS]);
+    const comptes = await sections(page).evaluateAll(
+      (elements) => elements.map((element) => [element.dataset.famille, element.querySelector('.section-compte').textContent]),
+    );
+    assert.deepEqual(comptes, [['disposition', '1'], ['variables', '3'], ['styles', '2']]);
+    // Le bloquant n'entre pas dans le total.
+    assert.equal(await total(page).innerText(), 'À corriger dans Figma · 6 points, 3 types');
+  } finally {
+    await page.close();
+  }
+});
+
+test('la ligne du total met « point » et « type » au singulier', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [avertissement('regles', 1)]);
+    assert.equal(await total(page).innerText(), 'À corriger dans Figma · 1 point, 1 type');
+    await envoyer({ ...avertissement('regles', 2), operation: 1 });
+    assert.equal(await total(page).innerText(), 'À corriger dans Figma · 2 points, 1 type');
+  } finally {
+    await page.close();
+  }
+});
+
+test('avec un seul bloquant, ni ligne du total ni section ne paraissent', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [bloquant()]);
+    assert.equal(await page.locator('.carte-composant .carte-danger').isVisible(), true);
+    assert.equal(await page.locator('.carte-composant .barre-du-total').isVisible(), false);
+    assert.equal(await sections(page).count(), 0);
+  } finally {
+    await page.close();
+  }
+});
+
+test('au-delà de cinq points sur plusieurs familles, les sections arrivent repliées', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, SIX_POINTS);
+    for (const famille of ['disposition', 'variables', 'styles']) {
+      assert.equal(await etatDe(page, famille), 'false', famille);
+      assert.equal(await corps(page, famille).isHidden(), true, famille);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('jusqu’à cinq points, ou avec une seule famille, les sections arrivent ouvertes', async () => {
+  const sous = await ouvrir();
+  try {
+    await recevoir(sous.page, sous.envoyer, SIX_POINTS.slice(0, 5));
+    for (const famille of ['disposition', 'variables', 'styles']) {
+      assert.equal(await etatDe(sous.page, famille), 'true', famille);
+      assert.equal(await corps(sous.page, famille).isVisible(), true, famille);
+    }
+    assert.equal(await toutBascule(sous.page).isHidden(), true);
+    // Une section repliée par le designer rend le geste qui rouvre tout.
+    await bascule(sous.page, 'styles').click();
+    assert.equal(await toutBascule(sous.page).innerText(), 'Tout déplier');
+    await toutBascule(sous.page).click();
+    assert.equal(await etatDe(sous.page, 'styles'), 'true');
+    assert.equal(await toutBascule(sous.page).isHidden(), true);
+  } finally {
+    await sous.page.close();
+  }
+
+  const seule = await ouvrir();
+  try {
+    await recevoir(seule.page, seule.envoyer, Array.from({ length: 8 }, (_, rang) => avertissement('variables', rang)));
+    assert.equal(await etatDe(seule.page, 'variables'), 'true');
+    assert.equal(await corps(seule.page, 'variables').isVisible(), true);
+  } finally {
+    await seule.page.close();
+  }
+});
+
+test('l’état par défaut se recalcule à chaque arrivée', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, SIX_POINTS.slice(0, 5));
+    assert.equal(await etatDe(page, 'variables'), 'true');
+    await envoyer({ ...SIX_POINTS[5], operation: 1 });
+    assert.equal(await etatDe(page, 'variables'), 'false');
+  } finally {
+    await page.close();
+  }
+});
+
+test('l’en-tête ne fait que déplier : aria-expanded et le corps suivent le clic', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, SIX_POINTS);
+    const entete = bascule(page, 'variables');
+    const identifiant = await entete.getAttribute('aria-controls');
+    assert.equal(await page.locator(`[id="${identifiant}"]`).count(), 1);
+    assert.equal(await page.locator(`[id="${identifiant}"]`).evaluate((corpsDeSection) => corpsDeSection.closest('.section').dataset.famille), 'variables');
+    await entete.click();
+    assert.equal(await etatDe(page, 'variables'), 'true');
+    assert.equal(await corps(page, 'variables').isVisible(), true);
+    assert.equal(await etatDe(page, 'styles'), 'false');
+    await entete.click();
+    assert.equal(await etatDe(page, 'variables'), 'false');
+    assert.equal(await corps(page, 'variables').isHidden(), true);
+    assert.equal(await page.evaluate(() => window.demandes.length), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test('le résumé des calques ne se lit que replié, et ignore les doublons', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, SIX_POINTS);
+    assert.equal(await resume(page, 'variables').innerText(), 'Variants, Icon');
+    assert.equal(await resume(page, 'styles').innerText(), 'text');
+    await bascule(page, 'variables').click();
+    assert.equal(await resume(page, 'variables').isHidden(), true);
+    await bascule(page, 'variables').click();
+    assert.equal(await resume(page, 'variables').isVisible(), true);
+  } finally {
+    await page.close();
+  }
+});
+
+test('une section sans calque nommé n’a pas de résumé', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, [...SIX_POINTS, avertissement('regles', 1)]);
+    assert.equal(await etatDe(page, 'regles'), 'false');
+    assert.equal(await resume(page, 'regles').isHidden(), true);
+  } finally {
+    await page.close();
+  }
+});
+
+test('« Tout déplier » ouvre toutes les sections, puis « Tout replier » les ferme', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await recevoir(page, envoyer, SIX_POINTS);
+    assert.equal(await toutBascule(page).innerText(), 'Tout déplier');
+    await toutBascule(page).click();
+    for (const famille of ['disposition', 'variables', 'styles']) {
+      assert.equal(await etatDe(page, famille), 'true', famille);
+    }
+    assert.equal(await toutBascule(page).innerText(), 'Tout replier');
+    await toutBascule(page).click();
+    for (const famille of ['disposition', 'variables', 'styles']) {
+      assert.equal(await etatDe(page, famille), 'false', famille);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('le compte rendu ne porte aucun bouton de sélection global', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    const avecCalques = SIX_POINTS.map((point, rang) => ({ ...point, nodeIds: [`1:${rang}a`, `1:${rang}b`] }));
+    await recevoir(page, envoyer, [{ ...bloquant(), nodeIds: ['2:1'] }, ...avecCalques]);
+    await toutBascule(page).click();
+    // Un bouton par carte, et aucun dans un en-tête, dans la ligne du total ni entre les cartes.
+    assert.equal(await page.getByRole('button', { name: /Sélectionner/ }).count(), 7);
+    assert.equal(await page.locator('.carte-composant .carte .carte-lien').count(), 7);
+    assert.equal(await page.locator('.carte-composant .section-tete, .carte-composant .barre-du-total').getByRole('button', { name: /Sélectionner/ }).count(), 0);
+    assert.equal(await page.locator('.carte-composant .section-corps > button, .carte-composant .sections > button').count(), 0);
+  } finally {
+    await page.close();
+  }
+});
+
+test('les choix d’ouverture survivent à une nouvelle analyse du même sujet, et s’oublient quand le sujet change', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await envoyer(cible('a', 'creer'));
+    await recevoir(page, envoyer, SIX_POINTS);
+    await envoyer({ ...verdict, operation: 1 });
+    await bascule(page, 'variables').click();
+    assert.equal(await etatDe(page, 'variables'), 'true');
+
+    // Même composant : la création des règles efface le résultat et rend l'analyse.
+    await creer(page).click();
+    await envoyer({ type: 'status', state: 'success', text: '7 règles posées.', operation: 2 });
+    assert.equal(await sections(page).count(), 0);
+    await recevoir(page, envoyer, SIX_POINTS, { operation: 3 });
+    assert.equal(await etatDe(page, 'variables'), 'true');
+    assert.equal(await etatDe(page, 'styles'), 'false');
+    await envoyer({ ...verdict, operation: 3 });
+
+    // Autre composant : le choix est oublié, le défaut (replié) revient.
+    await envoyer(cible('b'));
+    await recevoir(page, envoyer, SIX_POINTS, { operation: 4 });
+    assert.equal(await etatDe(page, 'variables'), 'false');
+  } finally {
+    await page.close();
+  }
+});
+
+test('un changement de destination fait oublier les choix d’ouverture', async () => {
+  const { page, envoyer } = await ouvrir();
+  try {
+    await envoyer(reglages(A));
+    await recevoir(page, envoyer, SIX_POINTS, { destination: A });
+    await envoyer({ ...verdict, destination: A, operation: 1 });
+    await bascule(page, 'variables').click();
+    // Mêmes réglages : le choix reste.
+    await envoyer(reglages(A));
+    assert.equal(await etatDe(page, 'variables'), 'true');
+
+    await envoyer(reglages(B));
+    await recevoir(page, envoyer, SIX_POINTS, { destination: B, operation: 2 });
+    assert.equal(await etatDe(page, 'variables'), 'false');
   } finally {
     await page.close();
   }

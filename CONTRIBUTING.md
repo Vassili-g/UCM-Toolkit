@@ -245,7 +245,18 @@ Quatre bornes, sans quoi la table ne tient pas :
   d’un message, car le sandbox en envoie deux par sélection et le second peut
   retomber pendant une analyse. La destination fait partie du sujet : les
   cartes se vident quand la clé de destination de `settings` change, et
-  seulement alors.
+  seulement alors ;
+- **le compte rendu d’UCM Exporter se range par famille de point.** Les points
+  bloquants (`severite: 'danger'`) viennent en tête, hors de toute section, et
+  seuls portent une pastille. Les autres vont sous une ligne de total (« À
+  corriger dans Figma · N points, K types »), dans une section repliable par
+  famille non vide, selon l’ordre de `FAMILLES_DE_POINT`. L’en-tête d’une
+  section porte le titre, le compte de points et, replié, les calques visés ;
+  il ne fait que déplier, et aucun bouton de sélection n’existe hors des
+  cartes. Les sections arrivent ouvertes jusqu’à cinq points non bloquants ou
+  avec une seule famille, repliées au-delà. Un clic du designer sur un
+  en-tête, ou sur « Tout déplier », fixe l’état choisi ; ce choix survit à une
+  nouvelle analyse du même sujet et s’oublie quand le sujet change.
 
 ### Les surfaces d’UCM Palettes
 

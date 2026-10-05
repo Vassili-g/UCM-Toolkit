@@ -11,6 +11,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { FAMILLES_DE_POINT, type FamilleDePoint } from '../src/messages';
 import { conteneurDeRegles, handleExportComponent, node, regle } from './aides/figmaFaux';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
@@ -459,7 +460,31 @@ test('un imbriqué sans règles donne son point en tête, en perte de portabilit
   assert.equal(resultat.localisations.get(diagnostics[0].message)?.length, 8);
   const point = resultat.parties.get(diagnostics[0].message);
   assert.equal(point?.severite, 'danger');
+  assert.equal(point?.famille, 'imbriques');
   assert.deepEqual(point?.elements, ['tone']);
+});
+
+test('les familles de point sont uniques et couvrent le type', () => {
+  const attendues: Record<FamilleDePoint, true> = {
+    disposition: true,
+    proprietes: true,
+    imbriques: true,
+    variables: true,
+    styles: true,
+    regles: true,
+    'non-exportes': true,
+    fichier: true,
+  };
+  assert.deepEqual([...FAMILLES_DE_POINT].sort(), Object.keys(attendues).sort());
+  assert.equal(new Set(FAMILLES_DE_POINT).size, FAMILLES_DE_POINT.length);
+});
+
+test('chaque point du scénario réel porte une famille connue', async () => {
+  const { resultat } = await exporterLeScenario('sans-regles');
+  assert.ok(resultat.parties.size > 0);
+  for (const [message, point] of resultat.parties) {
+    assert.ok(FAMILLES_DE_POINT.includes(point.famille), `« ${message} » sans famille`);
+  }
 });
 
 test('un imbriqué contracté ne donne ni point ni dessin', async () => {

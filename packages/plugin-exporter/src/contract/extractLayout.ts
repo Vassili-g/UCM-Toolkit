@@ -182,6 +182,7 @@ function warnUndeclaredDrawing(
   if (estUnDessinNonDeclare(parent, iconNames, composed)) return;
   const cible = calqueDeDessinANommer(child, iconNames, composed);
   pousserLocalise(warnings, 'Layer', cible, {
+    famille: 'imbriques',
     manque: `il n’est fait que de tracés vectoriels, et aucune règle @icons n’indique quelle `
       + `icône il dessine.`,
     impact: `Le contrat ne publie aucun tracé : le développeur recevra la place et les couleurs `
@@ -286,6 +287,7 @@ async function applyContainerProperties(
     const places = placeSesEnfantsParContraintes(node);
     if (childCount > 1) {
       pousserLocalise(warnings, 'Layer', node, {
+        famille: 'disposition',
         manque: `il range ${childCount} calques mais n'utilise pas d'auto layout.`,
         impact: places
           ? IMPACT_DES_LAYERS_PLACES
@@ -295,6 +297,7 @@ async function applyContainerProperties(
       });
     } else if (dependencies.length > 0) {
       pousserLocalise(warnings, 'Layer', node, {
+        famille: 'disposition',
         manque: `il enveloppe ${nommerDependances(dependencies)} mais n'utilise pas d'auto `
           + `layout.`,
         impact: places
@@ -518,6 +521,7 @@ async function describeNode(
       if (!dependency.visibilityProp) continue;
       if (normalizePropKey(directVisibility) === dependency.visibilityProp) continue;
       pousserLocalise(warnings, 'Layer', child, {
+        famille: 'proprietes',
         manque: `sa visibilité et celle du composant « ${dependency.component} » qu'il `
           + `contient dépendent de deux propriétés de composant différentes.`,
         impact: `Le contrat ne publie que celle du calque : celle de « ${dependency.component} » `
@@ -570,6 +574,7 @@ async function describeNode(
     }
     const plusieurs = dependencies.length > 1;
     pousserLocalise(warnings, 'Layer', child, {
+      famille: 'imbriques',
       manque: plusieurs
         ? `il contient ${nommerDependances(dependencies)}, mais les calques qui portent leurs `
           + `instances sont masqués.`
@@ -649,6 +654,7 @@ function warnIntermediateBounds(
     const bornes = sizeBoundFields(current);
     if (bornes.length > 0) {
       pousserLocalise(warnings, 'Layer', current, {
+        famille: 'disposition',
         manque: `il fixe ${bornes.map(fieldLabel).join(', ')}, mais il se trouve entre le `
           + `composant et les calques que le contrat décrit.`,
         impact: `Le contrat ne publie les bornes que du composant et de ces calques : le `
@@ -672,6 +678,7 @@ function warnMissingDirection(layoutNode: SceneNode, warnings: string[]): void {
   if (autoLayoutDirection(layoutNode)) return;
   if (estUneRacineDeVariant(warnings, layoutNode)) {
     pousserPourLesVariants(warnings, layoutNode, {
+      famille: 'disposition',
       titre: 'Variants sans auto layout.',
       impact: 'Leurs calques ne se déplaceront pas automatiquement lorsque le contenu '
         + 'd’un calque voisin grandit.',
@@ -681,6 +688,7 @@ function warnMissingDirection(layoutNode: SceneNode, warnings: string[]): void {
     return;
   }
   pousserLocalise(warnings, 'Layer', layoutNode, {
+    famille: 'disposition',
     manque: `il n'utilise pas d'auto layout.`,
     impact: placeSesEnfantsParContraintes(layoutNode)
       ? IMPACT_DES_LAYERS_PLACES
@@ -715,6 +723,7 @@ function warnUntokenizedFreeSize(component: SceneNode, warnings: string[]): void
     if (!fixed[axe] || firstVariableAlias(getBinding(component, axe))) continue;
     if (estUneRacineDeVariant(warnings, component)) {
       pousserPourLesVariants(warnings, component, {
+        famille: 'variables',
         titre: `${axe} : aucune variable associée sur des variants sans auto layout.`,
         impact: `Le contrat ne transmettra pas ${DIMENSIONS[axe]} des variants concernés.`,
         action: `Reliez ${axe} à une variable dans chaque variant concerné, ou configurez leur `
@@ -723,6 +732,7 @@ function warnUntokenizedFreeSize(component: SceneNode, warnings: string[]): void
       continue;
     }
     pousserLocalise(warnings, 'Layer', component, {
+      famille: 'variables',
       champ: axe,
       manque: 'aucune variable associée.',
       impact: `Le contrat ne transmettra pas ${DIMENSIONS[axe]} de ce calque sans auto layout.`,

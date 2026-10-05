@@ -10,6 +10,8 @@
  * parties ni ses cibles.
  */
 
+import type { FamilleDePoint } from './famillesDePoint';
+
 /** Un canal d'accumulation de messages. L'identité du tableau est la clé. */
 type Canal = readonly string[];
 
@@ -29,7 +31,12 @@ type NodeLocalisable = { readonly id: string; readonly name: string };
 export type SujetLocalisable = 'Layer' | 'Variant' | 'Component Set' | 'Frame';
 
 /** Le sujet d'un message : son texte, et le node qu'il désigne. */
-export type Sujet = { readonly texte: string; readonly nodeId: string };
+export type Sujet = {
+  readonly texte: string;
+  readonly nodeId: string;
+  /** Le nom du calque désigné, absent quand le sujet n'en nomme aucun. */
+  readonly calque?: string;
+};
 
 /**
  * Pourquoi ce sujet nomme un élément sans pouvoir le localiser.
@@ -91,6 +98,10 @@ export type PointACorriger = {
   readonly impact: string;
   /** Le geste exact à faire dans Figma. Une phrase impérative. */
   readonly action: string;
+  /** Le geste que le designer fait dans Figma pour corriger ce point. */
+  readonly famille: FamilleDePoint;
+  /** Le nom du calque visé, quand le point en désigne un. */
+  readonly calque?: string;
   /** Un contrat déjà faux, que l'interface lit en tête de liste. */
   readonly severite?: 'danger';
   /** Les éléments que le titre annonce, titre fini par « : ». */
@@ -99,6 +110,8 @@ export type PointACorriger = {
 
 /** Ce qu'un site d'émission écrit ; le titre s'y compose du sujet et du manque. */
 export type Constat = {
+  /** Le geste que le designer fait dans Figma pour corriger ce point. */
+  readonly famille: FamilleDePoint;
   /**
    * Le champ Figma précisé après le sujet, quand le message en vise un :
    * « Layer « Card », padding : … ». Absent le plus souvent.
@@ -159,7 +172,7 @@ const registreDe = (canal: Canal): Map<string, string[]> => {
  * rien.
  */
 export function sujet(genre: SujetLocalisable, node: NodeLocalisable): Sujet {
-  return { texte: `${genre} « ${node.name} »`, nodeId: node.id };
+  return { texte: `${genre} « ${node.name} »`, nodeId: node.id, calque: node.name };
 }
 
 /**
@@ -204,7 +217,7 @@ export function pousserPourLesVariants(
   racine: NodeLocalisable,
   point: PointACorriger,
 ): string {
-  return pousserNote(canal, point, { texte: '', nodeId: racine.id });
+  return pousserNote(canal, { ...point, calque: 'Variants' }, { texte: '', nodeId: racine.id });
 }
 
 /**
@@ -225,7 +238,7 @@ export function sujetNomme(
   nom: string,
   node: NodeLocalisable,
 ): Sujet {
-  return { texte: `${genre} « ${nom} »`, nodeId: node.id };
+  return { texte: `${genre} « ${nom} »`, nodeId: node.id, calque: nom };
 }
 
 /**
@@ -275,7 +288,7 @@ export function pousserLocalise(
   node: NodeLocalisable,
   constat: Constat,
 ): string {
-  const point = pointDe(sujet(genre, node).texte, constat);
+  const point = { ...pointDe(sujet(genre, node).texte, constat), calque: node.name };
   const message = phraseDe(point);
   canal.push(message);
   noterLesParties(canal, point);
@@ -288,6 +301,7 @@ export function pointDe(sujetTexte: string, constat: Constat): PointACorriger {
     titre: `${sujetTexte}${constat.champ ? `, ${constat.champ}` : ''} : ${constat.manque}`,
     impact: constat.impact,
     action: constat.action,
+    famille: constat.famille,
   };
 }
 
@@ -323,9 +337,11 @@ export function pousserSansNode(
  */
 export function pousserNote(
   canal: string[],
-  point: PointACorriger,
+  pointSansCalque: PointACorriger,
   sujetDuMessage: Sujet,
 ): string {
+  const calque = pointSansCalque.calque ?? sujetDuMessage.calque;
+  const point = calque === undefined ? pointSansCalque : { ...pointSansCalque, calque };
   const message = phraseDe(point);
   canal.push(message);
   noterLesParties(canal, point);
