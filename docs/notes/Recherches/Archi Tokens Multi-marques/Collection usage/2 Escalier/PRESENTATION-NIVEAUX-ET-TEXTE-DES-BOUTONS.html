@@ -1,0 +1,651 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Niveaux et texte des boutons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --accent:#17687F; --accent-bg:#DFEFF3; --ok:#1E7446; --ok-bg:#E3F3EA; --ko:#B42318; --ko-bg:#FBE9E7;
+  --bonus:#8A5A00; --bonus-bg:#FFF4D6; --new:#6B3FA0; --new-bg:#EFE7F8;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --accent:#5BC0D8; --accent-bg:#11303A; --ok:#5CCB8D; --ok-bg:#13301F; --ko:#F2877D; --ko-bg:#3A1A17;
+    --bonus:#E9C46A; --bonus-bg:#3B3413; --new:#C4A2EE; --new-bg:#2A1D3B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --accent:#5BC0D8; --accent-bg:#11303A; --ok:#5CCB8D; --ok-bg:#13301F; --ko:#F2877D; --ko-bg:#3A1A17;
+  --bonus:#E9C46A; --bonus-bg:#3B3413; --new:#C4A2EE; --new-bg:#2A1D3B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 96px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.5rem;line-height:1.25;margin:72px 0 12px;padding-top:8px;border-top:1px solid var(--line)}
+h3{font-size:1.12rem;margin:32px 0 8px}
+p{margin:0 0 12px;max-width:78ch}
+ul,ol{max-width:78ch;padding-left:22px}
+li{margin:0 0 6px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.55;background:var(--code-bg);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:12px 0 16px}
+pre code{background:none;padding:0;font-size:1em}
+.kicker{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.lede{font-size:1.1rem;color:var(--muted)}
+.meta{font-size:.9rem;color:var(--muted)}
+small,.note{color:var(--muted);font-size:.86rem}
+
+/* barre fixe */
+.barre{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+.barre-in{max-width:1100px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:.86rem}
+.barre label,.barre .lab{font-weight:600;color:var(--muted);margin-right:6px}
+.barre select{font:inherit;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface);vertical-align:middle}
+.seg button{all:unset;cursor:pointer;padding:4px 12px;font-weight:600;font-size:.84rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* cartes de synthèse */
+.cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:20px 0}
+.carte{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.carte b{display:block;font-family:var(--display);font-size:1.02rem;line-height:1.3;margin-bottom:6px}
+.carte p{font-size:.92rem;margin:0}
+.carte .num{display:inline-block;font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:4px}
+
+.regle{background:var(--accent-bg);border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;margin:16px 0;font-size:1.08rem;max-width:78ch}
+.regle b{color:var(--accent)}
+.encadre{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:16px 0}
+.encadre > :last-child{margin-bottom:0}
+
+/* tableaux */
+.tw{overflow-x:auto;margin:12px 0 18px}
+table{border-collapse:collapse;width:100%;font-size:.88rem;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:.8rem;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:bottom}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+td.in{background:var(--ok-bg);color:var(--ok);font-weight:600}
+td.bonus{background:var(--bonus-bg);color:var(--bonus)}
+td.out{color:var(--muted)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:0 8px;border-radius:99px;white-space:nowrap;line-height:1.7}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.ko{background:var(--ko-bg);color:var(--ko)}
+.tag.bonus{background:var(--bonus-bg);color:var(--bonus)}
+.tag.neutre{background:var(--soft);color:var(--muted)}
+.tag.new{background:var(--new-bg);color:var(--new)}
+.legende{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted);margin:6px 0 12px}
+
+/* l'escalier */
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:16px;margin:14px 0}
+@media (max-width:560px){.duo{grid-template-columns:1fr}}
+@media (max-width:600px){.barre{position:static}}
+.panneau{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.panneau h4{margin:0 0 8px;font-size:.9rem;font-family:var(--sans)}
+.escalier{display:grid;grid-template-columns:64px repeat(6,minmax(66px,1fr));gap:4px;overflow-x:auto;padding-bottom:4px}
+.eh{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:flex;flex-direction:column;justify-content:flex-end;line-height:1.25;padding:2px}
+.eh.ligne{justify-content:center}
+.ec{border-radius:6px;min-height:74px;min-width:0;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;font-weight:600;font-size:.9rem;border:2px solid transparent}
+.ec.in{border-color:var(--ok)}
+.ec.ko{border-color:var(--ko)}
+.ec.bonus{border:2px dashed var(--bonus)}
+.ec.out{opacity:.55}
+.ec .boite{border:2px solid;border-radius:4px;padding:0 6px;font-size:.78rem;font-weight:400}
+.puce{font-family:var(--mono);font-size:.64rem;font-weight:400;background:var(--surface);color:var(--ink);border-radius:4px;padding:1px 4px;line-height:1.3;text-align:center;max-width:100%}
+.puce i{display:block;font-style:normal;font-family:var(--sans);font-size:.6rem;color:var(--muted)}
+
+/* boutons en sombre */
+.sombres{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:14px 0}
+.apercu{margin:0;border-radius:10px;padding:12px;border:1px solid var(--line)}
+.apercu figcaption{font-size:.8rem;font-weight:600;margin-bottom:10px}
+.bts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bt{display:flex;flex-direction:column;gap:4px}
+.btn{display:inline-block;text-align:center;border-radius:6px;padding:7px 8px;font-weight:600;font-size:.88rem}
+.bt small{font-family:var(--mono);font-size:.66rem;color:inherit;opacity:.85;line-height:1.4}
+.charte{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:8px 0 4px;font-size:.88rem}
+.charte .pastille{width:150px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:space-around;font-weight:600}
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .petit{font-size:11px;fill:var(--muted)}
+svg .z-ok{fill:var(--ok);opacity:.35}
+svg .z-texte{fill:var(--accent);opacity:.18}
+svg .z-page{fill:var(--new);opacity:.18}
+svg .axe{stroke:var(--line)}
+svg .repere{stroke:var(--ink);stroke-width:2}
+svg .cran{fill:var(--ink)}
+
+/* maquette d'écran */
+.ecran{border-radius:10px;padding:16px;border:1px solid var(--line)}
+.ecran .carte-ui{border-radius:10px;padding:14px}
+.ecran .tete{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.ecran .tete b{font-size:1rem}
+.ecran .etiquette{font-size:.74rem;font-weight:600;border-radius:99px;padding:1px 9px}
+.ecran ul{list-style:none;margin:0 0 10px;padding:0;max-width:none}
+.ecran li{display:flex;justify-content:space-between;gap:8px;padding:7px 9px;border-radius:6px;margin:0;font-size:.9rem}
+.ecran li em{font-style:normal;font-size:.72rem;opacity:.8}
+.ecran .bandeau{border-radius:6px;padding:8px 10px;font-size:.88rem;margin-bottom:12px}
+.ecran label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px}
+.ecran .champ{border-radius:6px;padding:6px 9px;font-family:var(--mono);font-size:.84rem;margin-bottom:14px}
+.ecran .actions{display:flex;flex-wrap:wrap;gap:6px}
+.ecran .actions span{border-radius:6px;padding:6px 11px;font-weight:600;font-size:.84rem}
+
+/* panneau de variables */
+.vars td.nm{font-family:var(--mono);white-space:nowrap}
+.vars .sw{display:inline-block;width:30px;height:18px;border-radius:4px;border:1px solid var(--line);vertical-align:middle}
+.etapes{counter-reset:etape;list-style:none;padding:0;max-width:none}
+.etapes > li{counter-increment:etape;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px 54px;position:relative;margin-bottom:10px}
+.etapes > li::before{content:counter(etape);position:absolute;left:16px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.etapes b{display:block}
+</style>
+</head>
+<body>
+<div class="barre" role="region" aria-label="Réglages des maquettes">
+  <div class="barre-in">
+    <span><label for="choix-palette">Palette des maquettes</label><select id="choix-palette"></select></span>
+    <span><span class="lab" id="lab-texte">Texte des boutons en sombre</span><span class="seg" role="group" aria-labelledby="lab-texte" id="choix-texte">
+      <button type="button" data-texte="actuel" aria-pressed="true">Sombre, actuel</button><button type="button" data-texte="s2" aria-pressed="false">Clair, S2</button><button type="button" data-texte="s3" aria-pressed="false">Clair, S3</button></span></span>
+    <span><span class="lab" id="lab-page">Page</span><span class="seg" role="group" aria-labelledby="lab-page" id="choix-page">
+      <button type="button" data-page="auto" aria-pressed="true">Auto</button><button type="button" data-page="light" aria-pressed="false">Clair</button><button type="button" data-page="dark" aria-pressed="false">Sombre</button></span></span>
+  </div>
+</div>
+<main>
+<header>
+  <p class="kicker">Recherche · Archi Tokens Multi-marques · Usages indexés et contraste</p>
+  <h1>Niveaux de couleur, partenaires et texte des boutons</h1>
+  <p class="lede">Analyse de l'étude des usages indexés, menée en coordination avec l'étude « Modes et affichage global ». Ce document propose des décisions ; il ne modifie ni le code, ni la recette, ni les formats publiés.</p>
+  <p class="meta">Les maquettes peignent les rampes calculées par le moteur pour les couleurs de marque du Playground et deux statuts. La barre du haut choisit la palette et la couleur du texte des boutons en sombre. Les mesures viennent de <a href="./mesurer-polarites.ts"><code>mesurer-polarites.ts</code></a> et de <a href="./resultats-polarites.json"><code>resultats-polarites.json</code></a>.</p>
+</header>
+
+<h2 id="synthese">Recommandations</h2>
+<div class="cartes">
+  <div class="carte"><span class="num">1</span><b>Remplacer la diagonale par une règle</b><p>Un texte de niveau n se lit sur la page, sur <code>surface-card</code> et sur toute surface de niveau inférieur ou égal à n. Sur 8 000 croisements entre vingt palettes et deux thèmes, aucun échec. La table actuelle ne garantit que les 4 couples de même rang ; la règle en garantit 10.</p></div>
+  <div class="carte"><span class="num">2</span><b>Nommer les niveaux par des chiffres, avant l'écriture de <code>usage</code></b><p><code>text/3</code> sur <code>surface/2</code> se vérifie par une comparaison : 3 ≥ 2. Aucun token publié ne porte encore <code>usage</code>, et UCM Palettes ne l'écrit pas. Le renommage touche aujourd'hui le kit, l'explorateur et des documents. Un court essai dans Figma le valide avant de le figer.</p></div>
+  <div class="carte"><span class="num">3</span><b>Laisser les états aux composants</b><p><code>components.row.selected.background</code> vise <code>usage.primary.surface.3</code>. Le motif « un état avance d'un niveau » reste le défaut. <code>ucm check</code> mesure la paire réellement posée.</p></div>
+  <div class="carte"><span class="num">4</span><b>Texte clair en sombre : changer le bouton</b><p>Le texte sombre suit la règle du miroir : le texte des boutons prend la couleur du fond de page. Pour un texte clair, la solution S2 de l'étude Modes donne au bouton les nuances 700 à 950 du thème clair, par <code>theme.&lt;palette&gt;.solid.&lt;n&gt;</code>.</p></div>
+  <div class="carte"><span class="num">5</span><b>Corriger d'abord <code>ucm check</code></b><p>Le diagnostic ne mesure pas une paire reconnue : un texte identique à son fond passe sans constat. Il signale en revanche <code>text.active</code> sur <code>surface.default</code>, qui tient 10,06:1 au pire. Ce correctif ne dépend d'aucun nom.</p></div>
+  <div class="carte"><span class="num">6</span><b>Vérifier dans Figma, pas seulement en CI</b><p>Figma ne contrôle aucun contraste entre variables. Sans aide dans Figma, une paire hors règle n'apparaît qu'en CI, chez le développeur. Une commande « Vérifier la sélection » dans UCM Token Explorer liste les textes et contours d'un cadre, leur contraste dans chaque thème et le niveau valide le plus proche.</p></div>
+</div>
+
+<h2 id="demande">1. La demande et le bilan de l'étude</h2>
+<p>La demande proposait des chemins comme <code>primary/solid/on-1</code> associé à <code>primary/surface/1</code>, avec l'idée que « solid/on-1 s'utilise avec surface/1 et on sait que le ratio de contraste est respecté ». L'intuition de fond est juste : un niveau de couleur et un état de composant sont deux choses distinctes, et les noms <code>default</code>, <code>hover</code>, <code>active</code> et <code>active-hover</code> les confondent.</p>
+<p>Deux points changent. Le préfixe <code>on-</code> désigne le texte posé sur un bouton plein, comme dans <code>on-solid</code> ; il ne relie pas <code>solid</code> à <code>surface</code>. La garantie vient de l'ordre des indices et non de leur égalité : <code>text/3</code> se lit sur <code>surface/1</code>, <code>surface/2</code> et <code>surface/3</code>.</p>
+
+<h3>Ce que l'étude établit, et ce qu'elle laisse ouvert</h3>
+<div class="tw"><table>
+<thead><tr><th>Établi par l'étude, à garder</th><th>À corriger</th><th>Absent de l'étude</th></tr></thead>
+<tbody>
+<tr><td>Un indice ne prouve aucun contraste ; la garantie se mesure sur les couleurs résolues de chaque thème.</td><td>Un catalogue par marque. <code>usage</code> n'a pas d'axe de marque : une relation publiée vaut pour toutes les marques, présentes et futures. La garantie doit venir de la courbe ; la mesure de chaque palette la vérifie.</td><td>La forme des cellules qui tiennent : un escalier, donc une règle simple.</td></tr>
+<tr><td>Séparer les niveaux des états, et garder les états dans les composants.</td><td>Un fichier de catalogue (contextes, provenance, empreintes, fraîcheur) comme première étape. La règle tient en une comparaison d'entiers dans le kit, et les promesses d'UCM Palettes mesurent déjà chaque palette.</td><td>Le texte des boutons en sombre, la restriction la plus visible pour le designer.</td></tr>
+<tr><td>12 cellules texte sur surface sur 16 tiennent 4,5:1 ; la diagonale n'en garantit que 4.</td><td>Renommer après le catalogue. Le renommage coûte le moins maintenant, avant qu'UCM Palettes écrive <code>usage</code>.</td><td>Les faux signalements de <code>ucm check</code> : rangs différents et palettes différentes, quel que soit le contraste.</td></tr>
+<tr><td>Le diagnostic ne mesure pas une paire reconnue (sonde à 1:1 sans constat).</td><td></td><td>L'ancrage de la couleur exacte au cran 600, qui fait tomber le contour sur <code>surface/1</code> pour un vert.</td></tr>
+<tr><td>Une migration par ajout, sous la classe 5 de la politique de compatibilité.</td><td></td><td>L'anneau de focus posé sur une surface de niveau 2 à 4, sans garantie aujourd'hui.</td></tr>
+</tbody></table></div>
+
+<h2 id="escalier">2. La règle de l'escalier</h2>
+<p>La courbe fixe la clarté de chaque cran pour toutes les teintes et les deux intensités (<a href="../../ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a>, section 1). Le contraste entre deux crans dépend donc surtout de leurs numéros. Les quatre niveaux de texte visent 700, 800, 900 et 950 ; les quatre surfaces visent 100, 200, 300 et 400. Chaque niveau s'éloigne d'un cran du fond de page.</p>
+<div class="regle"><b>Règle.</b> Un premier plan de niveau n se pose sur la page, sur <code>surface-card</code> et sur toute surface de niveau m ≤ n. La page et <code>surface-card</code> comptent comme niveau 0.</div>
+
+<h3>Les mesures</h3>
+<p>Chaque cellule donne le minimum sur 120 contextes : vingt références, dont les quatre couleurs de marque du Playground ; une et deux intensités ; la couleur exacte ancrée ; clair et sombre.</p>
+<div class="tw"><table>
+<thead><tr><th>Texte, seuil 4,5:1</th><th>surface/1 · 100</th><th>surface/2 · 200</th><th>surface/3 · 300</th><th>surface/4 · 400</th></tr></thead>
+<tbody>
+<tr><td><code>text/1</code> · 700</td><td class="n in">4,70</td><td class="n out">4,14 (111/120)</td><td class="n out">3,48</td><td class="n out">2,66</td></tr>
+<tr><td><code>text/2</code> · 800</td><td class="n in">6,72</td><td class="n in">5,82</td><td class="n bonus">4,79</td><td class="n out">3,57</td></tr>
+<tr><td><code>text/3</code> · 900</td><td class="n in">10,06</td><td class="n in">8,80</td><td class="n in">7,30</td><td class="n bonus">5,44</td></tr>
+<tr><td><code>text/4</code> · 950</td><td class="n in">12,97</td><td class="n in">11,34</td><td class="n in">9,34</td><td class="n in">6,82</td></tr>
+</tbody></table></div>
+<div class="legende"><span class="tag ok">dans la règle, tenu partout</span><span class="tag bonus">tenu partout, hors règle</span><span class="tag neutre">échoue dans au moins un contexte</span></div>
+<ul>
+  <li><b>Entre palettes.</b> Un texte d'une palette sur la surface d'une autre, pour chaque couple de la règle : 4 000 croisements par thème, aucun échec. Le pire vaut 4,62:1 en sombre, rose <code>#F43F5E</code> au 700 sur la surface 100 d'un vert citron. Un texte neutre sur une surface de marque est donc couvert.</li>
+  <li><b>Le contour de contrôle</b> suit le même escalier au seuil 3:1. En clair, 20 croisements sur 4 000 échouent, tous avec le vert <code>#16A34A</code> au niveau 1 sur une surface 100 (2,82:1 au pire). Ce vert est ancré au cran 600 : ses octets exacts y remplacent la valeur de la courbe, plus claire de 0,04. En sombre, aucun échec.</li>
+  <li><b>Le fond plein</b> se détache à 3:1 de toute surface de niveau m ≤ n : 120 contextes sur 120 dans chaque cellule de la règle.</li>
+</ul>
+
+<h3>Maquette : l'escalier sur une palette</h3>
+<p>La grille peint chaque couple avec les couleurs de la palette choisie. Un cadre plein marque une cellule de la règle, un cadre pointillé une cellule qui tient pour cette palette sans être garantie pour toutes.</p>
+<p><span class="seg" role="group" aria-label="Famille affichée" id="choix-famille"><button type="button" data-famille="text" aria-pressed="true">Texte, 4,5:1</button><button type="button" data-famille="border-control" aria-pressed="false">Contour de contrôle, 3:1</button></span></p>
+<div class="duo">
+  <div class="panneau"><h4>Clair</h4><div class="escalier" id="escalier-light"></div></div>
+  <div class="panneau"><h4>Sombre</h4><div class="escalier" id="escalier-dark"></div></div>
+</div>
+
+<h3>Garder la règle simple</h3>
+<p>Deux cellules hors de la règle tiennent sur les 120 contextes : <code>text/2</code> sur <code>surface/3</code> (4,79:1) et <code>text/3</code> sur <code>surface/4</code> (5,44:1). Les ajouter donnerait la règle « m ≤ n + 1, sauf au niveau 1 », plus difficile à retenir, avec une marge de 0,29 seulement sur la première. Les laisser dehors est réversible : une garantie ajoutée plus tard ne casse aucune maquette, une garantie retirée en casse.</p>
+
+<h3>La règle, famille par famille</h3>
+<div class="tw"><table>
+<thead><tr><th>Emploi</th><th>Niveaux</th><th>Se pose sur</th><th>Seuil</th><th>Mesure</th></tr></thead>
+<tbody>
+<tr><td><code>text</code></td><td>1 à 4 : 700 à 950</td><td>page, <code>surface-card</code>, <code>surface/m</code> pour m ≤ n</td><td>4,5:1</td><td>0 échec sur 8 000 croisements</td></tr>
+<tr><td><code>border-control</code></td><td>1 à 4 : 600 à 900</td><td>page, <code>surface-card</code>, <code>surface/m</code> pour m ≤ n</td><td>3:1</td><td>20 échecs sur 8 000, tous sur le vert ancré au 600</td></tr>
+<tr><td><code>on-solid</code></td><td>une couleur par thème</td><td><code>solid/1</code> à <code>solid/4</code></td><td>4,5:1</td><td>60 sur 60 par niveau, minimum 5,10:1</td></tr>
+<tr><td><code>solid</code></td><td>1 à 4 : 700 à 950 avec le texte actuel</td><td>se détache de <code>surface/m</code> pour m ≤ n</td><td>3:1, quand le fond du bouton l'identifie</td><td>120 sur 120 dans chaque cellule</td></tr>
+<tr><td><code>focus</code></td><td>un : 600</td><td>page, <code>surface-card</code>, <code>surface/1</code></td><td>3:1</td><td>Sur <code>surface/2</code> : 2,63:1 en clair, 2,82:1 en sombre. Non couvert, aujourd'hui non plus.</td></tr>
+<tr><td>icône porteuse d'information</td><td>reprend <code>text/n</code></td><td>comme <code>text</code></td><td>3:1 exigé, 4,5:1 tenu</td><td>aucune variable de plus</td></tr>
+<tr><td><code>surface</code></td><td>1 à 4 : 100 à 400</td><td>reçoit les emplois ci-dessus</td><td>aucun</td><td></td></tr>
+<tr><td><code>border-decorative</code>, usages désactivés</td><td>un</td><td>libre</td><td>aucun</td><td>statut « exempté », distinct d'un succès</td></tr>
+</tbody></table></div>
+<p>La règle mesure la lisibilité, pas le sens. Un texte de succès lisible sur une surface de danger reste une erreur de sens que la règle ne relève pas.</p>
+
+<h2 id="noms">3. Des chiffres dans <code>usage</code>, les états dans <code>components</code></h2>
+<div class="tw"><table>
+<thead><tr><th>Chemin actuel</th><th>Chemin proposé</th><th>Cible, texte des boutons actuel</th></tr></thead>
+<tbody>
+<tr><td><code>primary/text/default</code> … <code>active-hover</code></td><td><code>primary/text/1</code> … <code>4</code></td><td><code>theme.primary.700</code> … <code>950</code></td></tr>
+<tr><td><code>primary/surface/default</code> … <code>active-hover</code></td><td><code>primary/surface/1</code> … <code>4</code></td><td><code>theme.primary.100</code> … <code>400</code></td></tr>
+<tr><td><code>primary/border-control/default</code> … <code>active-hover</code></td><td><code>primary/border-control/1</code> … <code>4</code></td><td><code>theme.primary.600</code> … <code>900</code></td></tr>
+<tr><td><code>primary/solid/default</code> … <code>active-hover</code></td><td><code>primary/solid/1</code> … <code>4</code></td><td><code>theme.primary.solid.1</code> … <code>4</code> <span class="tag new">nouveau, section 4</span></td></tr>
+<tr><td><code>primary/on-solid</code></td><td>inchangé</td><td><code>theme.on-solid</code> <span class="tag new">nouveau</span></td></tr>
+<tr><td><code>surface-card</code>, <code>border-decorative</code>, <code>focus</code></td><td>inchangés</td><td>inchangées</td></tr>
+</tbody></table></div>
+<p><code>usage</code> garde 20 variables par palette et 226 au total. Le neutre suit les mêmes niveaux ; ses usages propres, <code>text-strong</code>, <code>text-disabled</code> et <code>fill-disabled</code>, gardent leur nom.</p>
+<p>Des mots comme <code>subtle</code>, <code>muted</code> ou <code>strong</code> ne se comparent pas. Un chiffre se compare, et la règle repose sur cette comparaison. Le chiffre ne prouve rien seul : la preuve vient de la mesure des courbes et des promesses d'UCM Palettes sur chaque palette.</p>
+
+<h3>Les états</h3>
+<p>Le kit garde un motif par défaut, que <code>rangs.ts</code> porte aujourd'hui sous forme de table. Avec n = 1, il rend exactement les couleurs actuelles.</p>
+<div class="tw"><table>
+<thead><tr><th>État du composant</th><th>Motif par défaut</th><th>Exemple de liberté</th></tr></thead>
+<tbody>
+<tr><td>Repos</td><td>niveau n, choisi par le composant</td><td>un bandeau au repos : <code>surface/2</code> et <code>text/4</code></td></tr>
+<tr><td>Survol</td><td>n + 1</td><td>une ligne de tableau : <code>surface/1</code> et le texte neutre <code>neutral/text/3</code></td></tr>
+<tr><td>Appui, sélectionné</td><td>n + 2</td><td>un montant fort dans une ligne sélectionnée : <code>text/4</code> sur <code>surface/3</code></td></tr>
+<tr><td>Sélectionné survolé ou appuyé</td><td>n + 3</td><td></td></tr>
+<tr><td>Focus</td><td>niveau du repos, et l'anneau <code>focus</code></td><td></td></tr>
+<tr><td>Désactivé</td><td><code>neutral.fill-disabled</code>, <code>neutral.text-disabled</code></td><td></td></tr>
+</tbody></table></div>
+<p><code>ucm check</code> juge alors deux choses. Chaque texte ou contour posé sur un fond, texte des boutons compris, se mesure dans chaque mode contre son seuil ; une paire hors règle est signalée avec sa mesure. Un écart au motif d'état donne une remarque et non une erreur.</p>
+
+<h2 id="boutons">4. Le texte des boutons en sombre</h2>
+<p>Cette section reprend la <a href="../../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">recherche sur le texte des boutons et l'affichage</a> de l'étude Modes, dont les mesures recoupent celles de ce dossier. Elle ajoute le lien avec les niveaux. Dans le code, le bouton plein est l'emploi <code>solid</code>, et son texte l'emploi <code>on-solid</code>.</p>
+
+<h3>Pourquoi le texte est sombre</h3>
+<p>L'architecture pose qu'un numéro de cran vaut un contraste contre le fond de page, dans les deux thèmes. Le bouton vise le 700, loin du fond, et son texte prend la couleur du fond lui-même (neutre 50). En sombre, la courbe place le 700 à la clarté 0,67 : le bouton est clair, et son texte sombre. Material 3, Atlassian et shadcn suivent ce modèle en miroir. Le choix automatique du noir ou du blanc retient le noir sur les 80 mesures en sombre : il ne donne pas de texte clair.</p>
+
+<h3>La bande où le bouton peut se placer</h3>
+<p>Le bouton doit tenir 4,5:1 contre son texte et, pour la garantie 14, 3:1 contre la page. Avec le texte actuel, le texte et la page ont la même clarté : les deux contraintes se confondent et la bande est large. Avec un texte clair en sombre, le bouton se place entre la page et son texte.</p>
+<svg viewBox="0 0 960 250" role="img" aria-labelledby="titre-bande" style="width:100%;height:auto;max-width:960px">
+  <title id="titre-bande">Clartés où un bouton porte son texte et se détache de la page, thème sombre</title>
+  <text x="60" y="26" font-weight="600" font-size="13">Texte sombre, actuel : de la couleur de la page</text>
+  <rect class="z-ok" x="565" y="36" width="355" height="34"/>
+  <line class="repere" x1="215" y1="30" x2="215" y2="76"/><text class="petit" x="221" y="66">page et texte, 0,18</text>
+  <g class="cran"><circle cx="636" cy="53" r="5"/><circle cx="714" cy="53" r="5"/><circle cx="791" cy="53" r="5"/><circle cx="860" cy="53" r="5"/></g>
+  <text class="petit" x="600" y="88">700 à 950 du thème sombre, de 0,587 à 1</text>
+
+  <text x="60" y="122" font-weight="600" font-size="13">Texte clair en sombre</text>
+  <rect class="z-texte" x="60" y="132" width="475" height="34"/>
+  <rect class="z-page" x="482" y="132" width="438" height="34"/>
+  <rect class="z-ok" x="482" y="132" width="53" height="34"/>
+  <line class="repere" x1="215" y1="126" x2="215" y2="172"/><text class="petit" x="221" y="162">page 0,18</text>
+  <line class="repere" x1="898" y1="126" x2="898" y2="172"/><text class="petit" x="828" y="162">texte 0,975</text>
+  <g class="cran"><circle cx="292" cy="149" r="5"/><circle cx="352" cy="149" r="5"/><circle cx="421" cy="149" r="5"/><circle cx="490" cy="149" r="5"/></g>
+  <text class="petit" x="262" y="186">S2 : 950, 900, 800, 700 du thème clair</text>
+  <text class="petit" x="540" y="186">bande 0,491 à 0,552 pour un gris ; 0,53 à 0,55 sur toutes les teintes, texte blanc</text>
+
+  <line class="axe" x1="60" y1="210" x2="920" y2="210"/>
+  <g class="petit"><text x="56" y="228">0</text><text x="226" y="228">0,2</text><text x="398" y="228">0,4</text><text x="570" y="228">0,6</text><text x="742" y="228">0,8</text><text x="914" y="228">1</text></g>
+  <text class="petit" x="60" y="246">Clarté OKLCH. Bleu pâle : le bouton porte son texte à 4,5:1. Violet pâle : il se détache de la page à 3:1. Vert : les deux.</text>
+</svg>
+<p>La bande admissible tient un seul cran. Quatre niveaux à 4,5:1 contre le texte et 3:1 contre la page n'y tiennent pas. Une solution garde le texte et les quatre niveaux, et renonce à la séparation avec la page. WCAG 1.4.11 ne l'exige pas pour un bouton dont le libellé identifie le contrôle.</p>
+
+<h3>La solution S2, et ce qu'elle change dans les niveaux</h3>
+<p>Dans S2, la recette porte la couleur du texte des boutons pour chaque thème. Avec un texte clair, le bouton reprend les nuances 700 à 950 du thème clair : il garde ses couleurs d'un thème à l'autre, comme chez Carbon. Le texte tient alors les contrastes du thème clair : 5,29:1 au minimum sur 60 rampes par niveau. Au repos, le bouton mesure 2,72:1 au pire contre la page sombre ; au survol, 1,96:1.</p>
+<p>Les deux études retiennent la même définition du niveau d'un bouton : <b>le niveau n est le n-ième bouton en s'éloignant de la couleur de son texte</b>. Avec le texte actuel, cette définition coïncide avec « s'éloigner de la page ». La règle des autres emplois ne change pas.</p>
+<ul>
+  <li><code>usage.primary.solid.n</code> vise <code>theme.primary.solid.n</code>, dont la cible dépend du mode. Changer la couleur du texte change des cibles dans <code>theme</code>, jamais le chemin que citent les composants. <code>theme</code> gagne 41 variables pour six marques, sur le modèle de l'élévation.</li>
+  <li>La garantie 14, le bouton contre la page, n'est plus vérifiée quand le texte est clair en sombre. La carte des garanties l'indique par une notice ; une garantie non vérifiée reste distincte d'une garantie tenue.</li>
+  <li>La recette passe au format 9, qui lit le format 8 avec le texte actuel par défaut.</li>
+</ul>
+
+<h3>Maquette : les quatre niveaux du bouton</h3>
+<p>Sous chaque bouton : le contraste de son texte, puis celui du bouton contre la page. Un niveau dont le texte manque 4,5:1 porte une croix.</p>
+<div class="sombres" id="sombres"></div>
+<div class="charte" id="charte"></div>
+<p class="note">S3, la variante, descend le bouton aux nuances 500 à 200 du thème sombre. Ses clartés sont proches de S2, mais le facteur des fonds du thème sombre retire de la chroma aux crans 300 et 200 : les états d'appui grisent. La couleur exacte de la marque 2 (<code>#0EA5E9</code>) ne porte pas de texte blanc ; avec le texte actuel, son bouton prend le 700, plus foncé qu'elle (ARCHITECTURE-FINALE, section 3.4). Un texte choisi par palette, la solution S6 de l'étude Modes, en ferait un bouton à texte sombre : elle reste à instruire sur une demande de marque.</p>
+
+<h2 id="modele">5. Le modèle complet</h2>
+<pre><code>components.button.primary.background  → usage.primary.solid.1
+usage.primary.solid.1                  → theme.primary.solid.1
+theme.primary.solid.1                    light → brand.palette.primary.light.700
+                                         dark  → brand.palette.primary.dark.700     texte actuel
+                                                 brand.palette.primary.light.700    texte clair, S2
+components.button.primary.label        → usage.primary.on-solid → theme.on-solid
+theme.on-solid                           light → color-utilities.neutral.light.50
+                                         dark  → color-utilities.neutral.dark.50    texte actuel
+                                                 color-utilities.neutral.light.50   texte clair, S2
+components.row.selected.background     → usage.primary.surface.3 → theme.primary.300
+components.row.selected.label          → usage.primary.text.3    → theme.primary.900</code></pre>
+<div class="tw"><table>
+<thead><tr><th>Élément</th><th>Où il se tient</th><th>Producteur</th></tr></thead>
+<tbody>
+<tr><td>Niveaux, règle de l'escalier, motif d'état, couleur du texte des boutons par thème</td><td><code>@ucm-kit/core/emplois</code>, une seule source</td><td>Contributeur du kit</td></tr>
+<tr><td>Couleur du texte des boutons dans chaque thème</td><td>Recette d'UCM Palettes, Réglages communs</td><td>Designer</td></tr>
+<tr><td>Mesure de chaque palette</td><td>Promesses d'UCM Palettes, sur les paires que la règle désigne</td><td>Moteur <code>ucm-couleur</code></td></tr>
+<tr><td>Variables <code>theme</code> et <code>usage</code>, et leurs descriptions</td><td>Fichier Figma</td><td>UCM Palettes, chantier d'écriture déjà prévu</td></tr>
+<tr><td>Paires réellement posées par un composant</td><td>Contrat et <code>tokens.json</code></td><td><code>ucm check</code></td></tr>
+</tbody></table></div>
+<p>Un fichier de catalogue déclaratif devient utile quand un design system veut garantir un couple hors de la règle, ou interdire un couple de la règle pour une raison de sens. Il viendra avec le premier cas réel.</p>
+
+<h2 id="maquette">6. Maquette d'écran</h2>
+<p>Un même écran, peint avec les niveaux de la palette choisie. En sombre, le texte des boutons suit le choix de la barre du haut. Le tableau compare le verdict actuel de <code>ucm check</code> à celui de la règle.</p>
+<div class="duo">
+  <div class="panneau"><h4>Clair</h4><div id="ecran-light"></div></div>
+  <div class="panneau"><h4>Sombre</h4><div id="ecran-dark"></div></div>
+</div>
+<div class="tw"><table id="paires-ecran"></table></div>
+
+<h2 id="lire">7. Où lire les règles</h2>
+<p>La règle se tient dans le kit et se lit à quatre endroits, tous générés depuis lui. Aucun nouveau plugin n'est nécessaire.</p>
+<div class="tw"><table>
+<thead><tr><th>Vue</th><th>Lecteur</th><th>Contenu</th></tr></thead>
+<tbody>
+<tr><td>Description de chaque variable <code>usage</code></td><td>Designer, dans le sélecteur de Figma</td><td>Le rôle, le niveau et les partenaires garantis. L'affichage de la description dans le sélecteur reste à essayer (ARCHITECTURE-FINALE, section 10).</td></tr>
+<tr><td>Carte des garanties et planche d'UCM Palettes</td><td>Designer qui règle une palette</td><td>La grille de l'escalier par thème, mesurée sur la palette, comme dans la section 2.</td></tr>
+<tr><td>UCM Token Explorer</td><td>Designer, sur un cadre ou une variable sélectionnés</td><td>Pour un cadre : chaque texte et contour posé sur un fond, son contraste dans chaque thème et le niveau valide le plus proche. Pour une variable : ses partenaires et le cran qu'elle vise.</td></tr>
+<tr><td><code>ucm check</code></td><td>Développeur consommateur, en CI</td><td>Les paires posées par chaque composant, mesurées par mode.</td></tr>
+</tbody></table></div>
+
+<h3>Maquette : le panneau des variables</h3>
+<div class="tw"><table class="vars" id="variables"></table></div>
+
+<h3>Le message de <code>ucm check</code></h3>
+<p>Aujourd'hui :</p>
+<pre><code>Row (state=selected) : `usage.primary.text.active` sur `usage.primary.surface.default`
+  ne forme pas une paire de la table au même rang. 10,06:1 (intencial · light)
+Button (state=default) : aucun constat
+  (le libellé et le fond ont la même couleur : 1,00:1)</code></pre>
+<p>Avec la règle :</p>
+<pre><code>Button (state=default) : `usage.primary.on-solid` sur `usage.primary.solid.1`
+  mesure 1,00:1 (intencial · light), sous le seuil de 4,5:1.
+Row (state=selected) : aucun constat. `text.3` sur `surface.1` suit la règle,
+  10,06:1 au pire.</code></pre>
+
+<h2 id="travaux">8. Ordre des travaux</h2>
+<ol class="etapes">
+  <li><b>Corriger le diagnostic des emplois</b>Mesurer chaque paire reconnue dans chaque mode ; accepter un premier plan de rang supérieur ou égal à celui du fond, et deux palettes différentes. Tests : la sonde à 1:1 échoue ; <code>text.active</code> sur <code>surface.default</code> passe avec sa mesure. Touche <code>diagnostic-emplois.mjs</code> et <code>paires.ts</code>. Aucun nom ne change.</li>
+  <li><b>Étendre les promesses à l'escalier</b>Les promesses d'UCM Palettes jugent les dix couples texte et les dix couples contour de la règle, en plus des paires de page, de carte et du texte des boutons. La carte des garanties montre la grille. Touche <code>paires.ts</code>, <code>promesses.ts</code> et la spécification, section 11.2.</li>
+  <li><b>Essayer les deux nommages dans Figma</b>Construire un badge, une ligne sélectionnée et un bandeau avec les noms d'état puis avec les niveaux, selon le protocole de <a href="../1%20Usages%20indexes%20et%20catalogue/05-INTEGRATION.md">05-INTEGRATION</a>. Relever le temps de recherche et les paires hors règle. Si les chiffres gênent le choix, garder les noms actuels : les étapes 1 et 2 donnent déjà la liberté.</li>
+  <li><b>Renommer les rangs en niveaux</b><code>RANGS</code> devient une liste de niveaux, la table des états devient le motif par défaut. Touche le kit, <code>profilUcm.ts</code>, les tests et les trois documents cités. À faire avant l'écriture de <code>usage</code>.</li>
+  <li><b>Texte des boutons par thème</b>Solution S2 de l'étude Modes : champ de recette, format 9, <code>theme.&lt;palette&gt;.solid.&lt;n&gt;</code>, <code>theme.on-solid</code>, garantie 14 non vérifiée quand le texte est clair en sombre.</li>
+  <li><b>Écrire <code>theme</code> et <code>usage</code> depuis UCM Palettes</b>Chantier déjà prévu par l'architecture. Les descriptions des variables viennent de la règle du kit.</li>
+  <li><b>Vérifier la sélection dans l'explorateur</b>En lecture seule. Le contraste par thème des textes et contours d'un cadre fonctionne sur tout fichier ; la règle des niveaux s'y ajoute dès que le fichier porte <code>usage</code>.</li>
+</ol>
+<p>Restent hors de ce plan : un catalogue de couples déclarés, le texte choisi par palette (S6), un solveur de couleurs par contraste, la composition des transparences.</p>
+
+<h2 id="decisions">9. Décisions à prendre</h2>
+<div class="tw"><table>
+<thead><tr><th>Décision</th><th>Options</th><th>Recommandation</th></tr></thead>
+<tbody>
+<tr><td>Noms des niveaux dans <code>usage</code></td><td>Garder <code>default</code> à <code>active-hover</code> ; chiffres 1 à 4 ; mots d'apparence</td><td>Chiffres 1 à 4 si l'essai de l'étape 3 le confirme, avant l'écriture de <code>usage</code> par Palettes</td></tr>
+<tr><td>Étendue de la règle</td><td>m ≤ n ; m ≤ n avec les deux cellules supplémentaires</td><td>m ≤ n</td></tr>
+<tr><td>Texte des boutons en sombre</td><td>Miroir actuel ; S2 ; S3 ; nuances de bouton fabriquées exprès</td><td>Choix par thème dans la recette, S2, miroir par défaut. Décision portée par l'étude Modes.</td></tr>
+<tr><td>Ancrage qui fait échouer une paire</td><td>Signaler, comme aujourd'hui ; proposer de ne pas ancrer cette palette ; laisser la couleur exacte hors de la rampe, comme le décrit ARCHITECTURE-FINALE section 3.4</td><td>À instruire. Le moteur ancre la couleur exacte dans la rampe, alors que la section 3.4 la décrit hors de la rampe : l'écart est à trancher.</td></tr>
+<tr><td>Anneau de focus sur une surface de niveau 2 à 4</td><td>Ajouter <code>focus/1</code> à <code>focus/4</code> sur le modèle du contour ; prendre <code>border-control/n</code> pour l'anneau ; poser l'anneau sur une surface de niveau 0 ou 1 seulement</td><td><code>focus/n</code> suit l'escalier du contour, 3 variables de plus par palette</td></tr>
+</tbody></table></div>
+
+<h2 id="critique">10. Évaluation critique</h2>
+<p>Cette section répond à trois questions : la proposition sert-elle le designer, est-elle la meilleure option, tient-elle dans la durée.</p>
+
+<h3>Pour le designer</h3>
+<div class="tw"><table>
+<thead><tr><th>Geste</th><th>Ce qui aide</th><th>Ce qui manque</th></tr></thead>
+<tbody>
+<tr><td>Choisir une couleur</td><td>La règle tient en une phrase. Le sélecteur de Figma filtre par portée et montre la pastille de chaque variable.</td><td>Un chiffre ne dit pas à quoi sert la couleur. La description de la variable doit le dire, et son affichage dans le sélecteur n'est pas encore essayé.</td></tr>
+<tr><td>Éviter une erreur</td><td>La règle couvre tous les couples permis, sans table à consulter.</td><td>Figma ne vérifie rien. Sans la commande de l'étape 7, l'erreur n'apparaît qu'en CI.</td></tr>
+<tr><td>Construire un écran</td><td>Les composants gardent les noms d'interaction : <code>components.row.selected.background</code>.</td><td>Le designer d'écrans emploie surtout des composants. La liberté des niveaux profite d'abord au designer du design system, qui construit ces composants.</td></tr>
+<tr><td>Passer en sombre</td><td>Les mêmes niveaux s'appliquent dans les deux thèmes, et la règle tient dans les deux.</td><td>Avec S2, le bouton au dernier niveau se confond presque avec la page sombre (1,17:1). Le libellé reste lisible.</td></tr>
+</tbody></table></div>
+<p>La proposition est pratique pour le designer du design system à une condition : un contrôle dans Figma. La règle seule, vérifiée en CI, laisse découvrir les erreurs trop tard.</p>
+
+<h3>La meilleure option ?</h3>
+<ul>
+  <li><b>La règle et sa vérification : oui.</b> Elles donnent la liberté demandée sans table tenue à la main. Elles valent pour toute marque ajoutée, et la mesure les vérifie. Aucune option comparée par l'étude ne fait mieux sur ces trois points : catalogue de couples, quatre couples exclusifs, crans libres vérifiés après coup, solveur de couleurs.</li>
+  <li><b>Les chiffres : le meilleur compromis connu, pas une certitude.</b> Radix, Carbon et l'U.S. Web Design System numérotent leurs niveaux. Ils ajoutent toutefois une seconde numérotation à côté des crans 50 à 950, et retirent l'indice d'usage que portait <code>hover</code>. L'essai de l'étape 3 tranche. S'il est défavorable, la règle et le contrôle gardent leur valeur avec les noms actuels.</li>
+  <li><b>Le texte clair en sombre : S2 est la meilleure façon de l'obtenir, pas la meilleure solution en soi.</b> Le miroir actuel est la seule option qui tient toutes les garanties. S2 répond à un choix d'identité : un bouton identique dans les deux thèmes. Elle reste une option par thème, avec le miroir par défaut.</li>
+</ul>
+
+<h3>Dans la durée</h3>
+<div class="tw"><table>
+<thead><tr><th>Risque</th><th>Ce qui le contient</th></tr></thead>
+<tbody>
+<tr><td>Le designer modifie les courbes dans les Réglages communs, et la règle tombe.</td><td>Les promesses étendues à l'escalier (étape 2) la revérifient sur chaque palette, à chaque réglage.</td></tr>
+<tr><td>Le fond de page passe à <code>#f8fafc</code>, comme prévu par l'architecture.</td><td>La plus petite marge de la règle vaut 0,20 (<code>text/1</code> sur <code>surface/1</code>, 4,70:1). Rejouer <code>mesurer-polarites.ts</code> avec le nouveau fond avant de publier.</td></tr>
+<tr><td>Une couleur de marque ancrée fait échouer une paire, comme le vert au 600.</td><td>La décision « ancrage » de la section 9.</td></tr>
+<tr><td>Une marque s'ajoute.</td><td>Rien à faire : la règle ne dépend pas de la marque, et ses palettes passent par les mêmes promesses.</td></tr>
+<tr><td>Le renommage arrive après l'écriture de <code>usage</code>.</td><td>Il devient une migration de classe 5 pour chaque dépôt consommateur. Le faire avant.</td></tr>
+</tbody></table></div>
+
+<h2 id="annexes">Annexes</h2>
+<h3>Mesures</h3>
+<div class="tw"><table>
+<thead><tr><th>Mesure</th><th>Résultat</th></tr></thead>
+<tbody>
+<tr><td>Texte sur surface, règle m ≤ n, même palette</td><td>120 contextes sur 120 dans chacune des 10 cellules ; minimum 4,70:1</td></tr>
+<tr><td>Texte sur surface, règle m ≤ n, entre palettes</td><td>0 échec sur 4 000 par thème ; minimum 4,85:1 en clair, 4,62:1 en sombre</td></tr>
+<tr><td>Contour sur surface, règle m ≤ n, entre palettes, seuil 3:1</td><td>20 échecs sur 4 000 en clair, tous avec le vert ancré au 600 ; 0 en sombre</td></tr>
+<tr><td>Texte actuel sur les quatre niveaux du bouton</td><td>60 sur 60 par niveau ; minimum 5,29:1 en clair, 5,10:1 en sombre</td></tr>
+<tr><td>Texte noir ou blanc automatique</td><td>Blanc sur les 4 niveaux en clair, noir en sombre : identique au texte actuel</td></tr>
+<tr><td>S2 en sombre</td><td>Texte 5,29:1 au minimum ; bouton contre la page : 2,72:1 au repos (35 rampes sur 60 au-dessus de 3:1), 1,96:1 au survol</td></tr>
+<tr><td>Bande sombre, texte blanc, toutes teintes et parts</td><td>4,5:1 et 3:1 tenus pour une clarté de 0,53 à 0,55 ; aucune clarté avec un texte <code>#E8E8E8</code></td></tr>
+<tr><td>Anneau 600 sur une surface plus profonde</td><td><code>surface/2</code> : 2,63:1 en clair, 2,82:1 en sombre</td></tr>
+<tr><td>Couleurs du Playground ancrées</td><td><code>#B15152</code> au 600 ; <code>#4C3EBA</code> au 800 en clair et au 500 en sombre ; <code>#0EA5E9</code> et <code>#F43F5E</code> au 500 en clair et au 700 en sombre</td></tr>
+</tbody></table></div>
+<p>Pour rejouer les mesures puis repeindre les maquettes, depuis la racine du dépôt :</p>
+<pre><code>npm run build --workspace @ucm-kit/core
+npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/2 Escalier/mesurer-polarites.ts"
+npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/2 Escalier/generer-presentation.ts"</code></pre>
+
+<h3>Coordination avec l'étude Modes</h3>
+<p>Les deux agents ont échangé leurs mesures et retenu les points suivants :</p>
+<ul>
+  <li><code>on-solid</code> désigne le texte posé sur un bouton plein, une couleur par thème, valable pour les quatre niveaux ;</li>
+  <li>la couleur du texte des boutons se choisit par thème dans la recette, avec le miroir par défaut ;</li>
+  <li>le bouton passe par <code>theme.&lt;palette&gt;.solid.&lt;n&gt;</code> dans tous les cas. Une première idée faisait viser à <code>usage</code> la rampe claire sans passer par <code>theme</code> ; elle ne tient pas quand les deux thèmes ont des textes de couleurs opposées, et a été abandonnée ;</li>
+  <li>la garantie 14 n'est pas vérifiée quand le texte est clair en sombre, avec une notice ; un contour du bouton reste possible si la séparation est exigée.</li>
+</ul>
+<p>L'étude Modes traite aussi l'affichage global du plugin : une commande de thème fixe dans la barre de la palette, et des sélecteurs Soft/Vivid libellés « Régler » ou « Afficher ». Ce document n'y ajoute rien.</p>
+
+<h3>Sources</h3>
+<ul>
+  <li>Dossier de l'étude : <a href="../1%20Usages%20indexes%20et%20catalogue/PISTE-USAGES-INDEXES-ET-CONTRASTE.md">piste initiale</a>, <a href="../1%20Usages%20indexes%20et%20catalogue/01-ETAT-ET-CONTRAINTES.md">état du code</a>, <a href="../1%20Usages%20indexes%20et%20catalogue/03-MODELE-PROPOSE.md">modèle proposé</a>, <a href="../1%20Usages%20indexes%20et%20catalogue/04-EXPERIENCES.md">expériences</a>, <a href="../1%20Usages%20indexes%20et%20catalogue/05-INTEGRATION.md">intégration</a>.</li>
+  <li><a href="../../ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE-MULTIMARQUES.md</a>, sections 1, 3.4, 4, 5, 6 et 10.</li>
+  <li>Étude Modes : <a href="../../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">recherche sur le texte des boutons et l'affichage</a>, et sa <a href="../../../Plugin%20Palettes/Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html">maquette</a>.</li>
+  <li>Code : <a href="../../../../../../packages/kit/src/emplois/emplois.ts"><code>emplois.ts</code></a>, <a href="../../../../../../packages/kit/src/emplois/paires.ts"><code>paires.ts</code></a>, <a href="../../../../../../packages/kit/src/emplois/rangs.ts"><code>rangs.ts</code></a>, <a href="../../../../../../packages/kit/src/emplois/usages.ts"><code>usages.ts</code></a>, <a href="../../../../../../packages/kit/src/lecteurs/diagnostic-emplois.mjs"><code>diagnostic-emplois.mjs</code></a>, <a href="../../../../../../packages/couleur/src/promesses.ts"><code>promesses.ts</code></a>, <a href="../../../../../../packages/couleur/src/palette.ts"><code>palette.ts</code></a>.</li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">W3C, Understanding 1.4.3 Contrast (Minimum)</a> et <a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">1.4.11 Non-text Contrast</a>.</li>
+  <li><a href="https://designsystem.digital.gov/design-tokens/color/overview/">U.S. Web Design System, grades de couleur</a> : un écart de grades associé à un seuil, l'idée que la règle de l'escalier transpose aux niveaux.</li>
+  <li><a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">Radix Colors, Understanding the scale</a>.</li>
+</ul>
+</main>
+
+<script id="donnees" type="application/json">{"crans":[50,100,200,300,400,500,600,700,800,900,950],"fonds":{"light":"#F7F7F7","dark":"#121212"},"neutre":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"]},"palettes":[{"id":"intencial-primaire","role":"primary","nom":"Intencial, primaire","reference":"#B15152","ancrage":{"light":600,"dark":600},"light":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#D67475","#B15152","#994545","#793534","#592524","#401918"],"dark":["#17100F","#251817","#38201F","#4F2927","#713130","#954343","#B15152","#D67475","#E09D9C","#EBC2C2","#F5E3E3"]},{"id":"intencial-secondaire","role":"secondary","nom":"Intencial, secondaire","reference":"#4C3EBA","ancrage":{"light":800,"dark":500},"light":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#878CDE","#6D6CD6","#5649CE","#4C3EBA","#31267B","#221959"],"dark":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#6B6BD6","#878CDE","#A5ACE7","#C6CBEF","#E4E7F8"]},{"id":"marque2-primaire","role":"primary","nom":"Marque 2, primaire","reference":"#0EA5E9","ancrage":{"light":500,"dark":700},"light":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#0EA5E9","#0985BE","#066A9B","#03537B","#023C5C","#012942"],"dark":["#0D1217","#121D26","#152A39","#153950","#034D73","#056797","#0983BC","#0EA5E9","#45BDFE","#97D7FE","#D0EDFF"]},{"id":"marque2-secondaire","role":"secondary","nom":"Marque 2, secondaire","reference":"#F43F5E","ancrage":{"light":500,"dark":700},"light":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F43F5E","#DB2D4D","#B2233B","#8C192B","#68101D","#4B0911"],"dark":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#AD2139","#D82C4C","#F43F5E","#F78E96","#FABBBF","#FCE0E2"]},{"id":"succes","role":"success","nom":"Statut succès, vert","reference":"#16A34A","ancrage":{"light":600,"dark":700},"light":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#19B252","#16A34A","#0D7734","#085D27","#04441B","#023011"],"dark":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0D7433","#139342","#16A34A","#20D362","#27F573","#AFFEBD"]},{"id":"avertissement","role":"warning","nom":"Statut avertissement, jaune","reference":"#EAB308","ancrage":{"light":400,"dark":800},"light":["#FFF8D5","#FFEFAF","#FFDD6D","#F9C50A","#EAB308","#C38905","#A86E03","#8C5502","#713F01","#562B01","#3F1B00"],"dark":["#17100C","#251911","#382213","#4D2C12","#6A3A01","#885202","#A66C03","#C38905","#EAB308","#FAC70A","#FFE792"]}]}</script>
+<script>
+const D = JSON.parse(document.getElementById('donnees').textContent);
+const NIVEAUX = { text: [700, 800, 900, 950], surface: [100, 200, 300, 400], 'border-control': [600, 700, 800, 900], solid: [700, 800, 900, 950] };
+// Les crans du bouton en sombre, selon la couleur de son texte ; en clair, le bouton garde 700 à 950 du thème clair.
+const BOUTONS_SOMBRES = { actuel: { courbe: 'dark', crans: [700, 800, 900, 950] }, s2: { courbe: 'light', crans: [700, 800, 900, 950] }, s3: { courbe: 'dark', crans: [500, 400, 300, 200] } };
+const etat = { palette: 0, texte: 'actuel', famille: 'text' };
+const MODES = ['light', 'dark'];
+
+const lineaire = (canal) => { const x = canal / 255; return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+function luminance(hexa) { const n = parseInt(hexa.slice(1), 16); return 0.2126 * lineaire((n >> 16) & 255) + 0.7152 * lineaire((n >> 8) & 255) + 0.0722 * lineaire(n & 255); }
+function contraste(a, b) { const x = luminance(a); const y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+// Le verdict du kit : la valeur à dix décimales, que l'affichage tronque.
+const tient = (valeur, seuil) => Number(valeur.toFixed(10)) >= seuil;
+const ecrit = (valeur) => `${(Math.floor(valeur * 100) / 100).toFixed(2).replace('.', ',')}:1`;
+
+const palette = () => D.palettes[etat.palette];
+const cran = (p, courbe, numero) => p[courbe][D.crans.indexOf(numero)];
+function bouton(p, mode, n, texte = etat.texte) {
+  const choix = mode === 'dark' ? BOUTONS_SOMBRES[texte] : { courbe: 'light', crans: [700, 800, 900, 950] };
+  return cran(p, choix.courbe, choix.crans[n - 1]);
+}
+const texteDuBouton = (mode, texte = etat.texte) => (mode === 'dark' && texte !== 'actuel' ? D.fonds.light : D.fonds[mode]);
+function jeton(nom, mode, p = palette(), texte = etat.texte) {
+  if (nom === 'page') return D.fonds[mode];
+  if (nom === 'surface-card') return cran(p, mode, 50);
+  if (nom === 'border-decorative') return cran(p, mode, 300);
+  if (nom === 'focus') return cran(p, mode, 600);
+  if (nom === 'on-solid') return texteDuBouton(mode, texte);
+  const segments = nom.split('/');
+  if (segments[0] === 'neutral') return D.neutre[mode][D.crans.indexOf(NIVEAUX[segments[1]][segments[2] - 1])];
+  const [emploi, niveau] = segments;
+  if (emploi === 'solid') return bouton(p, mode, Number(niveau), texte);
+  return cran(p, mode, NIVEAUX[emploi][niveau - 1]);
+}
+
+function rendreEscalier() {
+  const famille = etat.famille;
+  const seuil = famille === 'text' ? 4.5 : 3;
+  const colonnes = ['page', 'surface-card', 'surface/1', 'surface/2', 'surface/3', 'surface/4'];
+  for (const mode of MODES) {
+    let html = '<div class="eh"></div>' + colonnes.map((nom, j) => `<div class="eh">${nom}${j > 1 ? `<span>${NIVEAUX.surface[j - 2]}</span>` : ''}</div>`).join('');
+    for (let n = 1; n <= 4; n += 1) {
+      html += `<div class="eh ligne">${famille}/${n}<span>${NIVEAUX[famille][n - 1]}</span></div>`;
+      colonnes.forEach((nom, j) => {
+        const fond = jeton(nom, mode);
+        const avant = jeton(`${famille}/${n}`, mode);
+        const dansLaRegle = Math.max(0, j - 1) <= n;
+        const valeur = contraste(avant, fond);
+        const tenu = tient(valeur, seuil);
+        const classe = dansLaRegle ? (tenu ? 'in' : 'ko') : (tenu ? 'bonus' : 'out');
+        const mot = dansLaRegle ? (tenu ? 'garanti' : 'échec') : (tenu ? 'hors règle' : 'échoue');
+        const echantillon = famille === 'text'
+          ? `<span style="color:${avant}">Libellé</span>`
+          : `<span class="boite" style="border-color:${avant};color:${jeton('neutral/text/3', mode)}">Champ</span>`;
+        html += `<div class="ec ${classe}" style="background:${fond}" title="${famille}/${n} sur ${nom} : ${ecrit(valeur)}">${echantillon}<span class="puce">${ecrit(valeur)}<i>${mot}</i></span></div>`;
+      });
+    }
+    document.getElementById(`escalier-${mode}`).innerHTML = html;
+  }
+}
+
+function rendreBoutonsSombres() {
+  const p = palette();
+  const etats = ['Repos', 'Survol', 'Appui', 'Appui survolé'];
+  const panneaux = [
+    ['light', 'actuel', 'Clair, texte actuel'],
+    ['dark', 'actuel', 'Sombre, texte sombre actuel, en miroir'],
+    ['dark', 's2', 'Sombre, S2 : bouton du thème clair, texte clair'],
+    ['dark', 's3', 'Sombre, S3 : bouton descendu de 500 à 200, texte clair'],
+  ];
+  document.getElementById('sombres').innerHTML = panneaux.map(([mode, texte, titre]) => {
+    const page = D.fonds[mode];
+    const couleurDuTexte = texteDuBouton(mode, texte);
+    const boutons = [1, 2, 3, 4].map((n) => {
+      const fond = bouton(p, mode, n, texte);
+      const contreTexte = contraste(couleurDuTexte, fond);
+      const contrePage = contraste(page, fond);
+      return `<div class="bt"><span class="btn" style="background:${fond};color:${couleurDuTexte}">${etats[n - 1]}</span><small>solid/${n} · texte ${ecrit(contreTexte)}${tient(contreTexte, 4.5) ? '' : ' ✗'}<br>page ${ecrit(contrePage)}</small></div>`;
+    }).join('');
+    const legende = mode === 'dark' ? '#E6E8ED' : '#181B22';
+    return `<figure class="apercu" style="background:${page};color:${legende}"><figcaption>${titre}</figcaption><div class="bts">${boutons}</div></figure>`;
+  }).join('');
+  const exacte = p.reference;
+  document.getElementById('charte').innerHTML = `<span class="pastille" style="background:${exacte}"><span style="color:#FFFFFF">Blanc</span><span style="color:#000000">Noir</span></span>`
+    + `<span>Couleur exacte <code>${exacte}</code>, ancrée au ${p.ancrage.light} en clair et au ${p.ancrage.dark} en sombre. Texte blanc ${ecrit(contraste('#FFFFFF', exacte))}, texte noir ${ecrit(contraste('#000000', exacte))}.</span>`;
+}
+
+const PAIRES_ECRAN = [
+  { element: 'Étiquette « 3 nouveaux »', avant: 'text/2', fond: 'surface/1', seuil: 4.5, actuel: 'signalée : rangs différents' },
+  { element: 'Ligne survolée', avant: 'neutral/text/3', fond: 'surface/1', seuil: 4.5, actuel: 'signalée : palettes différentes' },
+  { element: 'Ligne sélectionnée', avant: 'text/3', fond: 'surface/3', seuil: 4.5, actuel: 'reconnue, non mesurée' },
+  { element: 'Bandeau', avant: 'text/4', fond: 'surface/2', seuil: 4.5, actuel: 'signalée : rangs différents' },
+  { element: 'Bouton plein, repos', avant: 'on-solid', fond: 'solid/1', seuil: 4.5, actuel: 'reconnue, non mesurée' },
+  { element: 'Bouton plein, survol', avant: 'on-solid', fond: 'solid/2', seuil: 4.5, actuel: 'reconnue, non mesurée' },
+  { element: 'Bouton plein, appui', avant: 'on-solid', fond: 'solid/3', seuil: 4.5, actuel: 'reconnue, non mesurée' },
+  { element: 'Bouton discret', avant: 'text/1', fond: 'surface/1', seuil: 4.5, actuel: 'reconnue, non mesurée' },
+  { element: 'Contour du champ', avant: 'border-control/1', fond: 'surface-card', seuil: 3, actuel: 'reconnue, non mesurée' },
+  { element: 'Anneau de focus', avant: 'focus', fond: 'surface-card', seuil: 3, actuel: 'signalée : aucune paire focus sur surface-card' },
+];
+
+function rendreEcran() {
+  for (const mode of MODES) {
+    const j = (nom) => jeton(nom, mode);
+    const fort = j('neutral/text/3');
+    document.getElementById(`ecran-${mode}`).innerHTML = `
+      <div class="ecran" style="background:${j('page')}">
+        <div class="carte-ui" style="background:${j('surface-card')};border:1px solid ${j('border-decorative')}">
+          <div class="tete"><b style="color:${fort}">Contrats en cours</b><span class="etiquette" style="background:${j('surface/1')};color:${j('text/2')}">3 nouveaux</span></div>
+          <ul>
+            <li style="color:${fort}"><span>Assurance vie Horizon</span><span>12 400 €</span></li>
+            <li style="background:${j('surface/1')};color:${fort}"><span>Épargne retraite <em>survolée</em></span><span>8 150 €</span></li>
+            <li style="background:${j('surface/3')};color:${j('text/3')}"><span>Prévoyance famille <em>sélectionnée</em></span><b style="color:${j('text/4')}">2 300 €</b></li>
+          </ul>
+          <div class="bandeau" style="background:${j('surface/2')};color:${j('text/4')}">Votre dossier est complet.</div>
+          <label style="color:${fort}">Référence du contrat</label>
+          <div class="champ" style="border:1.5px solid ${j('border-control/1')};color:${fort};box-shadow:0 0 0 2px ${j('surface-card')},0 0 0 4px ${j('focus')}">AV-2026-0412</div>
+          <div class="actions">
+            <span style="background:${j('solid/1')};color:${j('on-solid')}">Valider</span>
+            <span style="background:${j('solid/2')};color:${j('on-solid')}">Survol</span>
+            <span style="background:${j('solid/3')};color:${j('on-solid')}">Appui</span>
+            <span style="background:${j('surface/1')};color:${j('text/1')}">Annuler</span>
+            <span style="color:${j('text/1')}">Plus tard</span>
+          </div>
+        </div>
+      </div>`;
+  }
+  const lignes = PAIRES_ECRAN.map((paire) => {
+    const mesures = MODES.map((mode) => contraste(jeton(paire.avant, mode), jeton(paire.fond, mode)));
+    const tenu = mesures.every((valeur) => tient(valeur, paire.seuil));
+    return `<tr><td>${paire.element}</td><td><code>${paire.avant}</code> sur <code>${paire.fond}</code></td><td class="n">${mesures.map(ecrit).join(' · ')}</td><td>${paire.actuel}</td><td><span class="tag ${tenu ? 'ok' : 'ko'}">${tenu ? 'dans la règle, mesurée, tenue' : 'dans la règle, échec mesuré'}</span></td></tr>`;
+  }).join('');
+  document.getElementById('paires-ecran').innerHTML = `<thead><tr><th>Élément</th><th>Paire</th><th>Clair · sombre</th><th><code>ucm check</code> aujourd'hui</th><th>Avec la règle</th></tr></thead><tbody>${lignes}</tbody>`;
+}
+
+function description(emploi, n) {
+  const surfaces = (k) => (k === 1 ? 'surface/1' : `surface/1 à surface/${k}`);
+  if (emploi === 'text') return `Texte, niveau ${n}. 4,5:1 sur la page, surface-card et ${surfaces(n)}.`;
+  if (emploi === 'border-control') return `Contour de contrôle, niveau ${n}. 3:1 sur la page, surface-card et ${surfaces(n)}.`;
+  if (emploi === 'surface') return `Surface, niveau ${n}. Reçoit text et border-control de niveau ${n} à 4.`;
+  if (emploi === 'solid') return `Fond plein d'un bouton, niveau ${n}. Reçoit on-solid à 4,5:1.`;
+  return 'Texte posé sur un bouton plein. 4,5:1 sur solid/1 à solid/4.';
+}
+
+function rendreVariables() {
+  const p = palette();
+  const lignes = [];
+  for (const emploi of ['text', 'surface', 'solid', 'border-control']) {
+    for (let n = 1; n <= 4; n += 1) lignes.push([`${emploi}/${n}`, emploi, n]);
+    if (emploi === 'solid') lignes.push(['on-solid', 'on-solid', 0]);
+  }
+  const pastille = (couleur) => `<span class="sw" style="background:${couleur}" title="${couleur}"></span>`;
+  document.getElementById('variables').innerHTML = `<thead><tr><th>Variable de <code>usage</code></th><th>Clair</th><th>Sombre</th><th>Description générée</th></tr></thead><tbody>`
+    + lignes.map(([nom, emploi, n]) => `<tr><td class="nm">${p.role}/${nom}</td><td>${pastille(jeton(nom, 'light', p))}</td><td>${pastille(jeton(nom, 'dark', p))}</td><td>${description(emploi, n)}</td></tr>`).join('')
+    + '</tbody>';
+}
+
+function rendreTout() { rendreEscalier(); rendreBoutonsSombres(); rendreEcran(); rendreVariables(); }
+
+function relierSegments(id, cle, appliquer) {
+  const groupe = document.getElementById(id);
+  groupe.addEventListener('click', (evenement) => {
+    const choisi = evenement.target.closest('button');
+    if (!choisi) return;
+    for (const autre of groupe.querySelectorAll('button')) autre.setAttribute('aria-pressed', String(autre === choisi));
+    appliquer(choisi.dataset[cle]);
+  });
+}
+
+const choix = document.getElementById('choix-palette');
+choix.innerHTML = D.palettes.map((p, i) => `<option value="${i}">${p.nom} · ${p.reference}</option>`).join('');
+choix.addEventListener('change', () => { etat.palette = Number(choix.value); rendreTout(); });
+relierSegments('choix-texte', 'texte', (valeur) => { etat.texte = valeur; rendreTout(); });
+relierSegments('choix-famille', 'famille', (valeur) => { etat.famille = valeur; rendreEscalier(); });
+relierSegments('choix-page', 'page', (valeur) => {
+  if (valeur === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = valeur;
+});
+rendreTout();
+</script>
+</body></html>

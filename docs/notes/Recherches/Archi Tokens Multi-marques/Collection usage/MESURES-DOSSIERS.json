@@ -1,0 +1,639 @@
+{
+  "protocole": "Recette par défaut, préréglage Tailwind, quatorze références à une et deux intensités, soit 42 rampes par thème. Référence ancrée ; une mesure qui touche sa nuance se compte à part. Carte : blanc en Light, nuance 100 d'un gris en Dark. Seuils 4,5 et 3.",
+  "resultats": [
+    {
+      "theme": "Light, texte blanc",
+      "rampes": 42,
+      "nuances": {
+        "plein": [
+          700,
+          800,
+          900
+        ],
+        "texteSurLaPage": 700,
+        "contourSurLaPage": 600
+      },
+      "plein": {
+        "minimum": 5.67,
+        "pire": "#16A34A vivid plein 700",
+        "tenues": "126/126",
+        "surLAncre": [],
+        "ecartMinEntreEtats": 0.079
+      },
+      "teinte": {
+        "ecartMinEntreEtats": 0.045,
+        "texteConstant": {
+          "800": {
+            "minimum": 5.26,
+            "pire": "#06B6D4 soft 800 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.3,
+            "pire": "#737373 soft 900 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 9.35,
+            "pire": "#8B8178 vivid 950 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          }
+        },
+        "texteSurLeQuatriemeFond": {
+          "800": {
+            "minimum": 3.94,
+            "pire": "#737373 soft 800 sur 400",
+            "tenues": "0/40",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 5.47,
+            "pire": "#737373 soft 900 sur 400",
+            "tenues": "40/40",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 6.88,
+            "pire": "#DC2626 vivid 950 sur 400",
+            "tenues": "38/38",
+            "surLAncre": []
+          }
+        },
+        "contourConstant": {
+          "700": {
+            "minimum": 3.74,
+            "pire": "#06B6D4 soft 700 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "800": {
+            "minimum": 5.26,
+            "pire": "#06B6D4 soft 800 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.3,
+            "pire": "#737373 soft 900 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          }
+        }
+      },
+      "racine": {
+        "texte": {
+          "minimum": 5.29,
+          "pire": "#16A34A vivid sur page",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "contour": {
+          "minimum": 3.78,
+          "pire": "#06B6D4 vivid sur page",
+          "tenues": "48/48",
+          "surLAncre": []
+        },
+        "texteSurUnFondTeinte": {
+          "minimum": 3.74,
+          "pire": "#06B6D4 soft sur 300",
+          "tenues": "82/126",
+          "surLAncre": []
+        }
+      },
+      "anneauUnique": {
+        "800": {
+          "minimum": 4.87,
+          "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.86,
+          "pire": "#16A34A vivid 900 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 8.84,
+          "pire": "#16A34A vivid 950 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "texteTeinteSurUneAutrePalette": {
+        "800": {
+          "minimum": 4.87,
+          "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.86,
+          "pire": "#16A34A vivid 900 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 8.84,
+          "pire": "#16A34A vivid 950 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        }
+      }
+    },
+    {
+      "theme": "Dark, texte noir",
+      "rampes": 42,
+      "nuances": {
+        "plein": [
+          700,
+          800,
+          900
+        ],
+        "texteSurLaPage": 700,
+        "contourSurLaPage": 600
+      },
+      "plein": {
+        "minimum": 6.39,
+        "pire": "#DC2626 vivid plein 700",
+        "tenues": "118/118",
+        "surLAncre": [],
+        "ecartMinEntreEtats": 0.046
+      },
+      "teinte": {
+        "ecartMinEntreEtats": 0.048,
+        "texteConstant": {
+          "800": {
+            "minimum": 5.64,
+            "pire": "#D94635 soft 800 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.73,
+            "pire": "#8B8178 soft 900 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 9.98,
+            "pire": "#8B8178 soft 950 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          }
+        },
+        "texteSurLeQuatriemeFond": {
+          "800": {
+            "minimum": 4.27,
+            "pire": "#737373 soft 800 sur 400",
+            "tenues": "4/40",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 5.81,
+            "pire": "#737373 soft 900 sur 400",
+            "tenues": "40/40",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 7.4,
+            "pire": "#16A34A vivid 950 sur 400",
+            "tenues": "40/40",
+            "surLAncre": []
+          }
+        },
+        "contourConstant": {
+          "700": {
+            "minimum": 3.89,
+            "pire": "#DC2626 vivid 700 sur fond 300",
+            "tenues": "188/188",
+            "surLAncre": []
+          },
+          "800": {
+            "minimum": 5.64,
+            "pire": "#D94635 soft 800 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.73,
+            "pire": "#8B8178 soft 900 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          }
+        }
+      },
+      "racine": {
+        "texte": {
+          "minimum": 5.19,
+          "pire": "#DC2626 vivid sur carte",
+          "tenues": "76/76",
+          "surLAncre": []
+        },
+        "contour": {
+          "minimum": 3.78,
+          "pire": "#9333EA soft sur carte",
+          "tenues": "52/52",
+          "surLAncre": []
+        },
+        "texteSurUnFondTeinte": {
+          "minimum": 3.6,
+          "pire": "#16A34A vivid sur 300",
+          "tenues": "84/126",
+          "surLAncre": []
+        }
+      },
+      "anneauUnique": {
+        "800": {
+          "minimum": 5.25,
+          "pire": "#DC2626 vivid 800 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 7.32,
+          "pire": "#DC2626 vivid 900 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 9.54,
+          "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "texteTeinteSurUneAutrePalette": {
+        "800": {
+          "minimum": 5.25,
+          "pire": "#DC2626 vivid 800 sur #16A34A vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 7.32,
+          "pire": "#DC2626 vivid 900 sur #16A34A vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 9.54,
+          "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        }
+      }
+    },
+    {
+      "theme": "Light inversé, texte noir",
+      "rampes": 42,
+      "nuances": {
+        "plein": [
+          700,
+          600,
+          500
+        ],
+        "texteSurLaPage": 800,
+        "contourSurLaPage": 700
+      },
+      "plein": {
+        "minimum": 4.66,
+        "pire": "#9333EA soft plein 700",
+        "tenues": "106/106",
+        "surLAncre": [
+          "#1E6FD9 vivid plein 700 4.33",
+          "#1E6FD9 une intensité plein 700 4.33",
+          "#2563EB vivid plein 700 4.06",
+          "#2563EB une intensité plein 700 4.06",
+          "#DC2626 vivid plein 700 4.35",
+          "#DC2626 une intensité plein 700 4.35",
+          "#9333EA vivid plein 700 3.90",
+          "#9333EA une intensité plein 700 3.90",
+          "#737373 soft plein 700 4.43",
+          "#737373 une intensité plein 700 4.43"
+        ],
+        "ecartMinEntreEtats": 0.047
+      },
+      "teinte": {
+        "ecartMinEntreEtats": 0.045,
+        "texteConstant": {
+          "800": {
+            "minimum": 5.26,
+            "pire": "#06B6D4 soft 800 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.3,
+            "pire": "#737373 soft 900 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 9.35,
+            "pire": "#8B8178 vivid 950 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          }
+        },
+        "texteSurLeQuatriemeFond": {
+          "800": {
+            "minimum": 3.94,
+            "pire": "#737373 soft 800 sur 400",
+            "tenues": "0/40",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 5.47,
+            "pire": "#737373 soft 900 sur 400",
+            "tenues": "40/40",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 6.88,
+            "pire": "#DC2626 vivid 950 sur 400",
+            "tenues": "38/38",
+            "surLAncre": []
+          }
+        },
+        "contourConstant": {
+          "700": {
+            "minimum": 2.66,
+            "pire": "#1E6FD9 soft 700 sur fond 300",
+            "tenues": "104/128",
+            "surLAncre": [
+              "#D94635 vivid 700 sur fond 300 2.62",
+              "#D94635 une intensité 700 sur fond 300 2.62",
+              "#DC2626 vivid 700 sur fond 300 2.92",
+              "#DC2626 une intensité 700 sur fond 300 2.92",
+              "#FACC15 vivid 700 sur fond 300 2.86",
+              "#FACC15 une intensité 700 sur fond 300 2.86",
+              "#737373 soft 700 sur fond 300 2.95",
+              "#737373 une intensité 700 sur fond 300 2.95",
+              "#808080 soft 700 sur fond 200 2.96",
+              "#808080 soft 700 sur fond 300 2.46",
+              "#808080 une intensité 700 sur fond 200 2.96",
+              "#808080 une intensité 700 sur fond 300 2.46",
+              "#8B8178 soft 700 sur fond 200 2.88",
+              "#8B8178 soft 700 sur fond 300 2.37",
+              "#8B8178 une intensité 700 sur fond 200 2.88",
+              "#8B8178 une intensité 700 sur fond 300 2.37"
+            ]
+          },
+          "800": {
+            "minimum": 5.26,
+            "pire": "#06B6D4 soft 800 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.3,
+            "pire": "#737373 soft 900 sur fond 300",
+            "tenues": "208/208",
+            "surLAncre": []
+          }
+        }
+      },
+      "racine": {
+        "texte": {
+          "minimum": 7.52,
+          "pire": "#16A34A vivid sur page",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "contour": {
+          "minimum": 3.71,
+          "pire": "#16A34A vivid sur page",
+          "tenues": "52/52",
+          "surLAncre": []
+        },
+        "texteSurUnFondTeinte": {
+          "minimum": 5.26,
+          "pire": "#06B6D4 soft sur 300",
+          "tenues": "126/126",
+          "surLAncre": []
+        }
+      },
+      "anneauUnique": {
+        "800": {
+          "minimum": 4.87,
+          "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.86,
+          "pire": "#16A34A vivid 900 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 8.84,
+          "pire": "#16A34A vivid 950 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "texteTeinteSurUneAutrePalette": {
+        "800": {
+          "minimum": 4.87,
+          "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.86,
+          "pire": "#16A34A vivid 900 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 8.84,
+          "pire": "#16A34A vivid 950 sur #DC2626 vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        }
+      }
+    },
+    {
+      "theme": "Dark inversé, texte blanc",
+      "rampes": 42,
+      "nuances": {
+        "plein": [
+          700,
+          600,
+          500
+        ],
+        "texteSurLaPage": 800,
+        "contourSurLaPage": 700
+      },
+      "plein": {
+        "minimum": 4.55,
+        "pire": "#16A34A vivid plein 700",
+        "tenues": "110/110",
+        "surLAncre": [
+          "#D94635 vivid plein 700 4.31",
+          "#D94635 une intensité plein 700 4.31",
+          "#808080 soft plein 700 3.95",
+          "#808080 une intensité plein 700 3.95",
+          "#8B8178 soft plein 700 3.81",
+          "#8B8178 une intensité plein 700 3.81"
+        ],
+        "ecartMinEntreEtats": 0.049
+      },
+      "teinte": {
+        "ecartMinEntreEtats": 0.048,
+        "texteConstant": {
+          "800": {
+            "minimum": 4.44,
+            "pire": "#DC2626 vivid 800 sur fond 300",
+            "tenues": "181/188",
+            "surLAncre": [
+              "#16A34A vivid 800 sur fond 200 4.42",
+              "#16A34A vivid 800 sur fond 300 3.60",
+              "#16A34A une intensité 800 sur fond 200 4.42",
+              "#16A34A une intensité 800 sur fond 300 3.60"
+            ]
+          },
+          "900": {
+            "minimum": 7.73,
+            "pire": "#8B8178 soft 900 sur fond 300",
+            "tenues": "188/188",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 9.98,
+            "pire": "#8B8178 soft 950 sur fond 300",
+            "tenues": "198/198",
+            "surLAncre": []
+          }
+        },
+        "texteSurLeQuatriemeFond": {
+          "800": {
+            "minimum": 3.41,
+            "pire": "#737373 soft 800 sur 400",
+            "tenues": "0/38",
+            "surLAncre": [
+              "#16A34A vivid 800 sur 400 2.66",
+              "#16A34A une intensité 800 sur 400 2.66",
+              "#06B6D4 vivid 800 sur 400 3.70",
+              "#06B6D4 une intensité 800 sur 400 3.70"
+            ]
+          },
+          "900": {
+            "minimum": 5.81,
+            "pire": "#737373 soft 900 sur 400",
+            "tenues": "38/38",
+            "surLAncre": []
+          },
+          "950": {
+            "minimum": 7.4,
+            "pire": "#16A34A vivid 950 sur 400",
+            "tenues": "40/40",
+            "surLAncre": []
+          }
+        },
+        "contourConstant": {
+          "700": {
+            "minimum": 2.44,
+            "pire": "#9333EA soft 700 sur fond 300",
+            "tenues": "95/128",
+            "surLAncre": [
+              "#1E6FD9 vivid 700 sur fond 300 2.56",
+              "#1E6FD9 une intensité 700 sur fond 300 2.56",
+              "#2563EB vivid 700 sur fond 200 2.92",
+              "#2563EB vivid 700 sur fond 300 2.46",
+              "#2563EB une intensité 700 sur fond 200 2.92",
+              "#2563EB une intensité 700 sur fond 300 2.46",
+              "#D94635 vivid 700 sur fond 300 2.94",
+              "#D94635 une intensité 700 sur fond 300 2.94",
+              "#DC2626 vivid 700 sur fond 300 2.64",
+              "#DC2626 une intensité 700 sur fond 300 2.64",
+              "#9333EA vivid 700 sur fond 200 2.82",
+              "#9333EA vivid 700 sur fond 300 2.38",
+              "#9333EA une intensité 700 sur fond 200 2.82",
+              "#9333EA une intensité 700 sur fond 300 2.38",
+              "#737373 soft 700 sur fond 300 2.59",
+              "#737373 une intensité 700 sur fond 300 2.59"
+            ]
+          },
+          "800": {
+            "minimum": 4.44,
+            "pire": "#DC2626 vivid 800 sur fond 300",
+            "tenues": "188/188",
+            "surLAncre": []
+          },
+          "900": {
+            "minimum": 7.73,
+            "pire": "#8B8178 soft 900 sur fond 300",
+            "tenues": "188/188",
+            "surLAncre": []
+          }
+        }
+      },
+      "racine": {
+        "texte": {
+          "minimum": 5.93,
+          "pire": "#DC2626 vivid sur carte",
+          "tenues": "76/76",
+          "surLAncre": []
+        },
+        "contour": {
+          "minimum": 3.32,
+          "pire": "#9333EA soft sur carte",
+          "tenues": "52/52",
+          "surLAncre": []
+        },
+        "texteSurUnFondTeinte": {
+          "minimum": 3.6,
+          "pire": "#16A34A vivid sur 300",
+          "tenues": "115/126",
+          "surLAncre": []
+        }
+      },
+      "anneauUnique": {
+        "800": {
+          "minimum": 3.6,
+          "pire": "#16A34A vivid 800 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.19,
+          "pire": "#EAB308 vivid 900 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 9.54,
+          "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "texteTeinteSurUneAutrePalette": {
+        "800": {
+          "minimum": 3.6,
+          "pire": "#16A34A vivid 800 sur #16A34A vivid 300",
+          "tenues": "4759/5292",
+          "surLAncre": []
+        },
+        "900": {
+          "minimum": 6.19,
+          "pire": "#EAB308 vivid 900 sur #16A34A vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        },
+        "950": {
+          "minimum": 9.54,
+          "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
+          "tenues": "5292/5292",
+          "surLAncre": []
+        }
+      }
+    }
+  ]
+}

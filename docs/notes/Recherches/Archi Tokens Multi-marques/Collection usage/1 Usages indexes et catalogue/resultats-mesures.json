@@ -1,0 +1,1475 @@
+{
+  "perimetre": {
+    "references": [
+      "#1E6FD9",
+      "#D94635",
+      "#EAB308",
+      "#16A34A",
+      "#9333EA",
+      "#737373"
+    ],
+    "recette": {
+      "formatVersion": 8,
+      "crans": [
+        50,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900,
+        950
+      ],
+      "courbes": {
+        "light": [
+          0.975,
+          0.95,
+          0.905,
+          0.845,
+          0.76,
+          0.67,
+          0.585,
+          0.5,
+          0.42,
+          0.34,
+          0.27
+        ],
+        "dark": [
+          0.18,
+          0.225,
+          0.275,
+          0.33,
+          0.4,
+          0.49,
+          0.58,
+          0.67,
+          0.76,
+          0.85,
+          0.93
+        ]
+      },
+      "profils": {
+        "soft": {
+          "part": 0.45
+        },
+        "vivid": {
+          "part": 0.95
+        }
+      },
+      "gamut": "srgb",
+      "fonds": {
+        "light": "#F7F7F7",
+        "dark": "#121212"
+      },
+      "seuils": {
+        "texte": 4.5,
+        "nonTexte": 3,
+        "profilsConfondus": 0.02,
+        "palettesProches": 0.05
+      },
+      "derives": [
+        [
+          "rose",
+          12.422,
+          12.094
+        ],
+        [
+          "red",
+          17.38,
+          26.042
+        ],
+        [
+          "orange",
+          73.684,
+          36.259
+        ],
+        [
+          "amber",
+          95.277,
+          45.635
+        ],
+        [
+          "yellow",
+          102.212,
+          53.813
+        ],
+        [
+          "lime",
+          120.757,
+          132.109
+        ],
+        [
+          "green",
+          155.826,
+          152.934
+        ],
+        [
+          "emerald",
+          166.113,
+          172.552
+        ],
+        [
+          "teal",
+          180.72,
+          192.524
+        ],
+        [
+          "cyan",
+          200.873,
+          229.695
+        ],
+        [
+          "sky",
+          236.62,
+          243.157
+        ],
+        [
+          "blue",
+          254.604,
+          267.935
+        ],
+        [
+          "indigo",
+          272.314,
+          281.288
+        ],
+        [
+          "violet",
+          293.756,
+          291.089
+        ],
+        [
+          "purple",
+          308.299,
+          302.717
+        ],
+        [
+          "fuchsia",
+          320.058,
+          325.661
+        ],
+        [
+          "pink",
+          343.198,
+          3.907
+        ]
+      ],
+      "intensiteDesFondsSombres": 0.3,
+      "contenuDesPlanches": {
+        "note": true,
+        "usages": true,
+        "grilles": true,
+        "light": true,
+        "dark": true
+      },
+      "palettes": []
+    },
+    "palettes": [
+      {
+        "id": "recherche-0",
+        "reference": "#1E6FD9",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": -7.53,
+            "sombre": 5.11,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": -7.53,
+            "sombre": 5.11,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-0-unique",
+        "reference": "#1E6FD9",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": -7.53,
+            "sombre": 5.11,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": -7.53,
+            "sombre": 5.11,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      },
+      {
+        "id": "recherche-1",
+        "reference": "#D94635",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0.89,
+            "sombre": -0.79,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0.89,
+            "sombre": -0.79,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-1-unique",
+        "reference": "#D94635",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0.89,
+            "sombre": -0.79,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0.89,
+            "sombre": -0.79,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      },
+      {
+        "id": "recherche-2",
+        "reference": "#EAB308",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 11.33,
+            "sombre": -33.09,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 11.33,
+            "sombre": -33.09,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-2-unique",
+        "reference": "#EAB308",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 11.33,
+            "sombre": -33.09,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 11.33,
+            "sombre": -33.09,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      },
+      {
+        "id": "recherche-3",
+        "reference": "#16A34A",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0.1,
+            "sombre": -0.1,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0.1,
+            "sombre": -0.1,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-3-unique",
+        "reference": "#16A34A",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0.1,
+            "sombre": -0.1,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0.1,
+            "sombre": -0.1,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      },
+      {
+        "id": "recherche-4",
+        "reference": "#9333EA",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 2.6,
+            "sombre": -1.79,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 2.6,
+            "sombre": -1.79,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-4-unique",
+        "reference": "#9333EA",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 2.6,
+            "sombre": -1.79,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 2.6,
+            "sombre": -1.79,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      },
+      {
+        "id": "recherche-5",
+        "reference": "#737373",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0,
+            "sombre": 0,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0,
+            "sombre": 0,
+            "origine": "tailwind"
+          }
+        }
+      },
+      {
+        "id": "recherche-5-unique",
+        "reference": "#737373",
+        "derive": {
+          "lien": true,
+          "soft": {
+            "clair": 0,
+            "sombre": 0,
+            "origine": "tailwind"
+          },
+          "vivid": {
+            "clair": 0,
+            "sombre": 0,
+            "origine": "tailwind"
+          }
+        },
+        "intensites": 1
+      }
+    ],
+    "nombreDeContextes": 36,
+    "mesuresDeMatrice": 1152,
+    "promesses": 684,
+    "manquees": 4
+  },
+  "minima": {
+    "text/700/100": {
+      "ratio": 5.017192064998472,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#0D7734",
+      "second": "#C9FED2"
+    },
+    "text/700/200": {
+      "ratio": 4.415541648118386,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#172E1B"
+    },
+    "text/700/300": {
+      "ratio": 3.601158856820069,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#173F21"
+    },
+    "text/700/400": {
+      "ratio": 2.657397754882799,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#075724"
+    },
+    "text/800/100": {
+      "ratio": 7.135613451284998,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#085D27",
+      "second": "#C9FED2"
+    },
+    "text/800/200": {
+      "ratio": 6.343191158967184,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#DFDFDF"
+    },
+    "text/800/300": {
+      "ratio": 5.263735253578182,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#CCCCCC"
+    },
+    "text/800/400": {
+      "ratio": 3.9420586673941016,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#B1B1B1"
+    },
+    "text/900/100": {
+      "ratio": 10.060870136644866,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#04441B",
+      "second": "#C9FED2"
+    },
+    "text/900/200": {
+      "ratio": 8.798922772551856,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#DFDFDF"
+    },
+    "text/900/300": {
+      "ratio": 7.3015614429211455,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#CCCCCC"
+    },
+    "text/900/400": {
+      "ratio": 5.468205026461323,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#B1B1B1"
+    },
+    "text/950/100": {
+      "ratio": 12.969250606323287,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#023011",
+      "second": "#C9FED2"
+    },
+    "text/950/200": {
+      "ratio": 11.356062231173878,
+      "contexte": "#737373/light/soft",
+      "premier": "#262626",
+      "second": "#DFDFDF"
+    },
+    "text/950/300": {
+      "ratio": 9.39092030011113,
+      "contexte": "#1E6FD9/light/soft",
+      "premier": "#162643",
+      "second": "#BCCEE3"
+    },
+    "text/950/400": {
+      "ratio": 6.922836764093733,
+      "contexte": "#D94635/light/vivid",
+      "premier": "#48100B",
+      "second": "#EF9686"
+    },
+    "border-control/600/100": {
+      "ratio": 2.917643042714528,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#16A34A",
+      "second": "#C9FED2"
+    },
+    "border-control/600/200": {
+      "ratio": 2.6253862111703543,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#16A34A",
+      "second": "#87FEA2"
+    },
+    "border-control/600/300": {
+      "ratio": 2.220615838180353,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#16A34A",
+      "second": "#27F372"
+    },
+    "border-control/600/400": {
+      "ratio": 1.656575362470229,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#16A34A",
+      "second": "#20D362"
+    },
+    "border-control/700/100": {
+      "ratio": 5.017192064998472,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#0D7734",
+      "second": "#C9FED2"
+    },
+    "border-control/700/200": {
+      "ratio": 4.415541648118386,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#172E1B"
+    },
+    "border-control/700/300": {
+      "ratio": 3.601158856820069,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#173F21"
+    },
+    "border-control/700/400": {
+      "ratio": 2.657397754882799,
+      "contexte": "#16A34A/dark/vivid",
+      "premier": "#16A34A",
+      "second": "#075724"
+    },
+    "border-control/800/100": {
+      "ratio": 7.135613451284998,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#085D27",
+      "second": "#C9FED2"
+    },
+    "border-control/800/200": {
+      "ratio": 6.343191158967184,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#DFDFDF"
+    },
+    "border-control/800/300": {
+      "ratio": 5.263735253578182,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#CCCCCC"
+    },
+    "border-control/800/400": {
+      "ratio": 3.9420586673941016,
+      "contexte": "#737373/light/soft",
+      "premier": "#4D4D4D",
+      "second": "#B1B1B1"
+    },
+    "border-control/900/100": {
+      "ratio": 10.060870136644866,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#04441B",
+      "second": "#C9FED2"
+    },
+    "border-control/900/200": {
+      "ratio": 8.798922772551856,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#DFDFDF"
+    },
+    "border-control/900/300": {
+      "ratio": 7.3015614429211455,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#CCCCCC"
+    },
+    "border-control/900/400": {
+      "ratio": 5.468205026461323,
+      "contexte": "#737373/light/soft",
+      "premier": "#383838",
+      "second": "#B1B1B1"
+    },
+    "on-solid-fond/700": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#0D7734"
+    },
+    "on-solid-neutral50/700": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#0D7734"
+    },
+    "on-solid-fond/800": {
+      "ratio": 7.523798573381386,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#085D27"
+    },
+    "on-solid-neutral50/800": {
+      "ratio": 7.523798573381386,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#085D27"
+    },
+    "on-solid-fond/900": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#04441B"
+    },
+    "on-solid-neutral50/900": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#04441B"
+    },
+    "on-solid-fond/950": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#023011"
+    },
+    "on-solid-neutral50/950": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid",
+      "premier": "#F7F7F7",
+      "second": "#023011"
+    }
+  },
+  "croisements": [
+    {
+      "mode": "light",
+      "texte": 700,
+      "surface": 100,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 4.864449531746112,
+        "texte": "#16A34A",
+        "surface": "#D94635"
+      }
+    },
+    {
+      "mode": "light",
+      "texte": 800,
+      "surface": 200,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 5.992695015892891,
+        "texte": "#16A34A",
+        "surface": "#9333EA"
+      }
+    },
+    {
+      "mode": "light",
+      "texte": 900,
+      "surface": 300,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 6.887817723048138,
+        "texte": "#16A34A",
+        "surface": "#9333EA"
+      }
+    },
+    {
+      "mode": "light",
+      "texte": 950,
+      "surface": 400,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 6.541482188903805,
+        "texte": "#16A34A",
+        "surface": "#D94635"
+      }
+    },
+    {
+      "mode": "dark",
+      "texte": 700,
+      "surface": 100,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 5.161449286788649,
+        "texte": "#16A34A",
+        "surface": "#16A34A"
+      }
+    },
+    {
+      "mode": "dark",
+      "texte": 800,
+      "surface": 200,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 6.497965837499152,
+        "texte": "#D94635",
+        "surface": "#16A34A"
+      }
+    },
+    {
+      "mode": "dark",
+      "texte": 900,
+      "surface": 300,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 7.348303669697969,
+        "texte": "#D94635",
+        "surface": "#16A34A"
+      }
+    },
+    {
+      "mode": "dark",
+      "texte": 950,
+      "surface": 400,
+      "couples": 36,
+      "echecs": 0,
+      "pire": {
+        "ratio": 7.041952163819194,
+        "texte": "#9333EA",
+        "surface": "#16A34A"
+      }
+    }
+  ],
+  "balayage": [
+    {
+      "mode": "light",
+      "part": 0.45,
+      "matrice": [
+        [
+          {
+            "texte": 700,
+            "surface": 100,
+            "minimum": 5.0669043450889655,
+            "teinteDuMinimum": 149
+          },
+          {
+            "texte": 700,
+            "surface": 200,
+            "minimum": 4.463501894282103,
+            "teinteDuMinimum": 238
+          },
+          {
+            "texte": 700,
+            "surface": 300,
+            "minimum": 3.694061019446887,
+            "teinteDuMinimum": 239
+          },
+          {
+            "texte": 700,
+            "surface": 400,
+            "minimum": 2.7728723002221316,
+            "teinteDuMinimum": 86
+          }
+        ],
+        [
+          {
+            "texte": 800,
+            "surface": 100,
+            "minimum": 7.166894602297575,
+            "teinteDuMinimum": 147
+          },
+          {
+            "texte": 800,
+            "surface": 200,
+            "minimum": 6.293982580811282,
+            "teinteDuMinimum": 223
+          },
+          {
+            "texte": 800,
+            "surface": 300,
+            "minimum": 5.210704979328202,
+            "teinteDuMinimum": 224
+          },
+          {
+            "texte": 800,
+            "surface": 400,
+            "minimum": 3.901507515286569,
+            "teinteDuMinimum": 62
+          }
+        ],
+        [
+          {
+            "texte": 900,
+            "surface": 100,
+            "minimum": 10.011628643670084,
+            "teinteDuMinimum": 146
+          },
+          {
+            "texte": 900,
+            "surface": 200,
+            "minimum": 8.781005335374319,
+            "teinteDuMinimum": 238
+          },
+          {
+            "texte": 900,
+            "surface": 300,
+            "minimum": 7.240052648671506,
+            "teinteDuMinimum": 83
+          },
+          {
+            "texte": 900,
+            "surface": 400,
+            "minimum": 5.361984089004408,
+            "teinteDuMinimum": 330
+          }
+        ],
+        [
+          {
+            "texte": 950,
+            "surface": 100,
+            "minimum": 12.916602594389666,
+            "teinteDuMinimum": 142
+          },
+          {
+            "texte": 950,
+            "surface": 200,
+            "minimum": 11.306746213594584,
+            "teinteDuMinimum": 87
+          },
+          {
+            "texte": 950,
+            "surface": 300,
+            "minimum": 9.268148529800543,
+            "teinteDuMinimum": 327
+          },
+          {
+            "texte": 950,
+            "surface": 400,
+            "minimum": 6.802127959318701,
+            "teinteDuMinimum": 327
+          }
+        ]
+      ]
+    },
+    {
+      "mode": "light",
+      "part": 0.95,
+      "matrice": [
+        [
+          {
+            "texte": 700,
+            "surface": 100,
+            "minimum": 4.96945710292483,
+            "teinteDuMinimum": 146
+          },
+          {
+            "texte": 700,
+            "surface": 200,
+            "minimum": 4.435035376939186,
+            "teinteDuMinimum": 218
+          },
+          {
+            "texte": 700,
+            "surface": 300,
+            "minimum": 3.6931882942499787,
+            "teinteDuMinimum": 234
+          },
+          {
+            "texte": 700,
+            "surface": 400,
+            "minimum": 2.7555611867923275,
+            "teinteDuMinimum": 77
+          }
+        ],
+        [
+          {
+            "texte": 800,
+            "surface": 100,
+            "minimum": 7.064107827095603,
+            "teinteDuMinimum": 146
+          },
+          {
+            "texte": 800,
+            "surface": 200,
+            "minimum": 6.27170771411044,
+            "teinteDuMinimum": 223
+          },
+          {
+            "texte": 800,
+            "surface": 300,
+            "minimum": 5.221894941504601,
+            "teinteDuMinimum": 88
+          },
+          {
+            "texte": 800,
+            "surface": 400,
+            "minimum": 3.865528668046088,
+            "teinteDuMinimum": 58
+          }
+        ],
+        [
+          {
+            "texte": 900,
+            "surface": 100,
+            "minimum": 9.955238008423601,
+            "teinteDuMinimum": 146
+          },
+          {
+            "texte": 900,
+            "surface": 200,
+            "minimum": 8.751217388583708,
+            "teinteDuMinimum": 237
+          },
+          {
+            "texte": 900,
+            "surface": 300,
+            "minimum": 7.235470760892858,
+            "teinteDuMinimum": 85
+          },
+          {
+            "texte": 900,
+            "surface": 400,
+            "minimum": 5.316747092836863,
+            "teinteDuMinimum": 328
+          }
+        ],
+        [
+          {
+            "texte": 950,
+            "surface": 100,
+            "minimum": 12.88881787443264,
+            "teinteDuMinimum": 231
+          },
+          {
+            "texte": 950,
+            "surface": 200,
+            "minimum": 11.26938885676189,
+            "teinteDuMinimum": 69
+          },
+          {
+            "texte": 950,
+            "surface": 300,
+            "minimum": 9.237395627247391,
+            "teinteDuMinimum": 69
+          },
+          {
+            "texte": 950,
+            "surface": 400,
+            "minimum": 6.603434288711741,
+            "teinteDuMinimum": 327
+          }
+        ]
+      ]
+    },
+    {
+      "mode": "dark",
+      "part": 0.45,
+      "matrice": [
+        [
+          {
+            "texte": 700,
+            "surface": 100,
+            "minimum": 5.391816725553667,
+            "teinteDuMinimum": 336
+          },
+          {
+            "texte": 700,
+            "surface": 200,
+            "minimum": 4.697296274033567,
+            "teinteDuMinimum": 334
+          },
+          {
+            "texte": 700,
+            "surface": 300,
+            "minimum": 3.9239486953314198,
+            "teinteDuMinimum": 328
+          },
+          {
+            "texte": 700,
+            "surface": 400,
+            "minimum": 2.989041236031058,
+            "teinteDuMinimum": 336
+          }
+        ],
+        [
+          {
+            "texte": 800,
+            "surface": 100,
+            "minimum": 7.678474324554889,
+            "teinteDuMinimum": 330
+          },
+          {
+            "texte": 800,
+            "surface": 200,
+            "minimum": 6.693583959233321,
+            "teinteDuMinimum": 330
+          },
+          {
+            "texte": 800,
+            "surface": 300,
+            "minimum": 5.5522469482842,
+            "teinteDuMinimum": 330
+          },
+          {
+            "texte": 800,
+            "surface": 400,
+            "minimum": 4.245054707099877,
+            "teinteDuMinimum": 79
+          }
+        ],
+        [
+          {
+            "texte": 900,
+            "surface": 100,
+            "minimum": 10.683118854869406,
+            "teinteDuMinimum": 321
+          },
+          {
+            "texte": 900,
+            "surface": 200,
+            "minimum": 9.293355707361755,
+            "teinteDuMinimum": 84
+          },
+          {
+            "texte": 900,
+            "surface": 300,
+            "minimum": 7.654565376214589,
+            "teinteDuMinimum": 78
+          },
+          {
+            "texte": 900,
+            "surface": 400,
+            "minimum": 5.772766185247215,
+            "teinteDuMinimum": 243
+          }
+        ],
+        [
+          {
+            "texte": 950,
+            "surface": 100,
+            "minimum": 13.820327489551692,
+            "teinteDuMinimum": 231
+          },
+          {
+            "texte": 950,
+            "surface": 200,
+            "minimum": 11.978811114513261,
+            "teinteDuMinimum": 82
+          },
+          {
+            "texte": 950,
+            "surface": 300,
+            "minimum": 9.839876046223894,
+            "teinteDuMinimum": 243
+          },
+          {
+            "texte": 950,
+            "surface": 400,
+            "minimum": 7.3956832604648985,
+            "teinteDuMinimum": 243
+          }
+        ]
+      ]
+    },
+    {
+      "mode": "dark",
+      "part": 0.95,
+      "matrice": [
+        [
+          {
+            "texte": 700,
+            "surface": 100,
+            "minimum": 5.046292575582717,
+            "teinteDuMinimum": 326
+          },
+          {
+            "texte": 700,
+            "surface": 200,
+            "minimum": 4.445332778252201,
+            "teinteDuMinimum": 327
+          },
+          {
+            "texte": 700,
+            "surface": 300,
+            "minimum": 3.749890372336456,
+            "teinteDuMinimum": 326
+          },
+          {
+            "texte": 700,
+            "surface": 400,
+            "minimum": 2.896440613128289,
+            "teinteDuMinimum": 326
+          }
+        ],
+        [
+          {
+            "texte": 800,
+            "surface": 100,
+            "minimum": 7.38706588737208,
+            "teinteDuMinimum": 328
+          },
+          {
+            "texte": 800,
+            "surface": 200,
+            "minimum": 6.510320579781902,
+            "teinteDuMinimum": 327
+          },
+          {
+            "texte": 800,
+            "surface": 300,
+            "minimum": 5.497817826180961,
+            "teinteDuMinimum": 328
+          },
+          {
+            "texte": 800,
+            "surface": 400,
+            "minimum": 4.205697662732174,
+            "teinteDuMinimum": 63
+          }
+        ],
+        [
+          {
+            "texte": 900,
+            "surface": 100,
+            "minimum": 10.571653878649828,
+            "teinteDuMinimum": 331
+          },
+          {
+            "texte": 900,
+            "surface": 200,
+            "minimum": 9.2604701679831,
+            "teinteDuMinimum": 73
+          },
+          {
+            "texte": 900,
+            "surface": 300,
+            "minimum": 7.645006146284368,
+            "teinteDuMinimum": 87
+          },
+          {
+            "texte": 900,
+            "surface": 400,
+            "minimum": 5.773445523236123,
+            "teinteDuMinimum": 85
+          }
+        ],
+        [
+          {
+            "texte": 950,
+            "surface": 100,
+            "minimum": 13.84492602187125,
+            "teinteDuMinimum": 236
+          },
+          {
+            "texte": 950,
+            "surface": 200,
+            "minimum": 11.981875208806985,
+            "teinteDuMinimum": 222
+          },
+          {
+            "texte": 950,
+            "surface": 300,
+            "minimum": 9.82288552204168,
+            "teinteDuMinimum": 231
+          },
+          {
+            "texte": 950,
+            "surface": 400,
+            "minimum": 7.360242870857725,
+            "teinteDuMinimum": 143
+          }
+        ]
+      ]
+    }
+  ],
+  "ensembles": [
+    [
+      {
+        "texte": 700,
+        "surface": 100,
+        "minimum": 4.764610628623935
+      },
+      {
+        "texte": 700,
+        "surface": 200,
+        "minimum": 4.093506671786047
+      },
+      {
+        "texte": 700,
+        "surface": 300,
+        "minimum": 3.2935356132358
+      },
+      {
+        "texte": 700,
+        "surface": 400,
+        "minimum": 2.345683247783682
+      }
+    ],
+    [
+      {
+        "texte": 800,
+        "surface": 100,
+        "minimum": 6.772917551680968
+      },
+      {
+        "texte": 800,
+        "surface": 200,
+        "minimum": 5.818939960949149
+      },
+      {
+        "texte": 800,
+        "surface": 300,
+        "minimum": 4.681777148369734
+      },
+      {
+        "texte": 800,
+        "surface": 400,
+        "minimum": 3.3344003273120495
+      }
+    ],
+    [
+      {
+        "texte": 900,
+        "surface": 100,
+        "minimum": 9.544872174769138
+      },
+      {
+        "texte": 900,
+        "surface": 200,
+        "minimum": 8.200459801275898
+      },
+      {
+        "texte": 900,
+        "surface": 300,
+        "minimum": 6.5978899183341495
+      },
+      {
+        "texte": 900,
+        "surface": 400,
+        "minimum": 4.699071657206708
+      }
+    ],
+    [
+      {
+        "texte": 950,
+        "surface": 100,
+        "minimum": 12.42888307429836
+      },
+      {
+        "texte": 950,
+        "surface": 200,
+        "minimum": 10.678252590428986
+      },
+      {
+        "texte": 950,
+        "surface": 300,
+        "minimum": 8.59146155449175
+      },
+      {
+        "texte": 950,
+        "surface": 400,
+        "minimum": 6.118909830930683
+      }
+    ]
+  ],
+  "contreExemple": {
+    "noirGris": 4.68949989000882,
+    "grisBlanc": 4.478089453577214,
+    "noirSurBlancOpacite40": 2.849027755287037
+  },
+  "detailsDesManques": [
+    {
+      "reference": "#16A34A",
+      "intensites": 2,
+      "paire": 9,
+      "mode": "light",
+      "profil": "vivid",
+      "ratio": 2.917643042714528,
+      "seuil": 3
+    },
+    {
+      "reference": "#16A34A",
+      "intensites": 2,
+      "paire": 13,
+      "mode": "light",
+      "profil": "vivid",
+      "ratio": 2.917643042714528,
+      "seuil": 3
+    },
+    {
+      "reference": "#16A34A",
+      "intensites": 1,
+      "paire": 9,
+      "mode": "light",
+      "profil": "unique",
+      "ratio": 2.917643042714528,
+      "seuil": 3
+    },
+    {
+      "reference": "#16A34A",
+      "intensites": 1,
+      "paire": 13,
+      "mode": "light",
+      "profil": "unique",
+      "ratio": 2.917643042714528,
+      "seuil": 3
+    }
+  ],
+  "sondeDuDiagnostic": {
+    "ratio": 1,
+    "constats": []
+  },
+  "empreintesSources": {
+    "packages/couleur/src/ajustement.ts": "1d484601f54f719adaf11d9ab6cab079190a6cd64ac8615921bb560af26772df",
+    "packages/couleur/src/alertes.ts": "4170cc0c09ed698983166a1c8b7b6995913201fd85294c17184d345d1e6e3eaf",
+    "packages/couleur/src/constats.ts": "a69cf75e5d88c0bbc9a7a3eed826376e95f2a470c087439f6c7ac43c3cb436e9",
+    "packages/couleur/src/contraste.ts": "a9223a637a721dafefdfe1ec866ee50ba9c116cd33b891371c9ba3595dff6fcd",
+    "packages/couleur/src/conversions.ts": "7ac2299cc9b0344ca6603e6a7a77b5c1758886035bf4635c04c25ec89e783a8b",
+    "packages/couleur/src/empreinte.ts": "2d65a0efb1907333d8b3351872517da45a93af831d6af6b30c28a6d652599206",
+    "packages/couleur/src/garantie.ts": "4d6fc7715e927ffa95e599b9499f12e634047332441044a4a32ff51aef56a5a7",
+    "packages/couleur/src/index.ts": "1a38a392fe735b3cb540d7a088ef730d267c60272181a335e9aa096b14bfa636",
+    "packages/couleur/src/limites.ts": "40351a07d88fc4454b60649bc890f7b34c3c11f0999b44b847e2292abae8c2a9",
+    "packages/couleur/src/nuances.ts": "09902a0932fa932c4c1ca338879fee774f44bf4580323f2e592e5a8cbd5e9209",
+    "packages/couleur/src/palette.ts": "62840e8cf8b3b970fcf9ae6fd4fa773b93bf9cc749856828f5f4e7f08cbee77b",
+    "packages/couleur/src/plafond.ts": "258b2899ae93d089d274b16a352c0de391deae86be9368f006daa850a353726b",
+    "packages/couleur/src/promesses.ts": "ee3dd59be48fcf1cc9c54f81da72d2dc9e963183c6c2e08557d5bc832a26531b",
+    "packages/couleur/src/protocole.ts": "8c9ce349f6b52481573482af1288ce170b39e5b8cf32c4404403a6f2bd475956",
+    "packages/couleur/src/rampe.ts": "e309cf279a7be291b329919ca7b0e6c6a8f827158a9e02cac4c6bcac59b473e6",
+    "packages/couleur/src/recette.ts": "4160b8a21274417413867580ed5a4afa7f1dde711de2819b8c157e8133c2cb3a",
+    "packages/couleur/src/reglages.ts": "b78df9250458a5cf5d81dafa3769b836a1533de626e94de61de0df9d35d786a6",
+    "packages/couleur/src/tailwind.ts": "29baa0ec104ce7a3aa4fe64295ba7c4aab4c3ccd111256991489d0e527c4ac64",
+    "packages/kit/src/emplois/contraste.ts": "a798f8e1302a6305f6e66d6cdf6f602b63d5844f652963e3e3ded7eeda743d57",
+    "packages/kit/src/emplois/emplois.ts": "7dd57d27dcc62055babe452ae2d051b8e1a52643ca23a8b7f3ae9923c6d008be",
+    "packages/kit/src/emplois/index.ts": "c4c81d5355b66ea603c7b65f5b1b3dfc871658d308e45f9b41c72b7558aec001",
+    "packages/kit/src/emplois/paires.ts": "104ea3cf0db57b31e8dc4a8fb7e6ad7e31a73a74d00e1c82cea02e93a4d6df4a",
+    "packages/kit/src/emplois/rangs.ts": "9e1be54dfe8021a748f80c81a67d326abcff02638ac10234b844f898053b3070",
+    "packages/kit/src/emplois/usages.ts": "c8bc0047a4fc1725932f1bf5686d4d3822bc054da4cd55a6bd19bafaa3df6cac",
+    "packages/kit/src/lecteurs/avertissements-export.mjs": "9af26d9f6f7253032d27e5e635d651b4053ba965b7e1c77e05b7c45fb60ee94e",
+    "packages/kit/src/lecteurs/caracteristiques.mjs": "5c5e5b9f528b6020d10cc250e531f7affabf0ffdd387d304e66e213c53b57ebe",
+    "packages/kit/src/lecteurs/configuration.mjs": "689cd4267550ef7323ed86e428c17d7da98343d19edc8aa2e1cb8b55b58c6fc6",
+    "packages/kit/src/lecteurs/controle-repository.mjs": "83af48b085f8edb288e536ca6a93af08fe6ebd0431332473b68694b644e019df",
+    "packages/kit/src/lecteurs/diagnostic-emplois.mjs": "7c9469d1a9bc366217ccc50a98eb6dffd506cbee76dee2ee2243eda19670d563",
+    "packages/kit/src/lecteurs/diagnostic-markdown.mjs": "14d41d85e64ed9eb11f8417d822bbd1301dade252ebdafeb0c9ebf805b3192eb",
+    "packages/kit/src/lecteurs/diagnostic-parite.mjs": "9dbef7e13ee6acb6eca7810265ba14fc0d406e5e599572ec845aab0a120904cf",
+    "packages/kit/src/lecteurs/diagnostic-tests.mjs": "3f9cea2b3ae36d9e23502f6b23e42a5687be0c337ea6588973338ab0e012cae8",
+    "packages/kit/src/lecteurs/diagnostic-tokens.mjs": "da0f0a72d590dabda466a1024990e69cd9f9962e9de94d6822939304327d27fc",
+    "packages/kit/src/lecteurs/implementation.mjs": "59ef8384064c9bbb6eaac90af628c74828edd1a1565ed5260b9224b225bdd5fa",
+    "packages/kit/src/lecteurs/index.mjs": "cd8c58aa557413b40dcfdd5b17e026dbcea937da4813efb77e64ba836fd45d67",
+    "packages/kit/src/lecteurs/modes-tokens.mjs": "34e2c2af4826c796aa6b87b89d5fd9869c95579dc0b01ac46204393321ff1dab",
+    "packages/kit/src/lecteurs/navigateur.mjs": "87fbed2a54e8ff72cb6d0a7bfaef6d722f7737b2664bf49901bbbb0fe9408c83",
+    "packages/kit/src/lecteurs/perimetre-rapport.mjs": "a525e57e2de2e79d21934717b24df4fdf799e4e66f07f0ecdfb79d476559ec36",
+    "packages/kit/src/lecteurs/references-token.mjs": "58bee14405c6f10338bf7c526298589dc8ed822828cb1ebdd3b63c9e0cce3e1a",
+    "packages/kit/src/lecteurs/schema-contrat.mjs": "9e1e7be550913595ad84b0e87b2b15f07c0867c962fd604b653e6ff62afc7212",
+    "packages/kit/src/lecteurs/tokens-dtcg.mjs": "b2419fcb48b468fd4c2cf6896d74970a286e1c6fec1be7f54342e4ddc3cb9047",
+    "packages/kit/src/lecteurs/trouver-contrats.mjs": "03c183ec831793b1c4e4e5f15d0d51177f18dba281cc8a3b22da18ee1fb8e269",
+    "packages/kit/src/lecteurs/typography-token-types.mjs": "6f68bd1f42fb77886a7987d49239cec0a79d54688998bdd5602d2f3568ba418f",
+    "packages/kit/src/lecteurs/validation-contrat.mjs": "cb31ec91a328450f77bd4bd66f086baaad2295f57ff2a7b5d8756ccf99476c9b",
+    "packages/kit/src/lecteurs/validation-echantillons.mjs": "b51c143865a02e5c204c71dd6ffae934caccbd70f1aeb3a71c7407ed3d2feda2",
+    "packages/kit/src/lecteurs/validation-graphe-contrats.mjs": "5d885c3c0bec2432076fd108f117c7999184231d340294faf478d3b5fe560100",
+    "packages/kit/src/lecteurs/variant-views.mjs": "852ca02dbbd7732f14d74cfef8fbe3cda04ec542d6fa4bb477c4c761119ec095",
+    "packages/kit/src/lecteurs/verdict-bilan.mjs": "f8528d607b30199730f4e3f857447afaf6abf41e70a94a1650a806e0ec1ec864",
+    "packages/kit/src/lecteurs/version-contrat.mjs": "5af69df612dc8af3288beadde37a4d6bf85330ec8529adf574e41cdbe513c4a8",
+    "packages/kit/dist/emplois/contraste.d.ts": "0b4e423ae1647a893364c48581e76b1110f06253516e6db92e91bb6daecb71cd",
+    "packages/kit/dist/emplois/contraste.js": "5db0e12623d68974891bcebd4074b1430009653bb695d59eedf84631694a16ce",
+    "packages/kit/dist/emplois/emplois.d.ts": "982c0a5dd275d60e6f7a635a2033b83c181d58cddac3ba9b05426e8c2db129b2",
+    "packages/kit/dist/emplois/emplois.js": "caa93ee521f513e061a4e139511c26d7720bca3415a043589969a6eb6511c107",
+    "packages/kit/dist/emplois/index.d.ts": "c4c81d5355b66ea603c7b65f5b1b3dfc871658d308e45f9b41c72b7558aec001",
+    "packages/kit/dist/emplois/index.js": "c4c81d5355b66ea603c7b65f5b1b3dfc871658d308e45f9b41c72b7558aec001",
+    "packages/kit/dist/emplois/paires.d.ts": "07986d6ad1b07a8b16d5aa824059e14caad4fff43617836507b4a8c3d54e67b6",
+    "packages/kit/dist/emplois/paires.js": "01054051f7cba5ed87c3bb3e1fdb54113c0cc42935ad1de26471793716265cd5",
+    "packages/kit/dist/emplois/rangs.d.ts": "57994a6890f50e1cff42ca63d2ec8b2319f3a897b1e2733acf80bb450a88fad0",
+    "packages/kit/dist/emplois/rangs.js": "c0de452187a5afcd244fa76da2d3e22836fcdee97da00de8a8aa402ee1cd7a16",
+    "packages/kit/dist/emplois/usages.d.ts": "cef5c07c73fc34fd9ffb4c85c3d342c5eeb7fb2dbe12cfed394fa3a442a3e681",
+    "packages/kit/dist/emplois/usages.js": "f2c91edcfe7248a7f0ab0ac8c373ef8c239bcd8e0578ed6ddca17c1d1771a02b"
+  },
+  "exemple": {
+    "#1E6FD9/light/unique/text": [
+      [
+        5.331776519869055,
+        4.64862406515274,
+        3.851751979689643,
+        2.8855830825242466
+      ],
+      [
+        7.522057724492079,
+        6.558267854482526,
+        5.434042597937637,
+        4.070973799197841
+      ],
+      [
+        10.475081812747334,
+        9.13292543633786,
+        7.567349636524416,
+        5.669164631015605
+      ],
+      [
+        13.341186618472902,
+        11.631800571763268,
+        9.637864936314697,
+        7.220314329305334
+      ]
+    ],
+    "#1E6FD9/light/unique/border-control": [
+      [
+        4.197989624045076,
+        3.660107568063771,
+        3.0326880327552277,
+        2.2719721643648887
+      ],
+      [
+        5.331776519869055,
+        4.64862406515274,
+        3.851751979689643,
+        2.8855830825242466
+      ],
+      [
+        7.522057724492079,
+        6.558267854482526,
+        5.434042597937637,
+        4.070973799197841
+      ],
+      [
+        10.475081812747334,
+        9.13292543633786,
+        7.567349636524416,
+        5.669164631015605
+      ]
+    ],
+    "#1E6FD9/dark/unique/text": [
+      [
+        5.696159810060311,
+        4.956382338999543,
+        4.117957200250167,
+        3.1219608943522337
+      ],
+      [
+        8.043697356051071,
+        6.999038096750084,
+        5.815075866636021,
+        4.408603239544645
+      ],
+      [
+        10.872625330046432,
+        9.460564654317631,
+        7.860208852358901,
+        5.959086863995325
+      ],
+      [
+        14.009659751110293,
+        12.190182944509166,
+        10.128082983775828,
+        7.67843799060892
+      ]
+    ],
+    "#1E6FD9/dark/unique/border-control": [
+      [
+        3.5404031273858587,
+        3.0806002848659935,
+        2.5594837638609795,
+        1.9404301288070729
+      ],
+      [
+        5.696159810060311,
+        4.956382338999543,
+        4.117957200250167,
+        3.1219608943522337
+      ],
+      [
+        8.043697356051071,
+        6.999038096750084,
+        5.815075866636021,
+        4.408603239544645
+      ],
+      [
+        10.872625330046432,
+        9.460564654317631,
+        7.860208852358901,
+        5.959086863995325
+      ]
+    ]
+  }
+}

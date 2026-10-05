@@ -1,0 +1,1856 @@
+{
+  "protocole": "Seize références, deux intensités puis une, dérive Tailwind, recette par défaut, rampes ancrées de rampesDe ; balayage sans ancrage pour la fenêtre sombre.",
+  "encres": {
+    "fondClair": "#F7F7F7",
+    "fondSombre": "#121212",
+    "neutre950Clair": "#262626",
+    "neutre950Sombre": "#E8E8E8"
+  },
+  "minima": {
+    "auto/dark/1/noir": {
+      "ratio": 5.719252459144616,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "auto/dark/2/noir": {
+      "ratio": 9.1919443503128,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "auto/dark/3/noir": {
+      "ratio": 12.892821525266022,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "auto/dark/4/noir": {
+      "ratio": 16.819500887163706,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "auto/light/1/blanc": {
+      "ratio": 5.667358292614404,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "auto/light/2/blanc": {
+      "ratio": 7.762299780698445,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "auto/light/3/blanc": {
+      "ratio": 11.364634851755124,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "auto/light/4/blanc": {
+      "ratio": 14.64990556879609,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/1/1": {
+      "ratio": 2.917643042714528,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/1/2": {
+      "ratio": 2.6253862111703543,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/1/3": {
+      "ratio": 2.220615838180353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/1/4": {
+      "ratio": 1.656575362470229,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/2/1": {
+      "ratio": 4.701233801153806,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/border-control/2/2": {
+      "ratio": 4.139640547898975,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/border-control/2/3": {
+      "ratio": 3.4795542914351905,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/border-control/2/4": {
+      "ratio": 2.657397754882799,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "partenaires/border-control/3/1": {
+      "ratio": 6.718755857729404,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/border-control/3/2": {
+      "ratio": 5.8210262743563375,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/border-control/3/3": {
+      "ratio": 4.786089586521211,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/border-control/3/4": {
+      "ratio": 3.5687285772648627,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/border-control/4/1": {
+      "ratio": 10.060870136644866,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/border-control/4/2": {
+      "ratio": 8.798922772551856,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/border-control/4/3": {
+      "ratio": 7.3015614429211455,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/border-control/4/4": {
+      "ratio": 5.444038197149146,
+      "contexte": "#F97316/light/soft"
+    },
+    "partenaires/solid/1/1": {
+      "ratio": 4.701233801153806,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/solid/1/2": {
+      "ratio": 4.139640547898975,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/solid/1/3": {
+      "ratio": 3.4795542914351905,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/solid/1/4": {
+      "ratio": 2.657397754882799,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "partenaires/solid/2/1": {
+      "ratio": 6.718755857729404,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/solid/2/2": {
+      "ratio": 5.8210262743563375,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/solid/2/3": {
+      "ratio": 4.786089586521211,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/solid/2/4": {
+      "ratio": 3.5687285772648627,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/solid/3/1": {
+      "ratio": 10.060870136644866,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/solid/3/2": {
+      "ratio": 8.798922772551856,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/solid/3/3": {
+      "ratio": 7.3015614429211455,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/solid/3/4": {
+      "ratio": 5.444038197149146,
+      "contexte": "#F97316/light/soft"
+    },
+    "partenaires/solid/4/1": {
+      "ratio": 12.969250606323287,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/solid/4/2": {
+      "ratio": 11.336969075005651,
+      "contexte": "#8B8178/light/vivid"
+    },
+    "partenaires/solid/4/3": {
+      "ratio": 9.33969107448249,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "partenaires/solid/4/4": {
+      "ratio": 6.815368248877471,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "partenaires/text/1/1": {
+      "ratio": 4.701233801153806,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/text/1/2": {
+      "ratio": 4.139640547898975,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/text/1/3": {
+      "ratio": 3.4795542914351905,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "partenaires/text/1/4": {
+      "ratio": 2.657397754882799,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "partenaires/text/2/1": {
+      "ratio": 6.718755857729404,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/text/2/2": {
+      "ratio": 5.8210262743563375,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/text/2/3": {
+      "ratio": 4.786089586521211,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/text/2/4": {
+      "ratio": 3.5687285772648627,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "partenaires/text/3/1": {
+      "ratio": 10.060870136644866,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/text/3/2": {
+      "ratio": 8.798922772551856,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/text/3/3": {
+      "ratio": 7.3015614429211455,
+      "contexte": "#737373/light/soft"
+    },
+    "partenaires/text/3/4": {
+      "ratio": 5.444038197149146,
+      "contexte": "#F97316/light/soft"
+    },
+    "partenaires/text/4/1": {
+      "ratio": 12.969250606323287,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "partenaires/text/4/2": {
+      "ratio": 11.336969075005651,
+      "contexte": "#8B8178/light/vivid"
+    },
+    "partenaires/text/4/3": {
+      "ratio": 9.33969107448249,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "partenaires/text/4/4": {
+      "ratio": 6.815368248877471,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/encre/1": {
+      "ratio": 5.102026349783474,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/encre/2": {
+      "ratio": 8.19994267013933,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/encre/3": {
+      "ratio": 11.501418343543612,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/encre/4": {
+      "ratio": 15.004327458793489,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/page/1": {
+      "ratio": 5.102026349783474,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/page/2": {
+      "ratio": 8.19994267013933,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/page/3": {
+      "ratio": 11.501418343543612,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/page/4": {
+      "ratio": 15.004327458793489,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/pas/1-2": {
+      "ratio": 1.1800471326508364,
+      "contexte": "#06B6D4/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/pas/2-3": {
+      "ratio": 1.2089966627028403,
+      "contexte": "#EAB308/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/dark/pas/3-4": {
+      "ratio": 1.2319971143120378,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/encreSombreEnClair/light/encre/1": {
+      "ratio": 6.624121911920856,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/encre/2": {
+      "ratio": 9.077609607850754,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/encre/3": {
+      "ratio": 11.197184610749584,
+      "contexte": "#F43F5E/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/encre/4": {
+      "ratio": 12.936940284234096,
+      "contexte": "#EC4899/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/page/1": {
+      "ratio": 1.7901517167525072,
+      "contexte": "#EAB308/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/page/2": {
+      "ratio": 1.3853661404833713,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/page/3": {
+      "ratio": 1.171776548588167,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/page/4": {
+      "ratio": 1.046642859377224,
+      "contexte": "#84CC16/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/pas/1-2": {
+      "ratio": 1.1889309727548265,
+      "contexte": "#EAB308/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/pas/2-3": {
+      "ratio": 1.1545134996658504,
+      "contexte": "#FACC15/light/vivid"
+    },
+    "polarite/encreSombreEnClair/light/pas/3-4": {
+      "ratio": 1.1113195575952577,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/dark/encre/1": {
+      "ratio": 5.102026349783474,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "polarite/miroir/dark/encre/2": {
+      "ratio": 8.19994267013933,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/encre/3": {
+      "ratio": 11.501418343543612,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/encre/4": {
+      "ratio": 15.004327458793489,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/page/1": {
+      "ratio": 5.102026349783474,
+      "contexte": "#F43F5E/dark/vivid"
+    },
+    "polarite/miroir/dark/page/2": {
+      "ratio": 8.19994267013933,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/page/3": {
+      "ratio": 11.501418343543612,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/page/4": {
+      "ratio": 15.004327458793489,
+      "contexte": "#EC4899/dark/vivid"
+    },
+    "polarite/miroir/dark/pas/1-2": {
+      "ratio": 1.1800471326508364,
+      "contexte": "#06B6D4/dark/vivid"
+    },
+    "polarite/miroir/dark/pas/2-3": {
+      "ratio": 1.2089966627028403,
+      "contexte": "#EAB308/dark/vivid"
+    },
+    "polarite/miroir/dark/pas/3-4": {
+      "ratio": 1.2319971143120378,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/miroir/light/encre/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/encre/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/miroir/light/encre/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/encre/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/page/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/page/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/miroir/light/page/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/page/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/miroir/light/pas/1-2": {
+      "ratio": 1.197593636979386,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/miroir/light/pas/2-3": {
+      "ratio": 1.3432313148707002,
+      "contexte": "#4C3EBA/light/vivid"
+    },
+    "polarite/miroir/light/pas/3-4": {
+      "ratio": 1.2432886555561122,
+      "contexte": "#4C3EBA/light/vivid"
+    },
+    "polarite/pleinConstant/dark/encre/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/encre/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/dark/soft"
+    },
+    "polarite/pleinConstant/dark/encre/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/encre/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/page/1": {
+      "ratio": 2.716465802139931,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/page/2": {
+      "ratio": 1.9576738778816005,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/page/3": {
+      "ratio": 1.4574361513229364,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/page/4": {
+      "ratio": 1.17224278111911,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/pas/1-2": {
+      "ratio": 1.197593636979386,
+      "contexte": "#4C3EBA/dark/soft"
+    },
+    "polarite/pleinConstant/dark/pas/2-3": {
+      "ratio": 1.3432313148707002,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/dark/pas/3-4": {
+      "ratio": 1.2432886555561122,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/pleinConstant/light/encre/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/encre/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/pleinConstant/light/encre/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/encre/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/page/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/page/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/pleinConstant/light/page/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/page/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/pleinConstant/light/pas/1-2": {
+      "ratio": 1.197593636979386,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/pleinConstant/light/pas/2-3": {
+      "ratio": 1.3432313148707002,
+      "contexte": "#4C3EBA/light/vivid"
+    },
+    "polarite/pleinConstant/light/pas/3-4": {
+      "ratio": 1.2432886555561122,
+      "contexte": "#4C3EBA/light/vivid"
+    },
+    "polarite/recaleSombre/dark/encre/1": {
+      "ratio": 4.810186576422212,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/encre/2": {
+      "ratio": 7.147859252991812,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/encre/3": {
+      "ratio": 9.68638458767344,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/encre/4": {
+      "ratio": 11.876908591678141,
+      "contexte": "#16A34A/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/page/1": {
+      "ratio": 2.4134166976497466,
+      "contexte": "#4C3EBA/dark/soft"
+    },
+    "polarite/recaleSombre/dark/page/2": {
+      "ratio": 1.8099013968248243,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/page/3": {
+      "ratio": 1.453605055517166,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/page/4": {
+      "ratio": 1.175214886436822,
+      "contexte": "#0B1F4D/dark/soft"
+    },
+    "polarite/recaleSombre/dark/pas/1-2": {
+      "ratio": 1.2636637809273081,
+      "contexte": "#4C3EBA/dark/soft"
+    },
+    "polarite/recaleSombre/dark/pas/2-3": {
+      "ratio": 1.245112205654028,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/recaleSombre/dark/pas/3-4": {
+      "ratio": 1.1789883740132145,
+      "contexte": "#4C3EBA/dark/vivid"
+    },
+    "polarite/recaleSombre/light/encre/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/encre/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/recaleSombre/light/encre/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/encre/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/page/1": {
+      "ratio": 5.290132762757504,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/page/2": {
+      "ratio": 7.245632667645444,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/recaleSombre/light/page/3": {
+      "ratio": 10.608192399692353,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/page/4": {
+      "ratio": 13.6747919258587,
+      "contexte": "#16A34A/light/vivid"
+    },
+    "polarite/recaleSombre/light/pas/1-2": {
+      "ratio": 1.197593636979386,
+      "contexte": "#4C3EBA/light/soft"
+    },
+    "polarite/recaleSombre/light/pas/2-3": {
+      "ratio": 1.3432313148707002,
+      "contexte": "#4C3EBA/light/vivid"
+    },
+    "polarite/recaleSombre/light/pas/3-4": {
+      "ratio": 1.2432886555561122,
+      "contexte": "#4C3EBA/light/vivid"
+    }
+  },
+  "succes": {
+    "auto/dark/1/noir": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/dark/2/noir": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/dark/3/noir": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/dark/4/noir": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/light/1/blanc": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/light/2/blanc": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/light/3/blanc": {
+      "tenus": 60,
+      "total": 60
+    },
+    "auto/light/4/blanc": {
+      "tenus": 60,
+      "total": 60
+    },
+    "partenaires/border-control/1/1": {
+      "tenus": 118,
+      "total": 120
+    },
+    "partenaires/border-control/1/2": {
+      "tenus": 110,
+      "total": 120
+    },
+    "partenaires/border-control/1/3": {
+      "tenus": 10,
+      "total": 120
+    },
+    "partenaires/border-control/1/4": {
+      "tenus": 0,
+      "total": 120
+    },
+    "partenaires/border-control/2/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/2/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/2/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/2/4": {
+      "tenus": 59,
+      "total": 120
+    },
+    "partenaires/border-control/3/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/3/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/3/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/3/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/4/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/4/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/4/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/border-control/4/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/1/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/1/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/1/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/1/4": {
+      "tenus": 59,
+      "total": 120
+    },
+    "partenaires/solid/2/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/2/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/2/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/2/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/3/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/3/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/3/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/3/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/4/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/4/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/4/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/solid/4/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/1/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/1/2": {
+      "tenus": 111,
+      "total": 120
+    },
+    "partenaires/text/1/3": {
+      "tenus": 4,
+      "total": 120
+    },
+    "partenaires/text/1/4": {
+      "tenus": 0,
+      "total": 120
+    },
+    "partenaires/text/2/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/2/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/2/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/2/4": {
+      "tenus": 11,
+      "total": 120
+    },
+    "partenaires/text/3/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/3/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/3/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/3/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/4/1": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/4/2": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/4/3": {
+      "tenus": 120,
+      "total": 120
+    },
+    "partenaires/text/4/4": {
+      "tenus": 120,
+      "total": 120
+    },
+    "polarite/encreSombreEnClair/dark/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/page/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/page/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/page/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/dark/page/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/page/1": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/page/2": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/page/3": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/encreSombreEnClair/light/page/4": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/miroir/dark/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/page/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/page/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/page/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/dark/page/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/page/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/page/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/page/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/miroir/light/page/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/page/1": {
+      "tenus": 35,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/page/2": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/page/3": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/pleinConstant/dark/page/4": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/page/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/page/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/page/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/pleinConstant/light/page/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/page/1": {
+      "tenus": 12,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/page/2": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/page/3": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/recaleSombre/dark/page/4": {
+      "tenus": 0,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/encre/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/encre/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/encre/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/encre/4": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/page/1": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/page/2": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/page/3": {
+      "tenus": 60,
+      "total": 60
+    },
+    "polarite/recaleSombre/light/page/4": {
+      "tenus": 60,
+      "total": 60
+    }
+  },
+  "fenetreSombre": [
+    {
+      "cran": 50,
+      "encreBlanche": 18.68254873559586,
+      "encreNeutre950": 15.247668874271135,
+      "page": 1.000101683895139,
+      "pageMax": 1.0113594119387856
+    },
+    {
+      "cran": 100,
+      "encreBlanche": 16.89422023215725,
+      "encreNeutre950": 13.788133494770191,
+      "page": 1.078086137914421,
+      "pageMax": 1.1088800575265416
+    },
+    {
+      "cran": 200,
+      "encreBlanche": 14.527352143535158,
+      "encreNeutre950": 11.856425921293994,
+      "page": 1.2220944305723622,
+      "pageMax": 1.2895442829364672
+    },
+    {
+      "cran": 300,
+      "encreBlanche": 11.772740095803242,
+      "encreNeutre950": 9.608263051478007,
+      "page": 1.4423565308051343,
+      "pageMax": 1.59127473727028
+    },
+    {
+      "cran": 400,
+      "encreBlanche": 8.698878656684288,
+      "encreNeutre950": 7.099546384796634,
+      "page": 1.8025098335157033,
+      "pageMax": 2.1535722754915656
+    },
+    {
+      "cran": 500,
+      "encreBlanche": 5.847222639146038,
+      "encreNeutre950": 4.772181563534244,
+      "page": 2.574670186491918,
+      "pageMax": 3.2038567810779592
+    },
+    {
+      "cran": 600,
+      "encreBlanche": 3.968577989942765,
+      "encreNeutre950": 3.238935112588526,
+      "page": 3.7326998737616846,
+      "pageMax": 4.720497858521554
+    },
+    {
+      "cran": 700,
+      "encreBlanche": 2.7587150875507533,
+      "encreNeutre950": 2.2515115452788996,
+      "page": 5.349934625882118,
+      "pageMax": 6.790720791516295
+    },
+    {
+      "cran": 800,
+      "encreBlanche": 1.9733393937329056,
+      "encreNeutre950": 1.61053109391151,
+      "page": 7.835136587696004,
+      "pageMax": 9.493381606020998
+    },
+    {
+      "cran": 900,
+      "encreBlanche": 1.4506187076374581,
+      "encreNeutre950": 1.1839152157401633,
+      "page": 11.204169396035057,
+      "pageMax": 12.914257760684109
+    },
+    {
+      "cran": 950,
+      "encreBlanche": 1.178766598855773,
+      "encreNeutre950": 1.0000111735248847,
+      "page": 14.910822411525572,
+      "pageMax": 15.892598179389658
+    }
+  ],
+  "escalier": [
+    {
+      "mode": "light",
+      "famille": "text",
+      "total": 4000,
+      "echecs": 0,
+      "pire": {
+        "ratio": 4.844757215580003,
+        "couple": "text 700 de #16A34A sur surface 100 de #EC4899"
+      }
+    },
+    {
+      "mode": "light",
+      "famille": "border-control",
+      "total": 4000,
+      "echecs": 20,
+      "pire": {
+        "ratio": 2.817367164851065,
+        "couple": "border-control 600 de #16A34A sur surface 100 de #EC4899"
+      }
+    },
+    {
+      "mode": "dark",
+      "famille": "text",
+      "total": 4000,
+      "echecs": 0,
+      "pire": {
+        "ratio": 4.6189927022003845,
+        "couple": "text 700 de #F43F5E sur surface 100 de #84CC16"
+      }
+    },
+    {
+      "mode": "dark",
+      "famille": "border-control",
+      "total": 4000,
+      "echecs": 0,
+      "pire": {
+        "ratio": 3.1515355391080075,
+        "couple": "border-control 600 de #9333EA sur surface 100 de #84CC16"
+      }
+    }
+  ],
+  "clartes": [
+    {
+      "L": 0.46,
+      "blanc": 6.684627646921649,
+      "neutre950": 5.455625479721717,
+      "page": 2.2777024847043186
+    },
+    {
+      "L": 0.47,
+      "blanc": 6.397167538497667,
+      "neutre950": 5.221016347432404,
+      "page": 2.372580922717841
+    },
+    {
+      "L": 0.48,
+      "blanc": 6.107561542924158,
+      "neutre950": 4.984655860059766,
+      "page": 2.4707424470903097
+    },
+    {
+      "L": 0.49,
+      "blanc": 5.847222639146038,
+      "neutre950": 4.772181563534244,
+      "page": 2.574670186491918
+    },
+    {
+      "L": 0.5,
+      "blanc": 5.608484433526094,
+      "neutre950": 4.5773365689648,
+      "page": 2.682153692035974
+    },
+    {
+      "L": 0.51,
+      "blanc": 5.35664301818004,
+      "neutre950": 4.371797455197732,
+      "page": 2.7936890905139706
+    },
+    {
+      "L": 0.52,
+      "blanc": 5.132684422122702,
+      "neutre950": 4.189014765182711,
+      "page": 2.9078886559021355
+    },
+    {
+      "L": 0.53,
+      "blanc": 4.91935184445414,
+      "neutre950": 4.014904447023212,
+      "page": 3.029773701994618
+    },
+    {
+      "L": 0.54,
+      "blanc": 4.7028517347331125,
+      "neutre950": 3.8382089633936154,
+      "page": 3.1573904186598627
+    },
+    {
+      "L": 0.55,
+      "blanc": 4.511221221062169,
+      "neutre950": 3.6818106764139653,
+      "page": 3.290765517626776
+    },
+    {
+      "L": 0.56,
+      "blanc": 4.321893427026692,
+      "neutre950": 3.5272917425680212,
+      "page": 3.431891239913686
+    },
+    {
+      "L": 0.57,
+      "blanc": 4.148471798436057,
+      "neutre950": 3.385754546235237,
+      "page": 3.5803980257631394
+    },
+    {
+      "L": 0.58,
+      "blanc": 3.968577989942765,
+      "neutre950": 3.238935112588526,
+      "page": 3.7326998737616846
+    },
+    {
+      "L": 0.59,
+      "blanc": 3.8119265928326684,
+      "neutre950": 3.1110848569499168,
+      "page": 3.8907699753857665
+    },
+    {
+      "L": 0.6,
+      "blanc": 3.6530506265483442,
+      "neutre950": 2.9814190302863595,
+      "page": 4.049385629956511
+    },
+    {
+      "L": 0.61,
+      "blanc": 3.512283301066991,
+      "neutre950": 2.8665324804032086,
+      "page": 4.2041808394778055
+    },
+    {
+      "L": 0.62,
+      "blanc": 3.3683425460877716,
+      "neutre950": 2.7490559518793436,
+      "page": 4.390517689336357
+    }
+  ],
+  "marques": [
+    {
+      "reference": "#1E6FD9",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.8488425724007485,
+      "noir": 4.330930461535385,
+      "encreClaire": 4.5260983388219,
+      "encreSombreClair": 3.1210601670239426,
+      "pageClaire": 4.5260983388219,
+      "pageSombre": 3.86353312634467
+    },
+    {
+      "reference": "#1E6FD9",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.8488425724007485,
+      "noir": 4.330930461535385,
+      "encreClaire": 4.5260983388219,
+      "encreSombreClair": 3.1210601670239426,
+      "pageClaire": 4.5260983388219,
+      "pageSombre": 3.86353312634467
+    },
+    {
+      "reference": "#D94635",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.305206691158441,
+      "noir": 4.877814587422129,
+      "encreClaire": 4.018647452909446,
+      "encreSombreClair": 3.5151690718983266,
+      "pageClaire": 4.018647452909446,
+      "pageSombre": 4.351397098163424
+    },
+    {
+      "reference": "#D94635",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.305206691158441,
+      "noir": 4.877814587422129,
+      "encreClaire": 4.018647452909446,
+      "encreSombreClair": 3.5151690718983266,
+      "pageClaire": 4.018647452909446,
+      "pageSombre": 4.351397098163424
+    },
+    {
+      "reference": "#EAB308",
+      "intensites": 2,
+      "crans": {
+        "light": 400,
+        "dark": 800
+      },
+      "blanc": 1.9178027531556476,
+      "noir": 10.950031209124901,
+      "encreClaire": 1.7901517167525072,
+      "encreSombreClair": 7.891077111026369,
+      "pageClaire": 1.7901517167525072,
+      "pageSombre": 9.768295447524672
+    },
+    {
+      "reference": "#EAB308",
+      "intensites": 1,
+      "crans": {
+        "light": 400,
+        "dark": 800
+      },
+      "blanc": 1.9178027531556476,
+      "noir": 10.950031209124901,
+      "encreClaire": 1.7901517167525072,
+      "encreSombreClair": 7.891077111026369,
+      "pageClaire": 1.7901517167525072,
+      "pageSombre": 9.768295447524672
+    },
+    {
+      "reference": "#16A34A",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 700
+      },
+      "blanc": 3.2957336053312796,
+      "noir": 6.371874221274971,
+      "encreClaire": 3.076365993236162,
+      "encreSombreClair": 4.5918545674958136,
+      "pageClaire": 3.076365993236162,
+      "pageSombre": 5.684216671091512
+    },
+    {
+      "reference": "#16A34A",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 700
+      },
+      "blanc": 3.2957336053312796,
+      "noir": 6.371874221274971,
+      "encreClaire": 3.076365993236162,
+      "encreSombreClair": 4.5918545674958136,
+      "pageClaire": 3.076365993236162,
+      "pageSombre": 5.684216671091512
+    },
+    {
+      "reference": "#9333EA",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.381521681093853,
+      "noir": 3.902242013402336,
+      "encreClaire": 5.023321746878905,
+      "encreSombreClair": 2.812128298591901,
+      "pageClaire": 5.023321746878905,
+      "pageSombre": 3.4811090641360702
+    },
+    {
+      "reference": "#9333EA",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.381521681093853,
+      "noir": 3.902242013402336,
+      "encreClaire": 5.023321746878905,
+      "encreSombreClair": 2.812128298591901,
+      "pageClaire": 5.023321746878905,
+      "pageSombre": 3.4811090641360702
+    },
+    {
+      "reference": "#737373",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.741667181590045,
+      "noir": 4.428822014656451,
+      "encreClaire": 4.426056658551233,
+      "encreSombreClair": 3.1916051526448737,
+      "pageClaire": 4.426056658551233,
+      "pageSombre": 3.9508601480162406
+    },
+    {
+      "reference": "#737373",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.741667181590045,
+      "noir": 4.428822014656451,
+      "encreClaire": 4.426056658551233,
+      "encreSombreClair": 3.1916051526448737,
+      "pageClaire": 4.426056658551233,
+      "pageSombre": 3.9508601480162406
+    },
+    {
+      "reference": "#FACC15",
+      "intensites": 2,
+      "crans": {
+        "light": 300,
+        "dark": 900
+      },
+      "blanc": 1.5314188566852418,
+      "noir": 13.712773555273134,
+      "encreClaire": 1.429485952531507,
+      "encreSombreClair": 9.88203151791302,
+      "pageClaire": 1.429485952531507,
+      "pageSombre": 12.232880521955721
+    },
+    {
+      "reference": "#FACC15",
+      "intensites": 1,
+      "crans": {
+        "light": 300,
+        "dark": 900
+      },
+      "blanc": 1.5314188566852418,
+      "noir": 13.712773555273134,
+      "encreClaire": 1.429485952531507,
+      "encreSombreClair": 9.88203151791302,
+      "pageClaire": 1.429485952531507,
+      "pageSombre": 12.232880521955721
+    },
+    {
+      "reference": "#2563EB",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.168555560022562,
+      "noir": 4.0630307164403066,
+      "encreClaire": 4.824530882375983,
+      "encreSombreClair": 2.927999754117729,
+      "pageClaire": 4.824530882375983,
+      "pageSombre": 3.624545327093053
+    },
+    {
+      "reference": "#2563EB",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.168555560022562,
+      "noir": 4.0630307164403066,
+      "encreClaire": 4.824530882375983,
+      "encreSombreClair": 2.927999754117729,
+      "pageClaire": 4.824530882375983,
+      "pageSombre": 3.624545327093053
+    },
+    {
+      "reference": "#DC2626",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.829404522659002,
+      "noir": 4.34836218450338,
+      "encreClaire": 4.507954106805207,
+      "encreSombreClair": 3.1336222380803123,
+      "pageClaire": 4.507954106805207,
+      "pageSombre": 3.879083604408045
+    },
+    {
+      "reference": "#DC2626",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 4.829404522659002,
+      "noir": 4.34836218450338,
+      "encreClaire": 4.507954106805207,
+      "encreSombreClair": 3.1336222380803123,
+      "pageClaire": 4.507954106805207,
+      "pageSombre": 3.879083604408045
+    },
+    {
+      "reference": "#06B6D4",
+      "intensites": 2,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.4278533783091234,
+      "noir": 8.649616236144142,
+      "encreClaire": 2.2662528177373593,
+      "encreSombreClair": 6.233296270728514,
+      "pageClaire": 2.2662528177373593,
+      "pageSombre": 7.716143021761735
+    },
+    {
+      "reference": "#06B6D4",
+      "intensites": 1,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.4278533783091234,
+      "noir": 8.649616236144142,
+      "encreClaire": 2.2662528177373593,
+      "encreSombreClair": 6.233296270728514,
+      "pageClaire": 2.2662528177373593,
+      "pageSombre": 7.716143021761735
+    },
+    {
+      "reference": "#84CC16",
+      "intensites": 2,
+      "crans": {
+        "light": 400,
+        "dark": 800
+      },
+      "blanc": 1.9755709491138607,
+      "noir": 10.629838431983178,
+      "encreClaire": 1.8440747987786064,
+      "encreSombreClair": 7.660332024865016,
+      "pageClaire": 1.8440747987786064,
+      "pageSombre": 9.482658120328987
+    },
+    {
+      "reference": "#84CC16",
+      "intensites": 1,
+      "crans": {
+        "light": 400,
+        "dark": 800
+      },
+      "blanc": 1.9755709491138607,
+      "noir": 10.629838431983178,
+      "encreClaire": 1.8440747987786064,
+      "encreSombreClair": 7.660332024865016,
+      "pageClaire": 1.8440747987786064,
+      "pageSombre": 9.482658120328987
+    },
+    {
+      "reference": "#F97316",
+      "intensites": 2,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.8030548103399218,
+      "noir": 7.491826389742756,
+      "encreClaire": 2.6164804345101156,
+      "encreSombreClair": 5.39894166645092,
+      "pageClaire": 2.6164804345101156,
+      "pageSombre": 6.68330274306295
+    },
+    {
+      "reference": "#F97316",
+      "intensites": 1,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.8030548103399218,
+      "noir": 7.491826389742756,
+      "encreClaire": 2.6164804345101156,
+      "encreSombreClair": 5.39894166645092,
+      "pageClaire": 2.6164804345101156,
+      "pageSombre": 6.68330274306295
+    },
+    {
+      "reference": "#EC4899",
+      "intensites": 2,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 3.5273363438432357,
+      "noir": 5.953500872309584,
+      "encreClaire": 3.2925530016600213,
+      "encreSombreClair": 4.290356216045174,
+      "pageClaire": 3.2925530016600213,
+      "pageSombre": 5.310994494641584
+    },
+    {
+      "reference": "#EC4899",
+      "intensites": 1,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 3.5273363438432357,
+      "noir": 5.953500872309584,
+      "encreClaire": 3.2925530016600213,
+      "encreSombreClair": 4.290356216045174,
+      "pageClaire": 3.2925530016600213,
+      "pageSombre": 5.310994494641584
+    },
+    {
+      "reference": "#0B1F4D",
+      "intensites": 2,
+      "crans": {
+        "light": 950,
+        "dark": 200
+      },
+      "blanc": 15.940628491951708,
+      "noir": 1.317388458717467,
+      "encreClaire": 14.87960292789574,
+      "encreSombreClair": 1.053331847532388,
+      "pageClaire": 14.87960292789574,
+      "pageSombre": 1.175214886436822
+    },
+    {
+      "reference": "#0B1F4D",
+      "intensites": 1,
+      "crans": {
+        "light": 950,
+        "dark": 200
+      },
+      "blanc": 15.940628491951708,
+      "noir": 1.317388458717467,
+      "encreClaire": 14.87960292789574,
+      "encreSombreClair": 1.053331847532388,
+      "pageClaire": 14.87960292789574,
+      "pageSombre": 1.175214886436822
+    },
+    {
+      "reference": "#8B8178",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 3.811868361478989,
+      "noir": 5.509109446752271,
+      "encreClaire": 3.5581462588412305,
+      "encreSombreClair": 3.9701080871056464,
+      "pageClaire": 3.5581462588412305,
+      "pageSombre": 4.914562132369128
+    },
+    {
+      "reference": "#8B8178",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 3.811868361478989,
+      "noir": 5.509109446752271,
+      "encreClaire": 3.5581462588412305,
+      "encreSombreClair": 3.9701080871056464,
+      "pageClaire": 3.5581462588412305,
+      "pageSombre": 4.914562132369128
+    },
+    {
+      "reference": "#F5F5F5",
+      "intensites": 2,
+      "crans": {
+        "light": 50,
+        "dark": 950
+      },
+      "blanc": 1.090230993517392,
+      "noir": 19.261973035868383,
+      "encreClaire": 1.0176640332226876,
+      "encreSombreClair": 13.881030257693242,
+      "pageClaire": 1.0176640332226876,
+      "pageSombre": 17.183206140985337
+    },
+    {
+      "reference": "#F5F5F5",
+      "intensites": 1,
+      "crans": {
+        "light": 50,
+        "dark": 950
+      },
+      "blanc": 1.090230993517392,
+      "noir": 19.261973035868383,
+      "encreClaire": 1.0176640332226876,
+      "encreSombreClair": 13.881030257693242,
+      "pageClaire": 1.0176640332226876,
+      "pageSombre": 17.183206140985337
+    },
+    {
+      "reference": "#B15152",
+      "intensites": 2,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.038105597216136,
+      "noir": 4.168233395426208,
+      "encreClaire": 4.702763810927175,
+      "encreSombreClair": 3.0038134606094977,
+      "pageClaire": 4.702763810927175,
+      "pageSombre": 3.71839445232194
+    },
+    {
+      "reference": "#B15152",
+      "intensites": 1,
+      "crans": {
+        "light": 600,
+        "dark": 600
+      },
+      "blanc": 5.038105597216136,
+      "noir": 4.168233395426208,
+      "encreClaire": 4.702763810927175,
+      "encreSombreClair": 3.0038134606094977,
+      "pageClaire": 4.702763810927175,
+      "pageSombre": 3.71839445232194
+    },
+    {
+      "reference": "#4C3EBA",
+      "intensites": 2,
+      "crans": {
+        "light": 800,
+        "dark": 500
+      },
+      "blanc": 7.762299780698445,
+      "noir": 2.705383790022915,
+      "encreClaire": 7.245632667645444,
+      "encreSombreClair": 1.949619292792655,
+      "pageClaire": 7.245632667645444,
+      "pageSombre": 2.4134166976497466
+    },
+    {
+      "reference": "#4C3EBA",
+      "intensites": 1,
+      "crans": {
+        "light": 800,
+        "dark": 500
+      },
+      "blanc": 7.762299780698445,
+      "noir": 2.705383790022915,
+      "encreClaire": 7.245632667645444,
+      "encreSombreClair": 1.949619292792655,
+      "pageClaire": 7.245632667645444,
+      "pageSombre": 2.4134166976497466
+    },
+    {
+      "reference": "#0EA5E9",
+      "intensites": 2,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.771412229141218,
+      "noir": 7.577364269085043,
+      "encreClaire": 2.586944017919758,
+      "encreSombreClair": 5.460584048003328,
+      "pageClaire": 2.586944017919758,
+      "pageSombre": 6.759609308899392
+    },
+    {
+      "reference": "#0EA5E9",
+      "intensites": 1,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 2.771412229141218,
+      "noir": 7.577364269085043,
+      "encreClaire": 2.586944017919758,
+      "encreSombreClair": 5.460584048003328,
+      "pageClaire": 2.586944017919758,
+      "pageSombre": 6.759609308899392
+    },
+    {
+      "reference": "#F43F5E",
+      "intensites": 2,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 3.6718085361702686,
+      "noir": 5.719252459144616,
+      "encreClaire": 3.4274089677867146,
+      "encreSombreClair": 4.121546442253849,
+      "pageClaire": 3.4274089677867146,
+      "pageSombre": 5.102026349783474
+    },
+    {
+      "reference": "#F43F5E",
+      "intensites": 1,
+      "crans": {
+        "light": 500,
+        "dark": 700
+      },
+      "blanc": 3.6718085361702686,
+      "noir": 5.719252459144616,
+      "encreClaire": 3.4274089677867146,
+      "encreSombreClair": 4.121546442253849,
+      "pageClaire": 3.4274089677867146,
+      "pageSombre": 5.102026349783474
+    }
+  ]
+}

@@ -1,0 +1,647 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Architecture des tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --add:#17687F; --add-bg:#DFEFF3; --mod:#A94A1C; --mod-bg:#FAEBE2; --del:#B42318; --del-bg:#FBE9E7; --keep:#1E7446; --keep-bg:#E3F3EA;
+  --hl:#FFF3BF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+    --hl:#3B3413;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+  --hl:#3B3413;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
+main{max-width:1060px;margin:0 auto;padding-block:36px 80px}
+.narrow{max-width:860px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.45rem;line-height:1.25;margin:56px 0 12px}
+h3{font-size:1.05rem;margin:0 0 6px}
+p{margin:0 0 12px}
+a{color:var(--add)}
+:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+.lede{font-size:1.08rem;color:var(--muted)}
+html{scroll-padding-top:70px}
+
+.barre{position:sticky;top:0;z-index:10;margin-inline:-16px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.barre-in{max-width:1060px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.82rem}
+.groupe{display:flex;align-items:center;gap:6px}
+.groupe>span{color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{all:unset;cursor:pointer;padding:3px 10px;font-weight:600;font-size:.82rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+
+.cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:14px 0}
+.carte{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.carte ol,.carte ul{margin:0;padding-left:20px}
+.carte li{margin-bottom:6px}
+.carte .k{font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+
+/* la chaîne */
+.chaine{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:14px 0}
+.maillon{flex:1 1 150px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;position:relative}
+.maillon b{font-family:var(--mono);font-size:.95rem}
+.maillon .ax{display:block;font-size:.78rem;color:var(--muted)}
+.maillon .ax.on{color:var(--add);font-weight:600}
+.maillon p{font-size:.84rem;margin:6px 0 0}
+.fl{align-self:center;color:var(--muted);font-family:var(--mono)}
+.trajet{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:.8rem;overflow-x:auto;white-space:pre;line-height:1.7}
+.trajet .m{color:var(--add);font-weight:600}
+
+/* panneau Figma, repris de la vue illustrée */
+.fx{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fx-body{display:grid;grid-template-columns:230px 1fr;min-height:460px}
+.fx-cols{border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px;background:var(--soft)}
+.fx-cols .lab{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:2px 8px 6px}
+.fx-cols button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-family:var(--mono);font-size:.84rem}
+.fx-cols button:hover{background:var(--surface)}
+.fx-cols button[aria-current="true"]{background:var(--ink);color:var(--bg)}
+.fx-cols button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.fx-cols .ax{font-family:var(--sans);font-size:.68rem;opacity:.75}
+.fx-main{min-width:0;padding:12px 14px 16px}
+.fx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
+.fx-head b{font-family:var(--mono);font-size:1.05rem}
+.fx-head span{color:var(--muted);font-size:.86rem}
+.fx-note{font-size:.92rem;background:var(--bg);border-radius:6px;padding:9px 12px;margin-bottom:10px}
+.fx-note p{margin:0 0 4px}
+.fx-note p:last-child{margin:0}
+.fx-tw{overflow-x:auto}
+.fx table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
+.fx th{text-align:left;font-weight:500;color:var(--muted);font-size:.8rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fx td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fx td.nm{font-family:var(--mono);white-space:nowrap}
+.fx tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;color:var(--muted);padding-top:12px;border-bottom:none}
+.fx tr.more td{color:var(--muted);font-style:italic;font-size:.8rem}
+.fx tr.inv td:first-child{box-shadow:inset 4px 0 var(--mod)}
+.fx tr.hl td{background:var(--hl)}
+.tag{display:inline-block;font-family:var(--sans);font-size:.68rem;font-weight:600;padding:0 7px;border-radius:99px;white-space:nowrap;line-height:1.6;margin-left:8px}
+.tag.mod{background:var(--mod-bg);color:var(--mod)}
+.tag.same{background:var(--keep-bg);color:var(--keep)}
+.tag.new{background:var(--add-bg);color:var(--add)}
+.val{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block;flex:none}
+.chip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 7px 1px 3px;font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+.chip:hover{border-color:var(--add)}
+.chip:focus-visible{outline:2px solid var(--add);outline-offset:1px}
+.chip .col{color:var(--muted)}
+.cap{color:var(--muted);font-size:.86rem;margin-top:8px}
+.legende{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--muted);margin-top:8px}
+.legende i{width:4px;height:14px;border-radius:2px;display:inline-block;background:var(--mod);vertical-align:middle;margin-right:6px}
+
+/* exemples */
+.exemples{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px;margin:14px 0}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.scenes{display:grid;grid-template-columns:1fr;gap:8px;margin:10px 0}
+.scene{position:relative;border-radius:8px;padding:26px 12px 12px;border:1px solid var(--line)}
+.scene-l{position:absolute;top:6px;left:10px;font:11px var(--mono);opacity:.75}
+.rang{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.rang figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
+.btn{border-radius:7px;padding:7px 14px;font:600 14px var(--sans);border:1.5px solid transparent}
+.panneau{border-radius:10px;padding:8px}
+.ligne{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:6px;font-size:14px}
+.alerte{border-radius:8px;padding:10px 12px;border:1.5px solid;font-size:14px}
+.badge{display:inline-block;border-radius:999px;padding:1px 10px;font:600 12px var(--sans)}
+.champ{border:1.5px solid;border-radius:6px;padding:6px 10px;font-size:14px;min-width:170px}
+.vars{font-size:.8rem;color:var(--muted);margin:0;padding-left:16px}
+.vars code{font-size:.78rem}
+.mes{font-family:var(--mono);font-size:.76rem;margin-top:6px}
+.ok{color:var(--keep);font-weight:600}
+.ko{color:var(--del);font-weight:600}
+
+.tw{overflow-x:auto;margin:12px 0}
+table.plain{border-collapse:collapse;width:100%;font-size:.9rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.plain th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+table.plain td.id{font-family:var(--display);font-weight:700;color:var(--muted);white-space:nowrap}
+.plus{color:var(--keep)}
+.moins{color:var(--del)}
+ul.raisons li{margin-bottom:8px}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+footer ul{padding-left:18px;margin:6px 0 0}
+
+@media (max-width:720px){
+  .fx-body{grid-template-columns:1fr}
+  .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
+  .fx-cols .lab{width:100%}
+  .fl{display:none}
+}
+</style>
+</head>
+<body>
+<div class="barre"><div class="barre-in">
+  <div class="groupe"><span>Marque</span><div class="seg" id="c-marque">
+    <button type="button" data-v="intencial" aria-pressed="true">intencial</button><button type="button" data-v="marque-2" aria-pressed="false">marque-2</button><button type="button" data-v="marque-3" aria-pressed="false">marque-3</button></div></div>
+  <div class="groupe"><span>Texte des boutons, Light</span><div class="seg" id="c-light">
+    <button type="button" data-v="blanc" aria-pressed="true">blanc</button><button type="button" data-v="noir" aria-pressed="false">noir</button></div></div>
+  <div class="groupe"><span>Dark</span><div class="seg" id="c-dark">
+    <button type="button" data-v="noir" aria-pressed="false">noir</button><button type="button" data-v="blanc" aria-pressed="true">blanc</button></div></div>
+  <div class="groupe"><span>Page</span><div class="seg" id="c-page">
+    <button type="button" data-v="auto" aria-pressed="true">auto</button><button type="button" data-v="light" aria-pressed="false">claire</button><button type="button" data-v="dark" aria-pressed="false">sombre</button></div></div>
+</div></div>
+
+<main>
+  <div class="narrow">
+    <h1>L'architecture des tokens, en une page</h1>
+    <p class="lede">La forme proposée pour le design system : six marques, Light et Dark, des statuts en <code>soft</code> et <code>vivid</code>. Elle reprend les décisions D1 à D17 de la <a href="../VUE-ILLUSTREE-MULTIMARQUES.html">vue illustrée</a>, sauf la collection <code>usage</code>, que la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a> remplace. Rien n'est implémenté.</p>
+    <p>La barre du haut choisit la marque des aperçus et le texte des boutons de chaque thème. Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de la page : texte blanc en Dark, ou noir en Light.</p>
+  </div>
+
+  <h2>En bref</h2>
+  <div class="cartes">
+    <div class="carte"><div class="k">Cinq collections</div>
+      <ul>
+        <li><code>primitives</code> : les palettes, calculées par UCM Palettes.</li>
+        <li><code>brand</code> : une colonne par marque, qui choisit ses palettes.</li>
+        <li><code>color-utilities</code> : le neutre et les statuts, communs.</li>
+        <li><code>theme</code> : une colonne Light, une colonne Dark. Les noms que les calques citent.</li>
+        <li><code>components</code> : les tokens de composants.</li>
+      </ul></div>
+    <div class="carte"><div class="k">Quatre règles pour le designer</div>
+      <ol>
+        <li>Un dossier par sorte de fond : <code>solid</code> (bouton), <code>surface</code> (fond teinté). La racine sert à ce qui se pose sur la page.</li>
+        <li>Le texte et le contour se prennent dans le dossier du fond.</li>
+        <li>Un état ne change que le fond : <code>background</code>, <code>-hover</code>, <code>-pressed</code>.</li>
+        <li>Sélectionné : prendre un autre dossier.</li>
+      </ol></div>
+    <div class="carte"><div class="k">Personne ne tape un alias</div>
+      <ul>
+        <li>UCM Palettes écrit <code>primitives</code>, <code>brand</code>, <code>color-utilities</code> et <code>theme</code> depuis la table du kit et la recette.</li>
+        <li>Le designer choisit une marque, un thème et des variables de <code>theme</code>. Il ne voit aucun numéro de nuance.</li>
+        <li><code>ucm check</code> mesure chaque couple dans chaque marque et chaque thème.</li>
+      </ul></div>
+  </div>
+
+  <h2>Le chemin d'une couleur</h2>
+  <div class="chaine">
+    <div class="maillon"><b>components</b><span class="ax">aucun mode</span><p>Le calque cite un nom de composant.</p></div>
+    <span class="fl">→</span>
+    <div class="maillon"><b>theme</b><span class="ax on">Light · Dark</span><p>Le nom d'usage, et sa nuance dans chaque thème.</p></div>
+    <span class="fl">→</span>
+    <div class="maillon"><b>brand</b><span class="ax on">une colonne par marque</span><p>Quelle palette pour <code>primary</code>, <code>secondary</code>.</p></div>
+    <span class="fl">ou</span>
+    <div class="maillon"><b>color-utilities</b><span class="ax">aucun mode</span><p>Quelle palette pour le neutre et chaque statut.</p></div>
+    <span class="fl">→</span>
+    <div class="maillon"><b>primitives</b><span class="ax">aucun mode</span><p>L'hexa calculé.</p></div>
+  </div>
+  <div class="trajet" id="trajet"></div>
+  <p class="cap">Deux collections portent un axe : <code>brand</code> la marque, <code>theme</code> le thème (D1). Un cadre Figma règle chacune séparément ; le code pose <code>data-brand</code> et <code>data-theme</code>.</p>
+
+  <h2>Le panneau des variables dans Figma</h2>
+  <p class="narrow">Choisis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour suivre la chaîne jusqu'à l'hexa.</p>
+  <div class="fx" id="fx">
+    <div class="fx-body">
+      <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
+      <div class="fx-main">
+        <div class="fx-head" id="fx-head"></div>
+        <div class="fx-note" id="fx-note"></div>
+        <div class="fx-tw"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <div class="legende"><span><i></i>la nuance dépend du texte des boutons de ce thème ; UCM Palettes l'écrit</span></div>
+  <p class="cap">Couleurs calculées par le moteur pour les palettes de la vue illustrée (<a href="./generer-vue-architecture.ts">generer-vue-architecture.ts</a>). Chaque collection n'affiche que quelques lignes par groupe.</p>
+
+  <h2>Exemples</h2>
+  <p class="narrow">Chaque composant, dans la marque choisie, en Light puis en Dark. Les ratios sont recalculés sur les couleurs affichées : le pire couple texte et fond de chaque thème, seuil 4,5:1.</p>
+  <div class="exemples" id="exemples"></div>
+
+  <div class="narrow">
+  <h2>Pourquoi c'est mieux</h2>
+  <ul class="raisons">
+    <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/background*</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
+    <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un bouton n'a plus qu'un token de texte pour tous ses états.</li>
+    <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/background-hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
+    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte de <code>surface</code>, à la nuance 900, tient au pire 7,30:1 sur ses trois fonds ; son contour, à la 800, 4,44:1 ; l'anneau <code>focus</code>, à la 900, 6,19:1 sur les fonds teintés de toutes les palettes.</li>
+    <li><b>Le même modèle que les systèmes établis.</b> Atlassian, Fluent et Primer gardent un seul texte pour tous les états du bouton ; Material nomme <code>on-primary</code> le texte de <code>primary</code> ; tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
+    <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
+  </ul>
+
+  <h2>Les décisions D1 à D17</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th></th><th>Décision</th><th>Dans cette architecture</th></tr></thead>
+    <tbody>
+      <tr><td class="id">D1</td><td>Deux axes, <code>brand</code> et <code>theme</code></td><td><span class="tag same">gardée</span></td></tr>
+      <tr><td class="id">D2</td><td><code>theme</code> suit une règle sans choix du designer</td><td><span class="tag mod">modifiée</span> la règle devient une table : une nuance par variable et par thème, lue dans le kit et le réglage du texte des boutons</td></tr>
+      <tr><td class="id">D3 à D10</td><td><code>brand</code>, catalogue de <code>primitives</code>, <code>color-utilities</code>, courbe commune, <code>soft</code> et <code>vivid</code>, couleur de charte, blanc et noir</td><td><span class="tag same">gardées</span></td></tr>
+      <tr><td class="id">D11</td><td><code>components</code> garde ses noms</td><td><span class="tag mod">modifiée</span> il vise <code>theme</code> au lieu de <code>usage</code></td></tr>
+      <tr><td class="id">D12</td><td>Réglages et exceptions de marque réservés dans <code>brand</code></td><td><span class="tag same">gardée</span></td></tr>
+      <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers de <code>theme</code>, douze variables par palette au lieu de vingt</td></tr>
+      <tr><td class="id">D14</td><td>Une nuance hors table passe par un token de composant</td><td><span class="tag same">gardée</span> il vise <code>theme.{palette}.scale.N</code>, aux portées vides</td></tr>
+      <tr><td class="id">D15, D16</td><td>Trois niveaux d'élévation ; une table pour les trois outils</td><td><span class="tag same">gardées</span></td></tr>
+      <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
+      <tr><td class="id">Palettes</td><td>Texte des boutons blanc ou noir purs, un choix par thème ; bouton à la nuance 700</td><td><span class="tag same">gardées</span> le thème inversé lui-même reste à décider</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Les versions précédentes</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Version</th><th>Idée</th><th>Avantage</th><th>Défaut</th></tr></thead>
+    <tbody>
+      <tr><td class="id">1</td><td><a href="../RECHERCHE-ARCHI-MULTIMARQUES.md">Recherche initiale</a> : crans en miroir, dix rôles facultatifs câblés par marque</td><td class="plus">Liberté de citer toute nuance</td><td class="moins">Un miroir ne garantit aucun contraste ; vingt câblages à la main par marque</td></tr>
+      <tr><td class="id">2</td><td><a href="../VUE-ILLUSTREE-MULTIMARQUES.html">Architecture validée</a> : table commune, <code>usage</code> sans mode, quatre rangs</td><td class="plus">Aucune liaison par marque ; une table vérifiée sur la courbe</td><td class="moins">Le texte change à chaque état ; le thème inversé ne s'écrit pas</td></tr>
+      <tr><td class="id">3</td><td><a href="./1%20Usages%20indexes%20et%20catalogue/README.md">Usages indexés</a> : niveaux et catalogue de partenaires</td><td class="plus">Sépare niveau de couleur et état</td><td class="moins">Un catalogue de preuves lourd à tenir</td></tr>
+      <tr><td class="id">4</td><td><a href="./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">Escalier</a> : texte n sur toute surface de niveau inférieur ou égal</td><td class="plus">Dix couples garantis au lieu de quatre</td><td class="moins">Une règle à apprendre, invisible dans les noms</td></tr>
+      <tr><td class="id">5</td><td><a href="./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html">Ensembles</a> : <code>surface-0</code> à <code>4</code>, <code>solid-1</code> à <code>4</code></td><td class="plus">Tout dans le dossier du fond</td><td class="moins">Des numéros, des conventions, une table en deux collections</td></tr>
+      <tr><td class="id">6</td><td>Cette page : dossiers à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> plus sombre que le texte coloré ; anneau moins vif</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>À décider</h2>
+  <ol>
+    <li>Adopter les dossiers à texte constant.</li>
+    <li>Variables d'usage dans <code>theme</code>, ou dans une collection <code>usage</code> sans mode qui recopie <code>theme</code>.</li>
+    <li>Texte de <code>surface</code> à 900 partout, ou 800 dans les thèmes normaux.</li>
+    <li>Anneau <code>focus</code> unique, <code>primary</code> 900.</li>
+    <li>Les noms, à éprouver dans le sélecteur Figma.</li>
+    <li>Les nuances 400 et 950, obligatoires ou non.</li>
+    <li>Le thème inversé, dans le <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>.</li>
+  </ol>
+  <p>Le détail, les mesures et les sources sont dans la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a>, sections 3 à 9.</p>
+  </div>
+
+  <footer>
+    Couleurs : <code>npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/generer-vue-architecture.ts"</code>. Mesures : <a href="./mesurer-dossiers.ts">mesurer-dossiers.ts</a>.
+  </footer>
+</main>
+
+<script id="donnees" type="application/json">{"crans":[50,100,200,300,400,500,600,700,800,900,950],"palettes":{"terracota":{"reference":"#B15152","unique":{"light":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#D67475","#B15152","#994545","#793534","#592524","#401918"],"dark":["#17100F","#251817","#38201F","#4F2927","#713130","#954343","#B15152","#D67475","#E09D9C","#EBC2C2","#F5E3E3"],"lightInverse":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#DA8787","#D56F70","#B15152","#793534","#592524","#401918"],"darkInverse":["#17100F","#251817","#38201F","#4F2927","#713130","#853B3B","#994545","#B15152","#D98282","#EBC2C2","#F5E3E3"]}},"deep":{"reference":"#4C3EBA","unique":{"light":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#878CDE","#6D6CD6","#5649CE","#4C3EBA","#31267B","#221959"],"dark":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#6B6BD6","#878CDE","#A5ACE7","#C6CBEF","#E4E7F8"],"lightInverse":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#949AE2","#8488DD","#6B6BD6","#4C3EBA","#31267B","#221959"],"darkInverse":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#5649CE","#635FD3","#9197E1","#C6CBEF","#E4E7F8"]}},"sky":{"reference":"#0EA5E9","unique":{"light":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#0EA5E9","#0985BE","#066A9B","#03537B","#023C5C","#012942"],"dark":["#0D1217","#121D26","#152A39","#153950","#034D73","#056797","#0983BC","#0EA5E9","#45BDFE","#97D7FE","#D0EDFF"],"lightInverse":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#10ADF4","#0EA5E9","#0983BC","#03537B","#023C5C","#012942"],"darkInverse":["#0D1217","#121D26","#152A39","#153950","#034D73","#045B87","#066A9B","#087AB0","#0EA5E9","#97D7FE","#D0EDFF"]}},"rose":{"reference":"#F43F5E","unique":{"light":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F43F5E","#DB2D4D","#B2233B","#8C192B","#68101D","#4B0911"],"dark":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#AD2139","#D82C4C","#F43F5E","#F78E96","#FABBBF","#FCE0E2"],"lightInverse":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F6717F","#F43F5E","#D82C4C","#8C192B","#68101D","#4B0911"],"darkInverse":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#9A1D31","#B2233B","#CA2946","#F43F5E","#FABBBF","#FCE0E2"]}},"mimosa":{"reference":"#F2CF4A","unique":{"light":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#BA8D32","#A07228","#85581E","#6C4216","#522E0D","#3C1D07"],"dark":["#16100D","#241912","#362317","#4A2E19","#653D13","#82551D","#9F7027","#BA8D32","#D5AB3D","#F2CF4A","#FCE98B"],"lightInverse":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#C79A37","#B78931","#9F7027","#6C4216","#522E0D","#3C1D07"],"darkInverse":["#16100D","#241912","#362317","#4A2E19","#653D13","#754A19","#85581E","#956724","#C49636","#F2CF4A","#FCE98B"]}},"ardoise":{"reference":"#2F3E5C","unique":{"light":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#8397B5","#657DA3","#4F6488","#3C4D6D","#2F3E5C","#1A2540"],"dark":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#4D6184","#647BA2","#8397B5","#A3B2C8","#C5CFDC","#E4E8EE"],"lightInverse":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#91A3BD","#7F93B3","#647BA2","#3C4D6D","#2F3E5C","#1A2540"],"darkInverse":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#435577","#4F6488","#5B7299","#8DA0BB","#C5CFDC","#E4E8EE"]}},"grass":{"reference":"#22C55E","soft":{"light":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#70A479","#5C8864","#496D50","#38553D","#283E2C","#1A2B1D"],"dark":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#476A4D","#5B8763","#70A479","#85C291","#9BE2A9","#CFF3D5"],"lightInverse":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#79B184","#6DA177","#5B8763","#38553D","#283E2C","#1A2B1D"],"darkInverse":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#3E5E44","#496D50","#547D5C","#77AE81","#9BE2A9","#CFF3D5"]},"vivid":{"light":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#22C55E","#1EB254","#179445","#107736","#0A5D28","#05441C","#033011"],"dark":["#0D130E","#131F15","#172E1C","#173F21","#095725","#107434","#169244","#1EB254","#22C55E","#2DF477","#B0FEBF"],"lightInverse":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#25D365","#22C55E","#1DAE52","#169244","#0A5D28","#05441C","#033011"],"darkInverse":["#0D130E","#131F15","#172E1C","#173F21","#095725","#0D672D","#107736","#14883E","#22C55E","#2DF477","#B0FEBF"]}},"orange":{"reference":"#F97316","soft":{"light":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#C08569","#A26D56","#845744","#684234","#4E2F25","#371F18"],"dark":["#15100F","#221917","#33241F","#462F27","#613D30","#805442","#A06C55","#C08569","#D7A48A","#E5C7B6","#F2E5DD"],"lightInverse":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#CF9172","#BD8266","#A06C55","#684234","#4E2F25","#371F18"],"darkInverse":["#15100F","#221917","#33241F","#462F27","#613D30","#724A3A","#845744","#95644F","#CB8E6F","#E5C7B6","#F2E5DD"]},"vivid":{"light":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#C6540E","#A34009","#822E05","#621E03","#471101"],"dark":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#9F3E09","#C4530E","#F97316","#FD9153","#FDBE99","#FEE1D0"],"lightInverse":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#E66713","#C4530E","#822E05","#621E03","#471101"],"darkInverse":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#8E3507","#A34009","#B84C0C","#F97316","#FDBE99","#FEE1D0"]}},"blue":{"reference":"#3B82F6","soft":{"light":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#7897C6","#587CB8","#42629E","#304B82","#1C346E","#13234E"],"dark":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#3F5F9A","#567AB8","#7897C6","#9BB3D5","#C0CFE4","#E1E9F2"],"lightInverse":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#87A3CD","#7493C4","#567AB8","#304B82","#1C346E","#13234E"],"darkInverse":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#37538C","#42629E","#4D71B0","#84A0CB","#C0CFE4","#E1E9F2"]},"vivid":{"light":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#5494F7","#3B82F6","#1055D9","#083CB8","#0314A5","#050B77"],"dark":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0F52D5","#3B82F6","#5494F7","#82B3F9","#B0D0FB","#DAE9FD"],"lightInverse":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#69A2F8","#3B82F6","#2271F5","#083CB8","#0314A5","#050B77"],"darkInverse":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0B45C4","#1055D9","#3B82F6","#639EF8","#B0D0FB","#DAE9FD"]}},"poppy":{"reference":"#EF4444","soft":{"light":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#CA7D76","#B3615A","#904D48","#713B37","#542A27","#3B1C19"],"dark":["#16100F","#241917","#352220","#4B2C28","#6A3732","#8C4B45","#B06059","#CA7D76","#D7A29D","#E5C5C2","#F2E4E3"],"lightInverse":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#D08E88","#C97972","#B06059","#713B37","#542A27","#3B1C19"],"darkInverse":["#16100F","#241917","#352220","#4B2C28","#6A3732","#7D423D","#904D48","#A45953","#CF8983","#E5C5C2","#F2E4E3"]},"vivid":{"light":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#EF4444","#D83738","#AF2A2B","#8A1F1F","#671514","#4A0C0B"],"dark":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#AB2929","#D63637","#EF4444","#F4928A","#F8BDB8","#FBE1DE"],"lightInverse":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#F27770","#EF4444","#D63637","#8A1F1F","#671514","#4A0C0B"],"darkInverse":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#982323","#AF2A2B","#C73232","#EF4444","#F8BDB8","#FBE1DE"]}},"titanium":{"reference":"#808080","unique":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"],"lightInverse":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#A1A1A1","#929292","#7A7A7A","#4D4D4D","#383838","#262626"],"darkInverse":["#121212","#1C1C1C","#282828","#353535","#484848","#555555","#636363","#717171","#9E9E9E","#CECECE","#E8E8E8"]}}}}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('donnees').textContent);
+  var CR = D.crans;
+  var BRANDS = ['intencial', 'marque-2', 'marque-3'];
+  var BRAND_PAL = { intencial: { primary: 'terracota', secondary: 'deep' }, 'marque-2': { primary: 'sky', secondary: 'rose' }, 'marque-3': { primary: 'mimosa', secondary: 'ardoise' } };
+  var UTIL_PAL = { success: 'grass', warning: 'orange', info: 'blue', danger: 'poppy', neutral: 'titanium' };
+  var STATUTS = ['success', 'warning', 'info', 'danger'];
+  var MODES = ['light', 'dark'];
+  var ETATS = ['background', 'background-hover', 'background-pressed'];
+  var ELEV = {
+    light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.white', overlay: 'primitives.colors.white' },
+    dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100', overlay: 'primitives.colors.titanium.dark.100' },
+  };
+  /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. */
+  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700 };
+  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800 };
+  var etat = { marque: 'intencial', light: 'blanc', dark: 'blanc', col: 'theme' };
+
+  function inverse(t) { return t === 'light' ? etat.light === 'noir' : etat.dark === 'blanc'; }
+  function decoupe(q) {
+    if (STATUTS.indexOf(q[0]) >= 0) return { role: q[0], inten: q[1], rest: q.slice(2) };
+    return { role: q[0], rest: q.slice(1) };
+  }
+  function source(d, t, n) {
+    if (d.role === 'primary' || d.role === 'secondary') return 'brand.palette.' + d.role + '.' + t + '.' + n;
+    if (d.role === 'neutral') return 'color-utilities.neutral.' + t + '.' + n;
+    return 'color-utilities.' + d.role + '.' + d.inten + '.' + t + '.' + n;
+  }
+  function cranDe(d, tb) {
+    var a = d.rest[0], b = d.rest[1];
+    if (a === 'solid') return tb.solid[ETATS.indexOf(b)];
+    if (a === 'surface') return b === 'text' ? 900 : b === 'border' ? 800 : [100, 200, 300][ETATS.indexOf(b)];
+    if (a === 'text') return d.role === 'neutral' ? 900 : tb.text;
+    if (a === 'text-subtle') return tb.subtle;
+    if (a === 'border') return tb.border;
+    if (a === 'divider') return 300;
+    if (a === 'scale') return Number(b);
+  }
+  /* Vrai quand la nuance de la variable change entre thème normal et thème inversé. */
+  function varie(path) {
+    var q = path.split('.').slice(1);
+    if (['elevation', 'focus', 'disabled'].indexOf(q[0]) >= 0) return false;
+    var d = decoupe(q);
+    if (d.rest[0] === 'solid' && d.rest[1] === 'text') return true;
+    return cranDe(d, NORMAL) !== cranDe(d, INVERSE);
+  }
+
+  /* L'alias suivant d'une variable, dans le thème t ; null pour une valeur. */
+  function next(path, t) {
+    var p = path.split('.'), col = p[0], q = p.slice(1);
+    if (col === 'components') return COMP_CIBLE[q.join('.')];
+    if (col === 'theme') {
+      if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
+      if (q[0] === 'focus') return 'brand.palette.primary.' + t + '.900';
+      if (q[0] === 'disabled') return 'color-utilities.neutral.' + t + '.' + (q[1] === 'background' ? 200 : 500);
+      var d = decoupe(q);
+      if (d.rest[0] === 'solid' && d.rest[1] === 'text') return 'primitives.colors.' + ((t === 'light' ? etat.light : etat.dark) === 'blanc' ? 'white' : 'black');
+      return source(d, t, cranDe(d, inverse(t) ? INVERSE : NORMAL));
+    }
+    if (col === 'brand') return 'primitives.colors.' + BRAND_PAL[etat.marque][q[1]] + '.' + q[2] + '.' + q[3];
+    if (col === 'color-utilities') {
+      if (q[0] === 'elevation') return ELEV[q[1]][q[2]];
+      if (q[0] === 'neutral') return 'primitives.colors.titanium.' + q[1] + '.' + q[2];
+      return 'primitives.colors.' + UTIL_PAL[q[0]] + '.' + q[1] + '.' + q[2] + '.' + q[3];
+    }
+    return null;
+  }
+  function valueOf(path) {
+    var p = path.split('.');
+    if (p[2] === 'white') return '#FFFFFF';
+    if (p[2] === 'black') return '#000000';
+    var pal = D.palettes[p[2]], inten = 'unique', mode, n;
+    if (p.length === 6) { inten = p[3]; mode = p[4]; n = p[5]; } else { mode = p[3]; n = p[4]; }
+    return pal[inten][inverse(mode) ? mode + 'Inverse' : mode][CR.indexOf(Number(n))];
+  }
+  function chaine(path, t) {
+    var out = [path];
+    for (var i = 0; i < 10; i++) { var n = next(out[out.length - 1], t); if (!n) break; out.push(n); }
+    return out;
+  }
+  function hex(path, t) { var c = chaine(path, t); return valueOf(c[c.length - 1]); }
+  /* Une variable de theme écrite avec des barres, comme Figma l'affiche. */
+  function th(chemin) { return 'theme.' + chemin.replace(/\//g, '.'); }
+  function H(chemin, t) { return hex(th(chemin), t); }
+
+  /* Exemples de components */
+  var COMP = [
+    ['button/primary', 'background', 'primary/solid/background'],
+    ['button/primary', 'hover/background', 'primary/solid/background-hover'],
+    ['button/primary', 'pressed/background', 'primary/solid/background-pressed'],
+    ['button/primary', 'text', 'primary/solid/text'],
+    ['button/primary', 'focus/ring', 'focus'],
+    ['button/secondary', 'border', 'primary/surface/border'],
+    ['button/secondary', 'text', 'primary/surface/text'],
+    ['button/secondary', 'hover/background', 'primary/surface/background-hover'],
+    ['button/secondary', 'pressed/background', 'primary/surface/background-pressed'],
+    ['table/row', 'hover/background', 'neutral/surface/background-hover'],
+    ['table/row', 'text', 'neutral/surface/text'],
+    ['table/row', 'selected/background', 'primary/surface/background'],
+    ['table/row', 'selected/hover/background', 'primary/surface/background-hover'],
+    ['table/row', 'selected/text', 'primary/surface/text'],
+    ['alert/danger', 'background', 'danger/vivid/surface/background'],
+    ['alert/danger', 'text', 'danger/vivid/surface/text'],
+    ['alert/danger', 'border', 'danger/vivid/surface/border'],
+    ['chart', 'scale-5', 'warning/vivid/scale/600'],
+  ];
+  var COMP_CIBLE = {};
+  COMP.forEach(function (c) { COMP_CIBLE[(c[0] + '/' + c[1]).replace(/\//g, '.')] = th(c[2]); });
+
+  /* Lignes du panneau */
+  function G(g, tag) { return { g: g, tag: tag }; }
+  function R(g, n, cells, st) { return { k: g + '/' + n, n: n, c: cells, st: st || '' }; }
+  function M(text) { return { more: text }; }
+  function A(path, h) { return { a: path, hex: h }; }
+  function V(h) { return { h: h }; }
+
+  function compRows() {
+    var out = [], last = '';
+    COMP.forEach(function (c) {
+      if (c[0] !== last) { out.push(G(c[0], c[0] === 'chart' ? ['mod', 'hors table, D14'] : null)); last = c[0]; }
+      var cible = th(c[2]);
+      out.push(R(c[0], c[1], [A(cible, hex(cible, 'light'))]));
+    });
+    out.push(M('… les autres composants, mêmes noms qu’aujourd’hui (D11)'));
+    return out;
+  }
+  function themeRows() {
+    var out = [];
+    function row(g, n) { var path = th(g + '/' + n); return R(g, n, MODES.map(function (t) { var x = next(path, t); return A(x, hex(path, t)); }), varie(path) ? 'inv' : ''); }
+    function groupe(g, noms, tag) { out.push(G(g, tag)); noms.forEach(function (n) { out.push(row(g, n)); }); }
+    groupe('primary/solid', ETATS.concat(['text']));
+    groupe('primary/surface', ETATS.concat(['text', 'border']));
+    groupe('primary', ['text', 'border', 'divider']);
+    out.push(M('… secondary : les mêmes douze variables'));
+    groupe('success/vivid/surface', ['background', 'text', 'border']);
+    out.push(M('… success, warning, info et danger, en soft et en vivid : douze variables chacun'));
+    groupe('neutral/surface', ['background-hover', 'text']);
+    groupe('neutral', ['text', 'text-subtle', 'border']);
+    out.push(G('disabled')); ['background', 'text'].forEach(function (n) { out.push(row('disabled', n)); });
+    out.push(G('focus', ['new', 'un seul anneau']));
+    var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
+    groupe('elevation', ['page', 'raised', 'overlay']);
+    groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);
+    out.push(M('… les 121 nuances de toutes les palettes, sous scale'));
+    return out;
+  }
+  function brandRows() {
+    var out = [];
+    function row(g, role, t, n) { return R(g, n, BRANDS.map(function (b) { var path = 'primitives.colors.' + BRAND_PAL[b][role] + '.' + t + '.' + n; return A(path, valueOf(path)); }).concat([{ t: '…' }])); }
+    [['primary', 'light', ['100', '200', '300', '700', '800', '900']], ['primary', 'dark', ['100', '200', '300', '500', '600', '700', '800', '900']], ['secondary', 'light', ['700']]].forEach(function (e) {
+      var g = 'palette/' + e[0] + '/' + e[1]; out.push(G(g));
+      e[2].forEach(function (n) { out.push(row(g, e[0], e[1], n)); });
+    });
+    out.push(M('… 11 nuances par palette et par thème'));
+    out.push(G('identity'));
+    out.push(R('identity', 'primary', BRANDS.map(function (b) { return V(D.palettes[BRAND_PAL[b].primary].reference); }).concat([{ t: '…' }])));
+    return out;
+  }
+  function utilRows() {
+    var out = [];
+    function row(g, path, n) { return R(g, n, [A(path, valueOf(path))]); }
+    [['danger', 'vivid', 'light', ['100', '200', '300', '800', '900']], ['danger', 'vivid', 'dark', ['100', '800', '900']], ['warning', 'vivid', 'light', ['600']]].forEach(function (e) {
+      var g = e[0] + '/' + e[1] + '/' + e[2]; out.push(G(g));
+      e[3].forEach(function (n) { out.push(row(g, 'primitives.colors.' + UTIL_PAL[e[0]] + '.' + e[1] + '.' + e[2] + '.' + n, n)); });
+    });
+    out.push(M('… quatre statuts, deux intensités, deux thèmes : 176 alias'));
+    ['light', 'dark'].forEach(function (t) {
+      var g = 'neutral/' + t; out.push(G(g));
+      ['50', '100', '200', '300', '500', '700', '800', '900'].forEach(function (n) { out.push(row(g, 'primitives.colors.titanium.' + t + '.' + n, n)); });
+    });
+    ['light', 'dark'].forEach(function (t) {
+      var g = 'elevation/' + t; out.push(G(g));
+      ['page', 'raised', 'overlay'].forEach(function (n) { out.push(row(g, ELEV[t][n], n)); });
+    });
+    return out;
+  }
+  function primRows() {
+    var out = [], pal = BRAND_PAL[etat.marque].primary;
+    MODES.forEach(function (t) {
+      var g = 'colors/' + pal + '/' + t;
+      out.push(G(g, inverse(t) ? ['mod', '500 à 800 recalculées, thème inversé'] : null));
+      ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'].forEach(function (n) { out.push(R(g, n, [V(valueOf('primitives.colors.' + pal + '.' + t + '.' + n))])); });
+    });
+    out.push(M('… chaque palette : 11 nuances par thème, et par intensité pour les statuts'));
+    out.push(G('colors')); out.push(R('colors', 'white', [V('#FFFFFF')])); out.push(R('colors', 'black', [V('#000000')]));
+    return out;
+  }
+  function collections() {
+    return [
+      { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens de composants gardent leurs noms et visent <code>theme</code> (D11). Le bouton a un seul token de texte pour tous ses états. La valeur montrée est celle du thème Light.'] },
+      { id: 'theme', ax: 'Light · Dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
+      { id: 'brand', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). La couleur de charte reste à part (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
+      { id: 'color-utilities', ax: 'aucun mode', modes: ['Valeur'], rows: utilRows(), note: ['Le neutre, les quatre statuts et les niveaux d’élévation, communs à toutes les marques (D6, D15).'] },
+      { id: 'primitives', ax: 'aucun mode', modes: ['Valeur'], rows: primRows(), note: ['Le catalogue des palettes, en Light et en Dark, sur la courbe commune (D5, D7, D8). Ici la palette <code>primary</code> de la marque choisie.'] },
+    ];
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function sq(h) { return '<span class="sq" style="background:' + h + '"></span>'; }
+  function label(path) { var p = path.split('.'); return '<span class="col">' + p[0] + ' ›</span> ' + p.slice(1).join('/'); }
+  function cell(c) {
+    if (!c) return '';
+    if (c.a) return '<button type="button" class="chip" data-path="' + c.a + '">' + (c.hex ? sq(c.hex) : '') + label(c.a) + '</button>';
+    if (c.h) return '<span class="val">' + sq(c.h) + c.h + '</span>';
+    return esc(c.t || '');
+  }
+  function renderPanneau(hl) {
+    var cols = collections(), col = cols.filter(function (c) { return c.id === etat.col; })[0] || cols[1];
+    etat.col = col.id;
+    $('fx-cols').innerHTML = '<span class="lab">Collections</span>' + cols.map(function (c) {
+      return '<button type="button" data-col="' + c.id + '" aria-current="' + (c.id === col.id) + '"><span>' + c.id + '</span><span class="ax">' + c.ax + '</span></button>';
+    }).join('');
+    $('fx-head').innerHTML = '<b>' + col.id + '</b><span>' + col.ax + '</span>';
+    $('fx-note').innerHTML = col.note.map(function (n) { return '<p>' + n + '</p>'; }).join('');
+    $('fx-thead').innerHTML = '<tr><th>Nom</th>' + col.modes.map(function (m) { return '<th>' + esc(m) + '</th>'; }).join('') + '</tr>';
+    var span = col.modes.length + 1;
+    $('fx-tbody').innerHTML = col.rows.map(function (r) {
+      if (r.g !== undefined) return '<tr class="g"><td colspan="' + span + '">' + esc(r.g) + (r.tag ? '<span class="tag ' + r.tag[0] + '">' + esc(r.tag[1]) + '</span>' : '') + '</td></tr>';
+      if (r.more !== undefined) return '<tr class="more"><td colspan="' + span + '">' + esc(r.more) + '</td></tr>';
+      var cells = r.c.map(function (c) { return '<td>' + cell(c) + '</td>'; });
+      while (cells.length < col.modes.length) cells.push('<td></td>');
+      return '<tr class="' + r.st + (hl && hl === r.k ? ' hl' : '') + '" data-k="' + r.k + '"><td class="nm">' + esc(r.n) + '</td>' + cells.join('') + '</tr>';
+    }).join('');
+    if (hl) { var row = document.querySelector('#fx-tbody tr[data-k="' + hl + '"]'); if (row) row.scrollIntoView({ block: 'nearest' }); }
+  }
+  $('fx').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-col')) { etat.col = b.getAttribute('data-col'); renderPanneau(); return; }
+    if (b.hasAttribute('data-path')) {
+      var p = b.getAttribute('data-path').split('.');
+      etat.col = p[0];
+      var k = p.slice(1).join('/'), rows = collections().filter(function (c) { return c.id === p[0]; })[0];
+      if (!rows) return;
+      /* La ligne visée peut porter un mode dans son nom : colors/terracota/light/700. */
+      renderPanneau(k);
+    }
+  });
+
+  /* Le chemin d'une couleur, dans les deux thèmes */
+  function renderTrajet() {
+    var depart = 'components.button.primary.hover.background';
+    var lignes = MODES.map(function (t) {
+      var c = chaine(depart, t);
+      return '<span class="m">' + t + (inverse(t) ? ', thème inversé' : '') + '</span>\n  ' + c.join('\n  → ') + '   ' + valueOf(c[c.length - 1]);
+    });
+    $('trajet').innerHTML = lignes.join('\n\n');
+  }
+
+  /* Contraste WCAG 2 */
+  function lum(h) {
+    var v = [1, 3, 5].map(function (i) { var c = parseInt(h.substr(i, 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+  }
+  function contraste(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function fmt(v) { return v.toFixed(2).replace('.', ',') + ':1'; }
+
+  /* Exemples : chaque exemple dessine une scène par thème, et nomme ses couples texte et fond. */
+  function etiquette(t) { return t === 'light' ? 'Light' : 'Dark'; }
+  function scene(t, contenu, fond) {
+    var bg = fond || H('elevation/page', t);
+    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/text', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
+  }
+  function mesures(couples) {
+    return '<div class="mes">' + MODES.map(function (t) {
+      var pire = Infinity;
+      couples.forEach(function (c) { var v = contraste(H(c[0], t), c[1] === 'page' ? H('elevation/page', t) : H(c[1], t)); if (v < pire) pire = v; });
+      return etiquette(t) + ' : <span class="' + (Number(pire.toFixed(10)) >= 4.5 ? 'ok' : 'ko') + '">' + (pire >= 4.5 ? '✓ ' : '✗ ') + fmt(pire) + '</span>';
+    }).join(' · ') + '</div>';
+  }
+  var EXEMPLES = [
+    {
+      titre: 'Bouton principal',
+      dessin: function (t) {
+        return '<div class="rang">' + [['Repos', 'background'], ['Survol', 'background-hover'], ['Appui', 'background-pressed']].map(function (e) {
+          return '<figure><span class="btn" style="background:' + H('primary/solid/' + e[1], t) + ';color:' + H('primary/solid/text', t) + '">Valider</span>' + e[0] + '</figure>';
+        }).join('') + '<figure><span class="btn" style="background:' + H('primary/solid/background', t) + ';color:' + H('primary/solid/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Valider</span>Focus</figure></div>';
+      },
+      vars: ['fond : <code>primary/solid/background</code>, <code>-hover</code>, <code>-pressed</code>', 'texte, le même pour les trois : <code>primary/solid/text</code>', 'anneau : <code>focus</code>'],
+      couples: [['primary/solid/text', 'primary/solid/background'], ['primary/solid/text', 'primary/solid/background-hover'], ['primary/solid/text', 'primary/solid/background-pressed']],
+    },
+    {
+      titre: 'Bouton secondaire',
+      dessin: function (t) {
+        return '<div class="rang">' + [['Repos', null], ['Survol', 'background-hover'], ['Appui', 'background-pressed']].map(function (e) {
+          return '<figure><span class="btn" style="background:' + (e[1] ? H('primary/surface/' + e[1], t) : 'transparent') + ';color:' + H('primary/surface/text', t) + ';border-color:' + H('primary/surface/border', t) + '">Annuler</span>' + e[0] + '</figure>';
+        }).join('') + '</div>';
+      },
+      vars: ['fond : aucun, puis <code>primary/surface/background-hover</code>, <code>-pressed</code>', 'texte et contour, constants : <code>primary/surface/text</code>, <code>primary/surface/border</code>'],
+      couples: [['primary/surface/text', 'page'], ['primary/surface/text', 'primary/surface/background-hover'], ['primary/surface/text', 'primary/surface/background-pressed']],
+    },
+    {
+      titre: 'Ligne de tableau sélectionnable',
+      dessin: function (t) {
+        var lignes = [['Repos', null, 'neutral'], ['Survol', 'neutral/surface/background-hover', 'neutral'], ['Sélectionnée', 'primary/surface/background', 'primary'], ['Sélectionnée, survolée', 'primary/surface/background-hover', 'primary']];
+        return '<div class="panneau" style="background:' + H('elevation/raised', t) + '">' + lignes.map(function (l) {
+          return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2] + '/surface/text', t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
+        }).join('') + '</div>';
+      },
+      vars: ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>-hover</code> de ce dossier'],
+      couples: [['neutral/surface/text', 'elevation/raised'], ['neutral/surface/text', 'neutral/surface/background-hover'], ['primary/surface/text', 'primary/surface/background'], ['primary/surface/text', 'primary/surface/background-hover']],
+    },
+    {
+      titre: 'Alerte et badges',
+      dessin: function (t) {
+        return '<div class="alerte" style="background:' + H('danger/vivid/surface/background', t) + ';color:' + H('danger/vivid/surface/text', t) + ';border-color:' + H('danger/vivid/surface/border', t) + '"><b>Paiement refusé.</b> Vérifiez l’IBAN.</div>'
+          + '<div class="rang" style="margin-top:10px"><span class="badge" style="background:' + H('success/vivid/solid/background', t) + ';color:' + H('success/vivid/solid/text', t) + '">Validé</span>'
+          + '<span class="badge" style="background:' + H('info/soft/surface/background', t) + ';color:' + H('info/soft/surface/text', t) + '">Brouillon</span></div>';
+      },
+      vars: ['alerte : dossier <code>danger/vivid/surface</code>', 'badge fort : <code>success/vivid/solid</code>', 'badge doux : <code>info/soft/surface</code>'],
+      couples: [['danger/vivid/surface/text', 'danger/vivid/surface/background'], ['success/vivid/solid/text', 'success/vivid/solid/background'], ['info/soft/surface/text', 'info/soft/surface/background']],
+    },
+    {
+      titre: 'Champ de saisie',
+      dessin: function (t) {
+        return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/border', t) + ';color:' + H('neutral/text-subtle', t) + '">Nom du contrat</span>Repos</figure>'
+          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/border', t) + ';color:' + H('neutral/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
+      },
+      vars: ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/border</code>, puis <code>primary/border</code>', 'texte : <code>neutral/text</code> ; indication : <code>neutral/text-subtle</code>'],
+      couples: [['neutral/text', 'elevation/raised'], ['neutral/text-subtle', 'elevation/raised']],
+    },
+    {
+      titre: 'Paragraphe et lien',
+      dessin: function (t) {
+        return '<p style="margin:0;font-size:14px;color:' + H('neutral/text', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/text', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
+          + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/text-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
+      },
+      vars: ['corps : <code>neutral/text</code> ; secondaire : <code>neutral/text-subtle</code>', 'lien : <code>primary/text</code>, posé sur la page'],
+      couples: [['neutral/text', 'page'], ['neutral/text-subtle', 'page'], ['primary/text', 'page']],
+    },
+  ];
+  function renderExemples() {
+    $('exemples').innerHTML = EXEMPLES.map(function (e) {
+      return '<div class="ex"><h3>' + e.titre + '</h3><div class="scenes">' + MODES.map(function (t) { return scene(t, e.dessin(t)); }).join('') + '</div>'
+        + '<ul class="vars">' + e.vars.map(function (v) { return '<li>' + v + '</li>'; }).join('') + '</ul>' + mesures(e.couples) + '</div>';
+    }).join('');
+  }
+
+  function renderTout() { renderPanneau(); renderTrajet(); renderExemples(); }
+  function bascule(id, cle, apres) {
+    $(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      etat[cle] = b.getAttribute('data-v');
+      $(id).querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      (apres || renderTout)();
+    });
+  }
+  bascule('c-marque', 'marque');
+  bascule('c-light', 'light');
+  bascule('c-dark', 'dark');
+  bascule('c-page', 'page', function () {
+    if (etat.page === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', etat.page);
+  });
+  renderTout();
+})();
+</script>
+</body></html>

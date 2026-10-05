@@ -1,0 +1,937 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usage en ensembles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --add:#17687F; --add-bg:#DFEFF3; --mod:#A94A1C; --mod-bg:#FAEBE2; --del:#B42318; --del-bg:#FBE9E7; --keep:#1E7446; --keep-bg:#E3F3EA;
+  --new:#6B3FA0; --new-bg:#EFE7F8; --hl:#FFF3BF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+    --new:#C4A2EE; --new-bg:#2A1D3B; --hl:#3B3413;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+  --new:#C4A2EE; --new-bg:#2A1D3B; --hl:#3B3413;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
+main{max-width:1060px;margin:0 auto;padding-block:40px 80px}
+.narrow{max-width:880px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.45rem;line-height:1.25;margin:60px 0 12px}
+p{margin:0 0 12px}
+a{color:var(--add)}
+:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+.lede{font-size:1.08rem;color:var(--muted)}
+
+/* repris de VUE-ILLUSTREE-MULTIMARQUES.html */
+/* panneau Figma */
+.fx{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fx-top{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--soft)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{all:unset;cursor:pointer;padding:6px 16px;font-weight:600;font-size:.92rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.legend[hidden]{display:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:4px;height:14px;border-radius:2px;display:inline-block}
+.fx-body{display:grid;grid-template-columns:250px 1fr;min-height:460px}
+.fx-cols{border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.fx-cols .lab{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:2px 8px 6px}
+.fx-cols button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-family:var(--mono);font-size:.84rem}
+.fx-cols button:hover{background:var(--soft)}
+.fx-cols button[aria-current="true"]{background:var(--ink);color:var(--bg)}
+.fx-cols button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.fx-cols button.gone .cn{text-decoration:line-through;opacity:.7}
+.tag{display:inline-block;font-family:var(--sans);font-size:.68rem;font-weight:600;padding:0 7px;border-radius:99px;white-space:nowrap;line-height:1.6}
+.tag.new{background:var(--add-bg);color:var(--add)}
+.tag.mod{background:var(--mod-bg);color:var(--mod)}
+.tag.del{background:var(--del-bg);color:var(--del)}
+.tag.same{background:var(--keep-bg);color:var(--keep)}
+.fx-main{min-width:0;padding:12px 14px 16px}
+.fx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
+.fx-head b{font-family:var(--mono);font-size:1.05rem}
+.fx-head span{color:var(--muted);font-size:.86rem}
+.fx-note{font-size:.92rem;background:var(--bg);border-radius:6px;padding:9px 12px;margin-bottom:10px}
+.fx-note p{margin:0 0 4px}
+.fx-note p:last-child{margin:0}
+.fx-note a{font-weight:600}
+.fx-tw{overflow-x:auto}
+.fx table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
+.fx th{text-align:left;font-weight:500;color:var(--muted);font-size:.8rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fx th.newcol{color:var(--add);font-weight:600}
+.fx td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fx td.nm{font-family:var(--mono);white-space:nowrap}
+.fx tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;color:var(--muted);padding-top:12px;border-bottom:none}
+.fx tr.g td .tag{margin-left:8px}
+.fx tr.more td{color:var(--muted);font-style:italic;font-size:.8rem}
+.fx tr.new td:first-child{box-shadow:inset 4px 0 var(--add)}
+.fx tr.mod td:first-child{box-shadow:inset 4px 0 var(--mod)}
+.fx tr.del td:first-child{box-shadow:inset 4px 0 var(--del)}
+.fx tr.del td{color:var(--muted)}
+.fx tr.del td.nm,.fx tr.del .val{text-decoration:line-through}
+.fx tr.hl td{background:var(--hl)}
+.val{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block;flex:none}
+.chip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 7px 1px 3px;font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+.chip:hover{border-color:var(--add)}
+.chip:focus-visible{outline:2px solid var(--add);outline-offset:1px}
+.chip .col{color:var(--muted)}
+.old{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.old s{text-decoration-color:var(--del)}
+.cap{color:var(--muted);font-size:.86rem;margin-top:8px}
+
+/* décisions */
+.dec{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:12px 0;scroll-margin-top:12px}
+.dec-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:10px}
+.dec-h .id{font-family:var(--display);font-weight:700;color:var(--muted)}
+.dec-h h3{font-size:1.05rem;margin:0;line-height:1.35;flex:1 1 380px}
+.dec dl{display:grid;grid-template-columns:120px 1fr;gap:7px 16px;margin:0}
+.dec dt{font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:3px}
+.dec dd{margin:0}
+.dec dd ul{margin:0;padding-left:18px}
+.dec dd li{margin-bottom:4px}
+.dec .see{all:unset;cursor:pointer;color:var(--add);font-size:.88rem;text-decoration:underline;text-underline-offset:3px}
+.dec .see:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+.org{font-size:.85rem;color:var(--muted)}
+
+.tw{overflow-x:auto;margin:12px 0}
+table.plain{border-collapse:collapse;width:100%;font-size:.92rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.plain th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+table.plain td.n,table.plain th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.plain tfoot td{font-weight:600;border-bottom:none}
+td.c{text-align:center;font-family:var(--mono);font-weight:600}
+.bad{color:var(--del);font-weight:600}
+ul.rules{padding-left:20px}
+ul.rules li{margin-bottom:6px}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+footer ul{padding-left:18px;margin:6px 0 0}
+
+@media (max-width:720px){
+  .fx-body{grid-template-columns:1fr}
+  .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
+  .fx-cols .lab{width:100%}
+  .dec dl{grid-template-columns:1fr;gap:2px}
+  .dec dd{margin-bottom:8px}
+}
+</style>
+<style>
+/* ajouts propres à ce document */
+.barre{position:sticky;top:0;z-index:10;margin-inline:-16px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.barre-in{max-width:1060px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.82rem}
+.barre .groupe{display:flex;align-items:center;gap:6px}
+.barre .groupe>span{color:var(--muted)}
+.barre .seg button{padding:3px 10px;font-size:.82rem}
+html{scroll-padding-top:70px}
+.ct{font-family:var(--mono);font-size:.78rem;font-weight:600;border-radius:5px;padding:1px 6px;background:var(--add-bg);color:var(--add)}
+.ct.lim{background:var(--mod-bg);color:var(--mod)}
+.cas{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:12px 0}
+.cas header{display:flex;gap:10px;align-items:baseline;margin-bottom:6px}
+.cas h3{font-size:1.05rem;margin:0}
+.scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin:10px 0}
+.scene{position:relative;border-radius:10px;padding:30px 16px 16px;border:1px solid var(--line);overflow:hidden}
+.scene-l{position:absolute;top:7px;left:10px;font:11px var(--mono);opacity:.8}
+.rang{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.rang figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;text-align:center}
+.btn{border:0;border-radius:7px;padding:8px 16px;font:600 14px var(--sans)}
+.carte{border-radius:10px;padding:12px;border:1px solid transparent}
+.ligne{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:6px;font-size:14px}
+.bandeau{border-radius:8px;padding:12px 14px;border-left:4px solid}
+.bandeau p{margin:4px 0 0;font-size:14px}
+.champ{border:1.5px solid;border-radius:6px;padding:7px 10px;font-size:14px;min-width:150px}
+.badge{display:inline-block;border-radius:999px;padding:1px 9px;font:600 12px var(--sans)}
+.vide{border:1.5px dashed currentColor;border-radius:6px;padding:8px 10px;font-size:13px;margin-top:4px}
+.gene,.rep{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.92rem}
+.gene{background:var(--mod-bg)}
+.rep{background:var(--keep-bg)}
+.gene b,.rep b{display:block;margin-bottom:2px}
+details{margin-top:6px}
+summary{cursor:pointer;color:var(--add);font-size:.86rem}
+table.plain td .v{font-family:var(--mono);font-size:.8rem;white-space:nowrap}
+.v.ok{color:var(--keep)}
+.v.ko{color:var(--del);font-weight:600}
+.v.info{color:var(--muted)}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;margin:12px 0}
+.option{background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:14px}
+.option.choisie{border-color:var(--add)}
+.option h4{margin:0 0 6px;font-size:1rem;display:flex;gap:8px;align-items:baseline}
+.option .scenes{grid-template-columns:1fr}
+.dec .scenes{margin:6px 0}
+</style>
+</head>
+<body>
+<div class="barre"><div class="barre-in">
+  <div class="groupe"><span>Marque</span><div class="seg" id="c-marque">
+    <button type="button" data-v="intencial" aria-pressed="true">intencial</button><button type="button" data-v="marque-2" aria-pressed="false">marque-2</button><button type="button" data-v="marque-3" aria-pressed="false">marque-3</button></div></div>
+  <div class="groupe"><span>Texte des boutons, light</span><div class="seg" id="c-light">
+    <button type="button" data-v="blanc" aria-pressed="true">blanc</button><button type="button" data-v="noir" aria-pressed="false">noir</button></div></div>
+  <div class="groupe"><span>dark</span><div class="seg" id="c-dark">
+    <button type="button" data-v="noir" aria-pressed="false">noir</button><button type="button" data-v="blanc" aria-pressed="true">blanc</button></div></div>
+  <div class="groupe"><span>Texte du neutre</span><div class="seg" id="c-neutre">
+    <button type="button" data-v="A" aria-pressed="false">A</button><button type="button" data-v="B" aria-pressed="true">B</button><button type="button" data-v="C" aria-pressed="false">C</button></div></div>
+  <div class="groupe"><span>Page</span><div class="seg" id="c-page">
+    <button type="button" data-v="auto" aria-pressed="true">auto</button><button type="button" data-v="light" aria-pressed="false">claire</button><button type="button" data-v="dark" aria-pressed="false">sombre</button></div></div>
+</div></div>
+
+<main>
+  <div class="narrow">
+    <h1>La collection <code>usage</code> en ensembles</h1>
+    <p class="lede">Ce document reprend l'architecture validée de la <a href="../../VUE-ILLUSTREE-MULTIMARQUES.html">vue illustrée</a> et n'y change qu'une chose : la collection <code>usage</code> est rangée en ensembles. Il montre ce que ce changement entraîne dans <code>theme</code> et dans <code>components</code>, puis l'éprouve sur des composants.</p>
+    <p>Un ensemble est un dossier qui range un fond avec le texte et le contour qui se lisent dessus : <code>primary/surface-2/background</code>, <code>primary/surface-2/text</code>, <code>primary/surface-2/border</code>. La règle pour le designer tient en une phrase : <strong>prendre le texte et le contour dans le dossier de leur fond</strong>. Un état de composant passe au dossier suivant.</p>
+    <p>Le texte des boutons suit la proposition de l'<a href="../../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">étude Modes</a> : blanc ou noir purs, un choix par thème. Quand ce texte s'oppose au fond de page, le thème est dit « inversé » et sa rampe est recalculée. La barre du haut règle ce choix, la marque des aperçus et l'option du texte du neutre (E5).</p>
+  </div>
+
+  <h2>Le panneau des variables, validé et avec les ensembles</h2>
+  <p class="narrow">Le même panneau que la vue illustrée. La vue <b>Validé</b> reprend sa vue Demain. La vue <b>Avec les ensembles</b> remplace <code>usage</code> ; la barre à gauche d'une ligne indique ce qui change par rapport à la vue Validé. Une étiquette grise est un alias : clique dessus pour suivre la chaîne jusqu'à la couleur.</p>
+
+  <div class="fx" id="fx">
+    <div class="fx-top">
+      <div class="seg" role="group" aria-label="Vue">
+        <button type="button" data-view="valide" aria-pressed="false">Validé</button>
+        <button type="button" data-view="ensembles" aria-pressed="true">Avec les ensembles</button>
+      </div>
+      <div class="legend" id="legend">
+        <span><i style="background:var(--add)"></i>ajouté</span>
+        <span><i style="background:var(--mod)"></i>valeur modifiée</span>
+        <span><i style="background:var(--del)"></i>supprimé</span>
+        <span>sans barre : inchangé</span>
+      </div>
+    </div>
+    <div class="fx-body">
+      <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
+      <div class="fx-main">
+        <div class="fx-head" id="fx-head"></div>
+        <div class="fx-note" id="fx-note"></div>
+        <div class="fx-tw"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <p class="cap narrow">Couleurs calculées par le moteur <code>ucm-couleur</code> pour les palettes de la vue illustrée (<a href="./generer-ensembles.ts">generer-ensembles.ts</a>). Une colonne de <code>usage</code> ou de <code>components</code> montre la couleur dans le thème light et dans la marque choisie en haut. Chaque collection n'affiche que quelques lignes par groupe. <code>table/colors/row</code> est un exemple ajouté pour montrer une ligne sélectionnée.</p>
+
+  <div class="narrow">
+  <h2>Les changements</h2>
+  <p>Chaque changement renvoie à la décision de la vue illustrée qu'il modifie. Les autres décisions, D1 à D12, D14 à D16, restent telles quelles.</p>
+
+  <div class="dec" id="e1">
+    <div class="dec-h"><span class="id">E1</span><h3><code>usage</code> est rangée en ensembles</h3><span class="tag mod">Modifie D13</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Huit emplois, dont quatre à rangs d'état : <code>usage.primary.solid.default|hover|active|active-hover</code>, de même pour <code>text</code>, <code>surface</code>, <code>border-control</code> ; puis <code>on-solid</code>, <code>surface-card</code>, <code>border-decorative</code>, <code>focus</code>. Pour savoir quel texte va sur quel fond, il faut connaître la table : <code>text.hover</code> se pose sur <code>surface.hover</code>.</dd>
+      <dt>Après</dt><dd><ul>
+        <li><code>surface-0</code> à <code>surface-4</code> : fonds discrets, de la carte (cran 50) au plus marqué (400). Chacun porte <code>background</code>, <code>text</code> et <code>border</code>.</li>
+        <li><code>solid-1</code> à <code>solid-4</code> : fonds pleins, du bouton au repos à son quatrième état. Chacun porte <code>background</code> et <code>text</code>.</li>
+        <li><code>focus</code> (E4) et <code>divider</code>, le filet décoratif, à la racine de la palette.</li>
+        <li>Les statuts gardent l'intensité : <code>usage.success.soft.surface-1.text</code>. <code>elevation</code> ne change pas.</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd><ul>
+        <li><b>Une seule règle, lisible dans le nom.</b> Dans le sélecteur de texte, l'en-tête du groupe nomme le fond : <code>primary/surface-2</code> › <code>text</code>.</li>
+        <li><b>Aucun nom d'état.</b> Un bandeau au repos peut prendre <code>surface-2</code>. Avec <code>surface.hover</code>, le même choix paraissait détourné.</li>
+        <li><b>Aucun cran dans les noms.</b> Le thème inversé de l'étude Modes change des cibles dans <code>theme</code>, jamais un nom (E2).</li>
+        <li><b>Les mesures tiennent.</b> Les paires d'un ensemble sont celles que l'étude a mesurées ; la table plus bas donne le minimum de chacune.</li>
+      </ul></dd>
+      <dt>Écarté</dt><dd><ul>
+        <li>Les rangs d'état de D13 et D17 : chaque usage paraît réservé à un état.</li>
+        <li>Des niveaux 1 à 4 avec une règle d'escalier (un texte de niveau n sur toute surface de niveau inférieur ou égal) : la règle s'apprend et ne se lit pas dans les noms.</li>
+      </ul></dd>
+      <dt>Coût</dt><dd>25 variables par palette au lieu de 20. Des alias en double vers les mêmes nuances : <code>surface-0/text</code> et <code>surface-1/text</code> visent toutes deux le 700. UCM Palettes les écrit.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="ensembles:usage">Voir usage dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="e2">
+    <div class="dec-h"><span class="id">E2</span><h3><code>theme</code> porte aussi les ensembles dont la nuance change selon le thème</h3><span class="tag mod">Modifie D2</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>theme</code> ne contient que des nuances : <code>theme.primary.700</code> vise le 700 clair en <code>light</code> et le 700 sombre en <code>dark</code>.</dd>
+      <dt>Après</dt><dd><ul>
+        <li>Les fonds discrets et le filet visent toujours une nuance : <code>usage.primary.surface-2.background</code> → <code>theme.primary.200</code>.</li>
+        <li>Les textes, les contours, les fonds pleins et l'anneau visent une variable d'ensemble de <code>theme</code>, qui choisit sa nuance dans chaque mode : <code>theme.primary.surface-2.text</code> vise <code>theme.primary.800</code> en <code>light</code>, et <code>theme.primary.900</code> en <code>dark</code> quand ce thème est inversé.</li>
+        <li><code>theme.on-solid</code> vise <code>primitives.colors.white</code> ou <code>black</code> dans chaque mode.</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd><code>usage</code> n'a pas de mode. Dans un thème inversé, un même ensemble demande une autre nuance (étude Modes, section 5.1) : seul <code>theme</code> peut porter ce choix.</dd>
+      <dt>Reste vrai</dt><dd><code>theme</code> ne contient aucun choix du designer. Ses alias se déduisent de la table et du réglage « texte des boutons » de chaque thème, rangé dans la recette d'UCM Palettes. Portées vides, comme le reste de <code>theme</code>.</dd>
+      <dt>Coût</dt><dd>15 variables par palette, et <code>on-solid</code>.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="ensembles:theme">Voir theme dans le panneau</button></dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="e3">
+    <div class="dec-h"><span class="id">E3</span><h3>L'état d'un composant choisit un ensemble</h3><span class="tag mod">Modifie D17</span></div>
+    <dl>
+      <dt>Après</dt><dd>Le composant choisit l'ensemble de son repos ; chaque état avance d'un numéro, fond, texte et contour ensemble.
+        <div class="tw" style="margin:8px 0"><table class="plain">
+          <thead><tr><th>État du composant</th><th>Ensemble</th><th>Bouton plein</th><th>Ligne sur une carte</th></tr></thead>
+          <tbody>
+            <tr><td>repos</td><td>n, choisi par le composant</td><td><code>solid-1</code></td><td><code>neutral/surface-0</code></td></tr>
+            <tr><td>survol</td><td>n + 1</td><td><code>solid-2</code></td><td><code>neutral/surface-1</code></td></tr>
+            <tr><td>appui, sélectionné</td><td>n + 2</td><td><code>solid-3</code></td><td><code>primary/surface-2</code></td></tr>
+            <tr><td>sélectionné et survolé ou appuyé</td><td>n + 3</td><td><code>solid-4</code></td><td><code>primary/surface-3</code></td></tr>
+            <tr><td>focus</td><td>celui du repos, et l'anneau <code>focus</code></td><td></td><td></td></tr>
+            <tr><td>désactivé</td><td><code>neutral/disabled</code></td><td></td><td></td></tr>
+          </tbody></table></div>
+        Les noms d'interaction restent dans <code>components</code> : <code>button/…/hover/background</code> vise <code>usage.primary.solid-2.background</code>. <code>ucm check</code> compare l'état publié par le contrat au numéro visé ; un écart donne une remarque, pas une erreur.</dd>
+      <dt>Pourquoi</dt><dd>Le motif de D17 ne change pas : un état avance d'un cran. Il s'écrit en numéros au lieu de noms, et laisse le composant choisir son point de départ : un bandeau au repos part de 2.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="e4">
+    <div class="dec-h"><span class="id">E4</span><h3>Un seul anneau de focus, à la nuance du contour de <code>surface-4</code></h3><span class="tag mod">Modifie la table des emplois</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>focus</code> au 600 : 3,63:1 sur la page, mais 2,63:1 sur une surface 200. Un anneau autour d'un contrôle posé sur un fond marqué disparaît.</dd>
+      <dt>Après</dt><dd><code>usage.primary.focus</code> vise le 900, ou le 950 dans un thème inversé. Il tient 3:1 sur la page, la carte et toutes les surfaces : le composant n'a pas à connaître son conteneur (cas L2).</dd>
+      <dt>Mesure</dt><dd>Par l'étude Modes, sur 42 rampes contre la page, la carte et les surfaces 100 à 400 : aucun échec sur 252, pire ratio 5,47:1 au 900 et 6,88:1 au 950. Le 700 qu'elle prévoyait échouait 91 fois sur 252. Elle retient aussi cette proposition (sa décision 7).</dd>
+      <dt>Limite</dt><dd>À ce cran, l'anneau perd la teinte vive de la palette et se rapproche de la couleur du texte.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="e5">
+    <div class="dec-h"><span class="id">E5</span><h3>Le texte courant du neutre</h3><span class="tag new">À décider</span></div>
+    <dl>
+      <dt>Le problème</dt><dd>Dans une palette de couleur, le 700 est un bon texte : une couleur de marque lisible. Dans le neutre, le 700 est un gris moyen, lisible mais trop pâle pour un paragraphe. Le texte courant d'une interface est le 900, que la vue illustrée nomme <code>neutral.text-strong</code>. Si le neutre suit la table des ensembles sans rien ajouter, ce texte n'a pas de place.</dd>
+      <dt>Options</dt><dd>La barre du haut applique l'option choisie à tout le document.<div class="options" id="options-neutre"></div></dd>
+      <dt>Avis</dt><dd>B : la règle du dossier reste entière, et le designer trouve le texte courant et le texte secondaire sous chaque fond gris.</dd>
+    </dl>
+  </div>
+
+  <h2 id="table">La table des emplois, en ensembles</h2>
+  <p>Elle remplace la table de la vue illustrée. Les nuances suivent le réglage du texte des boutons choisi en haut. Le minimum est mesuré ici sur les onze palettes de cette page, à toutes leurs intensités, dans les deux thèmes ; il nomme la palette et le thème du pire cas.</p>
+  <div class="tw" id="table-emplois"></div>
+  <ul class="rules">
+    <li>Un texte se lit aussi sur le fond du même numéro d'une autre palette : <code>neutral/surface-2/text</code> sur <code>primary/surface-2/background</code> (cas L4). Les 8 000 croisements entre palettes de l'étude le couvrent.</li>
+    <li>Un texte de numéro plus grand se lit sur un fond de numéro plus petit (cas L5). <code>ucm check</code> mesure la paire réellement posée et l'accepte ; la règle du dossier n'a pas besoin de le dire.</li>
+    <li>Le neutre ajoute <code>disabled/background</code> (200) et <code>disabled/text</code> (500), exemptés par WCAG.</li>
+    <li>Une valeur en rouge tombe sur une nuance où le moteur pose la couleur exacte de la référence : le contour du vert <code>#16A34A</code> ancré au 600, et, dans un thème inversé, le bouton des références ancrées au 700 (terracota en light avec un texte noir, blue vivid en dark avec un texte blanc). C'est la décision d'ancrage commune aux deux études (cas L8).</li>
+  </ul>
+
+  <h2 id="usages">Cas d'usage</h2>
+  <p>Chaque cas montre le composant dans les deux thèmes, puis les variables de <code>usage</code> posées et le contraste mesuré. Une coche signale une paire qui tient son seuil : 4,5:1 pour un texte, 3:1 pour un contour, un anneau ou un bouton contre la page.</p>
+  <div id="cas-usages"></div>
+
+  <h2 id="limites">Cas limites</h2>
+  <p>Les cas où la règle du dossier ne suffit pas, ou demande une convention de plus.</p>
+  <div id="cas-limites"></div>
+
+  <h2>Le volume</h2>
+  <div class="tw" id="volume"></div>
+
+  <h2>Accord avec l'étude Modes</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Sujet</th><th>Position commune</th><th>Effet sur les ensembles</th></tr></thead>
+    <tbody>
+      <tr><td>Texte des boutons</td><td>Blanc ou noir purs, un choix par thème pour tout le design system. Validé par le mainteneur ; S2 et le choix par palette sont écartés.</td><td><code>solid-n/text</code> vise <code>theme.on-solid</code>.</td></tr>
+      <tr><td>Thème inversé</td><td>Le bouton reste le 700, ses états vont vers la page ; ce qui se pose sur la page monte d'une nuance ; la rampe du thème est recalculée. Proposition, non validée.</td><td>Les noms ne changent pas ; <code>theme</code> change ses cibles (E2).</td></tr>
+      <tr><td>Garantie 14, le bouton contre la page</td><td>Jugée sur le repos dans le thème inversé.</td><td>Hors de l'ensemble.</td></tr>
+      <tr><td>Anneau de focus</td><td>900, ou 950 dans le thème inversé (E4).</td><td><code>usage.{p}.focus</code></td></tr>
+      <tr><td>Ancrage de la couleur exacte</td><td>Décision commune ouverte.</td><td>Cas L8.</td></tr>
+    </tbody></table></div>
+
+  <h2>À décider</h2>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Décision</th><th>Options</th><th>Recommandation</th></tr></thead>
+    <tbody>
+      <tr><td>Ranger <code>usage</code> en ensembles (E1, E3)</td><td>Ensembles ; rangs d'état de D13 et D17</td><td>Ensembles</td></tr>
+      <tr><td><code>theme</code> porte les ensembles dont la nuance change (E2)</td><td>Variables d'ensemble dans <code>theme</code> ; des modes dans <code>usage</code></td><td>Dans <code>theme</code> : Figma ne demande qu'un choix de thème par cadre</td></tr>
+      <tr><td>Anneau de focus (E4)</td><td>Unique, 900 ou 950 ; celui de l'ensemble du conteneur</td><td>Unique</td></tr>
+      <tr><td>Texte du neutre (E5)</td><td>A, B, C</td><td>B</td></tr>
+      <tr><td>Composant dans un composant (L1, L6)</td><td>Pas de règle ; « le conteneur plus un » et « un composant qui apporte son fond repart de son ensemble »</td><td>Les deux conventions, écrites dans les descriptions</td></tr>
+      <tr><td>Nom de l'ensemble 0 (L7)</td><td><code>surface-0</code> ; <code>base</code></td><td><code>surface-0</code>, pour garder la suite des numéros</td></tr>
+      <tr><td>Plus de quatre états depuis un fond marqué (L3)</td><td>Accepter la limite ; ajouter <code>surface-5</code></td><td>Accepter</td></tr>
+    </tbody></table></div>
+
+  <footer>
+    Sources :
+    <ul>
+      <li><a href="../../VUE-ILLUSTREE-MULTIMARQUES.html">Vue illustrée</a> et <a href="../../ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a> : l'architecture validée.</li>
+      <li>Étude Modes : <a href="../../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier</a> et <a href="../../../Plugin%20Palettes/Texte%20des%20boutons/mesurer-courbe-du-texte.ts">mesurer-courbe-du-texte.ts</a>.</li>
+      <li>Mesures de cette étude : <a href="../2%20Escalier/resultats-polarites.json">resultats-polarites.json</a> ; présentation précédente : <a href="../2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">niveaux et texte des boutons</a>.</li>
+    </ul>
+  </footer>
+  </div>
+</main>
+
+<script id="donnees" type="application/json">{"crans":[50,100,200,300,400,500,600,700,800,900,950],"palettes":{"terracota":{"reference":"#B15152","unique":{"light":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#D67475","#B15152","#994545","#793534","#592524","#401918"],"dark":["#17100F","#251817","#38201F","#4F2927","#713130","#954343","#B15152","#D67475","#E09D9C","#EBC2C2","#F5E3E3"],"lightInverse":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#DA8787","#D56F70","#B15152","#793534","#592524","#401918"],"darkInverse":["#17100F","#251817","#38201F","#4F2927","#713130","#853B3B","#994545","#B15152","#D98282","#EBC2C2","#F5E3E3"]}},"deep":{"reference":"#4C3EBA","unique":{"light":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#878CDE","#6D6CD6","#5649CE","#4C3EBA","#31267B","#221959"],"dark":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#6B6BD6","#878CDE","#A5ACE7","#C6CBEF","#E4E7F8"],"lightInverse":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#949AE2","#8488DD","#6B6BD6","#4C3EBA","#31267B","#221959"],"darkInverse":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#5649CE","#635FD3","#9197E1","#C6CBEF","#E4E7F8"]}},"sky":{"reference":"#0EA5E9","unique":{"light":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#0EA5E9","#0985BE","#066A9B","#03537B","#023C5C","#012942"],"dark":["#0D1217","#121D26","#152A39","#153950","#034D73","#056797","#0983BC","#0EA5E9","#45BDFE","#97D7FE","#D0EDFF"],"lightInverse":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#10ADF4","#0EA5E9","#0983BC","#03537B","#023C5C","#012942"],"darkInverse":["#0D1217","#121D26","#152A39","#153950","#034D73","#045B87","#066A9B","#087AB0","#0EA5E9","#97D7FE","#D0EDFF"]}},"rose":{"reference":"#F43F5E","unique":{"light":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F43F5E","#DB2D4D","#B2233B","#8C192B","#68101D","#4B0911"],"dark":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#AD2139","#D82C4C","#F43F5E","#F78E96","#FABBBF","#FCE0E2"],"lightInverse":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F6717F","#F43F5E","#D82C4C","#8C192B","#68101D","#4B0911"],"darkInverse":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#9A1D31","#B2233B","#CA2946","#F43F5E","#FABBBF","#FCE0E2"]}},"mimosa":{"reference":"#F2CF4A","unique":{"light":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#BA8D32","#A07228","#85581E","#6C4216","#522E0D","#3C1D07"],"dark":["#16100D","#241912","#362317","#4A2E19","#653D13","#82551D","#9F7027","#BA8D32","#D5AB3D","#F2CF4A","#FCE98B"],"lightInverse":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#C79A37","#B78931","#9F7027","#6C4216","#522E0D","#3C1D07"],"darkInverse":["#16100D","#241912","#362317","#4A2E19","#653D13","#754A19","#85581E","#956724","#C49636","#F2CF4A","#FCE98B"]}},"ardoise":{"reference":"#2F3E5C","unique":{"light":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#8397B5","#657DA3","#4F6488","#3C4D6D","#2F3E5C","#1A2540"],"dark":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#4D6184","#647BA2","#8397B5","#A3B2C8","#C5CFDC","#E4E8EE"],"lightInverse":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#91A3BD","#7F93B3","#647BA2","#3C4D6D","#2F3E5C","#1A2540"],"darkInverse":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#435577","#4F6488","#5B7299","#8DA0BB","#C5CFDC","#E4E8EE"]}},"grass":{"reference":"#22C55E","soft":{"light":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#70A479","#5C8864","#496D50","#38553D","#283E2C","#1A2B1D"],"dark":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#476A4D","#5B8763","#70A479","#85C291","#9BE2A9","#CFF3D5"],"lightInverse":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#79B184","#6DA177","#5B8763","#38553D","#283E2C","#1A2B1D"],"darkInverse":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#3E5E44","#496D50","#547D5C","#77AE81","#9BE2A9","#CFF3D5"]},"vivid":{"light":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#22C55E","#1EB254","#179445","#107736","#0A5D28","#05441C","#033011"],"dark":["#0D130E","#131F15","#172E1C","#173F21","#095725","#107434","#169244","#1EB254","#22C55E","#2DF477","#B0FEBF"],"lightInverse":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#25D365","#22C55E","#1DAE52","#169244","#0A5D28","#05441C","#033011"],"darkInverse":["#0D130E","#131F15","#172E1C","#173F21","#095725","#0D672D","#107736","#14883E","#22C55E","#2DF477","#B0FEBF"]}},"orange":{"reference":"#F97316","soft":{"light":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#C08569","#A26D56","#845744","#684234","#4E2F25","#371F18"],"dark":["#15100F","#221917","#33241F","#462F27","#613D30","#805442","#A06C55","#C08569","#D7A48A","#E5C7B6","#F2E5DD"],"lightInverse":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#CF9172","#BD8266","#A06C55","#684234","#4E2F25","#371F18"],"darkInverse":["#15100F","#221917","#33241F","#462F27","#613D30","#724A3A","#845744","#95644F","#CB8E6F","#E5C7B6","#F2E5DD"]},"vivid":{"light":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#C6540E","#A34009","#822E05","#621E03","#471101"],"dark":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#9F3E09","#C4530E","#F97316","#FD9153","#FDBE99","#FEE1D0"],"lightInverse":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#E66713","#C4530E","#822E05","#621E03","#471101"],"darkInverse":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#8E3507","#A34009","#B84C0C","#F97316","#FDBE99","#FEE1D0"]}},"blue":{"reference":"#3B82F6","soft":{"light":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#7897C6","#587CB8","#42629E","#304B82","#1C346E","#13234E"],"dark":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#3F5F9A","#567AB8","#7897C6","#9BB3D5","#C0CFE4","#E1E9F2"],"lightInverse":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#87A3CD","#7493C4","#567AB8","#304B82","#1C346E","#13234E"],"darkInverse":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#37538C","#42629E","#4D71B0","#84A0CB","#C0CFE4","#E1E9F2"]},"vivid":{"light":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#5494F7","#3B82F6","#1055D9","#083CB8","#0314A5","#050B77"],"dark":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0F52D5","#3B82F6","#5494F7","#82B3F9","#B0D0FB","#DAE9FD"],"lightInverse":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#69A2F8","#3B82F6","#2271F5","#083CB8","#0314A5","#050B77"],"darkInverse":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0B45C4","#1055D9","#3B82F6","#639EF8","#B0D0FB","#DAE9FD"]}},"poppy":{"reference":"#EF4444","soft":{"light":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#CA7D76","#B3615A","#904D48","#713B37","#542A27","#3B1C19"],"dark":["#16100F","#241917","#352220","#4B2C28","#6A3732","#8C4B45","#B06059","#CA7D76","#D7A29D","#E5C5C2","#F2E4E3"],"lightInverse":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#D08E88","#C97972","#B06059","#713B37","#542A27","#3B1C19"],"darkInverse":["#16100F","#241917","#352220","#4B2C28","#6A3732","#7D423D","#904D48","#A45953","#CF8983","#E5C5C2","#F2E4E3"]},"vivid":{"light":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#EF4444","#D83738","#AF2A2B","#8A1F1F","#671514","#4A0C0B"],"dark":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#AB2929","#D63637","#EF4444","#F4928A","#F8BDB8","#FBE1DE"],"lightInverse":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#F27770","#EF4444","#D63637","#8A1F1F","#671514","#4A0C0B"],"darkInverse":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#982323","#AF2A2B","#C73232","#EF4444","#F8BDB8","#FBE1DE"]}},"vert-ancre":{"reference":"#16A34A","unique":{"light":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#19B252","#16A34A","#0D7734","#085D27","#04441B","#023011"],"dark":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0D7433","#139342","#16A34A","#20D362","#27F573","#AFFEBD"],"lightInverse":["#E6FFE9","#C9FED2","#87FEA2","#27F372","#20D362","#1CC159","#16A34A","#139342","#085D27","#04441B","#023011"],"darkInverse":["#0D130E","#131F15","#172E1B","#173F21","#075724","#0A672C","#0D7734","#11883D","#16A34A","#27F573","#AFFEBD"]}},"titanium":{"reference":"#808080","unique":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"],"lightInverse":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#A1A1A1","#929292","#7A7A7A","#4D4D4D","#383838","#262626"],"darkInverse":["#121212","#1C1C1C","#282828","#353535","#484848","#555555","#636363","#717171","#9E9E9E","#CECECE","#E8E8E8"]}}}}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('donnees').textContent);
+  var CR = D.crans;
+  var BRANDS = ['intencial', 'marque-2', 'marque-3'];
+  var BRAND_PAL = { intencial: { primary: 'terracota', secondary: 'deep' }, 'marque-2': { primary: 'sky', secondary: 'rose' }, 'marque-3': { primary: 'mimosa', secondary: 'ardoise' } };
+  var UTIL_PAL = { success: 'grass', warning: 'orange', info: 'blue', danger: 'poppy', neutral: 'titanium', vert: 'vert-ancre' };
+  var STATUTS = ['success', 'warning', 'info', 'danger'];
+  var MODES = ['light', 'dark'];
+  var ELEV = {
+    light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.white', overlay: 'primitives.colors.white' },
+    dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100', overlay: 'primitives.colors.titanium.dark.100' },
+  };
+  var etat = { vue: 'ensembles', col: 'usage', marque: 'intencial', light: 'blanc', dark: 'blanc', neutre: 'B' };
+  function ctx(o) { return Object.assign({}, etat, o || {}); }
+
+  /* Les nuances de chaque ensemble, thème normal et thème inversé (étude Modes, section 6). */
+  var NORMAL = { bg: [50, 100, 200, 300, 400], text: [700, 700, 800, 900, 950], border: [600, 600, 700, 800, 900], solid: [700, 800, 900, 950], focus: 900 };
+  var INVERSE = { bg: [50, 100, 200, 300, 400], text: [800, 800, 900, 950, 950], border: [700, 700, 800, 900, 950], solid: [700, 600, 500, 400], focus: 950 };
+  var TEXTE_FORT = [900, 900, 900, 950, 950];
+  /* La table validée (D13, D17). */
+  var EMP = { solid: 700, text: 700, surface: 100, 'surface-card': 50, 'border-control': 600, 'border-decorative': 300, focus: 600 };
+  var ETAT = { 'default': 0, hover: 1, active: 2, 'active-hover': 3 };
+
+  function inverse(t, c) { return c.vue === 'ensembles' && (t === 'light' ? c.light === 'noir' : c.dark === 'blanc'); }
+  function table(t, c) { return inverse(t, c) ? INVERSE : NORMAL; }
+  function num(ens) { return Number(ens.split('-')[1]); }
+  function decoupe(q) {
+    if (STATUTS.indexOf(q[0]) >= 0) return { role: q[0], inten: q[1], prefix: q[0] + '.' + q[1], rest: q.slice(2) };
+    return { role: q[0], prefix: q[0], rest: q.slice(1) };
+  }
+
+  /* L'alias suivant d'une variable, dans la marque et le thème donnés ; null pour une valeur. */
+  function next(path, t, c) {
+    var p = path.split('.'), col = p[0], q = p.slice(1);
+    if (col === 'usage') return c.vue === 'valide' ? usageValide(q) : usageEnsembles(q);
+    if (col === 'theme') return themeNext(q, t, c);
+    if (col === 'brand') return 'primitives.colors.' + BRAND_PAL[c.marque][q[1]] + '.' + q[2] + '.' + q[3];
+    if (col === 'color-utilities') {
+      if (q[0] === 'elevation') return ELEV[q[1]][q[2]];
+      if (q[0] === 'neutral' || q[0] === 'vert') return 'primitives.colors.' + UTIL_PAL[q[0]] + '.' + q[1] + '.' + q[2];
+      return 'primitives.colors.' + UTIL_PAL[q[0]] + '.' + q[1] + '.' + q[2] + '.' + q[3];
+    }
+    return null;
+  }
+  function usageValide(q) {
+    if (q[0] === 'elevation') return 'theme.elevation.' + q[1];
+    var d = decoupe(q), emp = d.rest[0], rang = d.rest[1];
+    if (emp === 'on-solid') return 'theme.neutral.50';
+    if (emp === 'text-strong') return 'theme.neutral.900';
+    if (emp === 'text-disabled') return 'theme.neutral.500';
+    if (emp === 'fill-disabled') return 'theme.neutral.200';
+    return 'theme.' + d.prefix + '.' + CR[CR.indexOf(EMP[emp]) + (ETAT[rang] || 0)];
+  }
+  function usageEnsembles(q) {
+    if (q[0] === 'elevation') return 'theme.elevation.' + q[1];
+    var d = decoupe(q), ens = d.rest[0], part = d.rest[1];
+    if (ens === 'divider') return 'theme.' + d.prefix + '.300';
+    if (ens === 'focus') return 'theme.' + d.prefix + '.focus';
+    if (ens === 'text-strong') return 'theme.neutral.900';
+    if (ens === 'disabled') return 'theme.neutral.' + (part === 'background' ? 200 : 500);
+    if (ens.indexOf('surface') === 0 && part === 'background') return 'theme.' + d.prefix + '.' + NORMAL.bg[num(ens)];
+    if (ens.indexOf('solid') === 0 && part === 'text') return 'theme.on-solid';
+    return 'theme.' + d.prefix + '.' + ens + '.' + part;
+  }
+  function themeNext(q, t, c) {
+    if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
+    if (q[0] === 'on-solid') return 'primitives.colors.' + ((t === 'light' ? c.light : c.dark) === 'blanc' ? 'white' : 'black');
+    var d = decoupe(q), r = d.rest;
+    if (r.length === 1 && /^\d+$/.test(r[0])) {
+      if (d.role === 'primary' || d.role === 'secondary') return 'brand.palette.' + d.role + '.' + t + '.' + r[0];
+      if (d.role === 'neutral' || d.role === 'vert') return 'color-utilities.' + d.role + '.' + t + '.' + r[0];
+      return 'color-utilities.' + d.role + '.' + d.inten + '.' + t + '.' + r[0];
+    }
+    var tb = table(t, c);
+    if (r[0] === 'focus') return 'theme.' + d.prefix + '.' + tb.focus;
+    var n = num(r[0]), part = r[1];
+    if (r[0].indexOf('solid') === 0) return 'theme.' + d.prefix + '.' + tb.solid[n - 1];
+    if (part === 'border') return 'theme.' + d.prefix + '.' + tb.border[n];
+    if (part === 'text-subtle') return 'theme.' + d.prefix + '.' + tb.text[n];
+    return 'theme.' + d.prefix + '.' + (d.role === 'neutral' && c.neutre === 'B' ? TEXTE_FORT : tb.text)[n];
+  }
+  function valueOf(path, c) {
+    var p = path.split('.');
+    if (p[2] === 'white') return '#FFFFFF';
+    if (p[2] === 'black') return '#000000';
+    var pal = D.palettes[p[2]], inten = 'unique', mode, n;
+    if (p.length === 6) { inten = p[3]; mode = p[4]; n = p[5]; } else { mode = p[3]; n = p[4]; }
+    return pal[inten][inverse(mode, c) ? mode + 'Inverse' : mode][CR.indexOf(Number(n))];
+  }
+  /* La couleur d'une variable, en suivant ses alias ; et la nuance de theme atteinte. */
+  function suivre(path, t, c) {
+    var x = path, cran = null;
+    for (var i = 0; i < 12; i++) {
+      var m = /^theme\..*\.(\d+)$/.exec(x);
+      if (m) cran = Number(m[1]);
+      if (x === 'theme.on-solid') cran = (t === 'light' ? c.light : c.dark);
+      var n = next(x, t, c);
+      if (!n) return { hex: valueOf(x, c), cran: cran };
+      x = n;
+    }
+  }
+  function hexOf(path, t, c) { return suivre(path, t || 'light', c || ctx()).hex; }
+
+  /* Lignes du panneau, comme dans la vue illustrée */
+  function G(g, tag) { return { g: g, tag: tag }; }
+  function R(g, n, cells, st, old) { return { k: g + '/' + n, n: n, c: cells, st: st || '', old: old }; }
+  function M(text, st) { return { more: text, st: st || '' }; }
+  function A(path, hex) { return { a: path, hex: hex }; }
+  function H(hex) { return { h: hex }; }
+  function T(text) { return { t: text }; }
+
+  var COMP = [
+    ['button/colors/primary/contained', 'default/background', 'usage.primary.solid.default', 'usage.primary.solid-1.background'],
+    ['button/colors/primary/contained', 'default/foreground', 'usage.primary.on-solid', 'usage.primary.solid-1.text'],
+    ['button/colors/primary/contained', 'hover/background', 'usage.primary.solid.hover', 'usage.primary.solid-2.background'],
+    ['button/colors/primary/contained', 'hover/foreground', 'usage.primary.on-solid', 'usage.primary.solid-2.text'],
+    ['button/colors/primary/contained', 'press/background', 'usage.primary.solid.active', 'usage.primary.solid-3.background'],
+    ['button/colors/primary/contained', 'focus/ring', 'usage.primary.focus', 'usage.primary.focus'],
+    ['button/colors/primary/outlined', 'default/foreground', 'usage.primary.text.default', 'usage.primary.surface-0.text'],
+    ['button/colors/primary/outlined', 'default/border', 'usage.primary.border-control.default', 'usage.primary.surface-0.border'],
+    ['table/colors/row', 'hover/background', 'usage.neutral.surface.default', 'usage.neutral.surface-1.background'],
+    ['table/colors/row', 'selected/background', 'usage.primary.surface.active', 'usage.primary.surface-2.background'],
+    ['table/colors/row', 'selected/foreground', 'usage.primary.text.active', 'usage.primary.surface-2.text'],
+    ['alert/colors/info/standard', 'background', 'usage.info.vivid.surface.default', 'usage.info.vivid.surface-1.background'],
+    ['alert/colors/info/standard', 'foreground', 'usage.info.vivid.text.default', 'usage.info.vivid.surface-1.text'],
+    ['alert/colors/success/filled', 'background', 'usage.success.vivid.solid.default', 'usage.success.vivid.solid-1.background'],
+    ['alert/colors/success/filled', 'foreground', 'usage.success.vivid.on-solid', 'usage.success.vivid.solid-1.text'],
+    ['stresstest/info/scalewrap/colors', 'scale-5', 'theme.warning.vivid.600', 'theme.warning.vivid.600'],
+  ];
+  function compRows(ens) {
+    var out = [], last = '', cv = ctx({ vue: 'valide' }), ce = ctx({ vue: 'ensembles' });
+    COMP.forEach(function (c) {
+      if (c[0] !== last) { out.push(G(c[0], c[0] === 'stresstest/info/scalewrap/colors' ? 'hors table (D14)' : null)); last = c[0]; }
+      if (!ens) { out.push(R(c[0], c[1], [A(c[2], hexOf(c[2], 'light', cv))])); return; }
+      var hv = hexOf(c[2], 'light', cv), he = hexOf(c[3], 'light', ce);
+      var st = c[2] === c[3] && hv === he ? '' : 'mod';
+      out.push(R(c[0], c[1], [A(c[3], he)], st, st ? { a: c[2], hex: hv } : null));
+    });
+    out.push(M(ens ? 'Les autres couleurs visent l’ensemble que leur état désigne (E3), ou une nuance de theme hors table.' : '… les autres couleurs, et 63 dimensions'));
+    return out;
+  }
+
+  function usageRowsValide() {
+    var out = [], c = ctx({ vue: 'valide' });
+    function row(g, n, path) { var tgt = next(path, 'light', c); return R(g, n, [A(tgt, hexOf(tgt, 'light', c))]); }
+    out.push(G('primary'));
+    ['on-solid', 'surface-card', 'border-decorative', 'focus'].forEach(function (e) { out.push(row('primary', e, 'usage.primary.' + e)); });
+    ['solid', 'text', 'surface', 'border-control'].forEach(function (e) {
+      var g = 'primary/' + e; out.push(G(g));
+      ['default', 'hover', 'active', 'active-hover'].forEach(function (s) { out.push(row(g, s, 'usage.primary.' + e + '.' + s)); });
+    });
+    out.push(M('… secondary, chaque statut en soft et vivid, neutral : les mêmes 20 usages'));
+    out.push(G('neutral'));
+    ['text-strong', 'text-disabled', 'fill-disabled'].forEach(function (e) { out.push(row('neutral', e, 'usage.neutral.' + e)); });
+    out.push(G('elevation'));
+    ['page', 'raised', 'overlay'].forEach(function (e) { out.push(row('elevation', e, 'usage.elevation.' + e)); });
+    return out;
+  }
+  function usageRowsEnsembles() {
+    var out = [], c = ctx({ vue: 'ensembles' });
+    function row(g, n, path, st) { var tgt = next(path, 'light', c); return R(g, n, [A(tgt, hexOf(tgt, 'light', c))], st === undefined ? 'new' : st); }
+    out.push(G('primary', 'ajouté'));
+    ['focus', 'divider'].forEach(function (e) { out.push(row('primary', e, 'usage.primary.' + e)); });
+    for (var n = 0; n <= 4; n++) {
+      var g = 'primary/surface-' + n; out.push(G(g, 'ajouté'));
+      ['background', 'text', 'border'].forEach(function (p) { out.push(row(g, p, 'usage.' + g.replace(/\//g, '.') + '.' + p)); });
+    }
+    for (var s = 1; s <= 4; s++) {
+      var gs = 'primary/solid-' + s; out.push(G(gs, 'ajouté'));
+      ['background', 'text'].forEach(function (p) { out.push(row(gs, p, 'usage.' + gs.replace(/\//g, '.') + '.' + p)); });
+    }
+    out.push(M('… secondary : les mêmes 25 variables', 'new'));
+    out.push(G('info/vivid/surface-1', 'ajouté'));
+    ['background', 'text', 'border'].forEach(function (p) { out.push(row('info/vivid/surface-1', p, 'usage.info.vivid.surface-1.' + p)); });
+    out.push(G('success/vivid/solid-1', 'ajouté'));
+    ['background', 'text'].forEach(function (p) { out.push(row('success/vivid/solid-1', p, 'usage.success.vivid.solid-1.' + p)); });
+    out.push(M('… chaque statut, en soft et en vivid : les mêmes 25 variables', 'new'));
+    out.push(G('neutral/surface-0', 'ajouté'));
+    (etat.neutre === 'B' ? ['background', 'text', 'text-subtle', 'border'] : ['background', 'text', 'border']).forEach(function (p) { out.push(row('neutral/surface-0', p, 'usage.neutral.surface-0.' + p)); });
+    out.push(M('… neutral porte aussi surface-1 à 4, solid-1 à 4, focus et divider', 'new'));
+    out.push(G('neutral', 'ajouté'));
+    if (etat.neutre === 'C') out.push(row('neutral', 'text-strong', 'usage.neutral.text-strong', ''));
+    out.push(row('neutral', 'disabled/background', 'usage.neutral.disabled.background'));
+    out.push(row('neutral', 'disabled/text', 'usage.neutral.disabled.text'));
+    out.push(G('elevation', 'inchangé'));
+    ['page', 'raised', 'overlay'].forEach(function (e) { out.push(row('elevation', e, 'usage.elevation.' + e, '')); });
+    out.push(G('primary/solid, text, surface, border-control : default, hover, active, active-hover', 'supprimé'));
+    out.push(M('16 variables par palette, remplacées par les ensembles (E1)', 'del'));
+    out.push(G('primary', 'supprimé'));
+    [['on-solid', 'solid-n/text'], ['surface-card', 'surface-0/background'], ['border-decorative', 'divider']].forEach(function (e) {
+      out.push(R('primary-del', e[0], [T('remplacé par ' + e[1])], 'del'));
+    });
+    out.push(G('neutral', 'supprimé'));
+    out.push(R('neutral-del', etat.neutre === 'C' ? 'text-disabled, fill-disabled' : 'text-strong, text-disabled, fill-disabled', [T(etat.neutre === 'C' ? 'remplacés par disabled/text et disabled/background' : 'remplacés par surface-n/text et disabled/…')], 'del'));
+    return out;
+  }
+
+  function themeRows(ens) {
+    var c = ctx({ vue: ens ? 'ensembles' : 'valide' });
+    function pair(path) { return MODES.map(function (t) { var n = next(path, t, c); return A(n, hexOf(n, t, c)); }); }
+    var out = [G('primary', ens ? 'inchangé' : null)];
+    ['50', '100', '200', '300', '400', '600', '700', '800', '900', '950'].forEach(function (n) { out.push(R('primary', n, pair('theme.primary.' + n))); });
+    out.push(M('… 500, et secondary, neutral, chaque statut en soft et vivid : 121 nuances'));
+    if (ens) {
+      out.push(G('primary : ensembles', 'ajouté'));
+      for (var n = 0; n <= 4; n++) out.push(R('primary', 'surface-' + n + '/text', pair('theme.primary.surface-' + n + '.text'), 'new'));
+      for (var b = 0; b <= 4; b++) out.push(R('primary', 'surface-' + b + '/border', pair('theme.primary.surface-' + b + '.border'), 'new'));
+      for (var s = 1; s <= 4; s++) out.push(R('primary', 'solid-' + s + '/background', pair('theme.primary.solid-' + s + '.background'), 'new'));
+      out.push(R('primary', 'focus', pair('theme.primary.focus'), 'new'));
+      out.push(M('… secondary, neutral, chaque statut en soft et vivid : les mêmes 15 variables' + (etat.neutre === 'B' ? ', et text-subtle pour neutral' : ''), 'new'));
+      out.push(G('(racine)', 'ajouté'));
+      out.push(R('', 'on-solid', pair('theme.on-solid'), 'new'));
+    }
+    out.push(G('elevation', ens ? 'inchangé' : null));
+    ['page', 'raised', 'overlay'].forEach(function (n) { out.push(R('elevation', n, pair('theme.elevation.' + n))); });
+    return out;
+  }
+  function brandRows() {
+    var out = [], c = ctx();
+    function row(g, role, t, n) { return R(g, n, BRANDS.map(function (b) { var path = 'primitives.colors.' + BRAND_PAL[b][role] + '.' + t + '.' + n; return A(path, valueOf(path, c)); }).concat([T('…')])); }
+    [['primary', 'light'], ['primary', 'dark'], ['secondary', 'light']].forEach(function (e) {
+      var g = 'palette/' + e[0] + '/' + e[1]; out.push(G(g));
+      ['100', '700', '900'].forEach(function (n) { out.push(row(g, e[0], e[1], n)); });
+    });
+    out.push(M('… 11 nuances par palette et par thème'));
+    out.push(G('identity'));
+    out.push(R('identity', 'primary', BRANDS.map(function (b) { return H(D.palettes[BRAND_PAL[b].primary].reference); }).concat([T('…')])));
+    return out;
+  }
+  function utilRows() {
+    var out = [], c = ctx();
+    function row(g, path, n) { return R(g, n, [A(path, valueOf(path, c))]); }
+    [['soft', 'light'], ['vivid', 'light'], ['vivid', 'dark']].forEach(function (e) {
+      var g = 'success/' + e[0] + '/' + e[1]; out.push(G(g));
+      ['100', '700'].forEach(function (n) { out.push(row(g, 'primitives.colors.grass.' + e[0] + '.' + e[1] + '.' + n, n)); });
+    });
+    out.push(M('… warning vise orange, info vise blue, danger vise poppy : 44 alias chacun'));
+    ['light', 'dark'].forEach(function (t) {
+      var g = 'neutral/' + t; out.push(G(g));
+      ['50', '200', '700', '900'].forEach(function (n) { out.push(row(g, 'primitives.colors.titanium.' + t + '.' + n, n)); });
+    });
+    ['light', 'dark'].forEach(function (t) {
+      var g = 'elevation/' + t; out.push(G(g));
+      ['page', 'raised', 'overlay'].forEach(function (n) { out.push(row(g, ELEV[t][n], n)); });
+    });
+    return out;
+  }
+  function primRows() {
+    var out = [], c = ctx(), cv = ctx({ vue: 'valide' });
+    [['terracota', 'light'], ['terracota', 'dark']].forEach(function (e) {
+      var g = 'colors/' + e[0] + '/' + e[1], inv = etat.vue === 'ensembles' && inverse(e[1], c);
+      out.push(G(g, inv ? 'recalculé, thème inversé' : null));
+      ['400', '500', '600', '700', '800', '900'].forEach(function (n) {
+        var path = 'primitives.colors.' + e[0] + '.' + e[1] + '.' + n, h = valueOf(path, etat.vue === 'ensembles' ? c : cv), hv = valueOf(path, cv);
+        out.push(R(g, n, [H(h)], h !== hv ? 'mod' : '', h !== hv ? { label: 'courbe normale', hex: hv } : null));
+      });
+    });
+    out.push(M('… chaque palette : 11 nuances par thème, par intensité pour les statuts'));
+    out.push(G('colors'));
+    out.push(R('colors', 'white', [H('#FFFFFF')]));
+    out.push(R('colors', 'black', [H('#000000')]));
+    out.push(G('dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily'));
+    out.push(M('73 variables sans couleur'));
+    return out;
+  }
+
+  function compte() {
+    var neutreU = 25 + 2 + (etat.neutre === 'B' ? 5 : 0) + (etat.neutre === 'C' ? 1 : 0);
+    return { usage: 10 * 25 + neutreU + 3, theme: 124 + 11 * 15 + (etat.neutre === 'B' ? 5 : 0) + 1 };
+  }
+  function lnk(id) { return '<a href="#' + id + '">' + id.toUpperCase() + '</a>'; }
+  function vues() {
+    var n = compte();
+    return {
+      valide: [
+        { id: 'components', info: 'aucun mode', modes: ['Valeur'], rows: compRows(false), tag: ['same', 'validé'], note: ['La vue Demain de la vue illustrée. Chaque couleur de composant vise un usage de la table, sous son rang d’état (D11, D17).'] },
+        { id: 'usage', info: 'aucun mode · 226 variables', modes: ['Valeur'], rows: usageRowsValide(), tag: ['same', 'validé'], note: ['La table des emplois en variables, sur quatre rangs d’état (D13, D17).'] },
+        { id: 'theme', info: '2 modes · 124 variables', modes: ['light', 'dark'], rows: themeRows(false), tag: ['same', 'validé'], note: ['Chaque nuance vise la même nuance en version light et en version dark (D2).'] },
+        { id: 'brand', info: '1 mode par marque · 45 variables', modes: ['intencial', 'marque-2', 'marque-3', '…'], rows: brandRows(), tag: ['same', 'validé'], note: ['Chaque colonne choisit les palettes de sa marque (D3).'] },
+        { id: 'color-utilities', info: 'aucun mode · 204 variables', modes: ['Valeur'], rows: utilRows(), tag: ['same', 'validé'], note: ['Les rôles communs à toutes les marques (D6).'] },
+        { id: 'primitives', info: 'aucun mode', modes: ['Valeur'], rows: primRows(), tag: ['same', 'validé'], note: ['Le catalogue des palettes, en light et dark (D5, D7).'] },
+        { id: 'layouts', info: 'aucun mode · 31 variables', modes: ['Valeur'], rows: [G('sizing, radius, stroke'), M('31 dimensions')], tag: ['same', 'validé'], note: ['Aucune couleur.'] },
+        { id: 'typography', info: 'aucun mode · 60 variables', modes: ['Valeur'], rows: [G('display, headline, title, body, label'), M('60 variables de texte')], tag: ['same', 'validé'], note: ['Aucune couleur.'] },
+      ],
+      ensembles: [
+        { id: 'components', info: 'aucun mode · mêmes noms', modes: ['Valeur'], rows: compRows(true), tag: ['mod', 'repointée'], note: ['Mêmes noms. Chaque couleur vise un ensemble de usage, que l’état du composant désigne ; sous chaque valeur, l’alias de la vue Validé.', 'Le survol du bouton plein vise solid-2, la ligne sélectionnée primary/surface-2. ' + lnk('e3')] },
+        { id: 'usage', info: 'aucun mode · ' + n.usage + ' variables', modes: ['Valeur'], rows: usageRowsEnsembles(), tag: ['new', 'en ensembles'], note: ['Chaque fond range dans son dossier le texte et le contour qui se lisent dessus. Tout ce qui se prend dans un même dossier tient son contraste, dans les deux thèmes et pour toute marque.', 'Les fonds discrets visent une nuance ; les textes, contours, fonds pleins et l’anneau visent une variable d’ensemble de theme. ' + lnk('e1') + ' · ' + lnk('e2')] },
+        { id: 'theme', info: '2 modes · ' + n.theme + ' variables', modes: ['light', 'dark'], rows: themeRows(true), tag: ['mod', '+ ensembles'], note: ['Les nuances ne changent pas. S’ajoutent les variables d’ensemble : chacune vise une nuance de theme, différente selon le mode quand le thème est inversé.', 'Change « texte des boutons, dark » dans la barre du haut : seule la colonne dark de ces variables change. ' + lnk('e2')] },
+        { id: 'brand', info: '1 mode par marque · 45 variables', modes: ['intencial', 'marque-2', 'marque-3', '…'], rows: brandRows(), tag: ['same', 'inchangée'], note: ['Inchangée.'] },
+        { id: 'color-utilities', info: 'aucun mode · 204 variables', modes: ['Valeur'], rows: utilRows(), tag: ['same', 'inchangée'], note: ['Inchangée.'] },
+        { id: 'primitives', info: 'aucun mode', modes: ['Valeur'], rows: primRows(), tag: ['same', 'noms inchangés'], note: ['Mêmes variables. Dans un thème inversé, les nuances 500 à 800 de ce thème sont recalculées pour toutes les palettes (étude Modes) ; sous chaque valeur recalculée, celle de la courbe normale.'] },
+        { id: 'layouts', info: 'aucun mode · 31 variables', modes: ['Valeur'], rows: [G('sizing, radius, stroke', 'inchangé'), M('31 dimensions')], tag: ['same', 'inchangée'], note: ['Inchangée.'] },
+        { id: 'typography', info: 'aucun mode · 60 variables', modes: ['Valeur'], rows: [G('display, headline, title, body, label', 'inchangé'), M('60 variables de texte')], tag: ['same', 'inchangée'], note: ['Inchangée.'] },
+      ],
+    };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function sq(h) { return '<span class="sq" style="background:' + h + '"></span>'; }
+  function label(path) { var p = path.split('.'); return '<span class="col">' + p[0] + ' ›</span> ' + p.slice(1).join('/'); }
+  function cell(c) {
+    if (!c) return '';
+    if (c.a) return '<button type="button" class="chip" data-path="' + c.a + '">' + (c.hex ? sq(c.hex) : '') + label(c.a) + '</button>';
+    if (c.h) return '<span class="val">' + sq(c.h) + c.h + '</span>';
+    return esc(c.t || '');
+  }
+  function oldHtml(o) {
+    var s = '<span class="old">avant : <s>' + (o.a ? label(o.a) : esc(o.label)) + '</s>';
+    if (o.hex) s += ' ' + sq(o.hex) + o.hex;
+    return s + '</span>';
+  }
+  var TAGCLS = { 'ajouté': 'new', 'supprimé': 'del', 'inchangé': 'same', 'hors table (D14)': 'mod', 'recalculé, thème inversé': 'mod' };
+  function render(hl) {
+    var cols = vues()[etat.vue], col = cols.filter(function (c) { return c.id === etat.col; })[0] || cols[0];
+    etat.col = col.id;
+    document.querySelectorAll('#fx .fx-top .seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === etat.vue)); });
+    $('legend').hidden = etat.vue !== 'ensembles';
+    $('fx-cols').innerHTML = '<span class="lab">Collections</span>' + cols.map(function (c) {
+      return '<button type="button" data-col="' + c.id + '" aria-current="' + (c.id === col.id) + '"><span class="cn">' + c.id + '</span><span class="tag ' + c.tag[0] + '">' + c.tag[1] + '</span></button>';
+    }).join('');
+    $('fx-head').innerHTML = '<b>' + col.id + '</b><span>' + col.info + '</span>';
+    $('fx-note').innerHTML = col.note.map(function (n) { return '<p>' + n + '</p>'; }).join('');
+    $('fx-thead').innerHTML = '<tr><th>Nom</th>' + col.modes.map(function (m) { return '<th>' + esc(m) + '</th>'; }).join('') + '</tr>';
+    var span = col.modes.length + 1;
+    $('fx-tbody').innerHTML = col.rows.map(function (r) {
+      if (r.g !== undefined) { var tg = r.tag ? '<span class="tag ' + (TAGCLS[r.tag] || 'same') + '">' + esc(r.tag) + '</span>' : ''; return '<tr class="g"><td colspan="' + span + '">' + esc(r.g) + tg + '</td></tr>'; }
+      if (r.more !== undefined) return '<tr class="more ' + r.st + '"><td colspan="' + span + '">' + esc(r.more) + '</td></tr>';
+      var cells = r.c.map(function (c, i) { var h = cell(c); if (i === 0 && r.old) h += oldHtml(r.old); return '<td>' + h + '</td>'; });
+      while (cells.length < col.modes.length) cells.push('<td></td>');
+      return '<tr class="' + r.st + (hl && hl === r.k ? ' hl' : '') + '" data-k="' + r.k + '"><td class="nm">' + esc(r.n) + '</td>' + cells.join('') + '</tr>';
+    }).join('');
+    if (hl) { var row = document.querySelector('#fx-tbody tr[data-k="' + hl + '"]'); if (row) row.scrollIntoView({ block: 'nearest' }); }
+  }
+  function go(path) {
+    var p = path.split('.'), col = p[0], k = p.slice(1).join('/');
+    if (!vues()[etat.vue].some(function (c) { return c.id === col; })) return;
+    etat.col = col; render(k);
+  }
+  $('fx').addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.hasAttribute('data-view')) { etat.vue = t.getAttribute('data-view'); render(); }
+    else if (t.hasAttribute('data-col')) { etat.col = t.getAttribute('data-col'); render(); }
+    else if (t.hasAttribute('data-path')) go(t.getAttribute('data-path'));
+  });
+  document.querySelectorAll('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () { var p = b.getAttribute('data-go').split(':'); etat.vue = p[0]; etat.col = p[1]; render(); $('fx').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  });
+
+  /* Contraste */
+  function lum(hex) {
+    var v = [1, 3, 5].map(function (i) { var c = parseInt(hex.substr(i, 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+  }
+  function contraste(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function fmt(v) { return v.toFixed(2).replace('.', ',') + ':1'; }
+  function tient(v, s) { return Number(v.toFixed(10)) >= s; }
+
+  /* Les cas : un chemin de usage s'écrit avec des barres, comme Figma l'affiche. */
+  function col_(chemin, t, o) { return hexOf('usage.' + chemin.replace(/\//g, '.'), t, ctx(Object.assign({ vue: 'ensembles' }, o))); }
+  function cranDe(chemin, t, o) { return suivre('usage.' + chemin.replace(/\//g, '.'), t, ctx(Object.assign({ vue: 'ensembles' }, o))).cran; }
+  function corps(n, o) { var c = ctx(o); return c.neutre === 'C' ? 'neutral/text-strong' : 'neutral/surface-' + n + '/text'; }
+  function secondaire(n, o) { var c = ctx(o); return c.neutre === 'B' ? 'neutral/surface-' + n + '/text-subtle' : 'neutral/surface-' + n + '/text'; }
+  function reglage(t, o) { var c = ctx(o); var tx = t === 'light' ? c.light : c.dark; return t + ' · texte des boutons ' + tx + (inverse(t, ctx(Object.assign({ vue: 'ensembles' }, o))) ? ', thème inversé' : ''); }
+  var PAGE = 'elevation/page';
+  var ETATS = ['Repos', 'Survol', 'Appui', 'Sélectionné survolé'];
+
+  function mesure(p, t, o) {
+    var v = contraste(col_(p.fg, t, o), col_(p.bg, t, o));
+    if (p.seuil == null) return '<span class="v info">' + fmt(v) + '</span>';
+    return tient(v, p.seuil) ? '<span class="v ok">✓ ' + fmt(v) + '</span>' : '<span class="v ko">✗ ' + fmt(v) + '</span>';
+  }
+  function nomVar(ch) { return ch === PAGE ? 'la page' : '<code>' + ch + '</code>'; }
+  function tablePaires(paires) {
+    return '<div class="tw"><table class="plain"><thead><tr><th>État</th><th>Calque</th><th>Variable de usage</th><th>Posée sur</th><th>Seuil</th><th>light</th><th>dark</th></tr></thead><tbody>'
+      + paires.map(function (p) {
+        return '<tr><td>' + (p.etat || '') + '</td><td>' + p.calque + '</td><td>' + nomVar(p.fg) + '</td><td>' + nomVar(p.bg) + '</td><td>' + (p.seuil == null ? 'repère' : String(p.seuil).replace('.', ',') + ':1') + '</td><td>' + mesure(p, 'light') + '</td><td>' + mesure(p, 'dark') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  function scene(t, rendu) { return '<div class="scene" style="background:' + col_(PAGE, t) + ';color:' + col_(corps(0), t) + '"><span class="scene-l">' + reglage(t) + '</span>' + rendu(t) + '</div>'; }
+  function rendreCas(c) {
+    var limite = c.id.charAt(0) === 'L';
+    var scenes = c.scenes ? c.scenes() : MODES.map(function (t) { return scene(t, c.rendu); }).join('');
+    return '<article class="cas"><header><span class="ct ' + (limite ? 'lim' : '') + '">' + c.id + '</span><h3>' + c.titre + '</h3></header><p>' + c.texte + '</p><div class="scenes">' + scenes + '</div>'
+      + (c.gene ? '<div class="gene"><b>Ce qui gêne</b>' + c.gene + '</div>' : '') + (c.rep ? '<div class="rep"><b>Réponse possible</b>' + c.rep + '</div>' : '')
+      + (c.paires ? '<details' + (limite ? ' open' : '') + '><summary>Variables posées et contrastes</summary>' + tablePaires(c.paires()) + '</details>' : '') + '</article>';
+  }
+  function bouton(fond, texte, t, libelle, extra) { return '<button type="button" class="btn" style="background:' + col_(fond, t) + ';color:' + col_(texte, t) + ';' + (extra || '') + '">' + (libelle || 'Valider') + '</button>'; }
+  function leg(x) { return '<figcaption>' + x + '</figcaption>'; }
+  function carte(t, inner) { return '<div class="carte" style="background:' + col_('neutral/surface-0/background', t) + ';border-color:' + col_('neutral/divider', t) + '">' + inner + '</div>'; }
+
+  var CAS_USAGES = [
+    { id: 'U1', titre: 'Bouton plein', texte: '<code>button/…/default/background</code> vise <code>primary/solid-1/background</code>, le survol <code>solid-2</code>, l’appui <code>solid-3</code>. Le libellé prend le <code>text</code> du même dossier.',
+      rendu: function (t) { return '<div class="rang">' + [1, 2, 3].map(function (n, i) { return '<figure>' + bouton('primary/solid-' + n + '/background', 'primary/solid-' + n + '/text', t) + leg(ETATS[i]) + '</figure>'; }).join('') + '</div>'; },
+      paires: function () { return [1, 2, 3].map(function (n, i) { return { etat: ETATS[i], calque: 'Libellé', fg: 'primary/solid-' + n + '/text', bg: 'primary/solid-' + n + '/background', seuil: 4.5 }; }).concat([{ etat: 'Repos', calque: 'Bouton contre la page (garantie 14)', fg: 'primary/solid-1/background', bg: PAGE, seuil: 3 }]); } },
+    { id: 'U2', titre: 'Bouton discret', texte: 'Même geste sur les fonds discrets : <code>surface-1</code>, <code>surface-2</code>, <code>surface-3</code>.',
+      rendu: function (t) { return '<div class="rang">' + [1, 2, 3].map(function (n, i) { return '<figure>' + bouton('primary/surface-' + n + '/background', 'primary/surface-' + n + '/text', t, 'Modifier') + leg(ETATS[i]) + '</figure>'; }).join('') + '</div>'; },
+      paires: function () { return [1, 2, 3].map(function (n, i) { return { etat: ETATS[i], calque: 'Libellé', fg: 'primary/surface-' + n + '/text', bg: 'primary/surface-' + n + '/background', seuil: 4.5 }; }); } },
+    { id: 'U3', titre: 'Ligne de tableau sur une carte', texte: 'La carte est <code>neutral/surface-0</code>. La ligne reste sur la carte au repos, prend <code>neutral/surface-1</code> au survol, <code>primary/surface-2</code> sélectionnée, <code>primary/surface-3</code> sélectionnée et survolée. Le numéro continue d’une palette à l’autre.',
+      rendu: function (t) {
+        var L = [['neutral/surface-0', 'Assurance vie Horizon', '12 400 €', 'repos'], ['neutral/surface-1', 'Épargne retraite', '8 150 €', 'survol'], ['primary/surface-2', 'Prévoyance famille', '2 300 €', 'sélectionnée'], ['primary/surface-3', 'Contrat obsèques', '980 €', 'sélectionnée, survolée']];
+        return carte(t, L.map(function (l) { var tx = l[0].indexOf('neutral') === 0 ? corps(Number(l[0].slice(-1))) : l[0] + '/text'; return '<div class="ligne" style="background:' + col_(l[0] + '/background', t) + ';color:' + col_(tx, t) + '"><span>' + l[1] + ' · <small>' + l[3] + '</small></span><b>' + l[2] + '</b></div>'; }).join(''));
+      },
+      paires: function () { return [['Repos', 'neutral/surface-0'], ['Survol', 'neutral/surface-1'], ['Sélectionnée', 'primary/surface-2'], ['Sélectionnée survolée', 'primary/surface-3']].map(function (e) { var tx = e[1].indexOf('neutral') === 0 ? corps(Number(e[1].slice(-1))) : e[1] + '/text'; return { etat: e[0], calque: 'Nom et montant', fg: tx, bg: e[1] + '/background', seuil: 4.5 }; }); } },
+    { id: 'U4', titre: 'Bandeau d’information au repos', texte: 'Un bandeau plus marqué qu’une alerte : <code>primary/surface-2</code> au repos, sans nom d’état. Titre, texte, lien et filet viennent du même dossier.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-2/background', t) + ';border-color:' + col_('primary/surface-2/border', t) + ';color:' + col_('primary/surface-2/text', t) + '"><b>Votre dossier est complet</b><p>Nous l’examinons sous 48 heures. <u>Voir le détail</u></p></div>'; },
+      paires: function () { return [{ calque: 'Titre, texte, lien', fg: 'primary/surface-2/text', bg: 'primary/surface-2/background', seuil: 4.5 }, { calque: 'Filet', fg: 'primary/surface-2/border', bg: 'primary/surface-2/background', seuil: 3 }]; } },
+    { id: 'U5', titre: 'Champ de saisie sur une carte', texte: 'Le champ apporte son fond, <code>neutral/surface-0</code>, et son contour. Au survol, il passe à <code>neutral/surface-1</code> : le fond se teinte, le contour garde sa nuance. Au focus, l’anneau <code>primary/focus</code> s’écarte du champ.',
+      rendu: function (t) {
+        function champ(e, extra) { return '<div class="champ" style="background:' + col_(e + '/background', t) + ';border-color:' + col_(e + '/border', t) + ';color:' + col_(corps(0), t) + ';' + (extra || '') + '">AV-2026-0412</div>'; }
+        return carte(t, '<div style="font-size:13px;margin-bottom:6px;color:' + col_(secondaire(0), t) + '">Référence du contrat</div><div class="rang"><figure>' + champ('neutral/surface-0') + leg('Repos') + '</figure><figure>' + champ('neutral/surface-1') + leg('Survol') + '</figure><figure>' + champ('neutral/surface-0', 'outline:2px solid ' + col_('primary/focus', t) + ';outline-offset:2px') + leg('Focus') + '</figure></div>');
+      },
+      paires: function () { return [{ etat: 'Repos', calque: 'Libellé', fg: secondaire(0), bg: 'neutral/surface-0/background', seuil: 4.5 }, { etat: 'Repos', calque: 'Contour', fg: 'neutral/surface-0/border', bg: 'neutral/surface-0/background', seuil: 3 }, { etat: 'Survol', calque: 'Contour', fg: 'neutral/surface-1/border', bg: 'neutral/surface-1/background', seuil: 3 }, { etat: 'Focus', calque: 'Anneau', fg: 'primary/focus', bg: 'neutral/surface-0/background', seuil: 3 }]; } },
+    { id: 'U6', titre: 'Badges de statut dans une liste', texte: 'Chaque badge prend l’ensemble 1 de son statut, en intensité soft.',
+      rendu: function (t) { return carte(t, [['success', 'Versement reçu', 'Payé'], ['warning', 'Pièce manquante', 'À compléter'], ['danger', 'Prélèvement rejeté', 'Échec']].map(function (s) { return '<div class="ligne" style="color:' + col_(corps(0), t) + '"><span>' + s[1] + '</span><span class="badge" style="background:' + col_(s[0] + '/soft/surface-1/background', t) + ';color:' + col_(s[0] + '/soft/surface-1/text', t) + '">' + s[2] + '</span></div>'; }).join('')); },
+      paires: function () { return ['success', 'warning', 'danger'].map(function (s) { return { calque: 'Badge ' + s, fg: s + '/soft/surface-1/text', bg: s + '/soft/surface-1/background', seuil: 4.5 }; }); } },
+  ];
+
+  var CAS_LIMITES = [
+    { id: 'L1', titre: 'Un composant dans un composant', texte: 'Un badge de succès dans une ligne sélectionnée (<code>primary/surface-2</code>). Le badge habituel, <code>success/soft/surface-1</code>, est plus clair que la ligne et fait un trou. En <code>surface-3</code>, il se lit comme un badge.',
+      rendu: function (t) { return '<div class="ligne" style="background:' + col_('primary/surface-2/background', t) + ';color:' + col_('primary/surface-2/text', t) + '"><span>Prévoyance famille</span><span><span class="badge" style="background:' + col_('success/soft/surface-1/background', t) + ';color:' + col_('success/soft/surface-1/text', t) + '">surface-1</span> <span class="badge" style="background:' + col_('success/soft/surface-3/background', t) + ';color:' + col_('success/soft/surface-3/text', t) + '">surface-3</span></span></div>'; },
+      gene: 'Le dossier garantit le texte du badge sur le fond du badge, pas le choix du numéro du badge selon ce qui l’entoure. Les deux badges sont lisibles ; un seul paraît juste.',
+      rep: 'Une convention, écrite dans la description des ensembles : <strong>un composant posé sur un fond teinté prend le numéro du conteneur plus un</strong>. <code>ucm check</code> peut la signaler comme remarque.',
+      paires: function () { return [{ calque: 'Texte du badge, surface-1', fg: 'success/soft/surface-1/text', bg: 'success/soft/surface-1/background', seuil: 4.5 }, { calque: 'Texte du badge, surface-3', fg: 'success/soft/surface-3/text', bg: 'success/soft/surface-3/background', seuil: 4.5 }, { calque: 'Badge surface-1 contre la ligne', fg: 'success/soft/surface-1/background', bg: 'primary/surface-2/background', seuil: null }, { calque: 'Badge surface-3 contre la ligne', fg: 'success/soft/surface-3/background', bg: 'primary/surface-2/background', seuil: null }]; } },
+    { id: 'L2', titre: 'L’anneau de focus se dessine sur le conteneur', texte: 'Un bouton discret dans un en-tête marqué (<code>primary/surface-3</code>). L’anneau se dessine sur l’en-tête, pas sur le bouton. Trois choix d’anneau.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-3/background', t) + ';border-color:transparent;color:' + col_('primary/surface-3/text', t) + '"><div class="rang">' + [['primary/surface-0/border', 'surface-0/border'], ['primary/surface-3/border', 'surface-3/border'], ['primary/focus', 'focus unique (E4)']].map(function (a) { return '<figure>' + bouton('primary/surface-1/background', 'primary/surface-1/text', t, 'Modifier', 'outline:2px solid ' + col_(a[0], t) + ';outline-offset:3px') + leg(a[1]) + '</figure>'; }).join('') + '</div></div>'; },
+      gene: 'Le contrôle ne sait pas sur quel fond on le pose. L’anneau du premier ensemble disparaît sur un fond marqué ; celui du conteneur oblige à câbler un anneau par placement.',
+      rep: 'L’anneau unique de E4 tient sur tous les fonds.',
+      paires: function () { return [{ calque: 'Anneau surface-0/border', fg: 'primary/surface-0/border', bg: 'primary/surface-3/background', seuil: 3 }, { calque: 'Anneau surface-3/border', fg: 'primary/surface-3/border', bg: 'primary/surface-3/background', seuil: 3 }, { calque: 'Anneau focus', fg: 'primary/focus', bg: 'primary/surface-3/background', seuil: 3 }, { calque: 'Anneau focus, sur la page', fg: 'primary/focus', bg: PAGE, seuil: 3 }]; } },
+    { id: 'L3', titre: 'La suite des états déborde', texte: 'Un tableau dans un bandeau <code>primary/surface-2</code>. Ses lignes partent du bandeau : repos 2, survol 3, sélection 4. La sélection survolée n’a plus d’ensemble.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-2/background', t) + ';border-color:transparent">' + [2, 3, 4].map(function (n, i) { return '<div class="ligne" style="background:' + col_('primary/surface-' + n + '/background', t) + ';color:' + col_('primary/surface-' + n + '/text', t) + '"><span>Ligne · ' + ['repos', 'survol', 'sélectionnée'][i] + '</span><b>surface-' + n + '</b></div>'; }).join('') + '<div class="vide" style="color:' + col_('primary/surface-2/text', t) + '">sélectionnée et survolée : surface-5 n’existe pas</div></div>'; },
+      gene: 'Quatre états ne tiennent qu’à partir des ensembles 0 ou 1.',
+      rep: 'Accepter la limite : poser le tableau sur une carte (ensemble 0) dans le bandeau, ou laisser la sélection survolée sur l’ensemble 4. <code>ucm check</code> signale deux états qui partagent un ensemble.',
+      paires: function () { return [2, 3, 4].map(function (n) { return { calque: 'Ligne surface-' + n, fg: 'primary/surface-' + n + '/text', bg: 'primary/surface-' + n + '/background', seuil: 4.5 }; }); } },
+    { id: 'L4', titre: 'Un texte d’une autre palette', texte: 'Dans un bandeau <code>primary/surface-2</code>, une mention grise et un montant vert. Aucun des deux n’est dans le dossier <code>primary/surface-2</code>.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-2/background', t) + ';border-color:transparent"><p style="color:' + col_('neutral/surface-2/text', t) + '">neutral/surface-2/text : même numéro</p><p style="color:' + col_('success/soft/surface-2/text', t) + '">success/soft/surface-2/text : même numéro</p><p style="color:' + col_(secondaire(0), t) + '">' + secondaire(0) + ' : numéro plus petit</p></div>'; },
+      gene: 'La règle dit « même dossier ». Ici, le dossier change de palette.',
+      rep: 'Écrire la règle complète dans la description des textes : <strong>un texte se lit sur le fond du même numéro, dans toute palette</strong>. Un numéro plus petit n’est pas garanti.',
+      paires: function () { return [{ calque: 'Mention grise, même numéro', fg: 'neutral/surface-2/text', bg: 'primary/surface-2/background', seuil: 4.5 }, { calque: 'Montant vert, même numéro', fg: 'success/soft/surface-2/text', bg: 'primary/surface-2/background', seuil: 4.5 }, { calque: 'Gris de l’ensemble 0', fg: secondaire(0), bg: 'primary/surface-2/background', seuil: 4.5 }]; } },
+    { id: 'L5', titre: 'Un titre plus foncé que le dossier ne le propose', texte: 'Sur une alerte <code>primary/surface-1</code>, le designer veut un titre très foncé. Le dossier n’a que son texte ; le titre foncé existe dans <code>surface-3</code>.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-1/background', t) + ';border-color:' + col_('primary/surface-1/border', t) + '"><b style="color:' + col_('primary/surface-3/text', t) + '">Titre en surface-3/text</b><p style="color:' + col_('primary/surface-1/text', t) + '">Texte en surface-1/text, celui du dossier.</p></div>'; },
+      gene: 'Le titre tient son contraste, mais son nom dit « surface-3 », posé sur « surface-1 » : il a l’air d’une erreur.',
+      rep: '<code>ucm check</code> mesure la paire et l’accepte. Si le besoin revient, chaque ensemble reçoit un second texte, comme l’option B du neutre (E5).',
+      paires: function () { return [{ calque: 'Titre', fg: 'primary/surface-3/text', bg: 'primary/surface-1/background', seuil: 4.5 }, { calque: 'Texte', fg: 'primary/surface-1/text', bg: 'primary/surface-1/background', seuil: 4.5 }]; } },
+    { id: 'L6', titre: 'Un champ posé dans un bandeau', texte: 'Un champ dans un bandeau <code>primary/surface-2</code>. Le champ apporte son fond : il reste <code>neutral/surface-0</code>, avec son contour, et ne prend pas l’ensemble du bandeau.',
+      rendu: function (t) { return '<div class="bandeau" style="background:' + col_('primary/surface-2/background', t) + ';border-color:transparent;color:' + col_('primary/surface-2/text', t) + '"><div style="font-size:13px;margin-bottom:6px">Votre code postal</div><div class="champ" style="background:' + col_('neutral/surface-0/background', t) + ';border-color:' + col_('neutral/surface-0/border', t) + ';color:' + col_(corps(0), t) + '">69003</div></div>'; },
+      gene: 'La règle laisse croire que le champ devrait prendre <code>surface-2/border</code>. Le libellé suit le bandeau, le contenu suit le champ.',
+      rep: 'Une seconde convention : <strong>un composant qui apporte son fond repart de son propre ensemble</strong>.',
+      paires: function () { return [{ calque: 'Libellé, sur le bandeau', fg: 'primary/surface-2/text', bg: 'primary/surface-2/background', seuil: 4.5 }, { calque: 'Saisie, dans le champ', fg: corps(0), bg: 'neutral/surface-0/background', seuil: 4.5 }, { calque: 'Contour, contre le fond du champ', fg: 'neutral/surface-0/border', bg: 'neutral/surface-0/background', seuil: 3 }, { calque: 'Contour, contre le bandeau', fg: 'neutral/surface-0/border', bg: 'primary/surface-2/background', seuil: null }]; } },
+    { id: 'L7', titre: 'Un lien posé sur la page', texte: 'La page n’a pas d’ensemble. Un lien posé directement sur la page prend <code>primary/surface-0/text</code>, dont le nom évoque une carte.',
+      rendu: function (t) { return '<p style="font-size:14px;margin:0">Consultez les <u style="color:' + col_('primary/surface-0/text', t) + '">conditions générales</u> avant de signer.</p>'; },
+      gene: 'Le nom <code>surface-0</code> fait chercher un fond <code>surface-0</code> sous le lien.',
+      rep: 'Dire dans la description de l’ensemble 0 que ses partenaires se lisent aussi sur la page. Le renommer <code>base</code> romprait la suite des numéros de U3.',
+      paires: function () { return [{ calque: 'Lien sur la page', fg: 'primary/surface-0/text', bg: PAGE, seuil: 4.5 }, { calque: 'Lien sur la carte', fg: 'primary/surface-0/text', bg: 'primary/surface-0/background', seuil: 4.5 }]; } },
+    { id: 'L8', titre: 'Une couleur ancrée : un dossier qui ne tient pas sa promesse', texte: 'Palette de démonstration, verte <code>#16A34A</code> : le moteur l’ancre au 600, où ses octets exacts remplacent la valeur de la courbe. Le contour de <code>surface-1</code> passe sous 3:1 en light.',
+      rendu: function (t) { return '<div class="rang"><figure><div class="champ" style="background:' + col_('vert/surface-1/background', t) + ';border-color:' + col_('vert/surface-1/border', t) + ';color:' + col_('vert/surface-1/text', t) + '">Montant validé</div>' + leg('Champ en état de succès') + '</figure></div>'; },
+      gene: 'Le designer fait confiance au dossier. Pour cette palette, le dossier se trompe. Le même cas touche le bouton plein dans un thème inversé : une référence ancrée au 700 ne porte pas toujours le texte du bouton (terracota en light avec un texte noir, 4,17:1 ; blue vivid en dark avec un texte blanc, 3,68:1).',
+      rep: 'UCM Palettes le signale déjà dans la carte des garanties. Le choix sur l’ancrage reste commun aux deux études (dossier Modes, section 9).',
+      paires: function () { return [{ calque: 'Contour', fg: 'vert/surface-1/border', bg: 'vert/surface-1/background', seuil: 3 }, { calque: 'Texte', fg: 'vert/surface-1/text', bg: 'vert/surface-1/background', seuil: 4.5 }]; } },
+    { id: 'L9', titre: 'Le bouton plein selon le texte des boutons', texte: 'Les quatre réglages, quel que soit celui de la barre du haut. Les noms <code>solid-1</code> à <code>solid-4</code> ne changent pas ; leurs nuances, oui. Sous chaque bouton : le contraste de son texte, puis celui du bouton contre la page.',
+      scenes: function () {
+        return [['light', 'blanc'], ['light', 'noir'], ['dark', 'noir'], ['dark', 'blanc']].map(function (e) {
+          var o = {}; o[e[0]] = e[1]; var t = e[0];
+          var btns = [1, 2, 3, 4].map(function (n) {
+            var f = col_('primary/solid-' + n + '/background', t, o), x = col_('primary/solid-' + n + '/text', t, o), ct = contraste(x, f), cp = contraste(f, col_(PAGE, t, o));
+            return '<figure><button type="button" class="btn" style="background:' + f + ';color:' + x + '">solid-' + n + '</button><figcaption><span class="v ' + (tient(ct, 4.5) ? 'ok' : 'ko') + '">' + fmt(ct) + '</span><br><span class="v info">' + fmt(cp) + '</span></figcaption></figure>';
+          }).join('');
+          return '<div class="scene" style="background:' + col_(PAGE, t, o) + ';color:' + col_(corps(0, o), t, o) + '"><span class="scene-l">' + reglage(t, o) + '</span><div class="rang">' + btns + '</div></div>';
+        }).join('');
+      },
+      gene: 'Dans un thème inversé, <code>solid-4</code> se rapproche de la page. La garantie 14 ne juge que le repos.',
+      rep: 'Rien à changer dans les ensembles : la question appartient à l’étude Modes.' },
+  ];
+
+  /* E5 : le texte du neutre */
+  var OPTIONS = {
+    A: { titre: 'Même table que les autres palettes', texte: '<code>neutral/surface-0/text</code> vaut le 700. Pour un texte presque noir, le designer prendra <code>surface-3/text</code>, dont le nom ne correspond plus au fond (cas L5, dans chaque écran).', compte: '+0 variable' },
+    B: { titre: 'Deux textes dans chaque ensemble du neutre', texte: '<code>text</code> est le texte courant (900, puis 950) ; <code>text-subtle</code> le texte secondaire, à la nuance de la table. Tout reste rangé sous son fond.', compte: '+5 variables' },
+    C: { titre: 'Le texte courant hors des ensembles', texte: '<code>neutral/text-strong</code> (900), comme dans la vue illustrée, garanti sur tous les fonds du neutre. Il sort de la règle du dossier.', compte: '+1 variable' },
+  };
+  function rendreNeutre() {
+    $('options-neutre').innerHTML = Object.keys(OPTIONS).map(function (k) {
+      var o = { neutre: k }, op = OPTIONS[k];
+      var titre = corps(0, o), meta = secondaire(0, o), sel = corps(2, o), metaSel = secondaire(2, o);
+      var sc = MODES.map(function (t) {
+        return '<div class="scene" style="background:' + col_(PAGE, t, o) + '"><span class="scene-l" style="color:' + col_(meta, t, o) + '">' + t + '</span><div class="carte" style="background:' + col_('neutral/surface-0/background', t, o) + ';border-color:' + col_('neutral/divider', t, o) + '"><b style="color:' + col_(titre, t, o) + '">Assurance vie Horizon</b><p style="color:' + col_(titre, t, o) + ';font-size:14px;margin:4px 0">Votre épargne est investie sur deux supports.</p><small style="color:' + col_(meta, t, o) + '">Mis à jour le 3 octobre</small><div class="ligne" style="margin-top:8px;background:' + col_('neutral/surface-2/background', t, o) + ';color:' + col_(sel, t, o) + '"><span>Ligne sélectionnée</span><span style="color:' + col_(metaSel, t, o) + '">secondaire</span></div></div></div>';
+      }).join('');
+      var vars = [['Titre et paragraphe', titre, 'neutral/surface-0/background'], ['Texte secondaire', meta, 'neutral/surface-0/background'], ['Ligne sélectionnée', sel, 'neutral/surface-2/background']].map(function (p) {
+        var m = MODES.map(function (t) { var v = contraste(col_(p[1], t, o), col_(p[2], t, o)); return '<span class="v ' + (tient(v, 4.5) ? 'ok' : 'ko') + '">' + fmt(v) + '</span>'; }).join(' · ');
+        return '<tr><td>' + p[0] + '</td><td><code>' + p[1] + '</code> ' + cranDe(p[1], 'light', o) + '</td><td>' + m + '</td></tr>';
+      }).join('');
+      return '<div class="option ' + (k === etat.neutre ? 'choisie' : '') + '"><h4><span class="ct">' + k + '</span>' + op.titre + '</h4><p style="font-size:.9rem">' + op.texte + '</p><small class="org">' + op.compte + (k === 'B' ? ' · recommandée' : '') + '</small><div class="scenes">' + sc + '</div><div class="tw"><table class="plain"><thead><tr><th>Calque</th><th>Variable · nuance</th><th>light · dark</th></tr></thead><tbody>' + vars + '</tbody></table></div></div>';
+    }).join('');
+  }
+
+  /* La table des emplois, mesurée sur les palettes de la page */
+  function rampesTout() {
+    var out = [];
+    Object.keys(D.palettes).forEach(function (nom) { Object.keys(D.palettes[nom]).forEach(function (i) { if (i !== 'reference') out.push({ nom: nom + (i === 'unique' ? '' : ' ' + i), r: D.palettes[nom][i] }); }); });
+    return out;
+  }
+  function minimum(fn) {
+    var c = ctx({ vue: 'ensembles' }), pire = null;
+    rampesTout().forEach(function (p) {
+      MODES.forEach(function (t) {
+        var r = p.r[inverse(t, c) ? t + 'Inverse' : t], tb = table(t, c), paire = fn(r, tb, t, c);
+        var v = contraste(paire[0], paire[1]);
+        if (!pire || v < pire.v) pire = { v: v, ou: p.nom + ', ' + t };
+      });
+    });
+    return pire;
+  }
+  function ix(n) { return CR.indexOf(n); }
+  function rendreTable() {
+    var c = ctx({ vue: 'ensembles' });
+    function nuances(f) { return MODES.map(function (t) { return f(table(t, c), t); }).join(' / '); }
+    function cellMin(m, seuil) { return '<span class="v ' + (tient(m.v, seuil) ? 'ok' : 'ko') + '">' + fmt(m.v) + '</span> <small class="org">' + m.ou + '</small>'; }
+    var lignes = [];
+    var emplois = ['carte, panneau, champ ; ses partenaires se lisent aussi sur la page', 'badge, alerte, bouton discret, survol d’une ligne', 'bandeau, ligne sélectionnée', 'sélection survolée, en-tête marqué', 'dernier état'];
+    for (var n = 0; n <= 4; n++) (function (n) {
+      var mt = minimum(function (r, tb) { return [r[ix(tb.text[n])], r[ix(tb.bg[n])]]; });
+      var mb = minimum(function (r, tb) { return [r[ix(tb.border[n])], r[ix(tb.bg[n])]]; });
+      lignes.push('<tr><td><code>{p}/surface-' + n + '</code></td><td>' + emplois[n] + '</td><td class="c">' + nuances(function (tb) { return tb.bg[n] + ' · ' + tb.text[n] + ' · ' + tb.border[n]; }) + '</td><td>texte ' + cellMin(mt, 4.5) + '<br>contour ' + cellMin(mb, 3) + '</td></tr>');
+    })(n);
+    var emploisS = ['bouton, badge plein', 'survol', 'appui, sélection', 'sélection survolée'];
+    for (var s = 1; s <= 4; s++) (function (s) {
+      var m = minimum(function (r, tb, t, cc) { return [(t === 'light' ? cc.light : cc.dark) === 'blanc' ? '#FFFFFF' : '#000000', r[ix(tb.solid[s - 1])]]; });
+      lignes.push('<tr><td><code>{p}/solid-' + s + '</code></td><td>' + emploisS[s - 1] + '</td><td class="c">' + nuances(function (tb, t) { return tb.solid[s - 1] + ' · ' + ((t === 'light' ? c.light : c.dark) === 'blanc' ? 'blanc' : 'noir'); }) + '</td><td>texte ' + cellMin(m, 4.5) + '</td></tr>');
+    })(s);
+    var mf = minimum(function (r, tb) { return [r[ix(tb.focus)], r[ix(tb.bg[4])]]; });
+    lignes.push('<tr><td><code>{p}/focus</code></td><td>anneau de focus, écarté du contrôle (E4)</td><td class="c">' + nuances(function (tb) { return tb.focus; }) + '</td><td>sur surface-4 ' + cellMin(mf, 3) + '</td></tr>');
+    lignes.push('<tr><td><code>{p}/divider</code></td><td>filet décoratif</td><td class="c">300</td><td>aucun seuil</td></tr>');
+    $('table-emplois').innerHTML = '<table class="plain"><thead><tr><th>Ensemble</th><th>Emploi type</th><th>Nuances light / dark : fond · texte · contour</th><th>Contraste le plus faible mesuré</th></tr></thead><tbody>' + lignes.join('') + '</tbody></table>';
+  }
+  function rendreVolume() {
+    var n = compte();
+    $('volume').innerHTML = '<table class="plain"><thead><tr><th>Collection, six marques</th><th class="n">Validé</th><th class="n">Avec les ensembles</th><th class="n">Valeurs, avec les ensembles</th></tr></thead><tbody>'
+      + '<tr><td><code>primitives</code>, <code>brand</code>, <code>color-utilities</code></td><td class="n">713</td><td class="n">713</td><td class="n">938</td></tr>'
+      + '<tr><td><code>theme</code> : 124 nuances et élévation, puis 15 variables d’ensemble par palette et <code>on-solid</code></td><td class="n">124</td><td class="n">' + n.theme + '</td><td class="n">' + 2 * n.theme + '</td></tr>'
+      + '<tr><td><code>usage</code> : 25 variables par palette, neutre, élévation</td><td class="n">226</td><td class="n">' + n.usage + '</td><td class="n">' + n.usage + '</td></tr>'
+      + '</tbody><tfoot><tr><td>Total</td><td class="n">1 063</td><td class="n">' + (713 + n.theme + n.usage).toLocaleString('fr-FR') + '</td><td class="n">' + (938 + 2 * n.theme + n.usage).toLocaleString('fr-FR') + '</td></tr></tfoot></table>'
+      + '<p class="cap">Les variables ajoutées sont des alias déduits de la table : UCM Palettes les écrit. Le compte des valeurs pèse sur la feuille CSS, que <code>ucm tokens css</code> imprime à chaque écriture.</p>';
+  }
+
+  function rendreTout() {
+    render();
+    $('cas-usages').innerHTML = CAS_USAGES.map(rendreCas).join('');
+    $('cas-limites').innerHTML = CAS_LIMITES.map(rendreCas).join('');
+    rendreNeutre(); rendreTable(); rendreVolume();
+  }
+  function commande(id, applique) {
+    var g = $(id);
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      applique(b.getAttribute('data-v'));
+    });
+  }
+  commande('c-marque', function (v) { etat.marque = v; rendreTout(); });
+  commande('c-light', function (v) { etat.light = v; rendreTout(); });
+  commande('c-dark', function (v) { etat.dark = v; rendreTout(); });
+  commande('c-neutre', function (v) { etat.neutre = v; rendreTout(); });
+  commande('c-page', function (v) { if (v === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v; });
+  rendreTout();
+})();
+</script>
+</body></html>
