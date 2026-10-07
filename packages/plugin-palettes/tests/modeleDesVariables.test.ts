@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-import { recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { ajouter, nouvellePalette } from '../src/edition';
@@ -238,6 +238,26 @@ test('[VAR-05] une clé du plan absente du suivi est à mettre à jour ; une cl�
   assert.deepEqual(partiel.aEcrire, [{ cle: 'unique/light/100', nom: 'colors/Gris/light/100', ecrite: null, plugin: '#E0E0E0' }]);
   const ancien: PaletteSuivie = { ...ecrit(['#F0F0F0', '#E0E0E0']), variables: { ...ecrit(['#F0F0F0', '#E0E0E0']).variables, 'soft/light/50': { id: 'disparue', ecrite: '#000000' } } };
   assert.equal(etatDesTokens(PLAN, ancien, lues(['#F0F0F0', '#E0E0E0']), DESTINATION).etat, 'a-jour');
+});
+
+test('[VAR-05] passer le Dark au texte blanc met à actualiser les variables Dark 500 à 800 de Soft et de Vivid, et elles seules', () => {
+  const ecrites = planDesVariables(RECETTE, BLEU, DESTINATION);
+  const suivi: PaletteSuivie = {
+    collection: 'C',
+    groupe: 'colors',
+    modes: { unique: 'm' },
+    variables: Object.fromEntries(ecrites.map((entree, rang) => [entree.cle, { id: `v${rang}`, ecrite: entree.hexa }])),
+    liaison: 'destination',
+  };
+  const lu = new Map(ecrites.map((entree, rang) => [`v${rang}`, { id: `v${rang}`, nom: entree.nom, collection: 'C', valeurs: { m: entree.hexa } }]));
+  assert.equal(etatDesTokens(ecrites, suivi, lu, DESTINATION).etat, 'a-jour', 'les variables écrites sont à jour avant le changement');
+
+  const inversee = recetteAvecTexteDesBoutons(RECETTE, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  const etat = etatDesTokens(planDesVariables(inversee.recette, BLEU, DESTINATION), suivi, lu, DESTINATION);
+  assert.equal(etat.etat, 'a-mettre-a-jour');
+  assert.deepEqual(etat.modifiees, [], 'rien n’a bougé dans Figma');
+  assert.deepEqual(etat.aEcrire.map((couleur) => couleur.cle), ['soft', 'vivid'].flatMap((intensite) => [500, 600, 700, 800].map((nuance) => `${intensite}/dark/${nuance}`)));
 });
 
 test('[VAR-05] une destination changée depuis l’écriture demande une mise à jour : collection, groupe ou forme des thèmes', () => {

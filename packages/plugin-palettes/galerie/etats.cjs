@@ -30,6 +30,7 @@ const {
   lireHexa,
   octetsUtf8,
   prereglageTailwind,
+  recetteAvecTexteDesBoutons,
   recetteParDefaut,
   referenceReglee,
   rgb8VersOklch,
@@ -211,6 +212,10 @@ function rangee(palettes, modifier = (recette) => recette) {
 
 const BLEU = palette('p-3fa2c91e', 'Bleu', '#1E6FD9');
 const JAUNE = palette('p-08b7d4a0', 'Jaune', '#FACC15');
+
+/** Le texte des boutons de chaque thème posé sur la recette par défaut, courbes comprises. */
+const avecLeTexteDesBoutons = (light, dark) => (recette) =>
+  [['light', light], ['dark', dark]].reduce((courante, [mode, texte]) => recetteAvecTexteDesBoutons(courante, mode, texte).recette, recette);
 
 /** Trois palettes que la configuration ne touche pas toutes : parts du designer, profils ternes. */
 const TROIS_PALETTES = [
@@ -1482,6 +1487,32 @@ const ETATS = [
       etatDuFichier(rangee([BLEU])),
       ouvrirLaConfiguration,
       { saisie: { dans: 'input.champ-nombre[aria-label="Fonds du thème Dark"]', valeur: '0,5' } },
+    ],
+  },
+  ...[
+    ['blanc', 'noir', 'Light blanc, Dark noir', 'Le réglage par défaut : aucun thème inversé.', 'Les segments Blanc du thème Light et Noir du thème Dark pressés, aucun message d’effet, aucune étiquette « inversé » dans la table des courbes, aucun résumé de courbe inversée.'],
+    ['noir', 'noir', 'Light noir, Dark noir', 'Le designer passe le texte des boutons du thème Light au noir.', 'Noir pressé dans les deux thèmes, le message d’effet du thème Light seul, l’étiquette « inversé » sur la ligne Light, ses nuances 500 à 700 cerclées à 0,745 · 0,69 · 0,61 (la 800 reste à 0,42, sans cercle), et le résumé « Courbe inversée : Light ».'],
+    ['blanc', 'blanc', 'Light blanc, Dark blanc', 'Le designer passe le texte des boutons du thème Dark au blanc.', 'Blanc pressé dans les deux thèmes, le message d’effet du thème Dark seul, l’étiquette « inversé » sur la ligne Dark, ses nuances 500 à 800 cerclées à 0,45 · 0,5 · 0,55 · 0,7, et le résumé « Courbe inversée : Dark ».'],
+    ['noir', 'blanc', 'Light noir, Dark blanc', 'Le designer inverse le texte des boutons des deux thèmes.', 'Noir pressé en Light et Blanc pressé en Dark, un message d’effet par thème puis l’effet commun, l’étiquette « inversé » sur les deux lignes, les valeurs cerclées, et le résumé « Courbe inversée : Light, Dark ».'],
+  ].map(([light, dark, nom, quand, regarder]) => ({
+    id: `texte-des-boutons-${light}-${dark}`,
+    titre: `Texte des boutons, ${nom}`,
+    quand,
+    regarder: `${regarder} Sous chaque « Fond de la page » : son code elevation/page, puis « Texte des boutons » et son code solid/foreground.`,
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU], avecLeTexteDesBoutons(light, dark))), ouvrirLaConfiguration],
+  })),
+  {
+    id: 'texte-des-boutons-confirmation',
+    titre: 'Texte des boutons, confirmation du remplacement',
+    quand: 'Le designer règle la nuance 700 du thème Light à 0,52, puis clique sur le segment Noir du texte des boutons Light.',
+    regarder: 'Sous les segments, la confirmation « Vos luminosités des nuances 500 à 800 en Light seront remplacées… » avec Remplacer et Annuler ; le segment Blanc reste pressé tant que rien n’est confirmé.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU])),
+      ouvrirLaConfiguration,
+      { saisie: { dans: '[data-mode="light"][data-rang="7"]', valeur: '0,52' } },
+      { clic: '[role="group"][aria-label="Texte des boutons du thème Light"] .bascule-option:nth-child(2)' },
     ],
   },
 ];

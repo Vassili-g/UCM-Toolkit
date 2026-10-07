@@ -192,7 +192,7 @@ export const TEXTES_DE_CONFIGURATION = {
   parts: 'Intensités',
   seuilProfilsConfondus: 'Écart minimal entre soft et vivid',
   fonds: 'Couleurs de fond',
-  fondDuMode: { light: 'Fond du thème Light', dark: 'Fond du thème Dark' },
+  fondDuMode: { light: 'Fond de la page, thème Light', dark: 'Fond de la page, thème Dark' },
   seuilsDeContraste: "Contrastes minimums",
   seuilTexte: 'Texte',
   seuilNonTexte: 'Éléments graphiques',
@@ -262,6 +262,35 @@ export const TEXTES_DU_PREREGLAGE = {
   appliquer: (nombre: number) => `Passer à ${nombre} nuances`,
   annuler: 'Annuler',
   rolesGardes: 'Les rôles gardent leurs numéros.',
+} as const;
+
+/** Une luminosité de la courbe inversée : deux décimales au moins, trois au plus (« 0,50 », « 0,745 »). */
+function luminositeInverseeEcrite(valeur: number): string {
+  const [entier, decimales = ''] = String(Math.round(valeur * 1000) / 1000).split('.');
+  return `${entier},${decimales.padEnd(2, '0')}`;
+}
+
+/** Le texte des boutons de chaque thème, sous le fond de la page (S9, I9, I10). */
+export const TEXTES_DU_TEXTE_DES_BOUTONS = {
+  libelle: 'Texte des boutons',
+  code: 'solid/foreground',
+  codeDuFond: 'elevation/page',
+  blanc: 'Blanc',
+  noir: 'Noir',
+  groupe: (mode: Mode) => `Texte des boutons du thème ${NOM_DU_MODE[mode]}`,
+  etiquetteDeLigne: 'inversé',
+  remplacer: 'Remplacer',
+  annuler: 'Annuler',
+  effetCommun: 'Le texte coloré et les contours montent d’une nuance. Les variables de ce thème passeront « À actualiser » dans Gestion.',
+  // Les nuances qui changent et leurs valeurs par défaut, calculées depuis la recette.
+  effetDuTheme: (mode: Mode, nuances: readonly number[], valeurs: readonly number[]) =>
+    `${NOM_DU_MODE[mode]} inversé. Les nuances ${nuances[0]} à ${nuances[nuances.length - 1]} passent à ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.`,
+  confirmation: (mode: Mode, sens: 'normal' | 'inverse') =>
+    `Vos luminosités des nuances 500 à 800 en ${NOM_DU_MODE[mode]} seront remplacées par celles de la courbe ${sens === 'inverse' ? 'inversée' : 'normale'}. Les autres nuances gardent vos valeurs.`,
+  // Les voisines de la plage 500 à 800 présentes dans la liste : 400 et 900 pour les préréglages.
+  refus: (voisines: readonly number[], sens: 'normal' | 'inverse') =>
+    `Avec vos valeurs ${voisines.length === 1 ? 'de la nuance' : 'des nuances'} ${voisines.join(' et ')}, la courbe ${sens === 'inverse' ? 'inversée' : 'normale'} ne garde pas l’ordre des nuances. Rétablissez « Luminosité des nuances », puis changez le texte des boutons.`,
+  resumeDesCourbes: (modes: readonly Mode[]) => `Courbe inversée : ${modes.map((mode) => NOM_DU_MODE[mode]).join(', ')}`,
 } as const;
 
 /** Une liste de numéros en mots : « 1000 et 1050 », « 400, 950 et 1000 ». */
@@ -721,7 +750,7 @@ export const TEXTES_DU_DETAIL = {
   sansRole: 'Sans rôle',
   aucunRole: "Aucun usage prédéfini pour cette nuance.",
   contrastes: 'Contrastes de la nuance',
-  fondDuTheme: 'Fond du thème',
+  fondDuTheme: 'Fond de la page',
   blanc: 'Blanc',
   noir: 'Noir',
   oklch: 'OKLCH',

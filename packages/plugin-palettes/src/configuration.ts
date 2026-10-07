@@ -1,15 +1,17 @@
 /**
  * Ce que la configuration de la recette modifie (section 8.3) : le préréglage
  * du nombre de nuances, les deux courbes, les parts des profils et celle des
- * fonds du thème Dark, les deux fonds, les quatre seuils et le contenu des
- * planches, rangés en six cartes que « Rétablir » remet une à une aux valeurs
- * par défaut (V9.5). Une autre liste que les trois préréglages ne vient que
- * d'un import ([ENT-08]).
+ * fonds du thème Dark, les deux fonds et le texte des boutons de chaque thème,
+ * les quatre seuils et le contenu des planches, rangés en six cartes que
+ * « Rétablir » remet une à une aux valeurs par défaut (V9.5). Le texte des
+ * boutons se range avec les fonds, mais ne se pose pas par `poserValeur` : il
+ * remplace les nuances 500 à 800 du thème, et la pose peut être refusée.
+ * Une autre liste que les trois préréglages ne vient que d'un import
+ * ([ENT-08]).
  */
 import {
   CONTENU_COMPLET,
   MODES,
-  PREREGLAGES,
   aDesProfilsTernes,
   aUneIntensite,
   ecrireHexa,
@@ -20,6 +22,8 @@ import {
   nombreDeNuancesDe,
   rampeDe,
   rampesDe,
+  courbesParDefaut,
+  recetteAvecTexteDesBoutons,
   recetteParDefaut,
   type Mode,
   type ContenuDesPlanches,
@@ -28,6 +32,7 @@ import {
   type Profil,
   type Recette,
   type Seuils,
+  type TexteDesBoutons,
 } from 'ucm-couleur';
 
 /** Un champ numérique de la configuration. */
@@ -76,6 +81,15 @@ export function valeurDe(recette: Recette, champ: ChampDeConfiguration): number 
 export function poserFond(recette: Recette, mode: Mode, saisie: string): Recette | null {
   const couleur = lireHexa(saisie);
   return couleur ? { ...recette, fonds: { ...recette.fonds, [mode]: ecrireHexa(couleur) } } : null;
+}
+
+/**
+ * La pose du texte des boutons d'un thème : le résultat de
+ * `recetteAvecTexteDesBoutons`, rendu tel quel. Les nuances remplacées ne se
+ * confirment pas ici : l'interface compte d'abord `nuancesReglees`.
+ */
+export function poserTexteDesBoutons(recette: Recette, mode: Mode, texte: TexteDesBoutons): ReturnType<typeof recetteAvecTexteDesBoutons> {
+  return recetteAvecTexteDesBoutons(recette, mode, texte);
 }
 
 /** La recette où une partie des cadres de la planche se dessine ou non ([PLA-28]) ; la validation refuse un cadre sans thème. */
@@ -127,10 +141,29 @@ export function carteDuGroupe(groupe: GroupeDeConfiguration): CarteDesReglages {
 
 const SEUILS_DE_LA_CARTE = { minimums: ['texte', 'nonTexte'], proches: ['profilsConfondus', 'palettesProches'] } as const;
 
-/** Les courbes par défaut du préréglage que la liste reconnaît ; `null` pour une liste importée, qui n'en a pas. */
-function courbesParDefaut(recette: Recette): Recette['courbes'] | null {
+/**
+ * Les courbes par défaut du préréglage que la liste reconnaît, dans le sens du
+ * texte des boutons de chaque thème ; `null` pour une liste importée, qui n'en a pas.
+ */
+function courbesParDefautDe(recette: Recette): Recette['courbes'] | null {
   const nombre = nombreDeNuancesDe(recette.crans);
-  return nombre === null ? null : PREREGLAGES[nombre].courbes;
+  return nombre === null ? null : courbesParDefaut(nombre, recette.texteDesBoutons);
+}
+
+/**
+ * La recette aux fonds et au texte des boutons par défaut. Un thème inversé
+ * reprend les nuances 500 à 800 du sens normal ; `null` si ce retour rend une
+ * courbe non monotone.
+ */
+function fondsParDefaut(recette: Recette): Recette | null {
+  const defaut = recetteParDefaut();
+  let suivante: Recette = { ...recette, fonds: defaut.fonds };
+  for (const mode of MODES) {
+    const posee = recetteAvecTexteDesBoutons(suivante, mode, defaut.texteDesBoutons[mode]);
+    if ('refus' in posee) return null;
+    suivante = posee.recette;
+  }
+  return suivante;
 }
 
 /**
@@ -138,16 +171,19 @@ function courbesParDefaut(recette: Recette): Recette['courbes'] | null {
  * cartes restent, et les palettes aussi : leurs intensités propres, celles du
  * designer comme celles d'une palette de base forcée, ne changent pas.
  * `null` pour les courbes d'une recette dont la liste des crans a changé par
- * import ([ENT-08]) : les courbes par défaut n'ont pas sa longueur.
+ * import ([ENT-08]) : les courbes par défaut n'ont pas sa longueur. `null`
+ * aussi pour les fonds quand le retour d'un thème au texte par défaut rend sa
+ * courbe non monotone : la recette ne change pas. Les courbes par défaut
+ * suivent le texte des boutons de la recette, qu'elles ne changent pas.
  */
 export function retablir(recette: Recette, carte: CarteDesReglages): Recette | null {
   const defaut = recetteParDefaut();
   switch (carte) {
-    case 'fonds': return { ...recette, fonds: defaut.fonds };
+    case 'fonds': return fondsParDefaut(recette);
     case 'parts': return { ...recette, profils: defaut.profils, intensiteDesFondsSombres: defaut.intensiteDesFondsSombres };
     case 'contenu': return { ...recette, contenuDesPlanches: { ...CONTENU_COMPLET } };
     case 'courbes': {
-      const courbes = courbesParDefaut(recette);
+      const courbes = courbesParDefautDe(recette);
       return courbes ? { ...recette, courbes: { light: [...courbes.light], dark: [...courbes.dark] } } : null;
     }
     default: return SEUILS_DE_LA_CARTE[carte].reduce((suivante: Recette, seuil) => poserValeur(suivante, { seuil }, defaut.seuils[seuil]), recette);
@@ -158,12 +194,12 @@ export function retablir(recette: Recette, carte: CarteDesReglages): Recette | n
 export function estParDefaut(recette: Recette, carte: CarteDesReglages): boolean {
   const defaut = recetteParDefaut();
   switch (carte) {
-    case 'fonds': return MODES.every((mode) => recette.fonds[mode] === defaut.fonds[mode]);
+    case 'fonds': return MODES.every((mode) => recette.fonds[mode] === defaut.fonds[mode] && recette.texteDesBoutons[mode] === defaut.texteDesBoutons[mode]);
     case 'parts': return recette.profils.soft.part === defaut.profils.soft.part && recette.profils.vivid.part === defaut.profils.vivid.part
       && recette.intensiteDesFondsSombres === defaut.intensiteDesFondsSombres;
     case 'contenu': return Object.values(recette.contenuDesPlanches).every(Boolean);
     case 'courbes': {
-      const courbes = courbesParDefaut(recette);
+      const courbes = courbesParDefautDe(recette);
       return courbes !== null && MODES.every((mode) => recette.courbes[mode].join(',') === courbes[mode].join(','));
     }
     default: return SEUILS_DE_LA_CARTE[carte].every((seuil) => recette.seuils[seuil] === defaut.seuils[seuil]);

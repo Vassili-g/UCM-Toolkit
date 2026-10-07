@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, validerRecette, type Recette } from 'ucm-couleur';
+import { courbesParDefaut, grilleAuPrereglage, nuancesReglees, recetteParDefaut, validerRecette, type Mode, type NombreDeNuances, type Recette } from 'ucm-couleur';
 
 import {
   CARTES_DES_REGLAGES,
@@ -11,6 +11,7 @@ import {
   lireNombre,
   palettesModifiees,
   poserFond,
+  poserTexteDesBoutons,
   poserValeur,
   retablir,
   valeurDe,
@@ -133,4 +134,97 @@ test('V9.4 : le tracé place chaque nuance dans sa colonne, la luminosité 1 en 
     { mode: 'dark', x: 3 * pas + pas / 2, y: hauteur / 2 },
   ]);
   assert.deepEqual(geometrieDesCourbes(DEFAUT.courbes, null).references, [], 'sans palette, aucun ◆ inventé');
+});
+
+const COMBINAISONS = [
+  { light: 'blanc', dark: 'noir' },
+  { light: 'noir', dark: 'noir' },
+  { light: 'blanc', dark: 'blanc' },
+  { light: 'noir', dark: 'blanc' },
+] as const;
+const MODES_DE_TEST: readonly Mode[] = ['light', 'dark'];
+const INVERSEES = { light: [0.745, 0.69, 0.61, 0.42], dark: [0.45, 0.5, 0.55, 0.7] };
+
+/** Une recette du préréglage, au texte des boutons de la combinaison. */
+function recetteAuTexte(nombre: NombreDeNuances, combinaison: (typeof COMBINAISONS)[number]): Recette {
+  let recette: Recette = { ...DEFAUT, ...grilleAuPrereglage(DEFAUT, nombre) };
+  for (const mode of ['light', 'dark'] as const) {
+    const posee = poserTexteDesBoutons(recette, mode, combinaison[mode]);
+    assert.ok('recette' in posee, `${nombre} ${mode} ${combinaison[mode]}`);
+    recette = posee.recette;
+  }
+  return recette;
+}
+
+test('le texte des boutons se pose par thème, et un refus rend la pose telle quelle', () => {
+  const posee = poserTexteDesBoutons(DEFAUT, 'dark', 'blanc');
+  assert.ok('recette' in posee);
+  assert.deepEqual(posee.recette.texteDesBoutons, { light: 'blanc', dark: 'blanc' });
+  assert.deepEqual(posee.remplacees, [500, 600, 700, 800]);
+  assert.deepEqual(poserTexteDesBoutons(DEFAUT, 'dark', 'noir'), { recette: DEFAUT, remplacees: [] });
+});
+
+test('V9.5 : « Rétablir » les fonds remet le texte par défaut et le sens normal des nuances 500 à 800, dans les quatre combinaisons', () => {
+  for (const nombre of [11, 13] as const) {
+    for (const combinaison of COMBINAISONS) {
+      const quand = `${nombre} nuances, light ${combinaison.light}, dark ${combinaison.dark}`;
+      const reglee = poserFond(recetteAuTexte(nombre, combinaison), 'dark', '#1A1A1A')!;
+      assert.equal(estParDefaut(reglee, 'fonds'), false, quand);
+      const retablie = retablir(reglee, 'fonds')!;
+      assert.ok(!('refus' in validerRecette(retablie)), quand);
+      assert.deepEqual(retablie.fonds, DEFAUT.fonds, quand);
+      assert.deepEqual(retablie.texteDesBoutons, DEFAUT.texteDesBoutons, quand);
+      assert.deepEqual(retablie.courbes, courbesParDefaut(nombre, DEFAUT.texteDesBoutons), quand);
+      assert.equal(estParDefaut(retablie, 'fonds'), true, quand);
+      assert.equal(estParDefaut(retablie, 'courbes'), true, quand);
+      assert.deepEqual(MODES_DE_TEST.map((mode) => nuancesReglees(retablie, mode)), [[], []], quand);
+    }
+  }
+});
+
+test('V9.5 : le texte des boutons par défaut est exigé pour que les fonds soient par défaut', () => {
+  for (const combinaison of COMBINAISONS.slice(1)) assert.equal(estParDefaut(recetteAuTexte(11, combinaison), 'fonds'), false);
+  assert.equal(estParDefaut(recetteAuTexte(11, COMBINAISONS[0]), 'fonds'), true);
+});
+
+test('V9.5 : « Rétablir » les courbes garde le sens du texte des boutons, dans les quatre combinaisons', () => {
+  for (const nombre of [11, 13] as const) {
+    for (const combinaison of COMBINAISONS) {
+      const quand = `${nombre} nuances, light ${combinaison.light}, dark ${combinaison.dark}`;
+      let reglee = recetteAuTexte(nombre, combinaison);
+      reglee = poserValeur(reglee, { courbe: 'light', rang: 3 }, 0.8);
+      reglee = poserValeur(reglee, { courbe: 'dark', rang: 9 }, 0.9);
+      assert.equal(estParDefaut(reglee, 'courbes'), false, quand);
+      const retablie = retablir(reglee, 'courbes')!;
+      assert.deepEqual(retablie.courbes, courbesParDefaut(nombre, combinaison), quand);
+      assert.deepEqual(retablie.texteDesBoutons, combinaison, quand);
+      assert.equal(estParDefaut(retablie, 'courbes'), true, quand);
+      assert.ok(!('refus' in validerRecette(retablie)), quand);
+      for (const mode of MODES_DE_TEST) {
+        const inverse = combinaison[mode] !== DEFAUT.texteDesBoutons[mode];
+        const valeurs = [5, 6, 7, 8].map((rang) => retablie.courbes[mode][rang]);
+        assert.deepEqual(valeurs, inverse ? INVERSEES[mode] : [5, 6, 7, 8].map((rang) => DEFAUT.courbes[mode][rang]), `${quand}, ${mode}`);
+      }
+    }
+  }
+});
+
+test('V9.5 : une courbe réglée refuse le passage du texte des boutons quand elle ne resterait pas monotone, et la recette reste intacte', () => {
+  const reglee = poserValeur(DEFAUT, { courbe: 'dark', rang: 4 }, 0.47);
+  assert.deepEqual(nuancesReglees(reglee, 'dark'), []);
+  const avant = JSON.stringify(reglee);
+  assert.deepEqual(poserTexteDesBoutons(reglee, 'dark', 'blanc'), { refus: 'courbe-non-monotone' });
+  assert.equal(JSON.stringify(reglee), avant, 'la recette ne change pas');
+  assert.deepEqual(reglee.texteDesBoutons, DEFAUT.texteDesBoutons);
+});
+
+test('V9.5 : « Rétablir » les fonds rend null quand le retour au sens normal rend une courbe non monotone', () => {
+  const inversee = poserTexteDesBoutons(DEFAUT, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  // La 900 à 0,72 suit la 800 inversée (0,70) mais passerait sous la 800 normale (0,76).
+  const reglee = poserValeur(inversee.recette, { courbe: 'dark', rang: 9 }, 0.72);
+  assert.ok(!('refus' in validerRecette(reglee)));
+  const avant = JSON.stringify(reglee);
+  assert.equal(retablir(reglee, 'fonds'), null);
+  assert.equal(JSON.stringify(reglee), avant, 'la recette ne change pas');
 });

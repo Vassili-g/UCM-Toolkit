@@ -590,6 +590,63 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Le fond de la page d'un thème, puis son texte des boutons, dans la même colonne. */
+.colonne-de-fond {
+  gap: var(--espace-controle);
+}
+
+/* Un libellé et le code de la variable qu'il règle, sur la même ligne tant que la colonne le permet. */
+.entete-de-champ {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--espace-controle);
+}
+
+.code-de-variable {
+  padding: 0 var(--espace-serre);
+  border-radius: 3px;
+  background: var(--fond-note);
+  color: var(--texte-second);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 10px;
+}
+
+/* Un segment du texte des boutons montre la couleur qu'il pose : blanc ou noir purs. */
+.bascule-option-avec-pastille {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.pastille-du-texte {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.6);
+}
+
+/* Ce qu'un thème inversé entraîne : un message de l'état, sur le fond de la page de l'interface. */
+.effet-du-texte-des-boutons {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+
+.effet-du-texte-des-boutons[hidden] {
+  display: none;
+}
+
+.effet-du-texte-des-boutons p {
+  margin: 0;
+}
+
 /*
  * Une ligne par seuil (W3.3, disposition A) : le libellé et son aide à gauche,
  * le champ et l'unité dans deux colonnes fixes, alignées d'une ligne à l'autre.
@@ -713,6 +770,40 @@
   color: var(--texte-second);
 }
 
+/* La ligne d'un thème inversé porte son étiquette sous son nom : la colonne des titres s'élargit alors. */
+.table-courbes.table-avec-etiquette {
+  grid-template-columns: 48px repeat(var(--colonnes), minmax(0, 1fr));
+}
+
+.titre-de-ligne {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+}
+
+.etiquette-de-ligne {
+  padding: 0 var(--espace-serre);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fond-marque) 18%, transparent);
+  color: var(--texte-marque);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.etiquette-de-ligne[hidden] {
+  display: none;
+}
+
+/* Une valeur qui diffère de la courbe du sens normal, dans un thème inversé : cerclée. */
+.table-courbes .champ-de-courbe[data-cerclee='true'] {
+  border-color: var(--bordure-marque);
+  box-shadow: 0 0 0 1px var(--bordure-marque);
+  color: var(--texte-marque);
+  font-weight: 600;
+}
+
 .numero-de-courbe {
   color: var(--texte-second);
   font-size: 10px;
@@ -723,7 +814,8 @@
   column-gap: 1px;
 }
 
-.table-courbes.table-serree .champ-de-courbe {
+.table-courbes.table-serree .champ-de-courbe,
+.table-courbes.table-avec-etiquette .champ-de-courbe {
   font-size: 10px;
   letter-spacing: -0.2px;
 }

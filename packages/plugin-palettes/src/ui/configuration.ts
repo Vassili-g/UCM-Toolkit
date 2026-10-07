@@ -15,19 +15,26 @@
  * le tracé ni la garantie ne lisent les fonds (Z4.8).
  */
 import {
+  COULEUR_DU_TEXTE_DES_BOUTONS,
   MODES,
+  PREREGLAGES,
   PROFILS,
+  TEXTE_DES_BOUTONS_PAR_DEFAUT,
+  courbesParDefaut,
   garantieDesCourbes,
   type ContenuDesPlanches,
   type ManqueDeGarantie,
   nombreDeNuancesDe,
+  nuancesReglees,
   rgb8VersOklch,
   referenceDe,
+  sensDuTheme,
   validerRecette,
   type Mode,
   type NombreDeNuances,
   type Profil,
   type Recette,
+  type TexteDesBoutons,
 } from 'ucm-couleur';
 import { type InterrupteurUi } from 'ucm-plugin-socle/src/ui/Interrupteur';
 
@@ -40,6 +47,7 @@ import {
   palettesModifiees,
   poserFond,
   poserPartie,
+  poserTexteDesBoutons,
   poserValeur,
   retablir,
   valeurDe,
@@ -89,6 +97,35 @@ interface Groupe {
   compter(texte: Texte): void;
 }
 
+/** Les nuances que le texte des boutons remplace : 500 à 800 (S5). */
+const PLAGE_DU_TEXTE_DES_BOUTONS = { premiere: 500, derniere: 800 } as const;
+const TEXTES_DES_BOUTONS_INVERSES: Recette['texteDesBoutons'] = { light: 'noir', dark: 'blanc' };
+/** Les numéros des préréglages ; les valeurs de 500 à 800 sont les mêmes à onze et à treize nuances. */
+const CRANS_DE_REFERENCE = PREREGLAGES[13].crans;
+const COURBES_DU_SENS_NORMAL = courbesParDefaut(13, TEXTE_DES_BOUTONS_PAR_DEFAUT);
+const COURBES_DU_SENS_INVERSE = courbesParDefaut(13, TEXTES_DES_BOUTONS_INVERSES);
+
+const estInverse = (recette: Recette, mode: Mode): boolean => sensDuTheme(mode, recette.texteDesBoutons[mode]) === 'inverse';
+
+/**
+ * Les nuances présentes dans la liste dont la valeur par défaut change dans le
+ * sens inversé, avec ces valeurs : ce que le message d'effet annonce.
+ */
+function nuancesDeLInversion(recette: Recette, mode: Mode): { readonly nuances: number[]; readonly valeurs: number[] } {
+  const nuances = recette.crans.filter((cran) => {
+    const rang = CRANS_DE_REFERENCE.indexOf(cran);
+    return rang >= 0 && COURBES_DU_SENS_INVERSE[mode][rang] !== COURBES_DU_SENS_NORMAL[mode][rang];
+  });
+  return { nuances, valeurs: nuances.map((cran) => COURBES_DU_SENS_INVERSE[mode][CRANS_DE_REFERENCE.indexOf(cran)]) };
+}
+
+/** Les voisines de la plage 500 à 800 dans la liste : celles que le refus nomme (400 et 900 pour un préréglage). */
+function voisinesDeLaPlage(recette: Recette): number[] {
+  const avant = recette.crans.filter((cran) => cran < PLAGE_DU_TEXTE_DES_BOUTONS.premiere);
+  const apres = recette.crans.filter((cran) => cran > PLAGE_DU_TEXTE_DES_BOUTONS.derniere);
+  return [...(avant.length ? [Math.max(...avant)] : []), ...(apres.length ? [Math.min(...apres)] : [])];
+}
+
 function construireVues(i18n: Localisation) {
   const { createButton, createInterrupteur } = creerSocleLocalise(i18n);
   const { apercuCompact, resultatsDesGaranties } = creerVuesApercuCompact(i18n);
@@ -96,7 +133,7 @@ function construireVues(i18n: Localisation) {
   const { fondsProposes } = creerVuesPropositions(i18n);
   const { createPipette } = creerVuesSelecteur(i18n);
   const { blocDeConstat } = creerVuesConstats(i18n);
-  const { NOM_DU_PROFIL, TEXTES_DE_CONFIGURATION, TEXTES_DES_INTENSITES, TEXTES_DU_CONTENU, TEXTES_DU_PREREGLAGE, TEXTES_DU_SELECTEUR, constatDeGarantie, effetEcrit, hexaInvalide, legendeDesCourbes, nomDeLaPalette, nombreEcrit, nombreInvalide, paletteDeLApercu, palettesConcernees, resumeDesEcarts, resumeDesMinimums, retablirLaCarte, texteDuRefus } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES_DE_CONFIGURATION, TEXTES_DES_INTENSITES, TEXTES_DU_CONTENU, TEXTES_DU_PREREGLAGE, TEXTES_DU_SELECTEUR, TEXTES_DU_TEXTE_DES_BOUTONS, constatDeGarantie, effetEcrit, hexaInvalide, legendeDesCourbes, nomDeLaPalette, nombreEcrit, nombreInvalide, paletteDeLApercu, palettesConcernees, resumeDesEcarts, resumeDesMinimums, retablirLaCarte, texteDuRefus } = i18n.messages;
 
   function paragraphe(texte: Texte = '', classe = ''): HTMLParagraphElement {
     const element = document.createElement('p');
@@ -207,6 +244,61 @@ function construireVues(i18n: Localisation) {
     const apercu = document.createElement('div');
     apercu.className = 'reglages-apercu';
 
+    /** Un libellé suivi du code de la variable que le champ règle (I10, I9). */
+    function enteteDeChamp(libelle: Texte, code: Texte): HTMLSpanElement {
+      const entete = document.createElement('span');
+      entete.className = 'entete-de-champ';
+      const texte = document.createElement('span');
+      texte.className = 'libelle-de-champ';
+      i18n.lier(texte, 'textContent', libelle);
+      const variable = document.createElement('code');
+      variable.className = 'code-de-variable';
+      i18n.lier(variable, 'textContent', code);
+      entete.append(texte, variable);
+      return entete;
+    }
+
+    /** `champEnColonne`, avec le code de la variable à côté du libellé. */
+    function champAvecCode(libelle: Texte, code: Texte, ...saisies: HTMLElement[]): HTMLLabelElement {
+      const etiquette = document.createElement('label');
+      etiquette.className = 'champ-colonne';
+      const ligne = document.createElement('span');
+      ligne.className = 'champ-ligne';
+      ligne.append(...saisies);
+      etiquette.append(enteteDeChamp(libelle, code), ligne);
+      return etiquette;
+    }
+
+    /** Les segments Blanc et Noir de chaque thème ; l'état pressé se pose dans `afficher`. */
+    const segmentsDuTexte = {} as Record<Mode, { readonly valeur: TexteDesBoutons; readonly bouton: HTMLButtonElement }[]>;
+
+    /** Le texte des boutons d'un thème : libellé, code, puis les segments, une pastille de la couleur dans chacun (I9). */
+    function choixDuTexte(mode: Mode): HTMLDivElement {
+      const groupe = document.createElement('div');
+      groupe.className = 'bascule bascule-de-base';
+      groupe.setAttribute('role', 'group');
+      i18n.lier(groupe, 'aria-label', TEXTES_DU_TEXTE_DES_BOUTONS.groupe(mode));
+      segmentsDuTexte[mode] = (['blanc', 'noir'] as const).map((valeur) => {
+        const bouton = document.createElement('button');
+        bouton.type = 'button';
+        bouton.className = 'bascule-option bascule-option-avec-pastille';
+        const pastille = document.createElement('span');
+        pastille.className = 'pastille-du-texte';
+        pastille.setAttribute('aria-hidden', 'true');
+        pastille.style.background = COULEUR_DU_TEXTE_DES_BOUTONS[valeur];
+        const nom = document.createElement('span');
+        i18n.lier(nom, 'textContent', TEXTES_DU_TEXTE_DES_BOUTONS[valeur]);
+        bouton.append(pastille, nom);
+        bouton.addEventListener('click', () => choisirLeTexte(mode, valeur));
+        groupe.append(bouton);
+        return { valeur, bouton };
+      });
+      const colonne = document.createElement('div');
+      colonne.className = 'champ-colonne';
+      colonne.append(enteteDeChamp(TEXTES_DU_TEXTE_DES_BOUTONS.libelle, TEXTES_DU_TEXTE_DES_BOUTONS.code), groupe);
+      return colonne;
+    }
+
     // Couleurs de fond : pastille, sélecteur de couleur et code, comme la couleur de référence (V9.6).
     const nomDuMode: Record<Mode, Texte> = { light: TEXTES_DE_CONFIGURATION.clair, dark: TEXTES_DE_CONFIGURATION.sombre };
     const colonnesDesFonds = document.createElement('div');
@@ -234,10 +326,31 @@ function construireVues(i18n: Localisation) {
       i18n.lier(saisie, 'aria-label', TEXTES_DE_CONFIGURATION.fondDuMode[mode]);
       saisie.addEventListener('input', () => saisirFond(mode, saisie.value, false));
       saisie.addEventListener('change', () => saisirFond(mode, saisie.value, true));
-      colonnesDesFonds.append(champEnColonne(TEXTES_DE_CONFIGURATION.fondDuMode[mode], pipette.bouton, saisie));
+      const colonne = document.createElement('div');
+      colonne.className = 'champ-colonne colonne-de-fond';
+      colonne.append(champAvecCode(TEXTES_DE_CONFIGURATION.fondDuMode[mode], TEXTES_DU_TEXTE_DES_BOUTONS.codeDuFond, pipette.bouton, saisie), choixDuTexte(mode));
+      colonnesDesFonds.append(colonne);
       return { mode, pipette, saisie };
     });
-    cartes.fonds.ui.corps.prepend(colonnesDesFonds);
+
+    // Le message d'effet d'un thème inversé, la confirmation d'un remplacement, puis l'erreur de la carte.
+    const effetDuTexte = document.createElement('div');
+    effetDuTexte.className = 'effet-du-texte-des-boutons';
+    effetDuTexte.setAttribute('role', 'status');
+    effetDuTexte.hidden = true;
+    const texteDeLaConfirmation = paragraphe('');
+    const remplacerLesNuances = createButton({ label: TEXTES_DU_TEXTE_DES_BOUTONS.remplacer, onClick: () => remplacerLaCourbe() });
+    const annulerLeRemplacement = createButton({ label: TEXTES_DU_TEXTE_DES_BOUTONS.annuler, variant: 'secondary', onClick: () => annulerLeChoixDuTexte() });
+    const gestesDeLaConfirmation = document.createElement('div');
+    gestesDeLaConfirmation.className = 'confirmation-gestes';
+    gestesDeLaConfirmation.append(remplacerLesNuances, annulerLeRemplacement);
+    const confirmationDuTexte = document.createElement('div');
+    confirmationDuTexte.className = 'confirmation';
+    confirmationDuTexte.hidden = true;
+    confirmationDuTexte.append(texteDeLaConfirmation, gestesDeLaConfirmation);
+    cartes.fonds.ui.corps.insertBefore(colonnesDesFonds, cartes.fonds.erreur);
+    cartes.fonds.ui.corps.insertBefore(confirmationDuTexte, cartes.fonds.erreur);
+    cartes.fonds.ui.corps.insertBefore(effetDuTexte, cartes.fonds.erreur);
     groupeDeCarte('fonds', 'fonds', colonnesDesFonds);
 
     // Intensités : un curseur et un champ par profil ; Soft ne dépasse jamais Vivid.
@@ -502,6 +615,7 @@ function construireVues(i18n: Localisation) {
      * colonnes : le point d'une nuance tombe au milieu de sa colonne.
      */
     let cransBatis = '';
+    const etiquettesDeLigne: Partial<Record<Mode, HTMLSpanElement>> = {};
     function batirLaTable(crans: readonly number[]): void {
       if (cransBatis === crans.join(',')) return;
       cransBatis = crans.join(',');
@@ -521,8 +635,22 @@ function construireVues(i18n: Localisation) {
         i18n.lier(numero, 'textContent', String(cran));
         return numero;
       });
+      // Le titre d'une ligne porte, sous son nom, l'étiquette du thème inversé ; `rendreLesSens` la montre.
+      const titreDeLaLigne = (mode: Mode): HTMLSpanElement => {
+        const titre = document.createElement('span');
+        titre.className = 'titre-de-courbe titre-de-ligne';
+        const nom = document.createElement('span');
+        i18n.lier(nom, 'textContent', TEXTES_DE_CONFIGURATION.courbeDuMode[mode]);
+        const etiquette = document.createElement('span');
+        etiquette.className = 'etiquette-de-ligne';
+        etiquette.hidden = true;
+        i18n.lier(etiquette, 'textContent', TEXTES_DU_TEXTE_DES_BOUTONS.etiquetteDeLigne);
+        titre.append(nom, etiquette);
+        etiquettesDeLigne[mode] = etiquette;
+        return titre;
+      };
       const lignes = MODES.flatMap((mode) => [
-        titreDeLigne(TEXTES_DE_CONFIGURATION.courbeDuMode[mode]),
+        titreDeLaLigne(mode),
         ...crans.map((cran, rang) => champDeSaisie({ courbe: mode, rang }, 'courbes', i18n.composer`${nomDuMode[mode]} ${cran}`)),
       ]);
       table.replaceChildren(trace, titreDeLigne(''), ...numeros, ...lignes);
@@ -568,10 +696,50 @@ function construireVues(i18n: Localisation) {
     }
 
     /**
+     * Le sens de chaque thème dans la table des courbes : l'étiquette « inversé »
+     * sur sa ligne, et un cercle sur chaque valeur qui diffère de la courbe du
+     * sens normal. Un thème normal n'a ni l'un ni l'autre.
+     */
+    function rendreLesSens(lue: Recette): void {
+      for (const mode of MODES) {
+        const etiquette = etiquettesDeLigne[mode];
+        if (etiquette) etiquette.hidden = !estInverse(lue, mode);
+      }
+      table.classList.toggle('table-avec-etiquette', MODES.some((mode) => estInverse(lue, mode)));
+      for (const { champ, saisie } of champs) {
+        if (!('courbe' in champ)) continue;
+        const rang = CRANS_DE_REFERENCE.indexOf(lue.crans[champ.rang]);
+        saisie.dataset.cerclee = String(estInverse(lue, champ.courbe) && rang >= 0 && lue.courbes[champ.courbe][champ.rang] !== COURBES_DU_SENS_NORMAL[champ.courbe][rang]);
+      }
+    }
+
+    /**
+     * Le message d'effet : un paragraphe par thème inversé, puis l'effet commun.
+     * Il se reconstruit quand ses nombres changent seulement, pour que la région
+     * `status` n'annonce pas deux fois le même texte.
+     */
+    let cleDeLEffet = '';
+    function rendreLEffet(lue: Recette): void {
+      const inverses = (['dark', 'light'] as const).filter((mode) => estInverse(lue, mode));
+      const cle = JSON.stringify([inverses, lue.crans]);
+      if (cle === cleDeLEffet) return;
+      cleDeLEffet = cle;
+      effetDuTexte.hidden = inverses.length === 0;
+      effetDuTexte.replaceChildren(...(inverses.length === 0 ? [] : [
+        ...inverses.map((mode) => {
+          const { nuances, valeurs } = nuancesDeLInversion(lue, mode);
+          return paragraphe(TEXTES_DU_TEXTE_DES_BOUTONS.effetDuTheme(mode, nuances, valeurs));
+        }),
+        paragraphe(TEXTES_DU_TEXTE_DES_BOUTONS.effetCommun),
+      ]));
+    }
+
+    /**
      * Ce que chaque saisie valide redessine sans toucher aux champs : l'aperçu
      * compact, le tracé des courbes et la garantie commune.
      */
     function rendreLesVues(lue: Recette): void {
+      rendreLesSens(lue);
       const { palette, analyse } = rendreLApercu(lue);
       // Le tracé montre les courbes communes : le ◆ d'une palette libre, posé sur sa propre liste, n'y a pas de colonne.
       const commune = palette && analyse && !analyse.libre ? analyse : null;
@@ -666,10 +834,78 @@ function construireVues(i18n: Localisation) {
       proposer(suivante, 'fonds', fin);
     }
 
+    /** La recette sur laquelle le refus du texte des boutons s'affiche : un autre état de la recette l'efface. */
+    let refusSur: Recette | null = null;
+    /** Le choix d'un segment qui attend la confirmation du remplacement des nuances réglées. */
+    let texteEnAttente: { readonly mode: Mode; readonly texte: TexteDesBoutons } | null = null;
+
+    /** Une courbe qui ne reste pas monotone : la recette ne change pas, et la carte des fonds dit pourquoi. */
+    function refuserLeTexte(lue: Recette, sens: 'normal' | 'inverse'): void {
+      refusSur = lue;
+      signaler('fonds', TEXTES_DU_TEXTE_DES_BOUTONS.refus(voisinesDeLaPlage(lue), sens));
+    }
+
+    function segmentDuTexte(mode: Mode, texte: TexteDesBoutons): HTMLButtonElement | undefined {
+      return segmentsDuTexte[mode].find(({ valeur }) => valeur === texte)?.bouton;
+    }
+
+    function fermerLaConfirmationDuTexte(): void {
+      texteEnAttente = null;
+      confirmationDuTexte.hidden = true;
+    }
+
+    /** Pose le texte des boutons du thème : les nuances 500 à 800 prennent la courbe du sens d'arrivée. */
+    function poserLeTexte(mode: Mode, texte: TexteDesBoutons): void {
+      const lue = recette.lire();
+      if (!lue) return;
+      const posee = poserTexteDesBoutons(lue, mode, texte);
+      if ('refus' in posee) {
+        refuserLeTexte(lue, sensDuTheme(mode, texte));
+        return;
+      }
+      proposer(posee.recette, 'fonds', true);
+    }
+
+    /** Un segment : la pose directe, ou d'abord la confirmation quand des nuances 500 à 800 sont réglées. */
+    function choisirLeTexte(mode: Mode, texte: TexteDesBoutons): void {
+      const lue = recette.lire();
+      if (!lue || lue.texteDesBoutons[mode] === texte) return;
+      if (nuancesReglees(lue, mode).length === 0) {
+        fermerLaConfirmationDuTexte();
+        poserLeTexte(mode, texte);
+        segmentDuTexte(mode, texte)?.focus();
+        return;
+      }
+      texteEnAttente = { mode, texte };
+      i18n.lier(texteDeLaConfirmation, 'textContent', TEXTES_DU_TEXTE_DES_BOUTONS.confirmation(mode, sensDuTheme(mode, texte)));
+      confirmationDuTexte.hidden = false;
+      remplacerLesNuances.focus();
+    }
+
+    function remplacerLaCourbe(): void {
+      const attente = texteEnAttente;
+      fermerLaConfirmationDuTexte();
+      if (!attente) return;
+      poserLeTexte(attente.mode, attente.texte);
+      segmentDuTexte(attente.mode, attente.texte)?.focus();
+    }
+
+    function annulerLeChoixDuTexte(): void {
+      const attente = texteEnAttente;
+      fermerLaConfirmationDuTexte();
+      const lue = recette.lire();
+      if (attente && lue) segmentDuTexte(attente.mode, lue.texteDesBoutons[attente.mode])?.focus();
+    }
+
     function retablirLaCarteChoisie(carte: CarteDesReglages): void {
       const lue = recette.lire();
       const suivante = lue ? retablir(lue, carte) : null;
-      if (!suivante) return;
+      if (!suivante) {
+        // Pour les fonds, `null` est le refus d'une courbe non monotone au retour au sens normal.
+        if (lue && carte === 'fonds') refuserLeTexte(lue, 'normal');
+        return;
+      }
+      fermerLaConfirmationDuTexte();
       proposer(suivante, carte, true);
     }
 
@@ -689,6 +925,16 @@ function construireVues(i18n: Localisation) {
         if (document.activeElement !== saisie) saisie.value = lue.fonds[mode];
         pipette.poser(lue.fonds[mode]);
       }
+      for (const mode of MODES) {
+        for (const { valeur, bouton } of segmentsDuTexte[mode]) bouton.setAttribute('aria-pressed', String(lue.texteDesBoutons[mode] === valeur));
+      }
+      // Un autre état de la recette rend le refus ou la confirmation obsolètes.
+      if (refusSur && refusSur !== lue) {
+        refusSur = null;
+        signaler('fonds', null);
+      }
+      if (texteEnAttente && lue.texteDesBoutons[texteEnAttente.mode] === texteEnAttente.texte) fermerLaConfirmationDuTexte();
+      rendreLEffet(lue);
       for (const { profil, curseur } of curseurs) {
         if (document.activeElement !== curseur) curseur.value = String(lue.profils[profil].part);
         i18n.lier(curseur, 'aria-valuetext', nombreEcrit(lue.profils[profil].part));
@@ -701,8 +947,11 @@ function construireVues(i18n: Localisation) {
       }
       cartes.minimums.ui.poserResume(resumeDesMinimums(lue.seuils.texte, lue.seuils.nonTexte));
       cartes.proches.ui.poserResume(resumeDesEcarts(lue.seuils.profilsConfondus, lue.seuils.palettesProches));
+      const inverses = MODES.filter((mode) => estInverse(lue, mode));
+      if (inverses.length > 0) cartes.courbes.ui.poserResume(TEXTES_DU_TEXTE_DES_BOUTONS.resumeDesCourbes(inverses));
       for (const carte of Object.keys(cartes) as CarteDesReglages[]) {
-        const sansDefaut = retablir(lue, carte) === null;
+        // « Rétablir » des fonds rend `null` pour un refus, que son geste dit ; seules les courbes d'une liste importée n'ont pas de défaut.
+        const sansDefaut = carte !== 'fonds' && retablir(lue, carte) === null;
         cartes[carte].retablir.disabled = sansDefaut || estParDefaut(lue, carte);
         i18n.lier(cartes[carte].retablir, 'title', sansDefaut ? TEXTES_DE_CONFIGURATION.courbesSansDefaut : '');
       }

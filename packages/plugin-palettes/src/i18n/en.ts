@@ -196,7 +196,7 @@ export const TEXTES_DE_CONFIGURATION = {
   parts: "Intensities",
   seuilProfilsConfondus: "Minimum difference between Soft and Vivid",
   fonds: "Background colours",
-  fondDuMode: { light: "Light theme background", dark: "Dark theme background" },
+  fondDuMode: { light: "Page background, Light theme", dark: "Page background, Dark theme" },
   seuilsDeContraste: "Minimum contrast",
   seuilTexte: "Text",
   seuilNonTexte: "Graphical elements",
@@ -266,6 +266,35 @@ export const TEXTES_DU_PREREGLAGE = {
   appliquer: (nombre: number) => `Switch to ${nombre} shades`,
   annuler: "Cancel",
   rolesGardes: "Roles keep their shade numbers.",
+} as const;
+
+/** Une luminosité de la courbe inversée : deux décimales au moins, trois au plus (« 0.50 », « 0.745 »). */
+function luminositeInverseeEcrite(valeur: number): string {
+  const [entier, decimales = ''] = String(Math.round(valeur * 1000) / 1000).split('.');
+  return `${entier}.${decimales.padEnd(2, '0')}`;
+}
+
+/** Le texte des boutons de chaque thème, sous le fond de la page (S9, I9, I10). */
+export const TEXTES_DU_TEXTE_DES_BOUTONS = {
+  libelle: "Button text",
+  code: 'solid/foreground',
+  codeDuFond: 'elevation/page',
+  blanc: "White",
+  noir: "Black",
+  groupe: (mode: Mode) => `Button text, ${NOM_DU_MODE[mode]} theme`,
+  etiquetteDeLigne: "inverted",
+  remplacer: "Replace",
+  annuler: "Cancel",
+  effetCommun: "Colored text and borders move up one shade. This theme’s variables will show “Update needed” in Manage.",
+  // Les nuances qui changent et leurs valeurs par défaut, calculées depuis la recette.
+  effetDuTheme: (mode: Mode, nuances: readonly number[], valeurs: readonly number[]) =>
+    `${NOM_DU_MODE[mode]} inverted. Shades ${nuances[0]} to ${nuances[nuances.length - 1]} move to ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. The button stays at 700; its hover and pressed states move toward the page: 600, 500.`,
+  confirmation: (mode: Mode, sens: 'normal' | 'inverse') =>
+    `Your ${NOM_DU_MODE[mode]} lightness values for shades 500 to 800 will be replaced by the ${sens === 'inverse' ? 'inverted' : 'normal'} curve. Other shades keep your values.`,
+  // Les voisines de la plage 500 à 800 présentes dans la liste : 400 et 900 pour les préréglages.
+  refus: (voisines: readonly number[], sens: 'normal' | 'inverse') =>
+    `With your values for ${voisines.length === 1 ? 'shade' : 'shades'} ${voisines.join(' and ')}, the ${sens === 'inverse' ? 'inverted' : 'normal'} curve breaks the order of the shades. Reset “Shade lightness”, then change the button text.`,
+  resumeDesCourbes: (modes: readonly Mode[]) => `Inverted curve: ${modes.map((mode) => NOM_DU_MODE[mode]).join(', ')}`,
 } as const;
 
 /** Une liste de numéros en mots : « 1000 et 1050 », « 400, 950 et 1000 ». */
@@ -725,7 +754,7 @@ export const TEXTES_DU_DETAIL = {
   sansRole: "No role",
   aucunRole: "No predefined use for this shade.",
   contrastes: "Shade contrast",
-  fondDuTheme: "Theme background",
+  fondDuTheme: "Page background",
   blanc: "White",
   noir: "Black",
   oklch: 'OKLCH',

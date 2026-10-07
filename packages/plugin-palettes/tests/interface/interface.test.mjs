@@ -116,14 +116,15 @@ test('la bascule conserve les champs incomplets, les cartes ouvertes et les él�
     await page.evaluate(() => {
       window.champConserve = document.querySelector('input[data-mode="light"][data-rang="7"]');
       window.cartesConservees = [...document.querySelectorAll('.carte')];
-      window.defilementAvant = document.scrollingElement.scrollTop;
+      window.hautDuChampAvant = window.champConserve.getBoundingClientRect().top;
       document.querySelector('#langue-du-plugin').value = 'en';
       document.querySelector('#langue-du-plugin').dispatchEvent(new Event('change', { bubbles: true }));
     });
     assert.equal(await champ.inputValue(), '0,');
     assert.equal(await champ.evaluate((element) => element === window.champConserve && document.activeElement === element), true);
     assert.equal(await page.evaluate(() => window.cartesConservees.every((element) => element.isConnected)), true);
-    assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop === window.defilementAvant), true);
+    // Les textes anglais n'ont pas la hauteur des textes français : la page garde le champ à la même place à l'écran, pas le même défilement.
+    assert.equal(await page.evaluate(() => Math.abs(window.champConserve.getBoundingClientRect().top - window.hautDuChampAvant) <= 1), true);
     await page.getByRole('button', { name: 'Back to palettes' }).click();
     assert.equal(await page.locator('.carte[aria-label="Color shift"]').getAttribute('data-ouverte'), 'true');
     assert.equal(await page.locator('body').textContent().then((texte) => texte.includes('[object Object]')), false);
@@ -559,12 +560,12 @@ test('[UI-04] [UI-10] un clic sur une nuance donne son code, ses rôles et ses c
     assert.match(sertA, /✓ sur surface 100 : \d+,\d\d:1\s*AA/);
     // Chaque ratio porte le nom de ce qu'il compare, une seule fois.
     const lignes = await detail.locator('.detail-contraste').evaluateAll((rangees) => rangees.map((rangee) => rangee.innerText.split('\n').filter(Boolean)));
-    assert.deepEqual(lignes.map(([nom]) => nom), ['Fond du thème', 'Blanc', 'Noir']);
+    assert.deepEqual(lignes.map(([nom]) => nom), ['Fond de la page', 'Blanc', 'Noir']);
     for (const [, ratio, badge] of lignes) {
       assert.match(ratio, /^\d+,\d\d:1$/);
       assert.match(badge, /^AAA?( ✗)?$/);
     }
-    assert.equal((contrastes.match(/Fond du thème/g) ?? []).length, 1);
+    assert.equal((contrastes.match(/Fond de la page/g) ?? []).length, 1);
     assert.deepEqual(await page.evaluate(() => window.demandes.map((demande) => demande.type)), ['lire-etat']);
     await nuance.click();
     assert.equal(await detail.isVisible(), false);
@@ -1916,7 +1917,7 @@ test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mentio
     await page.getByRole('button', { name: 'Modifier le fond du thème Light, actuellement #F7F7F7' }).click();
     // L'étiquette suit la valeur : la pastille se retrouve ensuite par sa classe.
     const pastille = page.locator('.pastille-du-fond');
-    const selecteur = page.getByRole('dialog', { name: 'Fond du thème Light' });
+    const selecteur = page.getByRole('dialog', { name: 'Fond de la page, thème Light' });
     assert.equal(await selecteur.isVisible(), true);
     assert.equal(await pastille.getAttribute('aria-expanded'), 'true');
     assert.equal(await selecteur.getByRole('combobox', { name: 'Format du code' }).inputValue(), 'hex');
@@ -1946,7 +1947,7 @@ test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mentio
     assert.equal(await pastille.evaluate((bouton) => bouton === document.activeElement), true, 'Échap rend le focus à la pastille');
     assert.equal(await pastille.getAttribute('aria-expanded'), 'false');
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
-    assert.equal(await page.locator('.champ-hexa[aria-label="Fond du thème Light"]').inputValue(), '#FFD84D');
+    assert.equal(await page.locator('.champ-hexa[aria-label="Fond de la page, thème Light"]').inputValue(), '#FFD84D');
   } finally {
     await page.close();
   }
@@ -2321,7 +2322,7 @@ test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se ra
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
-    const fond = page.getByRole('textbox', { name: 'Fond du thème Dark' });
+    const fond = page.getByRole('textbox', { name: 'Fond de la page, thème Dark' });
     assert.equal(await fond.inputValue(), '#121212');
     const avant = await compte(page);
     await fond.fill('#1c1c1c');
@@ -3197,7 +3198,7 @@ test('[VER-15] un lien de message ouvre les Réglages communs sur son groupe, et
     await ouvrirLaVerification(page);
     const lien = page.locator('.messages-de-la-verification .constat-alerte').getByRole('button', { name: 'Changer les couleurs de fond' });
     await lien.click();
-    assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Fond du thème Light');
+    assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Fond de la page, thème Light');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Changer les couleurs de fond');
   } finally {
@@ -5358,6 +5359,107 @@ test('[UI-26] un état relu entre l’appui et le relâchement ne perd pas le cl
     await page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-geste="mettre-a-jour"]:disabled`).waitFor();
     // L'état attendu s'affiche après le clic : la fiche se reconstruit, et le bouton pressé quitte le document.
     await page.waitForFunction((bouton) => !bouton.isConnected, presse);
+  } finally {
+    await page.close();
+  }
+});
+
+const GROUPE_DU_TEXTE = { light: 'Texte des boutons du thème Light', dark: 'Texte des boutons du thème Dark' };
+const FOND_DE_LA_PAGE = { light: 'Fond de la page, thème Light', dark: 'Fond de la page, thème Dark' };
+// Light inversé ne change pas la 800 (0,42 des deux sens) : son message s'arrête à 700. Les nuances 500 à 800 sont les rangs 5 à 8 de la table des courbes (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950).
+const LUMINOSITES = {
+  light: { normal: ['0,67', '0,585', '0,5', '0,42'], inverse: ['0,745', '0,69', '0,61', '0,42'] },
+  dark: { normal: ['0,49', '0,58', '0,67', '0,76'], inverse: ['0,45', '0,5', '0,55', '0,7'] },
+};
+const EFFET_DU_THEME = {
+  light: 'Light inversé. Les nuances 500 à 700 passent à 0,745 · 0,69 · 0,61. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.',
+  dark: 'Dark inversé. Les nuances 500 à 800 passent à 0,45 · 0,50 · 0,55 · 0,70. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.',
+};
+const EFFET_COMMUN = 'Le texte coloré et les contours montent d’une nuance. Les variables de ce thème passeront « À actualiser » dans Gestion.';
+
+for (const [light, dark] of [['blanc', 'noir'], ['noir', 'noir'], ['blanc', 'blanc'], ['noir', 'blanc']]) {
+  test(`[ENT-16] le texte des boutons ${light} en Light et ${dark} en Dark : segments, message d’effet, étiquettes, courbes et libellés des fonds`, async () => {
+    const page = await ouvrirSur(`texte-des-boutons-${light}-${dark}`);
+    try {
+      await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+      const choix = { light, dark };
+      const sens = { light: light === 'noir' ? 'inverse' : 'normal', dark: dark === 'blanc' ? 'inverse' : 'normal' };
+      const inverses = ['light', 'dark'].filter((mode) => sens[mode] === 'inverse');
+      const fonds = reglage(page, 'Couleurs de fond');
+      for (const mode of ['light', 'dark']) {
+        const groupe = fonds.getByRole('group', { name: GROUPE_DU_TEXTE[mode] });
+        const pressees = await groupe.getByRole('button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')]));
+        assert.deepEqual(pressees, [['Blanc', String(choix[mode] === 'blanc')], ['Noir', String(choix[mode] === 'noir')]], `segments du thème ${mode}`);
+        assert.equal(await fonds.getByRole('textbox', { name: FOND_DE_LA_PAGE[mode] }).count(), 1);
+      }
+      // Le libellé de chaque fond porte son code, celui du texte des boutons le sien.
+      const libelles = await fonds.locator('.entete-de-champ').evaluateAll((entetes) => entetes.map((entete) => entete.innerText.split('\n').filter(Boolean).join(' ')));
+      assert.deepEqual(libelles.filter((libelle) => /Fond/.test(libelle)), ['Fond de la page, thème Light elevation/page', 'Fond de la page, thème Dark elevation/page']);
+      assert.deepEqual(libelles.filter((libelle) => /Texte/.test(libelle)), ['Texte des boutons solid/foreground', 'Texte des boutons solid/foreground']);
+      assert.equal(await fonds.getByText('Fond du thème').count(), 0);
+
+      // Le message d'effet n'existe que si un thème est inversé : un paragraphe par thème (Dark d'abord), puis l'effet commun.
+      const effet = fonds.locator('.effet-du-texte-des-boutons');
+      assert.equal(await effet.getAttribute('role'), 'status');
+      if (inverses.length === 0) assert.equal(await effet.isVisible(), false);
+      else {
+        assert.deepEqual(await effet.locator('p').allTextContents(), [...['dark', 'light'].filter((mode) => inverses.includes(mode)).map((mode) => EFFET_DU_THEME[mode]), EFFET_COMMUN]);
+      }
+
+      // La table des courbes : l'étiquette « inversé », les valeurs de 500 à 800 et celles qu'on cerne.
+      const courbes = reglage(page, 'Luminosité des nuances');
+      assert.deepEqual(await courbes.locator('.etiquette-de-ligne:visible').allTextContents(), inverses.map(() => 'inversé'));
+      for (const mode of ['light', 'dark']) {
+        const valeurs = await courbes.locator(`input[data-mode="${mode}"]`).evaluateAll((champs) => champs.slice(5, 9).map((champ) => [champ.value, champ.dataset.cerclee]));
+        const attendues = LUMINOSITES[mode][sens[mode]].map((valeur, rang) => [valeur, String(sens[mode] === 'inverse' && valeur !== LUMINOSITES[mode].normal[rang])]);
+        assert.deepEqual(valeurs, attendues, `courbe ${mode}`);
+      }
+      const resume = await courbes.locator('.carte-resume').textContent();
+      if (inverses.length === 0) assert.doesNotMatch(resume, /inversée/);
+      else assert.equal(resume, `Courbe inversée : ${inverses.map((mode) => (mode === 'light' ? 'Light' : 'Dark')).join(', ')}`);
+    } finally {
+      await page.close();
+    }
+  });
+}
+
+test('[ENT-16] une nuance réglée à la main demande une confirmation : Annuler ne change rien, Remplacer pose la courbe inversée', async () => {
+  const page = await ouvrirSur('texte-des-boutons-confirmation');
+  try {
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    const fonds = reglage(page, 'Couleurs de fond');
+    const groupe = fonds.getByRole('group', { name: GROUPE_DU_TEXTE.light });
+    const confirmation = fonds.locator('.confirmation');
+    const pressee = async () => groupe.getByRole('button', { pressed: true }).textContent();
+    const champ = page.locator('input[data-mode="light"][data-rang="7"]');
+    const debut = await compte(page);
+    await champ.fill('0,52');
+    await champ.press('Tab');
+    // Le sandbox range la valeur : sans cet accusé, l'interface attend et ne range pas la suite.
+    await envoyer(page, rangee((await prochaine(page, debut)).demande));
+    const avant = await compte(page);
+
+    await groupe.getByRole('button', { name: 'Noir' }).click();
+    assert.equal(await confirmation.isVisible(), true);
+    assert.match(await confirmation.textContent(), /^Vos luminosités des nuances 500 à 800 en Light seront remplacées par celles de la courbe inversée\./);
+    assert.equal(await pressee(), 'Blanc', 'rien n’est posé avant la confirmation');
+    assert.equal(await compte(page), avant);
+
+    await confirmation.getByRole('button', { name: 'Annuler' }).click();
+    assert.equal(await confirmation.isVisible(), false);
+    assert.equal(await pressee(), 'Blanc');
+    assert.equal(await champ.inputValue(), '0,52');
+    assert.equal(await compte(page), avant, 'Annuler ne range rien');
+
+    await groupe.getByRole('button', { name: 'Noir' }).click();
+    await confirmation.getByRole('button', { name: 'Remplacer' }).click();
+    const rangement = await prochaine(page, avant);
+    assert.equal(rangement.type, 'ranger-recette');
+    assert.equal(rangement.recette.texteDesBoutons.light, 'noir');
+    assert.deepEqual(rangement.recette.courbes.light.slice(5, 9), [0.745, 0.69, 0.61, 0.42]);
+    assert.equal(await confirmation.isVisible(), false);
+    assert.equal(await pressee(), 'Noir');
+    assert.equal(await champ.inputValue(), '0,61');
   } finally {
     await page.close();
   }
