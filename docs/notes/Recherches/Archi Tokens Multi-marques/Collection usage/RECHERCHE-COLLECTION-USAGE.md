@@ -306,7 +306,7 @@ même geste que dans un thème normal, et ne voit jamais ce 600.
 | Risque | Ce qui le traite | État |
 |---|---|---|
 | Un alias de `theme` faux dans un thème | Le profil d'UCM Explorateur, dans Figma, compare chaque alias de `theme` à la table du kit, dans chaque thème ; un plugin dédié pourrait poser `theme` depuis la table | À écrire ; UCM Palettes n'écrit que `primitives` |
-| Un texte posé sur le fond d'un autre dossier | Le nom le dit : `surface/foreground` va sur `surface/*`. Le profil d'UCM Explorateur informe ; `ucm check` ne juge pas l'usage des couleurs, et ne punit pas un designer | Le diagnostic des emplois sort d'`ucm check` ; le profil d'UCM Explorateur est à mettre à jour |
+| Un texte posé sur le fond d'un autre dossier | Le nom le dit : `surface/foreground` va sur `surface/*`. Le profil d'UCM Explorateur informe. `ucm check` ne juge pas l'usage des couleurs ; il mesure, en information, le contraste de chaque texte contre son fond réel dans le composant, dans chaque marque et chaque thème | Le diagnostic d'`ucm check` garde la mesure et perd la table ; le profil d'UCM Explorateur est à mettre à jour |
 | Un couple qui échoue sur une palette réelle | UCM Palettes mesure chaque couple de la table sur chaque palette, et la carte des garanties l'affiche | Les garanties existent ; leur liste suit la table |
 | Un designer qui choisit un texte dans le mauvais sélecteur | Les portées : un sélecteur de texte ne propose que des textes | D14 ; essai Figma A5.1 à faire |
 | Un designer qui hésite | La description de chaque variable dit sur quoi elle se pose : « Se lit sur `primary/surface/default`, `hover`, `pressed`, la page et une carte » | Essai Figma A5.2 à faire |
@@ -638,7 +638,7 @@ Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
 sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
 en Light et en Dark ; la
 table du kit et ses tests ; la pose de `theme` dans Figma, hors d'UCM Palettes ; le profil
-d'UCM Explorateur, et le retrait du diagnostic des couleurs d'`ucm check` ; la mise à jour d'ARCHITECTURE-FINALE et de la
+d'UCM Explorateur, et le diagnostic des contrastes d'`ucm check`, sans table ; la mise à jour d'ARCHITECTURE-FINALE et de la
 vue illustrée. Le [document des changements du moteur](./CHANGEMENTS-DU-MOTEUR.md)
 détaille ces chantiers.
 

@@ -35,7 +35,7 @@ deviennent `elevation/page` et `elevation/raised`.
 **La table des emplois**, dans
 [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/), est
 la source commune d'UCM Palettes et d'UCM Explorateur ; `ucm check` la lit
-aujourd'hui, et ne la lira plus (P10).
+aujourd'hui, et n'en gardera que le calcul du contraste (P10).
 
 - [`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts) : huit
   emplois et leur cran. `solid` 700, `on-solid` le fond du thème, `text` 700,
@@ -91,9 +91,9 @@ lecteurs.
 | P7 | Les crans 50, 400 et 950 ne portent aucune variable de `theme` ; ils restent sous `scale` pour nuancer des éléments sur mesure. Ils deviennent facultatifs : le plugin les calcule par défaut, une recette peut s'en passer, et aucune garantie ne les vise | Validé | `CRANS_DES_EMPLOIS`, validation de la recette |
 | P8 | Ce que chaque variable peint (fond, texte et icône, contour, anneau), pour les portées et le profil d'UCM Explorateur. Ses constats sont des informations (P10) | Validé | `SUPPORT_DES_USAGES` |
 | P9 | UCM Palettes mesure les garanties contre le seul fond de la page : son réglage manuel « Fond », `elevation/page`. La carte, `elevation/raised`, n'a pas de réglage et n'entre pas dans les mesures du plugin. Sur les 42 rampes, ce qui tient sur la page tient aussi sur la carte (section 5) ; en dark, la carte, plus claire que la page, reste le cas le plus serré | Décidé par le mainteneur | aucun : le plugin mesure déjà contre le Fond |
-| P10 | Le diagnostic des couleurs sort d'`ucm check`. Il attendait une collection nommée `usage`, qu'aucun fichier réel n'a portée, et un nom imposé contredit un contrôle agnostique. `ucm check` vérifie que chaque propriété d'un composant a une variable, et que ces variables existent dans les tokens Figma si l'option est activée ; il ne juge plus l'usage des couleurs. Ce contrôle passe au profil d'UCM Explorateur, dans Figma, en information (P11) | Décidé par le mainteneur | `diagnostic-emplois.mjs` et son test retirés, `controle-repository.mjs`, `lecteurs/index.mjs`, `navigateur.mjs`, section 2 de FORMAT.md, RECETTE.md, AGENTS.md, README de la CLI |
+| P10 | Le diagnostic des couleurs d'`ucm check` garde la mesure et perd la table. Aujourd'hui il attend une collection nommée `usage`, qu'aucun fichier réel n'a portée : il ne s'est jamais déclenché, et un nom imposé contredit un contrôle agnostique. Il devient « contrastes des composants » : chaque texte, icône, contour et anneau contre son fond réel, lu par la règle du fond de la section 2 de FORMAT.md, dans chaque combinaison de marque et de thème de `tokens.json`. Il signale en information un texte sous 4,5:1 et un anneau sous 3:1, avec la marque et le thème. Il ne dépend d'aucun nom de collection ni d'aucune table, et marche pour n'importe quelle architecture. Les constats liés à la table (`support`, `paire`, `etat`, hors table) passent au profil d'UCM Explorateur (P11). Limite : le contrat ne dit pas si un texte est en grand corps, où le seuil descend à 3:1 ; un faux signal reste une information | Décidé par le mainteneur | `diagnostic-emplois.mjs` réécrit en diagnostic des contrastes et son test, `controle-repository.mjs`, `lecteurs/index.mjs`, `navigateur.mjs`, AGENTS.md, RECETTE.md, README de la CLI ; la règle du fond de FORMAT.md reste |
 | P11 | UCM Explorateur a un profil d'architecture UCM, facultatif : le designer associe chaque collection à une couche, et le plugin contrôle les alias. Ce profil connaît encore l'ancienne architecture : les couches `brand` et `usage`, des composants qui doivent viser `usage`, une nuance attendue vérifiée seulement dans `usage`, et `theme` sans portée. Demain : les couches `primitives`, `color-brands`, `color-utilities`, `theme`, `components` ; `components` vise `theme` ; la nuance attendue se vérifie dans `theme`, par thème ; les portées de `theme` suivent P8. Il reprend ce que faisait le diagnostic d'`ucm check` (P10) : ce que chaque variable peint et les états, en information | Validé | `plugin-explorateur/src/integrations/profilUcm.ts` |
-| P12 | Les tests et documents d'autorité suivent : `emplois.test.ts`, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Validé | tests, documents |
+| P12 | Les tests et documents d'autorité suivent : `emplois.test.ts`, le test du diagnostic des contrastes, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Validé | tests, documents |
 
 Le moteur fait déjà une partie du travail : `focus` est un emploi de chaque
 palette à la 600, mesuré contre la page (paire 12) et le fond 100 de sa
@@ -177,6 +177,6 @@ exempté. `page/foreground-subtle` a les mesures de G5 ;
 
 1. **La table du kit et ses tests** : P1, P4 à P8, P12 pour le kit.
 2. **UCM Palettes** : I1 à I8, I10 à I13 sur la nouvelle table ; P9.
-3. **`ucm check` et l'Explorateur** : P10 retire le diagnostic des couleurs d'`ucm check`, P11 met le profil d'UCM Explorateur à jour.
+3. **`ucm check` et l'Explorateur** : P10 réduit le diagnostic des couleurs d'`ucm check` à la mesure des contrastes, P11 met le profil d'UCM Explorateur à jour.
 4. **Le thème inversé** : P2, P3, I9, décidés dans le dossier du texte des
    boutons.

@@ -33,7 +33,7 @@ l'aperçu d'UCM Palettes, avant et après de chaque changement.
 |---|---|
 | [ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5 | La table des emplois, les quatre rangs d'état et la collection `usage` retenus par le mainteneur |
 | [VUE-ILLUSTREE-MULTIMARQUES.html](../VUE-ILLUSTREE-MULTIMARQUES.html) | Les décisions D1 à D17, dont D2 (`theme`), D13 (`usage`) et D17 (rangs) |
-| [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/) | La table en code, que UCM Palettes et UCM Explorateur lisent ; `ucm check` la lit aujourd'hui, et ne la lira plus |
+| [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/) | La table en code, que UCM Palettes et UCM Explorateur lisent ; `ucm check` n'en gardera que le calcul du contraste |
 
 ## Les propositions successives
 
