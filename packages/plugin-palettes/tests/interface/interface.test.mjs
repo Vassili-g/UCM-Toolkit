@@ -2848,6 +2848,173 @@ test('Y1.5 : dans la grille des États, deux anneaux de focus de rangées voisin
   }
 });
 
+/** `#1E6FD9` en `rgb(30, 111, 217)`, la forme que rend `getComputedStyle`. */
+const rgbDeHexa = (hexa) => `rgb(${[1, 3, 5].map((rang) => Number.parseInt(hexa.slice(rang, rang + 2), 16)).join(', ')})`;
+
+/** La nuance 700, l'emploi `solid`, qu'un profil montre dans l'aperçu au thème choisi, lue dans l'étiquette de sa pastille. */
+async function solidDeLApercu(page, profil) {
+  const etiquette = await page.locator(`[aria-label^="Profil ${profil}, nuance 700,"]`).getAttribute('aria-label');
+  return rgbDeHexa(etiquette.match(/#[0-9A-Fa-f]{6}/)[0]);
+}
+
+/** Le choix du profil peint de l'Interface de test, et le segment que le designer presse. */
+const choixDeLEssai = (page) => carteDeLOnglet(page, 'Interface de test').getByRole('group', { name: 'Profil peint' });
+const choisirDansLEssai = (page, nom) => choixDeLEssai(page).getByRole('button', { name: nom, exact: true }).click();
+const fondDe = (locator) => locator.evaluate((element) => getComputedStyle(element).backgroundColor);
+
+test('[UI-14] le choix du profil peint dit « Afficher » puis Soft, Vivid et Les deux, sous son nom accessible, et se retire pour une palette à une intensité', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    const choix = carteDeLOnglet(page, 'Interface de test').locator('.choix-du-profil');
+    assert.equal(await choix.locator('.field-label').textContent(), 'Afficher');
+    assert.deepEqual(await choixDeLEssai(page).locator('.bascule-option').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft', 'false'], ['Vivid', 'true'], ['Les deux', 'false']]);
+    assert.equal(await page.locator('#panneau-creation .essai-surface').count(), 1);
+    assert.equal(await page.locator('#panneau-creation .essai-profil-titre').count(), 0, 'un seul écran n’a pas de titre');
+    await configurerLesIntensites(page, 'Une');
+    assert.equal(await choix.isVisible(), false);
+  } finally {
+    await page.close();
+  }
+});
+
+/** Pose « Une » ou « Deux » dans le groupe Intensités de la configuration. */
+const configurerLesIntensites = (page, nom) => carteDeLOnglet(page, 'Configuration de la palette').getByRole('group', { name: 'Intensités' }).getByRole('button', { name: nom, exact: true }).click();
+
+test('[UI-14] avec « Les deux », deux écrans titrés Soft puis Vivid, chacun peint du fond du thème, leur bouton principal à la nuance solid de sa rampe ; Dark dans la barre les repeint tous deux', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    await choisirDansLEssai(page, 'Les deux');
+    assert.equal(await carteDeLOnglet(page, 'Interface de test').locator('.carte-resume').textContent(), 'Thème Light · Soft et Vivid');
+    const surfaces = page.locator('#panneau-creation .essai-surface');
+    assert.equal(await surfaces.count(), 2);
+    assert.deepEqual(await page.locator('#panneau-creation .essai-profil-titre').allTextContents(), ['Soft', 'Vivid']);
+    for (const [theme, fond] of [['Thème Light', 'rgb(247, 247, 247)'], ['Thème Dark', 'rgb(18, 18, 18)']]) {
+      if (theme === 'Thème Dark') await choisirLeTheme(page, theme);
+      const attendus = { soft: await solidDeLApercu(page, 'Soft'), vivid: await solidDeLApercu(page, 'Vivid') };
+      assert.notEqual(attendus.soft, attendus.vivid, `${theme} : les rampes Soft et Vivid diffèrent`);
+      for (const [rang, profil] of ['soft', 'vivid'].entries()) {
+        const surface = surfaces.nth(rang);
+        assert.equal(await fondDe(surface.locator('.essai-ecran')), fond, `${theme} : l’écran ${profil} est peint du fond du thème`);
+        assert.equal(await fondDe(surface.locator('.essai-tete .essai-bouton')), attendus[profil], `${theme} : le bouton principal de l’écran ${profil} est à la nuance solid de sa rampe`);
+      }
+    }
+    assert.equal(await carteDeLOnglet(page, 'Interface de test').locator('.carte-resume').textContent(), 'Thème Dark · Soft et Vivid');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-14] avec « Les deux », la vue États peint aussi deux grilles, Soft puis Vivid, chacune du fond du thème', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    await choisirDansLEssai(page, 'Les deux');
+    await page.locator('.bascule-de-l-essai .bascule-option').nth(1).click();
+    const grilles = page.locator('#panneau-creation .essai-surface .essai-etats');
+    assert.equal(await grilles.count(), 2);
+    const [soft, vivid] = await Promise.all([solidDeLApercu(page, 'Soft'), solidDeLApercu(page, 'Vivid')]);
+    for (const [rang, attendu] of [soft, vivid].entries()) {
+      assert.equal(await fondDe(grilles.nth(rang)), 'rgb(247, 247, 247)');
+      assert.equal(await fondDe(grilles.nth(rang).locator('.essai-specimen').first()), attendu, 'le bouton plein au repos est à la nuance solid de sa rampe');
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-14] avec « Les deux », les écrans se placent côte à côte à 1 000 px et s’empilent à 500 px, dans les deux vues, sans défilement horizontal ni spécimen qui déborde, à 700 px aussi', async () => {
+  // À 700 px, la carte n'a pas la largeur de deux grilles d'états : l'une et l'autre disposition se lisent sans recouvrement.
+  for (const [viewport, cote] of [[{ width: 1000, height: 720 }, true], [MINIMALE, false], [{ width: 700, height: 720 }, null]]) {
+    const page = await ouvrirSur('palette-deux-intensites', viewport);
+    const nom = `${viewport.width} px`;
+    try {
+      await deplierLaCarte(page, 'Interface de test');
+      await choisirDansLEssai(page, 'Les deux');
+      for (const vue of [0, 1]) {
+        await page.locator('.bascule-de-l-essai .bascule-option').nth(vue).click();
+        const boites = await page.locator('#panneau-creation .essai-surface').evaluateAll((surfaces) => surfaces.map((surface) => surface.getBoundingClientRect().toJSON()));
+        assert.equal(boites.length, 2, `${nom}, vue ${vue} : deux écrans`);
+        const [premiere, seconde] = boites;
+        if (cote === true) {
+          assert.ok(Math.abs(premiere.y - seconde.y) <= 1, `${nom}, vue ${vue} : même ligne ${JSON.stringify(boites)}`);
+          assert.ok(seconde.x >= premiere.x + premiere.width - 0.5, `${nom}, vue ${vue} : Vivid à droite de Soft`);
+        }
+        if (cote === false) {
+          assert.ok(Math.abs(premiere.x - seconde.x) <= 1, `${nom}, vue ${vue} : même colonne ${JSON.stringify(boites)}`);
+          assert.ok(seconde.y >= premiere.y + premiere.height - 0.5, `${nom}, vue ${vue} : Vivid sous Soft`);
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `${nom}, vue ${vue} : la page ne défile pas à l’horizontale`);
+        const debordements = await page.locator('#panneau-creation .essai-surface > *').evaluateAll((corps) => corps.map((element) => element.scrollWidth - element.clientWidth));
+        assert.deepEqual(debordements.map((debord) => Math.max(0, debord)), [0, 0], `${nom}, vue ${vue} : un écran déborde de sa colonne`);
+        // Dans la vue États, un spécimen plus large que sa cellule recouvre son voisin.
+        const serres = await page.locator('#panneau-creation .essai-specimen').evaluateAll((specimens) => specimens.filter((specimen) => specimen.getBoundingClientRect().width > specimen.parentElement.getBoundingClientRect().width + 0.5).length);
+        assert.equal(serres, 0, `${nom}, vue ${vue} : des spécimens débordent de leur cellule`);
+      }
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[UI-14] chaque écran garde ses gestes : une case cochée, une entrée de navigation et un survol dans l’écran Soft ne changent pas l’écran Vivid', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', { width: 1000, height: 900 });
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    await choisirDansLEssai(page, 'Les deux');
+    const [soft, vivid] = [0, 1].map((rang) => page.locator('#panneau-creation .essai-surface').nth(rang));
+    const etat = (surface) => surface.evaluate((ecran) => ({
+      case: ecran.querySelector('.essai-case').getAttribute('aria-checked'),
+      entree: [...ecran.querySelectorAll('.essai-entree')].findIndex((entree) => entree.getAttribute('aria-current') === 'page'),
+    }));
+    assert.deepEqual([await etat(soft), await etat(vivid)], [{ case: 'true', entree: 0 }, { case: 'true', entree: 0 }]);
+    await soft.locator('.essai-case').click();
+    await soft.locator('.essai-entree').nth(2).click();
+    assert.deepEqual(await etat(soft), { case: 'false', entree: 2 });
+    assert.deepEqual(await etat(vivid), { case: 'true', entree: 0 }, 'l’écran Vivid ne suit pas l’écran Soft');
+    // Le survol : le bouton principal de Soft avance d'une nuance, celui de Vivid reste au repos.
+    const bouton = (surface) => surface.locator('.essai-tete .essai-bouton');
+    const [reposSoft, reposVivid] = [await fondDe(bouton(soft)), await fondDe(bouton(vivid))];
+    await bouton(soft).hover();
+    assert.notEqual(await fondDe(bouton(soft)), reposSoft, 'le survol avance le bouton de Soft');
+    assert.equal(await fondDe(bouton(vivid)), reposVivid, 'le bouton de Vivid ne bouge pas');
+    // Le geste vit dans son écran : l'autre sens aussi.
+    await vivid.locator('.essai-interrupteur').click();
+    assert.equal(await vivid.locator('.essai-interrupteur').getAttribute('aria-checked'), 'false');
+    assert.equal(await soft.locator('.essai-interrupteur').getAttribute('aria-checked'), 'true');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-14] changer de palette rouvre le choix sur le porteur, sauf « Les deux » qui reste', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    const pressees = () => choixDeLEssai(page).locator('.bascule-option[aria-pressed="true"]').allTextContents();
+    const autrePalette = async () => {
+      await page.locator('.selecteur-bouton').click();
+      await page.locator('.selecteur-option').nth(1).click();
+      await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
+    };
+    assert.deepEqual(await pressees(), ['Vivid'], 'la première palette s’ouvre sur son porteur');
+    await choisirDansLEssai(page, 'Soft');
+    assert.deepEqual(await pressees(), ['Soft']);
+    await autrePalette();
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Bleu');
+    assert.deepEqual(await pressees(), ['Vivid'], 'une autre palette rouvre le choix sur son porteur');
+    await choisirDansLEssai(page, 'Les deux');
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(0).click();
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
+    assert.deepEqual(await pressees(), ['Les deux'], '« Les deux » reste d’une palette à l’autre');
+    assert.equal(await page.locator('#panneau-creation .essai-surface').count(), 2);
+  } finally {
+    await page.close();
+  }
+});
+
 test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la même hauteur, « Supprimer définitivement » compris', async () => {
   const page = await ouvrirSur('palette-supprimee');
   try {
@@ -2870,7 +3037,7 @@ async function intensitesMontrees(page) {
   return {
     apercu: [...new Set(await page.locator('.nuancier-grille .pastille[data-profil]').evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.profil)))],
     basculeDesGaranties,
-    basculeDeLEssai: await page.locator('.bascule-du-profil-essaye').isVisible(),
+    basculeDeLEssai: await page.locator('.choix-de-l-essai').isVisible(),
     carteDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).isVisible(),
     cibleDesReglages: await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.cible-des-reglages').evaluate((cible) => !cible.hidden),
     synchronisation: await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByText('Synchroniser', { exact: false }).isVisible(),

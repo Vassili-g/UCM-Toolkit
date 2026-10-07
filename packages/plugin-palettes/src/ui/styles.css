@@ -3621,7 +3621,7 @@ html {
  * par état : repos, survol, appui. La bascule et la carte gardent le thème
  * de Figma.
  */
-/* Les vues à gauche, le profil peint d'une palette à deux intensités au bord droit (Y2.6). */
+/* Les vues à gauche, le choix du profil peint d'une palette à deux intensités au bord droit (Y2.6). */
 .essai-bascules {
   display: flex;
   flex-wrap: wrap;
@@ -3631,8 +3631,36 @@ html {
 }
 
 .bascule-de-l-essai,
-.bascule-du-profil-essaye {
+.choix-de-l-essai {
   flex: 0 0 auto;
+}
+
+/*
+ * Un écran par profil montré : « Les deux » en place deux, côte à côte quand
+ * la carte a la largeur de deux écrans de 270 px, empilés sinon.
+ */
+.essai-surfaces {
+  display: grid;
+  gap: var(--espace-bloc);
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+
+/* La grille des états garde ses quatre colonnes lisibles : elle demande 420 px par écran. */
+.essai-surfaces-etats {
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+
+.essai-profil {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--espace-serre);
+}
+
+.essai-profil-titre {
+  margin: 0;
+  color: var(--texte-second);
+  font-weight: 600;
 }
 
 .essai-surface {
