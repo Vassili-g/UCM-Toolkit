@@ -88,6 +88,11 @@ Hors périmètre :
   lui et ne mesure rien contre lui (P9).
 - Le niveau d'élévation `overlay`, retiré de l'architecture.
 - Le Playground : sa migration vers `theme` est un chantier du mainteneur.
+- Le bouton plein basculable, dont l'état activé survolé n'a pas de
+  variable : question en suspens, décrite dans le
+  [README de ce dossier](./README.md), section « Questions en suspens ».
+  Une décision prise pendant l'exécution arrête le plan, qui doit être
+  relu avant de continuer.
 
 ## Spécification
 
