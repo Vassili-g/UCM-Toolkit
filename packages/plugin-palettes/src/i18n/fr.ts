@@ -1004,6 +1004,7 @@ export function nommerChamp(chemin: string): string {
 
 /** Le texte d'un refus de validation, où et quoi sur la même ligne. */
 const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
+  'texte-des-boutons': (_, valeur) => `Texte des boutons : « ${valeur} » invalide. Choisissez blanc ou noir.`,
   forme: (champ) => `${champ} : valeur absente ou format invalide.`,
   'cle-inconnue': (champ) => `${champ} : réglage inconnu de cette version du plugin.`,
   'crans-croissants': (_, valeur) => (valeur
@@ -1052,7 +1053,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'reglages-sans-originale': (champ) => `${champ} : couleur d’origine manquante. Faites corriger la sauvegarde.`,
   'depart-sans-reglage': (champ) => `${champ} : aucun réglage associé. Retirez ce champ du fichier.`,
   'depart-identique': (champ) => `${champ} : identique à la couleur d’origine. Retirez ce champ du fichier.`,
-  // Les quatre règles du format 8 : les couleurs figées d'une palette reprise du fichier ([VAR-13]).
+  // Les couleurs figées d'une palette reprise du fichier ([VAR-13]).
   'figees-sans-liste': (champ) => `${champ} : couleurs figées sans liste de nuances ou à deux intensités. Ajoutez crans et intensites: 1, ou retirez ce champ du fichier.`,
   'figees-longueur': (champ, valeur) => `${champ} : ${valeur} couleurs pour un autre nombre de nuances. Donnez une couleur par nuance.`,
   'figees-incompatible': (champ) => `${champ} : incompatible avec des couleurs figées. Retirez ce champ du fichier.`,

@@ -21,6 +21,18 @@ test('[REC-01] la recette se lit sous la clé partagée ucm_palettes/recette', (
   assert.match(etat.empreinte ?? '', /^[0-9a-f]{8}$/);
 });
 
+test('une recette 8 se lit au format courant sans rangement ni annulation Figma', () => {
+  const recette = recetteParDefaut();
+  const { texteDesBoutons: _, ...ancienne } = recette;
+  const texte = jsonCanonique({ ...ancienne, formatVersion: 8 });
+  const document = documentDeTest(texte);
+  const etat = lireEtat(document.root);
+  assert.deepEqual(etat.classement, { etat: 'courante', recette });
+  assert.equal(etat.empreinte, empreinteDuTexte(texte));
+  assert.equal(document.donnees.get('ucm_palettes/recette'), texte);
+  assert.deepEqual(document.annulations, []);
+});
+
 test('[REC-03] une recette future ou illisible se classe, et son empreinte reste lue', () => {
   const future = JSON.stringify({ ...recetteParDefaut(), formatVersion: FORMAT_RECETTE + 1 });
   assert.equal(lireEtat(documentDeTest(future).root).classement.etat, 'future');

@@ -9,6 +9,7 @@ import {
   ancrageDe,
   boutsDe,
   classerRecette,
+  courbesParDefaut,
   confusionsDe,
   distanceDePalettes,
   ecrireHexa,
@@ -20,10 +21,12 @@ import {
   lireHexa,
   luminositeAuNumero,
   nombreDeNuancesDe,
+  nuancesReglees,
   propositionDAjustement,
   pasDepuisLOriginale,
   rampesDe,
   recetteParDefaut,
+  recetteAvecTexteDesBoutons,
   validerRecette,
   verifierPromesses,
   type Palette,
@@ -32,6 +35,77 @@ import {
 import { copie, paletteTailwind, recetteAvec } from './fabrique';
 
 const proche = (valeur: number, attendue: number) => assert.ok(Math.abs(valeur - attendue) < 1e-9, `${valeur} ≠ ${attendue}`);
+
+test('les deux préréglages portent les courbes par défaut des quatre combinaisons de texte', () => {
+  for (const nombre of [11, 13] as const) {
+    for (const light of ['blanc', 'noir'] as const) {
+      for (const dark of ['blanc', 'noir'] as const) {
+        const texteDesBoutons = { light, dark };
+        const courbes = courbesParDefaut(nombre, texteDesBoutons);
+        const attendues = {
+          light: light === 'noir' ? [0.745, 0.69, 0.61, 0.42] : [0.67, 0.585, 0.5, 0.42],
+          dark: dark === 'blanc' ? [0.45, 0.5, 0.55, 0.7] : [0.49, 0.58, 0.67, 0.76],
+        };
+        for (const mode of ['light', 'dark'] as const) {
+          assert.deepEqual(PREREGLAGES[nombre].crans.map((cran, rang) => courbes[mode][rang]),
+            PREREGLAGES[nombre].crans.map((cran, rang) => {
+              const position = [500, 600, 700, 800].indexOf(cran);
+              return position < 0 ? PREREGLAGES[nombre].courbes[mode][rang] : attendues[mode][position];
+            }));
+          const recette = { ...recetteParDefaut(), crans: PREREGLAGES[nombre].crans, courbes, texteDesBoutons };
+          assert.deepEqual(nuancesReglees(recette, mode), []);
+          assert.ok('recette' in validerRecette(recette));
+        }
+      }
+    }
+  }
+});
+
+test('Dark blanc puis noir rend la courbe initiale, et un choix identique conserve la recette', () => {
+  const normale = recetteParDefaut();
+  assert.deepEqual(recetteAvecTexteDesBoutons(normale, 'dark', 'noir'), { recette: normale, remplacees: [] });
+  const inversee = recetteAvecTexteDesBoutons(normale, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  assert.deepEqual(inversee.remplacees, [500, 600, 700, 800]);
+  assert.deepEqual(inversee.recette.courbes.light, normale.courbes.light);
+  const retour = recetteAvecTexteDesBoutons(inversee.recette, 'dark', 'noir');
+  assert.ok('recette' in retour);
+  assert.deepEqual(retour.recette, normale);
+});
+
+test('le changement garde une 300 réglée et relève les seules nuances réglées de 500 à 800', () => {
+  const recette = copie(recetteParDefaut());
+  recette.courbes.dark[recette.crans.indexOf(300)] = 0.35;
+  recette.courbes.dark[recette.crans.indexOf(600)] = 0.59;
+  assert.deepEqual(nuancesReglees(recette, 'dark'), [600]);
+  assert.deepEqual(nuancesReglees(recette, 'light'), []);
+  const resultat = recetteAvecTexteDesBoutons(recette, 'dark', 'blanc');
+  assert.ok('recette' in resultat);
+  assert.equal(resultat.recette.courbes.dark[recette.crans.indexOf(300)], 0.35);
+  assert.deepEqual(nuancesReglees(resultat.recette, 'dark'), []);
+  assert.equal(recette.texteDesBoutons.dark, 'noir');
+  assert.equal(recette.courbes.dark[recette.crans.indexOf(600)], 0.59);
+});
+
+test('une 400 Dark réglée à 0,47 refuse le passage au blanc sans modifier la recette', () => {
+  const recette = copie(recetteParDefaut());
+  recette.courbes.dark[recette.crans.indexOf(400)] = 0.47;
+  const avant = jsonCanonique(recette);
+  assert.deepEqual(recetteAvecTexteDesBoutons(recette, 'dark', 'blanc'), { refus: 'courbe-non-monotone' });
+  assert.equal(jsonCanonique(recette), avant);
+});
+
+test('le changement ne remplace que les numéros présents dans une liste importée', () => {
+  const defaut = recetteParDefaut();
+  const rangs = defaut.crans.map((cran, rang) => cran === 600 ? -1 : rang).filter((rang) => rang >= 0);
+  const recette = { ...defaut, crans: rangs.map((rang) => defaut.crans[rang]), courbes: {
+    light: rangs.map((rang) => defaut.courbes.light[rang]), dark: rangs.map((rang) => defaut.courbes.dark[rang]),
+  } };
+  const resultat = recetteAvecTexteDesBoutons(recette, 'dark', 'blanc');
+  assert.ok('recette' in resultat);
+  assert.deepEqual(resultat.remplacees, [500, 700, 800]);
+  assert.deepEqual(resultat.recette.crans, recette.crans);
+});
 
 /** La recette par défaut passée à un préréglage, avec les palettes données. */
 function recetteA(nombre: 11 | 13, ...palettes: Palette[]): Recette {

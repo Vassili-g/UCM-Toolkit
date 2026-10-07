@@ -4,6 +4,7 @@
  * liste d'une palette libre (conception W6, `CONCEPTION-NUANCES-ET-FORMAT-3.md`).
  */
 import type { Bouts, Courbes, Mode } from './rampe';
+import { sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
 import type { Palette, Recette } from './recette';
 
 /** Une liste de numéros et une luminosité par numéro, dans chaque thème. */
@@ -35,6 +36,45 @@ export const PREREGLAGES: { readonly [N in NombreDeNuances]: Grille } = {
     courbes: { light: [...ONZE.courbes.light, 0.215, 0.165], dark: [...ONZE.courbes.dark, 0.96, 0.98] },
   },
 };
+
+const CRANS_DU_TEXTE_DES_BOUTONS = [500, 600, 700, 800] as const;
+const COURBES_INVERSEES = { light: [0.745, 0.69, 0.61, 0.42], dark: [0.45, 0.5, 0.55, 0.7] } as const;
+
+function luminositeParDefaut(mode: Mode, texte: TexteDesBoutons, numero: number): number {
+  const rang = CRANS_DU_TEXTE_DES_BOUTONS.indexOf(numero as (typeof CRANS_DU_TEXTE_DES_BOUTONS)[number]);
+  return sensDuTheme(mode, texte) === 'inverse' && rang >= 0
+    ? COURBES_INVERSEES[mode][rang]
+    : luminositeAuNumero(PREREGLAGES[13], mode, numero);
+}
+
+/** Les courbes du préréglage dans le sens choisi pour chaque thème, en tableaux indépendants. */
+export function courbesParDefaut(nombre: NombreDeNuances, texteDesBoutons: Recette['texteDesBoutons']): Courbes {
+  const crans = PREREGLAGES[nombre].crans;
+  return {
+    light: crans.map((cran) => luminositeParDefaut('light', texteDesBoutons.light, cran)),
+    dark: crans.map((cran) => luminositeParDefaut('dark', texteDesBoutons.dark, cran)),
+  };
+}
+
+/** Les numéros présents de 500 à 800 qui diffèrent du défaut du sens courant. */
+export function nuancesReglees(recette: Recette, mode: Mode): number[] {
+  return recette.crans.filter((numero, rang) => CRANS_DU_TEXTE_DES_BOUTONS.includes(numero as (typeof CRANS_DU_TEXTE_DES_BOUTONS)[number])
+    && recette.courbes[mode][rang] !== luminositeParDefaut(mode, recette.texteDesBoutons[mode], numero));
+}
+
+/** Remplace les nuances présentes de 500 à 800 ; un refus conserve la recette d'entrée. */
+export function recetteAvecTexteDesBoutons(recette: Recette, mode: Mode, texte: TexteDesBoutons):
+  { recette: Recette; remplacees: number[] } | { refus: 'courbe-non-monotone' } {
+  if (recette.texteDesBoutons[mode] === texte) return { recette, remplacees: [] };
+  const remplacees = recette.crans.filter((numero) => CRANS_DU_TEXTE_DES_BOUTONS.includes(numero as (typeof CRANS_DU_TEXTE_DES_BOUTONS)[number]));
+  const courbe = recette.crans.map((numero, rang) => CRANS_DU_TEXTE_DES_BOUTONS.includes(numero as (typeof CRANS_DU_TEXTE_DES_BOUTONS)[number])
+    ? luminositeParDefaut(mode, texte, numero) : recette.courbes[mode][rang]);
+  if (!monotone(courbe, mode)) return { refus: 'courbe-non-monotone' };
+  return {
+    recette: { ...recette, texteDesBoutons: { ...recette.texteDesBoutons, [mode]: texte }, courbes: { ...recette.courbes, [mode]: courbe } },
+    remplacees,
+  };
+}
 
 /** Le préréglage qu'une liste de numéros reconnaît, `null` pour une liste importée. */
 export function nombreDeNuancesDe(crans: readonly number[]): NombreDeNuances | null {

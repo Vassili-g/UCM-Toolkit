@@ -6,21 +6,19 @@
  * La validation ne rédige aucune phrase. Elle rend des refus structurés, la
  * règle et le chemin du champ fautif ; l'interface les met en mots.
  */
-import { CRANS_DES_EMPLOIS } from '@ucm-kit/core/emplois';
+import { CRANS_DES_EMPLOIS, TEXTE_DES_BOUTONS_PAR_DEFAUT, sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
 
 import { lireHexa } from './conversions';
-import { PREREGLAGES } from './nuances';
+import { PREREGLAGES, courbesParDefaut } from './nuances';
 import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Profil } from './rampe';
 import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
 
 /**
- * La version de la forme de la recette que ce paquet écrit. La version 8
- * ajoute les couleurs figées d'une palette reprise du fichier, `figees`, et
- * laisse une palette à une intensité porter sa propre liste de nuances. Une
- * recette d'une autre version n'est pas convertie ([REC-03]) : plus
- * ancienne, elle est illisible ; plus récente, future.
+ * La version écrite porte le texte des boutons par thème. Le format 8 se lit
+ * avec les couleurs de texte par défaut ; les formats plus anciens sont
+ * illisibles et les formats plus récents sont futurs.
  */
-export const FORMAT_RECETTE = 8;
+export const FORMAT_RECETTE = 9;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -157,6 +155,7 @@ export interface Recette {
   readonly profils: { readonly soft: { readonly part: number }; readonly vivid: { readonly part: number } };
   readonly gamut: 'srgb';
   readonly fonds: { readonly light: string; readonly dark: string };
+  readonly texteDesBoutons: { readonly light: TexteDesBoutons; readonly dark: TexteDesBoutons };
   readonly seuils: Seuils;
   readonly derives: readonly PaireDeDerive[];
   /** Le facteur de la part des fonds du thème Dark au numéro 50, entre 0 et 1 ([MOT-28]). */
@@ -170,10 +169,11 @@ export function recetteParDefaut(): Recette {
   return {
     formatVersion: FORMAT_RECETTE,
     crans: [...PREREGLAGES[11].crans],
-    courbes: { light: [...PREREGLAGES[11].courbes.light], dark: [...PREREGLAGES[11].courbes.dark] },
+    courbes: courbesParDefaut(11, TEXTE_DES_BOUTONS_PAR_DEFAUT),
     profils: { soft: { part: 0.45 }, vivid: { part: 0.95 } },
     gamut: 'srgb',
     fonds: { light: '#F7F7F7', dark: '#121212' },
+    texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT },
     seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05 },
     derives: RELEVE_TAILWIND.map(([nom, clair, sombre]) => [nom, clair, sombre] as PaireDeDerive),
     intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
@@ -195,6 +195,7 @@ export type RegleRecette =
   | 'parts-ordre'
   | 'gamut-inconnu'
   | 'hexa-invalide'
+  | 'texte-des-boutons'
   | 'seuils-positifs'
   | 'derives-nombre'
   | 'derives-noms'
@@ -598,6 +599,7 @@ const CLES_RECETTE = [
   'profils',
   'gamut',
   'fonds',
+  'texteDesBoutons',
   'seuils',
   'derives',
   'intensiteDesFondsSombres',
@@ -626,6 +628,15 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
 
   if (entree.formatVersion !== FORMAT_RECETTE) releve.refuser('forme', 'formatVersion', entree.formatVersion as number);
   const crans = validerCrans(releve, entree.crans);
+  if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', ['light', 'dark'])) {
+    let inverse = false;
+    for (const mode of ['light', 'dark'] as const) {
+      const texte = entree.texteDesBoutons[mode];
+      if (texte !== 'blanc' && texte !== 'noir') releve.refuser('texte-des-boutons', `texteDesBoutons.${mode}`, texte);
+      else if (sensDuTheme(mode, texte) === 'inverse') inverse = true;
+    }
+    if (inverse && crans !== null && !crans.includes(500)) releve.refuser('crans-emplois', 'crans', 500);
+  }
   validerCourbes(releve, entree.courbes, crans?.length ?? null);
 
   const profils = entree.profils;
@@ -687,9 +698,9 @@ export type Classement =
 /**
  * Classe le texte rangé sous la clé de la recette avant tout emploi
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
- * supérieure est `future`. Une version antérieure est illisible, par le refus
- * de `formatVersion`, sans conversion. Aucune branche n'écrit : le refus
- * laisse la recette rangée intacte ([REC-04]).
+ * supérieure est `future`. Le format 8 reçoit le texte des boutons par défaut
+ * avant validation au format courant. Une version inférieure à 8 est
+ * illisible. La lecture laisse la recette rangée intacte ([REC-04]).
  */
 export function classerRecette(texte: string | undefined): Classement {
   if (texte === undefined || texte === '') return { etat: 'absente', recette: recetteParDefaut() };
@@ -707,8 +718,13 @@ export function classerRecette(texte: string | undefined): Classement {
     return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion' }] };
   }
   if ((version as number) > FORMAT_RECETTE) return { etat: 'future', version: version as number };
-  if ((version as number) < FORMAT_RECETTE) {
+  if ((version as number) < 8) {
     return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version as number }] };
+  }
+
+  if (version === 8) {
+    if ('texteDesBoutons' in objet) return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'texteDesBoutons' }] };
+    objet = { ...objet, formatVersion: FORMAT_RECETTE, texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT } };
   }
 
   const lue = validerRecette(objet);

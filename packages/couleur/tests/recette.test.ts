@@ -134,10 +134,49 @@ test('[REC-03] une recette de la version courante est lue', () => {
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une recette 8 exportée puis relue est égale', () => {
+test('[REC-03] une recette 9 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 8);
+  assert.equal(recette.formatVersion, 9);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
+});
+
+test('une recette 8 se lit au format 9 avec le texte des boutons par défaut', () => {
+  const recette = valide();
+  const { texteDesBoutons: _, ...ancienne } = recette;
+  const texte = JSON.stringify({ ...ancienne, formatVersion: 8 });
+  assert.deepEqual(classerRecette(texte), { etat: 'courante', recette });
+  assert.equal(JSON.parse(texte).formatVersion, 8);
+});
+
+test('une recette 8 qui porte déjà texteDesBoutons est refusée par forme', () => {
+  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 8 })), {
+    etat: 'illisible', refus: [{ regle: 'forme', chemin: 'texteDesBoutons' }],
+  });
+});
+
+test('le texte des boutons refuse gris dans chacun des thèmes', () => {
+  for (const mode of ['light', 'dark'] as const) {
+    const recette = valide();
+    recette.texteDesBoutons[mode] = 'gris';
+    const resultat = validerRecette(recette);
+    assert.ok('refus' in resultat);
+    assert.deepEqual(resultat.refus, [{ regle: 'texte-des-boutons', chemin: `texteDesBoutons.${mode}`, valeur: 'gris' }]);
+  }
+});
+
+test('une liste sans 500 se lit dans les thèmes normaux et se refuse dans chaque thème inversé', () => {
+  const recette = valide();
+  const rang = recette.crans.indexOf(500);
+  recette.crans.splice(rang, 1);
+  recette.courbes.light.splice(rang, 1);
+  recette.courbes.dark.splice(rang, 1);
+  assert.ok('recette' in validerRecette(recette));
+  for (const mode of ['light', 'dark'] as const) {
+    const inversee = { ...recette, texteDesBoutons: { ...recette.texteDesBoutons, [mode]: mode === 'light' ? 'noir' : 'blanc' } };
+    const resultat = validerRecette(inversee);
+    assert.ok('refus' in resultat);
+    assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 500 }]);
+  }
 });
 
 test('[REC-03] une recette d’un format antérieur est illisible, sans conversion, par le refus de formatVersion', () => {

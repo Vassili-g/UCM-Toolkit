@@ -14,6 +14,13 @@ const AMBRE = { ...nouvellePalette(VIDE, 'p-0000000b', '#F2A900', 2)!, nom: 'Amb
 const VERT = { ...nouvellePalette(VIDE, 'p-0000000c', '#16A34A', 2)!, nom: 'Vert' };
 const ACTUELLE: Recette = [BLEU, AMBRE].reduce(ajouter, VIDE);
 
+test('une recette 8 importée se lit au format courant avec le texte par défaut', () => {
+  const { texteDesBoutons: _, ...ancienne } = ACTUELLE;
+  const resultat = lireLImport(jsonCanonique({ ...ancienne, formatVersion: 8 }), ACTUELLE);
+  assert.ok(resultat.issue === 'prete');
+  assert.deepEqual(resultat.recette, ACTUELLE);
+});
+
 test('[REC-08] l’écart nomme les palettes ajoutées, retirées et modifiées, par identifiant, et les paramètres communs changés', () => {
   const importee: Recette = {
     ...ACTUELLE,
