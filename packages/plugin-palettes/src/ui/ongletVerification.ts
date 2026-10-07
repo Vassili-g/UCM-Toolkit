@@ -51,10 +51,6 @@ function construireVues(i18n: Localisation) {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
 
-    // La barre de la palette, quand l'onglet est actif ([UI-23]).
-    const choix = document.createElement('div');
-    choix.className = 'choix-de-palette';
-
     // Sans palette choisie : l'invitation de Création ([UI-06]).
     const invitation = document.createElement('div');
     invitation.className = 'invitation';
@@ -95,7 +91,6 @@ function construireVues(i18n: Localisation) {
     const garanties = createGaranties({
       ouvrir: (cible) => gestes.ouvrir(cible),
       montrerLeTheme: (mode) => etat.montrerLeTheme(mode),
-      choisirLeTheme: (mode) => etat.choisirLeTheme(mode),
       themeDAvant: () => etat.themeDAvant(),
       revenirAuTheme: () => etat.revenirAuTheme(),
     });
@@ -116,7 +111,7 @@ function construireVues(i18n: Localisation) {
 
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
-    vue.append(choix, invitation, sansRecette, corps);
+    vue.append(invitation, sansRecette, corps);
     element.append(vue);
 
     let actif = false;
@@ -128,10 +123,12 @@ function construireVues(i18n: Localisation) {
       const recette = etat.recette();
       const courante = etat.palette();
       const analyse = etat.analyse();
-      choix.hidden = !recette;
       sansRecette.hidden = recette !== null;
       invitation.hidden = !recette || courante !== null;
       corps.hidden = !recette || !courante || !analyse;
+      // La barre de la palette, en tête du panneau tant qu'une recette se lit ([UI-23]).
+      if (recette) barre.placerDans(vue);
+      else barre.element.hidden = true;
       if (!recette || !courante || !analyse) return;
 
       const nom = nomDeLaPalette(courante);
@@ -181,7 +178,8 @@ function construireVues(i18n: Localisation) {
       montrer(suivant) {
         actif = suivant;
         if (!actif) return;
-        barre.placerDans(choix);
+        if (etat.recette()) barre.placerDans(vue);
+        else barre.element.hidden = true;
         if (enRetard) rendre();
       },
       choisirGarantie(association) {

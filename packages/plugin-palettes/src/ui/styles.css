@@ -26,11 +26,25 @@
 
 /*
  * La barre de la palette et sa confirmation de suppression ([UI-23]) : un seul
- * bloc, que l'onglet actif place en tête de son panneau.
+ * bloc, que l'onglet actif place en tête de son panneau. Un filet la sépare de
+ * la suite, avec 15 px de chaque côté. Elle reste en haut de la fenêtre pendant
+ * le défilement : rien n'est fixé au-dessus d'elle, donc `top` vaut 0. Les
+ * 8 px de remplissage en haut, repris par une marge négative, évitent que le
+ * sélecteur touche le bord de la fenêtre sans déplacer la barre au repos.
+ * Son z-index la place au-dessus des cartes et sous le pied et la modale ; la
+ * liste du sélecteur et celle du menu s'ouvrent dans son empilement.
  */
 .barre-de-palette {
+  position: sticky;
+  z-index: 2;
+  top: 0;
   display: grid;
   min-width: 0;
+  margin-top: calc(-1 * var(--espace-controle));
+  padding-top: var(--espace-controle);
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond);
   gap: var(--espace-controle);
   grid-template-columns: minmax(0, 1fr);
 }
@@ -59,6 +73,11 @@
   width: var(--hauteur-action);
   height: var(--hauteur-action);
   flex-shrink: 0;
+}
+
+.barre-gestes .bascule {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .menu-palette {
@@ -1886,14 +1905,9 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-/*
- * Un filet sépare le choix et la création d'une palette de la palette ouverte,
- * avec 15 px de chaque côté.
- */
+/* La création d'une palette et la note, sous le filet de la barre. */
 .choix-de-palette {
   gap: var(--espace-controle);
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--bordure);
 }
 
 .vue-de-la-palette {

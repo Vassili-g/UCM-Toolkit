@@ -254,11 +254,10 @@ function construireVues(i18n: Localisation) {
 
     const zoneDeLaNote = document.createElement('div');
 
-    // Le choix ou la création d'une palette, en tête de l'onglet : la barre partagée, la création, puis la note.
+    // La création d'une palette et la note, sous la barre partagée, que `vue` porte en tête.
     const choix = document.createElement('div');
     choix.className = 'choix-de-palette';
     choix.append(zoneDeLaNote);
-    barre.placerDans(choix);
 
     // Le titre de premier rang, « Palette [nom] », seul sur sa ligne ([UI-11]) : un nom long se coupe.
     const titreDeConfiguration = document.createElement('h2');
@@ -762,6 +761,7 @@ function construireVues(i18n: Localisation) {
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
     vue.append(choix, invitation, configuration);
+    barre.placerDans(vue);
     element.append(zoneDuRefus, zoneDuBloquant, vide, vue);
 
     /** Le panneau de création suit la vue montrée : seul, ou sous le sélecteur. */
@@ -791,6 +791,8 @@ function construireVues(i18n: Localisation) {
       creation.element.hidden = !creationOuverte;
       zoneDeLaNote.replaceChildren(...(note ? [blocDeConstat(note, 'notice')] : []));
       zoneDeLaNote.hidden = !note;
+      // Sans création ni note, le bloc cacherait un espacement vide sous la barre.
+      choix.hidden = !creationOuverte && !note;
       // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
       invitation.hidden = courante !== null || creationOuverte;
       configuration.hidden = !courante;
@@ -988,7 +990,7 @@ function construireVues(i18n: Localisation) {
         agir,
         supprimer: () => confirmerLaSuppression(),
       },
-      placerLaBarre: () => barre.placerDans(choix),
+      placerLaBarre: () => barre.placerDans(vue),
       ouvrir,
     };
   }

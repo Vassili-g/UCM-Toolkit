@@ -1,7 +1,7 @@
 /**
  * La carte « Garanties de contraste » de l'onglet Vérification ([UI-09]),
- * fixe et toujours ouverte : dans son en-tête, le thème montré, que l'aperçu
- * de Création partage ([VER-20]) ; puis
+ * fixe et toujours ouverte : dans son en-tête, le nom du thème montré, que la
+ * barre de la palette choisit ([VER-20]) ; puis
  * une bascule Soft/Vivid qui porte le résultat de chaque profil, une réglette
  * des nuances où la garantie choisie se trace en arcs, puis un encadré par
  * minimum (maquette Z3.2, G2) : les états nommés une fois en tête de
@@ -50,8 +50,6 @@ export interface GestesDesGaranties {
   ouvrir(cible: CibleDAction): void;
   /** Montre l'autre thème, avec un retour ([UI-09]). */
   montrerLeTheme(mode: Mode): void;
-  /** Pose le thème, sans retour. */
-  choisirLeTheme(mode: Mode): void;
   /** Le thème d'avant `montrerLeTheme`, `null` sans retour à offrir. */
   themeDAvant(): Mode | null;
   revenirAuTheme(): void;
@@ -137,21 +135,6 @@ function construireVues(i18n: Localisation) {
 
   function createGaranties(gestes: GestesDesGaranties): GarantiesUi {
     const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDesGaranties, glyphe: creerGlyphe('garanties') }, i18n);
-    // Le thème montré, à droite du titre : Vérification n'a pas l'aperçu, qui le choisit dans Création.
-    const themes = document.createElement('div');
-    themes.className = 'bascule';
-    themes.setAttribute('role', 'group');
-    i18n.lier(themes, 'aria-label', TEXTES_DES_GARANTIES.themes);
-    const boutonsDeTheme = MODES.map((valeur) => {
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'bascule-option';
-      i18n.lier(bouton, 'textContent', valeur === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
-      bouton.addEventListener('click', () => gestes.choisirLeTheme(valeur));
-      themes.append(bouton);
-      return { valeur, bouton };
-    });
-    carte.tete.append(themes);
     const bascule = document.createElement('div');
     bascule.className = 'bascule bascule-des-profils';
     bascule.setAttribute('role', 'group');
@@ -333,7 +316,7 @@ function construireVues(i18n: Localisation) {
       const { recette, analyse, mode } = entrees;
       const autre: Mode = MODES.find((candidat) => candidat !== mode) ?? mode;
       const parProfil = (duProfil: Intensite, dansLeMode: Mode) => manquees(promessesDe(analyse, dansLeMode, duProfil));
-      for (const { valeur, bouton } of boutonsDeTheme) bouton.setAttribute('aria-pressed', String(valeur === mode));
+      carte.poserResume(mode === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
       // Une palette à une intensité n'a pas de profil à choisir : la bascule se retire ([ENT-14]).
       bascule.hidden = analyse.intensites.length === 1;
       for (const { valeur, bouton } of boutonsDeProfil) {
