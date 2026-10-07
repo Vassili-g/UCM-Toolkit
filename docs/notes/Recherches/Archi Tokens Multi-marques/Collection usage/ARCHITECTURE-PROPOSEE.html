@@ -187,9 +187,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <div class="carte"><div class="k">Cinq collections</div>
       <ul>
         <li><code>primitives</code> : les palettes, calculées par UCM Palettes.</li>
-        <li><code>brand</code> : une colonne par marque, qui choisit ses palettes.</li>
+        <li><code>color-brands</code> : une colonne par marque, qui choisit ses palettes.</li>
         <li><code>color-utilities</code> : le neutre et les statuts, communs.</li>
-        <li><code>theme</code> : une colonne Light, une colonne Dark. Les noms que les calques citent.</li>
+        <li><code>theme</code> : deux modes, <code>light</code> et <code>dark</code>. Les noms que les calques citent.</li>
         <li><code>components</code> : les tokens de composants.</li>
       </ul></div>
     <div class="carte"><div class="k">Quatre règles pour le designer</div>
@@ -201,7 +201,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ol></div>
     <div class="carte"><div class="k">Personne ne tape un alias</div>
       <ul>
-        <li>UCM Palettes écrit <code>primitives</code>, <code>brand</code>, <code>color-utilities</code> et <code>theme</code> depuis la table du kit et la recette.</li>
+        <li>UCM Palettes écrit <code>primitives</code>, <code>color-brands</code>, <code>color-utilities</code> et <code>theme</code> depuis la table du kit et la recette.</li>
         <li>Le designer choisit une marque, un thème et des variables de <code>theme</code>. Il ne voit aucun numéro de nuance.</li>
         <li><code>ucm check</code> mesure chaque couple dans chaque marque et chaque thème.</li>
       </ul></div>
@@ -211,16 +211,16 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="chaine">
     <div class="maillon"><b>components</b><span class="ax">aucun mode</span><p>Le calque cite un nom de composant.</p></div>
     <span class="fl">→</span>
-    <div class="maillon"><b>theme</b><span class="ax on">Light · Dark</span><p>Le nom d'usage, et sa nuance dans chaque thème.</p></div>
+    <div class="maillon"><b>theme</b><span class="ax on">light · dark</span><p>Le nom d'usage, et sa nuance dans chaque thème.</p></div>
     <span class="fl">→</span>
-    <div class="maillon"><b>brand</b><span class="ax on">une colonne par marque</span><p>Quelle palette pour <code>primary</code>, <code>secondary</code>.</p></div>
+    <div class="maillon"><b>color-brands</b><span class="ax on">une colonne par marque</span><p>Quelle palette pour <code>primary</code>, <code>secondary</code>.</p></div>
     <span class="fl">ou</span>
     <div class="maillon"><b>color-utilities</b><span class="ax">aucun mode</span><p>Quelle palette pour le neutre et chaque statut.</p></div>
     <span class="fl">→</span>
     <div class="maillon"><b>primitives</b><span class="ax">aucun mode</span><p>L'hexa calculé.</p></div>
   </div>
   <div class="trajet" id="trajet"></div>
-  <p class="cap">Deux collections portent un axe : <code>brand</code> la marque, <code>theme</code> le thème (D1). Un cadre Figma règle chacune séparément ; le code pose <code>data-brand</code> et <code>data-theme</code>.</p>
+  <p class="cap">Deux collections portent un axe : <code>color-brands</code> la marque, <code>theme</code> le thème (D1). Un cadre Figma règle chacune séparément ; le code pose un attribut par axe, dont <code>data-theme</code>. La structure ne décrit que les couleurs : <code>layouts</code>, <code>typography</code> et les primitives de dimension et de police sont hors de son périmètre.</p>
 
   <h2>Les variables d'une palette</h2>
   <div class="narrow">
@@ -236,7 +236,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td><code>{p}/page/focus</code></td><td>L'anneau de focus d'un composant de cette palette, posé autour de lui</td><td>600</td><td>700</td></tr>
     </tbody>
   </table></div>
-  <p>Treize variables par palette. <code>foreground</code> peint le texte et l'icône, comme le rôle <code>foreground</code> des contrats UCM. Dans chaque dossier, le contour a la nuance du texte. L'anneau prend la couleur du composant : un bouton <code>danger</code> a un anneau <code>danger</code>. Hors palette : <code>neutral/page/foreground</code> à la 900 ; <code>disabled/background</code>, <code>foreground</code> et <code>border</code>.</p>
+  <p>Treize variables par palette. <code>foreground</code> peint le texte et l'icône, comme le rôle <code>foreground</code> des contrats UCM. Dans chaque dossier, le contour a la nuance du texte. L'anneau prend la couleur du composant : un bouton <code>danger</code> a un anneau <code>danger</code>. Hors palette : <code>disabled/background</code>, <code>foreground</code> et <code>border</code>.</p>
+  <p>Le neutre a deux textes au lieu d'un : <code>neutral/page/foreground-main</code>, le corps de texte, en noir pur en light et blanc pur en dark ; <code>neutral/page/foreground-subtle</code>, le texte secondaire, à la 700 (800 dans un thème inversé). Ses autres variables suivent le tableau. Sous <code>neutral/scale</code>, <code>0</code> et <code>1000</code> valent blanc et noir, et s'échangent entre light et dark.</p>
   </div>
 
   <h2>Le panneau des variables dans Figma</h2>
@@ -268,7 +269,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
 
   <div class="narrow">
   <h3>Les tokens des contrats, branchés sur <code>theme</code></h3>
-  <p><code>{c}</code> est la couleur du bouton ou la sévérité de l'alerte : <code>primary</code> et <code>secondary</code> visent <code>brand</code> ; <code>info</code>, <code>success</code> et <code>warning</code> leur statut en <code>vivid</code> ; <code>error</code> vise <code>danger/vivid</code>.</p>
+  <p><code>{c}</code> est la couleur du bouton ou la sévérité de l'alerte : <code>primary</code> et <code>secondary</code> visent <code>color-brands</code> ; <code>info</code>, <code>success</code> et <code>warning</code> leur statut en <code>vivid</code> ; <code>error</code> vise <code>danger/vivid</code>.</p>
   <div class="tw"><table class="plain">
     <thead><tr><th>Token de composant</th><th>Playground aujourd'hui</th><th>Modèle</th></tr></thead>
     <tbody>
@@ -335,14 +336,15 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="tw"><table class="plain">
     <thead><tr><th></th><th>Décision</th><th>Dans cette architecture</th></tr></thead>
     <tbody>
-      <tr><td class="id">D1</td><td>Deux axes, <code>brand</code> et <code>theme</code></td><td><span class="tag same">gardée</span></td></tr>
+      <tr><td class="id">D1</td><td>Deux axes, <code>color-brands</code> et <code>theme</code></td><td><span class="tag same">gardée</span></td></tr>
       <tr><td class="id">D2</td><td><code>theme</code> suit une règle sans choix du designer</td><td><span class="tag mod">modifiée</span> la règle devient une table : une nuance par variable et par thème, lue dans le kit et le réglage du texte des boutons</td></tr>
-      <tr><td class="id">D3 à D10</td><td><code>brand</code>, catalogue de <code>primitives</code>, <code>color-utilities</code>, courbe commune, <code>soft</code> et <code>vivid</code>, couleur de charte, blanc et noir</td><td><span class="tag same">gardées</span></td></tr>
+      <tr><td class="id">D3 à D10</td><td><code>color-brands</code>, catalogue de <code>primitives</code>, <code>color-utilities</code>, courbe commune, <code>soft</code> et <code>vivid</code>, couleur de charte, blanc et noir</td><td><span class="tag same">gardées</span></td></tr>
       <tr><td class="id">D11</td><td><code>components</code> garde ses noms</td><td><span class="tag mod">modifiée</span> il vise <code>theme</code> au lieu de <code>usage</code></td></tr>
-      <tr><td class="id">D12</td><td>Réglages et exceptions de marque réservés dans <code>brand</code></td><td><span class="tag same">gardée</span></td></tr>
+      <tr><td class="id">D12</td><td>Réglages et exceptions de marque réservés dans <code>color-brands</code></td><td><span class="tag same">gardée</span></td></tr>
       <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers <code>page</code>, <code>surface</code> et <code>solid</code> de <code>theme</code>, treize variables par palette au lieu de vingt</td></tr>
       <tr><td class="id">D14</td><td>Une nuance hors table passe par un token de composant</td><td><span class="tag same">gardée</span> il vise <code>theme.{palette}.scale.N</code>, aux portées vides</td></tr>
-      <tr><td class="id">D15, D16</td><td>Trois niveaux d'élévation ; une table pour les trois outils</td><td><span class="tag same">gardées</span></td></tr>
+      <tr><td class="id">D15</td><td>Trois niveaux d'élévation</td><td><span class="tag mod">modifiée</span> deux niveaux, <code>page</code> et <code>raised</code> : <code>overlay</code> est retiré</td></tr>
+      <tr><td class="id">D16</td><td>Une table pour les trois outils</td><td><span class="tag same">gardée</span></td></tr>
       <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
       <tr><td class="id">Palettes</td><td>Texte des boutons blanc ou noir purs, un choix par thème ; bouton à la nuance 700</td><td><span class="tag same">gardées</span> le thème inversé lui-même reste à décider</td></tr>
     </tbody>
@@ -369,6 +371,11 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>Le contour de <code>page</code> à la nuance de <code>page/foreground</code>.</li>
     <li><code>foreground</code> au lieu de <code>text</code> : la variable peint le texte et l'icône.</li>
     <li>Un anneau par palette, <code>{p}/page/focus</code>, à la 600, et à la 700 dans un thème inversé.</li>
+    <li>Pour le neutre : <code>neutral/page/foreground-main</code> en noir et blanc purs, <code>neutral/page/foreground-subtle</code> à la 700 ; <code>neutral/scale/0</code> et <code>1000</code>.</li>
+    <li>La collection des marques s'appelle <code>color-brands</code>, sans groupe <code>palette</code> ; <code>identity</code> y est un alias vers la nuance où la référence est posée.</li>
+    <li>Le blanc et le noir sous <code>primitives/colors/titanium</code>, et leurs alias sous <code>color-utilities/neutral/light</code> et <code>dark</code>, que <code>solid/foreground</code> vise.</li>
+    <li>Deux niveaux d'élévation, <code>page</code> et <code>raised</code>.</li>
+    <li>Les modes de <code>theme</code> en minuscules : <code>light</code> et <code>dark</code>.</li>
   </ul>
 
   <h2>À décider</h2>
@@ -399,12 +406,12 @@ footer ul{padding-left:18px;margin:6px 0 0}
   var MODES = ['light', 'dark'];
   var ETATS = ['default', 'hover', 'pressed'];
   var ELEV = {
-    light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.white', overlay: 'primitives.colors.white' },
-    dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100', overlay: 'primitives.colors.titanium.dark.100' },
+    light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.titanium.white' },
+    dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100' },
   };
-  /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. `border` ne sert qu'au neutre. */
-  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700, surface: 800, anneau: 600 };
-  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800, surface: 900, anneau: 700 };
+  /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. */
+  var NORMAL = { solid: [700, 800, 900], text: 700, subtle: 700, surface: 800, anneau: 600 };
+  var INVERSE = { solid: [700, 600, 500], text: 800, subtle: 800, surface: 900, anneau: 700 };
   var etat = { marque: 'intencial', light: 'blanc', dark: 'noir', col: 'theme' };
 
   function inverse(t) { return t === 'light' ? etat.light === 'noir' : etat.dark === 'blanc'; }
@@ -413,7 +420,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     return { role: q[0], rest: q.slice(1) };
   }
   function source(d, t, n) {
-    if (d.role === 'primary' || d.role === 'secondary') return 'brand.palette.' + d.role + '.' + t + '.' + n;
+    if (d.role === 'primary' || d.role === 'secondary') return 'color-brands.' + d.role + '.' + t + '.' + n;
     if (d.role === 'neutral') return 'color-utilities.neutral.' + t + '.' + n;
     return 'color-utilities.' + d.role + '.' + d.inten + '.' + t + '.' + n;
   }
@@ -422,9 +429,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (a === 'solid') return tb.solid[i];
     if (a === 'surface') return i >= 0 ? [100, 200, 300][i] : tb.surface;
     if (a === 'page') {
-      if (b === 'foreground') return d.role === 'neutral' ? 900 : tb.text;
+      if (b === 'foreground' || b === 'border') return tb.text;
       if (b === 'foreground-subtle') return tb.subtle;
-      if (b === 'border') return d.role === 'neutral' ? tb.border : tb.text;
       if (b === 'divider') return 300;
       if (b === 'focus') return tb.anneau;
     }
@@ -447,26 +453,34 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (col === 'theme') {
       if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
       if (q[0] === 'disabled') return 'color-utilities.neutral.' + t + '.' + (q[1] === 'background' ? 200 : 500);
+      /* Le corps de texte du neutre, et les bouts de sa rampe, visent le noir et le blanc purs. */
+      if (q[0] === 'neutral' && q[1] === 'page' && q[2] === 'foreground-main') return 'color-utilities.neutral.' + t + '.' + (t === 'light' ? 'black' : 'white');
+      if (q[0] === 'neutral' && q[1] === 'scale' && (q[2] === '0' || q[2] === '1000')) return 'color-utilities.neutral.' + t + '.' + ((q[2] === '0') === (t === 'light') ? 'white' : 'black');
       var d = decoupe(q);
-      if (texteDuPlein(d)) return 'primitives.colors.' + ((t === 'light' ? etat.light : etat.dark) === 'blanc' ? 'white' : 'black');
+      if (texteDuPlein(d)) return 'color-utilities.neutral.' + t + '.' + ((t === 'light' ? etat.light : etat.dark) === 'blanc' ? 'white' : 'black');
       return source(d, t, cranDe(d, inverse(t) ? INVERSE : NORMAL));
     }
-    if (col === 'brand') return 'primitives.colors.' + BRAND_PAL[etat.marque][q[1]] + '.' + q[2] + '.' + q[3];
+    if (col === 'color-brands') {
+      if (q[0] === 'identity') { var pal = BRAND_PAL[etat.marque][q[1]]; return 'primitives.colors.' + pal + '.light.' + rangDeLaReference(pal); }
+      return 'primitives.colors.' + BRAND_PAL[etat.marque][q[0]] + '.' + q[1] + '.' + q[2];
+    }
     if (col === 'color-utilities') {
       if (q[0] === 'elevation') return ELEV[q[1]][q[2]];
-      if (q[0] === 'neutral') return 'primitives.colors.titanium.' + q[1] + '.' + q[2];
+      if (q[0] === 'neutral') return 'primitives.colors.titanium.' + (q[2] === 'white' || q[2] === 'black' ? q[2] : q[1] + '.' + q[2]);
       return 'primitives.colors.' + UTIL_PAL[q[0]] + '.' + q[1] + '.' + q[2] + '.' + q[3];
     }
     return null;
   }
   function valueOf(path) {
     var p = path.split('.');
-    if (p[2] === 'white') return '#FFFFFF';
-    if (p[2] === 'black') return '#000000';
+    if (p[3] === 'white') return '#FFFFFF';
+    if (p[3] === 'black') return '#000000';
     var pal = D.palettes[p[2]], inten = 'unique', mode, n;
     if (p.length === 6) { inten = p[3]; mode = p[4]; n = p[5]; } else { mode = p[3]; n = p[4]; }
     return pal[inten][inverse(mode) ? mode + 'Inverse' : mode][CR.indexOf(Number(n))];
   }
+  /* La nuance light où la référence d'une palette est posée : la cible d'identity. */
+  function rangDeLaReference(pal) { var i = D.palettes[pal].unique.light.indexOf(D.palettes[pal].reference); return CR[i < 0 ? CR.indexOf(600) : i]; }
   function chaine(path, t) {
     var out = [path];
     for (var i = 0; i < 10; i++) { var n = next(out[out.length - 1], t); if (!n) break; out.push(n); }
@@ -549,23 +563,25 @@ footer ul{padding-left:18px;margin:6px 0 0}
     groupe('success/vivid/surface', ['default', 'foreground', 'border']);
     out.push(M('… success, warning, info et danger, en soft et en vivid : treize variables chacun'));
     groupe('neutral/surface', ['hover', 'foreground']);
-    groupe('neutral/page', ['foreground', 'foreground-subtle', 'border']);
+    groupe('neutral/page', ['foreground-main', 'foreground-subtle', 'border']);
     out.push(G('disabled')); ['background', 'foreground', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
-    groupe('elevation', ['page', 'raised', 'overlay']);
+    groupe('elevation', ['page', 'raised']);
     groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);
+    groupe('neutral/scale', ['0', '50', '900', '1000'], ['same', '0 et 1000 : blanc et noir, échangés en dark']);
     out.push(M('… les 121 nuances de toutes les palettes, sous scale'));
     return out;
   }
   function brandRows() {
     var out = [];
     function row(g, role, t, n) { return R(g, n, BRANDS.map(function (b) { var path = 'primitives.colors.' + BRAND_PAL[b][role] + '.' + t + '.' + n; return A(path, valueOf(path)); }).concat([{ t: '…' }])); }
+    function identite(role) { return R('identity', role, BRANDS.map(function (b) { var pal = BRAND_PAL[b][role], path = 'primitives.colors.' + pal + '.light.' + rangDeLaReference(pal); return A(path, valueOf(path)); }).concat([{ t: '…' }])); }
     [['primary', 'light', ['100', '200', '300', '700', '800', '900']], ['primary', 'dark', ['100', '200', '300', '500', '600', '700', '800', '900']], ['secondary', 'light', ['700']]].forEach(function (e) {
-      var g = 'palette/' + e[0] + '/' + e[1]; out.push(G(g));
+      var g = e[0] + '/' + e[1]; out.push(G(g));
       e[2].forEach(function (n) { out.push(row(g, e[0], e[1], n)); });
     });
     out.push(M('… 11 nuances par palette et par thème'));
     out.push(G('identity'));
-    out.push(R('identity', 'primary', BRANDS.map(function (b) { return V(D.palettes[BRAND_PAL[b].primary].reference); }).concat([{ t: '…' }])));
+    out.push(identite('primary')); out.push(identite('secondary'));
     return out;
   }
   function utilRows() {
@@ -579,10 +595,11 @@ footer ul{padding-left:18px;margin:6px 0 0}
     ['light', 'dark'].forEach(function (t) {
       var g = 'neutral/' + t; out.push(G(g));
       ['50', '100', '200', '300', '500', '700', '800', '900'].forEach(function (n) { out.push(row(g, 'primitives.colors.titanium.' + t + '.' + n, n)); });
+      ['white', 'black'].forEach(function (n) { out.push(row(g, 'primitives.colors.titanium.' + n, n)); });
     });
     ['light', 'dark'].forEach(function (t) {
       var g = 'elevation/' + t; out.push(G(g));
-      ['page', 'raised', 'overlay'].forEach(function (n) { out.push(row(g, ELEV[t][n], n)); });
+      ['page', 'raised'].forEach(function (n) { out.push(row(g, ELEV[t][n], n)); });
     });
     return out;
   }
@@ -594,14 +611,14 @@ footer ul{padding-left:18px;margin:6px 0 0}
       ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'].forEach(function (n) { out.push(R(g, n, [V(valueOf('primitives.colors.' + pal + '.' + t + '.' + n))])); });
     });
     out.push(M('… chaque palette : 11 nuances par thème, et par intensité pour les statuts'));
-    out.push(G('colors')); out.push(R('colors', 'white', [V('#FFFFFF')])); out.push(R('colors', 'black', [V('#000000')]));
+    out.push(G('colors/titanium')); out.push(R('colors/titanium', 'white', [V('#FFFFFF')])); out.push(R('colors/titanium', 'black', [V('#000000')]));
     return out;
   }
   function collections() {
     return [
       { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens des contrats Button et Alert du Playground gardent leurs noms et visent <code>theme</code> (D11). La valeur montrée est celle du thème Light.'] },
-      { id: 'theme', ax: 'Light · Dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
-      { id: 'brand', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). La couleur de charte reste à part (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
+      { id: 'theme', ax: 'light · dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
+      { id: 'color-brands', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). <code>identity</code> vise la nuance où la couleur de charte est posée (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
       { id: 'color-utilities', ax: 'aucun mode', modes: ['Valeur'], rows: utilRows(), note: ['Le neutre, les quatre statuts et les niveaux d’élévation, communs à toutes les marques (D6, D15).'] },
       { id: 'primitives', ax: 'aucun mode', modes: ['Valeur'], rows: primRows(), note: ['Le catalogue des palettes, en Light et en Dark, sur la courbe commune (D5, D7, D8). Ici la palette <code>primary</code> de la marque choisie.'] },
     ];
@@ -671,7 +688,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function etiquette(t) { return t === 'light' ? 'Light' : 'Dark'; }
   function scene(t, contenu, fond) {
     var bg = fond || H('elevation/page', t);
-    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/page/foreground', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
+    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/page/foreground-main', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
   }
   function mesures(couples) {
     return '<div class="mes">' + MODES.map(function (t) {
@@ -705,19 +722,19 @@ footer ul{padding-left:18px;margin:6px 0 0}
       titre: 'Champ de saisie',
       dessin: function (t) {
         return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/page/border', t) + ';color:' + H('neutral/page/foreground-subtle', t) + '">Nom du contrat</span>Repos</figure>'
-          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/foreground', t) + ';outline:2px solid ' + H('primary/page/focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
+          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/foreground-main', t) + ';outline:2px solid ' + H('primary/page/focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
       },
-      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code> ; anneau : <code>primary/page/focus</code>', 'texte : <code>neutral/page/foreground</code> ; indication : <code>neutral/page/foreground-subtle</code>']; },
-      couples: function () { return [['neutral/page/foreground', 'elevation/raised'], ['neutral/page/foreground-subtle', 'elevation/raised']]; },
+      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code> ; anneau : <code>primary/page/focus</code>', 'texte : <code>neutral/page/foreground-main</code> ; indication : <code>neutral/page/foreground-subtle</code>']; },
+      couples: function () { return [['neutral/page/foreground-main', 'elevation/raised'], ['neutral/page/foreground-subtle', 'elevation/raised']]; },
     },
     {
       titre: 'Paragraphe et lien',
       dessin: function (t) {
-        return '<p style="margin:0;font-size:14px;color:' + H('neutral/page/foreground', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/page/foreground', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
+        return '<p style="margin:0;font-size:14px;color:' + H('neutral/page/foreground-main', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/page/foreground', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
           + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/page/foreground-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
       },
-      vars: function () { return ['corps : <code>neutral/page/foreground</code> ; secondaire : <code>neutral/page/foreground-subtle</code>', 'lien : <code>primary/page/foreground</code>']; },
-      couples: function () { return [['neutral/page/foreground', 'page'], ['neutral/page/foreground-subtle', 'page'], ['primary/page/foreground', 'page']]; },
+      vars: function () { return ['corps : <code>neutral/page/foreground-main</code> ; secondaire : <code>neutral/page/foreground-subtle</code>', 'lien : <code>primary/page/foreground</code>']; },
+      couples: function () { return [['neutral/page/foreground-main', 'page'], ['neutral/page/foreground-subtle', 'page'], ['primary/page/foreground', 'page']]; },
     },
   ];
   function renderExemples() {

@@ -202,10 +202,11 @@ le fond 300, et la table y écrit la 900.
 `{p}/page/border` prend la nuance de `{p}/page/foreground` : le contour et le texte
 d'un bouton outlined ont la même couleur, comme dans le Playground. Contre la
 page et la carte, ce contour tient au pire 5,19:1 (section 5).
-`neutral/page/border` garde la 600, et la 700 dans un thème inversé.
+`neutral/page/border` suit la même règle, 700 et 800.
 
-Le dossier `page` ne porte pas de fond : la page, la carte et la modale sont
-les fonds d'`elevation`, communs à toutes les palettes. Son texte garde la
+Le dossier `page` ne porte pas de fond : la page et la carte sont les deux
+fonds d'`elevation`, communs à toutes les palettes ; une modale prend le fond
+de la carte. Son texte garde la
 couleur vive de la palette pour les liens et les libellés. Posé sur un fond
 teinté, il échoue : 82 mesures sur 126 tiennent en Light (section 5). C'est la
 raison du dossier `surface`.
@@ -219,15 +220,18 @@ plein.
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
-| `neutral/page/foreground` | Le corps de texte | neutre 900 |
+| `neutral/page/foreground-main` | Le corps de texte | noir pur en light, blanc pur en dark |
 | `neutral/page/foreground-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
+| `neutral/scale/0`, `neutral/scale/1000` | Le blanc et le noir, hors table | blanc et noir en light, échangés en dark |
 | `disabled/background`, `disabled/foreground`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
-| `elevation/page`, `raised`, `overlay` | Les fonds d'écran, de carte et de modale (D15) | inchangés |
+| `elevation/page`, `raised` | Le fond d'écran, et celui d'une carte ou d'une modale (D15 modifiée) | inchangés |
 
-Pour le neutre, `neutral/page/foreground` vise la 900 et non la 700 : un gris
-moyen est trop pâle pour un paragraphe. C'est une ligne de la table du kit,
-pas un choix du designer. L'option B des ensembles (section E5) disait la même
-chose.
+Le neutre a deux textes au lieu d'un. `neutral/page/foreground-main`, le
+corps de texte, vise le noir pur en light et le blanc pur en dark : le
+contraste le plus fort, quel que soit le réglage du texte des boutons.
+`neutral/page/foreground-subtle` porte le texte secondaire. Le neutre n'a pas
+de `page/foreground` ; ses autres variables suivent la section 4.1. Ce sont
+des lignes de la table du kit, pas des choix du designer.
 
 ### 4.3 Les états d'un composant
 
@@ -261,9 +265,9 @@ numérotées, rangées sous `scale`, pour un usage hors table (D14) :
 ```text
 components.button.colors.primary.contained.hover.background
   → theme.primary.solid.hover
-        light → brand.palette.primary.light.800
-        dark  → brand.palette.primary.dark.600        thème Dark inversé
-  → brand, colonne de la marque → primitives.colors.terracota.dark.600
+        light → color-brands.primary.light.800
+        dark  → color-brands.primary.dark.600         thème Dark inversé
+  → color-brands, colonne de la marque → primitives.colors.terracota.dark.600
 
 components.chart.scale-5
   → theme.warning.vivid.scale.600                     hors table, même numéro dans les deux thèmes
@@ -271,7 +275,7 @@ components.chart.scale-5
 
 | Collection | Avant (D1 à D17) | Après |
 |---|---|---|
-| `primitives`, `brand`, `color-utilities` | inchangées | inchangées |
+| `primitives`, `color-brands`, `color-utilities` | inchangées | inchangées, sauf `elevation`, qui perd `overlay`, et le blanc et le noir de la section 4.8 |
 | `theme` | 124 nuances, une règle fixe : même numéro dans les deux thèmes | les variables d'usage, une valeur par thème, et les nuances sous `scale` |
 | `usage` | 226 variables sans mode, qui visent `theme` | supprimée |
 | `components` | vise `usage` | vise `theme` |
@@ -342,6 +346,25 @@ disparaît : la sélection change de dossier.
 
 Dans un thème inversé, le texte 700 échoue même sur le fond 100 : 2 rampes
 sur 42 seulement tiennent. L'escalier y commence donc à 800.
+
+### 4.8 La forme retenue dans le fichier Figma
+
+Le mainteneur a remappé les tokens dans Figma. La comparaison avec cette
+recherche a fixé ces choix, qui font maintenant partie de la proposition :
+
+| Sujet | Forme retenue |
+|---|---|
+| Collection des marques | `color-brands`, sans groupe `palette` : `color-brands.primary.light.700` |
+| Couleur de charte (D9) | `color-brands.identity.primary` et `identity.secondary` sont des alias vers la nuance où la référence est posée ; l'alias garde le rang |
+| Blanc et noir | `primitives.colors.titanium.white` et `.black`, dans la rampe du neutre |
+| Alias du blanc et du noir | `color-utilities.neutral.light.white`, `.black`, et de même sous `dark` ; `{p}/solid/foreground` et les variables du neutre les visent |
+| Élévation (D15) | deux niveaux, `page` et `raised` ; `overlay` est retiré |
+| Neutre | `neutral/page/foreground-main` et `foreground-subtle` (section 4.2) ; `neutral/scale/0` et `1000` |
+| Modes de `theme` | `light` et `dark`, en minuscules |
+| Périmètre | `layouts`, `typography` et les primitives de dimension et de police restent hors de cette recherche |
+
+`primitives` n'a aucun mode. Les portées des variables ne se lisent pas dans
+l'export JSON : elles restent à vérifier dans Figma.
 
 ## 5. Mesures
 
@@ -451,6 +474,7 @@ erreur.
 | D11, `components` vise `usage` | `components` vise `theme` |
 | D13, la collection `usage` | Remplacée par les dossiers `page`, `surface` et `solid` de la section 4.1, dans `theme` ; treize variables par palette au lieu de vingt |
 | D14, une nuance hors table | Inchangée : le token de composant vise `theme.{p}.scale.N` |
+| D15, trois niveaux d'élévation | Deux niveaux, `page` et `raised` : `overlay` est retiré |
 | D16, une table pour les trois outils | Inchangée dans son principe ; la table du kit porte une colonne par thème, normal et inversé |
 | D17, quatre rangs d'état | Trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier |
 | Ensembles E1 à E5 | Abandonnés : E2 est généralisé à tous les usages, E4 devient l'anneau de focus, E5 retient l'option B |
@@ -466,7 +490,7 @@ erreur.
 | Alerte outlined | pas de fond ; contour `danger/vivid/page/border` | | | `danger/vivid/page/foreground` |
 | Badge fort | `success/vivid/solid/default` | | | `success/vivid/solid/foreground` |
 | Ligne de tableau | pas de fond | `neutral/surface/hover` | sélection : `primary/surface/default` | `neutral/surface/foreground`, puis `primary/surface/foreground` |
-| Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/foreground` |
+| Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/foreground-main` |
 | Lien dans un paragraphe | | | | `primary/page/foreground` |
 | Focus de n'importe quel contrôle | | | | anneau `{p}/page/focus` de la palette du contrôle |
 
@@ -477,7 +501,7 @@ Les contrats `src/components/Button/Button.contract.json` et
 rebranchés sur `theme`, rôle par rôle. La
 [page de l'architecture](./ARCHITECTURE-PROPOSEE.html), section « Recette », les dessine dans
 les trois marques de la vue illustrée, en Light et en Dark, et mesure chaque
-variant. `primary` et `secondary` visent `brand` ; `info`, `success` et
+variant. `primary` et `secondary` visent `color-brands` ; `info`, `success` et
 `warning` leur statut en `vivid` ; `error` vise `danger/vivid`.
 
 | Token de composant | Playground aujourd'hui | Modèle |
@@ -583,7 +607,7 @@ ensembles : texte et contour de `surface` à 800 dans les thèmes normaux, 900
 dans les thèmes inversés ; le contour de `page` à la nuance de
 `page/foreground` ; le nom `foreground`, qui peint le texte et l'icône, au
 lieu de `text` ; un anneau par palette, `{p}/page/focus`, à la 600, 700 dans
-un thème inversé.
+un thème inversé ; les choix de la section 4.8, issus du fichier Figma.
 
 Restent :
 
