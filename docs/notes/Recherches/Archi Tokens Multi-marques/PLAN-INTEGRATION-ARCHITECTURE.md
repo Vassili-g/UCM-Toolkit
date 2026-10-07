@@ -272,6 +272,10 @@ l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
 
 ## Lot A4 : `ucm check`
 
+Remplacé par le lot 5 du
+[plan du thème en dossiers](../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md) :
+le diagnostic ne garde que la mesure des contrastes.
+
 - [x] **A4.1** Le diagnostic lit la table, les paires, les rangs et le
   contraste dans `@ucm-kit/core/emplois` (lot A1). Une couleur de
   `tokens.json` passe à 8 bits avant le contraste, comme dans UCM Palettes

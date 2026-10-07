@@ -224,8 +224,8 @@ préfixe de P, P compris. Un `ring` se dessine hors de la boîte : son fond est
 le plus long préfixe strictement plus court que P. Sans un tel préfixe, la
 couleur est posée sur le fond de la page. Deux `background` empilés sur le
 chemin retenu laissent le fond indéterminé. Le contrat ne publie rien de plus
-pour cela : `ucm check` applique cette règle pour juger une couleur et son
-fond contre la table des emplois.
+pour cela : `ucm check` applique cette règle pour mesurer le contraste d'une
+couleur contre son fond.
 
 Le chemin publié est celui du calque **publié** qui porte la peinture. Une
 couleur posée **sous une feuille** appartient à cette feuille : le contrat ne

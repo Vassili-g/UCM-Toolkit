@@ -146,7 +146,7 @@ test("référence absente des tokens : avertissement, et la fusion reste ouverte
   assert.match(rapport, /Cet avertissement ne bloque pas la fusion\./);
 });
 
-test("[A4] un usage posé sur un support qu’il ne peint pas avertit dans le rapport et le terminal, sans bloquer", () => {
+test("une collection `usage` ne se juge plus : un usage posé sur un autre support n'avertit pas", () => {
   const document = contrat();
   document.variantViews.v1.paintPlacements = "p1";
   document.viewPaintPlacements = { p1: { fills: { foreground: [["label"]] } } };
@@ -161,11 +161,8 @@ test("[A4] un usage posé sur un support qu’il ne peint pas avertit dans le ra
   const { bloquant, rapport, terminal } = verdict({ composants: { Widget: { contrat: document, tsx: TSX } }, tokens });
 
   assert.equal(bloquant, false);
-  assert.match(rapport, /### ⚠️ Des couleurs s'écartent de la table des emplois \(1 écart\)/);
-  assert.match(rapport, /`usage\.neutral\.solid\.default` peint un background, posé ici en foreground/);
-  assert.ok(terminal.some(({ texte }) => /1 écart à la table des emplois/.test(texte)));
-  // Sans collection `usage`, le diagnostic se tait.
-  assert.doesNotMatch(verdict().rapport, /table des emplois/);
+  assert.doesNotMatch(rapport, /table des emplois/);
+  assert.ok(!terminal.some(({ texte }) => /table des emplois/.test(texte)));
 });
 
 test("une référence sous un champ inconnu de 10 000 niveaux est relevée sans épuiser la pile", () => {

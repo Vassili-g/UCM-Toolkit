@@ -125,16 +125,12 @@ export {
   resumeTerminalTokensManquants,
 } from "./diagnostic-tokens.mjs";
 
-/**
- * Les couleurs d'un contrat contre la table des emplois de
- * `@ucm-kit/core/emplois` : support, paire, état, hors de la table.
- */
+/** Les couleurs d'un contrat sous leur seuil de contraste contre leur fond. */
 export {
-  porteLaTableDesEmplois,
-  constatsDesEmplois,
-  sectionEmplois,
-  resumeTerminalEmplois,
-} from "./diagnostic-emplois.mjs";
+  constatsDesContrastes,
+  sectionContrastes,
+  resumeTerminalContrastes,
+} from "./diagnostic-contrastes.mjs";
 
 /**
  * L'écart contrat ↔ code : le juger et le dire.

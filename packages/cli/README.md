@@ -256,14 +256,14 @@ developer upgrades the UCM packages. A mark that is not a version blocks too,
 and the designer runs the token export again. Both apply even in a repository
 with no contract yet.
 
-The usage table is the one UCM Palettes judges its palettes with, from
-`@ucm-kit/core/emplois`. Each colour of a variant is read through the first
-alias of its token. The check warns when a usage paints something it is not
-meant for, a text usage on a border for instance; when a text and the
-background it sits on, found by the rule of FORMAT.md section 2, are not a pair
-of the table at the same rank; when a variant's state does not aim at the rank
-the table gives it; and when a colour aims at `theme` directly. A pair and an
-off-table colour come with their contrast in each brand and theme.
+The contrast diagnostic applies to any `tokens.json`, whatever its
+collections are named. Each colour of a variant is read through the first
+alias of its token and measured against its background, found by the rule of
+FORMAT.md section 2, in each brand and theme. It reports a `foreground` or
+`icon` colour under 4.5:1, and a `border` or `ring` under 3:1, as
+information that never blocks the merge. The contract does not say whether a
+text is large, where the threshold drops to 3:1: a false signal stays
+information. A colour outside sRGB, or translucent, is not measured.
 
 A gap with the code warns: a developer closes it, and the merge goes through. A
 token removed from the design system warns too, so an older contract does not

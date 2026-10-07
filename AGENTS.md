@@ -153,7 +153,7 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     perimetre-rapport.mjs        ce que la demande de fusion touche, et si elle concerne UCM
     avertissements-export.mjs    ce que l'export n'a pas su décrire
     diagnostic-tokens.mjs        les références que la source de tokens ne porte pas
-    diagnostic-emplois.mjs       les couleurs d'un contrat contre la table des emplois : support, paire, état, hors de la table
+    diagnostic-contrastes.mjs    le contraste de chaque couleur d'un contrat contre son fond, en information
     diagnostic-parite.mjs        l'écart contrat ↔ code : le juger et le dire
     diagnostic-tests.mjs         ce qu'une suite de tests rouge dit au designer
     diagnostic-markdown.mjs      le rendu markdown d'un diagnostic
@@ -787,16 +787,20 @@ La spécification en lien porte le raisonnement.
   définies dans la spécification bloquent. Unique exception, motivée plus bas :
   l’échantillon de maquette ne réclame jamais rien.
   → [échantillon](#échantillon-de-maquette)
-- `ucm check` juge les couleurs d'un contrat contre la table des emplois de
-  `@ucm-kit/core/emplois`, la même que celle d'UCM Palettes, quand
-  `tokens.json` porte la collection `usage`, et n'en bloque jamais la fusion.
-  Le fond d'une couleur suit la règle de FORMAT.md, section 2 : le plus long
-  préfixe de son chemin qui porte un `background`. Un contraste se mesure à
-  8 bits dans chaque marque et chaque thème, et une couleur hors de sRGB ou
-  translucide n'est pas jugée. `diagnostic-emplois.mjs` en est l'unique
-  autorité ; `packages/kit/tests/diagnostic-emplois.test.mjs` tient un
-  contrat par constat et un contrat conforme. Borne : le diagnostic ne lit que
-  le premier alias d'un token de composant.
+- `ucm check` vérifie que chaque propriété d'un composant a une variable, et
+  ne juge pas l'usage des couleurs. Le diagnostic des contrastes s'applique à
+  tout `tokens.json`, sans nom de collection imposé : il signale une couleur
+  `foreground` ou `icon` sous 4,5:1, et `border` ou `ring` sous 3:1,
+  contre son fond, en sévérité `info`, sans jamais bloquer la fusion. Le fond
+  d'une couleur suit la règle de FORMAT.md, section 2 : le plus long préfixe
+  de son chemin qui porte un `background`. Un contraste se mesure à 8 bits
+  dans chaque marque et chaque thème, et une couleur hors de sRGB ou
+  translucide n'est pas jugée. `diagnostic-contrastes.mjs` en est l'unique
+  autorité ; `packages/kit/tests/diagnostic-contrastes.test.mjs` tient un
+  contrat par constat et un contrat conforme. Bornes : le diagnostic ne lit
+  que le premier alias d'un token de composant, et le contrat ne dit pas si un
+  texte est en grand corps, où le seuil descend à 3:1 ; un faux signal reste
+  une information.
   → [format](./docs/format/FORMAT.md#2-tokens-de-variantes)
 - On n’avertit que sur ce qu’on publie. Une valeur que le contrat va jeter,
   comme les dimensions du calque de référence quand `sizes` existe, n’est ni
