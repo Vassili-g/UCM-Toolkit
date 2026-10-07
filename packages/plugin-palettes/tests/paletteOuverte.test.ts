@@ -183,3 +183,65 @@ test('[VER-19] un réglage commun changé réanalyse toutes les palettes, une pa
   etat.rendu('complet');
   assert.equal(etat.verdicts().size, 0);
 });
+
+test('[UI-23] le thème montré vaut Light au départ, se choisit, se montre puis se rend', () => {
+  const { etat } = etatCompte();
+  assert.equal(etat.theme(), 'light');
+  assert.equal(etat.themeDAvant(), null);
+
+  etat.choisirLeTheme('dark');
+  assert.equal(etat.theme(), 'dark');
+  assert.equal(etat.themeDAvant(), null);
+
+  etat.montrerLeTheme('light');
+  assert.equal(etat.theme(), 'light');
+  assert.equal(etat.themeDAvant(), 'dark');
+  etat.revenirAuTheme();
+  assert.equal(etat.theme(), 'dark');
+  assert.equal(etat.themeDAvant(), null);
+
+  // Un choix du designer efface le retour offert par un lien.
+  etat.montrerLeTheme('light');
+  etat.choisirLeTheme('dark');
+  assert.equal(etat.themeDAvant(), null);
+  assert.equal(etat.theme(), 'dark');
+});
+
+test('[UI-23] un abonné au thème est prévenu une fois par changement effectif, jamais sans changement', () => {
+  const { etat } = etatCompte();
+  const vus: string[] = [];
+  const desabonner = etat.abonnerAuTheme((mode) => vus.push(mode));
+
+  etat.choisirLeTheme('light');
+  etat.montrerLeTheme('light');
+  etat.revenirAuTheme();
+  assert.deepEqual(vus, [], 'le thème montré ne change pas');
+
+  etat.choisirLeTheme('dark');
+  etat.montrerLeTheme('dark');
+  assert.deepEqual(vus, ['dark']);
+
+  etat.montrerLeTheme('light');
+  etat.revenirAuTheme();
+  assert.deepEqual(vus, ['dark', 'light', 'dark']);
+
+  // Choisir le thème déjà montré efface le retour : l'abonné le sait, le thème reste.
+  etat.montrerLeTheme('light');
+  etat.choisirLeTheme('light');
+  assert.deepEqual(vus, ['dark', 'light', 'dark', 'light', 'light']);
+  assert.equal(etat.themeDAvant(), null);
+
+  desabonner();
+  etat.choisirLeTheme('dark');
+  assert.equal(vus.length, 5);
+});
+
+test('[UI-23] ouvrir une autre palette garde le thème montré', () => {
+  const { etat } = etatCompte();
+  etat.poserRecette(avec(CYAN, ARDOISE));
+  etat.ouvrir(CYAN.id);
+  etat.choisirLeTheme('dark');
+  etat.ouvrir(ARDOISE.id);
+  etat.rendu('complet');
+  assert.equal(etat.theme(), 'dark');
+});

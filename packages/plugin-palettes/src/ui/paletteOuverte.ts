@@ -8,7 +8,7 @@
  * Un rendu complet prévient les abonnés ; un rendu d'aperçu, pendant un
  * glisser dans le sélecteur de couleur, ne prévient personne.
  */
-import { severiteDeLAlerte, type Palette, type Recette } from 'ucm-couleur';
+import { severiteDeLAlerte, type Mode, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette, type AnalyseDePalette } from '../analyse';
 import { verdictDe, type Verdict } from '../presentation';
@@ -37,6 +37,17 @@ export interface PaletteOuverte {
   rendu(nature: 'complet' | 'apercu'): void;
   /** `abonne` est appelé après chaque rendu complet ; la fonction rendue le désabonne. */
   abonner(abonne: (etat: PaletteOuverte) => void): () => void;
+  /** Le thème que l'aperçu et la carte des garanties montrent ; Light à la création de l'état, et il ne se range nulle part. */
+  theme(): Mode;
+  /** Le designer choisit un thème : le retour vers le thème d'avant s'efface. */
+  choisirLeTheme(mode: Mode): void;
+  /** Un lien montre l'autre thème en gardant celui d'avant, que `revenirAuTheme` rend. */
+  montrerLeTheme(mode: Mode): void;
+  /** Le thème d'avant un `montrerLeTheme`, `null` sans retour à offrir. */
+  themeDAvant(): Mode | null;
+  revenirAuTheme(): void;
+  /** `abonne` est appelé une fois par changement effectif du thème ; la fonction rendue le désabonne. */
+  abonnerAuTheme(abonne: (mode: Mode) => void): () => void;
 }
 
 /** Ce qu'un verdict retient d'une analyse, et les palettes proches de celle-ci. */
@@ -61,6 +72,17 @@ export function creerPaletteOuverte(analyser: (recette: Recette, palette: Palett
   const faits = new Map<string, Faits>();
   let verdicts = new Map<string, Verdict>();
   const abonnes = new Set<(etat: PaletteOuverte) => void>();
+  let theme: Mode = 'light';
+  let themeDAvant: Mode | null = null;
+  const abonnesDuTheme = new Set<(mode: Mode) => void>();
+
+  const prevenirDuTheme = (): void => {
+    for (const abonne of [...abonnesDuTheme]) abonne(theme);
+  };
+  function changerDeTheme(suivant: Mode): void {
+    theme = suivant;
+    prevenirDuTheme();
+  }
 
   const palette = (): Palette | null => recette?.palettes.find((candidate) => candidate.id === id) ?? null;
 
@@ -140,6 +162,30 @@ export function creerPaletteOuverte(analyser: (recette: Recette, palette: Palett
       abonnes.add(abonne);
       return () => {
         abonnes.delete(abonne);
+      };
+    },
+    theme: () => theme,
+    choisirLeTheme(suivant) {
+      const retourEfface = themeDAvant !== null;
+      themeDAvant = null;
+      if (suivant !== theme) changerDeTheme(suivant);
+      else if (retourEfface) prevenirDuTheme();
+    },
+    montrerLeTheme(suivant) {
+      if (suivant === theme) return;
+      themeDAvant = theme;
+      changerDeTheme(suivant);
+    },
+    themeDAvant: () => themeDAvant,
+    revenirAuTheme() {
+      const cible = themeDAvant;
+      themeDAvant = null;
+      if (cible) changerDeTheme(cible);
+    },
+    abonnerAuTheme(abonne) {
+      abonnesDuTheme.add(abonne);
+      return () => {
+        abonnesDuTheme.delete(abonne);
       };
     },
   };
