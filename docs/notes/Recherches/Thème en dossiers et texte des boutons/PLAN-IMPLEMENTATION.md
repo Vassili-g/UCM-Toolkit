@@ -232,6 +232,9 @@ la recette : `texte` (4,5 par défaut) et `nonTexte` (3).
 
 - `solid/foreground` vaut le blanc ou le noir purs, dans les deux sens (P6).
   Le fond de la page n'est plus le texte des boutons.
+- G2 juge le bouton au repos dans les deux sens. L'ancienne paire 14 jugeait
+  le survol dans le thème normal ; au repos, la 700 y tient à plus de 5:1
+  de la page.
 - G1 à G7 se jugent par palette ; G8 et G9 sur la recette entière. Une autre
   palette à deux intensités compte pour deux.
 - Une garantie dont un cran manque n'est pas jugeable, comme une paire
@@ -270,6 +273,24 @@ les quatre thèmes :
 
 Les références, les intensités et le protocole sont ceux de
 [mesurer-dossiers.ts](../Archi%20Tokens%20Multi-marques/Collection%20usage/mesurer-dossiers.ts).
+
+**La couverture.** Le mainteneur exige que n'importe quelle couleur passe.
+[mesurer-couverture.ts](../Plugin%20Palettes/Texte%20des%20boutons/Mesures/mesurer-couverture.ts)
+balaie 864 références de toutes teintes, chromas et clartés, en Vivid avec
+le préréglage Tailwind. G1 hors nuance ancrée n'y manque jamais, dans les
+quatre thèmes :
+
+| Thème | Pire G1 hors ancrage |
+|---|---|
+| Light, texte blanc | 5,59:1 |
+| Dark, texte noir | 5,93:1 |
+| Light inversé, texte noir | 4,67:1 |
+| Dark inversé, texte blanc | 4,50:1 |
+
+Le Dark inversé tient au ras du seuil : la comparaison passe par
+`atteintLeSeuil` du kit, jamais par une valeur arrondie. La garantie des
+courbes « pour toute teinte » de S7 rend le même verdict : vide pour les
+courbes par défaut.
 Un écart de plus de 0,01 arrête la tâche : l'agent relance ce script et
 `Mesures/generer-texte-des-boutons.ts` du dossier du texte des boutons, et
 rend les valeurs sans corriger le test.
@@ -827,8 +848,11 @@ les lots 1 à 6 et la porte qui manque.
     ne pas les corriger ici.
 - [ ] **T7.2** · `verificateur`. `npm test --workspace ucm-couleur`,
   `npm run typecheck`, puis `npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/mesurer-dossiers.ts"`
-  pour vérifier que le script tourne encore, sans commiter sa sortie. Fini
-  quand : tableau rendu, avec la liste des erreurs de type du plugin.
+  pour vérifier que le script tourne encore, sans commiter sa sortie ; enfin
+  `npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-couverture.ts"`,
+  sans commiter sa sortie, comparée à la couverture de S8 : zéro échec hors ancrage
+  dans chaque thème, et chaque pire à 0,01 près. Fini quand : tableau rendu,
+  avec la liste des erreurs de type du plugin.
 - [ ] **T7.3** · Orchestrateur. Pas de commit : enchaîner le lot 8.
 
 ## Lot 8. Les lecteurs du plugin et la carte des garanties
