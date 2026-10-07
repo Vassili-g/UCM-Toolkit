@@ -1,0 +1,141 @@
+{
+  "courbes": {
+    "light": [
+      0.975,
+      0.95,
+      0.905,
+      0.845,
+      0.76,
+      0.71,
+      0.66,
+      0.58,
+      0.42,
+      0.34,
+      0.27
+    ],
+    "dark": [
+      0.18,
+      0.225,
+      0.275,
+      0.33,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.7,
+      0.85,
+      0.93
+    ]
+  },
+  "resultats": [
+    {
+      "cas": "Light, texte blanc",
+      "references": 864,
+      "mesures": 2448,
+      "echecs": 0,
+      "pire": 5.59,
+      "echecsAncres": 0,
+      "pires": []
+    },
+    {
+      "cas": "Dark, texte noir",
+      "references": 864,
+      "mesures": 2448,
+      "echecs": 0,
+      "pire": 5.93,
+      "echecsAncres": 0,
+      "pires": []
+    },
+    {
+      "cas": "Light inversé, texte noir",
+      "references": 864,
+      "mesures": 2229,
+      "echecs": 127,
+      "pire": 4.13,
+      "echecsAncres": 76,
+      "pires": [
+        {
+          "reference": "#C770FF",
+          "cran": 700,
+          "hexa": "#AD00F8",
+          "ratio": 4.13
+        },
+        {
+          "reference": "#8E00CA",
+          "cran": 700,
+          "hexa": "#AF00F5",
+          "ratio": 4.14
+        },
+        {
+          "reference": "#D365FF",
+          "cran": 700,
+          "hexa": "#B600E9",
+          "ratio": 4.17
+        },
+        {
+          "reference": "#BC78FF",
+          "cran": 700,
+          "hexa": "#A31DFF",
+          "ratio": 4.18
+        },
+        {
+          "reference": "#B38BD0",
+          "cran": 700,
+          "hexa": "#AB1DF1",
+          "ratio": 4.18
+        },
+        {
+          "reference": "#794C98",
+          "cran": 700,
+          "hexa": "#AC1DF0",
+          "ratio": 4.19
+        },
+        {
+          "reference": "#9B63C1",
+          "cran": 700,
+          "hexa": "#AC1DF1",
+          "ratio": 4.2
+        },
+        {
+          "reference": "#BA88D0",
+          "cran": 700,
+          "hexa": "#B31DE3",
+          "ratio": 4.2
+        },
+        {
+          "reference": "#E155FF",
+          "cran": 700,
+          "hexa": "#BE00DA",
+          "ratio": 4.2
+        },
+        {
+          "reference": "#A161BC",
+          "cran": 700,
+          "hexa": "#B31DE4",
+          "ratio": 4.21
+        },
+        {
+          "reference": "#F138FF",
+          "cran": 700,
+          "hexa": "#C400CB",
+          "ratio": 4.21
+        },
+        {
+          "reference": "#754D9E",
+          "cran": 700,
+          "hexa": "#A426F9",
+          "ratio": 4.22
+        }
+      ]
+    },
+    {
+      "cas": "Dark inversé, texte blanc",
+      "references": 864,
+      "mesures": 2304,
+      "echecs": 0,
+      "pire": 4.5,
+      "echecsAncres": 132,
+      "pires": []
+    }
+  ]
+}
