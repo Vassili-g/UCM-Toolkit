@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>M1 · Carte des garanties</title>
+<link rel="stylesheet" href="./commun.css">
+<style>
+.reglette{background:#F7F7F7;border-radius:6px;padding:4px 6px;position:relative}
+.reglette svg{display:block;width:100%;height:58px}
+.cases{display:flex;gap:4px}
+.case{flex:1;min-width:0;text-align:center}
+.case i{display:block;height:20px;border-radius:3px}
+.case span{display:block;font-size:9.5px;line-height:16px;color:#6B6B6B}
+.case.vise span{color:#1E1E1E;font-weight:600}
+.case.page i{background:#F7F7F7;box-shadow:inset 0 0 0 1px #D2D2D2}
+.case.boutons i{background:#fff;border:1px dashed #6B6B6B;box-sizing:border-box}
+.bloc{border:1px solid #D2D2D2;border-radius:6px;overflow:hidden;background:#F5F5F5}
+.bloc-tete{display:flex;justify-content:space-between;background:#EBEBEB;padding:6px 12px;font:600 12px/16px Inter,sans-serif}
+.bloc-tete span{font-weight:400;font-size:11px;color:#6B6B6B}
+.colonnes,.garantie{display:grid;grid-template-columns:repeat(4,1fr);column-gap:6px;padding:6px 8px 6px 14px}
+.colonnes{color:#6B6B6B;text-align:center;padding-bottom:2px}
+.garantie{border-top:1px solid #D2D2D2;position:relative;cursor:pointer;row-gap:6px}
+.garantie.choisie::before{content:'';position:absolute;left:4px;top:6px;bottom:6px;width:3px;border-radius:2px;background:#007BE5}
+.qui{grid-column:1/-1}
+.gn{font:600 9px/13px Inter,sans-serif;color:#6B6B6B;border:1px solid #D2D2D2;border-radius:3px;padding:0 3px;margin-right:4px}
+.etat{display:grid;justify-items:center;gap:2px;text-align:center}
+.cadre{display:grid;place-items:center;width:56px;height:20px;border-radius:4px}
+.cadre b{font:600 11px/16px Inter,sans-serif}
+.cadre .btn{font:600 9.5px/14px Inter,sans-serif;border-radius:3px;padding:1px 6px}
+.cadre .contour{width:38px;height:12px;border-radius:3px;box-sizing:border-box}
+.cadre .anneau{width:36px;height:12px;border-radius:4px;box-sizing:border-box}
+.etat .pal{color:#6B6B6B;font-size:10px;line-height:12px}
+.deco{margin:0;color:#6B6B6B}
+</style>
+</head>
+<body>
+<h1>M1 · La carte des garanties (I4)</h1>
+<p class="intro">Onglet Vérification, palette Bleu (#1E6FD9, deux intensités), thème Light, texte des boutons blanc, Vivid affiché, avec Vert, Rouge et Orange dans la recette. À gauche, la carte telle que la galerie la dessine aujourd'hui. À droite, la carte proposée : une ligne par garantie, G1 à G9. Cliquer une ligne déplace l'éventail sur la réglette.</p>
+
+<div class="duo">
+  <figure><figcaption>Aujourd'hui</figcaption><img src="captures/garanties-aujourdhui.png" width="570" alt="La carte des garanties actuelle"></figure>
+  <figure><figcaption>Proposé</figcaption><div class="plugin" id="carte"></div></figure>
+</div>
+
+<h2>Ce qui change, et pourquoi</h2>
+<ol class="pourquoi">
+  <li><b>Une ligne par garantie, G1 à G9, au lieu d'une par paire.</b> Les dix-neuf paires deviennent neuf garanties (P4). Chaque ligne porte son numéro, les variables en police de code, puis le libellé du lexique dessous, comme aujourd'hui. Les deux blocs restent : textes lisibles à 4,5:1, éléments visibles à 3:1.</li>
+  <li><b>Quatre colonnes de fonds : la page, puis <code>default</code>, <code>hover</code>, <code>pressed</code>.</b> Le quatrième rang, <code>active-hover</code>, disparaît, et <code>active</code> devient <code>pressed</code>. La page prend la première colonne : c'est le seul fond hors de la palette contre lequel le plugin mesure (P9). Une garantie qui ne vise pas un fond laisse sa case vide.</li>
+  <li><b>L'éventail remplace l'escalier.</b> Le texte reste à la même nuance dans tous les états (texte constant) : la réglette tire un seul départ, la nuance du texte, vers chacun de ses fonds. La légende dit les quatre traits, et qu'à chaque état seul le fond change. Deux cases avant la 50 : la page, et le texte des boutons en tirets, départ de G1.</li>
+  <li><b><code>solid/foreground</code> nomme le réglage.</b> La note de G1 dit « suit le réglage Texte des boutons du thème Light : blanc », au lieu de « on-solid utilise la couleur du fond de page ». Les spécimens de G1 portent le blanc ou le noir purs.</li>
+  <li><b>G8 et G9, entre palettes, nomment l'autre palette.</b> Leurs cases ne sont plus des états mais les autres palettes de la recette : chaque case montre le pire des fonds teintés de cette palette, son nom au-dessus. Elles n'ont pas d'éventail sur la réglette, qui ne montre que la palette ouverte.</li>
+  <li><b>Les lignes qui disparaissent</b> : <code>text</code> sur <code>surface-card</code> et <code>border-control</code> sur <code>surface-card</code>, puisque la carte n'est plus une teinte de la palette ; <code>focus</code> sur <code>surface</code> devient la deuxième case de G7.</li>
+  <li><b>Ce qui ne change pas</b> : la forme de la carte, le choix « Afficher » Soft et Vivid, les spécimens, les numéros « 800 / 100 », le ratio, le niveau AA ou AAA, la ligne choisie marquée d'un trait bleu, et les liens d'une garantie manquée (« Ajuster la référence » et les autres), dont la forme reste celle de l'état <code>garantie-en-echec</code> de la galerie.</li>
+</ol>
+
+<script src="./commun.js"></script>
+<script>
+(function () {
+  var R = BLEU.vivid;
+  var col = function (x) { return x; };
+  /* Une case de garantie : le spécimen, les numéros, le résultat. */
+  function texte(fondHexa, encre, num, x) { return '<div class="etat"><span class="cadre" style="background:' + fondHexa + '"><b style="color:' + encre + '">Texte</b></span><p class="num">' + num + '</p>' + resultat(x, true) + '</div>'; }
+  function bouton(fondHexa, num, x, texteJuge) { return '<div class="etat"><span class="cadre" style="background:' + PAGE + '"><span class="btn" style="background:' + fondHexa + ';color:' + TEXTE_DES_BOUTONS + '">Bouton</span></span><p class="num">' + num + '</p>' + resultat(x, texteJuge) + '</div>'; }
+  function contour(fondHexa, trait, num, x) { return '<div class="etat"><span class="cadre" style="background:' + fondHexa + '"><span class="contour" style="border:1.5px solid ' + trait + '"></span></span><p class="num">' + num + '</p>' + resultat(x, false) + '</div>'; }
+  function anneau(fondHexa, trait, num, x) { return '<div class="etat"><span class="cadre" style="background:' + fondHexa + '"><span class="anneau" style="border:2px solid ' + trait + '"></span></span><p class="num">' + num + '</p>' + resultat(x, false) + '</div>'; }
+  var vide = '<div></div>';
+  var F = ['surface/default', 'surface/hover', 'surface/pressed'];
+  var fg = v(R, 'surface/foreground'), bd = v(R, 'surface/border');
+
+  /* Le pire des trois fonds teintés d'une autre palette contre une couleur. */
+  function pireTeinte(rampe, couleur, fonds) {
+    var pire = null;
+    fonds.forEach(function (f) { var x = contraste(couleur, v(rampe, f)); if (!pire || x < pire.x) pire = { x: x, cran: TABLE[f], hexa: v(rampe, f) }; });
+    return pire;
+  }
+  function croisees(premier, encre, fonds, forme) {
+    return Object.keys(AUTRES).map(function (nom) {
+      var p = pireTeinte(AUTRES[nom], encre, fonds), num = TABLE[premier] + ' / ' + p.cran;
+      var specimen = forme === 'texte'
+        ? '<span class="cadre" style="background:' + p.hexa + '"><b style="color:' + encre + '">Texte</b></span>'
+        : '<span class="cadre" style="background:' + p.hexa + '"><span class="anneau" style="border:2px solid ' + encre + '"></span></span>';
+      return '<div class="etat"><span class="pal">' + nom + '</span>' + specimen + '<p class="num">' + num + '</p>' + resultat(p.x, forme === 'texte') + '</div>';
+    }).join('');
+  }
+
+  var GARANTIES = {
+    textes: [
+      { g: 'G1', qui: '<code>solid/foreground</code> sur <code>solid/*</code>', nom: 'texte des boutons sur bouton', note: '<code>solid/foreground</code> suit le réglage « Texte des boutons » du thème Light : blanc.', depart: 'boutons', fonds: [null, 700, 800, 900],
+        cases: vide + ['solid/default', 'solid/hover', 'solid/pressed'].map(function (f) { return bouton(v(R, f), 'blanc / ' + TABLE[f], contraste(TEXTE_DES_BOUTONS, v(R, f)), true); }).join('') },
+      { g: 'G3', qui: '<code>surface/foreground</code> sur <code>surface/*</code> et la page', nom: 'texte sur fond teinté', depart: 800, fonds: ['page', 100, 200, 300],
+        cases: texte(PAGE, fg, '800 / page', contraste(fg, PAGE)) + F.map(function (f) { return texte(v(R, f), fg, '800 / ' + TABLE[f], contraste(fg, v(R, f))); }).join('') },
+      { g: 'G5', qui: '<code>page/foreground</code> sur la page', nom: 'texte coloré', depart: 700, fonds: ['page'],
+        cases: texte(PAGE, v(R, 'page/foreground'), '700 / page', contraste(v(R, 'page/foreground'), PAGE)) + vide + vide + vide },
+      { g: 'G9', qui: '<code>surface/foreground</code> sur les fonds teintés des autres palettes', nom: 'texte sur fond teinté, dans un conteneur d’une autre palette', depart: null, fonds: [],
+        cases: croisees('surface/foreground', fg, F, 'texte') + vide },
+    ],
+    visibles: [
+      { g: 'G2', qui: '<code>solid/default</code> sur la page', nom: 'bouton', depart: 700, fonds: ['page'],
+        cases: bouton(v(R, 'solid/default'), '700 / page', contraste(v(R, 'solid/default'), PAGE), false) + vide + vide + vide },
+      { g: 'G4', qui: '<code>surface/border</code> sur <code>surface/*</code> et la page', nom: 'contour sur fond teinté', depart: 800, fonds: ['page', 100, 200, 300],
+        cases: contour(PAGE, bd, '800 / page', contraste(bd, PAGE)) + F.map(function (f) { return contour(v(R, f), bd, '800 / ' + TABLE[f], contraste(bd, v(R, f))); }).join('') },
+      { g: 'G6', qui: '<code>page/border</code> sur la page', nom: 'contour', depart: 700, fonds: ['page'],
+        cases: contour(PAGE, v(R, 'page/border'), '700 / page', contraste(v(R, 'page/border'), PAGE)) + vide + vide + vide },
+      { g: 'G7', qui: '<code>page/focus</code> sur la page et <code>surface/default</code>', nom: 'anneau de focus', depart: 600, fonds: ['page', 100],
+        cases: anneau(PAGE, v(R, 'page/focus'), '600 / page', contraste(v(R, 'page/focus'), PAGE)) + anneau(v(R, 'surface/default'), v(R, 'page/focus'), '600 / 100', contraste(v(R, 'page/focus'), v(R, 'surface/default'))) + vide + vide },
+      { g: 'G8', qui: '<code>page/focus</code> sur le <code>surface/default</code> des autres palettes', nom: 'anneau de focus, dans un conteneur d’une autre palette', depart: null, fonds: [],
+        cases: croisees('page/focus', v(R, 'page/focus'), ['surface/default'], 'anneau') + vide },
+    ],
+  };
+
+  function ligne(g) {
+    return '<div class="garantie" data-g="' + g.g + '"><div class="qui"><span class="gn">' + g.g + '</span>' + g.qui + '<br><span class="sec">' + g.nom + '</span>' + (g.note ? '<br><span class="sec">' + g.note + '</span>' : '') + '</div>' + g.cases + '</div>';
+  }
+  var cases = '<div class="case page" data-c="page"><i></i><span>page</span></div><div class="case boutons" data-c="boutons"><i></i><span>boutons</span></div>'
+    + CR.map(function (c) { return '<div class="case" data-c="' + c + '"><i style="background:' + nuance(R, c) + '"></i><span>' + c + '</span></div>'; }).join('');
+  var h = '<div class="carte"><div class="carte-tete"><span class="glyphe"></span><div><h3>Garanties de contraste</h3><span class="sec">Les contrastes de chaque variable</span></div></div>'
+    + '<div class="rangee-choix"><span class="sec">Afficher</span><div class="bascule"><button>Soft ✓</button><button class="on">Vivid ✓</button></div></div>'
+    + '<div class="reglette"><svg id="arcs"></svg><div class="cases">' + cases + '</div></div>'
+    + '<p class="sec" style="margin:0">Trait plein : default · tireté : hover · pointillé : pressed · tiret-point : la page. Le texte garde sa nuance dans tous les états : seul le fond change.</p>'
+    + '<section class="bloc"><div class="bloc-tete">Textes lisibles<span>minimum 4,5:1</span></div><div class="colonnes"><span>sur la page</span><span>default</span><span>hover</span><span>pressed</span></div>' + GARANTIES.textes.map(ligne).join('') + '</section>'
+    + '<section class="bloc"><div class="bloc-tete">Éléments visibles<span>minimum 3:1</span></div><div class="colonnes"><span>sur la page</span><span>default</span><span>hover</span><span>pressed</span></div>' + GARANTIES.visibles.map(ligne).join('') + '</section>'
+    + '<p class="deco"><code>page/divider</code> 300 · filet, sans minimum de contraste</p></div>';
+  document.getElementById('carte').innerHTML = h;
+
+  var TOUTES = GARANTIES.textes.concat(GARANTIES.visibles);
+  var TRAITS = { page: '6 2 1 2', 0: '', 1: '4 3', 2: '1 3' };
+  /* L'éventail : un départ, la nuance du texte ou du contour, vers chacun de ses fonds. */
+  function eventail(id) {
+    var g = TOUTES.filter(function (x) { return x.g === id; })[0], svg = document.getElementById('arcs'), boite = svg.getBoundingClientRect();
+    document.querySelectorAll('.garantie').forEach(function (e) { e.classList.toggle('choisie', e.getAttribute('data-g') === id); });
+    document.querySelectorAll('.case').forEach(function (e) { e.classList.remove('vise'); });
+    if (!g.depart) { svg.innerHTML = ''; return; }
+    var x = function (c) { var e = document.querySelector('.case[data-c="' + c + '"]'); e.classList.add('vise'); var r = e.getBoundingClientRect(); return r.left + r.width / 2 - boite.left; };
+    var x0 = x(g.depart), bas = boite.height - 2, out = '<circle cx="' + x0 + '" cy="' + bas + '" r="2.2" fill="#1E1E1E"/>';
+    g.fonds.forEach(function (f, i) {
+      if (f === null) return;
+      var x1 = x(f), haut = Math.max(10, bas - 10 - Math.abs(x1 - x0) * 0.16);
+      var trait = f === 'page' ? TRAITS.page : TRAITS[g.fonds[0] === 'page' ? i - 1 : i - 1 < 0 ? 0 : i - 1];
+      out += '<path d="M' + x0 + ' ' + bas + ' Q' + (x0 + x1) / 2 + ' ' + haut + ' ' + x1 + ' ' + bas + '" fill="none" stroke="#1E1E1E" stroke-width="1.2"' + (trait ? ' stroke-dasharray="' + trait + '"' : '') + '/><circle cx="' + x1 + '" cy="' + bas + '" r="2.2" fill="#1E1E1E"/>';
+    });
+    svg.innerHTML = out;
+  }
+  document.querySelectorAll('.garantie').forEach(function (e) { e.addEventListener('click', function () { eventail(e.getAttribute('data-g')); }); });
+  eventail('G3');
+})();
+</script>
+</body>
+</html>

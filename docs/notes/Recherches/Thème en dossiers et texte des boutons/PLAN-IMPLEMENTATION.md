@@ -207,7 +207,7 @@ confirmation avant de remplacer.
   `blanc` ou `noir`.
 - La règle `crans-emplois` exige les crans requis pour le sens de chaque
   thème : une recette sans 500 reste lisible tant que ses deux thèmes sont
-  normaux. Jusqu'au lot 10, les crans requis du sens normal restent ceux de
+  normaux, décision du mainteneur. Jusqu'au lot 10, les crans requis du sens normal restent ceux de
   l'ancienne table (`CRANS_DES_EMPLOIS`, qui exige 400 et 950), dont les
   lecteurs vivent encore ; le sens inversé y ajoute 500. T10.1 passe aux
   crans requis de S2, où 50, 400 et 950 deviennent facultatifs.
@@ -232,9 +232,9 @@ la recette : `texte` (4,5 par défaut) et `nonTexte` (3).
 
 - `solid/foreground` vaut le blanc ou le noir purs, dans les deux sens (P6).
   Le fond de la page n'est plus le texte des boutons.
-- G2 juge le bouton au repos dans les deux sens. L'ancienne paire 14 jugeait
-  le survol dans le thème normal ; au repos, la 700 y tient à plus de 5:1
-  de la page.
+- G2 juge le bouton au repos dans les deux sens, décision du mainteneur.
+  L'ancienne paire 14 jugeait le survol dans le thème normal ; au repos, la
+  700 y tient à plus de 5:1 de la page.
 - G1 à G7 se jugent par palette ; G8 et G9 sur la recette entière. Une autre
   palette à deux intensités compte pour deux.
 - Une garantie dont un cran manque n'est pas jugeable, comme une paire
@@ -543,9 +543,12 @@ commencent que si la maquette existe et que le
 | M2 | La planche dessinée dans Figma | I6 : une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, G1 à G7 | 9 |
 | M3 | L'Interface de test | I8 : survoler un élément montre la variable qui le peint ; la vue États suit `default`, `hover`, `pressed` | 9 |
 
-Elles se font comme celle de l'aperçu : l'écran actuel reproduit à
-l'identique depuis la galerie, puis la version proposée, chaque changement
-argumenté. Elles se rangent dans `Maquettes/` de ce dossier.
+Elles sont dans `Maquettes/` : `M1-CARTE-DES-GARANTIES.html`,
+`M2-PLANCHE.html`, `M3-INTERFACE-DE-TEST.html`. Chacune montre l'écran
+actuel, capturé dans la galerie ou rendu depuis le modèle de la planche,
+puis la version proposée, construite avec les styles du plugin, et la liste
+argumentée de ce qui change. La version proposée fait foi pour la forme ;
+les styles qu'elle ne fixe pas restent ceux du plugin.
 
 ## Avant de commencer
 

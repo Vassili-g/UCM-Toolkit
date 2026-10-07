@@ -1,0 +1,29 @@
+/* La page des maquettes, sans fioriture. */
+body{margin:0;padding:24px 32px 48px;background:#fff;color:#1E1E1E;font:14px/1.5 Inter,system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:16px;margin:32px 0 8px}
+.intro{max-width:900px;color:#444;margin:0 0 20px}
+.duo{display:grid;grid-template-columns:auto auto;gap:40px;align-items:start;justify-content:start}
+.duo figure{margin:0}
+.duo figcaption{font-weight:600;margin-bottom:8px}
+.duo img{display:block;border:1px solid #ddd}
+ol.pourquoi{max-width:900px;padding-left:20px}
+ol.pourquoi li{margin-bottom:8px}
+code{font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:.92em}
+
+/* Le plugin : les styles relevés dans la galerie (Inter 11 px, encre #1E1E1E, encre seconde #6B6B6B). */
+.plugin{width:570px;font:11px/16px Inter,system-ui,sans-serif;color:#1E1E1E}
+.plugin code{font:500 11px/16px ui-monospace,'SF Mono',Consolas,monospace;background:#EBEBEB;border-radius:3px;padding:0 4px}
+.plugin .sec{color:#6B6B6B}
+.plugin .badge{display:inline-block;font:600 9px/13px Inter,sans-serif;color:#14532D;background:#CDEFD9;border-radius:3px;padding:0 4px}
+.plugin .res{margin:0;color:#168B52}
+.plugin .res.ko{color:#B42318}
+.plugin .num{margin:0;font:400 10px/16px ui-monospace,'SF Mono',Consolas,monospace}
+.carte{background:#F5F5F5;border:1px solid #D2D2D2;border-radius:6px;padding:12px;display:grid;gap:8px}
+.carte-tete{display:flex;gap:8px;align-items:center}
+.carte-tete h3{margin:0;font:600 12px/16px Inter,sans-serif}
+.glyphe{width:24px;height:16px;border-radius:3px;background:#1E6FD9;flex:none}
+.rangee-choix{display:flex;justify-content:flex-end;gap:4px;align-items:center}
+.bascule{display:flex;background:#F5F5F5;border-radius:6px;padding:2px}
+.bascule button{font:600 11px/16px Inter,sans-serif;color:#6B6B6B;background:none;border:0;border-radius:4px;padding:2px 8px}
+.bascule button.on{background:#fff;color:#1E1E1E;box-shadow:0 0 0 1px #D2D2D2}

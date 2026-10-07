@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>M3 · Interface de test</title>
+<link rel="stylesheet" href="./commun.css">
+<style>
+.choix{display:flex;gap:12px;align-items:center;justify-content:flex-end}
+.vue-titre{font:600 11px/16px Inter,sans-serif;color:#6B6B6B;margin:4px 0 0}
+.ecran{position:relative;display:grid;grid-template-columns:128px 1fr;background:#fff;border-radius:6px;overflow:visible}
+.nav{padding:12px 8px;display:grid;gap:4px;align-content:start}
+.nav b{font:600 12px/16px Inter,sans-serif;padding:4px 8px}
+.nav span{padding:4px 8px;border-radius:4px;font-size:12px}
+.contenu{padding:12px 16px;display:grid;gap:10px;align-content:start}
+.titre{display:flex;justify-content:space-between;align-items:center}
+.titre h4{margin:0;font:600 14px/18px Inter,sans-serif}
+.btn{font:600 11px/16px Inter,sans-serif;border-radius:6px;padding:5px 12px;border:1px solid transparent;display:inline-block;box-sizing:border-box}
+.encart{border-radius:6px;padding:6px 10px;font-size:11px}
+.encart u{font-weight:600}
+.tableau{border-radius:6px;overflow:hidden}
+.rangee{display:flex;align-items:center;gap:8px;padding:6px 10px}
+.avatar{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 10px/1 Inter,sans-serif}
+.rangee .nom{flex:1;font-size:12px}
+.pastille-badge{font:600 10px/14px Inter,sans-serif;border-radius:10px;padding:1px 8px}
+.champ{border-radius:6px;padding:5px 10px;font-size:12px;background:#fff}
+.controles{display:flex;gap:16px;align-items:center;font-size:12px}
+.case-a-cocher{width:14px;height:14px;border-radius:3px;display:inline-grid;place-items:center;font-size:10px;vertical-align:-2px;margin-right:6px}
+.interrupteur{width:26px;height:14px;border-radius:7px;display:inline-block;position:relative;vertical-align:-3px;margin-right:6px}
+.interrupteur i{position:absolute;right:2px;top:2px;width:10px;height:10px;border-radius:50%}
+.actions{display:flex;justify-content:flex-end;gap:8px}
+[data-v]{cursor:default}
+[data-v].survole{outline:1px dashed #1E1E1E;outline-offset:2px}
+.bulle{position:absolute;z-index:5;background:#1E1E1E;color:#fff;border-radius:4px;padding:4px 6px;font:400 10px/14px Inter,sans-serif;white-space:nowrap;pointer-events:none}
+.bulle code{background:none;color:#fff;font-size:10px;line-height:14px;padding:0}
+.bulle .sec2{color:#BDBDBD}
+.etats{position:relative;display:grid;grid-template-columns:96px repeat(4,1fr);gap:10px 6px;align-items:center;background:#fff;border-radius:6px;padding:12px}
+.etats .tete{color:#6B6B6B;font-size:11px}
+.etats .nom{font:600 11px/16px Inter,sans-serif}
+.etats .vide{color:#6B6B6B}
+</style>
+</head>
+<body>
+<h1>M3 · L'Interface de test (I8)</h1>
+<p class="intro">Onglet Création, palette Bleu, thème Light, texte des boutons blanc, Vivid. À gauche, la carte telle que la galerie la dessine aujourd'hui, vue Écran puis vue États. À droite, la carte proposée : survoler un élément de l'écran ou un spécimen montre les variables qui le peignent. La bulle du bouton « Enregistrer » reste ouverte pour la capture.</p>
+
+<div class="duo">
+  <figure><figcaption>Aujourd'hui</figcaption><img src="captures/interface-ecran-aujourdhui.png" width="570" alt="L'Interface de test, vue Écran"><br><img src="captures/interface-etats-aujourdhui.png" width="570" alt="L'Interface de test, vue États"></figure>
+  <figure><figcaption>Proposé</figcaption><div class="plugin" id="it"></div></figure>
+</div>
+
+<h2>Ce qui change, et pourquoi</h2>
+<ol class="pourquoi">
+  <li><b>Survoler un élément montre les variables qui le peignent.</b> Une bulle sombre, sous l'élément, une ligne par propriété : ce qu'elle peint en clair, la variable en police de code, sa nuance. L'élément survolé prend un contour tireté fin. Le designer voit sur un vrai écran quelle variable poser sur quel calque, dans le vocabulaire de <code>theme</code>.</li>
+  <li><b>La vue États suit <code>default</code>, <code>hover</code>, <code>pressed</code>, puis <code>focus</code>.</b> <code>active</code> devient <code>pressed</code>. Chaque spécimen suit la recette du Playground : le bouton contour survolé passe au fond plein, le bouton sans fond prend les fonds teintés au survol et à l'appui, le focus ajoute <code>page/focus</code>.</li>
+  <li><b>Le texte ne change plus avec l'état.</b> Dans les boutons soft et sans fond, le texte reste <code>surface/foreground</code> sur les trois fonds (texte constant).</li>
+  <li><b>Le champ garde son contour</b> : <code>page/border</code> n'a pas d'état ; son survol et son appui sont identiques au repos, son focus ajoute l'anneau.</li>
+  <li><b>La ligne « Carte » disparaît</b> : la carte est <code>elevation/raised</code>, un fond neutre hors de la palette.</li>
+  <li><b>Ce qui ne change pas</b> : l'écran « Membres de l'équipe », ses éléments et leur place, les choix « Vue » et « Afficher », le thème donné par la bascule « Aperçu ». La bulle est une aide au survol : au clavier, rien ne change, et aucun texte n'est ajouté à l'écran.</li>
+</ol>
+
+<script src="./commun.js"></script>
+<script>
+(function () {
+  var R = BLEU.vivid;
+  var NOMS = { fond: 'fond', texte: 'texte', contour: 'contour', anneau: 'anneau', coche: 'coche', icone: 'icône' };
+  /* data-v : « propriété=variable » séparés par « ; ». */
+  function c(variable) { return v(R, variable); }
+  function dv(pairs) { return ' data-v="' + pairs.map(function (p) { return p[0] + '=' + p[1]; }).join(';') + '"'; }
+  var sf = c('surface/foreground'), sdef = c('surface/default');
+
+  var ecran = '<div class="ecran" id="ecran" style="box-shadow:inset 0 0 0 1px ' + c('page/divider') + '">'
+    + '<div class="nav" style="border-right:1px solid ' + c('page/divider') + '"' + dv([['séparateur', 'page/divider']]) + '><b>Studio Nord</b>'
+    + '<span style="background:' + sdef + ';color:' + sf + ';font-weight:600"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground']]) + '>Paramètres</span><span>Membres</span><span>Facturation</span><span>Intégrations</span></div>'
+    + '<div class="contenu"><div class="titre"><div><h4>Membres de l’équipe</h4><span class="sec">4 membres · 1 invitation en attente</span></div>'
+    + '<span class="btn" style="background:' + c('solid/default') + ';color:' + TEXTE_DES_BOUTONS + '"' + dv([['fond', 'solid/default'], ['texte', 'solid/foreground']]) + '>Inviter</span></div>'
+    + '<div class="encart" style="background:' + sdef + ';color:' + sf + '"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground'], ['icone', 'surface/foreground']]) + '>ⓘ L’invitation de camille@nord.studio expire dans 2 jours. <u' + dv([['texte', 'surface/foreground']]) + '>Renvoyer</u></div>'
+    + '<div class="tableau" style="box-shadow:inset 0 0 0 1px ' + c('page/divider') + '"' + dv([['contour', 'page/divider']]) + '>'
+    + rangee('A', 'Alex Martin', '<span class="pastille-badge" style="background:' + c('solid/default') + ';color:' + TEXTE_DES_BOUTONS + '"' + dv([['fond', 'solid/default'], ['texte', 'solid/foreground']]) + '>Administrateur</span>', '')
+    + rangee('C', 'Camille Roy', '<span class="pastille-badge" style="color:' + c('page/foreground') + '"' + dv([['texte', 'page/foreground']]) + '>Invitée</span>', sdef)
+    + rangee('I', 'Inès Diallo', '<span class="pastille-badge" style="background:' + sdef + ';color:' + sf + '"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground']]) + '>Membre</span>', '')
+    + '</div><div><div style="font-size:12px;margin-bottom:4px">Rôle par défaut</div><div class="champ" style="box-shadow:inset 0 0 0 1px ' + c('page/border') + '"' + dv([['contour', 'page/border']]) + '>Membre</div></div>'
+    + '<div class="controles"><span><span class="case-a-cocher" style="background:' + c('solid/default') + ';color:' + TEXTE_DES_BOUTONS + '"' + dv([['fond', 'solid/default'], ['coche', 'solid/foreground']]) + '>✓</span>Notifier par e-mail</span>'
+    + '<span><span class="interrupteur" style="background:' + c('solid/default') + '"' + dv([['fond', 'solid/default'], ['pastille', 'solid/foreground']]) + '><i style="background:' + TEXTE_DES_BOUTONS + '"></i></span>Accès invité</span></div>'
+    + '<div class="actions"><span class="btn" style="color:' + sf + '"' + dv([['texte', 'surface/foreground'], ['fond au survol', 'surface/hover']]) + '>Annuler</span>'
+    + '<span class="btn" style="background:' + sdef + ';color:' + sf + '"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground']]) + '>Brouillon</span>'
+    + '<span class="btn" id="enregistrer" style="background:' + c('solid/default') + ';color:' + TEXTE_DES_BOUTONS + '"' + dv([['fond', 'solid/default'], ['texte', 'solid/foreground']]) + '>Enregistrer</span></div>'
+    + '</div></div>';
+  function rangee(l, nom, badge, fond) {
+    var sel = fond ? dv([['fond', 'surface/default']]) : '';
+    return '<div class="rangee" style="' + (fond ? 'background:' + fond + ';' : '') + 'border-top:1px solid ' + c('page/divider') + '"' + sel + '><span class="avatar" style="background:' + sdef + ';color:' + sf + '"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground']]) + '>' + l + '</span><span class="nom">' + nom + '</span>' + badge + '</div>';
+  }
+
+  /* La vue États : un spécimen par composant et par état, d'après la recette du Playground. */
+  var ANNEAU = function (s) { return s + ';box-shadow:0 0 0 2px #fff,0 0 0 4px ' + c('page/focus'); };
+  function bouton(texte, styles, pairs) { return '<span><span class="btn" style="' + styles + '"' + dv(pairs) + '>' + texte + '</span></span>'; }
+  var plein = function (f, anneau) { var s = 'background:' + c('solid/' + f) + ';color:' + TEXTE_DES_BOUTONS; return bouton('Action', anneau ? ANNEAU(s) : s, [['fond', 'solid/' + f], ['texte', 'solid/foreground']].concat(anneau ? [['anneau', 'page/focus']] : [])); };
+  var soft = function (f, anneau) { var s = 'background:' + c('surface/' + f) + ';color:' + sf; return bouton('Action', anneau ? ANNEAU(s) : s, [['fond', 'surface/' + f], ['texte', 'surface/foreground']].concat(anneau ? [['anneau', 'page/focus']] : [])); };
+  var contourRepos = bouton('Action', 'color:' + c('page/foreground') + ';border-color:' + c('page/border'), [['contour', 'page/border'], ['texte', 'page/foreground']]);
+  var contourPlein = function (f, anneau) { var s = 'background:' + c('solid/' + f) + ';border-color:' + c('solid/' + f) + ';color:' + TEXTE_DES_BOUTONS; return bouton('Action', anneau ? ANNEAU(s) : s, [['fond et contour', 'solid/' + f], ['texte', 'solid/foreground']].concat(anneau ? [['anneau', 'page/focus']] : [])); };
+  var sansFond = function (f, anneau) { var s = (f ? 'background:' + c('surface/' + f) + ';' : '') + 'color:' + sf; return bouton('Action', anneau ? ANNEAU(s) : s, (f ? [['fond', 'surface/' + f]] : []).concat([['texte', 'surface/foreground']]).concat(anneau ? [['anneau', 'page/focus']] : [])); };
+  var champ = function (anneau) { var s = 'background:#fff;color:#1E1E1E;font-weight:400;box-shadow:inset 0 0 0 1px ' + c('page/border'); return bouton('Texte', anneau ? s + ',0 0 0 2px #fff,0 0 0 4px ' + c('page/focus') : s, [['contour', 'page/border']].concat(anneau ? [['anneau', 'page/focus']] : [])); };
+  var lien = '<span><u style="color:' + c('page/foreground') + '"' + dv([['texte', 'page/foreground']]) + '>Lien coloré</u></span>';
+  var badge = '<span><span class="pastille-badge" style="background:' + sdef + ';color:' + sf + '"' + dv([['fond', 'surface/default'], ['texte', 'surface/foreground']]) + '>Nouveau</span></span>';
+  var tiret = '<span class="vide">—</span>';
+  var LIGNES = [
+    ['Bouton plein', plein('default'), plein('hover'), plein('pressed'), plein('hover', true)],
+    ['Bouton soft', soft('default'), soft('hover'), soft('pressed'), soft('default', true)],
+    ['Bouton contour', contourRepos, contourPlein('hover'), contourPlein('pressed'), contourPlein('default', true)],
+    ['Bouton sans fond', sansFond(null), sansFond('hover'), sansFond('pressed'), sansFond('hover', true)],
+    ['Champ', champ(false), champ(false), champ(false), champ(true)],
+    ['Lien', lien, lien, lien, tiret],
+    ['Badge', badge, tiret, tiret, tiret],
+  ];
+  var etats = '<div class="etats" id="etats"><span></span><span class="tete">default</span><span class="tete">hover</span><span class="tete">pressed</span><span class="tete">focus</span>'
+    + LIGNES.map(function (l) { return '<span class="nom">' + l[0] + '</span>' + l.slice(1).join(''); }).join('') + '</div>';
+
+  document.getElementById('it').innerHTML = '<div class="carte"><div class="carte-tete" style="justify-content:space-between"><div style="display:flex;gap:8px;align-items:center"><span class="glyphe" style="background:#fff;box-shadow:inset 0 0 0 1px #1E1E1E"></span><div><h3>Interface de test</h3><span class="sec">La palette sur un écran d’exemple</span></div></div>'
+    + '<div class="choix"><span class="sec">Vue</span><div class="bascule"><button class="on">Écran</button><button>États</button></div><span class="sec">Afficher</span><div class="bascule"><button>Soft</button><button class="on">Vivid</button></div></div></div>'
+    + ecran + '<p class="vue-titre">Vue États, sous le même en-tête</p>' + etats + '</div>';
+
+  /* La bulle : une ligne par propriété, ce qu'elle peint, la variable, sa nuance. */
+  var bulle = document.createElement('div');
+  bulle.className = 'bulle';
+  function montrer(el) {
+    document.querySelectorAll('.survole').forEach(function (x) { x.classList.remove('survole'); });
+    if (!el) { bulle.remove(); return; }
+    el.classList.add('survole');
+    var hote = el.closest('#ecran, #etats');
+    bulle.innerHTML = el.getAttribute('data-v').split(';').map(function (p) {
+      var kv = p.split('='), n = kv[1] === 'solid/foreground' ? 'blanc' : TABLE[kv[1]];
+      return '<div><span class="sec2">' + kv[0] + '</span> · <code>' + kv[1] + '</code> <span class="sec2">' + n + '</span></div>';
+    }).join('');
+    hote.appendChild(bulle);
+    var r = el.getBoundingClientRect(), h = hote.getBoundingClientRect();
+    bulle.style.left = Math.min(r.left - h.left, h.width - bulle.offsetWidth) + 'px';
+    bulle.style.top = (r.bottom - h.top + 6) + 'px';
+  }
+  document.addEventListener('mouseover', function (e) { var t = e.target.closest('[data-v]'); montrer(t || document.getElementById('enregistrer')); });
+  montrer(document.getElementById('enregistrer'));
+})();
+</script>
+</body>
+</html>

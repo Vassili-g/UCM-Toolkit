@@ -19,7 +19,7 @@ lecteurs de la table ne changent qu'une fois. Le plan du texte des boutons
 | Document | Rôle |
 |---|---|
 | [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Le plan pour les agents : spécification, lots, modèle et effort de chaque tâche |
-| `Maquettes/` | Les maquettes M1 à M3 de la porte du plan, à faire |
+| `Maquettes/` | Les maquettes M1 à M3 de la porte du plan |
 
 ## Les maquettes de la porte
 
@@ -28,6 +28,6 @@ Les lots 7 à 9 du plan attendent ces maquettes. Le mainteneur passe une ligne
 
 | Maquette | Écran | État |
 |---|---|---|
-| M1 | La carte des garanties (I4) | à faire |
-| M2 | La planche dessinée dans Figma (I6) | à faire |
-| M3 | L'Interface de test (I8) | à faire |
+| [M1](./Maquettes/M1-CARTE-DES-GARANTIES.html) | La carte des garanties (I4) | à valider |
+| [M2](./Maquettes/M2-PLANCHE.html) | La planche dessinée dans Figma (I6) | à valider |
+| [M3](./Maquettes/M3-INTERFACE-DE-TEST.html) | L'Interface de test (I8) | à valider |
