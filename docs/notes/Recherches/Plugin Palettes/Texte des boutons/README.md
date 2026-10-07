@@ -9,7 +9,7 @@ implémentation.
 noir purs, un choix par thème dans les Réglages communs, bouton à la 700,
 rampe recalculée. La règle du thème inversé est reprise par la
 [recherche sur la collection `usage`](../../Archi%20Tokens%20Multi-marques/Collection%20usage/RECHERCHE-COLLECTION-USAGE.md),
-section 4.1, et par le fichier Figma remappé. Restent quatre choix de moteur
+section 4.1, et par le fichier Figma remappé. Restent trois choix de moteur
 et quatre choix d'interface.
 
 | Document | Contenu |

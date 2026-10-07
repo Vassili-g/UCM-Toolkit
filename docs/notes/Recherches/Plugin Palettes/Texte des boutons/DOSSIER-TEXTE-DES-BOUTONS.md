@@ -243,7 +243,7 @@ Dans le thème inversé, l'écart entre 700 (0,55) et 800 (0,70) attire sur la
 Le moteur connaît déjà ce cas : en Light, le vert `#16A34A` ancré sur la 600
 manque la garantie du contour à 2,92:1, et la carte des garanties le dit. La
 même question est ouverte dans l'[étude des usages indexés](../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
-Options en section 9.
+Décision en section 9.
 
 ### 5.7 Limites connues
 
@@ -332,13 +332,11 @@ distingue en recalculant la courbe, ce qui garde le bouton à la 700.
    remappé.
 2. **La garantie 14 dans le thème inversé** : juger le repos (recommandé), ou
    ne pas la vérifier.
-3. **L'ancrage d'une référence qui ne porte pas le texte des boutons**, à
-   trancher avec l'étude des usages indexés :
-   - a. la garder ancrée, la garantie manquée s'affiche, comme le vert
-     d'aujourd'hui ;
-   - b. dans le thème inversé, l'ancrer sur la nuance voisine où elle tient
-     ses paires ;
-   - c. ne pas l'ancrer dans le thème inversé.
+3. **L'ancrage d'une référence qui ne porte pas le texte des boutons** :
+   décidé, elle reste ancrée. Le plugin signale la garantie manquée, comme
+   pour le vert d'aujourd'hui, et le lien « Ajuster la référence » permet au
+   designer de déplacer sa luminosité jusqu'à ce qu'elle passe. Ancrer sur la
+   nuance voisine, ou ne pas ancrer dans le thème inversé, est écarté.
 4. **Les clartés de la courbe inversée** : 0,45, 0,50, 0,55 et 0,70 en Dark,
    à éprouver dans Figma.
 5. **Le quatrième niveau du texte coloré** : sans objet, le quatrième

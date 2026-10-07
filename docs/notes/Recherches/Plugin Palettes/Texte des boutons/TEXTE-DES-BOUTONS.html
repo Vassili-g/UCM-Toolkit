@@ -197,9 +197,9 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
         <dt>Ce qui est décidé</dt>
         <dd>Le texte des boutons est blanc ou noir purs. Le choix vaut pour tout le design system, un par thème, dans les Réglages communs. Le bouton reste la nuance 700. Quand le texte des boutons change, la rampe du thème est recalculée.</dd>
         <dt>Ce que ça entraîne</dt>
-        <dd>Dans un thème inversé, une même couleur ne peut pas être à la fois le bouton et le texte coloré. La courbe recalcule les nuances 500 à 800, les états du bouton vont vers la page (700, 600, 500), et ce qui se pose sur la page monte d'une nuance. Toutes les paires tiennent, sauf sur la nuance où quelques références sont ancrées.</dd>
+        <dd>Dans un thème inversé, une même couleur ne peut pas être à la fois le bouton et le texte coloré. La courbe recalcule les nuances 500 à 800, les états du bouton vont vers la page (700, 600, 500), et ce qui se pose sur la page monte d'une nuance. Toutes les paires tiennent. Quelques couleurs de base ne portent pas le texte des boutons telles quelles : le plugin le signale, et « Ajuster la référence » les corrige.</dd>
         <dt>Ce qui reste</dt>
-        <dd>Quatre choix de moteur (garantie du survol, ancrage, clartés de la courbe, format de la recette) et quatre choix d'interface (section 3).</dd>
+        <dd>Trois choix de moteur (garantie du survol, clartés de la courbe, format de la recette) et quatre choix d'interface (section 3).</dd>
         <dt>Dans le plugin</dt>
         <dd>Une ligne « Texte des boutons : Blanc | Noir » sous le fond de chaque thème, dans la carte « Couleurs de fond ». Le choix recalcule la courbe du thème, que la carte « Luminosité des nuances » montre aussitôt (section 4).</dd>
       </dl>
@@ -221,6 +221,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
           <tr><td>Texte et contour d'un fond teinté</td><td><b>Constants</b> sur les trois fonds : 800, et 900 dans un thème inversé</td><td>Au pire 5,26:1 dans les quatre thèmes</td></tr>
           <tr><td>Contour de la page</td><td>La nuance du texte coloré : 700, et 800 dans un thème inversé</td><td>Le contour et le texte d'un bouton outlined ont la même couleur</td></tr>
           <tr><td>Anneau de focus</td><td><b>Un par palette</b>, <code>page/focus</code> : 600, et 700 dans un thème inversé</td><td>« Ça doit s'adapter au bouton ». Remplace l'anneau unique à 900 ou 950 proposé avant</td></tr>
+          <tr><td>Une couleur de base qui ne porte pas le texte des boutons</td><td><b>Elle reste telle quelle dans la palette ; le plugin signale la vérification manquée</b>, et le lien « Ajuster la référence » permet de foncer ou d'éclaircir la couleur jusqu'à ce qu'elle passe. Ainsi le rouge <code>#D94635</code>, en Dark avec texte blanc, donne 4,31:1 sur le bouton : un rouge un peu plus foncé passe</td><td>Le plugin sert à avertir et à donner le geste qui corrige ; c'est déjà le cas du vert <code>#16A34A</code> en Light. Cas mesurés : 3 couleurs sur 14 en Dark avec texte blanc, 5 sur 14 en Light avec texte noir</td></tr>
           <tr><td>Le thème inversé dans Figma</td><td>Le fichier remappé par le mainteneur porte déjà les valeurs inversées dans la colonne <code>dark</code>. Le mainteneur prévoit d'implémenter la courbe inversée dans UCM Palettes</td><td>Sans la courbe inversée, le texte blanc tombe entre 2,49 et 3,37:1 sur <code>solid/default</code></td></tr>
         </tbody>
       </table>
@@ -295,17 +296,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
       </div>
 
       <div class="carte decision">
-        <div class="decision-tete"><h4>M-b. Une référence ancrée qui ne porte pas le texte des boutons</h4><span class="badge neutre">décision 3 du dossier</span></div>
-        <p class="note" style="margin:0">Le moteur pose les octets exacts de la référence sur la nuance de clarté la plus proche. Dans le thème inversé, l'écart entre la 700 et la 800 attire sur la 700 des références trop claires pour le blanc, ou trop sombres pour le noir. Dark, texte blanc : rouge <code>#D94635</code> 4,31:1, gris <code>#808080</code> 3,95:1, terne <code>#8B8178</code> 3,81:1. Light, texte noir : cinq références de 3,90 à 4,43:1, dont <code>#2563EB</code> et <code>#9333EA</code>. Choisissez Bleu en Light ou Rouge en Dark dans la section 2 pour le voir.</p>
-        <ul class="options">
-          <li><span class="lettre">a</span><span><b>La garder ancrée</b> ; la garantie manquée s'affiche, comme pour le vert <code>#16A34A</code> en Light aujourd'hui.</span></li>
-          <li><span class="lettre">b</span><span><b>L'ancrer sur la nuance voisine</b>, dans le thème inversé, là où elle tient ses paires.</span></li>
-          <li><span class="lettre">c</span><span><b>Ne pas l'ancrer</b> dans le thème inversé.</span></li>
-        </ul>
-      </div>
-
-      <div class="carte decision">
-        <div class="decision-tete"><h4>M-c. Les clartés de la courbe inversée</h4><span class="badge attention">essai Figma</span></div>
+        <div class="decision-tete"><h4>M-b. Les clartés de la courbe inversée</h4><span class="badge attention">essai Figma</span></div>
         <p class="note" style="margin:0">Dark, texte blanc : 0,45, 0,50, 0,55 et 0,70 pour les nuances 500 à 800, au lieu de 0,49, 0,58, 0,67 et 0,76. Light, texte noir : 0,71, 0,66 et 0,58 pour 500 à 700, au lieu de 0,67, 0,585 et 0,50. Les états du bouton restent aussi distincts qu'aujourd'hui (0,047 ΔEok au plus serré) et gardent leur chroma.</p>
         <ul class="options">
           <li class="reco"><span class="lettre">a</span><span><b>Les retenir comme valeurs par défaut</b> après un essai dans Figma : un écran Dark avec texte blanc, le bouton sur la page, sur une carte et dans une modale.</span></li>
@@ -314,7 +305,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
       </div>
 
       <div class="carte decision">
-        <div class="decision-tete"><h4>M-d. Le format de la recette</h4></div>
+        <div class="decision-tete"><h4>M-c. Le format de la recette</h4></div>
         <p class="note" style="margin:0">La recette est en format 8 et refuse toute clé inconnue. Le réglage s'y écrit par exemple <code>texteDesBoutons: { light: 'blanc', dark: 'noir' }</code>.</p>
         <ul class="options">
           <li class="reco"><span class="lettre">a</span><span><b>Format 9, qui lit le format 8</b> avec les valeurs du thème normal. Les réglages rangés restent lisibles.</span></li>
@@ -386,7 +377,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
               <tr><td>Carte des garanties</td><td>Les paires se lisent dans la table du thème. La réglette du texte des boutons montre le blanc ou le noir au lieu du fond de page ; la garantie 14 suit le choix M-a.</td></tr>
               <tr><td>Planches</td><td>Les exemples de boutons et les accolades suivent ; l'empreinte de la recette change, et les cadres passent « À actualiser ».</td></tr>
               <tr><td>Gestion</td><td>Les nuances 500 à 800 du thème inversé changent pour toutes les palettes : les variables passent « À actualiser ». C'est voulu, la rampe est recalculée.</td></tr>
-              <tr><td>Sauvegarde et import</td><td>Le réglage voyage dans la recette (choix M-d).</td></tr>
+              <tr><td>Sauvegarde et import</td><td>Le réglage voyage dans la recette (choix M-c).</td></tr>
             </tbody>
           </table>
         </div>
@@ -398,8 +389,8 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
     <h2>5. La suite</h2>
     <div class="carte">
       <ol style="margin:0;padding-left:22px;display:grid;gap:6px">
-        <li><b>Trancher</b> les choix M-a à M-d et I-a à I-d.</li>
-        <li><b>Essai dans Figma</b> des clartés de la courbe (M-c).</li>
+        <li><b>Trancher</b> les choix M-a à M-c et I-a à I-d.</li>
+        <li><b>Essai dans Figma</b> des clartés de la courbe (M-b).</li>
         <li><b>Kit</b> : la table des emplois porte une colonne pour le thème normal et une pour le thème inversé, et le texte des boutons vaut blanc ou noir purs (changements M7 et M15 de la <a href="../../Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md">liste des changements du moteur</a>). Tests des quatre combinaisons.</li>
         <li><b>Moteur et recette</b> : format 9, lecture du format 8, courbe du thème inversé, empreinte et fraîcheur des planches.</li>
         <li><b>Plugin</b> : le réglage dans les Réglages communs, comme en section 4 ; tests Chromium sur les quatre combinaisons.</li>
