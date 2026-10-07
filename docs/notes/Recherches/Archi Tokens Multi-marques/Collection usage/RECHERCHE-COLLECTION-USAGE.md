@@ -42,8 +42,9 @@ valeurs de chaque thème, et un programme les écrit.
 collection qui porte les modes Light et Dark porte aussi les noms d'usage.
 Ses deux colonnes suivent une table du kit. Elles se posent dans Figma hors
 d'UCM Palettes, qui n'écrit que les palettes de `primitives` : à la main
-aujourd'hui, ou un jour par un autre plugin. `ucm check` compare chaque alias
-à la table. Le designer qui pose un calque ne connaît aucun numéro de
+aujourd'hui, ou un jour par un autre plugin. Le profil d'UCM Explorateur, et
+`ucm check` si le dépôt le demande, comparent chaque alias à la table, en
+information. Le designer qui pose un calque ne connaît aucun numéro de
 nuance.
 
 **Ce que disent les mesures** (42 rampes, quatre thèmes dont deux inversés) :
@@ -305,8 +306,8 @@ même geste que dans un thème normal, et ne voit jamais ce 600.
 
 | Risque | Ce qui le traite | État |
 |---|---|---|
-| Un alias de `theme` faux dans un thème | `ucm check` compare chaque alias de `theme` à la table du kit, dans chaque thème ; un plugin dédié pourrait poser `theme` depuis la table | À écrire ; UCM Palettes n'écrit que `primitives` |
-| Un texte posé sur le fond d'un autre dossier | `ucm check` compare, dans chaque variant, le dossier du texte et celui du fond posé dessous, puis mesure leur contraste dans chaque marque et chaque thème | Le diagnostic des emplois existe ; la règle du dossier et la mesure systématique sont à écrire |
+| Un alias de `theme` faux dans un thème | Le profil d'UCM Explorateur, dans Figma, compare chaque alias de `theme` à la table du kit, dans chaque thème ; un plugin dédié pourrait poser `theme` depuis la table | À écrire ; UCM Palettes n'écrit que `primitives` |
+| Un texte posé sur le fond d'un autre dossier | Si le dépôt le demande, `ucm check` compare, dans chaque variant, le dossier du texte et celui du fond posé dessous, puis mesure leur contraste ; il informe, sans bloquer ni avertir | Le diagnostic des emplois attend une collection `usage` qu'aucun fichier n'a portée ; l'option du dépôt et la règle du dossier sont à écrire |
 | Un couple qui échoue sur une palette réelle | UCM Palettes mesure chaque couple de la table sur chaque palette, et la carte des garanties l'affiche | Les garanties existent ; leur liste suit la table |
 | Un designer qui choisit un texte dans le mauvais sélecteur | Les portées : un sélecteur de texte ne propose que des textes | D14 ; essai Figma A5.1 à faire |
 | Un designer qui hésite | La description de chaque variable dit sur quoi elle se pose : « Se lit sur `primary/surface/default`, `hover`, `pressed`, la page et une carte » | Essai Figma A5.2 à faire |
@@ -637,8 +638,8 @@ Restent :
 Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
 sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
 en Light et en Dark ; la
-table du kit et ses tests ; la pose de `theme` dans Figma, hors d'UCM Palettes ; la règle
-du dossier dans `ucm check` ; la mise à jour d'ARCHITECTURE-FINALE et de la
+table du kit et ses tests ; la pose de `theme` dans Figma, hors d'UCM Palettes ; le profil
+d'UCM Explorateur, et la règle du dossier dans `ucm check`, à la demande du dépôt ; la mise à jour d'ARCHITECTURE-FINALE et de la
 vue illustrée. Le [document des changements du moteur](./CHANGEMENTS-DU-MOTEUR.md)
 détaille ces chantiers.
 
