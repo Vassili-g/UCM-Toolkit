@@ -150,8 +150,10 @@ thème inversé suit la courbe de P3.
 | G9 | `surface/foreground` sur les `surface/*` des autres palettes (proposée) | 4,5 | toutes | toutes | toutes | toutes |
 
 Les échecs de G1 en thème inversé touchent la nuance où la référence est
-ancrée : c'est la décision 3 du
-[dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md).
+ancrée. Le mainteneur a décidé que la référence reste ancrée
+([dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md),
+décision 3) : le plugin signale la garantie manquée, et le lien « Ajuster la
+référence » permet d'en corriger la luminosité. Ces échecs sont attendus.
 Ceux de G7 en Light touchent une référence verte ancrée à la 600. Le
 dossier du texte des boutons recommande aussi de juger G2 au repos dans le
 thème inversé. `page/divider` n'a pas de minimum ; `disabled/*` est
