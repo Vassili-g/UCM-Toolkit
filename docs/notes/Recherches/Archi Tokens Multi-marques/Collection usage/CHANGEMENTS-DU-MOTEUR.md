@@ -59,8 +59,7 @@ Les chemins qu'il écrit, `colors/terracota/light/700` et
 table dans l'aperçu (les accolades sous la rampe), la carte des garanties
 (les arcs et les paires), le détail d'une nuance, la planche dessinée dans
 Figma, l'Interface de test et les messages. Aucun module ne connaît le
-thème inversé, et la recette ne dit pas quelle palette est `primary`,
-`neutral` ou `danger`.
+thème inversé.
 
 **`ucm check`** juge les couleurs d'un contrat contre la table quand
 `tokens.json` porte une collection `usage`
@@ -79,18 +78,16 @@ lecteurs.
 |---|---|---|---|
 | P1 | La table passe des emplois aux dossiers : treize variables par palette, les exceptions du neutre (`page/foreground-main`, `page/foreground-subtle`), `disabled/*`, deux niveaux d'`elevation` | Retenu | `emplois.ts`, `usages.ts` |
 | P2 | Une nuance par variable et par thème, normal et inversé ; le thème inversé change huit variables | Suit le texte des boutons | `emplois.ts` et tous ses lecteurs |
-| P3 | Le réglage `texteDesBoutons: { light, dark }` (recette au format 9, qui lit le format 8) et la courbe inversée : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,71 / 0,66 / 0,58 ; une courbe réglée à la main est remplacée de 500 à 800 avec un message | Recommandé par le dossier du texte des boutons, non décidé | `couleur/src`, migration de format |
+| P3 | Le réglage `texteDesBoutons: { light, dark }`, blanc ou noir par thème, soit quatre combinaisons (recette au format 9, qui lit le format 8), et la courbe du thème inversé : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,71 / 0,66 / 0,58 ; une courbe réglée à la main est remplacée de 500 à 800 avec un message ; Gestion signale les primitives « À actualiser » | Recommandé par le dossier du texte des boutons, non décidé | `couleur/src`, migration de format, Gestion |
 | P4 | Les dix-neuf paires deviennent les garanties G1 à G7, plus G8 et G9 entre palettes (section 5) ; l'escalier et le quatrième rang disparaissent | Retenu ; G8 et G9 proposées | `paires.ts`, `couleur/src/promesses.ts` |
 | P5 | Trois états, `default`, `hover`, `pressed` ; un état sélectionné prend un autre dossier ; le focus ajoute `page/focus` | Retenu | `rangs.ts`, nature `etat` de `ucm check` |
-| P6 | `solid/foreground` vise le blanc ou le noir purs, `color-utilities.neutral.{mode}.white` ou `.black`, au lieu du fond du thème | Retenu | `emplois.ts`, `usages.ts` |
+| P6 | `solid/foreground` vaut le blanc ou le noir purs selon le réglage, au lieu du fond du thème | Retenu | `emplois.ts`, `usages.ts`, garanties |
 | P7 | Les crans 50, 400 et 950 ne portent plus aucune variable d'usage ; ils restent sous `scale` | À décider : obligatoires ou facultatifs (D7) | `CRANS_DES_EMPLOIS`, validation de la recette |
-| P8 | La recette porte le rôle de chaque palette (`primary` ou `secondary` d'une marque, `neutral`, un statut et son intensité) ; sans lui, le plugin ne peut écrire ni `color-brands` ni `color-utilities` | À décider | recette, format, Création, Gestion |
-| P9 | UCM Palettes écrit `color-brands`, `color-utilities` et `theme` en plus de `primitives`, dans la forme de la section 4.8 de la recherche ; la reprise signale un alias modifié à la main | Retenu dans son principe | `ecriture/variables.ts`, `variables/destination.ts` |
-| P10 | Les portées Figma : fonds en `FRAME_FILL` et `SHAPE_FILL`, plus `STROKE_COLOR` pour `solid/*` ; `foreground` en `TEXT_FILL` et `SHAPE_FILL` ; `border`, `divider`, `focus` en `STROKE_COLOR` ; `scale` sans portée | À décider ; essai Figma A5.1 | `SUPPORT_DES_USAGES` |
-| P11 | `elevation/page` vaut le fond réglé de chaque thème ; `elevation/raised` vaut le blanc en light et le neutre 100 en dark, par règle fixe ou par réglage | À décider | recette, `couleur/src` |
-| P12 | `ucm check` lit `theme`, vérifie la règle du dossier et mesure chaque garantie | Suit la décision 1 de la recherche | `diagnostic-emplois.mjs` |
-| P13 | UCM Explorateur tire la cible attendue de la nouvelle table, par thème | Suit P1 | `profilUcm.ts` |
-| P14 | Les tests et documents d'autorité suivent : `emplois.test.ts`, `diagnostic-emplois.test.mjs`, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Suit P1 à P13 | tests, documents |
+| P8 | Ce que chaque variable peint (fond, texte et icône, contour, anneau), pour la nature `support` de `ucm check` | À reprendre avec P1 | `SUPPORT_DES_USAGES` |
+| P9 | Les fonds des mesures : le fond réglé de chaque thème est `elevation/page` ; la carte, `elevation/raised`, vaut le blanc en light et le neutre 100 en dark, par règle fixe ou par réglage | À décider | recette, `couleur/src` |
+| P10 | `ucm check` lit `theme`, compare chaque alias à la table, vérifie la règle du dossier et mesure chaque garantie | Suit la décision 1 de la recherche | `diagnostic-emplois.mjs` |
+| P11 | UCM Explorateur tire la cible attendue de la nouvelle table, par thème | Suit P1 | `profilUcm.ts` |
+| P12 | Les tests et documents d'autorité suivent : `emplois.test.ts`, `diagnostic-emplois.test.mjs`, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Suit P1 à P11 | tests, documents |
 
 Le moteur fait déjà une partie du travail : `focus` est un emploi de chaque
 palette à la 600, mesuré contre la page (paire 12) et le fond 100 de sa
@@ -101,6 +98,16 @@ Le fichier remappé dans Figma applique déjà les valeurs inversées en Dark.
 Sans la courbe inversée de P3, le texte blanc y tombe entre 2,49 et 3,37:1
 sur `solid/default`.
 
+### Hors d'UCM Palettes
+
+UCM Palettes écrit les palettes dans `primitives`, à l'endroit fixé par sa
+configuration, et rien d'autre. Ce qui ne change pas : sa destination et les
+chemins qu'il écrit. `color-brands`, `color-utilities` et `theme` se posent
+hors du plugin, à la main comme dans le fichier remappé, ou un jour par un
+autre plugin qui lirait la table du kit. Les portées des variables de `theme`
+se règlent au même endroit. `ucm check` (P10) est le contrôle qui compare
+ces alias à la table.
+
 ## 4. Changements d'interface
 
 Ce que le designer lit dans UCM Palettes. Chaque écran a son état dans la
@@ -110,21 +117,20 @@ galerie du plugin (`npm run galerie`, dossier `packages/plugin-palettes`).
 |---|---|---|---|---|
 | I1 | Tous les textes | Emplois en police de code, noms français (« texte coloré », « fond léger »), rangs `default` à `active-hover` | Nom de variable, libellé court du lexique, trois états | Retenu |
 | I2 | Aperçu, accolades (`palette-deux-intensites`) | `on-solid`, `surface` 100 à 400, `solid · text` 700 à 950, `surface-card`, `border-decorative`, `border-control · focus` | Une accolade par dossier pour ses fonds, chaque autre variable sous sa nuance ; la case du texte des boutons s'appelle `solid/foreground` | Retenu |
-| I3 | Aperçu, thème affiché | Accolades identiques en Light et en Dark | Les accolades suivent la table du thème affiché, normal ou inversé | Proposé |
+| I3 | Aperçu, thème affiché | Accolades identiques en Light et en Dark | Les accolades suivent la table du thème affiché, normal ou inversé selon le texte des boutons de ce thème | Proposé |
 | I4 | Garanties (`garanties-respectees`) | Arcs en escalier, quatre colonnes d'état, paires « `text` sur `surface` », note `neutral.50` | Un éventail par texte vers ses fonds, une ligne par garantie G1 à G7, trois états au plus ; la note cite le réglage Texte des boutons | Retenu |
 | I5 | Détail d'une nuance | Rôles par emploi ; contrastes contre « Fond du thème », blanc, noir | Les variables que la nuance porte dans le thème affiché ; contrastes contre `elevation/page`, `elevation/raised`, blanc, noir | Retenu |
 | I6 | Planche dans Figma | Une ligne par emploi, de `surface-card` à `border-decorative`, en quatre rangs | Une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, G1 à G7 | Retenu |
 | I7 | Messages (`garanties-refaites`) | « Texte coloré (text) sur Fond léger (surface) » | « `surface/foreground` sur `surface/hover` », le libellé en second | Retenu |
 | I8 | Interface de test (`interface-de-test-light`) | Aucun nom de variable | Survoler un élément montre la variable qui le peint ; la vue États suit les trois états | Proposé |
-| I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond » ; il règle `solid/foreground` | Libellé et place à décider (dossier du texte des boutons) |
+| I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond » ; il règle `solid/foreground` ; les tests Chromium couvrent les quatre combinaisons | Libellé et place à décider (dossier du texte des boutons) |
 | I10 | Fonds du thème | Un réglage « Fond » ; la carte est implicite | Le fond s'appelle `elevation/page` ; la valeur de `elevation/raised` s'affiche à côté | Proposé |
-| I11 | Rôle des palettes | Une palette n'a qu'un nom | Création et Gestion attribuent le rôle (P8) ; l'aperçu le montre dans son titre, `theme › success/vivid` | À décider |
-| I12 | Gestion, écriture | Une destination, un état par palette | Les quatre collections, chacune avec son état | À décider |
+| I11 | Rapport et import | Le rapport exporté nomme les paires par leurs emplois | Le rapport nomme les garanties par leurs variables ; l'import lit le format 9 | Retenu |
 
 Fichiers touchés : `i18n/fr.ts`, `i18n/en.ts`, `presentation.ts`,
 `ui/nuancier.ts`, `ui/garanties.ts`, `ui/ajustement.ts`,
-`planche/modele.ts`, `ui/interfaceDeTest.ts`, `ui/destination.ts`,
-`ongletGestion.ts`, les Réglages communs et les états de la galerie.
+`planche/modele.ts`, `ui/interfaceDeTest.ts`, `rapport.ts`,
+`importation.ts`, les Réglages communs et les états de la galerie.
 
 ## 5. Les garanties proposées
 
@@ -154,11 +160,8 @@ exempté. `page/foreground-subtle` a les mesures de G5 ;
 
 ## 6. Un ordre possible
 
-1. **La table du kit et ses tests** : P1, P4 à P7, P14 pour le kit.
-2. **UCM Palettes, lecture** : I1 à I7 sur la nouvelle table.
-3. **Le rôle des palettes** : P8, I11.
-4. **UCM Palettes, écriture** : P9, P10, P11, I12, après l'essai Figma des
-   portées.
-5. **`ucm check` et l'Explorateur** : P12, P13.
-6. **Le thème inversé** : P2, P3, I9, après les décisions du dossier du
+1. **La table du kit et ses tests** : P1, P4 à P8, P12 pour le kit.
+2. **UCM Palettes** : I1 à I8, I10, I11 sur la nouvelle table ; P9.
+3. **`ucm check` et l'Explorateur** : P10, P11.
+4. **Le thème inversé** : P2, P3, I9, après les décisions du dossier du
    texte des boutons.

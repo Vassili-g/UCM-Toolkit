@@ -199,11 +199,12 @@ footer ul{padding-left:18px;margin:6px 0 0}
         <li>Un état qui garde la sorte de fond ne change que le fond : <code>default</code>, <code>hover</code>, <code>pressed</code>. Le texte et le contour ne bougent pas.</li>
         <li>Un état qui change la sorte de fond change de dossier : le survol du bouton outlined passe dans <code>solid</code>, une ligne sélectionnée dans <code>primary/surface</code>.</li>
       </ol></div>
-    <div class="carte"><div class="k">Personne ne tape un alias</div>
+    <div class="carte"><div class="k">Qui écrit quoi</div>
       <ul>
-        <li>UCM Palettes écrit <code>primitives</code>, <code>color-brands</code>, <code>color-utilities</code> et <code>theme</code> depuis la table du kit et la recette.</li>
+        <li>UCM Palettes calcule les palettes et les écrit dans <code>primitives</code>, à l'endroit fixé par sa configuration.</li>
+        <li><code>color-brands</code>, <code>color-utilities</code> et <code>theme</code> se posent hors du plugin, à la main ou un jour par un autre plugin, en suivant la table du kit.</li>
         <li>Le designer choisit une marque, un thème et des variables de <code>theme</code>. Il ne voit aucun numéro de nuance.</li>
-        <li><code>ucm check</code> mesure chaque couple dans chaque marque et chaque thème.</li>
+        <li><code>ucm check</code> compare chaque alias de <code>theme</code> à la table, et mesure chaque couple dans chaque marque et chaque thème.</li>
       </ul></div>
   </div>
 
@@ -326,7 +327,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <ul class="raisons">
     <li><b>La règle se lit dans le nom.</b> <code>primary/surface/foreground</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
     <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un composant n'a qu'un token de texte pour tous ses états.</li>
-    <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
+    <li><b>Le thème inversé ne change pas le geste du designer.</b> Il pose <code>solid/hover</code> ; la colonne light vise la 800, la colonne dark la 600. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
     <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte et le contour de <code>surface</code> tiennent au pire 5,26:1 sur leurs trois fonds, et le texte d'une palette tient sur les fonds teintés de toutes les autres ; l'anneau de chaque palette tient au pire 3,08:1 contre la page et la carte.</li>
     <li><b>La pratique des systèmes établis.</b> Atlassian, Primer, Carbon et Radix gardent un seul texte sur les fonds teintés et leurs états ; Fluent et Spectrum ne le changent qu'une fois, au survol. Material nomme <code>on-primary</code> le texte de <code>primary</code>. Tous écrivent les valeurs de chaque thème par programme. Ils n'ont qu'un anneau de focus ; ce modèle en donne un par palette, comme la table actuelle d'UCM Palettes.</li>
     <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
@@ -360,7 +361,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">4</td><td><a href="./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">Escalier</a> : texte n sur toute surface de niveau inférieur ou égal</td><td class="plus">Dix couples garantis au lieu de quatre</td><td class="moins">Une règle à apprendre, invisible dans les noms</td></tr>
       <tr><td class="id">5</td><td><a href="./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html">Ensembles</a> : <code>surface-0</code> à <code>4</code>, <code>solid-1</code> à <code>4</code></td><td class="plus">Tout dans le dossier du fond</td><td class="moins">Des numéros, des conventions, une table en deux collections</td></tr>
       <tr><td class="id">6</td><td>Texte qui suit le fond : un sous-dossier par état, avec son fond, son texte et son contour</td><td class="plus">Le texte 700 du Playground sur l'alerte ; les paires actuelles d'UCM Palettes</td><td class="moins">Dix-huit variables par palette ; le texte change à chaque état ; aucun système établi ne le fait</td></tr>
-      <tr><td class="id">7</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> à 800, un cran plus sombre que le texte coloré ; une variable de plus par palette pour l'anneau</td></tr>
+      <tr><td class="id">7</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, une table du kit pour toutes les marques</td><td class="moins">Texte de <code>surface</code> à 800, un cran plus sombre que le texte coloré ; une variable de plus par palette pour l'anneau</td></tr>
     </tbody>
   </table></div>
 
@@ -617,7 +618,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function collections() {
     return [
       { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens des contrats Button et Alert du Playground gardent leurs noms et visent <code>theme</code> (D11). La valeur montrée est celle du thème Light.'] },
-      { id: 'theme', ax: 'light · dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
+      { id: 'theme', ax: 'light · dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. Les deux colonnes suivent la table du kit ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
       { id: 'color-brands', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). <code>identity</code> vise la nuance où la couleur de charte est posée (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
       { id: 'color-utilities', ax: 'aucun mode', modes: ['Valeur'], rows: utilRows(), note: ['Le neutre, les quatre statuts et les niveaux d’élévation, communs à toutes les marques (D6, D15).'] },
       { id: 'primitives', ax: 'aucun mode', modes: ['Valeur'], rows: primRows(), note: ['Le catalogue des palettes, en Light et en Dark, sur la courbe commune (D5, D7, D8). Ici la palette <code>primary</code> de la marque choisie.'] },

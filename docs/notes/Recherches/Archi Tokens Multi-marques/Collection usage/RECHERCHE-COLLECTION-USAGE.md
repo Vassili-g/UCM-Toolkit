@@ -39,9 +39,12 @@ valeurs de chaque thème, et un programme les écrit.
    `primary/surface`.
 
 **Ce qui change dans l'architecture.** `usage` disparaît dans `theme`. La
-collection qui porte les modes Light et Dark porte aussi les noms d'usage, et
-UCM Palettes écrit ses deux colonnes à partir d'une table du kit. Le designer
-ne tape aucun alias et ne connaît aucun numéro de nuance.
+collection qui porte les modes Light et Dark porte aussi les noms d'usage.
+Ses deux colonnes suivent une table du kit. Elles se posent dans Figma hors
+d'UCM Palettes, qui n'écrit que les palettes de `primitives` : à la main
+aujourd'hui, ou un jour par un autre plugin. `ucm check` compare chaque alias
+à la table. Le designer qui pose un calque ne connaît aucun numéro de
+nuance.
 
 **Ce que disent les mesures** (42 rampes, quatre thèmes dont deux inversés) :
 le texte et le contour du dossier `surface`, à la nuance 800 dans les thèmes
@@ -112,8 +115,8 @@ chaîne `usage → theme` actuelle ne l'exprime. Trois façons de l'écrire :
 | Façon | Qui écrit la différence | Risque |
 |---|---|---|
 | Un designer repointe à la main, en Dark, les variables qui changent | Le designer, variable par variable | Une erreur ou un oubli ne se voit qu'en Dark ; personne ne relit un alias |
-| Les ensembles : `theme` reçoit des variables nommées pour les emplois qui changent, `usage` garde les autres | UCM Palettes | La table se lit en deux endroits, selon que l'emploi change ou non |
-| Tous les emplois passent dans la collection qui porte les modes | UCM Palettes, à partir d'une seule table | Aucun alias tapé ; un alias modifié à la main se détecte (section 4.6) |
+| Les ensembles : `theme` reçoit des variables nommées pour les emplois qui changent, `usage` garde les autres | Celui qui pose `theme`, depuis la table | La table se lit en deux endroits, selon que l'emploi change ou non |
+| Tous les emplois passent dans la collection qui porte les modes | Celui qui pose `theme`, depuis une seule table | Un alias faux se détecte : `ucm check` le compare à la table (section 4.6) |
 
 La troisième façon est celle des systèmes de la section 3.
 
@@ -189,7 +192,7 @@ avec son intensité, `success/soft`.
 | `{p}/page/focus` | Anneau de focus d'un composant de la palette, séparé du composant par un espace | la page, une carte, le fond 100 d'un conteneur | 600 | 700 |
 
 Treize variables par palette, contre vingt dans D13. Le thème inversé change
-huit lignes, toutes écrites par UCM Palettes.
+huit lignes de la table.
 
 `foreground` peint le texte et l'icône, comme le rôle `foreground` des
 contrats UCM, qui couvre `color` et `fill`. Le mainteneur l'a préféré à
@@ -292,16 +295,17 @@ portées vides et ne paraissent dans aucun sélecteur de calque.
 
 ### 4.5 Le thème inversé, vu par le designer
 
-Le designer règle une fois, dans UCM Palettes, le texte des boutons de chaque
-thème. Il pose ensuite `primary/solid/hover` sur le survol de son
-bouton, comme dans un thème normal. UCM Palettes écrit 800 dans la colonne
-Light et 600 dans la colonne Dark. Le designer ne voit jamais ce 600.
+Le texte des boutons se règle une fois par thème dans UCM Palettes, qui
+recalcule la courbe du thème inversé. La colonne de `theme` suit la table de
+ce thème : `primary/solid/hover` vise la 800 en light et la 600 en dark. Le
+designer qui pose `primary/solid/hover` sur le survol de son bouton fait le
+même geste que dans un thème normal, et ne voit jamais ce 600.
 
 ### 4.6 Ce qui empêche l'erreur
 
 | Risque | Ce qui le traite | État |
 |---|---|---|
-| Une valeur de `theme` tapée à la main, ou fausse dans un thème | UCM Palettes écrit les deux colonnes depuis la table du kit et la recette ; Gestion signale une variable dont la valeur diffère de ce qu'il a écrit | La reprise des variables existe pour `primitives` ; à étendre à `theme` |
+| Un alias de `theme` faux dans un thème | `ucm check` compare chaque alias de `theme` à la table du kit, dans chaque thème ; un plugin dédié pourrait poser `theme` depuis la table | À écrire ; UCM Palettes n'écrit que `primitives` |
 | Un texte posé sur le fond d'un autre dossier | `ucm check` compare, dans chaque variant, le dossier du texte et celui du fond posé dessous, puis mesure leur contraste dans chaque marque et chaque thème | Le diagnostic des emplois existe ; la règle du dossier et la mesure systématique sont à écrire |
 | Un couple qui échoue sur une palette réelle | UCM Palettes mesure chaque couple de la table sur chaque palette, et la carte des garanties l'affiche | Les garanties existent ; leur liste suit la table |
 | Un designer qui choisit un texte dans le mauvais sélecteur | Les portées : un sélecteur de texte ne propose que des textes | D14 ; essai Figma A5.1 à faire |
@@ -354,6 +358,7 @@ recherche a fixé ces choix, qui font maintenant partie de la proposition :
 
 | Sujet | Forme retenue |
 |---|---|
+| Qui écrit quoi | UCM Palettes écrit les palettes dans `primitives`, à l'endroit fixé par sa configuration ; `color-brands`, `color-utilities` et `theme` se posent hors du plugin |
 | Collection des marques | `color-brands`, sans groupe `palette` : `color-brands.primary.light.700` |
 | Couleur de charte (D9) | `color-brands.identity.primary` et `identity.secondary` sont des alias vers la nuance où la référence est posée ; l'alias garde le rang |
 | Blanc et noir | `primitives.colors.titanium.white` et `.black`, dans la rampe du neutre |
@@ -629,7 +634,7 @@ Restent :
 Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
 sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
 en Light et en Dark ; la
-table du kit et ses tests ; l'écriture de `theme` par UCM Palettes ; la règle
+table du kit et ses tests ; la pose de `theme` dans Figma, hors d'UCM Palettes ; la règle
 du dossier dans `ucm check` ; la mise à jour d'ARCHITECTURE-FINALE et de la
 vue illustrée. Le [document des changements du moteur](./CHANGEMENTS-DU-MOTEUR.md)
 détaille ces chantiers.

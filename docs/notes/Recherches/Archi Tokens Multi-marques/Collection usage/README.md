@@ -16,7 +16,7 @@ modifiées, et les versions précédentes. Ses couleurs viennent de
 [RECHERCHE-COLLECTION-USAGE.md](./RECHERCHE-COLLECTION-USAGE.md) reprend la
 collection depuis le début : un dossier par sorte de fond, un texte qui ne
 change pas avec l'état, et les valeurs de chaque thème écrites dans `theme`
-par UCM Palettes. Ses décisions attendues sont en section 9. Ses mesures sont
+d'après une table du kit. Ses décisions attendues sont en section 9. Ses mesures sont
 dans [mesurer-dossiers.ts](./mesurer-dossiers.ts) et
 [MESURES-DOSSIERS.json](./MESURES-DOSSIERS.json).
 
