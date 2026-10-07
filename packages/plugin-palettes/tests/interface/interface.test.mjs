@@ -2168,7 +2168,7 @@ test('W6.5 passer en Libre retire la palette de base et la carte des garanties ;
     assert.equal(await carteDesGaranties(page).isVisible(), false);
     await ouvrirLaCreation(page);
     assert.equal(await page.locator('.pastille-on-solid').isVisible(), false);
-    assert.equal(await page.locator('.accolades').isVisible(), false);
+    assert.equal(await page.locator('.bandes').isVisible(), false);
 
     // Une puce éteinte s'allume, une allumée s'éteint ; la liste se range triée.
     await configuration.getByRole('button', { name: 'Nuance 1000' , exact: true }).click();
@@ -5462,5 +5462,211 @@ test('[ENT-16] une nuance réglée à la main demande une confirmation : Annuler
     assert.equal(await champ.inputValue(), '0,61');
   } finally {
     await page.close();
+  }
+});
+
+/**
+ * Le survol lié de l'aperçu en bandes ([UI-04], I13) : les classes que `nuancier.ts` pose, lues dans la surface.
+ * `lie` marque une cible surlignée, `loupe` la surface qui atténue, `active` la bande du dossier survolé.
+ */
+const surlignage = (page) => page.locator('.nuancier-surface').evaluate((surface) => {
+  const nuances = (selecteur) => [...surface.querySelectorAll(selecteur)].map((element) => element.dataset.cran);
+  return {
+    pastilles: [...surface.querySelectorAll('.nuancier-grille .pastille[data-cran].lie')].map((pastille) => `${pastille.dataset.profil} ${pastille.dataset.cran}`),
+    petites: nuances('.rayure i[data-cran].lie'),
+    codes: [...surface.querySelectorAll('.accolade-libelle [data-token].lie, .hors-rampe [data-token].lie')].map((code) => code.dataset.token).sort(),
+    caseTiretee: surface.querySelector('.pastille-on-solid').classList.contains('lie'),
+    petiteDuTexte: surface.querySelector('.rayure i[data-token="solid/foreground"]').classList.contains('lie'),
+    specimens: [...surface.querySelectorAll('.specimen.lie')].map((specimen) => specimen.dataset.dossier),
+    loupe: surface.classList.contains('loupe'),
+    actives: [...surface.querySelectorAll('.bande.active')].map((bande) => bande.dataset.bande),
+  };
+});
+const AUCUN_SURLIGNAGE = { pastilles: [], petites: [], codes: [], caseTiretee: false, petiteDuTexte: false, specimens: [], loupe: false, actives: [] };
+const pastilleDeLApercu = (page, profil, cran) => page.locator(`.nuancier-grille .pastille[data-profil="${profil}"][data-cran="${cran}"]`);
+/** Les variables que le thème normal donne à la 700, dans l'ordre du tri : `solid/default`, `page/foreground` et `page/border`. */
+const CODES_DU_700_NORMAL = ['page/border', 'page/foreground', 'solid/default'];
+/** Le pointeur quitte la surface : le survol s'efface. */
+const quitterLApercu = (page) => page.mouse.move(0, 0);
+
+test('[UI-04] I13 survoler ou focaliser une pastille surligne ses variables, sa petite pastille et le même cran dans l’autre intensité, puis tout s’efface', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE);
+    const attendu = { ...AUCUN_SURLIGNAGE, pastilles: ['soft 700', 'vivid 700'], petites: ['700', '700', '700', '700'], codes: CODES_DU_700_NORMAL };
+    await pastilleDeLApercu(page, 'soft', 700).hover();
+    assert.deepEqual(await surlignage(page), attendu, 'survol');
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE, 'le pointeur part');
+    await pastilleDeLApercu(page, 'vivid', 700).focus();
+    assert.deepEqual(await surlignage(page), attendu, 'focus');
+    await pastilleDeLApercu(page, 'vivid', 700).blur();
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE, 'le focus part');
+    // Une nuance qu'aucune variable ne prend ne surligne rien : la 50.
+    await pastilleDeLApercu(page, 'soft', 50).hover();
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE, 'la 50 n’a pas de variable');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I13 survoler une petite pastille d’une rayure surligne comme la pastille de son cran', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await page.locator('.rayure i[data-cran="800"]').first().hover();
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 800', 'vivid 800'], petites: ['800', '800', '800', '800'], codes: ['solid/hover', 'surface/border', 'surface/foreground'] });
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I13 survoler un code surligne ses pastilles dans chaque intensité et ses petites pastilles ; solid/foreground surligne la case tiretée, et la case surligne son code', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await page.locator('.accolade-libelle [data-token="surface/hover"]').hover();
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 200', 'vivid 200'], petites: ['200', '200'], codes: ['surface/hover'] });
+    await page.locator('.accolade-libelle [data-token="solid/foreground"]').hover();
+    const texteDesBoutons = { ...AUCUN_SURLIGNAGE, codes: ['solid/foreground'], caseTiretee: true, petiteDuTexte: true };
+    assert.deepEqual(await surlignage(page), texteDesBoutons, 'le code de solid/foreground');
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE);
+    await page.locator('.pastille-on-solid').hover();
+    assert.deepEqual(await surlignage(page), texteDesBoutons, 'la case tiretée');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I13 survoler un spécimen surligne les crans du dossier ; les autres pastilles passent à 0,3 et les autres bandes à 0,45', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    const opacites = () => page.locator('.nuancier-surface').evaluate((surface) => {
+      const opacite = (selecteur) => getComputedStyle(surface.querySelector(selecteur)).opacity;
+      return {
+        surLaPastille: opacite('.pastille[data-profil="soft"][data-cran="800"]'),
+        horsDuDossier: opacite('.pastille[data-profil="soft"][data-cran="700"]'),
+        caseTiretee: opacite('.pastille-on-solid'),
+        bandeActive: opacite('.bande[data-bande="surface"]'),
+        autreBande: opacite('.bande[data-bande="solid"]'),
+      };
+    });
+    assert.deepEqual(await opacites(), { surLaPastille: '1', horsDuDossier: '1', caseTiretee: '1', bandeActive: '1', autreBande: '1' });
+    await page.locator('.specimen[data-dossier="surface"]').hover();
+    const crans = [100, 200, 300, 800];
+    assert.deepEqual(await surlignage(page), {
+      ...AUCUN_SURLIGNAGE,
+      pastilles: ['soft', 'vivid'].flatMap((profil) => crans.map((cran) => `${profil} ${cran}`)),
+      // Les petites pastilles de ces crans, dans les deux intensités : surface/default, hover et pressed, puis foreground et border.
+      petites: ['800', '800', '100', '200', '300', '100', '200', '300', '800', '800', '300', '300'],
+      specimens: ['surface'],
+      loupe: true,
+      actives: ['surface'],
+    });
+    assert.deepEqual(await opacites(), { surLaPastille: '1', horsDuDossier: '0.3', caseTiretee: '1', bandeActive: '1', autreBande: '0.45' });
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), AUCUN_SURLIGNAGE);
+    assert.deepEqual(await opacites(), { surLaPastille: '1', horsDuDossier: '1', caseTiretee: '1', bandeActive: '1', autreBande: '1' });
+    await page.locator('.specimen[data-dossier="solid"]').hover();
+    const solid = await surlignage(page);
+    assert.deepEqual(solid.pastilles, ['soft', 'vivid'].flatMap((profil) => [700, 800, 900].map((cran) => `${profil} ${cran}`)));
+    assert.deepEqual(solid.actives, ['solid']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I13 la nuance choisie garde son surlignage, un survol le remplace le temps du survol, puis le choix revient ; Entrée et Espace choisissent comme le clic', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    const choisie = { ...AUCUN_SURLIGNAGE, pastilles: ['soft 700', 'vivid 700'], petites: ['700', '700', '700', '700'], codes: CODES_DU_700_NORMAL };
+    await pastilleDeLApercu(page, 'vivid', 700).click();
+    assert.equal(await pastilleDeLApercu(page, 'vivid', 700).getAttribute('aria-selected'), 'true');
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), choisie, 'le choix persiste quand le pointeur part');
+    await pastilleDeLApercu(page, 'soft', 200).hover();
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 200', 'vivid 200'], petites: ['200', '200'], codes: ['surface/hover'] }, 'le survol remplace le choix');
+    assert.equal(await pastilleDeLApercu(page, 'vivid', 700).getAttribute('aria-selected'), 'true', 'le choix reste posé pendant le survol');
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), choisie, 'le choix revient');
+    // Le clavier choisit une autre nuance : Entrée, puis Espace.
+    await pastilleDeLApercu(page, 'soft', 300).focus();
+    await page.keyboard.press('Enter');
+    await pastilleDeLApercu(page, 'soft', 300).blur();
+    assert.equal(await pastilleDeLApercu(page, 'soft', 300).getAttribute('aria-selected'), 'true');
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 300', 'vivid 300'], petites: ['300', '300', '300', '300'], codes: ['page/divider', 'surface/pressed'] }, 'Entrée');
+    await pastilleDeLApercu(page, 'vivid', 600).focus();
+    await page.keyboard.press('Space');
+    await pastilleDeLApercu(page, 'vivid', 600).blur();
+    assert.equal(await pastilleDeLApercu(page, 'vivid', 600).getAttribute('aria-selected'), 'true');
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 600', 'vivid 600'], petites: ['600', '600'], codes: ['page/focus'] }, 'Espace');
+    // La case tiretée choisie surligne `solid/foreground`.
+    await page.locator('.pastille-on-solid').click();
+    await quitterLApercu(page);
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, codes: ['solid/foreground'], caseTiretee: true, petiteDuTexte: true });
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I3 I13 changer le thème affiché ou le texte des boutons déplace le surlignage selon la table du nouveau sens', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    const crans700 = (codes, petites = 4) => ({ ...AUCUN_SURLIGNAGE, pastilles: ['soft 700', 'vivid 700'], petites: Array(petites).fill('700'), codes });
+    const ordreDeSolid = () => page.locator('.bande[data-bande="solid"] .accolade-libelle:last-of-type .code-du-role').textContent();
+    // Light blanc et Dark noir : le thème normal des deux côtés, la table ne bouge pas.
+    await pastilleDeLApercu(page, 'soft', 700).click();
+    assert.equal(await ordreDeSolid(), 'default · hover · pressed');
+    await choisirLeTheme(page, 'Dark');
+    assert.deepEqual(await surlignage(page), crans700(CODES_DU_700_NORMAL), 'Dark, texte noir : thème normal');
+    assert.equal(await ordreDeSolid(), 'default · hover · pressed');
+    // Dark passe au texte blanc : le thème est inversé, la 700 porte solid/default et page/focus, la 800 page/foreground et page/border.
+    const avant = await compte(page);
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await reglage(page, 'Couleurs de fond').getByRole('group', { name: GROUPE_DU_TEXTE.dark }).getByRole('button', { name: 'Blanc' }).click();
+    await envoyer(page, rangee((await prochaine(page, avant)).demande));
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
+    await page.locator('#panneau-creation .nuancier-surface').waitFor();
+    assert.deepEqual(await surlignage(page), crans700(['page/focus', 'solid/default']), 'Dark, texte blanc : thème inversé');
+    assert.equal(await ordreDeSolid(), 'pressed · hover · default');
+    await pastilleDeLApercu(page, 'soft', 800).hover();
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 800', 'vivid 800'], petites: ['800', '800'], codes: ['page/border', 'page/foreground'] }, 'la 800 du thème inversé');
+    await quitterLApercu(page);
+    // Light garde son texte blanc : revenir à Light rend la table normale.
+    await choisirLeTheme(page, 'Light');
+    assert.deepEqual(await surlignage(page), crans700(CODES_DU_700_NORMAL), 'Light, texte blanc : thème normal');
+    assert.equal(await ordreDeSolid(), 'default · hover · pressed');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-12] I2 à 500 px, en français et en anglais, les bandes ne font pas défiler la page à l’horizontale, aucun libellé ne sort de la surface', async () => {
+  for (const langue of ['fr', 'en']) {
+    for (const id of ['palette-deux-intensites', 'apercu-une-intensite-dark-inverse', 'apercu-neutre']) {
+      const page = await ouvrirSurEn(id, MINIMALE, langue);
+      try {
+        const mesures = await page.locator('.nuancier-surface').evaluate((surface) => {
+          const limite = surface.getBoundingClientRect().right;
+          return {
+            page: document.documentElement.scrollWidth - window.innerWidth,
+            surface: surface.scrollWidth - surface.clientWidth,
+            bandes: surface.querySelector('.bandes').scrollWidth - surface.querySelector('.bandes').clientWidth,
+            sorties: [...surface.querySelectorAll('.bande, .accolade-libelle, .specimen-case, .hors-rampe')]
+              .filter((element) => element.getClientRects().length > 0)
+              .map((element) => [element.className, element.getBoundingClientRect().right - limite])
+              .filter(([, depasse]) => depasse > 0.5),
+          };
+        });
+        const nom = `${langue}, ${id}`;
+        assert.ok(mesures.page <= 0, `${nom} : la page défile de ${mesures.page} px`);
+        assert.ok(mesures.surface <= 0, `${nom} : la surface déborde de ${mesures.surface} px`);
+        assert.ok(mesures.bandes <= 0, `${nom} : les bandes débordent de ${mesures.bandes} px`);
+        assert.deepEqual(mesures.sorties, [], `${nom} : des éléments sortent de la surface`);
+      } finally {
+        await page.close();
+      }
+    }
   }
 });

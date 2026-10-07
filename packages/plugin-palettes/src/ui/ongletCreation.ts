@@ -59,7 +59,7 @@ import {
   revenirAuModele,
   supprimer,
 } from '../edition';
-import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, reglageGlobalModifie, type CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, estLaPaletteNeutre, reglageGlobalModifie, type CibleDAction } from '../presentation';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
 import { planDesVariables } from '../variables/plan';
@@ -861,7 +861,7 @@ function construireVues(i18n: Localisation) {
       i18n.lier(choixAutomatique, 'title', aideDuChoix);
       i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, etat.theme())}`);
 
-      nuancier.afficher({ recette: lue, analyse, mode: etat.theme(), confondues: analyse.confusions });
+      nuancier.afficher({ recette: lue, analyse, mode: etat.theme(), confondues: analyse.confusions, neutre: estLaPaletteNeutre(courante) });
       if (apercuSeul) return;
 
       const nomDe = (id: string) => {

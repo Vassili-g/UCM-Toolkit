@@ -1420,6 +1420,22 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([BLEU]))],
   },
   {
+    id: 'apercu-une-intensite-dark-inverse',
+    titre: 'Aperçu en bandes, une intensité, Dark inversé',
+    quand: 'Bleu porte une seule intensité ; le texte des boutons est blanc dans les deux thèmes, donc inversé en Dark ; l’aperçu montre le thème Dark.',
+    regarder: 'Trois bandes solid, surface et page sous une seule rangée de nuances ; la case tiretée et la petite pastille de solid/foreground blanches ; solid écrit « pressed · hover · default » et « appui · survol · repos » sous 500, 600, 700, page/foreground sous la 700 ; les petites pastilles de 5 px de haut, alignées sur les pastilles de leur cran.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }], avecLeTexteDesBoutons('blanc', 'blanc'))), montrerLeThemeDark],
+  },
+  {
+    id: 'apercu-neutre',
+    titre: 'Aperçu en bandes, palette neutral',
+    quand: 'La palette se nomme neutral et porte une seule intensité ; l’aperçu montre le thème Light.',
+    regarder: 'La bande page écrit « foreground-subtle · border » et « texte secondaire · contour » ; sous la surface, en encre seconde, « page/foreground-main · » et sa note, hors de la rampe.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...palette('p-6e7a1b00', 'neutral', '#6B7280'), intensites: 1 }]))],
+  },
+  {
     id: 'reglages-une-intensite',
     titre: 'Réglage global, à une intensité',
     quand: 'Bleu porte une seule intensité ; le designer déplie la carte « Réglage global ».',

@@ -2537,17 +2537,17 @@
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
   color: var(--encre-surface);
-  --colonne-profil: 34px;
+  --colonne-profil: 56px;
   --colonne-on-solid: 30px;
 }
 
 /*
- * Une seule trame pour les numéros, les pastilles et les accolades : la
- * pastille on-solid couvre les deux rangées, et chaque accolade tombe sous ses
- * nuances. Les rangées ARIA ne créent pas de boîte.
+ * Une seule trame pour les numéros, les pastilles et les bandes : la case
+ * tiretée couvre les deux rangées, et chaque rayure et chaque libellé tombent
+ * sous leurs nuances. Les rangées ARIA ne créent pas de boîte.
  */
 .nuancier-grille,
-.accolades-ligne {
+.bande {
   display: grid;
   align-items: center;
   column-gap: 3px;
@@ -2587,7 +2587,7 @@
   font-size: var(--corps);
 }
 
-/* on-solid est le fond du thème : un contour tireté le détache de la surface. */
+/* La case tiretée porte le texte des boutons, blanc ou noir : un contour tireté la détache de la surface. */
 .pastille-on-solid {
   height: 100%;
   border: 1px dashed var(--encre-surface-seconde);
@@ -2616,29 +2616,122 @@
   opacity: 0.8;
 }
 
-/* Les accolades à trait fin, puis le rôle en police de code et son nom français. */
-.accolades {
+/*
+ * Une bande par dossier, sur un fond très léger : son spécimen en colonne 1,
+ * la rayure des nuances que couvre chaque accolade en ligne 1, le code en
+ * police de code et son nom français en ligne 2.
+ */
+.bandes {
   display: grid;
-  gap: var(--espace-serre);
+  gap: 3px;
 }
 
-.accolades-ligne {
+.bande {
+  row-gap: 2px;
+  padding: 5px 0 4px;
+  border-radius: 4px;
+  background: var(--fond-de-bande);
+}
+
+.specimen-case {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 1px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  justify-items: center;
+}
+
+/* Le nom du dossier, dessiné comme ce que le dossier peint ; ses couleurs viennent de la palette. */
+.specimen {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: default;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
+.specimen-role {
+  color: var(--encre-surface-seconde);
+  font-size: 9px;
+  line-height: 11px;
+  white-space: nowrap;
+}
+
+/* Une petite pastille par nuance couverte et par intensité, aux couleurs de la rampe. */
+.rayure {
+  display: grid;
+  column-gap: 3px;
+  grid-row: 1;
   row-gap: 1px;
 }
 
-.accolade {
-  height: 5px;
-  grid-row: 1;
-  border: 1px solid var(--encre-surface-seconde);
-  border-top: 0;
-  border-radius: 0 0 2px 2px;
+.rayure i {
+  border-radius: 1px;
+  box-shadow: inset 0 0 0 1px var(--trait-de-rayure);
 }
 
+/* La note du neutre : `page/foreground-main` se lit hors de la rampe. */
+.hors-rampe {
+  margin: 4px 0 0;
+  color: var(--encre-surface-seconde);
+  font-size: 9px;
+  line-height: 11px;
+}
+
+/*
+ * Le survol lié ([UI-04], I13) : un liseré du fond de la surface, puis un
+ * anneau ocre. Il ne se confond ni avec le focus tireté ni avec l'anneau de la
+ * nuance choisie, qui garde le sien. Un code surligné porte un fond jaune et
+ * une encre sombre dans les deux thèmes. La loupe atténue ce que le dossier
+ * ne couvre pas. Les couleurs s'écrivent en rgb() : la feuille n'a pas de
+ * code hexadécimal hors du bloc de rôles.
+ */
+.pastille.lie:not([aria-selected='true']),
+.specimen.lie {
+  box-shadow: 0 0 0 1px var(--fond-surface), 0 0 0 3px rgb(169, 74, 28);
+}
+
+.rayure i.lie {
+  box-shadow: 0 0 0 1px var(--fond-surface), 0 0 0 2px rgb(169, 74, 28);
+}
+
+.accolade-libelle [data-token].lie,
+.hors-rampe [data-token].lie {
+  border-radius: 2px;
+  background: rgb(255, 229, 138);
+  color: rgb(30, 30, 30);
+}
+
+.loupe .nuancier-grille .pastille[data-cran]:not(.lie) {
+  opacity: 0.3;
+}
+
+.loupe .bande:not(.active) {
+  opacity: 0.45;
+}
+
+/*
+ * Un libellé reste dans les colonnes que `etaler` lui donne : s'il n'y tient pas,
+ * il passe à la ligne après un « · », puis entre les mots, puis dans un mot.
+ * Quand il tient, rien ne change : son texte se place comme avant, et le blanc
+ * de la colle ne le fait passer à la ligne que s'il dépasse la plage entière.
+ * La boîte de contenu va donc de la plage moins ce blanc à la plage, selon la
+ * largeur du texte.
+ */
 .accolade-libelle {
   display: grid;
-  min-width: 0;
+  min-width: calc(100% - var(--colle, 0px));
+  max-width: 100%;
+  box-sizing: content-box;
   grid-row: 2;
-  white-space: nowrap;
+  grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: anywhere;
+  width: max-content;
 }
 
 .accolade-libelle .code-du-role {

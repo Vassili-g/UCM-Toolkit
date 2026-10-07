@@ -1,26 +1,38 @@
 /**
  * L'aperçu de la palette ouverte ([UI-04]) : une surface peinte du fond du
  * thème choisi, les numéros de nuance alignés sur les rampes Soft et Vivid, la
- * pastille `on-solid` avant elles, la référence exacte repérée ([MOT-17]), les
- * accolades des rôles, et le détail de la nuance choisie ([UI-10]).
+ * case tiretée avant elles, qui porte le texte des boutons du thème, la
+ * référence exacte repérée ([MOT-17]), les trois bandes `solid`, `surface` et
+ * `page` sous les rampes, et le détail de la nuance choisie ([UI-10]). Les
+ * crans des bandes suivent la table du sens du thème montré (I3).
  *
  * Les pastilles forment une grille au sens WAI-ARIA : une seule est atteinte
  * par la tabulation, les flèches, Origine et Fin déplacent le focus, Entrée et
- * Espace choisissent, et relâchent la nuance déjà choisie. La pastille
- * `on-solid` est la première colonne des deux rangées. Le survol signale
- * seulement la cible. La copie d'un code est un bouton du détail, distinct du
- * choix d'une nuance. Les accolades ne se focalisent pas.
+ * Espace choisissent, et relâchent la nuance déjà choisie. La case tiretée est
+ * la première colonne des deux rangées. La copie d'un code est un bouton du
+ * détail, distinct du choix d'une nuance.
+ *
+ * Le survol lie les pastilles aux variables (I13). Survoler ou focaliser une
+ * pastille, une petite pastille d'une rayure, un code, la case tiretée ou un
+ * spécimen de dossier surligne ce que la table du sens du thème relie à cette
+ * cible : `presentation.ts` dit quoi, cette vue pose les classes `lie`,
+ * `loupe` et `active`. La nuance choisie garde son surlignage ; un survol le
+ * remplace le temps du survol. Les bandes restent `aria-hidden` et hors de la
+ * tabulation : le détail de la nuance choisie nomme ses variables.
  */
 import {
+  COULEUR_DU_TEXTE_DES_BOUTONS,
   TABLE_DES_EMPLOIS,
   associationDe,
   contraste,
+  cranDeLaVariable,
   decalagesDeLEmploi,
   emploisDuCran,
   etatDeLaPaire,
   lireHexa,
   mesurerCran,
   rampeDe,
+  sensDuTheme,
   type Association,
   type Cran,
   type Emploi,
@@ -30,10 +42,11 @@ import {
   type Promesse,
   type Recette,
   type Rgb8,
+  type VariableDuTheme,
 } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from '../analyse';
-import { accoladesDe } from '../presentation';
+import { apercuEnBandes, gesteDeLaCible, hauteursDesRayures, surlignageDe, type Accolade, type ApercuEnBandes, type Dossier, type Geste } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { creerVuesPropositions } from './couleur/propositions';
 import { creerVuesSelecteur } from './couleur/selecteur';
@@ -48,6 +61,8 @@ export interface EntreesDuNuancier {
   readonly mode: Mode;
   /** Les nuances où soft et vivid se confondent ([VER-11]) : un indice discret les marque. */
   readonly confondues: readonly { readonly mode: Mode; readonly cran: number }[];
+  /** Vrai pour la palette du neutre (`estLaPaletteNeutre`) : sa bande `page` et sa note changent. Absent, faux. */
+  readonly neutre?: boolean;
 }
 
 /** Ce que le nuancier demande à l'onglet. */
@@ -80,14 +95,18 @@ function construireVues(i18n: Localisation) {
   const { ouvrirLeSelecteur, suivreLaCouleur } = creerVuesSelecteur(i18n);
   const { badgeDeNiveau } = creerVuesBadge(i18n);
   const { specimenDuRole } = creerVuesSpecimens(i18n);
-  const { NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DU_DETAIL, TEXTES_DU_NUANCIER, TEXTES_DU_SELECTEUR, contrasteEcrit, jugementDuSeuil } = i18n.messages;
+  const { NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DE_L_APERCU, TEXTES_DU_DETAIL, TEXTES_DU_NUANCIER, TEXTES_DU_SELECTEUR, contrasteEcrit, jugementDuSeuil } = i18n.messages;
 
-  /** L'encre qui se lit sur le fond du thème : la sombre ou la claire des couleurs de la planche. */
-  function encresSur(fond: Rgb8): { encre: string; seconde: string; bordure: string } {
+  /**
+   * L'encre qui se lit sur le fond du thème : la sombre ou la claire des
+   * couleurs de la planche, avec le fond léger des bandes et le liseré des
+   * petites pastilles qui vont avec elle.
+   */
+  function encresSur(fond: Rgb8): { encre: string; seconde: string; bordure: string; bande: string; trait: string } {
     const sombre = contraste(fond, [30, 30, 30]) >= contraste(fond, [245, 245, 245]);
     return sombre
-      ? { encre: '#1E1E1E', seconde: 'rgba(30, 30, 30, 0.72)', bordure: 'rgba(30, 30, 30, 0.28)' }
-      : { encre: '#F5F5F5', seconde: 'rgba(245, 245, 245, 0.72)', bordure: 'rgba(245, 245, 245, 0.32)' };
+      ? { encre: '#1E1E1E', seconde: 'rgba(30, 30, 30, 0.72)', bordure: 'rgba(30, 30, 30, 0.28)', bande: 'rgba(30, 30, 30, 0.045)', trait: 'rgba(0, 0, 0, 0.14)' }
+      : { encre: '#F5F5F5', seconde: 'rgba(245, 245, 245, 0.72)', bordure: 'rgba(245, 245, 245, 0.32)', bande: 'rgba(237, 237, 237, 0.06)', trait: 'rgba(255, 255, 255, 0.16)' };
   }
 
   function bouton(classe: 'bouton-discret' | 'bascule-option' | 'lien-de-constat', texte: Texte = ''): HTMLButtonElement {
@@ -202,14 +221,23 @@ function construireVues(i18n: Localisation) {
     grille.className = 'nuancier-grille';
     grille.setAttribute('role', 'grid');
     i18n.lier(grille, 'aria-label', TEXTES.apercu);
-    const accolades = document.createElement('div');
-    accolades.className = 'accolades';
-    accolades.setAttribute('aria-hidden', 'true');
+    // Les trois bandes, hors de la tabulation et de l'arbre d'accessibilité : le détail de la nuance nomme ses variables (I5).
+    const bandes = document.createElement('div');
+    bandes.className = 'bandes';
+    bandes.setAttribute('aria-hidden', 'true');
+    // La note du neutre : `page/foreground-main` n'a pas de cran, elle se lit sous les bandes.
+    const noteDuNeutre = document.createElement('p');
+    noteDuNeutre.className = 'hors-rampe';
+    const codeDeLaNote = document.createElement('span');
+    codeDeLaNote.dataset.token = 'page/foreground-main';
+    i18n.lier(codeDeLaNote, 'textContent', codeDeLaNote.dataset.token);
+    noteDuNeutre.append(codeDeLaNote, i18n.noeud(i18n.composer` · ${TEXTES_DE_L_APERCU.noteDuNeutre}`));
+    noteDuNeutre.hidden = true;
     const detail = document.createElement('div');
     detail.className = 'nuancier-detail';
     detail.setAttribute('aria-live', 'polite');
     detail.hidden = true;
-    surface.append(grille, accolades, detail);
+    surface.append(grille, bandes, noteDuNeutre, detail);
 
     let choix: Choix | null = null;
     /** La cellule que la tabulation atteint : rang de la rampe, colonne ; la colonne 0 est `on-solid`. */
@@ -436,35 +464,190 @@ function construireVues(i18n: Localisation) {
       detail.hidden = false;
     }
 
-    /** Les deux lignes d'accolades ([UI-04]), calculées par `accoladesDe` ; une palette libre n'en a pas (W6.5). */
-    function rendreLesAccolades(recette: Recette, analyse: AnalyseDePalette): void {
-      accolades.hidden = analyse.libre;
-      if (analyse.libre) {
-        accolades.replaceChildren();
-        return;
-      }
-      const lignes = accoladesDe(recette.crans).map((accoladesDeLaLigne) => {
-        const ligne = document.createElement('div');
-        ligne.className = 'accolades-ligne';
-        for (const accolade of accoladesDeLaLigne) {
-          const trait = document.createElement('span');
-          trait.className = 'accolade';
-          trait.style.gridColumn = `${colonne(accolade.debut)} / ${colonne(accolade.fin) + 1}`;
-          const libelle = document.createElement('span');
-          libelle.className = 'accolade-libelle';
-          libelle.style.gridColumn = `${colonne(accolade.libelle.debut)} / ${colonne(accolade.libelle.fin) + 1}`;
-          libelle.style.textAlign = accolade.libelle.alignement;
-          const role = codeDuRole(accolade.emplois.join(' · '));
-          const nom = document.createElement('span');
-          nom.className = 'accolade-nom';
-          i18n.lier(nom, 'textContent', i18n.joindre(accolade.emplois.map((emploi) => NOM_DU_ROLE[emploi]), ' · '));
-          libelle.append(role, nom);
-          ligne.append(trait, libelle);
-        }
-        return ligne;
-      });
-      accolades.replaceChildren(...lignes);
+    /** La forme des bandes bâties : un changement de crans, d'intensités, de sens ou de neutre les rebâtit ; leurs couleurs se repeignent en place (Z4.9). */
+    let bandesBaties = '';
+    /** Les petites pastilles des rayures, avec leur intensité et leur rang, et celle de `solid/foreground`. */
+    let petitesPastilles: { element: HTMLElement; profil: Intensite; rang: number }[] = [];
+    let petiteDuTexte: HTMLElement | null = null;
+    let specimens: { element: HTMLElement; dossier: Dossier }[] = [];
+
+    /** Le spécimen d'un dossier : son nom dessiné comme ce qu'il peint, et son rôle dessous (S10, 4). */
+    function specimenDuDossier(dossier: Dossier): HTMLElement {
+      const caseDuSpecimen = document.createElement('span');
+      caseDuSpecimen.className = 'specimen-case';
+      const specimen = document.createElement('span');
+      specimen.className = 'specimen';
+      specimen.dataset.dossier = dossier;
+      i18n.lier(specimen, 'textContent', dossier);
+      const role = document.createElement('span');
+      role.className = 'specimen-role';
+      i18n.lier(role, 'textContent', TEXTES_DE_L_APERCU.roles[dossier]);
+      caseDuSpecimen.append(specimen, role);
+      specimens.push({ element: specimen, dossier });
+      return caseDuSpecimen;
     }
+
+    /** La rayure d'une accolade : une petite pastille par nuance couverte et par intensité, sous les colonnes de la rampe (S10, 5). */
+    function rayureDeLAccolade(accolade: Accolade, intensites: readonly Intensite[], crans: readonly number[]): HTMLElement {
+      const rayure = document.createElement('span');
+      rayure.className = 'rayure';
+      const hauteurs = hauteursDesRayures(intensites.length);
+      if (accolade.debut < 0) {
+        rayure.style.gridColumn = String(colonne(-1));
+        rayure.style.gridTemplateRows = `${hauteurs.texteDesBoutons}px`;
+        const petite = document.createElement('i');
+        petite.dataset.token = 'solid/foreground';
+        rayure.append(petite);
+        petiteDuTexte = petite;
+        return rayure;
+      }
+      const nombre = accolade.fin - accolade.debut + 1;
+      rayure.style.gridColumn = `${colonne(accolade.debut)} / ${colonne(accolade.fin) + 1}`;
+      rayure.style.gridTemplateColumns = `repeat(${nombre}, minmax(0, 1fr))`;
+      rayure.style.gridTemplateRows = `repeat(${intensites.length}, ${hauteurs.petite}px)`;
+      intensites.forEach((profil, ligne) => {
+        for (let rang = accolade.debut; rang <= accolade.fin; rang += 1) {
+          const petite = document.createElement('i');
+          petite.dataset.cran = String(crans[rang]);
+          petite.style.gridColumn = String(rang - accolade.debut + 1);
+          petite.style.gridRow = String(ligne + 1);
+          rayure.append(petite);
+          petitesPastilles.push({ element: petite, profil, rang });
+        }
+      });
+      return rayure;
+    }
+
+    /** Le libellé d'une accolade : ses codes en police de code, puis leurs noms ; il prend l'espace que `etaler` lui donne (S10, 6 et 9). */
+    function libelleDeLAccolade(accolade: Accolade): HTMLElement {
+      const libelle = document.createElement('span');
+      libelle.className = 'accolade-libelle';
+      libelle.style.gridColumn = `${colonne(accolade.libelle.debut)} / ${colonne(accolade.libelle.fin) + 1}`;
+      libelle.style.textAlign = accolade.libelle.alignement;
+      if (accolade.libelle.colle) {
+        libelle.style.paddingRight = '12px';
+        // Le blanc de 12 px ne fait passer le texte à la ligne que s'il dépasse la plage entière.
+        libelle.style.setProperty('--colle', '12px');
+      }
+      const code = document.createElement('code');
+      code.className = 'code-du-role';
+      accolade.codes.forEach((entree, rang) => {
+        if (rang > 0) code.append(document.createTextNode(' · '));
+        const jeton = document.createElement('span');
+        jeton.dataset.token = entree.variable;
+        i18n.lier(jeton, 'textContent', entree.code);
+        code.append(jeton);
+      });
+      const nom = document.createElement('span');
+      nom.className = 'accolade-nom';
+      i18n.lier(nom, 'textContent', i18n.joindre(accolade.codes.map((entree) => TEXTES_DE_L_APERCU.noms[entree.nom]), ' · '));
+      libelle.append(code, nom);
+      return libelle;
+    }
+
+    /** Les bandes `solid`, `surface` et `page` (S10) ; une palette libre n'en a pas (W6.5). */
+    function batirLesBandes(analyse: AnalyseDePalette, apercu: ApercuEnBandes): void {
+      petitesPastilles = [];
+      petiteDuTexte = null;
+      specimens = [];
+      bandes.replaceChildren(...apercu.bandes.map((entree) => {
+        const bande = document.createElement('div');
+        bande.className = 'bande';
+        bande.dataset.bande = entree.dossier;
+        bande.append(specimenDuDossier(entree.dossier));
+        for (const accolade of entree.accolades) bande.append(rayureDeLAccolade(accolade, analyse.intensites, analyse.grille.crans), libelleDeLAccolade(accolade));
+        return bande;
+      }));
+    }
+
+    /** Les couleurs des spécimens et des petites pastilles : celles de la palette dans le thème montré, Vivid quand elle a deux intensités. */
+    function peindreLesBandes(entrees: EntreesDuNuancier, apercu: ApercuEnBandes): void {
+      const { analyse, mode, neutre } = entrees;
+      const { crans } = analyse.grille;
+      const hexaDe = (variable: VariableDuTheme): string => {
+        const cran = cranDeLaVariable(variable, apercu.sens);
+        const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
+        return rang < 0 ? 'transparent' : rampeDe(analyse.rampes, analyse.intensites.includes('vivid') ? 'vivid' : 'unique')[mode][rang].hexa;
+      };
+      const texteDeLaPage = neutre ? 'page/foreground-subtle' : 'page/foreground';
+      for (const { element, dossier } of specimens) {
+        if (dossier === 'solid') {
+          element.style.background = hexaDe('solid/default');
+          element.style.borderColor = hexaDe('solid/default');
+          element.style.color = apercu.couleurDuTexte;
+        } else if (dossier === 'surface') {
+          element.style.background = hexaDe('surface/default');
+          element.style.borderColor = hexaDe('surface/border');
+          element.style.color = hexaDe('surface/foreground');
+        } else {
+          element.style.background = 'transparent';
+          element.style.borderColor = hexaDe('page/border');
+          element.style.color = hexaDe(texteDeLaPage);
+        }
+      }
+      for (const { element, profil, rang } of petitesPastilles) element.style.background = rampeDe(analyse.rampes, profil)[mode][rang].hexa;
+      if (petiteDuTexte) petiteDuTexte.style.background = apercu.couleurDuTexte;
+    }
+
+    /** Le geste que le survol ou le focus désigne. Il remplace celui du choix le temps qu'il dure (S11). */
+    let survol: Geste | null = null;
+    /** Les éléments surlignés, pour les éteindre sans parcourir la surface à chaque rendu. */
+    let allumes: Element[] = [];
+
+    /** Le geste du choix : la nuance choisie, ou la case tiretée, qui est `solid/foreground`. */
+    function gesteDuChoix(): Geste | null {
+      if (!choix) return null;
+      return choix.nature === 'fond' ? { nature: 'code', variable: 'solid/foreground' } : { nature: 'cran', numero: choix.numero };
+    }
+
+    /** Pose les classes `lie`, `loupe` et `active` d'après le geste en cours et la table du sens du thème montré (S11). */
+    function surligner(): void {
+      for (const element of allumes) element.classList.remove('lie', 'active');
+      allumes = [];
+      surface.classList.remove('loupe');
+      if (!donnees || donnees.analyse.libre) return;
+      const geste = survol ?? gesteDuChoix();
+      if (!geste) return;
+      const { recette, analyse, mode } = donnees;
+      const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
+      const { crans, variables, dossier } = surlignageDe(geste, analyse.grille.crans, sens, donnees.neutre ?? false);
+      // `lie` marque une cible surlignée, `active` la bande du dossier survolé : la loi des styles ne lit que des classes littérales.
+      const allumer = (selecteur: string, bandeActive = false): void => {
+        surface.querySelectorAll(selecteur).forEach((element) => {
+          if (bandeActive) element.classList.add('active');
+          else element.classList.add('lie');
+          allumes.push(element);
+        });
+      };
+      for (const numero of crans) allumer(`.pastille[data-cran="${numero}"], .rayure i[data-cran="${numero}"]`);
+      for (const variable of variables) allumer(`[data-token="${variable}"]`);
+      if (dossier) {
+        allumer(`.specimen[data-dossier="${dossier}"]`);
+        allumer(`.bande[data-bande="${dossier}"]`, true);
+        surface.classList.add('loupe');
+      }
+    }
+
+    /** Le geste d'un élément de l'aperçu : un code avant une pastille, une pastille avant un dossier. */
+    function gesteDe(cible: EventTarget | null): Geste | null {
+      if (!(cible instanceof Element)) return null;
+      return gesteDeLaCible({
+        token: cible.closest<HTMLElement>('[data-token]')?.dataset.token,
+        cran: cible.closest<HTMLElement>('.pastille[data-cran], .rayure i[data-cran]')?.dataset.cran,
+        dossier: cible.closest<HTMLElement>('[data-dossier]')?.dataset.dossier,
+      });
+    }
+
+    function suivre(cible: EventTarget | null): void {
+      survol = gesteDe(cible);
+      surligner();
+    }
+
+    // Ni délai ni animation : le surlignage suit le pointeur et s'efface quand il quitte la cible.
+    surface.addEventListener('mouseover', (evenement) => suivre(evenement.target));
+    surface.addEventListener('mouseleave', () => suivre(null));
+    surface.addEventListener('focusin', (evenement) => suivre(evenement.target));
+    surface.addEventListener('focusout', () => suivre(null));
 
     function dessiner(): void {
       if (!donnees) return;
@@ -477,6 +660,8 @@ function construireVues(i18n: Localisation) {
       surface.style.setProperty('--encre-surface', encres.encre);
       surface.style.setProperty('--encre-surface-seconde', encres.seconde);
       surface.style.setProperty('--bordure-surface', encres.bordure);
+      surface.style.setProperty('--fond-de-bande', encres.bande);
+      surface.style.setProperty('--trait-de-rayure', encres.trait);
       const { crans } = analyse.grille;
       if (analyse.libre && choix?.nature === 'fond') choix = null;
       // Une intensité que la palette ne porte plus referme son choix ([ENT-14]).
@@ -503,19 +688,26 @@ function construireVues(i18n: Localisation) {
       }
       peindreLaGrille(entrees);
       activer(active.rampe, active.colonne, false);
-      const formeDesAccolades = `${recette.crans.join(',')}|${analyse.libre}`;
-      if (formeDesAccolades !== accoladesBaties) {
-        accoladesBaties = formeDesAccolades;
-        rendreLesAccolades(recette, analyse);
+      // Les bandes suivent la table du sens que le texte des boutons donne au thème montré (I3).
+      const neutre = entrees.neutre ?? false;
+      const apercu = apercuEnBandes(mode, recette.texteDesBoutons[mode], crans, neutre);
+      bandes.hidden = analyse.libre;
+      noteDuNeutre.hidden = analyse.libre || !neutre;
+      const formeDesBandes = [crans.join(','), analyse.intensites.join(','), analyse.libre, apercu.sens, neutre].join('|');
+      if (formeDesBandes !== bandesBaties) {
+        bandesBaties = formeDesBandes;
+        if (analyse.libre) bandes.replaceChildren();
+        else batirLesBandes(analyse, apercu);
       }
+      if (!analyse.libre) peindreLesBandes(entrees, apercu);
+      surligner();
       // Le détail dépend des couleurs de la nuance choisie : il se refait tant qu'un choix existe.
       if (choix || !detail.hidden) rendreLeDetail(entrees);
     }
 
-    /** La forme de la grille bâtie, et celle des accolades : un changement les rebâtit. */
+    /** La forme de la grille bâtie : un changement la rebâtit. */
     let structureBatie = '';
-    let accoladesBaties = '';
-    /** La pastille `on-solid` et les pastilles de chaque rangée, dans l'ordre des intensités. */
+    /** La case tiretée et les pastilles de chaque rangée, dans l'ordre des intensités. */
     let onSolid: HTMLElement | null = null;
     let pastillesDesRangees: HTMLElement[][] = [];
 
@@ -539,9 +731,10 @@ function construireVues(i18n: Localisation) {
         return entete;
       }));
 
-      // La pastille on-solid : peinte du fond du thème, sur la hauteur des rangées, une par intensité.
+      // La case tiretée : peinte du texte des boutons du thème, `solid/foreground`, sur la hauteur des rangées.
       const pastilleOnSolid = document.createElement('span');
       pastilleOnSolid.className = 'pastille pastille-on-solid';
+      pastilleOnSolid.dataset.token = 'solid/foreground';
       pastilleOnSolid.setAttribute('role', 'gridcell');
       pastilleOnSolid.style.gridColumn = String(colonne(-1));
       pastilleOnSolid.style.gridRow = `2 / span ${analyse.intensites.length}`;
@@ -598,7 +791,7 @@ function construireVues(i18n: Localisation) {
       const { recette, analyse, mode } = entrees;
       const { crans } = analyse.grille;
       if (onSolid) {
-        onSolid.style.background = recette.fonds[mode];
+        onSolid.style.background = COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]];
         i18n.lier(onSolid, 'aria-label', TEXTES_DU_NUANCIER.etiquetteDuFond(recette.fonds[mode]));
         onSolid.setAttribute('aria-selected', String(choix?.nature === 'fond'));
       }

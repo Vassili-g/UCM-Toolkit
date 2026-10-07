@@ -811,6 +811,23 @@ export const TEXTES_DU_NUANCIER = {
   etiquetteDuFond: (hexa: string) => `on-solid, theme background, colour ${hexa}`,
 } as const;
 
+/** Les bandes de l'aperçu : le rôle de chaque dossier, le nom anglais sous chaque code, la note du neutre (I12). */
+export const TEXTES_DE_L_APERCU = {
+  roles: { solid: "solid fill", surface: "tinted fill", page: "on the page" },
+  noms: {
+    repos: "rest",
+    survol: "hover",
+    appui: "pressed",
+    texte: "text",
+    texteSecondaire: "secondary text",
+    contour: "border",
+    texteDesBoutons: "button text",
+    filet: "divider",
+    anneauDeFocus: "focus ring",
+  },
+  noteDuNeutre: "body text, pure black or white, outside the ramp",
+} as const;
+
 const ETATS_DU_DECALAGE = ['', ", hover state", ", active state", ", active-hover state"];
 
 /** Un emploi et son état : « Texte coloré (text), état hover ». */
