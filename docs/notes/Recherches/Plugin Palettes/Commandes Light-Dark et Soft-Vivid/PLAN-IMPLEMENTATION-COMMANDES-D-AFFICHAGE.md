@@ -130,9 +130,21 @@ dire au mainteneur.
 - Comptes de départ : 385 tests unitaires, 172 tests d'interface.
 - Comptes actuels : 388 tests unitaires, 190 tests d'interface.
 - Tâches poussées : P1.1 72a9691 ; P1.2 et P1.3 7300754 ; P2.1 à P2.3
-  481098e ; P2.4 e20ca9a ; P3.1, P3.2, P3.4 et P3.5 8229b72 ; P3.3 fe0c7c3.
-  P5.1, P5.2 et P5.5 sont écrites et attendent leur commit. P5.3 et P5.4
-  restent ouvertes.
+  481098e ; P2.4 e20ca9a ; P3.1, P3.2, P3.4 et P3.5 8229b72 ; P3.3 fe0c7c3 ;
+  P5.1, P5.2 et P5.5 454ac76 ; P5.3 f39b0ca, sans l'état `color-shift-les-deux`
+  qui suit la phase 4. P5.4 est à moitié faite : voir la mesure ci-dessous.
+- Mesure du glisser (`scripts/mesurer-glisser.mjs`), après la phase 3 : analyse
+  0,95 ms, `pointermove` 3,4 ms en médiane, 5,3 ms au pire. La mesure d'avant
+  P2.2 n'a pas été prise, faute d'un arbre construit à cet état : aucun écart
+  ne se calcule. À reprendre après la phase 4.
+- Défauts relevés sur les captures de galerie à 500 px, non attribués à ce lot
+  faute de capture d'avant : l'icône ⓘ de l'encart d'invitation seule sur sa
+  ligne dans `interface-de-test-les-deux`, le résumé du Color shift coupé
+  (« Aucun réglage · synchroni… »), et la phrase « Référence dans Vivid… »
+  coupée dans `reglages-profil-delie`.
+- Le banc de galerie n'a pas de geste de défilement : `barre-fixe-defilee`
+  donne le focus au dernier bouton de l'écran pour y descendre. Un vrai geste
+  demanderait de toucher `plugin-socle`.
 - Variante de la phase 4 : aucune case cochée, la phase 4 n'est pas faite.
   P5.1 laisse `[DER-12]` telle quelle et P5.5 laisse la section 4 du dossier
   telle quelle, jusqu'à la décision.
@@ -407,7 +419,7 @@ l'autre.
     palette reste en haut du panneau pendant le défilement. Nommer les tests
     de P2.4 qui le tiennent. Commiter avec ces tests s'ils ne sont pas encore
     poussés.
-- [ ] **P5.3 La galerie.** Fichiers : `galerie/etats.cjs`.
+- [x] **P5.3 La galerie.** Fichiers : `galerie/etats.cjs`.
   - Ajouter trois états : `barre-fixe-defilee` (Création défilée jusqu'à
     l'Interface de test, en Dark), `interface-de-test-les-deux`, et pour la
     variante b `color-shift-les-deux`. Chacun porte son `quand` et son
