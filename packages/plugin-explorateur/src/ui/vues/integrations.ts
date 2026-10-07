@@ -15,8 +15,8 @@ import {
   type RefusDImport,
   type TokensImportes,
 } from '../../integrations/contrats';
-import { cransDeLaPalette, emploisDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
-import { COUCHES, controlerLeProfil, emploiDuNom, estCouche, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
+import { cransDeLaPalette, variablesDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
+import { COUCHES, controlerLeProfil, coucheRangee, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
 import type { Recette } from 'ucm-couleur';
 import type { Application, Composant } from '../application';
 import { versSandbox } from '../pont';
@@ -60,7 +60,10 @@ export function recetteLue(app: Application): Recette | null {
 export function couchesDuFichier(app: Application): AssociationDesCouches {
   const fichier = app.etat.releve?.fichier ?? '';
   const brute = app.etat.preferences.associations[fichier] ?? {};
-  return Object.fromEntries(Object.entries(brute).filter((entree): entree is [string, (typeof COUCHES)[number]] => estCouche(entree[1])));
+  return Object.fromEntries(Object.entries(brute).flatMap(([collection, couche]) => {
+    const lue = coucheRangee(couche);
+    return lue ? [[collection, lue]] : [];
+  }));
 }
 
 /** Les écarts au profil, quand le profil est actif. */
@@ -238,8 +241,8 @@ function texteDuConstatDuProfil(app: Application, constat: ConstatDuProfil): str
       return TEXTES.profilRegles['valeur-directe'].detail(nom);
     case 'portee':
       return TEXTES.profilRegles.portee.detail(nom, constat.attendue || TEXTES.aucune);
-    case 'cible':
-      return TEXTES.profilRegles.cible.detail(nom, constat.attendue ?? '');
+    case 'nuance':
+      return TEXTES.profilRegles.nuance.detail(nom, constat.attendue ?? '');
   }
 }
 
@@ -337,9 +340,9 @@ function sectionPalettesDeLInspecteur(app: Application, variable: string): HTMLE
   bloc.append(note(TEXTES.associer), ligne);
   if (actuelle) {
     bloc.append(note(TEXTES.associationEnMemoire), note(TEXTES.sourceRecette));
-    const emplois = emploisDeLAssociation(recette, actuelle);
-    bloc.append(sousTitre(TEXTES.emploisDuCran(String(actuelle.cran))));
-    bloc.append(note(emplois.length === 0 ? TEXTES.aucunEmploi : emplois.map((emploi) => (emploi.rang ? `${emploi.emploi} · ${emploi.rang}` : emploi.emploi)).join(', ')));
+    const variables = variablesDeLAssociation(recette, actuelle);
+    bloc.append(sousTitre(TEXTES.variablesDuCran(String(actuelle.cran))));
+    bloc.append(note(variables.length === 0 ? TEXTES.aucuneVariableDuCran : variables.join(', ')));
   }
   return bloc;
 }
@@ -348,11 +351,11 @@ function sectionProfilDeLInspecteur(app: Application, variable: string): HTMLEle
   const { index, preferences } = app.etat;
   if (!index || !preferences.profilUcm) return null;
   const trouvee = index.variables.get(variable);
-  if (!trouvee || couchesDuFichier(app)[trouvee.collection] !== 'usage') return null;
-  const emploi = emploiDuNom(trouvee.nom);
-  if (!emploi) return null;
+  if (!trouvee || couchesDuFichier(app)[trouvee.collection] !== 'theme') return null;
+  const lue = variableDuNom(trouvee.nom);
+  if (!lue) return null;
   const bloc = section(TEXTES.profilTitre);
-  bloc.append(note(TEXTES.emploiDuToken(emploi.usage, emploi.rang, emploi.support.peint.join(', '), emploi.support.portees.join(', '))));
+  bloc.append(note(TEXTES.variableDuTheme(lue.variable, lue.support.peint.join(', '), lue.support.portees.join(', '))));
   const constats = constatsDuProfil(app).filter((constat) => constat.variable === variable);
   for (const constat of constats) bloc.append(note(texteDuConstatDuProfil(app, constat)));
   return bloc;

@@ -7,9 +7,13 @@
  * l'association reste en mémoire. Aucune association ne se déduit d'une
  * teinte ou de l'égalité de deux couleurs.
  */
-import { PALETTE_NEUTRE, RANGS, USAGES_DU_NEUTRE, classerRecette, emploisDuCran, type Classement, type Emploi, type Palette, type Recette } from 'ucm-couleur';
+import { sensDuTheme, variablesDuCran, type VariableDuTheme } from '@ucm-kit/core/emplois';
+import { classerRecette, type Classement, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
+
+/** Le nom de la palette qui porte les variables propres au neutre. */
+const PALETTE_NEUTRE = 'neutral';
 
 export type Intensite = 'soft' | 'vivid';
 export type Theme = 'light' | 'dark';
@@ -49,24 +53,13 @@ export function validerAssociation(index: Index, recette: Recette, variable: str
   return null;
 }
 
-/** Un emploi que la table confie au cran, avec son rang, ou un usage propre au neutre. */
-export interface EmploiAffiche {
-  readonly emploi: Emploi | keyof typeof USAGES_DU_NEUTRE;
-  readonly rang: (typeof RANGS)[number] | null;
-}
-
-/** Les emplois de la table qui visent le cran associé ; le neutre ajoute ses usages propres. */
-export function emploisDeLAssociation(recette: Recette, association: AssociationDeCran): EmploiAffiche[] {
+/** Les variables de `theme` que la table des dossiers confie au cran associé, dans le sens du thème associé ; le neutre ajoute les siennes. */
+export function variablesDeLAssociation(recette: Recette, association: AssociationDeCran): VariableDuTheme[] {
   const palette = recette.palettes.find((candidate) => candidate.id === association.palette);
   if (!palette) return [];
   const crans = cransDeLaPalette(recette, palette);
   const rang = crans.indexOf(association.cran);
   if (rang < 0) return [];
-  const emplois: EmploiAffiche[] = emploisDuCran(crans, rang).map((trouve) => ({ emploi: trouve.emploi, rang: RANGS[trouve.decalage] }));
-  if ((palette.nom ?? '').toLowerCase() === PALETTE_NEUTRE) {
-    for (const [usage, cran] of Object.entries(USAGES_DU_NEUTRE)) {
-      if (cran === association.cran) emplois.push({ emploi: usage as keyof typeof USAGES_DU_NEUTRE, rang: null });
-    }
-  }
-  return emplois;
+  const sens = sensDuTheme(association.theme, recette.texteDesBoutons[association.theme]);
+  return variablesDuCran(crans, rang, sens, (palette.nom ?? '').toLowerCase() === PALETTE_NEUTRE);
 }

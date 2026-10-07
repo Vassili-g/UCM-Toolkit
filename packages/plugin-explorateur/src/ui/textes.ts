@@ -289,8 +289,8 @@ export const TEXTES = {
   associationCran: 'Cran',
   associationEnMemoire: 'Association gardée en mémoire jusqu’à la fermeture du plugin.',
   associationRefusee: 'Seule une variable de couleur s’associe à un cran.',
-  emploisDuCran: (cran: string) => `Emplois du cran ${cran}`,
-  aucunEmploi: 'Aucun emploi de la table ne vise ce cran.',
+  variablesDuCran: (cran: string) => `Variables du cran ${cran}`,
+  aucuneVariableDuCran: 'Aucune variable de la table ne vise ce cran.',
   sourceRecette: 'Source : recette, association manuelle',
   profilTitre: 'Profil d’architecture UCM',
   profilActiver: 'Appliquer le profil UCM',
@@ -311,12 +311,12 @@ export const TEXTES = {
       detail: (nom: string, attendue: string) => `Les portées de ${nom} diffèrent de celles du profil : ${attendue}.`,
       action: 'Réglez les portées de la variable dans Figma.',
     },
-    cible: {
-      detail: (nom: string, attendue: string) => `${nom} devrait viser theme / ${attendue} d’après la recette.`,
-      action: 'Faites pointer l’alias vers ce cran de theme.',
+    nuance: {
+      detail: (nom: string, attendue: string) => `${nom} devrait viser la nuance ${attendue} d’après la recette.`,
+      action: 'Faites pointer l’alias vers cette nuance.',
     },
   },
-  emploiDuToken: (usage: string, rang: string | null, peint: string, portees: string) => `Emploi ${usage}${rang ? ` · rang ${rang}` : ''} · peint ${peint} · portées ${portees}`,
+  variableDuTheme: (variable: string, peint: string, portees: string) => `Variable ${variable} · peint ${peint} · portées ${portees}`,
   exception: 'Ignorer cet écart',
   exceptionAide: 'L’exception reste dans vos préférences, pour ce fichier.',
 

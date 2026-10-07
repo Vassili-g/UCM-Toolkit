@@ -5,8 +5,8 @@ import test from 'node:test';
 import { FORMAT_RECETTE, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { indexer } from '../src/indexation';
-import { emploisDeLAssociation, lireLaRecette, validerAssociation } from '../src/integrations/palettes';
-import { cibleAttendue, controlerLeProfil, emploiDuNom } from '../src/integrations/profilUcm';
+import { lireLaRecette, validerAssociation, variablesDeLAssociation } from '../src/integrations/palettes';
+import { coucheRangee, controlerLeProfil, nuanceAttendue, variableDuNom } from '../src/integrations/profilUcm';
 import { alias, constructeur, couleur, projetLibre } from './fixtures';
 
 function recetteAvec(...noms: string[]): Recette {
@@ -32,52 +32,107 @@ test('une association se refuse hors d’une variable de couleur, d’une palett
   assert.equal(validerAssociation(index, recette, 'papier', { ...valide, cran: 750 }), 'cran');
 });
 
-test('les emplois d’un cran viennent de la table du kit, rangs compris ; le neutre ajoute ses usages propres', () => {
+test('les variables d’un cran viennent de la table des dossiers, dans le sens du thème ; le neutre ajoute les siennes', () => {
   const recette = recetteAvec('primary', 'neutral');
-  const sept = emploisDeLAssociation(recette, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
-  // 700 porte solid et text au repos, et border-control au survol : 600 avancé d'un cran.
-  assert.deepEqual(sept.map((emploi) => `${emploi.emploi}:${emploi.rang}`), ['solid:default', 'text:default', 'border-control:hover']);
-  const quatre = emploisDeLAssociation(recette, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 400 });
-  assert.ok(quatre.some((emploi) => emploi.emploi === 'surface' && emploi.rang === 'active-hover'));
-  const cinq = emploisDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
-  assert.deepEqual(cinq.map((emploi) => emploi.emploi), ['text-disabled']);
+  const normal = variablesDeLAssociation(recette, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
+  assert.deepEqual(normal, ['solid/default', 'page/foreground', 'page/border']);
+  const inverse = variablesDeLAssociation({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
+  assert.deepEqual(inverse, ['solid/default', 'page/focus']);
+  const neutre = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
+  assert.deepEqual(neutre, ['disabled/foreground', 'disabled/border']);
 });
 
-test('un nom de usage porte son emploi, son rang et son support', () => {
-  assert.deepEqual(emploiDuNom('primary/solid/active-hover')?.rang, 'active-hover');
-  assert.deepEqual(emploiDuNom('primary/focus')?.support.peint, ['ring']);
-  assert.equal(emploiDuNom('primary/divers'), null);
-  assert.equal(cibleAttendue('primary/solid/hover', recetteAvec('primary')), 'primary/800');
-  assert.equal(cibleAttendue('neutral/text-disabled', recetteAvec('neutral')), 'neutral/500');
+test('un nom de theme porte sa variable de dossier et son support', () => {
+  assert.equal(variableDuNom('primary/solid/hover')?.variable, 'solid/hover');
+  assert.equal(variableDuNom('success/vivid/page/focus')?.support.peint[0], 'ring');
+  assert.equal(variableDuNom('neutral/page/foreground-main')?.variable, 'page/foreground-main');
+  assert.deepEqual(variableDuNom('neutral/scale/0')?.support.portees, []);
+  assert.equal(variableDuNom('primary/identity'), null);
+  assert.equal(nuanceAttendue('primary/solid/hover', 'light', recetteAvec('primary')), 800);
+  assert.equal(nuanceAttendue('primary/solid/foreground', 'light', recetteAvec('primary')), null);
+});
+
+const SOLID = ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'];
+
+/** Un fichier remappé : `theme` en deux modes, aliasé vers `color-brands` et `color-utilities`. */
+function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID) {
+  const c = constructeur('Multimarque');
+  c.collection('c', 'Composants', ['M']);
+  c.collection('t', 'Thème', ['Light', 'Dark']);
+  c.collection('b', 'Marques', ['M']);
+  c.collection('u', 'Utilitaires', ['M']);
+  c.collection('p', 'Catalogue', ['M']);
+  c.variable('bouton', 'c', 'button/bg', 'COLOR', { M: alias('t-hover') });
+  c.variable('t-hover', 't', 'primary/solid/hover', 'COLOR', { Light: alias(aliasDeHover), Dark: alias('b-800') }, { portees });
+  c.variable('t-defaut', 't', 'primary/solid/default', 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: SOLID });
+  c.variable('t-echelle', 't', 'neutral/scale/0', 'COLOR', { Light: alias('u-0'), Dark: alias('u-0') }, { portees: [] });
+  c.variable('t-identite', 't', 'primary/identity', 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: [] });
+  c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('b-600', 'b', 'primary/light/600', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('b-800', 'b', 'primary/light/800', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('u-0', 'u', 'neutral/0', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('cat', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') }, { portees: [] });
+  return indexer(c.releve());
+}
+
+test('une association rangée sous brand se lit color-brands ; usage et l’inconnu se lisent sans couche', () => {
+  assert.equal(coucheRangee('brand'), 'color-brands');
+  assert.equal(coucheRangee('theme'), 'theme');
+  assert.equal(coucheRangee('usage'), null);
+  assert.equal(coucheRangee('autre'), null);
+});
+
+const COUCHES_REMAPPEES = { c: 'components', t: 'theme', b: 'color-brands', u: 'color-utilities', p: 'primitives' } as const;
+
+test('un fichier à la forme du fichier remappé ne rend aucun constat', () => {
+  assert.deepEqual(controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette: recetteAvec('primary') }), []);
+});
+
+test('un alias de solid/hover vers la 700 en Light rend un constat de nuance', () => {
+  const constats = controlerLeProfil(fichierRemappe('b-700'), COUCHES_REMAPPEES, { recette: recetteAvec('primary') });
+  assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['nuance:t-hover:800']);
+});
+
+test('en Dark inversé, la 600 est attendue pour solid/hover', () => {
+  const recette = { ...recetteAvec('primary'), texteDesBoutons: { light: 'blanc', dark: 'blanc' } } as Recette;
+  const constats = controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette });
+  // Light reste normal et vise 800 : seul Dark, qui vise 800 au lieu de 600, déroge.
+  assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.mode}:${constat.attendue}`), ['nuance:t:Dark:600']);
+  const lightInverse = { ...recetteAvec('primary'), texteDesBoutons: { light: 'noir', dark: 'noir' } } as Recette;
+  // Light inversé attend 600 et le trouve ; Dark normal attend 800 et le trouve.
+  assert.deepEqual(controlerLeProfil(fichierRemappe('b-600'), COUCHES_REMAPPEES, { recette: lightInverse }), []);
+});
+
+test('une variable de dossier sans portée rend un constat de portée, avec les portées de la table', () => {
+  const constats = controlerLeProfil(fichierRemappe('b-800', []), COUCHES_REMAPPEES);
+  assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
 });
 
 /** Un fichier aux noms libres, associé au profil par le designer. */
 function fichierAssocie() {
   const c = constructeur('Multimarque');
   c.collection('c', 'Composants', ['M']);
-  c.collection('u', 'Emplois', ['M']);
-  c.collection('t', 'Thème', ['Light', 'Dark']);
+  c.collection('t', 'Thème', ['M']);
+  c.collection('b', 'Marques', ['M']);
   c.collection('p', 'Catalogue', ['M']);
-  c.variable('bouton', 'c', 'button/bg', 'COLOR', { M: alias('u-solid') });
+  c.variable('bouton', 'c', 'button/bg', 'COLOR', { M: alias('t-solid') });
   c.variable('saut', 'c', 'button/border', 'COLOR', { M: alias('cat') });
-  c.variable('u-solid', 'u', 'primary/solid/hover', 'COLOR', { M: alias('t-700') }, { portees: ['FRAME_FILL', 'SHAPE_FILL'] });
-  c.variable('u-texte', 'u', 'primary/text/default', 'COLOR', { M: couleur('#000000') }, { portees: ['ALL_SCOPES'] });
-  c.variable('t-700', 't', 'primary/700', 'COLOR', { Light: alias('cat'), Dark: alias('cat') }, { portees: [] });
+  c.variable('t-solid', 't', 'primary/solid/default', 'COLOR', { M: alias('b-700') }, { portees: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'] });
+  c.variable('t-texte', 't', 'primary/page/foreground', 'COLOR', { M: couleur('#000000') }, { portees: ['ALL_SCOPES'] });
+  c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
   c.variable('cat', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') }, { portees: ['ALL_SCOPES'] });
   return indexer(c.releve());
 }
 
-test('le profil contrôle les couches, les valeurs directes, les portées et la cible attendue, sur des noms libres', () => {
-  const index = fichierAssocie();
-  const constats = controlerLeProfil(index, { c: 'components', u: 'usage', t: 'theme', p: 'primitives' }, { recette: recetteAvec('primary') });
+const COUCHES_ASSOCIEES = { c: 'components', t: 'theme', b: 'color-brands', p: 'primitives' } as const;
+
+test('le profil contrôle les couches, les valeurs directes et les portées, sur des noms libres', () => {
+  const constats = controlerLeProfil(fichierAssocie(), COUCHES_ASSOCIEES, { recette: recetteAvec('primary') });
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}`).sort(), [
-    'cible:u-solid',
     'couche:saut',
-    'couche:t-700',
-    'couche:t-700',
     'portee:cat',
-    'portee:u-texte',
-    'valeur-directe:u-texte',
+    'portee:t-texte',
+    'valeur-directe:t-texte',
   ]);
 });
 
@@ -88,10 +143,9 @@ test('sans association, le profil ne contrôle rien : un groupe nommé usage n�
 
 test('une exception du designer retire l’écart', () => {
   const index = fichierAssocie();
-  const couches = { c: 'components', u: 'usage', t: 'theme', p: 'primitives' } as const;
-  const avec = controlerLeProfil(index, couches);
+  const avec = controlerLeProfil(index, COUCHES_ASSOCIEES);
   const exceptions = new Set(['couche:saut:c:M']);
-  const sans = controlerLeProfil(index, couches, { exceptions });
+  const sans = controlerLeProfil(index, COUCHES_ASSOCIEES, { exceptions });
   assert.equal(sans.some((constat) => exceptions.has(constat.cle)), false);
   assert.equal(sans.length, avec.length - 1);
 });
