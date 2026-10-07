@@ -445,6 +445,13 @@ async function ouvrirLaVerification(page) {
 /** Revient à l'onglet Création. */
 const ouvrirLaCreation = (page) => page.getByRole('tab', { name: 'Création', exact: true }).click();
 
+/** La bascule Light/Dark de la barre de la palette, que Création et Vérification se partagent ([UI-23]). */
+const themeDeLaBarre = (page) => page.locator('.barre-gestes .bascule');
+/** Choisit un thème dans la barre, par le nom de son bouton : « Thème Light » ou « Thème Dark ». */
+const choisirLeTheme = (page, nom) => themeDeLaBarre(page).getByRole('button', { name: nom, exact: true }).click();
+/** Les thèmes de la barre avec leur état pressé. */
+const themesDeLaBarre = (page) => themeDeLaBarre(page).locator('.bascule-option').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')]));
+
 /** La carte « Garanties de contraste », dans l'onglet Vérification ([UI-09]). */
 const carteDesGaranties = (page) => carteDeLOnglet(page, 'Garanties de contraste', '#panneau-verification');
 
@@ -470,7 +477,7 @@ test('[UI-03] [UI-11] à 600 × 720, la carte « Configuration de la palette » 
   try {
     for (const [nom, locator] of Object.entries({
       configuration: grande.locator('[aria-label="Configuration de la palette"]'),
-      'onglets de thème': grande.locator('.nuancier-tete .bascule'),
+      'bascule de thème': grande.locator('.barre-gestes .bascule'),
       'rampe Soft': grande.locator('.pastille[data-profil="soft"]').first(),
     })) assert.equal(await dansLaFenetre(locator, PAR_DEFAUT.height), true, `${nom} hors de la fenêtre par défaut`);
   } finally {
@@ -655,17 +662,16 @@ test('[UI-04] le nuancier porte le fond du thème choisi, et ses textes s’y li
   }
 });
 
-test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron ni résumé, son thème dans l’en-tête ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
+test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron, son thème nommé dans l’en-tête ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
   const page = await ouvrirSur('promesses-manquees');
   try {
     const garanties = carteDesGaranties(page);
     await ouvrirLaVerification(page);
     assert.equal(await garanties.getAttribute('data-ouverte'), 'true');
     assert.equal(await garanties.locator('.carte-bascule, .carte-chevron').count(), 0, 'l’en-tête n’est pas un bouton');
-    assert.equal(await garanties.locator('.carte-resume').isVisible(), false);
+    assert.equal(await garanties.locator('.carte-resume').textContent(), 'Thème Light');
     assert.equal(await garanties.locator('.carte-tete .glyphe').count(), 1, 'la carte fixe garde son glyphe');
     assert.equal(await garanties.locator('.carte-sous-titre').textContent(), 'Les contrastes de chaque usage');
-    assert.deepEqual(await garanties.locator('.carte-tete .bascule-option').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Thème Light', 'true'], ['Thème Dark', 'false']]);
     // Le profil porteur est choisi, et chaque segment porte le résultat de son profil.
     assert.deepEqual(await garanties.locator('.bascule-des-profils button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft ✗ 1', 'false'], ['Vivid ✗ 1', 'true']]);
     const choisie = () => garanties.locator('.garantie[aria-pressed="true"]').getAttribute('data-association');
@@ -769,29 +775,30 @@ test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le foc
   }
 });
 
-test('[UI-09] [VER-20] la carte suit le thème de l’aperçu ; des garanties manquées dans l’autre thème se comptent, le lien montre ce thème sans quitter Vérification, et un lien ramène au thème d’avant', async () => {
-  // Le cran 700 plus clair fait manquer text sur surface en Light ; l'aperçu montre Dark.
+test('[UI-09] [VER-20] la carte suit le thème de la barre ; des garanties manquées dans l’autre thème se comptent, le lien montre ce thème, et un lien ramène au thème d’avant', async () => {
+  // Le cran 700 plus clair fait manquer text sur surface en Light ; la barre montre Dark.
   const page = await ouvrirSur('garantie-en-echec');
   try {
-    await page.getByRole('button', { name: 'Thème Dark', exact: true }).click();
+    await choisirLeTheme(page, 'Thème Dark');
     await ouvrirLaVerification(page);
     const carte = carteDesGaranties(page);
-    const presse = (nom) => carte.locator('.carte-tete').getByRole('button', { name: nom, exact: true }).getAttribute('aria-pressed');
-    assert.equal(await presse('Thème Dark'), 'true', 'la carte montre le thème que l’aperçu a choisi');
+    const themeDeLaCarte = () => carte.locator('.carte-resume').textContent();
+    assert.equal(await themeDeLaCarte(), 'Thème Dark', 'la carte montre le thème que la barre a choisi');
     const autre = carte.locator('.autre-theme');
     assert.match(await autre.textContent(), /^Thème Light : \d+ garanties? manquées? · Voir le thème Light$/);
     await autre.locator('.lien-de-constat').click();
     assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
-    assert.equal(await presse('Thème Light'), 'true');
+    assert.equal(await themeDeLaCarte(), 'Thème Light');
     assert.ok(await carte.locator('.garantie-echec').count() > 0, 'la carte montre les échecs du thème Light');
     await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
-    assert.equal(await presse('Thème Dark'), 'true');
+    assert.equal(await themeDeLaCarte(), 'Thème Dark');
     assert.equal(await autre.getByRole('button', { name: 'Voir le thème Light' }).isVisible(), true);
-    // La bascule de l'en-tête pose le thème sans retour, et l'aperçu de Création le suit.
-    await carte.locator('.carte-tete').getByRole('button', { name: 'Thème Light', exact: true }).click();
+    // Un choix dans la barre pose le thème sans retour, et la barre de Création le montre.
+    await choisirLeTheme(page, 'Thème Light');
+    assert.equal(await themeDeLaCarte(), 'Thème Light');
     assert.equal(await autre.isVisible(), false, 'le thème Dark n’a pas de garantie manquée, et aucun retour n’est offert');
     await ouvrirLaCreation(page);
-    assert.equal(await page.locator('.nuancier-tete').getByRole('button', { name: 'Thème Light', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await themeDeLaBarre(page).getByRole('button', { name: 'Thème Light', exact: true }).getAttribute('aria-pressed'), 'true');
   } finally {
     await page.close();
   }
@@ -804,6 +811,158 @@ test('la bascule montre la rampe sombre', async () => {
     await page.getByRole('button', { name: 'Thème Dark', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Thème Dark', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.notEqual(await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label'), clair);
+  } finally {
+    await page.close();
+  }
+});
+
+/** Les deux boutons de la barre avec leur état pressé, quand `clair` est le thème montré. */
+const themesPresses = (clair) => [['Thème Light', String(clair)], ['Thème Dark', String(!clair)]];
+
+test('[UI-23] la barre porte Light et Dark dans Création et dans Vérification ; choisir Dark dans Création montre Dark dans la carte des garanties, et l’inverse', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(true));
+    await choisirLeTheme(page, 'Thème Dark');
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(false));
+    await ouvrirLaVerification(page);
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(false));
+    assert.equal(await carteDesGaranties(page).locator('.carte-resume').textContent(), 'Thème Dark');
+    // L'inverse : Light, choisi dans Vérification, se retrouve dans Création, jusque dans le fond de l'aperçu.
+    await choisirLeTheme(page, 'Thème Light');
+    assert.equal(await carteDesGaranties(page).locator('.carte-resume').textContent(), 'Thème Light');
+    await ouvrirLaCreation(page);
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(true));
+    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(247, 247, 247)');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-23] à 600 × 720 et à 500 × 520, Interface de test dépliée et page défilée jusqu’à elle, la barre reste au haut de la zone visible, et choisir Dark peint la surface du fond Dark sans défiler', async () => {
+  for (const viewport of [PAR_DEFAUT, MINIMALE]) {
+    const page = await ouvrirSur('alertes-seules', viewport);
+    const nom = `${viewport.width} × ${viewport.height}`;
+    try {
+      await deplierLaCarte(page, 'Interface de test');
+      const surface = page.locator('#panneau-creation .essai-surface');
+      const fondDeLEcran = () => surface.locator('.essai-ecran').evaluate((ecran) => getComputedStyle(ecran).backgroundColor);
+      assert.equal(await fondDeLEcran(), 'rgb(247, 247, 247)', `${nom} : l’écran de l’essai est peint du fond Light`);
+      await surface.evaluate((element) => element.scrollIntoView({ block: 'end' }));
+      const defilement = () => page.evaluate(() => document.scrollingElement.scrollTop);
+      const hautDeLaBarre = async () => (await page.locator('.barre-de-palette').boundingBox()).y;
+      const avant = await defilement();
+      assert.ok(avant > 0, `${nom} : la page est défilée jusqu’à l’interface de test`);
+      assert.ok(Math.abs(await hautDeLaBarre()) <= 0.5, `${nom} : la barre est au haut de la zone visible`);
+      await choisirLeTheme(page, 'Thème Dark');
+      assert.equal(await fondDeLEcran(), 'rgb(18, 18, 18)', `${nom} : l’écran de l’essai est peint du fond Dark`);
+      assert.equal(await defilement(), avant, `${nom} : choisir Dark ne défile pas la page`);
+      assert.ok(Math.abs(await hautDeLaBarre()) <= 0.5, `${nom} : la barre reste au haut après le choix`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[UI-23] à 500 px, en français et en anglais, la barre ne défile pas à l’horizontale et tient sur une ligne', async () => {
+  for (const langue of ['fr', 'en']) {
+    const page = await ouvrirSurEn('alertes-seules', MINIMALE, langue);
+    try {
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `${langue} : la page ne défile pas à l’horizontale`);
+      const { barre, contenu, boites } = await page.locator('.barre-gestes').evaluate((element) => ({
+        barre: element.getBoundingClientRect().toJSON(),
+        contenu: element.scrollWidth - element.clientWidth,
+        boites: [...element.children].filter((enfant) => !enfant.hidden).map((enfant) => enfant.getBoundingClientRect().toJSON()),
+      }));
+      assert.equal(boites.length, 4, `${langue} : la liste, « Nouvelle palette », le menu et la bascule`);
+      assert.ok(contenu <= 0, `${langue} : la barre déborde de ${contenu} px`);
+      const centres = boites.map((boite) => boite.y + boite.height / 2);
+      assert.ok(Math.max(...centres) - Math.min(...centres) <= 1, `${langue} : les éléments de la barre ne sont pas sur la même ligne ${JSON.stringify(centres)}`);
+      for (const boite of boites) assert.ok(boite.x + boite.width <= barre.x + barre.width + 0.5, `${langue} : un élément passe le bord droit de la barre`);
+      assert.ok(barre.height <= 32.5, `${langue} : la barre mesure ${barre.height} px`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[UI-23] barre collée en haut, la liste du sélecteur ouverte passe au-dessus des cartes', async () => {
+  const page = await ouvrirSur('alertes-seules', MINIMALE);
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    await page.locator('#panneau-creation .essai-surface').evaluate((element) => element.scrollIntoView({ block: 'end' }));
+    assert.ok(await page.evaluate(() => document.scrollingElement.scrollTop) > 0);
+    assert.ok(Math.abs((await page.locator('.barre-de-palette').boundingBox()).y) <= 0.5, 'la barre est collée en haut');
+    // Un clic de Playwright défilerait la page jusqu'au bouton : le clic part du document.
+    await page.locator('.selecteur-bouton').evaluate((bouton) => bouton.click());
+    const liste = page.locator('.barre-de-palette .selecteur-liste');
+    await liste.waitFor();
+    const centre = await centreDe(liste);
+    assert.equal(await page.evaluate(({ x, y }) => document.querySelector('.barre-de-palette .selecteur-liste').contains(document.elementFromPoint(x, y)), centre), true, 'le centre de la liste appartient à la liste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('l’en-tête de l’aperçu et celui de la carte des garanties n’ont aucun bouton de thème', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    const sansBoutonDeTheme = async (carte) => {
+      const enTete = carte.locator('.carte-tete');
+      assert.equal(await enTete.isVisible(), true);
+      assert.equal(await enTete.locator('.bascule, .bascule-option').count(), 0);
+      assert.equal(await enTete.getByRole('button', { name: /^Thème (Light|Dark)$/ }).count(), 0);
+    };
+    await sansBoutonDeTheme(page.locator('[aria-label="Aperçu"]'));
+    await ouvrirLaVerification(page);
+    await sansBoutonDeTheme(carteDesGaranties(page));
+  } finally {
+    await page.close();
+  }
+});
+
+test('changer de thème n’envoie aucune demande au sandbox', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    const avant = await demandes(page);
+    await choisirLeTheme(page, 'Thème Dark');
+    await choisirLeTheme(page, 'Thème Light');
+    assert.deepEqual(await demandes(page), avant);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[VER-20] le lien vers l’autre thème change le thème de la barre sans quitter Vérification, et « Revenir au thème » le rend', async () => {
+  const page = await ouvrirSur('garantie-en-echec');
+  try {
+    await choisirLeTheme(page, 'Thème Dark');
+    await ouvrirLaVerification(page);
+    const autre = carteDesGaranties(page).locator('.autre-theme');
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(false));
+    await autre.getByRole('button', { name: 'Voir le thème Light' }).click();
+    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(true));
+    await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(false));
+    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+  } finally {
+    await page.close();
+  }
+});
+
+test('« Modifier » d’une fiche de Gestion en Dark ouvre Création en Dark, et la barre le montre', async () => {
+  const page = await ouvrir(MINIMALE);
+  try {
+    await envoyer(page, messageDe('gestion-liste'));
+    await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+    await page.locator('#panneau-gestion [data-bascule="theme"]').getByRole('button', { name: 'Thème Dark', exact: true }).click();
+    const bleu = page.locator('#panneau-gestion .palette-depliable[data-palette]').first();
+    await bleu.locator('.mini-rampe').click();
+    await bleu.locator('[data-geste="modifier"]').click();
+    assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.deepEqual(await themesDeLaBarre(page), themesPresses(false));
+    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(18, 18, 18)');
   } finally {
     await page.close();
   }
@@ -1084,11 +1243,12 @@ test('[UI-06] à 500 px, la liste prend la largeur libre, les deux gestes ont sa
     const liste = await page.locator('.selecteur-bouton').boundingBox();
     const nouvelle = await page.getByRole('button', { name: 'Nouvelle palette', exact: true }).boundingBox();
     const menu = await page.getByRole('button', { name: 'Actions sur la palette' }).boundingBox();
+    const theme = await themeDeLaBarre(page).boundingBox();
     const barre = await page.locator('.barre-gestes').boundingBox();
     assert.deepEqual([nouvelle.height, menu.height], [liste.height, liste.height]);
-    // La liste occupe ce que les deux gestes et leurs écarts laissent : 8 px chacun.
-    assert.equal(Math.round(liste.width), Math.round(barre.width - nouvelle.width - menu.width - 16));
-    assert.ok(menu.x + menu.width <= barre.x + barre.width + 0.5, JSON.stringify({ menu, barre }));
+    // La liste occupe ce que les deux gestes, la bascule du thème et leurs trois écarts laissent : 8 px chacun.
+    assert.equal(Math.round(liste.width), Math.round(barre.width - nouvelle.width - menu.width - theme.width - 24));
+    assert.ok(theme.x + theme.width <= barre.x + barre.width + 0.5, JSON.stringify({ theme, barre }));
     const coupe = await page.locator('.selecteur-nom').evaluate((nom) => nom.scrollWidth > nom.clientWidth && getComputedStyle(nom).textOverflow === 'ellipsis');
     assert.equal(coupe, true);
   } finally {
@@ -1169,19 +1329,14 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
   }
 });
 
-test('[UI-04] la carte d’aperçu n’a pas de titre : les onglets de thème à gauche, l’actif sur un fond plus foncé, la référence sous la surface', async () => {
+test('[UI-04] la carte d’aperçu n’a pas de titre : le fond du thème à droite de l’en-tête, la référence sous la surface', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     const carte = page.locator('[aria-label="Aperçu"]');
     assert.equal(await carte.locator('.carte-titre').count(), 0);
-    const onglets = await carte.locator('.nuancier-tete .bascule').boundingBox();
     const fond = await carte.locator('.pastille-du-fond').boundingBox();
     const tete = await carte.locator('.carte-tete').boundingBox();
-    assert.equal(Math.round(onglets.x), Math.round(tete.x), 'les onglets ouvrent l’en-tête');
-    assert.ok(fond.x > onglets.x + onglets.width);
-    const fondDe = (nom) => carte.getByRole('button', { name: nom, exact: true }).evaluate((bouton) => getComputedStyle(bouton).backgroundColor);
-    assert.notEqual(await fondDe('Thème Light'), await fondDe('Thème Dark'));
-    assert.notEqual(await fondDe('Thème Light'), await carte.evaluate((element) => getComputedStyle(element).backgroundColor), 'l’onglet actif se détache de la carte');
+    assert.ok(fond.x > tete.x + tete.width / 2, 'le fond est dans la moitié droite de l’en-tête');
     const ordre = await carte.locator('.nuancier-surface, .repere-de-la-reference').evaluateAll((elements) => elements.map((element) => element.className));
     assert.deepEqual(ordre, ['nuancier-surface', 'repere-de-la-reference']);
   } finally {
@@ -2644,17 +2799,17 @@ test('[VER-01] une recette illisible n’a pas de rapport à exporter', async ()
   }
 });
 
-/** La couleur de fond calculée d'un élément, et celle de la carte qui le porte. */
-const fonds = (locator) => locator.evaluate((element) => [getComputedStyle(element).backgroundColor, getComputedStyle(element.closest('.carte')).backgroundColor]);
+/** La couleur de fond calculée d'un élément, et celle du bloc qui le porte : sa carte, ou la barre de la palette pour le thème. */
+const fonds = (locator) => locator.evaluate((element) => [getComputedStyle(element).backgroundColor, getComputedStyle(element.closest('.carte, .barre-de-palette')).backgroundColor]);
 
-test('Y1.4 : l’onglet actif des trois bascules, Thème, Soft et Vivid, Écran et États, a le même fond, distinct de sa carte, aux deux thèmes de Figma', async () => {
+test('Y1.4 : l’onglet actif des trois bascules, Thème, Soft et Vivid, Écran et États, a le même fond, distinct de sa carte ou de la barre, aux deux thèmes de Figma', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    // Deux bascules vivent dans Création, la troisième dans la carte des garanties de Vérification : un fond calculé se lit aussi dans un panneau caché.
+    // La bascule du thème vit dans la barre, la deuxième dans la carte des garanties de Vérification, la troisième dans Création : un fond calculé se lit aussi dans un panneau caché.
     await deplierLaCarte(page, 'Interface de test');
     await ouvrirLaVerification(page);
     const actifs = [
-      page.locator('.nuancier-tete .bascule-option[aria-pressed="true"]'),
+      page.locator('.barre-gestes .bascule-option[aria-pressed="true"]'),
       page.locator('.bascule-des-profils .bascule-option[aria-pressed="true"]'),
       page.locator('.bascule-de-l-essai .bascule-option[aria-pressed="true"]'),
     ];

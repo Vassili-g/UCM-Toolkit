@@ -688,7 +688,6 @@ export function resultatDuProfilEnMots(profil: Intensite, manquees: number): str
 export const TEXTES_DES_GARANTIES = {
   theme: (mode: Mode) => `Thème ${NOM_DU_MODE[mode]}`,
   profils: 'Profil des garanties',
-  themes: 'Thème des garanties',
   textes: 'Textes lisibles',
   visibles: 'Éléments visibles',
   minimum: (seuil: number) => `minimum ${seuilEcrit(seuil)}:1`,

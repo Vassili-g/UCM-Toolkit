@@ -275,7 +275,7 @@ const gestionDeTroisPalettes = (variables = VARIABLES_VIDES) => etatDuFichier(ra
 const fausser = (cible, remplacements) => (hexa, entree, palette) =>
   (palette.id === cible.id && remplacements[entree.cle] ? remplacements[entree.cle] : hexa);
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
-const montrerLeThemeDark = { clic: '.nuancier-tete .bascule-option:nth-child(2)' };
+const montrerLeThemeDark = { clic: '.barre-gestes .bascule-option:nth-child(2)' };
 
 /** Vert, ajusté d'un pas plus sombre : #16A34A devient #0DA047, et l'originale se garde (W7). */
 const VERT_AJUSTE = { ...palette('p-2b3c4d5e', 'Vert', '#0DA047'), originale: '#16A34A' };
@@ -1148,7 +1148,7 @@ const ETATS = [
     quand: 'Une référence intense, #A855F7 : Vivid la porte, en 600 en Light et en 700 en Dark. Le designer passe au thème Dark.',
     regarder: 'Le ◆ dans la pastille Vivid 700 du thème Dark, la ligne « Référence : Vivid · nuance 700 », et la garantie manquée que l’ancrage fait apparaître.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-a855f700', 'Violet', '#A855F7')])), { clic: '.nuancier-tete .bascule-option:nth-child(2)' }],
+    atteinte: [etatDuFichier(rangee([palette('p-a855f700', 'Violet', '#A855F7')])), { clic: '.barre-gestes .bascule-option:nth-child(2)' }],
   },
   {
     id: 'fond-personnalise',
@@ -1202,7 +1202,7 @@ const ETATS = [
     quand: 'La carte des garanties montre le thème Dark, et le thème Light a des garanties manquées : le designer suit la ligne qui les compte.',
     regarder: 'La carte revenue au thème Light, pressé dans son en-tête, sur les échecs de ce thème, et « Revenir au thème Dark » sous la liste.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, { clic: '[aria-label="Garanties de contraste"] .carte-tete .bascule-option:nth-child(2)' }, { clic: '.autre-theme .lien-de-constat' }],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, { clic: '.barre-gestes .bascule-option:nth-child(2)' }, { clic: '.autre-theme .lien-de-constat' }],
   },
   {
     id: 'detail-de-la-reference',
