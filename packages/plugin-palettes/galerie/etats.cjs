@@ -275,9 +275,8 @@ const gestionDeTroisPalettes = (variables = VARIABLES_VIDES) => etatDuFichier(ra
 const fausser = (cible, remplacements) => (hexa, entree, palette) =>
   (palette.id === cible.id && remplacements[entree.cle] ? remplacements[entree.cle] : hexa);
 const deplierLInterfaceDeTest = { clic: '[aria-label="Interface de test"] .carte-bascule' };
-const montrerLeThemeDark = { clic: '.barre-gestes .bascule-option:nth-child(2)' };
-/** Le troisième segment du choix « Afficher » de l'Interface de test : « Les deux ». */
-const choisirLesDeuxDansLEssai = { clic: '.choix-de-l-essai .bascule-option:nth-child(3)' };
+/** Le segment « Dark » de la bascule « Aperçu » de la ligne du titre : le thème se montre dans les deux onglets. */
+const montrerLeThemeDark = { clic: '#panneau-creation .tete-de-la-palette .bascule-option:nth-child(2)' };
 /**
  * Le banc n'a pas de geste de défilement : le focus donné au dernier bouton de
  * l'écran amène la page jusqu'à lui, et « Maj » n'active rien.
@@ -1155,7 +1154,7 @@ const ETATS = [
     quand: 'Une référence intense, #A855F7 : Vivid la porte, en 600 en Light et en 700 en Dark. Le designer passe au thème Dark.',
     regarder: 'Le ◆ dans la pastille Vivid 700 du thème Dark, la ligne « Référence : Vivid · nuance 700 », et la garantie manquée que l’ancrage fait apparaître.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-a855f700', 'Violet', '#A855F7')])), { clic: '.barre-gestes .bascule-option:nth-child(2)' }],
+    atteinte: [etatDuFichier(rangee([palette('p-a855f700', 'Violet', '#A855F7')])), montrerLeThemeDark],
   },
   {
     id: 'fond-personnalise',
@@ -1191,7 +1190,7 @@ const ETATS = [
     id: 'garanties-respectees',
     titre: 'Garanties respectées',
     quand: 'Bleu tient toutes ses garanties ; le designer ouvre Vérification : la carte est sur text sur surface.',
-    regarder: 'Le verdict d’avertissement, « 76 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron, qui nomme son thème en résumé (« Thème Light ») : le thème se choisit dans la barre, sous le sélecteur ; le libellé « Afficher » puis les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, trois arcs de 100 vers 700, 200 vers 800 et 300 vers 900 sur la réglette, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
+    regarder: 'Le verdict d’avertissement, « 76 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron, qui nomme son thème en résumé (« Thème Light ») : le thème se choisit dans la ligne du titre « Palette Bleu », par la bascule « Aperçu » ; le libellé « Afficher » puis les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, trois arcs de 100 vers 700, 200 vers 800 et 300 vers 900 sur la réglette, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification],
   },
@@ -1207,9 +1206,9 @@ const ETATS = [
     id: 'garantie-autre-theme',
     titre: 'Garantie de l’autre thème',
     quand: 'La carte des garanties montre le thème Dark, et le thème Light a des garanties manquées : le designer suit la ligne qui les compte.',
-    regarder: 'La carte revenue au thème Light : « Thème Light » en résumé de la carte et pressé dans la barre, les échecs de ce thème dans la liste, et « Revenir au thème Dark » sous elle.',
+    regarder: 'La carte revenue au thème Light : « Thème Light » en résumé de la carte et « Light » pressé dans la ligne du titre, les échecs de ce thème dans la liste, et « Revenir au thème Dark » sous elle.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, { clic: '.barre-gestes .bascule-option:nth-child(2)' }, { clic: '.autre-theme .lien-de-constat' }],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, montrerLeThemeDark, { clic: '.autre-theme .lien-de-constat' }],
   },
   {
     id: 'detail-de-la-reference',
@@ -1392,18 +1391,10 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, montrerLeThemeDark],
   },
   {
-    id: 'interface-de-test-les-deux',
-    titre: 'Interface de test, Soft et Vivid',
-    quand: 'Bleu porte Soft et Vivid ; le designer déplie « Interface de test » et choisit « Les deux » après le libellé « Afficher ».',
-    regarder: 'Les segments « Soft · Vivid · Les deux » après « Afficher », Les deux pressé ; deux écrans empilés, titrés Soft puis Vivid, chacun peint du fond Light et de la rampe de son profil, sans défilement horizontal ; le résumé de la carte « Thème Light · Soft et Vivid ».',
-    existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, choisirLesDeuxDansLEssai],
-  },
-  {
     id: 'barre-fixe-defilee',
     titre: 'Barre fixe, page défilée',
-    quand: 'Bleu, thème Dark choisi dans la barre ; le designer déplie « Interface de test » et défile la page jusqu’à elle, par le dernier bouton de l’écran.',
-    regarder: 'La barre de la palette collée au haut de la fenêtre, filet dessous : le sélecteur, « Nouvelle palette », le menu et la bascule « Thème Light · Thème Dark », Dark pressé ; les cartes passent sous elle sans la recouvrir ; l’écran de l’interface de test sur le fond Dark.',
+    quand: 'Bleu, thème Dark choisi dans la ligne du titre ; le designer déplie « Interface de test » et défile la page jusqu’à elle, par le dernier bouton de l’écran.',
+    regarder: 'La ligne du titre « Palette Bleu » collée au haut de la fenêtre, sur le fond de la page, avec la bascule « Aperçu » Light, Dark à droite, Dark pressé ; la barre de la palette a quitté l’écran avec la page ; les cartes passent sous la ligne sans la recouvrir ; l’écran de l’interface de test sur le fond Dark.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, montrerLeThemeDark, defilerJusquAuDernierBoutonDeLEssai],
   },

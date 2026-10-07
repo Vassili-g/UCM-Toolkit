@@ -7,20 +7,14 @@
  * sans rien enregistrer. « États » montre chaque composant à chaque état,
  * focus compris, sans survol. Chaque couleur vient de la table des emplois.
  *
- * Le choix du profil peint offre Soft, Vivid et Les deux. Avec « Les deux »,
- * la surface montre deux écrans, Soft puis Vivid, chacun titré de son profil
- * et construit à part : un geste dans l'un ne touche pas l'autre. Une grille
- * les place côte à côte quand la carte a la largeur de deux écrans, et les
- * empile sinon.
- *
  * Une palette libre n'a pas de rôles : la section se retire. Repliée à
  * l'ouverture, elle ne se dessine que dépliée ; la vue choisie dure la session.
  */
-import { TABLE_DES_EMPLOIS, lireHexa, rampeDe, type Emploi, type Intensite, type Mode, type Recette } from 'ucm-couleur';
+import { TABLE_DES_EMPLOIS, lireHexa, rampeDe, type Emploi, type Intensite, type Mode, type Profil, type Recette } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from '../analyse';
 import { createCarte } from './carte';
-import { creerVuesChoixDuProfil, type ValeurDuChoix } from './choixDuProfil';
+import { creerVuesChoix } from './choix';
 import { creerGlyphe } from './glyphes';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerVuesNuancier } from './nuancier';
@@ -44,7 +38,7 @@ export interface InterfaceDeTestUi {
   readonly element: HTMLElement;
   /**
    * Dessine la vue choisie quand la carte est dépliée ; une palette libre retire la section.
-   * `palette` est l'identifiant de la palette ouverte : en changer rouvre le choix du profil sur son porteur, sauf « Les deux ».
+   * `palette` est l'identifiant de la palette ouverte : en changer rouvre le choix du profil sur son porteur.
    */
   afficher(recette: Recette, analyse: AnalyseDePalette, mode: Mode, palette: string): void;
   /** Un geste sur l'en-tête qui déplie la carte : l'onglet redessine. */
@@ -54,8 +48,8 @@ export interface InterfaceDeTestUi {
 type Vue = 'ecran' | 'etats';
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
-  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
-  const { NOM_DU_PROFIL, TEXTES_DE_L_INTERFACE_DE_TEST, TEXTES_DES_REGLAGES } = i18n.messages;
+  const { createChoixDuProfil } = creerVuesChoix(i18n);
+  const { NOM_DU_PROFIL, TEXTES_DE_L_INTERFACE_DE_TEST } = i18n.messages;
 
   /**
    * Les couleurs de l'écran pour une palette et un thème. `on-solid` est le
@@ -345,8 +339,8 @@ function construireVues(i18n: Localisation) {
     let vue: Vue = 'ecran';
     let dernier: { recette: Recette; analyse: AnalyseDePalette; mode: Mode } | null = null;
     /** Le choix du profil peint d'une palette à deux intensités, ouvert sur son porteur (Y2.6) ; la palette dont il est le choix. */
-    let choix: ValeurDuChoix = 'vivid';
-    let paletteDuChoix: string | null = null;
+    let profil: Profil = 'vivid';
+    let paletteDuProfil: string | null = null;
 
     const bascule = noeud('div');
     bascule.className = 'bascule bascule-de-l-essai';
@@ -365,10 +359,11 @@ function construireVues(i18n: Localisation) {
     // Le profil peint, à droite des vues : seule une palette à deux intensités en a un à choisir ([ENT-14]).
     const choixDuProfil = createChoixDuProfil({
       portee: 'afficher',
-      options: ['soft', 'vivid', 'deux'],
+      options: ['soft', 'vivid'],
       nom: TEXTES_DE_L_INTERFACE_DE_TEST.profil,
       surChoix(valeur) {
-        choix = valeur;
+        if (valeur === 'deux') return;
+        profil = valeur;
         rendreLeResume();
         dessiner();
       },
@@ -377,71 +372,45 @@ function construireVues(i18n: Localisation) {
     const tete = noeud('div');
     tete.className = 'essai-bascules';
     tete.append(bascule, choixDuProfil.element);
-    const surfaces = noeud('div');
-    surfaces.className = 'essai-surfaces';
-    carte.corps.append(tete, surfaces);
+    const surface = noeud('div');
+    surface.className = 'essai-surface';
+    carte.corps.append(tete, surface);
 
-    /** Les intensités peintes : la rampe unique, le profil choisi, ou Soft puis Vivid avec « Les deux ». */
-    const intensitesMontrees = (analyse: AnalyseDePalette): readonly Intensite[] => {
-      if (analyse.intensites.length === 1) return ['unique'];
-      return choix === 'deux' ? ['soft', 'vivid'] : [choix];
-    };
+    /** L'intensité peinte : la rampe unique, ou le profil choisi. */
+    const intensiteMontree = (analyse: AnalyseDePalette): Intensite => (analyse.intensites.length === 1 ? 'unique' : profil);
 
     function rendreLeResume(): void {
       if (!dernier) return;
-      const montrees = intensitesMontrees(dernier.analyse);
-      const profils = montrees.length === 2 ? TEXTES_DES_REGLAGES.deuxProfils : montrees[0] === 'unique' ? null : NOM_DU_PROFIL[montrees[0]];
-      carte.poserResume(TEXTES_DE_L_INTERFACE_DE_TEST.resume(dernier.mode, profils));
+      const intensite = intensiteMontree(dernier.analyse);
+      carte.poserResume(TEXTES_DE_L_INTERFACE_DE_TEST.resume(dernier.mode, intensite === 'unique' ? null : NOM_DU_PROFIL[intensite]));
     }
 
-    /** Un écran peint de la rampe d'une intensité, titré de son profil quand la surface en montre deux. */
-    function surfaceDe(recette: Recette, analyse: AnalyseDePalette, mode: Mode, intensite: Intensite, titree: boolean): HTMLDivElement {
-      const couleurs = couleursDeLInterface(recette, analyse, mode, intensite);
-      const surface = noeud('div');
-      surface.className = 'essai-surface';
+    function dessiner(): void {
+      for (const { valeur, option } of options) option.setAttribute('aria-pressed', String(valeur === vue));
+      choixDuProfil.poser(profil);
+      choixDuProfil.cacher(!dernier || dernier.analyse.intensites.length === 1);
+      if (!dernier || dernier.analyse.libre || !carte.estOuverte()) {
+        surface.replaceChildren();
+        return;
+      }
+      const couleurs = couleursDeLInterface(dernier.recette, dernier.analyse, dernier.mode, intensiteMontree(dernier.analyse));
       surface.style.setProperty('--essai-fond', couleurs.fond);
       surface.style.setProperty('--essai-encre', couleurs.encre);
       surface.style.setProperty('--essai-encre-seconde', couleurs.encreSeconde);
       surface.style.setProperty('--essai-separateur', couleurs.emploi('border-decorative', 0));
       surface.style.setProperty('--essai-focus', couleurs.emploi('focus', 0));
-      surface.append(vue === 'ecran' ? ecranDeLEquipe(couleurs) : composantsParEtat(couleurs));
-      const profil = noeud('div');
-      profil.className = 'essai-profil';
-      if (titree && intensite !== 'unique') {
-        profil.setAttribute('role', 'group');
-        i18n.lier(profil, 'aria-label', NOM_DU_PROFIL[intensite]);
-        const titre = noeud('p', NOM_DU_PROFIL[intensite]);
-        titre.className = 'essai-profil-titre';
-        titre.setAttribute('aria-hidden', 'true');
-        profil.append(titre);
-      }
-      profil.append(surface);
-      return profil;
-    }
-
-    function dessiner(): void {
-      for (const { valeur, option } of options) option.setAttribute('aria-pressed', String(valeur === vue));
-      choixDuProfil.poser(choix);
-      choixDuProfil.cacher(!dernier || dernier.analyse.intensites.length === 1);
-      if (!dernier || dernier.analyse.libre || !carte.estOuverte()) {
-        surfaces.replaceChildren();
-        return;
-      }
-      const { recette, analyse, mode } = dernier;
-      surfaces.classList.toggle('essai-surfaces-etats', vue === 'etats');
-      const montrees = intensitesMontrees(analyse);
-      surfaces.replaceChildren(...montrees.map((intensite) => surfaceDe(recette, analyse, mode, intensite, montrees.length > 1)));
+      surface.replaceChildren(vue === 'ecran' ? ecranDeLEquipe(couleurs) : composantsParEtat(couleurs));
     }
 
     return {
       element: carte.element,
       afficher(recette, analyse, mode, palette) {
-        // Une autre palette, ou une palette qui passe à deux intensités, rouvre le choix sur son profil porteur ; « Les deux » reste.
+        // Une autre palette, ou une palette qui passe à deux intensités, rouvre le choix sur son profil porteur.
         const { profil: porteur } = analyse.ancrage;
-        if (porteur === 'unique') paletteDuChoix = null;
-        else if (palette !== paletteDuChoix) {
-          if (choix !== 'deux') choix = porteur;
-          paletteDuChoix = palette;
+        if (porteur === 'unique') paletteDuProfil = null;
+        else if (palette !== paletteDuProfil) {
+          profil = porteur;
+          paletteDuProfil = palette;
         }
         dernier = { recette, analyse, mode };
         carte.element.hidden = analyse.libre;

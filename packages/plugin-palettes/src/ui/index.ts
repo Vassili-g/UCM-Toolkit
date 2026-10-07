@@ -162,7 +162,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     agir: (geste) => ongletCreation.gestesDeLaBarre.agir(geste),
     supprimer: () => ongletCreation.gestesDeLaBarre.supprimer(),
-  }, paletteOuverte);
+  });
 
   const ongletCreation = createOngletCreation({
     ranger: (recette) => frontiere.ranger(recette),

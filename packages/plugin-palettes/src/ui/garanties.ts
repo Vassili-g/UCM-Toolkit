@@ -40,7 +40,7 @@ import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { createCarte } from './carte';
-import { creerVuesChoixDuProfil } from './choixDuProfil';
+import { creerVuesChoix } from './choix';
 import { creerGlyphe } from './glyphes';
 import { suivreLaLargeur } from './largeur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
@@ -73,7 +73,7 @@ export interface GarantiesUi {
 
 function construireVues(i18n: Localisation) {
   const { badgeDeNiveau } = creerVuesBadge(i18n);
-  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
+  const { createChoixDuProfil } = creerVuesChoix(i18n);
   const { encresSur } = creerVuesNuancier(i18n);
   const { specimenDuRole } = creerVuesSpecimens(i18n);
   const { LIBELLES_DES_CIBLES, NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DES_GARANTIES, TEXTES_DE_L_ONGLET, TEXTES_DU_NUANCIER, contrasteEcrit, jugementDuSeuil, niveauEcrit, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;

@@ -1,9 +1,11 @@
 /**
- * Le choix du profil que partagent les cartes de réglage et d'affichage : un
+ * Le choix que toutes les cartes partagent pour désigner un thème, un profil
+ * ou une vue : un libellé, puis des segments, avec le même style partout
+ * (`.choix-d-affichage` dans `styles.css`). `createChoix` rend un choix de segments
+ * quelconques ; `createChoixDuProfil` s'écrit au-dessus pour les profils : un
  * libellé qui dit la portée du choix, « Régler » quand les réglages modifient
  * le profil et « Afficher » quand il ne change que la rampe montrée, puis des
- * segments Soft, Vivid et Les deux. Les options demandées se rendent toujours
- * dans cet ordre, quel que soit l'ordre où la carte les liste.
+ * segments Soft, Vivid et Les deux, toujours dans cet ordre.
  *
  * Le composant ne garde pas la valeur choisie : la carte la possède, reçoit
  * `surChoix`, puis la rend avec `poser`.
@@ -18,13 +20,41 @@ export type PorteeDuChoix = 'regler' | 'afficher';
 
 const ORDRE: readonly ValeurDuChoix[] = ['soft', 'vivid', 'deux'];
 
-/** Ce qu'une carte pose sur un segment à la place du nom du profil. */
+/** Ce qu'une carte pose sur un segment à la place du texte de son option. */
 export interface SegmentDuChoix {
   readonly texte: Texte;
   /** Le nom accessible du segment, quand il diffère de son texte. */
   readonly nom?: Texte;
   /** Le verdict que le segment porte (`data-verdict`). */
   readonly verdict?: 'tenue' | 'manquee';
+}
+
+/** Un segment du choix : la valeur que `surChoix` reçoit et le texte qu'il montre. */
+export interface OptionDuChoix<V extends string = string> {
+  readonly valeur: V;
+  readonly texte: Texte;
+}
+
+export interface ChoixArguments<V extends string = string> {
+  readonly libelle: Texte;
+  /** Le nom accessible du groupe de segments. */
+  readonly nom: Texte;
+  readonly options: readonly OptionDuChoix<V>[];
+  readonly surChoix: (valeur: V) => void;
+  /** Ajoute le cerne de la couleur de marque : le choix commande plus que sa carte. */
+  readonly miseEnAvant?: boolean;
+}
+
+/** Le contenu d'un segment qui porte plus que le texte de son option ; `undefined` laisse le texte. */
+export type SegmentDe<V extends string = string> = (valeur: V) => SegmentDuChoix | undefined;
+
+export interface ChoixUi<V extends string = string> {
+  element: HTMLDivElement;
+  /** Marque `valeur` choisie, ou aucune avec `null` ; `segmentDe` remplace le contenu d'un segment. */
+  poser(valeur: V | null, segmentDe?: SegmentDe<V>): void;
+  cacher(oui: boolean): void;
+  /** Le premier segment, que la carte focalise quand un message y mène. */
+  premierSegment(): HTMLButtonElement;
 }
 
 export interface ChoixDuProfilArguments {
@@ -35,9 +65,6 @@ export interface ChoixDuProfilArguments {
   readonly nom?: Texte;
 }
 
-/** Le contenu d'un segment qui porte plus que le nom de son profil ; `undefined` laisse le nom. */
-export type SegmentDe = (valeur: ValeurDuChoix) => SegmentDuChoix | undefined;
-
 export interface ChoixDuProfilUi {
   element: HTMLDivElement;
   /**
@@ -45,46 +72,45 @@ export interface ChoixDuProfilUi {
    * au segment du profil qui porte la référence ; `segmentDe` remplace le
    * contenu d'un segment.
    */
-  poser(valeur: ValeurDuChoix | null, porteur?: Profil | null, segmentDe?: SegmentDe): void;
+  poser(valeur: ValeurDuChoix | null, porteur?: Profil | null, segmentDe?: SegmentDe<ValeurDuChoix>): void;
   cacher(oui: boolean): void;
-  /** Le premier segment, que la carte focalise quand un message y mène. */
   premierSegment(): HTMLButtonElement;
 }
 
 function construireVues(i18n: Localisation) {
   const { NOM_DU_PROFIL, TEXTES_DES_REGLAGES } = i18n.messages;
 
-  function createChoixDuProfil({ portee, options, surChoix, nom }: ChoixDuProfilArguments): ChoixDuProfilUi {
+  function createChoix<V extends string>({ libelle, nom, options, surChoix, miseEnAvant = false }: ChoixArguments<V>): ChoixUi<V> {
     const element = document.createElement('div');
-    element.className = 'choix-du-profil';
-    const libelle = document.createElement('span');
-    libelle.className = 'field-label';
-    i18n.lier(libelle, 'textContent', portee === 'regler' ? TEXTES_DES_REGLAGES.regler : TEXTES_DES_REGLAGES.afficher);
+    element.className = 'choix-d-affichage';
+    if (miseEnAvant) element.classList.add('mise-en-avant');
+    const texteDuLibelle = document.createElement('span');
+    texteDuLibelle.className = 'choix-libelle';
+    i18n.lier(texteDuLibelle, 'textContent', libelle);
     const segments = document.createElement('div');
     segments.className = 'bascule';
     segments.setAttribute('role', 'group');
-    i18n.lier(segments, 'aria-label', nom ?? (portee === 'regler' ? TEXTES_DES_REGLAGES.cible : TEXTES_DES_REGLAGES.afficher));
-    const boutons = ORDRE.filter((valeur) => options.includes(valeur)).map((valeur) => {
+    i18n.lier(segments, 'aria-label', nom);
+    const boutons = options.map((option) => {
       const bouton = document.createElement('button');
       bouton.type = 'button';
       bouton.className = 'bascule-option';
-      bouton.addEventListener('click', () => surChoix(valeur));
+      bouton.addEventListener('click', () => surChoix(option.valeur));
       segments.append(bouton);
-      return { valeur, bouton };
+      return { option, bouton };
     });
-    element.append(libelle, segments);
+    element.append(texteDuLibelle, segments);
 
     return {
       element,
-      poser(choisie, porteur = null, segmentDe) {
-        for (const { valeur, bouton } of boutons) {
-          const propre = segmentDe?.(valeur);
-          const nomDuProfil = valeur === 'deux' ? TEXTES_DES_REGLAGES.lesDeux : NOM_DU_PROFIL[valeur];
-          i18n.lier(bouton, 'textContent', propre?.texte ?? (valeur === porteur ? i18n.composer`${nomDuProfil} ◆` : nomDuProfil));
+      poser(choisie, segmentDe) {
+        for (const { option, bouton } of boutons) {
+          const propre = segmentDe?.(option.valeur);
+          i18n.lier(bouton, 'textContent', propre?.texte ?? option.texte);
           if (propre?.nom) i18n.lier(bouton, 'aria-label', propre.nom);
           if (propre?.verdict) bouton.dataset.verdict = propre.verdict;
           else delete bouton.dataset.verdict;
-          bouton.setAttribute('aria-pressed', String(valeur === choisie));
+          bouton.setAttribute('aria-pressed', String(option.valeur === choisie));
         }
       },
       cacher(oui) {
@@ -93,7 +119,27 @@ function construireVues(i18n: Localisation) {
       premierSegment: () => boutons[0].bouton,
     };
   }
-  return { createChoixDuProfil };
+
+  function createChoixDuProfil({ portee, options, surChoix, nom }: ChoixDuProfilArguments): ChoixDuProfilUi {
+    const choix = createChoix<ValeurDuChoix>({
+      libelle: portee === 'regler' ? TEXTES_DES_REGLAGES.regler : TEXTES_DES_REGLAGES.afficher,
+      nom: nom ?? (portee === 'regler' ? TEXTES_DES_REGLAGES.cible : TEXTES_DES_REGLAGES.afficher),
+      options: ORDRE.filter((valeur) => options.includes(valeur)).map((valeur) => ({
+        valeur,
+        texte: valeur === 'deux' ? TEXTES_DES_REGLAGES.lesDeux : NOM_DU_PROFIL[valeur],
+      })),
+      surChoix,
+    });
+    return {
+      element: choix.element,
+      poser(choisie, porteur = null, segmentDe) {
+        choix.poser(choisie, (valeur) => segmentDe?.(valeur) ?? (valeur !== 'deux' && valeur === porteur ? { texte: i18n.composer`${NOM_DU_PROFIL[valeur]} ◆` } : undefined));
+      },
+      cacher: choix.cacher,
+      premierSegment: choix.premierSegment,
+    };
+  }
+  return { createChoix, createChoixDuProfil };
 }
 
-export const creerVuesChoixDuProfil = memoriserVues(construireVues);
+export const creerVuesChoix = memoriserVues(construireVues);

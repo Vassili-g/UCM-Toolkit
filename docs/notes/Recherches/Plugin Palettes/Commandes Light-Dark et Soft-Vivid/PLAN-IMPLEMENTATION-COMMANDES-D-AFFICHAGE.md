@@ -32,6 +32,9 @@ diffèrent.
    garde son résumé.
 5. **Vérification.** La carte des garanties ne nomme plus le thème dans son
    en-tête. Elle garde la ligne de l'autre thème et ses deux liens.
+6. **La carte de l'aperçu prend un titre,** pour s'aligner sur les autres
+   sections.
+7. **La carte de configuration se replie après la création d'une palette.**
 
 Les choix concernés sont ceux qui désignent un profil, une vue ou un thème :
 
@@ -106,7 +109,15 @@ les images, et les comparer au modèle A de la maquette.
   7300754, barre fixe 481098e, ses tests e20ca9a, choix du profil 8229b72,
   « Les deux » dans l'Interface de test fe0c7c3, documents 454ac76, galerie
   f39b0ca. Comptes : 388 tests unitaires, 190 tests d'interface.
-- Comptes de départ de la révision : à noter.
+- Comptes de départ de la révision : 388 tests unitaires, 190 tests
+  d'interface.
+- R1.1 à R2.3 livrées, à commiter ensemble. Comptes : 388 tests unitaires,
+  189 tests d'interface (quatre tests de « Les deux » retirés, trois tests de
+  la ligne du titre ajoutés). Le composant de choix porte la classe
+  `.choix-d-affichage` et non `.choix` : `.choix` désigne déjà la ligne d'un
+  choix de collection dans Gestion (`destination.ts`, `pageDesPlanches.ts`),
+  et sa règle donnait au composant sa bordure basse et son remplissage. Les
+  tâches R3 et R4 lisent `.choix-d-affichage` là où le plan écrit `.choix`.
 - Mesure du glisser après la première livraison : `pointermove` 3,4 ms en
   médiane, 5,3 ms au pire.
 
@@ -116,7 +127,7 @@ Les tâches R1 et R2 se livrent ensemble : entre elles, aucune bascule de
 thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
 `npm run test:ui` vert.
 
-- [ ] **R1.1 « Les deux » quitte l'Interface de test.** Fichiers :
+- [x] **R1.1 « Les deux » quitte l'Interface de test.** Fichiers :
   `src/ui/interfaceDeTest.ts`, `src/ui/styles.css`,
   `tests/interface/interface.test.mjs`, `galerie/etats.cjs`.
   - Le choix « Afficher » reprend les options Soft et Vivid. Retirer les deux
@@ -127,7 +138,7 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
   - Retirer les six tests `[UI-14]` de fe0c7c3 qui portent sur « Les deux »,
     et l'état de galerie `interface-de-test-les-deux`. Garder le test du
     libellé « Afficher », réduit à Soft et Vivid.
-- [ ] **R1.2 La barre de la palette redevient ordinaire.** Fichiers :
+- [x] **R1.2 La barre de la palette redevient ordinaire.** Fichiers :
   `src/ui/barreDePalette.ts`, `src/ui/ongletCreation.ts`,
   `src/ui/ongletVerification.ts`, `src/ui/styles.css`.
   - Retirer de la barre la bascule du thème, son abonnement, et le second
@@ -141,7 +152,7 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
 
 ## Phase R2 : la ligne du titre porte le thème et reste en haut
 
-- [ ] **R2.1 Le composant de choix.** Fichiers : `src/ui/choixDuProfil.ts`,
+- [x] **R2.1 Le composant de choix.** Fichiers : `src/ui/choixDuProfil.ts`,
   renommé `src/ui/choix.ts`, `src/ui/styles.css`.
   - `createChoix({ libelle, nom, options, surChoix, miseEnAvant })` rend un
     `.choix` : un libellé `.choix-libelle`, puis une `.bascule` de segments
@@ -154,7 +165,7 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
     segments sur un fond de bloc, segment pressé au fond de la page avec un
     cerne de bordure. Une seule règle CSS porte ce style pour tous les choix.
     `miseEnAvant` ajoute le cerne de la couleur de marque.
-- [ ] **R2.2 Le titre de la palette.** Fichiers : `src/ui/ongletCreation.ts`,
+- [x] **R2.2 Le titre de la palette.** Fichiers : `src/ui/ongletCreation.ts`,
   `src/ui/ongletVerification.ts`, `src/ui/basculeDuTheme.ts` (nouveau),
   `src/ui/styles.css`, `src/i18n/fr.ts`, `src/i18n/en.ts`.
   - `createBasculeDuTheme(etat)` rend un `createChoix` au libellé « Aperçu »,
@@ -173,7 +184,7 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
     enfant direct de `.vue-de-la-palette`. Au repos, sans défilement, la page
     ne bouge pas.
   - La ligne tient sur une ligne à 500 px, en français et en anglais.
-- [ ] **R2.3 Les tests du thème.** Fichier :
+- [x] **R2.3 Les tests du thème.** Fichier :
   `tests/interface/interface.test.mjs`.
   - Les tests de e20ca9a qui visent `.barre-gestes .bascule` visent la ligne
     du titre. Le test de la barre collée et celui de la liste du sélecteur
@@ -224,6 +235,34 @@ choix sont cachés.
   - Une carte repliée cache son choix et montre son résumé.
   - À 500 px, en français et en anglais : aucun défilement horizontal, et
     chaque rangée tient dans son corps.
+- [ ] **R3.6 La carte de l'aperçu prend un titre.** Fichiers :
+  `src/ui/ongletCreation.ts`, `src/ui/glyphes.ts`, `src/i18n/fr.ts`,
+  `src/i18n/en.ts`, `tests/interface/interface.test.mjs`.
+  - La carte perd `sansTitre`. Elle porte un glyphe, le titre
+    `TEXTES_DE_L_ONGLET.apercu` (« Aperçu ») et un sous-titre, comme le
+    Réglage global, le Color shift et l'Interface de test. Le glyphe suit la
+    forme des glyphes de `src/ui/glyphes.ts`, en formes à rôle de couleur.
+    Rédiger le sous-titre avec la skill `rediger-diagnostics-ucm`, sur le
+    modèle des sous-titres voisins.
+  - La carte reste fixe, toujours ouverte. La pastille du fond reste dans
+    l'en-tête, à droite du titre : c'est un champ, pas un choix d'affichage.
+  - Test : l'en-tête de l'aperçu porte glyphe, titre et sous-titre, à la même
+    hauteur et dans la même typographie que ceux du Réglage global. Le test
+    `[UI-04]` qui exigeait l'absence de titre est récrit.
+- [ ] **R3.7 La carte de configuration se replie après une création.**
+  Fichiers : `src/ui/ongletCreation.ts`, `tests/interface/interface.test.mjs`.
+  - La carte « Configuration de la palette » devient repliable, ouverte à
+    l'ouverture du plugin. Repliée, son en-tête porte un résumé : nom,
+    référence, modèle et nombre d'intensités, sur le modèle des résumés des
+    autres cartes.
+  - Créer une palette, depuis « Nouvelle palette » ou depuis l'invitation
+    d'un fichier sans palette, replie la carte de la palette créée. Ouvrir
+    une autre palette ou revenir d'un autre onglet ne change pas son état.
+  - Un message de Vérification qui mène à un réglage de cette carte la
+    déplie, comme `ouvrir(cible)` le fait pour les cartes repliables.
+  - Tests : la carte est ouverte au départ ; une création la replie et son
+    résumé nomme la palette ; un clic la déplie ; un message qui y mène la
+    déplie et focalise le champ.
 
 ## Phase R4 : documents, galerie et mesures
 
@@ -269,6 +308,8 @@ tailles de fenêtre.
 | Ouvrir la liste des palettes, page légèrement défilée | La liste passe au-dessus du titre et des cartes |
 | Parcourir Réglage global, Color shift, Interface de test et Garanties | Chaque choix est en haut du corps, calé à droite, avec la même forme |
 | Replier une carte | Le choix disparaît, le résumé reste |
+| Créer une palette | La carte de configuration se replie, son résumé nomme la palette |
+| Lire l’en-tête de l’aperçu | Glyphe, titre et sous-titre, comme les autres cartes |
 | Dans Vérification, suivre le lien vers l'autre thème, puis revenir | La bascule du titre suit, « Revenir au thème » le rend |
 | Comparer une recette exportée avant et après le lot, sans réglage | Fichiers identiques |
 

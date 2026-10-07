@@ -69,6 +69,9 @@ export const TEXTES = {
   modesDeLApercu: 'Thème de l’aperçu',
   modeClair: 'Thème Light',
   modeSombre: 'Thème Dark',
+  // Les segments de la bascule du titre de la palette, sous le libellé « Aperçu ».
+  modeClairCourt: 'Light',
+  modeSombreCourt: 'Dark',
   titrePromesses: "Contrastes à corriger",
   titreAlertes: 'Points à vérifier',
   titreNotices: 'À savoir',

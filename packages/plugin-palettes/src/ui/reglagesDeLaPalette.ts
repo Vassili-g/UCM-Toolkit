@@ -53,7 +53,7 @@ import type { CibleDAction } from '../presentation';
 import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
 import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
-import { creerVuesChoixDuProfil } from './choixDuProfil';
+import { creerVuesChoix } from './choix';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
@@ -94,7 +94,7 @@ interface Rangee {
 }
 
 function construireVues(i18n: Localisation) {
-  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
+  const { createChoixDuProfil } = creerVuesChoix(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
   const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;

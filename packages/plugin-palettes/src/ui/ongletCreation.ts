@@ -66,6 +66,7 @@ import { sourceDeLaReprise } from '../variables/reprise';
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
 import type { BarreDePaletteUi, GestesDeLaBarre } from './barreDePalette';
+import { creerVuesBasculeDuTheme } from './basculeDuTheme';
 import { createCarte } from './carte';
 import { creerGlyphe } from './glyphes';
 import { type ChoixDeBase } from './champs';
@@ -161,6 +162,7 @@ function construireVues(i18n: Localisation) {
   const { createEditeur } = creerVuesEditeur(i18n);
   const { createReglagesDeLaPalette } = creerVuesReglagesDeLaPalette(i18n);
   const { createInterfaceDeTest } = creerVuesInterfaceDeTest(i18n);
+  const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
   const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
@@ -254,17 +256,18 @@ function construireVues(i18n: Localisation) {
 
     const zoneDeLaNote = document.createElement('div');
 
-    // La création d'une palette et la note, sous la barre partagée, que `vue` porte en tête.
+    // Le choix ou la création d'une palette, en tête de l'onglet : la barre partagée, la création, puis la note.
     const choix = document.createElement('div');
     choix.className = 'choix-de-palette';
     choix.append(zoneDeLaNote);
+    barre.placerDans(choix);
 
-    // Le titre de premier rang, « Palette [nom] », seul sur sa ligne ([UI-11]) : un nom long se coupe.
+    // La ligne du titre : « Palette [nom] », qu'un nom long coupe, puis la bascule du thème, calée à droite ([UI-11], [UI-23]).
     const titreDeConfiguration = document.createElement('h2');
     titreDeConfiguration.className = 'titre-de-premier-rang';
     const teteDeLaPalette = document.createElement('div');
     teteDeLaPalette.className = 'tete-de-la-palette';
-    teteDeLaPalette.append(titreDeConfiguration);
+    teteDeLaPalette.append(titreDeConfiguration, createBasculeDuTheme(etat).element);
 
     // Carte Configuration de la palette ([UI-11]).
     // La pastille ouvre le sélecteur de couleur, qui propose les nuances Vivid du thème montré (W4.1).
@@ -529,7 +532,6 @@ function construireVues(i18n: Localisation) {
     const configuration = document.createElement('div');
     configuration.className = 'configuration-de-la-palette';
     configuration.append(
-      teteDeLaPalette,
       encartDeReprise,
       carteDeBase.element,
       carteDApercu.element,
@@ -760,8 +762,8 @@ function construireVues(i18n: Localisation) {
     invitation.append(titreDeLInvitation, texteDeLInvitation);
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
-    vue.append(choix, invitation, configuration);
-    barre.placerDans(vue);
+    // La ligne du titre est un enfant direct de la vue : collée en haut, elle ne tient que dans son parent.
+    vue.append(choix, invitation, teteDeLaPalette, configuration);
     element.append(zoneDuRefus, zoneDuBloquant, vide, vue);
 
     /** Le panneau de création suit la vue montrée : seul, ou sous le sélecteur. */
@@ -791,10 +793,9 @@ function construireVues(i18n: Localisation) {
       creation.element.hidden = !creationOuverte;
       zoneDeLaNote.replaceChildren(...(note ? [blocDeConstat(note, 'notice')] : []));
       zoneDeLaNote.hidden = !note;
-      // Sans création ni note, le bloc cacherait un espacement vide sous la barre.
-      choix.hidden = !creationOuverte && !note;
       // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
       invitation.hidden = courante !== null || creationOuverte;
+      teteDeLaPalette.hidden = !courante;
       configuration.hidden = !courante;
     }
 
@@ -990,7 +991,7 @@ function construireVues(i18n: Localisation) {
         agir,
         supprimer: () => confirmerLaSuppression(),
       },
-      placerLaBarre: () => barre.placerDans(vue),
+      placerLaBarre: () => barre.placerDans(choix),
       ouvrir,
     };
   }

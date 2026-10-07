@@ -1,9 +1,10 @@
 /**
  * L'onglet Vérification ([VER-18]) : pour la palette ouverte, la barre de la
- * palette, le titre « Palette [nom] », le verdict sur son fond de sévérité,
- * les messages groupés par sévérité avec leurs liens ([VER-15]), la carte
- * « Garanties de contraste », fixe et toujours ouverte ([UI-09]), puis un pied
- * qui mène à Gestion, ou à Création quand une garantie manque.
+ * palette, la ligne du titre « Palette [nom] » avec la bascule Light/Dark, le
+ * verdict sur son fond de sévérité, les messages groupés par sévérité avec
+ * leurs liens ([VER-15]), la carte « Garanties de contraste », fixe et toujours
+ * ouverte ([UI-09]), puis un pied qui mène à Gestion, ou à Création quand une
+ * garantie manque.
  *
  * L'onglet lit l'état partagé (`paletteOuverte.ts`) et ne se rend que
  * visible, à la fin d'un geste : un glisser dans Création ne le recalcule pas.
@@ -12,6 +13,7 @@ import type { Association } from 'ucm-couleur';
 
 import { verdictDeLaPalette, type CibleDAction } from '../presentation';
 import type { BarreDePaletteUi } from './barreDePalette';
+import { creerVuesBasculeDuTheme } from './basculeDuTheme';
 import { creerVuesConstats } from './constats';
 import { creerVuesGaranties } from './garanties';
 import { memoriserVues, type Localisation } from './localisation';
@@ -44,12 +46,17 @@ function construireVues(i18n: Localisation) {
   const { createButton } = creerSocleLocalise(i18n);
   const { listeDesMessages } = creerVuesConstats(i18n);
   const { createGaranties } = creerVuesGaranties(i18n);
+  const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DE_LA_VERIFICATION, TEXTES_DE_L_ONGLET, nomDeLaPalette, pointsDuVerdict, verdictDesGaranties } = i18n.messages;
 
   function createOngletVerification(etat: PaletteOuverte, barre: BarreDePaletteUi, gestes: GestesDeLaVerification): OngletVerificationUi {
     const element = document.createElement('div');
     element.className = 'page-stack colonne';
+
+    // La barre de la palette, quand l'onglet est actif ([UI-23]).
+    const choix = document.createElement('div');
+    choix.className = 'choix-de-palette';
 
     // Sans palette choisie : l'invitation de Création ([UI-06]).
     const invitation = document.createElement('div');
@@ -68,9 +75,10 @@ function construireVues(i18n: Localisation) {
 
     const titre = document.createElement('h2');
     titre.className = 'titre-de-premier-rang';
+    // La ligne du titre : le titre, puis la bascule du thème, calée à droite ([UI-23]).
     const tete = document.createElement('div');
     tete.className = 'tete-de-la-palette';
-    tete.append(titre);
+    tete.append(titre, createBasculeDuTheme(etat).element);
 
     const verdict = document.createElement('div');
     verdict.className = 'verdict';
@@ -107,11 +115,12 @@ function construireVues(i18n: Localisation) {
 
     const corps = document.createElement('div');
     corps.className = 'configuration-de-la-palette';
-    corps.append(tete, verdict, messages, garanties.element, pied);
+    corps.append(verdict, messages, garanties.element, pied);
 
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
-    vue.append(invitation, sansRecette, corps);
+    // La ligne du titre est un enfant direct de la vue : collée en haut, elle ne tient que dans son parent.
+    vue.append(choix, invitation, sansRecette, tete, corps);
     element.append(vue);
 
     let actif = false;
@@ -123,12 +132,11 @@ function construireVues(i18n: Localisation) {
       const recette = etat.recette();
       const courante = etat.palette();
       const analyse = etat.analyse();
+      choix.hidden = !recette;
       sansRecette.hidden = recette !== null;
       invitation.hidden = !recette || courante !== null;
       corps.hidden = !recette || !courante || !analyse;
-      // La barre de la palette, en tête du panneau tant qu'une recette se lit ([UI-23]).
-      if (recette) barre.placerDans(vue);
-      else barre.element.hidden = true;
+      tete.hidden = corps.hidden;
       if (!recette || !courante || !analyse) return;
 
       const nom = nomDeLaPalette(courante);
@@ -178,8 +186,7 @@ function construireVues(i18n: Localisation) {
       montrer(suivant) {
         actif = suivant;
         if (!actif) return;
-        if (etat.recette()) barre.placerDans(vue);
-        else barre.element.hidden = true;
+        barre.placerDans(choix);
         if (enRetard) rendre();
       },
       choisirGarantie(association) {

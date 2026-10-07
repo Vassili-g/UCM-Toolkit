@@ -48,7 +48,7 @@ import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
 import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerDecalage, toutRetablir } from '../../edition';
 import { createCalculsDeLimites } from '../calculDesLimites';
-import { creerVuesChoixDuProfil } from '../choixDuProfil';
+import { creerVuesChoix } from '../choix';
 import { creerVuesLigneFixe } from '../ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
 import { echelleDe, valeurDuGlisser } from './geometrie';
@@ -94,7 +94,7 @@ function construireVues(i18n: Localisation) {
   const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
   const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
-  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
+  const { createChoixDuProfil } = creerVuesChoix(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
 
   function bouton(texte: Texte, classe: 'bouton-discret'): HTMLButtonElement {

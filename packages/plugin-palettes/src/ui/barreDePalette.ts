@@ -1,18 +1,16 @@
 /**
  * La barre de la palette ouverte ([UI-23]) : la liste déroulante, « Nouvelle
- * palette », le menu « … », la bascule Light/Dark du thème montré et la
- * confirmation de suppression. Elle existe en un seul exemplaire, que l'onglet
- * actif, Création ou Vérification, place dans son panneau : aucun de ses
- * éléments ne se reconstruit, et elle garde sa palette et sa confirmation d'un
- * onglet à l'autre. Elle reste en haut du panneau pendant le défilement.
+ * palette », le menu « … » et la confirmation de suppression. Elle existe en
+ * un seul exemplaire, que l'onglet actif, Création ou Vérification, place
+ * dans son panneau : aucun de ses éléments ne se reconstruit, et elle garde
+ * sa palette et sa confirmation d'un onglet à l'autre.
  */
-import { MODES, type Mode, type Palette } from 'ucm-couleur';
+import type { Palette } from 'ucm-couleur';
 
 import type { Verdict } from '../presentation';
 import { memoriserVues, type Localisation } from './localisation';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMenuPalette } from './menuPalette';
-import type { PaletteOuverte } from './paletteOuverte';
 import { creerVuesSelecteur } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
 
@@ -38,7 +36,7 @@ export interface BarreDePaletteUi {
   /** La barre et sa confirmation. */
   readonly element: HTMLDivElement;
   afficher(entrees: EntreesDeLaBarre): void;
-  /** Place la barre en tête de `parent`, si elle n'y est pas déjà, et la montre. */
+  /** Place la barre en tête de `parent`, si elle n'y est pas déjà. */
   placerDans(parent: HTMLElement): void;
   /** Referme la confirmation de suppression, sans déplacer le focus. */
   fermerLaConfirmation(): void;
@@ -52,8 +50,7 @@ function construireVues(i18n: Localisation) {
   const { createSelecteur } = creerVuesSelecteur(i18n);
   const { TEXTES, confirmationDeSuppression, nomDeLaPalette } = i18n.messages;
 
-  /** `etat` porte le thème montré, que la bascule lit et que ses boutons choisissent. */
-  function createBarreDePalette(gestes: GestesDeLaBarre, etat: Pick<PaletteOuverte, 'theme' | 'choisirLeTheme' | 'abonnerAuTheme'>): BarreDePaletteUi {
+  function createBarreDePalette(gestes: GestesDeLaBarre): BarreDePaletteUi {
     const element = document.createElement('div');
     element.className = 'barre-de-palette';
 
@@ -80,28 +77,9 @@ function construireVues(i18n: Localisation) {
       gestes.agir(geste);
       if (geste === 'supprimer') supprimerVraiment.focus();
     });
-    // Le thème montré ; sans palette ouverte, la bascule se cache avec le menu.
-    const bascule = document.createElement('div');
-    bascule.className = 'bascule';
-    bascule.setAttribute('role', 'group');
-    i18n.lier(bascule, 'aria-label', TEXTES.modesDeLApercu);
-    const boutonsDeTheme = MODES.map((valeur) => {
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'bascule-option';
-      i18n.lier(bouton, 'textContent', valeur === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
-      bouton.addEventListener('click', () => etat.choisirLeTheme(valeur));
-      bascule.append(bouton);
-      return { valeur, bouton };
-    });
-    const marquerLeTheme = (mode: Mode): void => {
-      for (const { valeur, bouton } of boutonsDeTheme) bouton.setAttribute('aria-pressed', String(valeur === mode));
-    };
-    marquerLeTheme(etat.theme());
-    etat.abonnerAuTheme(marquerLeTheme);
     const barre = document.createElement('div');
     barre.className = 'barre-gestes';
-    barre.append(selecteur.element, plus, menu.element, bascule);
+    barre.append(selecteur.element, plus, menu.element);
 
     const confirmation = document.createElement('div');
     confirmation.className = 'confirmation';
@@ -139,7 +117,6 @@ function construireVues(i18n: Localisation) {
       selecteur.afficher(palettes, courante?.id ?? '', verdicts);
       // Le menu porte sur la palette choisie : sans elle, il se cache.
       menu.element.hidden = !courante;
-      bascule.hidden = !courante;
       if (courante) menu.afficher(palettes.indexOf(courante), palettes.length);
       plus.setAttribute('aria-expanded', String(creationOuverte));
       i18n.lier(texteDeConfirmation, 'textContent', courante ? confirmationDeSuppression(nomDeLaPalette(courante)) : '');
@@ -153,7 +130,6 @@ function construireVues(i18n: Localisation) {
         rendre();
       },
       placerDans(parent) {
-        element.hidden = false;
         if (element.parentElement !== parent || parent.firstElementChild !== element) parent.prepend(element);
       },
       fermerLaConfirmation() {
