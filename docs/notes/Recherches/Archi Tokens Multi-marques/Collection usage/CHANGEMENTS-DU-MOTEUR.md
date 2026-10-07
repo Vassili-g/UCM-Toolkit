@@ -77,8 +77,8 @@ lecteurs.
 | N° | Changement | État | Modules |
 |---|---|---|---|
 | P1 | La table passe des emplois aux dossiers : treize variables par palette, les exceptions du neutre (`page/foreground-main`, `page/foreground-subtle`), `disabled/*`, deux niveaux d'`elevation` | Retenu | `emplois.ts`, `usages.ts` |
-| P2 | Une nuance par variable et par thème, normal et inversé ; le thème inversé change huit variables | Suit le texte des boutons | `emplois.ts` et tous ses lecteurs |
-| P3 | Le réglage `texteDesBoutons: { light, dark }`, blanc ou noir par thème, soit quatre combinaisons (recette au format 9, qui lit le format 8), et la courbe du thème inversé : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,71 / 0,66 / 0,58 ; une courbe réglée à la main est remplacée de 500 à 800 avec un message ; Gestion signale les primitives « À actualiser » | Recommandé par le dossier du texte des boutons, non décidé | `couleur/src`, migration de format, Gestion |
+| P2 | Une nuance par variable et par thème, normal et inversé ; le thème inversé change huit variables | Décidé | `emplois.ts` et tous ses lecteurs |
+| P3 | Le réglage `texteDesBoutons: { light, dark }`, blanc ou noir par thème, soit quatre combinaisons (recette au format 9, qui lit le format 8), et la courbe du thème inversé : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,71 / 0,66 / 0,58 , retenue sans essai Figma ; une courbe réglée à la main voit ses nuances 500 à 800 remplacées, après un message de confirmation ; Gestion signale les primitives « À actualiser » | Décidé | `couleur/src`, migration de format, Gestion |
 | P4 | Les dix-neuf paires deviennent les garanties G1 à G7, plus G8 et G9 entre palettes (section 5) ; l'escalier et le quatrième rang disparaissent | Retenu ; G8 et G9 proposées | `paires.ts`, `couleur/src/promesses.ts` |
 | P5 | Trois états, `default`, `hover`, `pressed` ; un état sélectionné prend un autre dossier ; le focus ajoute `page/focus` | Retenu | `rangs.ts`, nature `etat` de `ucm check` |
 | P6 | `solid/foreground` vaut le blanc ou le noir purs selon le réglage, au lieu du fond du thème | Retenu | `emplois.ts`, `usages.ts`, garanties |
@@ -123,7 +123,7 @@ galerie du plugin (`npm run galerie`, dossier `packages/plugin-palettes`).
 | I6 | Planche dans Figma | Une ligne par emploi, de `surface-card` à `border-decorative`, en quatre rangs | Une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, G1 à G7 | Retenu |
 | I7 | Messages (`garanties-refaites`) | « Texte coloré (text) sur Fond léger (surface) » | « `surface/foreground` sur `surface/hover` », le libellé en second | Retenu |
 | I8 | Interface de test (`interface-de-test-light`) | Aucun nom de variable | Survoler un élément montre la variable qui le peint ; la vue États suit les trois états | Proposé |
-| I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond » ; il règle `solid/foreground` ; les tests Chromium couvrent les quatre combinaisons | Libellé et place à décider (dossier du texte des boutons) |
+| I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond », avec `solid/foreground` affiché à côté ; « Rétablir » rétablit les valeurs de sa carte ; les tests Chromium couvrent les quatre combinaisons | Décidé |
 | I10 | Fonds du thème | Un réglage « Fond » ; la carte est implicite | Le fond s'appelle `elevation/page` ; la valeur de `elevation/raised` s'affiche à côté | Proposé |
 | I11 | Rapport et import | Le rapport exporté nomme les paires par leurs emplois | Le rapport nomme les garanties par leurs variables ; l'import lit le format 9 | Retenu |
 
@@ -154,9 +154,9 @@ ancrée. Le mainteneur a décidé que la référence reste ancrée
 ([dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md),
 décision 3) : le plugin signale la garantie manquée, et le lien « Ajuster la
 référence » permet d'en corriger la luminosité. Ces échecs sont attendus.
-Ceux de G7 en Light touchent une référence verte ancrée à la 600. Le
-dossier du texte des boutons recommande aussi de juger G2 au repos dans le
-thème inversé. `page/divider` n'a pas de minimum ; `disabled/*` est
+Ceux de G7 en Light touchent une référence verte ancrée à la 600. Dans le
+thème inversé, G2 se juge sur le bouton au repos (garantie 14 du dossier du
+texte des boutons, décidée). `page/divider` n'a pas de minimum ; `disabled/*` est
 exempté. `page/foreground-subtle` a les mesures de G5 ;
 `page/foreground-main`, noir ou blanc purs, tient au moins 17:1 (blanc sur la carte dark).
 
@@ -165,5 +165,5 @@ exempté. `page/foreground-subtle` a les mesures de G5 ;
 1. **La table du kit et ses tests** : P1, P4 à P8, P12 pour le kit.
 2. **UCM Palettes** : I1 à I8, I10, I11 sur la nouvelle table ; P9.
 3. **`ucm check` et l'Explorateur** : P10, P11.
-4. **Le thème inversé** : P2, P3, I9, après les décisions du dossier du
-   texte des boutons.
+4. **Le thème inversé** : P2, P3, I9, décidés dans le dossier du texte des
+   boutons.

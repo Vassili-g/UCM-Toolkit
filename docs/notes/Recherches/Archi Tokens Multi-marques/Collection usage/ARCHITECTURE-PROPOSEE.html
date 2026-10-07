@@ -179,7 +179,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="narrow">
     <h1>L'architecture des tokens, en une page</h1>
     <p class="lede">La forme proposée pour le design system : six marques, Light et Dark, des statuts en <code>soft</code> et <code>vivid</code>. Elle reprend les décisions D1 à D17 de la <a href="../VUE-ILLUSTREE-MULTIMARQUES.html">vue illustrée</a>, sauf la collection <code>usage</code>, que la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a> remplace. Rien n'est implémenté.</p>
-    <p>La barre du haut choisit la marque des aperçus et le texte des boutons de chaque thème. Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de la page : texte blanc en Dark, ou noir en Light. La page s'ouvre sur deux thèmes normaux ; le thème inversé reste à décider.</p>
+    <p>La barre du haut choisit la marque des aperçus et le texte des boutons de chaque thème. Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de la page : texte blanc en Dark, ou noir en Light. La page s'ouvre sur deux thèmes normaux ; le thème inversé est décidé dans le <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>.</p>
   </div>
 
   <h2>En bref</h2>
@@ -319,7 +319,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/foreground</code>.</li>
     <li><b>L'alerte standard</b> passe du fond 50 au fond 100, et du texte 700 au texte 800.</li>
   </ul>
-  <p>Les ratios rouges qui apparaissent dans un thème inversé touchent le bouton plein à la nuance 700 : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1), <code>secondary</code> de marque-2 (4,38:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ils viennent de la courbe du thème inversé, que le dossier du texte des boutons doit encore trancher.</p>
+  <p>Les ratios rouges qui apparaissent dans un thème inversé touchent le bouton plein à la nuance 700 : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1), <code>secondary</code> de marque-2 (4,38:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ceux d'<code>info</code> et de <code>primary</code> touchent la nuance où la référence est ancrée : ils sont attendus, et le plugin les signale. Ceux de <code>secondary</code> (référence <code>#F43F5E</code>) et d'<code>error</code> (<code>#EF4444</code>) touchent la 700 de la courbe inversée, hors ancrage : la courbe retenue ne tient pas pour ces deux références, absentes des 42 rampes mesurées.</p>
   </div>
 
   <div class="narrow">
@@ -347,7 +347,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">D15</td><td>Trois niveaux d'élévation</td><td><span class="tag mod">modifiée</span> deux niveaux, <code>page</code> et <code>raised</code> : <code>overlay</code> est retiré</td></tr>
       <tr><td class="id">D16</td><td>Une table pour les trois outils</td><td><span class="tag same">gardée</span></td></tr>
       <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
-      <tr><td class="id">Palettes</td><td>Texte des boutons blanc ou noir purs, un choix par thème ; bouton à la nuance 700</td><td><span class="tag same">gardées</span> le thème inversé lui-même reste à décider</td></tr>
+      <tr><td class="id">Palettes</td><td>Texte des boutons blanc ou noir purs, un choix par thème ; bouton à la nuance 700</td><td><span class="tag same">gardées</span> le thème inversé est décidé : courbe recalculée de 500 à 800, la référence reste ancrée</td></tr>
     </tbody>
   </table></div>
 
@@ -376,6 +376,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>La collection des marques s'appelle <code>color-brands</code>, sans groupe <code>palette</code> ; <code>identity</code> y est un alias vers la nuance où la référence est posée.</li>
     <li>Le blanc et le noir sous <code>primitives/colors/titanium</code>, et leurs alias sous <code>color-utilities/neutral/light</code> et <code>dark</code>, que <code>solid/foreground</code> vise.</li>
     <li>Deux niveaux d'élévation, <code>page</code> et <code>raised</code>.</li>
+    <li>Le thème inversé : le texte des boutons se choisit par thème, la courbe se recalcule de 500 à 800, la référence reste ancrée (dossier du texte des boutons).</li>
     <li>Les modes de <code>theme</code> en minuscules : <code>light</code> et <code>dark</code>.</li>
   </ul>
 
@@ -385,7 +386,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>Les noms des fonds, <code>default</code>, <code>hover</code> et <code>pressed</code>, à éprouver dans le sélecteur Figma.</li>
     <li>Le bouton <code>text</code> dans le dossier <code>surface</code>, et <code>disabled/border</code>.</li>
     <li>Les nuances 400 et 950, obligatoires ou non.</li>
-    <li>Le thème inversé, dans le <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>.</li>
   </ol>
   <p>Le détail, les mesures et les sources sont dans la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a>. Ce que ces choix demandent à UCM Palettes et au kit est dans les <a href="./CHANGEMENTS-DU-MOTEUR.md">changements du moteur</a>.</p>
   </div>
