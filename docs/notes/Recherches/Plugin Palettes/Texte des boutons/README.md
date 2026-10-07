@@ -16,12 +16,13 @@ d'interface sont tranchés ; reste le plan d'implémentation.
 |---|---|
 | [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html) | Le point d'entrée : choix effectués, règle du thème inversé sur six palettes, choix à prendre, maquette du réglage dans les Réglages communs |
 | [Dossier de recherche](./DOSSIER-TEXTE-DES-BOUTONS.md) | Le raisonnement, les mesures du second tour, les systèmes comparés et les sources |
-| [Mesures](./Mesures/) | [mesurer-courbe-du-texte.ts](./Mesures/mesurer-courbe-du-texte.ts) et [MESURES-COURBE-DU-TEXTE.json](./Mesures/MESURES-COURBE-DU-TEXTE.json) : courbe recalculée et table du thème inversé ; [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) écrit les couleurs de la page |
+| [Mesures](./Mesures/) | [mesurer-courbe-du-texte.ts](./Mesures/mesurer-courbe-du-texte.ts) et [MESURES-COURBE-DU-TEXTE.json](./Mesures/MESURES-COURBE-DU-TEXTE.json) : courbe recalculée et table du thème inversé ; [mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) : le texte des boutons sur 204 couleurs, dans les quatre thèmes ; [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) écrit les couleurs de la page |
 | [Archives](./Archives/README.md) | Notes de recette, première recherche, premier tour S1 à S6 et première maquette du thème inversé |
 
 Depuis la racine du dépôt :
 
 ```sh
 npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-courbe-du-texte.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-couverture.ts"
 npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer-texte-des-boutons.ts"
 ```

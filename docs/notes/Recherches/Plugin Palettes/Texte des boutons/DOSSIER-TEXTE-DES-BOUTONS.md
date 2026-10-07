@@ -167,7 +167,19 @@ entre deux états du bouton.
 | Dark, aujourd'hui | 0,40 | 0,49 | 0,58 | 0,67 | 0,76 | 0,85 |
 | Dark, texte blanc | 0,40 | **0,45** | **0,50** | **0,55** | **0,70** | 0,85 |
 | Light, aujourd'hui | 0,76 | 0,67 | 0,585 | 0,50 | 0,42 | 0,34 |
-| Light, texte noir | 0,76 | **0,71** | **0,66** | **0,58** | 0,42 | 0,34 |
+| Light, texte noir | 0,76 | **0,745** | **0,69** | **0,61** | 0,42 | 0,34 |
+
+La première valeur Light, 0,71, 0,66 et 0,58, tenait sur les quatorze
+références de la section 5.3, mais pas sur un échantillon plus large :
+[mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) balaie 204 couleurs,
+teintes tous les 5°, quatre chromas et trois clartés. Le texte noir y
+échouait 127 fois hors nuance ancrée, au pire 4,13:1, toujours sur la 700
+des violets, magentas et roses vifs : à clarté OKLCH égale, ces teintes ont
+une luminance plus faible. Avec 0,745, 0,69 et 0,61, les quatre thèmes
+tiennent sans échec hors nuance ancrée ; en Light avec texte noir, au pire
+4,67:1. Le bouton au repos tient au pire 3,27:1 contre la page, et l'anneau
+au pire 3,11:1 contre la page, une carte, son fond 100 et le fond 100 d'une
+autre palette.
 
 Les clartés restent réglables dans les Réglages communs. La courbe reste
 monotone ; les accolades du nuancier montrent les états du bouton à gauche de
@@ -187,7 +199,7 @@ la nuance où la référence est ancrée se compte à part (section 5.6).
 | Dark, texte blanc, courbe seule recalculée | 301 sur 662 | 30 | 0,068 | 0,091 |
 | **Dark, texte blanc, proposition** | **toutes** | **3 références** | **0,047** | **0,093** |
 | Light aujourd'hui, texte blanc | toutes | vert `#16A34A`, contour à 2,92:1, déjà connu | 0,069 | 0,086 |
-| Light, texte noir, proposition | toutes | 5 références | 0,046 | 0,094 |
+| Light, texte noir, première proposition (0,71, 0,66, 0,58) | toutes | 5 références | 0,046 | 0,094 |
 
 Les états du bouton inversé sont aussi distincts que ceux du Dark actuel.
 Ils gardent toute leur chroma : la part des fonds du thème Dark ([MOT-28])
@@ -338,7 +350,9 @@ distingue en recalculant la courbe, ce qui garde le bouton à la 700.
    designer de déplacer sa luminosité jusqu'à ce qu'elle passe. Ancrer sur la
    nuance voisine, ou ne pas ancrer dans le thème inversé, est écarté.
 4. **Les clartés de la courbe inversée** : décidé, 0,45, 0,50, 0,55 et 0,70
-   en Dark, 0,71, 0,66 et 0,58 en Light, sans essai préalable dans Figma.
+   en Dark, 0,745, 0,69 et 0,61 en Light, sans essai préalable dans Figma.
+   La valeur Light a été corrigée après la mesure de couverture
+   (section 5.2).
 5. **Le quatrième niveau du texte coloré** : sans objet, le quatrième
    niveau disparaît (section 7).
 6. **L'anneau de focus** : réglé, un anneau par palette, 600, et 700 dans un
@@ -369,6 +383,7 @@ Depuis la racine du dépôt :
 
 ```sh
 npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-courbe-du-texte.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-couverture.ts"
 npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer-texte-des-boutons.ts"
 ```
 
@@ -376,6 +391,9 @@ npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer
   [MESURES-COURBE-DU-TEXTE.json](./Mesures/MESURES-COURBE-DU-TEXTE.json) :
   second tour, zones de clarté, courbe recalculée, table inversée,
   garantie 14, ancrage.
+- [mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) et
+  [MESURES-COUVERTURE.json](./Mesures/MESURES-COUVERTURE.json) : le texte des
+  boutons sur 204 couleurs, dans les quatre thèmes, avec la courbe retenue.
 - [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) :
   les rampes de six palettes, courbe actuelle et courbe inversée, écrites
   dans [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html).
