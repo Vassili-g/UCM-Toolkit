@@ -626,10 +626,10 @@ Restent :
 4. **Le bouton `text`** dans le dossier `surface` (B), section 7.
 5. **Les nuances 400 et 950** : rester obligatoires (D7), ou redevenir
    facultatives.
-6. **Le thème inversé lui-même** reste à décider dans le
-   [dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md#9-décisions-à-prendre),
-   avec l'ancrage d'une référence qui ne porte pas le texte des boutons. La
-   proposition ci-dessus fonctionne avec ou sans lui.
+6. **Le thème inversé lui-même** est décidé dans le
+   [dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md#9-décisions),
+   ancrage compris : une référence qui ne porte pas le texte des boutons reste
+   ancrée, et le plugin signale la garantie manquée.
 
 Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
 sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
