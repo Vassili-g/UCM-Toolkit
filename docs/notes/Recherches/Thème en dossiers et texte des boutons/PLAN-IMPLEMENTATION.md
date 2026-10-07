@@ -557,13 +557,13 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 
 ## Avant de commencer
 
-- [ ] **T0.1** · Orchestrateur. Lire dans [AGENTS.md](../../../../AGENTS.md)
+- [x] **T0.1** · Orchestrateur. Lire dans [AGENTS.md](../../../../AGENTS.md)
   la carte de `packages/kit/src/emplois/`, `packages/kit/src/lecteurs/`,
   `packages/couleur/`, `packages/plugin-palettes/` et
   `packages/plugin-explorateur/`, puis les invariants « Diagnostics »,
   « Moteur de couleur », « Écriture d'UCM Palettes », « Langue d'UCM
   Palettes », « Interface d'UCM Palettes » et « Explorateur de tokens ».
-- [ ] **T0.2** · Orchestrateur. Dans `.claude/agents/`, créer
+- [x] **T0.2** · Orchestrateur. Dans `.claude/agents/`, créer
   `executant.md` et `implementeur-exigeant.md` en copiant `implementeur.md`,
   puis changer leur en-tête : `name`, une `description` d'une phrase,
   `model: haiku` et `effort: low` pour `executant`, `model: sonnet` et
@@ -571,14 +571,14 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
   ajoute : « Tu ne fais que les modifications listées ; un choix à faire
   t'arrête. » Ajouter `effort: medium` à `implementeur.md`. Commit
   `chore(agents): les efforts de l'exécution`.
-- [ ] **T0.3** · `verificateur`. État de départ : `npm run typecheck`,
+- [x] **T0.3** · `verificateur`. État de départ : `npm run typecheck`,
   `npm test`, `npm run test:ui --workspace ucm-palettes-plugin`. Fini
   quand : tableau rendu. Un échec de départ se note et ne s'attribue à aucun
   lot.
 
 ## Lot 1. La table des dossiers dans le kit
 
-- [ ] **T1.1** · `implementeur`. La table.
+- [x] **T1.1** · `implementeur`. La table.
   - Fichiers : `packages/kit/src/emplois/dossiers.ts` (nouveau),
     `packages/kit/src/emplois/index.ts`,
     `packages/kit/tests/dossiers.test.ts` (nouveau).
@@ -603,7 +603,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     `solid/hover` ; les supports de S4.
   - Fini quand : `npm run typecheck` et `npm test --workspace @ucm-kit/core`
     passent.
-- [ ] **T1.2** · `implementeur`. Les garanties dans le kit.
+- [x] **T1.2** · `implementeur`. Les garanties dans le kit.
   - Fichiers : `packages/kit/src/emplois/garanties.ts` (nouveau),
     `index.ts`, `packages/kit/tests/garanties.test.ts` (nouveau).
   - Faire : `GARANTIES`, G1 à G7 de S7, chacune avec son premier membre,
@@ -612,15 +612,15 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
   - Tests : sept garanties ; G1 non jugeable sans 700 ; G2 jugeable sans
     400.
   - Fini quand : `npm test --workspace @ucm-kit/core` passe.
-- [ ] **T1.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini quand :
+- [x] **T1.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini quand :
   tableau rendu, tout vert.
-- [ ] **T1.4** · Orchestrateur. Relire le diff contre S1 à S4 et S7 ; commit
+- [x] **T1.4** · Orchestrateur. Relire le diff contre S1 à S4 et S7 ; commit
   `feat(kit): la table des dossiers solid, surface, page et ses garanties,
   dans les deux sens`.
 
 ## Lot 2. Le format 9 et la courbe inversée
 
-- [ ] **T2.1** · `implementeur`. Le format 9.
+- [x] **T2.1** · `implementeur`. Le format 9.
   - Fichiers : `packages/couleur/src/recette.ts`,
     `packages/couleur/tests/recette.test.ts`, `tests/base.test.ts`,
     `tests/nuances.test.ts`, les tests qui écrivent `formatVersion: 8` en
@@ -636,7 +636,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     aller-retour d'une recette 9.
   - Fini quand : `npm test` passe dans `ucm-couleur`, `ucm-palettes-plugin`
     et `ucm-explorateur-plugin`.
-- [ ] **T2.2** · `implementeur`. La courbe inversée.
+- [x] **T2.2** · `implementeur`. La courbe inversée.
   - Fichiers : `packages/couleur/src/nuances.ts`, `src/recette.ts`
     (`recetteParDefaut` seulement), `src/index.ts`,
     `tests/nuances.test.ts`.
@@ -649,14 +649,14 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     400 réglée à 0,47 en Dark fait refuser le passage au blanc ;
     `nuancesReglees` vide sur la recette par défaut.
   - Fini quand : `npm test --workspace ucm-couleur` passe.
-- [ ] **T2.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini
+- [x] **T2.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini
   quand : tableau rendu, tout vert.
-- [ ] **T2.4** · Orchestrateur. Commit `feat(couleur): format 9 de la
+- [x] **T2.4** · Orchestrateur. Commit `feat(couleur): format 9 de la
   recette, texte des boutons par thème et courbe du thème inversé`.
 
 ## Lot 3. Les réglages du texte des boutons et du fond de la page
 
-- [ ] **T3.1** · `implementeur`. Le modèle des Réglages communs.
+- [x] **T3.1** · `implementeur`. Le modèle des Réglages communs.
   - Fichiers : `packages/plugin-palettes/src/configuration.ts`,
     `tests/configuration.test.ts`, `tests/reglages.test.ts`.
   - Faire : un champ `{ texteDesBoutons: Mode }` dans le groupe `fonds`,
@@ -668,7 +668,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
   - Tests : les deux Rétablir dans les quatre combinaisons ; le refus de
     courbe non monotone laisse la recette intacte.
   - Fini quand : `npm test --workspace ucm-palettes-plugin` passe.
-- [ ] **T3.2** · `implementeur-exigeant`. Les cartes « Couleurs de fond »
+- [x] **T3.2** · `implementeur-exigeant`. Les cartes « Couleurs de fond »
   et « Luminosité des nuances ».
   - Fichiers : `packages/plugin-palettes/src/ui/configuration.ts`,
     `src/ui/styles.css`, `src/i18n/fr.ts`, `src/i18n/en.ts`.
@@ -691,7 +691,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
   - Fini quand : `npm run typecheck`, `npm test --workspace
     ucm-palettes-plugin` et `npm run galerie --workspace
     ucm-palettes-plugin` passent.
-- [ ] **T3.3** · `implementeur`. Galerie, tests Chromium et variables.
+- [x] **T3.3** · `implementeur`. Galerie, tests Chromium et variables.
   - Fichiers : `packages/plugin-palettes/galerie/etats.cjs`,
     `tests/interface/interface.test.mjs`, et
     `tests/modeleDesVariables.test.ts` ou `tests/variables.test.ts`, celui
@@ -705,10 +705,10 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     elles seules, passent « À actualiser ». Si ce dernier test demande du
     code dans `src/ecriture/`, s'arrêter et rendre le diagnostic.
   - Fini quand : `npm run test:ui --workspace ucm-palettes-plugin` passe.
-- [ ] **T3.4** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T3.4** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-palettes-plugin`. Fini quand : tableau
   rendu, tout vert.
-- [ ] **T3.5** · Orchestrateur. Ouvrir les états de T3.3 dans la galerie et
+- [x] **T3.5** · Orchestrateur. Ouvrir les états de T3.3 dans la galerie et
   les comparer à la maquette de la section 4 ; commit `feat(palettes): le
   texte des boutons se règle par thème, sous le fond de la page`.
 
@@ -762,7 +762,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 
 ## Lot 5. Le diagnostic des contrastes d'`ucm check`
 
-- [ ] **T5.1** · `implementeur`. Le diagnostic.
+- [x] **T5.1** · `implementeur`. Le diagnostic.
   - Fichiers : `packages/kit/src/lecteurs/diagnostic-emplois.mjs`, renommé
     `diagnostic-contrastes.mjs` par `git mv`,
     `packages/kit/tests/diagnostic-emplois.test.mjs`, renommé
@@ -780,7 +780,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     d'un repository jouet.
   - Fini quand : `npm test --workspace @ucm-kit/core` et `npm test
     --workspace @ucm-kit/cli` passent.
-- [ ] **T5.2** · `executant`. Les renvois.
+- [x] **T5.2** · `executant`. Les renvois.
   - Fichiers : [FORMAT.md](../../../format/FORMAT.md), section 2 ;
     `AGENTS.md` (carte de `lecteurs/`, invariant des diagnostics) ;
     `docs/guides/RECETTE.md` ; `packages/cli/README.md` ;
@@ -798,14 +798,14 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
   - Fini quand : `node scripts/controle-style.mjs <fichier>` rend « Style
     conforme » pour chaque fichier Markdown touché, et `npx vitest run
     tests/docLinks.test.ts` ne relève aucun lien de ces fichiers.
-- [ ] **T5.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini
+- [x] **T5.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini
   quand : tableau rendu, tout vert.
-- [ ] **T5.4** · Orchestrateur. Commit `feat(kit): ucm check mesure les
+- [x] **T5.4** · Orchestrateur. Commit `feat(kit): ucm check mesure les
   contrastes des composants, sans table ni collection imposée`.
 
 ## Lot 6. Le profil UCM d'UCM Explorateur
 
-- [ ] **T6.1** · `implementeur`. Le profil.
+- [x] **T6.1** · `implementeur`. Le profil.
   - Fichiers : `packages/plugin-explorateur/src/integrations/profilUcm.ts`,
     `src/integrations/palettes.ts`, `src/preferences.ts`,
     `src/ui/textes.ts`, `src/ui/vues/integrations.ts`,
@@ -823,10 +823,10 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     `color-brands`.
   - Fini quand : `npm run typecheck` et `npm test --workspace
     ucm-explorateur-plugin` passent.
-- [ ] **T6.2** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T6.2** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-explorateur-plugin`. Fini quand :
   tableau rendu, tout vert.
-- [ ] **T6.3** · Orchestrateur. Commit `feat(explorateur): le profil UCM
+- [x] **T6.3** · Orchestrateur. Commit `feat(explorateur): le profil UCM
   suit l'architecture en dossiers de theme`.
 
 ## Lot 7. Les garanties dans le moteur
@@ -1020,6 +1020,58 @@ manque.
   boutons, planches, variables « À actualiser » dans Gestion, profil d'UCM
   Explorateur sur le fichier remappé, `ucm check` sur le Playground), et
   les écarts relevés pendant l'exécution.
+
+## Suivi de l'exécution
+
+Mis à jour par l'orchestrateur à chaque lot.
+
+| Lot | État | Commit |
+|---|---|---|
+| Départ | T0.2 fait ; T0.3 remplacé par la vérification du lot 2 | f6acbd0 |
+| 1. Table du kit | commité | c771604 |
+| 2. Format 9 et courbe | commité | 7a1f29a |
+| 3. Réglages | commité | 003f971 |
+| 4. Aperçu | T4.1 en cours : chevauchements des libellés à 500 px à corriger | |
+| 5. `ucm check` | commité | 22eb44f |
+| 6. Explorateur | commité | 9c55ca6 |
+| 7. Garanties | portes ouvertes (M1 à M3 validées), attend la fin du lot 4 | |
+| 8 à 10 | à faire | |
+
+**Décisions prises pendant l'exécution**, dans le cadre du plan :
+
+- Lot 2 : `intensites.test.ts` attendait le format 8 en dur ; il attend
+  maintenant 9.
+- Lot 3 : « Rétablir » de « Couleurs de fond » remet le texte des boutons
+  sans confirmation : c'est un retour aux valeurs par défaut, et le plan ne
+  demande de confirmation que pour les segments. Si ce retour rend une courbe
+  non monotone, la carte affiche le refus de S9 et la recette ne change pas.
+- Lot 3 : l'aperçu en tête des Réglages communs suit déjà la courbe inversée
+  par ses rampes. Les trois boutons peints de la maquette du texte des
+  boutons passent à T8.2, qui touche `apercuCompact.ts`.
+- Lot 3 : `en.ts` dit « Update needed », le terme qu'il employait déjà, au
+  lieu de « Needs update ».
+- Lot 4 : le plugin reconnaît la palette du neutre à son nom, `neutral`, sans
+  casse, comme UCM Explorateur et l'architecture.
+- Lot 4 : les couleurs de surlignage s'écrivent en `rgb()` dans la feuille de
+  style, que la loi `stylesUi` interdit d'hexadécimaux.
+- Lot 5 : le test [A4] de `controleRepository.test.mjs`, qui attendait
+  l'avertissement de la table des emplois, vérifie maintenant qu'une
+  collection `usage` n'est plus jugée. `ROADMAP.md` a reçu la même mise à
+  jour que les fichiers de T5.2.
+- Lot 6 : `palettes.ts` d'UCM Explorateur lisait aussi l'ancienne table pour
+  l'inspecteur ; il lit `variablesDuCran`.
+
+**Écarts relevés, à reprendre plus loin :**
+
+- Jusqu'au lot 7, la garantie des courbes lit l'ancienne table : un thème
+  inversé y affiche huit alertes à tort (600 et 700 contre la 50).
+- T8.1 et T8.2 : les libellés « fond du thème » du détail d'une nuance et des
+  alertes (`FONDS` de `fr.ts` et `en.ts`) passent à « fond de la page ». La
+  case tiretée de l'aperçu, peinte du texte des boutons, se décrit encore
+  comme le fond.
+- T10.4 : trois notes de `Collection usage/` renvoient à
+  `diagnostic-emplois.mjs`, renommé `diagnostic-contrastes.mjs` ; leur lien
+  est mort.
 
 ## Récapitulatif des appels
 
