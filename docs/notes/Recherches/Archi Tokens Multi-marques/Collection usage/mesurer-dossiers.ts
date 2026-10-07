@@ -47,7 +47,7 @@ const avec = (courbe: readonly number[], valeurs: Record<number, number>) => cou
 /** Les courbes du thème inversé que propose le dossier du texte des boutons, section 5.2. */
 const COURBE_INVERSEE: Record<Mode, readonly number[]> = {
   dark: avec(base.courbes.dark, { 500: 0.45, 600: 0.5, 700: 0.55, 800: 0.7 }),
-  light: avec(base.courbes.light, { 500: 0.71, 600: 0.66, 700: 0.58 }),
+  light: avec(base.courbes.light, { 500: 0.745, 600: 0.69, 700: 0.61 }),
 };
 
 /** Un thème jugé : sa courbe, le texte des boutons et les nuances de chaque usage. */

@@ -389,7 +389,7 @@ Texte et contour constants, contre la page, la carte et les fonds 100, 200 et
 | Texte 800 | 5,26 | 5,64 | 5,26 | **4,44**, échoue |
 | Texte 900 | 7,30 | 7,73 | 7,30 | 7,73 |
 | Texte 900 sur un quatrième fond, 400 | 5,47 | 5,81 | 5,47 | 5,81 |
-| Contour 700 | 3,74 | 3,89 | **2,66**, échoue | **2,44**, échoue |
+| Contour 700 | 3,74 | 3,89 | **2,35**, échoue | **2,44**, échoue |
 | Contour 800 | 5,26 | 5,64 | 5,26 | 4,44 |
 
 Entre deux fonds voisins, l'écart vaut au moins 0,045 ΔEok, assez pour voir
@@ -405,7 +405,7 @@ Texte des boutons, blanc ou noir purs, sur les trois fonds :
 |---|---|---|---|
 | Light, texte blanc | 700, 800, 900 | 5,67 | aucun échec |
 | Dark, texte noir | 700, 800, 900 | 6,39 | aucun échec |
-| Light inversé, texte noir | 700, 600, 500 | 4,66 | 5 références sur 14 échouent, de 3,90 à 4,43 |
+| Light inversé, texte noir | 700, 600, 500 | 5,27 | 5 références sur 14 échouent, de 3,90 à 4,43 |
 | Dark inversé, texte blanc | 700, 600, 500 | 4,55 | 3 références sur 14 échouent, de 3,81 à 4,31 |
 
 Les échecs sur la nuance ancrée sont ceux du dossier du texte des boutons,
@@ -417,7 +417,7 @@ section 5.6. Leur traitement reste sa décision 3.
 |---|---|---|---|
 | Light | 700 : 5,29 | 600 : 3,78 | 82 sur 126, pire 3,74 |
 | Dark | 700 : 5,19 | 600 : 3,78 | 84 sur 126, pire 3,60 |
-| Light inversé | 800 : 7,52 | 700 : 3,71 | 126 sur 126 |
+| Light inversé | 800 : 7,52 | 700 : 3,42 | 126 sur 126 |
 | Dark inversé | 800 : 5,93 | 700 : 3,32 | 115 sur 126, pire 3,60 |
 
 ### Le texte qui suit le fond
@@ -438,7 +438,7 @@ de toutes les palettes, 5 376 mesures par thème :
 
 | Anneau | Light | Dark | Light inversé | Dark inversé |
 |---|---|---|---|---|
-| 700 | toutes, pire 3,42 | toutes, pire 3,60 | 3 710, pire 2,30 | 3 329, pire 2,21 |
+| 700 | toutes, pire 3,42 | toutes, pire 3,60 | 2 672, pire 1,99 | 3 329, pire 2,21 |
 | 800 | toutes, pire 4,87 | toutes, pire 5,25 | toutes, pire 4,87 | toutes, pire 3,60 |
 | 900 | toutes | toutes | toutes | toutes, pire 6,19 |
 
@@ -451,13 +451,14 @@ l'anneau `{p}/page/focus` retenu, à la 600 et à la 700 dans un thème inversé
 |---|---|---|---|---|
 | Light | 600 | 84/84, pire 3,08 | 24/24, pire 3,55 ; sur l'ancre, 2,92 | 1 680/1 764, pire 2,83 |
 | Dark | 600 | 84/84, pire 3,17 | 26/26, pire 3,82 | toutes, pire 3,16 |
-| Light inversé | 700 | 84/84, pire 3,56 | 26/26, pire 3,52 | toutes, pire 3,27 |
+| Light inversé | 700 | 84/84, pire 3,08 | 24/24, pire 3,21 ; sur l'ancre, 2,92 | 1 680/1 764, pire 2,83 |
 | Dark inversé | 700 | 84/84, pire 3,17 | 26/26, pire 3,36 | toutes, pire 3,16 |
 
 Le fond 100 de sa palette est le cas courant : l'action d'une alerte a la
 couleur de l'alerte. Il échoue sur une seule référence, `#16A34A`, ancrée à
-la 600 en Light. Le fond d'une autre palette est plus rare : un bouton
-`success` posé dans une alerte de danger, où 84 mesures échouent en Light.
+la 600 en Light et à la 700 en Light inversé. Le fond d'une autre palette est
+plus rare : un bouton `success` posé dans une alerte de danger, où 84 mesures
+échouent en Light et en Light inversé.
 Les 900, 800 et 700 tenaient partout, mais se lisaient comme du noir en Light
 et du blanc en Dark. Pour intencial, l'anneau de `primary` vaut la couleur de
 charte `#B15152` dans les quatre thèmes.
@@ -578,9 +579,11 @@ ont été comparées ; la page de l'architecture retient B (décision 8).
 
 La page mesure aussi le bouton plein dans les trois marques. Il échoue à la
 nuance 700 dans un thème inversé seulement : `info` en Dark avec texte blanc,
-3,68:1 ; `primary` d'intencial, 4,17:1, `secondary` de marque-2, 4,38:1, et
-`error`, 4,44:1, en Light avec texte noir. Ces échecs viennent de la courbe
-du thème inversé (décision 7).
+3,68:1, et `primary` d'intencial, 4,17:1, en Light avec texte noir. Les deux
+touchent la nuance où la référence est ancrée ; la référence reste ancrée, et
+le plugin signale l'échec. La courbe Light inversée corrigée, 0,745 / 0,69 /
+0,61 de 500 à 700, fait tenir `secondary` de marque-2 et `error`, qui
+échouaient avec la première courbe (0,71 / 0,66 / 0,58).
 
 ## 8. Limites
 

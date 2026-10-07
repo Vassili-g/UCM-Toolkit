@@ -18,7 +18,7 @@ const avec = (courbe: readonly number[], valeurs: Record<number, number>) => cou
 const inverse: Recette = {
   ...base,
   courbes: {
-    light: avec(base.courbes.light, { 500: 0.71, 600: 0.66, 700: 0.58 }),
+    light: avec(base.courbes.light, { 500: 0.745, 600: 0.69, 700: 0.61 }),
     dark: avec(base.courbes.dark, { 500: 0.45, 600: 0.5, 700: 0.55, 800: 0.7 }),
   },
 };
