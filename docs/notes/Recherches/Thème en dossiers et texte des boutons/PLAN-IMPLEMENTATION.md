@@ -228,15 +228,17 @@ la recette : `texte` (4,5 par défaut) et `nonTexte` (3).
 | G6 | `page/border` | le fond de la page | nonTexte |
 | G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | nonTexte |
 | G8 | `page/focus` | `surface/default` de chaque autre palette de la recette, même thème | nonTexte |
-| G9 | `surface/foreground` | `surface/default`, `hover`, `pressed` de chaque autre palette | texte |
 
 - `solid/foreground` vaut le blanc ou le noir purs, dans les deux sens (P6).
   Le fond de la page n'est plus le texte des boutons.
 - G2 juge le bouton au repos dans les deux sens, décision du mainteneur.
   L'ancienne paire 14 jugeait le survol dans le thème normal ; au repos, la
   700 y tient à plus de 5:1 de la page.
-- G1 à G7 se jugent par palette ; G8 et G9 sur la recette entière. Une autre
+- G1 à G7 se jugent par palette ; G8 sur la recette entière. Une autre
   palette à deux intensités compte pour deux.
+- Les numéros G1 à G8 identifient les garanties dans ce plan et dans le
+  code. L'interface et la planche n'en affichent aucun : une garantie s'y
+  nomme par ses variables et son libellé.
 - Une garantie dont un cran manque n'est pas jugeable, comme une paire
   aujourd'hui.
 - Une référence qui ne porte pas le texte des boutons reste ancrée ; la
@@ -267,7 +269,7 @@ les quatre thèmes :
   inversé, les références ancrées qui manquent G1 sont `#1E6FD9`,
   `#2563EB`, `#DC2626`, `#9333EA`, `#737373`, de 3,90 à 4,43:1 ; hors
   ancrage, le pire vaut 5,27:1.
-- G2 à G6 et G9 n'échouent jamais.
+- G2 à G6 n'échouent jamais.
 - G7 et G8 n'échouent que sur `#16A34A`, dont l'anneau est la référence
   ancrée : 600 en Light, 700 en Light inversé.
 
@@ -539,8 +541,8 @@ commencent que si la maquette existe et que le
 
 | Maquette | Écran | Changements | Lot |
 |---|---|---|---|
-| M1 | La carte des garanties, onglet Vérification | I4 : un éventail par texte vers ses fonds, une ligne par garantie G1 à G9, trois états au plus ; G8 et G9 nomment l'autre palette | 8 |
-| M2 | La planche dessinée dans Figma | I6 : une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, G1 à G7 | 9 |
+| M1 | La carte des garanties, onglet Vérification | I4 : un éventail par texte vers ses fonds, une ligne par garantie, sans numéro, la page puis trois états ; l'anneau dans une autre palette nomme l'autre palette | 8 |
+| M2 | La planche dessinée dans Figma | I6 : une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, les garanties sans numéro, les hexadécimaux et le repère de la référence conservés | 9 |
 | M3 | L'Interface de test | I8 : survoler un élément montre la variable qui le peint ; la vue États suit `default`, `hover`, `pressed` | 9 |
 
 Elles sont dans `Maquettes/` : `M1-CARTE-DES-GARANTIES.html`,
@@ -601,12 +603,12 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 - [ ] **T1.2** · `implementeur`. Les garanties dans le kit.
   - Fichiers : `packages/kit/src/emplois/garanties.ts` (nouveau),
     `index.ts`, `packages/kit/tests/garanties.test.ts` (nouveau).
-  - Faire : `GARANTIES`, G1 à G9 de S7, chacune avec son premier membre,
+  - Faire : `GARANTIES`, G1 à G8 de S7, chacune avec son premier membre,
     ses fonds (`{ variable }`, `{ fondDeLaPage: true }` ou
     `{ autresPalettes: variable }`), son seuil (`texte` ou `nonTexte`) et sa
     portée (`palette` ou `recette`) ; `garantieJugeable(garantie, crans,
     sens)`.
-  - Tests : neuf garanties ; G8 et G9 de portée `recette` ; G1 non jugeable
+  - Tests : huit garanties ; G8 de portée `recette` ; G1 non jugeable
     sans 700 ; G2 jugeable sans 400.
   - Fini quand : `npm test --workspace @ucm-kit/core` passe.
 - [ ] **T1.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini quand :
@@ -837,12 +839,12 @@ les lots 1 à 6 et la porte qui manque.
     `alertes.test.ts`, le test de la garantie des courbes).
   - Faire, d'après S7 :
     - `verifierPromesses` juge G1 à G7 par palette, dans la table du sens de
-      chaque mode ; une fonction de la recette juge G8 et G9 ;
+      chaque mode ; une fonction de la recette juge G8 ;
     - `Designation` gagne la nature `'texteDesBoutons'` ; `'fond'` ne
       désigne plus que le fond de la page ;
     - la garantie des courbes de S7 ;
     - `alertes.ts` lit les crans par `cranDeLaVariable`.
-  - Tests : les oracles de S8 ; neuf garanties ; aucun échec de G1 hors
+  - Tests : les oracles de S8 ; huit garanties ; aucun échec de G1 hors
     nuance ancrée sur les quatorze références dans les quatre
     combinaisons ; la garantie des courbes vide pour les courbes par défaut
     dans les quatre combinaisons.
@@ -901,14 +903,14 @@ les lots 1 à 6 et la porte qui manque.
   - Fichiers : `packages/plugin-palettes/galerie/etats.cjs`,
     `tests/interface/interface.test.mjs`.
   - Faire : les états de M1, dont la carte en Dark inversé avec G1 manquée
-    sur `#D94635` ; un test Chromium qui vérifie les lignes G1 à G9 et le
+    sur `#D94635` ; un test Chromium qui vérifie les huit lignes, sans numéro, et le
     lien « Ajuster la référence ».
   - Fini quand : `npm run test:ui --workspace ucm-palettes-plugin` passe.
 - [ ] **T8.4** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-palettes-plugin`. Fini quand : tableau
   rendu, tout vert.
 - [ ] **T8.5** · Orchestrateur. Comparer la galerie à M1 ; commit des lots 7
-  et 8 ensemble : `feat(couleur, palettes): les garanties G1 à G9 de la
+  et 8 ensemble : `feat(couleur, palettes): les garanties de la
   table en dossiers, et le vocabulaire de theme dans le plugin`.
 
 ## Lot 9. La planche et l'Interface de test
@@ -986,7 +988,7 @@ manque.
     faits de S1 à S7 là où le document décrit déjà la table, le format et
     les garanties : la table en dossiers et ses deux sens, les crans requis,
     le format 9 qui lit le format 8, `solid/foreground` blanc ou noir, les
-    garanties G1 à G9 contre le fond de la page, la garantie des courbes,
+    garanties contre le fond de la page, la garantie des courbes,
     le diagnostic des contrastes, le profil d'UCM Explorateur.
   - Fini quand : `node scripts/controle-style.mjs <fichier>` rend « Style
     conforme » pour chaque fichier, et chaque lien relatif ajouté mène à un

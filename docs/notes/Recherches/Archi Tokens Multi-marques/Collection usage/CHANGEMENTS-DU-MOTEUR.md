@@ -85,7 +85,7 @@ lecteurs.
 | P1 | La table passe des emplois aux dossiers : treize variables par palette, les exceptions du neutre (`page/foreground-main`, `page/foreground-subtle`), `disabled/*`, deux niveaux d'`elevation` | Validé | `emplois.ts`, `usages.ts` |
 | P2 | Une nuance par variable et par thème, normal et inversé ; le thème inversé change huit variables | Validé | `emplois.ts` et tous ses lecteurs |
 | P3 | Le réglage `texteDesBoutons: { light, dark }`, blanc ou noir par thème, soit quatre combinaisons (recette au format 9, qui lit le format 8), et la courbe du thème inversé : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,745 / 0,69 / 0,61, retenue sans essai Figma et corrigée après la mesure de 204 couleurs, où 0,71 / 0,66 / 0,58 échouait sur des violets et des roses vifs ; une courbe réglée à la main voit ses nuances 500 à 800 remplacées, après un message de confirmation ; Gestion signale les primitives « À actualiser » | Validé | `couleur/src`, migration de format, Gestion |
-| P4 | Les dix-neuf paires deviennent les garanties G1 à G7, plus G8 et G9 entre palettes (section 5) ; l'escalier et le quatrième rang disparaissent | Validé, G8 et G9 comprises | `paires.ts`, `couleur/src/promesses.ts` |
+| P4 | Les dix-neuf paires deviennent les garanties G1 à G7, plus G8 entre palettes (section 5) ; l'escalier et le quatrième rang disparaissent. G9, le texte teinté sur le fond teinté d'une autre palette, est abandonnée : le cas ne se présente pas. L'interface n'affiche aucun numéro de garantie | Validé, G8 comprise | `paires.ts`, `couleur/src/promesses.ts` |
 | P5 | Trois états, `default`, `hover`, `pressed` ; un état sélectionné prend un autre dossier ; le focus ajoute `page/focus` | Validé | `rangs.ts`, profil d'UCM Explorateur |
 | P6 | `solid/foreground` vaut le blanc ou le noir purs selon le réglage, au lieu du fond du thème | Validé | `emplois.ts`, `usages.ts`, garanties |
 | P7 | Les crans 50, 400 et 950 ne portent aucune variable de `theme` ; ils restent sous `scale` pour nuancer des éléments sur mesure. Ils deviennent facultatifs : le plugin les calcule par défaut, une recette peut s'en passer, et aucune garantie ne les vise | Validé | `CRANS_DES_EMPLOIS`, validation de la recette |
@@ -158,7 +158,6 @@ rampes, ce qui tient sur la page tient aussi sur la carte.
 | G6 | `page/border` sur `elevation/*` | 3 | 84/84 | 84/84 | 84/84 | 84/84 |
 | G7 | `page/focus` sur `elevation/*` et le `surface/default` de sa palette | 3 | 124/126, pire 2,92 | 126/126 | 124/126, pire 2,92 | 126/126 |
 | G8 | `page/focus` sur le `surface/default` des autres palettes | 3 | 1 640/1 722, pire 2,83 | toutes | 1 640/1 722, pire 2,83 | toutes |
-| G9 | `surface/foreground` sur les `surface/*` des autres palettes | 4,5 | toutes | toutes | toutes | toutes |
 
 Les échecs de G1 en thème inversé touchent la nuance où la référence est
 ancrée. Le mainteneur a décidé que la référence reste ancrée

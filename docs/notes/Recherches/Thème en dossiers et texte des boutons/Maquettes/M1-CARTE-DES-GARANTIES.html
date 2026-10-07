@@ -22,7 +22,6 @@
 .garantie{border-top:1px solid #D2D2D2;position:relative;cursor:pointer;row-gap:6px}
 .garantie.choisie::before{content:'';position:absolute;left:4px;top:6px;bottom:6px;width:3px;border-radius:2px;background:#007BE5}
 .qui{grid-column:1/-1}
-.gn{font:600 9px/13px Inter,sans-serif;color:#6B6B6B;border:1px solid #D2D2D2;border-radius:3px;padding:0 3px;margin-right:4px}
 .etat{display:grid;justify-items:center;gap:2px;text-align:center}
 .cadre{display:grid;place-items:center;width:56px;height:20px;border-radius:4px}
 .cadre b{font:600 11px/16px Inter,sans-serif}
@@ -35,7 +34,7 @@
 </head>
 <body>
 <h1>M1 · La carte des garanties (I4)</h1>
-<p class="intro">Onglet Vérification, palette Bleu (#1E6FD9, deux intensités), thème Light, texte des boutons blanc, Vivid affiché, avec Vert, Rouge et Orange dans la recette. À gauche, la carte telle que la galerie la dessine aujourd'hui. À droite, la carte proposée : une ligne par garantie, G1 à G9. Cliquer une ligne déplace l'éventail sur la réglette.</p>
+<p class="intro">Onglet Vérification, palette Bleu (#1E6FD9, deux intensités), thème Light, texte des boutons blanc, Vivid affiché, avec Vert, Rouge et Orange dans la recette. À gauche, la carte telle que la galerie la dessine aujourd'hui. À droite, la carte proposée : une ligne par garantie. Cliquer une ligne déplace l'éventail sur la réglette.</p>
 
 <div class="duo">
   <figure><figcaption>Aujourd'hui</figcaption><img src="captures/garanties-aujourdhui.png" width="570" alt="La carte des garanties actuelle"></figure>
@@ -44,12 +43,12 @@
 
 <h2>Ce qui change, et pourquoi</h2>
 <ol class="pourquoi">
-  <li><b>Une ligne par garantie, G1 à G9, au lieu d'une par paire.</b> Les dix-neuf paires deviennent neuf garanties (P4). Chaque ligne porte son numéro, les variables en police de code, puis le libellé du lexique dessous, comme aujourd'hui. Les deux blocs restent : textes lisibles à 4,5:1, éléments visibles à 3:1.</li>
+  <li><b>Une ligne par garantie au lieu d'une par paire.</b> Les dix-neuf paires deviennent huit garanties (P4). Chaque ligne porte les variables en police de code, puis le libellé du lexique dessous, comme aujourd'hui, sans numéro. Les deux blocs restent : textes lisibles à 4,5:1, éléments visibles à 3:1.</li>
   <li><b>Quatre colonnes de fonds : la page, puis <code>default</code>, <code>hover</code>, <code>pressed</code>.</b> Le quatrième rang, <code>active-hover</code>, disparaît, et <code>active</code> devient <code>pressed</code>. La page prend la première colonne : c'est le seul fond hors de la palette contre lequel le plugin mesure (P9). Une garantie qui ne vise pas un fond laisse sa case vide.</li>
-  <li><b>L'éventail remplace l'escalier.</b> Le texte reste à la même nuance dans tous les états (texte constant) : la réglette tire un seul départ, la nuance du texte, vers chacun de ses fonds. La légende dit les quatre traits, et qu'à chaque état seul le fond change. Deux cases avant la 50 : la page, et le texte des boutons en tirets, départ de G1.</li>
-  <li><b><code>solid/foreground</code> nomme le réglage.</b> La note de G1 dit « suit le réglage Texte des boutons du thème Light : blanc », au lieu de « on-solid utilise la couleur du fond de page ». Les spécimens de G1 portent le blanc ou le noir purs.</li>
-  <li><b>G8 et G9, entre palettes, nomment l'autre palette.</b> Leurs cases ne sont plus des états mais les autres palettes de la recette : chaque case montre le pire des fonds teintés de cette palette, son nom au-dessus. Elles n'ont pas d'éventail sur la réglette, qui ne montre que la palette ouverte.</li>
-  <li><b>Les lignes qui disparaissent</b> : <code>text</code> sur <code>surface-card</code> et <code>border-control</code> sur <code>surface-card</code>, puisque la carte n'est plus une teinte de la palette ; <code>focus</code> sur <code>surface</code> devient la deuxième case de G7.</li>
+  <li><b>L'éventail remplace l'escalier.</b> Le texte reste à la même nuance dans tous les états (texte constant) : la réglette tire un seul départ, la nuance du texte, vers chacun de ses fonds. La légende dit les quatre traits, et qu'à chaque état seul le fond change. Deux cases avant la 50 : la page, et le texte des boutons en tirets, départ de la garantie du texte des boutons.</li>
+  <li><b><code>solid/foreground</code> nomme le réglage.</b> La note du texte des boutons dit « suit le réglage Texte des boutons du thème Light : blanc », au lieu de « on-solid utilise la couleur du fond de page ». Ses spécimens portent le blanc ou le noir purs.</li>
+  <li><b>L'anneau dans un conteneur d'une autre palette nomme l'autre palette</b> : un bouton de cette palette posé dans une alerte d'une autre. Ses cases ne sont plus des états mais les autres palettes de la recette, chacune avec son nom au-dessus. Il n'a pas d'éventail sur la réglette, qui ne montre que la palette ouverte.</li>
+  <li><b>Les lignes qui disparaissent</b> : <code>text</code> sur <code>surface-card</code> et <code>border-control</code> sur <code>surface-card</code>, puisque la carte n'est plus une teinte de la palette ; <code>focus</code> sur <code>surface</code> devient la deuxième case de la ligne de l'anneau.</li>
   <li><b>Ce qui ne change pas</b> : la forme de la carte, le choix « Afficher » Soft et Vivid, les spécimens, les numéros « 800 / 100 », le ratio, le niveau AA ou AAA, la ligne choisie marquée d'un trait bleu, et les liens d'une garantie manquée (« Ajuster la référence » et les autres), dont la forme reste celle de l'état <code>garantie-en-echec</code> de la galerie.</li>
 </ol>
 
@@ -91,8 +90,6 @@
         cases: texte(PAGE, fg, '800 / page', contraste(fg, PAGE)) + F.map(function (f) { return texte(v(R, f), fg, '800 / ' + TABLE[f], contraste(fg, v(R, f))); }).join('') },
       { g: 'G5', qui: '<code>page/foreground</code> sur la page', nom: 'texte coloré', depart: 700, fonds: ['page'],
         cases: texte(PAGE, v(R, 'page/foreground'), '700 / page', contraste(v(R, 'page/foreground'), PAGE)) + vide + vide + vide },
-      { g: 'G9', qui: '<code>surface/foreground</code> sur les fonds teintés des autres palettes', nom: 'texte sur fond teinté, dans un conteneur d’une autre palette', depart: null, fonds: [],
-        cases: croisees('surface/foreground', fg, F, 'texte') + vide },
     ],
     visibles: [
       { g: 'G2', qui: '<code>solid/default</code> sur la page', nom: 'bouton', depart: 700, fonds: ['page'],
@@ -109,7 +106,7 @@
   };
 
   function ligne(g) {
-    return '<div class="garantie" data-g="' + g.g + '"><div class="qui"><span class="gn">' + g.g + '</span>' + g.qui + '<br><span class="sec">' + g.nom + '</span>' + (g.note ? '<br><span class="sec">' + g.note + '</span>' : '') + '</div>' + g.cases + '</div>';
+    return '<div class="garantie" data-g="' + g.g + '"><div class="qui">' + g.qui + '<br><span class="sec">' + g.nom + '</span>' + (g.note ? '<br><span class="sec">' + g.note + '</span>' : '') + '</div>' + g.cases + '</div>';
   }
   var cases = '<div class="case page" data-c="page"><i></i><span>page</span></div><div class="case boutons" data-c="boutons"><i></i><span>boutons</span></div>'
     + CR.map(function (c) { return '<div class="case" data-c="' + c + '"><i style="background:' + nuance(R, c) + '"></i><span>' + c + '</span></div>'; }).join('');
