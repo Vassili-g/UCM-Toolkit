@@ -551,7 +551,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     groupe('neutral/surface', ['hover', 'foreground']);
     groupe('neutral/page', ['foreground', 'foreground-subtle', 'border']);
     out.push(G('disabled')); ['background', 'foreground', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
-    out.push(G('focus', ['new', 'un seul anneau, un cran sous page/foreground']));
+    out.push(G('racine de theme', ['new', 'un seul anneau pour tout le système : primary 600, 700 en thème inversé']));
     var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
     groupe('elevation', ['page', 'raised', 'overlay']);
     groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);

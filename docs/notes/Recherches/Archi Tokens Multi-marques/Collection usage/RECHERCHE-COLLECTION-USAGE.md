@@ -215,7 +215,7 @@ plein.
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
-| `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé : un cran sous `page/foreground` |
+| `focus`, à la racine de `theme` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé, un cran sous `primary/page/foreground` |
 | `neutral/page/foreground` | Le corps de texte | neutre 900 |
 | `neutral/page/foreground-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
 | `disabled/background`, `disabled/foreground`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
@@ -414,7 +414,7 @@ de toutes les palettes, 5 376 mesures par thème :
 Un anneau entoure le composant, séparé par un espace : il se lit contre ce
 qui entoure le composant, la page, la carte ou le fond 100 d'un conteneur
 teinté, et non contre les fonds de survol et d'appui. Contre ces fonds-là,
-l'anneau `focus` retenu, un cran sous `page/foreground` :
+l'anneau `focus` retenu, à la 600 de `primary` et à la 700 dans un thème inversé :
 
 | Thème | Nuance | Page et carte | Fond 100 de toutes les palettes |
 |---|---|---|---|
