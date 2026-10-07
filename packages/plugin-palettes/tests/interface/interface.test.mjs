@@ -673,7 +673,7 @@ test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron,
     assert.equal(await garanties.locator('.carte-tete .glyphe').count(), 1, 'la carte fixe garde son glyphe');
     assert.equal(await garanties.locator('.carte-sous-titre').textContent(), 'Les contrastes de chaque usage');
     // Le profil porteur est choisi, et chaque segment porte le résultat de son profil.
-    assert.deepEqual(await garanties.locator('.bascule-des-profils button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft ✗ 1', 'false'], ['Vivid ✗ 1', 'true']]);
+    assert.deepEqual(await garanties.locator('.choix-du-profil button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft ✗ 1', 'false'], ['Vivid ✗ 1', 'true']]);
     const choisie = () => garanties.locator('.garantie[aria-pressed="true"]').getAttribute('data-association');
     const arcs = () => garanties.locator('.reglette-arc').evaluateAll((traits) => traits.map((trait) => trait.dataset.verdict));
     assert.equal(await choisie(), 'text/surface');
@@ -687,7 +687,7 @@ test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron,
     assert.equal(await choisie(), 'on-solid/solid');
     assert.equal((await arcs()).length, 4);
     // Le choix se conserve au changement de profil.
-    await garanties.locator('.bascule-des-profils button').first().click();
+    await garanties.locator('.choix-du-profil button').first().click();
     assert.equal(await choisie(), 'on-solid/solid');
   } finally {
     await page.close();
@@ -2810,7 +2810,7 @@ test('Y1.4 : l’onglet actif des trois bascules, Thème, Soft et Vivid, Écran 
     await ouvrirLaVerification(page);
     const actifs = [
       page.locator('.barre-gestes .bascule-option[aria-pressed="true"]'),
-      page.locator('.bascule-des-profils .bascule-option[aria-pressed="true"]'),
+      carteDesGaranties(page).locator('.choix-du-profil .bascule-option[aria-pressed="true"]'),
       page.locator('.bascule-de-l-essai .bascule-option[aria-pressed="true"]'),
     ];
     for (const theme of ['clair', 'sombre']) {
@@ -2865,7 +2865,7 @@ test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la 
 async function intensitesMontrees(page) {
   // La bascule des garanties vit dans Vérification ; le reste se lit dans Création.
   await ouvrirLaVerification(page);
-  const basculeDesGaranties = await page.locator('.bascule-des-profils').isVisible();
+  const basculeDesGaranties = await carteDesGaranties(page).locator('.choix-du-profil').isVisible();
   await ouvrirLaCreation(page);
   return {
     apercu: [...new Set(await page.locator('.nuancier-grille .pastille[data-profil]').evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.profil)))],
@@ -3818,6 +3818,70 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
   }
 });
 
+/** Le libellé d'un choix du profil, puis ses segments, avec l'abscisse de chacun. */
+const lireLeChoixDuProfil = (choix) => choix.evaluate((element) => ({
+  libelle: element.querySelector('.field-label').textContent,
+  xDuLibelle: element.querySelector('.field-label').getBoundingClientRect().x,
+  segments: [...element.querySelectorAll('.bascule-option')].map((bouton) => ({ texte: bouton.textContent, x: bouton.getBoundingClientRect().x, presse: bouton.getAttribute('aria-pressed') })),
+}));
+
+test('[UI-12] le choix du Réglage global dit « Régler », puis range Soft, Vivid et Les deux, avec ◆ sur le profil qui porte la référence', async () => {
+  const page = await ouvrirSur('palette-deux-intensites');
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const choix = await lireLeChoixDuProfil(carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.choix-du-profil'));
+    assert.equal(choix.libelle, 'Régler');
+    assert.deepEqual(choix.segments.map(({ texte }) => texte), ['Soft', 'Vivid ◆', 'Les deux']);
+    assert.ok(choix.segments.every(({ x }) => x > choix.xDuLibelle), 'le libellé précède les segments');
+    assert.ok(choix.segments.every(({ x }, rang) => rang === 0 || x > choix.segments[rang - 1].x), 'les segments se suivent de gauche à droite');
+    assert.deepEqual(choix.segments.map(({ presse }) => presse), ['true', 'false', 'false'], 'la carte s’ouvre sur le profil qui ne porte pas la référence');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-09] dans la carte des garanties, le libellé « Afficher » précède Soft et Vivid, qui gardent leur résultat et leur nom accessible', async () => {
+  const page = await ouvrirSur('promesses-manquees');
+  try {
+    await ouvrirLaVerification(page);
+    const garanties = carteDesGaranties(page);
+    const choix = await lireLeChoixDuProfil(garanties.locator('.choix-du-profil'));
+    assert.equal(choix.libelle, 'Afficher');
+    assert.deepEqual(choix.segments.map(({ texte }) => texte), ['Soft ✗ 1', 'Vivid ✗ 1']);
+    assert.ok(choix.segments.every(({ x }) => x > choix.xDuLibelle), 'le libellé précède les segments');
+    assert.deepEqual(await garanties.locator('.choix-du-profil button').evaluateAll((boutons) => boutons.map((bouton) => bouton.getAttribute('aria-label'))), ['Soft : 1 garantie manquée', 'Vivid : 1 garantie manquée']);
+    assert.equal(await garanties.getByRole('group', { name: 'Profil des garanties' }).count(), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[DER-12] dans le Color shift, le libellé « Régler » précède Soft et Vivid, sous le nom accessible « Profil à modifier »', async () => {
+  const page = await editeurSur('alertes-seules');
+  try {
+    await page.getByRole('checkbox', { name: 'Synchroniser Soft et Vivid' }).click();
+    const groupe = page.getByRole('group', { name: 'Profil à modifier' });
+    const choix = await lireLeChoixDuProfil(groupe.locator('xpath=..'));
+    assert.equal(choix.libelle, 'Régler');
+    assert.deepEqual(choix.segments.map(({ texte }) => texte), ['Soft', 'Vivid']);
+    assert.ok(choix.segments.every(({ x }) => x > choix.xDuLibelle), 'le libellé précède les segments');
+    assert.deepEqual(choix.segments.map(({ presse }) => presse), ['false', 'true']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('le libellé du choix du profil se traduit : « Adjust » dans le Réglage global, « Show » dans les garanties', async () => {
+  const page = await ouvrirSurEn('promesses-manquees', MINIMALE, 'en');
+  try {
+    assert.equal(await page.locator('#panneau-creation .carte[aria-label="Global adjustment"] .choix-du-profil .field-label').textContent(), 'Adjust');
+    await page.getByRole('tab', { name: 'Verify', exact: true }).click();
+    assert.equal(await page.locator('#panneau-verification .carte .choix-du-profil .field-label').textContent(), 'Show');
+  } finally {
+    await page.close();
+  }
+});
+
 test('Z10.8 « Les deux » déplace les deux profils du même écart et prévient avant ; « Rétablir » les remet à zéro et rend la référence', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
@@ -3882,7 +3946,7 @@ test('Z11.1 chaque segment garde une marge autour de son libellé, « Vivid ◆ 
     try {
       await page.locator('.carte-bascule[aria-expanded="false"]').first().waitFor();
       await page.evaluate(() => document.querySelectorAll('#panneau-creation .carte-bascule[aria-expanded="false"]').forEach((bouton) => bouton.click()));
-      const serres = await page.evaluate(() => [...document.querySelectorAll('.bascule-de-base .bascule-option')]
+      const serres = await page.evaluate(() => [...document.querySelectorAll('.bascule-de-base .bascule-option, .choix-du-profil .bascule-option')]
         .filter((bouton) => bouton.getClientRects().length > 0)
         .map((bouton) => {
           const boite = bouton.getBoundingClientRect();

@@ -384,6 +384,7 @@ export const TEXTES_DES_REGLAGES = {
   titre: "Global adjustment",
   sousTitre: "Palette hue, saturation and lightness",
   regler: "Adjust",
+  afficher: "Show",
   cible: "Profile to adjust",
   lesDeux: "Both",
   deuxProfils: "Soft and Vivid",

@@ -48,6 +48,7 @@ import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
 import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerDecalage, toutRetablir } from '../../edition';
 import { createCalculsDeLimites } from '../calculDesLimites';
+import { creerVuesChoixDuProfil } from '../choixDuProfil';
 import { creerVuesLigneFixe } from '../ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
 import { echelleDe, valeurDuGlisser } from './geometrie';
@@ -93,13 +94,13 @@ function construireVues(i18n: Localisation) {
   const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
   const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
+  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
 
-  function bouton(texte: Texte, classe: 'bouton-discret' | 'bascule-option'): HTMLButtonElement {
+  function bouton(texte: Texte, classe: 'bouton-discret'): HTMLButtonElement {
     const element = document.createElement('button');
     element.type = 'button';
-    if (classe === 'bouton-discret') element.className = 'bouton-discret';
-    else element.className = 'bascule-option';
+    element.className = classe;
     i18n.lier(element, 'textContent', texte);
     return element;
   }
@@ -257,24 +258,21 @@ function construireVues(i18n: Localisation) {
       }
       terminer(lierLesProfils(palette, false));
     });
-    const profils = document.createElement('div');
-    profils.className = 'bascule';
-    profils.setAttribute('role', 'group');
-    i18n.lier(profils, 'aria-label', TEXTES_DE_LA_DERIVE.profilRegle);
-    const boutonsDeProfil = (['soft', 'vivid'] as const).map((valeur) => {
-      const choix = bouton(valeur, 'bascule-option');
-      choix.addEventListener('click', () => {
+    const profils = createChoixDuProfil({
+      portee: 'regler',
+      options: ['soft', 'vivid'],
+      nom: TEXTES_DE_LA_DERIVE.profilRegle,
+      surChoix(valeur) {
+        if (valeur === 'deux') return;
         profil = valeur;
         dessiner();
-      });
-      profils.append(choix);
-      return { valeur, choix };
+      },
     });
     const retablirTout = bouton(TEXTES_DE_LA_DERIVE.toutRetablir, 'bouton-discret');
     retablirTout.addEventListener('click', () => {
       if (recette && palette) terminer(toutRetablir(recette, palette, profil));
     });
-    entete.append(choixDuPrereglage, etiquetteDuLien, profils, retablirTout);
+    entete.append(choixDuPrereglage, etiquetteDuLien, profils.element, retablirTout);
 
     const confirmation = document.createElement('div');
     confirmation.className = 'confirmation';
@@ -551,8 +549,8 @@ function construireVues(i18n: Localisation) {
       choixDuPrereglage.disabled = grise;
       lien.checked = lie;
       etiquetteDuLien.hidden = une;
-      profils.hidden = lie || une;
-      for (const { valeur, choix } of boutonsDeProfil) choix.setAttribute('aria-pressed', String(valeur === profil));
+      profils.cacher(lie || une);
+      profils.poser(profil);
       confirmation.hidden = !confirmationOuverte;
 
       for (const { valeur, onglet, pastille, valeurs } of boutonsDOnglet) {

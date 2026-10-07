@@ -1412,7 +1412,7 @@ const ETATS = [
     id: 'reglages-profil-delie',
     titre: 'Réglage global, un profil réglé seul',
     quand: 'Bleu, deux intensités : Soft tourné de 8° ; le designer déplie la carte, ouverte sur Soft.',
-    regarder: 'Les segments « Vivid ◆ · Soft · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Réglé · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
+    regarder: 'Le libellé « Régler » et les segments « Soft · Vivid ◆ · Les deux », Soft pressé ; aucun avertissement ; « +8° » dans le champ de la teinte et la teinte absolue à côté ; sur chaque piste, la lettre V qui situe Vivid ; sur la piste de saturation, le repère de la référence ; le résumé « Réglé · 1 point à vérifier », et sous les curseurs l’alerte des profils confondus.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, reglages: { teinte: { soft: 8 }, porteur: 'vivid' } }])), deplierLesReglages],
   },
@@ -1422,7 +1422,7 @@ const ETATS = [
     quand: 'Bleu, deux intensités ; le designer déplie la carte et choisit Vivid, qui porte la référence.',
     regarder: 'Vivid ◆ pressé, et dessous, avant tout geste, l’avertissement « Attention : ce réglage va modifier votre couleur de référence. » sur fond d’avertissement ; la lettre S qui situe Soft sur chaque piste.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(1)' }],
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(2)' }],
   },
   {
     id: 'reglages-reference-modifiee',
@@ -1430,7 +1430,7 @@ const ETATS = [
     quand: 'Bleu : Soft tourné de 8°, Vivid assombri de 0,02, ce qui a déplacé la référence ; le designer rouvre la carte sur Vivid.',
     regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Réglé ».',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(1)' }],
+    atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(2)' }],
   },
   {
     id: 'fiche-refaite',

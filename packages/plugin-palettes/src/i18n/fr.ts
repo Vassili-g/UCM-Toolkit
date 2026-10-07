@@ -380,6 +380,7 @@ export const TEXTES_DES_REGLAGES = {
   titre: 'Réglage global',
   sousTitre: "Teinte, saturation et luminosité de la palette",
   regler: 'Régler',
+  afficher: 'Afficher',
   cible: 'Profil à régler',
   lesDeux: 'Les deux',
   deuxProfils: 'Soft et Vivid',

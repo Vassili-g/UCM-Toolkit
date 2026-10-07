@@ -2,7 +2,8 @@
  * La carte « Garanties de contraste » de l'onglet Vérification ([UI-09]),
  * fixe et toujours ouverte : dans son en-tête, le nom du thème montré, que la
  * barre de la palette choisit ([VER-20]) ; puis
- * une bascule Soft/Vivid qui porte le résultat de chaque profil, une réglette
+ * le choix « Afficher » Soft/Vivid, dont chaque segment porte le résultat de
+ * son profil, une réglette
  * des nuances où la garantie choisie se trace en arcs, puis un encadré par
  * minimum (maquette Z3.2, G2) : les états nommés une fois en tête de
  * colonne, une ligne par association (section 9.4), chaque état dans sa
@@ -39,6 +40,7 @@ import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { createCarte } from './carte';
+import { creerVuesChoixDuProfil } from './choixDuProfil';
 import { creerGlyphe } from './glyphes';
 import { suivreLaLargeur } from './largeur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
@@ -71,6 +73,7 @@ export interface GarantiesUi {
 
 function construireVues(i18n: Localisation) {
   const { badgeDeNiveau } = creerVuesBadge(i18n);
+  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
   const { encresSur } = creerVuesNuancier(i18n);
   const { specimenDuRole } = creerVuesSpecimens(i18n);
   const { LIBELLES_DES_CIBLES, NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DES_GARANTIES, TEXTES_DE_L_ONGLET, TEXTES_DU_NUANCIER, contrasteEcrit, jugementDuSeuil, niveauEcrit, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
@@ -135,10 +138,16 @@ function construireVues(i18n: Localisation) {
 
   function createGaranties(gestes: GestesDesGaranties): GarantiesUi {
     const carte = createCarte({ titre: TEXTES_DE_L_ONGLET.garanties, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDesGaranties, glyphe: creerGlyphe('garanties') }, i18n);
-    const bascule = document.createElement('div');
-    bascule.className = 'bascule bascule-des-profils';
-    bascule.setAttribute('role', 'group');
-    i18n.lier(bascule, 'aria-label', TEXTES_DES_GARANTIES.profils);
+    const choixDuProfil = createChoixDuProfil({
+      portee: 'afficher',
+      options: PROFILS,
+      nom: TEXTES_DES_GARANTIES.profils,
+      surChoix(valeur) {
+        if (valeur === 'deux') return;
+        profil = valeur;
+        rendre();
+      },
+    });
     const reglette = document.createElement('div');
     reglette.className = 'reglette-des-garanties';
     const legende = paragraphe(TEXTES_DES_GARANTIES.legende, 'ligne-secondaire');
@@ -146,7 +155,7 @@ function construireVues(i18n: Localisation) {
     liste.className = 'liste-des-garanties';
     const autreTheme = document.createElement('p');
     autreTheme.className = 'autre-theme';
-    carte.corps.append(bascule, reglette, legende, liste, autreTheme);
+    carte.corps.append(choixDuProfil.element, reglette, legende, liste, autreTheme);
     /** La largeur mesurée de la réglette, en unités ; `null` avant la première mesure. */
     let largeurDeLaReglette: number | null = null;
     let derniereReglette: (() => void) | null = null;
@@ -159,18 +168,6 @@ function construireVues(i18n: Localisation) {
     let palette = '';
     let profil: Intensite = 'vivid';
     let choisie = '';
-
-    const boutonsDeProfil = PROFILS.map((valeur) => {
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'bascule-option';
-      bouton.addEventListener('click', () => {
-        profil = valeur;
-        rendre();
-      });
-      bascule.append(bouton);
-      return { valeur, bouton };
-    });
 
     const promessesDe = (analyse: AnalyseDePalette, mode: Mode, duProfil: Intensite): Promesse[] =>
       analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.profil === duProfil);
@@ -318,13 +315,12 @@ function construireVues(i18n: Localisation) {
       const parProfil = (duProfil: Intensite, dansLeMode: Mode) => manquees(promessesDe(analyse, dansLeMode, duProfil));
       carte.poserResume(mode === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
       // Une palette à une intensité n'a pas de profil à choisir : la bascule se retire ([ENT-14]).
-      bascule.hidden = analyse.intensites.length === 1;
-      for (const { valeur, bouton } of boutonsDeProfil) {
-        i18n.lier(bouton, 'textContent', resultatDuProfil(valeur, parProfil(valeur, mode)));
-        bouton.dataset.verdict = parProfil(valeur, mode) === 0 ? 'tenue' : 'manquee';
-        i18n.lier(bouton, 'aria-label', resultatDuProfilEnMots(valeur, parProfil(valeur, mode)));
-        bouton.setAttribute('aria-pressed', String(valeur === profil));
-      }
+      choixDuProfil.cacher(analyse.intensites.length === 1);
+      choixDuProfil.poser(profil === 'unique' ? null : profil, null, (valeur) => {
+        if (valeur === 'deux') return undefined;
+        const manquees = parProfil(valeur, mode);
+        return { texte: resultatDuProfil(valeur, manquees), nom: resultatDuProfilEnMots(valeur, manquees), verdict: manquees === 0 ? 'tenue' : 'manquee' };
+      });
 
       const promesses = promessesDe(analyse, mode, profil);
       const fond = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];

@@ -2194,8 +2194,7 @@
 /* Les segments du modèle et du profil porteur gardent leur largeur naturelle sur leur rangée. */
 .carte-corps > .champ-colonne > .bascule-de-base,
 .colonnes-de-base > .champ-colonne > .bascule-de-base,
-.segments-des-intensites .bascule-de-base,
-.cible-des-reglages .bascule-de-base {
+.segments-des-intensites .bascule-de-base {
   justify-self: start;
   min-width: 200px;
 }
@@ -2729,14 +2728,30 @@
   outline-offset: 2px;
 }
 
-/* La carte des garanties : la bascule des profils, la réglette, puis une ligne par association. */
-.bascule-des-profils {
-  justify-self: start;
+/*
+ * Le choix du profil (`choixDuProfil.ts`) : le libellé de sa portée, puis les
+ * segments sur une ligne. Dans la carte des garanties, un segment dont le
+ * profil manque une garantie prend la couleur du danger.
+ */
+.choix-du-profil {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
 }
 
-.bascule-des-profils .bascule-option[data-verdict='manquee'] {
+.choix-du-profil .field-label {
+  flex-shrink: 0;
+}
+
+.choix-du-profil .bascule-option {
+  white-space: nowrap;
+}
+
+.choix-du-profil .bascule-option[data-verdict='manquee'] {
   color: var(--texte-danger);
 }
+
+/* La carte des garanties : le choix du profil, la réglette, puis une ligne par association. */
 
 .reglette-des-garanties {
   padding: var(--espace-serre) 0;
@@ -3097,7 +3112,6 @@
   gap: var(--espace-serre);
 }
 
-.cible-des-reglages,
 .reglage-de-la-palette {
   display: flex;
   align-items: center;
@@ -3112,10 +3126,6 @@
 .reglage-de-la-palette .field-label {
   width: 72px;
   flex-shrink: 0;
-}
-
-.cible-des-reglages .bascule-option {
-  white-space: nowrap;
 }
 
 /* La lettre de l'autre profil, au-dessus de sa valeur. */

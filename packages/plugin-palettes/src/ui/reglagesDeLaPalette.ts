@@ -1,6 +1,6 @@
 /**
  * La carte « Réglage global » de la palette ouverte ([UI-12], Z10.6, maquette
- * Z10.4, forme A) : le profil à régler en segments, Vivid, Soft ou les deux,
+ * Z10.4, forme A) : le profil à régler en segments, Soft, Vivid ou les deux,
  * puis trois réglettes peintes par le moteur, chacune avec son champ, sa
  * valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa valeur
  * sur chaque piste, et un repère situe la saturation de la référence sur
@@ -53,6 +53,7 @@ import type { CibleDAction } from '../presentation';
 import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
 import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
+import { creerVuesChoixDuProfil } from './choixDuProfil';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
@@ -93,6 +94,7 @@ interface Rangee {
 }
 
 function construireVues(i18n: Localisation) {
+  const { createChoixDuProfil } = creerVuesChoixDuProfil(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
   const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
@@ -112,30 +114,18 @@ function construireVues(i18n: Localisation) {
     const element = document.createElement('div');
     element.className = 'reglages-de-la-palette';
 
-    // La cible : Vivid, Soft, ou les deux ; le ◆ marque le profil qui porte la référence.
-    const cible = document.createElement('div');
-    cible.className = 'cible-des-reglages';
-    const libelleDeLaCible = document.createElement('span');
-    libelleDeLaCible.className = 'field-label';
-    i18n.lier(libelleDeLaCible, 'textContent', TEXTES_DES_REGLAGES.regler);
-    const segments = document.createElement('div');
-    segments.className = 'bascule bascule-de-base';
-    segments.setAttribute('role', 'group');
-    i18n.lier(segments, 'aria-label', TEXTES_DES_REGLAGES.cible);
-    const boutonsDeCible = (['vivid', 'soft', 'deux'] as const).map((valeur) => {
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'bascule-option';
-      bouton.addEventListener('click', () => {
+    // La cible : Soft, Vivid, ou les deux ; le ◆ marque le profil qui porte la référence.
+    const cible = createChoixDuProfil({
+      portee: 'regler',
+      options: ['soft', 'vivid', 'deux'],
+      surChoix(valeur) {
         if (choisie === valeur) return;
         choisie = valeur;
         butee = null;
         rendre();
-      });
-      segments.append(bouton);
-      return { valeur, bouton };
+      },
     });
-    cible.append(libelleDeLaCible, segments);
+    cible.element.classList.add('cible-des-reglages');
 
     const avertissement = createLigneFixe();
     avertissement.element.classList.add('avertissement-des-reglages');
@@ -212,7 +202,7 @@ function construireVues(i18n: Localisation) {
     lienDeLAlerte.addEventListener('click', () => {
       if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
     });
-    element.append(cible, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
+    element.append(cible.element, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -342,12 +332,8 @@ function construireVues(i18n: Localisation) {
       const palette = courante;
       const porteur = profilPorteur(recette, palette);
       const uneSeule = aUneIntensite(palette);
-      cible.hidden = uneSeule;
-      for (const { valeur, bouton } of boutonsDeCible) {
-        const nom = valeur === 'deux' ? TEXTES_DES_REGLAGES.lesDeux : NOM_DU_PROFIL[valeur];
-        i18n.lier(bouton, 'textContent', valeur === porteur ? i18n.composer`${nom} ◆` : nom);
-        bouton.setAttribute('aria-pressed', String(valeur === choisie));
-      }
+      cible.cacher(uneSeule);
+      cible.poser(choisie, porteur);
       // L'avertissement : avant un réglage qui déplacera la référence, puis, à sa place, après qu'elle a bougé.
       const porteLaReference = uneSeule || choisie === 'deux' || choisie === porteur;
       if (!porteLaReference) avertissement.poser(TEXTES_DES_REGLAGES.neutre);
@@ -415,7 +401,7 @@ function construireVues(i18n: Localisation) {
     return {
       element,
       ouvrir() {
-        (cible.hidden ? rangees[0].reglette.curseur : boutonsDeCible[0].bouton).focus();
+        (cible.element.hidden ? rangees[0].reglette.curseur : cible.premierSegment()).focus();
       },
       focaliserLaSaturation() {
         rangees.find(({ grandeur }) => grandeur === 'saturation')?.reglette.curseur.focus();
