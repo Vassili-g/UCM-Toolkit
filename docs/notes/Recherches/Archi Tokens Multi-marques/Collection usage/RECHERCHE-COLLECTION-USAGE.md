@@ -5,8 +5,8 @@ retenue par les décisions D13 et D17, et les propositions qui l'ont suivie.
 Aucun code, aucune recette ni aucun format publié n'est modifié.
 
 Vocabulaire : le **bouton** est le fond `solid` ; le **texte des boutons**,
-`solid/text` ; le **fond teinté**, `surface` ; le **texte coloré**,
-`page/text`. Un
+`solid/foreground` ; le **fond teinté**, `surface` ; le **texte coloré**,
+`page/foreground`. Un
 thème est **inversé** quand le texte des boutons n'a pas la couleur de la page
 ([dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)).
 
@@ -174,25 +174,28 @@ avec son intensité, `success/soft`.
 | `{p}/solid/default` | Fond du bouton, du badge fort | la page, une carte, un fond teinté | 700 | 700 |
 | `{p}/solid/hover` | Son survol | | 800 | 600 |
 | `{p}/solid/pressed` | Son appui | | 900 | 500 |
-| `{p}/solid/text` | Texte et icône sur ces trois fonds | `solid/default`, `hover`, `pressed` | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
+| `{p}/solid/foreground` | Texte et icône sur ces trois fonds | `solid/default`, `hover`, `pressed` | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
 | `{p}/surface/default` | Fond teinté : alerte, badge doux, ligne sélectionnée | la page, une carte | 100 | 100 |
 | `{p}/surface/hover` | Son survol | | 200 | 200 |
 | `{p}/surface/pressed` | Son appui | | 300 | 300 |
-| `{p}/surface/text` | Texte et icône sur ces trois fonds, la page et une carte | `surface/default`, `hover`, `pressed` | 800 | 900 |
+| `{p}/surface/foreground` | Texte et icône sur ces trois fonds, la page et une carte | `surface/default`, `hover`, `pressed` | 800 | 900 |
 | `{p}/surface/border` | Contour sur ces trois fonds, la page et une carte | `surface/default`, `hover`, `pressed` | 800 | 900 |
-| `{p}/page/text` | Texte coloré, lien, icône | la page, une carte | 700 | 800 |
+| `{p}/page/foreground` | Texte coloré, lien, icône | la page, une carte | 700 | 800 |
 | `{p}/page/border` | Contour d'un champ, d'une case, d'un bouton ou d'une alerte outlined | la page, une carte | 700 | 800 |
 | `{p}/page/divider` | Filet, séparateur | partout | 300 | 300 |
 
 Douze variables par palette, contre vingt dans D13. Le thème inversé change
 sept lignes, toutes écrites par UCM Palettes.
 
-Dans chaque dossier, le contour a la nuance du texte. Le texte de `surface`
+`foreground` peint le texte et l'icône, comme le rôle `foreground` des
+contrats UCM, qui couvre `color` et `fill`. Le mainteneur l'a préféré à
+`text`, qui ne disait pas l'icône. Dans chaque dossier, le contour a la
+nuance du texte. Le texte de `surface`
 est à 800 parce que la 800 tient sur les fonds 100, 200 et 300 dans les deux
 thèmes normaux et en Light inversé ; en Dark inversé, elle tombe à 4,44:1 sur
 le fond 300, et la table y écrit la 900.
 
-`{p}/page/border` prend la nuance de `{p}/page/text` : le contour et le texte
+`{p}/page/border` prend la nuance de `{p}/page/foreground` : le contour et le texte
 d'un bouton outlined ont la même couleur, comme dans le Playground. Contre la
 page et la carte, ce contour tient au pire 5,19:1 (section 5).
 `neutral/page/border` garde la 600, et la 700 dans un thème inversé.
@@ -212,13 +215,13 @@ plein.
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
-| `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé : un cran sous `page/text` |
-| `neutral/page/text` | Le corps de texte | neutre 900 |
-| `neutral/page/text-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
-| `disabled/background`, `disabled/text`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
+| `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé : un cran sous `page/foreground` |
+| `neutral/page/foreground` | Le corps de texte | neutre 900 |
+| `neutral/page/foreground-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
+| `disabled/background`, `disabled/foreground`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
 | `elevation/page`, `raised`, `overlay` | Les fonds d'écran, de carte et de modale (D15) | inchangés |
 
-Pour le neutre, `neutral/page/text` vise la 900 et non la 700 : un gris
+Pour le neutre, `neutral/page/foreground` vise la 900 et non la 700 : un gris
 moyen est trop pâle pour un paragraphe. C'est une ligne de la table du kit,
 pas un choix du designer. L'option B des ensembles (section E5) disait la même
 chose.
@@ -236,8 +239,8 @@ chose.
 | Désactivé | `disabled/*` | | |
 
 Le texte de chaque exemple ne change pas entre les lignes d'un même dossier :
-`primary/solid/text` pour le bouton, `neutral/surface/text` puis
-`primary/surface/text` pour la ligne. Le quatrième rang de D17,
+`primary/solid/foreground` pour le bouton, `neutral/surface/foreground` puis
+`primary/surface/foreground` pour la ligne. Le quatrième rang de D17,
 `active-hover`, n'a plus de raison d'être : la sélection survolée est le
 survol de l'autre dossier.
 
@@ -313,10 +316,10 @@ texte et le contour de cet état :
 | Variable | Thème normal | Thème inversé |
 |---|---|---|
 | `{p}/solid/{état}/background` | 700, 800, 900 | 700, 600, 500 |
-| `{p}/solid/{état}/text` | blanc en Light, noir en Dark, dans les trois | noir en Light, blanc en Dark |
+| `{p}/solid/{état}/foreground` | blanc en Light, noir en Dark, dans les trois | noir en Light, blanc en Dark |
 | `{p}/surface/{état}/background` | 100, 200, 300 | 100, 200, 300 |
-| `{p}/surface/{état}/text`, `border` | 700, 800, 900 | 800, 900, 950 |
-| `{p}/page/text`, `border`, `divider` | comme la section 4.1 | comme la section 4.1 |
+| `{p}/surface/{état}/foreground`, `border` | 700, 800, 900 | 800, 900, 950 |
+| `{p}/page/foreground`, `border`, `divider` | comme la section 4.1 | comme la section 4.1 |
 
 `{état}` vaut `default`, `hover` ou `pressed`. Dix-huit variables par palette
 au lieu de douze. La règle 3 devient : un état qui garde la sorte de fond est
@@ -411,7 +414,7 @@ de toutes les palettes, 5 376 mesures par thème :
 Un anneau entoure le composant, séparé par un espace : il se lit contre ce
 qui entoure le composant, la page, la carte ou le fond 100 d'un conteneur
 teinté, et non contre les fonds de survol et d'appui. Contre ces fonds-là,
-l'anneau `focus` retenu, un cran sous `page/text` :
+l'anneau `focus` retenu, un cran sous `page/foreground` :
 
 | Thème | Nuance | Page et carte | Fond 100 de toutes les palettes |
 |---|---|---|---|
@@ -451,15 +454,15 @@ erreur.
 
 | Composant | Repos | Survol | Appui ou sélection | Texte |
 |---|---|---|---|---|
-| Bouton plein | `primary/solid/default` | `primary/solid/hover` | `primary/solid/pressed` | `primary/solid/text` |
-| Bouton outlined | pas de fond ; contour `primary/page/border` | fond et contour `primary/solid/hover` | fond et contour `primary/solid/pressed` | `primary/page/text`, puis `primary/solid/text` |
-| Bouton text | pas de fond | `primary/surface/hover` | `primary/surface/pressed` | `primary/surface/text` |
-| Alerte standard | `danger/vivid/surface/default` | | | `danger/vivid/surface/text` |
-| Alerte outlined | pas de fond ; contour `danger/vivid/page/border` | | | `danger/vivid/page/text` |
-| Badge fort | `success/vivid/solid/default` | | | `success/vivid/solid/text` |
-| Ligne de tableau | pas de fond | `neutral/surface/hover` | sélection : `primary/surface/default` | `neutral/surface/text`, puis `primary/surface/text` |
-| Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/text` |
-| Lien dans un paragraphe | | | | `primary/page/text` |
+| Bouton plein | `primary/solid/default` | `primary/solid/hover` | `primary/solid/pressed` | `primary/solid/foreground` |
+| Bouton outlined | pas de fond ; contour `primary/page/border` | fond et contour `primary/solid/hover` | fond et contour `primary/solid/pressed` | `primary/page/foreground`, puis `primary/solid/foreground` |
+| Bouton text | pas de fond | `primary/surface/hover` | `primary/surface/pressed` | `primary/surface/foreground` |
+| Alerte standard | `danger/vivid/surface/default` | | | `danger/vivid/surface/foreground` |
+| Alerte outlined | pas de fond ; contour `danger/vivid/page/border` | | | `danger/vivid/page/foreground` |
+| Badge fort | `success/vivid/solid/default` | | | `success/vivid/solid/foreground` |
+| Ligne de tableau | pas de fond | `neutral/surface/hover` | sélection : `primary/surface/default` | `neutral/surface/foreground`, puis `primary/surface/foreground` |
+| Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/foreground` |
+| Lien dans un paragraphe | | | | `primary/page/foreground` |
 | Focus de n'importe quel contrôle | | | | anneau `focus` |
 
 ### Recette sur Button et Alert du Playground
@@ -477,35 +480,35 @@ variant. `primary` et `secondary` visent `brand` ; `info`, `success` et
 | Button `contained`, fond au repos | la nuance de la marque ou du statut | `{c}/solid/default` |
 | Button `contained`, fond au survol et au focus | un cran plus foncé | `{c}/solid/hover` |
 | Button `contained`, fond à l'appui | le même que le survol | `{c}/solid/pressed` |
-| Button `contained`, texte | `neutral.50`, quasi blanc | `{c}/solid/text` |
+| Button `contained`, texte | `neutral.50`, quasi blanc | `{c}/solid/foreground` |
 | Button, anneau au focus et à l'appui | la nuance 100 de la couleur, 200 pour `primary` | `focus` |
 | Button `outlined`, fond au repos | `neutral.50`, opaque | aucun fond |
-| Button `outlined`, texte et contour au repos | la nuance du fond plein | `{c}/page/text`, `{c}/page/border` |
-| Button `outlined`, survol, focus, appui | le fond plein, contour compris, texte `neutral.50` | `{c}/solid/hover`, `default`, `pressed` ; texte `{c}/solid/text` |
-| Button `outlined`, désactivé | `neutral.50` ; contour et texte neutre 500 | aucun fond ; `disabled/border`, `disabled/text` |
-| Button `text`, texte | la nuance du fond plein | A : `{c}/page/text` ; B : `{c}/surface/text` |
+| Button `outlined`, texte et contour au repos | la nuance du fond plein | `{c}/page/foreground`, `{c}/page/border` |
+| Button `outlined`, survol, focus, appui | le fond plein, contour compris, texte `neutral.50` | `{c}/solid/hover`, `default`, `pressed` ; texte `{c}/solid/foreground` |
+| Button `outlined`, désactivé | `neutral.50` ; contour et texte neutre 500 | aucun fond ; `disabled/border`, `disabled/foreground` |
+| Button `text`, texte | la nuance du fond plein | A : `{c}/page/foreground` ; B : `{c}/surface/foreground` |
 | Button `text`, fond au survol, au focus, à l'appui | nuance 50, 100 pour `secondary` | A : `{c}/surface/default` ; B : `{c}/surface/hover`, puis `pressed` |
-| Alert `standard` | fond 50 ; texte et icône 700 | `{c}/surface/default` ; `{c}/surface/text`, 800 |
-| Alert `outlined` | texte 700, 900 pour `info` ; icône et contour 700 | `{c}/page/text` ; contour `{c}/page/border` |
+| Alert `standard` | fond 50 ; texte et icône 700 | `{c}/surface/default` ; `{c}/surface/foreground`, 800 |
+| Alert `outlined` | texte 700, 900 pour `info` ; icône et contour 700 | `{c}/page/foreground` ; contour `{c}/page/border` |
 
 Mesures sur les 42 rampes de la section 5 (bloc `composantsDuPlayground` de
 [MESURES-DOSSIERS.json](./MESURES-DOSSIERS.json)) :
 
 | Mesure | Light | Dark | Light inversé | Dark inversé |
 |---|---|---|---|---|
-| `page/border` à la nuance de `page/text`, sur la page et la carte | 84/84, pire 5,29 | 76/76, pire 5,19 | 84/84, pire 7,52 | 76/76, pire 5,93 |
+| `page/border` à la nuance de `page/foreground`, sur la page et la carte | 84/84, pire 5,29 | 76/76, pire 5,19 | 84/84, pire 7,52 | 76/76, pire 5,93 |
 | Anneau du Playground, nuance 100 | 0/84, pire 1,05 | 0/84, pire 1,00 | 0/84, pire 1,05 | 0/84, pire 1,00 |
 | Anneau du Playground, nuance 200 | 0/84, pire 1,17 | 0/84, pire 1,12 | 0/84, pire 1,17 | 0/84, pire 1,12 |
-| `page/text` sur le fond 100 | 42/42, pire 5,02 | 42/42, pire 5,16 | 42/42, pire 7,14 | 42/42, pire 5,16 |
-| `page/text` sur le fond 200 | 40/42, pire 4,49 | 40/42, pire 4,42 | 42/42 | 40/42, pire 4,42 |
-| `page/text` sur le fond 300 | 0/42 | 2/42 | 42/42 | 33/42 |
+| `page/foreground` sur le fond 100 | 42/42, pire 5,02 | 42/42, pire 5,16 | 42/42, pire 7,14 | 42/42, pire 5,16 |
+| `page/foreground` sur le fond 200 | 40/42, pire 4,49 | 40/42, pire 4,42 | 42/42 | 40/42, pire 4,42 |
+| `page/foreground` sur le fond 300 | 0/42 | 2/42 | 42/42 | 33/42 |
 
 La recette conduit à sept ajustements du modèle, déjà portés par la
 section 4 :
 
 - le dossier `page` remplace la racine de la palette, et la règle du dossier
   n'a plus d'exception ;
-- `page/border` prend la nuance de `page/text` : le bouton outlined au repos
+- `page/border` prend la nuance de `page/foreground` : le bouton outlined au repos
   prend son texte et son contour dans `page`, de la même couleur ;
 - l'anneau `focus` passe à la 600, et à la 700 dans un thème inversé, au lieu
   de la 900 ;
@@ -523,7 +526,7 @@ Quatre ajustements reviennent aux composants :
   n'atteint 3:1 sur aucune palette ;
 - le bouton outlined ne pose plus de fond au repos. Le `neutral.50` opaque du
   Playground se voit sur une carte grise et en Dark ;
-- l'alerte outlined prend un seul texte, `{c}/page/text`, au lieu de la 900
+- l'alerte outlined prend un seul texte, `{c}/page/foreground`, au lieu de la 900
   pour `info` et de la 700 pour les autres sévérités ;
 - l'alerte standard passe du fond 50 au fond 100, et du texte 700 au texte
   800.
@@ -534,7 +537,7 @@ ont été comparées ; la page de l'architecture retient B (décision 8).
 
 | | A. Texte du dossier `page` | B. Dossier `surface` |
 |---|---|---|
-| Texte | `{c}/page/text`, 700 | `{c}/surface/text`, 800 |
+| Texte | `{c}/page/foreground`, 700 | `{c}/surface/foreground`, 800 |
 | Fond au survol, au focus, à l'appui | `{c}/surface/default` pour les trois : le texte 700 ne tient ni sur le 200 ni sur le 300 | `{c}/surface/hover`, puis `pressed` |
 | Dans l'alerte standard | Le fond de survol est celui de l'alerte : le bouton ne change pas au survol | Le survol, à la 200, se distingue du fond 100 |
 | Dans l'alerte outlined | L'action a la couleur du titre | L'action est plus sombre que le titre |
@@ -572,8 +575,10 @@ du thème inversé (décision 7).
 Retenus par le mainteneur : les dossiers `page`, `surface` et `solid` ; le
 texte constant sur un fond teinté, à la place des rangs de D17 et des
 ensembles : texte et contour de `surface` à 800 dans les thèmes normaux, 900
-dans les thèmes inversés ; le contour de `page` à la nuance de `page/text` ;
-l'anneau `focus` à la 600 de `primary`, 700 dans un thème inversé.
+dans les thèmes inversés ; le contour de `page` à la nuance de
+`page/foreground` ; le nom `foreground`, qui peint le texte et l'icône, au
+lieu de `text` ; l'anneau `focus` à la 600 de `primary`, 700 dans un thème
+inversé.
 
 Restent :
 
@@ -581,8 +586,9 @@ Restent :
    (recommandé), ou dans une collection `usage` sans mode qui recopie `theme`
    nom pour nom.
 2. **`disabled/border`**, au neutre 500.
-3. **Les noms des fonds :** `default`, `hover` et `pressed` ; `text`, `border`,
-   `divider`. À éprouver dans le sélecteur Figma avant d'écrire la table.
+3. **Les noms des fonds :** `default`, `hover` et `pressed`. À éprouver dans
+   le sélecteur Figma avant d'écrire la table, avec `foreground`, `border` et
+   `divider`.
 4. **Le bouton `text`** dans le dossier `surface` (B), section 7.
 5. **Les nuances 400 et 950** : rester obligatoires (D7), ou redevenir
    facultatives.

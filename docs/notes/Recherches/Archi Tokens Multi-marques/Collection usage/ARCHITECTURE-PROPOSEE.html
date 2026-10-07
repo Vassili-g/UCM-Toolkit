@@ -228,14 +228,14 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <thead><tr><th>Variable</th><th>Ce qu'elle peint</th><th>Thème normal</th><th>Thème inversé</th></tr></thead>
     <tbody>
       <tr><td><code>{p}/solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>Le fond du bouton et du badge fort ; le contour de l'outlined survolé</td><td>700, 800, 900</td><td>700, 600, 500</td></tr>
-      <tr><td><code>{p}/solid/text</code></td><td>Le texte et l'icône sur ces trois fonds</td><td>blanc en Light, noir en Dark</td><td>noir en Light, blanc en Dark</td></tr>
+      <tr><td><code>{p}/solid/foreground</code></td><td>Le texte et l'icône sur ces trois fonds</td><td>blanc en Light, noir en Dark</td><td>noir en Light, blanc en Dark</td></tr>
       <tr><td><code>{p}/surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>Le fond teinté : alerte, badge doux, ligne sélectionnée, survol d'un bouton <code>text</code></td><td>100, 200, 300</td><td>100, 200, 300</td></tr>
-      <tr><td><code>{p}/surface/text</code>, <code>border</code></td><td>Le texte, l'icône et le contour sur ces trois fonds, la page et une carte</td><td>800</td><td>900</td></tr>
-      <tr><td><code>{p}/page/text</code>, <code>border</code></td><td>Le texte coloré, le lien, le contour d'un champ ou d'un outlined, posés sur la page ou une carte</td><td>700</td><td>800</td></tr>
+      <tr><td><code>{p}/surface/foreground</code>, <code>border</code></td><td>Le texte, l'icône et le contour sur ces trois fonds, la page et une carte</td><td>800</td><td>900</td></tr>
+      <tr><td><code>{p}/page/foreground</code>, <code>border</code></td><td>Le texte coloré, le lien, le contour d'un champ ou d'un outlined, posés sur la page ou une carte</td><td>700</td><td>800</td></tr>
       <tr><td><code>{p}/page/divider</code></td><td>Le filet</td><td>300</td><td>300</td></tr>
     </tbody>
   </table></div>
-  <p>Douze variables par palette. Dans chaque dossier, le contour a la nuance du texte. Hors palette : l'anneau <code>focus</code>, à la 600 de <code>primary</code> (700 dans un thème inversé) ; <code>neutral/page/text</code> à la 900 ; <code>disabled/background</code>, <code>text</code> et <code>border</code>.</p>
+  <p>Douze variables par palette. <code>foreground</code> peint le texte et l'icône, comme le rôle <code>foreground</code> des contrats UCM. Dans chaque dossier, le contour a la nuance du texte. Hors palette : l'anneau <code>focus</code>, à la 600 de <code>primary</code> (700 dans un thème inversé) ; <code>neutral/page/foreground</code> à la 900 ; <code>disabled/background</code>, <code>text</code> et <code>border</code>.</p>
   </div>
 
   <h2>Le panneau des variables dans Figma</h2>
@@ -275,26 +275,26 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td><code>default/background</code></td><td>la nuance de la marque ou du statut</td><td><code>{c}/solid/default</code></td></tr>
       <tr><td><code>hover/background</code>, <code>focus/background</code></td><td>un cran plus foncé</td><td><code>{c}/solid/hover</code></td></tr>
       <tr><td><code>press/background</code></td><td>le même que le survol</td><td><code>{c}/solid/pressed</code></td></tr>
-      <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/text</code></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/foreground</code></td></tr>
       <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td><code>focus</code></td></tr>
-      <tr><td><code>disable</code></td><td>neutre 200 et 500</td><td><code>disabled/background</code>, <code>disabled/text</code></td></tr>
+      <tr><td><code>disable</code></td><td>neutre 200 et 500</td><td><code>disabled/background</code>, <code>disabled/foreground</code></td></tr>
       <tr><td colspan="3"><b>Button, <code>outlined</code></b></td></tr>
       <tr><td><code>default/background</code></td><td><code>neutral.50</code>, opaque</td><td>aucun fond</td></tr>
-      <tr><td><code>default/foreground</code>, <code>default/border</code></td><td>la nuance du fond plein</td><td><code>{c}/page/text</code>, <code>{c}/page/border</code></td></tr>
+      <tr><td><code>default/foreground</code>, <code>default/border</code></td><td>la nuance du fond plein</td><td><code>{c}/page/foreground</code>, <code>{c}/page/border</code></td></tr>
       <tr><td><code>hover/background</code>, <code>hover/border</code></td><td>comme le survol du bouton plein</td><td><code>{c}/solid/hover</code></td></tr>
       <tr><td><code>focus/background</code>, <code>focus/border</code></td><td>le fond plein au repos</td><td><code>{c}/solid/default</code></td></tr>
       <tr><td><code>press/background</code>, <code>press/border</code></td><td>comme le survol</td><td><code>{c}/solid/pressed</code></td></tr>
-      <tr><td><code>foreground</code> au survol, au focus, à l'appui</td><td><code>neutral.50</code></td><td><code>{c}/solid/text</code></td></tr>
-      <tr><td><code>disable</code></td><td><code>neutral.50</code> ; contour et texte neutre 500</td><td>aucun fond ; <code>disabled/border</code>, <code>disabled/text</code></td></tr>
+      <tr><td><code>foreground</code> au survol, au focus, à l'appui</td><td><code>neutral.50</code></td><td><code>{c}/solid/foreground</code></td></tr>
+      <tr><td><code>disable</code></td><td><code>neutral.50</code> ; contour et texte neutre 500</td><td>aucun fond ; <code>disabled/border</code>, <code>disabled/foreground</code></td></tr>
       <tr><td colspan="3"><b>Button, <code>text</code></b></td></tr>
-      <tr><td><code>foreground</code>, tous états</td><td>la nuance du fond plein</td><td><code>{c}/surface/text</code></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td>la nuance du fond plein</td><td><code>{c}/surface/foreground</code></td></tr>
       <tr><td><code>background</code> au survol et au focus</td><td>nuance 50, 100 pour <code>secondary</code></td><td><code>{c}/surface/hover</code></td></tr>
       <tr><td><code>background</code> à l'appui</td><td>la même</td><td><code>{c}/surface/pressed</code></td></tr>
       <tr><td colspan="3"><b>Alert, <code>standard</code></b></td></tr>
       <tr><td><code>background</code></td><td>nuance 50</td><td><code>{c}/surface/default</code></td></tr>
-      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700</td><td><code>{c}/surface/text</code></td></tr>
+      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700</td><td><code>{c}/surface/foreground</code></td></tr>
       <tr><td colspan="3"><b>Alert, <code>outlined</code></b></td></tr>
-      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700, 900 pour le texte d'<code>info</code></td><td><code>{c}/page/text</code></td></tr>
+      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700, 900 pour le texte d'<code>info</code></td><td><code>{c}/page/foreground</code></td></tr>
       <tr><td><code>border</code></td><td>nuance 700</td><td><code>{c}/page/border</code></td></tr>
     </tbody>
   </table></div>
@@ -313,7 +313,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <ul class="raisons">
     <li><b>L'anneau.</b> Le Playground prend la nuance 100 de la couleur du bouton, ou la 200 pour <code>primary</code>. Aucune des 84 mesures par thème n'atteint 3:1 contre la page ou la carte : au mieux, le pire cas vaut 1,17:1. Les contrats visent <code>focus</code>.</li>
     <li><b>Le fond de l'outlined au repos.</b> Le Playground pose <code>neutral.50</code>, opaque, qui sert aussi de texte au bouton plein. Ce fond se voit sur une carte grise et en Dark. Le modèle ne pose aucun fond.</li>
-    <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/text</code>.</li>
+    <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/foreground</code>.</li>
     <li><b>L'alerte standard</b> passe du fond 50 au fond 100, et du texte 700 au texte 800.</li>
   </ul>
   <p>Les ratios rouges qui apparaissent dans un thème inversé touchent le bouton plein à la nuance 700 : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1), <code>secondary</code> de marque-2 (4,38:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ils viennent de la courbe du thème inversé, que le dossier du texte des boutons doit encore trancher.</p>
@@ -322,7 +322,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="narrow">
   <h2>Pourquoi c'est mieux</h2>
   <ul class="raisons">
-    <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
+    <li><b>La règle se lit dans le nom.</b> <code>primary/surface/foreground</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
     <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un composant n'a qu'un token de texte pour tous ses états.</li>
     <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
     <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte et le contour de <code>surface</code> tiennent au pire 5,26:1 sur leurs trois fonds, et le texte d'une palette tient sur les fonds teintés de toutes les autres ; l'anneau <code>focus</code> tient au pire 3,08:1 contre la page et la carte.</li>
@@ -365,7 +365,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <ul>
     <li>Les dossiers <code>page</code>, <code>surface</code> et <code>solid</code>.</li>
     <li>Le texte constant sur un fond teinté : texte et contour de <code>surface</code> à 800, et à 900 dans un thème inversé.</li>
-    <li>Le contour de <code>page</code> à la nuance de <code>page/text</code>.</li>
+    <li>Le contour de <code>page</code> à la nuance de <code>page/foreground</code>.</li>
+    <li><code>foreground</code> au lieu de <code>text</code> : la variable peint le texte et l'icône.</li>
     <li>L'anneau <code>focus</code> à la 600 de <code>primary</code>, et à la 700 dans un thème inversé.</li>
   </ul>
 
@@ -420,14 +421,14 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (a === 'solid') return tb.solid[i];
     if (a === 'surface') return i >= 0 ? [100, 200, 300][i] : tb.surface;
     if (a === 'page') {
-      if (b === 'text') return d.role === 'neutral' ? 900 : tb.text;
-      if (b === 'text-subtle') return tb.subtle;
+      if (b === 'foreground') return d.role === 'neutral' ? 900 : tb.text;
+      if (b === 'foreground-subtle') return tb.subtle;
       if (b === 'border') return d.role === 'neutral' ? tb.border : tb.text;
       if (b === 'divider') return 300;
     }
     if (a === 'scale') return Number(b);
   }
-  function texteDuPlein(d) { return d.rest[0] === 'solid' && d.rest[1] === 'text'; }
+  function texteDuPlein(d) { return d.rest[0] === 'solid' && d.rest[1] === 'foreground'; }
   /* Vrai quand la nuance de la variable change entre thème normal et thème inversé. */
   function varie(path) {
     var q = path.split('.').slice(1);
@@ -487,18 +488,18 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function bouton(c, v, s) {
     var p = paletteDe(c), r = {};
     if (s === 'disable') {
-      if (v === 'contained') return { background: 'disabled/background', foreground: 'disabled/text' };
-      return v === 'outlined' ? { foreground: 'disabled/text', border: 'disabled/border' } : { foreground: 'disabled/text' };
+      if (v === 'contained') return { background: 'disabled/background', foreground: 'disabled/foreground' };
+      return v === 'outlined' ? { foreground: 'disabled/foreground', border: 'disabled/border' } : { foreground: 'disabled/foreground' };
     }
     if (v === 'contained') {
       r.background = p + '/solid/' + { default: 'default', hover: 'hover', focus: 'hover', press: 'pressed' }[s];
-      r.foreground = p + '/solid/text';
+      r.foreground = p + '/solid/foreground';
     } else if (v === 'outlined') {
-      if (s === 'default') { r.foreground = p + '/page/text'; r.border = p + '/page/border'; }
-      else { r.background = r.border = p + '/solid/' + { hover: 'hover', focus: 'default', press: 'pressed' }[s]; r.foreground = p + '/solid/text'; }
+      if (s === 'default') { r.foreground = p + '/page/foreground'; r.border = p + '/page/border'; }
+      else { r.background = r.border = p + '/solid/' + { hover: 'hover', focus: 'default', press: 'pressed' }[s]; r.foreground = p + '/solid/foreground'; }
     } else {
       /* Le bouton text est un bouton du dossier surface sans fond au repos. */
-      r.foreground = p + '/surface/text';
+      r.foreground = p + '/surface/foreground';
       if (s !== 'default') r.background = p + '/surface/' + (s === 'press' ? 'pressed' : 'hover');
     }
     if (s === 'focus' || s === 'press') r.ring = 'focus';
@@ -506,8 +507,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
   }
   function alerte(sev, v) {
     var p = paletteDe(sev);
-    if (v === 'standard') return { background: p + '/surface/default', foreground: p + '/surface/text', icon: p + '/surface/text' };
-    return { foreground: p + '/page/text', icon: p + '/page/text', border: p + '/page/border' };
+    if (v === 'standard') return { background: p + '/surface/default', foreground: p + '/surface/foreground', icon: p + '/surface/foreground' };
+    return { foreground: p + '/page/foreground', icon: p + '/page/foreground', border: p + '/page/border' };
   }
   /* La variable de theme qu'un token de composant vise : components.button.colors.{c}.{v}.{s}.{rôle}, components.alert.colors.{sév}.{v}.{rôle}. */
   function cibleComposant(q) {
@@ -541,16 +542,16 @@ footer ul{padding-left:18px;margin:6px 0 0}
     var out = [];
     function row(g, n) { var path = th(g + '/' + n); return R(g, n, MODES.map(function (t) { var x = next(path, t); return A(x, hex(path, t)); }), varie(path) ? 'inv' : ''); }
     function groupe(g, noms, tag) { out.push(G(g, tag)); noms.forEach(function (n) { out.push(row(g, n)); }); }
-    groupe('primary/solid', ETATS.concat(['text']));
-    groupe('primary/surface', ETATS.concat(['text', 'border']));
-    groupe('primary/page', ['text', 'border', 'divider']);
+    groupe('primary/solid', ETATS.concat(['foreground']));
+    groupe('primary/surface', ETATS.concat(['foreground', 'border']));
+    groupe('primary/page', ['foreground', 'border', 'divider']);
     out.push(M('… secondary : les mêmes douze variables'));
-    groupe('success/vivid/surface', ['default', 'text', 'border']);
+    groupe('success/vivid/surface', ['default', 'foreground', 'border']);
     out.push(M('… success, warning, info et danger, en soft et en vivid : douze variables chacun'));
-    groupe('neutral/surface', ['hover', 'text']);
-    groupe('neutral/page', ['text', 'text-subtle', 'border']);
-    out.push(G('disabled')); ['background', 'text', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
-    out.push(G('focus', ['new', 'un seul anneau, un cran sous page/text']));
+    groupe('neutral/surface', ['hover', 'foreground']);
+    groupe('neutral/page', ['foreground', 'foreground-subtle', 'border']);
+    out.push(G('disabled')); ['background', 'foreground', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
+    out.push(G('focus', ['new', 'un seul anneau, un cran sous page/foreground']));
     var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
     groupe('elevation', ['page', 'raised', 'overlay']);
     groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);
@@ -672,7 +673,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function etiquette(t) { return t === 'light' ? 'Light' : 'Dark'; }
   function scene(t, contenu, fond) {
     var bg = fond || H('elevation/page', t);
-    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/page/text', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
+    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/page/foreground', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
   }
   function mesures(couples) {
     return '<div class="mes">' + MODES.map(function (t) {
@@ -687,38 +688,38 @@ footer ul{padding-left:18px;margin:6px 0 0}
       lignes: [['Repos', null, 'neutral'], ['Survol', 'neutral/surface/hover', 'neutral'], ['Sélectionnée', 'primary/surface/default', 'primary'], ['Sélectionnée, survolée', 'primary/surface/hover', 'primary']],
       dessin: function (t) {
         return '<div class="panneau" style="background:' + H('elevation/raised', t) + '">' + this.lignes.map(function (l) {
-          return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2] + '/surface/text', t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
+          return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2] + '/surface/foreground', t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
         }).join('') + '</div>';
       },
       vars: function () { return ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>hover</code> de ce dossier']; },
-      couples: function () { return this.lignes.map(function (l) { return [l[2] + '/surface/text', l[1] || 'elevation/raised']; }); },
+      couples: function () { return this.lignes.map(function (l) { return [l[2] + '/surface/foreground', l[1] || 'elevation/raised']; }); },
     },
     {
       titre: 'Badges',
       dessin: function (t) {
-        return '<div class="rang"><span class="badge" style="background:' + H('success/vivid/solid/default', t) + ';color:' + H('success/vivid/solid/text', t) + '">Validé</span>'
-          + '<span class="badge" style="background:' + H('info/soft/surface/default', t) + ';color:' + H('info/soft/surface/text', t) + '">Brouillon</span></div>';
+        return '<div class="rang"><span class="badge" style="background:' + H('success/vivid/solid/default', t) + ';color:' + H('success/vivid/solid/foreground', t) + '">Validé</span>'
+          + '<span class="badge" style="background:' + H('info/soft/surface/default', t) + ';color:' + H('info/soft/surface/foreground', t) + '">Brouillon</span></div>';
       },
       vars: function () { return ['badge fort : <code>success/vivid/solid</code>', 'badge doux : <code>info/soft/surface</code>']; },
-      couples: function () { return [['success/vivid/solid/text', 'success/vivid/solid/default'], ['info/soft/surface/text', 'info/soft/surface/default']]; },
+      couples: function () { return [['success/vivid/solid/foreground', 'success/vivid/solid/default'], ['info/soft/surface/foreground', 'info/soft/surface/default']]; },
     },
     {
       titre: 'Champ de saisie',
       dessin: function (t) {
-        return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/page/border', t) + ';color:' + H('neutral/page/text-subtle', t) + '">Nom du contrat</span>Repos</figure>'
-          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
+        return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/page/border', t) + ';color:' + H('neutral/page/foreground-subtle', t) + '">Nom du contrat</span>Repos</figure>'
+          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/foreground', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
       },
-      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code>', 'texte : <code>neutral/page/text</code> ; indication : <code>neutral/page/text-subtle</code>']; },
-      couples: function () { return [['neutral/page/text', 'elevation/raised'], ['neutral/page/text-subtle', 'elevation/raised']]; },
+      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code>', 'texte : <code>neutral/page/foreground</code> ; indication : <code>neutral/page/foreground-subtle</code>']; },
+      couples: function () { return [['neutral/page/foreground', 'elevation/raised'], ['neutral/page/foreground-subtle', 'elevation/raised']]; },
     },
     {
       titre: 'Paragraphe et lien',
       dessin: function (t) {
-        return '<p style="margin:0;font-size:14px;color:' + H('neutral/page/text', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/page/text', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
-          + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/page/text-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
+        return '<p style="margin:0;font-size:14px;color:' + H('neutral/page/foreground', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/page/foreground', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
+          + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/page/foreground-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
       },
-      vars: function () { return ['corps : <code>neutral/page/text</code> ; secondaire : <code>neutral/page/text-subtle</code>', 'lien : <code>primary/page/text</code>']; },
-      couples: function () { return [['neutral/page/text', 'page'], ['neutral/page/text-subtle', 'page'], ['primary/page/text', 'page']]; },
+      vars: function () { return ['corps : <code>neutral/page/foreground</code> ; secondaire : <code>neutral/page/foreground-subtle</code>', 'lien : <code>primary/page/foreground</code>']; },
+      couples: function () { return [['neutral/page/foreground', 'page'], ['neutral/page/foreground-subtle', 'page'], ['primary/page/foreground', 'page']]; },
     },
   ];
   function renderExemples() {

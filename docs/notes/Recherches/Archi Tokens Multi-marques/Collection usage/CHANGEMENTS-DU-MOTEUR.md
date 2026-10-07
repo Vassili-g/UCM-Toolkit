@@ -59,7 +59,7 @@ support, état, hors de la table, paire. Le fond de page y vaut
 |---|---|---|---|---|
 | M1 | Le texte et le contour d'un fond teinté deviennent constants. Les paires en escalier sont remplacées par une paire « un texte contre ses trois fonds, la page et la carte » | Texte constant | `paires.ts`, `promesses.ts` du moteur de couleur, carte des garanties, planche, présentation, ajustement | Retenu |
 | M2 | Les quatre rangs disparaissent. Un dossier a trois fonds, `default`, `hover`, `pressed` ; la sélection change de dossier | Texte constant | `rangs.ts`, `CIBLE_DE_L_ETAT`, la nature `etat` de `ucm check`, la planche (`ETATS = RANGS`), libellés des états | Retenu |
-| M3 | La table passe des emplois aux dossiers : `solid`, `surface` et `page` par palette, avec `text`, `border`, `divider`, `text-subtle`, `disabled/border` | Dossiers `page`, `surface`, `solid` | `emplois.ts`, `usages.ts`, libellés des emplois et des rôles | Retenu ; noms des fonds à éprouver dans Figma |
+| M3 | La table passe des emplois aux dossiers : `solid`, `surface` et `page` par palette, avec `foreground` (texte et icône), `border`, `divider`, `foreground-subtle`, `disabled/border` | Dossiers `page`, `surface`, `solid` | `emplois.ts`, `usages.ts`, libellés des emplois et des rôles | Retenu ; noms des fonds à éprouver dans Figma |
 | M4 | Le texte et le contour de `surface` passent de 700 et 600, en escalier, à 800 constant, et 900 dans un thème inversé | Texte constant à 800 | `emplois.ts`, `paires.ts`, mesures des garanties | Retenu |
 | M5 | Le contour de chaque dossier prend la nuance de son texte : `page/border` passe de 600 à 700 | Contour de `page` | `emplois.ts` (`border-control`), paires du contour | Retenu |
 | M6 | L'anneau `focus` reste à 600 dans un thème normal et passe à 700 dans un thème inversé. Sa mesure couvre la page, la carte et le fond 100 de toutes les palettes, et signale une marque dont `primary` échoue | Anneau `focus` | `emplois.ts`, paires 12 et 13, carte des garanties | Retenu |
@@ -71,7 +71,7 @@ support, état, hors de la table, paire. Le fond de page y vaut
 | M12 | Le texte de `surface` d'une palette se mesure aussi sur les fonds teintés des autres palettes : une ligne neutre sélectionnée en bleu | Texte croisé | carte des garanties | Proposé |
 | M13 | Les crans 400 et 950 ne servent plus aucune variable : le quatrième rang disparaît | D7 | `CRANS_DES_EMPLOIS`, validation de la recette | À décider (décision 5) |
 | M14 | `surface-card` (50) et les paires 15 et 16 n'ont pas de place dans les dossiers : la carte est un fond d'`elevation` | Dossiers | `emplois.ts`, `paires.ts` | À confirmer |
-| M15 | `solid/text` vaut blanc ou noir purs selon le réglage du thème ; `on-solid` vise aujourd'hui le fond du thème | Texte des boutons | `emplois.ts`, `usages.ts`, réglette de la carte des garanties | Suit le dossier du texte des boutons |
+| M15 | `solid/foreground` vaut blanc ou noir purs selon le réglage du thème ; `on-solid` vise aujourd'hui le fond du thème | Texte des boutons | `emplois.ts`, `usages.ts`, réglette de la carte des garanties | Suit le dossier du texte des boutons |
 
 ## 3. Ce qui bouge avec le code
 
