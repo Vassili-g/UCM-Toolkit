@@ -1380,7 +1380,7 @@ const ETATS = [
     quand: 'Le designer déplie « Interface de test » et choisit « États ».',
     regarder: 'Une rangée par composant, boutons plein, soft, contour et sans fond, champ, lien et badge, et une colonne par état, default, hover, active et focus ; un tiret pour un état que le composant n’a pas ; les anneaux de focus de deux rangées voisines séparés par un jour ; l’onglet « États » sur un fond visible.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, { clic: '.bascule-de-l-essai .bascule-option:nth-child(2)' }],
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, { clic: '.choix-de-la-vue .bascule-option:nth-child(2)' }],
   },
   {
     id: 'interface-de-test-dark',

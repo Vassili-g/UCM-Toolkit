@@ -21,7 +21,6 @@ function construireVues(i18n: Localisation) {
       nom: TEXTES.modesDeLApercu,
       options: MODES.map((valeur) => ({ valeur, texte: valeur === 'light' ? TEXTES.modeClairCourt : TEXTES.modeSombreCourt })),
       surChoix: (mode) => etat.choisirLeTheme(mode),
-      miseEnAvant: true,
     });
     choix.poser(etat.theme());
     etat.abonnerAuTheme((mode) => choix.poser(mode));

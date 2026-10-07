@@ -1,10 +1,14 @@
 /**
  * Une carte de la configuration d'une palette (`[UI-09]` à `[UI-12]`) : fond
  * secondaire, bordure du socle, titre de carte. Une carte repliable a pour
- * en-tête un bouton qui porte le chevron, le glyphe ([UI-19]), le titre et
- * son sous-titre, et un résumé aligné à droite, sur une ligne : un résumé trop
- * long se coupe par une ellipse, et son texte entier se lit au survol
- * ([UI-20]). Son état ouvert dure autant que l'élément, donc la session.
+ * en-tête un conteneur, qui porte un bouton de repli puis, à droite, les choix
+ * que `poserLesChoix` lui donne. Le bouton porte le chevron, le glyphe
+ * ([UI-19]), le titre et son sous-titre, et un résumé aligné à droite, sur une
+ * ligne : un résumé trop long se coupe par une ellipse, et son texte entier se
+ * lit au survol ([UI-20]). Les choix restent hors du bouton, qu'un bouton ne
+ * peut pas contenir : carte repliée, ils sont cachés et le résumé se lit ;
+ * carte ouverte, ils se lisent et le résumé est caché. Son état ouvert dure
+ * autant que l'élément, donc la session.
  */
 import type { Localisation, Texte } from './localisation';
 
@@ -27,6 +31,11 @@ export interface CarteUi {
   readonly corps: HTMLDivElement;
   /** Le texte à droite du titre, ou dans l'en-tête replié. */
   poserResume(texte: Texte): void;
+  /**
+   * Pose les choix de la carte dans son en-tête, à droite du bouton de repli,
+   * une seule fois. Un clic sur un choix ne replie pas la carte.
+   */
+  poserLesChoix(...choix: readonly { readonly element: HTMLElement }[]): void;
   ouvrir(): void;
   estOuverte(): boolean;
   /** Une carte repliable désactivée reste fermée, et son en-tête dit pourquoi. */
@@ -71,7 +80,7 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
   if (options.repliable) {
     bouton = document.createElement('button');
     bouton.type = 'button';
-    bouton.className = 'carte-tete carte-bascule';
+    bouton.className = 'carte-bascule';
     bouton.setAttribute('aria-controls', corps.id);
     const chevron = document.createElement('span');
     chevron.className = 'carte-chevron';
@@ -82,7 +91,9 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
       rendre();
       for (const action of actions) action(ouverte);
     });
-    tete = bouton;
+    tete = document.createElement('div');
+    tete.className = 'carte-tete carte-tete-repliable';
+    tete.append(bouton);
   } else {
     tete = document.createElement('div');
     tete.className = 'carte-tete';
@@ -108,6 +119,13 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
       i18n.lier(resume, 'textContent', texte);
       i18n.lier(resume, 'title', texte);
       resume.hidden = texte === '';
+    },
+    poserLesChoix(...choix) {
+      const emplacement = document.createElement('div');
+      emplacement.className = 'carte-choix';
+      emplacement.append(...choix.map(({ element: choisi }) => choisi));
+      tete.append(emplacement);
+      element.dataset.avecChoix = 'true';
     },
     ouvrir() {
       if (ouverte) return;

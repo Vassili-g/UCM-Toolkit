@@ -1,7 +1,8 @@
 /**
  * La section « Interface de test » ([UI-14]), dernière de l'onglet Création :
  * la palette ouverte, peinte dans le thème de l'aperçu et le profil porteur,
- * en deux vues qu'une bascule choisit. « Écran » montre une page d'équipe sur
+ * en deux vues que le choix « Vue » sélectionne, avant le choix « Afficher »
+ * du profil, tous deux dans l'en-tête de la carte. « Écran » montre une page d'équipe sur
  * le modèle de Radix Themes, qui se manipule : survol et appui avancent d'une
  * nuance, la case, l'interrupteur, les lignes et la navigation répondent,
  * sans rien enregistrer. « États » montre chaque composant à chaque état,
@@ -48,7 +49,7 @@ export interface InterfaceDeTestUi {
 type Vue = 'ecran' | 'etats';
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
-  const { createChoixDuProfil } = creerVuesChoix(i18n);
+  const { createChoix, createChoixDuProfil } = creerVuesChoix(i18n);
   const { NOM_DU_PROFIL, TEXTES_DE_L_INTERFACE_DE_TEST } = i18n.messages;
 
   /**
@@ -342,21 +343,17 @@ function construireVues(i18n: Localisation) {
     let profil: Profil = 'vivid';
     let paletteDuProfil: string | null = null;
 
-    const bascule = noeud('div');
-    bascule.className = 'bascule bascule-de-l-essai';
-    bascule.setAttribute('role', 'group');
-    i18n.lier(bascule, 'aria-label', TEXTES_DE_L_INTERFACE_DE_TEST.vue);
-    const options = (['ecran', 'etats'] as const).map((valeur) => {
-      const option = boutonDeLEcran(TEXTES_DE_L_INTERFACE_DE_TEST.vues[valeur]);
-      option.className = 'bascule-option';
-      option.addEventListener('click', () => {
+    const choixDeLaVue = createChoix<Vue>({
+      libelle: TEXTES_DE_L_INTERFACE_DE_TEST.libelleVue,
+      nom: TEXTES_DE_L_INTERFACE_DE_TEST.vue,
+      options: (['ecran', 'etats'] as const).map((valeur) => ({ valeur, texte: TEXTES_DE_L_INTERFACE_DE_TEST.vues[valeur] })),
+      surChoix(valeur) {
         vue = valeur;
         dessiner();
-      });
-      return { valeur, option };
+      },
     });
-    bascule.append(...options.map(({ option }) => option));
-    // Le profil peint, à droite des vues : seule une palette à deux intensités en a un à choisir ([ENT-14]).
+    choixDeLaVue.element.classList.add('choix-de-la-vue');
+    // Le profil peint, après la vue : seule une palette à deux intensités en a un à choisir ([ENT-14]).
     const choixDuProfil = createChoixDuProfil({
       portee: 'afficher',
       options: ['soft', 'vivid'],
@@ -369,12 +366,10 @@ function construireVues(i18n: Localisation) {
       },
     });
     choixDuProfil.element.classList.add('choix-de-l-essai');
-    const tete = noeud('div');
-    tete.className = 'essai-bascules';
-    tete.append(bascule, choixDuProfil.element);
     const surface = noeud('div');
     surface.className = 'essai-surface';
-    carte.corps.append(tete, surface);
+    carte.poserLesChoix(choixDeLaVue, choixDuProfil);
+    carte.corps.append(surface);
 
     /** L'intensité peinte : la rampe unique, ou le profil choisi. */
     const intensiteMontree = (analyse: AnalyseDePalette): Intensite => (analyse.intensites.length === 1 ? 'unique' : profil);
@@ -386,7 +381,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function dessiner(): void {
-      for (const { valeur, option } of options) option.setAttribute('aria-pressed', String(valeur === vue));
+      choixDeLaVue.poser(vue);
       choixDuProfil.poser(profil);
       choixDuProfil.cacher(!dernier || dernier.analyse.intensites.length === 1);
       if (!dernier || dernier.analyse.libre || !carte.estOuverte()) {

@@ -1,9 +1,9 @@
 /**
  * La carte « Garanties de contraste » de l'onglet Vérification ([UI-09]),
- * fixe et toujours ouverte : dans son en-tête, le nom du thème montré, que la
- * barre de la palette choisit ([VER-20]) ; puis
- * le choix « Afficher » Soft/Vivid, dont chaque segment porte le résultat de
- * son profil, une réglette
+ * fixe et toujours ouverte : son en-tête ne nomme pas le thème, que la ligne du
+ * titre de la palette choisit ([VER-20]). Le corps s'ouvre sur la rangée du
+ * choix « Afficher » Soft/Vivid, dont chaque segment porte le résultat de
+ * son profil ; viennent ensuite une réglette
  * des nuances où la garantie choisie se trace en arcs, puis un encadré par
  * minimum (maquette Z3.2, G2) : les états nommés une fois en tête de
  * colonne, une ligne par association (section 9.4), chaque état dans sa
@@ -40,7 +40,7 @@ import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { createCarte } from './carte';
-import { creerVuesChoix } from './choix';
+import { createRangeeDesChoix, creerVuesChoix } from './choix';
 import { creerGlyphe } from './glyphes';
 import { suivreLaLargeur } from './largeur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
@@ -155,7 +155,7 @@ function construireVues(i18n: Localisation) {
     liste.className = 'liste-des-garanties';
     const autreTheme = document.createElement('p');
     autreTheme.className = 'autre-theme';
-    carte.corps.append(choixDuProfil.element, reglette, legende, liste, autreTheme);
+    carte.corps.append(createRangeeDesChoix(choixDuProfil), reglette, legende, liste, autreTheme);
     /** La largeur mesurée de la réglette, en unités ; `null` avant la première mesure. */
     let largeurDeLaReglette: number | null = null;
     let derniereReglette: (() => void) | null = null;
@@ -313,8 +313,7 @@ function construireVues(i18n: Localisation) {
       const { recette, analyse, mode } = entrees;
       const autre: Mode = MODES.find((candidat) => candidat !== mode) ?? mode;
       const parProfil = (duProfil: Intensite, dansLeMode: Mode) => manquees(promessesDe(analyse, dansLeMode, duProfil));
-      carte.poserResume(mode === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
-      // Une palette à une intensité n'a pas de profil à choisir : la bascule se retire ([ENT-14]).
+      // Une palette à une intensité n'a pas de profil à choisir : le choix, et sa rangée, se retirent ([ENT-14]).
       choixDuProfil.cacher(analyse.intensites.length === 1);
       choixDuProfil.poser(profil === 'unique' ? null : profil, null, (valeur) => {
         if (valeur === 'deux') return undefined;

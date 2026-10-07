@@ -16,8 +16,8 @@ diffèrent.
 
 1. **Light/Dark dans le titre de la palette.** La bascule quitte la barre de la
    palette et rejoint la ligne du titre « Palette [nom] », calée à droite.
-   Libellé « Aperçu », segments « Light » et « Dark », cerne de mise en avant
-   de la maquette. Cette ligne de titre reste en haut du panneau pendant le
+   Libellé « Aperçu », segments « Light » et « Dark », sans le cerne de
+   marque de la maquette : la bascule a la forme des autres choix. Cette ligne de titre reste en haut du panneau pendant le
    défilement, dans Création comme dans Vérification. La barre de la palette
    redevient un bloc ordinaire, à sa place d'avant.
 2. **« Les deux » ne reste que dans le Réglage global**, où il existait avant
@@ -26,10 +26,12 @@ diffèrent.
    shift » est abandonnée.
 3. **Une seule forme de choix pour toutes les cartes.** Chaque choix a un
    libellé puis des segments, avec les mêmes boutons et la même typographie
-   partout. Il se place dans le corps de sa carte, sur une première rangée
-   calée à droite. Aucun choix ne se place dans l'en-tête d'une carte.
-4. **Carte repliée.** Le corps est caché, donc le choix aussi ; l'en-tête
-   garde son résumé.
+   partout. Dans le Réglage global, le Color shift et l'Interface de test, les
+   choix se placent dans l'en-tête de la carte, calés à droite, quand la
+   carte est ouverte. La carte des garanties, fixe, les place sur une
+   première rangée de son corps, calée à droite.
+4. **Carte repliée.** L'en-tête montre son résumé et cache ses choix. Carte
+   ouverte, il montre ses choix et cache son résumé.
 5. **Vérification.** La carte des garanties ne nomme plus le thème dans son
    en-tête. Elle garde la ligne de l'autre thème et ses deux liens.
 6. **La carte de l'aperçu prend un titre,** pour s'aligner sur les autres
@@ -69,8 +71,8 @@ Gestion ne sont pas des choix d'affichage : ils ne changent pas.
 - [ ] Lire [CONTRIBUTING.md](../../../../../CONTRIBUTING.md), sections
   « Interface du plugin », « Les surfaces d'UCM Palettes » et « Tests ».
 - [ ] Ouvrir la maquette, section 4, modèle A, aux deux tailles : la classe
-  `.p-bascule` donne la forme d'un choix, `.p-bascule.mise-en-avant` le cerne
-  de la bascule du thème.
+  `.p-bascule` donne la forme d'un choix. Le cerne de
+  `.p-bascule.mise-en-avant` est écarté.
 - [ ] Charger la skill `rediger-sans-tics-ia` avant toute phrase de document
   ou de commentaire, et `rediger-diagnostics-ucm` avant tout texte affiché au
   designer.
@@ -118,6 +120,16 @@ les images, et les comparer au modèle A de la maquette.
   choix de collection dans Gestion (`destination.ts`, `pageDesPlanches.ts`),
   et sa règle donnait au composant sa bordure basse et son remplissage. Les
   tâches R3 et R4 lisent `.choix-d-affichage` là où le plan écrit `.choix`.
+- R3.1 à R3.5 livrées, à commiter. Comptes : 388 tests unitaires, 196 tests
+  d'interface (sept tests de la forme des choix ajoutés). `createCarte` expose
+  `poserLesChoix(...choix)` : l'en-tête d'une carte repliable devient un
+  conteneur `.carte-tete.carte-tete-repliable` qui porte le bouton
+  `.carte-bascule` puis l'emplacement `.carte-choix`. Les tests qui visent le
+  bouton de repli lisent `> .carte-tete > .carte-bascule`. La feuille cache
+  l'emplacement carte repliée et le résumé carte ouverte (`data-ouverte`,
+  `data-avec-choix`). `createRangeeDesChoix` ne sert plus qu'aux garanties.
+  `ReglagesDeLaPaletteUi` et `EditeurUi` exposent `choix`, que `ongletCreation.ts`
+  pose dans l'en-tête de leur carte.
 - Mesure du glisser après la première livraison : `pointermove` 3,4 ms en
   médiane, 5,3 ms au pire.
 
@@ -154,7 +166,7 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
 
 - [x] **R2.1 Le composant de choix.** Fichiers : `src/ui/choixDuProfil.ts`,
   renommé `src/ui/choix.ts`, `src/ui/styles.css`.
-  - `createChoix({ libelle, nom, options, surChoix, miseEnAvant })` rend un
+  - `createChoix({ libelle, nom, options, surChoix })` rend un
     `.choix` : un libellé `.choix-libelle`, puis une `.bascule` de segments
     `.bascule-option`. `options` est une suite de `{ valeur, texte }`. Le
     composant expose `element`, `poser(valeur, segmentDe?)` et `cacher(oui)`.
@@ -163,13 +175,13 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
     segment propre aux garanties.
   - Le style suit `.p-bascule` de la maquette : libellé au texte second,
     segments sur un fond de bloc, segment pressé au fond de la page avec un
-    cerne de bordure. Une seule règle CSS porte ce style pour tous les choix.
-    `miseEnAvant` ajoute le cerne de la couleur de marque.
+    cerne de bordure. Une seule règle CSS porte ce style pour tous les choix,
+    bascule du thème comprise, sans cerne de la couleur de marque.
 - [x] **R2.2 Le titre de la palette.** Fichiers : `src/ui/ongletCreation.ts`,
   `src/ui/ongletVerification.ts`, `src/ui/basculeDuTheme.ts` (nouveau),
   `src/ui/styles.css`, `src/i18n/fr.ts`, `src/i18n/en.ts`.
   - `createBasculeDuTheme(etat)` rend un `createChoix` au libellé « Aperçu »,
-    segments « Light » et « Dark », `miseEnAvant`, nom accessible
+    segments « Light » et « Dark », nom accessible
     `TEXTES.modesDeLApercu`. Un clic appelle `etat.choisirLeTheme`, et la
     bascule s'abonne au thème. Ajouter les clés qui manquent aux deux
     catalogues ; `tests/i18n.test.ts` et `tests/loiDesTextes.test.ts` tiennent
@@ -199,42 +211,48 @@ thème n'est visible. Commiter chaque tâche, et ne pousser qu'après R2.3 et
 
 ## Phase R3 : une seule forme et une seule place pour les choix
 
-Chaque carte reçoit en tête de son corps une `.rangee-des-choix` :
-`display: flex`, `justify-content: flex-end`, `flex-wrap: wrap`, un écart
-commun. Elle contient le ou les choix de la carte, et se cache quand tous ses
-choix sont cachés.
+L'en-tête d'une carte repliable est un `<button>`, qui ne peut pas contenir
+d'autres boutons. `createCarte` (`src/ui/carte.ts`) porte donc un conteneur
+d'en-tête : le bouton de repli (chevron, glyphe, titre, sous-titre, résumé),
+puis un emplacement de choix hors du bouton, calé à droite, visible carte
+ouverte seulement. Un clic sur un choix ne replie pas la carte. À 500 px, des
+choix qui ne tiennent pas à côté du titre passent sous lui, calés à droite.
 
-- [ ] **R3.1 Réglage global.** Fichier : `src/ui/reglagesDeLaPalette.ts`.
-  Le choix « Régler » passe dans la rangée, première enfant du corps.
+La carte des garanties reçoit en tête de son corps une `.rangee-des-choix` :
+`display: flex`, `justify-content: flex-end`, `flex-wrap: wrap`.
+
+- [x] **R3.1 Réglage global.** Fichier : `src/ui/reglagesDeLaPalette.ts`.
+  Le choix « Régler » passe dans l'en-tête de la carte.
   `poserSurLaCible` ne change pas.
-- [ ] **R3.2 Color shift.** Fichier : `src/ui/derive/editeur.ts`.
-  Le choix « Régler » quitte `.editeur-entete` pour la rangée, au-dessus de
-  l'aide. Le préréglage, la case « Synchroniser Soft et Vivid » et « Tout
-  rétablir » restent dans `.editeur-entete`. La case cochée cache le choix,
-  donc la rangée.
-- [ ] **R3.3 Interface de test.** Fichiers : `src/ui/interfaceDeTest.ts`,
+- [x] **R3.2 Color shift.** Fichier : `src/ui/derive/editeur.ts`.
+  Le choix « Régler » quitte `.editeur-entete` pour l'en-tête de la carte.
+  Le préréglage, la case « Synchroniser Soft et Vivid » et « Tout rétablir »
+  restent dans `.editeur-entete`. La case cochée cache le choix.
+- [x] **R3.3 Interface de test.** Fichiers : `src/ui/interfaceDeTest.ts`,
   `src/i18n/fr.ts`, `src/i18n/en.ts`.
   La bascule Écran/États devient un `createChoix` au libellé « Vue »
   (« View »), avec le nom accessible actuel
-  `TEXTES_DE_L_INTERFACE_DE_TEST.vue`. La rangée porte « Vue » puis
+  `TEXTES_DE_L_INTERFACE_DE_TEST.vue`. L'en-tête porte « Vue » puis
   « Afficher ». Une palette à une intensité ne garde que « Vue ».
-- [ ] **R3.4 Garanties.** Fichier : `src/ui/garanties.ts`.
+- [x] **R3.4 Garanties.** Fichier : `src/ui/garanties.ts`.
   Le choix « Afficher » passe dans la rangée. Retirer le résumé « Thème
   Light » ou « Thème Dark » de l'en-tête. La ligne de l'autre thème garde ses
   deux liens.
-- [ ] **R3.5 Les tests de la forme.** Fichier :
+- [x] **R3.5 Les tests de la forme.** Fichier :
   `tests/interface/interface.test.mjs`.
-  - Un test par onglet, Réglage global, Color shift et Interface de test
-    dépliés, puis Vérification : chaque `.choix` est dans une
-    `.rangee-des-choix`, première enfant du corps de sa carte. Le bord droit
-    du dernier choix est au bord droit du contenu du corps, à 1 px près.
+  - Réglage global, Color shift et Interface de test dépliés : chaque choix
+    est dans l'en-tête, hors du bouton de repli, et le bord droit du dernier
+    choix est au bord droit de l'en-tête, à 1 px près. Un clic sur un segment
+    ne replie pas la carte.
+  - Garanties : le choix est dans la `.rangee-des-choix`, première enfant du
+    corps, calé à droite à 1 px près.
   - Tous les `.choix` visibles, ligne du titre comprise, ont la même hauteur
     de segment, la même taille et la même graisse de police de segment et de
     libellé, et le libellé précède les segments.
-  - Aucun en-tête de carte ne contient de `.choix`.
-  - Une carte repliée cache son choix et montre son résumé.
+  - Une carte repliée cache ses choix et montre son résumé ; ouverte, elle
+    montre ses choix et cache son résumé.
   - À 500 px, en français et en anglais : aucun défilement horizontal, et
-    chaque rangée tient dans son corps.
+    chaque choix tient dans son en-tête ou sa rangée.
 - [ ] **R3.6 La carte de l'aperçu prend un titre.** Fichiers :
   `src/ui/ongletCreation.ts`, `src/ui/glyphes.ts`, `src/i18n/fr.ts`,
   `src/i18n/en.ts`, `tests/interface/interface.test.mjs`.
@@ -277,15 +295,15 @@ choix sont cachés.
   `barreDePalette.ts`, `choix.ts`, `basculeDuTheme.ts`, `interfaceDeTest.ts`,
   `garanties.ts`, `ongletCreation.ts`, `ongletVerification.ts`. Invariant de
   « Interface d'UCM Palettes » : la ligne du titre porte le thème et reste en
-  haut ; chaque choix d'affichage est un `createChoix`, dans la rangée en tête
-  du corps de sa carte. Nommer les tests de R2.3 et R3.5. Dans
+  haut ; chaque choix d'affichage est un `createChoix`, dans l'en-tête de sa
+  carte ouverte, ou dans la rangée en tête du corps pour une carte fixe. Nommer les tests de R2.3 et R3.5. Dans
   CONTRIBUTING.md, la section des surfaces d'UCM Palettes suit les mêmes
   règles.
 - [ ] **R4.3 La galerie.** Fichier : `galerie/etats.cjs`. L'état
   `barre-fixe-defilee` devient `titre-fixe-defile`. Les `regarder` des états
   de l'aperçu, du Réglage global, du Color shift, de l'Interface de test et
-  des garanties disent la rangée calée à droite et le libellé de chaque
-  choix. Capturer ces états en thème sombre aux deux tailles, les lire, les
+  des garanties disent où chaque choix se place, calé à droite, et son
+  libellé. Capturer ces états en thème sombre aux deux tailles, les lire, les
   comparer au modèle A.
 - [ ] **R4.4 La mesure.** Lancer `scripts/mesurer-glisser.mjs` et reporter la
   médiane dans le point de reprise. Un écart de plus de 10 % avec 3,4 ms se
@@ -306,8 +324,9 @@ tailles de fenêtre.
 | Ouvrir une palette, déplier l'Interface de test, défiler jusqu'à elle, choisir Dark dans la ligne du titre | L'écran passe en Dark, la page ne bouge pas, le titre reste en haut |
 | Défiler en haut de Création | La barre de la palette défile avec la page |
 | Ouvrir la liste des palettes, page légèrement défilée | La liste passe au-dessus du titre et des cartes |
-| Parcourir Réglage global, Color shift, Interface de test et Garanties | Chaque choix est en haut du corps, calé à droite, avec la même forme |
-| Replier une carte | Le choix disparaît, le résumé reste |
+| Ouvrir Réglage global, Color shift et Interface de test | Les choix sont dans l'en-tête, calés à droite, avec la même forme |
+| Lire la carte des garanties | Le choix est en haut du corps, calé à droite, avec la même forme |
+| Replier une carte | Le choix disparaît, le résumé reprend sa place |
 | Créer une palette | La carte de configuration se replie, son résumé nomme la palette |
 | Lire l’en-tête de l’aperçu | Glyphe, titre et sous-titre, comme les autres cartes |
 | Dans Vérification, suivre le lien vers l'autre thème, puis revenir | La bascule du titre suit, « Revenir au thème » le rend |

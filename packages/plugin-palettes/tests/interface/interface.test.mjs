@@ -419,7 +419,7 @@ async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
 /** Une carte d'un onglet, par son titre ; l'onglet Création par défaut. */
 const carteDeLOnglet = (page, titre, panneau = '#panneau-creation') => page.locator(`${panneau} .carte[aria-label="${titre}"]`);
 /** L'en-tête d'une carte repliable : le bouton qui la déplie ([UI-12]). */
-const bascule = (page, titre, panneau) => carteDeLOnglet(page, titre, panneau).locator('> .carte-bascule');
+const bascule = (page, titre, panneau) => carteDeLOnglet(page, titre, panneau).locator('> .carte-tete > .carte-bascule');
 
 /**
  * Déplie une carte repliée à l'ouverture ([UI-09], [UI-12], [UI-14], V8.5) ; une carte ouverte le reste. Une carte
@@ -664,14 +664,14 @@ test('[UI-04] le nuancier porte le fond du thème choisi, et ses textes s’y li
   }
 });
 
-test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron, son thème nommé dans l’en-tête ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
+test('[UI-09] dans Vérification, la carte des garanties est fixe, sans chevron, son en-tête sans thème ; la première ligne en échec est choisie, et un clic ou Entrée en choisit une autre, qui trace un arc par état', async () => {
   const page = await ouvrirSur('promesses-manquees');
   try {
     const garanties = carteDesGaranties(page);
     await ouvrirLaVerification(page);
     assert.equal(await garanties.getAttribute('data-ouverte'), 'true');
     assert.equal(await garanties.locator('.carte-bascule, .carte-chevron').count(), 0, 'l’en-tête n’est pas un bouton');
-    assert.equal(await garanties.locator('.carte-resume').textContent(), 'Thème Light');
+    assert.equal(await garanties.locator('.carte-resume').isVisible(), false, 'l’en-tête ne nomme pas le thème');
     assert.equal(await garanties.locator('.carte-tete .glyphe').count(), 1, 'la carte fixe garde son glyphe');
     assert.equal(await garanties.locator('.carte-sous-titre').textContent(), 'Les contrastes de chaque usage');
     // Le profil porteur est choisi, et chaque segment porte le résultat de son profil.
@@ -784,20 +784,22 @@ test('[UI-09] [VER-20] la carte suit le thème de la ligne du titre ; des garant
     await choisirLeTheme(page, 'Dark');
     await ouvrirLaVerification(page);
     const carte = carteDesGaranties(page);
-    const themeDeLaCarte = () => carte.locator('.carte-resume').textContent();
-    assert.equal(await themeDeLaCarte(), 'Thème Dark', 'la carte montre le thème que la ligne du titre a choisi');
+    // La réglette est peinte du fond du thème montré.
+    const themeDeLaCarte = async () => ({ 'rgb(18, 18, 18)': 'Dark', 'rgb(247, 247, 247)': 'Light' })[await carte.locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor)];
+    assert.equal(await themeDeLaCarte(), 'Dark', 'la carte montre le thème que la ligne du titre a choisi');
+    assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'l’en-tête ne nomme pas le thème');
     const autre = carte.locator('.autre-theme');
     assert.match(await autre.textContent(), /^Thème Light : \d+ garanties? manquées? · Voir le thème Light$/);
     await autre.locator('.lien-de-constat').click();
     assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
-    assert.equal(await themeDeLaCarte(), 'Thème Light');
+    assert.equal(await themeDeLaCarte(), 'Light');
     assert.ok(await carte.locator('.garantie-echec').count() > 0, 'la carte montre les échecs du thème Light');
     await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
-    assert.equal(await themeDeLaCarte(), 'Thème Dark');
+    assert.equal(await themeDeLaCarte(), 'Dark');
     assert.equal(await autre.getByRole('button', { name: 'Voir le thème Light' }).isVisible(), true);
     // Un choix dans la ligne du titre pose le thème sans retour, et la ligne de Création le montre.
     await choisirLeTheme(page, 'Light');
-    assert.equal(await themeDeLaCarte(), 'Thème Light');
+    assert.equal(await themeDeLaCarte(), 'Light');
     assert.equal(await autre.isVisible(), false, 'le thème Dark n’a pas de garantie manquée, et aucun retour n’est offert');
     await ouvrirLaCreation(page);
     assert.equal(await themeDuTitre(page).getByRole('button', { name: 'Light', exact: true }).getAttribute('aria-pressed'), 'true');
@@ -841,10 +843,10 @@ test('[UI-23] la ligne du titre porte « Aperçu » Light et Dark dans Création
     await ouvrirLaVerification(page);
     assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .choix-libelle').textContent(), 'Aperçu');
     assert.deepEqual(await themesDuTitre(page), themesPresses(false));
-    assert.equal(await carteDesGaranties(page).locator('.carte-resume').textContent(), 'Thème Dark');
+    assert.equal(await carteDesGaranties(page).locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(18, 18, 18)', 'la carte des garanties montre Dark');
     // L'inverse : Light, choisi dans Vérification, se retrouve dans Création, jusque dans le fond de l'aperçu.
     await choisirLeTheme(page, 'Light');
-    assert.equal(await carteDesGaranties(page).locator('.carte-resume').textContent(), 'Thème Light');
+    assert.equal(await carteDesGaranties(page).locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(247, 247, 247)', 'la carte des garanties montre Light');
     await ouvrirLaCreation(page);
     assert.deepEqual(await themesDuTitre(page), themesPresses(true));
     assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(247, 247, 247)');
@@ -853,26 +855,45 @@ test('[UI-23] la ligne du titre porte « Aperçu » Light et Dark dans Création
   }
 });
 
-test('[UI-23] la bascule du titre porte le cerne de marque, et ses segments suivent la forme commune : fond de bloc, segment pressé au fond de la page', async () => {
+test('[UI-23] la bascule du titre n’a pas de cerne de marque : sa forme est celle des autres choix, fond de bloc, segment pressé au fond de la page', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    const choix = page.locator('#panneau-creation .tete-de-la-palette .choix-d-affichage');
-    assert.equal(await choix.evaluate((element) => element.classList.contains('mise-en-avant')), true);
-    const styles = await choix.evaluate((element) => {
+    // La couleur de marque, telle que le socle la pose sur un cerne (`--bordure-marque`), lue sur un élément.
+    const marque = await page.evaluate(() => {
+      const sonde = document.createElement('div');
+      sonde.style.cssText = 'position: absolute; border: 1px solid var(--bordure-marque)';
+      document.body.append(sonde);
+      const couleur = getComputedStyle(sonde).borderTopColor;
+      sonde.remove();
+      return couleur;
+    });
+    const formeDe = (choix) => choix.evaluate((element) => {
       const groupe = getComputedStyle(element.querySelector('.bascule'));
+      const segments = [...element.querySelectorAll('.bascule-option')].map((segment) => getComputedStyle(segment));
       return {
         fondDuGroupe: groupe.backgroundColor,
-        cerne: groupe.boxShadow,
+        cerneDuGroupe: groupe.boxShadow,
+        contourDuGroupe: `${groupe.outlineStyle} ${groupe.outlineColor}`,
+        cernesDesSegments: segments.map((segment) => segment.boxShadow),
         fondPresse: getComputedStyle(element.querySelector('.bascule-option[aria-pressed="true"]')).backgroundColor,
         libelle: getComputedStyle(element.querySelector('.choix-libelle')).color,
         auRepos: getComputedStyle(element.querySelector('.bascule-option[aria-pressed="false"]')).color,
+        rayon: groupe.borderRadius,
+        remplissage: groupe.padding,
       };
     });
+    const titre = await formeDe(page.locator('#panneau-creation .tete-de-la-palette .choix-d-affichage'));
     const fondDeLaPage = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    assert.equal(styles.fondPresse, fondDeLaPage, 'le segment pressé prend le fond de la page');
-    assert.notEqual(styles.fondDuGroupe, styles.fondPresse, 'les segments reposent sur le fond des blocs');
-    assert.notEqual(styles.cerne, 'none', 'le cerne de marque entoure les segments');
-    assert.equal(styles.libelle, styles.auRepos, 'le libellé et les segments au repos portent le texte second');
+    assert.equal(titre.fondPresse, fondDeLaPage, 'le segment pressé prend le fond de la page');
+    assert.notEqual(titre.fondDuGroupe, titre.fondPresse, 'les segments reposent sur le fond des blocs');
+    assert.equal(titre.libelle, titre.auRepos, 'le libellé et les segments au repos portent le texte second');
+    assert.equal(titre.cerneDuGroupe.includes(marque), false, `aucune ombre de la couleur de marque autour des segments : ${titre.cerneDuGroupe}`);
+    assert.equal(titre.contourDuGroupe.includes(marque), false, 'aucun contour de la couleur de marque hors focus');
+    assert.deepEqual(titre.cernesDesSegments.filter((cerne) => cerne.includes(marque)), [], 'aucun segment ne porte la couleur de marque');
+    // Même forme que le choix d'une carte : l'Interface de test, déplié, a le sien.
+    await deplierLaCarte(page, 'Interface de test');
+    const carte = await formeDe(carteDeLOnglet(page, 'Interface de test').locator('.choix-d-affichage').first());
+    assert.deepEqual(titre, carte, 'la bascule du titre et le choix d’une carte ont la même forme');
   } finally {
     await page.close();
   }
@@ -959,6 +980,257 @@ test('[UI-23] la barre de la palette n’a aucun bouton de thème et ne se colle
     assert.ok((await barre.boundingBox()).y < -10, 'la barre a quitté le haut de la fenêtre avec la page');
   } finally {
     await page.close();
+  }
+});
+
+/** Déplie les trois cartes repliables de Création et décoche « Synchroniser », que le choix du Color shift se montre. */
+async function deplierLesCartesAChoix(page) {
+  await deplierLaCarte(page, CARTE_DES_REGLAGES);
+  await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+  await deplierLaCarte(page, 'Interface de test');
+  await page.locator('#panneau-creation .editeur-derive input[type="checkbox"]').uncheck();
+}
+
+/**
+ * Pour chaque choix visible de l'en-tête d'une carte de `panneau` : sa carte, son libellé, s'il est dans l'emplacement
+ * des choix de l'en-tête hors du bouton de repli, et l'écart entre le bord droit du dernier choix et celui de l'en-tête.
+ */
+const choixDeLEnTete = (page, panneau) => page.evaluate((panneauVise) => {
+  const visible = (element) => element.getClientRects().length > 0;
+  return [...document.querySelectorAll(`${panneauVise} .carte-tete .choix-d-affichage`)].filter(visible).map((choix) => {
+    const emplacement = choix.parentElement;
+    const tete = choix.closest('.carte-tete');
+    const dernier = [...emplacement.children].filter(visible).at(-1);
+    return {
+      carte: choix.closest('.carte').getAttribute('aria-label'),
+      libelle: choix.querySelector('.choix-libelle').textContent,
+      dansLEmplacement: emplacement.classList.contains('carte-choix') && emplacement.parentElement === tete,
+      horsDuBouton: choix.closest('.carte-bascule') === null,
+      ecartADroite: tete.getBoundingClientRect().right - dernier.getBoundingClientRect().right,
+    };
+  });
+}, panneau);
+
+test('[UI-12] [UI-14] dans Création, les choix du Réglage global, du Color shift et de l’Interface de test sont dans l’en-tête de leur carte ouverte, hors du bouton de repli, au bord droit ; cliquer un segment ne replie pas la carte', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await deplierLesCartesAChoix(page);
+    const choix = await choixDeLEnTete(page, '#panneau-creation');
+    assert.deepEqual(choix.map(({ carte, libelle }) => [carte, libelle]), [
+      ['Réglage global', 'Régler'],
+      ['Color shift', 'Régler'],
+      ['Interface de test', 'Vue'],
+      ['Interface de test', 'Afficher'],
+    ]);
+    for (const releve of choix) {
+      const nom = `${releve.carte} · ${releve.libelle}`;
+      assert.equal(releve.dansLEmplacement, true, `${nom} : le choix est dans l’emplacement des choix de l’en-tête`);
+      assert.equal(releve.horsDuBouton, true, `${nom} : le choix est hors du bouton de repli`);
+      assert.ok(Math.abs(releve.ecartADroite) <= 1, `${nom} : le dernier choix est à ${releve.ecartADroite} px du bord droit de l’en-tête`);
+    }
+    for (const titre of [CARTE_DES_REGLAGES, CARTE_DE_LA_DERIVE, 'Interface de test']) {
+      const carte = carteDeLOnglet(page, titre);
+      await carte.locator('.carte-tete .choix-d-affichage .bascule-option[aria-pressed="false"]').first().click();
+      assert.equal(await carte.getAttribute('data-ouverte'), 'true', `${titre} : un clic sur un segment replie la carte`);
+      assert.equal(await carte.locator('.carte-corps').isVisible(), true, `${titre} : le corps se replie`);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+/**
+ * Pour chaque choix visible du corps d'une carte de `panneau` : sa carte, sa rangée, et si cette rangée ouvre le corps
+ * (première enfant du corps), l'écart entre le haut de la rangée et celui du contenu du corps, et l'écart entre le
+ * bord droit du dernier choix et celui du contenu du corps.
+ */
+const placeDesChoix = (page, panneau) => page.evaluate((panneauVise) => {
+  const visible = (element) => element.getClientRects().length > 0;
+  return [...document.querySelectorAll(`${panneauVise} .carte-corps .choix-d-affichage`)].filter(visible).map((choix) => {
+    const rangee = choix.parentElement;
+    const corps = choix.closest('.carte-corps');
+    const style = getComputedStyle(corps);
+    const dernier = [...rangee.children].filter(visible).at(-1);
+    const droiteDuCorps = corps.getBoundingClientRect().right - parseFloat(style.paddingRight) - parseFloat(style.borderRightWidth);
+    return {
+      carte: choix.closest('.carte').getAttribute('aria-label'),
+      libelle: choix.querySelector('.choix-libelle').textContent,
+      dansUneRangee: rangee.classList.contains('rangee-des-choix'),
+      premiere: rangee === corps.firstElementChild,
+      ecartEnHaut: rangee.getBoundingClientRect().top - (corps.getBoundingClientRect().top + parseFloat(style.paddingTop) + parseFloat(style.borderTopWidth)),
+      ecartADroite: droiteDuCorps - dernier.getBoundingClientRect().right,
+    };
+  });
+}, panneau);
+
+test('[UI-09] dans Vérification, le choix « Afficher » de la carte fixe des garanties est dans une rangée en tête de son corps, calé au bord droit du contenu, et son en-tête n’en porte aucun', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await ouvrirLaVerification(page);
+    const choix = await placeDesChoix(page, '#panneau-verification');
+    assert.deepEqual(choix.map(({ carte, libelle }) => [carte, libelle]), [['Garanties de contraste', 'Afficher']]);
+    const [releve] = choix;
+    assert.equal(releve.dansUneRangee, true, 'le choix est dans une .rangee-des-choix');
+    assert.equal(releve.premiere, true, 'la rangée ouvre le corps de la carte');
+    assert.ok(Math.abs(releve.ecartEnHaut) <= 1, `la rangée est à ${releve.ecartEnHaut} px du haut du corps`);
+    assert.ok(Math.abs(releve.ecartADroite) <= 1, `le dernier choix est à ${releve.ecartADroite} px du bord droit du contenu`);
+    assert.equal(await carteDesGaranties(page).locator('.carte-tete .choix-d-affichage').count(), 0, 'l’en-tête de la carte fixe ne porte aucun choix');
+  } finally {
+    await page.close();
+  }
+});
+
+/** La forme d'un choix visible de `panneau` : hauteur d'un segment, taille et graisse de ses segments et de son libellé, ordre du libellé et des segments. */
+const formesDesChoix = (page, panneau) => page.evaluate((panneauVise) => {
+  const visible = (element) => element.getClientRects().length > 0;
+  return [...document.querySelectorAll(`${panneauVise} .choix-d-affichage`)].filter(visible).map((choix) => {
+    const libelle = choix.querySelector('.choix-libelle');
+    const segment = choix.querySelector('.bascule-option');
+    const styleDuSegment = getComputedStyle(segment);
+    const styleDuLibelle = getComputedStyle(libelle);
+    return {
+      libelle: libelle.textContent,
+      forme: JSON.stringify({
+        hauteur: segment.getBoundingClientRect().height,
+        taille: styleDuSegment.fontSize,
+        graisse: styleDuSegment.fontWeight,
+        tailleDuLibelle: styleDuLibelle.fontSize,
+        graisseDuLibelle: styleDuLibelle.fontWeight,
+      }),
+      libelleAvant: libelle.getBoundingClientRect().right <= segment.getBoundingClientRect().left,
+    };
+  });
+}, panneau);
+
+test('[UI-23] tous les choix visibles, ligne du titre comprise, ont la même hauteur de segment, la même taille et la même graisse de police, et le libellé précède les segments', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await deplierLesCartesAChoix(page);
+    const dansCreation = await formesDesChoix(page, '#panneau-creation');
+    assert.deepEqual(dansCreation.map(({ libelle }) => libelle), ['Aperçu', 'Régler', 'Régler', 'Vue', 'Afficher']);
+    await ouvrirLaVerification(page);
+    const dansVerification = await formesDesChoix(page, '#panneau-verification');
+    assert.deepEqual(dansVerification.map(({ libelle }) => libelle), ['Aperçu', 'Afficher']);
+    const tous = [...dansCreation, ...dansVerification];
+    assert.deepEqual([...new Set(tous.map(({ forme }) => forme))].length, 1, `plusieurs formes de choix : ${JSON.stringify(tous.map(({ libelle, forme }) => [libelle, forme]))}`);
+    assert.deepEqual(tous.filter(({ libelleAvant }) => !libelleAvant).map(({ libelle }) => libelle), [], 'le libellé précède les segments');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-12] carte repliée, les choix sont cachés et le résumé se lit ; carte ouverte, les choix se lisent et le résumé est caché', async () => {
+  const page = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    // Le choix du Color shift se montre décoché ; la carte se replie ensuite.
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    await page.locator('#panneau-creation .editeur-derive input[type="checkbox"]').uncheck();
+    await bascule(page, CARTE_DE_LA_DERIVE).click();
+    for (const titre of [CARTE_DES_REGLAGES, CARTE_DE_LA_DERIVE, 'Interface de test']) {
+      const carte = carteDeLOnglet(page, titre);
+      const choix = carte.locator('.carte-tete .choix-d-affichage').first();
+      const resume = carte.locator('.carte-bascule .carte-resume');
+      assert.equal(await carte.getAttribute('data-ouverte'), 'false', `${titre} : repliée au départ`);
+      assert.equal(await choix.isVisible(), false, `${titre} : le choix est caché`);
+      assert.ok((await resume.textContent()).length > 0, `${titre} : le résumé a un texte`);
+      assert.equal(await resume.isVisible(), true, `${titre} : le résumé se lit`);
+      await bascule(page, titre).click();
+      assert.equal(await choix.isVisible(), true, `${titre} : le choix paraît dépliée`);
+      assert.equal(await resume.isVisible(), false, `${titre} : le résumé est caché dépliée`);
+      await bascule(page, titre).click();
+      assert.equal(await choix.isVisible(), false, `${titre} : le choix disparaît repliée`);
+      assert.equal(await resume.isVisible(), true, `${titre} : le résumé revient replié`);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-12] un emplacement dont tous les choix sont cachés se cache : Color shift synchronisé, palette à une intensité ; la rangée des garanties de même', async () => {
+  const deux = await ouvrirSur('palette-deux-intensites', PAR_DEFAUT);
+  try {
+    await deplierLaCarte(deux, CARTE_DE_LA_DERIVE);
+    const synchro = deux.locator('#panneau-creation .editeur-derive input[type="checkbox"]');
+    const emplacement = carteDeLOnglet(deux, CARTE_DE_LA_DERIVE).locator('.carte-choix');
+    await synchro.check();
+    assert.equal(await emplacement.isVisible(), false, 'synchronisé, le choix « Régler » et son emplacement sont cachés');
+    assert.equal(await emplacement.evaluate((element) => element.getClientRects().length), 0, 'l’emplacement caché ne tient aucune place');
+    await synchro.uncheck();
+    assert.equal(await emplacement.isVisible(), true, 'décoché, l’emplacement revient');
+  } finally {
+    await deux.close();
+  }
+  const une = await ouvrirSur('palette-une-intensite', PAR_DEFAUT);
+  try {
+    await deplierLaCarte(une, CARTE_DES_REGLAGES);
+    await deplierLaCarte(une, 'Interface de test');
+    assert.equal(await carteDeLOnglet(une, CARTE_DES_REGLAGES).locator('.carte-choix').isVisible(), false, 'Réglage global : aucun profil à régler');
+    const essai = carteDeLOnglet(une, 'Interface de test');
+    assert.deepEqual(await essai.locator('.carte-choix .choix-d-affichage:visible .choix-libelle').allTextContents(), ['Vue'], 'l’Interface de test ne garde que « Vue »');
+    await ouvrirLaVerification(une);
+    assert.equal(await carteDesGaranties(une).locator('.rangee-des-choix').isVisible(), false, 'Garanties : aucun profil à afficher');
+  } finally {
+    await une.close();
+  }
+});
+
+test('[UI-14] l’Interface de test range « Vue » (« View ») puis « Afficher » (« Show ») dans son en-tête, et garde le nom accessible de la vue', async () => {
+  for (const [langue, attendu] of [['fr', { libelles: ['Vue', 'Afficher'], nom: 'Vue de l’interface de test', segments: ['Écran', 'États'] }], ['en', { libelles: ['View', 'Show'], nom: 'Test interface view', segments: ['Screen', 'States'] }]]) {
+    const page = await ouvrirSurEn('palette-deux-intensites', PAR_DEFAUT, langue);
+    try {
+      await page.locator('#panneau-creation .carte-bascule[aria-expanded="false"]').last().click();
+      const emplacement = page.locator('#panneau-creation .carte[data-ouverte="true"] .carte-choix');
+      assert.deepEqual(await emplacement.locator('.choix-libelle').allTextContents(), attendu.libelles, langue);
+      assert.deepEqual(await emplacement.locator('.choix-de-la-vue .bascule-option').allTextContents(), attendu.segments, langue);
+      assert.equal(await emplacement.getByRole('group', { name: attendu.nom }).count(), 1, `${langue} : le nom accessible de la vue`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[UI-12] à 500 px, en français et en anglais, aucun défilement horizontal, les choix tiennent dans leur en-tête ou leur rangée, et ceux qui ne tiennent pas à côté du titre passent dessous, calés à droite', async () => {
+  for (const langue of ['fr', 'en']) {
+    const page = await ouvrirSurEn('palette-deux-intensites', MINIMALE, langue);
+    try {
+      await page.evaluate(() => document.querySelectorAll('#panneau-creation .carte-bascule[aria-expanded="false"]').forEach((bouton) => bouton.click()));
+      await page.locator('#panneau-creation .editeur-derive input[type="checkbox"]').uncheck();
+      for (const panneau of ['#panneau-creation', '#panneau-verification']) {
+        if (panneau === '#panneau-verification') await page.locator('#onglet-verification').click();
+        const lignes = await page.locator(`${panneau} .carte-choix:visible, ${panneau} .rangee-des-choix:visible`).evaluateAll((liste) => liste.map((emplacement) => {
+          const contenant = emplacement.closest('.carte-tete') ?? emplacement.closest('.carte-corps');
+          const bouton = contenant.querySelector('.carte-bascule');
+          const boite = emplacement.getBoundingClientRect();
+          const cadre = contenant.getBoundingClientRect();
+          const choix = [...emplacement.children].filter((enfant) => enfant.getClientRects().length > 0).map((enfant) => enfant.getBoundingClientRect().toJSON());
+          const titre = bouton?.getBoundingClientRect();
+          return {
+            carte: emplacement.closest('.carte').getAttribute('aria-label'),
+            deborde: emplacement.scrollWidth - emplacement.clientWidth,
+            aGauche: boite.left - cadre.left,
+            aDroite: cadre.right - boite.right,
+            ecartADroite: cadre.right - Math.max(...choix.map((enfant) => enfant.right)),
+            sousLeTitre: titre ? boite.top >= titre.bottom - 0.5 : null,
+            surLeTitre: titre ? boite.left < titre.right - 0.5 && boite.right > titre.left + 0.5 && boite.top < titre.bottom - 0.5 : null,
+            choix,
+          };
+        }));
+        assert.ok(lignes.length >= (panneau === '#panneau-creation' ? 3 : 1), `${langue}, ${panneau} : des choix à lire ${JSON.stringify(lignes.map(({ carte }) => carte))}`);
+        for (const { carte, deborde, aGauche, aDroite, ecartADroite, surLeTitre, choix } of lignes) {
+          const nom = `${langue}, ${carte}`;
+          assert.ok(deborde <= 0, `${nom} : les choix débordent de ${deborde} px`);
+          assert.ok(aGauche >= -0.5 && aDroite >= -0.5, `${nom} : les choix sortent de leur cadre (${aGauche}, ${aDroite})`);
+          assert.ok(Math.abs(ecartADroite) <= 1, `${nom} : le dernier choix est à ${ecartADroite} px du bord droit`);
+          assert.ok(surLeTitre !== true, `${nom} : les choix chevauchent le titre`);
+          assert.ok(choix.every((boite, rang) => rang === 0 || boite.left >= choix[rang - 1].right - 0.5 || boite.top >= choix[rang - 1].bottom - 0.5), `${nom} : deux choix se chevauchent`);
+        }
+        // « Vue » et « Afficher » ne tiennent pas à côté du titre de l'Interface de test, la dernière carte : ils passent dessous.
+        if (panneau === '#panneau-creation') assert.equal(lignes.at(-1).sousLeTitre, true, `${langue} : les choix de l’Interface de test passent sous le titre`);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `${langue}, ${panneau} : la page défile à l’horizontale`);
+      }
+    } finally {
+      await page.close();
+    }
   }
 });
 
@@ -1836,7 +2108,7 @@ test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes q
     const comptes = [];
     for (const titre of ['Contrastes minimums', 'Détection des couleurs proches']) {
       assert.equal(await reglage(page, titre).getAttribute('data-ouverte'), 'false');
-      await reglage(page, titre).locator('> .carte-bascule').click();
+      await reglage(page, titre).locator('> .carte-tete > .carte-bascule').click();
       comptes.push(...await reglage(page, titre).locator('.carte-corps .ligne-secondaire').evaluateAll((lignes) => lignes.map((ligne) => ligne.textContent).filter((texte) => /concernée/.test(texte))));
     }
     // Seuils de contraste, profils confondus, palettes proches.
@@ -1868,7 +2140,7 @@ test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se ra
     assert.equal(await reglage(page, 'Couleurs de fond').locator('.field-error:visible').textContent(), '« #12 » : code hexadécimal invalide. Exemple : #1E6FD9.');
     assert.equal(await compte(page), avant + 1, 'une couleur refusée ne se range pas');
 
-    await reglage(page, 'Contrastes minimums').locator('> .carte-bascule').click();
+    await reglage(page, 'Contrastes minimums').locator('> .carte-tete > .carte-bascule').click();
     const texte = page.getByRole('textbox', { name: 'Texte', exact: true });
     await texte.fill('7');
     await texte.press('Tab');
@@ -2905,7 +3177,7 @@ const fonds = (locator) => locator.evaluate((element) => {
   return [fond(element), fond(element.closest('.bascule')), carte ? fond(carte) : null];
 });
 
-test('Y1.4 : le segment pressé des choix, aperçu Light et Dark, Soft et Vivid, a le même fond, distinct de son groupe et de sa carte ; Écran et États se détache de sa carte, aux deux thèmes de Figma', async () => {
+test('Y1.4 : le segment pressé des choix, aperçu Light et Dark, Écran et États, Soft et Vivid, a le même fond, distinct de son groupe et de sa carte, aux deux thèmes de Figma', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     // Un fond calculé se lit aussi dans un panneau caché : la ligne du titre de Création, la carte des garanties de Vérification et la carte de l'Interface de test.
@@ -2915,10 +3187,9 @@ test('Y1.4 : le segment pressé des choix, aperçu Light et Dark, Soft et Vivid,
       page.locator('#panneau-creation .tete-de-la-palette .choix-d-affichage .bascule-option[aria-pressed="true"]'),
       page.locator('#panneau-verification .tete-de-la-palette .choix-d-affichage .bascule-option[aria-pressed="true"]'),
       carteDesGaranties(page).locator('.choix-d-affichage .bascule-option[aria-pressed="true"]'),
-      carteDeLOnglet(page, 'Interface de test').locator('.choix-d-affichage .bascule-option[aria-pressed="true"]'),
+      carteDeLOnglet(page, 'Interface de test').locator('.choix-de-l-essai .bascule-option[aria-pressed="true"]'),
+      carteDeLOnglet(page, 'Interface de test').locator('.choix-de-la-vue .bascule-option[aria-pressed="true"]'),
     ];
-    // Écran et États garde sa forme d'onglet jusqu'à son passage au composant de choix : il ne se compare qu'à sa carte.
-    const vue = page.locator('.bascule-de-l-essai .bascule-option[aria-pressed="true"]');
     for (const theme of ['clair', 'sombre']) {
       if (theme === 'sombre') await page.evaluate(() => document.documentElement.classList.add('figma-dark'));
       const releves = await Promise.all(choix.map(fonds));
@@ -2928,9 +3199,6 @@ test('Y1.4 : le segment pressé des choix, aperçu Light et Dark, Soft et Vivid,
         assert.notEqual(pressee, 'rgba(0, 0, 0, 0)', `${theme} : le segment pressé n’a pas de fond`);
       }
       assert.equal(new Set(releves.map(([pressee]) => pressee)).size, 1, `${theme} : plusieurs fonds de segment pressé ${JSON.stringify(releves)}`);
-      const [onglet, , carteDeLaVue] = await fonds(vue);
-      assert.notEqual(onglet, carteDeLaVue, `${theme} : l’onglet actif de la vue se confond avec sa carte`);
-      assert.notEqual(onglet, 'rgba(0, 0, 0, 0)', `${theme} : l’onglet actif de la vue n’a pas de fond`);
     }
   } finally {
     await page.close();
@@ -2941,7 +3209,7 @@ test('Y1.5 : dans la grille des États, deux anneaux de focus de rangées voisin
   const page = await ouvrirSur('alertes-seules');
   try {
     await deplierLaCarte(page, 'Interface de test');
-    await page.locator('.bascule-de-l-essai .bascule-option').nth(1).click();
+    await page.locator('.choix-de-la-vue .bascule-option').nth(1).click();
     // L'anneau déborde de 4 px de chaque spécimen ; le jour se mesure entre les anneaux de deux rangées voisines.
     const jours = await page.locator('.essai-etats').evaluate((grille) => {
       const rangees = [...grille.querySelectorAll('.essai-rangee')].filter((rangee) => rangee.querySelector('.essai-specimen'));
@@ -2966,7 +3234,7 @@ test('[UI-14] le choix du profil peint dit « Afficher » puis Soft et Vivid, so
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await deplierLaCarte(page, 'Interface de test');
-    const choix = carteDeLOnglet(page, 'Interface de test').locator('.choix-d-affichage');
+    const choix = carteDeLOnglet(page, 'Interface de test').locator('.choix-de-l-essai');
     assert.equal(await choix.locator('.choix-libelle').textContent(), 'Afficher');
     assert.deepEqual(await choixDeLEssai(page).locator('.bascule-option').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft', 'false'], ['Vivid', 'true']]);
     assert.equal(await page.locator('#panneau-creation .essai-surface').count(), 1);
@@ -3613,13 +3881,13 @@ test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur la bascule 
     await ouvrirLeGlisser(page);
     const champ = page.locator('.selecteur-champ').first();
     await champ.fill('2A7FDB');
-    const visee = page.locator('.bascule-de-l-essai .bascule-option[aria-pressed="false"]');
+    const visee = page.locator('.choix-de-la-vue .bascule-option[aria-pressed="false"]');
     // Le rendu complet rebâtit l'interface de test : parti au pointerdown, il pourrait perdre le clic.
     await visee.click();
     await page.waitForFunction(() => !document.querySelector('.selecteur-de-couleur') || document.querySelector('.selecteur-de-couleur').hidden);
     await imageSuivante(page);
     assert.equal(await visee.count(), 1, 'la bascule n’a que deux options');
-    assert.equal(await page.locator('.bascule-de-l-essai .bascule-option').nth(1).getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('.choix-de-la-vue .bascule-option').nth(1).getAttribute('aria-pressed'), 'true');
     assert.equal(await referenceMontree(page), '#2A7FDB', 'l’aperçu garde le code tapé');
   } finally {
     await page.close();
@@ -4353,7 +4621,7 @@ test('le glisser d’un curseur de la carte des réglages, sans capture, finit �
     await ui.locator('.selecteur-option').first().click();
     await ui.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
     const carte = ui.locator(`#panneau-creation .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
-    if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-bascule').click();
+    if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-tete > .carte-bascule').click();
     const curseur = ui.getByRole('slider', { name: 'Teinte de Soft' });
     await curseur.scrollIntoViewIfNeeded();
     const boite = await curseur.boundingBox();

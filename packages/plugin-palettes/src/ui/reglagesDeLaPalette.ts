@@ -1,7 +1,7 @@
 /**
  * La carte « Réglage global » de la palette ouverte ([UI-12], Z10.6, maquette
- * Z10.4, forme A) : le profil à régler en segments, Soft, Vivid ou les deux,
- * puis trois réglettes peintes par le moteur, chacune avec son champ, sa
+ * Z10.4, forme A) : le choix « Régler », Soft, Vivid ou les deux, que la carte
+ * pose dans son en-tête, puis trois réglettes peintes par le moteur, chacune avec son champ, sa
  * valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa valeur
  * sur chaque piste, et un repère situe la saturation de la référence sur
  * celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
@@ -53,12 +53,14 @@ import type { CibleDAction } from '../presentation';
 import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
 import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
-import { creerVuesChoix } from './choix';
+import { creerVuesChoix, type ChoixDuProfilUi } from './choix';
 import { creerVuesLigneFixe } from './ligneFixe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
 export interface ReglagesDeLaPaletteUi {
   element: HTMLDivElement;
+  /** Le choix « Régler » : la carte le pose dans son en-tête (`CarteUi.poserLesChoix`). */
+  choix: ChoixDuProfilUi;
   /**
    * `messages` : les alertes qui comparent les profils, sous les réglettes.
    * `ouverte` : la carte est dépliée, et ses limites se calculent.
@@ -202,7 +204,7 @@ function construireVues(i18n: Localisation) {
     lienDeLAlerte.addEventListener('click', () => {
       if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
     });
-    element.append(cible.element, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
+    element.append(avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -400,6 +402,7 @@ function construireVues(i18n: Localisation) {
 
     return {
       element,
+      choix: cible,
       ouvrir() {
         (cible.element.hidden ? rangees[0].reglette.curseur : cible.premierSegment()).focus();
       },

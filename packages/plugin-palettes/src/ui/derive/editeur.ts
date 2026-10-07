@@ -1,9 +1,9 @@
 /**
  * La carte « Color shift » (section 12) : trois onglets choisissent la
  * grandeur, teinte, saturation ou luminosité, que le graphe et les deux
- * réglettes règlent aux deux bouts ([DER-18]). Le préréglage de la teinte, la
- * synchronisation des profils et « Tout rétablir » sont en tête ([DER-11],
- * [DER-12]).
+ * réglettes règlent aux deux bouts ([DER-18]). Le choix « Régler » se pose
+ * dans l'en-tête de la carte ; le préréglage de la teinte, la synchronisation
+ * des profils et « Tout rétablir » suivent l'aide ([DER-11], [DER-12]).
  *
  * Chaque réglage s'arrête à sa limite dynamique ([DER-19]) : la limite se
  * calcule sur l'état du début du geste, à l'ouverture, au changement
@@ -48,7 +48,7 @@ import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
 import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerDecalage, toutRetablir } from '../../edition';
 import { createCalculsDeLimites } from '../calculDesLimites';
-import { creerVuesChoix } from '../choix';
+import { creerVuesChoix, type ChoixDuProfilUi } from '../choix';
 import { creerVuesLigneFixe } from '../ligneFixe';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
 import { echelleDe, valeurDuGlisser } from './geometrie';
@@ -65,6 +65,8 @@ export interface GestesDeLEditeur {
 
 export interface EditeurUi {
   element: HTMLDivElement;
+  /** Le choix « Régler » : la carte le pose dans son en-tête (`CarteUi.poserLesChoix`). */
+  choix: ChoixDuProfilUi;
   /**
    * Les rampes ancrées de la palette et son ancrage ([MOT-17]) ; `mode`, le
    * thème de l'aperçu, où se peignent les rampes sous le graphe ([DER-04]).
@@ -214,7 +216,7 @@ function construireVues(i18n: Localisation) {
       else gestes.previsualiser(suivante);
     }
 
-    // L'aide, puis l'en-tête : préréglage de la teinte, synchronisation, profil réglé, « Tout rétablir ».
+    // L'aide, puis l'en-tête : préréglage de la teinte, synchronisation, « Tout rétablir ».
     const aide = document.createElement('p');
     aide.className = 'ligne-secondaire';
     i18n.lier(aide, 'textContent', TEXTES_DE_LA_DERIVE.aide);
@@ -272,7 +274,7 @@ function construireVues(i18n: Localisation) {
     retablirTout.addEventListener('click', () => {
       if (recette && palette) terminer(toutRetablir(recette, palette, profil));
     });
-    entete.append(choixDuPrereglage, etiquetteDuLien, profils.element, retablirTout);
+    entete.append(choixDuPrereglage, etiquetteDuLien, retablirTout);
 
     const confirmation = document.createElement('div');
     confirmation.className = 'confirmation';
@@ -628,6 +630,7 @@ function construireVues(i18n: Localisation) {
 
     return {
       element,
+      choix: profils,
       focaliser() {
         boutonsDOnglet.find(({ onglet }) => onglet.getAttribute('aria-selected') === 'true')?.onglet.focus();
       },

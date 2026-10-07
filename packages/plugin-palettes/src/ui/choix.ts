@@ -20,6 +20,19 @@ export type PorteeDuChoix = 'regler' | 'afficher';
 
 const ORDRE: readonly ValeurDuChoix[] = ['soft', 'vivid', 'deux'];
 
+/**
+ * La rangée qui ouvre le corps d'une carte fixe : ses choix, calés à droite.
+ * Elle se cache quand `cacher` a caché chacun de ses choix, et se montre dès
+ * que l'un reparaît ; il en va de même de l'emplacement de l'en-tête d'une
+ * carte repliable (`CarteUi.poserLesChoix`).
+ */
+export function createRangeeDesChoix(...choix: readonly { readonly element: HTMLElement }[]): HTMLDivElement {
+  const rangee = document.createElement('div');
+  rangee.className = 'rangee-des-choix';
+  rangee.append(...choix.map(({ element }) => element));
+  return rangee;
+}
+
 /** Ce qu'une carte pose sur un segment à la place du texte de son option. */
 export interface SegmentDuChoix {
   readonly texte: Texte;
@@ -41,8 +54,6 @@ export interface ChoixArguments<V extends string = string> {
   readonly nom: Texte;
   readonly options: readonly OptionDuChoix<V>[];
   readonly surChoix: (valeur: V) => void;
-  /** Ajoute le cerne de la couleur de marque : le choix commande plus que sa carte. */
-  readonly miseEnAvant?: boolean;
 }
 
 /** Le contenu d'un segment qui porte plus que le texte de son option ; `undefined` laisse le texte. */
@@ -80,10 +91,9 @@ export interface ChoixDuProfilUi {
 function construireVues(i18n: Localisation) {
   const { NOM_DU_PROFIL, TEXTES_DES_REGLAGES } = i18n.messages;
 
-  function createChoix<V extends string>({ libelle, nom, options, surChoix, miseEnAvant = false }: ChoixArguments<V>): ChoixUi<V> {
+  function createChoix<V extends string>({ libelle, nom, options, surChoix }: ChoixArguments<V>): ChoixUi<V> {
     const element = document.createElement('div');
     element.className = 'choix-d-affichage';
-    if (miseEnAvant) element.classList.add('mise-en-avant');
     const texteDuLibelle = document.createElement('span');
     texteDuLibelle.className = 'choix-libelle';
     i18n.lier(texteDuLibelle, 'textContent', libelle);
@@ -115,6 +125,8 @@ function construireVues(i18n: Localisation) {
       },
       cacher(oui) {
         element.hidden = oui;
+        const rangee = element.parentElement;
+        if (rangee?.matches('.rangee-des-choix, .carte-choix')) rangee.hidden = Array.from(rangee.children).every((enfant) => (enfant as HTMLElement).hidden);
       },
       premierSegment: () => boutons[0].bouton,
     };

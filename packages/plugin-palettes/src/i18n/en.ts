@@ -1388,6 +1388,7 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
   sousTitreDeLaCarte: "The palette on a sample screen",
   resume: (mode: Mode, profil: string | null) => (profil ? `${NOM_DU_MODE[mode]} theme · ${profil}` : `${NOM_DU_MODE[mode]} theme`),
   profil: "Preview profile",
+  libelleVue: "View",
   vue: "Test interface view",
   vues: { ecran: "Screen", etats: "States" },
   ecran: "Screen using the palette colours",

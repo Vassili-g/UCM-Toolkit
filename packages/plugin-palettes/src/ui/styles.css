@@ -2036,16 +2036,27 @@
 }
 
 /*
- * Une carte repliable : son en-tête est un bouton sur toute la largeur, sur
- * une ligne. Le titre ne se coupe jamais ; le résumé prend la place qui reste
- * et se coupe par une ellipse, pour qu'un résumé qui s'allonge pendant un
- * geste ne change pas la hauteur de la carte ([UI-20]).
+ * Une carte repliable : son en-tête est un conteneur qui porte le bouton de
+ * repli, sur une ligne, puis les choix de la carte, à droite. Le bouton prend
+ * la place qui reste, au moins 190 px ; quand les choix ne tiennent plus à
+ * côté, ils passent sous lui, calés à droite. Le titre ne se coupe jamais ; le
+ * résumé prend la place qui reste dans le bouton et se coupe par une ellipse,
+ * pour qu'un résumé qui s'allonge pendant un geste ne change pas la hauteur de
+ * la carte ([UI-20]).
  */
+.carte-tete-repliable {
+  row-gap: var(--espace-serre);
+}
+
 .carte-bascule {
-  width: 100%;
+  display: flex;
+  min-width: 0;
   min-height: var(--hauteur-action);
+  flex: 1 1 190px;
   flex-wrap: nowrap;
+  align-items: center;
   justify-content: flex-start;
+  gap: var(--espace-controle);
   margin: 0;
   padding: 0;
   border: 0;
@@ -2164,8 +2175,32 @@
 }
 
 /* Dépliée, l'en-tête ajoute 4 px sous lui : le contenu ne colle pas au titre. */
-.carte-bascule[aria-expanded='true'] {
+.carte[data-ouverte='true'] > .carte-tete-repliable {
   margin-bottom: var(--espace-serre);
+}
+
+/*
+ * Les choix de l'en-tête (`CarteUi.poserLesChoix`) : carte repliée, ils sont
+ * cachés et le résumé se lit ; carte ouverte, ils se lisent à la place du
+ * résumé.
+ */
+.carte-choix {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--espace-serre) var(--espace-bloc);
+  margin-left: auto;
+}
+
+.carte[data-ouverte='false'] .carte-choix {
+  display: none;
+}
+
+.carte[data-ouverte='true'][data-avec-choix] .carte-bascule .carte-resume {
+  display: none;
 }
 
 .carte-bascule:disabled {
@@ -2737,9 +2772,8 @@
  * Le choix (`choix.ts`), forme commune de tout choix de thème, de profil ou de
  * vue, sur le modèle de `.p-bascule` de la maquette : un libellé au texte
  * second, puis des segments sur le fond des blocs. Le segment pressé prend le
- * fond de la page et un cerne de bordure ; `mise-en-avant` cerne les segments de
- * la couleur de marque. Dans la carte des garanties, un segment dont le profil
- * manque une garantie prend la couleur du danger.
+ * fond de la page et un cerne de bordure. Dans la carte des garanties, un
+ * segment dont le profil manque une garantie prend la couleur du danger.
  */
 .choix-d-affichage {
   display: inline-flex;
@@ -2775,8 +2809,14 @@
   color: var(--texte-danger);
 }
 
-.choix-d-affichage.mise-en-avant .bascule {
-  box-shadow: 0 0 0 2px var(--bordure-marque);
+/* La première rangée du corps de la carte fixe des garanties : son choix, calé à droite ; les choix passent à la ligne quand la place manque. */
+.rangee-des-choix {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--espace-serre) var(--espace-bloc);
 }
 
 /* La carte des garanties : le choix du profil, la réglette, puis une ligne par association. */
@@ -3144,10 +3184,6 @@
   display: flex;
   align-items: center;
   gap: var(--espace-controle);
-}
-
-.cible-des-reglages {
-  margin-bottom: 4px;
 }
 
 .cible-des-reglages .field-label,
@@ -3649,16 +3685,8 @@ html {
  * par état : repos, survol, appui. La bascule et la carte gardent le thème
  * de Figma.
  */
-/* Les vues à gauche, le choix du profil peint d'une palette à deux intensités au bord droit (Y2.6). */
-.essai-bascules {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-}
-
-.bascule-de-l-essai,
+/* Les vues, puis le choix du profil peint d'une palette à deux intensités (Y2.6), dans la rangée des choix : un choix passe à la ligne entier. */
+.choix-de-la-vue,
 .choix-de-l-essai {
   flex: 0 0 auto;
 }

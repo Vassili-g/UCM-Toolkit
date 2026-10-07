@@ -408,6 +408,7 @@ function construireVues(i18n: Localisation) {
       ouvrir: (cible) => ouvrir(cible),
     });
     carteDesIntensites.corps.append(intensites.element);
+    carteDesIntensites.poserLesChoix(intensites.choix);
     // Les limites du réglage global ne se calculent que carte ouverte : l'ouvrir les lance.
     carteDesIntensites.surBascule(() => rendre());
 
@@ -420,6 +421,7 @@ function construireVues(i18n: Localisation) {
       },
     });
     carteDeLaDerive.corps.append(editeur.element);
+    carteDeLaDerive.poserLesChoix(editeur.choix);
     // L'éditeur ne se dessine que déplié : l'ouvrir le dessine.
     carteDeLaDerive.surBascule(() => rendre());
 
