@@ -141,14 +141,6 @@ export interface OngletCreationUi {
   placerLaBarre(): void;
   /** Ouvre et focalise le réglage qu'un message de Vérification nomme ([VER-15]). */
   ouvrir(cible: CibleDAction): void;
-  /** Le thème de l'aperçu, que la carte des garanties de Vérification suit et change ([VER-20]). */
-  readonly theme: {
-    mode(): Mode;
-    choisir(mode: Mode): void;
-    montrer(mode: Mode): void;
-    dAvant(): Mode | null;
-    revenir(): void;
-  };
 }
 
 /** La couleur dont l'encart d'un fichier sans palette montre la rampe : celle que le champ de création suggère. */
@@ -285,7 +277,7 @@ function construireVues(i18n: Localisation) {
       return {
         hexa: courante.reference,
         titreDesPastilles: TEXTES_DU_SELECTEUR.nuancesDeLaPalette,
-        pastilles: nuancesProposees(analyse, nuancier.mode()),
+        pastilles: nuancesProposees(analyse, etat.theme()),
         saisir: (saisie, fin) => saisirReference(saisie, fin, true),
         abandonner: () => rendre(),
       };
@@ -393,7 +385,6 @@ function construireVues(i18n: Localisation) {
 
     // Carte d'aperçu sans titre ([UI-04]) : thèmes et fond dans l'en-tête, la référence sous la surface.
     const nuancier = createNuancier({
-      surMode: () => rendre(),
       saisirFond: (mode, hexa, fin) => saisirFond(mode, hexa, fin),
       abandonnerLeFond: () => rendre(),
       choisirGarantie: (association) => demandes.choisirGarantie(association),
@@ -842,9 +833,9 @@ function construireVues(i18n: Localisation) {
         : courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante));
       i18n.lier(choixAutomatique, 'textContent', aideDuChoix);
       i18n.lier(choixAutomatique, 'title', aideDuChoix);
-      i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, nuancier.mode())}`);
+      i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, etat.theme())}`);
 
-      nuancier.afficher({ recette: lue, analyse, confondues: analyse.confusions });
+      nuancier.afficher({ recette: lue, analyse, mode: etat.theme(), confondues: analyse.confusions });
       if (apercuSeul) return;
 
       const nomDe = (id: string) => {
@@ -868,8 +859,8 @@ function construireVues(i18n: Localisation) {
       const grise = estPaletteGrise(lue, courante);
       const pointsDeDerive = messages.liste.filter((message) => carteDuMessage(message.cibles) === 'derive').length;
       carteDeLaDerive.poserResume(resumeDeLaDerive(colorShiftModifie(courante, grise), aUneIntensite(courante) ? null : courante.derive.lien, pointsDeDerive));
-      if (!figee && carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, nuancier.mode());
-      interfaceDeTest.afficher(lue, analyse, nuancier.mode(), courante.id);
+      if (!figee && carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, etat.theme());
+      interfaceDeTest.afficher(lue, analyse, etat.theme(), courante.id);
     }
 
     /**
@@ -935,6 +926,8 @@ function construireVues(i18n: Localisation) {
     creation.element.hidden = true;
     appel.hidden = true;
     vide.append(creation.element);
+    // Le thème change dans la barre, dans la carte des garanties ou depuis Gestion : l'onglet se rend, caché compris.
+    etat.abonnerAuTheme(() => rendre());
     rendre();
 
     return {
@@ -948,7 +941,7 @@ function construireVues(i18n: Localisation) {
       recette: () => etat.recette(),
       ouverte() {
         const courante = ouverte();
-        return courante ? { id: courante.id, mode: nuancier.mode() } : null;
+        return courante ? { id: courante.id, mode: etat.theme() } : null;
       },
       // Les Réglages communs couvrent l'onglet : leur saisie ne le rend pas, leur fin passe par `appliquer`.
       previsualiser(suivante) {
@@ -983,8 +976,8 @@ function construireVues(i18n: Localisation) {
         etat.ouvrir(id);
         barre.fermerLaConfirmation();
         creationOuverte = false;
+        etat.choisirLeTheme(mode);
         rendre();
-        nuancier.choisirLeTheme(mode);
       },
       gestesDeLaBarre: {
         choisir(id) {
@@ -997,13 +990,6 @@ function construireVues(i18n: Localisation) {
       },
       placerLaBarre: () => barre.placerDans(choix),
       ouvrir,
-      theme: {
-        mode: () => nuancier.mode(),
-        choisir: (mode) => nuancier.choisirLeTheme(mode),
-        montrer: (mode) => nuancier.montrerLeTheme(mode),
-        dAvant: () => nuancier.modeDAvant(),
-        revenir: () => nuancier.revenir(),
-      },
     };
   }
   return { createOngletCreation };

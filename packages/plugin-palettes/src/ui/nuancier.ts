@@ -44,14 +44,14 @@ import { creerVuesSpecimens } from './specimens';
 export interface EntreesDuNuancier {
   readonly recette: Recette;
   readonly analyse: AnalyseDePalette;
+  /** Le thème montré, que `PaletteOuverte.theme()` tient. */
+  readonly mode: Mode;
   /** Les nuances où soft et vivid se confondent ([VER-11]) : un indice discret les marque. */
   readonly confondues: readonly { readonly mode: Mode; readonly cran: number }[];
 }
 
 /** Ce que le nuancier demande à l'onglet. */
 export interface GestesDuNuancier {
-  /** Le thème a changé : la carte des garanties et l'éditeur de dérive le suivent. */
-  surMode(): void;
   /**
    * Un fond saisi dans le sélecteur de couleur de la pastille ([UI-04]) :
    * `fin` à la fin du geste, qui enregistre.
@@ -66,18 +66,9 @@ export interface GestesDuNuancier {
 export interface NuancierUi {
   /** La surface peinte, dans le corps de la carte Aperçu. */
   element: HTMLDivElement;
-  /** Les onglets de thème à gauche, le retour, puis le fond à droite, dans l'en-tête de la carte. */
+  /** Le fond du thème montré et sa pastille, dans l'en-tête de la carte. */
   tete: HTMLDivElement;
   afficher(entrees: EntreesDuNuancier): void;
-  mode(): Mode;
-  /** Montre un autre thème, et offre de revenir à celui d'avant ([UI-09]). */
-  montrerLeTheme(mode: Mode): void;
-  /** Pose le thème, sans retour : celui qu'une fiche de l'onglet Gestion montrait (V8.3). */
-  choisirLeTheme(mode: Mode): void;
-  /** Le thème d'avant `montrerLeTheme`, `null` sans retour à offrir : Vérification offre le même retour ([VER-20]). */
-  modeDAvant(): Mode | null;
-  /** Revient au thème d'avant `montrerLeTheme`. */
-  revenir(): void;
 }
 
 export type Choix =
@@ -163,15 +154,9 @@ function construireVues(i18n: Localisation) {
   const colonne = (rang: number): number => rang + 3;
 
   function createNuancier(gestes: GestesDuNuancier): NuancierUi {
-    // En-tête : les deux thèmes à gauche, le retour vers le thème d'avant, et le fond à droite.
+    // En-tête : le fond du thème montré, à droite.
     const tete = document.createElement('div');
     tete.className = 'nuancier-tete';
-    const bascule = document.createElement('div');
-    bascule.className = 'bascule';
-    bascule.setAttribute('role', 'group');
-    i18n.lier(bascule, 'aria-label', TEXTES.modesDeLApercu);
-    const retour = bouton('bouton-discret');
-    retour.hidden = true;
     const fond = document.createElement('div');
     fond.className = 'nuancier-fond';
     const libelleDuFond = document.createElement('span');
@@ -191,14 +176,14 @@ function construireVues(i18n: Localisation) {
     hexaDuFond.setAttribute('aria-hidden', 'true');
     pastilleDuFond.append(teinteDuFond, hexaDuFond);
     fond.append(libelleDuFond, pastilleDuFond);
-    tete.append(bascule, retour, fond);
+    tete.append(fond);
 
     /** Le thème fixé à l'ouverture du sélecteur : changer de thème pendant la saisie ne détourne pas la valeur. */
     let modeDuSelecteur: Mode = 'light';
     pastilleDuFond.addEventListener('click', () => {
       if (!donnees) return;
+      const { recette, analyse, mode } = donnees;
       modeDuSelecteur = mode;
-      const { recette, analyse } = donnees;
       ouvrirLeSelecteur({
         ancre: pastilleDuFond,
         hexa: recette.fonds[modeDuSelecteur],
@@ -226,36 +211,12 @@ function construireVues(i18n: Localisation) {
     detail.hidden = true;
     surface.append(grille, accolades, detail);
 
-    let mode: Mode = 'light';
-    let modeDAvant: Mode | null = null;
     let choix: Choix | null = null;
     /** La cellule que la tabulation atteint : rang de la rampe, colonne ; la colonne 0 est `on-solid`. */
     let active = { rampe: 1, colonne: 8 };
     let donnees: EntreesDuNuancier | null = null;
     /** Les cellules de chaque rangée ; la pastille `on-solid` ouvre les deux. */
     let cellules: HTMLElement[][] = [];
-
-    const boutonsDeMode = (['light', 'dark'] as const).map((valeur) => {
-      const choixDuMode = bouton('bascule-option', valeur === 'light' ? TEXTES.modeClair : TEXTES.modeSombre);
-      choixDuMode.addEventListener('click', () => {
-        modeDAvant = null;
-        changerDeMode(valeur);
-      });
-      bascule.append(choixDuMode);
-      return { valeur, choixDuMode };
-    });
-    function revenir(): void {
-      const cible = modeDAvant;
-      modeDAvant = null;
-      if (cible) changerDeMode(cible);
-    }
-    retour.addEventListener('click', revenir);
-
-    function changerDeMode(suivant: Mode): void {
-      mode = suivant;
-      dessiner();
-      gestes.surMode();
-    }
 
     /** La première colonne atteignable : une palette libre n'a pas de pastille `on-solid` (W6.5). */
     const premiereColonne = (): number => (donnees?.analyse.libre ? 1 : 0);
@@ -313,7 +274,7 @@ function construireVues(i18n: Localisation) {
     });
 
     /** Les promesses du thème montré qui comptent `emploi` au décalage donné, dans un profil. */
-    function promessesDuRole(analyse: AnalyseDePalette, profil: Intensite, emploi: Emploi, decalage: number): Promesse[] {
+    function promessesDuRole(analyse: AnalyseDePalette, mode: Mode, profil: Intensite, emploi: Emploi, decalage: number): Promesse[] {
       return analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.profil === profil
         && [promesse.paire.premier, promesse.paire.second].some((membre) => 'emploi' in membre && membre.emploi === emploi && membre.decalage === decalage));
     }
@@ -361,7 +322,7 @@ function construireVues(i18n: Localisation) {
      * ([VER-13]). Suivent les nuances identiques ou confondues, s'il y en a.
      */
     function contrastesDeLaNuance(cran: Cran, profil: Intensite, rang: number, entrees: EntreesDuNuancier, fondDuMode: Rgb8): HTMLElement[] {
-      const { recette, analyse } = entrees;
+      const { recette, analyse, mode } = entrees;
       const numero = analyse.grille.crans[rang];
       const mesure = mesurerCran(cran.couleur, fondDuMode, recette.seuils);
       const table = document.createElement('div');
@@ -427,7 +388,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function detailDeNuance(profil: Intensite, rang: number, entrees: EntreesDuNuancier): HTMLElement[] {
-      const { recette, analyse } = entrees;
+      const { recette, analyse, mode } = entrees;
       const cran = rampeDe(analyse.rampes, profil)[mode][rang];
       const fondDuMode = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
       const { crans } = analyse.grille;
@@ -437,21 +398,21 @@ function construireVues(i18n: Localisation) {
       const emplois = analyse.libre ? [] : emploisDuCran(crans, rang);
       blocs.push(emplois.length === 0
         ? groupe(TEXTES_DU_DETAIL.sansRole, paragraphe(TEXTES_DU_DETAIL.aucunRole, 'ligne-secondaire'))
-        : groupe(TEXTES_DU_DETAIL.sertA, ...emplois.map(({ emploi, decalage }) => ligneDUsage(emploi, decalage, specimenDuRole(emploi, cran.couleur, fondDuMode), promessesDuRole(analyse, profil, emploi, decalage)))));
+        : groupe(TEXTES_DU_DETAIL.sertA, ...emplois.map(({ emploi, decalage }) => ligneDUsage(emploi, decalage, specimenDuRole(emploi, cran.couleur, fondDuMode), promessesDuRole(analyse, mode, profil, emploi, decalage)))));
       blocs.push(...contrastesDeLaNuance(cran, profil, rang, entrees, fondDuMode), repliOklch(cran));
       return blocs;
     }
 
     /** Le détail de la pastille `on-solid` : le fond de page, posé en texte sur `solid`, et ses garanties par intensité. */
     function detailDuFond(entrees: EntreesDuNuancier): HTMLElement[] {
-      const { recette, analyse } = entrees;
+      const { recette, analyse, mode } = entrees;
       const fondDuMode = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
       const depart = recette.crans.indexOf(TABLE_DES_EMPLOIS.solid);
       // `on-solid` reste au fond ; c'est `solid`, son partenaire, qui avance d'un cran par état.
       const fin = recette.crans[Math.min(recette.crans.length - 1, depart + Math.max(...decalagesDeLEmploi('solid')))];
       const lignes: HTMLElement[] = [];
       for (const profil of analyse.intensites) {
-        const promesses = promessesDuRole(analyse, profil, 'on-solid', 0).sort((a, b) => etatDeLaPaire(a.paire) - etatDeLaPaire(b.paire));
+        const promesses = promessesDuRole(analyse, mode, profil, 'on-solid', 0).sort((a, b) => etatDeLaPaire(a.paire) - etatDeLaPaire(b.paire));
         // Le texte on-solid se montre posé sur le fond plein de son premier état.
         const plein = rampeDe(analyse.rampes, profil)[mode][depart];
         const ligne = ligneDUsage('on-solid', 0, specimenDuRole('solid', plein.couleur, fondDuMode, fondDuMode), promesses);
@@ -506,12 +467,9 @@ function construireVues(i18n: Localisation) {
     }
 
     function dessiner(): void {
-      for (const { valeur, choixDuMode } of boutonsDeMode) choixDuMode.setAttribute('aria-pressed', String(valeur === mode));
-      retour.hidden = modeDAvant === null;
-      if (modeDAvant) i18n.lier(retour, 'textContent', TEXTES_DU_NUANCIER.revenirAuTheme(modeDAvant));
       if (!donnees) return;
       const entrees = donnees;
-      const { recette, analyse } = entrees;
+      const { recette, analyse, mode } = entrees;
       const couleurDuFond = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
       const encres = encresSur(couleurDuFond);
       surface.style.background = recette.fonds[mode];
@@ -637,7 +595,7 @@ function construireVues(i18n: Localisation) {
 
     /** Les couleurs, le repère ◆, les indices de confusion, les noms accessibles et le choix de chaque cellule. */
     function peindreLaGrille(entrees: EntreesDuNuancier): void {
-      const { recette, analyse } = entrees;
+      const { recette, analyse, mode } = entrees;
       const { crans } = analyse.grille;
       if (onSolid) {
         onSolid.style.background = recette.fonds[mode];
@@ -670,23 +628,10 @@ function construireVues(i18n: Localisation) {
     return {
       element: surface,
       tete,
-      mode: () => mode,
       afficher(entrees) {
         donnees = entrees;
         dessiner();
       },
-      montrerLeTheme(suivant) {
-        if (suivant === mode) return;
-        modeDAvant = mode;
-        changerDeMode(suivant);
-      },
-      choisirLeTheme(suivant) {
-        modeDAvant = null;
-        if (suivant === mode) dessiner();
-        else changerDeMode(suivant);
-      },
-      modeDAvant: () => modeDAvant,
-      revenir,
     };
   }
   return { encresSur, memeChoix, createNuancier };

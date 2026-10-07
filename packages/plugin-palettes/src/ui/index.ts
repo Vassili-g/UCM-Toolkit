@@ -190,11 +190,6 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     versCreation: () => allerA('creation'),
     versGestion: () => allerA('gestion'),
-    mode: () => ongletCreation.theme.mode(),
-    choisirLeTheme: (mode) => ongletCreation.theme.choisir(mode),
-    montrerLeTheme: (mode) => ongletCreation.theme.montrer(mode),
-    themeDAvant: () => ongletCreation.theme.dAvant(),
-    revenirAuTheme: () => ongletCreation.theme.revenir(),
   });
 
   const ongletGestion = createOngletGestion({

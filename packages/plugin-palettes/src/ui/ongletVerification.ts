@@ -8,7 +8,7 @@
  * L'onglet lit l'état partagé (`paletteOuverte.ts`) et ne se rend que
  * visible, à la fin d'un geste : un glisser dans Création ne le recalcule pas.
  */
-import { type Association, type Mode } from 'ucm-couleur';
+import type { Association } from 'ucm-couleur';
 
 import { verdictDeLaPalette, type CibleDAction } from '../presentation';
 import type { BarreDePaletteUi } from './barreDePalette';
@@ -26,15 +26,6 @@ export interface GestesDeLaVerification {
   ouvrir(cible: CibleDAction): void;
   versCreation(): void;
   versGestion(): void;
-  /** Le thème que l'aperçu de Création montre : la carte des garanties le suit ([VER-20]). */
-  mode(): Mode;
-  /** Pose le thème, sans retour. */
-  choisirLeTheme(mode: Mode): void;
-  /** Montre l'autre thème, et garde celui d'avant pour y revenir. */
-  montrerLeTheme(mode: Mode): void;
-  /** Le thème d'avant `montrerLeTheme`, `null` sans retour à offrir. */
-  themeDAvant(): Mode | null;
-  revenirAuTheme(): void;
 }
 
 export interface OngletVerificationUi {
@@ -103,10 +94,10 @@ function construireVues(i18n: Localisation) {
 
     const garanties = createGaranties({
       ouvrir: (cible) => gestes.ouvrir(cible),
-      montrerLeTheme: (mode) => gestes.montrerLeTheme(mode),
-      choisirLeTheme: (mode) => gestes.choisirLeTheme(mode),
-      themeDAvant: () => gestes.themeDAvant(),
-      revenirAuTheme: () => gestes.revenirAuTheme(),
+      montrerLeTheme: (mode) => etat.montrerLeTheme(mode),
+      choisirLeTheme: (mode) => etat.choisirLeTheme(mode),
+      themeDAvant: () => etat.themeDAvant(),
+      revenirAuTheme: () => etat.revenirAuTheme(),
     });
 
     const pied = document.createElement('div');
@@ -166,7 +157,7 @@ function construireVues(i18n: Localisation) {
 
       // Une palette libre n'a pas de garantie : sa carte se retire (W6.5).
       garanties.element.hidden = analyse.libre;
-      if (!analyse.libre) garanties.afficher({ recette, palette: courante, analyse, mode: gestes.mode() });
+      if (!analyse.libre) garanties.afficher({ recette, palette: courante, analyse, mode: etat.theme() });
 
       const manque = analyse.manquees > 0;
       pied.dataset.ton = ton;
@@ -177,10 +168,13 @@ function construireVues(i18n: Localisation) {
     }
 
     // Un rendu complet de Création : visible et hors d'un geste, l'onglet suit ; sinon il se rendra à son ouverture.
-    etat.abonner(() => {
+    const suivre = (): void => {
       if (actif && !etat.enGeste()) rendre();
       else enRetard = true;
-    });
+    };
+    etat.abonner(suivre);
+    // Le thème change : l'onglet suit comme pour un rendu de Création.
+    etat.abonnerAuTheme(suivre);
 
     return {
       element,
