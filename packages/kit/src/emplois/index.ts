@@ -9,6 +9,8 @@
  * `format/index.ts`.
  */
 export * from './contraste.js';
+export * from './dossiers.js';
+export * from './garanties.js';
 export * from './emplois.js';
 export * from './paires.js';
 export * from './rangs.js';
