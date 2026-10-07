@@ -1,6 +1,6 @@
 # Le thème en dossiers et le texte des boutons
 
-**Statut :** plan d'implémentation écrit, en attente d'exécution.
+**Statut :** plan d'implémentation écrit, maquettes validées, en attente d'exécution.
 
 Ce dossier réunit deux chantiers validés par le mainteneur, pour les livrer
 dans un seul ordre :
@@ -28,6 +28,6 @@ Les lots 7 à 9 du plan attendent ces maquettes. Le mainteneur passe une ligne
 
 | Maquette | Écran | État |
 |---|---|---|
-| [M1](./Maquettes/M1-CARTE-DES-GARANTIES.html) | La carte des garanties (I4) | à valider |
-| [M2](./Maquettes/M2-PLANCHE.html) | La planche dessinée dans Figma (I6) | à valider |
-| [M3](./Maquettes/M3-INTERFACE-DE-TEST.html) | L'Interface de test (I8) | à valider |
+| [M1](./Maquettes/M1-CARTE-DES-GARANTIES.html) | La carte des garanties (I4) | validée |
+| [M2](./Maquettes/M2-PLANCHE.html) | La planche dessinée dans Figma (I6) | validée |
+| [M3](./Maquettes/M3-INTERFACE-DE-TEST.html) | L'Interface de test (I8) | validée |
