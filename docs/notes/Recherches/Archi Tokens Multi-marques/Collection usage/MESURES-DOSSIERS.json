@@ -81,6 +81,17 @@
             "tenues": "208/208",
             "surLAncre": []
           }
+        },
+        "texteQuiSuitLeFond": {
+          "nuances": [
+            700,
+            800,
+            900
+          ],
+          "minimum": 5.02,
+          "pire": "#16A34A vivid 700 sur 100",
+          "tenues": "124/124",
+          "surLAncre": []
         }
       },
       "dossierPage": {
@@ -146,6 +157,12 @@
         }
       },
       "anneauUnique": {
+        "700": {
+          "minimum": 3.42,
+          "pire": "#16A34A vivid 700 sur #DC2626 vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
         "800": {
           "minimum": 4.87,
           "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
@@ -266,6 +283,17 @@
             "tenues": "198/198",
             "surLAncre": []
           }
+        },
+        "texteQuiSuitLeFond": {
+          "nuances": [
+            700,
+            800,
+            900
+          ],
+          "minimum": 5.24,
+          "pire": "#DC2626 vivid 700 sur 100",
+          "tenues": "116/116",
+          "surLAncre": []
         }
       },
       "dossierPage": {
@@ -331,6 +359,12 @@
         }
       },
       "anneauUnique": {
+        "700": {
+          "minimum": 3.6,
+          "pire": "#16A34A vivid 700 sur #16A34A vivid 300",
+          "tenues": "5376/5376",
+          "surLAncre": []
+        },
         "800": {
           "minimum": 5.25,
           "pire": "#DC2626 vivid 800 sur #16A34A vivid 300",
@@ -479,6 +513,17 @@
             "tenues": "208/208",
             "surLAncre": []
           }
+        },
+        "texteQuiSuitLeFond": {
+          "nuances": [
+            800,
+            900,
+            950
+          ],
+          "minimum": 7.14,
+          "pire": "#16A34A vivid 800 sur 100",
+          "tenues": "122/122",
+          "surLAncre": []
         }
       },
       "dossierPage": {
@@ -544,6 +589,12 @@
         }
       },
       "anneauUnique": {
+        "700": {
+          "minimum": 2.3,
+          "pire": "#8B8178 soft 700 sur #DC2626 vivid 300",
+          "tenues": "3710/5376",
+          "surLAncre": []
+        },
         "800": {
           "minimum": 4.87,
           "pire": "#16A34A vivid 800 sur #DC2626 vivid 300",
@@ -698,6 +749,17 @@
             "tenues": "188/188",
             "surLAncre": []
           }
+        },
+        "texteQuiSuitLeFond": {
+          "nuances": [
+            800,
+            900,
+            950
+          ],
+          "minimum": 5.99,
+          "pire": "#DC2626 vivid 800 sur 100",
+          "tenues": "114/114",
+          "surLAncre": []
         }
       },
       "dossierPage": {
@@ -763,6 +825,12 @@
         }
       },
       "anneauUnique": {
+        "700": {
+          "minimum": 2.21,
+          "pire": "#9333EA vivid 700 sur #16A34A vivid 300",
+          "tenues": "3329/5376",
+          "surLAncre": []
+        },
         "800": {
           "minimum": 3.6,
           "pire": "#16A34A vivid 800 sur #16A34A vivid 300",
