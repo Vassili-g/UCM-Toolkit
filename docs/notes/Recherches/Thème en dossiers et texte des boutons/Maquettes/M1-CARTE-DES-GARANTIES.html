@@ -34,7 +34,7 @@
 </head>
 <body>
 <h1>M1 · La carte des garanties (I4)</h1>
-<p class="intro">Onglet Vérification, palette Bleu (#1E6FD9, deux intensités), thème Light, texte des boutons blanc, Vivid affiché, avec Vert, Rouge et Orange dans la recette. À gauche, la carte telle que la galerie la dessine aujourd'hui. À droite, la carte proposée : une ligne par garantie. Cliquer une ligne déplace l'éventail sur la réglette.</p>
+<p class="intro">Onglet Vérification, palette Bleu (#1E6FD9, deux intensités), thème Light, texte des boutons blanc, Vivid affiché. À gauche, la carte telle que la galerie la dessine aujourd'hui. À droite, la carte proposée : une ligne par garantie. Cliquer une ligne déplace l'éventail sur la réglette.</p>
 
 <div class="duo">
   <figure><figcaption>Aujourd'hui</figcaption><img src="captures/garanties-aujourdhui.png" width="570" alt="La carte des garanties actuelle"></figure>
@@ -43,11 +43,10 @@
 
 <h2>Ce qui change, et pourquoi</h2>
 <ol class="pourquoi">
-  <li><b>Une ligne par garantie au lieu d'une par paire.</b> Les dix-neuf paires deviennent huit garanties (P4). Chaque ligne porte les variables en police de code, puis le libellé du lexique dessous, comme aujourd'hui, sans numéro. Les deux blocs restent : textes lisibles à 4,5:1, éléments visibles à 3:1.</li>
+  <li><b>Une ligne par garantie au lieu d'une par paire.</b> Les dix-neuf paires deviennent sept garanties (P4). Chaque ligne porte les variables en police de code, puis le libellé du lexique dessous, comme aujourd'hui, sans numéro. Les deux blocs restent : textes lisibles à 4,5:1, éléments visibles à 3:1.</li>
   <li><b>Quatre colonnes de fonds : la page, puis <code>default</code>, <code>hover</code>, <code>pressed</code>.</b> Le quatrième rang, <code>active-hover</code>, disparaît, et <code>active</code> devient <code>pressed</code>. La page prend la première colonne : c'est le seul fond hors de la palette contre lequel le plugin mesure (P9). Une garantie qui ne vise pas un fond laisse sa case vide.</li>
   <li><b>L'éventail remplace l'escalier.</b> Le texte reste à la même nuance dans tous les états (texte constant) : la réglette tire un seul départ, la nuance du texte, vers chacun de ses fonds. La légende dit les quatre traits, et qu'à chaque état seul le fond change. Deux cases avant la 50 : la page, et le texte des boutons en tirets, départ de la garantie du texte des boutons.</li>
   <li><b><code>solid/foreground</code> nomme le réglage.</b> La note du texte des boutons dit « suit le réglage Texte des boutons du thème Light : blanc », au lieu de « on-solid utilise la couleur du fond de page ». Ses spécimens portent le blanc ou le noir purs.</li>
-  <li><b>L'anneau dans un conteneur d'une autre palette nomme l'autre palette</b> : un bouton de cette palette posé dans une alerte d'une autre. Ses cases ne sont plus des états mais les autres palettes de la recette, chacune avec son nom au-dessus. Il n'a pas d'éventail sur la réglette, qui ne montre que la palette ouverte.</li>
   <li><b>Les lignes qui disparaissent</b> : <code>text</code> sur <code>surface-card</code> et <code>border-control</code> sur <code>surface-card</code>, puisque la carte n'est plus une teinte de la palette ; <code>focus</code> sur <code>surface</code> devient la deuxième case de la ligne de l'anneau.</li>
   <li><b>Ce qui ne change pas</b> : la forme de la carte, le choix « Afficher » Soft et Vivid, les spécimens, les numéros « 800 / 100 », le ratio, le niveau AA ou AAA, la ligne choisie marquée d'un trait bleu, et les liens d'une garantie manquée (« Ajuster la référence » et les autres), dont la forme reste celle de l'état <code>garantie-en-echec</code> de la galerie.</li>
 </ol>
@@ -100,8 +99,6 @@
         cases: contour(PAGE, v(R, 'page/border'), '700 / page', contraste(v(R, 'page/border'), PAGE)) + vide + vide + vide },
       { g: 'G7', qui: '<code>page/focus</code> sur la page et <code>surface/default</code>', nom: 'anneau de focus', depart: 600, fonds: ['page', 100],
         cases: anneau(PAGE, v(R, 'page/focus'), '600 / page', contraste(v(R, 'page/focus'), PAGE)) + anneau(v(R, 'surface/default'), v(R, 'page/focus'), '600 / 100', contraste(v(R, 'page/focus'), v(R, 'surface/default'))) + vide + vide },
-      { g: 'G8', qui: '<code>page/focus</code> sur le <code>surface/default</code> des autres palettes', nom: 'anneau de focus, dans un conteneur d’une autre palette', depart: null, fonds: [],
-        cases: croisees('page/focus', v(R, 'page/focus'), ['surface/default'], 'anneau') + vide },
     ],
   };
 

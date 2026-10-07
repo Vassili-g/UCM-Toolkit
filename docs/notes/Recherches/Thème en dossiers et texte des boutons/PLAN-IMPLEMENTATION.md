@@ -227,16 +227,14 @@ la recette : `texte` (4,5 par défaut) et `nonTexte` (3).
 | G5 | `page/foreground` | le fond de la page | texte |
 | G6 | `page/border` | le fond de la page | nonTexte |
 | G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | nonTexte |
-| G8 | `page/focus` | `surface/default` de chaque autre palette de la recette, même thème | nonTexte |
 
 - `solid/foreground` vaut le blanc ou le noir purs, dans les deux sens (P6).
   Le fond de la page n'est plus le texte des boutons.
 - G2 juge le bouton au repos dans les deux sens, décision du mainteneur.
   L'ancienne paire 14 jugeait le survol dans le thème normal ; au repos, la
   700 y tient à plus de 5:1 de la page.
-- G1 à G7 se jugent par palette ; G8 sur la recette entière. Une autre
-  palette à deux intensités compte pour deux.
-- Les numéros G1 à G8 identifient les garanties dans ce plan et dans le
+- Chaque garantie se juge par palette ; aucune ne croise deux palettes.
+- Les numéros G1 à G7 identifient les garanties dans ce plan et dans le
   code. L'interface et la planche n'en affichent aucun : une garantie s'y
   nomme par ses variables et son libellé.
 - Une garantie dont un cran manque n'est pas jugeable, comme une paire
@@ -270,7 +268,7 @@ les quatre thèmes :
   `#2563EB`, `#DC2626`, `#9333EA`, `#737373`, de 3,90 à 4,43:1 ; hors
   ancrage, le pire vaut 5,27:1.
 - G2 à G6 n'échouent jamais.
-- G7 et G8 n'échouent que sur `#16A34A`, dont l'anneau est la référence
+- G7 n'échoue que sur `#16A34A`, dont l'anneau est la référence
   ancrée : 600 en Light, 700 en Light inversé.
 
 Les références, les intensités et le protocole sont ceux de
@@ -541,7 +539,7 @@ commencent que si la maquette existe et que le
 
 | Maquette | Écran | Changements | Lot |
 |---|---|---|---|
-| M1 | La carte des garanties, onglet Vérification | I4 : un éventail par texte vers ses fonds, une ligne par garantie, sans numéro, la page puis trois états ; l'anneau dans une autre palette nomme l'autre palette | 8 |
+| M1 | La carte des garanties, onglet Vérification | I4 : un éventail par texte vers ses fonds, une ligne par garantie, sans numéro, la page puis trois états | 8 |
 | M2 | La planche dessinée dans Figma | I6 : une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, les garanties sans numéro, les hexadécimaux et le repère de la référence conservés | 9 |
 | M3 | L'Interface de test | I8 : survoler un élément montre la variable qui le peint ; la vue États suit `default`, `hover`, `pressed` | 9 |
 
@@ -603,13 +601,11 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 - [ ] **T1.2** · `implementeur`. Les garanties dans le kit.
   - Fichiers : `packages/kit/src/emplois/garanties.ts` (nouveau),
     `index.ts`, `packages/kit/tests/garanties.test.ts` (nouveau).
-  - Faire : `GARANTIES`, G1 à G8 de S7, chacune avec son premier membre,
-    ses fonds (`{ variable }`, `{ fondDeLaPage: true }` ou
-    `{ autresPalettes: variable }`), son seuil (`texte` ou `nonTexte`) et sa
-    portée (`palette` ou `recette`) ; `garantieJugeable(garantie, crans,
-    sens)`.
-  - Tests : huit garanties ; G8 de portée `recette` ; G1 non jugeable
-    sans 700 ; G2 jugeable sans 400.
+  - Faire : `GARANTIES`, G1 à G7 de S7, chacune avec son premier membre,
+    ses fonds (`{ variable }` ou `{ fondDeLaPage: true }`) et son seuil
+    (`texte` ou `nonTexte`) ; `garantieJugeable(garantie, crans, sens)`.
+  - Tests : sept garanties ; G1 non jugeable sans 700 ; G2 jugeable sans
+    400.
   - Fini quand : `npm test --workspace @ucm-kit/core` passe.
 - [ ] **T1.3** · `verificateur`. `npm run typecheck`, `npm test`. Fini quand :
   tableau rendu, tout vert.
@@ -839,12 +835,12 @@ les lots 1 à 6 et la porte qui manque.
     `alertes.test.ts`, le test de la garantie des courbes).
   - Faire, d'après S7 :
     - `verifierPromesses` juge G1 à G7 par palette, dans la table du sens de
-      chaque mode ; une fonction de la recette juge G8 ;
+      chaque mode ;
     - `Designation` gagne la nature `'texteDesBoutons'` ; `'fond'` ne
       désigne plus que le fond de la page ;
     - la garantie des courbes de S7 ;
     - `alertes.ts` lit les crans par `cranDeLaVariable`.
-  - Tests : les oracles de S8 ; huit garanties ; aucun échec de G1 hors
+  - Tests : les oracles de S8 ; sept garanties ; aucun échec de G1 hors
     nuance ancrée sur les quatorze références dans les quatre
     combinaisons ; la garantie des courbes vide pour les courbes par défaut
     dans les quatre combinaisons.
@@ -903,7 +899,7 @@ les lots 1 à 6 et la porte qui manque.
   - Fichiers : `packages/plugin-palettes/galerie/etats.cjs`,
     `tests/interface/interface.test.mjs`.
   - Faire : les états de M1, dont la carte en Dark inversé avec G1 manquée
-    sur `#D94635` ; un test Chromium qui vérifie les huit lignes, sans numéro, et le
+    sur `#D94635` ; un test Chromium qui vérifie les sept lignes, sans numéro, et le
     lien « Ajuster la référence ».
   - Fini quand : `npm run test:ui --workspace ucm-palettes-plugin` passe.
 - [ ] **T8.4** · `verificateur`. `npm run typecheck`, `npm test`,
