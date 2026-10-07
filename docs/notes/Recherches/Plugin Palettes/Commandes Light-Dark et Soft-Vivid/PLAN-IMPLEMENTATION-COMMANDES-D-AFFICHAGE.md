@@ -7,7 +7,7 @@ intermédiaire. Il ordonne en tâches à cocher la révision que le mainteneur a
 demandée après une première livraison. Il porte sur
 `packages/plugin-palettes`.
 
-La [maquette, section 4](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html)
+La [maquette, section 4](../Texte%20des%20boutons/Archives/MAQUETTE-MODES-ET-AFFICHAGE.html)
 montre la forme des choix. Les décisions ci-dessous l'emportent sur la
 maquette et sur le [dossier](./DOSSIER-COMMANDES-D-AFFICHAGE.md) quand ils
 diffèrent.

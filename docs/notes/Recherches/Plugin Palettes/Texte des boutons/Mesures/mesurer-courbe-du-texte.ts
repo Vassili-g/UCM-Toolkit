@@ -6,7 +6,7 @@
  * MESURES-COURBE-DU-TEXTE.json.
  *
  * Depuis la racine du dépôt :
- * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-courbe-du-texte.ts"
+ * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-courbe-du-texte.ts"
  */
 import { writeFileSync } from 'node:fs';
 
@@ -27,7 +27,7 @@ import {
   type Palette,
   type Recette,
   type Rgb8,
-} from '../../../../../packages/couleur/src/index';
+} from '../../../../../../packages/couleur/src/index';
 
 const base = recetteParDefaut();
 const crans = base.crans;

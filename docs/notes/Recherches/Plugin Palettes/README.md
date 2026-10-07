@@ -33,14 +33,13 @@ décrivent pas le build courant.
 - La comparaison et l'harmonisation de plusieurs palettes sont à l'étude :
   le [plan de recherche](./Harmonisation%20entre%20palettes/PLAN-RECHERCHE-HARMONISATION.md)
   porte une première mesure et les questions ouvertes, sans implémentation.
-- Le texte des boutons en Light et en Dark est à l'étude : le
-  [dossier de recherche](./Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)
-  porte les décisions du mainteneur et la proposition du thème inversé, sans
-  implémentation.
-- La place des commandes Light/Dark et Soft/Vivid est décidée, sauf le sens de
-  « Les deux » dans le Color shift : voir le
-  [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md),
-  sans implémentation.
+- Le texte des boutons en Light et en Dark est à l'étude :
+  [TEXTE-DES-BOUTONS.html](./Texte%20des%20boutons/TEXTE-DES-BOUTONS.html)
+  réunit les décisions du mainteneur, le thème inversé, les choix à prendre
+  et le réglage proposé dans les Réglages communs, sans implémentation.
+- Les commandes Light/Dark et Soft/Vivid sont implémentées et attendent la
+  recette dans Figma : voir le
+  [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
 - La validation éditoriale anglaise et les vérifications propres à Figma
   restent à consigner dans les recettes concernées.
 

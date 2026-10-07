@@ -5,9 +5,9 @@ recette, l'étude préparatoire et la première recherche, puis les décisions
 du mainteneur et un second tour de recherche. Il sert de base au futur plan
 d'action. Aucun code, aucune recette ni aucun format publié n'est modifié.
 
-La même demande portait sur la place des commandes Light/Dark et Soft/Vivid
-du plugin. Ce sujet a son propre
-[dossier](../Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
+Le point d'entrée est [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html) :
+choix effectués, choix à prendre et maquette du réglage dans le plugin. Ce
+dossier garde le raisonnement, les mesures et les sources.
 
 Vocabulaire : le **bouton** est l'emploi `solid` ; le **texte des boutons**,
 l'emploi `on-solid` ; le **texte coloré**, l'emploi `text`, posé sur la page
@@ -51,8 +51,13 @@ coloré, les contours et le focus gardent presque leur clarté actuelle ; seul
 le bouton change. Le bleu `#2563EB` devient lui-même le bouton Dark, avec un
 texte blanc à 5,17:1.
 
-**Décisions attendues :** section 9. La proposition se voit dans la
-[maquette du thème inversé](./MAQUETTE-THEME-INVERSE.html).
+**Depuis le second tour** (section 7) : la collection `usage` garde trois
+états par fond, un texte constant sur les fonds teintés et un anneau par
+palette. Le bouton inversé a donc trois états, 700, 600 et 500.
+
+**Décisions attendues :** section 9, et dans
+[TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html), section 3, avec les choix
+d'interface.
 
 ## 1. La demande
 
@@ -65,7 +70,7 @@ publiés. La demande est citée en [annexe A](#annexe-a--demande-originale).
 ## 2. Décisions du mainteneur
 
 Réponses du mainteneur à la [première recherche](./Archives/RECHERCHE-TEXTE-DES-BOUTONS-ET-AFFICHAGE.md)
-et à la [maquette](./MAQUETTE-MODES-ET-AFFICHAGE.html).
+et à la [maquette](./Archives/MAQUETTE-MODES-ET-AFFICHAGE.html).
 
 | Sujet | Décision | Motif donné |
 |---|---|---|
@@ -146,6 +151,10 @@ Formulation commune : **le bouton est la 700 ; ses états s'éloignent de son
 texte ; tout ce qui se pose sur la page reste du côté opposé à la page.**
 Dans un thème normal, ces deux côtés coïncident. Dans un thème inversé, ils se
 séparent autour de la 700.
+
+Cette table est celle du second tour, sur laquelle portent les mesures de la
+section 5.3. La table à jour, en dossiers `solid`, `surface` et `page`, est
+résumée en section 7.
 
 ### 5.2 La courbe recalculée
 
@@ -274,30 +283,32 @@ La recette est en format 8 et `validerRecette` refuse toute clé inconnue
 | Format 9 strict | Illisible | Une recette 9 est « future » | Écartée : casse les réglages rangés |
 | Clé facultative dans le format 8 | Lue | Une recette qui la porte est refusée | Seulement si aucun build antérieur ne circule |
 
-### Le lien avec l'étude des usages indexés
+## 7. Ce qui a changé depuis le second tour
 
-L'étude parallèle propose des noms sans numéro de nuance, par exemple
-`usage.primary.solid-1..4/background` et `/text`, et
-`usage.primary.surface-0..4/background`, `/text` et `/border`. La couche
-`theme` choisit la nuance de chaque nom selon le thème. La proposition ne
-change alors que des cibles de `theme` :
+La [recherche sur la collection `usage`](../../Archi%20Tokens%20Multi-marques/Collection%20usage/RECHERCHE-COLLECTION-USAGE.md)
+a repris la table du thème inversé dans sa section 4.1, avec trois
+changements retenus par le mainteneur :
 
-| Nom proposé | Thème normal | Thème inversé |
+- un fond a trois états, `default`, `hover` et `pressed`, et la sélection
+  change de dossier : le quatrième niveau du bouton et du texte disparaît ;
+- le texte et le contour d'un fond teinté sont constants : 800, et 900 dans
+  un thème inversé ;
+- l'anneau de focus est propre à chaque palette, `page/focus` : 600, et 700
+  dans un thème inversé.
+
+| Variable de chaque palette | Thème normal | Thème inversé |
 |---|---|---|
-| `solid-1` à `solid-4` / background | 700, 800, 900, 950 | 700, 600, 500, 400 |
-| `solid-n` / text | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
-| `surface-0` à `surface-4` / text | 700, 700, 800, 900, 950 | 800, 800, 900, 950, 950 |
-| `surface-0` à `surface-4` / border | 600, 600, 700, 800, 900 | 700, 700, 800, 900, 950 |
-| focus | 600, ou 900 selon la décision 7 | 700, ou 950 selon la décision 7 |
+| `solid/default`, `hover`, `pressed` | 700, 800, 900 | 700, 600, 500 |
+| `solid/foreground` | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
+| `surface/foreground`, `border` | 800 | 900 |
+| `page/foreground`, `border` | 700 | 800 |
+| `page/focus` | 600 | 700 |
 
-`surface-0` est la carte, nuance 50. Ce nommage reste une proposition de
-l'autre étude.
-
-## 7. Commandes Light/Dark et Soft/Vivid
-
-Ce sujet a son [dossier](../Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
-La numérotation des sections et des décisions de ce document reste celle que
-les autres études citent.
+Les mesures de cette table sur les 42 rampes sont dans la section 5 de la
+recherche sur la collection `usage`. Le texte des boutons y tient au pire
+4,55:1 en Dark inversé et 4,66:1 en Light inversé, hors nuance ancrée ; les
+échecs sur la nuance ancrée sont ceux de la section 5.6. Le fichier Figma
+remappé par le mainteneur applique déjà ces valeurs dans la colonne `dark`.
 
 ## 8. Solutions écartées
 
@@ -316,8 +327,9 @@ distingue en recalculant la courbe, ce qui garde le bouton à la 700.
 
 ## 9. Décisions à prendre
 
-1. **La règle du thème inversé** (section 5.1) : texte coloré à 800, contour
-   et focus à 700, états du bouton vers la page.
+1. **La règle du thème inversé** (section 5.1) : reprise par la collection
+   `usage` dans la forme de la section 7, et appliquée dans le fichier Figma
+   remappé.
 2. **La garantie 14 dans le thème inversé** : juger le repos (recommandé), ou
    ne pas la vérifier.
 3. **L'ancrage d'une référence qui ne porte pas le texte des boutons**, à
@@ -329,34 +341,22 @@ distingue en recalculant la courbe, ce qui garde le bouton à la 700.
    - c. ne pas l'ancrer dans le thème inversé.
 4. **Les clartés de la courbe inversée** : 0,45, 0,50, 0,55 et 0,70 en Dark,
    à éprouver dans Figma.
-5. **Le quatrième niveau du texte coloré** : la 950 répétée, ou treize
-   nuances.
-6. **Le sens de « Les deux » dans le Color shift** : voir le
-   [dossier des commandes](../Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
-7. **L'anneau de focus**, proposé par l'étude des usages indexés : un anneau
-   unique au cran du contour de `surface-4`, 900 en thème normal et 950 en
-   thème inversé. L'anneau se dessine sur le fond du conteneur, que le
-   composant ne connaît pas. Mesure sur les 42 rampes, contre la page, la
-   carte et les surfaces 100 à 400 :
+5. **Le quatrième niveau du texte coloré** : sans objet, le quatrième
+   niveau disparaît (section 7).
+6. **L'anneau de focus** : réglé, un anneau par palette, 600, et 700 dans un
+   thème inversé (section 7). L'anneau unique à 900 ou 950 est écarté : il
+   se lisait comme du noir en Light et du blanc en Dark.
 
-   | Anneau | Échecs à 3:1 | Pire ratio |
-   |---|---|---|
-   | 900, thème normal, Light et Dark | aucun sur 252 | 5,47:1 sur la 400 |
-   | 950, thème inversé, Light et Dark | aucun sur 252 | 6,88:1 sur la 400 |
-   | 700, table de la section 5.1, Dark inversé | 91 sur 252 | 1,86:1 sur la 400 |
-
-   Les garanties 12 et 13 tiennent avec une large marge. L'anneau perd en
-   revanche la teinte vive de la palette : à 900, il se rapproche du texte.
-   Avis : retenir l'anneau unique, qui remplace le focus à 700 de la
-   section 5.1.
+Les choix d'interface du réglage et le format de la recette sont dans
+[TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html), section 3.
 
 ## 10. Pour le plan d'action
 
 Ordre proposé, chaque lot testé avant le suivant :
 
-1. Maquette de la proposition : faite, voir
-   [MAQUETTE-THEME-INVERSE.html](./MAQUETTE-THEME-INVERSE.html). Elle sert à
-   la relecture avec le mainteneur.
+1. Synthèse et maquette du réglage : faites, voir
+   [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html). Elles servent à la
+   relecture avec le mainteneur.
 2. Essai dans Figma : un écran Dark avec texte blanc, bouton sur la page, sur
    une carte et dans une modale.
 3. Kit : table des emplois selon le thème, garantie 14 sur le repos, tests
@@ -372,25 +372,20 @@ Ordre proposé, chaque lot testé avant le suivant :
 Depuis la racine du dépôt :
 
 ```sh
-npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-courbe-du-texte.ts"
-npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-polarites.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-courbe-du-texte.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer-texte-des-boutons.ts"
 ```
 
-- [mesurer-courbe-du-texte.ts](./mesurer-courbe-du-texte.ts) et
-  [MESURES-COURBE-DU-TEXTE.json](./MESURES-COURBE-DU-TEXTE.json) : second tour,
-  zones de clarté, courbe recalculée, table inversée, garantie 14, ancrage.
-- [mesurer-polarites.ts](./mesurer-polarites.ts) et
-  [MESURES-POLARITES.json](./MESURES-POLARITES.json) : premier tour, S1 à S5 ;
-  le script actualise aussi la maquette.
-- [mesurer-encres.mjs](./mesurer-encres.mjs) et
-  [MESURES-ENCRES.json](./MESURES-ENCRES.json) : toute première mesure.
-- [Maquette du thème inversé](./MAQUETTE-THEME-INVERSE.html) et
-  [generer-maquette-theme-inverse.ts](./generer-maquette-theme-inverse.ts) :
-  la proposition, avant et après, sur six palettes.
-- [Maquette du premier tour](./MAQUETTE-MODES-ET-AFFICHAGE.html) : solutions S1
-  à S6 ; sa section 4 montre aussi les modèles de commande Light/Dark.
-- [Archives](./Archives/) : notes de recette, étude préparatoire et première
-  recherche. Elles traitent aussi des commandes.
+- [mesurer-courbe-du-texte.ts](./Mesures/mesurer-courbe-du-texte.ts) et
+  [MESURES-COURBE-DU-TEXTE.json](./Mesures/MESURES-COURBE-DU-TEXTE.json) :
+  second tour, zones de clarté, courbe recalculée, table inversée,
+  garantie 14, ancrage.
+- [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) :
+  les rampes de six palettes, courbe actuelle et courbe inversée, écrites
+  dans [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html).
+- [Archives](./Archives/README.md) : notes de recette, première recherche,
+  premier tour S1 à S6 avec ses mesures, et première maquette du thème
+  inversé.
 
 ## Annexe A : demande originale
 
@@ -402,9 +397,6 @@ npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-polarit
 >   du moteur de couleur ? est ce qu'on pourrait avoir des toggle pour choisir
 >   si les texte sont clairs ou sombres dans le light mode et le dark mode ?
 >   ça serait quoi l'impact de faire ça ?
-
-La suite du message porte sur les commandes Light/Dark et Soft/Vivid ; le
-[dossier des commandes](../Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md) la cite.
 
 ## Annexe B : systèmes comparés
 

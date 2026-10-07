@@ -4,7 +4,7 @@
 > qui fait foi. Ses liens relatifs datent de son ancien emplacement.
 
 **Statut :** recherche. Propositions à éprouver sur la
-[maquette](../MAQUETTE-MODES-ET-AFFICHAGE.html), sans décision du mainteneur
+[maquette](./MAQUETTE-MODES-ET-AFFICHAGE.html), sans décision du mainteneur
 ni modification du code, de la recette ou des formats publiés.
 
 Ce document répond aux [notes de recette](./NOTES-RECETTE-MODES-ET-AFFICHAGE.md)
@@ -40,9 +40,9 @@ Elles se rejouent depuis la racine du dépôt :
 npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-polarites.ts"
 ```
 
-Le [script](../mesurer-polarites.ts) écrit [MESURES-POLARITES.json](../MESURES-POLARITES.json)
+Le [script](./mesurer-polarites.ts) écrit [MESURES-POLARITES.json](./MESURES-POLARITES.json)
 et actualise les couleurs de la maquette. Il couvre quatorze références,
-celles de [MESURES-ENCRES.json](../MESURES-ENCRES.json) et de l'[étude des
+celles de [MESURES-ENCRES.json](./MESURES-ENCRES.json) et de l'[étude des
 usages indexés](../../../Archi%20Tokens%20Multi-marques/Collection%20usage/1%20Usages%20indexes%20et%20catalogue/04-EXPERIENCES.md),
 chacune à une et à deux intensités : 42 rampes par thème. La recette est
 celle par défaut, avec le préréglage Tailwind. Chaque cas compte 168 mesures

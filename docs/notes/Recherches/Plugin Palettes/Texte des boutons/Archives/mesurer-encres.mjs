@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import {
   recetteParDefaut, verifierPromesses, contraste, atteintLeSeuil, lireHexa,
   validerRecette,
-} from '../../../../../packages/couleur/src/index.ts';
+} from '../../../../../../packages/couleur/src/index.ts';
 
 const references = ['#FACC15', '#2563EB', '#DC2626', '#16A34A', '#9333EA', '#06B6D4', '#F5F5F5', '#171717', '#808080', '#8B8178'];
 const lignes = [];

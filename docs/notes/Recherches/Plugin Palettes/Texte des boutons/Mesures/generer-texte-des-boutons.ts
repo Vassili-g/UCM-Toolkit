@@ -1,10 +1,10 @@
 /**
- * Données de MAQUETTE-THEME-INVERSE.html : les rampes du moteur pour six
- * palettes, avec la courbe actuelle et la courbe du thème inversé de chaque
- * thème. La maquette ne calcule aucune rampe ; elle lit ce bloc.
+ * Données de TEXTE-DES-BOUTONS.html : les rampes du moteur pour six palettes,
+ * avec la courbe actuelle et la courbe du thème inversé de chaque thème. La
+ * page ne calcule aucune rampe ; elle lit ce bloc.
  *
  * Depuis la racine du dépôt :
- * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/generer-maquette-theme-inverse.ts"
+ * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer-texte-des-boutons.ts"
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -20,7 +20,7 @@ import {
   type Mode,
   type Palette,
   type Recette,
-} from '../../../../../packages/couleur/src/index';
+} from '../../../../../../packages/couleur/src/index';
 
 const base = recetteParDefaut();
 const avec = (courbe: readonly number[], valeurs: Record<number, number>) => courbe.map((L, i) => valeurs[base.crans[i]] ?? L);
@@ -71,9 +71,9 @@ const donnees = {
   })),
 };
 
-const maquette = new URL('./MAQUETTE-THEME-INVERSE.html', import.meta.url);
+const maquette = new URL('../TEXTE-DES-BOUTONS.html', import.meta.url);
 const html = readFileSync(maquette, 'utf8');
 const motif = /(<script id="donnees" type="application\/json">)[\s\S]*?(<\/script>)/;
-if (!motif.test(html)) throw new Error('Bloc de données introuvable dans la maquette.');
+if (!motif.test(html)) throw new Error('Bloc de données introuvable dans la page.');
 writeFileSync(maquette, html.replace(motif, (_tout, ouverture: string, fermeture: string) => `${ouverture}${JSON.stringify(donnees)}${fermeture}`));
-console.log(`${donnees.palettes.length} palettes écrites dans la maquette.`);
+console.log(`${donnees.palettes.length} palettes écrites dans la page.`);

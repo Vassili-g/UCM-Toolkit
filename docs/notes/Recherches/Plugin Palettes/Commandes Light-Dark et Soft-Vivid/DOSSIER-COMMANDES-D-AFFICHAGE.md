@@ -44,7 +44,7 @@ La demande est citée en [annexe](#annexe--demande-originale).
 
 ### Light/Dark dans le titre de la palette
 
-La [maquette](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html)
+La [maquette](../Texte%20des%20boutons/Archives/MAQUETTE-MODES-ET-AFFICHAGE.html)
 propose quatre modèles, A à D, et le modèle A est validé : un seul bouton
 Light/Dark, toujours visible. Le mainteneur l'a placé dans la ligne du titre
 « Palette [nom] » plutôt que dans la barre de la palette, avec le libellé

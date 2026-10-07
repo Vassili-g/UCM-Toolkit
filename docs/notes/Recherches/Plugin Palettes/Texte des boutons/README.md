@@ -2,20 +2,26 @@
 
 Dossier de recherche d'UCM Palettes : le texte des boutons en blanc ou en noir
 purs, choisi par thème pour tout le design system, et ce que ce choix impose
-au bouton, au texte coloré et aux contours. Aucune implémentation.
+au bouton, au texte coloré, aux contours et à la courbe du thème. Aucune
+implémentation.
 
-La place des commandes Light/Dark et Soft/Vivid dans le plugin est un autre
-sujet, rangé dans
-[Commandes Light-Dark et Soft-Vivid](../Commandes%20Light-Dark%20et%20Soft-Vivid/README.md).
-La conséquence du thème inversé sur la collection `usage` est étudiée dans
-l'[architecture multi-marques](../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
+**État.** Le mainteneur a validé le principe : texte blanc ou
+noir purs, un choix par thème dans les Réglages communs, bouton à la 700,
+rampe recalculée. La règle du thème inversé est reprise par la
+[recherche sur la collection `usage`](../../Archi%20Tokens%20Multi-marques/Collection%20usage/RECHERCHE-COLLECTION-USAGE.md),
+section 4.1, et par le fichier Figma remappé. Restent quatre choix de moteur
+et quatre choix d'interface.
 
 | Document | Contenu |
 |---|---|
-| [Dossier de recherche](./DOSSIER-TEXTE-DES-BOUTONS.md) | Le document de référence : demande, décisions du mainteneur, proposition du thème inversé, mesures et décisions à prendre |
-| [Maquette du thème inversé](./MAQUETTE-THEME-INVERSE.html) | La proposition, avant et après, sur six palettes, dans les deux thèmes ; données écrites par [generer-maquette-theme-inverse.ts](./generer-maquette-theme-inverse.ts) |
-| [Maquette du premier tour](./MAQUETTE-MODES-ET-AFFICHAGE.html) | Solutions S1 à S6 ; sa section 4 montre aussi les modèles de commande Light/Dark |
-| [mesurer-courbe-du-texte.ts](./mesurer-courbe-du-texte.ts) et [MESURES-COURBE-DU-TEXTE.json](./MESURES-COURBE-DU-TEXTE.json) | Second tour : courbe recalculée et table du thème inversé |
-| [mesurer-polarites.ts](./mesurer-polarites.ts) et [MESURES-POLARITES.json](./MESURES-POLARITES.json) | Premier tour, solutions S1 à S5 ; le script actualise aussi la maquette du premier tour |
-| [mesurer-encres.mjs](./mesurer-encres.mjs) et [MESURES-ENCRES.json](./MESURES-ENCRES.json) | Toute première mesure du texte des boutons |
-| [Archives](./Archives/) | Notes de recette, étude préparatoire et première recherche ; elles traitent les deux sujets |
+| [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html) | Le point d'entrée : choix effectués, règle du thème inversé sur six palettes, choix à prendre, maquette du réglage dans les Réglages communs |
+| [Dossier de recherche](./DOSSIER-TEXTE-DES-BOUTONS.md) | Le raisonnement, les mesures du second tour, les systèmes comparés et les sources |
+| [Mesures](./Mesures/) | [mesurer-courbe-du-texte.ts](./Mesures/mesurer-courbe-du-texte.ts) et [MESURES-COURBE-DU-TEXTE.json](./Mesures/MESURES-COURBE-DU-TEXTE.json) : courbe recalculée et table du thème inversé ; [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) écrit les couleurs de la page |
+| [Archives](./Archives/README.md) | Notes de recette, première recherche, premier tour S1 à S6 et première maquette du thème inversé |
+
+Depuis la racine du dépôt :
+
+```sh
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-courbe-du-texte.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer-texte-des-boutons.ts"
+```

@@ -6,7 +6,7 @@
  * calcule aucune rampe.
  *
  * Depuis la racine du dépôt :
- * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/mesurer-polarites.ts"
+ * npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Archives/mesurer-polarites.ts"
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -28,7 +28,7 @@ import {
   type Mode,
   type Palette,
   type Rgb8,
-} from '../../../../../packages/couleur/src/index';
+} from '../../../../../../packages/couleur/src/index';
 
 /** Le texte posé sur le bouton : clair sur un bouton foncé, sombre sur un bouton clair. */
 type Texte = 'clair' | 'sombre';
