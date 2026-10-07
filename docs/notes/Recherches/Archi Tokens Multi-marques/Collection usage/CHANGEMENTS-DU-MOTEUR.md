@@ -34,7 +34,8 @@ deviennent `elevation/page` et `elevation/raised`.
 
 **La table des emplois**, dans
 [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/), est
-la source commune d'UCM Palettes, de `ucm check` et d'UCM Explorateur.
+la source commune d'UCM Palettes et d'UCM Explorateur ; `ucm check` la lit
+aujourd'hui, et ne la lira plus (P10).
 
 - [`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts) : huit
   emplois et leur cran. `solid` 700, `on-solid` le fond du thème, `text` 700,
@@ -64,8 +65,11 @@ thème inversé.
 **`ucm check`** juge les couleurs d'un contrat contre la table quand
 `tokens.json` porte une collection nommée `usage`
 ([`diagnostic-emplois.mjs`](../../../../../packages/kit/src/lecteurs/diagnostic-emplois.mjs)),
-en avertissement. Cette collection n'a existé que dans les recherches : aucun
-fichier Figma réel ne l'a portée, et le diagnostic ne s'est jamais déclenché.
+en avertissement. Il a été livré avec le lot A4 du
+[plan d'intégration de l'architecture](../PLAN-INTEGRATION-ARCHITECTURE.md),
+quand l'architecture prévoyait une collection `usage` (D13). Cette collection
+n'a existé que dans les recherches : aucun fichier Figma réel ne l'a portée,
+et le diagnostic ne s'est jamais déclenché.
 
 **UCM Explorateur** calcule la cible attendue de chaque usage avec
 `usagesDeLaPalette`
@@ -82,14 +86,14 @@ lecteurs.
 | P2 | Une nuance par variable et par thème, normal et inversé ; le thème inversé change huit variables | Validé | `emplois.ts` et tous ses lecteurs |
 | P3 | Le réglage `texteDesBoutons: { light, dark }`, blanc ou noir par thème, soit quatre combinaisons (recette au format 9, qui lit le format 8), et la courbe du thème inversé : Dark 500 à 800 à 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,745 / 0,69 / 0,61, retenue sans essai Figma et corrigée après la mesure de 204 couleurs, où 0,71 / 0,66 / 0,58 échouait sur des violets et des roses vifs ; une courbe réglée à la main voit ses nuances 500 à 800 remplacées, après un message de confirmation ; Gestion signale les primitives « À actualiser » | Validé | `couleur/src`, migration de format, Gestion |
 | P4 | Les dix-neuf paires deviennent les garanties G1 à G7, plus G8 et G9 entre palettes (section 5) ; l'escalier et le quatrième rang disparaissent | Validé, G8 et G9 comprises | `paires.ts`, `couleur/src/promesses.ts` |
-| P5 | Trois états, `default`, `hover`, `pressed` ; un état sélectionné prend un autre dossier ; le focus ajoute `page/focus` | Validé | `rangs.ts`, nature `etat` de `ucm check` |
+| P5 | Trois états, `default`, `hover`, `pressed` ; un état sélectionné prend un autre dossier ; le focus ajoute `page/focus` | Validé | `rangs.ts`, profil d'UCM Explorateur |
 | P6 | `solid/foreground` vaut le blanc ou le noir purs selon le réglage, au lieu du fond du thème | Validé | `emplois.ts`, `usages.ts`, garanties |
 | P7 | Les crans 50, 400 et 950 ne portent aucune variable de `theme` ; ils restent sous `scale` pour nuancer des éléments sur mesure. Ils deviennent facultatifs : le plugin les calcule par défaut, une recette peut s'en passer, et aucune garantie ne les vise | Validé | `CRANS_DES_EMPLOIS`, validation de la recette |
-| P8 | Ce que chaque variable peint (fond, texte et icône, contour, anneau), pour la nature `support` de `ucm check`. Tous les constats de couleur de `ucm check` sont des informations (`severity: "info"`) : le contrôle s'assure que chaque propriété d'un composant a une variable, et que ces variables existent dans les tokens Figma si l'option est activée ; il ne punit pas un designer qui pose un texte sur un fond | Validé | `SUPPORT_DES_USAGES`, `diagnostic-emplois.mjs` |
-| P9 | Le fond des cartes dans UCM Palettes. Le réglage manuel « Fond » de chaque thème est le fond de la page, `elevation/page` : il peint l'aperçu, et les garanties se mesurent contre lui. La carte, `elevation/raised`, n'a pas de réglage. Deux choix : un deuxième réglage manuel, « Fond des cartes », à côté du premier (blanc en light, neutre 100 en dark par défaut) ; ou mesurer contre le seul fond de la page. Recommandé : le deuxième réglage. En dark, la carte est plus claire que la page, et c'est sur elle que les textes et les fonds pleins tiennent le moins bien (G2, G5 et G6, pire cas sur la carte) | À décider ; réglage manuel recommandé | recette (format 9), Réglages communs, `couleur/src` |
-| P10 | Le diagnostic des couleurs de `ucm check` ne dépend plus d'aucun nom de collection. Aujourd'hui il attend une collection nommée `usage`, qu'aucun fichier réel n'a jamais portée : il ne s'est jamais déclenché, et un nom imposé contredit un contrôle agnostique. Demain il ne s'active que si le dépôt le demande dans sa configuration (éteint par défaut), en disant quelle collection porte la table ; il compare alors le dossier du texte à celui du fond, les états et les alias de cette collection à la table, et mesure les contrastes. Tous ses constats sont des informations (P8). L'autre voie : le retirer d'`ucm check` et laisser ce contrôle au profil d'UCM Explorateur, dans Figma | À décider ; option du dépôt recommandée | `diagnostic-emplois.mjs`, `controle-repository.mjs`, configuration du dépôt |
-| P11 | UCM Explorateur a un profil d'architecture UCM, facultatif : le designer associe chaque collection à une couche, et le plugin contrôle les alias. Ce profil connaît encore l'ancienne architecture : les couches `brand` et `usage`, des composants qui doivent viser `usage`, une nuance attendue vérifiée seulement dans `usage`, et `theme` sans portée. Sur le fichier remappé, il signalerait à tort chaque composant qui vise `theme` et chaque variable de `theme` qui a une portée, et ne vérifierait plus aucune nuance. Demain : les couches `primitives`, `color-brands`, `color-utilities`, `theme`, `components` ; `components` vise `theme` ; la nuance attendue se vérifie dans `theme`, par thème ; les portées de `theme` suivent P8 | Validé | `plugin-explorateur/src/integrations/profilUcm.ts` |
-| P12 | Les tests et documents d'autorité suivent : `emplois.test.ts`, `diagnostic-emplois.test.mjs`, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Validé | tests, documents |
+| P8 | Ce que chaque variable peint (fond, texte et icône, contour, anneau), pour les portées et le profil d'UCM Explorateur. Ses constats sont des informations (P10) | Validé | `SUPPORT_DES_USAGES` |
+| P9 | UCM Palettes mesure les garanties contre le seul fond de la page : son réglage manuel « Fond », `elevation/page`. La carte, `elevation/raised`, n'a pas de réglage et n'entre pas dans les mesures du plugin. Sur les 42 rampes, ce qui tient sur la page tient aussi sur la carte (section 5) ; en dark, la carte, plus claire que la page, reste le cas le plus serré | Décidé par le mainteneur | aucun : le plugin mesure déjà contre le Fond |
+| P10 | Le diagnostic des couleurs sort d'`ucm check`. Il attendait une collection nommée `usage`, qu'aucun fichier réel n'a portée, et un nom imposé contredit un contrôle agnostique. `ucm check` vérifie que chaque propriété d'un composant a une variable, et que ces variables existent dans les tokens Figma si l'option est activée ; il ne juge plus l'usage des couleurs. Ce contrôle passe au profil d'UCM Explorateur, dans Figma, en information (P11) | Décidé par le mainteneur | `diagnostic-emplois.mjs` et son test retirés, `controle-repository.mjs`, `lecteurs/index.mjs`, `navigateur.mjs`, section 2 de FORMAT.md, RECETTE.md, AGENTS.md, README de la CLI |
+| P11 | UCM Explorateur a un profil d'architecture UCM, facultatif : le designer associe chaque collection à une couche, et le plugin contrôle les alias. Ce profil connaît encore l'ancienne architecture : les couches `brand` et `usage`, des composants qui doivent viser `usage`, une nuance attendue vérifiée seulement dans `usage`, et `theme` sans portée. Demain : les couches `primitives`, `color-brands`, `color-utilities`, `theme`, `components` ; `components` vise `theme` ; la nuance attendue se vérifie dans `theme`, par thème ; les portées de `theme` suivent P8. Il reprend ce que faisait le diagnostic d'`ucm check` (P10) : ce que chaque variable peint et les états, en information | Validé | `plugin-explorateur/src/integrations/profilUcm.ts` |
+| P12 | Les tests et documents d'autorité suivent : `emplois.test.ts`, les tests du moteur de couleur, de la planche et des textes ; AGENTS.md, la section 11.2 de la recherche initiale d'UCM Palettes, ARCHITECTURE-FINALE | Validé | tests, documents |
 
 Le moteur fait déjà une partie du travail : `focus` est un emploi de chaque
 palette à la 600, mesuré contre la page (paire 12) et le fond 100 de sa
@@ -107,8 +111,8 @@ configuration, et rien d'autre. Ce qui ne change pas : sa destination et les
 chemins qu'il écrit. `color-brands`, `color-utilities` et `theme` se posent
 hors du plugin, à la main comme dans le fichier remappé, ou un jour par un
 autre plugin qui lirait la table du kit. Les portées des variables de `theme`
-se règlent au même endroit. `ucm check` peut comparer ces alias à la table,
-à la demande et en information (P10).
+se règlent au même endroit. Le profil d'UCM Explorateur compare ces alias à
+la table, en information (P10, P11).
 
 ## 4. Changements d'interface
 
@@ -121,12 +125,12 @@ galerie du plugin (`npm run galerie`, dossier `packages/plugin-palettes`).
 | I2 | Aperçu, accolades (`palette-deux-intensites`) | `on-solid`, `surface` 100 à 400, `solid · text` 700 à 950, `surface-card`, `border-decorative`, `border-control · focus` | Une ligne d'accolades par dossier (`solid`, `surface`, `page`), le dossier écrit à gauche comme Soft et Vivid ; sous chaque accolade, la fin du nom de variable et son nom français ; la case tiretée devient `solid/foreground` | Validé |
 | I3 | Aperçu, thème affiché | Accolades identiques en Light et en Dark | Les accolades suivent la table du thème affiché, normal ou inversé selon le texte des boutons de ce thème | Validé |
 | I4 | Garanties (`garanties-respectees`) | Arcs en escalier, quatre colonnes d'état, paires « `text` sur `surface` », note `neutral.50` | Un éventail par texte vers ses fonds, une ligne par garantie G1 à G7, trois états au plus ; la note cite le réglage Texte des boutons | Validé |
-| I5 | Détail d'une nuance | Rôles par emploi ; contrastes contre « Fond du thème », blanc, noir | Les variables que la nuance porte dans le thème affiché ; contrastes contre `elevation/page`, `elevation/raised`, blanc, noir | Validé |
+| I5 | Détail d'une nuance | Rôles par emploi ; contrastes contre « Fond du thème », blanc, noir | Les variables que la nuance porte dans le thème affiché ; contrastes contre le fond de la page (`elevation/page`), blanc, noir | Validé |
 | I6 | Planche dans Figma | Une ligne par emploi, de `surface-card` à `border-decorative`, en quatre rangs | Une ligne par dossier, chaque variable nommée comme dans `theme`, trois états, G1 à G7 | Validé |
 | I7 | Messages (`garanties-refaites`) | « Texte coloré (text) sur Fond léger (surface) » | Hors de l'aperçu, la phrase se dit d'abord en langage courant, avec les libellés du lexique, puis nomme les variables : « Texte sur fond teinté, sur le fond teinté survolé (`surface/foreground` sur `surface/hover`) · Bleu, thème light ». Dans l'aperçu, le nom de variable reste en premier (I2, I12) | Validé |
 | I8 | Interface de test (`interface-de-test-light`) | Aucun nom de variable | Survoler un élément montre la variable qui le peint ; la vue États suit les trois états | Validé |
 | I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond », avec `solid/foreground` affiché à côté ; « Rétablir » rétablit les valeurs de sa carte ; les tests Chromium couvrent les quatre combinaisons | Validé |
-| I10 | Fonds du thème | Un réglage « Fond » ; la carte est implicite | Les deux noms ensemble, le nom courant d'abord : « Fond de la page » (`elevation/page`) et « Fond des cartes » (`elevation/raised`), avec sa valeur à côté. Le fond des cartes devient modifiable si P9 retient un réglage | Validé |
+| I10 | Fonds du thème | Un réglage « Fond » ; la carte est implicite | Le réglage s'appelle « Fond de la page », avec `elevation/page` à côté : le nom courant d'abord, puis la variable. La carte n'a pas de réglage (P9) | Validé |
 | I11 | Rapport et import | Le rapport exporté nomme les paires par leurs emplois | Le rapport nomme les garanties par leurs variables ; l'import lit le format 9 | Validé |
 | I12 | Aperçu, bandes des dossiers | Accolades grises, sans délimitation entre les lignes | Une bande par dossier, sur un fond très léger ; le nom du dossier se dessine comme ce qu'il peint (`solid` en pastille pleine, `surface` en pastille teintée, `page` en contour) avec son rôle en français dessous ; l'accolade devient une rangée de petites pastilles aux couleurs des nuances qu'elle couvre ; les états s'écrivent « repos · survol · appui » dans l'ordre de leurs nuances ; la colonne de gauche passe de 34 à 56 px | Validé |
 | I13 | Aperçu, survol lié | Le survol d'une pastille signale seulement la cible ; les accolades ne réagissent pas | Survoler ou focaliser une pastille surligne chaque variable de cette nuance et la même nuance dans l'autre intensité ; survoler une variable surligne sa nuance dans chaque intensité (la case tiretée pour `solid/foreground`) ; survoler un dossier surligne ses nuances et atténue les autres ; la nuance choisie garde son surlignage ; tout suit la table du thème affiché. Les accolades restent `aria-hidden` et hors de la tabulation ; le détail de la nuance nomme ses variables (I5). Anneau et fond, pas la couleur seule ; ni délai ni animation. Tests Chromium : les trois sens, thème normal et inversé, une et deux intensités | Validé |
@@ -140,7 +144,9 @@ signale seulement la cible), `ui/styles.css`, `ui/garanties.ts`, `ui/ajustement.
 ## 5. Les garanties
 
 Mesurées sur les 42 rampes de la recherche, dans les quatre thèmes ; le
-thème inversé suit la courbe de P3.
+thème inversé suit la courbe de P3. UCM Palettes les mesure contre le seul fond
+de la page (P9). Les mesures ci-dessous comprennent aussi la carte : sur ces
+rampes, ce qui tient sur la page tient aussi sur la carte.
 
 | N° | Garantie | Seuil | Light | Dark | Light inversé | Dark inversé |
 |---|---|---|---|---|---|---|
@@ -171,6 +177,6 @@ exempté. `page/foreground-subtle` a les mesures de G5 ;
 
 1. **La table du kit et ses tests** : P1, P4 à P8, P12 pour le kit.
 2. **UCM Palettes** : I1 à I8, I10 à I13 sur la nouvelle table ; P9.
-3. **`ucm check` et l'Explorateur** : P10, P11.
+3. **`ucm check` et l'Explorateur** : P10 retire le diagnostic des couleurs d'`ucm check`, P11 met le profil d'UCM Explorateur à jour.
 4. **Le thème inversé** : P2, P3, I9, décidés dans le dossier du texte des
    boutons.

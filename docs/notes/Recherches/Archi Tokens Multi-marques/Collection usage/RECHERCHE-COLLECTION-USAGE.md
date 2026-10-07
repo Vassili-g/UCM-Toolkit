@@ -42,9 +42,8 @@ valeurs de chaque thème, et un programme les écrit.
 collection qui porte les modes Light et Dark porte aussi les noms d'usage.
 Ses deux colonnes suivent une table du kit. Elles se posent dans Figma hors
 d'UCM Palettes, qui n'écrit que les palettes de `primitives` : à la main
-aujourd'hui, ou un jour par un autre plugin. Le profil d'UCM Explorateur, et
-`ucm check` si le dépôt le demande, comparent chaque alias à la table, en
-information. Le designer qui pose un calque ne connaît aucun numéro de
+aujourd'hui, ou un jour par un autre plugin. Le profil d'UCM Explorateur
+compare chaque alias à la table, en information. Le designer qui pose un calque ne connaît aucun numéro de
 nuance.
 
 **Ce que disent les mesures** (42 rampes, quatre thèmes dont deux inversés) :
@@ -117,7 +116,7 @@ chaîne `usage → theme` actuelle ne l'exprime. Trois façons de l'écrire :
 |---|---|---|
 | Un designer repointe à la main, en Dark, les variables qui changent | Le designer, variable par variable | Une erreur ou un oubli ne se voit qu'en Dark ; personne ne relit un alias |
 | Les ensembles : `theme` reçoit des variables nommées pour les emplois qui changent, `usage` garde les autres | Celui qui pose `theme`, depuis la table | La table se lit en deux endroits, selon que l'emploi change ou non |
-| Tous les emplois passent dans la collection qui porte les modes | Celui qui pose `theme`, depuis une seule table | Un alias faux se détecte : `ucm check` le compare à la table (section 4.6) |
+| Tous les emplois passent dans la collection qui porte les modes | Celui qui pose `theme`, depuis une seule table | Un alias faux se détecte : le profil d'UCM Explorateur le compare à la table (section 4.6) |
 
 La troisième façon est celle des systèmes de la section 3.
 
@@ -307,7 +306,7 @@ même geste que dans un thème normal, et ne voit jamais ce 600.
 | Risque | Ce qui le traite | État |
 |---|---|---|
 | Un alias de `theme` faux dans un thème | Le profil d'UCM Explorateur, dans Figma, compare chaque alias de `theme` à la table du kit, dans chaque thème ; un plugin dédié pourrait poser `theme` depuis la table | À écrire ; UCM Palettes n'écrit que `primitives` |
-| Un texte posé sur le fond d'un autre dossier | Si le dépôt le demande, `ucm check` compare, dans chaque variant, le dossier du texte et celui du fond posé dessous, puis mesure leur contraste ; il informe, sans bloquer ni avertir | Le diagnostic des emplois attend une collection `usage` qu'aucun fichier n'a portée ; l'option du dépôt et la règle du dossier sont à écrire |
+| Un texte posé sur le fond d'un autre dossier | Le nom le dit : `surface/foreground` va sur `surface/*`. Le profil d'UCM Explorateur informe ; `ucm check` ne juge pas l'usage des couleurs, et ne punit pas un designer | Le diagnostic des emplois sort d'`ucm check` ; le profil d'UCM Explorateur est à mettre à jour |
 | Un couple qui échoue sur une palette réelle | UCM Palettes mesure chaque couple de la table sur chaque palette, et la carte des garanties l'affiche | Les garanties existent ; leur liste suit la table |
 | Un designer qui choisit un texte dans le mauvais sélecteur | Les portées : un sélecteur de texte ne propose que des textes | D14 ; essai Figma A5.1 à faire |
 | Un designer qui hésite | La description de chaque variable dit sur quoi elle se pose : « Se lit sur `primary/surface/default`, `hover`, `pressed`, la page et une carte » | Essai Figma A5.2 à faire |
@@ -601,8 +600,8 @@ le plugin signale l'échec. La courbe Light inversée corrigée, 0,745 / 0,69 /
 - Une palette libre, dont les numéros sortent du modèle, n'alimente pas
   `theme` : elle n'a pas de variables d'usage.
 - La mesure porte sur des aplats opaques. Une opacité de calque ou un fond
-  translucide demande une composition, que ni UCM Palettes ni `ucm check` ne
-  calculent.
+  translucide demande une composition, que ni UCM Palettes ni UCM Explorateur
+  ne calculent.
 - Les essais Figma A5.1 et A5.2 du
   [plan d'intégration](../PLAN-INTEGRATION-ARCHITECTURE.md) restent à faire :
   filtrage du choix d'un alias par portée, affichage de la description d'une
@@ -639,7 +638,7 @@ Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
 sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
 en Light et en Dark ; la
 table du kit et ses tests ; la pose de `theme` dans Figma, hors d'UCM Palettes ; le profil
-d'UCM Explorateur, et la règle du dossier dans `ucm check`, à la demande du dépôt ; la mise à jour d'ARCHITECTURE-FINALE et de la
+d'UCM Explorateur, et le retrait du diagnostic des couleurs d'`ucm check` ; la mise à jour d'ARCHITECTURE-FINALE et de la
 vue illustrée. Le [document des changements du moteur](./CHANGEMENTS-DU-MOTEUR.md)
 détaille ces chantiers.
 
