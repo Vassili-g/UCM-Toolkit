@@ -1614,10 +1614,10 @@ Onglet Création, une palette ouverte :
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [● Bleu marque              ▾] [Nouvelle palette] [⋯] [Light|Dark] │
+│ [● Bleu marque              ▾] [Nouvelle palette] [⋯]                 │
 │   la création s'ouvre ici, en carte, seulement après [Nouvelle …]     │
-│ Palette Bleu marque                                                   │
-│ ┌ Configuration de la palette ────────────────────────────────────┐  │
+│ Palette Bleu marque                          Aperçu [Light|Dark]      │
+│ ┌ ⌄ Configuration de la palette ──────────────────────────────────┐  │
 │ │ Nom de la palette               Couleur de référence            │  │
 │ │ [Bleu marque                ]   [■ #1E6FD9     ]                 │  │
 │ │                                 Ajuster la référence            │  │
@@ -1627,7 +1627,7 @@ Onglet Création, une palette ouverte :
 │ │ Référence exacte dans  [Auto|Soft|Vivid]                        │  │
 │ │ Auto a choisi Vivid                                             │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
-│ ┌ ──────────────────────────────────────────────────── Fond [■] ──┐  │
+│ ┌ ▦ Aperçu · Les nuances sur le fond du thème ────────── Fond [■] ─┐  │
 │ │ ┌ surface peinte du fond du thème ──────────────────────────┐  │  │
 │ │ │         50 100 200 300 400 500 600 700 800 900 950        │  │  │
 │ │ │ Soft  ┆┆ ■   ■   ■   ■   ■   ■   ■   ■   ■   ■   ■        │  │  │
@@ -1670,9 +1670,12 @@ restent à gauche des rangées, et les trois colonnes de « Configuration de la
 palette » gardent leurs libellés au-dessus des champs.
 
 - `[UI-04]` L'aperçu occupe la largeur utile de sa carte : ses colonnes se
-  calculent après les espacements et les bordures réels. La carte n'a pas de
-  titre. Son en-tête ne porte que la pastille du fond du thème montré, que la
-  barre de la palette choisit (`[UI-23]`). La pastille est un bouton : elle
+  calculent après les espacements et les bordures réels. La carte est fixe et
+  toujours ouverte, sans chevron. Son en-tête porte un glyphe (`[UI-19]`), le
+  titre « Aperçu » et le sous-titre « Les nuances sur le fond du thème », comme
+  les autres cartes titrées, puis, à droite, la pastille du fond du thème
+  montré, que la bascule « Aperçu » de la ligne du titre choisit (`[UI-23]`).
+  La pastille est un bouton de saisie, hors des choix d'affichage : elle
   ouvre le sélecteur de couleur sur ce fond, et une ligne sous le sélecteur
   dit que le fond vaut pour toutes les palettes. La saisie change le réglage
   commun `fonds`, que les Réglages communs montrent aussi. L'étiquette
@@ -1722,16 +1725,17 @@ palette » gardent leurs libellés au-dessus des champs.
   chacune.
 - `[UI-09]` La carte « Garanties de contraste » est dans l'onglet
   Vérification (`[VER-18]`), fixe et toujours ouverte, sans chevron ni
-  résumé. Elle suit le Color shift et montre le thème que la barre de la
-  palette a choisi (`[UI-23]`) ; son en-tête le nomme, « Thème Light » ou
-  « Thème Dark », sans le choisir. Le libellé « Afficher » précède les
+  résumé. Elle montre le thème que la bascule « Aperçu » de la ligne du titre
+  a choisi (`[UI-23]`) ; son en-tête ne le nomme pas et ne le choisit pas. Le
+  corps s'ouvre sur une rangée dont le choix « Afficher », calé à droite, a
+  la forme des autres choix d'affichage (`[UI-12]`) : le libellé précède les
   segments Soft et Vivid, dans cet ordre, qui choisissent le profil affiché
   sans rien régler ; une palette à une intensité n'en a pas, et son résultat
   s'écrit « Garanties ✓ » ou « Garanties ✗ 2 » (`[ENT-14]`). Chaque segment
   porte le résultat de son profil dans le thème montré : ✓, ou ✗ suivi du
   nombre de contrôles manqués (`[VER-06]`). À l'ouverture d'une palette, le
   profil porteur est choisi. Quand l'autre thème a des garanties manquées,
-  une ligne les compte et son lien montre ce thème dans la barre ;
+  une ligne les compte et son lien montre ce thème dans la bascule du titre ;
   « Revenir au thème » ramène au thème d'avant.
   Une réglette montre la case `on-solid`, puis les nuances du profil choisi,
   numérotées, sur le fond du thème. Comme le graphe de la dérive, elle suit la
@@ -1786,10 +1790,19 @@ palette » gardent leurs libellés au-dessus des champs.
   s'écrit deux fois, et aucun ratio ne s'affiche sans le nom de ce qu'il
   compare.
 - `[UI-11]` Le titre de premier rang est « Palette [nom] », avec le nom que le
-  sélecteur affiche, seul sur sa ligne ; il suit un changement de nom pendant
+  sélecteur affiche, en tête de sa ligne ; la bascule « Aperçu » Light/Dark le
+  suit, calée à droite (`[UI-23]`). Il suit un changement de nom pendant
   la saisie, sans retirer le focus du champ. Dessous ne se lisent que le refus
   d'un enregistrement et le conflit, avec leurs gestes ; un enregistrement
-  réussi ne s'annonce pas. La carte « Configuration de la palette » ouvre la
+  réussi ne s'annonce pas. La carte « Configuration de la palette » est
+  repliable et ouverte à l'ouverture du plugin. Repliée, son en-tête porte un
+  résumé : le nom, la référence, le modèle et le nombre d'intensités ; une
+  palette figée ne montre que son nom. Créer une palette, depuis
+  « Nouvelle palette » ou depuis l'invitation d'un fichier sans palette,
+  replie la carte de la palette créée et met le focus sur son bouton de repli.
+  Ouvrir une autre palette ou revenir d'un autre onglet ne change pas son
+  état. Un message de Vérification qui mène à un réglage de cette carte la
+  déplie avant de focaliser le champ. Ouverte, elle montre la
   configuration, disposée comme la création (maquette Y2.6, P2) : Nom de la
   palette et Couleur de référence (pastille cliquable et code hexadécimal,
   qui prend le reste de sa colonne) en deux colonnes, libellé au-dessus du champ ; puis la rangée Modèle
@@ -1828,12 +1841,23 @@ palette » gardent leurs libellés au-dessus des champs.
   l'ouverture, qui gardent leur état pendant la session : « Réglage global »,
   sous-titrée « Teinte, saturation et luminosité de toute la rampe », puis
   « Color shift » ([section 12](#12-le-color-shift)), dont le choix Soft ou
-  Vivid porte le même libellé « Régler ». Leur en-tête est un
-  bouton : chevron, glyphe (`[UI-19]`), titre et sous-titre, puis un résumé
-  aligné à droite, sur une ligne. Le résumé de la première donne les
+  Vivid porte le même libellé « Régler », sans « Les deux » (`[DER-12]`).
+  Leur en-tête est un conteneur : un
+  bouton de repli, avec chevron, glyphe (`[UI-19]`), titre et sous-titre, puis
+  un résumé aligné à droite, sur une ligne, et à côté du bouton, hors de lui,
+  l'emplacement des choix. Tous les choix d'affichage ont une seule forme :
+  un libellé, puis des segments, avec les mêmes boutons et la même
+  typographie (`src/ui/choix.ts`). Carte ouverte, l'en-tête montre ses choix,
+  calés à droite, et cache son résumé ; carte repliée, il montre son résumé et
+  cache ses choix. Un clic sur un segment ne replie pas la carte. À 500 px,
+  des choix qui ne tiennent pas à côté du titre passent sous lui, calés à
+  droite. Les cartes fixes, sans bouton de repli, posent leurs choix sur une
+  première rangée de leur corps, calée à droite : les garanties
+  (`[UI-09]`). Le résumé de la première donne les
   réglages de chaque profil, ou « Aucun réglage », puis sa saturation. La
-  première porte le libellé « Régler » et les segments « Soft · Vivid · Les
-  deux », le ◆ sur le profil porteur, une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
+  première porte, dans son en-tête, le libellé « Régler » et les segments
+  « Soft · Vivid · Les deux », le ◆ sur le profil porteur ; son corps porte
+  une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
   Saturation et Luminosité, chacune avec sa réglette peinte par le moteur,
   son champ, la teinte absolue après le champ de la teinte, et « Rétablir » ;
   un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
@@ -1924,16 +1948,16 @@ palette » gardent leurs libellés au-dessus des champs.
   image, et échoue au premier pixel d'écart.
 - `[UI-14]` L'Interface de test est la dernière carte de l'onglet Création,
   repliée à l'ouverture. Elle montre la palette ouverte, peinte dans le thème
-  de la barre (`[UI-23]`), en deux vues qu'une bascule choisit, et la vue
-  choisie dure la session. Une palette à deux intensités a un choix du profil
-  peint, au bord droit de la première bascule : le libellé « Afficher », puis
-  Soft, Vivid et Les deux, dans cet ordre. Il s'ouvre sur le profil porteur ;
-  changer de palette le rouvre sur le porteur, sauf « Les deux », qui reste.
-  « Les deux » peint deux écrans titrés Soft puis Vivid, chacun avec ses
-  propres gestes, côte à côte quand la carte a la largeur de deux écrans de
-  270 px, empilés sinon ; la vue « États » demande 420 px par grille. Le
-  résumé de la carte nomme alors « Soft et Vivid ». Une palette à une
-  intensité est peinte de sa rampe unique, sans ce choix. « Écran » : une page « Membres de
+  de la bascule « Aperçu » de la ligne du titre (`[UI-23]`), en deux vues
+  qu'un choix « Vue » (« Écran », « États ») détermine, et la vue
+  choisie dure la session. L'en-tête de la carte ouverte porte ce choix puis,
+  pour une palette à deux intensités, le choix du profil peint : le libellé
+  « Afficher », puis Soft et Vivid, dans cet ordre, sans « Les deux ». Il
+  s'ouvre sur le profil porteur ; changer de palette le rouvre sur le porteur.
+  Un seul écran est peint, du profil choisi, et le résumé de la carte nomme le
+  thème et ce profil. Une palette à une
+  intensité est peinte de sa rampe unique, sans le choix du profil, et son
+  en-tête ne garde que « Vue ». « Écran » : une page « Membres de
   l'équipe » sur le modèle de Radix Themes, en HTML, avec une navigation dont
   l'entrée active est en `surface`, un encart en `surface`, un tableau dont
   une ligne se choisit, des badges `surface` et `solid`, un champ bordé de
@@ -2033,8 +2057,8 @@ palette » gardent leurs libellés au-dessus des champs.
   fichier portent au moins une palette (`[VAR-12]`), une ligne sous l'encart
   le dit, « Ce fichier porte déjà 3 palettes dans ses variables. », et son
   lien « Les voir dans Gestion » ouvre l'onglet Gestion.
-- `[UI-23]` La barre de la palette, liste déroulante, « Nouvelle palette »,
-  menu « … » et bascule Light/Dark, avec la confirmation de suppression,
+- `[UI-23]` La barre de la palette, liste déroulante, « Nouvelle palette » et
+  menu « … », avec la confirmation de suppression,
   existe en un seul exemplaire (`src/ui/barreDePalette.ts`). Elle se place
   dans le panneau de l'onglet actif, Création ou Vérification, au changement
   d'onglet : aucun de ses éléments ne se reconstruit, et elle garde sa
@@ -2043,34 +2067,39 @@ palette » gardent leurs libellés au-dessus des champs.
   le verdict de sa palette (`[VER-19]`), ✓, ! ou ✗, et le bouton porte celui
   de la palette ouverte ; le nom accessible de l'option dit le verdict en
   mots.
-  La bascule, « Thème Light » et « Thème Dark », termine la ligne de la barre,
-  après le menu. Elle choisit le thème que l'aperçu, la carte des garanties,
-  le Color shift et l'Interface de test montrent ; son onglet actif prend le
-  fond que toutes les bascules à onglets du plugin donnent à leur onglet
-  actif, et garde `aria-pressed`. Elle se cache avec le menu quand aucune
+  La barre est un bloc ordinaire : elle défile avec la page et ne porte aucun
+  choix de thème. Le thème se choisit dans la ligne du titre « Palette [nom] »
+  (`src/ui/basculeDuTheme.ts`), que Création et Vérification rendent chacune
+  et qui est un enfant direct de la vue de la palette. Le titre s'y coupe par
+  une ellipse, et la bascule suit, calée à droite : le libellé « Aperçu », puis
+  les segments « Light » et « Dark », de la forme des autres choix
+  d'affichage (`[UI-12]`), sans cerne de la couleur de marque. Elle choisit le
+  thème que l'aperçu, la carte des garanties, le Color shift et l'Interface
+  de test montrent ; le segment pressé prend le fond de la page, comme dans
+  tous les choix, et garde `aria-pressed`. La ligne se cache quand aucune
   palette n'est ouverte ; une palette libre la garde. Le thème s'ouvre en
   Light, ne se range ni dans la recette ni dans `figma.clientStorage`, ne
   modifie aucune palette, et son changement n'envoie aucune demande au
   sandbox. « Modifier », dans une fiche de Gestion, ouvre la palette dans le
-  thème de cette fiche. La barre reste en haut du panneau pendant le
-  défilement : choisir Dark depuis l'Interface de test repeint l'écran sans
-  défiler la page, et la liste du sélecteur s'ouvre au-dessus des cartes. À
-  500 px, ses éléments tiennent sur une ligne de 32 px, en français et en
-  anglais.
+  thème de cette fiche. La ligne du titre reste en haut du panneau pendant le
+  défilement, sur un fond opaque : choisir Dark depuis l'Interface de test
+  repeint l'écran sans défiler la page. La liste du sélecteur et le menu
+  « … » s'ouvrent au-dessus de la ligne et des cartes. À 500 px, la ligne
+  tient sur une seule ligne, en français et en anglais.
 
 Onglet Vérification :
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [● Bleu marque            ✗ ▾] [Nouvelle palette] [⋯] [Light|Dark] │
-│ Palette Bleu marque                                                   │
+│ [● Bleu marque            ✗ ▾] [Nouvelle palette] [⋯]                 │
+│ Palette Bleu marque                          Aperçu [Light|Dark]      │
 │ ┌ ✗ 2 garanties manquées sur 76 · 1 point à vérifier ──────────────┐ │
 │ Garanties à corriger (2)                                              │
 │ │ où · quoi · geste                          [Ajuster le Color shift] │
 │ Points à vérifier (1)                                                 │
 │ │ où · quoi · geste                          [Ajuster la saturation]  │
-│ ┌ Garanties de contraste ─────────────────────────── Thème Dark ───┐ │
-│ │ Afficher  [Soft ✓ | Vivid ✗ 2]                                  │  │
+│ ┌ Garanties de contraste ──────────────────────────────────────────┐ │
+│ │                                   Afficher  [Soft ✓ | Vivid ✗ 2] │  │
 │ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
 │ │ Textes lisibles                                 minimum 4,5:1   │  │
 │ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
@@ -2081,7 +2110,8 @@ Onglet Vérification :
 ```
 
 - `[VER-18]` L'onglet Vérification montre, de haut en bas : la barre du
-  sélecteur (`[UI-23]`) ; le titre « Palette [nom] » ; le verdict de la
+  sélecteur (`[UI-23]`) ; la ligne du titre « Palette [nom] » et de la bascule
+  « Aperçu » Light/Dark, qui reste en haut ; le verdict de la
   palette ouverte sur son fond de sévérité, avec le compte des garanties et
   des points à vérifier ; ses messages, groupés par sévérité (`[VER-14]`),
   les garanties à corriger en premier, chacun avec ses liens (`[VER-15]`) ;
@@ -2101,12 +2131,13 @@ Onglet Vérification :
   seulement pour une palette dont le JSON ou celui des réglages communs a
   changé : un glisser n'analyse que la palette ouverte.
 - `[VER-20]` La carte des garanties et l'aperçu de Création montrent le thème
-  de la barre de la palette (`[UI-23]`) ; la carte le nomme sans le choisir.
-  Dans le détail d'une nuance (`[UI-10]`), un clic sur une garantie ouvre
-  Vérification et y choisit sa ligne. Dans la carte, le lien vers l'autre
-  thème change le thème de la barre sans quitter Vérification, et « Revenir
-  au thème » ramène au thème d'avant ; ces deux liens ne se trouvent que
-  dans la carte.
+  de la bascule « Aperçu » de la ligne du titre (`[UI-23]`) ; la carte ne le
+  nomme ni ne le choisit. Dans le détail d'une nuance (`[UI-10]`), un clic sur
+  une garantie ouvre Vérification et y choisit sa ligne. Dans la carte, la
+  ligne de l'autre thème garde ses deux liens : le lien vers l'autre thème
+  change le thème de la bascule du titre sans quitter Vérification, et
+  « Revenir au thème » ramène au thème d'avant ; ces deux liens ne se
+  trouvent que dans la carte.
 
 Onglet Gestion, Bleu dépliée :
 

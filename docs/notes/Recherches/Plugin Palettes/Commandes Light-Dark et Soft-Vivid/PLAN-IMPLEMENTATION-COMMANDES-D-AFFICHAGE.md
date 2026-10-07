@@ -145,6 +145,17 @@ les images, et les comparer au modèle A de la maquette.
   .btn-primary` n'existe pas) : son clic vise `.creation-ligne .btn-primary`.
 - Mesure du glisser après la première livraison : `pointermove` 3,4 ms en
   médiane, 5,3 ms au pire.
+- R4.1 à R4.5 livrées, à commiter. Comptes : 388 tests unitaires, 201 tests
+  d'interface. La spécification (`[UI-04]`, `[UI-09]`, `[UI-11]`, `[UI-12]`,
+  `[UI-14]`, `[UI-23]`, `[VER-18]`, `[VER-20]`, les croquis de Création et de
+  Vérification), `AGENTS.md` (carte du code et invariants « Interface d'UCM
+  Palettes »), `CONTRIBUTING.md`, le dossier et son README décrivent l'état
+  livré. L'état de galerie `barre-fixe-defilee` s'appelle `titre-fixe-defile`, et
+  les `regarder` disent où chaque choix se place. Captures en thème sombre à
+  600 × 720 et à 500 × 520 lues : les choix ont la forme du modèle A de la
+  maquette. Mesure du glisser après la révision : `pointermove` 3,5 ms en
+  médiane, 5,4 ms au pire, soit 3 % de plus que 3,4 ms. Reste la recette du
+  mainteneur dans Figma.
 
 ## Phase R1 : retirer ce que la révision écarte
 
@@ -297,14 +308,14 @@ La carte des garanties reçoit en tête de son corps une `.rangee-des-choix` :
 
 ## Phase R4 : documents, galerie et mesures
 
-- [ ] **R4.1 La spécification.**
+- [x] **R4.1 La spécification.**
   [RECHERCHE-PLUGIN-PALETTES.md](../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) :
   récrire `[UI-23]` pour la ligne du titre collée qui porte « Aperçu
   Light/Dark », `[UI-09]` et `[VER-20]` pour la carte qui ne nomme plus le
   thème, `[UI-12]` et `[UI-14]` pour la rangée des choix et l'Interface de
   test sans « Les deux », `[UI-04]` et les croquis de Création et de
   Vérification.
-- [ ] **R4.2 AGENTS.md et CONTRIBUTING.md.** Carte du code :
+- [x] **R4.2 AGENTS.md et CONTRIBUTING.md.** Carte du code :
   `barreDePalette.ts`, `choix.ts`, `basculeDuTheme.ts`, `interfaceDeTest.ts`,
   `garanties.ts`, `ongletCreation.ts`, `ongletVerification.ts`. Invariant de
   « Interface d'UCM Palettes » : la ligne du titre porte le thème et reste en
@@ -312,16 +323,16 @@ La carte des garanties reçoit en tête de son corps une `.rangee-des-choix` :
   carte ouverte, ou dans la rangée en tête du corps pour une carte fixe. Nommer les tests de R2.3 et R3.5. Dans
   CONTRIBUTING.md, la section des surfaces d'UCM Palettes suit les mêmes
   règles.
-- [ ] **R4.3 La galerie.** Fichier : `galerie/etats.cjs`. L'état
+- [x] **R4.3 La galerie.** Fichier : `galerie/etats.cjs`. L'état
   `barre-fixe-defilee` devient `titre-fixe-defile`. Les `regarder` des états
   de l'aperçu, du Réglage global, du Color shift, de l'Interface de test et
   des garanties disent où chaque choix se place, calé à droite, et son
   libellé. Capturer ces états en thème sombre aux deux tailles, les lire, les
   comparer au modèle A.
-- [ ] **R4.4 La mesure.** Lancer `scripts/mesurer-glisser.mjs` et reporter la
+- [x] **R4.4 La mesure.** Lancer `scripts/mesurer-glisser.mjs` et reporter la
   médiane dans le point de reprise. Un écart de plus de 10 % avec 3,4 ms se
   signale au mainteneur.
-- [ ] **R4.5 Le dossier.**
+- [x] **R4.5 Le dossier.**
   [DOSSIER-COMMANDES-D-AFFICHAGE.md](./DOSSIER-COMMANDES-D-AFFICHAGE.md) et
   [README.md](./README.md) : statut implémenté, en attente de la recette ;
   les décisions du mainteneur ; la question « Les deux dans le Color shift »

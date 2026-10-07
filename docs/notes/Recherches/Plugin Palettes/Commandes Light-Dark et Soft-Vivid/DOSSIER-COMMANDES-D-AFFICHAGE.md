@@ -1,18 +1,28 @@
 # Commandes Light/Dark et Soft/Vivid : dossier de recherche
 
-**Statut :** implémenté (phases 1 à 3 et 5). La phase 4 attend la décision du
-mainteneur sur la section 4.
+**Statut :** implémenté, en attente de la recette du mainteneur dans Figma. La
+recette est décrite dans le
+[plan d'implémentation](./PLAN-IMPLEMENTATION-COMMANDES-D-AFFICHAGE.md#recette-du-mainteneur).
 
 ## En bref
 
-**Validé par le mainteneur :**
+**Décisions du mainteneur, toutes implémentées :**
 
-1. Un seul bouton Light/Dark, dans la barre de la palette, visible pendant le
-   défilement (modèle A).
-2. Les choix Soft / Vivid / Les deux dans toutes les sections de réglage, comme
-   dans la maquette.
-
-**À décider :** le sens de « Les deux » dans le Color shift (section 4).
+1. Le thème Light/Dark se choisit dans la ligne du titre « Palette [nom] »,
+   par un choix « Aperçu » calé à droite. La ligne reste en haut du panneau
+   pendant le défilement, dans Création comme dans Vérification. La barre de la
+   palette est un bloc ordinaire.
+2. Tous les choix d'affichage ont une seule forme : un libellé, puis des
+   segments, sans cerne de marque. Ils se placent dans l'en-tête de leur carte
+   ouverte, calés à droite, ou, pour la carte fixe des garanties, en tête de
+   son corps. Carte repliée, l'en-tête montre son résumé et cache ses choix.
+3. « Les deux » ne reste que dans le Réglage global. Le Color shift et
+   l'Interface de test n'ont que Soft et Vivid, et l'Interface de test peint un
+   seul écran.
+4. La carte des garanties ne nomme plus le thème dans son en-tête.
+5. La carte de l'aperçu a un glyphe, un titre et un sous-titre, comme les
+   autres cartes.
+6. La carte de configuration se replie après la création d'une palette.
 
 Ce lot ne dépend pas du choix du texte des boutons, étudié dans
 [Texte des boutons](../Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md).
@@ -32,65 +42,74 @@ La demande est citée en [annexe](#annexe--demande-originale).
 
 ## 2. Décisions
 
-### Modèle A
+### Light/Dark dans le titre de la palette
 
-Light/Dark rejoint la barre de la palette, que Création et Vérification
-partagent, et qui reste fixe en haut du panneau pendant le défilement.
-L'aperçu et la carte des garanties perdent leur propre bouton. Le thème est un
-contexte d'aperçu : il ne modifie jamais une palette, ne se range pas dans la
-recette et n'écrit rien dans Figma.
+La [maquette](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html)
+propose quatre modèles, A à D, et le modèle A est validé : un seul bouton
+Light/Dark, toujours visible. Le mainteneur l'a placé dans la ligne du titre
+« Palette [nom] » plutôt que dans la barre de la palette, avec le libellé
+« Aperçu » et les segments « Light » et « Dark », sans le cerne de marque de la
+maquette. La ligne a un fond opaque et se colle en haut du panneau : choisir
+Dark depuis l'Interface de test ne défile pas la page. Le thème est un contexte
+d'aperçu : il ne modifie jamais une palette, ne se range pas dans la recette et
+n'écrit rien dans Figma.
 
-La barre fixe prend une ligne de 32 px à la taille minimale, 500 × 520
+La ligne tient sur une ligne à la taille minimale, 500 × 520
 ([`fenetre.ts`](../../../../../packages/plugin-palettes/src/fenetre.ts)). Les
 modèles B (un bouton par carte, tous liés), C (Light et Dark côte à côte) et D
-(un bouton par carte, indépendants) restent dans la
-[maquette](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html)
-pour mémoire.
+(un bouton par carte, indépendants) restent dans la maquette pour mémoire.
 
-### Soft / Vivid / Les deux
+### Une forme et une place pour les choix
 
-Chaque section de réglage offre les trois choix. Chaque choix dit sa portée :
-« Régler » quand il désigne ce que les réglages modifient, « Afficher » quand
-il choisit seulement la rampe montrée.
+Chaque choix dit sa portée par son libellé : « Régler » quand il désigne ce
+que les réglages modifient, « Afficher » quand il choisit seulement la rampe
+ou le thème montrés, « Vue » pour l'écran ou les états de l'Interface de test,
+« Aperçu » pour le thème. Les segments de formulaire de la configuration et de
+Gestion ne sont pas des choix d'affichage.
 
-## 3. Les commandes aujourd'hui
+### Soft, Vivid et Les deux
+
+« Les deux » ne désigne un profil que dans le Réglage global, où un réglage peut
+viser Soft, Vivid ou les deux. Le Color shift règle un profil à la fois et
+garde sa case « Synchroniser Soft et Vivid » : cochée, elle cache le choix.
+L'Interface de test et les garanties affichent un profil, sans rien modifier.
+
+## 3. Les commandes
 
 | Surface | Commande | Ce qu'elle pilote |
 |---|---|---|
-| Création, en-tête de l'aperçu | Light / Dark | Le thème de l'aperçu, transmis au Color shift et à l'Interface de test |
-| Vérification, carte des garanties | Light / Dark | Le même état, par `gestes.mode()` |
-| Réglage global | Soft / Vivid / les deux | Les profils que les réglettes modifient |
-| Color shift | Soft / Vivid | Le profil que l'éditeur modifie ; le graphe montre les deux |
-| Interface de test | Soft / Vivid | La rampe affichée ; ne modifie rien |
-| Carte des garanties | Soft / Vivid | Le profil dont les garanties s'affichent ; ne modifie rien |
+| Ligne du titre, Création et Vérification | « Aperçu » : Light, Dark | Le thème montré par l'aperçu, la carte des garanties, le Color shift et l'Interface de test |
+| Réglage global, en-tête | « Régler » : Soft, Vivid, Les deux | Les profils que les réglettes modifient |
+| Color shift, en-tête | « Régler » : Soft, Vivid | Le profil que l'éditeur modifie ; le graphe montre les deux |
+| Interface de test, en-tête | « Vue » : Écran, États ; « Afficher » : Soft, Vivid | La vue et la rampe peintes ; ne modifie rien |
+| Carte des garanties, tête du corps | « Afficher » : Soft, Vivid | Le profil dont les garanties s'affichent ; ne modifie rien |
 | Réglages communs | Colonnes Light et Dark | Fonds, courbes et part des fonds sombres, propres à chaque thème |
 
-Le thème s'initialise à Light au chargement
-([`nuancier.ts`](../../../../../packages/plugin-palettes/src/ui/nuancier.ts)).
+Le thème s'initialise à Light à l'ouverture du plugin
+([`paletteOuverte.ts`](../../../../../packages/plugin-palettes/src/ui/paletteOuverte.ts)).
 
 ### Régler Light et Dark indépendamment
 
 La question du mainteneur recouvre trois besoins :
 
-1. voir l'autre thème sans remonter : le modèle A y répond ;
+1. voir l'autre thème sans remonter : la ligne du titre collée y répond ;
 2. régler des valeurs propres à chaque thème : fonds, courbes et part des
    fonds sombres existent déjà en deux colonnes ; le texte des boutons s'y
    ajoutera si sa proposition est retenue ;
 3. régler chaque palette par thème : non retenu, aucun besoin mesuré.
 
-## 4. Décision ouverte
+## 4. Question close
 
-**Le sens de « Les deux » dans le Color shift** :
-
-- a. un même réglage appliqué aux deux profils, comme le lien que la dérive
-  porte déjà (`derive.lien`) ;
-- b. un décalage commun, ajouté au réglage propre de chaque profil.
+« Les deux » dans le Color shift : le mainteneur l'a écarté. Le Color shift
+garde Soft et Vivid, sans « Les deux ».
 
 ## 5. Lot du plan
 
-Plugin : barre fixe et commande Light/Dark, choix Soft / Vivid / Les deux dans
-chaque section, tests Chromium aux deux tailles de fenêtre. Ce lot se livre
-avant ou après celui du texte des boutons. Le
+Plugin : la bascule « Aperçu » dans la ligne du titre, le composant de choix
+commun, leur place dans l'en-tête des cartes ouvertes et en tête du corps des
+garanties, l'aperçu titré, la configuration repliée après une création, et les
+tests Chromium aux deux tailles de fenêtre. Ce lot se livre avant ou après
+celui du texte des boutons. Le
 [plan d'implémentation](./PLAN-IMPLEMENTATION-COMMANDES-D-AFFICHAGE.md) ordonne
 ce lot en phases, dit les fichiers touchés et garde l'état de livraison.
 

@@ -266,21 +266,22 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, le thème montré, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet, et ceux du thème à chaque changement
-  src/ui/barreDePalette.ts la barre de la palette ouverte, en un exemplaire que l'onglet actif place dans son panneau et qui reste en haut pendant le défilement : sélecteur, « Nouvelle palette », menu, bascule Light/Dark du thème montré, confirmation de suppression
-  src/ui/ongletCreation.ts l'onglet Création : la barre, le titre « Palette [nom] », l'encart d'une palette reprise du fichier, les cartes, puis le pied qui compte les messages ; l'état du geste en cours
-  src/ui/ongletVerification.ts l'onglet Vérification : la barre, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
+  src/ui/barreDePalette.ts la barre de la palette ouverte, un bloc ordinaire en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
+  src/ui/basculeDuTheme.ts le choix « Aperçu » Light/Dark du thème montré, que la ligne du titre de Création et celle de Vérification rendent chacune
+  src/ui/ongletCreation.ts l'onglet Création : la barre, la ligne du titre « Palette [nom] » et de la bascule du thème, l'encart d'une palette reprise du fichier, les cartes, dont la configuration repliée après une création, puis le pied qui compte les messages ; l'état du geste en cours
+  src/ui/ongletVerification.ts l'onglet Vérification : la barre, la ligne du titre et de la bascule du thème, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
   src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, « Vérifier », annonce en fin de geste
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
-  src/ui/carte.ts          une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé
-  src/ui/glyphes.ts        le glyphe de chaque carte titrée, en formes à rôle de couleur, que la maquette du Color shift dessine aussi
+  src/ui/carte.ts          une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé ; une carte repliable porte un en-tête de bouton de repli puis l'emplacement de ses choix, visible carte ouverte
+  src/ui/glyphes.ts        le glyphe de chaque carte titrée, aperçu compris, en formes à rôle de couleur, que la maquette du Color shift dessine aussi
   src/ui/calculDesLimites.ts les limites dynamiques calculées par tranches entre les images, terminées au début d'un geste
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
   src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser suivi sur le document
   src/ui/nuancier.ts       l'aperçu peint du fond du thème montré, sans bascule : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
-  src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : thème montré nommé dans l'en-tête et liens vers l'autre thème, choix Soft/Vivid « Afficher » pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
+  src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : en-tête sans thème, rangée en tête du corps pour le choix Soft/Vivid « Afficher » (deux intensités), liens vers l'autre thème, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
@@ -299,8 +300,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la butée, la note d'une palette grise et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, ceux des intensités, et la liste entière de Vérification
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
-  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état, avec Soft et Vivid côte à côte pour « Les deux »
-  src/ui/choixDuProfil.ts  le choix du profil commun aux cartes : libellé « Régler » ou « Afficher », segments Soft, Vivid et Les deux dans cet ordre, ◆ sur le profil porteur
+  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état, un seul écran du profil choisi ; ses choix « Vue » (Écran, États) et « Afficher » (Soft, Vivid) sont dans l'en-tête
+  src/ui/choix.ts          le choix d'affichage commun à toutes les cartes (`createChoix`, classe `.choix-d-affichage`) : un libellé, puis des segments ; `createChoixDuProfil` y ajoute « Régler » ou « Afficher », les segments Soft, Vivid et Les deux dans cet ordre, ◆ sur le profil porteur ; `createRangeeDesChoix` pour une carte fixe
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
   src/ui/derive/           la carte « Color shift » : choix du profil à régler, onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
@@ -1314,17 +1315,35 @@ La spécification en lien porte le raisonnement.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Le thème montré, Light ou Dark, ne se range nulle part et ne produit aucune
   demande au sandbox : il vit dans `src/ui/paletteOuverte.ts`, s'ouvre en
-  Light, et seule la barre de la palette (`src/ui/barreDePalette.ts`) le
-  choisit. Cette barre reste en haut du panneau pendant le défilement, si bien
-  qu'un changement de thème depuis l'Interface de test ne défile pas la page.
+  Light, et seule la bascule « Aperçu » (`src/ui/basculeDuTheme.ts`) le
+  choisit. Elle est dans la ligne du titre « Palette [nom] » de Création et de
+  Vérification, qui reste en haut du panneau pendant le défilement, sur un fond
+  opaque : un changement de thème depuis l'Interface de test ne défile pas la
+  page. La barre de la palette (`src/ui/barreDePalette.ts`) ne porte aucun
+  choix de thème et n'est pas collante.
   `tests/paletteOuverte.test.ts` tient l'état. Les tests `[UI-23]` de
   `interface.test.mjs` tiennent la bascule dans Création et dans Vérification,
-  la barre au haut de la zone visible à 600 × 720 et à 500 × 520, sa ligne
-  unique à 500 px en français et en anglais, et la liste du sélecteur au-dessus
-  des cartes ; « changer de thème n'envoie aucune demande au sandbox » et le
-  test `[VER-20]` tiennent le reste. Borne : le test des demandes relève les
+  la ligne du titre au haut de la zone visible à 600 × 720 et à 500 × 520, sa
+  ligne unique à 500 px en français et en anglais, la barre qui défile avec la
+  page, et la liste du sélecteur et le menu « … » au-dessus de la ligne et des
+  cartes ; « changer de thème n'envoie aucune demande au sandbox » et le test
+  `[VER-20]` tiennent le reste. Borne : le test des demandes relève les
   messages vers le sandbox, pas le contenu de `clientStorage`, et la tenue en
   haut ne se mesure qu'avec l'Interface de test dépliée.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
+- Chaque choix d'affichage, thème, profil ou vue, est un `createChoix`
+  (`src/ui/choix.ts`, classe `.choix-d-affichage`) : un libellé, puis des
+  segments, avec la même hauteur, la même police et la même graisse partout, et
+  sans cerne de la couleur de marque. Il se place dans l'en-tête de sa carte
+  ouverte, calé à droite, hors du bouton de repli, ou, pour une carte fixe,
+  dans la rangée en tête du corps (`createRangeeDesChoix`) ; carte repliée,
+  l'en-tête cache ses choix et montre son résumé. « Les deux » n'existe que
+  dans le Réglage global. Les tests `[UI-12]`, `[UI-14]`, `[UI-09]` et `[UI-23]`
+  de `interface.test.mjs` relèvent le lieu, le bord droit à 1 px près, la
+  forme commune, l'alternance du choix et du résumé selon l'état de la carte,
+  et l'absence de défilement horizontal à 500 px en français et en anglais.
+  Borne : les segments des formulaires de `src/ui/champs.ts`, de la
+  configuration et de Gestion ne sont pas des choix d'affichage.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Un geste du Color shift ou du réglage global ne range jamais une valeur
   au-delà de la limite dynamique calculée au début du geste : la poignée et la

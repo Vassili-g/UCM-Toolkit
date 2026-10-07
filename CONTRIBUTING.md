@@ -276,11 +276,12 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   sélecteur, puis, sous le filet, une invitation, un titre de premier rang et
   une phrase, sans geste propre ; les gestes sont ceux de la barre ;
 - la barre du sélecteur vient en tête : la liste déroulante prend toute la
-  largeur libre, « Nouvelle palette », « … » et la bascule Light/Dark
-  gardent leur largeur naturelle et la hauteur de la liste. La barre reste en
-  haut du panneau pendant le défilement. Suit un seul titre de premier rang,
-  « Palette [nom] », avec le nom que le sélecteur affiche, seul sur sa
-  ligne : un nom long se coupe. « Nouvelle palette » est le bouton principal
+  largeur libre, « Nouvelle palette » et « … » gardent leur largeur naturelle
+  et la hauteur de la liste. La barre est un bloc ordinaire, qui défile avec la
+  page. Suit la ligne du titre : le titre de premier rang, « Palette [nom] »,
+  avec le nom que le sélecteur affiche, qu'un nom long coupe, puis la bascule
+  « Aperçu » Light/Dark, calée à droite. Cette ligne reste en haut du panneau
+  pendant le défilement. « Nouvelle palette » est le bouton principal
   de l’onglet, qui ne génère rien. Un filet sépare la barre et la carte de
   création de la palette ouverte, à 15 px de chacune. Chaque sous-section
   de la configuration est une carte de même facture : fond secondaire de
@@ -304,15 +305,25 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   Vérification, fixe et toujours ouverte : la palette se règle dans Création
   et se juge dans Vérification.
   Une palette à une intensité n’a ni segments « Soft · Vivid · Les deux », ni
-  bascule Soft et Vivid : aucune surface ne montre un profil que la palette
+  choix Soft et Vivid : aucune surface ne montre un profil que la palette
   ne porte pas. Le module de la carte « Teinte, saturation, luminosité » est
-  `reglagesDeLaPalette.ts`. Toutes les
-  cartes, sauf Configuration et aperçu, se replient et sont repliées à
-  l’ouverture ; leur en-tête est un bouton qui
-  porte le chevron, le titre et un résumé aligné à droite, sur une ligne ;
-- la carte d’aperçu n’a pas de titre : son en-tête ne porte que la
-  pastille du fond, à droite, qui ouvre le sélecteur de couleur. La bascule
-  Light/Dark est dans la barre de la palette. L’aperçu est une
+  `reglagesDeLaPalette.ts`. Les cartes
+  Réglage global, Color shift et Interface de test se replient et sont repliées
+  à l’ouverture ; la configuration se replie aussi, ouverte à l’ouverture du
+  plugin, et se replie à la création d’une palette. Le bouton de repli d’une
+  carte porte le chevron, le titre et un résumé aligné à droite, sur une
+  ligne ;
+- chaque choix d’affichage, thème, profil ou vue, a une seule forme : un
+  libellé, puis des segments (`createChoix`, `src/ui/choix.ts`). Il se place
+  dans l’en-tête de sa carte ouverte, calé à droite, hors du bouton de repli,
+  et la carte repliée le cache pour montrer son résumé ; la carte fixe des
+  garanties le place sur la première rangée de son corps, et son en-tête ne
+  nomme pas le thème. « Les deux » ne se choisit que dans le Réglage global,
+  le Color shift et l’Interface de test n’ont que Soft et Vivid ;
+- la carte d’aperçu est fixe et titrée comme les autres : glyphe, titre
+  « Aperçu » et sous-titre, puis la pastille du fond, à droite, qui ouvre le
+  sélecteur de couleur. La bascule Light/Dark est dans la ligne du titre de la
+  palette. L’aperçu est une
   surface peinte du fond du thème choisi, à l’intérieur de sa carte. Il peut
   occuper la plus grande part du panneau. La ligne « ◆ Référence » se lit sous
   lui ;
@@ -320,7 +331,7 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   résultat s’y lisent, et un nouveau résultat remplace le précédent au même
   endroit. Sous le titre de l’onglet Création ne se lisent que le refus d’un
   enregistrement et le conflit ; un enregistrement réussi ne s’annonce pas ;
-- toutes les bascules à onglets, thème, profil et vue, donnent à l’onglet
+- tous les choix d’affichage, thème, profil et vue, donnent au segment
   actif le même fond, distinct de la carte aux deux thèmes de Figma. Un
   segment qui choisit une valeur, modèle, référence exacte ou préréglage,
   garde le fond des blocs ;
