@@ -161,6 +161,7 @@ svg.courbe .zone-texte { fill: var(--fond-bon); }
 .p-table .valeur { background: var(--p-fond); border: 1px solid var(--p-bordure); }
 .p-table .valeur.change { border-color: var(--p-marque); color: var(--p-texte-marque); font-weight: 700; }
 .p-garantie { color: var(--p-second); }
+.p-variable { font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--p-note); color: var(--p-second); padding: 0 4px; border-radius: 3px; }
 .notes-atelier { display: grid; gap: 12px; }
 .notes-atelier ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 
@@ -354,7 +355,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
       <div class="carte decision">
         <div class="decision-tete"><h4>I-d. Le libellé</h4></div>
         <ul class="options">
-          <li class="reco"><span class="lettre">a</span><span><b>« Texte des boutons » : Blanc | Noir</b>, en anglais « Button text » : White | Black. Une pastille dans chaque segment montre la couleur.</span></li>
+          <li class="reco"><span class="lettre">a</span><span><b>« Texte des boutons » : Blanc | Noir</b>, en anglais « Button text » : White | Black. Une pastille dans chaque segment montre la couleur. Le nom de la variable réglée, <code>solid/foreground</code>, s'affiche à côté du libellé, comme pour chaque usage nommé dans l'interface.</span></li>
           <li><span class="lettre">b</span><span><b>« Texte sur le bouton » : Clair | Sombre.</b> Plus proche de la demande, mais « clair » laisse croire à un gris.</span></li>
         </ul>
       </div>
@@ -577,7 +578,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
     return `<div class="p-champ">
       <span class="p-libelle">Fond du thème ${NOM[theme]}</span>
       <div class="p-hexa"><span class="pastille" style="background:${D.fonds[theme]}"></span><span class="saisie">${D.fonds[theme]}</span></div>
-      <span class="p-libelle" style="margin-top:4px">Texte des boutons</span>
+      <span class="p-libelle" style="margin-top:4px">Texte des boutons <code class="p-variable">solid/foreground</code></span>
       <div class="p-segments" role="group" aria-label="Texte des boutons du thème ${NOM[theme]}">${segments(theme)}</div>
     </div>`;
   }
