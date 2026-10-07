@@ -89,10 +89,10 @@ Hors périmètre :
 - Le niveau d'élévation `overlay`, retiré de l'architecture.
 - Le Playground : sa migration vers `theme` est un chantier du mainteneur.
 - Le bouton plein basculable, dont l'état activé survolé n'a pas de
-  variable : question en suspens, décrite dans le
-  [README de ce dossier](./README.md), section « Questions en suspens ».
-  Une décision prise pendant l'exécution arrête le plan, qui doit être
-  relu avant de continuer.
+  variable : question ouverte, décrite dans
+  [ARCHITECTURE-FINALE-MULTIMARQUES.md](../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
+  section 10. Une décision prise pendant l'exécution arrête le plan, qui doit
+  être relu avant de continuer.
 
 ## Spécification
 
@@ -984,7 +984,8 @@ manque.
     `docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`
     (`[REC-03]`, `[ENT-10]`, section 11.2) ;
     `docs/notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md`,
-    sections 4 et 5.
+    sections 4 et 5 ; la question du bouton plein basculable, en section 10,
+    reste tant que le mainteneur ne l'a pas tranchée.
   - Faire : charger d'abord la skill `rediger-sans-tics-ia`. Écrire les
     faits de S1 à S7 là où le document décrit déjà la table, le format et
     les garanties : la table en dossiers et ses deux sens, les crans requis,

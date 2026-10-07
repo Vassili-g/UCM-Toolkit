@@ -569,6 +569,34 @@ variables avant de la publier.
   qui situent chaque peinture, et non dans les noms de ses tokens.
 - `theme` suit sa règle, et chaque marque et chaque thème ont une valeur :
   aucun contrôle ne le vérifie encore.
+- **Le bouton plein basculable, activé et survolé.** Question ouverte,
+  posée sur la table en dossiers `solid`, `surface` et `page` à trois états
+  (`default`, `hover`, `pressed`) qui remplace les quatre rangs. Un bouton
+  plein qu'on active et désactive suit `solid/default`, `solid/hover` et
+  `solid/pressed` ; activé, il reste sur `solid/pressed`. Activé et survolé,
+  il n'a pas de variable : `solid/hover` lui donnerait la couleur du bouton
+  désactivé survolé, et le survol effacerait la différence. L'ancien rang
+  `active-hover` couvrait ce cas. Le mainteneur a de tels composants. Pistes :
+  1. deux variables de plus dans `solid`, `solid/selected` et
+     `solid/selected-hover` : 900 et 950 dans le thème normal, 500 et 400 dans
+     le thème inversé. Les crans 950 et 400 redeviennent requis, et le texte
+     des boutons doit tenir sur ces deux fonds. En Light inversé, la 400 et la
+     500 ne sont qu'à 0,014 ΔEok : le survol activé s'y voit à peine. Les
+     tokens d'Atlassian ont une famille `selected` avec ses propres `hovered`
+     et `pressed` (à vérifier). Piste recommandée ;
+  2. trois états, et l'état activé marqué autrement que par la couleur
+     (coche, icône, contour intérieur en `solid/foreground`), le survol activé
+     prenant `solid/hover`. WCAG 1.4.1 le demande de toute façon ; se combine
+     avec la piste 1 ;
+  3. un calque d'état translucide, comme Material : une couche de
+     `solid/foreground` à faible opacité au survol et à l'appui. Sort du
+     modèle opaque, et aucun outil du dépôt ne mesure un contraste composé ;
+  4. l'état activé survolé reprend `solid/hover`. Garde l'ambiguïté ;
+     déconseillée.
+
+  Une décision touche la table des dossiers, les crans requis, les garanties
+  du texte des boutons, l'aperçu d'UCM Palettes, la carte des garanties, la
+  planche et la vue États de l'Interface de test.
 
 L'ordre des changements dans le code et la spécification d'UCM Palettes est
 dans [PLAN-INTEGRATION-ARCHITECTURE.md](./PLAN-INTEGRATION-ARCHITECTURE.md).
