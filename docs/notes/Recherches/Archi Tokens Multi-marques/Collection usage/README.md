@@ -23,6 +23,9 @@ dans [mesurer-dossiers.ts](./mesurer-dossiers.ts) et
 [CHANGEMENTS-DU-MOTEUR.md](./CHANGEMENTS-DU-MOTEUR.md) liste ce que cette
 architecture demande au kit, à UCM Palettes, à `ucm check` et à UCM
 Explorateur, avec l'état de chaque changement.
+[CHANGEMENTS-DU-MOTEUR.html](./CHANGEMENTS-DU-MOTEUR.html) sert à les valider :
+lexique, maquette qui met côte à côte la collection `theme` de Figma et
+l'aperçu d'UCM Palettes, avant et après de chaque changement.
 
 ## Ce qui fait foi aujourd'hui
 

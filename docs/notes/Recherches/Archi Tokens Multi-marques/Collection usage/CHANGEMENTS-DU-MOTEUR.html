@@ -1,0 +1,501 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Changements du moteur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --add:#17687F; --add-bg:#DFEFF3; --mod:#A94A1C; --mod-bg:#FAEBE2; --del:#B42318; --del-bg:#FBE9E7; --keep:#1E7446; --keep-bg:#E3F3EA;
+  --hl:#FFE58A;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+    --hl:#5A4A10;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --add:#5BC0D8; --add-bg:#11303A; --mod:#EE9A63; --mod-bg:#35231A; --del:#F2877D; --del-bg:#3A1A17; --keep:#5CCB8D; --keep-bg:#13301F;
+  --hl:#5A4A10;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
+main{max-width:1180px;margin:0 auto;padding-block:36px 80px}
+.narrow{max-width:860px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.45rem;line-height:1.25;margin:56px 0 12px}
+h3{font-size:1.05rem;margin:18px 0 6px}
+p{margin:0 0 12px}
+a{color:var(--add)}
+:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+.lede{font-size:1.08rem;color:var(--muted)}
+html{scroll-padding-top:70px}
+.barre{position:sticky;top:0;z-index:10;margin-inline:-16px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.barre-in{max-width:1180px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.82rem}
+.groupe{display:flex;align-items:center;gap:6px}
+.groupe>span{color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface);flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;padding:3px 10px;font-weight:600;font-size:.82rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.cartes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:14px 0}
+.carte{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.carte ul,.carte ol{margin:0;padding-left:20px}
+.carte li{margin-bottom:6px}
+.k{font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.tw{overflow-x:auto;margin:12px 0}
+table.plain{border-collapse:collapse;width:100%;font-size:.88rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+table.plain th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+table.plain tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;color:var(--muted);padding-top:14px}
+.tok{font-family:var(--mono);font-size:.8rem;background:var(--code-bg);padding:1px 6px;border-radius:4px;white-space:nowrap;cursor:default;border:1px solid transparent}
+.tok.lie,.lie>.tok{background:var(--hl);border-color:var(--mod)}
+.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block;vertical-align:-2px}
+.cap{color:var(--muted);font-size:.86rem;margin-top:8px}
+.ok{color:var(--keep);font-weight:600}
+.ko{color:var(--del);font-weight:600}
+.tag{display:inline-block;font-size:.68rem;font-weight:600;padding:0 7px;border-radius:99px;white-space:nowrap;line-height:1.6}
+.tag.retenu{background:var(--keep-bg);color:var(--keep)}
+.tag.decider{background:var(--mod-bg);color:var(--mod)}
+.tag.propose{background:var(--add-bg);color:var(--add)}
+.tag.depend{background:var(--soft);color:var(--muted)}
+
+/* maquette parallèle */
+.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;margin-top:14px;align-items:start}
+.fenetre{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fenetre-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--soft);font-size:.8rem}
+.fenetre-t b{font-family:var(--mono)}
+.fenetre-t span{color:var(--muted)}
+.fx{width:100%;border-collapse:collapse;font-size:.8rem}
+.fx td{padding:4px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fx tr.g td{font-family:var(--mono);font-weight:600;color:var(--muted);font-size:.74rem;padding-top:10px;border-bottom:none}
+.fx td.nm{font-family:var(--mono);white-space:nowrap}
+.fx tr.lie td{background:var(--hl)}
+.alias{font-family:var(--mono);font-size:.74rem;color:var(--muted);white-space:nowrap}
+.plug{padding:12px}
+.rampe{display:grid;grid-template-columns:44px repeat(11,minmax(0,1fr));gap:3px;align-items:end}
+.rampe .n{font:11px var(--mono);text-align:center;color:var(--muted)}
+.rampe .c{height:30px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.rampe .c.lie{outline:3px solid var(--mod);outline-offset:1px}
+.rampe .fg{height:30px;border-radius:4px;border:1.5px dashed var(--muted);display:flex;align-items:center;justify-content:center;font:600 11px var(--sans)}
+.acc{display:grid;grid-template-columns:44px repeat(11,minmax(0,1fr));gap:3px;margin-top:6px;font-size:10.5px}
+.acc .b{border:1.5px solid var(--muted);border-top:none;height:7px;border-radius:0 0 4px 4px}
+.acc .lab{text-align:center;line-height:1.25;padding-top:2px;overflow-wrap:anywhere}
+.acc .lab .tok{font-size:10px;padding:0 3px;white-space:normal;display:inline-block;margin:1px 0}
+.garanties{margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ga-t{display:flex;justify-content:space-between;padding:6px 10px;background:var(--soft);font-size:.78rem;font-weight:600}
+.ga-t span{color:var(--muted);font-weight:400}
+.ga{padding:8px 10px;border-top:1px solid var(--line);font-size:.8rem}
+.ga.lie{background:color-mix(in srgb,var(--hl) 40%,transparent)}
+.ga .phrase{margin-bottom:6px}
+.specs{display:flex;flex-wrap:wrap;gap:8px}
+.spec{display:flex;flex-direction:column;align-items:center;gap:2px;font:10.5px var(--mono)}
+.spec .boite{min-width:58px;padding:5px 8px;border-radius:5px;font:600 12px var(--sans);text-align:center;border:2px solid transparent}
+.scene{border-radius:8px;padding:10px;margin-top:8px}
+
+/* changements */
+.chg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0}
+.chg-t{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.chg-t .id{font-family:var(--display);font-weight:700;color:var(--muted)}
+.chg-t h3{margin:0;font-size:1rem}
+.chg .av{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px;margin:10px 0 6px;font-size:.88rem}
+.chg .av>div{background:var(--bg);border-radius:8px;padding:8px 10px}
+.chg .av .k{margin-bottom:2px}
+.chg .mod{font-size:.8rem;color:var(--muted)}
+.valid{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;font-size:.82rem}
+.valid textarea{flex:1 1 260px;min-height:32px;font:inherit;font-size:.82rem;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--bg);color:var(--ink);resize:vertical}
+.chg[data-statut="ok"]{border-left:4px solid var(--keep)}
+.chg[data-statut="revoir"]{border-left:4px solid var(--del)}
+.bilan{position:sticky;bottom:0;margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:.86rem}
+.bouton{all:unset;cursor:pointer;background:var(--ink);color:var(--bg);font-weight:600;padding:5px 12px;border-radius:6px;font-size:.84rem}
+.bouton:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+@media (max-width:860px){ .duo{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="barre"><div class="barre-in">
+  <div class="groupe"><span>Palette</span><div class="seg" id="c-palette">
+    <button type="button" data-v="primary" aria-pressed="true">primary</button><button type="button" data-v="secondary" aria-pressed="false">secondary</button><button type="button" data-v="success" aria-pressed="false">success</button><button type="button" data-v="warning" aria-pressed="false">warning</button><button type="button" data-v="info" aria-pressed="false">info</button><button type="button" data-v="danger" aria-pressed="false">danger</button><button type="button" data-v="neutral" aria-pressed="false">neutral</button></div></div>
+  <div class="groupe"><span>Mode</span><div class="seg" id="c-mode">
+    <button type="button" data-v="light" aria-pressed="true">light</button><button type="button" data-v="dark" aria-pressed="false">dark</button></div></div>
+  <div class="groupe"><span>Texte des boutons</span><div class="seg" id="c-texte">
+    <button type="button" data-v="normal" aria-pressed="true">blanc en light, noir en dark</button><button type="button" data-v="inverse" aria-pressed="false">inversé</button></div></div>
+  <div class="groupe"><span>Page</span><div class="seg" id="c-page">
+    <button type="button" data-v="auto" aria-pressed="true">auto</button><button type="button" data-v="light" aria-pressed="false">claire</button><button type="button" data-v="dark" aria-pressed="false">sombre</button></div></div>
+</div></div>
+
+<main>
+  <div class="narrow">
+    <h1>Les changements du moteur, à valider</h1>
+    <p class="lede">Ce que l'<a href="./ARCHITECTURE-PROPOSEE.html">architecture des tokens</a> demande au kit, à UCM Palettes, à <code>ucm check</code> et à UCM Explorateur. Chaque changement porte un état et un bouton de validation ; le bilan se copie en bas de page.</p>
+    <p>Deux familles : les <b>changements profonds</b>, qui touchent le calcul, la table du kit et l'écriture dans Figma, et les <b>changements d'interface</b>, qui touchent ce que le designer lit dans UCM Palettes. La liste de référence est dans <a href="./CHANGEMENTS-DU-MOTEUR.md">CHANGEMENTS-DU-MOTEUR.md</a>.</p>
+  </div>
+
+  <h2>La règle du vocabulaire</h2>
+  <div class="cartes">
+    <div class="carte"><div class="k">Un nom par couleur</div>
+      <ul>
+        <li>UCM Palettes nomme chaque usage par le nom de sa variable dans <code>theme</code>, sans le préfixe de palette : <code>surface/hover</code>, <code>page/foreground</code>.</li>
+        <li>Le nom de variable s'écrit en police de code ; un libellé français court le suit : <span class="tok">surface/foreground</span> texte sur fond teinté.</li>
+        <li>Les états sont ceux des variables : <code>default</code>, <code>hover</code>, <code>pressed</code>. <code>active</code> et <code>active-hover</code> disparaissent.</li>
+      </ul></div>
+    <div class="carte"><div class="k">Une garantie se lit dans les noms</div>
+      <ul>
+        <li>Une garantie s'écrit « variable sur fonds » : <span class="tok">surface/foreground</span> sur <span class="tok">surface/default</span> <span class="tok">surface/hover</span> <span class="tok">surface/pressed</span> <span class="tok">elevation/page</span> <span class="tok">elevation/raised</span>.</li>
+        <li>Le fond de la page et de la carte sont <code>elevation/page</code> et <code>elevation/raised</code>, plus « fond » ni « fond de carte ».</li>
+      </ul></div>
+    <div class="carte"><div class="k">Ce qui disparaît</div>
+      <ul>
+        <li>Les noms d'emploi : <code>solid</code> seul, <code>on-solid</code>, <code>text</code>, <code>surface-card</code>, <code>border-control</code>, <code>border-decorative</code>.</li>
+        <li>L'escalier : le texte n'avance plus d'un cran avec le fond.</li>
+        <li><code>on-solid</code> = <code>neutral.50</code> : le texte des boutons devient blanc ou noir purs.</li>
+      </ul></div>
+  </div>
+
+  <h2>Le lexique</h2>
+  <p class="narrow">Une ligne par variable d'une palette, avec ce que le plugin dit aujourd'hui. La colonne de nuance suit la barre du haut : mode et texte des boutons. Survoler une variable la surligne dans toute la page.</p>
+  <div class="tw"><table class="plain" id="lexique"></table></div>
+
+  <h2>La maquette : Figma et UCM Palettes côte à côte</h2>
+  <p class="narrow">À gauche, la collection <code>theme</code> telle que Figma la montre pour la palette choisie. À droite, l'aperçu et les garanties d'UCM Palettes dans le vocabulaire proposé. Les deux côtés emploient les mêmes noms ; survoler une variable d'un côté la surligne de l'autre et désigne sa nuance dans la rampe.</p>
+  <div class="duo">
+    <div class="fenetre"><div class="fenetre-t"><b id="fx-titre">theme</b><span id="fx-mode"></span></div><table class="fx" id="fx"></table></div>
+    <div class="fenetre"><div class="fenetre-t"><b>UCM Palettes</b><span id="pl-titre"></span></div>
+      <div class="plug">
+        <div class="k">Aperçu, onglet Création</div>
+        <div class="rampe" id="rampe"></div>
+        <div id="accolades"></div>
+        <div class="garanties" id="garanties"></div>
+      </div>
+    </div>
+  </div>
+  <p class="cap">Couleurs : rampes calculées par le moteur pour les palettes de la vue illustrée (<a href="./generer-vue-architecture.ts">generer-vue-architecture.ts</a>), courbe inversée du dossier du texte des boutons. Ratios WCAG 2 recalculés sur les couleurs affichées.</p>
+
+  <h2>Changements d'interface</h2>
+  <p class="narrow">Ce que le designer lit dans UCM Palettes. Chaque écran cité a son état dans la galerie du plugin (<code>npm run galerie</code>, dossier <code>packages/plugin-palettes</code>).</p>
+  <div id="interface"></div>
+
+  <h2>Changements profonds</h2>
+  <p class="narrow">La table du kit, le calcul des palettes, les garanties, l'écriture dans Figma et les lecteurs.</p>
+  <div id="profond"></div>
+
+  <h2>Les garanties proposées, mesurées</h2>
+  <div class="narrow">
+  <p>Sur les 42 rampes de la recherche (quatorze références, une et deux intensités), dans les quatre thèmes. Le thème inversé utilise la courbe du dossier du texte des boutons. Toutes les mesures, nuance ancrée comprise.</p>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Garantie</th><th>Seuil</th><th>Light</th><th>Dark</th><th>Light inversé</th><th>Dark inversé</th></tr></thead>
+    <tbody>
+      <tr><td>G1 <span class="tok">solid/foreground</span> sur <span class="tok">solid/default</span> <span class="tok">hover</span> <span class="tok">pressed</span></td><td>4,5</td><td>126/126, pire 5,67</td><td>126/126, pire 6,37</td><td class="ko">116/126, pire 3,90</td><td class="ko">120/126, pire 3,81</td></tr>
+      <tr><td>G2 <span class="tok">solid/default</span> sur <span class="tok">elevation/page</span> <span class="tok">elevation/raised</span></td><td>3</td><td>84/84, pire 5,29</td><td>84/84, pire 5,17</td><td>84/84, pire 3,56</td><td>84/84, pire 3,17</td></tr>
+      <tr><td>G3 <span class="tok">surface/foreground</span> sur <span class="tok">surface/*</span>, <span class="tok">elevation/*</span></td><td>4,5</td><td>210/210, pire 5,26</td><td>210/210, pire 5,64</td><td>210/210, pire 7,30</td><td>210/210, pire 6,50</td></tr>
+      <tr><td>G4 <span class="tok">surface/border</span>, mêmes fonds</td><td>3</td><td>210/210, pire 5,26</td><td>210/210, pire 5,64</td><td>210/210, pire 7,30</td><td>210/210, pire 6,50</td></tr>
+      <tr><td>G5 <span class="tok">page/foreground</span> sur <span class="tok">elevation/*</span></td><td>4,5</td><td>84/84, pire 5,29</td><td>84/84, pire 5,17</td><td>84/84, pire 7,52</td><td>84/84, pire 5,17</td></tr>
+      <tr><td>G6 <span class="tok">page/border</span> sur <span class="tok">elevation/*</span></td><td>3</td><td>84/84, pire 5,29</td><td>84/84, pire 5,17</td><td>84/84, pire 7,52</td><td>84/84, pire 5,17</td></tr>
+      <tr><td>G7 <span class="tok">page/focus</span> sur <span class="tok">elevation/*</span>, <span class="tok">surface/default</span></td><td>3</td><td class="ko">124/126, pire 2,92</td><td>126/126, pire 3,17</td><td>126/126, pire 3,30</td><td>126/126, pire 3,17</td></tr>
+      <tr><td>G8 <span class="tok">page/focus</span> sur <span class="tok">surface/default</span> des autres palettes (proposée)</td><td>3</td><td class="ko">1 640/1 722, pire 2,83</td><td>1 722/1 722, pire 3,16</td><td>1 722/1 722, pire 3,27</td><td>1 722/1 722, pire 3,16</td></tr>
+      <tr><td>G9 <span class="tok">surface/foreground</span> sur <span class="tok">surface/*</span> des autres palettes (proposée)</td><td>4,5</td><td>5 166/5 166, pire 4,87</td><td>5 166/5 166, pire 5,25</td><td>5 166/5 166, pire 6,86</td><td>5 166/5 166, pire 6,19</td></tr>
+    </tbody>
+  </table></div>
+  <p>Les échecs de G1 en thème inversé touchent la nuance où la référence est ancrée (décision 3 du dossier du texte des boutons). Ceux de G7 en Light touchent une référence verte ancrée à la 600, <code>#16A34A</code>. <span class="tok">page/divider</span> n'a pas de minimum ; <code>disabled/*</code> est exempté par WCAG. Pour le neutre, <span class="tok">page/foreground-subtle</span> a la nuance de <code>page/foreground</code> et les mêmes mesures ; <span class="tok">page/foreground-main</span>, noir ou blanc purs, tient au moins 17:1 (blanc sur la carte dark).</p>
+  </div>
+
+  <div class="bilan" id="bilan"></div>
+
+  <footer>
+    Sources : <a href="./CHANGEMENTS-DU-MOTEUR.md">CHANGEMENTS-DU-MOTEUR.md</a>, <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a> (sections 4.1, 4.2 et 4.8), <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>. Mesures des garanties : <a href="./mesurer-dossiers.ts">mesurer-dossiers.ts</a>.
+  </footer>
+</main>
+
+<script id="donnees" type="application/json">{"crans":[50,100,200,300,400,500,600,700,800,900,950],"palettes":{"terracota":{"reference":"#B15152","unique":{"light":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#D67475","#B15152","#994545","#793534","#592524","#401918"],"dark":["#17100F","#251817","#38201F","#4F2927","#713130","#954343","#B15152","#D67475","#E09D9C","#EBC2C2","#F5E3E3"],"lightInverse":["#FBF5F5","#F8EBEB","#F2D9D8","#EAC0C0","#E09D9C","#DA8787","#D56F70","#B15152","#793534","#592524","#401918"],"darkInverse":["#17100F","#251817","#38201F","#4F2927","#713130","#853B3B","#994545","#B15152","#D98282","#EBC2C2","#F5E3E3"]}},"deep":{"reference":"#4C3EBA","unique":{"light":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#878CDE","#6D6CD6","#5649CE","#4C3EBA","#31267B","#221959"],"dark":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#6B6BD6","#878CDE","#A5ACE7","#C6CBEF","#E4E7F8"],"lightInverse":["#F5F6FC","#ECEEFA","#DADEF5","#C4C9EF","#A5ACE7","#949AE2","#8488DD","#6B6BD6","#4C3EBA","#31267B","#221959"],"darkInverse":["#10101B","#19192E","#232247","#2F2B68","#3F329B","#4C3EBA","#5649CE","#635FD3","#9197E1","#C6CBEF","#E4E7F8"]}},"sky":{"reference":"#0EA5E9","unique":{"light":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#0EA5E9","#0985BE","#066A9B","#03537B","#023C5C","#012942"],"dark":["#0D1217","#121D26","#152A39","#153950","#034D73","#056797","#0983BC","#0EA5E9","#45BDFE","#97D7FE","#D0EDFF"],"lightInverse":["#EEF9FF","#DEF2FF","#BFE6FF","#93D6FE","#45BDFE","#10ADF4","#0EA5E9","#0983BC","#03537B","#023C5C","#012942"],"darkInverse":["#0D1217","#121D26","#152A39","#153950","#034D73","#045B87","#066A9B","#087AB0","#0EA5E9","#97D7FE","#D0EDFF"]}},"rose":{"reference":"#F43F5E","unique":{"light":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F43F5E","#DB2D4D","#B2233B","#8C192B","#68101D","#4B0911"],"dark":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#AD2139","#D82C4C","#F43F5E","#F78E96","#FABBBF","#FCE0E2"],"lightInverse":["#FEF4F5","#FDE9EA","#FCD4D7","#FAB8BD","#F78E96","#F6717F","#F43F5E","#D82C4C","#8C192B","#68101D","#4B0911"],"darkInverse":["#190E0E","#2A1515","#401A1B","#5B1D22","#831728","#9A1D31","#B2233B","#CA2946","#F43F5E","#FABBBF","#FCE0E2"]}},"mimosa":{"reference":"#F2CF4A","unique":{"light":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#BA8D32","#A07228","#85581E","#6C4216","#522E0D","#3C1D07"],"dark":["#16100D","#241912","#362317","#4A2E19","#653D13","#82551D","#9F7027","#BA8D32","#D5AB3D","#F2CF4A","#FCE98B"],"lightInverse":["#FEF9CF","#FCF1A7","#FAE066","#F2CF4A","#D5AB3D","#C79A37","#B78931","#9F7027","#6C4216","#522E0D","#3C1D07"],"darkInverse":["#16100D","#241912","#362317","#4A2E19","#653D13","#754A19","#85581E","#956724","#C49636","#F2CF4A","#FCE98B"]}},"ardoise":{"reference":"#2F3E5C","unique":{"light":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#8397B5","#657DA3","#4F6488","#3C4D6D","#2F3E5C","#1A2540"],"dark":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#4D6184","#647BA2","#8397B5","#A3B2C8","#C5CFDC","#E4E8EE"],"lightInverse":["#F5F7F9","#EBEFF3","#DAE0E9","#C3CDDB","#A3B2C8","#91A3BD","#7F93B3","#647BA2","#3C4D6D","#2F3E5C","#1A2540"],"darkInverse":["#0F1216","#171C25","#202738","#2F3E5C","#374767","#435577","#4F6488","#5B7299","#8DA0BB","#C5CFDC","#E4E8EE"]}},"grass":{"reference":"#22C55E","soft":{"light":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#70A479","#5C8864","#496D50","#38553D","#283E2C","#1A2B1D"],"dark":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#476A4D","#5B8763","#70A479","#85C291","#9BE2A9","#CFF3D5"],"lightInverse":["#EFFAF0","#DEF6E1","#BCEFC5","#9AE0A7","#85C291","#79B184","#6DA177","#5B8763","#38553D","#283E2C","#1A2B1D"],"darkInverse":["#101210","#181D19","#212B22","#2A3A2C","#344F39","#3E5E44","#496D50","#547D5C","#77AE81","#9BE2A9","#CFF3D5"]},"vivid":{"light":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#22C55E","#1EB254","#179445","#107736","#0A5D28","#05441C","#033011"],"dark":["#0D130E","#131F15","#172E1C","#173F21","#095725","#107434","#169244","#1EB254","#22C55E","#2DF477","#B0FEBF"],"lightInverse":["#E6FFE9","#C9FED2","#88FEA4","#2CF376","#25D365","#22C55E","#1DAE52","#169244","#0A5D28","#05441C","#033011"],"darkInverse":["#0D130E","#131F15","#172E1C","#173F21","#095725","#0D672D","#107736","#14883E","#22C55E","#2DF477","#B0FEBF"]}},"orange":{"reference":"#F97316","soft":{"light":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#C08569","#A26D56","#845744","#684234","#4E2F25","#371F18"],"dark":["#15100F","#221917","#33241F","#462F27","#613D30","#805442","#A06C55","#C08569","#D7A48A","#E5C7B6","#F2E5DD"],"lightInverse":["#FAF6F3","#F6ECE7","#EEDBD1","#E4C5B4","#D7A48A","#CF9172","#BD8266","#A06C55","#684234","#4E2F25","#371F18"],"darkInverse":["#15100F","#221917","#33241F","#462F27","#613D30","#724A3A","#845744","#95644F","#CB8E6F","#E5C7B6","#F2E5DD"]},"vivid":{"light":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#C6540E","#A34009","#822E05","#621E03","#471101"],"dark":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#9F3E09","#C4530E","#F97316","#FD9153","#FDBE99","#FEE1D0"],"lightInverse":["#FFF5EE","#FEEADE","#FED6BF","#FDBB95","#FD9153","#F97316","#E66713","#C4530E","#822E05","#621E03","#471101"],"darkInverse":["#180F0C","#291611","#3D1E14","#562413","#7A2A05","#8E3507","#A34009","#B84C0C","#F97316","#FDBE99","#FEE1D0"]}},"blue":{"reference":"#3B82F6","soft":{"light":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#7897C6","#587CB8","#42629E","#304B82","#1C346E","#13234E"],"dark":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#3F5F9A","#567AB8","#7897C6","#9BB3D5","#C0CFE4","#E1E9F2"],"lightInverse":["#F4F7FA","#EAEFF6","#D7E1EE","#BECEE3","#9BB3D5","#87A3CD","#7493C4","#567AB8","#304B82","#1C346E","#13234E"],"darkInverse":["#0E1119","#151B2A","#1C2741","#21335E","#2C457C","#37538C","#42629E","#4D71B0","#84A0CB","#C0CFE4","#E1E9F2"]},"vivid":{"light":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#5494F7","#3B82F6","#1055D9","#083CB8","#0314A5","#050B77"],"dark":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0F52D5","#3B82F6","#5494F7","#82B3F9","#B0D0FB","#DAE9FD"],"lightInverse":["#F2F7FE","#E5F0FE","#CDE2FD","#AECFFB","#82B3F9","#69A2F8","#3B82F6","#2271F5","#083CB8","#0314A5","#050B77"],"darkInverse":["#0A1121","#0E1A39","#0F215A","#0A2687","#0635B1","#0B45C4","#1055D9","#3B82F6","#639EF8","#B0D0FB","#DAE9FD"]}},"poppy":{"reference":"#EF4444","soft":{"light":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#CA7D76","#B3615A","#904D48","#713B37","#542A27","#3B1C19"],"dark":["#16100F","#241917","#352220","#4B2C28","#6A3732","#8C4B45","#B06059","#CA7D76","#D7A29D","#E5C5C2","#F2E4E3"],"lightInverse":["#FAF5F5","#F6ECEB","#EEDAD8","#E4C3C0","#D7A29D","#D08E88","#C97972","#B06059","#713B37","#542A27","#3B1C19"],"darkInverse":["#16100F","#241917","#352220","#4B2C28","#6A3732","#7D423D","#904D48","#A45953","#CF8983","#E5C5C2","#F2E4E3"]},"vivid":{"light":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#EF4444","#D83738","#AF2A2B","#8A1F1F","#671514","#4A0C0B"],"dark":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#AB2929","#D63637","#EF4444","#F4928A","#F8BDB8","#FBE1DE"],"lightInverse":["#FEF4F3","#FCE9E8","#FAD6D2","#F7BBB5","#F4928A","#F27770","#EF4444","#D63637","#8A1F1F","#671514","#4A0C0B"],"darkInverse":["#190E0D","#2A1513","#3F1B18","#5A201C","#811D1C","#982323","#AF2A2B","#C73232","#EF4444","#F8BDB8","#FBE1DE"]}},"titanium":{"reference":"#808080","unique":{"light":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#959595","#7C7C7C","#636363","#4D4D4D","#383838","#262626"],"dark":["#121212","#1C1C1C","#282828","#353535","#484848","#606060","#7A7A7A","#959595","#B1B1B1","#CECECE","#E8E8E8"],"lightInverse":["#F7F7F7","#EEEEEE","#DFDFDF","#CCCCCC","#B1B1B1","#A1A1A1","#929292","#7A7A7A","#4D4D4D","#383838","#262626"],"darkInverse":["#121212","#1C1C1C","#282828","#353535","#484848","#555555","#636363","#717171","#9E9E9E","#CECECE","#E8E8E8"]}}}}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('donnees').textContent);
+  var CR = D.crans;
+  var $ = function (id) { return document.getElementById(id); };
+  var etat = { palette: 'primary', mode: 'light', texte: 'normal' };
+
+  /* La palette de chaque rôle dans la vue illustrée, et le chemin que Figma montre. */
+  var ROLES = {
+    primary: { pal: 'terracota', inten: 'unique', chemin: function (m, n) { return 'color-brands › primary/' + m + '/' + n; } },
+    secondary: { pal: 'deep', inten: 'unique', chemin: function (m, n) { return 'color-brands › secondary/' + m + '/' + n; } },
+    success: { pal: 'grass', inten: 'vivid', chemin: function (m, n) { return 'color-utilities › success/vivid/' + m + '/' + n; } },
+    warning: { pal: 'orange', inten: 'vivid', chemin: function (m, n) { return 'color-utilities › warning/vivid/' + m + '/' + n; } },
+    info: { pal: 'blue', inten: 'vivid', chemin: function (m, n) { return 'color-utilities › info/vivid/' + m + '/' + n; } },
+    danger: { pal: 'poppy', inten: 'vivid', chemin: function (m, n) { return 'color-utilities › danger/vivid/' + m + '/' + n; } },
+    neutral: { pal: 'titanium', inten: 'unique', chemin: function (m, n) { return 'color-utilities › neutral/' + m + '/' + n; } },
+  };
+  var ELEVATION = { light: { page: '#F7F7F7', raised: '#FFFFFF' }, dark: { page: '#121212', raised: '#1C1C1C' } };
+  /* La table du kit : la nuance de chaque variable, thème normal et thème inversé. */
+  var TABLE = {
+    normal: { 'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'page/foreground': 700, 'page/foreground-subtle': 700, 'page/border': 700, 'page/divider': 300, 'page/focus': 600 },
+    inverse: { 'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 900, 'surface/border': 900, 'page/foreground': 800, 'page/foreground-subtle': 800, 'page/border': 800, 'page/divider': 300, 'page/focus': 700 },
+  };
+  /* Le lexique : nom de variable, libellé, ce qu'elle peint, fonds de sa garantie, seuil, ce que le plugin dit aujourd'hui. */
+  var LEXIQUE = [
+    ['solid', [
+      ['solid/default', 'bouton', 'Le fond du bouton et du badge fort', 'elevation/page, elevation/raised', '3', 'solid 700, « fond plein »'],
+      ['solid/hover', 'bouton survolé', 'Son survol', '', '', 'solid au rang hover, 800'],
+      ['solid/pressed', 'bouton appuyé', 'Son appui ; aussi un bouton sélectionné', '', '', 'solid au rang active, 900 ; active-hover, 950, disparaît'],
+      ['solid/foreground', 'texte des boutons', 'Le texte et l’icône sur les trois fonds', 'solid/default, hover, pressed', '4,5', 'on-solid, « texte sur fond plein », couleur du fond de page (neutral.50)'],
+    ]],
+    ['surface', [
+      ['surface/default', 'fond teinté', 'Alerte, badge doux, ligne sélectionnée', '', '', 'surface 100, « fond léger »'],
+      ['surface/hover', 'fond teinté survolé', 'Son survol, et celui d’un bouton text', '', '', 'surface au rang hover, 200'],
+      ['surface/pressed', 'fond teinté appuyé', 'Son appui', '', '', 'surface au rang active, 300 ; active-hover, 400, disparaît'],
+      ['surface/foreground', 'texte sur fond teinté', 'Le texte et l’icône sur ces fonds, la page et la carte', 'surface/default, hover, pressed, elevation/page, elevation/raised', '4,5', 'text + 1 cran par rang (700 à 950) sur surface + 1 cran : l’escalier'],
+      ['surface/border', 'contour sur fond teinté', 'Le contour sur ces fonds', 'mêmes fonds', '3', 'border-control + 1 cran par rang (600 à 900) sur surface'],
+    ]],
+    ['page', [
+      ['page/foreground', 'texte coloré', 'Lien, libellé coloré, sur la page ou une carte', 'elevation/page, elevation/raised', '4,5', 'text 700, « texte coloré », sur fond'],
+      ['page/border', 'contour', 'Contour d’un champ, d’un outlined, d’une alerte outlined', 'elevation/page, elevation/raised', '3', 'border-control 600, « bordure de champ », sur fond'],
+      ['page/divider', 'filet', 'Séparateur', 'aucun minimum', '', 'border-decorative 300, « séparateur »'],
+      ['page/focus', 'anneau de focus', 'L’anneau d’un composant de la palette', 'elevation/page, elevation/raised, surface/default', '3', 'focus 600, « anneau de focus », sur fond et sur surface'],
+    ]],
+    ['neutral, en plus et à la place', [
+      ['page/foreground-main', 'corps de texte', 'Le texte courant : noir pur en light, blanc pur en dark', 'elevation/page, elevation/raised', '4,5', 'text-strong 900, usage propre au neutre'],
+      ['page/foreground-subtle', 'texte secondaire', 'Indication, date, métadonnée', 'elevation/page, elevation/raised', '4,5', 'text 700 du neutre'],
+      ['scale/0, scale/1000', 'blanc, noir', 'Hors table ; s’échangent entre light et dark', '', '', 'absents'],
+    ]],
+    ['hors palette', [
+      ['elevation/page', 'page', 'Le fond d’écran', '', '', '« fond », « fond du thème », réglage Fond de la recette'],
+      ['elevation/raised', 'carte', 'Le fond d’une carte ou d’une modale', '', '', 'surface-card 50, « fond de carte » ; la carte des mesures'],
+      ['disabled/background, foreground, border', 'désactivé', 'Un contrôle désactivé, exempté par WCAG', '', '', 'fill-disabled 200, text-disabled 500 ; border absent'],
+    ]],
+  ];
+
+  function inverse() { return etat.texte === 'inverse'; }
+  function table() { return TABLE[inverse() ? 'inverse' : 'normal']; }
+  function hexa(pal, inten, mode, n) { var r = D.palettes[pal][inten]; return r[inverse() ? mode + 'Inverse' : mode][CR.indexOf(n)]; }
+  function texteDesBoutons() { return (etat.mode === 'light') === !inverse() ? '#FFFFFF' : '#000000'; }
+  function lum(h) { var v = [1, 3, 5].map(function (i) { var c = parseInt(h.substr(i, 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; }
+  function contraste(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function fmt(v) { return v.toFixed(2).replace('.', ',') + ':1'; }
+  function tok(nom, court) { return '<span class="tok" data-token="' + nom + '">' + (court || nom) + '</span>'; }
+  function sq(h) { return '<span class="sq" style="background:' + h + '"></span>'; }
+
+  /* Les variables de theme d'une palette : nom, hexa, chemin d'alias. */
+  function variables() {
+    var r = ROLES[etat.palette], m = etat.mode, tb = table(), neutre = etat.palette === 'neutral', out = [];
+    function nuance(nom) { var n = tb[nom]; return { nom: nom, hexa: hexa(r.pal, r.inten, m, n), alias: r.chemin(m, n), n: n }; }
+    ['solid/default', 'solid/hover', 'solid/pressed'].forEach(function (n) { out.push(nuance(n)); });
+    out.push({ nom: 'solid/foreground', hexa: texteDesBoutons(), alias: 'color-utilities › neutral/' + m + '/' + (texteDesBoutons() === '#FFFFFF' ? 'white' : 'black') });
+    ['surface/default', 'surface/hover', 'surface/pressed', 'surface/foreground', 'surface/border'].forEach(function (n) { out.push(nuance(n)); });
+    if (neutre) {
+      out.push({ nom: 'page/foreground-main', hexa: m === 'light' ? '#000000' : '#FFFFFF', alias: 'color-utilities › neutral/' + m + '/' + (m === 'light' ? 'black' : 'white') });
+      out.push(nuance('page/foreground-subtle'));
+    } else out.push(nuance('page/foreground'));
+    ['page/border', 'page/divider', 'page/focus'].forEach(function (n) { out.push(nuance(n)); });
+    return out;
+  }
+  function parNom(vs) { var o = {}; vs.forEach(function (v) { o[v.nom] = v; }); return o; }
+
+  function renderLexique() {
+    var tb = table();
+    var h = '<thead><tr><th>Variable</th><th>Libellé</th><th>Ce qu’elle peint</th><th>Se lit sur</th><th>Seuil</th><th>Nuance, ' + etat.mode + (inverse() ? ', inversé' : '') + '</th><th>Aujourd’hui dans UCM Palettes</th></tr></thead><tbody>';
+    LEXIQUE.forEach(function (g) {
+      h += '<tr class="g"><td colspan="7">' + g[0] + '</td></tr>';
+      g[1].forEach(function (l) {
+        var n = tb[l[0]];
+        var nuance = l[0] === 'solid/foreground' ? (texteDesBoutons() === '#FFFFFF' ? 'blanc' : 'noir') : l[0] === 'page/foreground-main' ? (etat.mode === 'light' ? 'noir' : 'blanc') : (n || '');
+        h += '<tr><td>' + tok(l[0]) + '</td><td>' + l[1] + '</td><td>' + l[2] + '</td><td>' + l[3] + '</td><td>' + (l[4] ? l[4] + ':1' : '') + '</td><td>' + nuance + '</td><td>' + l[5] + '</td></tr>';
+      });
+    });
+    $('lexique').innerHTML = h + '</tbody>';
+  }
+
+  function renderFigma() {
+    var vs = variables(), g = '';
+    $('fx-titre').textContent = 'theme › ' + etat.palette + (ROLES[etat.palette].inten === 'vivid' ? '/vivid' : '');
+    $('fx-mode').textContent = 'mode ' + etat.mode;
+    var h = '';
+    vs.forEach(function (v) {
+      var dossier = v.nom.split('/')[0];
+      if (dossier !== g) { h += '<tr class="g"><td colspan="2">' + etat.palette + '/' + dossier + '</td></tr>'; g = dossier; }
+      h += '<tr data-token="' + v.nom + '"><td class="nm">' + v.nom.split('/')[1] + '</td><td>' + sq(v.hexa) + ' <span class="alias">' + v.alias + '</span></td></tr>';
+    });
+    $('fx').innerHTML = h;
+  }
+
+  /* Les accolades : les fonds d'un dossier sur une accolade, chaque autre variable sous sa nuance. */
+  function renderPlugin() {
+    var r = ROLES[etat.palette], m = etat.mode, vs = variables(), nom = parNom(vs), tb = table();
+    $('pl-titre').textContent = 'Palette ' + r.pal + ' · ' + m + (inverse() ? ' · inversé' : '');
+    var h = '<div class="n">' + 'texte' + '</div>';
+    CR.forEach(function (n) { h += '<div class="n">' + n + '</div>'; });
+    h += '<div class="fg" data-token="solid/foreground" style="background:' + nom['solid/default'].hexa + ';color:' + texteDesBoutons() + '">Aa</div>';
+    CR.forEach(function (n) { h += '<div class="c" data-cran="' + n + '" style="background:' + hexa(r.pal, r.inten, m, n) + '"></div>'; });
+    $('rampe').innerHTML = h;
+    var colonne = function (n) { return CR.indexOf(n) + 2; };
+    var acc = '';
+    [['surface', ['surface/default', 'surface/hover', 'surface/pressed']], ['solid', ['solid/default', 'solid/hover', 'solid/pressed']]].forEach(function (d) {
+      var crans = d[1].map(function (n) { return tb[n]; }), a = Math.min.apply(null, crans), b = Math.max.apply(null, crans);
+      acc += '<div class="acc"><div style="grid-column:' + colonne(a) + '/' + (colonne(b) + 1) + '" class="b"></div></div>';
+      acc += '<div class="acc"><div class="lab" style="grid-column:' + colonne(a) + '/' + (colonne(b) + 1) + '">' + d[1].slice().sort(function (x, y) { return tb[x] - tb[y]; }).map(function (n) { return tok(n, n) + ' ' + tb[n]; }).join(' · ') + '</div></div>';
+    });
+    var seules = {};
+    vs.forEach(function (v) { if (/^(surface|solid)\/(default|hover|pressed)$/.test(v.nom) || v.n === undefined) return; (seules[v.n] = seules[v.n] || []).push(v.nom); });
+    /* Une ligne par nuance : un repère sous sa colonne, les noms du côté où il reste de la place. */
+    acc += '<div class="acc"><div class="b" style="grid-column:1/2"></div></div><div class="acc"><div class="lab" style="grid-column:1/13;text-align:left">' + tok('solid/foreground') + ' ' + (texteDesBoutons() === '#FFFFFF' ? 'blanc' : 'noir') + ', hors rampe</div></div>';
+    Object.keys(seules).sort(function (a, b) { return a - b; }).forEach(function (n) {
+      var c = colonne(Number(n)), droite = c > 8;
+      acc += '<div class="acc"><div class="b" style="grid-column:' + c + '/' + (c + 1) + '"></div></div>'
+        + '<div class="acc"><div class="lab" style="grid-column:' + (droite ? '2/' + (c + 1) : c + '/13') + ';text-align:' + (droite ? 'right' : 'left') + '">' + n + ' · ' + seules[n].map(function (x) { return tok(x); }).join(' ') + '</div></div>';
+    });
+    if (etat.palette === 'neutral') acc += '<div class="acc"><div class="lab" style="grid-column:1/13;text-align:left">' + tok('page/foreground-main') + ' noir ou blanc purs, hors rampe</div></div>';
+    $('accolades').innerHTML = acc;
+    renderGaranties(nom);
+  }
+
+  function renderGaranties(nom) {
+    var m = etat.mode, page = ELEVATION[m].page, carte = ELEVATION[m].raised;
+    var fondsPage = [['elevation/page', page], ['elevation/raised', carte]];
+    var teintes = ['surface/default', 'surface/hover', 'surface/pressed'].map(function (n) { return [n, nom[n].hexa]; });
+    var texte = etat.palette === 'neutral' ? 'page/foreground-subtle' : 'page/foreground';
+    var G = [
+      { t: 'texte', id: 'G1', v: 'solid/foreground', sur: ['solid/default', 'solid/hover', 'solid/pressed'].map(function (n) { return [n, nom[n].hexa]; }), seuil: 4.5, bouton: true },
+      { t: 'texte', id: 'G3', v: 'surface/foreground', sur: teintes.concat(fondsPage), seuil: 4.5 },
+      { t: 'texte', id: 'G5', v: texte, sur: fondsPage, seuil: 4.5 },
+      { t: 'visible', id: 'G2', v: 'solid/default', sur: fondsPage, seuil: 3, plein: true },
+      { t: 'visible', id: 'G4', v: 'surface/border', sur: teintes.concat(fondsPage), seuil: 3, contour: true },
+      { t: 'visible', id: 'G6', v: 'page/border', sur: fondsPage, seuil: 3, contour: true },
+      { t: 'visible', id: 'G7', v: 'page/focus', sur: fondsPage.concat([['surface/default', nom['surface/default'].hexa]]), seuil: 3, anneau: true },
+    ];
+    function bloc(type, titre) {
+      var h = '<div class="ga-t">' + titre + '<span>minimum ' + (type === 'texte' ? '4,5' : '3') + ':1</span></div>';
+      G.filter(function (g) { return g.t === type; }).forEach(function (g) {
+        var couleur = g.v === 'solid/foreground' ? texteDesBoutons() : nom[g.v].hexa;
+        h += '<div class="ga" data-token="' + g.v + '"><div class="phrase">' + g.id + ' · ' + tok(g.v) + ' sur ' + g.sur.map(function (s) { return tok(s[0]); }).join(' ') + '</div><div class="specs">';
+        g.sur.forEach(function (s) {
+          var v = contraste(couleur, s[1]), bon = Number(v.toFixed(10)) >= g.seuil, style;
+          if (g.contour) style = 'background:' + s[1] + ';border-color:' + couleur + ';color:transparent';
+          else if (g.anneau) style = 'background:' + s[1] + ';outline:2px solid ' + couleur + ';outline-offset:2px;color:transparent';
+          else if (g.plein) style = 'background:' + couleur + ';color:transparent;box-shadow:0 0 0 6px ' + s[1];
+          else style = 'background:' + s[1] + ';color:' + couleur;
+          h += '<div class="spec"><div class="boite" style="' + style + '">' + (g.plein || g.contour || g.anneau ? '·' : 'Texte') + '</div><span>' + s[0].replace('elevation/', '').replace('surface/', '').replace('solid/', '') + '</span><span class="' + (bon ? 'ok' : 'ko') + '">' + (bon ? '✓ ' : '✗ ') + fmt(v) + '</span></div>';
+        });
+        h += '</div></div>';
+      });
+      return h;
+    }
+    $('garanties').innerHTML = '<div class="k" style="padding:8px 10px 0">Garanties, onglet Vérification</div>' + bloc('texte', 'Textes lisibles') + bloc('visible', 'Éléments visibles')
+      + '<div class="ga">' + tok('page/divider') + ' filet, sans minimum de contraste</div>';
+  }
+
+  /* Les changements : identifiant, titre, état, aujourd'hui, demain, modules. */
+  var INTERFACE = [
+    ['I1', 'Un seul vocabulaire dans tous les textes', 'retenu', 'Trois vocabulaires : les emplois en police de code (<code>text</code>, <code>surface</code>, <code>on-solid</code>…), leurs noms français (« texte coloré », « fond léger »), les rangs <code>default</code> à <code>active-hover</code>.', 'Le nom de variable de <code>theme</code>, sans préfixe de palette, en police de code, suivi d’un libellé court du lexique. Les états <code>default</code>, <code>hover</code>, <code>pressed</code>.', '<code>i18n/fr.ts</code> et <code>en.ts</code> : <code>NOM_DU_ROLE</code>, <code>NOM_DE_L_EMPLOI</code>, <code>NOM_DE_L_ETAT</code>, <code>ROLE_DANS_LA_PHRASE</code>, textes du détail et de la planche'],
+    ['I2', 'Les accolades de l’aperçu', 'retenu', 'Sous la rampe : <code>on-solid</code>, <code>surface</code> de 100 à 400, <code>solid · text</code> de 700 à 950, <code>surface-card</code>, <code>border-decorative</code>, <code>border-control · focus</code>. État <code>palette-deux-intensites</code>.', 'Une accolade par dossier pour ses fonds (<code>surface</code> 100 à 300, <code>solid</code> 700 à 900, ou 500 à 700 en thème inversé), puis chaque autre variable sous sa nuance. La case du texte des boutons devient <code>solid/foreground</code>. Voir la maquette.', '<code>presentation.ts</code> (<code>accoladesDe</code>), <code>ui/nuancier.ts</code>'],
+    ['I3', 'Les accolades suivent le thème affiché', 'propose', 'Les accolades ne dépendent pas du thème : la table est la même en Light et en Dark.', 'Elles suivent la table du thème de l’aperçu, normal ou inversé : en Dark inversé, <code>solid/hover</code> passe sous la 600 et <code>page/foreground</code> sous la 800.', '<code>ui/nuancier.ts</code>, bascule du thème du titre'],
+    ['I4', 'Les garanties de contraste', 'retenu', 'Des arcs en escalier, quatre colonnes d’état, des paires « <code>text</code> sur <code>surface</code> », la note « on-solid utilise la couleur du fond de page (neutral.50) ». État <code>garanties-respectees</code>.', 'Un éventail par texte : <span class="tok">surface/foreground</span> relié à ses trois fonds. Une ligne par garantie G1 à G7, écrite « variable sur fonds » avec un spécimen par fond. Trois états au plus. La note dit « blanc ou noir, selon le réglage Texte des boutons ».', '<code>ui/garanties.ts</code>, <code>presentation.ts</code>, <code>ui/ajustement.ts</code>'],
+    ['I5', 'Le détail d’une nuance', 'retenu', '« Rôles » par emploi ; « Contrastes de la nuance » contre « Fond du thème », « Blanc », « Noir » ; « on-solid · fond du thème ».', 'Les variables que la nuance porte dans le thème affiché ; contrastes contre <code>elevation/page</code>, <code>elevation/raised</code>, blanc et noir ; la case du texte des boutons s’appelle <code>solid/foreground</code>.', '<code>ui/nuancier.ts</code>, <code>TEXTES_DU_DETAIL</code>'],
+    ['I6', 'La planche dessinée dans Figma', 'retenu', 'Une ligne par emploi, de <code>surface-card</code> à <code>border-decorative</code>, dans les quatre rangs, avec ses garanties.', 'Une ligne par dossier : <code>solid</code>, <code>surface</code>, <code>page</code>, chaque variable nommée comme dans <code>theme</code>, trois états, garanties G1 à G7. Plus de ligne <code>surface-card</code>.', '<code>planche/modele.ts</code> (<code>USAGES</code>, <code>ETATS</code>), <code>ecriture/planche.ts</code>'],
+    ['I7', 'Les messages et diagnostics', 'retenu', '« Texte coloré (text) sur Fond léger (surface) · Bleu, thème Light ». État <code>garanties-refaites</code>.', '« <code>surface/foreground</code> sur <code>surface/hover</code> · Bleu, thème light », avec le libellé du lexique en second.', '<code>i18n</code>, <code>messagesDePalette.ts</code>, <code>constats.ts</code>'],
+    ['I8', 'L’Interface de test', 'propose', 'Un écran d’exemple et ses états, sans nom de variable. État <code>interface-de-test-light</code>.', 'Survoler un élément montre la variable qui le peint (<code>surface/default</code> pour l’alerte, <code>page/focus</code> pour l’anneau) ; la vue États suit <code>default</code>, <code>hover</code>, <code>pressed</code>.', '<code>ui/interfaceDeTest.ts</code>'],
+    ['I9', 'Le réglage Texte des boutons', 'depend', 'Absent : le texte des boutons vaut la couleur du fond de page.', '« Texte des boutons » : Blanc | Noir, sous le fond de chaque thème, dans la carte « Couleurs de fond » des Réglages communs. Libellé et place encore à décider (dossier du texte des boutons, I-a et I-d). Il règle <code>solid/foreground</code>.', 'Réglages communs, <code>i18n</code>'],
+    ['I10', 'Les fonds du thème', 'propose', 'Un réglage « Fond » par thème ; la carte des mesures est implicite.', 'Le fond s’appelle <code>elevation/page</code> ; la carte, <code>elevation/raised</code>, a sa valeur visible à côté (blanc en light, neutre 100 en dark).', 'Réglages communs, aperçu (pastille Fond)'],
+    ['I11', 'Les rôles des palettes', 'decider', 'Une palette n’a qu’un nom ; rien ne dit qu’elle est <code>primary</code>, <code>neutral</code> ou <code>success</code>.', 'Chaque palette reçoit son rôle : <code>primary</code> ou <code>secondary</code> d’une marque, <code>neutral</code>, ou un statut et son intensité. L’aperçu et les garanties l’affichent dans leur titre, comme Figma : <code>theme › success/vivid</code>.', 'Création (configuration), Gestion (liste)'],
+    ['I12', 'Gestion : ce que le plugin écrit', 'decider', 'Une destination, par défaut <code>primitives</code> / <code>colors</code> ; un état par palette.', 'Les quatre collections, <code>primitives</code>, <code>color-brands</code>, <code>color-utilities</code>, <code>theme</code>, chacune avec son état (à jour, à mettre à jour, modifiée à la main).', '<code>ui/destination.ts</code>, <code>ongletGestion.ts</code>'],
+  ];
+  var PROFOND = [
+    ['P1', 'La table du kit passe des emplois aux dossiers', 'retenu', 'Huit emplois : <code>solid</code> 700, <code>on-solid</code>, <code>text</code> 700, <code>surface</code> 100, <code>surface-card</code> 50, <code>border-control</code> 600, <code>border-decorative</code> 300, <code>focus</code> 600 ; usages du neutre <code>text-strong</code>, <code>text-disabled</code>, <code>fill-disabled</code>.', 'Treize variables par palette (le lexique), les exceptions du neutre, <code>disabled/*</code> et deux niveaux d’<code>elevation</code>.', '<code>kit/src/emplois/emplois.ts</code>, <code>usages.ts</code>'],
+    ['P2', 'Une colonne par thème : normal et inversé', 'depend', 'Une nuance par emploi, la même dans les deux thèmes (D2).', 'Chaque variable a une nuance pour le thème normal et une pour le thème inversé ; le thème inversé change huit variables.', '<code>emplois.ts</code> et tous ses lecteurs'],
+    ['P3', 'Le réglage texteDesBoutons et la courbe inversée', 'depend', 'Aucun réglage ; la courbe Dark place 500 à 800 à 0,49 / 0,58 / 0,67 / 0,76.', 'Recette au format 9 : <code>texteDesBoutons: { light, dark }</code>, lu aussi depuis le format 8. Courbe inversée : Dark 0,45 / 0,50 / 0,55 / 0,70, Light 500 à 700 à 0,71 / 0,66 / 0,58 ; une courbe réglée à la main est remplacée de 500 à 800 avec un message. Recommandations du dossier du texte des boutons, non décidées.', '<code>couleur/src</code> (recette, courbes), migration de format'],
+    ['P4', 'Les paires deviennent les garanties G1 à G9', 'retenu', 'Dix-neuf paires, dont l’escalier (2 à 4, 9 à 11, 17 à 19) et le quatrième rang.', 'G1 à G7 sur la palette, G8 et G9 croisées entre palettes (proposées). Voir le tableau des mesures.', '<code>paires.ts</code>, <code>couleur/src/promesses.ts</code>, carte des garanties'],
+    ['P5', 'Trois états, la sélection change de dossier', 'retenu', 'Quatre rangs ; <code>selectionne</code> vise <code>active</code>, <code>selectionne-survole</code> vise <code>active-hover</code>.', '<code>default</code>, <code>hover</code>, <code>pressed</code> ; un état sélectionné prend un autre dossier ; le focus ajoute <code>page/focus</code>.', '<code>rangs.ts</code> (<code>CIBLE_DE_L_ETAT</code>), nature <code>etat</code> de <code>ucm check</code>'],
+    ['P6', 'Le texte des boutons en blanc ou noir purs', 'retenu', '<code>on-solid</code> vise le fond du thème, <code>neutral.50</code>.', '<code>solid/foreground</code> vise <code>color-utilities.neutral.{mode}.white</code> ou <code>.black</code>, selon le réglage.', '<code>emplois.ts</code>, <code>usages.ts</code>'],
+    ['P7', 'Les crans 50, 400 et 950', 'decider', '400 et 950 portent le quatrième rang ; 50 porte <code>surface-card</code>. Tous sont obligatoires.', 'Aucune variable d’usage ne les vise ; ils restent sous <code>scale</code>. Obligatoires ou facultatifs : à décider (D7).', '<code>CRANS_DES_EMPLOIS</code>, validation de la recette'],
+    ['P8', 'Le rôle de chaque palette dans la recette', 'decider', 'La recette ne sait pas quelle palette est <code>primary</code>, <code>neutral</code> ou <code>danger</code>, ni pour quelle marque.', 'Chaque palette porte son rôle, et chaque marque choisit ses palettes <code>primary</code> et <code>secondary</code>. Sans cette donnée, le plugin ne peut écrire ni <code>color-brands</code> ni <code>color-utilities</code>.', 'recette, format, Création et Gestion'],
+    ['P9', 'L’écriture des quatre collections', 'retenu', 'Le plugin n’écrit que la collection de destination, <code>primitives</code>.', 'Il écrit aussi <code>color-brands</code> (une colonne par marque, <code>identity</code> en alias), <code>color-utilities</code> (statuts, neutre, blanc et noir, élévation) et <code>theme</code> (modes <code>light</code> et <code>dark</code>, <code>scale</code> sans portée), dans la forme de la recherche, section 4.8. La reprise signale un alias modifié à la main.', '<code>ecriture/variables.ts</code>, <code>variables/destination.ts</code>'],
+    ['P10', 'Les portées Figma', 'decider', 'Portées par emploi dans <code>SUPPORT_DES_USAGES</code>.', 'Fonds : <code>FRAME_FILL</code>, <code>SHAPE_FILL</code>, et <code>STROKE_COLOR</code> pour <code>solid/*</code> ; <code>foreground</code> : <code>TEXT_FILL</code>, <code>SHAPE_FILL</code> ; <code>border</code>, <code>divider</code>, <code>focus</code> : <code>STROKE_COLOR</code> ; <code>scale</code> : aucune. Essai Figma A5.1 à faire.', '<code>usages.ts</code>'],
+    ['P11', 'Les valeurs d’élévation', 'decider', 'Le fond de chaque thème est un réglage ; la carte n’existe que dans les mesures.', '<code>elevation/page</code> vaut le fond réglé ; <code>elevation/raised</code> vaut le blanc en light et le neutre 100 en dark : règle fixe ou réglage.', 'recette, <code>couleur/src</code>'],
+    ['P12', '<code>ucm check</code> lit <code>theme</code>', 'decider', 'Le diagnostic des emplois ne s’applique que si <code>tokens.json</code> porte <code>usage</code> ; le fond de page est <code>usage.elevation.page</code>.', 'Il lit <code>theme</code>, vérifie la règle du dossier (le texte et le fond viennent du même dossier) et mesure chaque garantie. Dépend de la décision 1 (<code>theme</code> ou façade <code>usage</code>).', '<code>kit/src/lecteurs/diagnostic-emplois.mjs</code>'],
+    ['P13', 'UCM Explorateur', 'decider', 'La cible attendue de chaque usage vient de <code>usagesDeLaPalette</code>.', 'Elle vient de la nouvelle table, par thème.', '<code>plugin-explorateur/src/integrations/profilUcm.ts</code>'],
+    ['P14', 'Tests et documents d’autorité', 'retenu', '<code>emplois.test.ts</code> fige la table, les 19 paires, les rangs et les 20 usages ; <code>diagnostic-emplois.test.mjs</code> fige les natures.', 'Les tests suivent la nouvelle table ; AGENTS.md, la section 11.2 de la recherche initiale d’UCM Palettes et ARCHITECTURE-FINALE suivent.', 'tests du kit, du moteur de couleur, de la planche, des textes'],
+  ];
+  var ETATS = { retenu: ['retenu', 'Retenu'], propose: ['propose', 'Proposé'], decider: ['decider', 'À décider'], depend: ['depend', 'Suit le texte des boutons'] };
+  var CLE = 'ucm-validation-moteur';
+  var avis = {};
+  try { avis = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch (e) { avis = {}; }
+  function garder() { try { localStorage.setItem(CLE, JSON.stringify(avis)); } catch (e) {} }
+
+  function renderChangements(id, liste) {
+    $(id).innerHTML = liste.map(function (c) {
+      var a = avis[c[0]] || {};
+      return '<div class="chg" data-id="' + c[0] + '" data-statut="' + (a.statut || '') + '"><div class="chg-t"><span class="id">' + c[0] + '</span><h3>' + c[1] + '</h3><span class="tag ' + ETATS[c[2]][0] + '">' + ETATS[c[2]][1] + '</span></div>'
+        + '<div class="av"><div><div class="k">Aujourd’hui</div>' + c[3] + '</div><div><div class="k">Demain</div>' + c[4] + '</div></div>'
+        + '<div class="mod">Modules : ' + c[5] + '</div>'
+        + '<div class="valid"><div class="seg" data-valid="' + c[0] + '"><button type="button" data-v="ok" aria-pressed="' + (a.statut === 'ok') + '">Validé</button><button type="button" data-v="revoir" aria-pressed="' + (a.statut === 'revoir') + '">À revoir</button></div>'
+        + '<textarea data-note="' + c[0] + '" placeholder="Remarque" aria-label="Remarque sur ' + c[0] + '">' + (a.note || '').replace(/</g, '&lt;') + '</textarea></div></div>';
+    }).join('');
+  }
+  function renderBilan() {
+    var tous = INTERFACE.concat(PROFOND), ok = 0, revoir = 0;
+    tous.forEach(function (c) { var s = (avis[c[0]] || {}).statut; if (s === 'ok') ok++; if (s === 'revoir') revoir++; });
+    $('bilan').innerHTML = '<b>Bilan</b><span>' + ok + ' validés · ' + revoir + ' à revoir · ' + (tous.length - ok - revoir) + ' sans avis, sur ' + tous.length + '</span><button type="button" class="bouton" id="copier">Copier le bilan</button><span id="copie" class="cap" style="margin:0"></span>';
+    $('copier').addEventListener('click', function () {
+      var t = tous.map(function (c) { var a = avis[c[0]] || {}; return c[0] + ' ' + c[1].replace(/<[^>]+>/g, '') + ' : ' + (a.statut === 'ok' ? 'validé' : a.statut === 'revoir' ? 'à revoir' : 'sans avis') + (a.note ? ' (' + a.note + ')' : ''); }).join('\n');
+      try { navigator.clipboard.writeText(t).then(function () { $('copie').textContent = 'Copié.'; }, function () { $('copie').textContent = 'Copie refusée par le navigateur.'; }); } catch (e) { $('copie').textContent = 'Copie indisponible.'; }
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-valid] button'); if (!b) return;
+    var id = b.parentNode.getAttribute('data-valid'), v = b.getAttribute('data-v');
+    avis[id] = avis[id] || {};
+    avis[id].statut = avis[id].statut === v ? '' : v;
+    garder();
+    b.parentNode.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === avis[id].statut)); });
+    b.closest('.chg').setAttribute('data-statut', avis[id].statut);
+    renderBilan();
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target.closest('[data-note]'); if (!t) return;
+    var id = t.getAttribute('data-note'); avis[id] = avis[id] || {}; avis[id].note = t.value; garder(); renderBilan();
+  });
+
+  /* Le lien entre les deux côtés : une variable survolée se surligne partout, sa nuance aussi. */
+  function lier(nom) {
+    document.querySelectorAll('.lie').forEach(function (x) { x.classList.remove('lie'); });
+    if (!nom) return;
+    document.querySelectorAll('[data-token="' + nom + '"]').forEach(function (x) { x.classList.add('lie'); });
+    var n = table()[nom];
+    if (n) { var c = document.querySelector('#rampe [data-cran="' + n + '"]'); if (c) c.classList.add('lie'); }
+  }
+  document.addEventListener('mouseover', function (e) { var t = e.target.closest('[data-token]'); lier(t ? t.getAttribute('data-token') : null); });
+  document.addEventListener('focusin', function (e) { var t = e.target.closest('[data-token]'); lier(t ? t.getAttribute('data-token') : null); });
+
+  function renderTout() { renderLexique(); renderFigma(); renderPlugin(); }
+  function bascule(id, cle, apres) {
+    $(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      etat[cle] = b.getAttribute('data-v');
+      $(id).querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      (apres || renderTout)();
+    });
+  }
+  bascule('c-palette', 'palette');
+  bascule('c-mode', 'mode');
+  bascule('c-texte', 'texte');
+  bascule('c-page', 'page', function () {
+    if (etat.page === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', etat.page);
+  });
+  renderChangements('interface', INTERFACE);
+  renderChangements('profond', PROFOND);
+  renderBilan();
+  renderTout();
+})();
+</script>
+</body></html>
