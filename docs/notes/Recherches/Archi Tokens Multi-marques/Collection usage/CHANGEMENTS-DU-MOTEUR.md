@@ -126,9 +126,12 @@ galerie du plugin (`npm run galerie`, dossier `packages/plugin-palettes`).
 | I9 | Réglages communs | Pas de réglage du texte des boutons | « Texte des boutons » : Blanc, Noir, sous le fond de chaque thème, dans « Couleurs de fond », avec `solid/foreground` affiché à côté ; « Rétablir » rétablit les valeurs de sa carte ; les tests Chromium couvrent les quatre combinaisons | Décidé |
 | I10 | Fonds du thème | Un réglage « Fond » ; la carte est implicite | Le fond s'appelle `elevation/page` ; la valeur de `elevation/raised` s'affiche à côté | Proposé |
 | I11 | Rapport et import | Le rapport exporté nomme les paires par leurs emplois | Le rapport nomme les garanties par leurs variables ; l'import lit le format 9 | Retenu |
+| I12 | Aperçu, bandes des dossiers | Accolades grises, sans délimitation entre les lignes | Une bande par dossier, sur un fond très léger ; le nom du dossier se dessine comme ce qu'il peint (`solid` en pastille pleine, `surface` en pastille teintée, `page` en contour) avec son rôle en français dessous ; l'accolade devient une rangée de petites pastilles aux couleurs des nuances qu'elle couvre ; les états s'écrivent « repos · survol · appui » dans l'ordre de leurs nuances ; la colonne de gauche passe de 34 à 56 px | Proposé |
+| I13 | Aperçu, survol lié | Le survol d'une pastille signale seulement la cible ; les accolades ne réagissent pas | Survoler ou focaliser une pastille surligne chaque variable de cette nuance et la même nuance dans l'autre intensité ; survoler une variable surligne sa nuance dans chaque intensité (la case tiretée pour `solid/foreground`) ; survoler un dossier surligne ses nuances et atténue les autres ; la nuance choisie garde son surlignage ; tout suit la table du thème affiché. Les accolades restent `aria-hidden` et hors de la tabulation ; le détail de la nuance nomme ses variables (I5). Anneau et fond, pas la couleur seule ; ni délai ni animation. Tests Chromium : les trois sens, thème normal et inversé, une et deux intensités | Demandé par le mainteneur |
 
 Fichiers touchés : `i18n/fr.ts`, `i18n/en.ts`, `presentation.ts`,
-`ui/nuancier.ts`, `ui/garanties.ts`, `ui/ajustement.ts`,
+`ui/nuancier.ts` (dont son en-tête, qui dit aujourd'hui que le survol
+signale seulement la cible), `ui/styles.css`, `ui/garanties.ts`, `ui/ajustement.ts`,
 `planche/modele.ts`, `ui/interfaceDeTest.ts`, `rapport.ts`,
 `importation.ts`, les Réglages communs et les états de la galerie.
 
@@ -165,7 +168,7 @@ exempté. `page/foreground-subtle` a les mesures de G5 ;
 ## 6. Un ordre possible
 
 1. **La table du kit et ses tests** : P1, P4 à P8, P12 pour le kit.
-2. **UCM Palettes** : I1 à I8, I10, I11 sur la nouvelle table ; P9.
+2. **UCM Palettes** : I1 à I8, I10 à I13 sur la nouvelle table ; P9.
 3. **`ucm check` et l'Explorateur** : P10, P11.
 4. **Le thème inversé** : P2, P3, I9, décidés dans le dossier du texte des
    boutons.
