@@ -123,6 +123,21 @@ html{scroll-padding-top:70px}
 .alerte{border-radius:8px;padding:10px 12px;border:1.5px solid;font-size:14px}
 .badge{display:inline-block;border-radius:999px;padding:1px 10px;font:600 12px var(--sans)}
 .champ{border:1.5px solid;border-radius:6px;padding:6px 10px;font-size:14px;min-width:170px}
+.pile{display:grid;gap:12px;margin:14px 0}
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:10px;margin-top:8px}
+.grille{overflow-x:auto}
+.grille table{border-collapse:collapse}
+.grille th{font:11px var(--mono);opacity:.75;text-align:left;padding:2px 6px}
+.grille td{padding:6px;vertical-align:top;text-align:center}
+.grille .btn,.alerte2 .btn{display:inline-block;padding:5px 10px;font-size:13px;white-space:nowrap}
+.grille .mes{margin-top:4px}
+.a-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px}
+.a-col{display:flex;flex-direction:column;gap:8px}
+.a-tete{font:11px var(--mono);opacity:.75}
+.alerte2{display:flex;align-items:center;gap:8px;border:1.5px solid;border-radius:8px;padding:8px 10px}
+.alerte2 svg{flex:none;width:18px;height:18px}
+.a-txt{flex:1;display:flex;flex-direction:column;font-size:13px;line-height:1.3}
+.a-txt b{font-size:14px}
 .vars{font-size:.8rem;color:var(--muted);margin:0;padding-left:16px}
 .vars code{font-size:.78rem}
 .mes{font-family:var(--mono);font-size:.76rem;margin-top:6px}
@@ -179,10 +194,10 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></div>
     <div class="carte"><div class="k">Quatre règles pour le designer</div>
       <ol>
-        <li>Un dossier par sorte de fond : <code>solid</code> (bouton), <code>surface</code> (fond teinté). La racine sert à ce qui se pose sur la page.</li>
-        <li>Le texte et le contour se prennent dans le dossier du fond.</li>
-        <li>Un état ne change que le fond : <code>background</code>, <code>-hover</code>, <code>-pressed</code>.</li>
-        <li>Sélectionné : prendre un autre dossier.</li>
+        <li>Le dossier se lit sur le fond juste derrière : la page ou une carte, <code>page</code> ; une teinte claire de la palette, <code>surface</code> ; la couleur franche, <code>solid</code>.</li>
+        <li>Le texte, l'icône et le contour se prennent dans ce dossier.</li>
+        <li>Un état qui garde la sorte de fond ne change que le fond : <code>default</code>, <code>hover</code>, <code>pressed</code>.</li>
+        <li>Un état qui change la sorte de fond change de dossier : le survol du bouton outlined passe dans <code>solid</code>.</li>
       </ol></div>
     <div class="carte"><div class="k">Personne ne tape un alias</div>
       <ul>
@@ -226,12 +241,86 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <p class="narrow">Chaque composant, dans la marque choisie, en Light puis en Dark. Les ratios sont recalculés sur les couleurs affichées : le pire couple texte et fond de chaque thème, seuil 4,5:1.</p>
   <div class="exemples" id="exemples"></div>
 
+  <h2 id="recette">Recette sur Button et Alert du Playground</h2>
+  <div class="narrow">
+    <p>Les contrats <code>Button</code> et <code>Alert</code> du dépôt UCM-Playground (<code>src/components/</code>), rebranchés sur <code>theme</code>. Chaque token de composant garde son nom et vise la variable du tableau qui suit les aperçus. Les statuts prennent l'intensité <code>vivid</code> ; <code>error</code> vise <code>danger</code>. Le Playground n'a pas de thème Dark : la colonne Dark montre ce que le modèle en ferait.</p>
+    <p>Les ratios sont recalculés sur les couleurs affichées : texte à 4,5:1, icône et anneau à 3:1. Un ratio rouge sous un bouton signale un échec ; un variant désactivé n'est pas mesuré.</p>
+  </div>
+  <div class="groupe"><span>Bouton <code>text</code></span><div class="seg" id="c-texte">
+    <button type="button" data-v="surface" aria-pressed="true">B, dossier surface</button><button type="button" data-v="page" aria-pressed="false">A, texte de la page</button></div></div>
+  <div class="pile" id="recette-boutons"></div>
+  <div class="pile" id="recette-alertes"></div>
+
+  <div class="narrow">
+  <h3>Les tokens des contrats, branchés sur <code>theme</code></h3>
+  <p><code>{c}</code> est la couleur du bouton ou la sévérité de l'alerte : <code>primary</code> et <code>secondary</code> visent <code>brand</code> ; <code>info</code>, <code>success</code> et <code>warning</code> leur statut en <code>vivid</code> ; <code>error</code> vise <code>danger/vivid</code>.</p>
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Token de composant</th><th>Playground aujourd'hui</th><th>Modèle</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3"><b>Button, <code>contained</code></b></td></tr>
+      <tr><td><code>default/background</code></td><td>la nuance de la marque ou du statut</td><td><code>{c}/solid/default</code></td></tr>
+      <tr><td><code>hover/background</code>, <code>focus/background</code></td><td>un cran plus foncé</td><td><code>{c}/solid/hover</code></td></tr>
+      <tr><td><code>press/background</code></td><td>le même que le survol</td><td><code>{c}/solid/pressed</code></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/text</code>, blanc ou noir selon le thème</td></tr>
+      <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td><code>focus</code></td></tr>
+      <tr><td><code>disable/background</code>, <code>disable/foreground</code></td><td>neutre 200 et 500</td><td><code>disabled/background</code>, <code>disabled/text</code></td></tr>
+      <tr><td colspan="3"><b>Button, <code>outlined</code></b></td></tr>
+      <tr><td><code>default/background</code></td><td><code>neutral.50</code>, opaque</td><td>aucun fond</td></tr>
+      <tr><td><code>default/foreground</code></td><td>la nuance du fond plein</td><td><code>{c}/page/text</code></td></tr>
+      <tr><td><code>default/border</code></td><td>la nuance du fond plein</td><td><code>{c}/solid/default</code></td></tr>
+      <tr><td><code>hover/background</code>, <code>hover/border</code></td><td>comme le survol du bouton plein</td><td><code>{c}/solid/hover</code></td></tr>
+      <tr><td><code>focus/background</code>, <code>focus/border</code></td><td>le fond plein au repos</td><td><code>{c}/solid/default</code></td></tr>
+      <tr><td><code>press/background</code>, <code>press/border</code></td><td>comme le survol</td><td><code>{c}/solid/pressed</code></td></tr>
+      <tr><td><code>foreground</code> au survol, au focus, à l'appui</td><td><code>neutral.50</code></td><td><code>{c}/solid/text</code></td></tr>
+      <tr><td><code>disable</code></td><td><code>neutral.50</code> ; contour et texte neutre 500</td><td>aucun fond ; <code>disabled/border</code>, <code>disabled/text</code></td></tr>
+      <tr><td colspan="3"><b>Button, <code>text</code></b></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td>la nuance du fond plein</td><td>A : <code>{c}/page/text</code> ; B : <code>{c}/surface/text</code></td></tr>
+      <tr><td><code>background</code> au survol, au focus, à l'appui</td><td>nuance 50, 100 pour <code>secondary</code></td><td>A : <code>{c}/surface/default</code> ; B : <code>{c}/surface/hover</code>, <code>pressed</code> à l'appui</td></tr>
+      <tr><td colspan="3"><b>Alert, <code>standard</code></b></td></tr>
+      <tr><td><code>background</code></td><td>nuance 50</td><td><code>{c}/surface/default</code></td></tr>
+      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700</td><td><code>{c}/surface/text</code></td></tr>
+      <tr><td colspan="3"><b>Alert, <code>outlined</code></b></td></tr>
+      <tr><td><code>foreground</code></td><td>nuance 700, 900 pour <code>info</code></td><td><code>{c}/page/text</code></td></tr>
+      <tr><td><code>icon</code></td><td>nuance 700</td><td><code>{c}/page/text</code></td></tr>
+      <tr><td><code>border</code></td><td>nuance 700</td><td><code>{c}/page/border</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Ce que la recette montre</h3>
+  <p>Le modèle exprime les deux contrats sans nuance hors table. Trois ajustements du modèle sont déjà dans cette page :</p>
+  <ul class="raisons">
+    <li><b>Le dossier <code>page</code></b> remplace la racine de la palette. La règle du dossier n'a plus d'exception.</li>
+    <li><b>Les fonds d'un dossier s'appellent <code>default</code>, <code>hover</code> et <code>pressed</code></b>, et portent aussi la portée du contour. Le contour du bouton outlined vise <code>solid/default</code>. Sur les 42 rampes de la recherche, il tient 3:1 sur la page et la carte dans les quatre thèmes, au pire à 3,32:1 en Dark inversé.</li>
+    <li><b><code>disabled/border</code></b> s'ajoute pour le contour du bouton outlined désactivé, au neutre 500 comme dans le Playground.</li>
+  </ul>
+  <p>Quatre ajustements reviennent aux composants :</p>
+  <ul class="raisons">
+    <li><b>L'anneau.</b> Le Playground prend la nuance 100 de la couleur du bouton, ou la 200 pour <code>primary</code>. Aucune des 84 mesures par thème n'atteint 3:1 sur la page ou la carte : au mieux, le pire cas vaut 1,17:1. Les contrats visent <code>focus</code>.</li>
+    <li><b>Le fond du bouton outlined au repos.</b> Le Playground pose <code>neutral.50</code>, opaque, qui sert aussi de texte au bouton plein. Ce fond se voit sur une carte grise et en Dark. Le modèle ne pose aucun fond.</li>
+    <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/text</code>.</li>
+    <li><b>L'alerte standard</b> passe d'un fond à la nuance 50 à la 100, premier fond du dossier <code>surface</code>. Son texte passe de la 700 à la 900.</li>
+  </ul>
+  <p>Le bouton <code>text</code> demande une décision. Il n'a pas de fond au repos et pose un fond teinté au survol. L'alerte standard le place sur son propre fond, <code>surface/default</code>.</p>
+  <div class="tw"><table class="plain">
+    <thead><tr><th></th><th>A. Texte de la page</th><th>B. Dossier <code>surface</code></th></tr></thead>
+    <tbody>
+      <tr><td>Texte, constant</td><td><code>{c}/page/text</code>, 700 : la couleur du bouton outlined</td><td><code>{c}/surface/text</code>, 900 : plus sombre</td></tr>
+      <tr><td>Fond au survol, au focus, à l'appui</td><td><code>{c}/surface/default</code> pour les trois</td><td><code>{c}/surface/hover</code>, puis <code>pressed</code></td></tr>
+      <tr><td>Contraste du texte, 42 rampes</td><td>Sur le fond 100 : 42 sur 42, au pire 5,02:1. Sur le 200 : 40 sur 42. Sur le 300 : aucune en Light. A ne peut donc pas prendre <code>hover</code> ni <code>pressed</code></td><td>Sur la page, la carte et les trois fonds teintés : toutes, au pire 7,30:1</td></tr>
+      <tr><td>Dans l'alerte standard</td><td>Le fond de survol est celui de l'alerte : le bouton ne change pas au survol</td><td>Le survol, à la 200, se distingue du fond 100 de l'alerte</td></tr>
+      <tr><td>Dans l'alerte outlined</td><td>L'action a la couleur du titre de l'alerte</td><td>L'action est plus sombre que le titre de l'alerte</td></tr>
+    </tbody>
+  </table></div>
+  <p>Je recommande B. Le bouton <code>text</code> devient un bouton du dossier <code>surface</code> sans fond au repos, et le même contrat sert sur la page et dans une alerte. Le sélecteur au-dessus des aperçus bascule entre A et B.</p>
+  <p>Les ratios rouges qui restent touchent le bouton plein à la nuance 700, et seulement dans un thème inversé : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ils viennent de la courbe du thème inversé, que le dossier du texte des boutons doit encore trancher.</p>
+  </div>
+
   <div class="narrow">
   <h2>Pourquoi c'est mieux</h2>
   <ul class="raisons">
-    <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/background*</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
+    <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
     <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un bouton n'a plus qu'un token de texte pour tous ses états.</li>
-    <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/background-hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
+    <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
     <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte de <code>surface</code>, à la nuance 900, tient au pire 7,30:1 sur ses trois fonds ; son contour, à la 800, 4,44:1 ; l'anneau <code>focus</code>, à la 900, 6,19:1 sur les fonds teintés de toutes les palettes.</li>
     <li><b>Le même modèle que les systèmes établis.</b> Atlassian, Fluent et Primer gardent un seul texte pour tous les états du bouton ; Material nomme <code>on-primary</code> le texte de <code>primary</code> ; tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
     <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
@@ -246,7 +335,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">D3 à D10</td><td><code>brand</code>, catalogue de <code>primitives</code>, <code>color-utilities</code>, courbe commune, <code>soft</code> et <code>vivid</code>, couleur de charte, blanc et noir</td><td><span class="tag same">gardées</span></td></tr>
       <tr><td class="id">D11</td><td><code>components</code> garde ses noms</td><td><span class="tag mod">modifiée</span> il vise <code>theme</code> au lieu de <code>usage</code></td></tr>
       <tr><td class="id">D12</td><td>Réglages et exceptions de marque réservés dans <code>brand</code></td><td><span class="tag same">gardée</span></td></tr>
-      <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers de <code>theme</code>, douze variables par palette au lieu de vingt</td></tr>
+      <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers <code>page</code>, <code>surface</code> et <code>solid</code> de <code>theme</code>, douze variables par palette au lieu de vingt</td></tr>
       <tr><td class="id">D14</td><td>Une nuance hors table passe par un token de composant</td><td><span class="tag same">gardée</span> il vise <code>theme.{palette}.scale.N</code>, aux portées vides</td></tr>
       <tr><td class="id">D15, D16</td><td>Trois niveaux d'élévation ; une table pour les trois outils</td><td><span class="tag same">gardées</span></td></tr>
       <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
@@ -263,7 +352,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">3</td><td><a href="./1%20Usages%20indexes%20et%20catalogue/README.md">Usages indexés</a> : niveaux et catalogue de partenaires</td><td class="plus">Sépare niveau de couleur et état</td><td class="moins">Un catalogue de preuves lourd à tenir</td></tr>
       <tr><td class="id">4</td><td><a href="./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">Escalier</a> : texte n sur toute surface de niveau inférieur ou égal</td><td class="plus">Dix couples garantis au lieu de quatre</td><td class="moins">Une règle à apprendre, invisible dans les noms</td></tr>
       <tr><td class="id">5</td><td><a href="./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html">Ensembles</a> : <code>surface-0</code> à <code>4</code>, <code>solid-1</code> à <code>4</code></td><td class="plus">Tout dans le dossier du fond</td><td class="moins">Des numéros, des conventions, une table en deux collections</td></tr>
-      <tr><td class="id">6</td><td>Cette page : dossiers à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> plus sombre que le texte coloré ; anneau moins vif</td></tr>
+      <tr><td class="id">6</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> plus sombre que le texte coloré ; anneau moins vif</td></tr>
     </tbody>
   </table></div>
 
@@ -272,8 +361,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>Adopter les dossiers à texte constant.</li>
     <li>Variables d'usage dans <code>theme</code>, ou dans une collection <code>usage</code> sans mode qui recopie <code>theme</code>.</li>
     <li>Texte de <code>surface</code> à 900 partout, ou 800 dans les thèmes normaux.</li>
-    <li>Anneau <code>focus</code> unique, <code>primary</code> 900.</li>
-    <li>Les noms, à éprouver dans le sélecteur Figma.</li>
+    <li>Anneau <code>focus</code> unique, <code>primary</code> 900, et <code>disabled/border</code>.</li>
+    <li>Les noms : dossiers <code>page</code>, <code>surface</code> et <code>solid</code>, retenus ; fonds <code>default</code>, <code>hover</code> et <code>pressed</code>. À éprouver dans le sélecteur Figma.</li>
+    <li>Le bouton <code>text</code> : texte de la page (A) ou dossier <code>surface</code> (B), voir la recette sur le Playground.</li>
     <li>Les nuances 400 et 950, obligatoires ou non.</li>
     <li>Le thème inversé, dans le <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>.</li>
   </ol>
@@ -295,7 +385,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   var UTIL_PAL = { success: 'grass', warning: 'orange', info: 'blue', danger: 'poppy', neutral: 'titanium' };
   var STATUTS = ['success', 'warning', 'info', 'danger'];
   var MODES = ['light', 'dark'];
-  var ETATS = ['background', 'background-hover', 'background-pressed'];
+  var ETATS = ['default', 'hover', 'pressed'];
   var ELEV = {
     light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.white', overlay: 'primitives.colors.white' },
     dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100', overlay: 'primitives.colors.titanium.dark.100' },
@@ -303,7 +393,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. */
   var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700 };
   var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800 };
-  var etat = { marque: 'intencial', light: 'blanc', dark: 'blanc', col: 'theme' };
+  var etat = { marque: 'intencial', light: 'blanc', dark: 'blanc', col: 'theme', texte: 'surface' };
 
   function inverse(t) { return t === 'light' ? etat.light === 'noir' : etat.dark === 'blanc'; }
   function decoupe(q) {
@@ -319,10 +409,12 @@ footer ul{padding-left:18px;margin:6px 0 0}
     var a = d.rest[0], b = d.rest[1];
     if (a === 'solid') return tb.solid[ETATS.indexOf(b)];
     if (a === 'surface') return b === 'text' ? 900 : b === 'border' ? 800 : [100, 200, 300][ETATS.indexOf(b)];
-    if (a === 'text') return d.role === 'neutral' ? 900 : tb.text;
-    if (a === 'text-subtle') return tb.subtle;
-    if (a === 'border') return tb.border;
-    if (a === 'divider') return 300;
+    if (a === 'page') {
+      if (b === 'text') return d.role === 'neutral' ? 900 : tb.text;
+      if (b === 'text-subtle') return tb.subtle;
+      if (b === 'border') return tb.border;
+      if (b === 'divider') return 300;
+    }
     if (a === 'scale') return Number(b);
   }
   /* Vrai quand la nuance de la variable change entre thème normal et thème inversé. */
@@ -337,7 +429,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   /* L'alias suivant d'une variable, dans le thème t ; null pour une valeur. */
   function next(path, t) {
     var p = path.split('.'), col = p[0], q = p.slice(1);
-    if (col === 'components') return COMP_CIBLE[q.join('.')];
+    if (col === 'components') return cibleComposant(q);
     if (col === 'theme') {
       if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
       if (q[0] === 'focus') return 'brand.palette.primary.' + t + '.900';
@@ -372,29 +464,47 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function th(chemin) { return 'theme.' + chemin.replace(/\//g, '.'); }
   function H(chemin, t) { return hex(th(chemin), t); }
 
-  /* Exemples de components */
-  var COMP = [
-    ['button/primary', 'background', 'primary/solid/background'],
-    ['button/primary', 'hover/background', 'primary/solid/background-hover'],
-    ['button/primary', 'pressed/background', 'primary/solid/background-pressed'],
-    ['button/primary', 'text', 'primary/solid/text'],
-    ['button/primary', 'focus/ring', 'focus'],
-    ['button/secondary', 'border', 'primary/surface/border'],
-    ['button/secondary', 'text', 'primary/surface/text'],
-    ['button/secondary', 'hover/background', 'primary/surface/background-hover'],
-    ['button/secondary', 'pressed/background', 'primary/surface/background-pressed'],
-    ['table/row', 'hover/background', 'neutral/surface/background-hover'],
-    ['table/row', 'text', 'neutral/surface/text'],
-    ['table/row', 'selected/background', 'primary/surface/background'],
-    ['table/row', 'selected/hover/background', 'primary/surface/background-hover'],
-    ['table/row', 'selected/text', 'primary/surface/text'],
-    ['alert/danger', 'background', 'danger/vivid/surface/background'],
-    ['alert/danger', 'text', 'danger/vivid/surface/text'],
-    ['alert/danger', 'border', 'danger/vivid/surface/border'],
-    ['chart', 'scale-5', 'warning/vivid/scale/600'],
-  ];
-  var COMP_CIBLE = {};
-  COMP.forEach(function (c) { COMP_CIBLE[(c[0] + '/' + c[1]).replace(/\//g, '.')] = th(c[2]); });
+  /* Les contrats Button et Alert du Playground, branchés sur theme */
+  var COULEURS = ['primary', 'secondary', 'info', 'success', 'warning', 'error'];
+  var VARIANTES = ['contained', 'outlined', 'text'];
+  var ETATS_BOUTON = ['default', 'hover', 'focus', 'press', 'disable'];
+  var SEVERITES = ['info', 'success', 'warning', 'error'];
+  /* Les statuts prennent l'intensité vivid ; error vise danger. */
+  function paletteDe(c) { return c === 'primary' || c === 'secondary' ? c : (c === 'error' ? 'danger' : c) + '/vivid'; }
+  /* Les variables de theme d'un variant de Button, par rôle du contrat ; un rôle absent n'est pas peint. */
+  function bouton(c, v, s) {
+    var p = paletteDe(c), r = {};
+    if (s === 'disable') {
+      if (v === 'contained') return { background: 'disabled/background', foreground: 'disabled/text' };
+      return v === 'outlined' ? { foreground: 'disabled/text', border: 'disabled/border' } : { foreground: 'disabled/text' };
+    }
+    if (v === 'contained') {
+      r.background = p + '/solid/' + { default: 'default', hover: 'hover', focus: 'hover', press: 'pressed' }[s];
+      r.foreground = p + '/solid/text';
+    } else if (v === 'outlined') {
+      if (s === 'default') { r.foreground = p + '/page/text'; r.border = p + '/solid/default'; }
+      else { r.background = r.border = p + '/solid/' + { hover: 'hover', focus: 'default', press: 'pressed' }[s]; r.foreground = p + '/solid/text'; }
+    } else if (etat.texte === 'surface') {
+      r.foreground = p + '/surface/text';
+      if (s !== 'default') r.background = p + '/surface/' + (s === 'press' ? 'pressed' : 'hover');
+    } else {
+      r.foreground = p + '/page/text';
+      if (s !== 'default') r.background = p + '/surface/default';
+    }
+    if (s === 'focus' || s === 'press') r.ring = 'focus';
+    return r;
+  }
+  function alerte(sev, v) {
+    var p = paletteDe(sev);
+    if (v === 'standard') return { background: p + '/surface/default', foreground: p + '/surface/text', icon: p + '/surface/text' };
+    return { foreground: p + '/page/text', icon: p + '/page/text', border: p + '/page/border' };
+  }
+  /* La variable de theme qu'un token de composant vise : components.button.colors.{c}.{v}.{s}.{rôle}, components.alert.colors.{sév}.{v}.{rôle}. */
+  function cibleComposant(q) {
+    if (q[0] === 'chart') return th('warning/vivid/scale/600');
+    var r = q[0] === 'button' ? bouton(q[2], q[3], q[4])[q[5]] : q[0] === 'alert' ? alerte(q[2], q[3])[q[4]] : null;
+    return r ? th(r) : null;
+  }
 
   /* Lignes du panneau */
   function G(g, tag) { return { g: g, tag: tag }; }
@@ -404,13 +514,17 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function V(h) { return { h: h }; }
 
   function compRows() {
-    var out = [], last = '';
-    COMP.forEach(function (c) {
-      if (c[0] !== last) { out.push(G(c[0], c[0] === 'chart' ? ['mod', 'hors table, D14'] : null)); last = c[0]; }
-      var cible = th(c[2]);
-      out.push(R(c[0], c[1], [A(cible, hex(cible, 'light'))]));
-    });
-    out.push(M('… les autres composants, mêmes noms qu’aujourd’hui (D11)'));
+    var out = [];
+    function groupe(g, roles) {
+      out.push(G(g));
+      Object.keys(roles).forEach(function (n) { var cible = th(roles[n]); out.push(R(g, n, [A(cible, hex(cible, 'light'))])); });
+    }
+    VARIANTES.forEach(function (v) { ETATS_BOUTON.forEach(function (s) { groupe('button/colors/primary/' + v + '/' + s, bouton('primary', v, s)); }); });
+    out.push(M('… secondary, info, success, warning et error : les mêmes noms'));
+    ['standard', 'outlined'].forEach(function (v) { groupe('alert/colors/error/' + v, alerte('error', v)); });
+    out.push(M('… info, success et warning : les mêmes noms'));
+    out.push(G('chart', ['mod', 'hors table, D14']));
+    out.push(R('chart', 'scale-5', [A(th('warning/vivid/scale/600'), H('warning/vivid/scale/600', 'light'))]));
     return out;
   }
   function themeRows() {
@@ -419,13 +533,13 @@ footer ul{padding-left:18px;margin:6px 0 0}
     function groupe(g, noms, tag) { out.push(G(g, tag)); noms.forEach(function (n) { out.push(row(g, n)); }); }
     groupe('primary/solid', ETATS.concat(['text']));
     groupe('primary/surface', ETATS.concat(['text', 'border']));
-    groupe('primary', ['text', 'border', 'divider']);
+    groupe('primary/page', ['text', 'border', 'divider']);
     out.push(M('… secondary : les mêmes douze variables'));
     groupe('success/vivid/surface', ['background', 'text', 'border']);
     out.push(M('… success, warning, info et danger, en soft et en vivid : douze variables chacun'));
-    groupe('neutral/surface', ['background-hover', 'text']);
-    groupe('neutral', ['text', 'text-subtle', 'border']);
-    out.push(G('disabled')); ['background', 'text'].forEach(function (n) { out.push(row('disabled', n)); });
+    groupe('neutral/surface', ['hover', 'text']);
+    groupe('neutral/page', ['text', 'text-subtle', 'border']);
+    out.push(G('disabled')); ['background', 'text', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
     out.push(G('focus', ['new', 'un seul anneau']));
     var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
     groupe('elevation', ['page', 'raised', 'overlay']);
@@ -476,7 +590,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   }
   function collections() {
     return [
-      { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens de composants gardent leurs noms et visent <code>theme</code> (D11). Le bouton a un seul token de texte pour tous ses états. La valeur montrée est celle du thème Light.'] },
+      { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens des contrats Button et Alert du Playground gardent leurs noms et visent <code>theme</code> (D11). La valeur montrée est celle du thème Light.'] },
       { id: 'theme', ax: 'Light · Dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
       { id: 'brand', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). La couleur de charte reste à part (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
       { id: 'color-utilities', ax: 'aucun mode', modes: ['Valeur'], rows: utilRows(), note: ['Le neutre, les quatre statuts et les niveaux d’élévation, communs à toutes les marques (D6, D15).'] },
@@ -528,7 +642,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
 
   /* Le chemin d'une couleur, dans les deux thèmes */
   function renderTrajet() {
-    var depart = 'components.button.primary.hover.background';
+    var depart = 'components.button.colors.primary.contained.hover.background';
     var lignes = MODES.map(function (t) {
       var c = chaine(depart, t);
       return '<span class="m">' + t + (inverse(t) ? ', thème inversé' : '') + '</span>\n  ' + c.join('\n  → ') + '   ' + valueOf(c[c.length - 1]);
@@ -548,7 +662,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function etiquette(t) { return t === 'light' ? 'Light' : 'Dark'; }
   function scene(t, contenu, fond) {
     var bg = fond || H('elevation/page', t);
-    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/text', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
+    return '<div class="scene" style="background:' + bg + ';color:' + H('neutral/page/text', t) + '"><span class="scene-l">' + etiquette(t) + ' · texte des boutons ' + (t === 'light' ? etat.light : etat.dark) + (inverse(t) ? ', inversé' : '') + '</span>' + contenu + '</div>';
   }
   function mesures(couples) {
     return '<div class="mes">' + MODES.map(function (t) {
@@ -559,63 +673,42 @@ footer ul{padding-left:18px;margin:6px 0 0}
   }
   var EXEMPLES = [
     {
-      titre: 'Bouton principal',
-      dessin: function (t) {
-        return '<div class="rang">' + [['Repos', 'background'], ['Survol', 'background-hover'], ['Appui', 'background-pressed']].map(function (e) {
-          return '<figure><span class="btn" style="background:' + H('primary/solid/' + e[1], t) + ';color:' + H('primary/solid/text', t) + '">Valider</span>' + e[0] + '</figure>';
-        }).join('') + '<figure><span class="btn" style="background:' + H('primary/solid/background', t) + ';color:' + H('primary/solid/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Valider</span>Focus</figure></div>';
-      },
-      vars: ['fond : <code>primary/solid/background</code>, <code>-hover</code>, <code>-pressed</code>', 'texte, le même pour les trois : <code>primary/solid/text</code>', 'anneau : <code>focus</code>'],
-      couples: [['primary/solid/text', 'primary/solid/background'], ['primary/solid/text', 'primary/solid/background-hover'], ['primary/solid/text', 'primary/solid/background-pressed']],
-    },
-    {
-      titre: 'Bouton secondaire',
-      dessin: function (t) {
-        return '<div class="rang">' + [['Repos', null], ['Survol', 'background-hover'], ['Appui', 'background-pressed']].map(function (e) {
-          return '<figure><span class="btn" style="background:' + (e[1] ? H('primary/surface/' + e[1], t) : 'transparent') + ';color:' + H('primary/surface/text', t) + ';border-color:' + H('primary/surface/border', t) + '">Annuler</span>' + e[0] + '</figure>';
-        }).join('') + '</div>';
-      },
-      vars: ['fond : aucun, puis <code>primary/surface/background-hover</code>, <code>-pressed</code>', 'texte et contour, constants : <code>primary/surface/text</code>, <code>primary/surface/border</code>'],
-      couples: [['primary/surface/text', 'page'], ['primary/surface/text', 'primary/surface/background-hover'], ['primary/surface/text', 'primary/surface/background-pressed']],
-    },
-    {
       titre: 'Ligne de tableau sélectionnable',
       dessin: function (t) {
-        var lignes = [['Repos', null, 'neutral'], ['Survol', 'neutral/surface/background-hover', 'neutral'], ['Sélectionnée', 'primary/surface/background', 'primary'], ['Sélectionnée, survolée', 'primary/surface/background-hover', 'primary']];
+        var lignes = [['Repos', null, 'neutral'], ['Survol', 'neutral/surface/hover', 'neutral'], ['Sélectionnée', 'primary/surface/default', 'primary'], ['Sélectionnée, survolée', 'primary/surface/hover', 'primary']];
         return '<div class="panneau" style="background:' + H('elevation/raised', t) + '">' + lignes.map(function (l) {
           return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2] + '/surface/text', t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
         }).join('') + '</div>';
       },
-      vars: ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>-hover</code> de ce dossier'],
-      couples: [['neutral/surface/text', 'elevation/raised'], ['neutral/surface/text', 'neutral/surface/background-hover'], ['primary/surface/text', 'primary/surface/background'], ['primary/surface/text', 'primary/surface/background-hover']],
+      vars: ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>hover</code> de ce dossier'],
+      couples: [['neutral/surface/text', 'elevation/raised'], ['neutral/surface/text', 'neutral/surface/hover'], ['primary/surface/text', 'primary/surface/default'], ['primary/surface/text', 'primary/surface/hover']],
     },
     {
-      titre: 'Alerte et badges',
+      titre: 'Badges',
       dessin: function (t) {
-        return '<div class="alerte" style="background:' + H('danger/vivid/surface/background', t) + ';color:' + H('danger/vivid/surface/text', t) + ';border-color:' + H('danger/vivid/surface/border', t) + '"><b>Paiement refusé.</b> Vérifiez l’IBAN.</div>'
-          + '<div class="rang" style="margin-top:10px"><span class="badge" style="background:' + H('success/vivid/solid/background', t) + ';color:' + H('success/vivid/solid/text', t) + '">Validé</span>'
-          + '<span class="badge" style="background:' + H('info/soft/surface/background', t) + ';color:' + H('info/soft/surface/text', t) + '">Brouillon</span></div>';
+        return '<div class="rang"><span class="badge" style="background:' + H('success/vivid/solid/default', t) + ';color:' + H('success/vivid/solid/text', t) + '">Validé</span>'
+          + '<span class="badge" style="background:' + H('info/soft/surface/default', t) + ';color:' + H('info/soft/surface/text', t) + '">Brouillon</span></div>';
       },
-      vars: ['alerte : dossier <code>danger/vivid/surface</code>', 'badge fort : <code>success/vivid/solid</code>', 'badge doux : <code>info/soft/surface</code>'],
-      couples: [['danger/vivid/surface/text', 'danger/vivid/surface/background'], ['success/vivid/solid/text', 'success/vivid/solid/background'], ['info/soft/surface/text', 'info/soft/surface/background']],
+      vars: ['badge fort : <code>success/vivid/solid</code>', 'badge doux : <code>info/soft/surface</code>'],
+      couples: [['success/vivid/solid/text', 'success/vivid/solid/default'], ['info/soft/surface/text', 'info/soft/surface/default']],
     },
     {
       titre: 'Champ de saisie',
       dessin: function (t) {
-        return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/border', t) + ';color:' + H('neutral/text-subtle', t) + '">Nom du contrat</span>Repos</figure>'
-          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/border', t) + ';color:' + H('neutral/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
+        return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/page/border', t) + ';color:' + H('neutral/page/text-subtle', t) + '">Nom du contrat</span>Repos</figure>'
+          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/text', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
       },
-      vars: ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/border</code>, puis <code>primary/border</code>', 'texte : <code>neutral/text</code> ; indication : <code>neutral/text-subtle</code>'],
-      couples: [['neutral/text', 'elevation/raised'], ['neutral/text-subtle', 'elevation/raised']],
+      vars: ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code>', 'texte : <code>neutral/page/text</code> ; indication : <code>neutral/page/text-subtle</code>'],
+      couples: [['neutral/page/text', 'elevation/raised'], ['neutral/page/text-subtle', 'elevation/raised']],
     },
     {
       titre: 'Paragraphe et lien',
       dessin: function (t) {
-        return '<p style="margin:0;font-size:14px;color:' + H('neutral/text', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/text', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
-          + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/text-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
+        return '<p style="margin:0;font-size:14px;color:' + H('neutral/page/text', t) + '">Le versement est programmé le 12. <span style="color:' + H('primary/page/text', t) + ';text-decoration:underline">Modifier l’échéancier</span></p>'
+          + '<p style="margin:6px 0 0;font-size:13px;color:' + H('neutral/page/text-subtle', t) + '">Dernière mise à jour il y a deux jours</p>';
       },
-      vars: ['corps : <code>neutral/text</code> ; secondaire : <code>neutral/text-subtle</code>', 'lien : <code>primary/text</code>, posé sur la page'],
-      couples: [['neutral/text', 'page'], ['neutral/text-subtle', 'page'], ['primary/text', 'page']],
+      vars: ['corps : <code>neutral/page/text</code> ; secondaire : <code>neutral/page/text-subtle</code>', 'lien : <code>primary/page/text</code>'],
+      couples: [['neutral/page/text', 'page'], ['neutral/page/text-subtle', 'page'], ['primary/page/text', 'page']],
     },
   ];
   function renderExemples() {
@@ -625,7 +718,71 @@ footer ul{padding-left:18px;margin:6px 0 0}
     }).join('');
   }
 
-  function renderTout() { renderPanneau(); renderTrajet(); renderExemples(); }
+  /* Recette : chaque variant dessiné avec ses variables de theme, et mesuré sur le fond qu'il recouvre. */
+  function tient(v, seuil) { return Number(v.toFixed(10)) >= seuil; }
+  function ratio(v, seuil) { return '<span class="' + (tient(v, seuil) ? 'ok' : 'ko') + '">' + fmt(v) + '</span>'; }
+  /* Un rôle absent laisse voir le fond posé dessous, `fond`. */
+  function dessinBouton(r, t, fond) {
+    var bg = r.background ? H(r.background, t) : null, fg = H(r.foreground, t);
+    var style = 'background:' + (bg || 'transparent') + ';color:' + fg + ';border-color:' + (r.border ? H(r.border, t) : 'transparent')
+      + (r.ring ? ';outline:2px solid ' + H(r.ring, t) + ';outline-offset:2px' : '');
+    return { html: '<span class="btn" style="' + style + '">Action</span>', fond: bg || fond, texte: contraste(fg, bg || fond), anneau: r.ring ? contraste(H(r.ring, t), fond) : null };
+  }
+  function grilleBoutons(v, t) {
+    var fond = H('elevation/page', t), pire = Infinity, pireAnneau = Infinity;
+    var corps = COULEURS.map(function (c) {
+      return '<tr><th>' + c + '</th>' + ETATS_BOUTON.map(function (s) {
+        var d = dessinBouton(bouton(c, v, s), t, fond), note = '';
+        if (s !== 'disable') { pire = Math.min(pire, d.texte); if (!tient(d.texte, 4.5)) note = '<div class="mes">' + ratio(d.texte, 4.5) + '</div>'; }
+        if (d.anneau !== null) pireAnneau = Math.min(pireAnneau, d.anneau);
+        return '<td>' + d.html + note + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    var tete = '<tr><th></th>' + ETATS_BOUTON.map(function (s) { return '<th>' + s + '</th>'; }).join('') + '</tr>';
+    return scene(t, '<div class="grille"><table>' + tete + corps + '</table></div>')
+      + '<div class="mes">' + etiquette(t) + ' : texte au pire ' + ratio(pire, 4.5) + ' · anneau au pire ' + ratio(pireAnneau, 3) + '</div>';
+  }
+  var ICONES = {
+    info: '<circle cx="9" cy="9" r="7.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 8.2v4.6M9 5.4v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    success: '<circle cx="9" cy="9" r="7.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.8 9.2l2.2 2.2 4.2-4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    warning: '<path d="M9 2.2L16.3 15H1.7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 7v3.6M9 12.8v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  };
+  ICONES.error = ICONES.warning;
+  /* L'action est le bouton text de la sévérité, comme dans les échantillons du contrat. */
+  function dessinAlerte(sev, v, t, fond) {
+    var r = alerte(sev, v), bg = r.background ? H(r.background, t) : fond, fg = H(r.foreground, t), ic = H(r.icon, t);
+    var action = dessinBouton(bouton(sev, 'text', 'default'), t, bg), survol = dessinBouton(bouton(sev, 'text', 'hover'), t, bg);
+    return {
+      html: '<div class="alerte2" style="background:' + (r.background ? bg : 'transparent') + ';border-color:' + (r.border ? H(r.border, t) : 'transparent') + '">'
+        + '<svg viewBox="0 0 18 18" aria-hidden="true" style="color:' + ic + '">' + ICONES[sev] + '</svg>'
+        + '<div class="a-txt" style="color:' + fg + '"><b>Titre</b><span>Description</span></div>' + action.html + '</div>',
+      texte: Math.min(contraste(fg, bg), action.texte, survol.texte),
+      icone: contraste(ic, bg),
+      survol: contraste(survol.fond, bg),
+    };
+  }
+  function grilleAlertes(t) {
+    var fond = H('elevation/page', t), pire = Infinity, pireIcone = Infinity, survol = Infinity;
+    var colonnes = ['standard', 'outlined'].map(function (v) {
+      return '<div class="a-col"><div class="a-tete">' + v + '</div>' + SEVERITES.map(function (sev) {
+        var a = dessinAlerte(sev, v, t, fond);
+        pire = Math.min(pire, a.texte); pireIcone = Math.min(pireIcone, a.icone);
+        if (v === 'standard') survol = Math.min(survol, a.survol);
+        return a.html;
+      }).join('') + '</div>';
+    }).join('');
+    return scene(t, '<div class="a-grille">' + colonnes + '</div>')
+      + '<div class="mes">' + etiquette(t) + ' : texte au pire ' + ratio(pire, 4.5) + ', action survolée comprise · icône ' + ratio(pireIcone, 3)
+      + ' · survol de l’action contre le fond de l’alerte standard : ' + fmt(survol) + '</div>';
+  }
+  function renderRecette() {
+    $('recette-boutons').innerHTML = VARIANTES.map(function (v) {
+      return '<div class="ex"><h3>Button, variant <code>' + v + '</code></h3><div class="duo">' + MODES.map(function (t) { return '<div>' + grilleBoutons(v, t) + '</div>'; }).join('') + '</div></div>';
+    }).join('');
+    $('recette-alertes').innerHTML = '<div class="ex"><h3>Alert, action <code>text</code> comprise</h3><div class="duo">' + MODES.map(function (t) { return '<div>' + grilleAlertes(t) + '</div>'; }).join('') + '</div></div>';
+  }
+
+  function renderTout() { renderPanneau(); renderTrajet(); renderExemples(); renderRecette(); }
   function bascule(id, cle, apres) {
     $(id).addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
@@ -637,6 +794,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   bascule('c-marque', 'marque');
   bascule('c-light', 'light');
   bascule('c-dark', 'dark');
+  bascule('c-texte', 'texte');
   bascule('c-page', 'page', function () {
     if (etat.page === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', etat.page);

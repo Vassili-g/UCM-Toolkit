@@ -8,8 +8,9 @@ dit quel document lire, dans quel ordre, et ce que chacun vaut aujourd'hui.
 
 [ARCHITECTURE-PROPOSEE.html](./ARCHITECTURE-PROPOSEE.html), à ouvrir dans un
 navigateur, montre toute l'architecture proposée en une page : le panneau des
-variables de Figma, des exemples en Light et en Dark, les décisions D1 à D17
-gardées ou modifiées, et les versions précédentes. Ses couleurs viennent de
+variables de Figma, des exemples en Light et en Dark, la recette sur les
+contrats `Button` et `Alert` du Playground, les décisions D1 à D17 gardées ou
+modifiées, et les versions précédentes. Ses couleurs viennent de
 [generer-vue-architecture.ts](./generer-vue-architecture.ts).
 
 [RECHERCHE-COLLECTION-USAGE.md](./RECHERCHE-COLLECTION-USAGE.md) reprend la

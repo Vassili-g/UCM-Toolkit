@@ -1,7 +1,8 @@
 /**
  * Mesures de recherche : la collection `usage` rangée en dossiers, un dossier
  * par famille de fonds, dont le texte et le contour ne changent pas avec
- * l'état. Seul le fond change d'un état à l'autre. Aucun fichier produit
+ * l'état. Seul le fond change d'un état à l'autre. Les dernières mesures
+ * rejouent les cas des composants Button et Alert du Playground. Aucun fichier produit
  * n'alimente le plugin. Le script écrit MESURES-DOSSIERS.json.
  *
  * Depuis la racine du dépôt :
@@ -152,11 +153,17 @@ function juger(theme: Theme) {
   const texteTeinte4 = Object.fromEntries(CANDIDATS_TEXTE.map((x) => [x, new Bilan()]));
   const contourTeinte = Object.fromEntries(CANDIDATS_CONTOUR.map((x) => [x, new Bilan()]));
   let ecartTeinte = Infinity;
-  // Racine de la palette : texte et contour posés sur la page ou une carte.
+  // Dossier `page` : texte et contour posés sur la page ou une carte.
   const texteRacine = new Bilan();
   const contourRacine = new Bilan();
-  // Le texte de la racine, posé à tort sur un fond teinté : ce que la règle du dossier évite.
+  // Le texte du dossier `page`, posé à tort sur un fond teinté : ce que la règle du dossier évite.
   const texteRacineSurTeinte = new Bilan();
+  // Le même, fond par fond : un bouton `text` posé dans une alerte au fond 100.
+  const texteRacineParTeinte = Object.fromEntries(TEINTES.map((t) => [t, new Bilan()]));
+  // Le fond plein au repos, employé comme contour sur la page : le bouton outlined du Playground.
+  const contourPlein = new Bilan();
+  // L'anneau du Playground : la nuance 100, ou 200 pour primary, de la palette du bouton, sur la page et la carte.
+  const anneauPlayground = Object.fromEntries([100, 200].map((x) => [x, new Bilan()]));
   // Un anneau unique : la nuance N d'une palette contre la page, la carte et les fonds teintés de toutes les palettes.
   const anneau = Object.fromEntries(CANDIDATS_ANNEAU.map((x) => [x, new Bilan()]));
   // Le texte teinté d'une palette sur les fonds teintés d'une autre, par exemple un texte neutre sur une ligne sélectionnée.
@@ -178,8 +185,14 @@ function juger(theme: Theme) {
     for (const [ou, fond] of [['page', page], ['carte', carte]] as const) {
       texteRacine.noter(contraste(c(r, theme.texteSurLaPage), fond), SEUIL_TEXTE, `${nom(r)} sur ${ou}`, touche(r, theme.texteSurLaPage));
       contourRacine.noter(contraste(c(r, theme.contourSurLaPage), fond), SEUIL_NON_TEXTE, `${nom(r)} sur ${ou}`, touche(r, theme.contourSurLaPage));
+      contourPlein.noter(contraste(c(r, theme.plein[0]), fond), SEUIL_NON_TEXTE, `${nom(r)} ${theme.plein[0]} sur ${ou}`, touche(r, theme.plein[0]));
+      for (const x of [100, 200]) anneauPlayground[x].noter(contraste(c(r, x), fond), SEUIL_NON_TEXTE, `${nom(r)} ${x} sur ${ou}`, false);
     }
-    for (const t of TEINTES) texteRacineSurTeinte.noter(contraste(c(r, theme.texteSurLaPage), c(r, t)), SEUIL_TEXTE, `${nom(r)} sur ${t}`, false);
+    for (const t of TEINTES) {
+      const ratio = contraste(c(r, theme.texteSurLaPage), c(r, t));
+      texteRacineSurTeinte.noter(ratio, SEUIL_TEXTE, `${nom(r)} sur ${t}`, false);
+      texteRacineParTeinte[t].noter(ratio, SEUIL_TEXTE, `${nom(r)} sur ${t}`, false);
+    }
 
     for (const autre of rampes) {
       for (const t of TEINTES) {
@@ -202,7 +215,12 @@ function juger(theme: Theme) {
       texteSurLeQuatriemeFond: parCandidat(texteTeinte4),
       contourConstant: parCandidat(contourTeinte),
     },
-    racine: { texte: texteRacine.json(), contour: contourRacine.json(), texteSurUnFondTeinte: texteRacineSurTeinte.json() },
+    dossierPage: { texte: texteRacine.json(), contour: contourRacine.json(), texteSurUnFondTeinte: texteRacineSurTeinte.json() },
+    composantsDuPlayground: {
+      texteDeLaPageParFondTeinte: parCandidat(texteRacineParTeinte),
+      contourPleinSurLaPage: contourPlein.json(),
+      anneauDuPlayground: parCandidat(anneauPlayground),
+    },
     anneauUnique: parCandidat(anneau),
     texteTeinteSurUneAutrePalette: parCandidat(croise),
   };
@@ -220,7 +238,8 @@ for (const r of resultats) {
   console.log(' teinte écart', r.teinte.ecartMinEntreEtats);
   for (const [k, v] of Object.entries(r.teinte.texteConstant)) console.log(`  texte ${k}`, JSON.stringify(v), ' / sur 400', JSON.stringify(r.teinte.texteSurLeQuatriemeFond[k as unknown as number].minimum));
   for (const [k, v] of Object.entries(r.teinte.contourConstant)) console.log(`  contour ${k}`, JSON.stringify(v));
-  console.log(' racine', JSON.stringify(r.racine));
+  console.log(' page', JSON.stringify(r.dossierPage));
+  console.log(' playground', JSON.stringify(r.composantsDuPlayground));
   for (const [k, v] of Object.entries(r.anneauUnique)) console.log(`  anneau ${k}`, JSON.stringify({ ...v, surLAncre: undefined }));
   for (const [k, v] of Object.entries(r.texteTeinteSurUneAutrePalette)) console.log(`  croisé ${k}`, JSON.stringify({ ...v, surLAncre: undefined }));
 }

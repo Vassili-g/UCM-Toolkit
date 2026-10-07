@@ -5,7 +5,8 @@ retenue par les décisions D13 et D17, et les propositions qui l'ont suivie.
 Aucun code, aucune recette ni aucun format publié n'est modifié.
 
 Vocabulaire : le **bouton** est le fond `solid` ; le **texte des boutons**,
-`on-solid` ; le **fond teinté**, `surface` ; le **texte coloré**, `text`. Un
+`solid/text` ; le **fond teinté**, `surface` ; le **texte coloré**,
+`page/text`. Un
 thème est **inversé** quand le texte des boutons n'a pas la couleur de la page
 ([dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)).
 
@@ -26,14 +27,15 @@ valeurs de chaque thème, et un programme les écrit.
 
 **La proposition, en quatre règles pour le designer :**
 
-1. Un dossier par sorte de fond : `solid` pour le bouton, `surface` pour le
-   fond teinté. La racine de la palette sert à ce qui se pose sur la page ou
-   une carte.
-2. Le texte, l'icône et le contour se prennent dans le dossier du fond.
-3. Un état ne change que le fond : `background`, `background-hover`,
-   `background-pressed`. Le texte et le contour ne bougent pas.
-4. Un élément sélectionné prend un autre dossier : une ligne neutre
-   sélectionnée passe dans `primary/surface`.
+1. Le dossier se lit sur le fond juste derrière le texte : la page, une carte
+   ou une modale, `page` ; une teinte claire de la palette, `surface` ; la
+   couleur franche de la palette, `solid`.
+2. Le texte, l'icône et le contour se prennent dans ce dossier.
+3. Un état qui garde la sorte de fond ne change que le fond : `default`,
+   `hover`, `pressed`. Le texte et le contour ne bougent pas.
+4. Un état qui change la sorte de fond change de dossier : le survol du bouton
+   outlined passe de `page` à `solid`, une ligne neutre sélectionnée passe dans
+   `primary/surface`.
 
 **Ce qui change dans l'architecture.** `usage` disparaît dans `theme`. La
 collection qui porte les modes Light et Dark porte aussi les noms d'usage, et
@@ -45,8 +47,13 @@ le texte du dossier `surface` tient 4,5:1 sur ses trois fonds, la page et la
 carte à la nuance 900, dans les quatre thèmes, au pire à 7,30:1. Son contour
 tient 3:1 à la nuance 800, au pire à 4,44:1. Un seul anneau de focus, à la
 nuance 900, tient 3:1 sur tous les fonds teintés de toutes les palettes. Seuls
-le bouton, le texte des boutons, le texte coloré et le contour de la racine
+le bouton, le texte des boutons, le texte et le contour du dossier `page`
 changent de nuance dans un thème inversé.
+
+**Ce que dit la recette sur les contrats du Playground** (section 7) : le
+modèle exprime `Button` et `Alert` sans nuance hors table. Elle ajoute
+`disabled/border`, fait porter aux fonds d'un dossier la portée du contour, et
+laisse une décision sur le bouton `text`.
 
 **À décider :** section 9.
 
@@ -139,38 +146,43 @@ avec son intensité, `success/soft`.
 
 | Variable | Ce qu'elle peint | Se pose sur | Thème normal | Thème inversé |
 |---|---|---|---|---|
-| `{p}/solid/background` | Fond du bouton, du badge fort | la page, une carte, un fond teinté | 700 | 700 |
-| `{p}/solid/background-hover` | Son survol | | 800 | 600 |
-| `{p}/solid/background-pressed` | Son appui | | 900 | 500 |
-| `{p}/solid/text` | Texte et icône sur ces trois fonds | `solid/background*` | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
-| `{p}/surface/background` | Fond teinté : alerte, badge doux, ligne sélectionnée | la page, une carte | 100 | 100 |
-| `{p}/surface/background-hover` | Son survol | | 200 | 200 |
-| `{p}/surface/background-pressed` | Son appui | | 300 | 300 |
-| `{p}/surface/text` | Texte et icône sur ces trois fonds, la page et une carte | `surface/background*` | 900 | 900 |
-| `{p}/surface/border` | Contour sur ces trois fonds, la page et une carte | `surface/background*` | 800 | 800 |
-| `{p}/text` | Texte coloré, lien | la page, une carte | 700 | 800 |
-| `{p}/border` | Contour d'un champ, d'une case | la page, une carte | 600 | 700 |
-| `{p}/divider` | Filet, séparateur | partout | 300 | 300 |
+| `{p}/solid/default` | Fond du bouton, du badge fort ; contour du bouton outlined | la page, une carte, un fond teinté | 700 | 700 |
+| `{p}/solid/hover` | Son survol | | 800 | 600 |
+| `{p}/solid/pressed` | Son appui | | 900 | 500 |
+| `{p}/solid/text` | Texte et icône sur ces trois fonds | `solid/default`, `hover`, `pressed` | blanc en Light, noir en Dark | noir en Light, blanc en Dark |
+| `{p}/surface/default` | Fond teinté : alerte, badge doux, ligne sélectionnée | la page, une carte | 100 | 100 |
+| `{p}/surface/hover` | Son survol | | 200 | 200 |
+| `{p}/surface/pressed` | Son appui | | 300 | 300 |
+| `{p}/surface/text` | Texte et icône sur ces trois fonds, la page et une carte | `surface/default`, `hover`, `pressed` | 900 | 900 |
+| `{p}/surface/border` | Contour sur ces trois fonds, la page et une carte | `surface/default`, `hover`, `pressed` | 800 | 800 |
+| `{p}/page/text` | Texte coloré, lien, icône | la page, une carte | 700 | 800 |
+| `{p}/page/border` | Contour d'un champ, d'une case, d'une alerte outlined | la page, une carte | 600 | 700 |
+| `{p}/page/divider` | Filet, séparateur | partout | 300 | 300 |
 
 Douze variables par palette, contre vingt dans D13. Le thème inversé ne
 change que cinq lignes, toutes écrites par UCM Palettes.
 
-Le texte de la racine, `{p}/text`, garde la couleur vive de la palette pour
-les liens et les libellés posés sur la page. Posé sur un fond teinté, il
-échoue : 82 mesures sur 126 tiennent en Light (section 5). C'est la raison
-du dossier.
+Le dossier `page` ne porte pas de fond : la page, la carte et la modale sont
+les fonds d'`elevation`, communs à toutes les palettes. Son texte garde la
+couleur vive de la palette pour les liens et les libellés. Posé sur un fond
+teinté, il échoue : 82 mesures sur 126 tiennent en Light (section 5). C'est la
+raison du dossier `surface`.
+
+`default`, `hover` et `pressed` nomment une couleur du dossier, pas un rôle de
+calque. Ils portent la portée du fond et celle du contour : le contour du
+bouton outlined vise `solid/default`, la couleur du bouton plein au repos.
 
 ### 4.2 Ce qui ne dépend d'aucune palette
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
 | `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 900, dans les quatre thèmes |
-| `neutral/text` | Le corps de texte | neutre 900 |
-| `neutral/text-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
-| `disabled/background`, `disabled/text` | Un contrôle désactivé, exempté par WCAG | neutre 200 et 500 |
+| `neutral/page/text` | Le corps de texte | neutre 900 |
+| `neutral/page/text-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
+| `disabled/background`, `disabled/text`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
 | `elevation/page`, `raised`, `overlay` | Les fonds d'écran, de carte et de modale (D15) | inchangés |
 
-Pour le neutre, la racine `neutral/text` vise la 900 et non la 700 : un gris
+Pour le neutre, `neutral/page/text` vise la 900 et non la 700 : un gris
 moyen est trop pâle pour un paragraphe. C'est une ligne de la table du kit,
 pas un choix du designer. L'option B des ensembles (section E5) disait la même
 chose.
@@ -179,11 +191,11 @@ chose.
 
 | État | Variable visée | Exemple : bouton | Exemple : ligne d'un tableau |
 |---|---|---|---|
-| Repos | `background` du dossier choisi | `primary/solid/background` | aucun fond |
-| Survol | `background-hover` | `primary/solid/background-hover` | `neutral/surface/background-hover` |
-| Appui | `background-pressed` | `primary/solid/background-pressed` | `neutral/surface/background-pressed` |
-| Sélectionné | le `background` d'un autre dossier | bouton bascule : `neutral/surface` devient `primary/solid` | `primary/surface/background` |
-| Sélectionné et survolé | le `background-hover` de cet autre dossier | `primary/solid/background-hover` | `primary/surface/background-hover` |
+| Repos | `default` du dossier choisi | `primary/solid/default` | aucun fond |
+| Survol | `hover` | `primary/solid/hover` | `neutral/surface/hover` |
+| Appui | `pressed` | `primary/solid/pressed` | `neutral/surface/pressed` |
+| Sélectionné | le `default` d'un autre dossier | bouton bascule : `neutral/surface` devient `primary/solid` | `primary/surface/default` |
+| Sélectionné et survolé | le `hover` de cet autre dossier | `primary/solid/hover` | `primary/surface/hover` |
 | Focus | l'état courant, et `focus` | | |
 | Désactivé | `disabled/*` | | |
 
@@ -193,9 +205,10 @@ Le texte de chaque exemple ne change pas entre les lignes d'un même dossier :
 `active-hover`, n'a plus de raison d'être : la sélection survolée est le
 survol de l'autre dossier.
 
-Dans `components`, les noms d'état restent : `button/primary/hover/background`
-vise `primary/solid/background-hover`. Le texte d'un composant n'a plus besoin
-d'un token par état : `button/primary/text` sert à tous.
+Dans `components`, les noms d'état restent :
+`button/colors/primary/contained/hover/background` vise `primary/solid/hover`.
+Un composant peut garder un token de texte par état, comme le Playground ; ces
+tokens visent alors la même variable.
 
 ### 4.4 Où se décide la nuance de chaque thème
 
@@ -204,8 +217,8 @@ Light et Dark, contient les variables des sections 4.1 et 4.2, et les nuances
 numérotées, rangées sous `scale`, pour un usage hors table (D14) :
 
 ```text
-components.button.primary.hover.background
-  → theme.primary.solid.background-hover
+components.button.colors.primary.contained.hover.background
+  → theme.primary.solid.hover
         light → brand.palette.primary.light.800
         dark  → brand.palette.primary.dark.600        thème Dark inversé
   → brand, colonne de la marque → primitives.colors.terracota.dark.600
@@ -234,7 +247,7 @@ portées vides et ne paraissent dans aucun sélecteur de calque.
 ### 4.5 Le thème inversé, vu par le designer
 
 Le designer règle une fois, dans UCM Palettes, le texte des boutons de chaque
-thème. Il pose ensuite `primary/solid/background-hover` sur le survol de son
+thème. Il pose ensuite `primary/solid/hover` sur le survol de son
 bouton, comme dans un thème normal. UCM Palettes écrit 800 dans la colonne
 Light et 600 dans la colonne Dark. Le designer ne voit jamais ce 600.
 
@@ -246,7 +259,7 @@ Light et 600 dans la colonne Dark. Le designer ne voit jamais ce 600.
 | Un texte posé sur le fond d'un autre dossier | `ucm check` compare, dans chaque variant, le dossier du texte et celui du fond posé dessous, puis mesure leur contraste dans chaque marque et chaque thème | Le diagnostic des emplois existe ; la règle du dossier et la mesure systématique sont à écrire |
 | Un couple qui échoue sur une palette réelle | UCM Palettes mesure chaque couple de la table sur chaque palette, et la carte des garanties l'affiche | Les garanties existent ; leur liste suit la table |
 | Un designer qui choisit un texte dans le mauvais sélecteur | Les portées : un sélecteur de texte ne propose que des textes | D14 ; essai Figma A5.1 à faire |
-| Un designer qui hésite | La description de chaque variable dit sur quoi elle se pose : « Se lit sur `primary/surface/background`, `-hover`, `-pressed`, la page et une carte » | Essai Figma A5.2 à faire |
+| Un designer qui hésite | La description de chaque variable dit sur quoi elle se pose : « Se lit sur `primary/surface/default`, `hover`, `pressed`, la page et une carte » | Essai Figma A5.2 à faire |
 
 ## 5. Mesures
 
@@ -286,7 +299,7 @@ Texte des boutons, blanc ou noir purs, sur les trois fonds :
 Les échecs sur la nuance ancrée sont ceux du dossier du texte des boutons,
 section 5.6. Leur traitement reste sa décision 3.
 
-### La racine
+### Le dossier `page`
 
 | Thème | Texte coloré sur la page et la carte | Contour sur la page et la carte | Le même texte posé sur un fond teinté |
 |---|---|---|---|
@@ -313,7 +326,7 @@ erreur.
 | D2, `theme` suit une règle fixe | `theme` suit une table : une nuance par variable et par thème, lue dans le kit et le réglage du texte des boutons. Elle ne contient toujours aucun choix du designer |
 | D7, 400 et 950 obligatoires | Plus aucune variable d'usage ne vise la 400 ni la 950. Les garder obligatoires coûte peu ; décision 6 |
 | D11, `components` vise `usage` | `components` vise `theme` |
-| D13, la collection `usage` | Remplacée par les variables de la section 4.1 dans `theme` ; douze par palette au lieu de vingt |
+| D13, la collection `usage` | Remplacée par les dossiers `page`, `surface` et `solid` de la section 4.1, dans `theme` ; douze variables par palette au lieu de vingt |
 | D14, une nuance hors table | Inchangée : le token de composant vise `theme.{p}.scale.N` |
 | D16, une table pour les trois outils | Inchangée dans son principe ; la table du kit porte une colonne par thème, normal et inversé |
 | D17, quatre rangs d'état | Trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier |
@@ -321,23 +334,100 @@ erreur.
 
 ## 7. Cas d'usage
 
-| Composant | Repos | Survol | Appui ou sélection | Texte, constant |
+| Composant | Repos | Survol | Appui ou sélection | Texte |
 |---|---|---|---|---|
-| Bouton principal | `primary/solid/background` | `…/background-hover` | `…/background-pressed` | `primary/solid/text` |
-| Bouton secondaire, contour | pas de fond ; contour `primary/surface/border` | `primary/surface/background-hover` | `primary/surface/background-pressed` | `primary/surface/text` |
-| Alerte de danger | `danger/vivid/surface/background` | | | `danger/vivid/surface/text` |
-| Badge fort | `success/vivid/solid/background` | | | `success/vivid/solid/text` |
-| Ligne de tableau | pas de fond | `neutral/surface/background-hover` | sélection : `primary/surface/background` | `neutral/surface/text`, puis `primary/surface/text` |
-| Champ de saisie | fond `elevation/raised`, contour `neutral/border` | contour `primary/border` | | `neutral/text` |
-| Lien dans un paragraphe | | | | `primary/text` |
+| Bouton plein | `primary/solid/default` | `primary/solid/hover` | `primary/solid/pressed` | `primary/solid/text` |
+| Bouton outlined | pas de fond ; contour `primary/solid/default` | fond et contour `primary/solid/hover` | fond et contour `primary/solid/pressed` | `primary/page/text`, puis `primary/solid/text` |
+| Bouton text | pas de fond | `primary/surface/hover` | `primary/surface/pressed` | `primary/surface/text` (option B) |
+| Alerte standard | `danger/vivid/surface/default` | | | `danger/vivid/surface/text` |
+| Alerte outlined | pas de fond ; contour `danger/vivid/page/border` | | | `danger/vivid/page/text` |
+| Badge fort | `success/vivid/solid/default` | | | `success/vivid/solid/text` |
+| Ligne de tableau | pas de fond | `neutral/surface/hover` | sélection : `primary/surface/default` | `neutral/surface/text`, puis `primary/surface/text` |
+| Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/text` |
+| Lien dans un paragraphe | | | | `primary/page/text` |
 | Focus de n'importe quel contrôle | | | | anneau `focus` |
+
+### Recette sur Button et Alert du Playground
+
+Les contrats `src/components/Button/Button.contract.json` et
+`src/components/Alert/Alert.contract.json` du dépôt UCM-Playground ont été
+rebranchés sur `theme`, rôle par rôle. La
+[page de l'architecture](./ARCHITECTURE-PROPOSEE.html#recette) les dessine dans
+les trois marques de la vue illustrée, en Light et en Dark, et mesure chaque
+variant. `primary` et `secondary` visent `brand` ; `info`, `success` et
+`warning` leur statut en `vivid` ; `error` vise `danger/vivid`.
+
+| Token de composant | Playground aujourd'hui | Modèle |
+|---|---|---|
+| Button `contained`, fond au repos | la nuance de la marque ou du statut | `{c}/solid/default` |
+| Button `contained`, fond au survol et au focus | un cran plus foncé | `{c}/solid/hover` |
+| Button `contained`, fond à l'appui | le même que le survol | `{c}/solid/pressed` |
+| Button `contained`, texte | `neutral.50`, quasi blanc | `{c}/solid/text` |
+| Button, anneau au focus et à l'appui | la nuance 100 de la couleur, 200 pour `primary` | `focus` |
+| Button `outlined`, fond au repos | `neutral.50`, opaque | aucun fond |
+| Button `outlined`, texte et contour au repos | la nuance du fond plein | `{c}/page/text`, `{c}/solid/default` |
+| Button `outlined`, survol, focus, appui | le fond plein, contour compris, texte `neutral.50` | `{c}/solid/hover`, `default`, `pressed` ; texte `{c}/solid/text` |
+| Button `outlined`, désactivé | `neutral.50` ; contour et texte neutre 500 | aucun fond ; `disabled/border`, `disabled/text` |
+| Button `text`, texte | la nuance du fond plein | A : `{c}/page/text` ; B : `{c}/surface/text` |
+| Button `text`, fond au survol, au focus, à l'appui | nuance 50, 100 pour `secondary` | A : `{c}/surface/default` ; B : `{c}/surface/hover`, puis `pressed` |
+| Alert `standard` | fond 50 ; texte et icône 700 | `{c}/surface/default` ; `{c}/surface/text` |
+| Alert `outlined` | texte 700, 900 pour `info` ; icône et contour 700 | `{c}/page/text` ; contour `{c}/page/border` |
+
+Mesures sur les 42 rampes de la section 5 (bloc `composantsDuPlayground` de
+[MESURES-DOSSIERS.json](./MESURES-DOSSIERS.json)) :
+
+| Mesure | Light | Dark | Light inversé | Dark inversé |
+|---|---|---|---|---|
+| `solid/default` comme contour, sur la page et la carte | 84/84, pire 5,29 | 76/76, pire 5,19 | 52/52, pire 3,71 | 52/52, pire 3,32 |
+| Anneau du Playground, nuance 100 | 0/84, pire 1,05 | 0/84, pire 1,00 | 0/84, pire 1,05 | 0/84, pire 1,00 |
+| Anneau du Playground, nuance 200 | 0/84, pire 1,17 | 0/84, pire 1,12 | 0/84, pire 1,17 | 0/84, pire 1,12 |
+| `page/text` sur le fond 100 | 42/42, pire 5,02 | 42/42, pire 5,16 | 42/42, pire 7,14 | 42/42, pire 5,16 |
+| `page/text` sur le fond 200 | 40/42, pire 4,49 | 40/42, pire 4,42 | 42/42 | 40/42, pire 4,42 |
+| `page/text` sur le fond 300 | 0/42 | 2/42 | 42/42 | 33/42 |
+
+La recette conduit à trois ajustements du modèle, déjà portés par la
+section 4 :
+
+- le dossier `page` remplace la racine de la palette, et la règle du dossier
+  n'a plus d'exception ;
+- les fonds d'un dossier s'appellent `default`, `hover` et `pressed`, et
+  portent la portée du contour : le bouton outlined emploie `solid/default`
+  comme contour ;
+- `disabled/border` s'ajoute pour le bouton outlined désactivé.
+
+Quatre ajustements reviennent aux composants :
+
+- l'anneau vise `focus` : la nuance 100 ou 200 que prend le Playground
+  n'atteint 3:1 sur aucune palette ;
+- le bouton outlined ne pose plus de fond au repos. Le `neutral.50` opaque du
+  Playground se voit sur une carte grise et en Dark ;
+- l'alerte outlined prend un seul texte, `{c}/page/text`, au lieu de la 900
+  pour `info` et de la 700 pour les autres sévérités ;
+- l'alerte standard passe du fond 50 au fond 100, et son texte de la 700 à la
+  900.
+
+Le bouton `text` reste à décider (décision 8). Il n'a pas de fond au repos,
+pose un fond teinté au survol, et l'alerte standard le place sur son propre
+fond `surface/default`.
+
+| | A. Texte du dossier `page` | B. Dossier `surface` |
+|---|---|---|
+| Texte | `{c}/page/text`, 700 | `{c}/surface/text`, 900 |
+| Fond au survol, au focus, à l'appui | `{c}/surface/default` pour les trois : le texte 700 ne tient ni sur le 200 ni sur le 300 | `{c}/surface/hover`, puis `pressed` |
+| Dans l'alerte standard | Le fond de survol est celui de l'alerte : le bouton ne change pas au survol | Le survol, à la 200, se distingue du fond 100 |
+| Dans l'alerte outlined | L'action a la couleur du titre | L'action est plus sombre que le titre |
+
+La page mesure aussi le bouton plein dans les trois marques. Il échoue à la
+nuance 700 dans un thème inversé seulement : `info` en Dark avec texte blanc,
+3,68:1 ; `primary` d'intencial, 4,17:1, et `error`, 4,44:1, en Light avec
+texte noir. Ces échecs viennent de la courbe du thème inversé (décision 7).
 
 ## 8. Limites
 
-- Le bouton secondaire prend le texte 900 du dossier `surface`, plus sombre que
-  le texte coloré 700 d'un lien. Un texte 800 garderait plus de couleur ; il
-  tient dans les thèmes normaux, au pire à 5,26:1, et échoue en Dark inversé
-  (décision 3).
+- Un composant du dossier `surface`, comme le bouton `text` de l'option B,
+  prend le texte 900, plus sombre que le texte coloré 700 d'un lien. Un texte
+  800 garderait plus de couleur ; il tient dans les thèmes normaux, au pire à
+  5,26:1, et échoue en Dark inversé (décision 3).
 - L'anneau à 900 perd la teinte vive de la palette et se rapproche du texte.
 - Une palette dont le designer a déplacé la courbe de 0,10 au plus
   (`BORNES_DES_REGLAGES`) n'a pas été mesurée ici. Les marges du texte 900
@@ -364,18 +454,21 @@ erreur.
    (recommandé, une seule valeur, marge de 2,8), ou 800 dans les thèmes
    normaux et 900 dans les thèmes inversés.
 4. **L'anneau unique `focus`** à `primary` 900 dans tous les thèmes.
-5. **Les noms :** `background`, `background-hover`, `background-pressed`,
-   `text`, `border`, `divider`, à éprouver dans le sélecteur Figma avant
-   d'écrire la table.
+5. **Les noms :** dossiers `page`, `surface` et `solid`, que le mainteneur a
+   retenus ; fonds `default`, `hover` et `pressed` ; `text`, `border`,
+   `divider`. À éprouver dans le sélecteur Figma avant d'écrire la table.
 6. **Les nuances 400 et 950** : rester obligatoires (D7), ou redevenir
    facultatives.
 7. **Le thème inversé lui-même** reste à décider dans le
    [dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md#9-décisions-à-prendre),
    avec l'ancrage d'une référence qui ne porte pas le texte des boutons. La
    proposition ci-dessus fonctionne avec ou sans lui.
+8. **Le bouton `text`** : texte du dossier `page` (A), ou bouton entier dans
+   le dossier `surface` (B, recommandé), section 7.
 
 Une fois ces décisions prises, l'ordre de travail serait : un essai dans Figma
-sur un bouton, une ligne et une alerte, à la main, en Light et en Dark ; la
+sur les contrats `Button` et `Alert` du Playground et sur une ligne, à la main,
+en Light et en Dark ; la
 table du kit et ses tests ; l'écriture de `theme` par UCM Palettes ; la règle
 du dossier dans `ucm check` ; la mise à jour d'ARCHITECTURE-FINALE et de la
 vue illustrée.
@@ -390,8 +483,9 @@ npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/mesur
 
 [mesurer-dossiers.ts](./mesurer-dossiers.ts) écrit
 [MESURES-DOSSIERS.json](./MESURES-DOSSIERS.json) : pour chaque thème, le texte
-des boutons, les textes et contours candidats du dossier `surface`, la racine,
-l'anneau et les textes croisés, avec le pire cas nommé.
+des boutons, les textes et contours candidats du dossier `surface`, le
+dossier `page`, l'anneau, les textes croisés et les cas des composants du
+Playground, avec le pire cas nommé.
 
 ## Sources
 
@@ -405,6 +499,8 @@ l'anneau et les textes croisés, avec le pire cas nommé.
   [`usages.ts`](../../../../../packages/kit/src/emplois/usages.ts).
 - [Dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)
   et ses mesures.
+- Dépôt UCM-Playground : `src/components/Button/Button.contract.json`,
+  `src/components/Alert/Alert.contract.json` et `src/tokens/tokens.json`.
 
 ### Externes
 

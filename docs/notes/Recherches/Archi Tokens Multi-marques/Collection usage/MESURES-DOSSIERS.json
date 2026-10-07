@@ -83,7 +83,7 @@
           }
         }
       },
-      "racine": {
+      "dossierPage": {
         "texte": {
           "minimum": 5.29,
           "pire": "#16A34A vivid sur page",
@@ -101,6 +101,48 @@
           "pire": "#06B6D4 soft sur 300",
           "tenues": "82/126",
           "surLAncre": []
+        }
+      },
+      "composantsDuPlayground": {
+        "texteDeLaPageParFondTeinte": {
+          "100": {
+            "minimum": 5.02,
+            "pire": "#16A34A vivid sur 100",
+            "tenues": "42/42",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 4.49,
+            "pire": "#16A34A soft sur 200",
+            "tenues": "40/42",
+            "surLAncre": []
+          },
+          "300": {
+            "minimum": 3.74,
+            "pire": "#06B6D4 soft sur 300",
+            "tenues": "0/42",
+            "surLAncre": []
+          }
+        },
+        "contourPleinSurLaPage": {
+          "minimum": 5.29,
+          "pire": "#16A34A vivid 700 sur page",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "anneauDuPlayground": {
+          "100": {
+            "minimum": 1.05,
+            "pire": "#16A34A vivid 100 sur page",
+            "tenues": "0/84",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 1.17,
+            "pire": "#16A34A vivid 200 sur page",
+            "tenues": "0/84",
+            "surLAncre": []
+          }
         }
       },
       "anneauUnique": {
@@ -226,7 +268,7 @@
           }
         }
       },
-      "racine": {
+      "dossierPage": {
         "texte": {
           "minimum": 5.19,
           "pire": "#DC2626 vivid sur carte",
@@ -244,6 +286,48 @@
           "pire": "#16A34A vivid sur 300",
           "tenues": "84/126",
           "surLAncre": []
+        }
+      },
+      "composantsDuPlayground": {
+        "texteDeLaPageParFondTeinte": {
+          "100": {
+            "minimum": 5.16,
+            "pire": "#16A34A vivid sur 100",
+            "tenues": "42/42",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 4.42,
+            "pire": "#16A34A vivid sur 200",
+            "tenues": "40/42",
+            "surLAncre": []
+          },
+          "300": {
+            "minimum": 3.6,
+            "pire": "#16A34A vivid sur 300",
+            "tenues": "2/42",
+            "surLAncre": []
+          }
+        },
+        "contourPleinSurLaPage": {
+          "minimum": 5.19,
+          "pire": "#DC2626 vivid 700 sur carte",
+          "tenues": "76/76",
+          "surLAncre": []
+        },
+        "anneauDuPlayground": {
+          "100": {
+            "minimum": 1,
+            "pire": "#737373 soft 100 sur carte",
+            "tenues": "0/84",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 1.12,
+            "pire": "#9333EA vivid 200 sur carte",
+            "tenues": "0/84",
+            "surLAncre": []
+          }
         }
       },
       "anneauUnique": {
@@ -397,7 +481,7 @@
           }
         }
       },
-      "racine": {
+      "dossierPage": {
         "texte": {
           "minimum": 7.52,
           "pire": "#16A34A vivid sur page",
@@ -415,6 +499,48 @@
           "pire": "#06B6D4 soft sur 300",
           "tenues": "126/126",
           "surLAncre": []
+        }
+      },
+      "composantsDuPlayground": {
+        "texteDeLaPageParFondTeinte": {
+          "100": {
+            "minimum": 7.14,
+            "pire": "#16A34A vivid sur 100",
+            "tenues": "42/42",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 6.33,
+            "pire": "#06B6D4 soft sur 200",
+            "tenues": "42/42",
+            "surLAncre": []
+          },
+          "300": {
+            "minimum": 5.26,
+            "pire": "#06B6D4 soft sur 300",
+            "tenues": "42/42",
+            "surLAncre": []
+          }
+        },
+        "contourPleinSurLaPage": {
+          "minimum": 3.71,
+          "pire": "#16A34A vivid 700 sur page",
+          "tenues": "52/52",
+          "surLAncre": []
+        },
+        "anneauDuPlayground": {
+          "100": {
+            "minimum": 1.05,
+            "pire": "#16A34A vivid 100 sur page",
+            "tenues": "0/84",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 1.17,
+            "pire": "#16A34A vivid 200 sur page",
+            "tenues": "0/84",
+            "surLAncre": []
+          }
         }
       },
       "anneauUnique": {
@@ -574,7 +700,7 @@
           }
         }
       },
-      "racine": {
+      "dossierPage": {
         "texte": {
           "minimum": 5.93,
           "pire": "#DC2626 vivid sur carte",
@@ -592,6 +718,48 @@
           "pire": "#16A34A vivid sur 300",
           "tenues": "115/126",
           "surLAncre": []
+        }
+      },
+      "composantsDuPlayground": {
+        "texteDeLaPageParFondTeinte": {
+          "100": {
+            "minimum": 5.16,
+            "pire": "#16A34A vivid sur 100",
+            "tenues": "42/42",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 4.42,
+            "pire": "#16A34A vivid sur 200",
+            "tenues": "40/42",
+            "surLAncre": []
+          },
+          "300": {
+            "minimum": 3.6,
+            "pire": "#16A34A vivid sur 300",
+            "tenues": "33/42",
+            "surLAncre": []
+          }
+        },
+        "contourPleinSurLaPage": {
+          "minimum": 3.32,
+          "pire": "#9333EA soft 700 sur carte",
+          "tenues": "52/52",
+          "surLAncre": []
+        },
+        "anneauDuPlayground": {
+          "100": {
+            "minimum": 1,
+            "pire": "#737373 soft 100 sur carte",
+            "tenues": "0/84",
+            "surLAncre": []
+          },
+          "200": {
+            "minimum": 1.12,
+            "pire": "#9333EA vivid 200 sur carte",
+            "tenues": "0/84",
+            "surLAncre": []
+          }
         }
       },
       "anneauUnique": {
