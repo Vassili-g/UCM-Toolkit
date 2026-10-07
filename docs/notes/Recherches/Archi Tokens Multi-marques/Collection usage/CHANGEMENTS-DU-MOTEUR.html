@@ -2,7 +2,7 @@
 <title>Changements du moteur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Inter:wght@400;500;600&display=swap">
 <style>
 :root{
   color-scheme:light;
@@ -72,8 +72,9 @@ table.plain tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;col
 .tag.propose{background:var(--add-bg);color:var(--add)}
 .tag.depend{background:var(--soft);color:var(--muted)}
 
-/* maquette parallèle */
-.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;margin-top:14px;align-items:start}
+/* maquette : la collection theme de Figma */
+.duo{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:18px;margin-top:14px;align-items:start}
+.pile-pu{display:grid;gap:6px}
 .fenetre{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .fenetre-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--soft);font-size:.8rem}
 .fenetre-t b{font-family:var(--mono)}
@@ -84,26 +85,29 @@ table.plain tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;col
 .fx td.nm{font-family:var(--mono);white-space:nowrap}
 .fx tr.lie td{background:var(--hl)}
 .alias{font-family:var(--mono);font-size:.74rem;color:var(--muted);white-space:nowrap}
-.plug{padding:12px}
-.rampe{display:grid;grid-template-columns:44px repeat(11,minmax(0,1fr));gap:3px;align-items:end}
-.rampe .n{font:11px var(--mono);text-align:center;color:var(--muted)}
-.rampe .c{height:30px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
-.rampe .c.lie{outline:3px solid var(--mod);outline-offset:1px}
-.rampe .fg{height:30px;border-radius:4px;border:1.5px dashed var(--muted);display:flex;align-items:center;justify-content:center;font:600 11px var(--sans)}
-.acc{display:grid;grid-template-columns:44px repeat(11,minmax(0,1fr));gap:3px;margin-top:6px;font-size:10.5px}
-.acc .b{border:1.5px solid var(--muted);border-top:none;height:7px;border-radius:0 0 4px 4px}
-.acc .lab{text-align:center;line-height:1.25;padding-top:2px;overflow-wrap:anywhere}
-.acc .lab .tok{font-size:10px;padding:0 3px;white-space:normal;display:inline-block;margin:1px 0}
-.garanties{margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.ga-t{display:flex;justify-content:space-between;padding:6px 10px;background:var(--soft);font-size:.78rem;font-weight:600}
-.ga-t span{color:var(--muted);font-weight:400}
-.ga{padding:8px 10px;border-top:1px solid var(--line);font-size:.8rem}
-.ga.lie{background:color-mix(in srgb,var(--hl) 40%,transparent)}
-.ga .phrase{margin-bottom:6px}
-.specs{display:flex;flex-wrap:wrap;gap:8px}
-.spec{display:flex;flex-direction:column;align-items:center;gap:2px;font:10.5px var(--mono)}
-.spec .boite{min-width:58px;padding:5px 8px;border-radius:5px;font:600 12px var(--sans);text-align:center;border:2px solid transparent}
-.scene{border-radius:8px;padding:10px;margin-top:8px}
+ol.pourquoi li{margin-bottom:8px}
+
+/* L'aperçu d'UCM Palettes : les règles de ui/styles.css, variables du socle résolues (espace 8 px, rayon 6 px, corps 11 px). */
+.pu{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:11px;line-height:16px;color:#1E1E1E}
+.pu .nuancier-surface{display:grid;gap:8px;padding:8px;border:1px solid #d2d2d2;border-radius:6px;color:var(--es);--colonne-profil:34px;--colonne-on-solid:30px}
+.pu .nuancier-grille,.pu .accolades-ligne{display:grid;align-items:center;column-gap:3px;grid-template-columns:var(--colonne-profil) var(--colonne-on-solid) repeat(var(--colonnes),minmax(0,1fr))}
+.pu .nuancier-grille{row-gap:3px}
+.pu .nuancier-numero{color:var(--es2);font-size:10px;font-variant-numeric:tabular-nums;text-align:center}
+.pu .nuancier-profil{grid-column:1;color:var(--es2);font-size:10px;font-weight:600}
+.pu .pastille{display:flex;height:28px;min-width:0;align-items:center;justify-content:center;border-radius:4px;font-size:11px}
+.pu .pastille-on-solid{height:100%;border:1px dashed var(--es2)}
+.pu .accolades{display:grid;gap:4px}
+.pu .accolades-ligne{row-gap:1px}
+.pu .accolade{height:5px;grid-row:1;border:1px solid var(--es2);border-top:0;border-radius:0 0 2px 2px}
+.pu .accolade-libelle{display:grid;min-width:0;grid-row:2;white-space:nowrap}
+.pu code{background:none;padding:0;border-radius:0;overflow-wrap:normal}
+.pu .accolades-ligne .dossier{grid-column:1;grid-row:2;align-self:start;color:var(--es2);font-size:10px;font-weight:600;line-height:16px}
+.pu .code-du-role{font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:10px;font-weight:500;color:var(--es)}
+.pu .accolade-nom{color:var(--es2);font-size:9px;line-height:11px}
+.pu [data-token].lie{background:var(--hl);color:#1E1E1E;border-radius:2px}
+.pu .pastille.lie{box-shadow:0 0 0 1px var(--fs),0 0 0 3px #A94A1C}
+.pu .hors-rampe{margin:4px 0 0;font-size:9px;line-height:11px;color:var(--muted)}
+@media (max-width:860px){ .duo{grid-template-columns:1fr} }
 
 /* changements */
 .chg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0}
@@ -171,20 +175,31 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
   <p class="narrow">Une ligne par variable d'une palette, avec ce que le plugin dit aujourd'hui. La colonne de nuance suit la barre du haut : mode et texte des boutons. Survoler une variable la surligne dans toute la page. Le texte des boutons se règle par mode : blanc ou noir en light, blanc ou noir en dark, soit quatre combinaisons ; un mode est inversé quand son texte des boutons a la couleur de sa page.</p>
   <div class="tw"><table class="plain" id="lexique"></table></div>
 
-  <h2>La maquette : Figma et UCM Palettes côte à côte</h2>
-  <p class="narrow">À gauche, la collection <code>theme</code> telle que Figma la montre pour la palette choisie. À droite, l'aperçu et les garanties d'UCM Palettes dans le vocabulaire proposé. Les deux côtés emploient les mêmes noms ; survoler une variable d'un côté la surligne de l'autre et désigne sa nuance dans la rampe.</p>
+  <h2>L'aperçu d'UCM Palettes, aujourd'hui et proposé</h2>
+  <p class="narrow">En haut, l'aperçu de l'onglet Création tel que le plugin le dessine aujourd'hui : mêmes mesures, mêmes accolades, placées par la même règle que <code>accoladesDe</code>. En dessous, le même aperçu dans le vocabulaire proposé. À droite, la collection <code>theme</code> de Figma pour la palette choisie : survoler un nom d'un côté le surligne de l'autre, et désigne sa nuance dans la rampe.</p>
   <div class="duo">
-    <div class="fenetre"><div class="fenetre-t"><b id="fx-titre">theme</b><span id="fx-mode"></span></div><table class="fx" id="fx"></table></div>
-    <div class="fenetre"><div class="fenetre-t"><b>UCM Palettes</b><span id="pl-titre"></span></div>
-      <div class="plug">
-        <div class="k">Aperçu, onglet Création</div>
-        <div class="rampe" id="rampe"></div>
-        <div id="accolades"></div>
-        <div class="garanties" id="garanties"></div>
-      </div>
+    <div class="pile-pu">
+      <div class="k">Aujourd'hui</div>
+      <div class="pu" id="pu-avant"></div>
+      <div class="k" style="margin-top:10px">Proposé</div>
+      <div class="pu" id="pu-apres"></div>
     </div>
+    <div class="fenetre"><div class="fenetre-t"><b id="fx-titre">theme</b><span id="fx-mode"></span></div><table class="fx" id="fx"></table></div>
   </div>
-  <p class="cap">Couleurs : rampes calculées par le moteur pour les palettes de la vue illustrée (<a href="./generer-vue-architecture.ts">generer-vue-architecture.ts</a>), courbe inversée du dossier du texte des boutons. Ratios WCAG 2 recalculés sur les couleurs affichées.</p>
+  <div class="narrow">
+  <h3>Ce qui change dans l'aperçu, et pourquoi</h3>
+  <ol class="pourquoi">
+    <li><b>Une ligne d'accolades par dossier.</b> Le dossier s'écrit à gauche, comme Soft et Vivid ; la fin du nom s'écrit sous l'accolade. On lit <code>surface</code> puis <code>default · hover · pressed</code>, comme le panneau de Figma montre le groupe <code>primary/surface</code> puis ses variables. Le nom français reste dessous, comme aujourd'hui, et dit l'usage.</li>
+    <li><b>Les fonds d'un dossier gardent une accolade qui couvre leurs états</b>, comme celle de <code>surface</code> aujourd'hui. Elle couvre trois nuances au lieu de quatre : le quatrième rang, <code>active-hover</code>, disparaît.</li>
+    <li><b>Le texte et le contour ne couvrent plus une plage.</b> Aujourd'hui <code>solid · text</code> partagent 700 à 950, parce que le texte avance avec le fond. Le texte devient constant : une nuance pour <code>page/foreground</code>, une pour <code>surface/foreground</code>, chacune avec le contour de son dossier.</li>
+    <li><b><code>border-control · focus</code> se sépare.</b> Le contour suit le texte de son dossier ; l'anneau garde sa propre accolade.</li>
+    <li><b><code>surface-card</code> disparaît</b> : la carte est <code>elevation/raised</code>, un fond neutre hors de la palette. <b><code>border-decorative</code> devient <code>page/divider</code></b>, à la même nuance.</li>
+    <li><b>La case tiretée devient <code>solid/foreground</code></b>, « texte des boutons », peinte en blanc ou en noir selon le réglage, au lieu de la couleur du fond du thème.</li>
+    <li><b>Les accolades suivent le thème affiché.</b> Quand le texte des boutons a la couleur de la page, <code>solid</code> passe sur 500 à 700 et les textes, les contours et l'anneau montent d'un cran. Règle la barre du haut pour le voir.</li>
+    <li><b>Le prix : une troisième ligne d'accolades</b>, une par dossier, au lieu de deux. En échange, une ligne ne mélange plus des usages de dossiers différents, et aucun libellé ne déborde.</li>
+  </ol>
+  <p class="cap">Couleurs : rampes calculées par le moteur pour les palettes de la vue illustrée (<a href="./generer-vue-architecture.ts">generer-vue-architecture.ts</a>), courbe inversée du dossier du texte des boutons. La carte des garanties suivra la même méthode : reproduite d'abord, puis modifiée.</p>
+  </div>
 
   <h2>Changements d'interface</h2>
   <p class="narrow">Ce que le designer lit dans UCM Palettes. Chaque écran cité a son état dans la galerie du plugin (<code>npm run galerie</code>, dossier <code>packages/plugin-palettes</code>).</p>
@@ -332,75 +347,127 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
     $('fx').innerHTML = h;
   }
 
-  /* Les accolades : les fonds d'un dossier sur une accolade, chaque autre variable sous sa nuance. */
-  function renderPlugin() {
-    var r = ROLES[etat.palette], m = etat.mode, vs = variables(), nom = parNom(vs), tb = table();
-    $('pl-titre').textContent = 'Palette ' + r.pal + ' · ' + m + (inverse() ? ' · inversé' : '');
-    var h = '<div class="n">' + 'texte' + '</div>';
-    CR.forEach(function (n) { h += '<div class="n">' + n + '</div>'; });
-    h += '<div class="fg" data-token="solid/foreground" style="background:' + nom['solid/default'].hexa + ';color:' + texteDesBoutons() + '">Aa</div>';
-    CR.forEach(function (n) { h += '<div class="c" data-cran="' + n + '" style="background:' + hexa(r.pal, r.inten, m, n) + '"></div>'; });
-    $('rampe').innerHTML = h;
-    var colonne = function (n) { return CR.indexOf(n) + 2; };
-    var acc = '';
-    [['surface', ['surface/default', 'surface/hover', 'surface/pressed']], ['solid', ['solid/default', 'solid/hover', 'solid/pressed']]].forEach(function (d) {
-      var crans = d[1].map(function (n) { return tb[n]; }), a = Math.min.apply(null, crans), b = Math.max.apply(null, crans);
-      acc += '<div class="acc"><div style="grid-column:' + colonne(a) + '/' + (colonne(b) + 1) + '" class="b"></div></div>';
-      acc += '<div class="acc"><div class="lab" style="grid-column:' + colonne(a) + '/' + (colonne(b) + 1) + '">' + d[1].slice().sort(function (x, y) { return tb[x] - tb[y]; }).map(function (n) { return tok(n, n) + ' ' + tb[n]; }).join(' · ') + '</div></div>';
+  /* L'aperçu du plugin : la table d'aujourd'hui, ses noms français et la règle de accoladesDe (presentation.ts). */
+  var EMPLOIS = ['solid', 'on-solid', 'text', 'surface', 'surface-card', 'border-control', 'border-decorative', 'focus'];
+  var NOM_DU_ROLE = { solid: 'fond plein', 'on-solid': 'texte sur fond plein', text: 'texte coloré', surface: 'fond léger', 'surface-card': 'fond de carte', 'border-control': 'bordure de champ', 'border-decorative': 'séparateur', focus: 'anneau de focus' };
+  var TABLE_DES_EMPLOIS = { solid: 700, 'on-solid': 'fond', text: 700, surface: 100, 'surface-card': 50, 'border-control': 600, 'border-decorative': 300, focus: 600 };
+  /* Le plus grand décalage de chaque emploi dans les paires : trois rangs au-delà du repos pour ceux qui avancent. */
+  var DECALAGE_MAX = { solid: 3, 'on-solid': 0, text: 3, surface: 3, 'surface-card': 0, 'border-control': 3, 'border-decorative': 0, focus: 0 };
+  function code(texte, token) { return { texte: texte, token: token }; }
+  function groupesDAujourdhui() {
+    var groupes = [];
+    EMPLOIS.forEach(function (e) {
+      var cible = TABLE_DES_EMPLOIS[e], debut = -1, fin = -1;
+      if (cible !== 'fond') { debut = CR.indexOf(cible); fin = Math.min(CR.length - 1, debut + DECALAGE_MAX[e]); }
+      var meme = groupes.filter(function (g) { return g.debut === debut; })[0];
+      if (meme) { meme.codes.push(code(e)); meme.noms.push(NOM_DU_ROLE[e]); meme.fin = Math.max(meme.fin, fin); }
+      else groupes.push({ codes: [code(e)], noms: [NOM_DU_ROLE[e]], debut: debut, fin: fin });
     });
-    var seules = {};
-    vs.forEach(function (v) { if (/^(surface|solid)\/(default|hover|pressed)$/.test(v.nom) || v.n === undefined) return; (seules[v.n] = seules[v.n] || []).push(v.nom); });
-    /* Une ligne par nuance : un repère sous sa colonne, les noms du côté où il reste de la place. */
-    acc += '<div class="acc"><div class="b" style="grid-column:1/2"></div></div><div class="acc"><div class="lab" style="grid-column:1/13;text-align:left">' + tok('solid/foreground') + ' ' + (texteDesBoutons() === '#FFFFFF' ? 'blanc' : 'noir') + ', hors rampe</div></div>';
-    Object.keys(seules).sort(function (a, b) { return a - b; }).forEach(function (n) {
-      var c = colonne(Number(n)), droite = c > 8;
-      acc += '<div class="acc"><div class="b" style="grid-column:' + c + '/' + (c + 1) + '"></div></div>'
-        + '<div class="acc"><div class="lab" style="grid-column:' + (droite ? '2/' + (c + 1) : c + '/13') + ';text-align:' + (droite ? 'right' : 'left') + '">' + n + ' · ' + seules[n].map(function (x) { return tok(x); }).join(' ') + '</div></div>';
-    });
-    if (etat.palette === 'neutral') acc += '<div class="acc"><div class="lab" style="grid-column:1/13;text-align:left">' + tok('page/foreground-main') + ' noir ou blanc purs, hors rampe</div></div>';
-    $('accolades').innerHTML = acc;
-    renderGaranties(nom);
+    return groupes;
   }
-
-  function renderGaranties(nom) {
-    var m = etat.mode, page = ELEVATION[m].page, carte = ELEVATION[m].raised;
-    var fondsPage = [['elevation/page', page], ['elevation/raised', carte]];
-    var teintes = ['surface/default', 'surface/hover', 'surface/pressed'].map(function (n) { return [n, nom[n].hexa]; });
-    var texte = etat.palette === 'neutral' ? 'page/foreground-subtle' : 'page/foreground';
-    var G = [
-      { t: 'texte', id: 'G1', v: 'solid/foreground', sur: ['solid/default', 'solid/hover', 'solid/pressed'].map(function (n) { return [n, nom[n].hexa]; }), seuil: 4.5, bouton: true },
-      { t: 'texte', id: 'G3', v: 'surface/foreground', sur: teintes.concat(fondsPage), seuil: 4.5 },
-      { t: 'texte', id: 'G5', v: texte, sur: fondsPage, seuil: 4.5 },
-      { t: 'visible', id: 'G2', v: 'solid/default', sur: fondsPage, seuil: 3, plein: true },
-      { t: 'visible', id: 'G4', v: 'surface/border', sur: teintes.concat(fondsPage), seuil: 3, contour: true },
-      { t: 'visible', id: 'G6', v: 'page/border', sur: fondsPage, seuil: 3, contour: true },
-      { t: 'visible', id: 'G7', v: 'page/focus', sur: fondsPage.concat([['surface/default', nom['surface/default'].hexa]]), seuil: 3, anneau: true },
+  /* Une ligne d'accolades par dossier, comme les groupes du panneau de Figma : le dossier à gauche, la fin du nom sous l'accolade. */
+  function lignesProposees() {
+    var tb = table(), n = function (v) { return CR.indexOf(tb[v]); }, neutre = etat.palette === 'neutral';
+    var solid = ['solid/default', 'solid/hover', 'solid/pressed'].map(n), texte = neutre ? 'page/foreground-subtle' : 'page/foreground';
+    return [
+      { dossier: 'solid', items: [
+        { codes: [code('foreground', 'solid/foreground')], noms: ['texte des boutons'], debut: -1, fin: -1 },
+        { codes: [code('default', 'solid/default'), code('hover', 'solid/hover'), code('pressed', 'solid/pressed')], noms: ['bouton', 'survol', 'appui'], debut: Math.min.apply(null, solid), fin: Math.max.apply(null, solid) },
+      ] },
+      { dossier: 'surface', items: [
+        { codes: [code('default', 'surface/default'), code('hover', 'surface/hover'), code('pressed', 'surface/pressed')], noms: ['fond teinté', 'survol', 'appui'], debut: n('surface/default'), fin: n('surface/pressed') },
+        { codes: [code('foreground', 'surface/foreground'), code('border', 'surface/border')], noms: ['texte', 'contour'], debut: n('surface/foreground'), fin: n('surface/foreground') },
+      ] },
+      { dossier: 'page', items: [
+        { codes: [code('divider', 'page/divider')], noms: ['filet'], debut: n('page/divider'), fin: n('page/divider') },
+        { codes: [code('focus', 'page/focus')], noms: ['anneau de focus'], debut: n('page/focus'), fin: n('page/focus') },
+        { codes: [code(texte.slice(5), texte), code('border', 'page/border')], noms: [neutre ? 'texte secondaire' : 'texte coloré', 'contour'], debut: n(texte), fin: n(texte) },
+      ] },
     ];
-    function bloc(type, titre) {
-      var h = '<div class="ga-t">' + titre + '<span>minimum ' + (type === 'texte' ? '4,5' : '3') + ':1</span></div>';
-      G.filter(function (g) { return g.t === type; }).forEach(function (g) {
-        var couleur = g.v === 'solid/foreground' ? texteDesBoutons() : nom[g.v].hexa;
-        h += '<div class="ga" data-token="' + g.v + '"><div class="phrase">' + g.id + ' · ' + tok(g.v) + ' sur ' + g.sur.map(function (s) { return tok(s[0]); }).join(' ') + '</div><div class="specs">';
-        g.sur.forEach(function (s) {
-          var v = contraste(couleur, s[1]), bon = Number(v.toFixed(10)) >= g.seuil, style;
-          if (g.contour) style = 'background:' + s[1] + ';border-color:' + couleur + ';color:transparent';
-          else if (g.anneau) style = 'background:' + s[1] + ';outline:2px solid ' + couleur + ';outline-offset:2px;color:transparent';
-          else if (g.plein) style = 'background:' + couleur + ';color:transparent;box-shadow:0 0 0 6px ' + s[1];
-          else style = 'background:' + s[1] + ';color:' + couleur;
-          h += '<div class="spec"><div class="boite" style="' + style + '">' + (g.plein || g.contour || g.anneau ? '·' : 'Texte') + '</div><span>' + s[0].replace('elevation/', '').replace('surface/', '').replace('solid/', '') + '</span><span class="' + (bon ? 'ok' : 'ko') + '">' + (bon ? '✓ ' : '✗ ') + fmt(v) + '</span></div>';
-        });
-        h += '</div></div>';
-      });
-      return h;
+  }
+  /*
+   * Le libellé d'une accolade prend l'espace libre autour d'elle : un écart entre deux accolades se partage,
+   * le surplus va à la suivante. Il se centre s'il a de la place des deux côtés, sinon il s'appuie du côté libre ;
+   * collé à l'accolade suivante, il garde un blanc pour ne pas se lire avec elle.
+   */
+  function etaler(items) {
+    var t = items.slice().sort(function (a, b) { return a.debut - b.debut; }), parts = [];
+    for (var i = 0; i <= t.length; i++) {
+      var debut = i === 0 ? -1 : t[i - 1].fin + 1, fin = i === t.length ? CR.length - 1 : t[i].debut - 1, k = Math.max(0, fin - debut + 1);
+      if (i === 0) parts.push([0, k]); else if (i === t.length) parts.push([k, 0]); else parts.push([Math.floor(k / 2), k - Math.floor(k / 2)]);
     }
-    $('garanties').innerHTML = '<div class="k" style="padding:8px 10px 0">Garanties, onglet Vérification</div>' + bloc('texte', 'Textes lisibles') + bloc('visible', 'Éléments visibles')
-      + '<div class="ga">' + tok('page/divider') + ' filet, sans minimum de contraste</div>';
+    return t.map(function (g, i) {
+      var gauche = parts[i][1], droite = parts[i + 1][0], m = Math.min(gauche, droite);
+      var libelle = gauche > 0 && droite > 0 ? { debut: g.debut - m, fin: g.fin + m, alignement: 'center' }
+        : droite === 0 && gauche > 0 ? { debut: g.debut - gauche, fin: g.fin, alignement: 'end', colle: i < t.length - 1 }
+        : { debut: g.debut, fin: g.fin + droite, alignement: 'start' };
+      return { g: g, libelle: libelle };
+    });
+  }
+  /* La règle de placement de accoladesDe : une ligne sans chevauchement, une colonne libre de chaque côté, puis la zone du libellé. */
+  function placer(groupes) {
+    var lignes = [];
+    groupes.forEach(function (g) {
+      var libre = lignes.filter(function (l) { return l.every(function (a) { return g.fin < a.debut - 1 || g.debut > a.fin + 1; }); })[0];
+      if (libre) libre.push(g); else lignes.push([g]);
+    });
+    return lignes.map(function (ligne) {
+      var triee = ligne.slice().sort(function (a, b) { return a.debut - b.debut; }), borne = -2;
+      return triee.map(function (g, rang) {
+        var suivante = triee[rang + 1], zone = { debut: borne, fin: suivante ? suivante.debut - 1 : CR.length - 1 };
+        var marge = Math.min(g.debut - zone.debut, zone.fin - g.fin);
+        var libelle = marge > 0 ? { debut: g.debut - marge, fin: g.fin + marge, alignement: 'center' } : { debut: zone.debut, fin: zone.fin, alignement: g.debut === zone.debut ? 'start' : 'end' };
+        borne = libelle.fin + 1;
+        return { g: g, libelle: libelle };
+      });
+    });
+  }
+  /* Les rampes d'aujourd'hui suivent la courbe normale ; la proposition suit la courbe du thème affiché. */
+  function rangees(aujourdhui) {
+    var r = ROLES[etat.palette], p = D.palettes[r.pal], m = etat.mode;
+    var profils = r.inten === 'unique' ? [['', 'unique']] : [['Soft', 'soft'], ['Vivid', 'vivid']];
+    return profils.map(function (pr) {
+      var rampe = p[pr[1]][!aujourdhui && inverse() ? m + 'Inverse' : m];
+      return { nom: pr[0], hexas: rampe, reference: rampe.indexOf(p.reference) };
+    });
+  }
+  function nuancier(id, lignes, accolades, caseTexte) {
+    var fond = ELEVATION[etat.mode].page, sombre = lum(fond) < 0.2;
+    var es = sombre ? '#EDEDED' : '#1E1E1E', es2 = sombre ? 'rgba(237,237,237,.72)' : 'rgba(30,30,30,.72)';
+    var h = '<div class="nuancier-surface" style="background:' + fond + ';--es:' + es + ';--es2:' + es2 + ';--fs:' + fond + ';--colonnes:' + CR.length + '"><div class="nuancier-grille">';
+    h += '<span class="nuancier-profil" style="grid-row:1"></span>';
+    CR.forEach(function (c, r) { h += '<span class="nuancier-numero" style="grid-column:' + (r + 3) + ';grid-row:1">' + c + '</span>'; });
+    h += '<span class="pastille pastille-on-solid"' + (caseTexte.token ? ' data-token="' + caseTexte.token + '"' : '') + ' style="grid-column:2;grid-row:2 / span ' + lignes.length + ';background:' + caseTexte.couleur + '"></span>';
+    lignes.forEach(function (r, i) {
+      h += '<span class="nuancier-profil" style="grid-row:' + (i + 2) + '">' + r.nom + '</span>';
+      r.hexas.forEach(function (x, k) {
+        var encre = contraste(x, '#000000') > contraste(x, '#FFFFFF') ? '#000' : '#FFF';
+        h += '<span class="pastille" data-cran="' + CR[k] + '" style="grid-column:' + (k + 3) + ';grid-row:' + (i + 2) + ';background:' + x + ';color:' + encre + '">' + (r.reference === k ? '◆' : '') + '</span>';
+      });
+    });
+    h += '</div><div class="accolades">';
+    accolades.forEach(function (a) {
+      h += '<div class="accolades-ligne">' + (a.dossier ? '<span class="dossier">' + a.dossier + '</span>' : '');
+      a.placees.forEach(function (p) {
+        h += '<span class="accolade" style="grid-column:' + (p.g.debut + 3) + ' / ' + (p.g.fin + 4) + '"></span>'
+          + '<span class="accolade-libelle" style="grid-column:' + (p.libelle.debut + 3) + ' / ' + (p.libelle.fin + 4) + ';text-align:' + p.libelle.alignement + (p.libelle.colle ? ';padding-right:12px' : '') + '"><code class="code-du-role">'
+          + p.g.codes.map(function (c) { return c.token ? '<span data-token="' + c.token + '">' + c.texte + '</span>' : c.texte; }).join(' · ')
+          + '</code><span class="accolade-nom">' + p.g.noms.join(' · ') + '</span></span>';
+      });
+      h += '</div>';
+    });
+    $(id).innerHTML = h + '</div></div>';
+  }
+  function renderPlugin() {
+    nuancier('pu-avant', rangees(true), placer(groupesDAujourdhui()).map(function (l) { return { placees: l }; }), { couleur: ELEVATION[etat.mode].page });
+    nuancier('pu-apres', rangees(false), lignesProposees().map(function (l) { return { dossier: l.dossier, placees: etaler(l.items) }; }), { couleur: texteDesBoutons(), token: 'solid/foreground' });
+    if (etat.palette === 'neutral') $('pu-apres').insertAdjacentHTML('beforeend', '<p class="hors-rampe"><span data-token="page/foreground-main">page/foreground-main</span> · corps de texte, noir ou blanc purs, hors de la rampe</p>');
   }
 
   /* Les changements : identifiant, titre, état, aujourd'hui, demain, modules. */
   var INTERFACE = [
     ['I1', 'Un seul vocabulaire dans tous les textes', 'retenu', 'Trois vocabulaires : les emplois en police de code (<code>text</code>, <code>surface</code>, <code>on-solid</code>…), leurs noms français (« texte coloré », « fond léger »), les rangs <code>default</code> à <code>active-hover</code>.', 'Le nom de variable de <code>theme</code>, sans préfixe de palette, en police de code, suivi d’un libellé court du lexique. Les états <code>default</code>, <code>hover</code>, <code>pressed</code>.', '<code>i18n/fr.ts</code> et <code>en.ts</code> : <code>NOM_DU_ROLE</code>, <code>NOM_DE_L_EMPLOI</code>, <code>NOM_DE_L_ETAT</code>, <code>ROLE_DANS_LA_PHRASE</code>, textes du détail et de la planche'],
-    ['I2', 'Les accolades de l’aperçu', 'retenu', 'Sous la rampe : <code>on-solid</code>, <code>surface</code> de 100 à 400, <code>solid · text</code> de 700 à 950, <code>surface-card</code>, <code>border-decorative</code>, <code>border-control · focus</code>. État <code>palette-deux-intensites</code>.', 'Une accolade par dossier pour ses fonds (<code>surface</code> 100 à 300, <code>solid</code> 700 à 900, ou 500 à 700 en thème inversé), puis chaque autre variable sous sa nuance. La case du texte des boutons devient <code>solid/foreground</code>. Voir la maquette.', '<code>presentation.ts</code> (<code>accoladesDe</code>), <code>ui/nuancier.ts</code>'],
+    ['I2', 'Les accolades de l’aperçu', 'retenu', 'Sous la rampe : <code>on-solid</code>, <code>surface</code> de 100 à 400, <code>solid · text</code> de 700 à 950, <code>surface-card</code>, <code>border-decorative</code>, <code>border-control · focus</code>. État <code>palette-deux-intensites</code>.', 'Une ligne d’accolades par dossier, <code>solid</code>, <code>surface</code>, <code>page</code>, le dossier écrit à gauche comme Soft et Vivid. Sous chaque accolade, la fin du nom de variable (<code>default · hover · pressed</code>, <code>foreground · border</code>) et son nom français. La case tiretée devient <code>solid/foreground</code>. Voir l’aperçu proposé.', '<code>presentation.ts</code> (<code>accoladesDe</code>), <code>ui/nuancier.ts</code>'],
     ['I3', 'Les accolades suivent le thème affiché', 'propose', 'Les accolades ne dépendent pas du thème : la table est la même en Light et en Dark.', 'Elles suivent la table du thème de l’aperçu, normal ou inversé selon le texte des boutons de ce thème : en dark avec texte blanc, <code>solid/hover</code> passe sous la 600 et <code>page/foreground</code> sous la 800.', '<code>ui/nuancier.ts</code>, bascule du thème du titre'],
     ['I4', 'Les garanties de contraste', 'retenu', 'Des arcs en escalier, quatre colonnes d’état, des paires « <code>text</code> sur <code>surface</code> », la note « on-solid utilise la couleur du fond de page (neutral.50) ». État <code>garanties-respectees</code>.', 'Un éventail par texte : <span class="tok">surface/foreground</span> relié à ses trois fonds. Une ligne par garantie G1 à G7, écrite « variable sur fonds » avec un spécimen par fond. Trois états au plus. La note dit « blanc ou noir, selon le réglage Texte des boutons ».', '<code>ui/garanties.ts</code>, <code>presentation.ts</code>, <code>ui/ajustement.ts</code>'],
     ['I5', 'Le détail d’une nuance', 'retenu', '« Rôles » par emploi ; « Contrastes de la nuance » contre « Fond du thème », « Blanc », « Noir » ; « on-solid · fond du thème ».', 'Les variables que la nuance porte dans le thème affiché ; contrastes contre <code>elevation/page</code>, <code>elevation/raised</code>, blanc et noir ; la case du texte des boutons s’appelle <code>solid/foreground</code>.', '<code>ui/nuancier.ts</code>, <code>TEXTES_DU_DETAIL</code>'],
@@ -471,7 +538,7 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
     if (!nom) return;
     document.querySelectorAll('[data-token="' + nom + '"]').forEach(function (x) { x.classList.add('lie'); });
     var n = table()[nom];
-    if (n) { var c = document.querySelector('#rampe [data-cran="' + n + '"]'); if (c) c.classList.add('lie'); }
+    if (n) document.querySelectorAll('#pu-apres .pastille[data-cran="' + n + '"]').forEach(function (c) { c.classList.add('lie'); });
   }
   document.addEventListener('mouseover', function (e) { var t = e.target.closest('[data-token]'); lier(t ? t.getAttribute('data-token') : null); });
   document.addEventListener('focusin', function (e) { var t = e.target.closest('[data-token]'); lier(t ? t.getAttribute('data-token') : null); });
