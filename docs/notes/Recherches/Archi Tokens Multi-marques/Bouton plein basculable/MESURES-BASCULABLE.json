@@ -1,0 +1,193 @@
+{
+  "protocole": "Recette par défaut, préréglage Tailwind, quatorze références à une et deux intensités. ΔEok entre deux fonds de la même rampe ; contraste du texte des boutons, blanc ou noir purs, hors nuance ancrée. Seuil 4,5.",
+  "resultats": [
+    {
+      "theme": "Light, texte blanc",
+      "ecarts": {
+        "repos 700 → survol 800": {
+          "minimum": 0.079,
+          "pire": "#06B6D4 soft",
+          "mediane": 0.081
+        },
+        "survol 800 → appui 900": {
+          "minimum": 0.08,
+          "pire": "#737373 soft",
+          "mediane": 0.082
+        },
+        "appui 900 → suivant 950": {
+          "minimum": 0.069,
+          "pire": "#06B6D4 soft",
+          "mediane": 0.072
+        },
+        "repos 700 → appui 900": {
+          "minimum": 0.159,
+          "pire": "#737373 soft",
+          "mediane": 0.162
+        }
+      },
+      "texteDesBoutons": {
+        "900": {
+          "minimum": 11.365,
+          "pire": "#16A34A vivid",
+          "mediane": 11.847,
+          "echecs": 0,
+          "mesures": 42
+        },
+        "950": {
+          "minimum": 14.65,
+          "pire": "#16A34A vivid",
+          "mediane": 15.187,
+          "echecs": 0,
+          "mesures": 40
+        }
+      }
+    },
+    {
+      "theme": "Dark, texte noir",
+      "ecarts": {
+        "repos 700 → survol 800": {
+          "minimum": 0.046,
+          "pire": "#06B6D4 vivid",
+          "mediane": 0.092
+        },
+        "survol 800 → appui 900": {
+          "minimum": 0.057,
+          "pire": "#EAB308 vivid",
+          "mediane": 0.092
+        },
+        "appui 900 → suivant 950": {
+          "minimum": 0.08,
+          "pire": "#737373 soft",
+          "mediane": 0.087
+        },
+        "repos 700 → appui 900": {
+          "minimum": 0.135,
+          "pire": "#06B6D4 vivid",
+          "mediane": 0.185
+        }
+      },
+      "texteDesBoutons": {
+        "900": {
+          "minimum": 12.946,
+          "pire": "#DC2626 vivid",
+          "mediane": 13.332,
+          "echecs": 0,
+          "mesures": 40
+        },
+        "950": {
+          "minimum": 16.872,
+          "pire": "#DC2626 vivid",
+          "mediane": 17.138,
+          "echecs": 0,
+          "mesures": 40
+        }
+      }
+    },
+    {
+      "theme": "Light inversé, texte noir",
+      "ecarts": {
+        "repos 700 → survol 600": {
+          "minimum": 0.064,
+          "pire": "#16A34A vivid",
+          "mediane": 0.082
+        },
+        "survol 600 → appui 500": {
+          "minimum": 0.032,
+          "pire": "#06B6D4 vivid",
+          "mediane": 0.057
+        },
+        "appui 500 → suivant 400": {
+          "minimum": 0.014,
+          "pire": "#16A34A vivid",
+          "mediane": 0.016
+        },
+        "repos 700 → appui 500": {
+          "minimum": 0.123,
+          "pire": "#16A34A vivid",
+          "mediane": 0.139
+        },
+        "appui 500 → 300": {
+          "minimum": 0.098,
+          "pire": "#06B6D4 soft",
+          "mediane": 0.102
+        }
+      },
+      "texteDesBoutons": {
+        "300": {
+          "minimum": 12.676,
+          "pire": "#DC2626 vivid",
+          "mediane": 13.077,
+          "echecs": 0,
+          "mesures": 40
+        },
+        "400": {
+          "minimum": 9.285,
+          "pire": "#DC2626 vivid",
+          "mediane": 9.793,
+          "echecs": 0,
+          "mesures": 40
+        },
+        "500": {
+          "minimum": 8.78,
+          "pire": "#DC2626 vivid",
+          "mediane": 9.251,
+          "echecs": 0,
+          "mesures": 42
+        }
+      }
+    },
+    {
+      "theme": "Dark inversé, texte blanc",
+      "ecarts": {
+        "repos 700 → survol 600": {
+          "minimum": 0.049,
+          "pire": "#16A34A soft",
+          "mediane": 0.051
+        },
+        "survol 600 → appui 500": {
+          "minimum": 0.049,
+          "pire": "#06B6D4 vivid",
+          "mediane": 0.05
+        },
+        "appui 500 → suivant 400": {
+          "minimum": 0.047,
+          "pire": "#1E6FD9 soft",
+          "mediane": 0.051
+        },
+        "repos 700 → appui 500": {
+          "minimum": 0.099,
+          "pire": "#737373 vivid",
+          "mediane": 0.103
+        },
+        "appui 500 → 300": {
+          "minimum": 0.12,
+          "pire": "#EAB308 soft",
+          "mediane": 0.125
+        }
+      },
+      "texteDesBoutons": {
+        "300": {
+          "minimum": 11.868,
+          "pire": "#16A34A vivid",
+          "mediane": 12.284,
+          "echecs": 0,
+          "mesures": 42
+        },
+        "400": {
+          "minimum": 8.758,
+          "pire": "#16A34A vivid",
+          "mediane": 9.259,
+          "echecs": 0,
+          "mesures": 42
+        },
+        "500": {
+          "minimum": 7.025,
+          "pire": "#16A34A vivid",
+          "mediane": 7.518,
+          "echecs": 0,
+          "mesures": 42
+        }
+      }
+    }
+  ]
+}

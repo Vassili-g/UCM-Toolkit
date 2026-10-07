@@ -37,6 +37,7 @@ bibliothèques.
 
 | Sujet | État et raison de conservation |
 |---|---|
+| [Bouton plein basculable](./Archi%20Tokens%20Multi-marques/Bouton%20plein%20basculable/README.md) | Question ouverte : l'état activé survolé d'un bouton plein dans la table à trois états ; solutions du marché modélisées, quatre propositions, aucune décision |
 | [Thème en dossiers et texte des boutons](./Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/README.md) | Plan d'implémentation commun aux deux chantiers validés, en attente d'exécution ; les lots 7 à 9 attendent trois maquettes |
 | [Collection `usage`](./Archi%20Tokens%20Multi-marques/Collection%20usage/README.md) | Les propositions successives pour la collection `usage`, de la table des emplois aux dossiers à texte constant ; aucune évolution du produit appliquée |
 | [Direction artistique](./Direction%20artistique/README.md) | Propositions non validées, dont Capitule ; conserver les planches, leurs générateurs et les SVG |

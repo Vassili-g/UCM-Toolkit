@@ -597,6 +597,8 @@ variables avant de la publier.
   Une décision touche la table des dossiers, les crans requis, les garanties
   du texte des boutons, l'aperçu d'UCM Palettes, la carte des garanties, la
   planche et la vue États de l'Interface de test.
+  La recherche, les solutions du marché modélisées et les mesures sont dans
+  [Bouton plein basculable](./Bouton%20plein%20basculable/README.md).
 
 L'ordre des changements dans le code et la spécification d'UCM Palettes est
 dans [PLAN-INTEGRATION-ARCHITECTURE.md](./PLAN-INTEGRATION-ARCHITECTURE.md).

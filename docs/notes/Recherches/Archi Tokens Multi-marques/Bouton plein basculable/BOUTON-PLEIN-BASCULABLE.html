@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bouton plein basculable</title>
+<style>
+body{margin:0;padding:24px 32px 64px;background:#fff;color:#1E1E1E;font:14px/1.5 Inter,system-ui,sans-serif;max-width:1180px}
+h1{font-size:22px;margin:0 0 6px}
+h2{font-size:17px;margin:36px 0 8px}
+h3{font-size:14px;margin:20px 0 6px}
+p,li{max-width:900px}
+code{font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:.9em;background:#F0F0F0;border-radius:3px;padding:0 3px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;vertical-align:middle;padding:8px 8px;border-bottom:1px solid #E3E3E3}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6B6B6B;font-weight:600}
+td.c{text-align:center}
+.sys b{display:block}
+.sys span,.note{color:#6B6B6B;font-size:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;font:600 12px/16px Inter,sans-serif;border-radius:6px;padding:6px 12px;border:1px solid transparent;white-space:nowrap}
+.var{display:block;font:500 10px/14px ui-monospace,Consolas,monospace;color:#6B6B6B;margin-top:4px}
+.ko{color:#B42318;font-weight:600}
+.ok{color:#168B52;font-weight:600}
+.scene{display:inline-block;padding:10px;border-radius:8px}
+.bascule{display:inline-flex;gap:4px;background:#F0F0F0;border-radius:8px;padding:3px;margin:6px 0 10px}
+.bascule button{font:600 12px Inter,sans-serif;border:0;background:none;border-radius:6px;padding:4px 10px;cursor:pointer}
+.bascule button[aria-pressed="true"]{background:#fff;box-shadow:0 0 0 1px #D2D2D2}
+.prop{border:1px solid #E3E3E3;border-radius:10px;padding:14px 16px;margin:14px 0}
+.prop h3{margin-top:0}
+.reco{border-color:#168B52;box-shadow:inset 3px 0 0 #168B52}
+</style>
+</head>
+<body>
+<h1>Le bouton plein basculable : l'état activé et son survol</h1>
+<p>Un bouton plein qu'on active et désactive, dans la table en dossiers à trois états (<code>default</code>, <code>hover</code>, <code>pressed</code>). Désactivé, il suit les trois fonds de <code>solid</code>. Activé, il reste sur <code>solid/pressed</code>. <b>Activé et survolé, il n'a pas de variable</b> : <code>solid/hover</code> lui donnerait la couleur du bouton désactivé survolé. La page modélise ce que font les systèmes du marché, puis propose des solutions pour notre architecture.</p>
+<p class="note">Tous les spécimens sont peints avec la même palette bleue (<code>#3B82F6</code>) et la table en dossiers, pour comparer des logiques et non des marques. Les noms de tokens cités sont ceux des sources, listées en bas de page.</p>
+
+<h2>1. Les logiques de couleur du marché</h2>
+<p>Cinq colonnes : désactivé au repos et survolé, puis activé au repos, survolé et appuyé. Une case rouge signale l'ambiguïté : l'activé survolé a la couleur du désactivé survolé.</p>
+<div class="scene" style="background:#F7F7F7"><table id="marche"></table></div>
+
+<h2>2. Les signes autres que la couleur</h2>
+<p>WCAG 1.4.1 demande qu'un état ne se signale pas par la seule couleur ; 1.4.11 demande que l'indicateur d'état atteigne 3:1 contre ce qui l'entoure, sans exiger de contraste entre deux états. Apple : « éviter de s'appuyer seulement sur des couleurs différentes ». Ici, chaque signe garde les trois fonds de <code>solid</code> ; le signe seul dit l'état.</p>
+<div class="scene" style="background:#F7F7F7"><table id="signes"></table></div>
+
+<h2>3. Ce que la table en dossiers permet</h2>
+<p>Mesures sur les quatorze références de la recherche, à une et deux intensités (<a href="./mesurer-basculable.ts">mesurer-basculable.ts</a>, <a href="./MESURES-BASCULABLE.json">MESURES-BASCULABLE.json</a>). ΔEok entre deux fonds de la même rampe : les trois états actuels ont au moins 0,032 entre deux voisins.</p>
+<table>
+  <thead><tr><th>Thème</th><th>Fonds de <code>solid</code></th><th>Un cran après <code>pressed</code></th><th>ΔEok de <code>pressed</code> à ce cran</th><th>Texte des boutons dessus</th></tr></thead>
+  <tbody>
+    <tr><td>Light, texte blanc</td><td>700 · 800 · 900</td><td>950</td><td class="ok">min 0,069</td><td>min 14,65:1</td></tr>
+    <tr><td>Dark, texte noir</td><td>700 · 800 · 900</td><td>950</td><td class="ok">min 0,080</td><td>min 16,87:1</td></tr>
+    <tr><td>Light inversé, texte noir</td><td>700 · 600 · 500</td><td>400</td><td class="ko">min 0,014, médiane 0,016 : invisible</td><td>min 9,29:1</td></tr>
+    <tr><td></td><td></td><td>300</td><td class="ok">min 0,098</td><td>min 12,68:1</td></tr>
+    <tr><td>Dark inversé, texte blanc</td><td>700 · 600 · 500</td><td>400</td><td class="ok">min 0,047</td><td>min 8,76:1</td></tr>
+    <tr><td></td><td></td><td>300</td><td class="ok">min 0,120</td><td>min 11,87:1</td></tr>
+  </tbody>
+</table>
+<p>Un quatrième fond pris un cran après <code>pressed</code> ne marche pas en Light inversé : la courbe y est serrée entre 500 et 400. Il faut sauter à la 300, ce qui change beaucoup la teinte du bouton au survol.</p>
+
+<h2>4. Propositions pour notre architecture</h2>
+<div class="bascule" id="themes"><button data-t="light" aria-pressed="true">Light</button><button data-t="dark">Dark</button><button data-t="lightInverse">Light inversé</button><button data-t="darkInverse">Dark inversé</button></div>
+<div id="propositions"></div>
+
+<h2>5. Recommandation</h2>
+<ol>
+  <li><b>Proposition A, le signe porte l'état.</b> Aucune variable de plus, elle marche dans les quatre thèmes, elle répond à WCAG 1.4.1, et le contraste de l'anneau est déjà garanti : c'est le texte des boutons sur le fond plein, au moins 4,5:1. Le survol de l'état activé garde un retour. C'est la voie de Fluent en mode accessible et de Material pour les boutons icônes.</li>
+  <li><b>Proposition B</b> si le signe est refusé par le design : aucun coût, mais aucun retour au survol de l'état activé. C'est le choix de Primer, Polaris et Carbon.</li>
+  <li><b>Proposition C</b> seulement si l'état doit se lire par la couleur seule : deux variables par palette, et un survol qui saute à la 300 dans le thème inversé.</li>
+</ol>
+<p>Les propositions se combinent : C ou B avec le signe de A.</p>
+
+<h2>Sources</h2>
+<ul class="note">
+  <li>Atlassian, tokens <code>color.background.selected.bold</code>, <code>.hovered</code>, <code>.pressed</code> : <a href="https://atlassian.design/llms-tokens.txt">atlassian.design/llms-tokens.txt</a>, <a href="https://atlassian.design/components/tokens/examples">exemples</a></li>
+  <li>Fluent 2, ToggleButton : <a href="https://raw.githubusercontent.com/microsoft/fluentui/master/packages/react-components/react-button/library/src/components/ToggleButton/useToggleButtonStyles.styles.ts">useToggleButtonStyles.styles.ts</a></li>
+  <li>Material 3, filled icon button : <a href="https://raw.githubusercontent.com/material-components/material-web/main/tokens/_md-comp-filled-icon-button.scss">_md-comp-filled-icon-button.scss</a>, <a href="https://raw.githubusercontent.com/material-components/material-web/main/docs/components/icon-button.md">icon-button.md</a> ; segmented button : <a href="https://api.flutter.dev/flutter/material/SegmentedButton-class.html">Flutter SegmentedButton</a></li>
+  <li>Primer : <a href="https://raw.githubusercontent.com/primer/css/main/src/buttons/button.scss">button.scss</a>, <a href="https://raw.githubusercontent.com/primer/react/main/packages/react/src/SegmentedControl/SegmentedControl.module.css">SegmentedControl.module.css</a></li>
+  <li>Carbon, content switcher : <a href="https://raw.githubusercontent.com/carbon-design-system/carbon/main/packages/styles/scss/components/content-switcher/_content-switcher.scss">_content-switcher.scss</a></li>
+  <li>Spectrum, ActionButton : <a href="https://raw.githubusercontent.com/adobe/spectrum-css/main/components/actionbutton/index.css">actionbutton/index.css</a></li>
+  <li>Polaris, Button pressed : <a href="https://raw.githubusercontent.com/Shopify/polaris/main/polaris-react/src/components/Button/Button.module.css">Button.module.css</a></li>
+  <li>Radix : <a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">l'échelle de Radix Colors</a></li>
+  <li>Heydon Pickering, <a href="https://inclusive-components.design/toggle-button/">Inclusive Components, toggle button</a> ; eBay, <a href="https://playbook.ebay.com/design-system/components/segmented-button">segmented button</a></li>
+  <li>WCAG 2.2 : <a href="https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html">1.4.1</a>, <a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">1.4.11</a> ; ARIA APG : <a href="https://www.w3.org/WAI/ARIA/apg/patterns/button/">Button pattern</a></li>
+</ul>
+
+<script>
+(function () {
+  var CR = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  var RAMPES = {
+    light: ['#F2F7FE', '#E5F0FE', '#CDE2FD', '#AECFFB', '#82B3F9', '#5494F7', '#3B82F6', '#1055D9', '#083CB8', '#0314A5', '#050B77'],
+    dark: ['#0A1121', '#0E1A39', '#0F215A', '#0A2687', '#0635B1', '#0F52D5', '#3B82F6', '#5494F7', '#82B3F9', '#B0D0FB', '#DAE9FD'],
+    lightInverse: ['#F2F7FE', '#E5F0FE', '#CDE2FD', '#AECFFB', '#82B3F9', '#7BAEF9', '#5E9BF8', '#3B82F6', '#083CB8', '#0314A5', '#050B77'],
+    darkInverse: ['#0A1121', '#0E1A39', '#0F215A', '#0A2687', '#0635B1', '#0B45C4', '#1055D9', '#3B82F6', '#639EF8', '#B0D0FB', '#DAE9FD'],
+  };
+  var THEMES = {
+    light: { page: '#F7F7F7', texte: '#FFFFFF', solid: [700, 800, 900], suivant: 950, encre: '#1E1E1E', surface: [100, 200], surfFg: 800 },
+    dark: { page: '#121212', texte: '#000000', solid: [700, 800, 900], suivant: 950, encre: '#EDEDED', surface: [100, 200], surfFg: 800 },
+    lightInverse: { page: '#F7F7F7', texte: '#000000', solid: [700, 600, 500], suivant: 300, encre: '#1E1E1E', surface: [100, 200], surfFg: 900 },
+    darkInverse: { page: '#121212', texte: '#FFFFFF', solid: [700, 600, 500], suivant: 300, encre: '#EDEDED', surface: [100, 200], surfFg: 900 },
+  };
+  function n(t, cran) { return RAMPES[t][CR.indexOf(cran)]; }
+
+  /* Un bouton : fond, texte, et des extras (anneau, ombre, calque, icône, gras). */
+  function bouton(o) {
+    var style = 'background:' + o.fond + ';color:' + o.texte + ';';
+    var ombres = [];
+    if (o.anneau) ombres.push('inset 0 0 0 2px ' + o.fond, 'inset 0 0 0 3.5px ' + o.texte);
+    if (o.creux) ombres.push('inset 0 2px 4px rgba(0,0,0,.45)');
+    if (o.contour) style += 'border-color:' + o.contour + ';';
+    if (ombres.length) style += 'box-shadow:' + ombres.join(',') + ';';
+    if (o.calque) style += 'background-image:linear-gradient(' + o.calque + ',' + o.calque + ');';
+    if (o.gras === false) style += 'font-weight:400;';
+    var icone = o.icone ? '<span aria-hidden="true">' + o.icone + '</span>' : '';
+    return '<span class="btn" style="' + style + '">' + icone + (o.libelle || 'Favori') + '</span>' + (o.v ? '<span class="var">' + o.v + '</span>' : '');
+  }
+  function ligne(nom, logique, cases, ambigue) {
+    return '<tr><td class="sys"><b>' + nom + '</b><span>' + logique + '</span></td>' + cases.map(function (c, i) { return '<td class="c"' + (ambigue && i === 3 ? ' style="box-shadow:inset 0 0 0 2px #B42318;border-radius:6px"' : '') + '>' + c + '</td>'; }).join('') + '</tr>';
+  }
+  var ENTETE = '<thead><tr><th>Système</th><th>Désactivé</th><th>Désactivé survolé</th><th>Activé</th><th>Activé survolé</th><th>Activé appuyé</th></tr></thead>';
+
+  /* 1. Les logiques de couleur, sur la rampe Light. */
+  var L = function (c) { return n('light', c); }, B = '#FFFFFF', S = function (f) { return { fond: f, texte: B }; };
+  var doux = function (c) { return { fond: L(c), texte: L(800) }; };
+  var marche = [
+    ['Atlassian, Button <code>isSelected</code>', 'Famille <code>selected.bold</code> à trois états. Le bouton désactivé n’est pas plein.', [doux(100), doux(200), S(L(700)), S(L(800)), S(L(900))], false],
+    ['Spectrum, ActionButton emphasized', 'Famille <code>selected</code> à trois états (<code>default</code>, <code>hover</code>, <code>down</code>). Désactivé neutre, non plein.', [doux(100), doux(200), S(L(700)), S(L(800)), S(L(900))], false],
+    ['Fluent 2, ToggleButton primary', 'Plein dans les deux états. L’activé a son repos (<code>…Selected</code>) ; survol et appui reprennent ceux du bouton ordinaire.', [S(L(700)), S(L(800)), S(L(900)), S(L(800)), S(L(900))], true],
+    ['Primer, bouton primary · Polaris, <code>pressed</code>', 'Activé = appui. Aucun survol propre : le survol de l’activé ne change rien.', [S(L(700)), S(L(800)), S(L(900)), S(L(900)), S(L(900))], false],
+    ['Carbon, content switcher', 'Activé en couleur inverse, sans état de survol ni d’appui.', [doux(100), doux(200), S('#161616'), S('#161616'), S('#161616')], false],
+    ['Material 3, toggle filled icon button', 'Le fond ne change pas : un calque translucide de la couleur du texte (8 % au survol, 10 % à l’appui, sources tierces) se pose dessus.', [doux(100), Object.assign(doux(100), { calque: 'rgba(16,85,217,.08)' }), S(L(700)), Object.assign(S(L(700)), { calque: 'rgba(255,255,255,.08)' }), Object.assign(S(L(700)), { calque: 'rgba(255,255,255,.10)' })], false],
+    ['Radix Themes', 'Aucun état activé dans le code. L’échelle Radix nomme son pas 5 « pressed or selected » pour les fonds doux.', ['—', '—', '—', '—', '—'].map(function (x) { return { brut: x }; }), false],
+  ];
+  document.getElementById('marche').innerHTML = ENTETE + '<tbody>' + marche.map(function (m) {
+    return ligne(m[0], m[1], m[2].map(function (o) { return o.brut || bouton(o); }), m[3]);
+  }).join('') + '</tbody>';
+
+  /* 2. Les signes : les trois fonds de solid, et le signe seul pour l'état. */
+  var P = function (c, extra) { return Object.assign({ fond: L(c), texte: B }, extra || {}); };
+  var signes = [
+    ['Icône pleine ou contour', 'Fluent (ToggleButton : icône « filled » quand coché), Material (slot <code>selected</code>), Flutter (<code>selectedIcon</code>).', [P(700, { icone: '☆' }), P(800, { icone: '☆' }), P(700, { icone: '★' }), P(800, { icone: '★' }), P(900, { icone: '★' })]],
+    ['Coche', 'Material 3, segmented button (coche par défaut). eBay la refuse pour ses boutons segmentés.', [P(700), P(800), P(700, { icone: '✓' }), P(800, { icone: '✓' }), P(900, { icone: '✓' })]],
+    ['Anneau intérieur', 'Fluent en mode accessible : contour intérieur fin de la couleur du texte sur le bouton primary.', [P(700), P(800), P(700, { anneau: true }), P(800, { anneau: true }), P(900, { anneau: true })]],
+    ['Ombre intérieure, bouton enfoncé', 'Polaris (<code>.pressed</code>, le survol ne change rien), Heydon Pickering (enfoncé contre relief).', [P(700), P(800), P(900, { creux: true }), P(900, { creux: true }), P(900, { creux: true })]],
+    ['Texte gras', 'Primer, SegmentedControl : texte semibold et curseur quand <code>aria-pressed</code>, aucun survol sur l’activé. Carbon low-contrast : gras et ombre fine.', [P(700, { gras: false }), P(800, { gras: false }), P(700), P(800), P(900)]],
+  ];
+  document.getElementById('signes').innerHTML = ENTETE.replace('Système', 'Signe') + '<tbody>' + signes.map(function (s) { return ligne(s[0], s[1], s[2].map(bouton), false); }).join('') + '</tbody>';
+
+  /* 4. Les propositions, dans le thème choisi. */
+  function propositions(t) {
+    var T = THEMES[t], f = function (c) { return n(t, c); }, s = T.solid;
+    var base = function (c, extra) { return Object.assign({ fond: f(c), texte: T.texte }, extra || {}); };
+    var nom = ['solid/default', 'solid/hover', 'solid/pressed'];
+    var A = [
+      Object.assign(base(s[0]), { v: nom[0] }), Object.assign(base(s[1]), { v: nom[1] }),
+      Object.assign(base(s[2], { anneau: true }), { v: nom[2] + ' + anneau' }), Object.assign(base(s[1], { anneau: true }), { v: nom[1] + ' + anneau' }), Object.assign(base(s[2], { anneau: true }), { v: nom[2] + ' + anneau' }),
+    ];
+    var Bp = [
+      Object.assign(base(s[0]), { v: nom[0] }), Object.assign(base(s[1]), { v: nom[1] }),
+      Object.assign(base(s[2]), { v: nom[2] }), Object.assign(base(s[2]), { v: nom[2] + ', inchangé' }), Object.assign(base(s[2]), { v: nom[2] }),
+    ];
+    var C = [
+      Object.assign(base(s[0]), { v: nom[0] }), Object.assign(base(s[1]), { v: nom[1] }),
+      Object.assign(base(s[2]), { v: 'solid/selected · ' + s[2] }), Object.assign(base(T.suivant), { v: 'solid/selected-hover · ' + T.suivant }), Object.assign(base(T.suivant), { v: 'solid/selected-hover · ' + T.suivant }),
+    ];
+    var D = [
+      { fond: f(T.surface[0]), texte: f(T.surfFg), v: 'surface/default' }, { fond: f(T.surface[1]), texte: f(T.surfFg), v: 'surface/hover' },
+      Object.assign(base(s[0]), { v: nom[0] }), Object.assign(base(s[1]), { v: nom[1] }), Object.assign(base(s[2]), { v: nom[2] }),
+    ];
+    function bloc(titre, reco, texte, cases, ambigue) {
+      return '<div class="prop' + (reco ? ' reco' : '') + '"><h3>' + titre + '</h3><p>' + texte + '</p><div class="scene" style="background:' + T.page + '"><table style="color:' + T.encre + '">' + ENTETE.replace('<th>Système</th>', '<th></th>') + '<tbody>' + ligne('', '', cases.map(bouton), ambigue) + '</tbody></table></div></div>';
+    }
+    document.getElementById('propositions').innerHTML =
+      bloc('A. Le signe porte l’état — recommandée', true, 'Aucune variable de plus. L’état activé garde les fonds de <code>solid</code> et ajoute un anneau intérieur de la couleur de <code>solid/foreground</code>, à 2 px du bord : son contraste est celui du texte des boutons, au moins 4,5:1. Activé, le bouton prend <code>solid/pressed</code> ; survolé, <code>solid/hover</code> avec l’anneau, qui le distingue du désactivé survolé. L’anneau peut céder la place à une icône pleine ou à une coche, selon le composant. Marche dans les quatre thèmes.', A, false)
+      + bloc('B. Activé = appui, sans survol propre', false, 'Aucune variable de plus. L’activé prend <code>solid/pressed</code> et n’y bouge plus au survol : ni ambiguïté ni retour de survol. WCAG n’exige pas de survol visible. Le curseur reste le seul retour.', Bp, false)
+      + bloc('C. Une famille <code>selected</code> dans <code>solid</code>', false, 'Deux variables par palette : <code>solid/selected</code> au cran de <code>pressed</code> (900, ou 500 en thème inversé), <code>solid/selected-hover</code> à la 950, ou à la 300 en thème inversé, parce que la 400 colle à la 500 en Light inversé. L’appui de l’activé reprend <code>selected-hover</code>. La 950 redevient requise, alors qu’elle vient de passer facultative. C’est le modèle d’Atlassian et de Spectrum, mais eux l’appliquent à un bouton désactivé non plein.', C, false)
+      + bloc('D. Le désactivé quitte <code>solid</code> — pratique du marché', false, 'Le bouton désactivé prend <code>surface</code>, l’activé prend les trois fonds de <code>solid</code>. Aucune variable de plus, aucune ambiguïté. C’est ce que font Atlassian et Spectrum ; il ne convient pas aux composants pleins dans les deux états.', D, false);
+  }
+  document.getElementById('themes').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    propositions(b.getAttribute('data-t'));
+  });
+  propositions('light');
+})();
+</script>
+</body>
+</html>
