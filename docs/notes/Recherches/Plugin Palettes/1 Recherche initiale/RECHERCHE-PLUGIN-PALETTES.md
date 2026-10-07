@@ -662,7 +662,7 @@ dix-sept paires.
 | Nom | Texte libre, facultatif | l'hexa de référence |
 | Color shift | Teinte, saturation et luminosité aux deux bouts, par profil, dans la carte de la [section 12](#12-le-color-shift) | teinte du préréglage Tailwind, saturation et luminosité à zéro |
 | Intensités | « Une intensité » ou « Deux intensités », deux cartes à la création ; des segments « Une · Deux » dans la configuration (`[ENT-14]`) | Une |
-| Réglage global | Teinte, saturation et luminosité de toute la rampe, trois curseurs pour Vivid, Soft ou les deux, dans la carte « Réglage global » (`[ENT-15]`) ; la saturation d'un profil est sa part de chroma | aucun réglage, parts de la recette |
+| Réglage global | Teinte, saturation et luminosité de toute la rampe, trois curseurs pour Soft, Vivid ou les deux, dans la carte « Réglage global » (`[ENT-15]`) ; la saturation d'un profil est sa part de chroma | aucun réglage, parts de la recette |
 | Référence exacte dans | Auto, Soft ou Vivid, dans la carte « Deux intensités » à la création, sous le segment « Deux » dans la configuration (`[ENT-11]`) | Auto |
 
 - `[ENT-01]` Changer la couleur de référence recalcule le préréglage Tailwind.
@@ -730,7 +730,7 @@ dix-sept paires.
   intensité. `intensitesDe` (`packages/couleur`) en est l'autorité : toute
   vue parcourt les intensités qu'elle rend.
 - `[ENT-15]` La carte « Réglage global » règle toute la rampe de chaque
-  profil. Ses gestes visent Vivid, Soft ou les deux ; « Les deux » déplace
+  profil. Ses gestes visent Soft, Vivid ou les deux ; « Les deux » déplace
   les deux profils du même écart et s'arrête quand l'un atteint sa borne.
   Chaque curseur s'arrête aussi à la limite dynamique de `[DER-19]`, calculée
   pour la cible choisie : une valeur qui ferait manquer une garantie tenue au
@@ -1614,7 +1614,7 @@ Onglet Création, une palette ouverte :
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [● Bleu marque                            ▾] [Nouvelle palette] [⋯]  │
+│ [● Bleu marque              ▾] [Nouvelle palette] [⋯] [Light|Dark] │
 │   la création s'ouvre ici, en carte, seulement après [Nouvelle …]     │
 │ Palette Bleu marque                                                   │
 │ ┌ Configuration de la palette ────────────────────────────────────┐  │
@@ -1627,7 +1627,7 @@ Onglet Création, une palette ouverte :
 │ │ Référence exacte dans  [Auto|Soft|Vivid]                        │  │
 │ │ Auto a choisi Vivid                                             │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
-│ ┌ [Thème Light|Thème Dark] ─────────────────────────── Fond [■] ──┐  │
+│ ┌ ──────────────────────────────────────────────────── Fond [■] ──┐  │
 │ │ ┌ surface peinte du fond du thème ──────────────────────────┐  │  │
 │ │ │         50 100 200 300 400 500 600 700 800 900 950        │  │  │
 │ │ │ Soft  ┆┆ ■   ■   ■   ■   ■   ■   ■   ■   ■   ■   ■        │  │  │
@@ -1671,10 +1671,8 @@ palette » gardent leurs libellés au-dessus des champs.
 
 - `[UI-04]` L'aperçu occupe la largeur utile de sa carte : ses colonnes se
   calculent après les espacements et les bordures réels. La carte n'a pas de
-  titre. Son en-tête porte à gauche les onglets Light et Dark ; l'onglet actif
-  prend le fond que toutes les bascules à onglets du plugin donnent à leur
-  onglet actif, distinct de la carte aux deux thèmes de Figma, et garde
-  `aria-pressed`. À droite, la pastille du fond du thème est un bouton : elle
+  titre. Son en-tête ne porte que la pastille du fond du thème montré, que la
+  barre de la palette choisit (`[UI-23]`). La pastille est un bouton : elle
   ouvre le sélecteur de couleur sur ce fond, et une ligne sous le sélecteur
   dit que le fond vaut pour toutes les palettes. La saisie change le réglage
   commun `fonds`, que les Réglages communs montrent aussi. L'étiquette
@@ -1724,15 +1722,17 @@ palette » gardent leurs libellés au-dessus des champs.
   chacune.
 - `[UI-09]` La carte « Garanties de contraste » est dans l'onglet
   Vérification (`[VER-18]`), fixe et toujours ouverte, sans chevron ni
-  résumé. Elle suit le Color shift et montre le thème que l'aperçu de
-  Création a choisi, qu'elle nomme dans son en-tête. Une bascule
-  Soft/Vivid choisit le profil affiché ; une palette à une intensité n'en a
-  pas, et son résultat s'écrit « Garanties ✓ » ou « Garanties ✗ 2 »
-  (`[ENT-14]`). Chaque segment porte le résultat de son profil dans le
-  thème montré : ✓, ou ✗ suivi du nombre de contrôles manqués (`[VER-06]`). À
-  l'ouverture d'une palette, le profil porteur est choisi. Quand l'autre thème
-  a des garanties manquées, une ligne les compte et bascule l'aperçu sur ce
-  thème ; « Revenir au thème » ramène au thème d'avant.
+  résumé. Elle suit le Color shift et montre le thème que la barre de la
+  palette a choisi (`[UI-23]`) ; son en-tête le nomme, « Thème Light » ou
+  « Thème Dark », sans le choisir. Le libellé « Afficher » précède les
+  segments Soft et Vivid, dans cet ordre, qui choisissent le profil affiché
+  sans rien régler ; une palette à une intensité n'en a pas, et son résultat
+  s'écrit « Garanties ✓ » ou « Garanties ✗ 2 » (`[ENT-14]`). Chaque segment
+  porte le résultat de son profil dans le thème montré : ✓, ou ✗ suivi du
+  nombre de contrôles manqués (`[VER-06]`). À l'ouverture d'une palette, le
+  profil porteur est choisi. Quand l'autre thème a des garanties manquées,
+  une ligne les compte et son lien montre ce thème dans la barre ;
+  « Revenir au thème » ramène au thème d'avant.
   Une réglette montre la case `on-solid`, puis les nuances du profil choisi,
   numérotées, sur le fond du thème. Comme le graphe de la dérive, elle suit la
   largeur de sa colonne sans grandir : le pas des cases se calcule sur la
@@ -1764,8 +1764,8 @@ palette » gardent leurs libellés au-dessus des champs.
   échec est choisie, sinon `text` sur `surface` ; le choix redessine les arcs
   et se conserve au changement de profil. Chaque ligne porte une étiquette
   accessible qui dit la relation, les numéros, les ratios et le résultat. La
-  réglette est décorative pour l'assistance technique, et la bascule annonce
-  le résultat du profil qu'elle ne montre pas.
+  réglette est décorative pour l'assistance technique, et le choix du profil
+  annonce le résultat du profil qu'il ne montre pas.
 - `[UI-10]` Le détail d'une nuance se lit en trois rangs. L'en-tête : une
   grande pastille, « Vivid · 700 » en titre, son code hexadécimal et
   « Copier » ; celui de la référence ajoute « ◆ Votre couleur de référence
@@ -1827,12 +1827,13 @@ palette » gardent leurs libellés au-dessus des champs.
   pas. », précèdent deux cartes repliables de même forme, repliées à
   l'ouverture, qui gardent leur état pendant la session : « Réglage global »,
   sous-titrée « Teinte, saturation et luminosité de toute la rampe », puis
-  « Color shift » ([section 12](#12-le-color-shift)). Leur en-tête est un
+  « Color shift » ([section 12](#12-le-color-shift)), dont le choix Soft ou
+  Vivid porte le même libellé « Régler ». Leur en-tête est un
   bouton : chevron, glyphe (`[UI-19]`), titre et sous-titre, puis un résumé
   aligné à droite, sur une ligne. Le résumé de la première donne les
   réglages de chaque profil, ou « Aucun réglage », puis sa saturation. La
-  première porte les segments « Vivid · Soft · Les deux », le ◆ sur le
-  profil porteur, une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
+  première porte le libellé « Régler » et les segments « Soft · Vivid · Les
+  deux », le ◆ sur le profil porteur, une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
   Saturation et Luminosité, chacune avec sa réglette peinte par le moteur,
   son champ, la teinte absolue après le champ de la teinte, et « Rétablir » ;
   un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
@@ -1923,10 +1924,16 @@ palette » gardent leurs libellés au-dessus des champs.
   image, et échoue au premier pixel d'écart.
 - `[UI-14]` L'Interface de test est la dernière carte de l'onglet Création,
   repliée à l'ouverture. Elle montre la palette ouverte, peinte dans le thème
-  de l'aperçu, en deux vues qu'une bascule choisit, et la vue choisie dure la
-  session. Une palette à deux intensités a une seconde bascule, Soft et
-  Vivid, au bord droit de la première, ouverte sur le profil porteur ; une
-  palette à une intensité est peinte de sa rampe unique. « Écran » : une page « Membres de
+  de la barre (`[UI-23]`), en deux vues qu'une bascule choisit, et la vue
+  choisie dure la session. Une palette à deux intensités a un choix du profil
+  peint, au bord droit de la première bascule : le libellé « Afficher », puis
+  Soft, Vivid et Les deux, dans cet ordre. Il s'ouvre sur le profil porteur ;
+  changer de palette le rouvre sur le porteur, sauf « Les deux », qui reste.
+  « Les deux » peint deux écrans titrés Soft puis Vivid, chacun avec ses
+  propres gestes, côte à côte quand la carte a la largeur de deux écrans de
+  270 px, empilés sinon ; la vue « États » demande 420 px par grille. Le
+  résumé de la carte nomme alors « Soft et Vivid ». Une palette à une
+  intensité est peinte de sa rampe unique, sans ce choix. « Écran » : une page « Membres de
   l'équipe » sur le modèle de Radix Themes, en HTML, avec une navigation dont
   l'entrée active est en `surface`, un encart en `surface`, un tableau dont
   une ligne se choisit, des badges `surface` et `solid`, un champ bordé de
@@ -2026,21 +2033,36 @@ palette » gardent leurs libellés au-dessus des champs.
   fichier portent au moins une palette (`[VAR-12]`), une ligne sous l'encart
   le dit, « Ce fichier porte déjà 3 palettes dans ses variables. », et son
   lien « Les voir dans Gestion » ouvre l'onglet Gestion.
-- `[UI-23]` La barre du sélecteur, liste déroulante, « Nouvelle palette » et
-  menu « … », avec la confirmation de suppression, existe en un seul
-  exemplaire (`src/ui/barreDePalette.ts`). Elle se place dans le panneau de
-  l'onglet actif, Création ou Vérification, au changement d'onglet : aucun de
-  ses éléments ne se reconstruit, et elle garde sa palette et son état ouvert
-  ou fermé. Depuis Vérification, « Nouvelle palette » passe d'abord à
-  Création. Chaque option de la liste porte à droite le verdict de sa
-  palette (`[VER-19]`), ✓, ! ou ✗, et le bouton porte celui de la palette
-  ouverte ; le nom accessible de l'option dit le verdict en mots.
+- `[UI-23]` La barre de la palette, liste déroulante, « Nouvelle palette »,
+  menu « … » et bascule Light/Dark, avec la confirmation de suppression,
+  existe en un seul exemplaire (`src/ui/barreDePalette.ts`). Elle se place
+  dans le panneau de l'onglet actif, Création ou Vérification, au changement
+  d'onglet : aucun de ses éléments ne se reconstruit, et elle garde sa
+  palette et son état ouvert ou fermé. Depuis Vérification, « Nouvelle
+  palette » passe d'abord à Création. Chaque option de la liste porte à droite
+  le verdict de sa palette (`[VER-19]`), ✓, ! ou ✗, et le bouton porte celui
+  de la palette ouverte ; le nom accessible de l'option dit le verdict en
+  mots.
+  La bascule, « Thème Light » et « Thème Dark », termine la ligne de la barre,
+  après le menu. Elle choisit le thème que l'aperçu, la carte des garanties,
+  le Color shift et l'Interface de test montrent ; son onglet actif prend le
+  fond que toutes les bascules à onglets du plugin donnent à leur onglet
+  actif, et garde `aria-pressed`. Elle se cache avec le menu quand aucune
+  palette n'est ouverte ; une palette libre la garde. Le thème s'ouvre en
+  Light, ne se range ni dans la recette ni dans `figma.clientStorage`, ne
+  modifie aucune palette, et son changement n'envoie aucune demande au
+  sandbox. « Modifier », dans une fiche de Gestion, ouvre la palette dans le
+  thème de cette fiche. La barre reste en haut du panneau pendant le
+  défilement : choisir Dark depuis l'Interface de test repeint l'écran sans
+  défiler la page, et la liste du sélecteur s'ouvre au-dessus des cartes. À
+  500 px, ses éléments tiennent sur une ligne de 32 px, en français et en
+  anglais.
 
 Onglet Vérification :
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [● Bleu marque                          ✗ ▾] [Nouvelle palette] [⋯]  │
+│ [● Bleu marque            ✗ ▾] [Nouvelle palette] [⋯] [Light|Dark] │
 │ Palette Bleu marque                                                   │
 │ ┌ ✗ 2 garanties manquées sur 76 · 1 point à vérifier ──────────────┐ │
 │ Garanties à corriger (2)                                              │
@@ -2048,7 +2070,7 @@ Onglet Vérification :
 │ Points à vérifier (1)                                                 │
 │ │ où · quoi · geste                          [Ajuster la saturation]  │
 │ ┌ Garanties de contraste ─────────────────────────── Thème Dark ───┐ │
-│ │ [Soft ✓ | Vivid ✗ 2]                                            │  │
+│ │ Afficher  [Soft ✓ | Vivid ✗ 2]                                  │  │
 │ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
 │ │ Textes lisibles                                 minimum 4,5:1   │  │
 │ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
@@ -2078,11 +2100,13 @@ Onglet Vérification :
   que le sélecteur liste se recalcule à la fin d'un geste, jamais pendant, et
   seulement pour une palette dont le JSON ou celui des réglages communs a
   changé : un glisser n'analyse que la palette ouverte.
-- `[VER-20]` La carte des garanties et l'aperçu de Création montrent le même
-  thème. Dans le détail d'une nuance (`[UI-10]`), un clic sur une garantie
-  ouvre Vérification et y choisit sa ligne. Dans la carte, le lien vers
-  l'autre thème change le thème montré sans quitter Vérification, et
-  « Revenir au thème » ramène au thème d'avant.
+- `[VER-20]` La carte des garanties et l'aperçu de Création montrent le thème
+  de la barre de la palette (`[UI-23]`) ; la carte le nomme sans le choisir.
+  Dans le détail d'une nuance (`[UI-10]`), un clic sur une garantie ouvre
+  Vérification et y choisit sa ligne. Dans la carte, le lien vers l'autre
+  thème change le thème de la barre sans quitter Vérification, et « Revenir
+  au thème » ramène au thème d'avant ; ces deux liens ne se trouvent que
+  dans la carte.
 
 Onglet Gestion, Bleu dépliée :
 
@@ -2281,7 +2305,7 @@ qui le créera.
 | Onglet Création sans palette choisie | « Sélectionner une palette », l'invitation sous le filet, ni menu ni palette |
 | Premier lancement, palette créée | La première palette ouverte, recette rangée |
 | Création ouverte | La carte de création sous le sélecteur, en P2 : nom et couleur de référence, Modèle, « Une intensité » choisie, « Créer la palette » et « Annuler » |
-| Palette à une intensité | La carte « Une intensité » choisie, une rangée par thème sans nom de profil, ni bascule des garanties |
+| Palette à une intensité | La carte « Une intensité » choisie, une rangée par thème sans nom de profil, ni choix du profil dans les garanties |
 | Palette à deux intensités | La carte « Deux intensités » choisie, « Référence exacte dans » et « Auto a choisi Vivid » dans la carte |
 | Palette en saisie | Aperçu à jour, rien de généré |
 | Référence Soft | Une référence peu intense, portée par Soft, avec son repère et sa nuance |
@@ -2291,7 +2315,7 @@ qui le créera.
 | Un profil réglé seul | Soft tourné de 8°, aucun avertissement, la lettre de Vivid sur chaque piste, le repère de la référence |
 | Avant un réglage du porteur | Vivid ◆ choisi, l'avertissement avant tout geste |
 | Référence modifiée | L'avertissement après le geste, « Ajustée depuis » sous le code, le porteur fixé par les réglages |
-| Vérification tenue | Onglet Vérification : verdict de succès, bascule ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs, « Passer à Gestion » |
+| Vérification tenue | Onglet Vérification : verdict de succès, choix du profil ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs, « Passer à Gestion » |
 | Vérification manquée | Verdict de danger, messages à corriger avec leurs liens, première ligne en échec choisie, arc de danger, « Retour à Création » |
 | Vérification d'une palette libre | « Palette libre · N nuances », aucune carte des garanties |
 | Garantie de l'autre thème | Ligne qui compte les garanties manquées de l'autre thème, thème basculé, « Revenir au thème » |

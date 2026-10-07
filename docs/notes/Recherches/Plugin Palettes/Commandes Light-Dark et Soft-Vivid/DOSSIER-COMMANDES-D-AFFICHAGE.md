@@ -1,7 +1,7 @@
 # Commandes Light/Dark et Soft/Vivid : dossier de recherche
 
-**Statut :** recherche. Les deux décisions principales sont prises par le
-mainteneur ; une reste ouverte. Aucun code n'est modifié.
+**Statut :** implémenté (phases 1 à 3 et 5). La phase 4 attend la décision du
+mainteneur sur la section 4.
 
 ## En bref
 
@@ -44,7 +44,7 @@ La barre fixe prend une ligne de 32 px à la taille minimale, 500 × 520
 ([`fenetre.ts`](../../../../../packages/plugin-palettes/src/fenetre.ts)). Les
 modèles B (un bouton par carte, tous liés), C (Light et Dark côte à côte) et D
 (un bouton par carte, indépendants) restent dans la
-[maquette](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html#affichage)
+[maquette](../Texte%20des%20boutons/MAQUETTE-MODES-ET-AFFICHAGE.html)
 pour mémoire.
 
 ### Soft / Vivid / Les deux
@@ -90,7 +90,9 @@ La question du mainteneur recouvre trois besoins :
 
 Plugin : barre fixe et commande Light/Dark, choix Soft / Vivid / Les deux dans
 chaque section, tests Chromium aux deux tailles de fenêtre. Ce lot se livre
-avant ou après celui du texte des boutons.
+avant ou après celui du texte des boutons. Le
+[plan d'implémentation](./PLAN-IMPLEMENTATION-COMMANDES-D-AFFICHAGE.md) ordonne
+ce lot en phases, dit les fichiers touchés et garde l'état de livraison.
 
 ## Annexe : demande originale
 

@@ -276,8 +276,9 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   sélecteur, puis, sous le filet, une invitation, un titre de premier rang et
   une phrase, sans geste propre ; les gestes sont ceux de la barre ;
 - la barre du sélecteur vient en tête : la liste déroulante prend toute la
-  largeur libre, « Nouvelle palette » et « … » gardent leur largeur
-  naturelle et la hauteur de la liste. Suit un seul titre de premier rang,
+  largeur libre, « Nouvelle palette », « … » et la bascule Light/Dark
+  gardent leur largeur naturelle et la hauteur de la liste. La barre reste en
+  haut du panneau pendant le défilement. Suit un seul titre de premier rang,
   « Palette [nom] », avec le nom que le sélecteur affiche, seul sur sa
   ligne : un nom long se coupe. « Nouvelle palette » est le bouton principal
   de l’onglet, qui ne génère rien. Un filet sépare la barre et la carte de
@@ -302,16 +303,16 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   de test. La carte « Garanties de contraste » est dans l’onglet
   Vérification, fixe et toujours ouverte : la palette se règle dans Création
   et se juge dans Vérification.
-  Une palette à une intensité n’a ni segments « Vivid · Soft · Les deux », ni
+  Une palette à une intensité n’a ni segments « Soft · Vivid · Les deux », ni
   bascule Soft et Vivid : aucune surface ne montre un profil que la palette
   ne porte pas. Le module de la carte « Teinte, saturation, luminosité » est
   `reglagesDeLaPalette.ts`. Toutes les
   cartes, sauf Configuration et aperçu, se replient et sont repliées à
   l’ouverture ; leur en-tête est un bouton qui
   porte le chevron, le titre et un résumé aligné à droite, sur une ligne ;
-- la carte d’aperçu n’a pas de titre : son en-tête porte à gauche les onglets
-  Light et Dark, et à droite la
-  pastille du fond, qui ouvre le sélecteur de couleur. L’aperçu est une
+- la carte d’aperçu n’a pas de titre : son en-tête ne porte que la
+  pastille du fond, à droite, qui ouvre le sélecteur de couleur. La bascule
+  Light/Dark est dans la barre de la palette. L’aperçu est une
   surface peinte du fond du thème choisi, à l’intérieur de sa carte. Il peut
   occuper la plus grande part du panneau. La ligne « ◆ Référence » se lit sous
   lui ;

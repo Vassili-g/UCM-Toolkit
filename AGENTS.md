@@ -265,8 +265,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/preferences.ts       la langue de l'interface et la vue de Gestion, lues et rangées dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
-  src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet
-  src/ui/barreDePalette.ts la barre de la palette ouverte, en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
+  src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, le thème montré, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet, et ceux du thème à chaque changement
+  src/ui/barreDePalette.ts la barre de la palette ouverte, en un exemplaire que l'onglet actif place dans son panneau et qui reste en haut pendant le défilement : sélecteur, « Nouvelle palette », menu, bascule Light/Dark du thème montré, confirmation de suppression
   src/ui/ongletCreation.ts l'onglet Création : la barre, le titre « Palette [nom] », l'encart d'une palette reprise du fichier, les cartes, puis le pied qui compte les messages ; l'état du geste en cours
   src/ui/ongletVerification.ts l'onglet Vérification : la barre, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
@@ -278,9 +278,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
   src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser suivi sur le document
-  src/ui/nuancier.ts       l'aperçu peint du fond du thème : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
+  src/ui/nuancier.ts       l'aperçu peint du fond du thème montré, sans bascule : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
-  src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : thème Light ou Dark, bascule Soft/Vivid pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
+  src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : thème montré nommé dans l'en-tête et liens vers l'autre thème, choix Soft/Vivid « Afficher » pour deux intensités, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
@@ -299,10 +299,11 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la butée, la note d'une palette grise et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, ceux des intensités, et la liste entière de Vérification
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
-  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état
+  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état, avec Soft et Vivid côte à côte pour « Les deux »
+  src/ui/choixDuProfil.ts  le choix du profil commun aux cartes : libellé « Régler » ou « Afficher », segments Soft, Vivid et Les deux dans cet ordre, ◆ sur le profil porteur
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
-  src/ui/derive/           la carte « Color shift » : onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
+  src/ui/derive/           la carte « Color shift » : choix du profil à régler, onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
   src/ui/derive/reglette.ts la réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne
   src/ui/textes.ts         tous les textes destinés au designer, provisoires jusqu'au point M2
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
@@ -1310,6 +1311,20 @@ La spécification en lien porte le raisonnement.
   échouent au premier pixel d'écart. Borne : ils ne relèvent que ces trois
   contrôles, et un élément placé sous le contrôle saisi peut encore changer
   de hauteur.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
+- Le thème montré, Light ou Dark, ne se range nulle part et ne produit aucune
+  demande au sandbox : il vit dans `src/ui/paletteOuverte.ts`, s'ouvre en
+  Light, et seule la barre de la palette (`src/ui/barreDePalette.ts`) le
+  choisit. Cette barre reste en haut du panneau pendant le défilement, si bien
+  qu'un changement de thème depuis l'Interface de test ne défile pas la page.
+  `tests/paletteOuverte.test.ts` tient l'état. Les tests `[UI-23]` de
+  `interface.test.mjs` tiennent la bascule dans Création et dans Vérification,
+  la barre au haut de la zone visible à 600 × 720 et à 500 × 520, sa ligne
+  unique à 500 px en français et en anglais, et la liste du sélecteur au-dessus
+  des cartes ; « changer de thème n'envoie aucune demande au sandbox » et le
+  test `[VER-20]` tiennent le reste. Borne : le test des demandes relève les
+  messages vers le sandbox, pas le contenu de `clientStorage`, et la tenue en
+  haut ne se mesure qu'avec l'Interface de test dépliée.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Un geste du Color shift ou du réglage global ne range jamais une valeur
   au-delà de la limite dynamique calculée au début du geste : la poignée et la
