@@ -182,6 +182,21 @@
           "surLAncre": []
         }
       },
+      "anneauDuTheme": {
+        "nuance": 600,
+        "pageEtCarte": {
+          "minimum": 3.08,
+          "pire": "#16A34A vivid sur page",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondsTeintes100": {
+          "minimum": 2.83,
+          "pire": "#16A34A vivid sur #DC2626 vivid 100",
+          "tenues": "1680/1764",
+          "surLAncre": []
+        }
+      },
       "texteTeinteSurUneAutrePalette": {
         "800": {
           "minimum": 4.87,
@@ -381,6 +396,21 @@
           "minimum": 9.54,
           "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
           "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "anneauDuTheme": {
+        "nuance": 600,
+        "pageEtCarte": {
+          "minimum": 3.17,
+          "pire": "#9333EA vivid sur carte",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondsTeintes100": {
+          "minimum": 3.16,
+          "pire": "#9333EA vivid sur #06B6D4 vivid 100",
+          "tenues": "1764/1764",
           "surLAncre": []
         }
       },
@@ -611,6 +641,21 @@
           "minimum": 8.84,
           "pire": "#16A34A vivid 950 sur #DC2626 vivid 300",
           "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "anneauDuTheme": {
+        "nuance": 700,
+        "pageEtCarte": {
+          "minimum": 3.56,
+          "pire": "#8B8178 soft sur page",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondsTeintes100": {
+          "minimum": 3.27,
+          "pire": "#8B8178 soft sur #DC2626 vivid 100",
+          "tenues": "1764/1764",
           "surLAncre": []
         }
       },
@@ -847,6 +892,21 @@
           "minimum": 9.54,
           "pire": "#DC2626 vivid 950 sur #16A34A vivid 300",
           "tenues": "5376/5376",
+          "surLAncre": []
+        }
+      },
+      "anneauDuTheme": {
+        "nuance": 700,
+        "pageEtCarte": {
+          "minimum": 3.17,
+          "pire": "#9333EA vivid sur carte",
+          "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondsTeintes100": {
+          "minimum": 3.16,
+          "pire": "#9333EA vivid sur #06B6D4 vivid 100",
+          "tenues": "1764/1764",
           "surLAncre": []
         }
       },

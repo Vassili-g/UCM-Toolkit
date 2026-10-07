@@ -292,7 +292,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <ul class="raisons">
     <li><b>Le dossier <code>page</code></b> remplace la racine de la palette. La règle du dossier n'a plus d'exception.</li>
     <li><b><code>page/border</code> prend la nuance de <code>page/text</code></b> : 700, et 800 dans un thème inversé. Le bouton outlined au repos prend son texte et son contour dans <code>page</code>, de la même couleur. Contre la page et la carte, ce contour tient au pire 5,19:1. <code>neutral/page/border</code> garde la 600.</li>
-    <li><b>L'anneau <code>focus</code> prend la même nuance</b>, au lieu de la 900, qui se lisait comme du noir en Light et du blanc en Dark. Sur les 42 rampes de la recherche, il tient 3:1 contre la page, la carte et les fonds teintés de toutes les palettes : au pire 3,42:1 en Light, 3,60:1 en Dark et en Dark inversé, 4,87:1 en Light inversé.</li>
+    <li><b>L'anneau <code>focus</code> passe à la 600 de <code>primary</code>, et à la 700 dans un thème inversé</b>, un cran sous <code>page/text</code>. La 900, puis la 700, se lisaient comme du noir en Light et du blanc en Dark. Pour intencial, l'anneau vaut la couleur de charte dans les quatre thèmes. Sur les 42 rampes de la recherche, il tient 3:1 contre la page et la carte dans les quatre thèmes, au pire 3,08:1. Contre le fond 100 d'un conteneur teinté, il tient partout sauf en Light, où 84 mesures sur 1 764 échouent, au pire 2,83:1 : une marque dont <code>primary</code> est un vert vif, autour d'un composant posé dans une alerte rouge.</li>
     <li><b>Les fonds de <code>solid</code> portent aussi la portée du contour</b> : l'outlined survolé, focalisé ou appuyé prend son contour dans le fond plein.</li>
     <li><b><code>disabled/border</code></b> s'ajoute pour l'outlined désactivé, au neutre 500 comme dans le Playground.</li>
   </ul>
@@ -341,7 +341,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
     <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un bouton n'a plus qu'un token de texte pour tous ses états.</li>
     <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
-    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte de <code>surface</code>, à la nuance 900, tient au pire 7,30:1 sur ses trois fonds ; son contour, à la 800, 4,44:1 ; l'anneau <code>focus</code>, à la nuance de <code>page/text</code>, 3,42:1 sur les fonds teintés de toutes les palettes.</li>
+    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte de <code>surface</code>, à la nuance 900, tient au pire 7,30:1 sur ses trois fonds ; son contour, à la 800, 4,44:1 ; l'anneau <code>focus</code>, à la 600, 3,08:1 contre la page et la carte.</li>
     <li><b>Le même modèle que les systèmes établis.</b> Atlassian, Fluent et Primer gardent un seul texte pour tous les états du bouton ; Material nomme <code>on-primary</code> le texte de <code>primary</code> ; tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
     <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
   </ul>
@@ -381,7 +381,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>Le texte sur un fond teinté : constant, ou qui suit le fond dans un sous-dossier par état.</li>
     <li>Variables d'usage dans <code>theme</code>, ou dans une collection <code>usage</code> sans mode qui recopie <code>theme</code>.</li>
     <li>En texte constant : texte de <code>surface</code> à 900 partout, ou 800 dans les thèmes normaux.</li>
-    <li>Contour de <code>page</code> et anneau <code>focus</code> à la nuance de <code>page/text</code> : retenus. Reste <code>disabled/border</code>.</li>
+    <li>Contour de <code>page</code> à la nuance de <code>page/text</code> : retenu. Anneau <code>focus</code> un cran en dessous, 600 et 700 en thème inversé. Reste <code>disabled/border</code>.</li>
     <li>Les noms : dossiers <code>page</code>, <code>surface</code> et <code>solid</code>, retenus ; fonds <code>default</code>, <code>hover</code> et <code>pressed</code>. À éprouver dans le sélecteur Figma.</li>
     <li>En texte constant : le bouton <code>text</code>, texte de la page (A) ou dossier <code>surface</code> (B).</li>
     <li>Les nuances 400 et 950, obligatoires ou non.</li>
@@ -412,8 +412,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
   };
   /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. */
   /* `border` ne sert qu'au neutre ; `suit` donne le texte de chaque fond teinté quand le texte suit le fond. */
-  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700, suit: [700, 800, 900] };
-  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800, suit: [800, 900, 950] };
+  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700, suit: [700, 800, 900], anneau: 600 };
+  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800, suit: [800, 900, 950], anneau: 700 };
   var etat = { marque: 'intencial', light: 'blanc', dark: 'blanc', col: 'theme', texte: 'surface', mode: 'constant' };
 
   function inverse(t) { return t === 'light' ? etat.light === 'noir' : etat.dark === 'blanc'; }
@@ -463,7 +463,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (col === 'components') return cibleComposant(q);
     if (col === 'theme') {
       if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
-      if (q[0] === 'focus') return 'brand.palette.primary.' + t + '.' + (inverse(t) ? INVERSE : NORMAL).text;
+      if (q[0] === 'focus') return 'brand.palette.primary.' + t + '.' + (inverse(t) ? INVERSE : NORMAL).anneau;
       if (q[0] === 'disabled') return 'color-utilities.neutral.' + t + '.' + (q[1] === 'background' ? 200 : 500);
       var d = decoupe(q);
       if (texteDuPlein(d)) return 'primitives.colors.' + ((t === 'light' ? etat.light : etat.dark) === 'blanc' ? 'white' : 'black');
@@ -581,7 +581,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (suit()) groupe('neutral/surface/hover', ['background', 'text']); else groupe('neutral/surface', ['hover', 'text']);
     groupe('neutral/page', ['text', 'text-subtle', 'border']);
     out.push(G('disabled')); ['background', 'text', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
-    out.push(G('focus', ['new', 'un seul anneau, à la nuance de page/text']));
+    out.push(G('focus', ['new', 'un seul anneau, un cran sous page/text']));
     var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
     groupe('elevation', ['page', 'raised', 'overlay']);
     groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);

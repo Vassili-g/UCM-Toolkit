@@ -46,8 +46,8 @@ ne tape aucun alias et ne connaît aucun numéro de nuance.
 le texte du dossier `surface` tient 4,5:1 sur ses trois fonds, la page et la
 carte à la nuance 900, dans les quatre thèmes, au pire à 7,30:1. Son contour
 tient 3:1 à la nuance 800, au pire à 4,44:1. Un seul anneau de focus, à la
-nuance du texte du dossier `page` (700, 800 dans un thème inversé), tient 3:1
-sur la page, la carte et tous les fonds teintés de toutes les palettes. Seuls
+600 de `primary` (700 dans un thème inversé), tient 3:1 contre la page et la
+carte dans les quatre thèmes. Seuls
 le bouton, le texte des boutons, le dossier `page` et l'anneau changent de
 nuance dans un thème inversé.
 
@@ -60,8 +60,8 @@ d'un texte qui change avec l'état.
 
 **Ce que dit la recette sur les contrats du Playground** (section 7) : le
 modèle exprime `Button` et `Alert` sans nuance hors table, dans les deux
-variantes. Elle ajoute `disabled/border`, aligne le contour de `page` et
-l'anneau sur le texte de `page`, et laisse en texte constant une décision sur
+variantes. Elle ajoute `disabled/border`, aligne le contour de `page` sur
+son texte, éclaircit l'anneau, et laisse en texte constant une décision sur
 le bouton `text`.
 
 **À décider :** section 9.
@@ -191,7 +191,7 @@ plein.
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
-| `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` à la nuance de `page/text` : 700, 800 dans un thème inversé |
+| `focus` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé : un cran sous `page/text` |
 | `neutral/page/text` | Le corps de texte | neutre 900 |
 | `neutral/page/text-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
 | `disabled/background`, `disabled/text`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
@@ -379,9 +379,25 @@ de toutes les palettes, 5 376 mesures par thème :
 | 800 | toutes, pire 4,87 | toutes, pire 5,25 | toutes, pire 4,87 | toutes, pire 3,60 |
 | 900 | toutes | toutes | toutes | toutes, pire 6,19 |
 
-L'anneau prend donc la nuance du texte de `page` : 700 dans un thème normal,
-800 dans un thème inversé. La 900 tenait aussi, mais elle se lisait comme du
-noir en Light et du blanc en Dark. Le calcul du texte 900 donne 5 292 mesures
+Un anneau entoure le composant, séparé par un espace : il se lit contre ce
+qui entoure le composant, la page, la carte ou le fond 100 d'un conteneur
+teinté, et non contre les fonds de survol et d'appui. Contre ces fonds-là,
+l'anneau `focus` retenu, un cran sous `page/text` :
+
+| Thème | Nuance | Page et carte | Fond 100 de toutes les palettes |
+|---|---|---|---|
+| Light | 600 | 84/84, pire 3,08 | 1 680/1 764, pire 2,83 |
+| Dark | 600 | 84/84, pire 3,17 | toutes, pire 3,16 |
+| Light inversé | 700 | 84/84, pire 3,56 | toutes, pire 3,27 |
+| Dark inversé | 700 | 84/84, pire 3,17 | toutes, pire 3,16 |
+
+Les 900, 800 et 700 tenaient partout, mais se lisaient comme du noir en Light
+et du blanc en Dark. Les 84 échecs en Light viennent d'une palette `primary`
+vert vif, posée sur le fond 100 d'une palette rouge : un bouton focalisé dans
+une alerte de danger, pour une marque verte. Pour intencial, l'anneau vaut la
+couleur de charte `#B15152` dans les quatre thèmes.
+
+Le calcul du texte 900 donne 5 292 mesures
 sans échec : le texte du dossier `surface` d'une palette se lit aussi sur le
 fond teinté d'une autre, par exemple un texte neutre sur une ligne
 sélectionnée bleue. La règle du dossier ne l'interdit pas pour ce cas ; elle
@@ -461,7 +477,8 @@ section 4 :
   n'a plus d'exception ;
 - `page/border` prend la nuance de `page/text` : le bouton outlined au repos
   prend son texte et son contour dans `page`, de la même couleur ;
-- l'anneau `focus` prend cette nuance aussi, au lieu de la 900 ;
+- l'anneau `focus` passe à la 600, et à la 700 dans un thème inversé, au lieu
+  de la 900 ;
 - les fonds de `solid` portent la portée du contour, pour l'outlined survolé,
   focalisé ou appuyé ;
 - `disabled/border` s'ajoute pour le bouton outlined désactivé.
@@ -502,8 +519,10 @@ deux variantes et viennent de la courbe du thème inversé (décision 7).
   prend le texte 900, plus sombre que le texte coloré 700 d'un lien. Un texte
   800 garderait plus de couleur ; il tient dans les thèmes normaux, au pire à
   5,26:1, et échoue en Dark inversé (décision 3).
-- L'anneau à la nuance de `page/text` garde la couleur de la palette `primary`
-  sur un bouton d'une autre couleur.
+- L'anneau garde la couleur de la palette `primary` sur un bouton d'une autre
+  couleur. En Light, il descend sous 3:1 contre le fond 100 d'une autre
+  palette quand `primary` est un vert vif (section 5) ; UCM Palettes doit le
+  signaler pour la marque concernée.
 - Une palette dont le designer a déplacé la courbe de 0,10 au plus
   (`BORNES_DES_REGLAGES`) n'a pas été mesurée ici. Les marges du texte 900
   (au moins 2,8 au-dessus du seuil) et du contour 800 (au moins 1,4) sont les
@@ -529,8 +548,9 @@ deux variantes et viennent de la courbe du thème inversé (décision 7).
 3. **En texte constant, la nuance du texte du dossier `surface` :** 900 dans tous les thèmes
    (recommandé, une seule valeur, marge de 2,8), ou 800 dans les thèmes
    normaux et 900 dans les thèmes inversés.
-4. **L'anneau unique `focus`** et le contour de `page` à la nuance de
-   `page/text` : 700, 800 dans un thème inversé. Retenus par le mainteneur.
+4. **L'anneau unique `focus`** à la 600 de `primary`, 700 dans un thème
+   inversé. Le contour de `page` à la nuance de `page/text`, 700 et 800, est
+   retenu par le mainteneur.
 5. **Les noms :** dossiers `page`, `surface` et `solid`, que le mainteneur a
    retenus ; fonds `default`, `hover` et `pressed` ; `text`, `border`,
    `divider`. À éprouver dans le sélecteur Figma avant d'écrire la table.

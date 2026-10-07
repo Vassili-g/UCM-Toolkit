@@ -64,13 +64,15 @@ interface Theme {
   readonly contourSurLaPage: number;
   /** La variante où le texte suit le fond, comme les paires du plugin : un texte par fond teinté 100, 200, 300. */
   readonly texteQuiSuit: readonly number[];
+  /** L'anneau `focus`, un cran sous le texte de la page. */
+  readonly anneau: number;
 }
 
 const THEMES: Theme[] = [
-  { nom: 'Light, texte blanc', mode: 'light', inverse: false, courbe: base.courbes.light, texteDesBoutons: BLANC, plein: [700, 800, 900], texteSurLaPage: 700, contourSurLaPage: 600, texteQuiSuit: [700, 800, 900] },
-  { nom: 'Dark, texte noir', mode: 'dark', inverse: false, courbe: base.courbes.dark, texteDesBoutons: NOIR, plein: [700, 800, 900], texteSurLaPage: 700, contourSurLaPage: 600, texteQuiSuit: [700, 800, 900] },
-  { nom: 'Light inversé, texte noir', mode: 'light', inverse: true, courbe: COURBE_INVERSEE.light, texteDesBoutons: NOIR, plein: [700, 600, 500], texteSurLaPage: 800, contourSurLaPage: 700, texteQuiSuit: [800, 900, 950] },
-  { nom: 'Dark inversé, texte blanc', mode: 'dark', inverse: true, courbe: COURBE_INVERSEE.dark, texteDesBoutons: BLANC, plein: [700, 600, 500], texteSurLaPage: 800, contourSurLaPage: 700, texteQuiSuit: [800, 900, 950] },
+  { nom: 'Light, texte blanc', mode: 'light', inverse: false, courbe: base.courbes.light, texteDesBoutons: BLANC, plein: [700, 800, 900], texteSurLaPage: 700, contourSurLaPage: 600, texteQuiSuit: [700, 800, 900], anneau: 600 },
+  { nom: 'Dark, texte noir', mode: 'dark', inverse: false, courbe: base.courbes.dark, texteDesBoutons: NOIR, plein: [700, 800, 900], texteSurLaPage: 700, contourSurLaPage: 600, texteQuiSuit: [700, 800, 900], anneau: 600 },
+  { nom: 'Light inversé, texte noir', mode: 'light', inverse: true, courbe: COURBE_INVERSEE.light, texteDesBoutons: NOIR, plein: [700, 600, 500], texteSurLaPage: 800, contourSurLaPage: 700, texteQuiSuit: [800, 900, 950], anneau: 700 },
+  { nom: 'Dark inversé, texte blanc', mode: 'dark', inverse: true, courbe: COURBE_INVERSEE.dark, texteDesBoutons: BLANC, plein: [700, 600, 500], texteSurLaPage: 800, contourSurLaPage: 700, texteQuiSuit: [800, 900, 950], anneau: 700 },
 ];
 
 /** Les fonds teintés au repos, survolé, appuyé ; puis le quatrième que D17 prévoyait, pour comparer. */
@@ -170,6 +172,8 @@ function juger(theme: Theme) {
   const anneau = Object.fromEntries(CANDIDATS_ANNEAU.map((x) => [x, new Bilan()]));
   // La variante où le texte suit le fond : chaque texte sur le fond teinté de même rang.
   const texteQuiSuit = new Bilan();
+  // L'anneau du thème contre ce qui entoure un composant : la page, la carte, le fond 100 d'un conteneur teinté de toute palette.
+  const anneauDuTheme = { page: new Bilan(), fond100: new Bilan() };
   // Le texte teinté d'une palette sur les fonds teintés d'une autre, par exemple un texte neutre sur une ligne sélectionnée.
   const croise = Object.fromEntries(CANDIDATS_TEXTE.map((x) => [x, new Bilan()]));
 
@@ -208,6 +212,8 @@ function juger(theme: Theme) {
         for (const x of CANDIDATS_TEXTE) croise[x].noter(contraste(c(r, x), c(autre, t)), SEUIL_TEXTE, `${nom(r)} ${x} sur ${nom(autre)} ${t}`, false);
       }
     }
+    for (const [ou, fond] of [['page', page], ['carte', carte]] as const) anneauDuTheme.page.noter(contraste(c(r, theme.anneau), fond), SEUIL_NON_TEXTE, `${nom(r)} sur ${ou}`, false);
+    for (const autre of rampes) anneauDuTheme.fond100.noter(contraste(c(r, theme.anneau), c(autre, 100)), SEUIL_NON_TEXTE, `${nom(r)} sur ${nom(autre)} 100`, false);
     for (const x of CANDIDATS_ANNEAU) for (const [ou, fond] of [['page', page], ['carte', carte]] as const) anneau[x].noter(contraste(c(r, x), fond), SEUIL_NON_TEXTE, `${nom(r)} ${x} sur ${ou}`, false);
   }
 
@@ -231,6 +237,7 @@ function juger(theme: Theme) {
       anneauDuPlayground: parCandidat(anneauPlayground),
     },
     anneauUnique: parCandidat(anneau),
+    anneauDuTheme: { nuance: theme.anneau, pageEtCarte: anneauDuTheme.page.json(), fondsTeintes100: anneauDuTheme.fond100.json() },
     texteTeinteSurUneAutrePalette: parCandidat(croise),
   };
 }
@@ -250,6 +257,7 @@ for (const r of resultats) {
   console.log('  texte qui suit le fond', JSON.stringify(r.teinte.texteQuiSuitLeFond));
   console.log(' page', JSON.stringify(r.dossierPage));
   console.log(' playground', JSON.stringify(r.composantsDuPlayground));
+  console.log('  anneau du thème', JSON.stringify(r.anneauDuTheme));
   for (const [k, v] of Object.entries(r.anneauUnique)) console.log(`  anneau ${k}`, JSON.stringify({ ...v, surLAncre: undefined }));
   for (const [k, v] of Object.entries(r.texteTeinteSurUneAutrePalette)) console.log(`  croisé ${k}`, JSON.stringify({ ...v, surLAncre: undefined }));
 }
