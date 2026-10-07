@@ -476,7 +476,7 @@ erreur.
 | Décision | Changement |
 |---|---|
 | D2, `theme` suit une règle fixe | `theme` suit une table : une nuance par variable et par thème, lue dans le kit et le réglage du texte des boutons. Elle ne contient toujours aucun choix du designer |
-| D7, 400 et 950 obligatoires | Plus aucune variable d'usage ne vise la 400 ni la 950. Les garder obligatoires coûte peu ; décision 6 |
+| D7, 400 et 950 obligatoires | Plus aucune variable d'usage ne vise la 50, la 400 ni la 950. Elles deviennent facultatives, calculées par défaut (section 9) |
 | D11, `components` vise `usage` | `components` vise `theme` |
 | D13, la collection `usage` | Remplacée par les dossiers `page`, `surface` et `solid` de la section 4.1, dans `theme` ; treize variables par palette au lieu de vingt |
 | D14, une nuance hors table | Inchangée : le token de composant vise `theme.{p}.scale.N` |
@@ -617,19 +617,19 @@ dans les thèmes inversés ; le contour de `page` à la nuance de
 lieu de `text` ; un anneau par palette, `{p}/page/focus`, à la 600, 700 dans
 un thème inversé ; les choix de la section 4.8, issus du fichier Figma.
 
+Retenus aussi dans le bilan de validation : les variables d'usage vivent
+dans `theme`, sans collection `usage`, comme dans le fichier remappé ; les
+nuances 50, 400 et 950 deviennent facultatives, calculées par défaut pour
+nuancer des éléments sur mesure, sans variable de `theme` ni garantie.
+
 Restent :
 
-1. **Où vivent les variables d'usage :** dans `theme`, qui porte les modes
-   (recommandé), ou dans une collection `usage` sans mode qui recopie `theme`
-   nom pour nom.
-2. **`disabled/border`**, au neutre 500.
-3. **Les noms des fonds :** `default`, `hover` et `pressed`. À éprouver dans
+1. **`disabled/border`**, au neutre 500.
+2. **Les noms des fonds :** `default`, `hover` et `pressed`. À éprouver dans
    le sélecteur Figma avant d'écrire la table, avec `foreground`, `border` et
    `divider`.
-4. **Le bouton `text`** dans le dossier `surface` (B), section 7.
-5. **Les nuances 400 et 950** : rester obligatoires (D7), ou redevenir
-   facultatives.
-6. **Le thème inversé lui-même** est décidé dans le
+3. **Le bouton `text`** dans le dossier `surface` (B), section 7.
+4. **Le thème inversé lui-même** est décidé dans le
    [dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md#9-décisions),
    ancrage compris : une référence qui ne porte pas le texte des boutons reste
    ancrée, et le plugin signale la garantie manquée.
