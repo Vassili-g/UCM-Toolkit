@@ -179,7 +179,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
       <a href="#bref"><b>En bref</b></a>
       <a href="#decide">1. Ce qui est décidé</a>
       <a href="#regle">2. La règle du thème inversé</a>
-      <a href="#a-decider">3. Les choix à prendre</a>
+      <a href="#a-decider">3. Les choix tranchés</a>
       <a href="#plugin">4. Dans le panneau de configuration</a>
       <a href="#suite">5. La suite</a>
     </nav>
@@ -199,7 +199,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
         <dt>Ce que ça entraîne</dt>
         <dd>Dans un thème inversé, une même couleur ne peut pas être à la fois le bouton et le texte coloré. La courbe recalcule les nuances 500 à 800, les états du bouton vont vers la page (700, 600, 500), et ce qui se pose sur la page monte d'une nuance. Toutes les paires tiennent. Quelques couleurs de base ne portent pas le texte des boutons telles quelles : le plugin le signale, et « Ajuster la référence » les corrige.</dd>
         <dt>Ce qui reste</dt>
-        <dd>Trois choix de moteur (garantie du survol, clartés de la courbe, format de la recette) et quatre choix d'interface (section 3).</dd>
+        <dd>Aucun choix : le mainteneur a tranché les trois choix de moteur et les quatre choix d'interface (section 3). La suite est le plan d'implémentation (section 5).</dd>
         <dt>Dans le plugin</dt>
         <dd>Une ligne « Texte des boutons : Blanc | Noir » sous le fond de chaque thème, dans la carte « Couleurs de fond ». Le choix recalcule la courbe du thème, que la carte « Luminosité des nuances » montre aussitôt (section 4).</dd>
       </dl>
@@ -280,8 +280,8 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
   </section>
 
   <section class="bloc" id="a-decider">
-    <h2>3. Les choix à prendre</h2>
-    <p class="chapeau">Chaque choix porte ses options ; la recommandée est en vert. Les mesures portent sur 42 rampes par thème : quatorze références, à une et deux intensités.</p>
+    <h2>3. Les choix tranchés</h2>
+    <p class="chapeau">Chaque choix garde ses options ; celle que le mainteneur a retenue est en vert. Les mesures portent sur 42 rampes par thème : quatorze références, à une et deux intensités.</p>
 
     <p class="groupe-titre">Moteur</p>
     <div class="decisions">
@@ -296,11 +296,11 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
       </div>
 
       <div class="carte decision">
-        <div class="decision-tete"><h4>M-b. Les clartés de la courbe inversée</h4><span class="badge attention">essai Figma</span></div>
+        <div class="decision-tete"><h4>M-b. Les clartés de la courbe inversée</h4><span class="badge neutre">sans essai Figma</span></div>
         <p class="note" style="margin:0">Dark, texte blanc : 0,45, 0,50, 0,55 et 0,70 pour les nuances 500 à 800, au lieu de 0,49, 0,58, 0,67 et 0,76. Light, texte noir : 0,71, 0,66 et 0,58 pour 500 à 700, au lieu de 0,67, 0,585 et 0,50. Les états du bouton restent aussi distincts qu'aujourd'hui (0,047 ΔEok au plus serré) et gardent leur chroma.</p>
         <ul class="options">
-          <li class="reco"><span class="lettre">a</span><span><b>Les retenir comme valeurs par défaut</b> après un essai dans Figma : un écran Dark avec texte blanc, le bouton sur la page, sur une carte et dans une modale.</span></li>
-          <li><span class="lettre">b</span><span><b>Les ajuster</b> après l'essai. Elles restent réglables dans les Réglages communs, sous le contrôle de la garantie des courbes.</span></li>
+          <li class="reco"><span class="lettre">a</span><span><b>Les retenir comme valeurs par défaut</b>, sans essai préalable dans Figma.</span></li>
+          <li><span class="lettre">b</span><span><b>Les ajuster</b> après un essai dans Figma. Dans les deux cas, elles restent réglables dans les Réglages communs, sous le contrôle de la garantie des courbes.</span></li>
         </ul>
       </div>
 
@@ -355,7 +355,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
 
   <section class="bloc" id="plugin">
     <h2>4. Dans le panneau de configuration</h2>
-    <p class="chapeau">La maquette montre les Réglages communs d'UCM Palettes, derrière l'engrenage, avec les recommandations de la section 3. Changez le texte des boutons d'un thème : la carte dit ce que le choix entraîne, la table des courbes passe aux valeurs du thème inversé, et l'aperçu repeint les boutons de la palette ouverte.</p>
+    <p class="chapeau">La maquette montre les Réglages communs d'UCM Palettes, derrière l'engrenage, avec les choix retenus en section 3. Changez le texte des boutons d'un thème : la carte dit ce que le choix entraîne, la table des courbes passe aux valeurs du thème inversé, et l'aperçu repeint les boutons de la palette ouverte.</p>
     <div class="atelier">
       <div class="plugin" id="plugin-maquette" aria-label="Maquette des Réglages communs"></div>
       <div class="notes-atelier">
@@ -389,8 +389,7 @@ footer.pied { color: var(--second); font-size: 12px; padding: 30px 0 40px; }
     <h2>5. La suite</h2>
     <div class="carte">
       <ol style="margin:0;padding-left:22px;display:grid;gap:6px">
-        <li><b>Trancher</b> les choix M-a à M-c et I-a à I-d.</li>
-        <li><b>Essai dans Figma</b> des clartés de la courbe (M-b).</li>
+        <li><b>Plan d'implémentation</b> : un lot par partie ci-dessous, chacun testé avant le suivant.</li>
         <li><b>Kit</b> : la table des emplois porte une colonne pour le thème normal et une pour le thème inversé, et le texte des boutons vaut blanc ou noir purs (changements M7 et M15 de la <a href="../../Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md">liste des changements du moteur</a>). Tests des quatre combinaisons.</li>
         <li><b>Moteur et recette</b> : format 9, lecture du format 8, courbe du thème inversé, empreinte et fraîcheur des planches.</li>
         <li><b>Plugin</b> : le réglage dans les Réglages communs, comme en section 4 ; tests Chromium sur les quatre combinaisons.</li>

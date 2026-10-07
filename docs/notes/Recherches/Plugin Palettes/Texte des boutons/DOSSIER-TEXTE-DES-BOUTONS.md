@@ -55,9 +55,9 @@ texte blanc à 5,17:1.
 états par fond, un texte constant sur les fonds teintés et un anneau par
 palette. Le bouton inversé a donc trois états, 700, 600 et 500.
 
-**Décisions attendues :** section 9, et dans
+**Décisions :** toutes prises, en section 9, et dans
 [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html), section 3, avec les choix
-d'interface.
+d'interface. Reste le plan d'implémentation (section 10).
 
 ## 1. La demande
 
@@ -219,7 +219,7 @@ inversé, le survol va vers la page.
 | Option | Résultat en Dark, texte blanc | Avis |
 |---|---|---|
 | Juger le survol, comme aujourd'hui | 31 rampes sur 42 ; tenir 42 sur 42 resserre les états à 0,017 ΔEok, à peine visibles | Écartée |
-| Juger le bouton au repos | 42 sur 42 en Dark (3,48 à 4,92:1), 42 sur 42 en Light texte noir (3,56 à 5,02:1) | **Recommandée** |
+| Juger le bouton au repos | 42 sur 42 en Dark (3,48 à 4,92:1), 42 sur 42 en Light texte noir (3,56 à 5,02:1) | **Retenue** |
 | Ne pas la vérifier, avec une note | Rien à mesurer | Repli |
 
 Le critère WCAG 1.4.11 n'exige ni contraste entre repos et survol, ni bord
@@ -279,7 +279,7 @@ La recette est en format 8 et `validerRecette` refuse toute clé inconnue
 
 | Option | Recette rangée en format 8 | Build antérieur | Avis |
 |---|---|---|---|
-| Format 9, le format 8 se lit avec les valeurs normales | Lue ; seul le blanc et noir purs change les contrastes | Une recette 9 est « future » | Recommandée |
+| Format 9, le format 8 se lit avec les valeurs normales | Lue ; seul le blanc et noir purs change les contrastes | Une recette 9 est « future » | Retenue |
 | Format 9 strict | Illisible | Une recette 9 est « future » | Écartée : casse les réglages rangés |
 | Clé facultative dans le format 8 | Lue | Une recette qui la porte est refusée | Seulement si aucun build antérieur ne circule |
 
@@ -325,27 +325,28 @@ La proposition de la section 5 garde de S2 la séparation du bouton et du
 texte coloré, et de S3 le fait de rester dans la rampe du thème. Elle s'en
 distingue en recalculant la courbe, ce qui garde le bouton à la 700.
 
-## 9. Décisions à prendre
+## 9. Décisions
 
 1. **La règle du thème inversé** (section 5.1) : reprise par la collection
    `usage` dans la forme de la section 7, et appliquée dans le fichier Figma
    remappé.
-2. **La garantie 14 dans le thème inversé** : juger le repos (recommandé), ou
-   ne pas la vérifier.
+2. **La garantie 14 dans le thème inversé** : décidé, elle juge le bouton au
+   repos contre la page.
 3. **L'ancrage d'une référence qui ne porte pas le texte des boutons** :
    décidé, elle reste ancrée. Le plugin signale la garantie manquée, comme
    pour le vert d'aujourd'hui, et le lien « Ajuster la référence » permet au
    designer de déplacer sa luminosité jusqu'à ce qu'elle passe. Ancrer sur la
    nuance voisine, ou ne pas ancrer dans le thème inversé, est écarté.
-4. **Les clartés de la courbe inversée** : 0,45, 0,50, 0,55 et 0,70 en Dark,
-   à éprouver dans Figma.
+4. **Les clartés de la courbe inversée** : décidé, 0,45, 0,50, 0,55 et 0,70
+   en Dark, 0,71, 0,66 et 0,58 en Light, sans essai préalable dans Figma.
 5. **Le quatrième niveau du texte coloré** : sans objet, le quatrième
    niveau disparaît (section 7).
 6. **L'anneau de focus** : réglé, un anneau par palette, 600, et 700 dans un
    thème inversé (section 7). L'anneau unique à 900 ou 950 est écarté : il
    se lisait comme du noir en Light et du blanc en Dark.
 
-Les choix d'interface du réglage et le format de la recette sont dans
+Le format de la recette (format 9, qui lit le format 8) et les choix
+d'interface du réglage sont tranchés dans
 [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html), section 3.
 
 ## 10. Pour le plan d'action
@@ -353,17 +354,14 @@ Les choix d'interface du réglage et le format de la recette sont dans
 Ordre proposé, chaque lot testé avant le suivant :
 
 1. Synthèse et maquette du réglage : faites, voir
-   [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html). Elles servent à la
-   relecture avec le mainteneur.
-2. Essai dans Figma : un écran Dark avec texte blanc, bouton sur la page, sur
-   une carte et dans une modale.
-3. Kit : table des emplois selon le thème, garantie 14 sur le repos, tests
+   [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html).
+2. Kit : table des emplois selon le thème, garantie 14 sur le repos, tests
    des quatre combinaisons.
-4. Moteur et recette : format 9, lecture du format 8, courbe du thème
+3. Moteur et recette : format 9, lecture du format 8, courbe du thème
    inversé, empreinte et fraîcheur des planches.
-5. Plugin : choix « Texte des boutons » dans les Réglages communs, tests
+4. Plugin : choix « Texte des boutons » dans les Réglages communs, tests
    Chromium sur les quatre combinaisons.
-6. Planches, variables, `theme` et `ucm check`.
+5. Planches, variables, `theme` et `ucm check`.
 
 ## 11. Mesures et scripts
 
