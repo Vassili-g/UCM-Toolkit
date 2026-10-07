@@ -233,9 +233,10 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td><code>{p}/surface/foreground</code>, <code>border</code></td><td>Le texte, l'icône et le contour sur ces trois fonds, la page et une carte</td><td>800</td><td>900</td></tr>
       <tr><td><code>{p}/page/foreground</code>, <code>border</code></td><td>Le texte coloré, le lien, le contour d'un champ ou d'un outlined, posés sur la page ou une carte</td><td>700</td><td>800</td></tr>
       <tr><td><code>{p}/page/divider</code></td><td>Le filet</td><td>300</td><td>300</td></tr>
+      <tr><td><code>{p}/page/focus</code></td><td>L'anneau de focus d'un composant de cette palette, posé autour de lui</td><td>600</td><td>700</td></tr>
     </tbody>
   </table></div>
-  <p>Douze variables par palette. <code>foreground</code> peint le texte et l'icône, comme le rôle <code>foreground</code> des contrats UCM. Dans chaque dossier, le contour a la nuance du texte. Hors palette : l'anneau <code>focus</code>, à la 600 de <code>primary</code> (700 dans un thème inversé) ; <code>neutral/page/foreground</code> à la 900 ; <code>disabled/background</code>, <code>text</code> et <code>border</code>.</p>
+  <p>Treize variables par palette. <code>foreground</code> peint le texte et l'icône, comme le rôle <code>foreground</code> des contrats UCM. Dans chaque dossier, le contour a la nuance du texte. L'anneau prend la couleur du composant : un bouton <code>danger</code> a un anneau <code>danger</code>. Hors palette : <code>neutral/page/foreground</code> à la 900 ; <code>disabled/background</code>, <code>foreground</code> et <code>border</code>.</p>
   </div>
 
   <h2>Le panneau des variables dans Figma</h2>
@@ -276,7 +277,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td><code>hover/background</code>, <code>focus/background</code></td><td>un cran plus foncé</td><td><code>{c}/solid/hover</code></td></tr>
       <tr><td><code>press/background</code></td><td>le même que le survol</td><td><code>{c}/solid/pressed</code></td></tr>
       <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/foreground</code></td></tr>
-      <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td><code>focus</code></td></tr>
+      <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td><code>{c}/page/focus</code></td></tr>
       <tr><td><code>disable</code></td><td>neutre 200 et 500</td><td><code>disabled/background</code>, <code>disabled/foreground</code></td></tr>
       <tr><td colspan="3"><b>Button, <code>outlined</code></b></td></tr>
       <tr><td><code>default/background</code></td><td><code>neutral.50</code>, opaque</td><td>aucun fond</td></tr>
@@ -305,13 +306,13 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li><b>Le dossier <code>page</code></b> remplace la racine de la palette. La règle du dossier n'a plus d'exception.</li>
     <li><b>Le texte et le contour de <code>surface</code> passent à la 800</b>, et à la 900 dans un thème inversé. Ils tiennent sur les trois fonds, la page et la carte, au pire à 5,26:1. L'alerte standard et le bouton <code>text</code> gardent une couleur proche de la 700 du Playground.</li>
     <li><b>Le contour de chaque dossier prend la nuance de son texte.</b> L'outlined au repos prend son texte et son contour dans <code>page</code>, à la 700 ; une alerte standard bordée les prendrait dans <code>surface</code>, à la 800.</li>
-    <li><b>L'anneau <code>focus</code> passe à la 600 de <code>primary</code></b>, et à la 700 dans un thème inversé. Il tient 3:1 contre la page et la carte dans les quatre thèmes, au pire à 3,08:1. Pour intencial, il vaut la couleur de charte. Contre le fond 100 d'un conteneur teinté, 84 mesures sur 1 764 échouent en Light : une marque dont <code>primary</code> est un vert vif, autour d'un composant posé dans une alerte rouge.</li>
+    <li><b>Chaque palette a son anneau, <code>{p}/page/focus</code></b>, à la 600, et à la 700 dans un thème inversé. Il est rangé dans <code>page</code> parce qu'il se pose autour du composant. Il tient 3:1 contre la page et la carte dans les quatre thèmes, au pire à 3,08:1, et contre le fond 100 de sa propre palette, l'action d'une alerte, au pire à 3,36:1. Seule une palette dont la référence est ancrée à la 600 descend à 2,92:1 sur son fond 100 en Light. Pour intencial, l'anneau de <code>primary</code> vaut la couleur de charte.</li>
     <li><b>Le bouton <code>text</code> devient un bouton du dossier <code>surface</code></b> sans fond au repos. Son texte ne change pas, et son survol se distingue du fond d'une alerte standard.</li>
     <li><b>Les fonds de <code>solid</code> portent la portée du contour</b>, pour l'outlined survolé, focalisé ou appuyé ; <code>disabled/border</code> s'ajoute pour l'outlined désactivé.</li>
   </ul>
   <p>Quatre ajustements reviennent aux composants :</p>
   <ul class="raisons">
-    <li><b>L'anneau.</b> Le Playground prend la nuance 100 de la couleur du bouton, ou la 200 pour <code>primary</code>. Aucune des 84 mesures par thème n'atteint 3:1 contre la page ou la carte : au mieux, le pire cas vaut 1,17:1. Les contrats visent <code>focus</code>.</li>
+    <li><b>L'anneau.</b> Le Playground prend la nuance 100 de la couleur du bouton, ou la 200 pour <code>primary</code>. Aucune des 84 mesures par thème n'atteint 3:1 contre la page ou la carte : au mieux, le pire cas vaut 1,17:1. Les contrats visent <code>{c}/page/focus</code>, la 600 de la même couleur.</li>
     <li><b>Le fond de l'outlined au repos.</b> Le Playground pose <code>neutral.50</code>, opaque, qui sert aussi de texte au bouton plein. Ce fond se voit sur une carte grise et en Dark. Le modèle ne pose aucun fond.</li>
     <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/foreground</code>.</li>
     <li><b>L'alerte standard</b> passe du fond 50 au fond 100, et du texte 700 au texte 800.</li>
@@ -325,8 +326,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li><b>La règle se lit dans le nom.</b> <code>primary/surface/foreground</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
     <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un composant n'a qu'un token de texte pour tous ses états.</li>
     <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
-    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte et le contour de <code>surface</code> tiennent au pire 5,26:1 sur leurs trois fonds, et le texte d'une palette tient sur les fonds teintés de toutes les autres ; l'anneau <code>focus</code> tient au pire 3,08:1 contre la page et la carte.</li>
-    <li><b>La pratique des systèmes établis.</b> Atlassian, Primer, Carbon et Radix gardent un seul texte sur les fonds teintés et leurs états ; Fluent et Spectrum ne le changent qu'une fois, au survol. Material nomme <code>on-primary</code> le texte de <code>primary</code>. Tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
+    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte et le contour de <code>surface</code> tiennent au pire 5,26:1 sur leurs trois fonds, et le texte d'une palette tient sur les fonds teintés de toutes les autres ; l'anneau de chaque palette tient au pire 3,08:1 contre la page et la carte.</li>
+    <li><b>La pratique des systèmes établis.</b> Atlassian, Primer, Carbon et Radix gardent un seul texte sur les fonds teintés et leurs états ; Fluent et Spectrum ne le changent qu'une fois, au survol. Material nomme <code>on-primary</code> le texte de <code>primary</code>. Tous écrivent les valeurs de chaque thème par programme. Ils n'ont qu'un anneau de focus ; ce modèle en donne un par palette, comme la table actuelle d'UCM Palettes.</li>
     <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
   </ul>
 
@@ -339,7 +340,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">D3 à D10</td><td><code>brand</code>, catalogue de <code>primitives</code>, <code>color-utilities</code>, courbe commune, <code>soft</code> et <code>vivid</code>, couleur de charte, blanc et noir</td><td><span class="tag same">gardées</span></td></tr>
       <tr><td class="id">D11</td><td><code>components</code> garde ses noms</td><td><span class="tag mod">modifiée</span> il vise <code>theme</code> au lieu de <code>usage</code></td></tr>
       <tr><td class="id">D12</td><td>Réglages et exceptions de marque réservés dans <code>brand</code></td><td><span class="tag same">gardée</span></td></tr>
-      <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers <code>page</code>, <code>surface</code> et <code>solid</code> de <code>theme</code>, douze variables par palette au lieu de vingt</td></tr>
+      <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers <code>page</code>, <code>surface</code> et <code>solid</code> de <code>theme</code>, treize variables par palette au lieu de vingt</td></tr>
       <tr><td class="id">D14</td><td>Une nuance hors table passe par un token de composant</td><td><span class="tag same">gardée</span> il vise <code>theme.{palette}.scale.N</code>, aux portées vides</td></tr>
       <tr><td class="id">D15, D16</td><td>Trois niveaux d'élévation ; une table pour les trois outils</td><td><span class="tag same">gardées</span></td></tr>
       <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
@@ -357,7 +358,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">4</td><td><a href="./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">Escalier</a> : texte n sur toute surface de niveau inférieur ou égal</td><td class="plus">Dix couples garantis au lieu de quatre</td><td class="moins">Une règle à apprendre, invisible dans les noms</td></tr>
       <tr><td class="id">5</td><td><a href="./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html">Ensembles</a> : <code>surface-0</code> à <code>4</code>, <code>solid-1</code> à <code>4</code></td><td class="plus">Tout dans le dossier du fond</td><td class="moins">Des numéros, des conventions, une table en deux collections</td></tr>
       <tr><td class="id">6</td><td>Texte qui suit le fond : un sous-dossier par état, avec son fond, son texte et son contour</td><td class="plus">Le texte 700 du Playground sur l'alerte ; les paires actuelles d'UCM Palettes</td><td class="moins">Dix-huit variables par palette ; le texte change à chaque état ; aucun système établi ne le fait</td></tr>
-      <tr><td class="id">7</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> à 800, un cran plus sombre que le texte coloré</td></tr>
+      <tr><td class="id">7</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> à 800, un cran plus sombre que le texte coloré ; une variable de plus par palette pour l'anneau</td></tr>
     </tbody>
   </table></div>
 
@@ -367,7 +368,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <li>Le texte constant sur un fond teinté : texte et contour de <code>surface</code> à 800, et à 900 dans un thème inversé.</li>
     <li>Le contour de <code>page</code> à la nuance de <code>page/foreground</code>.</li>
     <li><code>foreground</code> au lieu de <code>text</code> : la variable peint le texte et l'icône.</li>
-    <li>L'anneau <code>focus</code> à la 600 de <code>primary</code>, et à la 700 dans un thème inversé.</li>
+    <li>Un anneau par palette, <code>{p}/page/focus</code>, à la 600, et à la 700 dans un thème inversé.</li>
   </ul>
 
   <h2>À décider</h2>
@@ -425,6 +426,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       if (b === 'foreground-subtle') return tb.subtle;
       if (b === 'border') return d.role === 'neutral' ? tb.border : tb.text;
       if (b === 'divider') return 300;
+      if (b === 'focus') return tb.anneau;
     }
     if (a === 'scale') return Number(b);
   }
@@ -433,7 +435,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function varie(path) {
     var q = path.split('.').slice(1);
     if (['elevation', 'disabled'].indexOf(q[0]) >= 0) return false;
-    if (q[0] === 'focus') return true;
     var d = decoupe(q);
     if (texteDuPlein(d)) return true;
     return cranDe(d, NORMAL) !== cranDe(d, INVERSE);
@@ -445,7 +446,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (col === 'components') return cibleComposant(q);
     if (col === 'theme') {
       if (q[0] === 'elevation') return 'color-utilities.elevation.' + t + '.' + q[1];
-      if (q[0] === 'focus') return 'brand.palette.primary.' + t + '.' + (inverse(t) ? INVERSE : NORMAL).anneau;
       if (q[0] === 'disabled') return 'color-utilities.neutral.' + t + '.' + (q[1] === 'background' ? 200 : 500);
       var d = decoupe(q);
       if (texteDuPlein(d)) return 'primitives.colors.' + ((t === 'light' ? etat.light : etat.dark) === 'blanc' ? 'white' : 'black');
@@ -502,7 +502,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       r.foreground = p + '/surface/foreground';
       if (s !== 'default') r.background = p + '/surface/' + (s === 'press' ? 'pressed' : 'hover');
     }
-    if (s === 'focus' || s === 'press') r.ring = 'focus';
+    if (s === 'focus' || s === 'press') r.ring = p + '/page/focus';
     return r;
   }
   function alerte(sev, v) {
@@ -544,15 +544,13 @@ footer ul{padding-left:18px;margin:6px 0 0}
     function groupe(g, noms, tag) { out.push(G(g, tag)); noms.forEach(function (n) { out.push(row(g, n)); }); }
     groupe('primary/solid', ETATS.concat(['foreground']));
     groupe('primary/surface', ETATS.concat(['foreground', 'border']));
-    groupe('primary/page', ['foreground', 'border', 'divider']);
-    out.push(M('… secondary : les mêmes douze variables'));
+    groupe('primary/page', ['foreground', 'border', 'divider', 'focus']);
+    out.push(M('… secondary : les mêmes treize variables'));
     groupe('success/vivid/surface', ['default', 'foreground', 'border']);
-    out.push(M('… success, warning, info et danger, en soft et en vivid : douze variables chacun'));
+    out.push(M('… success, warning, info et danger, en soft et en vivid : treize variables chacun'));
     groupe('neutral/surface', ['hover', 'foreground']);
     groupe('neutral/page', ['foreground', 'foreground-subtle', 'border']);
     out.push(G('disabled')); ['background', 'foreground', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
-    out.push(G('racine de theme', ['new', 'un seul anneau pour tout le système : primary 600, 700 en thème inversé']));
-    var anneau = R('focus', 'focus', MODES.map(function (t) { var x = next('theme.focus', t); return A(x, hex('theme.focus', t)); })); anneau.k = 'focus'; out.push(anneau);
     groupe('elevation', ['page', 'raised', 'overlay']);
     groupe('primary/scale', ['100', '600', '700', '900'], ['same', 'portées vides, hors table']);
     out.push(M('… les 121 nuances de toutes les palettes, sous scale'));
@@ -707,9 +705,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
       titre: 'Champ de saisie',
       dessin: function (t) {
         return '<div class="rang"><figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('neutral/page/border', t) + ';color:' + H('neutral/page/foreground-subtle', t) + '">Nom du contrat</span>Repos</figure>'
-          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/foreground', t) + ';outline:2px solid ' + H('focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
+          + '<figure><span class="champ" style="background:' + H('elevation/raised', t) + ';border-color:' + H('primary/page/border', t) + ';color:' + H('neutral/page/foreground', t) + ';outline:2px solid ' + H('primary/page/focus', t) + ';outline-offset:2px">Assurance vie</span>Focus</figure></div>';
       },
-      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code>', 'texte : <code>neutral/page/foreground</code> ; indication : <code>neutral/page/foreground-subtle</code>']; },
+      vars: function () { return ['fond : <code>elevation/raised</code>', 'contour : <code>neutral/page/border</code>, puis <code>primary/page/border</code> ; anneau : <code>primary/page/focus</code>', 'texte : <code>neutral/page/foreground</code> ; indication : <code>neutral/page/foreground-subtle</code>']; },
       couples: function () { return [['neutral/page/foreground', 'elevation/raised'], ['neutral/page/foreground-subtle', 'elevation/raised']]; },
     },
     {
@@ -762,7 +760,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   /* L'action est le bouton text de la sévérité, comme dans les échantillons du contrat. */
   function dessinAlerte(sev, v, t, fond) {
     var r = alerte(sev, v), bg = r.background ? H(r.background, t) : fond, fg = H(r.foreground, t), ic = H(r.icon, t);
-    var action = dessinBouton(bouton(sev, 'text', 'default'), t, bg), survol = dessinBouton(bouton(sev, 'text', 'hover'), t, bg);
+    var action = dessinBouton(bouton(sev, 'text', 'default'), t, bg), survol = dessinBouton(bouton(sev, 'text', 'hover'), t, bg), focus = dessinBouton(bouton(sev, 'text', 'focus'), t, bg);
     return {
       html: '<div class="alerte2" style="background:' + (r.background ? bg : 'transparent') + ';border-color:' + (r.border ? H(r.border, t) : 'transparent') + '">'
         + '<svg viewBox="0 0 18 18" aria-hidden="true" style="color:' + ic + '">' + ICONES[sev] + '</svg>'
@@ -770,21 +768,22 @@ footer ul{padding-left:18px;margin:6px 0 0}
       texte: Math.min(contraste(fg, bg), action.texte, survol.texte),
       icone: contraste(ic, bg),
       survol: contraste(survol.fond, bg),
+      anneau: focus.anneau,
     };
   }
   function grilleAlertes(t) {
-    var fond = H('elevation/page', t), pire = Infinity, pireIcone = Infinity, survol = Infinity;
+    var fond = H('elevation/page', t), pire = Infinity, pireIcone = Infinity, survol = Infinity, anneau = Infinity;
     var colonnes = ['standard', 'outlined'].map(function (v) {
       return '<div class="a-col"><div class="a-tete">' + v + '</div>' + SEVERITES.map(function (sev) {
         var a = dessinAlerte(sev, v, t, fond);
-        pire = Math.min(pire, a.texte); pireIcone = Math.min(pireIcone, a.icone);
+        pire = Math.min(pire, a.texte); pireIcone = Math.min(pireIcone, a.icone); anneau = Math.min(anneau, a.anneau);
         if (v === 'standard') survol = Math.min(survol, a.survol);
         return a.html;
       }).join('') + '</div>';
     }).join('');
     return scene(t, '<div class="a-grille">' + colonnes + '</div>')
       + '<div class="mes">' + etiquette(t) + ' : texte au pire ' + ratio(pire, 4.5) + ', action survolée comprise · icône ' + ratio(pireIcone, 3)
-      + ' · survol de l’action contre le fond de l’alerte standard : ' + fmt(survol) + '</div>';
+      + ' · anneau de l’action ' + ratio(anneau, 3) + ' · survol de l’action contre le fond de l’alerte standard : ' + fmt(survol) + '</div>';
   }
   function renderRecette() {
     $('recette-boutons').innerHTML = VARIANTES.map(function (v) {

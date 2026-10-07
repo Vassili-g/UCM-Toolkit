@@ -62,7 +62,7 @@ support, état, hors de la table, paire. Le fond de page y vaut
 | M3 | La table passe des emplois aux dossiers : `solid`, `surface` et `page` par palette, avec `foreground` (texte et icône), `border`, `divider`, `foreground-subtle`, `disabled/border` | Dossiers `page`, `surface`, `solid` | `emplois.ts`, `usages.ts`, libellés des emplois et des rôles | Retenu ; noms des fonds à éprouver dans Figma |
 | M4 | Le texte et le contour de `surface` passent de 700 et 600, en escalier, à 800 constant, et 900 dans un thème inversé | Texte constant à 800 | `emplois.ts`, `paires.ts`, mesures des garanties | Retenu |
 | M5 | Le contour de chaque dossier prend la nuance de son texte : `page/border` passe de 600 à 700 | Contour de `page` | `emplois.ts` (`border-control`), paires du contour | Retenu |
-| M6 | L'anneau `focus` reste à 600 dans un thème normal et passe à 700 dans un thème inversé. Sa mesure couvre la page, la carte et le fond 100 de toutes les palettes, et signale une marque dont `primary` échoue | Anneau `focus` | `emplois.ts`, paires 12 et 13, carte des garanties | Retenu |
+| M6 | L'anneau ne change presque pas : le moteur en fait déjà un emploi de chaque palette, à la 600, mesuré contre la page (paire 12) et le fond 100 de sa palette (paire 13). Changent son nom, `page/focus` (M3), et sa nuance en thème inversé, 700 (M7). Une paire de plus le mesurerait contre le fond 100 des autres palettes, où 84 mesures sur 1 764 échouent en Light | Anneau par palette | `emplois.ts`, `paires.ts` pour la paire croisée | Déjà en place ; la paire croisée est proposée |
 | M7 | Une nuance par variable et par thème : la table porte une colonne pour le thème normal et une pour le thème inversé | D2 modifiée | `emplois.ts` et tous ses lecteurs ; le moteur de couleur pour les courbes inversées | Suit la décision sur le thème inversé |
 | M8 | La collection `usage` disparaît. Ses noms passent dans `theme`, qui porte les modes Light et Dark | `usage` dans `theme` | `usages.ts`, `diagnostic-emplois.mjs` (`usage` détecté, `usage.elevation.page`), `profilUcm.ts` | À décider (décision 1) |
 | M9 | UCM Palettes écrit `theme`, et les collections `brand` et `color-utilities` que `theme` vise, depuis la table et la recette. La reprise signale une valeur de `theme` modifiée à la main | Personne ne tape un alias | `ecriture/variables.ts`, `variables/destination.ts`, Gestion | Retenu dans son principe ; chantier le plus long |
@@ -95,11 +95,11 @@ support, état, hors de la table, paire. Le fond de page y vaut
 
 ## 4. Un ordre possible
 
-1. **La table du kit et ses tests** : M1 à M6, M13 et M14. Le changement se
+1. **La table du kit et ses tests** : M1 à M5, M13 et M14. Le changement se
    lit en un seul endroit, et ses lecteurs échouent à la compilation tant
    qu'ils n'ont pas suivi.
 2. **UCM Palettes, lecture** : carte des garanties, planche, présentation et
-   textes, sur la nouvelle table (M1, M2, M6, M12).
+   textes, sur la nouvelle table (M1, M2, M12).
 3. **`ucm check` et l'Explorateur** : M8 et M11, une fois la décision 1
    prise.
 4. **UCM Palettes, écriture de `theme`** : M9 et M10, après l'essai Figma

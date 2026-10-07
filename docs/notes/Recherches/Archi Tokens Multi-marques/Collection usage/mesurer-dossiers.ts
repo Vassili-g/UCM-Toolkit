@@ -173,7 +173,7 @@ function juger(theme: Theme) {
   // La variante où le texte suit le fond : chaque texte sur le fond teinté de même rang.
   const texteQuiSuit = new Bilan();
   // L'anneau du thème contre ce qui entoure un composant : la page, la carte, le fond 100 d'un conteneur teinté de toute palette.
-  const anneauDuTheme = { page: new Bilan(), fond100: new Bilan() };
+  const anneauDuTheme = { page: new Bilan(), fond100: new Bilan(), memePalette100: new Bilan() };
   // Le texte teinté d'une palette sur les fonds teintés d'une autre, par exemple un texte neutre sur une ligne sélectionnée.
   const croise = Object.fromEntries(CANDIDATS_TEXTE.map((x) => [x, new Bilan()]));
 
@@ -213,6 +213,7 @@ function juger(theme: Theme) {
       }
     }
     for (const [ou, fond] of [['page', page], ['carte', carte]] as const) anneauDuTheme.page.noter(contraste(c(r, theme.anneau), fond), SEUIL_NON_TEXTE, `${nom(r)} sur ${ou}`, false);
+    anneauDuTheme.memePalette100.noter(contraste(c(r, theme.anneau), c(r, 100)), SEUIL_NON_TEXTE, `${nom(r)} sur son 100`, touche(r, theme.anneau));
     for (const autre of rampes) anneauDuTheme.fond100.noter(contraste(c(r, theme.anneau), c(autre, 100)), SEUIL_NON_TEXTE, `${nom(r)} sur ${nom(autre)} 100`, false);
     for (const x of CANDIDATS_ANNEAU) for (const [ou, fond] of [['page', page], ['carte', carte]] as const) anneau[x].noter(contraste(c(r, x), fond), SEUIL_NON_TEXTE, `${nom(r)} ${x} sur ${ou}`, false);
   }
@@ -237,7 +238,7 @@ function juger(theme: Theme) {
       anneauDuPlayground: parCandidat(anneauPlayground),
     },
     anneauUnique: parCandidat(anneau),
-    anneauDuTheme: { nuance: theme.anneau, pageEtCarte: anneauDuTheme.page.json(), fondsTeintes100: anneauDuTheme.fond100.json() },
+    anneauDuTheme: { nuance: theme.anneau, pageEtCarte: anneauDuTheme.page.json(), fondTeinte100DeSaPalette: anneauDuTheme.memePalette100.json(), fondsTeintes100: anneauDuTheme.fond100.json() },
     texteTeinteSurUneAutrePalette: parCandidat(croise),
   };
 }

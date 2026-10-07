@@ -190,6 +190,15 @@
           "tenues": "84/84",
           "surLAncre": []
         },
+        "fondTeinte100DeSaPalette": {
+          "minimum": 3.55,
+          "pire": "#06B6D4 vivid sur son 100",
+          "tenues": "24/24",
+          "surLAncre": [
+            "#16A34A vivid sur son 100 2.92",
+            "#16A34A une intensité sur son 100 2.92"
+          ]
+        },
         "fondsTeintes100": {
           "minimum": 2.83,
           "pire": "#16A34A vivid sur #DC2626 vivid 100",
@@ -405,6 +414,12 @@
           "minimum": 3.17,
           "pire": "#9333EA vivid sur carte",
           "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondTeinte100DeSaPalette": {
+          "minimum": 3.82,
+          "pire": "#DC2626 soft sur son 100",
+          "tenues": "26/26",
           "surLAncre": []
         },
         "fondsTeintes100": {
@@ -650,6 +665,12 @@
           "minimum": 3.56,
           "pire": "#8B8178 soft sur page",
           "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondTeinte100DeSaPalette": {
+          "minimum": 3.52,
+          "pire": "#16A34A vivid sur son 100",
+          "tenues": "26/26",
           "surLAncre": []
         },
         "fondsTeintes100": {
@@ -901,6 +922,12 @@
           "minimum": 3.17,
           "pire": "#9333EA vivid sur carte",
           "tenues": "84/84",
+          "surLAncre": []
+        },
+        "fondTeinte100DeSaPalette": {
+          "minimum": 3.36,
+          "pire": "#9333EA soft sur son 100",
+          "tenues": "26/26",
           "surLAncre": []
         },
         "fondsTeintes100": {

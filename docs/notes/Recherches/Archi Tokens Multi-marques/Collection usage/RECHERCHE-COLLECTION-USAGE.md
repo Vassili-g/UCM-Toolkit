@@ -46,9 +46,9 @@ ne tape aucun alias et ne connaît aucun numéro de nuance.
 **Ce que disent les mesures** (42 rampes, quatre thèmes dont deux inversés) :
 le texte et le contour du dossier `surface`, à la nuance 800 dans les thèmes
 normaux et 900 dans les thèmes inversés, tiennent 4,5:1 sur leurs trois fonds,
-la page et la carte, au pire à 5,26:1. Un seul anneau de focus, à la
-600 de `primary` (700 dans un thème inversé), tient 3:1 contre la page et la
-carte dans les quatre thèmes. Seuls le bouton, le texte des boutons, le
+la page et la carte, au pire à 5,26:1. L'anneau de focus de chaque palette,
+à la 600 (700 dans un thème inversé), tient 3:1 contre la page, la carte et
+le fond 100 de sa palette dans les quatre thèmes. Seuls le bouton, le texte des boutons, le
 texte et le contour de `surface`, le dossier `page` et l'anneau changent de
 nuance dans un thème inversé.
 
@@ -62,8 +62,8 @@ texte constant.
 **Ce que dit la recette sur les contrats du Playground** (section 7) : le
 modèle exprime `Button` et `Alert` sans nuance hors table, dans les deux
 variantes. Elle ajoute `disabled/border`, aligne le contour de chaque dossier
-sur son texte, éclaircit l'anneau, et fait du bouton `text` un bouton du
-dossier `surface`.
+sur son texte, garde un anneau par palette, et fait du bouton `text` un bouton
+du dossier `surface`.
 
 **Ce que la proposition demande au moteur** : le
 [document des changements du moteur](./CHANGEMENTS-DU-MOTEUR.md).
@@ -161,6 +161,9 @@ d'état de ces systèmes restent proches : Carbon clair va de #e8e8e8 à
 Un cinquième constat, sur le focus : Atlassian (`color.border.focused`),
 Polaris (`color-border-focus`), Primer (`focus-outlineColor`) et Fluent
 (`colorStrokeFocus2`) ont chacun **un seul** anneau pour tout le système.
+Ce modèle s'en écarte : l'anneau prend la couleur du composant, un bouton
+`danger` a un anneau `danger`. La table actuelle d'UCM Palettes fait déjà
+de `focus` un emploi de chaque palette, à la 600.
 
 ## 4. La proposition
 
@@ -183,9 +186,10 @@ avec son intensité, `success/soft`.
 | `{p}/page/foreground` | Texte coloré, lien, icône | la page, une carte | 700 | 800 |
 | `{p}/page/border` | Contour d'un champ, d'une case, d'un bouton ou d'une alerte outlined | la page, une carte | 700 | 800 |
 | `{p}/page/divider` | Filet, séparateur | partout | 300 | 300 |
+| `{p}/page/focus` | Anneau de focus d'un composant de la palette, séparé du composant par un espace | la page, une carte, le fond 100 d'un conteneur | 600 | 700 |
 
-Douze variables par palette, contre vingt dans D13. Le thème inversé change
-sept lignes, toutes écrites par UCM Palettes.
+Treize variables par palette, contre vingt dans D13. Le thème inversé change
+huit lignes, toutes écrites par UCM Palettes.
 
 `foreground` peint le texte et l'icône, comme le rôle `foreground` des
 contrats UCM, qui couvre `color` et `fill`. Le mainteneur l'a préféré à
@@ -215,7 +219,6 @@ plein.
 
 | Variable | Ce qu'elle peint | Nuance |
 |---|---|---|
-| `focus`, à la racine de `theme` | L'anneau de focus de tous les composants, séparé du composant par un espace | `primary` 600, 700 dans un thème inversé, un cran sous `primary/page/foreground` |
 | `neutral/page/foreground` | Le corps de texte | neutre 900 |
 | `neutral/page/foreground-subtle` | Le texte secondaire, sur la page ou une carte | neutre 700, 800 dans un thème inversé |
 | `disabled/background`, `disabled/foreground`, `disabled/border` | Un contrôle désactivé, exempté par WCAG | neutre 200, 500 et 500 |
@@ -235,7 +238,7 @@ chose.
 | Appui | `pressed` | `primary/solid/pressed` | `neutral/surface/pressed` |
 | Sélectionné | le `default` d'un autre dossier | bouton bascule : `neutral/surface` devient `primary/solid` | `primary/surface/default` |
 | Sélectionné et survolé | le `hover` de cet autre dossier | `primary/solid/hover` | `primary/surface/hover` |
-| Focus | l'état courant, et `focus` | | |
+| Focus | l'état courant, et l'anneau `{p}/page/focus` | | |
 | Désactivé | `disabled/*` | | |
 
 Le texte de chaque exemple ne change pas entre les lignes d'un même dossier :
@@ -400,7 +403,7 @@ Chaque texte sur le fond teinté de même rang, hors nuance ancrée :
 | Light inversé | 800, 900, 950 | 122/122 | 7,14 |
 | Dark inversé | 800, 900, 950 | 114/114 | 5,99 |
 
-### L'anneau unique et les textes croisés
+### L'anneau et les textes croisés
 
 Une nuance de chaque palette, contre la page, la carte et les fonds 100 à 300
 de toutes les palettes, 5 376 mesures par thème :
@@ -414,20 +417,22 @@ de toutes les palettes, 5 376 mesures par thème :
 Un anneau entoure le composant, séparé par un espace : il se lit contre ce
 qui entoure le composant, la page, la carte ou le fond 100 d'un conteneur
 teinté, et non contre les fonds de survol et d'appui. Contre ces fonds-là,
-l'anneau `focus` retenu, à la 600 de `primary` et à la 700 dans un thème inversé :
+l'anneau `{p}/page/focus` retenu, à la 600 et à la 700 dans un thème inversé :
 
-| Thème | Nuance | Page et carte | Fond 100 de toutes les palettes |
-|---|---|---|---|
-| Light | 600 | 84/84, pire 3,08 | 1 680/1 764, pire 2,83 |
-| Dark | 600 | 84/84, pire 3,17 | toutes, pire 3,16 |
-| Light inversé | 700 | 84/84, pire 3,56 | toutes, pire 3,27 |
-| Dark inversé | 700 | 84/84, pire 3,17 | toutes, pire 3,16 |
+| Thème | Nuance | Page et carte | Fond 100 de sa palette | Fond 100 d'une autre palette |
+|---|---|---|---|---|
+| Light | 600 | 84/84, pire 3,08 | 24/24, pire 3,55 ; sur l'ancre, 2,92 | 1 680/1 764, pire 2,83 |
+| Dark | 600 | 84/84, pire 3,17 | 26/26, pire 3,82 | toutes, pire 3,16 |
+| Light inversé | 700 | 84/84, pire 3,56 | 26/26, pire 3,52 | toutes, pire 3,27 |
+| Dark inversé | 700 | 84/84, pire 3,17 | 26/26, pire 3,36 | toutes, pire 3,16 |
 
+Le fond 100 de sa palette est le cas courant : l'action d'une alerte a la
+couleur de l'alerte. Il échoue sur une seule référence, `#16A34A`, ancrée à
+la 600 en Light. Le fond d'une autre palette est plus rare : un bouton
+`success` posé dans une alerte de danger, où 84 mesures échouent en Light.
 Les 900, 800 et 700 tenaient partout, mais se lisaient comme du noir en Light
-et du blanc en Dark. Les 84 échecs en Light viennent d'une palette `primary`
-vert vif, posée sur le fond 100 d'une palette rouge : un bouton focalisé dans
-une alerte de danger, pour une marque verte. Pour intencial, l'anneau vaut la
-couleur de charte `#B15152` dans les quatre thèmes.
+et du blanc en Dark. Pour intencial, l'anneau de `primary` vaut la couleur de
+charte `#B15152` dans les quatre thèmes.
 
 Le même calcul pour le texte de `surface`, 800 dans les thèmes normaux et 900
 dans les thèmes inversés, donne 5 292 mesures sans échec par thème, au pire
@@ -444,11 +449,11 @@ erreur.
 | D2, `theme` suit une règle fixe | `theme` suit une table : une nuance par variable et par thème, lue dans le kit et le réglage du texte des boutons. Elle ne contient toujours aucun choix du designer |
 | D7, 400 et 950 obligatoires | Plus aucune variable d'usage ne vise la 400 ni la 950. Les garder obligatoires coûte peu ; décision 6 |
 | D11, `components` vise `usage` | `components` vise `theme` |
-| D13, la collection `usage` | Remplacée par les dossiers `page`, `surface` et `solid` de la section 4.1, dans `theme` ; douze variables par palette au lieu de vingt |
+| D13, la collection `usage` | Remplacée par les dossiers `page`, `surface` et `solid` de la section 4.1, dans `theme` ; treize variables par palette au lieu de vingt |
 | D14, une nuance hors table | Inchangée : le token de composant vise `theme.{p}.scale.N` |
 | D16, une table pour les trois outils | Inchangée dans son principe ; la table du kit porte une colonne par thème, normal et inversé |
 | D17, quatre rangs d'état | Trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier |
-| Ensembles E1 à E5 | Abandonnés : E2 est généralisé à tous les usages, E4 devient l'anneau `focus` unique, E5 retient l'option B |
+| Ensembles E1 à E5 | Abandonnés : E2 est généralisé à tous les usages, E4 devient l'anneau de focus, E5 retient l'option B |
 
 ## 7. Cas d'usage
 
@@ -463,7 +468,7 @@ erreur.
 | Ligne de tableau | pas de fond | `neutral/surface/hover` | sélection : `primary/surface/default` | `neutral/surface/foreground`, puis `primary/surface/foreground` |
 | Champ de saisie | fond `elevation/raised`, contour `neutral/page/border` | contour `primary/page/border` | | `neutral/page/foreground` |
 | Lien dans un paragraphe | | | | `primary/page/foreground` |
-| Focus de n'importe quel contrôle | | | | anneau `focus` |
+| Focus de n'importe quel contrôle | | | | anneau `{p}/page/focus` de la palette du contrôle |
 
 ### Recette sur Button et Alert du Playground
 
@@ -481,7 +486,7 @@ variant. `primary` et `secondary` visent `brand` ; `info`, `success` et
 | Button `contained`, fond au survol et au focus | un cran plus foncé | `{c}/solid/hover` |
 | Button `contained`, fond à l'appui | le même que le survol | `{c}/solid/pressed` |
 | Button `contained`, texte | `neutral.50`, quasi blanc | `{c}/solid/foreground` |
-| Button, anneau au focus et à l'appui | la nuance 100 de la couleur, 200 pour `primary` | `focus` |
+| Button, anneau au focus et à l'appui | la nuance 100 de la couleur, 200 pour `primary` | `{c}/page/focus` |
 | Button `outlined`, fond au repos | `neutral.50`, opaque | aucun fond |
 | Button `outlined`, texte et contour au repos | la nuance du fond plein | `{c}/page/foreground`, `{c}/page/border` |
 | Button `outlined`, survol, focus, appui | le fond plein, contour compris, texte `neutral.50` | `{c}/solid/hover`, `default`, `pressed` ; texte `{c}/solid/foreground` |
@@ -510,8 +515,8 @@ section 4 :
   n'a plus d'exception ;
 - `page/border` prend la nuance de `page/foreground` : le bouton outlined au repos
   prend son texte et son contour dans `page`, de la même couleur ;
-- l'anneau `focus` passe à la 600, et à la 700 dans un thème inversé, au lieu
-  de la 900 ;
+- chaque palette a son anneau, `{p}/page/focus`, à la 600, et à la 700 dans
+  un thème inversé ;
 - le texte et le contour de `surface` passent à la 800, et à la 900 dans un
   thème inversé ;
 - le bouton `text` devient un bouton du dossier `surface`, sans fond au
@@ -522,8 +527,8 @@ section 4 :
 
 Quatre ajustements reviennent aux composants :
 
-- l'anneau vise `focus` : la nuance 100 ou 200 que prend le Playground
-  n'atteint 3:1 sur aucune palette ;
+- l'anneau vise `{c}/page/focus` : la nuance 100 ou 200 que prend le
+  Playground n'atteint 3:1 sur aucune palette ;
 - le bouton outlined ne pose plus de fond au repos. Le `neutral.50` opaque du
   Playground se voit sur une carte grise et en Dark ;
 - l'alerte outlined prend un seul texte, `{c}/page/foreground`, au lieu de la 900
@@ -553,10 +558,10 @@ du thème inversé (décision 7).
 - Un composant du dossier `surface`, comme le bouton `text` ou l'alerte
   standard, prend le texte 800, un cran plus sombre que le texte coloré 700
   d'un lien ou d'une alerte outlined.
-- L'anneau garde la couleur de la palette `primary` sur un bouton d'une autre
-  couleur. En Light, il descend sous 3:1 contre le fond 100 d'une autre
-  palette quand `primary` est un vert vif (section 5) ; UCM Palettes doit le
-  signaler pour la marque concernée.
+- En Light, l'anneau d'une palette descend sous 3:1 sur son propre fond 100
+  quand sa référence est ancrée à la 600, et sur le fond 100 d'une autre
+  palette quand il est vert vif et l'autre rouge (section 5). UCM Palettes
+  doit le signaler pour la palette concernée.
 - Une palette dont le designer a déplacé la courbe de 0,10 au plus
   (`BORNES_DES_REGLAGES`) n'a pas été mesurée ici. Le texte 800 de `surface`
   garde au moins 0,76 au-dessus du seuil dans les thèmes normaux.
@@ -577,8 +582,8 @@ texte constant sur un fond teinté, à la place des rangs de D17 et des
 ensembles : texte et contour de `surface` à 800 dans les thèmes normaux, 900
 dans les thèmes inversés ; le contour de `page` à la nuance de
 `page/foreground` ; le nom `foreground`, qui peint le texte et l'icône, au
-lieu de `text` ; l'anneau `focus` à la 600 de `primary`, 700 dans un thème
-inversé.
+lieu de `text` ; un anneau par palette, `{p}/page/focus`, à la 600, 700 dans
+un thème inversé.
 
 Restent :
 
