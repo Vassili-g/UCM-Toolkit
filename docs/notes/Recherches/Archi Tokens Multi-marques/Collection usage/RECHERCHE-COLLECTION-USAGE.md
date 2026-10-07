@@ -530,7 +530,7 @@ deux variantes et viennent de la courbe du thème inversé (décision 7).
    (recommandé, une seule valeur, marge de 2,8), ou 800 dans les thèmes
    normaux et 900 dans les thèmes inversés.
 4. **L'anneau unique `focus`** et le contour de `page` à la nuance de
-   `page/text` : 700, 800 dans un thème inversé.
+   `page/text` : 700, 800 dans un thème inversé. Retenus par le mainteneur.
 5. **Les noms :** dossiers `page`, `surface` et `solid`, que le mainteneur a
    retenus ; fonds `default`, `hover` et `pressed` ; `text`, `border`,
    `divider`. À éprouver dans le sélecteur Figma avant d'écrire la table.
