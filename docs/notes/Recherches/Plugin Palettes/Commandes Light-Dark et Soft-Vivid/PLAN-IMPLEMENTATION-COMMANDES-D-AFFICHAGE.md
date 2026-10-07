@@ -130,6 +130,19 @@ les images, et les comparer au modèle A de la maquette.
   `data-avec-choix`). `createRangeeDesChoix` ne sert plus qu'aux garanties.
   `ReglagesDeLaPaletteUi` et `EditeurUi` exposent `choix`, que `ongletCreation.ts`
   pose dans l'en-tête de leur carte.
+- R3.6 et R3.7 livrées, à commiter. Comptes : 388 tests unitaires, 201 tests
+  d'interface (le test `[UI-04]` de la carte sans titre est récrit, cinq tests
+  `[UI-11]` ajoutés). `createCarte` perd `sansTitre` et gagne `replier()`,
+  `focaliser()` et l'option `repliable.resumeReplie`, qui cache le résumé carte
+  ouverte quand la carte ne porte aucun choix. La carte de l'aperçu porte le
+  glyphe `apercu`, le titre « Aperçu » et le sous-titre « Les nuances sur le
+  fond du thème » (« The shades on the theme background »), sans chevron : son
+  glyphe part du bord gauche, comme celui des garanties. La configuration
+  s'ouvre avec le plugin, se replie à la création d'une palette (focus sur son
+  bouton de repli, le champ du nom étant caché) et se déplie pour les cibles
+  `reference` et `ajuster-reference`. L'état de galerie
+  `premier-lancement-palette-creee` ne se jouait plus (`.creation
+  .btn-primary` n'existe pas) : son clic vise `.creation-ligne .btn-primary`.
 - Mesure du glisser après la première livraison : `pointermove` 3,4 ms en
   médiane, 5,3 ms au pire.
 
@@ -253,7 +266,7 @@ La carte des garanties reçoit en tête de son corps une `.rangee-des-choix` :
     montre ses choix et cache son résumé.
   - À 500 px, en français et en anglais : aucun défilement horizontal, et
     chaque choix tient dans son en-tête ou sa rangée.
-- [ ] **R3.6 La carte de l'aperçu prend un titre.** Fichiers :
+- [x] **R3.6 La carte de l'aperçu prend un titre.** Fichiers :
   `src/ui/ongletCreation.ts`, `src/ui/glyphes.ts`, `src/i18n/fr.ts`,
   `src/i18n/en.ts`, `tests/interface/interface.test.mjs`.
   - La carte perd `sansTitre`. Elle porte un glyphe, le titre
@@ -267,7 +280,7 @@ La carte des garanties reçoit en tête de son corps une `.rangee-des-choix` :
   - Test : l'en-tête de l'aperçu porte glyphe, titre et sous-titre, à la même
     hauteur et dans la même typographie que ceux du Réglage global. Le test
     `[UI-04]` qui exigeait l'absence de titre est récrit.
-- [ ] **R3.7 La carte de configuration se replie après une création.**
+- [x] **R3.7 La carte de configuration se replie après une création.**
   Fichiers : `src/ui/ongletCreation.ts`, `tests/interface/interface.test.mjs`.
   - La carte « Configuration de la palette » devient repliable, ouverte à
     l'ouverture du plugin. Repliée, son en-tête porte un résumé : nom,

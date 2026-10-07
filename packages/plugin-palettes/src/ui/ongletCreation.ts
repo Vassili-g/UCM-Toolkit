@@ -3,8 +3,9 @@
  * Dans un fichier sans palette, un encart invite à créer la première
  * ([UI-22]). Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
  * « Palette [nom] » seul sur sa ligne, puis les cartes :
- * Configuration de la palette, aperçu, Réglage global et Color shift
- * repliables, et l'Interface de test en dernier ([UI-12]). Les messages de
+ * Configuration de la palette, aperçu fixe, Réglage global et Color shift
+ * repliables, et l'Interface de test en dernier ([UI-12]). La configuration
+ * s'ouvre avec le plugin et se replie quand une palette se crée. Les messages de
  * la palette se comptent dans le pied, dont « Vérifier » ouvre l'onglet
  * Vérification, où ils se lisent avec les garanties ([UI-18], [VER-18]). La
  * génération appartient à l'onglet Gestion ([UI-05]).
@@ -165,7 +166,7 @@ function construireVues(i18n: Localisation) {
   const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -382,16 +383,17 @@ function construireVues(i18n: Localisation) {
     const colonnes = document.createElement('div');
     colonnes.className = 'colonnes-de-base';
     colonnes.append(champEnColonne(TEXTES.nom, nom), colonneDeLaReference, choixDuModele.element, choixDesIntensites.element);
-    const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration }, i18n);
+    // Ouverte à l'ouverture du plugin ; créer une palette la replie, et son résumé la nomme ([UI-11]).
+    const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration, repliable: { ouverte: true, resumeReplie: true } }, i18n);
     carteDeBase.corps.append(colonnes, puces.element);
 
-    // Carte d'aperçu sans titre ([UI-04]) : thèmes et fond dans l'en-tête, la référence sous la surface.
+    // Carte d'aperçu fixe ([UI-04]) : glyphe, titre et sous-titre, la pastille du fond à droite, la référence sous la surface.
     const nuancier = createNuancier({
       saisirFond: (mode, hexa, fin) => saisirFond(mode, hexa, fin),
       abandonnerLeFond: () => rendre(),
       choisirGarantie: (association) => demandes.choisirGarantie(association),
     });
-    const carteDApercu = createCarte({ titre: TEXTES_DE_L_ONGLET.apercu, sansTitre: true }, i18n);
+    const carteDApercu = createCarte({ titre: TEXTES_DE_L_ONGLET.apercu, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDeLApercu, glyphe: creerGlyphe('apercu') }, i18n);
     carteDApercu.tete.append(nuancier.tete);
     const repereDeReference = document.createElement('p');
     repereDeReference.className = 'repere-de-la-reference';
@@ -550,9 +552,12 @@ function construireVues(i18n: Localisation) {
         return;
       }
       if (cible === 'reference') {
+        carteDeBase.ouvrir();
         hexa.focus();
         hexa.select();
       } else if (cible === 'ajuster-reference') {
+        // La modale rend le focus au lien ou au code de la carte : repliée, elle les cacherait.
+        carteDeBase.ouvrir();
         ouvrirLAjustement();
       } else if (cible === 'intensites-palette' || cible === 'saturation-palette') {
         carteDesIntensites.ouvrir();
@@ -652,8 +657,10 @@ function construireVues(i18n: Localisation) {
       creationOuverte = false;
       note = null;
       const dansLeModele = choisirLaBase(recette, renommer(palette, nomSaisi), base);
+      // La création a donné le nom et la référence : la configuration se replie, et le focus reste sur son bouton.
+      carteDeBase.replier();
       valider(ajouter(recette, crans ? { ...passerEnLibre(recette, dansLeModele), crans: [...crans] } : dansLeModele));
-      nom.focus();
+      carteDeBase.focaliser();
     }
 
     /**
@@ -801,6 +808,19 @@ function construireVues(i18n: Localisation) {
       configuration.hidden = !courante;
     }
 
+    /**
+     * Le résumé de la carte repliée : nom, référence, modèle et nombre
+     * d'intensités. Une palette figée ne montre que son nom ; sans nom, la
+     * référence ne s'écrit qu'une fois.
+     */
+    function resumeDeLaConfiguration(courante: Palette, libre: boolean): Texte {
+      const nomAffiche = nomDeLaPalette(courante);
+      if (estFigee(courante)) return nomAffiche;
+      const intensites = aUneIntensite(courante) ? TEXTES_DES_INTENSITES_DE_PALETTE.une.titre : TEXTES_DES_INTENSITES_DE_PALETTE.deux.titre;
+      const nomDistinct = nomAffiche === courante.reference ? [] : [nomAffiche];
+      return i18n.joindre([...nomDistinct, courante.reference, libre ? TEXTES_DU_MODELE.libre : TEXTES_DU_MODELE.modele, intensites], ' · ');
+    }
+
     function rendrePalette(courante: Palette, lue: Recette): void {
       const analyse = etat.analyse();
       if (!analyse) return;
@@ -816,6 +836,7 @@ function construireVues(i18n: Localisation) {
       poser(nom, courante.nom ?? '');
       i18n.lier(nom, 'placeholder', courante.reference);
       i18n.lier(titreDeConfiguration, 'textContent', TEXTES_DE_L_ONGLET.titre(nomDeLaPalette(courante)));
+      carteDeBase.poserResume(resumeDeLaConfiguration(courante, analyse.libre));
       choixDuModele.poser(analyse.libre ? 'libre' : 'modele');
       const une = aUneIntensite(courante);
       choixDesIntensites.poser({ intensites: une ? 1 : 2 });

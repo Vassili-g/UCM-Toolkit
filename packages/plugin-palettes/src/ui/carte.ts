@@ -14,10 +14,12 @@ import type { Localisation, Texte } from './localisation';
 
 export interface OptionsDeCarte {
   readonly titre: Texte;
-  /** Une carte repliable, et son état à l'ouverture du plugin. */
-  readonly repliable?: { readonly ouverte: boolean };
-  /** Le titre ne sert que de nom accessible : l'en-tête ne porte que les contrôles que l'appelant y pose ([UI-04]). */
-  readonly sansTitre?: boolean;
+  /**
+   * Une carte repliable, et son état à l'ouverture du plugin. `resumeReplie`
+   * cache le résumé carte ouverte, quand le corps dit déjà tout ce que le
+   * résumé reprend ; sans cela, seule une carte qui porte des choix le cache.
+   */
+  readonly repliable?: { readonly ouverte: boolean; readonly resumeReplie?: boolean };
   /** Une ligne sous le titre, qui dit ce que la carte règle ([UI-12]). */
   readonly sousTitre?: Texte;
   /** Le dessin posé à gauche du titre ([UI-19]). */
@@ -37,6 +39,10 @@ export interface CarteUi {
    */
   poserLesChoix(...choix: readonly { readonly element: HTMLElement }[]): void;
   ouvrir(): void;
+  /** Replie la carte : les actions de `surBascule` reçoivent `false`. Sans effet sur une carte fixe ou déjà repliée. */
+  replier(): void;
+  /** Donne le focus au bouton de repli ; sans effet sur une carte fixe. */
+  focaliser(): void;
   estOuverte(): boolean;
   /** Une carte repliable désactivée reste fermée, et son en-tête dit pourquoi. */
   desactiver(raison: Texte | null): void;
@@ -86,23 +92,27 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
     chevron.className = 'carte-chevron';
     chevron.setAttribute('aria-hidden', 'true');
     bouton.append(chevron, ...avantLeTitre, intitule, resume);
-    bouton.addEventListener('click', () => {
-      ouverte = !ouverte;
-      rendre();
-      for (const action of actions) action(ouverte);
-    });
+    bouton.addEventListener('click', () => changer(!ouverte));
     tete = document.createElement('div');
     tete.className = 'carte-tete carte-tete-repliable';
     tete.append(bouton);
   } else {
     tete = document.createElement('div');
     tete.className = 'carte-tete';
-    if (options.sansTitre) tete.append(resume);
-    else tete.append(...avantLeTitre, intitule, resume);
+    tete.append(...avantLeTitre, intitule, resume);
   }
+  if (options.repliable?.resumeReplie) element.dataset.resumeReplie = 'true';
   element.append(tete, corps);
 
   let desactivee = false;
+
+  /** Pose l'état voulu ; les actions ne partent que si l'état change. */
+  function changer(suivante: boolean): void {
+    if (ouverte === suivante) return;
+    ouverte = suivante;
+    rendre();
+    for (const action of actions) action(ouverte);
+  }
 
   function rendre(): void {
     corps.hidden = !ouverte || desactivee;
@@ -127,12 +137,9 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
       tete.append(emplacement);
       element.dataset.avecChoix = 'true';
     },
-    ouvrir() {
-      if (ouverte) return;
-      ouverte = true;
-      rendre();
-      for (const action of actions) action(ouverte);
-    },
+    ouvrir: () => changer(true),
+    replier: () => changer(false),
+    focaliser: () => bouton?.focus(),
     estOuverte: () => ouverte && !desactivee,
     desactiver(raison) {
       desactivee = raison !== null;

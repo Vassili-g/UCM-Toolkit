@@ -2182,7 +2182,8 @@
 /*
  * Les choix de l'en-tête (`CarteUi.poserLesChoix`) : carte repliée, ils sont
  * cachés et le résumé se lit ; carte ouverte, ils se lisent à la place du
- * résumé.
+ * résumé. Une carte sans choix, dont le corps dit déjà ce que le résumé
+ * reprend (`resumeReplie`), cache aussi son résumé ouverte.
  */
 .carte-choix {
   display: flex;
@@ -2199,7 +2200,8 @@
   display: none;
 }
 
-.carte[data-ouverte='true'][data-avec-choix] .carte-bascule .carte-resume {
+.carte[data-ouverte='true'][data-avec-choix] .carte-bascule .carte-resume,
+.carte[data-ouverte='true'][data-resume-replie] .carte-bascule .carte-resume {
   display: none;
 }
 

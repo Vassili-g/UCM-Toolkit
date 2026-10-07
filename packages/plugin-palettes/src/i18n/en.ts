@@ -118,13 +118,13 @@ export function paletteOuverteEcrite(nom: string, verdict: string): string {
 
 /**
  * Le titre de premier rang de l'onglet Création et les titres de ses cartes
- * (N076, N077, N027). La carte d'aperçu ne montre pas son titre : il reste son
- * nom accessible.
+ * (N076, N077, N027).
  */
 export const TEXTES_DE_L_ONGLET = {
   titre: (nom: string) => `Palette ${nom}`,
   configuration: "Palette settings",
   apercu: "Preview",
+  sousTitreDeLApercu: "The shades on the theme background",
   garanties: "Contrast guarantees",
   derive: "Color shift",
   sousTitreDeLaDerive: "Adjust shades around the reference ◆",

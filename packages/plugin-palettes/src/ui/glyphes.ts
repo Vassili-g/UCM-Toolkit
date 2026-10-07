@@ -12,6 +12,7 @@
  * palette, la création et « Palettes et réglages ».
  */
 export type NomDeGlyphe =
+  | 'apercu'
   | 'reglageGlobal'
   | 'colorShift'
   | 'garanties'
@@ -47,6 +48,12 @@ const rampe = (y: number, role: RoleDeForme): FormeDeGlyphe[] => Array.from({ le
 
 /** Les formes de chaque glyphe, dans l'ordre où elles se peignent. */
 export const GLYPHES: { readonly [N in NomDeGlyphe]: readonly FormeDeGlyphe[] } = {
+  // Une surface, une rangée de pastilles dont la troisième, de marque, porte le losange de la référence.
+  apercu: [
+    rect(4, 3, 36, 22, 'fond', 2),
+    ...[0, 1, 2, 3, 4].map((rang) => rect(8 + rang * 6, 7, 4.6, 8, rang === 2 ? 'aplat-marque' : 'aplat-pale', 1)),
+    chemin('M22.3 17.5 L24.8 20 L22.3 22.5 L19.8 20 Z', 'losange'),
+  ],
   // Validé : une rampe pâle, puis la même translatée, de marque.
   reglageGlobal: [...rampe(6, 'aplat-pale'), ...rampe(13, 'aplat-marque')],
   // Validé : deux bouts qui pivotent autour du losange de la référence.

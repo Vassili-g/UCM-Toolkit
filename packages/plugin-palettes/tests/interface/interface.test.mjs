@@ -1700,18 +1700,213 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
   }
 });
 
-test('[UI-04] la carte d’aperçu n’a pas de titre : le fond du thème à droite de l’en-tête, la référence sous la surface', async () => {
+/**
+ * Ce qu'un en-tête de carte montre de son intitulé : le glyphe, le titre et le sous-titre. Les mesures qui se comparent
+ * d'une carte à l'autre : taille du glyphe, typographie du titre et du sous-titre, retrait du titre et du sous-titre
+ * depuis le bord gauche du glyphe, et écart vertical entre le centre du glyphe et celui de l'intitulé.
+ */
+const intituleDeLEnTete = (carte) => carte.evaluate((element) => {
+  const [glyphe, titre, sousTitre, intitule] = ['.glyphe', '.carte-titre', '.carte-sous-titre', '.carte-intitule'].map((selecteur) => element.querySelector(`.carte-tete ${selecteur}`));
+  const [boiteDuGlyphe, boiteDeLIntitule] = [glyphe, intitule].map((noeud) => noeud.getBoundingClientRect());
+  const typographie = (noeud) => JSON.stringify(['fontSize', 'fontWeight', 'lineHeight', 'color'].map((propriete) => getComputedStyle(noeud)[propriete]));
+  return {
+    glyphe: [boiteDuGlyphe.width, boiteDuGlyphe.height],
+    titre: titre.textContent,
+    sousTitre: sousTitre.textContent,
+    typographieDuTitre: typographie(titre),
+    typographieDuSousTitre: typographie(sousTitre),
+    retraits: [titre, sousTitre].map((noeud) => noeud.getBoundingClientRect().left - boiteDuGlyphe.left),
+    ecartDeCentre: Math.abs(boiteDuGlyphe.top + boiteDuGlyphe.height / 2 - (boiteDeLIntitule.top + boiteDeLIntitule.height / 2)),
+    sousLeTitre: sousTitre.getBoundingClientRect().top >= titre.getBoundingClientRect().bottom - 0.5,
+  };
+});
+
+test('[UI-04] la carte d’aperçu a un titre : glyphe, titre « Aperçu » et sous-titre, à la même place et dans la même typographie que le Réglage global ; la carte reste fixe, le fond du thème à droite de l’en-tête, la référence sous la surface', async () => {
+  for (const [langue, attendu] of [['fr', { titre: 'Aperçu', sousTitre: 'Les nuances sur le fond du thème' }], ['en', { titre: 'Preview', sousTitre: 'The shades on the theme background' }]]) {
+    const page = await ouvrirSurEn('alertes-seules', PAR_DEFAUT, langue);
+    try {
+      const carte = page.locator(`#panneau-creation .carte[aria-label="${attendu.titre}"]`);
+      const apercu = await intituleDeLEnTete(carte);
+      assert.equal(apercu.titre, attendu.titre, langue);
+      assert.equal(apercu.sousTitre, attendu.sousTitre, langue);
+      assert.equal(await carte.locator('.carte-tete > .glyphe[data-glyphe="apercu"]').count(), 1, `${langue} : le glyphe de l’aperçu est dans l’en-tête`);
+      assert.equal(apercu.sousLeTitre, true, `${langue} : le sous-titre est sous le titre`);
+
+      const reglage = await intituleDeLEnTete(page.locator(`#panneau-creation .carte[aria-label="${langue === 'fr' ? 'Réglage global' : 'Global adjustment'}"]`));
+      for (const cle of ['glyphe', 'typographieDuTitre', 'typographieDuSousTitre']) assert.deepEqual(apercu[cle], reglage[cle], `${langue} : ${cle} diffère du Réglage global`);
+      // Le titre et le sous-titre partent du même retrait depuis le glyphe, à 1 px près ; le chevron du Réglage global précède son glyphe.
+      apercu.retraits.forEach((retrait, rang) => assert.ok(Math.abs(retrait - reglage.retraits[rang]) <= 1, `${langue} : retrait ${rang} à ${retrait} px du glyphe, ${reglage.retraits[rang]} px dans le Réglage global`));
+      assert.ok(apercu.ecartDeCentre <= 1 && reglage.ecartDeCentre <= 1, `${langue} : le glyphe est centré sur l’intitulé (${apercu.ecartDeCentre}, ${reglage.ecartDeCentre})`);
+
+      // La carte reste fixe : ni bouton de repli, ni chevron, corps toujours ouvert.
+      assert.equal(await carte.locator('.carte-bascule, .carte-chevron').count(), 0, `${langue} : l’en-tête n’est pas un bouton`);
+      assert.equal(await carte.getAttribute('data-ouverte'), 'true', langue);
+      assert.equal(await carte.locator('.carte-corps').isVisible(), true, langue);
+      const fond = await carte.locator('.pastille-du-fond').boundingBox();
+      const tete = await carte.locator('.carte-tete').boundingBox();
+      const intitule = await carte.locator('.carte-intitule').boundingBox();
+      assert.ok(fond.x > tete.x + tete.width / 2, `${langue} : le fond est dans la moitié droite de l’en-tête`);
+      assert.ok(fond.x >= intitule.x + intitule.width - 0.5, `${langue} : le fond est à droite de l’intitulé`);
+      const ordre = await carte.locator('.nuancier-surface, .repere-de-la-reference').evaluateAll((elements) => elements.map((element) => element.className));
+      assert.deepEqual(ordre, ['nuancier-surface', 'repere-de-la-reference'], langue);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+/** Le résumé de la carte de configuration, caché ou non, avec l'état de la carte et celui de son bouton. */
+const etatDeLaConfiguration = (page) => page.evaluate(() => {
+  const carte = document.querySelector('#panneau-creation .carte[aria-label="Configuration de la palette"]');
+  const resume = carte.querySelector('.carte-bascule .carte-resume');
+  const bouton = carte.querySelector('.carte-bascule');
+  return {
+    ouverte: carte.dataset.ouverte,
+    etendu: bouton.getAttribute('aria-expanded'),
+    corpsVisible: carte.querySelector('.carte-corps').getClientRects().length > 0,
+    resumeVisible: resume.getClientRects().length > 0,
+    resume: resume.textContent,
+    focusSurLeBouton: document.activeElement === bouton,
+  };
+});
+test('[UI-11] la carte « Configuration de la palette » est repliable et ouverte à l’ouverture du plugin ; ouverte, elle cache son résumé et montre ses champs ; un clic la replie, et le résumé reprend nom, référence, modèle et intensités', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    const carte = page.locator('[aria-label="Aperçu"]');
-    assert.equal(await carte.locator('.carte-titre').count(), 0);
-    const fond = await carte.locator('.pastille-du-fond').boundingBox();
-    const tete = await carte.locator('.carte-tete').boundingBox();
-    assert.ok(fond.x > tete.x + tete.width / 2, 'le fond est dans la moitié droite de l’en-tête');
-    const ordre = await carte.locator('.nuancier-surface, .repere-de-la-reference').evaluateAll((elements) => elements.map((element) => element.className));
-    assert.deepEqual(ordre, ['nuancier-surface', 'repere-de-la-reference']);
+    const depart = await etatDeLaConfiguration(page);
+    assert.deepEqual([depart.ouverte, depart.etendu, depart.corpsVisible, depart.resumeVisible], ['true', 'true', true, false], 'ouverte au départ, sans résumé');
+    assert.equal(await page.getByRole('textbox', { name: 'Nom de la palette' }).isVisible(), true);
+    await bascule(page, 'Configuration de la palette').click();
+    const repliee = await etatDeLaConfiguration(page);
+    assert.deepEqual([repliee.ouverte, repliee.etendu, repliee.corpsVisible, repliee.resumeVisible], ['false', 'false', false, true], 'repliée, son résumé se lit');
+    assert.equal(repliee.resume, 'Jaune · #FACC15 · Standard · Deux intensités');
+    assert.equal(await page.getByRole('textbox', { name: 'Nom de la palette' }).isVisible(), false);
+    await bascule(page, 'Configuration de la palette').click();
+    assert.deepEqual(await etatDeLaConfiguration(page), { ...depart, focusSurLeBouton: true, resume: repliee.resume }, 'un second clic la déplie');
   } finally {
     await page.close();
+  }
+});
+
+test('[UI-11] « Nouvelle palette » replie la carte de configuration de la palette créée : son résumé la nomme, le focus reste sur le bouton de repli, un clic déplie', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    assert.equal((await etatDeLaConfiguration(page)).ouverte, 'true');
+    await page.getByRole('button', { name: 'Nouvelle palette', exact: true }).click();
+    await page.locator('.champ-creation').fill('#16A34A');
+    const creation = page.locator('[aria-label="Nouvelle palette"]');
+    await creation.getByRole('textbox', { name: 'Nom de la palette' }).fill('Menthe');
+    await creation.getByRole('radio', { name: /^Deux intensités/ }).click();
+    const avant = await compte(page);
+    await page.getByRole('button', { name: 'Créer la palette' }).click();
+    const rangement = await prochaine(page, avant);
+    assert.equal(rangement.type, 'ranger-recette');
+    await envoyer(page, rangee(rangement.demande));
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Menthe');
+    const creee = await etatDeLaConfiguration(page);
+    assert.deepEqual([creee.ouverte, creee.corpsVisible, creee.resumeVisible, creee.focusSurLeBouton], ['false', false, true, true]);
+    assert.equal(creee.resume, 'Menthe · #16A34A · Standard · Deux intensités');
+    await bascule(page, 'Configuration de la palette').click();
+    assert.equal(await page.getByRole('textbox', { name: 'Nom de la palette' }).inputValue(), 'Menthe');
+    assert.equal((await etatDeLaConfiguration(page)).ouverte, 'true');
+
+    // Sans nom, le résumé n’écrit la référence qu’une fois ; à une intensité, il le dit.
+    await page.getByRole('button', { name: 'Nouvelle palette', exact: true }).click();
+    await page.locator('.champ-creation').fill('#DC2626');
+    const suivante = await compte(page);
+    await page.getByRole('button', { name: 'Créer la palette' }).click();
+    assert.equal((await prochaine(page, suivante)).type, 'ranger-recette');
+    const sansNom = await etatDeLaConfiguration(page);
+    assert.deepEqual([sansNom.ouverte, sansNom.resume], ['false', '#DC2626 · Standard · Une intensité']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-11] [UI-22] l’invitation d’un fichier sans palette crée la première palette et replie sa carte de configuration', async () => {
+  const page = await ouvrir();
+  try {
+    await envoyer(page, messageDe('premier-lancement'));
+    await page.locator('#panneau-creation .appel').getByRole('button', { name: 'Nouvelle palette' }).click();
+    await page.locator('.champ-creation').fill('#1E6FD9');
+    const avant = await compte(page);
+    await page.getByRole('button', { name: 'Créer la palette', exact: true }).click();
+    assert.equal((await prochaine(page, avant)).type, 'ranger-recette');
+    const creee = await etatDeLaConfiguration(page);
+    assert.deepEqual([creee.ouverte, creee.corpsVisible, creee.resumeVisible, creee.resume], ['false', false, true, '#1E6FD9 · Standard · Une intensité']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-11] ouvrir une autre palette ou changer d’onglet ne change pas l’état de la carte de configuration, repliée ou dépliée', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    const autrePalette = async (nom) => {
+      await page.locator('.selecteur-bouton').click();
+      await page.getByRole('option', { name: nom }).click();
+      assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
+    };
+    const faireLeTour = async () => {
+      await ouvrirLaVerification(page);
+      await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+      await ouvrirLaCreation(page);
+    };
+    // « Modifier » d'une fiche de Gestion ouvre la palette de la fiche, sans toucher à la carte.
+    const modifierDepuisGestion = async (nom) => {
+      await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+      const fiche = page.locator('#panneau-gestion .palette-depliable[data-palette]').filter({ hasText: nom }).first();
+      await fiche.locator('.mini-rampe').click();
+      await fiche.locator('[data-geste="modifier"]').click();
+      assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
+    };
+    // Dépliée : elle le reste.
+    await autrePalette('Bleu');
+    await faireLeTour();
+    await modifierDepuisGestion('Jaune');
+    assert.equal((await etatDeLaConfiguration(page)).ouverte, 'true', 'dépliée, elle reste dépliée');
+    // Repliée : elle le reste, et son résumé suit la palette ouverte.
+    await bascule(page, 'Configuration de la palette').click();
+    await autrePalette('Jaune');
+    const apres = await etatDeLaConfiguration(page);
+    assert.deepEqual([apres.ouverte, apres.resume], ['false', 'Jaune · #FACC15 · Standard · Deux intensités']);
+    await faireLeTour();
+    await modifierDepuisGestion('Bleu');
+    assert.deepEqual([(await etatDeLaConfiguration(page)).ouverte, (await etatDeLaConfiguration(page)).resume], ['false', 'Bleu · #1E6FD9 · Standard · Deux intensités'], 'repliée, elle reste repliée');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-11] [VER-15] un message de Vérification qui mène à la référence déplie la carte de configuration repliée, focalise le code ; « Ajuster la référence » la déplie et ouvre la modale', async () => {
+  const page = await ouvrir();
+  try {
+    const lu = structuredClone(messageDe('alertes-seules'));
+    // Une copie de Jaune à une nuance près : l’alerte « palettes proches » mène à la couleur de référence.
+    lu.classement.recette.palettes.push({ ...lu.classement.recette.palettes[0], id: 'p-0cc0ffee', nom: 'Jaune bis', reference: '#FACC16' });
+    await envoyer(page, lu);
+    await ouvrirLaPremierePalette(page);
+    await bascule(page, 'Configuration de la palette').click();
+    assert.equal((await etatDeLaConfiguration(page)).ouverte, 'false');
+    await ouvrirLaVerification(page);
+    await page.locator('.messages-de-la-verification').getByRole('button', { name: 'Changer la couleur de référence' }).first().click();
+    assert.equal(await page.locator('#onglet-creation').getAttribute('aria-selected'), 'true', 'le lien ramène à Création');
+    assert.equal((await etatDeLaConfiguration(page)).ouverte, 'true', 'la carte est dépliée');
+    assert.equal(await page.evaluate(() => document.activeElement.matches('#panneau-creation .carte[aria-label="Configuration de la palette"] .champ-hexa')), true, 'le code de référence a le focus');
+  } finally {
+    await page.close();
+  }
+  const ajustee = await ouvrirSur('garantie-en-echec');
+  try {
+    await bascule(ajustee, 'Configuration de la palette').click();
+    assert.equal((await etatDeLaConfiguration(ajustee)).ouverte, 'false');
+    await ouvrirLaVerification(ajustee);
+    await carteDesGaranties(ajustee).getByRole('button', { name: 'Ajuster la référence' }).first().click();
+    assert.equal(await ajustee.getByRole('dialog', { name: 'Ajuster la référence' }).isVisible(), true);
+    assert.equal((await etatDeLaConfiguration(ajustee)).ouverte, 'true', 'la carte est dépliée derrière la modale');
+    await ajustee.keyboard.press('Escape');
+    assert.equal(await lienDAjustement(ajustee).evaluate((element) => element === document.activeElement), true, 'le focus revient au lien, visible');
+  } finally {
+    await ajustee.close();
   }
 });
 
