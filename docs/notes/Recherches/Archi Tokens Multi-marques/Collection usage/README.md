@@ -20,6 +20,10 @@ par UCM Palettes. Ses décisions attendues sont en section 9. Ses mesures sont
 dans [mesurer-dossiers.ts](./mesurer-dossiers.ts) et
 [MESURES-DOSSIERS.json](./MESURES-DOSSIERS.json).
 
+[CHANGEMENTS-DU-MOTEUR.md](./CHANGEMENTS-DU-MOTEUR.md) liste ce que cette
+architecture demande au kit, à UCM Palettes, à `ucm check` et à UCM
+Explorateur, avec l'état de chaque changement.
+
 ## Ce qui fait foi aujourd'hui
 
 | Document | Ce qu'il porte |
@@ -38,7 +42,7 @@ dans [mesurer-dossiers.ts](./mesurer-dossiers.ts) et
 | 4 | Règle de l'escalier | [Présentation des niveaux](./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html) | Jugée trop savante par le mainteneur |
 | 5 | Ensembles numérotés `surface-0` à `surface-4` | [La collection usage en ensembles](./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html) | Jugée trop complexe par le mainteneur |
 | 6 | Thème inversé : texte blanc sur les boutons Dark | [Dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md) | À décider ; il impose une nuance par thème que D2 ne sait pas écrire |
-| 7 | Dossiers à texte constant, valeurs par thème dans `theme` | [Ce dossier](./RECHERCHE-COLLECTION-USAGE.md) | À décider |
+| 7 | Dossiers à texte constant, valeurs par thème dans `theme` | [Ce dossier](./RECHERCHE-COLLECTION-USAGE.md) | Texte constant à 800 retenu ; décisions restantes en section 9 |
 
 Les documents 3 à 5 sont rangés dans les sous-dossiers `1 Usages indexes et
 catalogue`, `2 Escalier` et `3 Ensembles`, avec leurs scripts.
