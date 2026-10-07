@@ -714,7 +714,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 
 ## Lot 4. L'aperçu en bandes et le survol lié
 
-- [ ] **T4.1** · `implementeur-exigeant`. L'aperçu.
+- [x] **T4.1** · `implementeur-exigeant`. L'aperçu.
   - Fichiers : `packages/plugin-palettes/src/presentation.ts`
     (`accoladesDe` remplacée par les bandes), `src/ui/nuancier.ts`,
     `src/ui/styles.css`, `src/i18n/fr.ts`, `src/i18n/en.ts`,
@@ -728,7 +728,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     les crans surlignés pour chaque geste de S11.
   - Fini quand : `npm run typecheck` et `npm test --workspace
     ucm-palettes-plugin` passent.
-- [ ] **T4.2** · `implementeur`. Le contrôle de fidélité.
+- [x] **T4.2** · `implementeur`. Le contrôle de fidélité.
   - Fichiers : `packages/plugin-palettes/galerie/comparer-maquette.cjs`
     (nouveau), `galerie/etats.cjs`.
   - Faire, sur le modèle de
@@ -745,18 +745,18 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
     nuances ne se comparent pas : les palettes diffèrent. Imprimer chaque
     écart ; sortir en erreur s'il y en a un.
   - Fini quand : le script tourne et n'imprime aucun écart.
-- [ ] **T4.3** · `implementeur`. Galerie et tests Chromium.
+- [x] **T4.3** · `implementeur`. Galerie et tests Chromium.
   - Fichiers : `packages/plugin-palettes/galerie/etats.cjs`,
     `tests/interface/interface.test.mjs`.
   - Faire : les états de T4.2 ; un test Chromium par geste de S11, qui
     vérifie les classes posées, et un qui vérifie l'absence de défilement
     horizontal à 500 px en français et en anglais.
   - Fini quand : `npm run test:ui --workspace ucm-palettes-plugin` passe.
-- [ ] **T4.4** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T4.4** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-palettes-plugin`,
   `node packages/plugin-palettes/galerie/comparer-maquette.cjs`. Fini
   quand : tableau rendu, tout vert.
-- [ ] **T4.5** · Orchestrateur. Ouvrir les captures côte à côte rangées par
+- [x] **T4.5** · Orchestrateur. Ouvrir les captures côte à côte rangées par
   T4.2 ; commit `feat(palettes): l'aperçu en bandes solid, surface, page,
   et le survol lié entre pastilles et variables`.
 
@@ -1031,10 +1031,10 @@ Mis à jour par l'orchestrateur à chaque lot.
 | 1. Table du kit | commité | c771604 |
 | 2. Format 9 et courbe | commité | 7a1f29a |
 | 3. Réglages | commité | 003f971 |
-| 4. Aperçu | T4.1 en cours : chevauchements des libellés à 500 px à corriger | |
+| 4. Aperçu | commité | cd4700c |
 | 5. `ucm check` | commité | 22eb44f |
 | 6. Explorateur | commité | 9c55ca6 |
-| 7. Garanties | portes ouvertes (M1 à M3 validées), attend la fin du lot 4 | |
+| 7. Garanties | T7.1 en cours ; portes M1 à M3 ouvertes | |
 | 8 à 10 | à faire | |
 
 **Décisions prises pendant l'exécution**, dans le cadre du plan :
@@ -1054,6 +1054,15 @@ Mis à jour par l'orchestrateur à chaque lot.
   casse, comme UCM Explorateur et l'architecture.
 - Lot 4 : les couleurs de surlignage s'écrivent en `rgb()` dans la feuille de
   style, que la loi `stylesUi` interdit d'hexadécimaux.
+- Lot 4 : à la largeur minimale de la fenêtre, 500 px, un libellé qui ne
+  tient pas dans sa plage passe à la ligne après un « · », au lieu de
+  chevaucher son voisin ou de sortir de la bande. À la largeur de `#pu-v2`,
+  le rendu ne change pas.
+- Lot 4 : `comparer-maquette.cjs` accepte trois écarts nommés dans son
+  en-tête : l'encre claire de la surface en Dark, que l'aperçu compact
+  partage ; la note du neutre posée dans la surface ; le retour à la ligne
+  des libellés. Le survol d'un spécimen allume aussi les petites pastilles
+  des rayures, comme dans `#pu-v2`.
 - Lot 5 : le test [A4] de `controleRepository.test.mjs`, qui attendait
   l'avertissement de la table des emplois, vérifie maintenant qu'une
   collection `usage` n'est plus jugée. `ROADMAP.md` a reçu la même mise à
@@ -1062,6 +1071,12 @@ Mis à jour par l'orchestrateur à chaque lot.
   l'inspecteur ; il lit `variablesDuCran`.
 
 **Écarts relevés, à reprendre plus loin :**
+
+- Jusqu'à T10.2, `versionSuitLeContenu.test.mjs` échoue : `@ucm-kit/core` et
+  `@ucm-kit/cli` ont changé sans relever leur numéro.
+- `docLinks.test.ts` relève aussi des liens morts laissés par d'autres
+  sessions (Direction artistique, Commandes d'affichage, Liste dépliable,
+  Diagnostics d'un composant réel), hors de ce plan.
 
 - Jusqu'au lot 7, la garantie des courbes lit l'ancienne table : un thème
   inversé y affiche huit alertes à tort (600 et 700 contre la 50).
