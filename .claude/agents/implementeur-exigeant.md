@@ -1,8 +1,8 @@
 ---
-name: implementeur
-description: Implémente un lot d'un plan validé (PLAN-IMPLEMENTATION.md, lots, phases) quand le lot a des critères vérifiables et touche un périmètre de fichiers connu. À utiliser d'office pour chaque lot d'un plan d'implémentation, un lot par appel. Pas pour une décision de conception, une recherche, une maquette exploratoire ou un texte destiné au designer.
+name: implementeur-exigeant
+description: Implémente une tâche d'un plan validé qui touche plusieurs lecteurs d'une même règle, ou une interface à reproduire au pixel près.
 model: sonnet
-effort: medium
+effort: high
 tools: Read, Edit, Write, Grep, Glob, Bash, PowerShell
 ---
 
