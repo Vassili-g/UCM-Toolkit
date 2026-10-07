@@ -171,7 +171,7 @@ entre deux états du bouton.
 
 La première valeur Light, 0,71, 0,66 et 0,58, tenait sur les quatorze
 références de la section 5.3, mais pas sur un échantillon plus large :
-[mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) balaie 204 couleurs,
+[mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) balaie 864 couleurs,
 teintes tous les 5°, quatre chromas et trois clartés. Le texte noir y
 échouait 127 fois hors nuance ancrée, au pire 4,13:1, toujours sur la 700
 des violets, magentas et roses vifs : à clarté OKLCH égale, ces teintes ont
@@ -393,7 +393,7 @@ npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/generer
   garantie 14, ancrage.
 - [mesurer-couverture.ts](./Mesures/mesurer-couverture.ts) et
   [MESURES-COUVERTURE.json](./Mesures/MESURES-COUVERTURE.json) : le texte des
-  boutons sur 204 couleurs, dans les quatre thèmes, avec la courbe retenue.
+  boutons sur 864 couleurs, dans les quatre thèmes, avec la courbe retenue.
 - [generer-texte-des-boutons.ts](./Mesures/generer-texte-des-boutons.ts) :
   les rampes de six palettes, courbe actuelle et courbe inversée, écrites
   dans [TEXTE-DES-BOUTONS.html](./TEXTE-DES-BOUTONS.html).
