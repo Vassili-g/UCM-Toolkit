@@ -28,7 +28,6 @@
   --hl:#3B3413;
 }
 *{box-sizing:border-box}
-[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
 main{max-width:1060px;margin:0 auto;padding-block:36px 80px}
 .narrow{max-width:860px}
@@ -171,9 +170,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="groupe"><span>Texte des boutons, Light</span><div class="seg" id="c-light">
     <button type="button" data-v="blanc" aria-pressed="true">blanc</button><button type="button" data-v="noir" aria-pressed="false">noir</button></div></div>
   <div class="groupe"><span>Dark</span><div class="seg" id="c-dark">
-    <button type="button" data-v="noir" aria-pressed="false">noir</button><button type="button" data-v="blanc" aria-pressed="true">blanc</button></div></div>
-  <div class="groupe"><span>Texte sur un fond teinté</span><div class="seg" id="c-mode">
-    <button type="button" data-v="constant" aria-pressed="true">constant</button><button type="button" data-v="suit" aria-pressed="false">suit le fond</button></div></div>
+    <button type="button" data-v="noir" aria-pressed="true">noir</button><button type="button" data-v="blanc" aria-pressed="false">blanc</button></div></div>
   <div class="groupe"><span>Page</span><div class="seg" id="c-page">
     <button type="button" data-v="auto" aria-pressed="true">auto</button><button type="button" data-v="light" aria-pressed="false">claire</button><button type="button" data-v="dark" aria-pressed="false">sombre</button></div></div>
 </div></div>
@@ -182,7 +179,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <div class="narrow">
     <h1>L'architecture des tokens, en une page</h1>
     <p class="lede">La forme proposée pour le design system : six marques, Light et Dark, des statuts en <code>soft</code> et <code>vivid</code>. Elle reprend les décisions D1 à D17 de la <a href="../VUE-ILLUSTREE-MULTIMARQUES.html">vue illustrée</a>, sauf la collection <code>usage</code>, que la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a> remplace. Rien n'est implémenté.</p>
-    <p>La barre du haut choisit la marque des aperçus et le texte des boutons de chaque thème. Elle choisit aussi le texte posé sur un fond teinté : constant, ou qui suit le fond comme les paires d'UCM Palettes aujourd'hui. Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de la page : texte blanc en Dark, ou noir en Light.</p>
+    <p>La barre du haut choisit la marque des aperçus et le texte des boutons de chaque thème. Un thème est <b>inversé</b> quand le texte des boutons n'a pas la couleur de la page : texte blanc en Dark, ou noir en Light. La page s'ouvre sur deux thèmes normaux ; le thème inversé reste à décider.</p>
   </div>
 
   <h2>En bref</h2>
@@ -199,8 +196,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <ol>
         <li>Le dossier se lit sur le fond juste derrière : la page ou une carte, <code>page</code> ; une teinte claire de la palette, <code>surface</code> ; la couleur franche, <code>solid</code>.</li>
         <li>Le texte, l'icône et le contour se prennent dans ce dossier.</li>
-        <li id="regle-3"></li>
-        <li>Un état qui change la sorte de fond change de dossier : le survol du bouton outlined passe dans <code>solid</code>.</li>
+        <li>Un état qui garde la sorte de fond ne change que le fond : <code>default</code>, <code>hover</code>, <code>pressed</code>. Le texte et le contour ne bougent pas.</li>
+        <li>Un état qui change la sorte de fond change de dossier : le survol du bouton outlined passe dans <code>solid</code>, une ligne sélectionnée dans <code>primary/surface</code>.</li>
       </ol></div>
     <div class="carte"><div class="k">Personne ne tape un alias</div>
       <ul>
@@ -224,6 +221,22 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
   <div class="trajet" id="trajet"></div>
   <p class="cap">Deux collections portent un axe : <code>brand</code> la marque, <code>theme</code> le thème (D1). Un cadre Figma règle chacune séparément ; le code pose <code>data-brand</code> et <code>data-theme</code>.</p>
+
+  <h2>Les variables d'une palette</h2>
+  <div class="narrow">
+  <div class="tw"><table class="plain">
+    <thead><tr><th>Variable</th><th>Ce qu'elle peint</th><th>Thème normal</th><th>Thème inversé</th></tr></thead>
+    <tbody>
+      <tr><td><code>{p}/solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>Le fond du bouton et du badge fort ; le contour de l'outlined survolé</td><td>700, 800, 900</td><td>700, 600, 500</td></tr>
+      <tr><td><code>{p}/solid/text</code></td><td>Le texte et l'icône sur ces trois fonds</td><td>blanc en Light, noir en Dark</td><td>noir en Light, blanc en Dark</td></tr>
+      <tr><td><code>{p}/surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>Le fond teinté : alerte, badge doux, ligne sélectionnée, survol d'un bouton <code>text</code></td><td>100, 200, 300</td><td>100, 200, 300</td></tr>
+      <tr><td><code>{p}/surface/text</code>, <code>border</code></td><td>Le texte, l'icône et le contour sur ces trois fonds, la page et une carte</td><td>800</td><td>900</td></tr>
+      <tr><td><code>{p}/page/text</code>, <code>border</code></td><td>Le texte coloré, le lien, le contour d'un champ ou d'un outlined, posés sur la page ou une carte</td><td>700</td><td>800</td></tr>
+      <tr><td><code>{p}/page/divider</code></td><td>Le filet</td><td>300</td><td>300</td></tr>
+    </tbody>
+  </table></div>
+  <p>Douze variables par palette. Dans chaque dossier, le contour a la nuance du texte. Hors palette : l'anneau <code>focus</code>, à la 600 de <code>primary</code> (700 dans un thème inversé) ; <code>neutral/page/text</code> à la 900 ; <code>disabled/background</code>, <code>text</code> et <code>border</code>.</p>
+  </div>
 
   <h2>Le panneau des variables dans Figma</h2>
   <p class="narrow">Choisis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour suivre la chaîne jusqu'à l'hexa.</p>
@@ -249,8 +262,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <p>Les contrats <code>Button</code> et <code>Alert</code> du dépôt UCM-Playground (<code>src/components/</code>), rebranchés sur <code>theme</code>. Chaque token de composant garde son nom et vise la variable du tableau qui suit les aperçus. Les statuts prennent l'intensité <code>vivid</code> ; <code>error</code> vise <code>danger</code>. Le Playground n'a pas de thème Dark : la colonne Dark montre ce que le modèle en ferait.</p>
     <p>Les ratios sont recalculés sur les couleurs affichées : texte à 4,5:1, icône et anneau à 3:1. Un ratio rouge sous un bouton signale un échec ; un variant désactivé n'est pas mesuré.</p>
   </div>
-  <div class="groupe" id="g-texte"><span>Bouton <code>text</code></span><div class="seg" id="c-texte">
-    <button type="button" data-v="surface" aria-pressed="true">B, dossier surface</button><button type="button" data-v="page" aria-pressed="false">A, texte de la page</button></div></div>
   <div class="pile" id="recette-boutons"></div>
   <div class="pile" id="recette-alertes"></div>
 
@@ -258,91 +269,64 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <h3>Les tokens des contrats, branchés sur <code>theme</code></h3>
   <p><code>{c}</code> est la couleur du bouton ou la sévérité de l'alerte : <code>primary</code> et <code>secondary</code> visent <code>brand</code> ; <code>info</code>, <code>success</code> et <code>warning</code> leur statut en <code>vivid</code> ; <code>error</code> vise <code>danger/vivid</code>.</p>
   <div class="tw"><table class="plain">
-    <thead><tr><th>Token de composant</th><th>Playground aujourd'hui</th><th>Texte constant</th><th>Texte qui suit le fond</th></tr></thead>
+    <thead><tr><th>Token de composant</th><th>Playground aujourd'hui</th><th>Modèle</th></tr></thead>
     <tbody>
-      <tr><td colspan="4"><b>Button, <code>contained</code></b></td></tr>
-      <tr><td><code>default/background</code></td><td>la nuance de la marque ou du statut</td><td><code>{c}/solid/default</code></td><td><code>{c}/solid/default/background</code></td></tr>
-      <tr><td><code>hover/background</code>, <code>focus/background</code></td><td>un cran plus foncé</td><td><code>{c}/solid/hover</code></td><td><code>{c}/solid/hover/background</code></td></tr>
-      <tr><td><code>press/background</code></td><td>le même que le survol</td><td><code>{c}/solid/pressed</code></td><td><code>{c}/solid/pressed/background</code></td></tr>
-      <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/text</code></td><td><code>{c}/solid/{état}/text</code>, la même valeur dans les trois</td></tr>
-      <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td colspan="2"><code>focus</code></td></tr>
-      <tr><td><code>disable</code></td><td>neutre 200 et 500</td><td colspan="2"><code>disabled/background</code>, <code>disabled/text</code></td></tr>
-      <tr><td colspan="4"><b>Button, <code>outlined</code></b></td></tr>
-      <tr><td><code>default/background</code></td><td><code>neutral.50</code>, opaque</td><td colspan="2">aucun fond</td></tr>
-      <tr><td><code>default/foreground</code>, <code>default/border</code></td><td>la nuance du fond plein</td><td colspan="2"><code>{c}/page/text</code>, <code>{c}/page/border</code></td></tr>
-      <tr><td><code>hover/background</code>, <code>hover/border</code></td><td>comme le survol du bouton plein</td><td><code>{c}/solid/hover</code></td><td><code>{c}/solid/hover/background</code></td></tr>
-      <tr><td><code>focus/background</code>, <code>focus/border</code></td><td>le fond plein au repos</td><td><code>{c}/solid/default</code></td><td><code>{c}/solid/default/background</code></td></tr>
-      <tr><td><code>press/background</code>, <code>press/border</code></td><td>comme le survol</td><td><code>{c}/solid/pressed</code></td><td><code>{c}/solid/pressed/background</code></td></tr>
-      <tr><td><code>foreground</code> au survol, au focus, à l'appui</td><td><code>neutral.50</code></td><td><code>{c}/solid/text</code></td><td><code>{c}/solid/{état}/text</code></td></tr>
-      <tr><td><code>disable</code></td><td><code>neutral.50</code> ; contour et texte neutre 500</td><td colspan="2">aucun fond ; <code>disabled/border</code>, <code>disabled/text</code></td></tr>
-      <tr><td colspan="4"><b>Button, <code>text</code></b></td></tr>
-      <tr><td><code>foreground</code> au repos</td><td>la nuance du fond plein</td><td>A : <code>{c}/page/text</code> ; B : <code>{c}/surface/text</code></td><td><code>{c}/page/text</code></td></tr>
-      <tr><td>survol, focus, appui</td><td>fond à la nuance 50, 100 pour <code>secondary</code> ; texte inchangé</td><td>A : fond <code>{c}/surface/default</code> ; B : fond <code>{c}/surface/hover</code>, puis <code>pressed</code> ; texte inchangé</td><td>fond et texte de <code>{c}/surface/hover</code>, puis de <code>{c}/surface/pressed</code></td></tr>
-      <tr><td colspan="4"><b>Alert, <code>standard</code></b></td></tr>
-      <tr><td><code>background</code></td><td>nuance 50</td><td><code>{c}/surface/default</code></td><td><code>{c}/surface/default/background</code></td></tr>
-      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700</td><td><code>{c}/surface/text</code>, 900</td><td><code>{c}/surface/default/text</code>, 700</td></tr>
-      <tr><td colspan="4"><b>Alert, <code>outlined</code></b></td></tr>
-      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700, 900 pour le texte d'<code>info</code></td><td colspan="2"><code>{c}/page/text</code></td></tr>
-      <tr><td><code>border</code></td><td>nuance 700</td><td colspan="2"><code>{c}/page/border</code></td></tr>
+      <tr><td colspan="3"><b>Button, <code>contained</code></b></td></tr>
+      <tr><td><code>default/background</code></td><td>la nuance de la marque ou du statut</td><td><code>{c}/solid/default</code></td></tr>
+      <tr><td><code>hover/background</code>, <code>focus/background</code></td><td>un cran plus foncé</td><td><code>{c}/solid/hover</code></td></tr>
+      <tr><td><code>press/background</code></td><td>le même que le survol</td><td><code>{c}/solid/pressed</code></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td><code>neutral.50</code>, quasi blanc</td><td><code>{c}/solid/text</code></td></tr>
+      <tr><td><code>focus/ring</code>, <code>press/ring</code></td><td>la nuance 100 de la couleur, 200 pour <code>primary</code></td><td><code>focus</code></td></tr>
+      <tr><td><code>disable</code></td><td>neutre 200 et 500</td><td><code>disabled/background</code>, <code>disabled/text</code></td></tr>
+      <tr><td colspan="3"><b>Button, <code>outlined</code></b></td></tr>
+      <tr><td><code>default/background</code></td><td><code>neutral.50</code>, opaque</td><td>aucun fond</td></tr>
+      <tr><td><code>default/foreground</code>, <code>default/border</code></td><td>la nuance du fond plein</td><td><code>{c}/page/text</code>, <code>{c}/page/border</code></td></tr>
+      <tr><td><code>hover/background</code>, <code>hover/border</code></td><td>comme le survol du bouton plein</td><td><code>{c}/solid/hover</code></td></tr>
+      <tr><td><code>focus/background</code>, <code>focus/border</code></td><td>le fond plein au repos</td><td><code>{c}/solid/default</code></td></tr>
+      <tr><td><code>press/background</code>, <code>press/border</code></td><td>comme le survol</td><td><code>{c}/solid/pressed</code></td></tr>
+      <tr><td><code>foreground</code> au survol, au focus, à l'appui</td><td><code>neutral.50</code></td><td><code>{c}/solid/text</code></td></tr>
+      <tr><td><code>disable</code></td><td><code>neutral.50</code> ; contour et texte neutre 500</td><td>aucun fond ; <code>disabled/border</code>, <code>disabled/text</code></td></tr>
+      <tr><td colspan="3"><b>Button, <code>text</code></b></td></tr>
+      <tr><td><code>foreground</code>, tous états</td><td>la nuance du fond plein</td><td><code>{c}/surface/text</code></td></tr>
+      <tr><td><code>background</code> au survol et au focus</td><td>nuance 50, 100 pour <code>secondary</code></td><td><code>{c}/surface/hover</code></td></tr>
+      <tr><td><code>background</code> à l'appui</td><td>la même</td><td><code>{c}/surface/pressed</code></td></tr>
+      <tr><td colspan="3"><b>Alert, <code>standard</code></b></td></tr>
+      <tr><td><code>background</code></td><td>nuance 50</td><td><code>{c}/surface/default</code></td></tr>
+      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700</td><td><code>{c}/surface/text</code></td></tr>
+      <tr><td colspan="3"><b>Alert, <code>outlined</code></b></td></tr>
+      <tr><td><code>foreground</code>, <code>icon</code></td><td>nuance 700, 900 pour le texte d'<code>info</code></td><td><code>{c}/page/text</code></td></tr>
+      <tr><td><code>border</code></td><td>nuance 700</td><td><code>{c}/page/border</code></td></tr>
     </tbody>
   </table></div>
 
   <h3>Ce que la recette montre</h3>
-  <p>Le modèle exprime les deux contrats sans nuance hors table, dans les deux modes. Cinq ajustements du modèle sont déjà dans cette page :</p>
+  <p>Le modèle exprime les deux contrats sans nuance hors table. Il en a tiré six ajustements :</p>
   <ul class="raisons">
     <li><b>Le dossier <code>page</code></b> remplace la racine de la palette. La règle du dossier n'a plus d'exception.</li>
-    <li><b><code>page/border</code> prend la nuance de <code>page/text</code></b> : 700, et 800 dans un thème inversé. Le bouton outlined au repos prend son texte et son contour dans <code>page</code>, de la même couleur. Contre la page et la carte, ce contour tient au pire 5,19:1. <code>neutral/page/border</code> garde la 600.</li>
-    <li><b>L'anneau <code>focus</code> passe à la 600 de <code>primary</code>, et à la 700 dans un thème inversé</b>, un cran sous <code>page/text</code>. La 900, puis la 700, se lisaient comme du noir en Light et du blanc en Dark. Pour intencial, l'anneau vaut la couleur de charte dans les quatre thèmes. Sur les 42 rampes de la recherche, il tient 3:1 contre la page et la carte dans les quatre thèmes, au pire 3,08:1. Contre le fond 100 d'un conteneur teinté, il tient partout sauf en Light, où 84 mesures sur 1 764 échouent, au pire 2,83:1 : une marque dont <code>primary</code> est un vert vif, autour d'un composant posé dans une alerte rouge.</li>
-    <li><b>Les fonds de <code>solid</code> portent aussi la portée du contour</b> : l'outlined survolé, focalisé ou appuyé prend son contour dans le fond plein.</li>
-    <li><b><code>disabled/border</code></b> s'ajoute pour l'outlined désactivé, au neutre 500 comme dans le Playground.</li>
+    <li><b>Le texte et le contour de <code>surface</code> passent à la 800</b>, et à la 900 dans un thème inversé. Ils tiennent sur les trois fonds, la page et la carte, au pire à 5,26:1. L'alerte standard et le bouton <code>text</code> gardent une couleur proche de la 700 du Playground.</li>
+    <li><b>Le contour de chaque dossier prend la nuance de son texte.</b> L'outlined au repos prend son texte et son contour dans <code>page</code>, à la 700 ; une alerte standard bordée les prendrait dans <code>surface</code>, à la 800.</li>
+    <li><b>L'anneau <code>focus</code> passe à la 600 de <code>primary</code></b>, et à la 700 dans un thème inversé. Il tient 3:1 contre la page et la carte dans les quatre thèmes, au pire à 3,08:1. Pour intencial, il vaut la couleur de charte. Contre le fond 100 d'un conteneur teinté, 84 mesures sur 1 764 échouent en Light : une marque dont <code>primary</code> est un vert vif, autour d'un composant posé dans une alerte rouge.</li>
+    <li><b>Le bouton <code>text</code> devient un bouton du dossier <code>surface</code></b> sans fond au repos. Son texte ne change pas, et son survol se distingue du fond d'une alerte standard.</li>
+    <li><b>Les fonds de <code>solid</code> portent la portée du contour</b>, pour l'outlined survolé, focalisé ou appuyé ; <code>disabled/border</code> s'ajoute pour l'outlined désactivé.</li>
   </ul>
   <p>Quatre ajustements reviennent aux composants :</p>
   <ul class="raisons">
     <li><b>L'anneau.</b> Le Playground prend la nuance 100 de la couleur du bouton, ou la 200 pour <code>primary</code>. Aucune des 84 mesures par thème n'atteint 3:1 contre la page ou la carte : au mieux, le pire cas vaut 1,17:1. Les contrats visent <code>focus</code>.</li>
     <li><b>Le fond de l'outlined au repos.</b> Le Playground pose <code>neutral.50</code>, opaque, qui sert aussi de texte au bouton plein. Ce fond se voit sur une carte grise et en Dark. Le modèle ne pose aucun fond.</li>
     <li><b>Le texte de l'alerte outlined.</b> <code>info</code> vise la 900, les trois autres sévérités la 700. Le modèle donne une seule variable, <code>{c}/page/text</code>.</li>
-    <li><b>Le fond de l'alerte standard</b> passe de la nuance 50 à la 100, premier fond du dossier <code>surface</code>.</li>
+    <li><b>L'alerte standard</b> passe du fond 50 au fond 100, et du texte 700 au texte 800.</li>
   </ul>
-
-  <h3>Texte constant ou texte qui suit le fond</h3>
-  <p>Le sélecteur « Texte sur un fond teinté » de la barre du haut bascule toute la page : les règles, le panneau de <code>theme</code>, les exemples et la recette. Le mode « suit le fond » reprend les paires d'UCM Palettes : un texte 700 sur le fond 100, 800 sur le 200, 900 sur le 300. Dans un thème inversé, l'escalier monte d'un cran : 800, 900, 950.</p>
-  <div class="tw"><table class="plain">
-    <thead><tr><th></th><th>Texte constant</th><th>Texte qui suit le fond</th></tr></thead>
-    <tbody>
-      <tr><td>Variables par palette</td><td>12</td><td>18 : chaque état de <code>solid</code> et de <code>surface</code> devient un sous-dossier</td></tr>
-      <tr><td>Geste du designer</td><td>Choisir le fond de l'état ; le texte et le contour ne changent pas</td><td>Choisir le sous-dossier de l'état, et y prendre le fond, le texte et le contour</td></tr>
-      <tr><td>Alerte standard</td><td>Texte 900 sur le fond 100</td><td>Texte 700 sur le fond 100, comme le Playground</td></tr>
-      <tr><td>Bouton <code>text</code></td><td>A ou B, ci-dessous</td><td>700 au repos, 800 au survol, 900 à l'appui</td></tr>
-      <tr><td>Ligne de tableau neutre</td><td>Texte 900 dans tous les états</td><td>Texte 900 au repos, 800 au survol, dans un thème normal</td></tr>
-      <tr><td>Contraste, 42 rampes, quatre thèmes</td><td>Le texte 900 sur les fonds 100 à 300 : au pire 7,30:1</td><td>Chaque texte sur son fond : toutes les mesures tiennent, au pire 5,02:1</td></tr>
-      <tr><td>UCM Palettes</td><td>Les paires en escalier deviennent : un texte contre ses trois fonds</td><td>Les paires de texte 2 à 4 restent ; les noms changent, l'escalier monte d'un cran dans un thème inversé, et le quatrième rang, <code>active-hover</code>, disparaît : la sélection change de dossier</td></tr>
-    </tbody>
-  </table></div>
-
-  <h3>En texte constant, le bouton <code>text</code></h3>
-  <p>Le bouton <code>text</code> n'a pas de fond au repos et pose un fond teinté au survol. L'alerte standard le place sur son propre fond, <code>surface/default</code>. En texte constant, deux options ; le sélecteur au-dessus des aperçus bascule entre elles.</p>
-  <div class="tw"><table class="plain">
-    <thead><tr><th></th><th>A. Texte de la page</th><th>B. Dossier <code>surface</code></th></tr></thead>
-    <tbody>
-      <tr><td>Texte, constant</td><td><code>{c}/page/text</code>, 700 : la couleur de l'outlined</td><td><code>{c}/surface/text</code>, 900 : plus sombre</td></tr>
-      <tr><td>Fond au survol, au focus, à l'appui</td><td><code>{c}/surface/default</code> pour les trois</td><td><code>{c}/surface/hover</code>, puis <code>pressed</code></td></tr>
-      <tr><td>Contraste du texte, 42 rampes</td><td>Sur le fond 100 : 42 sur 42, au pire 5,02:1. Sur le 200 : 40 sur 42. Sur le 300 : aucune en Light. A ne peut donc pas prendre <code>hover</code> ni <code>pressed</code></td><td>Sur la page, la carte et les trois fonds teintés : toutes, au pire 7,30:1</td></tr>
-      <tr><td>Dans l'alerte standard</td><td>Le fond de survol est celui de l'alerte : le bouton ne change pas au survol</td><td>Le survol, à la 200, se distingue du fond 100 de l'alerte</td></tr>
-      <tr><td>Dans l'alerte outlined</td><td>L'action a la couleur du titre de l'alerte</td><td>L'action est plus sombre que le titre de l'alerte</td></tr>
-    </tbody>
-  </table></div>
-  <p>Le mode « suit le fond » ne pose pas cette question : le bouton <code>text</code> y passe de <code>page</code> à <code>surface/hover</code> au survol, texte compris.</p>
-  <p>Les ratios rouges qui restent touchent le bouton plein à la nuance 700, et seulement dans un thème inversé : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1), <code>secondary</code> de marque-2 (4,38:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ils sont les mêmes dans les deux modes. Ils viennent de la courbe du thème inversé, que le dossier du texte des boutons doit encore trancher.</p>
+  <p>Les ratios rouges qui apparaissent dans un thème inversé touchent le bouton plein à la nuance 700 : <code>info</code> en Dark avec texte blanc (3,68:1), <code>primary</code> d'intencial (4,17:1), <code>secondary</code> de marque-2 (4,38:1) et <code>error</code> (4,44:1) en Light avec texte noir. Ils viennent de la courbe du thème inversé, que le dossier du texte des boutons doit encore trancher.</p>
   </div>
 
   <div class="narrow">
   <h2>Pourquoi c'est mieux</h2>
   <ul class="raisons">
     <li><b>La règle se lit dans le nom.</b> <code>primary/surface/text</code> va sur <code>primary/surface/default</code>, <code>hover</code> et <code>pressed</code>. Le designer n'apprend ni table, ni escalier, ni numéro.</li>
-    <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un bouton n'a plus qu'un token de texte pour tous ses états.</li>
+    <li><b>Un état, un seul geste.</b> Le survol change le fond, pas le texte. Un composant n'a qu'un token de texte pour tous ses états.</li>
     <li><b>Le thème inversé ne demande rien au designer.</b> Il pose <code>solid/hover</code> ; UCM Palettes écrit 800 en Light et 600 en Dark. Les lignes marquées dans <code>theme</code> sont les seules qui bougent.</li>
-    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte de <code>surface</code>, à la nuance 900, tient au pire 7,30:1 sur ses trois fonds ; son contour, à la 800, 4,44:1 ; l'anneau <code>focus</code>, à la 600, 3,08:1 contre la page et la carte.</li>
-    <li><b>Le même modèle que les systèmes établis.</b> Atlassian, Fluent et Primer gardent un seul texte pour tous les états du bouton ; Material nomme <code>on-primary</code> le texte de <code>primary</code> ; tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
+    <li><b>Mesuré sur 42 rampes et quatre thèmes</b>, dont les deux inversés : le texte et le contour de <code>surface</code> tiennent au pire 5,26:1 sur leurs trois fonds, et le texte d'une palette tient sur les fonds teintés de toutes les autres ; l'anneau <code>focus</code> tient au pire 3,08:1 contre la page et la carte.</li>
+    <li><b>La pratique des systèmes établis.</b> Atlassian, Primer, Carbon et Radix gardent un seul texte sur les fonds teintés et leurs états ; Fluent et Spectrum ne le changent qu'une fois, au survol. Material nomme <code>on-primary</code> le texte de <code>primary</code>. Tous écrivent les valeurs de chaque thème par programme, et n'ont qu'un anneau de focus.</li>
     <li><b>Moins de variables.</b> <code>theme</code> compte 260 variables à deux colonnes, au lieu de 124 dans <code>theme</code> et 226 dans <code>usage</code>. Une collection et un alias de moins dans chaque chaîne.</li>
   </ul>
 
@@ -358,7 +342,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">D13</td><td>Une collection <code>usage</code> sans mode</td><td><span class="tag mod">remplacée</span> par les dossiers <code>page</code>, <code>surface</code> et <code>solid</code> de <code>theme</code>, douze variables par palette au lieu de vingt</td></tr>
       <tr><td class="id">D14</td><td>Une nuance hors table passe par un token de composant</td><td><span class="tag same">gardée</span> il vise <code>theme.{palette}.scale.N</code>, aux portées vides</td></tr>
       <tr><td class="id">D15, D16</td><td>Trois niveaux d'élévation ; une table pour les trois outils</td><td><span class="tag same">gardées</span></td></tr>
-      <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; la sélection change de dossier ; le texte reste constant, ou suit le fond dans un sous-dossier par état</td></tr>
+      <tr><td class="id">D17</td><td>Quatre rangs d'état</td><td><span class="tag mod">remplacée</span> trois fonds par dossier ; le texte ne change pas ; la sélection change de dossier</td></tr>
       <tr><td class="id">Palettes</td><td>Texte des boutons blanc ou noir purs, un choix par thème ; bouton à la nuance 700</td><td><span class="tag same">gardées</span> le thème inversé lui-même reste à décider</td></tr>
     </tbody>
   </table></div>
@@ -372,22 +356,28 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <tr><td class="id">3</td><td><a href="./1%20Usages%20indexes%20et%20catalogue/README.md">Usages indexés</a> : niveaux et catalogue de partenaires</td><td class="plus">Sépare niveau de couleur et état</td><td class="moins">Un catalogue de preuves lourd à tenir</td></tr>
       <tr><td class="id">4</td><td><a href="./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html">Escalier</a> : texte n sur toute surface de niveau inférieur ou égal</td><td class="plus">Dix couples garantis au lieu de quatre</td><td class="moins">Une règle à apprendre, invisible dans les noms</td></tr>
       <tr><td class="id">5</td><td><a href="./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html">Ensembles</a> : <code>surface-0</code> à <code>4</code>, <code>solid-1</code> à <code>4</code></td><td class="plus">Tout dans le dossier du fond</td><td class="moins">Des numéros, des conventions, une table en deux collections</td></tr>
-      <tr><td class="id">6</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> plus sombre que le texte coloré ; anneau moins vif</td></tr>
+      <tr><td class="id">6</td><td>Texte qui suit le fond : un sous-dossier par état, avec son fond, son texte et son contour</td><td class="plus">Le texte 700 du Playground sur l'alerte ; les paires actuelles d'UCM Palettes</td><td class="moins">Dix-huit variables par palette ; le texte change à chaque état ; aucun système établi ne le fait</td></tr>
+      <tr><td class="id">7</td><td>Cette page : dossiers <code>page</code>, <code>surface</code> et <code>solid</code> à texte constant, valeurs par thème dans <code>theme</code></td><td class="plus">Quatre règles, aucun alias tapé</td><td class="moins">Texte de <code>surface</code> à 800, un cran plus sombre que le texte coloré</td></tr>
     </tbody>
   </table></div>
 
+  <h2>Retenu par le mainteneur</h2>
+  <ul>
+    <li>Les dossiers <code>page</code>, <code>surface</code> et <code>solid</code>.</li>
+    <li>Le texte constant sur un fond teinté : texte et contour de <code>surface</code> à 800, et à 900 dans un thème inversé.</li>
+    <li>Le contour de <code>page</code> à la nuance de <code>page/text</code>.</li>
+    <li>L'anneau <code>focus</code> à la 600 de <code>primary</code>, et à la 700 dans un thème inversé.</li>
+  </ul>
+
   <h2>À décider</h2>
   <ol>
-    <li>Le texte sur un fond teinté : constant, ou qui suit le fond dans un sous-dossier par état.</li>
     <li>Variables d'usage dans <code>theme</code>, ou dans une collection <code>usage</code> sans mode qui recopie <code>theme</code>.</li>
-    <li>En texte constant : texte de <code>surface</code> à 900 partout, ou 800 dans les thèmes normaux.</li>
-    <li>Contour de <code>page</code> à la nuance de <code>page/text</code> : retenu. Anneau <code>focus</code> un cran en dessous, 600 et 700 en thème inversé. Reste <code>disabled/border</code>.</li>
-    <li>Les noms : dossiers <code>page</code>, <code>surface</code> et <code>solid</code>, retenus ; fonds <code>default</code>, <code>hover</code> et <code>pressed</code>. À éprouver dans le sélecteur Figma.</li>
-    <li>En texte constant : le bouton <code>text</code>, texte de la page (A) ou dossier <code>surface</code> (B).</li>
+    <li>Les noms des fonds, <code>default</code>, <code>hover</code> et <code>pressed</code>, à éprouver dans le sélecteur Figma.</li>
+    <li>Le bouton <code>text</code> dans le dossier <code>surface</code>, et <code>disabled/border</code>.</li>
     <li>Les nuances 400 et 950, obligatoires ou non.</li>
     <li>Le thème inversé, dans le <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>.</li>
   </ol>
-  <p>Le détail, les mesures et les sources sont dans la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a>, sections 3 à 9.</p>
+  <p>Le détail, les mesures et les sources sont dans la <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a>. Ce que ces choix demandent à UCM Palettes et au kit est dans les <a href="./CHANGEMENTS-DU-MOTEUR.md">changements du moteur</a>.</p>
   </div>
 
   <footer>
@@ -410,11 +400,10 @@ footer ul{padding-left:18px;margin:6px 0 0}
     light: { page: 'primitives.colors.titanium.light.50', raised: 'primitives.colors.white', overlay: 'primitives.colors.white' },
     dark: { page: 'primitives.colors.titanium.dark.50', raised: 'primitives.colors.titanium.dark.100', overlay: 'primitives.colors.titanium.dark.100' },
   };
-  /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. */
-  /* `border` ne sert qu'au neutre ; `suit` donne le texte de chaque fond teinté quand le texte suit le fond. */
-  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700, suit: [700, 800, 900], anneau: 600 };
-  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800, suit: [800, 900, 950], anneau: 700 };
-  var etat = { marque: 'intencial', light: 'blanc', dark: 'blanc', col: 'theme', texte: 'surface', mode: 'constant' };
+  /* La table du kit proposée : la nuance de chaque variable, thème normal et thème inversé. `border` ne sert qu'au neutre. */
+  var NORMAL = { solid: [700, 800, 900], text: 700, border: 600, subtle: 700, surface: 800, anneau: 600 };
+  var INVERSE = { solid: [700, 600, 500], text: 800, border: 700, subtle: 800, surface: 900, anneau: 700 };
+  var etat = { marque: 'intencial', light: 'blanc', dark: 'noir', col: 'theme' };
 
   function inverse(t) { return t === 'light' ? etat.light === 'noir' : etat.dark === 'blanc'; }
   function decoupe(q) {
@@ -426,18 +415,10 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if (d.role === 'neutral') return 'color-utilities.neutral.' + t + '.' + n;
     return 'color-utilities.' + d.role + '.' + d.inten + '.' + t + '.' + n;
   }
-  /* Quand le texte suit le fond, chaque état est un sous-dossier : solid/hover/background, surface/hover/text. */
-  function suit() { return etat.mode === 'suit'; }
-  function fondDe(p, dossier, e) { return p + '/' + dossier + '/' + e + (suit() ? '/background' : ''); }
-  function texteDe(p, dossier, e) { return p + '/' + dossier + '/' + (suit() ? e + '/' : '') + 'text'; }
   function cranDe(d, tb) {
-    var a = d.rest[0], b = d.rest[1], c = d.rest[2], i = ETATS.indexOf(b);
+    var a = d.rest[0], b = d.rest[1], i = ETATS.indexOf(b);
     if (a === 'solid') return tb.solid[i];
-    if (a === 'surface') {
-      if (c === 'text' || c === 'border') return tb.suit[i];
-      if (i >= 0) return [100, 200, 300][i];
-      return b === 'text' ? 900 : 800;
-    }
+    if (a === 'surface') return i >= 0 ? [100, 200, 300][i] : tb.surface;
     if (a === 'page') {
       if (b === 'text') return d.role === 'neutral' ? 900 : tb.text;
       if (b === 'text-subtle') return tb.subtle;
@@ -446,7 +427,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     }
     if (a === 'scale') return Number(b);
   }
-  function texteDuPlein(d) { return d.rest[0] === 'solid' && (d.rest[1] === 'text' || d.rest[2] === 'text'); }
+  function texteDuPlein(d) { return d.rest[0] === 'solid' && d.rest[1] === 'text'; }
   /* Vrai quand la nuance de la variable change entre thème normal et thème inversé. */
   function varie(path) {
     var q = path.split('.').slice(1);
@@ -509,29 +490,23 @@ footer ul{padding-left:18px;margin:6px 0 0}
       if (v === 'contained') return { background: 'disabled/background', foreground: 'disabled/text' };
       return v === 'outlined' ? { foreground: 'disabled/text', border: 'disabled/border' } : { foreground: 'disabled/text' };
     }
-    var e;
     if (v === 'contained') {
-      e = { default: 'default', hover: 'hover', focus: 'hover', press: 'pressed' }[s];
-      r.background = fondDe(p, 'solid', e); r.foreground = texteDe(p, 'solid', e);
+      r.background = p + '/solid/' + { default: 'default', hover: 'hover', focus: 'hover', press: 'pressed' }[s];
+      r.foreground = p + '/solid/text';
     } else if (v === 'outlined') {
       if (s === 'default') { r.foreground = p + '/page/text'; r.border = p + '/page/border'; }
-      else { e = { hover: 'hover', focus: 'default', press: 'pressed' }[s]; r.background = r.border = fondDe(p, 'solid', e); r.foreground = texteDe(p, 'solid', e); }
-    } else if (suit()) {
-      if (s === 'default') r.foreground = p + '/page/text';
-      else { e = s === 'press' ? 'pressed' : 'hover'; r.background = fondDe(p, 'surface', e); r.foreground = texteDe(p, 'surface', e); }
-    } else if (etat.texte === 'surface') {
-      r.foreground = texteDe(p, 'surface', 'default');
-      if (s !== 'default') r.background = fondDe(p, 'surface', s === 'press' ? 'pressed' : 'hover');
+      else { r.background = r.border = p + '/solid/' + { hover: 'hover', focus: 'default', press: 'pressed' }[s]; r.foreground = p + '/solid/text'; }
     } else {
-      r.foreground = p + '/page/text';
-      if (s !== 'default') r.background = fondDe(p, 'surface', 'default');
+      /* Le bouton text est un bouton du dossier surface sans fond au repos. */
+      r.foreground = p + '/surface/text';
+      if (s !== 'default') r.background = p + '/surface/' + (s === 'press' ? 'pressed' : 'hover');
     }
     if (s === 'focus' || s === 'press') r.ring = 'focus';
     return r;
   }
   function alerte(sev, v) {
     var p = paletteDe(sev);
-    if (v === 'standard') return { background: fondDe(p, 'surface', 'default'), foreground: texteDe(p, 'surface', 'default'), icon: texteDe(p, 'surface', 'default') };
+    if (v === 'standard') return { background: p + '/surface/default', foreground: p + '/surface/text', icon: p + '/surface/text' };
     return { foreground: p + '/page/text', icon: p + '/page/text', border: p + '/page/border' };
   }
   /* La variable de theme qu'un token de composant vise : components.button.colors.{c}.{v}.{s}.{rôle}, components.alert.colors.{sév}.{v}.{rôle}. */
@@ -566,19 +541,13 @@ footer ul{padding-left:18px;margin:6px 0 0}
     var out = [];
     function row(g, n) { var path = th(g + '/' + n); return R(g, n, MODES.map(function (t) { var x = next(path, t); return A(x, hex(path, t)); }), varie(path) ? 'inv' : ''); }
     function groupe(g, noms, tag) { out.push(G(g, tag)); noms.forEach(function (n) { out.push(row(g, n)); }); }
-    /* Un dossier : ses trois fonds et ses rôles, ou un sous-dossier par état quand le texte suit le fond. */
-    function dossier(g, roles) {
-      if (!suit()) { groupe(g, ETATS.concat(roles)); return; }
-      ETATS.forEach(function (e) { groupe(g + '/' + e, ['background'].concat(roles)); });
-    }
-    var nombre = suit() ? 'dix-huit' : 'douze';
-    dossier('primary/solid', ['text']);
-    dossier('primary/surface', ['text', 'border']);
+    groupe('primary/solid', ETATS.concat(['text']));
+    groupe('primary/surface', ETATS.concat(['text', 'border']));
     groupe('primary/page', ['text', 'border', 'divider']);
-    out.push(M('… secondary : les mêmes ' + nombre + ' variables'));
-    if (suit()) groupe('success/vivid/surface/default', ['background', 'text', 'border']); else groupe('success/vivid/surface', ['default', 'text', 'border']);
-    out.push(M('… success, warning, info et danger, en soft et en vivid : ' + nombre + ' variables chacun'));
-    if (suit()) groupe('neutral/surface/hover', ['background', 'text']); else groupe('neutral/surface', ['hover', 'text']);
+    out.push(M('… secondary : les mêmes douze variables'));
+    groupe('success/vivid/surface', ['default', 'text', 'border']);
+    out.push(M('… success, warning, info et danger, en soft et en vivid : douze variables chacun'));
+    groupe('neutral/surface', ['hover', 'text']);
     groupe('neutral/page', ['text', 'text-subtle', 'border']);
     out.push(G('disabled')); ['background', 'text', 'border'].forEach(function (n) { out.push(row('disabled', n)); });
     out.push(G('focus', ['new', 'un seul anneau, un cran sous page/text']));
@@ -632,7 +601,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function collections() {
     return [
       { id: 'components', ax: 'aucun mode', modes: ['Valeur'], rows: compRows(), note: ['Les tokens des contrats Button et Alert du Playground gardent leurs noms et visent <code>theme</code> (D11). La valeur montrée est celle du thème Light.'] },
-      { id: 'theme', ax: 'Light · Dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.', suit() ? 'Le texte suit le fond : chaque état de <code>solid</code> et de <code>surface</code> est un sous-dossier qui porte son fond, son texte et son contour.' : 'Le texte est constant : un dossier porte trois fonds, un texte et un contour.'] },
+      { id: 'theme', ax: 'Light · Dark', modes: ['light', 'dark'], rows: themeRows(), note: ['Les noms que les calques citent, rangés en dossiers de fond, et leur valeur dans chaque thème. UCM Palettes écrit les deux colonnes ; les portées limitent chaque sélecteur à ce que la variable peint (D14).', 'Change le texte des boutons dans la barre du haut : seules les lignes marquées changent de cible.'] },
       { id: 'brand', ax: 'une colonne par marque', modes: BRANDS.concat(['…']), rows: brandRows(), note: ['Chaque colonne choisit les palettes de sa marque dans <code>primitives</code> (D3, D5). La couleur de charte reste à part (D9). Les réglages et exceptions de marque y sont réservés (D12).'] },
       { id: 'color-utilities', ax: 'aucun mode', modes: ['Valeur'], rows: utilRows(), note: ['Le neutre, les quatre statuts et les niveaux d’élévation, communs à toutes les marques (D6, D15).'] },
       { id: 'primitives', ax: 'aucun mode', modes: ['Valeur'], rows: primRows(), note: ['Le catalogue des palettes, en Light et en Dark, sur la courbe commune (D5, D7, D8). Ici la palette <code>primary</code> de la marque choisie.'] },
@@ -715,34 +684,23 @@ footer ul{padding-left:18px;margin:6px 0 0}
   var EXEMPLES = [
     {
       titre: 'Ligne de tableau sélectionnable',
-      lignes: function () {
-        return [
-          ['Repos', null, suit() ? 'neutral/page/text' : texteDe('neutral', 'surface', 'default')],
-          ['Survol', fondDe('neutral', 'surface', 'hover'), texteDe('neutral', 'surface', 'hover')],
-          ['Sélectionnée', fondDe('primary', 'surface', 'default'), texteDe('primary', 'surface', 'default')],
-          ['Sélectionnée, survolée', fondDe('primary', 'surface', 'hover'), texteDe('primary', 'surface', 'hover')],
-        ];
-      },
+      lignes: [['Repos', null, 'neutral'], ['Survol', 'neutral/surface/hover', 'neutral'], ['Sélectionnée', 'primary/surface/default', 'primary'], ['Sélectionnée, survolée', 'primary/surface/hover', 'primary']],
       dessin: function (t) {
-        return '<div class="panneau" style="background:' + H('elevation/raised', t) + '">' + this.lignes().map(function (l) {
-          return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2], t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
+        return '<div class="panneau" style="background:' + H('elevation/raised', t) + '">' + this.lignes.map(function (l) {
+          return '<div class="ligne" style="background:' + (l[1] ? H(l[1], t) : 'transparent') + ';color:' + H(l[2] + '/surface/text', t) + '"><span>Contrat 2024-118</span><span>' + l[0] + '</span></div>';
         }).join('') + '</div>';
       },
-      vars: function () {
-        return suit()
-          ? ['repos : <code>neutral/page/text</code>, posé sur la carte', 'survol : sous-dossier <code>neutral/surface/hover</code>, fond et texte', 'sélection : <code>primary/surface/default</code>, puis <code>primary/surface/hover</code> au survol', 'le texte change à chaque état ; le neutre passe de 900 à 800 au survol dans un thème normal']
-          : ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>hover</code> de ce dossier'];
-      },
-      couples: function () { return this.lignes().map(function (l) { return [l[2], l[1] || 'elevation/raised']; }); },
+      vars: function () { return ['repos et survol : dossier <code>neutral/surface</code>', 'sélection : dossier <code>primary/surface</code>, son texte compris', 'le survol d’une ligne sélectionnée est le <code>hover</code> de ce dossier']; },
+      couples: function () { return this.lignes.map(function (l) { return [l[2] + '/surface/text', l[1] || 'elevation/raised']; }); },
     },
     {
       titre: 'Badges',
       dessin: function (t) {
-        return '<div class="rang"><span class="badge" style="background:' + H(fondDe('success/vivid', 'solid', 'default'), t) + ';color:' + H(texteDe('success/vivid', 'solid', 'default'), t) + '">Validé</span>'
-          + '<span class="badge" style="background:' + H(fondDe('info/soft', 'surface', 'default'), t) + ';color:' + H(texteDe('info/soft', 'surface', 'default'), t) + '">Brouillon</span></div>';
+        return '<div class="rang"><span class="badge" style="background:' + H('success/vivid/solid/default', t) + ';color:' + H('success/vivid/solid/text', t) + '">Validé</span>'
+          + '<span class="badge" style="background:' + H('info/soft/surface/default', t) + ';color:' + H('info/soft/surface/text', t) + '">Brouillon</span></div>';
       },
-      vars: function () { return ['badge fort : <code>success/vivid/solid' + (suit() ? '/default' : '') + '</code>', 'badge doux : <code>info/soft/surface' + (suit() ? '/default' : '') + '</code>']; },
-      couples: function () { return [[texteDe('success/vivid', 'solid', 'default'), fondDe('success/vivid', 'solid', 'default')], [texteDe('info/soft', 'surface', 'default'), fondDe('info/soft', 'surface', 'default')]]; },
+      vars: function () { return ['badge fort : <code>success/vivid/solid</code>', 'badge doux : <code>info/soft/surface</code>']; },
+      couples: function () { return [['success/vivid/solid/text', 'success/vivid/solid/default'], ['info/soft/surface/text', 'info/soft/surface/default']]; },
     },
     {
       titre: 'Champ de saisie',
@@ -834,14 +792,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     $('recette-alertes').innerHTML = '<div class="ex"><h3>Alert, action <code>text</code> comprise</h3><div class="duo">' + MODES.map(function (t) { return '<div>' + grilleAlertes(t) + '</div>'; }).join('') + '</div></div>';
   }
 
-  function renderRegles() {
-    $('regle-3').innerHTML = suit()
-      ? 'Un état qui garde la sorte de fond est un sous-dossier : <code>default</code>, <code>hover</code>, <code>pressed</code>. Le fond, le texte et le contour s’y prennent ensemble.'
-      : 'Un état qui garde la sorte de fond ne change que le fond : <code>default</code>, <code>hover</code>, <code>pressed</code>.';
-    $('g-texte').hidden = suit();
-  }
-
-  function renderTout() { renderRegles(); renderPanneau(); renderTrajet(); renderExemples(); renderRecette(); }
+  function renderTout() { renderPanneau(); renderTrajet(); renderExemples(); renderRecette(); }
   function bascule(id, cle, apres) {
     $(id).addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
@@ -853,8 +804,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
   bascule('c-marque', 'marque');
   bascule('c-light', 'light');
   bascule('c-dark', 'dark');
-  bascule('c-texte', 'texte');
-  bascule('c-mode', 'mode');
   bascule('c-page', 'page', function () {
     if (etat.page === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', etat.page);
