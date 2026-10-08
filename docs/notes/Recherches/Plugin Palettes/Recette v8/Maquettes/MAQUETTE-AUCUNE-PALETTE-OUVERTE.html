@@ -107,6 +107,39 @@
   .aplats { display: flex; width: 54px; height: 16px; border-radius: 3px; overflow: hidden; flex: none; box-shadow: 0 0 0 1px rgba(255,255,255,0.1); }
   .aplats i { flex: 1; display: block; }
   .legende2 { font-size: 12px; color: var(--encre-seconde); margin: 4px 0 0; }
+  /* Vérification : le nuancier vérifié, ses filtres, ses lignes par thème et l'épreuve. */
+  .bilan3 { display: flex; gap: 6px; margin: 12px 0 10px; }
+  .filtre { flex: 1; text-align: center; border-radius: 6px; padding: 6px 4px; font-weight: 700; font-size: 12px; border: 1px solid transparent; cursor: pointer; }
+  .f-rouge { background: var(--rouge-fond); color: var(--rouge); }
+  .f-ambre { background: var(--ambre-fond); color: var(--ambre); }
+  .f-vert { background: var(--vert-fond); color: var(--vert); }
+  .filtre.actif { border-color: currentColor; }
+  .carte7.avec-etat { position: relative; overflow: visible; }
+  .carte7.avec-etat > i:first-of-type { border-radius: 5px 5px 0 0; }
+  .pastille-etat { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px; font-size: 10px; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px var(--fond); z-index: 1; }
+  .pastille-etat.rouge { background: #e5484d; color: #fff; }
+  .pastille-etat.ambre { background: #f3b53f; color: #2a1d00; }
+  .pastille-etat.vert { background: #2f8f4e; color: #fff; }
+  .entre { margin-top: 14px; }
+  .paire { display: flex; align-items: center; gap: 8px; }
+  .mini { display: inline-flex; width: 36px; height: 16px; border-radius: 3px; overflow: hidden; flex: none; }
+  .mini i { flex: 1; display: block; }
+  .egal { color: var(--ambre); font-weight: 700; }
+  .cartes-theme { border: 1px solid var(--bordure); border-radius: 8px; padding: 8px; }
+  .theme-tete { display: grid; grid-template-columns: 64px 1fr 1fr; gap: 8px; color: var(--second); font-weight: 600; margin: 0 0 6px; }
+  .ligne-theme { display: grid; grid-template-columns: 64px 1fr 1fr; gap: 8px; align-items: stretch; margin: 0 0 8px; }
+  .carte7.petite { width: 60px; height: 72px; grid-template-rows: 1fr 1fr 1fr 20px; }
+  .cellule-theme { border-radius: 6px; padding: 8px; display: grid; gap: 6px; align-content: center; justify-items: start; }
+  .bouton-test { border-radius: 5px; padding: 4px 10px; font-weight: 700; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .verdict { font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 5px; }
+  .verdict.ko { background: #fde2e1; color: #a1161b; }
+  .verdict.ok { background: #dcf3e3; color: #1f6b3a; }
+  .epreuve { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; border-radius: 8px; background: #f7f7f7; }
+  .echantillon { position: relative; display: grid; gap: 4px; padding: 6px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px #e4e4e4; cursor: pointer; }
+  .echantillon.rouge { box-shadow: 0 0 0 2px #e5484d; }
+  .echantillon.ambre { box-shadow: 0 0 0 2px #f3b53f; }
+  .surface-test { border-radius: 4px; padding: 3px 6px; font-size: 10px; font-weight: 600; }
+  .lien-test { font-size: 10px; font-weight: 600; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -361,71 +394,137 @@
   </div>
 </div>
 
-<h2>Vérification</h2>
+<h2>Vérification : le nuancier vérifié</h2>
+<p class="chapeau">Création accueille avec le nuancier A2a. Vérification reprend le même nuancier, aux mêmes places, pour que l'œil retrouve chaque palette d'un onglet à l'autre ; elle y ajoute ce qui lui est propre : le verdict de chaque palette, et ce qui se joue entre deux palettes. Trois pistes, de la plus sobre à la plus poussée, toutes montrées avec les vingt palettes de A2a. Dans chacune, un clic sur une carte ouvre la vérification de cette palette, et le sélecteur reste en tête comme aujourd'hui.</p>
+<p class="chapeau">Code des états, partout le même : <b style="color:#c62828">✕ rouge</b>, des garanties de contraste manquées ; <b style="color:#b7791f">! ambre</b>, des points à vérifier sans garantie manquée ; <b style="color:#2e7d32">✓ vert</b>, tout tient.</p>
 
-<h3 style="font-size:16px;margin:24px 0 8px">V1. Vérifier l'ensemble</h3>
+<h3 style="font-size:16px;margin:24px 0 8px">V3. Le nuancier, un verdict par carte</h3>
 <div class="rang">
   <div class="plugin">
     <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
     <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
     <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
-    <div class="titre">Toutes les palettes</div>
-    <div class="carte" style="background:var(--rouge-fond);border-color:#7a3030"><b>✕ 1 palette manque des garanties</b><div class="second" style="color:#e9c9c6">1 point à vérifier entre deux palettes</div></div>
-    <div class="carte">
-      <div class="carte-titre">Garanties de contraste</div>
-      <div class="matrice">
-        <div class="tete">Palette</div><div class="tete">Light</div><div class="tete">Dark</div>
-        <div><span class="point" style="background:#1e6fd9"></span> <b>Bleu</b></div><div><span class="puce rouge">✕ 1</span></div><div><span class="puce vert">✓</span></div>
-        <div><span class="point" style="background:#f5c518"></span> <b>Jaune</b></div><div><span class="puce vert">✓</span></div><div><span class="puce vert">✓</span></div>
-        <div><span class="point" style="background:#64748b"></span> <b>Ardoise</b></div><div><span class="puce vert">✓</span></div><div><span class="puce vert">✓</span></div>
-      </div>
-    </div>
-    <div class="carte">
-      <div class="carte-titre">Entre les palettes</div>
-      <div><span class="puce ambre">À vérifier</span> <b>Bleu</b> et <b>Ardoise</b> sont proches : ΔEok 0,04 pour un seuil de 0,05.</div>
+    <div class="bilan3"><span class="filtre f-rouge">✕ 2 à corriger</span><span class="filtre f-ambre">! 2 à vérifier</span><span class="filtre f-vert">✓ 16 tiennent</span></div>
+    <div class="cartes7 verifiees" data-nombre="20"></div>
+    <div class="entre">
+      <div class="tete2">Entre les palettes <span class="compte2">1</span></div>
+      <div class="paire"><span class="mini" data-p="Sky"></span><span class="egal">≈</span><span class="mini" data-p="Océan"></span><span><b>Sky</b> et <b>Océan</b> se confondent : ΔEok 0,04, seuil 0,05.</span></div>
     </div>
   </div>
   <div class="notes">
     <h3>Le principe</h3>
     <ul>
-      <li>Sans palette ouverte, Vérification répond pour le système entier : une ligne par palette, le verdict de ses garanties par thème, puis les constats qui portent sur deux palettes (l'alerte « palettes proches », qui existe déjà dans le moteur).</li>
-      <li>Un clic sur une case ouvre la vérification de cette palette, dans ce thème.</li>
-      <li>Aucun état d'écriture.</li>
+      <li>Les cartes de A2a, dans le même ordre, chacune avec une pastille d'état dans son coin : ✕ et le nombre de garanties manquées, ! et le nombre de points à vérifier, ✓ quand tout tient.</li>
+      <li>En tête, le bilan du fichier en trois boutons-filtres : un clic n'allume que les cartes de cet état, les autres s'atténuent.</li>
+      <li>Sous le nuancier, « Entre les palettes » : les paires trop proches, deux mini-cartes et l'écart (l'alerte « palettes proches » du moteur).</li>
     </ul>
     <h3>Pour</h3>
-    <ul><li>L'onglet a enfin un écran à lui, et il répond à sa question pour tout le fichier.</li><li>Les constats entre palettes n'ont aujourd'hui pas de place naturelle : ils en trouvent une.</li></ul>
+    <ul><li>Même place, même carte que dans Création : on retrouve sa palette sans lire.</li><li>Le bilan du fichier se lit en une ligne, le détail en un coup d'œil.</li></ul>
     <h3>Contre</h3>
-    <ul><li>Il faut calculer les garanties de toutes les palettes à l'ouverture de l'onglet ; à mesurer sur un fichier de vingt palettes.</li></ul>
+    <ul><li>La pastille dit combien, pas où : il faut ouvrir la palette pour savoir quelle nuance manque.</li></ul>
   </div>
 </div>
 
-<h3 style="font-size:16px;margin:32px 0 8px">V2. Suivre la palette de Création</h3>
+<h3 style="font-size:16px;margin:32px 0 8px">V4. Le nuancier qui montre où ça manque</h3>
 <div class="rang">
   <div class="plugin">
     <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
     <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
     <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
-    <div class="titre">Rien à vérifier pour l'instant</div>
-    <p class="phrase">Vérification contrôle la palette ouverte dans Création. Ouvrez une palette pour lire ses contrastes.</p>
-    <div class="carte">
-      <div class="carte-titre">Entre les palettes</div>
-      <div><span class="puce ambre">À vérifier</span> <b>Bleu</b> et <b>Ardoise</b> sont proches : ΔEok 0,04 pour un seuil de 0,05.</div>
+    <div class="bilan3"><span class="filtre f-rouge actif">✕ 2 à corriger</span><span class="filtre f-ambre">! 2 à vérifier</span><span class="filtre f-vert">✓ 16 tiennent</span></div>
+    <div class="cartes-theme">
+      <div class="theme-tete"><span></span><span>Light</span><span>Dark</span></div>
+      <div class="lignes-theme" data-filtre="rouge"></div>
+    </div>
+    <p class="second" style="margin:8px 0 0;font-size:11px">16 palettes tiennent · 2 à vérifier : <u>afficher</u></p>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>Le filtre « à corriger » est actif par défaut quand le fichier en compte : seules les palettes en défaut s'affichent, une ligne chacune.</li>
+      <li>Chaque ligne montre la carte, puis ses deux thèmes : le bouton <code>solid</code> de la palette en Light et en Dark, avec son texte, tel qu'il sera peint, et le verdict du thème. Le contraste qui manque se voit, il ne se lit pas seulement.</li>
+      <li>La garantie en défaut est nommée en clair sous le bouton : « texte des boutons, 4,33:1 ».</li>
+      <li>Les palettes qui tiennent restent repliées en une phrase.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Va droit au travail : ce qui est à corriger, où, et à quoi cela ressemble.</li><li>Le thème fautif se voit sans ouvrir la palette.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Un seul exemple de rendu par thème, le bouton : une garantie manquée sur un contour ou un anneau de focus s'y voit moins ; le nom de la garantie le rattrape.</li></ul>
+  </div>
+</div>
+
+<h3 style="font-size:16px;margin:32px 0 8px">V5. Le système à l'épreuve</h3>
+<div class="rang">
+  <div class="plugin">
+    <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+    <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+    <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+    <div class="titre" style="font-size:14px">Toutes les palettes à l'épreuve <span class="bascule"><span class="choisi">Light</span><span>Dark</span></span></div>
+    <div class="epreuve" data-nombre="20"></div>
+    <div class="entre">
+      <div class="tete2">Entre les palettes <span class="compte2">1</span></div>
+      <div class="paire"><span class="mini" data-p="Sky"></span><span class="egal">≈</span><span class="mini" data-p="Océan"></span><span><b>Sky</b> et <b>Océan</b> se confondent : ΔEok 0,04, seuil 0,05.</span></div>
     </div>
   </div>
   <div class="notes">
     <h3>Le principe</h3>
     <ul>
-      <li>Vérification ne choisit pas de palette : elle vérifie celle de Création. Sans palette ouverte, elle le dit, et montre seulement les constats entre palettes.</li>
-      <li>Avec C1 (Création jamais vide), cet écran ne paraît presque jamais.</li>
+      <li>Chaque palette devient un petit morceau d'interface, peint avec ses propres tokens dans le thème choisi : un bouton <code>solid</code>, une surface teintée avec son texte, un lien sur la page.</li>
+      <li>Vingt palettes, vingt échantillons sur la même page : on voit le système entier comme il sera peint, et ce qui détonne saute aux yeux.</li>
+      <li>Un échantillon en défaut porte un liseré rouge et sa pastille ; un clic ouvre sa vérification.</li>
+      <li>La bascule Light · Dark change tout le système d'un coup.</li>
     </ul>
     <h3>Pour</h3>
-    <ul><li>Le plus léger : aucun calcul de toutes les garanties.</li></ul>
+    <ul><li>La vérification devient visuelle et collective : l'harmonie entre palettes se juge aussi, pas seulement les contrastes.</li><li>Prolonge l'« Interface de test » de Création à l'échelle du fichier.</li></ul>
     <h3>Contre</h3>
-    <ul><li>Ne dit pas si le système entier tient : il faut ouvrir les palettes une à une.</li></ul>
+    <ul><li>Le plus coûteux à construire et à rendre : vingt échantillons à peindre à chaque réglage commun.</li><li>Moins lisible pour compter : le bilan chiffré y est secondaire.</li></ul>
   </div>
 </div>
 
-<h2>Recommandation</h2>
-<p class="chapeau"><b>A2a pour Création, V1 pour Vérification.</b> A2a garde la carte de nuancier qui a plu, à une taille qui tient vingt palettes, et fait de « Nouvelle palette » le bouton principal de l'écran. A2b est le repli si les noms longs sont fréquents, ou si le fichier dépasse vingt-cinq palettes. Vérification garde V1 : l'ensemble des palettes, que Gestion ne montre pas.</p>
+<script>
+  // États de démonstration : [nom, statut, compte, thème fautif, garantie].
+  const ETATS = {
+    Bleu: ['rouge', 1, 'light', 'texte des boutons, 4,33:1'], Sky: ['rouge', 2, 'dark', 'texte sur fond teinté, 3,9:1'],
+    Poppy: ['ambre', 1], Moutarde: ['ambre', 1],
+  };
+  const etatDe = (nom) => ETATS[nom] ?? ['vert', 0];
+  const pastille = ([statut, n]) => statut === 'vert' ? '<b class="pastille-etat vert">✓</b>' : `<b class="pastille-etat ${statut}">${statut === 'rouge' ? '✕' : '!'}${n}</b>`;
+  for (const zone of document.querySelectorAll('.cartes7.verifiees')) {
+    zone.innerHTML = PALETTES.slice(0, 20).map((p) => {
+      const [a, b, c] = aplats(p);
+      return `<span class="carte7 avec-etat" title="${p[0]}">${pastille(etatDe(p[0]))}<i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span>${p[0]}</span></span>`;
+    }).join('');
+  }
+  for (const zone of document.querySelectorAll('.lignes-theme')) {
+    zone.innerHTML = PALETTES.filter((p) => etatDe(p[0])[0] === 'rouge').map((p) => {
+      const [a, b, c] = aplats(p);
+      const [, n, fautif, garantie] = etatDe(p[0]);
+      const theme = (mode) => {
+        const fond = mode === 'light' ? '#f7f7f7' : '#121212';
+        const plein = mode === 'light' ? `hsl(${p[1]} ${p[2]}% 52%)` : `hsl(${p[1]} ${p[2]}% 62%)`;
+        const encre = mode === fautif ? '#111' : '#fff';
+        const ko = mode === fautif;
+        return `<span class="cellule-theme" style="background:${fond}"><span class="bouton-test" style="background:${plein};color:${encre}">Bouton</span>${ko ? `<span class="verdict ko">✕ ${garantie}</span>` : '<span class="verdict ok">✓</span>'}</span>`;
+      };
+      return `<div class="ligne-theme"><span class="carte7 petite"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span>${p[0]}</span></span>${theme('light')}${theme('dark')}</div>`;
+    }).join('');
+  }
+  for (const zone of document.querySelectorAll('.epreuve')) {
+    zone.innerHTML = PALETTES.slice(0, 20).map((p) => {
+      const [statut] = etatDe(p[0]);
+      const plein = `hsl(${p[1]} ${p[2]}% 50%)`, tinte = `hsl(${p[1]} ${p[2]}% 92%)`, encreTinte = `hsl(${p[1]} ${p[2]}% 25%)`;
+      const encre = p[0] === 'Bleu' ? '#111' : '#fff';
+      return `<span class="echantillon ${statut}" title="${p[0]}">${statut === 'vert' ? '' : pastille(etatDe(p[0]))}<span class="bouton-test" style="background:${plein};color:${encre}">${p[0]}</span><span class="surface-test" style="background:${tinte};color:${encreTinte}">Aa surface</span><span class="lien-test" style="color:hsl(${p[1]} ${p[2]}% 38%)">lien</span></span>`;
+    }).join('');
+  }
+  for (const mini of document.querySelectorAll('.mini')) {
+    const p = PALETTES.find((x) => x[0] === mini.dataset.p);
+    const [a, b, c] = aplats(p);
+    mini.innerHTML = `<i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i>`;
+  }
+</script>
+
+<h2>Décision et recommandation</h2>
+<p class="chapeau"><b>Création : A2a, retenue.</b> <b>Vérification : V3, avec la ligne par thème de V4 quand on filtre.</b> V3 garde le nuancier de Création aux mêmes places, ajoute un verdict par carte, un bilan en trois filtres et les paires trop proches. Quand le designer active le filtre « à corriger », les cartes en défaut se déplient en lignes V4 : le bouton de la palette en Light et en Dark, et la garantie nommée. V5 est la piste la plus poussée ; elle vaut d'être gardée comme une vue « à l'épreuve » ajoutée plus tard, une fois V3 en place.</p>
 </body>
 </html>

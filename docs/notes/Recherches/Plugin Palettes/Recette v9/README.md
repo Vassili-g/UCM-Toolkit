@@ -4,10 +4,10 @@ Dossier des demandes qui suivent la recette v8 : le bandeau de vérification
 de Création, la création d'une palette qui masque la palette affichée,
 l'écran sans palette ouverte et la configuration avancée repliée.
 
-**État.** Le bandeau de vérification est décidé (B4) et n'est pas
-implémenté. La configuration avancée repliée est en cours d'implémentation,
-puis la création qui masque la palette affichée. L'écran sans palette
-ouverte attend le choix du mainteneur.
+**État.** La configuration avancée repliée et la création qui masque la
+palette affichée sont implémentées. Le bandeau de vérification est décidé
+(B4) et n'est pas implémenté. Création sans palette ouverte est décidée
+(A2a) ; Vérification sans palette ouverte attend le choix du mainteneur.
 
 | Document | Contenu |
 |---|---|

@@ -56,8 +56,7 @@ Points à régler à l'implémentation :
 Pendant la création, l'onglet ne montre que la carte « Nouvelle palette » :
 le titre de la palette, sa configuration, son aperçu, ses cartes de
 réglage et le pied sont masqués. « Annuler » réaffiche la palette d'avant ;
-« Créer la palette » ouvre la nouvelle. Implémentation à suivre la carte de
-configuration repliée (S4), qui touche le même fichier.
+« Créer la palette » ouvre la nouvelle. Implémenté.
 
 ## 4. Sans palette ouverte (S3)
 
@@ -77,10 +76,12 @@ que dans Gestion.
 | A2b | Création | A2 couchée : une bande de trois aplats et le nom entier, sur deux colonnes ; même bouton principal |
 | A3 | Création | Accueil : une phrase, où chaque nom de palette est un lien coloré |
 | A4 | Création | Accueil : la dernière palette réglée en vedette, « Reprendre » |
-| V1 | Vérification | Les garanties de chaque palette par thème, puis les constats entre palettes |
-| V2 | Vérification | Vérification suit la palette de Création ; sans palette, les constats entre palettes seulement |
+| V1, V2 | Vérification | Première série, remplacée par V3 à V5 |
+| V3 | Vérification | Le nuancier de A2a aux mêmes places, une pastille d'état par carte, le bilan en trois filtres, puis les paires trop proches |
+| V4 | Vérification | Le filtre « à corriger » déplie les cartes en défaut : le bouton de la palette en Light et en Dark, et la garantie nommée |
+| V5 | Vérification | Chaque palette peinte en petit morceau d'interface, tout le système sur une page, en Light ou en Dark |
 
-Le mainteneur préfère les nuanciers (A2), à condition qu'ils tiennent vingt palettes et que « Nouvelle palette » soit plus en avant : d'où A2a et A2b. Recommandation : A2a et V1. **Attend le choix du mainteneur.**
+Le mainteneur a retenu **A2a** pour Création : le nuancier de cartes compactes, sept par rangée, et « Nouvelle palette » en bouton principal en tête. Pour Vérification, le même nuancier porte le verdict de chaque palette (V3 à V5). Recommandation : V3, avec les lignes de V4 sous le filtre « à corriger » ; V5 en vue ajoutée plus tard. **Vérification attend le choix du mainteneur.**
 
 ## 5. La configuration avancée repliée (S4)
 
@@ -89,7 +90,7 @@ Proposition de la recette v8, lot 9, retenue par le mainteneur :
 Modèle, Intensités et « Référence exacte dans » passent sous un dépliant
 « Réglages avancés », replié à l'ouverture, dont le résumé prend la couleur
 d'attention quand un réglage diffère de sa valeur par défaut.
-Implémentation en cours.
+Implémenté.
 
 ## 6. Décisions
 
@@ -97,5 +98,6 @@ Implémentation en cours.
 |---|---|---|
 | E1 | Comment rendre visible le bilan de vérification ? | B4 : compteur sur l'onglet Vérification, pied coloré seulement en cas de problème ; bouton « Vérifier » |
 | E2 | Où vont Modèle, Intensités et « Référence exacte dans » ? | Sous « Réglages avancés », replié |
-| E3 | Que montre la création d'une palette ? | La carte de création seule ; la palette affichée est masquée |
-| E4 | Que montrent Création et Vérification sans palette ouverte ? | Ouverte ; piste des nuanciers retenue, recommandation A2a et V1 |
+| E3 | Que montre la création d'une palette ? | La carte de création seule ; la palette affichée est masquée (implémenté) |
+| E4 | Que montre Création sans palette ouverte ? | A2a : le nuancier compact, « Nouvelle palette » en bouton principal |
+| E5 | Que montre Vérification sans palette ouverte ? | Ouverte ; recommandation V3 avec les lignes de V4 |
