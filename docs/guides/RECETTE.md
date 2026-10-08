@@ -108,7 +108,7 @@ commande et l'écran sans sélection.
 Dans un second terminal, à la racine d'`UCM-Playground` :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.53 init
+npx --yes @ucm-kit/cli@0.1.54 init
 ```
 
 Sans option, la commande écrit ses défauts : les contrats sous `components/`,
@@ -117,7 +117,7 @@ les tokens dans `tokens.json`. Le Playground range les siens sous
 que la recette emploie :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.53 init --components src/components --tokens src/tokens
+npx --yes @ucm-kit/cli@0.1.54 init --components src/components --tokens src/tokens
 ```
 
 | Option | Ce qu'elle reçoit |
@@ -190,7 +190,7 @@ ci-report.md
 Puis regardez ce que le contrôle dit d'un dépôt encore vide :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.53 check
+npx --yes @ucm-kit/cli@0.1.54 check
 ```
 
 Attendu :
@@ -325,7 +325,7 @@ l'implémentation n'a pas été lue, jamais qu'elle est conforme.
 Pour lui donner à lire :
 
 ```sh
-npm install --save-dev @ucm-kit/adapter-typescript@0.1.46
+npm install --save-dev @ucm-kit/adapter-typescript@0.1.47
 ```
 
 Prenez la version que le registre sert, `npm view @ucm-kit/adapter-typescript
@@ -443,8 +443,8 @@ Le workflow le fait déjà après chaque publication, et le refaire à la main c
 une minute. Dans un dossier temporaire, hors de tout dépôt :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.53 init
-npx --yes @ucm-kit/cli@0.1.53 check
+npx --yes @ucm-kit/cli@0.1.54 init
+npx --yes @ucm-kit/cli@0.1.54 check
 ```
 
 Attendu : `init` écrit ses huit fichiers, et `check` sort en 0 en disant que ce
@@ -475,7 +475,7 @@ de scope `api` ayant le rôle Developer sur ce projet. Dans ce qui suit,
 1. Dans un clone du projet, lancez :
 
    ```sh
-   npx --yes @ucm-kit/cli@0.1.53 init --forge gitlab
+   npx --yes @ucm-kit/cli@0.1.54 init --forge gitlab
    ```
 
    Vérifiez que le compte rendu nomme GitLab et le signal suivi, qu'il écrit
