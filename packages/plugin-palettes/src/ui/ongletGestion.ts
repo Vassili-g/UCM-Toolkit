@@ -37,7 +37,7 @@ import type { SectionDeGestion, SectionsDeGestion } from '../preferences';
 import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
 import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
-import { palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
+import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
 import { tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
 import { suiviFutur as suiviDesVariablesFutur, variablesSuivies } from '../variables/suivi';
 import { creerVuesApercuCompact } from './apercuCompact';
@@ -104,8 +104,11 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   rangerLaDestination(destination: Destination): boolean;
   /** Demande le retrait des variables d'une palette supprimée ; `false` quand rien ne part ([VAR-11]). */
   retirerLesVariables(palette: string): boolean;
-  /** Reprend une palette du fichier dans le plugin ; `false` quand rien ne part ([VAR-13]). */
-  reprendre(source: PaletteDuFichier): boolean;
+  /**
+   * Reprend une palette du fichier dans le plugin ; `false` quand rien ne part ([VAR-13]).
+   * `imposee` est l'identifiant d'un cadre orphelin : la palette reprise le prend.
+   */
+  reprendre(source: PaletteDuFichier | PaletteGroupee, imposee?: string): boolean;
   /** Copie une palette de bibliothèque dans le plugin ; `false` quand rien ne part ([VAR-14]). */
   copier(source: PaletteDeBibliotheque): boolean;
   /** Les gestes de la recette en fichier, dans la carte « Palettes et réglages » (V8.5). */
@@ -423,6 +426,10 @@ function construireVues(i18n: Localisation) {
         geste.disabled = inactif || retraitEnCours !== null || retraitDesVariablesEnCours;
         i18n.lier(geste, 'title', blocage === null ? '' : TEXTES_DE_LA_PALETTE_SUPPRIMEE.enConflit);
       }
+      for (const geste of Array.from(supprimees.querySelectorAll<HTMLButtonElement>('[data-geste="reprendre-supprimee"]'))) {
+        geste.disabled = inactif || repriseEnCours || retraitEnCours !== null || retraitDesVariablesEnCours;
+        i18n.lier(geste, 'title', blocage === null ? '' : TEXTES_DE_LA_GESTION.variablesEnConflit);
+      }
     }
 
     function retirer(cadre: CadreLu, rang: number): void {
@@ -433,11 +440,30 @@ function construireVues(i18n: Localisation) {
     }
 
     /**
+     * La palette du fichier que le geste « Reprendre depuis les variables » reprend
+     * sous l'identifiant d'un cadre orphelin : celle que les variables de la
+     * liaison de reprise de ce cadre forment encore dans le fichier, en une
+     * palette groupée ou en un seul groupe. `undefined` sans liaison de reprise
+     * à cet identifiant, sans variable restée, ou quand elles se partagent entre
+     * plusieurs palettes du fichier.
+     */
+    function repriseDuCadre(palette: string): PaletteDuFichier | PaletteGroupee | undefined {
+      const suivie = variables?.suivi.palettes[palette];
+      if (!suivie || suivie.liaison !== 'reprise') return undefined;
+      const suivies = new Set(Object.values(suivie.variables).map((variable) => variable.id));
+      const trouvees = regrouperLesPalettes(duFichier).filter((candidate) =>
+        (candidate.type === 'groupee' ? candidate.groupes.map((groupe) => groupe.palette) : [candidate.palette]).some((groupe) => groupe.variables.some((id) => suivies.has(id))));
+      if (trouvees.length !== 1) return undefined;
+      return trouvees[0].type === 'groupee' ? trouvees[0] : trouvees[0].palette;
+    }
+
+    /**
      * La carte d'une palette supprimée : son nom, ce qui reste d'elle dans
      * Figma, et un geste par reste. « Supprimer les variables… » demande
      * confirmation dans la carte ([VAR-11]).
      */
     function carteSupprimee(palette: string, cadre: CadreLu | undefined, restes: VariablesOrphelines | undefined, rang: number): HTMLElement {
+      const reprise = cadre ? repriseDuCadre(palette) : undefined;
       const carte = createCarte({ titre: cadre?.nom ?? restes?.chemin ?? palette }, i18n);
       carte.element.classList.add('carte-supprimee');
       carte.element.dataset.supprimee = palette;
@@ -452,6 +478,22 @@ function construireVues(i18n: Localisation) {
         const supprimer = createButton({ label: TEXTES_DE_LA_PALETTE_SUPPRIMEE.supprimer, variant: 'danger', compact: true, onClick: () => retirer(cadre, rang) });
         supprimer.dataset.geste = 'supprimer';
         gestesDeLaCarte.append(voir, supprimer);
+        if (reprise) {
+          const reprendre = createButton({
+            label: TEXTES_DE_LA_PALETTE_SUPPRIMEE.reprendre,
+            variant: 'secondary',
+            compact: true,
+            onClick: () => {
+              if (repriseEnCours || !gestes.reprendre(reprise, palette)) return;
+              repriseEnCours = true;
+              zoneDesVariables.replaceChildren();
+              zoneDesVariables.hidden = true;
+              rendreLesGestes();
+            },
+          });
+          reprendre.dataset.geste = 'reprendre-supprimee';
+          gestesDeLaCarte.append(reprendre);
+        }
       }
       carte.corps.append(texte, gestesDeLaCarte);
       if (restes && variablesAConfirmer === palette) {

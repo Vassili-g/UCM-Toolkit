@@ -243,6 +243,37 @@ const CADRES_SUPPRIMES = [
   { palette: 'p-1a2b3c4d', cadre: '40:6', nom: 'Rouge', page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', empreinte: '0badc0de', grille: true, possede: true },
 ];
 
+/**
+ * Poppy, reprise du fichier puis retirée de la recette par erreur : son cadre
+ * reste sur la planche, rattaché à son identifiant, et le suivi garde sa
+ * liaison de reprise.
+ */
+const POPPY = palette('p-9e4d7c10', 'Poppy', '#DC2626');
+const CADRE_DE_POPPY = { palette: POPPY.id, cadre: '40:8', nom: 'Poppy', page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', empreinte: '0badc0de', grille: true, possede: true };
+const RAMPE_DE_POPPY = ['#FEF2F2', '#FEE2E2', '#FECACA', '#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
+
+/** Les quatre groupes `Poppy/<intensité>/<thème>` du fichier, et le suivi qui les lie à l'identifiant de Poppy. */
+function variablesDePoppy(liaison = 'reprise') {
+  const variables = [];
+  const suivies = {};
+  for (const intensite of ['soft', 'vivid']) {
+    for (const theme of ['light', 'dark']) {
+      NUANCES_DU_FICHIER.forEach((nuance, rang) => {
+        const id = `VariableID:poppy:${intensite}:${theme}:${nuance}`;
+        const hexa = (theme === 'light' ? RAMPE_DE_POPPY : [...RAMPE_DE_POPPY].reverse())[rang];
+        variables.push({ id, nom: `Poppy/${intensite}/${theme}/${nuance}`, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': hexa } });
+        suivies[`${intensite}/${theme}/${nuance}`] = { id, ecrite: hexa };
+      });
+    }
+  }
+  return {
+    ...VARIABLES_VIDES,
+    collections: [{ ...COLLECTION_DES_TOKENS, variables: variables.length }],
+    variables,
+    suivi: { ...VARIABLES_VIDES.suivi, destination: DESTINATION_DES_TOKENS, confirmee: true, palettes: { [POPPY.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', chemin: 'Poppy', modes: { light: '7:0' }, variables: suivies, liaison } } },
+  };
+}
+
 /** La planche que la lecture relève : sa page, ses cadres, et ce qu'elle n'a pas trouvé. */
 const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', cadres, ...reglages });
 const ouvrirLaPlanche = { clic: '#onglet-gestion' };
@@ -1061,6 +1092,28 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), ...CADRES_SUPPRIMES])),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'palette-supprimee-a-reprendre',
+    titre: 'Palette supprimée, reprenable depuis les variables',
+    quand: 'Poppy n’est plus dans la recette ; son cadre est resté sur la planche, et le suivi la lie par une reprise à quatre groupes de variables, Soft et Vivid, Light et Dark.',
+    regarder: 'La carte de Poppy sous les fiches : sa phrase, puis « Afficher dans Figma », « Supprimer définitivement » et « Reprendre depuis les variables » sur une seule ligne. Les quatre groupes Poppy restent sous « Déjà dans le fichier ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), CADRE_DE_POPPY]), 1, variablesDePoppy()),
+      ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'palette-reprise-sous-son-identifiant',
+    titre: 'Palette reprise sous son identifiant',
+    quand: 'Le designer a cliqué « Reprendre depuis les variables » sur la carte de Poppy ; le sandbox a rangé la recette, et l’état relu la porte.',
+    regarder: 'Plus de carte « Palette supprimée du plugin » pour Poppy, plus de groupe Poppy sous « Déjà dans le fichier », et une fiche Poppy dans la liste du plugin, avec son cadre.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU, POPPY]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU, POPPY]), BLEU, '40:2'), cadreDessine(rangee([BLEU, POPPY]), POPPY, '40:8')]), 1, variablesDePoppy()),
       ouvrirLaPlanche,
     ],
   },

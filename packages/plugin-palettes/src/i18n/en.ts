@@ -1375,6 +1375,7 @@ export function constatDesCalquesEtrangers(nom: string, calques: readonly string
 export const TEXTES_DE_LA_PALETTE_SUPPRIMEE = {
   texte: "Palette deleted from the plugin. This frame will no longer be updated.",
   supprimer: "Delete permanently",
+  reprendre: "Restore from variables",
   enConflit: "Export your changes or reload the palettes before deleting a frame.",
   supprime: (nom: string) => `Frame “${nom}” deleted. Press Ctrl+Z in Figma to restore it.`,
 } as const;

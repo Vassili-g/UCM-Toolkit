@@ -2986,6 +2986,59 @@ test('[ENT-03] [UI-02] une palette supprimée se lit en une carte, et « Affiche
   }
 });
 
+const POPPY = 'p-9e4d7c10';
+const ID_DE_LA_COLLECTION_DE_POPPY = 'VariableCollectionId:7:1';
+
+test('[VAR-13] la carte de Poppy propose « Reprendre depuis les variables » ; le geste envoie la reprise groupée sous l’identifiant du cadre, puis la carte et les groupes disparaissent', async () => {
+  const page = await ouvrirSur('palette-supprimee-a-reprendre');
+  try {
+    await ouvrirLaPlanche(page);
+    assert.equal(await page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]').count(), 4, 'quatre groupes sous « Déjà dans le fichier »');
+    const carte = carteSupprimee(page, '40:8');
+    const geste = carte.getByRole('button', { name: 'Reprendre depuis les variables' });
+    assert.equal(await geste.count(), 1);
+    const avant = await compte(page);
+    await geste.click();
+    const demande = await prochaine(page, avant);
+    assert.equal(demande.type, 'reprendre-palette');
+    assert.equal(demande.palette, POPPY);
+    assert.deepEqual(demande.source, { collection: ID_DE_LA_COLLECTION_DE_POPPY, racine: 'Poppy', forme: 'intensites-themes-chemin' });
+    assert.deepEqual(demande.recette.palettes.map((palette) => palette.id), [ID_DU_BLEU, POPPY]);
+    assert.equal(demande.recette.palettes[1].nom, 'Poppy');
+    assert.equal(await geste.isDisabled(), true, 'une seule reprise en vol');
+
+    await envoyer(page, { type: 'reprise', demande: demande.demande, issue: { issue: 'reprise', empreinte: '0000000f' } });
+    const lecture = (await demandes(page)).filter((envoyee) => envoyee.type === 'lire-etat').at(-1);
+    await envoyer(page, { ...messageDe('palette-reprise-sous-son-identifiant'), demande: lecture.demande });
+    await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+    assert.equal(await page.locator('.carte-supprimee').count(), 0, 'la carte orpheline a disparu');
+    assert.equal(await page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]').count(), 0, 'les groupes de Poppy sont redevenus des variables suivies');
+    assert.equal(await page.locator(`#panneau-gestion .palette-depliable[data-palette="${POPPY}"]`).count(), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[VAR-13] sans liaison de reprise à l’identifiant du cadre, ou sans variable restée, la carte ne propose pas « Reprendre depuis les variables »', async () => {
+  for (const [nom, modifier] of [
+    ['liaison destination', (message) => { message.variables.suivi.palettes[POPPY].liaison = 'destination'; }],
+    ['variables retirées du fichier', (message) => { message.variables.variables = []; }],
+    ['suivi sans l’identifiant du cadre', (message) => { delete message.variables.suivi.palettes[POPPY]; }],
+  ]) {
+    const page = await ouvrir();
+    try {
+      const message = structuredClone(messageDe('palette-supprimee-a-reprendre'));
+      modifier(message);
+      await envoyer(page, message);
+      await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+      assert.equal(await carteSupprimee(page, '40:8').count(), 1, nom);
+      assert.equal(await page.locator('[data-geste="reprendre-supprimee"]').count(), 0, nom);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
 test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte disparaît, le focus passe à la suivante, puis à l’en-tête des palettes du plugin', async () => {
   const page = await ouvrirSur('palette-supprimee');
   try {

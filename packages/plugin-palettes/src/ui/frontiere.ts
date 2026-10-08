@@ -12,6 +12,7 @@
  */
 import type { Recette, Refus } from 'ucm-couleur';
 
+import type { SourceDeLaReprise } from '../ecriture/variables';
 import type { PluginMessage, UiRequest } from '../messages';
 import type { Destination } from '../variables/destination';
 
@@ -84,7 +85,7 @@ export interface Frontiere {
    * qu'un rangement ou une autre reprise est en vol : la réponse est
    * `false`. Jusqu'à l'issue, aucun rangement ne part.
    */
-  reprendre(recette: Recette, palette: string, source: { collection: string; chemin: string }): boolean;
+  reprendre(recette: Recette, palette: string, source: SourceDeLaReprise): boolean;
   /**
    * Vrai quand l'issue répond à la dernière reprise demandée. Une reprise
    * rangée apporte l'empreinte de la recette ; une recette changée ailleurs

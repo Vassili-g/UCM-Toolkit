@@ -1367,6 +1367,7 @@ export function constatDesCalquesEtrangers(nom: string, calques: readonly string
 export const TEXTES_DE_LA_PALETTE_SUPPRIMEE = {
   texte: 'Palette supprimée du plugin. Ce cadre ne sera plus mis à jour.',
   supprimer: 'Supprimer définitivement',
+  reprendre: 'Reprendre depuis les variables',
   enConflit: 'Exportez vos modifications ou rechargez les palettes avant de supprimer un cadre.',
   supprime: (nom: string) => `Cadre « ${nom} » supprimé. Ctrl+Z dans Figma le rétablit.`,
 } as const;
