@@ -16,7 +16,7 @@ reste la référence des règles, malgré son emplacement dans ce dossier.
 | Anglais et français | Implémentés ; anglais par défaut, choix conservé sur le poste | [Plan et réserves de validation](./Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes), [décisions éditoriales](./Textes%20et%20langues/DECISIONS-REDACTION-PALETTES.md) |
 | Variables et parcours en trois onglets | Implémentés, avec reprise locale et copie de bibliothèque | [Direction simple et recette](./Intégration%20du%20marché/README.md) ; [règles d'écriture et de reprise](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#17-sortie-2--les-variables) |
 | Sections repliables de Gestion et simulation des chemins | Présentes dans `ongletGestion.ts`, `connexion.ts` et `destination.ts` | [Maquettes de recette](./Intégration%20du%20marché/08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) ; conserver les variantes graphiques jusqu'au tri validé |
-| Liste dépliable de Gestion | Implémentée dans `ongletGestion.ts` : une ligne par palette, sa fiche dépliée dessous | [Maquette validée](./Liste%20dépliable%20dans%20Gestion/MAQUETTE-LISTE-DEPLIABLE.html) |
+| Liste dépliable de Gestion | Implémentée dans `ongletGestion.ts` : une ligne par palette, sa fiche dépliée dessous | Le code fait foi |
 
 Une recette non consignée ne remet pas ces fonctions dans les travaux à
 implémenter. Les anciens nombres de tests et états de copie de travail ne

@@ -106,7 +106,8 @@ Les validations ci-dessous concernent le contrat et son parcours de publication.
 Pour les plugins et les moteurs déjà implémentés, les réserves propres à
 chaque chantier figurent dans l'[état des recherches](./docs/notes/Recherches/README.md).
 L'ordre des ombres du contrat 14.0 demande notamment une comparaison Figma,
-décrite dans le [bilan des propriétés visuelles](./docs/notes/Recherches/Diagnostics%20d'un%20composant%20réel/README.md).
+décrite dans le bilan des propriétés visuelles, retiré du dépôt avec les
+recherches implémentées et lisible dans l'historique Git (commit `b228cd2`).
 
 ### 1. Fermer la validation de projection
 
