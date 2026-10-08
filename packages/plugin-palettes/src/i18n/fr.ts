@@ -1982,7 +1982,6 @@ export const TEXTES_DE_LA_REPRISE = {
   recalculees: 'Recalculées',
   tellesQuelles: 'Telles quelles',
   figee: 'Aucune couleur ne change. La palette garde les couleurs du fichier, sans rôles ni garanties.',
-  annuler: 'Annuler la reprise',
   gardentLeurNom: 'Les variables gardent leur nom et leurs liaisons.',
 } as const;
 

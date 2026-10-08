@@ -918,7 +918,7 @@ const ETATS = [
     id: 'reprise-recalculee',
     titre: 'Reprise recalculée',
     quand: 'Le designer a cliqué « Modifier dans le plugin » sur slate : Création s’ouvre sur la palette reprise.',
-    regarder: 'Sous le titre « Palette slate », l’encart : « Palette reprise des variables du fichier », la rampe « Fichier » et la rampe « Plugin » l’une sous l’autre, la bascule « Recalculées · Telles quelles » avec « Recalculées » pressé, le nombre de couleurs qui changeront, et « Annuler la reprise ». Les cartes de réglage suivent, sans le choix des intensités.',
+    regarder: 'Sous le titre « Palette slate », l’encart : « Palette reprise des variables du fichier », la rampe « Fichier » et la rampe « Plugin » l’une sous l’autre, la bascule « Recalculées · Telles quelles » avec « Recalculées » pressé et le nombre de couleurs qui changeront. Les cartes de réglage suivent, sans le choix des intensités.',
     existe: true,
     atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false))],
   },

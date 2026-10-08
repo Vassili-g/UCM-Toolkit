@@ -1989,7 +1989,6 @@ export const TEXTES_DE_LA_REPRISE = {
   recalculees: "Recalculated",
   tellesQuelles: "As is",
   figee: "No color changes. The palette keeps the file’s colors, without roles or guarantees.",
-  annuler: "Cancel takeover",
   gardentLeurNom: "Variables keep their name and their bindings.",
 } as const;
 

@@ -477,14 +477,7 @@ function construireVues(i18n: Localisation) {
     });
     const texteDeLaReprise = document.createElement('p');
     texteDeLaReprise.className = 'ligne-secondaire';
-    const annulerLaReprise = document.createElement('button');
-    annulerLaReprise.type = 'button';
-    annulerLaReprise.className = 'bouton-discret';
-    annulerLaReprise.dataset.geste = 'annuler-la-reprise';
-    i18n.lier(annulerLaReprise, 'textContent', TEXTES_DE_LA_REPRISE.annuler);
-    // La palette quitte le plugin, et ses variables reviennent à la liste « Déjà dans le fichier » de Gestion.
-    annulerLaReprise.addEventListener('click', () => confirmerLaSuppression());
-    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise, annulerLaReprise);
+    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise);
 
     /** Les variables du dernier état lu : la liaison d'une palette reprise, et les couleurs que Figma porte. */
     let fichier: VariablesDuFichier | null = null;
