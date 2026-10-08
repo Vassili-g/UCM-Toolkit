@@ -81,9 +81,10 @@ de Figma. Ce que le fichier garde le permet en partie :
 
 La réparation tient donc en un geste : sur la carte « Palette supprimée du
 plugin », « Reprendre depuis les variables » recrée la palette sous
-l'identifiant du cadre, à deux intensités, depuis les quatre groupes. Reste
-à décider ce que valent ses couleurs tant que les réglages ne sont pas
-retrouvés (D3) :
+l'identifiant du cadre, à deux intensités, depuis les quatre groupes. Ses
+couleurs dépendent de ce que la reprise sait retrouver des réglages. Trois
+options ont été pesées ; le mainteneur a retenu la première, et la deuxième
+quand la première n'est pas exacte (D3) :
 
 - **Reconstruire les réglages.** Les rampes du fichier sont la sortie du
   moteur pour des réglages inconnus. Une recherche des réglages qui
@@ -109,39 +110,37 @@ rende les données du plugin.
 
 Les lots sont ordonnés par priorité. Les lots 1 à 3 réparent Poppy et
 empêchent que la perte se reproduise ; les suivants traitent le reste de la
-recette. Un lot qui dépend d'une décision de
-la section 5 la nomme.
+recette. La section 5 consigne les décisions prises ; seule D5 reste
+ouverte.
 
 | Lot | Constat | Objet | Taille | Décision |
 |---|---|---|---|---|
-| 1 | R1 | « Annuler la reprise » ne retire plus la palette en un clic | Petite | D1 |
+| 1 | R1 | « Annuler la reprise » quitte l'encart | Petite | D1 |
 | 2 | R2 | La détection regroupe les rampes d'une même palette | Moyenne | D2 |
-| 3 | R1, R2 | La reprise groupée, et la reprise sous l'identifiant d'un cadre orphelin | Grande | D3, après la mesure 3a |
+| 3 | R1, R2 | Mesure de la reconstruction, reprise groupée, reprise sous l'identifiant d'un cadre orphelin | Grande | D3 |
 | 4 | R3 | Annuler les modifications d'une palette | Moyenne à grande | D4 |
 | 5 | R4 | La progression de la génération ne décale plus la page | Petite | Aucune |
 | 6 | R5 | « Synchroniser avec les tokens Figma » | Petite | D5 |
 | 7 | R8 | L'espace sous les pastilles de l'aperçu | Petite | Aucune |
-| 8 | R6 | Maquette : Création et Vérification sans palette ouverte | Maquette | Après la maquette |
-| 9 | R7 | Maquette : la configuration avancée repliée | Maquette | Après la maquette |
+| 8 | R6 | Maquette : Création et Vérification sans palette ouverte | Maquette | À prendre sur la maquette |
+| 9 | R7 | Maquette : la configuration avancée repliée | Maquette | À prendre sur la maquette |
 
-### Lot 1. « Annuler la reprise » ne supprime plus en un clic
+### Lot 1. « Annuler la reprise » quitte l'encart
 
 Fichiers : `ui/ongletCreation.ts` (encart de reprise), `i18n/fr.ts`,
-`i18n/en.ts`, galerie et tests de l'onglet.
+`i18n/en.ts` (`TEXTES_DE_LA_REPRISE.annuler`), galerie et tests de l'onglet.
 
 Le bouton de l'encart appelle aujourd'hui `confirmerLaSuppression()` sans
-confirmation. Deux formes possibles, selon D1 :
-
-- retirer le bouton de l'encart : la suppression reste dans le menu de la
-  palette, qui demande déjà « Supprimer « Nom » du plugin ? Son cadre Figma
-  restera, sans mise à jour. » ;
-- le garder sous le libellé « Retirer du plugin… », avec la même
-  confirmation que le menu, et une phrase qui dit que les variables restent
-  dans le fichier.
+confirmation. Le lot retire le bouton, son texte et son écouteur (D1).
+L'encart garde le titre, la comparaison Fichier / Plugin, le choix
+« Recalculées · Telles quelles » et la phrase de ce que la mise à jour
+changera. Retirer une palette reprise passe par « Supprimer » du menu de la
+palette, qui demande déjà « Supprimer « Nom » du plugin ? Son cadre Figma
+restera, sans mise à jour. »
 
 Critère : aucun bouton de l'onglet Création ne retire une palette de la
-recette sans confirmation ; un test de l'onglet clique le bouton de l'encart
-et vérifie que la recette rangée porte encore la palette.
+recette sans confirmation ; la galerie de l'encart n'a plus de bouton ; les
+textes retirés quittent les deux langues et l'inventaire des textes.
 
 ### Lot 2. Une palette du fichier rangée sur plusieurs groupes
 
@@ -162,8 +161,10 @@ Les formes reconnues :
 | 2 | `Poppy/light`, `Poppy/dark` | Une intensité, thèmes dans le chemin |
 
 La ligne de Gestion montre une palette, sa racine et ce qu'elle regroupe
-(« Soft et Vivid, Light et Dark »). Une forme incomplète, trois groupes sur
-quatre par exemple, se traite selon D2.
+(« Soft et Vivid, Light et Dark »). Seules les trois formes complètes se
+regroupent (D2) : trois groupes sur quatre restent trois lignes, puisqu'un
+groupe manquant peut être un choix du designer. Deux groupes de nuances
+différentes ne se regroupent pas non plus.
 
 Critère : sur les variables écrites par le plugin pour une palette à deux
 intensités, thèmes dans le chemin, la détection rend une seule palette ;
@@ -180,13 +181,24 @@ script de mesure tire des palettes à deux intensités avec des réglages
 variés (référence, Réglage global, Color shift, palette de base), calcule
 leurs rampes avec le moteur, puis cherche les réglages qui reproduisent ces
 rampes. Il rend, pour chaque palette, l'écart maximal en hexa entre les
-rampes d'origine et les rampes reconstruites. Si l'écart est nul sur toutes
-les palettes, la reprise reconstruit les réglages ; sinon D3 choisit entre
-figer et recalculer. La mesure ne touche pas au plugin.
+rampes d'origine et les rampes reconstruites. La mesure ne touche pas au
+plugin ; son script et ses résultats se rangent dans un dossier `Mesures`
+de ce dossier. Elle décide de la suite (D3) : un écart nul sur toutes les
+palettes fait reconstruire les réglages ; un écart non nul fait figer les
+couleurs. La décision s'écrit ici avec ses chiffres avant 3b.
+
+Si la reprise fige les couleurs, `figees` s'étend aux deux intensités :
+`{ soft: CouleursFigees, vivid: CouleursFigees }` sur une palette sans
+`intensites: 1`, la forme actuelle restant celle d'une intensité.
+`FORMAT_RECETTE` passe de 9 à 10. Une recette au format 9 se lit telle
+quelle, puisque rien n'y change de sens ; un plugin plus ancien lit une
+recette 10 comme `future` et n'y écrit rien ([REC-03]). La spécification, section de la
+recette et de sa lecture, consigne le format 10.
 
 **3b. La reprise groupée.** « Modifier dans le plugin » sur une palette
 groupée (lot 2) crée une palette à deux intensités quand la forme en porte
-deux. Ses couleurs suivent D3. Le suivi range chaque variable sous sa clé du
+deux. Ses couleurs sont celles des réglages reconstruits, ou les couleurs
+figées du fichier selon 3a. Le suivi range chaque variable sous sa clé du
 plan (`soft/light/600`, `vivid/dark/600`…), pour qu'une mise à jour ne
 renomme rien. La source envoyée au sandbox désigne la racine et la forme du
 groupe ; le sandbox relit les groupes lui-même, comme aujourd'hui pour un
@@ -224,29 +236,41 @@ modifications ». NN/g, Apple et GOV.UK préfèrent l'annulation à la
 confirmation pour une action courante, demandent une annulation sur
 plusieurs pas, et écartent une action destructrice d'une action bénigne.
 
-Deux formes, selon D4 :
+Le mainteneur a retenu le retour à l'ouverture, avec une annulation dans la
+session (D4). Le brouillon suivi d'« Enregistrer » a été écarté : il obligeait
+Gestion à refuser une palette non enregistrée, le plugin à garder le
+brouillon à la fermeture, et il ouvrait un conflit avec le rangement d'un
+autre designer.
 
-- **Retour à l'ouverture et annulation dans la session.** Le rangement à
-  chaque geste reste. L'interface garde la palette telle qu'elle était à son
-  ouverture, et la pile des rangements de la session. La barre de la palette
-  montre « Annuler les modifications » dès que la palette diffère de son état
-  d'ouverture ; le geste range cet état, et « Rétablir » le défait. Ctrl+Z
-  dans la fenêtre du plugin défait le dernier réglage. Rien ne change pour
-  Gestion, Vérification ni les autres designers.
-- **Brouillon et « Enregistrer ».** Les réglages restent dans l'interface
-  jusqu'à « Enregistrer la palette » ; « Annuler » rend la palette rangée.
-  Gestion doit alors refuser de générer une palette non enregistrée, la
-  fermeture du plugin doit garder ou signaler le brouillon (Tokens Studio le
-  range dans le stockage privé du poste), et un rangement d'un autre
-  designer peut entrer en conflit avec le brouillon.
+Ce que le lot construit :
 
-La première forme est recommandée : elle répond à la demande sans changer ce
-que Gestion et les autres designers lisent. La seconde touche le parcours
-entier.
+1. **L'état d'ouverture.** L'interface garde, pour chaque palette, la palette
+   rangée au premier moment où elle s'ouvre dans la session. Passer d'une
+   palette à l'autre ne le remplace pas ; fermer le plugin l'oublie.
+2. **« Annuler les modifications ».** La barre de la palette le montre dès que
+   la palette ouverte diffère de son état d'ouverture, loin de « Supprimer »,
+   qui reste dans le menu. Le geste range la recette avec cette palette
+   remise dans son état d'ouverture, par le même chemin qu'un réglage : un
+   rangement refusé parce que la recette a changé ailleurs reste refusé
+   ([REC-10]). Il ne touche ni les autres palettes ni les Réglages communs.
+3. **« Rétablir ».** Après le geste, la barre propose « Rétablir » jusqu'au
+   réglage suivant ; il range la palette d'avant l'annulation.
+4. **Ctrl+Z et Ctrl+Maj+Z dans la fenêtre du plugin.** L'interface garde la
+   pile des recettes qu'elle a rangées dans la session. Ctrl+Z, hors d'un
+   champ de saisie, range la recette précédente ; Ctrl+Maj+Z la suivante.
+   La pile couvre aussi la suppression d'une palette, qui devient
+   réversible dans la session. Un rangement venu d'ailleurs, lu au retour du
+   focus, vide la pile.
 
-Critère de la première forme : après trois réglages, « Annuler les
-modifications » rend une recette rangée égale à celle de l'ouverture ;
-« Rétablir » rend celle d'avant l'annulation ; un test le vérifie.
+Ce que le lot ne défait pas : ce que Gestion a écrit dans Figma. Après une
+annulation, une palette dont les tokens ou le cadre ont été mis à jour
+redevient « À mettre à jour », et une nouvelle mise à jour rend les
+couleurs d'avant.
+
+Critère : après trois réglages, « Annuler les modifications » rend une
+recette rangée égale à celle de l'ouverture ; « Rétablir » rend celle
+d'avant l'annulation ; Ctrl+Z après « Supprimer » rend la palette sous son
+identifiant ; des tests de la frontière et de l'onglet le vérifient.
 
 ### Lot 5. La progression à la place du bouton
 
@@ -272,7 +296,7 @@ si la largeur l'exige.
 
 Le libellé devient « Synchroniser avec les tokens Figma ». Il est plus long
 de vingt-deux caractères : à vérifier à la largeur minimale de la fenêtre.
-Le texte anglais dépend de D5.
+Le texte anglais reste à décider (D5).
 
 ### Lot 7. L'espace sous les pastilles de l'aperçu
 
@@ -284,8 +308,9 @@ de `styles.css`, et la galerie le montre.
 
 ### Lot 8. Maquette : aucune palette ouverte
 
-Une page HTML simple, sans adaptation à la largeur, à côté de ce dossier. Elle
-reproduit d'abord l'écran actuel, puis montre trois ou quatre propositions
+Une page HTML simple, sans adaptation à la largeur, à côté de ce dossier,
+comme le mainteneur l'a demandé. Elle reproduit d'abord l'écran actuel tel
+que la galerie le rend, puis montre trois ou quatre propositions
 pour Création et Vérification quand la recette porte des palettes et
 qu'aucune n'est ouverte :
 
@@ -305,15 +330,30 @@ dépliant « Réglages avancés », replié. La maquette montre aussi le cas d'u
 palette dont un réglage avancé diffère de sa valeur par défaut : le dépliant
 le résume (« Modèle libre, une intensité »).
 
-## 5. Décisions attendues du mainteneur
+## 5. Décisions
 
-| N° | Question | Options | Recommandation |
+| N° | Question | Décision | Option écartée |
 |---|---|---|---|
-| D1 | Que devient « Annuler la reprise » ? | Retirer le bouton de l'encart ; le renommer « Retirer du plugin… » avec confirmation | Le retirer : le menu de la palette porte déjà la suppression confirmée |
-| D2 | Une forme incomplète, trois groupes sur quatre, se regroupe-t-elle ? | Regrouper, la mise à jour créant le groupe manquant ; laisser les groupes séparés | Laisser séparés : un groupe manquant peut être un choix du designer |
-| D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Reconstruire les réglages, si la mesure 3a la montre exacte ; figer les couleurs du fichier à deux intensités, ce qui change le format de la recette ; recalculer depuis la référence | Reconstruire si 3a le permet, sinon figer : dans les deux cas, Poppy revient sans qu'une couleur du fichier change |
-| D4 | Quel modèle d'annulation ? | Retour à l'ouverture et annulation dans la session ; brouillon et « Enregistrer » | Le retour à l'ouverture |
-| D5 | Quel libellé anglais pour la synchronisation ? | « Sync with Figma tokens » ; « Sync with Figma variables » | « Sync with Figma tokens », pour garder le mot du français |
+| D1 | Que devient « Annuler la reprise » ? | Le bouton quitte l'encart ; la suppression reste dans le menu de la palette, avec sa confirmation | Le renommer « Retirer du plugin… » avec confirmation |
+| D2 | Une forme incomplète, trois groupes sur quatre, se regroupe-t-elle ? | Non : seules les formes complètes se regroupent | Regrouper, la mise à jour créant le groupe manquant |
+| D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Reconstruire les réglages si la mesure 3a la montre exacte, sinon figer les couleurs du fichier à deux intensités ; aucune couleur du fichier ne change | Recalculer depuis la référence |
+| D4 | Quel modèle d'annulation ? | Retour à l'ouverture, « Rétablir », et Ctrl+Z dans la fenêtre du plugin | Brouillon et « Enregistrer » |
+| D5 | Quel libellé anglais pour la synchronisation ? | Ouverte. Recommandation : « Sync with Figma tokens », pour garder le mot du français | « Sync with Figma variables » |
+
+## 6. Ordre de réalisation
+
+1. Lot 1 : il empêche qu'une autre palette se perde comme Poppy.
+2. Lot 3a : la mesure décide de la forme de 3b et du format de la recette.
+3. Lots 2, 3b, puis 3c : Poppy revient sous son identifiant.
+4. Lot 4 : l'annulation des modifications.
+5. Lots 5, 6 et 7, indépendants entre eux ; le lot 6 attend D5 pour
+   l'anglais.
+6. Lots 8 et 9 : les maquettes, puis leurs décisions.
+
+Ce que le plan ne couvre pas : une palette créée par le plugin, liaison
+`destination`, puis supprimée garde ses variables dans le fichier ; le
+lot 3c ne propose de la reprendre que pour une liaison `reprise`. Le cas
+attend une recette qui le rencontre.
 
 ## Sources
 
