@@ -1007,15 +1007,15 @@ manque.
   `node packages/plugin-palettes/galerie/comparer-maquette.cjs`, contrôle de
   style, `npx vitest run tests/docLinks.test.ts`. Fini quand : tableau
   rendu, tout vert hors des échecs notés à T0.3.
-- [ ] **T10.6** · Orchestrateur. Commits `refactor(kit): l'ancienne table
+- [x] **T10.6** · Orchestrateur. Commits `refactor(kit): l'ancienne table
   des emplois se retire`, `chore: versions` et `docs: le thème en dossiers
   et le texte des boutons`. `git pull --rebase`, `test:ui`, puis push sur
   `main`.
-- [ ] **T10.7** · Orchestrateur. Publier `@ucm-kit/core`, puis
+- [x] **T10.7** · Orchestrateur. Publier `@ucm-kit/core`, puis
   `@ucm-kit/cli`, puis `@ucm-kit/adapter-typescript`, selon
   [AGENTS.md, « Publier les paquets »](../../../../AGENTS.md#publier-les-paquets),
   en attendant la fin de chaque exécution.
-- [ ] **T10.8** · Orchestrateur. Rendre au mainteneur : les commits, les
+- [x] **T10.8** · Orchestrateur. Rendre au mainteneur : les commits, les
   portes franchies ou non, la recette Figma à faire (réglage du texte des
   boutons, planches, variables « À actualiser » dans Gestion, profil d'UCM
   Explorateur sur le fichier remappé, `ucm check` sur le Playground), et
@@ -1037,7 +1037,7 @@ Mis à jour par l'orchestrateur à chaque lot.
 | 7. Garanties | commité avec le lot 8 ; portes M1 à M3 validées | e1a8d73 |
 | 8. Lecteurs et carte | commité | e1a8d73 |
 | 9. Planche et Interface de test | commité | 6014870 |
-| 10. Retrait et publication | retrait, versions et documents commités ; push et publication à suivre | voir `git log` |
+| 10. Retrait et publication | poussé ; `@ucm-kit/core` 0.5.0, `@ucm-kit/cli` 0.1.54 et `@ucm-kit/adapter-typescript` 0.1.47 publiés | 684215b, 65ba56f, 3c05069 |
 
 **Décisions prises pendant l'exécution**, dans le cadre du plan :
 
@@ -1101,6 +1101,10 @@ Mis à jour par l'orchestrateur à chaque lot.
 - Lot 10 : les notes de recherche qui liaient les modules retirés (`emplois.ts`,
   `paires.ts`, `rangs.ts`, `usages.ts`, `diagnostic-emplois.mjs` et leurs
   tests) gardent le nom sans le lien.
+- Lot 10 : la publication exécute `npm test` en entier ; deux liens morts
+  laissés par d'autres sessions (`ROADMAP.md` vers le bilan des propriétés
+  visuelles, `Plugin Palettes/README.md` vers la maquette de la liste
+  dépliable) la bloquaient. Ils gardent leur texte sans le lien.
 - Lot 10 : les agents ont réécrit plusieurs fichiers en CRLF ; ils sont
   revenus en LF avant chaque commit, la planche par un commit à part.
 - Lot 9 : `npm run galerie` et `test:ui` ne reconstruisent que `dist/ui.html`.
