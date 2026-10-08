@@ -1890,6 +1890,41 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
   }
 });
 
+test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la réaffiche, une autre palette choisie ferme la carte, « Créer la palette » ouvre la nouvelle', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    const visibles = async () => ({
+      titre: await page.locator('#panneau-creation .tete-de-la-palette').isVisible(),
+      configuration: await page.locator('#panneau-creation .configuration-de-la-palette').isVisible(),
+      apercu: await page.locator('#panneau-creation [aria-label="Aperçu"]').isVisible(),
+      pied: await page.locator('#panneau-creation .pied-de-la-palette').isVisible(),
+    });
+    const nouvelle = page.getByRole('button', { name: 'Nouvelle palette', exact: true });
+    const carte = page.locator('[aria-label="Nouvelle palette"]');
+    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
+
+    await nouvelle.click();
+    assert.equal(await carte.isVisible(), true);
+    assert.deepEqual(await visibles(), { titre: false, configuration: false, apercu: false, pied: false });
+    assert.equal(await page.locator('.selecteur-bouton').isVisible(), true, 'le sélecteur reste');
+
+    await carte.getByRole('button', { name: 'Annuler', exact: true }).click();
+    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
+    assert.equal(await nouvelle.evaluate((bouton) => bouton === document.activeElement), true);
+
+    await nouvelle.click();
+    await page.locator('.champ-creation').fill('#16A34A');
+    const avant = await compte(page);
+    await page.getByRole('button', { name: 'Créer la palette', exact: true }).click();
+    const demande = await prochaine(page, avant);
+    assert.equal(demande.type, 'ranger-recette');
+    assert.equal(await carte.isVisible(), false);
+    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
+  } finally {
+    await page.close();
+  }
+});
+
 /**
  * Ce qu'un en-tête de carte montre de son intitulé : le glyphe, le titre et le sous-titre. Les mesures qui se comparent
  * d'une carte à l'autre : taille du glyphe, typographie du titre et du sous-titre, retrait du titre et du sous-titre

@@ -268,6 +268,8 @@ function construireVues(i18n: Localisation) {
 
     let classementLu: Classement | null = null;
     let creationOuverte = false;
+    /** Le défilement de la palette d'avant, que « Annuler » rend. */
+    let defilementAvantLaCreation = 0;
     let note: Constat | null = null;
     let statut: StatutDuRangement = 'lu';
     let refus: Constat | null = null;
@@ -282,6 +284,7 @@ function construireVues(i18n: Localisation) {
       onAnnuler: () => {
         creationOuverte = false;
         rendre();
+        if (document.scrollingElement) document.scrollingElement.scrollTop = defilementAvantLaCreation;
         // Dans un fichier sans palette, la barre est cachée : le focus revient à l'encart.
         if (appel.hidden) barre.focaliserNouvelle();
         else premiereNouvelle.focus();
@@ -824,6 +827,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function ouvrirLaCreation(): void {
+      defilementAvantLaCreation = document.scrollingElement?.scrollTop ?? 0;
       creationOuverte = true;
       barre.fermerLaConfirmation();
       // « Annuler » ramène à la barre, ou à l'encart d'un fichier sans palette.
@@ -1005,8 +1009,9 @@ function construireVues(i18n: Localisation) {
       zoneDeLaNote.hidden = !note;
       // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
       invitation.hidden = courante !== null || creationOuverte;
-      teteDeLaPalette.hidden = !courante;
-      configuration.hidden = !courante;
+      // Pendant la création, la carte reste seule : la palette affichée, pied compris, se masque.
+      teteDeLaPalette.hidden = !courante || creationOuverte;
+      configuration.hidden = !courante || creationOuverte;
     }
 
     /**
@@ -1215,6 +1220,8 @@ function construireVues(i18n: Localisation) {
       gestesDeLaBarre: {
         choisir(id) {
           etat.ouvrir(id);
+          // Une autre palette choisie pendant la création ferme la carte.
+          creationOuverte = false;
           rendre();
         },
         nouvelle: () => ouvrirLaCreation(),

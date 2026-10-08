@@ -2123,6 +2123,11 @@
   background: var(--fond);
 }
 
+.tete-de-la-palette[hidden],
+.configuration-de-la-palette[hidden] {
+  display: none;
+}
+
 .tete-de-la-palette .choix-d-affichage {
   flex-shrink: 0;
 }

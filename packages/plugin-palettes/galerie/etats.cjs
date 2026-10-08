@@ -1289,7 +1289,7 @@ const ETATS = [
     id: 'creation-ouverte',
     titre: 'Création ouverte',
     quand: 'Le designer clique « Nouvelle palette » : la création s’ouvre sous le sélecteur.',
-    regarder: 'La carte « Nouvelle palette » en disposition P2 : nom et couleur de référence sur une ligne, puis Modèle Standard pressé, puis les deux cartes d’intensités, « Une intensité » choisie, sans rampe avant un code lisible ; « Créer la palette » puis « Annuler » à gauche, le focus dans le code.',
+    regarder: 'La palette affichée n’est plus visible sous la carte : ni son titre, ni sa configuration, ni son aperçu, ni le pied. Le sélecteur reste. La carte « Nouvelle palette » en disposition P2 : nom et couleur de référence sur une ligne, puis Modèle Standard pressé, puis les deux cartes d’intensités, « Une intensité » choisie, sans rampe avant un code lisible ; « Créer la palette » puis « Annuler » à gauche, le focus dans le code.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), { clic: '.bouton-de-barre' }],
   },
