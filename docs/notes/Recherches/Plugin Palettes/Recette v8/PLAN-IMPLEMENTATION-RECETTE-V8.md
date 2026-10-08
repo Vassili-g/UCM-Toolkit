@@ -289,7 +289,7 @@ T9 a ramené Poppy figée, sans réglages. Le mainteneur veut retrouver ses
 réglages : cette vague passe avant toutes les autres de la phase B. T18a
 tourne en parallèle de T10.
 
-- [ ] **T18a · Reconstruction, le moteur** · `implementeur-exigeant`,
+- [x] **T18a · Reconstruction, le moteur** · `implementeur-exigeant`,
   effort **élevé**. La recherche de `Mesures/mesurer-reconstruction.mjs`
   devient `packages/couleur/src/reconstruction.ts`, testée.
   - Entrée : la recette (ses Réglages communs), la liste des nuances et les
@@ -300,7 +300,7 @@ tourne en parallèle de T10.
   - Fini quand : les palettes rapides de la mesure se reconstruisent à écart
     nul ; une couleur retouchée à la main donne un écart non nul, sans
     erreur ; la recherche d'une palette prend moins d'une minute.
-- [ ] **T18b · Reconstruction, le geste** · `implementeur`, effort
+- [x] **T18b · Reconstruction, le geste** · `implementeur`, effort
   **moyen**, après T18a.
   - L'encart de reprise d'une palette figée porte « Retrouver les
     réglages ». Pendant la recherche, le bouton montre « Recherche des
