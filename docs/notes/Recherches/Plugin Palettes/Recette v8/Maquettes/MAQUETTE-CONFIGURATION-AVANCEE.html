@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Configuration avancée repliée</title>
+<style>
+  :root {
+    --fond: #2c2c2c; --carte-claire: #383838; --champ: #383838; --bordure: #444; --filet: #3d3d3d;
+    --texte: #fff; --second: #b3b3b3; --primaire: #0d99ff;
+    --papier: #f5f5f2; --encre: #1d1d1b; --encre-seconde: #5b5b57;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 40px 64px; background: var(--papier); color: var(--encre); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 40px 0 8px; }
+  p.chapeau { max-width: 760px; color: var(--encre-seconde); margin: 0 0 8px; }
+  .rang { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  .notes { width: 340px; }
+  .notes h3 { font-size: 15px; margin: 0 0 6px; }
+  .notes ul { margin: 0 0 8px; padding-left: 18px; }
+  img.capture { width: 500px; display: block; border: 1px solid #ccc; }
+
+  /* La carte « Configuration de la palette », reproduite d'après la capture de la galerie à 500 px. */
+  .plugin { width: 500px; background: var(--fond); color: var(--texte); font: 12px/1.4 Inter, system-ui, sans-serif; padding: 12px 8px; border: 1px solid #ccc; }
+  .titre-palette { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 700; margin: 0 0 10px; }
+  .bascule { display: inline-flex; border: 1px solid var(--bordure); border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .bascule span { padding: 3px 9px; color: var(--second); }
+  .bascule span.choisi { background: var(--carte-claire); color: var(--texte); border-radius: 5px; }
+  .carte { border: 1px solid var(--bordure); border-radius: 8px; padding: 12px; }
+  .carte-titre { font-size: 13px; font-weight: 700; margin: 0 0 12px; }
+  .grille { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 12px; }
+  .champ label { display: block; font-weight: 600; margin: 0 0 6px; }
+  .saisie { height: 32px; border: 1px solid #555; border-radius: 6px; background: var(--champ); display: flex; align-items: center; padding: 0 8px; gap: 8px; }
+  .carre { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #555; background: #1e6fd9; flex: none; }
+  .aide { color: var(--second); margin: 6px 0 0; font-size: 11px; }
+  .choix { display: flex; border: 1px solid var(--bordure); border-radius: 6px; height: 32px; }
+  .choix span { flex: 1; display: grid; place-items: center; color: var(--second); font-weight: 600; }
+  .choix span.choisi { background: var(--carte-claire); color: var(--texte); border-radius: 5px; }
+  .depliant { margin-top: 14px; border-top: 1px solid var(--filet); padding-top: 10px; }
+  .depliant-tete { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .depliant-tete b { font-weight: 600; }
+  .resume { color: var(--second); }
+  .resume.signale { color: #f3b53f; }
+  .depliant-corps { margin-top: 12px; }
+</style>
+</head>
+<body>
+<h1>La configuration avancée repliée</h1>
+<p class="chapeau">Constat R7 de la recette v8 : à l'ouverture d'une palette, la carte « Configuration de la palette » montre Modèle, Intensités et le choix « Référence exacte dans ». Ces réglages servent rarement. La page montre l'écran actuel, capturé dans la galerie à 500 px, puis la carte repliée dans trois cas.</p>
+
+<h2>Aujourd'hui</h2>
+<div class="rang">
+  <img class="capture" src="captures/apercu-une-intensite-dark-inverse-500.png" alt="Onglet Création, palette Bleu ouverte : carte Configuration avec nom, couleur de référence, Modèle et Intensités">
+  <div class="notes">
+    <h3>Ce qui gêne</h3>
+    <ul>
+      <li>Modèle et Intensités prennent une rangée entière avant l'aperçu, pour des choix faits une fois.</li>
+      <li>À deux intensités, « Référence exacte dans » ajoute une rangée de plus.</li>
+      <li>L'aperçu, que le designer regarde le plus, descend sous la ligne de flottaison à 520 px de haut.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>A. Repliée, réglages par défaut</h2>
+<div class="rang">
+  <div class="plugin">
+    <div class="titre-palette">Palette Bleu <span class="bascule"><span>Light</span><span class="choisi">Dark</span></span></div>
+    <div class="carte">
+      <div class="carte-titre">⌄ Configuration de la palette</div>
+      <div class="grille">
+        <div class="champ"><label>Nom de la palette</label><div class="saisie">Bleu</div></div>
+        <div class="champ"><label>Couleur de référence</label><div style="display:flex;gap:8px"><span class="carre"></span><div class="saisie" style="flex:1">#1E6FD9</div></div><p class="aide">Couleur de référence inchangée.</p></div>
+      </div>
+      <div class="depliant">
+        <div class="depliant-tete"><b>› Réglages avancés</b><span class="resume">Standard, une intensité</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h3>Ce qui change</h3>
+    <ul>
+      <li>La carte garde le nom et la couleur de référence.</li>
+      <li>Modèle, Intensités et « Référence exacte dans » passent sous « Réglages avancés », replié à l'ouverture d'une palette.</li>
+      <li>Le résumé, à droite, dit les valeurs en cours dans les mots des choix.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>La carte perd une rangée et demie ; l'aperçu remonte d'autant.</li></ul>
+  </div>
+</div>
+
+<h2>B. Repliée, un réglage avancé changé</h2>
+<div class="rang">
+  <div class="plugin">
+    <div class="titre-palette">Palette Ardoise <span class="bascule"><span class="choisi">Light</span><span>Dark</span></span></div>
+    <div class="carte">
+      <div class="carte-titre">⌄ Configuration de la palette</div>
+      <div class="grille">
+        <div class="champ"><label>Nom de la palette</label><div class="saisie">Ardoise</div></div>
+        <div class="champ"><label>Couleur de référence</label><div style="display:flex;gap:8px"><span class="carre" style="background:#64748b"></span><div class="saisie" style="flex:1">#64748B</div></div></div>
+      </div>
+      <div class="depliant">
+        <div class="depliant-tete"><b>› Réglages avancés</b><span class="resume signale">Modèle libre, deux intensités · référence dans Soft</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h3>Ce qui change</h3>
+    <ul>
+      <li>Quand un réglage avancé diffère de sa valeur par défaut (Standard, une intensité, Auto), le résumé le nomme et prend la couleur d'attention.</li>
+      <li>Le dépliant reste replié : le résumé suffit pour savoir que la palette sort de l'ordinaire.</li>
+    </ul>
+    <h3>Variante écartée</h3>
+    <ul><li>Déplier d'office dans ce cas : la carte changerait de hauteur d'une palette à l'autre, et l'aperçu sauterait.</li></ul>
+  </div>
+</div>
+
+<h2>C. Dépliée</h2>
+<div class="rang">
+  <div class="plugin">
+    <div class="titre-palette">Palette Ardoise <span class="bascule"><span class="choisi">Light</span><span>Dark</span></span></div>
+    <div class="carte">
+      <div class="carte-titre">⌄ Configuration de la palette</div>
+      <div class="grille">
+        <div class="champ"><label>Nom de la palette</label><div class="saisie">Ardoise</div></div>
+        <div class="champ"><label>Couleur de référence</label><div style="display:flex;gap:8px"><span class="carre" style="background:#64748b"></span><div class="saisie" style="flex:1">#64748B</div></div></div>
+      </div>
+      <div class="depliant">
+        <div class="depliant-tete"><b>⌄ Réglages avancés</b><span class="resume signale">Modèle libre, deux intensités · référence dans Soft</span></div>
+        <div class="depliant-corps grille">
+          <div class="champ"><label>Modèle</label><div class="choix"><span>Standard</span><span class="choisi">Libre</span></div></div>
+          <div class="champ"><label>Intensités</label><div class="choix"><span>Une</span><span class="choisi">Deux</span></div></div>
+          <div class="champ" style="grid-column: 1 / 3"><label>Référence exacte dans</label><div class="choix" style="width:50%"><span>Auto</span><span class="choisi">Soft</span><span>Vivid</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h3>Ce qui change</h3>
+    <ul>
+      <li>Déplié, le corps montre les mêmes contrôles qu'aujourd'hui, à la même place relative.</li>
+      <li>L'état du dépliant est retenu pour la session, comme celui des cartes Réglage global et Color shift.</li>
+    </ul>
+    <h3>À décider</h3>
+    <ul><li>Le libellé « Réglages avancés », ou « Modèle et intensités », plus concret.</li></ul>
+  </div>
+</div>
+
+<h2>Recommandation</h2>
+<p class="chapeau">Les cas A, B et C forment une seule proposition : un dépliant replié à l'ouverture, avec un résumé qui signale un réglage changé. Elle ne retire aucun contrôle et ne change aucune règle ; seule la place des trois réglages change.</p>
+</body>
+</html>

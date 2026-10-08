@@ -224,7 +224,7 @@ plus.
 
 ### Vague 6
 
-- [ ] **T10 · Lots 2b et 3b-geste** · `implementeur`, effort **moyen**. La
+- [x] **T10 · Lots 2b et 3b-geste** · `implementeur`, effort **moyen**. La
   ligne groupée de Gestion et « Modifier dans le plugin » sur elle.
   - Fichiers : `ui/ongletGestion.ts` (liste « Déjà dans le fichier »), i18n,
     galerie, tests.
@@ -232,7 +232,7 @@ plus.
     ce qu'elle regroupe ; « Modifier dans le plugin » sur cette ligne appelle
     la reprise groupée de T4 sans identifiant.
 
-- [ ] **T11 · Lot 4, la logique** · `implementeur-exigeant`, effort
+- [x] **T11 · Lot 4, la logique** · `implementeur-exigeant`, effort
   **élevé**. État d'ouverture, annulation, rétablissement, pile de la session.
   - Fichiers : `ui/frontiere.ts` et ses tests. Aucun changement du format.
   - Spécification : dossier, section 4, lot 4, points 1 à 4, en logique
@@ -248,7 +248,7 @@ plus.
 
 ### Vague 7
 
-- [ ] **T12 · Lot 4, l'interface** · `implementeur`, effort **moyen**.
+- [x] **T12 · Lot 4, l'interface** · `implementeur`, effort **moyen**.
   - Fichiers : `ui/barreDePalette.ts`, `ui/ongletCreation.ts`, i18n,
     galerie, tests de l'onglet.
   - Fini quand : la barre montre « Annuler les modifications » dès que la
@@ -256,7 +256,7 @@ plus.
     « Rétablir » après le geste ; Ctrl+Z et Ctrl+Maj+Z hors d'un champ de
     saisie appellent la pile de T11.
 
-- [ ] **T13 · Lot 5** · `implementeur`, effort **moyen**. La progression à
+- [x] **T13 · Lot 5** · `implementeur`, effort **moyen**. La progression à
   la place du bouton.
   - Fichiers : `ui/ongletGestion.ts` (`afficherDessin`, `zoneDuResultat`),
     `ui/styles.css`, galerie, `test:ui`.
@@ -268,17 +268,17 @@ plus.
 
 ### Vague 8
 
-- [ ] **T14 · Lot 6** · `executant`, effort **bas**. Le libellé `synchroniser` dans `i18n/fr.ts` et
+- [x] **T14 · Lot 6** · `executant`, effort **bas**. Le libellé `synchroniser` dans `i18n/fr.ts` et
   `i18n/en.ts`. Le `verificateur` de la vague 9 capture le bouton à la
   largeur minimale ; s'il déborde, l'orchestrateur décide du correctif dans
   `ui/connexion.ts`.
-- [ ] **T15 · Lot 7** · `executant`, effort **bas**. Un écart pris dans
+- [x] **T15 · Lot 7** · `executant`, effort **bas**. Un écart pris dans
   l'échelle d'espacement de `ui/styles.css` sous les pastilles `solid`,
   `surface` et `page` de l'aperçu (`ui/nuancier.ts`).
 
 ### Vague 9
 
-- [ ] **T16** · `verificateur`, effort **bas**. La suite de T7, plus la
+- [x] **T16** · `verificateur`, effort **bas**. La suite de T7, plus la
   capture des états de Gestion et de Création
   (`scripts/capturer-etats.mjs`). L'orchestrateur relit, commite chaque lot,
   pousse.
@@ -325,7 +325,7 @@ change. », « Apply these settings », « No settings reproduce these colors. �
 
 ### Vague 10. Les maquettes
 
-- [ ] **T17 · Lots 8 et 9** · Orchestrateur. Deux pages HTML simples à côté
+- [x] **T17 · Lots 8 et 9** · Orchestrateur. Deux pages HTML simples à côté
   du dossier, sans adaptation à la largeur. Chacune reproduit d'abord l'écran
   actuel tel que la galerie le rend, puis montre les propositions du dossier,
   section 4, lots 8 et 9. Le `verificateur` lance la capture de la galerie
