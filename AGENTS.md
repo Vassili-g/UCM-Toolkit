@@ -200,6 +200,7 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
+  src/reconstruction.ts    les réglages d'une palette figée retrouvés depuis ses couleurs : recherche asynchrone, bornée, interruptible, à écart en hexa
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
   src/nuances.ts           les deux préréglages de nuances, 11 et 13, leurs courbes par défaut selon le texte des boutons de chaque thème (`courbesParDefaut`), les nuances 500 à 800 réglées (`nuancesReglees`), le changement de texte des boutons (`recetteAvecTexteDesBoutons`), la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
@@ -1017,6 +1018,10 @@ La spécification en lien porte le raisonnement.
   `Date`, `Math.random`, `Intl`, `toLocaleString`, avec `TextEncoder`. La même
   loi lit `packages/kit/src/emplois/`, que le moteur importe. Borne : la loi
   lit le texte ligne à ligne, commentaires retirés.
+  Exception bornée : `src/reconstruction.ts` lit `performance` et
+  `setTimeout`, injectables par ses options, pour borner sa recherche dans
+  le temps et rendre la main à l'interface ; son résultat ne dépend du temps
+  que si le budget s'épuise.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
 - La table des dossiers `solid`, `surface` et `page`, ses deux sens, les
   crans requis, les trois états, les sept garanties G1 à G7 et le contraste

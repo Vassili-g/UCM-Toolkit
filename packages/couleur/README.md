@@ -16,6 +16,7 @@ source TypeScript par le plugin. Il n'est pas publié sur npm.
 | Contrastes WCAG 2 et les sept garanties de la table en dossiers | `contraste.ts`, `promesses.ts` ; la table et les garanties sont dans `@ucm-kit/core/emplois` |
 | Alertes de conception et garantie des courbes | `alertes.ts`, `garantie.ts`, `constats.ts` |
 | Recette, validation, classement et empreinte | `recette.ts`, `empreinte.ts` |
+| Réglages retrouvés d'une palette figée, asynchrone, interruptible et bornée en temps | `reconstruction.ts` |
 | Clé de stockage partagée avec l'explorateur | `protocole.ts` |
 | Préréglage Tailwind et son relevé | `tailwind.ts` |
 
