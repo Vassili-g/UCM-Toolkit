@@ -27,7 +27,11 @@ import {
   partDeLaReference,
   profilAutomatique,
   profilPorteur,
+  figeesParIntensite,
+  rampesDe,
+  reconstruireLesReglages,
   type Classement,
+  type CouleursFigees,
   type Mode,
   type Palette,
   type Recette,
@@ -61,8 +65,10 @@ import {
 import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, estLaPaletteNeutre, reglageGlobalModifie, type CibleDAction } from '../presentation';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
+import { palettesDuFichier as lirePalettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
 import { planDesVariables } from '../variables/plan';
 import { sourceDeLaReprise } from '../variables/reprise';
+import type { PaletteSuivie } from '../variables/suivi';
 import { creerVuesAjustement } from './ajustement';
 import { creerVuesApercuCompact } from './apercuCompact';
 import type { BarreDePaletteUi, GestesDeLaBarre } from './barreDePalette';
@@ -147,6 +153,82 @@ export interface OngletCreationUi {
 /** La couleur dont l'encart d'un fichier sans palette montre la rampe : celle que le champ de création suggère. */
 const COULEUR_D_EXEMPLE = '#1E6FD9';
 
+/** Le temps que la recherche des réglages d'une palette figée se donne, avant de rendre la meilleure palette trouvée. */
+const BUDGET_DE_LA_RECHERCHE_MS = 15000;
+
+type RampesCalculees = ReturnType<typeof rampesDe>;
+
+/** Vrai quand deux jeux de rampes portent les mêmes hexas, intensité par intensité et thème par thème. */
+function memesRampes(a: RampesCalculees, b: RampesCalculees): boolean {
+  const cles = new Set([...Object.keys(a), ...Object.keys(b)] as (keyof RampesCalculees)[]);
+  for (const cle of cles) {
+    const [rampeA, rampeB] = [a[cle], b[cle]];
+    if (!rampeA || !rampeB) return false;
+    for (const mode of ['light', 'dark'] as const) {
+      if (rampeA[mode].length !== rampeB[mode].length || rampeA[mode].some((cran, rang) => cran.hexa !== rampeB[mode][rang].hexa)) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * La palette figée posée sur les réglages trouvés : `figees` part, le reste de
+ * son identité demeure. Sa liste de nuances redevient celle de la recette quand
+ * les rampes restent identiques à l'hexa près ; sinon elle la garde.
+ */
+function paletteReglee(recette: Recette, figee: Palette, reglages: Partial<Palette>): Palette {
+  const { figees: _figees, ...sansFigees } = figee;
+  const reglee: Palette = { ...sansFigees, ...reglages };
+  const { crans, ...sansCrans } = reglee;
+  const communes = crans !== undefined && crans.length === recette.crans.length && crans.every((cran, rang) => cran === recette.crans[rang]);
+  return communes && memesRampes(rampesDe(recette, reglee), rampesDe(recette, sansCrans)) ? sansCrans : reglee;
+}
+
+/** Les jeux de couleurs d'une palette figée, par clé de rampe : `unique`, ou `soft` et `vivid`. */
+function figeesParCle(figees: NonNullable<Palette['figees']>): [keyof RampesCalculees, CouleursFigees][] {
+  return figeesParIntensite(figees) ? [['soft', figees.soft], ['vivid', figees.vivid]] : [['unique', figees]];
+}
+
+/** Vrai quand aucun jeu de couleurs figées ne porte de thème Dark : il se calcule alors, et seul Light se compare. */
+function sansThemeDark(figees: NonNullable<Palette['figees']>): boolean {
+  return figeesParCle(figees).every(([, couleurs]) => couleurs.dark === undefined);
+}
+
+/** Le nombre de couleurs Light dont l'hexa diffère entre la palette réglée et les couleurs figées. */
+function couleursLightDifferentes(recette: Recette, reglee: Palette, figees: NonNullable<Palette['figees']>): number {
+  const rampes = rampesDe(recette, reglee);
+  let differentes = 0;
+  for (const [cle, couleurs] of figeesParCle(figees)) {
+    const calculee = rampes[cle]?.light;
+    couleurs.light.forEach((hexa, rang) => {
+      if (calculee?.[rang]?.hexa.slice(0, 7).toUpperCase() !== hexa.slice(0, 7).toUpperCase()) differentes += 1;
+    });
+  }
+  return differentes;
+}
+
+/** Vrai quand le suivi d'une reprise porte les variables de deux intensités (clés `vivid/…`). */
+function aDeuxIntensites(suivie: PaletteSuivie): boolean {
+  return Object.keys(suivie.variables).some((cle) => cle.startsWith('vivid/'));
+}
+
+/**
+ * La palette du fichier que la bascule « Recalculées · Telles quelles » reprend
+ * de nouveau. Une reprise à deux intensités relit sa palette groupée, pour que
+ * les deux intensités survivent ; une seule intensité relit les clés `unique/…`.
+ */
+function sourceDeLaBascule(suivie: PaletteSuivie, fichier: VariablesDuFichier): PaletteDuFichier | PaletteGroupee | null {
+  if (!aDeuxIntensites(suivie)) return sourceDeLaReprise(suivie, fichier);
+  const forme = suivie.modes.dark !== undefined ? 'intensites-themes-modes' : 'intensites-themes-chemin';
+  return retrouverLaPaletteGroupee(lirePalettesDuFichier(fichier.variables, fichier.collections), { collection: suivie.collection, racine: suivie.chemin ?? '', forme }) ?? null;
+}
+
+/** Ce que la dernière recherche de réglages a rendu, pour la palette `id`. */
+type IssueDeLaRecherche =
+  | { readonly id: string; readonly genre: 'approchee'; readonly reglages: Partial<Palette>; readonly differentes: number }
+  | { readonly id: string; readonly genre: 'introuvable' }
+  | { readonly id: string; readonly genre: 'retrouvee'; readonly enLight: boolean };
+
 function construireVues(i18n: Localisation) {
   const ecrireArrondi = i18n.arrondi;
   const { createButton } = creerSocleLocalise(i18n);
@@ -165,7 +247,7 @@ function construireVues(i18n: Localisation) {
   const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -477,7 +559,125 @@ function construireVues(i18n: Localisation) {
     });
     const texteDeLaReprise = document.createElement('p');
     texteDeLaReprise.className = 'ligne-secondaire';
-    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise);
+    /*
+     * « Retrouver les réglages » : la recherche de la recette qui rend les
+     * couleurs figées. Son bouton se désactive pendant qu'elle tourne ; son
+     * résultat se lit dans la ligne sous l'encart, qui reste quand la palette
+     * n'est plus figée.
+     */
+    const boutonDeRecherche = createButton({ label: TEXTES_DE_LA_REPRISE.retrouver, variant: 'secondary', onClick: () => retrouverLesReglages() });
+    boutonDeRecherche.dataset.geste = 'retrouver';
+    const boutonDApplication = createButton({ label: TEXTES_DE_LA_REPRISE.appliquer, onClick: () => appliquerLesReglages() });
+    boutonDApplication.dataset.geste = 'appliquer-les-reglages';
+    boutonDApplication.hidden = true;
+    const gestesDeLaRecherche = document.createElement('div');
+    gestesDeLaRecherche.className = 'confirmation-gestes';
+    gestesDeLaRecherche.append(boutonDeRecherche, boutonDApplication);
+    const retourDeLaRecherche = document.createElement('p');
+    retourDeLaRecherche.className = 'ligne-secondaire';
+    retourDeLaRecherche.setAttribute('role', 'status');
+    retourDeLaRecherche.hidden = true;
+    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise, gestesDeLaRecherche);
+
+    /** La recherche en cours : sa palette, les couleurs qu'elle cherche à régler, et de quoi l'interrompre. */
+    let recherche: { readonly id: string; readonly figees: NonNullable<Palette['figees']>; readonly controleur: AbortController } | null = null;
+    let issueDeLaRecherche: IssueDeLaRecherche | null = null;
+
+    /** Interrompt la recherche en cours, s'il y en a une : son résultat ne s'applique plus. */
+    function interrompreLaRecherche(): void {
+      const arretee = recherche;
+      recherche = null;
+      arretee?.controleur.abort();
+      rendreLesGestesDeLaRecherche();
+    }
+    // L'onglet qui se ferme emporte la recherche avec lui.
+    window.addEventListener('pagehide', () => interrompreLaRecherche());
+
+    function rendreLesGestesDeLaRecherche(): void {
+      boutonDeRecherche.disabled = recherche !== null;
+      boutonDeRecherche.setLabel(recherche ? TEXTES_DE_LA_REPRISE.recherche : TEXTES_DE_LA_REPRISE.retrouver);
+      if (!recherche) {
+        delete boutonDeRecherche.dataset.avancement;
+        boutonDeRecherche.removeAttribute('title');
+      }
+      boutonDApplication.hidden = issueDeLaRecherche?.genre !== 'approchee';
+      boutonDApplication.disabled = recherche !== null;
+      retourDeLaRecherche.hidden = issueDeLaRecherche === null;
+      if (issueDeLaRecherche === null) return;
+      const texte = issueDeLaRecherche.genre === 'approchee' ? reglagesApproches(issueDeLaRecherche.differentes)
+        : issueDeLaRecherche.genre === 'introuvable' ? TEXTES_DE_LA_REPRISE.introuvables
+          : issueDeLaRecherche.enLight ? TEXTES_DE_LA_REPRISE.retrouvesEnLight : TEXTES_DE_LA_REPRISE.retrouves;
+      retourDeLaRecherche.dataset.issue = issueDeLaRecherche.genre;
+      i18n.lier(retourDeLaRecherche, 'textContent', texte);
+    }
+
+    /** Range la palette réglée comme un réglage : elle entre dans la pile de Ctrl+Z. */
+    function rangerLaPaletteReglee(courante: Palette, reglages: Partial<Palette>): void {
+      const recette = etat.recette();
+      if (recette) valider(remplacerPalette(recette, paletteReglee(recette, courante, reglages)));
+    }
+
+    function retrouverLesReglages(): void {
+      const courante = ouverte();
+      const recette = etat.recette();
+      if (!recette || !courante || !estFigee(courante) || recherche) return;
+      const { id, crans, figees, reference } = courante;
+      const controleur = new AbortController();
+      const lancee = { id, figees, controleur };
+      recherche = lancee;
+      issueDeLaRecherche = null;
+      rendreLesGestesDeLaRecherche();
+      const progression = (fraction: number): void => {
+        if (recherche !== lancee) return;
+        const pourcent = `${Math.min(100, Math.round(fraction * 100))} %`;
+        boutonDeRecherche.dataset.avancement = pourcent;
+        boutonDeRecherche.title = pourcent;
+      };
+      reconstruireLesReglages(recette, { crans, figees, reference }, { signal: controleur.signal, progression, budgetMs: BUDGET_DE_LA_RECHERCHE_MS }).then((trouve) => {
+        // Une recherche interrompue, ou dont la palette a changé de couleurs, n'applique rien.
+        const actuelle = ouverte();
+        const lue = etat.recette();
+        if (recherche !== lancee || !lue || !actuelle || actuelle.id !== id || !estFigee(actuelle) || JSON.stringify(actuelle.figees) !== JSON.stringify(figees)) return;
+        recherche = null;
+        if (!trouve) {
+          issueDeLaRecherche = { id, genre: 'introuvable' };
+          rendreLesGestesDeLaRecherche();
+          return;
+        }
+        // Sans thème Dark à l'origine, il se calcule : seules les couleurs Light se comparent.
+        const enLight = sansThemeDark(figees);
+        const differentes = enLight ? couleursLightDifferentes(lue, paletteReglee(lue, actuelle, trouve.reglages), figees) : trouve.differentes;
+        if (differentes === 0) {
+          issueDeLaRecherche = { id, genre: 'retrouvee', enLight };
+          rangerLaPaletteReglee(actuelle, trouve.reglages);
+        } else {
+          issueDeLaRecherche = { id, genre: 'approchee', reglages: trouve.reglages, differentes };
+          rendreLesGestesDeLaRecherche();
+        }
+      }, (erreur: unknown) => {
+        if (recherche === lancee) recherche = null;
+        if (!(erreur instanceof Error) || erreur.name !== 'AbortError') throw erreur;
+        rendreLesGestesDeLaRecherche();
+      });
+    }
+
+    /** « Appliquer ces réglages » : la palette réglée, approchée, remplace les couleurs figées. */
+    function appliquerLesReglages(): void {
+      const courante = ouverte();
+      const issue = issueDeLaRecherche;
+      if (!courante || !estFigee(courante) || recherche || issue?.genre !== 'approchee' || issue.id !== courante.id) return;
+      issueDeLaRecherche = null;
+      rangerLaPaletteReglee(courante, issue.reglages);
+    }
+
+    /** Les couleurs figées d'une palette sont celles de la recherche : une autre palette, ou des couleurs qui changent, la périment. */
+    function perimerLaRecherche(courante: Palette | null): void {
+      if (recherche && (!courante || courante.id !== recherche.id)) interrompreLaRecherche();
+      if (!issueDeLaRecherche) return;
+      const perimee = !courante || courante.id !== issueDeLaRecherche.id
+        || (issueDeLaRecherche.genre === 'retrouvee') === estFigee(courante);
+      if (perimee) issueDeLaRecherche = null;
+    }
 
     /** Les variables du dernier état lu : la liaison d'une palette reprise, et les couleurs que Figma porte. */
     let fichier: VariablesDuFichier | null = null;
@@ -494,7 +694,7 @@ function construireVues(i18n: Localisation) {
       const recette = etat.recette();
       if (!recette || !courante || !fichier || estFigee(courante) === (mode === 'telles-quelles')) return;
       const suivie = lienDeReprise(courante);
-      const source = suivie ? sourceDeLaReprise(suivie, fichier) : null;
+      const source = suivie ? sourceDeLaBascule(suivie, fichier) : null;
       const reprise = source ? reprendreDuFichier(recette, courante.id, source, mode) : null;
       if (!reprise) return;
       valider(remplacerPalette(recette, courante.nom === undefined ? reprise : { ...reprise, nom: courante.nom }));
@@ -509,6 +709,9 @@ function construireVues(i18n: Localisation) {
       const suivie = lienDeReprise(courante);
       const tokens: TokensDUnePalette | null = suivie && fichier ? tokensDeLaPalette(lue, courante, fichier) : null;
       const figee = estFigee(courante);
+      rendreLesGestesDeLaRecherche();
+      // Le geste « Retrouver les réglages » appartient à la palette figée : sans elle, seul le résultat reste lisible.
+      gestesDeLaRecherche.hidden = !figee;
       encartDeReprise.hidden = !suivie || !tokens || !fichier || (!figee && tokens.etat === 'a-jour');
       if (encartDeReprise.hidden || !suivie || !tokens || !fichier) return;
       const lues = new Map(fichier.variables.map((variable) => [variable.id, variable]));
@@ -529,6 +732,7 @@ function construireVues(i18n: Localisation) {
     configuration.className = 'configuration-de-la-palette';
     configuration.append(
       encartDeReprise,
+      retourDeLaRecherche,
       carteDeBase.element,
       carteDApercu.element,
       carteDesIntensites.element,
@@ -896,6 +1100,7 @@ function construireVues(i18n: Localisation) {
      * barre se rend ensuite, avec ces verdicts.
      */
     function rendre(): void {
+      perimerLaRecherche(ouverte());
       rendreLesZones();
       etat.rendu(apercuSeul ? 'apercu' : 'complet');
       barre.afficher({ palettes: etat.recette()?.palettes ?? [], idOuvert: etat.id(), verdicts: etat.verdicts(), creationOuverte });

@@ -30,6 +30,7 @@ const {
   lireHexa,
   octetsUtf8,
   prereglageTailwind,
+  rampesDe,
   recetteAvecTexteDesBoutons,
   recetteParDefaut,
   referenceReglee,
@@ -278,6 +279,79 @@ function variablesDePoppy(liaison = 'reprise') {
 function variablesDuFichierAvecPoppy() {
   const fichier = avecLesPalettesDuFichier(variablesDePoppy());
   return { ...fichier, suivi: { ...fichier.suivi, palettes: {} } };
+}
+
+/**
+ * Sauge, reprise des variables du fichier « telle quelle » : une palette que le
+ * moteur calcule (la palette 6 de la mesure de reconstruction, Soft et Vivid
+ * liés), figée sur ses propres rampes. La recherche des réglages la retrouve à
+ * l'hexa près en quelques dizaines de millisecondes. `variante` : `deux`, ses
+ * deux intensités, Light et Dark ; `light`, une intensité, Light seul ; `retouchee`,
+ * une intensité, quatre nuances, un Dark retouché à la main, que la recherche
+ * n'atteint pas.
+ */
+function sauge(variante = 'deux') {
+  const recette = recetteParDefaut();
+  const derive = { clair: -8.27, sombre: 20.49, origine: 'tailwind' };
+  const calculee = { id: 'p-6a5e0b17', nom: 'Sauge', reference: '#A7B9BA', derive: { lien: true, soft: derive, vivid: derive }, base: 'soft' };
+  const hexas = (rampe) => ({ light: rampe.light.map((cran) => cran.hexa), dark: rampe.dark.map((cran) => cran.hexa) });
+  if (variante === 'deux') {
+    const rampes = rampesDe(recette, calculee);
+    const { base: _base, ...sansBase } = calculee;
+    return { palette: { ...sansBase, crans: recette.crans, figees: { soft: hexas(rampes.soft), vivid: hexas(rampes.vivid) } }, nuances: recette.crans };
+  }
+  if (variante === 'light') {
+    const une = { id: calculee.id, nom: calculee.nom, reference: calculee.reference, derive: { lien: true, soft: derive, vivid: derive }, intensites: 1 };
+    const { light } = hexas(rampesDe(recette, une).unique);
+    return { palette: { ...une, crans: recette.crans, figees: { light } }, nuances: recette.crans };
+  }
+  // La palette 11 de la mesure : la recherche, à sa graine par défaut, y trouve des réglages qui approchent la couleur retouchée.
+  const autre = { sombre: 9.78, clair: -5.37, origine: 'tailwind' };
+  const une = { id: calculee.id, nom: calculee.nom, reference: '#83AEBE', derive: { lien: true, soft: autre, vivid: autre }, intensites: 1 };
+  const crans = [100, 400, 700, 900];
+  const { light, dark } = hexas(rampesDe(recette, { ...une, crans }).unique);
+  dark[1] = '#336699';
+  return { palette: { ...une, crans, figees: { light, dark } }, nuances: crans };
+}
+
+/**
+ * Le fichier qui porte Sauge : à deux intensités, les quatre groupes
+ * `Sauge/<intensité>/<thème>` que le suivi lie par une reprise, comme
+ * `suiviDeLaRepriseGroupee` les range (Soft sous `unique`, Vivid sous son nom) ;
+ * à une intensité, les variables `Sauge/<nuance>`, Light seul.
+ */
+function fichierDeSauge({ palette: reprise, nuances }) {
+  const deux = reprise.figees.soft !== undefined;
+  const variables = [];
+  const suivies = {};
+  const jeux = deux ? [['soft', reprise.figees.soft], ['vivid', reprise.figees.vivid]] : [[null, reprise.figees]];
+  for (const [intensite, couleurs] of jeux) {
+    for (const theme of deux ? ['light', 'dark'] : ['light']) {
+      nuances.forEach((nuance, rang) => {
+        const id = `VariableID:sauge:${intensite ?? 'unique'}:${theme}:${nuance}`;
+        const hexa = couleurs[theme][rang];
+        variables.push({ id, nom: deux ? `Sauge/${intensite}/${theme}/${nuance}` : `Sauge/${nuance}`, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': hexa } });
+        suivies[`${intensite === 'vivid' ? 'vivid' : 'unique'}/${theme}/${nuance}`] = { id, ecrite: hexa };
+      });
+    }
+  }
+  return {
+    ...VARIABLES_VIDES,
+    collections: [{ ...COLLECTION_DES_TOKENS, variables: variables.length }],
+    variables,
+    suivi: {
+      ...VARIABLES_VIDES.suivi,
+      destination: { ...DESTINATION_DES_TOKENS, groupe: '' },
+      confirmee: true,
+      palettes: { [reprise.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', chemin: 'Sauge', modes: { light: '7:0' }, variables: suivies, liaison: 'reprise', ...(deux ? { intensite: 'soft' } : {}) } },
+    },
+  };
+}
+
+/** L'état de Création ouvert sur Sauge figée, devant Bleu. */
+function etatDeSauge(variante) {
+  const exemple = sauge(variante);
+  return etatDuFichier(rangee([exemple.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, fichierDeSauge(exemple));
 }
 
 /** La planche que la lecture relève : sa page, ses cadres, et ce qu'elle n'a pas trouvé. */
@@ -1716,4 +1790,31 @@ ETATS.push({
   ],
 });
 
-module.exports = { ETATS: ETATS.map(avecLaPremierePalette) };
+ETATS.push(
+  {
+    id: 'reprise-figee-deux-intensites',
+    titre: 'Reprise figée à deux intensités',
+    quand: 'Sauge, reprise « telle quelle » de quatre groupes de variables (Soft et Vivid, Light et Dark), est ouverte dans Création.',
+    regarder: 'L’encart de reprise : les deux rampes, la bascule « Recalculées · Telles quelles » avec « Telles quelles » pressé, « Aucune couleur ne change… » puis le bouton « Retrouver les réglages ». Les cartes de réglage restent cachées.',
+    existe: true,
+    atteinte: [etatDeSauge('deux')],
+  },
+  {
+    id: 'reprise-reglages-retrouves',
+    titre: 'Réglages retrouvés',
+    quand: 'Le designer a cliqué « Retrouver les réglages » sur Sauge ; la recherche a reproduit toutes ses couleurs.',
+    regarder: 'La ligne « Réglages retrouvés. Aucune couleur ne change. » ; Sauge n’est plus figée : l’encart est masqué, les cartes « Réglage global » et « Color shift » reviennent, le pied compte les garanties.',
+    existe: true,
+    atteinte: [etatDeSauge('deux'), { clic: '[data-geste="retrouver"]', attendre: '[data-issue="retrouvee"]' }],
+  },
+  {
+    id: 'reprise-reglages-approches',
+    titre: 'Réglages approchés',
+    quand: 'Le designer a cliqué « Retrouver les réglages » sur une palette dont une couleur Dark a été retouchée à la main ; la recherche, qui dure quelques secondes, n’a pas tout reproduit.',
+    regarder: 'Sous l’encart, la ligne « Réglages approchés : N couleurs changeraient. » ; dans l’encart, « Retrouver les réglages » et « Appliquer ces réglages » côte à côte. La palette reste figée.',
+    existe: true,
+    atteinte: [etatDeSauge('retouchee'), { clic: '[data-geste="retrouver"]', attendre: '[data-issue="approchee"]' }],
+  },
+);
+
+module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteParDefaut(), rampesDe } };

@@ -2005,7 +2005,18 @@ export const TEXTES_DE_LA_REPRISE = {
   tellesQuelles: 'Telles quelles',
   figee: 'Aucune couleur ne change. La palette garde les couleurs du fichier, sans rôles ni garanties.',
   gardentLeurNom: 'Les variables gardent leur nom et leurs liaisons.',
+  retrouver: 'Retrouver les réglages',
+  recherche: 'Recherche des réglages…',
+  appliquer: 'Appliquer ces réglages',
+  retrouves: 'Réglages retrouvés. Aucune couleur ne change.',
+  retrouvesEnLight: 'Réglages retrouvés. Les couleurs Light ne changent pas ; le thème Dark est calculé.',
+  introuvables: 'Aucun réglage ne reproduit ces couleurs.',
 } as const;
+
+/** Le résultat d'une recherche de réglages qui n'a pas retrouvé toutes les couleurs ([VAR-13]). */
+export function reglagesApproches(nombre: number): string {
+  return `Réglages approchés : ${nombre === 1 ? '1 couleur changerait' : `${nombre} couleurs changeraient`}.`;
+}
 
 /** Ce que la mise à jour changera dans Figma, sous la bascule de l'encart de Création ([UI-34]). */
 export function couleursQuiChangeront(nombre: number, total: number, creees = 0): string {

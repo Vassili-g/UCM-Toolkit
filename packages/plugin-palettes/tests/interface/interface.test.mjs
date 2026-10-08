@@ -6142,3 +6142,111 @@ test('[UI-12] I2 à 500 px, en français et en anglais, les bandes ne font pas d
     }
   }
 });
+
+const { SAUGE } = createRequire(import.meta.url)('../../galerie/etats.cjs');
+
+/** Les hexas d'une rampe de la palette que le moteur calcule, comme les couleurs figées les écrivent. */
+const hexasDe = (rampes, profil, mode) => rampes[profil][mode].map((cran) => cran.hexa);
+const retour = (page) => page.locator('#panneau-creation [data-issue]');
+
+test('[VAR-13] « Retrouver les réglages » : un écart nul range la palette sans couleurs figées, et ses rampes égalent les couleurs figées', async () => {
+  const page = await ouvrirSur('reprise-figee-deux-intensites');
+  try {
+    const bouton = page.locator('#panneau-creation [data-geste="retrouver"]');
+    assert.equal(await bouton.textContent(), 'Retrouver les réglages');
+    const avant = await compte(page);
+    await bouton.click();
+    const demande = await prochaineDuType(page, 'ranger-recette', avant);
+    const figee = SAUGE.palette('deux');
+    const reglee = demande.recette.palettes[0];
+    assert.equal(reglee.id, figee.id);
+    assert.equal(reglee.nom, 'Sauge');
+    assert.equal(reglee.figees, undefined, 'la palette n’est plus figée');
+    assert.equal(reglee.crans, undefined, 'la liste commune de la recette suffit');
+    const rampes = SAUGE.rampesDe(SAUGE.recette, reglee);
+    for (const profil of ['soft', 'vivid']) {
+      for (const mode of ['light', 'dark']) assert.deepEqual(hexasDe(rampes, profil, mode), figee.figees[profil][mode], `${profil} ${mode}`);
+    }
+    assert.equal(await retour(page).textContent(), 'Réglages retrouvés. Aucune couleur ne change.');
+    assert.equal(await page.locator('#panneau-creation [data-encart="reprise"]').isHidden(), true, 'les tokens sont à jour : l’encart se masque');
+  } finally { await page.close(); }
+});
+
+test('[VAR-13] « Retrouver les réglages » : une couleur retouchée annonce N couleurs, et « Appliquer ces réglages » range la palette', async () => {
+  const page = await ouvrirSur('reprise-reglages-approches');
+  try {
+    const avant = await compte(page);
+    const bouton = page.locator('#panneau-creation [data-geste="retrouver"]');
+    await bouton.click();
+    assert.equal(await bouton.isDisabled(), true);
+    assert.equal(await bouton.textContent(), 'Recherche des réglages…');
+    await retour(page).waitFor({ timeout: 20000 });
+    assert.match(await retour(page).textContent(), /^Réglages approchés : \d+ couleurs? changerai(?:en)?t\.$/);
+    assert.equal(await bouton.isDisabled(), false);
+    assert.equal(await bouton.textContent(), 'Retrouver les réglages');
+    assert.equal((await demandes(page)).slice(avant).some((demande) => demande.type === 'ranger-recette'), false, 'la palette reste figée tant que le designer n’applique pas');
+    await page.locator('#panneau-creation [data-geste="appliquer-les-reglages"]').click();
+    const demande = await prochaineDuType(page, 'ranger-recette', avant);
+    const reglee = demande.recette.palettes[0];
+    assert.equal(reglee.id, SAUGE.palette('retouchee').id);
+    assert.equal(reglee.figees, undefined);
+    assert.deepEqual(reglee.crans, [100, 400, 700, 900], 'ses nuances ne sont pas celles de la recette : elle les garde');
+  } finally { await page.close(); }
+});
+
+test('[VAR-13] « Retrouver les réglages » sans Dark à l’origine : Light exact vaut un écart nul, et le texte le dit', async () => {
+  const page = await ouvrir();
+  try {
+    const lu = structuredClone(messageDe('reprise-figee-deux-intensites'));
+    lu.classement.recette.palettes[0] = SAUGE.palette('light');
+    await envoyer(page, lu);
+    await ouvrirLaPremierePalette(page);
+    const avant = await compte(page);
+    await page.locator('#panneau-creation [data-geste="retrouver"]').click();
+    const demande = await prochaineDuType(page, 'ranger-recette', avant);
+    assert.equal(demande.recette.palettes[0].figees, undefined);
+    assert.equal(demande.recette.palettes[0].intensites, 1);
+    assert.equal(await retour(page).textContent(), 'Réglages retrouvés. Les couleurs Light ne changent pas ; le thème Dark est calculé.');
+  } finally { await page.close(); }
+});
+
+test('[VAR-13] la bascule d’une palette figée à deux intensités garde deux intensités dans les deux sens', async () => {
+  const page = await ouvrirSur('reprise-figee-deux-intensites');
+  try {
+    const figee = SAUGE.palette('deux');
+    let avant = await compte(page);
+    await page.locator('#panneau-creation [data-reprise="recalculees"]').click();
+    const premiere = await prochaineDuType(page, 'ranger-recette', avant);
+    const recalculee = premiere.recette.palettes[0];
+    // Le sandbox répond : le rangement suivant peut partir.
+    await envoyer(page, rangee(premiere.demande));
+    assert.equal(recalculee.figees, undefined);
+    assert.equal(recalculee.intensites, undefined, 'deux intensités');
+    assert.equal(recalculee.nom, 'Sauge');
+    avant = await compte(page);
+    await page.locator('#panneau-creation [data-reprise="telles-quelles"]').click();
+    const tellesQuelles = (await prochaineDuType(page, 'ranger-recette', avant)).recette.palettes[0];
+    assert.deepEqual(Object.keys(tellesQuelles.figees).sort(), ['soft', 'vivid']);
+    assert.deepEqual(tellesQuelles.figees.vivid.dark, figee.figees.vivid.dark);
+    assert.equal(tellesQuelles.nom, 'Sauge');
+  } finally { await page.close(); }
+});
+
+test('[VAR-13] changer de palette pendant la recherche n’applique rien', async () => {
+  const page = await ouvrirSur('reprise-reglages-approches');
+  try {
+    const avant = await compte(page);
+    const bouton = page.locator('#panneau-creation [data-geste="retrouver"]');
+    await bouton.click();
+    assert.equal(await bouton.isDisabled(), true);
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(1).click();
+    await page.waitForTimeout(3500);
+    assert.equal(await retour(page).isVisible(), false);
+    assert.equal((await demandes(page)).slice(avant).some((demande) => demande.type === 'ranger-recette'), false);
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').first().click();
+    assert.equal(await bouton.isDisabled(), false, 'la recherche s’est interrompue');
+    assert.equal(await retour(page).isVisible(), false);
+  } finally { await page.close(); }
+});

@@ -2012,7 +2012,18 @@ export const TEXTES_DE_LA_REPRISE = {
   tellesQuelles: "As is",
   figee: "No color changes. The palette keeps the file’s colors, without roles or guarantees.",
   gardentLeurNom: "Variables keep their name and their bindings.",
+  retrouver: "Recover settings",
+  recherche: "Searching for settings…",
+  appliquer: "Apply these settings",
+  retrouves: "Settings recovered. No color changes.",
+  retrouvesEnLight: "Settings recovered. Light colors do not change; the Dark theme is computed.",
+  introuvables: "No settings reproduce these colors.",
 } as const;
+
+/** Le résultat d'une recherche de réglages qui n'a pas retrouvé toutes les couleurs ([VAR-13]). */
+export function reglagesApproches(nombre: number): string {
+  return `Approximate settings: ${nombre === 1 ? "1 color would change" : `${nombre} colors would change`}.`;
+}
 
 /** Ce que la mise à jour changera dans Figma, sous la bascule de l'encart de Création ([UI-34]). */
 export function couleursQuiChangeront(nombre: number, total: number, creees = 0): string {
