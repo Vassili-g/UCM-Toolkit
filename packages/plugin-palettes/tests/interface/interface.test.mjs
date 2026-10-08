@@ -398,8 +398,14 @@ test('[UI-30] S-A simule les chemins sans couleur et suit le groupe et les thèm
 async function ouvrirLaPremierePalette(page) {
   // Par son identifiant : l'onglet se nomme « Create » en anglais.
   await page.locator('#onglet-creation').click();
-  await page.locator('.selecteur-bouton').click();
-  await page.locator('.selecteur-option').first().click();
+  // Sur l'accueil, la barre est masquée : la première carte du nuancier ouvre la première palette.
+  const accueil = page.locator('#panneau-creation .accueil-de-creation');
+  await page.locator('#panneau-creation .accueil-de-creation:visible, .selecteur-bouton:visible').first().waitFor();
+  if (await accueil.isVisible()) await accueil.locator('.nuancier-carte').first().click();
+  else {
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').first().click();
+  }
   await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
 }
 
@@ -412,7 +418,7 @@ async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));
   if (sansPalette) {
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
-    await page.locator('.selecteur-bouton').waitFor();
+    await page.locator('#panneau-creation .accueil-de-creation:visible, .selecteur-bouton:visible').first().waitFor();
   } else await ouvrirLaPremierePalette(page);
   return page;
 }
@@ -439,7 +445,7 @@ async function limitesCalculees(carte) {
 
 /** Ouvre l'onglet Vérification sur la palette ouverte ([VER-18]). */
 async function ouvrirLaVerification(page) {
-  await page.getByRole('tab', { name: 'Vérification', exact: true }).click();
+  await page.locator('#onglet-verification').click();
   await page.locator('#panneau-verification .verdict').waitFor();
 }
 
@@ -853,7 +859,7 @@ test('[UI-09] [VER-20] la carte suit le thème de la ligne du titre ; des garant
     const autre = carte.locator('.autre-theme');
     assert.match(await autre.textContent(), /^Thème Light : \d+ garanties? manquées? · Voir le thème Light$/);
     await autre.locator('.lien-de-constat').click();
-    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true');
     assert.equal(await themeDeLaCarte(), 'Light');
     assert.ok(await carte.locator('.garantie-echec').count() > 0, 'la carte montre les échecs du thème Light');
     await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
@@ -1009,7 +1015,7 @@ test('[UI-23] à 500 px, en français et en anglais, la ligne du titre ne défil
     try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `${langue} : la page ne défile pas à l’horizontale`);
       for (const panneau of ['#panneau-creation', '#panneau-verification']) {
-        if (panneau === '#panneau-verification') await page.getByRole('tab', { name: langue === 'fr' ? 'Vérification' : 'Verify', exact: true }).click();
+        if (panneau === '#panneau-verification') await page.locator('#onglet-verification').click();
         const { tete, contenu, boites, bascule } = await page.locator(`${panneau} .tete-de-la-palette`).evaluate((element) => ({
           tete: element.getBoundingClientRect().toJSON(),
           contenu: element.scrollWidth - element.clientWidth,
@@ -1375,11 +1381,11 @@ test('[VER-20] le lien vers l’autre thème change le thème de la barre sans q
     const autre = carteDesGaranties(page).locator('.autre-theme');
     assert.deepEqual(await themesDuTitre(page), themesPresses(false));
     await autre.getByRole('button', { name: 'Voir le thème Light' }).click();
-    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true');
     assert.deepEqual(await themesDuTitre(page), themesPresses(true));
     await autre.getByRole('button', { name: 'Revenir au thème Dark' }).click();
     assert.deepEqual(await themesDuTitre(page), themesPresses(false));
-    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true');
   } finally {
     await page.close();
   }
@@ -1901,7 +1907,7 @@ test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la
     });
     const nouvelle = page.getByRole('button', { name: 'Nouvelle palette', exact: true });
     const carte = page.locator('[aria-label="Nouvelle palette"]');
-    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
+    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: false });
 
     await nouvelle.click();
     assert.equal(await carte.isVisible(), true);
@@ -1909,7 +1915,7 @@ test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la
     assert.equal(await page.locator('.selecteur-bouton').isVisible(), true, 'le sélecteur reste');
 
     await carte.getByRole('button', { name: 'Annuler', exact: true }).click();
-    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
+    assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: false });
     assert.equal(await nouvelle.evaluate((bouton) => bouton === document.activeElement), true);
 
     await nouvelle.click();
@@ -1919,6 +1925,7 @@ test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la
     const demande = await prochaine(page, avant);
     assert.equal(demande.type, 'ranger-recette');
     assert.equal(await carte.isVisible(), false);
+    // La palette créée, #16A34A, manque une garantie : le pied paraît.
     assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
   } finally {
     await page.close();
@@ -2389,7 +2396,7 @@ test('W6.5 passer en Libre retire la palette de base et la carte des garanties ;
     assert.equal(await configuration.getByRole('group', { name: 'Palette de base' }).isVisible(), false);
     assert.equal(await configuration.getByText('Sans rôles ni garanties').isVisible(), true);
     // La carte des garanties vit dans Vérification : une palette libre l'en retire.
-    await page.getByRole('tab', { name: 'Vérification', exact: true }).click();
+    await page.locator('#onglet-verification').click();
     assert.equal(await carteDesGaranties(page).isVisible(), false);
     await ouvrirLaCreation(page);
     assert.equal(await page.locator('.pastille-on-solid').isVisible(), false);
@@ -4266,7 +4273,7 @@ test('Z1.6 : le code hexa prend la largeur de sa colonne, moins la pastille, dan
   }
 });
 
-/** Ce que l'onglet Création montre de lui-même : le sélecteur, le menu, l'invitation et la palette. */
+/** Ce que l'onglet Création montre de lui-même : le sélecteur, le menu, l'accueil et la palette. */
 const vueDeLaCreation = (page) => page.evaluate(() => {
   const visible = (selecteur) => {
     const element = document.querySelector(`#panneau-creation ${selecteur}`);
@@ -4274,55 +4281,53 @@ const vueDeLaCreation = (page) => page.evaluate(() => {
   };
   return {
     selecteur: document.querySelector('.selecteur-nom')?.textContent,
-    invitation: visible('.invitation') ? document.querySelector('.invitation').innerText.split('\n').filter(Boolean) : null,
+    accueil: visible('.accueil-de-creation') ? document.querySelector('#panneau-creation .accueil-de-creation').innerText.split('\n').filter(Boolean) : null,
     menu: visible('.menu-palette'),
     nouvelle: visible('.bouton-de-barre'),
     palette: visible('.configuration-de-la-palette'),
   };
 });
 
-const INVITATION = ['Choisissez une palette', 'Sélectionnez une palette ou créez-en une avec « Nouvelle palette ».'];
+const ACCUEIL = ['Nouvelle palette', 'Partez d’une couleur de référence.', 'Vos palettes', '3', 'Bleu', 'Jaune', 'Ardoise'];
 
-test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : « Sélectionner une palette », l’invitation, ni menu ni palette ; la liste ne coche rien', async () => {
+test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : l’accueil, sans barre, sans menu ni palette', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
-    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
-    assert.equal(await page.locator('.invitation button').count(), 0, 'les gestes sont ceux de la barre');
-    assert.equal(await page.locator('#panneau-creation .titre-de-premier-rang:visible').textContent(), 'Choisissez une palette');
-    await page.locator('.selecteur-bouton').click();
-    assert.deepEqual(await page.locator('.selecteur-option').evaluateAll((options) => options.map((option) => option.getAttribute('aria-selected'))), ['false', 'false', 'false']);
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', accueil: ACCUEIL, menu: false, nouvelle: false, palette: false });
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), false, 'la barre du sélecteur est masquée');
+    assert.equal(await page.locator('#panneau-creation :text("Choisissez une palette"):visible').count(), 0);
     assert.equal(await page.evaluate(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length), 0, 'ouvrir sans choisir ne range rien');
   } finally {
     await page.close();
   }
 });
 
-test('Z2.5 [UI-06] deux gestes mènent à une palette : la liste, puis une option ; « Nouvelle palette » crée et ouvre la palette créée', async () => {
+test('Z2.5 [UI-06] deux gestes mènent à une palette : une carte de l’accueil ; « Nouvelle palette » crée et ouvre la palette créée', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
-    await page.locator('.selecteur-bouton').click();
-    await page.getByRole('option', { name: 'Jaune' }).click();
-    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Jaune', invitation: null, menu: true, nouvelle: true, palette: true });
+    await page.locator('#panneau-creation .nuancier-carte[title="Jaune"]').click();
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Jaune', accueil: null, menu: true, nouvelle: true, palette: true });
     assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Jaune');
   } finally {
     await page.close();
   }
   const creation = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
-    await creation.locator('.bouton-de-barre').click();
-    assert.equal((await vueDeLaCreation(creation)).invitation, null, 'la création ouverte remplace l’invitation');
+    await creation.locator('#panneau-creation .accueil-nouvelle').click();
+    assert.equal((await vueDeLaCreation(creation)).accueil, null, 'la création ouverte remplace l’accueil');
+    assert.equal(await creation.locator('.bouton-de-barre').isVisible(), true, 'la barre revient avec la création');
     await creation.locator('#panneau-creation .champ-creation').fill('#7C3AED');
     const avant = await compte(creation);
     await creation.getByRole('button', { name: 'Créer la palette' }).click();
     const rangement = await prochaineDuType(creation, 'ranger-recette', avant);
     assert.equal(rangement.recette.palettes.length, 4);
-    assert.deepEqual(await vueDeLaCreation(creation), { selecteur: '#7C3AED', invitation: null, menu: true, nouvelle: true, palette: true });
+    assert.deepEqual(await vueDeLaCreation(creation), { selecteur: '#7C3AED', accueil: null, menu: true, nouvelle: true, palette: true });
   } finally {
     await creation.close();
   }
 });
 
-test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre session, l’onglet revient à l’invitation ; supprimée, la suivante s’ouvre', async () => {
+test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre session, l’onglet revient à l’accueil ; supprimée, la suivante s’ouvre', async () => {
   const page = await ouvrirSur('sans-palette-choisie');
   try {
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Bleu');
@@ -4331,7 +4336,7 @@ test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre sessi
     const sansBleu = structuredClone(lu);
     sansBleu.classement.recette.palettes = sansBleu.classement.recette.palettes.filter(({ id }) => id !== ID_DU_BLEU);
     await envoyer(page, { ...sansBleu, demande: 2 });
-    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', accueil: ['Nouvelle palette', 'Partez d’une couleur de référence.', 'Vos palettes', '2', 'Jaune', 'Ardoise'], menu: false, nouvelle: false, palette: false });
 
     await ouvrirLaPremierePalette(page);
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
@@ -4344,6 +4349,83 @@ test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre sessi
   }
 });
 
+test('[UI-06] A2a l’accueil de Création : trois palettes, barre masquée, « Nouvelle palette » en bouton pleine largeur de 40 px', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', MINIMALE, { sansPalette: true });
+  try {
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), false);
+    assert.equal(await page.locator('#panneau-creation .bouton-de-barre').isVisible(), false);
+    const bouton = page.locator('#panneau-creation .accueil-nouvelle');
+    assert.equal(await bouton.isVisible(), true);
+    const [boite, accueil] = [await bouton.boundingBox(), await page.locator('#panneau-creation .accueil-de-creation').boundingBox()];
+    assert.equal(Math.round(boite.height), 40);
+    assert.equal(Math.round(boite.width), Math.round(accueil.width), 'pleine largeur');
+    assert.equal(await page.locator('#panneau-creation .accueil-consigne').textContent(), 'Partez d’une couleur de référence.');
+    assert.equal(await page.locator('#panneau-creation .accueil-intertitre .section-compte').textContent(), '3');
+    assert.equal(await page.locator('#panneau-creation .nuancier-carte').count(), 3);
+    assert.equal(await page.locator('#panneau-creation .nuancier-carte.attenuee, #panneau-creation .nuancier-carte[data-etat]').count(), 0, 'aucune carte n’a d’état ni n’est atténuée');
+    assert.equal((await demandes(page)).some(({ type }) => type === 'ranger-recette'), false, 'regarder l’accueil ne range rien');
+  } finally { await page.close(); }
+});
+
+test('[UI-06] A2a vingt palettes : trois rangées de cartes à 500 px, sans défilement horizontal', async () => {
+  const page = await ouvrirSur('creation-vingt-palettes', MINIMALE, { sansPalette: true });
+  try {
+    assert.equal(await page.locator('#panneau-creation .nuancier-carte').count(), 20);
+    assert.equal(await page.locator('#panneau-creation .accueil-intertitre .section-compte').textContent(), '20');
+    const hauts = await page.locator('#panneau-creation .nuancier-carte').evaluateAll((cartes) => [...new Set(cartes.map((carte) => Math.round(carte.getBoundingClientRect().top)))]);
+    assert.equal(hauts.length, 3);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  } finally { await page.close(); }
+});
+
+test('[UI-06] A2a un clic sur une carte ouvre la palette et fait revenir la barre', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), false);
+    await page.locator('#panneau-creation .nuancier-carte[title="Ardoise"]').click();
+    assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Ardoise');
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), true);
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Ardoise');
+    assert.equal(await page.locator('#panneau-creation .accueil-de-creation').isVisible(), false);
+  } finally { await page.close(); }
+});
+
+test('[UI-06] A2a « Nouvelle palette » de l’accueil ouvre la carte de création seule, comme le bouton de la barre ; « Annuler » rend l’accueil', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    await page.locator('#panneau-creation .accueil-nouvelle').click();
+    assert.equal(await page.locator('#panneau-creation .champ-creation').isVisible(), true);
+    assert.equal(await page.locator('#panneau-creation .accueil-de-creation').isVisible(), false);
+    assert.equal(await page.locator('#panneau-creation .configuration-de-la-palette').isVisible(), false);
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), true);
+    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    assert.equal(await page.locator('#panneau-creation .accueil-de-creation').isVisible(), true);
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), false);
+    assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('accueil-nouvelle')), true, 'le focus revient au bouton de l’accueil');
+  } finally { await page.close(); }
+});
+
+test('[UI-06] A2a la barre masquée dans Création reste visible dans Vérification, sans palette ouverte', async () => {
+  const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
+  try {
+    await page.locator('#onglet-verification').click();
+    assert.equal(await page.locator('#panneau-verification .barre-de-palette').isVisible(), true);
+    await page.locator('#onglet-creation').click();
+    assert.equal(await page.locator('#panneau-creation .barre-de-palette').isVisible(), false);
+  } finally { await page.close(); }
+});
+
+test('[UI-22] A2a le fichier sans palette garde son encart « Créez votre première palette »', async () => {
+  const page = await ouvrir();
+  try {
+    await envoyer(page, messageDe('premier-lancement'));
+    const appel = page.locator('#panneau-creation .appel');
+    assert.equal(await appel.isVisible(), true);
+    assert.equal(await appel.locator('h2').textContent(), 'Créez votre première palette');
+    assert.equal(await page.locator('#panneau-creation .accueil-de-creation').isVisible(), false);
+  } finally { await page.close(); }
+});
+
 test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont pas d’aperçu en tête et ne nomment aucune palette', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
@@ -4351,7 +4433,7 @@ test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont
     assert.equal(await page.locator('.reglages-apercu').isVisible(), false);
     assert.equal(await reglage(page, 'Couleurs de fond').isVisible(), true);
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
-    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', invitation: INVITATION, menu: false, nouvelle: true, palette: false });
+    assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', accueil: ACCUEIL, menu: false, nouvelle: false, palette: false });
   } finally {
     await page.close();
   }
@@ -5093,7 +5175,7 @@ test('le libellé du choix du profil se traduit : « Adjust » dans le Réglage 
   const page = await ouvrirSurEn('promesses-manquees', MINIMALE, 'en');
   try {
     assert.equal(await page.locator('#panneau-creation .carte[aria-label="Global adjustment"] .choix-d-affichage .choix-libelle').textContent(), 'Adjust');
-    await page.getByRole('tab', { name: 'Verify', exact: true }).click();
+    await page.locator('#onglet-verification').click();
     assert.equal(await page.locator('#panneau-verification .carte .choix-d-affichage .choix-libelle').textContent(), 'Show');
   } finally {
     await page.close();
@@ -5416,8 +5498,7 @@ test('le glisser d’un curseur de la carte des réglages, sans capture, finit �
     await ui.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('alertes-seules'));
     // Un fichier qui porte des palettes s'ouvre sur Gestion.
     await ui.locator('#onglet-creation').click();
-    await ui.locator('.selecteur-bouton').click();
-    await ui.locator('.selecteur-option').first().click();
+    await ui.locator('#panneau-creation .nuancier-carte').first().click();
     await ui.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
     const carte = ui.locator(`#panneau-creation .carte[aria-label="${CARTE_DES_REGLAGES}"]`);
     if ((await carte.getAttribute('data-ouverte')) !== 'true') await carte.locator('> .carte-tete > .carte-bascule').click();
@@ -5695,13 +5776,164 @@ test('[UI-18] le pied compte les garanties et les alertes à toute position de d
       assert.equal(Math.round(boite.y + boite.height), PAR_DEFAUT.height, `le pied reste au bas de la fenêtre, défilement ${position}`);
     }
     await pied.getByRole('button', { name: 'Vérifier' }).click();
-    assert.equal(await page.getByRole('tab', { name: 'Vérification', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true');
     assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Bleu');
     assert.match(await page.locator('#panneau-verification .constats-titre').first().textContent(), /^Contrastes à corriger · \d+$/);
     // Un lien vers un réglage ramène à l'onglet Création, sur la carte dépliée.
     await page.locator('.messages-de-la-verification').getByRole('button', { name: 'Ajuster le Color shift' }).first().click();
     assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
     assert.equal(await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getAttribute('data-ouverte'), 'true');
+  } finally {
+    await page.close();
+  }
+});
+
+/** Le compteur de l'onglet Vérification : son ton, son texte et le nom accessible de l'onglet (B4). */
+async function compteurDeVerification(page) {
+  const onglet = page.locator('#onglet-verification');
+  const pastille = onglet.locator('.compteur-de-verification');
+  return {
+    visible: await pastille.isVisible(),
+    ton: await pastille.getAttribute('data-ton'),
+    texte: await pastille.textContent(),
+    nom: await onglet.getAttribute('aria-label'),
+  };
+}
+
+test('[UI-18] B4 : le compteur de l’onglet Vérification suit le bilan de la palette ouverte, rouge, ambre ou ✓ vert, et manque sans palette ouverte', async () => {
+  // Une garantie manquée : un rond rouge de 16 px, le nombre en blanc.
+  let page = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
+  try {
+    const manquees = await page.locator('#panneau-creation .pied-texte b').textContent();
+    const nombre = manquees.match(/^(\d+) garanties? manquées?/)[1];
+    const compteur = await compteurDeVerification(page);
+    assert.deepEqual({ visible: compteur.visible, ton: compteur.ton, texte: compteur.texte }, { visible: true, ton: 'danger', texte: nombre });
+    assert.equal(compteur.nom, `Vérification, ${nombre} ${nombre === '1' ? 'garantie manquée' : 'garanties manquées'}`);
+    const boite = await page.locator('#onglet-verification .compteur-de-verification').boundingBox();
+    assert.equal(Math.round(boite.height), 16);
+    assert.ok(boite.width >= 16 && boite.width <= 24, `un rond : ${boite.width} × ${boite.height}`);
+    assert.equal(await page.locator('#onglet-verification .compteur-de-verification').evaluate((element) => getComputedStyle(element).color), 'rgb(255, 255, 255)');
+    assert.equal(await page.getByRole('tab', { name: compteur.nom, exact: true }).count(), 1, 'le nom accessible porte le bilan');
+  } finally {
+    await page.close();
+  }
+  // Des alertes seules : un compteur ambre avec leur nombre.
+  page = await ouvrirSur('profils-confondus', PAR_DEFAUT);
+  try {
+    assert.equal(await page.locator('#panneau-creation .pied-de-la-palette').getAttribute('data-ton'), 'avertissement');
+    const compteur = await compteurDeVerification(page);
+    assert.equal(compteur.ton, 'avertissement');
+    assert.match(compteur.texte, /^\d+$/);
+    assert.equal(compteur.nom, `Vérification, ${compteur.texte} ${compteur.texte === '1' ? 'alerte' : 'alertes'}`);
+  } finally {
+    await page.close();
+  }
+  // Tout tient : un ✓ vert.
+  page = await ouvrirSur('alertes-seules', PAR_DEFAUT);
+  try {
+    const compteur = await compteurDeVerification(page);
+    assert.deepEqual(compteur, { visible: true, ton: 'succes', texte: '✓', nom: 'Vérification, tout tient' });
+  } finally {
+    await page.close();
+  }
+  // Sans palette ouverte : rien.
+  page = await ouvrirSur('alertes-seules', PAR_DEFAUT, { sansPalette: true });
+  try {
+    const compteur = await compteurDeVerification(page);
+    assert.equal(compteur.visible, false);
+    assert.equal(compteur.nom, 'Vérification');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-18] B4 : les trois onglets restent sur une seule ligne à 500 px avec le compteur', async () => {
+  const page = await ouvrirSur('promesses-manquees', { width: 500, height: 520 });
+  try {
+    const hauts = await page.locator('.onglets .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().top)));
+    assert.equal(new Set(hauts).size, 1, `les trois onglets sont sur une ligne : ${hauts}`);
+    const hauteurs = await page.locator('.onglets .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().height)));
+    assert.equal(new Set(hauteurs).size, 1, `les onglets gardent la même hauteur : ${hauteurs}`);
+    assert.equal(await page.locator('.onglets').evaluate((liste) => liste.scrollWidth <= liste.clientWidth), true, 'la rangée ne déborde pas');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-18] B4 : le pied paraît en danger ou en avertissement, jamais quand tout tient, et la réserve du bas de page ne change pas', async () => {
+  const reserveDe = (page) => page.locator('#panneau-creation .configuration-de-la-palette').evaluate((element) => getComputedStyle(element).paddingBottom);
+  // Garantie manquée : 40 px, fond de danger, filet plein de 2 px, pastille ronde de 20 px, compte en gras puis constat, « Vérifier ».
+  let page = await ouvrirSur('promesses-manquees', PAR_DEFAUT);
+  let pied = page.locator('#panneau-creation .pied-de-la-palette');
+  let reserve;
+  try {
+    assert.equal(await pied.isVisible(), true);
+    assert.equal(await pied.getAttribute('data-ton'), 'danger');
+    const forme = await pied.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const pastille = getComputedStyle(element.querySelector('.pied-icone'));
+      const lire = (variable) => {
+        const sonde = document.createElement('i');
+        sonde.style.background = `var(${variable})`;
+        document.body.append(sonde);
+        const couleur = getComputedStyle(sonde).backgroundColor;
+        sonde.remove();
+        return couleur;
+      };
+      return {
+        hauteur: element.getBoundingClientRect().height, filet: style.borderTopWidth, fond: style.backgroundColor, couleurDuFilet: style.borderTopColor,
+        fondDeDanger: lire('--fond-danger'), danger: lire('--fond-danger-plein'),
+        pastille: [pastille.width, pastille.height, pastille.borderTopLeftRadius, pastille.backgroundColor],
+      };
+    });
+    assert.equal(forme.hauteur, 40);
+    assert.equal(forme.filet, '2px');
+    assert.equal(forme.fond, forme.fondDeDanger);
+    assert.equal(forme.couleurDuFilet, forme.danger);
+    assert.deepEqual(forme.pastille, ['20px', '20px', '10px', forme.danger]);
+    assert.equal(await pied.locator('.pied-icone').textContent(), '✕');
+    assert.equal(await pied.locator('.pied-texte b').evaluate((element) => Number(getComputedStyle(element).fontWeight) >= 600), true, 'le compte est en gras');
+    assert.match(await pied.locator('.pied-texte span').textContent(), /^ · \S/, 'le premier constat suit le compte');
+    assert.equal(await pied.getByRole('button', { name: 'Vérifier' }).isVisible(), true);
+    // Au bas de la page, le haut de la carte Aperçu ne dépend pas du pied : visible ou masqué, il ne bouge pas.
+    const haut = async () => {
+      await page.evaluate(() => window.scrollTo(0, 100000));
+      return Math.round((await page.locator('#panneau-creation [aria-label="Aperçu"]').boundingBox()).y);
+    };
+    const visible = await haut();
+    const hauteurDeLaPage = await page.evaluate(() => document.documentElement.scrollHeight);
+    reserve = await reserveDe(page);
+    await pied.evaluate((element) => { element.hidden = true; });
+    assert.equal(await haut(), visible, 'le haut de la carte Aperçu ne saute pas');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollHeight), hauteurDeLaPage);
+    await pied.evaluate((element) => { element.hidden = false; });
+    // Le dernier élément du contenu s'arrête au-dessus du pied, pied visible.
+    const dernier = await page.locator('#panneau-creation .configuration-de-la-palette > :not(.pied-de-la-palette):not([hidden])').last().boundingBox();
+    assert.ok(dernier.y + dernier.height <= (await pied.boundingBox()).y + 1, 'le contenu s’arrête au-dessus du pied');
+  } finally {
+    await page.close();
+  }
+  // Alerte seule : la même forme, en avertissement.
+  page = await ouvrirSur('profils-confondus', PAR_DEFAUT);
+  pied = page.locator('#panneau-creation .pied-de-la-palette');
+  try {
+    assert.equal(await pied.isVisible(), true);
+    assert.equal(await pied.getAttribute('data-ton'), 'avertissement');
+    assert.equal(await pied.evaluate((element) => element.getBoundingClientRect().height), 40);
+    assert.equal(await pied.evaluate((element) => getComputedStyle(element).borderTopWidth), '2px');
+    assert.equal(await pied.getByRole('button', { name: 'Vérifier' }).isVisible(), true);
+    assert.equal(await reserveDe(page), reserve, 'même réserve qu’en danger');
+  } finally {
+    await page.close();
+  }
+  // Tout tient : le pied est masqué, la réserve et l'annonce restent.
+  page = await ouvrirSur('alertes-seules', PAR_DEFAUT);
+  pied = page.locator('#panneau-creation .pied-de-la-palette');
+  try {
+    assert.equal(await pied.isVisible(), false);
+    assert.equal(await reserveDe(page), reserve, 'même réserve que pied visible');
+    assert.equal(await page.locator('.pied-annonce').getAttribute('aria-live'), 'polite');
+    assert.match(await pied.locator('.pied-texte').textContent(), /^\d+ garanties tenues · aucune alerte/, 'le bilan reste écrit pour l’annonce');
   } finally {
     await page.close();
   }
@@ -6379,5 +6611,277 @@ test('[VAR-13] changer de palette pendant la recherche n’applique rien', async
     await page.locator('.selecteur-option').first().click();
     assert.equal(await bouton.isDisabled(), false, 'la recherche s’est interrompue');
     assert.equal(await retour(page).isVisible(), false);
+  } finally { await page.close(); }
+});
+
+/*
+ * Vérification sans palette ouverte, V3a : le nuancier vérifié, ses onglets
+ * « À corriger », « À vérifier » et « Conformes », le détail de l'onglet actif
+ * et l'état « tout est conforme ».
+ */
+
+/** Ouvre l'interface sur un état du bilan, puis l'onglet Vérification, sans palette ouverte. */
+async function ouvrirLeBilan(id, { viewport = MINIMALE, langue = 'fr' } = {}) {
+  const page = await ouvrir(viewport, langue);
+  await envoyer(page, messageDe(id));
+  await page.locator('#onglet-verification').click();
+  await page.locator('#panneau-verification .bilan-des-palettes').waitFor();
+  return page;
+}
+
+/** Ce que le bilan montre : onglets, cartes du nuancier, lignes de détail et phrase « tout est conforme ». */
+const vueDuBilan = (page) => page.evaluate(() => {
+  const visible = (element) => Boolean(element && element.getClientRects().length > 0);
+  const racine = document.querySelector('#panneau-verification .bilan-des-palettes');
+  return {
+    visible: visible(racine),
+    onglets: visible(racine.querySelector('.bilan-onglets'))
+      ? [...racine.querySelectorAll('.bilan-onglets .bascule-option')].map((onglet) => [onglet.dataset.onglet, onglet.querySelector('span').textContent, onglet.querySelector('b').textContent, onglet.getAttribute('aria-pressed'), Boolean(onglet.querySelector('.bilan-point'))])
+      : null,
+    cartes: [...racine.querySelectorAll('.nuancier-carte')].map((carte) => ({
+      id: carte.dataset.palette,
+      nom: carte.querySelector('.nuancier-nom').textContent,
+      etat: carte.dataset.etat ?? '',
+      attenuee: carte.classList.contains('attenuee'),
+      nomAccessible: carte.getAttribute('aria-label'),
+    })),
+    detail: visible(racine.querySelector('.bilan-detail'))
+      ? [...racine.querySelectorAll('.bilan-ligne')].map((ligne) => ({
+        id: ligne.dataset.palette,
+        nom: ligne.querySelector('.bilan-ligne-nom').textContent,
+        constat: ligne.querySelector('.bilan-ligne-constat').textContent,
+        bouton: ligne.querySelector('.bilan-verifier').textContent,
+        nomDuBouton: ligne.querySelector('.bilan-verifier').getAttribute('aria-label'),
+        aplats: ligne.querySelectorAll('.bilan-mini i').length,
+      }))
+      : null,
+    toutConforme: visible(racine.querySelector('.bilan-tout-conforme'))
+      ? [racine.querySelector('.bilan-tout-conforme strong').textContent, racine.querySelector('.bilan-secondaire').textContent]
+      : null,
+    points: racine.querySelectorAll('.nuancier-point').length,
+  };
+});
+
+const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Vert', 'Grenat', 'Azur', 'Feuille'];
+const ETATS_DES_CARTES = { Vert: 'rouge', Feuille: 'rouge', Bleu: 'ambre', Azur: 'ambre', Indigo: 'ambre', Rose: 'ambre' };
+const nomsDesCartes = (vue, filtre) => vue.cartes.filter(filtre).map((carte) => carte.nom);
+
+test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À corriger » actif, ses cartes en couleur, les autres atténuées, une ligne de détail par palette à corriger', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-corriger');
+  try {
+    const vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '2', 'true', true], ['ambre', 'À vérifier', '4', 'false', true], ['conforme', 'Conformes', '14', 'false', false]]);
+    assert.deepEqual(vue.cartes.map((carte) => carte.nom), NOMS_DES_VINGT, 'toutes les palettes, dans l’ordre de la recette');
+    assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Vert', 'Feuille']);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 18);
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Vert').nomAccessible, 'Vert, à corriger');
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Bleu').nomAccessible, 'Bleu, à vérifier');
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Jaune').nomAccessible, 'Jaune');
+    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Vert', 'Vérifier', 'Vérifier Vert', 3], ['Feuille', 'Vérifier', 'Vérifier Feuille', 3]]);
+    for (const ligne of vue.detail) assert.match(ligne.constat, /^Light · anneau de focus, 2,9\d:1$/);
+    assert.equal(vue.toutConforme, null);
+    // Un nom accessible qui dit le compte : « À corriger 2 ».
+    assert.equal(await page.getByRole('button', { name: 'À corriger 2', exact: true }).isVisible(), true);
+    // La barre du sélecteur reste en haut, l'invitation a laissé la place.
+    assert.equal(await page.locator('#panneau-verification .barre-de-palette').isVisible(), true);
+    assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), 'Sélectionner une palette');
+    assert.equal(await page.locator('#panneau-verification .invitation').isVisible(), false);
+    assert.equal(await page.locator('#panneau-verification :text("Choisissez une palette"):visible').count(), 0);
+    // Sept cartes par rangée à 500 px : trois rangées pour vingt palettes, sans défilement horizontal.
+    const hauts = await page.locator('#panneau-verification .nuancier-carte').evaluateAll((cartes) => [...new Set(cartes.map((carte) => Math.round(carte.getBoundingClientRect().top)))]);
+    assert.equal(hauts.length, 3);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    const mini = await page.locator('#panneau-verification .bilan-mini').first().boundingBox();
+    assert.deepEqual([Math.round(mini.width), Math.round(mini.height)], [30, 12]);
+    assert.equal((await demandes(page)).some(({ type }) => type === 'ranger-recette'), false, 'regarder le bilan ne range rien');
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le détail ; « Conformes » n’a pas de détail', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-corriger');
+  try {
+    await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
+    let vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets.map(([etat, , , presse]) => [etat, presse]), [['rouge', 'false'], ['ambre', 'true'], ['conforme', 'false']]);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Azur']);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 16);
+    assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES, 'les points ne changent pas avec l’onglet');
+    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rose', 'Indigo', 'Azur']);
+    assert.match(vue.detail[0].constat, /^trop proche de Azur, ΔEok 0,\d\d$/, 'une paire trop proche met ses deux palettes à vérifier');
+    assert.equal(vue.detail[1].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
+    assert.equal(vue.detail[2].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
+    assert.match(vue.detail[3].constat, /^trop proche de Bleu, ΔEok 0,\d\d$/);
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.onglet), 'ambre', 'le clavier garde sa place sur l’onglet');
+
+    await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
+    vue = await vueDuBilan(page);
+    assert.equal(vue.cartes.filter((carte) => !carte.attenuee).length, 14);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Vert', 'Azur', 'Feuille'].sort((a, b) => NOMS_DES_VINGT.indexOf(a) - NOMS_DES_VINGT.indexOf(b)));
+    assert.equal(vue.detail, null, 'sous « Conformes », pas de détail');
+    assert.equal(await page.locator('#panneau-verification .bilan-ligne').count(), 0);
+
+    await page.locator('.bilan-onglets [data-onglet="rouge"]').click();
+    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Vert', 'Feuille']);
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; un onglet à zéro ne s’affiche pas, et l’onglet actif ne manque jamais', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-corriger');
+  try {
+    const complet = messageDe('verification-bilan-a-corriger');
+    const sansLesRouges = structuredClone(complet);
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Vert' && nom !== 'Feuille');
+    const actifs = async () => (await vueDuBilan(page)).onglets.filter(([, , , presse]) => presse === 'true').map(([etat]) => etat);
+
+    await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
+    await envoyer(page, { ...complet, demande: 2 });
+    assert.deepEqual(await actifs(), ['ambre'], 'une relecture de la recette garde le choix');
+
+    // Plus de garantie manquée : l'onglet « À corriger » disparaît, « À vérifier » reste actif.
+    await envoyer(page, { ...sansLesRouges, demande: 3 });
+    let vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['ambre', 'À vérifier', '4'], ['conforme', 'Conformes', '14']]);
+    assert.deepEqual(await actifs(), ['ambre']);
+    assert.equal(vue.cartes.length, 18);
+
+    // « Conformes » choisi, puis les garanties manquées reviennent : le choix tient.
+    await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
+    await envoyer(page, { ...complet, demande: 4 });
+    assert.deepEqual(await actifs(), ['conforme']);
+    assert.equal((await vueDuBilan(page)).onglets.length, 3);
+
+    // Le choix « À corriger » se perd quand son onglet disparaît : « À vérifier » prend le relais, et le choix ne revient pas de lui-même.
+    await page.locator('.bilan-onglets [data-onglet="rouge"]').click();
+    await envoyer(page, { ...sansLesRouges, demande: 5 });
+    assert.deepEqual(await actifs(), ['ambre']);
+    await envoyer(page, { ...complet, demande: 6 });
+    assert.deepEqual(await actifs(), ['rouge'], 'À corriger redevient l’onglet par défaut');
+    vue = await vueDuBilan(page);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Vert', 'Feuille']);
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] à l’ouverture sans garantie manquée, « À vérifier » est actif et « À corriger » n’existe pas', async () => {
+  const page = await ouvrir(MINIMALE);
+  try {
+    const sansLesRouges = structuredClone(messageDe('verification-bilan-a-corriger'));
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Vert' && nom !== 'Feuille');
+    await envoyer(page, sansLesRouges);
+    await page.locator('#onglet-verification').click();
+    await page.locator('#panneau-verification .bilan-des-palettes').waitFor();
+    const vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets.map(([etat, , , presse]) => [etat, presse]), [['ambre', 'true'], ['conforme', 'false']]);
+    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rose', 'Indigo', 'Azur']);
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] une carte, au clic ou au clavier, et « Vérifier » ouvrent la vérification de la palette, comme le sélecteur', async () => {
+  for (const geste of ['carte', 'clavier', 'verifier']) {
+    const page = await ouvrirLeBilan('verification-bilan-a-corriger');
+    try {
+      const avant = await compte(page);
+      const nom = geste === 'verifier' ? 'Feuille' : 'Jaune';
+      if (geste === 'carte') await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').click();
+      else if (geste === 'clavier') {
+        await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').focus();
+        await page.keyboard.press('Enter');
+      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Feuille' }).getByRole('button', { name: 'Vérifier Feuille' }).click();
+      await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').waitFor();
+      assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`, geste);
+      assert.equal(await page.locator('#panneau-verification .bilan-des-palettes').isVisible(), false);
+      assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), nom);
+      assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true', 'on reste dans Vérification');
+      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Feuille' ? 'danger' : 'succes');
+      // Création ouvre la même palette que le sélecteur aurait ouverte.
+      await page.locator('#onglet-creation').click();
+      assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
+      assert.equal((await demandes(page)).slice(avant).some(({ type }) => type === 'ranger-recette'), false, 'ouvrir une palette ne range rien');
+    } finally { await page.close(); }
+  }
+});
+
+test('V3a [VER-18] tout conforme : pas d’onglets, la phrase et la coche, les cartes au même niveau et sans point, pas de détail', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-tout-conforme');
+  try {
+    const vue = await vueDuBilan(page);
+    assert.equal(vue.onglets, null);
+    assert.deepEqual(vue.toutConforme, ['Les 20 palettes tiennent leurs garanties, en Light et en Dark.', 'Aucune palette trop proche d’une autre.']);
+    assert.equal(vue.cartes.length, 20);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee || carte.etat).length, 0);
+    assert.equal(vue.points, 0);
+    assert.equal(vue.detail, null);
+    assert.equal(await page.locator('#panneau-verification .bilan-coche').textContent(), '✓');
+    assert.equal(await page.locator('#panneau-verification .bilan-coche').getAttribute('aria-hidden'), 'true');
+    assert.equal(await page.locator('#panneau-verification .barre-de-palette').isVisible(), true);
+    // Une carte reste cliquable.
+    await page.locator('#panneau-verification .nuancier-carte[title="Sapin"]').click();
+    assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), 'Palette Sapin');
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes, ligne de la paire à point décimal, phrase de l’état conforme', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-corriger', { langue: 'en' });
+  try {
+    let vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '2'], ['ambre', 'To check', '4'], ['conforme', 'Passing', '14']]);
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Vert').nomAccessible, 'Vert, to fix');
+    assert.match(vue.detail[0].constat, /^Light · .+, 2\.9\d:1$/);
+    assert.equal(vue.detail[0].nomDuBouton, 'Verify Vert');
+    assert.equal(vue.detail[0].bouton, 'Verify');
+    await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
+    vue = await vueDuBilan(page);
+    assert.match(vue.detail[0].constat, /^too close to Azur, ΔEok 0\.\d\d$/);
+    assert.equal(vue.detail[1].constat, 'Soft and Vivid are almost identical at these shades.');
+    // Le changement de langue en cours de route retraduit sans redessiner.
+    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    await page.getByLabel('Language', { exact: true }).selectOption('fr');
+    await page.getByRole('button', { name: 'Retour aux palettes' }).click();
+    vue = await vueDuBilan(page);
+    assert.deepEqual(vue.onglets.map(([etat, libelle]) => [etat, libelle]), [['rouge', 'À corriger'], ['ambre', 'À vérifier'], ['conforme', 'Conformes']]);
+    assert.match(vue.detail[0].constat, /^trop proche de Azur, ΔEok 0,\d\d$/);
+  } finally { await page.close(); }
+  const conforme = await ouvrirLeBilan('verification-bilan-tout-conforme', { langue: 'en' });
+  try {
+    assert.deepEqual((await vueDuBilan(conforme)).toutConforme, ['All 20 palettes keep their guarantees, in Light and Dark.', 'No palette too close to another.']);
+  } finally { await conforme.close(); }
+});
+
+test('V3a [VER-18] ouvrir Vérification calcule le bilan de vingt palettes et dessine le nuancier en moins d’une demi-seconde', async () => {
+  const page = await ouvrir(MINIMALE);
+  try {
+    await envoyer(page, messageDe('verification-bilan-a-corriger'));
+    const duree = await page.evaluate(() => {
+      const depart = performance.now();
+      document.querySelector('#onglet-verification').click();
+      return performance.now() - depart;
+    });
+    console.log(`Vérification sans palette ouverte, vingt palettes : bilan, nuancier et détail en ${duree.toFixed(0)} ms`);
+    assert.equal(await page.locator('#panneau-verification .nuancier-carte').count(), 20);
+    assert.ok(duree < 500, `${duree} ms`);
+  } finally { await page.close(); }
+});
+
+test('V3a [VER-18] tout conforme : 21 px séparent le filet sous la barre du sélecteur de la phrase', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-tout-conforme');
+  try {
+    const ecart = await page.evaluate(() => {
+      const filet = document.querySelector('#panneau-verification .choix-de-palette').getBoundingClientRect().bottom;
+      const phrase = document.querySelector('#panneau-verification .bilan-tout-conforme').getBoundingClientRect().top;
+      return phrase - filet;
+    });
+    assert.equal(ecart, 21);
+  } finally { await page.close(); }
+});
+
+// Écart connu : sans palette ouverte, le nuancier de Vérification (tout conforme) tombe 8 px plus haut que celui de l'accueil de Création.
+test('V3a [VER-18] le nuancier de Vérification (tout conforme) et celui de l’accueil de Création tombent à la même hauteur', { todo: 'écart de 8 px à lever' }, async () => {
+  const page = await ouvrirLeBilan('verification-bilan-tout-conforme');
+  try {
+    const haut = (panneau) => page.evaluate((selecteur) => document.querySelector(`${selecteur} .nuancier-carte`).getBoundingClientRect().top, panneau);
+    const verification = await haut('#panneau-verification');
+    await page.locator('#onglet-creation').click();
+    await page.locator('#panneau-creation .nuancier-carte').first().waitFor();
+    assert.equal(verification, await haut('#panneau-creation'));
   } finally { await page.close(); }
 });

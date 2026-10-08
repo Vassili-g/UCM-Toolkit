@@ -47,7 +47,7 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
 
 ## Vague 1
 
-- [ ] **U1 · Le nuancier des palettes** · `implementeur`, moyen. Un
+- [x] **U1 · Le nuancier des palettes** · `implementeur`, moyen. Un
   composant partagé `ui/nuancierDesPalettes.ts`, que U2 et U3 emploient.
   - Une carte par palette, dans l'ordre de la recette : 60 × 80 px, trois
     aplats (la nuance 200, la nuance d'ancrage de la référence, la nuance
@@ -63,7 +63,7 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
   - Fini quand : tests unitaires du rendu (ordre, aplats, point, atténuée,
     clic) ; typecheck et `npm test` du workspace passent.
 
-- [ ] **U4 · Le bandeau B4** · `implementeur`, moyen. Dossier, section 2 et
+- [x] **U4 · Le bandeau B4** · `implementeur`, moyen. Dossier, section 2 et
   décision E1.
   - Fichiers : `ui/piedDeLaPalette.ts`, `ui/index.ts` ou le module qui
     construit les onglets, `ui/styles.css`, i18n, galerie, tests.
@@ -85,7 +85,7 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
 
 ## Vague 2, après U1
 
-- [ ] **U2 · L'accueil de Création A2a** · `implementeur`, moyen.
+- [x] **U2 · L'accueil de Création A2a** · `implementeur`, moyen.
   - Fichiers : `ui/ongletCreation.ts` (l'invitation « Choisissez une
     palette »), `ui/barreDePalette.ts` si la barre doit se masquer,
     styles, i18n, galerie, tests.
@@ -101,7 +101,7 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
     cartes en trois rangées à 500 px, sans défilement horizontal), clic
     qui ouvre, bouton qui crée ; état de galerie à vingt palettes.
 
-- [ ] **U3 · Vérification sans palette ouverte V3a** ·
+- [x] **U3 · Vérification sans palette ouverte V3a** ·
   `implementeur-exigeant`, élevé. Dossier, section 4, règles 1 à 7.
   - Fichiers : `ui/ongletVerification.ts`, un module du bilan des palettes
     s'il le faut, styles, i18n, galerie, tests.
@@ -128,6 +128,16 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
   `test:ui`, captures à 500 px des états U2, U3 et U4. L'orchestrateur
   relit les captures, commite chaque tâche, construit et pousse.
 
+- [ ] **U6 · Les deux nuanciers au même pixel** · `implementeur`, moyen,
+  après U5. Le nuancier de l'accueil de Création et celui de Vérification
+  sans palette ouverte commencent à la même hauteur, pour que les cartes ne
+  bougent pas quand le designer change d'onglet. Un écart fixe ne suffit
+  pas : mesurer dans le navigateur le haut de la première carte des deux
+  onglets avec la même recette, et régler l'espacement de Vérification
+  pour un écart nul, dans l'état « tout est conforme » comme dans l'état à
+  onglets, en français et en anglais. Un test d'interface compare les deux
+  positions et échoue au premier pixel d'écart.
+
 ## Récapitulatif
 
 | Tâche | Agent | Effort | Vague |
@@ -137,3 +147,4 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
 | U2 | `implementeur` | moyen | 2 |
 | U3 | `implementeur-exigeant` | élevé | 2 |
 | U5 | `verificateur` | bas | 3 |
+| U6 | `implementeur` | moyen | 4 |

@@ -1,7 +1,8 @@
 /**
  * L'onglet Création (section 13.2) : le choix ou la création d'une palette.
  * Dans un fichier sans palette, un encart invite à créer la première
- * ([UI-22]). Sans palette choisie, une invitation ([UI-06]) ; avec elle, le titre
+ * ([UI-22]). Sans palette choisie, un accueil : « Nouvelle palette » et le
+ * nuancier des palettes, sans la barre ([UI-06]) ; avec elle, le titre
  * « Palette [nom] » seul sur sa ligne, puis les cartes :
  * Configuration de la palette, aperçu fixe, Réglage global et Color shift
  * repliables, et l'Interface de test en dernier ([UI-12]). La configuration
@@ -93,6 +94,7 @@ import type { PaletteOuverte } from './paletteOuverte';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
 import { creerVuesNuancier } from './nuancier';
+import { creerVuesNuancierDesPalettes } from './nuancierDesPalettes';
 import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
 import { creerVuesReglagesDeLaPalette } from './reglagesDeLaPalette';
 import { creerSocleLocalise } from './socleLocalise';
@@ -248,6 +250,7 @@ function construireVues(i18n: Localisation) {
   const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
+  const { nuancierDesPalettes } = creerVuesNuancierDesPalettes(i18n);
   const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DES_REGLAGES_AVANCES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
@@ -285,9 +288,10 @@ function construireVues(i18n: Localisation) {
         creationOuverte = false;
         rendre();
         if (document.scrollingElement) document.scrollingElement.scrollTop = defilementAvantLaCreation;
-        // Dans un fichier sans palette, la barre est cachée : le focus revient à l'encart.
-        if (appel.hidden) barre.focaliserNouvelle();
-        else premiereNouvelle.focus();
+        // Dans un fichier sans palette et sur l'accueil, la barre est cachée : le focus revient à l'encart ou au bouton de l'accueil.
+        if (!appel.hidden) premiereNouvelle.focus();
+        else if (!accueil.hidden) nouvelleDeLAccueil.focus();
+        else barre.focaliserNouvelle();
       },
     });
 
@@ -965,19 +969,36 @@ function construireVues(i18n: Localisation) {
     const vide = document.createElement('div');
     vide.className = 'page-stack colonne';
     vide.append(ligneVide, appel, ligneDuFichier);
-    // Sans palette choisie : un titre et une phrase, sans geste propre ; les gestes sont ceux de la barre (maquette Z3.3, D1).
-    const invitation = document.createElement('div');
-    invitation.className = 'invitation';
-    const titreDeLInvitation = document.createElement('h2');
-    titreDeLInvitation.className = 'titre-de-premier-rang';
-    i18n.lier(titreDeLInvitation, 'textContent', TEXTES.invitationTitre);
-    const texteDeLInvitation = document.createElement('p');
-    i18n.lier(texteDeLInvitation, 'textContent', TEXTES.invitation);
-    invitation.append(titreDeLInvitation, texteDeLInvitation);
+    /*
+     * Sans palette choisie : l'accueil (recette v9, A2a). « Nouvelle palette »
+     * ouvre la création, la barre du sélecteur est masquée, et le nuancier des
+     * palettes ouvre celle dont on clique la carte.
+     */
+    const accueil = document.createElement('div');
+    accueil.className = 'accueil-de-creation';
+    const nouvelleDeLAccueil = createButton({ label: TEXTES.nouvellePalette, onClick: () => ouvrirLaCreation() });
+    nouvelleDeLAccueil.classList.add('accueil-nouvelle');
+    const consigneDeLAccueil = document.createElement('p');
+    consigneDeLAccueil.className = 'accueil-consigne';
+    i18n.lier(consigneDeLAccueil, 'textContent', TEXTES.accueilConsigne);
+    const intertitreDeLAccueil = document.createElement('div');
+    intertitreDeLAccueil.className = 'accueil-intertitre';
+    const libelleDeLAccueil = document.createElement('span');
+    i18n.lier(libelleDeLAccueil, 'textContent', TEXTES.accueilVosPalettes);
+    const compteDeLAccueil = document.createElement('span');
+    compteDeLAccueil.className = 'section-compte';
+    intertitreDeLAccueil.append(libelleDeLAccueil, compteDeLAccueil);
+    const nuancierDeLAccueil = nuancierDesPalettes((id) => {
+      etat.ouvrir(id);
+      barre.fermerLaConfirmation();
+      creationOuverte = false;
+      rendre();
+    });
+    accueil.append(nouvelleDeLAccueil, consigneDeLAccueil, intertitreDeLAccueil, nuancierDeLAccueil.element);
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
     // La ligne du titre est un enfant direct de la vue : collée en haut, elle ne tient que dans son parent.
-    vue.append(choix, invitation, teteDeLaPalette, configuration);
+    vue.append(choix, accueil, teteDeLaPalette, configuration);
     element.append(zoneDuRefus, zoneDuBloquant, vide, vue);
 
     /** Le panneau de création suit la vue montrée : seul, ou sous le sélecteur. */
@@ -1002,13 +1023,21 @@ function construireVues(i18n: Localisation) {
     }
 
     /** La création et la note, avec ou sans palette choisie ; la barre se rend à part. */
-    function rendreLeChoix(courante: Palette | null): void {
+    function rendreLeChoix(courante: Palette | null, lue: Recette): void {
       placerLaCreation(choix, zoneDeLaNote);
       creation.element.hidden = !creationOuverte;
       zoneDeLaNote.replaceChildren(...(note ? [blocDeConstat(note, 'notice')] : []));
       zoneDeLaNote.hidden = !note;
-      // La création ouverte suffit à dire quoi faire : l'invitation lui laisse la place.
-      invitation.hidden = courante !== null || creationOuverte;
+      // La création ouverte suffit à dire quoi faire : l'accueil lui laisse la place.
+      const surLAccueil = courante === null && !creationOuverte;
+      accueil.hidden = !surLAccueil;
+      // Sur l'accueil, la barre se masque ; le conteneur disparaît avec elle, sauf s'il porte une note.
+      choix.toggleAttribute('data-accueil', surLAccueil);
+      choix.hidden = surLAccueil && !note;
+      if (surLAccueil) {
+        compteDeLAccueil.textContent = String(lue.palettes.length);
+        nuancierDeLAccueil.afficher({ recette: lue, palettes: lue.palettes.map((palette) => ({ palette })) });
+      }
       // Pendant la création, la carte reste seule : la palette affichée, pied compris, se masque.
       teteDeLaPalette.hidden = !courante || creationOuverte;
       configuration.hidden = !courante || creationOuverte;
@@ -1156,7 +1185,7 @@ function construireVues(i18n: Localisation) {
       appel.hidden = true;
       const courante = ouverte();
       montrer(vue);
-      rendreLeChoix(courante);
+      rendreLeChoix(courante, recette);
       if (courante) rendrePalette(courante, recette);
     }
 

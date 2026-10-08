@@ -30,6 +30,7 @@ import { creerVuesOngletCreation } from './ongletCreation';
 import { creerVuesOngletGestion } from './ongletGestion';
 import { creerVuesOngletVerification } from './ongletVerification';
 import { creerPaletteOuverte } from './paletteOuverte';
+import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
 import { versSandbox } from './pont';
 import { creerSocleLocalise } from './socleLocalise';
 import { telecharger } from './telechargement';
@@ -43,6 +44,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
   const { createOngletCreation } = creerVuesOngletCreation(i18n);
   const { createOngletGestion } = creerVuesOngletGestion(i18n);
   const { createOngletVerification } = creerVuesOngletVerification(i18n);
+  const { lierLeCompteur, effacerLeCompte } = creerVuesPiedDeLaPalette(i18n);
   const { TEXTES, nomDeLaPalette } = i18n.messages;
 
   /** `index.html` déclare ce conteneur ; `tests/buildUi.test.ts` tient le gabarit. */
@@ -224,6 +226,8 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
       if (!CIBLES_COMMUNES.includes(cible)) onglets.selectionner('creation');
       ongletCreation.ouvrir(cible);
     },
+    // Le bilan sans palette ouverte : une carte ou « Vérifier » choisit la palette, comme le sélecteur de la barre.
+    choisir: (id) => ongletCreation.gestesDeLaBarre.choisir(id),
     versCreation: () => allerA('creation'),
     versGestion: () => allerA('gestion'),
   });
@@ -350,6 +354,12 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     afficherLaPlanche();
     // À l'ouverture du plugin, l'état vient d'être lu : Gestion ne le redemande pas.
     if (!ouverture) relireLaPlanche();
+  });
+
+  // L'onglet Vérification porte le bilan de la palette ouverte dans Création ; sans palette ouverte, il n'a pas de compteur.
+  lierLeCompteur(onglets.liste.querySelector<HTMLElement>('#onglet-verification')!, TEXTES.ongletVerification);
+  paletteOuverte.abonner((etat) => {
+    if (!etat.palette()) effacerLeCompte();
   });
 
   const PANNEAUX = { creation: ongletCreation.element, verification: ongletVerification.element, gestion: ongletGestion.element };

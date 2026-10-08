@@ -4,7 +4,9 @@
  * verdict sur son fond de sévérité, les messages groupés par sévérité avec
  * leurs liens ([VER-15]), la carte « Garanties de contraste », fixe et toujours
  * ouverte ([UI-09]), puis un pied qui mène à Gestion, ou à Création quand une
- * garantie manque.
+ * garantie manque. Sans palette ouverte, il montre le bilan de toutes les
+ * palettes (`vueDuBilanDesPalettes.ts`) ; une recette sans palette garde
+ * l'invitation de Création.
  *
  * L'onglet lit l'état partagé (`paletteOuverte.ts`) et ne se rend que
  * visible, à la fin d'un geste : un glisser dans Création ne le recalcule pas.
@@ -19,11 +21,14 @@ import { creerVuesMessagesDePalette } from './messagesDePalette';
 import type { PaletteOuverte } from './paletteOuverte';
 import { SIGNE_DU_VERDICT } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
+import { creerVuesBilanDesPalettes } from './vueDuBilanDesPalettes';
 
 /** Ce que l'onglet demande au reste de l'interface. */
 export interface GestesDeLaVerification {
   /** Ouvre le réglage qu'un message nomme : dans Création, ou dans les Réglages communs ([VER-15]). */
   ouvrir(cible: CibleDAction): void;
+  /** Ouvre la vérification d'une palette que le bilan nomme, comme le choix dans le sélecteur. */
+  choisir(id: string): void;
   versCreation(): void;
   versGestion(): void;
 }
@@ -45,6 +50,7 @@ function construireVues(i18n: Localisation) {
   const { listeDesMessages } = creerVuesConstats(i18n);
   const { createGaranties } = creerVuesGaranties(i18n);
   const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
+  const { createBilanDesPalettes } = creerVuesBilanDesPalettes(i18n);
   const { tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DE_LA_VERIFICATION, TEXTES_DE_L_ONGLET, nomDeLaPalette, pointsDuVerdict, verdictDesGaranties } = i18n.messages;
 
@@ -56,7 +62,10 @@ function construireVues(i18n: Localisation) {
     const choix = document.createElement('div');
     choix.className = 'choix-de-palette';
 
-    // Sans palette choisie : l'invitation de Création ([UI-06]).
+    // Sans palette choisie : le bilan de toutes les palettes, nuancier vérifié et onglets à corriger, à vérifier, conformes.
+    const bilanDesPalettes = createBilanDesPalettes({ ouvrir: (id) => gestes.choisir(id) });
+
+    // Sans palette choisie et sans palette dans la recette : l'invitation de Création ([UI-06]).
     const invitation = document.createElement('div');
     invitation.className = 'invitation';
     const titreDeLInvitation = document.createElement('h2');
@@ -118,7 +127,7 @@ function construireVues(i18n: Localisation) {
     const vue = document.createElement('div');
     vue.className = 'page-stack colonne vue-de-la-palette';
     // La ligne du titre est un enfant direct de la vue : collée en haut, elle ne tient que dans son parent.
-    vue.append(choix, invitation, sansRecette, tete, corps);
+    vue.append(choix, bilanDesPalettes.element, invitation, sansRecette, tete, corps);
     element.append(vue);
 
     let actif = false;
@@ -132,7 +141,11 @@ function construireVues(i18n: Localisation) {
       const analyse = etat.analyse();
       choix.hidden = !recette;
       sansRecette.hidden = recette !== null;
-      invitation.hidden = !recette || courante !== null;
+      const sansPaletteOuverte = recette !== null && courante === null;
+      const avecPalettes = recette !== null && recette.palettes.length > 0;
+      invitation.hidden = !sansPaletteOuverte || avecPalettes;
+      bilanDesPalettes.element.hidden = !sansPaletteOuverte || !avecPalettes;
+      if (recette && !bilanDesPalettes.element.hidden) bilanDesPalettes.afficher(recette);
       corps.hidden = !recette || !courante || !analyse;
       tete.hidden = corps.hidden;
       if (!recette || !courante || !analyse) return;

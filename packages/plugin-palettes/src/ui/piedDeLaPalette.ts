@@ -24,8 +24,51 @@ export interface PiedDeLaPaletteUi {
   afficher(bilan: BilanDuPied, finDuGeste: boolean): void;
 }
 
+/** Ce que l'onglet Vérification retient du bilan : les garanties manquées et les alertes de la palette ouverte. */
+export interface CompteDuBilan {
+  readonly manquees: number;
+  readonly alertes: number;
+}
+
 function construireVues(i18n: Localisation) {
-  const { TEXTES_DU_PIED, bilanDuPied } = i18n.messages;
+  const { TEXTES_DU_PIED, bilanDuPied, nomDeLOngletVerification } = i18n.messages;
+
+  /** Le dernier bilan que le pied a lu, `null` sans palette ouverte : l'onglet Vérification le porte en compteur. */
+  let compte: CompteDuBilan | null = null;
+  const abonnes = new Set<(compte: CompteDuBilan | null) => void>();
+  function poserLeCompte(suivant: CompteDuBilan | null): void {
+    if (suivant === compte || (suivant && compte && suivant.manquees === compte.manquees && suivant.alertes === compte.alertes)) return;
+    compte = suivant;
+    for (const abonne of [...abonnes]) abonne(compte);
+  }
+
+  /**
+   * Pose le compteur sur l'onglet : rouge pour les garanties manquées, ambre
+   * pour des alertes seules, ✓ vert quand tout tient, rien sans palette
+   * ouverte. Le nom accessible de l'onglet reprend le bilan.
+   */
+  function lierLeCompteur(onglet: HTMLElement, libelle: Texte): void {
+    const pastille = document.createElement('span');
+    pastille.className = 'compteur-de-verification';
+    pastille.setAttribute('aria-hidden', 'true');
+    pastille.hidden = true;
+    onglet.append(pastille);
+    const nom: Texte = { lire: () => (compte ? lireTexte(nomDeLOngletVerification(compte.manquees, compte.alertes)) : lireTexte(libelle)) };
+    i18n.lier(onglet, 'aria-label', nom);
+    abonnes.add((lu) => {
+      pastille.hidden = lu === null;
+      if (lu === null) {
+        delete onglet.dataset.compteur;
+        delete pastille.dataset.ton;
+      } else {
+        const ton = lu.manquees > 0 ? 'danger' : lu.alertes > 0 ? 'avertissement' : 'succes';
+        onglet.dataset.compteur = ton;
+        pastille.dataset.ton = ton;
+        pastille.textContent = ton === 'danger' ? String(lu.manquees) : ton === 'avertissement' ? String(lu.alertes) : '✓';
+      }
+      i18n.lier(onglet, 'aria-label', nom);
+    });
+  }
 
   /** `verifier` ouvre l'onglet Vérification sur la palette ouverte. */
   function createPiedDeLaPalette(verifier: () => void): PiedDeLaPaletteUi {
@@ -34,12 +77,17 @@ function construireVues(i18n: Localisation) {
     element.setAttribute('role', 'region');
     i18n.lier(element, 'aria-label', TEXTES_DU_PIED.region);
     element.dataset.ton = 'succes';
+    element.hidden = true;
 
     const icone = document.createElement('span');
     icone.className = 'pied-icone';
     icone.setAttribute('aria-hidden', 'true');
     const texte = document.createElement('span');
     texte.className = 'pied-texte';
+    // Le compte en gras, puis le premier constat.
+    const compteur = document.createElement('b');
+    const constat = document.createElement('span');
+    texte.append(compteur, constat);
     const versLaVerification = document.createElement('button');
     versLaVerification.type = 'button';
     versLaVerification.className = 'bouton-discret';
@@ -61,10 +109,15 @@ function construireVues(i18n: Localisation) {
         const resume = bilanDuPied(bilan.garanties, bilan.manquees, alertes, bilan.libre);
         const premier = bilan.messages[0]?.constat.ou;
         const ligne: Texte = premier ? i18n.composer`${resume} · ${premier}` : resume;
+        const suite: Texte | null = premier ? i18n.composer` · ${premier}` : null;
         const ton = bilan.manquees > 0 ? 'danger' : alertes > 0 ? 'avertissement' : 'succes';
         element.dataset.ton = ton;
-        icone.textContent = ton === 'danger' ? '✗' : ton === 'avertissement' ? '!' : '✓';
-        i18n.lier(texte, 'textContent', ligne);
+        // Tout tient : le pied se masque, l'annonce et le compteur de l'onglet Vérification restent à jour.
+        element.hidden = ton === 'succes';
+        icone.textContent = ton === 'danger' ? '✕' : ton === 'avertissement' ? '!' : '✓';
+        i18n.lier(compteur, 'textContent', resume);
+        i18n.lier(constat, 'textContent', suite);
+        poserLeCompte({ manquees: bilan.manquees, alertes });
         i18n.lier(texte, 'title', ligne);
         if (finDuGeste && lireTexte(resume) !== dernierAnnonce) {
           dernierAnnonce = lireTexte(resume);
@@ -74,7 +127,12 @@ function construireVues(i18n: Localisation) {
     };
   }
 
-  return { createPiedDeLaPalette };
+  /** Le compteur de l'onglet suit le bilan lu par le pied ; sans palette ouverte, il s'efface. */
+  return {
+    createPiedDeLaPalette,
+    lierLeCompteur,
+    effacerLeCompte: () => poserLeCompte(null),
+  };
 }
 
 export const creerVuesPiedDeLaPalette = memoriserVues(construireVues);

@@ -466,7 +466,7 @@ const ETATS = [
     id: 'sans-palette-choisie',
     titre: 'Onglet Création sans palette choisie',
     quand: 'Le fichier porte trois palettes ; le plugin s’ouvre, et aucune n’est choisie.',
-    regarder: '« Sélectionner une palette » en couleur secondaire dans le sélecteur, « Nouvelle palette » sans « … » ; sous le filet, « Choisissez une palette » en titre de premier rang et sa phrase, sans bouton.',
+    regarder: 'La barre du sélecteur est masquée. De haut en bas : « ＋ Nouvelle palette » en bouton principal pleine largeur, 40 px ; « Partez d’une couleur de référence. » centré en texte secondaire ; l’intertitre « Vos palettes » et son compte, 3 ; les trois cartes du nuancier, sans point ni atténuation.',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(TROIS_PALETTES))],
@@ -530,7 +530,7 @@ const ETATS = [
     id: 'promesses-manquees',
     titre: 'Palette avec promesses manquées',
     quand: 'Le texte des boutons du thème Light est noir, donc inversé : la 700 de Bleu, ancrée sur #1E6FD9, ne tient plus le noir à 4,5:1 (4,33:1), G1 est manquée en Light.',
-    regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied en danger, son compte et « Vérifier » ; le ✗ du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
+    regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied de 40 px en danger, avec son filet plein, sa pastille ✕, le compte en gras puis le premier constat et « Vérifier » ; le compteur rouge sur l’onglet Vérification ; le ✗ du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)),
@@ -541,7 +541,7 @@ const ETATS = [
     id: 'alertes-seules',
     titre: 'Référence plus vive que la saturation commune',
     quand: 'Une référence jaune, plus vive que la saturation commune de Vivid : Vivid la porte au 300 en Light et prend sa saturation, 98 %.',
-    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid.',
+    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid. Tout tient : pas de pied, et un ✓ vert sur l’onglet Vérification.',
     existe: true,
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU]))],
   },
@@ -549,7 +549,7 @@ const ETATS = [
     id: 'profils-confondus',
     titre: 'Profils presque identiques',
     quand: 'Le designer règle Soft et Vivid sur des parts de chroma voisines.',
-    regarder: 'La carte Réglage global annonce un point à vérifier ; le message nomme les nuances concernées et propose Ajuster la saturation.',
+    regarder: 'La carte Réglage global annonce un point à vérifier ; le message nomme les nuances concernées et propose Ajuster la saturation. Les garanties tiennent, l’alerte seule : le pied en avertissement (40 px, fond d’avertissement, pastille « ! », « Vérifier ») et le compteur ambre « 1 » sur l’onglet Vérification.',
     existe: true,
     atteinte: [etatDuFichier(rangee([{ ...BLEU, parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } }]))],
   },
@@ -1039,7 +1039,7 @@ const ETATS = [
     id: 'reprise-telle-quelle',
     titre: 'Reprise telle quelle',
     quand: 'Dans l’encart de la palette reprise, le designer presse « Telles quelles ».',
-    regarder: '« Telles quelles » pressé ; les deux rampes identiques ; « Aucune couleur ne change. » ; le nom seul dans la carte de configuration ; ni « Réglage global » ni « Color shift » ; le pied « Palette libre ».',
+    regarder: '« Telles quelles » pressé ; les deux rampes identiques ; « Aucune couleur ne change. » ; le nom seul dans la carte de configuration ; ni « Réglage global » ni « Color shift » ; le pied masqué, un ✓ vert sur l’onglet Vérification.',
     existe: true,
     atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(true))],
   },
@@ -1313,7 +1313,7 @@ const ETATS = [
     id: 'fond-personnalise',
     titre: 'Fond personnalisé',
     quand: 'Le fond du thème Light est un jaune saturé, #FFD84D : le nuancier le porte.',
-    regarder: 'La surface peinte de #FFD84D, ses numéros et ses noms de profil lisibles dessus, et le point à vérifier sur le fond.',
+    regarder: 'La surface peinte de #FFD84D, ses numéros et ses noms de profil lisibles dessus, et le point à vérifier sur le fond ; le pied en danger, ses deux garanties manquées en gras, et le compteur rouge sur l’onglet Vérification.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU], (recette) => ({ ...recette, fonds: { ...recette.fonds, light: '#FFD84D' } })))],
   },
@@ -1749,8 +1749,8 @@ const ETATS = [
   },
 ];
 
-/** Le designer choisit la première palette de la liste : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]). */
-const ouvrirLaPremierePalette = [{ clic: '.selecteur-bouton' }, { clic: '.selecteur-option' }];
+/** Le designer clique la première carte de l'accueil : l'onglet Création n'ouvre aucune palette de lui-même ([UI-06]). */
+const ouvrirLaPremierePalette = [{ clic: '#panneau-creation .nuancier-carte' }];
 
 /**
  * Un fichier qui porte des palettes s'ouvre sur Gestion ([UI-21]) : l'état
@@ -1831,7 +1831,7 @@ ETATS.push(
     id: 'reprise-reglages-retrouves',
     titre: 'Réglages retrouvés',
     quand: 'Le designer a cliqué « Retrouver les réglages » sur Sauge ; la recherche a reproduit toutes ses couleurs.',
-    regarder: 'La ligne « Réglages retrouvés. Aucune couleur ne change. » ; Sauge n’est plus figée : l’encart est masqué, les cartes « Réglage global » et « Color shift » reviennent, le pied compte les garanties.',
+    regarder: 'La ligne « Réglages retrouvés. Aucune couleur ne change. » ; Sauge n’est plus figée : l’encart est masqué, les cartes « Réglage global » et « Color shift » reviennent, le bilan de Sauge tient : le pied est masqué et l’onglet Vérification porte un ✓ vert.',
     existe: true,
     atteinte: [etatDeSauge('deux'), { clic: '[data-geste="retrouver"]', attendre: '[data-issue="retrouvee"]' }],
   },
@@ -1844,5 +1844,72 @@ ETATS.push(
     atteinte: [etatDeSauge('retouchee'), { clic: '[data-geste="retrouver"]', attendre: '[data-issue="approchee"]' }],
   },
 );
+
+/**
+ * Vingt palettes qui tiennent toutes leurs garanties et ne se ressemblent pas :
+ * le bilan de Vérification n'y trouve rien à corriger. Les références sont
+ * choisies avec le moteur ; une palette de plus près d'une autre qu'un seuil de
+ * 0,05 en ΔEok ferait une paire trop proche.
+ */
+const VINGT_PALETTES_CONFORMES = [
+  ['Bleu', '#1E6FD9'], ['Jaune', '#FACC15'], ['Rouge', '#D94635'], ['Violet', '#7C3AED'], ['Cyan', '#0891B2'],
+  ['Ardoise', '#6B7280'], ['Rose', '#DB2777'], ['Indigo', '#4F46E5'], ['Lime', '#65A30D'], ['Teal', '#0D9488'],
+  ['Fuchsia', '#C026D3'], ['Pourpre', '#9333EA'], ['Sable', '#A8A29E'], ['Marine', '#1E3A8A'], ['Cuivre', '#B25E34'],
+  ['Moutarde', '#B2B234'], ['Sapin', '#34B25E'], ['Grenat', '#B23488'], ['Brume', '#94A3B8'], ['Mauve', '#897288'],
+];
+const identifiantDuBilan = (rang) => `p-b11a0${rang.toString(16).padStart(3, '0')}`;
+const PARTS_PRESQUE_EGALES = { soft: 0.5, vivid: 0.55, origine: 'designer' };
+
+/**
+ * Les mêmes vingt palettes, cinq remplacées : Vert et Feuille manquent la
+ * garantie de l'anneau de focus en Light (à corriger) ; Azur et Bleu forment une
+ * paire trop proche, et Indigo et Rose ont Soft et Vivid presque identiques
+ * (à vérifier). Quatorze palettes restent conformes.
+ */
+const REMPLACEES_PAR_LE_BILAN = { Sapin: ['Vert', '#16A34A'], Mauve: ['Feuille', '#15A34B'], Brume: ['Azur', '#2272DD'] };
+const VINGT_PALETTES_A_VERIFIER = VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => {
+  const [nomFinal, referenceFinale] = REMPLACEES_PAR_LE_BILAN[nom] ?? [nom, reference];
+  const suivante = palette(identifiantDuBilan(rang), nomFinal, referenceFinale);
+  return nom === 'Indigo' || nom === 'Rose' ? { ...suivante, parts: PARTS_PRESQUE_EGALES } : suivante;
+});
+
+ETATS.push(
+  {
+    id: 'verification-bilan-a-corriger',
+    titre: 'Vérification sans palette ouverte, à corriger',
+    quand: 'Le fichier porte vingt palettes ; deux manquent une garantie, deux sont trop proches l’une de l’autre, deux ont Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
+    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 2 », « À vérifier 4 » et « Conformes 14 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Vert et Feuille, un point ambre sur Bleu, Azur, Indigo et Rose, les deux cartes à corriger en couleur et les dix-huit autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, « Light · anneau de focus, 2,91:1 » en texte secondaire, et « Vérifier ».',
+    existe: true,
+    sansPaletteChoisie: true,
+    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification],
+  },
+  {
+    id: 'verification-bilan-a-verifier',
+    titre: 'Vérification sans palette ouverte, à vérifier',
+    quand: 'Même fichier ; le designer passe à l’onglet « À vérifier ».',
+    regarder: 'L’onglet « À vérifier 4 » actif. Bleu, Rose, Indigo et Azur en couleur, les seize autres atténuées mais toujours cliquables. Le détail compte quatre lignes : « trop proche de Azur, ΔEok 0,01 » pour Bleu, « trop proche de Bleu, ΔEok 0,01 » pour Azur, et pour Rose et Indigo la phrase « Soft et Vivid sont presque identiques sur ces nuances. ».',
+    existe: true,
+    sansPaletteChoisie: true,
+    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
+  },
+  {
+    id: 'verification-bilan-tout-conforme',
+    titre: 'Vérification sans palette ouverte, tout est conforme',
+    quand: 'Le fichier porte vingt palettes qui tiennent toutes leurs garanties et ne se ressemblent pas.',
+    regarder: 'Pas d’onglets. Une coche verte dans un rond et « Les 20 palettes tiennent leurs garanties, en Light et en Dark. », puis en texte secondaire « Aucune palette trop proche d’une autre. » ; les vingt cartes au même niveau, sans point ; pas de détail.',
+    existe: true,
+    sansPaletteChoisie: true,
+    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => palette(identifiantDuBilan(rang), nom, reference)))), ouvrirLaVerification],
+  },
+);
+ETATS.push({
+  id: 'creation-vingt-palettes',
+  titre: 'Onglet Création sans palette choisie, vingt palettes',
+  quand: 'Le fichier porte vingt palettes ; le plugin s’ouvre sur Création, et aucune n’est choisie.',
+  regarder: 'L’accueil comme avec trois palettes, l’intertitre « Vos palettes » portant le compte 20 ; les vingt cartes du nuancier à sept par rangée, donc trois rangées à 500 px, sans défilement horizontal.',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [etatDuFichier(rangee(VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => palette(identifiantDuBilan(rang), nom, reference))))],
+});
 
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteParDefaut(), rampesDe } };

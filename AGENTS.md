@@ -268,9 +268,12 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/barreDePalette.ts la barre de la palette ouverte, un bloc ordinaire en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
   src/ui/basculeDuTheme.ts le choix « Aperçu » Light/Dark du thème montré, que la ligne du titre de Création et celle de Vérification rendent chacune
   src/ui/ongletCreation.ts l'onglet Création : la barre, la ligne du titre « Palette [nom] » et de la bascule du thème, l'encart d'une palette reprise du fichier, les cartes, dont la configuration repliée après une création, puis le pied qui compte les messages ; l'état du geste en cours
-  src/ui/ongletVerification.ts l'onglet Vérification : la barre, la ligne du titre et de la bascule du thème, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création
+  src/ui/ongletVerification.ts l'onglet Vérification : la barre, la ligne du titre et de la bascule du thème, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création ; sans palette ouverte, le bilan des palettes
+  src/ui/bilanDesPalettes.ts le classement de chaque palette, à corriger, à vérifier ou conforme, et son premier constat, sans DOM
+  src/ui/vueDuBilanDesPalettes.ts Vérification sans palette ouverte : onglets du bilan, nuancier mis en avant ou atténué, détail, « tout est conforme »
+  src/ui/nuancierDesPalettes.ts le nuancier partagé de l'accueil de Création et du bilan : une carte de trois aplats par palette, point d'état, carte atténuée
   src/ui/ligneFixe.ts      un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
-  src/ui/piedDeLaPalette.ts le pied de l'onglet Création : bilan des garanties et des alertes, « Vérifier », annonce en fin de geste
+  src/ui/piedDeLaPalette.ts le pied de l'onglet Création, visible seulement en cas de garantie manquée ou d'alerte : bilan, « Vérifier », annonce en fin de geste ; le compteur de l'onglet Vérification
   src/ui/champs.ts         le libellé au-dessus de ses saisies, le choix du modèle, les deux cartes des intensités de la création, les segments des intensités de la configuration et le choix du profil porteur
   src/ui/carte.ts          une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé ; une carte repliable porte un en-tête de bouton de repli puis l'emplacement de ses choix, visible carte ouverte
   src/ui/glyphes.ts        le glyphe de chaque carte titrée, aperçu compris, en formes à rôle de couleur, que la maquette du Color shift dessine aussi

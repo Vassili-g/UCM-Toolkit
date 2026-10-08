@@ -67,6 +67,9 @@ export const TEXTES = {
   premierePalette: "Start from a reference colour. The plugin calculates its shades and checks their contrast.",
   invitationTitre: "Choose a palette",
   invitation: "Select a palette or choose “New palette”.",
+  // The Création home, when the recipe holds palettes and none is open.
+  accueilConsigne: "Start from a reference color.",
+  accueilVosPalettes: "Your palettes",
   dessiner: "Generate in Figma",
   prete: "Ready",
   reference: "Reference colour",
@@ -144,6 +147,13 @@ export const TEXTES_DU_PIED = {
   region: "Palette summary",
   verifier: "Verify",
 } as const;
+
+/** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Verify, 1 guarantee unmet ». */
+export function nomDeLOngletVerification(manquees: number, alertes: number): string {
+  if (manquees > 0) return `Verify, ${manquees} ${manquees === 1 ? "guarantee" : "guarantees"} unmet`;
+  if (alertes > 0) return `Verify, ${alertes} ${alertes === 1 ? "alert" : "alerts"}`;
+  return "Verify, all passing";
+}
 
 /** L'onglet Vérification ([VER-18]) : son verdict et son pied. */
 export const TEXTES_DE_LA_VERIFICATION = {
@@ -855,6 +865,12 @@ export const TEXTES_DU_NUANCIER = {
   etiquetteDuTexteDesBoutons: (hexa: string) => `solid/foreground, button text, colour ${hexa}`,
 } as const;
 
+/** Le nuancier des palettes : l'état d'une carte, dit après le nom de la palette. */
+export const TEXTES_DU_NUANCIER_DES_PALETTES = {
+  etat: { rouge: "to fix", ambre: "to check" },
+  nomAvecEtat: (nom: string, etat: string) => `${nom}, ${etat}`,
+} as const;
+
 /** Les bandes de l'aperçu : le rôle de chaque dossier, le nom anglais sous chaque code, la note du neutre (I12). */
 export const TEXTES_DE_L_APERCU = {
   roles: { solid: "solid fill", surface: "tinted fill", page: "on the page" },
@@ -999,6 +1015,24 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
   }
 }
 
+/**
+ * Le bilan des palettes, dans l'onglet Vérification sans palette ouverte : les
+ * trois onglets, la phrase de l'état « tout est conforme », et la ligne de
+ * détail de chaque palette, qui reprend les mots de sa vérification.
+ */
+export const TEXTES_DU_BILAN_DES_PALETTES = {
+  region: "Palette summary",
+  onglets: "Palettes to fix, to check or passing",
+  etats: { rouge: "To fix", ambre: "To check", conforme: "Passing" },
+  toutTient: (nombre: number) => (nombre === 1
+    ? "The palette keeps its guarantees, in Light and Dark."
+    : `All ${nombre} palettes keep their guarantees, in Light and Dark.`),
+  aucuneProche: "No palette too close to another.",
+  verifier: (nom: string) => `Verify ${nom}`,
+  garantie: (mode: Mode, variable: VariableLibellee, contraste: number) =>
+    `${NOM_DU_MODE[mode]} · ${LIBELLE_DE_LA_VARIABLE[variable]}, ${contrasteEcrit(contraste)}`,
+  procheDe: (nom: string, distance: number) => `too close to ${nom}, ΔEok ${ecrireArrondi(distance, 2)}`,
+} as const;
 /** Un message en trois parties. */
 export interface Constat {
   readonly ou: string;

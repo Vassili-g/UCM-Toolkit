@@ -3882,7 +3882,15 @@
 
 /* Un élément amené en vue, par le focus ou par un lien de message, s'arrête au-dessus du pied. */
 html {
-  scroll-padding-bottom: calc(32px + var(--espace-controle));
+  scroll-padding-bottom: calc(40px + var(--espace-controle));
+}
+
+/*
+ * Le pied de Création ne paraît qu'en cas de problème, sur 40 px. Sa réserve
+ * reste celle d'un pied de 40 px, visible ou non : le contenu ne saute pas.
+ */
+#panneau-creation .configuration-de-la-palette {
+  padding-bottom: calc(40px - var(--espace-page) + var(--espace-controle));
 }
 
 .pied-de-la-palette {
@@ -3906,21 +3914,61 @@ html {
   z-index: 5;
 }
 
+.pied-de-la-palette[hidden] {
+  display: none;
+}
+
+/* Une garantie manquée ou une alerte : 40 px, le fond de l'état et un filet plein de 2 px. */
+.pied-de-la-palette[data-ton='danger'],
+.pied-de-la-palette[data-ton='avertissement'] {
+  height: 40px;
+  border-top-width: 2px;
+}
+
+.pied-de-la-palette[data-ton='danger'] {
+  border-top-color: var(--fond-danger-plein);
+  background: var(--fond-danger);
+}
+
+.pied-de-la-palette[data-ton='avertissement'] {
+  border-top-color: var(--texte-avertissement);
+  background: var(--fond-avertissement);
+}
+
 .pied-icone {
+  display: grid;
   flex: 0 0 auto;
   font-weight: 600;
+}
+
+/* L'icône du pied est une pastille ronde pleine de 20 px, avec le signe en blanc. */
+.pied-de-la-palette[data-ton='danger'] .pied-icone,
+.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  color: var(--texte-sur-danger);
+  font-size: 11px;
+  font-weight: 700;
+  place-items: center;
+}
+
+.pied-de-la-palette[data-ton='danger'] .pied-icone {
+  background: var(--fond-danger-plein);
+}
+
+.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
+  background: var(--texte-avertissement);
+  color: var(--fond);
 }
 
 .pied-de-la-palette[data-ton='succes'] .pied-icone {
   color: var(--texte-succes);
 }
 
-.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
-  color: var(--texte-avertissement);
-}
 
-.pied-de-la-palette[data-ton='danger'] .pied-icone {
-  color: var(--texte-danger);
+.pied-texte b {
+  font-weight: 700;
 }
 
 .pied-texte {
@@ -3939,6 +3987,50 @@ html {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/*
+ * Le compteur de l'onglet Vérification : le bilan de la palette ouverte dans
+ * Création, en rond de 16 px. Rouge pour des garanties manquées, ambre pour des
+ * alertes seules, ✓ vert quand tout tient.
+ */
+.onglet {
+  white-space: nowrap;
+}
+
+.compteur-de-verification {
+  display: inline-block;
+  min-width: 16px;
+  height: 16px;
+  margin-inline-start: 6px;
+  padding: 0 4px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--texte-sur-danger);
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.compteur-de-verification[hidden] {
+  display: none;
+}
+
+.compteur-de-verification[data-ton='danger'] {
+  background: var(--fond-danger-plein);
+}
+
+.compteur-de-verification[data-ton='avertissement'] {
+  background: var(--texte-avertissement);
+  color: var(--fond);
+}
+
+.compteur-de-verification[data-ton='succes'] {
+  padding: 0;
+  background: none;
+  color: var(--texte-succes);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 /* Le pied de Vérification : sa phrase à gauche, le geste vers l'onglet suivant à droite. */
@@ -4427,4 +4519,261 @@ html {
   color: var(--texte-second);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
+}
+
+/*
+ * Le nuancier des palettes : sept cartes de 60 × 80 px par rangée, trois
+ * aplats puis la bande blanche du nom. Le point d'état se pose à droite du
+ * nom ; une carte atténuée reste cliquable.
+ */
+.nuancier-des-palettes {
+  --carte-fond: white;
+  --carte-encre: rgb(29 29 27);
+  --point-rouge: rgb(229 72 77);
+  --point-ambre: rgb(243 181 63);
+  display: grid;
+  grid-template-columns: repeat(7, 60px);
+  gap: 8px 9px;
+}
+
+.nuancier-carte {
+  width: 60px;
+  height: 80px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr 22px;
+  background: var(--carte-fond);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  font: inherit;
+  cursor: pointer;
+}
+
+.nuancier-carte:hover {
+  box-shadow: 0 0 0 2px var(--carte-fond);
+}
+
+.nuancier-carte:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.nuancier-carte.attenuee {
+  opacity: 0.3;
+  filter: saturate(0.4);
+}
+
+.nuancier-aplat {
+  display: block;
+}
+
+.nuancier-bande {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 5px;
+}
+
+.nuancier-nom {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--carte-encre);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: start;
+}
+
+.nuancier-point {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.nuancier-point[data-etat='rouge'] {
+  background: var(--point-rouge);
+}
+
+.nuancier-point[data-etat='ambre'] {
+  background: var(--point-ambre);
+}
+
+/*
+ * Le bilan des palettes de l'onglet Vérification sans palette ouverte : les
+ * onglets « À corriger », « À vérifier » et « Conformes » ont la forme de la
+ * bascule Light/Dark, un point de couleur sur les deux premiers. Sous le
+ * nuancier, une ligne de détail par palette de l'onglet actif ; tout conforme,
+ * une coche verte et deux phrases à la place des onglets.
+ */
+.bilan-des-palettes {
+  --point-rouge: rgb(229 72 77);
+  --point-ambre: rgb(243 181 63);
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-bloc);
+}
+
+.bilan-onglets {
+  justify-self: start;
+}
+
+.bilan-onglets .bascule-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bilan-onglets .bascule-option b {
+  font-weight: 700;
+}
+
+.bilan-point {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.bilan-point[data-etat='rouge'] {
+  background: var(--point-rouge);
+}
+
+.bilan-point[data-etat='ambre'] {
+  background: var(--point-ambre);
+}
+
+.bilan-tout-conforme {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  /* Avec les 15 px de la pile, 21 px séparent le filet sous la barre de la phrase. */
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.bilan-coche {
+  display: grid;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+  font-weight: 700;
+  place-items: center;
+}
+
+.bilan-secondaire {
+  display: block;
+  color: var(--texte-second);
+}
+
+.bilan-detail {
+  border-top: 1px solid var(--bordure);
+}
+
+.bilan-ligne {
+  display: grid;
+  grid-template-columns: 30px 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bordure);
+  font-size: 11px;
+}
+
+.bilan-mini {
+  display: flex;
+  width: 30px;
+  height: 12px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bilan-mini i {
+  display: block;
+  flex: 1;
+}
+
+.bilan-ligne-nom,
+.bilan-ligne-constat {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bilan-ligne-constat {
+  color: var(--texte-second);
+}
+
+.bilan-verifier {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte-marque);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.bilan-verifier:hover {
+  text-decoration: underline;
+}
+
+.bilan-verifier:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+/*
+ * L'accueil de Création, quand la recette porte des palettes et qu'aucune n'est
+ * ouverte : « Nouvelle palette » en bouton principal pleine largeur, une phrase,
+ * l'intertitre « Vos palettes » et son compte, puis le nuancier. La barre du
+ * sélecteur se masque, dans le conteneur de Création seulement : Vérification,
+ * qui reprend la même barre, la garde visible.
+ */
+.choix-de-palette[data-accueil] > .barre-de-palette {
+  display: none;
+}
+
+.accueil-de-creation {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 16px;
+}
+
+.accueil-de-creation .accueil-nouvelle {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.accueil-de-creation .accueil-nouvelle > span::before {
+  content: '＋ ' / '';
+}
+
+.accueil-consigne {
+  margin: 6px 0 18px;
+  color: var(--texte-second);
+  font-size: 11px;
+  text-align: center;
+}
+
+.accueil-intertitre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  color: var(--texte-second);
+  font-size: 11px;
+  font-weight: 600;
 }
