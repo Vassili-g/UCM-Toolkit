@@ -14,11 +14,12 @@
  * Aucun test ne porte ces chiffres : le plan les cite.
  */
 import {
+  COULEUR_DU_TEXTE_DES_BOUTONS,
+  GARANTIES,
   MODES,
-  PAIRES,
   PROFILS,
   PREREGLAGE_CONSTANTE,
-  TABLE_DES_EMPLOIS,
+  TABLE_DES_DOSSIERS,
   ancrageDe,
   atteintLeSeuil,
   boutsDe,
@@ -27,6 +28,7 @@ import {
   estGrisPur,
   fabriquerPalette,
   fondsSombresDe,
+  garantieJugeable,
   lireHexa,
   partDeChroma,
   partsDe,
@@ -34,6 +36,7 @@ import {
   rampesDe,
   recetteParDefaut,
   rgb8VersOklch,
+  sensDuTheme,
 } from '../src/index.ts';
 
 const TAILWIND_500 = ['#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#F43F5E'];
@@ -54,21 +57,28 @@ function paletteNeuve(hexa) {
   return { recette: { ...recetteDeBase, palettes: [palette] }, palette };
 }
 
-/** Les promesses manquées d'un jeu de rampes, jugées comme `verifierPromesses` les juge. */
+/** Les promesses manquées d'un jeu de rampes, jugées comme `verifierPromesses` les juge (garanties G1 à G7). */
 function manquees(recette, rampes) {
   const fonds = { light: lireHexa(recette.fonds.light), dark: lireHexa(recette.fonds.dark) };
-  const couleur = (membre, mode, profil) => {
-    if ('fond' in membre) return fonds[mode];
-    const cible = TABLE_DES_EMPLOIS[membre.emploi];
-    if (cible === 'fond') return fonds[mode];
-    return rampes[profil][mode][recette.crans.indexOf(cible) + membre.decalage].couleur;
+  const couleur = (variable, mode, profil, sens) => {
+    const cible = TABLE_DES_DOSSIERS[sens][variable];
+    if (cible === 'texteDesBoutons') return lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]]);
+    return rampes[profil][mode][recette.crans.indexOf(cible)].couleur;
   };
   const echecs = [];
   for (const mode of MODES) {
+    const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
     for (const profil of PROFILS) {
-      for (const paire of PAIRES) {
-        const valeur = contraste(couleur(paire.premier, mode, profil), couleur(paire.second, mode, profil));
-        if (!atteintLeSeuil(valeur, recette.seuils[paire.seuil])) echecs.push(`${mode}/${profil}/${paire.numero} ${valeur.toFixed(2)}`);
+      for (const garantie of GARANTIES) {
+        if (!garantieJugeable(garantie, recette.crans, sens)) continue;
+        const premier = couleur(garantie.premier.variable, mode, profil, sens);
+        for (const fond of garantie.fonds) {
+          const second = 'fondDeLaPage' in fond ? fonds[mode] : couleur(fond.variable, mode, profil, sens);
+          const valeur = contraste(premier, second);
+          if (!atteintLeSeuil(valeur, recette.seuils[garantie.seuil])) {
+            echecs.push(`${mode}/${profil}/G${garantie.numero}${'variable' in fond ? ` ${fond.variable}` : ''} ${valeur.toFixed(2)}`);
+          }
+        }
       }
     }
   }

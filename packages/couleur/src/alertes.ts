@@ -159,7 +159,7 @@ export function distanceDePalettes(recette: Recette, a: Palette, b: Palette): nu
   return Math.min(...distances);
 }
 
-/** Un fond plus sombre que le cran 50 clair, ou plus clair que le cran 50 sombre, à 0,005 près ([ENT-06]). */
+/** Un fond plus sombre que le cran le plus léger de la courbe claire, ou plus clair que celui de la courbe sombre, à 0,005 près ([ENT-06]). */
 export function alertesDesFonds(recette: Recette): Alerte[] {
   const alertes: Alerte[] = [];
   for (const mode of MODES) {

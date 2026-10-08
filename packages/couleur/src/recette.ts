@@ -6,7 +6,7 @@
  * La validation ne rédige aucune phrase. Elle rend des refus structurés, la
  * règle et le chemin du champ fautif ; l'interface les met en mots.
  */
-import { CRANS_DES_EMPLOIS, TEXTE_DES_BOUTONS_PAR_DEFAUT, sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
+import { TEXTE_DES_BOUTONS_PAR_DEFAUT, cransRequis, sensDuTheme, type SensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
 
 import { lireHexa } from './conversions';
 import { PREREGLAGES, courbesParDefaut } from './nuances';
@@ -298,7 +298,6 @@ function validerCrans(releve: Releve, crans: unknown): number[] | null {
       releve.refuser('crans-croissants', `crans[${rang}]`, cran);
     }
   });
-  for (const cran of CRANS_DES_EMPLOIS) if (!crans.includes(cran)) releve.refuser('crans-emplois', 'crans', cran);
   return crans;
 }
 
@@ -628,14 +627,21 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
 
   if (entree.formatVersion !== FORMAT_RECETTE) releve.refuser('forme', 'formatVersion', entree.formatVersion as number);
   const crans = validerCrans(releve, entree.crans);
+  // Les crans requis sont ceux de la table de chaque sens en usage (S2, P7) : 50, 400 et 950 sont
+  // facultatifs, et 500 n'est exigé que si un thème est inversé. Un texte illisible est déjà
+  // refusé plus bas ; sans texte lisible, la liste se juge dans le sens normal.
+  const sens = new Set<SensDuTheme>();
   if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', ['light', 'dark'])) {
-    let inverse = false;
     for (const mode of ['light', 'dark'] as const) {
       const texte = entree.texteDesBoutons[mode];
       if (texte !== 'blanc' && texte !== 'noir') releve.refuser('texte-des-boutons', `texteDesBoutons.${mode}`, texte);
-      else if (sensDuTheme(mode, texte) === 'inverse') inverse = true;
+      else sens.add(sensDuTheme(mode, texte));
     }
-    if (inverse && crans !== null && !crans.includes(500)) releve.refuser('crans-emplois', 'crans', 500);
+  }
+  if (sens.size === 0) sens.add('normal');
+  if (crans !== null) {
+    const requis = [...new Set([...sens].flatMap(cransRequis))].sort((a, b) => a - b);
+    for (const cran of requis) if (!crans.includes(cran)) releve.refuser('crans-emplois', 'crans', cran);
   }
   validerCourbes(releve, entree.courbes, crans?.length ?? null);
 

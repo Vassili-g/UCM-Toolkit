@@ -13,7 +13,6 @@ import {
   confusionsDe,
   distanceDePalettes,
   ecrireHexa,
-  emploisDuCran,
   fabriquerPalette,
   grilleAuPrereglage,
   grilleDe,
@@ -28,6 +27,7 @@ import {
   recetteParDefaut,
   recetteAvecTexteDesBoutons,
   validerRecette,
+  variablesDuCran,
   verifierPromesses,
   type Palette,
   type Recette,
@@ -133,11 +133,11 @@ test('W6 : les deux préréglages se reconnaissent, et la recette par défaut es
   assert.deepEqual(Object.keys(PREREGLAGES), ['11', '13'], 'le préréglage à neuf nuances, sans 400 ni 950, est retiré');
 });
 
-test('W6.8 : chaque préréglage garde les rôles et leurs états à leurs numéros', () => {
-  const emploisParNumero = (recette: Recette) => new Map(recette.crans.map((cran, rang) => [cran, emploisDuCran(recette.crans, rang)]));
-  const onze = emploisParNumero(recetteParDefaut());
+test('W6.8 : chaque préréglage garde les variables de thème à leurs numéros', () => {
+  const variablesParNumero = (recette: Recette) => new Map(recette.crans.map((cran, rang) => [cran, variablesDuCran(recette.crans, rang, 'normal', true)]));
+  const onze = variablesParNumero(recetteParDefaut());
   for (const nombre of [13] as const) {
-    const autres = emploisParNumero(recetteA(nombre));
+    const autres = variablesParNumero(recetteA(nombre));
     for (const [cran, emplois] of onze) if (emplois.length > 0) assert.deepEqual(autres.get(cran), emplois, `${nombre} : ${cran}`);
   }
 });

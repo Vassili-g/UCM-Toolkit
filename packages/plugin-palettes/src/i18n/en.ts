@@ -972,8 +972,8 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       const sens = alerte.mode === 'light' ? "darker" : "lighter";
       return {
         ou: `Page background, ${NOM_DU_MODE[alerte.mode]} theme: ${contexte.recette.fonds[alerte.mode]}`,
-        quoi: `This background is ${sens} than shade 50. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, against ${ecrireArrondi(alerte.cran, 3)}.`,
-        geste: "Check the guarantees. If any fail, move the background closer to shade 50 in “Background colours”.",
+        quoi: `This background is ${sens} than the lightest shade. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, against ${ecrireArrondi(alerte.cran, 3)}.`,
+        geste: "Check the guarantees. If any fail, move the background closer to the lightest shade in “Background colours”.",
       };
     }
   }

@@ -53,6 +53,18 @@ export function cransRequis(sens: SensDuTheme): number[] {
   return [...new Set(crans)].sort((a, b) => a - b);
 }
 
+/**
+ * L'indice du cran le plus clair de la liste, le plus petit numéro : la recette la trie
+ * croissante, mais on calcule le minimum. Une liste vide rend 0.
+ */
+export function rangDuCranLeger(crans: readonly number[]): number {
+  let rang = 0;
+  crans.forEach((cran, i) => {
+    if (cran < crans[rang]) rang = i;
+  });
+  return rang;
+}
+
 /** Les couleurs sans cran sont présentes indépendamment de la liste des nuances. */
 export function variablePresente(variable: VariableDuTheme, crans: readonly number[], sens: SensDuTheme): boolean {
   const cran = cranDeLaVariable(variable, sens);

@@ -2,8 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { cransRequis } from '@ucm-kit/core/emplois';
 import {
-  CRANS_DES_EMPLOIS,
   FORMAT_RECETTE,
   ancrageDe,
   classerRecette,
@@ -105,7 +105,7 @@ for (const [regle, chemin, alterer] of CAS) {
   });
 }
 
-for (const cran of CRANS_DES_EMPLOIS) {
+for (const cran of cransRequis('normal')) {
   test(`[REC-05] crans-emplois : refusé quand ${cran} manque`, () => {
     const recette = valide();
     // Le cran devient son voisin à +25 : la liste reste croissante et garde sa longueur.
@@ -176,6 +176,22 @@ test('une liste sans 500 se lit dans les thèmes normaux et se refuse dans chaqu
     const resultat = validerRecette(inversee);
     assert.ok('refus' in resultat);
     assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 500 }]);
+  }
+});
+
+test('[REC-05] une liste sans 50, 400 ni 950 est acceptée dans les quatre combinaisons de texte des boutons', () => {
+  const recette = valide();
+  for (const cran of [950, 400, 50]) {
+    const rang = recette.crans.indexOf(cran);
+    recette.crans.splice(rang, 1);
+    recette.courbes.light.splice(rang, 1);
+    recette.courbes.dark.splice(rang, 1);
+  }
+  for (const light of ['blanc', 'noir'] as const) {
+    for (const dark of ['blanc', 'noir'] as const) {
+      const resultat = validerRecette({ ...recette, texteDesBoutons: { light, dark } });
+      assert.ok('recette' in resultat, `refusée en ${light}/${dark} : ${JSON.stringify('refus' in resultat ? resultat.refus : [])}`);
+    }
   }
 });
 

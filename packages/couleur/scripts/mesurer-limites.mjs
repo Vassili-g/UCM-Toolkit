@@ -15,13 +15,14 @@ import { performance } from 'node:perf_hooks';
 import {
   BORNES_DU_COLOR_SHIFT,
   PAS_DU_COLOR_SHIFT,
-  TABLE_DES_EMPLOIS,
+  TABLE_DES_DOSSIERS,
   boutsDe,
   lireHexa,
   limiteDynamique,
   prereglageTailwind,
   recetteParDefaut,
   rgb8VersOklch,
+  sensDuTheme,
 } from '../src/index.ts';
 
 const REFERENCES = [
@@ -75,11 +76,19 @@ function limite(recette, palette, grandeur, bout) {
   return resultat;
 }
 
-function membre(recette, m) {
-  if ('fond' in m) return 'fond';
-  const cible = TABLE_DES_EMPLOIS[m.emploi];
-  if (cible === 'fond') return 'fond';
-  return `${m.emploi} ${recette.crans[recette.crans.indexOf(cible) + m.decalage]}`;
+/** Un membre de promesse : la variable de la table et son cran, le fond de la page ou le texte des boutons. */
+function membre(recette, designation, mode, variable) {
+  if (designation.nature === 'fond') return 'fond';
+  if (designation.nature === 'texteDesBoutons') return `${variable} ${recette.texteDesBoutons[mode]}`;
+  return `${variable} ${designation.cran}`;
+}
+
+/** La variable de la table que vise le fond d'une promesse : le premier fond de la garantie qui porte ce cran. */
+function variableDuSecond(p) {
+  const sens = sensDuTheme(p.mode, RECETTE.texteDesBoutons[p.mode]);
+  if (p.second.nature !== 'cran') return null;
+  const fond = p.garantie.fonds.find((f) => 'variable' in f && TABLE_DES_DOSSIERS[sens][f.variable] === p.second.cran);
+  return fond ? fond.variable : null;
 }
 
 function ecrireBorne(recette, grandeur, { valeur, cause }) {
@@ -87,7 +96,7 @@ function ecrireBorne(recette, grandeur, { valeur, cause }) {
   if (!cause) return texte;
   if (cause.nature === 'ordre') return `${texte} (ordre des nuances)`;
   const p = cause.promesse;
-  return `${texte} (${membre(recette, p.paire.premier)} / ${membre(recette, p.paire.second)}, ${p.profil}, ${p.mode}, ${virgule(Math.floor(p.contraste * 100) / 100, 2)} < ${virgule(p.seuil, 1)})`;
+  return `${texte} (G${p.garantie.numero} ${membre(recette, p.premier, p.mode, p.garantie.premier.variable)} / ${membre(recette, p.second, p.mode, variableDuSecond(p))}, ${p.profil}, ${p.mode}, ${virgule(Math.floor(p.contraste * 100) / 100, 2)} < ${virgule(p.seuil, 1)})`;
 }
 const ecrireLimite = (recette, grandeur, { bas, haut }) => `[${ecrireBorne(recette, grandeur, bas)} ; ${ecrireBorne(recette, grandeur, haut)}]`;
 
@@ -99,7 +108,7 @@ const ecrireLimite = (recette, grandeur, { bas, haut }) => `[${ecrireBorne(recet
   durees = [];
 }
 
-ecrire('Limites dynamiques, dix-neuf paires, deux intensités synchronisées, teinte Tailwind, saturation et luminosité à zéro');
+ecrire('Limites dynamiques, sept garanties, deux intensités synchronisées, teinte Tailwind, saturation et luminosité à zéro');
 for (const [nom, hexa] of REFERENCES) {
   const { recette, palette } = paletteDe(hexa);
   ecrire(`\n${nom} ${hexa} · Tailwind ${virgule(palette.derive.vivid.clair, 1)}° / ${virgule(palette.derive.vivid.sombre, 1)}°`);

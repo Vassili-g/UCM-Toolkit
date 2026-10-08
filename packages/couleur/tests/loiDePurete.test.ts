@@ -34,7 +34,7 @@ test('loi de pureté : aucun fichier du moteur ne lit l’heure, le hasard ou la
   const fautes: string[] = [];
   for (const { dossier, nom: racine } of SOURCES) {
     const fichiers = fs.readdirSync(dossier).filter((nom) => nom.endsWith('.ts'));
-    assert.ok(fichiers.length >= 5, `seuls ${fichiers.length} fichiers trouvés sous ${racine}/`);
+    assert.ok(fichiers.length >= 4, `seuls ${fichiers.length} fichiers trouvés sous ${racine}/`);
     for (const nom of fichiers) {
       lignesDeCode(fs.readFileSync(path.join(dossier, nom), 'utf8')).forEach((ligne, rang) => {
         for (const interdit of INTERDITS) {

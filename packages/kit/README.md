@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.4.0
+npm install @ucm-kit/core@0.5.0
 ```
 
 Most repositories never call this package directly. They run
@@ -107,7 +107,7 @@ merging the first export in a new format version.
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
-import { PAIRES, RANGS, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
+import { GARANTIES, TABLE_DES_DOSSIERS, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
 import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteurs";
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
@@ -119,12 +119,11 @@ nothing**: not Node, not Figma, not a third-party package. It runs inside a
 Figma plugin bundle and inside a browser.
 
 **`@ucm-kit/core/emplois`** holds the color vocabulary that the UCM Palettes
-plugin and `ucm check` share: the table of color uses (`solid`, `text`,
-`surface` and five more) and the shade each one targets, the nineteen contrast
-pairs, the four state ranks `default`, `hover`, `active` and `active-hover`,
-the table from a component state to its rank, the names of the `usage`
-variables, and the WCAG 2 contrast compared on its value written to ten
-decimals. Like `format`, it depends on nothing.
+plugin and `ucm check` share: the table of theme variables in three folders
+(`solid`, `surface`, `page`) with its normal and inverted senses, the shade
+each variable targets, the seven contrast guarantees, and the WCAG 2 contrast
+compared on its value written to ten decimals. Like `format`, it depends on
+nothing.
 
 **`@ucm-kit/core/lecteurs`** holds everything that judges a contract already
 written: its shape, its composition graph, its token references, the meaning of

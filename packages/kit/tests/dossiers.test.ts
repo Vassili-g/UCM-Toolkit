@@ -5,7 +5,7 @@ import {
   COULEUR_DU_TEXTE_DES_BOUTONS, DOSSIERS, ETATS, ETAT_DU_FOND,
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS,
   TEXTE_DES_BOUTONS_PAR_DEFAUT, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES,
-  cranDeLaVariable, cransRequis, sensDuTheme, variablePresente, variablesDuCran,
+  cranDeLaVariable, cransRequis, rangDuCranLeger, sensDuTheme, variablePresente, variablesDuCran,
   type SensDuTheme, type VariableDePalette, type VariableDuTheme,
 } from '../src/emplois/index';
 
@@ -104,4 +104,11 @@ test('chaque variable porte le support et les portées Figma prescrits', () => {
   for (const [variables, peint, portees] of groupes) {
     for (const variable of variables) assert.deepEqual(SUPPORT_DES_VARIABLES[variable], { peint, portees });
   }
+});
+
+test('le rang du cran léger est l’indice du plus petit numéro de la liste', () => {
+  assert.equal(rangDuCranLeger([50, 100, 200, 300]), 0);
+  assert.equal(rangDuCranLeger([100, 200, 300]), 0);
+  assert.equal(rangDuCranLeger([300, 100, 200, 50, 400]), 3);
+  assert.equal(rangDuCranLeger([300, 100, 200]), 1);
 });
