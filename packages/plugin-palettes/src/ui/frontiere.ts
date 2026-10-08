@@ -134,6 +134,10 @@ export interface Frontiere {
   /** Range la palette d'avant la dernière annulation ; disponible jusqu'au réglage suivant. */
   retablir(): boolean;
   peutRetablir(): boolean;
+  /** La palette que « Rétablir » rendrait, ou `null` quand rien ne se rétablit. */
+  paletteRetablissable(): string | null;
+  /** La recette que l'interface attend rangée : celle de l'état souhaité, `null` tant qu'aucune n'est connue. */
+  recetteSouhaitee(): Recette | null;
   /** Range la recette précédente de la pile de la session ; `false` quand rien ne part. */
   reculer(): boolean;
   peutReculer(): boolean;
@@ -262,6 +266,8 @@ export function createFrontiere(
     differeDeLOuverture: (palette) => differeDeLOuverture(souhaite, palette),
     retablir: () => demander(retablir(souhaite)),
     peutRetablir: () => peutRetablir(souhaite),
+    paletteRetablissable: () => (peutRetablir(souhaite) ? (souhaite.retablissable?.id ?? null) : null),
+    recetteSouhaitee: () => recetteCourante(souhaite),
     reculer: () => demander(reculer(souhaite)),
     peutReculer: () => peutReculer(souhaite),
     avancer: () => demander(avancer(souhaite)),

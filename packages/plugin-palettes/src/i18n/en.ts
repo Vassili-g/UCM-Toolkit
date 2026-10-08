@@ -91,6 +91,12 @@ export const TEXTES = {
   monter: "Move up",
   descendre: "Move down",
   supprimer: "Delete palette",
+  // Lot 4 : la barre rend la palette à son état d'ouverture, puis la rétablit.
+  annulerLesModifications: "Revert changes",
+  retablir: "Redo",
+  modificationsAnnulees: "Changes reverted",
+  modificationAnnulee: "Change undone",
+  modificationRetablie: "Change redone",
   recharger: "Reload palettes",
   // N070, N071 : la sortie d'un conflit d'enregistrement (V12.1).
   exporterLeBrouillon: "Export my changes",

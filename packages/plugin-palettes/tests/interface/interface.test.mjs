@@ -1608,6 +1608,134 @@ test('[REC-10] un rangement refusé propose « Recharger », qui relit l’état
   }
 });
 
+/** Renomme la palette ouverte, range, et rend la demande de rangement. */
+async function renommer(page, nom) {
+  const avant = await compte(page);
+  const champ = page.getByRole('textbox', { name: 'Nom de la palette' });
+  await champ.fill(nom);
+  await champ.press('Tab');
+  const demande = await prochaine(page, avant);
+  await envoyer(page, rangee(demande.demande));
+  return demande;
+}
+const annulerLesModifications = (page) => page.getByRole('button', { name: 'Annuler les modifications' });
+const retablir = (page) => page.getByRole('button', { name: 'Rétablir', exact: true });
+const rendreLeFocusALaPage = (page) => page.evaluate(() => document.activeElement?.blur());
+const nomsDe = (demande) => demande.recette.palettes.map((palette) => palette.nom);
+
+test('[REC-06] « Annuler les modifications » paraît après un réglage, pas à l’ouverture', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    assert.equal(await annulerLesModifications(page).isVisible(), false);
+    await renommer(page, 'Soleil');
+    await annulerLesModifications(page).waitFor({ state: 'visible' });
+    assert.equal(await retablir(page).isVisible(), false);
+    // « Supprimer la palette » reste dans le menu « … » : le bouton n’est pas dans la rangée de la liste.
+    assert.equal(await page.locator('.barre-gestes').getByRole('button', { name: 'Annuler les modifications' }).count(), 0);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[REC-06] un clic range la recette de l’ouverture, puis « Rétablir » rend celle d’avant', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await renommer(page, 'Soleil');
+    const avant = await compte(page);
+    await annulerLesModifications(page).click();
+    const annulation = await prochaine(page, avant);
+    assert.equal(annulation.type, 'ranger-recette');
+    assert.deepEqual(nomsDe(annulation), ['Jaune', 'Bleu']);
+    // L’aperçu montre la recette rangée sans attendre de relecture, et la région `status` l’annonce.
+    assert.equal(await page.getByRole('textbox', { name: 'Nom de la palette' }).inputValue(), 'Jaune');
+    assert.equal(await page.locator('.barre-de-palette [role="status"]').textContent(), 'Modifications annulées');
+    await envoyer(page, rangee(annulation.demande));
+    assert.equal(await compte(page), avant + 1, 'aucune relecture ne part');
+    await retablir(page).waitFor({ state: 'visible' });
+    assert.equal(await annulerLesModifications(page).isVisible(), false);
+    const apres = await compte(page);
+    await retablir(page).click();
+    const retablie = await prochaine(page, apres);
+    assert.equal(retablie.type, 'ranger-recette');
+    assert.deepEqual(nomsDe(retablie), ['Soleil', 'Bleu']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[REC-06] « Rétablir » ne paraît que sur la palette annulée', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await renommer(page, 'Soleil');
+    await annulerLesModifications(page).click();
+    await retablir(page).waitFor({ state: 'visible' });
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(1).click();
+    assert.equal(await retablir(page).isVisible(), false);
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(0).click();
+    await retablir(page).waitFor({ state: 'visible' });
+  } finally {
+    await page.close();
+  }
+});
+
+test('[REC-06] Ctrl+Z hors d’un champ range la recette précédente, Ctrl+Maj+Z la suivante', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await renommer(page, 'Soleil');
+    await rendreLeFocusALaPage(page);
+    let avant = await compte(page);
+    await page.keyboard.press('Control+z');
+    const reculee = await prochaine(page, avant);
+    assert.equal(reculee.type, 'ranger-recette');
+    assert.deepEqual(nomsDe(reculee), ['Jaune', 'Bleu']);
+    assert.equal(await page.locator('.barre-de-palette [role="status"]').textContent(), 'Modification annulée');
+    await envoyer(page, rangee(reculee.demande));
+    avant = await compte(page);
+    await page.keyboard.press('Control+Shift+Z');
+    const avancee = await prochaine(page, avant);
+    assert.deepEqual(nomsDe(avancee), ['Soleil', 'Bleu']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[REC-06] Ctrl+Z dans un champ de saisie ne range rien', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await renommer(page, 'Soleil');
+    const avant = await compte(page);
+    await page.getByRole('textbox', { name: 'Nom de la palette' }).focus();
+    await page.keyboard.press('Control+z');
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    assert.equal(await compte(page), avant);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[REC-06] Ctrl+Z après « Supprimer » rend la palette sous son identifiant', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    let avant = await compte(page);
+    await page.getByRole('button', { name: 'Actions sur la palette' }).click();
+    await page.getByRole('menuitem', { name: 'Supprimer la palette' }).click();
+    await page.locator('.confirmation').getByRole('button', { name: 'Supprimer la palette' }).click();
+    const suppression = await prochaine(page, avant);
+    assert.deepEqual(nomsDe(suppression), ['Bleu']);
+    await envoyer(page, rangee(suppression.demande));
+    await rendreLeFocusALaPage(page);
+    avant = await compte(page);
+    await page.keyboard.press('Control+z');
+    const rendue = await prochaine(page, avant);
+    assert.deepEqual(nomsDe(rendue), ['Jaune', 'Bleu']);
+    assert.equal(rendue.recette.palettes[0].id, messageDe('alertes-seules').classement.recette.palettes[0].id);
+  } finally {
+    await page.close();
+  }
+});
+
 test('E13 : la fenêtre relit l’état quand elle reprend le focus', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {

@@ -162,6 +162,42 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     agir: (geste) => ongletCreation.gestesDeLaBarre.agir(geste),
     supprimer: () => ongletCreation.gestesDeLaBarre.supprimer(),
+  }, {
+    differeDeLOuverture: (id) => frontiere.differeDeLOuverture(id),
+    annulerLesModifications: (id) => pasDeLAnnulation(frontiere.annulerLesModifications(id)),
+    paletteRetablissable: () => frontiere.paletteRetablissable(),
+    retablir: () => pasDeLAnnulation(frontiere.retablir()),
+  });
+  frontiere.abonnerLAnnulation(() => barre.actualiser());
+
+  /**
+   * Un pas de l'annulation range une recette que l'onglet Création n'a pas
+   * posée : l'onglet la prend, comme après un réglage local, sans la ranger de nouveau.
+   */
+  function pasDeLAnnulation(parti: boolean): boolean {
+    const recette = parti ? frontiere.recetteSouhaitee() : null;
+    if (recette) {
+      ongletCreation.previsualiser(recette);
+      ongletCreation.rendreSiDiffere();
+    }
+    return parti;
+  }
+
+  /*
+   * Ctrl+Z (Cmd+Z) recule dans la pile de la session, Ctrl+Maj+Z (Cmd+Maj+Z)
+   * ou Ctrl+Y avance. Dans un champ de saisie, le navigateur garde le sien.
+   */
+  document.addEventListener('keydown', (evenement) => {
+    if (evenement.defaultPrevented || evenement.altKey || !(evenement.ctrlKey || evenement.metaKey)) return;
+    const touche = evenement.key.toLowerCase();
+    const recule = touche === 'z' && !evenement.shiftKey;
+    const avance = (touche === 'z' && evenement.shiftKey) || (touche === 'y' && !evenement.shiftKey && evenement.ctrlKey);
+    if (!recule && !avance) return;
+    const cible = evenement.target instanceof Element ? evenement.target : null;
+    if (cible?.closest('input, textarea, [contenteditable]')) return;
+    if (!pasDeLAnnulation(recule ? frontiere.reculer() : frontiere.avancer())) return;
+    evenement.preventDefault();
+    barre.annoncer(recule ? TEXTES.modificationAnnulee : TEXTES.modificationRetablie);
   });
 
   const ongletCreation = createOngletCreation({

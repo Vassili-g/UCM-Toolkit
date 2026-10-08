@@ -8,7 +8,7 @@
 import type { Palette } from 'ucm-couleur';
 
 import type { Verdict } from '../presentation';
-import { memoriserVues, type Localisation } from './localisation';
+import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { type GesteDePalette } from './menuPalette';
 import { creerVuesMenuPalette } from './menuPalette';
 import { creerVuesSelecteur } from './selecteur';
@@ -25,6 +25,16 @@ export interface GestesDeLaBarre {
   supprimer(): void;
 }
 
+/** L'annulation de la session, que la barre montre sous la liste ([REC-06]) ; la frontière la porte. */
+export interface AnnulationDeLaBarre {
+  /** Vrai quand la palette n'est plus celle de son état d'ouverture. */
+  differeDeLOuverture(id: string): boolean;
+  annulerLesModifications(id: string): boolean;
+  /** La palette que « Rétablir » rendrait, ou `null`. */
+  paletteRetablissable(): string | null;
+  retablir(): boolean;
+}
+
 export interface EntreesDeLaBarre {
   readonly palettes: readonly Palette[];
   readonly idOuvert: string;
@@ -36,6 +46,10 @@ export interface BarreDePaletteUi {
   /** La barre et sa confirmation. */
   readonly element: HTMLDivElement;
   afficher(entrees: EntreesDeLaBarre): void;
+  /** Relit l'annulation : « Annuler les modifications » ou « Rétablir » paraît ou disparaît. */
+  actualiser(): void;
+  /** Une annonce brève pour les lecteurs d'écran, dans la région `status` de la barre. */
+  annoncer(texte: Texte): void;
   /** Place la barre en tête de `parent`, si elle n'y est pas déjà. */
   placerDans(parent: HTMLElement): void;
   /** Referme la confirmation de suppression, sans déplacer le focus. */
@@ -50,7 +64,7 @@ function construireVues(i18n: Localisation) {
   const { createSelecteur } = creerVuesSelecteur(i18n);
   const { TEXTES, confirmationDeSuppression, nomDeLaPalette } = i18n.messages;
 
-  function createBarreDePalette(gestes: GestesDeLaBarre): BarreDePaletteUi {
+  function createBarreDePalette(gestes: GestesDeLaBarre, annulation: AnnulationDeLaBarre): BarreDePaletteUi {
     const element = document.createElement('div');
     element.className = 'barre-de-palette';
 
@@ -81,6 +95,46 @@ function construireVues(i18n: Localisation) {
     barre.className = 'barre-gestes';
     barre.append(selecteur.element, plus, menu.element);
 
+    // Sous la rangée, loin de « Supprimer » qui reste dans le menu : un seul des deux boutons paraît à la fois.
+    const annuler = createButton({
+      label: TEXTES.annulerLesModifications,
+      variant: 'secondary',
+      compact: true,
+      onClick: () => {
+        const id = dernieres?.idOuvert;
+        if (id === undefined || !annulation.annulerLesModifications(id)) return;
+        annoncer(TEXTES.modificationsAnnulees);
+        // Le bouton se cache : le focus suit sur « Rétablir ».
+        if (!retablir.hidden) retablir.focus();
+      },
+    });
+    const retablir = createButton({
+      label: TEXTES.retablir,
+      variant: 'secondary',
+      compact: true,
+      onClick: () => {
+        if (!annulation.retablir()) return;
+        annoncer(TEXTES.modificationRetablie);
+        if (!annuler.hidden) annuler.focus();
+      },
+    });
+    const ligneDAnnulation = document.createElement('div');
+    ligneDAnnulation.className = 'barre-annulation';
+    ligneDAnnulation.append(annuler, retablir);
+    annuler.hidden = true;
+    retablir.hidden = true;
+    ligneDAnnulation.hidden = true;
+
+    // Hors de la mise en page : la région n'est que lue.
+    const annonces = document.createElement('div');
+    annonces.className = 'visuellement-masque';
+    annonces.setAttribute('role', 'status');
+    annonces.setAttribute('aria-live', 'polite');
+    function annoncer(texte: Texte): void {
+      annonces.textContent = '';
+      i18n.lier(annonces, 'textContent', texte);
+    }
+
     const confirmation = document.createElement('div');
     confirmation.className = 'confirmation';
     const texteDeConfirmation = document.createElement('p');
@@ -108,12 +162,16 @@ function construireVues(i18n: Localisation) {
     );
     confirmation.append(texteDeConfirmation, gestesDeConfirmation);
     confirmation.hidden = true;
-    element.append(barre, confirmation);
+    element.append(barre, ligneDAnnulation, confirmation, annonces);
 
     function rendre(): void {
       if (!dernieres) return;
       const { palettes, idOuvert, verdicts, creationOuverte } = dernieres;
       const courante = palettes.find((candidate) => candidate.id === idOuvert) ?? null;
+      const differe = courante !== null && annulation.differeDeLOuverture(courante.id);
+      annuler.hidden = !differe;
+      retablir.hidden = differe || courante === null || annulation.paletteRetablissable() !== courante.id;
+      ligneDAnnulation.hidden = annuler.hidden && retablir.hidden;
       selecteur.afficher(palettes, courante?.id ?? '', verdicts);
       // Le menu porte sur la palette choisie : sans elle, il se cache.
       menu.element.hidden = !courante;
@@ -129,6 +187,8 @@ function construireVues(i18n: Localisation) {
         dernieres = entrees;
         rendre();
       },
+      actualiser: rendre,
+      annoncer,
       placerDans(parent) {
         if (element.parentElement !== parent || parent.firstElementChild !== element) parent.prepend(element);
       },

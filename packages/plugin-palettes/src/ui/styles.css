@@ -47,6 +47,26 @@
   gap: var(--espace-controle);
 }
 
+/* Un texte que seuls les lecteurs d'écran lisent : une région `status`, sans place dans la page. */
+.visuellement-masque {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* « Annuler les modifications » ou « Rétablir », sous la rangée de la liste, calé à droite. */
+.barre-annulation {
+  display: flex;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
 .barre-gestes .bouton-de-barre {
   height: var(--hauteur-action);
   flex-shrink: 0;

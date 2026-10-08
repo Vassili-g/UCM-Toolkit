@@ -344,6 +344,23 @@ test('[REC-06] « Rétablir » rend la palette d’avant l’annulation, jusqu�
   assert.equal(frontiere.peutRetablir(), false, 'un réglage suivant fait tomber « Rétablir »');
 });
 
+test('[REC-06] la recette souhaitée suit chaque pas, et la palette rétablissable se nomme', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  assert.equal(frontiere.recetteSouhaitee(), null, 'aucune recette connue avant la première lecture');
+  lire('aaaaaaaa');
+  assert.deepEqual(frontiere.recetteSouhaitee(), DEUX_PALETTES);
+  assert.equal(frontiere.paletteRetablissable(), null);
+  const modifiee = renommer(DEUX_PALETTES, BLEU.id, 'B1');
+  repondre(() => frontiere.ranger(modifiee));
+  assert.deepEqual(frontiere.recetteSouhaitee(), modifiee);
+  repondre(() => frontiere.annulerLesModifications(BLEU.id));
+  assert.deepEqual(frontiere.recetteSouhaitee(), DEUX_PALETTES, 'la recette de l’ouverture');
+  assert.equal(frontiere.paletteRetablissable(), BLEU.id);
+  repondre(() => frontiere.retablir());
+  assert.deepEqual(frontiere.recetteSouhaitee(), modifiee);
+  assert.equal(frontiere.paletteRetablissable(), null);
+});
+
 test('[REC-06] reculer après une suppression rend la palette sous son identifiant, avancer la retire de nouveau', () => {
   const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
   lire('aaaaaaaa');

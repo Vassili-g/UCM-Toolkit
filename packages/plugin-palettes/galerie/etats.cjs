@@ -1264,6 +1264,32 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([BLEU])), { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' }],
   },
   {
+    id: 'palette-modifiee-depuis-l-ouverture',
+    titre: 'Palette modifiée depuis son ouverture',
+    quand: 'Le designer force Soft sur Bleu, puis le rangement aboutit : la palette n’est plus celle de son ouverture.',
+    regarder: 'Sous la rangée de la liste, « Nouvelle palette » et « … », « Annuler les modifications » en bouton discret, calé à droite ; « Rétablir » absent. « Supprimer la palette » reste dans le menu « … ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU])),
+      { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' },
+      { message: { type: 'rangement', demande: 2, issue: { issue: 'rangee', empreinte: '5e0c1a7b' } } },
+    ],
+  },
+  {
+    id: 'palette-apres-l-annulation',
+    titre: 'Palette juste après l’annulation',
+    quand: 'Le designer force Soft sur Bleu, puis clique sur « Annuler les modifications ». L’aperçu retrouve l’état d’ouverture.',
+    regarder: 'À la place d’« Annuler les modifications », « Rétablir » en bouton discret, calé à droite ; la référence exacte est revenue à Auto.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU])),
+      { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' },
+      { message: { type: 'rangement', demande: 2, issue: { issue: 'rangee', empreinte: '5e0c1a7b' } } },
+      { clic: '.barre-annulation button:not([hidden])' },
+      { message: { type: 'rangement', demande: 3, issue: { issue: 'rangee', empreinte: '5e0c1a7c' } } },
+    ],
+  },
+  {
     id: 'garanties-respectees',
     titre: 'Garanties respectées',
     quand: 'Bleu tient toutes ses garanties, texte des boutons blanc en Light ; le designer ouvre Vérification : la carte est sur le texte des boutons.',
