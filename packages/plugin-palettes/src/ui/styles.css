@@ -60,6 +60,14 @@
   border: 0;
 }
 
+/* Le bouton d'un dessin en cours montre la progression dans sa boîte : la largeur mesurée au départ tient, le texte long se coupe. */
+.geste-en-progression {
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* « Annuler les modifications » ou « Rétablir », sous la rangée de la liste, calé à droite. */
 .barre-annulation {
   display: flex;

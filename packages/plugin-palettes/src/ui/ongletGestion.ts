@@ -135,7 +135,7 @@ function construireVues(i18n: Localisation) {
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
-    nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
+    nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuBouton, progressionDuDessin,recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette, regroupementDuFichier,
   } = i18n.messages;
@@ -280,6 +280,10 @@ function construireVues(i18n: Localisation) {
     bloquant.hidden = true;
     const zoneDuResultat = document.createElement('div');
     zoneDuResultat.hidden = true;
+    /** L'annonce de la progression aux lecteurs d'écran : une région `status` sans place dans la page ([R4]). */
+    const annonceDuDessin = document.createElement('div');
+    annonceDuDessin.className = 'visuellement-masque';
+    annonceDuDessin.setAttribute('role', 'status');
     /** Ce qu'une écriture de variables refuse pour toutes les palettes : la recette a changé, ou le suivi est d'une version plus récente. */
     const zoneDesVariables = document.createElement('div');
     zoneDesVariables.className = 'page-stack';
@@ -326,7 +330,7 @@ function construireVues(i18n: Localisation) {
     annonceDuRetrait.hidden = true;
 
     element.append(
-      connexion.element, destination.element, pageDesPlanches.element, bloquant, zoneDesVariables, zoneDuResultat,
+      connexion.element, destination.element, pageDesPlanches.element, bloquant, zoneDesVariables, zoneDuResultat, annonceDuDessin,
       sectionDuPlugin.element, supprimees, annonceDuRetrait, notices, sectionDeLaRecette.element,
     );
 
@@ -405,12 +409,48 @@ function construireVues(i18n: Localisation) {
     window.addEventListener('pointerup', relacher);
     window.addEventListener('pointercancel', relacher);
 
+    /** La progression du dessin en cours, et la largeur que son bouton avait au départ ([R4]) : la boîte ne change pas de taille. */
+    let progression: { readonly fait: number; readonly total: number; largeur: number | null } | null = null;
+    /** Le libellé d'origine de chaque bouton qui porte la progression, rendu quand le dessin s'arrête sans reconstruire la ligne. */
+    const libellesDeOrigine = new WeakMap<HTMLElement, Texte>();
+
+    /** Le bouton qui montre la progression : « Tout mettre à jour » pour plusieurs palettes, sinon le geste de la palette dessinée. */
+    function boutonDuDessin(): HTMLButtonElement | null {
+      if (progression === null) return null;
+      const global = element.querySelector<HTMLButtonElement>('[data-geste="tout-mettre-a-jour"]');
+      if (progression.total > 1 && global) return global;
+      if (!gesteDeLaGeneration) return null;
+      return ligneDe(gesteDeLaGeneration.palette)?.querySelector<HTMLButtonElement>('[data-geste="generer"]') ?? null;
+    }
+
+    function porterLaProgression(geste: HTMLButtonElement, porte: boolean): void {
+      const libelle = geste.firstElementChild;
+      if (!libelle) return;
+      if (porte && progression) {
+        if (!libellesDeOrigine.has(geste)) libellesDeOrigine.set(geste, libelle.textContent ?? '');
+        if (progression.largeur === null && geste.getBoundingClientRect().width > 0) progression.largeur = geste.getBoundingClientRect().width;
+        geste.classList.add('geste-en-progression');
+        if (progression.largeur !== null) geste.style.width = `${progression.largeur}px`;
+        i18n.lier(libelle, 'textContent', progressionDuBouton(progression.fait, progression.total));
+        i18n.lier(geste, 'title', progressionDuDessin(progression.fait, progression.total, nomDuDessin));
+      } else if (geste.classList.contains('geste-en-progression')) {
+        geste.classList.remove('geste-en-progression');
+        geste.style.width = '';
+        const origine = libellesDeOrigine.get(geste);
+        if (origine !== undefined) i18n.lier(libelle, 'textContent', origine);
+        libellesDeOrigine.delete(geste);
+      }
+    }
+    let nomDuDessin = '';
+
     /** Les gestes d'écriture, inactifs pendant un dessin, une écriture de variables ou un conflit d'enregistrement. */
     function rendreLesGestes(): void {
       const inactif = enCours || ecritureEnCours || blocage !== null;
-      for (const geste of Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-geste="generer"]'))) {
+      const cible = boutonDuDessin();
+      for (const geste of Array.from(element.querySelectorAll<HTMLButtonElement>('[data-geste="generer"], [data-geste="tout-mettre-a-jour"]'))) {
         geste.disabled = inactif;
         i18n.lier(geste, 'title', blocage ?? '');
+        porterLaProgression(geste, enCours && geste === cible);
       }
       for (const geste of [
         ...Array.from(liste.querySelectorAll<HTMLButtonElement>('[data-ecriture]')),
@@ -1434,16 +1474,18 @@ function construireVues(i18n: Localisation) {
       afficherDessin(etat, nomsDuDessin) {
         enCours = etat.phase === 'en-cours';
         connexion.synchroniser.disabled = enCours;
+        if (etat.phase === 'en-cours') {
+          progression = { fait: etat.fait, total: etat.total, largeur: progression?.largeur ?? null };
+          nomDuDessin = etat.nom;
+          // L'annonce reste dans une région masquée à l'œil : la page ne bouge pas.
+          i18n.lier(annonceDuDessin, 'textContent', progressionDuDessin(etat.fait, etat.total, etat.nom));
+        } else {
+          progression = null;
+          annonceDuDessin.textContent = '';
+        }
         rendreLesGestes();
         const resultat = blocDuResultat(etat, nomsDuDessin, gestes);
         const enfants: HTMLElement[] = resultat ? [resultat] : [];
-        if (etat.phase === 'en-cours') {
-          const progression = document.createElement('p');
-          progression.className = 'ligne-secondaire';
-          progression.setAttribute('role', 'status');
-          i18n.lier(progression, 'textContent', progressionDuDessin(etat.fait, etat.total, etat.nom));
-          enfants.push(progression);
-        }
         zoneDuResultat.replaceChildren(...enfants);
         zoneDuResultat.hidden = enfants.length === 0;
         // Un résultat qui demande un geste, un refus ou une confirmation, garde le focus sur lui.

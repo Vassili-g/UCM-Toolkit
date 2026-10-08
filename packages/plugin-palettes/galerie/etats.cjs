@@ -647,7 +647,7 @@ const ETATS = [
     id: 'dessin-en-cours',
     titre: 'Dessin en cours',
     quand: 'Le designer clique « Générer sur Figma » dans la fiche de Bleu : le sandbox annonce le premier cadre.',
-    regarder: 'La progression à la place de « Générer tout (1 palette) », et les deux onglets inertes : aucun geste possible.',
+    regarder: 'Le bouton de la fiche de Bleu, désactivé, porte la progression (« En cours… ») dans une boîte de même largeur ; rien ne s’ajoute sous « Synchronisé », la liste ne descend pas ; les deux onglets sont inertes.',
     existe: true,
     // L'ouverture de l'onglet relit l'état (demande 2) : la génération porte la demande 3.
     atteinte: [

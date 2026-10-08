@@ -1315,6 +1315,11 @@ export function progressionDuDessin(fait: number, total: number, nom: string): s
   return total === 1 ? `Génération de « ${nom} »…` : `Palette ${fait + 1} sur ${total} : génération de « ${nom} »…`;
 }
 
+/** La progression courte que porte le bouton du dessin en cours, dans sa propre boîte (R4). */
+export function progressionDuBouton(fait: number, total: number): string {
+  return total === 1 ? 'En cours…' : `Palette ${fait + 1} sur ${total}`;
+}
+
 /** Le blocage d'une police indisponible ([PLA-22]). */
 export function policeIndisponible(style: string): Constat {
   return {

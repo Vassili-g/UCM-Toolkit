@@ -2882,7 +2882,7 @@ test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, 
     assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
     assert.equal(await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).isDisabled(), false);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
-    assert.equal(await page.locator('#panneau-gestion [role="status"]').first().textContent(), 'Génération de « Bleu »…');
+    assert.equal(await page.locator('#panneau-gestion .visuellement-masque[role="status"]').first().textContent(), 'Génération de « Bleu »…');
 
     const cadres = [{ palette: ID_DU_BLEU, cadre: '12:34' }];
     const avant = await compte(page);
@@ -2899,6 +2899,30 @@ test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, 
     const vu = await compte(page);
     await fiche.getByRole('button', { name: 'Afficher', exact: true }).click();
     assert.deepEqual(await prochaine(page, vu), { type: 'voir-sur-la-planche', demande: relecture.demande + 1, page: '40:1', cadres: ['40:2'] });
+  } finally {
+    await page.close();
+  }
+});
+
+test('[R4] pendant un dessin, la liste des palettes ne bouge pas et le bouton désactivé porte la progression dans sa boîte', async () => {
+  const page = await ouvrirSur('dessin-en-cours');
+  try {
+    await ouvrirLaPlanche(page);
+    const liste = page.locator('#panneau-gestion .liste-des-palettes');
+    const generer = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`);
+    const hautAvant = await liste.evaluate((noeud) => noeud.getBoundingClientRect().top);
+    const largeurAvant = await generer.evaluate((noeud) => noeud.getBoundingClientRect().width);
+    const libelleAvant = await generer.textContent();
+    await generer.click();
+    const demande = await dessinEnvoye(page, 1);
+    await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
+    assert.equal(await generer.isDisabled(), true);
+    assert.notEqual(await generer.textContent(), libelleAvant);
+    assert.equal(await generer.textContent(), 'En cours…');
+    assert.equal(await liste.evaluate((noeud) => noeud.getBoundingClientRect().top), hautAvant, 'la liste ne descend pas');
+    assert.equal(await generer.evaluate((noeud) => noeud.getBoundingClientRect().width), largeurAvant, 'le bouton garde sa largeur');
+    assert.equal(await page.locator('#panneau-gestion .ligne-secondaire[role="status"]').count(), 0, 'aucun paragraphe de progression');
+    assert.equal(await page.locator('#panneau-gestion .visuellement-masque[role="status"]').first().textContent(), 'Génération de « Bleu »…');
   } finally {
     await page.close();
   }
@@ -3250,7 +3274,7 @@ test('[PLA-27] « Supprimer définitivement » part sans confirmation ; la carte
     avant = await compte(page);
     await envoyer(page, { type: 'retrait', demande: demande.demande, issue: { issue: 'retire' } });
     assert.equal(await carteSupprimee(page, '40:4').count(), 0);
-    assert.equal(await page.locator('#panneau-gestion [role="status"]').textContent(), 'Cadre « Ardoise » supprimé. Ctrl+Z dans Figma le rétablit.');
+    assert.equal(await page.locator('#panneau-gestion [role="status"]:not(.visuellement-masque)').textContent(), 'Cadre « Ardoise » supprimé. Ctrl+Z dans Figma le rétablit.');
     assert.equal(await carteSupprimee(page, '40:6').getByRole('button', { name: 'Afficher dans Figma' }).evaluate((bouton) => bouton === document.activeElement), true);
     assert.equal((await prochaine(page, avant)).type, 'lire-etat', 'l’état se relit');
 
