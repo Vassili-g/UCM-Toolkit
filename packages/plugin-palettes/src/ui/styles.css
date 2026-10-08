@@ -2690,7 +2690,7 @@
   display: grid;
   min-width: 0;
   align-content: center;
-  gap: 1px;
+  gap: 4px;
   grid-column: 1;
   grid-row: 1 / span 2;
   justify-items: center;

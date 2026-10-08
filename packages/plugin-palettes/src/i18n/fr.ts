@@ -1128,7 +1128,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'depart-sans-reglage': (champ) => `${champ} : aucun réglage associé. Retirez ce champ du fichier.`,
   'depart-identique': (champ) => `${champ} : identique à la couleur d’origine. Retirez ce champ du fichier.`,
   // Les couleurs figées d'une palette reprise du fichier ([VAR-13]).
-  'figees-sans-liste': (champ) => `${champ} : couleurs figées sans liste de nuances ou à deux intensités. Ajoutez crans et intensites: 1, ou retirez ce champ du fichier.`,
+  'figees-sans-liste': (champ) => `${champ} : couleurs figées sans liste de nuances, ou d'une autre forme que les intensités de la palette. Ajoutez crans, donnez { light, dark } avec intensites: 1 et { soft, vivid } sans lui, ou retirez ce champ du fichier.`,
   'figees-longueur': (champ, valeur) => `${champ} : ${valeur} couleurs pour un autre nombre de nuances. Donnez une couleur par nuance.`,
   'figees-incompatible': (champ) => `${champ} : incompatible avec des couleurs figées. Retirez ce champ du fichier.`,
   'crans-figes': (champ, valeur) => `${champ} : « ${valeur} » invalide. Les nuances sont des entiers positifs, en ordre croissant.`,
@@ -1620,7 +1620,7 @@ export function legendeDesContrastes(seuils: Recette['seuils']): string {
 /** Les libellés de l'onglet Gestion ([UI-24] à [UI-29]). */
 export const TEXTES_DE_LA_GESTION = {
   connexion: 'Connexion à Figma',
-  synchroniser: 'Synchroniser',
+  synchroniser: 'Synchroniser avec les tokens Figma',
   planches: 'Planches',
   page: 'page',
   // Le nom que la page prend au premier dessin, tant qu'aucune n'est choisie ([PLA-01]).

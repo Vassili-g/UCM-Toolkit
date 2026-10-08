@@ -1136,7 +1136,7 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'depart-sans-reglage': (champ) => `${champ}: no associated adjustment. Remove this field from the file.`,
   'depart-identique': (champ) => `${champ}: identical to the original colour. Remove this field from the file.`,
   // Les couleurs figées d'une palette reprise du fichier ([VAR-13]).
-  'figees-sans-liste': (champ) => `${champ}: frozen colours without a shade list, or with two intensities. Add crans and intensites: 1, or remove this field from the file.`,
+  'figees-sans-liste': (champ) => `${champ}: frozen colours without a shade list, or in a shape that does not match the palette's intensities. Add crans, give { light, dark } with intensites: 1 and { soft, vivid } without it, or remove this field from the file.`,
   'figees-longueur': (champ, valeur) => `${champ}: ${valeur} colours for a different number of shades. Give one colour per shade.`,
   'figees-incompatible': (champ) => `${champ}: incompatible with frozen colours. Remove this field from the file.`,
   'crans-figes': (champ, valeur) => `${champ}: “${valeur}” is invalid. Shades are positive integers, in increasing order.`,
@@ -1628,7 +1628,7 @@ export function legendeDesContrastes(seuils: Recette['seuils']): string {
 /** Les libellés de l'onglet Gestion ([UI-24] à [UI-29]). */
 export const TEXTES_DE_LA_GESTION = {
   connexion: "Figma connection",
-  synchroniser: "Sync",
+  synchroniser: "Sync with Figma tokens",
   planches: "Boards",
   page: "page",
   // Le nom que la page prend au premier dessin, tant qu'aucune n'est choisie ([PLA-01]).
