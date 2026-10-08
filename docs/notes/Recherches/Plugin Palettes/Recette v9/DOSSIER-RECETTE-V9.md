@@ -87,8 +87,8 @@ Le mainteneur a retenu **A2a** pour Création : le nuancier de cartes compactes,
 Règles de l'écran (maquette, section « V3a, version retenue ») :
 
 1. Le bilan prend la forme de la bascule Light · Dark : « À corriger »,
-   « À vérifier », « Tiennent », chacun avec son compte ; un onglet à zéro
-   ne s'affiche pas.
+   « À vérifier », « Conformes » (EN « To fix », « To check », « Passing »),
+   chacun avec son compte ; un onglet à zéro ne s'affiche pas.
 2. À l'ouverture, « À corriger » est actif s'il y a une garantie manquée,
    sinon « À vérifier ». Tant qu'un problème existe, un onglet est toujours
    actif : on en change, on ne le quitte pas.
