@@ -89,10 +89,15 @@ function construireVues(i18n: Localisation) {
     phrases.append(phrase, secondaire);
     toutTient.append(coche, phrases);
 
+    // Onglets ou phrase : une zone de hauteur fixe, pour que le nuancier ne bouge pas d'un cas à l'autre.
+    const entete = document.createElement('div');
+    entete.className = 'bilan-entete';
+    entete.append(onglets, toutTient);
+
     const nuancier = nuancierDesPalettes((id) => gestes.ouvrir(id));
     const detail = document.createElement('div');
     detail.className = 'bilan-detail';
-    element.append(onglets, toutTient, nuancier.element, detail);
+    element.append(entete, nuancier.element, detail);
 
     /** Le classement de la dernière recette lue. */
     let lu: { readonly recette: Recette; readonly bilan: BilanDesPalettes } | null = null;

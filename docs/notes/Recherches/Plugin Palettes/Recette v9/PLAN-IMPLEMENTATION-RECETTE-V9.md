@@ -123,12 +123,12 @@ relit le fichier avant chaque modification et ne réécrit pas ceux de l'autre.
 
 ## Vague 3
 
-- [ ] **U5 · Vérifier et livrer** · `verificateur`, bas, puis
+- [x] **U5 · Vérifier et livrer** · `verificateur`, bas, puis
   orchestrateur. Typecheck, `npm test` du workspace et de la racine,
   `test:ui`, captures à 500 px des états U2, U3 et U4. L'orchestrateur
   relit les captures, commite chaque tâche, construit et pousse.
 
-- [ ] **U6 · Les deux nuanciers au même pixel** · `implementeur`, moyen,
+- [x] **U6 · Les deux nuanciers au même pixel** · `implementeur`, moyen,
   après U5. Le nuancier de l'accueil de Création et celui de Vérification
   sans palette ouverte commencent à la même hauteur, pour que les cartes ne
   bougent pas quand le designer change d'onglet. Un écart fixe ne suffit

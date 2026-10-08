@@ -6862,26 +6862,34 @@ test('V3a [VER-18] ouvrir Vérification calcule le bilan de vingt palettes et de
   } finally { await page.close(); }
 });
 
-test('V3a [VER-18] tout conforme : 21 px séparent le filet sous la barre du sélecteur de la phrase', async () => {
-  const page = await ouvrirLeBilan('verification-bilan-tout-conforme');
-  try {
-    const ecart = await page.evaluate(() => {
-      const filet = document.querySelector('#panneau-verification .choix-de-palette').getBoundingClientRect().bottom;
-      const phrase = document.querySelector('#panneau-verification .bilan-tout-conforme').getBoundingClientRect().top;
-      return phrase - filet;
-    });
-    assert.equal(ecart, 21);
-  } finally { await page.close(); }
+test('V3a [VER-18] le nuancier de Vérification et celui de l’accueil de Création commencent au même pixel, phrase ou onglets, en français comme en anglais', async () => {
+  for (const langue of ['fr', 'en']) {
+    for (const etat of ['verification-bilan-tout-conforme', 'verification-bilan-a-corriger']) {
+      const page = await ouvrirLeBilan(etat, { langue });
+      try {
+        const haut = (panneau) => page.evaluate((selecteur) => document.querySelector(`${selecteur} .nuancier-carte`).getBoundingClientRect().top, panneau);
+        const verification = await haut('#panneau-verification');
+        await page.locator('#onglet-creation').click();
+        await page.locator('#panneau-creation .nuancier-carte').first().waitFor();
+        const creation = await haut('#panneau-creation');
+        console.log(`${etat} ${langue} : Vérification ${verification}, Création ${creation}`);
+        assert.equal(verification, creation, `${etat}, ${langue}`);
+      } finally { await page.close(); }
+    }
+  }
 });
 
-// Écart connu : sans palette ouverte, le nuancier de Vérification (tout conforme) tombe 8 px plus haut que celui de l'accueil de Création.
-test('V3a [VER-18] le nuancier de Vérification (tout conforme) et celui de l’accueil de Création tombent à la même hauteur', { todo: 'écart de 8 px à lever' }, async () => {
-  const page = await ouvrirLeBilan('verification-bilan-tout-conforme');
+test('V3a [VER-18] le nuancier ne dépasse pas son conteneur, à Vérification comme à l’accueil de Création', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-corriger');
   try {
-    const haut = (panneau) => page.evaluate((selecteur) => document.querySelector(`${selecteur} .nuancier-carte`).getBoundingClientRect().top, panneau);
-    const verification = await haut('#panneau-verification');
+    const debordements = () => page.evaluate(() => [...document.querySelectorAll('.nuancier-des-palettes')]
+      .filter((nuancier) => nuancier.getClientRects().length > 0)
+      .map((nuancier) => ({ nuancier: nuancier.getBoundingClientRect().width, conteneur: nuancier.parentElement.getBoundingClientRect().width, defilement: nuancier.scrollWidth })));
+    for (const mesure of await debordements()) assert.ok(mesure.nuancier <= mesure.conteneur, `Vérification : ${JSON.stringify(mesure)}`);
     await page.locator('#onglet-creation').click();
     await page.locator('#panneau-creation .nuancier-carte').first().waitFor();
-    assert.equal(verification, await haut('#panneau-creation'));
+    const mesures = await debordements();
+    assert.ok(mesures.length > 0);
+    for (const mesure of mesures) assert.ok(mesure.nuancier <= mesure.conteneur, `Création : ${JSON.stringify(mesure)}`);
   } finally { await page.close(); }
 });

@@ -4533,7 +4533,8 @@ html {
   --point-ambre: rgb(243 181 63);
   display: grid;
   grid-template-columns: repeat(7, 60px);
-  gap: 8px 9px;
+  /* Sept cartes et six écarts de 8 px font 468 px : ils tiennent dans les 469 px de 500 px de large. */
+  gap: 8px;
 }
 
 .nuancier-carte {
@@ -4618,6 +4619,19 @@ html {
   gap: var(--espace-bloc);
 }
 
+/*
+ * La zone au-dessus du nuancier a la hauteur de ce que l'accueil de Création
+ * met avant le sien : le nuancier commence au même pixel dans les deux onglets,
+ * que la zone porte les onglets ou la phrase. Une phrase de plus de deux
+ * lignes déborderait sur le nuancier.
+ */
+.bilan-entete {
+  display: grid;
+  box-sizing: border-box;
+  height: 47px;
+  align-content: start;
+}
+
 .bilan-onglets {
   justify-self: start;
 }
@@ -4651,7 +4665,6 @@ html {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  /* Avec les 15 px de la pile, 21 px séparent le filet sous la barre de la phrase. */
   margin-top: 6px;
   line-height: 1.5;
 }
