@@ -65,6 +65,31 @@
   label { display: block; font-weight: 600; margin: 0 0 6px; }
   .liens { display: flex; gap: 6px; flex-wrap: wrap; }
   .lien { border: 1px solid var(--bordure); border-radius: 12px; padding: 2px 9px; font-weight: 600; }
+  /* Les écrans d'accueil : sans la barre du sélecteur, centrés, aérés. */
+  .accueil { padding: 28px 24px 24px; text-align: center; }
+  .accueil h4 { font-size: 20px; font-weight: 700; margin: 14px 0 6px; letter-spacing: -0.2px; }
+  .accueil .sous { color: var(--second); margin: 0 0 18px; font-size: 12px; }
+  .accueil .cta { height: 36px; padding: 0 18px; font-size: 13px; }
+  .accueil .ou { color: var(--second); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin: 26px 0 12px; }
+  .venn { position: relative; width: 120px; height: 84px; margin: 4px auto 0; }
+  .venn i { position: absolute; width: 60px; height: 60px; border-radius: 50%; mix-blend-mode: screen; opacity: 0.9; }
+  .disques { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; }
+  .disque { display: grid; justify-items: center; gap: 6px; font-weight: 600; cursor: pointer; }
+  .disque i { width: 44px; height: 44px; border-radius: 50%; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+  .disque:hover i { box-shadow: 0 0 0 2px #fff; }
+  .puces-papier { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .papier { width: 76px; height: 118px; border-radius: 6px; overflow: hidden; display: grid; grid-template-rows: 1fr 1fr 1fr 26px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.4); cursor: pointer; text-align: left; }
+  .papier i { display: block; }
+  .papier span { color: #1d1d1b; font-size: 11px; font-weight: 700; padding: 5px 6px; }
+  .papier.nouvelle { background: transparent; border: 1px dashed #777; box-shadow: none; display: grid; place-items: center; grid-template-rows: none; color: var(--second); font-weight: 600; text-align: center; }
+  .phrase-grande { text-align: left; font-size: 22px; line-height: 1.35; font-weight: 600; margin: 0 0 18px; }
+  .phrase-grande .second { font-weight: 500; }
+  .nomme { display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid transparent; cursor: pointer; }
+  .nomme i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+  .nomme:hover { border-bottom-color: currentColor; }
+  .lien-cta { text-align: left; color: var(--primaire); font-weight: 600; font-size: 13px; }
+  .vedette { width: 112px; height: 112px; border-radius: 50%; margin: 4px auto 14px; display: block; box-shadow: 0 0 0 6px rgba(245,197,24,0.15); }
+  .rang-cta { display: flex; justify-content: center; gap: 8px; }
 </style>
 </head>
 <body>
@@ -90,90 +115,123 @@
   </div>
 </div>
 
-<h2>Création</h2>
+<h2>Création : un écran d'accueil</h2>
+<p class="chapeau">Deuxième série pour Création. Sans palette ouverte, l'onglet devient un écran d'accueil : un geste principal, « Créer une palette », et les palettes existantes montrées comme des couleurs, sans rampe ni état. Rien n'y ressemble au tableau de Gestion. La barre du sélecteur s'efface sur cet écran ; elle revient dès qu'une palette est ouverte. Dans un fichier sans palette, chaque piste garde seulement son titre, sa phrase et « Créer une palette ».</p>
 
-<h3 style="font-size:16px;margin:24px 0 8px">C1. Jamais vide : une palette est toujours ouverte</h3>
+<h3 style="font-size:16px;margin:24px 0 8px">A1. Les couleurs qui se mêlent</h3>
 <div class="rang">
   <div class="plugin">
     <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
     <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
-    <div class="barre"><span class="selecteur"><span class="point" style="background:#f5c518"></span> Jaune <span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span><span class="bouton carre">⋯</span></div>
-    <div class="titre">Palette Jaune <span class="bascule"><span class="choisi">Light</span><span>Dark</span></span></div>
-    <div class="carte"><div class="carte-titre">⌄ Configuration de la palette</div>
-      <div class="grille2"><div><label>Nom de la palette</label><div class="champ" style="color:#fff">Jaune</div></div><div><label>Couleur de référence</label><div class="champ" style="color:#fff">#F5C518</div></div></div>
-      <div style="margin-top:10px;border-top:1px solid var(--filet);padding-top:8px;display:flex;justify-content:space-between"><b>› Réglages avancés</b><span class="second">Standard, une intensité</span></div>
-    </div>
-    <div class="carte"><div class="carte-titre">Aperçu <span class="second" style="font-weight:400">…</span></div></div>
-  </div>
-  <div class="notes">
-    <h3>Le principe</h3>
-    <ul>
-      <li>L'écran vide disparaît dès que le fichier porte une palette. À l'ouverture du plugin, Création ouvre la dernière palette réglée dans ce fichier.</li>
-      <li>Sans dernière palette connue, elle ouvre la première de la liste.</li>
-      <li>Supprimer la palette ouverte ouvre la suivante.</li>
-      <li>Le seul écran vide qui reste est celui du fichier sans palette, « Créez votre première palette », qui existe déjà.</li>
-    </ul>
-    <h3>Pour</h3>
-    <ul><li>Aucun écran nouveau, aucun clic : Création sert tout de suite à régler.</li><li>Rien ne double Gestion.</li></ul>
-    <h3>Contre</h3>
-    <ul><li>La dernière palette réglée se range dans la recette (partagée) ou sur le poste : à trancher. Dans la recette, deux designers voient la même ; sur le poste, chacun la sienne.</li></ul>
-  </div>
-</div>
-
-<h3 style="font-size:16px;margin:32px 0 8px">C2. Le nuancier du fichier : toutes les palettes, côte à côte</h3>
-<div class="rang">
-  <div class="plugin">
-    <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
-    <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
-    <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
-    <div class="titre">Les palettes du fichier <span class="bascule"><span class="choisi">Light</span><span>Dark</span></span></div>
-    <p class="phrase second">Cliquez une rampe pour régler sa palette.</p>
-    <div class="carte">
-      <div class="nuancier">
-        <span></span><span class="num">50</span><span class="num">100</span><span class="num">200</span><span class="num">300</span><span class="num">400</span><span class="num">500</span><span class="num">600</span><span class="num">700</span><span class="num">800</span><span class="num">900</span><span class="num">950</span>
-        <span class="nom">Bleu</span><i style="background:#eef4fd"></i><i style="background:#d6e5fa"></i><i style="background:#b0cdf5"></i><i style="background:#83b0ee"></i><i style="background:#5590e6"></i><i style="background:#2f74de"></i><i style="background:#1e6fd9"></i><i style="background:#1a59ad"></i><i style="background:#164686"></i><i style="background:#123562"></i><i style="background:#0c2443"></i>
-        <span class="nom">Jaune</span><i style="background:#fffbea"></i><i style="background:#fff3c4"></i><i style="background:#fde68a"></i><i style="background:#fcd34d"></i><i style="background:#f8c42a"></i><i style="background:#f5c518"></i><i style="background:#d39e0a"></i><i style="background:#a87a06"></i><i style="background:#7d5a07"></i><i style="background:#5a4108"></i><i style="background:#3a2a06"></i>
-        <span class="nom">Ardoise</span><i style="background:#f8fafc"></i><i style="background:#f1f5f9"></i><i style="background:#e2e8f0"></i><i style="background:#cbd5e1"></i><i style="background:#94a3b8"></i><i style="background:#64748b"></i><i style="background:#475569"></i><i style="background:#334155"></i><i style="background:#1e293b"></i><i style="background:#0f172a"></i><i style="background:#020617"></i>
+    <div class="accueil">
+      <div class="venn"><i style="left:6px;top:0;background:#1e6fd9"></i><i style="left:54px;top:0;background:#f5c518"></i><i style="left:30px;top:24px;background:#64748b"></i></div>
+      <h4>Que voulez-vous régler ?</h4>
+      <p class="sous">Partez d'une couleur, le plugin calcule ses nuances et vérifie leurs contrastes.</p>
+      <span class="bouton primaire cta">Créer une palette</span>
+      <div class="ou">ou reprendre</div>
+      <div class="disques">
+        <span class="disque"><i style="background:#1e6fd9"></i>Bleu</span>
+        <span class="disque"><i style="background:#f5c518"></i>Jaune</span>
+        <span class="disque"><i style="background:#64748b"></i>Ardoise</span>
       </div>
     </div>
   </div>
   <div class="notes">
     <h3>Le principe</h3>
     <ul>
-      <li>Sans palette ouverte, Création montre les rampes de toutes les palettes, alignées sur les mêmes nuances, dans le thème choisi. À deux intensités, la rampe montrée est Vivid.</li>
-      <li>Un clic sur une rampe ouvre sa palette.</li>
-      <li>Aucun état d'écriture : c'est une vue de couleur, pas de synchronisation.</li>
+      <li>En tête, une petite illustration faite des couleurs de référence du fichier, mêlées : l'accueil change avec le fichier.</li>
+      <li>Un titre en question, une phrase, un bouton principal.</li>
+      <li>Sous « ou reprendre », un disque par palette, à sa couleur de référence, avec son nom. Un clic ouvre la palette.</li>
     </ul>
     <h3>Pour</h3>
-    <ul><li>Une vue que le plugin n'a nulle part : comparer les palettes entre elles, leurs clartés à nuance égale, leur harmonie.</li><li>Rien ne double Gestion.</li></ul>
+    <ul><li>Chaleureux sans rien ajouter de technique ; la couleur seule identifie chaque palette.</li></ul>
     <h3>Contre</h3>
-    <ul><li>Un écran de plus à tenir, qui ne sert que lorsqu'aucune palette n'est ouverte, sauf à le rendre atteignable autrement (une entrée « Toutes les palettes » dans le sélecteur).</li></ul>
+    <ul><li>Au-delà de douze palettes, les disques passent sur plusieurs lignes ; l'illustration ne mêle alors que les trois premières.</li></ul>
   </div>
 </div>
 
-<h3 style="font-size:16px;margin:32px 0 8px">C3. Commencer par créer</h3>
+<h3 style="font-size:16px;margin:32px 0 8px">A2. Le nuancier de papeterie</h3>
 <div class="rang">
   <div class="plugin">
     <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
     <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
-    <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
-    <div class="titre">Régler une palette</div>
-    <div class="liens" style="margin:0 0 14px"><span class="lien"><span class="point" style="background:#1e6fd9"></span> Bleu</span><span class="lien"><span class="point" style="background:#f5c518"></span> Jaune</span><span class="lien"><span class="point" style="background:#64748b"></span> Ardoise</span></div>
-    <div class="carte"><div class="carte-titre">Ou créer une palette</div>
-      <div class="grille2"><div><label>Nom de la palette</label><div class="champ"></div></div><div><label>Couleur de référence</label><div class="champ">#1E6FD9</div></div></div>
-      <div style="margin-top:10px"><span class="bouton primaire" style="height:28px">Créer la palette</span></div>
+    <div class="accueil">
+      <h4 style="margin-top:6px">Vos palettes</h4>
+      <p class="sous">Choisissez une carte pour la régler, ou commencez-en une.</p>
+      <div class="puces-papier">
+        <span class="papier"><i style="background:#b0cdf5"></i><i style="background:#1e6fd9"></i><i style="background:#164686"></i><span>Bleu</span></span>
+        <span class="papier"><i style="background:#fde68a"></i><i style="background:#f5c518"></i><i style="background:#7d5a07"></i><span>Jaune</span></span>
+        <span class="papier"><i style="background:#cbd5e1"></i><i style="background:#64748b"></i><i style="background:#1e293b"></i><span>Ardoise</span></span>
+        <span class="papier nouvelle">+<br>Nouvelle<br>palette</span>
+      </div>
     </div>
   </div>
   <div class="notes">
     <h3>Le principe</h3>
     <ul>
-      <li>En tête, les palettes en pastilles nommées : un clic ouvre la palette.</li>
-      <li>Dessous, la carte « Nouvelle palette » ouverte, réduite au nom et à la référence ; les réglages avancés restent repliés, comme dans la configuration.</li>
+      <li>Chaque palette est une carte de nuancier de papeterie : trois aplats, clair, référence et sombre, et le nom sur une bande blanche.</li>
+      <li>La dernière carte, en pointillés, crée une palette : le geste de création prend la même forme que les palettes qu'il produit.</li>
     </ul>
     <h3>Pour</h3>
-    <ul><li>Les deux gestes possibles, ouvrir et créer, sont sur l'écran, sans menu.</li></ul>
+    <ul><li>Un objet familier aux designers, tactile, sans aucun mot technique.</li><li>Trois aplats suffisent à distinguer deux palettes proches, mieux qu'un disque.</li></ul>
     <h3>Contre</h3>
-    <ul><li>« Nouvelle palette » existe alors deux fois sur le même écran.</li><li>Le designer règle bien plus souvent qu'il ne crée : la carte de création prend la place principale pour le geste rare.</li></ul>
+    <ul><li>Le bouton bleu « Créer » disparaît au profit d'une carte : le geste principal est moins appuyé.</li></ul>
+  </div>
+</div>
+
+<h3 style="font-size:16px;margin:32px 0 8px">A3. Une phrase</h3>
+<div class="rang">
+  <div class="plugin">
+    <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+    <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+    <div class="accueil" style="text-align:left;padding-top:36px">
+      <p class="phrase-grande"><span class="second">Ce fichier a trois palettes :</span><br>
+        <span class="nomme" style="color:#6aa3f0"><i style="background:#1e6fd9"></i>Bleu</span>,
+        <span class="nomme" style="color:#f5c518"><i style="background:#f5c518"></i>Jaune</span> et
+        <span class="nomme" style="color:#a3b1c4"><i style="background:#64748b"></i>Ardoise</span>.</p>
+      <p class="lien-cta">+ Créer une palette</p>
+    </div>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>Une seule phrase en grand, où chaque nom de palette est un lien coloré qui l'ouvre.</li>
+      <li>Dessous, « Créer une palette » en lien d'action.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Le plus minimaliste : rien qu'une phrase, qui se lit comme un accueil.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Au-delà de six palettes, la phrase devient une liste ; il faut alors une autre forme.</li><li>Un nom à sa propre couleur sur fond sombre peut manquer de contraste : il faut éclaircir la couleur du texte, comme ici.</li></ul>
+  </div>
+</div>
+
+<h3 style="font-size:16px;margin:32px 0 8px">A4. Reprendre là où vous étiez</h3>
+<div class="rang">
+  <div class="plugin">
+    <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+    <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+    <div class="accueil">
+      <i class="vedette" style="background:#f5c518"></i>
+      <h4 style="margin-top:0">Jaune</h4>
+      <p class="sous">La dernière palette réglée dans ce fichier.</p>
+      <div class="rang-cta"><span class="bouton primaire cta">Reprendre Jaune</span><span class="bouton cta" style="border:1px solid #666">Créer une palette</span></div>
+      <div class="ou">Autres palettes</div>
+      <div class="disques" style="gap:14px">
+        <span class="disque" style="font-weight:500"><i style="background:#1e6fd9;width:28px;height:28px"></i>Bleu</span>
+        <span class="disque" style="font-weight:500"><i style="background:#64748b;width:28px;height:28px"></i>Ardoise</span>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>La dernière palette réglée prend la scène : un grand disque, son nom, « Reprendre ».</li>
+      <li>« Créer une palette » en second bouton, les autres palettes en petits disques.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Le geste le plus fréquent, revenir à sa palette, est le bouton principal.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Il faut retenir la dernière palette réglée, dans la recette (partagée) ou sur le poste.</li></ul>
   </div>
 </div>
 
@@ -242,6 +300,6 @@
 </div>
 
 <h2>Recommandation</h2>
-<p class="chapeau"><b>C1 pour Création, V1 pour Vérification.</b> Création n'a plus d'écran vide, ce qui supprime le problème au lieu de le meubler. Vérification gagne un écran qui lui est propre, la vue de l'ensemble, que Gestion ne peut pas donner. C2 vaut d'être gardé pour plus tard, comme une entrée « Toutes les palettes » du sélecteur, s'il faut comparer les palettes entre elles. Une décision reste à prendre pour C1 : la dernière palette réglée se range-t-elle dans la recette, partagée, ou sur le poste ?</p>
+<p class="chapeau"><b>A1 pour Création, V1 pour Vérification.</b> A1 accueille avec les couleurs du fichier, garde un bouton principal net pour créer, et montre les palettes par leur seule couleur : rien n'y rappelle Gestion. A2 est la variante la plus singulière, si l'on accepte un geste de création moins appuyé. A4 peut se greffer sur A1 plus tard, si l'on décide de retenir la dernière palette réglée. Vérification garde V1 : l'ensemble des palettes, que Gestion ne montre pas.</p>
 </body>
 </html>

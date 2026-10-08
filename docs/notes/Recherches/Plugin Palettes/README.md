@@ -40,10 +40,14 @@ décrivent pas le build courant.
 - Les commandes Light/Dark et Soft/Vivid sont implémentées et attendent la
   recette dans Figma : voir le
   [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
-- La recette v8 est à traiter : le
+- La recette v8 est implémentée : le
   [dossier de la recette v8](./Recette%20v8/DOSSIER-RECETTE-V8.md) explique
-  la palette retirée par « Annuler la reprise », sa réparation par le plugin et un
-  plan en neuf lots, sans implémentation.
+  la palette retirée par « Annuler la reprise » et sa réparation par le
+  plugin ; son plan est réalisé.
+- La recette v9 suit : le
+  [dossier de la recette v9](./Recette%20v9/DOSSIER-RECETTE-V9.md) consigne
+  le bandeau de vérification décidé sans implémentation, la configuration
+  avancée repliée et l'écran sans palette ouverte, qui attend un choix.
 - La validation éditoriale anglaise et les vérifications propres à Figma
   restent à consigner dans les recettes concernées.
 
