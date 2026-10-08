@@ -9,7 +9,7 @@ import { recetteAvecTexteDesBoutons, recetteParDefaut, validerRecette, type Pale
 import { analyserPalette } from '../src/analyse';
 import { ajouter, nouvellePalette } from '../src/edition';
 import { DESTINATION_PAR_DEFAUT, memeDestination, validerLaDestination, type Destination } from '../src/variables/destination';
-import { palettesDuFichier } from '../src/variables/detection';
+import { palettesDuFichier, regrouperLesPalettes } from '../src/variables/detection';
 import { etatDesTokens } from '../src/variables/etat';
 import { segmentDuNom, segmentsDesPalettes } from '../src/variables/noms';
 import { nomsDuPlan, planDesVariables, type EntreeDuPlan } from '../src/variables/plan';
@@ -380,6 +380,58 @@ test('[VAR-12] les chemins de la bibliothèque Intencial : chaque rampe de coule
   assert.ok(rampes.includes('primitives/colors/titanium'), rampes.join(', '));
   assert.ok(rampes.length >= 9, rampes.join(', '));
   assert.ok(palettes.every((palette) => palette.nuances.length >= 5));
+});
+
+test('[REC-V8] les variables écrites pour une palette à deux intensités, thèmes dans le chemin, donnent une seule palette', () => {
+  const primitives = collection('C1', 'Primitives');
+  const noms = ['soft', 'vivid'].flatMap((intensite) => ['light', 'dark'].flatMap((theme) => TAILWIND.map((nuance) => `colors/Poppy/${intensite}/${theme}/${nuance}`)));
+  const regroupees = regrouperLesPalettes(palettesDuFichier(variablesDe(primitives, noms), [primitives]));
+  assert.equal(regroupees.length, 1);
+  const palette = regroupees[0];
+  assert.equal(palette.type, 'groupee');
+  if (palette.type !== 'groupee') return;
+  assert.deepEqual([palette.racine, palette.forme], ['colors/Poppy', 'intensites-themes-chemin']);
+  assert.deepEqual(palette.groupes.map((groupe) => [groupe.intensite, groupe.theme, groupe.palette.chemin]), [
+    ['soft', 'light', 'colors/Poppy/soft/light'],
+    ['soft', 'dark', 'colors/Poppy/soft/dark'],
+    ['vivid', 'light', 'colors/Poppy/vivid/light'],
+    ['vivid', 'dark', 'colors/Poppy/vivid/dark'],
+  ]);
+});
+
+test('[REC-V8] deux intensités dans une collection à modes Light et Dark, ou deux thèmes dans le chemin : une palette', () => {
+  const modes = collection('C1', 'Primitives', ['Light', 'Dark']);
+  const enModes = regrouperLesPalettes(palettesDuFichier(variablesDe(modes, ['vivid', 'soft'].flatMap((i) => TAILWIND.map((n) => `Poppy/${i}/${n}`))), [modes]));
+  assert.deepEqual(enModes.map((p) => (p.type === 'groupee' ? [p.racine, p.forme, p.groupes.map((g) => g.intensite)] : null)), [['Poppy', 'intensites-themes-modes', ['soft', 'vivid']]]);
+  // Sans modes Light et Dark, les deux intensités restent séparées.
+  const simple = collection('C2', 'Autre');
+  assert.equal(regrouperLesPalettes(palettesDuFichier(variablesDe(simple, ['soft', 'vivid'].flatMap((i) => TAILWIND.map((n) => `Poppy/${i}/${n}`))), [simple])).length, 2);
+  const themes = regrouperLesPalettes(palettesDuFichier(variablesDe(simple, ['dark', 'light'].flatMap((t) => TAILWIND.map((n) => `Poppy/${t}/${n}`))), [simple]));
+  assert.deepEqual(themes.map((p) => (p.type === 'groupee' ? [p.racine, p.forme, p.groupes.map((g) => [g.intensite, g.theme])] : null)), [['Poppy', 'themes-chemin', [[null, 'light'], [null, 'dark']]]]);
+});
+
+test('[REC-V8] trois groupes sur quatre, ou des nuances différentes : pas de regroupement', () => {
+  const primitives = collection('C1', 'Primitives');
+  const trois = ['soft/light', 'soft/dark', 'vivid/light'].flatMap((c) => TAILWIND.map((n) => `Poppy/${c}/${n}`));
+  const reste = regrouperLesPalettes(palettesDuFichier(variablesDe(primitives, trois), [primitives]));
+  assert.deepEqual(reste.map((p) => p.type), ['seule', 'seule', 'seule']);
+  const autres = [100, 200, 300, 400, 500];
+  const noms = [...TAILWIND.map((n) => `Poppy/light/${n}`), ...autres.map((n) => `Poppy/dark/${n}`)];
+  assert.deepEqual(regrouperLesPalettes(palettesDuFichier(variablesDe(primitives, noms), [primitives])).map((p) => p.type), ['seule', 'seule']);
+});
+
+test('[REC-V8] la casse et l’ordre des segments sont ignorés ; les autres palettes passent inchangées', () => {
+  const primitives = collection('C1', 'Primitives');
+  const noms = [
+    ...TAILWIND.map((n) => `slate/${n}`),
+    ...['Dark/Soft', 'light/vivid', 'LIGHT/Soft', 'Vivid/Dark'].flatMap((c) => TAILWIND.map((n) => `Poppy/${c}/${n}`)),
+  ];
+  const regroupees = regrouperLesPalettes(palettesDuFichier(variablesDe(primitives, noms), [primitives]));
+  assert.deepEqual(regroupees.map((p) => p.type), ['seule', 'groupee']);
+  const groupee = regroupees[1];
+  if (groupee.type !== 'groupee') return;
+  assert.equal(groupee.racine, 'Poppy');
+  assert.deepEqual(groupee.groupes.map((g) => `${g.intensite}/${g.theme}`), ['soft/light', 'soft/dark', 'vivid/light', 'vivid/dark']);
 });
 
 // ------------------------------------------------------------ une palette figée (format 8)

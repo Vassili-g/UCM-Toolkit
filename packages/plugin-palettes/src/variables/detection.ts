@@ -87,3 +87,128 @@ export function palettesDuFichier(
       };
     });
 }
+
+export type IntensiteDuChemin = 'soft' | 'vivid';
+export type ThemeDuChemin = 'light' | 'dark';
+
+/**
+ * Les trois formes complètes d'une palette écrite en plusieurs groupes :
+ * - `intensites-themes-chemin` : `X/soft/light`, `X/soft/dark`, `X/vivid/light`, `X/vivid/dark` ;
+ * - `intensites-themes-modes` : `X/soft`, `X/vivid`, dans une collection à modes Light et Dark ;
+ * - `themes-chemin` : `X/light`, `X/dark`, une seule intensité.
+ */
+export type FormeGroupee = 'intensites-themes-chemin' | 'intensites-themes-modes' | 'themes-chemin';
+
+/** Un groupe de la palette groupée ; `null` quand le chemin ne porte pas l'intensité ou le thème. */
+export interface GroupeRange {
+  readonly intensite: IntensiteDuChemin | null;
+  readonly theme: ThemeDuChemin | null;
+  readonly palette: PaletteDuFichier;
+}
+
+export interface PaletteGroupee {
+  readonly type: 'groupee';
+  readonly collection: string;
+  readonly nomDeLaCollection: string;
+  /** Le chemin commun des groupes, sans intensité ni thème ; vide à la racine de la collection. */
+  readonly racine: string;
+  readonly forme: FormeGroupee;
+  /** Rangés par intensité (soft puis vivid), puis par thème (light puis dark). */
+  readonly groupes: readonly GroupeRange[];
+}
+
+export interface PaletteSeule {
+  readonly type: 'seule';
+  readonly palette: PaletteDuFichier;
+}
+
+export type PaletteRegroupee = PaletteGroupee | PaletteSeule;
+
+const INTENSITES: readonly IntensiteDuChemin[] = ['soft', 'vivid'];
+const THEMES: readonly ThemeDuChemin[] = ['light', 'dark'];
+
+interface Candidat {
+  readonly rang: number;
+  readonly racine: string;
+  readonly intensite: IntensiteDuChemin | null;
+  readonly theme: ThemeDuChemin | null;
+  readonly palette: PaletteDuFichier;
+}
+
+/** Sépare le chemin en racine, intensité et thème ; `null` si ses derniers segments n'en portent aucun. */
+function decouperLeChemin(chemin: string): { racine: string; intensite: IntensiteDuChemin | null; theme: ThemeDuChemin | null } | null {
+  const segments = chemin.split('/');
+  const dernier = segments[segments.length - 1];
+  const avantDernier = segments.length > 1 ? segments[segments.length - 2] : undefined;
+  const intensiteDe = (segment: string | undefined) => INTENSITES.find((valeur) => valeur === segment?.trim().toLowerCase());
+  const themeDe = (segment: string | undefined) => THEMES.find((valeur) => valeur === segment?.trim().toLowerCase());
+  const racine2 = segments.slice(0, -2).join('/');
+  const racine1 = segments.slice(0, -1).join('/');
+  if (intensiteDe(avantDernier) && themeDe(dernier)) return { racine: racine2, intensite: intensiteDe(avantDernier)!, theme: themeDe(dernier)! };
+  if (themeDe(avantDernier) && intensiteDe(dernier)) return { racine: racine2, intensite: intensiteDe(dernier)!, theme: themeDe(avantDernier)! };
+  if (intensiteDe(dernier)) return { racine: racine1, intensite: intensiteDe(dernier)!, theme: null };
+  if (themeDe(dernier)) return { racine: racine1, intensite: null, theme: themeDe(dernier)! };
+  return null;
+}
+
+function memesNuances(a: PaletteDuFichier, b: PaletteDuFichier): boolean {
+  return a.nuances.length === b.nuances.length && a.nuances.every((nuance, rang) => nuance === b.nuances[rang]);
+}
+
+/** La forme complète que ces groupes dessinent, ou `null` : une forme incomplète ou mêlée ne se regroupe pas. */
+function formeComplete(membres: readonly Candidat[]): FormeGroupee | null {
+  const nombre = (intensite: IntensiteDuChemin | null, theme: ThemeDuChemin | null) => membres.filter((membre) => membre.intensite === intensite && membre.theme === theme).length;
+  if (membres.length === 4 && INTENSITES.every((i) => THEMES.every((t) => nombre(i, t) === 1))) return 'intensites-themes-chemin';
+  if (membres.length === 2 && THEMES.every((t) => nombre(null, t) === 1)) return 'themes-chemin';
+  if (membres.length === 2 && INTENSITES.every((i) => nombre(i, null) === 1)) {
+    const modes = membres[0].palette.modes.map((mode) => mode.nom.trim().toLowerCase());
+    return modes.includes('light') && modes.includes('dark') ? 'intensites-themes-modes' : null;
+  }
+  return null;
+}
+
+/**
+ * Regroupe les groupes d'une même palette (décision D2 de la recette v8 :
+ * seules les formes complètes se regroupent). Les groupes doivent être de la
+ * même collection, de mêmes nuances, et leurs chemins ne différer que par
+ * l'intensité et le thème, sans casse et dans n'importe quel ordre. Ce qui
+ * ne forme pas une des trois formes complètes passe inchangé. Le résultat
+ * garde l'ordre d'entrée : une palette groupée prend la place de son premier
+ * groupe. Pur ; à appeler après `palettesDuFichier`.
+ */
+export function regrouperLesPalettes(palettes: readonly PaletteDuFichier[]): PaletteRegroupee[] {
+  const familles = new Map<string, Candidat[]>();
+  palettes.forEach((palette, rang) => {
+    const decoupe = decouperLeChemin(palette.chemin);
+    if (!decoupe) return;
+    const cle = `${palette.collection}\n${decoupe.racine.toLowerCase()}`;
+    const famille = familles.get(cle) ?? [];
+    familles.set(cle, famille);
+    famille.push({ ...decoupe, rang, palette });
+  });
+  const groupees = new Map<number, PaletteGroupee>();
+  const absorbes = new Set<number>();
+  const rangDe = <T extends string>(valeurs: readonly T[], valeur: T | null) => (valeur === null ? -1 : valeurs.indexOf(valeur));
+  for (const membres of familles.values()) {
+    if (!membres.every((membre) => memesNuances(membre.palette, membres[0].palette))) continue;
+    const forme = formeComplete(membres);
+    if (!forme) continue;
+    const rangees = [...membres].sort((a, b) => rangDe(INTENSITES, a.intensite) - rangDe(INTENSITES, b.intensite) || rangDe(THEMES, a.theme) - rangDe(THEMES, b.theme));
+    groupees.set(Math.min(...membres.map((membre) => membre.rang)), {
+      type: 'groupee',
+      collection: membres[0].palette.collection,
+      nomDeLaCollection: membres[0].palette.nomDeLaCollection,
+      racine: rangees[0].racine,
+      forme,
+      groupes: rangees.map(({ intensite, theme, palette }) => ({ intensite, theme, palette })),
+    });
+    for (const membre of membres) absorbes.add(membre.rang);
+  }
+  const resultat: PaletteRegroupee[] = [];
+  palettes.forEach((palette, rang) => {
+    const groupee = groupees.get(rang);
+    if (groupee) resultat.push(groupee);
+    else if (!absorbes.has(rang)) resultat.push({ type: 'seule', palette });
+  });
+  return resultat;
+}
