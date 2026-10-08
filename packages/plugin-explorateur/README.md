@@ -94,10 +94,13 @@ Le plugin est complet sans elles, et aucune ne s'active seule :
 - importer des contrats `*.contract.json` et un `tokens.json` relie une
   variable à sa référence publiée et à ses emplacements dans les contrats ;
 - lire la recette UCM Palettes, puis associer une variable à un cran, montre
-  les emplois de ce cran ;
+  les variables de dossier de `theme` que ce cran porte (`solid/default`,
+  `surface/foreground`, `page/focus`), dans le sens normal ou inversé du
+  thème associé ;
 - appliquer le profil d'architecture UCM, après avoir associé chaque
-  collection à sa couche, contrôle les alias, les valeurs directes et les
-  portées.
+  collection à l'une des cinq couches (`primitives`, `color-brands`,
+  `color-utilities`, `theme`, `components`), contrôle les alias, les valeurs
+  directes, les portées et la nuance que vise chaque variable de `theme`.
 
 Le détail de chaque lecture et de ses limites est dans la
 [spécification](./SPEC.md).

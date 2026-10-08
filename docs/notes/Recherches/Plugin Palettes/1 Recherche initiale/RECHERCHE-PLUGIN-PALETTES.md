@@ -5,10 +5,11 @@ recette de [l'architecture
 multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
 et les écrit dans les variables ou les dessine dans le fichier Figma. Une
 palette part d'une couleur de référence et produit une ou deux intensités,
-en clair et en sombre, selon sa liste de nuances. La planche montre les valeurs
-et les associations vérifiées. Pour chaque cran, elle présente son hexa, ses
-valeurs OKLCH, ses contrastes, le seuil qu'il tient et les emplois que la table
-de l'architecture lui confie.
+en clair et en sombre, selon sa liste de nuances. La planche montre les
+rampes, puis, pour chaque dossier `solid`, `surface` et `page` de la table de
+l'architecture, les variables qui lui prennent une nuance et les garanties de
+contraste qu'elles tiennent. Le détail d'une nuance de l'interface donne son
+hexa, ses valeurs OKLCH et ses contrastes.
 
 Le designer nomme la palette. Son nom n'a aucun effet sur le calcul ; sa
 destination détermine le chemin de ses variables.
@@ -53,7 +54,7 @@ implémentées des pistes conservées.
 | Color shift | Les décalages de teinte, de saturation et de luminosité à chaque bout de la rampe, autour de la couleur de référence (`[MOT-30]`). La recette les range sous `derive`, et le code garde ce nom |
 | Dérive de teinte | Le décalage de teinte du Color shift, en degrés, entre la couleur de référence et chaque bout de la rampe |
 | Poids d'une nuance | 0 à la clarté du pivot, 1 au bout de la rampe, linéaire entre les deux : la fraction du réglage d'un bout que la nuance reçoit (`[MOT-30]`) |
-| Fond de référence | L'hexa contre lequel se mesurent les contrastes d'un mode |
+| Fond de référence | Le fond de la page d'un mode, `elevation/page` : l'hexa contre lequel se mesurent les contrastes de ce mode |
 | Variable de dossier | `solid/default` ou `page/foreground` par exemple, rangée sous `solid`, `surface` ou `page`. La table des dossiers de l'architecture lui fixe un cran, selon le sens du thème |
 | Sens du thème | Normal ou inversé, selon que le texte des boutons du thème, blanc ou noir, a la couleur de sa page ou non |
 | Recette | Tous les nombres qui fabriquent les palettes du fichier |
@@ -74,14 +75,14 @@ aussi.
 | # | Décision | Conséquence |
 |---|---|---|
 | D1 | Plugin séparé d'UCM Exporter, dans ce monorepo | UCM Exporter garde sa garantie : l'analyse et la publication n'écrivent jamais dans le document |
-| D2 | Chaque palette a deux sorties dans Figma : une planche, des cadres qui la dessinent avec ses informations, et ses variables de couleur ([section 17](#17-sortie-2--les-variables)) | Le plugin n'écrit de variables que dans la destination que le designer a confirmée, ou dans les variables qu'il a reprises du fichier. Il n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias |
+| D2 | Chaque palette a deux sorties dans Figma : une planche, des cadres qui la dessinent avec ses informations, et ses variables de couleur ([section 17](#17-sortie-2--les-variables)) | Le plugin n'écrit de variables que dans la destination que le designer a confirmée, ou dans les variables qu'il a reprises du fichier. Il n'écrit ni `color-brands`, ni `color-utilities`, ni `theme`, ni alias |
 | D3 | L'unité est la palette, sans notion de marque ni de famille | Le plugin ne nomme jamais une couleur `primary` ou `danger` ; le nom éventuel vient du designer |
 | D4 | Le Color shift règle la teinte, la saturation et la luminosité aux deux bouts, autour de la couleur de référence | La couleur de référence reste fixe ; les autres crans suivent le réglage en direct, dans des limites qui gardent les garanties tenues ([section 12](#12-le-color-shift)) |
 | D5 | Un préréglage « Tailwind » calcule les deux dérives de teinte depuis le relevé des rampes Tailwind | Reproduire le comportement de Tailwind tient en un clic. La saturation et la luminosité n'ont pas de préréglage |
 | D6 | Le plugin n'a aucun accès réseau | La recette exportée se range à la main dans un dépôt |
-| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source. Le vocabulaire qu'UCM Palettes, l'architecture et `ucm check` partagent, emplois, paires, rangs et contraste WCAG 2, est dans le point d'entrée `@ucm-kit/core/emplois` du kit publié | Le plugin, ses tests et `ucm check` jugent sur la même table et le même arrondi. `ucm-couleur` importe ce vocabulaire ; la fabrication des palettes, la recette et ses formats restent hors du kit |
+| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source. Le vocabulaire qu'UCM Palettes, l'architecture et `ucm check` partagent, la table en dossiers, ses deux sens, les sept garanties et le contraste WCAG 2, est dans le point d'entrée `@ucm-kit/core/emplois` du kit publié | Le plugin, ses tests et `ucm check` jugent sur la même table et le même arrondi. `ucm-couleur` importe ce vocabulaire ; la fabrication des palettes, la recette et ses formats restent hors du kit |
 | D8 | Les contrastes se mesurent contre deux fonds de référence saisis, un clair et un sombre | Le plugin ne fabrique pas de rampe neutre |
-| D9 | Les emplois forment une table fixe, celle de l'architecture, commune à toutes les palettes | Le designer voit quel cran sert à quoi et si la promesse tient. Aucune palette ne relie un emploi à un autre cran, et la recette ne porte aucun câblage |
+| D9 | Les variables de dossier forment une table fixe, celle de l'architecture, commune à toutes les palettes. Le texte des boutons de chaque thème en choisit le sens | Le designer voit quel cran sert à quelle variable et si la garantie tient. Aucune palette ne relie une variable à un autre cran, et la recette ne porte aucun câblage |
 | D10 | La recette rangée dans le fichier Figma fait autorité ; le JSON exporté en est une copie | Un import de JSON est un geste explicite, précédé de l'écart |
 | D11 | Les couleurs produites sont des hexas sRGB à 8 bits par canal | Chaque contraste et chaque distance se calcule sur l'hexa, jamais sur le flottant |
 | D12 | Les profils se nomment `soft` et `vivid`, comme dans l'architecture | La recette, le moteur et la planche emploient ces deux noms. Aucune recette n'était rangée quand le nom a changé : la lecture n'a pas de migration pour `subtle` |
@@ -101,7 +102,7 @@ paramètre de la recette.
 | Q3 | Seuil de confusion entre profils | 0,02 en distance Oklab | Recette, `seuils` |
 | Q4 | Gamut de fabrication | sRGB, tranché par l'architecture, qui écarte Display P3 | Recette, `gamut`, qui n'accepte que `srgb` |
 | Q5 | Fonds de référence | `#F7F7F7` en clair, `#121212` en sombre : le gris de clarté 0,975 et 0,18 | Recette, `fonds` |
-| Q6 | Profil vérifié par les promesses | Les deux, `soft` et `vivid` | Aucun endroit : la table des emplois vaut pour les deux profils |
+| Q6 | Profil vérifié par les promesses | Les deux, `soft` et `vivid` | Aucun endroit : la table en dossiers vaut pour les deux profils |
 | Q7 | Color shift d'une palette nouvelle | Teinte du préréglage Tailwind, saturation et luminosité à zéro | Réglage de la palette |
 
 Les courbes et les parts de chroma sont des choix visuels : l'architecture les
@@ -116,7 +117,7 @@ Le plugin fait :
 - fabriquer, pour chaque palette, ses quatre rampes ;
 - régler le Color shift aux deux bouts, avec un aperçu en direct et des limites qui gardent les garanties tenues ;
 - mesurer les contrastes de chaque cran contre les fonds de référence ;
-- vérifier les promesses de la table des emplois ;
+- vérifier les sept garanties de la table en dossiers ;
 - signaler les alertes ;
 - dessiner un cadre par palette, et le redessiner quand la recette change ;
 - écrire chaque palette dans les variables de couleur de la destination que
@@ -129,8 +130,8 @@ Le plugin fait :
 Le plugin ne fait pas :
 
 - créer ou modifier un style ;
-- écrire une variable `brand`, `theme` ou `usage`, ni un alias ;
-- deviner l'emploi d'une palette ;
+- écrire une variable de `color-brands`, de `color-utilities` ou de `theme`, ni un alias ;
+- deviner à quoi sert une palette ;
 - publier vers GitHub ou GitLab ;
 - créer ou modifier un composant ;
 - écrire hors de la page de la planche, de la recette et des suivis rangés
@@ -775,14 +776,26 @@ dix-sept paires.
 
 - `[ENT-05]` Deux hexas, `fonds.light` et `fonds.dark`, dans la configuration
   de la recette.
-  Ils servent de fond de page pour tous les contrastes du mode, de couleur du
-  texte posé sur un fond plein (`on-solid`), et de fond aux sections de la
-  planche.
-- `[ENT-06]` Un fond clair plus sombre que le cran 50 clair, ou un fond sombre
-  plus clair que le cran 50 sombre, produit l'alerte « fond hors de la
-  courbe » : les contrastes promis par l'architecture supposent le cran 50. La
-  clarté du fond se compare à la valeur de la courbe avec une tolérance de
-  0,005 : `#121212`, le fond sombre par défaut, a une clarté de 0,1822.
+  Ils servent de fond de la page (`elevation/page`) pour tous les contrastes
+  du mode, et de fond aux sections de la planche. La configuration range aussi
+  `texteDesBoutons`, blanc ou noir pour chaque thème : il fixe la couleur de
+  `solid/foreground` et le sens de la table du thème (section 11.2). Changer
+  le texte des boutons d'un thème remplace ses nuances 500 à 800 par les
+  luminosités par défaut du sens d'arrivée, normal ou inversé, dans les deux
+  directions ; les autres nuances gardent leurs valeurs. Quand l'une des
+  nuances 500 à 800 est réglée, c'est-à-dire différente du défaut du sens
+  courant, le plugin demande confirmation (« Remplacer », « Annuler »). Une
+  courbe qui ne reste pas strictement monotone après le remplacement est
+  refusée, et la recette ne change pas. Les variables du thème passent
+  « À actualiser » dans Gestion.
+- `[ENT-06]` Un fond clair plus sombre que la nuance la plus légère de la
+  liste, ou un fond sombre plus clair que la nuance la plus légère de la liste
+  sombre, produit l'alerte « fond hors de la courbe », qui nomme cette nuance
+  par son numéro : la garantie des
+  courbes (`[ENT-10]`) se mesure contre cette nuance, la 50 des préréglages,
+  et ne couvre pas un fond au-delà. La clarté du fond se compare à la valeur de la courbe avec une
+  tolérance de 0,005 : `#121212`, le fond sombre par défaut, a une clarté de
+  0,1822.
 
 ### 8.3 La recette commune
 
@@ -801,9 +814,13 @@ composant du socle la porte (`[UI-02]`).
   liste importée se dit « Liste importée ». Au-delà de onze nuances, les
   champs de la table se resserrent pour tenir à la largeur minimale.
 - `[ENT-12]` Les Réglages communs se rangent en six cartes : Couleurs de
-  fond, Intensités, Luminosité des nuances, puis, repliées, Minimums des
-  promesses, Détection des couleurs proches et Contenu des planches
-  (`[PLA-28]`). La carte Intensités porte, sous Soft et Vivid, « Fonds du
+  fond, Intensités, Luminosité des nuances, puis, repliées, Contrastes
+  minimums, Détection des couleurs proches et Contenu des planches
+  (`[PLA-28]`). Couleurs de fond donne, pour chaque thème, le « Fond de la
+  page » (`elevation/page`) et le « Texte des boutons » (`solid/foreground`),
+  Blanc ou Noir ; « Rétablir » y remet le texte des boutons sans
+  confirmation, et affiche le refus d'`[ENT-05]` quand la courbe par défaut
+  ne reste pas monotone. La carte Intensités porte, sous Soft et Vivid, « Fonds du
   thème Dark », un curseur et un champ de 0 à 1 (`[MOT-28]`), qui touche
   toutes les palettes ; « Rétablir » le remet à 0,30 avec les parts. « Rétablir » remet une carte
   aux valeurs de la recette par défaut, sans toucher aux autres cartes ni aux
@@ -844,8 +861,8 @@ composant du socle la porte (`[UI-02]`).
 
 ## 9. Sortie 1 : la planche
 
-La planche dessine chaque palette dans Figma : ses rampes, ses usages et
-leurs garanties et ses contrastes. Elle sert à
+La planche dessine chaque palette dans Figma : ses rampes, ses variables par
+dossier avec leurs garanties, et ses contrastes. Elle sert à
 choisir une nuance, à présenter une palette et à comparer des palettes côte à
 côte.
 
@@ -935,9 +952,9 @@ côte.
 ### 9.2 Le cadre d'une palette
 
 Le cadre répond à la question que le designer se pose en posant un
-composant : quelle nuance pour quel usage, et est-elle lisible (récit R1,
+composant : quelle nuance pour quelle variable, et est-elle lisible (récit R1,
 maquette W3.6). Chaque thème se lit de haut en bas : les rampes des
-intensités de la palette, les usages de chacune dans leurs états, puis les
+intensités de la palette, les variables de chacune par dossier et par état, puis les
 contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 (`[PLA-28]`). L'écran de réglages qui essaie la palette est dans l'onglet Création
 (`[UI-14]`).
@@ -946,18 +963,20 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 ┌ Bleu ─────────────────────────────────────────────────────────────────────┐
 │ Bleu                                                                       │
 │ Couleur de référence #1E6FD9 · Vivid · nuance 600                          │
-├ Thème Light · fond #F7F7F7 ── filet ─────── ✓ Toutes les garanties tenues ┤
+├ Thème Light · fond de la page #F7F7F7 · texte des boutons blanc ── ✓ Toutes les garanties tenues ┤
 │ Les deux rampes                                                            │
 │        50     100    …    600    …    950                                  │
 │ Soft   [≈]    [≈]    …    [  ]   …    [  ]    codes sous chaque pastille   │
 │ Vivid  [≈]    [≈]    …    [◆]    …    [  ]                                 │
 │ ◆ : la couleur de référence exacte. ≈ : Soft et Vivid presque identiques…  │
-│ Quelle nuance pour quel usage · Soft, puis la même section · Vivid        │
-│                    default           hover             active             │
-│ Fonds légers       [Fond léger] 100  [Fond léger] 200  [Fond léger] 300   │
-│ surface            ✓ text 700 dessus : 5,34:1 …                            │
-│ Textes colorés     Lien coloré 700   …                                     │
-│ Fonds pleins · Bordures de champ · Anneau de focus · Séparateurs           │
+│ Quelle nuance pour quelle variable · Soft, puis la même section · Vivid    │
+│                    default           hover             pressed             │
+│ Fond plein         [Bouton]          [Bouton]          [Bouton]            │
+│ solid              solid/default · 700   …  solid/foreground dessus : ✓ …  │
+│ Fond teinté        [Fond teinté]     [Fond teinté]     [Fond teinté]       │
+│ surface            surface/default · 100 …  texte et contour : 800         │
+│ Sur la page        [Lien coloré]  [Champ]  [Anneau]  [Filet]               │
+│ page               page/foreground · 700 …  page/divider · 300             │
 │ Contrastes, nuance par nuance        une grille Soft, une grille Vivid     │
 ├ Thème Dark · fond #121212 ── filet ───────────────────────────────────────┤
 └────────────────────────────────────────────────────────────────────────────┘
@@ -967,7 +986,8 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
   référence avec son numéro de nuance, et son profil porteur pour une palette
   à deux intensités. Chaque thème ouvre sur son fond et son verdict : « ✓
   Toutes les garanties tenues », ou le nombre de garanties manquées du thème,
-  chaque intensité comptée, dans la couleur de danger. La version de la recette, l'empreinte du modèle
+  chaque intensité comptée, dans la couleur de danger. Le titre de la section
+  donne le fond de la page du thème et son texte des boutons. La version de la recette, l'empreinte du modèle
   (`[PLA-19]`) et l'espace de couleur du document restent dans les données de
   plugin du cadre et dans le rapport ; aucun texte du cadre ne les imprime. Le
   cadre ne porte pas d'avertissement permanent sur son remplacement : la
@@ -993,8 +1013,8 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 
 ### 9.3 Les pastilles des rampes
 
-- `[PLA-12]` Une pastille donne sa couleur et son code. Les rôles d'une nuance
-  se lisent dans les usages ; ses mesures, dans le détail d'une nuance de
+- `[PLA-12]` Une pastille donne sa couleur et son code. Les variables d'une
+  nuance se lisent dans les lignes de dossiers ; ses mesures, dans le détail d'une nuance de
   l'interface et dans le rapport.
 - `[PLA-13]` Un repère posé sur une pastille, ◆ ou ≈, prend le noir ou le
   blanc, celui des deux qui contraste le plus avec elle.
@@ -1007,49 +1027,59 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
   `teinte {cran}`.
 - `[PLA-15]` Une pastille où les deux profils se confondent porte ≈, sur tous
   les crans. L'alerte « Profils confondus » ne porte que sur les crans de la
-  table des emplois ([section 11.3](#113-alertes)).
+  table en dossiers, dans le sens de chaque thème ([section 11.3](#113-alertes)).
 - `[PLA-16]` Les textes du cadre sont sélectionnables et copiables : un code
   se copie depuis la planche sans ouvrir le plugin.
 
 ### 9.4 Quelle nuance pour quel usage
 
-Une ligne par usage, dans cet ordre : `surface-card`, quand la liste porte
-la 50, `surface`, `text`, `solid`, `border-control`, `focus`,
-`border-decorative`. `on-solid` n'a pas de ligne :
-il se lit sur `solid`. Chaque ligne donne à gauche le nom de l'usage, son rôle
-en police de code et ce qu'il habille ; puis une colonne par rang, `default`,
-`hover`, `active` et `active-hover`, dans le vocabulaire des composants. L'état avance d'une
-nuance. `surface-card`, `focus` et `border-decorative` n'ont que `default` ; l'anneau se lit
-« focus · état focus ». Une colonne montre un spécimen peint de la nuance de
-l'état, son numéro, puis ses garanties.
+La section s'intitule « Quelle nuance pour quelle variable ». Elle compte
+trois lignes, une par dossier de la table du sens du thème, dans cet ordre :
+`solid` (« Fond plein »), `surface` (« Fond teinté ») et `page` (« Sur la
+page »). Une ligne dont aucune variable n'est présente est omise. Chaque ligne
+donne à gauche le rôle du dossier, son nom en police de code et des exemples
+d'emploi. Sous `solid`, elle dit aussi `solid/foreground` et le texte des
+boutons du thème ; sous `surface`, `surface/foreground` et `surface/border`
+avec leur nuance, dites une fois. La palette neutre ajoute sous `page` une note
+sur `page/foreground-main`, corps de texte noir ou blanc purs hors de la
+rampe. Une colonne par état, `default`, `hover` et `pressed`, dans cet ordre
+dans les deux sens du thème : la nuance de `solid/pressed` est la 900 dans le
+sens normal et la 500 dans le sens inversé. Une cellule montre le spécimen d'une
+variable peint de sa nuance, le nom de la variable avec son numéro de nuance,
+puis ses garanties. `page` n'a pas d'états : ses variables
+`page/foreground`, `page/border`, `page/focus` et `page/divider` se suivent
+sous les trois colonnes.
 
-| Usage | Spécimen |
+| Variable | Spécimen |
 |---|---|
-| `surface-card` | une carte bordée de `border-decorative`, « Carte » écrit en `text` |
-| `surface` | un aplat, « Fond léger » écrit en `text` |
-| `text` | « Lien coloré » |
-| `solid` | un bouton plein, son libellé du fond du thème |
-| `border-control` | un champ bordé |
-| `focus` | un champ bordé de `border-control`, cerclé de l'anneau |
-| `border-decorative` | un filet |
+| `solid/default`, `solid/hover`, `solid/pressed` | un bouton « Bouton » plein, écrit de `solid/foreground` |
+| `surface/default`, `surface/hover`, `surface/pressed` | un aplat « Fond teinté », écrit de `surface/foreground` et bordé de `surface/border` |
+| `page/foreground` | « Lien coloré » |
+| `page/border` | un champ bordé |
+| `page/focus` | un champ cerclé de l'anneau |
+| `page/divider` | un filet |
 
-- `[PLA-17]` Toutes les paires du moteur sont représentées, dans chaque
-  thème. Sous un état, une ligne par paire dont il est membre : « sur » son
-  second membre quand il est premier, « dessus » son premier membre quand il
-  est second, avec ✓ ou ✗, le contraste mesuré et son niveau WCAG
-  (`[VER-13]`), dans le même texte. Une paire se lit donc sous
-  chacun de ses membres qui a une ligne. Une garantie manquée prend la
-  couleur de danger. `border-decorative` n'a aucune promesse, et aucune ligne
-  ne lui en invente une.
-- `[PLA-18]` Une palette à deux intensités a une section d'usages par
+- `[PLA-17]` Les sept garanties du moteur sont représentées, dans chaque
+  thème, lues dans les promesses du moteur : la planche ne juge rien. Une
+  garantie dont le premier membre a une cellule se lit dans cette cellule,
+  « sur » son fond. Sinon elle se lit sous le fond qu'elle juge, « dessus » :
+  `solid/foreground` sous chacun des trois fonds de `solid`, `surface/foreground`
+  et `surface/border` sous chacun des fonds de `surface` ; leur jugement contre
+  la page se lit sous `surface/default`. Chaque ligne donne ✓ ou ✗, le
+  contraste mesuré et son niveau WCAG (`[VER-13]`), dans le même texte. Une
+  garantie manquée prend la couleur de danger, et son échec compte dans le
+  verdict du thème. `page/divider` n'a aucune garantie : sa cellule dit « sans
+  minimum de contraste ». Une garantie dont un cran manque à la liste n'a
+  pas de ligne.
+- `[PLA-18]` Une palette à deux intensités a une section de variables par
   profil, « · Soft » puis « · Vivid », quel que soit le porteur : deux
   palettes de même configuration donnent deux cadres de même structure,
   quelle que soit la saturation de leur référence. Une palette à une
   intensité a une section, sans nom de profil. Le cadre de Bleu compte
-  1 966 calques à deux intensités et 1 008 à une, toutes parties dessinées.
+  1 754 calques à deux intensités et 902 à une, toutes parties dessinées.
 - `[PLA-28]` `contenuDesPlanches` choisit les parties qu'un cadre dessine :
-  la note sous les rampes, les usages, les grilles de contrastes, et chaque
-  thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
+  la note sous les rampes, les trois lignes de dossiers (clé `usages`), les
+  grilles de contrastes, et chaque thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
   pastilles portent les couleurs que la palette écrit dans ses variables
   ([section 17](#17-sortie-2--les-variables)). Une partie retirée change l'empreinte du modèle : les cadres générés
   passent « À actualiser ». La carte « Contenu des planches », repliée en
@@ -1135,17 +1165,20 @@ toutes les nuances : ses cases ne sont pas des promesses.
 
 - `[VER-01]` « Exporter le rapport » télécharge `palettes.rapport.json` : pour
   chaque palette et chaque mode, chaque cran avec son hexa et ses contrastes,
-  chaque promesse avec sa paire, son contraste et son verdict, et chaque alerte
-  avec sa mesure.
-- `[VER-02]` Le rapport porte l'empreinte de la recette qui l'a produit.
+  chaque promesse avec sa garantie, nommée par ses variables, son contraste et
+  son verdict, et chaque alerte avec sa mesure.
+- `[VER-02]` Le rapport porte l'empreinte de la recette qui l'a produit, et le
+  `texteDesBoutons` de chaque thème, qui donne le sens de sa table.
 - `[VER-16]` Le rapport porte sa propre version, `formatDuRapport`, distincte
   de celle de la recette. Un champ ajouté la garde ; un champ ou un code
   d'alerte retiré ou renommé la monte. La version 2 ajoute l'ancrage de chaque
   palette (`[MOT-17]`) et le profil de couleur du document, et retire l'alerte
   de la référence plus claire que le bouton. La version 3 ajoute `intensites`,
   1 ou 2, et donne les crans d'une palette à une intensité en une liste par
-  mode, sans clé de profil, et son ancrage sans profil. Le rapport garde toutes les
-  alertes du moteur, y compris celles que l'interface montre ailleurs que dans
+  mode, sans clé de profil, et son ancrage sans profil. La version 4 nomme la
+  garantie de chaque promesse par ses variables (`garantie.premier`,
+  `garantie.fond`, `garantie.seuil`), sans numéro, et ajoute `texteDesBoutons`.
+  Le rapport garde toutes les alertes du moteur, y compris celles que l'interface montre ailleurs que dans
   la liste des messages.
 
 ## 11. Les vérifications
@@ -1643,15 +1676,14 @@ Onglet Création, une palette ouverte :
 │ │ Référence exacte dans  [Auto|Soft|Vivid]                        │  │
 │ │ Auto a choisi Vivid                                             │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
-│ ┌ ▦ Aperçu · Les nuances sur le fond du thème ────────── Fond [■] ─┐  │
-│ │ ┌ surface peinte du fond du thème ──────────────────────────┐  │  │
+│ ┌ ▦ Aperçu · Les nuances sur le fond de la page ──────── Fond [■] ─┐  │
+│ │ ┌ surface peinte du fond de la page ────────────────────────┐  │  │
 │ │ │         50 100 200 300 400 500 600 700 800 900 950        │  │  │
 │ │ │ Soft  ┆┆ ■   ■   ■   ■   ■   ■   ■   ■   ■   ■   ■        │  │  │
 │ │ │ Vivid ┆┆ ■   ■   ■   ■   ■   ■   ◆   ■   ■   ■   ■        │  │  │
-│ │ │       └┘   └─────────┘             └─────────┘            │  │  │
-│ │ │  on-solid    surface               solid · text           │  │  │
-│ │ │                   └┘         └─────────┘                  │  │  │
-│ │ │       border-decorative      border-control · focus       │  │  │
+│ │ │ solid     texte des boutons · repos · survol · appui      │  │  │
+│ │ │ surface   repos · survol · appui · texte · contour        │  │  │
+│ │ │ page      filet · anneau de focus · texte · contour       │  │  │
 │ │ │ détail de la nuance choisie                                │  │  │
 │ │ └────────────────────────────────────────────────────────────┘  │  │
 │ │ ◆ Référence : Vivid · nuance 600                                │  │
@@ -1688,9 +1720,9 @@ palette » gardent leurs libellés au-dessus des champs.
 - `[UI-04]` L'aperçu occupe la largeur utile de sa carte : ses colonnes se
   calculent après les espacements et les bordures réels. La carte est fixe et
   toujours ouverte, sans chevron. Son en-tête porte un glyphe (`[UI-19]`), le
-  titre « Aperçu » et le sous-titre « Les nuances sur le fond du thème », comme
-  les autres cartes titrées, puis, à droite, la pastille du fond du thème
-  montré, que la bascule « Aperçu » de la ligne du titre choisit (`[UI-23]`).
+  titre « Aperçu » et le sous-titre « Les nuances sur le fond de la page »,
+  comme les autres cartes titrées, puis, à droite, la pastille du fond de la
+  page du thème montré, que la bascule « Aperçu » de la ligne du titre choisit (`[UI-23]`).
   La pastille est un bouton de saisie, hors des choix d'affichage : elle
   ouvre le sélecteur de couleur sur ce fond, et une ligne sous le sélecteur
   dit que le fond vaut pour toutes les palettes. La saisie change le réglage
@@ -1698,29 +1730,54 @@ palette » gardent leurs libellés au-dessus des champs.
   accessible du bouton nomme le thème et la valeur. Sous la surface, la ligne
   « ◆ Référence : Vivid · nuance 600 », coupée par une ellipse, nomme le profil porteur et la nuance du
   thème montré ; une palette à une intensité écrit « ◆ Référence : nuance
-  600 ». La surface est peinte du fond du thème choisi,
+  600 ». La surface est peinte du fond de la page du thème choisi,
   et ses textes, bordures, sélection et focus prennent des couleurs lisibles
   sur ce fond ; le reste du panneau garde le thème de Figma. Chaque colonne
-  porte son numéro de nuance, aligné entre Soft et Vivid. Une pastille
-  `on-solid` précède les rampes sur la hauteur des deux rangées : peinte du
-  fond du thème, détachée par un contour tireté, elle est la couleur du texte
-  posé sur un fond plein.
-  Sous les numéros, deux lignes d'accolades à trait fin nomment les rôles.
-  Ligne 1 : `on-solid`, `surface` et `solid · text`. Ligne 2 :
-  `border-decorative` et `border-control · focus`. Chaque accolade porte le
-  nom du rôle en police de code, puis son nom français dessous ; ses plages se
-  déduisent de `TABLE_DES_EMPLOIS` et de `decalagesDeLEmploi`. Une accolade ne
-  couvre que des nuances de rôle. Un libellé plus large que son accolade
-  déborde sur les colonnes libres de sa ligne, sans chevaucher son voisin. Les
-  accolades ne se focalisent pas et ne dessinent pas les états.
+  porte son numéro de nuance, aligné entre Soft et Vivid. Une case
+  tiretée précède les rampes sur la hauteur des deux rangées : peinte du fond
+  de la page, détachée par un contour tireté, elle est le texte des boutons du
+  thème, `solid/foreground`, blanc ou noir purs selon le réglage.
+  Sous les rampes, trois bandes à fond léger, `solid`, `surface` et `page`,
+  dans cet ordre, nomment les variables que la table du sens du thème montré
+  prend à chaque nuance ; les crans changent avec le thème montré et avec son
+  texte des boutons. Chaque bande porte en première colonne le spécimen de
+  son dossier, le nom du dossier en police de code dans un cadre peint de ses
+  variables, avec son rôle dessous : « fond plein », « fond teinté », « sur la
+  page ». Le spécimen prend les couleurs de Vivid, ou de la rampe unique :
+  `solid/default` et `solid/foreground` pour `solid`, `surface/default`,
+  `surface/border` et `surface/foreground` pour `surface`, `page/border` et
+  `page/foreground` pour `page`. Une rayure, sous les nuances que couvre un
+  groupe de variables, peint une petite pastille par nuance et par intensité ;
+  `solid/foreground` n'a qu'une petite pastille, du texte des boutons, sous la
+  case tiretée. Sous chaque rayure, le code du groupe en police de code, puis
+  son nom français. `solid` porte `foreground` (texte des boutons) et
+  `default · hover · pressed` (repos · survol · appui), `surface` porte
+  `default · hover · pressed` et `foreground · border` (texte · contour), `page`
+  porte `divider` (filet), `focus` (anneau de focus) et `foreground · border`.
+  Dans le sens inversé, `solid` s'écrit `pressed · hover · default` sous 500,
+  600 et 700. La palette du neutre lit `foreground-subtle · border` (texte
+  secondaire · contour) dans `page`, et une note sous la surface dit que
+  `page/foreground-main` est un corps de texte noir ou blanc pur, hors de la
+  rampe. À 500 px, un libellé qui ne tient pas dans sa plage passe à la ligne
+  après un « · », sans chevaucher son voisin. Les bandes sont décoratives pour
+  l'assistance technique : elles ne se focalisent pas et ne dessinent pas les
+  états.
+  Le survol lie les nuances aux variables. Survoler ou focaliser une pastille,
+  une petite pastille, un code, la case tiretée ou le spécimen d'un dossier
+  surligne ce que la table du sens du thème relie à cette cible : les codes et
+  les petites pastilles du cran, et la pastille du même cran dans l'autre
+  intensité ; le spécimen d'un dossier atténue les autres pastilles et les
+  autres bandes. La nuance choisie garde son surlignage, qu'un survol remplace
+  le temps du survol. Le surlignage ne porte ni délai ni animation, et suit le
+  thème montré et son texte des boutons.
   La nuance qui porte la référence exacte montre un repère fixe ◆, et la
   sélection d'une nuance est un anneau plein de 2 px de l'encre du fond,
   séparé de la pastille par un liseré du fond ; le focus reste un contour
   tireté. Un clic, Entrée ou Espace ouvre le détail d'une nuance ou de la
-  pastille `on-solid` à une place stable, qui peut grandir sans couper le
+  case tiretée à une place stable, qui peut grandir sans couper le
   texte (`[UI-10]`). Le même geste sur la cellule déjà choisie la relâche et
-  referme le détail, et le focus reste sur elle ; le survol signale la
-  cible sans déplacer la page. Les flèches, Origine et Fin déplacent le focus ;
+  referme le détail, et le focus reste sur elle ; le survol surligne
+  les variables liées sans déplacer la page. Les flèches, Origine et Fin déplacent le focus ;
   une copie de code est un geste distinct de la sélection.
 - `[UI-05]` La génération et l'écriture des variables appartiennent à
   l'onglet Gestion (`[UI-26]`). Le geste de la ligne « Planche » d'une fiche
@@ -1753,54 +1810,66 @@ palette » gardent leurs libellés au-dessus des champs.
   profil porteur est choisi. Quand l'autre thème a des garanties manquées,
   une ligne les compte et son lien montre ce thème dans la bascule du titre ;
   « Revenir au thème » ramène au thème d'avant.
-  Une réglette montre la case `on-solid`, puis les nuances du profil choisi,
-  numérotées, sur le fond du thème. Comme le graphe de la dérive, elle suit la
-  largeur de sa colonne sans grandir : le pas des cases se calcule sur la
-  largeur mesurée, et les cases, les numéros et les arcs gardent la taille
-  qu'ils ont dans la fenêtre minimale. La garantie choisie s'y trace par un arc
-  par état, de la nuance du premier membre à celle du second : trait plein en
-  `default`, tireté en `hover`, pointillé en `active`, tiret-point en
-  `active-hover`. Un arc en échec prend la couleur de danger, et une légende
-  d'une ligne nomme les quatre traits.
-  La liste donne une ligne par association (section 11.2), dans deux
-  encadrés : « Textes lisibles » au minimum texte, « Éléments visibles » au
-  minimum non textuel, chacun avec son titre en bandeau et son minimum lu
-  dans la recette. Sous le bandeau, les rangs `default`, `hover`, `active`
-  et `active-hover` se nomment une fois, en tête de quatre colonnes. Une ligne porte
-  la relation (« `text` sur `surface` »), les codes des rôles à la taille du
-  texte sur un fond de note, et son nom français, puis chaque état dans sa
-  colonne : le spécimen à gauche, les deux numéros comparés (« 700 / 100 »,
-  « fond / 700 »), puis le ratio avec ✓ ou ✗ et son badge de niveau
-  (`[VER-13]`) sur une seule ligne, « ✗ 21,00 » et « AA ✗ » compris. Sous
-  700 px de fenêtre, les colonnes passent de 150 à 92 px, le spécimen passe
-  au-dessus des numéros et du ratio, et le nom de chaque état se centre sur
-  sa colonne. La ligne choisie prend le fond de survol et une barre de 3 px
-  écartée du texte. Une ligne en échec
-  porte l'état fautif, son ratio et le minimum, puis le lien vers le réglage
-  qui peut agir (`[VER-15]`), « Ajuster la référence » (`[UI-15]`) en
-  dernier. La liste se termine par `border-decorative`,
-  sans spécimen et sans minimum.
+  Une réglette montre deux cases, la page et les boutons, puis les nuances du
+  profil choisi, numérotées. La case de la page est peinte du fond de la page
+  du thème, celle des boutons du texte des boutons, blanc ou noir purs. Comme
+  le graphe de la dérive, la réglette suit la largeur de sa colonne sans
+  grandir : le pas des cases se calcule sur la largeur mesurée, et les cases,
+  les numéros et les arcs gardent la taille qu'ils ont dans la fenêtre
+  minimale. La garantie choisie s'y trace en éventail : un arc part d'un seul
+  point, la nuance de son premier membre, ou la case des boutons pour
+  `solid/foreground`, vers chacun de ses fonds, un arc par colonne. Le trait
+  est plein pour `default`, tireté pour `hover`, pointillé pour `pressed` et
+  tiret-point pour la page. Un arc en échec prend la couleur de danger, et une
+  légende d'une ligne nomme les quatre traits et rappelle que le texte garde
+  sa nuance dans tous les états : seul le fond change.
+  La liste donne une ligne par garantie de la section 11.2, nommée par ses
+  variables et son libellé, jamais par son numéro. Les garanties se rangent
+  dans deux encadrés : « Textes lisibles » au minimum texte, « Éléments
+  visibles » au minimum non textuel, chacun avec son titre en bandeau et son
+  minimum lu dans la recette. Sous le bandeau, les quatre colonnes de fonds,
+  « sur la page », `default`, `hover` et `pressed`, se nomment une fois. Une
+  ligne porte la relation (« `surface/foreground` sur `surface/*` et la
+  page »), où `surface/*` désigne les trois états du dossier, et le libellé de
+  son premier membre (« texte sur fond teinté »). La ligne de
+  `solid/foreground` ajoute que ce texte suit le réglage « Texte des boutons »
+  du thème. Chaque fond jugé s'écrit dans sa colonne : le spécimen à gauche, les deux
+  numéros comparés (« 700 / 100 », « Blanc / 700 », « 700 / page »), puis le ratio avec ✓
+  ou ✗ et son badge de niveau (`[VER-13]`) sur une seule ligne, « ✗ 21,00 » et
+  « AA ✗ » compris. Une garantie qui ne vise pas un fond laisse sa case vide.
+  Sous 900 px de fenêtre, la relation passe au-dessus des quatre cases, qui se
+  partagent la largeur, le spécimen passe au-dessus des numéros et du ratio,
+  et le nom de chaque colonne se centre sur elle. La ligne choisie prend le
+  fond de survol et une barre de 3 px écartée du texte. Une ligne en échec
+  porte le fond fautif (« Sur la page » ou « État hover »), son ratio et le
+  minimum, puis les liens vers les réglages qui peuvent agir (`[VER-15]`),
+  « Ajuster la référence » (`[UI-15]`) en dernier. La liste se termine par
+  `page/divider`, le filet : une phrase dit sa nuance et qu'il n'a pas de
+  minimum de contraste.
   Une ligne se choisit au clic ou au clavier. Au départ, la première ligne en
-  échec est choisie, sinon `text` sur `surface` ; le choix redessine les arcs
-  et se conserve au changement de profil. Chaque ligne porte une étiquette
-  accessible qui dit la relation, les numéros, les ratios et le résultat. La
-  réglette est décorative pour l'assistance technique, et le choix du profil
-  annonce le résultat du profil qu'il ne montre pas.
+  échec est choisie, sinon la garantie de `surface/foreground` ; le choix
+  redessine les arcs et se conserve au changement de profil et de thème. Chaque
+  ligne porte une étiquette accessible qui dit la relation, le libellé, puis
+  chaque fond avec ses numéros, son ratio et son résultat. La réglette est
+  décorative pour l'assistance technique, et le choix du profil annonce le
+  résultat du profil qu'il ne montre pas.
 - `[UI-10]` Le détail d'une nuance se lit en trois rangs. L'en-tête : une
   grande pastille, « Vivid · 700 » en titre, son code hexadécimal et
   « Copier » ; celui de la référence ajoute « ◆ Votre couleur de référence
   exacte ». Puis chaque groupe dans son encadré, titré en capitales
   discrètes, et OKLCH replié. Dans l'encadré « Sert à », une ligne
-  par usage de la nuance : un spécimen, le rôle et l'état (« `solid` ·
-  default »), le nom français du rôle, puis la garantie qui le concerne avec le
-  numéro du partenaire et son badge (« ✓ sur `surface` 100 : 5,78:1 AA »). Un clic sur la
-  garantie ouvre Vérification et l'y choisit dans la carte des garanties
-  (`[VER-20]`). La pastille `on-solid` a son
-  propre détail : le fond de page du thème, `neutral.50` du design system,
-  posé en texte sur `solid` 700 à 950, avec les garanties de ces quatre états.
-  Une nuance sans rôle a l'encadré « Sans rôle », qui dit qu'aucun rôle du
-  modèle ne la vise. Toute nuance porte ensuite l'encadré « Contrastes de la
-  nuance » : fond du thème, blanc et noir, chacun avec son ratio et son badge
+  par variable que la table du sens du thème montré prend à cette nuance : un
+  spécimen, le code de la variable puis son libellé (« `surface/foreground` ·
+  texte sur fond teinté »), puis chacune de ses garanties, avec ✓ ou ✗, « sur »
+  son fond quand la variable est le premier membre ou « dessus » son premier
+  membre quand elle est le fond, le contraste et son badge (« ✓ sur
+  `surface/default` : 5,78 AA »). Un clic sur la garantie ouvre Vérification
+  et l'y choisit dans la carte des garanties (`[VER-20]`). La case tiretée a
+  son propre détail : `solid/foreground`, le texte des boutons du thème, blanc
+  ou noir purs, posé sur `solid/default`, avec ses garanties pour chaque
+  intensité. Une nuance qu'aucune variable ne prend a l'encadré « Sans rôle »,
+  qui dit qu'aucun usage prédéfini ne la vise. Toute nuance porte ensuite
+  l'encadré « Contrastes de la nuance » : fond de la page, blanc et noir, chacun avec son ratio et son badge
   de texte courant (`[VER-13]`), puis la mention d'une nuance identique ou
   confondue. Les valeurs OKLCH se replient sous « OKLCH ». Aucun contraste ne
   s'écrit deux fois, et aucun ratio ne s'affiche sans le nom de ce qu'il
@@ -1846,7 +1915,7 @@ palette » gardent leurs libellés au-dessus des champs.
   montre une puce par multiple de 50, de 50 à 1050, allumée
   quand la palette porte ce numéro. Une puce allumée ne s'éteint pas sous
   quatre numéros ; une puce éteinte ne s'allume pas au-delà de treize. Une
-  palette libre n'a ni accolades, ni pastille `on-solid`, ni carte des
+  palette libre n'a ni bandes, ni case tiretée, ni carte des
   garanties, et chaque bilan de garanties dit « Palette libre · N nuances ».
   Le détail d'une nuance libre ne lui prête aucun rôle. Standard rend la
   liste commune.
@@ -1975,17 +2044,26 @@ palette » gardent leurs libellés au-dessus des champs.
   intensité est peinte de sa rampe unique, sans le choix du profil, et son
   en-tête ne garde que « Vue ». « Écran » : une page « Membres de
   l'équipe » sur le modèle de Radix Themes, en HTML, avec une navigation dont
-  l'entrée active est en `surface`, un encart en `surface`, un tableau dont
-  une ligne se choisit, des badges `surface` et `solid`, un champ bordé de
-  `border-control` et cerclé de `focus` au focus, une case et un
+  l'entrée courante est en `surface`, un encart en `surface`, un tableau dont
+  une ligne se choisit, des badges `surface`, `solid` et `page`, un champ
+  bordé de `page/border` et cerclé de `page/focus` au focus, une case et un
   interrupteur en `solid`, et trois boutons, sans fond, `surface` et
-  `solid`. Le survol et l'appui avancent d'une nuance, texte et fond
-  ensemble, et les contrôles se manipulent sans rien enregistrer. « États » :
-  une rangée par composant, boutons plein, soft, contour et sans fond,
-  champ, lien et badge, et une colonne par état, `default`, `hover`,
-  `active` et `focus`, chaque cellule peinte de son état sans survol.
-  Chaque couleur vient de la table des emplois. Une palette libre n'a pas
-  cette carte. La planche ne porte pas cet écran.
+  `solid`. Le survol et l'appui prennent les fonds `hover` et `pressed` de
+  `solid` ou de `surface` ; le texte ne change pas avec l'état. Les
+  contrôles se manipulent sans rien enregistrer. « États » : une rangée par
+  composant, boutons plein, soft, contour et sans fond, champ, lien et
+  badge, et une colonne par état, `default`, `hover`, `pressed` et `focus`,
+  chaque cellule peinte de son état sans survol. Le focus garde la forme du
+  repos et ajoute l'anneau `page/focus` ; un composant qui n'a pas un état
+  garde un tiret. La vue n'a pas de ligne « Carte » : la table ne donne pas
+  de fond de carte à la palette, `elevation/raised` n'ayant pas de réglage.
+  Survoler un élément ou un spécimen ouvre une bulle sous lui : une ligne par
+  propriété qu'il peint, fond, texte, contour, anneau, coche, icône,
+  pastille ou séparateur, avec la variable en police de code et sa nuance,
+  le texte des boutons pour `solid/foreground`. La bulle est une aide à la
+  souris, cachée aux lecteurs d'écran ; au clavier, rien ne change. Chaque
+  couleur vient de la table des dossiers du sens du thème montré. Une palette
+  libre n'a pas cette carte. La planche ne porte pas cet écran.
 - `[UI-15]` « Ajuster la référence », sous le code ou parmi les réglages
   d'une garantie en échec, ouvre une modale centrée au-dessus du panneau,
   sur un voile assombri : 520 px de large au plus, 16 px de marge à la
@@ -1993,16 +2071,17 @@ palette » gardent leurs libellés au-dessus des champs.
   inerte, et Tab reste dans la modale. Elle part de la référence rangée.
   En tête, sous le titre, une phrase dit pourquoi ajuster, une idée par
   phrase, sans ratio : « La palette utilise votre couleur telle quelle. En
-  Thème Light, elle est trop claire pour les bordures de champ. », avec le
-  premier rôle manqué de chaque thème, trop claire en Light, trop sombre en
-  Dark. Suivent l'originale et la proposition en grandes pastilles côte à
+  Thème Light, elle est trop claire pour « anneau de focus » (`page/focus`). »,
+  avec la variable de la première garantie manquée de chaque thème, son
+  libellé puis son nom, trop claire en Light, trop sombre en Dark. Suivent l'originale et la proposition en grandes pastilles côte à
   côte ; « − » et « + » par pas de 0,01 de la luminosité du profil porteur
   (`[ENT-15]`), de −5 à +2 pas, et entre eux une piste qui peint les
   propositions voisines ; une ligne qui donne la nuance visée, que la
   luminosité ne change pas (`[MOT-17]`) ; le code de la proposition,
   saisissable, qui prend le pas le plus proche ; les garanties
   manquées avant ou après, en tableau (garantie, thème, avant, après et son
-  badge), le thème et l'intensité passant en titre de groupe sous 552 px
+  badge), la garantie nommée par ses deux variables, qui passent à la ligne
+  entre elles et jamais dans un nom, le thème et l'intensité passant en titre de groupe sous 552 px
   de fenêtre ; le bilan de chaque intensité ; puis « Annuler » et
   « Appliquer ». Seul « Appliquer » range : le pas devient la luminosité du
   porteur, comme dans la carte « Réglage global », et
@@ -2116,7 +2195,7 @@ Onglet Vérification :
 │ │ où · quoi · geste                          [Ajuster la saturation]  │
 │ ┌ Garanties de contraste ──────────────────────────────────────────┐ │
 │ │                                   Afficher  [Soft ✓ | Vivid ✗ 2] │  │
-│ │ réglette : on-solid, onze nuances, arcs de la garantie choisie  │  │
+│ │ réglette : page, boutons, onze nuances, éventail de la garantie  │  │
 │ │ Textes lisibles                                 minimum 4,5:1   │  │
 │ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
 │ │ Éléments visibles                                 minimum 3:1   │  │
@@ -2362,13 +2441,13 @@ qui le créera.
 | Un profil réglé seul | Soft tourné de 8°, aucun avertissement, la lettre de Vivid sur chaque piste, le repère de la référence |
 | Avant un réglage du porteur | Vivid ◆ choisi, l'avertissement avant tout geste |
 | Référence modifiée | L'avertissement après le geste, « Ajustée depuis » sous le code, le porteur fixé par les réglages |
-| Vérification tenue | Onglet Vérification : verdict de succès, choix du profil ✓ sur les deux profils, `text` sur `surface` choisie et ses trois arcs, « Passer à Gestion » |
+| Vérification tenue | Onglet Vérification : verdict de succès, choix du profil ✓ sur les deux profils, la garantie de `surface/foreground` choisie et ses quatre arcs, « Passer à Gestion » |
 | Vérification manquée | Verdict de danger, messages à corriger avec leurs liens, première ligne en échec choisie, arc de danger, « Retour à Création » |
 | Vérification d'une palette libre | « Palette libre · N nuances », aucune carte des garanties |
 | Garantie de l'autre thème | Ligne qui compte les garanties manquées de l'autre thème, thème basculé, « Revenir au thème » |
 | Verdicts dans le sélecteur | La liste ouverte sur trois palettes : ✓, ! et ✗ à droite de chaque option et sur le bouton |
-| Détail de la référence | La nuance de la référence choisie : usages, garanties avec numéros, repère ◆ |
-| Nuance sans rôle | « Sans rôle », puis la table des contrastes, fond du thème, blanc et noir, chacun avec son badge |
+| Détail de la référence | La nuance de la référence choisie : variables, garanties, repère ◆ |
+| Nuance sans rôle | « Sans rôle », puis la table des contrastes, fond de la page, blanc et noir, chacun avec son badge |
 | Nuance désélectionnée | La nuance choisie recliquée : détail refermé, focus resté sur la pastille |
 | Cartes repliées | « Réglage global » et « Color shift » repliées, leur glyphe, leur résumé sur une ligne, un point à vérifier annoncé |
 | Fond personnalisé | Un fond saturé peint sous le nuancier, textes et focus lisibles dessus |
@@ -2376,7 +2455,7 @@ qui le créera.
 | Interface de test | L'écran de réglages peint de la palette, aux deux thèmes de l'aperçu |
 | Ajuster la référence | La modale après deux pas : originale et proposition, nuance visée, garanties avant et après |
 | Référence ajustée | « Ajustée depuis #16A34A · Revenir à l'originale » sous le code |
-| Palette libre | Libre pressé, six puces allumées, l’aperçu à six colonnes sans `on-solid` ni accolades, aucune carte des garanties |
+| Palette libre | Libre pressé, six puces allumées, l’aperçu à six colonnes sans case tiretée ni bandes, aucune carte des garanties |
 | Référence dans le sélecteur de couleur | La pastille de la référence ouverte, les nuances Vivid de la palette proposées |
 | Réglages communs | Fonds, intensités, luminosité et groupes repliés, avec le nombre de palettes concernées |
 | Réglages communs sans palette | Aucun aperçu en tête, tracé sans ◆, aucune palette concernée |
@@ -2470,7 +2549,7 @@ qui le créera.
 
 ```text
 packages/kit/src/emplois/        @ucm-kit/core/emplois, publié         [ARC-01]
-                                   emplois, dix-neuf paires, rangs, table des états, contraste WCAG
+                                   table en dossiers et ses deux sens, sept garanties, contraste WCAG
 
 packages/couleur/                ucm-couleur, privé, le moteur pur    [ARC-01]
   src/conversions.ts               hexa, sRGB, linéaire, Oklab, OKLCH, P3
@@ -2478,7 +2557,7 @@ packages/couleur/                ucm-couleur, privé, le moteur pur    [ARC-01]
   src/rampe.ts                     cran, teinte pivotée, rampe entière
   src/tailwind.ts                  le préréglage et son relevé
   src/contraste.ts                 contraste WCAG, ΔEok, part de chroma
-  src/promesses.ts                 le jugement des dix-neuf paires sur les rampes
+  src/promesses.ts                 le jugement des sept garanties sur les rampes
   src/limites.ts                   la limite dynamique d'un réglage et sa cause
   src/alertes.ts                   les alertes de la section 11.3
   src/recette.ts                   forme, validation, classement, recette par défaut
@@ -2520,8 +2599,8 @@ packages/plugin-palettes/        le plugin UCM Palettes              [ARC-03]
 - `[ARC-04]` Le moteur est le paquet privé `ucm-couleur`, sans étape de build :
   son `package.json` exporte `./src/index.ts`, qu'esbuild, tsx et tsc en
   résolution `Bundler` lisent tels quels. Il ne dépend que de `@ucm-kit/core`,
-  dont il lit le point d'entrée `./emplois` : la table des emplois, les
-  dix-neuf paires, les rangs et le contraste WCAG 2, que `ucm check` lit
+  dont il lit le point d'entrée `./emplois` : la table en dossiers et ses
+  deux sens, les sept garanties et le contraste WCAG 2, que `ucm check` lit
   aussi. Le kit n'importe rien d'`ucm-couleur`. Sa compilation cible ES2020
   sans types d'environnement : `figma`, `document`, `window` et
   `performance` y sont des erreurs. Un changement de ce vocabulaire monte la

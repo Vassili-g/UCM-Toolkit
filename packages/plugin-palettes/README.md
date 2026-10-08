@@ -35,23 +35,31 @@ Dans **Création**, créez une palette avec un nom, une couleur de référence
 et un modèle de nuances. Choisissez une intensité unique ou deux intensités,
 Soft et Vivid. Le sélecteur de couleur accepte Hex, RGB et HSL.
 
-L'aperçu montre les nuances sur le fond de chaque thème. Sélectionnez une
-nuance pour examiner ses valeurs et ses emplois. Les cartes « Réglage
-global » et « Color shift » règlent la saturation, la teinte et la luminosité
-le long des rampes. Le pied compte les garanties et les points à vérifier ;
+L'aperçu montre les nuances sur le fond de la page de chaque thème. Trois
+bandes, `solid`, `surface` et `page`, nomment sous les rampes les variables
+de chaque dossier ; survoler une nuance, une variable ou un dossier surligne
+ce qui les relie. Sélectionnez une nuance pour examiner ses valeurs, les
+variables qu'elle porte et leurs garanties. Les cartes « Réglage global » et
+« Color shift » règlent la saturation, la teinte et la luminosité le long des
+rampes. Le pied compte les garanties et les points à vérifier ;
 « Vérifier » ouvre l'onglet suivant sur la même palette.
 
-Les réglages communs, derrière l'engrenage, définissent les fonds, les
-intensités, les courbes de luminosité et les seuils de signalement.
+Les réglages communs, derrière l'engrenage, définissent le fond de la page et
+le texte des boutons, blanc ou noir, de chaque thème, les intensités, les
+courbes de luminosité et les seuils de signalement. Un texte des boutons qui
+n'a pas la couleur de la page inverse la table des nuances du thème et
+remplace les luminosités des nuances 500 à 800 par celles de la courbe
+inversée, après confirmation si le designer les a réglées.
 
 ## Vérifier une palette
 
 **Vérification** montre le verdict de la palette ouverte, ses messages et la
-carte des garanties de contraste. Le lien d'un message nomme le geste et
+carte des garanties de contraste : sept garanties, jugées contre le fond de la
+page, chacune sur ses fonds `default`, `hover` et `pressed`. Le lien d'un message nomme le geste et
 ouvre le réglage où il se fait. Le sélecteur porte le verdict de chaque
 palette.
 
-Les contrastes portent sur les associations affichées. Ils ne constituent pas
+Les contrastes portent sur les sept garanties affichées. Ils ne constituent pas
 un audit d'accessibilité de l'interface qui utilisera ces couleurs.
 
 ## Écrire dans Figma : deux sorties
@@ -119,7 +127,8 @@ retrait, synchronisez puis réessayez pour retirer les variables restantes.
 ### Les planches
 
 « Créer la planche » dessine le cadre d'une palette. Les réglages du contenu
-choisissent les thèmes, les usages et les grilles. Le plugin remplace ses
+choisissent les thèmes, les lignes de dossiers `solid`, `surface` et `page`,
+et les grilles. Le plugin remplace ses
 cadres à leur emplacement ; des calques étrangers demandent confirmation
 avant leur remplacement. Une copie de cadre faite par le designer reste
 distincte du cadre suivi. « Changer », sur la ligne « Planches », choisit la
@@ -127,7 +136,7 @@ page et y déplace les planches déjà créées.
 
 ### Limites de l'écriture
 
-- Il n'écrit ni `brand`, ni `theme`, ni `usage`, ni alias.
+- Il n'écrit ni `color-brands`, ni `color-utilities`, ni `theme`, ni alias.
 - La reprise d'une palette locale peut renommer ses variables sous leur thème
   et leur intensité. Elle conserve leurs identifiants et leurs liaisons.
 - Il ne supprime une variable que par « Supprimer les variables… », sur la
@@ -140,9 +149,10 @@ page et y déplace les planches déjà créées.
 
 Les modifications de palette sont enregistrées dans les données du document.
 L'écriture des tokens et le dessin des planches restent des gestes distincts.
-La recette courante utilise le format **8**, défini dans [le moteur de
-couleur](../couleur/README.md). Une recette d'un format antérieur ne se
-convertit pas.
+La recette courante utilise le format **9**, défini dans [le moteur de
+couleur](../couleur/README.md). Une recette au format 8 se lit : le plugin lui
+ajoute le texte des boutons par défaut et la range au format 9 au prochain
+enregistrement. Une recette antérieure ne se convertit pas.
 
 En bas de Gestion, la carte « Palettes et réglages » propose l'export de la
 recette JSON et du rapport de vérification. L'import présente les différences

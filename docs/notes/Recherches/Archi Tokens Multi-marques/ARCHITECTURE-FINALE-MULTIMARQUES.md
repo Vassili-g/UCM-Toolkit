@@ -13,7 +13,8 @@ palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/1%20Reche
 la même architecture en schémas, à ouvrir dans un navigateur : le panneau des
 variables de Figma aujourd'hui et demain, et les décisions D1 à D17, chacune
 avec sa raison, l'option écartée et son origine. Ce document cite une décision
-par son numéro.
+par son numéro. La vue décrit encore la collection `usage` (D11, D13, D17) : la
+table en dossiers des sections 4 et 5 l'a remplacée.
 
 Chaque nombre cité se rejoue avec un script de ce dossier :
 
@@ -32,8 +33,8 @@ donne donc le même contraste contre le fond de page, quelle que soit la couleur
 | Cran | Contraste contre le fond de page | Emploi sûr |
 |---|---|---|
 | 500 | 2,58 à 3,26 | aucun emploi qui demande un seuil |
-| 600 | 3,63 à 4,72 | bordure de contrôle, anneau de focus (seuil 3:1) |
-| 700 | 5,23 à 6,79 | texte (seuil 4,5:1) |
+| 600 | 3,63 à 4,72 | anneau de focus (seuil 3:1) |
+| 700 | 5,23 à 6,79 | texte et contour (seuils 4,5:1 et 3:1) |
 | 800 | 7,45 à 9,50 | texte appuyé |
 
 Ces bornes valent sur les 360 teintes, les deux profils et les deux thèmes,
@@ -41,11 +42,10 @@ calculées en flottant à teinte constante. Avec la dérive de Tailwind et
 l'arrondi à 8 bits, les minimums baissent d'au plus 0,02 : 3,62 pour le 600,
 7,44 pour le 800. Aucun ne franchit un seuil.
 
-Le thème sombre a sa propre courbe, avec les mêmes numéros. Le cran 50 est le
-fond de page dans les deux thèmes : le plus clair en clair, le plus sombre en
-sombre. Il sert aussi de surface de carte (`surface-card`, section 4) : une
-carte a la clarté du fond, un peu plus sombre que lui en sombre, et se borde
-du cran 300.
+Le thème sombre a sa propre courbe, avec les mêmes numéros. Le fond de la page
+n'est pas un cran : c'est le réglage « Fond de la page » de chaque thème,
+`elevation/page`, `#F7F7F7` en clair et `#121212` en sombre par défaut. Les
+garanties de la section 4 se mesurent contre lui seul.
 
 | Cran | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -62,9 +62,11 @@ aujourd'hui dix, onze ou douze selon la rampe, et son cran 500 y va de 2,2:1 à
 | 11 | 50 à 950, la table ci-dessus | aucune |
 | 13 | 50 à 950, puis 1000 et 1050 | 0,215 et 0,165 en clair, 0,960 et 0,980 en sombre |
 
-**Les crans 400 et 950 sont obligatoires** : le quatrième rang d'état les vise,
-`surface` à 400 et `solid`, `text` à 950 (section 4, D17). Une liste de crans
-qui omet l'un d'eux est refusée. Le cran 500 est le seul cran sans emploi.
+**Les crans requis** sont 100, 200, 300, 600, 700, 800 et 900, plus 500 quand
+un thème est inversé (section 4). Une liste de crans qui omet l'un d'eux est
+refusée. Les crans 50, 400 et 950 sont facultatifs : le plugin les calcule par
+défaut, une recette peut s'en passer, et aucune variable de dossier ni
+garantie ne les vise.
 
 Aucun préréglage n'insère de cran entre deux crans d'emploi : les états gardent
 leurs numéros (section 4), et un même numéro garde sa clarté d'un préréglage à
@@ -78,19 +80,19 @@ pas `theme`.
 | Collection | Modes | Contenu |
 |---|---|---|
 | `primitives` | aucun | Le catalogue des palettes nommées, chacune en `light` et `dark` ; `colors/white` et `colors/black` ; les espacements, les durées et la typographie (D5, D10) |
-| `brand` | un par marque | Ce qui change d'une marque à l'autre : un alias par cran de ses palettes `primary` et `secondary`, vers le catalogue, et sa couleur de charte (D3, D9) |
-| `color-utilities` | aucun | Ce que les marques partagent : un alias par cran du neutre et des quatre statuts, vers le catalogue, et les niveaux d'élévation (D6, D15) |
-| `theme` | `light`, `dark` | Chaque cran de chaque rôle, qui vise sa valeur claire ou sa valeur sombre selon une règle fixe (D2) |
-| `usage` | aucun | La table des emplois en variables : ce qu'un calque cite (D13, section 5) |
-| `components` | aucun | Les tokens de composants, qui visent `usage` (D11) |
+| `color-brands` | un par marque | Ce qui change d'une marque à l'autre : un alias par cran de ses palettes `primary` et `secondary`, vers le catalogue, et sa couleur de charte (D3, D9) |
+| `color-utilities` | aucun | Ce que les marques partagent : un alias par cran du neutre et des quatre statuts, vers le catalogue, et les deux niveaux d'élévation (D6, D15) |
+| `theme` | `light`, `dark` | Les variables en dossiers `solid`, `surface` et `page` de chaque palette, le neutre, `disabled/*`, `elevation/*` et `scale/*`, aliasées vers `color-brands` ou `color-utilities` selon la table de la section 4 (D2) |
+| `components` | aucun | Les tokens de composants, qui visent `theme` |
 
 Deux collections portent chacune un axe, et Figma choisit le mode de chaque
 collection séparément. Une maquette pose donc une marque et un thème sans que
 l'un dépende de l'autre. Une collection unique à douze modes, six marques fois
 deux thèmes, dépasserait les dix modes par collection de l'offre Professional.
 
-L'export dérive l'attribut HTML d'un axe du nom de sa collection : `brand`
-donne `data-brand` et `theme` donne `data-theme`, sans réglage dans
+L'export dérive l'attribut HTML d'un axe du nom de sa collection : `color-brands`
+donne `data-color-brands` et `theme` donne `data-theme`. Pour obtenir
+`data-brand`, déclarer `"modes": { "color-brands": "data-brand" }` dans
 `ucm.config.json`.
 
 ### Le chemin d'une couleur
@@ -106,19 +108,19 @@ primitives.colors.terracota.dark.700         une palette de marque, une intensit
 ```
 
 Un rôle choisit une palette par alias, sans déplacer de variable. Le fond
-d'une alerte de succès traverse cinq collections :
+d'une alerte de succès traverse quatre collections :
 
 ```text
 components.alert.success.background
-  → usage.success.soft.surface.default
-  → theme.success.soft.100                        light → color-utilities.success.soft.light.100
+  → theme.success.soft.surface.default            light → color-utilities.success.soft.light.100
                                                   dark  → color-utilities.success.soft.dark.100
   → color-utilities.success.soft.light.100        → primitives.colors.grass.soft.light.100
 ```
 
-La palette `primary` d'une marque suit le même chemin par `brand` :
-`theme.primary.700` vise `brand.palette.primary.dark.700` en sombre, et la
-colonne `intencial` de `brand` vise `primitives.colors.terracota.dark.700`.
+La palette `primary` d'une marque suit le même chemin par `color-brands` :
+`theme.primary.solid.default` vise `color-brands.palette.primary.dark.700` en
+sombre, et la colonne `intencial` de `color-brands` vise
+`primitives.colors.terracota.dark.700`.
 
 **Le neutre est une palette fixe et grise**, commune aux marques, avec une
 seule intensité. **Les quatre statuts**, `success`, `warning`, `info` et
@@ -126,29 +128,33 @@ seule intensité. **Les quatre statuts**, `success`, `warning`, `info` et
 palettes de marque** portent une seule intensité, celle de la couleur de charte
 (section 3.2). Chaque palette existe en deux jeux, un par courbe.
 
-**Tout ce qui dépend de la marque va dans `brand`.** Deux collections à six
-modes pourraient afficher la palette de la marque A avec les réglages de la
+**Tout ce qui dépend de la marque va dans `color-brands`.** Deux collections à
+six modes pourraient afficher la palette de la marque A avec les réglages de la
 marque B dans la même maquette.
 
-**Un calque cite `usage` ou `components`.** `primitives`, `brand`,
-`color-utilities` et `theme` reçoivent des portées vides : leurs variables ne
-paraissent dans aucun sélecteur de calque (D14).
+**Un calque cite `theme` ou `components`.** `primitives`, `color-brands` et
+`color-utilities` reçoivent des portées vides : leurs variables ne paraissent
+dans aucun sélecteur de calque (D14). Celles de `theme` suivent ce que chaque
+variable peint (section 5).
 
 ### Ce que `theme` expose
 
-| Groupe | Exemple | Cible en clair | Variables |
+| Groupe | Exemple | Cible en clair | Variables au préréglage 11 |
 |---|---|---|---|
-| Neutre | `theme.neutral.700` | `color-utilities.neutral.light.700` | 11 |
-| Statuts | `theme.danger.vivid.700` | `color-utilities.danger.vivid.light.700` | 88 |
-| Palettes de marque | `theme.primary.100` | `brand.palette.primary.light.100` | 22 |
-| Élévation | `theme.elevation.raised` | `color-utilities.elevation.light.raised` | 3 |
-| Exceptions | `theme.exception.…` | `brand.exception.light.…` | 0 |
+| Neutre | `theme.neutral.page.foreground` | `color-utilities.neutral.light.700` | 13 de palette, 4 propres au neutre, 3 de `disabled/*` |
+| Statuts | `theme.danger.vivid.solid.default` | `color-utilities.danger.vivid.light.700` | 13 par palette, soit 104 pour 8 palettes |
+| Palettes de marque | `theme.primary.surface.default` | `color-brands.palette.primary.light.100` | 13 par palette, soit 26 |
+| Élévation | `theme.elevation.raised` | `color-utilities.elevation.light.raised` | 2 |
+| Échelle | `theme.warning.vivid.scale.600` | `color-utilities.warning.vivid.light.600` | 1 par cran et par palette, soit 121 |
+| Exceptions | `theme.exception.…` | `color-brands.exception.light.…` | 0 |
 
-En sombre, la cible remplace `light` par `dark`. `theme` compte 124 variables
-à deux colonnes, et ne contient aucun choix du designer : quelle palette pour
-quelle marque se range dans `brand`, quelle palette pour quel statut dans
-`color-utilities`. Un script peut donc vérifier `theme` contre sa règle, et
-UCM Palettes peut l'écrire.
+En sombre, la cible remplace `light` par `dark`. Les 11 palettes comptent
+152 variables de dossier, plus 121 de `scale`, soit 273 variables à deux
+colonnes. Le nombre de crans de `scale` suit la liste de crans du fichier
+(section 1). `theme` ne contient aucun choix du designer : quelle palette pour
+quelle marque se range dans `color-brands`, quelle palette pour quel statut dans
+`color-utilities`. Un script peut donc vérifier `theme` contre sa règle.
+UCM Palettes ne l'écrit pas : `theme` se pose à la main (section 5).
 
 ### Les réglages et les exceptions de marque
 
@@ -160,33 +166,33 @@ d'une marque à l'autre. Le thème ne le modifie pas, donc il ne passe pas par
 `theme`.
 
 ```text
-brand.params.radius.button        marque A → 4 px      marque B → 999 px
-brand.params.font.title           marque A → Inter     marque B → Playfair Display
-components.button.radius       →  brand.params.radius.button
+color-brands.params.radius.button   marque A → 4 px      marque B → 999 px
+color-brands.params.font.title      marque A → Inter     marque B → Playfair Display
+components.button.radius         →  color-brands.params.radius.button
 ```
 
 Une **exception** sert quand une marque veut un composant différent dans un seul
 thème. Exemple : la marque B veut un bouton principal gris foncé en sombre, et
-identique aux autres en clair. `brand` porte les deux valeurs de chaque marque,
-et `theme` choisit la claire ou la sombre :
+identique aux autres en clair. `color-brands` porte les deux valeurs de chaque
+marque, et `theme` choisit la claire ou la sombre :
 
 ```text
-brand.exception.light.button.primary.background   A et B → brand.palette.primary.light.700
-brand.exception.dark.button.primary.background    A      → brand.palette.primary.dark.700
-                                                  B      → color-utilities.neutral.dark.200
-theme.exception.button.primary.background         light → brand.exception.light.button.primary.background
-                                                  dark  → brand.exception.dark.button.primary.background
-components.button.primary.background           →  theme.exception.button.primary.background
+color-brands.exception.light.button.primary.background   A et B → color-brands.palette.primary.light.700
+color-brands.exception.dark.button.primary.background    A      → color-brands.palette.primary.dark.700
+                                                         B      → color-utilities.neutral.dark.200
+theme.exception.button.primary.background                light → color-brands.exception.light.button.primary.background
+                                                         dark  → color-brands.exception.dark.button.primary.background
+components.button.primary.background                  →  theme.exception.button.primary.background
 ```
 
 Les six marques renseignent les deux valeurs d'une exception, y compris celles
-qui gardent le cran commun. Une exception sur un fond porte aussi ses états :
-un par rang de la section 4.
+qui gardent le cran commun. Une exception sur un fond porte aussi ses états,
+`default`, `hover` et `pressed` (section 4).
 
 Trois règles permettent d'ajouter l'un ou l'autre sans toucher à un composant
 publié :
 
-1. `brand` est la seule collection qui porte l'axe des marques. Un réglage ou
+1. `color-brands` est la seule collection qui porte l'axe des marques. Un réglage ou
    une exception s'y ajoute ; aucune seconde collection à six modes ne se crée.
 2. Chaque propriété d'un composant Figma est liée à une variable de
    `components`. Ajouter un réglage ou une exception repointe cette variable, et
@@ -289,7 +295,7 @@ et le designer l'ajuste.
 ### 3.4 La couleur exacte de la marque
 
 La couleur de la charte tombe rarement pile sur un cran. Elle reste hors de la
-rampe, sous `brand.identity.primary`, pour le logo et les aplats imposés par la
+rampe, sous `color-brands.identity.primary`, pour le logo et les aplats imposés par la
 charte. L'outil de génération affiche le cran dont elle est la plus proche en
 clarté, et dit ce qu'elle peut porter.
 
@@ -494,32 +500,34 @@ dossier.
 
 ## 6. L'élévation
 
-Trois niveaux, opaques, que `usage.elevation.*` expose et que
-`color-utilities.elevation.light|dark.*` choisit :
+Deux niveaux, opaques, que `theme.elevation.*` expose et que
+`color-utilities.elevation.light|dark.*` choisit. Le niveau `overlay`, menu et
+modale, est retiré de l'architecture.
 
 | Niveau | Usage | Light | Dark |
 |---|---|---|---|
-| `page` | fond d'écran | neutre 50 | neutre 50 |
+| `page` | fond d'écran, réglage « Fond de la page » | `#F7F7F7` par défaut | `#121212` par défaut |
 | `raised` | carte, panneau | blanc, et une ombre | neutre 100, et une ombre |
-| `overlay` | menu, modale | blanc, et une ombre plus forte | neutre 100, et une ombre plus forte |
 
 Les numéros de cran s'inversent entre les thèmes : un niveau plus haut prend
 un cran plus grand en sombre, et plus petit en clair, où il n'y a rien sous le
-cran 50. Les deux valeurs de chaque niveau se choisissent donc séparément,
-dans `color-utilities`, et `theme` reste une règle fixe.
+fond de la page. Les deux valeurs de chaque niveau se choisissent donc
+séparément, dans `color-utilities`, et `theme` reste une règle fixe. UCM
+Palettes ne mesure que `page` ; `raised` n'a pas de réglage dans le plugin et
+n'entre dans aucune mesure.
 
 Un voile translucide change selon ce qu'il recouvre, et la table ne garantit
 que des contrastes entre couleurs opaques. En clair, un voile blanc ne se voit
-pas sur le fond de page : le blanc mesure 1,07:1 contre le cran 50.
+pas sur le fond de page : le blanc mesure 1,07:1 contre le cran 50 de la
+courbe, proche du fond par défaut.
 
-`overlay` reste au cran 100 en sombre, et se distingue de `raised` par son
-ombre. Sur le neutre 100, sur 360 teintes et les deux intensités, le texte 700
-mesure au moins 4,88:1 et la bordure 600 au moins 3,41:1. Sur le neutre 200,
-ils tombent à 4,23:1 et 2,96:1, sous les seuils. La section 10 de
-`verifier-courbes.mjs` produit ces nombres.
+`raised` reste au cran 100 en sombre. Sur le neutre 100, sur 360 teintes et les
+deux intensités, le texte 700 mesure au moins 4,88:1 et la bordure 600 au moins
+3,41:1. Sur le neutre 200, ils tombent à 4,23:1 et 2,96:1, sous les seuils. La
+section 10 de `verifier-courbes.mjs` produit ces nombres.
 
-Un élément posé sur un support de même niveau prend `border-decorative`, pas un
-quatrième niveau.
+Un élément posé sur un support de même niveau prend `page/divider`, pas un
+niveau de plus.
 
 Les ombres sont des effect styles, dont la couleur se lie à une variable noire
 translucide, plus opaque en sombre. UCM Exporter publie un effet par son effect
@@ -544,20 +552,21 @@ Un attribut par axe, posé sur n'importe quel élément et valable pour ses
 enfants :
 
 ```html
-<html data-brand="marque-a" data-theme="light">
+<html data-color-brands="marque-a" data-theme="light">
   <aside data-theme="dark">…</aside>
 </html>
 ```
 
-`ucm tokens css` produit la feuille. L'application pose `data-theme` selon la
+`ucm tokens css` produit la feuille ; l'attribut d'une marque se renomme
+dans `ucm.config.json` (section 2). L'application pose `data-theme` selon la
 préférence du système ; la feuille n'émet aucune règle `prefers-color-scheme`.
 
-Un composant lit une propriété `--usage-*` ou la propriété de son token de
-composant, jamais `--theme-*` ni `--primitives-*` :
+Un composant lit une propriété `--theme-*` ou la propriété de son token de
+composant, jamais `--color-brands-*`, `--color-utilities-*` ni `--primitives-*` :
 
 ```css
 .button { background: var(--components-button-primary-background); }
-/* --components-button-primary-background: var(--usage-primary-solid-default); */
+/* --components-button-primary-background: var(--theme-primary-solid-default); */
 ```
 
 ## 9. Ce que coûte une marque
@@ -565,18 +574,17 @@ composant, jamais `--theme-*` ni `--primitives-*` :
 Deux palettes et une couleur de charte. Le designer donne la couleur primaire
 et la secondaire en hexa, et leurs teintes de bout sombre si la proposition ne
 convient pas ; UCM Palettes range les deux palettes dans le catalogue de
-`primitives`, 22 couleurs chacune. La colonne de la marque dans `brand` reçoit
+`primitives`, 22 couleurs chacune. La colonne de la marque dans `color-brands` reçoit
 44 alias vers ces palettes et la couleur de charte. `color-utilities`, `theme`
-et `usage` ne changent pas.
+et `components` ne changent pas.
 
 | Collection, six marques | Variables de couleur | Colonnes | Valeurs |
 |---|---|---|---|
 | `primitives` : 12 palettes de marque × 22, 4 statuts × 44, neutre 22, blanc et noir | 464 | 1 | 464 |
-| `brand` : 44 alias et la couleur de charte | 45 | 6 | 270 |
-| `color-utilities` : neutre 22, statuts 176, élévation 6 | 204 | 1 | 204 |
-| `theme` : 121 crans, 3 niveaux d'élévation | 124 | 2 | 248 |
-| `usage` : 10 palettes × 20, neutre 23, élévation 3 | 226 | 1 | 226 |
-| Total | 1 063 | | 1 412 |
+| `color-brands` : 44 alias et la couleur de charte | 45 | 6 | 270 |
+| `color-utilities` : neutre 22, statuts 176, élévation 4 | 202 | 1 | 202 |
+| `theme` : 152 variables de dossier, 121 de `scale` | 273 | 2 | 546 |
+| Total | 984 | | 1 482 |
 
 Le compte des valeurs pèse sur la taille de la feuille CSS que
 `ucm tokens css` imprime.
@@ -598,13 +606,14 @@ variables avant de la publier.
   description d'une variable s'affiche-t-elle dans le sélecteur, pour y écrire
   la paire de chaque usage ; la couleur d'une ombre liée à une variable
   suit-elle le mode de `theme` ?
-- Les contrôles de `ucm check` sur `tokens.json` et les contrats : un emploi
-  posé sur ce qu'il ne peint pas, une paire texte et fond qui n'est pas dans la
-  table, un cran hors table, un état qui ne vise pas son rang. Aucun n'est
-  écrit. Les paires texte et fond d'un composant se lisent dans ses contrats,
-  qui situent chaque peinture, et non dans les noms de ses tokens.
-- `theme` suit sa règle, et chaque marque et chaque thème ont une valeur :
-  aucun contrôle ne le vérifie encore.
+- Les contrôles d'une variable posée sur ce qu'elle ne peint pas ou d'un état
+  qui ne vise pas sa variable : le profil UCM d'UCM Explorateur compare les
+  couches, les portées et la nuance visée de `theme`, en information, mais
+  aucun contrôle ne lit les contrats. Les paires texte et fond d'un composant
+  se lisent dans ses contrats, qui situent chaque peinture, et non dans les
+  noms de ses tokens.
+- Le profil ne vérifie pas que chaque marque et chaque thème ont une valeur
+  pour toute variable de `theme`.
 - **Le bouton plein basculable, activé et survolé.** Question ouverte,
   posée sur la table en dossiers `solid`, `surface` et `page` à trois états
   (`default`, `hover`, `pressed`) qui remplace les quatre rangs. Un bouton

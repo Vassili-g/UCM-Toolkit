@@ -44,8 +44,8 @@ un composant composé. Couvrir un catalogue entier n'en fait pas partie.
 | Forges | Le plugin publie sur GitHub et sur gitlab.com : une branche, un fichier et une demande de fusion par export. `ucm init` écrit la CI de la forge du repository. Le parcours GitLab de la [recette](./docs/guides/RECETTE.md#parcours-gitlab) a été joué sur un projet gitlab.com |
 | Interopérabilité | JSON Schema publié dans `schema/`, dérivé de `types.ts`. Il décrit la forme, jamais la cohérence. Il ne bloque aucune fusion |
 | Corpus de recette | Le Playground contient quatre contrats en 13.0 et leurs implémentations jetables. Le build de l'exporteur produit désormais du 14.0 ; ce corpus ne prouve donc pas les ajouts de cette version |
-| Palettes | Création, Vérification et Gestion, recette 8, Color shift borné, palettes grises, interface anglaise et française, écriture des variables et reprise de palettes locales |
-| Emplois des couleurs | Le kit tient la table des emplois de Palettes ; `ucm check` n'en garde que la mesure des contrastes, en information. L'architecture cible n'est pas encore déployée dans les exports des deux consommateurs |
+| Palettes | Création, Vérification et Gestion, recette 9 avec le texte des boutons par thème, Color shift borné, palettes grises, interface anglaise et française, écriture des variables et reprise de palettes locales |
+| Couleurs du thème | Le kit tient la table en dossiers `solid`, `surface` et `page`, ses deux sens et ses sept garanties, que Palettes et l'explorateur lisent ; `ucm check` n'en garde que la mesure des contrastes, en information. L'architecture cible n'est pas encore déployée dans les exports des deux consommateurs |
 | Explorateur de tokens | UCM Token Explorer parcourt les variables de toute architecture, résout leurs chaînes par mode et lit leurs consommateurs, en lecture seule. Ses tests portent sur des relevés fabriqués et sur l’interface compilée dans Chromium ; son [suivi](./docs/notes/Recherches/Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) tient les mesures |
 
 Les [recherches](./docs/notes/Recherches/README.md) distinguent les chantiers

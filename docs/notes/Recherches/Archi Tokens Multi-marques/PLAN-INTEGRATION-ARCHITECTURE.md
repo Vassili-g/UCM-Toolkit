@@ -1,10 +1,20 @@
 # Plan d'intégration de l'architecture des tokens
 
-**Statut : partiellement implémenté.** Le kit partage les emplois, les
-dix-neuf paires et les quatre rangs avec Palettes et `ucm check`. L'écriture
-des six collections et la migration des consommateurs ne sont pas livrées.
-La direction simple limite Palettes aux palettes primitives ; les recettes
-anciennes sont refusées sans conversion. Le
+**Statut : partiellement implémenté, et dépassé sur la table.** Le plan du
+thème en dossiers a remplacé la table des emplois, les dix-neuf paires et les
+quatre rangs du lot A1 par la table en dossiers `solid`, `surface` et `page`
+et les sept garanties G1 à G7 (`packages/kit/src/emplois/dossiers.ts` et
+`garanties.ts`). La collection `usage` (D13) n'existe plus : `components` vise
+`theme`, qui vise `color-brands` (ancien `brand`) ou `color-utilities`. Le lot A4
+est remplacé par un diagnostic qui ne mesure que les contrastes ; le profil UCM
+d'UCM Explorateur reprend le contrôle des alias. La table livrée est décrite
+dans les sections 4 et 5 de
+[ARCHITECTURE-FINALE-MULTIMARQUES.md](./ARCHITECTURE-FINALE-MULTIMARQUES.md).
+Les lots ci-dessous gardent leur texte d'origine.
+
+L'écriture des collections hors `primitives` et la migration des
+consommateurs ne sont pas livrées. La direction simple limite Palettes aux
+palettes primitives ; les recettes anciennes sont refusées sans conversion. Le
 [bilan des recherches](../README.md) distingue ces périmètres.
 
 ## Résultat attendu
@@ -247,6 +257,9 @@ La [consigne de la direction
 globale](../Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/06%20Direction%20globale/PROMPT-DIRECTION-GLOBALE.md)
 décrit encore trois collections. Mettre à jour la consigne avant de lancer
 l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
+Les points ci-dessous citent `usage`, `brand` et la table des emplois : à lire
+avec `theme` en dossiers, `color-brands` et `dossiers.ts`. UCM Palettes
+n'écrit que `primitives`.
 
 - [ ] **A3.1** Section « Le contexte » : six collections de couleur ; le
   compte passe de 710 à 1 412 valeurs pour six marques, dont les alias de
@@ -272,9 +285,11 @@ l'agent de la direction, ou mettre à jour sa direction si elle existe déjà.
 
 ## Lot A4 : `ucm check`
 
-Remplacé par le lot 5 du
-[plan du thème en dossiers](../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md) :
-le diagnostic ne garde que la mesure des contrastes.
+Remplacé : le diagnostic ne garde que la mesure des contrastes, en
+information, sans table ni collection imposée. Les constats `support`,
+`paire` et `état` ci-dessous, et le nom `usage`, sont retirés ; la table en
+dossiers est dans les sections 4 et 5 de
+[ARCHITECTURE-FINALE-MULTIMARQUES.md](./ARCHITECTURE-FINALE-MULTIMARQUES.md).
 
 - [x] **A4.1** Le diagnostic lit la table, les paires, les rangs et le
   contraste dans `@ucm-kit/core/emplois` (lot A1). Une couleur de
@@ -304,7 +319,9 @@ le diagnostic ne garde que la mesure des contrastes.
 
 ## Lot A5 : les essais dans Figma
 
-Le mainteneur les fait ; leurs résultats décident de points des lots A3 et A4.
+Le mainteneur les fait ; leurs résultats décident de points du lot A3. Les
+portées de `theme` suivent déjà ce que chaque variable peint (section 5 de
+l'architecture) ; l'essai A5.1 dit si Figma les applique au choix d'un alias.
 
 - [ ] **A5.1** Le choix d'un alias dans le panneau des variables filtre-t-il
   par portée ? Si oui, les nuances de `theme` gardent les portées de

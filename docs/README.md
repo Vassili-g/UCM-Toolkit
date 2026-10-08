@@ -41,7 +41,7 @@ Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 | [SPEC de l'exporteur](../packages/plugin-exporter/SPEC.md) | Lecture de Figma, choix des calques et diagnostics |
 | [Spécification Palettes](./notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) | Calculs, recette, écriture des palettes et comportement de l'interface |
 | [SPEC de l'explorateur](../packages/plugin-explorateur/SPEC.md) | Relevés, résolution et limites de lecture |
-| [Architecture multi-marques](./notes/Recherches/Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md) | Architecture cible des collections et emplois ; son déploiement dans les consommateurs reste distinct |
+| [Architecture multi-marques](./notes/Recherches/Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md) | Architecture cible des collections et des dossiers de `theme` ; son déploiement dans les consommateurs reste distinct |
 | [AGENTS.md](../AGENTS.md) | Invariants du produit, bornes et fichiers qui les appliquent |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Code, tests, rédaction et vérifications |
 | [ROADMAP.md](../ROADMAP.md) | Maturité, limites et validations restantes |

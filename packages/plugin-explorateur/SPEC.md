@@ -224,8 +224,8 @@ les reprend une à une.
 | Intégration | Activation | Ce qu'elle ajoute |
 |---|---|---|
 | Contrats et `tokens.json` | Import de fichiers, en mémoire | Correspondance publiée, occurrences contractuelles, écarts avec l'export |
-| Recette UCM Palettes | Interrupteur, rangé dans les préférences | Classement de la recette ; association explicite d'une variable à un cran ; emplois du cran |
-| Profil d'architecture UCM | Interrupteur et association de chaque collection à une couche | Couches visées, valeurs directes, portées, cible attendue |
+| Recette UCM Palettes | Interrupteur, rangé dans les préférences | Classement de la recette ; association explicite d'une variable à un cran ; variables de dossier du cran |
+| Profil d'architecture UCM | Interrupteur et association de chaque collection à une couche | Couches visées, valeurs directes, portées, nuance attendue |
 
 Désactiver une intégration retire ses constats et ses sections de
 l'inspecteur, sans changer la table ni la navigation.
@@ -247,12 +247,33 @@ classe par `classerRecette` d'`ucm-couleur`, sans migration. La recette ne
 dit pas quelle variable porte quel cran : le designer associe une variable
 de couleur à une palette, une intensité, un thème et un cran. Aucune
 association ne se déduit d'une teinte ou d'une égalité de couleurs.
+L'inspecteur liste alors les variables de `theme` que la table en dossiers
+confie à ce cran (`variablesDuCran`, `@ucm-kit/core/emplois`), dans le sens du
+thème associé, normal ou inversé selon `texteDesBoutons` de la recette. Le
+neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
+`scale/1000` et `disabled/*`. Un cran qu'aucune variable ne vise, comme 50,
+400 ou 950, ne liste rien.
 
-**Profil UCM.** Les couches et leurs cibles suivent l'architecture
-multimarque : `components` vise `usage`, `usage` vise `theme`, `theme` vise
-`brand` ou `color-utilities`, qui visent `primitives`. Les emplois, rangs et
-supports viennent de `@ucm-kit/core/emplois`. Une collection sans couche
-n'est pas contrôlée, et le designer peut ignorer un écart pour ce fichier.
+**Profil UCM.** Les cinq couches et leurs cibles suivent l'architecture
+multimarque : `components` vise `theme`, `theme` vise `color-brands` ou
+`color-utilities`, qui visent `primitives`. Une association rangée sous
+`brand` se lit `color-brands` ; une couche `usage`, disparue, se lit sans
+couche. Le profil contrôle quatre règles, en information :
+
+| Règle | Écart relevé |
+|---|---|
+| `couche` | Un alias vise une couche que sa couche ne peut pas viser |
+| `valeur-directe` | Une couleur hors de `primitives` n'est pas un alias |
+| `portee` | Une variable de `primitives`, `color-brands` ou `color-utilities` porte une portée ; une variable de dossier de `theme` n'a pas les portées de sa ligne de la table |
+| `nuance` | Une variable de dossier de `theme` ne vise pas, dans un mode `light` ou `dark`, le cran que la table donne dans le sens de ce mode |
+
+Les variables de dossier (`solid/default`, `surface/border`, `page/focus`),
+leurs crans et leurs portées viennent de `@ucm-kit/core/emplois` ; le sens du
+mode vient de `texteDesBoutons` dans la recette associée. `scale/0`,
+`scale/1000`, `elevation/*` ne visent aucun cran et ne se jugent pas par
+nuance ; les deux premières ne portent aucune portée. Une collection sans
+couche n'est pas contrôlée, et le designer peut ignorer un écart pour ce
+fichier.
 
 ## Relevés et simulation
 
