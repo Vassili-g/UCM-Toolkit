@@ -16,7 +16,9 @@
  *
  * Sous un intertitre, « Déjà dans le fichier » liste dans la même liste les
  * palettes que les variables locales portent hors du plugin ([UI-33]) ;
- * « Modifier dans le plugin » en reprend une ([UI-34]). « Dans les
+ * « Modifier dans le plugin » en reprend une ([UI-34]). Les groupes d'une même
+ * palette (Soft et Vivid, Light et Dark) tiennent une seule ligne, que le
+ * compte compte pour une palette. « Dans les
  * bibliothèques » suit, avec celles des bibliothèques activées. Un groupe
  * sans palette ne paraît pas. Suivent une carte par palette supprimée dont
  * le cadre ou des variables restent dans Figma ([PLA-27], [VAR-11]).
@@ -135,7 +137,7 @@ function construireVues(i18n: Localisation) {
     ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuDessin, recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
-    variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette,
+    variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette, regroupementDuFichier,
   } = i18n.messages;
 
   function bouton(texte: Texte, classe: 'bouton-discret' | 'lien-de-constat', surClic: () => void): HTMLButtonElement {
@@ -870,6 +872,8 @@ function construireVues(i18n: Localisation) {
     interface LigneDepliable {
       readonly cle: string;
       readonly nom: string;
+      /** Ce que la ligne regroupe, à la suite du nom ; seule une palette groupée du fichier en porte. */
+      readonly precision?: Texte;
       /** La teinte de la référence ; `null` pour une palette hors du plugin, dont la teinte est en tirets. */
       readonly teinte: string | null;
       readonly rampe: readonly HTMLSpanElement[];
@@ -912,6 +916,12 @@ function construireVues(i18n: Localisation) {
       nom.className = 'palette-nom';
       nom.textContent = ligne.nom;
       bascule.append(chevron, teinte, nom);
+      if (ligne.precision) {
+        const precision = document.createElement('span');
+        precision.className = 'palette-precision';
+        i18n.lier(precision, 'textContent', ligne.precision);
+        bascule.append(precision);
+      }
       const rampe = document.createElement('div');
       rampe.className = 'mini-rampe';
       rampe.setAttribute('aria-hidden', 'true');
@@ -1125,6 +1135,50 @@ function construireVues(i18n: Localisation) {
       return element;
     }
 
+    /**
+     * La ligne d'une palette groupée du fichier : une seule pour ses groupes.
+     * Elle montre la racine et ce qu'elle regroupe ; « Modifier dans le
+     * plugin » reprend la palette entière, sous un identifiant neuf. Elle ne
+     * porte pas « Copier » : la copie ne concerne que les bibliothèques.
+     */
+    function ligneGroupeeDuFichier(groupee: PaletteGroupee): HTMLElement {
+      const premiere = groupee.groupes[0].palette;
+      const element = ligneDepliable({
+        cle: `fichier:${groupee.collection}/${groupee.racine}#${groupee.forme}`,
+        nom: groupee.racine || groupee.nomDeLaCollection,
+        precision: regroupementDuFichier(groupee.forme),
+        teinte: null,
+        rampe: pastillesDuFichier(premiere),
+        etats: [etiquetteHorsDuPlugin(TEXTES_DE_LA_GESTION.variablesDuFichier)],
+        gestes() {
+          const reprendre = bouton(TEXTES_DE_LA_GESTION.modifierDansLePlugin, 'bouton-discret', () => {
+            if (repriseEnCours || !gestes.reprendre(groupee)) return;
+            repriseEnCours = true;
+            zoneDesVariables.replaceChildren();
+            zoneDesVariables.hidden = true;
+            rendreLesGestes();
+          });
+          reprendre.dataset.geste = 'reprendre';
+          return [reprendre];
+        },
+        fiche() {
+          const information = document.createElement('div');
+          information.className = 'fiche-information';
+          const ligne = document.createElement('span');
+          ligne.className = 'ligne-secondaire chemin';
+          const chemin = document.createElement('code');
+          const bouts = `${premiere.nuances[0]} … ${premiere.nuances[premiere.nuances.length - 1]}`;
+          chemin.textContent = [groupee.nomDeLaCollection, ...groupee.racine.split('/').filter(Boolean), bouts].join(' / ');
+          ligne.append(chemin, i18n.noeud(couleursDeLaPaletteDuFichier(premiere.nuances.length, premiere.modes.map((modeLu) => modeLu.nom))));
+          information.append(ligne);
+          return [apercuHorsDuPlugin(pastillesDuFichier(premiere)), information];
+        },
+      });
+      element.classList.add('fiche-du-fichier');
+      element.dataset.duFichier = `${groupee.collection}/${groupee.racine}`;
+      return element;
+    }
+
     /** Ce qui désigne une palette de bibliothèque : la clé de sa collection et son chemin. */
     const cleDeBibliotheque = (palette: PaletteDeBibliotheque): string => `${palette.collection}/${palette.chemin}`;
     const nomDeBibliotheque = (palette: PaletteDeBibliotheque): string => palette.chemin || palette.nomDeLaCollection;
@@ -1268,7 +1322,13 @@ function construireVues(i18n: Localisation) {
         : null);
       gesteAFocaliser = null;
       const groupes: HTMLElement[] = etatDesCadres.palettes.map((cadre) => ligneDePalette(lue, cadre.palette, cadre, sansGeneration));
-      if (duFichier.length > 0) groupes.push(intertitre(TEXTES_DE_LA_GESTION.dejaDansLeFichier, duFichier.length, TEXTES_DE_LA_GESTION.horsDuPlugin), ...duFichier.map(ligneDuFichier));
+      const regroupees = regrouperLesPalettes(duFichier);
+      if (regroupees.length > 0) {
+        groupes.push(
+          intertitre(TEXTES_DE_LA_GESTION.dejaDansLeFichier, regroupees.length, TEXTES_DE_LA_GESTION.horsDuPlugin),
+          ...regroupees.map((regroupee) => (regroupee.type === 'groupee' ? ligneGroupeeDuFichier(regroupee) : ligneDuFichier(regroupee.palette))),
+        );
+      }
       if (bibliotheques.palettes.length > 0) {
         groupes.push(
           intertitre(TEXTES_DE_LA_GESTION.dansLesBibliotheques, bibliotheques.palettes.length, TEXTES_DE_LA_GESTION.desBibliotheques),

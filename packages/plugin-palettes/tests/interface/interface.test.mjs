@@ -2993,7 +2993,7 @@ test('[VAR-13] la carte de Poppy propose « Reprendre depuis les variables » ; 
   const page = await ouvrirSur('palette-supprimee-a-reprendre');
   try {
     await ouvrirLaPlanche(page);
-    assert.equal(await page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]').count(), 4, 'quatre groupes sous « Déjà dans le fichier »');
+    assert.equal(await page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]').count(), 1, 'les quatre groupes de Poppy tiennent une ligne sous « Déjà dans le fichier »');
     const carte = carteSupprimee(page, '40:8');
     const geste = carte.getByRole('button', { name: 'Reprendre depuis les variables' });
     assert.equal(await geste.count(), 1);
@@ -3025,6 +3025,66 @@ test('[VAR-13] la carte de Poppy propose « Reprendre depuis les variables » ; 
     assert.equal(await page.locator('.carte-supprimee').count(), 0, 'la carte orpheline a disparu');
     assert.equal(await page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]').count(), 0, 'les groupes de Poppy sont redevenus des variables suivies');
     assert.equal(await page.locator(`#panneau-gestion .palette-depliable[data-palette="${POPPY}"]`).count(), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+const lignesDuFichier = (page) => page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier]');
+
+test('[UI-33] quatre groupes de variables tiennent une ligne qui montre la racine et ce qu’elle regroupe, et le compte compte les palettes', async () => {
+  const page = await ouvrirSur('palette-groupee-du-fichier');
+  try {
+    await ouvrirLaPlanche(page);
+    // Poppy en quatre groupes, slate et emerald seules : trois palettes, trois lignes.
+    assert.equal(await lignesDuFichier(page).count(), 3);
+    assert.equal(await page.locator('#panneau-gestion .palette-intertitre', { hasText: 'Déjà dans le fichier' }).locator('.section-compte').textContent(), '3');
+    const poppy = page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier$="/Poppy"]');
+    assert.equal(await poppy.count(), 1);
+    assert.equal(await poppy.locator('.palette-nom').textContent(), 'Poppy');
+    assert.equal(await poppy.locator('.palette-precision').textContent(), 'Soft et Vivid, Light et Dark');
+    const seule = page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier$="/slate"]');
+    assert.equal(await seule.locator('.palette-precision').count(), 0, 'une palette seule garde sa ligne');
+    // Dépliée, la ligne groupée ne propose que « Modifier dans le plugin ».
+    assert.equal(await poppy.getByRole('button', { name: 'Copier dans le plugin' }).count(), 0);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[VAR-13] « Modifier dans le plugin » sur la ligne groupée envoie la reprise avec la source groupée et un identifiant neuf', async () => {
+  const page = await ouvrirSur('palette-groupee-du-fichier');
+  try {
+    await ouvrirLaPlanche(page);
+    const poppy = page.locator('#panneau-gestion .fiche-du-fichier[data-du-fichier$="/Poppy"]');
+    await poppy.locator('[data-geste="deplier"]').click();
+    const geste = poppy.getByRole('button', { name: 'Modifier dans le plugin' });
+    assert.equal(await geste.count(), 1);
+    const avant = await compte(page);
+    await geste.click();
+    const demande = await prochaine(page, avant);
+    assert.equal(demande.type, 'reprendre-palette');
+    assert.deepEqual(demande.source, { collection: ID_DE_LA_COLLECTION_DE_POPPY, racine: 'Poppy', forme: 'intensites-themes-chemin' });
+    assert.match(demande.palette, /^p-[0-9a-f]{8}$/);
+    assert.notEqual(demande.palette, POPPY);
+    assert.deepEqual(demande.recette.palettes.map((palette) => palette.id), [ID_DU_BLEU, demande.palette]);
+    assert.equal(demande.recette.palettes[1].nom, 'Poppy');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-33] trois groupes sur quatre ne forment plus une palette groupée : trois lignes de plus', async () => {
+  const page = await ouvrir();
+  try {
+    const message = structuredClone(messageDe('palette-groupee-du-fichier'));
+    message.variables.variables = message.variables.variables.filter((variable) => !variable.nom.startsWith('Poppy/soft/dark/'));
+    await envoyer(page, message);
+    await ouvrirLaPlanche(page);
+    // Trois groupes seuls, slate et emerald : cinq lignes, cinq palettes.
+    assert.equal(await lignesDuFichier(page).count(), 5);
+    assert.equal(await page.locator('#panneau-gestion .palette-precision').count(), 0);
+    assert.equal(await page.locator('#panneau-gestion .palette-intertitre', { hasText: 'Déjà dans le fichier' }).locator('.section-compte').textContent(), '5');
   } finally {
     await page.close();
   }

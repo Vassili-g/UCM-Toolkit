@@ -39,6 +39,7 @@ import {
 import { fondDeLaPromesse } from '../presentation';
 import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Verdict } from '../presentation';
 import type { RefusDeDestination } from '../variables/destination';
+import type { FormeGroupee } from '../variables/detection';
 
 export const TEXTES = {
   numeroDeNuance: (numero: number) => `nuance ${numero}`,
@@ -1956,6 +1957,15 @@ export function suppressionDesVariablesRefusee(): Constat {
 /** Le titre de la liste des palettes que le fichier porte dans ses variables ([UI-33]). */
 export function dejaDansLeFichier(nombre: number): string {
   return `Déjà dans le fichier · ${nombre}`;
+}
+
+/** Ce qu'une palette groupée du fichier regroupe, sur sa ligne de « Déjà dans le fichier ». */
+export function regroupementDuFichier(forme: FormeGroupee): string {
+  return {
+    'intensites-themes-chemin': 'Soft et Vivid, Light et Dark',
+    'intensites-themes-modes': 'Soft et Vivid',
+    'themes-chemin': 'Light et Dark',
+  }[forme];
 }
 
 /** Ce qu'une palette du fichier porte : ses couleurs, et les modes de sa collection ([UI-33]). */

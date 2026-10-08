@@ -274,6 +274,12 @@ function variablesDePoppy(liaison = 'reprise') {
   };
 }
 
+/** Les quatre groupes de Poppy et les deux palettes seules du fichier, sans aucune palette suivie par le plugin. */
+function variablesDuFichierAvecPoppy() {
+  const fichier = avecLesPalettesDuFichier(variablesDePoppy());
+  return { ...fichier, suivi: { ...fichier.suivi, palettes: {} } };
+}
+
 /** La planche que la lecture relève : sa page, ses cadres, et ce qu'elle n'a pas trouvé. */
 const plancheLue = (cadres, reglages = {}) => ({ ...PLANCHE_VIDE, page: PAGE_DE_LA_PLANCHE, nomDeLaPage: 'Palettes', cadres, ...reglages });
 const ouvrirLaPlanche = { clic: '#onglet-gestion' };
@@ -1104,6 +1110,18 @@ const ETATS = [
     atteinte: [
       etatDuFichier(rangee([BLEU]), 'SRGB', plancheLue([cadreDessine(rangee([BLEU]), BLEU, '40:2'), CADRE_DE_POPPY]), 1, variablesDePoppy()),
       ouvrirLaPlanche,
+    ],
+  },
+  {
+    id: 'palette-groupee-du-fichier',
+    titre: 'Palette groupée dans « Déjà dans le fichier »',
+    quand: 'Le fichier porte Poppy en quatre groupes de variables (Soft et Vivid, Light et Dark), sans que le plugin les suive, à côté des palettes seules slate et emerald.',
+    regarder: 'Sous « Déjà dans le fichier · 3 », une seule ligne Poppy suivie de « Soft et Vivid, Light et Dark », puis les lignes slate et emerald, qui gardent leur ligne habituelle. Poppy déplié : « Modifier dans le plugin », sans « Copier ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee([BLEU]), 'SRGB', PLANCHE_VIDE, 1, variablesDuFichierAvecPoppy()),
+      ouvrirLaPlanche,
+      { clic: '#panneau-gestion .palette-depliable[data-cle^="fichier:"] [data-geste="deplier"]' },
     ],
   },
   {

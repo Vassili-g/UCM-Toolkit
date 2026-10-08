@@ -40,6 +40,7 @@ import {
 import { fondDeLaPromesse } from '../presentation';
 import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Verdict } from '../presentation';
 import type { RefusDeDestination } from '../variables/destination';
+import type { FormeGroupee } from '../variables/detection';
 
 const ecrireArrondi = (valeur: number, precision: number): string => arrondiFrancais(valeur, precision).replace(',', '.');
 const ecrireContraste = (valeur: number): string => contrasteFrancais(valeur).replace(',', '.');
@@ -1963,6 +1964,15 @@ export function suppressionDesVariablesRefusee(): Constat {
 /** Le titre de la liste des palettes que le fichier porte dans ses variables ([UI-33]). */
 export function dejaDansLeFichier(nombre: number): string {
   return `Already in the file · ${nombre}`;
+}
+
+/** Ce qu'une palette groupée du fichier regroupe, sur sa ligne de « Déjà dans le fichier ». */
+export function regroupementDuFichier(forme: FormeGroupee): string {
+  return {
+    "intensites-themes-chemin": "Soft and Vivid, Light and Dark",
+    "intensites-themes-modes": "Soft and Vivid",
+    "themes-chemin": "Light and Dark",
+  }[forme];
 }
 
 /** Ce qu'une palette du fichier porte : ses couleurs, et les modes de sa collection ([UI-33]). */

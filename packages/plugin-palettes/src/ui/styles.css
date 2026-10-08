@@ -1914,6 +1914,15 @@
   white-space: nowrap;
 }
 
+/* Ce qu'une palette groupée du fichier regroupe, à la suite de sa racine. */
+.palette-precision {
+  overflow: hidden;
+  color: var(--texte-second);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .palette-ligne .mini-rampe {
   overflow: hidden;
   gap: 2px;
