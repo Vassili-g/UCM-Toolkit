@@ -132,9 +132,9 @@ du plan décrivent un code antérieur ; pour l'état présent, lire les modules.
 | Sujet | État constaté | Source et réemploi proposé |
 |---|---|---|
 | Six collections de couleur ; `brand` et `theme` indépendants | Architecture retenue ; écriture des variables encore ouverte dans le plan | [Architecture](../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md). Fournir un profil UCM facultatif ; conserver un explorateur générique pour les autres collections |
-| Huit emplois, crans requis dont 400 et 950 | Présents dans le kit | [emplois.ts](../../../../packages/kit/src/emplois/emplois.ts). Montrer les emplois d'un cran sans recopier leur table dans le plugin |
-| Quatre rangs, correspondance des états, dix-neuf paires | Présents dans le kit | [rangs.ts](../../../../packages/kit/src/emplois/rangs.ts), [paires.ts](../../../../packages/kit/src/emplois/paires.ts). Expliquer `active-hover`, le focus et les usages désactivés |
-| Noms d'usage, cibles et supports de peinture | Présents dans le kit | [usages.ts](../../../../packages/kit/src/emplois/usages.ts). Distinguer fond, texte, icône, bordure et anneau |
+| Huit emplois, crans requis dont 400 et 950 | Présents dans le kit | emplois.ts. Montrer les emplois d'un cran sans recopier leur table dans le plugin |
+| Quatre rangs, correspondance des états, dix-neuf paires | Présents dans le kit | rangs.ts, paires.ts. Expliquer `active-hover`, le focus et les usages désactivés |
+| Noms d'usage, cibles et supports de peinture | Présents dans le kit | usages.ts. Distinguer fond, texte, icône, bordure et anneau |
 | Recette Palettes et suivi des planches | Lecture et rangement présents | [lecture.ts](../../../../packages/plugin-palettes/src/lecture.ts) et [recette.ts](../../../../packages/plugin-palettes/src/ecriture/recette.ts). Données partagées `ucm_palettes`, clés `recette` et `planche` |
 | Rôles et affectations de palettes aux marques dans les variables | Travaux ouverts du plan d'intégration | Ne pas présenter une correspondance recette–variable comme disponible. Prévoir une association explicite et vérifiable |
 | Normalisation des chemins, collisions, alias | Présents dans l'exporteur | [variables.ts](../../../../packages/plugin-exporter/src/variables.ts) et [names.ts](../../../../packages/kit/src/format/names.ts). Réutiliser les fonctions publiques ; extraire les fonctions communes si nécessaire |

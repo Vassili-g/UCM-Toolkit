@@ -78,10 +78,10 @@ rampe ni le même point de départ.
 
 Le kit porte une table commune dans
 [`packages/kit/src/emplois/`](../../../../../../packages/kit/src/emplois/). Le module
-[`emplois.ts`](../../../../../../packages/kit/src/emplois/emplois.ts) attribue un
-cran par emploi. [`usages.ts`](../../../../../../packages/kit/src/emplois/usages.ts)
+`emplois.ts` attribue un
+cran par emploi. `usages.ts`
 construit les chemins de variables, leurs cibles, et les portées Figma.
-[`paires.ts`](../../../../../../packages/kit/src/emplois/paires.ts) énumère les
+`paires.ts` énumère les
 paires de couleurs, leurs décalages par rang et leur seuil WCAG.
 
 La table actuelle distingue notamment :
@@ -98,9 +98,9 @@ paires déclarées dans chaque thème et chaque intensité applicable. `ucm chec
 compare les emplois d’un contrat à la table publiée dans `usage`, puis relève
 les supports, les paires, les rangs d’état et les couleurs hors table. Les
 contrôles du kit et du CLI décrivent ces comportements dans
-[`packages/kit/tests/emplois.test.ts`](../../../../../../packages/kit/tests/emplois.test.ts)
+`packages/kit/tests/emplois.test.ts`
 et
-[`packages/kit/tests/diagnostic-emplois.test.mjs`](../../../../../../packages/kit/tests/diagnostic-emplois.test.mjs).
+`packages/kit/tests/diagnostic-emplois.test.mjs`.
 
 La règle « `solid/on-1` s’utilise avec `surface/1` » ne fait pas partie des
 paires actuelles. Le dépôt vérifie `on-solid` sur `solid`, mais ne garantit pas

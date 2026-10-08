@@ -44,10 +44,10 @@ actuel.
 ### Ce que le code fait
 
 La table fixe les emplois `solid` au cran 700 et `on-solid` au fond du thème
-([`emplois.ts`](../../../../../../packages/kit/src/emplois/emplois.ts)). Le support de
+(`emplois.ts`). Le support de
 `on-solid` est le texte et l'icône. Dans les tokens, son alias vise la palette
 neutre et sa nuance la plus claire, quelle que soit la palette de couleur
-concernée ([`usages.ts`](../../../../../../packages/kit/src/emplois/usages.ts)).
+concernée (`usages.ts`).
 L'identité de cet emploi est donc celle d'une couleur de premier plan commune,
 et non d'une couleur calculée pour chaque remplissage `solid`.
 
@@ -55,7 +55,7 @@ Le vérificateur compare `on-solid` au fond `solid` dans chaque mode et chaque
 intensité. Il juge aussi les trois états suivants du fond plein. Les paires
 utilisent le seuil `texte` de la recette, fixé par défaut à 4,5
 ([`promesses.ts`](../../../../../../packages/couleur/src/promesses.ts),
-[`paires.ts`](../../../../../../packages/kit/src/emplois/paires.ts)). Le résultat
+`paires.ts`). Le résultat
 signale une promesse tenue ou manquée ; il ne change pas la couleur du texte.
 
 L'Interface de test applique `recette.fonds[mode]` au texte des boutons pleins
@@ -290,10 +290,10 @@ phase. Les essais sur maquettes doivent précéder toute implémentation.
 ### Dépôt
 
 - [Note de recette](./NOTES-RECETTE-MODES-ET-AFFICHAGE.md)
-- [`emplois.ts`](../../../../../../packages/kit/src/emplois/emplois.ts) et
-  [`usages.ts`](../../../../../../packages/kit/src/emplois/usages.ts) : sémantique
+- `emplois.ts` et
+  `usages.ts` : sémantique
   de `solid` et `on-solid`, cible tokenisée.
-- [`paires.ts`](../../../../../../packages/kit/src/emplois/paires.ts) et
+- `paires.ts` et
   [`promesses.ts`](../../../../../../packages/couleur/src/promesses.ts) : paires et
   seuils jugés.
 - [`interfaceDeTest.ts`](../../../../../../packages/plugin-palettes/src/ui/interfaceDeTest.ts),

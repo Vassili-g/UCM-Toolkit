@@ -37,17 +37,17 @@ deviennent `elevation/page` et `elevation/raised`.
 la source commune d'UCM Palettes et d'UCM Explorateur ; `ucm check` la lit
 aujourd'hui, et n'en gardera que le calcul du contraste (P10).
 
-- [`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts) : huit
+- `emplois.ts` : huit
   emplois et leur cran. `solid` 700, `on-solid` le fond du thème, `text` 700,
   `surface` 100, `surface-card` 50, `border-control` 600,
   `border-decorative` 300, `focus` 600. Les crans obligatoires comprennent
   400 et 950.
-- [`paires.ts`](../../../../../packages/kit/src/emplois/paires.ts) :
+- `paires.ts` :
   dix-neuf paires. Le texte et le contour avancent d'un cran avec le fond
   teinté, jusqu'au quatrième rang.
-- [`rangs.ts`](../../../../../packages/kit/src/emplois/rangs.ts) : quatre
+- `rangs.ts` : quatre
   rangs, `default`, `hover`, `active`, `active-hover`.
-- [`usages.ts`](../../../../../packages/kit/src/emplois/usages.ts) : la
+- `usages.ts` : la
   collection `usage`, vingt variables par palette, et les usages propres au
   neutre `text-strong` 900, `text-disabled` 500, `fill-disabled` 200.
 
@@ -64,7 +64,7 @@ thème inversé.
 
 **`ucm check`** juge les couleurs d'un contrat contre la table quand
 `tokens.json` porte une collection nommée `usage`
-([`diagnostic-emplois.mjs`](../../../../../packages/kit/src/lecteurs/diagnostic-emplois.mjs)),
+(`diagnostic-emplois.mjs`),
 en avertissement. Il a été livré avec le lot A4 du
 [plan d'intégration de l'architecture](../PLAN-INTEGRATION-ARCHITECTURE.md),
 quand l'architecture prévoyait une collection `usage` (D13). Cette collection

@@ -81,11 +81,11 @@ Résultats :
 ### Faits
 
 La table des emplois donne `solid: 700` et `'on-solid': 'fond'`
-([`emplois.ts`](../../../../../../packages/kit/src/emplois/emplois.ts)). Le
+(`emplois.ts`). Le
 calcul des garanties prend pour texte du bouton `recette.fonds[mode]`
 ([`promesses.ts`](../../../../../../packages/couleur/src/promesses.ts)). Les
 variables de `usage` font viser `on-solid` à la nuance 50 de `neutral` dans
-`theme` ([`usages.ts`](../../../../../../packages/kit/src/emplois/usages.ts)).
+`theme` (`usages.ts`).
 En Dark, cette nuance est la plus sombre.
 
 La courbe de luminosité du thème Dark croît : 0,18 à la nuance 50, 0,67 à la
@@ -445,9 +445,9 @@ Ce qui ferait changer cette recommandation :
   [plan d'intégration](../../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
   et [usages indexés](../../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
 - [Spécification d'UCM Palettes](../../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md).
-- [`emplois.ts`](../../../../../../packages/kit/src/emplois/emplois.ts),
-  [`paires.ts`](../../../../../../packages/kit/src/emplois/paires.ts),
-  [`usages.ts`](../../../../../../packages/kit/src/emplois/usages.ts),
+- `emplois.ts`,
+  `paires.ts`,
+  `usages.ts`,
   [`promesses.ts`](../../../../../../packages/couleur/src/promesses.ts),
   [`recette.ts`](../../../../../../packages/couleur/src/recette.ts),
   [`rampe.ts`](../../../../../../packages/couleur/src/rampe.ts),

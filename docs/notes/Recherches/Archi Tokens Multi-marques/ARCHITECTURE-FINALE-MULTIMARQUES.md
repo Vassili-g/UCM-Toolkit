@@ -326,71 +326,115 @@ Les couleurs sortent en sRGB. Display P3 est écarté : il changerait toutes les
 valeurs, et un écran sRGB ne montre pas la différence au designer qui les
 choisit.
 
-## 4. Les emplois et les états
+## 4. La table en dossiers et ses états
 
-Un emploi vise un cran de `theme`, et ce cran est le même dans toutes les
-marques. Aucune marque ne relie un emploi à un autre cran. Un cran câblé par
+Une variable de `theme` vise un cran, et ce cran est le même dans toutes les
+marques. Aucune marque ne relie une variable à un autre cran. Un cran câblé par
 marque obligerait à câbler aussi chacun de ses états dans chaque marque et
 chaque thème.
 
-La table des emplois fixe le cran de chaque usage et de chacun de ses quatre
-rangs. Elle vaut pour toutes les palettes, de marque et de statut, et pour les
-deux intensités. Les rangs portent les noms que publie UCM Palettes :
-`default`, `hover`, `active` et `active-hover`.
+La table range les variables de chaque palette en trois dossiers :
 
-| Emploi | `default` | `hover` | `active` | `active-hover` | Paire vérifiée | Minimum |
-|---|---|---|---|---|---|---|
-| `solid`, fond plein d'un bouton, d'un badge | 700 | 800 | 900 | 950 | `on-solid` sur le fond, 4,5:1 | 5,23 · 7,45 · 10,50 · 13,66 |
-| `on-solid`, texte sur un fond plein | neutre 50 | | | | | |
-| `text`, texte de marque | 700 | 800 | 900 | 950 | contre le fond de page, 4,5:1 ; contre `surface` au même rang, 4,5:1 | 5,23 ; 4,95 · 6,32 · 7,28 · 6,61 |
-| `surface`, fond teinté discret | 100 | 200 | 300 | 400 | | |
-| `surface-card`, surface d'une carte, d'un panneau | 50 | | | | texte 700 sur la carte, 4,5:1 ; `border-control` 600 sur la carte, 3:1 | 5,30 · 3,68 |
-| `border-control`, contour d'un champ, d'une case | 600 | 700 | 800 | 900 | contre `surface` au même rang, 3:1 | 3,45 · 4,36 · 5,25 · 5,32 |
-| `border-decorative`, séparateur, filet | 300 | | | | aucune | |
-| `focus`, anneau de focus | 600 | | | | contre le fond de page, 3:1 | 3,63 |
+- `solid` : le fond plein d'un bouton ou d'un badge, et son texte ;
+- `surface` : le fond teinté discret, avec son texte et son contour ;
+- `page` : ce qui se pose directement sur la page, soit le texte coloré, le
+  contour, le filet et l'anneau de focus.
 
-Les minimums valent sur 360 teintes, les deux profils et les deux thèmes, fonds
-du thème Dark atténués ; la section 5 de `verifier-courbes.mjs` les produit, à
-0,01 près pour le quatrième rang. Sa section 9 les mesure sur toutes les parts
-de 0 à 1 par pas de 0,05, celles qu'une palette de marque peut prendre : le pire
-cas descend à 4,90 pour `text` sur `surface` et à 3,41 pour `border-control`
-sur `surface`, au-dessus des seuils. Une relecture indépendante a vérifié que
-chaque paire tient encore son seuil quand ses deux membres prennent des teintes
-différentes : la garantie ne dépend pas de la dérive.
+Elle vaut pour toutes les palettes, de marque et de statut, et pour les deux
+intensités. Un fond a trois états : `default`, `hover` et `pressed`.
 
-**Un rang nomme un cran de la paire, pas une interaction.** L'état d'un
-composant choisit son rang dans une table, que `ucm check` compare à l'état
-publié par le contrat (D16, D17) :
+**Le sens d'un thème.** Chaque thème choisit le texte de ses boutons, blanc
+(`#FFFFFF`) ou noir (`#000000`). Blanc en clair et noir en sombre, le thème est
+normal ; l'inverse le rend inversé. `solid/foreground` vaut ce texte, jamais le
+fond de la page.
 
-| État du composant | Rang |
-|---|---|
-| Repos | `default` |
-| Survol | `hover` |
-| Appui | `active` |
-| Sélectionné | `active` |
-| Sélectionné et survolé, sélectionné et appuyé | `active-hover` |
-| Focus | `default`, et l'anneau `focus` |
-| Désactivé | `neutral.fill-disabled` et `neutral.text-disabled` |
+| Thème | Texte des boutons | Sens |
+|---|---|---|
+| Light | blanc | normal |
+| Light | noir | inversé |
+| Dark | noir | normal |
+| Dark | blanc | inversé |
 
-Les noms d'interaction restent dans `components` :
-`components.row.selected.background` vise `usage.primary.surface.active`.
+| Variable | Normal | Inversé |
+|---|---|---|
+| `solid/default` | 700 | 700 |
+| `solid/hover` | 800 | 600 |
+| `solid/pressed` | 900 | 500 |
+| `solid/foreground` | le texte des boutons | le texte des boutons |
+| `surface/default` | 100 | 100 |
+| `surface/hover` | 200 | 200 |
+| `surface/pressed` | 300 | 300 |
+| `surface/foreground` | 800 | 900 |
+| `surface/border` | 800 | 900 |
+| `page/foreground` | 700 | 800 |
+| `page/border` | 700 | 800 |
+| `page/divider` | 300 | 300 |
+| `page/focus` | 600 | 700 |
 
-**Un état avance d'un rang**, fond et texte ensemble. Un texte resté au 700 sur
-un fond au 200 tombe à 4,46:1, sous le seuil ; sur un fond au 400, à 2,75:1. En
-sombre, les mêmes numéros s'appliquent : l'état s'éloigne du fond de page dans
-les deux thèmes. En clair, le pas de clarté de 300 à 400 vaut 0,085, contre
-0,060 de 200 à 300 : le quatrième rang se voit plus que les autres.
+Le neutre ajoute des variables et ne change aucune des précédentes :
+`page/foreground-main`, noir pur en clair et blanc pur en sombre dans les deux
+sens, pour le corps de texte ; `page/foreground-subtle`, au cran de
+`page/foreground` ; `scale/0` et `scale/1000`, blanc et noir en clair, échangés
+en sombre. Les contrôles désactivés prennent `disabled/background` (200),
+`disabled/foreground` (500) et `disabled/border` (500), hors seuil : WCAG
+n'exige aucun contraste d'un composant inactif. `elevation/page` et
+`elevation/raised` n'appartiennent à aucune palette (section 6).
 
-**Un bouton texte** n'a pas de fond au repos : texte 700. Au survol, il prend
-le fond 200 et le texte 800 ; à l'appui, le fond 300 et le texte 900.
+**Les crans requis** sont 100, 200, 300, 600, 700, 800 et 900, plus 500 quand
+un thème est inversé. Les crans 50, 400 et 950 sont facultatifs : le plugin les
+calcule par défaut, une recette peut s'en passer, aucune variable ni garantie
+ne les vise. Une variable dont le cran manque n'existe pas pour cette palette.
+Le kit tient la table dans `packages/kit/src/emplois/dossiers.ts`.
 
-**Une carte n'est pas un bouton.** `surface-card` porte les grands aplats :
-carte, panneau, en-tête de tableau. Un bouton soft garde `surface`, y compris
-posé sur une carte : sur le cran 50, un bouton au cran 50 disparaîtrait.
+**La courbe inversée.** Un texte blanc sur le cran 700 de la courbe sombre
+normale tombe sous 4,5:1. Quand un thème est inversé, ses nuances 500 à 800
+prennent d'autres clartés :
 
-**Un contrôle désactivé** prend les usages du neutre `fill-disabled`, cran 200,
-et `text-disabled`, cran 500, hors seuil : WCAG n'exige aucun contraste d'un
-composant inactif.
+| Nuance | 500 | 600 | 700 | 800 |
+|---|---|---|---|---|
+| Clair normal | 0,67 | 0,585 | 0,50 | 0,42 |
+| Clair inversé | 0,745 | 0,69 | 0,61 | 0,42 |
+| Sombre normal | 0,49 | 0,58 | 0,67 | 0,76 |
+| Sombre inversé | 0,45 | 0,50 | 0,55 | 0,70 |
+
+Les autres nuances gardent leur clarté. Changer le texte des boutons d'un
+thème remplace ses nuances 500 à 800 par les valeurs du sens d'arrivée ; une
+courbe qui n'y resterait pas strictement monotone est refusée.
+
+**Les états.** Le repos vise `default`, le survol `hover`, l'appui `pressed`,
+sur `solid` comme sur `surface`. Le focus garde le fond du repos et ajoute
+`page/focus`. Un état sélectionné prend un autre dossier, au choix du
+designer : la table ne lui donne pas de cible. Un composant désactivé prend
+`disabled/*`. `ucm check` ne compare plus l'état d'un composant à un rang.
+
+**Les garanties.** Sept garanties se jugent par palette, dans la table du sens
+du thème, contre le seul fond de la page. Aucune ne croise deux palettes.
+Leurs seuils viennent de la recette : 4,5:1 pour un texte, 3:1 pour le reste.
+
+| N° | Premier membre | Contre | Seuil |
+|---|---|---|---|
+| G1 | `solid/foreground` | `solid/default`, `hover`, `pressed` | texte |
+| G2 | `solid/default` | le fond de la page | non textuel |
+| G3 | `surface/foreground` | `surface/default`, `hover`, `pressed`, le fond de la page | texte |
+| G4 | `surface/border` | les mêmes fonds | non textuel |
+| G5 | `page/foreground` | le fond de la page | texte |
+| G6 | `page/border` | le fond de la page | non textuel |
+| G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | non textuel |
+
+Le fond de la page est le réglage « Fond » de chaque thème, `elevation/page`.
+`elevation/raised` n'a pas de réglage dans le plugin et n'entre dans aucune
+mesure. Sur les quatorze références de
+[mesurer-dossiers.ts](./Collection%20usage/mesurer-dossiers.ts), à une et deux
+intensités et dans les quatre thèmes, G2 à G6 n'échouent jamais. G1 n'échoue
+que sur la nuance où la référence est ancrée : la couleur de marque garde ses
+octets, et son texte des boutons peut manquer 4,5:1. G7 n'échoue que pour
+`#16A34A`, dont l'anneau est la référence ancrée.
+
+Les courbes ont leur propre garantie, valable pour toute teinte et les deux
+profils. Dans la table du sens de chaque mode, `page/foreground` tient le seuil
+du texte et `page/focus` le seuil non textuel contre le cran le plus clair de
+la liste, gris ; `solid/default` tient le seuil du texte contre le texte des
+boutons du mode. `packages/couleur/src/garantie.ts` la calcule.
 
 **L'anneau de focus laisse un espace** entre lui et le contrôle. Posé au contact
 d'un bouton plein, aucun cran de la rampe ne s'en détache à 3:1 : l'anneau 600
@@ -400,61 +444,53 @@ au contact du 700 donne 1,40:1. En CSS, un `outline-offset` non nul.
 première couleur de sa charte. Une marque qui mène avec sa deuxième couleur la
 place dans `primary` en générant ses palettes, sans aucune variable de plus.
 
-## 5. La collection `usage`
+## 5. Les variables de `theme` et leurs portées
 
-`usage` porte la table de la section 4 en variables, sans mode. Un calque de
-composant cite `components`, dont la variable vise `usage` ; `usage` vise
-`theme`.
-
-| Groupe | Exemple | Cible | Variables |
-|---|---|---|---|
-| Une palette de couleur | `usage.primary.solid.hover` | `theme.primary.800` | 20 par palette |
-| Un statut, par intensité | `usage.success.soft.surface.default` | `theme.success.soft.100` | 20 par intensité |
-| Le neutre | `usage.neutral.text-strong` | `theme.neutral.900` | 23 |
-| L'élévation | `usage.elevation.raised` | `theme.elevation.raised` | 3 |
-
-Les 20 variables d'une palette sont les huit emplois, dont quatre portent les
-quatre rangs : `solid`, `text`, `surface` et `border-control`. Le neutre ajoute
-trois usages propres : `text-strong`, cran 900, pour le corps de texte ;
-`text-disabled`, cran 500 ; `fill-disabled`, cran 200. `text-strong` mesure
-10,94:1 sur la page en clair, 11,90:1 en sombre et 10,82:1 sur `raised` en
-sombre (section 10 de `verifier-courbes.mjs`).
-
-Pour six marques, `usage` compte 226 variables : 10 palettes de couleur, soit
-`primary`, `secondary` et les quatre statuts dans leurs deux intensités, fois
-20 ; 23 pour le neutre ; 3 pour l'élévation. Toutes se déduisent de la table :
-UCM Palettes les écrit, et aucune ne se lie par marque.
-
-### Les portées
+La table de la section 4 s'écrit dans `theme`, une variable par ligne et par
+palette, avec une valeur claire et une valeur sombre. `components` vise
+`theme` ; il n'existe pas de collection `usage`. `theme` vise `color-brands`
+pour les palettes de marque et `color-utilities` pour le neutre et les
+statuts. UCM Palettes n'écrit ni `theme`, ni `color-brands`, ni `color-utilities` : ces collections
+se posent à la main, et le profil d'UCM Explorateur compare leurs alias à la
+table, en information.
 
 Les portées de Figma filtrent ce qu'un sélecteur de propriété propose. Celles
-de `usage` suivent ce que chaque emploi peint, dans le vocabulaire que publie
+de `theme` suivent ce que chaque variable peint, dans le vocabulaire que publie
 UCM Exporter :
 
-| Emploi | Ce qu'il peint | Portées Figma |
+| Variables | Ce qu'elles peignent | Portées Figma |
 |---|---|---|
-| `solid`, `surface`, `surface-card`, `fill-disabled`, `elevation.*` | `background` | remplissage de cadre et de forme |
-| `text`, `text-strong`, `text-disabled`, `on-solid` | `foreground`, `icon` | remplissage de texte et de forme |
-| `border-control`, `border-decorative` | `border` | contour |
-| `focus` | `ring` | contour |
+| `solid/default`, `hover`, `pressed` | fond, contour | remplissage de cadre et de forme, contour |
+| `surface/default`, `hover`, `pressed`, `disabled/background`, `elevation/*` | fond | remplissage de cadre et de forme |
+| `*/foreground`, `page/foreground-main`, `page/foreground-subtle`, `disabled/foreground` | texte, icône | remplissage de texte et de forme |
+| `*/border`, `page/divider`, `disabled/border` | contour | contour |
+| `page/focus` | anneau | contour |
+| `scale/*` | rien | aucune |
 
-Un sélecteur de couleur de texte propose ainsi 4 usages par palette, contre 11
-crans. L'effet des portées sur le choix d'un alias dans le panneau des
-variables reste à essayer dans Figma.
+Les fonds de `solid` portent la portée du contour pour le bouton sans fond
+survolé, focalisé ou appuyé. Un sélecteur de couleur de texte propose ainsi 3
+variables par palette, `solid/foreground`, `surface/foreground` et
+`page/foreground`. L'effet des portées sur le choix d'un alias dans le panneau
+des variables reste à essayer dans Figma. Le kit les tient dans
+`SUPPORT_DES_VARIABLES` (`packages/kit/src/emplois/dossiers.ts`).
+
+`primitives`, `color-brands` et `color-utilities` reçoivent des portées vides.
 
 ### Un cran hors de la table
 
 Un graphique demande une échelle de 100 à 800, une illustration un 400 : aucun
-de ces crans n'a d'emploi. Pour citer un cran hors table, créer un token de
-composant qui vise `theme` :
+de ces crans n'a de variable de dossier. Les nuances de chaque palette restent
+sous `scale`, sans portée, avec le même numéro dans les deux thèmes. Pour citer
+un cran hors table, créer un token de composant qui vise `theme` :
 
 ```text
-components.stresstest.info.scalewrap.colors.scale-5  →  theme.warning.vivid.600
+components.stresstest.info.scalewrap.colors.scale-5  →  theme.warning.vivid.scale.600
 ```
 
-Le cran suit la marque et le thème. Son premier alias vise `theme` et non
-`usage`, et `ucm check` relève ce token avec son contraste mesuré. Un besoin
-hors table que deux composants partagent devient un emploi de la table.
+Le cran suit la marque et le thème. `ucm check` ne relève plus ce token pour
+son seul chemin ; il mesure le contraste de la couleur contre son fond réel.
+Un besoin hors table que deux composants partagent devient une variable de
+dossier.
 
 ## 6. L'élévation
 

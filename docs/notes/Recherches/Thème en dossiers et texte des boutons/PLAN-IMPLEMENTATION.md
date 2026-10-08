@@ -949,7 +949,7 @@ manque.
 
 ## Lot 10. Le retrait de l'ancienne table, les documents, la publication
 
-- [ ] **T10.1** · `implementeur`. Le retrait de l'ancienne table.
+- [x] **T10.1** · `implementeur`. Le retrait de l'ancienne table.
   - Préalable : `git grep` ne trouve plus, hors de `packages/kit/src/emplois/`
     et de ses tests, aucun import de `EMPLOIS`, `TABLE_DES_EMPLOIS`,
     `CRANS_DES_EMPLOIS`, `PAIRES`, `RANGS`, `CIBLE_DE_L_ETAT`,
@@ -969,7 +969,7 @@ manque.
     dès qu'un thème est inversé.
   - Fini quand : `npm run typecheck`, `npm test` et les deux scripts
     passent.
-- [ ] **T10.2** · `executant`. Les versions.
+- [x] **T10.2** · `executant`. Les versions.
   - Fichiers : `packages/kit/package.json`, `packages/cli/package.json`,
     `packages/adapter-typescript/package.json`, les README qui citent ces
     versions, `package-lock.json`.
@@ -977,7 +977,7 @@ manque.
     0.1.54 et `@ucm-kit/adapter-typescript` 0.1.46 → 0.1.47, chacun
     épinglant `@ucm-kit/core` 0.5.0 à l'exact ; `npm install`.
   - Fini quand : `npm run build` passe.
-- [ ] **T10.3** · `implementeur`. Les documents d'autorité (P12).
+- [x] **T10.3** · `implementeur`. Les documents d'autorité (P12).
   - Fichiers : `AGENTS.md` (carte de `emplois/`, `nuances.ts`,
     `profilUcm.ts` ; invariants « Moteur de couleur », « Interface d'UCM
     Palettes », « Explorateur de tokens ») ;
@@ -995,13 +995,13 @@ manque.
   - Fini quand : `node scripts/controle-style.mjs <fichier>` rend « Style
     conforme » pour chaque fichier, et chaque lien relatif ajouté mène à un
     fichier existant.
-- [ ] **T10.4** · `executant`. Les états des dossiers de recherche.
+- [x] **T10.4** · `executant`. Les états des dossiers de recherche.
   - Fichiers : le README de ce dossier, celui de
     `Archi Tokens Multi-marques/Collection usage/` et celui de
     `Plugin Palettes/Texte des boutons/`.
   - Faire : chacun passe à l'état « implémenté » et renvoie à ce plan.
   - Fini quand : le contrôle de style passe sur les trois fichiers.
-- [ ] **T10.5** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T10.5** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run build`, `npm run test:ui --workspace ucm-palettes-plugin`,
   `npm run test:ui --workspace ucm-explorateur-plugin`,
   `node packages/plugin-palettes/galerie/comparer-maquette.cjs`, contrôle de
@@ -1037,7 +1037,7 @@ Mis à jour par l'orchestrateur à chaque lot.
 | 7. Garanties | commité avec le lot 8 ; portes M1 à M3 validées | e1a8d73 |
 | 8. Lecteurs et carte | commité | e1a8d73 |
 | 9. Planche et Interface de test | commité | 6014870 |
-| 10. Retrait et publication | à faire | |
+| 10. Retrait et publication | retrait, versions et documents commités ; push et publication à suivre | voir `git log` |
 
 **Décisions prises pendant l'exécution**, dans le cadre du plan :
 
@@ -1094,6 +1094,15 @@ Mis à jour par l'orchestrateur à chaque lot.
   pas : G3 et G4 les jugent, et leur échec compte dans le verdict du thème.
 - Lot 9 : la galerie ne rend pas le dessin de la planche ; la planche se
   vérifie par les tests de son modèle, dans les quatre combinaisons.
+- Lot 10 : `rangDuCranLeger` passe dans `dossiers.ts` ; il rend l'indice du
+  plus petit numéro de la liste. `loiDePurete.test.ts` attend quatre modules
+  dans `kit/src/emplois/` au lieu de cinq. L'alerte `fond-hors-courbe` dit « la
+  nuance la plus claire » au lieu de « la nuance 50 ».
+- Lot 10 : les notes de recherche qui liaient les modules retirés (`emplois.ts`,
+  `paires.ts`, `rangs.ts`, `usages.ts`, `diagnostic-emplois.mjs` et leurs
+  tests) gardent le nom sans le lien.
+- Lot 10 : les agents ont réécrit plusieurs fichiers en CRLF ; ils sont
+  revenus en LF avant chaque commit, la planche par un commit à part.
 - Lot 9 : `npm run galerie` et `test:ui` ne reconstruisent que `dist/ui.html`.
   Le mainteneur a vu un plugin vide dans Figma, `dist/code.js` datant d'avant
   le format 9 ; `npm run build` l'a réparé. Chaque lot se termine désormais par
@@ -1103,6 +1112,14 @@ Mis à jour par l'orchestrateur à chaque lot.
   les sept garanties.
 
 **Écarts relevés, à reprendre plus loin :**
+
+- `ARCHITECTURE-FINALE-MULTIMARQUES.md`, sections 1, 2 et 6, et les sections
+  13 de `RECHERCHE-PLUGIN-PALETTES.md` décrivent encore l'ancienne forme
+  (collections `brand` et `usage`, `on-solid`, `surface-card`, 400 et 950
+  requis) : T10.3 ne citait que les sections 4, 5, 11.2 et les exigences
+  nommées. À mettre à jour sur décision du mainteneur.
+- `[VER-11]` a perdu le chiffre « 249 teintes », mesuré sur l'ancienne table ;
+  il reste à remesurer.
 
 - Jusqu'à T10.2, `versionSuitLeContenu.test.mjs` échoue : `@ucm-kit/core` et
   `@ucm-kit/cli` ont changé sans relever leur numéro.
@@ -1116,9 +1133,6 @@ Mis à jour par l'orchestrateur à chaque lot.
   d'ajustement ; la butée du Color shift, en variables seules faute de place.
 - L'alerte `fond-hors-courbe` dit encore « plus sombre que la nuance 50 » ;
   la 50 devient facultative au lot 10.
-- T10.4 : trois notes de `Collection usage/` renvoient à
-  `diagnostic-emplois.mjs`, renommé `diagnostic-contrastes.mjs` ; leur lien
-  est mort.
 
 ## Récapitulatif des appels
 

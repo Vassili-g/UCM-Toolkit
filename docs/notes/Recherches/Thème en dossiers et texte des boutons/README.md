@@ -1,6 +1,8 @@
 # Le thème en dossiers et le texte des boutons
 
-**Statut :** plan d'implémentation écrit, maquettes validées, en attente d'exécution.
+**Statut :** implémenté. Le [plan d'implémentation](./PLAN-IMPLEMENTATION.md) a été exécuté
+lot par lot ; sa section « Suivi de l'exécution » donne les commits, les
+décisions prises en route et les écarts.
 
 Ce dossier réunit deux chantiers validés par le mainteneur, pour les livrer
 dans un seul ordre :

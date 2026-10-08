@@ -87,7 +87,7 @@ et à la [maquette](./Archives/MAQUETTE-MODES-ET-AFFICHAGE.html).
 ## 3. Pourquoi le texte des boutons est sombre en Dark aujourd'hui
 
 La table des emplois donne `solid: 700`, `text: 700` et `'on-solid': 'fond'`
-([`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts)). Les
+(`emplois.ts`). Les
 garanties prennent pour texte des boutons le fond du thème
 ([`promesses.ts`](../../../../../packages/couleur/src/promesses.ts)).
 
@@ -438,9 +438,9 @@ la page. La proposition tient 4,5:1 sur tous les états et 3:1 au repos.
   [plan d'intégration](../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
   et [usages indexés](../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
 - [Spécification d'UCM Palettes](../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md), section 11.2.
-- [`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts),
-  [`paires.ts`](../../../../../packages/kit/src/emplois/paires.ts),
-  [`usages.ts`](../../../../../packages/kit/src/emplois/usages.ts),
+- `emplois.ts`,
+  `paires.ts`,
+  `usages.ts`,
   [`promesses.ts`](../../../../../packages/couleur/src/promesses.ts),
   [`recette.ts`](../../../../../packages/couleur/src/recette.ts),
   [`rampe.ts`](../../../../../packages/couleur/src/rampe.ts),

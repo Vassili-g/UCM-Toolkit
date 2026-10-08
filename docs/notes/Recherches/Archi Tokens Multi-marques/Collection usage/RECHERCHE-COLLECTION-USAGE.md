@@ -320,7 +320,7 @@ Palettes.
 
 UCM Palettes mesure aujourd'hui les paires de D17 : un texte qui avance d'un
 cran avec le fond teinté (paires 2 à 4 de
-[`paires.ts`](../../../../../packages/kit/src/emplois/paires.ts)). En
+`paires.ts`). En
 dossiers, cette règle donne un sous-dossier par état, qui porte le fond, le
 texte et le contour de cet état :
 
@@ -662,10 +662,10 @@ les cas des composants du Playground, avec le pire cas nommé.
 
 - [ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md)
   et la [vue illustrée](../VUE-ILLUSTREE-MULTIMARQUES.html), décisions D1 à D17.
-- [`emplois.ts`](../../../../../packages/kit/src/emplois/emplois.ts),
-  [`paires.ts`](../../../../../packages/kit/src/emplois/paires.ts),
-  [`rangs.ts`](../../../../../packages/kit/src/emplois/rangs.ts),
-  [`usages.ts`](../../../../../packages/kit/src/emplois/usages.ts).
+- `emplois.ts`,
+  `paires.ts`,
+  `rangs.ts`,
+  `usages.ts`.
 - [Dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md)
   et ses mesures.
 - Dépôt UCM-Playground : `src/components/Button/Button.contract.json`,

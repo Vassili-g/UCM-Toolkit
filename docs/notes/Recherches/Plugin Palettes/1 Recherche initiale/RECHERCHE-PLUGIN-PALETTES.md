@@ -54,12 +54,12 @@ implémentées des pistes conservées.
 | Dérive de teinte | Le décalage de teinte du Color shift, en degrés, entre la couleur de référence et chaque bout de la rampe |
 | Poids d'une nuance | 0 à la clarté du pivot, 1 au bout de la rampe, linéaire entre les deux : la fraction du réglage d'un bout que la nuance reçoit (`[MOT-30]`) |
 | Fond de référence | L'hexa contre lequel se mesurent les contrastes d'un mode |
-| Emploi | Un usage d'un cran, `text` ou `solid` par exemple. La table des emplois de l'architecture lui fixe un cran, et un cran par rang |
-| Rang | `default`, `hover`, `active` ou `active-hover` : le nombre de crans, de 0 à 3, dont un membre de paire avance. Un rang nomme un cran de la paire, pas une interaction |
+| Variable de dossier | `solid/default` ou `page/foreground` par exemple, rangée sous `solid`, `surface` ou `page`. La table des dossiers de l'architecture lui fixe un cran, selon le sens du thème |
+| Sens du thème | Normal ou inversé, selon que le texte des boutons du thème, blanc ou noir, a la couleur de sa page ou non |
 | Recette | Tous les nombres qui fabriquent les palettes du fichier |
 | Planche | Les cadres que le plugin dessine dans Figma |
 | Profil porteur | Le profil dont les rampes contiennent la couleur de référence exacte, dans les deux modes (`[MOT-17]`). Une palette à une intensité n'en a pas : sa rampe unique contient la référence |
-| Promesse | Une relation d'usage entre deux couleurs, `on-solid` sur `solid` par exemple, que son contraste mesuré vérifie contre un minimum |
+| Promesse | Une des sept garanties G1 à G7 entre deux variables du thème, `solid/foreground` sur `solid/default` par exemple, que son contraste mesuré vérifie contre un minimum. Le code garde ce nom (`promesses.ts`) |
 
 L'interface et la planche emploient le vocabulaire d'affichage de
 l'[inventaire des textes](../Textes et langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md#vocabulaire-retenu) :
@@ -452,7 +452,7 @@ référence n'entre pas dans les dépendances du paquet.
 | `#767676` sur `#FFFFFF` | contraste 4,54 |
 | `#1E6FD9` | `L ≈ 0,555`, `C ≈ 0,179`, `H ≈ 257,4` |
 | `plafond(0.5, h, srgb)` sur 360 teintes | jamais hors gamut, et une chroma supérieure de `1e-3` en sort |
-| dérives nulles, 360 teintes, deux profils, deux modes, rampes communes | les dix-neuf promesses de la [section 11.2](#112-promesses-des-emplois) tenues après arrondi |
+| dérives nulles, 360 teintes, deux profils, deux modes, rampes communes | les garanties de la [section 11.2](#112-promesses-des-emplois) tenues après arrondi, hors la nuance où la référence est ancrée |
 | gris de clarté 0,975 et 0,180 | `#F7F7F7` et `#121212`, les fonds par défaut |
 | tout Color shift, toute référence dans `[Ls, Lc]` | à la clarté `La`, la teinte vaut `Ha`, la part celle du profil et la clarté celle de la courbe |
 
@@ -488,19 +488,21 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | Clé | Contenu | Portée |
 |---|---|---|
 | `formatVersion` | Entier positif, version de la forme de la recette | Fichier |
-| `crans` | `[50, 100, …, 950]`, 400 et 950 compris (`[VER-05]`) | Toutes les rampes |
+| `crans` | `[50, 100, …, 950]` : les crans requis par la table du sens de chaque thème (`[VER-05]`), 50, 400 et 950 facultatifs | Toutes les rampes |
 | `courbes` | `light` et `dark`, une clarté par cran | Toutes les rampes |
 | `profils` | `soft` et `vivid`, une part de chroma chacun | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
-| `fonds` | `light` et `dark`, un hexa chacun | Contrastes, et texte posé sur un fond plein |
+| `fonds` | `light` et `dark`, un hexa chacun : le fond de la page de chaque thème | Les garanties |
+| `texteDesBoutons` | `light` et `dark`, chacun `blanc` (`#FFFFFF`) ou `noir` (`#000000`) ; `blanc` en Light et `noir` en Dark par défaut | Thème |
 | `seuils` | `texte` 4,5 ; `nonTexte` 3 ; `profilsConfondus` 0,02 ; `palettesProches` 0,05 | Vérifications |
 | `derives` | Les dix-sept paires de Tailwind | Préréglage |
 | `intensiteDesFondsSombres` | Nombre dans `[0, 1]`, 0,30 par défaut : le facteur de la part des fonds du thème Dark au numéro 50 (`[MOT-28]`) | Toutes les palettes, thème Dark |
 | `contenuDesPlanches` | `note`, `usages`, `grilles`, `light`, `dark` : les parties qu'un cadre dessine, toutes vraies par défaut, un thème au moins (`[PLA-28]`) | Planche |
 | `palettes` | Une entrée par palette, dans l'ordre d'affichage | Palettes |
 
-La table des emplois n'entre pas dans la recette : elle est fixe, et la
-[section 11.2](#112-promesses-des-emplois) la donne.
+La table des dossiers n'entre pas dans la recette : elle est fixe, et la
+[section 11.2](#112-promesses-des-emplois) la donne. Le texte des boutons de
+chaque thème en choisit le sens.
 
 La recette ne porte pas la planche. L'identifiant de la page et ceux des cadres
 dessinés se rangent sous la clé partagée `ucm_palettes/planche`, que l'export
@@ -537,7 +539,7 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
 
 ```json
 {
-  "formatVersion": 8,
+  "formatVersion": 9,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
@@ -546,6 +548,7 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
   "profils": { "soft": { "part": 0.45 }, "vivid": { "part": 0.95 } },
   "gamut": "srgb",
   "fonds": { "light": "#F7F7F7", "dark": "#121212" },
+  "texteDesBoutons": { "light": "blanc", "dark": "noir" },
   "seuils": {
     "texte": 4.5, "nonTexte": 3, "profilsConfondus": 0.02,
     "palettesProches": 0.05
@@ -593,10 +596,15 @@ dix-sept paires.
   moteur produit ces octets par son propre encodeur : le sandbox n'a pas
   `TextEncoder`.
 - `[REC-03]` La lecture classe la recette avant de l'employer : absente, la
-  recette par défaut du paquet est proposée ; `formatVersion` courante, lue ;
-  antérieure, illisible, par le refus de `formatVersion` et sans conversion ;
-  supérieure, refusée avec un message qui demande de mettre le plugin à jour ;
-  illisible, refusée sans écrire.
+  recette par défaut du paquet est proposée ; au format 9, lue ; au format 8,
+  lue aussi : `classerRecette` lui ajoute `texteDesBoutons` par défaut, la
+  passe au format 9 et la valide, et son état est `courante`. Une recette 8
+  qui porte déjà `texteDesBoutons` est refusée par la règle `forme`.
+  Antérieure à 8, elle est illisible, par le refus de `formatVersion` et sans
+  conversion ; supérieure à 9, refusée avec un message qui demande de mettre
+  le plugin à jour ; illisible, refusée sans écrire. Comme toute lecture, elle
+  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 9 au prochain
+  rangement que fait un geste du designer.
 - `[REC-04]` Un refus de lecture laisse la recette rangée intacte. Le plugin ne
   dessine rien tant que la recette n'est pas lisible.
 - `[REC-05]` Une validation de forme précède tout emploi : crans croissants,
@@ -606,8 +614,9 @@ dix-sept paires.
   palette, dérives de teinte dans `[-90, 90]`, décalages de saturation dans
   `[-1, 1]` et de luminosité dans `[-0,15, +0,15]`, sans objet `saturation` ou
   `clarte` aux deux valeurs nulles, seuils strictement positifs, hexas valides,
-  identifiants uniques, `crans` qui contient chaque cran de la table des emplois,
-  400 et 950 compris (`[VER-05]`). `derives`
+  identifiants uniques, `crans` qui contient les crans requis par la table du
+  sens de chaque thème (`[VER-05]`) ; `texteDesBoutons` vaut `blanc` ou
+  `noir` pour chaque thème. `derives`
   compte au moins deux paires, aux noms uniques, aux teintes dans `[0, 360)`, et
   leurs teintes claires sont distinctes : deux teintes claires égales annulent
   le dénominateur de l'interpolation de `dériveTailwind`. Une clé que la
@@ -629,8 +638,9 @@ dix-sept paires.
   exige un réglage du porteur et diffère d'`originale`. La validation ne
   recalcule pas la référence réglée : deux moteurs JavaScript peuvent
   différer au dernier bit, et la recette deviendrait illisible. La version 8
-  ajoute `figees` et laisse une palette à une intensité porter `crans`. Une
-  recette d'une version antérieure est refusée sans conversion :
+  ajoute `figees` et laisse une palette à une intensité porter `crans`. La
+  version 9 ajoute `texteDesBoutons`. Une recette d'une version antérieure à
+  8 est refusée sans conversion :
   seul le mainteneur en a rangé, pour ses essais. Un changement de forme
   reprendra sa conversion et ses tests le jour où des recettes seront rangées
   hors de ces essais. La validation rend tous ses refus, chacun avec sa règle
@@ -817,15 +827,20 @@ composant du socle la porte (`[UI-02]`).
   recette. Changer de préréglage garde la luminosité de chaque numéro gardé ;
   un numéro ajouté prend celle du préréglage quand la courbe reste monotone,
   sinon celle de la règle de la luminosité d’un numéro.
-- `[ENT-10]` La configuration mesure la garantie des courbes : le cran 600
-  tient 3:1 et le cran 700 tient 4,5:1 contre le cran 50 de la même courbe,
-  gris, sur 360 teintes, les deux profils et les deux modes, sur les couleurs à
-  8 bits. Une courbe qui ne la tient plus produit l'alerte « courbe hors
-  garantie », qui nomme le cran, le mode, le profil, la teinte du pire cas et
-  son contraste. L'alerte n'empêche ni le rangement ni le dessin. La
-  garantie juge les courbes communes : elle n'établit pas les promesses d'une
-  palette, dont la référence exacte remplace un cran (`[MOT-17]`). Seules ses
-  promesses les établissent.
+- `[ENT-10]` La configuration mesure la garantie des courbes. Dans la table
+  du sens de chaque mode, le cran de `page/foreground` tient le seuil `texte`
+  et le cran de `page/focus` le seuil `nonTexte` contre le cran le plus clair
+  de la liste, de la même courbe, gris. Le cran de `solid/default` tient le
+  seuil `texte` contre le texte des boutons du mode, blanc ou noir purs. Le
+  contrôle porte sur 360 teintes, les deux profils et les deux modes, sur les
+  couleurs à 8 bits. Une courbe qui ne le tient plus produit l'alerte « courbe
+  hors garantie », qui nomme le cran, le mode, le profil, la teinte du pire
+  cas, son contraste et ce contre quoi il est jugé : le cran le plus clair ou
+  le texte des boutons. L'alerte n'empêche ni le rangement ni le dessin. Les
+  courbes par défaut des quatre combinaisons de texte des boutons tiennent la
+  garantie. Elle juge les courbes communes et n'établit pas les promesses
+  d'une palette, dont la référence exacte remplace un cran (`[MOT-17]`) :
+  seules ses promesses les établissent.
 
 ## 9. Sortie 1 : la planche
 
@@ -1143,96 +1158,96 @@ référence de la recette.
 - `[VER-03]` Chaque cran de chaque rampe reçoit son contraste contre le fond de
   référence de son mode, contre le blanc et contre le noir, et le seuil tenu
   contre le fond.
-- `[VER-04]` Un cran n'a pas de verdict : seule une paire de la table des
-  emplois promet un contraste.
+- `[VER-04]` Un cran n'a pas de verdict : seule une des sept garanties de la
+  section 11.2 promet un contraste.
 
 ### 11.2 Promesses des emplois
 
-Pour chaque palette, chaque mode et chaque intensité présente, dix-neuf paires,
-sur la table des emplois de l'architecture ; dix-sept dans une liste sans 50. `R+1` désigne le cran suivant celui que
-l'emploi `R` vise, dans la même rampe : l'architecture fait avancer un état
-d'un cran. `on-solid` est le fond de référence du mode.
+Pour chaque palette, chaque mode et chaque intensité présente, sept garanties
+G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le seul
+fond de la page : le réglage « Fond » du thème, `elevation/page`. La carte,
+`elevation/raised`, n'a pas de réglage dans le plugin et n'entre dans aucune
+mesure. L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#4-la-table-en-dossiers-et-ses-états)
+explique le choix de cette table ; le kit la tient dans
+`packages/kit/src/emplois/dossiers.ts`.
 
-| Emploi | Cran |
-|---|---|
-| `solid` | 700 |
-| `on-solid` | fond |
-| `text` | 700 |
-| `surface` | 100 |
-| `surface-card` | 50, facultatif |
-| `border-control` | 600 |
-| `border-decorative` | 300 |
-| `focus` | 600 |
+Le sens d'un thème vient de son texte des boutons, blanc (`#FFFFFF`) ou noir
+(`#000000`) :
 
-| # | Paire | Seuil |
+| Thème | Texte des boutons | Sens |
 |---|---|---|
-| 1 | `text` sur fond | 4,5 |
-| 2 | `text` sur `surface` | 4,5 |
-| 3 | `text+1` sur `surface+1`, état hover | 4,5 |
-| 4 | `text+2` sur `surface+2`, état active | 4,5 |
-| 5 | `on-solid` sur `solid` | 4,5 |
-| 6 | `on-solid` sur `solid+1` | 4,5 |
-| 7 | `on-solid` sur `solid+2` | 4,5 |
-| 8 | `border-control` sur fond | 3 |
-| 9 | `border-control` sur `surface` | 3 |
-| 10 | `border-control+1` sur `surface+1` | 3 |
-| 11 | `border-control+2` sur `surface+2` | 3 |
-| 12 | `focus` sur fond | 3 |
-| 13 | `focus` sur `surface` | 3 |
-| 14 | `solid+1` sur fond | 3 |
-| 15 | `text` sur `surface-card` | 4,5 |
-| 16 | `border-control` sur `surface-card` | 3 |
-| 17 | `text+3` sur `surface+3`, état active-hover | 4,5 |
-| 18 | `on-solid` sur `solid+3` | 4,5 |
-| 19 | `border-control+3` sur `surface+3` | 3 |
+| Light | blanc | normal |
+| Light | noir | inversé |
+| Dark | noir | normal |
+| Dark | blanc | inversé |
 
-Les paires 17 à 19 suivent les seize autres : les numéros 1 à 16, que les
-rapports et les tests citent, ne bougent pas.
-
-`surface-card` est la surface d'une carte, jamais le fond d'un bouton : un
-bouton soft garde `surface`, et `surface` sur `surface-card` n'a aucun
-minimum, comme `surface` sur le fond. L'emploi n'existe, avec les paires 15
-et 16, que dans une liste qui porte la 50 : les deux préréglages l'ont. Une
-carte a la clarté du fond de page, un peu plus sombre que lui en Dark : elle
-se borde de `border-decorative`. L'anneau de focus, au cran de
-`border-control`, n'a pas de paire propre sur une carte.
-
-Une palette à deux intensités compte 76 paires : dix-neuf par mode et par
-profil, ou 68 dans une liste sans 50. Une palette à une intensité en compte
-38, ou 34 sans 50. Les deux
-profils partagent leurs clartés, mais pas leur chroma : leurs contrastes
-diffèrent un peu, et les composants citent l'un comme l'autre.
-
-Les dix-neuf paires se groupent en dix associations : une association réunit
-les paires de même premier emploi et de même second membre. L'état d'une paire
-est le décalage le plus grand de ses deux membres, dans le vocabulaire des
-composants : `default`, puis `hover` à une nuance, `active` à deux,
-`active-hover` à trois.
-
-| Association | Paires | États |
+| Variable | Normal | Inversé |
 |---|---|---|
-| `text` sur fond | 1 | default |
-| `text` sur `surface` | 2, 3, 4, 17 | default, hover, active, active-hover |
-| `on-solid` sur `solid` | 5, 6, 7, 18 | default, hover, active, active-hover |
-| `border-control` sur fond | 8 | default |
-| `border-control` sur `surface` | 9, 10, 11, 19 | default, hover, active, active-hover |
-| `focus` sur fond | 12 | default |
-| `focus` sur `surface` | 13 | default |
-| `solid` sur fond | 14 | hover |
-| `text` sur `surface-card` | 15 | default |
-| `border-control` sur `surface-card` | 16 | default |
+| `solid/default` | 700 | 700 |
+| `solid/hover` | 800 | 600 |
+| `solid/pressed` | 900 | 500 |
+| `solid/foreground` | le texte des boutons | le texte des boutons |
+| `surface/default` | 100 | 100 |
+| `surface/hover` | 200 | 200 |
+| `surface/pressed` | 300 | 300 |
+| `surface/foreground` | 800 | 900 |
+| `surface/border` | 800 | 900 |
+| `page/foreground` | 700 | 800 |
+| `page/border` | 700 | 800 |
+| `page/divider` | 300 | 300 |
+| `page/focus` | 600 | 700 |
 
-- `[VER-05]` Les paires visent les crans 100, 200, 300, 400, 600, 700, 800,
-  900 et 950, et la 50 de `surface-card`. `[REC-05]` refuse une recette dont `crans`
-  n'en contient pas un, la 50 exceptée : une liste importée sans 50 reste
-  lisible, et les paires 15 et 16 ne s'y jugent pas.
-- `[VER-06]` Une promesse manquée nomme l'association (section 11.2), le mode,
-  l'état, le profil pour une palette à deux intensités, son contraste mesuré et le minimum demandé. L'onglet
-  Création la porte sur la ligne de son association, dans la carte des
-  garanties (`[UI-09]`), et non dans la liste des messages. Le compte reste
-  celui des contrôles évalués, un par paire, mode et intensité. Aucun cran ne se
-  propose : la table est commune à toutes les palettes. Le geste mène au
-  réglage qui peut agir (section 11.4).
+Le neutre ajoute `page/foreground-main` (noir pur en Light, blanc pur en Dark,
+dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
+`scale/0` et `scale/1000` (blanc et noir en Light, échangés en Dark), puis
+`disabled/background` (200), `disabled/foreground` (500) et `disabled/border`
+(500). Aucune de ces variables n'a de garantie.
+
+| N° | Premier membre | Contre | Seuil |
+|---|---|---|---|
+| G1 | `solid/foreground` | `solid/default`, `solid/hover`, `solid/pressed` | `texte` |
+| G2 | `solid/default` | le fond de la page | `nonTexte` |
+| G3 | `surface/foreground` | `surface/default`, `surface/hover`, `surface/pressed`, le fond de la page | `texte` |
+| G4 | `surface/border` | les mêmes fonds | `nonTexte` |
+| G5 | `page/foreground` | le fond de la page | `texte` |
+| G6 | `page/border` | le fond de la page | `nonTexte` |
+| G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | `nonTexte` |
+
+- `[VER-05]` Les seuils `texte` (4,5 par défaut) et `nonTexte` (3) viennent de
+  la recette. Chaque garantie se juge par palette ; aucune ne croise deux
+  palettes. Les crans requis sont 100, 200, 300, 600, 700, 800 et 900 dans le
+  sens normal, plus 500 dans le sens inversé. Les crans 50, 400 et 950 sont
+  facultatifs : aucune variable ni garantie ne les vise, et une liste importée
+  qui s'en passe reste lisible. `[REC-05]` refuse une recette dont `crans`
+  n'a pas les crans requis du sens de l'un de ses thèmes : une recette sans 500
+  reste lisible tant que ses deux thèmes sont normaux. Une variable dont le
+  cran manque n'est pas présente, et une garantie qui la nomme n'est pas
+  jugeable, comme un contrôle qui n'a pas lieu.
+
+`solid/foreground` vaut le blanc ou le noir purs du thème, dans
+les deux sens. G2 juge le bouton au repos dans les deux sens. Une référence
+qui ne porte pas le texte des boutons reste ancrée, et le message de la
+garantie manquée propose « Ajuster la référence ». Sur les quatorze
+références de la recherche, à une et deux intensités et dans les quatre
+thèmes, G1 n'échoue que sur la nuance où la référence est ancrée, G2 à G6
+n'échouent jamais, et G7 n'échoue que pour `#16A34A`, dont l'anneau est la
+référence ancrée. Sur 864 références de toutes teintes, chromas et clartés,
+G1 hors nuance ancrée tient dans les quatre thèmes.
+
+Une palette à deux intensités compte 64 contrôles : seize par mode et par
+profil. Une palette à une intensité en compte 32. Les deux profils partagent
+leurs clartés, mais pas leur chroma : leurs contrastes diffèrent un peu, et
+les composants citent l'un comme l'autre. L'interface et la planche nomment une
+garantie par ses variables et son libellé, jamais par son numéro.
+
+- `[VER-06]` Une promesse manquée nomme ses deux variables, d'abord par leur
+  libellé puis par leur nom (`surface/foreground` sur `surface/hover`), le
+  mode, le profil pour une palette à deux intensités, son contraste mesuré et
+  le minimum demandé. L'onglet Vérification la porte sur la ligne de sa
+  garantie, dans la carte des garanties (`[UI-09]`), et non dans la liste des
+  messages. Le compte reste celui des contrôles évalués, un par garantie,
+  fond, mode et intensité. Aucun cran ne se propose : la table est commune à
+  toutes les palettes. Le geste mène au réglage qui peut agir (section 11.4).
 - `[VER-07]` Une promesse manquée n'empêche pas la génération. Le résultat de
   chaque profil se lit dans la carte des garanties (`[UI-09]`) : ✓ quand
   toutes ses promesses sont respectées, sinon le nombre de promesses
@@ -1261,8 +1276,8 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
   c'est une pastille pleine aux teintes adoucies, verte quand le niveau est
   atteint, rouge sinon ; sur la planche, un texte dans le calque du ratio.
   L'assistance technique lit ce que le badge juge et son résultat : « Texte
-  courant : AA atteint, AAA non atteint ». Une paire au minimum des textes se
-  juge en texte courant ; une paire au minimum des éléments visibles se juge
+  courant : AA atteint, AAA non atteint ». Une garantie au minimum des textes se
+  juge en texte courant ; une garantie au minimum des éléments visibles se juge
   en élément graphique, sans AAA. Le détail d'une nuance et les grilles de la
   planche jugent en texte courant. Les badges suivent les seuils fixes du
   WCAG, jamais les minimums de la recette : une promesse manquée au minimum
@@ -1275,7 +1290,7 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
 
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
-| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans de la table des emplois, états `+1` et `+2` compris, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
+| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans que visent les variables de dossier, dans le sens de chaque thème, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
 | Palettes proches | ΔEok moyen sur les crans 500, 600 et 700, en clair, chaque palette lue sur sa liste, sur les rampes de `[VER-17]` | `palettesProches` | chaque paire de palettes dont les deux listes portent ces trois crans |
 | Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
@@ -1298,13 +1313,14 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
   piste de saturation de la carte « Réglage global » porte
   un repère qui situe sa part, et le rapport garde la mesure. La référence exacte n'est jamais décrite comme plus terne
   qu'elle-même ; les nuances autour d'elle peuvent l'être.
-- `[VER-11]` « Profils confondus » ne porte que sur les crans de la table des
-  emplois, la 50 de `surface-card` exceptée : les deux profils s'y confondent
-  sur la plupart des teintes claires, et aucun réglage ne les sépare ; sur la planche, la pastille de toute nuance où les deux profils
+- `[VER-11]` « Profils confondus » ne porte que sur les crans que visent les
+  variables de dossier, dans le sens de chaque thème : les crans facultatifs
+  50, 400 et 950 en sont exclus. Les deux profils s'y confondent sur la plupart
+  des teintes claires, et aucun réglage ne les sépare ; sur la planche, la pastille de toute nuance où les deux profils
   se confondent porte ≈ (`[PLA-15]`). À dérive nulle, sur 360 teintes, l'alerte portée sur tous
-  les crans sonne pour 320 teintes, aux crans 50, 100 et 950. Bornée aux crans
-  de la table, elle sonne encore pour 249 teintes : `surface` vise le cran 100,
-  qui confond les deux profils sur 216 teintes en clair et 39 en sombre.
+  les crans sonne pour 320 teintes, aux crans 50, 100 et 950. `surface/default`
+  vise le cran 100, qui confond les deux profils sur 216 teintes en clair et 39
+  en sombre.
   L'interface la montre dans la carte « Réglage global » de la palette, et
   son lien y focalise la réglette de saturation (`[VER-15]`). Les nuances concernées gardent un indice discret dans
   l'aperçu.
@@ -1314,7 +1330,7 @@ composants : `default`, puis `hover` à une nuance, `active` à deux,
 | Sévérité | Emploi | Rang dans l'interface |
 |---|---|---|
 | Blocage | Le plugin ne peut ni enregistrer ni générer : recette illisible ou future, enregistrement refusé, police absente, génération interrompue | Premier, avant toute autre ligne |
-| Promesse à corriger | Une paire de la table des emplois n'atteint pas son minimum | Ensuite, signal de danger |
+| Promesse à corriger | Une des sept garanties n'atteint pas son minimum | Ensuite, signal de danger |
 | Point à vérifier | Une mesure franchit un seuil de conception, ou la planche peint une couleur différente de l'aperçu | Ensuite, signal d'avertissement |
 | Information | Cadre orphelin, copie de cadre, couleur ramenée dans le gamut sRGB, document Display P3 | Dernier, en couleur secondaire |
 

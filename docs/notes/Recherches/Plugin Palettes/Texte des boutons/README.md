@@ -2,15 +2,16 @@
 
 Dossier de recherche d'UCM Palettes : le texte des boutons en blanc ou en noir
 purs, choisi par thème pour tout le design system, et ce que ce choix impose
-au bouton, au texte coloré, aux contours et à la courbe du thème. Aucune
-implémentation.
+au bouton, au texte coloré, aux contours et à la courbe du thème.
+Implémenté par le
+[plan du thème en dossiers](../../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
 
 **État.** Le mainteneur a validé le principe : texte blanc ou
 noir purs, un choix par thème dans les Réglages communs, bouton à la 700,
 rampe recalculée. La règle du thème inversé est reprise par la
 [recherche sur la collection `usage`](../../Archi%20Tokens%20Multi-marques/Collection%20usage/RECHERCHE-COLLECTION-USAGE.md),
 section 4.1, et par le fichier Figma remappé. Les choix de moteur et
-d'interface sont tranchés ; reste le plan d'implémentation.
+d'interface sont tranchés et implémentés.
 
 | Document | Contenu |
 |---|---|

@@ -4,6 +4,12 @@
 de composant cite pour sa couleur. Sa forme a changé plusieurs fois. Cette page
 dit quel document lire, dans quel ordre, et ce que chacun vaut aujourd'hui.
 
+**État :** implémenté par le
+[plan du thème en dossiers](../../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
+La table en dossiers vit dans `packages/kit/src/emplois/dossiers.ts` ;
+[ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md),
+sections 4 et 5, la décrit.
+
 ## À lire en premier
 
 [ARCHITECTURE-PROPOSEE.html](./ARCHITECTURE-PROPOSEE.html), à ouvrir dans un
@@ -31,21 +37,21 @@ l'aperçu d'UCM Palettes, avant et après de chaque changement.
 
 | Document | Ce qu'il porte |
 |---|---|
-| [ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5 | La table des emplois, les quatre rangs d'état et la collection `usage` retenus par le mainteneur |
+| [ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5 | La table en dossiers `solid`, `surface`, `page`, ses deux sens, les trois états et les portées des variables de `theme` |
 | [VUE-ILLUSTREE-MULTIMARQUES.html](../VUE-ILLUSTREE-MULTIMARQUES.html) | Les décisions D1 à D17, dont D2 (`theme`), D13 (`usage`) et D17 (rangs) |
-| [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/) | La table en code, que UCM Palettes et UCM Explorateur lisent ; `ucm check` n'en gardera que le calcul du contraste |
+| [`packages/kit/src/emplois/`](../../../../../packages/kit/src/emplois/) | La table en code et les sept garanties, que UCM Palettes et UCM Explorateur lisent ; `ucm check` n'en garde que le calcul du contraste |
 
 ## Les propositions successives
 
 | Ordre | Proposition | Documents | État |
 |---|---|---|---|
 | 1 | Dix rôles facultatifs, câblés par marque et par thème | [Recherche initiale](../RECHERCHE-ARCHI-MULTIMARQUES.md), section 5.3 ; [revue critique](../SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md), section 3.5 | Remplacée par la table des emplois |
-| 2 | Table des emplois, `usage` sans mode, quatre rangs d'état | Architecture finale et vue illustrée | Fait foi ; la recherche 7 propose de la remplacer |
+| 2 | Table des emplois, `usage` sans mode, quatre rangs d'état | Architecture finale et vue illustrée | Remplacée par la proposition 7 |
 | 3 | Niveaux indexés et catalogue de partenaires | [Usages indexés et contraste](./1%20Usages%20indexes%20et%20catalogue/README.md) : demande, notes 01 à 05, mesures | Abandonnée pour une règle |
 | 4 | Règle de l'escalier | [Présentation des niveaux](./2%20Escalier/PRESENTATION-NIVEAUX-ET-TEXTE-DES-BOUTONS.html) | Jugée trop savante par le mainteneur |
 | 5 | Ensembles numérotés `surface-0` à `surface-4` | [La collection usage en ensembles](./3%20Ensembles/ENSEMBLES-DANS-FIGMA.html) | Jugée trop complexe par le mainteneur |
-| 6 | Thème inversé : texte blanc sur les boutons Dark | [Dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md) | À décider ; il impose une nuance par thème que D2 ne sait pas écrire |
-| 7 | Dossiers à texte constant, valeurs par thème dans `theme` | [Ce dossier](./RECHERCHE-COLLECTION-USAGE.md) | Texte constant à 800 retenu ; décisions restantes en section 9 |
+| 6 | Thème inversé : texte blanc sur les boutons Dark | [Dossier du texte des boutons](../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md) | Implémenté avec la proposition 7 : le texte des boutons se règle par thème |
+| 7 | Dossiers à texte constant, valeurs par thème dans `theme` | [Ce dossier](./RECHERCHE-COLLECTION-USAGE.md) | Implémentée |
 
 Les documents 3 à 5 sont rangés dans les sous-dossiers `1 Usages indexes et
 catalogue`, `2 Escalier` et `3 Ensembles`, avec leurs scripts.

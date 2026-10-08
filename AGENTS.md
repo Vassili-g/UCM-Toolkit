@@ -127,10 +127,8 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     typography.ts            les graisses et styles DTCG qu'un text style emploie
     index.ts                 ce que le sous-chemin publie
   src/emplois/             sous-chemin SANS dépendance : le vocabulaire qu'UCM Palettes et `ucm check` partagent
-    emplois.ts               la table fixe des emplois et les crans que la recette doit porter, 400 et 950 compris
-    paires.ts                les dix-neuf paires, leurs dix associations et les emplois d'un cran
-    rangs.ts                 les quatre rangs d'état et la table de l'état d'un composant vers son rang
-    usages.ts                la collection `usage` : noms, cibles, ce que chaque usage peint et ses portées Figma
+    dossiers.ts              la table des dossiers `solid`, `surface` et `page` dans ses deux sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
+    garanties.ts             les sept garanties G1 à G7, jugées contre le seul fond de la page, et leur jugeabilité selon les crans présents
     contraste.ts             le contraste WCAG 2 et sa comparaison au seuil à dix décimales
     index.ts                 ce que le sous-chemin publie
   src/lecteurs/            ce qui juge un contrat écrit ; `ajv` et `node:fs`
@@ -198,16 +196,16 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/rampe.ts             un cran, le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
   src/tailwind.ts          le préréglage Tailwind et son relevé
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
-  src/recette.ts           la forme de la recette, sa validation, son classement à la lecture, sans conversion d'un format antérieur
+  src/recette.ts           la forme de la recette au format 9, sa validation, son classement à la lecture : le format 8 se lit et reçoit `texteDesBoutons` par défaut, aucun autre format antérieur ne se convertit
   src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
-  src/nuances.ts           les deux préréglages de nuances, 11 et 13, la luminosité d'un numéro absent de la liste, la liste d'une palette libre
+  src/nuances.ts           les deux préréglages de nuances, 11 et 13, leurs courbes par défaut selon le texte des boutons de chaque thème (`courbesParDefaut`), les nuances 500 à 800 réglées (`nuancesReglees`), le changement de texte des boutons (`recetteAvecTexteDesBoutons`), la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
-  src/promesses.ts         les dix-neuf paires du kit, jugées par mode et par intensité présente
+  src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente
   src/alertes.ts           les alertes de conception et la notice
-  src/garantie.ts          la garantie des courbes : crans 600 et 700 contre le cran 50 gris, sur 360 teintes
+  src/garantie.ts          la garantie des courbes : `page/foreground` et `page/focus` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
   src/limites.ts           la limite dynamique d'un réglage et la cause de chaque borne, balayée un pas à la fois
   src/constats.ts          les sévérités et leur ordre d'affichage
   src/index.ts             la porte du paquet, qui republie `@ucm-kit/core/emplois`
@@ -240,8 +238,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/configuration.ts     les champs de la configuration, fonds et seuils compris, les palettes que chacun touche, et « Rétablir » par carte
   src/importation.ts       un fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et la nature de cet écart
   src/rapport.ts           le rapport de vérification : crans, promesses, alertes, empreinte et écarts du dernier dessin
-  src/presentation.ts      les promesses manquées groupées, la place de chaque alerte, le réglage que chaque message ouvre, les accolades de l'aperçu, le verdict d'une palette, l'état d'une fiche de Gestion
-  src/planche/modele.ts    le modèle pur d'un cadre de planche : par thème, rampes, usages de chaque intensité et leurs garanties avec leur niveau WCAG, grilles, selon les parties choisies ; styles nommés, empreinte
+  src/presentation.ts      les promesses manquées groupées, la place de chaque alerte, le réglage que chaque message ouvre, les bandes `solid`, `surface`, `page` de l'aperçu et son survol lié, le verdict d'une palette, l'état d'une fiche de Gestion
+  src/planche/modele.ts    le modèle pur d'un cadre de planche : par thème, rampes, variables de dossier de chaque intensité et leurs garanties avec leur niveau WCAG, grilles, selon les parties choisies ; styles nommés, empreinte
   src/planche/fraicheur.ts chaque cadre à jour, périmé, jamais dessiné, introuvable ou illisible, les cadres orphelins et copiés, et l'effet d'un import
   src/planche/peints.ts    les couleurs relues sur la planche, comparées à celles de l'aperçu
   src/ecriture/recette.ts  le rangement de la recette : validation, empreinte lue, commitUndo
@@ -279,7 +277,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/localisation.ts   le contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
   src/ui/socleLocalise.ts  les composants du socle, libellés liés au contexte de langue
   src/ui/couleur/          le sélecteur de couleur embarqué, ses formats Hex, RGB et HSL, les pastilles qu'il propose, une couleur par image pendant un glisser suivi sur le document
-  src/ui/nuancier.ts       l'aperçu peint du fond du thème montré, sans bascule : pastille on-solid, pastilles en grille, accolades des rôles, choix et relâche d'une nuance, détail d'une nuance
+  src/ui/nuancier.ts       l'aperçu peint du fond de la page du thème montré, sans bascule : case du texte des boutons, pastilles en grille, bandes des dossiers et leurs rayures, survol lié, choix et relâche d'une nuance, détail d'une nuance
   src/ui/badge.ts          le badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
   src/ui/garanties.ts      la carte des garanties, fixe, dans Vérification : en-tête sans thème, rangée en tête du corps pour le choix Soft/Vivid « Afficher » (deux intensités), liens vers l'autre thème, réglette et arcs, un encadré par minimum, les états en colonnes, une ligne par association
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
@@ -300,7 +298,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/reglagesDeLaPalette.ts la carte « Réglage global » : profil visé, trois réglettes bornées par leur limite, et en lignes fixes l'avertissement de la référence, la butée, la note d'une palette grise et la première alerte
   src/ui/messagesDePalette.ts les messages de la palette ouverte : ceux de la liste, ceux des intensités, et la liste entière de Vérification
   src/ui/ajustement.ts     la modale « Ajuster la référence » : pourquoi ajuster, originale et proposition, pas, code, tableau avant et après, Appliquer
-  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par emploi et par état, un seul écran du profil choisi ; ses choix « Vue » (Écran, États) et « Afficher » (Soft, Vivid) sont dans l'en-tête
+  src/ui/interfaceDeTest.ts la dernière carte de l'onglet : l'écran de réglages E2 peint de la palette ouverte, par dossier et par état (`default`, `hover`, `pressed`), un seul écran du profil choisi ; ses choix « Vue » (Écran, États) et « Afficher » (Soft, Vivid) sont dans l'en-tête
   src/ui/choix.ts          le choix d'affichage commun à toutes les cartes (`createChoix`, classe `.choix-d-affichage`) : un libellé, puis des segments ; `createChoixDuProfil` y ajoute « Régler » ou « Afficher », les segments Soft, Vivid et Les deux dans cet ordre, ◆ sur le profil porteur ; `createRangeeDesChoix` pour une carte fixe
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
@@ -335,7 +333,7 @@ packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plu
   src/releves.ts           le relevé exporté, réimporté et comparé à un autre
   src/simulation.ts        une substitution dans une copie en mémoire
   src/preferences.ts       vue compacte, intégrations, associations et largeurs réglées, dans clientStorage
-  src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM
+  src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (couches `primitives`, `color-brands`, `color-utilities`, `theme`, `components`)
   src/ui/                  la barre et sa bascule de mode, l'arbre et sa recherche, la table, l'inspecteur, la bulle de chaîne, la poignée des largeurs et les vues des onglets
   src/ui/vues/composant.ts la vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied
   src/ui/roles.css         les couleurs sombres, placées avant la feuille du socle
@@ -1020,12 +1018,47 @@ La spécification en lien porte le raisonnement.
   loi lit `packages/kit/src/emplois/`, que le moteur importe. Borne : la loi
   lit le texte ligne à ligne, commentaires retirés.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
-- La table des emplois, les dix-neuf paires, les quatre rangs, la table des
-  états, la collection `usage` et le contraste WCAG 2 ont une seule source,
-  `@ucm-kit/core/emplois` (`packages/kit/src/emplois/`). `ucm-couleur`
-  l'importe et la republie sans la recopier, et le kit n'importe rien de
-  `ucm-couleur` : `packages/kit/tests/emplois.test.ts` le tient. Borne : le
-  test lit les instructions d'import, pas un chemin calculé.
+- La table des dossiers `solid`, `surface` et `page`, ses deux sens, les
+  crans requis, les trois états, les sept garanties G1 à G7 et le contraste
+  WCAG 2 ont une seule source, `@ucm-kit/core/emplois`
+  (`packages/kit/src/emplois/`). `ucm-couleur` l'importe et la republie sans
+  la recopier, et le kit n'importe rien de `ucm-couleur`.
+- Un thème est normal ou inversé selon son texte des boutons, blanc ou noir :
+  Light blanc et Dark noir sont normaux. `sensDuTheme` (`dossiers.ts`) en est
+  l'unique autorité, et chaque lecteur de la table passe par lui. Dans le sens
+  inversé, `solid/hover` et `solid/pressed` prennent les crans 600 et 500,
+  `surface/foreground`, `surface/border`, `page/foreground` et `page/border`
+  montent d'un cran, et les nuances 500 à 800 prennent la courbe inversée
+  (`courbesParDefaut`). Les crans requis sont 100, 200, 300, 600, 700, 800 et
+  900, plus 500 si un thème est inversé ; 50, 400 et 950 sont facultatifs, et
+  une variable dont le cran manque n'est pas présente. `solid/foreground` vaut
+  `#FFFFFF` ou `#000000`, jamais le fond de la page.
+  `packages/kit/tests/dossiers.test.ts` et
+  `packages/couleur/tests/nuances.test.ts` le tiennent.
+- Chaque garantie G1 à G7 se juge par palette, dans la table du sens du
+  thème, contre le seul fond de la page, le réglage « Fond » du thème ;
+  aucune ne croise deux palettes, et `elevation/raised` n'est jamais mesuré.
+  Une garantie dont un cran manque n'est pas jugeable. Les seuils viennent de
+  la recette (`texte`, `nonTexte`). La garantie des courbes lit, dans la table
+  du sens de chaque mode, `page/foreground` au seuil `texte` et `page/focus`
+  au seuil `nonTexte` contre le cran le plus clair, gris, puis `solid/default`
+  au seuil `texte` contre le texte des boutons du mode, pour toute teinte et
+  les deux profils (`garantie.ts`). `GARANTIES` (`packages/kit`) et
+  `verifierPromesses` (`packages/couleur`) en sont l'unique autorité ;
+  `packages/kit/tests/garanties.test.ts` et
+  `packages/couleur/tests/promesses.test.ts` les tiennent.
+- La recette est au format 9 et porte `texteDesBoutons: { light, dark }`,
+  chacun `blanc` ou `noir` ; une autre valeur est refusée par la règle
+  `texte-des-boutons`. Une recette au format 8 se lit, reçoit le texte par
+  défaut et se classe `courante` ; une qui porte déjà `texteDesBoutons` est
+  refusée par la règle `forme`. Aucune lecture n'écrit : le format 9 se range
+  au prochain geste du designer. Changer le texte des boutons d'un thème
+  remplace ses nuances 500 à 800 par les valeurs par défaut du sens d'arrivée ;
+  `recetteAvecTexteDesBoutons` refuse le passage quand la courbe n'est plus
+  strictement monotone, et la recette ne change pas. `classerRecette`
+  (`packages/couleur/src/recette.ts`) et `recetteAvecTexteDesBoutons`
+  (`nuances.ts`) en sont l'unique autorité ; `packages/couleur/tests/recette.test.ts`
+  et `nuances.test.ts` le tiennent.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quel que soit le Color shift. `teinteA` (`packages/couleur/src/rampe.ts`) en est
@@ -1335,6 +1368,18 @@ La spécification en lien porte le raisonnement.
   messages vers le sandbox, pas le contenu de `clientStorage`, et la tenue en
   haut ne se mesure qu'avec l'Interface de test dépliée.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
+- L'aperçu de l'onglet Création range les variables de `theme` en trois
+  bandes, `solid`, `surface` et `page`, dans le sens du thème montré. La
+  rayure d'une accolade peint, sous les numéros qu'elle couvre, la couleur de
+  chaque nuance et de chaque intensité ; le survol ou le focus d'une pastille
+  surligne les codes de variable de ce cran, sans délai ni animation. Les
+  bandes restent `aria-hidden` et hors de la tabulation ; le détail de la
+  nuance choisie nomme ses variables. `bandesDe`, `apercuEnBandes` et
+  `surlignageDe` (`src/presentation.ts`) en sont l'unique autorité, et
+  `tests/presentation.test.ts` avec `galerie/comparer-maquette.cjs` les
+  tiennent. La carte des garanties nomme chaque garantie par ses variables et
+  son libellé, jamais par son numéro.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans)
 - Chaque choix d'affichage, thème, profil ou vue, est un `createChoix`
   (`src/ui/choix.ts`, classe `.choix-d-affichage`) : un libellé, puis des
   segments, avec la même hauteur, la même police et la même graisse partout, et
@@ -1432,7 +1477,17 @@ La spécification en lien porte le raisonnement.
   `tests/interface/interface.test.mjs` le tiennent.
 - Les intégrations s'activent explicitement et leur absence ne produit aucun
   constat. Le profil UCM ne contrôle que les collections que le designer
-  associe à une couche (`src/integrations/profilUcm.ts`). Les contrats et
+  associe à une couche (`src/integrations/profilUcm.ts`). Les couches sont
+  `primitives`, `color-brands`, `color-utilities`, `theme` et `components` :
+  `components` vise `theme`, `theme` vise `color-brands` ou
+  `color-utilities`, et ces deux-là visent `primitives`. Une association
+  rangée sous `brand` se lit `color-brands`, une sous `usage` se lit sans
+  couche. Dans `theme`, chaque variable de dossier porte les portées de
+  `SUPPORT_DES_VARIABLES` et `scale/*` aucune ; son alias vise, dans chaque
+  mode, le cran de `TABLE_DES_DOSSIERS` dans le sens que donne
+  `texteDesBoutons` de la recette associée, lu à la fin du nom de la cible
+  (`primary/light/700`). `identity` et `scale/*` ne se jugent pas.
+  `tests/integrationsUcm.test.ts` le tient. Les contrats et
   `tokens.json` se jugent par `@ucm-kit/core/lecteurs/navigateur`, jamais par
   la porte Node ; `tests/bundle.test.ts` refuse toute dépendance Node dans les
   deux bundles, et `packages/kit/tests/porteNavigateur.test.mjs` la tient

@@ -5,27 +5,27 @@
 Le kit associe huit emplois à des crans fixes. `solid` et `text` partent du
 cran 700, `surface` du 100, `border-control` et `focus` du 600.
 `on-solid` désigne le fond de référence du thème dans le calcul des promesses.
-[Source : emplois.ts](../../../../../../packages/kit/src/emplois/emplois.ts).
+Source : emplois.ts.
 
 Les dix-neuf paires couvrent dix associations. Les paires `text/surface` et
 `border-control/surface` avancent leurs deux membres ensemble sur quatre rangs.
 `on-solid/solid` conserve son premier plan et avance le fond plein.
 La seule paire entre `solid` et le fond de page utilise le décalage 1.
 Aucune paire ne couvre directement `solid/surface`.
-[Source : paires.ts](../../../../../../packages/kit/src/emplois/paires.ts).
+Source : paires.ts.
 
 Les états sélectionné et appuyé utilisent tous deux `active`. Le focus utilise
 `default` avec un anneau. La table actuelle réduit donc des états distincts à
 quatre rangs ; ces rangs ne représentent pas toutes les combinaisons possibles
 entre sélection, focus et survol.
-[Source : rangs.ts](../../../../../../packages/kit/src/emplois/rangs.ts).
+Source : rangs.ts.
 
 `usagesDeLaPalette()` produit des descriptions de variables et des alias vers
 `theme`. La présence de cette fonction ne prouve pas l’écriture des collections
 dans Figma. Le plan d’écriture de Palettes porte actuellement sur les palettes
 primitives et leurs destinations. Le commentaire d’introduction de `usages.ts`
 présente une responsabilité plus large que le déploiement constaté.
-[Usages](../../../../../../packages/kit/src/emplois/usages.ts),
+Usages,
 [plan d’écriture](../../../../../../packages/plugin-palettes/src/variables/plan.ts),
 [état des recherches](../../../README.md).
 
@@ -52,7 +52,7 @@ commun ne fournit aucune de ces trois preuves.
 couleurs hors table. Les mesures de contraste enrichissent les constats de
 paire absente ou de couleur hors table. Une paire reconnue ne passe pas par un
 contrôle systématique de son seuil. Ce diagnostic reste non bloquant.
-[Source : diagnostic-emplois.mjs](../../../../../../packages/kit/src/lecteurs/diagnostic-emplois.mjs).
+Source : diagnostic-emplois.mjs.
 
 Quatre autres limites affectent une évolution vers un catalogue de garanties :
 
