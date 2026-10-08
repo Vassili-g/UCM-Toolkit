@@ -5,9 +5,9 @@
  * les renomme sous le segment de leur thème ou de leur intensité, et crée
  * sous leur chemin ce que la palette porte de plus. Pur : ni Figma, ni DOM.
  */
-import { MODES, type Mode } from 'ucm-couleur';
+import { MODES, type Intensite, type Mode, type Palette } from 'ucm-couleur';
 
-import { nuanceDeReference, type PaletteDuFichier } from './detection';
+import { nuanceDeReference, type GroupeRange, type PaletteDuFichier, type PaletteGroupee } from './detection';
 import { cleDuPlan, type EntreeDuPlan } from './plan';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
 import type { PaletteSuivie, VariableSuivie } from './suivi';
@@ -50,6 +50,58 @@ export function couleursDeLaReprise(palette: PaletteDuFichier): CouleursDeLaRepr
 }
 
 /**
+ * La nuance colorée en Light la plus proche de la nuance de référence du
+ * fichier ; à distance égale, la plus sombre. `null` quand aucune nuance ne
+ * porte de couleur en Light. Le plugin ancre la référence de la palette
+ * reprise à la couleur de cette nuance.
+ */
+export function nuanceDAncrage(lues: CouleursDeLaReprise, reference: number): { readonly nuance: number; readonly rang: number } | null {
+  const colorees = lues.nuances.map((nuance, rang) => ({ nuance, rang })).filter(({ rang }) => lues.light[rang] !== null);
+  if (colorees.length === 0) return null;
+  return colorees.reduce((choisie, candidate) => {
+    const ecart = Math.abs(candidate.nuance - reference) - Math.abs(choisie.nuance - reference);
+    return ecart < 0 || (ecart === 0 && candidate.nuance > choisie.nuance) ? candidate : choisie;
+  });
+}
+
+/** Le mode de reprise des couleurs ; le même type que `ModeDeReprise` de `src/edition.ts`, qui importe ce module. */
+type ModeDeLaRepriseGroupee = 'recalculees' | 'telles-quelles';
+
+/**
+ * Ce que la reprise d'une palette groupée tire des couleurs du fichier : la
+ * référence de la palette neuve et les réglages qui s'y ajoutent.
+ */
+export interface CouleursDeLaRepriseGroupee {
+  /** Les nuances des groupes, en ordre croissant. */
+  readonly nuances: readonly number[];
+  /** La référence de la palette neuve, en hexa. */
+  readonly reference: string;
+  /** Les champs de la palette neuve qui s'ajoutent à sa référence (réglages reconstruits, couleurs figées) ; vide tant que D3 n'a rien décidé. */
+  readonly reglages: Partial<Palette>;
+}
+
+/** Le groupe qui porte l'ancrage : Soft en Light, ou le seul groupe Light. */
+function groupeDAncrage(groupee: PaletteGroupee): GroupeRange {
+  return groupee.groupes.find((groupe) => (groupe.intensite === null || groupe.intensite === 'soft') && (groupe.theme === null || groupe.theme === 'light')) ?? groupee.groupes[0];
+}
+
+/**
+ * Le point unique des couleurs d'une palette groupée. Pour l'instant, en
+ * mode `recalculees` seulement : la référence est la couleur de la nuance
+ * d'ancrage du groupe Soft en Light (ou du seul groupe Light), sans autre
+ * réglage. `telles-quelles` rend `null` : le modèle des couleurs figées n'a
+ * qu'une intensité.
+ */
+export function couleursDeLaRepriseGroupee(groupee: PaletteGroupee, mode: ModeDeLaRepriseGroupee): CouleursDeLaRepriseGroupee | null {
+  if (mode !== 'recalculees') return null;
+  const { palette } = groupeDAncrage(groupee);
+  const lues = couleursDeLaReprise(palette);
+  const ancre = nuanceDAncrage(lues, palette.reference);
+  if (!ancre) return null;
+  return { nuances: lues.nuances, reference: lues.light[ancre.rang]!, reglages: {} };
+}
+
+/**
  * Le suivi d'une palette reprise : ses clés désignent les variables
  * d'origine, par identifiant, et la dernière couleur écrite prend la couleur
  * lue. Une palette reprise telle quelle est donc « À jour » sans écriture.
@@ -78,6 +130,50 @@ export function suiviDeLaReprise(palette: PaletteDuFichier): PaletteSuivie {
     variables,
     liaison: 'reprise',
     chemin: palette.chemin,
+  };
+}
+
+/**
+ * Le suivi d'une palette groupée reprise : chaque variable de chaque groupe
+ * est rangée sous la clé que le plan lui donne, pour qu'une mise à jour des
+ * tokens ne renomme ni ne crée rien. Comme dans le plan, l'intensité qui
+ * porte les variables d'origine s'écrit sous `unique` (ici Soft, que
+ * `intensite` consigne) et l'autre sous son nom. Le chemin consigné est la
+ * racine : le dernier segment nomme la palette. Les thèmes d'une forme dans
+ * le chemin se lisent dans le mode Light de la collection ; ceux d'une forme
+ * en modes, dans les modes Light et Dark.
+ */
+export function suiviDeLaRepriseGroupee(groupee: PaletteGroupee): PaletteSuivie {
+  const { palette: ancre } = groupeDAncrage(groupee);
+  const viser = modesDeLaReprise(ancre.modes, ancre.couleurs);
+  const themesEnModes = groupee.forme === 'intensites-themes-modes';
+  const modes: { light?: string; dark?: string } = {};
+  if (viser.light) modes.light = viser.light.id;
+  if (themesEnModes && viser.dark) modes.dark = viser.dark.id;
+  const variables: { [cle: string]: VariableSuivie } = {};
+  for (const { intensite, theme, palette } of groupee.groupes) {
+    const rangee: Intensite = intensite === null || intensite === 'soft' ? 'unique' : intensite;
+    // Une forme dans le chemin lit chaque groupe dans le mode Light, pour son thème ; une forme en modes lit les deux modes du groupe.
+    const lectures: readonly (readonly [Mode, string | undefined])[] = themesEnModes
+      ? MODES.map((mode) => [mode, modes[mode]] as const)
+      : [[theme ?? 'light', modes.light]];
+    for (const [mode, cible] of lectures) {
+      const lues = cible === undefined ? undefined : palette.couleurs[cible];
+      if (!lues) continue;
+      palette.nuances.forEach((nuance, rang) => {
+        const lue = lues[rang];
+        if (lue !== null) variables[cleDuPlan(rangee, mode, nuance)] = { id: palette.variables[rang], ecrite: lue };
+      });
+    }
+  }
+  return {
+    collection: groupee.collection,
+    groupe: groupee.racine.split('/').slice(0, -1).join('/'),
+    modes,
+    variables,
+    liaison: 'reprise',
+    chemin: groupee.racine,
+    ...(groupee.forme === 'themes-chemin' ? {} : { intensite: 'soft' as const }),
   };
 }
 

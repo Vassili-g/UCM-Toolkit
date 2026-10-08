@@ -38,8 +38,8 @@ import {
   type Rgb8,
 } from 'ucm-couleur';
 
-import type { PaletteDuFichier } from './variables/detection';
-import { couleursDeLaReprise } from './variables/reprise';
+import type { PaletteDuFichier, PaletteGroupee } from './variables/detection';
+import { couleursDeLaReprise, couleursDeLaRepriseGroupee, nuanceDAncrage } from './variables/reprise';
 
 /** Un hexa de six chiffres, avec ou sans dièse. */
 export const MOTIF_HEXA = /^#?[0-9a-f]{6}$/i;
@@ -581,7 +581,7 @@ function nuancesLibres(nuances: readonly number[]): boolean {
 }
 
 /** Le nom d'une palette reprise : le dernier segment non numérique de son chemin, ou sa collection. */
-export function nomDeLaReprise(source: PaletteDuFichier): string {
+export function nomDeLaReprise(source: Pick<PaletteDuFichier, 'chemin' | 'nomDeLaCollection'>): string {
   const segments = source.chemin.split('/').map((segment) => segment.trim()).filter((segment) => segment !== '' && !/^\d+$/.test(segment));
   return segments[segments.length - 1] ?? source.nomDeLaCollection;
 }
@@ -598,15 +598,15 @@ export function nomDeLaReprise(source: PaletteDuFichier): string {
  * `telles-quelles` : elle est figée aux couleurs lues, sur les seules
  * nuances que le thème Light colore ; un alias du thème Dark y prend la
  * couleur de Light.
+ *
+ * Une palette groupée du fichier passe par `reprendreLaGroupee`.
  */
-export function reprendreDuFichier(recette: Recette, id: string, source: PaletteDuFichier, mode: ModeDeReprise): Palette | null {
+export function reprendreDuFichier(recette: Recette, id: string, source: PaletteDuFichier | PaletteGroupee, mode: ModeDeReprise): Palette | null {
+  if ('groupes' in source) return reprendreLaGroupee(recette, id, source, mode);
   const lues = couleursDeLaReprise(source);
   const colorees = lues.nuances.map((nuance, rang) => ({ nuance, rang })).filter(({ rang }) => lues.light[rang] !== null);
-  if (colorees.length === 0) return null;
-  const porteuse = colorees.reduce((choisie, candidate) => {
-    const ecart = Math.abs(candidate.nuance - source.reference) - Math.abs(choisie.nuance - source.reference);
-    return ecart < 0 || (ecart === 0 && candidate.nuance > choisie.nuance) ? candidate : choisie;
-  });
+  const porteuse = nuanceDAncrage(lues, source.reference);
+  if (!porteuse) return null;
   const neuve = nouvellePalette(recette, id, lues.light[porteuse.rang]!, 1);
   if (!neuve) return null;
   const nommee: Palette = { ...neuve, nom: nomDeLaReprise(source) };
@@ -617,4 +617,21 @@ export function reprendreDuFichier(recette: Recette, id: string, source: Palette
   const light = colorees.map(({ rang }) => lues.light[rang]!.slice(0, 7));
   const dark = lues.dark ? colorees.map(({ rang }, place) => (lues.dark![rang] ?? light[place]).slice(0, 7)) : undefined;
   return { ...nommee, crans: colorees.map(({ nuance }) => nuance), figees: dark ? { light, dark } : { light } };
+}
+
+/**
+ * La palette du plugin qu'une palette groupée du fichier devient ([VAR-13]) :
+ * deux intensités quand la forme en porte deux, une pour `themes-chemin`, et
+ * pour nom le dernier segment de la racine. Les couleurs viennent d'un seul
+ * point, `couleursDeLaRepriseGroupee`. Rend `null` quand il n'en tire
+ * aucune, dont le mode `telles-quelles` aujourd'hui.
+ */
+function reprendreLaGroupee(recette: Recette, id: string, source: PaletteGroupee, mode: ModeDeReprise): Palette | null {
+  const couleurs = couleursDeLaRepriseGroupee(source, mode);
+  if (!couleurs) return null;
+  const neuve = nouvellePalette(recette, id, couleurs.reference, source.forme === 'themes-chemin' ? 1 : 2);
+  if (!neuve) return null;
+  const nommee: Palette = { ...neuve, ...couleurs.reglages, nom: nomDeLaReprise({ chemin: source.racine, nomDeLaCollection: source.nomDeLaCollection }) };
+  const communes = couleurs.nuances.length === recette.crans.length && couleurs.nuances.every((nuance, rang) => nuance === recette.crans[rang]);
+  return communes || !nuancesLibres(couleurs.nuances) ? nommee : { ...nommee, crans: [...couleurs.nuances] };
 }

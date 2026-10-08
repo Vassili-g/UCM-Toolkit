@@ -2,15 +2,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
+import { aUneIntensite, fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nomDeLaReprise, remplacerPalette, reprendreDuFichier, revenirAuModele, supprimer } from '../src/edition';
 import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
-import { palettesDuFichier, type PaletteDuFichier } from '../src/variables/detection';
+import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../src/variables/detection';
 import { tokensDeLaPalette } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
-import { modesDeLaReprise, sourceDeLaReprise, suiviDeLaReprise } from '../src/variables/reprise';
+import { couleursDeLaRepriseGroupee, modesDeLaReprise, origineDeLaReprise, sourceDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee } from '../src/variables/reprise';
 import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
 
@@ -681,4 +681,199 @@ test('[UI-34] la liaison rend la palette du fichier qu’elle désigne, relue da
   // Une collection disparue, ou des variables toutes retirées, ne rendent aucune palette.
   assert.equal(sourceDeLaReprise({ ...lu.suivi.palettes[palette.id], collection: 'inconnue' }, lu), null);
   assert.equal(sourceDeLaReprise(lu.suivi.palettes[palette.id], { ...lu, variables: [] }), null);
+});
+
+// ------------------------------------------------------------ la reprise groupée
+
+async function groupeesDuFichier(figma: FauxFigma, recette: Recette = VIDE): Promise<PaletteGroupee[]> {
+  return regrouperLesPalettes(await duFichier(figma, recette)).filter((trouvee): trouvee is PaletteGroupee => trouvee.type === 'groupee');
+}
+
+const sourceGroupee = (groupee: PaletteGroupee) => ({ collection: groupee.collection, racine: groupee.racine, forme: groupee.forme });
+
+/** Reprend une palette groupée par la porte du sandbox, sous l'identifiant demandé. */
+async function reprendreLaGroupee(figma: FauxFigma, groupee: PaletteGroupee, avant: Recette = VIDE, id = 'p-000000a1'): Promise<{ recette: Recette; palette: Palette }> {
+  const suivi = lireLeSuiviRange(figma.root);
+  if (!suivi.confirmee) {
+    const groupe = groupee.racine.split('/').slice(0, -1).join('/');
+    figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { ...suivi.destination, groupe } }));
+  }
+  const palette = reprendreDuFichier(avant, id, groupee, 'recalculees')!;
+  const recette = ajouter(avant, palette);
+  const issue = await reprendreLaPalette(api(figma), { recette, empreinteLue: empreinte(avant), palette: id, source: sourceGroupee(groupee) });
+  assert.deepEqual(issue, { issue: 'reprise', empreinte: empreinte(recette) });
+  return { recette, palette };
+}
+
+/** Les clés que le plan donne à la palette, face à celles que son suivi désigne. */
+async function clesDuPlanEtDuSuivi(figma: FauxFigma, recette: Recette, palette: Palette): Promise<{ plan: string[]; suivi: string[] }> {
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const suivie = lu.suivi.palettes[palette.id];
+  const plan = planDesVariables(recette, palette, lu.suivi.destination, suivie, origineDeLaReprise(suivie, lu.variables));
+  return { plan: plan.map((entree) => entree.cle).sort(), suivi: Object.keys(suivie.variables).sort() };
+}
+
+const nomsEtIdentifiants = (figma: FauxFigma): [string, string][] => [...figma.locales.values()].map((variable) => [variable.id, variable.name]);
+
+/** Écrit la palette et vérifie qu'aucune variable n'a été créée, renommée ou retirée. */
+async function ecrireSansToucherAuxVariables(figma: FauxFigma, recette: Recette, palette: Palette): Promise<void> {
+  const avant = nomsEtIdentifiants(figma);
+  figma.journal.length = 0;
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.equal(resultat.issue === 'ecrites' && resultat.palettes[0].issue, 'ecrite');
+  assert.deepEqual(nomsEtIdentifiants(figma), avant);
+  assert.equal(figma.journal.filter((ligne) => ligne.startsWith('créer variable') || ligne.startsWith('retirer')).length, 0);
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+}
+
+test('[VAR-13] les quatre groupes qu’une palette à deux intensités a laissés se reprennent en une palette à deux intensités, sous l’identifiant du cadre orphelin, et la mise à jour qui suit ne renomme ni ne crée rien', async () => {
+  // L'histoire de Poppy : un groupe repris, écrit, passé à deux intensités, écrit, puis la palette quitte la recette.
+  const { figma } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const { recette: reprise, palette: simple } = await reprendre(figma, source, 'recalculees');
+  await ecrireLesVariables(api(figma), { palettes: [simple.id], empreinteLue: empreinte(reprise), remettre: [] });
+  const deux = choisirLesIntensites(reprise, simple, 2);
+  const double = remplacerPalette(reprise, deux);
+  figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(double));
+  await ecrireLesVariables(api(figma), { palettes: [deux.id], empreinteLue: empreinte(double), remettre: [] });
+  const sans = supprimer(double, deux.id);
+  figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(sans));
+  const ancien = lireLeSuiviRange(figma.root).palettes[deux.id];
+  assert.equal(ancien.liaison, 'reprise');
+
+  // Le fichier porte une seule palette, à quatre groupes.
+  assert.deepEqual((await duFichier(figma, sans)).map((trouvee) => trouvee.chemin).sort(), ['slate/soft/dark', 'slate/soft/light', 'slate/vivid/dark', 'slate/vivid/light']);
+  const [groupee] = await groupeesDuFichier(figma, sans);
+  assert.deepEqual([groupee.racine, groupee.forme, groupee.groupes.length], ['slate', 'intensites-themes-chemin', 4]);
+  const avantNoms = nomsEtIdentifiants(figma);
+
+  // L'identifiant imposé est celui du cadre : la palette le prend, et l'entrée de suivi existante est remplacée sans doublon.
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee, sans, deux.id);
+  assert.equal(palette.id, deux.id);
+  assert.equal(palette.nom, 'slate');
+  assert.equal(aUneIntensite(palette), false);
+  assert.equal(palette.intensites, undefined);
+  assert.ok('recette' in validerRecette(recette));
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), jsonCanonique(recette));
+  const suivi = lireLeSuiviRange(figma.root);
+  assert.deepEqual(Object.keys(suivi.palettes), [deux.id]);
+  assert.equal(suivi.palettes[deux.id].liaison, 'reprise');
+  assert.deepEqual(Object.values(suivi.palettes[deux.id].variables).map((variable) => variable.id).sort(), Object.values(ancien.variables).map((variable) => variable.id).sort());
+  assert.deepEqual(nomsEtIdentifiants(figma), avantNoms);
+  // La palette quitte « Déjà dans le fichier ».
+  assert.deepEqual(await duFichier(figma, recette), []);
+
+  // Le suivi range chaque variable sous la clé du plan : Soft porte les variables d'origine (`unique`), Vivid garde son nom.
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.equal(cles.suivi.length, 44);
+  assert.deepEqual(cles.suivi, cles.plan);
+  for (const cle of ['unique/light/600', 'unique/dark/600', 'vivid/light/600', 'vivid/dark/600']) assert.ok(cles.suivi.includes(cle), cle);
+  assert.equal(suivi.palettes[deux.id].intensite, 'soft');
+  assert.equal(suivi.palettes[deux.id].variables['unique/light/600'].id, figma.variable('slate/soft/light/600').id);
+  assert.equal(suivi.palettes[deux.id].variables['vivid/dark/600'].id, figma.variable('slate/vivid/dark/600').id);
+
+  // La mise à jour des tokens ne renomme, ne crée ni ne retire aucune variable.
+  const avant = await tokens(figma, recette, palette);
+  assert.deepEqual([avant.aCreer.length, avant.aRenommer.length, avant.variables], [0, 0, 44]);
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+  const ids = [...figma.locales.keys()];
+  assert.deepEqual(await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] }), {
+    issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }],
+  });
+  assert.deepEqual([...figma.locales.keys()], ids);
+});
+
+test('[VAR-13] deux groupes en modes Light et Dark se reprennent en deux intensités, sans rien renommer ni créer à la mise à jour', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  collection.renameMode(collection.defaultModeId, 'Light');
+  collection.addMode('Dark');
+  rampe(figma, collection, 'Poppy/soft', TAILWIND, [SLATE, NUIT]);
+  rampe(figma, collection, 'Poppy/vivid', TAILWIND, [NUIT, SLATE]);
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.deepEqual([groupee.racine, groupee.forme], ['Poppy', 'intensites-themes-modes']);
+  const suiviSeul = suiviDeLaRepriseGroupee(groupee);
+  assert.deepEqual(Object.keys(suiviSeul.modes), ['light', 'dark']);
+  assert.equal(Object.keys(suiviSeul.variables).length, 44);
+  // Les deux thèmes d'une nuance en modes désignent la même variable.
+  assert.equal(suiviSeul.variables['unique/light/600'].id, suiviSeul.variables['unique/dark/600'].id);
+  assert.equal(suiviSeul.variables['vivid/dark/600'].ecrite, SLATE[6]);
+
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  assert.equal(aUneIntensite(palette), false);
+  assert.equal(palette.nom, 'Poppy');
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.deepEqual(cles.suivi, cles.plan);
+  const avant = await tokens(figma, recette, palette);
+  assert.deepEqual([avant.aCreer.length, avant.aRenommer.length], [0, 0]);
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+});
+
+test('[VAR-13] deux groupes Light et Dark dans le chemin se reprennent en une palette à une intensité', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  rampe(figma, collection, 'Poppy/light', TAILWIND, [SLATE]);
+  rampe(figma, collection, 'Poppy/dark', TAILWIND, [NUIT]);
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.deepEqual([groupee.racine, groupee.forme], ['Poppy', 'themes-chemin']);
+  const suiviSeul = suiviDeLaRepriseGroupee(groupee);
+  assert.equal(suiviSeul.intensite, undefined);
+  assert.deepEqual(suiviSeul.modes, { light: collection.defaultModeId });
+  assert.equal(suiviSeul.variables['unique/dark/600'].ecrite, NUIT[6]);
+
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  assert.equal(palette.intensites, 1);
+  assert.equal(palette.nom, 'Poppy');
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.deepEqual(cles.suivi, cles.plan);
+  assert.equal(cles.suivi.length, 22);
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+  assert.equal(figma.variable('Poppy/dark/600').name, 'Poppy/dark/600');
+});
+
+test('[VAR-13] la reprise groupée refuse une forme que le fichier ne porte plus, et un identifiant que la recette rangée porte déjà', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  rampe(figma, collection, 'Poppy/light', TAILWIND, [SLATE]);
+  rampe(figma, collection, 'Poppy/dark', TAILWIND, [NUIT]);
+  const [groupee] = await groupeesDuFichier(figma);
+  const palette = reprendreDuFichier(VIDE, 'p-000000a1', groupee, 'recalculees')!;
+  const recette = ajouter(VIDE, palette);
+  const demande = { recette, empreinteLue: null, palette: palette.id, source: sourceGroupee(groupee) };
+  // La forme n'est plus là : une autre forme, une autre racine, un groupe retiré.
+  assert.deepEqual(await reprendreLaPalette(api(figma), { ...demande, source: { ...demande.source, forme: 'intensites-themes-modes' } }), { issue: 'palette-introuvable' });
+  assert.deepEqual(await reprendreLaPalette(api(figma), { ...demande, source: { ...demande.source, racine: 'Autre' } }), { issue: 'palette-introuvable' });
+  for (const variable of figma.variablesDe(collection).filter((candidate) => candidate.name.startsWith('Poppy/dark/'))) variable.remove();
+  assert.deepEqual(await reprendreLaPalette(api(figma), demande), { issue: 'palette-introuvable' });
+  assert.deepEqual(figma.journal.filter((ligne) => ligne === 'commitUndo'), []);
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'recette'), '');
+
+  // Un identifiant que la recette rangée porte déjà est refusé : la palette qui le porte garderait deux liaisons.
+  const { figma: autre } = fichierAvecSlate();
+  const { recette: rangee, palette: existante } = await reprendre(autre, (await duFichier(autre))[0], 'recalculees');
+  const refus = await reprendreLaPalette(api(autre), { recette: rangee, empreinteLue: empreinte(rangee), palette: existante.id, source: { collection: 'inconnue', chemin: 'slate' } });
+  assert.deepEqual(refus, { issue: 'invalide', refus: [] });
+  assert.equal(autre.root.getSharedPluginData('ucm_palettes', 'recette'), jsonCanonique(rangee));
+});
+
+test('[VAR-13] les couleurs d’une palette groupée passent par un seul point : recalculées, la référence de l’ancrage Soft en Light ; telles quelles, rien', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  collection.renameMode(collection.defaultModeId, 'Light');
+  collection.addMode('Dark');
+  rampe(figma, collection, 'Poppy/soft', TAILWIND, [SLATE, NUIT]);
+  rampe(figma, collection, 'Poppy/vivid', TAILWIND, [NUIT, SLATE]);
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.deepEqual(couleursDeLaRepriseGroupee(groupee, 'recalculees'), { nuances: TAILWIND, reference: SLATE[6], reglages: {} });
+  assert.equal(couleursDeLaRepriseGroupee(groupee, 'telles-quelles'), null);
+  assert.equal(reprendreDuFichier(VIDE, 'p-000000a1', groupee, 'telles-quelles'), null);
+});
+
+test('[VAR-13] un groupe seul se reprend comme avant : sa source reste un chemin et son suivi reste sous `unique`', async () => {
+  const { figma } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  assert.deepEqual(await groupeesDuFichier(figma), []);
+  const { palette } = await reprendre(figma, source, 'recalculees');
+  assert.equal(palette.intensites, 1);
+  assert.deepEqual(lireLeSuiviRange(figma.root).palettes[palette.id], suiviDeLaReprise(source));
 });

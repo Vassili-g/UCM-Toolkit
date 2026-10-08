@@ -19,9 +19,9 @@ import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
 import { collectionLue, lireLeSuiviRange, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
 import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
-import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, type PaletteDuFichier } from '../variables/detection';
+import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
-import { origineDeLaReprise, suiviDeLaReprise, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
+import { origineDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
 import { cheminDeLaReprise, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
 import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, suiviFutur, texteDuSuivi, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
@@ -456,14 +456,27 @@ export async function retirerLesVariables(figma: FigmaDesVariablesEcrites, deman
   }
 }
 
+/**
+ * La palette du fichier qu'une reprise désigne : un groupe, par sa
+ * collection et le chemin commun de ses variables ; ou une palette groupée,
+ * par sa collection, sa racine et sa forme.
+ */
+export type SourceDeLaReprise =
+  | { readonly collection: string; readonly chemin: string }
+  | SourceGroupee;
+
 /** Ce que « Modifier dans le plugin » demande : la recette qui porte la palette reprise, et la palette du fichier qu'elle reprend. */
 export interface DemandeDeReprise {
   readonly recette: unknown;
   readonly empreinteLue: string | null;
-  /** L'identifiant de la palette reprise, dans la recette demandée. */
+  /**
+   * L'identifiant de la palette reprise, dans la recette demandée : tiré par
+   * l'interface, ou imposé (celui d'un cadre orphelin). La recette rangée ne
+   * doit pas le porter déjà : la demande est refusée, `invalide` sans refus
+   * de recette. Une entrée du suivi à cet identifiant est remplacée.
+   */
   readonly palette: string;
-  /** La palette du fichier : sa collection et le chemin commun de ses variables. */
-  readonly source: { readonly collection: string; readonly chemin: string };
+  readonly source: SourceDeLaReprise;
 }
 
 /** L'issue de « Modifier dans le plugin » ([VAR-13]). */
@@ -502,15 +515,27 @@ export async function reprendreLaPalette(figma: FigmaDesVariablesEcrites, demand
       figma.variables.getLocalVariablesAsync('COLOR'),
     ]);
     if (lireEtat(figma.root).empreinte !== demande.empreinteLue) return { issue: 'modifiee-ailleurs' };
+    // Un identifiant déjà porté par la recette rangée ne se reprend pas : la palette qui le porte garderait deux liaisons.
+    if (avant.classement.etat === 'courante' && avant.classement.recette.palettes.some((palette) => palette.id === demande.palette)) return { issue: 'invalide', refus: [] };
     // Les variables que le plugin tient pour siennes sous la recette d'avant ne se reprennent pas.
     const presentes = new Set(avant.classement.etat === 'courante' ? avant.classement.recette.palettes.map((palette) => palette.id) : []);
-    const source = palettesDuFichier(variables.map((variable) => variableLue(variable, profil)), collections.map(collectionLue), variablesSuivies(rangee, presentes))
-      .find((candidate) => candidate.collection === demande.source.collection && candidate.chemin === demande.source.chemin);
-    if (!source) return { issue: 'palette-introuvable' };
+    const lues = palettesDuFichier(variables.map((variable) => variableLue(variable, profil)), collections.map(collectionLue), variablesSuivies(rangee, presentes));
+    const designee = demande.source;
+    // Une palette groupée se relit dans les groupes du fichier : une forme qui n'y est plus se refuse.
+    let suivie: PaletteSuivie;
+    if ('racine' in designee) {
+      const groupee = retrouverLaPaletteGroupee(lues, designee);
+      if (!groupee) return { issue: 'palette-introuvable' };
+      suivie = suiviDeLaRepriseGroupee(groupee);
+    } else {
+      const source = lues.find((candidate) => candidate.collection === designee.collection && candidate.chemin === designee.chemin);
+      if (!source) return { issue: 'palette-introuvable' };
+      suivie = suiviDeLaReprise(source);
+    }
 
     const texte = jsonCanonique(recette);
     figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE, texte);
-    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suiviDeLaReprise(source) } }));
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suivie } }));
     figma.commitUndo();
     return { issue: 'reprise', empreinte: empreinteDuTexte(texte) as string };
   } catch (erreur) {

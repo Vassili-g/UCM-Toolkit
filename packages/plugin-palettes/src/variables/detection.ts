@@ -212,3 +212,16 @@ export function regrouperLesPalettes(palettes: readonly PaletteDuFichier[]): Pal
   });
   return resultat;
 }
+
+/** Ce qui désigne une palette groupée dans une demande : sa collection, sa racine et sa forme. */
+export interface SourceGroupee {
+  readonly collection: string;
+  readonly racine: string;
+  readonly forme: FormeGroupee;
+}
+
+/** La palette groupée que `source` désigne, ou `undefined` quand le fichier ne porte plus cette forme sous cette racine. */
+export function retrouverLaPaletteGroupee(palettes: readonly PaletteDuFichier[], source: SourceGroupee): PaletteGroupee | undefined {
+  return regrouperLesPalettes(palettes).find((candidate): candidate is PaletteGroupee =>
+    candidate.type === 'groupee' && candidate.collection === source.collection && candidate.racine === source.racine && candidate.forme === source.forme);
+}

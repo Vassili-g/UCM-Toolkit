@@ -14,7 +14,7 @@ import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
-import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from './ecriture/variables';
+import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture, SourceDeLaReprise } from './ecriture/variables';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
@@ -67,9 +67,11 @@ export type UiRequest =
    * Huitième écriture : « Modifier dans le plugin ». La recette porte la
    * palette reprise ; `source` désigne la palette du fichier, que le sandbox
    * retrouve lui-même avant de ranger la recette et la liaison ensemble
-   * ([VAR-13]).
+   * ([VAR-13]) : un groupe par son chemin, une palette groupée par sa racine
+   * et sa forme. `palette` est l'identifiant de la palette reprise, tiré par
+   * l'interface ou imposé (celui d'un cadre orphelin).
    */
-  | { type: 'reprendre-palette'; demande: number; recette: Recette; empreinteLue: string | null; palette: string; source: { collection: string; chemin: string } }
+  | { type: 'reprendre-palette'; demande: number; recette: Recette; empreinteLue: string | null; palette: string; source: SourceDeLaReprise }
   /**
    * Neuvième écriture : « Copier dans le plugin ». `palette` est
    * l'identifiant de la palette à créer ; `source` désigne la palette de
