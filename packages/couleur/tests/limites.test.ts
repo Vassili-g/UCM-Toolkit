@@ -50,7 +50,10 @@ function limite(recette: Recette, palette: Palette, grandeur: GrandeurDuColorShi
   });
 }
 
-const cle = (promesse: Promesse): string => `${promesse.mode}/${promesse.profil}/${promesse.paire.numero}`;
+const cle = (promesse: Promesse): string => {
+  const fond = promesse.second.nature === 'cran' ? promesse.second.cran : promesse.second.nature;
+  return `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${fond}`;
+};
 const tenuesDe = (recette: Recette, palette: Palette): Set<string> =>
   new Set(verifierPromesses(recette, palette).filter((promesse) => promesse.verdict === 'tenue').map(cle));
 
@@ -125,9 +128,9 @@ test('[DER-20] les limites se croisent : la luminosité sombre posée en butée 
     const { bas, haut } = limite(recette, avec(palette, 'clarte', 'sombre', butee), 'teinte', 'sombre');
     teintes[nom] = [bas.valeur, haut.valeur];
   }
-  // Mesure de l'étude, section 5.2 : Bleu ne descend plus sous 0°, Jaune ne monte plus au-dessus de −7°, Sauge de +8°.
-  // Rouge ne dépasse plus sa teinte Tailwind, +0,23° : un pas de plus fait manquer une garantie.
-  assert.deepEqual(teintes, { Bleu: [0, 90], Rouge: [-90, 0.23], Jaune: [-90, -7], Sauge: [-90, 8] });
+  // Mesure du moteur aux garanties G1 à G7 : Bleu ne descend plus sous 0°, Jaune ne monte plus au-dessus de 0°,
+  // Rouge de +15°. Sauge ne se resserre plus : sa borne reste celle du réglage, +90°.
+  assert.deepEqual(teintes, { Bleu: [0, 90], Rouge: [-90, 15], Jaune: [-90, 0], Sauge: [-90, 90] });
 });
 
 test('[DER-19] une promesse manquée au départ ne borne rien : Vert la laisse manquer sur toute la plage de teinte', () => {
@@ -165,7 +168,7 @@ test('[DER-20] le balayage rend la main après chaque candidate et rend la même
     rendus += 1;
     pas = balayage.next();
   }
-  // −0,050 à +0,040 : dix pas vers le bas, huit vers le haut, chacun suivi d'une main rendue.
-  assert.equal(rendus, 18);
+  // −0,065 à +0,040 : treize pas vers le bas, huit vers le haut, chacun suivi d'une main rendue.
+  assert.equal(rendus, 21);
   assert.deepEqual(pas.value, limiteDynamique(demande));
 });

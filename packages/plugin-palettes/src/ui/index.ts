@@ -176,9 +176,9 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     verifier: () => allerA('verification'),
     versGestion: () => allerA('gestion'),
-    choisirGarantie(association) {
+    choisirGarantie(numero) {
       allerA('verification');
-      ongletVerification.choisirGarantie(association);
+      ongletVerification.choisirGarantie(numero);
     },
   }, paletteOuverte, barre);
 

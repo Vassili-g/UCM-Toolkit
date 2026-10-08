@@ -30,7 +30,6 @@ import {
   type Classement,
   type Mode,
   type Palette,
-  type Association,
   type Recette,
   type Refus,
 } from 'ucm-couleur';
@@ -107,7 +106,7 @@ export interface DemandesDeLOnglet {
   /** « Vérifier », dans le pied : ouvre l'onglet Vérification sur la palette ouverte ([UI-18]). */
   verifier(): void;
   /** Une garantie du détail d'une nuance : elle se choisit dans la carte de Vérification ([VER-20]). */
-  choisirGarantie(association: Association): void;
+  choisirGarantie(numero: number): void;
   /** Le lien sous l'encart d'un fichier sans palette : ouvre Gestion sur les palettes de ses variables ([UI-22]). */
   versGestion(): void;
 }
@@ -391,7 +390,7 @@ function construireVues(i18n: Localisation) {
     const nuancier = createNuancier({
       saisirFond: (mode, hexa, fin) => saisirFond(mode, hexa, fin),
       abandonnerLeFond: () => rendre(),
-      choisirGarantie: (association) => demandes.choisirGarantie(association),
+      choisirGarantie: (numero) => demandes.choisirGarantie(numero),
     });
     const carteDApercu = createCarte({ titre: TEXTES_DE_L_ONGLET.apercu, sousTitre: TEXTES_DE_L_ONGLET.sousTitreDeLApercu, glyphe: creerGlyphe('apercu') }, i18n);
     carteDApercu.tete.append(nuancier.tete);

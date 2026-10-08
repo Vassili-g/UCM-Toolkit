@@ -3,9 +3,11 @@
  * fond d'un thème, la référence marquée ◆, et le résultat de ses garanties
  * dans ce thème, comme la bascule des garanties le donne (V4.2). La fiche de
  * l'onglet Palettes (V8.1), la tête des Réglages communs (V9.3) et les cartes
- * du choix des intensités ([ENT-14]) le montrent.
+ * du choix des intensités ([ENT-14]) le montrent. La tête des Réglages communs
+ * y ajoute les trois boutons : `solid/default`, `solid/hover` et
+ * `solid/pressed` de la palette, avec le texte des boutons du thème.
  */
-import { lireHexa, rampeDe, type Intensite, type Mode, type Recette } from 'ucm-couleur';
+import { COULEUR_DU_TEXTE_DES_BOUTONS, ETATS, TABLE_DES_DOSSIERS, lireHexa, rampeDe, sensDuTheme, type Intensite, type Mode, type Recette } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from '../analyse';
 import { memoriserVues, type Localisation } from './localisation';
@@ -13,10 +15,41 @@ import { creerVuesNuancier } from './nuancier';
 
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
-  const { NOM_DU_PROFIL, TEXTES, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES, TEXTES_DE_L_APERCU, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
 
-  /** Les rampes des intensités présentes, peintes du fond du thème, la référence marquée ◆ ; la rampe unique n'a pas de nom. */
-  function apercuCompact(recette: Recette, analyse: AnalyseDePalette, mode: Mode): HTMLDivElement {
+  /** Le nom de chaque état sur son bouton, celui que l'aperçu en bandes donne sous `default`, `hover` et `pressed`. */
+  const NOM_SUR_LE_BOUTON = { default: TEXTES_DE_L_APERCU.noms.repos, hover: TEXTES_DE_L_APERCU.noms.survol, pressed: TEXTES_DE_L_APERCU.noms.appui } as const;
+
+  /**
+   * Les trois boutons de la palette dans le thème : `solid/default`, `hover` et
+   * `pressed`, aux crans de la table du sens du thème, avec le texte des
+   * boutons en blanc ou noir purs. Vivid quand la palette a deux intensités.
+   */
+  function boutonsDeLApercu(recette: Recette, analyse: AnalyseDePalette, mode: Mode): HTMLDivElement {
+    const texte = recette.texteDesBoutons[mode];
+    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, texte)];
+    const rampe = rampeDe(analyse.rampes, analyse.intensites.includes('vivid') ? 'vivid' : 'unique')[mode];
+    const boutons = document.createElement('div');
+    boutons.className = 'fiche-boutons';
+    for (const etat of ETATS) {
+      const rang = analyse.grille.crans.indexOf(table[`solid/${etat}`]);
+      const bouton = document.createElement('span');
+      bouton.className = 'fiche-bouton';
+      bouton.dataset.etat = etat;
+      if (rang >= 0) bouton.style.background = rampe[rang].hexa;
+      bouton.style.color = COULEUR_DU_TEXTE_DES_BOUTONS[texte];
+      i18n.lier(bouton, 'textContent', NOM_SUR_LE_BOUTON[etat]);
+      boutons.append(bouton);
+    }
+    return boutons;
+  }
+
+  /**
+   * Les rampes des intensités présentes, peintes du fond du thème, la référence
+   * marquée ◆ ; la rampe unique n'a pas de nom. Avec `avecLesBoutons`, les trois
+   * boutons de la palette suivent les rampes ; une palette libre n'en a pas.
+   */
+  function apercuCompact(recette: Recette, analyse: AnalyseDePalette, mode: Mode, avecLesBoutons = false): HTMLDivElement {
     const surface = document.createElement('div');
     surface.className = 'fiche-apercu';
     surface.style.background = recette.fonds[mode];
@@ -46,6 +79,7 @@ function construireVues(i18n: Localisation) {
       });
       surface.append(rangee);
     }
+    if (avecLesBoutons && !analyse.libre) surface.append(boutonsDeLApercu(recette, analyse, mode));
     return surface;
   }
 

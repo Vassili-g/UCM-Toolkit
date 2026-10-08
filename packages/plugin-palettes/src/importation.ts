@@ -6,8 +6,12 @@
  */
 import { classerRecette, decalageRange, jsonCanonique, type Palette, type Recette, type Refus, type Seuils } from 'ucm-couleur';
 
-/** Les paramètres communs, dans l'ordre où l'écart les nomme. */
-export const PARAMETRES_COMMUNS = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'seuils', 'derives', 'gamut', 'contenuDesPlanches'] as const;
+/**
+ * Les paramètres communs, dans l'ordre où l'écart les nomme. `texteDesBoutons`
+ * vient du format 9 : un fichier au format 8 le prend par défaut en se lisant,
+ * et l'écart le compare comme les autres.
+ */
+export const PARAMETRES_COMMUNS = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'texteDesBoutons', 'seuils', 'derives', 'gamut', 'contenuDesPlanches'] as const;
 export type ParametreCommun = (typeof PARAMETRES_COMMUNS)[number];
 
 /**
@@ -70,7 +74,7 @@ export interface NatureDeLEcart {
 }
 
 // `contenuDesPlanches` ne peint aucune nuance : il ne change que les cadres de la planche.
-const PARAMETRES_DE_COULEUR: readonly ParametreCommun[] = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'derives', 'gamut'];
+const PARAMETRES_DE_COULEUR: readonly ParametreCommun[] = ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'texteDesBoutons', 'derives', 'gamut'];
 // `originale` ne peint rien : la référence porte la couleur, et son champ change avec elle.
 const CHAMPS_DE_COULEUR: readonly ChampDePalette[] = ['reference', 'intensites', 'base', 'parts', 'deriveTeinte', 'deriveSaturation', 'deriveClarte', 'crans', 'reglages'];
 

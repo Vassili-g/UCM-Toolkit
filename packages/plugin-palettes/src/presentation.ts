@@ -1,34 +1,33 @@
 /**
  * Ce que l'interface fait des résultats du moteur, avant leur mise en mots :
- * les promesses manquées groupées par association, mode et état ([VER-06]),
+ * les promesses manquées groupées par garantie, mode et fond ([VER-06]),
  * la place de chaque alerte, et le réglage que chaque message ouvre
  * ([VER-15]), si une carte repliée est réglée, le verdict d'une palette
  * ([VER-19]), les bandes de l'aperçu et ce que chaque geste y surligne. Pur :
  * ni DOM, ni texte.
  */
 import {
-  ASSOCIATIONS,
   COULEUR_DU_TEXTE_DES_BOUTONS,
   DOSSIERS,
+  GARANTIES,
   MODES,
   VARIABLES_DE_PALETTE,
-  associationDe,
-  cleDeLAssociation,
   cranDeLaVariable,
   decalageRange,
-  etatDeLaPaire,
   intensitesDe,
   sensDuTheme,
   severiteDeLAlerte,
   variablesDuCran,
   type Alerte,
-  type Association,
-  type EtatDePaire,
+  type FondDeGarantie,
+  type Garantie,
+  type Intensite,
   type Mode,
   type Palette,
   type Promesse,
   type SensDuTheme,
   type TexteDesBoutons,
+  type VariableDePalette,
   type VariableDuTheme,
 } from 'ucm-couleur';
 
@@ -97,11 +96,12 @@ export type CibleDAction =
 /** Les cibles qui ouvrent les Réglages communs. */
 export const CIBLES_COMMUNES: readonly CibleDAction[] = ['luminosite-commune', 'fonds', 'intensites-communes'];
 
-/** Une association, un mode et un état où au moins une intensité manque sa promesse. */
+/** Une garantie, un mode et un fond où au moins une intensité manque sa promesse. */
 export interface GroupeDePromesses {
-  readonly association: Association;
+  readonly garantie: Garantie;
   readonly mode: Mode;
-  readonly etat: EtatDePaire;
+  /** Le fond jugé, l'un des fonds de la garantie : le fond de la page, ou une variable de palette. */
+  readonly fond: FondDeGarantie;
   readonly seuil: number;
   /** Le résultat de chaque intensité présente, dans l'ordre du moteur, tenu ou manqué : le message les montre toutes. */
   readonly resultats: readonly Promesse[];
@@ -110,25 +110,72 @@ export interface GroupeDePromesses {
 }
 
 /**
- * Les groupes de promesses manquées, par mode, puis dans l'ordre des
- * associations, puis par état. Deux intensités en échec sur la même paire font
- * un groupe et comptent deux contrôles.
+ * Les groupes de promesses manquées, par mode, puis dans l'ordre des garanties
+ * G1 à G7, puis dans l'ordre des fonds de chaque garantie. Deux intensités en
+ * échec sur le même fond font un groupe et comptent deux contrôles.
+ *
+ * Le moteur rend, pour un mode, une intensité et une garantie, une promesse
+ * par fond de la garantie, dans l'ordre de `garantie.fonds` : le rang d'une
+ * promesse dans cette suite dit son fond.
  */
 export function groupesManques(promesses: readonly Promesse[]): GroupeDePromesses[] {
   const groupes: GroupeDePromesses[] = [];
   for (const mode of MODES) {
-    for (const association of ASSOCIATIONS) {
-      const cle = cleDeLAssociation(association);
-      const ici = promesses.filter((promesse) => promesse.mode === mode && cleDeLAssociation(associationDe(promesse.paire)) === cle);
-      const etats = [...new Set(ici.map((promesse) => etatDeLaPaire(promesse.paire)))].sort((a, b) => a - b);
-      for (const etat of etats) {
-        const resultats = ici.filter((promesse) => etatDeLaPaire(promesse.paire) === etat);
+    for (const garantie of GARANTIES) {
+      const ici = promesses.filter((promesse) => promesse.mode === mode && promesse.garantie.numero === garantie.numero);
+      const intensites = [...new Set(ici.map((promesse) => promesse.profil))];
+      garantie.fonds.forEach((fond, rang) => {
+        const resultats = intensites.flatMap((intensite) => ici.filter((promesse) => promesse.profil === intensite).slice(rang, rang + 1));
         const manquees = resultats.filter((promesse) => promesse.verdict === 'manquee').length;
-        if (manquees > 0) groupes.push({ association, mode, etat, seuil: resultats[0].seuil, resultats, manquees });
-      }
+        if (manquees > 0) groupes.push({ garantie, mode, fond, seuil: resultats[0].seuil, resultats, manquees });
+      });
     }
   }
   return groupes;
+}
+
+const SENS: readonly SensDuTheme[] = ['normal', 'inverse'];
+
+/**
+ * Le fond de la garantie qu'une promesse juge, d'après son second membre : la
+ * page, ou la variable dont le cran est le sien. Un cran désigne une seule
+ * variable parmi les fonds d'une garantie, dans les deux sens du thème.
+ */
+export function fondDeLaPromesse(promesse: Promesse): FondDeGarantie {
+  const { fonds } = promesse.garantie;
+  const { second } = promesse;
+  const trouve = second.nature === 'cran'
+    ? fonds.find((fond) => 'variable' in fond && SENS.some((sens) => cranDeLaVariable(fond.variable, sens) === second.cran))
+    : fonds.find((fond) => 'fondDeLaPage' in fond);
+  return trouve ?? fonds[0];
+}
+
+/** La variable que désigne le fond d'une garantie : une variable de palette, ou le fond de la page. */
+export function variableDuFond(fond: FondDeGarantie): VariableDePalette | 'elevation/page' {
+  return 'fondDeLaPage' in fond ? 'elevation/page' : fond.variable;
+}
+
+/** Une garantie qui compte une variable, et l'autre variable qu'elle lui oppose. */
+export interface GarantieDeLaVariable {
+  readonly promesse: Promesse;
+  /** `premier` quand la variable est le premier membre de la garantie, `fond` quand elle en est un fond. */
+  readonly role: 'premier' | 'fond';
+  /** La variable en face : le fond de la page, ou une variable de palette. */
+  readonly partenaire: VariableDePalette | 'elevation/page';
+}
+
+/**
+ * Les garanties d'une intensité, dans un thème, dont une variable est membre
+ * (I5), dans l'ordre du moteur : une par fond quand la variable est le premier
+ * membre, une seule quand elle est un fond. Le détail d'une nuance les lie à la
+ * carte des garanties.
+ */
+export function garantiesDeLaVariable(promesses: readonly Promesse[], mode: Mode, profil: Intensite, variable: VariableDuTheme): GarantieDeLaVariable[] {
+  return promesses.filter((promesse) => promesse.mode === mode && promesse.profil === profil).flatMap((promesse): GarantieDeLaVariable[] => {
+    const fond = fondDeLaPromesse(promesse);
+    if (promesse.garantie.premier.variable === variable) return [{ promesse, role: 'premier', partenaire: variableDuFond(fond) }];
+    return 'variable' in fond && fond.variable === variable ? [{ promesse, role: 'fond', partenaire: promesse.garantie.premier.variable }] : [];
+  });
 }
 
 /**

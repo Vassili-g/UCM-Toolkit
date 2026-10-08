@@ -212,6 +212,7 @@ function rangee(palettes, modifier = (recette) => recette) {
 
 const BLEU = palette('p-3fa2c91e', 'Bleu', '#1E6FD9');
 const JAUNE = palette('p-08b7d4a0', 'Jaune', '#FACC15');
+const ROUGE_ANCRE = palette('p-7e3a5b21', 'Rouge', '#D94635');
 
 /** Le texte des boutons de chaque thème posé sur la recette par défaut, courbes comprises. */
 const avecLeTexteDesBoutons = (light, dark) => (recette) =>
@@ -332,12 +333,12 @@ const SEPT_PALETTES = [
 /** Une palette par état de cadre : à jour, périmée, jamais générée, introuvable, illisible. */
 const CINQ_ETATS = SEPT_PALETTES.slice(0, 5);
 
-/** La courbe claire descend à 0,55 au cran 700 : text sur surface manque 4,5 en clair. */
-const cranSeptCentsPlusClair = (recette) => {
-  const light = [...recette.courbes.light];
-  light[7] = 0.55;
-  return { ...recette, courbes: { ...recette.courbes, light } };
-};
+/**
+ * Le texte des boutons noir en Light, donc inversé : la 700 de Bleu, ancrée sur
+ * la référence #1E6FD9, porte le noir à 4,33:1 et manque G1 (solid/foreground
+ * sur solid/default) en Vivid. Dark garde son noir et ne manque rien.
+ */
+const texteNoirEnLight = avecLeTexteDesBoutons('noir', 'noir');
 
 /** Deux fautes : une courbe claire qui remonte au 500, un fond sombre à cinq chiffres. */
 function recetteCassee() {
@@ -360,8 +361,8 @@ const ETATS = [
   {
     id: 'ajuster-en-modale',
     titre: 'Ajuster la référence, en modale',
-    quand: 'Vert manque deux garanties en Thème Light ; le designer ouvre « Ajuster la référence ».',
-    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour les bordures de champ. », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
+    quand: 'Vert manque une garantie en Thème Light ; le designer ouvre « Ajuster la référence ».',
+    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (page/focus). », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
@@ -374,7 +375,7 @@ const ETATS = [
     quand: 'Bleu, deux intensités, une garantie en échec choisie, dans l’onglet Vérification.',
     regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte. Sous 700 px, le spécimen au-dessus des numéros, chaque rangée sur une ligne.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)), ouvrirLaVerification],
   },
   {
     id: 'premier-lancement',
@@ -415,11 +416,11 @@ const ETATS = [
   {
     id: 'promesses-manquees',
     titre: 'Palette avec promesses manquées',
-    quand: 'La courbe claire place le cran 700 à 0,55 : text sur surface ne tient plus 4,5 en clair.',
+    quand: 'Le texte des boutons du thème Light est noir, donc inversé : la 700 de Bleu, ancrée sur #1E6FD9, ne tient plus le noir à 4,5:1 (4,33:1), G1 est manquée en Light.',
     regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied en danger, son compte et « Vérifier » ; le ✗ du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)),
+      etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)),
       { touche: { dans: '.nuancier-grille [tabindex="0"]', cle: 'ArrowRight' } },
     ],
   },
@@ -1194,18 +1195,26 @@ const ETATS = [
   {
     id: 'garanties-respectees',
     titre: 'Garanties respectées',
-    quand: 'Bleu tient toutes ses garanties ; le designer ouvre Vérification : la carte est sur text sur surface.',
-    regarder: 'Le verdict d’avertissement, « 76 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron et sans thème dans son en-tête : le thème se choisit dans la ligne du titre « Palette Bleu », par la bascule « Aperçu » Light, Dark ; en tête du corps, une rangée dont le choix « Afficher », calé à droite, porte les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, trois arcs de 100 vers 700, 200 vers 800 et 300 vers 900 sur la réglette, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
+    quand: 'Bleu tient toutes ses garanties, texte des boutons blanc en Light ; le designer ouvre Vérification : la carte est sur le texte des boutons.',
+    regarder: 'Le verdict d’avertissement, « 64 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron et sans thème dans son en-tête : le thème se choisit dans la ligne du titre « Palette Bleu », par la bascule « Aperçu » Light, Dark ; en tête du corps, une rangée dont le choix « Afficher », calé à droite, porte les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, sept lignes sans numéro, « Textes lisibles » puis « Éléments visibles », sous les quatre colonnes « sur la page », default, hover et pressed, la réglette avec ses deux repères, page et boutons, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification],
   },
   {
     id: 'garantie-en-echec',
     titre: 'Garantie en échec',
-    quand: 'La courbe claire place le cran 700 à 0,55 : text sur surface manque 4,5 en Light.',
-    regarder: 'Dans Vérification : en tête du corps de la carte, calé à droite, le libellé « Afficher » et les segments « Soft ✗ 1 » et « Vivid ✗ 1 », Vivid pressé, et aucun thème dans l’en-tête de la carte ; la ligne en échec choisie d’office, son arc de la couleur de danger, l’état fautif et ses liens vers les réglages.',
+    quand: 'Le texte des boutons du thème Light est noir : le noir sur la 700 de Bleu manque 4,5:1 en Light.',
+    regarder: 'Dans Vérification : en tête du corps de la carte, calé à droite, le libellé « Afficher » et les segments « Soft ✓ » et « Vivid ✗ 1 », Vivid pressé, et aucun thème dans l’en-tête de la carte ; la ligne en échec choisie d’office, son arc de la couleur de danger, l’état fautif et ses liens vers les réglages.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)), ouvrirLaVerification],
+  },
+  {
+    id: 'garantie-dark-inverse-g1',
+    titre: 'Garantie en échec, Dark inversé',
+    quand: 'Le texte des boutons du thème Dark est blanc, donc inversé ; la palette Rouge, référence #D94635, ancrée sur solid/default, manque G1 : le texte blanc ne tient pas 4,5:1 sur le bouton (4,31:1).',
+    regarder: 'La carte en thème Dark : la ligne du texte des boutons en échec, choisie d’office, son arc de la couleur de danger, le bloc d’échec dessous et son lien « Ajuster la référence ».',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([ROUGE_ANCRE], avecLeTexteDesBoutons('blanc', 'blanc'))), montrerLeThemeDark, ouvrirLaVerification],
   },
   {
     id: 'garantie-autre-theme',
@@ -1213,7 +1222,7 @@ const ETATS = [
     quand: 'La carte des garanties montre le thème Dark, et le thème Light a des garanties manquées : le designer suit la ligne qui les compte.',
     regarder: 'La carte revenue au thème Light : « Light » pressé dans la bascule « Aperçu » de la ligne du titre, la carte sans thème dans son en-tête, les échecs de ce thème dans la liste, et « Revenir au thème Dark » sous elle.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)), ouvrirLaVerification, montrerLeThemeDark, { clic: '.autre-theme .lien-de-constat' }],
+    atteinte: [etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)), ouvrirLaVerification, montrerLeThemeDark, { clic: '.autre-theme .lien-de-constat' }],
   },
   {
     id: 'detail-de-la-reference',
@@ -1291,7 +1300,7 @@ const ETATS = [
   {
     id: 'avertissement-long',
     titre: 'Avertissement long, sur une ligne fixe',
-    quand: 'Vert, #16A34A, garde l’originale #15803D d’un ajustement et manque encore deux garanties ; le designer clique la ligne sous le code.',
+    quand: 'Vert, #16A34A, garde l’originale #15803D d’un ajustement et manque encore une garantie ; le designer clique la ligne sous le code.',
     regarder: 'La ligne de 24 px sous le code : ✗, le texte coupé par une ellipse, puis « Ajuster la référence » et « Revenir à l’originale ». La bulle posée sous elle, par-dessus les cartes, dans la fenêtre, avec le texte entier ; rien n’a bougé dessous. À 500 × 520, le texte se réduit à quelques lettres et les deux gestes restent entiers.',
     existe: true,
     atteinte: [
@@ -1302,11 +1311,11 @@ const ETATS = [
   {
     id: 'verification-manquee',
     titre: 'Vérification, des garanties manquées',
-    quand: 'La courbe claire place le cran 700 à 0,55 : Bleu manque des garanties ; le designer suit « Vérifier », dans le pied de Création.',
-    regarder: 'L’onglet Vérification : le ✗ sur le bouton du sélecteur ; « Palette Bleu » ; le verdict sur son fond de danger, « N garanties manquées sur 76 » et les points à vérifier ; « Contrastes à corriger » en premier, chaque message avec ses liens, qui nomment le geste ; la carte des garanties, fixe ; le pied « Corrigez la palette dans Création, ou écrivez-la telle quelle dans Gestion. » et « Retour à Création ».',
+    quand: 'Le texte des boutons du thème Light est noir : Bleu manque une garantie ; le designer suit « Vérifier », dans le pied de Création.',
+    regarder: 'L’onglet Vérification : le ✗ sur le bouton du sélecteur ; « Palette Bleu » ; le verdict sur son fond de danger, « N garanties manquées sur 64 » et les points à vérifier ; « Contrastes à corriger » en premier, chaque message avec ses liens, qui nomment le geste ; la carte des garanties, fixe ; le pied « Corrigez la palette dans Création, ou écrivez-la telle quelle dans Gestion. » et « Retour à Création ».',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([BLEU, JAUNE], cranSeptCentsPlusClair)),
+      etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)),
       { clic: '#panneau-creation .pied-de-la-palette .bouton-discret' },
     ],
   },
@@ -1314,7 +1323,7 @@ const ETATS = [
     id: 'verification-tenue',
     titre: 'Vérification, des garanties tenues',
     quand: 'Jaune tient ses garanties, sans point à vérifier ; le designer ouvre Vérification.',
-    regarder: 'Le ✓ du verdict sur le bouton du sélecteur ; « Palette Jaune » ; le verdict sur son fond de succès, « 76 garanties tenues » et « Aucun point à vérifier » ; aucun message ; la carte des garanties ; le pied « La palette tient ses garanties. » et « Passer à Gestion », bouton principal.',
+    regarder: 'Le ✓ du verdict sur le bouton du sélecteur ; « Palette Jaune » ; le verdict sur son fond de succès, « 64 garanties tenues » et « Aucun point à vérifier » ; aucun message ; la carte des garanties ; le pied « La palette tient ses garanties. » et « Passer à Gestion », bouton principal.',
     existe: true,
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU])), ouvrirLaVerification],
   },
@@ -1338,7 +1347,7 @@ const ETATS = [
     id: 'ajustement-ouvert',
     titre: 'Ajuster la référence',
     quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait deux pas plus sombres.',
-    regarder: 'La modale après deux pas : Originale #16A34A et Proposition #029D44 côte à côte, la piste de luminosité entre « − » et « + », la ligne de la nuance visée, le code, les deux garanties passées de ✗ à ✓ avec leur badge, « Soft ✓ inchangé · Vivid ✗ 2 → ✓ », puis Annuler et Appliquer actif.',
+    regarder: 'La modale après deux pas : Originale #16A34A et Proposition #029D44 côte à côte, la piste de luminosité entre « − » et « + », la ligne de la nuance visée, le code, la garantie passée de ✗ à ✓ avec son badge, « Soft ✓ inchangé · Vivid ✗ 1 → ✓ », puis Annuler et Appliquer actif.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),

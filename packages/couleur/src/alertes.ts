@@ -4,7 +4,7 @@
  * rien ; elle porte la mesure, le seuil et ce qu'ils visent, et l'interface
  * les met en mots.
  */
-import { EMPLOIS, EMPLOIS_FACULTATIFS, TABLE_DES_EMPLOIS, decalagesDeLEmploi, rangDuCranLeger } from '@ucm-kit/core/emplois';
+import { VARIABLES_DE_PALETTE, cranDeLaVariable, rangDuCranLeger, sensDuTheme } from '@ucm-kit/core/emplois';
 
 import { lireHexa, rgb8VersOklch } from './conversions';
 import { distanceOk } from './contraste';
@@ -34,26 +34,22 @@ export const TOLERANCE_FOND = 0.005;
 export const CRANS_PALETTES_PROCHES: readonly number[] = [500, 600, 700];
 
 /**
- * Le dernier état que « Profils confondus » compare. Le quatrième rang vise
- * 950, où les deux profils se confondent sur la plupart des teintes, comme à
- * la 50, sans qu'aucun réglage les sépare.
+ * Les rangs des crans que les variables de palette visent dans `crans`, dans
+ * le sens de chaque mode de la recette, les deux modes réunis ([VER-11]).
+ * `solid/foreground` n'en vise aucun : il vaut le texte des boutons. Les crans
+ * facultatifs 50, 400 et 950 n'y sont pas : aucune variable ne les vise, et
+ * les deux profils s'y confondent sur la plupart des teintes sans qu'aucun
+ * réglage les sépare.
  */
-const DECALAGE_MAXIMAL_DES_CONFUSIONS = 2;
-
-/**
- * Les rangs des crans que la table des emplois vise dans `crans`, états `+1`
- * et `+2` compris quand l'emploi les prend dans une paire ([VER-11]). La 50
- * de `surface-card` n'en est pas : les deux profils s'y confondent sur la
- * plupart des teintes claires, et aucun réglage ne les sépare.
- */
-export function rangsDesEmplois(recette: Recette): number[] {
+export function rangsDesVariables(recette: Recette): number[] {
   const rangs = new Set<number>();
-  for (const nom of EMPLOIS) {
-    const cible = TABLE_DES_EMPLOIS[nom];
-    if (cible === 'fond' || EMPLOIS_FACULTATIFS.includes(nom)) continue;
-    const rang = recette.crans.indexOf(cible);
-    for (const decalage of decalagesDeLEmploi(nom).filter((decalage) => decalage <= DECALAGE_MAXIMAL_DES_CONFUSIONS)) {
-      if (rang >= 0 && rang + decalage < recette.crans.length) rangs.add(rang + decalage);
+  for (const mode of MODES) {
+    const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
+    for (const variable of VARIABLES_DE_PALETTE) {
+      if (variable === 'solid/foreground') continue;
+      const cran = cranDeLaVariable(variable, sens);
+      const rang = typeof cran === 'number' ? recette.crans.indexOf(cran) : -1;
+      if (rang >= 0) rangs.add(rang);
     }
   }
   return [...rangs].sort((a, b) => a - b);
@@ -87,20 +83,21 @@ export function confusionsDe(recette: Recette, palette: Palette): Confusion[] {
 }
 
 /**
- * L'alerte ne vise que les nuances des emplois ([VER-11]) : une palette libre
- * n'en a pas. Elle se tait sur les fonds du thème Dark dont la part baisse
- * ([MOT-28]) : les deux profils s'y rapprochent par construction. En dessous
- * de `MINIMUM_DE_NUANCES_CONFONDUES` nuances, la palette passe sans alerte.
+ * L'alerte ne vise que les nuances que portent les variables ([VER-11]) : une
+ * palette libre n'en a pas. Elle se tait sur les fonds du thème Dark dont la
+ * part baisse ([MOT-28]) : les deux profils s'y rapprochent par construction.
+ * En dessous de `MINIMUM_DE_NUANCES_CONFONDUES` nuances, la palette passe sans
+ * alerte.
  */
 const MINIMUM_DE_NUANCES_CONFONDUES = 3;
 
 function profilsConfondus(recette: Recette, palette: Palette): Alerte | null {
   if (estLibre(palette)) return null;
-  const emplois = new Set(rangsDesEmplois(recette).map((rang) => recette.crans[rang]));
+  const visees = new Set(rangsDesVariables(recette).map((rang) => recette.crans[rang]));
   const fonds = fondsSombresDe(recette);
   const attenue = ({ mode, cran }: Confusion): boolean =>
     mode === 'dark' && facteurSombre(recette.courbes.dark[recette.crans.indexOf(cran)], fonds) < 1;
-  const crans = confusionsDe(recette, palette).filter((confusion) => emplois.has(confusion.cran) && !attenue(confusion));
+  const crans = confusionsDe(recette, palette).filter((confusion) => visees.has(confusion.cran) && !attenue(confusion));
   return crans.length >= MINIMUM_DE_NUANCES_CONFONDUES
     ? { code: 'profils-confondus', palette: palette.id, crans, seuil: recette.seuils.profilsConfondus }
     : null;

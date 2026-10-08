@@ -1,13 +1,14 @@
 /**
- * Le spécimen d'un rôle ([UI-09], [UI-10]) : la forme que la couleur prend dans
- * une interface, peinte avec les couleurs mesurées. Un fond plein porte un
- * bouton et son texte `on-solid`, un texte coloré un mot, une bordure de champ
- * un cadre, un anneau de focus un contour décalé, un séparateur un trait, un
- * fond léger un aplat, un fond de carte un aplat plus grand, bordé.
+ * Le spécimen d'une variable ([UI-09], [UI-10]) : la forme que la couleur
+ * prend dans une interface, peinte avec les couleurs mesurées. Un bouton porte
+ * son texte des boutons, blanc ou noir purs, jamais le fond de la page ; un
+ * texte coloré s'écrit en un mot, une bordure se pose sur un cadre, un anneau
+ * de focus est un contour décalé, un fond teinté un aplat.
  */
-import type { Emploi } from 'ucm-couleur';
-
 import { memoriserVues, type Localisation } from './localisation';
+
+/** Ce que le spécimen dessine : un bouton, un texte, un aplat, un cadre à bordure ou un anneau de focus. */
+export type FormeDeSpecimen = 'solid' | 'text' | 'surface' | 'border' | 'focus';
 
 function construireVues(i18n: Localisation) {
   const { TEXTES_DES_GARANTIES } = i18n.messages;
@@ -15,36 +16,32 @@ function construireVues(i18n: Localisation) {
   const rgb = (couleur: readonly number[]): string => `rgb(${couleur.join(', ')})`;
 
   /**
-   * Un spécimen posé sur `fond` : `couleur` est celle du rôle, `texte` celle du
-   * texte que le rôle porte (`on-solid` sur un fond plein).
+   * Un spécimen posé sur `fond` : `couleur` est celle de la variable, `texte`
+   * le texte des boutons que le bouton porte (blanc ou noir purs).
    */
-  function specimenDuRole(emploi: Emploi, couleur: readonly number[], fond: readonly number[], texte?: readonly number[]): HTMLSpanElement {
+  function specimenDuRole(forme: FormeDeSpecimen, couleur: readonly number[], fond: readonly number[], texte?: readonly number[]): HTMLSpanElement {
     const cadre = document.createElement('span');
     cadre.className = 'specimen-cadre';
     cadre.style.background = rgb(fond);
-    const forme = document.createElement('span');
-    forme.className = 'specimen-forme';
-    forme.dataset.role = emploi;
-    forme.setAttribute('aria-hidden', 'true');
-    if (emploi === 'solid') {
-      forme.style.background = rgb(couleur);
-      forme.style.color = rgb(texte ?? fond);
-      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenBouton);
-    } else if (emploi === 'on-solid') {
-      forme.style.background = rgb(fond);
-      forme.style.color = rgb(couleur);
-      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenBouton);
-    } else if (emploi === 'text') {
-      forme.style.color = rgb(couleur);
-      i18n.lier(forme, 'textContent', TEXTES_DES_GARANTIES.specimenTexte);
-    } else if (emploi === 'focus') {
-      forme.style.outlineColor = rgb(couleur);
-    } else if (emploi === 'surface' || emploi === 'surface-card') {
-      forme.style.background = rgb(couleur);
+    const element = document.createElement('span');
+    element.className = 'specimen-forme';
+    element.dataset.role = forme;
+    element.setAttribute('aria-hidden', 'true');
+    if (forme === 'solid') {
+      element.style.background = rgb(couleur);
+      if (texte) element.style.color = rgb(texte);
+      i18n.lier(element, 'textContent', TEXTES_DES_GARANTIES.specimenBouton);
+    } else if (forme === 'text') {
+      element.style.color = rgb(couleur);
+      i18n.lier(element, 'textContent', TEXTES_DES_GARANTIES.specimenTexte);
+    } else if (forme === 'focus') {
+      element.style.outlineColor = rgb(couleur);
+    } else if (forme === 'surface') {
+      element.style.background = rgb(couleur);
     } else {
-      forme.style.borderColor = rgb(couleur);
+      element.style.borderColor = rgb(couleur);
     }
-    cadre.append(forme);
+    cadre.append(element);
     return cadre;
   }
   return { specimenDuRole };

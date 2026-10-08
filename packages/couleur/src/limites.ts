@@ -46,8 +46,11 @@ export interface DemandeDeLimite {
   readonly ordre: boolean;
 }
 
-/** La clé d'une promesse, qui la retrouve d'une palette candidate à l'autre. */
-const cleDe = (promesse: Promesse): string => `${promesse.mode}/${promesse.profil}/${promesse.paire.numero}`;
+/** La clé d'une promesse, qui la retrouve d'une palette candidate à l'autre : une garantie compte une promesse par fond. */
+const cleDe = (promesse: Promesse): string => {
+  const fond = promesse.second.nature === 'cran' ? promesse.second.cran : promesse.second.nature;
+  return `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${fond}`;
+};
 
 /** Vrai quand chaque liste de clartés de la palette garde `ECART_MINIMAL_DES_CLARTES` entre voisines. */
 export function ordreTenu(recette: Recette, palette: Palette): boolean {

@@ -1,5 +1,5 @@
 /**
- * L'aperçu de la palette ouverte ([UI-04]) : une surface peinte du fond du
+ * L'aperçu de la palette ouverte ([UI-04]) : une surface peinte du fond de la page du
  * thème choisi, les numéros de nuance alignés sur les rampes Soft et Vivid, la
  * case tiretée avant elles, qui porte le texte des boutons du thème, la
  * référence exacte repérée ([MOT-17]), les trois bandes `solid`, `surface` et
@@ -22,36 +22,42 @@
  */
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
-  TABLE_DES_EMPLOIS,
-  associationDe,
+  ETATS,
+  SUPPORT_DES_VARIABLES,
+  TABLE_DES_DOSSIERS,
   contraste,
   cranDeLaVariable,
-  decalagesDeLEmploi,
-  emploisDuCran,
-  etatDeLaPaire,
   lireHexa,
   mesurerCran,
   rampeDe,
   sensDuTheme,
-  type Association,
+  variablesDuCran,
   type Cran,
-  type Emploi,
-  type EtatDePaire,
   type Mode,
   type Intensite,
-  type Promesse,
   type Recette,
   type Rgb8,
   type VariableDuTheme,
 } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from '../analyse';
-import { apercuEnBandes, gesteDeLaCible, hauteursDesRayures, surlignageDe, type Accolade, type ApercuEnBandes, type Dossier, type Geste } from '../presentation';
+import {
+  apercuEnBandes,
+  garantiesDeLaVariable,
+  gesteDeLaCible,
+  hauteursDesRayures,
+  surlignageDe,
+  type Accolade,
+  type ApercuEnBandes,
+  type Dossier,
+  type GarantieDeLaVariable,
+  type Geste,
+} from '../presentation';
 import { creerVuesBadge } from './badge';
 import { creerVuesPropositions } from './couleur/propositions';
 import { creerVuesSelecteur } from './couleur/selecteur';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
-import { creerVuesSpecimens } from './specimens';
+import { creerVuesSpecimens, type FormeDeSpecimen } from './specimens';
 
 /** Ce que le nuancier montre. */
 export interface EntreesDuNuancier {
@@ -75,13 +81,13 @@ export interface GestesDuNuancier {
   /** La saisie du fond s'achève sans rien enregistrer : l'onglet rend ce que l'aperçu avait différé. */
   abandonnerLeFond(): void;
   /** Une garantie du détail se choisit dans la carte des garanties ([UI-10]). */
-  choisirGarantie(association: Association): void;
+  choisirGarantie(numero: number): void;
 }
 
 export interface NuancierUi {
   /** La surface peinte, dans le corps de la carte Aperçu. */
   element: HTMLDivElement;
-  /** Le fond du thème montré et sa pastille, dans l'en-tête de la carte. */
+  /** Le fond de la page du thème montré et sa pastille, dans l'en-tête de la carte. */
   tete: HTMLDivElement;
   afficher(entrees: EntreesDuNuancier): void;
 }
@@ -89,16 +95,17 @@ export interface NuancierUi {
 export type Choix =
   /** Une nuance, par son rang et par son numéro : quand la liste change, le choix suit le numéro. */
   | { readonly nature: 'nuance'; readonly profil: Intensite; readonly rang: number; readonly numero: number }
+  /** La case tiretée, qui porte le texte des boutons du thème : `solid/foreground`. */
   | { readonly nature: 'fond' };
 function construireVues(i18n: Localisation) {
   const { fondsProposes } = creerVuesPropositions(i18n);
   const { ouvrirLeSelecteur, suivreLaCouleur } = creerVuesSelecteur(i18n);
   const { badgeDeNiveau } = creerVuesBadge(i18n);
   const { specimenDuRole } = creerVuesSpecimens(i18n);
-  const { NOM_DE_L_ETAT, NOM_DU_PROFIL, NOM_DU_ROLE, TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DE_L_APERCU, TEXTES_DU_DETAIL, TEXTES_DU_NUANCIER, TEXTES_DU_SELECTEUR, contrasteEcrit, jugementDuSeuil } = i18n.messages;
+  const { LIBELLE_DE_LA_VARIABLE, NOM_DU_PROFIL, TEXTES, TEXTES_DE_CONFIGURATION, TEXTES_DE_L_APERCU, TEXTES_DES_GARANTIES, TEXTES_DU_DETAIL, TEXTES_DU_NUANCIER, TEXTES_DU_SELECTEUR, contrasteEcrit, jugementDuSeuil } = i18n.messages;
 
   /**
-   * L'encre qui se lit sur le fond du thème : la sombre ou la claire des
+   * L'encre qui se lit sur le fond de la page : la sombre ou la claire des
    * couleurs de la planche, avec le fond léger des bandes et le liseré des
    * petites pastilles qui vont avec elle.
    */
@@ -142,8 +149,8 @@ function construireVues(i18n: Localisation) {
     return element;
   }
 
-  /** Un nom de rôle en police de code. */
-  function codeDuRole(texte: Texte): HTMLElement {
+  /** Un nom de variable en police de code. */
+  function codeDeLaVariable(texte: Texte): HTMLElement {
     const code = document.createElement('code');
     code.className = 'code-du-role';
     i18n.lier(code, 'textContent', texte);
@@ -169,11 +176,14 @@ function construireVues(i18n: Localisation) {
     return a.nature === 'fond' || (b.nature === 'nuance' && a.profil === b.profil && a.rang === b.rang);
   }
 
-  /** La colonne CSS d'une colonne de l'aperçu : `-2` le nom du profil, `-1` la pastille `on-solid`, `0` la première nuance. */
+  /** Le code de la case tiretée, que son détail nomme avec son libellé. */
+const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
+
+/** La colonne CSS d'une colonne de l'aperçu : `-2` le nom du profil, `-1` la pastille `on-solid`, `0` la première nuance. */
   const colonne = (rang: number): number => rang + 3;
 
   function createNuancier(gestes: GestesDuNuancier): NuancierUi {
-    // En-tête : le fond du thème montré, à droite.
+    // En-tête : le fond de la page du thème montré, à droite.
     const tete = document.createElement('div');
     tete.className = 'nuancier-tete';
     const fond = document.createElement('div');
@@ -181,7 +191,7 @@ function construireVues(i18n: Localisation) {
     const libelleDuFond = document.createElement('span');
     libelleDuFond.className = 'libelle-de-champ';
     i18n.lier(libelleDuFond, 'textContent', TEXTES_DU_NUANCIER.fond);
-    // La pastille ouvre le sélecteur de couleur sur le fond du thème montré, avec la mention du fond commun.
+    // La pastille ouvre le sélecteur de couleur sur le fond de la page du thème montré, avec la mention du fond commun.
     const pastilleDuFond = document.createElement('button');
     pastilleDuFond.type = 'button';
     pastilleDuFond.className = 'pastille-du-fond';
@@ -301,51 +311,52 @@ function construireVues(i18n: Localisation) {
       activer(cible[0], cible[1], true);
     });
 
-    /** Les promesses du thème montré qui comptent `emploi` au décalage donné, dans un profil. */
-    function promessesDuRole(analyse: AnalyseDePalette, mode: Mode, profil: Intensite, emploi: Emploi, decalage: number): Promesse[] {
-      return analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.profil === profil
-        && [promesse.paire.premier, promesse.paire.second].some((membre) => 'emploi' in membre && membre.emploi === emploi && membre.decalage === decalage));
-    }
-
-    /** Le nom d'un membre dans une relation : « fond », « on-solid » ou « surface 100 ». */
-    function nomDuMembre(promesse: Promesse, rang: 'premier' | 'second'): Texte {
-      const membre = promesse.paire[rang];
-      if (!('emploi' in membre)) return TEXTES_DU_NUANCIER.fondCourt;
-      const designe = promesse[rang];
-      return designe.nature === 'cran' ? `${membre.emploi} ${designe.cran}` : membre.emploi;
-    }
-
     /** Une garantie du détail, qui la choisit dans la carte des garanties. */
-    function lienDeGarantie(promesse: Promesse, emploi: Emploi, decalage: number): HTMLButtonElement {
-      const premier = promesse.paire.premier;
-      const estPremier = 'emploi' in premier && premier.emploi === emploi && premier.decalage === decalage;
-      const sens = estPremier ? TEXTES_DU_DETAIL.sur(nomDuMembre(promesse, 'second')) : TEXTES_DU_DETAIL.dessus(nomDuMembre(promesse, 'premier'));
+    function lienDeGarantie({ promesse, role, partenaire }: GarantieDeLaVariable): HTMLButtonElement {
+      const nom: Texte = partenaire === 'elevation/page' ? TEXTES_DES_GARANTIES.laPage : partenaire;
+      const sens = role === 'premier' ? TEXTES_DU_DETAIL.sur(nom) : TEXTES_DU_DETAIL.dessus(nom);
       const lien = bouton('lien-de-constat', TEXTES_DU_DETAIL.garantie(promesse.verdict === 'tenue', sens, promesse.contraste));
       lien.classList.add('garantie-du-detail');
       lien.dataset.verdict = promesse.verdict;
-      lien.append(badgeDeNiveau(promesse.contraste, jugementDuSeuil(promesse.paire.seuil)));
-      lien.addEventListener('click', () => gestes.choisirGarantie(associationDe(promesse.paire)));
+      lien.append(badgeDeNiveau(promesse.contraste, jugementDuSeuil(promesse.garantie.seuil)));
+      lien.addEventListener('click', () => gestes.choisirGarantie(promesse.garantie.numero));
       return lien;
     }
 
-    /** Une ligne « Sert à » : le spécimen, le rôle et son état, son nom français, puis ses garanties. */
-    function ligneDUsage(emploi: Emploi, decalage: number, specimen: HTMLElement, promesses: readonly Promesse[]): HTMLDivElement {
+    /** Le libellé du lexique d'une variable (I1) ; `disabled/*` n'en a pas, son code se montre seul. */
+    function libelleDe(variable: VariableDuTheme): Texte | undefined {
+      return variable in LIBELLE_DE_LA_VARIABLE ? LIBELLE_DE_LA_VARIABLE[variable as keyof typeof LIBELLE_DE_LA_VARIABLE] : undefined;
+    }
+
+    /** Ce que la variable peint (S4) donne la forme de son spécimen. */
+    function formeDe(variable: VariableDuTheme): FormeDeSpecimen {
+      const { peint } = SUPPORT_DES_VARIABLES[variable];
+      if (peint.includes('ring')) return 'focus';
+      if (peint.includes('foreground')) return 'text';
+      if (peint.includes('border') && !peint.includes('background')) return 'border';
+      return peint.includes('background') && variable.startsWith('solid/') ? 'solid' : 'surface';
+    }
+
+    /** Une ligne « Sert à » : le spécimen, le code de la variable puis son libellé, et ses garanties. */
+    function ligneDeVariable(variable: VariableDuTheme, specimen: HTMLElement, garanties: readonly GarantieDeLaVariable[]): HTMLDivElement {
       const ligne = document.createElement('div');
       ligne.className = 'usage-du-detail';
       const quoi = document.createElement('div');
       quoi.className = 'usage-quoi';
       const role = document.createElement('p');
-      role.append(codeDuRole(emploi), i18n.noeud(i18n.composer` · ${NOM_DE_L_ETAT[decalage as EtatDePaire] ?? decalage}`));
-      const garanties = document.createElement('p');
-      garanties.className = 'usage-garanties';
-      for (const promesse of promesses) garanties.append(lienDeGarantie(promesse, emploi, decalage));
-      quoi.append(role, paragraphe(NOM_DU_ROLE[emploi], 'ligne-secondaire'), garanties);
+      role.append(codeDeLaVariable(variable));
+      const libelle = libelleDe(variable);
+      if (libelle) role.append(i18n.noeud(i18n.composer` · ${libelle}`));
+      const liens = document.createElement('p');
+      liens.className = 'usage-garanties';
+      for (const garantie of garanties) liens.append(lienDeGarantie(garantie));
+      quoi.append(role, liens);
       ligne.append(specimen, quoi);
       return ligne;
     }
 
     /**
-     * Les contrastes d'une nuance, en table : le fond du thème, le blanc et le
+     * Les contrastes d'une nuance, en table : le fond de la page, le blanc et le
      * noir, un ratio et un badge par ligne, que le badge juge en texte courant
      * ([VER-13]). Suivent les nuances identiques ou confondues, s'il y en a.
      */
@@ -418,38 +429,50 @@ function construireVues(i18n: Localisation) {
     function detailDeNuance(profil: Intensite, rang: number, entrees: EntreesDuNuancier): HTMLElement[] {
       const { recette, analyse, mode } = entrees;
       const cran = rampeDe(analyse.rampes, profil)[mode][rang];
-      const fondDuMode = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
+      const fondDeLaPage = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
+      const texteDesBoutons = lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]]) ?? [255, 255, 255];
       const { crans } = analyse.grille;
       const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
       const blocs: HTMLElement[] = [enTeteDuDetail(cran.hexa, TEXTES_DU_DETAIL.titre(profil, crans[rang]), cran.hexa, reference)];
-      // Une palette libre n'a pas de rôles : aucune de ses nuances n'en reçoit (W6.5).
-      const emplois = analyse.libre ? [] : emploisDuCran(crans, rang);
-      blocs.push(emplois.length === 0
+      // Les variables que la nuance porte dans la table du sens du thème montré (I5). Une palette libre n'en a pas (W6.5).
+      const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
+      const variables = analyse.libre ? [] : variablesDuCran(crans, rang, sens, entrees.neutre ?? false);
+      blocs.push(variables.length === 0
         ? groupe(TEXTES_DU_DETAIL.sansRole, paragraphe(TEXTES_DU_DETAIL.aucunRole, 'ligne-secondaire'))
-        : groupe(TEXTES_DU_DETAIL.sertA, ...emplois.map(({ emploi, decalage }) => ligneDUsage(emploi, decalage, specimenDuRole(emploi, cran.couleur, fondDuMode), promessesDuRole(analyse, mode, profil, emploi, decalage)))));
-      blocs.push(...contrastesDeLaNuance(cran, profil, rang, entrees, fondDuMode), repliOklch(cran));
+        : groupe(TEXTES_DU_DETAIL.sertA, ...variables.map((variable) => ligneDeVariable(
+          variable,
+          specimenDuRole(formeDe(variable), cran.couleur, fondDeLaPage, texteDesBoutons),
+          garantiesDeLaVariable(analyse.promesses, mode, profil, variable),
+        ))));
+      blocs.push(...contrastesDeLaNuance(cran, profil, rang, entrees, fondDeLaPage), repliOklch(cran));
       return blocs;
     }
 
-    /** Le détail de la pastille `on-solid` : le fond de page, posé en texte sur `solid`, et ses garanties par intensité. */
-    function detailDuFond(entrees: EntreesDuNuancier): HTMLElement[] {
+    /**
+     * Le détail de la case tiretée : `solid/foreground`, le texte des boutons du
+     * thème, blanc ou noir purs, et ses garanties par intensité. Il se montre
+     * posé sur le bouton, `solid/default`, jamais sur le fond de la page.
+     */
+    function detailDuTexteDesBoutons(entrees: EntreesDuNuancier): HTMLElement[] {
       const { recette, analyse, mode } = entrees;
-      const fondDuMode = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
-      const depart = recette.crans.indexOf(TABLE_DES_EMPLOIS.solid);
-      // `on-solid` reste au fond ; c'est `solid`, son partenaire, qui avance d'un cran par état.
-      const fin = recette.crans[Math.min(recette.crans.length - 1, depart + Math.max(...decalagesDeLEmploi('solid')))];
+      const texte = recette.texteDesBoutons[mode];
+      const couleur = COULEUR_DU_TEXTE_DES_BOUTONS[texte];
+      const rgbDuTexte = lireHexa(couleur) ?? [255, 255, 255];
+      const fondDeLaPage = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
+      const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, texte)];
+      const depart = analyse.grille.crans.indexOf(table['solid/default']);
+      const crans = ETATS.map((etat) => table[`solid/${etat}`]);
       const lignes: HTMLElement[] = [];
       for (const profil of analyse.intensites) {
-        const promesses = promessesDuRole(analyse, mode, profil, 'on-solid', 0).sort((a, b) => etatDeLaPaire(a.paire) - etatDeLaPaire(b.paire));
-        // Le texte on-solid se montre posé sur le fond plein de son premier état.
-        const plein = rampeDe(analyse.rampes, profil)[mode][depart];
-        const ligne = ligneDUsage('on-solid', 0, specimenDuRole('solid', plein.couleur, fondDuMode, fondDuMode), promesses);
+        const plein = depart < 0 ? undefined : rampeDe(analyse.rampes, profil)[mode][depart];
+        const specimen = specimenDuRole('solid', plein?.couleur ?? rgbDuTexte, fondDeLaPage, rgbDuTexte);
+        const ligne = ligneDeVariable('solid/foreground', specimen, garantiesDeLaVariable(analyse.promesses, mode, profil, 'solid/foreground'));
         if (profil !== 'unique') ligne.querySelector('.usage-quoi p')?.prepend(i18n.noeud(i18n.composer`${NOM_DU_PROFIL[profil]} · `));
         lignes.push(ligne);
       }
       return [
-        enTeteDuDetail(recette.fonds[mode], TEXTES_DU_DETAIL.titreDuFond, recette.fonds[mode]),
-        paragraphe(TEXTES_DU_DETAIL.fondDePage(TABLE_DES_EMPLOIS.solid, fin)),
+        enTeteDuDetail(couleur, i18n.composer`${VARIABLE_DU_TEXTE_DES_BOUTONS} · ${LIBELLE_DE_LA_VARIABLE[VARIABLE_DU_TEXTE_DES_BOUTONS]}`, couleur),
+        paragraphe(TEXTES_DU_DETAIL.texteDesBoutons(mode, texte, Math.min(...crans), Math.max(...crans))),
         groupe(TEXTES_DU_DETAIL.sertA, ...lignes),
       ];
     }
@@ -460,7 +483,7 @@ function construireVues(i18n: Localisation) {
         detail.hidden = true;
         return;
       }
-      detail.replaceChildren(...(choix.nature === 'nuance' ? detailDeNuance(choix.profil, choix.rang, entrees) : detailDuFond(entrees)));
+      detail.replaceChildren(...(choix.nature === 'nuance' ? detailDeNuance(choix.profil, choix.rang, entrees) : detailDuTexteDesBoutons(entrees)));
       detail.hidden = false;
     }
 
@@ -792,7 +815,7 @@ function construireVues(i18n: Localisation) {
       const { crans } = analyse.grille;
       if (onSolid) {
         onSolid.style.background = COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]];
-        i18n.lier(onSolid, 'aria-label', TEXTES_DU_NUANCIER.etiquetteDuFond(recette.fonds[mode]));
+        i18n.lier(onSolid, 'aria-label', TEXTES_DU_NUANCIER.etiquetteDuTexteDesBoutons(COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]]));
         onSolid.setAttribute('aria-selected', String(choix?.nature === 'fond'));
       }
       const confondues = new Set(entrees.confondues.filter((confondue) => confondue.mode === mode).map((confondue) => confondue.cran));

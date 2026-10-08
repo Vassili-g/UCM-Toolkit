@@ -1,16 +1,19 @@
 /**
  * Le rapport de vérification ([VER-01], [VER-02]) : pour chaque palette et
  * chaque mode, chaque cran avec son hexa et ses contrastes, chaque promesse
- * avec sa paire, son contraste et son verdict, et chaque alerte avec sa
- * mesure. Il porte l'empreinte de la recette rangée qui l'a produit, et les
- * écarts de peinture du dernier dessin (L6.14). Les nombres sont ceux du
- * moteur, sans arrondi : un outil qui relit le rapport juge lui-même.
+ * avec les variables qu'elle oppose, son contraste et son verdict, et chaque
+ * alerte avec sa mesure. Il porte le texte des boutons de chaque thème, qui
+ * donne le sens de sa table, et l'empreinte de la recette rangée qui l'a
+ * produit, avec les écarts de peinture du dernier dessin (L6.14). Les nombres
+ * sont ceux du moteur, sans arrondi : un outil qui relit le rapport juge
+ * lui-même.
  */
-import { aUneIntensite, lireHexa, mesurerCran, rampeDe, type Alerte, type Intensite, type Mode, type Profil, type Promesse, type Recette, type Reglages } from 'ucm-couleur';
+import { aUneIntensite, lireHexa, mesurerCran, rampeDe, type Alerte, type Designation, type Intensite, type Mode, type Profil, type Promesse, type Recette, type Reglages, type VariableDePalette } from 'ucm-couleur';
 
 import { analyserPalette } from './analyse';
 import type { ProfilDuDocument } from './lecture';
 import type { EcartDePeinture } from './planche/peints';
+import { fondDeLaPromesse, variableDuFond } from './presentation';
 
 export interface CranDuRapport {
   readonly cran: number;
@@ -19,6 +22,31 @@ export interface CranDuRapport {
   readonly fond: number;
   readonly blanc: number;
   readonly noir: number;
+}
+
+/**
+ * Une promesse du rapport : la garantie est nommée par ses variables, le
+ * premier membre et le fond qu'elle juge (`elevation/page` pour le fond de la
+ * page), jamais par un numéro.
+ */
+export interface PromesseDuRapport {
+  readonly garantie: {
+    readonly premier: VariableDePalette;
+    readonly fond: VariableDePalette | 'elevation/page';
+    readonly seuil: 'texte' | 'nonTexte';
+  };
+  readonly mode: Mode;
+  readonly profil: Intensite;
+  readonly premier: Designation;
+  readonly second: Designation;
+  readonly seuil: number;
+  readonly contraste: number;
+  readonly verdict: Promesse['verdict'];
+}
+
+function promesseDuRapport(promesse: Promesse): PromesseDuRapport {
+  const { garantie, ...reste } = promesse;
+  return { garantie: { premier: garantie.premier.variable, fond: variableDuFond(fondDeLaPromesse(promesse)), seuil: garantie.seuil }, ...reste };
 }
 
 export interface PaletteDuRapport {
@@ -41,7 +69,7 @@ export interface PaletteDuRapport {
   };
   /** Par mode, la liste des crans d'une palette à une intensité, ou une liste par profil. */
   readonly crans: { readonly [M in Mode]: readonly CranDuRapport[] | { readonly [P in Profil]: readonly CranDuRapport[] } };
-  readonly promesses: readonly Promesse[];
+  readonly promesses: readonly PromesseDuRapport[];
   readonly alertes: readonly Alerte[];
 }
 
@@ -49,9 +77,10 @@ export interface PaletteDuRapport {
  * La version de la forme du rapport (section 10.2). Un champ ajouté la garde ;
  * un champ ou un code d'alerte retiré ou renommé la monte. La 1, sans ce
  * champ, portait l'alerte `reference-plus-claire-que-bouton` ; la 2 donnait
- * toujours des crans et un ancrage par profil.
+ * toujours des crans et un ancrage par profil ; la 3 nommait chaque promesse
+ * par sa paire d'emplois, la 4 par les variables de sa garantie.
  */
-export const FORMAT_DU_RAPPORT = 3;
+export const FORMAT_DU_RAPPORT = 4;
 
 export interface Rapport {
   readonly formatDuRapport: number;
@@ -61,6 +90,8 @@ export interface Rapport {
   /** Le profil de couleur du document, dans lequel la planche peint ses couleurs (section 6.7). */
   readonly profilDuDocument: ProfilDuDocument;
   readonly fonds: Recette['fonds'];
+  /** Le texte des boutons de chaque thème, `blanc` ou `noir` : il donne le sens de la table de chaque mode. */
+  readonly texteDesBoutons: Recette['texteDesBoutons'];
   readonly seuils: Recette['seuils'];
   readonly palettes: readonly PaletteDuRapport[];
   /** Les écarts de peinture du dernier dessin ; `null` quand aucun dessin n'a eu lieu depuis l'ouverture du plugin. */
@@ -80,6 +111,7 @@ export function rapportDeLaRecette(
     formatVersion: recette.formatVersion,
     profilDuDocument: profil,
     fonds: recette.fonds,
+    texteDesBoutons: recette.texteDesBoutons,
     seuils: recette.seuils,
     palettes: recette.palettes.map((palette) => {
       const analyse = analyserPalette(recette, palette);
@@ -102,7 +134,7 @@ export function rapportDeLaRecette(
         intensites: une ? 1 : 2,
         ancrage: porteur === 'unique' ? ancrage : { profil: porteur, ...ancrage },
         crans: { light: parMode('light'), dark: parMode('dark') },
-        promesses: analyse.promesses,
+        promesses: analyse.promesses.map(promesseDuRapport),
         alertes: analyse.alertes,
       };
     }),

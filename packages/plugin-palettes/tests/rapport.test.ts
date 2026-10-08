@@ -26,10 +26,23 @@ test('[VER-01] chaque palette donne, par mode et par profil, chaque cran avec so
   assert.equal(cinquante.blanc, contraste(rampes.soft!.dark[0].couleur, [255, 255, 255]));
 });
 
-test('[VER-01] chaque promesse porte sa paire, son contraste et son verdict ; chaque alerte, sa mesure', () => {
+test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son contraste et son verdict ; chaque alerte, sa mesure', () => {
   const [bleu, jaune] = rapportDeLaRecette(RECETTE, null, 'SRGB', null).palettes;
-  assert.equal(bleu.promesses.length, 76);
+  // Seize contrôles par mode et par intensité : 3 + 1 + 4 + 4 + 1 + 1 + 2.
+  assert.equal(bleu.promesses.length, 64);
   assert.ok(bleu.promesses.every((promesse) => typeof promesse.contraste === 'number' && ['tenue', 'manquee'].includes(promesse.verdict)), JSON.stringify(bleu.promesses[0]));
+  const premiere = bleu.promesses[0];
+  assert.deepEqual(premiere.garantie, { premier: 'solid/foreground', fond: 'solid/default', seuil: 'texte' });
+  const fonds = bleu.promesses.filter((promesse) => promesse.mode === 'light' && promesse.profil === 'vivid').map(({ garantie }) => `${garantie.premier} sur ${garantie.fond}`);
+  assert.deepEqual(fonds, [
+    'solid/foreground sur solid/default', 'solid/foreground sur solid/hover', 'solid/foreground sur solid/pressed',
+    'solid/default sur elevation/page',
+    'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur surface/pressed', 'surface/foreground sur elevation/page',
+    'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page',
+    'page/foreground sur elevation/page', 'page/border sur elevation/page',
+    'page/focus sur elevation/page', 'page/focus sur surface/default',
+  ]);
+  assert.ok(bleu.promesses.every((promesse) => !('paire' in promesse) && !('numero' in promesse.garantie)), 'aucun numéro de garantie ni paire d’emplois');
   const vive = jaune.alertes.find((alerte) => alerte.code === 'reference-plus-vive');
   assert.ok(vive && vive.code === 'reference-plus-vive' && vive.part > vive.partVivid, JSON.stringify(jaune.alertes));
 });
@@ -45,7 +58,7 @@ test('[VER-08] le rapport garde l’écart et le minimum d’une proximité, que
 
 test('[MOT-17] le rapport nomme l’ancrage de chaque palette, le même que l’analyse, et le profil du document', () => {
   const rapport = rapportDeLaRecette(RECETTE, null, 'LEGACY', null);
-  assert.equal(rapport.formatDuRapport, 3);
+  assert.equal(rapport.formatDuRapport, 4);
   assert.equal(rapport.profilDuDocument, 'LEGACY');
   for (const [rang, palette] of RECETTE.palettes.entries()) {
     const ancrage = ancrageDe(RECETTE, palette);
@@ -65,4 +78,14 @@ test('[VER-02] le rapport porte l’empreinte de la recette et les écarts du de
   assert.deepEqual(rapport.ecartsDuDernierDessin, ecarts);
   assert.equal(rapportDeLaRecette(RECETTE, null, 'SRGB', null).ecartsDuDernierDessin, null);
   assert.deepEqual(JSON.parse(JSON.stringify(rapport)), rapport);
+});
+
+test('[VER-01] le rapport porte le texte des boutons de chaque thème, et sa table suit le sens du thème', () => {
+  assert.deepEqual(rapportDeLaRecette(RECETTE, null, 'SRGB', null).texteDesBoutons, { light: 'blanc', dark: 'noir' });
+  const inversee = { ...RECETTE, texteDesBoutons: { light: 'blanc', dark: 'blanc' } } as Recette;
+  const rapport = rapportDeLaRecette(inversee, null, 'SRGB', null);
+  assert.deepEqual(rapport.texteDesBoutons, { light: 'blanc', dark: 'blanc' });
+  const texte = (mode: 'light' | 'dark') => rapport.palettes[0].promesses.find((promesse) => promesse.mode === mode && promesse.garantie.premier === 'solid/foreground')!.premier;
+  assert.deepEqual(texte('light'), { nature: 'texteDesBoutons', couleur: [255, 255, 255] });
+  assert.deepEqual(texte('dark'), { nature: 'texteDesBoutons', couleur: [255, 255, 255] });
 });

@@ -1245,6 +1245,22 @@
   line-height: 1;
 }
 
+/* Les trois boutons de l'aperçu des Réglages communs : `solid/default`, `hover` et `pressed`, avec le texte des boutons du thème. */
+.fiche-boutons {
+  display: grid;
+  gap: var(--espace-serre);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fiche-bouton {
+  padding: var(--espace-serre) 2px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: capitalize;
+}
+
 .fiche-garanties {
   display: flex;
   gap: var(--espace-controle);
@@ -2918,8 +2934,7 @@
   font-weight: 600;
 }
 
-.specimen-forme[data-role='solid'],
-.specimen-forme[data-role='on-solid'] {
+.specimen-forme[data-role='solid'] {
   padding: 1px var(--espace-controle);
   border-radius: 3px;
   font-size: 9px;
@@ -2931,16 +2946,7 @@
   border-radius: 3px;
 }
 
-/* Une carte : plus grande qu'un fond léger, et bordée, puisqu'elle a la clarté du fond. */
-.specimen-forme[data-role='surface-card'] {
-  width: 52px;
-  height: 20px;
-  border: 1px solid var(--bordure-surface);
-  border-radius: 4px;
-}
-
-.specimen-forme[data-role='border-control'],
-.specimen-forme[data-role='border-decorative'] {
+.specimen-forme[data-role='border'] {
   width: 40px;
   height: 14px;
   border: 1.5px solid;
@@ -3006,7 +3012,7 @@
   gap: var(--espace-serre) var(--espace-bloc);
 }
 
-/* La carte des garanties : le choix du profil, la réglette, puis une ligne par association. */
+/* La carte des garanties : le choix du profil, la réglette, puis une ligne par garantie. */
 
 .reglette-des-garanties {
   padding: var(--espace-serre) 0;
@@ -3053,16 +3059,22 @@
   font-weight: 600;
 }
 
-.reglette-on-solid {
+/* La page, avant la première nuance : le fond du thème, cerné d'un trait plein. */
+.reglette-page {
+  stroke: var(--bordure-surface);
+}
+
+/* Le texte des boutons, en tirets : le départ de la garantie qui le juge. */
+.reglette-boutons {
   stroke: var(--encre-surface-seconde);
   stroke-dasharray: 3 2;
 }
 
 /*
- * La liste des garanties (maquette Z3.2, G2) : un encadré par minimum, son
- * titre en bandeau, les états nommés une fois en tête de colonne, chaque
- * état dans sa colonne. La rangée choisie prend le fond de survol et une
- * barre de 3 px écartée du texte.
+ * La liste des garanties (maquettes Z3.2, G2 et M1) : un encadré par minimum,
+ * son titre en bandeau, les fonds nommés une fois en tête de colonne (la page,
+ * puis les trois états), chaque fond dans sa colonne. La rangée choisie prend
+ * le fond de survol et une barre de 3 px écartée du texte.
  */
 .liste-des-garanties {
   display: grid;
@@ -3154,7 +3166,7 @@
   white-space: nowrap;
 }
 
-/* Une case d'état : le spécimen à gauche, les numéros puis le ratio et son badge, sur une ligne. */
+/* Une case de fond : le spécimen à gauche, les numéros puis le ratio et son badge, sur une ligne. */
 .garantie-etat {
   display: grid;
   align-items: center;
@@ -3223,10 +3235,10 @@
 }
 
 /*
- * Sous 900 px, quatre états et le nom ne tiennent plus sur une ligne : le nom
+ * Sous 900 px, quatre fonds et le nom ne tiennent plus sur une ligne : le nom
  * passe au-dessus de ses quatre cases, qui se partagent la largeur, et le
- * spécimen au-dessus des numéros et du ratio. Le nom de chaque état se centre
- * sur sa colonne.
+ * spécimen au-dessus des numéros et du ratio. Le nom de chaque colonne se
+ * centre sur elle.
  */
 @media (max-width: 899px) {
   .garanties-colonnes,
@@ -3545,7 +3557,8 @@
  * Le tableau avant et après : garantie, thème, avant, flèche, après et son
  * badge. Sous 552 px de fenêtre, la modale mesure moins de 520 px : l'en-tête
  * et la colonne du thème se retirent, le thème et l'intensité passent en
- * titre de groupe, et chaque garantie tient sur une ligne.
+ * titre de groupe. Le thème, l'avant et l'après tiennent chacun sur une
+ * ligne ; la garantie passe à la ligne entre ses deux variables.
  */
 .ajustement-tableau {
   display: grid;
@@ -3580,7 +3593,12 @@
   min-width: 0;
 }
 
+/*
+ * Les noms de variable de la table en dossiers ne tiennent pas toujours à deux
+ * sur une ligne : la cellule passe à la ligne entre eux, jamais dans un nom.
+ */
 .ajustement-qui .code-du-role {
+  white-space: nowrap;
   padding: 0 4px;
   border-radius: 3px;
   background: var(--fond-note);

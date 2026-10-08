@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { FORMAT_RECETTE, PAIRES, classerRecette, recetteParDefaut, verifierPromesses, type Alerte, type Promesse } from 'ucm-couleur';
+import { FORMAT_RECETTE, GARANTIES, classerRecette, recetteParDefaut, verifierPromesses, type Alerte, type Promesse } from 'ucm-couleur';
 
 import { nouvellePalette } from '../src/edition';
 
@@ -37,12 +37,16 @@ import {
   titreDeGroupe,
   verdict,
 } from '../src/i18n/fr';
+import { constatDeGroupe as constatEn } from '../src/i18n/en';
+import * as anglais from '../src/i18n/en';
+import * as francais from '../src/i18n/fr';
+import type { Catalogue } from '../src/i18n/catalogue';
 
 test('un chemin de champ s’écrit en mots du designer', () => {
   assert.equal(nommerChamp('crans[3]'), '4e nuance');
   assert.equal(nommerChamp('crans[0]'), '1re nuance');
   assert.equal(nommerChamp('courbes.light[5]'), 'Luminosité du thème Light, 6e nuance');
-  assert.equal(nommerChamp('fonds.dark'), 'Fond du thème Dark');
+  assert.equal(nommerChamp('fonds.dark'), 'Fond de la page, thème Dark');
   assert.equal(nommerChamp('palettes[1].derive.soft.clair'), 'Palette 2, Color shift, soft, teinte, nuances claires');
   assert.equal(nommerChamp('palettes[1].derive.vivid.clarte.sombre'), 'Palette 2, Color shift, vivid, luminosité, nuances sombres');
   assert.equal(nommerChamp('seuils.texte'), 'Minimum ou seuil : texte');
@@ -134,13 +138,13 @@ test('[VER-15] le geste d’une alerte cite la carte que son lien ouvre', () => 
 });
 
 test('un fond hors de la courbe nomme son thème et son hexa', () => {
-  assert.equal(constatDAlerte(ALERTES['fond-hors-courbe'], CONTEXTE).ou, 'Fond du thème Light : #F7F7F7');
+  assert.equal(constatDAlerte(ALERTES['fond-hors-courbe'], CONTEXTE).ou, 'Fond de la page, thème Light : #F7F7F7');
 });
 
-/** Une promesse de la paire 3, text+1 sur surface+1, en Dark. */
+/** Une promesse de G3, `surface/foreground` sur `surface/hover`, en Dark. */
 function promesse(profil: 'soft' | 'vivid', contraste: number): Promesse {
   return {
-    paire: PAIRES[2],
+    garantie: GARANTIES[2],
     mode: 'dark',
     profil,
     premier: { nature: 'cran', cran: 800, couleur: [0, 0, 0] },
@@ -151,20 +155,33 @@ function promesse(profil: 'soft' | 'vivid', contraste: number): Promesse {
   };
 }
 
-test('[VER-06] un groupe de promesses nomme l’association, l’état, le thème, et le résultat de chaque profil', () => {
-  const groupe: GroupeDePromesses = {
-    association: { premier: 'text', second: 'surface' },
-    mode: 'dark',
-    etat: 1,
-    seuil: 4.5,
-    resultats: [promesse('soft', 4.62), promesse('vivid', 4.319)],
-    manquees: 1,
-  };
-  const constat = constatDeGroupe(groupe, 'Bleu');
-  assert.equal(constat.ou, 'Texte coloré (text) sur Fond léger (surface), état hover · Bleu, thème Dark');
+function groupe(numero: number, fond: GroupeDePromesses['fond'], resultats: Promesse[]): GroupeDePromesses {
+  return { garantie: GARANTIES[numero - 1], mode: 'dark', fond, seuil: 4.5, resultats, manquees: resultats.filter((p) => p.verdict === 'manquee').length };
+}
+
+test('[VER-06] un groupe de promesses nomme la garantie par son langage courant puis ses variables, le fond, le thème, et le résultat de chaque profil', () => {
+  const manque = groupe(3, { variable: 'surface/hover' }, [promesse('soft', 4.62), promesse('vivid', 4.319)]);
+  const constat = constatDeGroupe(manque, 'Bleu');
+  assert.equal(constat.ou, 'Texte sur fond teinté, sur le fond teinté survolé (surface/foreground sur surface/hover) · Bleu, thème Dark');
   assert.equal(constat.quoi, 'Contraste insuffisant. Minimum : 4,5:1.');
   assert.deepEqual(constat.mesures, ['Soft : 4,62:1 · Respectée', 'Vivid : 4,31:1 · À corriger']);
   assert.equal(constat.geste, 'Modifiez le réglage global ou le Color shift, puis vérifiez le contraste.');
+  assert.equal(constatEn(manque, 'Blue').ou, 'Text on tinted fill, on the tinted fill, hovered (surface/foreground on surface/hover) · Blue, Dark theme');
+});
+
+test('[VER-06] le fond de la page se nomme elevation/page, et chaque garantie se dit par ses libellés dans les deux langues', () => {
+  const page = constatDeGroupe(groupe(5, { fondDeLaPage: true }, [promesse('vivid', 4.1)]), 'Bleu').ou;
+  assert.equal(page, 'Texte coloré, sur le fond de la page (page/foreground sur elevation/page) · Bleu, thème Dark');
+  assert.equal(constatEn(groupe(5, { fondDeLaPage: true }, [promesse('vivid', 4.1)]), 'Blue').ou, 'Colored text, on the page background (page/foreground on elevation/page) · Blue, Dark theme');
+  assert.equal(constatDeGroupe(groupe(1, { variable: 'solid/pressed' }, [promesse('vivid', 4.1)]), 'Bleu').ou, 'Texte des boutons, sur le bouton appuyé (solid/foreground sur solid/pressed) · Bleu, thème Dark');
+  assert.equal(constatEn(groupe(7, { variable: 'surface/default' }, [promesse('vivid', 2.1)]), 'Blue').ou, 'Focus ring, on the tinted fill (page/focus on surface/default) · Blue, Dark theme');
+  // Aucun numéro de garantie dans un message du designer.
+  for (const g of GARANTIES) {
+    for (const fond of g.fonds) {
+      const textes = [constatDeGroupe(groupe(g.numero, fond, [promesse('vivid', 1)]), 'Bleu'), constatEn(groupe(g.numero, fond, [promesse('vivid', 1)]), 'Blue')];
+      for (const constat of textes) assert.ok(!/G[1-7]/.test(JSON.stringify(constat)), `G${g.numero}`);
+    }
+  }
 });
 
 test('[VER-07] « Prête » quand tout est respecté, sinon le nombre de contrastes à corriger', () => {
@@ -198,11 +215,11 @@ test('[VER-13] Q4.2 : un minimum réglé à 6:1 manque la promesse, et le badge 
   const recette = recetteParDefaut();
   const exigeante = { ...recette, seuils: { ...recette.seuils, texte: 6 } };
   const bleu = nouvellePalette(exigeante, 'p-0000000a', '#1E6FD9', 2)!;
-  const entre = verifierPromesses(exigeante, bleu).filter((promesse) => promesse.paire.seuil === 'texte' && promesse.contraste >= 4.5 && promesse.contraste < 6);
+  const entre = verifierPromesses(exigeante, bleu).filter((promesse) => promesse.garantie.seuil === 'texte' && promesse.contraste >= 4.5 && promesse.contraste < 6);
   assert.ok(entre.length > 0, 'une garantie de texte entre 4,5:1 et 6:1');
   for (const promesse of entre) {
     assert.equal(promesse.verdict, 'manquee');
-    assert.equal(niveauEcrit(promesse.contraste, jugementDuSeuil(promesse.paire.seuil)).ecrit, 'AA');
+    assert.equal(niveauEcrit(promesse.contraste, jugementDuSeuil(promesse.garantie.seuil)).ecrit, 'AA');
   }
 });
 
@@ -244,7 +261,10 @@ test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {
   assert.equal(resultatDuProfil('vivid', 2), 'Vivid ✗ 2');
   assert.equal(resultatDuProfilEnMots('vivid', 1), 'Vivid : 1 garantie manquée');
   assert.equal(resultatDuProfilEnMots('soft', 0), 'Soft : toutes les garanties sont respectées');
-  assert.equal(TEXTES_DES_GARANTIES.echec(0, 2.924, 3), 'État default : 2,92:1 pour un minimum de 3:1');
+  assert.equal(TEXTES_DES_GARANTIES.echec('default', 2.924, 3), 'État default : 2,92:1 pour un minimum de 3:1');
+  assert.equal(TEXTES_DES_GARANTIES.echec('page', 4.1, 4.5), 'Sur la page : 4,10:1 pour un minimum de 4,5:1');
+  assert.equal(TEXTES_DES_GARANTIES.noteDuTexteDesBoutons('light', 'blanc'), ' suit le réglage « Texte des boutons » du thème Light : blanc.');
+  assert.equal(TEXTES_DES_GARANTIES.filet(300), ' 300 · filet, sans minimum de contraste');
 });
 
 test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l’effet et la conséquence sur la planche', () => {
@@ -258,4 +278,40 @@ test('Z5.1 [UI-17] : sous le code, les garanties manquées se comptent, au singu
   assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 0 }), '2 garanties manquées en Thème Light');
   assert.equal(garantiesManqueesDeLaReference({ light: 0, dark: 1 }), '1 garantie manquée en Thème Dark');
   assert.equal(garantiesManqueesDeLaReference({ light: 2, dark: 1 }), '3 garanties manquées en Thème Light et en Thème Dark');
+});
+
+test('[UI-10] I5 : la case tiretée est solid/foreground, le texte des boutons, et n’est plus décrite comme le fond', () => {
+  assert.equal(francais.TEXTES_DU_NUANCIER.etiquetteDuTexteDesBoutons('#FFFFFF'), 'solid/foreground, texte des boutons, couleur #FFFFFF');
+  assert.equal(anglais.TEXTES_DU_NUANCIER.etiquetteDuTexteDesBoutons('#000000'), 'solid/foreground, button text, colour #000000');
+  assert.equal(francais.TEXTES_DU_DETAIL.texteDesBoutons('dark', 'noir', 700, 900), 'Texte des boutons du thème Dark : noir pur. Il se pose sur solid/default, solid/hover et solid/pressed, nuances 700 à 900.');
+  assert.equal(anglais.TEXTES_DU_DETAIL.texteDesBoutons('light', 'noir', 500, 700), 'Button text, Light theme: pure black. It sits on solid/default, solid/hover and solid/pressed, shades 500 to 700.');
+  assert.equal(francais.TEXTES_DU_DETAIL.fondDuTheme, 'Fond de la page');
+  assert.equal(anglais.TEXTES_DU_DETAIL.fondDuTheme, 'Page background');
+  for (const catalogue of [francais, anglais]) {
+    assert.ok(!('NOM_DU_ROLE' in catalogue) && !('NOM_DE_L_EMPLOI' in catalogue) && !('NOM_DE_L_ETAT' in catalogue), 'le lexique des variables remplace celui des emplois');
+    assert.ok(!('titreDuFond' in catalogue.TEXTES_DU_DETAIL) && !('fondDePage' in catalogue.TEXTES_DU_DETAIL));
+  }
+});
+
+test('[ENT-12] I1 : la modale « Ajuster la référence » nomme la variable manquée par son libellé, puis son code', () => {
+  assert.equal(
+    francais.pourquoiAjuster([{ mode: 'light', variable: 'page/foreground' }, { mode: 'dark', variable: 'solid/foreground' }]),
+    'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « texte coloré » (page/foreground). En Thème Dark, elle est trop sombre pour « texte des boutons » (solid/foreground).',
+  );
+  assert.equal(
+    anglais.pourquoiAjuster([{ mode: 'light', variable: 'page/foreground' }]),
+    'The palette uses your colour as it is. In the Light theme, it is too light for “colored text” (page/foreground).',
+  );
+});
+
+test('[DER-22] la butée nomme les deux variables que la garantie oppose, sans numéro de garantie', () => {
+  const recette = recetteParDefaut();
+  const bleu = nouvellePalette(recette, 'p-0000000a', '#1E6FD9', 2)!;
+  const promesses = verifierPromesses({ ...recette, palettes: [bleu] }, bleu);
+  const pourPage = promesses.find((promesse) => promesse.garantie.numero === 5 && promesse.mode === 'light' && promesse.profil === 'vivid')!;
+  const pourSurface = promesses.find((promesse) => promesse.garantie.numero === 3 && promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.second.nature === 'cran' && promesse.second.cran === 200)!;
+  const butee = (catalogue: Catalogue, promesse: Promesse) => catalogue.buteeDuColorShift('clarte', 'clair', 0.04, { nature: 'promesse', promesse });
+  assert.match(butee(francais, pourPage), /Au-delà, page\/foreground sur elevation\/page \(Vivid, Light\) tomberait à \d+,\d\d:1, sous 4,5:1\.$/);
+  assert.match(butee(francais, pourSurface), /Au-delà, surface\/foreground sur surface\/hover \(Soft, Dark\) tomberait à /);
+  assert.match(butee(anglais, pourSurface), /Beyond it, surface\/foreground on surface\/hover \(Soft, Dark\) would drop to \d+\.\d\d:1, below 4\.5:1\.$/);
 });

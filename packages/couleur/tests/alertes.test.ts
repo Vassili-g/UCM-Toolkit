@@ -3,13 +3,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  CRANS_DES_EMPLOIS,
   aDesProfilsTernes,
   alertesDePalette,
   alertesDeRecette,
   confusionsDe,
   distanceDePalettes,
-  rangsDesEmplois,
+  rangsDesVariables,
   recetteParDefaut,
   severiteDeLAlerte,
   type Alerte,
@@ -32,10 +31,17 @@ test('[VER-08] profils confondus : sonne à partir de trois nuances, avec la mes
   assert.equal(alerte.seuil, 0.02);
 });
 
-test('[VER-11] profils confondus : ne regarde que les crans de la table des emplois, états +1 et +2 compris', () => {
+test('[VER-11] profils confondus : ne regarde que les crans que les variables de palette visent, dans le sens de chaque mode', () => {
   const recette = recetteParDefaut();
-  // Le quatrième rang vise 400, que `surface+2` n'atteint pas, et 950, où les profils se confondent comme à la 50.
-  assert.deepEqual(rangsDesEmplois(recette).map((rang) => recette.crans[rang]), CRANS_DES_EMPLOIS.filter((cran) => cran !== 400 && cran !== 950));
+  const crans = (r: typeof recette) => rangsDesVariables(r).map((rang) => r.crans[rang]);
+  // Ni le 50, ni le 400, ni le 950 : aucune variable ne les vise, et les profils s'y confondent comme à la 50.
+  assert.deepEqual(crans(recette), [100, 200, 300, 600, 700, 800, 900]);
+  // Un thème inversé ajoute le 500 de `solid/pressed`, qu'un thème normal ne vise pas.
+  assert.deepEqual(crans({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }), [100, 200, 300, 500, 600, 700, 800, 900]);
+  assert.deepEqual(crans({ ...recette, texteDesBoutons: { light: 'blanc', dark: 'blanc' } }), [100, 200, 300, 500, 600, 700, 800, 900]);
+  // Une liste sans 500 n'en a pas, même inversée.
+  const sans500 = { ...recette, texteDesBoutons: { light: 'noir' as const, dark: 'noir' as const }, crans: recette.crans.filter((cran) => cran !== 500) };
+  assert.deepEqual(crans(sans500), [100, 200, 300, 600, 700, 800, 900]);
 });
 
 test('[ENT-09] profils confondus : se tait pour des profils ternes par construction, sonne pour les mêmes parts du designer', () => {

@@ -22,8 +22,8 @@ const VIDE = recetteParDefaut();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
 const avec = (...palettes: Palette[]): Recette => palettes.reduce(ajouter, VIDE);
 const RECETTE = avec(BLEU);
-/** La courbe claire descend à 0,55 au cran 700 : text sur surface manque 4,5 en clair, dans les deux profils. */
-const RECETTE_EN_ECHEC: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, light: RECETTE.courbes.light.map((clarte, rang) => (rang === 7 ? 0.55 : clarte)) } };
+/** La courbe claire monte à 0,6 au cran 700 : le texte des boutons et le texte coloré manquent 4,5:1 en clair, dans les deux profils. */
+const RECETTE_EN_ECHEC: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, light: RECETTE.courbes.light.map((clarte, rang) => (rang === 7 ? 0.6 : clarte)) } };
 /** La recette, sans les grilles de contrastes sur la planche ([PLA-28]). */
 const SANS_GRILLES: Recette = { ...RECETTE, contenuDesPlanches: { ...RECETTE.contenuDesPlanches, grilles: false } };
 const MODELE = modeleDeCadre(SANS_GRILLES, BLEU, 'SRGB');

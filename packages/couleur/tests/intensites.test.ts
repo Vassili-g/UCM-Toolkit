@@ -74,15 +74,15 @@ test('[ENT-14] sur cinq cents références, la rampe unique est celle du profil 
   assert.deepEqual(fautes.slice(0, 5), []);
 });
 
-test('[ENT-14] une palette à une intensité juge trente-huit promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
+test('[ENT-14] une palette à une intensité juge trente-deux promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
   const bleu = unique('p-000000c3', '#1E6FD9');
   const promesses = verifierPromesses(recetteAvec(bleu), bleu);
-  assert.equal(promesses.length, 38);
+  assert.equal(promesses.length, 32);
   assert.deepEqual([...new Set(promesses.map((promesse) => promesse.profil))], ['unique']);
-  // La courbe claire place le 700 à 0,55 : `text` sur `surface` manque en clair, et seules les promesses de la rampe unique comptent.
+  // La courbe claire place le 700 à 0,60 : des garanties manquent en clair, et seules les promesses de la rampe unique comptent.
   const recette = recetteAvec(bleu);
   const light = [...recette.courbes.light];
-  light[7] = 0.55;
+  light[7] = 0.6;
   const plusClair: Recette = { ...recette, courbes: { ...recette.courbes, light } };
   const deux = paletteTailwind('p-000000c3', '#1E6FD9');
   const manqueesUne = compterManquees(verifierPromesses(plusClair, bleu));

@@ -12,21 +12,18 @@ import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
 import {
   FORMAT_RECETTE,
-  RANGS,
   ecrireArrondi as arrondiFrancais,
   ecrireContraste as contrasteFrancais,
+  TABLE_DES_DOSSIERS,
   niveauxWcag,
+  sensDuTheme,
   type Alerte,
   type Ancrage,
-  type Association,
   type Bout,
   type CauseDeLaBorne,
-  type Emploi,
-  type EmploiDUnCran,
-  type EtatDePaire,
+  type Designation,
   type GrandeurDuColorShift,
   type ManqueDeGarantie,
-  type MembrePaire,
   type Mode,
   type NiveauxWcag,
   type Palette,
@@ -35,8 +32,11 @@ import {
   type Recette,
   type Refus,
   type RegleRecette,
+  type TexteDesBoutons,
+  type VariableDePalette,
 } from 'ucm-couleur';
 
+import { fondDeLaPromesse } from '../presentation';
 import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Verdict } from '../presentation';
 import type { RefusDeDestination } from '../variables/destination';
 
@@ -124,11 +124,11 @@ export const TEXTES_DE_L_ONGLET = {
   titre: (nom: string) => `Palette ${nom}`,
   configuration: "Palette settings",
   apercu: "Preview",
-  sousTitreDeLApercu: "The shades on the theme background",
+  sousTitreDeLApercu: "The shades on the page background",
   garanties: "Contrast guarantees",
   derive: "Color shift",
   sousTitreDeLaDerive: "Adjust shades around the reference ◆",
-  sousTitreDesGaranties: "The contrast of each use",
+  sousTitreDesGaranties: "The contrast of each variable",
 } as const;
 
 /** Le pied de l'onglet Création ([UI-18]). */
@@ -215,8 +215,8 @@ export const TEXTES_DE_CONFIGURATION = {
   courbeDuMode: { light: 'Light', dark: 'Dark' },
   tableDesCourbes: "Lightness of each shade, Light then Dark",
   // N092 : l'aide de chaque seuil, sous son libellé (W4.4).
-  aideSeuilTexte: "For text on surface, on-solid on solid, and text on the background.",
-  aideSeuilNonTexte: "For input borders, focus rings and solid fills in the hover state.",
+  aideSeuilTexte: "For button text, text on tinted fill and colored text.",
+  aideSeuilNonTexte: "For the button, borders and the focus ring.",
   aideProfilsConfondus: "Measured between the two profiles of the same shade.",
   aidePalettesProches: "Compares shades 500, 600 and 700 in Light. Uses Vivid for two palettes with two intensities, otherwise the closest colour scales.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
@@ -374,12 +374,25 @@ export function contrasteEcrit(valeur: number): string {
 /** Un seuil de contraste : « 4,5 », « 3 ». */
 const seuilEcrit = (valeur: number): string => ecrireArrondi(valeur, 1).replace(/\.0$/, '');
 
-/** La courbe qui ne tient plus la garantie des courbes ([ENT-10]). */
-export function constatDeGarantie(manque: ManqueDeGarantie): Constat {
+/**
+ * La courbe qui ne tient plus la garantie des courbes ([ENT-10]). Le texte des
+ * boutons du mode dit quelle variable le cran porte et dans quel sens la
+ * luminosité bouge.
+ */
+export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: TexteDesBoutons): Constat {
+  const theme = `${NOM_DU_MODE[manque.mode]} theme`;
+  if (manque.contre === 'texteDesBoutons') {
+    return {
+      ou: `${theme}, shade ${manque.cran} (solid/default), profile ${manque.profil}`,
+      quoi: `Shade ${manque.cran} in ${NOM_DU_MODE[manque.mode]} does not carry the ${NOM_DU_TEXTE_DES_BOUTONS[texteDesBoutons]} button text at ${seuilEcrit(manque.seuil)}:1 for every hue: ${contrasteEcrit(manque.contraste)} at ${manque.teinte}°.`,
+      geste: `${texteDesBoutons === 'blanc' ? 'Lower' : 'Raise'} the lightness of ${manque.cran} in “Shade lightness”.`,
+    };
+  }
+  const variable = TABLE_DES_DOSSIERS[sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'page/focus';
   return {
-    ou: `${NOM_DU_MODE[manque.mode]} theme, shade ${manque.cran}, profile ${manque.profil}`,
-    quoi: `Contrast against shade 50: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
-    geste: `Move shade ${manque.cran} further from shade 50 in lightness.`,
+    ou: `${theme}, shade ${manque.cran} (${variable}), profile ${manque.profil}`,
+    quoi: `Contrast against the lightest shade: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
+    geste: `Move shade ${manque.cran} further from the lightest shade in lightness.`,
   };
 }
 
@@ -530,19 +543,16 @@ export function valeurDePoignee(grandeur: GrandeurDuColorShift, valeur: number, 
   return plage ? `${lue}. Safe range ${plageEcrite(grandeur, plage.bas, plage.haut)}` : lue;
 }
 
-/** Un membre d'une paire jugée, tel que la butée le nomme : « text 700 », « fond ». */
-function membreEcrit(membre: MembrePaire, designation: { readonly nature: 'cran'; readonly cran: number } | { readonly nature: 'fond' }): string {
-  if ('fond' in membre) return "background";
-  return designation.nature === 'cran' ? `${membre.emploi} ${designation.cran}` : membre.emploi;
-}
-
-/** Ce qui arrête une borne, un pas au-delà ([DER-22]). */
+/**
+ * Ce qui arrête une borne, un pas au-delà ([DER-22]) : les deux variables que
+ * la garantie oppose, sans leur libellé, que la ligne fixe de 24 px ne porte pas.
+ */
 function auDela(cause: CauseDeLaBorne): string {
   if (cause.nature === 'ordre') return "Beyond this, the lightness gap between two shades would be less than 0.01.";
   const { promesse } = cause;
   const ou = promesse.profil === 'unique' ? NOM_DU_MODE[promesse.mode] : `${NOM_DU_PROFIL[promesse.profil]}, ${NOM_DU_MODE[promesse.mode]}`;
-  const paire = `${membreEcrit(promesse.paire.premier, promesse.premier)} / ${membreEcrit(promesse.paire.second, promesse.second)}`;
-  return `Beyond it, ${paire} (${ou}) would drop to ${contrasteEcrit(promesse.contraste)}, below ${seuilEcrit(promesse.seuil)}:1.`;
+  const variables = `${promesse.garantie.premier.variable} on ${variableDuFond(fondDeLaPromesse(promesse))}`;
+  return `Beyond it, ${variables} (${ou}) would drop to ${contrasteEcrit(promesse.contraste)}, below ${seuilEcrit(promesse.seuil)}:1.`;
 }
 
 /** La butée d'un bout ([DER-22]) : « Luminosité, nuances claires : limite atteinte à −0,050. Au-delà, … ». */
@@ -651,6 +661,9 @@ export function bilanDesPromesses(respectees: number, total: number): string {
 
 const NOM_DU_MODE: Record<Mode, string> = { light: 'Light', dark: 'Dark' };
 
+/** Le texte des boutons d'un thème, dans une phrase. */
+export const NOM_DU_TEXTE_DES_BOUTONS: Record<TexteDesBoutons, string> = { blanc: 'white', noir: 'black' };
+
 /** Le nom d'affichage d'un profil ; la clé `soft` ou `vivid` reste celle des données. */
 export const NOM_DU_PROFIL: Record<Profil, string> = { soft: 'Soft', vivid: 'Vivid' };
 
@@ -684,25 +697,31 @@ export function resumeDeLaDerive(modifie: boolean, lien: boolean | null, points:
   return `${lien === null ? etat : `${etat} · ${lien ? "synced" : "not synced"}`}${pointsAVerifier(points)}`;
 }
 
-/** Le nom français d'un rôle, sous son nom en police de code (N030) ; la clé reste celle des données. */
-export const NOM_DU_ROLE: Record<Emploi, string> = {
-  solid: "solid fill",
-  'on-solid': "text on solid fill",
-  text: "coloured text",
-  surface: "subtle background",
-  'surface-card': "card background",
-  'border-control': "input border",
-  'border-decorative': "separator",
-  focus: "focus ring",
+/** Une variable de thème qui a un libellé : celles de la palette, du neutre, et le fond de la page. */
+export type VariableLibellee = VariableDePalette | 'page/foreground-main' | 'page/foreground-subtle' | 'elevation/page';
+
+/**
+ * Le libellé d'une variable du thème, dans le détail d'une nuance, les
+ * messages et les garanties (S9, I1). Le code de la variable se montre à côté.
+ */
+export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = {
+  'solid/default': "button",
+  'solid/hover': "button, hovered",
+  'solid/pressed': "button, pressed",
+  'solid/foreground': "button text",
+  'surface/default': "tinted fill",
+  'surface/hover': "tinted fill, hovered",
+  'surface/pressed': "tinted fill, pressed",
+  'surface/foreground': "text on tinted fill",
+  'surface/border': "border on tinted fill",
+  'page/foreground': "colored text",
+  'page/border': "border",
+  'page/divider': "divider",
+  'page/focus': "focus ring",
+  'page/foreground-main': "body text",
+  'page/foreground-subtle': "secondary text",
+  'elevation/page': "page background",
 };
-
-/** Le nom d'un emploi en une phrase, son identifiant entre parenthèses : « Fond plein (solid) ». */
-export const NOM_DE_L_EMPLOI = Object.fromEntries(
-  (Object.keys(NOM_DU_ROLE) as Emploi[]).map((emploi) => [emploi, `${NOM_DU_ROLE[emploi][0].toUpperCase()}${NOM_DU_ROLE[emploi].slice(1)} (${emploi})`]),
-) as Record<Emploi, string>;
-
-/** L'état d'une paire, sous son spécimen, dans le vocabulaire des composants (N033, N100, W5.7). */
-export const NOM_DE_L_ETAT: Record<EtatDePaire, string> = { ...RANGS };
 
 /**
  * Le résultat d'une intensité (N035) : « Vivid ✓ », « Vivid ✗ 2 », et pour la
@@ -729,18 +748,26 @@ export const TEXTES_DES_GARANTIES = {
   visibles: "Visible elements",
   minimum: (seuil: number) => `minimum ${seuilEcrit(seuil)}:1`,
   sur: "on",
-  fond: "background",
-  legende: "Solid: default · dashed: hover · dotted: active · dash-dot: active-hover. Each state moves text and background to the next shade.",
-  onSolid: "on-solid uses the page background colour (neutral.50).",
-  decoratif: (numero: number) => `${numero} · separator, no minimum contrast`,
+  et: "and",
+  laPage: "the page",
+  // Les quatre colonnes de fonds : la page, puis les trois états de `solid` et de `surface` (S3).
+  colonnes: { page: "on the page", default: "default", hover: "hover", pressed: "pressed" },
+  // Les deux cases de la réglette avant la première nuance.
+  casePage: "page",
+  caseBoutons: "buttons",
+  legende: "Solid: default · dashed: hover · dotted: pressed · dash-dot: the page. The text keeps its shade in every state: only the background changes.",
+  // Dite sous `solid/foreground`, dont le code s'écrit avant elle.
+  noteDuTexteDesBoutons: (mode: Mode, texte: TexteDesBoutons) => ` follows the “Button text” setting of the ${NOM_DU_MODE[mode]} theme: ${NOM_DU_TEXTE_DES_BOUTONS[texte]}.`,
+  // Dite sous `page/divider`, dont le code s'écrit avant elle.
+  filet: (cran: number) => ` ${cran} · divider, no minimum contrast`,
   specimenBouton: "Button",
   specimenTexte: "Text",
   autreTheme: (mode: Mode, nombre: number) => (nombre === 1
     ? `${NOM_DU_MODE[mode]} theme: 1 unmet guarantee`
     : `${NOM_DU_MODE[mode]} theme: ${nombre} unmet guarantees`),
   voirLeTheme: (mode: Mode) => `View ${NOM_DU_MODE[mode]} theme`,
-  echec: (etat: EtatDePaire, contraste: number, seuil: number) =>
-    `State ${NOM_DE_L_ETAT[etat]}: ${contrasteEcrit(contraste)} against a minimum of ${seuilEcrit(seuil)}:1`,
+  echec: (fond: 'page' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
+    `${fond === 'page' ? 'On the page' : `State ${fond}`}: ${contrasteEcrit(contraste)} against a minimum of ${seuilEcrit(seuil)}:1`,
   numeros: (premier: string, second: string) => `${premier} / ${second}`,
   resultat: (tenue: boolean, contraste: number) => `${tenue ? '✓' : '✗'} ${ecrireContraste(contraste)}`,
 } as const;
@@ -758,8 +785,8 @@ export const TEXTES_DU_DETAIL = {
   blanc: "White",
   noir: "Black",
   oklch: 'OKLCH',
-  titreDuFond: "on-solid · theme background",
-  fondDePage: (debut: number, fin: number) => `The theme’s page background, neutral.50 in the design system. Used as text on solid shades ${debut} to ${fin}.`,
+  // Sous la case tiretée : le texte des boutons du thème, posé sur les trois fonds de `solid`.
+  texteDesBoutons: (mode: Mode, texte: TexteDesBoutons, debut: number, fin: number) => `Button text, ${NOM_DU_MODE[mode]} theme: pure ${NOM_DU_TEXTE_DES_BOUTONS[texte]}. It sits on solid/default, solid/hover and solid/pressed, shades ${debut} to ${fin}.`,
   garantie: (tenue: boolean, sens: string, contraste: number) => `${tenue ? '✓' : '✗'} ${sens}: ${contrasteEcrit(contraste)}`,
   sur: (partenaire: string) => `on ${partenaire}`,
   dessus: (partenaire: string) => `${partenaire} on top`,
@@ -796,7 +823,7 @@ export const TEXTES_DU_NUANCIER = {
   fond: "Background",
   // N081, N082 : le fond est un réglage commun, que la pastille ouvre.
   fondCommun: "This background applies to all palettes.",
-  modifierLeFond: (mode: Mode, hexa: string) => `Edit background for ${NOM_DU_MODE[mode]} theme, currently ${hexa}`,
+  modifierLeFond: (mode: Mode, hexa: string) => `Edit page background, ${NOM_DU_MODE[mode]} theme, currently ${hexa}`,
   reference: "Reference",
   copier: "Copy code",
   copie: "Code copied",
@@ -807,8 +834,7 @@ export const TEXTES_DU_NUANCIER = {
   tresProche: (profil: string) => `Very close to ${profil}`,
   oklch: (L: number, C: number, H: number) => `L ${ecrireArrondi(L, 3)} · C ${ecrireArrondi(C, 3)} · H ${Math.round(H) % 360}°`,
   revenirAuTheme: (mode: Mode) => `Back to ${NOM_DU_MODE[mode]} theme`,
-  fondCourt: "background",
-  etiquetteDuFond: (hexa: string) => `on-solid, theme background, colour ${hexa}`,
+  etiquetteDuTexteDesBoutons: (hexa: string) => `solid/foreground, button text, colour ${hexa}`,
 } as const;
 
 /** Les bandes de l'aperçu : le rôle de chaque dossier, le nom anglais sous chaque code, la note du neutre (I12). */
@@ -827,23 +853,6 @@ export const TEXTES_DE_L_APERCU = {
   },
   noteDuNeutre: "body text, pure black or white, outside the ramp",
 } as const;
-
-const ETATS_DU_DECALAGE = ['', ", hover state", ", active state", ", active-hover state"];
-
-/** Un emploi et son état : « Texte coloré (text), état hover ». */
-export function emploiEcrit({ emploi, decalage }: EmploiDUnCran): string {
-  return `${NOM_DE_L_EMPLOI[emploi]}${ETATS_DU_DECALAGE[decalage] ?? ` (offset of ${decalage} shades)`}`;
-}
-
-function membre(membrePaire: MembrePaire): string {
-  return 'fond' in membrePaire ? "page background" : emploiEcrit(membrePaire);
-}
-
-/** Une association et son état : « Texte coloré (text) sur Fond léger (surface), état hover ». */
-export function associationEcrite(association: Association, etat: EtatDePaire): string {
-  const second = association.second === 'fond' ? "page background" : NOM_DE_L_EMPLOI[association.second];
-  return `${NOM_DE_L_EMPLOI[association.premier]} on ${second}${ETATS_DU_DECALAGE[etat]}`;
-}
 
 /** Ce qu'un badge de niveau juge ([VER-13]) : un texte courant, un grand texte ou un élément graphique. */
 export type Jugement = 'texte' | 'grandTexte' | 'graphique';
@@ -891,17 +900,26 @@ export interface ConstatIllustre extends Constat {
   readonly detail?: string;
 }
 
+/** Le libellé d'une variable avec sa première lettre en capitale : « Text on tinted fill ». */
+const enCapitale = (libelle: string): string => `${libelle[0].toUpperCase()}${libelle.slice(1)}`;
+
+/** La variable que le fond d'un groupe désigne : celle de la table, ou le fond de la page. */
+const variableDuFond = (fond: GroupeDePromesses['fond']): VariableLibellee => ('fondDeLaPage' in fond ? 'elevation/page' : fond.variable);
+
 /**
- * Un groupe de promesses manquées ([VER-06]) : l'association, le thème et
- * l'état, puis le résultat de chaque intensité et le minimum demandé.
+ * Un groupe de promesses manquées ([VER-06]) : la garantie, le fond jugé et
+ * le thème, puis le résultat de chaque intensité et le minimum demandé. Le
+ * langage courant vient d'abord, les variables ensuite (I7).
  */
 export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): ConstatIllustre {
   const resultat = (promesse: GroupeDePromesses['resultats'][number]) => {
     const mesure = `${contrasteEcrit(promesse.contraste)} · ${promesse.verdict === 'tenue' ? "Met" : "Needs adjustment"}`;
     return promesse.profil === 'unique' ? mesure : `${NOM_DU_PROFIL[promesse.profil]}: ${mesure}`;
   };
+  const a = groupe.garantie.premier.variable;
+  const b = variableDuFond(groupe.fond);
   return {
-    ou: `${associationEcrite(groupe.association, groupe.etat)} · ${nom}, ${NOM_DU_MODE[groupe.mode]} theme`,
+    ou: `${enCapitale(LIBELLE_DE_LA_VARIABLE[a])}, on the ${LIBELLE_DE_LA_VARIABLE[b]} (${a} on ${b}) · ${nom}, ${NOM_DU_MODE[groupe.mode]} theme`,
     quoi: `Contrast too low. Minimum: ${seuilEcrit(groupe.seuil)}:1.`,
     geste: "Change the global adjustment or Color shift, then check the contrast.",
     mesures: groupe.resultats.map(resultat),
@@ -953,7 +971,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'fond-hors-courbe': {
       const sens = alerte.mode === 'light' ? "darker" : "lighter";
       return {
-        ou: `Background for ${NOM_DU_MODE[alerte.mode]} theme: ${contexte.recette.fonds[alerte.mode]}`,
+        ou: `Page background, ${NOM_DU_MODE[alerte.mode]} theme: ${contexte.recette.fonds[alerte.mode]}`,
         quoi: `This background is ${sens} than shade 50. Lightness: ${ecrireArrondi(alerte.clarte, 3)}, against ${ecrireArrondi(alerte.cran, 3)}.`,
         geste: "Check the guarantees. If any fail, move the background closer to shade 50 in “Background colours”.",
       };
@@ -980,7 +998,7 @@ const rangEcrit = (rang: number): string => {
 };
 
 const MODES: Record<string, string> = { light: "of the Light theme", dark: "of the Dark theme" };
-const FONDS: Record<string, string> = { light: "Light theme background", dark: "Dark theme background" };
+const FONDS: Record<string, string> = { light: "Page background, Light theme", dark: "Page background, Dark theme" };
 const CLES_DE_PALETTE: Record<string, string> = {
   id: "palette ID",
   nom: "palette name",
@@ -1183,6 +1201,7 @@ export const NOMS_DES_PARAMETRES = {
   gamut: "colour space",
   intensiteDesFondsSombres: "Dark theme backgrounds",
   contenuDesPlanches: "board content",
+  texteDesBoutons: "button text",
 } as const;
 
 /** Le nom d'un seuil dans l'écart d'import, plutôt que « minimums et seuils de détection » d'un bloc (V12.2, N072). */
@@ -1497,29 +1516,17 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   revenir: "Restore original",
   colonnes: { garantie: "Guarantee", theme: "Theme", avant: "Before", apres: "After" },
   sur: "on",
-  fond: "background",
+  laPage: "the page",
 } as const;
-
-/** Un rôle dans la phrase qui dit pourquoi ajuster, avec son article (N136). */
-const ROLE_DANS_LA_PHRASE: Record<Emploi, string> = {
-  solid: "solid fills",
-  'on-solid': "text on solid fills",
-  text: "coloured text",
-  surface: "subtle backgrounds",
-  'surface-card': "card backgrounds",
-  'border-control': "input borders",
-  'border-decorative': "separators",
-  focus: "focus rings",
-};
 
 /**
  * La phrase en tête de la modale « Ajuster la référence » (Z5.2, rédaction a,
- * N136) : une idée par phrase, le premier rôle manqué de chaque thème, sans
- * ratio. En Light, une garantie manquée dit une couleur trop claire ; en
- * Dark, trop sombre.
+ * N136) : une idée par phrase, la variable de la première garantie manquée de
+ * chaque thème, son libellé d'abord et son code ensuite (I1), sans ratio. En
+ * Light, une garantie manquée dit une couleur trop claire ; en Dark, trop sombre.
  */
-export function pourquoiAjuster(manques: readonly { readonly mode: Mode; readonly emploi: Emploi }[]): string {
-  const phrases = manques.map(({ mode, emploi }) => `In the ${NOM_DU_MODE[mode]} theme, it is too ${mode === 'light' ? "light" : "dark"} for ${ROLE_DANS_LA_PHRASE[emploi]}.`);
+export function pourquoiAjuster(manques: readonly { readonly mode: Mode; readonly variable: VariableDePalette }[]): string {
+  const phrases = manques.map(({ mode, variable }) => `In the ${NOM_DU_MODE[mode]} theme, it is too ${mode === 'light' ? "light" : "dark"} for “${LIBELLE_DE_LA_VARIABLE[variable]}” (${variable}).`);
   return ["The palette uses your colour as it is.", ...phrases].join(' ');
 }
 

@@ -40,6 +40,7 @@ import {
   type Mode,
   type Palette,
   type Profil,
+  type Promesse,
   type Rampes,
   type Recette,
 } from 'ucm-couleur';
@@ -505,7 +506,8 @@ function construireVues(i18n: Localisation) {
      * resserré la plage autour de la valeur rangée.
      */
     function sortieDeLaPlage(recetteLue: Recette, paletteLue: Palette, auDepart: Palette): boolean {
-      const cle = (promesse: { mode: Mode; profil: Intensite; paire: { numero: number } }) => `${promesse.mode}/${promesse.profil}/${promesse.paire.numero}`;
+      // Une garantie compte une promesse par fond : le second membre dit lequel.
+      const cle = (promesse: Promesse) => `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${promesse.second.nature === 'cran' ? promesse.second.cran : promesse.second.nature}`;
       const tenuesAuDepart = new Set(verifierPromesses(recetteLue, auDepart).filter((promesse) => promesse.verdict === 'tenue').map(cle));
       return verifierPromesses(recetteLue, paletteLue).some((promesse) => promesse.verdict === 'manquee' && tenuesAuDepart.has(cle(promesse)));
     }

@@ -21,6 +21,17 @@ test('une recette 8 importée se lit au format courant avec le texte par défaut
   assert.deepEqual(resultat.recette, ACTUELLE);
 });
 
+test('[REC-03] I11 : une recette 9 se lit telle quelle ; son texte des boutons change l’écart et les couleurs, et une valeur autre que blanc ou noir se refuse', () => {
+  const inversee: Recette = { ...ACTUELLE, texteDesBoutons: { light: 'noir', dark: 'blanc' } };
+  const resultat = lireLImport(jsonCanonique(inversee), ACTUELLE);
+  assert.ok(resultat.issue === 'prete');
+  assert.deepEqual(resultat.recette.texteDesBoutons, { light: 'noir', dark: 'blanc' });
+  assert.deepEqual(resultat.ecart.parametres, ['texteDesBoutons']);
+  assert.equal(natureDeLEcart(resultat.ecart).couleurs, true);
+  const refusee = lireLImport(jsonCanonique({ ...ACTUELLE, texteDesBoutons: { light: 'gris', dark: 'noir' } }), ACTUELLE);
+  assert.ok(refusee.issue === 'invalide' && refusee.refus.some((refus) => refus.regle === 'texte-des-boutons'), JSON.stringify(refusee));
+});
+
 test('[REC-08] l’écart nomme les palettes ajoutées, retirées et modifiées, par identifiant, et les paramètres communs changés', () => {
   const importee: Recette = {
     ...ACTUELLE,
@@ -43,7 +54,7 @@ test('[REC-08] une palette déplacée mais identique n’est pas modifiée ; une
 test('[REC-11] sans recette lisible dans le fichier, tout l’import est un ajout', () => {
   const ecart = ecartDImport(null, ACTUELLE);
   assert.deepEqual(ecart.ajoutees.map(({ id }) => id), [BLEU.id, AMBRE.id]);
-  assert.deepEqual(ecart.parametres, ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'seuils', 'derives', 'gamut', 'contenuDesPlanches']);
+  assert.deepEqual(ecart.parametres, ['crans', 'courbes', 'profils', 'intensiteDesFondsSombres', 'fonds', 'texteDesBoutons', 'seuils', 'derives', 'gamut', 'contenuDesPlanches']);
 });
 
 test('[REC-03] un fichier cassé, vide, invalide ou futur se refuse ; un fichier valide est prêt, avec son écart', () => {

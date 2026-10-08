@@ -31,7 +31,6 @@ const DESTINATIONS: RegExp[] = [
 /** Les littéraux qui portent des lettres sans être des mots de l'interface. */
 const EXCEPTIONS: { fichier: string; texte: string; pourquoi: string }[] = [
   { fichier: 'creation.ts', texte: '#1E6FD9', pourquoi: 'un code hexadécimal, identique dans toutes les langues' },
-  { fichier: 'garanties.ts', texte: 'on-solid', pourquoi: 'le code d’emploi des données, que la ligne affiche tel quel' },
 ];
 
 function fichiers(dossier: string): string[] {

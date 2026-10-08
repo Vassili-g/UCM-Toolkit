@@ -14,14 +14,18 @@ import {
   colorShiftModifie,
   estLaPaletteNeutre,
   etatDeLaFiche,
+  fondDeLaPromesse,
+  garantiesDeLaVariable,
   gesteDeLaCible,
   groupesManques,
   hauteursDesRayures,
   placeDeLAlerte,
   reglageGlobalModifie,
   surlignageDe,
+  variableDuFond,
   type Bande,
   type Geste,
+  type GroupeDePromesses,
 } from '../src/presentation';
 
 const DEFAUT = recetteParDefaut();
@@ -31,20 +35,37 @@ const BLEU = changerReference(DEFAUT, {
   derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'tailwind' }, vivid: { clair: 0, sombre: 0, origine: 'tailwind' } },
 }, '#1E6FD9')!;
 
-/** La courbe claire place le cran 700 à 0,55 : text sur surface manque 4,5 en Light, pour les deux profils. */
+/**
+ * La courbe claire place le cran 700 à 0,60 : en Light, le texte des boutons blanc
+ * sur `solid/default` (G1) et `page/foreground` sur la page (G5) manquent leur
+ * minimum, pour les deux profils.
+ */
 function recetteAMoitieRatee(): Recette {
   const light = [...DEFAUT.courbes.light];
-  light[7] = 0.55;
+  light[7] = 0.6;
   return { ...DEFAUT, palettes: [BLEU], courbes: { ...DEFAUT.courbes, light } };
 }
 
-test('[VER-06] deux profils en échec sur la même paire font un groupe, et comptent deux contrôles', () => {
+/** Le fond d'un groupe, par son nom de variable. */
+const nomDuFond = (fond: GroupeDePromesses['fond']): string => ('fondDeLaPage' in fond ? 'page' : fond.variable);
+
+test('[VER-06] deux profils en échec sur le même fond font un groupe, et comptent deux contrôles', () => {
   const recette = recetteAMoitieRatee();
   const promesses = verifierPromesses(recette, BLEU);
   const groupes = groupesManques(promesses);
-  assert.deepEqual(groupes.map((groupe) => `${groupe.association.premier}/${groupe.association.second} ${groupe.mode} ${groupe.etat} ${groupe.manquees}`), ['text/surface light 0 2']);
+  assert.deepEqual(groupes.map((groupe) => `${groupe.garantie.premier.variable} ${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}`), ['solid/foreground light solid/default 2', 'page/foreground light page 2']);
   assert.equal(groupes.reduce((total, groupe) => total + groupe.manquees, 0), promesses.filter((promesse) => promesse.verdict === 'manquee').length);
   assert.deepEqual(groupes[0].resultats.map((promesse) => promesse.profil), ['soft', 'vivid']);
+  assert.deepEqual(groupes.map((groupe) => groupe.garantie.numero), [1, 5]);
+});
+
+test('[VER-06] un groupe nomme un seul fond de sa garantie : trois fonds manqués font trois groupes, dans l’ordre des fonds', () => {
+  const promesses = verifierPromesses({ ...DEFAUT, palettes: [BLEU] }, BLEU).map((promesse) =>
+    (promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.garantie.numero === 3 ? { ...promesse, verdict: 'manquee' as const } : promesse));
+  const groupes = groupesManques(promesses);
+  assert.deepEqual(groupes.map((groupe) => `${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}/${groupe.resultats.length}`), ['dark surface/default 1/2', 'dark surface/hover 1/2', 'dark surface/pressed 1/2', 'dark page 1/2']);
+  assert.ok(groupes.every((groupe) => groupe.garantie.numero === 3));
+  assert.deepEqual(groupes.map((groupe) => groupe.resultats.length), [2, 2, 2, 2]);
 });
 
 test('[VER-06] un groupe garde le résultat du profil qui tient sa promesse', () => {
@@ -57,6 +78,52 @@ test('[VER-06] un groupe garde le résultat du profil qui tient sa promesse', ()
 
 test('aucune promesse manquée, aucun groupe', () => {
   assert.deepEqual(groupesManques(verifierPromesses({ ...DEFAUT, palettes: [BLEU] }, BLEU)), []);
+});
+
+/** Les quatre combinaisons du texte des boutons, avec le texte posé sur chaque thème. */
+const TEXTES: { readonly texte: Recette['texteDesBoutons']; readonly nom: string }[] = [
+  { texte: { light: 'blanc', dark: 'noir' }, nom: 'normal' },
+  { texte: { light: 'noir', dark: 'noir' }, nom: 'Light inversé' },
+  { texte: { light: 'blanc', dark: 'blanc' }, nom: 'Dark inversé' },
+  { texte: { light: 'noir', dark: 'blanc' }, nom: 'deux inversés' },
+];
+
+test('[UI-10] [I5] le fond que juge une promesse se lit dans son second membre, dans les quatre combinaisons du texte des boutons', () => {
+  for (const { texte, nom } of TEXTES) {
+    const promesses = verifierPromesses({ ...DEFAUT, texteDesBoutons: texte, palettes: [BLEU] }, BLEU);
+    assert.ok(promesses.length > 0, nom);
+    const vus = new Map<string, number>();
+    for (const promesse of promesses) {
+      // Le moteur rend une promesse par fond, dans l'ordre de la garantie : le rang dit le fond.
+      const cle = `${promesse.mode}|${promesse.profil}|${promesse.garantie.numero}`;
+      const rang = vus.get(cle) ?? 0;
+      vus.set(cle, rang + 1);
+      assert.deepEqual(fondDeLaPromesse(promesse), promesse.garantie.fonds[rang], `${nom} ${cle} rang ${rang}`);
+    }
+  }
+  assert.equal(variableDuFond({ fondDeLaPage: true }), 'elevation/page');
+  assert.equal(variableDuFond({ variable: 'surface/hover' }), 'surface/hover');
+});
+
+test('[UI-10] [I5] les garanties d\u2019une variable : une par fond quand elle est le premier membre, une quand elle est un fond', () => {
+  const promesses = verifierPromesses({ ...DEFAUT, palettes: [BLEU] }, BLEU);
+  const lire = (variable: VariableDuTheme) => garantiesDeLaVariable(promesses, 'light', 'vivid', variable).map(({ promesse, role, partenaire }) => `${promesse.garantie.numero} ${role} ${partenaire}`);
+  assert.deepEqual(lire('solid/foreground'), ['1 premier solid/default', '1 premier solid/hover', '1 premier solid/pressed']);
+  assert.deepEqual(lire('solid/default'), ['1 fond solid/foreground', '2 premier elevation/page']);
+  assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border', '7 fond page/focus']);
+  assert.deepEqual(lire('page/focus'), ['7 premier elevation/page', '7 premier surface/default']);
+  assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page']);
+  assert.deepEqual(lire('page/divider'), [], 'le filet n\u2019a pas de minimum');
+  assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft'], 'une intensité à la fois');
+  assert.deepEqual(garantiesDeLaVariable(promesses, 'dark', 'vivid', 'page/border').map(({ promesse }) => promesse.mode), ['dark'], 'un thème à la fois');
+});
+
+test('[UI-10] [I5] dans le sens inversé, le bouton survolé est la 600 : sa garantie est celle du texte des boutons sur solid/hover', () => {
+  const inversee = { ...DEFAUT, texteDesBoutons: { light: 'noir', dark: 'noir' } as Recette['texteDesBoutons'], palettes: [BLEU] };
+  const promesses = verifierPromesses(inversee, BLEU);
+  const [garantie] = garantiesDeLaVariable(promesses, 'light', 'vivid', 'solid/hover');
+  assert.equal(`${garantie.role} ${garantie.partenaire} ${garantie.promesse.second.nature === 'cran' ? garantie.promesse.second.cran : '-'}`, 'fond solid/foreground 600');
+  assert.deepEqual(garantiesDeLaVariable(promesses, 'dark', 'vivid', 'solid/hover').map(({ promesse }) => (promesse.second.nature === 'cran' ? promesse.second.cran : 0)), [800], 'Dark reste normal');
 });
 
 test('[VER-10] [VER-11] les alertes qui comparent les intensités se lisent près du réglage d’intensité', () => {

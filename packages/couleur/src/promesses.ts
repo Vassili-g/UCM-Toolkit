@@ -1,17 +1,22 @@
 /**
- * Les promesses des emplois : les dix-neuf paires de `@ucm-kit/core/emplois`,
+ * Les promesses du thème : les garanties G1 à G7 de `@ucm-kit/core/emplois`,
  * jugées par palette, par mode et par intensité présente ([VER-03] à
- * [VER-07], section 11.2 de la spécification). Les paires d'un emploi
- * facultatif ne se jugent que dans une liste qui porte son cran.
+ * [VER-07], section 11.2 de la spécification). Chaque garantie se juge dans
+ * la table du sens du thème (`sensDuTheme`), contre le seul fond de la page,
+ * le réglage « Fond » du thème. Une garantie dont un cran manque à la liste
+ * ne se juge pas.
  */
 import {
-  PAIRES,
-  TABLE_DES_EMPLOIS,
+  COULEUR_DU_TEXTE_DES_BOUTONS,
+  GARANTIES,
+  TABLE_DES_DOSSIERS,
   atteintLeSeuil,
   contraste,
-  paireJugeable,
-  type MembrePaire,
-  type Paire,
+  garantieJugeable,
+  sensDuTheme,
+  type Garantie,
+  type SensDuTheme,
+  type VariableDePalette,
 } from '@ucm-kit/core/emplois';
 
 import { lireHexa, type Rgb8 } from './conversions';
@@ -19,15 +24,19 @@ import { intensitesDe, rampesDe } from './palette';
 import { MODES, rampeDe, type Intensite, type Mode, type Rampes } from './rampe';
 import type { Palette, Recette, Seuils } from './recette';
 
-/** Ce qu'un membre désigne dans la rampe d'un profil et d'un mode. */
+/**
+ * Ce qu'un membre désigne dans la rampe d'un profil et d'un mode : un cran,
+ * le fond de la page, ou le blanc ou le noir purs du texte des boutons.
+ */
 export type Designation =
   | { readonly nature: 'cran'; readonly cran: number; readonly couleur: Rgb8 }
-  | { readonly nature: 'fond'; readonly couleur: Rgb8 };
+  | { readonly nature: 'fond'; readonly couleur: Rgb8 }
+  | { readonly nature: 'texteDesBoutons'; readonly couleur: Rgb8 };
 
 export type Verdict = 'tenue' | 'manquee';
 
 export interface Promesse {
-  readonly paire: Paire;
+  readonly garantie: Garantie;
   readonly mode: Mode;
   /** L'intensité jugée : `soft`, `vivid` ou `unique` ([ENT-14]). */
   readonly profil: Intensite;
@@ -38,7 +47,7 @@ export interface Promesse {
   readonly verdict: Verdict;
 }
 
-/** Tout ce qu'un jugement lit : la recette, les rampes et les fonds. */
+/** Tout ce qu'un jugement lit : la recette, les rampes et le fond de la page de chaque mode. */
 interface Contexte {
   readonly recette: Recette;
   readonly rampes: Rampes;
@@ -46,31 +55,34 @@ interface Contexte {
 }
 
 /**
- * Un cran avancé reste dans la rampe : `[REC-05]` exige chaque cran de
- * `CRANS_DES_EMPLOIS`, qui compte trois crans après 700.
+ * Un membre de garantie qui vise une variable de palette. `solid/foreground`
+ * vaut le texte des boutons du mode, jamais un cran de la rampe. Le cran visé
+ * est présent : `garantieJugeable` l'a vérifié avant le jugement.
  */
-function designer(membre: MembrePaire, mode: Mode, profil: Intensite, contexte: Contexte): Designation {
-  if ('fond' in membre) return { nature: 'fond', couleur: contexte.fonds[mode] };
-  const cible = TABLE_DES_EMPLOIS[membre.emploi];
-  if (cible === 'fond') return { nature: 'fond', couleur: contexte.fonds[mode] };
-  const crans = contexte.recette.crans;
-  const depart = crans.indexOf(cible);
-  const rang = depart + membre.decalage;
-  if (depart < 0 || rang >= crans.length) {
-    throw new Error(`Cran ${cible} absent ou sans cran suivant. La recette n'a pas été validée.`);
+function designer(variable: VariableDePalette, mode: Mode, sens: SensDuTheme, profil: Intensite, contexte: Contexte): Designation {
+  const cible = TABLE_DES_DOSSIERS[sens][variable];
+  if (cible === 'texteDesBoutons') {
+    return { nature: 'texteDesBoutons', couleur: lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[contexte.recette.texteDesBoutons[mode]])! };
   }
-  return { nature: 'cran', cran: crans[rang], couleur: rampeDe(contexte.rampes, profil)[mode][rang].couleur };
+  const rang = contexte.recette.crans.indexOf(cible);
+  if (rang < 0) throw new Error(`Cran ${cible} absent de la liste. La recette n'a pas été validée.`);
+  return { nature: 'cran', cran: cible, couleur: rampeDe(contexte.rampes, profil)[mode][rang].couleur };
 }
 
-const valeurDuSeuil = (paire: Paire, seuils: Seuils): number => seuils[paire.seuil];
+const valeurDuSeuil = (garantie: Garantie, seuils: Seuils): number => seuils[garantie.seuil];
 
-function juger(paire: Paire, mode: Mode, profil: Intensite, contexte: Contexte): Promesse {
-  const premier = designer(paire.premier, mode, profil, contexte);
-  const second = designer(paire.second, mode, profil, contexte);
-  const seuil = valeurDuSeuil(paire, contexte.recette.seuils);
+function juger(
+  garantie: Garantie,
+  premier: Designation,
+  second: Designation,
+  mode: Mode,
+  profil: Intensite,
+  contexte: Contexte,
+): Promesse {
+  const seuil = valeurDuSeuil(garantie, contexte.recette.seuils);
   const valeur = contraste(premier.couleur, second.couleur);
   return {
-    paire,
+    garantie,
     mode,
     profil,
     premier,
@@ -94,19 +106,34 @@ function contexteDe(recette: Recette, palette: Palette): Contexte {
   };
 }
 
+/** Les promesses d'une garantie dans un mode et une intensité, une par fond, dans l'ordre des fonds de la garantie. */
+function promessesDe(garantie: Garantie, mode: Mode, sens: SensDuTheme, profil: Intensite, contexte: Contexte): Promesse[] {
+  const premier = designer(garantie.premier.variable, mode, sens, profil, contexte);
+  return garantie.fonds.flatMap((fond) => {
+    const second: Designation = 'fondDeLaPage' in fond
+      ? { nature: 'fond', couleur: contexte.fonds[mode] }
+      : designer(fond.variable, mode, sens, profil, contexte);
+    return [juger(garantie, premier, second, mode, profil, contexte)];
+  });
+}
+
 /**
- * Les promesses d'une palette : dix-neuf par mode et par intensité,
- * dix-sept dans une liste sans 50, soit soixante-seize pour deux intensités
- * et trente-huit pour une, rangées par mode, puis par intensité, puis dans
- * l'ordre des paires.
+ * Les promesses d'une palette, rangées par mode, puis par intensité, puis
+ * dans l'ordre des garanties G1 à G7 et de leurs fonds : seize par mode et
+ * par intensité, soit soixante-quatre pour deux intensités et trente-deux
+ * pour une, quand la liste porte tous les crans requis. Une garantie dont un
+ * cran manque ne se juge pas.
  */
 export function verifierPromesses(recette: Recette, palette: Palette): Promesse[] {
-  // Une palette libre sort du modèle : elle n'a ni emplois ni promesses (W6).
+  // Une palette libre sort du modèle : elle n'a ni variables de thème ni promesses (W6).
   if (palette.crans !== undefined) return [];
   const contexte = contexteDe(recette, palette);
-  const paires = PAIRES.filter((paire) => paireJugeable(paire, recette.crans));
-  return MODES.flatMap((mode) =>
-    intensitesDe(palette).flatMap((profil) => paires.map((paire) => juger(paire, mode, profil, contexte))));
+  return MODES.flatMap((mode) => {
+    const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
+    const garanties = GARANTIES.filter((garantie) => garantieJugeable(garantie, recette.crans, sens));
+    return intensitesDe(palette).flatMap((profil) =>
+      garanties.flatMap((garantie) => promessesDe(garantie, mode, sens, profil, contexte)));
+  });
 }
 
 /** Le nombre de promesses manquées, qui fait le verdict de la palette ([VER-07]). */
@@ -128,7 +155,7 @@ const NOIR: Rgb8 = [0, 0, 0];
 
 /**
  * Mesure un cran contre le fond de son mode. Un cran n'a pas de verdict : seule
- * une paire de la table des emplois promet un contraste ([VER-04]).
+ * une garantie du thème promet un contraste ([VER-04]).
  */
 export function mesurerCran(couleur: Rgb8, fond: Rgb8, seuils: Seuils): MesureDeCran {
   const contreFond = contraste(couleur, fond);

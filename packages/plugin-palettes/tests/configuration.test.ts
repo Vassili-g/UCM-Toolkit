@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { courbesParDefaut, grilleAuPrereglage, nuancesReglees, recetteParDefaut, validerRecette, type Mode, type NombreDeNuances, type Recette } from 'ucm-couleur';
+import { courbesParDefaut, garantieDesCourbes, grilleAuPrereglage, nuancesReglees, recetteParDefaut, validerRecette, type Mode, type NombreDeNuances, type Recette } from 'ucm-couleur';
 
 import {
   CARTES_DES_REGLAGES,
@@ -18,6 +18,7 @@ import {
   type CarteDesReglages,
 } from '../src/configuration';
 import { ajouter, nouvellePalette } from '../src/edition';
+import { constatDeGarantie as constatEn } from '../src/i18n/en';
 import { constatDeGarantie, palettesConcernees, resumeDesEcarts, resumeDesMinimums } from '../src/i18n/fr';
 import { TRAME_DU_TRACE, geometrieDesCourbes } from '../src/ui/traceDesCourbes';
 
@@ -61,11 +62,34 @@ test('[ENT-07] une courbe touche toutes les palettes, une part épargne les part
   assert.deepEqual([palettesConcernees(0), palettesConcernees(1), palettesConcernees(3)], ['Aucune palette concernée', '1 palette concernée', '3 palettes concernées']);
 });
 
-test('[ENT-10] une courbe hors garantie nomme le cran, le mode, le profil, la teinte et le contraste', () => {
-  const constat = constatDeGarantie({ mode: 'light', cran: 700, profil: 'soft', teinte: 147, contraste: 4.189, seuil: 4.5 });
-  assert.equal(constat.ou, 'Thème Light, nuance 700, profil soft');
-  assert.equal(constat.quoi, 'Contraste avec la nuance 50 : 4,18:1, minimum 4,5:1. Teinte : 147°.');
-  assert.equal(constat.geste, 'Éloignez la luminosité de la nuance 700 de celle de la nuance 50.');
+test('[ENT-10] une courbe trop proche de la nuance la plus claire nomme sa variable, le cran, le mode, le profil, la teinte et le contraste', () => {
+  const constat = constatDeGarantie({ mode: 'light', cran: 700, profil: 'soft', teinte: 147, contraste: 4.189, seuil: 4.5, contre: 'cranLeger' }, 'blanc');
+  assert.equal(constat.ou, 'Thème Light, nuance 700 (page/foreground), profil soft');
+  assert.equal(constat.quoi, 'Contraste avec la nuance la plus claire : 4,18:1, minimum 4,5:1. Teinte : 147°.');
+  assert.equal(constat.geste, 'Éloignez la luminosité de la nuance 700 de celle de la nuance la plus claire.');
+  // En Light inversé, l'anneau de focus est la 700 et le texte coloré la 800.
+  assert.equal(constatDeGarantie({ mode: 'light', cran: 700, profil: 'vivid', teinte: 10, contraste: 2.9, seuil: 3, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 700 (page/focus), profil vivid');
+  assert.equal(constatDeGarantie({ mode: 'light', cran: 800, profil: 'vivid', teinte: 10, contraste: 4.1, seuil: 4.5, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 800 (page/foreground), profil vivid');
+  for (const texte of ['blanc', 'noir'] as const) {
+    const brut = JSON.stringify(constatDeGarantie({ mode: 'dark', cran: 700, profil: 'vivid', teinte: 60, contraste: 4.12, seuil: 4.5, contre: 'cranLeger' }, texte));
+    assert.ok(!/nuance 50|border-control|text/.test(brut), 'aucun mot de l’ancienne table');
+  }
+});
+
+test('[ENT-10] la 700 qui ne porte pas le texte des boutons le dit, et le geste suit sa couleur', () => {
+  const manque = { mode: 'dark' as const, cran: 700, profil: 'vivid' as const, teinte: 60, contraste: 4.129, seuil: 4.5, contre: 'texteDesBoutons' as const };
+  const blanc = constatDeGarantie(manque, 'blanc');
+  assert.equal(blanc.ou, 'Thème Dark, nuance 700 (solid/default), profil vivid');
+  assert.equal(blanc.quoi, 'La 700 en Dark ne porte pas le texte des boutons blanc à 4,5:1 pour toutes les teintes : 4,12:1 à 60°.');
+  assert.equal(blanc.geste, 'Baissez la luminosité de la 700 dans « Luminosité des nuances ».');
+  const noir = constatDeGarantie(manque, 'noir');
+  assert.equal(noir.quoi, 'La 700 en Dark ne porte pas le texte des boutons noir à 4,5:1 pour toutes les teintes : 4,12:1 à 60°.');
+  assert.equal(noir.geste, 'Montez la luminosité de la 700 dans « Luminosité des nuances ».');
+  const enBlanc = constatEn(manque, 'blanc');
+  assert.equal(enBlanc.quoi, 'Shade 700 in Dark does not carry the white button text at 4.5:1 for every hue: 4.12:1 at 60°.');
+  assert.equal(enBlanc.geste, 'Lower the lightness of 700 in “Shade lightness”.');
+  assert.equal(constatEn(manque, 'noir').geste, 'Raise the lightness of 700 in “Shade lightness”.');
+  assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (page/focus), profile vivid');
 });
 
 test('[ENT-05] un fond se saisit en hexa, s’écrit en majuscules, et une saisie qui n’est pas une couleur se refuse', () => {
@@ -227,4 +251,16 @@ test('V9.5 : « Rétablir » les fonds rend null quand le retour au sens normal 
   const avant = JSON.stringify(reglee);
   assert.equal(retablir(reglee, 'fonds'), null);
   assert.equal(JSON.stringify(reglee), avant, 'la recette ne change pas');
+});
+
+test('[ENT-10] la garantie des courbes rend le message du texte des boutons pour un 700 trop clair en Light blanc', () => {
+  const light = [...DEFAUT.courbes.light];
+  light[DEFAUT.crans.indexOf(700)] = 0.6;
+  const recette: Recette = { ...DEFAUT, courbes: { ...DEFAUT.courbes, light } };
+  const manque = garantieDesCourbes(recette).find((candidat) => candidat.contre === 'texteDesBoutons' && candidat.mode === 'light');
+  assert.ok(manque, 'le 700 à 0,60 ne porte plus le blanc à 4,5:1 sur toutes les teintes');
+  const constat = constatDeGarantie(manque, recette.texteDesBoutons[manque.mode]);
+  assert.match(constat.quoi, /^La 700 en Light ne porte pas le texte des boutons blanc à 4,5:1 pour toutes les teintes : \d,\d\d:1 à \d+°\.$/);
+  assert.equal(constat.geste, 'Baissez la luminosité de la 700 dans « Luminosité des nuances ».');
+  assert.deepEqual(garantieDesCourbes(DEFAUT), [], 'les courbes par défaut tiennent');
 });

@@ -671,7 +671,7 @@ function construireVues(i18n: Localisation) {
         apercu.replaceChildren(
           paragraphe(paletteDeLApercu(nomDeLaPalette(palette), ouverte.mode), 'ligne-secondaire'),
           resultatsDesGaranties(analyse, ouverte.mode),
-          apercuCompact(lue, analyse, ouverte.mode),
+          apercuCompact(lue, analyse, ouverte.mode, true),
         );
       }
       apercu.hidden = !analyse;
@@ -680,18 +680,18 @@ function construireVues(i18n: Localisation) {
 
     /**
      * La dernière garantie des courbes, et la clé des champs qu'elle lit :
-     * crans, courbes, gamut, les deux seuils et les deux parts. Une recette
-     * qui ne change que les fonds, les palettes ou les autres seuils la
-     * retrouve sans la recalculer (Z4.8).
+     * crans, courbes, texte des boutons, gamut, les deux seuils et les deux
+     * parts. Une recette qui ne change que les fonds, les palettes ou les
+     * autres seuils la retrouve sans la recalculer (Z4.8).
      */
     let garantieCalculee: { readonly cle: string; readonly manques: readonly ManqueDeGarantie[] } | null = null;
 
     function rendreLaGarantie(lue: Recette): void {
-      const cle = JSON.stringify([lue.crans, lue.courbes.light, lue.courbes.dark, lue.gamut, lue.seuils.texte, lue.seuils.nonTexte, lue.profils.soft.part, lue.profils.vivid.part]);
+      const cle = JSON.stringify([lue.crans, lue.courbes.light, lue.courbes.dark, lue.texteDesBoutons, lue.gamut, lue.seuils.texte, lue.seuils.nonTexte, lue.profils.soft.part, lue.profils.vivid.part]);
       if (garantieCalculee?.cle === cle) return;
       const manques = garantieDesCourbes(lue);
       garantieCalculee = { cle, manques };
-      garantie.replaceChildren(...manques.map((manque) => blocDeConstat(constatDeGarantie(manque), 'alerte')));
+      garantie.replaceChildren(...manques.map((manque) => blocDeConstat(constatDeGarantie(manque, lue.texteDesBoutons[manque.mode]), 'alerte')));
       noteDeGarantie.hidden = manques.length === 0;
     }
 

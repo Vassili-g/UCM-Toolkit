@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, validerRecette, type Palette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, recetteParDefaut, validerRecette, type Palette } from 'ucm-couleur';
 
 import {
   changementAuPasVoisin,
@@ -81,8 +81,26 @@ test('W7.2 : les garanties se comparent avant et après : #16A34A en manque en L
   assert.equal(vivid(manqueesParIntensite(RECETTE, ajustee)), 0);
   const comparees = garantiesComparees(RECETTE, VERT, ajustee);
   assert.ok(comparees.length > 0);
-  assert.ok(comparees.every(({ avant: a, apres: b }) => a.paire.numero === b.paire.numero && a.mode === b.mode && a.profil === b.profil));
+  assert.ok(comparees.every(({ avant: a, apres: b }) => a.garantie.numero === b.garantie.numero && a.mode === b.mode && a.profil === b.profil));
   assert.ok(comparees.some(({ avant: a, apres: b }) => a.verdict === 'manquee' && b.verdict === 'tenue'));
+});
+
+test('S8 : en Dark inversé, #D94635 manque le texte des boutons blanc sur solid/default à 4,31:1 ; deux pas plus sombres dans « Ajuster la référence » le tiennent', () => {
+  const inversee = recetteAvecTexteDesBoutons(RECETTE, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  const recette = inversee.recette;
+  const rouge: Palette = { ...nouvellePalette(recette, 'p-0000000d', '#D94635', 2)!, nom: 'Rouge' };
+  const manquees = (palette: Palette) => manqueesParIntensite(recette, palette).map(({ intensite, manquees: nombre }) => `${intensite} ${nombre}`);
+  assert.deepEqual(manquees(rouge), ['soft 0', 'vivid 1']);
+  const ajustee = paletteAuPas(recette, rouge, -2)!;
+  assert.deepEqual(manquees(ajustee), ['soft 0', 'vivid 0']);
+  const [comparee, ...autres] = garantiesComparees(recette, rouge, ajustee);
+  assert.equal(autres.length, 0, 'seule cette garantie change de verdict');
+  assert.equal(comparee.avant.garantie.premier.variable, 'solid/foreground');
+  assert.equal(comparee.avant.second.nature === 'cran' ? comparee.avant.second.cran : 0, 700);
+  assert.equal(comparee.avant.mode, 'dark');
+  assert.equal(Math.round(comparee.avant.contraste * 100) / 100, 4.31);
+  assert.deepEqual([comparee.avant.verdict, comparee.apres.verdict], ['manquee', 'tenue']);
 });
 
 test('W7.2 : un code saisi dans la modale prend le pas dont la proposition lui ressemble le plus', () => {

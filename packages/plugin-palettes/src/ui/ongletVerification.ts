@@ -9,8 +9,6 @@
  * L'onglet lit l'état partagé (`paletteOuverte.ts`) et ne se rend que
  * visible, à la fin d'un geste : un glisser dans Création ne le recalcule pas.
  */
-import type { Association } from 'ucm-couleur';
-
 import { verdictDeLaPalette, type CibleDAction } from '../presentation';
 import type { BarreDePaletteUi } from './barreDePalette';
 import { creerVuesBasculeDuTheme } from './basculeDuTheme';
@@ -34,8 +32,8 @@ export interface OngletVerificationUi {
   readonly element: HTMLDivElement;
   /** L'onglet devient l'onglet actif, ou cesse de l'être : actif, il reprend la barre et se rend. */
   montrer(actif: boolean): void;
-  /** Choisit une garantie, depuis le détail d'une nuance de Création ([VER-20]). */
-  choisirGarantie(association: Association): void;
+  /** Choisit une garantie par son numéro, depuis le détail d'une nuance de Création ([VER-20]). */
+  choisirGarantie(numero: number): void;
   /** Le rang d'un lien de l'onglet parmi ses liens, -1 pour tout autre élément. */
   rangDuLien(element: Element | null): number;
   /** Rend le focus au lien de ce rang, au retour des Réglages communs ([VER-15]). */
@@ -189,9 +187,9 @@ function construireVues(i18n: Localisation) {
         barre.placerDans(choix);
         if (enRetard) rendre();
       },
-      choisirGarantie(association) {
+      choisirGarantie(numero) {
         if (enRetard) rendre();
-        garanties.choisir(association);
+        garanties.choisir(numero);
       },
       rangDuLien: (cherche) => (cherche ? Array.from(corps.querySelectorAll('.lien-de-constat')).indexOf(cherche) : -1),
       focaliserLeLien(rang) {

@@ -17,7 +17,7 @@ const BLEU = nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!;
 const RECETTE = ajouter(VIDE, BLEU);
 const ANALYSE = analyserPalette(RECETTE, BLEU);
 
-test('[UI-04] le même clic sur la même nuance la relâche ; une autre nuance, un autre profil ou on-solid la remplacent', () => {
+test('[UI-04] le même clic sur la même nuance la relâche ; une autre nuance, un autre profil ou la case tiretée la remplacent', () => {
   const vivid600: Choix = { nature: 'nuance', profil: 'vivid', rang: 6, numero: 600 };
   assert.equal(memeChoix(vivid600, { ...vivid600 }), true);
   assert.equal(memeChoix(vivid600, { ...vivid600, profil: 'soft' }), false);

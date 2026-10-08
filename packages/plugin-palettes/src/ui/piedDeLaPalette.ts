@@ -10,7 +10,7 @@ import { memoriserVues, lireTexte, type Localisation, type Texte } from './local
 
 /** Ce que le pied résume de la palette ouverte. */
 export interface BilanDuPied {
-  /** Le nombre de contrôles évalués, un par paire, mode et intensité ([VER-06]) ; 0 pour une palette libre. */
+  /** Le nombre de contrôles évalués, un par garantie, fond, mode et intensité ([VER-06]) ; 0 pour une palette libre. */
   readonly garanties: number;
   readonly manquees: number;
   readonly libre: boolean;

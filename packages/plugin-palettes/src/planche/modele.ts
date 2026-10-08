@@ -16,6 +16,7 @@
  */
 import {
   MODES,
+  PAIRES,
   RANGS,
   TABLE_DES_EMPLOIS,
   atteintLeSeuil,
@@ -27,6 +28,7 @@ import {
   empreinte,
   intensitesDe,
   lireHexa,
+  paireJugeable,
   rampeDe,
   referenceDe,
   rgb8VersP3,
@@ -395,8 +397,33 @@ function specimen(contexte: Contexte, intensite: Intensite, emploi: Emploi, coul
 const estLeMembre = (membre: MembrePaire, emploi: Emploi, decalage: number): boolean =>
   'emploi' in membre && membre.emploi === emploi && membre.decalage === decalage;
 
+/** Ce qu'un membre d'une paire de l'ancienne table désigne dans la rampe d'une intensité. */
+type MembreJuge = { readonly nature: 'cran'; readonly cran: number; readonly couleur: Rgb8 } | { readonly nature: 'fond'; readonly couleur: Rgb8 };
+
+/**
+ * Les paires de l'ancienne table, jugées pour la planche. Le moteur ne les juge
+ * plus : il juge les garanties de la table en dossiers. La planche garde son
+ * dessin en emplois jusqu'à sa refonte (lot 9, I6), et lit encore ces paires.
+ */
+function jugementsDesPaires(contexte: Contexte, intensite: Intensite, mode: Mode) {
+  const { recette, analyse } = contexte;
+  const fond = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
+  const designer = (membre: MembrePaire): MembreJuge => {
+    const cible = 'fond' in membre ? 'fond' : TABLE_DES_EMPLOIS[membre.emploi];
+    if (cible === 'fond' || !('emploi' in membre)) return { nature: 'fond', couleur: fond };
+    const rang = analyse.grille.crans.indexOf(cible) + membre.decalage;
+    return { nature: 'cran', cran: analyse.grille.crans[rang], couleur: rampeDe(analyse.rampes, intensite)[mode][rang].couleur };
+  };
+  return PAIRES.filter((paire) => paireJugeable(paire, analyse.grille.crans)).map((paire) => {
+    const premier = designer(paire.premier);
+    const second = designer(paire.second);
+    const valeur = contraste(premier.couleur, second.couleur);
+    return { paire, premier, second, contraste: valeur, tenue: atteintLeSeuil(valeur, recette.seuils[paire.seuil]) };
+  });
+}
+
 /** Le nom d'un membre dans une ligne de garantie : « fond », « on-solid » ou « surface 100 ». */
-function partenaire(membre: MembrePaire, designe: Promesse['premier']): string {
+function partenaire(membre: MembrePaire, designe: MembreJuge): string {
   if ('fond' in membre) return TEXTES_DE_LA_PLANCHE.fond;
   return designe.nature === 'cran' ? `${membre.emploi} ${designe.cran}` : membre.emploi;
 }
@@ -404,23 +431,18 @@ function partenaire(membre: MembrePaire, designe: Promesse['premier']): string {
 /**
  * Les garanties qu'un état porte, dans une intensité : une ligne par paire
  * dont il est membre, « sur » son second membre quand il est premier,
- * « dessus » quand il est second. Chaque paire du moteur apparaît ainsi sous
- * chacun de ses membres qui a un usage sur la planche.
+ * « dessus » quand il est second. Chaque paire apparaît ainsi sous chacun de
+ * ses membres qui a un usage sur la planche.
  */
 function garantiesDeLEtat(contexte: Contexte, intensite: Intensite, emploi: Emploi, decalage: number, mode: Mode, encres: Encres): NoeudTexte[] {
-  const { analyse } = contexte;
-  return analyse.promesses
-    .filter((promesse) => promesse.mode === mode && promesse.profil === intensite)
-    .flatMap((promesse) => {
-      const { premier, second } = promesse.paire;
-      const sens = estLeMembre(premier, emploi, decalage)
-        ? TEXTES_DU_DETAIL.sur(partenaire(second, promesse.second))
-        : estLeMembre(second, emploi, decalage) ? TEXTES_DU_DETAIL.dessus(partenaire(premier, promesse.premier)) : null;
-      if (sens === null) return [];
-      const tenue = promesse.verdict === 'tenue';
-      const niveau = niveauEcrit(promesse.contraste, jugementDuSeuil(promesse.paire.seuil)).ecrit;
-      return [texte(`garantie ${promesse.paire.numero}`, `${TEXTES_DU_DETAIL.garantie(tenue, sens, promesse.contraste)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, USAGE.etat)];
-    });
+  return jugementsDesPaires(contexte, intensite, mode).flatMap(({ paire, premier, second, contraste: valeur, tenue }) => {
+    const sens = estLeMembre(paire.premier, emploi, decalage)
+      ? TEXTES_DU_DETAIL.sur(partenaire(paire.second, second))
+      : estLeMembre(paire.second, emploi, decalage) ? TEXTES_DU_DETAIL.dessus(partenaire(paire.premier, premier)) : null;
+    if (sens === null) return [];
+    const niveau = niveauEcrit(valeur, jugementDuSeuil(paire.seuil)).ecrit;
+    return [texte(`garantie ${paire.numero}`, `${TEXTES_DU_DETAIL.garantie(tenue, sens, valeur)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, USAGE.etat)];
+  });
 }
 
 function ligneDUsage(contexte: Contexte, intensite: Intensite, emploi: Emploi, mode: Mode, encres: Encres): NoeudCadre {

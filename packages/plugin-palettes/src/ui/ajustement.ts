@@ -14,7 +14,7 @@
  * clic sur le voile la referment, et rendent le focus à l'élément que
  * l'onglet désigne à ce moment.
  */
-import { associationDe, etatDeLaPaire, verifierPromesses, type Emploi, type Intensite, type Mode, type Palette, type Promesse, type Recette } from 'ucm-couleur';
+import { verifierPromesses, type Intensite, type Mode, type Palette, type Promesse, type Recette, type VariableDePalette } from 'ucm-couleur';
 
 import {
   changementAuPasVoisin,
@@ -27,6 +27,7 @@ import {
   propositionAuPas,
 } from '../ajustementDeLaReference';
 import { MOTIF_HEXA, originaleDe } from '../edition';
+import { fondDeLaPromesse, variableDuFond } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { creerVuesChamps } from './champs';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
@@ -49,7 +50,7 @@ function construireVues(i18n: Localisation) {
   const { createButton } = creerSocleLocalise(i18n);
   const { badgeDeNiveau } = creerVuesBadge(i18n);
   const { champEnColonne } = creerVuesChamps(i18n);
-  const { NOM_DE_L_ETAT, TEXTES_DE_L_AJUSTEMENT, bilanDeLAjustement, jugementDuSeuil, nuancesDeLAjustement, pourquoiAjuster, resultatDeLaGarantie, themeDeLaGarantie } = i18n.messages;
+  const { TEXTES_DE_L_AJUSTEMENT, bilanDeLAjustement, jugementDuSeuil, nuancesDeLAjustement, pourquoiAjuster, resultatDeLaGarantie, themeDeLaGarantie } = i18n.messages;
 
   /** Le nombre de pas que la piste montre de chaque côté de la proposition. */
   const DEMI_PISTE = 8;
@@ -65,11 +66,11 @@ function construireVues(i18n: Localisation) {
 
   const cellule = (): HTMLSpanElement => document.createElement('span');
 
-  /** Un nom de rôle en police de code. */
-  function codeDuRole(emploi: Emploi): HTMLElement {
+  /** Un nom de variable en police de code. */
+  function codeDeLaVariable(variable: string): HTMLElement {
     const code = document.createElement('code');
     code.className = 'code-du-role';
-    i18n.lier(code, 'textContent', emploi);
+    i18n.lier(code, 'textContent', variable);
     return code;
   }
 
@@ -100,15 +101,13 @@ function construireVues(i18n: Localisation) {
     return element;
   }
 
-  /** L'association d'une garantie en codes de rôles : « `text` sur fond », puis l'état quand ce n'est pas le repos. */
+  /** Ce qu'une garantie oppose, en codes de variables : « `page/foreground` sur la page », « `solid/foreground` sur `solid/hover` ». */
   function association(promesse: Promesse): HTMLSpanElement {
-    const { premier, second } = associationDe(promesse.paire);
+    const fond = variableDuFond(fondDeLaPromesse(promesse));
     const qui = cellule();
     qui.className = 'ajustement-qui';
-    qui.append(codeDuRole(premier), i18n.noeud(i18n.composer` ${TEXTES_DE_L_AJUSTEMENT.sur} `));
-    qui.append(second === 'fond' ? i18n.noeud(TEXTES_DE_L_AJUSTEMENT.fond) : codeDuRole(second));
-    const etat = etatDeLaPaire(promesse.paire);
-    if (etat > 0) qui.append(i18n.noeud(i18n.composer` · ${NOM_DE_L_ETAT[etat]}`));
+    qui.append(codeDeLaVariable(promesse.garantie.premier.variable), i18n.noeud(i18n.composer` ${TEXTES_DE_L_AJUSTEMENT.sur} `));
+    qui.append(fond === 'elevation/page' ? i18n.noeud(TEXTES_DE_L_AJUSTEMENT.laPage) : codeDeLaVariable(fond));
     return qui;
   }
 
@@ -272,19 +271,19 @@ function construireVues(i18n: Localisation) {
         i18n.lier(fleche, 'textContent', '→');
         const apresEtBadge = cellule();
         apresEtBadge.className = 'ajustement-apres';
-        apresEtBadge.append(resultat(promesseApres), badgeDeNiveau(promesseApres.contraste, jugementDuSeuil(promesseApres.paire.seuil)));
+        apresEtBadge.append(resultat(promesseApres), badgeDeNiveau(promesseApres.contraste, jugementDuSeuil(promesseApres.garantie.seuil)));
         ligne.append(association(promesseAvant), themeDeLaLigne, resultat(promesseAvant), fleche, apresEtBadge);
         lignes.push(ligne);
       }
       tableau.replaceChildren(...lignes);
     }
 
-    /** Pourquoi ajuster : dans chaque thème qui manque une garantie, le premier rôle manqué. */
-    function manquesDeLaPalette(lue: Recette, ajustee: Palette): { readonly mode: Mode; readonly emploi: Emploi }[] {
+    /** Pourquoi ajuster : dans chaque thème qui manque une garantie, la variable de la première garantie manquée. */
+    function manquesDeLaPalette(lue: Recette, ajustee: Palette): { readonly mode: Mode; readonly variable: VariableDePalette }[] {
       const manquees = verifierPromesses(lue, ajustee).filter((promesse) => promesse.verdict === 'manquee');
       return (['light', 'dark'] as const).flatMap((mode) => {
         const premiere = manquees.find((promesse) => promesse.mode === mode);
-        return premiere ? [{ mode, emploi: associationDe(premiere.paire).premier }] : [];
+        return premiere ? [{ mode, variable: premiere.garantie.premier.variable }] : [];
       });
     }
 
