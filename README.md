@@ -70,7 +70,7 @@ donnent leurs prérequis propres.
 Avec Node 20 ou plus, à la racine du dépôt consommateur :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 init
+npx --yes @ucm-kit/cli@0.1.55 init
 ```
 
 `init` crée la configuration et la CI de la forge détectée, sans écraser les
@@ -87,7 +87,7 @@ consommateur peut utiliser une autre technologie que Node.
 Pour choisir d'autres chemins dès l'installation :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 init \
+npx --yes @ucm-kit/cli@0.1.55 init \
   --components src/components \
   --tokens src/tokens \
   --implementation '{dir}/{id}.vue'
@@ -96,7 +96,7 @@ npx --yes @ucm-kit/cli@0.1.54 init \
 Pour contrôler les exports sur le poste :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.55 check --report ci-report.md
 ```
 
 Gardez une version exacte. Le [README du CLI](./packages/cli/README.md)
@@ -105,12 +105,14 @@ détaille les options, la feuille CSS des tokens et les guides d'implémentation
 ## Ce que les contrôles établissent
 
 Le contrôle vérifie la forme et la version des contrats, leur composition,
-les types des tokens typographiques et les références de tokens. Il examine
-aussi les emplois des couleurs lorsqu'une collection `usage` est présente.
+les types des tokens typographiques et les références de tokens. Il mesure
+aussi le contraste de chaque couleur d'un composant contre son fond, dans
+chaque marque et chaque thème, quel que soit le nom des collections.
 La parité avec le code demande un adaptateur installé dans le dépôt consommateur.
 
-Un contrat illisible bloque le contrôle. Les écarts de références, d'emplois
-et de parité produisent des avertissements. Le
+Un contrat illisible bloque le contrôle. Les écarts de références et de
+parité produisent des avertissements ; un contraste insuffisant reste une
+information, qui ne bloque pas la fusion. Le
 [détail des verdicts](./packages/cli/README.md#what-the-report-says) distingue
 chaque cas, notamment un fichier de tokens absent ou illisible.
 
@@ -161,7 +163,7 @@ Pour `<plugin>`, utilisez `ucm-exporter-plugin`, `ucm-palettes-plugin` ou
 | [plugin-explorateur](./packages/plugin-explorateur/README.md) | Variables, chaînes d'alias et vue composant |
 | [plugin-socle](./packages/plugin-socle/README.md) | Build, composants d'interface et galeries partagés |
 | [couleur](./packages/couleur/README.md) | Calcul des rampes, limites et contrastes, sans Figma ni DOM |
-| [kit](./packages/kit/README.md) | Format, emplois des couleurs, lecteurs et schéma |
+| [kit](./packages/kit/README.md) | Format, table des couleurs du thème, lecteurs et schéma |
 | [cli](./packages/cli/README.md) | Installation et commandes du consommateur |
 | [adapter-typescript](./packages/adapter-typescript/README.md) | Parité statique et types dérivés |
 

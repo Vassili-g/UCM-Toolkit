@@ -16,7 +16,7 @@ matches them.
 Requires Node 20 or later. At the root of the repository:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 init
+npx --yes @ucm-kit/cli@0.1.55 init
 ```
 
 1. Commit and push the files `init` wrote.
@@ -27,7 +27,7 @@ npx --yes @ucm-kit/cli@0.1.54 init
 To run the check locally:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.55 check --report ci-report.md
 ```
 
 `--yes` skips the npx confirmation prompt. Pin an exact version, without `^`:
@@ -78,7 +78,7 @@ contract would resolve to the same file. A repository that does not write React
 states its own extension:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
+npx --yes @ucm-kit/cli@0.1.55 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
 ```
 
 The three path options act only on a first install. `ucm init` never overwrites
@@ -188,7 +188,7 @@ directory. It writes a minimal report when the check stopped before writing
 one, then posts the report:
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.54 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
+npx --yes @ucm-kit/cli@0.1.55 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
 ```
 
 | Option | Effect |
@@ -244,7 +244,7 @@ the code or at the token file.
 | Typography tokens have the expected type | Blocks |
 | Every `{token.path}` cited exists in the token file | Warns, but a missing or unreadable token file blocks |
 | The code exposes the props the contract declares, with a stack adapter installed | Warns |
-| Each colour follows the usage table, when the token file has a `usage` collection | Warns |
+| Each text, icon, border or ring colour reaches its contrast against its background | Information, never blocks |
 
 The direction of a version gap names who fixes it. A contract that is too old
 is re-exported by the designer. A contract that is too new needs this package
