@@ -30,9 +30,10 @@ décrivent pas le build courant.
 - La [comparaison du marché](./1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md)
   conserve les pistes de vision simulée, de sélection, de jeu de départ,
   d'APCA et de Display P3. Leur présence dans une maquette ne vaut pas implémentation.
-- La comparaison et l'harmonisation de plusieurs palettes sont à l'étude :
-  le [plan de recherche](./Harmonisation%20entre%20palettes/PLAN-RECHERCHE-HARMONISATION.md)
-  porte une première mesure et les questions ouvertes, sans implémentation.
+- La comparaison et l'harmonisation de plusieurs palettes attendent les
+  décisions du mainteneur : le [dossier](./Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md)
+  mesure une recette réelle, calcule l'alignement de la luminosité et propose
+  une comparaison dans Vérification, maquettée, sans implémentation.
 - Le texte des boutons en Light et en Dark est implémenté avec le thème en
   dossiers et attend la recette dans Figma :
   [TEXTE-DES-BOUTONS.html](./Texte%20des%20boutons/TEXTE-DES-BOUTONS.html)

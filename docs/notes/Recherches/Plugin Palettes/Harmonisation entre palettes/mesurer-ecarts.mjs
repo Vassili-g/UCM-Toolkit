@@ -1,100 +1,43 @@
 #!/usr/bin/env node
 /**
- * Mesure ce qui sépare quatre palettes utilitaires fabriquées par le moteur
- * avec la recette par défaut : leurs parts, puis la clarté et la chroma des
- * nuances de quatre emplois, par intensité et par thème.
+ * Mesure ce qui sépare un groupe de palettes d'une recette exportée du
+ * plugin, sur les variables du thème en dossiers : clarté, chroma et part de
+ * chaque nuance, par thème et par intensité, la référence comprise et
+ * signalée ◆. Puis les deux contrastes qu'un composant montre.
  *
- *   npx tsx "docs/notes/Recherches/Plugin Palettes/Harmonisation entre palettes/mesurer-ecarts.mjs"
+ *   npx tsx "docs/notes/Recherches/Plugin Palettes/Harmonisation entre palettes/mesurer-ecarts.mjs" recette.json [--groupe Poppy,Orange,Grass,Sky] [--json mesures.json]
  *
- * Aucun test ne porte ces chiffres : le plan de recherche les cite.
+ * La version du 2 octobre fabriquait quatre palettes avec la recette par
+ * défaut et lisait les emplois d'avant les dossiers (commit 21850ab).
  */
-import {
-  MODES,
-  PROFILS,
-  ancrageDe,
-  boutsDe,
-  lireHexa,
-  partsDe,
-  plafond,
-  prereglageTailwind,
-  rampesDe,
-  recetteParDefaut,
-  rgb8VersOklch,
-} from '../../../../../packages/couleur/src/index.ts';
+import { writeFileSync } from 'node:fs';
 
-const REFERENCES = [
-  ['danger', '#DC2626'],
-  ['warning', '#F59E0B'],
-  ['success', '#16A34A'],
-  ['info', '#2563EB'],
-];
+import { MODES, PROFILS, VARIABLES, contrastesDe, etendue, f3, lireArguments, nuancesDe, paletteNommee } from './groupe.mjs';
 
-/** Les nuances lues : `surface-card`, `surface`, `border-decorative` et `solid`. */
-const NUANCES = [50, 100, 300, 700];
-
-const base = recetteParDefaut();
-
-function paletteNeuve(hexa, rang) {
-  const derive = prereglageTailwind(rgb8VersOklch(lireHexa(hexa)), boutsDe(base), base.derives);
-  return {
-    id: `p-0000000${rang}`,
-    reference: hexa,
-    derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } },
-  };
-}
-
-const palettes = REFERENCES.map(([, hexa], rang) => paletteNeuve(hexa, rang + 1));
-const recette = { ...base, palettes };
-
-console.log('Parts et ancrage');
-REFERENCES.forEach(([nom], rang) => {
-  const palette = palettes[rang];
-  const parts = partsDe(recette, palette);
-  const ancrage = ancrageDe(recette, palette);
-  console.log(`  ${nom.padEnd(8)} soft ${parts.soft.toFixed(3)}  vivid ${parts.vivid.toFixed(3)}  porteur ${ancrage.profil}  nuance ${ancrage.crans.light} (Light), ${ancrage.crans.dark} (Dark)`);
-});
-
-/**
- * Le même Color shift de luminosité posé sur les quatre palettes : l'écart de
- * clarté qui reste entre elles, nuance par nuance, hors de la nuance ancrée.
- */
-function ecartsSousLeMemeReglage(clarte) {
-  const reglees = palettes.map((palette) => ({
-    ...palette,
-    derive: { lien: true, soft: { ...palette.derive.soft, clarte }, vivid: { ...palette.derive.vivid, clarte } },
-  }));
-  const reglee = { ...base, palettes: reglees };
-  console.log(`\nMême Color shift de luminosité, clair ${clarte.clair}, sombre ${clarte.sombre} : clarté Light / Vivid par nuance`);
-  const rampes = reglees.map((palette) => rampesDe(reglee, palette).vivid.light);
-  const ancres = reglees.map((palette) => ancrageDe(reglee, palette).rangs.light);
-  reglee.crans.forEach((nuance, rang) => {
-    const clartes = rampes.map((rampe, i) => (ancres[i] === rang ? null : rampe[rang].L));
-    const lues = clartes.filter((L) => L !== null);
-    const texte = clartes.map((L) => (L === null ? '  ◆  ' : L.toFixed(3))).join('  ');
-    console.log(`  ${String(nuance).padStart(4)}  ${texte}  écart ${(Math.max(...lues) - Math.min(...lues)).toFixed(3)}`);
-  });
-}
-
-ecartsSousLeMemeReglage({ clair: -0.04, sombre: 0.04 });
-ecartsSousLeMemeReglage({ clair: 0.02, sombre: -0.06 });
+const { recette, noms, json } = lireArguments(process.argv.slice(2));
+const palettes = noms.map((nom) => paletteNommee(recette, nom));
+const sortie = { groupe: noms, vues: [] };
 
 for (const mode of MODES) {
   for (const profil of PROFILS) {
-    console.log(`\n${mode} / ${profil} : L, C, H, puis C rapportée au plafond sRGB de la nuance`);
-    for (const nuance of NUANCES) {
-      const rang = recette.crans.indexOf(nuance);
-      const lues = REFERENCES.map(([nom], i) => {
-        const cran = rampesDe(recette, palettes[i])[profil][mode][rang];
-        const maximum = plafond(cran.L, cran.H, recette.gamut);
-        return { nom, cran, part: maximum > 0 ? cran.C / maximum : 0 };
-      });
-      console.log(`  ${nuance}`);
-      for (const { nom, cran, part } of lues) {
-        console.log(`    ${nom.padEnd(8)} ${cran.hexa}  L ${cran.L.toFixed(3)}  C ${cran.C.toFixed(3)}  H ${cran.H.toFixed(0).padStart(3)}  part ${part.toFixed(2)}`);
-      }
-      const chromas = lues.map(({ cran }) => cran.C);
-      const clartes = lues.map(({ cran }) => cran.L);
-      console.log(`    écart de C ${(Math.max(...chromas) - Math.min(...chromas)).toFixed(3)}  rapport ${(Math.max(...chromas) / Math.min(...chromas)).toFixed(1)}  écart de L ${(Math.max(...clartes) - Math.min(...clartes)).toFixed(3)}`);
+    const parPalette = palettes.map((palette) => nuancesDe(recette, palette, profil, mode));
+    if (parPalette.some((nuances) => nuances === null)) continue;
+    console.log(`\n== ${mode} / ${profil}   ${noms.join(' | ')}   ◆ référence`);
+    const lignes = [];
+    for (const variable of VARIABLES) {
+      const lues = parPalette.map((nuances) => nuances[variable]);
+      if (lues.some((lue) => !lue)) continue;
+      const L = etendue(lues.map((lue) => ({ v: lue.L, reference: lue.reference })));
+      const C = lues.map((lue) => lue.C);
+      const cellules = lues.map((lue) => `${lue.reference ? '◆' : ' '}${lue.hexa} L${lue.L.toFixed(3)} C${lue.C.toFixed(3)} p${lue.part.toFixed(2)}`).join(' | ');
+      console.log(`${variable.padEnd(19)}${String(lues[0].cran).padStart(4)}  ${cellules}   ΔL ${f3(L.toutes)} (hors ◆ ${f3(L.libres)}, n=${L.n})  C×${(Math.max(...C) / Math.min(...C)).toFixed(1)}`);
+      lignes.push({ variable, cran: lues[0].cran, nuances: lues, ecartL: L, rapportC: Math.max(...C) / Math.min(...C) });
     }
+    const contrastes = parPalette.map((nuances) => contrastesDe(recette, nuances, mode));
+    console.log(`contraste surface/foreground sur surface/default : ${contrastes.map((c) => c.surface.toFixed(2)).join(' | ')}`);
+    console.log(`contraste texte des boutons sur solid/default    : ${contrastes.map((c) => c.solid.toFixed(2)).join(' | ')}`);
+    sortie.vues.push({ mode, profil, lignes, contrastes });
   }
 }
+
+if (json) writeFileSync(json, `${JSON.stringify(sortie, null, 2)}\n`);

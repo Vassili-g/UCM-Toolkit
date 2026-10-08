@@ -1,8 +1,10 @@
 # Harmonisation entre palettes : plan de recherche
 
-**Statut : recherche à mener.** Aucune décision d'implémentation, aucune
-maquette. La section 3 donne une première mesure du moteur ; les sections 4
-à 6 listent ce qui reste à établir et à décider.
+**Statut : suivi par le [dossier](./DOSSIER-HARMONISATION.md) du 8 octobre.**
+Les étapes 1, 3 et 4 y sont faites sur une recette réelle ; la section 3
+ci-dessous vient de la première version du script, sur les emplois d'avant
+le thème en dossiers. Les sections 4 à 6 gardent les questions, auxquelles
+le dossier répond en section 6.
 
 ## 1. Le besoin
 

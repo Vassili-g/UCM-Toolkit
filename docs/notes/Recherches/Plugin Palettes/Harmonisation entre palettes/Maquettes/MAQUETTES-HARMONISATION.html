@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Harmonisation entre palettes</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e2e2e2; --marque: #007be5; --fond: #fafafa; }
+  body { margin: 0; padding: 32px 40px 80px; background: var(--fond); color: var(--texte); font: 13px/1.55 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  h2 { margin: 48px 0 6px; padding-top: 20px; border-top: 1px solid var(--filet); font-size: 17px; }
+  .chapeau { max-width: 900px; margin: 0 0 16px; color: var(--second); }
+  .rangee { display: flex; gap: 32px; align-items: flex-start; }
+  .ecran { flex: none; width: 520px; border: 1px solid var(--filet); border-radius: 8px; overflow: hidden; background: #fff; }
+  .ecran img { display: block; width: 520px; }
+  .notes { max-width: 520px; }
+  .notes h3 { margin: 0 0 6px; font-size: 13px; }
+  .notes ol, .notes ul { margin: 0 0 14px; padding-left: 20px; }
+  .notes li { margin-bottom: 6px; }
+  .notes code, .chapeau code { font: 11px ui-monospace, Consolas, monospace; background: #eee; padding: 1px 4px; border-radius: 3px; }
+  table.decisions { border-collapse: collapse; max-width: 1080px; }
+  table.decisions th, table.decisions td { padding: 6px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: top; }
+  table.decisions th { color: var(--second); font-weight: 600; }
+  .etiquette { display: inline-block; padding: 0 6px; border-radius: 4px; background: #e8f2fd; color: var(--marque); font-size: 11px; font-weight: 600; }
+</style>
+<script src="donnees.js"></script>
+</head>
+<body>
+
+<h1>Harmonisation entre palettes</h1>
+<p class="chapeau">Maquettes de la comparaison d'un groupe de palettes, puis de l'alignement de leur luminosité. Toutes les couleurs et tous les écarts viennent de la recette exportée <code id="source"></code> : Poppy (danger), Orange (warning), Grass (success) et Sky (info), produits par <code>generer-donnees.mjs</code>. Le dossier <a href="../DOSSIER-HARMONISATION.md">DOSSIER-HARMONISATION.md</a> porte les mesures et les décisions.</p>
+
+<h2 id="aujourdhui">Aujourd'hui : Vérification sans palette ouverte</h2>
+<div class="rangee">
+  <div class="ecran"><img src="captures/verification-aujourd-hui.png" alt="Onglet Vérification sans palette ouverte, galerie du plugin"></div>
+  <div class="notes">
+    <h3>Ce que l'écran fait</h3>
+    <ul>
+      <li>Le nuancier montre toutes les palettes, chacune par ses aplats 200, référence et 800 en Light.</li>
+      <li>Le bilan trie les palettes en « À corriger », « À vérifier » et « Conformes ». Le détail sous le nuancier dit le problème de chaque palette de l'onglet actif.</li>
+      <li>Les paires trop proches comptent « À vérifier ». C'est le seul jugement qui porte sur deux palettes à la fois.</li>
+    </ul>
+    <h3>Ce qu'il ne fait pas</h3>
+    <ul>
+      <li>Rien ne pose deux palettes nuance contre nuance, ni ne dit qu'une palette s'est écartée des autres après un réglage.</li>
+      <li>Les cartes montrent Light et Vivid seulement : l'écart le plus grand de la recette mesurée est en Dark.</li>
+    </ul>
+    <p>Capture de la galerie (<code>clair/verification-bilan-a-corriger.html</code>), avec ses vingt palettes d'essai.</p>
+  </div>
+</div>
+
+<h2 id="m1">M1. Comparer un groupe dans Vérification</h2>
+<p class="chapeau">« Comparer » fait passer le nuancier en sélection. Le détail sous le nuancier devient la comparaison des palettes choisies, sur les variables du thème. Cliquer une carte du groupe l'ajoute ou la retire. Les bascules changent le thème et l'intensité ; « Clarté seule » peint chaque nuance en gris de même clarté.</p>
+<div class="rangee">
+  <div class="ecran"><div id="ecran-m1"></div></div>
+  <div class="notes">
+    <h3>Changements argumentés</h3>
+    <ol>
+      <li><b>L'endroit.</b> Vérification sans palette ouverte montre déjà toutes les palettes et juge déjà les paires trop proches. Juger l'écart entre palettes y est la question symétrique. Création reste l'endroit d'une seule palette.</li>
+      <li><b>Le groupe choisi à la volée.</b> Rien ne se range dans la recette : pas de rôle, pas de migration. Le choix vit le temps de l'écran (I3, D2).</li>
+      <li><b>Les lignes sont les variables du thème</b>, rangées par dossier comme dans l'Aperçu, chacune par son nom exact et un libellé court. Le designer lit « le fond teinté au survol », pas « la nuance 200 ».</li>
+      <li><b>Une réglette d'écart par ligne, sans chiffre.</b> Chaque palette y est un trait à sa clarté. Le chiffre est dans la bulle. Un point ambre marque une ligne dont l'écart dépasse le seuil provisoire de 0,02 (D6).</li>
+      <li><b>◆ reste visible.</b> Une nuance qui porte une référence se marque comme dans l'Aperçu. Son écart est dit à part : aucun réglage de luminosité ne le réduit.</li>
+      <li><b>Les causes en clair</b>, sous la grille : le réglage qui crée l'écart, sur quelles palettes. Celles qui ne touchent pas la vue affichée s'atténuent.</li>
+    </ol>
+    <h3>À regarder</h3>
+    <ul>
+      <li>Light · Vivid : les pleins au survol et à l'appui de Poppy et Orange sont plus clairs.</li>
+      <li>Dark · Vivid : tout le dossier <code>surface</code> s'écarte, et les ◆ tombent sur les textes et le plein.</li>
+      <li>Light · Soft avec « Clarté seule » : l'accord de clarté est bon, mais sans gris la saturation de Poppy saute aux yeux.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="m2">M2. Le même groupe sur des composants</h2>
+<p class="chapeau">La bascule « Vue » de M1 sur « Composants » : une alerte, un bouton plein, un bouton contour et un lien par palette, sur le fond de la page du thème. C'est la question que le designer se pose vraiment : « mon alerte de danger a-t-elle le même poids que mon alerte de succès ? ».</p>
+<div class="rangee">
+  <div class="ecran"><div id="ecran-m2"></div></div>
+  <div class="notes">
+    <h3>Changements argumentés</h3>
+    <ol>
+      <li><b>Les composants ne remplacent pas la grille</b>, ils en sont une seconde lecture : un écart de 0,02 se voit mieux sur deux alertes côte à côte que sur deux aplats.</li>
+      <li><b>Les composants sont peints des variables</b> que le thème écrit : <code>surface/default</code>, <code>surface/border</code> et <code>surface/foreground</code> pour l'alerte, <code>solid/default</code> et le texte des boutons pour le plein, <code>page/border</code> et <code>page/foreground</code> pour le contour et le lien.</li>
+      <li><b>Pas de nouvel écran de test.</b> L'Interface de test de Création reste celui d'une palette. Ici, quatre colonnes de 112 px tiennent dans 500 px.</li>
+    </ol>
+  </div>
+</div>
+
+<h2 id="m3">M3. Aligner la luminosité du groupe</h2>
+<p class="chapeau">Le bouton « Aligner la luminosité… » de M1 ouvre une proposition dans la forme de la modale « Ajuster la référence » : ce qui change, avant et après, les garanties, puis Appliquer. Deux cibles sont calculées par les gestes du plugin sur la recette mesurée.</p>
+<div class="rangee">
+  <div class="ecran"><div id="ecran-m3"></div></div>
+  <div class="notes">
+    <h3>Changements argumentés</h3>
+    <ol>
+      <li><b>« Les courbes de la recette » vient en premier.</b> C'est la seule cible qui aligne tout le groupe sans faire manquer une garantie : l'écart hors référence tombe à 0,002 dans les quatre vues. Le marché accorde ses palettes de la même façon, par une courbe commune.</li>
+      <li><b>Aligner sur une palette se calcule, mais se refuse souvent.</b> Avec Poppy pour modèle, Grass et Sky perdent le contraste du texte des boutons sur le plein en Dark (4,24 et 4,37:1 pour 4,5). La recherche des valeurs qui tiennent les garanties laisse 0,041 sur Grass et 0,020 sur Sky. Appliquée à la seule palette possible, la proposition laisse l'écart du groupe à 0,047.</li>
+      <li><b>La luminosité seule.</b> La saturation ne s'aligne pas : une part par palette ne donne pas la même chroma à toutes les nuances. Le meilleur réglage laisse un rapport de 1,5 à 2,8 (D4).</li>
+      <li><b>La référence ne bouge pas.</b> La luminosité globale du profil qui porte la référence reste : la changer changerait la couleur de marque (H5). L'écart des ◆ est dit, pas corrigé.</li>
+      <li><b>Un seul rangement, qui se défait en une fois</b> (I6). Les tokens passent ensuite à « À mettre à jour » dans Gestion, comme après tout réglage.</li>
+    </ol>
+    <h3>Un reste de la reconstruction de Poppy</h3>
+    <p>La recette range pour Poppy une luminosité Vivid de −0,00009, reste de la reconstruction hors plugin. Le premier geste qui touche ses réglages réécrit sa référence depuis le départ : <code>#ED0007</code> devient <code>#ED0008</code>. La modale le dit plutôt que de le cacher. Une remise à zéro de ce résidu, dans la recette, l'effacerait.</p>
+    <h3>Question ouverte</h3>
+    <p>Avec Poppy pour modèle, la modale applique aux palettes possibles et laisse les autres. Elle pourrait aussi tout refuser. Le choix revient au mainteneur (D7).</p>
+  </div>
+</div>
+
+<h2 id="m4">M4. Variante : un témoin dans Création</h2>
+<p class="chapeau">La piste A du plan : dans l'Aperçu de la palette ouverte, « Comparer à » ajoute la rampe d'une autre palette et l'écart à chaque nuance. Gardée pour comparaison avec M1.</p>
+<div class="rangee">
+  <div class="ecran"><div id="ecran-m4"></div></div>
+  <div class="notes">
+    <h3>Ce qu'elle apporte et ce qu'elle coûte</h3>
+    <ol>
+      <li><b>Pour.</b> L'écart se voit pendant le réglage, là où il naît : régler le Color shift de Poppy déplace les barres en direct.</li>
+      <li><b>Contre.</b> Deux palettes seulement, et une à la fois. Le groupe de quatre demande trois passages.</li>
+      <li><b>Contre.</b> L'Aperçu est la carte la plus dense de Création. Une troisième rangée et une rangée d'écarts l'allongent de 60 px.</li>
+      <li><b>Contre.</b> L'Aperçu lit des nuances (50 à 950), pas les variables du thème : il dit « 900 » là où M1 dit « fond teinté à l'appui ».</li>
+    </ol>
+    <p>M1 et M4 peuvent coexister : M4 pendant le réglage, M1 pour juger le groupe (D1).</p>
+  </div>
+</div>
+
+<h2 id="decisions">Décisions demandées</h2>
+<table class="decisions">
+  <tr><th>#</th><th>Décision</th><th>Proposition</th></tr>
+  <tr><td>D1</td><td>Où comparer</td><td>M1 dans Vérification ; M4 plus tard si le besoin pendant le réglage se confirme</td></tr>
+  <tr><td>D2</td><td>Groupe à la volée ou rangé</td><td>À la volée, rien dans la recette</td></tr>
+  <tr><td>D3</td><td>Cible de l'alignement</td><td>Les courbes de la recette d'abord ; une palette modèle en second choix</td></tr>
+  <tr><td>D4</td><td>Ce qui s'aligne</td><td>La luminosité seule ; la saturation se compare sans s'aligner</td></tr>
+  <tr><td>D5</td><td>Geste ponctuel ou accord suivi</td><td>Geste ponctuel ; pas d'alerte de plus dans le bilan</td></tr>
+  <tr><td>D6</td><td>Seuil de l'écart</td><td>0,02 provisoire, à fixer sur la grille M1 et les composants M2</td></tr>
+  <tr><td>D7</td><td>Une palette refusée par ses garanties</td><td>Appliquer aux autres et la nommer</td></tr>
+</table>
+
+<script>
+(() => {
+  const D = window.DONNEES;
+  document.getElementById('source').textContent = D.source;
+  const FONDS = { light: '#F7F7F7', dark: '#121212' }; // `fonds` de la recette mesurée
+  const SEUIL = 0.02;
+  const NOMS = D.avant.map((p) => p.nom);
+  const fr = (x, n = 3) => x.toFixed(n).replace('.', ',').replace('-', '−');
+  const signe = (x) => (Math.abs(x) < 0.0005 ? '0' : `${x > 0 ? '+' : ''}${fr(x)}`);
+
+  /** Les lignes de la comparaison, par dossier : une variable, ou deux qui visent le même cran. */
+  const DOSSIERS = [
+    { dossier: 'solid', role: 'fond plein', lignes: [
+      { vars: ['solid/default'], libelle: 'repos' },
+      { vars: ['solid/hover'], libelle: 'survol' },
+      { vars: ['solid/pressed'], libelle: 'appui' },
+    ] },
+    { dossier: 'surface', role: 'fond teinté', lignes: [
+      { vars: ['surface/default'], libelle: 'repos' },
+      { vars: ['surface/hover'], libelle: 'survol' },
+      { vars: ['surface/pressed'], libelle: 'appui' },
+      { vars: ['surface/foreground', 'surface/border'], libelle: 'texte · contour' },
+    ] },
+    { dossier: 'page', role: 'sur la page', lignes: [
+      { vars: ['page/foreground', 'page/border'], libelle: 'texte · contour' },
+      { vars: ['page/focus'], libelle: 'anneau de focus' },
+      { vars: ['page/divider'], libelle: 'filet' },
+    ] },
+  ];
+
+  const CAUSES = [
+    { vues: ['light/vivid', 'dark/vivid'], texte: 'Color shift de luminosité de Vivid : Poppy et Orange −0,02 au bout clair et +0,045 au bout sombre, Sky −0,015 au bout clair, Grass aucun.', effet: 'Pleins plus clairs au survol et à l’appui en Light ; fonds teintés plus clairs en Dark.' },
+    { vues: ['light/soft', 'dark/soft'], texte: 'Luminosité globale de Soft : +0,015 sur Poppy, aucune sur les trois autres.', effet: 'Toute la rampe Soft de Poppy plus claire d’un cran de réglette.' },
+    { vues: ['dark/vivid', 'light/vivid'], texte: 'Les références gardent leur couleur exacte, à des nuances différentes : en Dark, Poppy 700, Grass et Sky 800, Orange 900.', effet: 'Écart de 0,04 à 0,065 sur ces nuances. Aucun réglage de luminosité ne le réduit sans changer la référence.' },
+    { vues: ['light/soft', 'dark/soft'], texte: 'Saturation de Soft : Poppy 100 %, Orange 92 %, Sky 65 %, Grass 45 %.', effet: 'Chroma trois fois plus forte sur Poppy. Une même part ne donnerait pas la même chroma : la teinte fixe le plafond.' },
+  ];
+
+  const css = `
+    .corps { padding: 0; --point-ambre: rgb(243 181 63); }
+    .container { min-height: 0 !important; padding-bottom: 16px; }
+    .cmp { display: grid; gap: 10px; padding-top: 10px; border-top: 1px solid var(--bordure); }
+    .cmp-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .cmp-titre { font-size: var(--libelle); font-weight: 600; }
+    .cmp-choix { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .cmp-grille { display: grid; grid-template-columns: 112px repeat(var(--n), minmax(0, 1fr)) 78px; column-gap: 6px; align-items: center; }
+    .cmp-entete { font-size: 10px; font-weight: 700; padding-bottom: 4px; display: flex; gap: 5px; align-items: center; min-width: 0; }
+    .cmp-entete i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+    .cmp-bande { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; row-gap: 3px; padding: 6px 0; background: var(--fond-bloc); border-radius: 6px; margin-bottom: 4px; }
+    .cmp-ligne { display: contents; }
+    .cmp-qui { padding-left: 6px; display: grid; line-height: 1.2; }
+    .cmp-qui code { font: 10px ui-monospace, Consolas, monospace; }
+    .cmp-qui span { font-size: 9px; color: var(--texte-second); }
+    .cmp-aplat { height: 22px; border-radius: 3px; position: relative; display: grid; place-items: center; font-size: 10px; }
+    .cmp-ecart { position: relative; height: 22px; margin-right: 6px; }
+    .cmp-ecart::before { content: ''; position: absolute; left: 0; right: 14px; top: 10px; height: 1px; background: var(--bordure); }
+    .cmp-ecart b { position: absolute; top: 4px; width: 2px; height: 13px; border-radius: 1px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.35); }
+    .cmp-ecart em { position: absolute; right: 0; top: 7px; width: 7px; height: 7px; border-radius: 50%; }
+    .cmp-ecart em[data-etat='ambre'] { background: var(--point-ambre); }
+    .cmp-ecart em[data-etat='ancre'] { top: 4px; width: auto; height: auto; border-radius: 0; font: 10px/1 sans-serif; color: var(--texte-second); font-style: normal; }
+    .cmp-dossier { grid-column: 1 / -1; display: flex; gap: 6px; align-items: baseline; padding: 0 6px 2px; }
+    .cmp-dossier code { font: 600 10px ui-monospace, Consolas, monospace; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--bordure); background: var(--fond); }
+    .cmp-dossier span { font-size: 9px; color: var(--texte-second); }
+    .cmp-causes { display: grid; border-top: 1px solid var(--bordure); }
+    .cmp-cause { display: grid; gap: 2px; padding: 7px 0; border-bottom: 1px solid var(--bordure); font-size: 11px; }
+    .cmp-cause[data-loin] { opacity: .45; }
+    .cmp-cause p { margin: 0; }
+    .cmp-composants { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; padding: 10px; border-radius: 6px; }
+    .cmp-col { display: grid; gap: 8px; align-content: start; min-width: 0; }
+    .cmp-col h4 { margin: 0; font-size: 10px; font-weight: 700; }
+    .cmp-alerte { border: 1px solid; border-radius: 5px; padding: 6px 7px; font-size: 10px; line-height: 1.3; }
+    .cmp-alerte b { display: block; font-size: 11px; }
+    .cmp-btn { height: 24px; border-radius: 5px; display: grid; place-items: center; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+    .cmp-lien { font-size: 11px; text-decoration: underline; font-weight: 600; }
+    .nuancier-carte[data-choisie] { box-shadow: 0 0 0 2px var(--bordure-marque); }
+    .modale-dans-l-ecran { position: relative; inset: auto; padding: 16px 0 0; background: transparent; display: block; }
+    .modale-dans-l-ecran .modale { width: auto; box-shadow: none; }
+    .alg-palette { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px 8px; padding: 8px 0; border-bottom: 1px solid var(--bordure); font-size: 11px; }
+    .alg-palette b { font-size: 11px; }
+    .alg-rampes { display: grid; gap: 3px; }
+    .alg-rampe { display: grid; grid-template-columns: 34px repeat(11, 1fr); gap: 1px; align-items: center; }
+    .alg-rampe span { font-size: 9px; color: var(--texte-second); }
+    .alg-rampe i { height: 14px; display: grid; place-items: center; font-size: 8px; font-style: normal; }
+    .alg-change { grid-column: 2; color: var(--texte-second); }
+    .alg-verdict { grid-column: 2; }
+    .alg-verdict span { white-space: normal; }
+    .alg-tenue { color: var(--texte-succes); }
+    .apercu-cmp { display: grid; grid-template-columns: 76px repeat(11, 1fr); gap: 3px; align-items: center; font-size: 10px; }
+    .apercu-cmp .num { text-align: center; color: var(--texte-second); font-size: 9px; }
+    .apercu-cmp i { height: 26px; border-radius: 3px; display: grid; place-items: center; font-style: normal; font-size: 10px; }
+    .apercu-cmp .barre { height: 26px; display: flex; align-items: center; justify-content: center; }
+    .apercu-cmp .barre b { width: 6px; border-radius: 2px; background: var(--texte-second); }
+    .apercu-cmp .barre b[data-etat='ambre'] { background: var(--point-ambre); }
+  `;
+
+  const ombre = (hote, html) => {
+    const racine = hote.attachShadow({ mode: 'open' });
+    racine.innerHTML = `<link rel="stylesheet" href="plugin.css"><style>${css}</style><div class="corps"><main class="container">${html}</main></div>`;
+    return racine;
+  };
+
+  const tete = (onglet) => `
+    <div class="header"><div class="header-topline"><h1 class="page-title">UCM Palettes</h1><button type="button" class="icon-button" aria-label="Réglages communs">⚙</button></div></div>
+    <div class="page-stack colonne"><div class="onglets" role="tablist">
+      ${['Création', 'Vérification', 'Gestion'].map((nom) => `<button type="button" class="onglet" role="tab" aria-selected="${nom === onglet}">${nom}</button>`).join('')}
+    </div>`;
+
+  const barre = (nom) => `
+    <div class="choix-de-palette"><div class="barre-de-palette"><div class="barre-gestes">
+      <div class="selecteur"><button type="button" class="selecteur-bouton">${nom
+        ? `<span class="pastille-reference" style="background:${D.avant.find((p) => p.nom === nom).reference}"></span><span class="selecteur-nom">${nom}</span>`
+        : '<span class="selecteur-nom selecteur-invite">Sélectionner une palette</span>'}<span class="selecteur-fleche">▾</span></button></div>
+      <button type="button" class="btn btn-primary bouton-de-barre"><span>Nouvelle palette</span></button>
+    </div></div></div>`;
+
+  const bascule = (libelle, nom, options, actif) => `
+    <div class="choix-d-affichage">${libelle ? `<span class="choix-libelle">${libelle}</span>` : ''}<div class="bascule" role="group">
+      ${options.map(([valeur, texte]) => `<button type="button" class="bascule-option" data-choix="${nom}" data-valeur="${valeur}" aria-pressed="${valeur === actif}">${texte}</button>`).join('')}
+    </div></div>`;
+
+  const encre = (L) => (L > 0.6 ? '#000' : '#fff');
+  const peinture = (n, gris) => (gris ? `oklch(${n.L} 0 0)` : n.hexa);
+  const vueDe = (etat, nom, mode, profil) => D[etat].find((p) => p.nom === nom).vues[`${mode}/${profil}`];
+
+  /** L'écart de clarté d'une ligne : les traits, l'étendue hors référence, et vrai quand une ◆ y est. */
+  function ecartDe(etat, noms, mode, profil, variable) {
+    const lues = noms.map((nom) => vueDe(etat, nom, mode, profil).variables[variable]);
+    const libres = lues.filter((n) => !n.reference).map((n) => n.L);
+    const toutes = lues.map((n) => n.L);
+    const etendue = (l) => (l.length < 2 ? 0 : Math.max(...l) - Math.min(...l));
+    return { lues, libre: etendue(libres), toutes: etendue(toutes), ancre: lues.some((n) => n.reference) };
+  }
+
+  /** La grille de comparaison : une bande par dossier, une rangée par variable. */
+  function grille(etat, noms, mode, profil, gris) {
+    let html = `<div class="cmp-grille" style="--n:${noms.length}"><span></span>`;
+    html += noms.map((nom) => {
+      const p = D.avant.find((x) => x.nom === nom);
+      return `<span class="cmp-entete"><i style="background:${p.reference}"></i>${nom}</span>`;
+    }).join('') + '<span class="cmp-entete" style="color:var(--texte-second);font-weight:600">écart</span>';
+    for (const { dossier, role, lignes } of DOSSIERS) {
+      html += `<div class="cmp-bande"><div class="cmp-dossier"><code>${dossier}</code><span>${role}</span></div>`;
+      for (const { vars, libelle } of lignes) {
+        const e = ecartDe(etat, noms, mode, profil, vars[0]);
+        const moyenne = e.lues.reduce((s, n) => s + n.L, 0) / e.lues.length;
+        const traits = e.lues.map((n) => `<b style="left:calc(${Math.max(0, Math.min(1, 0.5 + (n.L - moyenne) / 0.1)) * 100}% * 0.82);background:${n.hexa}"></b>`).join('');
+        const marque = e.libre >= SEUIL ? '<em data-etat="ambre"></em>' : e.ancre && e.toutes >= SEUIL ? '<em data-etat="ancre">◆</em>' : '';
+        const bulle = `Écart de clarté ${fr(e.toutes)}${e.ancre ? `, hors référence ${fr(e.libre)}` : ''}`;
+        html += `<div class="cmp-ligne"><span class="cmp-qui"><code>${vars.map((v) => v.split('/')[1]).join(' · ')}</code><span>${libelle} · ${e.lues[0].cran}</span></span>`;
+        html += e.lues.map((n) => `<span class="cmp-aplat" style="background:${peinture(n, gris)};color:${encre(n.L)}" title="${n.hexa} · L ${fr(n.L)} · C ${fr(n.C)}">${n.reference ? '◆' : ''}</span>`).join('');
+        html += `<span class="cmp-ecart" title="${bulle}">${traits}${marque}</span></div>`;
+      }
+      html += '</div>';
+    }
+    return `${html}</div>`;
+  }
+
+  /** Les composants : alerte, plein, contour, lien, sur le fond de la page du thème. */
+  function composants(etat, noms, mode, profil) {
+    const texte = D.texteDesBoutons[mode] === 'blanc' ? '#fff' : '#000';
+    const colonnes = noms.map((nom) => {
+      const v = vueDe(etat, nom, mode, profil).variables;
+      return `<div class="cmp-col"><h4 style="color:${mode === 'dark' ? '#fff' : '#1e1e1e'}">${nom}</h4>
+        <div class="cmp-alerte" style="background:${v['surface/default'].hexa};border-color:${v['surface/border'].hexa};color:${v['surface/foreground'].hexa}"><b>Attention</b>Le fichier a changé.</div>
+        <div class="cmp-btn" style="background:${v['solid/default'].hexa};color:${texte}">Valider</div>
+        <div class="cmp-btn" style="border-color:${v['page/border'].hexa};color:${v['page/foreground'].hexa}">Annuler</div>
+        <span class="cmp-lien" style="color:${v['page/foreground'].hexa}">Voir le détail</span></div>`;
+    }).join('');
+    return `<div class="cmp-composants" style="--n:${noms.length};background:${FONDS[mode]}">${colonnes}</div>`;
+  }
+
+  function causes(mode, profil) {
+    return `<div class="cmp-causes"><p class="libelle-de-champ" style="margin:8px 0 2px">Ce qui écarte ces palettes</p>${CAUSES.map((c) => `
+      <div class="cmp-cause"${c.vues.includes(`${mode}/${profil}`) ? '' : ' data-loin'}><p>${c.texte}</p><p class="ligne-secondaire">${c.effet}</p></div>`).join('')}</div>`;
+  }
+
+  /** M1 et M2 : Vérification en mode comparaison, avec ses bascules. */
+  function monterComparaison(hote, depart) {
+    const etat = { choisies: [...NOMS], mode: depart.mode, profil: depart.profil, gris: false, vue: depart.vue };
+    const racine = ombre(hote, '');
+    const main = racine.querySelector('main');
+    const dessiner = () => {
+      const cartes = D.nuancier.map((p) => {
+        const duGroupe = NOMS.includes(p.nom);
+        const choisie = etat.choisies.includes(p.nom);
+        return `<button type="button" class="nuancier-carte${choisie ? '' : ' attenuee'}" data-nom="${p.nom}"${choisie ? ' data-choisie' : ''}${duGroupe ? '' : ' title="Maquette : seules les quatre palettes de statut ont leurs mesures"'}>
+          ${p.aplats.map((a) => `<i class="nuancier-aplat" style="background:${a}"></i>`).join('')}<span class="nuancier-bande"><span class="nuancier-nom">${p.nom}</span></span></button>`;
+      }).join('');
+      const noms = NOMS.filter((n) => etat.choisies.includes(n));
+      main.innerHTML = `${tete('Vérification')}<div class="page-stack colonne">${barre(null)}
+        <div class="bilan-des-palettes">
+          <div class="bilan-entete" style="height:auto"><div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="ligne-secondaire">Cliquer les palettes à comparer</span>
+            <button type="button" class="btn btn-secondary btn-compact" aria-pressed="true" style="background:var(--fond-note)"><span>Terminer la comparaison</span></button>
+          </div></div>
+          <div class="nuancier-des-palettes">${cartes}</div>
+          <div class="cmp">
+            <div class="cmp-tete"><span class="cmp-titre">${noms.length} palettes comparées</span>
+              ${bascule('Vue', 'vue', [['nuances', 'Nuances'], ['composants', 'Composants']], etat.vue)}</div>
+            <div class="cmp-choix">${bascule('Aperçu', 'mode', [['light', 'Light'], ['dark', 'Dark']], etat.mode)}
+              ${bascule('Afficher', 'profil', [['soft', 'Soft'], ['vivid', 'Vivid']], etat.profil)}
+              ${etat.vue === 'nuances' ? `<label style="display:flex;gap:5px;align-items:center;font-size:11px"><input type="checkbox" data-gris ${etat.gris ? 'checked' : ''}>Clarté seule</label>` : ''}</div>
+            ${noms.length < 2 ? '<p class="ligne-secondaire">Choisir au moins deux palettes dans le nuancier.</p>'
+              : etat.vue === 'nuances' ? grille('avant', noms, etat.mode, etat.profil, etat.gris) : composants('avant', noms, etat.mode, etat.profil)}
+            ${causes(etat.mode, etat.profil)}
+            <div class="confirmation-gestes" style="justify-content:flex-start"><button type="button" class="btn btn-primary" data-aligner><span>Aligner la luminosité…</span></button></div>
+          </div>
+        </div></div></div>`;
+    };
+    racine.addEventListener('click', (ev) => {
+      const choix = ev.target.closest('[data-choix]');
+      if (choix) { etat[choix.dataset.choix] = choix.dataset.valeur; dessiner(); return; }
+      const carte = ev.target.closest('.nuancier-carte');
+      if (carte && NOMS.includes(carte.dataset.nom)) {
+        const nom = carte.dataset.nom;
+        etat.choisies = etat.choisies.includes(nom) ? etat.choisies.filter((n) => n !== nom) : [...etat.choisies, nom];
+        dessiner();
+        return;
+      }
+      if (ev.target.closest('[data-aligner]')) document.getElementById('m3').scrollIntoView({ behavior: 'smooth' });
+    });
+    racine.addEventListener('change', (ev) => { if (ev.target.matches('[data-gris]')) { etat.gris = ev.target.checked; dessiner(); } });
+    dessiner();
+  }
+
+  monterComparaison(document.getElementById('ecran-m1'), { mode: 'dark', profil: 'vivid', vue: 'nuances' });
+  monterComparaison(document.getElementById('ecran-m2'), { mode: 'light', profil: 'vivid', vue: 'composants' });
+
+  /** M3 : la modale d'alignement, ses deux cibles. */
+  const VUES = [['light', 'soft'], ['light', 'vivid'], ['dark', 'soft'], ['dark', 'vivid']];
+  const valeursEnClair = (avant, apres) => {
+    const changements = [];
+    for (const profil of ['soft', 'vivid']) {
+      const a = avant.valeurs[profil];
+      const b = apres.valeurs[profil];
+      const nom = profil === 'soft' ? 'Soft' : 'Vivid';
+      const morceaux = [];
+      if (Math.abs(a.globale - b.globale) >= 0.0005) morceaux.push(`luminosité ${signe(a.globale)} → ${signe(b.globale)}`);
+      if (Math.abs(a.clair - b.clair) >= 0.0005) morceaux.push(`Color shift clair ${signe(a.clair)} → ${signe(b.clair)}`);
+      if (Math.abs(a.sombre - b.sombre) >= 0.0005) morceaux.push(`sombre ${signe(a.sombre)} → ${signe(b.sombre)}`);
+      if (morceaux.length) changements.push(`${nom} : ${morceaux.join(', ')}`);
+    }
+    return changements;
+  };
+
+  function residuel(etat) {
+    let libre = 0;
+    let ancre = 0;
+    for (const [mode, profil] of VUES) {
+      for (const { lignes } of DOSSIERS) {
+        for (const { vars } of lignes) {
+          const e = ecartDe(etat, NOMS, mode, profil, vars[0]);
+          libre = Math.max(libre, e.libre);
+          if (e.ancre) ancre = Math.max(ancre, e.toutes);
+        }
+      }
+    }
+    return { libre, ancre };
+  }
+
+  function rampe(etat, nom, mode, profil, libelle) {
+    const v = vueDe(etat, nom, mode, profil);
+    const ref = Object.values(v.variables).find((n) => n.reference);
+    return `<div class="alg-rampe"><span>${libelle}</span>${v.rampe.map((c) => `<i style="background:${c.hexa};color:${encre(c.L)}">${ref && ref.hexa === c.hexa ? '◆' : ''}</i>`).join('')}</div>`;
+  }
+
+  const racineM3 = ombre(document.getElementById('ecran-m3'), '');
+  const mainM3 = racineM3.querySelector('main');
+  const etatM3 = { cible: 'courbe', mode: 'dark', profil: 'vivid' };
+  function dessinerM3() {
+    const proposition = D[etatM3.cible === 'courbe' ? 'courbe' : 'recopie'];
+    const lignes = proposition.map((apres) => {
+      const avant = D.avant.find((p) => p.nom === apres.nom);
+      const changements = valeursEnClair(avant, apres);
+      const modele = etatM3.cible === 'poppy' && apres.nom === 'Poppy';
+      const refusee = apres.manquees.length > 0;
+      const verdict = modele ? '<span class="ligne-secondaire">Modèle</span>'
+        : changements.length === 0 ? '<span class="ligne-secondaire">Déjà alignée</span>'
+        : refusee ? `<span class="ajustement-manquee">✗ Laissée telle quelle : le texte des boutons sur <code class="code-du-role">solid/default</code> tomberait à ${apres.manquees.map((m) => m.replace(/^(\w+)\/(\w+).* ([\d.]+):1$/, (_, mo, pr, c) => `${c.replace('.', ',')}:1 (${mo === 'dark' ? 'Dark' : 'Light'} · ${pr === 'soft' ? 'Soft' : 'Vivid'})`)).join(', ')}</span>`
+        : '<span class="alg-tenue">✓ Garanties tenues</span>';
+      return { apres, avant, changements, refusee, html: `<div class="alg-palette"><b>${apres.nom}</b>
+        <div class="alg-rampes">${rampe('avant', apres.nom, etatM3.mode, etatM3.profil, 'Avant')}${rampe(etatM3.cible === 'courbe' ? 'courbe' : 'recopie', apres.nom, etatM3.mode, etatM3.profil, 'Après')}</div>
+        ${changements.length && !modele ? `<span class="alg-change">${changements.join(' · ')}</span>` : ''}
+        ${apres.reference !== avant.reference && !refusee ? `<span class="alg-change">Référence ${avant.reference} → ${apres.reference} : un octet, le reste de la reconstruction de Poppy (voir le dossier)</span>` : ''}
+        <span class="alg-verdict">${verdict}</span></div>` };
+    });
+    const appliquees = lignes.filter((l) => l.changements.length && !l.refusee && !(etatM3.cible === 'poppy' && l.apres.nom === 'Poppy'));
+    const avant = residuel('avant');
+    // Une palette laissée telle quelle garde ses nuances d'avant dans l'écart restant.
+    D.appliquee = proposition.map((p) => (p.manquees.length ? D.avant.find((a) => a.nom === p.nom) : p));
+    const apres = residuel('appliquee');
+    mainM3.innerHTML = `${tete('Vérification')}<div class="page-stack colonne">${barre(null)}
+      <div class="voile-de-modale modale-dans-l-ecran"><div class="modale" role="dialog">
+        <h2 class="modale-titre">Aligner la luminosité de 4 palettes</h2>
+        <p class="ajustement-pourquoi">Les palettes reprennent la même clarté à chaque nuance. La teinte, la saturation et les couleurs de référence ne changent pas.</p>
+        ${bascule('Aligner sur', 'cible', [['courbe', 'Les courbes de la recette'], ['poppy', 'Poppy']], etatM3.cible)}
+        <div class="cmp-choix">${bascule('Aperçu', 'mode', [['light', 'Light'], ['dark', 'Dark']], etatM3.mode)}${bascule('Afficher', 'profil', [['soft', 'Soft'], ['vivid', 'Vivid']], etatM3.profil)}</div>
+        <div>${lignes.map((l) => l.html).join('')}</div>
+        <p class="ligne-secondaire ajustement-bilan">Écart de clarté hors référence, sur les quatre vues : ${fr(avant.libre)} → ${fr(apres.libre)}. Les nuances ◆ gardent leur écart : jusqu'à ${fr(apres.ancre)}.</p>
+        <div class="confirmation-gestes"><button type="button" class="btn btn-secondary"><span>Annuler</span></button>
+          <button type="button" class="btn btn-primary"${appliquees.length ? '' : ' disabled'}><span>Appliquer à ${appliquees.length} palette${appliquees.length > 1 ? 's' : ''}</span></button></div>
+      </div></div></div>`;
+  }
+  racineM3.addEventListener('click', (ev) => {
+    const choix = ev.target.closest('[data-choix]');
+    if (choix) { etatM3[choix.dataset.choix] = choix.dataset.valeur; dessinerM3(); }
+  });
+  dessinerM3();
+
+  /** M4 : l'Aperçu de Poppy, comparé à une autre palette. */
+  const racineM4 = ombre(document.getElementById('ecran-m4'), '');
+  const mainM4 = racineM4.querySelector('main');
+  const etatM4 = { autre: 'Grass', mode: 'dark' };
+  function dessinerM4() {
+    const a = vueDe('avant', 'Poppy', etatM4.mode, 'vivid');
+    const b = vueDe('avant', etatM4.autre, etatM4.mode, 'vivid');
+    const refA = Object.values(a.variables).find((n) => n.reference)?.hexa;
+    const refB = Object.values(b.variables).find((n) => n.reference)?.hexa;
+    const rangee = (nom, v, ref) => `<span>${nom}</span>${v.rampe.map((c) => `<i style="background:${c.hexa};color:${encre(c.L)}">${c.hexa === ref ? '◆' : ''}</i>`).join('')}`;
+    const ecarts = a.rampe.map((c, i) => {
+      const d = Math.abs(c.L - b.rampe[i].L);
+      return `<span class="barre" title="Écart de clarté ${fr(d)}"><b style="height:${Math.min(26, 2 + d * 400)}px"${d >= SEUIL ? ' data-etat="ambre"' : ''}></b></span>`;
+    }).join('');
+    mainM4.innerHTML = `${tete('Création')}<div class="page-stack colonne">${barre('Poppy')}
+      <div class="tete-de-la-palette"><h2 class="titre-de-premier-rang">Palette Poppy</h2>${bascule('Aperçu', 'mode', [['light', 'Light'], ['dark', 'Dark']], etatM4.mode)}</div>
+      <section class="carte"><div class="carte-tete" style="justify-content:space-between">
+          <div><h3 class="carte-titre">Aperçu</h3><p class="carte-sous-titre">Les nuances sur le fond de la page</p></div>
+          <label style="display:flex;gap:6px;align-items:center;font-size:11px">Comparer à
+            <select data-autre style="font:inherit;font-size:11px">${['Orange', 'Grass', 'Sky'].map((n) => `<option${n === etatM4.autre ? ' selected' : ''}>${n}</option>`).join('')}</select></label></div>
+        <div class="carte-corps"><div class="apercu-cmp">
+          <span></span>${D.crans.map((n) => `<span class="num">${n}</span>`).join('')}
+          ${rangee('Poppy · Vivid', a, refA)}
+          ${rangee(`${etatM4.autre} · Vivid`, b, refB)}
+          <span class="ligne-secondaire">Écart</span>${ecarts}
+        </div>
+        <p class="ligne-secondaire" style="margin:8px 0 0">Barre ambre : écart de clarté de 0,02 ou plus. ◆ : la référence de chaque palette.</p></div></section>
+      </div>`;
+  }
+  racineM4.addEventListener('click', (ev) => {
+    const choix = ev.target.closest('[data-choix]');
+    if (choix) { etatM4[choix.dataset.choix] = choix.dataset.valeur; dessinerM4(); }
+  });
+  racineM4.addEventListener('change', (ev) => {
+    if (ev.target.matches('[data-autre]')) { etatM4.autre = ev.target.value; dessinerM4(); }
+  });
+  dessinerM4();
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 # Recherche sur l'harmonisation entre palettes
 
-**Statut : base de réflexion.** Ce document rassemble les faits vérifiés dans
+**Statut : base de réflexion, suivie par le [dossier](./DOSSIER-HARMONISATION.md)
+du 8 octobre.** Ce document rassemble les faits vérifiés dans
 le moteur, les mesures reproductibles et les questions qui exigent des
 maquettes ou un choix du mainteneur. Il ne décide ni d'une métrique produit,
 ni d'un geste d'interface, ni d'une évolution de la recette.
