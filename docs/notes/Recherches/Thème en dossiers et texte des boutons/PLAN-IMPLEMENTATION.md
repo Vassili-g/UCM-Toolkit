@@ -834,7 +834,7 @@ les styles qu'elle ne fixe pas restent ceux du plugin.
 **Porte** : M1 doit être validée. Sinon, l'orchestrateur s'arrête ici, rend
 les lots 1 à 6 et la porte qui manque.
 
-- [ ] **T7.1** · `implementeur-exigeant`. Les garanties.
+- [x] **T7.1** · `implementeur-exigeant`. Les garanties.
   - Fichiers : `packages/couleur/src/promesses.ts`, `garantie.ts`,
     `alertes.ts`, `index.ts`, leurs tests (`promesses.test.ts`,
     `alertes.test.ts`, le test de la garantie des courbes).
@@ -852,18 +852,18 @@ les lots 1 à 6 et la porte qui manque.
   - Fini quand : `npm test --workspace ucm-couleur` passe. Les erreurs de
     type de `packages/plugin-palettes` se corrigent au lot 8 : les noter,
     ne pas les corriger ici.
-- [ ] **T7.2** · `verificateur`. `npm test --workspace ucm-couleur`,
+- [x] **T7.2** · `verificateur`. `npm test --workspace ucm-couleur`,
   `npm run typecheck`, puis `npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/mesurer-dossiers.ts"`
   pour vérifier que le script tourne encore, sans commiter sa sortie ; enfin
   `npx tsx "docs/notes/Recherches/Plugin Palettes/Texte des boutons/Mesures/mesurer-couverture.ts"`,
   sans commiter sa sortie, comparée à la couverture de S8 : zéro échec hors ancrage
   dans chaque thème, et chaque pire à 0,01 près. Fini quand : tableau rendu,
   avec la liste des erreurs de type du plugin.
-- [ ] **T7.3** · Orchestrateur. Pas de commit : enchaîner le lot 8.
+- [x] **T7.3** · Orchestrateur. Pas de commit : enchaîner le lot 8.
 
 ## Lot 8. Les lecteurs du plugin et la carte des garanties
 
-- [ ] **T8.1** · `implementeur-exigeant`. La carte des garanties et les
+- [x] **T8.1** · `implementeur-exigeant`. La carte des garanties et les
   messages.
   - Fichiers : `packages/plugin-palettes/src/ui/garanties.ts`,
     `src/ui/messagesDePalette.ts`, `src/ui/constats.ts`,
@@ -874,7 +874,7 @@ les lots 1 à 6 et la porte qui manque.
     la nuance ancrée propose « Ajuster la référence ».
   - Fini quand : `npm test --workspace ucm-palettes-plugin` passe pour ces
     fichiers.
-- [ ] **T8.2** · `implementeur-exigeant`. Les autres lecteurs.
+- [x] **T8.2** · `implementeur-exigeant`. Les autres lecteurs.
   - Fichiers : `packages/plugin-palettes/src/presentation.ts`,
     `src/ui/nuancier.ts` (le détail d'une nuance), `src/ui/specimens.ts`,
     `src/ui/apercuCompact.ts`, `src/ui/ajustement.ts`,
@@ -900,17 +900,17 @@ les lots 1 à 6 et la porte qui manque.
   - Fini quand : `npm run typecheck` et `npm test --workspace
     ucm-palettes-plugin` passent, `loiDesTextes.test.ts` et `i18n.test.ts`
     compris.
-- [ ] **T8.3** · `implementeur`. Galerie et tests Chromium.
+- [x] **T8.3** · `implementeur`. Galerie et tests Chromium.
   - Fichiers : `packages/plugin-palettes/galerie/etats.cjs`,
     `tests/interface/interface.test.mjs`.
   - Faire : les états de M1, dont la carte en Dark inversé avec G1 manquée
     sur `#D94635` ; un test Chromium qui vérifie les sept lignes, sans numéro, et le
     lien « Ajuster la référence ».
   - Fini quand : `npm run test:ui --workspace ucm-palettes-plugin` passe.
-- [ ] **T8.4** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T8.4** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-palettes-plugin`. Fini quand : tableau
   rendu, tout vert.
-- [ ] **T8.5** · Orchestrateur. Comparer la galerie à M1 ; commit des lots 7
+- [x] **T8.5** · Orchestrateur. Comparer la galerie à M1 ; commit des lots 7
   et 8 ensemble : `feat(couleur, palettes): les garanties de la
   table en dossiers, et le vocabulaire de theme dans le plugin`.
 
@@ -1034,8 +1034,9 @@ Mis à jour par l'orchestrateur à chaque lot.
 | 4. Aperçu | commité | cd4700c |
 | 5. `ucm check` | commité | 22eb44f |
 | 6. Explorateur | commité | 9c55ca6 |
-| 7. Garanties | T7.1 en cours ; portes M1 à M3 ouvertes | |
-| 8 à 10 | à faire | |
+| 7. Garanties | commité avec le lot 8 ; portes M1 à M3 validées | e1a8d73 |
+| 8. Lecteurs et carte | commité | e1a8d73 |
+| 9 et 10 | à faire | |
 
 **Décisions prises pendant l'exécution**, dans le cadre du plan :
 
@@ -1069,6 +1070,23 @@ Mis à jour par l'orchestrateur à chaque lot.
   jour que les fichiers de T5.2.
 - Lot 6 : `palettes.ts` d'UCM Explorateur lisait aussi l'ancienne table pour
   l'inspecteur ; il lit `variablesDuCran`.
+- Lot 8 : la carte des garanties a son modèle sans DOM,
+  `src/ui/modeleDesGaranties.ts`, testé à part ; une ligne porte
+  `data-garantie` avec le numéro, qui n'est jamais affiché.
+- Lot 8 : le rapport est un JSON sans langue. Il passe au format 4 : chaque
+  promesse nomme sa garantie par ses variables, et le rapport porte le champ
+  `texteDesBoutons`. La ligne « Texte des boutons » de S9 n'a pas d'écran où
+  s'afficher ; l'import nomme le paramètre « Texte des boutons ».
+- Lot 8 : l'interface tronque les contrastes à deux décimales : la G1 manquée
+  de `#D94635` s'affiche 4,30:1 pour 4,3052, que S8 arrondit à 4,31.
+- Lot 8 : dans la modale « Ajuster la référence », une garantie passe à la
+  ligne entre ses deux variables, jamais dans un nom : la paire la plus longue,
+  `surface/foreground` sur `surface/pressed`, ne tient pas dans la colonne.
+- Lot 8 : l'aperçu compact ne peint ses trois boutons que dans les Réglages
+  communs ; la fiche de Gestion et les cartes d'intensité ne changent pas.
+- Lot 8 : l'état de galerie `garantie-en-echec` et ses voisins passent le texte
+  des boutons du Light au noir : la 700 à 0,55 ne fait plus rien manquer avec
+  les sept garanties.
 
 **Écarts relevés, à reprendre plus loin :**
 
@@ -1078,12 +1096,15 @@ Mis à jour par l'orchestrateur à chaque lot.
   sessions (Direction artistique, Commandes d'affichage, Liste dépliable,
   Diagnostics d'un composant réel), hors de ce plan.
 
-- Jusqu'au lot 7, la garantie des courbes lit l'ancienne table : un thème
-  inversé y affiche huit alertes à tort (600 et 700 contre la 50).
-- T8.1 et T8.2 : les libellés « fond du thème » du détail d'une nuance et des
-  alertes (`FONDS` de `fr.ts` et `en.ts`) passent à « fond de la page ». La
-  case tiretée de l'aperçu, peinte du texte des boutons, se décrit encore
-  comme le fond.
+- Lot 9 : `src/planche/modele.ts` rejuge encore localement les anciennes
+  paires (`jugementsDesPaires`) et `src/ui/interfaceDeTest.ts` lit
+  `TABLE_DES_EMPLOIS` ; T9.1 et T9.2 les retirent.
+- À relire par le mainteneur, textes que S9 ne fixe pas : `aideSeuilTexte` et
+  `aideSeuilNonTexte` des Réglages communs ; la colonne « Garantie » et la
+  phrase « trop claire pour « anneau de focus » (page/focus) » de la modale
+  d'ajustement ; la butée du Color shift, en variables seules faute de place.
+- L'alerte `fond-hors-courbe` dit encore « plus sombre que la nuance 50 » ;
+  la 50 devient facultative au lot 10.
 - T10.4 : trois notes de `Collection usage/` renvoient à
   `diagnostic-emplois.mjs`, renommé `diagnostic-contrastes.mjs` ; leur lien
   est mort.
