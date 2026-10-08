@@ -5,53 +5,59 @@
  * nodes Figma sans rien décider ; tout ce que la section 9 exige se teste ici,
  * hors de Figma.
  *
- * Le cadre répond à une question : quelle nuance pour quel usage (récit R1,
- * maquette W3.6). Chaque thème, peint de son fond, montre les rampes des
- * intensités de la palette, puis les usages de chacune dans leurs états
- * `default`, `hover`, `active` et `active-hover`, chacun avec les garanties qu'il porte et
- * leur niveau WCAG, puis les grilles des contrastes, alignées sur les rampes
- * ([PLA-18]). La recette dit quelles parties se dessinent ([PLA-28]).
+ * Le cadre répond à une question : quelle nuance pour quelle variable (récit R1,
+ * maquette W3.6, M2). Chaque thème, peint de son fond et dessiné dans le sens
+ * que son texte des boutons décide, montre les rampes des intensités de la
+ * palette, puis les variables de chacune, une ligne par dossier `solid`,
+ * `surface` et `page`, dans leurs états `default`, `hover` et `pressed`,
+ * chacune avec les garanties que le moteur juge et leur niveau WCAG, puis les
+ * grilles des contrastes, alignées sur les rampes ([PLA-18]). La recette dit
+ * quelles parties se dessinent ([PLA-28]).
  * L'interface d'exemple n'est pas sur la planche : l'onglet Création la
  * montre ([UI-14]).
  */
 import {
+  COULEUR_DU_TEXTE_DES_BOUTONS,
+  DOSSIERS,
+  ETATS,
+  GARANTIES,
   MODES,
-  PAIRES,
-  RANGS,
-  TABLE_DES_EMPLOIS,
+  TABLE_DES_DOSSIERS,
   atteintLeSeuil,
   contraste,
-  decalagesDeLEmploi,
   ecrireContraste,
-  emploiPresent,
   ecrireHexa,
   empreinte,
   intensitesDe,
   lireHexa,
-  paireJugeable,
   rampeDe,
   referenceDe,
   rgb8VersP3,
+  sensDuTheme,
+  variablePresente,
   type Cran,
-  type Emploi,
+  type Garantie,
   type Intensite,
-  type MembrePaire,
   type Mode,
   type Palette,
   type Promesse,
   type Recette,
   type Rgb8,
+  type SensDuTheme,
+  type VariableDePalette,
 } from 'ucm-couleur';
 
 import { analyserPalette, type AnalyseDePalette } from '../analyse';
 import type { ProfilDuDocument } from '../lecture';
+import { estLaPaletteNeutre } from '../presentation';
 import {
   NOM_DU_PROFIL,
   TEXTES,
   TEXTES_DE_LA_PLANCHE,
+  TEXTES_DES_DOSSIERS_DE_LA_PLANCHE,
   TEXTES_DU_DETAIL,
   enTeteDeLaReference,
-  enTeteDuTheme,
+  enTeteDuThemeDeLaPlanche,
   jugementDuSeuil,
   legendeDesContrastes,
   niveauEcrit,
@@ -161,24 +167,15 @@ export const COLONNE = { largeur: 56, libelle: 48 } as const;
 const HAUTEUR_DE_PASTILLE = 32;
 
 /**
- * Les colonnes des usages : libellé, puis une colonne par état. Les quatre
- * états tiennent dans la largeur des rampes de onze nuances : 160 + 4 × 128,
- * et quatre espacements de 16, font 736 px pour 752.
+ * Les colonnes des variables : libellé, puis une colonne par état. Les trois
+ * états tiennent dans la largeur des rampes de onze nuances : 160 + 3 × 128,
+ * et trois espacements de 16, font 592 px pour 752 ; la planche garde
+ * une colonne de 128 px de marge.
  */
 const USAGE = { libelle: 160, etat: 128 } as const;
 
 /** Un spécimen d'usage. */
 const SPECIMEN = { largeur: 96, hauteur: 32 } as const;
-
-/**
- * Les usages, dans l'ordre du récit : du fond de carte au séparateur.
- * `on-solid` se lit sur `solid`. `surface-card` n'a sa ligne que dans une
- * liste qui porte la 50.
- */
-const USAGES: readonly Emploi[] = ['surface-card', 'surface', 'text', 'solid', 'border-control', 'focus', 'border-decorative'];
-
-/** Les états d'un emploi, dans le vocabulaire des composants (W3.6), rangés par décalage. */
-export const ETATS = RANGS;
 
 /**
  * Une composante P3 arrondie au millionième. `**` ne rend pas le même dernier bit d'un moteur JavaScript à
@@ -348,141 +345,209 @@ function sectionDesRampes(contexte: Contexte, mode: Mode, encres: Encres): Noeud
   ]);
 }
 
-/* Quelle nuance pour quel usage */
+/* Quelle nuance pour quelle variable */
+
+/** Ce qu'une section lit : une intensité, un mode, et la table du sens que le texte des boutons du mode décide (S1, I6). */
+interface Tranche {
+  readonly intensite: Intensite;
+  readonly mode: Mode;
+  readonly sens: SensDuTheme;
+}
+
+type Dossier = (typeof DOSSIERS)[number];
+
+/** Les variables de chaque ligne, dans l'ordre de la planche. `page` n'a pas d'états : ses quatre variables se suivent. */
+const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[]>> = {
+  solid: ['solid/default', 'solid/hover', 'solid/pressed'],
+  surface: ['surface/default', 'surface/hover', 'surface/pressed'],
+  page: ['page/foreground', 'page/border', 'page/focus', 'page/divider'],
+};
 
 /**
- * Le spécimen d'un usage, peint de la nuance de son état : un aplat pour
- * `surface` et `solid`, un lien pour `text`, un champ pour `border-control`,
- * un anneau pour `focus`, un filet pour `border-decorative`.
+ * La largeur d'une cellule de `page`. Les quatre tiennent dans les trois
+ * colonnes d'états : 96 + 96 + 104 + 96, et trois espacements de 8, font 416 px,
+ * soit 3 × 128 et deux espacements de 16.
  */
-function specimen(contexte: Contexte, intensite: Intensite, emploi: Emploi, couleur: Rgb8, mode: Mode, encres: Encres): NoeudCadre {
-  const porteur = intensite;
-  const peint = peinture(couleur, contexte.profil);
+const LARGEUR_PAGE = { cellule: 96, anneau: SPECIMEN.largeur + TRAME } as const;
+
+const estPresente = (contexte: Contexte, tranche: Tranche, variable: VariableDePalette): boolean =>
+  variablePresente(variable, contexte.analyse.grille.crans, tranche.sens);
+
+/** Le cran d'une variable de la table, ou `null` pour le texte des boutons, qui n'a pas de cran. */
+function cranDeLaTable(tranche: Tranche, variable: VariableDePalette): number | null {
+  const cran = TABLE_DES_DOSSIERS[tranche.sens][variable];
+  return cran === 'texteDesBoutons' ? null : cran;
+}
+
+/** La couleur d'une variable présente : un cran de la rampe, ou le blanc ou le noir purs du texte des boutons. */
+function couleurDeLaVariable(contexte: Contexte, tranche: Tranche, variable: VariableDePalette): Rgb8 {
+  const cran = cranDeLaTable(tranche, variable);
+  if (cran === null) return hexaLu(COULEUR_DU_TEXTE_DES_BOUTONS[contexte.recette.texteDesBoutons[tranche.mode]]);
+  return nuance(contexte, tranche.intensite, tranche.mode, cran).couleur;
+}
+
+/**
+ * Le spécimen d'une variable, peint de sa couleur dans le sens du mode : un
+ * bouton pour `solid`, un fond teinté qui porte le texte et le contour de son
+ * dossier pour `surface`, puis un lien, un champ, un anneau et un filet pour
+ * `page`.
+ */
+function specimen(contexte: Contexte, tranche: Tranche, variable: VariableDePalette, encres: Encres): NoeudCadre {
+  const peindre = (cible: VariableDePalette) => peinture(couleurDeLaVariable(contexte, tranche, cible), contexte.profil);
   const fond = peinture(encres.fond, contexte.profil);
-  const texteColore = peinture(nuance(contexte, porteur, mode, TABLE_DES_EMPLOIS.text).couleur, contexte.profil);
   const boite = { largeur: SPECIMEN.largeur, hauteur: SPECIMEN.hauteur, rayon: 6 };
-  const a = TEXTES_DE_LA_PLANCHE.specimens;
-  switch (emploi) {
-    case 'surface':
-      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.surface, 'role', texteColore)], { ...boite, fond: peint, margeLaterale: TRAME, alignement: A_GAUCHE });
-    case 'surface-card': {
-      // Une carte a la clarté du fond : le filet de `border-decorative` la borde.
-      const filetDeCarte = peinture(nuance(contexte, porteur, mode, TABLE_DES_EMPLOIS['border-decorative']).couleur, contexte.profil);
-      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.carte, 'role', texteColore)], {
-        ...boite, fond: peint, trait: { couleur: filetDeCarte, epaisseur: 1, tirets: false }, margeLaterale: TRAME, alignement: A_GAUCHE,
+  const a = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.specimens;
+  const contour = (cible: VariableDePalette): Trait | undefined =>
+    estPresente(contexte, tranche, cible) ? { couleur: peindre(cible), epaisseur: 1, tirets: false } : undefined;
+  const champ = (): NoeudCadre => {
+    const trait = contour('page/border');
+    return cadre('champ', 'HORIZONTAL', [texte('libellé', a.champ, 'valeur', encres.encre)], {
+      ...boite, fond, ...(trait ? { trait } : {}), margeLaterale: TRAME, alignement: A_GAUCHE,
+    });
+  };
+  switch (variable) {
+    case 'solid/default':
+    case 'solid/hover':
+    case 'solid/pressed':
+      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.solid, 'role', peindre('solid/foreground'))], { ...boite, fond: peindre(variable), alignement: CENTRE });
+    case 'surface/default':
+    case 'surface/hover':
+    case 'surface/pressed': {
+      const trait = contour('surface/border');
+      const encre = estPresente(contexte, tranche, 'surface/foreground') ? peindre('surface/foreground') : peinture(encres.fond, contexte.profil);
+      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.surface, 'role', encre)], {
+        ...boite, fond: peindre(variable), ...(trait ? { trait } : {}), margeLaterale: TRAME, alignement: A_GAUCHE,
       });
     }
-    case 'text':
-      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.lien, 'role', peint)], { ...boite, alignement: A_GAUCHE });
-    case 'solid':
-      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.bouton, 'role', fond)], { ...boite, fond: peint, alignement: CENTRE });
-    case 'border-control':
-      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.champ, 'valeur', encres.seconde)], {
-        ...boite, fond, trait: { couleur: peint, epaisseur: 1, tirets: false }, margeLaterale: TRAME, alignement: A_GAUCHE,
+    case 'page/foreground':
+      return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.lien, 'role', peindre(variable))], { ...boite, alignement: A_GAUCHE });
+    case 'page/border':
+      return cadre('spécimen', 'HORIZONTAL', [champ()], { ...boite, alignement: A_GAUCHE });
+    case 'page/focus':
+      return cadre('spécimen', 'HORIZONTAL', [champ()], {
+        largeur: LARGEUR_PAGE.anneau, hauteur: SPECIMEN.hauteur + TRAME, rayon: 8, trait: { couleur: peindre(variable), epaisseur: 2, tirets: false }, alignement: CENTRE,
       });
-    case 'focus': {
-      const bordure = peinture(nuance(contexte, porteur, mode, TABLE_DES_EMPLOIS['border-control']).couleur, contexte.profil);
-      const champ = cadre('champ', 'HORIZONTAL', [texte('libellé', a.champ, 'valeur', encres.encre)], {
-        ...boite, fond, trait: { couleur: bordure, epaisseur: 1, tirets: false }, margeLaterale: TRAME, alignement: A_GAUCHE,
-      });
-      return cadre('spécimen', 'HORIZONTAL', [champ], {
-        largeur: SPECIMEN.largeur + TRAME, hauteur: SPECIMEN.hauteur + TRAME, rayon: 8, trait: { couleur: peint, epaisseur: 2, tirets: false }, alignement: CENTRE,
-      });
-    }
     default:
-      return cadre('spécimen', 'HORIZONTAL', [cadre('trait', 'HORIZONTAL', [], { fond: peint, largeur: SPECIMEN.largeur, hauteur: 1 })], { ...boite, alignement: A_GAUCHE });
+      return cadre('spécimen', 'HORIZONTAL', [cadre('trait', 'HORIZONTAL', [], { fond: peindre(variable), largeur: SPECIMEN.largeur, hauteur: 1 })], { ...boite, alignement: A_GAUCHE });
   }
 }
 
-const estLeMembre = (membre: MembrePaire, emploi: Emploi, decalage: number): boolean =>
-  'emploi' in membre && membre.emploi === emploi && membre.decalage === decalage;
+/** Une garantie jugée, rangée sous la cellule qui la porte. */
+interface LigneDeGarantie {
+  readonly cellule: VariableDePalette;
+  /** Le nom du calque : les deux variables, jamais un numéro. */
+  readonly nom: string;
+  readonly sens: string;
+  readonly seuil: Garantie['seuil'];
+  readonly promesse: Promesse;
+}
 
-/** Ce qu'un membre d'une paire de l'ancienne table désigne dans la rampe d'une intensité. */
-type MembreJuge = { readonly nature: 'cran'; readonly cran: number; readonly couleur: Rgb8 } | { readonly nature: 'fond'; readonly couleur: Rgb8 };
+/** Le texte des boutons, le texte et le contour de `surface` n'ont pas de cellule : leurs garanties les nomment. */
+const NOM_DU_MEMBRE_SANS_CELLULE: Partial<Record<VariableDePalette, string>> = {
+  'solid/foreground': 'solid/foreground',
+  'surface/foreground': TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.texte,
+  'surface/border': TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.contour,
+};
 
 /**
- * Les paires de l'ancienne table, jugées pour la planche. Le moteur ne les juge
- * plus : il juge les garanties de la table en dossiers. La planche garde son
- * dessin en emplois jusqu'à sa refonte (lot 9, I6), et lit encore ces paires.
+ * Les garanties d'une tranche, lues dans les promesses du moteur : la planche
+ * ne juge rien. Une garantie dont le premier membre a sa cellule s'y lit,
+ * « sur » son fond. Sinon, elle se lit sous le fond qu'elle juge, « dessus » ;
+ * le texte et le contour de `surface` contre la page se lisent sous
+ * `surface/default`.
  */
-function jugementsDesPaires(contexte: Contexte, intensite: Intensite, mode: Mode) {
-  const { recette, analyse } = contexte;
-  const fond = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
-  const designer = (membre: MembrePaire): MembreJuge => {
-    const cible = 'fond' in membre ? 'fond' : TABLE_DES_EMPLOIS[membre.emploi];
-    if (cible === 'fond' || !('emploi' in membre)) return { nature: 'fond', couleur: fond };
-    const rang = analyse.grille.crans.indexOf(cible) + membre.decalage;
-    return { nature: 'cran', cran: analyse.grille.crans[rang], couleur: rampeDe(analyse.rampes, intensite)[mode][rang].couleur };
-  };
-  return PAIRES.filter((paire) => paireJugeable(paire, analyse.grille.crans)).map((paire) => {
-    const premier = designer(paire.premier);
-    const second = designer(paire.second);
-    const valeur = contraste(premier.couleur, second.couleur);
-    return { paire, premier, second, contraste: valeur, tenue: atteintLeSeuil(valeur, recette.seuils[paire.seuil]) };
+function garantiesDeLaTranche(contexte: Contexte, tranche: Tranche): LigneDeGarantie[] {
+  const { sur, dessus } = TEXTES_DU_DETAIL;
+  const laPage = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.laPage;
+  return GARANTIES.flatMap((garantie) => {
+    const jugees = contexte.analyse.promesses.filter((promesse) =>
+      promesse.mode === tranche.mode && promesse.profil === tranche.intensite && promesse.garantie.numero === garantie.numero);
+    const premier = garantie.premier.variable;
+    const membre = NOM_DU_MEMBRE_SANS_CELLULE[premier];
+    return garantie.fonds.flatMap((fond, rang): LigneDeGarantie[] => {
+      const promesse = jugees[rang];
+      if (!promesse) return [];
+      const nom = `garantie ${premier} sur ${'variable' in fond ? fond.variable : 'page'}`;
+      const ligne = { nom, seuil: garantie.seuil, promesse };
+      if (membre === undefined) return [{ ...ligne, cellule: premier, sens: sur('variable' in fond ? fond.variable : laPage) }];
+      if ('variable' in fond) return [{ ...ligne, cellule: fond.variable, sens: dessus(membre) }];
+      return [{ ...ligne, cellule: 'surface/default', sens: `${membre} ${sur(laPage)}` }];
+    });
   });
 }
 
-/** Le nom d'un membre dans une ligne de garantie : « fond », « on-solid » ou « surface 100 ». */
-function partenaire(membre: MembrePaire, designe: MembreJuge): string {
-  if ('fond' in membre) return TEXTES_DE_LA_PLANCHE.fond;
-  return designe.nature === 'cran' ? `${membre.emploi} ${designe.cran}` : membre.emploi;
+/** Une cellule : le spécimen, le nom de sa variable et sa nuance, puis les garanties qu'elle porte. */
+function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalette, encres: Encres, garanties: readonly LigneDeGarantie[], largeur: number): NoeudCadre {
+  const cran = cranDeLaTable(tranche, variable);
+  const lignes = garanties.filter((ligne) => ligne.cellule === variable).map(({ nom, sens, seuil, promesse }) => {
+    const niveau = niveauEcrit(promesse.contraste, jugementDuSeuil(seuil)).ecrit;
+    const tenue = promesse.verdict === 'tenue';
+    return texte(nom, `${TEXTES_DU_DETAIL.garantie(tenue, sens, promesse.contraste)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, largeur);
+  });
+  return cadre(variable.replace('/', ' '), 'VERTICAL', [
+    specimen(contexte, tranche, variable, encres),
+    cadre('mesures', 'VERTICAL', [
+      texte('variable', `${variable} · ${cran}`, 'chiffre', encres.encre, largeur),
+      ...lignes,
+      // Le filet ne promet aucun contraste : la cellule le dit, au lieu de rester muette.
+      ...(variable === 'page/divider' ? [texte('sans minimum', TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.sansMinimum, 'note', encres.seconde, largeur)] : []),
+    ], { espacement: 0 }),
+  ], { largeur });
 }
 
 /**
- * Les garanties qu'un état porte, dans une intensité : une ligne par paire
- * dont il est membre, « sur » son second membre quand il est premier,
- * « dessus » quand il est second. Chaque paire apparaît ainsi sous chacun de
- * ses membres qui a un usage sur la planche.
+ * La ligne d'un dossier : son rôle, son code et ses exemples, le texte et le
+ * contour qu'il porte dits une fois, puis une cellule par état. `page` n'a
+ * pas d'états : ses quatre variables se suivent sous les colonnes d'états.
  */
-function garantiesDeLEtat(contexte: Contexte, intensite: Intensite, emploi: Emploi, decalage: number, mode: Mode, encres: Encres): NoeudTexte[] {
-  return jugementsDesPaires(contexte, intensite, mode).flatMap(({ paire, premier, second, contraste: valeur, tenue }) => {
-    const sens = estLeMembre(paire.premier, emploi, decalage)
-      ? TEXTES_DU_DETAIL.sur(partenaire(paire.second, second))
-      : estLeMembre(paire.second, emploi, decalage) ? TEXTES_DU_DETAIL.dessus(partenaire(paire.premier, premier)) : null;
-    if (sens === null) return [];
-    const niveau = niveauEcrit(valeur, jugementDuSeuil(paire.seuil)).ecrit;
-    return [texte(`garantie ${paire.numero}`, `${TEXTES_DU_DETAIL.garantie(tenue, sens, valeur)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, USAGE.etat)];
-  });
-}
-
-function ligneDUsage(contexte: Contexte, intensite: Intensite, emploi: Emploi, mode: Mode, encres: Encres): NoeudCadre {
-  const usage = TEXTES_DE_LA_PLANCHE.usages[emploi as keyof typeof TEXTES_DE_LA_PLANCHE.usages];
-  const depart = TABLE_DES_EMPLOIS[emploi];
-  if (depart === 'fond') throw new Error(`${emploi} n'a pas de nuance sur la planche.`);
-  const rangDeDepart = contexte.analyse.grille.crans.indexOf(depart);
-  const etats = decalagesDeLEmploi(emploi).map((decalage) => {
-    const numero = contexte.analyse.grille.crans[rangDeDepart + decalage];
-    const couleur = rampeDe(contexte.analyse.rampes, intensite)[mode][rangDeDepart + decalage].couleur;
-    return cadre(`${emploi} ${ETATS[decalage]}`, 'VERTICAL', [
-      specimen(contexte, intensite, emploi, couleur, mode, encres),
-      cadre('mesures', 'VERTICAL', [texte('numéro', String(numero), 'chiffre', encres.encre), ...garantiesDeLEtat(contexte, intensite, emploi, decalage, mode, encres)], { espacement: 0 }),
-    ], { largeur: USAGE.etat });
-  });
-  return cadre(`usage ${emploi}`, 'HORIZONTAL', [
+function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, encres: Encres, garanties: readonly LigneDeGarantie[]): NoeudCadre | null {
+  const variables = VARIABLES_DU_DOSSIER[dossier];
+  if (!variables.some((variable) => estPresente(contexte, tranche, variable))) return null;
+  const t = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE;
+  const cranDuTexte = cranDeLaTable(tranche, 'surface/foreground');
+  const dites = dossier === 'solid' && estPresente(contexte, tranche, 'solid/foreground')
+    ? [t.texteDeSolid(contexte.recette.texteDesBoutons[tranche.mode])]
+    : dossier === 'surface' && cranDuTexte !== null && estPresente(contexte, tranche, 'surface/foreground') ? [t.texteEtContourDeSurface(cranDuTexte)] : [];
+  const neutre = dossier === 'page' && estLaPaletteNeutre(contexte.palette);
+  const largeurDe = (variable: VariableDePalette): number =>
+    dossier !== 'page' ? USAGE.etat : variable === 'page/focus' ? LARGEUR_PAGE.anneau : LARGEUR_PAGE.cellule;
+  const cellules = variables.map((variable) =>
+    estPresente(contexte, tranche, variable)
+      ? cellule(contexte, tranche, variable, encres, garanties, largeurDe(variable))
+      : espace(largeurDe(variable), 1));
+  return cadre(`dossier ${dossier}`, 'HORIZONTAL', [
     cadre('libellés', 'VERTICAL', [
-      texte('usage', usage.titre, 'role', encres.encre, USAGE.libelle),
-      texte('rôle', emploi === 'focus' ? TEXTES_DE_LA_PLANCHE.etatFocus : emploi, 'note', encres.seconde, USAGE.libelle),
-      texte('exemples', usage.exemples, 'note', encres.seconde, USAGE.libelle),
+      texte('rôle', t.dossiers[dossier].role, 'role', encres.encre, USAGE.libelle),
+      texte('dossier', dossier, 'note', encres.seconde, USAGE.libelle),
+      texte('exemples', t.dossiers[dossier].exemples, 'note', encres.seconde, USAGE.libelle),
+      ...dites.map((dite) => texte('encres', dite, 'note', encres.encre, USAGE.libelle)),
+      ...(neutre ? [texte('neutre', t.noteDuNeutre, 'note', encres.seconde, USAGE.libelle)] : []),
     ], { espacement: 0, largeur: USAGE.libelle }),
-    ...etats,
+    ...(dossier === 'page' ? [cadre('variables', 'HORIZONTAL', cellules, { espacement: TRAME })] : cellules),
   ], { espacement: 2 * TRAME });
 }
 
 /**
- * Les usages d'une intensité ([PLA-18]) : « · Soft » ou « · Vivid » au titre
- * d'une palette à deux intensités, rien pour la rampe d'une palette à une
- * intensité.
+ * Les variables d'une intensité ([PLA-18]), dans le sens du mode : « · Soft »
+ * ou « · Vivid » au titre d'une palette à deux intensités, rien pour la
+ * rampe d'une palette à une intensité.
  */
-function sectionDesUsages(contexte: Contexte, intensite: Intensite, mode: Mode, encres: Encres, largeur: number): NoeudCadre {
+function sectionDesVariables(contexte: Contexte, intensite: Intensite, mode: Mode, encres: Encres, largeur: number): NoeudCadre {
+  const tranche: Tranche = { intensite, mode, sens: sensDuTheme(mode, contexte.recette.texteDesBoutons[mode]) };
+  const garanties = garantiesDeLaTranche(contexte, tranche);
   const entete = cadre('états', 'HORIZONTAL', [
     espace(USAGE.libelle, 1),
     ...ETATS.map((etat) => texte(etat, etat, 'chiffre', encres.seconde, USAGE.etat)),
   ], { espacement: 2 * TRAME });
-  const titre = TEXTES_DE_LA_PLANCHE.titreDesUsages(intensite === 'unique' ? null : NOM_DU_PROFIL[intensite]);
-  return cadre(intensite === 'unique' ? 'quelle nuance pour quel usage' : `quelle nuance pour quel usage ${intensite}`, 'VERTICAL', [
+  const titre = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.titre(intensite === 'unique' ? null : NOM_DU_PROFIL[intensite]);
+  const lignes = DOSSIERS.flatMap((dossier) => {
+    const ligne = ligneDeDossier(contexte, tranche, dossier, encres, garanties);
+    return ligne ? [filet(encres.filet), ligne] : [];
+  });
+  return cadre(intensite === 'unique' ? 'quelle nuance pour quelle variable' : `quelle nuance pour quelle variable ${intensite}`, 'VERTICAL', [
     texte('titre', titre, 'theme', encres.encre),
     entete,
-    ...USAGES.filter((emploi) => emploiPresent(emploi, contexte.analyse.grille.crans)).flatMap((emploi) => [filet(encres.filet), ligneDUsage(contexte, intensite, emploi, mode, encres)]),
+    ...lignes,
   ], { espacement: 2 * TRAME, largeur });
 }
 
@@ -537,9 +602,9 @@ function sectionDesContrastes(contexte: Contexte, mode: Mode, encres: Encres, la
 /* Le cadre */
 
 /**
- * Un thème : son en-tête et son verdict, puis les rampes, les usages de
+ * Un thème : son en-tête et son verdict, puis les rampes, les variables de
  * chaque intensité et les grilles, selon le contenu rangé ([PLA-28]). Une
- * palette libre sort du modèle : pas d'usages, et son en-tête dit « Palette
+ * palette libre sort du modèle : pas de variables, et son en-tête dit « Palette
  * libre · N nuances » à la place du verdict (W6.6).
  */
 function sectionDuTheme(contexte: Contexte, mode: Mode): NoeudCadre {
@@ -553,9 +618,9 @@ function sectionDuTheme(contexte: Contexte, mode: Mode): NoeudCadre {
   });
   const section = (enfant: NoeudCadre): NoeudCadre[] => [filet(encres.filet), enfant];
   const { contenuDesPlanches: contenu } = recette;
-  const usages = analyse.libre || !contenu.usages ? [] : intensitesDe(contexte.palette).flatMap((intensite) => section(sectionDesUsages(contexte, intensite, mode, encres, largeur)));
+  const usages = analyse.libre || !contenu.usages ? [] : intensitesDe(contexte.palette).flatMap((intensite) => section(sectionDesVariables(contexte, intensite, mode, encres, largeur)));
   return cadre(`thème ${mode}`, 'VERTICAL', [
-    cadre('en-tête', 'HORIZONTAL', [texte('titre', enTeteDuTheme(mode, recette.fonds[mode]), 'chiffre', encres.seconde), verdict], {
+    cadre('en-tête', 'HORIZONTAL', [texte('titre', enTeteDuThemeDeLaPlanche(mode, recette.fonds[mode], recette.texteDesBoutons[mode]), 'chiffre', encres.seconde), verdict], {
       largeur, alignement: { principal: 'SPACE_BETWEEN', secondaire: 'CENTER' },
     }),
     sectionDesRampes(contexte, mode, encres),

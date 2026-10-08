@@ -1417,30 +1417,15 @@ export function ecartDePeinture(nom: string, ecarts: readonly { readonly nom: st
 
 /** Les textes que la planche porte dans le document (section 9, récit R1 de W3.6), N093 à N099. */
 export const TEXTES_DE_LA_PLANCHE = {
-  // N093 : les titres des sections d'un thème ; une palette à une intensité a « La rampe », et des usages sans profil.
+  // N093 : les titres des sections d'un thème ; une palette à une intensité a « La rampe », et des variables sans profil.
   rampes: "Both colour scales",
   rampe: "Colour scale",
-  titreDesUsages: (profil: string | null) => (profil ? `Which shade to use · ${profil}` : "Which shade to use"),
   contrastes: "Contrast, shade by shade",
-  // N094 : chaque usage, son nom et ce qu'il habille ; l'anneau porte l'état focus.
-  usages: {
-    'surface-card': { titre: "Card backgrounds", exemples: "card, panel, table header" },
-    surface: { titre: "Subtle backgrounds", exemples: "soft button, badge, callout" },
-    text: { titre: "Coloured text", exemples: "link, accent text" },
-    solid: { titre: "Solid fills", exemples: "primary button, solid badge" },
-    'border-control': { titre: "Input borders", exemples: "input, checkbox" },
-    focus: { titre: "Focus ring", exemples: "keyboard focus" },
-    'border-decorative': { titre: "Separators", exemples: "divider, card border" },
-  },
-  etatFocus: "focus · focus state",
-  // N095 : les libellés des spécimens ; celui de `surface` ne se lit plus comme un profil (Y2.7).
-  specimens: { surface: "Subtle background", lien: "Coloured link", bouton: "Button", champ: "Input", carte: "Card" },
   // N096 : les repères dans une pastille, et la note des profils confondus.
   reperage: '◆',
   confondu: '≈',
   noteDuRepere: "◆: the exact reference colour.",
   noteDesConfondus: "≈: Soft and Vivid are almost identical at this shade.",
-  fond: "background",
   mode: { light: "Light theme", dark: "Dark theme" },
 } as const;
 
@@ -1459,6 +1444,18 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
   vues: { ecran: "Screen", etats: "States" },
   ecran: "Screen using the palette colours",
   etats: "Palette components by state",
+  peint: {
+    fond: "fill",
+    texte: "text",
+    contour: "outline",
+    anneau: "ring",
+    coche: "check",
+    icone: "icon",
+    pastille: "knob",
+    separateur: "divider",
+    fondAuSurvol: "fill on hover",
+    fondEtContour: "fill and outline",
+  },
   equipe: {
     organisation: 'Studio Nord',
     navigation: ["Settings", "Members", "Billing", "Integrations"],
@@ -1469,9 +1466,9 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     encart: "The invitation for camille@nord.studio expires in 2 days.",
     renvoyer: "Resend",
     membres: [
-      { nom: 'Alex Martin', role: "Administrator", plein: true },
-      { nom: 'Camille Roy', role: "Guest", plein: false },
-      { nom: 'Inès Diallo', role: "Member", plein: false },
+      { nom: 'Alex Martin', role: "Administrator", badge: 'plein' },
+      { nom: 'Camille Roy', role: "Guest", badge: 'texte' },
+      { nom: 'Inès Diallo', role: "Member", badge: 'teinte' },
     ],
     roleParDefaut: "Default role",
     membre: "Member",
@@ -1481,8 +1478,7 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     boutons: ["Cancel", "Draft", "Save"],
   },
   composants: {
-    etats: ['default', 'hover', 'active', 'focus'],
-    carte: "Card",
+    etats: ['default', 'hover', 'pressed', 'focus'],
     plein: "Solid button",
     soft: "Soft button",
     contour: "Outline button",
@@ -1600,11 +1596,6 @@ function nuancesDeLaReference(ancrage: Ancrage): string {
  */
 export function enTeteDeLaReference(hexa: string, ancrage: Ancrage): string {
   return `Reference colour ${hexa} · ${avecLeNom(ancrage.profil, nuancesDeLaReference(ancrage))}`;
-}
-
-/** L'en-tête d'un thème ([PLA-09], N098). */
-export function enTeteDuTheme(mode: Mode, fond: string): string {
-  return `${TEXTES_DE_LA_PLANCHE.mode[mode]} · background ${fond}`;
 }
 
 /** Le verdict d'un thème, en tête de sa section : ses garanties manquées, chaque intensité comptée (N098). */

@@ -3480,8 +3480,139 @@ test('Y1.5 : dans la grille des États, deux anneaux de focus de rangées voisin
       });
       return bornes.slice(1).map((borne, rang) => borne.haut - bornes[rang].bas);
     });
-    assert.ok(jours.length >= 6, JSON.stringify(jours));
+    // Six rangées portent un spécimen (plein, soft, contour, sans fond, champ, badge ; le lien n'en a pas), donc cinq jours. La rangée « Carte » a disparu (M3).
+    assert.equal(jours.length, 5, JSON.stringify(jours));
     assert.ok(Math.min(...jours) > 0, `deux anneaux se touchent : ${JSON.stringify(jours)}`);
+  } finally {
+    await page.close();
+  }
+});
+
+/** Les lignes de la bulle des variables : propriété, variable, nuance. */
+const lignesDeLaBulle = (page) => page.locator('.essai-surface .essai-bulle .essai-bulle-ligne').evaluateAll((lignes) => lignes.map((ligne) => [...ligne.children].map((enfant) => enfant.textContent)));
+
+test('[UI-04] I8 survoler un élément de l’écran ouvre une bulle qui liste ses propriétés et ses variables ; elle est cachée aux lecteurs d’écran et se ferme à la sortie du pointeur', async () => {
+  const page = await ouvrirSur('interface-de-test-bulle');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    const surface = page.locator('#panneau-creation .essai-surface');
+    assert.equal(await surface.locator('.essai-bulle').count(), 0, 'pas de bulle sans survol');
+    const avant = await surface.evaluate((element) => element.textContent);
+    const enregistrer = surface.locator('.essai-actions .essai-bouton:last-child');
+    await enregistrer.hover();
+    const bulle = surface.locator('.essai-bulle');
+    await bulle.waitFor();
+    assert.deepEqual(await lignesDeLaBulle(page), [['fond', 'solid/default', '700'], ['texte', 'solid/foreground', 'blanc']]);
+    assert.equal(await bulle.getAttribute('aria-hidden'), 'true');
+    assert.equal(await bulle.evaluate((element) => element.querySelectorAll('a, button, input, [tabindex]').length), 0, 'la bulle ne prend pas le focus');
+    assert.equal(await enregistrer.evaluate((element) => element.classList.contains('essai-survole')), true);
+    assert.equal(await enregistrer.evaluate((element) => getComputedStyle(element).outlineStyle), 'dashed', 'le contour de l’élément survolé est tireté');
+    // La bulle se pose sous l'élément sans le recouvrir.
+    const [boite, sous] = await Promise.all([enregistrer.boundingBox(), bulle.boundingBox()]);
+    assert.ok(sous.y >= boite.y + boite.height, `la bulle recouvre le bouton : ${JSON.stringify([boite, sous])}`);
+    // Hors de la bulle, l'écran ne gagne aucun texte.
+    const texteSansBulle = await surface.evaluate((element) => {
+      const copie = element.cloneNode(true);
+      copie.querySelectorAll('.essai-bulle').forEach((noeud) => noeud.remove());
+      return copie.textContent;
+    });
+    assert.equal(texteSansBulle, avant, 'le survol n’ajoute aucun texte hors de la bulle');
+    // Le pointeur quitte la surface : la bulle se ferme et l'élément perd son contour.
+    await page.mouse.move(2, 2);
+    await bulle.waitFor({ state: 'detached' });
+    assert.equal(await enregistrer.evaluate((element) => element.classList.contains('essai-survole')), false);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I8 la bulle suit l’élément survolé : le bouton soft porte surface/default et surface/foreground, le champ page/border, et un seul élément porte le contour tireté', async () => {
+  const page = await ouvrirSur('interface-de-test-bulle');
+  try {
+    await deplierLaCarte(page, 'Interface de test');
+    const surface = page.locator('#panneau-creation .essai-surface');
+    await surface.locator('.essai-actions .essai-bouton:nth-child(2)').hover();
+    await surface.locator('.essai-bulle').waitFor();
+    assert.deepEqual((await lignesDeLaBulle(page)).map(([propriete, variable]) => [propriete, variable]), [['fond', 'surface/default'], ['texte', 'surface/foreground']]);
+    assert.equal(await surface.locator('.essai-survole').count(), 1);
+    await surface.locator('.essai-saisie').hover();
+    assert.deepEqual((await lignesDeLaBulle(page)).map(([propriete, variable]) => [propriete, variable]), [['contour', 'page/border']]);
+    assert.equal(await surface.locator('.essai-survole').count(), 1);
+  } finally {
+    await page.close();
+  }
+});
+
+/** Les variables d'un spécimen de la grille des États, `propriete=variable;…` : rangée 0 plein, 1 soft, 2 contour, 3 sans fond, 4 champ ; colonne 0 default, 1 hover, 2 pressed, 3 focus. */
+const variablesDuSpecimen = (page, rangee, colonne) => page
+  .locator('.essai-etats [role="row"]:has(.essai-specimen, .essai-lien-peint)').nth(rangee)
+  .locator('[role="cell"]').nth(colonne)
+  .locator('[data-variables]').first()
+  .getAttribute('data-variables');
+
+async function ouvrirLaVueDesEtats(page) {
+  await deplierLaCarte(page, 'Interface de test');
+  await page.locator('.choix-de-la-vue .bascule-option').nth(1).click();
+}
+
+test('[UI-04] I8 la vue États a les colonnes default, hover, pressed et focus, et plus de rangée « Carte »', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await ouvrirLaVueDesEtats(page);
+    const grille = page.locator('.essai-etats');
+    assert.deepEqual(await grille.locator('[role="columnheader"]').allTextContents(), ['default', 'hover', 'pressed', 'focus']);
+    const noms = await grille.locator('[role="rowheader"]').allTextContents();
+    assert.equal(noms.some((nom) => /carte/i.test(nom)), false, noms.join(' | '));
+    assert.equal(noms.length, 7, noms.join(' | '));
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I8 S3 dans la vue États, le focus garde la forme du repos et ajoute l’anneau page/focus, pour les quatre boutons', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await ouvrirLaVueDesEtats(page);
+    assert.equal(await variablesDuSpecimen(page, 0, 3), 'fond=solid/default;texte=solid/foreground;anneau=page/focus');
+    assert.equal(await variablesDuSpecimen(page, 0, 0), 'fond=solid/default;texte=solid/foreground');
+    assert.equal(await variablesDuSpecimen(page, 1, 3), 'fond=surface/default;texte=surface/foreground;anneau=page/focus');
+    assert.equal(await variablesDuSpecimen(page, 2, 3), 'contour=page/border;texte=page/foreground;anneau=page/focus');
+    assert.equal(await variablesDuSpecimen(page, 3, 3), 'texte=surface/foreground;anneau=page/focus');
+    // Le survol et l'appui du plein gardent leurs variables propres.
+    assert.equal(await variablesDuSpecimen(page, 0, 1), 'fond=solid/hover;texte=solid/foreground');
+    assert.equal(await variablesDuSpecimen(page, 0, 2), 'fond=solid/pressed;texte=solid/foreground');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I8 dans la vue États, le texte du bouton soft est surface/foreground aux trois états, et le champ garde page/border aux quatre', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    await ouvrirLaVueDesEtats(page);
+    for (const [colonne, etat] of [[0, 'default'], [1, 'hover'], [2, 'pressed']]) {
+      assert.equal(await variablesDuSpecimen(page, 1, colonne), `fond=surface/${etat};texte=surface/foreground`, `soft, ${etat}`);
+    }
+    for (const colonne of [0, 1, 2, 3]) {
+      assert.match(await variablesDuSpecimen(page, 4, colonne), /^contour=page\/border(;|$)/, `champ, colonne ${colonne}`);
+    }
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-04] I8 dans le thème inversé (texte des boutons noir en Light), solid/hover du bouton plein vise la 600, solid/pressed la 500, solid/default la 700', async () => {
+  const page = await ouvrirSur('texte-des-boutons-noir-noir');
+  try {
+    await ouvrirLaVueDesEtats(page);
+    const nuances = async (colonne) => {
+      await page.locator('.essai-etats [role="row"]:has(.essai-specimen)').first().locator('[role="cell"]').nth(colonne).locator('.essai-specimen').hover();
+      return Object.fromEntries((await lignesDeLaBulle(page)).map(([propriete, variable, nuance]) => [`${propriete}:${variable}`, nuance]));
+    };
+    assert.equal((await nuances(0))['fond:solid/default'], '700');
+    assert.equal((await nuances(1))['fond:solid/hover'], '600');
+    assert.equal((await nuances(2))['fond:solid/pressed'], '500');
+    assert.equal((await nuances(0))['texte:solid/foreground'], 'noir');
   } finally {
     await page.close();
   }

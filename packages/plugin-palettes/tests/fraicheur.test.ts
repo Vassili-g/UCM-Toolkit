@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, nouvellePalette } from '../src/edition';
 import { dessinerLaPlanche } from '../src/ecriture/planche';
@@ -174,6 +174,20 @@ test('[PLA-20] renommer Bleu périme son cadre à jour ; changer le profil du do
   const renommee: Recette = { ...RECETTE, palettes: RECETTE.palettes.map((palette): Palette => (palette.id === BLEU.id ? { ...palette, nom: 'Bleu roi' } : palette)) };
   assert.deepEqual(etats(fraicheurDeLaPlanche(renommee, 'SRGB', planche)), [`${BLEU.id} perimee`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
   assert.deepEqual(etats(fraicheurDeLaPlanche(RECETTE, 'DISPLAY_P3', planche)), [`${BLEU.id} perimee`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
+});
+
+test('[PLA-20] P9 : changer le texte des boutons du Dark périme les cadres à jour, qu’il vienne avec ses courbes ou seul', async () => {
+  const planche = await lireLaPlanche((await plancheDessinee()).api());
+  assert.deepEqual(etats(fraicheurDeLaPlanche(RECETTE, 'SRGB', planche)), [`${BLEU.id} a-jour`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
+  const inversee = recetteAvecTexteDesBoutons(RECETTE, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  assert.deepEqual(etats(fraicheurDeLaPlanche(inversee.recette, 'SRGB', planche)), [`${BLEU.id} perimee`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
+  const seul: Recette = { ...RECETTE, texteDesBoutons: { ...RECETTE.texteDesBoutons, dark: 'blanc' } };
+  assert.deepEqual(etats(fraicheurDeLaPlanche(seul, 'SRGB', planche)), [`${BLEU.id} perimee`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
+  // Le Light, lui, n’a pas bougé : rétablir le noir du Dark rend le cadre à jour.
+  const retablie = recetteAvecTexteDesBoutons(inversee.recette, 'dark', 'noir');
+  assert.ok('recette' in retablie);
+  assert.deepEqual(etats(fraicheurDeLaPlanche(retablie.recette, 'SRGB', planche)), [`${BLEU.id} a-jour`, `${AMBRE.id} perimee`, `${VERT.id} jamais-dessinee`]);
 });
 
 test('[ENT-03] [PLA-25] le cadre d’une palette supprimée est orphelin ; une copie n’est jamais comptée comme cadre de sa palette, dont le cadre supprimé est introuvable', async () => {

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { PAIRES, contraste, lireHexa, recetteParDefaut, rgb8VersP3, type Palette, type Recette, type Rgb8 } from 'ucm-couleur';
+import { contraste, lireHexa, recetteAvecTexteDesBoutons, recetteParDefaut, rgb8VersP3, verifierPromesses, type Mode, type Palette, type Recette, type Rgb8, type TexteDesBoutons } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nouvellePalette, renommer } from '../src/edition';
 import { poserFond } from '../src/configuration';
@@ -17,6 +17,7 @@ import {
   type NoeudCadre,
   type NoeudTexte,
 } from '../src/planche/modele';
+import { contrasteEcrit } from '../src/planche/textes';
 
 const VIDE = recetteParDefaut();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
@@ -61,14 +62,14 @@ test('[PLA-07] l’en-tête donne le nom et la référence avec son profil, sans
   assert.ok(!textes(MODELE.racine).some((noeud) => /version|SRGB|sRGB|remplac/i.test(noeud.contenu)), 'ni version, ni espace de couleur, ni avertissement');
 });
 
-test('W3.6 [UI-14] : chaque thème dit son fond et son verdict, puis les rampes, les usages et les contrastes, dans cet ordre, sans interface d’exemple', () => {
+test('W3.6 [UI-14] : chaque thème dit son fond, son texte des boutons et son verdict, puis les rampes, les variables et les contrastes, dans cet ordre, sans interface d’exemple', () => {
   const racine = AVEC_GRILLE.racine;
   assert.deepEqual(racine.enfants.map((noeud) => noeud.nom), ['en-tête', 'thème light', 'thème dark']);
   const sections = trouver(racine, 'thème light').enfants.map((noeud) => noeud.nom).filter((nom) => nom !== 'filet');
-  assert.deepEqual(sections, ['en-tête', 'les deux rampes', 'quelle nuance pour quel usage soft', 'quelle nuance pour quel usage vivid', 'contrastes']);
+  assert.deepEqual(sections, ['en-tête', 'les deux rampes', 'quelle nuance pour quelle variable soft', 'quelle nuance pour quelle variable vivid', 'contrastes']);
   assert.equal(cadres(racine).some((noeud) => noeud.nom === 'écran de réglages'), false, 'l’écran de réglages est dans l’onglet Création, pas sur la planche');
   const tete = textes(trouver(trouver(racine, 'thème dark'), 'en-tête')).map((noeud) => noeud.contenu);
-  assert.deepEqual(tete, ['Thème Dark · fond #121212', '✓ Toutes les garanties tenues']);
+  assert.deepEqual(tete, ['Thème Dark · fond de la page #121212 · texte des boutons noir', '✓ Toutes les garanties tenues']);
   const echec = trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light');
   const verdict = textes(trouver(echec, 'verdict'))[0];
   assert.match(verdict.contenu, /^\d+ garanties manquées$/);
@@ -127,52 +128,160 @@ test('[PLA-14] quarante-quatre pastilles nommées profil/mode/cran, chacune une 
   assert.equal(AVEC_GRILLE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1');
 });
 
-/** Les usages d'un profil dans un thème ([PLA-18]). */
-const usagesDe = (racine: NoeudCadre, mode: 'light' | 'dark', profil: 'soft' | 'vivid') => trouver(trouver(racine, `thème ${mode}`), `quelle nuance pour quel usage ${profil}`);
+/** Les variables d'un profil dans un thème ([PLA-18]). */
+const variablesDe = (racine: NoeudCadre, mode: Mode, profil: 'soft' | 'vivid') => trouver(trouver(racine, `thème ${mode}`), `quelle nuance pour quelle variable ${profil}`);
+const garantiesLues = (racine: NoeudCadre) => textes(racine).filter((noeud) => noeud.nom.startsWith('garantie '));
 
-test('[PLA-18] W3.6 X6 D17 : les usages de chaque profil, Soft puis Vivid, un état par colonne, de default à active-hover ; la carte, l’anneau et le séparateur n’en ont qu’un', () => {
-  assert.equal((usagesDe(MODELE.racine, 'light', 'soft').enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quel usage · Soft');
-  const usages = usagesDe(MODELE.racine, 'light', 'vivid');
-  assert.equal((usages.enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quel usage · Vivid');
-  assert.deepEqual(textes(trouver(usages, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'active', 'active-hover']);
-  const lignes = usages.enfants.filter((noeud) => noeud.nom.startsWith('usage '));
-  assert.deepEqual(lignes.map((noeud) => [noeud.nom, (noeud as NoeudCadre).enfants.length - 1]), [
-    ['usage surface-card', 1], ['usage surface', 4], ['usage text', 4], ['usage solid', 4], ['usage border-control', 4], ['usage focus', 1], ['usage border-decorative', 1],
+test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne par dossier, trois états par colonne ; page n’a pas d’états', () => {
+  assert.equal((variablesDe(MODELE.racine, 'light', 'soft').enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quelle variable · Soft');
+  const variables = variablesDe(MODELE.racine, 'light', 'vivid');
+  assert.equal((variables.enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quelle variable · Vivid');
+  assert.deepEqual(textes(trouver(variables, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'pressed']);
+  const lignes = variables.enfants.filter((noeud): noeud is NoeudCadre => noeud.nom.startsWith('dossier '));
+  assert.deepEqual(lignes.map((noeud) => [noeud.nom, noeud.enfants.length - 1]), [['dossier solid', 3], ['dossier surface', 3], ['dossier page', 1]]);
+  assert.deepEqual(trouver(variables, 'variables').enfants.map((noeud) => noeud.nom), ['page foreground', 'page border', 'page focus', 'page divider']);
+  const legendes = (ligne: string) => textes(trouver(trouver(variables, ligne), 'libellés')).map((noeud) => noeud.contenu);
+  assert.deepEqual(legendes('dossier solid'), ['Fond plein', 'solid', 'bouton principal, badge plein', 'texte : solid/foreground, blanc']);
+  assert.deepEqual(legendes('dossier surface'), ['Fond teinté', 'surface', 'alerte, badge doux, ligne sélectionnée', 'texte et contour : surface/foreground, surface/border · 800']);
+  assert.deepEqual(legendes('dossier page'), ['Sur la page', 'page', 'lien, champ, anneau, filet']);
+  const nom = (cellule: string) => textes(trouver(variables, cellule)).find((noeud) => noeud.nom === 'variable')!.contenu;
+  assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'page foreground', 'page border', 'page focus', 'page divider'].map(nom), [
+    'solid/default · 700', 'solid/hover · 800', 'solid/pressed · 900', 'surface/default · 100', 'surface/hover · 200', 'surface/pressed · 300',
+    'page/foreground · 700', 'page/border · 700', 'page/focus · 600', 'page/divider · 300',
   ]);
-  const numero = (nom: string) => textes(trouver(usages, nom)).find((noeud) => noeud.nom === 'numéro')!.contenu;
-  assert.deepEqual(['text default', 'text hover', 'text active', 'text active-hover'].map(numero), ['700', '800', '900', '950']);
-  assert.equal(numero('surface active-hover'), '400');
-  assert.equal(numero('focus default'), '600');
-  assert.equal(numero('surface-card default'), '50');
-  assert.equal(trouver(trouver(usages, 'surface-card default'), 'spécimen').fond?.hexa, MODELE.peints.find(({ nom }) => nom === 'vivid/light/50')?.hexa);
-  const fondDuSpecimen = trouver(trouver(usages, 'surface default'), 'spécimen').fond?.hexa;
-  assert.equal(fondDuSpecimen, MODELE.peints.find(({ nom }) => nom === 'vivid/light/100')?.hexa);
-  assert.equal(trouver(trouver(usages, 'border-control hover'), 'spécimen').trait?.couleur.hexa, MODELE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa);
+  const peint = (cran: number) => MODELE.peints.find(({ nom: calque }) => calque === `vivid/light/${cran}`)?.hexa;
+  const specimen = (cellule: string) => trouver(trouver(variables, cellule), 'spécimen');
+  assert.equal(specimen('solid hover').fond?.hexa, peint(800));
+  assert.equal((specimen('solid hover').enfants[0] as NoeudTexte).couleur.hexa, '#FFFFFF', 'le texte des boutons, blanc pur');
+  assert.equal(specimen('surface pressed').fond?.hexa, peint(300));
+  assert.equal((specimen('surface pressed').enfants[0] as NoeudTexte).couleur.hexa, peint(800), 'le texte de surface');
+  assert.equal(specimen('surface pressed').trait?.couleur.hexa, peint(800), 'le contour de surface');
+  assert.equal((specimen('page foreground').enfants[0] as NoeudTexte).couleur.hexa, peint(700));
+  assert.equal(specimen('page focus').trait?.couleur.hexa, peint(600));
+  assert.equal(specimen('page divider').fond, null);
+  assert.equal(textes(trouver(variables, 'page divider')).some((noeud) => noeud.contenu === 'sans minimum de contraste'), true);
+  assert.ok(!textes(MODELE.racine).some((noeud) => /active|Fonds (de carte|légers|pleins)|Fond léger|Séparateurs|Bordures de champ/.test(noeud.contenu)), 'plus rien de l’ancienne table');
 });
 
-test('X6 [VER-05] : une liste sans 50 n’a ni la ligne « Fonds de carte » ni ses garanties, et la planche se construit', () => {
-  const sans50: Recette = { ...RECETTE, crans: RECETTE.crans.slice(1), courbes: { light: RECETTE.courbes.light.slice(1), dark: RECETTE.courbes.dark.slice(1) } };
-  const usages = usagesDe(modeleDeCadre(sans50, BLEU, 'SRGB').racine, 'light', 'vivid');
-  const lignes = usages.enfants.filter((noeud) => noeud.nom.startsWith('usage ')).map((noeud) => noeud.nom);
-  assert.equal(lignes.includes('usage surface-card'), false);
-  assert.equal(textes(usages).some((noeud) => noeud.nom === 'garantie 15' || noeud.nom === 'garantie 16'), false);
-});
+/** Les quatre combinaisons de texte des boutons : Light blanc ou noir, Dark noir ou blanc (S1). */
+const COMBINAISONS: readonly (readonly [TexteDesBoutons, TexteDesBoutons])[] = [['blanc', 'noir'], ['noir', 'noir'], ['blanc', 'blanc'], ['noir', 'blanc']];
 
-test('W5.5 [VER-13] : chaque paire du moteur se lit dans les usages de chaque thème, avec son sens, son résultat, son ratio et son niveau WCAG', () => {
-  for (const mode of ['light', 'dark'] as const) {
-    const usages = usagesDe(MODELE.racine, mode, 'vivid');
-    const lues = new Set(textes(usages).filter((noeud) => noeud.nom.startsWith('garantie ')).map((noeud) => Number(noeud.nom.slice('garantie '.length))));
-    assert.deepEqual([...lues].sort((a, b) => a - b), PAIRES.map(({ numero }) => numero), mode);
+function recetteAvecLesTextes(light: TexteDesBoutons, dark: TexteDesBoutons): Recette {
+  const claire = recetteAvecTexteDesBoutons(RECETTE, 'light', light);
+  assert.ok('recette' in claire, `Light ${light}`);
+  const sombre = recetteAvecTexteDesBoutons(claire.recette, 'dark', dark);
+  assert.ok('recette' in sombre, `Dark ${dark}`);
+  return sombre.recette;
+}
+
+test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les quatre combinaisons de texte des boutons', () => {
+  const NORMAL = { solid: [700, 800, 900], surface: [100, 200, 300], texte: 800, page: [700, 700, 600, 300] };
+  const INVERSE = { solid: [700, 600, 500], surface: [100, 200, 300], texte: 900, page: [800, 800, 700, 300] };
+  const PURS = { blanc: '#FFFFFF', noir: '#000000' };
+  for (const [light, dark] of COMBINAISONS) {
+    const recette = recetteAvecLesTextes(light, dark);
+    const modele = modeleDeCadre(recette, BLEU, 'SRGB');
+    for (const [mode, texteDesBoutons] of [['light', light], ['dark', dark]] as const) {
+      const contexte = `Light ${light}, Dark ${dark}, ${mode}`;
+      const table = texteDesBoutons === (mode === 'light' ? 'blanc' : 'noir') ? NORMAL : INVERSE;
+      const theme = trouver(modele.racine, `thème ${mode}`);
+      assert.equal(textes(trouver(theme, 'en-tête'))[0].contenu, `${mode === 'light' ? 'Thème Light' : 'Thème Dark'} · fond de la page ${recette.fonds[mode]} · texte des boutons ${texteDesBoutons}`, contexte);
+      const variables = variablesDe(modele.racine, mode, 'vivid');
+      const peint = (cran: number) => modele.peints.find(({ nom }) => nom === `vivid/${mode}/${cran}`)?.hexa;
+      const cellule = (nom: string) => trouver(variables, nom);
+      const nuance = (nom: string) => textes(cellule(nom)).find((noeud) => noeud.nom === 'variable')!.contenu.split(' · ')[1];
+      ['solid default', 'solid hover', 'solid pressed'].forEach((nom, rang) => {
+        assert.equal(nuance(nom), String(table.solid[rang]), `${contexte} ${nom}`);
+        const specimen = trouver(cellule(nom), 'spécimen');
+        assert.equal(specimen.fond?.hexa, peint(table.solid[rang]), `${contexte} ${nom}`);
+        assert.equal((specimen.enfants[0] as NoeudTexte).couleur.hexa, PURS[texteDesBoutons], `${contexte} ${nom} : le texte des boutons`);
+      });
+      ['surface default', 'surface hover', 'surface pressed'].forEach((nom, rang) => {
+        const specimen = trouver(cellule(nom), 'spécimen');
+        assert.equal(nuance(nom), String(table.surface[rang]), `${contexte} ${nom}`);
+        assert.equal((specimen.enfants[0] as NoeudTexte).couleur.hexa, peint(table.texte), `${contexte} ${nom} : texte`);
+        assert.equal(specimen.trait?.couleur.hexa, peint(table.texte), `${contexte} ${nom} : contour`);
+      });
+      ['page foreground', 'page border', 'page focus', 'page divider'].forEach((nom, rang) => assert.equal(nuance(nom), String(table.page[rang]), `${contexte} ${nom}`));
+      const dites = cadres(variables).filter((noeud) => noeud.nom === 'libellés').flatMap(textes).map((noeud) => noeud.contenu);
+      assert.ok(dites.includes(`texte : solid/foreground, ${texteDesBoutons}`), contexte);
+      assert.ok(dites.includes(`texte et contour : surface/foreground, surface/border · ${table.texte}`), contexte);
+    }
   }
-  const lignes = (nom: string) => textes(trouver(usagesDe(MODELE.racine, 'light', 'vivid'), nom)).filter((noeud) => noeud.nom.startsWith('garantie ')).map((noeud) => noeud.contenu);
-  assert.deepEqual(lignes('text default'), ['✓ sur fond : 5,74:1 · AA', '✓ sur surface 100 : 5,33:1 · AA', '✓ sur surface-card 50 : 5,74:1 · AA']);
-  // Un élément graphique n'a que AA : 4,19:1 ne se juge pas en texte courant.
-  assert.deepEqual(lignes('surface default'), ['✓ text 700 dessus : 5,33:1 · AA', '✓ border-control 600 dessus : 4,19:1 · AA', '✓ focus 600 dessus : 4,19:1 · AA']);
-  assert.deepEqual(lignes('solid default'), ['✓ on-solid dessus : 5,74:1 · AA']);
-  assert.deepEqual(lignes('border-decorative default'), []);
-  const echec = textes(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.nom.startsWith('garantie ') && noeud.contenu.startsWith('✗'))!;
+});
+
+test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sens de chaque mode, et n’écrit aucun numéro de garantie', () => {
+  for (const [light, dark] of COMBINAISONS) {
+    const recette = recetteAvecLesTextes(light, dark);
+    const modele = modeleDeCadre(recette, BLEU, 'SRGB');
+    const promesses = verifierPromesses(recette, BLEU);
+    for (const mode of ['light', 'dark'] as const) {
+      for (const profil of ['soft', 'vivid'] as const) {
+        const lues = garantiesLues(variablesDe(modele.racine, mode, profil));
+        const jugees = promesses.filter((promesse) => promesse.mode === mode && promesse.profil === profil);
+        const contexte = `Light ${light}, Dark ${dark}, ${mode} ${profil}`;
+        assert.equal(lues.length, jugees.length, contexte);
+        assert.equal(lues.filter((noeud) => noeud.contenu.startsWith('✗')).length, jugees.filter((promesse) => promesse.verdict === 'manquee').length, contexte);
+        const ratios = (liste: readonly string[]) => [...liste].sort();
+        assert.deepEqual(
+          ratios(lues.map((noeud) => /(\d+,\d\d:1)/.exec(noeud.contenu)![1])),
+          ratios(jugees.map((promesse) => contrasteEcrit(promesse.contraste))),
+          contexte,
+        );
+      }
+    }
+    assert.ok(!tous(modele.racine).some((noeud) => /garantie \d|\bG[1-7]\b/.test(noeud.nom) || (noeud.type === 'texte' && /\bG[1-7]\b/.test(noeud.contenu))), 'aucun numéro de garantie');
+  }
+  const lignes = (nom: string) => garantiesLues(trouver(variablesDe(MODELE.racine, 'light', 'vivid'), nom)).map((noeud) => noeud.contenu);
+  assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,15:1 · AA', '✓ sur la page : 5,74:1 · AA']);
+  assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,09:1 · AAA']);
+  assert.deepEqual(lignes('surface default'), [
+    '✓ texte dessus : 7,52:1 · AAA', '✓ texte sur la page : 8,10:1 · AAA', '✓ contour dessus : 7,52:1 · AA', '✓ contour sur la page : 8,10:1 · AA',
+  ]);
+  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,55:1 · AA', '✓ contour dessus : 6,55:1 · AA']);
+  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,74:1 · AA']);
+  assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,74:1 · AA']);
+  assert.deepEqual(lignes('page focus'), ['✓ sur la page : 4,52:1 · AA', '✓ sur surface/default : 4,19:1 · AA']);
+  assert.deepEqual(lignes('page divider'), []);
+  const echec = garantiesLues(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.contenu.startsWith('✗'))!;
   assert.equal(echec.style, 'chiffre');
   assert.equal(echec.couleur.hexa, COULEURS_DE_LA_PLANCHE.dangerSombre);
+});
+
+test('P9 : changer le texte des boutons d’un mode change l’empreinte, et lui seul', () => {
+  const dark = recetteAvecLesTextes('blanc', 'blanc');
+  assert.notEqual(modeleDeCadre(dark, BLEU, 'SRGB').empreinte, AVEC_GRILLE.empreinte, 'Dark blanc');
+  const light = recetteAvecLesTextes('noir', 'noir');
+  assert.notEqual(modeleDeCadre(light, BLEU, 'SRGB').empreinte, AVEC_GRILLE.empreinte, 'Light noir');
+  // Le réglage rejoué à l’identique ne change rien.
+  assert.equal(modeleDeCadre(recetteAvecLesTextes('blanc', 'noir'), BLEU, 'SRGB').empreinte, AVEC_GRILLE.empreinte);
+  // Sans changer les courbes, le seul texte des boutons du Dark change encore l’en-tête et le sens de la table.
+  const seul: Recette = { ...RECETTE, texteDesBoutons: { ...RECETTE.texteDesBoutons, dark: 'blanc' } };
+  assert.notEqual(modeleDeCadre(seul, BLEU, 'SRGB').empreinte, AVEC_GRILLE.empreinte);
+});
+
+test('S2 : la palette du neutre ajoute la note de son corps de texte à la ligne page ; les autres palettes n’en ont pas', () => {
+  const note = 'page/foreground-main : corps de texte, noir ou blanc purs, hors de la rampe';
+  const neutre = { ...BLEU, nom: 'Neutral' };
+  const libelles = (modele: ReturnType<typeof modeleDeCadre>) => textes(trouver(variablesDe(modele.racine, 'light', 'vivid'), 'dossier page')).map((noeud) => noeud.contenu);
+  assert.ok(libelles(modeleDeCadre(avec(neutre), neutre, 'SRGB')).includes(note));
+  assert.ok(!libelles(MODELE).includes(note));
+});
+
+test('P7 : une liste sans 50 garde les trois dossiers et ses garanties ; sans 900, la variable dont le cran manque n’est pas dessinée ni jugée', () => {
+  const sans = (cran: number): Recette => {
+    const rang = RECETTE.crans.indexOf(cran);
+    const sauf = <T,>(liste: readonly T[]) => liste.filter((_, i) => i !== rang);
+    return { ...RECETTE, crans: sauf(RECETTE.crans), courbes: { light: sauf(RECETTE.courbes.light), dark: sauf(RECETTE.courbes.dark) } };
+  };
+  const sans50 = variablesDe(modeleDeCadre(sans(50), BLEU, 'SRGB').racine, 'light', 'vivid');
+  assert.deepEqual(sans50.enfants.filter((noeud) => noeud.nom.startsWith('dossier ')).map((noeud) => noeud.nom), ['dossier solid', 'dossier surface', 'dossier page']);
+  assert.equal(garantiesLues(sans50).length, 16);
+  const sans900 = variablesDe(modeleDeCadre(sans(900), BLEU, 'SRGB').racine, 'light', 'vivid');
+  const noms = cadres(sans900).map((noeud) => noeud.nom);
+  assert.equal(noms.includes('solid pressed'), false);
+  assert.equal(noms.includes('solid hover'), true);
+  assert.equal(garantiesLues(sans900).some((noeud) => noeud.nom.startsWith('garantie solid/foreground')), false, 'une garantie dont un cran manque n’est pas jugée');
 });
 
 test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les rampes ; une paire lisible se peint de ses vraies couleurs avec son niveau de texte, une paire sous 3:1 s’efface', () => {
@@ -202,7 +311,7 @@ test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les ramp
   assert.deepEqual([ligne.espacement, (ligne.enfants[1] as NoeudCadre).largeur], [rampe.espacement, (rampe.enfants[1] as NoeudCadre).largeur]);
 });
 
-test('W5.5 W6.6 : une palette libre n’a ni usages ni interface d’exemple ; ses rampes et ses grilles suivent sa liste, et son en-tête le dit', () => {
+test('W5.5 W6.6 : une palette libre n’a ni variables ni interface d’exemple ; ses rampes et ses grilles suivent sa liste, et son en-tête le dit', () => {
   const libre: Palette = { ...BLEU, crans: [100, 200, 400, 600, 800, 900] };
   const modele = modeleDeCadre(avec(libre), libre, 'SRGB');
   for (const mode of ['light', 'dark'] as const) {
@@ -294,7 +403,7 @@ test('V10.10 : les styles de texte entrent dans l’empreinte, et un cadre dessi
 test('[PLA-24] le compte de calques d’un cadre, relevé pour le temps de dessin', () => {
   const sans = compterCalques(MODELE.racine);
   const avecGrille = compterCalques(AVEC_GRILLE.racine);
-  assert.ok(sans > 600 && sans < 1000, String(sans));
+  assert.ok(sans > 500 && sans < 1000, String(sans));
   assert.ok(avecGrille > sans + 4 * 110 && avecGrille < 2100, String(avecGrille));
 });
 
@@ -310,9 +419,9 @@ test('[PLA-14] [ENT-14] Y5.5 : une palette à une intensité ne montre ni rampe 
   assert.equal(modele.peints.find(({ nom }) => nom === 'light/600')?.hexa, '#1E6FD9');
   for (const mode of ['light', 'dark'] as const) {
     const theme = trouver(modele.racine, `thème ${mode}`);
-    assert.deepEqual(theme.enfants.map((noeud) => noeud.nom).filter((nom) => nom !== 'filet'), ['en-tête', 'la rampe', 'quelle nuance pour quel usage', 'contrastes']);
+    assert.deepEqual(theme.enfants.map((noeud) => noeud.nom).filter((nom) => nom !== 'filet'), ['en-tête', 'la rampe', 'quelle nuance pour quelle variable', 'contrastes']);
     assert.equal(textes(trouver(theme, 'la rampe')).find((noeud) => noeud.nom === 'titre')?.contenu, 'La rampe');
-    assert.equal((trouver(theme, 'quelle nuance pour quel usage').enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quel usage');
+    assert.equal((trouver(theme, 'quelle nuance pour quelle variable').enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quelle variable');
     assert.ok(cadres(theme).some((noeud) => noeud.nom === `grille ${mode}`));
   }
   assert.ok(!textes(modele.racine).some((noeud) => /\b(Soft|Vivid)\b/.test(noeud.contenu)), 'aucun nom de profil');
@@ -330,8 +439,8 @@ test('[PLA-18] Y5.5 : deux palettes à deux intensités donnent deux cadres de m
   // Le ◆ et ≈ changent de pastille d'une référence à l'autre : on compare les sections, pas le contenu des pastilles.
   const sections = (racine: NoeudCadre) => trouver(racine, 'thème light').enfants.map((noeud) => noeud.nom);
   assert.deepEqual(sections(deSauge.racine), sections(bleu.racine));
-  assert.deepEqual(structure(usagesDe(deSauge.racine, 'dark', 'soft')), structure(usagesDe(bleu.racine, 'dark', 'soft')));
-  assert.equal(textes(trouver(usagesDe(deSauge.racine, 'light', 'vivid'), 'surface default')).find((noeud) => noeud.nom === 'libellé')?.contenu, 'Fond léger', 'le spécimen de surface ne se lit pas comme un profil');
+  assert.deepEqual(structure(variablesDe(deSauge.racine, 'dark', 'soft')), structure(variablesDe(bleu.racine, 'dark', 'soft')));
+  assert.equal(textes(trouver(variablesDe(deSauge.racine, 'light', 'vivid'), 'surface default')).find((noeud) => noeud.nom === 'libellé')?.contenu, 'Fond teinté', 'le spécimen de surface ne se lit pas comme un profil');
 });
 
 test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l’empreinte ; l’en-tête et les rampes restent', () => {
@@ -352,7 +461,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Quatre états par usage : 2 070 calques à deux intensités, 1 060 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 2070);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 1060);
+  // Trois états par dossier : 1 754 calques à deux intensités, 902 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1754);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 902);
 });

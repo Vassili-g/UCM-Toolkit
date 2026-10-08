@@ -1409,30 +1409,15 @@ export function ecartDePeinture(nom: string, ecarts: readonly { readonly nom: st
 
 /** Les textes que la planche porte dans le document (section 9, récit R1 de W3.6), N093 à N099. */
 export const TEXTES_DE_LA_PLANCHE = {
-  // N093 : les titres des sections d'un thème ; une palette à une intensité a « La rampe », et des usages sans profil.
+  // N093 : les titres des sections d'un thème ; une palette à une intensité a « La rampe », et des variables sans profil.
   rampes: 'Les deux rampes',
   rampe: 'La rampe',
-  titreDesUsages: (profil: string | null) => (profil ? `Quelle nuance pour quel usage · ${profil}` : 'Quelle nuance pour quel usage'),
   contrastes: 'Contrastes, nuance par nuance',
-  // N094 : chaque usage, son nom et ce qu'il habille ; l'anneau porte l'état focus.
-  usages: {
-    'surface-card': { titre: 'Fonds de carte', exemples: 'carte, panneau, en-tête de tableau' },
-    surface: { titre: 'Fonds légers', exemples: 'bouton soft, badge, encart' },
-    text: { titre: 'Textes colorés', exemples: 'lien, texte d’accent' },
-    solid: { titre: 'Fonds pleins', exemples: 'bouton principal, badge plein' },
-    'border-control': { titre: 'Bordures de champ', exemples: 'champ de saisie, case' },
-    focus: { titre: 'Anneau de focus', exemples: 'focus clavier' },
-    'border-decorative': { titre: 'Séparateurs', exemples: 'filet, bordure de carte' },
-  },
-  etatFocus: 'focus · état focus',
-  // N095 : les libellés des spécimens ; celui de `surface` ne se lit plus comme un profil (Y2.7).
-  specimens: { surface: 'Fond léger', lien: 'Lien coloré', bouton: 'Bouton', champ: 'Champ', carte: 'Carte' },
   // N096 : les repères dans une pastille, et la note des profils confondus.
   reperage: '◆',
   confondu: '≈',
   noteDuRepere: '◆ : la couleur de référence exacte.',
   noteDesConfondus: '≈ : Soft et Vivid presque identiques à cette nuance.',
-  fond: 'fond',
   mode: { light: 'Thème Light', dark: 'Thème Dark' },
 } as const;
 
@@ -1451,6 +1436,18 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
   vues: { ecran: 'Écran', etats: 'États' },
   ecran: "Écran avec les couleurs de la palette",
   etats: 'Composants de la palette, par état',
+  peint: {
+    fond: 'fond',
+    texte: 'texte',
+    contour: 'contour',
+    anneau: 'anneau',
+    coche: 'coche',
+    icone: 'icône',
+    pastille: 'pastille',
+    separateur: 'séparateur',
+    fondAuSurvol: 'fond au survol',
+    fondEtContour: 'fond et contour',
+  },
   equipe: {
     organisation: 'Studio Nord',
     navigation: ['Paramètres', 'Membres', 'Facturation', 'Intégrations'],
@@ -1461,9 +1458,9 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     encart: 'L’invitation de camille@nord.studio expire dans 2 jours.',
     renvoyer: 'Renvoyer',
     membres: [
-      { nom: 'Alex Martin', role: 'Administrateur', plein: true },
-      { nom: 'Camille Roy', role: 'Invitée', plein: false },
-      { nom: 'Inès Diallo', role: 'Membre', plein: false },
+      { nom: 'Alex Martin', role: 'Administrateur', badge: 'plein' },
+      { nom: 'Camille Roy', role: 'Invitée', badge: 'texte' },
+      { nom: 'Inès Diallo', role: 'Membre', badge: 'teinte' },
     ],
     roleParDefaut: 'Rôle par défaut',
     membre: 'Membre',
@@ -1473,8 +1470,7 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     boutons: ['Annuler', 'Brouillon', 'Enregistrer'],
   },
   composants: {
-    etats: ['default', 'hover', 'active', 'focus'],
-    carte: 'Carte',
+    etats: ['default', 'hover', 'pressed', 'focus'],
     plein: 'Bouton plein',
     soft: 'Bouton soft',
     contour: 'Bouton contour',
@@ -1592,11 +1588,6 @@ function nuancesDeLaReference(ancrage: Ancrage): string {
  */
 export function enTeteDeLaReference(hexa: string, ancrage: Ancrage): string {
   return `Couleur de référence ${hexa} · ${avecLeNom(ancrage.profil, nuancesDeLaReference(ancrage))}`;
-}
-
-/** L'en-tête d'un thème ([PLA-09], N098). */
-export function enTeteDuTheme(mode: Mode, fond: string): string {
-  return `${TEXTES_DE_LA_PLANCHE.mode[mode]} · fond ${fond}`;
 }
 
 /** Le verdict d'un thème, en tête de sa section : ses garanties manquées, chaque intensité comptée (N098). */

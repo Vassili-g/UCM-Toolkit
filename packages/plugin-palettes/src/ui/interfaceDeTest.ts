@@ -3,15 +3,24 @@
  * la palette ouverte, peinte dans le thème de l'aperçu et le profil porteur,
  * en deux vues que le choix « Vue » sélectionne, avant le choix « Afficher »
  * du profil, tous deux dans l'en-tête de la carte. « Écran » montre une page d'équipe sur
- * le modèle de Radix Themes, qui se manipule : survol et appui avancent d'une
- * nuance, la case, l'interrupteur, les lignes et la navigation répondent,
- * sans rien enregistrer. « États » montre chaque composant à chaque état,
- * focus compris, sans survol. Chaque couleur vient de la table des emplois.
+ * le modèle de Radix Themes, qui se manipule : survol et appui prennent les
+ * fonds `hover` et `pressed`, la case, l'interrupteur, les lignes et la
+ * navigation répondent, sans rien enregistrer. « États » montre chaque
+ * composant à `default`, `hover`, `pressed` puis `focus`, d'après la recette du
+ * Playground. Chaque couleur vient de la table des dossiers du sens du thème
+ * montré ; le texte ne change pas avec l'état.
+ *
+ * Survoler un élément ou un spécimen ouvre une bulle sous lui : une ligne par
+ * propriété, ce qu'elle peint, la variable et sa nuance. La bulle est une aide
+ * à la souris, cachée aux lecteurs d'écran ; au clavier, rien ne change.
  *
  * Une palette libre n'a pas de rôles : la section se retire. Repliée à
  * l'ouverture, elle ne se dessine que dépliée ; la vue choisie dure la session.
  */
-import { TABLE_DES_EMPLOIS, lireHexa, rampeDe, type Emploi, type Intensite, type Mode, type Profil, type Recette } from 'ucm-couleur';
+import {
+  COULEUR_DU_TEXTE_DES_BOUTONS, ETATS, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS, lireHexa, rampeDe, sensDuTheme,
+  type Intensite, type Mode, type Profil, type Recette, type SensDuTheme, type SupportDeVariable, type TexteDesBoutons, type VariableDePalette,
+} from 'ucm-couleur';
 
 import type { AnalyseDePalette } from '../analyse';
 import { createCarte } from './carte';
@@ -20,19 +29,43 @@ import { creerGlyphe } from './glyphes';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 import { creerVuesNuancier } from './nuancier';
 
-/** Un emploi et son état : 0 au repos, 1 au survol, 2 à l'appui. */
-type Etat = 0 | 1 | 2;
+/** Un état du fond, ou le focus de la vue États. */
+type Etat = (typeof ETATS)[number];
+type EtatMontre = Etat | 'focus';
 
-/** Les emplois qui ont une nuance : `on-solid` est le fond du thème. */
-type EmploiPeint = Exclude<Emploi, 'on-solid'>;
+/** Ce qu'une variable peint sur l'écran : les mots de la bulle. */
+export const PROPRIETES = ['fond', 'texte', 'contour', 'anneau', 'coche', 'icone', 'pastille', 'separateur', 'fondAuSurvol', 'fondEtContour'] as const;
+export type Propriete = (typeof PROPRIETES)[number];
 
-/** Les couleurs de l'écran, chacune lue dans la table des emplois, ou le fond et les encres du thème. */
+/** Ce que la table de S4 doit dire d'une variable pour qu'elle peigne cette propriété. */
+export const PEINT_PAR_PROPRIETE: Readonly<Record<Propriete, readonly SupportDeVariable['peint'][number][]>> = {
+  fond: ['background'],
+  texte: ['foreground'],
+  contour: ['border'],
+  anneau: ['ring'],
+  coche: ['foreground'],
+  icone: ['icon'],
+  pastille: ['foreground'],
+  separateur: ['border'],
+  fondAuSurvol: ['background'],
+  fondEtContour: ['background', 'border'],
+};
+
+/** Vrai quand la table de S4 laisse la variable peindre cette propriété. */
+export function proprieteConvient(propriete: Propriete, variable: VariableDePalette): boolean {
+  const peint = SUPPORT_DES_VARIABLES[variable].peint;
+  return PEINT_PAR_PROPRIETE[propriete].every((genre) => peint.includes(genre));
+}
+
+/** Les couleurs de l'écran, chacune lue dans la table des dossiers du sens du thème, ou le fond et les encres du thème. */
 export interface CouleursDeLInterface {
   readonly fond: string;
   readonly encre: string;
   readonly encreSeconde: string;
-  /** La couleur d'un emploi à un état, dans l'intensité montrée. */
-  readonly emploi: (emploi: EmploiPeint, etat: Etat) => string;
+  readonly sens: SensDuTheme;
+  readonly texteDesBoutons: TexteDesBoutons;
+  /** La couleur d'une variable, dans l'intensité montrée ; `solid/foreground` est le texte des boutons du thème. */
+  readonly variable: (variable: VariableDePalette) => string;
 }
 
 export interface InterfaceDeTestUi {
@@ -50,26 +83,30 @@ type Vue = 'ecran' | 'etats';
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
   const { createChoix, createChoixDuProfil } = creerVuesChoix(i18n);
-  const { NOM_DU_PROFIL, TEXTES_DE_L_INTERFACE_DE_TEST } = i18n.messages;
+  const { NOM_DU_PROFIL, NOM_DU_TEXTE_DES_BOUTONS, TEXTES_DE_L_INTERFACE_DE_TEST } = i18n.messages;
 
   /**
-   * Les couleurs de l'écran pour une palette et un thème. `on-solid` est le
-   * fond du thème. Un état au-delà de la dernière nuance garde la dernière ;
-   * `surface-card`, dans une liste sans 50, prend le fond du thème.
+   * Les couleurs de l'écran pour une palette et un thème. Une variable dont le
+   * cran manque à la grille prend le fond du thème : la table n'exige que les
+   * crans requis du sens, que la grille porte toujours.
    */
   function couleursDeLInterface(recette: Recette, analyse: AnalyseDePalette, mode: Mode, intensite: Intensite = analyse.ancrage.profil): CouleursDeLInterface {
     const fond = recette.fonds[mode];
     const encres = encresSur(lireHexa(fond) ?? [255, 255, 255]);
     const rampe = rampeDe(analyse.rampes, intensite)[mode];
+    const texteDesBoutons = recette.texteDesBoutons[mode];
+    const sens = sensDuTheme(mode, texteDesBoutons);
     return {
       fond,
       encre: encres.encre,
       encreSeconde: encres.seconde,
-      emploi(emploi, etat) {
-        const depart = analyse.grille.crans.indexOf(TABLE_DES_EMPLOIS[emploi]);
-        // Une liste sans 50 n'a pas de fond de carte : la carte prend le fond du thème.
-        if (depart < 0) return fond;
-        return rampe[Math.min(rampe.length - 1, depart + etat)].hexa;
+      sens,
+      texteDesBoutons,
+      variable(variable) {
+        const cran = TABLE_DES_DOSSIERS[sens][variable];
+        if (cran === 'texteDesBoutons') return COULEUR_DU_TEXTE_DES_BOUTONS[texteDesBoutons];
+        const rang = analyse.grille.crans.indexOf(cran);
+        return rang < 0 ? fond : rampe[rang].hexa;
       },
     };
   }
@@ -88,16 +125,30 @@ function construireVues(i18n: Localisation) {
     return bouton;
   }
 
-  /** Pose les couleurs d'un contrôle à ses trois états : la feuille les lit au survol et à l'appui. */
-  function etats(element: HTMLElement, propriete: 'fond' | 'texte' | 'bord', couleurs: readonly [string, string, string]): void {
-    element.style.setProperty(`--essai-${propriete}-repos`, couleurs[0]);
-    element.style.setProperty(`--essai-${propriete}-survol`, couleurs[1]);
-    element.style.setProperty(`--essai-${propriete}-appui`, couleurs[2]);
+  /** Ce qu'un élément peint, lu au survol : `propriete=variable`, séparés par « ; ». */
+  type Peint = readonly (readonly [Propriete, VariableDePalette])[];
+  function peint<E extends HTMLElement>(element: E, ...paires: Peint): E {
+    for (const [propriete, variable] of paires) {
+      if (!proprieteConvient(propriete, variable)) throw new Error(`${variable} ne peint pas « ${propriete} » (S4)`);
+    }
+    element.setAttribute('data-variables', paires.map(([propriete, variable]) => `${propriete}=${variable}`).join(';'));
+    return element;
   }
 
-  /** Les trois états d'un emploi. */
-  const troisEtats = (couleurs: CouleursDeLInterface, emploi: EmploiPeint): [string, string, string] =>
-    [couleurs.emploi(emploi, 0), couleurs.emploi(emploi, 1), couleurs.emploi(emploi, 2)];
+  /** Pose les trois fonds d'un contrôle, ceux de `default`, `hover` et `pressed` : la feuille les lit au survol et à l'appui. */
+  function fonds(element: HTMLElement, couleurs: readonly [string, string, string]): void {
+    element.style.setProperty('--essai-fond-repos', couleurs[0]);
+    element.style.setProperty('--essai-fond-survol', couleurs[1]);
+    element.style.setProperty('--essai-fond-appui', couleurs[2]);
+  }
+
+  /** Les trois fonds d'un dossier. */
+  const troisFonds = (couleurs: CouleursDeLInterface, dossier: 'solid' | 'surface'): [string, string, string] =>
+    [couleurs.variable(`${dossier}/default`), couleurs.variable(`${dossier}/hover`), couleurs.variable(`${dossier}/pressed`)];
+
+  /** Les fonds d'un élément sans fond : transparent au repos, les fonds teintés au survol et à l'appui. */
+  const fondsSansFond = (couleurs: CouleursDeLInterface): [string, string, string] =>
+    ['transparent', couleurs.variable('surface/hover'), couleurs.variable('surface/pressed')];
 
   /** Une bascule à deux états : case ou interrupteur, qui change au clic. */
   function basculeDeLEcran(element: HTMLButtonElement, role: 'checkbox' | 'switch', libelle: Texte): void {
@@ -112,27 +163,37 @@ function construireVues(i18n: Localisation) {
   /** L'écran « Membres de l'équipe » : navigation, en-tête, encart, tableau, champ, options, actions. */
   function ecranDeLEquipe(couleurs: CouleursDeLInterface): HTMLDivElement {
     const e = TEXTES_DE_L_INTERFACE_DE_TEST.equipe;
-    const c = (emploi: EmploiPeint, etat: Etat = 0) => couleurs.emploi(emploi, etat);
+    const c = couleurs.variable;
     const racine = noeud('div');
     racine.className = 'essai-ecran';
     racine.setAttribute('role', 'group');
     i18n.lier(racine, 'aria-label', TEXTES_DE_L_INTERFACE_DE_TEST.ecran);
 
-    // La navigation : l'entrée active en surface et en texte coloré ; un clic la déplace.
+    // La navigation : l'entrée active en fond teinté ; un clic la déplace. Les autres prennent le fond teinté au survol.
     const navigation = noeud('nav');
     navigation.className = 'essai-navigation';
+    peint(navigation, ['separateur', 'page/divider']);
     const organisation = noeud('p', e.organisation);
     organisation.className = 'essai-organisation';
+    const peindreLEntree = (entree: HTMLElement, active: boolean) => {
+      if (active) peint(entree, ['fond', 'surface/default'], ['texte', 'surface/foreground']);
+      else peint(entree, ['fondAuSurvol', 'surface/hover']);
+    };
     const entrees = e.navigation.map((libelle, rang) => {
       const entree = boutonDeLEcran(libelle);
       entree.className = 'essai-entree';
-      etats(entree, 'fond', ['transparent', c('surface'), c('surface', 1)]);
-      entree.style.setProperty('--essai-fond-actif', c('surface'));
-      entree.style.setProperty('--essai-texte-actif', c('text'));
+      fonds(entree, fondsSansFond(couleurs));
+      entree.style.setProperty('--essai-fond-actif', c('surface/default'));
+      entree.style.setProperty('--essai-texte-actif', c('surface/foreground'));
       if (rang === 0) entree.setAttribute('aria-current', 'page');
+      peindreLEntree(entree, rang === 0);
       entree.addEventListener('click', () => {
-        for (const autre of entrees) autre.removeAttribute('aria-current');
+        for (const autre of entrees) {
+          autre.removeAttribute('aria-current');
+          peindreLEntree(autre, false);
+        }
         entree.setAttribute('aria-current', 'page');
+        peindreLEntree(entree, true);
       });
       return entree;
     });
@@ -151,42 +212,55 @@ function construireVues(i18n: Localisation) {
     titres.append(titre, sousTitre);
     const inviter = boutonDeLEcran(e.inviter);
     inviter.className = 'essai-bouton';
-    etats(inviter, 'fond', troisEtats(couleurs, 'solid'));
-    etats(inviter, 'texte', [couleurs.fond, couleurs.fond, couleurs.fond]);
+    fonds(inviter, troisFonds(couleurs, 'solid'));
+    inviter.style.setProperty('--essai-texte', c('solid/foreground'));
+    peint(inviter, ['fond', 'solid/default'], ['texte', 'solid/foreground']);
     tete.append(titres, inviter);
 
     const encart = noeud('div');
     encart.className = 'essai-encart';
-    encart.style.background = c('surface');
-    encart.style.color = c('text');
+    encart.style.background = c('surface/default');
+    encart.style.color = c('surface/foreground');
+    peint(encart, ['fond', 'surface/default'], ['texte', 'surface/foreground'], ['icone', 'surface/foreground']);
     const icone = noeud('span', e.icone);
     icone.setAttribute('aria-hidden', 'true');
     const renvoyer = boutonDeLEcran(e.renvoyer);
     renvoyer.className = 'essai-lien';
-    etats(renvoyer, 'texte', troisEtats(couleurs, 'text'));
+    peint(renvoyer, ['texte', 'surface/foreground']);
     encart.append(icone, noeud('span', e.encart), renvoyer);
 
-    // Le tableau : une ligne se survole en surface, et se choisit au clic.
+    // Le tableau : une ligne se survole en fond teinté, et se choisit au clic. Sa carte est hors de la palette : il n'a pas de fond.
     const tableau = noeud('div');
     tableau.className = 'essai-tableau';
-    tableau.style.background = c('surface-card');
     tableau.setAttribute('role', 'listbox');
+    peint(tableau, ['contour', 'page/divider']);
     i18n.lier(tableau, 'aria-label', e.titre);
-    const lignes = e.membres.map(({ nom, role, plein }, rang) => {
+    const lignes = e.membres.map(({ nom, role, badge: genre }, rang) => {
       const ligne = boutonDeLEcran('');
       ligne.className = 'essai-ligne';
       ligne.setAttribute('role', 'option');
       ligne.setAttribute('aria-selected', String(rang === 1));
-      etats(ligne, 'fond', ['transparent', c('surface'), c('surface', 1)]);
-      ligne.style.setProperty('--essai-fond-actif', c('surface'));
+      fonds(ligne, fondsSansFond(couleurs));
+      ligne.style.setProperty('--essai-fond-actif', c('surface/default'));
       const avatar = noeud('span', lireTexte(nom)[0]);
       avatar.className = 'essai-avatar';
-      avatar.style.background = c('surface', 1);
-      avatar.style.color = c('text');
+      avatar.style.background = c('surface/default');
+      avatar.style.color = c('surface/foreground');
+      peint(avatar, ['fond', 'surface/default'], ['texte', 'surface/foreground']);
       const badge = noeud('span', role);
       badge.className = 'essai-badge';
-      badge.style.background = plein ? c('solid') : c('surface');
-      badge.style.color = plein ? couleurs.fond : c('text');
+      if (genre === 'plein') {
+        badge.style.background = c('solid/default');
+        badge.style.color = c('solid/foreground');
+        peint(badge, ['fond', 'solid/default'], ['texte', 'solid/foreground']);
+      } else if (genre === 'texte') {
+        badge.style.color = c('page/foreground');
+        peint(badge, ['texte', 'page/foreground']);
+      } else {
+        badge.style.background = c('surface/default');
+        badge.style.color = c('surface/foreground');
+        peint(badge, ['fond', 'surface/default'], ['texte', 'surface/foreground']);
+      }
       ligne.append(avatar, noeud('span', nom), badge);
       ligne.addEventListener('click', () => {
         for (const autre of lignes) autre.setAttribute('aria-selected', String(autre === ligne));
@@ -195,13 +269,15 @@ function construireVues(i18n: Localisation) {
     });
     tableau.append(...lignes);
 
+    // Le champ garde son contour : `page/border` n'a pas d'état ; le focus ajoute l'anneau.
     const champ = noeud('label');
     champ.className = 'essai-champ';
     const saisie = noeud('input');
     saisie.className = 'essai-saisie';
     saisie.type = 'text';
     i18n.lier(saisie, 'value', e.membre);
-    etats(saisie, 'bord', troisEtats(couleurs, 'border-control'));
+    saisie.style.setProperty('--essai-bord', c('page/border'));
+    peint(saisie, ['contour', 'page/border']);
     champ.append(noeud('span', e.roleParDefaut), saisie);
 
     const options = noeud('div');
@@ -209,8 +285,10 @@ function construireVues(i18n: Localisation) {
     const caseACocher = boutonDeLEcran('');
     caseACocher.className = 'essai-case';
     basculeDeLEcran(caseACocher, 'checkbox', e.notifier);
-    etats(caseACocher, 'fond', troisEtats(couleurs, 'solid'));
-    caseACocher.style.setProperty('--essai-bord-repos', c('border-control'));
+    fonds(caseACocher, troisFonds(couleurs, 'solid'));
+    caseACocher.style.setProperty('--essai-bord', c('page/border'));
+    caseACocher.style.setProperty('--essai-sur-plein', c('solid/foreground'));
+    peint(caseACocher, ['fond', 'solid/default'], ['coche', 'solid/foreground']);
     const coche = noeud('span', e.coche);
     coche.className = 'essai-coche';
     coche.setAttribute('aria-hidden', 'true');
@@ -218,8 +296,10 @@ function construireVues(i18n: Localisation) {
     const interrupteur = boutonDeLEcran('');
     interrupteur.className = 'essai-interrupteur';
     basculeDeLEcran(interrupteur, 'switch', e.acces);
-    etats(interrupteur, 'fond', troisEtats(couleurs, 'solid'));
-    interrupteur.style.setProperty('--essai-bord-repos', c('border-control'));
+    fonds(interrupteur, troisFonds(couleurs, 'solid'));
+    interrupteur.style.setProperty('--essai-bord', c('page/border'));
+    interrupteur.style.setProperty('--essai-sur-plein', c('solid/foreground'));
+    peint(interrupteur, ['fond', 'solid/default'], ['pastille', 'solid/foreground']);
     const curseur = noeud('span');
     curseur.className = 'essai-curseur';
     interrupteur.append(curseur);
@@ -231,21 +311,24 @@ function construireVues(i18n: Localisation) {
     optionInterrupteur.append(interrupteur, noeud('span', e.acces));
     options.append(optionCase, optionInterrupteur);
 
-    // Trois boutons : sans fond, `surface`, `solid`. Chaque état avance d'une nuance, texte et fond ensemble.
+    // Trois boutons : sans fond, soft, plein. Le texte reste le même aux trois fonds.
     const actions = noeud('div');
     actions.className = 'essai-actions';
     const annuler = boutonDeLEcran(e.boutons[0]);
     annuler.className = 'essai-bouton';
-    etats(annuler, 'texte', troisEtats(couleurs, 'text'));
-    etats(annuler, 'fond', ['transparent', c('surface'), c('surface', 1)]);
+    annuler.style.setProperty('--essai-texte', c('surface/foreground'));
+    fonds(annuler, fondsSansFond(couleurs));
+    peint(annuler, ['texte', 'surface/foreground'], ['fondAuSurvol', 'surface/hover']);
     const brouillon = boutonDeLEcran(e.boutons[1]);
     brouillon.className = 'essai-bouton';
-    etats(brouillon, 'texte', troisEtats(couleurs, 'text'));
-    etats(brouillon, 'fond', troisEtats(couleurs, 'surface'));
+    brouillon.style.setProperty('--essai-texte', c('surface/foreground'));
+    fonds(brouillon, troisFonds(couleurs, 'surface'));
+    peint(brouillon, ['fond', 'surface/default'], ['texte', 'surface/foreground']);
     const enregistrer = boutonDeLEcran(e.boutons[2]);
     enregistrer.className = 'essai-bouton';
-    etats(enregistrer, 'texte', [couleurs.fond, couleurs.fond, couleurs.fond]);
-    etats(enregistrer, 'fond', troisEtats(couleurs, 'solid'));
+    enregistrer.style.setProperty('--essai-texte', c('solid/foreground'));
+    fonds(enregistrer, troisFonds(couleurs, 'solid'));
+    peint(enregistrer, ['fond', 'solid/default'], ['texte', 'solid/foreground']);
     actions.append(annuler, brouillon, enregistrer);
 
     corps.append(tete, encart, tableau, champ, options, actions);
@@ -255,56 +338,85 @@ function construireVues(i18n: Localisation) {
 
   /**
    * La grille des composants par état : une rangée par composant, une colonne
-   * par état. Chaque cellule est peinte de l'état qu'elle nomme, sans survol ;
-   * un composant sans cet état garde un tiret.
+   * par état, `default`, `hover`, `pressed`, puis `focus`. Chaque cellule est
+   * peinte de l'état qu'elle nomme, sans survol, d'après la recette du
+   * Playground ; un composant sans cet état garde un tiret.
    */
   function composantsParEtat(couleurs: CouleursDeLInterface): HTMLDivElement {
     const t = TEXTES_DE_L_INTERFACE_DE_TEST.composants;
-    const c = (emploi: EmploiPeint, etat: Etat = 0) => couleurs.emploi(emploi, etat);
+    const c = couleurs.variable;
     const grille = noeud('div');
     grille.className = 'essai-etats';
     grille.setAttribute('role', 'table');
     i18n.lier(grille, 'aria-label', TEXTES_DE_L_INTERFACE_DE_TEST.etats);
 
-    const specimen = (texte: Texte, fond: string, encre: string, bord: string | null = null): HTMLSpanElement => {
+    interface Reglage {
+      /** La variable du fond ; sans elle, le spécimen est sans fond. */
+      readonly fond?: VariableDePalette;
+      readonly texte: VariableDePalette;
+      readonly contour?: VariableDePalette;
+      /** Le fond porte aussi le contour (bouton contour survolé). */
+      readonly fondEtContour?: boolean;
+    }
+    /** Un spécimen ; `focus` ajoute l'anneau, séparé du spécimen par un jour de la couleur du thème. */
+    const specimen = (texte: Texte, etat: EtatMontre, reglage: Reglage): HTMLSpanElement => {
       const element = noeud('span', texte);
       element.className = 'essai-specimen';
-      element.style.background = fond;
-      element.style.color = encre;
-      if (bord) element.style.borderColor = bord;
-      return element;
-    };
-    const focus = (element: HTMLElement): HTMLElement => {
-      element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('focus')}`;
-      return element;
+      element.style.background = reglage.fond ? c(reglage.fond) : 'transparent';
+      element.style.color = c(reglage.texte);
+      if (reglage.contour) element.style.borderColor = c(reglage.contour);
+      const paires: [Propriete, VariableDePalette][] = [];
+      if (reglage.fondEtContour && reglage.fond) paires.push(['fondEtContour', reglage.fond]);
+      else {
+        if (reglage.fond) paires.push(['fond', reglage.fond]);
+        if (reglage.contour) paires.push(['contour', reglage.contour]);
+      }
+      paires.push(['texte', reglage.texte]);
+      if (etat === 'focus') {
+        element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('page/focus')}`;
+        paires.push(['anneau', 'page/focus']);
+      }
+      return peint(element, ...paires);
     };
     const tiret = (): HTMLSpanElement => {
       const element = noeud('span', t.sansEtat);
       element.className = 'essai-sans-etat';
       return element;
     };
-    /** Une rangée : le nom, puis le rendu d'un état ; `null` pour un état que le composant n'a pas. */
-    const rangees: [Texte, (etat: Etat | 'focus') => HTMLElement | null][] = [
-      [t.plein, (etat) => (etat === 'focus' ? focus(specimen(t.action, c('solid'), couleurs.fond)) : specimen(t.action, c('solid', etat), couleurs.fond))],
-      [t.soft, (etat) => (etat === 'focus' ? focus(specimen(t.action, c('surface'), c('text'))) : specimen(t.action, c('surface', etat), c('text', etat)))],
-      [t.contour, (etat) => (etat === 'focus'
-        ? focus(specimen(t.action, 'transparent', c('text'), c('border-control')))
-        : specimen(t.action, 'transparent', c('text', etat), c('border-control', etat)))],
-      [t.sansFond, (etat) => (etat === 'focus'
-        ? focus(specimen(t.action, 'transparent', c('text')))
-        : specimen(t.action, etat === 0 ? 'transparent' : c('surface', (etat - 1) as Etat), c('text', etat)))],
-      [t.champ, (etat) => (etat === 'focus'
-        ? focus(specimen(t.texte, couleurs.fond, couleurs.encre, c('border-control', 2)))
-        : specimen(t.texte, couleurs.fond, couleurs.encre, c('border-control', etat)))],
+    /** Le focus garde la forme du repos et ajoute l'anneau (S3) : `specimen` pose l'anneau, la forme se lit à l'état `default`. */
+    const forme = (etat: EtatMontre): Etat => (etat === 'focus' ? 'default' : etat);
+    const plein = (etat: EtatMontre) => specimen(t.action, etat, { fond: `solid/${forme(etat)}`, texte: 'solid/foreground' });
+    const soft = (etat: EtatMontre) => specimen(t.action, etat, { fond: `surface/${forme(etat)}`, texte: 'surface/foreground' });
+    const contour = (etat: EtatMontre) => (forme(etat) === 'default'
+      ? specimen(t.action, etat, { texte: 'page/foreground', contour: 'page/border' })
+      : specimen(t.action, etat, { fond: `solid/${forme(etat)}`, texte: 'solid/foreground', contour: `solid/${forme(etat)}`, fondEtContour: true }));
+    const sansFond = (etat: EtatMontre) => (forme(etat) === 'default'
+      ? specimen(t.action, etat, { texte: 'surface/foreground' })
+      : specimen(t.action, etat, { fond: `surface/${forme(etat)}`, texte: 'surface/foreground' }));
+    /** Le champ garde son contour aux quatre états ; le focus ajoute l'anneau. Il se peint du fond et de l'encre du thème. */
+    const champ = (etat: EtatMontre) => {
+      const element = noeud('span', t.texte);
+      element.className = 'essai-specimen';
+      element.style.background = couleurs.fond;
+      element.style.color = couleurs.encre;
+      element.style.borderColor = c('page/border');
+      if (etat === 'focus') element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('page/focus')}`;
+      return peint(element, ['contour', 'page/border'], ...(etat === 'focus' ? [['anneau', 'page/focus'] as const] : []));
+    };
+    const rangees: [Texte, (etat: EtatMontre) => HTMLElement | null][] = [
+      [t.plein, plein],
+      [t.soft, soft],
+      [t.contour, contour],
+      [t.sansFond, sansFond],
+      [t.champ, champ],
       [t.lien, (etat) => {
         if (etat === 'focus') return null;
         const lien = noeud('span', t.lienColore);
         lien.className = 'essai-lien-peint';
-        lien.style.color = c('text', etat);
-        return lien;
+        lien.style.color = c('page/foreground');
+        return peint(lien, ['texte', 'page/foreground']);
       }],
-      [t.badge, (etat) => (etat === 0 ? specimen(t.nouveau, c('surface'), c('text')) : null)],
-      [t.carte, (etat) => (etat === 0 ? specimen(t.carte, c('surface-card'), c('text'), c('border-decorative')) : null)],
+      [t.badge, (etat) => (etat === 'default' ? specimen(t.nouveau, etat, { fond: 'surface/default', texte: 'surface/foreground' }) : null)],
     ];
 
     const entete = noeud('div');
@@ -323,7 +435,7 @@ function construireVues(i18n: Localisation) {
       const titre = noeud('span', nom);
       titre.className = 'essai-nom';
       titre.setAttribute('role', 'rowheader');
-      rangee.append(titre, ...([0, 1, 2, 'focus'] as const).map((etat) => {
+      rangee.append(titre, ...(['default', 'hover', 'pressed', 'focus'] as const).map((etat) => {
         const cellule = noeud('span');
         cellule.setAttribute('role', 'cell');
         cellule.append(rendu(etat) ?? tiret());
@@ -371,6 +483,55 @@ function construireVues(i18n: Localisation) {
     carte.poserLesChoix(choixDeLaVue, choixDuProfil);
     carte.corps.append(surface);
 
+    // La bulle des variables : une aide à la souris, une ligne par propriété. Elle n'ajoute aucun texte lu à l'écran.
+    const bulle = noeud('div');
+    bulle.className = 'essai-bulle';
+    bulle.setAttribute('aria-hidden', 'true');
+    let couleursMontrees: CouleursDeLInterface | null = null;
+    let survole: HTMLElement | null = null;
+
+    function cacherLaBulle(): void {
+      survole?.classList.remove('essai-survole');
+      survole = null;
+      bulle.remove();
+    }
+
+    function montrerLaBulle(element: HTMLElement): void {
+      if (!couleursMontrees || element === survole) return;
+      cacherLaBulle();
+      survole = element;
+      element.classList.add('essai-survole');
+      const couleurs = couleursMontrees;
+      bulle.replaceChildren(...(element.getAttribute('data-variables') ?? '').split(';').map((paire) => {
+        const [propriete, variable] = paire.split('=') as [Propriete, VariableDePalette];
+        const cran = TABLE_DES_DOSSIERS[couleurs.sens][variable];
+        const ligne = noeud('div');
+        ligne.className = 'essai-bulle-ligne';
+        const quoi = noeud('span');
+        quoi.className = 'essai-bulle-propriete';
+        quoi.textContent = lireTexte(TEXTES_DE_L_INTERFACE_DE_TEST.peint[propriete]);
+        const code = noeud('code');
+        code.textContent = variable;
+        const nuance = noeud('span');
+        nuance.className = 'essai-bulle-propriete';
+        nuance.textContent = cran === 'texteDesBoutons' ? lireTexte(NOM_DU_TEXTE_DES_BOUTONS[couleurs.texteDesBoutons]) : String(cran);
+        ligne.append(quoi, code, nuance);
+        return ligne;
+      }));
+      surface.append(bulle);
+      const cible = element.getBoundingClientRect();
+      const hote = surface.getBoundingClientRect();
+      bulle.style.left = `${Math.max(0, Math.min(cible.left - hote.left, hote.width - bulle.offsetWidth))}px`;
+      bulle.style.top = `${cible.bottom - hote.top + 6}px`;
+    }
+
+    surface.addEventListener('mouseover', (evenement) => {
+      const cible = evenement.target instanceof Element ? evenement.target.closest<HTMLElement>('[data-variables]') : null;
+      if (cible) montrerLaBulle(cible);
+      else cacherLaBulle();
+    });
+    surface.addEventListener('mouseleave', cacherLaBulle);
+
     /** L'intensité peinte : la rampe unique, ou le profil choisi. */
     const intensiteMontree = (analyse: AnalyseDePalette): Intensite => (analyse.intensites.length === 1 ? 'unique' : profil);
 
@@ -384,16 +545,19 @@ function construireVues(i18n: Localisation) {
       choixDeLaVue.poser(vue);
       choixDuProfil.poser(profil);
       choixDuProfil.cacher(!dernier || dernier.analyse.intensites.length === 1);
+      cacherLaBulle();
       if (!dernier || dernier.analyse.libre || !carte.estOuverte()) {
+        couleursMontrees = null;
         surface.replaceChildren();
         return;
       }
       const couleurs = couleursDeLInterface(dernier.recette, dernier.analyse, dernier.mode, intensiteMontree(dernier.analyse));
+      couleursMontrees = couleurs;
       surface.style.setProperty('--essai-fond', couleurs.fond);
       surface.style.setProperty('--essai-encre', couleurs.encre);
       surface.style.setProperty('--essai-encre-seconde', couleurs.encreSeconde);
-      surface.style.setProperty('--essai-separateur', couleurs.emploi('border-decorative', 0));
-      surface.style.setProperty('--essai-focus', couleurs.emploi('focus', 0));
+      surface.style.setProperty('--essai-separateur', couleurs.variable('page/divider'));
+      surface.style.setProperty('--essai-focus', couleurs.variable('page/focus'));
       surface.replaceChildren(vue === 'ecran' ? ecranDeLEquipe(couleurs) : composantsParEtat(couleurs));
     }
 

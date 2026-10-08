@@ -5,7 +5,8 @@ import { recetteParDefaut } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { ajouter, nouvellePalette } from '../src/edition';
-import { creerVuesInterfaceDeTest } from '../src/ui/interfaceDeTest';
+import { TEXTES_DE_L_INTERFACE_DE_TEST } from '../src/i18n/fr';
+import { PROPRIETES, creerVuesInterfaceDeTest, proprieteConvient } from '../src/ui/interfaceDeTest';
 import { creerLocalisation } from '../src/ui/localisation';
 import { creerVuesNuancier, type Choix } from '../src/ui/nuancier';
 
@@ -27,17 +28,39 @@ test('[UI-04] le même clic sur la même nuance la relâche ; une autre nuance, 
   assert.equal(memeChoix(null, vivid600), false, 'sans choix, un clic choisit');
 });
 
-test('[UI-14] chaque élément de l’interface de test prend la nuance de son emploi et de son état, dans le profil porteur et le thème montré', () => {
+/** S2 écrite en dur : les crans de chaque variable, dans le sens normal puis inversé. */
+const CRANS_NORMAL = { 'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'page/focus': 600 } as const;
+const CRANS_INVERSE = { ...CRANS_NORMAL, 'solid/hover': 600, 'solid/pressed': 500, 'surface/foreground': 900, 'surface/border': 900, 'page/foreground': 800, 'page/border': 800, 'page/focus': 700 } as const;
+
+test('[UI-14] chaque variable de l’interface de test prend la nuance de la table des dossiers du sens du thème montré, dans le profil porteur, pour les quatre combinaisons', () => {
   for (const mode of ['light', 'dark'] as const) {
-    const couleurs = couleursDeLInterface(RECETTE, ANALYSE, mode);
-    const rampe = ANALYSE.rampes[ANALYSE.ancrage.profil]![mode];
-    const nuance = (numero: number) => rampe[ANALYSE.grille.crans.indexOf(numero)].hexa;
-    assert.equal(couleurs.fond, RECETTE.fonds[mode], 'on-solid : le fond du thème');
-    assert.deepEqual([0, 1, 2].map((etat) => couleurs.emploi('solid', etat as 0 | 1 | 2)), [nuance(700), nuance(800), nuance(900)]);
-    assert.deepEqual([0, 1, 2].map((etat) => couleurs.emploi('surface', etat as 0 | 1 | 2)), [nuance(100), nuance(200), nuance(300)]);
-    assert.equal(couleurs.emploi('text', 0), nuance(700));
-    assert.equal(couleurs.emploi('focus', 0), nuance(600));
-    assert.equal(couleurs.emploi('border-control', 1), nuance(700));
-    assert.equal(couleurs.emploi('border-decorative', 0), nuance(300));
+    for (const texte of ['blanc', 'noir'] as const) {
+      const recette = { ...RECETTE, texteDesBoutons: { ...RECETTE.texteDesBoutons, [mode]: texte } };
+      const couleurs = couleursDeLInterface(recette, ANALYSE, mode);
+      const normal = texte === (mode === 'light' ? 'blanc' : 'noir');
+      const crans = normal ? CRANS_NORMAL : CRANS_INVERSE;
+      const rampe = ANALYSE.rampes[ANALYSE.ancrage.profil]![mode];
+      const nuance = (numero: number) => rampe[ANALYSE.grille.crans.indexOf(numero)].hexa;
+      const message = `${mode}, texte ${texte}`;
+      assert.equal(couleurs.sens, normal ? 'normal' : 'inverse', message);
+      assert.equal(couleurs.fond, recette.fonds[mode], message);
+      for (const [variable, cran] of Object.entries(crans)) {
+        assert.equal(couleurs.variable(variable as keyof typeof CRANS_NORMAL), nuance(cran), `${message} : ${variable}`);
+      }
+      assert.equal(couleurs.variable('solid/foreground'), texte === 'blanc' ? '#FFFFFF' : '#000000', `${message} : le texte des boutons`);
+    }
   }
+});
+
+test('[UI-14] une variable ne peint que ce que la table de ce qu’elle peint lui laisse', () => {
+  assert.equal(proprieteConvient('fond', 'solid/default'), true);
+  assert.equal(proprieteConvient('fondEtContour', 'solid/hover'), true, 'le plein porte aussi le contour');
+  assert.equal(proprieteConvient('fondEtContour', 'surface/hover'), false, 'un fond teinté ne peint pas de contour');
+  assert.equal(proprieteConvient('texte', 'solid/foreground'), true);
+  assert.equal(proprieteConvient('icone', 'surface/foreground'), true);
+  assert.equal(proprieteConvient('texte', 'solid/default'), false);
+  assert.equal(proprieteConvient('contour', 'page/border'), true);
+  assert.equal(proprieteConvient('anneau', 'page/focus'), true);
+  assert.equal(proprieteConvient('contour', 'page/focus'), false, 'l’anneau n’est pas un contour');
+  assert.deepEqual(Object.keys(TEXTES_DE_L_INTERFACE_DE_TEST.peint).sort(), [...PROPRIETES].sort(), 'chaque propriété a son mot');
 });

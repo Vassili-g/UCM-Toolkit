@@ -1392,9 +1392,17 @@ const ETATS = [
     id: 'interface-de-test-etats',
     titre: 'Interface de test, vue États',
     quand: 'Le designer déplie « Interface de test » et choisit « États ».',
-    regarder: 'Dans l’en-tête de la carte, calé à droite, « Vue » avec États pressé sur un fond visible, puis « Afficher » ; une rangée par composant, boutons plein, soft, contour et sans fond, champ, lien et badge, et une colonne par état, default, hover, active et focus ; un tiret pour un état que le composant n’a pas ; les anneaux de focus de deux rangées voisines séparés par un jour.',
+    regarder: 'Bleu #1E6FD9, thème Light, texte des boutons blanc, Vivid. Dans l’en-tête de la carte, calé à droite, « Vue » avec États pressé sur un fond visible, puis « Afficher » ; une rangée par composant, boutons plein, soft, contour et sans fond, champ, lien et badge, et une colonne par état, default, hover, pressed et focus ; un tiret pour un état que le composant n’a pas ; la colonne focus garde la forme du repos et ajoute l’anneau ; le texte du bouton soft reste le même aux trois états ; les anneaux de focus de deux rangées voisines séparés par un jour ; aucune rangée « Carte ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, { clic: '.choix-de-la-vue .bascule-option:nth-child(2)' }],
+  },
+  {
+    id: 'interface-de-test-bulle',
+    titre: 'Interface de test, la bulle des variables',
+    quand: 'Le designer déplie « Interface de test » et survole le bouton « Enregistrer ».',
+    regarder: 'Le bouton « Enregistrer » entouré d’un contour tireté de 1 px ; sous lui, une bulle de deux lignes : « fond », solid/default et 700, « texte », solid/foreground et « blanc » ; la bulle ne recouvre pas le bouton et n’ajoute aucun texte à l’écran hors d’elle.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLInterfaceDeTest, { survol: '#panneau-creation .essai-actions .essai-bouton:last-child' }],
   },
   {
     id: 'interface-de-test-dark',

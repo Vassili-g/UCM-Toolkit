@@ -3897,12 +3897,12 @@ html {
 }
 
 .essai-surface {
+  position: relative;
   min-width: 0;
 }
 
 .essai-ecran {
   display: grid;
-  overflow: hidden;
   border: 1px solid var(--essai-separateur);
   border-radius: 10px;
   background: var(--essai-fond);
@@ -3987,18 +3987,10 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--essai-texte-repos);
+  color: inherit;
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;
-}
-
-.essai-lien:hover {
-  color: var(--essai-texte-survol);
-}
-
-.essai-lien:active {
-  color: var(--essai-texte-appui);
 }
 
 .essai-tableau {
@@ -4062,18 +4054,13 @@ html {
 .essai-saisie {
   height: 28px;
   padding: 0 var(--espace-controle);
-  border: 1px solid var(--essai-bord-repos);
+  border: 1px solid var(--essai-bord);
   border-radius: 6px;
   background: var(--essai-fond);
   color: var(--essai-encre);
 }
 
-.essai-saisie:hover {
-  border-color: var(--essai-bord-survol);
-}
-
 .essai-saisie:focus {
-  border-color: var(--essai-bord-appui);
   box-shadow: 0 0 0 2px var(--essai-fond), 0 0 0 4px var(--essai-focus);
   outline: none;
 }
@@ -4099,7 +4086,7 @@ html {
   border: 1px solid var(--essai-fond-repos);
   border-radius: 4px;
   background: var(--essai-fond-repos);
-  color: var(--essai-fond);
+  color: var(--essai-sur-plein);
   cursor: pointer;
   font-size: 10px;
 }
@@ -4115,7 +4102,7 @@ html {
 }
 
 .essai-case[aria-checked='false'] {
-  border-color: var(--essai-bord-repos);
+  border-color: var(--essai-bord);
   background: transparent;
 }
 
@@ -4146,7 +4133,7 @@ html {
 
 .essai-interrupteur[aria-checked='false'] {
   justify-content: flex-start;
-  border-color: var(--essai-bord-repos);
+  border-color: var(--essai-bord);
   background: transparent;
 }
 
@@ -4154,11 +4141,11 @@ html {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--essai-fond);
+  background: var(--essai-sur-plein);
 }
 
 .essai-interrupteur[aria-checked='false'] .essai-curseur {
-  background: var(--essai-bord-repos);
+  background: var(--essai-bord);
 }
 
 .essai-actions {
@@ -4174,19 +4161,17 @@ html {
   border: 0;
   border-radius: 6px;
   background: var(--essai-fond-repos);
-  color: var(--essai-texte-repos);
+  color: var(--essai-texte);
   cursor: pointer;
   font-weight: 600;
 }
 
 .essai-bouton:hover {
   background: var(--essai-fond-survol);
-  color: var(--essai-texte-survol);
 }
 
 .essai-bouton:active {
   background: var(--essai-fond-appui);
-  color: var(--essai-texte-appui);
 }
 
 .essai-entree:focus-visible,
@@ -4246,6 +4231,48 @@ html {
 
 .essai-sans-etat {
   color: var(--essai-encre-seconde);
+}
+
+/*
+ * La bulle des variables, sous l'élément survolé : une ligne par propriété, ce
+ * qu'elle peint, la variable en police de code, sa nuance. L'élément prend un
+ * contour tireté fin. Les couleurs s'écrivent en rgb() : la feuille n'a pas de
+ * variable pour un fond sombre fixe dans les deux thèmes de Figma.
+ */
+.essai-survole {
+  outline: 1px dashed var(--essai-encre);
+  outline-offset: 2px;
+}
+
+.essai-bulle {
+  position: absolute;
+  z-index: 5;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgb(30, 30, 30);
+  color: rgb(255, 255, 255);
+  font-size: 10px;
+  line-height: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.essai-bulle-ligne {
+  display: flex;
+  gap: 4px;
+}
+
+.essai-bulle code {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 10px;
+}
+
+.essai-bulle-propriete {
+  color: rgb(189, 189, 189);
+}
+
+.essai-bulle-propriete:first-child::after {
+  content: ' ·';
 }
 
 /* Les fonds du thème Dark, sous les deux intensités de la carte Intensités ([MOT-28]). */
