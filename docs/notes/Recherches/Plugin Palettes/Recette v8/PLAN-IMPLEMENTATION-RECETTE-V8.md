@@ -162,7 +162,7 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 
 ### Vague 4, dès que T4 et D3 sont faits
 
-- [ ] **T5 · Lot 3b, les couleurs** · selon D3 :
+- [x] **T5 · Lot 3b, les couleurs** · selon D3 :
   - **Si D3 fige** · `implementeur-exigeant`, effort **élevé**. Le format 10.
     - Fichiers : `packages/couleur/src/recette.ts` (`FORMAT_RECETTE`, la
       validation de `figees`), ses tests, la spécification (section de la
@@ -202,10 +202,10 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 
 ### Vague 5. Vérifier, livrer, essayer
 
-- [ ] **T7** · `verificateur`, effort **bas**. `npm test`, `npm run
+- [x] **T7** · `verificateur`, effort **bas**. `npm test`, `npm run
   typecheck`, `npm run test:ui --workspace ucm-palettes-plugin`, puis `npm
   run build --workspace ucm-palettes-plugin`.
-- [ ] **T8** · Orchestrateur. Après T6, ajoute au test de l'état de Poppy la
+- [x] **T8** · Orchestrateur. Après T6, ajoute au test de l'état de Poppy la
   vérification que la palette reprise est « À jour » sans écriture, si T5 ne
   l'a pas couverte ; relit les diffs ; commite T4, T5 et T6 séparément ;
   pousse.
