@@ -149,10 +149,11 @@ page et y déplace les planches déjà créées.
 
 Les modifications de palette sont enregistrées dans les données du document.
 L'écriture des tokens et le dessin des planches restent des gestes distincts.
-La recette courante utilise le format **9**, défini dans [le moteur de
-couleur](../couleur/README.md). Une recette au format 8 se lit : le plugin lui
-ajoute le texte des boutons par défaut et la range au format 9 au prochain
-enregistrement. Une recette antérieure ne se convertit pas.
+La recette courante utilise le format **10**, défini dans [le moteur de
+couleur](../couleur/README.md). Une recette au format 9 se lit telle quelle ;
+au format 8, le plugin lui ajoute le texte des boutons par défaut. Les deux se
+rangent au format 10 au prochain enregistrement. Une recette antérieure ne se
+convertit pas.
 
 En bas de Gestion, la carte « Palettes et réglages » propose l'export de la
 recette JSON et du rapport de vérification. L'import présente les différences

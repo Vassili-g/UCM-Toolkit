@@ -531,7 +531,7 @@ Une palette reprise « telle quelle » des variables du fichier porte en plus
 
 | Clé | Contenu |
 |---|---|
-| `figees` | Facultatif : `light`, un hexa par nuance de `crans`, dans son ordre, et `dark`, facultatif, de même longueur. Les rampes de la palette rendent ces couleurs sans calcul ; sans `dark`, le thème Dark rend celles de `light`. Exige `crans` et `intensites: 1`, et refuse `base`, `parts`, `reglages` et `originale`. Sous `figees`, `crans` porte les nuances lues dans les noms des variables : des entiers positifs ou nuls, croissants, hors des bornes d'une liste libre |
+| `figees` | Facultatif : `light`, un hexa par nuance de `crans`, dans son ordre, et `dark`, facultatif, de même longueur. Les rampes de la palette rendent ces couleurs sans calcul ; sans `dark`, le thème Dark rend celles de `light`. À une intensité (`intensites: 1`), `figees` est `{ light, dark? }`. À deux intensités, sans `intensites`, c'est `{ soft, vivid }`, chacun de la forme `{ light, dark? }` (format 10) ; les deux formes ne se mélangent pas. Exige `crans`, et refuse `base`, `parts`, `reglages` et `originale`. Sous `figees`, `crans` porte les nuances lues dans les noms des variables : des entiers positifs ou nuls, croissants, hors des bornes d'une liste libre, les mêmes pour les deux intensités |
 
 Une palette figée est libre : ni rôles, ni garanties, ni réglage global, ni
 Color shift. Sa référence est la nuance qui en porte la couleur.
@@ -540,7 +540,7 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
 
 ```json
 {
-  "formatVersion": 9,
+  "formatVersion": 10,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
@@ -597,14 +597,16 @@ dix-sept paires.
   moteur produit ces octets par son propre encodeur : le sandbox n'a pas
   `TextEncoder`.
 - `[REC-03]` La lecture classe la recette avant de l'employer : absente, la
-  recette par défaut du paquet est proposée ; au format 9, lue ; au format 8,
+  recette par défaut du paquet est proposée ; au format 10, lue ; au format 9,
+  lue telle quelle : `classerRecette` lui donne la version 10 puis la valide,
+  rien n'y changeant de sens ; au format 8,
   lue aussi : `classerRecette` lui ajoute `texteDesBoutons` par défaut, la
-  passe au format 9 et la valide, et son état est `courante`. Une recette 8
+  passe au format 10 et la valide, et son état est `courante`. Une recette 8
   qui porte déjà `texteDesBoutons` est refusée par la règle `forme`.
   Antérieure à 8, elle est illisible, par le refus de `formatVersion` et sans
-  conversion ; supérieure à 9, refusée avec un message qui demande de mettre
+  conversion ; supérieure à 10, refusée avec un message qui demande de mettre
   le plugin à jour ; illisible, refusée sans écrire. Comme toute lecture, elle
-  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 9 au prochain
+  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 10 au prochain
   rangement que fait un geste du designer.
 - `[REC-04]` Un refus de lecture laisse la recette rangée intacte. Le plugin ne
   dessine rien tant que la recette n'est pas lisible.
@@ -629,9 +631,10 @@ dix-sept paires.
   porte 4 à 13 numéros, multiples de 50 de 50 à 1050, croissants, et pas de
   `base` ; `originale` est un hexa différent de `reference`. `intensites` ne
   vaut que 1, et refuse à côté de lui `base`, `parts` et une dérive
-  déliée ; `figees` exige `crans` et `intensites: 1`, porte un hexa par
-  nuance dans chaque thème présent, et refuse `base`, `parts`, `reglages` et
-  `originale` ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
+  déliée ; `figees` exige `crans`, porte un hexa par nuance dans chaque
+  thème présent, et refuse `base`, `parts`, `reglages` et `originale` ; sa
+  forme `{ light, dark? }` exige `intensites: 1`, sa forme `{ soft, vivid }`
+  le refuse, et aucune des deux ne se mélange avec l'autre ; `intensiteDesFondsSombres` est dans `[0, 1]` ;
   `contenuDesPlanches` garde un thème au moins. `reglages` porte au moins
   une teinte, une clarté ou `part`, dans leurs bornes, sans zéro ni objet
   vide ; une clé `soft` ne va qu'à deux intensités ; `porteur` accompagne des réglages à deux intensités sans `base`,
@@ -640,7 +643,8 @@ dix-sept paires.
   recalcule pas la référence réglée : deux moteurs JavaScript peuvent
   différer au dernier bit, et la recette deviendrait illisible. La version 8
   ajoute `figees` et laisse une palette à une intensité porter `crans`. La
-  version 9 ajoute `texteDesBoutons`. Une recette d'une version antérieure à
+  version 9 ajoute `texteDesBoutons`. La
+  version 10 laisse `figees` porter les couleurs de deux intensités, `{ soft, vivid }`. Une recette d'une version antérieure à
   8 est refusée sans conversion :
   seul le mainteneur en a rangé, pour ses essais. Un changement de forme
   reprendra sa conversion et ses tests le jour où des recettes seront rangées
@@ -2898,6 +2902,14 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   accepte ; sinon elle suit la liste commune, et seules les nuances communes
   s'écrivent. En mode `telles-quelles`, elle est figée aux couleurs lues
   (`figees`, section 7.1), sur les seules nuances que le thème Light colore.
+  Une palette groupée du fichier (`Poppy/soft/light`, `Poppy/soft/dark`,
+  `Poppy/vivid/light`, `Poppy/vivid/dark`, ou ses deux autres formes) se
+  reprend de même en `telles-quelles` : elle porte deux intensités, et
+  `figees` y est `{ soft, vivid }`, lu dans chaque groupe. Une nuance que
+  le thème Light ne colore pas dans l'une des intensités quitte les deux,
+  et un alias Dark prend la couleur de Light. Les rampes rendent alors les
+  couleurs du fichier à l'hexa près, et la palette est « À jour » sans
+  écriture.
   Son suivi prend la liaison `reprise` : ses clés désignent les variables
   d'origine, par identifiant. Le thème Light vise le mode dont le nom
   contient « light », sans casse, s'il porte une couleur directe ; sinon le

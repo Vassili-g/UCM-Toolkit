@@ -134,13 +134,19 @@ test('[REC-03] une recette de la version courante est lue', () => {
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une recette 9 exportée puis relue est égale', () => {
+test('[REC-03] une recette 10 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 9);
+  assert.equal(recette.formatVersion, 10);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('une recette 8 se lit au format 9 avec le texte des boutons par défaut', () => {
+test('[REC-03] un lecteur au format 9 lit une recette 10 comme future ; ce lecteur-ci lit le format 11 comme future', () => {
+  // `classerRecette` classe `future` toute version au-dessus de FORMAT_RECETTE : passer à 10 suffit à écarter l'ancien lecteur.
+  assert.ok(FORMAT_RECETTE > 9);
+  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 11 })), { etat: 'future', version: 11 });
+});
+
+test('une recette 8 se lit au format 10 avec le texte des boutons par défaut', () => {
   const recette = valide();
   const { texteDesBoutons: _, ...ancienne } = recette;
   const texte = JSON.stringify({ ...ancienne, formatVersion: 8 });
@@ -235,7 +241,7 @@ test('[REC-04] une recette illisible est refusée sans recette de remplacement',
   }
 });
 
-// ------------------------------------------------------------ les couleurs figées (format 8)
+// ------------------------------------------------------------ les couleurs figées (formats 8 et 10)
 
 const NUANCES_FIGEES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const SLATE = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
@@ -296,4 +302,72 @@ test('[VAR-13] des couleurs figées refusent une liste absente, deux intensités
   assert.deepEqual(refusDeLaPalette({ ...figee(), figees: { dark: SLATE } }), ['forme palettes[0].figees.light']);
   assert.deepEqual(refusDeLaPalette(figee({ originale: '#334155' })), ['figees-incompatible palettes[0].originale']);
   assert.deepEqual(refusDeLaPalette({ ...figee(), reglages: { part: 0.5 } }).filter((refus) => refus.startsWith('figees')), ['figees-incompatible palettes[0].reglages']);
+});
+
+// ------------------------------------------------------------ les couleurs figées à deux intensités (format 10)
+
+const ROUGE = ['#FEF2F2', '#FEE2E2', '#FECACA', '#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
+const NUIT = [...SLATE].reverse();
+
+/** Une palette figée à deux intensités : Soft et Vivid portent chacun leurs couleurs, Light et Dark. */
+function figeeADeuxIntensites(reglages: Partial<Palette> = {}): Palette {
+  const { parts: _parts, ...sansParts } = paletteTailwind('p-000000f2', '#475569');
+  return { ...sansParts, crans: NUANCES_FIGEES, figees: { soft: { light: SLATE, dark: NUIT }, vivid: { light: ROUGE, dark: [...ROUGE].reverse() } }, ...reglages };
+}
+
+test('[REC-03] une recette 9 se lit telle quelle, palette figée à une intensité comprise, et la lecture la laisse rangée au format 9', () => {
+  const recette = { ...valide(), palettes: [...valide().palettes, figee()] };
+  const texte = JSON.stringify({ ...recette, formatVersion: 9 });
+  assert.deepEqual(classerRecette(texte), { etat: 'courante', recette });
+  assert.equal(JSON.parse(texte).formatVersion, 9);
+});
+
+test('[VAR-13] des couleurs figées à deux intensités se valident, et les rampes de chaque intensité rendent les siennes', () => {
+  const palette = figeeADeuxIntensites();
+  assert.deepEqual(refusDeLaPalette(palette), []);
+  const recette = { ...valide(), palettes: [palette] };
+  assert.deepEqual(validerRecette(copie(recette)), { recette });
+  const rampes = rampesDe(recette, palette);
+  assert.deepEqual(Object.keys(rampes), ['soft', 'vivid']);
+  assert.deepEqual(rampes.soft!.light.map((cran) => cran.hexa), SLATE);
+  assert.deepEqual(rampes.soft!.dark.map((cran) => cran.hexa), NUIT);
+  assert.deepEqual(rampes.vivid!.light.map((cran) => cran.hexa), ROUGE);
+  assert.deepEqual(rampes.vivid!.dark.map((cran) => cran.hexa), [...ROUGE].reverse());
+  // Sans mode Dark à l'origine d'une intensité, son thème Dark rend celui de Light.
+  const sansDark = figeeADeuxIntensites({ figees: { soft: { light: SLATE }, vivid: { light: ROUGE, dark: NUIT } } });
+  assert.deepEqual(rampesDe(recette, sansDark).soft!.dark.map((cran) => cran.hexa), SLATE);
+  assert.deepEqual(verifierPromesses(recette, palette), []);
+});
+
+test('[VAR-13] la référence d’une palette figée à deux intensités est la nuance de l’intensité qui en porte la couleur', () => {
+  const recette = { ...valide(), palettes: [figeeADeuxIntensites()] };
+  assert.deepEqual(ancrageDe(recette, figeeADeuxIntensites()), { profil: 'soft', rangs: { light: 6, dark: 6 }, crans: { light: 600, dark: 600 } });
+  const vivid = figeeADeuxIntensites({ reference: '#B91C1C' });
+  assert.deepEqual(ancrageDe(recette, vivid), { profil: 'vivid', rangs: { light: 7, dark: 7 }, crans: { light: 700, dark: 700 } });
+  // Une référence que ni l'une ni l'autre ne porte retombe sur Soft, première nuance.
+  assert.deepEqual(ancrageDe(recette, figeeADeuxIntensites({ reference: '#123456' })), { profil: 'soft', rangs: { light: 0, dark: 0 }, crans: { light: 50, dark: 50 } });
+});
+
+test('[VAR-13] les deux formes de figees ne se mélangent pas : une forme à une intensité exige intensites: 1, une forme à deux le refuse', () => {
+  const { intensites: _intensites, ...sansIntensites } = figee();
+  assert.deepEqual(refusDeLaPalette(sansIntensites), ['figees-sans-liste palettes[0].figees']);
+  assert.deepEqual(refusDeLaPalette({ ...figeeADeuxIntensites(), intensites: 1 }), ['figees-incompatible palettes[0].intensites']);
+  const melange = { ...figee(), figees: { light: SLATE, soft: { light: SLATE }, vivid: { light: SLATE } } };
+  assert.ok(refusDeLaPalette(melange).includes('cle-inconnue palettes[0].figees.light'));
+  assert.deepEqual(refusDeLaPalette(figeeADeuxIntensites({ figees: { soft: { light: SLATE } } as never })), ['forme palettes[0].figees.vivid']);
+  assert.deepEqual(refusDeLaPalette(figeeADeuxIntensites({ figees: { soft: SLATE, vivid: ROUGE } as never })), [
+    'forme palettes[0].figees.soft', 'forme palettes[0].figees.vivid',
+  ]);
+});
+
+test('[VAR-13] chaque intensité figée porte un hexa lisible par nuance, et ne se règle pas', () => {
+  const refus = (figees: unknown) => refusDeLaPalette(figeeADeuxIntensites({ figees: figees as never }));
+  assert.deepEqual(refus({ soft: { light: SLATE.slice(1) }, vivid: { light: ROUGE } }), ['figees-longueur palettes[0].figees.soft.light']);
+  assert.deepEqual(refus({ soft: { light: SLATE }, vivid: { light: ROUGE, dark: ROUGE.slice(2) } }), ['figees-longueur palettes[0].figees.vivid.dark']);
+  assert.deepEqual(refus({ soft: { light: SLATE }, vivid: { light: ['bleu', ...ROUGE.slice(1)] } }), ['hexa-invalide palettes[0].figees.vivid.light[0]']);
+  assert.deepEqual(refus({ soft: { dark: SLATE }, vivid: { light: ROUGE } }), ['forme palettes[0].figees.soft.light']);
+  const { crans: _crans, ...sansListe } = figeeADeuxIntensites();
+  assert.deepEqual(refusDeLaPalette(sansListe), ['figees-sans-liste palettes[0].figees']);
+  assert.deepEqual(refusDeLaPalette(figeeADeuxIntensites({ base: 'soft' })).filter((r) => r.startsWith('figees')), ['figees-incompatible palettes[0].base']);
+  assert.deepEqual(refusDeLaPalette(figeeADeuxIntensites({ originale: '#334155' })), ['figees-incompatible palettes[0].originale']);
 });

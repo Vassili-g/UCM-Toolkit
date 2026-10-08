@@ -623,8 +623,9 @@ export function reprendreDuFichier(recette: Recette, id: string, source: Palette
  * La palette du plugin qu'une palette groupée du fichier devient ([VAR-13]) :
  * deux intensités quand la forme en porte deux, une pour `themes-chemin`, et
  * pour nom le dernier segment de la racine. Les couleurs viennent d'un seul
- * point, `couleursDeLaRepriseGroupee`. Rend `null` quand il n'en tire
- * aucune, dont le mode `telles-quelles` aujourd'hui.
+ * point, `couleursDeLaRepriseGroupee`. `telles-quelles` fige les couleurs
+ * lues, une fois par intensité, sur les seules nuances que le thème Light
+ * colore. Rend `null` quand aucune nuance ne porte de couleur en Light.
  */
 function reprendreLaGroupee(recette: Recette, id: string, source: PaletteGroupee, mode: ModeDeReprise): Palette | null {
   const couleurs = couleursDeLaRepriseGroupee(source, mode);
@@ -632,6 +633,8 @@ function reprendreLaGroupee(recette: Recette, id: string, source: PaletteGroupee
   const neuve = nouvellePalette(recette, id, couleurs.reference, source.forme === 'themes-chemin' ? 1 : 2);
   if (!neuve) return null;
   const nommee: Palette = { ...neuve, ...couleurs.reglages, nom: nomDeLaReprise({ chemin: source.racine, nomDeLaCollection: source.nomDeLaCollection }) };
+  // Figée, la palette garde les nuances que les couleurs lues colorent : aucune liste libre ne les remplace.
+  if (mode === 'telles-quelles') return nommee;
   const communes = couleurs.nuances.length === recette.crans.length && couleurs.nuances.every((nuance, rang) => nuance === recette.crans[rang]);
   return communes || !nuancesLibres(couleurs.nuances) ? nommee : { ...nommee, crans: [...couleurs.nuances] };
 }

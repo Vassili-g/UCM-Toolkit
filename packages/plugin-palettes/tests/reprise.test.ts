@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { aUneIntensite, fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
+import { aUneIntensite, couleursFigeesDe, fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, rampesDe, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nomDeLaReprise, remplacerPalette, reprendreDuFichier, revenirAuModele, supprimer } from '../src/edition';
 import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
@@ -110,7 +110,7 @@ test('[VAR-13] Telles quelles relit une retouche Dark dans une variable séparé
   const lu = await lireLesVariablesDuFichier(api(figma));
   const source = sourceDeLaReprise(lu.suivi.palettes[palette.id], lu)!;
   const figee = reprendreDuFichier(recette, palette.id, source, 'telles-quelles')!;
-  assert.equal(figee.figees?.dark?.[TAILWIND.indexOf(600)], '#AABBCC');
+  assert.equal(couleursFigeesDe(figee.figees!, 'unique').dark?.[TAILWIND.indexOf(600)], '#AABBCC');
   assert.equal((await tokens(figma, recette, palette)).themes, 'chemin');
   await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: '', themes: 'modes' });
   assert.equal((await tokens(figma, recette, palette)).themes, 'chemin');
@@ -692,13 +692,13 @@ async function groupeesDuFichier(figma: FauxFigma, recette: Recette = VIDE): Pro
 const sourceGroupee = (groupee: PaletteGroupee) => ({ collection: groupee.collection, racine: groupee.racine, forme: groupee.forme });
 
 /** Reprend une palette groupée par la porte du sandbox, sous l'identifiant demandé. */
-async function reprendreLaGroupee(figma: FauxFigma, groupee: PaletteGroupee, avant: Recette = VIDE, id = 'p-000000a1'): Promise<{ recette: Recette; palette: Palette }> {
+async function reprendreLaGroupee(figma: FauxFigma, groupee: PaletteGroupee, avant: Recette = VIDE, id = 'p-000000a1', mode: 'recalculees' | 'telles-quelles' = 'recalculees'): Promise<{ recette: Recette; palette: Palette }> {
   const suivi = lireLeSuiviRange(figma.root);
   if (!suivi.confirmee) {
     const groupe = groupee.racine.split('/').slice(0, -1).join('/');
     figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { ...suivi.destination, groupe } }));
   }
-  const palette = reprendreDuFichier(avant, id, groupee, 'recalculees')!;
+  const palette = reprendreDuFichier(avant, id, groupee, mode)!;
   const recette = ajouter(avant, palette);
   const issue = await reprendreLaPalette(api(figma), { recette, empreinteLue: empreinte(avant), palette: id, source: sourceGroupee(groupee) });
   assert.deepEqual(issue, { issue: 'reprise', empreinte: empreinte(recette) });
@@ -856,7 +856,7 @@ test('[VAR-13] la reprise groupée refuse une forme que le fichier ne porte plus
   assert.equal(autre.root.getSharedPluginData('ucm_palettes', 'recette'), jsonCanonique(rangee));
 });
 
-test('[VAR-13] les couleurs d’une palette groupée passent par un seul point : recalculées, la référence de l’ancrage Soft en Light ; telles quelles, rien', async () => {
+test('[VAR-13] les couleurs d’une palette groupée passent par un seul point : recalculées, la référence de l’ancrage Soft en Light ; telles quelles, les couleurs du fichier figées', async () => {
   const figma = new FauxFigma();
   const collection = figma.variables.createVariableCollection('Brand');
   collection.renameMode(collection.defaultModeId, 'Light');
@@ -865,8 +865,139 @@ test('[VAR-13] les couleurs d’une palette groupée passent par un seul point :
   rampe(figma, collection, 'Poppy/vivid', TAILWIND, [NUIT, SLATE]);
   const [groupee] = await groupeesDuFichier(figma);
   assert.deepEqual(couleursDeLaRepriseGroupee(groupee, 'recalculees'), { nuances: TAILWIND, reference: SLATE[6], reglages: {} });
-  assert.equal(couleursDeLaRepriseGroupee(groupee, 'telles-quelles'), null);
-  assert.equal(reprendreDuFichier(VIDE, 'p-000000a1', groupee, 'telles-quelles'), null);
+  assert.deepEqual(couleursDeLaRepriseGroupee(groupee, 'telles-quelles'), {
+    nuances: TAILWIND,
+    reference: SLATE[6],
+    reglages: { crans: TAILWIND, figees: { soft: { light: SLATE, dark: NUIT }, vivid: { light: NUIT, dark: SLATE } } },
+  });
+  const palette = reprendreDuFichier(VIDE, 'p-000000a1', groupee, 'telles-quelles')!;
+  assert.equal(palette.intensites, undefined);
+  assert.ok('recette' in validerRecette(ajouter(VIDE, palette)));
+});
+
+// ------------------------------------------------------------ la reprise groupée, telle quelle
+
+const ROUGE = ['#FEF2F2', '#FEE2E2', '#FECACA', '#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
+const ROUGE_NUIT = [...ROUGE].reverse();
+
+/** Les hexa de chaque rampe d'une palette, par intensité et par thème. */
+const rampesEnHexa = (recette: Recette, palette: Palette) => Object.fromEntries(Object.entries(rampesDe(recette, palette)).map(([intensite, parMode]) => [
+  intensite, { light: parMode.light.map((cran) => cran.hexa), dark: parMode.dark.map((cran) => cran.hexa) },
+]));
+
+/** Les quatre groupes de Poppy, `Poppy/<intensité>/<thème>`, chacun de ses couleurs, dans une collection à un mode. */
+function fichierDePoppy(): { figma: FauxFigma; collection: FausseCollection } {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Primitives');
+  rampe(figma, collection, 'Poppy/soft/light', TAILWIND, [SLATE]);
+  rampe(figma, collection, 'Poppy/soft/dark', TAILWIND, [NUIT]);
+  rampe(figma, collection, 'Poppy/vivid/light', TAILWIND, [ROUGE]);
+  rampe(figma, collection, 'Poppy/vivid/dark', TAILWIND, [ROUGE_NUIT]);
+  figma.journal.length = 0;
+  return { figma, collection };
+}
+
+test('[VAR-13] les quatre groupes de Poppy, repris tels quels, rendent à l’hexa près les couleurs du fichier à deux intensités, « À jour » sans aucune écriture', async () => {
+  const { figma, collection } = fichierDePoppy();
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.equal(groupee.forme, 'intensites-themes-chemin');
+  const avantNoms = nomsEtIdentifiants(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee, VIDE, 'p-9e4d7c10', 'telles-quelles');
+
+  assert.equal(palette.id, 'p-9e4d7c10');
+  assert.equal(palette.nom, 'Poppy');
+  assert.equal(palette.intensites, undefined);
+  assert.deepEqual(palette.crans, TAILWIND);
+  assert.deepEqual(palette.figees, { soft: { light: SLATE, dark: NUIT }, vivid: { light: ROUGE, dark: ROUGE_NUIT } });
+  assert.equal(palette.reference, SLATE[6]);
+  assert.ok('recette' in validerRecette(recette));
+  assert.deepEqual(rampesEnHexa(recette, palette), {
+    soft: { light: SLATE, dark: NUIT },
+    vivid: { light: ROUGE, dark: ROUGE_NUIT },
+  });
+  // La reprise n'a écrit aucune variable, et la palette quitte « Déjà dans le fichier ».
+  assert.deepEqual(nomsEtIdentifiants(figma), avantNoms);
+  assert.deepEqual(await duFichier(figma, recette), []);
+
+  // Les tokens sont à jour : rien à écrire, à renommer ni à créer.
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.equal(cles.suivi.length, 44);
+  assert.deepEqual(cles.suivi, cles.plan);
+  const avant = await tokens(figma, recette, palette);
+  assert.deepEqual([avant.etat, avant.aCreer.length, avant.aRenommer.length, avant.aRemplacer, avant.variables], ['a-jour', 0, 0, 0, 44]);
+
+  // Une mise à jour des tokens n'écrit, ne renomme et ne crée aucune variable.
+  figma.journal.length = 0;
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
+  assert.deepEqual(nomsEtIdentifiants(figma), avantNoms);
+  assert.deepEqual(figma.journal.filter((ligne) => /^(valeur|renommer|créer|retirer|ajouter mode)/.test(ligne)), []);
+  assert.equal(collection.modes.length, 1);
+  for (const [nom, couleur] of [['Poppy/soft/light/600', SLATE[6]], ['Poppy/soft/dark/600', NUIT[6]], ['Poppy/vivid/light/600', ROUGE[6]], ['Poppy/vivid/dark/600', ROUGE_NUIT[6]]]) {
+    assert.equal(hexa(figma, nom), couleur, nom);
+  }
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+});
+
+test('[VAR-13] deux groupes en modes Light et Dark, repris tels quels, figent les couleurs de chaque mode pour chaque intensité', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  collection.renameMode(collection.defaultModeId, 'Light');
+  collection.addMode('Dark');
+  rampe(figma, collection, 'Poppy/soft', TAILWIND, [SLATE, NUIT]);
+  rampe(figma, collection, 'Poppy/vivid', TAILWIND, [ROUGE, ROUGE_NUIT]);
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.equal(groupee.forme, 'intensites-themes-modes');
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee, VIDE, 'p-000000a1', 'telles-quelles');
+  assert.deepEqual(rampesEnHexa(recette, palette), { soft: { light: SLATE, dark: NUIT }, vivid: { light: ROUGE, dark: ROUGE_NUIT } });
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.deepEqual(cles.suivi, cles.plan);
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+  assert.equal(figma.journal.filter((ligne) => ligne.startsWith('valeur')).length, 0);
+});
+
+test('[VAR-13] deux groupes Light et Dark dans le chemin, repris tels quels, donnent la forme d’une intensité', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  rampe(figma, collection, 'Poppy/light', TAILWIND, [SLATE]);
+  rampe(figma, collection, 'Poppy/dark', TAILWIND, [NUIT]);
+  const [groupee] = await groupeesDuFichier(figma);
+  assert.equal(groupee.forme, 'themes-chemin');
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee, VIDE, 'p-000000a1', 'telles-quelles');
+  assert.equal(palette.intensites, 1);
+  assert.deepEqual(palette.figees, { light: SLATE, dark: NUIT });
+  assert.deepEqual(rampesEnHexa(recette, palette), { unique: { light: SLATE, dark: NUIT } });
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.deepEqual(cles.suivi, cles.plan);
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+});
+
+test('[VAR-13] repris tels quels, une nuance que le thème Light ne colore pas quitte les deux intensités, et un alias Dark prend la couleur de Light', async () => {
+  const figma = new FauxFigma();
+  const collection = figma.variables.createVariableCollection('Brand');
+  collection.renameMode(collection.defaultModeId, 'Light');
+  const dark = collection.addMode('Dark');
+  rampe(figma, collection, 'Poppy/soft', TAILWIND, [SLATE, NUIT]);
+  rampe(figma, collection, 'Poppy/vivid', TAILWIND, [ROUGE, ROUGE_NUIT]);
+  // La nuance 50 est un alias en Light chez Vivid ; la nuance 100 est un alias en Dark chez Soft.
+  figma.variable('Poppy/vivid/50').setValueForMode(collection.defaultModeId, { type: 'VARIABLE_ALIAS', id: figma.variable('Poppy/vivid/100').id });
+  figma.variable('Poppy/soft/100').setValueForMode(dark, { type: 'VARIABLE_ALIAS', id: figma.variable('Poppy/soft/200').id });
+  const [groupee] = await groupeesDuFichier(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee, VIDE, 'p-000000a1', 'telles-quelles');
+  assert.deepEqual(palette.crans, TAILWIND.slice(1));
+  assert.deepEqual(palette.figees, {
+    soft: { light: SLATE.slice(1), dark: [SLATE[1], ...NUIT.slice(2)] },
+    vivid: { light: ROUGE.slice(1), dark: ROUGE_NUIT.slice(1) },
+  });
+  assert.ok('recette' in validerRecette(recette));
+  // Le plugin n'écrase pas un alias : l'entrée de Soft en Dark à la nuance 100 sort du suivi et du plan, et les tokens sont à jour.
+  const cles = await clesDuPlanEtDuSuivi(figma, recette, palette);
+  assert.ok(cles.plan.every((cle) => cles.suivi.includes(cle)));
+  assert.ok(!cles.suivi.includes('unique/dark/100') && !cles.plan.includes('unique/dark/100'));
+  assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+  await ecrireSansToucherAuxVariables(figma, recette, palette);
+  assert.deepEqual(figma.variable('Poppy/soft/100').valuesByMode[dark], { type: 'VARIABLE_ALIAS', id: figma.variable('Poppy/soft/200').id });
 });
 
 test('[VAR-13] un groupe seul se reprend comme avant : sa source reste un chemin et son suivi reste sous `unique`', async () => {

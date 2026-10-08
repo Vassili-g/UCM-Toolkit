@@ -25,7 +25,7 @@ import {
   type RampeParMode,
   type Rampes,
 } from './rampe';
-import type { Palette, Recette } from './recette';
+import { figeesParIntensite, type CouleursFigees, type CouleursFigeesParIntensite, type Palette, type Recette } from './recette';
 
 /** Vrai pour une palette à une intensité ([ENT-14]). */
 export function aUneIntensite(palette: Palette): boolean {
@@ -181,12 +181,36 @@ export function profilAutomatique(recette: Recette, palette: Palette): Profil {
 }
 
 /**
+ * Les couleurs figées d'une intensité d'une palette figée ([VAR-13]). Une
+ * palette figée à une intensité rend les siennes, quelle que soit l'intensité
+ * demandée ; une palette figée à deux intensités rend celles de `soft` ou de
+ * `vivid`, `unique` valant `soft`.
+ */
+export function couleursFigeesDe(figees: NonNullable<Palette['figees']>, intensite: Intensite): CouleursFigees {
+  if (!figeesParIntensite(figees)) return figees;
+  return figees[intensite === 'vivid' ? 'vivid' : 'soft'];
+}
+
+/**
+ * Le profil d'une palette figée à deux intensités qui porte la couleur de la
+ * référence : le premier dont la rampe Light la contient, sinon `soft`. La
+ * reprise ancre la référence à une couleur de Soft en Light.
+ */
+function porteurDeLaFigee(figees: CouleursFigeesParIntensite, reference: string): Profil {
+  const cherchee = reference.toUpperCase();
+  return figees.soft.light.some((hexa) => hexa.toUpperCase() === cherchee) || !figees.vivid.light.some((hexa) => hexa.toUpperCase() === cherchee) ? 'soft' : 'vivid';
+}
+
+/**
  * Le profil qui porte la référence exacte d'une palette à deux intensités :
  * la palette de base forcée ([ENT-11]), sinon le porteur que les réglages ont
  * figé (Z10.5), sinon le classement automatique. Une palette libre n'a pas de
- * base : la validation la refuse.
+ * base : la validation la refuse. Une palette figée à deux intensités n'a ni
+ * base ni réglage : son porteur est le profil dont les couleurs contiennent la
+ * référence.
  */
 export function profilPorteur(recette: Recette, palette: Palette): Profil {
+  if (estFigee(palette) && figeesParIntensite(palette.figees)) return porteurDeLaFigee(palette.figees, palette.reference);
   return (estLibre(palette) ? undefined : palette.base) ?? palette.reglages?.porteur ?? profilAutomatique(recette, palette);
 }
 
@@ -264,9 +288,10 @@ export interface Ancrage {
  */
 export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
   if (estFigee(palette)) {
-    // Une palette figée ne calcule rien : la référence est la nuance qui en porte la couleur, la première de sa liste sinon.
-    const rang = Math.max(0, palette.figees.light.findIndex((hexa) => hexa.toUpperCase() === palette.reference.toUpperCase()));
-    return { profil: 'unique', rangs: { light: rang, dark: rang }, crans: { light: palette.crans[rang], dark: palette.crans[rang] } };
+    // Une palette figée ne calcule rien : la référence est la nuance qui en porte la couleur, dans l'intensité porteuse, la première de sa liste sinon.
+    const profil = intensitePorteuse(recette, palette);
+    const rang = Math.max(0, couleursFigeesDe(palette.figees, profil).light.findIndex((hexa) => hexa.toUpperCase() === palette.reference.toUpperCase()));
+    return { profil, rangs: { light: rang, dark: rang }, crans: { light: palette.crans[rang], dark: palette.crans[rang] } };
   }
   // Le départ, fixe pendant les gestes : la luminosité du porteur translate sa rampe sans changer la nuance du ◆ (Z10.5).
   const clarte = rgb8VersOklch(departDe(recette, palette)).L;
@@ -320,7 +345,11 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
   if (estFigee(palette)) {
     // Les couleurs lues dans le fichier, telles quelles ; sans mode Dark à l'origine, le thème Dark rend celles de Light.
     const rampe = (couleurs: readonly string[]): Cran[] => couleurs.map((hexa) => cranDeLaReference(lireHexa(hexa) ?? [0, 0, 0]));
-    return { unique: { light: rampe(palette.figees.light), dark: rampe(palette.figees.dark ?? palette.figees.light) } };
+    const parMode = (figees: CouleursFigees): RampeParMode => ({ light: rampe(figees.light), dark: rampe(figees.dark ?? figees.light) });
+    // Une palette figée à deux intensités rend les couleurs de chacune, Soft puis Vivid.
+    return figeesParIntensite(palette.figees)
+      ? { soft: parMode(palette.figees.soft), vivid: parMode(palette.figees.vivid) }
+      : { unique: parMode(palette.figees) };
   }
   const reference = referenceDe(palette);
   const ancrage = ancrageDe(recette, palette);

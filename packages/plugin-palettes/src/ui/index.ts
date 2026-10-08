@@ -221,12 +221,13 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
       return true;
     },
     // « Modifier dans le plugin » : la palette reprise, recalculée, part avec la recette ; Création s'ouvre sur elle à l'état relu.
-    // `imposee` est l'identifiant d'un cadre orphelin : la palette reprise le reprend, et le cadre s'y rattache.
+    // `imposee` est l'identifiant d'un cadre orphelin : la palette reprise le reprend, et le cadre s'y rattache. Elle garde alors
+    // les couleurs du fichier telles quelles : aucune couleur ne change à la reprise d'une palette supprimée.
     reprendre(source, imposee) {
       const recette = ongletCreation.recette();
       if (!recette || (imposee !== undefined && recette.palettes.some((palette) => palette.id === imposee))) return false;
       const id = imposee ?? nouvelIdentifiant(recette, tirer);
-      const palette = reprendreDuFichier(recette, id, source, 'recalculees');
+      const palette = reprendreDuFichier(recette, id, source, imposee === undefined ? 'recalculees' : 'telles-quelles');
       const designee = 'groupes' in source ? { collection: source.collection, racine: source.racine, forme: source.forme } : { collection: source.collection, chemin: source.chemin };
       if (!palette || !frontiere.reprendre(ajouter(recette, palette), id, designee)) return false;
       paletteReprise = id;

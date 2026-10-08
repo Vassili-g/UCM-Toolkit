@@ -5,7 +5,7 @@
  * les renomme sous le segment de leur thème ou de leur intensité, et crée
  * sous leur chemin ce que la palette porte de plus. Pur : ni Figma, ni DOM.
  */
-import { MODES, type Intensite, type Mode, type Palette } from 'ucm-couleur';
+import { MODES, type CouleursFigees, type Intensite, type Mode, type Palette } from 'ucm-couleur';
 
 import { nuanceDeReference, type GroupeRange, type PaletteDuFichier, type PaletteGroupee } from './detection';
 import { cleDuPlan, type EntreeDuPlan } from './plan';
@@ -76,7 +76,7 @@ export interface CouleursDeLaRepriseGroupee {
   readonly nuances: readonly number[];
   /** La référence de la palette neuve, en hexa. */
   readonly reference: string;
-  /** Les champs de la palette neuve qui s'ajoutent à sa référence (réglages reconstruits, couleurs figées) ; vide tant que D3 n'a rien décidé. */
+  /** Les champs de la palette neuve qui s'ajoutent à sa référence : ses couleurs figées et leurs nuances en mode `telles-quelles`, rien en mode `recalculees`. */
   readonly reglages: Partial<Palette>;
 }
 
@@ -86,14 +86,53 @@ function groupeDAncrage(groupee: PaletteGroupee): GroupeRange {
 }
 
 /**
- * Le point unique des couleurs d'une palette groupée. Pour l'instant, en
- * mode `recalculees` seulement : la référence est la couleur de la nuance
- * d'ancrage du groupe Soft en Light (ou du seul groupe Light), sans autre
- * réglage. `telles-quelles` rend `null` : le modèle des couleurs figées n'a
- * qu'une intensité.
+ * Les couleurs figées d'une palette groupée ([VAR-13]), lues dans chaque
+ * groupe : `crans` porte les seules nuances que le thème Light colore dans
+ * chaque intensité, et `figees` leurs couleurs. Les thèmes d'une forme dans le
+ * chemin se lisent dans le mode Light de la collection, comme dans le suivi ;
+ * ceux d'une forme en modes, dans ses modes Light et Dark. Un alias du thème
+ * Dark prend la couleur de Light. `themes-chemin` donne la forme d'une
+ * intensité, les deux autres formes `{ soft, vivid }`. La référence est la
+ * couleur de la nuance d'ancrage du groupe Soft en Light, parmi ces nuances.
+ */
+function couleursFigeesDeLaGroupee(groupee: PaletteGroupee): CouleursDeLaRepriseGroupee | null {
+  const { palette: ancre } = groupeDAncrage(groupee);
+  const viser = modesDeLaReprise(ancre.modes, ancre.couleurs);
+  const enModes = groupee.forme === 'intensites-themes-modes';
+  const lire = (intensite: GroupeRange['intensite'], theme: Mode): readonly (string | null)[] | null => {
+    const groupe = groupee.groupes.find((candidat) => candidat.intensite === intensite && (candidat.theme === theme || candidat.theme === null));
+    const mode = enModes ? viser[theme] : viser.light;
+    return groupe && mode ? groupe.palette.couleurs[mode.id] ?? null : null;
+  };
+  const lues: { readonly light: readonly (string | null)[]; readonly dark: readonly (string | null)[] | null }[] = [];
+  for (const intensite of groupee.forme === 'themes-chemin' ? [null] : (['soft', 'vivid'] as const)) {
+    const light = lire(intensite, 'light');
+    if (!light) return null;
+    lues.push({ light, dark: lire(intensite, 'dark') });
+  }
+  const colorees = ancre.nuances.map((nuance, rang) => ({ nuance, rang })).filter(({ rang }) => lues.every(({ light }) => light[rang] !== null));
+  const ancrage = nuanceDAncrage({ nuances: colorees.map(({ nuance }) => nuance), light: colorees.map(({ rang }) => lues[0].light[rang]), dark: null }, ancre.reference);
+  if (!ancrage) return null;
+  const figees = lues.map(({ light, dark }): CouleursFigees => {
+    const claires = colorees.map(({ rang }) => light[rang]!.slice(0, 7));
+    return dark ? { light: claires, dark: colorees.map(({ rang }, place) => (dark[rang] ?? claires[place]).slice(0, 7)) } : { light: claires };
+  });
+  return {
+    nuances: ancre.nuances,
+    reference: lues[0].light[colorees[ancrage.rang].rang]!,
+    reglages: { crans: colorees.map(({ nuance }) => nuance), figees: groupee.forme === 'themes-chemin' ? figees[0] : { soft: figees[0], vivid: figees[1] } },
+  };
+}
+
+/**
+ * Le point unique des couleurs d'une palette groupée. `recalculees` : la
+ * référence est la couleur de la nuance d'ancrage du groupe Soft en Light (ou
+ * du seul groupe Light), sans autre réglage. `telles-quelles` : les couleurs
+ * du fichier, figées (`couleursFigeesDeLaGroupee`). Rend `null` quand aucune
+ * nuance ne porte de couleur en Light.
  */
 export function couleursDeLaRepriseGroupee(groupee: PaletteGroupee, mode: ModeDeLaRepriseGroupee): CouleursDeLaRepriseGroupee | null {
-  if (mode !== 'recalculees') return null;
+  if (mode === 'telles-quelles') return couleursFigeesDeLaGroupee(groupee);
   const { palette } = groupeDAncrage(groupee);
   const lues = couleursDeLaReprise(palette);
   const ancre = nuanceDAncrage(lues, palette.reference);

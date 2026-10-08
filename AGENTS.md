@@ -196,7 +196,7 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/rampe.ts             un cran, le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
   src/tailwind.ts          le préréglage Tailwind et son relevé
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
-  src/recette.ts           la forme de la recette au format 9, sa validation, son classement à la lecture : le format 8 se lit et reçoit `texteDesBoutons` par défaut, aucun autre format antérieur ne se convertit
+  src/recette.ts           la forme de la recette au format 10, sa validation, son classement à la lecture : le format 9 se lit tel quel, le format 8 se lit et reçoit `texteDesBoutons` par défaut, aucun autre format antérieur ne se convertit
   src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
@@ -1047,11 +1047,11 @@ La spécification en lien porte le raisonnement.
   `verifierPromesses` (`packages/couleur`) en sont l'unique autorité ;
   `packages/kit/tests/garanties.test.ts` et
   `packages/couleur/tests/promesses.test.ts` les tiennent.
-- La recette est au format 9 et porte `texteDesBoutons: { light, dark }`,
+- La recette est au format 10 et porte `texteDesBoutons: { light, dark }`,
   chacun `blanc` ou `noir` ; une autre valeur est refusée par la règle
   `texte-des-boutons`. Une recette au format 8 se lit, reçoit le texte par
   défaut et se classe `courante` ; une qui porte déjà `texteDesBoutons` est
-  refusée par la règle `forme`. Aucune lecture n'écrit : le format 9 se range
+  refusée par la règle `forme`. Aucune lecture n'écrit : le format 10 se range
   au prochain geste du designer. Changer le texte des boutons d'un thème
   remplace ses nuances 500 à 800 par les valeurs par défaut du sens d'arrivée ;
   `recetteAvecTexteDesBoutons` refuse le passage quand la courbe n'est plus

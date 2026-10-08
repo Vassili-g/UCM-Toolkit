@@ -14,11 +14,13 @@ import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Profil 
 import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
 
 /**
- * La version écrite porte le texte des boutons par thème. Le format 8 se lit
- * avec les couleurs de texte par défaut ; les formats plus anciens sont
- * illisibles et les formats plus récents sont futurs.
+ * La version écrite : `figees` peut porter les couleurs des deux intensités
+ * d'une palette (`{ soft, vivid }`). Le format 9 se lit tel quel, puisque rien
+ * n'y change de sens ; le format 8 se lit avec les couleurs de texte par
+ * défaut ; les formats plus anciens sont illisibles et les formats plus
+ * récents sont futurs.
  */
-export const FORMAT_RECETTE = 9;
+export const FORMAT_RECETTE = 10;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -94,6 +96,17 @@ export interface CouleursFigees {
   readonly dark?: readonly string[];
 }
 
+/** Les couleurs figées d'une palette à deux intensités : celles de chaque intensité, chacune de la forme d'une intensité. */
+export interface CouleursFigeesParIntensite {
+  readonly soft: CouleursFigees;
+  readonly vivid: CouleursFigees;
+}
+
+/** Vrai pour les couleurs figées de deux intensités, `{ soft, vivid }`. */
+export function figeesParIntensite(figees: CouleursFigees | CouleursFigeesParIntensite): figees is CouleursFigeesParIntensite {
+  return 'soft' in figees;
+}
+
 export interface Palette {
   readonly id: string;
   readonly nom?: string;
@@ -120,10 +133,11 @@ export interface Palette {
   /**
    * Les couleurs d'une palette figée ([VAR-13]) : ses rampes ne se calculent
    * pas, elles rendent ces couleurs. Une palette figée porte sa liste de
-   * nuances et une seule intensité ; elle n'a ni rôles, ni garanties, ni
-   * réglage global, ni Color shift.
+   * nuances ; elle n'a ni rôles, ni garanties, ni réglage global, ni Color
+   * shift. Avec `intensites: 1`, `figees` est `{ light, dark? }` ; sans lui,
+   * c'est `{ soft, vivid }`, chacun de cette forme (format 10).
    */
-  readonly figees?: CouleursFigees;
+  readonly figees?: CouleursFigees | CouleursFigeesParIntensite;
 }
 
 /** Les parties d'un cadre de la planche que le designer choisit de dessiner ([PLA-28]). */
@@ -380,21 +394,9 @@ function validerCransFiges(releve: Releve, crans: unknown, chemin: string): void
   });
 }
 
-/**
- * Les couleurs figées ([VAR-13]) : la palette porte sa liste et une seule
- * intensité, chaque thème a un hexa par nuance, et rien de ce qui règle une
- * rampe calculée ne les accompagne.
- */
-function validerFigees(releve: Releve, palette: Objet, chemin: string): void {
-  if (!('figees' in palette)) return;
-  const ici = `${chemin}.figees`;
-  const figees = palette.figees;
-  if (!Array.isArray(palette.crans) || palette.intensites !== 1) releve.refuser('figees-sans-liste', ici);
-  for (const cle of ['base', 'parts', 'reglages', 'originale']) {
-    if (cle in palette) releve.refuser('figees-incompatible', `${chemin}.${cle}`);
-  }
+/** Les couleurs d'une intensité figée : `light`, et `dark` facultatif, un hexa par nuance de la liste. */
+function validerCouleursFigees(releve: Releve, figees: unknown, ici: string, nombre: number | null): void {
   if (!releve.objet(figees, ici, ['light'], ['dark'])) return;
-  const nombre = Array.isArray(palette.crans) ? palette.crans.length : null;
   for (const mode of ['light', 'dark'] as const) {
     if (!(mode in figees)) continue;
     const couleurs = figees[mode];
@@ -405,6 +407,35 @@ function validerFigees(releve: Releve, palette: Objet, chemin: string): void {
     if (nombre !== null && couleurs.length !== nombre) releve.refuser('figees-longueur', `${ici}.${mode}`, couleurs.length);
     couleurs.forEach((couleur, rang) => releve.hexa(couleur, `${ici}.${mode}[${rang}]`));
   }
+}
+
+/**
+ * Les couleurs figées ([VAR-13]) : la palette porte sa liste, chaque thème a
+ * un hexa par nuance, et rien de ce qui règle une rampe calculée ne les
+ * accompagne. Avec `intensites: 1`, `figees` porte `light` et `dark` ; sans
+ * lui, `soft` et `vivid`, chacun avec `light` et `dark`. Les deux formes ne
+ * se mélangent pas.
+ */
+function validerFigees(releve: Releve, palette: Objet, chemin: string): void {
+  if (!('figees' in palette)) return;
+  const ici = `${chemin}.figees`;
+  const figees = palette.figees;
+  const parIntensite = estObjet(figees) && ('soft' in figees || 'vivid' in figees);
+  if (!Array.isArray(palette.crans)) releve.refuser('figees-sans-liste', ici);
+  else if (!parIntensite && palette.intensites !== 1) releve.refuser('figees-sans-liste', ici);
+  if (parIntensite && palette.intensites === 1) releve.refuser('figees-incompatible', `${chemin}.intensites`);
+  for (const cle of ['base', 'parts', 'reglages', 'originale']) {
+    if (cle in palette) releve.refuser('figees-incompatible', `${chemin}.${cle}`);
+  }
+  const nombre = Array.isArray(palette.crans) ? palette.crans.length : null;
+  if (parIntensite) {
+    if (!releve.objet(figees, ici, ['soft', 'vivid'])) return;
+    for (const profil of ['soft', 'vivid'] as const) {
+      if (profil in figees) validerCouleursFigees(releve, figees[profil], `${ici}.${profil}`, nombre);
+    }
+    return;
+  }
+  validerCouleursFigees(releve, figees, ici, nombre);
 }
 
 const ORIGINES_DERIVE: readonly string[] = ['tailwind', 'constante', 'libre'];
@@ -704,7 +735,8 @@ export type Classement =
 /**
  * Classe le texte rangé sous la clé de la recette avant tout emploi
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
- * supérieure est `future`. Le format 8 reçoit le texte des boutons par défaut
+ * supérieure est `future`. Le format 9 se lit tel quel, avec la version
+ * courante ; le format 8 reçoit en plus le texte des boutons par défaut,
  * avant validation au format courant. Une version inférieure à 8 est
  * illisible. La lecture laisse la recette rangée intacte ([REC-04]).
  */
@@ -731,6 +763,9 @@ export function classerRecette(texte: string | undefined): Classement {
   if (version === 8) {
     if ('texteDesBoutons' in objet) return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'texteDesBoutons' }] };
     objet = { ...objet, formatVersion: FORMAT_RECETTE, texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT } };
+  } else if (version === 9) {
+    // Le format 10 n'ajoute que la forme à deux intensités de `figees` : rien n'y change de sens pour une recette 9.
+    objet = { ...objet, formatVersion: FORMAT_RECETTE };
   }
 
   const lue = validerRecette(objet);

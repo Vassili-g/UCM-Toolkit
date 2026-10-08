@@ -86,12 +86,17 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
     const porteuse = intensitePorteuse(recette, palette);
     const reprises: EntreeDuPlan[] = [];
     if (!origine || (palette.figees !== undefined && (origine.suivies.size > 0 || !suivie.chemin))) {
-      const rampe = rampeDe(rampes, porteuse);
-      for (const mode of MODES) {
-        nuances.forEach((nuance, rang) => {
-          const cle = cleDuPlan('unique', mode, nuance);
-          if (suivie.variables[cle]) reprises.push({ cle, nom: '', mode: mode === 'dark' && suivie.modes.dark === undefined ? 'light' : mode, hexa: rampe[mode][rang].hexa.toUpperCase() });
-        });
+      // Une palette figée à deux intensités écrit chacune sous la clé que son suivi lui donne : `unique` pour celle qui porte les variables d'origine.
+      const intensites = palette.figees !== undefined ? intensitesDe(palette) : [porteuse];
+      for (const intensite of intensites) {
+        const rampe = rampeDe(rampes, intensite);
+        const rangee = palette.figees !== undefined && intensite !== 'unique' && intensite !== (suivie.intensite ?? porteuse) ? intensite : 'unique';
+        for (const mode of MODES) {
+          nuances.forEach((nuance, rang) => {
+            const cle = cleDuPlan(rangee, mode, nuance);
+            if (suivie.variables[cle]) reprises.push({ cle, nom: '', mode: mode === 'dark' && suivie.modes.dark === undefined ? 'light' : mode, hexa: rampe[mode][rang].hexa.toUpperCase() });
+          });
+        }
       }
       return reprises;
     }
