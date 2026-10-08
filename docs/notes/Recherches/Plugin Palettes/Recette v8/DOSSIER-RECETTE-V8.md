@@ -110,8 +110,7 @@ rende les données du plugin.
 
 Les lots sont ordonnés par priorité. Les lots 1 à 3 réparent Poppy et
 empêchent que la perte se reproduise ; les suivants traitent le reste de la
-recette. La section 5 consigne les décisions prises ; seule D5 reste
-ouverte.
+recette. La section 5 consigne les décisions prises.
 
 | Lot | Constat | Objet | Taille | Décision |
 |---|---|---|---|---|
@@ -296,7 +295,7 @@ si la largeur l'exige.
 
 Le libellé devient « Synchroniser avec les tokens Figma ». Il est plus long
 de vingt-deux caractères : à vérifier à la largeur minimale de la fenêtre.
-Le texte anglais reste à décider (D5).
+En anglais : « Sync with Figma tokens » (D5).
 
 ### Lot 7. L'espace sous les pastilles de l'aperçu
 
@@ -338,7 +337,7 @@ le résume (« Modèle libre, une intensité »).
 | D2 | Une forme incomplète, trois groupes sur quatre, se regroupe-t-elle ? | Non : seules les formes complètes se regroupent | Regrouper, la mise à jour créant le groupe manquant |
 | D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Reconstruire les réglages si la mesure 3a la montre exacte, sinon figer les couleurs du fichier à deux intensités ; aucune couleur du fichier ne change | Recalculer depuis la référence |
 | D4 | Quel modèle d'annulation ? | Retour à l'ouverture, « Rétablir », et Ctrl+Z dans la fenêtre du plugin | Brouillon et « Enregistrer » |
-| D5 | Quel libellé anglais pour la synchronisation ? | Ouverte. Recommandation : « Sync with Figma tokens », pour garder le mot du français | « Sync with Figma variables » |
+| D5 | Quel libellé anglais pour la synchronisation ? | « Sync with Figma tokens », pour garder le mot du français | « Sync with Figma variables » |
 
 ## 6. Ordre de réalisation
 
@@ -346,8 +345,7 @@ le résume (« Modèle libre, une intensité »).
 2. Lot 3a : la mesure décide de la forme de 3b et du format de la recette.
 3. Lots 2, 3b, puis 3c : Poppy revient sous son identifiant.
 4. Lot 4 : l'annulation des modifications.
-5. Lots 5, 6 et 7, indépendants entre eux ; le lot 6 attend D5 pour
-   l'anglais.
+5. Lots 5, 6 et 7, indépendants entre eux .
 6. Lots 8 et 9 : les maquettes, puis leurs décisions.
 
 Ce que le plan ne couvre pas : une palette créée par le plugin, liaison
