@@ -33,6 +33,7 @@ import {
   type RegleRecette,
   type TexteDesBoutons,
   type VariableDePalette,
+  rangDuCranLeger,
 } from 'ucm-couleur';
 
 import { fondDeLaPromesse } from '../presentation';
@@ -966,10 +967,12 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
       };
     case 'fond-hors-courbe': {
       const sens = alerte.mode === 'light' ? 'plus sombre' : 'plus clair';
+      // Le premier numéro de la liste : la nuance 50 quand la liste la porte, sinon la suivante.
+      const premiere = contexte.recette.crans[rangDuCranLeger(contexte.recette.crans)];
       return {
         ou: `Fond de la page, thème ${NOM_DU_MODE[alerte.mode]} : ${contexte.recette.fonds[alerte.mode]}`,
-        quoi: `Ce fond est ${sens} que la nuance la plus claire. Luminosité : ${ecrireArrondi(alerte.clarte, 3)}, contre ${ecrireArrondi(alerte.cran, 3)}.`,
-        geste: 'Vérifiez les garanties. Si elles échouent, rapprochez le fond de la nuance la plus claire dans « Couleurs de fond ».',
+        quoi: `Ce fond est ${sens} que la nuance ${premiere}. Luminosité : ${ecrireArrondi(alerte.clarte, 3)}, contre ${ecrireArrondi(alerte.cran, 3)}.`,
+        geste: `Vérifiez les garanties. Si elles échouent, rapprochez le fond de la nuance ${premiere} dans « Couleurs de fond ».`,
       };
     }
   }
