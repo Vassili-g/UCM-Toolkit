@@ -186,6 +186,17 @@ de ce dossier. Elle décide de la suite (D3) : un écart nul sur toutes les
 palettes fait reconstruire les réglages ; un écart non nul fait figer les
 couleurs. La décision s'écrit ici avec ses chiffres avant 3b.
 
+**Résultat de la mesure (2026-10-08).** Sur trente palettes tirées, la
+reconstruction retrouve des réglages qui reproduisent les rampes, avec un
+écart nul sur les trente ([Mesures/RESULTATS.md](./Mesures/RESULTATS.md)).
+Elle demande de 2 à 40 secondes par palette. Elle n'est pas mesurée pour un
+Color shift libre importé, une recette globale autre que celle par défaut,
+ou une variable retouchée à la main : la reprise aurait besoin, dans ces
+cas, des couleurs figées en secours. Le mainteneur a donc choisi de **figer
+d'abord** : la reprise de Poppy fige les couleurs du fichier à deux
+intensités, au format 10. La reconstruction des réglages devient un lot
+suivant, qui s'appuie sur ce secours.
+
 Si la reprise fige les couleurs, `figees` s'étend aux deux intensités :
 `{ soft: CouleursFigees, vivid: CouleursFigees }` sur une palette sans
 `intensites: 1`, la forme actuelle restant celle d'une intensité.
@@ -335,7 +346,7 @@ le résume (« Modèle libre, une intensité »).
 |---|---|---|---|
 | D1 | Que devient « Annuler la reprise » ? | Le bouton quitte l'encart ; la suppression reste dans le menu de la palette, avec sa confirmation | Le renommer « Retirer du plugin… » avec confirmation |
 | D2 | Une forme incomplète, trois groupes sur quatre, se regroupe-t-elle ? | Non : seules les formes complètes se regroupent | Regrouper, la mise à jour créant le groupe manquant |
-| D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Reconstruire les réglages si la mesure 3a la montre exacte, sinon figer les couleurs du fichier à deux intensités ; aucune couleur du fichier ne change | Recalculer depuis la référence |
+| D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Figer d'abord les couleurs du fichier à deux intensités ; la reconstruction, exacte sur la mesure 3a, vient ensuite ; aucune couleur du fichier ne change | Recalculer depuis la référence |
 | D4 | Quel modèle d'annulation ? | Retour à l'ouverture, « Rétablir », et Ctrl+Z dans la fenêtre du plugin | Brouillon et « Enregistrer » |
 | D5 | Quel libellé anglais pour la synchronisation ? | « Sync with Figma tokens », pour garder le mot du français | « Sync with Figma variables » |
 

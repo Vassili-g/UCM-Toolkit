@@ -83,7 +83,7 @@ parallèle, puis la vérification et l'essai dans Figma.
 
 ### Vague 1
 
-- [ ] **T1 · Lot 1** · `implementeur`, effort **bas**. « Annuler la
+- [x] **T1 · Lot 1** · `implementeur`, effort **bas**. « Annuler la
   reprise » quitte l'encart (D1).
   - Fichiers : `packages/plugin-palettes/src/ui/ongletCreation.ts`
     (`rendreLaReprise`), `src/i18n/fr.ts` et `src/i18n/en.ts`
@@ -96,7 +96,7 @@ parallèle, puis la vérification et l'essai dans Figma.
     tests de l'onglet passent.
   - Commit : `fix(palettes): « Annuler la reprise » ne retire plus la palette`.
 
-- [ ] **T2 · Lot 3a, la mesure** · `implementeur`, effort **élevé**. Les
+- [x] **T2 · Lot 3a, la mesure** · `implementeur`, effort **élevé**. Les
   réglages se reconstruisent-ils depuis les rampes ?
   - Fichiers : nouveau dossier `docs/notes/Recherches/Plugin Palettes/Recette v8/Mesures/`
     (script `mesurer-reconstruction.mjs`, résultats `RESULTATS.md`). Lecture
@@ -114,7 +114,7 @@ parallèle, puis la vérification et l'essai dans Figma.
 
 ### Vague 2, dès que T1 a rendu
 
-- [ ] **T3 · Lot 2a** · `implementeur`, effort **moyen**. Le regroupement
+- [x] **T3 · Lot 2a** · `implementeur`, effort **moyen**. Le regroupement
   pur des groupes d'une même palette (D2).
   - Fichiers : `packages/plugin-palettes/src/variables/detection.ts` et ses
     tests. Aucun fichier de l'interface.
@@ -133,7 +133,7 @@ le correctif empêche une autre perte.
 
 ### Vague 3, dès que T3 a rendu
 
-- [ ] **T4 · Lot 3b-socle** · `implementeur-exigeant`, effort **élevé**. La
+- [x] **T4 · Lot 3b-socle** · `implementeur-exigeant`, effort **élevé**. La
   reprise groupée sous un identifiant donné.
   - Fichiers : `packages/plugin-palettes/src/edition.ts`
     (`reprendreDuFichier`), `src/variables/reprise.ts` (`suiviDeLaReprise`,
@@ -155,6 +155,10 @@ le correctif empêche une autre perte.
 décision et ses chiffres dans le dossier, section 4, « 3a », et commite la
 mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 Écart nul sur les trente palettes : T5 reconstruit. Sinon : T5 fige.
+
+> Fait le 2026-10-08 : écart nul sur les trente palettes, mais 2 à 40 s par
+> palette et des cas non mesurés. Le mainteneur a choisi de figer d'abord ;
+> la reconstruction devient la tâche T18 de la phase B.
 
 ### Vague 4, dès que T4 et D3 sont faits
 
@@ -179,7 +183,7 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
     - Fini quand : la palette reprise rend les rampes du fichier à l'hexa
       près sur les palettes de la mesure.
 
-- [ ] **T6 · Lot 3c** · `implementeur`, effort **moyen**, en parallèle de T5.
+- [x] **T6 · Lot 3c** · `implementeur`, effort **moyen**, en parallèle de T5.
   « Reprendre depuis les variables » sur la carte d'un cadre orphelin.
   - Fichiers : `packages/plugin-palettes/src/ui/ongletGestion.ts` (carte
     « Palette supprimée du plugin »), `src/i18n/fr.ts`, `src/i18n/en.ts`,
@@ -276,6 +280,15 @@ Commence après T9. Les vagues gardent deux agents au plus.
   (`scripts/capturer-etats.mjs`). L'orchestrateur relit, commite chaque lot,
   pousse.
 
+### Vague 9 bis
+
+- [ ] **T18 · Reconstruction des réglages** · `implementeur-exigeant`,
+  effort **élevé**. La recherche de `Mesures/mesurer-reconstruction.mjs`
+  devient un module testé du moteur, assez rapide pour l'interface. Une
+  palette reprise figée propose de retrouver ses réglages ; les couleurs
+  figées restent le secours quand la recherche n'est pas exacte. À
+  préciser avec le mainteneur avant l'appel.
+
 ### Vague 10. Les maquettes
 
 - [ ] **T17 · Lots 8 et 9** · Orchestrateur. Deux pages HTML simples à côté
@@ -303,6 +316,7 @@ Commence après T9. Les vagues gardent deux agents au plus.
 | T14 | `executant` | bas | B |
 | T15 | `executant` | bas | B |
 | T16 | `verificateur` | bas | B |
+| T18 | `implementeur-exigeant` | élevé | B |
 
 Phase A : six appels d'implémentation et un de vérification avant l'essai de
 Poppy. D3, T8, T9 et T17 ne passent par aucun agent.
