@@ -920,7 +920,7 @@ les lots 1 à 6 et la porte qui manque.
 lot 10 sans retirer l'ancienne table (T10.1 attend) et rend la porte qui
 manque.
 
-- [ ] **T9.1** · `implementeur`. La planche.
+- [x] **T9.1** · `implementeur`. La planche.
   - Fichiers : `packages/plugin-palettes/src/planche/modele.ts`,
     `src/planche/textes.ts`, `tests/modeleDePlanche.test.ts`,
     `tests/fraicheur.test.ts`.
@@ -931,20 +931,20 @@ manque.
     boutons du Dark change l'empreinte, donc la planche passe « À
     actualiser ».
   - Fini quand : `npm test --workspace ucm-palettes-plugin` passe.
-- [ ] **T9.2** · `implementeur`. L'Interface de test.
+- [x] **T9.2** · `implementeur`. L'Interface de test.
   - Fichiers : `packages/plugin-palettes/src/ui/interfaceDeTest.ts`,
     `src/ui/styles.css`, `src/i18n/fr.ts`, `src/i18n/en.ts`,
     `tests/apercuEtInterfaceDeTest.test.ts`.
   - Faire : l'écran d'après M3 (I8).
   - Fini quand : `npm test --workspace ucm-palettes-plugin` passe.
-- [ ] **T9.3** · `implementeur`. Galerie et tests Chromium des écrans de M2
+- [x] **T9.3** · `implementeur`. Galerie et tests Chromium des écrans de M2
   et M3. Fichiers : `galerie/etats.cjs`,
   `tests/interface/interface.test.mjs`. Fini quand : `npm run test:ui
   --workspace ucm-palettes-plugin` passe.
-- [ ] **T9.4** · `verificateur`. `npm run typecheck`, `npm test`,
+- [x] **T9.4** · `verificateur`. `npm run typecheck`, `npm test`,
   `npm run test:ui --workspace ucm-palettes-plugin`. Fini quand : tableau
   rendu, tout vert.
-- [ ] **T9.5** · Orchestrateur. Comparer la galerie à M2 et M3 ; commit
+- [x] **T9.5** · Orchestrateur. Comparer la galerie à M2 et M3 ; commit
   `feat(palettes): la planche et l'Interface de test parlent en dossiers`.
 
 ## Lot 10. Le retrait de l'ancienne table, les documents, la publication
@@ -1036,7 +1036,8 @@ Mis à jour par l'orchestrateur à chaque lot.
 | 6. Explorateur | commité | 9c55ca6 |
 | 7. Garanties | commité avec le lot 8 ; portes M1 à M3 validées | e1a8d73 |
 | 8. Lecteurs et carte | commité | e1a8d73 |
-| 9 et 10 | à faire | |
+| 9. Planche et Interface de test | commité | 6014870 |
+| 10. Retrait et publication | à faire | |
 
 **Décisions prises pendant l'exécution**, dans le cadre du plan :
 
@@ -1084,6 +1085,19 @@ Mis à jour par l'orchestrateur à chaque lot.
   `surface/foreground` sur `surface/pressed`, ne tient pas dans la colonne.
 - Lot 8 : l'aperçu compact ne peint ses trois boutons que dans les Réglages
   communs ; la fiche de Gestion et les cartes d'intensité ne changent pas.
+- Lot 9 : M3 peint le focus du bouton plein et du bouton sans fond sur
+  `hover`, et celui du bouton contour en plein ; S3 et la liste des
+  changements de M3 disent que le focus garde le fond du repos. L'Interface de
+  test suit S3 : le focus garde la forme du repos et ajoute `page/focus`.
+- Lot 9 : la planche montre aussi, sous `surface/default`, les garanties de
+  `surface/foreground` et `surface/border` contre la page, que M2 ne dessine
+  pas : G3 et G4 les jugent, et leur échec compte dans le verdict du thème.
+- Lot 9 : la galerie ne rend pas le dessin de la planche ; la planche se
+  vérifie par les tests de son modèle, dans les quatre combinaisons.
+- Lot 9 : `npm run galerie` et `test:ui` ne reconstruisent que `dist/ui.html`.
+  Le mainteneur a vu un plugin vide dans Figma, `dist/code.js` datant d'avant
+  le format 9 ; `npm run build` l'a réparé. Chaque lot se termine désormais par
+  ce build.
 - Lot 8 : l'état de galerie `garantie-en-echec` et ses voisins passent le texte
   des boutons du Light au noir : la 700 à 0,55 ne fait plus rien manquer avec
   les sept garanties.
@@ -1096,9 +1110,6 @@ Mis à jour par l'orchestrateur à chaque lot.
   sessions (Direction artistique, Commandes d'affichage, Liste dépliable,
   Diagnostics d'un composant réel), hors de ce plan.
 
-- Lot 9 : `src/planche/modele.ts` rejuge encore localement les anciennes
-  paires (`jugementsDesPaires`) et `src/ui/interfaceDeTest.ts` lit
-  `TABLE_DES_EMPLOIS` ; T9.1 et T9.2 les retirent.
 - À relire par le mainteneur, textes que S9 ne fixe pas : `aideSeuilTexte` et
   `aideSeuilNonTexte` des Réglages communs ; la colonne « Garantie » et la
   phrase « trop claire pour « anneau de focus » (page/focus) » de la modale
