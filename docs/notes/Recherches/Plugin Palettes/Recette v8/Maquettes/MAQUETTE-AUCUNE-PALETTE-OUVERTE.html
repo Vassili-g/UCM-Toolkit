@@ -140,6 +140,33 @@
   .echantillon.ambre { box-shadow: 0 0 0 2px #f3b53f; }
   .surface-test { border-radius: 4px; padding: 3px 6px; font-size: 10px; font-weight: 600; }
   .lien-test { font-size: 10px; font-weight: 600; text-decoration: underline; }
+  /* V3, deuxième version : des signes à l'échelle du texte. */
+  .resume-fin { display: flex; gap: 14px; margin: 12px 0 10px; font-size: 12px; font-weight: 600; }
+  .filtre-fin { display: inline-flex; align-items: center; gap: 6px; padding-bottom: 2px; border-bottom: 1px solid transparent; cursor: pointer; }
+  .filtre-fin.muet { color: var(--second); font-weight: 500; }
+  .filtre-fin.choisi { border-bottom-color: currentColor; }
+  .pt { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex: none; }
+  .pt.rouge { background: #e5484d; }
+  .pt.ambre { background: #f3b53f; }
+  .bande-nom { display: flex !important; align-items: center; justify-content: space-between; gap: 4px; padding: 4px 5px !important; }
+  .bande-nom > span { padding: 0 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1d1d1b; font-size: 10px; font-weight: 700; }
+  .carte7.eteinte { opacity: 0.25; }
+  .entre-fin { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--second); font-size: 11px; }
+  .entre-fin b { color: var(--texte); font-weight: 600; }
+  .entre-fin .mini { width: 30px; height: 12px; }
+  .detail-fin { margin-top: 12px; border-top: 1px solid var(--filet); }
+  .ligne-fin { display: grid; grid-template-columns: 6px 56px 1fr auto; align-items: center; gap: 8px; margin: 0; padding: 7px 0; border-bottom: 1px solid var(--filet); font-size: 11px; }
+  .ligne-fin span { color: var(--second); }
+  .ligne-fin u { color: var(--primaire); text-decoration: none; font-weight: 600; }
+  .jauge { display: flex; gap: 2px; height: 4px; margin-top: 12px; }
+  .jauge i { display: block; border-radius: 2px; }
+  .jauge .rouge { background: #e5484d; }
+  .jauge .ambre { background: #f3b53f; }
+  .jauge .vert { background: #3d6b4c; }
+  .liseree-rouge { box-shadow: 0 0 0 2px #e5484d; }
+  .liseree-ambre { box-shadow: 0 0 0 2px #f3b53f; }
+  .compte-rouge { color: #c62828; font-size: 10px; }
+  .compte-ambre { color: #9a6a00; font-size: 10px; }
 </style>
 </head>
 <body>
@@ -524,7 +551,108 @@
   }
 </script>
 
+<h3 style="font-size:16px;margin:40px 0 8px">V3, deuxième version : plus fin</h3>
+<p class="chapeau">Retour du mainteneur : V3 plaît, mais elle est trop grossière. Les gros boutons-filtres colorés et une pastille sur chacune des vingt cartes font du bruit, alors que seize palettes n'ont rien à signaler. Cette version suit trois règles : le silence quand tout tient, la couleur d'état réservée à ce qui ne va pas, et des signes à l'échelle du texte, pas au-dessus. Le nuancier reste exactement celui de Création.</p>
+
+<h3 style="font-size:15px;margin:20px 0 8px">V3a. Un point dans la bande du nom</h3>
+<div class="rang">
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <p class="resume-fin"><span class="filtre-fin"><i class="pt rouge"></i>2 à corriger</span><span class="filtre-fin"><i class="pt ambre"></i>2 à vérifier</span><span class="filtre-fin muet">16 tiennent</span></p>
+      <div class="cartes7 fines" data-filtre=""></div>
+      <p class="entre-fin"><span class="mini" data-p="Sky"></span><span class="mini" data-p="Océan"></span> <b>Sky</b> et <b>Océan</b> se confondent · ΔEok 0,04</p>
+    </div>
+    <p class="legende2">Au repos</p>
+  </div>
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <p class="resume-fin"><span class="filtre-fin choisi"><i class="pt rouge"></i>2 à corriger</span><span class="filtre-fin"><i class="pt ambre"></i>2 à vérifier</span><span class="filtre-fin muet">16 tiennent</span></p>
+      <div class="cartes7 fines" data-filtre="rouge"></div>
+      <div class="detail-fin" data-filtre="rouge"></div>
+    </div>
+    <p class="legende2">Filtre « à corriger » choisi</p>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>Les cartes sont celles de Création, sans rien au-dessus. Une palette à corriger porte un point rouge de 6 px dans la bande de son nom, à droite ; une palette à vérifier, un point ambre. Une palette qui tient ne porte rien.</li>
+      <li>Le bilan tient en une ligne de texte, au-dessus du nuancier : deux points de couleur et trois comptes. Chaque compte est un filtre ; « 16 tiennent » reste en gris.</li>
+      <li>Un filtre choisi atténue les autres cartes, et ouvre sous le nuancier le détail des palettes filtrées : leur nom, le thème fautif et la garantie, en une ligne chacune.</li>
+      <li>« Entre les palettes » devient une ligne discrète sous le nuancier.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Au repos, l'écran ressemble à Création : seuls quatre points disent qu'il y a quelque chose.</li><li>Le détail n'arrive que lorsqu'on le demande.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Un point de 6 px se voit sur la bande blanche, mais il faut le chercher dans un nuancier de vingt cartes ; le bilan en tête le compense.</li></ul>
+  </div>
+</div>
+
+<h3 style="font-size:15px;margin:28px 0 8px">V3b. Un liseré autour de la carte</h3>
+<div class="rang">
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <div class="jauge"><i class="rouge" style="flex:2"></i><i class="ambre" style="flex:2"></i><i class="vert" style="flex:16"></i></div>
+      <p class="resume-fin" style="margin-top:6px"><span class="filtre-fin">2 à corriger</span><span class="filtre-fin">2 à vérifier</span><span class="filtre-fin muet">16 tiennent</span></p>
+      <div class="cartes7 liserees"></div>
+      <p class="entre-fin"><span class="mini" data-p="Sky"></span><span class="mini" data-p="Océan"></span> <b>Sky</b> et <b>Océan</b> se confondent · ΔEok 0,04</p>
+    </div>
+    <p class="legende2">Au repos</p>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>Une palette à corriger est entourée d'un liseré rouge de 2 px, une palette à vérifier d'un liseré ambre ; dans la bande du nom, le compte remplace l'espace libre à droite (« 1 »).</li>
+      <li>Le bilan est une jauge fine de 4 px, en proportion des palettes, avec ses trois comptes dessous.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Le liseré se repère tout de suite dans vingt cartes, sans rien ajouter au-dessus d'elles.</li><li>La jauge dit d'un regard la part du fichier qui tient.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Le liseré rouge touche les aplats de la carte : sur une palette rouge (Poppy, Brique), il se lit moins bien.</li></ul>
+  </div>
+</div>
+
+<script>
+  // V3, deuxième version : réutilise PALETTES, aplats et ETATS des pistes précédentes.
+  const DETAIL = { Bleu: 'Light · texte des boutons, 4,33:1', Sky: 'Dark · texte sur fond teinté, 3,9:1' };
+  for (const zone of document.querySelectorAll('.cartes7.fines')) {
+    const filtre = zone.dataset.filtre;
+    zone.innerHTML = PALETTES.slice(0, 20).map((p) => {
+      const [a, b, c] = aplats(p);
+      const [statut] = etatDe(p[0]);
+      const point = statut === 'vert' ? '' : `<i class="pt ${statut}"></i>`;
+      const eteinte = filtre && statut !== filtre ? ' eteinte' : '';
+      return `<span class="carte7${eteinte}" title="${p[0]}"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span class="bande-nom"><span>${p[0]}</span>${point}</span></span>`;
+    }).join('');
+  }
+  for (const zone of document.querySelectorAll('.detail-fin')) {
+    zone.innerHTML = PALETTES.filter((p) => etatDe(p[0])[0] === zone.dataset.filtre)
+      .map((p) => `<p class="ligne-fin"><i class="pt rouge"></i><b>${p[0]}</b><span>${DETAIL[p[0]]}</span><u>Vérifier</u></p>`).join('');
+  }
+  for (const zone of document.querySelectorAll('.cartes7.liserees')) {
+    zone.innerHTML = PALETTES.slice(0, 20).map((p) => {
+      const [a, b, c] = aplats(p);
+      const [statut, n] = etatDe(p[0]);
+      const compte = statut === 'vert' ? '' : `<b class="compte-${statut}">${n}</b>`;
+      return `<span class="carte7 liseree-${statut}" title="${p[0]}"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span class="bande-nom"><span>${p[0]}</span>${compte}</span></span>`;
+    }).join('');
+  }
+  for (const mini of document.querySelectorAll('.entre-fin .mini')) {
+    const p = PALETTES.find((x) => x[0] === mini.dataset.p);
+    const [a, b, c] = aplats(p);
+    mini.innerHTML = `<i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i>`;
+  }
+</script>
+
 <h2>Décision et recommandation</h2>
-<p class="chapeau"><b>Création : A2a, retenue.</b> <b>Vérification : V3, avec la ligne par thème de V4 quand on filtre.</b> V3 garde le nuancier de Création aux mêmes places, ajoute un verdict par carte, un bilan en trois filtres et les paires trop proches. Quand le designer active le filtre « à corriger », les cartes en défaut se déplient en lignes V4 : le bouton de la palette en Light et en Dark, et la garantie nommée. V5 est la piste la plus poussée ; elle vaut d'être gardée comme une vue « à l'épreuve » ajoutée plus tard, une fois V3 en place.</p>
+<p class="chapeau"><b>Création : A2a, retenue.</b> <b>Vérification : V3a.</b> Au repos, l'écran ressemble au nuancier de Création, et seuls les points rouges et ambre signalent quelque chose ; le bilan tient en une ligne de texte dont chaque compte est un filtre ; le détail des palettes filtrées s'ouvre sous le nuancier, une ligne chacune, avec le thème fautif et la garantie. La jauge de V3b peut s'ajouter au bilan si une proportion d'un regard manque. V4 et V5 restent des pistes pour plus tard.</p>
 </body>
 </html>
