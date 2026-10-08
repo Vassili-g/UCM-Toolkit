@@ -74,7 +74,7 @@ Arrêtés ici ; aucun agent n'en écrit d'autres.
 | Barre de la palette, lot 4 | Annuler les modifications ; Rétablir | Revert changes ; Redo |
 | Bouton de synchronisation, lot 6 | Synchroniser avec les tokens Figma | Sync with Figma tokens (D5) |
 
-Le mainteneur a validé ces libellés, anglais compris, le 2026-10-08.
+Le mainteneur a validé ces libellés, anglais compris.
 
 ## Phase A. Poppy revient
 
@@ -156,7 +156,7 @@ décision et ses chiffres dans le dossier, section 4, « 3a », et commite la
 mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 Écart nul sur les trente palettes : T5 reconstruit. Sinon : T5 fige.
 
-> Fait le 2026-10-08 : écart nul sur les trente palettes, mais 2 à 40 s par
+> Fait : écart nul sur les trente palettes, mais 2 à 40 s par
 > palette et des cas non mesurés. Le mainteneur a choisi de figer d'abord ;
 > la reconstruction devient la tâche T18 de la phase B.
 

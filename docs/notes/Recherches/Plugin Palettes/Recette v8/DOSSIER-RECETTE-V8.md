@@ -186,7 +186,7 @@ de ce dossier. Elle décide de la suite (D3) : un écart nul sur toutes les
 palettes fait reconstruire les réglages ; un écart non nul fait figer les
 couleurs. La décision s'écrit ici avec ses chiffres avant 3b.
 
-**Résultat de la mesure (2026-10-08).** Sur trente palettes tirées, la
+**Résultat de la mesure.** Sur trente palettes tirées, la
 reconstruction retrouve des réglages qui reproduisent les rampes, avec un
 écart nul sur les trente ([Mesures/RESULTATS.md](./Mesures/RESULTATS.md)).
 Elle demande de 2 à 40 secondes par palette. Elle n'est pas mesurée pour un
