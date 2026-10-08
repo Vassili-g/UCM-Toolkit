@@ -78,7 +78,7 @@ L'analyse charge, une à une, les pages qui portent les maîtres des dépendance
 du composant, et garde leur relevé jusqu'au prochain `nodechange` de chacune.
 Deux limites restent à mesurer dans Figma : le coût de ces chargements sur un
 fichier de cent pages, et la page d'un maître quand elle n'est pas chargée
-(sonde S6 du [plan d'implémentation](./docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md)).
+(sonde S6 du [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md)).
 
 ### La preuve du rendu reste ciblée
 

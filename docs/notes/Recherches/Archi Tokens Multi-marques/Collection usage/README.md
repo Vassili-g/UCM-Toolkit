@@ -5,7 +5,7 @@ de composant cite pour sa couleur. Sa forme a changé plusieurs fois. Cette page
 dit quel document lire, dans quel ordre, et ce que chacun vaut aujourd'hui.
 
 **État :** implémenté par le
-[plan du thème en dossiers](../../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
+[plan du thème en dossiers](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
 La table en dossiers vit dans `packages/kit/src/emplois/dossiers.ts` ;
 [ARCHITECTURE-FINALE-MULTIMARQUES.md](../ARCHITECTURE-FINALE-MULTIMARQUES.md),
 sections 4 et 5, la décrit.

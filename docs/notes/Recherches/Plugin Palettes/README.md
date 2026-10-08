@@ -33,13 +33,13 @@ décrivent pas le build courant.
 - La comparaison et l'harmonisation de plusieurs palettes sont à l'étude :
   le [plan de recherche](./Harmonisation%20entre%20palettes/PLAN-RECHERCHE-HARMONISATION.md)
   porte une première mesure et les questions ouvertes, sans implémentation.
-- Le texte des boutons en Light et en Dark est à l'étude :
+- Le texte des boutons en Light et en Dark est implémenté avec le thème en
+  dossiers et attend la recette dans Figma :
   [TEXTE-DES-BOUTONS.html](./Texte%20des%20boutons/TEXTE-DES-BOUTONS.html)
-  réunit les décisions du mainteneur, le thème inversé, les choix à prendre
-  et le réglage proposé dans les Réglages communs, sans implémentation.
+  réunit les décisions du mainteneur et le thème inversé.
 - Les commandes Light/Dark et Soft/Vivid sont implémentées et attendent la
   recette dans Figma : voir le
-  [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
+  [dossier des commandes](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Plugin%20Palettes/Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
 - La recette v8 est implémentée : le
   [dossier de la recette v8](./Recette%20v8/DOSSIER-RECETTE-V8.md) explique
   la palette retirée par « Annuler la reprise » et sa réparation par le

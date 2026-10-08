@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Logos UCM : optique</title>
+<style>
+  body { margin: 32px; background: #120a15; color: #e8e0ec; font: 15px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 22px; } h2 { font-size: 18px; margin-top: 56px; }
+  p { max-width: 820px; color: #bfb3c6; }
+  .famille { display: grid; grid-template-columns: repeat(2, auto); gap: 24px 40px; justify-content: start; }
+  .famille.ligne { grid-template-columns: repeat(4, auto); gap: 24px 28px; }
+  .logo { display: flex; align-items: center; gap: 16px; }
+  .ligne .logo { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .logo canvas { display: block; }
+  .logo span { font-size: 16px; width: 170px; }
+  .rangee { display: flex; gap: 12px; align-items: flex-end; margin: 12px 0; }
+  .gris canvas { filter: grayscale(1); }
+</style>
+</head>
+<body>
+<h1>Logos UCM : famille A</h1>
+<p>Toolkit : trois faisceaux qui se croisent. Contract Exporter : trois faisceaux qui convergent sur un foyer. Palettes : la
+lumière blanche qui se déploie en secteurs depuis un coin. Token Explorer : une spirale qui conduit du bord vers le centre.</p>
+<p>Couleurs : le spectre est partagé en tranches. Palettes va du rouge à l'ambre, Contract Exporter du cyan au bleu, Token
+Explorer du violet au magenta. Toolkit reprend une couleur de chaque tranche ; le jaune-vert et le vert sont réservés aux
+plugins suivants.</p>
+
+<div id="famille"></div>
+
+
+<script id="dessins">
+const TAU = Math.PI * 2;
+const mod = (a, n) => ((a % n) + n) % n;
+const deg = (d) => d * Math.PI / 180;
+const et = (f, g) => (x, y) => f(x, y) && g(x, y);
+
+/**
+ * Un logo : un fond, puis des couches peintes dans l'ordre. Chaque couche est
+ * un test de région et sa couleur pleine ; une rencontre est une couche à part.
+ * Les coordonnées vont de 0 à 100.
+ */
+const peintre = (fond, couches) => (x, y) => {
+  let c = fond;
+  for (const [test, couleur] of couches) if (test(x * 100, y * 100)) c = couleur;
+  return c;
+};
+/** Une bande droite de largeur w, à distance d du point c, de normale orientée selon `angle`. */
+const bande = (c, angle, d, w) => {
+  const n = [Math.cos(deg(angle)), Math.sin(deg(angle))];
+  return (x, y) => Math.abs((x - c[0]) * n[0] + (y - c[1]) * n[1] - d) < w / 2;
+};
+/** Un secteur issu de O, entre deux angles comptés depuis l'horizontale, vers le haut. */
+const secteur = (O, a0, a1) => (x, y) => {
+  const a = Math.atan2(O[1] - y, x - O[0]) * 180 / Math.PI;
+  return a > a0 && a < a1;
+};
+
+/* Les formes. Chaque fonction reçoit ses couleurs : les systèmes ne changent que celles-ci. */
+const FORMES = {
+  toolkit: (k) => {
+    const b = [-83, 37, 157].map((a) => bande([50, 54], a, 16, 15));
+    return peintre(k.fond, [
+      [b[0], k.b[0]], [b[1], k.b[1]], [b[2], k.b[2]],
+      [et(b[0], b[1]), k.x[0]], [et(b[0], b[2]), k.x[1]], [et(b[1], b[2]), k.x[2]],
+    ]);
+  },
+  exporter: (k) => {
+    const F = [68, 50], demi = deg(11);
+    const c = [-30, 0, 30].map((a) => {
+      const u = [Math.cos(deg(a)), Math.sin(deg(a))], A = [F[0] + u[0] * 16, F[1] + u[1] * 16];
+      return (x, y) => { const vx = A[0] - x, vy = A[1] - y, l = Math.hypot(vx, vy); return l > 0 && (vx * u[0] + vy * u[1]) / l > Math.cos(demi); };
+    });
+    return peintre(k.fond, [
+      [c[0], k.b[0]], [c[1], k.b[1]], [c[2], k.b[2]],
+      [et(c[0], c[1]), k.x[0]], [et(c[0], c[2]), k.x[1]], [et(c[1], c[2]), k.x[2]],
+      [et(et(c[0], c[1]), c[2]), k.foyer],
+    ]);
+  },
+  palettes: (k) => {
+    // L'origine est le coin même du carré : les secteurs couvrent tout le cadre.
+    const O = [0, 100], s = [secteur(O, -5, 20), secteur(O, 15, 45), secteur(O, 38, 68), secteur(O, 61, 95)];
+    return peintre(k.fond, [
+      [s[0], k.b[0]], [s[1], k.b[1]], [s[2], k.b[2]], [s[3], k.b[3]],
+      [et(s[0], s[1]), k.x[0]], [et(s[1], s[2]), k.x[1]], [et(s[2], s[3]), k.x[2]],
+    ]);
+  },
+  explorer: (k) => {
+    const C = [50, 51], R0 = 47, pas = 22, w = 15, fin = 1.6 * TAU;
+    return (x, y) => {
+      x *= 100; y *= 100;
+      const r = Math.hypot(x - C[0], y - C[1]), th = mod(Math.atan2(y - C[1], x - C[0]), TAU);
+      for (let n = 0; n < 3; n++) {
+        const phi = th + TAU * n;
+        if (phi > fin) break;
+        if (Math.abs(r - (R0 - pas * phi / TAU)) < w / 2) { const f = phi / fin; return f < 0.5 ? k.b[0] : f < 0.86 ? k.b[1] : k.pli; }
+      }
+      return r < 6 ? k.coeur : k.fond;
+    };
+  },
+};
+
+const OS = '#f1e6d0', BLANC = '#fffaf0';
+const EXPORTER = { fond: '#0d1b45', b: ['#2a62b8', '#2f9fc4', '#1f7fa8'], x: ['#8fd8f0', '#6f9ff0', '#7fe8dc'], foyer: BLANC };
+const PALETTES = { fond: '#2a1238', b: [OS, '#ffc24f', '#ff6f5e', '#c2457e'], x: ['#fff2c4', '#ffa24a', '#ff8fa0'] };
+
+const SYSTEMES = [
+  {
+    titre: 'Spectre partagé',
+    texte: 'Le spectre est découpé en tranches : Palettes du rouge à l\'ambre, Contract Exporter du cyan au bleu, Token Explorer du violet au magenta. Toolkit reprend une couleur de chaque tranche ; les tranches restantes, jaune-vert et vert, sont réservées aux plugins suivants.',
+    toolkit: { fond: '#1a1030', b: ['#ff6f5e', '#3fc4e0', '#c04ad8'], x: ['#ffd0b8', '#ff7ab8', '#a8b4ff'] },
+    exporter: EXPORTER,
+    palettes: PALETTES,
+    explorer: { fond: '#240a30', b: ['#8a3fd8', '#e0459e'], pli: '#ffc4e6', coeur: '#0c0410' },
+  },
+];
+
+const PRODUITS = ['toolkit', 'exporter', 'palettes', 'explorer'];
+const NOMS = { toolkit: 'UCM Toolkit', exporter: 'UCM Contract Exporter', palettes: 'UCM Palettes', explorer: 'UCM Token Explorer' };
+globalThis.DESSINS = SYSTEMES;
+globalThis.PRODUITS = PRODUITS;
+globalThis.fonction = (p, produit) => FORMES[produit](SYSTEMES[p][produit]);
+</script>
+
+<script>
+/* Rendu : chaque pixel est l'aplat de la région qui le contient ; seuls les bords sont lissés (3 × 3 échantillons). */
+const couleurs = new Map();
+const rgb = (h) => {
+  if (!couleurs.has(h)) couleurs.set(h, [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)));
+  return couleurs.get(h);
+};
+function rendre(canvas, f) {
+  const n = canvas.width, ctx = canvas.getContext('2d'), img = ctx.createImageData(n, n);
+  for (let py = 0; py < n; py++) for (let px = 0; px < n; px++) {
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const c = rgb(f((px + (i + 0.5) / 3) / n, (py + (j + 0.5) / 3) / n));
+      r += c[0]; g += c[1]; b += c[2];
+    }
+    const o = (py * n + px) * 4;
+    img.data[o] = r / 9; img.data[o + 1] = g / 9; img.data[o + 2] = b / 9; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function reduire(source, taille) {
+  const c = document.createElement('canvas');
+  c.width = c.height = taille;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, 0, 0, taille, taille);
+  return c;
+}
+const taches = [];
+function logo(conteneur, produit, f, taille, apres) {
+  const bloc = document.createElement('div');
+  bloc.className = 'logo';
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = taille * 2;
+  canvas.style.width = canvas.style.height = taille + 'px';
+  const nom = document.createElement('span');
+  nom.textContent = NOMS[produit];
+  bloc.append(canvas, nom);
+  conteneur.append(bloc);
+  taches.push(() => { rendre(canvas, f); if (apres) apres(canvas); });
+}
+
+/* La famille validée, avec ses réductions. */
+const famille = document.createElement('div');
+famille.className = 'famille';
+const r64 = document.createElement('div'), r32 = document.createElement('div'), gris = document.createElement('div');
+r64.className = r32.className = 'rangee';
+gris.className = 'rangee gris';
+document.getElementById('famille').append(famille, r64, r32, gris);
+PRODUITS.forEach((produit) => logo(famille, produit, fonction(0, produit), 280, (canvas) => {
+  r64.append(reduire(canvas, 64));
+  r32.append(reduire(canvas, 32));
+  gris.append(reduire(canvas, 128));
+}));
+
+const suivante = () => { const t = taches.shift(); if (t) { t(); setTimeout(suivante, 0); } };
+suivante();
+</script>
+</body>
+</html>

@@ -20,13 +20,13 @@ et du code, pas d'une ancienne liste de tâches.
 | Direction simple de Palettes | Création, Vérification, Gestion, variables locales, reprise, copie de bibliothèque, sections repliables et simulation des chemins | [Parcours et recette](./Plugin%20Palettes/Intégration%20du%20marché/README.md) |
 | Explorateur de tokens | Résolution, comparaison, diagnostics, intégrations, relevés et simulation | [Spécification](../../../packages/plugin-explorateur/SPEC.md) et [suivi des preuves](./Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) |
 | Vue composant de l'explorateur | Sélection, frontières de composition, aperçu, tokens par nature et chaînes | [Suivi](./Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md) et [recette Figma](./Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md) |
-| Thème en dossiers et texte des boutons | Table en dossiers du kit, format 9 de la recette, texte des boutons par thème et courbe inversée, sept garanties, aperçu en bandes, carte des garanties, planche, Interface de test, diagnostic des contrastes et profil de l'explorateur | [Architecture finale](./Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5, et [plan exécuté](./Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md) |
+| Thème en dossiers et texte des boutons | Table en dossiers du kit, format 9 de la recette, texte des boutons par thème et courbe inversée, sept garanties, aperçu en bandes, carte des garanties, planche, Interface de test, diagnostic des contrastes et profil de l'explorateur | [Architecture finale](./Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5, et [plan exécuté](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md) |
 
 ## Sujets partiellement implémentés
 
 | Sujet | Acquis | Suite distincte |
 |---|---|---|
-| [Performance de l'analyse](./Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) | Maître résolu une fois par analyse, index par page, annulation, traces et avancement dans le build courant | Préchauffage conditionné par les sondes, accélérations après mesure, reprise d'un index modifié ; conserver les sondes et le plan |
+| [Performance de l'analyse](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) | Maître résolu une fois par analyse, index par page, annulation, traces et avancement dans le build courant | Préchauffage conditionné par les sondes, accélérations après mesure, reprise d'un index modifié ; les sondes et le plan restent dans l'historique Git |
 | [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Table en dossiers `solid`, `surface` et `page` dans `packages/kit/src/emplois`, ses deux sens, ses sept garanties et la mesure des contrastes de `ucm check` | Déployer les collections dans Figma et migrer les consommateurs ; Palettes écrit les palettes primitives, sans générer `color-brands`, `color-utilities` ni `theme` |
 
 Le Playground et `intencial-library` portent encore l'axe
@@ -40,7 +40,7 @@ bibliothèques.
 |---|---|
 | [Bouton plein basculable](./Archi%20Tokens%20Multi-marques/Bouton%20plein%20basculable/README.md) | Question ouverte : l'état activé survolé d'un bouton plein dans la table à trois états ; solutions du marché modélisées, quatre propositions, aucune décision |
 | [Collection `usage`](./Archi%20Tokens%20Multi-marques/Collection%20usage/README.md) | Les propositions successives pour la collection `usage`, de la table des emplois aux dossiers à texte constant ; la dernière est implémentée, les autres restent comme historique |
-| [Direction artistique](./Direction%20artistique/README.md) | Propositions non validées, dont Capitule ; conserver les planches, leurs générateurs et les SVG |
+| [Direction artistique](./Direction%20artistique/Optique/README.md) | Brief d'exploration des quatre logos UCM : formes optiques abstraites, nuances et interactions en aplats, images carrées sans texte ni dégradé ; dessins à produire et à comparer |
 | [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
 | [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Piste non implémentée ; la parité TypeScript ne compare pas le rendu |
 | [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur dans le monorepo |

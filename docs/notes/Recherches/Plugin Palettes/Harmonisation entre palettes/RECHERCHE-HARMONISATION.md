@@ -311,7 +311,7 @@ l'expérience, pas sur une convention colorimétrique isolée.
 
 - [Plan de recherche et décisions attendues](./PLAN-RECHERCHE-HARMONISATION.md)
 - [Script des premières mesures](./mesurer-ecarts.mjs)
-- [Commandes Light/Dark et Soft/Vivid](../Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md)
+- [Commandes Light/Dark et Soft/Vivid](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Plugin%20Palettes/Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md)
 - [Modèle et validation de la recette](../../../../../packages/couleur/src/recette.ts)
 - [Génération des rampes](../../../../../packages/couleur/src/rampe.ts)
 - [Mesure des promesses](../../../../../packages/couleur/src/promesses.ts)

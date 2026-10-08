@@ -178,7 +178,7 @@ même trace part dans la console du plugin
 
 Une analyse annulée ou en échec ne laisse aucune trace. Le protocole de mesure
 et les sondes sont dans
-[Performance de l'analyse](../../docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md).
+[Performance de l'analyse](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md).
 
 ## Licence
 

@@ -15,4 +15,4 @@ l'historique ; leurs liens relatifs peuvent dater de leur ancien emplacement.
 | [MAQUETTE-THEME-INVERSE.html](./MAQUETTE-THEME-INVERSE.html) | Première maquette du thème inversé, à quatre états, anneau unique à 900 ou 950 ; ses données ne sont plus régénérées |
 
 Les trois premiers documents traitent aussi des commandes d'affichage, un
-sujet qui a son propre [dossier](../../Commandes%20Light-Dark%20et%20Soft-Vivid/README.md).
+sujet qui a son propre [dossier](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Plugin%20Palettes/Commandes%20Light-Dark%20et%20Soft-Vivid/README.md).

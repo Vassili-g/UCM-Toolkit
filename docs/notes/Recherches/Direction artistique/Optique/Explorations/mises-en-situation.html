@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Logos UCM : mises en situation</title>
+<style>
+  body { margin: 32px; background: #120a15; color: #e8e0ec; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { font-size: 22px; } h2 { font-size: 18px; margin: 56px 0 16px; }
+  p.note { max-width: 820px; color: #bfb3c6; }
+  img.logo { display: block; border-radius: 22.5%; flex: none; }
+  .scene { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+
+  /* GitHub */
+  .gh { width: 760px; background: #fff; color: #1f2328; border-radius: 8px; overflow: hidden; }
+  .gh-barre { display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-bottom: 1px solid #d0d7de; background: #f6f8fa; font-size: 16px; }
+  .gh-barre b { font-weight: 600; }
+  .gh-barre .public { font-size: 12px; border: 1px solid #d0d7de; border-radius: 2em; padding: 0 7px; color: #59636e; }
+  .gh-readme { margin: 24px; border: 1px solid #d0d7de; border-radius: 6px; }
+  .gh-readme > header { padding: 8px 16px; border-bottom: 1px solid #d0d7de; font-weight: 600; font-size: 13px; }
+  .gh-corps { padding: 32px; }
+  .gh-titre { display: flex; align-items: center; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid #d1d9e0; }
+  .gh-titre h3 { font-size: 30px; font-weight: 600; margin: 0; }
+  .gh-titre p { margin: 4px 0 0; color: #59636e; }
+  .gh-corps h4 { font-size: 20px; margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #d1d9e0; }
+  .gh-plugin { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  .gh-plugin b { display: block; }
+  .gh-plugin span { color: #59636e; }
+  .social { width: 640px; height: 320px; border-radius: 8px; background: #1a1030; display: flex; align-items: center; gap: 40px; padding: 0 56px; box-sizing: border-box; color: #f1e6d0; }
+  .social small { display: block; font-size: 18px; letter-spacing: 0.08em; opacity: 0.8; }
+  .social strong { font-size: 44px; line-height: 1.1; }
+  .social p { margin: 12px 0 0; font-size: 16px; opacity: 0.8; }
+
+  /* Figma */
+  .fg { background: #2c2c2c; color: #fff; border-radius: 8px; font-size: 12px; box-shadow: 0 8px 24px rgb(0 0 0 / 40%); }
+  .fg-menu { width: 260px; padding: 8px 0; }
+  .fg-menu .titre { padding: 4px 16px 8px; color: #ffffff80; }
+  .fg-menu .entree { display: flex; align-items: center; gap: 8px; padding: 6px 16px; }
+  .fg-menu .entree.active { background: #0d99ff; }
+  .fg-menu hr { border: 0; border-top: 1px solid #ffffff1a; margin: 8px 0; }
+  .fg-fenetre { width: 380px; overflow: hidden; }
+  .fg-fenetre .tete { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-bottom: 1px solid #ffffff1a; font-weight: 600; }
+  .fg-fenetre .tete .fermer { margin-left: auto; color: #ffffff80; font-size: 16px; }
+  .fg-fenetre .contenu { height: 220px; padding: 16px; color: #ffffff80; }
+  .fg-fenetre .ligne { height: 10px; border-radius: 3px; background: #ffffff14; margin-bottom: 12px; }
+  .fc { width: 300px; background: #fff; color: #1e1e1e; border-radius: 12px; overflow: hidden; border: 1px solid #e6e6e6; }
+  .fc .couverture { height: 160px; display: flex; align-items: center; justify-content: center; }
+  .fc .pied { display: flex; gap: 10px; padding: 12px; align-items: center; }
+  .fc .pied b { display: block; font-size: 13px; }
+  .fc .pied span { color: #757575; font-size: 12px; }
+
+  /* Cartes */
+  .carte { width: 300px; border-radius: 16px; padding: 24px; box-sizing: border-box; background: #1c1622; border: 1px solid #ffffff14; }
+  .carte img { margin-bottom: 20px; }
+  .carte small { display: block; color: #bfb3c6; letter-spacing: 0.1em; font-size: 12px; }
+  .carte strong { display: block; font-size: 24px; line-height: 1.15; color: #fff; }
+  .carte p { color: #bfb3c6; margin: 12px 0 16px; }
+  .carte .etiquette { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 2em; background: #ffffff14; color: #e8e0ec; }
+  .carte.claire { background: #f6f1ea; border-color: #e4dccf; }
+  .carte.claire strong { color: #1c1622; }
+  .carte.claire small, .carte.claire p { color: #5d5360; }
+  .carte.claire .etiquette { background: #1c162214; color: #1c1622; }
+</style>
+</head>
+<body>
+<h1>Logos UCM : mises en situation</h1>
+<p class="note">Les quatre logos de la famille A en spectre partagé, dans des carrés arrondis à 22,5 % du côté. Ces maquettes simplifiées
+reprennent la disposition de GitHub et de Figma sans en reproduire l'interface exacte.</p>
+
+<h2>GitHub</h2>
+<div class="scene">
+  <div class="gh">
+    <div class="gh-barre"><img class="logo" data-logo="toolkit" width="24" height="24" alt=""><span>Vassili-g / <b>UCM-Toolkit</b></span><span class="public">Public</span></div>
+    <div class="gh-readme">
+      <header>README</header>
+      <div class="gh-corps">
+        <div class="gh-titre">
+          <img class="logo" data-logo="toolkit" width="88" height="88" alt="">
+          <div><h3>UCM Toolkit</h3><p>Les plugins Figma, le format des contrats, les lecteurs, la CLI et les contrôles du dépôt.</p></div>
+        </div>
+        <h4>Plugins Figma</h4>
+        <div class="gh-plugin"><img class="logo" data-logo="exporter" width="40" height="40" alt=""><div><b>UCM Contract Exporter</b><span>Analyse les composants et publie leurs contrats ; exporte les variables en tokens DTCG.</span></div></div>
+        <div class="gh-plugin"><img class="logo" data-logo="palettes" width="40" height="40" alt=""><div><b>UCM Palettes</b><span>Crée et règle les gammes de couleur, vérifie les contrastes, synchronise les variables.</span></div></div>
+        <div class="gh-plugin"><img class="logo" data-logo="explorer" width="40" height="40" alt=""><div><b>UCM Token Explorer</b><span>Explore les variables, leurs alias et les tokens des composants, en lecture seule.</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="social">
+    <img class="logo" data-logo="toolkit" width="180" height="180" alt="">
+    <div><small>UCM</small><strong>Toolkit</strong><p>Des composants Figma aux contrats lisibles par le code.</p></div>
+  </div>
+</div>
+
+<h2>Figma</h2>
+<div class="scene">
+  <div class="fg fg-menu">
+    <div class="titre">Plugins</div>
+    <div class="entree"><img class="logo" data-logo="exporter" width="16" height="16" alt="">UCM Contract Exporter</div>
+    <div class="entree active"><img class="logo" data-logo="palettes" width="16" height="16" alt="">UCM Palettes</div>
+    <div class="entree"><img class="logo" data-logo="explorer" width="16" height="16" alt="">UCM Token Explorer</div>
+    <hr>
+    <div class="entree">Gérer les plugins…</div>
+  </div>
+  <div class="fg fg-fenetre">
+    <div class="tete"><img class="logo" data-logo="palettes" width="16" height="16" alt="">UCM Palettes<span class="fermer">×</span></div>
+    <div class="contenu"><div class="ligne" style="width:60%"></div><div class="ligne" style="width:85%"></div><div class="ligne" style="width:40%"></div></div>
+  </div>
+  <div class="fc">
+    <div class="couverture" style="background:#0d1b45"><img class="logo" data-logo="exporter" width="96" height="96" alt=""></div>
+    <div class="pied"><img class="logo" data-logo="exporter" width="32" height="32" alt=""><div><b>UCM Contract Exporter</b><span>Vassili-g</span></div></div>
+  </div>
+  <div class="fc">
+    <div class="couverture" style="background:#2a1238"><img class="logo" data-logo="palettes" width="96" height="96" alt=""></div>
+    <div class="pied"><img class="logo" data-logo="palettes" width="32" height="32" alt=""><div><b>UCM Palettes</b><span>Vassili-g</span></div></div>
+  </div>
+  <div class="fc">
+    <div class="couverture" style="background:#240a30"><img class="logo" data-logo="explorer" width="96" height="96" alt=""></div>
+    <div class="pied"><img class="logo" data-logo="explorer" width="32" height="32" alt=""><div><b>UCM Token Explorer</b><span>Vassili-g</span></div></div>
+  </div>
+</div>
+
+<h2>Cartes de présentation</h2>
+<div class="scene">
+  <div class="carte"><img class="logo" data-logo="toolkit" width="72" height="72" alt=""><small>UCM</small><strong>Toolkit</strong><p>Les plugins, le format des contrats, les lecteurs, la CLI et les contrôles.</p><span class="etiquette">Dépôt et CLI</span></div>
+  <div class="carte"><img class="logo" data-logo="exporter" width="72" height="72" alt=""><small>UCM</small><strong>Contract Exporter</strong><p>Analyse les composants Figma et publie leurs contrats.</p><span class="etiquette">Plugin Figma</span></div>
+  <div class="carte"><img class="logo" data-logo="palettes" width="72" height="72" alt=""><small>UCM</small><strong>Palettes</strong><p>Crée les gammes de couleur et les synchronise avec les variables.</p><span class="etiquette">Plugin Figma</span></div>
+  <div class="carte"><img class="logo" data-logo="explorer" width="72" height="72" alt=""><small>UCM</small><strong>Token Explorer</strong><p>Suit les alias des variables jusqu'à leur origine.</p><span class="etiquette">Plugin Figma</span></div>
+</div>
+<div class="scene" style="margin-top:32px">
+  <div class="carte claire"><img class="logo" data-logo="toolkit" width="72" height="72" alt=""><small>UCM</small><strong>Toolkit</strong><p>Les plugins, le format des contrats, les lecteurs, la CLI et les contrôles.</p><span class="etiquette">Dépôt et CLI</span></div>
+  <div class="carte claire"><img class="logo" data-logo="exporter" width="72" height="72" alt=""><small>UCM</small><strong>Contract Exporter</strong><p>Analyse les composants Figma et publie leurs contrats.</p><span class="etiquette">Plugin Figma</span></div>
+  <div class="carte claire"><img class="logo" data-logo="palettes" width="72" height="72" alt=""><small>UCM</small><strong>Palettes</strong><p>Crée les gammes de couleur et les synchronise avec les variables.</p><span class="etiquette">Plugin Figma</span></div>
+  <div class="carte claire"><img class="logo" data-logo="explorer" width="72" height="72" alt=""><small>UCM</small><strong>Token Explorer</strong><p>Suit les alias des variables jusqu'à leur origine.</p><span class="etiquette">Plugin Figma</span></div>
+</div>
+
+<script>
+/* Les quatre logos de la famille A en spectre partagé, repris de propositions.html. Coordonnées de 0 à 100. */
+const TAU = Math.PI * 2;
+const mod = (a, n) => ((a % n) + n) % n;
+const deg = (d) => d * Math.PI / 180;
+const et = (f, g) => (x, y) => f(x, y) && g(x, y);
+const peintre = (fond, couches) => (x, y) => {
+  let c = fond;
+  for (const [test, couleur] of couches) if (test(x * 100, y * 100)) c = couleur;
+  return c;
+};
+const bande = (c, angle, d, w) => {
+  const n = [Math.cos(deg(angle)), Math.sin(deg(angle))];
+  return (x, y) => Math.abs((x - c[0]) * n[0] + (y - c[1]) * n[1] - d) < w / 2;
+};
+const secteur = (O, a0, a1) => (x, y) => {
+  const a = Math.atan2(O[1] - y, x - O[0]) * 180 / Math.PI;
+  return a > a0 && a < a1;
+};
+const OS = '#f1e6d0', BLANC = '#fffaf0';
+
+const LOGOS = {
+  toolkit: (() => {
+    const b = [-83, 37, 157].map((a) => bande([50, 54], a, 16, 15));
+    return peintre('#1a1030', [
+      [b[0], '#ff6f5e'], [b[1], '#3fc4e0'], [b[2], '#c04ad8'],
+      [et(b[0], b[1]), '#ffd0b8'], [et(b[0], b[2]), '#ff7ab8'], [et(b[1], b[2]), '#a8b4ff'],
+    ]);
+  })(),
+  exporter: (() => {
+    const F = [68, 50], demi = deg(11);
+    const c = [-30, 0, 30].map((a) => {
+      const u = [Math.cos(deg(a)), Math.sin(deg(a))], A = [F[0] + u[0] * 16, F[1] + u[1] * 16];
+      return (x, y) => { const vx = A[0] - x, vy = A[1] - y, l = Math.hypot(vx, vy); return l > 0 && (vx * u[0] + vy * u[1]) / l > Math.cos(demi); };
+    });
+    return peintre('#0d1b45', [
+      [c[0], '#2a62b8'], [c[1], '#2f9fc4'], [c[2], '#1f7fa8'],
+      [et(c[0], c[1]), '#8fd8f0'], [et(c[0], c[2]), '#6f9ff0'], [et(c[1], c[2]), '#7fe8dc'],
+      [et(et(c[0], c[1]), c[2]), BLANC],
+    ]);
+  })(),
+  palettes: (() => {
+    const O = [0, 100], s = [secteur(O, -5, 20), secteur(O, 15, 45), secteur(O, 38, 68), secteur(O, 61, 95)];
+    return peintre('#2a1238', [
+      [s[0], OS], [s[1], '#ffc24f'], [s[2], '#ff6f5e'], [s[3], '#c2457e'],
+      [et(s[0], s[1]), '#fff2c4'], [et(s[1], s[2]), '#ffa24a'], [et(s[2], s[3]), '#ff8fa0'],
+    ]);
+  })(),
+  explorer: (() => {
+    const C = [50, 51], R0 = 47, pas = 22, w = 15, fin = 1.6 * TAU;
+    return (x, y) => {
+      x *= 100; y *= 100;
+      const r = Math.hypot(x - C[0], y - C[1]), th = mod(Math.atan2(y - C[1], x - C[0]), TAU);
+      for (let n = 0; n < 3; n++) {
+        const phi = th + TAU * n;
+        if (phi > fin) break;
+        if (Math.abs(r - (R0 - pas * phi / TAU)) < w / 2) { const f = phi / fin; return f < 0.5 ? '#8a3fd8' : f < 0.86 ? '#e0459e' : '#ffc4e6'; }
+      }
+      return r < 6 ? '#0c0410' : '#240a30';
+    };
+  })(),
+};
+
+/* Chaque logo est rendu une fois en 512 px, puis réduit par le navigateur à la taille de chaque image. */
+function rendre(f, n = 512) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = n;
+  const ctx = canvas.getContext('2d'), img = ctx.createImageData(n, n), cache = new Map();
+  const rgb = (h) => { if (!cache.has(h)) cache.set(h, [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))); return cache.get(h); };
+  for (let py = 0; py < n; py++) for (let px = 0; px < n; px++) {
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      const c = rgb(f((px + 0.25 + 0.5 * i) / n, (py + 0.25 + 0.5 * j) / n));
+      r += c[0]; g += c[1]; b += c[2];
+    }
+    const o = (py * n + px) * 4;
+    img.data[o] = r / 4; img.data[o + 1] = g / 4; img.data[o + 2] = b / 4; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+for (const [nom, f] of Object.entries(LOGOS)) {
+  const url = rendre(f);
+  document.querySelectorAll('img[data-logo="' + nom + '"]').forEach((img) => { img.src = url; });
+}
+</script>
+</body>
+</html>

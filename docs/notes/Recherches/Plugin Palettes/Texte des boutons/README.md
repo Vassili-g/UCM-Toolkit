@@ -4,7 +4,7 @@ Dossier de recherche d'UCM Palettes : le texte des boutons en blanc ou en noir
 purs, choisi par thème pour tout le design system, et ce que ce choix impose
 au bouton, au texte coloré, aux contours et à la courbe du thème.
 Implémenté par le
-[plan du thème en dossiers](../../Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
+[plan du thème en dossiers](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md).
 
 **État.** Le mainteneur a validé le principe : texte blanc ou
 noir purs, un choix par thème dans les Réglages communs, bouton à la 700,
