@@ -2,8 +2,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, type Classement } from 'ucm-couleur';
+import { recetteParDefaut, type Classement, type Recette } from 'ucm-couleur';
 
+import { ajouter, nouvellePalette } from '../src/edition';
 import { PLANCHE_SANS_CADRE } from '../src/lecture';
 import { VARIABLES_SANS_SUIVI } from '../src/lectureDesVariables';
 import type { UiRequest } from '../src/messages';
@@ -267,4 +268,160 @@ test('[VAR-14] une copie de bibliothèque range la recette : elle porte l’empr
   frontiere.recevoirCopie({ type: 'copie', demande: 3, issue: { issue: 'modifiee-ailleurs' } });
   assert.equal(frontiere.statut(), 'refuse');
   assert.equal(frontiere.copier('p-000000b2', source), false);
+});
+
+const BLEU = { ...nouvellePalette(RECETTE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
+const AMBRE = { ...nouvellePalette(RECETTE, 'p-0000000b', '#F2A900', 2)!, nom: 'Ambre' };
+const DEUX_PALETTES: Recette = [BLEU, AMBRE].reduce(ajouter, RECETTE);
+
+function renommer(recette: Recette, id: string, nom: string): Recette {
+  return { ...recette, palettes: recette.palettes.map((palette) => (palette.id === id ? { ...palette, nom } : palette)) };
+}
+
+/** Un banc dont l'état lu porte une recette, et qui répond à chaque rangement par une empreinte nouvelle. */
+function bancAvecRecette(recette: Recette) {
+  const base = banc();
+  const { frontiere, envoyees } = base;
+  let compte = 0;
+  const lire = (empreinte: string, lue: Recette = recette) => {
+    frontiere.lireLEtat();
+    const demande = (envoyees[envoyees.length - 1] as { demande: number }).demande;
+    return frontiere.accepterEtat({ type: 'etat', demande, classement: { etat: 'courante', recette: lue }, texte: '', empreinte, profil: 'SRGB', planche: PLANCHE_SANS_CADRE, variables: VARIABLES_SANS_SUIVI });
+  };
+  /** Lance un rangement par `faire`, répond « rangée », et rend la recette envoyée. */
+  const repondre = (faire: () => unknown): Recette => {
+    const avant = envoyees.length;
+    faire();
+    assert.equal(envoyees.length, avant + 1, 'le rangement part');
+    const demande = envoyees[avant] as { type: string; demande: number; recette: Recette };
+    assert.equal(demande.type, 'ranger-recette');
+    compte += 1;
+    frontiere.recevoirRangement({ type: 'rangement', demande: demande.demande, issue: { issue: 'rangee', empreinte: `r${String(compte).padStart(7, '0')}` } });
+    return demande.recette;
+  };
+  return { ...base, lire, repondre };
+}
+
+test('[REC-06] après trois réglages, l’annulation range la palette de l’ouverture et laisse les autres', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), false);
+  assert.equal(frontiere.annulerLesModifications(BLEU.id), false, 'rien à annuler tant que la palette n’a pas bougé');
+  let recette = DEUX_PALETTES;
+  for (const nom of ['B1', 'B2', 'B3']) {
+    recette = renommer(recette, BLEU.id, nom);
+    repondre(() => frontiere.ranger(recette));
+  }
+  const autreReglage = { ...recette, seuils: { ...recette.seuils, texte: 7 } };
+  repondre(() => frontiere.ranger(autreReglage));
+  const avecAmbre = renommer(autreReglage, AMBRE.id, 'A1');
+  repondre(() => frontiere.ranger(avecAmbre));
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), true);
+  const rangee = repondre(() => assert.equal(frontiere.annulerLesModifications(BLEU.id), true));
+  assert.deepEqual(rangee.palettes.find((palette) => palette.id === BLEU.id), BLEU, 'la palette de l’ouverture');
+  assert.deepEqual(rangee.palettes.find((palette) => palette.id === AMBRE.id), avecAmbre.palettes[1], 'l’autre palette ne bouge pas');
+  assert.deepEqual(rangee.seuils, avecAmbre.seuils, 'les Réglages communs ne bougent pas');
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), false);
+  assert.equal(frontiere.differeDeLOuverture(AMBRE.id), true);
+  assert.equal(frontiere.annulerLesModifications(BLEU.id), false);
+});
+
+test('[REC-06] « Rétablir » rend la palette d’avant l’annulation, jusqu’au réglage suivant', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  const modifiee = renommer(DEUX_PALETTES, BLEU.id, 'B1');
+  repondre(() => frontiere.ranger(modifiee));
+  assert.equal(frontiere.peutRetablir(), false);
+  repondre(() => frontiere.annulerLesModifications(BLEU.id));
+  assert.equal(frontiere.peutRetablir(), true);
+  const rangee = repondre(() => assert.equal(frontiere.retablir(), true));
+  assert.deepEqual(rangee, modifiee);
+  assert.equal(frontiere.peutRetablir(), false);
+  assert.equal(frontiere.retablir(), false);
+  repondre(() => frontiere.annulerLesModifications(BLEU.id));
+  assert.equal(frontiere.peutRetablir(), true);
+  repondre(() => frontiere.ranger(renommer(DEUX_PALETTES, AMBRE.id, 'A1')));
+  assert.equal(frontiere.peutRetablir(), false, 'un réglage suivant fait tomber « Rétablir »');
+});
+
+test('[REC-06] reculer après une suppression rend la palette sous son identifiant, avancer la retire de nouveau', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  assert.equal(frontiere.peutReculer(), false);
+  const sansBleu: Recette = { ...DEUX_PALETTES, palettes: DEUX_PALETTES.palettes.filter((palette) => palette.id !== BLEU.id) };
+  repondre(() => frontiere.ranger(sansBleu));
+  assert.equal(frontiere.peutReculer(), true);
+  assert.equal(frontiere.peutAvancer(), false);
+  assert.deepEqual(repondre(() => frontiere.reculer()), DEUX_PALETTES);
+  assert.equal(frontiere.peutReculer(), false);
+  assert.equal(frontiere.peutAvancer(), true);
+  assert.deepEqual(repondre(() => frontiere.avancer()), sansBleu);
+  assert.equal(frontiere.peutAvancer(), false);
+  repondre(() => frontiere.reculer());
+  repondre(() => frontiere.ranger(renommer(DEUX_PALETTES, AMBRE.id, 'A1')));
+  assert.equal(frontiere.peutAvancer(), false, 'un nouveau rangement coupe la suite');
+  assert.equal(frontiere.avancer(), false);
+});
+
+test('[REC-10] un rangement refusé ne change ni la pile ni l’état d’ouverture', () => {
+  const { frontiere, envoyees, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  repondre(() => frontiere.ranger(renommer(DEUX_PALETTES, BLEU.id, 'B1')));
+  let appels = 0;
+  frontiere.abonnerLAnnulation(() => { appels += 1; });
+  assert.equal(frontiere.annulerLesModifications(BLEU.id), true);
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), false, 'l’état souhaité montre déjà l’annulation');
+  const demande = envoyees[envoyees.length - 1] as { demande: number };
+  frontiere.recevoirRangement({ type: 'rangement', demande: demande.demande, issue: { issue: 'modifiee-ailleurs' } });
+  assert.equal(frontiere.statut(), 'refuse');
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), true);
+  assert.equal(frontiere.peutReculer(), true);
+  assert.equal(frontiere.peutAvancer(), false);
+  assert.equal(frontiere.peutRetablir(), false);
+  assert.equal(appels, 2, 'l’abonné apprend l’annulation, puis son refus');
+  const avant = envoyees.length;
+  assert.equal(frontiere.reculer(), false, 'rien ne part pendant le conflit');
+  assert.equal(frontiere.annulerLesModifications(BLEU.id), false);
+  assert.equal(envoyees.length, avant);
+});
+
+test('[REC-10] une recette venue d’ailleurs vide la pile et oublie les états d’ouverture des palettes qui ont changé', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  const bleuModifie = renommer(DEUX_PALETTES, BLEU.id, 'B1');
+  repondre(() => frontiere.ranger(bleuModifie));
+  repondre(() => frontiere.ranger(renommer(bleuModifie, AMBRE.id, 'A1')));
+  assert.equal(frontiere.peutReculer(), true);
+  // Un autre designer renomme Ambre ; Bleu reste comme nous l'avons rangé.
+  const ailleurs = renommer(bleuModifie, AMBRE.id, 'A-ailleurs');
+  let appels = 0;
+  frontiere.abonnerLAnnulation(() => { appels += 1; });
+  assert.equal(lire('zzzzzzzz', ailleurs), true);
+  assert.equal(appels, 1);
+  assert.equal(frontiere.peutReculer(), false);
+  assert.equal(frontiere.peutAvancer(), false);
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), true, 'Bleu n’a pas changé ailleurs : son état d’ouverture reste');
+  assert.equal(frontiere.differeDeLOuverture(AMBRE.id), false, 'Ambre a changé ailleurs : la lecture devient son état d’ouverture');
+});
+
+test('[REC-10] relire la recette qu’on vient de ranger garde la pile', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  const modifiee = renommer(DEUX_PALETTES, BLEU.id, 'B1');
+  repondre(() => frontiere.ranger(modifiee));
+  assert.equal(lire('r0000001', modifiee), true);
+  assert.equal(frontiere.peutReculer(), true);
+});
+
+test('[VAR-13] une reprise vide la pile et garde les états d’ouverture', () => {
+  const { frontiere, lire, repondre } = bancAvecRecette(DEUX_PALETTES);
+  lire('aaaaaaaa');
+  repondre(() => frontiere.ranger(renommer(DEUX_PALETTES, BLEU.id, 'B1')));
+  frontiere.reprendre(DEUX_PALETTES, 'p-000000c1', { collection: 'C', chemin: 'slate' });
+  frontiere.recevoirReprise({ type: 'reprise', demande: 3, issue: { issue: 'reprise', empreinte: 'bbbbbbbb' } });
+  assert.equal(frontiere.peutReculer(), false);
+  // L'état relu après la reprise rend la pile : Bleu garde l'état d'ouverture de la première lecture.
+  assert.equal(lire('bbbbbbbb', renommer(DEUX_PALETTES, BLEU.id, 'B1')), true);
+  assert.equal(frontiere.peutReculer(), false);
+  assert.equal(frontiere.differeDeLOuverture(BLEU.id), true);
 });

@@ -15,6 +15,23 @@ import type { Recette, Refus } from 'ucm-couleur';
 import type { SourceDeLaReprise } from '../ecriture/variables';
 import type { PluginMessage, UiRequest } from '../messages';
 import type { Destination } from '../variables/destination';
+import {
+  ETAT_D_ANNULATION_VIDE,
+  adopter,
+  annuler,
+  avancer,
+  differeDeLOuverture,
+  peutAvancer,
+  peutReculer,
+  peutRetablir,
+  recetteCourante,
+  reculer,
+  regler,
+  retablir,
+  viderLaPile,
+  type EtatDAnnulation,
+  type Pas,
+} from './annulation';
 
 /** Ce que l'indication de rangement affiche. */
 export type StatutDuRangement = 'lu' | 'en-cours' | 'range' | 'refuse' | 'invalide';
@@ -105,11 +122,42 @@ export interface Frontiere {
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
   accepterEtat(message: Extract<PluginMessage, { type: 'etat' }>): boolean;
   recevoirRangement(message: Extract<PluginMessage, { type: 'rangement' }>): void;
+  /**
+   * Range la recette courante avec cette palette dans son état d'ouverture
+   * (D4), par le chemin d'un réglage : un refus [REC-10] reste un refus. Ni
+   * les autres palettes ni les Réglages communs ne bougent. La réponse est
+   * `false` quand rien ne part : la palette n'a pas bougé, ou un conflit est en cours.
+   */
+  annulerLesModifications(palette: string): boolean;
+  /** Vrai quand la palette rangée n'est plus celle de son état d'ouverture. */
+  differeDeLOuverture(palette: string): boolean;
+  /** Range la palette d'avant la dernière annulation ; disponible jusqu'au réglage suivant. */
+  retablir(): boolean;
+  peutRetablir(): boolean;
+  /** Range la recette précédente de la pile de la session ; `false` quand rien ne part. */
+  reculer(): boolean;
+  peutReculer(): boolean;
+  /** Range la recette suivante de la pile ; `false` quand rien ne part. */
+  avancer(): boolean;
+  peutAvancer(): boolean;
+  /**
+   * Appelle `rappel` quand `differeDeLOuverture`, `peutRetablir`,
+   * `peutReculer` ou `peutAvancer` ont pu changer : à chaque réglage, chaque
+   * pas de la pile, chaque refus et chaque lecture d'une recette venue
+   * d'ailleurs. Rend la fonction qui désabonne.
+   */
+  abonnerLAnnulation(rappel: () => void): () => void;
   /** L'empreinte de la recette rangée, telle que la dernière réponse l'a apportée. */
   empreinte(): string | null;
   /** Vrai quand aucun rangement n'est en vol ni en attente. */
   auRepos(): boolean;
   statut(): StatutDuRangement;
+}
+
+interface DemandeDeRangement {
+  readonly recette: Recette;
+  /** L'état d'annulation une fois cette recette rangée. */
+  readonly apres: EtatDAnnulation;
 }
 
 export function createFrontiere(
@@ -121,7 +169,12 @@ export function createFrontiere(
   let dernierRangement = 0;
   let empreinte: string | null = null;
   let enVol = false;
-  let enAttente: Recette | null = null;
+  let enAttente: DemandeDeRangement | null = null;
+  let enVolApres: EtatDAnnulation = ETAT_D_ANNULATION_VIDE;
+  // L'état souhaité suit les gestes de l'interface ; le confirmé, les réponses du sandbox. Un refus ramène au second.
+  let confirme: EtatDAnnulation = ETAT_D_ANNULATION_VIDE;
+  let souhaite: EtatDAnnulation = ETAT_D_ANNULATION_VIDE;
+  const abonnes = new Set<() => void>();
   let dessinEnAttente: { demande: DemandeDeDessin; surAbandon: () => void } | null = null;
   let dernierDessin = 0;
   let dernierRetrait = 0;
@@ -163,9 +216,31 @@ export function createFrontiere(
     envoyer({ type: 'ecrire-variables', demande: dernieresVariables, palettes: [...palettes], empreinteLue: empreinte, remettre: [...remettre] });
   }
 
-  function envoyerRangement(recette: Recette): void {
+  function poserLAnnulation(suivant: EtatDAnnulation): void {
+    if (suivant === souhaite) return;
+    souhaite = suivant;
+    for (const rappel of [...abonnes]) rappel();
+  }
+
+  /** Remet l'état souhaité à celui que le sandbox a confirmé. */
+  function revenirAuConfirme(): void {
+    poserLAnnulation(confirme);
+  }
+
+  /** Un pas de l'annulation range sa recette comme un réglage : il attend le rangement en vol et se refuse pendant un conflit. */
+  function demander(pas: Pas | null): boolean {
+    if (courant === 'refuse' || pas === null) return false;
+    poserLAnnulation(pas.etat);
+    const demande = { recette: pas.recette, apres: pas.etat };
+    if (enVol) enAttente = demande;
+    else envoyerRangement(demande);
+    return true;
+  }
+
+  function envoyerRangement({ recette, apres }: DemandeDeRangement): void {
     dernierRangement = numeroter();
     enVol = true;
+    enVolApres = apres;
     poser('en-cours');
     envoyer({ type: 'ranger-recette', demande: dernierRangement, recette, empreinteLue: empreinte });
   }
@@ -176,8 +251,26 @@ export function createFrontiere(
     },
     ranger(recette) {
       if (courant === 'refuse') return;
-      if (enVol) enAttente = recette;
-      else envoyerRangement(recette);
+      const apres = regler(souhaite, recette);
+      poserLAnnulation(apres);
+      if (enVol) enAttente = { recette, apres };
+      else envoyerRangement({ recette, apres });
+    },
+    annulerLesModifications(palette) {
+      return demander(annuler(souhaite, palette));
+    },
+    differeDeLOuverture: (palette) => differeDeLOuverture(souhaite, palette),
+    retablir: () => demander(retablir(souhaite)),
+    peutRetablir: () => peutRetablir(souhaite),
+    reculer: () => demander(reculer(souhaite)),
+    peutReculer: () => peutReculer(souhaite),
+    avancer: () => demander(avancer(souhaite)),
+    peutAvancer: () => peutAvancer(souhaite),
+    abonnerLAnnulation(rappel) {
+      abonnes.add(rappel);
+      return () => {
+        abonnes.delete(rappel);
+      };
     },
     dessiner(demande, surAbandon) {
       if (courant === 'refuse') {
@@ -259,8 +352,11 @@ export function createFrontiere(
       enAttente = null;
       if (message.issue.issue === 'reprise') {
         empreinte = message.issue.empreinte;
+        // La reprise range aussi la liaison : reculer la défairait à moitié. La pile repart de l'état relu.
+        confirme = viderLaPile(confirme);
         poser('range');
       } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');
+      revenirAuConfirme();
       return true;
     },
     copier(palette, source) {
@@ -276,8 +372,10 @@ export function createFrontiere(
       enAttente = null;
       if (message.issue.issue === 'copiee') {
         empreinte = message.issue.empreinte;
+        confirme = viderLaPile(confirme);
         poser('range');
       } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');
+      revenirAuConfirme();
       return true;
     },
     accepterDessin(message) {
@@ -285,9 +383,14 @@ export function createFrontiere(
     },
     accepterEtat(message) {
       if (enVol || message.demande < derniereDemande) return false;
+      const venueDAilleurs = message.empreinte !== empreinte;
       empreinte = message.empreinte;
       enVol = false;
       enAttente = null;
+      const { classement } = message;
+      if (classement.etat === 'future' || classement.etat === 'illisible') confirme = ETAT_D_ANNULATION_VIDE;
+      else if (venueDAilleurs || recetteCourante(confirme) === null) confirme = adopter(confirme, classement.recette);
+      revenirAuConfirme();
       poser('lu');
       return true;
     },
@@ -300,6 +403,7 @@ export function createFrontiere(
       const { issue } = message;
       if (issue.issue === 'rangee') {
         empreinte = issue.empreinte;
+        confirme = enVolApres;
         const suivante = enAttente;
         enAttente = null;
         if (suivante) envoyerRangement(suivante);
@@ -315,6 +419,7 @@ export function createFrontiere(
         }
       } else {
         enAttente = null;
+        revenirAuConfirme();
         const abandonne = dessinEnAttente;
         dessinEnAttente = null;
         const abandonnees = variablesEnAttente;
