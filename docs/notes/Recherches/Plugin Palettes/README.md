@@ -42,8 +42,8 @@ décrivent pas le build courant.
   [dossier des commandes](./Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
 - La recette v8 est à traiter : le
   [dossier de la recette v8](./Recette%20v8/DOSSIER-RECETTE-V8.md) explique
-  la palette retirée par « Annuler la reprise », donne sa réparation et un
-  plan en dix lots, sans implémentation.
+  la palette retirée par « Annuler la reprise », sa réparation par le plugin et un
+  plan en neuf lots, sans implémentation.
 - La validation éditoriale anglaise et les vérifications propres à Figma
   restent à consigner dans les recettes concernées.
 

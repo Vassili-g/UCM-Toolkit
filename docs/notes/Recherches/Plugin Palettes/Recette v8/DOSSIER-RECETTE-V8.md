@@ -1,8 +1,8 @@
 # Recette v8 d'UCM Palettes
 
 Dossier de la recette v8 faite dans Figma. Il relève les
-constats du mainteneur, explique la perte de la palette Poppy, donne la
-procédure qui la répare et ordonne le travail qui suit. La priorité va à ce
+constats du mainteneur, explique la perte de la palette Poppy, décrit la
+réparation par le plugin et ordonne le travail qui suit. La priorité va à ce
 qui répare Poppy.
 
 ## 1. Les constats
@@ -39,15 +39,11 @@ confirmation ne précède le retrait. Le libellé ne dit pas que la palette
 quitte le plugin. Un designer qui cherche à annuler le réglage qu'il vient de
 faire lit « Annuler » sur le seul bouton qui en porte le mot.
 
-Le code n'a pas d'autre chemin qui retire une palette de la recette sans
-geste de suppression : l'import d'un fichier de recette, le départ à zéro et
-« Supprimer » du menu de la palette demandent chacun une confirmation, et un
-rangement refusé ne modifie rien ([REC-04], [REC-10]). Un Ctrl+Z fait dans
-Figma peut aussi défaire un rangement (E13), mais il rendrait la recette
-d'avant la luminosité, avec Poppy.
-
-La cause la plus probable est donc un clic sur « Annuler la reprise ». Le
-plugin ne journalise pas ses gestes : le dossier ne peut pas le prouver.
+Le mainteneur confirme avoir cliqué sur « Annuler la reprise » en
+cherchant à annuler son réglage, sans s'attendre à perdre la palette. Le code
+n'a pas d'autre chemin qui retire une palette sans confirmation : l'import
+d'un fichier de recette, la réinitialisation et « Supprimer » du menu de la
+palette en demandent chacun une.
 
 ### 2.2 Ce que le fichier porte aujourd'hui
 
@@ -70,106 +66,63 @@ Le cadre de Poppy resterait orphelin, les trois autres groupes resteraient
 « Déjà dans le fichier », et les réglages d'avant seraient remplacés par ceux
 d'une palette neuve.
 
-## 3. Réparer Poppy
+## 3. Réparer Poppy par le plugin
 
-Deux voies rendent Poppy telle qu'elle était, avec son identifiant : le
-cadre et les variables s'y rattachent alors d'eux-mêmes, puisque le suivi et
-le cadre n'ont pas bougé. Elles ne demandent aucune nouvelle version du
-plugin. La troisième voie demande du code.
+Le mainteneur veut que le plugin répare Poppy, sans passer par l'historique
+de Figma. Ce que le fichier garde le permet en partie :
 
-Tant que Poppy n'est pas réparée, rien ne doit écrire dans le fichier depuis
-le plugin : une mise à jour des tokens ou de la planche, une reprise et
-« Supprimer définitivement » sur le cadre de Poppy compliquent chacune la
-réparation.
+- le cadre et le suivi des variables portent encore l'identifiant de Poppy :
+  une palette recréée sous cet identifiant les retrouve, sans nouvelle
+  écriture ;
+- les quatre groupes de variables portent les couleurs de la dernière mise à
+  jour, donc le résultat des réglages perdus ;
+- les réglages eux-mêmes ne sont nulle part : référence, Réglage global,
+  Color shift, palette de base.
 
-### 3.1 Voie A : Ctrl+Z, si le fichier est resté ouvert
+La réparation tient donc en un geste : sur la carte « Palette supprimée du
+plugin », « Reprendre depuis les variables » recrée la palette sous
+l'identifiant du cadre, à deux intensités, depuis les quatre groupes. Reste
+à décider ce que valent ses couleurs tant que les réglages ne sont pas
+retrouvés (D3) :
 
-Chaque rangement de la recette est un pas d'annulation de Figma : `rangerRecette`
-appelle `figma.commitUndo()` après l'écriture ([REC-06]). Le dernier pas est
-le retrait de Poppy, si rien n'a été fait depuis.
+- **Reconstruire les réglages.** Les rampes du fichier sont la sortie du
+  moteur pour des réglages inconnus. Une recherche des réglages qui
+  reproduisent ces rampes rendrait Poppy telle qu'elle était, si la
+  reconstruction est exacte. Le lot 3a mesure si elle l'est, sur des
+  palettes produites par le plugin.
+- **Figer les couleurs.** La palette reprend les couleurs du fichier telles
+  quelles, à deux intensités, sans rôles ni garanties ; le designer la
+  recalcule ensuite quand il le décide. Le modèle actuel ne fige qu'une
+  intensité : il faut étendre `figees` et changer le format de la recette.
+- **Recalculer depuis la référence.** La palette repart de la nuance 600 avec
+  les réglages par défaut. L'encart compare Fichier et Plugin, et la mise à
+  jour change les couleurs qui diffèrent. Poppy ne revient pas telle qu'elle
+  était.
 
-1. Cliquer sur le canevas, puis faire Ctrl+Z une seule fois.
-2. Revenir dans le plugin : la recette se relit au retour du focus (E13).
-   Poppy doit revenir, avec la luminosité changée.
-3. Pour revenir aussi sur la luminosité, continuer Ctrl+Z pas à pas. Chaque
-   fin de geste sur un curseur a fait un rangement, donc un pas.
-
-Limites. L'historique d'annulation de Figma se vide à la fermeture du fichier
-ou au rechargement de l'onglet ; la communauté le constate, l'aide de Figma
-ne l'écrit pas. Aucune source ne documente qu'un Ctrl+Z défait un
-`setSharedPluginData`. Un Ctrl+Z de trop défait une autre action du fichier ;
-Ctrl+Maj+Z la refait.
-
-### 3.2 Voie B : une version antérieure du fichier
-
-Figma pose un point de version toutes les trente minutes d'activité, et
-garde tout l'historique en plan Professional ou Organization, trente jours en
-Starter. Une version ouverte se lit seulement, et un plugin ne s'y lance pas :
-il faut la dupliquer.
-
-1. Dans le fichier, ouvrir File > Show version history et choisir une
-   version antérieure au retrait de Poppy.
-2. Choisir Duplicate sur cette version, puis ouvrir le nouveau fichier. Le
-   fichier d'origine n'est pas touché.
-3. Dans le duplicata, lancer UCM Palettes, vérifier que Poppy y figure, puis
-   ouvrir la section « Importer, exporter, rapport » de Gestion et choisir
-   « Exporter les palettes et les réglages ».
-4. Revenir au fichier d'origine. Dans la même section, choisir « Importer
-   les palettes et les réglages » et donner ce fichier. L'écart affiché doit
-   nommer Poppy dans « Palette à ajouter ». Confirmer « Remplacer par cette
-   sauvegarde ».
-5. Le cadre de Poppy redevient le sien, et les quatre lignes « Déjà dans le
-   fichier » disparaissent : l'import garde les identifiants de palette
-   ([REC-08]), et le suivi rattache de nouveau les variables.
-
-L'import remplace toute la recette. Si d'autres palettes ou les Réglages
-communs ont changé depuis la version choisie, l'écart les nomme aussi dans
-« Palettes à modifier », « Palettes à retirer » ou « Réglages communs à modifier ». Dans ce cas, exporter aussi la
-recette actuelle, copier l'objet de Poppy du fichier ancien dans le tableau
-`palettes` du fichier actuel, et importer ce fichier fusionné.
-
-Limite. Aucune source ne documente qu'un duplicata de version garde les
-données partagées de la racine ; le stockage dans le document le rend
-probable. L'étape 3 le vérifie : si Poppy n'y figure pas, la voie B échoue
-sans rien avoir écrit dans le fichier d'origine.
-
-Restaurer la version dans le fichier d'origine marcherait aussi, mais
-défairait tout ce qui a été fait depuis dans le fichier.
-
-### 3.3 Voie C : reprendre Poppy depuis ses variables, sous son identifiant
-
-Si les voies A et B échouent, seule une nouvelle version du plugin répare
-Poppy : une reprise qui lit les quatre groupes comme une seule palette à deux
-intensités et deux thèmes (R2), sous l'identifiant que le cadre orphelin et le
-suivi portent encore. Le cadre et les variables s'y rattachent. Les
-paramètres d'avant restent perdus : la reprise reconstruit la palette depuis
-la référence lue à la nuance 600, et les couleurs recalculées peuvent
-différer de celles du fichier. Les lots 2 et 3 du plan la construisent.
+Les voies qui passent par Figma restent possibles pour qui ne veut pas
+attendre : un Ctrl+Z sur le canevas si le fichier est resté ouvert, ou un
+duplicata d'une version antérieure, dont on exporte la recette pour
+l'importer dans le fichier. Aucune source ne garantit que l'une ou l'autre
+rende les données du plugin.
 
 ## 4. Plan d'action
 
-Les lots sont ordonnés par priorité. Les lots 1 à 3 touchent Poppy ; les
-suivants traitent le reste de la recette. Un lot qui dépend d'une décision de
+Les lots sont ordonnés par priorité. Les lots 1 à 3 réparent Poppy et
+empêchent que la perte se reproduise ; les suivants traitent le reste de la
+recette. Un lot qui dépend d'une décision de
 la section 5 la nomme.
 
 | Lot | Constat | Objet | Taille | Décision |
 |---|---|---|---|---|
-| 0 | R1 | Réparer Poppy par la voie A ou B, dans Figma | Aucun code | Aucune |
 | 1 | R1 | « Annuler la reprise » ne retire plus la palette en un clic | Petite | D1 |
 | 2 | R2 | La détection regroupe les rampes d'une même palette | Moyenne | D2 |
-| 3 | R1, R2 | La reprise groupée, et la reprise sous l'identifiant d'un cadre orphelin | Grande | D3 |
+| 3 | R1, R2 | La reprise groupée, et la reprise sous l'identifiant d'un cadre orphelin | Grande | D3, après la mesure 3a |
 | 4 | R3 | Annuler les modifications d'une palette | Moyenne à grande | D4 |
 | 5 | R4 | La progression de la génération ne décale plus la page | Petite | Aucune |
 | 6 | R5 | « Synchroniser avec les tokens Figma » | Petite | D5 |
 | 7 | R8 | L'espace sous les pastilles de l'aperçu | Petite | Aucune |
 | 8 | R6 | Maquette : Création et Vérification sans palette ouverte | Maquette | Après la maquette |
 | 9 | R7 | Maquette : la configuration avancée repliée | Maquette | Après la maquette |
-
-### Lot 0. Réparer Poppy
-
-Le mainteneur suit la section 3 : voie A si le fichier est resté ouvert,
-voie B sinon. Il consigne ici la voie qui a marché, pour savoir si la voie C
-reste à construire pour Poppy ou seulement pour R2.
 
 ### Lot 1. « Annuler la reprise » ne supprime plus en un clic
 
@@ -222,29 +175,36 @@ Fichiers : `edition.ts` (`reprendreDuFichier`), `variables/reprise.ts`
 (`suiviDeLaReprise`, `origineDeLaReprise`), `ecriture/variables.ts`
 (`reprendreLaPalette`), `messages.ts`, `ui/ongletGestion.ts`, tests.
 
-1. « Modifier dans le plugin » sur une palette groupée crée une palette à
-   deux intensités quand la forme en porte deux. Sa référence est la nuance
-   la plus proche de 600 dans la rampe Light de l'intensité porteuse. Le
-   suivi range chaque variable sous sa clé du plan (`soft/light/600`,
-   `vivid/dark/600`…), pour qu'une mise à jour ne renomme rien.
-2. La source envoyée au sandbox désigne la racine et la forme du groupe ; le
-   sandbox relit les groupes lui-même, comme aujourd'hui pour un seul groupe
-   ([VAR-13]).
-3. Sur la carte d'un cadre orphelin, quand le suivi porte une liaison de
-   reprise à l'identifiant de ce cadre et que ses variables sont encore dans
-   le fichier, un geste « Reprendre depuis les variables » fait la même
-   reprise sous cet identifiant. Le cadre et les variables s'y rattachent ;
-   la carte « Palette supprimée du plugin » disparaît.
+**3a. Mesure : les réglages se reconstruisent-ils depuis les rampes ?** Un
+script de mesure tire des palettes à deux intensités avec des réglages
+variés (référence, Réglage global, Color shift, palette de base), calcule
+leurs rampes avec le moteur, puis cherche les réglages qui reproduisent ces
+rampes. Il rend, pour chaque palette, l'écart maximal en hexa entre les
+rampes d'origine et les rampes reconstruites. Si l'écart est nul sur toutes
+les palettes, la reprise reconstruit les réglages ; sinon D3 choisit entre
+figer et recalculer. La mesure ne touche pas au plugin.
 
-« Telles quelles » fige les couleurs d'une palette à une intensité
-seulement : la validation refuse `figees` quand `intensites` ne vaut pas 1.
-Une reprise groupée à deux intensités est donc « Recalculées » seulement,
-sauf décision D3.
+**3b. La reprise groupée.** « Modifier dans le plugin » sur une palette
+groupée (lot 2) crée une palette à deux intensités quand la forme en porte
+deux. Ses couleurs suivent D3. Le suivi range chaque variable sous sa clé du
+plan (`soft/light/600`, `vivid/dark/600`…), pour qu'une mise à jour ne
+renomme rien. La source envoyée au sandbox désigne la racine et la forme du
+groupe ; le sandbox relit les groupes lui-même, comme aujourd'hui pour un
+seul groupe ([VAR-13]).
+
+**3c. La reprise d'une palette supprimée.** La carte d'un cadre orphelin
+propose « Reprendre depuis les variables » quand le suivi porte une liaison
+de reprise à l'identifiant de ce cadre et que ses variables sont encore dans
+le fichier. Le geste fait la reprise groupée sous cet identifiant, et garde
+le nom de la palette lu dans le chemin. Le cadre et les variables s'y
+rattachent ; la carte « Palette supprimée du plugin » disparaît, et les
+quatre lignes « Déjà dans le fichier » aussi.
 
 Critère : sur un fichier de test qui reproduit l'état de Poppy (cadre
-orphelin, suivi de reprise, quatre groupes), le geste rend une palette dont
-le cadre est « À mettre à jour » ou « À jour », et la liste « Déjà dans le
-fichier » ne porte plus ses groupes.
+orphelin, suivi de reprise, quatre groupes), le geste rend une palette sous
+l'identifiant du cadre, et la liste « Déjà dans le fichier » ne porte plus
+ses groupes. Avec la reconstruction ou les couleurs figées, la palette est
+« À jour » sans écriture ; un test le vérifie.
 
 ### Lot 4. Annuler les modifications d'une palette
 
@@ -351,7 +311,7 @@ le résume (« Modèle libre, une intensité »).
 |---|---|---|---|
 | D1 | Que devient « Annuler la reprise » ? | Retirer le bouton de l'encart ; le renommer « Retirer du plugin… » avec confirmation | Le retirer : le menu de la palette porte déjà la suppression confirmée |
 | D2 | Une forme incomplète, trois groupes sur quatre, se regroupe-t-elle ? | Regrouper, la mise à jour créant le groupe manquant ; laisser les groupes séparés | Laisser séparés : un groupe manquant peut être un choix du designer |
-| D3 | Une reprise groupée à deux intensités peut-elle garder les couleurs telles quelles ? | « Recalculées » seulement ; étendre `figees` aux deux intensités, ce qui change le format de la recette | « Recalculées » seulement, et la comparaison Fichier / Plugin de l'encart montre l'écart |
+| D3 | Que valent les couleurs de Poppy reprise, faute de réglages ? | Reconstruire les réglages, si la mesure 3a la montre exacte ; figer les couleurs du fichier à deux intensités, ce qui change le format de la recette ; recalculer depuis la référence | Reconstruire si 3a le permet, sinon figer : dans les deux cas, Poppy revient sans qu'une couleur du fichier change |
 | D4 | Quel modèle d'annulation ? | Retour à l'ouverture et annulation dans la session ; brouillon et « Enregistrer » | Le retour à l'ouverture |
 | D5 | Quel libellé anglais pour la synchronisation ? | « Sync with Figma tokens » ; « Sync with Figma variables » | « Sync with Figma tokens », pour garder le mot du français |
 
