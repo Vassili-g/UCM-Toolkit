@@ -404,6 +404,8 @@ const defilerJusquAuDernierBoutonDeLEssai = { touche: { dans: '#panneau-creation
 const VERT_AJUSTE = { ...palette('p-2b3c4d5e', 'Vert', '#0DA047'), originale: '#16A34A' };
 /** Déplier une carte de réglage attend la fin du calcul de ses limites ([DER-20]). */
 const deplierLaDerive = { clic: '[aria-label="Color shift"] .carte-bascule', attendre: '.editeur-derive[data-limites="pretes"]' };
+/** Le dépliant « Réglages avancés » de la configuration : modèle, intensités et référence exacte (recette v8, R7). */
+const deplierLesReglagesAvances = { clic: '[aria-label="Configuration de la palette"] .reglages-avances-bascule' };
 const deplierLesReglages = { clic: '[aria-label="Réglage global"] .carte-bascule', attendre: '.reglages-de-la-palette[data-limites="pretes"]' };
 /** Un onglet de grandeur du Color shift ([DER-18]). */
 const ongletDuColorShift = (grandeur) => ({ clic: `.editeur-derive [role="tab"][data-grandeur="${grandeur}"]`, attendre: '.editeur-derive[data-limites="pretes"]' });
@@ -1333,9 +1335,9 @@ const ETATS = [
     id: 'palette-de-base-forcee',
     titre: 'Palette de base forcée',
     quand: 'Le designer force Soft sur une référence saturée, #1E6FD9, qu’Auto confiait à Vivid.',
-    regarder: 'Soft pressé sous « Référence exacte dans », sous le segment « Deux » des intensités, le ◆ passé dans la rangée Soft avec le même code, et le résumé « Référence dans Soft » de la carte Intensités.',
+    regarder: 'Dans « Réglages avancés », déplié, Soft pressé sous « Référence exacte dans », sous le segment « Deux » des intensités, le ◆ passé dans la rangée Soft avec le même code ; le résumé du dépliant « Standard, deux intensités · référence dans Soft » en couleur d’attention, et le résumé « Référence dans Soft » de la carte Réglage global.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU])), { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' }],
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLesReglagesAvances, { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' }],
   },
   {
     id: 'palette-modifiee-depuis-l-ouverture',
@@ -1345,6 +1347,7 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU])),
+      deplierLesReglagesAvances,
       { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' },
       { message: { type: 'rangement', demande: 2, issue: { issue: 'rangee', empreinte: '5e0c1a7b' } } },
     ],
@@ -1357,6 +1360,7 @@ const ETATS = [
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU])),
+      deplierLesReglagesAvances,
       { clic: '[aria-label="Configuration de la palette"] [aria-label="Référence exacte dans"] .bascule-option:nth-child(2)' },
       { message: { type: 'rangement', demande: 2, issue: { issue: 'rangee', empreinte: '5e0c1a7b' } } },
       { clic: '.barre-annulation button:not([hidden])' },
@@ -1456,9 +1460,9 @@ const ETATS = [
     id: 'palette-libre',
     titre: 'Palette libre',
     quand: 'Une palette sort du modèle du design system : six nuances, numérotées par le designer.',
-    regarder: 'Le modèle Libre pressé et « Sans rôles ni garanties » sur sa rangée, pas de choix des intensités, les puces 100, 200, 400, 600, 800 et 900 allumées, l’aperçu à six colonnes sans on-solid ni accolades ; le pied dit « Palette libre ».',
+    regarder: 'Le dépliant « Réglages avancés » replié, son résumé « Modèle libre, deux intensités » en couleur d’attention ; déplié, le modèle Libre pressé et « Sans rôles ni garanties » sur sa rangée, pas de choix « Référence exacte dans », les puces 100, 200, 400, 600, 800 et 900 allumées, l’aperçu à six colonnes sans on-solid ni accolades ; le pied dit « Palette libre ».',
     existe: true,
-    atteinte: [etatDuFichier(rangee([{ ...BLEU, crans: [100, 200, 400, 600, 800, 900] }]))],
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, crans: [100, 200, 400, 600, 800, 900] }])), deplierLesReglagesAvances],
   },
   {
     id: 'reference-ajustee',
@@ -1595,17 +1599,41 @@ const ETATS = [
     id: 'palette-une-intensite',
     titre: 'Palette à une intensité',
     quand: 'Bleu porte une seule intensité, celle de sa couleur de référence.',
-    regarder: 'Le segment « Une » des intensités pressé et son aide, sous les intensités aucune part de la référence ; l’aperçu à une rangée par thème, sans nom de profil ; la carte « Réglage global » repliée, ni choix « Afficher » dans les garanties ni dans l’Interface de test, qui ne garde que « Vue », ni synchronisation dans le Color shift.',
+    regarder: 'Dans « Réglages avancés » déplié, le segment « Une » des intensités pressé et son aide, sous les intensités aucune part de la référence ; l’aperçu à une rangée par thème, sans nom de profil ; la carte « Réglage global » repliée, ni choix « Afficher » dans les garanties ni dans l’Interface de test, qui ne garde que « Vue », ni synchronisation dans le Color shift.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }]))],
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }])), deplierLesReglagesAvances],
   },
   {
     id: 'palette-deux-intensites',
     titre: 'Palette à deux intensités',
     quand: 'Bleu porte Soft et Vivid.',
-    regarder: 'Le segment « Deux » des intensités pressé, son aide, puis « Référence exacte dans » Auto pressé avec « Auto a choisi Vivid » dessous ; Soft et Vivid dans l’aperçu.',
+    regarder: 'Dans « Réglages avancés » déplié, le segment « Deux » des intensités pressé, son aide, puis « Référence exacte dans » Auto pressé avec « Auto a choisi Vivid » dessous ; Soft et Vivid dans l’aperçu.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU]))],
+    atteinte: [etatDuFichier(rangee([BLEU])), deplierLesReglagesAvances],
+  },
+  {
+    id: 'reglages-avances-replies-par-defaut',
+    titre: 'Réglages avancés repliés, réglages par défaut',
+    quand: 'Bleu porte une seule intensité, au modèle Standard : les trois réglages avancés ont leur valeur par défaut.',
+    regarder: 'Sous le nom et la couleur de référence, un filet puis la tête « Réglages avancés » repliée, son résumé « Standard, une intensité » aligné à droite en couleur secondaire ; ni Modèle, ni Intensités, ni « Référence exacte dans » ; l’aperçu remonte d’autant.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, intensites: 1 }]))],
+  },
+  {
+    id: 'reglages-avances-replies-modifies',
+    titre: 'Réglages avancés repliés, un réglage changé',
+    quand: 'Bleu porte deux intensités et Soft est forcé sous « Référence exacte dans » : trois réglages diffèrent du défaut.',
+    regarder: 'La tête « Réglages avancés » repliée, son résumé « Standard, deux intensités · référence dans Soft » aligné à droite, en couleur d’attention ; le dépliant ne s’ouvre pas de lui-même.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, base: 'soft' }]))],
+  },
+  {
+    id: 'reglages-avances-deplies',
+    titre: 'Réglages avancés dépliés',
+    quand: 'Le designer déplie « Réglages avancés » sur Bleu, deux intensités, Soft forcé.',
+    regarder: 'Le chevron tourné, le résumé « Standard, deux intensités · référence dans Soft » toujours à droite de la tête, en couleur d’attention ; dessous, Modèle (Standard pressé) à gauche, Intensités (Deux pressé) à droite, puis « Référence exacte dans » avec Soft pressé.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([{ ...BLEU, base: 'soft' }])), deplierLesReglagesAvances],
   },
   {
     id: 'apercu-une-intensite-dark-inverse',
@@ -1651,9 +1679,9 @@ const ETATS = [
     id: 'reglages-reference-modifiee',
     titre: 'Réglage global, référence modifiée',
     quand: 'Bleu : Soft tourné de 8°, Vivid assombri de 0,02, ce qui a déplacé la référence ; le designer rouvre la carte sur Vivid.',
-    regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans » ; le résumé « Réglé ».',
+    regarder: 'L’avertissement devenu « Attention, votre couleur de référence a été modifiée. » ; « −0,02 » dans le champ de la luminosité ; sous le code de la configuration, la ligne de l’originale #1E6FD9 et « Revenir à l’originale » ; l’aide « Référence dans Vivid, fixée par les réglages. » sous « Référence exacte dans », dans « Réglages avancés » déplié ; le résumé « Réglé ».',
     existe: true,
-    atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(2)' }],
+    atteinte: [etatDuFichier(rangee([BLEU_REGLE])), deplierLesReglagesAvances, deplierLesReglages, { clic: '.cible-des-reglages .bascule-option:nth-child(2)' }],
   },
   {
     id: 'fiche-refaite',

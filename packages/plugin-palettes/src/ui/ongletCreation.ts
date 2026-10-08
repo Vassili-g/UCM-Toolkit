@@ -74,6 +74,7 @@ import { creerVuesApercuCompact } from './apercuCompact';
 import type { BarreDePaletteUi, GestesDeLaBarre } from './barreDePalette';
 import { creerVuesBasculeDuTheme } from './basculeDuTheme';
 import { createCarte } from './carte';
+import { createReglagesAvances } from './reglagesAvances';
 import { creerGlyphe } from './glyphes';
 import { type ChoixDeBase } from './champs';
 import { creerVuesChamps } from './champs';
@@ -247,7 +248,7 @@ function construireVues(i18n: Localisation) {
   const { createBasculeDuTheme } = creerVuesBasculeDuTheme(i18n);
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DES_REGLAGES_AVANCES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -446,9 +447,10 @@ function construireVues(i18n: Localisation) {
     const choixDeBase = choixDesIntensites.base;
     const choixAutomatique = choixDeBase.aide;
     /*
-     * Deux colonnes (recette v7) : le nom puis le modèle à gauche, la couleur
-     * de référence puis les intensités à droite. Les numéros d'une palette
-     * libre se choisissent dessous.
+     * Le nom à gauche, la couleur de référence à droite (recette v7). Le modèle
+     * et les intensités, rangés sous « Réglages avancés » (recette v8, R7),
+     * gardent les deux colonnes ; les numéros d'une palette libre se
+     * choisissent dessous.
      */
     const choixDuModele = createChoixDuModele((valeur) => {
       const courante = ouverte();
@@ -463,10 +465,13 @@ function construireVues(i18n: Localisation) {
     });
     const colonnes = document.createElement('div');
     colonnes.className = 'colonnes-de-base';
-    colonnes.append(champEnColonne(TEXTES.nom, nom), colonneDeLaReference, choixDuModele.element, choixDesIntensites.element);
+    colonnes.append(champEnColonne(TEXTES.nom, nom), colonneDeLaReference);
+    const reglagesAvances = createReglagesAvances(TEXTES_DES_REGLAGES_AVANCES.titre, i18n);
+    reglagesAvances.corps.classList.add('colonnes-de-reglages-avances');
+    reglagesAvances.corps.append(choixDuModele.element, choixDesIntensites.element);
     // Ouverte à l'ouverture du plugin ; créer une palette la replie, et son résumé la nomme ([UI-11]).
     const carteDeBase = createCarte({ titre: TEXTES_DE_L_ONGLET.configuration, repliable: { ouverte: true, resumeReplie: true } }, i18n);
-    carteDeBase.corps.append(colonnes, puces.element);
+    carteDeBase.corps.append(colonnes, reglagesAvances.element, puces.element);
 
     // Carte d'aperçu fixe ([UI-04]) : glyphe, titre et sous-titre, la pastille du fond à droite, la référence sous la surface.
     const nuancier = createNuancier({
@@ -1039,9 +1044,14 @@ function construireVues(i18n: Localisation) {
       // Une palette figée ne se règle pas : seul son nom reste, avec l'encart qui la rend aux couleurs recalculées ([VAR-13]).
       const figee = estFigee(courante);
       colonneDeLaReference.hidden = figee;
-      choixDuModele.element.hidden = figee;
-      choixDesIntensites.element.hidden = figee;
+      reglagesAvances.element.hidden = figee;
       choixDeBase.poser(courante.base ?? 'auto');
+      // La base ne se lit que sous deux intensités : « Auto » ou une palette libre n'ajoute rien au résumé.
+      const baseForcee = !une && !analyse.libre && courante.base ? courante.base : null;
+      reglagesAvances.poserResume(
+        TEXTES_DES_REGLAGES_AVANCES.resume(analyse.libre, !une, baseForcee),
+        analyse.libre || !une || baseForcee !== null,
+      );
       // Une palette libre n'a pas de palette de base : « Référence exacte dans » ne se montre que dans le modèle.
       if (analyse.libre) choixDeBase.element.hidden = true;
       puces.element.hidden = !analyse.libre || figee;

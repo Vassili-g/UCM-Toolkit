@@ -494,6 +494,16 @@ export const TEXTES_DU_MODELE = {
   puce: (numero: number) => `Shade ${numero}`,
 } as const;
 
+/**
+ * Le dépliant « Réglages avancés » de la configuration (recette v8, R7) : son
+ * résumé dit modèle et intensités, puis le profil porteur quand il est forcé.
+ */
+export const TEXTES_DES_REGLAGES_AVANCES = {
+  titre: "Advanced settings",
+  resume: (libre: boolean, deux: boolean, base: Profil | null) =>
+    `${libre ? 'Free model' : 'Standard'}, ${deux ? 'two intensities' : 'one intensity'}${base ? ` · reference in ${NOM_DU_PROFIL[base]}` : ''}`,
+} as const;
+
 /** Les libellés de la carte « Color shift » (section 12). */
 export const TEXTES_DE_LA_DERIVE = {
   aide: "Hatched zones exceed contrast or lightness limits.",

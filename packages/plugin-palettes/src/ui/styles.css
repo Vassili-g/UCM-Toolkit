@@ -2378,9 +2378,82 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/*
+ * Les réglages avancés de la configuration (recette v8, R7) : un filet, puis
+ * une tête en bouton, chevron et titre à gauche, résumé calé à droite. Le
+ * résumé prend l'ambre quand un réglage diffère de son défaut. Le corps garde
+ * les deux colonnes du modèle et des intensités.
+ */
+.reglages-avances {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-controle);
+  padding-top: var(--espace-controle);
+  border-top: 1px solid var(--bordure);
+}
+
+.reglages-avances[hidden] {
+  display: none;
+}
+
+.reglages-avances-bascule {
+  display: flex;
+  min-width: 0;
+  min-height: var(--hauteur-action);
+  align-items: center;
+  gap: var(--espace-controle);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte);
+  cursor: pointer;
+  text-align: left;
+}
+
+.reglages-avances-bascule:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.reglages-avances-bascule[aria-expanded='true'] .carte-chevron::before {
+  transform: rotate(90deg);
+}
+
+.reglages-avances-titre {
+  flex: 0 0 auto;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reglages-avances-resume {
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  color: var(--texte-second);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reglages-avances-resume[data-signale='true'] {
+  color: var(--texte-avertissement);
+}
+
+.reglages-avances-corps[hidden] {
+  display: none;
+}
+
+.colonnes-de-reglages-avances {
+  display: grid;
+  gap: var(--espace-controle);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 /* Les segments du modèle et du profil porteur gardent leur largeur naturelle sur leur rangée. */
 .carte-corps > .champ-colonne > .bascule-de-base,
 .colonnes-de-base > .champ-colonne > .bascule-de-base,
+.colonnes-de-reglages-avances > .champ-colonne > .bascule-de-base,
 .segments-des-intensites .bascule-de-base {
   justify-self: start;
   min-width: 200px;

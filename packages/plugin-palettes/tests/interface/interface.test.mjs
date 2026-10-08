@@ -2344,6 +2344,7 @@ test('W6.5 passer en Libre retire la palette de base et la carte des garanties ;
   try {
     const configuration = page.locator('[aria-label="Configuration de la palette"]');
     const avant = await compte(page);
+    await deplierLesReglagesAvances(page);
     await configuration.getByRole('button', { name: 'Libre', exact: true }).click();
     const libre = await prochaine(page, avant);
     await envoyer(page, rangee(libre.demande));
@@ -3914,8 +3915,19 @@ test('[UI-14] le choix du profil peint dit « Afficher » puis Soft et Vivid, so
   }
 });
 
+/** Le dépliant « Réglages avancés » de la configuration : modèle, intensités et référence exacte (recette v8, R7). */
+const reglagesAvances = (page) => carteDeLOnglet(page, 'Configuration de la palette').locator('.reglages-avances');
+const teteDesReglagesAvances = (page) => reglagesAvances(page).locator('.reglages-avances-bascule');
+/** Déplie le dépliant s'il est replié ; son état dure la session. */
+async function deplierLesReglagesAvances(page) {
+  if ((await teteDesReglagesAvances(page).getAttribute('aria-expanded')) === 'false') await teteDesReglagesAvances(page).click();
+}
+
 /** Pose « Une » ou « Deux » dans le groupe Intensités de la configuration. */
-const configurerLesIntensites = (page, nom) => carteDeLOnglet(page, 'Configuration de la palette').getByRole('group', { name: 'Intensités' }).getByRole('button', { name: nom, exact: true }).click();
+const configurerLesIntensites = async (page, nom) => {
+  await deplierLesReglagesAvances(page);
+  await carteDeLOnglet(page, 'Configuration de la palette').getByRole('group', { name: 'Intensités' }).getByRole('button', { name: nom, exact: true }).click();
+};
 
 test('[UI-14] changer de palette rouvre le choix sur le porteur', async () => {
   const page = await ouvrirSur('alertes-seules');
@@ -3969,6 +3981,7 @@ test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, l
   try {
     await deplierLaCarte(page, 'Interface de test');
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    await deplierLesReglagesAvances(page);
     const configuration = carteDeLOnglet(page, 'Configuration de la palette');
     assert.deepEqual(await intensitesMontrees(page), { apercu: ['soft', 'vivid'], basculeDesGaranties: true, basculeDeLEssai: true, carteDesReglages: true, cibleDesReglages: true, synchronisation: true });
     // La configuration choisit par des segments, comme le modèle ; les deux cartes et leurs rampes restent à la création.
@@ -3998,6 +4011,89 @@ test('Y4.8 [ENT-14] : le segment « Une » des intensités change l’aperçu, l
   }
 });
 
+test('[UI-11] « Réglages avancés » est replié à l’ouverture ; son résumé dit modèle et intensités, en couleur secondaire par défaut et d’attention sinon', async () => {
+  const defaut = await ouvrirSur('palette-une-intensite');
+  try {
+    const tete = teteDesReglagesAvances(defaut);
+    assert.equal(await tete.getAttribute('aria-expanded'), 'false');
+    assert.equal(await reglagesAvances(defaut).locator('.reglages-avances-corps').isVisible(), false);
+    assert.equal(await tete.getAttribute('aria-controls'), await reglagesAvances(defaut).locator('.reglages-avances-corps').getAttribute('id'));
+    const resume = reglagesAvances(defaut).locator('.reglages-avances-resume');
+    assert.equal(await resume.textContent(), 'Standard, une intensité');
+    assert.equal(await resume.getAttribute('data-signale'), 'false');
+    assert.equal(await tete.textContent(), 'Réglages avancésStandard, une intensité', 'le résumé fait partie du nom accessible de la tête');
+    const couleurs = await resume.evaluate((element) => [getComputedStyle(element).color, getComputedStyle(element.closest('.reglages-avances').querySelector('.reglages-avances-titre')).color]);
+    assert.notEqual(couleurs[0], couleurs[1]);
+  } finally {
+    await defaut.close();
+  }
+  const change = await ouvrirSur('reglages-avances-replies-modifies');
+  try {
+    const resume = reglagesAvances(change).locator('.reglages-avances-resume');
+    assert.equal(await resume.textContent(), 'Standard, deux intensités · référence dans Soft');
+    assert.equal(await resume.getAttribute('data-signale'), 'true');
+    assert.equal(await resume.evaluate((element) => getComputedStyle(element).color), await change.evaluate(() => {
+      const sonde = document.createElement('span');
+      sonde.style.color = 'var(--texte-avertissement)';
+      document.body.append(sonde);
+      const couleur = getComputedStyle(sonde).color;
+      sonde.remove();
+      return couleur;
+    }), 'la couleur d’attention du design system');
+  } finally {
+    await change.close();
+  }
+});
+
+test('[UI-11] déplier « Réglages avancés » montre modèle et intensités ; changer les intensités met le résumé à jour, replié comme déplié', async () => {
+  const page = await ouvrirSur('palette-une-intensite');
+  try {
+    const resume = reglagesAvances(page).locator('.reglages-avances-resume');
+    await teteDesReglagesAvances(page).click();
+    assert.equal(await teteDesReglagesAvances(page).getAttribute('aria-expanded'), 'true');
+    assert.equal(await reglagesAvances(page).locator('.reglages-avances-corps').isVisible(), true);
+    assert.equal(await resume.isVisible(), true, 'le résumé se lit déplié');
+    await configurerLesIntensites(page, 'Deux');
+    assert.equal(await resume.textContent(), 'Standard, deux intensités');
+    assert.equal(await resume.getAttribute('data-signale'), 'true');
+    await configurerLesIntensites(page, 'Une');
+    assert.equal(await resume.textContent(), 'Standard, une intensité');
+    assert.equal(await resume.getAttribute('data-signale'), 'false');
+    await teteDesReglagesAvances(page).click();
+    assert.equal(await reglagesAvances(page).locator('.reglages-avances-corps').isVisible(), false);
+    assert.equal(await resume.isVisible(), true, 'le résumé se lit replié');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-11] l’état de « Réglages avancés » est retenu quand on change de palette', async () => {
+  const page = await ouvrirSur('alertes-seules');
+  try {
+    assert.equal(await teteDesReglagesAvances(page).getAttribute('aria-expanded'), 'false');
+    await teteDesReglagesAvances(page).click();
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(1).click();
+    assert.equal(await page.locator('.selecteur-nom').textContent(), 'Bleu');
+    assert.equal(await teteDesReglagesAvances(page).getAttribute('aria-expanded'), 'true', 'déplié, il le reste');
+    await teteDesReglagesAvances(page).click();
+    await page.locator('.selecteur-bouton').click();
+    await page.locator('.selecteur-option').nth(0).click();
+    assert.equal(await teteDesReglagesAvances(page).getAttribute('aria-expanded'), 'false', 'replié, il le reste');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-11] « Réglages avancés » est masqué pour une palette figée', async () => {
+  const page = await ouvrirSur('reprise-figee-deux-intensites');
+  try {
+    assert.equal(await reglagesAvances(page).isVisible(), false);
+  } finally {
+    await page.close();
+  }
+});
+
 test('Y4.8 [PLA-20] : changer le nombre d’intensités d’une palette générée fait passer son cadre « À actualiser »', async () => {
   const page = await ouvrirSur('planche-a-jour');
   try {
@@ -4005,7 +4101,7 @@ test('Y4.8 [PLA-20] : changer le nombre d’intensités d’une palette génér�
     assert.deepEqual(await etatsDesLignes(page), ['a-jour', 'a-jour']);
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
     const avant = await compte(page);
-    await carteDeLOnglet(page, 'Configuration de la palette').getByRole('group', { name: 'Intensités' }).getByRole('button', { name: 'Une', exact: true }).click();
+    await configurerLesIntensites(page, 'Une');
     await envoyer(page, rangee((await prochaineDuType(page, 'ranger-recette', avant)).demande));
     await ouvrirLaPlanche(page);
     assert.deepEqual(await etatsDesLignes(page), ['perimee', 'a-jour']);
