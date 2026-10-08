@@ -83,7 +83,26 @@ que dans Gestion.
 | V3a | Vérification | V3 affinée : un point rouge ou ambre dans la bande du nom, rien sur une palette qui tient ; le bilan en une ligne de texte dont chaque compte est un filtre ; le détail des palettes filtrées en lignes sous le nuancier |
 | V3b | Vérification | V3 affinée : un liseré rouge ou ambre autour de la carte et son compte dans la bande du nom ; le bilan en jauge fine |
 
-Le mainteneur a retenu **A2a** pour Création : le nuancier de cartes compactes, sept par rangée, et « Nouvelle palette » en bouton principal en tête. Pour Vérification, le même nuancier porte le verdict de chaque palette (V3 à V5). Le mainteneur aime V3 mais la trouve trop grossière : d'où V3a et V3b, où rien ne signale une palette qui tient. Recommandation : V3a. **Vérification attend le choix du mainteneur.**
+Le mainteneur a retenu **A2a** pour Création : le nuancier de cartes compactes, sept par rangée, et « Nouvelle palette » en bouton principal en tête. Pour Vérification, le même nuancier porte le verdict de chaque palette (V3 à V5). Le mainteneur a retenu **V3a**, avec un onglet du bilan toujours actif.
+Règles de l'écran (maquette, section « V3a, version retenue ») :
+
+1. Le bilan prend la forme de la bascule Light · Dark : « À corriger »,
+   « À vérifier », « Tiennent », chacun avec son compte ; un onglet à zéro
+   ne s'affiche pas.
+2. À l'ouverture, « À corriger » est actif s'il y a une garantie manquée,
+   sinon « À vérifier ». Tant qu'un problème existe, un onglet est toujours
+   actif : on en change, on ne le quitte pas.
+3. Les cartes de l'onglet actif gardent leurs couleurs ; les autres passent
+   à 30 % d'opacité, désaturées, à leur place et cliquables.
+4. Un point rouge ou ambre dans la bande du nom ; rien pour une palette qui
+   tient.
+5. Sous le nuancier, une ligne par palette de l'onglet actif : mini-carte,
+   nom, thème, garantie ou point, « Vérifier ».
+6. Une paire de palettes trop proches compte dans « À vérifier » et paraît
+   dans son détail.
+7. Tout tient : pas d'onglets ; « Les 20 palettes tiennent leurs garanties,
+   en Light et en Dark. », puis « Aucune palette trop proche d'une autre. » ;
+   toutes les cartes au même niveau, sans point.
 
 ## 5. La configuration avancée repliée (S4)
 
@@ -102,4 +121,4 @@ Implémenté.
 | E2 | Où vont Modèle, Intensités et « Référence exacte dans » ? | Sous « Réglages avancés », replié |
 | E3 | Que montre la création d'une palette ? | La carte de création seule ; la palette affichée est masquée (implémenté) |
 | E4 | Que montre Création sans palette ouverte ? | A2a : le nuancier compact, « Nouvelle palette » en bouton principal |
-| E5 | Que montre Vérification sans palette ouverte ? | Ouverte ; le nuancier vérifié plaît, recommandation V3a |
+| E5 | Que montre Vérification sans palette ouverte ? | V3a : le nuancier de Création, un onglet du bilan toujours actif tant qu'un problème existe, « tout tient » dit en clair |

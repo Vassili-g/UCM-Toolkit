@@ -167,6 +167,22 @@
   .liseree-ambre { box-shadow: 0 0 0 2px #f3b53f; }
   .compte-rouge { color: #c62828; font-size: 10px; }
   .compte-ambre { color: #9a6a00; font-size: 10px; }
+  /* V3a retenue : onglets du bilan en bascule, cartes mises en avant ou atténuées, état « tout tient ». */
+  ul.regles { max-width: 820px; margin: 0 0 16px; padding-left: 18px; color: var(--encre-seconde); }
+  ul.regles li { margin: 0 0 4px; }
+  ul.regles b { color: var(--encre); }
+  .bilan-final { display: inline-flex; margin: 12px 0 12px; border: 1px solid var(--bordure); border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .seg { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; color: var(--second); cursor: pointer; }
+  .seg b { font-weight: 700; color: inherit; }
+  .seg.choisi { background: var(--carte-claire); color: var(--texte); border-radius: 5px; }
+  .carte7.attenuee { opacity: 0.3; filter: saturate(0.4); }
+  .detail-final { margin-top: 12px; border-top: 1px solid var(--filet); }
+  .ligne-finale { display: grid; grid-template-columns: 30px 64px 1fr auto; align-items: center; gap: 8px; margin: 0; padding: 7px 0; border-bottom: 1px solid var(--filet); font-size: 11px; }
+  .ligne-finale .mini { width: 30px; height: 12px; }
+  .ligne-finale span:not(.mini) { color: var(--second); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ligne-finale u { color: var(--primaire); text-decoration: none; font-weight: 600; }
+  .tout-tient { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 14px; font-size: 12px; line-height: 1.5; }
+  .coche { width: 22px; height: 22px; border-radius: 50%; background: var(--vert-fond); color: var(--vert); display: grid; place-items: center; font-weight: 700; flex: none; }
 </style>
 </head>
 <body>
@@ -652,7 +668,84 @@
   }
 </script>
 
-<h2>Décision et recommandation</h2>
-<p class="chapeau"><b>Création : A2a, retenue.</b> <b>Vérification : V3a.</b> Au repos, l'écran ressemble au nuancier de Création, et seuls les points rouges et ambre signalent quelque chose ; le bilan tient en une ligne de texte dont chaque compte est un filtre ; le détail des palettes filtrées s'ouvre sous le nuancier, une ligne chacune, avec le thème fautif et la garantie. La jauge de V3b peut s'ajouter au bilan si une proportion d'un regard manque. V4 et V5 restent des pistes pour plus tard.</p>
+<h2>Vérification : V3a, version retenue</h2>
+<p class="chapeau">Décision du mainteneur : V3a, avec deux règles. Tant qu'une palette est à corriger ou à vérifier, un des onglets du bilan est toujours actif : ses palettes sont mises en avant, les autres atténuées. Quand toutes les palettes tiennent, l'écran le dit en clair, et toutes les cartes sont au même niveau. Trois états, avec les vingt palettes.</p>
+
+<h3 style="font-size:15px;margin:20px 0 8px">Les règles de l'écran</h3>
+<ul class="regles">
+  <li><b>Les onglets du bilan.</b> Trois onglets : « À corriger », « À vérifier », « Tiennent », chacun avec son compte ; un onglet dont le compte est nul ne s'affiche pas. Ils prennent la forme de la bascule Light · Dark du plugin, à la taille du texte.</li>
+  <li><b>L'onglet actif par défaut.</b> « À corriger » s'il y a au moins une garantie manquée, sinon « À vérifier ». Il n'y a pas d'état sans onglet actif : le designer change d'onglet, il ne le quitte pas.</li>
+  <li><b>Mises en avant, atténuées.</b> Les cartes de l'onglet actif gardent leurs couleurs ; les autres passent à 30 % d'opacité, désaturées. Toutes restent à leur place et restent cliquables.</li>
+  <li><b>Le point dans la bande du nom.</b> Rouge pour une palette à corriger, ambre pour une palette à vérifier, rien pour une palette qui tient.</li>
+  <li><b>Le détail sous le nuancier.</b> Une ligne par palette de l'onglet actif : nom, thème, garantie ou point, et « Vérifier », qui ouvre la vérification de la palette. Sous « Tiennent », pas de détail.</li>
+  <li><b>Entre les palettes.</b> Une paire trop proche est un point à vérifier : elle compte dans l'onglet « À vérifier » et paraît dans son détail, avec ses deux mini-cartes.</li>
+  <li><b>Tout tient.</b> Pas d'onglets. Une phrase en tête, ✓ vert : « Les 20 palettes tiennent leurs garanties, en Light et en Dark. » Puis « Aucune palette trop proche d'une autre. » Toutes les cartes au même niveau, sans point.</li>
+</ul>
+
+<div class="rang">
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <div class="bilan-final"><span class="seg choisi"><i class="pt rouge"></i>À corriger <b>2</b></span><span class="seg"><i class="pt ambre"></i>À vérifier <b>3</b></span><span class="seg">Tiennent <b>15</b></span></div>
+      <div class="cartes7 finales" data-actif="rouge"></div>
+      <div class="detail-final" data-actif="rouge"></div>
+    </div>
+    <p class="legende2">1. Des garanties manquées : « À corriger » actif à l'ouverture</p>
+  </div>
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <div class="bilan-final"><span class="seg"><i class="pt rouge"></i>À corriger <b>2</b></span><span class="seg choisi"><i class="pt ambre"></i>À vérifier <b>3</b></span><span class="seg">Tiennent <b>15</b></span></div>
+      <div class="cartes7 finales" data-actif="ambre"></div>
+      <div class="detail-final" data-actif="ambre"></div>
+    </div>
+    <p class="legende2">2. Le designer passe à « À vérifier »</p>
+  </div>
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet">Création</span><span class="onglet actif">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="barre"><span class="selecteur"><span class="second">Sélectionner une palette</span><span class="fleche">▾</span></span><span class="bouton primaire">Nouvelle palette</span></div>
+      <div class="tout-tient"><span class="coche">✓</span><div><b>Les 20 palettes tiennent leurs garanties, en Light et en Dark.</b><br><span class="second">Aucune palette trop proche d'une autre.</span></div></div>
+      <div class="cartes7 finales" data-actif="aucun"></div>
+    </div>
+    <p class="legende2">3. Tout tient</p>
+  </div>
+</div>
+
+<script>
+  // V3a retenue : réutilise PALETTES et aplats. Sky et Océan forment la paire trop proche, comptée « à vérifier ».
+  const FINAL = {
+    Bleu: ['rouge', 'Light', 'texte des boutons, 4,33:1'], Sky: ['rouge', 'Dark', 'texte sur fond teinté, 3,9:1'],
+    Poppy: ['ambre', 'Light', 'référence plus vive que la saturation commune'], Moutarde: ['ambre', 'Dark', 'Soft et Vivid presque identiques'],
+    Océan: ['ambre', '', 'trop proche de Sky, ΔEok 0,04'],
+  };
+  for (const zone of document.querySelectorAll('.cartes7.finales')) {
+    const actif = zone.dataset.actif;
+    zone.innerHTML = PALETTES.slice(0, 20).map((p) => {
+      const [a, b, c] = aplats(p);
+      const etat = actif === 'aucun' ? null : FINAL[p[0]]?.[0] ?? 'vert';
+      const point = etat && etat !== 'vert' ? `<i class="pt ${etat}"></i>` : '';
+      const attenuee = actif !== 'aucun' && etat !== actif ? ' attenuee' : '';
+      return `<span class="carte7${attenuee}" title="${p[0]}"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span class="bande-nom"><span>${p[0]}</span>${point}</span></span>`;
+    }).join('');
+  }
+  for (const zone of document.querySelectorAll('.detail-final')) {
+    const actif = zone.dataset.actif;
+    zone.innerHTML = Object.entries(FINAL).filter(([, [etat]]) => etat === actif).map(([nom, [etat, theme, quoi]]) => {
+      const p = PALETTES.find((x) => x[0] === nom);
+      const [a, b, c] = aplats(p);
+      const mini = `<span class="mini"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i></span>`;
+      return `<p class="ligne-finale">${mini}<b>${nom}</b><span>${theme ? theme + ' · ' : ''}${quoi}</span><u>Vérifier</u></p>`;
+    }).join('');
+  }
+</script>
+
+<h2>Décisions</h2>
+<p class="chapeau"><b>Création : A2a.</b> <b>Vérification : V3a, version retenue</b>, avec un onglet du bilan toujours actif tant qu'une palette est à corriger ou à vérifier, et un état « tout tient » dit en clair. Les autres pistes de cette page restent pour mémoire.</p>
 </body>
 </html>

@@ -6,9 +6,9 @@ l'écran sans palette ouverte et la configuration avancée repliée.
 
 **État.** La configuration avancée repliée et la création qui masque la
 palette affichée sont implémentées. Le bandeau de vérification est décidé
-(B4) et n'est pas implémenté. Création sans palette ouverte est décidée
-(A2a) ; Vérification sans palette ouverte attend le choix du mainteneur.
+(B4) et n'est pas implémenté. Création et Vérification sans palette
+ouverte sont décidées (A2a, V3a) et ne sont pas implémentées.
 
 | Document | Contenu |
 |---|---|
-| [DOSSIER-RECETTE-V9.md](./DOSSIER-RECETTE-V9.md) | Les constats S1 à S4, la spécification du bandeau B4, les pistes sans palette ouverte et les décisions E1 à E4 |
+| [DOSSIER-RECETTE-V9.md](./DOSSIER-RECETTE-V9.md) | Les constats S1 à S4, la spécification du bandeau B4, les pistes sans palette ouverte et les décisions E1 à E5 |
