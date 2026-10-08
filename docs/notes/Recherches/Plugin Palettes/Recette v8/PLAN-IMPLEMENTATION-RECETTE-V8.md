@@ -159,6 +159,8 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 > Fait : écart nul sur les trente palettes, mais 2 à 40 s par
 > palette et des cas non mesurés. Le mainteneur a choisi de figer d'abord ;
 > la reconstruction devient la tâche T18 de la phase B.
+> T9 fait : Poppy est revenue figée, sans réglages ; T18 passe en tête de la
+> phase B.
 
 ### Vague 4, dès que T4 et D3 sont faits
 
@@ -209,7 +211,7 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
   vérification que la palette reprise est « À jour » sans écriture, si T5 ne
   l'a pas couverte ; relit les diffs ; commite T4, T5 et T6 séparément ;
   pousse.
-- [ ] **T9 · Recette de Poppy, le mainteneur.** Recharger le plugin dans
+- [x] **T9 · Recette de Poppy, le mainteneur.** Recharger le plugin dans
   Figma, onglet Gestion, carte de Poppy, « Reprendre depuis les variables ».
   Attendu : Poppy revient sous son identifiant, à deux intensités, « À jour »,
   son cadre rattaché, plus aucune ligne « Déjà dans le fichier » pour elle.
@@ -217,7 +219,8 @@ mesure : `docs(recherches): la mesure de la reconstruction des réglages`.
 
 ## Phase B. Le reste de la recette
 
-Commence après T9. Les vagues gardent deux agents au plus.
+Commence après T9, par la vague 6 bis. Les vagues gardent deux agents au
+plus.
 
 ### Vague 6
 
@@ -280,14 +283,45 @@ Commence après T9. Les vagues gardent deux agents au plus.
   (`scripts/capturer-etats.mjs`). L'orchestrateur relit, commite chaque lot,
   pousse.
 
-### Vague 9 bis
+### Vague 6 bis. Poppy retrouve ses réglages, en tête de la phase B
 
-- [ ] **T18 · Reconstruction des réglages** · `implementeur-exigeant`,
+T9 a ramené Poppy figée, sans réglages. Le mainteneur veut retrouver ses
+réglages : cette vague passe avant toutes les autres de la phase B. T18a
+tourne en parallèle de T10.
+
+- [ ] **T18a · Reconstruction, le moteur** · `implementeur-exigeant`,
   effort **élevé**. La recherche de `Mesures/mesurer-reconstruction.mjs`
-  devient un module testé du moteur, assez rapide pour l'interface. Une
-  palette reprise figée propose de retrouver ses réglages ; les couleurs
-  figées restent le secours quand la recherche n'est pas exacte. À
-  préciser avec le mainteneur avant l'appel.
+  devient `packages/couleur/src/reconstruction.ts`, testée.
+  - Entrée : la recette (ses Réglages communs), la liste des nuances et les
+    couleurs figées, à une ou deux intensités. Sortie : les réglages trouvés,
+    l'écart maximal en hexa et le nombre de couleurs qui diffèrent.
+  - Elle ne fige pas l'interface : elle rend la main régulièrement, rapporte
+    sa progression et s'arrête sur demande.
+  - Fini quand : les palettes rapides de la mesure se reconstruisent à écart
+    nul ; une couleur retouchée à la main donne un écart non nul, sans
+    erreur ; la recherche d'une palette prend moins d'une minute.
+- [ ] **T18b · Reconstruction, le geste** · `implementeur`, effort
+  **moyen**, après T18a.
+  - L'encart de reprise d'une palette figée porte « Retrouver les
+    réglages ». Pendant la recherche, le bouton montre « Recherche des
+    réglages… », désactivé.
+  - Écart nul : la recette se range avec les réglages trouvés à la place des
+    couleurs figées, par le chemin d'un réglage. La palette garde son
+    identifiant, son nom et ses nuances, et reste « À jour » sans écriture.
+    Texte : « Réglages retrouvés. Aucune couleur ne change. »
+  - Écart non nul : « Réglages approchés : N couleurs changeraient. » et
+    « Appliquer ces réglages ». La palette reste figée tant que le designer
+    n'applique pas.
+  - Aucun réglage trouvé : « Aucun réglage ne reproduit ces couleurs. »
+  - La bascule « Recalculées » d'une palette figée à deux intensités garde
+    ses deux intensités. Aujourd'hui elle rend une palette à une intensité,
+    tirée de Soft.
+  - Fini quand : sur l'état de Poppy figée de la galerie, le geste rend la
+    palette réglée, « À jour » sans écriture ; les trois issues ont un test.
+
+Anglais : « Recover settings », « Searching for settings… », « Settings
+recovered. No color changes. », « Approximate settings: N colors would
+change. », « Apply these settings », « No settings reproduce these colors. »
 
 ### Vague 10. Les maquettes
 
@@ -316,7 +350,8 @@ Commence après T9. Les vagues gardent deux agents au plus.
 | T14 | `executant` | bas | B |
 | T15 | `executant` | bas | B |
 | T16 | `verificateur` | bas | B |
-| T18 | `implementeur-exigeant` | élevé | B |
+| T18a | `implementeur-exigeant` | élevé | B |
+| T18b | `implementeur` | moyen | B |
 
 Phase A : six appels d'implémentation et un de vérification avant l'essai de
 Poppy. D3, T8, T9 et T17 ne passent par aucun agent.
