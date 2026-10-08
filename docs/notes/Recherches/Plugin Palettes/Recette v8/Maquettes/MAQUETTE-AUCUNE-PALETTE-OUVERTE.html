@@ -90,6 +90,23 @@
   .lien-cta { text-align: left; color: var(--primaire); font-weight: 600; font-size: 13px; }
   .vedette { width: 112px; height: 112px; border-radius: 50%; margin: 4px auto 14px; display: block; box-shadow: 0 0 0 6px rgba(245,197,24,0.15); }
   .rang-cta { display: flex; justify-content: center; gap: 8px; }
+  /* A2, deuxième version : le bouton principal en tête, des cartes et des bandes compactes. */
+  .accueil2 { padding: 16px 0 8px; }
+  .cta-plein { display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 8px; background: var(--primaire); color: #fff; font-size: 14px; font-weight: 700; }
+  .sous2 { color: var(--second); text-align: center; margin: 6px 0 18px; font-size: 11px; }
+  .tete2 { display: flex; align-items: center; gap: 6px; color: var(--second); font-weight: 600; margin: 0 0 8px; }
+  .compte2 { background: var(--carte-claire); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+  .cartes7 { display: grid; grid-template-columns: repeat(7, 60px); gap: 9px 8px; }
+  .carte7 { width: 60px; height: 80px; border-radius: 5px; overflow: hidden; display: grid; grid-template-rows: 1fr 1fr 1fr 22px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.4); cursor: pointer; }
+  .carte7 i { display: block; }
+  .carte7 span { color: #1d1d1b; font-size: 10px; font-weight: 700; padding: 4px 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .carte7:hover { box-shadow: 0 0 0 2px #fff; }
+  .bandes2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+  .bande2 { display: flex; align-items: center; gap: 8px; height: 24px; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 0 4px; }
+  .bande2:hover { background: var(--carte-claire); }
+  .aplats { display: flex; width: 54px; height: 16px; border-radius: 3px; overflow: hidden; flex: none; box-shadow: 0 0 0 1px rgba(255,255,255,0.1); }
+  .aplats i { flex: 1; display: block; }
+  .legende2 { font-size: 12px; color: var(--encre-seconde); margin: 4px 0 0; }
 </style>
 </head>
 <body>
@@ -178,6 +195,115 @@
     <ul><li>Le bouton bleu « Créer » disparaît au profit d'une carte : le geste principal est moins appuyé.</li></ul>
   </div>
 </div>
+
+<h3 style="font-size:16px;margin:32px 0 8px">A2. Le nuancier de papeterie, deuxième version : jusqu'à vingt palettes</h3>
+<p class="chapeau">Retour du mainteneur : les cartes plaisent, mais elles sont trop grandes pour vingt palettes, et « Nouvelle palette » doit être plus en avant. Deux variantes, chacune montrée avec trois palettes et avec vingt. Dans les deux, « Nouvelle palette » est le bouton principal, pleine largeur, en tête de l'écran.</p>
+
+<h3 style="font-size:15px;margin:20px 0 8px">A2a. Cartes compactes, sept par rangée</h3>
+<div class="rang">
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="accueil2">
+        <span class="cta-plein">＋ Nouvelle palette</span>
+        <p class="sous2">Partez d'une couleur de référence.</p>
+        <div class="tete2">Vos palettes <span class="compte2">3</span></div>
+        <div class="cartes7" data-nombre="3"></div>
+      </div>
+    </div>
+    <p class="legende2">Trois palettes</p>
+  </div>
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="accueil2">
+        <span class="cta-plein">＋ Nouvelle palette</span>
+        <p class="sous2">Partez d'une couleur de référence.</p>
+        <div class="tete2">Vos palettes <span class="compte2">20</span></div>
+        <div class="cartes7" data-nombre="20"></div>
+      </div>
+    </div>
+    <p class="legende2">Vingt palettes</p>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>La carte passe de 76 × 118 px à 60 × 80 px : trois aplats (clair, référence, sombre), puis le nom, coupé au besoin. Sept cartes par rangée à 500 px ; vingt palettes tiennent en trois rangées.</li>
+      <li>Les cartes suivent l'ordre de la recette, comme le sélecteur.</li>
+      <li>« Nouvelle palette » quitte la grille et devient le bouton principal, pleine largeur, avec sa phrase.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Garde l'objet nuancier qui a plu, à une taille qui tient vingt palettes sans défilement à 520 px de haut.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>À 60 px, un nom long se coupe (« Terracota » tient, « Bleu nuit profond » non) ; le nom entier paraît au survol.</li></ul>
+  </div>
+</div>
+
+<h3 style="font-size:15px;margin:28px 0 8px">A2b. Bandes de nuancier, sur deux colonnes</h3>
+<div class="rang">
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="accueil2">
+        <span class="cta-plein">＋ Nouvelle palette</span>
+        <p class="sous2">Partez d'une couleur de référence.</p>
+        <div class="tete2">Vos palettes <span class="compte2">3</span></div>
+        <div class="bandes2" data-nombre="3"></div>
+      </div>
+    </div>
+    <p class="legende2">Trois palettes</p>
+  </div>
+  <div>
+    <div class="plugin">
+      <div class="entete"><strong>UCM Palettes</strong><span class="reglages">⚙</span></div>
+      <div class="onglets"><span class="onglet actif">Création</span><span class="onglet">Vérification</span><span class="onglet">Gestion</span></div>
+      <div class="accueil2">
+        <span class="cta-plein">＋ Nouvelle palette</span>
+        <p class="sous2">Partez d'une couleur de référence.</p>
+        <div class="tete2">Vos palettes <span class="compte2">20</span></div>
+        <div class="bandes2" data-nombre="20"></div>
+      </div>
+    </div>
+    <p class="legende2">Vingt palettes</p>
+  </div>
+  <div class="notes">
+    <h3>Le principe</h3>
+    <ul>
+      <li>La carte se couche : une bande de trois aplats, puis le nom en entier à côté. Deux colonnes ; vingt palettes tiennent en dix lignes de 28 px.</li>
+      <li>« Nouvelle palette » en bouton principal, comme A2a.</li>
+    </ul>
+    <h3>Pour</h3>
+    <ul><li>Le nom ne se coupe plus, et la forme tient bien au-delà de vingt palettes.</li><li>La lecture se fait comme une liste, plus rapide pour trouver un nom.</li></ul>
+    <h3>Contre</h3>
+    <ul><li>Moins « papeterie » : la carte debout, qui a plu, devient une ligne.</li></ul>
+  </div>
+</div>
+
+<script>
+  // Vingt palettes de démonstration : nom, teinte, saturation. Les trois aplats sont tirés en HSL.
+  const PALETTES = [
+    ['Bleu', 214, 76], ['Jaune', 47, 92], ['Ardoise', 215, 16], ['Poppy', 350, 100], ['Sauge', 140, 22],
+    ['Terracota', 0, 37], ['Sky', 198, 93], ['Orange', 38, 100], ['Grass', 146, 100], ['Deep', 246, 62],
+    ['Lavande', 265, 55], ['Menthe', 165, 55], ['Corail', 12, 85], ['Sable', 38, 35], ['Prune', 300, 35],
+    ['Océan', 190, 70], ['Moutarde', 52, 70], ['Brique', 8, 55], ['Titanium', 215, 12], ['Bleu nuit profond', 230, 50],
+  ];
+  const aplats = ([, h, s]) => [`hsl(${h} ${s}% 86%)`, `hsl(${h} ${s}% 52%)`, `hsl(${h} ${s}% 24%)`];
+  for (const zone of document.querySelectorAll('.cartes7')) {
+    zone.innerHTML = PALETTES.slice(0, +zone.dataset.nombre).map((p) => {
+      const [a, b, c] = aplats(p);
+      return `<span class="carte7" title="${p[0]}"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i><span>${p[0]}</span></span>`;
+    }).join('');
+  }
+  for (const zone of document.querySelectorAll('.bandes2')) {
+    zone.innerHTML = PALETTES.slice(0, +zone.dataset.nombre).map((p) => {
+      const [a, b, c] = aplats(p);
+      return `<span class="bande2"><span class="aplats"><i style="background:${a}"></i><i style="background:${b}"></i><i style="background:${c}"></i></span>${p[0]}</span>`;
+    }).join('');
+  }
+</script>
 
 <h3 style="font-size:16px;margin:32px 0 8px">A3. Une phrase</h3>
 <div class="rang">
@@ -300,6 +426,6 @@
 </div>
 
 <h2>Recommandation</h2>
-<p class="chapeau"><b>A1 pour Création, V1 pour Vérification.</b> A1 accueille avec les couleurs du fichier, garde un bouton principal net pour créer, et montre les palettes par leur seule couleur : rien n'y rappelle Gestion. A2 est la variante la plus singulière, si l'on accepte un geste de création moins appuyé. A4 peut se greffer sur A1 plus tard, si l'on décide de retenir la dernière palette réglée. Vérification garde V1 : l'ensemble des palettes, que Gestion ne montre pas.</p>
+<p class="chapeau"><b>A2a pour Création, V1 pour Vérification.</b> A2a garde la carte de nuancier qui a plu, à une taille qui tient vingt palettes, et fait de « Nouvelle palette » le bouton principal de l'écran. A2b est le repli si les noms longs sont fréquents, ou si le fichier dépasse vingt-cinq palettes. Vérification garde V1 : l'ensemble des palettes, que Gestion ne montre pas.</p>
 </body>
 </html>

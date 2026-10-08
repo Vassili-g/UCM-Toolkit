@@ -73,12 +73,14 @@ que dans Gestion.
 |---|---|---|
 | A1 | Création | Accueil : les couleurs de référence mêlées en illustration, « Que voulez-vous régler ? », « Créer une palette », puis un disque par palette |
 | A2 | Création | Accueil : une carte de nuancier de papeterie par palette, et une carte en pointillés pour en créer une |
+| A2a | Création | A2 resserrée pour vingt palettes : cartes de 60 × 80 px, sept par rangée, « Nouvelle palette » en bouton principal pleine largeur en tête |
+| A2b | Création | A2 couchée : une bande de trois aplats et le nom entier, sur deux colonnes ; même bouton principal |
 | A3 | Création | Accueil : une phrase, où chaque nom de palette est un lien coloré |
 | A4 | Création | Accueil : la dernière palette réglée en vedette, « Reprendre » |
 | V1 | Vérification | Les garanties de chaque palette par thème, puis les constats entre palettes |
 | V2 | Vérification | Vérification suit la palette de Création ; sans palette, les constats entre palettes seulement |
 
-Recommandation : A1 et V1. **Attend le choix du mainteneur.**
+Le mainteneur préfère les nuanciers (A2), à condition qu'ils tiennent vingt palettes et que « Nouvelle palette » soit plus en avant : d'où A2a et A2b. Recommandation : A2a et V1. **Attend le choix du mainteneur.**
 
 ## 5. La configuration avancée repliée (S4)
 
@@ -96,4 +98,4 @@ Implémentation en cours.
 | E1 | Comment rendre visible le bilan de vérification ? | B4 : compteur sur l'onglet Vérification, pied coloré seulement en cas de problème ; bouton « Vérifier » |
 | E2 | Où vont Modèle, Intensités et « Référence exacte dans » ? | Sous « Réglages avancés », replié |
 | E3 | Que montre la création d'une palette ? | La carte de création seule ; la palette affichée est masquée |
-| E4 | Que montrent Création et Vérification sans palette ouverte ? | Ouverte ; recommandation A1 et V1 |
+| E4 | Que montrent Création et Vérification sans palette ouverte ? | Ouverte ; piste des nuanciers retenue, recommandation A2a et V1 |
