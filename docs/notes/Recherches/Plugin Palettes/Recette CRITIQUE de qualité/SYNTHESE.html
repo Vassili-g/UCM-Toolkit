@@ -40,7 +40,7 @@
 </head>
 <body>
 <h1>Recette critique : décisions</h1>
-<p class="sous">Trois sujets, quatorze décisions. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
+<p class="sous">Trois sujets, seize décisions. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
 
 <div class="sujets">
   <section class="sujet">
@@ -63,13 +63,13 @@
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
   <section class="sujet">
-    <h3>3. Onglet Comparer</h3>
-    <div class="notes"><span class="note">Qualité 5 → <b>8</b></span><span class="note">Réponse 6 → <b>8</b></span><span class="note">Complétion 5 → <b>8</b></span></div>
+    <h3>3. Comparer, harmoniser, différencier</h3>
+    <div class="notes"><span class="note">Qualité 5 → <b>9</b></span><span class="note">Réponse 6 → <b>9</b></span><span class="note">Complétion 5 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Des crans « identiques » qui ne le sont pas, des statuts qui se ressemblent.</span></div>
-    <div class="ligne"><span>Cause</span><span>Luminosités et saturations propres ; teintes voisines.</span></div>
-    <div class="ligne"><span>Solution</span><span>Un onglet : composants du groupe, écarts, gestes Harmoniser et Écarter.</span></div>
+    <div class="ligne"><span>Cause</span><span>Des réglages propres invisibles ; des teintes voisines ; aucune vue de plusieurs palettes.</span></div>
+    <div class="ligne"><span>Solution</span><span>Préréglage et « Personnalisée » ; sélection multiple dans Création ; rotation de teinte proposée. Aucun groupe.</span></div>
     <div class="ligne"><span>Effet</span><span><span class="chiffre">0,047 → 0,003</span><br>écart de clarté, sans garantie perdue</span></div>
-    <a href="Maquettes/MAQUETTE-ONGLET-COMPARER.html">Maquette parcours ›</a>
+    <a href="Maquettes/MAQUETTE-COMPARER.html">Maquette : briques et parcours ›</a>
   </section>
 </div>
 
@@ -82,7 +82,8 @@
 
 <h2>Documents</h2>
 <ul class="docs">
-  <li><a href="DOSSIER-QUALITE-DES-PALETTES.md">Dossier complet</a></li>
+  <li><a href="DOSSIER-QUALITE-DES-PALETTES.md">Dossier des sujets 1 et 2</a></li>
+  <li><a href="DOSSIER-COMPARER.md">Dossier du sujet 3</a></li>
   <li><a href="Collecte/RELEVE-STATUTS-ET-FOCUS.md">Statuts et focus de six systèmes</a></li>
   <li><a href="Mesures/">Mesures et banc de recherche</a></li>
   <li><a href="PREPARATION-CLAUDE-OPUS.md">Préparation</a></li>
@@ -95,18 +96,20 @@
   const DECISIONS = [
     ['Q1', 'Règle de chroma', 'Enveloppe', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
     ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
-    ['Q3', 'Préréglage', '« Personnalisé » au-delà, « Revenir au préréglage » ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q3', 'Préréglage', '« Personnalisé » au-delà, « Revenir au préréglage » ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
     ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
     ['Q5', 'Fond teinté', 'Translucide', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#surfaces'],
     ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
     ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
     ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
-    ['Q9', 'Où comparer', 'Onglet après Création, compteur d\'écarts', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
-    ['Q10', 'Le groupe', 'Retenu par fichier ; par défaut, les palettes à deux intensités', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
-    ['Q11', 'Harmoniser', 'Revenir au préréglage, sur plusieurs palettes', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
-    ['Q12', 'Cible', 'Le préréglage ; une palette modèle en second', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
-    ['Q13', 'Zone', 'Toute la palette ; fonds ou accents au choix', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
-    ['Q14', 'Ce qui compte comme écart', 'Ce qu\'un geste corrige ; le reste en information', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['C1', 'Parcours', 'Tout dans Création, en deux temps ; onglet Comparer en repli', 'Maquettes/MAQUETTE-COMPARER.html#parcours'],
+    ['C2', 'Préréglage', 'Saturation et luminosité suivent le préréglage ; la teinte reste propre', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
+    ['C3', 'Sélection', 'Éphémère, comme dans Figma ; aucun groupe', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
+    ['C4', 'Régler plusieurs palettes', 'Une valeur pour la sélection, « Mixte » sinon ; la teinte une à la fois', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
+    ['C5', 'Ce qui compte comme écart', 'Palette personnalisée, paire qui se confond ; le reste en information', 'DOSSIER-COMPARER.md'],
+    ['C6', 'Différencier', 'La plus petite rotation qui sépare, d’un clic', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
+    ['C7', 'Vision des couleurs', 'Simulation à la demande, sans alerte', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
+    ['C8', 'Proches à dessein', 'À garder pour les variantes voulues d’une teinte', 'DOSSIER-COMPARER.md'],
   ];
   const lire = () => { try { return JSON.parse(localStorage.getItem('synthese-avis')) || {}; } catch { return {}; } };
   const ecrire = (v) => { try { localStorage.setItem('synthese-avis', JSON.stringify(v)); } catch { /* stockage indisponible */ } };

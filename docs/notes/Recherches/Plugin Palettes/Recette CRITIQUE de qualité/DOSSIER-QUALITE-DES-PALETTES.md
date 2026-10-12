@@ -3,13 +3,13 @@
 **Statut : recherche faite, maquettes à valider.** Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Quatorze décisions sont listées en section 6.
+mainteneur. Huit décisions sont listées en section 6, huit autres dans le dossier dédié au sujet 3.
 
 | Maquette | Sujet |
 |---|---|
 | [Qualité en interface](./Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html) | La règle de chroma : banc de composants, graphique par cran, notation à l'aveugle |
 | [Rôles et crans](./Maquettes/MAQUETTE-ROLES-ET-CRANS.html) | Le fond teinté sur la page et sur la carte, la couleur, la forme et le nom du focus |
-| [Onglet Comparer](./Maquettes/MAQUETTE-ONGLET-COMPARER.html) | Comparer un groupe, harmoniser la clarté et la couleur, écarter deux teintes |
+| [Comparer, harmoniser, différencier](./Maquettes/MAQUETTE-COMPARER.html) | Dix briques et trois parcours, détaillés dans le [dossier dédié](./DOSSIER-COMPARER.md) |
 
 La [préparation](./PREPARATION-CLAUDE-OPUS.md) et le
 [relevé d'Untitled UI](./ANALYSE-UNTITLED-UI.md) ont servi de point de départ.
@@ -297,68 +297,26 @@ Primer et Atlassian écrivent le corps de l'alerte en texte neutre, le titre et
 l'icône en couleur ; Radix colore tout. La maquette de qualité bascule entre
 les deux. Ce choix relève des composants : la palette ne change pas.
 
-## 5. Sujet 3 : l'onglet Comparer
+## 5. Sujet 3 : comparer, harmoniser, différencier
 
-### 5.1 Les écarts mesurés dans la recette
+Le [dossier dédié](./DOSSIER-COMPARER.md) repense entièrement le sujet, à
+partir de toutes les recherches d'interface antérieures. Ses conclusions :
 
-| Grandeur | Avant | Après le geste | Cause |
-|---|---|---|---|
-| Clarté hors ◆ | 0,016 (Soft) à 0,047 (Dark Vivid) | 0,002 à 0,003, aucun échec | Color shift de luminosité de Vivid, luminosité de Soft sur Poppy |
-| Chroma | ×2,6 à ×4,3 | ×1,7 à ×2,2 avec l'enveloppe et les parts communes, aucun échec | Parts propres, forme du plafond |
-| Clarté sur ◆ | jusqu'à 0,065 en Dark Vivid | inchangée | Références ancrées à des crans différents |
+- Harmoniser revient surtout à retirer ou aligner des réglages propres : un
+  préréglage et un état « Personnalisée » empêchent une palette de s'écarter
+  sans le dire.
+- Différencier revient à tourner une teinte : la plus petite rotation qui
+  sépare une paire se calcule et se propose d'un clic. Orange et Poppy se
+  séparent avec +9° sur Orange ou −16° sur Poppy.
+- Comparer demande une vue nouvelle. Trois parcours la placent : dans
+  Création par une sélection multiple (recommandé), dans un onglet dédié, ou
+  nulle part, avec une carte « Distinguer » seulement.
+- Aucun groupe n'est rangé : une sélection éphémère, comme dans Figma, suffit
+  à toutes les tâches.
 
-[mesurer-teintes.ts](./Mesures/mesurer-teintes.ts) cherche les paires proches
-sur trois rôles des deux thèmes, avec des seuils d'essai par famille : plein
-0,10, texte 0,06, fond teinté 0,025 de distance Oklab.
-
-| Paire | Rôle le plus proche | Distance, écart de teinte | Plus petite rotation |
-|---|---|---|---|
-| Orange · Poppy | Fond teinté, Dark | 0,019, 16,5° | Orange +9° (plus jaune) ou Poppy −16° (plus rose) |
-| Orange · Terracota | Plein, Light | 0,079, 35,5° | Orange +16° |
-| Terracota · Poppy | Texte du fond teinté, Dark | 0,047, 10,2° | Aucune avant la borne de ±30° |
-| Terracota · Deep | Fond teinté, Light | 0,021, 100,3° | Aucune avant la borne de ±30° |
-
-Terracota et Deep ont des fonds teintés presque gris : la teinte ne les sépare
-pas, seule une chroma plus forte des fonds le ferait. Terracota et Poppy
-restent deux rouges ; les distinguer revient à un choix de marque.
-
-### 5.2 Réponses aux questions du mainteneur
-
-La [maquette](./Maquettes/MAQUETTE-ONGLET-COMPARER.html) suit le parcours du
-designer en six étapes. L'onglet s'insère dans les trois autres :
-
-| Moment | Ce que le designer voit |
-|---|---|
-| Pendant un réglage dans Création | Le compteur de l'onglet Comparer change ; la carte « Réglage global » dit « Personnalisé ». Le designer reste dans Création. |
-| Dans Comparer | Les composants du groupe, puis les écarts, chacun avec son geste ; les mesures détaillées restent repliées. La palette ouverte dans Création est soulignée ; cliquer un nom l'ouvre dans Création. |
-| Après un geste | L'écart se referme avec « Annuler » ; Gestion compte les palettes à mettre à jour. |
-| Dans Vérification | Chaque paire trop proche du bilan ouvre Comparer sur le geste qui la sépare. |
-
-Un écart s'affiche quand un geste le corrige : une luminosité ou une
-saturation propre, une paire sous sa distance. Les références ancrées à des
-crans différents et la saturation qui reste ×2,2 d'une teinte à l'autre
-s'affichent en information : aucun geste ne les corrige. Avec un seuil de
-rapport de chroma, l'écart resterait affiché après le geste.
-
-| Question | Réponse proposée |
-|---|---|
-| Combien de palettes à la fois | Deux ou plus, sans limite ; le groupe, retenu par fichier dans le stockage du plugin, réunit par défaut les palettes à deux intensités. |
-| Quelle référence | Les courbes et les parts de la recette ; une palette modèle en second choix. Recopier une palette qui a éclairci son bout sombre coûte des garanties aux autres (dossier d'harmonisation). |
-| Selon quelle règle | Revenir au préréglage plutôt que chercher des valeurs : la recherche ne fait pas mieux sous les garanties. |
-| La luminosité seulement | Clarté et saturation, cochées dans un même geste. L'enveloppe rend la saturation alignable par une part commune. La teinte ne s'aligne pas : elle s'écarte. |
-| Tons clairs ou foncés séparément | Oui, par « fonds » et « accents ». Le Color shift d'un bout agit sur une clarté : le bout clair porte les fonds en Light et les textes en Dark. L'écran l'affiche avant d'appliquer. |
-| Comparer les teintes | Une roue des teintes du groupe et la liste des paires sous les seuils, rôle par rôle. |
-| Écarter les teintes | Un bouton par sens, nommé par le secteur visé (« plus jaune », « plus rose ») et chiffré par la plus petite rotation qui atteint les seuils. |
-| N crans identiques au minimum | Remplacé par des rôles nommés : un seuil sur des crans peu employés serait tenu alors que deux badges se confondent. |
-| Rester dans la comparaison ou passer en Création | Rester pour une rotation simple, avec l'aperçu ; ouvrir Création pour les courbes, le groupe gardé au retour. |
-
-### 5.3 Rapport au dossier d'harmonisation
-
-Le [dossier d'harmonisation](../Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md)
-reste valable pour la clarté : ses mesures sont reproduites ici. L'onglet
-dédié remplace sa décision D1 (comparer dans Vérification). D4 change :
-l'enveloppe rend la couleur alignable. D2, D3, D5 à D7 se reportent sur Q10 à
-Q14.
+Les mesures de la section 5 de la première version restent valables : hors
+◆, l'écart de clarté passe de 0,016–0,047 à 0,002–0,003 au retour au
+préréglage, sans garantie perdue.
 
 ## 6. Décisions
 
@@ -372,12 +330,7 @@ Q14.
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
-| Q9 | Où comparer | Un onglet Comparer après Création, avec un compteur d'écarts |
-| Q10 | Le groupe | Deux palettes ou plus, retenu par fichier ; par défaut, les palettes à deux intensités |
-| Q11 | Harmoniser | Revenir au préréglage de clarté et de saturation sur plusieurs palettes à la fois |
-| Q12 | La cible | Le préréglage ; une palette modèle en second |
-| Q13 | La zone | Toute la rampe ; fonds ou accents au choix, couplage affiché |
-| Q14 | Ce qui compte comme écart | Un réglage propre, ou une paire sous sa distance (0,10 · 0,06 · 0,025) ; le reste en information |
+| C1 à C8 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche
 
@@ -386,7 +339,7 @@ Q14.
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface des réglages communs ; tests de propriétés et de lecture du format 10 |
 | Q5 | `packages/kit/src/emplois/dossiers.ts` et `garanties.ts` (fonds composés) ; recette (fond des cartes) ; écriture des primitives alpha dans Palettes ; `diagnostic-contrastes.mjs` de `ucm check` ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
-| Q9 à Q14 | Modèle pur du groupe dans `packages/couleur` (écarts, paires, rotations), gestes dans `edition.ts`, nouvel onglet, textes en deux langues, galerie et tests d'interface |
+| C1 à C8 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
 Le plan d'implémentation se rédige après les décisions, par lots, dans ce
 dossier.
@@ -395,7 +348,7 @@ dossier.
 
 - Le jugement visuel n'est pas fait. Un contraste conforme ne vaut pas
   validation ; la maquette de qualité recueille les notes à l'aveugle.
-- Les seuils de Q14 et la séparation visuelle d'un fond translucide sont des
+- Les seuils de distance par rôle et la séparation visuelle d'un fond translucide sont des
   valeurs d'essai.
 - Une seule recette réelle. Les palettes à une intensité et les palettes figées
   ne sont comparées que par leur rampe unique.
