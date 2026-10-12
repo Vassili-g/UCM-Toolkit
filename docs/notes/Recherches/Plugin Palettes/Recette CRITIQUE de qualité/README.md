@@ -2,6 +2,7 @@
 
 | Fichier | Contenu |
 |---|---|
+| [SYNTHESE.html](./SYNTHESE.html) | Les quatorze décisions, les problèmes, les solutions et les liens, sur une page |
 | [DOSSIER-QUALITE-DES-PALETTES.md](./DOSSIER-QUALITE-DES-PALETTES.md) | Causes mesurées, solutions comparées, décisions Q1 à Q14 |
 | [Maquettes/](./Maquettes/) | Qualité en interface, rôles et crans, onglet Comparer ; données générées par `Mesures/` |
 | [Mesures/](./Mesures/) | Banc de recherche, scripts de mesure, témoins Tailwind et Radix, recette du mainteneur |

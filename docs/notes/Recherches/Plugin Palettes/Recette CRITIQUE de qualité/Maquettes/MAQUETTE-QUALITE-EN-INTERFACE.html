@@ -128,11 +128,11 @@
 <div id="table-regles"></div>
 <h3>Les règles</h3>
 <ul id="liste-regles"></ul>
-<p>Sur un balayage de 72 teintes à deux clartés de référence, dans les quatre combinaisons du texte des boutons, l'enveloppe ne crée aucun échec de garantie avec une surface Light au cran 50. Avec la table actuelle, elle en crée 8 sur 50 688 couples : G7, le focus 600 contre <code>surface/default</code> 100, à 3,00:1 arrondi. Les 144 échecs G1 du thème Dark inversé existent déjà avec le moteur actuel.</p>
+<p>Sur un balayage de 72 teintes à deux clartés de référence, dans les quatre combinaisons du texte des boutons, l'enveloppe ne crée aucun échec de garantie avec une surface Light au cran 50. Avec la table actuelle, elle en crée 20 sur 50 688 couples : G7, le focus 600 contre <code>surface/default</code> 100, entre 2,98:1 et 3,00:1, sur trois références vert-jaune. Les 144 échecs G1 du thème Dark inversé existent déjà avec le moteur actuel.</p>
 
 <h2 id="decisions">5. Décisions</h2>
 <ol class="decisions">
-  <li><b>Q1. La règle de chroma.</b> Garder la part constante, ou adopter l'enveloppe (recommandée), les deux zones ou le relevé Tailwind. L'enveloppe ajoute deux nombres par profil, sans table de données ; elle rapproche le plus les quatre utilitaires et place Vivid aussi près de Tailwind que le relevé.</li>
+  <li><b>Q1. La règle de chroma.</b> Garder la part constante, ou adopter l'enveloppe (recommandée), les deux zones ou le relevé Tailwind. Avec l'enveloppe, la part donne la chroma et une borne qui ne dépend que de la clarté la plafonne : deux nombres par profil, sans table de données. Elle rapproche le plus les quatre utilitaires et laisse intactes les palettes ternes.</li>
   <li><b>Q2. Le sens de Soft et Vivid.</b> Recommandé : Soft garde des fonds calmes (borne a = 0,6, proche de Radix) et des textes colorés (part 0,85) ; Vivid suit Tailwind (part 0,95, borne a = 1,1). Les deux profils restent distincts surtout dans les fonds et les pleins.</li>
   <li><b>Q3. Les réglages par défaut et l'état personnalisé.</b> Les valeurs de Q2 deviennent le préréglage de la recette. Une palette dont la part ou la luminosité s'en écarte affiche « Personnalisé » et un geste « Revenir au préréglage ».</li>
   <li><b>Q4. Le texte courant des alertes.</b> Coloré, comme aujourd'hui et comme Radix, ou neutre avec titre et icône colorés, comme Primer et Atlassian. Ce choix relève des composants ; la palette n'en dépend pas.</li>

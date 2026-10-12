@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette critique : décisions</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e4e4e4; --fond: #fafafa; --carte: #fff; --ok: #1a7f37; --revoir: #b26a00; --lien: #007be5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 40px 80px; background: var(--fond); color: var(--texte); font: 13px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { margin: 36px 0 12px; font-size: 15px; }
+  a { color: var(--lien); text-decoration: none; }
+  code { font: 11px ui-monospace, Consolas, monospace; background: #eee; padding: 1px 4px; border-radius: 3px; }
+  .sous { color: var(--second); margin: 0 0 24px; }
+  .sujets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .sujet { background: var(--carte); border: 1px solid var(--filet); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .sujet h3 { margin: 0; font-size: 14px; }
+  .notes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .note { font-size: 11px; color: var(--second); border: 1px solid var(--filet); border-radius: 10px; padding: 1px 8px; }
+  .note b { color: var(--texte); }
+  .ligne { display: grid; grid-template-columns: 74px 1fr; gap: 8px; }
+  .ligne > span:first-child { color: var(--second); font-size: 11px; padding-top: 1px; }
+  .chiffre { font-size: 18px; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; background: var(--carte); border: 1px solid var(--filet); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: middle; }
+  th { color: var(--second); font-weight: 600; font-size: 11px; }
+  td.num { color: var(--second); width: 36px; }
+  .choix { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; }
+  .choix button { border: 0; background: #fff; padding: 3px 9px; font: inherit; font-size: 11.5px; cursor: pointer; }
+  .choix button + button { border-left: 1px solid var(--filet); }
+  .choix button[aria-pressed="true"][data-v="ok"] { background: var(--ok); color: #fff; }
+  .choix button[aria-pressed="true"][data-v="revoir"] { background: var(--revoir); color: #fff; }
+  .actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
+  .actions button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid #1e1e1e; background: #1e1e1e; color: #fff; cursor: pointer; }
+  .actions span { color: var(--second); font-size: 12px; }
+  ul.docs { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 16px; }
+  @media (max-width: 900px) { .sujets, ul.docs { grid-template-columns: 1fr; } body { padding: 20px 16px; } }
+</style>
+</head>
+<body>
+<h1>Recette critique : décisions</h1>
+<p class="sous">Trois sujets, quatorze décisions. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
+
+<div class="sujets">
+  <section class="sujet">
+    <h3>1. Palettes en interface</h3>
+    <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
+    <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
+    <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
+    <div class="ligne"><span>Solution</span><span>L'enveloppe : la part donne la chroma, une borne par clarté la plafonne.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts</span></div>
+    <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
+    <a href="Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html">Maquette qualité ›</a>
+  </section>
+  <section class="sujet">
+    <h3>2. Crans des rôles</h3>
+    <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
+    <div class="ligne"><span>Problème</span><span>Fond 50 invisible sur la page, fond Dark invisible sur la carte, focus foncé.</span></div>
+    <div class="ligne"><span>Cause</span><span>Un fond opaque ne garde pas le même écart avec la page et la carte.</span></div>
+    <div class="ligne"><span>Solution</span><span>Fonds translucides ; focus 600 décalé de 2 px ; <code>ring</code> dans chaque dossier.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,10</span><br>fond posé sur la carte Dark, même écart sur la page</span></div>
+    <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
+  </section>
+  <section class="sujet">
+    <h3>3. Onglet Comparer</h3>
+    <div class="notes"><span class="note">Qualité 5 → <b>8</b></span><span class="note">Réponse 6 → <b>8</b></span><span class="note">Complétion 5 → <b>8</b></span></div>
+    <div class="ligne"><span>Problème</span><span>Des crans « identiques » qui ne le sont pas, des statuts qui se ressemblent.</span></div>
+    <div class="ligne"><span>Cause</span><span>Luminosités et saturations propres ; teintes voisines.</span></div>
+    <div class="ligne"><span>Solution</span><span>Un onglet : composants du groupe, écarts, gestes Harmoniser et Écarter.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">0,047 → 0,003</span><br>écart de clarté, sans garantie perdue</span></div>
+    <a href="Maquettes/MAQUETTE-ONGLET-COMPARER.html">Maquette parcours ›</a>
+  </section>
+</div>
+
+<h2>Décisions</h2>
+<table>
+  <thead><tr><th>#</th><th>Décision</th><th>Recommandation</th><th>Avis</th></tr></thead>
+  <tbody id="decisions"></tbody>
+</table>
+<div class="actions"><button type="button" id="copier">Copier le bilan</button><span id="etat"></span></div>
+
+<h2>Documents</h2>
+<ul class="docs">
+  <li><a href="DOSSIER-QUALITE-DES-PALETTES.md">Dossier complet</a></li>
+  <li><a href="Collecte/RELEVE-STATUTS-ET-FOCUS.md">Statuts et focus de six systèmes</a></li>
+  <li><a href="Mesures/">Mesures et banc de recherche</a></li>
+  <li><a href="PREPARATION-CLAUDE-OPUS.md">Préparation</a></li>
+  <li><a href="ANALYSE-UNTITLED-UI.md">Relevé d'Untitled UI</a></li>
+  <li><a href="../Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md">Dossier d'harmonisation</a></li>
+</ul>
+
+<script>
+(() => {
+  const DECISIONS = [
+    ['Q1', 'Règle de chroma', 'Enveloppe', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
+    ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
+    ['Q3', 'Préréglage', '« Personnalisé » au-delà, « Revenir au préréglage » ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
+    ['Q5', 'Fond teinté', 'Translucide', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#surfaces'],
+    ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+    ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+    ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
+    ['Q9', 'Où comparer', 'Onglet après Création, compteur d\'écarts', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q10', 'Le groupe', 'Retenu par fichier ; par défaut, les palettes à deux intensités', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q11', 'Harmoniser', 'Revenir au préréglage, sur plusieurs palettes', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q12', 'Cible', 'Le préréglage ; une palette modèle en second', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q13', 'Zone', 'Toute la palette ; fonds ou accents au choix', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+    ['Q14', 'Ce qui compte comme écart', 'Ce qu\'un geste corrige ; le reste en information', 'Maquettes/MAQUETTE-ONGLET-COMPARER.html'],
+  ];
+  const lire = () => { try { return JSON.parse(localStorage.getItem('synthese-avis')) || {}; } catch { return {}; } };
+  const ecrire = (v) => { try { localStorage.setItem('synthese-avis', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+  const code = (t) => t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  const dessiner = () => {
+    const avis = lire();
+    document.getElementById('decisions').innerHTML = DECISIONS.map(([n, d, r, lien]) => `<tr><td class="num">${n}</td><td><a href="${lien}">${d}</a></td><td>${code(r)}</td>
+      <td><div class="choix" data-q="${n}">${[['ok', 'Validé'], ['revoir', 'À revoir']].map(([v, t]) => `<button type="button" data-v="${v}" aria-pressed="${avis[n] === v}">${t}</button>`).join('')}</div></td></tr>`).join('');
+    const faits = Object.values(avis).filter(Boolean).length;
+    document.getElementById('etat').textContent = `${faits} sur ${DECISIONS.length}`;
+  };
+  document.getElementById('decisions').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-v]');
+    if (!b) return;
+    const q = b.parentElement.dataset.q;
+    const avis = lire();
+    avis[q] = avis[q] === b.dataset.v ? '' : b.dataset.v;
+    ecrire(avis);
+    dessiner();
+  });
+  document.getElementById('copier').addEventListener('click', () => {
+    const avis = lire();
+    const texte = ['Recette critique : avis du mainteneur', ...DECISIONS.map(([n, d, r]) => `${n} ${d} (${r}) : ${avis[n] === 'ok' ? 'validé' : avis[n] === 'revoir' ? 'à revoir' : 'sans avis'}`)].join('\n');
+    try { navigator.clipboard.writeText(texte); document.getElementById('etat').textContent = 'Bilan copié'; } catch { /* le presse-papiers est refusé */ }
+  });
+  dessiner();
+})();
+</script>
+</body>
+</html>

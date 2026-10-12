@@ -531,95 +531,95 @@
   },
   "Poppy-soft-dark": {
    "opaque 100": {
-    "page": 1.083,
-    "carte": 1.014,
-    "texte": 10.671
+    "page": 1.086,
+    "carte": 1.011,
+    "texte": 10.634
    },
    "opaque 50": {
-    "page": 1.003,
-    "carte": 1.102,
-    "texte": 11.592
+    "page": 1.008,
+    "carte": 1.107,
+    "texte": 11.65
    },
    "opaque 200": {
-    "page": 1.239,
-    "carte": 1.128,
-    "texte": 9.323
+    "page": 1.236,
+    "carte": 1.125,
+    "texte": 9.348
    },
    "translucide 100": {
-    "alpha": 0.101,
-    "couleur": "#FF3027",
-    "page": 1.083,
-    "carte": 1.087,
-    "texte": 9.675
+    "alpha": 0.105,
+    "couleur": "#FF2F26",
+    "page": 1.086,
+    "carte": 1.091,
+    "texte": 9.639
    },
    "translucide 200": {
-    "alpha": 0.189,
-    "couleur": "#FF4743",
-    "page": 1.239,
-    "carte": 1.247,
-    "texte": 8.437
+    "alpha": 0.193,
+    "couleur": "#FF413C",
+    "page": 1.236,
+    "carte": 1.242,
+    "texte": 8.469
    }
   },
   "Poppy-vivid-light": {
    "opaque 100": {
-    "page": 1.088,
-    "carte": 1.167,
-    "texte": 7.86
+    "page": 1.085,
+    "carte": 1.164,
+    "texte": 7.913
    },
    "opaque 50": {
     "page": 1.005,
     "carte": 1.078,
-    "texte": 8.503
+    "texte": 8.543
    },
    "opaque 200": {
-    "page": 1.253,
-    "carte": 1.344,
-    "texte": 6.821
+    "page": 1.259,
+    "carte": 1.35,
+    "texte": 6.822
    },
    "translucide 50": {
     "alpha": 0.051,
     "couleur": "#FF2700",
     "page": 1.081,
     "carte": 1.078,
-    "texte": 7.91
+    "texte": 7.947
    },
    "translucide 100": {
     "alpha": 0.102,
-    "couleur": "#F52700",
-    "page": 1.161,
-    "carte": 1.167,
-    "texte": 7.363
+    "couleur": "#FF2700",
+    "page": 1.159,
+    "carte": 1.164,
+    "texte": 7.413
    }
   },
   "Poppy-vivid-dark": {
    "opaque 100": {
-    "page": 1.081,
-    "carte": 1.016,
-    "texte": 10.67
+    "page": 1.085,
+    "carte": 1.012,
+    "texte": 10.611
    },
    "opaque 50": {
     "page": 1.007,
     "carte": 1.106,
-    "texte": 11.618
+    "texte": 11.595
    },
    "opaque 200": {
-    "page": 1.234,
-    "carte": 1.123,
-    "texte": 9.352
+    "page": 1.232,
+    "carte": 1.122,
+    "texte": 9.348
    },
    "translucide 100": {
-    "alpha": 0.109,
+    "alpha": 0.113,
     "couleur": "#FF2401",
-    "page": 1.081,
-    "carte": 1.084,
-    "texte": 9.69
+    "page": 1.085,
+    "carte": 1.088,
+    "texte": 9.633
    },
    "translucide 200": {
-    "alpha": 0.206,
-    "couleur": "#FF341D",
-    "page": 1.234,
-    "carte": 1.236,
-    "texte": 8.496
+    "alpha": 0.21,
+    "couleur": "#FF2F18",
+    "page": 1.232,
+    "carte": 1.232,
+    "texte": 8.508
    }
   },
   "Orange-soft-light": {
@@ -686,64 +686,64 @@
   },
   "Orange-vivid-light": {
    "opaque 100": {
-    "page": 1.084,
-    "carte": 1.162,
-    "texte": 7.547
+    "page": 1.083,
+    "carte": 1.161,
+    "texte": 7.541
    },
    "opaque 50": {
-    "page": 1.001,
-    "carte": 1.074,
-    "texte": 8.17
+    "page": 1.002,
+    "carte": 1.075,
+    "texte": 8.149
    },
    "opaque 200": {
-    "page": 1.248,
-    "carte": 1.338,
-    "texte": 6.556
+    "page": 1.244,
+    "carte": 1.334,
+    "texte": 6.563
    },
    "translucide 50": {
-    "alpha": 0.106,
-    "couleur": "#FFAA00",
+    "alpha": 0.11,
+    "couleur": "#FFAD00",
     "page": 1.067,
-    "carte": 1.074,
-    "texte": 7.669
+    "carte": 1.075,
+    "texte": 7.65
    },
    "translucide 100": {
-    "alpha": 0.208,
-    "couleur": "#FAA400",
-    "page": 1.147,
-    "carte": 1.162,
-    "texte": 7.132
+    "alpha": 0.216,
+    "couleur": "#FFA700",
+    "page": 1.145,
+    "carte": 1.161,
+    "texte": 7.129
    }
   },
   "Orange-vivid-dark": {
    "opaque 100": {
-    "page": 1.094,
-    "carte": 1.004,
-    "texte": 8.497
+    "page": 1.086,
+    "carte": 1.011,
+    "texte": 8.558
    },
    "opaque 50": {
-    "page": 1.003,
-    "carte": 1.102,
-    "texte": 9.329
+    "page": 1.007,
+    "carte": 1.105,
+    "texte": 9.357
    },
    "opaque 200": {
-    "page": 1.247,
-    "carte": 1.136,
-    "texte": 7.453
+    "page": 1.243,
+    "carte": 1.131,
+    "texte": 7.481
    },
    "translucide 100": {
-    "alpha": 0.105,
-    "couleur": "#E24B00",
-    "page": 1.094,
-    "carte": 1.102,
-    "texte": 7.681
+    "alpha": 0.158,
+    "couleur": "#9C3200",
+    "page": 1.086,
+    "carte": 1.083,
+    "texte": 7.816
    },
    "translucide 200": {
-    "alpha": 0.172,
-    "couleur": "#FF6319",
-    "page": 1.247,
-    "carte": 1.258,
-    "texte": 6.729
+    "alpha": 0.176,
+    "couleur": "#FF5C13",
+    "page": 1.243,
+    "carte": 1.252,
+    "texte": 6.761
    }
   },
   "Grass-soft-light": {
@@ -812,62 +812,62 @@
    "opaque 100": {
     "page": 1.062,
     "carte": 1.139,
-    "texte": 7.058
+    "texte": 7.008
    },
    "opaque 50": {
     "page": 1.004,
     "carte": 1.068,
-    "texte": 7.526
+    "texte": 7.473
    },
    "opaque 200": {
     "page": 1.197,
     "carte": 1.284,
-    "texte": 6.263
+    "texte": 6.219
    },
    "translucide 50": {
     "alpha": 0.082,
     "couleur": "#00DB31",
     "page": 1.061,
     "carte": 1.068,
-    "texte": 7.067
+    "texte": 7.018
    },
    "translucide 100": {
     "alpha": 0.165,
     "couleur": "#00DB37",
     "page": 1.132,
     "carte": 1.139,
-    "texte": 6.619
+    "texte": 6.573
    }
   },
   "Grass-vivid-dark": {
    "opaque 100": {
-    "page": 1.102,
-    "carte": 1.004,
-    "texte": 11.415
+    "page": 1.1,
+    "carte": 1.002,
+    "texte": 11.44
    },
    "opaque 50": {
     "page": 1.003,
-    "carte": 1.101,
-    "texte": 12.621
+    "carte": 1.095,
+    "texte": 12.543
    },
    "opaque 200": {
-    "page": 1.289,
-    "carte": 1.173,
-    "texte": 9.766
+    "page": 1.286,
+    "carte": 1.171,
+    "texte": 9.788
    },
    "translucide 100": {
     "alpha": 0.055,
-    "couleur": "#35FF37",
-    "page": 1.102,
-    "carte": 1.117,
-    "texte": 10.258
+    "couleur": "#23FF25",
+    "page": 1.1,
+    "carte": 1.114,
+    "texte": 10.287
    },
    "translucide 200": {
     "alpha": 0.118,
-    "couleur": "#44FF57",
-    "page": 1.289,
-    "carte": 1.328,
-    "texte": 8.631
+    "couleur": "#3BFF4E",
+    "page": 1.286,
+    "carte": 1.324,
+    "texte": 8.654
    }
   },
   "Sky-soft-light": {
@@ -934,64 +934,64 @@
   },
   "Sky-vivid-light": {
    "opaque 100": {
-    "page": 1.07,
-    "carte": 1.148,
-    "texte": 7.28
+    "page": 1.069,
+    "carte": 1.147,
+    "texte": 7.29
    },
    "opaque 50": {
-    "page": 1.003,
-    "carte": 1.07,
-    "texte": 7.811
+    "page": 1.001,
+    "carte": 1.072,
+    "texte": 7.802
    },
    "opaque 200": {
-    "page": 1.225,
-    "carte": 1.314,
+    "page": 1.226,
+    "carte": 1.315,
     "texte": 6.361
    },
    "translucide 50": {
-    "alpha": 0.067,
-    "couleur": "#00A5FF",
-    "page": 1.063,
-    "carte": 1.07,
-    "texte": 7.33
+    "alpha": 0.071,
+    "couleur": "#00AAFF",
+    "page": 1.065,
+    "carte": 1.072,
+    "texte": 7.322
    },
    "translucide 100": {
     "alpha": 0.137,
-    "couleur": "#00A8F8",
+    "couleur": "#00A8FF",
     "page": 1.141,
-    "carte": 1.148,
-    "texte": 6.825
+    "carte": 1.147,
+    "texte": 6.835
    }
   },
   "Sky-vivid-dark": {
    "opaque 100": {
     "page": 1.097,
     "carte": 1.001,
-    "texte": 11.045
+    "texte": 11.026
    },
    "opaque 50": {
     "page": 1.004,
     "carte": 1.103,
-    "texte": 12.164
+    "texte": 12.143
    },
    "opaque 200": {
     "page": 1.269,
     "carte": 1.155,
-    "texte": 9.55
+    "texte": 9.534
    },
    "translucide 100": {
     "alpha": 0.076,
     "couleur": "#1EA2FF",
     "page": 1.097,
     "carte": 1.109,
-    "texte": 9.947
+    "texte": 9.929
    },
    "translucide 200": {
     "alpha": 0.153,
     "couleur": "#32AFFF",
     "page": 1.269,
     "carte": 1.291,
-    "texte": 8.544
+    "texte": 8.529
    }
   }
  }

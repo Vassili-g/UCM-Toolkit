@@ -29,9 +29,17 @@ export const partDuPlafond: RegleDeChroma = ({ L, H, part }) => part * plafond(L
 export const enveloppe = (a: number, b: number): RegleDeChroma =>
   ({ L, H, part }) => part * Math.min(plafond(L, H, 'srgb'), a * (1 - L), b * L);
 
-/** Une enveloppe propre à chaque profil. */
-export const enveloppes = (parProfil: Record<'soft' | 'vivid' | 'unique', { a: number; b: number }>): RegleDeChroma =>
-  (v) => enveloppe(parProfil[v.intensite].a, parProfil[v.intensite].b)(v);
+/**
+ * L'enveloppe retenue : la part donne la chroma, l'enveloppe la plafonne.
+ * `C = min(part × plafond, p₀ × min(a × (1 − L), b × L))`, où `p₀` est la part
+ * commune du profil. Une référence terne, de part basse, garde sa chroma : la
+ * borne ne la multiplie pas une seconde fois.
+ */
+export const enveloppes = (parProfil: Record<'soft' | 'vivid' | 'unique', { p0: number; a: number; b: number }>): RegleDeChroma =>
+  ({ L, H, part, intensite }) => {
+    const { p0, a, b } = parProfil[intensite];
+    return Math.min(part * plafond(L, H, 'srgb'), p0 * Math.min(a * (1 - L), b * L));
+  };
 
 /**
  * Le poids des accents d'un cran, de 0 dans les fonds à 1 dans les accents,

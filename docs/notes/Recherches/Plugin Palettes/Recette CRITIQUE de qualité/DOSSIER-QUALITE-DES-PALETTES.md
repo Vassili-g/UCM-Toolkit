@@ -115,7 +115,7 @@ et 800.
 | Règle | Formule | Réglages proposés |
 |---|---|---|
 | Deux zones | Une part pour les fonds, une pour les accents, raccordées entre L 0,86 et 0,70 en Light, entre 0,33 et 0,45 en Dark | Soft 0,45 · 0,85 ; Vivid 0,75 · 0,95 |
-| Enveloppe | `C = part × min(plafond(L, H), a × (1 − L), b × L)` : une borne qui ne dépend que de la clarté | Soft : part 0,85, a 0,6, b 0,38 ; Vivid : part 0,95, a 1,1, b 0,48 |
+| Enveloppe | `C = min(part × plafond(L, H), p₀ × min(a × (1 − L), b × L))` : la part donne la chroma, une borne qui ne dépend que de la clarté la plafonne | Parts communes p₀ : Soft 0,85, Vivid 0,95 ; Soft a 0,6, b 0,38 ; Vivid et intensité unique a 1,1, b 0,48 |
 | Relevé Tailwind | La part de chaque cran suit celle de Tailwind à cette clarté et cette teinte, interpolée sur le cercle comme `deriveTailwind` | Soft : fonds 0,5, accents 0,9 ; Vivid : 1 et 1 |
 
 Les trois règles gardent la courbe de clarté, les teintes, le Color shift et
@@ -139,10 +139,28 @@ La distance à Tailwind est l'écart moyen de chroma en Light avec la rampe de
 Tailwind la plus proche en teinte. Le texte 700 de Grass Soft passe de C 0,068
 à 0,129 avec l'enveloppe ; son fond 100 passe de 0,044 à 0,026.
 
-Sur le balayage, l'enveloppe ajoute 8 échecs aux 144 du moteur actuel avec la
-table actuelle : G7, le focus 600 contre le fond 100, sur deux références
-vertes, à 3,00:1 arrondi, sous le seuil de quelques millièmes. Les 144 échecs communs sont G1 en Dark inversé : le texte blanc sur
-`solid/default` de références roses à 4,09:1. Ils existent déjà.
+Sur le balayage, l'enveloppe ajoute 20 échecs aux 144 du moteur actuel avec la
+table actuelle : G7, le focus 600 contre le fond 100, sur trois références
+vert-jaune, entre 2,98:1 et 3,00:1. Les 144 échecs communs sont G1 en Dark
+inversé : le texte blanc sur `solid/default` de références roses à 4,09:1. Ils
+existent déjà.
+
+[mesurer-repasse.ts](./Mesures/mesurer-repasse.ts) ajoute trois contrôles :
+
+- **Palettes ternes.** Le moteur garde sa logique des parts : une référence
+  terne garde une part basse. Titanium, Terracota et Deep, à une intensité,
+  gardent leur chroma au cran 100 et au cran 700. Une première formule, qui
+  multipliait la borne par la part, retirait 27 % de chroma au 700 de Deep ;
+  la formule du tableau 3.4 la plafonne sans la réduire.
+- **Hors échantillon.** Calibrée sur neuf rampes de Tailwind et jugée sur les
+  huit autres, l'enveloppe fait jeu égal avec la part constante : écart moyen
+  de chroma 0,008 contre 0,009. Tailwind suit presque une part constante.
+  L'enveloppe apporte l'accord entre teintes, pas une copie de Tailwind.
+- **La teinte d'Orange.** Le plein 700 d'Orange Soft est brun parce que sa
+  dérive de teinte vaut −1° au bout sombre. Avec le préréglage Tailwind de sa
+  teinte (+10° au bout clair, −27,5° au bout sombre), il passe de `#85581F`
+  (teinte 69°, C 0,093) à `#91501F` (54°, C 0,107) ; `amber-700` vaut 49° et
+  C 0,146. Ce réglage de la palette est déjà possible dans le plugin.
 
 ### 3.6 Recommandation
 
@@ -151,10 +169,13 @@ aussi près de Tailwind que le relevé et ne demande aucune table de données.
 Elle donne un sens à chaque profil : Soft a des fonds calmes, proches de Radix,
 et des textes colorés ; Vivid suit Tailwind.
 
-Les valeurs de la section 3.4 deviennent le préréglage de la recette. Une
-palette dont la part ou la luminosité s'écarte du préréglage affiche
-« Personnalisé », avec un geste « Revenir au préréglage ». Le Color shift reste
-disponible ; il cesse d'être le moyen de rattraper une teinte.
+Les valeurs de la section 3.4 deviennent le préréglage de la recette, rangé
+dans les réglages communs. Dans Création, la carte « Réglage global » résume
+aujourd'hui « Aucun réglage » ; elle dira « Préréglage » ou « Personnalisé »
+quand la saturation ou la luminosité d'un profil s'en écarte, avec un bouton
+« Revenir au préréglage ». Le même geste, appliqué à plusieurs palettes, est
+« Harmoniser » dans l'onglet Comparer (section 5.2). Les teintes et le Color
+shift de teinte restent hors du préréglage : ce sont des choix de couleur.
 
 Une recette existante doit rendre les mêmes couleurs après la mise à jour. La
 règle se range donc dans la recette, et une recette au format 10 se lit avec la
@@ -207,7 +228,19 @@ le support de calcul compte.
 [verifier-garanties.ts](./Mesures/verifier-garanties.ts) donnent les mesures.
 Avec l'enveloppe, la piste translucide laisse 150 échecs G7 en Dark inversé :
 le focus 700 contre le fond posé sur la carte. Un focus Dark plus clair d'un
-cran (section 4.3) les retire tous. Il reste les 8 échecs G7 de la section 3.5.
+cran (section 4.4) les retire tous. Il reste 16 échecs G7 en Light, de même
+nature que ceux de la section 3.5.
+
+**Le texte à 700.** Avec les fonds Light 50, 100 et 200, un texte constant au
+cran 700 tient 4,5:1 au repos et au survol, mais échoue sur l'appui (200) posé
+sur la page pour 464 des 576 rampes Light normales du balayage. Le texte reste donc à 800 ;
+l'enveloppe double sa chroma (Grass Soft 800 : C 0,058 à 0,109). Un composant
+sans appui, comme une alerte ou un badge, pourrait employer 700 ; il faudrait
+une variable de plus.
+
+**Le plein à 600.** Untitled UI pose ses boutons au cran 600. Dans UCM, le
+texte blanc y manque 4,5:1 sur 528 des 1 728 couples Light du balayage : le
+plein reste à 700.
 
 ### 4.3 Recommandation pour les fonds
 
@@ -222,6 +255,11 @@ et 300 en Dark. Conséquences :
 - La table du kit marque ces trois variables comme translucides, et les
   garanties les jugent composées sur chaque support. `ucm check` compose de
   même avant de mesurer un contraste.
+- Le dossier d'élévation proposait une page noire et des surfaces décalées
+  d'un cran en Dark. Avec des fonds translucides, la page et la carte gardent
+  leurs crans actuels.
+- Dans Création, l'Aperçu porte le fond des cartes à côté de celui de la page,
+  et dessine les fonds translucides posés sur l'un et l'autre.
 - DTCG et les variables Figma portent l'alpha. Deux fonds translucides empilés
   s'additionnent : une alerte dans une alerte devient plus foncée.
 
@@ -286,12 +324,28 @@ restent deux rouges ; les distinguer revient à un choix de marque.
 
 ### 5.2 Réponses aux questions du mainteneur
 
+La [maquette](./Maquettes/MAQUETTE-ONGLET-COMPARER.html) suit le parcours du
+designer en six étapes. L'onglet s'insère dans les trois autres :
+
+| Moment | Ce que le designer voit |
+|---|---|
+| Pendant un réglage dans Création | Le compteur de l'onglet Comparer change ; la carte « Réglage global » dit « Personnalisé ». Le designer reste dans Création. |
+| Dans Comparer | Les composants du groupe, puis les écarts, chacun avec son geste ; les mesures détaillées restent repliées. La palette ouverte dans Création est soulignée ; cliquer un nom l'ouvre dans Création. |
+| Après un geste | L'écart se referme avec « Annuler » ; Gestion compte les palettes à mettre à jour. |
+| Dans Vérification | Chaque paire trop proche du bilan ouvre Comparer sur le geste qui la sépare. |
+
+Un écart s'affiche quand un geste le corrige : une luminosité ou une
+saturation propre, une paire sous sa distance. Les références ancrées à des
+crans différents et la saturation qui reste ×2,2 d'une teinte à l'autre
+s'affichent en information : aucun geste ne les corrige. Avec un seuil de
+rapport de chroma, l'écart resterait affiché après le geste.
+
 | Question | Réponse proposée |
 |---|---|
-| Combien de palettes à la fois | Deux ou plus, sans limite ; le groupe par défaut réunit les palettes à deux intensités. |
+| Combien de palettes à la fois | Deux ou plus, sans limite ; le groupe, retenu par fichier dans le stockage du plugin, réunit par défaut les palettes à deux intensités. |
 | Quelle référence | Les courbes et les parts de la recette ; une palette modèle en second choix. Recopier une palette qui a éclairci son bout sombre coûte des garanties aux autres (dossier d'harmonisation). |
-| Selon quelle règle | Retirer les réglages propres plutôt que chercher des valeurs : la recherche ne fait pas mieux sous les garanties. |
-| La luminosité seulement | Clarté et couleur, en deux gestes. L'enveloppe rend la couleur alignable par une part commune. La teinte ne s'aligne pas : elle s'écarte. |
+| Selon quelle règle | Revenir au préréglage plutôt que chercher des valeurs : la recherche ne fait pas mieux sous les garanties. |
+| La luminosité seulement | Clarté et saturation, cochées dans un même geste. L'enveloppe rend la saturation alignable par une part commune. La teinte ne s'aligne pas : elle s'écarte. |
 | Tons clairs ou foncés séparément | Oui, par « fonds » et « accents ». Le Color shift d'un bout agit sur une clarté : le bout clair porte les fonds en Light et les textes en Dark. L'écran l'affiche avant d'appliquer. |
 | Comparer les teintes | Une roue des teintes du groupe et la liste des paires sous les seuils, rôle par rôle. |
 | Écarter les teintes | Un bouton par sens, nommé par le secteur visé (« plus jaune », « plus rose ») et chiffré par la plus petite rotation qui atteint les seuils. |
@@ -318,12 +372,12 @@ Q14.
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
-| Q9 | Où comparer | Un onglet Comparer, après Création |
-| Q10 | Combien de palettes | Deux ou plus ; par défaut, les palettes à deux intensités |
-| Q11 | Ce qui s'aligne | Clarté et couleur, en deux gestes |
-| Q12 | La cible | La recette ; une palette modèle en second |
+| Q9 | Où comparer | Un onglet Comparer après Création, avec un compteur d'écarts |
+| Q10 | Le groupe | Deux palettes ou plus, retenu par fichier ; par défaut, les palettes à deux intensités |
+| Q11 | Harmoniser | Revenir au préréglage de clarté et de saturation sur plusieurs palettes à la fois |
+| Q12 | La cible | Le préréglage ; une palette modèle en second |
 | Q13 | La zone | Toute la rampe ; fonds ou accents au choix, couplage affiché |
-| Q14 | Les seuils | 0,02 de clarté, ×2 de chroma, 0,10 · 0,06 · 0,025 de distance, à fixer sur les maquettes |
+| Q14 | Ce qui compte comme écart | Un réglage propre, ou une paire sous sa distance (0,10 · 0,06 · 0,025) ; le reste en information |
 
 ## 7. Ce que chaque décision touche
 

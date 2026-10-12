@@ -36,6 +36,15 @@ const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark'
   'translucide, focus Dark plus clair': (sens, mode) => mode === 'light'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
     : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100 }),
+  'translucide, texte 700 en Light': (sens, mode) => mode === 'light'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 })
+    : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100 }),
+  'translucide, texte un cran plus coloré partout': (sens, mode) => mode === 'light'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 })
+    : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 }),
+  'plein 600 en Light': (sens, mode) => (mode === 'light' && sens === 'normal'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'solid/default': 600, 'solid/hover': 700, 'solid/pressed': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
   'les deux': (sens, mode) => mode === 'light'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
     : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
@@ -47,7 +56,7 @@ const references = teintes.flatMap((H) => [0.62, 0.75].map((L) => ({ H, L, hexa:
 
 const regles = {
   actuel: null,
-  enveloppe: enveloppes({ soft: { a: 0.6, b: 0.38 }, vivid: { a: 1.1, b: 0.48 }, unique: { a: 0.8, b: 0.42 } }),
+  enveloppe: enveloppes({ soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } }),
 } as const;
 
 const resultats: Record<string, unknown> = {};
@@ -65,9 +74,10 @@ for (const [nomRegle, regle] of Object.entries(regles)) for (const [nomTable, ta
       reference: r.hexa,
       derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
     } as Palette));
-    const recette: Recette = valider({ ...base, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
+    const profils = regle ? { soft: { part: 0.85 }, vivid: { part: 0.95 } } : base.profils;
+    const recette: Recette = valider({ ...base, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
     for (const palette of recette.palettes) {
-      const rampes = regle ? rampesDuBanc(recette, palette, regle, { parts: { soft: 0.85, vivid: 0.95 } }) : rampesDe(recette, palette);
+      const rampes = regle ? rampesDuBanc(recette, palette, regle) : rampesDe(recette, palette);
       for (const i of ['soft', 'vivid'] as const) for (const mode of ['light', 'dark'] as const) {
         const rampe = rampes[i]![mode].map((c) => c.hexa);
         const sens = sensDuTheme(mode, texteDesBoutons[mode]);

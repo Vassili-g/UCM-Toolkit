@@ -54,9 +54,9 @@ const etat = (recette: Recette, rampes = (p: Palette) => rampesDe(recette, p)) =
   Object.fromEntries(recette.palettes.filter((p) => p.nom !== 'Titanium').map((p) => [p.nom, enHexa(rampes(p))]));
 
 const clarte = sansReglagesDeClarte(RECETTE_REELLE);
-const regle = enveloppes({ soft: { a: 0.6, b: 0.38 }, vivid: { a: 1.1, b: 0.48 }, unique: { a: 0.8, b: 0.42 } });
-const sansParts = valider({ ...clarte, palettes: clarte.palettes.map((p) => { const { parts: _parts, ...reste } = p; return reste as Palette; }) });
-const couleur = etat(sansParts, (p) => rampesDuBanc(sansParts, p, regle, { parts: { soft: 0.85, vivid: 0.95 } }));
+const regle = enveloppes({ soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } });
+const sansParts = valider({ ...clarte, profils: { soft: { part: 0.85 }, vivid: { part: 0.95 } }, palettes: clarte.palettes.map((p) => { const { parts: _parts, ...reste } = p; return reste as Palette; }) });
+const couleur = etat(sansParts, (p) => rampesDuBanc(sansParts, p, regle));
 
 const titanium = rampesDe(RECETTE_REELLE, RECETTE_REELLE.palettes.find((p) => p.nom === 'Titanium')!).unique!;
 const SUPPORTS = { light: [titanium.light[0].hexa, '#FFFFFF'], dark: [titanium.dark[0].hexa, titanium.dark[1].hexa] };

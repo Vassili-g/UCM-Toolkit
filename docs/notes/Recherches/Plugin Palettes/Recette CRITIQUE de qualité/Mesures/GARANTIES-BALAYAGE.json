@@ -239,6 +239,155 @@
    }
   }
  },
+ "actuel · translucide, texte 700 en Light": {
+  "couples": 66816,
+  "echecs": 672,
+  "parGarantie": {
+   "G3 light normal sur surface/pressed sur page": 464,
+   "G1 dark inverse sur solid/default": 144,
+   "G3 light normal sur surface/pressed sur raised": 64
+  },
+  "exemples": [
+   "#E82D81 soft G3 light normal sur surface/pressed sur page 4.38",
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#F883AA soft G3 light normal sur surface/pressed sur page 4.38",
+   "#EA2D74 soft G3 light normal sur surface/pressed sur page 4.40",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#E89B31 soft G3 light normal sur surface/pressed sur raised 4.50",
+   "#3F9E25 vivid G3 light normal sur surface/pressed sur raised 4.48",
+   "#53CD32 vivid G3 light normal sur surface/pressed sur raised 4.49"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.036,
+     "mediane": 1.075
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.075
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.094
+    },
+    "raised": {
+     "min": 1.075,
+     "mediane": 1.107
+    }
+   }
+  }
+ },
+ "actuel · translucide, texte un cran plus coloré partout": {
+  "couples": 66816,
+  "echecs": 2876,
+  "parGarantie": {
+   "G3 light normal sur surface/pressed sur page": 464,
+   "G3 dark inverse sur surface/pressed sur page": 120,
+   "G3 dark inverse sur surface/pressed sur raised": 432,
+   "G1 dark inverse sur solid/default": 144,
+   "G3 light normal sur surface/pressed sur raised": 64,
+   "G3 dark inverse sur surface/hover sur raised": 2,
+   "G3 dark normal sur surface/hover sur raised": 470,
+   "G3 dark normal sur surface/pressed sur page": 576,
+   "G3 dark normal sur surface/pressed sur raised": 576,
+   "G3 dark normal sur surface/hover sur page": 28
+  },
+  "exemples": [
+   "#E82D81 soft G3 light normal sur surface/pressed sur page 4.38",
+   "#E82D81 soft G3 dark inverse sur surface/pressed sur page 4.46",
+   "#E82D81 soft G3 dark inverse sur surface/pressed sur raised 3.99",
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#E82D81 vivid G3 dark inverse sur surface/pressed sur page 4.37",
+   "#E82D81 vivid G3 dark inverse sur surface/pressed sur raised 4.00",
+   "#F883AA soft G3 light normal sur surface/pressed sur page 4.38",
+   "#F883AA soft G3 dark inverse sur surface/pressed sur page 4.46",
+   "#F883AA soft G3 dark inverse sur surface/pressed sur raised 3.99",
+   "#EA2D74 soft G3 light normal sur surface/pressed sur page 4.40",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#E89B31 soft G3 light normal sur surface/pressed sur raised 4.50",
+   "#3F9E25 vivid G3 light normal sur surface/pressed sur raised 4.48",
+   "#53CD32 vivid G3 light normal sur surface/pressed sur raised 4.49",
+   "#D32DCC vivid G3 dark inverse sur surface/hover sur raised 4.46",
+   "#E82D81 soft G3 dark normal sur surface/hover sur raised 4.25",
+   "#E82D81 soft G3 dark normal sur surface/pressed sur page 3.96",
+   "#E82D81 soft G3 dark normal sur surface/pressed sur raised 3.54",
+   "#E82D81 vivid G3 dark normal sur surface/hover sur raised 4.14",
+   "#E82D81 vivid G3 dark normal sur surface/pressed sur page 3.83",
+   "#E82D81 vivid G3 dark normal sur surface/pressed sur raised 3.50",
+   "#F883AA soft G3 dark normal sur surface/hover sur raised 4.25",
+   "#F883AA soft G3 dark normal sur surface/pressed sur page 3.96",
+   "#F883AA soft G3 dark normal sur surface/pressed sur raised 3.54",
+   "#C82FE6 vivid G3 dark normal sur surface/hover sur page 4.47",
+   "#E181F7 vivid G3 dark normal sur surface/hover sur page 4.47",
+   "#CE2ED9 vivid G3 dark normal sur surface/hover sur page 4.39",
+   "#D32DCC vivid G3 dark inverse sur surface/hover sur raised 4.46"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.036,
+     "mediane": 1.075
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.075
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.094
+    },
+    "raised": {
+     "min": 1.075,
+     "mediane": 1.107
+    }
+   }
+  }
+ },
+ "actuel · plein 600 en Light": {
+  "couples": 50688,
+  "echecs": 672,
+  "parGarantie": {
+   "G1 light normal sur solid/default": 528,
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 soft G1 light normal sur solid/default 4.46",
+   "#E82D81 vivid G1 light normal sur solid/default 4.10",
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#F883AA soft G1 light normal sur solid/default 4.46",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.047,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.122,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.094
+    },
+    "raised": {
+     "min": 1,
+     "mediane": 1.004
+    }
+   }
+  }
+ },
  "actuel · les deux": {
   "couples": 50688,
   "echecs": 878,
@@ -283,21 +432,21 @@
  },
  "enveloppe · actuelle": {
   "couples": 50688,
-  "echecs": 152,
+  "echecs": 164,
   "parGarantie": {
    "G1 dark inverse sur solid/default": 144,
-   "G7 light normal sur surface/default": 4,
-   "G7 light inverse sur surface/default": 4
+   "G7 light normal sur surface/default": 10,
+   "G7 light inverse sur surface/default": 10
   },
   "exemples": [
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default 2.98",
    "#29A039 vivid G7 light normal sur surface/default 2.98",
-   "#299F51 vivid G7 light normal sur surface/default 2.99",
-   "#29A039 vivid G7 light normal sur surface/default 2.98",
-   "#29A039 vivid G7 light inverse sur surface/default 2.98",
-   "#299F51 vivid G7 light inverse sur surface/default 2.99",
+   "#579B25 soft G7 light inverse sur surface/default 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default 2.98",
    "#29A039 vivid G7 light inverse sur surface/default 2.98"
   ],
   "separationSurface": {
@@ -313,8 +462,8 @@
    },
    "dark": {
     "page": {
-     "min": 1.08,
-     "mediane": 1.094
+     "min": 1.079,
+     "mediane": 1.095
     },
     "raised": {
      "min": 1,
@@ -330,7 +479,7 @@
    "G1 dark inverse sur solid/default": 144
   },
   "exemples": [
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
   ],
@@ -347,8 +496,8 @@
    },
    "dark": {
     "page": {
-     "min": 1.08,
-     "mediane": 1.094
+     "min": 1.079,
+     "mediane": 1.095
     },
     "raised": {
      "min": 1,
@@ -359,29 +508,29 @@
  },
  "enveloppe · surface 200 en Dark": {
   "couples": 50688,
-  "echecs": 916,
+  "echecs": 918,
   "parGarantie": {
-   "G7 dark inverse sur surface/default": 204,
    "G1 dark inverse sur solid/default": 144,
-   "G7 light normal sur surface/default": 4,
-   "G3 dark normal sur surface/pressed": 560,
-   "G7 light inverse sur surface/default": 4
+   "G7 dark inverse sur surface/default": 208,
+   "G7 light normal sur surface/default": 10,
+   "G3 dark normal sur surface/pressed": 546,
+   "G7 light inverse sur surface/default": 10
   },
   "exemples": [
-   "#E82D81 soft G7 dark inverse sur surface/default 2.84",
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
-   "#F883AA soft G7 dark inverse sur surface/default 2.84",
-   "#F883AA vivid G7 dark inverse sur surface/default 2.80",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#E82D81 vivid G7 dark inverse sur surface/default 2.79",
+   "#F883AA soft G7 dark inverse sur surface/default 2.85",
+   "#F883AA vivid G7 dark inverse sur surface/default 2.82",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default 2.98",
    "#29A039 vivid G7 light normal sur surface/default 2.98",
-   "#299F51 vivid G7 light normal sur surface/default 2.99",
    "#E82D81 soft G3 dark normal sur surface/pressed 4.35",
    "#E82D81 vivid G3 dark normal sur surface/pressed 4.37",
    "#F883AA soft G3 dark normal sur surface/pressed 4.35",
-   "#29A039 vivid G7 light normal sur surface/default 2.98",
-   "#29A039 vivid G7 light inverse sur surface/default 2.98",
-   "#299F51 vivid G7 light inverse sur surface/default 2.99",
+   "#579B25 soft G7 light inverse sur surface/default 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default 2.98",
    "#29A039 vivid G7 light inverse sur surface/default 2.98"
   ],
   "separationSurface": {
@@ -409,20 +558,20 @@
  },
  "enveloppe · focus un cran plus clair": {
   "couples": 50688,
-  "echecs": 3034,
+  "echecs": 3042,
   "parGarantie": {
    "G7 light normal sur surface/default": 576,
    "G1 dark inverse sur solid/default": 144,
    "G7 light normal sur page": 422,
-   "G7 light normal sur raised": 258,
-   "G7 light inverse sur page": 570,
+   "G7 light normal sur raised": 256,
+   "G7 light inverse sur page": 574,
    "G7 light inverse sur surface/default": 576,
-   "G7 light inverse sur raised": 488
+   "G7 light inverse sur raised": 494
   },
   "exemples": [
    "#E82D81 soft G7 light normal sur surface/default 2.78",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
    "#E82D81 vivid G7 light normal sur surface/default 2.87",
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
    "#F883AA soft G7 light normal sur surface/default 2.80",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
@@ -430,8 +579,8 @@
    "#D95723 soft G7 light normal sur page 2.99",
    "#F88D67 soft G7 light normal sur page 2.99",
    "#9C8524 soft G7 light normal sur raised 2.98",
+   "#9C8524 vivid G7 light normal sur raised 2.98",
    "#CAAC31 soft G7 light normal sur raised 2.98",
-   "#CAAC31 vivid G7 light normal sur raised 2.99",
    "#E82D81 soft G7 light inverse sur page 2.80",
    "#E82D81 soft G7 light inverse sur surface/default 2.57",
    "#E82D81 vivid G7 light inverse sur page 2.87",
@@ -455,8 +604,8 @@
    },
    "dark": {
     "page": {
-     "min": 1.08,
-     "mediane": 1.094
+     "min": 1.079,
+     "mediane": 1.095
     },
     "raised": {
      "min": 1,
@@ -467,32 +616,32 @@
  },
  "enveloppe · translucide": {
   "couples": 66816,
-  "echecs": 302,
+  "echecs": 304,
   "parGarantie": {
-   "G7 dark inverse sur surface/default sur raised": 150,
    "G1 dark inverse sur solid/default": 144,
-   "G7 light normal sur surface/default sur page": 4,
-   "G7 light inverse sur surface/default sur page": 4
+   "G7 dark inverse sur surface/default sur raised": 144,
+   "G7 light normal sur surface/default sur page": 8,
+   "G7 light inverse sur surface/default sur page": 8
   },
   "exemples": [
-   "#E82D81 soft G7 dark inverse sur surface/default sur raised 2.95",
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
-   "#F883AA soft G7 dark inverse sur surface/default sur raised 2.95",
-   "#F883AA vivid G7 dark inverse sur surface/default sur raised 2.89",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#E82D81 vivid G7 dark inverse sur surface/default sur raised 2.87",
+   "#F883AA soft G7 dark inverse sur surface/default sur raised 2.94",
+   "#F883AA vivid G7 dark inverse sur surface/default sur raised 2.91",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default sur page 2.98",
    "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
-   "#299F51 vivid G7 light normal sur surface/default sur page 3.00",
-   "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
-   "#29A039 vivid G7 light inverse sur surface/default sur page 3.00",
-   "#299F51 vivid G7 light inverse sur surface/default sur page 3.00",
+   "#579B25 soft G7 light inverse sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default sur page 2.98",
    "#29A039 vivid G7 light inverse sur surface/default sur page 3.00"
   ],
   "separationSurface": {
    "light": {
     "page": {
      "min": 1.054,
-     "mediane": 1.074
+     "mediane": 1.073
     },
     "raised": {
      "min": 1.061,
@@ -501,40 +650,40 @@
    },
    "dark": {
     "page": {
-     "min": 1.08,
-     "mediane": 1.094
+     "min": 1.079,
+     "mediane": 1.095
     },
     "raised": {
-     "min": 1.082,
-     "mediane": 1.106
+     "min": 1.07,
+     "mediane": 1.105
     }
    }
   }
  },
  "enveloppe · translucide, focus Dark plus clair": {
   "couples": 66816,
-  "echecs": 152,
+  "echecs": 160,
   "parGarantie": {
    "G1 dark inverse sur solid/default": 144,
-   "G7 light normal sur surface/default sur page": 4,
-   "G7 light inverse sur surface/default sur page": 4
+   "G7 light normal sur surface/default sur page": 8,
+   "G7 light inverse sur surface/default sur page": 8
   },
   "exemples": [
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default sur page 2.98",
    "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
-   "#299F51 vivid G7 light normal sur surface/default sur page 3.00",
-   "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
-   "#29A039 vivid G7 light inverse sur surface/default sur page 3.00",
-   "#299F51 vivid G7 light inverse sur surface/default sur page 3.00",
+   "#579B25 soft G7 light inverse sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default sur page 2.98",
    "#29A039 vivid G7 light inverse sur surface/default sur page 3.00"
   ],
   "separationSurface": {
    "light": {
     "page": {
      "min": 1.054,
-     "mediane": 1.074
+     "mediane": 1.073
     },
     "raised": {
      "min": 1.061,
@@ -543,29 +692,207 @@
    },
    "dark": {
     "page": {
-     "min": 1.08,
-     "mediane": 1.094
+     "min": 1.079,
+     "mediane": 1.095
     },
     "raised": {
-     "min": 1.082,
-     "mediane": 1.106
+     "min": 1.07,
+     "mediane": 1.105
+    }
+   }
+  }
+ },
+ "enveloppe · translucide, texte 700 en Light": {
+  "couples": 66816,
+  "echecs": 748,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144,
+   "G3 light normal sur surface/pressed sur page": 390,
+   "G3 light normal sur surface/pressed sur raised": 198,
+   "G7 light normal sur surface/default sur page": 8,
+   "G7 light inverse sur surface/default sur page": 8
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#D95723 soft G3 light normal sur surface/pressed sur page 4.49",
+   "#F88D67 soft G3 light normal sur surface/pressed sur page 4.45",
+   "#F88D67 vivid G3 light normal sur surface/pressed sur page 4.49",
+   "#918A24 soft G3 light normal sur surface/pressed sur raised 4.49",
+   "#BCB231 soft G3 light normal sur surface/pressed sur raised 4.49",
+   "#8B8C24 soft G3 light normal sur surface/pressed sur raised 4.45",
+   "#579B25 soft G7 light normal sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default sur page 2.98",
+   "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
+   "#579B25 soft G7 light inverse sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default sur page 2.98",
+   "#29A039 vivid G7 light inverse sur surface/default sur page 3.00"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.054,
+     "mediane": 1.073
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.074
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.095
+    },
+    "raised": {
+     "min": 1.07,
+     "mediane": 1.105
+    }
+   }
+  }
+ },
+ "enveloppe · translucide, texte un cran plus coloré partout": {
+  "couples": 66816,
+  "echecs": 2930,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144,
+   "G3 dark inverse sur surface/pressed sur page": 154,
+   "G3 dark inverse sur surface/pressed sur raised": 432,
+   "G3 light normal sur surface/pressed sur page": 390,
+   "G3 light normal sur surface/pressed sur raised": 198,
+   "G7 light normal sur surface/default sur page": 8,
+   "G3 dark inverse sur surface/hover sur raised": 6,
+   "G3 dark normal sur surface/hover sur raised": 406,
+   "G3 dark normal sur surface/pressed sur page": 576,
+   "G3 dark normal sur surface/pressed sur raised": 576,
+   "G3 dark normal sur surface/hover sur page": 28,
+   "G3 dark normal sur surface/default sur raised": 4,
+   "G7 light inverse sur surface/default sur page": 8
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#E82D81 soft G3 dark inverse sur surface/pressed sur page 4.43",
+   "#E82D81 soft G3 dark inverse sur surface/pressed sur raised 4.05",
+   "#E82D81 vivid G3 dark inverse sur surface/pressed sur page 4.35",
+   "#E82D81 vivid G3 dark inverse sur surface/pressed sur raised 3.98",
+   "#F883AA soft G3 dark inverse sur surface/pressed sur page 4.42",
+   "#F883AA soft G3 dark inverse sur surface/pressed sur raised 4.04",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#D95723 soft G3 light normal sur surface/pressed sur page 4.49",
+   "#F88D67 soft G3 light normal sur surface/pressed sur page 4.45",
+   "#F88D67 vivid G3 light normal sur surface/pressed sur page 4.49",
+   "#918A24 soft G3 light normal sur surface/pressed sur raised 4.49",
+   "#BCB231 soft G3 light normal sur surface/pressed sur raised 4.49",
+   "#8B8C24 soft G3 light normal sur surface/pressed sur raised 4.45",
+   "#579B25 soft G7 light normal sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default sur page 2.98",
+   "#29A039 vivid G7 light normal sur surface/default sur page 3.00",
+   "#CE2ED9 vivid G3 dark inverse sur surface/hover sur raised 4.48",
+   "#EF75F7 vivid G3 dark inverse sur surface/hover sur raised 4.47",
+   "#D32DCC vivid G3 dark inverse sur surface/hover sur raised 4.46",
+   "#E82D81 soft G3 dark normal sur surface/hover sur raised 4.26",
+   "#E82D81 soft G3 dark normal sur surface/pressed sur page 3.94",
+   "#E82D81 soft G3 dark normal sur surface/pressed sur raised 3.60",
+   "#E82D81 vivid G3 dark normal sur surface/hover sur raised 4.15",
+   "#E82D81 vivid G3 dark normal sur surface/pressed sur page 3.82",
+   "#E82D81 vivid G3 dark normal sur surface/pressed sur raised 3.50",
+   "#F883AA soft G3 dark normal sur surface/hover sur raised 4.23",
+   "#F883AA soft G3 dark normal sur surface/pressed sur page 3.92",
+   "#F883AA soft G3 dark normal sur surface/pressed sur raised 3.57",
+   "#C82FE6 vivid G3 dark normal sur surface/hover sur page 4.45",
+   "#E181F7 vivid G3 dark normal sur surface/hover sur page 4.46",
+   "#CE2ED9 vivid G3 dark normal sur surface/default sur raised 4.49",
+   "#CE2ED9 vivid G3 dark normal sur surface/hover sur page 4.35",
+   "#EF75F7 vivid G3 dark normal sur surface/default sur raised 4.50",
+   "#579B25 soft G7 light inverse sur surface/default sur page 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default sur page 2.98",
+   "#29A039 vivid G7 light inverse sur surface/default sur page 3.00",
+   "#CE2ED9 vivid G3 dark normal sur surface/default sur raised 4.49"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.054,
+     "mediane": 1.073
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.074
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.095
+    },
+    "raised": {
+     "min": 1.07,
+     "mediane": 1.105
+    }
+   }
+  }
+ },
+ "enveloppe · plein 600 en Light": {
+  "couples": 50688,
+  "echecs": 594,
+  "parGarantie": {
+   "G1 light normal sur solid/default": 430,
+   "G1 dark inverse sur solid/default": 144,
+   "G7 light normal sur surface/default": 10,
+   "G7 light inverse sur surface/default": 10
+  },
+  "exemples": [
+   "#E82D81 soft G1 light normal sur solid/default 4.10",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 light normal sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 light normal sur solid/default 4.09",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default 2.98",
+   "#29A039 vivid G7 light normal sur surface/default 2.98",
+   "#579B25 soft G7 light inverse sur surface/default 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default 2.98",
+   "#29A039 vivid G7 light inverse sur surface/default 2.98"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.056,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.131,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.079,
+     "mediane": 1.095
+    },
+    "raised": {
+     "min": 1,
+     "mediane": 1.005
     }
    }
   }
  },
  "enveloppe · les deux": {
   "couples": 50688,
-  "echecs": 908,
+  "echecs": 898,
   "parGarantie": {
-   "G7 dark inverse sur surface/default": 204,
    "G1 dark inverse sur solid/default": 144,
-   "G3 dark normal sur surface/pressed": 560
+   "G7 dark inverse sur surface/default": 208,
+   "G3 dark normal sur surface/pressed": 546
   },
   "exemples": [
-   "#E82D81 soft G7 dark inverse sur surface/default 2.84",
-   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
-   "#F883AA soft G7 dark inverse sur surface/default 2.84",
-   "#F883AA vivid G7 dark inverse sur surface/default 2.80",
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#E82D81 vivid G7 dark inverse sur surface/default 2.79",
+   "#F883AA soft G7 dark inverse sur surface/default 2.85",
+   "#F883AA vivid G7 dark inverse sur surface/default 2.82",
    "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
    "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
    "#E82D81 soft G3 dark normal sur surface/pressed 4.35",

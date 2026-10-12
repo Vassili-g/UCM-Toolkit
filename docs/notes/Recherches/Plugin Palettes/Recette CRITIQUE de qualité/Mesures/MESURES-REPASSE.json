@@ -1,0 +1,214 @@
+{
+ "ternes": {
+  "Titanium": {
+   "parts": {
+    "unique": 0.151
+   },
+   "unique": {
+    "100": {
+     "avant": 0.003,
+     "apres": 0.003
+    },
+    "700": {
+     "avant": 0.029,
+     "apres": 0.029
+    }
+   }
+  },
+  "Sky": {
+   "parts": {
+    "soft": 0.85,
+    "vivid": 0.974
+   },
+   "soft": {
+    "100": {
+     "avant": 0.013,
+     "apres": 0.024
+    },
+    "700": {
+     "avant": 0.056,
+     "apres": 0.106
+    }
+   },
+   "vivid": {
+    "100": {
+     "avant": 0.029,
+     "apres": 0.029
+    },
+    "700": {
+     "avant": 0.104,
+     "apres": 0.104
+    }
+   }
+  },
+  "Orange": {
+   "parts": {
+    "soft": 0.85,
+    "vivid": 1
+   },
+   "soft": {
+    "100": {
+     "avant": 0.014,
+     "apres": 0.025
+    },
+    "700": {
+     "avant": 0.049,
+     "apres": 0.093
+    }
+   },
+   "vivid": {
+    "100": {
+     "avant": 0.051,
+     "apres": 0.051
+    },
+    "700": {
+     "avant": 0.121,
+     "apres": 0.121
+    }
+   }
+  },
+  "Grass": {
+   "parts": {
+    "soft": 0.85,
+    "vivid": 1
+   },
+   "soft": {
+    "100": {
+     "avant": 0.044,
+     "apres": 0.026
+    },
+    "700": {
+     "avant": 0.068,
+     "apres": 0.129
+    }
+   },
+   "vivid": {
+    "100": {
+     "avant": 0.081,
+     "apres": 0.052
+    },
+    "700": {
+     "avant": 0.138,
+     "apres": 0.138
+    }
+   }
+  },
+  "Terracota": {
+   "parts": {
+    "unique": 0.562
+   },
+   "unique": {
+    "100": {
+     "avant": 0.014,
+     "apres": 0.014
+    },
+    "700": {
+     "avant": 0.113,
+     "apres": 0.113
+    }
+   }
+  },
+  "Deep": {
+   "parts": {
+    "unique": 0.59
+   },
+   "unique": {
+    "100": {
+     "avant": 0.014,
+     "apres": 0.014
+    },
+    "700": {
+     "avant": 0.169,
+     "apres": 0.169
+    }
+   }
+  },
+  "Poppy": {
+   "parts": {
+    "soft": 0.85,
+    "vivid": 1
+   },
+   "soft": {
+    "100": {
+     "avant": 0.011,
+     "apres": 0.022
+    },
+    "700": {
+     "avant": 0.09,
+     "apres": 0.161
+    }
+   },
+   "vivid": {
+    "100": {
+     "avant": 0.025,
+     "apres": 0.025
+    },
+    "700": {
+     "avant": 0.205,
+     "apres": 0.205
+    }
+   }
+  }
+ },
+ "horsEchantillon": {
+  "calibration": [
+   "red",
+   "amber",
+   "lime",
+   "emerald",
+   "cyan",
+   "blue",
+   "violet",
+   "fuchsia",
+   "rose"
+  ],
+  "partConstante": {
+   "part": 0.92,
+   "erreurControle": 0.009
+  },
+  "enveloppe": {
+   "part": 0.92,
+   "a": 2,
+   "b": 0.5,
+   "erreurControle": 0.008
+  },
+  "enveloppeProposee": {
+   "erreurControle": 0.008
+  }
+ },
+ "orange": {
+  "derive": {
+   "clair": 10.14,
+   "sombre": -27.5
+  },
+  "soft700": {
+   "avant": {
+    "hexa": "#85581F",
+    "H": 68.659,
+    "C": 0.093
+   },
+   "apres": {
+    "hexa": "#91501F",
+    "H": 53.906,
+    "C": 0.107
+   }
+  },
+  "vivid700": {
+   "avant": {
+    "hexa": "#954E00",
+    "H": 57.289,
+    "C": 0.121
+   },
+   "apres": {
+    "hexa": "#934F00",
+    "H": 58.93,
+    "C": 0.118
+   }
+  },
+  "amber700": {
+   "hexa": "#B45309",
+   "H": 48.998,
+   "C": 0.146
+  }
+ }
+}
