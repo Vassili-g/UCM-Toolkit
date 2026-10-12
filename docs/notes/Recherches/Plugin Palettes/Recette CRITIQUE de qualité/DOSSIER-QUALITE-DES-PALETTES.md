@@ -3,7 +3,7 @@
 **Statut : recherche faite, maquettes à valider.** Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Huit décisions sont listées en section 6, huit autres dans le dossier dédié au sujet 3.
+mainteneur. Huit décisions sont listées en section 6, neuf autres dans le dossier dédié au sujet 3.
 
 | Maquette | Sujet |
 |---|---|
@@ -299,24 +299,23 @@ les deux. Ce choix relève des composants : la palette ne change pas.
 
 ## 5. Sujet 3 : comparer, harmoniser, différencier
 
-Le [dossier dédié](./DOSSIER-COMPARER.md) repense entièrement le sujet, à
-partir de toutes les recherches d'interface antérieures. Ses conclusions :
+Le [dossier dédié](./DOSSIER-COMPARER.md) repense le sujet à partir de toutes
+les recherches d'interface antérieures et des retours du mainteneur. Ses
+conclusions :
 
-- Harmoniser revient surtout à retirer ou aligner des réglages propres : un
-  préréglage et un état « Personnalisée » empêchent une palette de s'écarter
-  sans le dire.
-- Différencier revient à tourner une teinte : la plus petite rotation qui
-  sépare une paire se calcule et se propose d'un clic. Orange et Poppy se
-  séparent avec +9° sur Orange ou −16° sur Poppy.
-- Comparer demande une vue nouvelle. Trois parcours la placent : dans
-  Création par une sélection multiple (recommandé), dans un onglet dédié, ou
-  nulle part, avec une carte « Distinguer » seulement.
-- Aucun groupe n'est rangé : une sélection éphémère, comme dans Figma, suffit
-  à toutes les tâches.
+- Création reste consacrée à une seule palette. Ses cartes Réglage global et
+  Color shift chiffrent leurs écarts et montrent, sur chaque réglette, le point
+  de départ et l'écart.
+- Les réglages communs, derrière l'engrenage, portent leur nom, disent à quoi
+  ils servent et nomment les palettes qui s'en écartent.
+- Un onglet Comparer montre toutes les palettes en une ligne de nuances
+  chacune, et 2 à 4 palettes cochées sur des composants. Il porte deux gestes :
+  rétablir les valeurs communes, écarter deux teintes.
+- Aucun groupe n'est rangé.
 
-Les mesures de la section 5 de la première version restent valables : hors
-◆, l'écart de clarté passe de 0,016–0,047 à 0,002–0,003 au retour au
-préréglage, sans garantie perdue.
+Les mesures de la première version restent valables : hors ◆, l'écart de
+clarté passe de 0,016–0,047 à 0,002–0,003 au retour aux valeurs communes, sans
+garantie perdue.
 
 ## 6. Décisions
 
@@ -324,13 +323,13 @@ préréglage, sans garantie perdue.
 |---|---|---|
 | Q1 | La règle de chroma | L'enveloppe |
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85, a 0,6) ; Vivid : Tailwind (0,95, a 1,1) |
-| Q3 | Le préréglage et l'état personnalisé | Le préréglage de Q2, « Personnalisé » au-delà, un geste de retour ; les recettes au format 10 gardent la part constante |
+| Q3 | Les valeurs par défaut | Celles de Q2, dans les réglages communs ; une palette qui s'en écarte le dit en chiffres et propose « Tout rétablir » ; les recettes au format 10 gardent la part constante |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté | Translucide, calculé contre la carte en Light et la page en Dark |
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
-| C1 à C8 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
+| C1 à C9 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche
 
@@ -339,7 +338,7 @@ préréglage, sans garantie perdue.
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface des réglages communs ; tests de propriétés et de lecture du format 10 |
 | Q5 | `packages/kit/src/emplois/dossiers.ts` et `garanties.ts` (fonds composés) ; recette (fond des cartes) ; écriture des primitives alpha dans Palettes ; `diagnostic-contrastes.mjs` de `ucm check` ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
-| C1 à C8 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
+| C1 à C9 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
 Le plan d'implémentation se rédige après les décisions, par lots, dans ce
 dossier.
@@ -371,8 +370,11 @@ npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesu
 npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/verifier-garanties.ts"
 npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/mesurer-surfaces.ts"
 npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/mesurer-teintes.ts"
-npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/generer-comparaison.ts"
+npx tsx "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/generer-ensembles.ts"
+node "docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/extraire-galerie.mjs"
 ```
 
-`generer-donnees.ts` et `generer-comparaison.ts` récrivent les données des
-maquettes. `capturer.mjs` photographie une maquette avec Playwright.
+`generer-donnees.ts` et `generer-ensembles.ts` récrivent les données des
+maquettes. `extraire-galerie.mjs` fige les écrans sombres de la galerie, après
+`npm run galerie --workspace ucm-palettes-plugin`. `capturer.mjs` photographie
+une maquette avec Playwright.

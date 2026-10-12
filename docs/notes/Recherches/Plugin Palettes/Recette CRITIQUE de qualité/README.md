@@ -4,7 +4,7 @@
 |---|---|
 | [SYNTHESE.html](./SYNTHESE.html) | Les décisions, les problèmes, les solutions et les liens, sur une page |
 | [DOSSIER-QUALITE-DES-PALETTES.md](./DOSSIER-QUALITE-DES-PALETTES.md) | Causes mesurées, solutions comparées, décisions Q1 à Q8 |
-| [DOSSIER-COMPARER.md](./DOSSIER-COMPARER.md) | Comparer, harmoniser, différencier : briques, parcours, décisions C1 à C8 |
+| [DOSSIER-COMPARER.md](./DOSSIER-COMPARER.md) | Comparer, harmoniser, différencier : écarts lisibles, réglages communs, onglet Comparer, décisions C1 à C9 |
 | [Maquettes/](./Maquettes/) | Qualité en interface, rôles et crans, comparer ; données générées par `Mesures/` |
 | [Mesures/](./Mesures/) | Banc de recherche, scripts de mesure, témoins Tailwind et Radix, recette du mainteneur |
 | [Collecte/RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md) | Statuts discrets et focus de six systèmes |

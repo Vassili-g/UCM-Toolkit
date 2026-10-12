@@ -1,11 +1,12 @@
 # Comparer, harmoniser, différencier : dossier
 
-**Statut : proposition à valider.** Ce dossier repense le sujet de l'onglet
-Comparer à partir de toutes les recherches d'interface antérieures et des
-mécanismes du plugin. Il propose dix briques et trois parcours, puis
-recommande l'un d'eux. La [maquette](./Maquettes/MAQUETTE-COMPARER.html) montre
-l'existant, chaque brique et les parcours. Les décisions C1 à C8 sont en
-section 11.
+**Statut : proposition à valider.** Ce dossier repense la comparaison de
+palettes à partir des recherches d'interface antérieures, du marché et des
+retours du mainteneur sur deux versions précédentes. Création reste consacrée à
+une seule palette ; la comparaison vit dans un onglet dédié ; les écarts d'une
+palette et les réglages communs deviennent lisibles. La
+[maquette](./Maquettes/MAQUETTE-COMPARER.html) part des écrans réels de la
+galerie, en thème sombre. Les décisions C1 à C9 sont en section 11.
 
 ## 1. Le besoin
 
@@ -35,8 +36,9 @@ Seule la comparaison demande une vue nouvelle.
 | [Plan d'harmonisation](../Harmonisation%20entre%20palettes/PLAN-RECHERCHE-HARMONISATION.md) | Quatre hypothèses : témoin dans Création (A), carte dans Vérification (B), vue de cohérence dans Gestion (C), réglage de groupe (D). Recommandait A, parce que l'écart naît pendant le réglage | Non tranchée |
 | [Dossier d'harmonisation](../Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md) | Comparer dans Vérification sans palette ouverte, groupe choisi à la volée, alignement de la luminosité seule par une modale | Décisions D1 à D7 en attente |
 | Première version de ce dossier | Un onglet Comparer sur un groupe « Statuts » | Le groupe n'avait ni création ni règle : la maquette supposait un objet que le plugin ne connaît pas |
+| Deuxième version de ce dossier | Ouvrir plusieurs palettes dans Création et les régler ensemble | Écartée par le mainteneur : Création doit rester à une palette ; le nuancier n'y paraît que sans palette ouverte ; vingt palettes en composants surchargent l'écran |
 
-Quatre leçons :
+Cinq leçons :
 
 1. **Chaque proposition a buté sur le groupe.** Un groupe nommé demande sa
    création, son renommage, sa survie à une suppression et une place dans la
@@ -47,27 +49,25 @@ Quatre leçons :
    place à la direction simple, en trois onglets.
 4. **L'écart naît pendant le réglage.** Le plan d'harmonisation le notait ; la
    recette critique le confirme : les écarts mesurés viennent tous de réglages
-   faits dans Création.
+   faits dans Création. Les voir doit se faire dans Création, les corriger à
+   plusieurs se fait ailleurs.
+5. **Chaque espace garde un seul sujet.** Une palette dans Création, toutes les
+   palettes dans Comparer, les valeurs partagées dans les réglages communs.
 
 ## 3. Ce que le plugin fait aujourd'hui
 
-| Mécanisme | Où | Ce qu'il fait | Ce qu'il apporte à la refonte |
+| Mécanisme | Où | Ce qu'il fait | Ce que la refonte en fait |
 |---|---|---|---|
-| Sélecteur | Barre de Création et de Vérification | Ouvre une palette ; porte la marque de verdict | Peut accepter plusieurs palettes |
-| Nuancier | Création et Vérification sans palette ouverte | Trois aplats par palette ; un clic ouvre la palette | Surface naturelle d'une sélection multiple |
-| Réglage global | Création, carte repliée | « Régler » Soft, Vivid ou les deux ; repère de l'autre profil sur chaque réglette ; zones hachurées des limites ; « Rétablir » | Précédent d'un réglage qui porte sur plusieurs cibles ; repères réutilisables pour d'autres palettes |
-| Color shift | Création, carte repliée | Teinte, saturation et luminosité aux deux bouts | Même logique de cibles |
-| Interface de test | Création, carte repliée | La palette ouverte sur un écran d'exemple | Peut peindre plusieurs palettes |
-| « Annuler les modifications » et « Rétablir » | Barre de la palette | Défait les changements de la palette ouverte depuis son ouverture | S'étend à une sélection |
-| Bilan | Vérification sans palette ouverte | Filtres À corriger, À vérifier, Conformes ; une ligne par message | Accueille les écarts avec leur geste |
-| Alerte `palettes-proches` | Pied de Création, bilan de Vérification | ΔEok moyen des crans 500 à 700 en Light, Vivid contre Vivid ; geste : changer la référence | À redéfinir par rôle, dans les deux thèmes, avec la rotation qui sépare |
-| Réglages communs | Engrenage | Courbes, parts communes, fonds, seuils | Accueille le préréglage |
-
-La recette porte déjà ce que le préréglage demande : les parts communes
-(`profils.soft.part`, `profils.vivid.part`), les courbes communes, et, par
-palette, les réglages propres (`parts`, `reglages.clarte`, `reglages.part`,
-`derive.*.clarte`, `derive.*.saturation`). Une palette « personnalisée » se
-reconnaît donc sans nouveau champ.
+| Sélecteur | Barre de Création et de Vérification | Ouvre une palette ; porte la marque de verdict | Inchangé : une palette |
+| Nuancier | Création et Vérification sans palette ouverte | Trois aplats par palette ; un clic ouvre la palette | Inchangé ; Comparer a sa propre liste |
+| Aperçu | Création | Grille Soft et Vivid, cran par cran, sur le fond du thème | Sa grille sert la liste de Comparer, une ligne par palette |
+| Réglage global | Création, carte repliée | « Régler » Soft, Vivid ou les deux ; repère « S » de l'autre profil ; zones hachurées des limites ; « Rétablir » ; résumé « Réglé » | Écarts lisibles (section 6) |
+| Color shift | Création, carte repliée | Teinte, saturation et luminosité aux deux bouts ; « Tout rétablir » | Même résumé et mêmes marques |
+| « Annuler les modifications » | Barre de la palette | Défait les changements de la palette ouverte depuis son ouverture | Défait aussi un geste de Comparer |
+| Bilan | Vérification sans palette ouverte | Filtres À corriger, À vérifier, Conformes ; une ligne par message et son geste | Ses lignes servent « Points à regarder » ; une paire proche y renvoie vers Comparer |
+| Alerte `palettes-proches` | Pied de Création, bilan de Vérification | ΔEok moyen des crans 500 à 700 en Light, Vivid contre Vivid ; geste : changer la référence | Mesurée sur le plein et le texte, dans les deux thèmes ; geste : écarter |
+| Réglages communs | Engrenage, sans libellé | Fonds, intensités, luminosité des nuances, seuils, planches, et la langue | Clarifiés (section 7) |
+| Compteur d'onglet | Onglet Vérification | Nombre de points à corriger, ou ✓ | Même compteur sur Comparer |
 
 ## 4. Ce que fait le marché
 
@@ -102,245 +102,198 @@ Constats :
 7. **Aucun outil ne pose plusieurs jeux rangés côte à côte** ; tous montrent
    un seul jeu, entier.
 
-Ce que la refonte en retient : la grille alignée cran par cran (B3), le réglage
-direct de plusieurs palettes (B4), le plafond commun de chroma (l'enveloppe),
-les lignes de conflit sur la roue (B10), et une rotation bornée et nommée (B5).
-L'avant et l'après de B9 sont propres à UCM : ils servent un geste qui
-modifie plusieurs palettes rangées.
+Ce que la refonte en retient : la grille alignée cran par cran pour la vue
+d'ensemble, le plafond commun de chroma (l'enveloppe), les lignes de conflit
+sur la roue, et une rotation bornée et nommée. L'avant et l'après des modales
+sont propres à UCM : ils servent un geste qui modifie plusieurs palettes
+rangées.
 
-## 5. Les mécanismes à repenser
+## 5. Les principes retenus
 
-### M1. Le préréglage et l'état « Personnalisée »
+1. **Création règle une palette**, à une ou deux intensités. Aucune vue ni aucun
+   geste de groupe n'y entre.
+2. **Comparer est un onglet**, après Création. Il porte sur toutes les palettes
+   du fichier, quelle que soit la palette ouverte dans Création.
+3. **La vue d'ensemble d'abord, le détail à la demande.** Toutes les palettes en
+   une ligne de nuances chacune ; les composants pour deux à quatre palettes
+   cochées.
+4. **Un écart s'affiche avec son geste.** Ce qu'aucun geste ne corrige est une
+   information, sans alerte.
+5. **Aucun objet nouveau.** Pas de groupe rangé : la sélection vit le temps de
+   l'onglet.
+6. **Les composants existants d'abord** : la grille de l'aperçu, les lignes du
+   bilan de Vérification, la ligne fixe, le compteur d'onglet, la modale
+   d'ajustement. La maquette les reprend depuis la galerie, en thème sombre.
 
-- **Ce qui le compose** : la saturation de chaque profil, la luminosité de
-  chaque profil, le Color shift de luminosité et de saturation. La teinte, le
-  Color shift de teinte et la référence restent des choix de couleur, propres
-  à chaque palette.
-- **Où il se règle** : une carte « Préréglage des palettes » dans les
-  réglages communs, qui reprend les parts communes et, si l'enveloppe est
-  adoptée, ses bornes.
-- **Ce que voit le designer** : « Personnalisée » dans le sélecteur à côté du
-  nom, un point gris sur la carte du nuancier, « Personnalisée » en résumé des
-  cartes Réglage global et Color shift. La carte ouverte liste chaque écart au
-  préréglage en clair.
-- **Les gestes** : « Revenir au préréglage » dans la carte d'une palette ;
-  « Tout revenir au préréglage… » dans les réglages communs, qui liste les
-  palettes avant d'agir. Une luminosité réglée sur le profil qui porte la
-  référence déplace la référence : le geste l'annonce (« la référence redevient
-  `#ED0007` ») et la fiche Gestion passe à « À mettre à jour ».
-- **Ce que ce mécanisme règle seul** : une palette ne peut plus s'écarter sans
-  le dire. Harmoniser devient l'inverse d'un écart visible.
+## 6. Les écarts d'une palette, dans Création
 
-### M2. Des écarts définis par leurs causes
+### Aujourd'hui
 
-- **Un écart** est une palette personnalisée, ou une paire qui se confond sur
-  un rôle suivi. Le reste est une information : la saturation qui reste
-  différente d'une teinte à l'autre, les références ancrées à des crans
-  différents, la proximité dans une vision des couleurs simulée.
-- **L'alerte `palettes-proches` change de mesure.** Elle compare le plein
-  (`solid/default`), le fond teinté (`surface/default`) et son texte
-  (`surface/foreground`), en Light et en Dark, en Soft et en Vivid. Seuils
-  d'essai de distance Oklab : 0,10 pour le plein, 0,06 pour le texte, 0,025
-  pour le fond teinté. Son geste devient la rotation de teinte qui sépare la
-  paire (M4), et non plus « changez la référence ».
-- **« Proches à dessein »** (piste 13) reste possible pour deux variantes
-  voulues d'une même teinte. Il range la paire dans la recette ; c'est le seul
-  ajout de format de ce dossier, et il est facultatif (C8).
+La carte Réglage global porte trois réglettes, teinte, saturation et
+luminosité, par profil. Cinq défauts :
 
-### M3. La sélection multiple
-
-- **Comment** : Maj-clic ou Cmd-clic sur les cartes du nuancier, comme dans
-  Figma, ou les cases du sélecteur. Une barre « N palettes choisies · Ouvrir
-  ensemble » confirme. Une sélection est éphémère, comme une sélection de
-  calques : rien n'est rangé.
-- **Ce que montre Création** :
-
-  | Carte | Une palette | Plusieurs palettes |
-  |---|---|---|
-  | Titre | « Palette Orange » | « 4 palettes » |
-  | Configuration | Nom, référence, réglages avancés | Masquée : elle porte l'identité d'une palette |
-  | Aperçu | Soft et Vivid, bandes des dossiers | Une ligne par palette, un profil à la fois ; une marque sous chaque cran qui s'écarte ; un clic sur la marque choisit les palettes qui s'écartent à ce cran, comme l'action par colonne de Huetone (B3) |
-  | Réglage global | Les réglettes de la palette | Les réglettes de la sélection : « Mixte », un repère par palette, celui du préréglage (B4) |
-  | Color shift | La palette | Les bouts clair et sombre de la sélection, en « Mixte » ; la teinte des bouts désactivée |
-  | Interface de test | La palette | Une ligne de composants par palette (B6) |
-  | Pied | Les garanties de la palette | Les garanties de la sélection, la palette en échec nommée |
-
-- **Règles de réglage** : une valeur saisie ou un pouce lâché s'applique à
-  toute la sélection, comme dans le panneau de propriétés de Figma. Une
-  valeur qu'une palette refuse (zone hachurée) s'arrête à sa limite pour
-  celle-ci, et la ligne de confirmation la nomme : « Sky s'arrête à 0,94 ».
-  La teinte et le Color shift de teinte ne se règlent qu'une palette à la
-  fois : une même valeur effacerait les teintes.
-- **Palettes particulières** : une palette figée se choisit pour être vue, et
-  les réglages la laissent telle quelle ; une palette à une intensité montre
-  sa rampe unique dans Soft et dans Vivid ; une palette libre s'aligne par
-  numéro, et un numéro absent reste vide.
-- **Annuler** : « Annuler les modifications » s'étend à la sélection et
-  défait le dernier geste de groupe en une fois.
-
-### M4. Les repères des autres palettes sur la réglette de teinte
-
-Palette seule ouverte, la réglette de teinte du Réglage global porte un repère
-coloré par autre palette. Quand une paire se confond (M2), un pouce fantôme
-montre la plus petite rotation qui la sépare sur tous les rôles suivis, dans
-la borne du réglage (±30°). Le bouton nomme le sens par le secteur visé :
-« +9° · plus jaune ». Un clic l'applique ; rien ne s'applique seul. Sans
-rotation possible, la ligne le dit et propose la chroma des fonds (Terracota
-et Poppy, Terracota et Deep).
-
-### M5. L'onglet Comparer
-
-Pour le parcours P2. Toutes les palettes en lignes sur des composants, un
-profil et un thème à la fois. « Masquer » retire une ligne de la vue, sans rien
-changer aux calculs. Une carte « Écarts » liste les écarts de M2, chacun avec
-son geste. Le compteur de l'onglet ne compte que les paires qui se
-confondent : une marque volontairement différente ne le fait pas sonner.
-« Harmoniser » et « Écarter » s'ouvrent en modales avant et après (B9).
-
-### M6. Distinguer les palettes
-
-Une carte repliée de Vérification sans palette ouverte, ou une vue de l'onglet
-Comparer : la roue des teintes de toutes les palettes, les paires qui se
-confondent rôle par rôle, et une vision des couleurs simulée (Viénot 1999 pour
-la protanopie et la deutéranopie, Machado 2009 pour la tritanopie). La
-simulation ne lève aucune alerte. Dans la recette du mainteneur, en
-deutéranopie, les fonds teintés Dark d'Orange et de Poppy deviennent la même
-couleur (`#282817`), et le plein de Grass rejoint celui de Terracota à 0,013.
-
-### M7. Le couplage de la luminosité entre Light et Dark
-
-Le Color shift de luminosité agit sur une clarté : le bout clair porte les
-fonds en Light et les textes en Dark. Aligner les fonds de Light déplace donc
-les textes de Dark. Deux réponses : l'afficher avant d'appliquer (retenu dans
-les parcours), ou ranger un Color shift de luminosité par thème (changement de
-moteur et de format, hors de cette proposition).
-
-## 6. Les dix briques
-
-| # | Brique | Mécanisme | Tâche |
-|---|---|---|---|
-| B1 | Préréglage et « Personnalisée », dans la palette et dans les réglages communs | M1 | Harmoniser |
-| B2 | Ouvrir plusieurs palettes depuis le nuancier ou le sélecteur | M3 | Comparer |
-| B3 | L'aperçu de la sélection, aligné cran par cran | M3 | Comparer |
-| B4 | Régler la sélection : « Mixte », repères, préréglage | M3 | Harmoniser |
-| B5 | Différencier en réglant la teinte : repères et fantôme | M4 | Différencier |
-| B6 | L'interface de test de la sélection | M3 | Comparer |
-| B7 | Le bilan de Vérification ouvre la bonne sélection | M2 | Les trois |
-| B8 | L'onglet Comparer | M5 | Comparer |
-| B9 | Harmoniser en une modale | M5 | Harmoniser |
-| B10 | Distinguer les palettes, avec la vision des couleurs | M6 | Différencier |
-
-## 7. Trois parcours
-
-### P1. Tout dans Création (recommandé)
-
-- **Comparer** : choisir les palettes dans le nuancier (B2), lire l'aperçu
-  aligné (B3) et l'interface de test (B6).
-- **Harmoniser** : régler la sélection (B4), ou « Revenir au préréglage ».
-- **Différencier** : ouvrir une palette, suivre le fantôme de la réglette de
-  teinte (B5).
-- **Depuis Vérification** : chaque écart ouvre sa sélection dans Création (B7).
-- **Ce qui change ailleurs** : le sélecteur et le nuancier acceptent plusieurs
-  palettes ; aucune carte, aucun onglet, aucune modale ne s'ajoute.
-- **Coût** : élevé. L'état partagé `PaletteOuverte` (`ui/paletteOuverte.ts`)
-  porte un seul identifiant, une palette et son analyse ; le module des
-  réglages (`reglagesDeLaPalette.ts`) affiche et valide une palette à la fois.
-  La sélection remplace l'identifiant par une liste en un seul point, puis
-  chaque carte de Création choisit son comportement à plusieurs.
-- **Risque** : la densité de l'aperçu à vingt palettes ; il montre un profil à
-  la fois et une ligne de 16 px par palette.
-
-### P2. Onglet Comparer
-
-- **Comparer** : l'onglet montre toutes les palettes sur des composants (B8).
-- **Harmoniser** : « Harmoniser… » ouvre la modale (B9), cases cochées sur les
-  palettes personnalisées.
-- **Différencier** : « Écarter… » ouvre la roue et les deux rotations ; la vue
-  Teintes porte la vision des couleurs (B10).
-- **Ce qui change ailleurs** : un quatrième onglet ; Création reste à une
-  palette.
-- **Coût** : moyen, dans un module isolé.
-- **Risque** : l'écart se lit après le réglage, en changeant d'onglet.
-
-### P3. Le minimum
-
-- **Comparer** : la roue et les paires de la carte Distinguer (B10) ; aucune
-  vue de composants.
-- **Harmoniser** : préréglage, « Revenir au préréglage », « Tout revenir »
-  (B1).
-- **Différencier** : la nouvelle alerte et sa rotation chiffrée (B7, M4).
-- **Coût** : faible.
-- **Risque** : aucune vue ne pose les statuts côte à côte sur des composants.
-
-### Recommandation
-
-P1, livré en deux temps. D'abord le socle commun aux trois parcours : B1, B7,
-B10 et la nouvelle alerte, sans changement de format. Puis la sélection
-multiple (B2 à B6). Le socle traite seul les causes mesurées ; la sélection
-multiple ajoute la vue d'ensemble là où naissent les écarts, avec un idiome
-que tout utilisateur de Figma connaît. Si la sélection multiple coûte trop à
-Création, P2 se construit sur le même socle.
-
-## 8. Réponses aux questions du mainteneur
-
-| Question | Réponse |
+| Défaut | Effet |
 |---|---|
-| Combien de palettes à la fois ? | Autant que la sélection, sans limite ; l'aperçu passe à une ligne de 16 px par palette |
-| En prenant quelle référence ? | Le préréglage ; une palette de la sélection peut servir de modèle en saisissant sa valeur |
-| Selon quelle règle ? | Une valeur pour toute la sélection, chaque palette arrêtée à sa limite et nommée |
-| Uniquement la luminosité ? | Luminosité et saturation, ensemble ou séparément ; la teinte se différencie, elle ne s'aligne pas |
-| Tons clairs et foncés séparément ? | Oui, par les bouts clair et sombre du Color shift, avec le couplage Light et Dark affiché (M7) |
-| Comparer les ressemblances de teinte ? | Les repères de la réglette (B5), la roue (B10), les paires par rôle (M2) |
-| Écarter les teintes ? | La plus petite rotation qui sépare la paire, nommée par le secteur visé, appliquée d'un clic |
-| Basculer en Création ou rester ? | Avec P1, tout se passe dans Création ; Vérification y renvoie |
-| N crans identiques au minimum ? | Remplacé par des rôles nommés : un seuil sur des crans peu employés tiendrait alors que deux badges se confondent |
+| Le résumé dit « Réglé » | Carte repliée, rien ne dit quoi, de combien, sur quel profil |
+| Aucune réglette ne montre son point de départ | « Rétablir » restaure une valeur que l'écran ne dit pas |
+| « Rétablir » a le même poids sur une valeur intacte | Rien ne distingue les réglettes modifiées |
+| Le repère « S » | Il marque l'autre profil ; rien ne le dit |
+| Aucun lien vers les réglages communs | La saturation part d'une valeur réglée ailleurs, invisible ici |
+
+### Proposé
+
+- **Le résumé chiffre les écarts**, par profil : « Vivid : luminosité −0,02 ·
+  Soft : teinte +8° ». Une carte sans écart garde « Aucun réglage ».
+- **Un trait vertical marque le départ** de chaque réglette ; un trait épais,
+  sous la piste, souligne l'écart jusqu'au pouce.
+- **« Rétablir » ne s'active que sur une valeur modifiée.**
+- **Le repère dit « Soft »** (ou « Vivid »), et une légende d'une ligne explique
+  les trois marques.
+- **Un pied de carte** : la phrase des écarts, « Tout rétablir », et
+  « Réglages communs › », qui ouvre le panneau sur la carte Intensités.
+
+Le départ de chaque réglette :
+
+| Réglette | Départ |
+|---|---|
+| Teinte | 0° : la teinte de la référence |
+| Saturation | La part commune du profil ; pour le profil qui porte la référence, la part de la référence |
+| Luminosité | 0 |
+
+Le Color shift reçoit le même résumé chiffré et les mêmes marques sur ses
+réglettes de nuances claires et sombres. Il a déjà « Tout rétablir » et un zéro
+sur sa courbe.
+
+## 7. Les réglages communs
+
+### Ce qu'ils sont
+
+Le panneau qui s'ouvre par l'engrenage, en haut à droite de chaque onglet, et
+qui se ferme par « Retour aux palettes ». Il porte les valeurs que toutes les
+palettes partagent : couleurs de fond et texte des boutons, intensités Soft et
+Vivid, intensité des fonds du thème Dark, luminosité des nuances, contrastes
+minimums, détection des couleurs proches, contenu des planches. Une palette
+s'en écarte par son Réglage global ou son Color shift.
+
+### Pourquoi ils ne se comprennent pas
+
+- L'engrenage n'a pas de libellé ; son nom n'apparaît qu'au survol.
+- Le panneau ne dit pas à quoi il sert.
+- Il s'ouvre sur la langue, préférence de ce poste, au milieu de valeurs
+  partagées par les palettes du fichier.
+- « N palettes concernées » compte les palettes sans dire lesquelles s'écartent.
+
+### Proposé
+
+- **Le bouton porte son nom** : engrenage et « Réglages communs ».
+- **Une phrase en tête** : « Ces réglages valent pour toutes les palettes du
+  fichier. Chaque palette peut s'en écarter dans sa carte Réglage global ou
+  Color shift ; l'onglet Comparer les montre côte à côte. »
+- **Chaque carte nomme les palettes qui s'en écartent**, avec « Comparer › ».
+- **La langue descend** en pied de panneau, sous « Préférences de ce poste ».
+
+Une autre organisation a été écartée : verser les réglages communs dans
+l'onglet Comparer. Le panneau sert aussi à régler courbes et seuils en
+regardant la palette ouverte ; il reste où il est.
+
+## 8. L'onglet Comparer
+
+### De haut en bas
+
+| Élément | Rang | Contenu |
+|---|---|---|
+| Onglet | 1 | « Comparer », avec le compteur des paires qui se confondent, de même facture que celui de Vérification |
+| Ligne du titre | 1 | « Comparer », et la bascule « Aperçu » Light et Dark |
+| Ligne fixe | 1 | Le verdict : « 1 paire se confond · 3 palettes s'écartent des valeurs communes », ou « Les palettes se distinguent toutes » |
+| Carte « Toutes les palettes » | 2 | La grille de l'aperçu, une ligne par palette, pastilles de 18 px, choix Soft et Vivid ; une case par ligne ; un point ambre pour une palette en alerte, gris pour une palette écartée ; sous la grille, un point sous chaque cran dont la clarté s'écarte de 0,02 ou plus hors ◆ |
+| Carte « En détail » | 2 | Paraît à deux palettes cochées : chaque palette sur un fond teinté, un plein et un contour, sur le fond du thème. Quatre au plus |
+| Carte « Points à regarder » | 2 | Les lignes du bilan de Vérification : une paire en alerte et « Écarter » ; les palettes écartées et « Rétablir » |
+| Carte « Teintes » | 3, repliée | La roue des pleins, un trait entre les palettes d'une paire en alerte, les paires les plus proches sans alerte, la vision des couleurs simulée |
+
+### Ce qui compte comme alerte
+
+Deux palettes colorées se confondent quand leur plein ou leur texte de fond
+teinté passe sous le seuil des couleurs proches de la recette (0,05 de ΔEok),
+en Light ou en Dark. Les neutres en sont exclus : un gris n'a pas de teinte à
+confondre. Les fonds teintés en sont exclus aussi : clairs, ils sont peu
+saturés par construction. Avec eux, les vingt palettes de la galerie donnaient
+46 paires ; sans eux, 8, toutes réelles (Bleu et Azur, Vert et Feuille, Bleu et
+Marine en Dark, Violet et Pourpre en Dark). Le fichier du mainteneur en donne
+une : Terracota et Poppy, sur le texte du fond teinté en Dark (0,047).
+
+### Les gestes
+
+- **Rétablir les valeurs communes** : une modale coche les palettes écartées,
+  montre leur rampe avant et après et leurs écarts en clair. Décocher garde une
+  palette telle quelle. Teinte et référence ne changent pas. Un seul rangement,
+  défait par « Annuler les modifications ».
+- **Écarter deux teintes** : une modale propose, par palette et par sens, la plus
+  petite rotation de teinte qui atteint la distance visée (0,10 sur le plein,
+  0,06 sur le texte), avec l'aperçu des deux palettes en Light et en Dark, avant
+  et après. Sans rotation dans la borne de ±30°, elle le dit : Bleu et Azur sont
+  presque identiques, il faut supprimer l'une ou changer une référence.
+
+### Les entrées
+
+- Le compteur de l'onglet, visible depuis Création pendant un réglage.
+- Dans Vérification, une paire trop proche du bilan porte « Comparer » au lieu
+  de « Vérifier ».
+- Dans les réglages communs, « Comparer › » sous les palettes qui s'écartent.
+
+### Vingt palettes
+
+La grille tient en 450 px à 18 px par ligne. Les noms de la roue s'effacent
+au-delà de huit palettes ; le survol d'un point les donne. Le détail reste à
+quatre palettes : au-delà, les composants ne se comparent plus d'un coup d'œil.
 
 ## 9. États et cas limites
 
 | Cas | Comportement |
 |---|---|
-| Une palette dans le fichier | Aucune sélection multiple ; la réglette de teinte n'a pas de repère |
-| Vingt palettes | Le nuancier reste la surface de choix ; l'aperçu, une ligne par palette et un profil à la fois |
-| Palette figée | Visible dans une sélection ; aucun réglage ne la touche ; la confirmation la nomme |
-| Palette à une intensité | Sa rampe unique dans Soft et Vivid, marquée « 1 intensité » |
-| Palette libre | Alignée par numéro ; un numéro absent reste vide ; ses garanties suivent ses crans |
-| Palette grise | Aucune teinte : ni repère sur la réglette, ni rotation proposée |
-| Référence ancrée ◆ | Son cran n'entre pas dans la marque d'écart de l'aperçu ; son écart s'affiche en information |
-| Valeur refusée par une palette | Elle s'arrête à sa limite ; la ligne de confirmation la nomme |
-| Thème inversé | Les rôles suivis lisent la table du sens du thème |
-| Après un geste | Un rangement ; « Annuler les modifications » le défait ; Gestion passe les palettes à « À mettre à jour » |
+| Moins de deux palettes | L'onglet est désactivé |
+| Aucune case cochée | Pas de carte « En détail » |
+| Plus de quatre cases | La cinquième ne se coche pas ; la ligne du pied le dit |
+| Palette à une intensité | Sa rampe unique dans Soft et dans Vivid |
+| Palette figée | Comparée, cochable ; « Rétablir » et « Écarter » la nomment et la laissent |
+| Palette libre | Alignée par numéro ; un numéro absent reste vide |
+| Référence ancrée ◆ | Marquée dans la grille ; hors de la marque d'écart des crans |
+| Après un geste | La ligne fixe le dit avec « Annuler » ; Gestion passe les palettes à « À mettre à jour » |
 
-## 10. Ce que chaque parcours touche
+## 10. Ce que chaque proposition touche
 
-| Lot | Fichiers | P1 | P2 | P3 |
-|---|---|---|---|---|
-| Préréglage et état personnalisé | `packages/couleur` (détection, retour), `ui/reglagesDeLaPalette.ts`, réglages communs, sélecteur, nuancier | Oui | Oui | Oui |
-| Écarts par rôle et rotation | `alertes.ts`, `analyse.ts`, `presentation.ts`, nouveau calcul de rotation minimale | Oui | Oui | Oui |
-| Vision des couleurs | Nouveau module pur, ses matrices et leurs tests | Oui | Oui | Oui |
-| Sélection multiple | État de l'interface, `nuancier.ts`, `barreDePalette.ts`, `ongletCreation.ts`, `reglagesDeLaPalette.ts`, Color shift, interface de test, pied | Oui | Non | Non |
-| Onglet Comparer et modales | Nouveau module d'onglet, `ui/frontiere.ts`, galerie | Non | Oui | Non |
-| Textes en deux langues, galerie, tests d'interface | `i18n/fr.ts`, `i18n/en.ts`, `galerie/etats.cjs`, tests Chromium | Oui | Oui | Oui |
-| Recette | Aucun changement, sauf « Proches à dessein » (C8) | | | |
+| Proposition | Fichiers |
+|---|---|
+| Écarts lisibles dans Création | `ui/reglagesDeLaPalette.ts`, Color shift, textes du résumé dans `i18n/fr.ts` et `i18n/en.ts` |
+| Réglages communs clarifiés | En-tête du socle, panneau des réglages communs, `configuration.ts` pour les palettes qui s'écartent |
+| Alerte par rôle | `alertes.ts`, `analyse.ts`, `presentation.ts` ; le seuil reste `seuils.palettesProches` |
+| Onglet Comparer | Nouveau module d'onglet, rotation minimale dans `packages/couleur`, simulation des visions, galerie et tests d'interface |
+| Recette | Aucun changement de format |
 
 ## 11. Décisions
 
 | # | Décision | Proposition |
 |---|---|---|
-| C1 | Le parcours | P1, en deux temps : le socle (B1, B7, B10, nouvelle alerte), puis la sélection multiple. P2 en repli |
-| C2 | Le préréglage | Saturation, luminosité, Color shift de luminosité et de saturation ; la teinte reste propre à la palette |
-| C3 | La sélection | Éphémère, comme dans Figma ; aucun groupe, rien dans la recette |
-| C4 | Régler plusieurs palettes | Une valeur pour toute la sélection, « Mixte » sinon ; la teinte une palette à la fois |
-| C5 | Ce qui compte comme écart | Une palette personnalisée, une paire qui se confond sur un rôle suivi ; le reste en information |
-| C6 | Différencier | La plus petite rotation qui sépare, nommée par le secteur visé, appliquée d'un clic |
-| C7 | La vision des couleurs | Une simulation à la demande, sans alerte |
-| C8 | « Proches à dessein » | À garder pour les variantes voulues d'une même teinte, si le mainteneur en emploie |
+| C1 | Où comparer | Un onglet Comparer après Création ; Création règle une seule palette |
+| C2 | Choisir les palettes | Dans l'onglet, la liste de toutes les palettes, cases pour le détail ; aucun groupe rangé |
+| C3 | Vingt palettes | Une ligne de nuances par palette pour toutes ; les composants pour 2 à 4 palettes cochées |
+| C4 | Les écarts d'une palette | Résumé chiffré, départ et écart sur chaque réglette, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » |
+| C5 | Les réglages communs | Bouton nommé, phrase d'introduction, palettes qui s'écartent dans chaque carte, langue en préférences du poste |
+| C6 | L'alerte | Plein et texte, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet |
+| C7 | Rétablir les valeurs communes | Modale qui coche les palettes écartées, avant et après |
+| C8 | Écarter deux teintes | Plus petite rotation vers 0,10 sur le plein et 0,06 sur le texte ; sinon, le dire |
+| C9 | Visions des couleurs | Dans la carte Teintes, à la demande, sans alerte |
 
-## 12. Limites
+## 12. Défaut relevé dans le plugin actuel
 
-- Les seuils de distance par rôle sont des valeurs d'essai.
-- La sélection multiple n'a pas été prototypée dans le plugin ; son coût est
-  estimé à la lecture de `PaletteOuverte` et des modules qui la lisent.
-- La rotation de teinte passe par le réglage de la carte et déplace la
+À 480 px de large, le bouton de chaque ligne du bilan de Vérification déborde de
+la fenêtre : « Vérifier » s'affiche coupé (« Vérifi »). La galerie le montre
+dans `verification-bilan-a-verifier`.
+
+## 13. Limites
+
+- Les écrans sont des états figés de la galerie, modifiés à la main : la
+  maquette ne prouve ni le comportement au clavier ni les états de transition.
+- La distance visée par « Écarter » est une valeur d'essai.
+- La rotation passe par le réglage de teinte de la carte et déplace la
   référence ; une marque qui garde sa référence exacte n'a pas ce geste.
-- La simulation des visions des couleurs suppose une dichromatie complète ;
-  elle ne prouve pas qu'un composant reste lisible.
+- La simulation des visions des couleurs suppose une dichromatie complète.
