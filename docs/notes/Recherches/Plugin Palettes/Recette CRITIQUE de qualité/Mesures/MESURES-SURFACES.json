@@ -1,0 +1,998 @@
+{
+ "actuel": {
+  "Poppy-soft-light": {
+   "opaque 100": {
+    "page": 1.038,
+    "carte": 1.114,
+    "texte": 7.802
+   },
+   "opaque 50": {
+    "page": 1.038,
+    "carte": 1.034,
+    "texte": 8.407
+   },
+   "opaque 200": {
+    "page": 1.2,
+    "carte": 1.287,
+    "texte": 6.75
+   },
+   "translucide 50": {
+    "alpha": 0.02,
+    "couleur": "#FF0033",
+    "page": 1.034,
+    "carte": 1.034,
+    "texte": 7.831
+   },
+   "translucide 100": {
+    "alpha": 0.063,
+    "couleur": "#FF0010",
+    "page": 1.108,
+    "carte": 1.114,
+    "texte": 7.313
+   }
+  },
+  "Poppy-soft-dark": {
+   "opaque 100": {
+    "page": 1.123,
+    "carte": 1.022,
+    "texte": 10.804
+   },
+   "opaque 50": {
+    "page": 1.021,
+    "carte": 1.076,
+    "texte": 11.882
+   },
+   "opaque 200": {
+    "page": 1.286,
+    "carte": 1.171,
+    "texte": 9.43
+   },
+   "translucide 100": {
+    "alpha": 0.134,
+    "couleur": "#FF3029",
+    "page": 1.123,
+    "carte": 1.131,
+    "texte": 9.764
+   },
+   "translucide 200": {
+    "alpha": 0.231,
+    "couleur": "#FF353A",
+    "page": 1.286,
+    "carte": 1.291,
+    "texte": 8.552
+   }
+  },
+  "Poppy-vivid-light": {
+   "opaque 100": {
+    "page": 1.156,
+    "carte": 1.24,
+    "texte": 6.784
+   },
+   "opaque 50": {
+    "page": 1.07,
+    "carte": 1.148,
+    "texte": 7.331
+   },
+   "opaque 200": {
+    "page": 1.325,
+    "carte": 1.421,
+    "texte": 5.921
+   },
+   "translucide 50": {
+    "alpha": 0.09,
+    "couleur": "#FF2100",
+    "page": 1.142,
+    "carte": 1.148,
+    "texte": 6.87
+   },
+   "translucide 100": {
+    "alpha": 0.141,
+    "couleur": "#FF2300",
+    "page": 1.236,
+    "carte": 1.24,
+    "texte": 6.345
+   }
+  },
+  "Poppy-vivid-dark": {
+   "opaque 100": {
+    "page": 1.219,
+    "carte": 1.11,
+    "texte": 8.984
+   },
+   "opaque 50": {
+    "page": 1.089,
+    "carte": 1.009,
+    "texte": 10.063
+   },
+   "opaque 200": {
+    "page": 1.428,
+    "carte": 1.3,
+    "texte": 7.673
+   },
+   "translucide 100": {
+    "alpha": 0.176,
+    "couleur": "#FF4B2F",
+    "page": 1.219,
+    "carte": 1.225,
+    "texte": 8.138
+   },
+   "translucide 200": {
+    "alpha": 0.282,
+    "couleur": "#FF442C",
+    "page": 1.428,
+    "carte": 1.422,
+    "texte": 7.012
+   }
+  },
+  "Orange-soft-light": {
+   "opaque 100": {
+    "page": 1.08,
+    "carte": 1.158,
+    "texte": 7.448
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.076,
+    "texte": 8.014
+   },
+   "opaque 200": {
+    "page": 1.248,
+    "carte": 1.338,
+    "texte": 6.446
+   },
+   "translucide 50": {
+    "alpha": 0.067,
+    "couleur": "#F06900",
+    "page": 1.07,
+    "carte": 1.076,
+    "texte": 7.518
+   },
+   "translucide 100": {
+    "alpha": 0.137,
+    "couleur": "#F86D00",
+    "page": 1.153,
+    "carte": 1.158,
+    "texte": 6.978
+   }
+  },
+  "Orange-soft-dark": {
+   "opaque 100": {
+    "page": 1.094,
+    "carte": 1.004,
+    "texte": 10.677
+   },
+   "opaque 50": {
+    "page": 1.002,
+    "carte": 1.101,
+    "texte": 11.701
+   },
+   "opaque 200": {
+    "page": 1.265,
+    "carte": 1.152,
+    "texte": 9.232
+   },
+   "translucide 100": {
+    "alpha": 0.071,
+    "couleur": "#FF8205",
+    "page": 1.094,
+    "carte": 1.103,
+    "texte": 9.637
+   },
+   "translucide 200": {
+    "alpha": 0.143,
+    "couleur": "#FF9721",
+    "page": 1.265,
+    "carte": 1.298,
+    "texte": 8.189
+   }
+  },
+  "Orange-vivid-light": {
+   "opaque 100": {
+    "page": 1.136,
+    "carte": 1.219,
+    "texte": 6.324
+   },
+   "opaque 50": {
+    "page": 1.067,
+    "carte": 1.144,
+    "texte": 6.736
+   },
+   "opaque 200": {
+    "page": 1.294,
+    "carte": 1.388,
+    "texte": 5.553
+   },
+   "translucide 50": {
+    "alpha": 0.2,
+    "couleur": "#FFAA00",
+    "page": 1.128,
+    "carte": 1.144,
+    "texte": 6.368
+   },
+   "translucide 100": {
+    "alpha": 0.294,
+    "couleur": "#FFAA00",
+    "page": 1.2,
+    "carte": 1.219,
+    "texte": 5.986
+   }
+  },
+  "Orange-vivid-dark": {
+   "opaque 100": {
+    "page": 1.234,
+    "carte": 1.124,
+    "texte": 7.531
+   },
+   "opaque 50": {
+    "page": 1.093,
+    "carte": 1.005,
+    "texte": 8.503
+   },
+   "opaque 200": {
+    "page": 1.45,
+    "carte": 1.32,
+    "texte": 6.413
+   },
+   "translucide 100": {
+    "alpha": 0.151,
+    "couleur": "#FF7534",
+    "page": 1.234,
+    "carte": 1.251,
+    "texte": 6.765
+   },
+   "translucide 200": {
+    "alpha": 0.239,
+    "couleur": "#FF7230",
+    "page": 1.45,
+    "carte": 1.475,
+    "texte": 5.74
+   }
+  },
+  "Grass-soft-light": {
+   "opaque 100": {
+    "page": 1.065,
+    "carte": 1.142,
+    "texte": 7.181
+   },
+   "opaque 50": {
+    "page": 1.001,
+    "carte": 1.072,
+    "texte": 7.651
+   },
+   "opaque 200": {
+    "page": 1.203,
+    "carte": 1.29,
+    "texte": 6.356
+   },
+   "translucide 50": {
+    "alpha": 0.075,
+    "couleur": "#36BC00",
+    "page": 1.064,
+    "carte": 1.072,
+    "texte": 7.184
+   },
+   "translucide 100": {
+    "alpha": 0.149,
+    "couleur": "#36C300",
+    "page": 1.136,
+    "carte": 1.142,
+    "texte": 6.732
+   }
+  },
+  "Grass-soft-dark": {
+   "opaque 100": {
+    "page": 1.105,
+    "carte": 1.006,
+    "texte": 11.222
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.102,
+    "texte": 12.445
+   },
+   "opaque 200": {
+    "page": 1.279,
+    "carte": 1.165,
+    "texte": 9.698
+   },
+   "translucide 100": {
+    "alpha": 0.051,
+    "couleur": "#9BFF76",
+    "page": 1.105,
+    "carte": 1.121,
+    "texte": 10.071
+   },
+   "translucide 200": {
+    "alpha": 0.105,
+    "couleur": "#A9FF98",
+    "page": 1.279,
+    "carte": 1.319,
+    "texte": 8.564
+   }
+  },
+  "Grass-vivid-light": {
+   "opaque 100": {
+    "page": 1.049,
+    "carte": 1.125,
+    "texte": 7.096
+   },
+   "opaque 50": {
+    "page": 1.011,
+    "carte": 1.061,
+    "texte": 7.524
+   },
+   "opaque 200": {
+    "page": 1.167,
+    "carte": 1.252,
+    "texte": 6.376
+   },
+   "translucide 50": {
+    "alpha": 0.106,
+    "couleur": "#00FF39",
+    "page": 1.053,
+    "carte": 1.061,
+    "texte": 7.068
+   },
+   "translucide 100": {
+    "alpha": 0.224,
+    "couleur": "#00FF43",
+    "page": 1.108,
+    "carte": 1.125,
+    "texte": 6.72
+   }
+  },
+  "Grass-vivid-dark": {
+   "opaque 100": {
+    "page": 1.1,
+    "carte": 1.002,
+    "texte": 11.668
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.095,
+    "texte": 12.793
+   },
+   "opaque 200": {
+    "page": 1.286,
+    "carte": 1.171,
+    "texte": 9.982
+   },
+   "translucide 100": {
+    "alpha": 0.055,
+    "couleur": "#23FF25",
+    "page": 1.1,
+    "carte": 1.114,
+    "texte": 10.492
+   },
+   "translucide 200": {
+    "alpha": 0.118,
+    "couleur": "#3BFF4E",
+    "page": 1.286,
+    "carte": 1.324,
+    "texte": 8.826
+   }
+  },
+  "Sky-soft-light": {
+   "opaque 100": {
+    "page": 1.073,
+    "carte": 1.151,
+    "texte": 7.272
+   },
+   "opaque 50": {
+    "page": 1,
+    "carte": 1.073,
+    "texte": 7.8
+   },
+   "opaque 200": {
+    "page": 1.226,
+    "carte": 1.315,
+    "texte": 6.365
+   },
+   "translucide 50": {
+    "alpha": 0.055,
+    "couleur": "#0080C8",
+    "page": 1.075,
+    "carte": 1.073,
+    "texte": 7.258
+   },
+   "translucide 100": {
+    "alpha": 0.106,
+    "couleur": "#007BC6",
+    "page": 1.144,
+    "carte": 1.151,
+    "texte": 6.817
+   }
+  },
+  "Sky-soft-dark": {
+   "opaque 100": {
+    "page": 1.1,
+    "carte": 1.002,
+    "texte": 10.857
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.102,
+    "texte": 11.985
+   },
+   "opaque 200": {
+    "page": 1.265,
+    "carte": 1.152,
+    "texte": 9.445
+   },
+   "translucide 100": {
+    "alpha": 0.068,
+    "couleur": "#4CB4FF",
+    "page": 1.1,
+    "carte": 1.113,
+    "texte": 9.77
+   },
+   "translucide 200": {
+    "alpha": 0.14,
+    "couleur": "#60B6FF",
+    "page": 1.265,
+    "carte": 1.302,
+    "texte": 8.355
+   }
+  },
+  "Sky-vivid-light": {
+   "opaque 100": {
+    "page": 1.118,
+    "carte": 1.199,
+    "texte": 6.975
+   },
+   "opaque 50": {
+    "page": 1.043,
+    "carte": 1.119,
+    "texte": 7.474
+   },
+   "opaque 200": {
+    "page": 1.259,
+    "carte": 1.35,
+    "texte": 6.194
+   },
+   "translucide 50": {
+    "alpha": 0.11,
+    "couleur": "#00A4FF",
+    "page": 1.112,
+    "carte": 1.119,
+    "texte": 7.012
+   },
+   "translucide 100": {
+    "alpha": 0.176,
+    "couleur": "#00A4F9",
+    "page": 1.191,
+    "carte": 1.199,
+    "texte": 6.545
+   }
+  },
+  "Sky-vivid-dark": {
+   "opaque 100": {
+    "page": 1.097,
+    "carte": 1.001,
+    "texte": 10.777
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.103,
+    "texte": 11.869
+   },
+   "opaque 200": {
+    "page": 1.269,
+    "carte": 1.155,
+    "texte": 9.318
+   },
+   "translucide 100": {
+    "alpha": 0.076,
+    "couleur": "#1EA2FF",
+    "page": 1.097,
+    "carte": 1.109,
+    "texte": 9.705
+   },
+   "translucide 200": {
+    "alpha": 0.153,
+    "couleur": "#32AFFF",
+    "page": 1.269,
+    "carte": 1.291,
+    "texte": 8.336
+   }
+  }
+ },
+ "enveloppe": {
+  "Poppy-soft-light": {
+   "opaque 100": {
+    "page": 1.086,
+    "carte": 1.165,
+    "texte": 7.765
+   },
+   "opaque 50": {
+    "page": 1.005,
+    "carte": 1.078,
+    "texte": 8.391
+   },
+   "opaque 200": {
+    "page": 1.255,
+    "carte": 1.346,
+    "texte": 6.722
+   },
+   "translucide 50": {
+    "alpha": 0.043,
+    "couleur": "#E80017",
+    "page": 1.081,
+    "carte": 1.078,
+    "texte": 7.806
+   },
+   "translucide 100": {
+    "alpha": 0.086,
+    "couleur": "#E8000C",
+    "page": 1.16,
+    "carte": 1.165,
+    "texte": 7.274
+   }
+  },
+  "Poppy-soft-dark": {
+   "opaque 100": {
+    "page": 1.083,
+    "carte": 1.014,
+    "texte": 10.671
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.102,
+    "texte": 11.592
+   },
+   "opaque 200": {
+    "page": 1.239,
+    "carte": 1.128,
+    "texte": 9.323
+   },
+   "translucide 100": {
+    "alpha": 0.101,
+    "couleur": "#FF3027",
+    "page": 1.083,
+    "carte": 1.087,
+    "texte": 9.675
+   },
+   "translucide 200": {
+    "alpha": 0.189,
+    "couleur": "#FF4743",
+    "page": 1.239,
+    "carte": 1.247,
+    "texte": 8.437
+   }
+  },
+  "Poppy-vivid-light": {
+   "opaque 100": {
+    "page": 1.088,
+    "carte": 1.167,
+    "texte": 7.86
+   },
+   "opaque 50": {
+    "page": 1.005,
+    "carte": 1.078,
+    "texte": 8.503
+   },
+   "opaque 200": {
+    "page": 1.253,
+    "carte": 1.344,
+    "texte": 6.821
+   },
+   "translucide 50": {
+    "alpha": 0.051,
+    "couleur": "#FF2700",
+    "page": 1.081,
+    "carte": 1.078,
+    "texte": 7.91
+   },
+   "translucide 100": {
+    "alpha": 0.102,
+    "couleur": "#F52700",
+    "page": 1.161,
+    "carte": 1.167,
+    "texte": 7.363
+   }
+  },
+  "Poppy-vivid-dark": {
+   "opaque 100": {
+    "page": 1.081,
+    "carte": 1.016,
+    "texte": 10.67
+   },
+   "opaque 50": {
+    "page": 1.007,
+    "carte": 1.106,
+    "texte": 11.618
+   },
+   "opaque 200": {
+    "page": 1.234,
+    "carte": 1.123,
+    "texte": 9.352
+   },
+   "translucide 100": {
+    "alpha": 0.109,
+    "couleur": "#FF2401",
+    "page": 1.081,
+    "carte": 1.084,
+    "texte": 9.69
+   },
+   "translucide 200": {
+    "alpha": 0.206,
+    "couleur": "#FF341D",
+    "page": 1.234,
+    "carte": 1.236,
+    "texte": 8.496
+   }
+  },
+  "Orange-soft-light": {
+   "opaque 100": {
+    "page": 1.083,
+    "carte": 1.162,
+    "texte": 7.411
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.076,
+    "texte": 7.999
+   },
+   "opaque 200": {
+    "page": 1.25,
+    "carte": 1.34,
+    "texte": 6.424
+   },
+   "translucide 50": {
+    "alpha": 0.067,
+    "couleur": "#F06900",
+    "page": 1.07,
+    "carte": 1.076,
+    "texte": 7.504
+   },
+   "translucide 100": {
+    "alpha": 0.129,
+    "couleur": "#E86400",
+    "page": 1.156,
+    "carte": 1.162,
+    "texte": 6.943
+   }
+  },
+  "Orange-soft-dark": {
+   "opaque 100": {
+    "page": 1.094,
+    "carte": 1.004,
+    "texte": 10.695
+   },
+   "opaque 50": {
+    "page": 1.002,
+    "carte": 1.1,
+    "texte": 11.715
+   },
+   "opaque 200": {
+    "page": 1.262,
+    "carte": 1.149,
+    "texte": 9.271
+   },
+   "translucide 100": {
+    "alpha": 0.071,
+    "couleur": "#FF8205",
+    "page": 1.094,
+    "carte": 1.103,
+    "texte": 9.654
+   },
+   "translucide 200": {
+    "alpha": 0.139,
+    "couleur": "#FF9B30",
+    "page": 1.262,
+    "carte": 1.295,
+    "texte": 8.223
+   }
+  },
+  "Orange-vivid-light": {
+   "opaque 100": {
+    "page": 1.084,
+    "carte": 1.162,
+    "texte": 7.547
+   },
+   "opaque 50": {
+    "page": 1.001,
+    "carte": 1.074,
+    "texte": 8.17
+   },
+   "opaque 200": {
+    "page": 1.248,
+    "carte": 1.338,
+    "texte": 6.556
+   },
+   "translucide 50": {
+    "alpha": 0.106,
+    "couleur": "#FFAA00",
+    "page": 1.067,
+    "carte": 1.074,
+    "texte": 7.669
+   },
+   "translucide 100": {
+    "alpha": 0.208,
+    "couleur": "#FAA400",
+    "page": 1.147,
+    "carte": 1.162,
+    "texte": 7.132
+   }
+  },
+  "Orange-vivid-dark": {
+   "opaque 100": {
+    "page": 1.094,
+    "carte": 1.004,
+    "texte": 8.497
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.102,
+    "texte": 9.329
+   },
+   "opaque 200": {
+    "page": 1.247,
+    "carte": 1.136,
+    "texte": 7.453
+   },
+   "translucide 100": {
+    "alpha": 0.105,
+    "couleur": "#E24B00",
+    "page": 1.094,
+    "carte": 1.102,
+    "texte": 7.681
+   },
+   "translucide 200": {
+    "alpha": 0.172,
+    "couleur": "#FF6319",
+    "page": 1.247,
+    "carte": 1.258,
+    "texte": 6.729
+   }
+  },
+  "Grass-soft-light": {
+   "opaque 100": {
+    "page": 1.069,
+    "carte": 1.147,
+    "texte": 7.041
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.07,
+    "texte": 7.546
+   },
+   "opaque 200": {
+    "page": 1.218,
+    "carte": 1.307,
+    "texte": 6.176
+   },
+   "translucide 50": {
+    "alpha": 0.055,
+    "couleur": "#249200",
+    "page": 1.072,
+    "carte": 1.07,
+    "texte": 7.022
+   },
+   "translucide 100": {
+    "alpha": 0.114,
+    "couleur": "#2C9500",
+    "page": 1.14,
+    "carte": 1.147,
+    "texte": 6.6
+   }
+  },
+  "Grass-soft-dark": {
+   "opaque 100": {
+    "page": 1.104,
+    "carte": 1.005,
+    "texte": 11.041
+   },
+   "opaque 50": {
+    "page": 1.001,
+    "carte": 1.1,
+    "texte": 12.203
+   },
+   "opaque 200": {
+    "page": 1.278,
+    "carte": 1.164,
+    "texte": 9.531
+   },
+   "translucide 100": {
+    "alpha": 0.055,
+    "couleur": "#48FF25",
+    "page": 1.104,
+    "carte": 1.119,
+    "texte": 9.92
+   },
+   "translucide 200": {
+    "alpha": 0.114,
+    "couleur": "#57FF50",
+    "page": 1.278,
+    "carte": 1.317,
+    "texte": 8.428
+   }
+  },
+  "Grass-vivid-light": {
+   "opaque 100": {
+    "page": 1.062,
+    "carte": 1.139,
+    "texte": 7.058
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.068,
+    "texte": 7.526
+   },
+   "opaque 200": {
+    "page": 1.197,
+    "carte": 1.284,
+    "texte": 6.263
+   },
+   "translucide 50": {
+    "alpha": 0.082,
+    "couleur": "#00DB31",
+    "page": 1.061,
+    "carte": 1.068,
+    "texte": 7.067
+   },
+   "translucide 100": {
+    "alpha": 0.165,
+    "couleur": "#00DB37",
+    "page": 1.132,
+    "carte": 1.139,
+    "texte": 6.619
+   }
+  },
+  "Grass-vivid-dark": {
+   "opaque 100": {
+    "page": 1.102,
+    "carte": 1.004,
+    "texte": 11.415
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.101,
+    "texte": 12.621
+   },
+   "opaque 200": {
+    "page": 1.289,
+    "carte": 1.173,
+    "texte": 9.766
+   },
+   "translucide 100": {
+    "alpha": 0.055,
+    "couleur": "#35FF37",
+    "page": 1.102,
+    "carte": 1.117,
+    "texte": 10.258
+   },
+   "translucide 200": {
+    "alpha": 0.118,
+    "couleur": "#44FF57",
+    "page": 1.289,
+    "carte": 1.328,
+    "texte": 8.631
+   }
+  },
+  "Sky-soft-light": {
+   "opaque 100": {
+    "page": 1.078,
+    "carte": 1.156,
+    "texte": 7.27
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.075,
+    "texte": 7.813
+   },
+   "opaque 200": {
+    "page": 1.227,
+    "carte": 1.316,
+    "texte": 6.387
+   },
+   "translucide 50": {
+    "alpha": 0.063,
+    "couleur": "#008FEF",
+    "page": 1.069,
+    "carte": 1.075,
+    "texte": 7.331
+   },
+   "translucide 100": {
+    "alpha": 0.122,
+    "couleur": "#008CEF",
+    "page": 1.15,
+    "carte": 1.156,
+    "texte": 6.815
+   }
+  },
+  "Sky-soft-dark": {
+   "opaque 100": {
+    "page": 1.099,
+    "carte": 1,
+    "texte": 10.935
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.103,
+    "texte": 12.062
+   },
+   "opaque 200": {
+    "page": 1.274,
+    "carte": 1.16,
+    "texte": 9.426
+   },
+   "translucide 100": {
+    "alpha": 0.076,
+    "couleur": "#2BA2FF",
+    "page": 1.099,
+    "carte": 1.111,
+    "texte": 9.844
+   },
+   "translucide 200": {
+    "alpha": 0.157,
+    "couleur": "#3EABFF",
+    "page": 1.274,
+    "carte": 1.298,
+    "texte": 8.427
+   }
+  },
+  "Sky-vivid-light": {
+   "opaque 100": {
+    "page": 1.07,
+    "carte": 1.148,
+    "texte": 7.28
+   },
+   "opaque 50": {
+    "page": 1.003,
+    "carte": 1.07,
+    "texte": 7.811
+   },
+   "opaque 200": {
+    "page": 1.225,
+    "carte": 1.314,
+    "texte": 6.361
+   },
+   "translucide 50": {
+    "alpha": 0.067,
+    "couleur": "#00A5FF",
+    "page": 1.063,
+    "carte": 1.07,
+    "texte": 7.33
+   },
+   "translucide 100": {
+    "alpha": 0.137,
+    "couleur": "#00A8F8",
+    "page": 1.141,
+    "carte": 1.148,
+    "texte": 6.825
+   }
+  },
+  "Sky-vivid-dark": {
+   "opaque 100": {
+    "page": 1.097,
+    "carte": 1.001,
+    "texte": 11.045
+   },
+   "opaque 50": {
+    "page": 1.004,
+    "carte": 1.103,
+    "texte": 12.164
+   },
+   "opaque 200": {
+    "page": 1.269,
+    "carte": 1.155,
+    "texte": 9.55
+   },
+   "translucide 100": {
+    "alpha": 0.076,
+    "couleur": "#1EA2FF",
+    "page": 1.097,
+    "carte": 1.109,
+    "texte": 9.947
+   },
+   "translucide 200": {
+    "alpha": 0.153,
+    "couleur": "#32AFFF",
+    "page": 1.269,
+    "carte": 1.291,
+    "texte": 8.544
+   }
+  }
+ }
+}

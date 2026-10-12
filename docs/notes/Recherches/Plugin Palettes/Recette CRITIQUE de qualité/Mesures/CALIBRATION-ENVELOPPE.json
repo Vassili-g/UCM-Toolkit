@@ -1,0 +1,125 @@
+{
+ "resultats": {
+  "tailwind": {
+   "partConstante": {
+    "part": 0.9200000000000005,
+    "moyenne": 0.009620559213668533,
+    "p90": 0.020841906553290435
+   },
+   "enveloppe": {
+    "part": 0.9400000000000003,
+    "a": 2.000000000000001,
+    "b": 0.4750000000000002,
+    "moyenne": 0.007046708465172609,
+    "p90": 0.018047117523968342
+   }
+  },
+  "radixClair": {
+   "partConstante": {
+    "part": 0.7800000000000004,
+    "moyenne": 0.019885353106723028,
+    "p90": 0.04508804193611732
+   },
+   "enveloppe": {
+    "part": 0.8800000000000002,
+    "a": 0.65,
+    "b": 0.3750000000000001,
+    "moyenne": 0.01603726676943862,
+    "p90": 0.03437102888892715
+   }
+  },
+  "radixSombre": {
+   "partConstante": {
+    "part": 0.7600000000000003,
+    "moyenne": 0.02335246792582345,
+    "p90": 0.04847571126861383
+   },
+   "enveloppe": {
+    "part": 0.8800000000000002,
+    "a": 2.000000000000001,
+    "b": 0.30000000000000004,
+    "moyenne": 0.01575793289155895,
+    "p90": 0.033664994265810655
+   }
+  }
+ },
+ "parCran": [
+  {
+   "cran": "50",
+   "L": 0.977,
+   "C": 0.016,
+   "ecartPartConstante": 0.001,
+   "ecartEnveloppe": 0.001
+  },
+  {
+   "cran": "100",
+   "L": 0.951,
+   "C": 0.036,
+   "ecartPartConstante": 0.003,
+   "ecartEnveloppe": 0.002
+  },
+  {
+   "cran": "200",
+   "L": 0.902,
+   "C": 0.073,
+   "ecartPartConstante": 0.004,
+   "ecartEnveloppe": 0.002
+  },
+  {
+   "cran": "300",
+   "L": 0.833,
+   "C": 0.115,
+   "ecartPartConstante": 0.005,
+   "ecartEnveloppe": 0.003
+  },
+  {
+   "cran": "400",
+   "L": 0.754,
+   "C": 0.164,
+   "ecartPartConstante": 0.004,
+   "ecartEnveloppe": 0.004
+  },
+  {
+   "cran": "500",
+   "L": 0.685,
+   "C": 0.192,
+   "ecartPartConstante": 0.009,
+   "ecartEnveloppe": 0.007
+  },
+  {
+   "cran": "600",
+   "L": 0.592,
+   "C": 0.194,
+   "ecartPartConstante": 0.011,
+   "ecartEnveloppe": 0.006
+  },
+  {
+   "cran": "700",
+   "L": 0.514,
+   "C": 0.174,
+   "ecartPartConstante": 0.007,
+   "ecartEnveloppe": 0.004
+  },
+  {
+   "cran": "800",
+   "L": 0.448,
+   "C": 0.143,
+   "ecartPartConstante": 0.003,
+   "ecartEnveloppe": 0.003
+  },
+  {
+   "cran": "900",
+   "L": 0.396,
+   "C": 0.116,
+   "ecartPartConstante": 0.006,
+   "ecartEnveloppe": 0.006
+  },
+  {
+   "cran": "950",
+   "L": 0.279,
+   "C": 0.076,
+   "ecartPartConstante": 0.002,
+   "ecartEnveloppe": 0.003
+  }
+ ]
+}

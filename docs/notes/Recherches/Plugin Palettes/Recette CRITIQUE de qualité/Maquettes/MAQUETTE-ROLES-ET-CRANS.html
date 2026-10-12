@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rôles et crans du thème</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e2e2e2; --marque: #007be5; --fond: #fafafa; --ok: #1a7f37; --non: #c62828; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 40px 96px; background: var(--fond); color: var(--texte); font: 13px/1.55 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  h2 { margin: 48px 0 6px; padding-top: 20px; border-top: 1px solid var(--filet); font-size: 17px; }
+  h3 { margin: 18px 0 6px; font-size: 13px; }
+  p, ul, ol { max-width: 940px; }
+  .chapeau { color: var(--second); }
+  code { font: 11px ui-monospace, Consolas, monospace; background: #eee; padding: 1px 4px; border-radius: 3px; }
+  nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; margin: 10px 0 0; }
+  nav a { color: var(--marque); text-decoration: none; }
+  .commandes { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 12px; background: #fff; border: 1px solid var(--filet); border-radius: 8px; margin: 10px 0; }
+  .groupe { display: flex; gap: 6px; align-items: center; }
+  .groupe > span { color: var(--second); font-size: 11px; }
+  .bascule { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; }
+  .bascule button { border: 0; background: #fff; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid var(--filet); }
+  .bascule button[aria-pressed="true"] { background: #1e1e1e; color: #fff; }
+  table { border-collapse: collapse; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: top; font-size: 12px; }
+  th { color: var(--second); font-weight: 600; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .non { color: var(--non); font-weight: 600; }
+
+  /* Grilles de scènes : une piste par ligne, un support par colonne. */
+  .grille { display: grid; grid-template-columns: 200px repeat(4, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+  .grille > .tete { font-size: 11px; color: var(--second); font-weight: 600; padding: 4px 2px; }
+  .piste { padding: 8px 4px; font-size: 12px; }
+  .piste b { display: block; }
+  .piste span { color: var(--second); font-size: 11px; }
+  .scene { border-radius: 8px; padding: 14px; display: grid; gap: 8px; align-content: start; min-height: 120px; }
+  .scene .mesure { font-size: 10.5px; opacity: .8; }
+  .alerte { border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
+  .alerte b { display: block; font-size: 12.5px; }
+  .badges { display: flex; gap: 6px; }
+  .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+
+  /* Focus. */
+  .focus-scene { border-radius: 8px; padding: 18px 16px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; min-height: 92px; }
+  .bouton { height: 32px; padding: 0 14px; border-radius: 6px; font: 600 12.5px Inter, system-ui, sans-serif; border: 1px solid transparent; display: inline-flex; align-items: center; }
+  .champ { height: 32px; width: 150px; padding: 0 10px; border-radius: 6px; font-size: 12.5px; border: 1px solid; display: inline-flex; align-items: center; }
+  .lien { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; border-radius: 3px; padding: 0 2px; }
+
+  /* Panneau des variables de Figma. */
+  .panneaux { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .figma { background: #fff; border: 1px solid var(--filet); border-radius: 8px; font-size: 11px; overflow: hidden; }
+  .figma header { padding: 8px 10px; border-bottom: 1px solid var(--filet); font-weight: 600; font-size: 12px; }
+  .figma .groupe-var { padding: 4px 10px 2px; color: var(--second); font-size: 10.5px; }
+  .figma .var { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; padding: 3px 10px 3px 22px; }
+  .figma .var i { width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .figma .var em { font-style: normal; color: var(--second); font-size: 10px; }
+  .figma .var[data-neuf] { background: #eef6ff; }
+  .figma .pied { padding: 8px 10px; border-top: 1px solid var(--filet); color: var(--second); }
+  ol.decisions li { margin-bottom: 8px; }
+</style>
+<script src="donnees-qualite.js"></script>
+<script src="couleurs.js"></script>
+</head>
+<body>
+
+<h1>Rôles et crans du thème</h1>
+<p class="chapeau">Les crans que la table du thème (<code>TABLE_DES_DOSSIERS</code>) donne aux fonds teintés et au focus, éprouvés sur la page et sur la carte, dans les deux thèmes. Les couleurs viennent de la recette du mainteneur, dans la règle de chroma choisie. Le thème Dark est inversé : le texte des boutons y est blanc.</p>
+<nav><a href="#surfaces">1. Le fond teinté et son support</a><a href="#focus">2. Le focus</a><a href="#rangement">3. Où ranger le focus</a><a href="#table">4. La table proposée</a><a href="#decisions">5. Décisions</a></nav>
+
+<h2 id="surfaces">1. Le fond teinté et son support</h2>
+<p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,08:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
+<p>Un fond translucide se compose avec son support. On le calcule comme les échelles alpha de Radix : la couleur d'alpha minimal qui redonne exactement le cran sur le support le plus éloigné du texte, la carte blanche en Light, la page en Dark. Posé sur l'autre support, il garde le même écart.</p>
+<div class="commandes">
+  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
+  <div class="groupe"><span>Règle</span><div class="bascule" data-commande="variante"></div></div>
+</div>
+<div class="grille" id="grille-surfaces"></div>
+
+<h2 id="focus">2. Le focus</h2>
+<p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark, un cran plus clair tient partout. L'impression de couleur foncée vient donc aussi de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Aucun système relevé n'emploie un pas pâle seul ; le halo pâle du kit Figma d'Untitled UI vaut environ 1,16:1 sur blanc.</p>
+<div class="commandes">
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="fMode"></div></div>
+  <div class="groupe"><span>Support</span><div class="bascule" data-commande="fSupport"></div></div>
+</div>
+<div class="grille" id="grille-focus" style="grid-template-columns: 200px minmax(0, 1fr) 260px"></div>
+
+<h2 id="rangement">3. Où ranger le focus</h2>
+<p>Le focus est rangé dans <code>page</code> parce que l'anneau se peint sur la page, et la règle des dossiers est « la couleur juste derrière le texte ». L'anneau n'a pas de texte : la règle ne le place nulle part avec évidence, et le mainteneur ne l'a pas trouvé en reliant un bouton <code>solid</code>. Le contrat nomme ce rôle <code>ring</code> (<code>SUPPORT_DES_VARIABLES</code>) ; la variable <code>text</code> est déjà devenue <code>foreground</code> pour suivre les rôles du contrat.</p>
+<div class="panneaux" id="panneaux-figma"></div>
+<table style="margin-top:14px">
+  <thead><tr><th>Système</th><th>Rangement du focus</th><th>Portée</th></tr></thead>
+  <tbody>
+    <tr><td>Primer, Carbon, Spectrum</td><td>Racine <code>focus</code></td><td>Global</td></tr>
+    <tr><td>Atlassian, Polaris</td><td>Famille des bordures : <code>color.border.focused</code></td><td>Global</td></tr>
+    <tr><td>shadcn/ui, Untitled UI</td><td><code>ring</code>, <code>focus-ring</code></td><td>Global, une variante par état d'erreur</td></tr>
+    <tr><td>Radix Themes</td><td>Échelle <code>focus-1</code> à <code>12</code>, liée à l'accent</td><td>Par accent du composant</td></tr>
+    <tr><td>Material 3</td><td>Token de composant <code>md.comp.focus-ring</code></td><td>Global</td></tr>
+  </tbody>
+</table>
+
+<h2 id="table">4. La table proposée</h2>
+<p class="chapeau">Les lignes qui changent, dans les deux sens du thème. Les autres variables gardent leur cran. Le cran 50 devient requis dès que <code>surface/default</code> le vise en Light.</p>
+<table>
+  <thead><tr><th>Variable</th><th>Light, aujourd'hui</th><th>Light, proposé</th><th>Dark, aujourd'hui (normal · inversé)</th><th>Dark, proposé</th></tr></thead>
+  <tbody>
+    <tr><td><code>surface/default</code></td><td>100</td><td>50, translucide calculé sur la carte</td><td>100 · 100</td><td>100, translucide calculé sur la page</td></tr>
+    <tr><td><code>surface/hover</code></td><td>200</td><td>100, translucide</td><td>200 · 200</td><td>200, translucide</td></tr>
+    <tr><td><code>surface/pressed</code></td><td>300</td><td>200, translucide</td><td>300 · 300</td><td>300, translucide</td></tr>
+    <tr><td><code>page/focus</code></td><td>600</td><td><code>solid/ring</code>, <code>surface/ring</code>, <code>page/ring</code> : 600</td><td>600 · 700</td><td>Les trois <code>ring</code> : 700 · 800</td></tr>
+    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800</td><td>800, inchangé</td><td>800 · 900</td><td>inchangé</td></tr>
+  </tbody>
+</table>
+<p>Avec ces fonds, le texte de surface tient 4,5:1 sur les trois états et les deux supports dans tout le balayage de 72 teintes, et au moins 7,0:1 au repos dans la recette du mainteneur. Le moteur actuel n'écrit que des couleurs opaques : la piste translucide demande une échelle alpha par palette, que la section « Décisions » chiffre.</p>
+
+<h2 id="decisions">5. Décisions</h2>
+<ol class="decisions">
+  <li><b>Q5. Le fond teinté.</b> Trois pistes : opaque 50 en Light et 200 en Dark (le texte passe à 950 et le focus à 800 en Dark, selon le dossier d'élévation) ; opaque avec un contour discret ; translucide (recommandée). La piste translucide ajoute trois couleurs alpha par profil et par thème, écrites dans <code>primitives</code> à côté des crans. Elle demande à la recette le fond des cartes, en plus de celui de la page : c'est la décision P9 encore ouverte.</li>
+  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; éclaircir d'un cran en Dark (700 normal, 800 inversé).</li>
+  <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé, la forme de Figma SDS, Radix et Spectrum) ou halo et trait (le halo pâle d'Untitled UI, bordé du trait qui tient 3:1). La forme se règle dans les composants, pas dans Palettes.</li>
+  <li><b>Q8. Le nom et la place.</b> <code>ring</code> dans chaque dossier (recommandé), <code>ring</code> à la racine de la palette, ou <code>page/focus</code> conservé. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
+</ol>
+
+<script>
+(() => {
+  const U = window.UCM;
+  const D = U.D;
+  const lire = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
+  const ecrire = (cle, valeur) => { try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch { /* stockage indisponible */ } };
+  const etat = lire('roles-etat', { palette: 'Grass', intensite: 'soft', variante: 'enveloppe', fMode: 'light', fSupport: 'raised' });
+  const OPTIONS = {
+    palette: ['Poppy', 'Orange', 'Grass', 'Sky'].map((n) => [n, n]),
+    intensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    variante: [['actuel', 'Actuel'], ['enveloppe', 'Enveloppe']],
+    fMode: [['light', 'Light'], ['dark', 'Dark']],
+    fSupport: [['page', 'Page'], ['raised', 'Carte']],
+  };
+  const verdict = (x, seuil) => `<span class="${x >= seuil ? 'ok' : 'non'}">${U.ct(x)}</span>`;
+
+  const PISTES = [
+    { id: 'table', nom: 'Aujourd\'hui', detail: 'Opaque 100, 200, 300 dans les deux thèmes' },
+    { id: 'essai', nom: 'Opaque 50 en Light', detail: 'L\'essai du mainteneur ; texte 700. Dark inchangé.' },
+    { id: 'dark200', nom: 'Opaque 200 en Dark', detail: 'Dossier d\'élévation : 200, 300, 400, texte 950, focus 800. Light inchangé.' },
+    { id: 'translucide', nom: 'Translucide', detail: 'Light : 50, 100, 200 sur la carte. Dark : 100, 200, 300 sur la page.' },
+  ];
+  const SUPPORTS = [['light', 'page', 'Light · page'], ['light', 'raised', 'Light · carte'], ['dark', 'page', 'Dark · page'], ['dark', 'raised', 'Dark · carte']];
+
+  function dessinerSurfaces() {
+    let html = '<span></span>' + SUPPORTS.map(([, , n]) => `<span class="tete">${n}</span>`).join('');
+    for (const piste of PISTES) {
+      html += `<div class="piste"><b>${piste.nom}</b><span>${piste.detail}</span></div>`;
+      for (const [mode, support] of SUPPORTS) {
+        const j = U.jeu({ variante: etat.variante, palette: etat.palette, intensite: etat.intensite, mode, support, crans: piste.id });
+        const fond = j.fond;
+        const surface = U.rendu(j.surface.default, fond);
+        const titre = mode === 'light' ? '#1e1e1e' : '#f2f2f2';
+        html += `<div class="scene" style="background:${fond}">
+          <div class="alerte" style="background:${U.css(j.surface.default)};color:${j.surface.foreground}"><b>Modifications publiées</b>La version 4.2 est en ligne.</div>
+          <div class="badges"><span class="badge" style="background:${U.css(j.surface.default)};color:${j.surface.foreground}">Actif</span>
+            <span class="badge" style="background:${U.css(j.surface.hover)};color:${j.surface.foreground}">Survol</span>
+            <span class="badge" style="background:${U.css(j.surface.pressed)};color:${j.surface.foreground}">Appui</span></div>
+          <span class="mesure" style="color:${titre}">fond ${U.ct(U.contraste(surface, fond))} sur le support · texte ${verdict(U.contraste(j.surface.foreground, U.rendu(j.surface.pressed, fond)), 4.5)} sur l'appui</span>
+        </div>`;
+      }
+    }
+    document.getElementById('grille-surfaces').innerHTML = html;
+  }
+
+  // Le focus : chaque forme sur un bouton plein, un bouton teinté, un bouton contour, un champ et un lien.
+  const FORMES = [
+    { id: 'colle', nom: 'Aujourd\'hui', detail: 'Trait de 2 px collé, cran du focus', ombre: (f, a) => `0 0 0 2px ${a}` },
+    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; un cran plus clair en Dark', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
+    { id: 'halo', nom: 'Halo seul', detail: 'Le kit Figma d\'Untitled UI : 4 px au cran 100', ombre: (f, a, h) => `0 0 0 4px ${h}` },
+    { id: 'halo-trait', nom: 'Halo et trait', detail: '2 px de halo au cran 100 (300 en Dark), puis 2 px de trait', ombre: (f, a, h) => `0 0 0 2px ${h}, 0 0 0 4px ${a}`, clair: true },
+  ];
+  function dessinerFocus() {
+    const mode = etat.fMode;
+    let html = '<span></span><span class="tete">Composants au focus, quatre utilitaires</span><span class="tete">Contraste de l\'indicateur</span>';
+    for (const forme of FORMES) {
+      html += `<div class="piste"><b>${forme.nom}</b><span>${forme.detail}</span></div>`;
+      let scene = '';
+      const mesures = [];
+      for (const palette of ['Poppy', 'Orange', 'Grass', 'Sky']) {
+        const j = U.jeu({ variante: etat.variante, palette, intensite: etat.intensite, mode, support: etat.fSupport });
+        const fond = j.fond;
+        const sensInverse = U.sens(mode) === 'inverse';
+        const cranFocus = mode === 'dark' && forme.clair ? (sensInverse ? 800 : 700) : (mode === 'light' ? 600 : (sensInverse ? 700 : 600));
+        const anneau = U.cran(etat.variante, palette, etat.intensite, mode, cranFocus);
+        const halo = U.cran(etat.variante, palette, etat.intensite, mode, mode === 'light' ? 100 : 300);
+        const ombre = forme.ombre(fond, anneau, halo);
+        const exterieur = forme.id === 'halo' ? halo : anneau;
+        mesures.push(`${palette} : ${verdict(U.contraste(exterieur, fond), 3)}${forme.id === 'colle' ? ` · contre le plein ${verdict(U.contraste(anneau, j.solid.default), 3)}` : ''}`);
+        const champ = U.cran('actuel', 'Titanium', 'soft', mode, mode === 'light' ? 300 : 400);
+        scene += palette === 'Grass'
+          ? `<span class="bouton" style="background:${j.solid.default};color:${j.solid.foreground};box-shadow:${ombre}">Valider</span>
+             <span class="bouton" style="background:${U.css(j.surface.default)};color:${j.surface.foreground};box-shadow:${ombre}">Revoir</span>
+             <span class="bouton" style="border-color:${j.page.border};color:${j.page.foreground};box-shadow:${ombre}">Annuler</span>
+             <span class="champ" style="border-color:${champ};color:${mode === 'light' ? '#1e1e1e' : '#eee'};box-shadow:${ombre}">Adresse</span>
+             <span class="lien" style="color:${j.page.foreground};box-shadow:${ombre}">Voir le détail</span>`
+          : `<span class="bouton" style="background:${j.solid.default};color:${j.solid.foreground};box-shadow:${ombre}">${palette}</span>`;
+      }
+      html += `<div class="focus-scene" style="background:${D.supports[mode][etat.fSupport]}">${scene}</div><div class="piste" style="font-size:11px">${mesures.join('<br>')}<br><span>Seuil 3:1 contre le support (1.4.11).</span></div>`;
+    }
+    document.getElementById('grille-focus').innerHTML = html;
+  }
+
+  // Trois panneaux de variables, sur la palette choisie en Light.
+  function dessinerFigma() {
+    const j = U.jeu({ variante: etat.variante, palette: etat.palette, intensite: etat.intensite, mode: 'light' });
+    const ligne = (nom, couleur, cran, neuf) => `<div class="var"${neuf ? ' data-neuf' : ''}><i style="background:${U.css(couleur)}"></i><span>${nom}</span><em>${cran}</em></div>`;
+    const dossier = (nom, lignes) => `<div class="groupe-var">${nom}</div>${lignes.join('')}`;
+    const solid = (ring) => dossier('solid', [ligne('default', j.solid.default, 700), ligne('hover', j.solid.hover, 800), ligne('pressed', j.solid.pressed, 900), ligne('foreground', j.solid.foreground, 'blanc'), ...(ring ? [ligne('ring', j.page.focus, 600, true)] : [])]);
+    const surface = (ring) => dossier('surface', [ligne('default', j.surface.default, 100), ligne('hover', j.surface.hover, 200), ligne('pressed', j.surface.pressed, 300), ligne('foreground', j.surface.foreground, 800), ligne('border', j.surface.border, 800), ...(ring ? [ligne('ring', j.page.focus, 600, true)] : [])]);
+    const page = (focus, ring) => dossier('page', [ligne('foreground', j.page.foreground, 700), ligne('border', j.page.border, 700), ligne('divider', j.page.divider, 300), ...(focus ? [ligne('focus', j.page.focus, 600)] : []), ...(ring ? [ligne('ring', j.page.focus, 600, true)] : [])]);
+    const nom = `${etat.palette.toLowerCase()} / ${etat.intensite}`;
+    const panneaux = [
+      ['Aujourd\'hui : page/focus', `${solid(false)}${surface(false)}${page(true, false)}`, '13 variables. Le focus d\'un bouton plein se cherche dans <code>page</code>.'],
+      ['ring dans chaque dossier', `${solid(true)}${surface(true)}${page(false, true)}`, '15 variables, trois alias du même cran. Chaque dossier relie seul son composant.'],
+      ['ring à la racine', `<div class="var" data-neuf><i style="background:${j.page.focus}"></i><span>ring</span><em>600</em></div>${solid(false)}${surface(false)}${page(false, false)}`, '13 variables. Le nom se trouve en tête de la palette, hors des dossiers.'],
+    ];
+    document.getElementById('panneaux-figma').innerHTML = panneaux.map(([titre, corps, pied]) => `<div class="figma"><header>${titre}<br><span style="font-weight:400;color:var(--second)">theme · ${nom}</span></header>${corps}<div class="pied">${pied}</div></div>`).join('');
+  }
+
+  function commandes() {
+    document.querySelectorAll('[data-commande]').forEach((hote) => {
+      const cle = hote.dataset.commande;
+      hote.innerHTML = OPTIONS[cle].map(([valeur, texte]) => `<button type="button" data-valeur="${valeur}" aria-pressed="${etat[cle] === valeur}">${texte}</button>`).join('');
+    });
+  }
+  document.body.addEventListener('click', (ev) => {
+    const bouton = ev.target.closest('[data-commande] button');
+    if (!bouton) return;
+    etat[bouton.parentElement.dataset.commande] = bouton.dataset.valeur;
+    ecrire('roles-etat', etat);
+    toutDessiner();
+  });
+  function toutDessiner() { commandes(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
+  toutDessiner();
+})();
+</script>
+</body>
+</html>

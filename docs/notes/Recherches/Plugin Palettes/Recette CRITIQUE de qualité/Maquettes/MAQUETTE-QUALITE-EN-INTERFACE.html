@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qualité des palettes en interface</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e2e2e2; --marque: #007be5; --fond: #fafafa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 40px 96px; background: var(--fond); color: var(--texte); font: 13px/1.55 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  h2 { margin: 48px 0 6px; padding-top: 20px; border-top: 1px solid var(--filet); font-size: 17px; }
+  h3 { margin: 18px 0 6px; font-size: 13px; }
+  p { max-width: 920px; }
+  .chapeau { color: var(--second); }
+  code { font: 11px ui-monospace, Consolas, monospace; background: #eee; padding: 1px 4px; border-radius: 3px; }
+  nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; margin: 10px 0 0; }
+  nav a { color: var(--marque); text-decoration: none; }
+  .chiffres { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 16px; margin: 14px 0; }
+  .chiffre { background: #fff; border: 1px solid var(--filet); border-radius: 8px; padding: 12px 14px; }
+  .chiffre b { display: block; font-size: 20px; }
+  .chiffre span { color: var(--second); font-size: 12px; }
+  .commandes { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 12px; background: #fff; border: 1px solid var(--filet); border-radius: 8px; position: sticky; top: 0; z-index: 2; }
+  .groupe { display: flex; gap: 6px; align-items: center; }
+  .groupe > span { color: var(--second); font-size: 11px; }
+  .bascule { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; }
+  .bascule button { border: 0; background: #fff; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid var(--filet); }
+  .bascule button[aria-pressed="true"] { background: #1e1e1e; color: #fff; }
+  .resume { color: var(--second); font-size: 12px; margin: 8px 0 0; max-width: 1100px; }
+
+  /* Le banc : une page, une carte, quatre statuts. */
+  .ui { border-radius: 10px; padding: 18px; margin-top: 12px; }
+  .ui .carte { border-radius: 10px; padding: 18px; }
+  .statuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .col { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .col h4 { margin: 0; font-size: 12px; font-weight: 600; }
+  .alerte { border-radius: 8px; padding: 12px 12px 12px 40px; position: relative; font-size: 12.5px; line-height: 1.45; }
+  .alerte svg { position: absolute; left: 12px; top: 12px; width: 18px; height: 18px; }
+  .alerte b { display: block; font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .alerte a { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .ligne { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11.5px; font-weight: 600; border: 1px solid transparent; }
+  .bouton { height: 30px; padding: 0 12px; border-radius: 6px; font: 600 12.5px Inter, system-ui, sans-serif; border: 1px solid transparent; display: inline-flex; align-items: center; }
+  .rampe { display: grid; grid-template-columns: repeat(11, 1fr); gap: 1px; }
+  .rampe i { height: 18px; }
+  .mesure { font-size: 10.5px; line-height: 1.4; opacity: .8; }
+  .mesure-alerte { font-size: 10.5px; margin-top: -6px; opacity: .75; }
+
+  /* À l'aveugle. */
+  .panneaux { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
+  .panneau { border: 1px solid var(--filet); border-radius: 10px; background: #fff; overflow: hidden; }
+  .panneau header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--filet); }
+  .panneau header b { font-size: 14px; }
+  .panneau .ui { margin: 0; border-radius: 0; }
+  .panneau .statuts { gap: 10px; }
+  .notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; padding: 10px 12px; font-size: 11.5px; }
+  .notes label { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+  .notes select { font: inherit; font-size: 11.5px; }
+  .actions { display: flex; gap: 10px; margin-top: 12px; }
+  .actions button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--filet); background: #fff; cursor: pointer; }
+  .actions button.primaire { background: #1e1e1e; color: #fff; border-color: #1e1e1e; }
+  textarea { width: 100%; max-width: 1100px; height: 140px; font: 11px ui-monospace, Consolas, monospace; margin-top: 8px; }
+
+  /* Tables et graphique. */
+  table { border-collapse: collapse; margin-top: 8px; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: top; font-size: 12px; }
+  th { color: var(--second); font-weight: 600; }
+  td.n { font-variant-numeric: tabular-nums; text-align: right; }
+  .graphique { background: #fff; border: 1px solid var(--filet); border-radius: 8px; padding: 12px; display: inline-block; margin-top: 10px; }
+  .legende { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--second); margin-top: 6px; }
+  .legende i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 4px; }
+  ol.decisions li { margin-bottom: 8px; max-width: 920px; }
+</style>
+<script src="donnees-qualite.js"></script>
+<script src="couleurs.js"></script>
+</head>
+<body>
+
+<h1>Qualité des palettes en interface</h1>
+<p class="chapeau">Les quatre utilitaires de la recette du mainteneur (Poppy, Orange, Grass, Sky) posés sur des composants : alertes, badges, boutons. Le moteur actuel est comparé à trois règles de chroma candidates, calculées par le banc de recherche avec les mêmes références, les mêmes teintes et le même ancrage. Les supports viennent de Titanium : page <code>50</code>, carte blanche en Light et <code>100</code> en Dark.</p>
+<nav>
+  <a href="#constat">1. Le constat chiffré</a><a href="#banc">2. Le banc de composants</a><a href="#aveugle">3. À l'aveugle</a><a href="#regles">4. Ce que change chaque règle</a><a href="#decisions">5. Décisions</a>
+</nav>
+
+<h2 id="constat">1. Le constat chiffré</h2>
+<p>Le moteur fabrique chaque cran à une part constante du plafond sRGB : Soft 0,45, Vivid 0,95. Tailwind, dont viennent les rampes d'Untitled UI, emploie 0,90 à 1,00 de ce plafond sur presque tout le cercle. Il n'en garde que 0,59 à 0,81 dans les crans clairs des verts et 0,46 à 0,76 dans les crans foncés du bleu et de l'indigo.</p>
+<div class="chiffres">
+  <div class="chiffre"><b>×0,3 à ×0,55</b><span>La chroma des textes 700 de Soft, aux réglages communs, rapportée à celle de Tailwind au même cran. Orange 700 vaut <code>#765E45</code>, C 0,049.</span></div>
+  <div class="chiffre"><b>×2</b><span>La chroma des crans 100 et 200 de Grass Vivid, rapportée à <code>green-100</code> et <code>green-200</code> de Tailwind : <code>#C6FFD5</code> et <code>#7FFFA8</code>.</span></div>
+  <div class="chiffre"><b>×3,4 à ×4,2</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, aux réglages communs. L'enveloppe le ramène à ×1,7 en Soft et ×2,2 en Vivid.</span></div>
+</div>
+<p>Les réglages du mainteneur ont compensé à la main : parts Soft 1,00 sur Poppy, 0,92 sur Orange, 0,65 sur Sky et 0,45 sur Grass. Un Color shift de luminosité de −0,015 à −0,02 au bout clair de Vivid fonce aussi les crans 50 et 100 de Poppy, Orange et Sky, ce qui augmente leur chroma. Le graphique montre la chroma de chaque cran en Light, pour une palette.</p>
+<div class="commandes" style="position:static">
+  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="gPalette"></div></div>
+  <div class="groupe"><span>Règle comparée</span><div class="bascule" data-commande="gRegle"></div></div>
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="gMode"></div></div>
+</div>
+<div class="graphique"><svg id="graphique" width="640" height="250" role="img" aria-label="Chroma par cran"></svg>
+  <div class="legende" id="legende"></div></div>
+
+<h2 id="banc">2. Le banc de composants</h2>
+<p class="chapeau">Chaque commande change une seule grandeur. « Crans » change les crans des fonds teintés et de leur texte ; « Texte courant » rend le corps de l'alerte neutre, comme Primer et Atlassian. Le témoin lit Tailwind en Light et Radix en Dark, aux crans de la table UCM.</p>
+<div class="commandes">
+  <div class="groupe"><span>Règle</span><div class="bascule" data-commande="variante"></div></div>
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="mode"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
+  <div class="groupe"><span>Support</span><div class="bascule" data-commande="support"></div></div>
+  <div class="groupe"><span>Crans</span><div class="bascule" data-commande="crans"></div></div>
+  <div class="groupe"><span>Texte courant</span><div class="bascule" data-commande="corps"></div></div>
+</div>
+<p class="resume" id="resume-banc"></p>
+<div id="banc-ui"></div>
+
+<h2 id="aveugle">3. À l'aveugle</h2>
+<p class="chapeau">Quatre panneaux, dans un ordre tiré au hasard et sans nom de règle. Noter chaque panneau de 1 à 5 sur six critères, puis révéler. Les notes restent dans ce navigateur ; « Copier le bilan » les met en texte avec les noms des règles.</p>
+<div class="commandes" style="position:static">
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="aMode"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="aIntensite"></div></div>
+  <div class="groupe"><span>Support</span><div class="bascule" data-commande="aSupport"></div></div>
+</div>
+<div class="panneaux" id="panneaux"></div>
+<div class="actions"><button type="button" id="melanger">Tirer un autre ordre</button><button type="button" id="reveler">Révéler les règles</button><button type="button" class="primaire" id="copier">Copier le bilan</button></div>
+<textarea id="bilan" readonly hidden></textarea>
+
+<h2 id="regles">4. Ce que change chaque règle</h2>
+<p class="chapeau">Mesures du banc sur les quatre utilitaires. Rapport de chroma : la plus forte sur la plus faible à un même cran, sur les fonds 50 à 300 et les textes 700 à 950. Écart de clarté : le plus grand sur tous les crans ; les références ancrées le portent. Échecs : les sept garanties, la page et la carte comme fonds. Distance à Tailwind : écart moyen de chroma en Light avec la rampe de Tailwind la plus proche en teinte.</p>
+<div id="table-regles"></div>
+<h3>Les règles</h3>
+<ul id="liste-regles"></ul>
+<p>Sur un balayage de 72 teintes à deux clartés de référence, dans les quatre combinaisons du texte des boutons, l'enveloppe ne crée aucun échec de garantie avec une surface Light au cran 50. Avec la table actuelle, elle en crée 8 sur 50 688 couples : G7, le focus 600 contre <code>surface/default</code> 100, à 3,00:1 arrondi. Les 144 échecs G1 du thème Dark inversé existent déjà avec le moteur actuel.</p>
+
+<h2 id="decisions">5. Décisions</h2>
+<ol class="decisions">
+  <li><b>Q1. La règle de chroma.</b> Garder la part constante, ou adopter l'enveloppe (recommandée), les deux zones ou le relevé Tailwind. L'enveloppe ajoute deux nombres par profil, sans table de données ; elle rapproche le plus les quatre utilitaires et place Vivid aussi près de Tailwind que le relevé.</li>
+  <li><b>Q2. Le sens de Soft et Vivid.</b> Recommandé : Soft garde des fonds calmes (borne a = 0,6, proche de Radix) et des textes colorés (part 0,85) ; Vivid suit Tailwind (part 0,95, borne a = 1,1). Les deux profils restent distincts surtout dans les fonds et les pleins.</li>
+  <li><b>Q3. Les réglages par défaut et l'état personnalisé.</b> Les valeurs de Q2 deviennent le préréglage de la recette. Une palette dont la part ou la luminosité s'en écarte affiche « Personnalisé » et un geste « Revenir au préréglage ».</li>
+  <li><b>Q4. Le texte courant des alertes.</b> Coloré, comme aujourd'hui et comme Radix, ou neutre avec titre et icône colorés, comme Primer et Atlassian. Ce choix relève des composants ; la palette n'en dépend pas.</li>
+</ol>
+
+<script>
+(() => {
+  const U = window.UCM;
+  const D = U.D;
+  const STATUTS = [
+    { palette: 'Poppy', nom: 'Erreur', titre: 'Paiement refusé', corps: 'La carte a expiré le 30 septembre.', icone: '<circle cx="9" cy="9" r="7.25"/><path d="M9 5.2v4.6M9 12.4v.1"/>' },
+    { palette: 'Orange', nom: 'Avertissement', titre: 'Quota presque atteint', corps: '92 % de l\'espace est utilisé.', icone: '<path d="M9 2.2 16.4 15H1.6Z"/><path d="M9 7v3.8M9 13v.1"/>' },
+    { palette: 'Grass', nom: 'Succès', titre: 'Modifications publiées', corps: 'La version 4.2 est en ligne.', icone: '<circle cx="9" cy="9" r="7.25"/><path d="m5.8 9.2 2.2 2.2 4.2-4.6"/>' },
+    { palette: 'Sky', nom: 'Information', titre: 'Maintenance prévue', corps: 'Le service sera coupé dimanche à 2 h.', icone: '<circle cx="9" cy="9" r="7.25"/><path d="M9 8.2v4.6M9 5.4v.1"/>' },
+  ];
+  const VARIANTES = [...Object.entries(D.variantes).map(([id, v]) => [id, v.nom]), ['temoin', 'Témoin']];
+  const lire = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
+  const ecrire = (cle, valeur) => { try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch { /* stockage indisponible */ } };
+
+  const etat = lire('qualite-etat', { variante: 'enveloppe', mode: 'light', intensite: 'soft', support: 'raised', crans: 'table', corps: 'colore', aMode: 'light', aIntensite: 'soft', aSupport: 'raised', gPalette: 'Grass', gRegle: 'enveloppe', gMode: 'light' });
+  const OPTIONS = {
+    variante: VARIANTES,
+    mode: [['light', 'Light'], ['dark', 'Dark']],
+    intensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    support: [['page', 'Page'], ['raised', 'Carte']],
+    crans: [['table', 'Table du thème'], ['essai', 'Fond 50 · texte 700'], ['translucide', 'Fonds translucides']],
+    corps: [['colore', 'Coloré'], ['neutre', 'Neutre']],
+    aMode: [['light', 'Light'], ['dark', 'Dark']],
+    aIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    aSupport: [['page', 'Page'], ['raised', 'Carte']],
+    gPalette: STATUTS.map((s) => [s.palette, s.palette]),
+    gRegle: [['zones', 'Deux zones'], ['enveloppe', 'Enveloppe'], ['tailwind', 'Relevé Tailwind']],
+    gMode: [['light', 'Light'], ['dark', 'Dark']],
+  };
+
+  /** Le jeu de composants d'une palette, sur le support choisi. */
+  function colonne(statut, ctx, mesures) {
+    const j = U.jeu({ ...ctx, palette: statut.palette });
+    const fond = j.fond;
+    const surface = U.rendu(j.surface.default, fond);
+    const neutre = U.cran('actuel', 'Titanium', 'soft', ctx.mode, 950);
+    const corps = ctx.corps === 'neutre' ? neutre : j.surface.foreground;
+    const titre = ctx.mode === 'light' ? '#1e1e1e' : '#f2f2f2';
+    const icone = (couleur) => `<svg viewBox="0 0 18 18" fill="none" stroke="${couleur}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${statut.icone}</svg>`;
+    const r = U.rampe(ctx.variante, statut.palette, ctx.intensite, ctx.mode);
+    const lch = U.oklch(j.surface.foreground);
+    return `<div class="col">
+      <h4 style="color:${titre}">${statut.nom}</h4>
+      <div class="alerte" style="background:${U.css(j.surface.default)};color:${corps}">${icone(j.surface.foreground)}<b style="color:${j.surface.foreground}">${statut.titre}</b>${statut.corps} <a style="color:${j.surface.foreground}">Voir le détail</a></div>
+      ${mesures ? `<div class="mesure-alerte" style="color:${titre}">Texte C ${U.fr(lch.C, 3)} · ${U.ct(U.contraste(j.surface.foreground, surface))} · fond ${U.ct(U.contraste(surface, fond))} sur le support</div>` : ''}
+      <div class="alerte" style="border:1px solid ${j.page.border};color:${j.page.foreground}">${icone(j.page.foreground)}<b>${statut.titre}</b>${statut.corps}</div>
+      <div class="alerte" style="background:${j.solid.default};color:${j.solid.foreground}">${icone(j.solid.foreground)}<b>${statut.titre}</b>${statut.corps}</div>
+      <div class="ligne">
+        <span class="badge" style="background:${U.css(j.surface.default)};color:${j.surface.foreground}">${statut.nom}</span>
+        <span class="badge" style="background:${j.solid.default};color:${j.solid.foreground}">${statut.nom}</span>
+        <span class="badge" style="border-color:${j.page.border};color:${j.page.foreground}">${statut.nom}</span>
+      </div>
+      <div class="ligne">
+        <span class="bouton" style="background:${j.solid.default};color:${j.solid.foreground}">Valider</span>
+        <span class="bouton" style="background:${U.css(j.surface.default)};color:${j.surface.foreground}">Revoir</span>
+        <span class="bouton" style="border-color:${j.page.border};color:${j.page.foreground}">Annuler</span>
+      </div>
+      ${mesures && r ? `<div class="rampe" title="Rampe ${ctx.intensite}, ${ctx.mode}">${r.map((h) => `<i style="background:${h}" title="${h}"></i>`).join('')}</div>` : ''}
+    </div>`;
+  }
+
+  /** Une page et sa carte ; les composants se posent sur le support choisi. */
+  function scene(ctx, mesures = true) {
+    const { page, raised } = D.supports[ctx.mode];
+    const colonnes = STATUTS.map((s) => colonne(s, ctx, mesures)).join('');
+    return ctx.support === 'page'
+      ? `<div class="ui" style="background:${page}"><div class="statuts">${colonnes}</div></div>`
+      : `<div class="ui" style="background:${page}"><div class="carte" style="background:${raised};box-shadow:0 1px 2px rgba(0,0,0,.08)"><div class="statuts">${colonnes}</div></div></div>`;
+  }
+
+  function dessinerBanc() {
+    const temoinSombre = etat.variante === 'temoin' && etat.mode === 'dark';
+    const v = D.variantes[etat.variante];
+    document.getElementById('resume-banc').textContent = etat.variante === 'temoin'
+      ? (temoinSombre ? 'Radix Colors 3.0.0, échelles sombres : fonds 3 à 5, textes 11, plein 9 et 10. L\'intensité ne change rien.' : 'Tailwind 3.4.17 : red, amber, green et sky, aux crans de la table UCM. L\'intensité ne change rien.')
+      : v.resume;
+    document.getElementById('banc-ui').innerHTML = scene(etat);
+  }
+
+  // Le graphique : chroma de chaque cran, moteur actuel aux réglages communs contre la règle choisie, et le témoin.
+  function dessinerGraphique() {
+    const svg = document.getElementById('graphique');
+    const W = 640; const H = 250; const g = { l: 44, r: 12, t: 12, b: 30 };
+    const x = (i) => g.l + (i * (W - g.l - g.r)) / 10;
+    const y = (c) => H - g.b - (c / 0.25) * (H - g.t - g.b);
+    const chemin = (rampe) => rampe.map((h, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(U.oklch(h).C).toFixed(1)}`).join(' ');
+    const couleurPalette = U.cran('actuel', etat.gPalette, 'vivid', 'light', 600);
+    const series = [
+      ['communs', 'soft', '#b5b5b5', 1.5, '', 'Actuel Soft'],
+      ['communs', 'vivid', '#6b6b6b', 2.5, '', 'Actuel Vivid'],
+      [etat.gRegle, 'soft', couleurPalette, 1.5, '', `${D.variantes[etat.gRegle].nom} Soft`],
+      [etat.gRegle, 'vivid', couleurPalette, 3, '', `${D.variantes[etat.gRegle].nom} Vivid`],
+    ];
+    let html = '';
+    for (let c = 0; c <= 0.25001; c += 0.05) html += `<line x1="${g.l}" x2="${W - g.r}" y1="${y(c)}" y2="${y(c)}" stroke="#eee"/><text x="${g.l - 6}" y="${y(c) + 4}" font-size="10" text-anchor="end" fill="#6b6b6b">${U.fr(c)}</text>`;
+    D.crans.forEach((n, i) => { html += `<text x="${x(i)}" y="${H - 10}" font-size="10" text-anchor="middle" fill="#6b6b6b">${n}</text>`; });
+    for (const [v, i, couleur, epaisseur, tirets] of series) html += `<path d="${chemin(D.variantes[v].palettes[etat.gPalette][i][etat.gMode])}" fill="none" stroke="${couleur}" stroke-width="${epaisseur}" ${tirets}/>`;
+    const temoin = etat.gMode === 'light' ? D.temoins.tailwind[{ Poppy: 'red', Orange: 'amber', Grass: 'green', Sky: 'sky' }[etat.gPalette]] : null;
+    if (temoin) html += `<path d="${chemin(temoin)}" fill="none" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    svg.innerHTML = html;
+    document.getElementById('legende').innerHTML = series.map(([, , c, e, , nom]) => `<span><i style="border-color:${c};border-top-width:${e}px"></i>${nom}</span>`).join('')
+      + (temoin ? '<span><i style="border-color:#1e1e1e;border-top-style:dashed"></i>Tailwind 3.4.17</span>' : '<span>Pas de témoin Tailwind en Dark</span>');
+  }
+
+  // À l'aveugle : quatre règles, un ordre tiré, des notes par critère.
+  const CANDIDATES = ['actuel', 'zones', 'enveloppe', 'tailwind'];
+  const CRITERES = ['Fond discret', 'Texte coloré', 'Lisibilité', 'Séparation du support', 'Statuts distincts', 'Cohérence du groupe'];
+  let ordre = lire('qualite-ordre', null) || melange();
+  let revele = false;
+  function melange() { const o = [...CANDIDATES]; for (let i = o.length - 1; i > 0; i -= 1) { const k = Math.floor(Math.random() * (i + 1)); [o[i], o[k]] = [o[k], o[i]]; } ecrire('qualite-ordre', o); return o; }
+  const cleNotes = () => `qualite-notes-${etat.aMode}-${etat.aIntensite}-${etat.aSupport}`;
+  function dessinerAveugle() {
+    const notes = lire(cleNotes(), {});
+    document.getElementById('panneaux').innerHTML = ordre.map((v, k) => {
+      const lettre = 'ABCD'[k];
+      const ctx = { variante: v, mode: etat.aMode, intensite: etat.aIntensite, support: etat.aSupport, crans: 'table', corps: 'colore' };
+      return `<div class="panneau"><header><b>${lettre}</b><span>${revele ? D.variantes[v].nom : ''}</span></header>${scene(ctx, false)}
+        <div class="notes">${CRITERES.map((c) => `<label>${c}<select data-note="${v}|${c}"><option value="">–</option>${[1, 2, 3, 4, 5].map((n) => `<option ${notes[`${v}|${c}`] == n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`).join('')}</div></div>`;
+    }).join('');
+  }
+  document.getElementById('panneaux').addEventListener('change', (ev) => {
+    const cle = ev.target.dataset.note;
+    if (!cle) return;
+    const notes = lire(cleNotes(), {});
+    notes[cle] = ev.target.value;
+    ecrire(cleNotes(), notes);
+  });
+  document.getElementById('melanger').addEventListener('click', () => { ordre = melange(); revele = false; dessinerAveugle(); });
+  document.getElementById('reveler').addEventListener('click', () => { revele = !revele; dessinerAveugle(); });
+  document.getElementById('copier').addEventListener('click', () => {
+    const lignes = ['Recette critique : notes à l\'aveugle (1 à 5)'];
+    for (const mode of ['light', 'dark']) for (const intensite of ['soft', 'vivid']) for (const support of ['page', 'raised']) {
+      const notes = lire(`qualite-notes-${mode}-${intensite}-${support}`, {});
+      if (!Object.values(notes).some(Boolean)) continue;
+      lignes.push('', `${mode} · ${intensite} · ${support === 'page' ? 'page' : 'carte'}`);
+      for (const v of CANDIDATES) lignes.push(`  ${D.variantes[v].nom.padEnd(26)} ${CRITERES.map((c) => `${c} ${notes[`${v}|${c}`] || '–'}`).join(' · ')}`);
+    }
+    const zone = document.getElementById('bilan');
+    zone.hidden = false;
+    zone.value = lignes.join('\n');
+    zone.select();
+    try { navigator.clipboard.writeText(zone.value); } catch { /* le texte reste sélectionné */ }
+  });
+
+  function dessinerTable() {
+    const vues = [['soft-light', 'Soft · Light'], ['vivid-light', 'Vivid · Light'], ['soft-dark', 'Soft · Dark'], ['vivid-dark', 'Vivid · Dark']];
+    let html = '<table><thead><tr><th>Règle</th>' + vues.map(([, n]) => `<th>${n}<br>rapport C · écart L · échecs</th>`).join('') + '<th>Distance à Tailwind<br>Soft · Vivid (moyenne)</th></tr></thead><tbody>';
+    for (const [id, v] of Object.entries(D.variantes)) {
+      const m = D.mesures[id];
+      const dist = (i) => { const xs = Object.entries(m.distanceTailwind).filter(([k]) => k.endsWith(i)).map(([, x]) => x); return xs.reduce((s, x) => s + x, 0) / xs.length; };
+      html += `<tr><td><b>${v.nom}</b></td>${vues.map(([k]) => `<td class="n">×${U.fr(m.vues[k].rapportC, 1)} · ${U.fr(m.vues[k].ecartL, 3)} · ${m.vues[k].echecs}</td>`).join('')}<td class="n">${U.fr(dist('soft'), 3)} · ${U.fr(dist('vivid'), 3)}</td></tr>`;
+    }
+    document.getElementById('table-regles').innerHTML = `${html}</tbody></table>`;
+    document.getElementById('liste-regles').innerHTML = Object.values(D.variantes).map((v) => `<li><b>${v.nom}.</b> ${v.resume}</li>`).join('');
+  }
+
+  function commandes() {
+    document.querySelectorAll('[data-commande]').forEach((hote) => {
+      const cle = hote.dataset.commande;
+      hote.innerHTML = OPTIONS[cle].map(([valeur, texte]) => `<button type="button" data-valeur="${valeur}" aria-pressed="${etat[cle] === valeur}">${texte}</button>`).join('');
+    });
+  }
+  document.body.addEventListener('click', (ev) => {
+    const bouton = ev.target.closest('[data-commande] button');
+    if (!bouton) return;
+    etat[bouton.parentElement.dataset.commande] = bouton.dataset.valeur;
+    ecrire('qualite-etat', etat);
+    toutDessiner();
+  });
+  function toutDessiner() { commandes(); dessinerBanc(); dessinerGraphique(); dessinerAveugle(); }
+  toutDessiner();
+  dessinerTable();
+})();
+</script>
+</body>
+</html>

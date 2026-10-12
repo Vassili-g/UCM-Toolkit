@@ -1,0 +1,208 @@
+{
+ "seuils": {
+  "solid/default": 0.1,
+  "surface/default": 0.025,
+  "surface/foreground": 0.06
+ },
+ "roles": {
+  "light": {
+   "solid/default": 700,
+   "surface/default": 100,
+   "surface/foreground": 800
+  },
+  "dark": {
+   "solid/default": 700,
+   "surface/default": 100,
+   "surface/foreground": 900
+  }
+ },
+ "paires": [
+  {
+   "paire": "Orange · Poppy",
+   "role": "dark surface/default",
+   "dE": 0.019,
+   "dH": 16.5,
+   "rapport": 0.76
+  },
+  {
+   "paire": "Orange · Terracota",
+   "role": "light solid/default",
+   "dE": 0.079,
+   "dH": 35.5,
+   "rapport": 0.79
+  },
+  {
+   "paire": "Terracota · Poppy",
+   "role": "dark surface/foreground",
+   "dE": 0.047,
+   "dH": 10.2,
+   "rapport": 0.79
+  },
+  {
+   "paire": "Terracota · Deep",
+   "role": "light surface/default",
+   "dE": 0.021,
+   "dH": 100.3,
+   "rapport": 0.85
+  },
+  {
+   "paire": "Sky · Deep",
+   "role": "dark solid/default",
+   "dE": 0.103,
+   "dH": 43.5,
+   "rapport": 1.03
+  },
+  {
+   "paire": "Sky · Grass",
+   "role": "dark surface/default",
+   "dE": 0.036,
+   "dH": 92,
+   "rapport": 1.45
+  },
+  {
+   "paire": "Sky · Terracota",
+   "role": "dark surface/default",
+   "dE": 0.041,
+   "dH": 143.3,
+   "rapport": 1.65
+  },
+  {
+   "paire": "Grass · Terracota",
+   "role": "dark surface/default",
+   "dE": 0.044,
+   "dH": 124.7,
+   "rapport": 1.75
+  },
+  {
+   "paire": "Deep · Poppy",
+   "role": "light surface/default",
+   "dE": 0.046,
+   "dH": 111.6,
+   "rapport": 1.86
+  },
+  {
+   "paire": "Orange · Grass",
+   "role": "light solid/default",
+   "dE": 0.193,
+   "dH": 92.5,
+   "rapport": 1.93
+  },
+  {
+   "paire": "Sky · Orange",
+   "role": "light solid/default",
+   "dE": 0.232,
+   "dH": 178.4,
+   "rapport": 2.32
+  },
+  {
+   "paire": "Orange · Deep",
+   "role": "dark solid/default",
+   "dE": 0.268,
+   "dH": 141.6,
+   "rapport": 2.68
+  },
+  {
+   "paire": "Grass · Deep",
+   "role": "dark solid/default",
+   "dE": 0.269,
+   "dH": 128.1,
+   "rapport": 2.69
+  },
+  {
+   "paire": "Sky · Poppy",
+   "role": "light surface/default",
+   "dE": 0.071,
+   "dH": 158.5,
+   "rapport": 2.82
+  },
+  {
+   "paire": "Grass · Poppy",
+   "role": "light solid/default",
+   "dE": 0.306,
+   "dH": 121.4,
+   "rapport": 3.06
+  }
+ ],
+ "propositions": [
+  {
+   "paire": "Orange · Poppy",
+   "tourner": "Orange",
+   "rotation": 9
+  },
+  {
+   "paire": "Orange · Poppy",
+   "tourner": "Orange",
+   "rotation": null
+  },
+  {
+   "paire": "Orange · Poppy",
+   "tourner": "Poppy",
+   "rotation": null
+  },
+  {
+   "paire": "Orange · Poppy",
+   "tourner": "Poppy",
+   "rotation": -16
+  },
+  {
+   "paire": "Orange · Terracota",
+   "tourner": "Orange",
+   "rotation": 16
+  },
+  {
+   "paire": "Orange · Terracota",
+   "tourner": "Orange",
+   "rotation": null
+  },
+  {
+   "paire": "Orange · Terracota",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Orange · Terracota",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Poppy",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Poppy",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Poppy",
+   "tourner": "Poppy",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Poppy",
+   "tourner": "Poppy",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Deep",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Deep",
+   "tourner": "Terracota",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Deep",
+   "tourner": "Deep",
+   "rotation": null
+  },
+  {
+   "paire": "Terracota · Deep",
+   "tourner": "Deep",
+   "rotation": null
+  }
+ ]
+}
