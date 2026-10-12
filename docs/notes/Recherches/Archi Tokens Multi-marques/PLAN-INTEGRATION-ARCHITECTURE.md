@@ -235,8 +235,8 @@ palettes reste dans `ucm-couleur`, qui importe ce vocabulaire du kit. Voir la
   d'`ucm-couleur` ; `ETATS_DU_DECALAGE`, la légende des traits (un quatrième
   style pour `active-hover`) et la liste des états prennent le quatrième rang.
   Les textes nouveaux passent par
-  [TEXTES-A-VALIDER.md](../Plugin%20Palettes/Textes%20et%20langues/TEXTES-A-VALIDER.md) et
-  l'[inventaire des textes](../Plugin%20Palettes/Textes%20et%20langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
+  [TEXTES-A-VALIDER.md](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/TEXTES-A-VALIDER.md) et
+  l'[inventaire des textes](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md).
 - [x] **A2.5** `planche/modele.ts` : `ETATS` lit `RANGS`. L'empreinte du
   modèle change : les cadres passent « À actualiser », comme prévu.
 - [x] **A2.6** `ui/garanties.ts`, `ui/nuancier.ts`, `presentation.ts`,

@@ -1,0 +1,184 @@
+{
+  "name": "Lozenge",
+  "description": "Lozenge is used to display status, category, or other metadata. It's Atlassian's equivalent of a Badge component.",
+  "designSystem": "Atlassian",
+  "version": "17.0.5",
+  "source": {
+    "file": "lozenge-17.0.5.tgz",
+    "url": "https://atlassian.design/components/lozenge",
+    "package": "@atlaskit/lozenge@17.0.5",
+    "note": "Valeurs basées sur la documentation publique. Tarball non extrait automatiquement."
+  },
+  "props": [
+    {
+      "name": "appearance",
+      "type": "'default' | 'subtle' | 'inverse' | 'primary' | 'success' | 'warning' | 'error' | 'important' | 'information' | 'new' | 'discovery'",
+      "defaultValue": "'default'",
+      "description": "The appearance of the lozenge, which determines its color."
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": "Custom color for the lozenge. When provided, overrides the appearance color."
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "description": "The text to display in the lozenge."
+    },
+    {
+      "name": "isBold",
+      "type": "boolean",
+      "description": "Whether the text should be bold."
+    },
+    {
+      "name": "maxWidth",
+      "type": "number | string",
+      "description": "Maximum width of the lozenge."
+    },
+    {
+      "name": "testId",
+      "type": "string",
+      "description": "Test ID for testing purposes."
+    }
+  ],
+  "variants": [
+    {
+      "name": "default",
+      "description": "Default appearance with gray background",
+      "style": {
+        "backgroundColor": "N200",
+        "color": "N700"
+      },
+      "notes": ["Uses neutral color palette"]
+    },
+    {
+      "name": "subtle",
+      "description": "Subtle appearance with light background",
+      "style": {
+        "backgroundColor": "N100",
+        "color": "N700"
+      },
+      "notes": ["Light gray background"]
+    },
+    {
+      "name": "inverse",
+      "description": "Inverse appearance with dark background",
+      "style": {
+        "backgroundColor": "N800",
+        "color": "N0"
+      },
+      "notes": ["Dark gray background with white text"]
+    },
+    {
+      "name": "primary",
+      "description": "Primary brand color",
+      "style": {
+        "backgroundColor": "B500",
+        "color": "N0"
+      },
+      "notes": ["Uses blue-500 as background with white text"]
+    },
+    {
+      "name": "success",
+      "description": "Success/green appearance",
+      "style": {
+        "backgroundColor": "G500",
+        "color": "N0"
+      },
+      "notes": ["Uses green-500 as background with white text"]
+    },
+    {
+      "name": "warning",
+      "description": "Warning/yellow appearance",
+      "style": {
+        "backgroundColor": "Y500",
+        "color": "N0"
+      },
+      "notes": ["Uses yellow-500 as background. In dark mode, uses Y200."]
+    },
+    {
+      "name": "error",
+      "description": "Error/red appearance",
+      "style": {
+        "backgroundColor": "R500",
+        "color": "N0"
+      },
+      "notes": ["Uses red-500 as background with white text"]
+    },
+    {
+      "name": "important",
+      "description": "Important appearance",
+      "style": {
+        "backgroundColor": "R500",
+        "color": "N0"
+      },
+      "notes": ["Same as error appearance"]
+    },
+    {
+      "name": "information",
+      "description": "Information/blue appearance",
+      "style": {
+        "backgroundColor": "B500",
+        "color": "N0"
+      },
+      "notes": ["Same as primary appearance"]
+    },
+    {
+      "name": "new",
+      "description": "New appearance",
+      "style": {
+        "backgroundColor": "G500",
+        "color": "N0"
+      },
+      "notes": ["Uses green-500"]
+    },
+    {
+      "name": "discovery",
+      "description": "Discovery appearance",
+      "style": {
+        "backgroundColor": "P500",
+        "color": "N0"
+      },
+      "notes": ["Uses purple-500"]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "default": "N200",
+      "subtle": "N100",
+      "inverse": "N800",
+      "primary": "B500",
+      "success": "G500",
+      "warning": "Y500",
+      "error": "R500",
+      "important": "R500",
+      "information": "B500",
+      "new": "G500",
+      "discovery": "P500"
+    },
+    "color": {
+      "default": "N700",
+      "subtle": "N700",
+      "inverse": "N0",
+      "primary": "N0",
+      "success": "N0",
+      "warning": "N0",
+      "error": "N0",
+      "important": "N0",
+      "information": "N0",
+      "new": "N0",
+      "discovery": "N0"
+    }
+  },
+  "notes": [
+    "Atlassian uses Lozenge as the equivalent of Badge",
+    "11 appearance variants: default, subtle, inverse, primary, success, warning, error, important, information, new, discovery",
+    "Color tokens use Atlassian's color palette: N (neutral), B (blue), R (red), G (green), Y (yellow), P (purple), T (teal)",
+    "Each color has 500 steps (50, 100, 200, 300, 400, 500)",
+    "Default appearance uses neutral colors (N200 background, N700 text)",
+    "Most semantic appearances use the 500 step of their respective color",
+    "Text is white (N0) for colored backgrounds, N700 for neutral backgrounds",
+    "Dark mode values are automatically handled by the token system"
+  ]
+}

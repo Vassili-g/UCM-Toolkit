@@ -3,7 +3,7 @@
 Dossier des demandes du mainteneur qui suivent la recette v8. Il consigne
 les décisions prises sur maquette, ce qui est en cours et ce qui attend un
 choix. Les maquettes citées sont rangées dans
-[Recette v8/Maquettes](../Recette%20v8/Maquettes/).
+[Recette v8/Maquettes](https://github.com/Vassili-g/UCM-Toolkit/tree/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes).
 
 ## 1. Les constats
 
@@ -17,7 +17,7 @@ choix. Les maquettes citées sont rangées dans
 ## 2. Le bandeau de vérification (S1)
 
 Maquette :
-[MAQUETTE-BANDEAU-DE-VERIFICATION.html](../Recette%20v8/Maquettes/MAQUETTE-BANDEAU-DE-VERIFICATION.html).
+[MAQUETTE-BANDEAU-DE-VERIFICATION.html](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes/MAQUETTE-BANDEAU-DE-VERIFICATION.html).
 
 Aujourd'hui, le pied de Création est fixé en bas de la fenêtre, sur 32 px,
 au fond de la page, sous un filet ([UI-18]). Seule son icône ✓ ou ✕ prend
@@ -61,7 +61,7 @@ réglage et le pied sont masqués. « Annuler » réaffiche la palette d'avant ;
 ## 4. Sans palette ouverte (S3)
 
 Maquette :
-[MAQUETTE-AUCUNE-PALETTE-OUVERTE.html](../Recette%20v8/Maquettes/MAQUETTE-AUCUNE-PALETTE-OUVERTE.html).
+[MAQUETTE-AUCUNE-PALETTE-OUVERTE.html](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes/MAQUETTE-AUCUNE-PALETTE-OUVERTE.html).
 
 La maquette part du rôle de chaque onglet : Création règle une palette,
 Vérification contrôle les contrastes et les écarts, Gestion relie les
@@ -107,7 +107,7 @@ Règles de l'écran (maquette, section « V3a, version retenue ») :
 ## 5. La configuration avancée repliée (S4)
 
 Proposition de la recette v8, lot 9, retenue par le mainteneur :
-[MAQUETTE-CONFIGURATION-AVANCEE.html](../Recette%20v8/Maquettes/MAQUETTE-CONFIGURATION-AVANCEE.html).
+[MAQUETTE-CONFIGURATION-AVANCEE.html](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes/MAQUETTE-CONFIGURATION-AVANCEE.html).
 Modèle, Intensités et « Référence exacte dans » passent sous un dépliant
 « Réglages avancés », replié à l'ouverture, dont le résumé prend la couleur
 d'attention quand un réglage diffère de sa valeur par défaut.

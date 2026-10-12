@@ -1,0 +1,205 @@
+{
+  "name": "Button",
+  "description": "Buttons for actions with multiple variants.",
+  "designSystem": "Radix",
+  "version": "@radix-ui/themes@3.3.0",
+  "source": {
+    "file": "work/themes/package/src/components/button.tsx",
+    "url": "https://www.radix-ui.com/themes/docs/components/button"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "string",
+      "defaultValue": "'soft'"
+    },
+    {
+      "name": "color",
+      "type": "string"
+    },
+    {
+      "name": "highContrast",
+      "type": "boolean"
+    }
+  ],
+  "states": [
+    "default",
+    "hover",
+    "active",
+    "focus",
+    "disabled"
+  ],
+  "variants": [
+    {
+      "name": "solid",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-9)",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-contrast)",
+            "state": "default"
+          }
+        ],
+        "hover": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "var(--accent-10)"
+            }
+          ]
+        },
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px var(--accent-a8)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": {
+          "default": "--accent-9",
+          "hover": "--accent-10"
+        },
+        "color": "--accent-contrast",
+        "boxShadow": "--accent-a8"
+      }
+    },
+    {
+      "name": "soft",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-a3)",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-a11)",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px var(--accent-a8)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "--accent-a3",
+        "color": "--accent-a11",
+        "boxShadow": "--accent-a8"
+      }
+    },
+    {
+      "name": "surface",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-surface)",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "inset 0 0 0 1px var(--accent-a6)",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-a11)",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "inset 0 0 0 1px var(--accent-a6), 0 0 0 3px var(--accent-a8)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "--accent-surface",
+        "boxShadow": "--accent-a6",
+        "color": "--accent-a11"
+      }
+    },
+    {
+      "name": "outline",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "transparent",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--accent-a6)",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-a11)",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px var(--accent-a8)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "transparent",
+        "borderColor": "--accent-a6",
+        "color": "--accent-a11",
+        "boxShadow": "--accent-a8"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "solid": "--accent-9",
+      "soft": "--accent-a3",
+      "surface": "--accent-surface",
+      "outline": "transparent"
+    },
+    "color": {
+      "solid": "--accent-contrast",
+      "soft": "--accent-a11",
+      "surface": "--accent-a11",
+      "outline": "--accent-a11"
+    },
+    "borderColor": {
+      "outline": "--accent-a6"
+    },
+    "boxShadow": {
+      "focus": "--accent-a8"
+    }
+  },
+  "notes": [
+    "Uses accent tokens with alpha channels",
+    "Focus uses --accent-a8 for ring"
+  ]
+}

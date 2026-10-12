@@ -1,0 +1,179 @@
+{
+  "name": "Card",
+  "description": "Card components display content in contained, elevated surface.",
+  "designSystem": "Tailwind CSS",
+  "version": "v4.0.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://tailwindcss.com/docs"
+  },
+  "props": [
+    {
+      "name": "elevation",
+      "type": "'none' | 'subtle' | 'raised' | 'shadow-lg'",
+      "defaultValue": "'subtle'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "none",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#ffffff",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#e5e7eb",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "none",
+            "state": "default"
+          },
+          {
+            "property": "borderRadius",
+            "value": "0.5rem",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e5e7eb"
+      },
+      "notes": [
+        "No elevation, just border"
+      ]
+    },
+    {
+      "name": "subtle",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#ffffff",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#e5e7eb",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e5e7eb",
+        "boxShadow": "shadow-sm"
+      },
+      "notes": [
+        "Subtle elevation with shadow-sm"
+      ]
+    },
+    {
+      "name": "raised",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#ffffff",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#e5e7eb",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e5e7eb",
+        "boxShadow": "shadow-md"
+      },
+      "notes": [
+        "Medium elevation with shadow-md"
+      ]
+    },
+    {
+      "name": "shadow-lg",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#ffffff",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#e5e7eb",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e5e7eb",
+        "boxShadow": "shadow-lg"
+      },
+      "notes": [
+        "Large elevation with shadow-lg"
+      ]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": "#ffffff",
+    "borderColor": "#e5e7eb",
+    "boxShadow": {
+      "none": "none",
+      "subtle": "shadow-sm",
+      "raised": "shadow-md",
+      "shadow-lg": "shadow-lg"
+    }
+  },
+  "notes": [
+    "All cards use white background (#ffffff)",
+    "Border uses gray-200 (#e5e7eb)",
+    "Elevation uses Tailwind's shadow utilities",
+    "Key insight: surface/default should be #ffffff or very close"
+  ]
+}

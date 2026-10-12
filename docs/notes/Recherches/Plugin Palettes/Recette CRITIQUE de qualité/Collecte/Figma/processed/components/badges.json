@@ -1,0 +1,100 @@
+{
+  "source": {
+    "file": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "nodeId": "1046:8088",
+    "evidence": "../../sources/Badges.png"
+  },
+  "observedStates": [
+    {
+      "state": "Brand",
+      "background": {
+        "style": "Brand/50",
+        "hex": "#F9F5FF"
+      },
+      "text": {
+        "style": "Brand/700",
+        "hex": "#6941C6"
+      },
+      "innerBadge": {
+        "background": "#FFFFFF",
+        "border": "#E9D7FE",
+        "text": "#6941C6"
+      },
+      "textContrast": "6.16:1"
+    },
+    {
+      "state": "Error",
+      "background": {
+        "style": "Red/50",
+        "hex": "#FEF2F2"
+      },
+      "text": {
+        "style": "Red/700",
+        "hex": "#B91C1C"
+      },
+      "innerBadge": {
+        "background": "#FFFFFF",
+        "border": "#FECACA",
+        "text": "#B91C1C"
+      },
+      "textContrast": "5.91:1"
+    },
+    {
+      "state": "Warning",
+      "background": {
+        "style": "Yellow/50",
+        "hex": "#FEFCE8"
+      },
+      "text": {
+        "style": "Yellow/700",
+        "hex": "#A16207"
+      },
+      "innerBadge": {
+        "background": "#FFFFFF",
+        "border": "#FEF08A",
+        "text": "#A16207"
+      },
+      "textContrast": "4.76:1"
+    },
+    {
+      "state": "Success",
+      "background": {
+        "style": "Green/50",
+        "hex": "#F0FDF4"
+      },
+      "text": {
+        "style": "Green/700",
+        "hex": "#15803D"
+      },
+      "innerBadge": {
+        "background": "#FFFFFF",
+        "border": "#BBF7D0",
+        "text": "#15803D"
+      },
+      "textContrast": "4.79:1"
+    }
+  ],
+  "contextCodeProps": {
+    "badge": [
+      "Leading",
+      "Trailing"
+    ],
+    "color": [
+      "Brand",
+      "Gray",
+      "Error",
+      "Warning",
+      "Success"
+    ],
+    "icon": "boolean",
+    "size": [
+      "md",
+      "lg"
+    ]
+  },
+  "limits": [
+    "The listed props come from generated design-context code, not an exhaustive inspection of Figma component properties.",
+    "The four measured status rows are not an exhaustive list of all component variants.",
+    "Contrast values describe text against the outer badge background, not every text and border pair in the composition."
+  ]
+}

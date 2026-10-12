@@ -1,0 +1,103 @@
+[
+  {
+    "name": "accent",
+    "type": "semantic",
+    "steps": {},
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "blue",
+    "type": "primitive",
+    "steps": {
+      "900": {
+        "light": {
+          "value": "rgb(59, 99, 251)",
+          "rgb": { "r": 59, "g": 99, "b": 251 },
+          "lch": { "l": 48.03, "c": 88.41, "h": 295.89 }
+        },
+        "dark": {
+          "value": "rgb(59, 99, 251)",
+          "rgb": { "r": 59, "g": 99, "b": 251 },
+          "lch": { "l": 48.03, "c": 88.41, "h": 295.89 }
+        }
+      },
+      "1000": {
+        "light": {
+          "value": "rgb(39, 77, 234)",
+          "rgb": { "r": 39, "g": 77, "b": 234 },
+          "lch": { "l": 40.7, "c": 93.35, "h": 298.49 }
+        },
+        "dark": {
+          "value": "rgb(52, 91, 248)",
+          "rgb": { "r": 52, "g": 91, "b": 248 },
+          "lch": { "l": 45.62, "c": 91.9, "h": 297.09 }
+        }
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "green",
+    "type": "primitive",
+    "steps": {
+      "600": {
+        "light": {
+          "value": "rgb(163, 196, 0)",
+          "rgb": { "r": 163, "g": 196, "b": 0 },
+          "lch": { "l": 72.4, "c": 70.0, "h": 113 }
+        },
+        "dark": {
+          "value": "rgb(68, 82, 0)",
+          "rgb": { "r": 68, "g": 82, "b": 0 },
+          "lch": { "l": 34.0, "c": 50.0, "h": 113 }
+        }
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "positive",
+    "type": "semantic",
+    "steps": {},
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "negative",
+    "type": "semantic",
+    "steps": {},
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "notice",
+    "type": "semantic",
+    "steps": {},
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  },
+  {
+    "name": "informative",
+    "type": "semantic",
+    "steps": {},
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    }
+  }
+]

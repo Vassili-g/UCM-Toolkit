@@ -13,7 +13,7 @@ reste la référence des règles, malgré son emplacement dans ce dossier.
 | Ergonomie, nuances et référence | Implémentées, puis reprises dans le parcours Création, Vérification et Gestion | [Spécification](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md), sections 8 et 9 |
 | Palettes désaturées et grises | Implémentées dans `palette.ts` et `reglages.ts` | [Spécification, section 6.4](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran) |
 | Color shift et réglage global borné | Implémentés, y compris le calcul des limites par tranches | [Spécification, section 12](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift) |
-| Anglais et français | Implémentés ; anglais par défaut, choix conservé sur le poste | [Plan et réserves de validation](./Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes), [décisions éditoriales](./Textes%20et%20langues/DECISIONS-REDACTION-PALETTES.md) |
+| Anglais et français | Implémentés ; anglais par défaut, choix conservé sur le poste | [Plan et réserves de validation](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes), [décisions éditoriales](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/DECISIONS-REDACTION-PALETTES.md) |
 | Variables et parcours en trois onglets | Implémentés, avec reprise locale et copie de bibliothèque | [Direction simple et recette](./Intégration%20du%20marché/README.md) ; [règles d'écriture et de reprise](./1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#17-sortie-2--les-variables) |
 | Sections repliables de Gestion et simulation des chemins | Présentes dans `ongletGestion.ts`, `connexion.ts` et `destination.ts` | [Maquettes de recette](./Intégration%20du%20marché/08%20Recette%20direction%20simple/MAQUETTES-RECETTE-DIRECTION-SIMPLE.html) ; conserver les variantes graphiques jusqu'au tri validé |
 | Liste dépliable de Gestion | Implémentée dans `ongletGestion.ts` : une ligne par palette, sa fiche dépliée dessous | Le code fait foi |
@@ -24,6 +24,9 @@ décrivent pas le build courant.
 
 ## Ce qui reste distinct
 
+- La [recette critique de qualité](./Recette%20CRITIQUE%20de%20qualit%C3%A9/README.md)
+  mesure le rendu des palettes en composants, les crans par rôle et l'onglet
+  Comparer ; ses décisions attendent le mainteneur.
 - Les couches `brand`, `theme` et `usage` ne sont pas générées par Palettes.
   Le [plan d'architecture](../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
   reste partiel, même si les emplois et leurs contrôles existent dans le kit.
@@ -42,7 +45,7 @@ décrivent pas le build courant.
   recette dans Figma : voir le
   [dossier des commandes](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Plugin%20Palettes/Commandes%20Light-Dark%20et%20Soft-Vivid/DOSSIER-COMMANDES-D-AFFICHAGE.md).
 - La recette v8 est implémentée : le
-  [dossier de la recette v8](./Recette%20v8/DOSSIER-RECETTE-V8.md) explique
+  [dossier de la recette v8](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/DOSSIER-RECETTE-V8.md) explique
   la palette retirée par « Annuler la reprise » et sa réparation par le
   plugin ; son plan est réalisé.
 - La recette v9 suit : le
@@ -56,7 +59,7 @@ décrivent pas le build courant.
 
 Les mesures, leurs scripts, la spécification et les validations de textes
 restent utiles. L'export
-[validation-textes-palettes.json](./Textes%20et%20langues/validation-textes-palettes.json)
+[validation-textes-palettes.json](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/validation-textes-palettes.json)
 conserve les réponses du mainteneur ; il ne doit pas être réécrit.
 
 Les parcours remplacés d'Intégration du marché sont conservés en attente

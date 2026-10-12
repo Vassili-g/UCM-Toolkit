@@ -1,0 +1,170 @@
+{
+  "name": "Alert",
+  "description": "Alerts display important messages with different appearances.",
+  "designSystem": "Atlassian",
+  "version": "@atlaskit/alert@17.0.5",
+  "source": {
+    "file": "documentation",
+    "url": "https://atlassian.design/components/alert"
+  },
+  "props": [
+    {
+      "name": "appearance",
+      "type": "string",
+      "defaultValue": "'default'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "default",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#0747A6"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "borderColor",
+            "value": "#0747A6"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#0747A6",
+        "color": "#FFFFFF",
+        "borderColor": "#0747A6"
+      }
+    },
+    {
+      "name": "success",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#36B37E"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "borderColor",
+            "value": "#36B37E"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#36B37E",
+        "color": "#FFFFFF",
+        "borderColor": "#36B37E"
+      }
+    },
+    {
+      "name": "warning",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FFAB00"
+          },
+          {
+            "property": "color",
+            "value": "#172B4D"
+          },
+          {
+            "property": "borderColor",
+            "value": "#FFAB00"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FFAB00",
+        "color": "#172B4D",
+        "borderColor": "#FFAB00"
+      }
+    },
+    {
+      "name": "error",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FF5630"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "borderColor",
+            "value": "#FF5630"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FF5630",
+        "color": "#FFFFFF",
+        "borderColor": "#FF5630"
+      }
+    },
+    {
+      "name": "information",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#0066CC"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "borderColor",
+            "value": "#0066CC"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#0066CC",
+        "color": "#FFFFFF",
+        "borderColor": "#0066CC"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "default": "#0747A6",
+      "success": "#36B37E",
+      "warning": "#FFAB00",
+      "error": "#FF5630",
+      "information": "#0066CC"
+    },
+    "color": {
+      "default": "#FFFFFF",
+      "success": "#FFFFFF",
+      "warning": "#172B4D",
+      "error": "#FFFFFF",
+      "information": "#FFFFFF"
+    },
+    "borderColor": {
+      "default": "#0747A6",
+      "success": "#36B37E",
+      "warning": "#FFAB00",
+      "error": "#FF5630",
+      "information": "#0066CC"
+    }
+  },
+  "notes": [
+    "Uses appearance prop",
+    "Warning uses dark text for contrast"
+  ]
+}

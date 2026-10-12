@@ -1,0 +1,170 @@
+{
+  "name": "Alert",
+  "description": "Alerts display important messages. Uses semantic color tokens.",
+  "designSystem": "Spectrum",
+  "version": "740c6c5c",
+  "source": {
+    "file": "documentation",
+    "url": "https://react-spectrum.adobe.com/react-spectrum/Alert.html"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "'info' | 'positive' | 'warning' | 'negative' | 'neutral'",
+      "defaultValue": "'info'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "info",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "informative-subtle"
+          },
+          {
+            "property": "borderColor",
+            "value": "informative"
+          },
+          {
+            "property": "color",
+            "value": "informative-visual"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "informative-subtle",
+        "borderColor": "informative",
+        "color": "informative-visual"
+      }
+    },
+    {
+      "name": "positive",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "positive-subtle"
+          },
+          {
+            "property": "borderColor",
+            "value": "positive"
+          },
+          {
+            "property": "color",
+            "value": "positive-visual"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "positive-subtle",
+        "borderColor": "positive",
+        "color": "positive-visual"
+      }
+    },
+    {
+      "name": "warning",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "notice-subtle"
+          },
+          {
+            "property": "borderColor",
+            "value": "notice"
+          },
+          {
+            "property": "color",
+            "value": "notice-visual"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "notice-subtle",
+        "borderColor": "notice",
+        "color": "notice-visual"
+      }
+    },
+    {
+      "name": "negative",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "negative-subtle"
+          },
+          {
+            "property": "borderColor",
+            "value": "negative"
+          },
+          {
+            "property": "color",
+            "value": "negative-visual"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "negative-subtle",
+        "borderColor": "negative",
+        "color": "negative-visual"
+      }
+    },
+    {
+      "name": "neutral",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "neutral-subtle"
+          },
+          {
+            "property": "borderColor",
+            "value": "neutral-visual"
+          },
+          {
+            "property": "color",
+            "value": "neutral-content"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "neutral-subtle",
+        "borderColor": "neutral-visual",
+        "color": "neutral-content"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "info": "informative-subtle",
+      "positive": "positive-subtle",
+      "warning": "notice-subtle",
+      "negative": "negative-subtle",
+      "neutral": "neutral-subtle"
+    },
+    "borderColor": {
+      "info": "informative",
+      "positive": "positive",
+      "warning": "notice",
+      "negative": "negative",
+      "neutral": "neutral-visual"
+    },
+    "color": {
+      "info": "informative-visual",
+      "positive": "positive-visual",
+      "warning": "notice-visual",
+      "negative": "negative-visual",
+      "neutral": "neutral-content"
+    }
+  },
+  "notes": [
+    "Uses semantic color tokens",
+    "Each variant maps to specific semantic tokens"
+  ]
+}

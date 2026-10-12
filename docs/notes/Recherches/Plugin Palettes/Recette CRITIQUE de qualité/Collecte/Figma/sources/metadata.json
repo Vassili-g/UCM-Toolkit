@@ -1,0 +1,84 @@
+{
+  "collectedAt": "2026-10-10",
+  "file": {
+    "name": "Untitled UI – FREE Figma UI kit and design system v2.0 (Community)",
+    "key": "iJscFYgN97zFFr0i2XLeyf",
+    "url": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "providedSelection": "1023:36350"
+  },
+  "nodes": [
+    {
+      "name": "Colors",
+      "id": "1525:271581",
+      "image": "Colors.png",
+      "methods": [
+        "figma.get_metadata",
+        "figma.get_variable_defs",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Notes and documentation",
+      "id": "1525:274384",
+      "image": "Notes-and-documentation.png",
+      "methods": [
+        "figma.get_metadata",
+        "figma.get_design_context",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Badges",
+      "id": "1046:8088",
+      "image": "Badges.png",
+      "methods": [
+        "figma.get_design_context",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Buttons",
+      "id": "1038:34411",
+      "image": "Buttons.png",
+      "methods": [
+        "figma.get_metadata",
+        "figma.get_design_context",
+        "figma.get_variable_defs",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Inputs",
+      "id": "1090:57817",
+      "image": "Inputs.png",
+      "methods": [
+        "figma.get_metadata",
+        "figma.get_design_context",
+        "figma.get_variable_defs",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Warning modal",
+      "id": "1109:660",
+      "image": "Modal-Warning.png",
+      "methods": [
+        "figma.get_metadata",
+        "figma.get_design_context",
+        "figma.get_variable_defs",
+        "figma.get_screenshot"
+      ]
+    },
+    {
+      "name": "Focused primary button",
+      "id": "1041:34650",
+      "extraction": "../../../RELEVE-UNTITLED-FOCUS.json"
+    }
+  ],
+  "limits": [
+    "The color-style extraction does not include component variable bindings.",
+    "The selected nodes do not represent the full Figma file or all component variants.",
+    "Embedded notes mention Untitled UI v5.0, v6.0 and Tailwind CSS v4.2 while the Community file title names version 2.0.",
+    "The page inventory contains no dedicated Alert or Toast page; the Warning modal is kept as a separate pattern."
+  ]
+}

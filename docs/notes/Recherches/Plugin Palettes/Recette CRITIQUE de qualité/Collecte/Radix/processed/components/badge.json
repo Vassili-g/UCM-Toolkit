@@ -1,0 +1,204 @@
+/**
+ * Composant Badge - Radix
+ * Extrait du package @radix-ui/themes@3.3.0
+ * Fichiers sources: 
+ * - work/themes/package/src/components/badge.tsx
+ * - work/themes/package/src/components/badge.css
+ * - work/themes/package/src/components/badge.props.tsx
+ */
+
+{
+  "name": "Badge",
+  "description": "Badges are used to display a small amount of information. They can be used to convey status, category, or other metadata.",
+  "designSystem": "Radix",
+  "version": "@radix-ui/themes@3.3.0",
+  "source": {
+    "files": [
+      "work/themes/package/src/components/badge.tsx",
+      "work/themes/package/src/components/badge.css",
+      "work/themes/package/src/components/badge.props.tsx"
+    ],
+    "url": "https://www.radix-ui.com/themes/docs/components/badge",
+    "package": "@radix-ui/themes@3.3.0"
+  },
+  "props": [
+    {
+      "name": "asChild",
+      "type": "boolean",
+      "description": "Whether the badge should render as a child element."
+    },
+    {
+      "name": "size",
+      "type": "'1' | '2' | '3'",
+      "defaultValue": "'1'",
+      "description": "The size of the badge.",
+      "responsive": true
+    },
+    {
+      "name": "variant",
+      "type": "'solid' | 'soft' | 'surface' | 'outline'",
+      "defaultValue": "'soft'",
+      "description": "The variant of the badge."
+    },
+    {
+      "name": "color",
+      "type": "AccentColor",
+      "description": "The accent color of the badge. Uses the CSS custom property `--accent-9` for solid variant, `--accent-a3` for soft, etc."
+    },
+    {
+      "name": "radius",
+      "type": "Radius",
+      "description": "The border radius of the badge."
+    },
+    {
+      "name": "highContrast",
+      "type": "boolean",
+      "description": "Whether the badge should use high contrast colors."
+    }
+  ],
+  "variants": [
+    {
+      "name": "solid",
+      "description": "Solid background with contrast text",
+      "style": {
+        "backgroundColor": "var(--accent-9)",
+        "color": "var(--accent-contrast)"
+      },
+      "highContrast": {
+        "backgroundColor": "var(--accent-12)",
+        "color": "var(--accent-1)",
+        "selection": {
+          "backgroundColor": "var(--accent-a11)",
+          "color": "var(--accent-1)"
+        }
+      },
+      "notes": [
+        "Uses `--accent-9` for background (9th step in the color scale)",
+        "Uses `--accent-contrast` for text color (automatically selected for contrast)",
+        "In high contrast mode: background becomes `--accent-12` (darkest), text becomes `--accent-1` (lightest)"
+      ]
+    },
+    {
+      "name": "soft",
+      "description": "Soft background with accent text",
+      "style": {
+        "backgroundColor": "var(--accent-a3)",
+        "color": "var(--accent-a11)"
+      },
+      "highContrast": {
+        "color": "var(--accent-12)"
+      },
+      "notes": [
+        "Uses `--accent-a3` for background (accent with alpha channel, 3rd step)",
+        "Uses `--accent-a11` for text (accent with alpha channel, 11th step)",
+        "In high contrast mode: text becomes `--accent-12`"
+      ]
+    },
+    {
+      "name": "surface",
+      "description": "Surface with subtle border and accent text",
+      "style": {
+        "backgroundColor": "var(--accent-surface)",
+        "boxShadow": "inset 0 0 0 1px var(--accent-a6)",
+        "color": "var(--accent-a11)"
+      },
+      "highContrast": {
+        "color": "var(--accent-12)"
+      },
+      "notes": [
+        "Uses `--accent-surface` for background (pre-defined surface color)",
+        "Uses `--accent-a6` for border (accent with alpha channel, 6th step)",
+        "Uses `--accent-a11` for text (accent with alpha channel, 11th step)",
+        "In high contrast mode: text becomes `--accent-12`"
+      ]
+    },
+    {
+      "name": "outline",
+      "description": "Transparent background with accent border",
+      "style": {
+        "boxShadow": "inset 0 0 0 1px var(--accent-a8)",
+        "color": "var(--accent-a11)"
+      },
+      "highContrast": {
+        "boxShadow": "inset 0 0 0 1px var(--accent-a7), inset 0 0 0 1px var(--gray-a11)",
+        "color": "var(--accent-12)"
+      },
+      "notes": [
+        "Uses `--accent-a8` for border (accent with alpha channel, 8th step)",
+        "Uses `--accent-a11` for text (accent with alpha channel, 11th step)",
+        "In high contrast mode: border uses `--accent-a7` + `--gray-a11`, text becomes `--accent-12`"
+      ]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "solid": "--accent-9",
+      "soft": "--accent-a3",
+      "surface": "--accent-surface",
+      "outline": null
+    },
+    "color": {
+      "solid": "--accent-contrast",
+      "soft": "--accent-a11",
+      "surface": "--accent-a11",
+      "outline": "--accent-a11"
+    },
+    "boxShadow": {
+      "surface": "inset 0 0 0 1px var(--accent-a6)",
+      "outline": "inset 0 0 0 1px var(--accent-a8)"
+    },
+    "highContrast": {
+      "solid": {
+        "backgroundColor": "--accent-12",
+        "color": "--accent-1"
+      },
+      "soft": {
+        "color": "--accent-12"
+      },
+      "surface": {
+        "color": "--accent-12"
+      },
+      "outline": {
+        "boxShadow": "inset 0 0 0 1px var(--accent-a7), inset 0 0 0 1px var(--gray-a11)",
+        "color": "--accent-12"
+      }
+    }
+  },
+  "sizes": {
+    "1": {
+      "fontSize": "var(--font-size-1)",
+      "lineHeight": "var(--line-height-1)",
+      "letterSpacing": "var(--letter-spacing-1)",
+      "padding": "calc(var(--space-1) * 0.5) calc(var(--space-1) * 1.5)",
+      "gap": "calc(var(--space-1) * 1.5)",
+      "borderRadius": "max(var(--radius-1), var(--radius-full))"
+    },
+    "2": {
+      "fontSize": "var(--font-size-1)",
+      "lineHeight": "var(--line-height-1)",
+      "letterSpacing": "var(--letter-spacing-1)",
+      "padding": "var(--space-1) var(--space-2)",
+      "gap": "calc(var(--space-1) * 1.5)",
+      "borderRadius": "max(var(--radius-2), var(--radius-full))"
+    },
+    "3": {
+      "fontSize": "var(--font-size-2)",
+      "lineHeight": "var(--line-height-2)",
+      "letterSpacing": "var(--letter-spacing-2)",
+      "padding": "var(--space-1) calc(var(--space-2) * 1.25)",
+      "gap": "var(--space-2)",
+      "borderRadius": "max(var(--radius-2), var(--radius-full))"
+    }
+  },
+  "notes": [
+    "Radix Badge supports 4 variants: solid, soft, surface, outline",
+    "3 sizes: 1 (smallest), 2 (medium), 3 (largest)",
+    "Uses CSS custom properties from the accent color scale (--accent-1 to --accent-12)",
+    "Uses alpha channels for subtle effects (--accent-a1 to --accent-a12)",
+    "The `color` prop sets the accent color (blue, red, green, etc.) which is used in all CSS variables",
+    "High contrast mode is supported for accessibility",
+    "Default variant is 'soft' (unlike Spectrum which defaults to 'bold')",
+    "Uses `data-accent-color` attribute to set the accent color",
+    "The component uses the `rt-Badge` class and variant classes like `rt-variant-solid`"
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "source": {
+    "file": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "fileName": "Untitled UI – FREE Figma UI kit and design system v2.0 (Community)",
+    "evidence": {
+      "buttons": "../../sources/Buttons.png",
+      "inputs": "../../sources/Inputs.png",
+      "warningModal": "../../sources/Modal-Warning.png"
+    },
+    "methods": [
+      "figma.get_metadata",
+      "figma.get_design_context",
+      "figma.get_variable_defs",
+      "figma.get_screenshot"
+    ]
+  },
+  "components": {
+    "buttons": {
+      "page": {
+        "id": "1:1183",
+        "name": "Buttons"
+      },
+      "componentSet": {
+        "id": "1038:34411",
+        "name": "Buttons/Button"
+      },
+      "examples": [
+        {
+          "id": "1038:34410",
+          "name": "Size=md, Hierarchy=Primary, Icon=False, State=Default",
+          "hierarchy": "Primary",
+          "state": "Default",
+          "background": "#7F56D9",
+          "border": "#7F56D9",
+          "text": "#FFFFFF",
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1041:34650",
+          "name": "Size=md, Hierarchy=Primary, Icon=False, State=Focused",
+          "hierarchy": "Primary",
+          "state": "Focused",
+          "background": "#7F56D9",
+          "border": "#7F56D9",
+          "text": "#FFFFFF",
+          "focusRing": {
+            "color": "#F4EBFF",
+            "widthPx": 4,
+            "style": "Shadow/xs focused 4px brand-100"
+          },
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1041:35246",
+          "name": "Size=md, Hierarchy=Secondary color, Icon=False, State=Default",
+          "hierarchy": "Secondary color",
+          "state": "Default",
+          "background": "#F9F5FF",
+          "border": "#F9F5FF",
+          "text": "#6941C6",
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1041:35262",
+          "name": "Size=md, Hierarchy=Secondary color, Icon=False, State=Focused",
+          "hierarchy": "Secondary color",
+          "state": "Focused",
+          "background": "#F9F5FF",
+          "border": "#F9F5FF",
+          "text": "#6941C6",
+          "focusRing": {
+            "color": "#F4EBFF",
+            "widthPx": 4,
+            "style": "Shadow/xs focused 4px brand-100"
+          },
+          "shadow": "Shadow/xs"
+        }
+      ],
+      "limits": [
+        "The examples cover medium buttons without icons in two hierarchies, not the full button component set.",
+        "The screenshot shows the Buttons/Button component set; it is not a browser rendering."
+      ]
+    },
+    "inputs": {
+      "page": {
+        "id": "85:1269",
+        "name": "Inputs"
+      },
+      "componentSet": {
+        "id": "1090:57817",
+        "name": "Input field"
+      },
+      "examples": [
+        {
+          "id": "1091:57874",
+          "name": "Type=Default, Leading icon=True, Label=False, Hint text=False, Help icon=True, Destructive=False, State=Placeholder",
+          "destructive": false,
+          "state": "Placeholder",
+          "background": "#FFFFFF",
+          "border": "#D4D4D4",
+          "placeholderText": "#737373",
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1091:59798",
+          "name": "Type=Default, Leading icon=True, Label=False, Hint text=False, Help icon=True, Destructive=False, State=Focused",
+          "destructive": false,
+          "state": "Focused",
+          "background": "#FFFFFF",
+          "border": "#D6BBFB",
+          "valueText": "#171717",
+          "focusRing": {
+            "color": "#F4EBFF",
+            "widthPx": 4,
+            "style": "Shadow/xs focused 4px brand-100"
+          },
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1094:7290",
+          "name": "Type=Default, Leading icon=True, Label=False, Hint text=False, Help icon=True, Destructive=True, State=Placeholder",
+          "destructive": true,
+          "state": "Placeholder",
+          "background": "#FFFFFF",
+          "observedErrorColors": {
+            "border": "#FCA5A5",
+            "icon": "#EF4444"
+          },
+          "shadow": "Shadow/xs"
+        },
+        {
+          "id": "1094:7238",
+          "name": "Type=Default, Leading icon=True, Label=False, Hint text=False, Help icon=True, Destructive=True, State=Focused",
+          "destructive": true,
+          "state": "Focused",
+          "background": "#FFFFFF",
+          "border": "#FCA5A5",
+          "valueText": "#171717",
+          "errorIcon": "#EF4444",
+          "focusRing": {
+            "color": "#FEE2E2",
+            "widthPx": 4,
+            "style": "Shadow/xs focused 4px error-100"
+          },
+          "shadow": "Shadow/xs"
+        }
+      ],
+      "limits": [
+        "Examples keep the default input type and a leading icon; label, hint, help icon and other input types vary in the component set.",
+        "Destructive state is a component variant; the sample does not establish when validation should trigger it."
+      ]
+    },
+    "warningModal": {
+      "page": {
+        "id": "172:4293",
+        "name": "Modals"
+      },
+      "variant": {
+        "id": "1109:660",
+        "name": "Type=Warning horizontal, Breakpoint=Desktop",
+        "dialog": "1109:661",
+        "warningIcon": {
+          "background": "#FEF9C3",
+          "outerBorder": "#FEFCE8",
+          "outerBorderWidthPx": 8,
+          "sizePx": 48
+        },
+        "dialogSurface": "#FFFFFF",
+        "dialogRadiusPx": 12,
+        "backdrop": {
+          "color": "rgba(10, 10, 10, 0.7)",
+          "backgroundBlurPx": 8
+        },
+        "shadow": "Shadow/xl"
+      },
+      "interpretation": "This is a warning modal with a dimmed backdrop, not a contextual alert or toast.",
+      "limits": [
+        "Only the desktop warning variant is recorded here.",
+        "The page also lists destructive modal variants, but their styling is not extracted in this record."
+      ]
+    }
+  },
+  "scope": {
+    "dedicatedAlertOrToastPageFound": false,
+    "checkedPages": [
+      "Badges",
+      "Buttons",
+      "Inputs",
+      "Tooltips",
+      "Modals"
+    ],
+    "excludedComponents": [
+      {
+        "name": "Tooltips",
+        "pageId": "1052:485",
+        "reason": "The compared variants use neutral black-and-white surfaces and text. They do not provide colored roles useful for the palette investigation."
+      }
+    ],
+    "limits": [
+      "The page inventory describes the accessible Community file pages, not every component in paid Untitled UI libraries.",
+      "Design-context code and variable definitions support these samples; they do not prove an exhaustive mapping of all component properties or production behavior.",
+      "No design document write operation was used."
+    ]
+  }
+}

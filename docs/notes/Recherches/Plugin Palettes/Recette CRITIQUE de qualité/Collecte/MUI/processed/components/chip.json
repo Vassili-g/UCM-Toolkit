@@ -1,0 +1,348 @@
+{
+  "name": "Chip",
+  "description": "Composant Chip de Material UI - équivalent de Badge",
+  "designSystem": "Material UI (MUI)",
+  "version": "v5.15.0",
+  "variants": [
+    {
+      "name": "filled",
+      "description": "Chip avec fond plein",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": {
+              "type": "literal",
+              "hex": "#3f51b5",
+              "rgb": {
+                "r": 63,
+                "g": 81,
+                "b": 181
+              },
+              "lch": {
+                "l": 42,
+                "c": 50,
+                "h": 240
+              }
+            },
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": {
+              "type": "literal",
+              "hex": "#ffffff",
+              "rgb": {
+                "r": 255,
+                "g": 255,
+                "b": 255
+              },
+              "lch": {
+                "l": 100,
+                "c": 0,
+                "h": 0
+              }
+            },
+            "state": "default"
+          },
+          {
+            "property": "borderRadius",
+            "value": "16px",
+            "state": "default"
+          },
+          {
+            "property": "padding",
+            "value": "0 12px",
+            "state": "default"
+          },
+          {
+            "property": "fontSize",
+            "value": "0.8125rem",
+            "state": "default"
+          },
+          {
+            "property": "height",
+            "value": "32px",
+            "state": "default"
+          }
+        ]
+      },
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": {
+                "type": "literal",
+                "hex": "#3f51b5",
+                "rgb": {
+                  "r": 63,
+                  "g": 81,
+                  "b": 181
+                },
+                "lch": {
+                  "l": 42,
+                  "c": 50,
+                  "h": 240
+                }
+              }
+            }
+          ]
+        },
+        "secondary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": {
+                "type": "literal",
+                "hex": "#9c27b0",
+                "rgb": {
+                  "r": 156,
+                  "g": 39,
+                  "b": 176
+                },
+                "lch": {
+                  "l": 40,
+                  "c": 60,
+                  "h": 300
+                }
+              }
+            }
+          ]
+        },
+        "success": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": {
+                "type": "literal",
+                "hex": "#4caf50",
+                "rgb": {
+                  "r": 76,
+                  "g": 175,
+                  "b": 80
+                },
+                "lch": {
+                  "l": 60,
+                  "c": 50,
+                  "h": 140
+                }
+              }
+            }
+          ]
+        },
+        "error": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": {
+                "type": "literal",
+                "hex": "#f44336",
+                "rgb": {
+                  "r": 244,
+                  "g": 67,
+                  "b": 54
+                },
+                "lch": {
+                  "l": 50,
+                  "c": 70,
+                  "h": 10
+                }
+              }
+            }
+          ]
+        },
+        "warning": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": {
+                "type": "literal",
+                "hex": "#ffc107",
+                "rgb": {
+                  "r": 255,
+                  "g": 193,
+                  "b": 7
+                },
+                "lch": {
+                  "l": 75,
+                  "c": 80,
+                  "h": 60
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "outlined",
+      "description": "Chip avec bordure",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "transparent",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": {
+              "type": "literal",
+              "hex": "#757575",
+              "rgb": {
+                "r": 117,
+                "g": 117,
+                "b": 117
+              },
+              "lch": {
+                "l": 48,
+                "c": 0,
+                "h": 0
+              }
+            },
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": {
+              "type": "literal",
+              "hex": "#757575",
+              "rgb": {
+                "r": 117,
+                "g": 117,
+                "b": 117
+              },
+              "lch": {
+                "l": 48,
+                "c": 0,
+                "h": 0
+              }
+            },
+            "state": "default"
+          }
+        ]
+      }
+    }
+  ],
+  "props": [
+    {
+      "name": "color",
+      "type": "string",
+      "defaultValue": "default",
+      "description": "Couleur (default, primary, secondary, error, info, success, warning)"
+    },
+    {
+      "name": "variant",
+      "type": "string",
+      "defaultValue": "filled",
+      "description": "Variante (filled, outlined)"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "defaultValue": "medium",
+      "description": "Taille (small, medium)"
+    },
+    {
+      "name": "label",
+      "type": "node",
+      "description": "Contenu"
+    },
+    {
+      "name": "onDelete",
+      "type": "function",
+      "description": "Callback suppression"
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "filled": {
+        "primary": {
+          "type": "literal",
+          "hex": "#3f51b5",
+          "rgb": {
+            "r": 63,
+            "g": 81,
+            "b": 181
+          },
+          "lch": {
+            "l": 42,
+            "c": 50,
+            "h": 240
+          }
+        },
+        "secondary": {
+          "type": "literal",
+          "hex": "#9c27b0",
+          "rgb": {
+            "r": 156,
+            "g": 39,
+            "b": 176
+          },
+          "lch": {
+            "l": 40,
+            "c": 60,
+            "h": 300
+          }
+        },
+        "success": {
+          "type": "literal",
+          "hex": "#4caf50",
+          "rgb": {
+            "r": 76,
+            "g": 175,
+            "b": 80
+          },
+          "lch": {
+            "l": 60,
+            "c": 50,
+            "h": 140
+          }
+        },
+        "error": {
+          "type": "literal",
+          "hex": "#f44336",
+          "rgb": {
+            "r": 244,
+            "g": 67,
+            "b": 54
+          },
+          "lch": {
+            "l": 50,
+            "c": 70,
+            "h": 10
+          }
+        },
+        "warning": {
+          "type": "literal",
+          "hex": "#ffc107",
+          "rgb": {
+            "r": 255,
+            "g": 193,
+            "b": 7
+          },
+          "lch": {
+            "l": 75,
+            "c": 80,
+            "h": 60
+          }
+        }
+      }
+    }
+  },
+  "source": {
+    "file": "sources/chip.js",
+    "url": "https://raw.githubusercontent.com/mui/material-ui/v5.15.0/packages/mui-material/src/Chip/Chip.js",
+    "version": "v5.15.0"
+  },
+  "notes": [
+    "Chip est l'équivalent de Badge",
+    "MUI gère le dark mode via le thème"
+  ]
+}

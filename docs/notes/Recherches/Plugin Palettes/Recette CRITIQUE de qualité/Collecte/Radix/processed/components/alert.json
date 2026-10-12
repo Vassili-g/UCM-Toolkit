@@ -1,0 +1,143 @@
+{
+  "name": "AlertDialog",
+  "description": "Alert dialogs display important messages requiring user confirmation.",
+  "designSystem": "Radix",
+  "version": "@radix-ui/themes@3.3.0",
+  "source": {
+    "file": "work/themes/package/src/components/alert-dialog.tsx",
+    "url": "https://www.radix-ui.com/themes/docs/components/alert-dialog"
+  },
+  "props": [
+    {
+      "name": "color",
+      "type": "string",
+      "defaultValue": "'gray'"
+    },
+    {
+      "name": "variant",
+      "type": "'solid' | 'soft' | 'outline' | 'ghost'",
+      "defaultValue": "'soft'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "gray",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--gray-a3)"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--gray-a6)"
+          },
+          {
+            "property": "color",
+            "value": "var(--gray-a12)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--gray-a3",
+        "borderColor": "--gray-a6",
+        "color": "--gray-a12"
+      }
+    },
+    {
+      "name": "red",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--red-a3)"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--red-a6)"
+          },
+          {
+            "property": "color",
+            "value": "var(--red-a12)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--red-a3",
+        "borderColor": "--red-a6",
+        "color": "--red-a12"
+      }
+    },
+    {
+      "name": "amber",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--amber-a3)"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--amber-a6)"
+          },
+          {
+            "property": "color",
+            "value": "var(--amber-a12)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--amber-a3",
+        "borderColor": "--amber-a6",
+        "color": "--amber-a12"
+      }
+    },
+    {
+      "name": "green",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--green-a3)"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--green-a6)"
+          },
+          {
+            "property": "color",
+            "value": "var(--green-a12)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--green-a3",
+        "borderColor": "--green-a6",
+        "color": "--green-a12"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "gray": "--gray-a3",
+      "red": "--red-a3",
+      "amber": "--amber-a3",
+      "green": "--green-a3"
+    },
+    "borderColor": {
+      "gray": "--gray-a6",
+      "red": "--red-a6",
+      "amber": "--amber-a6",
+      "green": "--green-a6"
+    },
+    "color": {
+      "gray": "--gray-a12",
+      "red": "--red-a12",
+      "amber": "--amber-a12",
+      "green": "--green-a12"
+    }
+  },
+  "notes": [
+    "Uses accent colors with alpha channels (a3, a6, a12)"
+  ]
+}

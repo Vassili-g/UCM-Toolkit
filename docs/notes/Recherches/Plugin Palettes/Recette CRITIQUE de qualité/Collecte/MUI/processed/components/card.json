@@ -1,0 +1,169 @@
+{
+  "name": "Card",
+  "description": "Card components display content in contained surface with elevation.",
+  "designSystem": "Material UI",
+  "version": "@mui/material@5.15.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://mui.com/material-ui/react-card/"
+  },
+  "props": [
+    {
+      "name": "elevation",
+      "type": "number",
+      "defaultValue": 1,
+      "description": "Shadow depth (0-24)"
+    },
+    {
+      "name": "variant",
+      "type": "'elevation' | 'outlined'",
+      "defaultValue": "'elevation'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "elevation",
+      "subVariants": {
+        "0": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "none",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "background.paper",
+            "boxShadow": "shadows[0]"
+          }
+        },
+        "1": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12)",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "background.paper",
+            "boxShadow": "shadows[1]"
+          }
+        },
+        "2": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "background.paper",
+            "boxShadow": "shadows[2]"
+          }
+        },
+        "3": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12)",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "background.paper",
+            "boxShadow": "shadows[3]"
+          }
+        },
+        "4": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12)",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "background.paper",
+            "boxShadow": "shadows[4]"
+          }
+        }
+      },
+      "notes": [
+        "Elevation uses shadows[0-24], all with white background"
+      ]
+    },
+    {
+      "name": "outlined",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#ffffff",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#e0e0e0",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "none",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "background.paper",
+        "borderColor": "divider"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": "background.paper",
+    "borderColor": {
+      "outlined": "divider"
+    },
+    "boxShadow": {
+      "elevation": "shadows[N]"
+    }
+  },
+  "notes": [
+    "All cards use white background (background.paper)",
+    "Elevation levels 0-24 with progressive shadows",
+    "Outlined variant uses divider color for border",
+    "Key insight: surface/default = background.paper = #ffffff"
+  ]
+}

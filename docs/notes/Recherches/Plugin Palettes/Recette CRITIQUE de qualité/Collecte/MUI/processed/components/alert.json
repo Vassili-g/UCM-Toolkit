@@ -1,0 +1,368 @@
+{
+  "name": "Alert",
+  "description": "Alert components display important messages with severity levels.",
+  "designSystem": "Material UI",
+  "version": "@mui/material@5.15.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://mui.com/material-ui/react-alert/"
+  },
+  "props": [
+    {
+      "name": "severity",
+      "type": "'error' | 'warning' | 'info' | 'success'",
+      "defaultValue": "'info'"
+    },
+    {
+      "name": "variant",
+      "type": "'filled' | 'outlined' | 'standard'",
+      "defaultValue": "'standard'"
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": "Custom color from theme palette"
+    }
+  ],
+  "variants": [
+    {
+      "name": "error",
+      "subVariants": {
+        "standard": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#ffebee",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#c62828",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "error.light",
+            "color": "error.main"
+          }
+        },
+        "outlined": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#ffcdd2",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#c62828",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "1px",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "transparent",
+            "borderColor": "error.light",
+            "color": "error.main"
+          }
+        },
+        "filled": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#c62828",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "error.main",
+            "color": "error.contrastText"
+          }
+        }
+      },
+      "notes": [
+        "Error uses red-50 (#ffebee) for standard, red-500 (#c62828) for main"
+      ]
+    },
+    {
+      "name": "warning",
+      "subVariants": {
+        "standard": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#fff8e1",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#e65100",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "warning.light",
+            "color": "warning.main"
+          }
+        },
+        "outlined": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#ffcc80",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#e65100",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "transparent",
+            "borderColor": "warning.light",
+            "color": "warning.main"
+          }
+        },
+        "filled": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#e65100",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "warning.main",
+            "color": "warning.contrastText"
+          }
+        }
+      },
+      "notes": [
+        "Warning uses amber-50 (#fff8e1) for standard, amber-800 (#e65100) for main"
+      ]
+    },
+    {
+      "name": "info",
+      "subVariants": {
+        "standard": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#e3f2fd",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#1565c0",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "info.light",
+            "color": "info.main"
+          }
+        },
+        "outlined": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#90caf9",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#1565c0",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "transparent",
+            "borderColor": "info.light",
+            "color": "info.main"
+          }
+        },
+        "filled": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#1565c0",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "info.main",
+            "color": "info.contrastText"
+          }
+        }
+      },
+      "notes": [
+        "Info uses blue-50 (#e3f2fd) for standard, blue-700 (#1565c0) for main"
+      ]
+    },
+    {
+      "name": "success",
+      "subVariants": {
+        "standard": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#e8f5e8",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#2e7d32",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "success.light",
+            "color": "success.main"
+          }
+        },
+        "outlined": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#a5d6a7",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#2e7d32",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "transparent",
+            "borderColor": "success.light",
+            "color": "success.main"
+          }
+        },
+        "filled": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#2e7d32",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            }
+          ],
+          "tokenMappings": {
+            "backgroundColor": "success.main",
+            "color": "success.contrastText"
+          }
+        }
+      },
+      "notes": [
+        "Success uses green-50 (#e8f5e8) for standard, green-800 (#2e7d32) for main"
+      ]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "error": {
+        "standard": "error.light",
+        "outlined": "transparent",
+        "filled": "error.main"
+      },
+      "warning": {
+        "standard": "warning.light",
+        "outlined": "transparent",
+        "filled": "warning.main"
+      },
+      "info": {
+        "standard": "info.light",
+        "outlined": "transparent",
+        "filled": "info.main"
+      },
+      "success": {
+        "standard": "success.light",
+        "outlined": "transparent",
+        "filled": "success.main"
+      }
+    },
+    "color": {
+      "error": {
+        "standard": "error.main",
+        "filled": "error.contrastText"
+      },
+      "warning": {
+        "standard": "warning.main",
+        "filled": "warning.contrastText"
+      },
+      "info": {
+        "standard": "info.main",
+        "filled": "info.contrastText"
+      },
+      "success": {
+        "standard": "success.main",
+        "filled": "success.contrastText"
+      }
+    },
+    "borderColor": {
+      "error": {
+        "outlined": "error.light"
+      },
+      "warning": {
+        "outlined": "warning.light"
+      },
+      "info": {
+        "outlined": "info.light"
+      },
+      "success": {
+        "outlined": "success.light"
+      }
+    }
+  },
+  "notes": [
+    "MUI uses light variant (50) for standard alert backgrounds",
+    "Main color (500/700/800) for text in standard variant",
+    "Filled variant uses main color with white text",
+    "Key insight: surface/default should use light shades (50)"
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "name": "Button",
+  "description": "Button components for actions with multiple variants.",
+  "designSystem": "Material UI",
+  "version": "@mui/material@5.15.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://mui.com/material-ui/react-button/"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "'text' | 'outlined' | 'contained'",
+      "defaultValue": "'text'"
+    },
+    {
+      "name": "color",
+      "type": "'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'",
+      "defaultValue": "'primary'"
+    },
+    {
+      "name": "disableElevation",
+      "type": "boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "disableRipple",
+      "type": "boolean",
+      "defaultValue": false
+    }
+  ],
+  "states": [
+    "default",
+    "hover",
+    "active",
+    "focus",
+    "disabled"
+  ],
+  "variants": [
+    {
+      "name": "contained",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#1976d2",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "boxShadow",
+              "value": "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "#1565c0"
+              },
+              {
+                "property": "boxShadow",
+                "value": "0px 4px 8px -2px rgba(0,0,0,0.2), 0px 4px 4px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12)"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "boxShadow",
+                "value": "0px 0px 0px 4px rgba(25, 118, 210, 0.3)"
+              }
+            ]
+          },
+          "tokenMappings": {
+            "backgroundColor": {
+              "default": "primary.main",
+              "hover": "primary.dark"
+            },
+            "color": "primary.contrastText",
+            "boxShadow": {
+              "default": "shadows[2]",
+              "hover": "shadows[4]",
+              "focus": "focus ring with primary.main at 0.3 opacity"
+            }
+          }
+        },
+        "notes": [
+          "Contained primary uses primary.main (#1976d2) and primary.dark (#1565c0)"
+        ]
+      }
+    },
+    {
+      "name": "outlined",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#1976d2",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "1px",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#1976d2",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "rgba(25, 118, 210, 0.04)"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "rgba(25, 118, 210, 0.12)"
+              },
+              {
+                "property": "boxShadow",
+                "value": "0px 0px 0px 4px rgba(25, 118, 210, 0.3)"
+              }
+            ]
+          },
+          "tokenMappings": {
+            "backgroundColor": {
+              "default": "transparent",
+              "hover": "action.hover",
+              "focus": "action.focus"
+            },
+            "borderColor": "primary.main",
+            "color": "primary.main",
+            "boxShadow": "focus ring with primary.main at 0.3 opacity"
+          }
+        },
+        "notes": [
+          "Outlined uses transparent background, primary.main for border and text"
+        ]
+      }
+    },
+    {
+      "name": "text",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#1976d2",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "0",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "rgba(25, 118, 210, 0.04)"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "rgba(25, 118, 210, 0.12)"
+              },
+              {
+                "property": "boxShadow",
+                "value": "0px 0px 0px 4px rgba(25, 118, 210, 0.3)"
+              }
+            ]
+          },
+          "tokenMappings": {
+            "backgroundColor": {
+              "default": "transparent",
+              "hover": "action.hover",
+              "focus": "action.focus"
+            },
+            "color": "primary.main",
+            "boxShadow": "focus ring with primary.main at 0.3 opacity"
+          }
+        },
+        "notes": [
+          "Text uses transparent background, primary.main for text"
+        ]
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "contained": {
+        "primary": {
+          "default": "primary.main",
+          "hover": "primary.dark"
+        }
+      },
+      "outlined": {
+        "primary": {
+          "default": "transparent",
+          "hover": "action.hover",
+          "focus": "action.focus"
+        }
+      },
+      "text": {
+        "primary": {
+          "default": "transparent",
+          "hover": "action.hover",
+          "focus": "action.focus"
+        }
+      }
+    },
+    "color": {
+      "contained": {
+        "primary": "primary.contrastText"
+      },
+      "outlined": {
+        "primary": "primary.main"
+      },
+      "text": {
+        "primary": "primary.main"
+      }
+    },
+    "borderColor": {
+      "outlined": {
+        "primary": "primary.main"
+      },
+      "text": {
+        "primary": "transparent"
+      }
+    },
+    "boxShadow": {
+      "focus": "0px 0px 0px 4px rgba({color}, 0.3)"
+    }
+  },
+  "notes": [
+    "Focus uses 4px ring with color at 0.3 opacity",
+    "Focus ring color is the button's color (primary.main, etc.)",
+    "Key insight: focus ring should be light and match the color, not dark"
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "name": "Button",
+  "description": "Buttons for actions with multiple appearances.",
+  "designSystem": "Atlassian",
+  "version": "@atlaskit/button@17.0.5",
+  "source": {
+    "file": "documentation",
+    "url": "https://atlassian.design/components/button"
+  },
+  "props": [
+    {
+      "name": "appearance",
+      "type": "string",
+      "defaultValue": "'default'"
+    },
+    {
+      "name": "isDisabled",
+      "type": "boolean"
+    }
+  ],
+  "states": [
+    "default",
+    "hover",
+    "active",
+    "focus",
+    "disabled"
+  ],
+  "variants": [
+    {
+      "name": "primary",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#0066CC",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#0066CC",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "2px",
+            "state": "default"
+          }
+        ],
+        "hover": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#0052CC"
+            }
+          ]
+        },
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px rgba(0, 102, 204, 0.3)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": {
+          "default": "#0066CC",
+          "hover": "#0052CC"
+        },
+        "color": "#FFFFFF",
+        "borderColor": "#0066CC",
+        "boxShadow": "focus-ring-blue"
+      }
+    },
+    {
+      "name": "default",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#42526E",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#42526E",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px rgba(66, 82, 110, 0.3)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "#42526E",
+        "color": "#FFFFFF",
+        "borderColor": "#42526E",
+        "boxShadow": "focus-ring-gray"
+      }
+    },
+    {
+      "name": "subtle",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#F4F5F7",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#42526E",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#F4F5F7",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px rgba(244, 245, 247, 0.5)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "#F4F5F7",
+        "color": "#42526E",
+        "borderColor": "#F4F5F7",
+        "boxShadow": "focus-ring-subtle"
+      }
+    },
+    {
+      "name": "danger",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FF5630",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#FFFFFF",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#FF5630",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px rgba(255, 86, 48, 0.3)"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FF5630",
+        "color": "#FFFFFF",
+        "borderColor": "#FF5630",
+        "boxShadow": "focus-ring-red"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "primary": "#0066CC",
+      "default": "#42526E",
+      "subtle": "#F4F5F7",
+      "danger": "#FF5630"
+    },
+    "color": {
+      "primary": "#FFFFFF",
+      "default": "#FFFFFF",
+      "subtle": "#42526E",
+      "danger": "#FFFFFF"
+    },
+    "borderColor": {
+      "primary": "#0066CC",
+      "default": "#42526E",
+      "subtle": "#F4F5F7",
+      "danger": "#FF5630"
+    },
+    "boxShadow": {
+      "focus": {
+        "primary": "focus-ring-blue",
+        "default": "focus-ring-gray",
+        "subtle": "focus-ring-subtle",
+        "danger": "focus-ring-red"
+      }
+    }
+  },
+  "notes": [
+    "Uses appearance prop",
+    "Focus uses rgba with 0.3 opacity",
+    "Relevant for focus/ring problem"
+  ]
+}

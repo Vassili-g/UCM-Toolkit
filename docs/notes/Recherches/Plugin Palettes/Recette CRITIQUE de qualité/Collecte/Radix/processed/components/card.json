@@ -1,0 +1,129 @@
+{
+  "name": "Card",
+  "description": "Flexible content container with multiple variants.",
+  "designSystem": "Radix",
+  "version": "@radix-ui/themes@3.3.0",
+  "source": {
+    "file": "work/themes/package/src/components/card.tsx",
+    "url": "https://www.radix-ui.com/themes/docs/components/card"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "string",
+      "defaultValue": "'surface'"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "defaultValue": "'2'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "surface",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-surface)"
+          },
+          {
+            "property": "boxShadow",
+            "value": "var(--shadow-2)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--accent-surface",
+        "boxShadow": "--shadow-2"
+      }
+    },
+    {
+      "name": "solid",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-9)"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-contrast)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--accent-9",
+        "color": "--accent-contrast"
+      }
+    },
+    {
+      "name": "soft",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "var(--accent-a3)"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-a11)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "--accent-a3",
+        "color": "--accent-a11"
+      }
+    },
+    {
+      "name": "outline",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "transparent"
+          },
+          {
+            "property": "borderColor",
+            "value": "var(--accent-a6)"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px"
+          },
+          {
+            "property": "color",
+            "value": "var(--accent-a11)"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "transparent",
+        "borderColor": "--accent-a6",
+        "color": "--accent-a11"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "surface": "--accent-surface",
+      "solid": "--accent-9",
+      "soft": "--accent-a3",
+      "outline": "transparent"
+    },
+    "color": {
+      "solid": "--accent-contrast",
+      "soft": "--accent-a11",
+      "outline": "--accent-a11"
+    },
+    "borderColor": {
+      "outline": "--accent-a6"
+    }
+  },
+  "notes": [
+    "Uses accent tokens",
+    "surface variant uses --accent-surface"
+  ]
+}

@@ -69,7 +69,7 @@ Les classes de Tailwind Plus et de Catalyst ne sont pas publiques.
 ### Untitled UI, fichier Figma Community
 
 Badges : fond 50, texte 700, contour 200 du badge intérieur ; voir
-l'analyse du dossier (`ANALYSE-UNTITLED-UI.md`). Les rampes sont celles de Tailwind 3.
+[l'analyse](../ANALYSE-UNTITLED-UI.md). Les rampes sont celles de Tailwind 3.
 
 ## Indicateur de focus
 
@@ -88,7 +88,7 @@ l'analyse du dossier (`ANALYSE-UNTITLED-UI.md`). Les rampes sont celles de Tailw
 | GOV.UK | jaune `#ffdd00` et noir `#0b0c0c` | 3 px, deux couleurs | global | `focus` |
 
 Le halo du kit Figma d'Untitled UI a été lu dans le fichier par la
-préparation (`RELEVE-UNTITLED-FOCUS.json`). Le code React du même éditeur
+[préparation](../RELEVE-UNTITLED-FOCUS.json). Le code React du même éditeur
 emploie un trait brand-500. Aucun autre système lu n'emploie un pas pâle seul.
 
 WCAG 2.2 : [1.4.11](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)

@@ -1,0 +1,232 @@
+{
+  "name": "Alert",
+  "description": "Alert components display important messages. Built with Tailwind utility classes using semantic color tokens.",
+  "designSystem": "Tailwind CSS",
+  "version": "v4.0.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://tailwindcss.com/docs"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "'info' | 'success' | 'warning' | 'error' | 'neutral'",
+      "defaultValue": "'info'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "info",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#dbeafe",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#3b82f6",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#1e40af",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          },
+          {
+            "property": "borderRadius",
+            "value": "0.375rem",
+            "state": "default"
+          },
+          {
+            "property": "padding",
+            "value": "1rem",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#dbeafe",
+        "borderColor": "#3b82f6",
+        "color": "#1e40af"
+      },
+      "notes": [
+        "Uses blue-50 for background, blue-500 for border, blue-800 for text"
+      ]
+    },
+    {
+      "name": "success",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#d1fae5",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#22c55e",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#065f46",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#d1fae5",
+        "borderColor": "#22c55e",
+        "color": "#065f46"
+      },
+      "notes": [
+        "Uses green-50 for background, green-500 for border, green-800 for text"
+      ]
+    },
+    {
+      "name": "warning",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#fef3c7",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#f59e0b",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#92400e",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#fef3c7",
+        "borderColor": "#f59e0b",
+        "color": "#92400e"
+      },
+      "notes": [
+        "Uses amber-50 for background, amber-500 for border, amber-900 for text"
+      ]
+    },
+    {
+      "name": "error",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#fee2e2",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#ef4444",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#991b1b",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#fee2e2",
+        "borderColor": "#ef4444",
+        "color": "#991b1b"
+      },
+      "notes": [
+        "Uses red-50 for background, red-500 for border, red-900 for text"
+      ]
+    },
+    {
+      "name": "neutral",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#f3f4f6",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "#6b7280",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "#374151",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px",
+            "state": "default"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#f3f4f6",
+        "borderColor": "#6b7280",
+        "color": "#374151"
+      },
+      "notes": [
+        "Uses gray-100 for background, gray-500 for border, gray-700 for text"
+      ]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "info": "#dbeafe",
+      "success": "#d1fae5",
+      "warning": "#fef3c7",
+      "error": "#fee2e2",
+      "neutral": "#f3f4f6"
+    },
+    "borderColor": {
+      "info": "#3b82f6",
+      "success": "#22c55e",
+      "warning": "#f59e0b",
+      "error": "#ef4444",
+      "neutral": "#6b7280"
+    },
+    "color": {
+      "info": "#1e40af",
+      "success": "#065f46",
+      "warning": "#92400e",
+      "error": "#991b1b",
+      "neutral": "#374151"
+    }
+  },
+  "notes": [
+    "Tailwind uses opacity-based color scales (50, 100, 500, 800, 900)",
+    "Background uses X-50 (lightest), border uses X-500 (medium), text uses X-800/X-900 (darkest)",
+    "Key insight: surface/default should use X-50, not darker shades"
+  ]
+}

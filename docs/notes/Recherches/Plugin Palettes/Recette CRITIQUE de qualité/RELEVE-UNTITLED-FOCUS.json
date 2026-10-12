@@ -1,0 +1,683 @@
+{
+  "source": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/?node-id=1041-34650",
+  "focusCount": 300,
+  "samples": [
+    {
+      "id": "1041:34650",
+      "name": "Size=md, Hierarchy=Primary, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:34651",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 0,
+              "boundVariables": {},
+              "color": {
+                "r": 0.95686274766922,
+                "g": 0.9215686321258545,
+                "b": 1,
+                "a": 1
+              },
+              "offset": {
+                "x": 0,
+                "y": 0
+              },
+              "spread": 4,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            },
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 2,
+              "boundVariables": {},
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.05000000074505806
+              },
+              "offset": {
+                "x": 0,
+                "y": 1
+              },
+              "spread": 0,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            }
+          ],
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.49640899896621704,
+                "g": 0.33841174840927124,
+                "b": 0.849823534488678
+              },
+              "boundVariables": {}
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.49640899896621704,
+                "g": 0.33841174840927124,
+                "b": 0.849823534488678
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1041:35262",
+      "name": "Size=md, Hierarchy=Secondary color, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:35263",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 0,
+              "boundVariables": {},
+              "color": {
+                "r": 0.95686274766922,
+                "g": 0.9215686321258545,
+                "b": 1,
+                "a": 1
+              },
+              "offset": {
+                "x": 0,
+                "y": 0
+              },
+              "spread": 4,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            },
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 2,
+              "boundVariables": {},
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.05000000074505806
+              },
+              "offset": {
+                "x": 0,
+                "y": 1
+              },
+              "spread": 0,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            }
+          ],
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9764705896377563,
+                "g": 0.9607843160629272,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9764705896377563,
+                "g": 0.9607843160629272,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1041:38692",
+      "name": "Size=md, Hierarchy=Link color, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:38693",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [],
+          "fills": [],
+          "strokes": []
+        }
+      ]
+    },
+    {
+      "id": "1042:35626",
+      "name": "Size=md, Hierarchy=Link gray, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1042:35627",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [],
+          "fills": [],
+          "strokes": []
+        }
+      ]
+    },
+    {
+      "id": "1041:36964",
+      "name": "Size=md, Hierarchy=Tertiary color, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:36965",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [],
+          "fills": [],
+          "strokes": []
+        }
+      ]
+    },
+    {
+      "id": "1041:37540",
+      "name": "Size=md, Hierarchy=Tertiary gray, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:37541",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [],
+          "fills": [],
+          "strokes": []
+        }
+      ]
+    },
+    {
+      "id": "1041:35838",
+      "name": "Size=md, Hierarchy=Secondary gray, Icon=False, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:35839",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 0,
+              "boundVariables": {},
+              "color": {
+                "r": 0.9607843160629272,
+                "g": 0.9607843160629272,
+                "b": 0.9607843160629272,
+                "a": 1
+              },
+              "offset": {
+                "x": 0,
+                "y": 0
+              },
+              "spread": 4,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            },
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 2,
+              "boundVariables": {},
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.05000000074505806
+              },
+              "offset": {
+                "x": 0,
+                "y": 1
+              },
+              "spread": 0,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            }
+          ],
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.8313725590705872,
+                "g": 0.8313725590705872,
+                "b": 0.8313725590705872
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1041:34664",
+      "name": "Size=md, Hierarchy=Primary, Icon=Dot, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:34665",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 0,
+              "boundVariables": {},
+              "color": {
+                "r": 0.95686274766922,
+                "g": 0.9215686321258545,
+                "b": 1,
+                "a": 1
+              },
+              "offset": {
+                "x": 0,
+                "y": 0
+              },
+              "spread": 4,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            },
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 2,
+              "boundVariables": {},
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.05000000074505806
+              },
+              "offset": {
+                "x": 0,
+                "y": 1
+              },
+              "spread": 0,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            }
+          ],
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.49640899896621704,
+                "g": 0.33841174840927124,
+                "b": 0.849823534488678
+              },
+              "boundVariables": {}
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.49640899896621704,
+                "g": 0.33841174840927124,
+                "b": 0.849823534488678
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1041:35250",
+      "name": "Size=md, Hierarchy=Secondary color, Icon=Dot, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:35251",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 0,
+              "boundVariables": {},
+              "color": {
+                "r": 0.95686274766922,
+                "g": 0.9215686321258545,
+                "b": 1,
+                "a": 1
+              },
+              "offset": {
+                "x": 0,
+                "y": 0
+              },
+              "spread": 4,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            },
+            {
+              "type": "DROP_SHADOW",
+              "visible": true,
+              "radius": 2,
+              "boundVariables": {},
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.05000000074505806
+              },
+              "offset": {
+                "x": 0,
+                "y": 1
+              },
+              "spread": 0,
+              "blendMode": "NORMAL",
+              "showShadowBehindNode": true
+            }
+          ],
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9764705896377563,
+                "g": 0.9607843160629272,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9764705896377563,
+                "g": 0.9607843160629272,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1041:38674",
+      "name": "Size=md, Hierarchy=Link color, Icon=Dot, State=Focused",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": false,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "strokes": [],
+      "effects": [],
+      "children": [
+        {
+          "id": "1041:38675",
+          "name": "_Button base",
+          "type": "INSTANCE",
+          "effects": [],
+          "fills": [],
+          "strokes": []
+        }
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "id": "S:d0717be9c76b55887cde848cb0d73e36e75ff992,",
+      "name": "Brand/50",
+      "paints": [
+        {
+          "hex": "#F9F5FF",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "S:0dd798b34f16e5015b68197b7e9567c23cb9ee81,",
+      "name": "Brand/100",
+      "paints": [
+        {
+          "hex": "#F4EBFF",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "S:ba5bd04eaab4601e8edd9dac35e77c83de9f71a3,",
+      "name": "Brand/200",
+      "paints": [
+        {
+          "hex": "#E9D7FE",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "S:4336a39a5824674acf1dbf8d731517ff50a362f4,",
+      "name": "Brand/600",
+      "paints": [
+        {
+          "hex": "#7F56D9",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "S:e9d4fe28268b386750b5a37b1526387d8537e12a,",
+      "name": "Brand/700",
+      "paints": [
+        {
+          "hex": "#6941C6",
+          "opacity": 1
+        }
+      ]
+    }
+  ]
+}

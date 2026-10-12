@@ -1,0 +1,296 @@
+{
+  "name": "Button",
+  "description": "Button components for actions with multiple variants.",
+  "designSystem": "Tailwind CSS",
+  "version": "v4.0.0",
+  "source": {
+    "file": "documentation",
+    "url": "https://tailwindcss.com/docs"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "'solid' | 'outline' | 'ghost' | 'soft'",
+      "defaultValue": "'solid'"
+    },
+    {
+      "name": "color",
+      "type": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+      "defaultValue": "'primary'"
+    }
+  ],
+  "states": [
+    "default",
+    "hover",
+    "active",
+    "focus",
+    "disabled"
+  ],
+  "variants": [
+    {
+      "name": "solid",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#3b82f6",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#ffffff",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "0",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "#2563eb"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "boxShadow",
+                "value": "0 0 0 3px rgba(59, 130, 246, 0.5)"
+              }
+            ]
+          }
+        },
+        "tokenMappings": {
+          "backgroundColor": {
+            "default": "#3b82f6",
+            "hover": "#2563eb"
+          },
+          "color": "#ffffff",
+          "boxShadow": "focus-ring-blue"
+        }
+      },
+      "notes": [
+        "Solid primary uses blue-600 (#3b82f6) and blue-700 (#2563eb) for hover"
+      ]
+    },
+    {
+      "name": "outline",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "borderColor",
+              "value": "#3b82f6",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "1px",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#3b82f6",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "#dbeafe"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "boxShadow",
+                "value": "0 0 0 3px rgba(59, 130, 246, 0.5)"
+              }
+            ]
+          }
+        },
+        "tokenMappings": {
+          "backgroundColor": {
+            "default": "transparent",
+            "hover": "#dbeafe"
+          },
+          "borderColor": "#3b82f6",
+          "color": "#3b82f6",
+          "boxShadow": "focus-ring-blue"
+        }
+      },
+      "notes": [
+        "Outline uses transparent background, blue-500 for border and text"
+      ]
+    },
+    {
+      "name": "soft",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "#dbeafe",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#1e40af",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "0",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "#bfdbfe"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "boxShadow",
+                "value": "0 0 0 3px rgba(59, 130, 246, 0.5)"
+              }
+            ]
+          }
+        },
+        "tokenMappings": {
+          "backgroundColor": {
+            "default": "#dbeafe",
+            "hover": "#bfdbfe"
+          },
+          "color": "#1e40af",
+          "boxShadow": "focus-ring-blue"
+        }
+      },
+      "notes": [
+        "Soft uses blue-50 (#dbeafe) and blue-800 (#1e40af)"
+      ]
+    },
+    {
+      "name": "ghost",
+      "subVariants": {
+        "primary": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "transparent",
+              "state": "default"
+            },
+            {
+              "property": "color",
+              "value": "#3b82f6",
+              "state": "default"
+            },
+            {
+              "property": "borderWidth",
+              "value": "0",
+              "state": "default"
+            }
+          ],
+          "hover": {
+            "properties": [
+              {
+                "property": "backgroundColor",
+                "value": "#dbeafe"
+              }
+            ]
+          },
+          "focus": {
+            "properties": [
+              {
+                "property": "boxShadow",
+                "value": "0 0 0 3px rgba(59, 130, 246, 0.5)"
+              }
+            ]
+          }
+        },
+        "tokenMappings": {
+          "backgroundColor": {
+            "default": "transparent",
+            "hover": "#dbeafe"
+          },
+          "color": "#3b82f6",
+          "boxShadow": "focus-ring-blue"
+        }
+      },
+      "notes": [
+        "Ghost uses transparent background, blue-500 for text"
+      ]
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "solid": {
+        "primary": {
+          "default": "#3b82f6",
+          "hover": "#2563eb"
+        }
+      },
+      "outline": {
+        "primary": {
+          "default": "transparent",
+          "hover": "#dbeafe"
+        }
+      },
+      "soft": {
+        "primary": {
+          "default": "#dbeafe",
+          "hover": "#bfdbfe"
+        }
+      },
+      "ghost": {
+        "primary": {
+          "default": "transparent",
+          "hover": "#dbeafe"
+        }
+      }
+    },
+    "color": {
+      "solid": {
+        "primary": "#ffffff"
+      },
+      "outline": {
+        "primary": "#3b82f6"
+      },
+      "soft": {
+        "primary": "#1e40af"
+      },
+      "ghost": {
+        "primary": "#3b82f6"
+      }
+    },
+    "boxShadow": {
+      "focus": {
+        "solid": "focus-ring-blue",
+        "outline": "focus-ring-blue",
+        "soft": "focus-ring-blue",
+        "ghost": "focus-ring-blue"
+      }
+    }
+  },
+  "notes": [
+    "Focus uses rgba with 0.5 opacity for ring",
+    "Tailwind's focus ring is typically 3px with 0.5 opacity",
+    "Key insight: focus ring should be light, not dark (current UCM problem)"
+  ]
+}

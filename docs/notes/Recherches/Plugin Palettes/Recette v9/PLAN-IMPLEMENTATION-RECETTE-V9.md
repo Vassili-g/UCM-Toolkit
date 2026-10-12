@@ -7,9 +7,9 @@ l'orchestrateur, et aux agents auxquels elle confie chaque tâche. Il
 applique les décisions E1, E4 et E5 du [dossier](./DOSSIER-RECETTE-V9.md) :
 le bandeau de vérification B4, l'accueil de Création A2a et Vérification
 sans palette ouverte V3a. Les maquettes de référence sont
-[MAQUETTE-AUCUNE-PALETTE-OUVERTE.html](../Recette%20v8/Maquettes/MAQUETTE-AUCUNE-PALETTE-OUVERTE.html)
+[MAQUETTE-AUCUNE-PALETTE-OUVERTE.html](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes/MAQUETTE-AUCUNE-PALETTE-OUVERTE.html)
 (sections « A2a » et « V3a, version retenue ») et
-[MAQUETTE-BANDEAU-DE-VERIFICATION.html](../Recette%20v8/Maquettes/MAQUETTE-BANDEAU-DE-VERIFICATION.html)
+[MAQUETTE-BANDEAU-DE-VERIFICATION.html](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Recette%20v8/Maquettes/MAQUETTE-BANDEAU-DE-VERIFICATION.html)
 (section « B4 » et « Décision »). Aucune décision n'y reste ouverte.
 
 ## Qui fait quoi

@@ -11,8 +11,8 @@ mainteneur. Quatorze décisions sont listées en section 6.
 | [Rôles et crans](./Maquettes/MAQUETTE-ROLES-ET-CRANS.html) | Le fond teinté sur la page et sur la carte, la couleur, la forme et le nom du focus |
 | [Onglet Comparer](./Maquettes/MAQUETTE-ONGLET-COMPARER.html) | Comparer un groupe, harmoniser la clarté et la couleur, écarter deux teintes |
 
-La préparation (`PREPARATION-CLAUDE-OPUS.md`) et le relevé d'Untitled UI
-(`ANALYSE-UNTITLED-UI.md`), rangés dans ce dossier, ont servi de point de départ.
+La [préparation](./PREPARATION-CLAUDE-OPUS.md) et le
+[relevé d'Untitled UI](./ANALYSE-UNTITLED-UI.md) ont servi de point de départ.
 Leurs faits sur le code sont exacts ; ce dossier les chiffre et tranche entre
 leurs hypothèses.
 
@@ -34,7 +34,7 @@ leurs hypothèses.
   copie de l'export `palettes-et-reglages-poppy-reparee.json`, format 10, six
   palettes colorées et Titanium. Les supports viennent de Titanium : page au
   cran 50 (`#F6F7F8`, `#111213`), carte blanche en Light et au cran 100 en Dark
-  (`#1A1C1F`), comme dans les tokens réels du dossier d'élévation (`Elevation et surfaces/tokens-source.json`).
+  (`#1A1C1F`), comme dans les [tokens réels](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/tokens-source.json).
 - **Témoins** : [Tailwind 3.4.17](./Mesures/references/tailwind-3.4.17.json),
   dont les rampes sont celles d'Untitled UI, et
   [Radix Colors 3.0.0](./Mesures/references/radix-colors-3.0.0.json).
@@ -178,9 +178,9 @@ balayage, contraste du fond au repos contre son support :
 | Translucide | 1,07 | 1,07 | 1,09 | 1,11 |
 
 Le cran 50 que le mainteneur préfère disparaît sur la page. Le cran 100 Dark
-disparaît sur la carte, pour toutes les palettes : le dossier d'élévation
-(`Archi Tokens Multi-marques/Elevation et surfaces`) ne l'avait mesuré que sur
-le neutre.
+disparaît sur la carte, pour toutes les palettes : le
+[dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md)
+ne l'avait mesuré que sur le neutre.
 
 ### 4.2 Trois pistes
 

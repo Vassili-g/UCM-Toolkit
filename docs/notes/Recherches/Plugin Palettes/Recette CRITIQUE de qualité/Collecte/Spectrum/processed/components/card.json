@@ -1,0 +1,97 @@
+{
+  "name": "Card",
+  "description": "Cards display content in contained, elevated surface.",
+  "designSystem": "Spectrum",
+  "version": "740c6c5c",
+  "source": {
+    "file": "documentation",
+    "url": "https://react-spectrum.adobe.com/react-spectrum/Card.html"
+  },
+  "props": [
+    {
+      "name": "isEmphasized",
+      "type": "boolean"
+    }
+  ],
+  "variants": [
+    {
+      "name": "default",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "layer-1"
+          },
+          {
+            "property": "borderColor",
+            "value": "layer-2"
+          },
+          {
+            "property": "boxShadow",
+            "value": "elevation-1"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "layer-1",
+        "borderColor": "layer-2",
+        "boxShadow": "elevation-1"
+      }
+    },
+    {
+      "name": "flat",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "surface-default"
+          },
+          {
+            "property": "boxShadow",
+            "value": "none"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "surface-default"
+      }
+    },
+    {
+      "name": "raised",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "layer-2"
+          },
+          {
+            "property": "boxShadow",
+            "value": "elevation-2"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "layer-2",
+        "boxShadow": "elevation-2"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "default": "layer-1",
+      "flat": "surface-default",
+      "raised": "layer-2"
+    },
+    "borderColor": {
+      "default": "layer-2"
+    }
+  },
+  "notes": [
+    "Uses layer tokens for elevation",
+    "surface-default for flat cards"
+  ]
+}

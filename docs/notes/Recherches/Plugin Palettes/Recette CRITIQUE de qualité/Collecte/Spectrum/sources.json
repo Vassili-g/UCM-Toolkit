@@ -1,0 +1,90 @@
+[
+  {
+    "id": "badge",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/Badge.tsx",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/Badge.tsx",
+    "localFile": "sources/badge.txt",
+    "sha256": "0ffcaa2f4237f813e74de5f5d86c27ce9e9c750bf0d26b8e0de846a336e4d076"
+  },
+  {
+    "id": "inlineAlert",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/InlineAlert.tsx",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/InlineAlert.tsx",
+    "localFile": "sources/inlineAlert.txt",
+    "sha256": "1fb2113e41aaceb5425d2f2d740e938220427829401184241af451d3aba79671"
+  },
+  {
+    "id": "style",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/style/style-macro.ts",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/style/style-macro.ts",
+    "localFile": "sources/style.txt",
+    "sha256": "92f70b9fe6594b5121085de2d11aaee34a381f17f695ad5c7400bb82f46c725f"
+  },
+  {
+    "id": "theme",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/style/spectrum-theme.ts",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/style/spectrum-theme.ts",
+    "localFile": "sources/theme.txt",
+    "sha256": "a1606cf63c45b6f964771012d105ca92172573ffc2b702ae98b7b197759fc759"
+  },
+  {
+    "id": "tokens",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/style/tokens.ts",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/style/tokens.ts",
+    "localFile": "sources/tokens.txt",
+    "sha256": "91c9cf627b9daa949fc9833cf0b77787e905036df22102fae6ff01f02f1ea40d"
+  },
+  {
+    "id": "styleUtils",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/style-utils.ts",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/style-utils.ts",
+    "localFile": "sources/styleUtils.txt",
+    "sha256": "7a84152b5a2876b5aacca2c25df378303ac42ec3ec6377b9549fe2dc2ddaa6a6"
+  },
+  {
+    "id": "provider",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/Provider.tsx",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/Provider.tsx",
+    "localFile": "sources/provider.txt",
+    "sha256": "aef43cc492a5439747e112f7d3adb974dedab7cf0c4505658b0fe82e71eb624d"
+  },
+  {
+    "id": "package",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/package.json",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/package.json",
+    "localFile": "sources/package.txt",
+    "sha256": "461046409c71441b6c89f689e1d80c7a3f2703430fcb567ec90a6142d4c61a59"
+  },
+  {
+    "id": "licence",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/LICENSE",
+    "revision": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "LICENSE",
+    "localFile": "sources/licence.txt",
+    "sha256": "7dfe6526888bac51759c99f9a51262ba2711a8c12a067f2181609dd9a4066b84"
+  },
+  {
+    "id": "variables",
+    "url": "https://cdn.jsdelivr.net/npm/@adobe/spectrum-tokens@14.15.0/dist/json/variables.json",
+    "revision": "@adobe/spectrum-tokens@14.15.0",
+    "originalPath": "dist/json/variables.json",
+    "localFile": "sources/variables.json",
+    "sha256": "f6bd6a34520502514cc666c2f7552965e80d09302bde86f8a7578c9e6bbf298b"
+  },
+  {
+    "id": "tokenLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@adobe/spectrum-tokens@14.15.0/LICENSE",
+    "revision": "@adobe/spectrum-tokens@14.15.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/tokenLicence.txt",
+    "sha256": "981250df8283f951cb49f9cdcaa405d49e0313b0d4f3cd174d25f709f802cfba"
+  }
+]

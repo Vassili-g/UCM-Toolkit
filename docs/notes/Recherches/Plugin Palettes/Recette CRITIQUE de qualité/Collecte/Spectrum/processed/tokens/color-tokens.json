@@ -1,0 +1,8172 @@
+[
+  {
+    "name": "accent-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "accent-background-color-down",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "accent-background-color-hover",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "accent-background-color-key-focus",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "accent-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(75, 117, 255)",
+      "rgb": {
+        "r": 75,
+        "g": 117,
+        "b": 255
+      },
+      "lch": {
+        "l": 53.42,
+        "c": 79.13,
+        "h": 292.82
+      },
+      "uuid": "5ac73d3a-a6cc-4403-a8d5-46bc262d62e9"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "background-pasteboard-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(17, 17, 17)",
+      "rgb": {
+        "r": 17,
+        "g": 17,
+        "b": 17
+      },
+      "lch": {
+        "l": 5.06,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "ac61b090-d356-4f7f-ac6d-b4f20617c9e3"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "blue-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "blue-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(229, 240, 254)",
+      "rgb": {
+        "r": 229,
+        "g": 240,
+        "b": 254
+      },
+      "lch": {
+        "l": 94.37,
+        "c": 8.04,
+        "h": 262.95
+      },
+      "uuid": "989a37a5-66f2-4a84-a118-8d36caee6695"
+    },
+    "dark": {
+      "value": "rgb(12, 33, 117)",
+      "rgb": {
+        "r": 12,
+        "g": 33,
+        "b": 117
+      },
+      "lch": {
+        "l": 17.69,
+        "c": 56.81,
+        "h": 298.75
+      },
+      "uuid": "d88d1685-29dc-486b-a0b9-9c90f60b8cde"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "blue-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(75, 117, 255)",
+      "rgb": {
+        "r": 75,
+        "g": 117,
+        "b": 255
+      },
+      "lch": {
+        "l": 53.42,
+        "c": 79.13,
+        "h": 292.82
+      },
+      "uuid": "5ac73d3a-a6cc-4403-a8d5-46bc262d62e9"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "brown-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(139, 109, 66)",
+      "rgb": {
+        "r": 139,
+        "g": 109,
+        "b": 66
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 29.1,
+        "h": 77.58
+      },
+      "uuid": "b0445ddb-ec22-4dde-81a1-21ea14ed195a"
+    },
+    "dark": {
+      "value": "rgb(143, 114, 69)",
+      "rgb": {
+        "r": 143,
+        "g": 114,
+        "b": 69
+      },
+      "lch": {
+        "l": 49.86,
+        "c": 29.63,
+        "h": 79.4
+      },
+      "uuid": "e21a0edf-a81a-46a0-a849-11111cb89516"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "brown-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(247, 238, 225)",
+      "rgb": {
+        "r": 247,
+        "g": 238,
+        "b": 225
+      },
+      "lch": {
+        "l": 94.47,
+        "c": 7.41,
+        "h": 83.44
+      },
+      "uuid": "1b19a7b6-469e-4f5a-b30b-f3f465021d25"
+    },
+    "dark": {
+      "value": "rgb(58, 40, 14)",
+      "rgb": {
+        "r": 58,
+        "g": 40,
+        "b": 14
+      },
+      "lch": {
+        "l": 17.69,
+        "c": 20.39,
+        "h": 75.44
+      },
+      "uuid": "3c253e65-bd9a-4e52-ad68-83aca3b197e6"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "brown-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(154, 123, 77)",
+      "rgb": {
+        "r": 154,
+        "g": 123,
+        "b": 77
+      },
+      "lch": {
+        "l": 53.57,
+        "c": 30.19,
+        "h": 78.63
+      },
+      "uuid": "b15bdc92-c03f-4ad4-a385-110d635e66af"
+    },
+    "dark": {
+      "value": "rgb(163, 132, 84)",
+      "rgb": {
+        "r": 163,
+        "g": 132,
+        "b": 84
+      },
+      "lch": {
+        "l": 57.01,
+        "c": 30.79,
+        "h": 79.74
+      },
+      "uuid": "79d7de9d-7bab-4762-acd9-ecf28556906a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "celery-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(93, 180, 31)",
+      "rgb": {
+        "r": 93,
+        "g": 180,
+        "b": 31
+      },
+      "lch": {
+        "l": 65.8,
+        "c": 78.9,
+        "h": 129.26
+      },
+      "uuid": "c2cfbc22-b556-4cb5-b5ee-670254d5ecbc"
+    },
+    "dark": {
+      "value": "rgb(78, 154, 23)",
+      "rgb": {
+        "r": 78,
+        "g": 154,
+        "b": 23
+      },
+      "lch": {
+        "l": 56.87,
+        "c": 70.88,
+        "h": 129.2
+      },
+      "uuid": "706f3a95-ab27-497f-aab7-f4ed806eef30"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "celery-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(197, 255, 156)",
+      "rgb": {
+        "r": 197,
+        "g": 255,
+        "b": 156
+      },
+      "lch": {
+        "l": 94.22,
+        "c": 54.34,
+        "h": 130.19
+      },
+      "uuid": "30941af9-354a-4d61-9462-aca4bcd50093"
+    },
+    "dark": {
+      "value": "rgb(21, 51, 1)",
+      "rgb": {
+        "r": 21,
+        "g": 51,
+        "b": 1
+      },
+      "lch": {
+        "l": 18.05,
+        "c": 32.79,
+        "h": 130.72
+      },
+      "uuid": "5eda4487-8f82-48ed-8b22-aa38601bbf88"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "celery-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(82, 161, 25)",
+      "rgb": {
+        "r": 82,
+        "g": 161,
+        "b": 25
+      },
+      "lch": {
+        "l": 59.3,
+        "c": 73.1,
+        "h": 129.21
+      },
+      "uuid": "59b03f98-f898-4888-ad71-07a434e2fc7e"
+    },
+    "dark": {
+      "value": "rgb(66, 134, 18)",
+      "rgb": {
+        "r": 66,
+        "g": 134,
+        "b": 18
+      },
+      "lch": {
+        "l": 49.8,
+        "c": 64.35,
+        "h": 129.4
+      },
+      "uuid": "3b130e0d-eb9b-49e6-84db-eda6ee95eee5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "chartreuse-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(163, 196, 0)",
+      "rgb": {
+        "r": 163,
+        "g": 196,
+        "b": 0
+      },
+      "lch": {
+        "l": 74.36,
+        "c": 81.02,
+        "h": 112.98
+      },
+      "uuid": "fe3be762-b55e-43cb-9163-68ee7dafc53e"
+    },
+    "dark": {
+      "value": "rgb(136, 164, 0)",
+      "rgb": {
+        "r": 136,
+        "g": 164,
+        "b": 0
+      },
+      "lch": {
+        "l": 63.16,
+        "c": 70.99,
+        "h": 112.99
+      },
+      "uuid": "7dbedc59-e21c-4953-a7af-5e91d170604a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "chartreuse-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(234, 246, 173)",
+      "rgb": {
+        "r": 234,
+        "g": 246,
+        "b": 173
+      },
+      "lch": {
+        "l": 94.49,
+        "c": 37.22,
+        "h": 114.43
+      },
+      "uuid": "c1146153-61bf-4a31-8254-54a1d25a93c5"
+    },
+    "dark": {
+      "value": "rgb(39, 47, 0)",
+      "rgb": {
+        "r": 39,
+        "g": 47,
+        "b": 0
+      },
+      "lch": {
+        "l": 17.76,
+        "c": 27.47,
+        "h": 113.43
+      },
+      "uuid": "b98dec90-df71-4593-946d-91df7918caac"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "chartreuse-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(143, 172, 0)",
+      "rgb": {
+        "r": 143,
+        "g": 172,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 73.5,
+        "h": 112.9
+      },
+      "uuid": "d61e865b-6538-42a8-aba8-0842359b80c2"
+    },
+    "dark": {
+      "value": "rgb(122, 147, 0)",
+      "rgb": {
+        "r": 122,
+        "g": 147,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.08,
+        "c": 65.48,
+        "h": 112.87
+      },
+      "uuid": "1637c50e-88e4-4273-8a75-6e8a233a690c"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cinnamon-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(170, 94, 56)",
+      "rgb": {
+        "r": 170,
+        "g": 94,
+        "b": 56
+      },
+      "lch": {
+        "l": 48.06,
+        "c": 44.47,
+        "h": 51.68
+      },
+      "uuid": "50199dcc-deae-42ba-99e7-cb98346789eb"
+    },
+    "dark": {
+      "value": "rgb(176, 98, 59)",
+      "rgb": {
+        "r": 176,
+        "g": 98,
+        "b": 59
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 45.3,
+        "h": 51.69
+      },
+      "uuid": "58777c5b-8e62-49fe-8e0b-0f8b5127225c"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cinnamon-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(249, 236, 229)",
+      "rgb": {
+        "r": 249,
+        "g": 236,
+        "b": 229
+      },
+      "lch": {
+        "l": 94.22,
+        "c": 5.91,
+        "h": 57.07
+      },
+      "uuid": "a8d1aa1d-f9be-448e-8209-afc6097f38ed"
+    },
+    "dark": {
+      "value": "rgb(79, 28, 7)",
+      "rgb": {
+        "r": 79,
+        "g": 28,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.96,
+        "c": 33.02,
+        "h": 46.44
+      },
+      "uuid": "4d086a5c-1b70-4750-be79-db934e7bc010"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cinnamon-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(184, 109, 70)",
+      "rgb": {
+        "r": 184,
+        "g": 109,
+        "b": 70
+      },
+      "lch": {
+        "l": 53.57,
+        "c": 43.07,
+        "h": 52.66
+      },
+      "uuid": "560d578a-4128-40d5-979f-80d3057294a0"
+    },
+    "dark": {
+      "value": "rgb(192, 119, 80)",
+      "rgb": {
+        "r": 192,
+        "g": 119,
+        "b": 80
+      },
+      "lch": {
+        "l": 57.06,
+        "c": 41.44,
+        "h": 53.39
+      },
+      "uuid": "7b65cc42-f559-42de-8077-d808c9e096b6"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cyan-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(11, 120, 179)",
+      "rgb": {
+        "r": 11,
+        "g": 120,
+        "b": 179
+      },
+      "lch": {
+        "l": 47.95,
+        "c": 39.2,
+        "h": 261.89
+      },
+      "uuid": "71769f93-467d-497a-b214-45c8753f34f5"
+    },
+    "dark": {
+      "value": "rgb(13, 125, 186)",
+      "rgb": {
+        "r": 13,
+        "g": 125,
+        "b": 186
+      },
+      "lch": {
+        "l": 49.85,
+        "c": 40.25,
+        "h": 261.83
+      },
+      "uuid": "ee8673ca-c39c-437e-b3a5-416f4e8664d3"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cyan-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(217, 244, 253)",
+      "rgb": {
+        "r": 217,
+        "g": 244,
+        "b": 253
+      },
+      "lch": {
+        "l": 94.54,
+        "c": 10.1,
+        "h": 226.23
+      },
+      "uuid": "c2aaf729-7f39-499a-8b67-e23801073b05"
+    },
+    "dark": {
+      "value": "rgb(0, 48, 65)",
+      "rgb": {
+        "r": 0,
+        "g": 48,
+        "b": 65
+      },
+      "lch": {
+        "l": 17.9,
+        "c": 16.85,
+        "h": 242.34
+      },
+      "uuid": "e4bcf4fc-aaec-49a5-a2bb-6bb55e7fff47"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "cyan-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(48, 167, 254)",
+      "rgb": {
+        "r": 48,
+        "g": 167,
+        "b": 254
+      },
+      "lch": {
+        "l": 66.07,
+        "c": 52.22,
+        "h": 267.12
+      },
+      "uuid": "d65f3e1d-ad9d-4fa7-ac06-37235124e999"
+    },
+    "dark": {
+      "value": "rgb(24, 142, 220)",
+      "rgb": {
+        "r": 24,
+        "g": 142,
+        "b": 220
+      },
+      "lch": {
+        "l": 56.79,
+        "c": 48.2,
+        "h": 267.24
+      },
+      "uuid": "9c183829-4858-4908-b1ac-d89f40f2e903"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "fuchsia-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(181, 57, 200)",
+      "rgb": {
+        "r": 181,
+        "g": 57,
+        "b": 200
+      },
+      "lch": {
+        "l": 48.16,
+        "c": 83.85,
+        "h": 323.5
+      },
+      "uuid": "5fa3362b-01ee-4861-9a02-6af6da804f61"
+    },
+    "dark": {
+      "value": "rgb(186, 60, 206)",
+      "rgb": {
+        "r": 186,
+        "g": 60,
+        "b": 206
+      },
+      "lch": {
+        "l": 49.65,
+        "c": 85.31,
+        "h": 323.37
+      },
+      "uuid": "5848fed6-5b42-42ef-9800-8f32e42cf6ba"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "fuchsia-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(253, 233, 255)",
+      "rgb": {
+        "r": 253,
+        "g": 233,
+        "b": 255
+      },
+      "lch": {
+        "l": 94.48,
+        "c": 13.35,
+        "h": 322.4
+      },
+      "uuid": "a304f27a-7a17-4c12-88d1-07171fa3ca75"
+    },
+    "dark": {
+      "value": "rgb(79, 0, 95)",
+      "rgb": {
+        "r": 79,
+        "g": 0,
+        "b": 95
+      },
+      "lch": {
+        "l": 17.87,
+        "c": 56.84,
+        "h": 322.21
+      },
+      "uuid": "5fa7110f-0c33-4139-8277-eff40921939e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "fuchsia-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(200, 68, 220)",
+      "rgb": {
+        "r": 200,
+        "g": 68,
+        "b": 220
+      },
+      "lch": {
+        "l": 53.58,
+        "c": 88.3,
+        "h": 323.52
+      },
+      "uuid": "3b2867ea-80f8-44ca-9394-7bb17e8c5a22"
+    },
+    "dark": {
+      "value": "rgb(213, 73, 235)",
+      "rgb": {
+        "r": 213,
+        "g": 73,
+        "b": 235
+      },
+      "lch": {
+        "l": 56.99,
+        "c": 92.89,
+        "h": 323.39
+      },
+      "uuid": "3c6d42c9-4cba-4373-a61c-c8617c509f92"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "gray-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(80, 80, 80)",
+      "rgb": {
+        "r": 80,
+        "g": 80,
+        "b": 80
+      },
+      "lch": {
+        "l": 34.03,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "97111e8e-5823-47f2-af64-c3244b8d3492"
+    },
+    "dark": {
+      "value": "rgb(109, 109, 109)",
+      "rgb": {
+        "r": 109,
+        "g": 109,
+        "b": 109
+      },
+      "lch": {
+        "l": 46.03,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "05808575-f14b-49d1-aefb-e3667ec0f5a4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "gray-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(57, 57, 57)",
+      "rgb": {
+        "r": 57,
+        "g": 57,
+        "b": 57
+      },
+      "lch": {
+        "l": 23.97,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "cc8c4299-c40d-4e93-80b2-c052ee8aaf40"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "gray-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(143, 143, 143)",
+      "rgb": {
+        "r": 143,
+        "g": 143,
+        "b": 143
+      },
+      "lch": {
+        "l": 59.4,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "7fa86c73-f058-4922-be8d-19902515cf44"
+    },
+    "dark": {
+      "value": "rgb(138, 138, 138)",
+      "rgb": {
+        "r": 138,
+        "g": 138,
+        "b": 138
+      },
+      "lch": {
+        "l": 57.48,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "8880b8f1-7850-49ef-a7ab-fd4e16cb37a6"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "green-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(5, 131, 78)",
+      "rgb": {
+        "r": 5,
+        "g": 131,
+        "b": 78
+      },
+      "lch": {
+        "l": 48.02,
+        "c": 48,
+        "h": 154.97
+      },
+      "uuid": "cd39a520-2020-41d0-96d1-3b0fdb453fef"
+    },
+    "dark": {
+      "value": "rgb(6, 136, 80)",
+      "rgb": {
+        "r": 6,
+        "g": 136,
+        "b": 80
+      },
+      "lch": {
+        "l": 49.77,
+        "c": 49.78,
+        "h": 154.41
+      },
+      "uuid": "412da16e-4db2-47d8-84d4-583ae35534f9"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "green-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(215, 247, 225)",
+      "rgb": {
+        "r": 215,
+        "g": 247,
+        "b": 225
+      },
+      "lch": {
+        "l": 94.48,
+        "c": 16.1,
+        "h": 153.85
+      },
+      "uuid": "9d32cd19-8375-4da3-9324-0e8334c2e714"
+    },
+    "dark": {
+      "value": "rgb(0, 51, 38)",
+      "rgb": {
+        "r": 0,
+        "g": 51,
+        "b": 38
+      },
+      "lch": {
+        "l": 17.95,
+        "c": 20.35,
+        "h": 169.34
+      },
+      "uuid": "cd5e0471-a8c0-46cd-b98c-be3a74c2b6d2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "green-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(11, 164, 93)",
+      "rgb": {
+        "r": 11,
+        "g": 164,
+        "b": 93
+      },
+      "lch": {
+        "l": 59.35,
+        "c": 58.85,
+        "h": 152.68
+      },
+      "uuid": "19a07ad0-9e01-4adc-861d-f7634de1f1ab"
+    },
+    "dark": {
+      "value": "rgb(6, 136, 80)",
+      "rgb": {
+        "r": 6,
+        "g": 136,
+        "b": 80
+      },
+      "lch": {
+        "l": 49.77,
+        "c": 49.78,
+        "h": 154.41
+      },
+      "uuid": "412da16e-4db2-47d8-84d4-583ae35534f9"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "indigo-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(113, 85, 250)",
+      "rgb": {
+        "r": 113,
+        "g": 85,
+        "b": 250
+      },
+      "lch": {
+        "l": 48.14,
+        "c": 95.1,
+        "h": 304.2
+      },
+      "uuid": "87b65e85-d767-47bb-8af5-01b85282c663"
+    },
+    "dark": {
+      "value": "rgb(116, 91, 252)",
+      "rgb": {
+        "r": 116,
+        "g": 91,
+        "b": 252
+      },
+      "lch": {
+        "l": 49.76,
+        "c": 92.58,
+        "h": 303.6
+      },
+      "uuid": "97e84a30-1de4-4e84-8d59-e625f9ec9ab1"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "indigo-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(235, 238, 255)",
+      "rgb": {
+        "r": 235,
+        "g": 238,
+        "b": 255
+      },
+      "lch": {
+        "l": 94.33,
+        "c": 8.78,
+        "h": 284.15
+      },
+      "uuid": "ab568cfd-20e5-4e20-a3bf-32292297df8f"
+    },
+    "dark": {
+      "value": "rgb(47, 0, 140)",
+      "rgb": {
+        "r": 47,
+        "g": 0,
+        "b": 140
+      },
+      "lch": {
+        "l": 17.91,
+        "c": 82.36,
+        "h": 309.04
+      },
+      "uuid": "716f244e-67c5-4566-b824-ed7f2192b585"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "indigo-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(122, 106, 253)",
+      "rgb": {
+        "r": 122,
+        "g": 106,
+        "b": 253
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 84.03,
+        "h": 301.67
+      },
+      "uuid": "f5a317ea-25f2-4193-9305-f20c231e786e"
+    },
+    "dark": {
+      "value": "rgb(128, 119, 254)",
+      "rgb": {
+        "r": 128,
+        "g": 119,
+        "b": 254
+      },
+      "lch": {
+        "l": 57.01,
+        "c": 76.56,
+        "h": 299.81
+      },
+      "uuid": "5cb7ff5e-ec53-4df8-b59d-a1419190a6cf"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-background-color-down",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-background-color-hover",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-background-color-key-focus",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(52, 91, 248)",
+      "rgb": {
+        "r": 52,
+        "g": 91,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.62,
+        "c": 91.9,
+        "h": 297.09
+      },
+      "uuid": "5cc66280-e13a-459d-8529-c3f531aa5e4e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(75, 117, 255)",
+      "rgb": {
+        "r": 75,
+        "g": 117,
+        "b": 255
+      },
+      "lch": {
+        "l": 53.42,
+        "c": 79.13,
+        "h": 292.82
+      },
+      "uuid": "5ac73d3a-a6cc-4403-a8d5-46bc262d62e9"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "magenta-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(217, 35, 97)",
+      "rgb": {
+        "r": 217,
+        "g": 35,
+        "b": 97
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 70.61,
+        "h": 9.93
+      },
+      "uuid": "0166ed9b-52e7-447a-b45d-de29ba85eb0d"
+    },
+    "dark": {
+      "value": "rgb(224, 38, 101)",
+      "rgb": {
+        "r": 224,
+        "g": 38,
+        "b": 101
+      },
+      "lch": {
+        "l": 49.71,
+        "c": 72,
+        "h": 9.8
+      },
+      "uuid": "6676db79-7b7e-4fcf-868b-321f9372517a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "magenta-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 232, 240)",
+      "rgb": {
+        "r": 255,
+        "g": 232,
+        "b": 240
+      },
+      "lch": {
+        "l": 94,
+        "c": 9.2,
+        "h": 353.59
+      },
+      "uuid": "0a9c01d3-0659-4884-a0e8-7032deeee766"
+    },
+    "dark": {
+      "value": "rgb(93, 0, 34)",
+      "rgb": {
+        "r": 93,
+        "g": 0,
+        "b": 34
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 40.52,
+        "h": 11.01
+      },
+      "uuid": "673ab9b4-e296-4472-b0b5-15adf9f1f762"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "magenta-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(240, 45, 110)",
+      "rgb": {
+        "r": 240,
+        "g": 45,
+        "b": 110
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 75.1,
+        "h": 9.64
+      },
+      "uuid": "21e774f7-89d8-438d-9fc4-aa93261022d1"
+    },
+    "dark": {
+      "value": "rgb(255, 51, 119)",
+      "rgb": {
+        "r": 255,
+        "g": 51,
+        "b": 119
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 78.05,
+        "h": 9.23
+      },
+      "uuid": "fa5e523e-7ee3-46d0-971f-4ee95c7222b8"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(215, 50, 32)",
+      "rgb": {
+        "r": 215,
+        "g": 50,
+        "b": 32
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 79.52,
+        "h": 38.58
+      },
+      "uuid": "d5d3bc64-629c-44b0-8ff5-81f260521f5b"
+    },
+    "dark": {
+      "value": "rgb(223, 52, 34)",
+      "rgb": {
+        "r": 223,
+        "g": 52,
+        "b": 34
+      },
+      "lch": {
+        "l": 49.82,
+        "c": 81.67,
+        "h": 38.43
+      },
+      "uuid": "9ff36ad0-608e-46a7-ab56-00af3d307d83"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-background-color-down",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      },
+      "uuid": "4a585714-4331-44b1-b81f-25a8ff1cc8ea"
+    },
+    "dark": {
+      "value": "rgb(205, 46, 29)",
+      "rgb": {
+        "r": 205,
+        "g": 46,
+        "b": 29
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 77.21,
+        "h": 38.62
+      },
+      "uuid": "cb2486de-b2be-45e5-b459-6e371b29d357"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-background-color-hover",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      },
+      "uuid": "4a585714-4331-44b1-b81f-25a8ff1cc8ea"
+    },
+    "dark": {
+      "value": "rgb(205, 46, 29)",
+      "rgb": {
+        "r": 205,
+        "g": 46,
+        "b": 29
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 77.21,
+        "h": 38.62
+      },
+      "uuid": "cb2486de-b2be-45e5-b459-6e371b29d357"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-background-color-key-focus",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      },
+      "uuid": "4a585714-4331-44b1-b81f-25a8ff1cc8ea"
+    },
+    "dark": {
+      "value": "rgb(205, 46, 29)",
+      "rgb": {
+        "r": 205,
+        "g": 46,
+        "b": 29
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 77.21,
+        "h": 38.62
+      },
+      "uuid": "cb2486de-b2be-45e5-b459-6e371b29d357"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(240, 56, 35)",
+      "rgb": {
+        "r": 240,
+        "g": 56,
+        "b": 35
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 87.1,
+        "h": 38.9
+      },
+      "uuid": "6c3daf67-9cdc-4c02-9912-ff0b902c22ed"
+    },
+    "dark": {
+      "value": "rgb(252, 67, 46)",
+      "rgb": {
+        "r": 252,
+        "g": 67,
+        "b": 46
+      },
+      "lch": {
+        "l": 56.99,
+        "c": 86.68,
+        "h": 38.14
+      },
+      "uuid": "ccb79099-59f4-4bf2-b149-0de72f556a45"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-subdued-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(80, 80, 80)",
+      "rgb": {
+        "r": 80,
+        "g": 80,
+        "b": 80
+      },
+      "lch": {
+        "l": 34.03,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "97111e8e-5823-47f2-af64-c3244b8d3492"
+    },
+    "dark": {
+      "value": "rgb(109, 109, 109)",
+      "rgb": {
+        "r": 109,
+        "g": 109,
+        "b": 109
+      },
+      "lch": {
+        "l": 46.03,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "05808575-f14b-49d1-aefb-e3667ec0f5a4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-subdued-background-color-down",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(41, 41, 41)",
+      "rgb": {
+        "r": 41,
+        "g": 41,
+        "b": 41
+      },
+      "lch": {
+        "l": 16.59,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "2caf1f36-80b9-4659-90be-8d89672bb19f"
+    },
+    "dark": {
+      "value": "rgb(68, 68, 68)",
+      "rgb": {
+        "r": 68,
+        "g": 68,
+        "b": 68
+      },
+      "lch": {
+        "l": 28.85,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "c34dd99f-e576-4c98-a89d-86dd47514c55"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-subdued-background-color-hover",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(41, 41, 41)",
+      "rgb": {
+        "r": 41,
+        "g": 41,
+        "b": 41
+      },
+      "lch": {
+        "l": 16.59,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "2caf1f36-80b9-4659-90be-8d89672bb19f"
+    },
+    "dark": {
+      "value": "rgb(68, 68, 68)",
+      "rgb": {
+        "r": 68,
+        "g": 68,
+        "b": 68
+      },
+      "lch": {
+        "l": 28.85,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "c34dd99f-e576-4c98-a89d-86dd47514c55"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-subdued-background-color-key-focus",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(41, 41, 41)",
+      "rgb": {
+        "r": 41,
+        "g": 41,
+        "b": 41
+      },
+      "lch": {
+        "l": 16.59,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "2caf1f36-80b9-4659-90be-8d89672bb19f"
+    },
+    "dark": {
+      "value": "rgb(68, 68, 68)",
+      "rgb": {
+        "r": 68,
+        "g": 68,
+        "b": 68
+      },
+      "lch": {
+        "l": 28.85,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "c34dd99f-e576-4c98-a89d-86dd47514c55"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(57, 57, 57)",
+      "rgb": {
+        "r": 57,
+        "g": 57,
+        "b": 57
+      },
+      "lch": {
+        "l": 23.97,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "cc8c4299-c40d-4e93-80b2-c052ee8aaf40"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "neutral-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(143, 143, 143)",
+      "rgb": {
+        "r": 143,
+        "g": 143,
+        "b": 143
+      },
+      "lch": {
+        "l": 59.4,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "7fa86c73-f058-4922-be8d-19902515cf44"
+    },
+    "dark": {
+      "value": "rgb(138, 138, 138)",
+      "rgb": {
+        "r": 138,
+        "g": 138,
+        "b": 138
+      },
+      "lch": {
+        "l": 57.48,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "8880b8f1-7850-49ef-a7ab-fd4e16cb37a6"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "notice-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(252, 125, 0)",
+      "rgb": {
+        "r": 252,
+        "g": 125,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 84.96,
+        "h": 59.48
+      },
+      "uuid": "eeede364-d711-40e5-9d2a-0255b10d36f2"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "notice-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(212, 91, 0)",
+      "rgb": {
+        "r": 212,
+        "g": 91,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 76.86,
+        "h": 54.78
+      },
+      "uuid": "437e4f5b-e68c-4491-b26c-a9fa1503561b"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "orange-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(252, 125, 0)",
+      "rgb": {
+        "r": 252,
+        "g": 125,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 84.96,
+        "h": 59.48
+      },
+      "uuid": "eeede364-d711-40e5-9d2a-0255b10d36f2"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "orange-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 236, 207)",
+      "rgb": {
+        "r": 255,
+        "g": 236,
+        "b": 207
+      },
+      "lch": {
+        "l": 94.21,
+        "c": 16.51,
+        "h": 83.35
+      },
+      "uuid": "64371717-ac11-4ec3-a0aa-9042cf43fa8f"
+    },
+    "dark": {
+      "value": "rgb(80, 27, 0)",
+      "rgb": {
+        "r": 80,
+        "g": 27,
+        "b": 0
+      },
+      "lch": {
+        "l": 17.87,
+        "c": 35.57,
+        "h": 48.72
+      },
+      "uuid": "74f40bbb-5afd-4c88-89d3-e69de9e2b604"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "orange-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(232, 106, 0)",
+      "rgb": {
+        "r": 232,
+        "g": 106,
+        "b": 0
+      },
+      "lch": {
+        "l": 59.41,
+        "c": 81.22,
+        "h": 56.59
+      },
+      "uuid": "a4527b6f-e2d4-4a0f-b013-007dc5a2d3ac"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "overlay-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "dark": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "pink-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(206, 42, 146)",
+      "rgb": {
+        "r": 206,
+        "g": 42,
+        "b": 146
+      },
+      "lch": {
+        "l": 48.08,
+        "c": 71.96,
+        "h": 345.61
+      },
+      "uuid": "a53ae96d-64bc-4baa-b51f-4490242047df"
+    },
+    "dark": {
+      "value": "rgb(213, 45, 151)",
+      "rgb": {
+        "r": 213,
+        "g": 45,
+        "b": 151
+      },
+      "lch": {
+        "l": 49.81,
+        "c": 73.42,
+        "h": 345.72
+      },
+      "uuid": "86b686e1-d580-4fc0-9246-8b94ad2fed96"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "pink-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 232, 247)",
+      "rgb": {
+        "r": 255,
+        "g": 232,
+        "b": 247
+      },
+      "lch": {
+        "l": 94.18,
+        "c": 11.24,
+        "h": 336.94
+      },
+      "uuid": "d80ed3c8-4db1-48e7-bd16-1d34580a3108"
+    },
+    "dark": {
+      "value": "rgb(90, 0, 57)",
+      "rgb": {
+        "r": 90,
+        "g": 0,
+        "b": 57
+      },
+      "lch": {
+        "l": 17.78,
+        "c": 42.09,
+        "h": 348.05
+      },
+      "uuid": "b4a885e9-96d3-498f-b8a9-87c448723198"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "pink-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(228, 52, 163)",
+      "rgb": {
+        "r": 228,
+        "g": 52,
+        "b": 163
+      },
+      "lch": {
+        "l": 53.6,
+        "c": 76.63,
+        "h": 345.48
+      },
+      "uuid": "af67d2bf-e92e-42f2-93d6-2f0b45fba0ac"
+    },
+    "dark": {
+      "value": "rgb(236, 67, 175)",
+      "rgb": {
+        "r": 236,
+        "g": 67,
+        "b": 175
+      },
+      "lch": {
+        "l": 57.02,
+        "c": 75.94,
+        "h": 344.05
+      },
+      "uuid": "fb259e11-a051-4116-a7cb-f567cf814df5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(5, 131, 78)",
+      "rgb": {
+        "r": 5,
+        "g": 131,
+        "b": 78
+      },
+      "lch": {
+        "l": 48.02,
+        "c": 48,
+        "h": 154.97
+      },
+      "uuid": "cd39a520-2020-41d0-96d1-3b0fdb453fef"
+    },
+    "dark": {
+      "value": "rgb(6, 136, 80)",
+      "rgb": {
+        "r": 6,
+        "g": 136,
+        "b": 80
+      },
+      "lch": {
+        "l": 49.77,
+        "c": 49.78,
+        "h": 154.41
+      },
+      "uuid": "412da16e-4db2-47d8-84d4-583ae35534f9"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-background-color-down",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(3, 110, 69)",
+      "rgb": {
+        "r": 3,
+        "g": 110,
+        "b": 69
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 40.52,
+        "h": 157.51
+      },
+      "uuid": "b0846caa-d394-4614-aaa2-af179de285f4"
+    },
+    "dark": {
+      "value": "rgb(4, 124, 75)",
+      "rgb": {
+        "r": 4,
+        "g": 124,
+        "b": 75
+      },
+      "lch": {
+        "l": 45.56,
+        "c": 45.55,
+        "h": 155.72
+      },
+      "uuid": "9c24175e-34a5-46c8-b646-f70c08292776"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-background-color-hover",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(3, 110, 69)",
+      "rgb": {
+        "r": 3,
+        "g": 110,
+        "b": 69
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 40.52,
+        "h": 157.51
+      },
+      "uuid": "b0846caa-d394-4614-aaa2-af179de285f4"
+    },
+    "dark": {
+      "value": "rgb(4, 124, 75)",
+      "rgb": {
+        "r": 4,
+        "g": 124,
+        "b": 75
+      },
+      "lch": {
+        "l": 45.56,
+        "c": 45.55,
+        "h": 155.72
+      },
+      "uuid": "9c24175e-34a5-46c8-b646-f70c08292776"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-background-color-key-focus",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(3, 110, 69)",
+      "rgb": {
+        "r": 3,
+        "g": 110,
+        "b": 69
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 40.52,
+        "h": 157.51
+      },
+      "uuid": "b0846caa-d394-4614-aaa2-af179de285f4"
+    },
+    "dark": {
+      "value": "rgb(4, 124, 75)",
+      "rgb": {
+        "r": 4,
+        "g": 124,
+        "b": 75
+      },
+      "lch": {
+        "l": 45.56,
+        "c": 45.55,
+        "h": 155.72
+      },
+      "uuid": "9c24175e-34a5-46c8-b646-f70c08292776"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-visual-color",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(7, 147, 85)",
+      "rgb": {
+        "r": 7,
+        "g": 147,
+        "b": 85
+      },
+      "lch": {
+        "l": 53.56,
+        "c": 53.47,
+        "h": 153.63
+      },
+      "uuid": "1be225f8-3612-422c-923f-b35f1ec4fc00"
+    },
+    "dark": {
+      "value": "rgb(9, 157, 89)",
+      "rgb": {
+        "r": 9,
+        "g": 157,
+        "b": 89
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 56.95,
+        "h": 152.79
+      },
+      "uuid": "5afee2ee-a5d5-4dcf-a917-11dfdd0c3691"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "purple-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(154, 71, 226)",
+      "rgb": {
+        "r": 154,
+        "g": 71,
+        "b": 226
+      },
+      "lch": {
+        "l": 48.09,
+        "c": 89.54,
+        "h": 313.4
+      },
+      "uuid": "b72cb9ff-2b75-487c-914f-1c10bff76f75"
+    },
+    "dark": {
+      "value": "rgb(157, 78, 228)",
+      "rgb": {
+        "r": 157,
+        "g": 78,
+        "b": 228
+      },
+      "lch": {
+        "l": 49.76,
+        "c": 86.9,
+        "h": 313.08
+      },
+      "uuid": "30aae683-83e3-47a1-bdcb-ebe658e110a3"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "purple-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(244, 235, 252)",
+      "rgb": {
+        "r": 244,
+        "g": 235,
+        "b": 252
+      },
+      "lch": {
+        "l": 94.17,
+        "c": 9.33,
+        "h": 310.38
+      },
+      "uuid": "65816c3d-544e-4bbd-bf0e-c0981e08a5cb"
+    },
+    "dark": {
+      "value": "rgb(64, 0, 122)",
+      "rgb": {
+        "r": 64,
+        "g": 0,
+        "b": 122
+      },
+      "lch": {
+        "l": 17.9,
+        "c": 71.66,
+        "h": 312.87
+      },
+      "uuid": "be628028-f41d-4ace-abf3-f7f38ecb2e01"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "purple-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(166, 92, 231)",
+      "rgb": {
+        "r": 166,
+        "g": 92,
+        "b": 231
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 80.8,
+        "h": 313.05
+      },
+      "uuid": "a6205c53-9e63-475c-85f4-bdd5963e1eb2"
+    },
+    "dark": {
+      "value": "rgb(173, 105, 233)",
+      "rgb": {
+        "r": 173,
+        "g": 105,
+        "b": 233
+      },
+      "lch": {
+        "l": 56.95,
+        "c": 74.48,
+        "h": 312.81
+      },
+      "uuid": "12d86845-fd54-4d30-aac8-bb9451560ba5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "red-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(215, 50, 32)",
+      "rgb": {
+        "r": 215,
+        "g": 50,
+        "b": 32
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 79.52,
+        "h": 38.58
+      },
+      "uuid": "d5d3bc64-629c-44b0-8ff5-81f260521f5b"
+    },
+    "dark": {
+      "value": "rgb(223, 52, 34)",
+      "rgb": {
+        "r": 223,
+        "g": 52,
+        "b": 34
+      },
+      "lch": {
+        "l": 49.82,
+        "c": 81.67,
+        "h": 38.43
+      },
+      "uuid": "9ff36ad0-608e-46a7-ab56-00af3d307d83"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "red-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 235, 232)",
+      "rgb": {
+        "r": 255,
+        "g": 235,
+        "b": 232
+      },
+      "lch": {
+        "l": 94.53,
+        "c": 7.39,
+        "h": 31.87
+      },
+      "uuid": "a1f7b6a3-4195-44dc-a772-9a04d3cf859c"
+    },
+    "dark": {
+      "value": "rgb(87, 17, 7)",
+      "rgb": {
+        "r": 87,
+        "g": 17,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 39.39,
+        "h": 37.48
+      },
+      "uuid": "fcfcf026-be31-4a05-b833-6757cacb8b05"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "red-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(240, 56, 35)",
+      "rgb": {
+        "r": 240,
+        "g": 56,
+        "b": 35
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 87.1,
+        "h": 38.9
+      },
+      "uuid": "6c3daf67-9cdc-4c02-9912-ff0b902c22ed"
+    },
+    "dark": {
+      "value": "rgb(205, 46, 29)",
+      "rgb": {
+        "r": 205,
+        "g": 46,
+        "b": 29
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 77.21,
+        "h": 38.62
+      },
+      "uuid": "cb2486de-b2be-45e5-b459-6e371b29d357"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "seafoam-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(7, 129, 109)",
+      "rgb": {
+        "r": 7,
+        "g": 129,
+        "b": 109
+      },
+      "lch": {
+        "l": 48.07,
+        "c": 34.84,
+        "h": 175.97
+      },
+      "uuid": "74cb44f8-8ab0-4a36-9920-0735756e0ddc"
+    },
+    "dark": {
+      "value": "rgb(8, 134, 112)",
+      "rgb": {
+        "r": 8,
+        "g": 134,
+        "b": 112
+      },
+      "lch": {
+        "l": 49.82,
+        "c": 36.21,
+        "h": 174.89
+      },
+      "uuid": "df8f47d4-5c3b-4ecb-b9fb-5d2dbd39d696"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "seafoam-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(211, 246, 234)",
+      "rgb": {
+        "r": 211,
+        "g": 246,
+        "b": 234
+      },
+      "lch": {
+        "l": 94.18,
+        "c": 13.72,
+        "h": 171.73
+      },
+      "uuid": "870298fd-4e1f-4649-bfbc-5ad5b768c2e3"
+    },
+    "dark": {
+      "value": "rgb(0, 50, 44)",
+      "rgb": {
+        "r": 0,
+        "g": 50,
+        "b": 44
+      },
+      "lch": {
+        "l": 17.75,
+        "c": 17.48,
+        "h": 182.16
+      },
+      "uuid": "d90b7496-0f54-41ce-96eb-c973457661ae"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "seafoam-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(11, 162, 134)",
+      "rgb": {
+        "r": 11,
+        "g": 162,
+        "b": 134
+      },
+      "lch": {
+        "l": 59.55,
+        "c": 42.24,
+        "h": 173.66
+      },
+      "uuid": "a036b309-95ec-45e6-b035-f30f0f922422"
+    },
+    "dark": {
+      "value": "rgb(8, 134, 112)",
+      "rgb": {
+        "r": 8,
+        "g": 134,
+        "b": 112
+      },
+      "lch": {
+        "l": 49.82,
+        "c": 36.21,
+        "h": 174.89
+      },
+      "uuid": "df8f47d4-5c3b-4ecb-b9fb-5d2dbd39d696"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "silver-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(114, 114, 114)",
+      "rgb": {
+        "r": 114,
+        "g": 114,
+        "b": 114
+      },
+      "lch": {
+        "l": 48.04,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "39cdbda8-3c8c-4977-a90e-3883647d93a6"
+    },
+    "dark": {
+      "value": "rgb(118, 118, 118)",
+      "rgb": {
+        "r": 118,
+        "g": 118,
+        "b": 118
+      },
+      "lch": {
+        "l": 49.64,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "3f481be4-bdd3-45b8-bcfe-c7577cac40d4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "silver-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(239, 239, 239)",
+      "rgb": {
+        "r": 239,
+        "g": 239,
+        "b": 239
+      },
+      "lch": {
+        "l": 94.45,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "f0bae14e-1c9a-4a03-9dbf-dcd3213463c1"
+    },
+    "dark": {
+      "value": "rgb(44, 44, 44)",
+      "rgb": {
+        "r": 44,
+        "g": 44,
+        "b": 44
+      },
+      "lch": {
+        "l": 18,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "27ca065d-5baf-470f-b1aa-09e9934055d0"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "silver-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(128, 128, 128)",
+      "rgb": {
+        "r": 128,
+        "g": 128,
+        "b": 128
+      },
+      "lch": {
+        "l": 53.59,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "bbfb55a6-5bca-424d-8a27-e1e54fff7309"
+    },
+    "dark": {
+      "value": "rgb(137, 137, 137)",
+      "rgb": {
+        "r": 137,
+        "g": 137,
+        "b": 137
+      },
+      "lch": {
+        "l": 57.09,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "66efbf5e-008b-41f6-a623-ee3722e41c69"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "stack-item-selected-background-color-highlight",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-black-focus-indicator-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "dark": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-black-text-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "dark": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-white-focus-indicator-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-white-text-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "turquoise-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(8, 126, 137)",
+      "rgb": {
+        "r": 8,
+        "g": 126,
+        "b": 137
+      },
+      "lch": {
+        "l": 47.98,
+        "c": 28.25,
+        "h": 210.16
+      },
+      "uuid": "b1e2b910-c19d-4b83-9f49-f9e858ab58b9"
+    },
+    "dark": {
+      "value": "rgb(9, 131, 142)",
+      "rgb": {
+        "r": 9,
+        "g": 131,
+        "b": 142
+      },
+      "lch": {
+        "l": 49.79,
+        "c": 29.05,
+        "h": 209.68
+      },
+      "uuid": "69ae2217-ba32-41ca-a38f-8f19dcc5cf76"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "turquoise-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(209, 245, 245)",
+      "rgb": {
+        "r": 209,
+        "g": 245,
+        "b": 245
+      },
+      "lch": {
+        "l": 94.08,
+        "c": 12.2,
+        "h": 198.62
+      },
+      "uuid": "2dd6c94d-b55e-491e-91a9-bf9b4e3ceb54"
+    },
+    "dark": {
+      "value": "rgb(0, 49, 54)",
+      "rgb": {
+        "r": 0,
+        "g": 49,
+        "b": 54
+      },
+      "lch": {
+        "l": 17.75,
+        "c": 15.13,
+        "h": 210.06
+      },
+      "uuid": "eb6f8d2a-1a82-42ef-b668-0aac077d4053"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "turquoise-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(10, 141, 153)",
+      "rgb": {
+        "r": 10,
+        "g": 141,
+        "b": 153
+      },
+      "lch": {
+        "l": 53.4,
+        "c": 30.65,
+        "h": 209.95
+      },
+      "uuid": "cb62cb21-ce76-4f47-a88d-14682eb6e06d"
+    },
+    "dark": {
+      "value": "rgb(11, 151, 164)",
+      "rgb": {
+        "r": 11,
+        "g": 151,
+        "b": 164
+      },
+      "lch": {
+        "l": 56.96,
+        "c": 32.24,
+        "h": 210.18
+      },
+      "uuid": "2ce15c64-8c38-4935-bc65-7580df395231"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "yellow-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(245, 199, 0)",
+      "rgb": {
+        "r": 245,
+        "g": 199,
+        "b": 0
+      },
+      "lch": {
+        "l": 81.98,
+        "c": 83.24,
+        "h": 88.64
+      },
+      "uuid": "8ffb47cc-cc5c-4179-807e-4a1cb45c6496"
+    },
+    "dark": {
+      "value": "rgb(218, 159, 0)",
+      "rgb": {
+        "r": 218,
+        "g": 159,
+        "b": 0
+      },
+      "lch": {
+        "l": 69.26,
+        "c": 73.98,
+        "h": 81.25
+      },
+      "uuid": "4eee9daf-e19d-4e0b-b12d-4fdcc4852956"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "yellow-subtle-background-color-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 241, 151)",
+      "rgb": {
+        "r": 255,
+        "g": 241,
+        "b": 151
+      },
+      "lch": {
+        "l": 94.49,
+        "c": 45.73,
+        "h": 99.5
+      },
+      "uuid": "0ebcaa53-4d19-4eed-99d1-4477f4358a58"
+    },
+    "dark": {
+      "value": "rgb(61, 39, 0)",
+      "rgb": {
+        "r": 61,
+        "g": 39,
+        "b": 0
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 26.52,
+        "h": 75.75
+      },
+      "uuid": "238147c6-0302-4d43-b3a3-42df832c7857"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "yellow-visual-color",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(210, 149, 0)",
+      "rgb": {
+        "r": 210,
+        "g": 149,
+        "b": 0
+      },
+      "lch": {
+        "l": 65.9,
+        "c": 71.64,
+        "h": 79.44
+      },
+      "uuid": "8c86293e-334b-49ed-a7aa-eb4fe987002f"
+    },
+    "dark": {
+      "value": "rgb(218, 159, 0)",
+      "rgb": {
+        "r": 218,
+        "g": 159,
+        "b": 0
+      },
+      "lch": {
+        "l": 69.26,
+        "c": 73.98,
+        "h": 81.25
+      },
+      "uuid": "4eee9daf-e19d-4e0b-b12d-4fdcc4852956"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "drop-zone-background-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(75, 117, 255)",
+      "rgb": {
+        "r": 75,
+        "g": 117,
+        "b": 255
+      },
+      "lch": {
+        "l": 53.42,
+        "c": 79.13,
+        "h": 292.82
+      },
+      "uuid": "5ac73d3a-a6cc-4403-a8d5-46bc262d62e9"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "menu-item-background-color-default",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(50, 50, 50)",
+      "rgb": {
+        "r": 50,
+        "g": 50,
+        "b": 50
+      },
+      "lch": {
+        "l": 20.79,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0a676e7a-8a89-4607-a918-3abcfb0234a2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "menu-item-background-color-disabled",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(50, 50, 50)",
+      "rgb": {
+        "r": 50,
+        "g": 50,
+        "b": 50
+      },
+      "lch": {
+        "l": 20.79,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0a676e7a-8a89-4607-a918-3abcfb0234a2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "menu-item-background-color-down",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(50, 50, 50)",
+      "rgb": {
+        "r": 50,
+        "g": 50,
+        "b": 50
+      },
+      "lch": {
+        "l": 20.79,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0a676e7a-8a89-4607-a918-3abcfb0234a2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "menu-item-background-color-hover",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(50, 50, 50)",
+      "rgb": {
+        "r": 50,
+        "g": 50,
+        "b": 50
+      },
+      "lch": {
+        "l": 20.79,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0a676e7a-8a89-4607-a918-3abcfb0234a2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "menu-item-background-color-keyboard-focus",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(233, 233, 233)",
+      "rgb": {
+        "r": 233,
+        "g": 233,
+        "b": 233
+      },
+      "lch": {
+        "l": 92.35,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "64e2dbc2-05fa-43d7-80ae-d4d11c55348f"
+    },
+    "dark": {
+      "value": "rgb(50, 50, 50)",
+      "rgb": {
+        "r": 50,
+        "g": 50,
+        "b": 50
+      },
+      "lch": {
+        "l": 20.79,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0a676e7a-8a89-4607-a918-3abcfb0234a2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "stack-item-selected-background-color-emphasized",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "table-selected-row-background-color",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "tree-view-selected-row-background-color-emphasized",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "black",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "dark": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-blue-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      }
+    },
+    "dark": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-blue-900",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      }
+    },
+    "dark": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-chartreuse-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(182, 219, 0)",
+      "rgb": {
+        "r": 182,
+        "g": 219,
+        "b": 0
+      },
+      "lch": {
+        "l": 82.17,
+        "c": 88.08,
+        "h": 113.08
+      }
+    },
+    "dark": {
+      "value": "rgb(182, 219, 0)",
+      "rgb": {
+        "r": 182,
+        "g": 219,
+        "b": 0
+      },
+      "lch": {
+        "l": 82.17,
+        "c": 88.08,
+        "h": 113.08
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-chartreuse-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(143, 172, 0)",
+      "rgb": {
+        "r": 143,
+        "g": 172,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 73.5,
+        "h": 112.9
+      }
+    },
+    "dark": {
+      "value": "rgb(143, 172, 0)",
+      "rgb": {
+        "r": 143,
+        "g": 172,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 73.5,
+        "h": 112.9
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-chartreuse-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(114, 137, 0)",
+      "rgb": {
+        "r": 114,
+        "g": 137,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.46,
+        "c": 62.16,
+        "h": 112.68
+      }
+    },
+    "dark": {
+      "value": "rgb(114, 137, 0)",
+      "rgb": {
+        "r": 114,
+        "g": 137,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.46,
+        "c": 62.16,
+        "h": 112.68
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-cyan-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(138, 213, 255)",
+      "rgb": {
+        "r": 138,
+        "g": 213,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 30.39,
+        "h": 245.86
+      }
+    },
+    "dark": {
+      "value": "rgb(138, 213, 255)",
+      "rgb": {
+        "r": 138,
+        "g": 213,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 30.39,
+        "h": 245.86
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-cyan-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(48, 167, 254)",
+      "rgb": {
+        "r": 48,
+        "g": 167,
+        "b": 254
+      },
+      "lch": {
+        "l": 66.07,
+        "c": 52.22,
+        "h": 267.12
+      }
+    },
+    "dark": {
+      "value": "rgb(48, 167, 254)",
+      "rgb": {
+        "r": 48,
+        "g": 167,
+        "b": 254
+      },
+      "lch": {
+        "l": 66.07,
+        "c": 52.22,
+        "h": 267.12
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-cyan-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(18, 134, 205)",
+      "rgb": {
+        "r": 18,
+        "g": 134,
+        "b": 205
+      },
+      "lch": {
+        "l": 53.58,
+        "c": 44.93,
+        "h": 265.43
+      }
+    },
+    "dark": {
+      "value": "rgb(18, 134, 205)",
+      "rgb": {
+        "r": 18,
+        "g": 134,
+        "b": 205
+      },
+      "lch": {
+        "l": 53.58,
+        "c": 44.93,
+        "h": 265.43
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-fuchsia-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(156, 40, 175)",
+      "rgb": {
+        "r": 156,
+        "g": 40,
+        "b": 175
+      },
+      "lch": {
+        "l": 40.71,
+        "c": 79.26,
+        "h": 323.28
+      }
+    },
+    "dark": {
+      "value": "rgb(156, 40, 175)",
+      "rgb": {
+        "r": 156,
+        "g": 40,
+        "b": 175
+      },
+      "lch": {
+        "l": 40.71,
+        "c": 79.26,
+        "h": 323.28
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-fuchsia-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(247, 181, 255)",
+      "rgb": {
+        "r": 247,
+        "g": 181,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.86,
+        "c": 45.05,
+        "h": 322.89
+      }
+    },
+    "dark": {
+      "value": "rgb(247, 181, 255)",
+      "rgb": {
+        "r": 247,
+        "g": 181,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.86,
+        "c": 45.05,
+        "h": 322.89
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-fuchsia-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(236, 105, 255)",
+      "rgb": {
+        "r": 236,
+        "g": 105,
+        "b": 255
+      },
+      "lch": {
+        "l": 65.87,
+        "c": 87.66,
+        "h": 323.48
+      }
+    },
+    "dark": {
+      "value": "rgb(236, 105, 255)",
+      "rgb": {
+        "r": 236,
+        "g": 105,
+        "b": 255
+      },
+      "lch": {
+        "l": 65.87,
+        "c": 87.66,
+        "h": 323.48
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-fuchsia-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(200, 68, 220)",
+      "rgb": {
+        "r": 200,
+        "g": 68,
+        "b": 220
+      },
+      "lch": {
+        "l": 53.58,
+        "c": 88.3,
+        "h": 323.52
+      }
+    },
+    "dark": {
+      "value": "rgb(200, 68, 220)",
+      "rgb": {
+        "r": 200,
+        "g": 68,
+        "b": 220
+      },
+      "lch": {
+        "l": 53.58,
+        "c": 88.3,
+        "h": 323.52
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-fuchsia-900",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(181, 57, 200)",
+      "rgb": {
+        "r": 181,
+        "g": 57,
+        "b": 200
+      },
+      "lch": {
+        "l": 48.16,
+        "c": 83.85,
+        "h": 323.5
+      }
+    },
+    "dark": {
+      "value": "rgb(181, 57, 200)",
+      "rgb": {
+        "r": 181,
+        "g": 57,
+        "b": 200
+      },
+      "lch": {
+        "l": 48.16,
+        "c": 83.85,
+        "h": 323.5
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-green-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(107, 227, 162)",
+      "rgb": {
+        "r": 107,
+        "g": 227,
+        "b": 162
+      },
+      "lch": {
+        "l": 82.2,
+        "c": 53.06,
+        "h": 155.86
+      }
+    },
+    "dark": {
+      "value": "rgb(107, 227, 162)",
+      "rgb": {
+        "r": 107,
+        "g": 227,
+        "b": 162
+      },
+      "lch": {
+        "l": 82.2,
+        "c": 53.06,
+        "h": 155.86
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-green-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(18, 184, 103)",
+      "rgb": {
+        "r": 18,
+        "g": 184,
+        "b": 103
+      },
+      "lch": {
+        "l": 66.05,
+        "c": 64.7,
+        "h": 151.91
+      }
+    },
+    "dark": {
+      "value": "rgb(18, 184, 103)",
+      "rgb": {
+        "r": 18,
+        "g": 184,
+        "b": 103
+      },
+      "lch": {
+        "l": 66.05,
+        "c": 64.7,
+        "h": 151.91
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-green-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(7, 147, 85)",
+      "rgb": {
+        "r": 7,
+        "g": 147,
+        "b": 85
+      },
+      "lch": {
+        "l": 53.56,
+        "c": 53.47,
+        "h": 153.63
+      }
+    },
+    "dark": {
+      "value": "rgb(7, 147, 85)",
+      "rgb": {
+        "r": 7,
+        "g": 147,
+        "b": 85
+      },
+      "lch": {
+        "l": 53.56,
+        "c": 53.47,
+        "h": 153.63
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-indigo-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(99, 56, 238)",
+      "rgb": {
+        "r": 99,
+        "g": 56,
+        "b": 238
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 105.03,
+        "h": 306.67
+      }
+    },
+    "dark": {
+      "value": "rgb(99, 56, 238)",
+      "rgb": {
+        "r": 99,
+        "g": 56,
+        "b": 238
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 105.03,
+        "h": 306.67
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-indigo-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(192, 201, 255)",
+      "rgb": {
+        "r": 192,
+        "g": 201,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 28.7,
+        "h": 286.87
+      }
+    },
+    "dark": {
+      "value": "rgb(192, 201, 255)",
+      "rgb": {
+        "r": 192,
+        "g": 201,
+        "b": 255
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 28.7,
+        "h": 286.87
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-indigo-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(145, 151, 254)",
+      "rgb": {
+        "r": 145,
+        "g": 151,
+        "b": 254
+      },
+      "lch": {
+        "l": 65.99,
+        "c": 56.98,
+        "h": 294.08
+      }
+    },
+    "dark": {
+      "value": "rgb(145, 151, 254)",
+      "rgb": {
+        "r": 145,
+        "g": 151,
+        "b": 254
+      },
+      "lch": {
+        "l": 65.99,
+        "c": 56.98,
+        "h": 294.08
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-indigo-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(122, 106, 253)",
+      "rgb": {
+        "r": 122,
+        "g": 106,
+        "b": 253
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 84.03,
+        "h": 301.67
+      }
+    },
+    "dark": {
+      "value": "rgb(122, 106, 253)",
+      "rgb": {
+        "r": 122,
+        "g": 106,
+        "b": 253
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 84.03,
+        "h": 301.67
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-indigo-900",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(113, 85, 250)",
+      "rgb": {
+        "r": 113,
+        "g": 85,
+        "b": 250
+      },
+      "lch": {
+        "l": 48.14,
+        "c": 95.1,
+        "h": 304.2
+      }
+    },
+    "dark": {
+      "value": "rgb(113, 85, 250)",
+      "rgb": {
+        "r": 113,
+        "g": 85,
+        "b": 250
+      },
+      "lch": {
+        "l": 48.14,
+        "c": 95.1,
+        "h": 304.2
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-magenta-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(186, 22, 80)",
+      "rgb": {
+        "r": 186,
+        "g": 22,
+        "b": 80
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 64.15,
+        "h": 10.32
+      }
+    },
+    "dark": {
+      "value": "rgb(186, 22, 80)",
+      "rgb": {
+        "r": 186,
+        "g": 22,
+        "b": 80
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 64.15,
+        "h": 10.32
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-magenta-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 185, 208)",
+      "rgb": {
+        "r": 255,
+        "g": 185,
+        "b": 208
+      },
+      "lch": {
+        "l": 82.12,
+        "c": 28.6,
+        "h": 357
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 185, 208)",
+      "rgb": {
+        "r": 255,
+        "g": 185,
+        "b": 208
+      },
+      "lch": {
+        "l": 82.12,
+        "c": 28.6,
+        "h": 357
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-magenta-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 112, 159)",
+      "rgb": {
+        "r": 255,
+        "g": 112,
+        "b": 159
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 58.78,
+        "h": 2.04
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 112, 159)",
+      "rgb": {
+        "r": 255,
+        "g": 112,
+        "b": 159
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 58.78,
+        "h": 2.04
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-magenta-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(240, 45, 110)",
+      "rgb": {
+        "r": 240,
+        "g": 45,
+        "b": 110
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 75.1,
+        "h": 9.64
+      }
+    },
+    "dark": {
+      "value": "rgb(240, 45, 110)",
+      "rgb": {
+        "r": 240,
+        "g": 45,
+        "b": 110
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 75.1,
+        "h": 9.64
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-magenta-900",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(217, 35, 97)",
+      "rgb": {
+        "r": 217,
+        "g": 35,
+        "b": 97
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 70.61,
+        "h": 9.93
+      }
+    },
+    "dark": {
+      "value": "rgb(217, 35, 97)",
+      "rgb": {
+        "r": 217,
+        "g": 35,
+        "b": 97
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 70.61,
+        "h": 9.93
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-orange-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 193, 94)",
+      "rgb": {
+        "r": 255,
+        "g": 193,
+        "b": 94
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 58.55,
+        "h": 77.98
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 193, 94)",
+      "rgb": {
+        "r": 255,
+        "g": 193,
+        "b": 94
+      },
+      "lch": {
+        "l": 81.95,
+        "c": 58.55,
+        "h": 77.98
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-orange-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(252, 125, 0)",
+      "rgb": {
+        "r": 252,
+        "g": 125,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 84.96,
+        "h": 59.48
+      }
+    },
+    "dark": {
+      "value": "rgb(252, 125, 0)",
+      "rgb": {
+        "r": 252,
+        "g": 125,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.03,
+        "c": 84.96,
+        "h": 59.48
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-orange-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(212, 91, 0)",
+      "rgb": {
+        "r": 212,
+        "g": 91,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 76.86,
+        "h": 54.78
+      }
+    },
+    "dark": {
+      "value": "rgb(212, 91, 0)",
+      "rgb": {
+        "r": 212,
+        "g": 91,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 76.86,
+        "h": 54.78
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-purple-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(221, 193, 246)",
+      "rgb": {
+        "r": 221,
+        "g": 193,
+        "b": 246
+      },
+      "lch": {
+        "l": 81.93,
+        "c": 29.82,
+        "h": 311.05
+      }
+    },
+    "dark": {
+      "value": "rgb(221, 193, 246)",
+      "rgb": {
+        "r": 221,
+        "g": 193,
+        "b": 246
+      },
+      "lch": {
+        "l": 81.93,
+        "c": 29.82,
+        "h": 311.05
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-purple-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(191, 138, 238)",
+      "rgb": {
+        "r": 191,
+        "g": 138,
+        "b": 238
+      },
+      "lch": {
+        "l": 66.08,
+        "c": 57.79,
+        "h": 312.15
+      }
+    },
+    "dark": {
+      "value": "rgb(191, 138, 238)",
+      "rgb": {
+        "r": 191,
+        "g": 138,
+        "b": 238
+      },
+      "lch": {
+        "l": 66.08,
+        "c": 57.79,
+        "h": 312.15
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-purple-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(166, 92, 231)",
+      "rgb": {
+        "r": 166,
+        "g": 92,
+        "b": 231
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 80.8,
+        "h": 313.05
+      }
+    },
+    "dark": {
+      "value": "rgb(166, 92, 231)",
+      "rgb": {
+        "r": 166,
+        "g": 92,
+        "b": 231
+      },
+      "lch": {
+        "l": 53.53,
+        "c": 80.8,
+        "h": 313.05
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-red-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      }
+    },
+    "dark": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-red-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 188, 180)",
+      "rgb": {
+        "r": 255,
+        "g": 188,
+        "b": 180
+      },
+      "lch": {
+        "l": 82.12,
+        "c": 26.75,
+        "h": 30.43
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 188, 180)",
+      "rgb": {
+        "r": 255,
+        "g": 188,
+        "b": 180
+      },
+      "lch": {
+        "l": 82.12,
+        "c": 26.75,
+        "h": 30.43
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-red-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 118, 101)",
+      "rgb": {
+        "r": 255,
+        "g": 118,
+        "b": 101
+      },
+      "lch": {
+        "l": 65.88,
+        "c": 61.57,
+        "h": 34.22
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 118, 101)",
+      "rgb": {
+        "r": 255,
+        "g": 118,
+        "b": 101
+      },
+      "lch": {
+        "l": 65.88,
+        "c": 61.57,
+        "h": 34.22
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-red-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(240, 56, 35)",
+      "rgb": {
+        "r": 240,
+        "g": 56,
+        "b": 35
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 87.1,
+        "h": 38.9
+      }
+    },
+    "dark": {
+      "value": "rgb(240, 56, 35)",
+      "rgb": {
+        "r": 240,
+        "g": 56,
+        "b": 35
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 87.1,
+        "h": 38.9
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-red-900",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(215, 50, 32)",
+      "rgb": {
+        "r": 215,
+        "g": 50,
+        "b": 32
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 79.52,
+        "h": 38.58
+      }
+    },
+    "dark": {
+      "value": "rgb(215, 50, 32)",
+      "rgb": {
+        "r": 215,
+        "g": 50,
+        "b": 32
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 79.52,
+        "h": 38.58
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-turquoise-400",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(111, 221, 228)",
+      "rgb": {
+        "r": 111,
+        "g": 221,
+        "b": 228
+      },
+      "lch": {
+        "l": 82.21,
+        "c": 32.37,
+        "h": 203.89
+      }
+    },
+    "dark": {
+      "value": "rgb(111, 221, 228)",
+      "rgb": {
+        "r": 111,
+        "g": 221,
+        "b": 228
+      },
+      "lch": {
+        "l": 82.21,
+        "c": 32.37,
+        "h": 203.89
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-turquoise-600",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(15, 177, 192)",
+      "rgb": {
+        "r": 15,
+        "g": 177,
+        "b": 192
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 36.25,
+        "h": 210.14
+      }
+    },
+    "dark": {
+      "value": "rgb(15, 177, 192)",
+      "rgb": {
+        "r": 15,
+        "g": 177,
+        "b": 192
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 36.25,
+        "h": 210.14
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "static-turquoise-800",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(10, 141, 153)",
+      "rgb": {
+        "r": 10,
+        "g": 141,
+        "b": 153
+      },
+      "lch": {
+        "l": 53.4,
+        "c": 30.65,
+        "h": 209.95
+      }
+    },
+    "dark": {
+      "value": "rgb(10, 141, 153)",
+      "rgb": {
+        "r": 10,
+        "g": 141,
+        "b": 153
+      },
+      "lch": {
+        "l": 53.4,
+        "c": 30.65,
+        "h": 209.95
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "transparent-black-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "dark": {
+      "value": "rgb(0, 0, 0)",
+      "rgb": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lch": {
+        "l": 0,
+        "c": 0,
+        "h": 0
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "transparent-white-1000",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "white",
+    "category": "color",
+    "colorType": "utility",
+    "light": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "dark": {
+      "value": "rgb(255, 255, 255)",
+      "rgb": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+      },
+      "lch": {
+        "l": 100,
+        "c": 0,
+        "h": 158.2
+      }
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-blue-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(229, 240, 254)",
+      "rgb": {
+        "r": 229,
+        "g": 240,
+        "b": 254
+      },
+      "lch": {
+        "l": 94.37,
+        "c": 8.04,
+        "h": 262.95
+      },
+      "uuid": "989a37a5-66f2-4a84-a118-8d36caee6695"
+    },
+    "dark": {
+      "value": "rgb(12, 33, 117)",
+      "rgb": {
+        "r": 12,
+        "g": 33,
+        "b": 117
+      },
+      "lch": {
+        "l": 17.69,
+        "c": 56.81,
+        "h": 298.75
+      },
+      "uuid": "d88d1685-29dc-486b-a0b9-9c90f60b8cde"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-blue-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(59, 99, 251)",
+      "rgb": {
+        "r": 59,
+        "g": 99,
+        "b": 251
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 88.41,
+        "h": 295.89
+      },
+      "uuid": "3451c170-3e78-449b-86f2-8b7dbea24c1c"
+    },
+    "dark": {
+      "value": "rgb(64, 105, 253)",
+      "rgb": {
+        "r": 64,
+        "g": 105,
+        "b": 253
+      },
+      "lch": {
+        "l": 49.84,
+        "c": 85.67,
+        "h": 294.93
+      },
+      "uuid": "cf0bafc5-f5c6-4986-a17a-6660dc542b71"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-blue-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(29, 62, 207)",
+      "rgb": {
+        "r": 29,
+        "g": 62,
+        "b": 207
+      },
+      "lch": {
+        "l": 34.42,
+        "c": 88.39,
+        "h": 299.47
+      },
+      "uuid": "7044000c-09c4-4c12-8b37-94f8601217e2"
+    },
+    "dark": {
+      "value": "rgb(105, 149, 254)",
+      "rgb": {
+        "r": 105,
+        "g": 149,
+        "b": 254
+      },
+      "lch": {
+        "l": 63.05,
+        "c": 58.98,
+        "h": 285.51
+      },
+      "uuid": "147ed079-b4f0-4cd7-89cd-7ec93750d688"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-blue-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(39, 77, 234)",
+      "rgb": {
+        "r": 39,
+        "g": 77,
+        "b": 234
+      },
+      "lch": {
+        "l": 40.7,
+        "c": 93.35,
+        "h": 298.49
+      },
+      "uuid": "da15fc4a-a3ce-4cbe-a2d1-bf5a2e77e5c4"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-brown-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(247, 238, 225)",
+      "rgb": {
+        "r": 247,
+        "g": 238,
+        "b": 225
+      },
+      "lch": {
+        "l": 94.47,
+        "c": 7.41,
+        "h": 83.44
+      },
+      "uuid": "1b19a7b6-469e-4f5a-b30b-f3f465021d25"
+    },
+    "dark": {
+      "value": "rgb(78, 55, 19)",
+      "rgb": {
+        "r": 78,
+        "g": 55,
+        "b": 19
+      },
+      "lch": {
+        "l": 24.95,
+        "c": 26.53,
+        "h": 76.83
+      },
+      "uuid": "a9daa02d-c0aa-4c05-80ee-2bf55165dd36"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-brown-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(154, 123, 77)",
+      "rgb": {
+        "r": 154,
+        "g": 123,
+        "b": 77
+      },
+      "lch": {
+        "l": 53.57,
+        "c": 30.19,
+        "h": 78.63
+      },
+      "uuid": "b15bdc92-c03f-4ad4-a385-110d635e66af"
+    },
+    "dark": {
+      "value": "rgb(132, 104, 61)",
+      "rgb": {
+        "r": 132,
+        "g": 104,
+        "b": 61
+      },
+      "lch": {
+        "l": 45.83,
+        "c": 28.85,
+        "h": 78.95
+      },
+      "uuid": "dc738913-4af6-446e-8a1b-09c84993c8e5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-brown-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(119, 91, 50)",
+      "rgb": {
+        "r": 119,
+        "g": 91,
+        "b": 50
+      },
+      "lch": {
+        "l": 40.63,
+        "c": 28.49,
+        "h": 77.4
+      },
+      "uuid": "0dd635ef-0b0a-4914-8900-999ab7ce436e"
+    },
+    "dark": {
+      "value": "rgb(163, 132, 84)",
+      "rgb": {
+        "r": 163,
+        "g": 132,
+        "b": 84
+      },
+      "lch": {
+        "l": 57.01,
+        "c": 30.79,
+        "h": 79.74
+      },
+      "uuid": "79d7de9d-7bab-4762-acd9-ecf28556906a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-brown-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(139, 109, 66)",
+      "rgb": {
+        "r": 139,
+        "g": 109,
+        "b": 66
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 29.1,
+        "h": 77.58
+      },
+      "uuid": "b0445ddb-ec22-4dde-81a1-21ea14ed195a"
+    },
+    "dark": {
+      "value": "rgb(143, 114, 69)",
+      "rgb": {
+        "r": 143,
+        "g": 114,
+        "b": 69
+      },
+      "lch": {
+        "l": 49.86,
+        "c": 29.63,
+        "h": 79.4
+      },
+      "uuid": "e21a0edf-a81a-46a0-a849-11111cb89516"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-celery-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(235, 255, 220)",
+      "rgb": {
+        "r": 235,
+        "g": 255,
+        "b": 220
+      },
+      "lch": {
+        "l": 97.77,
+        "c": 19.24,
+        "h": 130.92
+      },
+      "uuid": "b4a22d71-d90a-4f6e-8f6d-e4967849376f"
+    },
+    "dark": {
+      "value": "rgb(31, 67, 4)",
+      "rgb": {
+        "r": 31,
+        "g": 67,
+        "b": 4
+      },
+      "lch": {
+        "l": 24.68,
+        "c": 39.68,
+        "h": 128.72
+      },
+      "uuid": "646d80c1-7073-4e13-bbfe-4bd0c2226079"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-celery-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(82, 161, 25)",
+      "rgb": {
+        "r": 82,
+        "g": 161,
+        "b": 25
+      },
+      "lch": {
+        "l": 59.3,
+        "c": 73.1,
+        "h": 129.21
+      },
+      "uuid": "59b03f98-f898-4888-ad71-07a434e2fc7e"
+    },
+    "dark": {
+      "value": "rgb(78, 154, 23)",
+      "rgb": {
+        "r": 78,
+        "g": 154,
+        "b": 23
+      },
+      "lch": {
+        "l": 56.87,
+        "c": 70.88,
+        "h": 129.2
+      },
+      "uuid": "706f3a95-ab27-497f-aab7-f4ed806eef30"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-celery-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(64, 129, 17)",
+      "rgb": {
+        "r": 64,
+        "g": 129,
+        "b": 17
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 62.47,
+        "h": 129.22
+      },
+      "uuid": "deec9c21-caeb-4ec4-bca4-a7661a2c5f91"
+    },
+    "dark": {
+      "value": "rgb(100, 190, 35)",
+      "rgb": {
+        "r": 100,
+        "g": 190,
+        "b": 35
+      },
+      "lch": {
+        "l": 69.22,
+        "c": 81.52,
+        "h": 129.13
+      },
+      "uuid": "e091babe-6e02-4393-a67e-63222ab860b4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-celery-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(72, 144, 20)",
+      "rgb": {
+        "r": 72,
+        "g": 144,
+        "b": 20
+      },
+      "lch": {
+        "l": 53.36,
+        "c": 67.74,
+        "h": 129.24
+      },
+      "uuid": "41747345-10ab-476a-9d3d-e657f9383e8e"
+    },
+    "dark": {
+      "value": "rgb(88, 172, 28)",
+      "rgb": {
+        "r": 88,
+        "g": 172,
+        "b": 28
+      },
+      "lch": {
+        "l": 63.06,
+        "c": 76.64,
+        "h": 129.27
+      },
+      "uuid": "021a55b8-26ae-4767-82fb-06b20c58762b"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-chartreuse-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(234, 246, 173)",
+      "rgb": {
+        "r": 234,
+        "g": 246,
+        "b": 173
+      },
+      "lch": {
+        "l": 94.49,
+        "c": 37.22,
+        "h": 114.43
+      },
+      "uuid": "c1146153-61bf-4a31-8254-54a1d25a93c5"
+    },
+    "dark": {
+      "value": "rgb(53, 63, 0)",
+      "rgb": {
+        "r": 53,
+        "g": 63,
+        "b": 0
+      },
+      "lch": {
+        "l": 24.68,
+        "c": 35.59,
+        "h": 111.62
+      },
+      "uuid": "6a974b7d-ccd2-4778-baae-8caf419a529c"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-chartreuse-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(143, 172, 0)",
+      "rgb": {
+        "r": 143,
+        "g": 172,
+        "b": 0
+      },
+      "lch": {
+        "l": 66.02,
+        "c": 73.5,
+        "h": 112.9
+      },
+      "uuid": "d61e865b-6538-42a8-aba8-0842359b80c2"
+    },
+    "dark": {
+      "value": "rgb(136, 164, 0)",
+      "rgb": {
+        "r": 136,
+        "g": 164,
+        "b": 0
+      },
+      "lch": {
+        "l": 63.16,
+        "c": 70.99,
+        "h": 112.99
+      },
+      "uuid": "7dbedc59-e21c-4953-a7af-5e91d170604a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-chartreuse-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(114, 137, 0)",
+      "rgb": {
+        "r": 114,
+        "g": 137,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.46,
+        "c": 62.16,
+        "h": 112.68
+      },
+      "uuid": "9a0701e4-81a0-420b-b751-c6a46670fbf3"
+    },
+    "dark": {
+      "value": "rgb(169, 203, 0)",
+      "rgb": {
+        "r": 169,
+        "g": 203,
+        "b": 0
+      },
+      "lch": {
+        "l": 76.77,
+        "c": 83.16,
+        "h": 112.95
+      },
+      "uuid": "e4b04d5d-e99d-41c5-8b24-540d653ef3ff"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-chartreuse-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(128, 153, 0)",
+      "rgb": {
+        "r": 128,
+        "g": 153,
+        "b": 0
+      },
+      "lch": {
+        "l": 59.32,
+        "c": 67.34,
+        "h": 112.52
+      },
+      "uuid": "3d0fd171-80f3-4f08-9ac0-eb46d0e755f9"
+    },
+    "dark": {
+      "value": "rgb(151, 181, 0)",
+      "rgb": {
+        "r": 151,
+        "g": 181,
+        "b": 0
+      },
+      "lch": {
+        "l": 69.2,
+        "c": 76.3,
+        "h": 112.78
+      },
+      "uuid": "90417b40-97dd-47b3-9dbc-4ac45f8e4a5f"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-cinnamon-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(249, 236, 229)",
+      "rgb": {
+        "r": 249,
+        "g": 236,
+        "b": 229
+      },
+      "lch": {
+        "l": 94.22,
+        "c": 5.91,
+        "h": 57.07
+      },
+      "uuid": "a8d1aa1d-f9be-448e-8209-afc6097f38ed"
+    },
+    "dark": {
+      "value": "rgb(79, 28, 7)",
+      "rgb": {
+        "r": 79,
+        "g": 28,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.96,
+        "c": 33.02,
+        "h": 46.44
+      },
+      "uuid": "4d086a5c-1b70-4750-be79-db934e7bc010"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-cyan-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(238, 250, 254)",
+      "rgb": {
+        "r": 238,
+        "g": 250,
+        "b": 254
+      },
+      "lch": {
+        "l": 97.51,
+        "c": 4.57,
+        "h": 225.73
+      },
+      "uuid": "72bef490-0c3a-4627-9341-fc6627cf3f74"
+    },
+    "dark": {
+      "value": "rgb(0, 64, 88)",
+      "rgb": {
+        "r": 0,
+        "g": 64,
+        "b": 88
+      },
+      "lch": {
+        "l": 24.86,
+        "c": 21.14,
+        "h": 246.87
+      },
+      "uuid": "94a5bd53-d69a-4063-b630-1976230d4f2d"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-fuchsia-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(181, 57, 200)",
+      "rgb": {
+        "r": 181,
+        "g": 57,
+        "b": 200
+      },
+      "lch": {
+        "l": 48.16,
+        "c": 83.85,
+        "h": 323.5
+      },
+      "uuid": "5fa3362b-01ee-4861-9a02-6af6da804f61"
+    },
+    "dark": {
+      "value": "rgb(173, 51, 192)",
+      "rgb": {
+        "r": 173,
+        "g": 51,
+        "b": 192
+      },
+      "lch": {
+        "l": 45.72,
+        "c": 82.65,
+        "h": 323.46
+      },
+      "uuid": "5f971453-aa30-4c1f-8cbc-be45ff042fcd"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-fuchsia-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(135, 27, 154)",
+      "rgb": {
+        "r": 135,
+        "g": 27,
+        "b": 154
+      },
+      "lch": {
+        "l": 34.54,
+        "c": 74.51,
+        "h": 322.97
+      },
+      "uuid": "44aeb8b3-dd63-43a5-adb6-67cca83ca4c5"
+    },
+    "dark": {
+      "value": "rgb(213, 73, 235)",
+      "rgb": {
+        "r": 213,
+        "g": 73,
+        "b": 235
+      },
+      "lch": {
+        "l": 56.99,
+        "c": 92.89,
+        "h": 323.39
+      },
+      "uuid": "3c6d42c9-4cba-4373-a61c-c8617c509f92"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-fuchsia-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(156, 40, 175)",
+      "rgb": {
+        "r": 156,
+        "g": 40,
+        "b": 175
+      },
+      "lch": {
+        "l": 40.71,
+        "c": 79.26,
+        "h": 323.28
+      },
+      "uuid": "fa79840c-fe56-4f21-b9c5-f1e24f89e031"
+    },
+    "dark": {
+      "value": "rgb(186, 60, 206)",
+      "rgb": {
+        "r": 186,
+        "g": 60,
+        "b": 206
+      },
+      "lch": {
+        "l": 49.65,
+        "c": 85.31,
+        "h": 323.37
+      },
+      "uuid": "5848fed6-5b42-42ef-9800-8f32e42cf6ba"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-green-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(237, 252, 241)",
+      "rgb": {
+        "r": 237,
+        "g": 252,
+        "b": 241
+      },
+      "lch": {
+        "l": 97.62,
+        "c": 7.75,
+        "h": 152.57
+      },
+      "uuid": "4428dba5-df85-4125-ba54-1c022b986847"
+    },
+    "dark": {
+      "value": "rgb(0, 68, 48)",
+      "rgb": {
+        "r": 0,
+        "g": 68,
+        "b": 48
+      },
+      "lch": {
+        "l": 24.79,
+        "c": 26.04,
+        "h": 164.99
+      },
+      "uuid": "c5e88879-9773-446c-883e-96531bcb8fad"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-indigo-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(235, 238, 255)",
+      "rgb": {
+        "r": 235,
+        "g": 238,
+        "b": 255
+      },
+      "lch": {
+        "l": 94.33,
+        "c": 8.78,
+        "h": 284.15
+      },
+      "uuid": "ab568cfd-20e5-4e20-a3bf-32292297df8f"
+    },
+    "dark": {
+      "value": "rgb(30, 0, 93)",
+      "rgb": {
+        "r": 30,
+        "g": 0,
+        "b": 93
+      },
+      "lch": {
+        "l": 9.53,
+        "c": 61.36,
+        "h": 309.3
+      },
+      "uuid": "e60cb247-c265-4009-9f0a-bcbbbb801dd4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-indigo-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(113, 85, 250)",
+      "rgb": {
+        "r": 113,
+        "g": 85,
+        "b": 250
+      },
+      "lch": {
+        "l": 48.14,
+        "c": 95.1,
+        "h": 304.2
+      },
+      "uuid": "87b65e85-d767-47bb-8af5-01b85282c663"
+    },
+    "dark": {
+      "value": "rgb(109, 75, 248)",
+      "rgb": {
+        "r": 109,
+        "g": 75,
+        "b": 248
+      },
+      "lch": {
+        "l": 45.72,
+        "c": 99.8,
+        "h": 305.22
+      },
+      "uuid": "0ea3a7e0-35c5-46ec-ae9d-500c5ee06a16"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-indigo-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(84, 36, 219)",
+      "rgb": {
+        "r": 84,
+        "g": 36,
+        "b": 219
+      },
+      "lch": {
+        "l": 34.52,
+        "c": 105.5,
+        "h": 307.58
+      },
+      "uuid": "2f59721c-2922-4ad3-b50a-37327d592050"
+    },
+    "dark": {
+      "value": "rgb(128, 119, 254)",
+      "rgb": {
+        "r": 128,
+        "g": 119,
+        "b": 254
+      },
+      "lch": {
+        "l": 57.01,
+        "c": 76.56,
+        "h": 299.81
+      },
+      "uuid": "5cb7ff5e-ec53-4df8-b59d-a1419190a6cf"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-indigo-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(99, 56, 238)",
+      "rgb": {
+        "r": 99,
+        "g": 56,
+        "b": 238
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 105.03,
+        "h": 306.67
+      },
+      "uuid": "9d1a9aa9-a7b3-4254-9e55-a992784bb7b5"
+    },
+    "dark": {
+      "value": "rgb(116, 91, 252)",
+      "rgb": {
+        "r": 116,
+        "g": 91,
+        "b": 252
+      },
+      "lch": {
+        "l": 49.76,
+        "c": 92.58,
+        "h": 303.6
+      },
+      "uuid": "97e84a30-1de4-4e84-8d59-e625f9ec9ab1"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-magenta-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(217, 35, 97)",
+      "rgb": {
+        "r": 217,
+        "g": 35,
+        "b": 97
+      },
+      "lch": {
+        "l": 48.03,
+        "c": 70.61,
+        "h": 9.93
+      },
+      "uuid": "0166ed9b-52e7-447a-b45d-de29ba85eb0d"
+    },
+    "dark": {
+      "value": "rgb(207, 31, 92)",
+      "rgb": {
+        "r": 207,
+        "g": 31,
+        "b": 92
+      },
+      "lch": {
+        "l": 45.66,
+        "c": 68.52,
+        "h": 9.81
+      },
+      "uuid": "11055a6b-7e81-4b59-9feb-8b0b6352be07"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-magenta-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(163, 5, 62)",
+      "rgb": {
+        "r": 163,
+        "g": 5,
+        "b": 62
+      },
+      "lch": {
+        "l": 34.49,
+        "c": 60.27,
+        "h": 13.44
+      },
+      "uuid": "29d203d7-7c2c-4f36-a5f3-d84fab6be9f1"
+    },
+    "dark": {
+      "value": "rgb(255, 51, 119)",
+      "rgb": {
+        "r": 255,
+        "g": 51,
+        "b": 119
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 78.05,
+        "h": 9.23
+      },
+      "uuid": "fa5e523e-7ee3-46d0-971f-4ee95c7222b8"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-magenta-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(186, 22, 80)",
+      "rgb": {
+        "r": 186,
+        "g": 22,
+        "b": 80
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 64.15,
+        "h": 10.32
+      },
+      "uuid": "98125f18-a061-4aa7-a0c5-a746d635c4c5"
+    },
+    "dark": {
+      "value": "rgb(224, 38, 101)",
+      "rgb": {
+        "r": 224,
+        "g": 38,
+        "b": 101
+      },
+      "lch": {
+        "l": 49.71,
+        "c": 72,
+        "h": 9.8
+      },
+      "uuid": "6676db79-7b7e-4fcf-868b-321f9372517a"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-orange-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 236, 207)",
+      "rgb": {
+        "r": 255,
+        "g": 236,
+        "b": 207
+      },
+      "lch": {
+        "l": 94.21,
+        "c": 16.51,
+        "h": 83.35
+      },
+      "uuid": "64371717-ac11-4ec3-a0aa-9042cf43fa8f"
+    },
+    "dark": {
+      "value": "rgb(80, 27, 0)",
+      "rgb": {
+        "r": 80,
+        "g": 27,
+        "b": 0
+      },
+      "lch": {
+        "l": 17.87,
+        "c": 35.57,
+        "h": 48.72
+      },
+      "uuid": "74f40bbb-5afd-4c88-89d3-e69de9e2b604"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-orange-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(232, 106, 0)",
+      "rgb": {
+        "r": 232,
+        "g": 106,
+        "b": 0
+      },
+      "lch": {
+        "l": 59.41,
+        "c": 81.22,
+        "h": 56.59
+      },
+      "uuid": "a4527b6f-e2d4-4a0f-b013-007dc5a2d3ac"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-orange-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(194, 78, 0)",
+      "rgb": {
+        "r": 194,
+        "g": 78,
+        "b": 0
+      },
+      "lch": {
+        "l": 48.16,
+        "c": 72.85,
+        "h": 53.14
+      },
+      "uuid": "e9df9a43-f509-44f3-89f6-c277f7445651"
+    },
+    "dark": {
+      "value": "rgb(255, 137, 0)",
+      "rgb": {
+        "r": 255,
+        "g": 137,
+        "b": 0
+      },
+      "lch": {
+        "l": 68.87,
+        "c": 84.33,
+        "h": 62.96
+      },
+      "uuid": "a571e2cd-2aff-4344-b608-45a48162cb61"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-orange-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(212, 91, 0)",
+      "rgb": {
+        "r": 212,
+        "g": 91,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 76.86,
+        "h": 54.78
+      },
+      "uuid": "437e4f5b-e68c-4491-b26c-a9fa1503561b"
+    },
+    "dark": {
+      "value": "rgb(243, 117, 0)",
+      "rgb": {
+        "r": 243,
+        "g": 117,
+        "b": 0
+      },
+      "lch": {
+        "l": 63.16,
+        "c": 83.17,
+        "h": 58.39
+      },
+      "uuid": "92e06ff6-8347-4320-9a98-3054ba458d0e"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-pink-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(228, 52, 163)",
+      "rgb": {
+        "r": 228,
+        "g": 52,
+        "b": 163
+      },
+      "lch": {
+        "l": 53.6,
+        "c": 76.63,
+        "h": 345.48
+      },
+      "uuid": "af67d2bf-e92e-42f2-93d6-2f0b45fba0ac"
+    },
+    "dark": {
+      "value": "rgb(196, 39, 138)",
+      "rgb": {
+        "r": 196,
+        "g": 39,
+        "b": 138
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 69.28,
+        "h": 345.89
+      },
+      "uuid": "6c1ae7db-8ca1-4dbe-9d1e-2b3f5ab28a5c"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-pink-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(176, 31, 123)",
+      "rgb": {
+        "r": 176,
+        "g": 31,
+        "b": 123
+      },
+      "lch": {
+        "l": 40.64,
+        "c": 64.65,
+        "h": 345.95
+      },
+      "uuid": "8d8448ee-5b8d-4953-a2f8-ba34a3c7f796"
+    },
+    "dark": {
+      "value": "rgb(236, 67, 175)",
+      "rgb": {
+        "r": 236,
+        "g": 67,
+        "b": 175
+      },
+      "lch": {
+        "l": 57.02,
+        "c": 75.94,
+        "h": 344.05
+      },
+      "uuid": "fb259e11-a051-4116-a7cb-f567cf814df5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-pink-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(206, 42, 146)",
+      "rgb": {
+        "r": 206,
+        "g": 42,
+        "b": 146
+      },
+      "lch": {
+        "l": 48.08,
+        "c": 71.96,
+        "h": 345.61
+      },
+      "uuid": "a53ae96d-64bc-4baa-b51f-4490242047df"
+    },
+    "dark": {
+      "value": "rgb(213, 45, 151)",
+      "rgb": {
+        "r": 213,
+        "g": 45,
+        "b": 151
+      },
+      "lch": {
+        "l": 49.81,
+        "c": 73.42,
+        "h": 345.72
+      },
+      "uuid": "86b686e1-d580-4fc0-9246-8b94ad2fed96"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-purple-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(154, 71, 226)",
+      "rgb": {
+        "r": 154,
+        "g": 71,
+        "b": 226
+      },
+      "lch": {
+        "l": 48.09,
+        "c": 89.54,
+        "h": 313.4
+      },
+      "uuid": "b72cb9ff-2b75-487c-914f-1c10bff76f75"
+    },
+    "dark": {
+      "value": "rgb(148, 62, 224)",
+      "rgb": {
+        "r": 148,
+        "g": 62,
+        "b": 224
+      },
+      "lch": {
+        "l": 45.8,
+        "c": 93.04,
+        "h": 313.34
+      },
+      "uuid": "fb186f5e-72a8-4a27-8ba2-d2fdf53d5a5c"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-purple-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(115, 13, 204)",
+      "rgb": {
+        "r": 115,
+        "g": 13,
+        "b": 204
+      },
+      "lch": {
+        "l": 34.58,
+        "c": 102.15,
+        "h": 313.01
+      },
+      "uuid": "991db22a-d0c2-4f1a-a45b-95aaf13d747d"
+    },
+    "dark": {
+      "value": "rgb(173, 105, 233)",
+      "rgb": {
+        "r": 173,
+        "g": 105,
+        "b": 233
+      },
+      "lch": {
+        "l": 56.95,
+        "c": 74.48,
+        "h": 312.81
+      },
+      "uuid": "12d86845-fd54-4d30-aac8-bb9451560ba5"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-purple-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(134, 40, 217)",
+      "rgb": {
+        "r": 134,
+        "g": 40,
+        "b": 217
+      },
+      "lch": {
+        "l": 40.57,
+        "c": 99.43,
+        "h": 313.36
+      },
+      "uuid": "163a3d87-cba9-48de-8384-c2820cf03984"
+    },
+    "dark": {
+      "value": "rgb(157, 78, 228)",
+      "rgb": {
+        "r": 157,
+        "g": 78,
+        "b": 228
+      },
+      "lch": {
+        "l": 49.76,
+        "c": 86.9,
+        "h": 313.08
+      },
+      "uuid": "30aae683-83e3-47a1-bdcb-ebe658e110a3"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-red-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 235, 232)",
+      "rgb": {
+        "r": 255,
+        "g": 235,
+        "b": 232
+      },
+      "lch": {
+        "l": 94.53,
+        "c": 7.39,
+        "h": 31.87
+      },
+      "uuid": "a1f7b6a3-4195-44dc-a772-9a04d3cf859c"
+    },
+    "dark": {
+      "value": "rgb(87, 17, 7)",
+      "rgb": {
+        "r": 87,
+        "g": 17,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 39.39,
+        "h": 37.48
+      },
+      "uuid": "fcfcf026-be31-4a05-b833-6757cacb8b05"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-red-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(215, 50, 32)",
+      "rgb": {
+        "r": 215,
+        "g": 50,
+        "b": 32
+      },
+      "lch": {
+        "l": 48.05,
+        "c": 79.52,
+        "h": 38.58
+      },
+      "uuid": "d5d3bc64-629c-44b0-8ff5-81f260521f5b"
+    },
+    "dark": {
+      "value": "rgb(205, 46, 29)",
+      "rgb": {
+        "r": 205,
+        "g": 46,
+        "b": 29
+      },
+      "lch": {
+        "l": 45.67,
+        "c": 77.21,
+        "h": 38.62
+      },
+      "uuid": "cb2486de-b2be-45e5-b459-6e371b29d357"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-red-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(156, 33, 19)",
+      "rgb": {
+        "r": 156,
+        "g": 33,
+        "b": 19
+      },
+      "lch": {
+        "l": 34.41,
+        "c": 63.08,
+        "h": 38.86
+      },
+      "uuid": "a02ee7fb-b9de-45f1-bee7-8ffe2145cbec"
+    },
+    "dark": {
+      "value": "rgb(252, 67, 46)",
+      "rgb": {
+        "r": 252,
+        "g": 67,
+        "b": 46
+      },
+      "lch": {
+        "l": 56.99,
+        "c": 86.68,
+        "h": 38.14
+      },
+      "uuid": "ccb79099-59f4-4bf2-b149-0de72f556a45"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-red-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(183, 40, 24)",
+      "rgb": {
+        "r": 183,
+        "g": 40,
+        "b": 24
+      },
+      "lch": {
+        "l": 40.66,
+        "c": 71.13,
+        "h": 38.84
+      },
+      "uuid": "4a585714-4331-44b1-b81f-25a8ff1cc8ea"
+    },
+    "dark": {
+      "value": "rgb(223, 52, 34)",
+      "rgb": {
+        "r": 223,
+        "g": 52,
+        "b": 34
+      },
+      "lch": {
+        "l": 49.82,
+        "c": 81.67,
+        "h": 38.43
+      },
+      "uuid": "9ff36ad0-608e-46a7-ab56-00af3d307d83"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-seafoam-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(211, 246, 234)",
+      "rgb": {
+        "r": 211,
+        "g": 246,
+        "b": 234
+      },
+      "lch": {
+        "l": 94.18,
+        "c": 13.72,
+        "h": 171.73
+      },
+      "uuid": "870298fd-4e1f-4649-bfbc-5ad5b768c2e3"
+    },
+    "dark": {
+      "value": "rgb(0, 67, 59)",
+      "rgb": {
+        "r": 0,
+        "g": 67,
+        "b": 59
+      },
+      "lch": {
+        "l": 24.73,
+        "c": 21.23,
+        "h": 181.47
+      },
+      "uuid": "ec603c2c-b2b2-4769-a889-ba7c91a458eb"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-silver-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(239, 239, 239)",
+      "rgb": {
+        "r": 239,
+        "g": 239,
+        "b": 239
+      },
+      "lch": {
+        "l": 94.45,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "f0bae14e-1c9a-4a03-9dbf-dcd3213463c1"
+    },
+    "dark": {
+      "value": "rgb(59, 59, 59)",
+      "rgb": {
+        "r": 59,
+        "g": 59,
+        "b": 59
+      },
+      "lch": {
+        "l": 24.87,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "0c4f7cca-a9fc-40d5-9503-04c505962f33"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-silver-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(143, 143, 143)",
+      "rgb": {
+        "r": 143,
+        "g": 143,
+        "b": 143
+      },
+      "lch": {
+        "l": 59.4,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "8c7b40e3-239d-4b57-a846-eb5d9f96615d"
+    },
+    "dark": {
+      "value": "rgb(118, 118, 118)",
+      "rgb": {
+        "r": 118,
+        "g": 118,
+        "b": 118
+      },
+      "lch": {
+        "l": 49.64,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "3f481be4-bdd3-45b8-bcfe-c7577cac40d4"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-silver-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(114, 114, 114)",
+      "rgb": {
+        "r": 114,
+        "g": 114,
+        "b": 114
+      },
+      "lch": {
+        "l": 48.04,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "39cdbda8-3c8c-4977-a90e-3883647d93a6"
+    },
+    "dark": {
+      "value": "rgb(152, 152, 152)",
+      "rgb": {
+        "r": 152,
+        "g": 152,
+        "b": 152
+      },
+      "lch": {
+        "l": 62.84,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "ee71e6fd-283f-4ba3-a6a3-b23491ce86d0"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-silver-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(128, 128, 128)",
+      "rgb": {
+        "r": 128,
+        "g": 128,
+        "b": 128
+      },
+      "lch": {
+        "l": 53.59,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "bbfb55a6-5bca-424d-8a27-e1e54fff7309"
+    },
+    "dark": {
+      "value": "rgb(137, 137, 137)",
+      "rgb": {
+        "r": 137,
+        "g": 137,
+        "b": 137
+      },
+      "lch": {
+        "l": 57.09,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "66efbf5e-008b-41f6-a623-ee3722e41c69"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-turquoise-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(209, 245, 245)",
+      "rgb": {
+        "r": 209,
+        "g": 245,
+        "b": 245
+      },
+      "lch": {
+        "l": 94.08,
+        "c": 12.2,
+        "h": 198.62
+      },
+      "uuid": "2dd6c94d-b55e-491e-91a9-bf9b4e3ceb54"
+    },
+    "dark": {
+      "value": "rgb(0, 66, 72)",
+      "rgb": {
+        "r": 0,
+        "g": 66,
+        "b": 72
+      },
+      "lch": {
+        "l": 24.84,
+        "c": 18.33,
+        "h": 209.29
+      },
+      "uuid": "e354eda3-17c2-4f07-b64b-3620692a12f3"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-turquoise-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(12, 158, 171)",
+      "rgb": {
+        "r": 12,
+        "g": 158,
+        "b": 171
+      },
+      "lch": {
+        "l": 59.41,
+        "c": 33.35,
+        "h": 209.6
+      },
+      "uuid": "0a313605-1db7-4801-afac-28aeb30aa005"
+    },
+    "dark": {
+      "value": "rgb(9, 131, 142)",
+      "rgb": {
+        "r": 9,
+        "g": 131,
+        "b": 142
+      },
+      "lch": {
+        "l": 49.79,
+        "c": 29.05,
+        "h": 209.68
+      },
+      "uuid": "69ae2217-ba32-41ca-a38f-8f19dcc5cf76"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-turquoise-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(8, 126, 137)",
+      "rgb": {
+        "r": 8,
+        "g": 126,
+        "b": 137
+      },
+      "lch": {
+        "l": 47.98,
+        "c": 28.25,
+        "h": 210.16
+      },
+      "uuid": "b1e2b910-c19d-4b83-9f49-f9e858ab58b9"
+    },
+    "dark": {
+      "value": "rgb(13, 168, 182)",
+      "rgb": {
+        "r": 13,
+        "g": 168,
+        "b": 182
+      },
+      "lch": {
+        "l": 62.9,
+        "c": 34.91,
+        "h": 209.84
+      },
+      "uuid": "89d12308-9718-40d6-a089-73b9fcf1185b"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-turquoise-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(10, 141, 153)",
+      "rgb": {
+        "r": 10,
+        "g": 141,
+        "b": 153
+      },
+      "lch": {
+        "l": 53.4,
+        "c": 30.65,
+        "h": 209.95
+      },
+      "uuid": "cb62cb21-ce76-4f47-a88d-14682eb6e06d"
+    },
+    "dark": {
+      "value": "rgb(11, 151, 164)",
+      "rgb": {
+        "r": 11,
+        "g": 151,
+        "b": 164
+      },
+      "lch": {
+        "l": 56.96,
+        "c": 32.24,
+        "h": 210.18
+      },
+      "uuid": "2ce15c64-8c38-4935-bc65-7580df395231"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-yellow-background",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(255, 248, 204)",
+      "rgb": {
+        "r": 255,
+        "g": 248,
+        "b": 204
+      },
+      "lch": {
+        "l": 97.13,
+        "c": 22.49,
+        "h": 101.72
+      },
+      "uuid": "910d2e36-245f-4df6-a99c-92a5bb4d4cce"
+    },
+    "dark": {
+      "value": "rgb(83, 52, 0)",
+      "rgb": {
+        "r": 83,
+        "g": 52,
+        "b": 0
+      },
+      "lch": {
+        "l": 24.63,
+        "c": 35.55,
+        "h": 74.25
+      },
+      "uuid": "62ab6892-66ea-4b55-8c1a-fcc191d29717"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-yellow-primary-default",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(245, 199, 0)",
+      "rgb": {
+        "r": 245,
+        "g": 199,
+        "b": 0
+      },
+      "lch": {
+        "l": 81.98,
+        "c": 83.24,
+        "h": 88.64
+      },
+      "uuid": "8ffb47cc-cc5c-4179-807e-4a1cb45c6496"
+    },
+    "dark": {
+      "value": "rgb(235, 183, 0)",
+      "rgb": {
+        "r": 235,
+        "g": 183,
+        "b": 0
+      },
+      "lch": {
+        "l": 77,
+        "c": 79.51,
+        "h": 85.7
+      },
+      "uuid": "69059dfa-e2e1-4f8d-b06b-058a8724e071"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-yellow-primary-down",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(210, 149, 0)",
+      "rgb": {
+        "r": 210,
+        "g": 149,
+        "b": 0
+      },
+      "lch": {
+        "l": 65.9,
+        "c": 71.64,
+        "h": 79.44
+      },
+      "uuid": "8c86293e-334b-49ed-a7aa-eb4fe987002f"
+    },
+    "dark": {
+      "value": "rgb(255, 230, 86)",
+      "rgb": {
+        "r": 255,
+        "g": 230,
+        "b": 86
+      },
+      "lch": {
+        "l": 91.02,
+        "c": 70.8,
+        "h": 95.8
+      },
+      "uuid": "dfd355e7-82fd-4fdb-96bd-b584d7268ee9"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-yellow-primary-hover",
+    "category": "color",
+    "colorType": "primitive",
+    "light": {
+      "value": "rgb(230, 175, 0)",
+      "rgb": {
+        "r": 230,
+        "g": 175,
+        "b": 0
+      },
+      "lch": {
+        "l": 74.5,
+        "c": 77.73,
+        "h": 84.1
+      },
+      "uuid": "68a43979-6dee-45b9-963d-3e827b2554f4"
+    },
+    "dark": {
+      "value": "rgb(249, 206, 0)",
+      "rgb": {
+        "r": 249,
+        "g": 206,
+        "b": 0
+      },
+      "lch": {
+        "l": 84.11,
+        "c": 84.89,
+        "h": 89.94
+      },
+      "uuid": "b2a1039c-cbfe-44bf-a0fe-822c5f576f52"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "accent-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(229, 240, 254)",
+      "rgb": {
+        "r": 229,
+        "g": 240,
+        "b": 254
+      },
+      "lch": {
+        "l": 94.37,
+        "c": 8.04,
+        "h": 262.95
+      },
+      "uuid": "989a37a5-66f2-4a84-a118-8d36caee6695"
+    },
+    "dark": {
+      "value": "rgb(12, 33, 117)",
+      "rgb": {
+        "r": 12,
+        "g": 33,
+        "b": 117
+      },
+      "lch": {
+        "l": 17.69,
+        "c": 56.81,
+        "h": 298.75
+      },
+      "uuid": "d88d1685-29dc-486b-a0b9-9c90f60b8cde"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-informative",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(75, 117, 255)",
+      "rgb": {
+        "r": 75,
+        "g": 117,
+        "b": 255
+      },
+      "lch": {
+        "l": 53.42,
+        "c": 79.13,
+        "h": 292.82
+      },
+      "uuid": "5ac73d3a-a6cc-4403-a8d5-46bc262d62e9"
+    },
+    "dark": {
+      "value": "rgb(86, 129, 255)",
+      "rgb": {
+        "r": 86,
+        "g": 129,
+        "b": 255
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 71.63,
+        "h": 290.32
+      },
+      "uuid": "82b09b04-6a70-4a95-9eb5-a321a66a6465"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-negative",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(240, 56, 35)",
+      "rgb": {
+        "r": 240,
+        "g": 56,
+        "b": 35
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 87.1,
+        "h": 38.9
+      },
+      "uuid": "6c3daf67-9cdc-4c02-9912-ff0b902c22ed"
+    },
+    "dark": {
+      "value": "rgb(252, 67, 46)",
+      "rgb": {
+        "r": 252,
+        "g": 67,
+        "b": 46
+      },
+      "lch": {
+        "l": 56.99,
+        "c": 86.68,
+        "h": 38.14
+      },
+      "uuid": "ccb79099-59f4-4bf2-b149-0de72f556a45"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-neutral",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(143, 143, 143)",
+      "rgb": {
+        "r": 143,
+        "g": 143,
+        "b": 143
+      },
+      "lch": {
+        "l": 59.4,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "7fa86c73-f058-4922-be8d-19902515cf44"
+    },
+    "dark": {
+      "value": "rgb(138, 138, 138)",
+      "rgb": {
+        "r": 138,
+        "g": 138,
+        "b": 138
+      },
+      "lch": {
+        "l": 57.48,
+        "c": 0,
+        "h": 158.2
+      },
+      "uuid": "8880b8f1-7850-49ef-a7ab-fd4e16cb37a6"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-notice",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(212, 91, 0)",
+      "rgb": {
+        "r": 212,
+        "g": 91,
+        "b": 0
+      },
+      "lch": {
+        "l": 53.47,
+        "c": 76.86,
+        "h": 54.78
+      },
+      "uuid": "437e4f5b-e68c-4491-b26c-a9fa1503561b"
+    },
+    "dark": {
+      "value": "rgb(224, 100, 0)",
+      "rgb": {
+        "r": 224,
+        "g": 100,
+        "b": 0
+      },
+      "lch": {
+        "l": 57.04,
+        "c": 79.47,
+        "h": 55.89
+      },
+      "uuid": "0fbe4f46-02a8-444d-ace5-c245c6f15112"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "icon-color-positive",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(7, 147, 85)",
+      "rgb": {
+        "r": 7,
+        "g": 147,
+        "b": 85
+      },
+      "lch": {
+        "l": 53.56,
+        "c": 53.47,
+        "h": 153.63
+      },
+      "uuid": "1be225f8-3612-422c-923f-b35f1ec4fc00"
+    },
+    "dark": {
+      "value": "rgb(9, 157, 89)",
+      "rgb": {
+        "r": 9,
+        "g": 157,
+        "b": 89
+      },
+      "lch": {
+        "l": 56.97,
+        "c": 56.95,
+        "h": 152.79
+      },
+      "uuid": "5afee2ee-a5d5-4dcf-a917-11dfdd0c3691"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "informative-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(229, 240, 254)",
+      "rgb": {
+        "r": 229,
+        "g": 240,
+        "b": 254
+      },
+      "lch": {
+        "l": 94.37,
+        "c": 8.04,
+        "h": 262.95
+      },
+      "uuid": "989a37a5-66f2-4a84-a118-8d36caee6695"
+    },
+    "dark": {
+      "value": "rgb(12, 33, 117)",
+      "rgb": {
+        "r": 12,
+        "g": 33,
+        "b": 117
+      },
+      "lch": {
+        "l": 17.69,
+        "c": 56.81,
+        "h": 298.75
+      },
+      "uuid": "d88d1685-29dc-486b-a0b9-9c90f60b8cde"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-subdued-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(255, 235, 232)",
+      "rgb": {
+        "r": 255,
+        "g": 235,
+        "b": 232
+      },
+      "lch": {
+        "l": 94.53,
+        "c": 7.39,
+        "h": 31.87
+      },
+      "uuid": "a1f7b6a3-4195-44dc-a772-9a04d3cf859c"
+    },
+    "dark": {
+      "value": "rgb(87, 17, 7)",
+      "rgb": {
+        "r": 87,
+        "g": 17,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 39.39,
+        "h": 37.48
+      },
+      "uuid": "fcfcf026-be31-4a05-b833-6757cacb8b05"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "negative-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(255, 235, 232)",
+      "rgb": {
+        "r": 255,
+        "g": 235,
+        "b": 232
+      },
+      "lch": {
+        "l": 94.53,
+        "c": 7.39,
+        "h": 31.87
+      },
+      "uuid": "a1f7b6a3-4195-44dc-a772-9a04d3cf859c"
+    },
+    "dark": {
+      "value": "rgb(87, 17, 7)",
+      "rgb": {
+        "r": 87,
+        "g": 17,
+        "b": 7
+      },
+      "lch": {
+        "l": 17.66,
+        "c": 39.39,
+        "h": 37.48
+      },
+      "uuid": "fcfcf026-be31-4a05-b833-6757cacb8b05"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "notice-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(255, 236, 207)",
+      "rgb": {
+        "r": 255,
+        "g": 236,
+        "b": 207
+      },
+      "lch": {
+        "l": 94.21,
+        "c": 16.51,
+        "h": 83.35
+      },
+      "uuid": "64371717-ac11-4ec3-a0aa-9042cf43fa8f"
+    },
+    "dark": {
+      "value": "rgb(80, 27, 0)",
+      "rgb": {
+        "r": 80,
+        "g": 27,
+        "b": 0
+      },
+      "lch": {
+        "l": 17.87,
+        "c": 35.57,
+        "h": 48.72
+      },
+      "uuid": "74f40bbb-5afd-4c88-89d3-e69de9e2b604"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  },
+  {
+    "name": "positive-subtle-background-color-default",
+    "category": "color",
+    "colorType": "semantic",
+    "light": {
+      "value": "rgb(215, 247, 225)",
+      "rgb": {
+        "r": 215,
+        "g": 247,
+        "b": 225
+      },
+      "lch": {
+        "l": 94.48,
+        "c": 16.1,
+        "h": 153.85
+      },
+      "uuid": "9d32cd19-8375-4da3-9324-0e8334c2e714"
+    },
+    "dark": {
+      "value": "rgb(0, 51, 38)",
+      "rgb": {
+        "r": 0,
+        "g": 51,
+        "b": 38
+      },
+      "lch": {
+        "l": 17.95,
+        "c": 20.35,
+        "h": 169.34
+      },
+      "uuid": "cd5e0471-a8c0-46cd-b98c-be3a74c2b6d2"
+    },
+    "source": {
+      "file": "sources/variables.json",
+      "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc"
+    },
+    "usage": [],
+    "notes": []
+  }
+]

@@ -1,0 +1,108 @@
+{
+  "name": "Card",
+  "description": "Cards display content in contained surface with elevation.",
+  "designSystem": "Atlassian",
+  "version": "@atlaskit/card@17.0.5",
+  "source": {
+    "file": "documentation",
+    "url": "https://atlassian.design/components/card"
+  },
+  "props": [
+    {
+      "name": "elevation",
+      "type": "string",
+      "defaultValue": "'subtle'"
+    }
+  ],
+  "variants": [
+    {
+      "name": "none",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "boxShadow",
+            "value": "none"
+          },
+          {
+            "property": "borderColor",
+            "value": "#DFE1E6"
+          },
+          {
+            "property": "borderWidth",
+            "value": "1px"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#DFE1E6"
+      }
+    },
+    {
+      "name": "subtle",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "boxShadow",
+            "value": "0 1px 1px rgba(9, 30, 66, 0.12), 0 1px 2px rgba(9, 30, 66, 0.08)"
+          },
+          {
+            "property": "borderColor",
+            "value": "#DFE1E6"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FFFFFF",
+        "boxShadow": "elevation-subtle",
+        "borderColor": "#DFE1E6"
+      }
+    },
+    {
+      "name": "raised",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "#FFFFFF"
+          },
+          {
+            "property": "boxShadow",
+            "value": "0 4px 8px rgba(9, 30, 66, 0.16), 0 2px 4px rgba(9, 30, 66, 0.12)"
+          },
+          {
+            "property": "borderColor",
+            "value": "#DFE1E6"
+          }
+        ]
+      },
+      "tokenMappings": {
+        "backgroundColor": "#FFFFFF",
+        "boxShadow": "elevation-raised",
+        "borderColor": "#DFE1E6"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#DFE1E6",
+    "boxShadow": {
+      "none": "none",
+      "subtle": "elevation-subtle",
+      "raised": "elevation-raised"
+    }
+  },
+  "notes": [
+    "Uses elevation levels",
+    "All have white background",
+    "Key for surface/default vs elevation"
+  ]
+}

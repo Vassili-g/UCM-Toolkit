@@ -1,0 +1,823 @@
+{
+  "name": "Badge",
+  "description": "Badges are used for showing a small amount of color-categorized metadata, ideal for getting a user's attention.",
+  "designSystem": "Spectrum",
+  "version": "740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+  "source": {
+    "file": "sources/badge.txt",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/Badge.tsx",
+    "line": 1,
+    "sha256": "0ffcaa2f4237f813e74de5f5d86c27ce9e9c750bf0d26b8e0de846a336e4d076"
+  },
+  "props": [
+    {
+      "name": "size",
+      "type": "'S' | 'M' | 'L' | 'XL'",
+      "defaultValue": "'S'",
+      "description": "The size of the badge."
+    },
+    {
+      "name": "variant",
+      "type": "'accent' | 'informative' | 'neutral' | 'positive' | 'notice' | 'negative' | 'gray' | 'red' | 'orange' | 'yellow' | 'chartreuse' | 'celery' | 'green' | 'seafoam' | 'cyan' | 'blue' | 'indigo' | 'purple' | 'fuchsia' | 'magenta' | 'pink' | 'turquoise' | 'brown' | 'cinnamon' | 'silver'",
+      "defaultValue": "'neutral'",
+      "description": "The variant changes the background color of the badge. When badge has a semantic meaning, they should use the variant for semantic colors."
+    },
+    {
+      "name": "fillStyle",
+      "type": "'bold' | 'subtle' | 'outline'",
+      "defaultValue": "'bold'",
+      "description": "The fill of the badge."
+    },
+    {
+      "name": "overflowMode",
+      "type": "'wrap' | 'truncate'",
+      "defaultValue": "'wrap'",
+      "description": "Sets the text behavior for the contents."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "The content to display in the badge."
+    }
+  ],
+  "variants": [
+    {
+      "name": "accent",
+      "description": "Accent color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "accent",
+            "color": "white"
+          },
+          "notes": ["Uses semantic accent color"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "accent-subtle",
+            "color": "gray-1000"
+          },
+          "notes": ["Uses subtle accent color with gray text"]
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('accent-800', 'accent-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          },
+          "notes": ["Uses layer-2 background with accent border"]
+        }
+      }
+    },
+    {
+      "name": "informative",
+      "description": "Informative/Info color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "informative",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "informative-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('informative-800', 'informative-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral",
+      "description": "Neutral color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "neutral-subdued",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "neutral-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('gray-500', 'gray-600')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "positive",
+      "description": "Positive/Success color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "positive",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "positive-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('positive-800', 'positive-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "notice",
+      "description": "Notice/Warning color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "notice",
+            "color": "black"  // ← Texte noir sur fond jaune/orange
+          },
+          "notes": ["Uses black text for better contrast on light backgrounds"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "notice-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('notice-800', 'notice-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "negative",
+      "description": "Negative/Error color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "negative",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "negative-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('negative-800', 'negative-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "gray",
+      "description": "Gray color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "gray",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "gray-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('gray-500', 'gray-600')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "red",
+      "description": "Red color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "red",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "red-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('red-800', 'red-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "orange",
+      "description": "Orange color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "orange",
+            "color": "black"  // ← Texte noir sur fond orange
+          },
+          "notes": ["Uses black text for better contrast on light backgrounds"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "orange-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('orange-800', 'orange-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "yellow",
+      "description": "Yellow color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "yellow",
+            "color": "black"  // ← Texte noir sur fond jaune
+          },
+          "notes": ["Uses black text for better contrast on light backgrounds"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "yellow-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('yellow-800', 'yellow-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "chartreuse",
+      "description": "Chartreuse color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "chartreuse",
+            "color": "black"  // ← Texte noir sur fond chartreuse
+          },
+          "notes": ["Uses black text for better contrast on light backgrounds"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "chartreuse-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('chartreuse-800', 'chartreuse-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "celery",
+      "description": "Celery color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "celery",
+            "color": "black"  // ← Texte noir sur fond celery
+          },
+          "notes": ["Uses black text for better contrast on light backgrounds"]
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "celery-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('celery-800', 'celery-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "green",
+      "description": "Green color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "green",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "green-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('green-800', 'green-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "seafoam",
+      "description": "Seafoam color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "seafoam",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "seafoam-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('seafoam-800', 'seafoam-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "cyan",
+      "description": "Cyan color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "cyan",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "cyan-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('cyan-800', 'cyan-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "blue",
+      "description": "Blue color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "blue",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "blue-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('blue-800', 'blue-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "indigo",
+      "description": "Indigo color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "indigo",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "indigo-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('indigo-800', 'indigo-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "purple",
+      "description": "Purple color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "purple",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "purple-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('purple-800', 'purple-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "fuchsia",
+      "description": "Fuchsia color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "fuchsia",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "fuchsia-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('fuchsia-800', 'fuchsia-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "magenta",
+      "description": "Magenta color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "magenta",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "magenta-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('magenta-800', 'magenta-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "pink",
+      "description": "Pink color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "pink",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "pink-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('pink-800', 'pink-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "turquoise",
+      "description": "Turquoise color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "turquoise",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "turquoise-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('turquoise-800', 'turquoise-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "brown",
+      "description": "Brown color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "brown",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "brown-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('brown-800', 'brown-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "cinnamon",
+      "description": "Cinnamon color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "cinnamon",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "cinnamon-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('cinnamon-800', 'cinnamon-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    },
+    {
+      "name": "silver",
+      "description": "Silver color variant",
+      "fillStyles": {
+        "bold": {
+          "style": {
+            "backgroundColor": "silver",
+            "color": "white"
+          }
+        },
+        "subtle": {
+          "style": {
+            "backgroundColor": "silver-subtle",
+            "color": "gray-1000"
+          }
+        },
+        "outline": {
+          "style": {
+            "backgroundColor": "layer-2",
+            "color": "gray-1000",
+            "borderColor": "lightDark('silver-800', 'silver-900')",
+            "borderWidth": 2,
+            "borderStyle": "solid"
+          }
+        }
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "bold": {
+        "accent": "accent",
+        "informative": "informative",
+        "neutral": "neutral-subdued",
+        "positive": "positive",
+        "notice": "notice",
+        "negative": "negative",
+        "gray": "gray",
+        "red": "red",
+        "orange": "orange",
+        "yellow": "yellow",
+        "chartreuse": "chartreuse",
+        "celery": "celery",
+        "green": "green",
+        "seafoam": "seafoam",
+        "cyan": "cyan",
+        "blue": "blue",
+        "indigo": "indigo",
+        "purple": "purple",
+        "fuchsia": "fuchsia",
+        "magenta": "magenta",
+        "pink": "pink",
+        "turquoise": "turquoise",
+        "brown": "brown",
+        "cinnamon": "cinnamon",
+        "silver": "silver"
+      },
+      "subtle": {
+        "accent": "accent-subtle",
+        "informative": "informative-subtle",
+        "neutral": "neutral-subtle",
+        "positive": "positive-subtle",
+        "notice": "notice-subtle",
+        "negative": "negative-subtle",
+        "gray": "gray-subtle",
+        "red": "red-subtle",
+        "orange": "orange-subtle",
+        "yellow": "yellow-subtle",
+        "chartreuse": "chartreuse-subtle",
+        "celery": "celery-subtle",
+        "green": "green-subtle",
+        "seafoam": "seafoam-subtle",
+        "cyan": "cyan-subtle",
+        "blue": "blue-subtle",
+        "indigo": "indigo-subtle",
+        "purple": "purple-subtle",
+        "fuchsia": "fuchsia-subtle",
+        "magenta": "magenta-subtle",
+        "pink": "pink-subtle",
+        "turquoise": "turquoise-subtle",
+        "brown": "brown-subtle",
+        "cinnamon": "cinnamon-subtle",
+        "silver": "silver-subtle"
+      },
+      "outline": {
+        "_all": "layer-2"
+      }
+    },
+    "color": {
+      "bold": {
+        "default": "white",
+        "notice": "black",
+        "orange": "black",
+        "yellow": "black",
+        "chartreuse": "black",
+        "celery": "black"
+      },
+      "subtle": {
+        "_all": "gray-1000"
+      },
+      "outline": {
+        "_all": "gray-1000"
+      }
+    },
+    "borderColor": {
+      "outline": {
+        "accent": "lightDark('accent-800', 'accent-900')",
+        "informative": "lightDark('informative-800', 'informative-900')",
+        "neutral": "lightDark('gray-500', 'gray-600')",
+        "positive": "lightDark('positive-800', 'positive-900')",
+        "notice": "lightDark('notice-800', 'notice-900')",
+        "negative": "lightDark('negative-800', 'negative-900')"
+      }
+    }
+  },
+  "notes": [
+    "Spectrum Badge supports 24 color variants (including semantic and primitive colors)",
+    "Three fill styles: bold (solid background), subtle (light background), outline (border only)",
+    "Text color is white for bold variants on dark backgrounds, black for light background colors (notice, orange, yellow, chartreuse, celery)",
+    "Subtle and outline variants use gray-1000 for text color",
+    "Outline variants use layer-2 as background with semantic color borders",
+    "lightDark() function is used for responsive dark/light mode colors"
+  ]
+}

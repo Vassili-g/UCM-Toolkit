@@ -1,0 +1,169 @@
+{
+  "name": "Button",
+  "description": "Buttons for actions. Support multiple variants.",
+  "designSystem": "Spectrum",
+  "version": "740c6c5c",
+  "source": {
+    "file": "documentation",
+    "url": "https://react-spectrum.adobe.com/react-spectrum/Button.html"
+  },
+  "props": [
+    {
+      "name": "variant",
+      "type": "string"
+    },
+    {
+      "name": "isDisabled",
+      "type": "boolean"
+    }
+  ],
+  "states": [
+    "default",
+    "hover",
+    "active",
+    "focus",
+    "disabled"
+  ],
+  "variants": [
+    {
+      "name": "accent",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "accent",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "accent-contrast",
+            "state": "default"
+          }
+        ],
+        "hover": {
+          "properties": [
+            {
+              "property": "backgroundColor",
+              "value": "accent-hover"
+            }
+          ]
+        },
+        "focus": {
+          "properties": [
+            {
+              "property": "outline",
+              "value": "2px solid accent-focus-ring"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": {
+          "default": "accent",
+          "hover": "accent-hover"
+        },
+        "color": "accent-contrast",
+        "outline": "accent-focus-ring"
+      }
+    },
+    {
+      "name": "primary",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "blue-600",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "white",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "outline",
+              "value": "2px solid blue-600-focus-ring"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "blue-600",
+        "color": "white",
+        "outline": "blue-600-focus-ring"
+      }
+    },
+    {
+      "name": "outline",
+      "style": {
+        "properties": [
+          {
+            "property": "backgroundColor",
+            "value": "transparent",
+            "state": "default"
+          },
+          {
+            "property": "borderColor",
+            "value": "blue-600",
+            "state": "default"
+          },
+          {
+            "property": "borderWidth",
+            "value": "2px",
+            "state": "default"
+          },
+          {
+            "property": "color",
+            "value": "blue-600",
+            "state": "default"
+          }
+        ],
+        "focus": {
+          "properties": [
+            {
+              "property": "boxShadow",
+              "value": "0 0 0 3px blue-600-focus-ring"
+            }
+          ]
+        }
+      },
+      "tokenMappings": {
+        "backgroundColor": "transparent",
+        "borderColor": "blue-600",
+        "color": "blue-600",
+        "boxShadow": "blue-600-focus-ring"
+      }
+    }
+  ],
+  "tokenMappings": {
+    "backgroundColor": {
+      "accent": "accent",
+      "primary": "blue-600",
+      "outline": "transparent"
+    },
+    "color": {
+      "accent": "accent-contrast",
+      "primary": "white",
+      "outline": "blue-600"
+    },
+    "outline": {
+      "focus": {
+        "accent": "accent-focus-ring",
+        "primary": "blue-600-focus-ring"
+      }
+    },
+    "boxShadow": {
+      "focus": {
+        "outline": "blue-600-focus-ring"
+      }
+    }
+  },
+  "notes": [
+    "Uses color tokens",
+    "Focus uses focus-ring tokens (the problem identified)",
+    "accent-focus-ring is in page collection"
+  ]
+}
