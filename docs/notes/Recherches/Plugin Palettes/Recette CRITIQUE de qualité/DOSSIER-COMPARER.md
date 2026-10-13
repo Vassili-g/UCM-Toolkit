@@ -32,6 +32,18 @@ Les trois tâches passent donc par les trois réglettes que Création connaît
 déjà : teinte, saturation, luminosité. Seule la vue de plusieurs palettes est
 nouvelle.
 
+Les questions de la demande, et leur réponse :
+
+| Question | Réponse |
+|---|---|
+| Combien de palettes harmoniser | Toutes sont listées ; 2 à 4 se cochent pour comparer et régler (section 8) |
+| Quelle référence | Aucune palette : la courbe commune de la Configuration. Aux valeurs par défaut, deux crans de même numéro ont la même clarté ; « Par défaut » y ramène une palette |
+| Quelle règle | Même clarté au même numéro ; saturation voisine par l'enveloppe ([solution](./SOLUTION-RAMPES.md), S1) |
+| Luminosité seule, ou plus | Luminosité et saturation pour harmoniser ; la teinte pour différencier |
+| Tons clairs et foncés séparément | Color shift règle la luminosité au bout clair et au bout sombre ; l'onglet aligne les nuances par numéro, et l'écart d'un bout s'y voit |
+| « Plus rouge », « plus jaune » | Les deux bouts de la réglette de teinte se nomment d'après la famille voisine (section 6) |
+| Un écart minimal entre palettes | Le seuil des couleurs proches de la recette, mesuré sur le plein et le texte ; sur la réglette de teinte, une zone hachurée le traduit en degrés (section 8) |
+
 ## 2. Ce que les recherches précédentes ont proposé
 
 | Source | Proposition | Sort |
@@ -162,10 +174,10 @@ ils disparaissent.
   claire ». Un bout que chevauche « par défaut » s'efface.
 - **Un point bleu après le nom d'une réglette modifiée**, celui des onglets de
   grandeur de Color shift.
-- **« Rétablir » ne s'active que sur une valeur modifiée** ; son survol dit la
-  valeur quittée.
-- **« Tout rétablir » en tête du corps de la carte**, à la place qu'il occupe
-  dans Color shift. Il agit sur l'intensité choisie dans « Régler ».
+- **« Par défaut » ne s'active que sur une valeur modifiée** ; son survol dit
+  « Revenir à la valeur par défaut », suivi de la valeur (section 12).
+- **« Tout par défaut » en tête du corps de la carte**, à la place qu'occupe
+  « Tout rétablir » dans Color shift. Il agit sur l'intensité choisie dans « Régler ».
 - **Le repère dit « Soft »** (ou « Vivid ») au lieu de la lettre.
 - **Le résumé** dit « Par défaut », ou « Modifié : » suivi des réglages et de
   leur intensité, sans chiffre : « Modifié : teinte de Soft, luminosité de
@@ -261,12 +273,22 @@ Vérification, Gestion.
 
 Deux palettes colorées sont trop proches quand leur plein, ou le texte de leur
 fond teinté, passe sous le seuil des couleurs proches de la recette (0,05 en
-ΔEok), en Light ou en Dark. Les neutres en sont exclus : un gris n'a pas de
-teinte à confondre. Les fonds teintés en sont exclus aussi : clairs, ils sont
-peu saturés par construction, et les compter donnait 46 paires sur les vingt
-palettes de la galerie. Sans eux, 8 paires, toutes réelles, et toutes sur le
-texte du fond teinté, qui est le rôle le plus proche. Le fichier du mainteneur
-en donne une : Terracota et Poppy.
+ΔEok), en Light ou en Dark, dans l'intensité Vivid ou l'intensité unique. Les crans sont ceux du modèle des niveaux
+([solution](./SOLUTION-RAMPES.md), S2). Les neutres en sont exclus : un gris
+n'a pas de teinte à confondre. Les fonds teintés en sont exclus aussi : pâles
+par construction, ils se ressemblent presque tous.
+
+| Jeu | Paires | Avec les fonds teintés | Plein et texte | Plein seul |
+|---|---|---|---|---|
+| Fichier du mainteneur, 6 palettes colorées | 15 | 10 | 1, Terracota et Poppy | 0 |
+| Galerie, 18 palettes colorées | 153 | 115 | 20 | 8 |
+
+La galerie rassemble à dessein des quasi-doublons (Bleu et Azur, Vert et
+Feuille, Violet et Pourpre). Le texte du fond teinté y ajoute 12 paires au
+plein, surtout en Dark, où le texte 900 rapproche les bleus et les violets.
+Une alerte limitée au plein en donnerait 8 et laisserait Terracota et Poppy
+sans alerte : la décision C6 garde le plein et le texte. Ces comptes suivent le
+texte Dark 900 ; un texte 950 les changerait (décision Q5).
 
 ### Les constats de la comparaison
 
@@ -318,12 +340,18 @@ Les mesures sur le fichier du mainteneur et sur la galerie :
 | Paire | Thème et rôle | Réglage qui les sépare |
 |---|---|---|
 | Terracota et Poppy | Dark, texte du fond teinté | Poppy +5°, ou Terracota −8° |
-| Violet et Pourpre | Dark, texte du fond teinté | 8° |
+| Cyan et Teal | Light, texte du fond teinté | 1° |
+| Violet et Azur | Dark, texte du fond teinté | 1° |
+| Indigo et Pourpre, Fuchsia et Pourpre | Dark, texte du fond teinté | 2° à 3° |
+| Violet et Pourpre | Dark, texte du fond teinté | 14° |
 | Lime et Vert, Lime et Feuille | Light, texte du fond teinté | 10° |
+| Rouge et Cuivre | Dark, texte du fond teinté | 11° |
 | Jaune et Cuivre | Light, texte du fond teinté | 11° |
-| Bleu et Marine, Marine et Azur | Dark, texte du fond teinté | 15° |
-| Bleu et Azur | Light, texte du fond teinté | 19° ; presque identiques |
-| Vert et Feuille | Dark, texte du fond teinté | 23° ; presque identiques |
+| Bleu et Marine, Marine et Azur | Dark, texte du fond teinté | 25° |
+| Bleu et Azur | Light, texte du fond teinté | 27° ; presque identiques |
+| Vert et Feuille | Dark, plein | 23° ; presque identiques |
+
+Les vingt paires de la galerie sont dans `Maquettes/donnees-ensembles.js`.
 
 ### Le parcours
 
@@ -392,7 +420,7 @@ boutons se coupent.
 | C5 | Distinguer | Carte « Palettes trop proches » ; zone hachurée sur la teinte ; mots aux bouts des pistes ; ni modale, ni réglage automatique |
 | C6 | L'alerte | Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
 | C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; arc ambre sur une paire trop proche ; un point se glisse pour régler la teinte ; vision des couleurs à la demande, sans alerte |
-| C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé sans chiffre, aucun encart |
+| C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Par défaut » actif seulement sur une valeur modifiée, « Tout par défaut » en tête, résumé sans chiffre, aucun encart |
 | C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; une phrase sous les onglets |
 | C10 | Libellés et listes | « Par défaut » et « Tout par défaut » remplacent « Rétablir » et « Tout rétablir » sur les réglettes et les cartes ; les listes prennent la police de l'interface, un chevron gris et 24 px parmi les boutons |
 
@@ -401,9 +429,12 @@ boutons se coupent.
 **Le bilan à 480 px.** À 480 px de large, le lien de chaque ligne du bilan de Vérification sort de la
 fenêtre : « Vérifier » s'affiche coupé (« Vérifi »). La grille
 `.bilan-des-palettes` ne déclare aucune colonne. Sa colonne implicite prend la
-largeur de contenu des lignes, dont le texte ne passe pas à la ligne : 468 px
-dans un conteneur de 449. `grid-template-columns: minmax(0, 1fr)` la ramène à
-449 px ; la maquette l'applique dans l'écran H7, mesure faite.
+largeur minimale de son plus large enfant, le nuancier : sept cartes de 60 px
+et six écarts de 8 px, 468 px, prévus pour les 469 px d'une fenêtre de 500. À
+480 px, le conteneur n'offre que 449 px. `grid-template-columns: minmax(0, 1fr)`
+ramène les lignes à 449 px ; la maquette l'applique dans l'écran H7, mesure
+faite. Le nuancier déborde encore de 19 px : ses cartes doivent pouvoir
+rétrécir sous 500 px.
 
 **Deux sens de « Rétablir ».** Sous le sélecteur de Création, « Rétablir »
 refait ce qu'« Annuler les modifications » vient de défaire : c'est le sens de

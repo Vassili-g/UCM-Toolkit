@@ -1,5 +1,14 @@
 # Changements par projet
 
+> Remplacé en partie par le modèle des niveaux de la
+> [solution des rampes](../../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/SOLUTION-RAMPES.md) (S2 et S3) : la page Dark reste un gris très
+> sombre (cran 50 abaissé à L 0,145, `#0A0A0A` par défaut) et non le noir ; le
+> texte des fonds Dark vaut 900, ou 950 au choix du mainteneur ; les fonds
+> teintés Dark 200, 300 et 400, la carte au neutre 100 et le focus 800 sont
+> repris ; le focus devient `ring` dans chaque dossier, ce qui change les
+> contrats. Les mesures ci-dessous restent valables pour la piste qu'elles
+> décrivent.
+
 Cette proposition distingue le fond de page, les cartes et les surfaces en
 thème sombre. Les scripts simulent le résultat ; Figma et les dépôts
 consommateurs ne sont pas modifiés.

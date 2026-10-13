@@ -22,9 +22,10 @@ document ; la section concernée se met alors à jour.
 
 Les deux autres maquettes du dossier, `MAQUETTE-QUALITE-EN-INTERFACE.html` et
 `MAQUETTE-ROLES-ET-CRANS.html`, sont des bancs de mesure : elles montrent ce
-que le moteur produirait, pas des écrans du plugin. Leurs règles (enveloppe,
-surfaces translucides, anneau de focus, `ring`) se reproduisent depuis
-[DOSSIER-QUALITE-DES-PALETTES.md](./DOSSIER-QUALITE-DES-PALETTES.md) et ses
+que le moteur produirait, pas des écrans du plugin. Leurs règles (enveloppe
+par thème, modèle des niveaux, anneau de focus, `ring`) se reproduisent depuis
+[SOLUTION-RAMPES.md](./SOLUTION-RAMPES.md),
+[DOSSIER-QUALITE-DES-PALETTES.md](./DOSSIER-QUALITE-DES-PALETTES.md) et les
 scripts de `Mesures/`.
 
 Les classes citées sont celles du plugin (`packages/plugin-palettes/src/ui/styles.css`
@@ -56,13 +57,15 @@ et le socle) ; les classes nouvelles sont définies en section 9.
   cent entier, une espace insécable (U+00A0), puis `%` (`56 %`). Luminosité
   écrite à trois décimales dont on retire un seul zéro final : `+0,015`,
   `−0,02` (de `−0,020`), `0,00` pour zéro.
-- **Rôles** : la table `TABLE_DES_DOSSIERS` du kit, sens `normal` quand
+- **Rôles** : la table du modèle des niveaux ([SOLUTION-RAMPES.md](./SOLUTION-RAMPES.md),
+  S2 ; `tableDuModele` de `Mesures/generer-ensembles.ts`), par thème et par
+  sens. Le sens vaut `normal` quand
   `texteDesBoutons[mode]` vaut `blanc` en Light ou `noir` en Dark, `inverse`
   sinon (`sensDuTheme`). `solid/foreground` vaut `#FFFFFF` pour `blanc` et
   `#000000` pour `noir`. Plein : `solid/default`
-  (700) et `solid/foreground` ; fond teinté : `surface/default` (100) et
-  `surface/foreground` (800 ou 900) ; contour : `page/border` et
-  `page/foreground`.
+  (700) et `solid/foreground` ; fond teinté : `surface/default` (50 en Light,
+  200 en Dark) et `surface/foreground` (800 en Light, 900 en Light inversé et
+  en Dark) ; contour : `page/border` et `page/foreground`.
 - **Palette colorée** : référence de chroma OKLCH supérieure à 0,05. Les autres
   sont neutres : hors des paires, de la roue et des constats de saturation et
   de luminosité.

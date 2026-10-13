@@ -71,6 +71,7 @@
   .marche .barre.ucm { background: #c62828; }
   .marche .barre.propose { background: #1a7f37; }
   .marche .valeur { position: absolute; top: 0; font-size: 10.5px; color: var(--second); white-space: nowrap; transform: translateX(6px); }
+  .marche .valeur.avant { transform: translateX(calc(-100% - 6px)); }
   .marche .graduations { display: flex; justify-content: space-between; font-size: 10px; color: var(--second); }
   pre.chemin { background: #fff; border: 1px solid var(--filet); border-radius: 8px; padding: 12px 14px; font: 11.5px/1.6 ui-monospace, Consolas, monospace; max-width: 900px; overflow-x: auto; }
   .niveau-page { border-radius: 10px; padding: 16px; }
@@ -131,6 +132,24 @@
   .composants { display: grid; grid-template-columns: 200px repeat(2, minmax(0, 1fr)); gap: 8px; }
   .composants .scene { min-height: 0; }
   .composants .rang { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  details.replie { margin: 6px 0 14px; }
+  details.replie > summary { cursor: pointer; opacity: .75; font-size: 12.5px; margin-bottom: 8px; }
+
+  /* Fenêtre étroite : les grilles à en-têtes défilent dans leur propre cadre, les autres passent à une colonne. */
+  @media (max-width: 900px) {
+    body { padding: 24px 16px 72px; }
+    .grille, .composants, .rampe-gris { overflow-x: auto; }
+    #grille-surfaces { grid-template-columns: 120px repeat(4, minmax(190px, 1fr)) !important; }
+    #grille-gris, #grille-niveaux, .composants { grid-template-columns: 120px repeat(2, minmax(260px, 1fr)) !important; }
+    #grille-focus { grid-template-columns: 120px minmax(200px, 1fr) 220px !important; }
+    .rampe-gris { grid-template-columns: 64px repeat(var(--n), minmax(46px, 1fr)); }
+    .panneaux { grid-template-columns: minmax(0, 1fr); }
+    .fx-body { grid-template-columns: minmax(0, 1fr); }
+    .fx-cols { border-right: 0; border-bottom: 1px solid var(--line); }
+    body > table { display: block; max-width: 100%; overflow-x: auto; }
+    .marche { grid-template-columns: minmax(0, 1fr); }
+    .marche > b { margin-top: 10px; }
+  }
 </style>
 <script src="donnees-qualite.js"></script>
 <script src="couleurs.js"></script>
@@ -164,7 +183,7 @@
   <ol>
     <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 50, 100, 200 ; texte 800 ; focus 600. Le fond 50 est presque blanc, comme chez Figma, Tailwind et Untitled UI.</li>
     <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 200, 300, 400 ; texte et contour 900 ; focus 800. La page se détache de la carte (1,16) et le fond de la carte (1,15).</li>
-    <li><b>Garanties</b> : 144 échecs au lieu de 164 sur le balayage, tous antérieurs.</li>
+    <li><b>Garanties</b> : aucun échec nouveau sur le balayage ; les 144 existent déjà avec le moteur actuel. Avec l'enveloppe, la table actuelle en ajouterait 20.</li>
     <li><b>Fonds opaques.</b> Palettes n'écrit que des crans ; la piste translucide est écartée, comme chez Atlassian, Material 3, Fluent et Polaris.</li>
     <li><b>Le focus</b> garde sa forme (anneau décalé de 2 px) et son nom (<code>ring</code> dans chaque dossier) : Q7 et Q8 ne changent pas.</li>
     <li><b>Les composants à surface</b> gardent les rôles actuels ; un badge bordé discrètement prend <code>page/divider</code> (Q9).</li>
@@ -176,8 +195,8 @@
     <tr><td><code>surface/default</code></td><td class="change">50 (aujourd'hui 100)</td><td>100 · 100</td><td class="change">200</td></tr>
     <tr><td><code>surface/hover</code></td><td class="change">100 (200)</td><td>200 · 200</td><td class="change">300</td></tr>
     <tr><td><code>surface/pressed</code></td><td class="change">200 (300)</td><td>300 · 300</td><td class="change">400</td></tr>
-    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800</td><td>800 · 900</td><td class="change">900</td></tr>
-    <tr><td><code>page/focus</code>, renommé <code>ring</code></td><td>600</td><td>600 · 700</td><td class="change">800</td></tr>
+    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800 (normal), 900 (inversé)</td><td>800 · 900</td><td class="change">900, ou 950 (voir ci-dessous)</td></tr>
+    <tr><td><code>page/focus</code>, devenu <code>solid/ring</code>, <code>surface/ring</code>, <code>page/ring</code> (Q8)</td><td>600</td><td>600 · 700</td><td class="change">800</td></tr>
     <tr><td><code>elevation/page</code></td><td>neutre 50</td><td>neutre 50, L 0,180</td><td class="change">neutre 50, L 0,145 (environ <code>#0A0A0B</code>)</td></tr>
     <tr><td><code>elevation/raised</code></td><td>blanc</td><td>neutre 100</td><td>neutre 100</td></tr>
     <tr><td><code>solid/*</code>, <code>page/foreground</code>, <code>page/border</code>, <code>page/divider</code></td><td colspan="3">Inchangés</td></tr>
@@ -187,7 +206,7 @@
 <p class="chapeau">Le chemin ne change pas : un composant cite <code>theme</code>, qui cite <code>color-utilities</code> ou <code>color-brands</code>, qui citent <code>primitives</code>. Seuls changent le cran que <code>theme</code> vise et la clarté du cran 50 de la courbe Dark.</p>
 <div class="fx" id="fx">
   <div class="fx-top">
-    <div class="seg" role="group" aria-label="Vue"><button type="button" data-vue="actuel" aria-pressed="false">Aujourd'hui</button><button type="button" data-vue="modele" aria-pressed="true">Modèle des niveaux</button></div>
+    <div class="seg" role="group" aria-label="Vue"><button type="button" data-vue="actuel" aria-pressed="false">Aujourd'hui</button><button type="button" data-vue="modele" aria-pressed="true">Proposé (Q5 et Q8)</button></div>
     <div class="legend" id="fx-legende"><span><i style="background:var(--mod)"></i>cran visé ou valeur modifiés par le modèle ; dessous, l'alias ou la valeur d'aujourd'hui</span><span>sans barre : inchangé</span></div>
   </div>
   <div class="fx-body">
@@ -196,18 +215,6 @@
   </div>
 </div>
 <p class="chapeau">Choisissez une vue, puis une collection. Une étiquette grise est un alias : cliquez dessus pour ouvrir la variable visée. Les couleurs sont celles des rampes de la recette du mainteneur (Titanium pour le neutre, Grass pour <code>success</code>), avec l'enveloppe par thème. Seules quelques variables par groupe sont montrées.</p>
-<pre class="chemin" hidden>components.badge.success.background
-  → theme.success.soft.surface.default
-      light → color-utilities.success.soft.light.<b>50</b>      (aujourd'hui 100)
-      dark  → color-utilities.success.soft.dark.<b>200</b>      (aujourd'hui 100)
-  → primitives.colors.grass.soft.light.50 | .dark.200
-
-theme.elevation.page
-      light → color-utilities.elevation.light.page   → primitives.colors.titanium.light.50
-      dark  → color-utilities.elevation.dark.page    → primitives.colors.titanium.dark.50   (<b>L 0,145</b>)
-theme.elevation.raised
-      light → color-utilities.elevation.light.raised → primitives.colors.white
-      dark  → color-utilities.elevation.dark.raised  → primitives.colors.titanium.dark.100</pre>
 <table>
   <thead><tr><th>Couche</th><th>Qui l'écrit</th><th>Ce qui change</th></tr></thead>
   <tbody>
@@ -236,7 +243,7 @@ theme.elevation.raised
 <div class="marche" id="marche"></div>
 
 <h2 id="focus">5. Le focus</h2>
-<p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark, un cran plus clair tient partout. L'impression de couleur foncée vient donc aussi de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Aucun système relevé n'emploie un pas pâle seul ; le halo pâle du kit Figma d'Untitled UI vaut environ 1,16:1 sur blanc.</p>
+<p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark, le cran 800 tient partout. Le bleu de Figma (<code>#006AFF</code>) a d'ailleurs la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et séparé du bouton par 2 px de fond. L'impression de couleur foncée vient donc de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Hors du kit Figma d'Untitled UI, dont le halo pâle vaut environ 1,16:1 sur blanc, aucun système relevé n'emploie un pas pâle seul.</p>
 <div class="commandes">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="fMode"></div></div>
   <div class="groupe"><span>Support</span><div class="bascule" data-commande="fSupport"></div></div>
@@ -259,16 +266,17 @@ theme.elevation.raised
 
 <h2 id="decisions">7. Décisions</h2>
 <ol class="decisions">
-  <li><b>Q5. Le fond teinté et les niveaux.</b> Recommandé : le modèle des niveaux. Fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark, texte et contour 900 ; page Dark au cran 50 abaissé à L 0,145. Un contour au cran 300 du neutre reste une option de l'élévation.</li>
-  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; 800 en Dark, dans les deux sens.</li>
+  <li><b>Q5. Le fond teinté et les niveaux.</b> Recommandé : le modèle des niveaux. Fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark ; page Dark au cran 50 abaissé à L 0,145. Texte et contour des fonds en Dark : 900, plus coloré, recommandé ; ou 950, plus robuste. Avec 900, votre Orange Vivid échoue (4,12:1) tant que son Color shift sombre dépasse +0,015 (section 1).</li>
+  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, le cran le plus clair qui tient 3:1 ; 800 en Dark, dans les deux sens. Un focus unique à la couleur de la marque, comme chez Figma, reste un choix des composants.</li>
   <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé, la forme de Figma SDS, Radix et Spectrum) ou halo et trait (le halo pâle d'Untitled UI, bordé du trait qui tient 3:1). La forme se règle dans les composants, pas dans Palettes.</li>
   <li><b>Q8. Le nom et la place.</b> <code>ring</code> dans chaque dossier (recommandé), <code>ring</code> à la racine de la palette, ou <code>page/focus</code> conservé. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
   <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
 </ol>
 
 <h2 id="surfaces">Annexe A. Les pistes écartées : fond 50 sur la page, fond 200 seul, fonds translucides</h2>
+<details class="replie"><summary>Afficher les pistes écartées, avec leurs commandes</summary>
 <p class="chapeau">Les pistes mesurées avant le modèle des niveaux, sur la page et sur la carte. Elles restent pour comparer.</p>
-<p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,08:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
+<p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,07:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
 <p>Un fond translucide se compose avec son support. On le calcule comme les échelles alpha de Radix : la couleur d'alpha minimal qui redonne exactement le cran sur le support le plus éloigné du texte, la carte blanche en Light, la page en Dark. Posé sur l'autre support, il garde le même écart.</p>
 <div class="commandes">
   <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
@@ -277,21 +285,23 @@ theme.elevation.raised
 </div>
 <div class="grille" id="grille-surfaces"></div>
 
+</details>
+
 <h2 id="table">Annexe B. Les tables mesurées</h2>
-<p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème. La table retenue est en tête de page.</p>
+<p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème (<code>Mesures/GARANTIES-BALAYAGE.json</code>). Le modèle est en tête de page.</p>
 <table>
-  <thead><tr><th>Table</th><th>Échecs</th><th>Fond contre la carte, Dark</th><th>Sort</th></tr></thead>
+  <thead><tr><th>Table</th><th>Échecs en plus du modèle</th><th>Sort</th></tr></thead>
   <tbody>
-    <tr><td>Actuelle</td><td>164</td><td>1,005</td><td>Le fond disparaît en Dark</td></tr>
-    <tr><td>Dark : fonds 200, 300, 400, texte 900, focus 800</td><td>164</td><td>1,15</td><td class="ok">Retenue</td></tr>
-    <tr><td>Dark : texte 950 au lieu de 900</td><td>164</td><td>1,15</td><td>Texte presque blanc, C 0,03 à 0,07</td></tr>
-    <tr><td>Dark : texte 800</td><td>472 à 1 440</td><td>1,15</td><td>Échoue sur le survol et l'appui</td></tr>
-    <tr><td>Dark : carte au neutre 200, fonds 300</td><td>444</td><td>1,20</td><td>218 pleins et 62 textes échouent sur la carte</td></tr>
-    <tr><td>Light : fond 50, texte 700</td><td>464 sur l'appui</td><td></td><td>Le fond 50 est plus pâle que tous les systèmes relevés</td></tr>
-    <tr><td>Fonds translucides</td><td>160 avec focus Dark 800</td><td>1,11</td><td>Écartée : les composants se posent toujours sur une carte</td></tr>
+    <tr><td>Modèle des niveaux, texte Dark 900</td><td>0 (144 au total)</td><td class="ok">Proposé</td></tr>
+    <tr><td>Modèle, texte Dark 950</td><td>0</td><td>L'autre choix de Q5 : plus pâle, C 0,03 à 0,07</td></tr>
+    <tr><td>Table actuelle</td><td>20</td><td>Le focus Light manque 3:1 contre le fond 100 ; en Dark, le fond disparaît sur la carte</td></tr>
+    <tr><td>Dark : texte 800</td><td>1 282</td><td>Échoue sur le survol 300 et l'appui 400</td></tr>
+    <tr><td>Dark : appui 300, texte 800</td><td>320</td><td>Survol et appui confondus ; le texte échoue encore en sens inversé</td></tr>
+    <tr><td>Dark : carte au neutre 200, fonds 300</td><td>334</td><td>218 pleins et 116 textes de page échouent sur la carte</td></tr>
+    <tr><td>Fonds translucides, focus Dark 800</td><td>16</td><td>Écartée : les composants se posent toujours sur une carte</td></tr>
   </tbody>
 </table>
-<p>Les 164 échecs communs existent déjà avec le moteur actuel : G1 en Dark inversé (144) et G7 de trois références vert-jaune en Light (20).</p>
+<p>Les 144 échecs du modèle existent déjà avec le moteur actuel : G1 en Dark inversé, le texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et garde ses octets.</p>
 
 <script>
 (() => {
@@ -341,7 +351,7 @@ theme.elevation.raised
   // Le focus : chaque forme sur un bouton plein, un bouton teinté, un bouton contour, un champ et un lien.
   const FORMES = [
     { id: 'colle', nom: 'Aujourd\'hui', detail: 'Trait de 2 px collé, cran du focus', ombre: (f, a) => `0 0 0 2px ${a}` },
-    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; un cran plus clair en Dark', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
+    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; cran 800 en Dark', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
     { id: 'halo', nom: 'Halo seul', detail: 'Le kit Figma d\'Untitled UI : 4 px au cran 100', ombre: (f, a, h) => `0 0 0 4px ${h}` },
     { id: 'halo-trait', nom: 'Halo et trait', detail: '2 px de halo au cran 100 (300 en Dark), puis 2 px de trait', ombre: (f, a, h) => `0 0 0 2px ${h}, 0 0 0 4px ${a}`, clair: true },
   ];
@@ -356,7 +366,8 @@ theme.elevation.raised
         const j = U.jeu({ variante: etat.variante, palette, intensite: etat.intensite, mode, support: etat.fSupport });
         const fond = j.fond;
         const sensInverse = U.sens(mode) === 'inverse';
-        const cranFocus = mode === 'dark' && forme.clair ? (sensInverse ? 800 : 700) : (mode === 'light' ? 600 : (sensInverse ? 700 : 600));
+        // Les formes proposées prennent le focus du modèle : 800 en Dark, dans les deux sens.
+        const cranFocus = mode === 'dark' && forme.clair ? 800 : (mode === 'light' ? (sensInverse ? 700 : 600) : (sensInverse ? 700 : 600));
         const anneau = U.cran(etat.variante, palette, etat.intensite, mode, cranFocus);
         const halo = U.cran(etat.variante, palette, etat.intensite, mode, mode === 'light' ? 100 : 300);
         const ombre = forme.ombre(fond, anneau, halo);
@@ -442,13 +453,16 @@ theme.elevation.raised
     ]],
   ];
   function dessinerMarche() {
-    const x = (v) => Math.min(100, ((v - 1) / 0.4) * 100);
+    // L'échelle va de 1,00 à la plus grande valeur affichée, arrondie au cinquième supérieur.
+    const haut = Math.ceil(Math.max(...MARCHE.flatMap(([, lignes]) => lignes.map((l) => l[2]))) * 5) / 5;
+    const x = (v) => Math.min(100, ((v - 1) / (haut - 1)) * 100);
+    const graduations = Array.from({ length: Math.round((haut - 1) / 0.2) + 1 }, (_, i) => `<span>${U.fr(1 + i * 0.2, 2)}</span>`).join('');
     let html = '';
     for (const [theme, lignes] of MARCHE) {
-      html += `<b>${theme}</b><div class="graduations"><span>1,00</span><span>1,10</span><span>1,20</span><span>1,30</span><span>1,40</span></div>`;
+      html += `<b>${theme}</b><div class="graduations">${graduations}</div>`;
       for (const [nom, de, a, classe] of lignes) {
         const texte = de === a ? U.ct(de) : `${U.ct(de)} à ${U.ct(a)}`;
-        html += `<span>${nom}</span><div class="axe"><span class="barre ${classe ?? ''}" style="left:${x(de)}%;width:max(8px, ${x(a) - x(de)}%)"></span><span class="valeur" style="left:${x(a)}%">${texte}</span></div>`;
+        html += `<span>${nom}</span><div class="axe"><span class="barre ${classe ?? ''}" style="left:${x(de)}%;width:max(8px, ${x(a) - x(de)}%)"></span><span class="valeur${x(a) > 70 ? ' avant' : ''}" style="left:${x(a) > 70 ? x(de) : x(a)}%">${texte}</span></div>`;
       }
     }
     document.getElementById('marche').innerHTML = html;
@@ -582,7 +596,7 @@ theme.elevation.raised
         if (reste[0] === 'elevation') return { a: `color-utilities.elevation.${mode}.${reste[1]}` };
         const neutre = reste[0] === 'neutral';
         const role = reste.slice(neutre ? 1 : 2).join('/');
-        const cle = { 'surface/default': 'default', 'surface/hover': 'hover', 'surface/pressed': 'pressed', 'surface/foreground': 'foreground', 'surface/border': 'border', 'page/focus': 'focus', ring: 'focus' }[role];
+        const cle = { 'surface/default': 'default', 'surface/hover': 'hover', 'surface/pressed': 'pressed', 'surface/foreground': 'foreground', 'surface/border': 'border', 'page/focus': 'focus', 'solid/ring': 'focus', 'surface/ring': 'focus', 'page/ring': 'focus' }[role];
         const cran = TABLES[vue][mode][cle];
         return { a: neutre ? `color-utilities.neutral.${mode}.${cran}` : `color-utilities.success.soft.${mode}.${cran}` };
       }
@@ -599,12 +613,12 @@ theme.elevation.raised
       ['page/background', 'theme.elevation.page'], ['card/background', 'theme.elevation.raised'],
       ['badge/neutral/background', 'theme.neutral.surface.default'], ['list/row/hover', 'theme.neutral.surface.hover'],
       ['badge/success/background', 'theme.success.soft.surface.default'], ['badge/success/foreground', 'theme.success.soft.surface.foreground'],
-      ['button/success/tinted/pressed', 'theme.success.soft.surface.pressed'], ['button/success/focus', { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.ring' }],
+      ['button/success/tinted/pressed', 'theme.success.soft.surface.pressed'], ['button/success/focus', { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.solid.ring' }],
     ];
     const THEME = [
       ['elevation', ['theme.elevation.page', 'theme.elevation.raised']],
       ['neutral', ['theme.neutral.surface.default', 'theme.neutral.surface.hover', 'theme.neutral.surface.pressed', 'theme.neutral.surface.foreground']],
-      ['success/soft', ['theme.success.soft.surface.default', 'theme.success.soft.surface.hover', 'theme.success.soft.surface.pressed', 'theme.success.soft.surface.foreground', { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.ring' }]],
+      ['success/soft', ['theme.success.soft.surface.default', 'theme.success.soft.surface.hover', 'theme.success.soft.surface.pressed', 'theme.success.soft.surface.foreground', { modele: 'theme.success.soft.solid.ring' }, { modele: 'theme.success.soft.surface.ring' }, { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.page.ring' }]],
     ];
     const UTILITAIRES = [
       ['elevation', ['light.page', 'light.raised', 'dark.page', 'dark.raised'].map((x) => `color-utilities.elevation.${x}`)],
@@ -625,7 +639,15 @@ theme.elevation.raised
     function lignes(vue, col) {
       const sortie = [];
       const ligne = (chemin, modes, nomAffiche) => {
-        const avant = modes.map((m) => [brute('actuel', typeof chemin === 'string' ? chemin : chemin.actuel, m), hexa('actuel', typeof chemin === 'string' ? chemin : chemin.actuel, m)]);
+        // Une variable propre à une vue ne paraît que dans celle-ci ; dans le modèle, elle est marquée comme ajoutée.
+        if (!choisir(chemin, vue)) return;
+        const cheminAvant = typeof chemin === 'string' ? chemin : chemin.actuel;
+        if (!cheminAvant) {
+          const cle = nom(choisir(chemin, vue));
+          sortie.push(`<tr class="mod" data-k="${cle}"><td class="nm">${cle}</td>${modes.map((m) => `<td>${cellule(brute(vue, choisir(chemin, vue), m), hexa(vue, choisir(chemin, vue), m))}<span class="old">variable ajoutée (Q8)</span></td>`).join('')}</tr>`);
+          return;
+        }
+        const avant = modes.map((m) => [brute('actuel', cheminAvant, m), hexa('actuel', cheminAvant, m)]);
         const ici = modes.map((m) => [brute(vue, choisir(chemin, vue), m), hexa(vue, choisir(chemin, vue), m)]);
         const change = vue === 'modele' && ici.some(([v, h], k) => (v.a ?? v.h) !== (avant[k][0].a ?? avant[k][0].h) || h !== avant[k][1]);
         const cellules = ici.map(([v, h], k) => {
@@ -660,7 +682,7 @@ theme.elevation.raised
       components: { info: 'aucun mode · résolu en light et en dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'inchangée'], modele: ['mod', 'valeurs modifiées'] },
         note: ['Les composants citent theme. Leurs noms ne changent pas ; leur couleur suit le cran que theme vise. Les colonnes montrent la valeur résolue dans chaque thème.'] },
       theme: { info: '2 modes · light, dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'table actuelle'], modele: ['mod', 'crans modifiés'] },
-        note: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 50, 100, 200 en light ; 200, 300, 400 en dark, texte 900, anneau 800.', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] },
+        note: { actuel: ['Le seul endroit où le thème se choisit. Aujourd\'hui, la table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable selon le sens seul, le même dans les deux thèmes : surfaces 100, 200, 300 ; texte 800, ou 900 en sens inversé ; focus page/focus, 600, ou 700 en sens inversé.'], modele: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 50, 100, 200 en light ; 200, 300, 400 en dark, texte 900, anneau 800. Le focus devient ring dans chaque dossier (Q8) : solid/ring, surface/ring et page/ring visent le même cran.', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] } },
       'color-utilities': { info: 'aucun mode · un alias par cran', modes: ['Valeur'], tag: { actuel: ['same', 'inchangée'], modele: ['same', 'alias inchangés'] },
         note: ['Les rôles communs aux marques, un alias par cran vers primitives. Le modèle n\'y change aucun alias.', 'elevation/dark/page vise toujours le cran 50 du neutre ; c\'est ce cran qui devient plus sombre dans primitives.'] },
       primitives: { info: 'aucun mode · écrite par UCM Palettes', modes: ['Valeur'], tag: { actuel: ['same', 'rampes actuelles'], modele: ['mod', '50 Dark recalculé'] },
@@ -674,7 +696,7 @@ theme.elevation.raised
       $('fx-legende').hidden = etat.vue !== 'modele';
       $('fx-cols').innerHTML = '<span class="lab">Collections</span>' + Object.entries(COLLECTIONS).map(([id, x]) => `<button type="button" data-col="${id}" aria-current="${id === etat.col}"><span>${id}</span><span class="tag ${x.tag[etat.vue][0]}">${x.tag[etat.vue][1]}</span></button>`).join('');
       $('fx-head').innerHTML = `<b>${etat.col}</b><span>${c.info}</span>`;
-      $('fx-note').innerHTML = c.note.map((n) => `<p>${n}</p>`).join('');
+      $('fx-note').innerHTML = (Array.isArray(c.note) ? c.note : c.note[etat.vue]).map((n) => `<p>${n}</p>`).join('');
       $('fx-thead').innerHTML = `<tr><th>Nom</th>${c.modes.map((m) => `<th>${m}</th>`).join('')}</tr>`;
       $('fx-tbody').innerHTML = lignes(etat.vue, etat.col);
       if (surligne) { const tr = document.querySelector(`#fx-tbody tr[data-k="${surligne}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } }

@@ -42,8 +42,20 @@
   .actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
   .actions button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid #1e1e1e; background: #1e1e1e; color: #fff; cursor: pointer; }
   .actions span { color: var(--second); font-size: 12px; }
+  textarea#bilan { display: block; width: 100%; max-width: 1100px; height: 160px; margin-top: 8px; font: 11px ui-monospace, Consolas, monospace; }
+  textarea#bilan[hidden] { display: none; }
   ul.docs { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 16px; }
-  @media (max-width: 900px) { .sujets, ul.docs { grid-template-columns: 1fr; } body { padding: 20px 16px; } }
+  table.couverture td { vertical-align: top; }
+  table.couverture td:first-child { width: 26%; }
+  table.couverture td:nth-child(3) { width: 84px; color: var(--second); }
+  table.couverture td:last-child { width: 120px; }
+  .etat { display: inline-block; font-size: 11px; border-radius: 10px; padding: 1px 8px; background: color-mix(in srgb, var(--ok) 12%, #fff); color: var(--ok); }
+  .etat.ouvert { background: color-mix(in srgb, var(--revoir) 14%, #fff); color: var(--revoir); }
+  .couches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .couche { background: var(--carte); border: 1px solid var(--filet); border-radius: 10px; padding: 14px 16px; }
+  .couche h3 { margin: 0 0 6px; font-size: 13px; }
+  .couche ul, ul.ouverts { margin: 0; padding-left: 18px; }
+  @media (max-width: 900px) { .sujets, ul.docs, .couches { grid-template-columns: 1fr; } body { padding: 20px 16px; } table.couverture td:first-child { width: auto; } }
 </style>
 </head>
 <body>
@@ -57,9 +69,9 @@
     <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
     <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
     <div class="ligne"><span>Solution</span><span>L'enveloppe : la part donne la chroma, une borne par clarté la plafonne, propre à chaque thème. <a href="SOLUTION-RAMPES.md">Solution ›</a></span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts ; texte Soft en Dark C 0,08 → 0,14</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts ; texte Soft en Dark C 0,04–0,13 → 0,07–0,14 ; verts Vivid clairs ramenés au niveau de Tailwind</span></div>
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
-    <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles.</span></div>
+    <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons notées avec une borne unique : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles. La borne Dark de la solution reste à noter.</span></div>
     <a href="Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html">Maquette qualité ›</a>
   </section>
   <section class="sujet" data-sujet="2">
@@ -68,7 +80,7 @@
     <div class="ligne"><span>Problème</span><span>Fond teinté trop foncé en Light ; en Dark, fond invisible sur la carte et carte confondue avec la page ; focus foncé.</span></div>
     <div class="ligne"><span>Cause</span><span>En Dark, le fond 100 a la clarté de la carte (neutre 100), et la page n'en est qu'à un cran.</span></div>
     <div class="ligne"><span>Solution</span><span>Modèle des niveaux : chaque niveau un cran plus loin que celui qui le porte. Fond 50 en Light ; page Dark abaissée, fond 200. Focus décalé de 2 px ; <code>ring</code> dans chaque dossier.</span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,15</span><br>fond contre carte Dark ; carte contre page 1,10 → 1,16 ; 164 → 144 échecs</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,15</span><br>fond contre carte Dark ; carte contre page 1,10 → 1,16 ; aucun échec de garantie nouveau</span></div>
     <div class="ligne"><span>Marché</span><span>Neuf systèmes : composants sur blanc en Light, sur gris presque noir en Dark ; fonds teintés à 1,07–1,17 et 1,08–1,31. Les rôles d’UCM servent les composants de onze systèmes.</span></div>
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
@@ -78,28 +90,56 @@
     <div class="ligne"><span>Problème</span><span>Réglages d’une palette illisibles, réglages communs obscurs, aucun outil pour comparer et régler plusieurs palettes.</span></div>
     <div class="ligne"><span>Cause</span><span>Aucune valeur par défaut visible ; un engrenage sans nom ; Création et Vérification à une palette.</span></div>
     <div class="ligne"><span>Solution</span><span>Marque « par défaut » sur chaque réglette ; Configuration en deux onglets ; onglet Harmonisation : 2 à 4 palettes comparées, chacune réglée à la main.</span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">46 → 8</span><br>alertes à 20 palettes, toutes réelles</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1 paire</span><br>trop proche dans le fichier du mainteneur ; 20 dans la galerie de quasi-doublons</span></div>
     <a href="Maquettes/MAQUETTE-COMPARER.html">Maquette sur les écrans réels ›</a>
   </section>
 </div>
+
+<h2 id="demande">Votre demande, point par point</h2>
+<table class="couverture">
+  <thead><tr><th>Demande</th><th>Réponse</th><th>Décisions</th><th>État</th></tr></thead>
+  <tbody>
+    <tr><td>Le focus est rangé dans <code>page</code> ; il manque en reliant un bouton <code>solid</code></td><td>Le focus devient <code>ring</code> dans chaque dossier : <code>solid/ring</code>, <code>surface/ring</code>, <code>page/ring</code>, au même cran. Chaque dossier relie seul son composant.</td><td>Q8</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>Le focus est très foncé ; celui de Figma paraît clair ; faut-il changer le moteur ?</td><td>Le bleu de Figma (<code>#006AFF</code>) a la clarté de notre 600 (L 0,57 contre 0,58 à 0,59). Il paraît clair parce qu'il est très saturé et décalé du bouton de 2 px. Un cran plus clair manquerait 3:1 en Light. Le moteur ne change pas : l'anneau se décale de 2 px, le Dark passe au cran 800, et un focus unique à la couleur de la marque, comme chez Figma, reste possible dans les composants.</td><td>Q6, Q7</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td><code>surface/default</code> trop foncé, le 50 préféré ; des réglages optimaux par défaut et un mode personnalisé</td><td>Fond 50 en Light (1,06 à 1,08 contre la carte blanche, comme Figma, Tailwind et Untitled UI). Les valeurs par défaut vivent dans la Configuration ; chaque réglette les marque, le résumé dit « Modifié : … » dès qu'on s'en écarte, et « Par défaut » y ramène.</td><td>Q3, Q5, C8 à C10</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>En Dark, la carte (<code>elevation/raised</code>) doit se détacher de la page, et le fond teinté de la carte ; un modèle générique et son mapping de tokens</td><td>Le modèle des niveaux : chaque niveau un cran plus loin que celui qui le porte. Dark : page au neutre 50 abaissé, carte au neutre 100, fonds 200, 300 et 400. Carte contre page 1,10 → 1,16 ; fond contre carte 1,00 → 1,13 à 1,16. Le chemin des tokens ne change pas ; les alias de <code>theme</code> suivent une table par thème, et la page a une seule couleur (neutre 50 et réglage « Fond »).</td><td>Q5</td><td><span class="etat ouvert">Texte Dark : 900 ou 950</span></td></tr>
+    <tr><td>Rendu réel décevant : Soft 700 fade, Vivid criard ; choix, réglages ou moteur ?</td><td>Soft terne : le moteur. Une part constante du plafond sRGB donne aux textes Soft 0,3 à 0,55 fois la chroma de Tailwind ; l'enveloppe par thème corrige. Vivid criard : en partie le moteur. Vivid suit Tailwind, sauf les crans clairs des verts, deux fois plus saturés (Grass 100 et 200) ; l'enveloppe les ramène à son niveau. Le reste vient des fonds 100 (le modèle passe à 50) et des crans clairs foncés par votre Color shift de luminosité. Orange brun : le réglage de teinte (préréglage Tailwind).</td><td>Q1, Q2, Q5</td><td><span class="etat ouvert">Dark à noter à l'aveugle</span></td></tr>
+    <tr><td>Un écran pour comparer et harmoniser : combien de palettes, quelle référence, quelle règle, tons clairs et foncés, « plus rouge », un écart minimal</td><td>L'onglet Harmonisation : 2 à 4 palettes cochées, comparées sur des composants, réglées à la main avec les réglettes de Création. Aucune palette de référence : la courbe commune aligne les crans de même numéro. Les tons clairs et foncés se règlent dans Color shift ; les bouts de la teinte se nomment (« plus rouge ») ; une zone hachurée montre les teintes trop proches d'une autre palette.</td><td>C1 à C7</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>Analyse des autres systèmes, du code, des données réelles, maquettes</td><td>Huit systèmes, plus le Simple Design System de Figma, pour les pages, cartes et statuts ; onze pour les composants à surface, dix pour le focus. Les lecteurs de la table sont listés dans le kit, le moteur, Palettes et l'explorateur. Mesures sur votre recette, la galerie de 18 palettes colorées et un balayage de 72 teintes. Trois maquettes.</td><td></td><td><span class="etat">Répondu</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="modele">Le modèle unifié</h2>
+<div class="couches">
+  <div class="couche"><h3>Le moteur</h3><ul><li>L'enveloppe par thème plafonne la chroma selon la clarté : seul changement de la génération (Q1).</li><li>La courbe Dark place le cran 50 à L 0,145 ; le fond de page par défaut devient <code>#0A0A0A</code> (<code>#0A0A0B</code> avec le Titanium du mainteneur).</li><li>Une recette existante garde ses couleurs jusqu'à ce que le designer choisisse « Par défaut ».</li></ul></div>
+  <div class="couche"><h3>La table des rôles</h3><ul><li>Une table par thème et par sens : fonds 50, 100 et 200 en Light ; 200, 300 et 400 en Dark.</li><li>Texte Dark 900 ou 950 ; focus 600 en Light, 800 en Dark, nommé <code>ring</code> dans chaque dossier.</li><li>Crans requis : 50 à 400 et 600 à 900, plus 500 en sens inversé, et 950 si le texte Dark le prend.</li></ul></div>
+  <div class="couche"><h3>Les tokens</h3><ul><li>Le chemin ne change pas : composants, <code>theme</code>, <code>color-utilities</code> ou <code>color-brands</code>, <code>primitives</code>.</li><li>Les alias de <code>theme</code> suivent la table ; <code>elevation</code> garde page au neutre 50 et carte au blanc ou au neutre 100.</li><li>Le réglage « Fond de la page » vaut la couleur du neutre 50, pour que les garanties mesurent la page affichée.</li></ul></div>
+</div>
+
+<h2 id="ouvert">Ce qui reste ouvert</h2>
+<ul class="ouverts">
+  <li>Le texte des fonds en Dark : 900, coloré, recommandé ; ou 950, pâle. Avec 900, votre Orange Vivid échoue (4,12:1) tant que son Color shift sombre dépasse +0,015.</li>
+  <li>Le jugement à l'œil du modèle, et la note à l'aveugle du Dark avec la borne de la solution.</li>
+  <li>L'ombre ou le contour de la carte en Dark, en plus de la page abaissée.</li>
+  <li>Les seuils des constats de saturation et de luminosité, valeurs d'essai.</li>
+</ul>
 
 <h2>Décisions</h2>
 <table id="decisions">
   <thead><tr><th>#</th><th>Décision</th><th>Recommandation</th><th>Avis</th></tr></thead>
 </table>
 <div class="actions"><button type="button" id="copier">Copier le bilan</button><span id="etat"></span></div>
+<textarea id="bilan" readonly hidden aria-label="Bilan à copier"></textarea>
 
 <h2>Documents</h2>
 <ul class="docs">
   <li><a href="SOLUTION-RAMPES.md">Solution des sujets 1 et 2</a></li>
   <li><a href="DOSSIER-QUALITE-DES-PALETTES.md">Dossier des sujets 1 et 2</a></li>
-  <li><a href="Collecte/Surfaces/README.md">Pages, cartes et statuts de neuf systèmes</a></li>
+  <li><a href="Collecte/Surfaces/README.md">Pages, cartes et statuts de huit systèmes</a></li>
   <li><a href="Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md">Composants à surface de onze systèmes</a></li>
   <li><a href="DOSSIER-COMPARER.md">Dossier du sujet 3</a></li>
-  <li><a href="Collecte/RELEVE-STATUTS-ET-FOCUS.md">Statuts et focus de six systèmes</a></li>
+  <li><a href="Collecte/RELEVE-STATUTS-ET-FOCUS.md">Statuts de six systèmes, focus de dix</a></li>
   <li><a href="Mesures/">Mesures et banc de recherche</a></li>
-  <li><a href="PREPARATION-CLAUDE-OPUS.md">Préparation</a></li>
-  <li><a href="ANALYSE-UNTITLED-UI.md">Relevé d'Untitled UI</a></li>
   <li><a href="../Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md">Dossier d'harmonisation</a></li>
 </ul>
 
@@ -109,12 +149,12 @@
     { n: '1', titre: 'Palettes en interface', maquette: 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html', decisions: [
       ['Q1', 'Règle de chroma', 'Enveloppe, bornes par thème', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#solution'],
       ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés, plus vifs en Dark. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#solution'],
-      ['Q3', 'Valeurs par défaut', 'Dans la Configuration ; marquées sur chaque réglette ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-COMPARER.html#configuration'],
+      ['Q3', 'Valeurs par défaut', 'Dans la Configuration ; marquées sur chaque réglette ; recettes actuelles inchangées jusqu’à « Par défaut »', 'Maquettes/MAQUETTE-COMPARER.html#configuration'],
       ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
     ] },
     { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
-      ['Q5', 'Fond teinté et niveaux', 'Chaque niveau un cran plus loin : fond 50 en Light ; page abaissée et fond 200 en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#niveaux'],
-      ['Q6', 'Couleur du focus', '600 en Light, 800 en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+      ['Q5', 'Fond teinté et niveaux', 'Chaque niveau un cran plus loin : fond 50 en Light ; page abaissée et fond 200 en Dark ; texte Dark 900, ou 950 pour garder le Color shift sombre libre', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#niveaux'],
+      ['Q6', 'Couleur du focus', '600 en Light, 800 en Dark ; un focus unique de marque reste un choix des composants', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
       ['Q9', 'Composants à surface', 'Rôles actuels ; contour discret sur `page/divider`', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#composants-a-surface'],
@@ -162,7 +202,17 @@
   document.getElementById('copier').addEventListener('click', () => {
     const avis = lire();
     const texte = ['Recette critique : avis du mainteneur', ...SUJETS.flatMap((sujet) => ['', `${sujet.n}. ${sujet.titre}`, ...sujet.decisions.map(([n, d, r]) => `  ${n} ${d} (${r}) : ${avis[n] === 'ok' ? 'validé' : avis[n] === 'revoir' ? 'à revoir' : 'sans avis'}`)])].join('\n');
-    try { navigator.clipboard.writeText(texte); document.getElementById('etat').textContent = 'Bilan copié'; } catch { /* le presse-papiers est refusé */ }
+    const etat = document.getElementById('etat');
+    const zone = document.getElementById('bilan');
+    // Repli : le bilan s'affiche dans une zone sélectionnée, à copier à la main.
+    const montrer = () => {
+      zone.hidden = false;
+      zone.value = texte;
+      zone.select();
+      etat.textContent = 'Copie refusée : copiez le texte sélectionné à la main (Ctrl+C).';
+    };
+    if (!navigator.clipboard?.writeText) { montrer(); return; }
+    navigator.clipboard.writeText(texte).then(() => { zone.hidden = true; etat.textContent = 'Bilan copié'; }, montrer);
   });
   dessiner();
 })();

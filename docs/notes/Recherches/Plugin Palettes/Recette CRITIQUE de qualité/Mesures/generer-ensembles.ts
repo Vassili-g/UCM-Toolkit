@@ -13,6 +13,16 @@ import { ancrageDe, cleDuPorteur, departDe, partsDe, profilPorteur, rampesDe } f
 import { recetteParDefaut, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import { prereglageTailwind } from '../../../../../../packages/couleur/src/tailwind';
 import { TABLE_DES_DOSSIERS, sensDuTheme } from '../../../../../../packages/kit/src/emplois/dossiers';
+
+/**
+ * La table du modèle des niveaux (SOLUTION-RAMPES.md, S2) : en Light, les fonds teintés 50, 100, 200 ;
+ * en Dark, 200, 300, 400, texte et contour 900, focus 800. Les autres variables gardent la table du kit.
+ */
+function tableDuModele(mode: 'light' | 'dark', sens: 'normal' | 'inverse'): Record<string, number | 'texteDesBoutons'> {
+  const base = { ...TABLE_DES_DOSSIERS[sens] } as Record<string, number | 'texteDesBoutons'>;
+  if (mode === 'light') return { ...base, 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 };
+  return { ...base, 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 };
+}
 import { RECETTE_REELLE, valider } from './variantes';
 
 const fr = (x: number, n = 2) => x.toFixed(n).replace('.', ',').replace('-', '−');
@@ -77,7 +87,7 @@ function proximite(recette: Recette, a: Palette, b: Palette) {
   const couleur = (p: Palette, mode: 'light' | 'dark', v: string) => {
     const r = rampesDe(recette, p);
     const rampe = (r.vivid ?? r.unique)![mode];
-    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, recette.texteDesBoutons[mode])] as Record<string, number>;
+    const table = tableDuModele(mode, sensDuTheme(mode, recette.texteDesBoutons[mode])) as Record<string, number>;
     return rampe[recette.crans.indexOf(table[v])].hexa;
   };
   let pire: { r: number; e: number; mode: string; role: string } | null = null;
@@ -93,7 +103,7 @@ function distanceMin(recette: Recette, a: Palette, b: Palette) {
   const couleur = (p: Palette, mode: 'light' | 'dark', v: string) => {
     const r = rampesDe(recette, p);
     const rampe = (r.vivid ?? r.unique)![mode];
-    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, recette.texteDesBoutons[mode])] as Record<string, number>;
+    const table = tableDuModele(mode, sensDuTheme(mode, recette.texteDesBoutons[mode])) as Record<string, number>;
     return rampe[recette.crans.indexOf(table[v])].hexa;
   };
   let pire = { e: Infinity, mode: '', role: '' };
@@ -139,10 +149,11 @@ function jeu(id: string, titre: string, recette: Recette) {
   }
   paires.sort((x, y) => x.m.r - y.m.r);
   const proches: Record<string, unknown>[] & { a: string; b: string; alerte: boolean }[] = [];
-  // Les huit paires les plus proches, relativement à la distance visée ; l'alerte ne vise que celles sous le seuil de la recette.
-  for (const { a, b, m } of paires.slice(0, 8)) {
+  // Toutes les paires sous le seuil de la recette, et les huit plus proches pour la roue et les constats.
+  for (const [rang, { a, b, m }] of paires.entries()) {
     const d = distanceMin(recette, a, b);
-    proches.push({ a: a.nom, b: b.nom, distance: +d.e.toFixed(3), rapport: +m.r.toFixed(2), alerte: d.e < recette.seuils.palettesProches, mode: d.mode, role: d.role });
+    const alerte = d.e < recette.seuils.palettesProches;
+    if (alerte || rang < 8) proches.push({ a: a.nom, b: b.nom, distance: +d.e.toFixed(3), rapport: +m.r.toFixed(2), alerte, mode: d.mode, role: d.role });
   }
   // Pour chaque paire en alerte, chaque degré de la réglette de teinte de chacune : trop proche ou non.
   // La paire de démonstration est celle qu'un plus petit réglage sépare ; seules ses rampes sont gardées.
@@ -174,7 +185,10 @@ function jeu(id: string, titre: string, recette: Recette) {
 }
 
 const donnees = {
-  table: TABLE_DES_DOSSIERS,
+  table: {
+    light: { normal: tableDuModele('light', 'normal'), inverse: tableDuModele('light', 'inverse') },
+    dark: { normal: tableDuModele('dark', 'normal'), inverse: tableDuModele('dark', 'inverse') },
+  },
   jeux: [jeu('mainteneur', 'Fichier du mainteneur', RECETTE_REELLE), jeu('galerie', 'Vingt palettes de la galerie', galerie)],
 };
 writeFileSync(new URL('../Maquettes/donnees-ensembles.js', import.meta.url), `// Généré par Mesures/generer-ensembles.ts ; ne pas modifier à la main.\nwindow.ENSEMBLES = ${JSON.stringify(donnees)};\n`);

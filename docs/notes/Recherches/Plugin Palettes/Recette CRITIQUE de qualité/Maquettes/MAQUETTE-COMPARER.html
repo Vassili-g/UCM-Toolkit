@@ -35,6 +35,8 @@
   .bascule button { border: 0; background: transparent; color: var(--texte); padding: 4px 9px; font: inherit; cursor: pointer; }
   .bascule button + button { border-left: 1px solid var(--filet); }
   .bascule button[aria-pressed="true"] { background: var(--texte); color: var(--fond); }
+  details.replie { margin: 6px 0 14px; }
+  details.replie > summary { cursor: pointer; opacity: .75; font-size: 12.5px; margin-bottom: 8px; }
 </style>
 <script src="galerie/etats.js"></script>
 <script src="donnees-qualite.js"></script>
@@ -48,10 +50,11 @@
 <nav><a href="#retours">Tes retours</a><a href="#reglage">1. Réglage global</a><a href="#configuration">2. Configuration</a><a href="#harmonisation">3. L'onglet Harmonisation</a><a href="#listes">4. Les listes déroulantes</a><a href="#decisions">Décisions</a></nav>
 
 <h2 id="retours">Tes retours, point par point</h2>
+<details class="replie"><summary>Les retours de la passe précédente et leur réponse, déjà appliqués</summary>
 <table>
   <thead><tr><th>Sujet</th><th>Retour</th><th>Réponse</th></tr></thead>
   <tbody>
-    <tr><td class="groupe">Réglage global</td><td>L'encart du bas n'est pas compréhensible</td><td>Supprimé. Seul « Tout rétablir » reste, en tête du corps de la carte, à la place qu'il occupe dans Color shift.</td></tr>
+    <tr><td class="groupe">Réglage global</td><td>L'encart du bas n'est pas compréhensible</td><td>Supprimé. Seul « Tout par défaut » reste, en tête du corps de la carte, à la même place que dans Color shift.</td></tr>
     <tr><td class="groupe"></td><td>La visualisation de l'écart n'est pas utile</td><td>Retirée. Chaque réglette garde une seule marque : la valeur par défaut.</td></tr>
     <tr><td class="groupe"></td><td>« Départ » est mal choisi</td><td>« par défaut », sous la marque, seulement quand le pouce s'en éloigne. Les autres libellés sont comparés en section 1.</td></tr>
     <tr><td class="groupe"></td><td>Les écarts chiffrés ne servent pas</td><td>Retirés. Le résumé de la carte repliée dit « Par défaut » ou nomme les réglages modifiés, sans chiffre.</td></tr>
@@ -82,9 +85,11 @@
     <tr><td class="groupe">H3</td><td>« Annuler les modifications » dans la ligne fixe</td><td>Déplacé en tête de Réglages, sous « Régler », pour la palette choisie : la place qu'il a sous le sélecteur de Création. La ligne fixe reste un état.</td></tr>
   </tbody>
 </table>
+</details>
 
 <h2 id="reglage">1. Réglage global, dans Création</h2>
 <p class="chapeau">L'état « référence modifiée » de la galerie : Vivid porte la référence, sa luminosité vaut −0,02, Soft a une teinte de +8°. La proposition retire l'encart et la marque d'écart. Elle garde une marque par réglette, la valeur par défaut, et des mots aux deux bouts de chaque piste.</p>
+<details class="replie"><summary>Les libellés comparés pour la marque (décision C8)</summary>
 <table>
   <thead><tr><th>Libellé de la marque</th><th>Pour</th><th>Contre</th></tr></thead>
   <tbody>
@@ -96,6 +101,8 @@
     <tr><td>référence, départ, préréglage</td><td></td><td>« Référence » désigne déjà la couleur de référence ; « départ » ne dit pas que c'est une valeur par défaut ; « préréglage » nomme déjà le choix de courbe de Color shift.</td></tr>
   </tbody>
 </table>
+</details>
+<details class="replie"><summary>Les libellés comparés pour le bouton (décision C10)</summary>
 <h3 style="margin-top:20px">Deux sens de « Rétablir »</h3>
 <p class="chapeau">Sous le sélecteur de Création, « Rétablir » refait ce qu'« Annuler les modifications » vient de défaire : c'est le sens de Windows, macOS et Google Docs, où « Rétablir » est la commande inverse d'« Annuler ». Sur les réglettes, Color shift et les cartes de la Configuration, le même mot ramène la valeur par défaut. Renommer le second garde la convention des systèmes et rejoint le libellé de la marque.</p>
 <table>
@@ -107,6 +114,7 @@
     <tr><td>Rétablir</td><td>Tout rétablir</td><td>Aucun changement ; renommer plutôt « Rétablir » de la barre en « Refaire ».</td><td>Contredit la convention des systèmes, où « Rétablir » suit « Annuler ».</td></tr>
   </tbody>
 </table>
+</details>
 <div class="commandes"><span>Libellé sous la marque</span><div class="bascule" data-commande="libelle"></div><span>Bouton des réglettes</span><div class="bascule" data-commande="bouton"></div></div>
 <div class="rangee" id="r-reglage"></div>
 
@@ -116,6 +124,7 @@
 
 <h2 id="harmonisation">3. L'onglet Harmonisation</h2>
 <p class="chapeau">Un quatrième onglet, entre Vérification et Gestion. Il compare des palettes, signale celles qui se ressemblent trop, et règle chacune avec les réglettes de Création. Rien ne s'y règle en groupe : le designer déplace une réglette à la fois, en voyant les autres palettes.</p>
+<details class="replie"><summary>Les noms d'onglet comparés (décision C1)</summary>
 <table>
   <thead><tr><th>Nom de l'onglet</th><th>Pour</th><th>Contre</th></tr></thead>
   <tbody>
@@ -127,6 +136,7 @@
     <tr><td>Juxtaposition</td><td>Exact pour la vue.</td><td>Long, technique.</td></tr>
   </tbody>
 </table>
+</details>
 <div class="commandes"><span>Jeu</span><div class="bascule" data-commande="jeu"></div></div>
 <div class="rangee" id="r-harmonisation-1"></div>
 <div class="rangee" id="r-harmonisation-2"></div>
@@ -146,7 +156,7 @@
     <tr><td>C5</td><td>Distinguer</td><td>Carte « Palettes trop proches » ; zone hachurée sur la réglette de teinte ; mots aux bouts des pistes. Ni modale, ni bouton qui règle à la place du designer.</td></tr>
     <tr><td>C6</td><td>L'alerte</td><td>Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette. Compteur de l'onglet. Le constat dit les rôles et le thème, sans ΔEok, dans Vérification aussi.</td></tr>
     <tr><td>C7</td><td>Roue des teintes</td><td>Points à glisser pour régler la teinte. Repliée ; sur le fond de page de l'aperçu ; noms des palettes cochées et des paires trop proches ; visions des couleurs à la demande.</td></tr>
-    <tr><td>C8</td><td>Réglage global</td><td>Une marque « par défaut » par réglette, des mots aux bouts, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé « Par défaut » ou « Modifié : … », aucun encart.</td></tr>
+    <tr><td>C8</td><td>Réglage global</td><td>Une marque « par défaut » par réglette, des mots aux bouts, « Par défaut » actif seulement sur une valeur modifiée, « Tout par défaut » en tête, résumé « Par défaut » ou « Modifié : … », aucun encart.</td></tr>
     <tr><td>C9</td><td>Configuration</td><td>Le panneau s'appelle « Configuration » ; onglets Palettes et Général ; une phrase sous les onglets.</td></tr>
     <tr><td>C10</td><td>Libellés et listes</td><td>« Par défaut » et « Tout par défaut » remplacent « Rétablir » et « Tout rétablir » sur les réglettes et les cartes ; les listes prennent la police de l'interface, un chevron gris et 24 px parmi les boutons.</td></tr>
   </tbody>
@@ -253,6 +263,7 @@
     .constat[data-ton="danger"] { background: var(--fond-danger); color: var(--texte-danger); }
     .tete-des-reglages .btn { margin-right: auto; }
     .reglages-harmonie { display: grid; }
+    .carte-bascule[data-replier="reglages"] .carte-sous-titre { overflow: visible; white-space: normal; text-overflow: clip; }
     .plaque { margin: 2px auto 0; border-radius: 8px; }
     .roue text { font: 600 9.5px Inter, sans-serif; }
     .selects-proposes select { font: inherit; }
@@ -283,6 +294,8 @@
     cadre.srcdoc = `<!doctype html><html lang="fr" class="${G[nom].classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/socle.css"><style>${CSS}</style></head><body>${G[nom].corps}</body></html>`;
     const ajuster = () => {
       const d = cadre.contentDocument;
+      // L'écran a pu être retiré de la page avant la fin du chargement : rien à ajuster.
+      if (!cadre.isConnected || !d || !d.body) return;
       eviter(d);
       if (zones) {
         const rects = zones.map((s) => d.querySelector(s)).filter(Boolean).map((e) => e.getBoundingClientRect());
@@ -298,6 +311,7 @@
     };
     cadre.addEventListener('load', () => {
       const d = cadre.contentDocument;
+      if (!cadre.isConnected || !d || !d.body) return;
       d.documentElement.style.overflowY = 'hidden';
       if (zones) { d.querySelectorAll('.pied-de-la-palette').forEach((e) => e.remove()); d.documentElement.classList.add('cadre-zone'); }
       transformer?.(d, () => setTimeout(ajuster, 0));
@@ -395,7 +409,7 @@
     monter('r-reglage', 'Aujourd\'hui', 'Réglage global', 'L\'écran actuel, réglé.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE },
       '<ol><li>Aucune réglette ne montre sa valeur par défaut : « Rétablir » ramène à une valeur que l\'écran ne dit pas.</li><li>« Rétablir » a le même poids sur une valeur intacte.</li><li>Le repère « S » n\'est expliqué nulle part.</li></ol>');
     monter('r-reglage', 'Proposé', 'Réglage global', 'Le même écran, sans encart. Les réglettes ne changent pas de place.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE, transformer: reglagePropose },
-      `<ol><li><b>Une marque blanche</b> sur chaque piste : la valeur par défaut. Le libellé « ${etat.libelle} » paraît dessous quand le pouce s'en éloigne, ici sur la luminosité.</li><li><b>Les bouts de piste parlent</b> : plus turquoise ou plus violet, plus terne ou plus vive, plus foncée ou plus claire.</li><li><b>Un point bleu</b> suit le nom d'un réglage modifié, comme sur les onglets de Color shift.</li><li><b>« Rétablir » ne s'active que sur une valeur modifiée</b> ; son survol dit la valeur quittée.</li><li><b>« Tout rétablir »</b> en tête du corps, à la place qu'il a dans Color shift. Il agit sur l'intensité choisie dans « Régler ».</li><li><b>Le repère dit « Soft »</b> au lieu de « S ».</li></ol>`);
+      `<ol><li><b>Une marque blanche</b> sur chaque piste : la valeur par défaut. Le libellé « ${etat.libelle} » paraît dessous quand le pouce s'en éloigne, ici sur la luminosité.</li><li><b>Les bouts de piste parlent</b> : plus turquoise ou plus violet, plus terne ou plus vive, plus foncée ou plus claire.</li><li><b>Un point bleu</b> suit le nom d'un réglage modifié, comme sur les onglets de Color shift.</li><li><b>« ${BOUTON[etat.bouton][0]} » ne s'active que sur une valeur modifiée</b> ; son survol dit « Revenir à la valeur par défaut », suivi de la valeur.</li><li><b>« ${BOUTON[etat.bouton][1]} »</b> en tête du corps, à la même place que dans Color shift. Il agit sur l'intensité choisie dans « Régler ».</li><li><b>Le repère dit « Soft »</b> au lieu de « S ».</li></ol>`);
     monter('r-reglage', 'Proposé', 'Color shift', 'Les mêmes marques sur les réglettes des nuances claires et sombres.', 'color-shift-luminosite', { zones: ['.carte[aria-label="Color shift"]'], transformer: colorShiftPropose },
       '<ol><li><b>Le résumé</b> nomme la grandeur réglée.</li><li><b>Marque par défaut et bouts de piste</b>, comme dans Réglage global.</li></ol>');
   }
@@ -441,7 +455,8 @@
   const palette = (nom) => jeu().palettes.find((p) => p.nom === nom);
   const colorees = () => jeu().palettes.filter((p) => U.oklch(p.reference).C > 0.05);
   const intensiteDe = (p, i) => (p.intensites === 1 ? 'unique' : i);
-  const table = (mode) => E.table[(jeu().texteDesBoutons[mode] === ({ light: 'blanc', dark: 'noir' })[mode]) ? 'normal' : 'inverse'];
+  // La table du modèle des niveaux, par thème puis par sens (SOLUTION-RAMPES.md, S2).
+  const table = (mode) => E.table[mode][(jeu().texteDesBoutons[mode] === ({ light: 'blanc', dark: 'noir' })[mode]) ? 'normal' : 'inverse'];
   const ROLES = { 'le plein': ['solid/default', 'solid/foreground', 'Boutons pleins'], 'le texte du fond teinté': ['surface/default', 'surface/foreground', 'Textes sur fond teinté'] };
   const THEME = { light: 'Light', dark: 'Dark' };
 
@@ -874,13 +889,16 @@
           l.querySelector('.bilan-verifier').textContent = 'Comparer';
         });
       },
-    }, '<ol><li><b>Le constat perd son ΔEok</b> : « trop proche d\'Azur ».</li><li><b>Le lien devient « Comparer »</b> et ouvre Harmonisation sur la paire.</li><li><b>Défaut corrigé</b> : dans la galerie actuelle, le lien de chaque ligne sort de la fenêtre à 480 px (« Vérifi »). La grille du bilan ne déclare aucune colonne : sa colonne implicite prend la largeur des lignes, 468 px dans 449. <code>grid-template-columns: minmax(0, 1fr)</code> la ramène à 449 px, ici appliqué.</li></ol>');
+    }, '<ol><li><b>Le constat perd son ΔEok</b> : « trop proche d\'Azur ».</li><li><b>Le lien devient « Comparer »</b> et ouvre Harmonisation sur la paire.</li><li><b>Une seule ligne ici, vingt au compteur</b> : les lignes viennent de la galerie actuelle, dont la règle fait la moyenne des distances aux crans 500, 600 et 700, en Light seulement. Avec la règle de la décision C6, Vérification signale les mêmes vingt paires que le compteur.</li><li><b>Défaut corrigé</b> : dans la galerie actuelle, le lien de chaque ligne sort de la fenêtre à 480 px (« Vérifi »). La grille du bilan ne déclare aucune colonne : sa colonne implicite prend la largeur du nuancier, sept cartes de 60 px et six écarts de 8 px, 468 px dans 449. <code>grid-template-columns: minmax(0, 1fr)</code> ramène les lignes à 449 px, ici appliqué ; le nuancier déborde encore de 19 px.</li></ol>');
   }
 
   function dessinerListes() {
     const entete = ['.carte[aria-label="Color shift"] .editeur-entete'];
     monter('r-listes', 'Aujourd\'hui', 'Color shift', 'La liste « Teinte Tailwind » : police du système, plus grande que ses voisins, flèche native.', 'color-shift-luminosite', { zones: entete });
-    monter('r-listes', 'Proposé', 'Color shift', 'Police et hauteur des bascules, chevron gris comme celui du sélecteur de palette.', 'color-shift-luminosite', { zones: entete, transformer: (d) => d.documentElement.classList.add('selects-proposes') });
+    monter('r-listes', 'Proposé', 'Color shift', 'Police et hauteur des bascules, chevron gris comme celui du sélecteur de palette.', 'color-shift-luminosite', { zones: entete, transformer: (d) => {
+      d.documentElement.classList.add('selects-proposes');
+      d.querySelectorAll('.carte[aria-label="Color shift"] .editeur-entete .bouton-discret').forEach((b) => { if (b.textContent.trim() === 'Tout rétablir') b.textContent = BOUTON[etat.bouton][1]; });
+    } });
     monter('r-listes', 'Proposé', 'La langue', 'Champ de formulaire : 32 px comme les autres champs, avec la police de l\'interface et le même chevron.', 'configuration-de-la-recette', { zones: ['.page-stack.colonne > .champ-colonne'], transformer: (d) => d.documentElement.classList.add('selects-proposes') });
   }
 

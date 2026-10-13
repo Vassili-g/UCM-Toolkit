@@ -6,7 +6,7 @@ l'aveugle et un relevé de neuf systèmes ; elle remplace les recommandations
 Q1, Q2, Q5 et Q6 ci-dessous, ajoute Q9, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Huit décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
+mainteneur. Neuf décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
 
 | Maquette | Sujet |
 |---|---|
@@ -23,7 +23,7 @@ leurs hypothèses.
 
 | Retour | Mesure | Section |
 |---|---|---|
-| Texte 700 de Soft fade sur une alerte | La chroma des textes Soft vaut 0,3 à 0,55 fois celle de Tailwind au même cran, aux réglages communs. | 3.3 |
+| Texte 700 de Soft fade sur une alerte | La chroma des textes Soft vaut 0,3 à 0,55 fois celle de Tailwind au même cran, aux valeurs par défaut. | 3.3 |
 | Vivid trop saturé et criard | Vivid suit Tailwind, sauf les crans clairs des verts (deux fois plus de chroma) et les crans clairs foncés par le Color shift de luminosité du mainteneur. | 3.3 |
 | `surface/default` trop foncé, le 50 préféré | Le cran 100 vaut 1,16:1 sur la carte blanche ; le 50 vaut 1,075:1 sur la carte mais 1,005:1 sur la page. | 4.1 |
 | En Dark, un badge sur une carte ne se voit pas | `surface/default` vaut 1,004:1 sur la carte, médiane du balayage : toutes les palettes, pas seulement le neutre. | 4.1 |
@@ -83,7 +83,7 @@ des bleus.
 Mesures de [generer-donnees.ts](./Mesures/generer-donnees.ts), dans
 [MESURES-VARIANTES.json](./Mesures/MESURES-VARIANTES.json).
 
-**Soft manque de chroma dans ses textes.** Aux réglages communs, le cran 700
+**Soft manque de chroma dans ses textes.** Aux valeurs par défaut, le cran 700
 en Light :
 
 | Palette | UCM Soft | Tailwind, teinte voisine | Rapport |
@@ -95,7 +95,7 @@ en Light :
 
 **Vivid sature les clairs des verts.** Grass Vivid 100 et 200 valent
 `#C6FFD5` et `#7FFFA8`, C 0,081 et 0,166 ; `green-100` et `green-200`
-valent C 0,043 et 0,081. Aux réglages communs, les crans 50 et 100 de Poppy,
+valent C 0,043 et 0,081. Aux valeurs par défaut, les crans 50 et 100 de Poppy,
 Orange et Sky Vivid restent à 0,01 de chroma de Tailwind. Dans la recette du
 mainteneur, un Color shift de luminosité de −0,015 à −0,02 au bout clair de
 Vivid fonce le cran 50 de Poppy, Orange et Sky. Orange Vivid 50 vaut ainsi
@@ -103,7 +103,7 @@ Vivid fonce le cran 50 de Poppy, Orange et Sky. Orange Vivid 50 vaut ainsi
 
 **Les réglages propres compensent palette par palette.** Les parts Soft de
 la recette valent 1,00 (Poppy), 0,92 (Orange), 0,65 (Sky) et 0,45 (Grass).
-Aux réglages communs, la chroma des quatre utilitaires s'écarte de ×3,4 à
+Aux valeurs par défaut, la chroma des quatre utilitaires s'écarte de ×3,4 à
 ×4,2 à un même cran. Une part commune ne la rapproche pas, parce que le
 plafond change avec la teinte.
 
@@ -133,7 +133,7 @@ donnent les mêmes ordres de grandeur.
 | Règle | Rapport de chroma, Soft · Vivid | Distance à Tailwind, Soft · Vivid | Échecs de garantie |
 |---|---|---|---|
 | Actuel, recette du mainteneur | ×3,9 · ×2,9 | 0,029 · 0,017 | 0 |
-| Actuel, réglages communs | ×4,2 · ×3,4 | 0,060 · 0,016 | 0 |
+| Actuel, valeurs par défaut | ×4,2 · ×3,4 | 0,060 · 0,016 | 0 |
 | Deux zones | ×4,2 · ×3,4 | 0,026 · 0,016 | 0 |
 | Enveloppe | ×1,7 · ×2,2 | 0,025 · 0,012 | 0 |
 | Relevé Tailwind | ×3,1 · ×2,5 | 0,027 · 0,013 | 0 |
@@ -143,10 +143,10 @@ Tailwind la plus proche en teinte. Le texte 700 de Grass Soft passe de C 0,068
 à 0,129 avec l'enveloppe ; son fond 100 passe de 0,044 à 0,026.
 
 Sur le balayage, l'enveloppe ajoute 20 échecs aux 144 du moteur actuel avec la
-table actuelle : G7, le focus 600 contre le fond 100, sur trois références
+table actuelle : G7, le focus 600 contre le fond 100, sur cinq références
 vert-jaune, entre 2,98:1 et 3,00:1. Les 144 échecs communs sont G1 en Dark
-inversé : le texte blanc sur `solid/default` de références roses à 4,09:1. Ils
-existent déjà.
+inversé : le texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et garde ses octets, de 3,40:1 à 4,21:1. Ils existent déjà, et l'architecture les
+prévoit.
 
 [mesurer-repasse.ts](./Mesures/mesurer-repasse.ts) ajoute trois contrôles :
 
@@ -203,14 +203,17 @@ utilitaires :
    plus ; leurs fonds 100 diffèrent nettement, uniformes avec l'enveloppe,
    inégaux avec Deux zones. Les notes de texte et de cohérence suivent les
    fonds.
-4. **En Light Vivid, l'enveloppe rend les valeurs par défaut actuelles** : sa
-   borne ne mord presque pas sur Vivid, d'où des notes identiques.
+4. **En Light Vivid, l'enveloppe rend les valeurs par défaut actuelles**, sauf
+   sur les crans clairs des verts : Grass 100 et 200 passent de C 0,081 et
+   0,166 à 0,052 et 0,099. Les notes restent identiques.
 5. **En Dark, la séparation du support vaut 1 ou 2 pour toutes les règles** :
    la cause est commune, et la section 4.1 la mesure.
 
 Le texte coloré reste faible en Dark Soft avec l'enveloppe (2). La borne
-`a = 0,6` de Soft limite la chroma des textes clairs ; une borne plus haute
-est à essayer dans le banc avant toute décision.
+`a = 0,6` de Soft limite la chroma des textes clairs. La
+[solution](./SOLUTION-RAMPES.md) (S1) la porte à 1,1 en Dark : la chroma des
+textes 900 de Soft monte jusqu'à 0,141. Ce réglage est mesuré, pas encore noté
+à l'aveugle ; en Light, la borne ne change pas, et les notes ci-dessus valent.
 
 ### 3.7 Recommandation
 
@@ -223,16 +226,17 @@ aussi près de Tailwind que le relevé et ne demande aucune table de données.
 Elle donne un sens à chaque profil : Soft a des fonds calmes, proches de Radix,
 et des textes colorés ; Vivid suit Tailwind.
 
-Les valeurs de la section 3.4 deviennent les valeurs par défaut de la
-recette, rangées dans la Configuration. Dans Création, chaque réglette de la
-carte « Réglage global » marque sa valeur par défaut, et « Rétablir » y ramène
-(section 5). Les teintes et le Color shift de teinte n'ont pas d'autre valeur
+Les valeurs de la section 3.4, avec la borne Dark de S1, deviennent les
+valeurs par défaut de la recette, rangées dans la Configuration. Dans Création, chaque réglette de la
+carte « Réglage global » marque sa valeur par défaut, et le bouton « Par défaut »
+y ramène (section 5, décision C10). Les teintes et le Color shift de teinte n'ont pas d'autre valeur
 par défaut que zéro : ce sont des choix de couleur.
 
 Une recette existante doit rendre les mêmes couleurs après la mise à jour. La
 règle se range donc dans la recette, et une recette au format 10 se lit avec la
-part constante. Le designer passe à l'enveloppe par un geste qui montre l'avant
-et l'après. Ce changement porte sur les rampes primitives : il sert les deux
+part constante. Dans la Configuration, sa carte des intensités se marque
+alors comme modifiée ; son bouton « Par défaut » la fait passer à l'enveloppe,
+quand le designer le décide, et l'Aperçu de Création montre le résultat. Ce changement porte sur les rampes primitives : il sert les deux
 périmètres, agnostique et UCM complet.
 
 ## 4. Sujet 2 : les crans des rôles
@@ -242,7 +246,7 @@ périmètres, agnostique et UCM complet.
 Les composants teintés se posent toujours sur une carte, précise le
 mainteneur. Le fond teinté se juge donc contre la carte.
 
-En Light, la page et la carte diffèrent de 1,08:1 ; en Dark, de 1,10:1. Un fond
+En Light, la page et la carte diffèrent de 1,07:1 ; en Dark, de 1,10:1. Un fond
 opaque ne garde donc pas le même écart avec les deux supports. Médianes du
 balayage, contraste du fond au repos contre son support :
 
@@ -301,9 +305,9 @@ le support de calcul compte.
 
 [mesurer-surfaces.ts](./Mesures/mesurer-surfaces.ts) et
 [verifier-garanties.ts](./Mesures/verifier-garanties.ts) donnent les mesures.
-Avec l'enveloppe, la piste translucide laisse 150 échecs G7 en Dark inversé :
-le focus 700 contre le fond posé sur la carte. Un focus Dark plus clair d'un
-cran (section 4.4) les retire tous. Il reste 16 échecs G7 en Light, de même
+Avec l'enveloppe, la piste translucide laisse 144 échecs G7 en Dark inversé :
+le focus 700 contre le fond posé sur la carte. Le focus Dark 800
+(section 4.4) les retire tous. Il reste 16 échecs G7 en Light, de même
 nature que ceux de la section 3.5.
 
 **Le texte à 700.** Avec les fonds Light 50, 100 et 200, un texte constant au
@@ -320,56 +324,32 @@ plein reste à 700.
 ### 4.3 Recommandation pour les fonds
 
 Le modèle des niveaux de la [solution proposée](./SOLUTION-RAMPES.md) (S2,
-S3) remplace cette section : fond 50 en Light, fond 200 et texte 900 en Dark,
-page Dark abaissée.
+S3) répond à cette section : fonds 50, 100 et 200 en Light ; 200, 300 et 400 en
+Dark, sur la carte au neutre 100 ; texte Dark 900 ou 950 ; page Dark abaissée.
+Les options mesurées avant lui (carte Dark au neutre 200, texte 800, fonds
+translucides) y sont chiffrées, avec leurs échecs en plus du modèle.
 
 La piste translucide servait un fond posé tantôt sur la page, tantôt sur la
 carte. Les composants teintés se posent toujours sur une carte : un fond
-opaque, choisi contre la carte, suffit. La piste translucide reste décrite en
-section 4.2 pour le cas où un composant teinté se poserait sur la page.
-
-| Thème | Carte | Fonds teintés (repos, survol, appui) | Texte du fond | Focus |
-|---|---|---|---|---|
-| Light | Blanche | 100, 200, 300, comme aujourd'hui ; ou 50, 100, 200, plus discrets | 800 | 600 |
-| Dark, option A (recommandée) | Neutre 100, comme aujourd'hui | 200, 300, 400 | 950 | 800 |
-| Dark, option B | Neutre 200 | 300, 400, 500 | 950 | 800 |
-
-Mesures de `verifier-garanties.ts` avec l'enveloppe, sur 50 688 couples du
-balayage :
-
-| Table | Échecs | Fond contre carte Dark (médiane) | Carte contre page Dark |
-|---|---|---|---|
-| Actuelle | 164 | 1,005 | 1,10 |
-| Option A | 164 | 1,148 | 1,10 |
-| Option B | 444 | 1,203 | 1,25 |
-
-Les 164 échecs communs viennent de G1 en Dark inversé (144) et de G7 en Light
-(20) : ils existent déjà. L'option A n'en ajoute aucun. L'option B en ajoute
-280, tous sur la carte plus claire : G2, le plein contre la carte (218), et
-G5, le texte de page contre la carte (62).
-
-L'option A rend le fond teinté visible sans rien casser. Elle ne règle pas la
-séparation de la carte et de la page : c'est l'élévation du thème, hors des
-palettes. Une carte plus claire la règle, au prix des échecs de l'option B ;
-un contour ou une ombre la règle sans toucher aux contrastes. Le
-[dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md)
-porte ce choix. Le banc à l'aveugle montre les deux options sous « En Dark » :
-« Fonds 200 » et « Carte 200, fonds 300 ».
-
-Conséquences :
-
-- La table du kit change ses crans de surface en Dark ; le sens `inverse` suit
-  le même décalage.
-- Palettes n'écrit aucune couleur nouvelle : les fonds restent des crans.
-- Dans Création, l'Aperçu peint les composants sur la carte du thème.
+opaque, choisi contre la carte, suffit.
 
 ### 4.4 Le focus
 
 **Couleur.** En Light, 600 est le cran le plus clair qui tient 3:1 contre la
-page : 500 échoue sur 422 à 576 des 576 rampes Light du balayage. En Dark, un
-cran plus clair (700 normal, 800 inversé) tient partout et retire les échecs
-de la section 4.2. Hors du kit Figma d'Untitled UI, aucun système relevé
-n'emploie un pas pâle seul. Le halo d'Untitled UI,
+page : 500 échoue sur 422 à 576 des 576 rampes Light du balayage. En Dark, le
+cran 800, dans les deux sens, tient partout et retire les échecs de la
+section 4.2. Hors du kit Figma d'Untitled UI, aucun système relevé
+n'emploie un pas pâle seul.
+
+Le bleu du Simple Design System de Figma, `#006AFF`, n'est pas plus clair que
+le 600 d'UCM : L 0,571 contre 0,584 à 0,594 pour les palettes colorées du
+mainteneur. Il paraît clair parce qu'il est très saturé (C 0,236, deux fois le 600 de
+Sky, le bleu du mainteneur : 0,120 à 0,124) et séparé du bouton par 2 px de
+fond. Sept des
+dix systèmes relevés donnent d'ailleurs à tous les focus une seule couleur,
+un bleu franc le plus souvent ([relevé](./Collecte/RELEVE-STATUTS-ET-FOCUS.md)).
+UCM le permet sans toucher au moteur : les composants visent alors le `ring`
+d'une seule palette, celle de la marque. Le halo d'Untitled UI,
 `#F4EBFF` sur 4 px, vaut 1,16:1 sur blanc : il manque le critère 1.4.11.
 
 **Forme.** Un trait de 2 px collé à un plein 700 se lit comme une bordure
@@ -423,13 +403,13 @@ leurs valeurs par défaut, sans garantie perdue.
 |---|---|---|
 | Q1 | La règle de chroma | L'enveloppe, avec des bornes par thème ([solution](./SOLUTION-RAMPES.md), S1) |
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
-| Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Rétablir » y ramène ; les recettes au format 10 gardent la part constante |
+| Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
-| Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3) : fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark, texte et contour 900 ; page Dark au cran 50 abaissé à L 0,145. 144 échecs au lieu de 164 |
-| Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens |
+| Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3) : fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut. Aucun échec nouveau : 144, comme aujourd'hui. Texte et contour Dark : 900, coloré, recommandé ; ou 950, pâle. Avec 900, la recette du mainteneur échoue sur Orange Vivid (4,12:1) tant que son Color shift sombre dépasse +0,015 |
+| Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
-| Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S6) |
+| Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
 | C1 à C10 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche
@@ -437,7 +417,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Décision | Fichiers et migrations |
 |---|---|
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
-| Q5 | `packages/kit/src/emplois/dossiers.ts` (une table par thème en plus du sens : surfaces, texte et focus du Dark) et `garanties.ts` ; Aperçu de Création ; architecture de référence et vue illustrée |
+| Q5 | La table par thème et ses lecteurs dans le kit, le moteur, Palettes et l'explorateur ; la courbe Dark et le fond de page par défaut ; Aperçu de Création ; architecture de référence et vue illustrée (liste complète dans la [solution](./SOLUTION-RAMPES.md), section 4) |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
 | C1 à C10 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
@@ -446,10 +426,9 @@ dossier.
 
 ## 8. Limites
 
-- Le jugement visuel porte sur trois combinaisons, toutes sur carte
-  (section 3.6). Un contraste conforme ne vaut pas validation.
-- Les seuils de distance par rôle et la séparation visuelle d'un fond translucide sont des
-  valeurs d'essai.
+- Le jugement visuel porte sur trois combinaisons, toutes sur carte, avec une
+  borne unique (section 3.6). Un contraste conforme ne vaut pas validation.
+- Les seuils de distance par rôle sont des valeurs d'essai.
 - Une seule recette réelle. Les palettes à une intensité et les palettes figées
   ne sont comparées que par leur rampe unique.
 - Les témoins sont en sRGB. Tailwind 4 définit ses rampes en OKLCH, en partie
