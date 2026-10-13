@@ -586,6 +586,40 @@
    }
   }
  },
+ "actuel · Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre": {
+  "couples": 50688,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1,
+     "mediane": 1.005
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.075
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.296,
+     "mediane": 1.332
+    },
+    "raised": {
+     "min": 1.118,
+     "mediane": 1.149
+    }
+   }
+  }
+ },
  "actuel · les deux": {
   "couples": 50688,
   "echecs": 878,
@@ -1316,6 +1350,40 @@
    }
   }
  },
+ "enveloppe · Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre": {
+  "couples": 50688,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1,
+     "mediane": 1.004
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.074
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.292,
+     "mediane": 1.33
+    },
+    "raised": {
+     "min": 1.115,
+     "mediane": 1.148
+    }
+   }
+  }
+ },
  "enveloppe · les deux": {
   "couples": 50688,
   "echecs": 898,
@@ -2038,6 +2106,40 @@
     "page": {
      "min": 1.223,
      "mediane": 1.259
+    },
+    "raised": {
+     "min": 1.115,
+     "mediane": 1.148
+    }
+   }
+  }
+ },
+ "enveloppe, Dark a 1,1 · Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre": {
+  "couples": 50688,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1,
+     "mediane": 1.004
+    },
+    "raised": {
+     "min": 1.061,
+     "mediane": 1.074
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.292,
+     "mediane": 1.33
     },
     "raised": {
      "min": 1.115,

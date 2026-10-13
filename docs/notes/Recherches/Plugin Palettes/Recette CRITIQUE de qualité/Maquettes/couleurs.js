@@ -48,7 +48,7 @@ window.UCM = (() => {
 
   /**
    * Les couleurs des rôles d'une palette dans un contexte. `crans` : `table` (la table du thème),
-   * `essai` (fond 50, texte 700 en Light), `translucide` (fonds alpha), `dark200` (surfaces Dark 200/300/400, texte 950, focus 800), `dark300` (surfaces Dark 300/400/500, pour une carte au neutre 200), `dark900` (surfaces Dark 200/300/400, texte 900, focus 800).
+   * `essai` (fond 50, texte 700 en Light), `translucide` (fonds alpha), `dark200` (surfaces Dark 200/300/400, texte 950, focus 800), `dark300` (surfaces Dark 300/400/500, pour une carte au neutre 200), `dark900` (surfaces Dark 200/300/400, texte 900, focus 800), `modele` (dark900, et surfaces Light 50/100/200).
    */
   const jeu = ({ variante, palette, intensite, mode, support = 'raised', crans = 'table' }) => {
     const fond = D.supports[mode][support];
@@ -68,7 +68,9 @@ window.UCM = (() => {
     const table = { ...D.table[sens(mode)] };
     if (crans === 'essai' && mode === 'light') Object.assign(table, { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': 700, 'surface/border': 700 });
     if (crans === 'dark200' && mode === 'dark') Object.assign(table, { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 });
-    if (crans === 'dark900' && mode === 'dark') Object.assign(table, { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 });
+    // Le modèle des niveaux : le fond teinté un cran au-delà de la carte, 50 sur la carte blanche, 200 sur le neutre 100.
+    if (crans === 'modele' && mode === 'light') Object.assign(table, { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 });
+    if ((crans === 'dark900' || crans === 'modele') && mode === 'dark') Object.assign(table, { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 });
     if (crans === 'dark300' && mode === 'dark') Object.assign(table, { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 });
     const c = (v) => (table[v] === 'texteDesBoutons' ? blanc : cran(variante, palette, intensite, mode, table[v]));
     let fonds = { default: c('surface/default'), hover: c('surface/hover'), pressed: c('surface/pressed') };

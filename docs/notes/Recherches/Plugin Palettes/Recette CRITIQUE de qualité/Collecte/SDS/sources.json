@@ -1,0 +1,34 @@
+[
+  {
+    "id": "theme",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/src/theme.css",
+    "revision": "05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "src/theme.css",
+    "localFile": "sources/theme.txt",
+    "sha256": "7648a2dcf995b091c06bf36fdd6f5fc15b684831ca73d09b24521350cac7bab8"
+  },
+  {
+    "id": "notification",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/src/ui/primitives/Notification/notification.css",
+    "revision": "05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "src/ui/primitives/Notification/notification.css",
+    "localFile": "sources/notification.txt",
+    "sha256": "43134b660f71f1d8ef2566ed82da699485c5c6989324abbaf2db7e43fb176221"
+  },
+  {
+    "id": "tag",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/src/ui/primitives/Tag/tag.css",
+    "revision": "05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "src/ui/primitives/Tag/tag.css",
+    "localFile": "sources/tag.txt",
+    "sha256": "a54c386085b0c79e074bd30fc099d1ae6b8a515e906230781913474f6eaa2270"
+  },
+  {
+    "id": "licence",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/LICENSE",
+    "revision": "05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "LICENSE",
+    "localFile": "sources/licence.txt",
+    "sha256": "570f1f1c07d32e2cdc7da3eea40f9c772e584782db15cbf455a72a19de36b7bc"
+  }
+]

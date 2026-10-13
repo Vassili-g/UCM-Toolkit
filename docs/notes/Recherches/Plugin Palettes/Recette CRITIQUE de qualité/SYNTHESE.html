@@ -65,10 +65,10 @@
   <section class="sujet" data-sujet="2">
     <h3><span class="numero">2</span>Crans des rôles</h3>
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
-    <div class="ligne"><span>Problème</span><span>Fond Dark invisible sur la carte, carte Dark confondue avec la page, focus foncé.</span></div>
-    <div class="ligne"><span>Cause</span><span>En Dark, le fond teinté 100 a la clarté de la carte, neutre 100.</span></div>
-    <div class="ligne"><span>Solution</span><span>Fond Dark un cran au-dessus de la carte, sans échec ajouté ; focus 600 décalé de 2 px ; <code>ring</code> dans chaque dossier. Séparation de la carte : élévation.</span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,005 → 1,15</span><br>fond teinté contre la carte Dark, 0 échec ajouté</span></div>
+    <div class="ligne"><span>Problème</span><span>Fond teinté trop foncé en Light ; en Dark, fond invisible sur la carte et carte confondue avec la page ; focus foncé.</span></div>
+    <div class="ligne"><span>Cause</span><span>En Dark, le fond 100 a la clarté de la carte (neutre 100), et la page n'en est qu'à un cran.</span></div>
+    <div class="ligne"><span>Solution</span><span>Modèle des niveaux : chaque niveau un cran plus loin que celui qui le porte. Fond 50 en Light ; page Dark abaissée, fond 200. Focus décalé de 2 px ; <code>ring</code> dans chaque dossier.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,15</span><br>fond contre carte Dark ; carte contre page 1,10 → 1,16 ; 164 → 144 échecs</span></div>
     <div class="ligne"><span>Marché</span><span>Neuf systèmes : composants sur blanc en Light, sur gris presque noir en Dark ; fonds teintés à 1,07–1,17 et 1,08–1,31. Les rôles d’UCM servent les composants de onze systèmes.</span></div>
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
@@ -113,7 +113,7 @@
       ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
     ] },
     { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
-      ['Q5', 'Fond teinté', 'Opaque ; Light inchangé ; Dark : fonds 200, texte 900, focus 800', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#solution'],
+      ['Q5', 'Fond teinté et niveaux', 'Chaque niveau un cran plus loin : fond 50 en Light ; page abaissée et fond 200 en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#solution'],
       ['Q6', 'Couleur du focus', '600 en Light, 800 en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],

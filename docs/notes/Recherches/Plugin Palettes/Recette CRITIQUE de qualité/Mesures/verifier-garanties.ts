@@ -60,6 +60,9 @@ const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark'
   'Dark E : fonds 200, 300, 400, texte 900, focus 800': (sens, mode) => (mode === 'dark'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 })
     : TABLE_DES_DOSSIERS[sens]),
+  'Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 })
+    : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })),
   'les deux': (sens, mode) => mode === 'light'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
     : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
@@ -67,6 +70,8 @@ const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark'
 
 const CARTE = { light: '#FFFFFF', dark: '#1A1C1F' };
 // L'option B des fonds pose la carte Dark au neutre 200 ; les autres tables gardent la carte actuelle.
+// Le modèle abaisse la page Dark au cran 50 du neutre éclairci à L 0,145 : `#0A0A0B`.
+const PAGES: Record<string, { dark: string }> = { 'Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre': { dark: '#0A0A0B' } };
 const CARTES: Record<string, { light: string; dark: string }> = { 'Dark B : carte 200, fonds 300, texte 950, focus 800': { light: '#FFFFFF', dark: '#25282E' } };
 const teintes = Array.from({ length: 72 }, (_, i) => i * 5);
 const references = teintes.flatMap((H) => [0.62, 0.75].map((L) => ({ H, L, hexa: ecrireHexa(lineaireVersRgb8(oklchVersLineaire({ L, C: 0.9 * plafond(L, H, 'srgb'), H }))) })));
@@ -97,7 +102,8 @@ for (const [nomRegle, regle] of Object.entries(regles)) for (const [nomTable, ta
       derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
     } as Palette));
     const profils = regle ? { soft: { part: 0.85 }, vivid: { part: 0.95 } } : base.profils;
-    const recette: Recette = valider({ ...base, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
+    const fonds = PAGES[nomTable] ? { ...base.fonds, ...PAGES[nomTable] } : base.fonds;
+    const recette: Recette = valider({ ...base, fonds, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
     for (const palette of recette.palettes) {
       const rampes = regle ? rampesDuBanc(recette, palette, regle) : rampesDe(recette, palette);
       for (const i of ['soft', 'vivid'] as const) for (const mode of ['light', 'dark'] as const) {
