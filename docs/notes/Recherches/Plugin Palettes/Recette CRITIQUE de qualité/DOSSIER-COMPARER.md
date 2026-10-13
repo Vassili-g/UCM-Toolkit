@@ -8,7 +8,9 @@ panneau des réglages communs devient la Configuration, en deux onglets. Un
 onglet Harmonisation compare des palettes, signale celles qui se ressemblent
 trop et règle chacune avec les réglettes de Création. La
 [maquette](./Maquettes/MAQUETTE-COMPARER.html) part des écrans réels de la
-galerie, en thème sombre ; ses écrans d'Harmonisation répondent aux clics. Les
+galerie, en thème sombre ; ses écrans d'Harmonisation répondent aux clics. La
+[spécification des écrans](./SPEC-ECRANS-HARMONISATION.md) en décrit chaque
+mesure, texte et comportement pour une reproduction au pixel près. Les
 décisions C1 à C10 sont en section 11.
 
 ## 1. Le besoin
@@ -253,7 +255,7 @@ Vérification, Gestion.
 | Carte « Vos palettes » | Toujours | « Cochez de 2 à 4 palettes pour les comparer et les régler. » Une ligne par palette : la case du socle à gauche du nom, ses onze nuances jointes, arrondies aux deux bouts, et un rond ambre « ! » si elle est trop proche d'une autre, de la facture du compteur de l'onglet. Les numéros se centrent sur leur nuance. La ligne cochée se surligne en bleu |
 | Carte « Comparaison » | Deux palettes cochées | Sur le fond de page du thème : les nuances jointes, alignées par numéro, puis des composants rangés en colonnes (bouton plein, bouton à contour, message sur fond teinté, lien). Bascule Couleurs et Niveaux de gris. Sous le fond, les constats |
 | Carte « Réglages » | Deux palettes cochées | « Régler » et le nom des palettes cochées, un point bleu après chaque palette modifiée ; « Annuler les modifications » pour la palette choisie, quand elle a changé ; les trois réglettes de Création |
-| Carte « Roue des teintes » | Toujours, repliée | La teinte des boutons pleins sur le fond de page de l'aperçu, les familles de teinte autour, un arc ambre sur les teintes d'une paire trop proche, dont les points et les noms passent en ambre ; liste « Vision ». Jusqu'à huit palettes colorées, toutes sont nommées ; au-delà, les cochées et celles des paires trop proches |
+| Carte « Roue des teintes » | Toujours, repliée | La teinte des boutons pleins sur le fond de page de l'aperçu, les familles de teinte autour, un arc ambre sur les teintes d'une paire trop proche, dont les points et les noms passent en ambre ; liste « Vision ». Glisser un point règle la teinte de sa palette, dans la course de −30° à +30° que la roue dessine pour la palette réglée, avec ses zones trop proches. Jusqu'à huit palettes colorées, toutes sont nommées ; au-delà, les cochées et celles des paires trop proches |
 
 ### Ce qui compte comme trop proche
 
@@ -389,7 +391,7 @@ boutons se coupent.
 | C4 | Harmoniser | Carte Réglages : une palette cochée à la fois, réglettes de Création, points des autres palettes sur la saturation et la luminosité, « Annuler les modifications » pour la palette choisie |
 | C5 | Distinguer | Carte « Palettes trop proches » ; zone hachurée sur la teinte ; mots aux bouts des pistes ; ni modale, ni réglage automatique |
 | C6 | L'alerte | Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
-| C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; arc ambre sur une paire trop proche ; vision des couleurs à la demande, sans alerte |
+| C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; arc ambre sur une paire trop proche ; un point se glisse pour régler la teinte ; vision des couleurs à la demande, sans alerte |
 | C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé sans chiffre, aucun encart |
 | C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; une phrase sous les onglets |
 | C10 | Libellés et listes | « Par défaut » et « Tout par défaut » remplacent « Rétablir » et « Tout rétablir » sur les réglettes et les cartes ; les listes prennent la police de l'interface, un chevron gris et 24 px parmi les boutons |

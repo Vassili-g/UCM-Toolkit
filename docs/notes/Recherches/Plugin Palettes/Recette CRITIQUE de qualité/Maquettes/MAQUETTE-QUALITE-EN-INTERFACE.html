@@ -113,7 +113,7 @@
 <div id="banc-ui"></div>
 
 <h2 id="aveugle">3. À l'aveugle</h2>
-<p class="chapeau">Quatre panneaux, dans un ordre tiré au hasard et sans nom de règle. Noter chaque panneau de 1 à 5 sur six critères, puis révéler. Les notes restent dans ce navigateur ; « Copier le bilan » les met en texte avec les noms des règles.</p>
+<p class="chapeau">Cinq panneaux, dans un ordre tiré au hasard et sans nom de règle. Noter chaque panneau de 1 à 5 sur six critères, puis révéler. Les notes restent dans ce navigateur ; « Copier le bilan » les met en texte avec les noms des règles.</p>
 <div class="commandes" style="position:static">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="aMode"></div></div>
   <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="aIntensite"></div></div>
@@ -243,16 +243,18 @@
   }
 
   // À l'aveugle : quatre règles, un ordre tiré, des notes par critère.
-  const CANDIDATES = ['actuel', 'zones', 'enveloppe', 'tailwind'];
+  const CANDIDATES = ['actuel', 'communs', 'zones', 'enveloppe', 'tailwind'];
   const CRITERES = ['Fond discret', 'Texte coloré', 'Lisibilité', 'Séparation du support', 'Statuts distincts', 'Cohérence du groupe'];
-  let ordre = lire('qualite-ordre', null) || melange();
+  // Un ordre rangé avant l'ajout d'un candidat se retire ; les notes déjà données restent.
+  let ordre = lire('qualite-ordre', null);
+  if (!ordre || ordre.length !== CANDIDATES.length) ordre = melange();
   let revele = false;
   function melange() { const o = [...CANDIDATES]; for (let i = o.length - 1; i > 0; i -= 1) { const k = Math.floor(Math.random() * (i + 1)); [o[i], o[k]] = [o[k], o[i]]; } ecrire('qualite-ordre', o); return o; }
   const cleNotes = () => `qualite-notes-${etat.aMode}-${etat.aIntensite}-${etat.aSupport}`;
   function dessinerAveugle() {
     const notes = lire(cleNotes(), {});
     document.getElementById('panneaux').innerHTML = ordre.map((v, k) => {
-      const lettre = 'ABCD'[k];
+      const lettre = 'ABCDE'[k];
       const ctx = { variante: v, mode: etat.aMode, intensite: etat.aIntensite, support: etat.aSupport, crans: 'table', corps: 'colore' };
       return `<div class="panneau"><header><b>${lettre}</b><span>${revele ? D.variantes[v].nom : ''}</span></header>${scene(ctx, false)}
         <div class="notes">${CRITERES.map((c) => `<label>${c}<select data-note="${v}|${c}"><option value="">–</option>${[1, 2, 3, 4, 5].map((n) => `<option ${notes[`${v}|${c}`] == n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`).join('')}</div></div>`;

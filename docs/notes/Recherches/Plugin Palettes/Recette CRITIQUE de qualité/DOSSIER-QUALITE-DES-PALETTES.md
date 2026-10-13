@@ -162,7 +162,47 @@ existent déjà.
   (teinte 69°, C 0,093) à `#91501F` (54°, C 0,107) ; `amber-700` vaut 49° et
   C 0,146. Ce réglage de la palette est déjà possible dans le plugin.
 
-### 3.6 Recommandation
+### 3.6 Les notes à l'aveugle du mainteneur
+
+Une combinaison sur huit est notée : Light, Soft, sur carte. Notes de 1 à 5.
+
+| Règle | Fond discret | Texte coloré | Lisibilité | Séparation du support | Statuts distincts | Cohérence du groupe |
+|---|---|---|---|---|---|---|
+| Actuel | 4 | 5 | 5 | 5 | 5 | 5 |
+| Enveloppe | 4 | 4 | 5 | 5 | 5 | 5 |
+| Deux zones | 4 | 1 | 5 | 5 | 5 | 2 |
+| Relevé Tailwind | 4 | 1 | 5 | 5 | 5 | 2 |
+
+Ce que les mesures en disent, sur les textes 800 et les fonds 100 de Soft en
+Light des quatre utilitaires :
+
+| Règle | Chroma des textes | Chroma des fonds |
+|---|---|---|
+| Actuel | 0,058 à 0,175 | 0,017 à 0,044 |
+| Actuel, valeurs par défaut | 0,042 à 0,076 | 0,011 à 0,044 |
+| Enveloppe | 0,079 à 0,136 | 0,022 à 0,026 |
+| Deux zones | 0,079 à 0,144 | 0,011 à 0,044 |
+| Relevé Tailwind | 0,074 à 0,133 | 0,013 à 0,034 |
+
+1. **« Actuel » est la recette du mainteneur, réglée à la main** : Soft 0,92
+   pour Orange, 1,00 pour Poppy, 0,65 pour Sky. Ce n'est pas ce qu'un fichier
+   neuf reçoit. Le test oppose donc des palettes réglées une à une à des règles
+   automatiques. L'enveloppe s'en approche sans réglage propre : 4 contre 5 sur
+   le texte, égalité ailleurs.
+2. **Enveloppe et Deux zones ont les mêmes textes**, à la chroma près, et
+   reçoivent 4 et 1. Leurs pleins 700 diffèrent de 0,010 de chroma au plus.
+   Leurs fonds 100 diffèrent nettement : uniformes avec l'enveloppe, inégaux
+   avec Deux zones, où le fond de Grass porte trois à quatre fois la chroma
+   des autres. L'écart des notes de texte et de cohérence suit donc les
+   fonds.
+3. **« Actuel, valeurs par défaut » manquait au test.** C'est le moteur qu'un
+   fichier neuf reçoit, et la base de comparaison de l'enveloppe. La maquette
+   l'ajoute en cinquième candidat.
+
+Restent à noter sept combinaisons : Light Soft sur page, puis Light Vivid,
+Dark Soft et Dark Vivid, chacune sur page et sur carte.
+
+### 3.7 Recommandation
 
 Adopter l'enveloppe. Elle rapproche le plus les quatre utilitaires, place Vivid
 aussi près de Tailwind que le relevé et ne demande aucune table de données.
@@ -343,8 +383,8 @@ dossier.
 
 ## 8. Limites
 
-- Le jugement visuel n'est pas fait. Un contraste conforme ne vaut pas
-  validation ; la maquette de qualité recueille les notes à l'aveugle.
+- Le jugement visuel porte sur une combinaison sur huit (section 3.6). Un
+  contraste conforme ne vaut pas validation.
 - Les seuils de distance par rôle et la séparation visuelle d'un fond translucide sont des
   valeurs d'essai.
 - Une seule recette réelle. Les palettes à une intensité et les palettes figées
