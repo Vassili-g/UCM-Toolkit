@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recette critique : décisions</title>
 <style>
-  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e4e4e4; --fond: #fafafa; --carte: #fff; --ok: #1a7f37; --revoir: #b26a00; --lien: #007be5; }
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e4e4e4; --fond: #fafafa; --carte: #fff; --ok: #1a7f37; --revoir: #b26a00; --lien: #007be5; --s1: #5b5bd6; --s2: #0f8b8d; --s3: #b4448a; }
   * { box-sizing: border-box; }
   body { margin: 0; padding: 32px 40px 80px; background: var(--fond); color: var(--texte); font: 13px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
   h1 { margin: 0 0 4px; font-size: 22px; }
@@ -15,7 +15,10 @@
   .sous { color: var(--second); margin: 0 0 24px; }
   .sujets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .sujet { background: var(--carte); border: 1px solid var(--filet); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; }
-  .sujet h3 { margin: 0; font-size: 14px; }
+  .sujet { border-top: 4px solid var(--accent); }
+  .sujet h3 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .numero { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+  [data-sujet="1"] { --accent: var(--s1); } [data-sujet="2"] { --accent: var(--s2); } [data-sujet="3"] { --accent: var(--s3); }
   .notes { display: flex; gap: 6px; flex-wrap: wrap; }
   .note { font-size: 11px; color: var(--second); border: 1px solid var(--filet); border-radius: 10px; padding: 1px 8px; }
   .note b { color: var(--texte); }
@@ -25,7 +28,12 @@
   table { width: 100%; border-collapse: collapse; background: var(--carte); border: 1px solid var(--filet); border-radius: 10px; overflow: hidden; }
   th, td { padding: 8px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: middle; }
   th { color: var(--second); font-weight: 600; font-size: 11px; }
-  td.num { color: var(--second); width: 36px; }
+  td.num { color: var(--second); width: 44px; border-left: 4px solid var(--accent); }
+  tbody.groupe + tbody.groupe tr.tete-de-groupe th { border-top: 10px solid var(--fond); }
+  tr.tete-de-groupe th { background: color-mix(in srgb, var(--accent) 9%, var(--carte)); border-left: 4px solid var(--accent); color: var(--texte); font-size: 13px; padding: 10px; }
+  tr.tete-de-groupe .titre { display: flex; align-items: center; gap: 8px; }
+  tr.tete-de-groupe .compte { margin-left: auto; color: var(--second); font-weight: 400; font-size: 11.5px; }
+  tr.tete-de-groupe a { margin-left: 12px; font-weight: 400; font-size: 11.5px; }
   .choix { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; }
   .choix button { border: 0; background: #fff; padding: 3px 9px; font: inherit; font-size: 11.5px; cursor: pointer; }
   .choix button + button { border-left: 1px solid var(--filet); }
@@ -43,8 +51,8 @@
 <p class="sous">Trois sujets, dix-sept décisions. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
 
 <div class="sujets">
-  <section class="sujet">
-    <h3>1. Palettes en interface</h3>
+  <section class="sujet" data-sujet="1">
+    <h3><span class="numero">1</span>Palettes en interface</h3>
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
     <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
@@ -53,8 +61,8 @@
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
     <a href="Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html">Maquette qualité ›</a>
   </section>
-  <section class="sujet">
-    <h3>2. Crans des rôles</h3>
+  <section class="sujet" data-sujet="2">
+    <h3><span class="numero">2</span>Crans des rôles</h3>
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Fond 50 invisible sur la page, fond Dark invisible sur la carte, focus foncé.</span></div>
     <div class="ligne"><span>Cause</span><span>Un fond opaque ne garde pas le même écart avec la page et la carte.</span></div>
@@ -62,8 +70,8 @@
     <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,10</span><br>fond posé sur la carte Dark, même écart sur la page</span></div>
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
-  <section class="sujet">
-    <h3>3. Comparer, harmoniser, différencier</h3>
+  <section class="sujet" data-sujet="3">
+    <h3><span class="numero">3</span>Comparer, harmoniser, différencier</h3>
     <div class="notes"><span class="note">Qualité 5 → <b>9</b></span><span class="note">Réponse 6 → <b>9</b></span><span class="note">Complétion 5 → <b>9</b></span></div>
     <div class="ligne"><span>Problème</span><span>Écarts invisibles, réglages communs obscurs, aucune vue de plusieurs palettes.</span></div>
     <div class="ligne"><span>Cause</span><span>« Réglé » sans chiffre ; un engrenage sans nom ; Création et Vérification à une palette.</span></div>
@@ -74,9 +82,8 @@
 </div>
 
 <h2>Décisions</h2>
-<table>
+<table id="decisions">
   <thead><tr><th>#</th><th>Décision</th><th>Recommandation</th><th>Avis</th></tr></thead>
-  <tbody id="decisions"></tbody>
 </table>
 <div class="actions"><button type="button" id="copier">Copier le bilan</button><span id="etat"></span></div>
 
@@ -93,32 +100,46 @@
 
 <script>
 (() => {
-  const DECISIONS = [
-    ['Q1', 'Règle de chroma', 'Enveloppe', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
-    ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
-    ['Q3', 'Valeurs par défaut', 'Dans les réglages communs ; écarts chiffrés au-delà ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-COMPARER.html#briques'],
-    ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
-    ['Q5', 'Fond teinté', 'Translucide', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#surfaces'],
-    ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
-    ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
-    ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
-    ['C1', 'Où comparer', 'Un onglet Comparer ; Création règle une seule palette', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
-    ['C2', 'Choisir les palettes', 'Dans l’onglet, toutes listées, cases pour le détail ; aucun groupe', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
-    ['C3', 'Vingt palettes', 'Une ligne de nuances chacune ; composants pour 2 à 4', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
-    ['C4', 'Écarts d’une palette', 'Résumé chiffré, départ et écart, « Rétablir » actif si modifié', 'Maquettes/MAQUETTE-COMPARER.html#reglage'],
-    ['C5', 'Réglages communs', 'Bouton nommé, phrase d’introduction, palettes qui s’écartent', 'Maquettes/MAQUETTE-COMPARER.html#communs'],
-    ['C6', 'Alerte', 'Plein et texte, deux thèmes, seuil des couleurs proches', 'DOSSIER-COMPARER.md'],
-    ['C7', 'Rétablir les valeurs communes', 'Modale, avant et après, cases à décocher', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
-    ['C8', 'Écarter deux teintes', 'Plus petite rotation vers 0,10 · 0,06 ; sinon le dire', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
-    ['C9', 'Visions des couleurs', 'Carte Teintes, à la demande, sans alerte', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+  const SUJETS = [
+    { n: '1', titre: 'Palettes en interface', maquette: 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html', decisions: [
+      ['Q1', 'Règle de chroma', 'Enveloppe', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
+      ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
+      ['Q3', 'Valeurs par défaut', 'Dans les réglages communs ; écarts chiffrés au-delà ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-COMPARER.html#communs'],
+      ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
+    ] },
+    { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
+      ['Q5', 'Fond teinté', 'Translucide', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#surfaces'],
+      ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+      ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+      ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
+    ] },
+    { n: '3', titre: 'Comparer, harmoniser, différencier', maquette: 'Maquettes/MAQUETTE-COMPARER.html', decisions: [
+      ['C1', 'Où comparer', 'Un onglet Comparer ; Création règle une seule palette', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+      ['C2', 'Choisir les palettes', 'Dans l’onglet, toutes listées, cases pour le détail ; aucun groupe', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+      ['C3', 'Vingt palettes', 'Une ligne de nuances chacune ; composants pour 2 à 4', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+      ['C4', 'Écarts d’une palette', 'Résumé chiffré, départ et écart, « Rétablir » actif si modifié', 'Maquettes/MAQUETTE-COMPARER.html#reglage'],
+      ['C5', 'Réglages communs', 'Bouton nommé, phrase d’introduction, palettes qui s’écartent', 'Maquettes/MAQUETTE-COMPARER.html#communs'],
+      ['C6', 'Alerte', 'Plein et texte, deux thèmes, seuil des couleurs proches', 'DOSSIER-COMPARER.md'],
+      ['C7', 'Rétablir les valeurs communes', 'Modale, avant et après, cases à décocher', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+      ['C8', 'Écarter deux teintes', 'Plus petite rotation vers 0,10 · 0,06 ; sinon le dire', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+      ['C9', 'Visions des couleurs', 'Carte Teintes, à la demande, sans alerte', 'Maquettes/MAQUETTE-COMPARER.html#comparer'],
+    ] },
   ];
+  const DECISIONS = SUJETS.flatMap((sujet) => sujet.decisions);
   const lire = () => { try { return JSON.parse(localStorage.getItem('synthese-avis')) || {}; } catch { return {}; } };
   const ecrire = (v) => { try { localStorage.setItem('synthese-avis', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
   const code = (t) => t.replace(/`([^`]+)`/g, '<code>$1</code>');
   const dessiner = () => {
     const avis = lire();
-    document.getElementById('decisions').innerHTML = DECISIONS.map(([n, d, r, lien]) => `<tr><td class="num">${n}</td><td><a href="${lien}">${d}</a></td><td>${code(r)}</td>
-      <td><div class="choix" data-q="${n}">${[['ok', 'Validé'], ['revoir', 'À revoir']].map(([v, t]) => `<button type="button" data-v="${v}" aria-pressed="${avis[n] === v}">${t}</button>`).join('')}</div></td></tr>`).join('');
+    // Un corps de table par sujet : sa ligne d'en-tête, puis ses décisions, marquées de la couleur du sujet.
+    const table = document.getElementById('decisions');
+    table.querySelectorAll('tbody').forEach((t) => t.remove());
+    table.insertAdjacentHTML('beforeend', SUJETS.map((sujet) => {
+      const donnes = sujet.decisions.filter(([n]) => avis[n]).length;
+      return `<tbody class="groupe" data-sujet="${sujet.n}"><tr class="tete-de-groupe"><th colspan="4"><span class="titre"><span class="numero">${sujet.n}</span>${sujet.titre}<a href="${sujet.maquette}">Maquette ›</a><span class="compte">${sujet.decisions.length} décisions · ${donnes} avis</span></span></th></tr>
+        ${sujet.decisions.map(([n, d, r, lien]) => `<tr><td class="num">${n}</td><td><a href="${lien}">${d}</a></td><td>${code(r)}</td>
+        <td><div class="choix" data-q="${n}">${[['ok', 'Validé'], ['revoir', 'À revoir']].map(([v, t]) => `<button type="button" data-v="${v}" aria-pressed="${avis[n] === v}">${t}</button>`).join('')}</div></td></tr>`).join('')}</tbody>`;
+    }).join(''));
     const faits = Object.values(avis).filter(Boolean).length;
     document.getElementById('etat').textContent = `${faits} sur ${DECISIONS.length}`;
   };
@@ -133,7 +154,7 @@
   });
   document.getElementById('copier').addEventListener('click', () => {
     const avis = lire();
-    const texte = ['Recette critique : avis du mainteneur', ...DECISIONS.map(([n, d, r]) => `${n} ${d} (${r}) : ${avis[n] === 'ok' ? 'validé' : avis[n] === 'revoir' ? 'à revoir' : 'sans avis'}`)].join('\n');
+    const texte = ['Recette critique : avis du mainteneur', ...SUJETS.flatMap((sujet) => ['', `${sujet.n}. ${sujet.titre}`, ...sujet.decisions.map(([n, d, r]) => `  ${n} ${d} (${r}) : ${avis[n] === 'ok' ? 'validé' : avis[n] === 'revoir' ? 'à revoir' : 'sans avis'}`)])].join('\n');
     try { navigator.clipboard.writeText(texte); document.getElementById('etat').textContent = 'Bilan copié'; } catch { /* le presse-papiers est refusé */ }
   });
   dessiner();
