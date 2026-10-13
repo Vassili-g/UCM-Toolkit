@@ -85,12 +85,22 @@
 <body>
 
 <h1>Rôles et crans du thème</h1>
-<p class="chapeau">Les crans que la table du thème (<code>TABLE_DES_DOSSIERS</code>) donne aux fonds teintés et au focus, éprouvés sur la page et sur la carte, dans les deux thèmes. Les couleurs viennent de la recette du mainteneur, dans la règle de chroma choisie. Le thème Dark est inversé : le texte des boutons y est blanc.</p>
-<nav><a href="#solution">La solution proposée</a><a href="#surfaces">1. Le fond teinté et son support</a><a href="#focus">2. Le focus</a><a href="#rangement">3. Où ranger le focus</a><a href="#table">4. Les tables mesurées</a><a href="#decisions">5. Décisions</a></nav>
+<p class="chapeau">Comment la page, la carte et les fonds teintés se séparent dans les deux thèmes, quels crans la table du thème (<code>TABLE_DES_DOSSIERS</code>) leur donne, et comment l'architecture des tokens le traduit. Couleurs de la recette du mainteneur, avec l'enveloppe par thème ; le thème Dark est inversé, le texte des boutons y est blanc.</p>
+<nav><a href="#niveaux">1. Le modèle des niveaux</a><a href="#mapping">2. Le mapping des tokens</a><a href="#composants-a-surface">3. Les composants à surface</a><a href="#marche">4. Les autres systèmes</a><a href="#focus">5. Le focus</a><a href="#rangement">6. Où ranger le focus</a><a href="#decisions">7. Décisions</a><a href="#surfaces">Annexe A. Pistes écartées</a><a href="#table">Annexe B. Tables mesurées</a></nav>
 
-<h2 id="solution">La solution proposée</h2>
+<h2 id="niveaux">1. Le modèle des niveaux : page, carte, composant</h2>
+<p><b>La question.</b> <code>elevation/raised</code>, la carte, prend une couleur du neutre et se pose sur <code>elevation/page</code>. Un fond teinté, le <code>surface/default</code> d'une palette, se pose sur la carte : un badge dans une carte. En Dark aujourd'hui, la carte (neutre 100) ne se détache de la page (neutre 50) que de 1,10:1, et le fond teinté, au cran 100 lui aussi, a exactement la clarté de la carte : 1,00:1, le badge disparaît. En Light, le fond 100 paraît trop foncé sur la carte blanche.</p>
+<p><b>La réponse : chaque niveau se tient un cran plus loin du fond que celui qui le porte.</b> La page, puis la carte, puis le fond teinté. La même règle donne les crans des deux thèmes.</p>
+<h3>L'échelle, aujourd'hui et avec le modèle</h3>
+<div class="commandes">
+  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
+</div>
+<p class="chapeau">La page, la carte posée dessus, puis les composants posés sur la carte. Les mesures donnent la séparation de chaque niveau avec celui qui le porte.</p>
+<div class="grille" id="grille-niveaux" style="grid-template-columns: 200px repeat(2, minmax(0, 1fr))"></div>
+<h3>Les crans</h3>
 <div class="solution">
-  <p style="margin-top:0">Un composant teinté se pose sur une carte, et la carte sur la page. Le modèle des niveaux tient en une règle : <b>chaque niveau se tient un cran plus loin du fond que celui qui le porte</b>. Détail et pistes écartées : <code>SOLUTION-RAMPES.md</code>, sections S2 et S3.</p>
+  <p style="margin-top:0">Les crans du modèle. Détail et pistes écartées : <code>SOLUTION-RAMPES.md</code>, sections S2 et S3.</p>
   <ol>
     <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 50, 100, 200 ; texte 800 ; focus 600. Le fond 50 est presque blanc, comme chez Figma, Tailwind et Untitled UI.</li>
     <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 200, 300, 400 ; texte et contour 900 ; focus 800. La page se détache de la carte (1,16) et le fond de la carte (1,15).</li>
@@ -113,10 +123,7 @@
     <tr><td><code>solid/*</code>, <code>page/foreground</code>, <code>page/border</code>, <code>page/divider</code></td><td colspan="3">Inchangés</td></tr>
   </tbody>
 </table>
-<h3>Le modèle des niveaux</h3>
-<p class="chapeau">La page, la carte posée dessus, puis les composants posés sur la carte. Les mesures donnent la séparation de chaque niveau avec celui qui le porte.</p>
-<div class="grille" id="grille-niveaux" style="grid-template-columns: 200px repeat(2, minmax(0, 1fr))"></div>
-<h3>Le mapping dans l'architecture des tokens</h3>
+<h2 id="mapping">2. Le mapping dans l'architecture des tokens</h2>
 <p class="chapeau">Le chemin ne change pas : un composant cite <code>theme</code>, qui cite <code>color-utilities</code> ou <code>color-brands</code>, qui citent <code>primitives</code>. Seuls changent le cran que <code>theme</code> vise et la clarté du cran 50 de la courbe Dark.</p>
 <pre class="chemin">components.badge.success.background
   → theme.success.soft.surface.default
@@ -139,13 +146,7 @@ theme.elevation.raised
     <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 devient requis</td></tr>
   </tbody>
 </table>
-<h3>Avant et après, sur la carte</h3>
-<div class="commandes">
-  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
-  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
-</div>
-<div class="grille" id="grille-solution" style="grid-template-columns: 200px repeat(2, minmax(0, 1fr))"></div>
-<h3>Les composants à surface</h3>
+<h2 id="composants-a-surface">3. Les composants à surface</h2>
 <p class="chapeau">Les rôles actuels servent chaque composant relevé dans onze systèmes (<code>Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md</code>). Table proposée, palette choisie ci-dessus.</p>
 <table>
   <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark proposé</th><th>Ce que font les autres</th></tr></thead>
@@ -159,21 +160,11 @@ theme.elevation.raised
 </table>
 <div class="composants" id="composants" style="margin-top:12px"></div>
 
-<h3>Le fond teinté contre son support, dans les autres systèmes</h3>
+<h2 id="marche">4. Le fond teinté dans les autres systèmes</h2>
 <p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM proposé.</p>
 <div class="marche" id="marche"></div>
 
-<h2 id="surfaces">1. Le fond teinté et son support</h2>
-<p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,08:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
-<p>Un fond translucide se compose avec son support. On le calcule comme les échelles alpha de Radix : la couleur d'alpha minimal qui redonne exactement le cran sur le support le plus éloigné du texte, la carte blanche en Light, la page en Dark. Posé sur l'autre support, il garde le même écart.</p>
-<div class="commandes">
-  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
-  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
-  <div class="groupe"><span>Règle</span><div class="bascule" data-commande="variante"></div></div>
-</div>
-<div class="grille" id="grille-surfaces"></div>
-
-<h2 id="focus">2. Le focus</h2>
+<h2 id="focus">5. Le focus</h2>
 <p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark, un cran plus clair tient partout. L'impression de couleur foncée vient donc aussi de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Aucun système relevé n'emploie un pas pâle seul ; le halo pâle du kit Figma d'Untitled UI vaut environ 1,16:1 sur blanc.</p>
 <div class="commandes">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="fMode"></div></div>
@@ -181,7 +172,7 @@ theme.elevation.raised
 </div>
 <div class="grille" id="grille-focus" style="grid-template-columns: 200px minmax(0, 1fr) 260px"></div>
 
-<h2 id="rangement">3. Où ranger le focus</h2>
+<h2 id="rangement">6. Où ranger le focus</h2>
 <p>Le focus est rangé dans <code>page</code> parce que l'anneau se peint sur la page, et la règle des dossiers est « la couleur juste derrière le texte ». L'anneau n'a pas de texte : la règle ne le place nulle part avec évidence, et le mainteneur ne l'a pas trouvé en reliant un bouton <code>solid</code>. Le contrat nomme ce rôle <code>ring</code> (<code>SUPPORT_DES_VARIABLES</code>) ; la variable <code>text</code> est déjà devenue <code>foreground</code> pour suivre les rôles du contrat.</p>
 <div class="panneaux" id="panneaux-figma"></div>
 <table style="margin-top:14px">
@@ -195,7 +186,27 @@ theme.elevation.raised
   </tbody>
 </table>
 
-<h2 id="table">4. Les tables mesurées</h2>
+<h2 id="decisions">7. Décisions</h2>
+<ol class="decisions">
+  <li><b>Q5. Le fond teinté et les niveaux.</b> Recommandé : le modèle des niveaux. Fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark, texte et contour 900 ; page Dark au cran 50 abaissé à L 0,145. Un contour au cran 300 du neutre reste une option de l'élévation.</li>
+  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; 800 en Dark, dans les deux sens.</li>
+  <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé, la forme de Figma SDS, Radix et Spectrum) ou halo et trait (le halo pâle d'Untitled UI, bordé du trait qui tient 3:1). La forme se règle dans les composants, pas dans Palettes.</li>
+  <li><b>Q8. Le nom et la place.</b> <code>ring</code> dans chaque dossier (recommandé), <code>ring</code> à la racine de la palette, ou <code>page/focus</code> conservé. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
+  <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
+</ol>
+
+<h2 id="surfaces">Annexe A. Les pistes écartées : fond 50 sur la page, fond 200 seul, fonds translucides</h2>
+<p class="chapeau">Les pistes mesurées avant le modèle des niveaux, sur la page et sur la carte. Elles restent pour comparer.</p>
+<p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,08:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
+<p>Un fond translucide se compose avec son support. On le calcule comme les échelles alpha de Radix : la couleur d'alpha minimal qui redonne exactement le cran sur le support le plus éloigné du texte, la carte blanche en Light, la page en Dark. Posé sur l'autre support, il garde le même écart.</p>
+<div class="commandes">
+  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
+  <div class="groupe"><span>Règle</span><div class="bascule" data-commande="variante"></div></div>
+</div>
+<div class="grille" id="grille-surfaces"></div>
+
+<h2 id="table">Annexe B. Les tables mesurées</h2>
 <p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème. La table retenue est en tête de page.</p>
 <table>
   <thead><tr><th>Table</th><th>Échecs</th><th>Fond contre la carte, Dark</th><th>Sort</th></tr></thead>
@@ -210,15 +221,6 @@ theme.elevation.raised
   </tbody>
 </table>
 <p>Les 164 échecs communs existent déjà avec le moteur actuel : G1 en Dark inversé (144) et G7 de trois références vert-jaune en Light (20).</p>
-
-<h2 id="decisions">5. Décisions</h2>
-<ol class="decisions">
-  <li><b>Q5. Le fond teinté et les niveaux.</b> Recommandé : le modèle des niveaux. Fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark, texte et contour 900 ; page Dark au cran 50 abaissé à L 0,145. Un contour au cran 300 du neutre reste une option de l'élévation.</li>
-  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; 800 en Dark, dans les deux sens.</li>
-  <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé, la forme de Figma SDS, Radix et Spectrum) ou halo et trait (le halo pâle d'Untitled UI, bordé du trait qui tient 3:1). La forme se règle dans les composants, pas dans Palettes.</li>
-  <li><b>Q8. Le nom et la place.</b> <code>ring</code> dans chaque dossier (recommandé), <code>ring</code> à la racine de la palette, ou <code>page/focus</code> conservé. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
-  <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
-</ol>
 
 <script>
 (() => {
@@ -419,7 +421,7 @@ theme.elevation.raised
     }
     document.getElementById('grille-niveaux').innerHTML = html;
   }
-  function toutDessiner() { commandes(); dessinerSolution(); dessinerNiveaux(); dessinerComposants(); dessinerMarche(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
+  function toutDessiner() { commandes(); dessinerNiveaux(); dessinerComposants(); dessinerMarche(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
   toutDessiner();
 })();
 </script>
