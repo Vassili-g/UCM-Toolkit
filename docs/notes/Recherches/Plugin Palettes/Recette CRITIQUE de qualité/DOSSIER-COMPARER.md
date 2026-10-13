@@ -207,7 +207,6 @@ minimums, détection des couleurs proches, contenu des planches.
 - Le panneau ne dit pas à quoi il sert.
 - Il s'ouvre sur la langue, préférence de ce poste, au milieu de valeurs
   partagées par les palettes du fichier.
-- « N palettes concernées » compte les palettes sans les nommer.
 
 ### Proposé
 
@@ -219,11 +218,8 @@ dit ce que l'onglet règle.
   du socle (`EnTete.ts`) : Contract Exporter et l'explorateur le reçoivent
   aussi.
 - **Onglet Palettes**, ouvert par défaut. Sa phrase : « Les réglages par défaut
-  de toutes les palettes du fichier. Chaque palette peut les modifier dans
-  Création. » Puis les cartes actuelles, langue retirée.
-- **Chaque carte nomme les palettes qui ont leur propre valeur** : « Rose et
-  Indigo ont leur propre saturation, réglée dans Création. » Un nom ouvre la
-  palette dans Création.
+  de toutes les palettes du fichier. » Puis les cartes actuelles, langue
+  retirée.
 - **Onglet Général** : la langue. Sa phrase reprend celle de Contract
   Exporter : « Les réglages du plugin sur ce poste. »
 
@@ -252,11 +248,11 @@ Vérification, Gestion.
 |---|---|---|
 | Onglet | Toujours, dès deux palettes | « Harmonisation », entre Vérification et Gestion, avec le compteur des paires trop proches, de même facture que celui de Vérification |
 | Ligne du titre | Toujours | « Harmonisation », la bascule Soft et Vivid, la bascule Light et Dark |
-| Ligne fixe | Toujours | « 1 paire de palettes trop proches », ou « Toutes vos palettes se distinguent ». Après un réglage, les palettes modifiées et « Annuler les modifications » |
+| Ligne fixe | Toujours | « 1 paire de palettes trop proches », ou « Toutes vos palettes se distinguent ». Un état, sans bouton |
 | Carte « Palettes trop proches » | Une paire au moins | Une ligne par paire : les deux couleurs en cause dans le thème en cause, « Terracota et Poppy » en gras, « Textes sur fond teinté trop proches, en Dark », le lien « Comparer » |
-| Carte « Vos palettes » | Toujours | « Cochez de 2 à 4 palettes pour les comparer et les régler. » Les numéros de nuance en tête de colonne ; une ligne par palette : la case du socle à gauche du nom, ses onze nuances, un « ! » si elle est trop proche d'une autre. La ligne cochée se surligne en bleu |
-| Carte « Comparaison » | Deux palettes cochées | Sur le fond de page du thème : les nuances alignées par numéro, puis des composants rangés en colonnes (bouton plein, bouton à contour, message sur fond teinté, lien). Bascule Couleurs et Niveaux de gris. Sous le fond, les constats |
-| Carte « Réglages » | Deux palettes cochées | « Régler » et le nom des palettes cochées ; les trois réglettes de Création pour la palette choisie |
+| Carte « Vos palettes » | Toujours | « Cochez de 2 à 4 palettes pour les comparer et les régler. » Une ligne par palette : la case du socle à gauche du nom, ses onze nuances jointes, arrondies aux deux bouts, et un rond ambre « ! » si elle est trop proche d'une autre, de la facture du compteur de l'onglet. Les numéros se centrent sur leur nuance. La ligne cochée se surligne en bleu |
+| Carte « Comparaison » | Deux palettes cochées | Sur le fond de page du thème : les nuances jointes, alignées par numéro, puis des composants rangés en colonnes (bouton plein, bouton à contour, message sur fond teinté, lien). Bascule Couleurs et Niveaux de gris. Sous le fond, les constats |
+| Carte « Réglages » | Deux palettes cochées | « Régler » et le nom des palettes cochées, un point bleu après chaque palette modifiée ; « Annuler les modifications » pour la palette choisie, quand elle a changé ; les trois réglettes de Création |
 | Carte « Roue des teintes » | Toujours, repliée | La teinte des boutons pleins sur le fond de page de l'aperçu, les familles de teinte autour, un tireté entre deux palettes trop proches ; liste « Vision » |
 
 ### Ce qui compte comme trop proche
@@ -274,12 +270,16 @@ en donne une : Terracota et Poppy.
 
 | Constat | Condition | Ton |
 |---|---|---|
-| « Terracota et Poppy : textes sur fond teinté trop proches en Dark. Sortez la teinte de l'une d'elles de la zone hachurée, dans Réglages. » | Une paire cochée trop proche | Alerte |
-| « Ces palettes se distinguent, en Light et en Dark. » | Aucune paire cochée trop proche | Validé |
+| « Terracota et Poppy : textes sur fond teinté trop proches en Dark. Sortez la teinte de l'une d'elles de la zone hachurée, dans Réglages. » | Une paire cochée trop proche | Avertissement |
+| « Ces palettes se distinguent, en Light et en Dark. » | Aucune paire cochée trop proche | Succès |
 | « En Soft, Grass est la plus terne et Poppy la plus vive. » | Saturations des palettes cochées étalées de 0,20 ou plus | Information |
 | « En Soft, Poppy est plus claire que les autres. » | Luminosités étalées de 0,01 ou plus | Information |
 
-Les deux seuils d'information sont des valeurs d'essai.
+Chaque constat prend le fond et le texte de son ton : `--fond-succes` et
+`--texte-succes`, `--fond-avertissement` et `--texte-avertissement`,
+`--fond-danger` et `--texte-danger`. Le socle n'a pas de ton d'information :
+la maquette mêle `--fond-marque` au fond de la carte et écrit en
+`--texte-marque`. Les deux seuils d'information sont des valeurs d'essai.
 
 ### Régler
 
@@ -302,8 +302,14 @@ Création : une palette garde ses deux intensités de même teinte. La
 saturation et la luminosité se règlent sur l'intensité vue.
 
 Les réglages valent pour la palette, comme dans Création : Gestion passe la
-palette à « À mettre à jour ». « Annuler les modifications », dans la ligne
-fixe, défait tous les réglages faits dans l'onglet depuis son ouverture.
+palette à « À mettre à jour ».
+
+« Annuler les modifications » suit le modèle de Création, où le bouton paraît
+sous le sélecteur de palette et ne vaut que pour la palette ouverte. Dans
+Harmonisation, « Régler » tient lieu de sélecteur : le bouton paraît en tête
+de la carte Réglages, en bouton secondaire compact, quand la palette choisie
+a changé depuis l'ouverture de l'onglet, et il ne défait que ses réglages. La
+ligne fixe reste un état, comme dans Création ; un bouton n'y a pas sa place.
 
 Les mesures sur le fichier du mainteneur et sur la galerie :
 
@@ -379,22 +385,29 @@ boutons se coupent.
 |---|---|---|
 | C1 | Nom et place de l'onglet | « Harmonisation », entre Vérification et Gestion |
 | C2 | Choisir les palettes | Carte « Vos palettes » : toutes les palettes, case du socle à gauche du nom, 2 à 4 cochées ; aucun groupe rangé |
-| C3 | Comparer | Carte Comparaison : nuances alignées, composants en colonnes, Couleurs ou Niveaux de gris, constats en mots simples |
-| C4 | Harmoniser | Carte Réglages : une palette cochée à la fois, réglettes de Création, points des autres palettes sur la saturation et la luminosité |
+| C3 | Comparer | Carte Comparaison : nuances jointes et alignées, composants en colonnes, Couleurs ou Niveaux de gris, constats en mots simples sur le fond de leur ton |
+| C4 | Harmoniser | Carte Réglages : une palette cochée à la fois, réglettes de Création, points des autres palettes sur la saturation et la luminosité, « Annuler les modifications » pour la palette choisie |
 | C5 | Distinguer | Carte « Palettes trop proches » ; zone hachurée sur la teinte ; mots aux bouts des pistes ; ni modale, ni réglage automatique |
 | C6 | L'alerte | Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
 | C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; noms des palettes cochées et des paires trop proches ; vision des couleurs à la demande, sans alerte |
 | C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé sans chiffre, aucun encart |
-| C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; phrase sous les onglets ; palettes qui ont leur propre valeur, nommées dans chaque carte |
+| C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; une phrase sous les onglets |
 
-## 12. Défaut relevé dans le plugin actuel
+## 12. Défauts relevés dans le plugin actuel
 
-À 480 px de large, le lien de chaque ligne du bilan de Vérification sort de la
+**Le bilan à 480 px.** À 480 px de large, le lien de chaque ligne du bilan de Vérification sort de la
 fenêtre : « Vérifier » s'affiche coupé (« Vérifi »). La grille
 `.bilan-des-palettes` ne déclare aucune colonne. Sa colonne implicite prend la
 largeur de contenu des lignes, dont le texte ne passe pas à la ligne : 468 px
 dans un conteneur de 449. `grid-template-columns: minmax(0, 1fr)` la ramène à
 449 px ; la maquette l'applique dans l'écran H7, mesure faite.
+
+**Deux sens de « Rétablir ».** Sous le sélecteur de Création, « Rétablir »
+refait ce qu'« Annuler les modifications » vient de défaire. Sur une réglette,
+« Rétablir » ramène la valeur par défaut. Le même mot porte deux actions dans
+le même onglet. La proposition ne tranche pas : elle
+garde « Rétablir » sur les réglettes, où la marque « par défaut » en dit le
+sens.
 
 ## 13. Limites
 
