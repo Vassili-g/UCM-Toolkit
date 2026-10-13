@@ -9,7 +9,7 @@ mainteneur. Huit décisions sont listées en section 6, neuf autres dans le doss
 |---|---|
 | [Qualité en interface](./Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html) | La règle de chroma : banc de composants, graphique par cran, notation à l'aveugle |
 | [Rôles et crans](./Maquettes/MAQUETTE-ROLES-ET-CRANS.html) | Le fond teinté sur la page et sur la carte, la couleur, la forme et le nom du focus |
-| [Comparer, harmoniser, différencier](./Maquettes/MAQUETTE-COMPARER.html) | Dix briques et trois parcours, détaillés dans le [dossier dédié](./DOSSIER-COMPARER.md) |
+| [Comparer et harmoniser](./Maquettes/MAQUETTE-COMPARER.html) | Valeurs par défaut dans Création, Configuration, onglet Harmonisation, sur les écrans réels du plugin ; détails dans le [dossier dédié](./DOSSIER-COMPARER.md) |
 
 La [préparation](./PREPARATION-CLAUDE-OPUS.md) et le
 [relevé d'Untitled UI](./ANALYSE-UNTITLED-UI.md) ont servi de point de départ.
@@ -169,13 +169,11 @@ aussi près de Tailwind que le relevé et ne demande aucune table de données.
 Elle donne un sens à chaque profil : Soft a des fonds calmes, proches de Radix,
 et des textes colorés ; Vivid suit Tailwind.
 
-Les valeurs de la section 3.4 deviennent le préréglage de la recette, rangé
-dans les réglages communs. Dans Création, la carte « Réglage global » résume
-aujourd'hui « Aucun réglage » ; elle dira « Préréglage » ou « Personnalisé »
-quand la saturation ou la luminosité d'un profil s'en écarte, avec un bouton
-« Revenir au préréglage ». Le même geste, appliqué à plusieurs palettes, est
-« Harmoniser » dans l'onglet Comparer (section 5.2). Les teintes et le Color
-shift de teinte restent hors du préréglage : ce sont des choix de couleur.
+Les valeurs de la section 3.4 deviennent les valeurs par défaut de la
+recette, rangées dans la Configuration. Dans Création, chaque réglette de la
+carte « Réglage global » marque sa valeur par défaut, et « Rétablir » y ramène
+(section 5). Les teintes et le Color shift de teinte n'ont pas d'autre valeur
+par défaut que zéro : ce sont des choix de couleur.
 
 Une recette existante doit rendre les mêmes couleurs après la mise à jour. La
 règle se range donc dans la recette, et une recette au format 10 se lit avec la
@@ -303,19 +301,19 @@ Le [dossier dédié](./DOSSIER-COMPARER.md) repense le sujet à partir de toutes
 les recherches d'interface antérieures et des retours du mainteneur. Ses
 conclusions :
 
-- Création reste consacrée à une seule palette. Ses cartes Réglage global et
-  Color shift chiffrent leurs écarts et montrent, sur chaque réglette, le point
-  de départ et l'écart.
-- Les réglages communs, derrière l'engrenage, portent leur nom, disent à quoi
-  ils servent et nomment les palettes qui s'en écartent.
-- Un onglet Comparer montre toutes les palettes en une ligne de nuances
-  chacune, et 2 à 4 palettes cochées sur des composants. Il porte deux gestes :
-  rétablir les valeurs communes, écarter deux teintes.
-- Aucun groupe n'est rangé.
+- Création reste consacrée à une seule palette. Chaque réglette de Réglage
+  global et de Color shift marque sa valeur par défaut et nomme ses deux bouts.
+- Les réglages communs deviennent la Configuration, en deux onglets : Palettes,
+  pour les valeurs par défaut des palettes, et Général, pour la langue.
+- Un onglet Harmonisation, entre Vérification et Gestion, liste toutes les
+  palettes, compare 2 à 4 palettes cochées et règle chacune avec les réglettes
+  de Création. Une zone hachurée montre, sur la teinte, les valeurs trop
+  proches d'une autre palette.
+- Aucun groupe n'est rangé, et aucun bouton ne règle à la place du designer.
 
-Les mesures de la première version restent valables : hors ◆, l'écart de
-clarté passe de 0,016–0,047 à 0,002–0,003 au retour aux valeurs communes, sans
-garantie perdue.
+Les mesures de la première version restent valables : hors ◆, la différence
+de clarté passe de 0,016–0,047 à 0,002–0,003 quand les palettes reviennent à
+leurs valeurs par défaut, sans garantie perdue.
 
 ## 6. Décisions
 
@@ -323,7 +321,7 @@ garantie perdue.
 |---|---|---|
 | Q1 | La règle de chroma | L'enveloppe |
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85, a 0,6) ; Vivid : Tailwind (0,95, a 1,1) |
-| Q3 | Les valeurs par défaut | Celles de Q2, dans les réglages communs ; une palette qui s'en écarte le dit en chiffres et propose « Tout rétablir » ; les recettes au format 10 gardent la part constante |
+| Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Rétablir » y ramène ; les recettes au format 10 gardent la part constante |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté | Translucide, calculé contre la carte en Light et la page en Dark |
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
@@ -335,7 +333,7 @@ garantie perdue.
 
 | Décision | Fichiers et migrations |
 |---|---|
-| Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface des réglages communs ; tests de propriétés et de lecture du format 10 |
+| Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
 | Q5 | `packages/kit/src/emplois/dossiers.ts` et `garanties.ts` (fonds composés) ; recette (fond des cartes) ; écriture des primitives alpha dans Palettes ; `diagnostic-contrastes.mjs` de `ucm check` ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
 | C1 à C9 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |

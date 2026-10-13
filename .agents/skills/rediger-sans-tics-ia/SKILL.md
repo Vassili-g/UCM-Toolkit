@@ -79,7 +79,7 @@ Dans ce cas, écrire le fait, pas l'effet de style.
 
 ## Tours relevés en relecture
 
-Les huit tours ci-dessous ont été relevés dans les documents du dépôt. Ils
+Les neuf tours ci-dessous ont été relevés dans les documents du dépôt. Ils
 survivent à une relecture à l'oreille, parce que leur cadence est régulière. Le
 test porte donc sur la structure de la phrase.
 
@@ -212,6 +212,27 @@ que chaque relative suit immédiatement le nom auquel elle se rattache.
 Règle : une phrase porte au plus une subordonnée, et une relative se rattache
 au nom qui la précède.
 
+### Le diptyque sans verbe
+
+Deux groupes nominaux joints par « et », chacun suivi d'une relative sur le
+même patron : « ce qui X, et le N qui Y ». L'ensemble n'a pas de verbe
+principal. Le second verbe perd souvent son complément : « le geste qui
+corrige » ne dit pas ce qu'il corrige. La forme sonne comme un slogan et se
+glisse surtout dans les titres, les sous-titres et les légendes.
+
+Relevé : « Ce qui écarte ces palettes, et le geste qui corrige », sous-titre
+d'une carte de maquette ; « un constat, un geste ».
+
+Test : chercher le verbe principal, puis le complément de chaque verbe
+transitif. Sans verbe principal, ou avec un verbe transitif privé de son
+objet, la phrase annonce un contenu sans le dire.
+
+Règle : un titre nomme ce que l'écran montre. Un sous-titre est une phrase
+complète qui dit ce que le lecteur y voit ou y fait, avec un verbe et son
+objet. Ici : « Ces palettes se ressemblent trop. Réglez la teinte de l'une
+d'elles. » Dans un texte affiché au designer, nommer l'action ou le bouton :
+« geste » appartient au vocabulaire des contributeurs.
+
 ## Adapter la forme
 
 Une documentation de référence décrit l'état actuel et sépare les genres de
@@ -238,9 +259,10 @@ cours.
 5. Le rythme semble-t-il chercher à convaincre par une formule, une opposition
    ou une métaphore ? Réécrire en phrase déclarative.
 6. Les tests de la section « Tours relevés en relecture » passent-ils sur chaque
-   paragraphe ? Quatre d'entre eux se vérifient sans connaître le sujet :
+   paragraphe ? Cinq d'entre eux se vérifient sans connaître le sujet :
    couper à la virgule, compter les verbes conjugués, chercher un « qui » sans
-   antécédent, chercher un sujet humain indéfini.
+   antécédent, chercher un sujet humain indéfini, chercher le verbe principal
+   d'un titre ou d'un sous-titre.
 
 Pour le contexte et les raisons de ces choix, lire
 [`references/recherches.md`](references/recherches.md) uniquement lors d'une

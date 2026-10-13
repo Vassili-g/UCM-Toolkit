@@ -1,15 +1,15 @@
 /**
- * Les données de la maquette Comparer (`../Maquettes/donnees-ensembles.js`) : deux jeux de
+ * Les données de la maquette Harmonisation (`../Maquettes/donnees-ensembles.js`) : deux jeux de
  * palettes, le fichier du mainteneur et les vingt palettes « à vérifier » de la galerie. Pour
- * chaque palette : ses rampes, son ancrage, ses écarts aux valeurs communes et ses rampes une
- * fois ces valeurs rétablies. Pour chaque jeu : les paires qui se confondent et la plus petite
- * rotation de teinte qui sépare chacune.
+ * chaque palette : ses rampes, son ancrage, ses réglages et leurs valeurs par défaut. Pour chaque
+ * jeu : les huit paires les plus proches, et pour la première paire en alerte qu'un réglage de
+ * teinte sépare, ses rampes et son verdict à chaque degré de la réglette de teinte.
  */
 import { writeFileSync } from 'node:fs';
 import { ecrireHexa, lireHexa, rgb8VersOklch, oklchVersOklab } from '../../../../../../packages/couleur/src/conversions';
 import { referenceReglee } from '../../../../../../packages/couleur/src/reglages';
 import { boutsDe } from '../../../../../../packages/couleur/src/nuances';
-import { ancrageDe, cleDuPorteur, departDe, profilPorteur, rampesDe } from '../../../../../../packages/couleur/src/palette';
+import { ancrageDe, cleDuPorteur, departDe, partsDe, profilPorteur, rampesDe } from '../../../../../../packages/couleur/src/palette';
 import { recetteParDefaut, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import { prereglageTailwind } from '../../../../../../packages/couleur/src/tailwind';
 import { TABLE_DES_DOSSIERS, sensDuTheme } from '../../../../../../packages/kit/src/emplois/dossiers';
@@ -17,7 +17,7 @@ import { RECETTE_REELLE, valider } from './variantes';
 
 const fr = (x: number, n = 2) => x.toFixed(n).replace('.', ',').replace('-', '−');
 const signe = (x: number) => `${x > 0 ? '+' : ''}${fr(x, 3).replace(/0+$/, '').replace(/,$/, '')}`;
-// La distance visée par « Écarter » ; l'alerte garde le seuil `palettesProches` de la recette.
+// Les distances qui classent les paires, par famille de rôle ; l'alerte garde le seuil `palettesProches` de la recette.
 const SEUILS: Record<string, number> = { solid: 0.1, foreground: 0.06 };
 // Les fonds teintés clairs sont peu saturés par construction : à vingt palettes, les compter donnait 46 paires.
 // Une confusion se juge sur ce qui porte le statut, le plein et le texte.
@@ -88,6 +88,22 @@ function proximite(recette: Recette, a: Palette, b: Palette) {
   return pire!;
 }
 
+/** La plus petite distance d'une paire, sur le plein et le texte, dans les deux thèmes : l'alerte la compare au seuil de la recette. */
+function distanceMin(recette: Recette, a: Palette, b: Palette) {
+  const couleur = (p: Palette, mode: 'light' | 'dark', v: string) => {
+    const r = rampesDe(recette, p);
+    const rampe = (r.vivid ?? r.unique)![mode];
+    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, recette.texteDesBoutons[mode])] as Record<string, number>;
+    return rampe[recette.crans.indexOf(table[v])].hexa;
+  };
+  let pire = { e: Infinity, mode: '', role: '' };
+  for (const mode of ['light', 'dark'] as const) for (const [v, , role] of ROLES) {
+    const e = dE(couleur(a, mode, v), couleur(b, mode, v));
+    if (e < pire.e) pire = { e, mode, role };
+  }
+  return pire;
+}
+
 /** La palette tournée de `degres` par le réglage de teinte de la carte ; `null` hors de la borne de ±30°. */
 function tourner(recette: Recette, p: Palette, degres: number): Recette | null {
   const teinte: Record<string, number> = {};
@@ -110,7 +126,9 @@ function jeu(id: string, titre: string, recette: Recette) {
   const palettes = recette.palettes.map((p) => {
     const ecarts = ecartsDe(recette, p);
     const communes = ecarts.length ? enHexa(rampesDe(valider({ ...recette, palettes: recette.palettes.map((q) => (q.id === p.id ? retablie(q) : q)) }), retablie(p))) : null;
-    return { id: p.id, nom: p.nom ?? p.id, reference: p.reference, intensites: p.intensites ?? 2, ancrage: ancrageDe(recette, p), rampes: enHexa(rampesDe(recette, p)), ecarts, communes };
+    // Les valeurs des réglettes de la carte Réglage global, et celles que « Rétablir » leur rend.
+    const reglages = { teinte: p.reglages?.teinte ?? {}, luminosite: p.reglages?.clarte ?? {}, saturation: partsDe(recette, p), saturationParDefaut: partsDe(recette, retablie(p)) };
+    return { id: p.id, nom: p.nom ?? p.id, reference: p.reference, intensites: p.intensites ?? 2, porteur: cleDuPorteur(recette, p), ancrage: ancrageDe(recette, p), rampes: enHexa(rampesDe(recette, p)), ecarts, communes, reglages };
   });
   const paires = [];
   // Un neutre n'a pas de teinte à confondre.
@@ -120,25 +138,39 @@ function jeu(id: string, titre: string, recette: Recette) {
     paires.push({ a: colorees[i], b: colorees[k], m });
   }
   paires.sort((x, y) => x.m.r - y.m.r);
-  const proches = [];
+  const proches: Record<string, unknown>[] & { a: string; b: string; alerte: boolean }[] = [];
   // Les huit paires les plus proches, relativement à la distance visée ; l'alerte ne vise que celles sous le seuil de la recette.
   for (const { a, b, m } of paires.slice(0, 8)) {
-    const rotations = [];
-    // Une paire déjà à la distance visée n'appelle aucune rotation.
-    for (const p of m.r >= 1 ? [] : [a, b]) for (const sens of [1, -1]) {
-      for (let d = 1; d <= 30; d += 1) {
-        const r = tourner(recette, p, sens * d);
-        if (!r) { if (Math.abs(d) >= 30) break; continue; }
-        const autre = r.palettes.find((q) => q.id === (p.id === a.id ? b.id : a.id))!;
-        if (proximite(r, r.palettes.find((q) => q.id === p.id)!, autre).r >= 1) {
-          rotations.push({ palette: p.nom, degres: sens * d, rampes: enHexa(rampesDe(r, r.palettes.find((q) => q.id === p.id)!)) });
-          break;
-        }
-      }
-    }
-    proches.push({ a: a.nom, b: b.nom, distance: +m.e.toFixed(3), rapport: +m.r.toFixed(2), alerte: m.e < recette.seuils.palettesProches, mode: m.mode, role: m.role, rotations });
+    const d = distanceMin(recette, a, b);
+    proches.push({ a: a.nom, b: b.nom, distance: +d.e.toFixed(3), rapport: +m.r.toFixed(2), alerte: d.e < recette.seuils.palettesProches, mode: d.mode, role: d.role });
   }
-  return { id, titre, crans: recette.crans, fonds: recette.fonds, texteDesBoutons: recette.texteDesBoutons, communes: { soft: recette.profils.soft.part, vivid: recette.profils.vivid.part }, palettes, paires: proches, seuilAlerte: recette.seuils.palettesProches };
+  // Pour chaque paire en alerte, chaque degré de la réglette de teinte de chacune : trop proche ou non.
+  // La paire de démonstration est celle qu'un plus petit réglage sépare ; seules ses rampes sont gardées.
+  let demonstration: { a: string; b: string; membres: Record<string, unknown> } | null = null;
+  let plusPetit = Infinity;
+  for (const paire of proches.filter((x) => x.alerte)) {
+    const membres: Record<string, { actuelle: number; valeurs: ({ v: number; proche: boolean; rampes: unknown } | null)[] }> = {};
+    let deplacement = Infinity;
+    for (const nom of [paire.a, paire.b]) {
+      const p = recette.palettes.find((q) => q.nom === nom)!;
+      const autre = recette.palettes.find((q) => q.nom === (nom === paire.a ? paire.b : paire.a))!;
+      const actuelle = p.reglages?.teinte?.[cleDuPorteur(recette, p)] ?? 0;
+      const valeurs = [];
+      for (let v = -30; v <= 30; v += 1) {
+        // Le degré de la valeur actuelle est la palette telle quelle ; `tourner` rend `null` pour une référence inchangée.
+        const r = Math.abs(v - actuelle) < 0.5 ? recette : tourner(recette, p, v - actuelle);
+        if (!r) { valeurs.push(null); continue; }
+        const tournee = r.palettes.find((q) => q.id === p.id)!;
+        const proche = distanceMin(r, tournee, autre).e < recette.seuils.palettesProches;
+        if (!proche) deplacement = Math.min(deplacement, Math.abs(v - actuelle));
+        valeurs.push({ v, proche, rampes: enHexa(rampesDe(r, tournee)) });
+      }
+      membres[nom] = { actuelle, valeurs };
+    }
+    Object.assign(paire, { deplacement: Number.isFinite(deplacement) ? deplacement : null, zones: Object.fromEntries(Object.entries(membres).map(([nom, m]) => [nom, m.valeurs.map((x) => (x ? (x.proche ? 1 : 0) : null))])) });
+    if (deplacement < plusPetit) { plusPetit = deplacement; demonstration = { a: paire.a, b: paire.b, membres }; }
+  }
+  return { id, titre, crans: recette.crans, fonds: recette.fonds, texteDesBoutons: recette.texteDesBoutons, communes: { soft: recette.profils.soft.part, vivid: recette.profils.vivid.part }, palettes, paires: proches, demonstration, seuilAlerte: recette.seuils.palettesProches };
 }
 
 const donnees = {
@@ -147,6 +179,8 @@ const donnees = {
 };
 writeFileSync(new URL('../Maquettes/donnees-ensembles.js', import.meta.url), `// Généré par Mesures/generer-ensembles.ts ; ne pas modifier à la main.\nwindow.ENSEMBLES = ${JSON.stringify(donnees)};\n`);
 for (const j of donnees.jeux) {
-  console.log(`${j.titre} : ${j.palettes.length} palettes, ${j.palettes.filter((p) => p.ecarts.length).length} écartées, ${j.paires.filter((p) => p.alerte).length} alertes`);
-  for (const p of j.paires.slice(0, 8)) console.log(`  ${p.alerte ? '!' : ' '} ${p.a} · ${p.b} ${p.role} ${p.mode} ${p.distance} → ${p.rotations.map((r) => `${r.palette} ${r.degres}°`).join(', ') || 'aucune rotation'}`);
+  console.log(`${j.titre} : ${j.palettes.length} palettes, ${j.palettes.filter((p) => p.ecarts.length).length} réglées, ${j.paires.filter((p) => p.alerte).length} alertes`);
+  for (const p of j.paires.slice(0, 8)) console.log(`  ${p.alerte ? '!' : ' '} ${p.a} · ${p.b} ${p.role} ${p.mode} ${p.distance}`);
+  for (const p of j.paires.filter((x) => x.alerte)) console.log(`  ${p.a} · ${p.b} : séparées en ${(p as { deplacement?: number | null }).deplacement ?? 'aucun réglage'}°`);
+  console.log(`  démonstration : ${j.demonstration ? `${j.demonstration.a} · ${j.demonstration.b}` : 'aucune'}`);
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Comparer et lire les écarts</title>
+<title>Comparer et harmoniser</title>
 <style>
   :root { --texte: #f2f2f2; --second: #a6a6a6; --filet: #444; --marque: #4aa3ff; --fond: #1e1e1e; --bloc: #2c2c2c; }
   * { box-sizing: border-box; }
@@ -15,15 +15,17 @@
   a { color: var(--marque); text-decoration: none; }
   .chapeau { color: var(--second); }
   nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; }
-  table { border-collapse: collapse; margin: 8px 0; }
+  table { border-collapse: collapse; margin: 8px 0; max-width: 1180px; }
   th, td { padding: 6px 10px; border-bottom: 1px solid var(--filet); text-align: left; vertical-align: top; font-size: 12px; }
   th { color: var(--second); font-weight: 600; }
+  td.groupe { color: var(--second); white-space: nowrap; }
+  tr.retenu td:first-child { font-weight: 700; }
   code { font: 11px ui-monospace, Consolas, monospace; background: #333; padding: 1px 4px; border-radius: 3px; }
   .rangee { display: flex; gap: 24px; overflow-x: auto; padding-bottom: 14px; align-items: flex-start; }
   .cadre { flex: none; width: 482px; }
   .cadre > h3 span { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--texte); color: var(--fond); font-size: 10.5px; margin-right: 6px; }
   .cadre > p { margin: 0 0 8px; font-size: 12px; color: var(--second); min-height: 56px; }
-  .cadre ol, .cadre ul { margin: 10px 0 0; padding-left: 18px; font-size: 12px; color: var(--second); }
+  .cadre ol { margin: 10px 0 0; padding-left: 18px; font-size: 12px; color: var(--second); }
   .cadre li { margin-bottom: 4px; }
   .cadre li b { color: var(--texte); }
   iframe.ecran { display: block; width: 482px; border: 1px solid var(--filet); border-radius: 8px; background: #2c2c2c; }
@@ -41,53 +43,87 @@
 </head>
 <body>
 
-<h1>Comparer et lire les écarts</h1>
-<p class="chapeau">Chaque écran est l'écran réel du plugin, figé depuis la galerie en thème sombre, puis modifié pour montrer la proposition. Création reste consacrée à une seule palette. La comparaison vit dans un onglet dédié, qui passe à vingt palettes. Détails et décisions : <code>DOSSIER-COMPARER.md</code>.</p>
-<nav><a href="#retours">Tes retours</a><a href="#reglage">1. Les écarts d'une palette</a><a href="#communs">2. Les réglages communs</a><a href="#comparer">3. L'onglet Comparer</a><a href="#decisions">Décisions</a></nav>
+<h1>Comparer et harmoniser</h1>
+<p class="chapeau">Chaque écran est l'écran réel du plugin, figé depuis la galerie en thème sombre, puis modifié pour montrer la proposition. Les écrans de l'onglet Harmonisation répondent aux clics : cochez, glissez la teinte, changez de thème. Détails et décisions : <code>DOSSIER-COMPARER.md</code>.</p>
+<nav><a href="#retours">Tes retours</a><a href="#reglage">1. Réglage global</a><a href="#configuration">2. Configuration</a><a href="#harmonisation">3. L'onglet Harmonisation</a><a href="#decisions">Décisions</a></nav>
 
-<h2 id="retours">Tes retours et la réponse</h2>
+<h2 id="retours">Tes retours, point par point</h2>
 <table>
-  <thead><tr><th>Retour</th><th>Réponse</th></tr></thead>
+  <thead><tr><th>Sujet</th><th>Retour</th><th>Réponse</th></tr></thead>
   <tbody>
-    <tr><td>Le Réglage global n'est pas clair sur les écarts</td><td>Le résumé dit chaque écart en chiffres ; chaque réglette montre son point de départ et l'écart ; « Rétablir » ne s'active que sur une valeur modifiée ; « Tout rétablir » en pied de carte (section 1).</td></tr>
-    <tr><td>Qu'est-ce que les réglages communs, et où les voir ?</td><td>Le panneau de l'engrenage, en haut à droite : les valeurs que toutes les palettes partagent. Le bouton porte son nom, le panneau dit à quoi il sert, et chaque carte nomme les palettes qui s'en écartent (section 2).</td></tr>
-    <tr><td>Le nuancier n'apparaît que sans palette ouverte</td><td>L'onglet Comparer a sa propre liste de toutes les palettes, toujours visible, indépendante de la palette ouverte dans Création (section 3).</td></tr>
-    <tr><td>Plusieurs palettes dans Création, c'est bizarre</td><td>Abandonné. Création règle une palette, à une ou deux intensités.</td></tr>
-    <tr><td>Vingt palettes en composants, c'est trop</td><td>La vue d'ensemble montre toutes les palettes en une ligne de nuances chacune ; les composants ne s'affichent que pour 2 à 4 palettes cochées.</td></tr>
+    <tr><td class="groupe">Réglage global</td><td>L'encart du bas n'est pas compréhensible</td><td>Supprimé. Seul « Tout rétablir » reste, en tête du corps de la carte, à la place qu'il occupe dans Color shift.</td></tr>
+    <tr><td class="groupe"></td><td>La visualisation de l'écart n'est pas utile</td><td>Retirée. Chaque réglette garde une seule marque : la valeur par défaut.</td></tr>
+    <tr><td class="groupe"></td><td>« Départ » est mal choisi</td><td>« par défaut », sous la marque, seulement quand le pouce s'en éloigne. Les autres libellés sont comparés en section 1.</td></tr>
+    <tr><td class="groupe"></td><td>Les écarts chiffrés ne servent pas</td><td>Retirés. Le résumé de la carte repliée dit « Par défaut » ou nomme les réglages modifiés, sans chiffre.</td></tr>
+    <tr><td class="groupe"></td><td>« Saturation et luminosité partent des valeurs communes »</td><td>Supprimée : le designer n'a pas à savoir d'où vient la valeur par défaut pour s'en servir.</td></tr>
+    <tr><td class="groupe"></td><td>On ne sait pas ce que fait « Réglages communs › »</td><td>Retiré de la carte.</td></tr>
+    <tr><td class="groupe">Configuration</td><td>Les réglages communs sont la configuration</td><td>Renommés « Configuration », comme la page de Contract Exporter.</td></tr>
+    <tr><td class="groupe"></td><td>La langue n'a rien à voir avec les palettes</td><td>Deux onglets, comme dans Contract Exporter : Palettes, et Général pour la langue.</td></tr>
+    <tr><td class="groupe">Onglet</td><td>Après Vérification</td><td>Création, Vérification, Harmonisation, Gestion.</td></tr>
+    <tr><td class="groupe"></td><td>Un nom en « -ion »</td><td>« Harmonisation ». Six noms comparés en section 3.</td></tr>
+    <tr><td class="groupe"></td><td>« Ce qui écarte ces palettes, et le geste qui corrige »</td><td>Tournure analysée et bannie dans la skill <code>rediger-sans-tics-ia</code> (« Le diptyque sans verbe »). « Écarter » ne paraît plus : l'écran dit « trop proches », « se ressemblent », « se distinguent ».</td></tr>
+    <tr><td class="groupe"></td><td>On ne comprend pas ce que montre « Toutes les palettes »</td><td>Carte « Vos palettes » : une phrase dit quoi cocher, les numéros 50 à 950 titrent les colonnes.</td></tr>
+    <tr><td class="groupe"></td><td>Les cases ressemblent au carré du texte sur plein</td><td>La colonne du texte sur plein disparaît ; la case bleue de Figma passe à gauche du nom ; une palette cochée surligne sa ligne.</td></tr>
+    <tr><td class="groupe"></td><td>« Points à regarder » : titre nul, problèmes incompris</td><td>« Palettes trop proches ». Chaque ligne montre les deux couleurs en cause, dans le thème en cause, et dit lesquelles en mots simples.</td></tr>
+    <tr><td class="groupe"></td><td>« Rétablir » pour n palettes est dangereux</td><td>Retiré. Une palette se rétablit seule, dans Création ou dans la carte Réglages.</td></tr>
+    <tr><td class="groupe"></td><td>Rotation, « Tourner Terracota », un seul bouton dans une modale</td><td>Retirés. La carte Réglages porte les réglettes de Création : le designer règle lui-même, la comparaison suit en direct. Une zone hachurée montre les teintes trop proches ; les bouts disent « plus rose », « plus orange ».</td></tr>
+    <tr><td class="groupe"></td><td>Fond blanc sous la roue</td><td>La roue se pose sur le fond de page de l'aperçu : blanc en Light.</td></tr>
+    <tr><td class="groupe"></td><td>« Orange et Terracota : » ne montre pas qu'on compare deux palettes</td><td>Les deux noms ont le même style, « Terracota et Poppy », au-dessus des deux couleurs en cause.</td></tr>
+    <tr><td class="groupe"></td><td>« le plein, ΔEok 0,079 » est incompréhensible</td><td>« Textes sur fond teinté trop proches, en Dark ». Aucun ΔEok à l'écran, Vérification comprise.</td></tr>
+    <tr><td class="groupe"></td><td>Un vrai outil de comparaison et d'harmonisation</td><td>Carte Comparaison : nuances alignées, composants côte à côte, niveaux de gris pour la clarté, constats en mots simples. Carte Réglages : une palette à la fois, les points des autres palettes sur ses réglettes.</td></tr>
   </tbody>
 </table>
 
-<h2 id="reglage">1. Les écarts d'une palette, dans Création</h2>
-<p class="chapeau">L'état « référence modifiée » de la galerie : Vivid porte la référence, sa luminosité vaut −0,02, Soft a une teinte réglée.</p>
+<h2 id="reglage">1. Réglage global, dans Création</h2>
+<p class="chapeau">L'état « référence modifiée » de la galerie : Vivid porte la référence, sa luminosité vaut −0,02, Soft a une teinte de +8°. La proposition retire l'encart et la marque d'écart. Elle garde une marque par réglette, la valeur par défaut, et des mots aux deux bouts de chaque piste.</p>
+<table>
+  <thead><tr><th>Libellé de la marque</th><th>Pour</th><th>Contre</th></tr></thead>
+  <tbody>
+    <tr class="retenu"><td>par défaut</td><td>Le mot de toutes les interfaces pour une valeur qu'on n'a pas choisie. Il relie la marque à la Configuration, qui règle les valeurs par défaut des palettes.</td><td>Deux mots.</td></tr>
+    <tr><td>défaut</td><td>Court.</td><td>Se lit aussi « imperfection ».</td></tr>
+    <tr><td>initial</td><td>Court, courant.</td><td>Ambigu : la valeur à l'ouverture de la palette, ou à sa création ?</td></tr>
+    <tr><td>config.</td><td>Nomme la source.</td><td>Abrégé, technique ; ne dit pas que la palette n'a rien réglé.</td></tr>
+    <tr><td>standard</td><td>Court.</td><td>Ne dit pas d'où vient la valeur.</td></tr>
+    <tr><td>référence, départ, préréglage</td><td></td><td>« Référence » désigne déjà la couleur de référence ; « départ » ne dit pas que c'est une valeur par défaut ; « préréglage » nomme déjà le choix de courbe de Color shift.</td></tr>
+  </tbody>
+</table>
+<div class="commandes"><span>Libellé sous la marque</span><div class="bascule" data-commande="libelle"></div></div>
 <div class="rangee" id="r-reglage"></div>
 
-<h2 id="communs">2. Les réglages communs</h2>
-<p class="chapeau">Le panneau qui s'ouvre par l'engrenage, en haut à droite de chaque onglet. Il porte les valeurs que toutes les palettes partagent : fonds, intensités Soft et Vivid, luminosité des nuances, seuils. Une palette s'en écarte par son Réglage global ou son Color shift.</p>
-<div class="rangee" id="r-communs"></div>
+<h2 id="configuration">2. Configuration</h2>
+<p class="chapeau">Le panneau qui s'ouvre par l'engrenage, en haut à droite. Il prend le nom et les onglets de la page de configuration de Contract Exporter : le composant d'onglets du socle, puis une phrase qui dit ce que l'onglet règle.</p>
+<div class="rangee" id="r-configuration"></div>
 
-<h2 id="comparer">3. L'onglet Comparer</h2>
-<p class="chapeau">Un quatrième onglet, après Création. Il montre toutes les palettes, signale ce qui les écarte, et porte les deux gestes de groupe : rétablir les valeurs communes, écarter deux teintes.</p>
-<div class="commandes">
-  <span>Jeu</span><div class="bascule" data-commande="jeu"></div>
-  <span>Aperçu</span><div class="bascule" data-commande="mode"></div>
-  <span>Intensité</span><div class="bascule" data-commande="intensite"></div>
-</div>
-<div class="rangee" id="r-comparer-1"></div>
-<div class="rangee" id="r-comparer-2"></div>
+<h2 id="harmonisation">3. L'onglet Harmonisation</h2>
+<p class="chapeau">Un quatrième onglet, entre Vérification et Gestion. Il compare des palettes, signale celles qui se ressemblent trop, et règle chacune avec les réglettes de Création. Rien ne s'y règle en groupe : le designer déplace une réglette à la fois, en voyant les autres palettes.</p>
+<table>
+  <thead><tr><th>Nom de l'onglet</th><th>Pour</th><th>Contre</th></tr></thead>
+  <tbody>
+    <tr class="retenu"><td>Harmonisation</td><td>Dit le but : accorder les palettes entre elles. Comparer et distinguer en font partie. Tient dans la barre à 480 px.</td><td>Le plus long des quatre onglets.</td></tr>
+    <tr><td>Comparaison</td><td>Dit ce qu'on voit.</td><td>Ne dit pas qu'on y règle.</td></tr>
+    <tr><td>Cohésion</td><td>Court.</td><td>Abstrait ; aucun outil du marché ne l'emploie.</td></tr>
+    <tr><td>Distinction</td><td>Dit la différenciation.</td><td>Oublie l'harmonie de la clarté et de la saturation.</td></tr>
+    <tr><td>Coordination</td><td></td><td>Évoque une organisation d'équipe.</td></tr>
+    <tr><td>Juxtaposition</td><td>Exact pour la vue.</td><td>Long, technique.</td></tr>
+  </tbody>
+</table>
+<div class="commandes"><span>Jeu</span><div class="bascule" data-commande="jeu"></div></div>
+<div class="rangee" id="r-harmonisation-1"></div>
+<div class="rangee" id="r-harmonisation-2"></div>
 
 <h2 id="decisions">Décisions</h2>
 <table>
   <thead><tr><th>#</th><th>Décision</th><th>Proposition</th></tr></thead>
   <tbody>
-    <tr><td>C1</td><td>Où comparer</td><td>Un onglet Comparer après Création. Création règle une seule palette.</td></tr>
-    <tr><td>C2</td><td>Choisir les palettes</td><td>Dans l'onglet : la liste de toutes les palettes, cases à cocher pour le détail ; aucun groupe rangé.</td></tr>
-    <tr><td>C3</td><td>Vingt palettes</td><td>Une ligne de nuances par palette pour toutes ; les composants pour 2 à 4 palettes cochées.</td></tr>
-    <tr><td>C4</td><td>Les écarts d'une palette</td><td>Résumé chiffré, départ et écart sur chaque réglette, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir ».</td></tr>
-    <tr><td>C5</td><td>Les réglages communs</td><td>Un bouton qui porte son nom ; une phrase qui dit à quoi sert le panneau ; dans chaque carte, les palettes qui s'en écartent.</td></tr>
-    <tr><td>C6</td><td>Ce que l'onglet signale</td><td>Les paires qui se confondent, au seuil des couleurs proches de la recette, sur le plein et le texte, dans les deux thèmes ; le compteur de l'onglet les compte. Les palettes qui s'écartent des valeurs communes s'affichent sans alerte.</td></tr>
-    <tr><td>C7</td><td>Rétablir les valeurs communes</td><td>Une modale qui coche les palettes écartées, avant et après ; teinte et référence intactes.</td></tr>
-    <tr><td>C8</td><td>Écarter deux teintes</td><td>La plus petite rotation qui atteint la distance visée (0,10 sur le plein, 0,06 sur le texte), par palette et par sens ; sinon, le dire.</td></tr>
-    <tr><td>C9</td><td>Visions des couleurs</td><td>Dans la carte Teintes, à la demande, sans alerte.</td></tr>
+    <tr><td>C1</td><td>Nom et place de l'onglet</td><td>« Harmonisation », entre Vérification et Gestion.</td></tr>
+    <tr><td>C2</td><td>Choisir les palettes</td><td>Carte « Vos palettes » : toutes les palettes, une case bleue à gauche du nom, 2 à 4 cochées.</td></tr>
+    <tr><td>C3</td><td>Comparer</td><td>Carte Comparaison : nuances alignées, composants côte à côte, Couleurs ou Niveaux de gris, constats en mots simples.</td></tr>
+    <tr><td>C4</td><td>Harmoniser</td><td>Carte Réglages : « Régler » une palette cochée à la fois, avec les réglettes de Création ; les points des autres palettes sur la saturation et la luminosité.</td></tr>
+    <tr><td>C5</td><td>Distinguer</td><td>Carte « Palettes trop proches » ; zone hachurée sur la réglette de teinte ; mots aux bouts des pistes. Ni modale, ni bouton qui règle à la place du designer.</td></tr>
+    <tr><td>C6</td><td>L'alerte</td><td>Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette. Compteur de l'onglet. Le constat dit les rôles et le thème, sans ΔEok, dans Vérification aussi.</td></tr>
+    <tr><td>C7</td><td>Roue des teintes</td><td>Repliée ; sur le fond de page de l'aperçu ; noms des palettes cochées et des paires trop proches ; visions des couleurs à la demande.</td></tr>
+    <tr><td>C8</td><td>Réglage global</td><td>Une marque « par défaut » par réglette, des mots aux bouts, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé « Par défaut » ou « Modifié : … », aucun encart.</td></tr>
+    <tr><td>C9</td><td>Configuration</td><td>Le panneau s'appelle « Configuration » ; onglets Palettes et Général ; une phrase sous les onglets ; dans chaque carte, les palettes qui ont leur propre valeur.</td></tr>
   </tbody>
 </table>
 
@@ -97,76 +133,141 @@
   const E = window.ENSEMBLES;
   const U = window.UCM;
   const fr = (x, n = 2) => x.toFixed(n).replace('.', ',').replace('-', '−');
-  const etat = { jeu: 'mainteneur', mode: 'light', intensite: 'vivid' };
+  const etat = { jeu: 'mainteneur', libelle: 'par défaut' };
 
-  // Les ajouts de la proposition, dans les variables du socle du plugin.
+  // ——— Couleurs : OKLCH vers sRGB, niveaux de gris, noms de teinte ———
+  const encoder = (x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055);
+  function lineaire(L, C, H) {
+    const a = C * Math.cos(H * Math.PI / 180); const b = C * Math.sin(H * Math.PI / 180);
+    const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s];
+  }
+  /** Une couleur OKLCH en hexa ; hors du gamut sRGB, la chroma baisse jusqu'à y entrer. */
+  function versHexa(L, C, H) {
+    L = Math.min(1, Math.max(0, L));
+    let c = C;
+    for (let k = 0; k < 24 && lineaire(L, c, H).some((x) => x < -1e-4 || x > 1 + 1e-4); k += 1) c *= 0.9;
+    return U.hexa(lineaire(L, c, H).map((x) => 255 * encoder(Math.min(1, Math.max(0, x)))));
+  }
+  /** Le gris de même clarté OKLab. */
+  const gris = (hexa) => { const v = 255 * encoder(U.oklch(hexa).L ** 3); return U.hexa([v, v, v]); };
+  const FAMILLES = [[0, 'rose'], [29, 'rouge'], [62, 'orange'], [100, 'jaune'], [145, 'vert'], [195, 'turquoise'], [255, 'bleu'], [300, 'violet']];
+  /** La famille de teinte voisine, dans le sens des degrés croissants (+1) ou décroissants (−1). */
+  function voisine(H, sens) {
+    let meilleure = null; let distance = 360;
+    for (const [centre, nom] of FAMILLES) {
+      const d = ((sens * (centre - H)) % 360 + 360) % 360;
+      if (d > 10 && d < distance) { distance = d; meilleure = nom; }
+    }
+    return meilleure;
+  }
+
   const CSS = `
-    .reglette-depart { position: absolute; top: 2px; bottom: 2px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--texte); }
-    .reglette-ecart { position: absolute; bottom: -6px; height: 3px; border-radius: 2px; background: var(--texte); }
+    .reglette-defaut { position: absolute; top: 3px; bottom: 3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--texte); pointer-events: none; }
+    .reglette-legende, .reglette-bout { position: absolute; top: 24px; font-size: 9.5px; line-height: 1; color: var(--texte-second); white-space: nowrap; pointer-events: none; }
+    .reglette-legende { transform: translateX(-50%); color: var(--texte); }
+    .reglette-bout.gauche { left: -7px; } .reglette-bout.droite { right: -7px; }
+    .reglette.avec-legende { padding-bottom: 13px; }
     .reglette .bouton-discret[disabled] { opacity: .35; cursor: default; }
+    .reglette .field-label .pastille-reglee { display: inline-block; margin-left: 5px; vertical-align: middle; }
     .fantome-du-profil { font-weight: 600; }
-    .pied-des-reglages { display: grid; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--bordure); }
-    .pied-des-reglages .ligne { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .legende-reglette { display: flex; gap: 12px; font-size: 10px; }
-    .legende-reglette i { display: inline-block; vertical-align: middle; margin-right: 4px; background: var(--texte); }
+    .tete-des-reglages { display: flex; justify-content: flex-end; }
+    .reglette-proche { position: absolute; top: 5px; height: 12px; background: repeating-linear-gradient(135deg, var(--texte-avertissement) 0 1.5px, transparent 1.5px 4.5px); box-shadow: inset 2px 0 var(--texte-avertissement), inset -2px 0 var(--texte-avertissement); pointer-events: none; }
+    .champ-nombre.champ-proche { box-shadow: inset 0 0 0 1px var(--texte-avertissement); }
+    .marque-palette { position: absolute; top: -9px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--fond); pointer-events: auto; }
+    .marque-palette::after { position: absolute; top: 9px; left: 3.5px; width: 2px; height: 7px; background: var(--texte-second); content: ''; }
     .icon-button.avec-libelle { width: auto; gap: 6px; padding: 0 10px; white-space: nowrap; font: inherit; font-size: var(--corps); font-weight: 600; color: var(--texte); }
     .icon-button.avec-libelle svg { display: inline-block; flex: none; width: 12px; height: 12px; fill: currentColor; }
     .cadre-zone .tete-de-la-palette { position: static !important; }
-    .preferences-du-poste { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--bordure); }
-    .intro-des-communs { margin: 0; }
-    .ecarts-des-communs { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--bordure); }
-    .comparer .nuancier-point { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
-    .comparer .nuancier-point[data-etat="ambre"] { background: rgb(243 181 63); }
-    .roue text { font: 9px Inter, sans-serif; fill: var(--texte-second); }
+    .lien-palette { color: var(--texte-marque); font-weight: 600; cursor: pointer; }
+    .propres { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--bordure); }
     .compteur-de-verification[data-ton="ambre"] { background: rgb(243 181 63); color: #1e1e1e; }
-    .comparer .nuancier-grille { row-gap: 3px; }
-    .comparer .nuancier-surface { --colonne-profil: 66px; --colonne-on-solid: 16px; }
-    .comparer .pastille { height: 18px; cursor: default; font-size: 9px; border-radius: 3px; }
-    .comparer .nuancier-profil { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; color: var(--encre-surface); font-weight: 600; }
-    .comparer .nuancier-profil .nuancier-point { margin-left: auto; }
-    .comparer .coche { display: grid; place-items: center; }
-    .comparer .coche input { margin: 0; width: 12px; height: 12px; }
-    .comparer .rangee-cochee .nuancier-profil { text-decoration: underline; text-underline-offset: 2px; }
-    .marques-des-crans { display: contents; }
-    .marques-des-crans span { display: grid; place-items: center; height: 8px; }
+    .harmonisation .tete-de-la-palette { display: flex; align-items: center; gap: 8px; }
+    .harmonisation .tete-de-la-palette h2 { margin-right: auto; }
+    .paires { display: grid; }
+    .paire { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--bordure); }
+    .paire:last-child { border-bottom: 0; }
+    .paire-couleurs { display: flex; gap: 3px; padding: 3px; border-radius: 5px; }
+    .paire-couleurs i { display: grid; place-items: center; width: 26px; height: 22px; border-radius: 4px; font: 600 11px Inter, sans-serif; font-style: normal; }
+    .paire-texte { display: grid; min-width: 0; font-size: 11px; line-height: 1.35; }
+    .paire-texte b, .paire-texte span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .paire-texte span { color: var(--texte-second); }
+    .liste-aide { margin: 0 0 6px; }
+    .liste { display: grid; grid-template-columns: 14px 78px repeat(11, minmax(0, 1fr)) 12px; column-gap: 6px; row-gap: 2px; align-items: center; font-size: 11px; }
+    .liste .numero { font-size: 9px; color: var(--texte-second); text-align: center; }
+    .liste .ligne-de-palette { display: contents; cursor: pointer; }
+    .liste .fond-de-ligne { grid-column: 1 / -1; height: 22px; border-radius: 4px; }
+    .liste .ligne-de-palette[data-cochee="true"] .fond-de-ligne { background: color-mix(in srgb, var(--fond-marque) 22%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fond-marque) 60%, transparent); }
+    .liste input { margin: 0 0 0 2px; width: 12px; height: 12px; cursor: pointer; }
+    .liste .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+    .liste .nuance { height: 14px; }
+    .liste .nuance:first-of-type { border-radius: 3px 0 0 3px; }
+    .liste .signal { color: var(--texte-avertissement); font-weight: 700; text-align: center; }
     .pied-de-carte { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
-    .detail { display: grid; gap: 6px; }
-    .detail-rangee { display: grid; grid-template-columns: 60px minmax(0, 1fr) auto auto; gap: 6px; align-items: center; font-size: 10.5px; }
-    .detail-rangee b { color: var(--encre-surface); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .mini-alerte { border-radius: 5px; padding: 5px 7px; font-size: 10px; line-height: 1.3; }
-    .mini-btn { height: 20px; padding: 0 7px; border-radius: 4px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; border: 1px solid transparent; }
-    .bilan-mini.paire i { flex: 1; }
-    .modale .liste-retablir { display: grid; }
-    .modale .retablir { display: grid; grid-template-columns: 16px 58px minmax(0, 1fr); gap: 6px 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--bordure); font-size: 11px; }
-    .modale .rampes { display: grid; gap: 2px; }
-    .modale .rampe { display: grid; grid-template-columns: 34px repeat(11, 1fr); gap: 1px; align-items: center; font-size: 9px; color: var(--texte-second); }
-    .modale .rampe i { height: 12px; }
-    .modale .retablir .ligne-secondaire { grid-column: 3; font-size: 10px; }
-    .apercus { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .apercus .detail-rangee { grid-template-columns: 50px minmax(0, 1fr) auto; font-size: 9.5px; }
-    .apercus .detail-rangee b { font-size: 9.5px; }
-    .apercus .detail-rangee .mini-btn:last-child { display: none; }
+    .surface { padding: 10px; border-radius: 6px; }
+    .nuances { display: grid; grid-template-columns: 70px repeat(11, minmax(0, 1fr)); column-gap: 3px; row-gap: 3px; align-items: center; font-size: 10.5px; margin-bottom: 12px; }
+    .nuances .numero { font-size: 9px; text-align: center; opacity: .7; }
+    .nuances b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nuances i { height: 20px; border-radius: 2px; }
+    .composants { display: grid; gap: 7px 8px; align-items: center; font-size: 10.5px; }
+    .composants b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+    .composants .btn-c { display: grid; place-items: center; height: 24px; border-radius: 5px; font-weight: 600; border: 1px solid transparent; }
+    .composants .message { padding: 6px 7px; border-radius: 5px; line-height: 1.3; }
+    .composants .lien { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+    .constats { display: grid; gap: 4px; margin-top: 8px; }
+    .constat { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; font-size: 11px; line-height: 1.4; }
+    .constat i { font-style: normal; font-weight: 700; text-align: center; }
+    .constat[data-ton="alerte"] i { color: var(--texte-avertissement); }
+    .constat[data-ton="ok"] i { color: var(--texte-succes); }
+    .constat[data-ton="info"] i { color: var(--texte-second); }
+    .reglages-harmonie { display: grid; }
+    .plaque { margin: 2px auto 0; border-radius: 8px; }
+    .roue text { font: 600 9.5px Inter, sans-serif; }
+    .harmonisation select.input { height: 24px; }
+    .bilan-des-palettes { grid-template-columns: minmax(0, 1fr); }
   `;
 
-  /** Un écran réel de la galerie, figé, modifié par `transformer`, cadré sur `zones` ou limité à `hauteur`. */
-  function ecran(hote, nom, { transformer, zones, hauteur } = {}) {
+  /** Masque un bout de piste que chevauche le libellé « par défaut ». */
+  function eviter(d) {
+    d.querySelectorAll('.reglette-course').forEach((course) => {
+      const legende = course.querySelector('.reglette-legende')?.getBoundingClientRect();
+      if (!legende) return;
+      course.querySelectorAll('.reglette-bout').forEach((bout) => {
+        const r = bout.getBoundingClientRect();
+        if (r.right + 6 > legende.left && r.left - 6 < legende.right) bout.style.visibility = 'hidden';
+      });
+    });
+  }
+
+  /** Un écran réel de la galerie, figé, modifié par `transformer`, cadré sur `zones` ou ajusté à son contenu. */
+  function ecran(hote, nom, { transformer, zones } = {}) {
     const cadre = document.createElement('iframe');
     cadre.className = 'ecran';
     cadre.setAttribute('scrolling', 'no');
     cadre.srcdoc = `<!doctype html><html lang="fr" class="${G[nom].classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/socle.css"><style>${CSS}</style></head><body>${G[nom].corps}</body></html>`;
-    cadre.addEventListener('load', () => {
+    const ajuster = () => {
       const d = cadre.contentDocument;
-      if (zones) { d.querySelectorAll('.pied-de-la-palette').forEach((e) => e.remove()); d.documentElement.classList.add('cadre-zone'); }
-      transformer?.(d);
-      setTimeout(() => {
-        if (!zones) { cadre.style.height = `${Math.min(hauteur ?? 4000, d.documentElement.scrollHeight)}px`; return; }
+      eviter(d);
+      if (zones) {
         const rects = zones.map((s) => d.querySelector(s)).filter(Boolean).map((e) => e.getBoundingClientRect());
         const haut = Math.min(...rects.map((r) => r.top)) + d.scrollingElement.scrollTop - 8;
         const bas = Math.max(...rects.map((r) => r.bottom)) + d.scrollingElement.scrollTop + 8;
         cadre.style.height = `${bas - haut}px`;
         d.documentElement.style.overflow = 'hidden';
         d.scrollingElement.scrollTop = haut;
-      }, 60);
+        return;
+      }
+      cadre.style.height = '0px';
+      cadre.style.height = `${d.documentElement.scrollHeight}px`;
+    };
+    cadre.addEventListener('load', () => {
+      const d = cadre.contentDocument;
+      d.documentElement.style.overflowY = 'hidden';
+      if (zones) { d.querySelectorAll('.pied-de-la-palette').forEach((e) => e.remove()); d.documentElement.classList.add('cadre-zone'); }
+      transformer?.(d, () => setTimeout(ajuster, 0));
+      setTimeout(ajuster, 60);
     });
     hote.append(cadre);
   }
@@ -182,40 +283,46 @@
   };
   const el = (d, html) => { const t = d.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
-  // ——— 1. Les écarts d'une palette ———
-  /** Le point de départ et l'écart sur une réglette ; rend vrai quand la valeur a bougé. */
-  function marquer(d, ligne, depart) {
+  // ——— 1. Réglage global ———
+  /** La marque par défaut d'une réglette réelle, son libellé quand le pouce s'en éloigne, et les mots des deux bouts ; rend vrai quand la valeur a bougé. */
+  function marquer(d, ligne, defaut, bouts) {
     const curseur = ligne.querySelector('.reglette-curseur');
     const course = ligne.querySelector('.reglette-course');
     const pouce = ligne.querySelector('.reglette-pouce');
     if (!curseur || !course || !pouce) return false;
     const min = +curseur.getAttribute('aria-valuemin'); const max = +curseur.getAttribute('aria-valuemax');
-    const x0 = ((depart - min) / (max - min)) * 100; const ici = parseFloat(pouce.style.left);
-    course.append(el(d, `<span class="reglette-depart" style="left:${x0}%" title="Départ"></span>`));
-    if (Math.abs(ici - x0) <= 0.5) return false;
-    course.append(el(d, `<span class="reglette-ecart" style="left:${Math.min(ici, x0)}%;width:${Math.abs(ici - x0)}%"></span>`));
-    return true;
+    const x0 = ((defaut - min) / (max - min)) * 100; const ici = parseFloat(pouce.style.left);
+    const valeur = ligne.querySelector('input')?.getAttribute('value');
+    course.append(el(d, `<span class="reglette-defaut" style="left:${x0}%" title="Valeur par défaut"></span>`));
+    ligne.classList.add('avec-legende');
+    const loin = Math.abs(ici - x0) > 4;
+    if (loin) course.append(el(d, `<span class="reglette-legende" style="left:${x0}%">${etat.libelle}</span>`));
+    if (bouts) course.append(el(d, `<span class="reglette-bout gauche">${bouts[0]}</span>`), el(d, `<span class="reglette-bout droite">${bouts[1]}</span>`));
+    const modifiee = Math.abs(ici - x0) > 0.5;
+    const retablir = ligne.querySelector('.bouton-discret');
+    if (modifiee) {
+      ligne.querySelector('.field-label').append(el(d, '<span class="pastille-reglee" aria-hidden="true"></span>'));
+      retablir.title = `Revenir à la valeur par défaut, au lieu de ${valeur}`;
+    } else retablir.setAttribute('disabled', '');
+    return modifiee;
   }
+  const BOUTS = { Saturation: ['plus terne', 'plus vive'], Luminosité: ['plus foncée', 'plus claire'] };
   function reglagePropose(d) {
     const carte = d.querySelector('.carte[aria-label="Réglage global"]');
     const resume = carte.querySelector('.carte-resume');
-    resume.textContent = 'Vivid : luminosité −0,02 · Soft : teinte +8°';
+    resume.textContent = 'Modifié : teinte de Soft, luminosité de Vivid';
     resume.title = resume.textContent;
-    const ecarts = [];
-    carte.querySelectorAll('.reglette.reglage-de-la-palette').forEach((ligne) => {
+    const corps = carte.querySelector('.reglages-de-la-palette');
+    corps.prepend(el(d, '<div class="tete-des-reglages"><button type="button" class="bouton-discret">Tout rétablir</button></div>'));
+    corps.querySelectorAll('.reglette.reglage-de-la-palette').forEach((ligne) => {
       const nom = ligne.querySelector('.field-label').textContent.trim();
-      // La saturation du profil qui porte la référence part de la part de la référence : sa valeur actuelle dans cet état.
-      const depart = nom === 'Saturation' ? +ligne.querySelector('.reglette-curseur').getAttribute('aria-valuenow') : 0;
-      if (marquer(d, ligne, depart)) ecarts.push(`${nom.toLowerCase()} ${ligne.querySelector('input').getAttribute('value')}`);
-      else ligne.querySelector('.bouton-discret').setAttribute('disabled', '');
+      // La saturation du profil qui porte la référence vaut par défaut la part de la référence : sa valeur dans cet état.
+      const defaut = nom === 'Saturation' ? +ligne.querySelector('.reglette-curseur').getAttribute('aria-valuenow') : 0;
+      const absolu = parseFloat(ligne.querySelector('.absolu-du-reglage')?.textContent ?? '0');
+      marquer(d, ligne, defaut, nom === 'Teinte' ? [`plus ${voisine(absolu, -1)}`, `plus ${voisine(absolu, 1)}`] : BOUTS[nom]);
       const fantome = ligne.querySelector('.fantome-du-profil');
       if (fantome) fantome.textContent = 'Soft';
     });
-    carte.querySelector('.reglages-de-la-palette').append(el(d, `<div class="pied-des-reglages">
-      <div class="ligne"><span class="ligne-secondaire">Vivid s'écarte du départ : ${ecarts.join(', ')}.</span><button type="button" class="bouton-discret">Tout rétablir</button></div>
-      <div class="legende-reglette ligne-secondaire"><span><i style="width:2px;height:10px"></i>départ</span><span><i style="width:14px;height:3px"></i>écart</span><span><b>Soft</b> : valeur de l'autre profil</span></div>
-      <div class="ligne"><span class="ligne-secondaire">Saturation et luminosité partent des valeurs communes.</span><button type="button" class="bouton-discret">Réglages communs ›</button></div>
-    </div>`));
   }
   const ZONE_REGLAGE = ['.carte[aria-label="Réglage global"]'];
   /** Replie les cartes de réglage, comme à l'ouverture d'une palette ; le résumé remplace alors les choix. */
@@ -232,208 +339,451 @@
     }
   }
   const ZONE_REPLIEE = ['.carte[aria-label="Réglage global"]', '.carte[aria-label="Color shift"]'];
-  monter('r-reglage', 'Aujourd\'hui', 'Cartes repliées', 'À l\'ouverture d\'une palette, les cartes sont repliées : le résumé est tout ce qu\'on lit.', 'reglages-reference-modifiee', { zones: ZONE_REPLIEE, transformer: (d) => replier(d, { 'Réglage global': '', 'Color shift': '' }) },
-    '<ol><li>« Réglé » ne dit ni quoi, ni de combien, ni sur quel profil.</li></ol>');
-  monter('r-reglage', 'Proposé', 'Cartes repliées, écarts chiffrés', 'Le résumé nomme chaque valeur modifiée, par profil. Il se coupe avec des points de suspension ; le survol le donne en entier.', 'reglages-reference-modifiee', { zones: ZONE_REPLIEE, transformer: (d) => replier(d, { 'Réglage global': 'Vivid : luminosité −0,02 · Soft : teinte +8°', 'Color shift': 'Aucun réglage · synchronisé' }) },
-    '<ol><li><b>Les écarts se lisent sans ouvrir la carte.</b></li><li>Une carte sans écart garde « Aucun réglage ».</li></ol>');
-  monter('r-reglage', 'Aujourd\'hui', 'Réglage global', 'L\'écran actuel, réglé.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE },
-    '<ol><li>Le résumé dit « Réglé », sans dire quoi.</li><li>Aucune réglette ne montre d\'où elle part : « Rétablir » restaure une valeur que l\'écran ne dit pas.</li><li>« Rétablir » a le même poids sur une valeur réglée et sur une valeur intacte.</li><li>Le repère « S » est l\'autre profil ; rien ne le dit.</li><li>Rien ne relie ces valeurs aux réglages communs.</li></ol>');
-  monter('r-reglage', 'Proposé', 'Réglage global, écarts lisibles', 'Le même écran. Des ajouts seulement : aucune réglette ne change de place.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE, transformer: reglagePropose },
-    '<ol><li><b>Le résumé chiffre les écarts</b> de chaque profil, lisible carte repliée.</li><li><b>Un trait marque le départ</b> de chaque réglette ; un trait épais souligne l\'écart jusqu\'au pouce.</li><li><b>« Rétablir » ne s\'active que sur une valeur modifiée.</b></li><li><b>Le repère dit « Soft »</b>, et une légende explique les trois marques.</li><li><b>Le pied résume, rétablit tout</b>, et ouvre les réglages communs d\'où partent saturation et luminosité.</li></ol>');
-
   function colorShiftPropose(d) {
     const carte = d.querySelector('.carte[aria-label="Color shift"]');
     const resume = carte.querySelector('.carte-resume');
-    resume.textContent = 'Luminosité : claires +0,020, sombres −0,050 · synchronisé';
+    resume.textContent = 'Modifié : luminosité · synchronisé';
     resume.title = resume.textContent;
-    carte.querySelectorAll('.reglette').forEach((ligne) => marquer(d, ligne, 0));
+    carte.querySelectorAll('.reglettes .reglette').forEach((ligne) => marquer(d, ligne, 0, BOUTS.Luminosité));
   }
-  monter('r-reglage', 'Proposé', 'Color shift, même lecture', 'Le Color shift a déjà « Tout rétablir » et un zéro sur sa courbe. Il reçoit le même résumé et les mêmes marques.', 'color-shift-luminosite', { zones: ['.carte[aria-label="Color shift"]'], transformer: colorShiftPropose },
-    '<ol><li><b>Le résumé chiffre</b> les bouts réglés et dit la synchronisation.</li><li><b>Départ et écart</b> sur les réglettes des nuances claires et sombres.</li></ol>');
+  function dessinerReglage() {
+    document.getElementById('r-reglage').innerHTML = '';
+    monter('r-reglage', 'Aujourd\'hui', 'Cartes repliées', 'À l\'ouverture d\'une palette, les cartes sont repliées : le résumé est tout ce qu\'on lit.', 'reglages-reference-modifiee', { zones: ZONE_REPLIEE, transformer: (d) => replier(d, { 'Réglage global': '', 'Color shift': '' }) },
+      '<ol><li>« Réglé » ne dit pas ce qui a changé.</li></ol>');
+    monter('r-reglage', 'Proposé', 'Cartes repliées', 'Le résumé dit « Par défaut », ou nomme les réglages modifiés et leur intensité. Aucun chiffre.', 'reglages-reference-modifiee', { zones: ZONE_REPLIEE, transformer: (d) => replier(d, { 'Réglage global': 'Modifié : teinte de Soft, luminosité de Vivid', 'Color shift': 'Par défaut · synchronisé' }) },
+      '<ol><li><b>On sait quoi regarder</b> avant d\'ouvrir la carte.</li><li>Le survol donne le résumé entier quand il est coupé.</li></ol>');
+    monter('r-reglage', 'Aujourd\'hui', 'Réglage global', 'L\'écran actuel, réglé.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE },
+      '<ol><li>Aucune réglette ne montre sa valeur par défaut : « Rétablir » ramène à une valeur que l\'écran ne dit pas.</li><li>« Rétablir » a le même poids sur une valeur intacte.</li><li>Le repère « S » n\'est expliqué nulle part.</li></ol>');
+    monter('r-reglage', 'Proposé', 'Réglage global', 'Le même écran, sans encart. Les réglettes ne changent pas de place.', 'reglages-reference-modifiee', { zones: ZONE_REGLAGE, transformer: reglagePropose },
+      `<ol><li><b>Une marque blanche</b> sur chaque piste : la valeur par défaut. Le libellé « ${etat.libelle} » paraît dessous quand le pouce s'en éloigne, ici sur la luminosité.</li><li><b>Les bouts de piste parlent</b> : plus turquoise ou plus violet, plus terne ou plus vive, plus foncée ou plus claire.</li><li><b>Un point bleu</b> suit le nom d'un réglage modifié, comme sur les onglets de Color shift.</li><li><b>« Rétablir » ne s'active que sur une valeur modifiée</b> ; son survol dit la valeur quittée.</li><li><b>« Tout rétablir »</b> en tête du corps, à la place qu'il a dans Color shift. Il agit sur l'intensité choisie dans « Régler ».</li><li><b>Le repère dit « Soft »</b> au lieu de « S ».</li></ol>`);
+    monter('r-reglage', 'Proposé', 'Color shift', 'Les mêmes marques sur les réglettes des nuances claires et sombres.', 'color-shift-luminosite', { zones: ['.carte[aria-label="Color shift"]'], transformer: colorShiftPropose },
+      '<ol><li><b>Le résumé</b> nomme la grandeur réglée.</li><li><b>Marque par défaut et bouts de piste</b>, comme dans Réglage global.</li></ol>');
+  }
 
-  // ——— 2. Les réglages communs ———
+  // ——— 2. Configuration ———
   const enteteLibellee = (d) => {
     const b = d.querySelector('.header .icon-button');
     b.classList.add('avec-libelle');
-    b.append(d.createTextNode('Réglages communs'));
+    b.title = 'Ouvrir la configuration';
+    b.append(d.createTextNode('Configuration'));
   };
-  monter('r-communs', 'Aujourd\'hui', 'L\'entrée', 'Une icône seule ; son nom n\'apparaît qu\'au survol.', 'palette-deux-intensites', { zones: ['.header'] });
-  monter('r-communs', 'Proposé', 'L\'entrée nommée', 'Le bouton porte son nom, dans tous les onglets.', 'palette-deux-intensites', { zones: ['.header'], transformer: enteteLibellee });
-  function communsProposes(d) {
-    // La langue est une préférence de ce poste, pas une valeur des palettes : elle passe en bas, sous son propre intitulé.
+  /** Le panneau en deux onglets, comme la page de configuration de Contract Exporter. */
+  function configuration(d, onglet) {
+    d.querySelector('.header .page-title').textContent = 'Configuration';
     const langue = d.querySelector('#langue-du-plugin')?.closest('.champ-colonne');
-    const pile = langue?.closest('.page-stack.colonne');
-    if (pile && langue) {
-      pile.prepend(el(d, '<p class="ligne-secondaire intro-des-communs">Ces réglages valent pour toutes les palettes du fichier. Chaque palette peut s\'en écarter dans sa carte Réglage global ou Color shift ; l\'onglet Comparer les montre côte à côte.</p>'));
-      const preferences = el(d, '<div class="preferences-du-poste"><span class="libelle-de-champ">Préférences de ce poste</span></div>');
-      preferences.append(langue);
-      pile.append(preferences);
-    }
+    const pile = langue.closest('.page-stack.colonne');
+    const palettes = langue.nextElementSibling;
+    langue.remove();
+    const onglets = el(d, `<div class="onglets" role="tablist" aria-label="Configuration"><button type="button" class="onglet" role="tab" aria-selected="${onglet === 'palettes'}">Palettes</button><button type="button" class="onglet" role="tab" aria-selected="${onglet === 'general'}">Général</button></div>`);
+    const phrase = el(d, `<p class="subtitle">${onglet === 'palettes' ? 'Les réglages par défaut de toutes les palettes du fichier. Chaque palette peut les modifier dans Création.' : 'Les réglages du plugin sur ce poste.'}</p>`);
+    pile.prepend(onglets, phrase);
+    if (onglet === 'general') { palettes.replaceWith(langue); return; }
     const intensites = d.querySelector('.carte-de-reglage[aria-label="Intensités"]');
-    intensites?.append(el(d, '<div class="ecarts-des-communs"><span class="ligne-secondaire">Jaune s\'en écarte : saturation propre, Soft 0,30 et Vivid 0,80.</span><button type="button" class="bouton-discret">Comparer ›</button></div>'));
+    intensites?.append(el(d, '<p class="ligne-secondaire propres"><span class="lien-palette">Rose</span> et <span class="lien-palette">Indigo</span> ont leur propre saturation, réglée dans Création.</p>'));
   }
-  monter('r-communs', 'Aujourd\'hui', 'Le panneau', 'Le panneau s\'ouvre à la place des onglets ; « Retour aux palettes » le ferme.', 'configuration-de-la-recette', { hauteur: 760 },
-    '<ol><li>Rien ne dit à quoi le panneau sert.</li><li>La langue, préférence de ce poste, ouvre un panneau de valeurs partagées par les palettes du fichier.</li><li>« 2 palettes concernées » compte les palettes, sans dire lesquelles s\'écartent des valeurs.</li></ol>');
-  monter('r-communs', 'Proposé', 'Le panneau qui dit à quoi il sert', 'Une phrase en tête, et dans chaque carte les palettes qui s\'écartent de ses valeurs.', 'configuration-de-la-recette', { hauteur: 900, transformer: communsProposes },
-    '<ol><li><b>Une phrase d\'introduction</b> relie le panneau aux cartes des palettes.</li><li><b>Chaque carte nomme les palettes qui s\'en écartent</b>, avec le lien vers Comparer.</li><li><b>La langue descend</b> sous « Préférences de ce poste », en pied de panneau.</li></ol>');
+  function dessinerConfiguration() {
+    monter('r-configuration', 'Aujourd\'hui', 'L\'entrée', 'Une icône seule ; son nom n\'apparaît qu\'au survol.', 'palette-deux-intensites', { zones: ['.header'] });
+    monter('r-configuration', 'Proposé', 'L\'entrée nommée', 'Le bouton du socle porte son nom. Le même bouton sert Contract Exporter et l\'explorateur : les trois plugins le reçoivent.', 'palette-deux-intensites', { zones: ['.header'], transformer: enteteLibellee });
+    monter('r-configuration', 'Aujourd\'hui', 'Le panneau', '« Réglages communs », qui s\'ouvre sur la langue.', 'configuration-de-la-recette', { zones: ['.header', '.carte-de-reglage[aria-label="Intensités"]'] },
+      '<ol><li>Rien ne dit à quoi sert le panneau.</li><li>La langue, préférence de ce poste, ouvre un panneau de valeurs partagées par les palettes.</li><li>« 3 palettes concernées » ne dit pas lesquelles.</li></ol>');
+    monter('r-configuration', 'Proposé', 'Onglet Palettes', 'Le titre « Configuration », les onglets du socle, puis la phrase de l\'onglet, comme dans Contract Exporter.', 'configuration-de-la-recette', { zones: ['.header', '.carte-de-reglage[aria-label="Intensités"]'], transformer: (d) => configuration(d, 'palettes') },
+      '<ol><li><b>La phrase relie le panneau aux palettes</b> : il règle leurs valeurs par défaut, celles que marque chaque réglette de Création.</li><li><b>Chaque carte nomme les palettes qui ont leur propre valeur</b> ; un nom ouvre la palette dans Création.</li></ol>');
+    monter('r-configuration', 'Proposé', 'Onglet Général', 'La langue, et les préférences du poste à venir.', 'configuration-de-la-recette', { zones: ['.header', '.page-stack.colonne > .champ-colonne'], transformer: (d) => configuration(d, 'general') },
+      '<ol><li><b>Même phrase que l\'onglet Général de Contract Exporter.</b></li></ol>');
+  }
 
-  // ——— 3. L'onglet Comparer ———
+  // ——— 3. L'onglet Harmonisation ———
   const jeu = () => E.jeux.find((j) => j.id === etat.jeu);
-  const table = (mode) => E.table[(jeu().texteDesBoutons[mode] === ({ light: 'blanc', dark: 'noir' })[mode]) ? 'normal' : 'inverse'];
-  const rampe = (p, mode = etat.mode, i = etat.intensite, source = 'rampes') => { const r = p[source] ?? p.rampes; return (r[i] ?? r.unique)[mode]; };
-  const couleur = (p, mode, v, source) => { const c = table(mode)[v]; return c === 'texteDesBoutons' ? (jeu().texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000') : rampe(p, mode, etat.intensite, source)[jeu().crans.indexOf(c)]; };
   const palette = (nom) => jeu().palettes.find((p) => p.nom === nom);
-  const alertes = () => jeu().paires.filter((p) => p.alerte);
-  const ecartees = () => jeu().palettes.filter((p) => p.ecarts.length);
-  const surface = (mode, html) => `<div class="nuancier-surface" style="background:${jeu().fonds[mode]};--encre-surface:${mode === 'light' ? '#1E1E1E' : '#F2F2F2'};--encre-surface-seconde:${mode === 'light' ? 'rgba(30,30,30,.72)' : 'rgba(242,242,242,.7)'};--colonnes:11">${html}</div>`;
+  const colorees = () => jeu().palettes.filter((p) => U.oklch(p.reference).C > 0.05);
+  const intensiteDe = (p, i) => (p.intensites === 1 ? 'unique' : i);
+  const table = (mode) => E.table[(jeu().texteDesBoutons[mode] === ({ light: 'blanc', dark: 'noir' })[mode]) ? 'normal' : 'inverse'];
+  const ROLES = { 'le plein': ['solid/default', 'solid/foreground', 'Boutons pleins'], 'le texte du fond teinté': ['surface/default', 'surface/foreground', 'Textes sur fond teinté'] };
+  const THEME = { light: 'Light', dark: 'Dark' };
 
-  function vueDEnsemble(cochees) {
+  /**
+   * La teinte réglée d'une palette pour l'intensité vue ; une palette à une intensité la range sous `vivid`.
+   * Un réglage dans Harmonisation décale la teinte des deux intensités ensemble : `o.decalages` garde ce décalage.
+   */
+  const teinteRangee = (p, i) => p.reglages.teinte[p.intensites === 1 ? 'vivid' : i] ?? 0;
+  const teinteDe = (p, o) => teinteRangee(p, o.intensite) + (o.decalages[p.nom] ?? 0);
+  /** La valeur du profil porteur, celle qui indexe les rampes et les zones calculées par le générateur. */
+  const teintePorteuse = (p, o) => (p.reglages.teinte[p.porteur] ?? 0) + (o.decalages[p.nom] ?? 0);
+  /** La rampe d'une palette ; la paire de démonstration recalcule la sienne à chaque degré de teinte. */
+  function rampe(p, o, mode = o.mode) {
+    const demo = jeu().demonstration?.membres[p.nom];
+    let rampes = p.rampes;
+    if (demo && o.decalages[p.nom] !== undefined) {
+      const v = Math.round(teintePorteuse(p, o));
+      const proche = [0, 1, -1, 2, -2, 3, -3].map((k) => demo.valeurs[v + 30 + k]).find(Boolean);
+      if (proche) rampes = proche.rampes;
+    }
+    return rampes[intensiteDe(p, o.intensite)][mode];
+  }
+  const couleur = (p, o, role, mode = o.mode) => {
+    const c = table(mode)[role];
+    if (c === 'texteDesBoutons') return jeu().texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000';
+    const h = rampe(p, o, mode)[jeu().crans.indexOf(c)];
+    return o.affichage === 'gris' ? gris(h) : h;
+  };
+  /** Les paires en alerte ; la paire de démonstration suit la teinte réglée de ses palettes. */
+  function alertes(o) {
+    const demo = jeu().demonstration;
+    return jeu().paires.filter((p) => {
+      if (!p.alerte) return false;
+      if (!demo || p.a !== demo.a || p.b !== demo.b) return true;
+      for (const nom of [p.a, p.b]) {
+        if (o.decalages[nom] === undefined) continue;
+        const x = demo.membres[nom].valeurs[Math.round(teintePorteuse(palette(nom), o)) + 30];
+        if (x) return x.proche;
+      }
+      return true;
+    });
+  }
+
+  const bascule = (cle, options, actif, libelle = '') => `<div class="choix-d-affichage">${libelle ? `<span class="choix-libelle">${libelle}</span>` : ''}<div class="bascule" role="group">${options.map(([v, t]) => `<button type="button" class="bascule-option" data-cle="${cle}" data-valeur="${v}" aria-pressed="${v === actif}">${t}</button>`).join('')}</div></div>`;
+  const carte = (cle, titre, sousTitre, resume, corps, choix = '', ouverte = true) => `<section class="carte${ouverte ? ' carte-ouverte' : ''}" data-ouverte="${ouverte}" data-avec-choix="${!!choix}"><div class="carte-tete carte-tete-repliable"><button type="button" class="carte-bascule" data-replier="${cle}" aria-expanded="${ouverte}"><span class="carte-chevron" aria-hidden="true"></span><span class="carte-intitule"><h3 class="carte-titre">${titre}</h3><span class="carte-sous-titre">${sousTitre}</span></span><span class="carte-resume">${resume}</span></button>${choix && ouverte ? `<div class="carte-choix">${choix}</div>` : ''}</div>${ouverte ? `<div class="carte-corps">${corps}</div>` : ''}</section>`;
+
+  /** Les deux couleurs en cause d'une paire : le rôle et le thème où elles se ressemblent. */
+  function deuxCouleurs(paire, o) {
+    const [fond, encre] = ROLES[paire.role];
+    const q = { ...o, mode: paire.mode, affichage: 'couleurs' };
+    const chip = (p) => paire.role === 'le plein'
+      ? `<i style="background:${couleur(p, q, fond, paire.mode)};color:${couleur(p, q, encre, paire.mode)}">Aa</i>`
+      : `<i style="background:${couleur(p, q, fond, paire.mode)};color:${couleur(p, q, encre, paire.mode)}">Aa</i>`;
+    return `<span class="paire-couleurs" style="background:${jeu().fonds[paire.mode]}">${chip(palette(paire.a))}${chip(palette(paire.b))}</span>`;
+  }
+  const constatDe = (paire) => `${ROLES[paire.role][2]} trop proches, en ${THEME[paire.mode]}${paire.distance < 0.01 ? ' · presque identiques' : ''}`;
+
+  function cartePaires(o) {
+    const liste = alertes(o);
+    if (!liste.length) return '';
+    const lignes = liste.map((p) => `<div class="paire">${deuxCouleurs(p, o)}<span class="paire-texte"><b>${p.a} et ${p.b}</b><span>${constatDe(p)}</span></span><button type="button" class="bilan-verifier" data-comparer="${p.a}|${p.b}">Comparer</button></div>`).join('');
+    return carte('paires', 'Palettes trop proches', 'Difficiles à distinguer dans vos composants', `${liste.length} paire${liste.length > 1 ? 's' : ''}`, `<div class="paires">${lignes}</div>`);
+  }
+
+  function carteListe(o) {
     const j = jeu();
-    const enAlerte = new Set(alertes().flatMap((p) => [p.a, p.b]));
-    let html = `<div class="nuancier-grille"><div class="nuancier-rangee"><span class="nuancier-profil"></span><span></span>${j.crans.map((c) => `<span class="nuancier-numero">${c}</span>`).join('')}</div>`;
+    const enAlerte = new Map();
+    for (const p of alertes(o)) { enAlerte.set(p.a, p.b); enAlerte.set(p.b, p.a); }
+    let html = `<p class="ligne-secondaire liste-aide">Cochez de 2 à 4 palettes pour les comparer et les régler.</p><div class="liste"><span></span><span></span>${j.crans.map((c) => `<span class="numero">${c}</span>`).join('')}<span></span>`;
     j.palettes.forEach((p, rang) => {
-      const a = p.ancrage; const i = p.intensites === 1 ? 'unique' : etat.intensite;
-      const point = enAlerte.has(p.nom) ? '<span class="nuancier-point" data-etat="ambre" title="Se confond avec une autre palette"></span>' : p.ecarts.length ? '<span class="nuancier-point" style="background:var(--encre-surface-seconde)" title="S\'écarte des valeurs communes"></span>' : '';
-      const cochee = cochees.includes(p.nom);
+      const cochee = o.cochees.includes(p.nom);
       const r = rang + 2;
-      html += `<div class="nuancier-rangee${cochee ? ' rangee-cochee' : ''}"><span class="nuancier-profil" style="grid-row:${r}" title="${p.nom}">${p.nom}${point}</span><span class="coche" style="grid-row:${r};grid-column:2"><input type="checkbox"${cochee ? ' checked' : ''}></span>${rampe(p).map((c, k) => `<span class="pastille" style="grid-row:${r};grid-column:${k + 3};background:${c};color:${U.oklch(c).L > 0.6 ? '#000' : '#fff'}">${a.profil === i && a.rangs[etat.mode] === k ? '◆' : ''}</span>`).join('')}</div>`;
+      const signal = enAlerte.has(p.nom) ? `<span class="signal" style="grid-row:${r};grid-column:14" title="Trop proche de ${enAlerte.get(p.nom)}">!</span>` : '';
+      html += `<label class="ligne-de-palette" data-cochee="${cochee}"><span class="fond-de-ligne" style="grid-row:${r}"></span><input type="checkbox" class="case-a-cocher" data-cocher="${p.nom}" style="grid-row:${r};grid-column:1"${cochee ? ' checked' : ''}><span class="nom" style="grid-row:${r};grid-column:2">${p.nom}</span>${rampe(p, { ...o, affichage: 'couleurs' }).map((c, k) => `<i class="nuance" style="grid-row:${r};grid-column:${k + 3};background:${c}"></i>`).join('')}${signal}</label>`;
     });
-    // Sous la grille : un point sous chaque cran dont la clarté s'écarte de 0,02 ou plus entre palettes colorées, hors ◆.
-    const ligne = j.palettes.length + 2;
-    html += `<div class="marques-des-crans"><span style="grid-row:${ligne};grid-column:1"></span>${j.crans.map((_, k) => {
-      const Ls = j.palettes.filter((p) => U.oklch(p.reference).C > 0.05).filter((p) => { const a = p.ancrage; const i = p.intensites === 1 ? 'unique' : etat.intensite; return !(a.profil === i && a.rangs[etat.mode] === k); }).map((p) => U.oklch(rampe(p)[k]).L);
-      const e = Ls.length > 1 ? Math.max(...Ls) - Math.min(...Ls) : 0;
-      return `<span style="grid-row:${ligne};grid-column:${k + 3}" title="Écart de clarté ${fr(e, 3)}">${e >= 0.02 ? '<i class="nuancier-point" data-etat="ambre"></i>' : ''}</span>`;
-    }).join('')}</div></div>`;
-    return surface(etat.mode, html);
+    html += '</div>';
+    const n = o.cochees.length;
+    html += `<div class="pied-de-carte"><span class="ligne-secondaire">${o.trop ? 'Quatre palettes au plus : décochez-en une.' : (n ? `${n} cochée${n > 1 ? 's' : ''}, 4 au plus` : 'Aucune palette cochée')}</span>${n ? '<button type="button" class="bouton-discret" data-decocher>Tout décocher</button>' : ''}</div>`;
+    return carte('liste', 'Vos palettes', `Les nuances de 50 à ${j.crans[j.crans.length - 1]}, en ${THEME[o.mode]}`, `${j.palettes.length} palettes`, html);
   }
 
-  const detail = (noms, mode, remplacement = {}) => surface(mode, `<div class="detail">${noms.map((nom) => {
-    const p = palette(nom);
-    const s = remplacement[nom] ? { ...p, rampes: remplacement[nom] } : p;
-    const c = (v) => couleur(s, mode, v);
-    return `<div class="detail-rangee"><b>${nom}</b><div class="mini-alerte" style="background:${c('surface/default')};color:${c('surface/foreground')}">Fond teinté et son texte</div><span class="mini-btn" style="background:${c('solid/default')};color:${c('solid/foreground')}">Plein</span><span class="mini-btn" style="border-color:${c('page/border')};color:${c('page/foreground')}">Contour</span></div>`;
-  }).join('')}</div>`);
-
-  const carte = (titre, sousTitre, resume, corps, choix = '', ouverte = true) => `<section class="carte${ouverte ? ' carte-ouverte' : ''}" data-ouverte="${ouverte}"><div class="carte-tete carte-tete-repliable"><button type="button" class="carte-bascule" aria-expanded="${ouverte}"><span class="carte-chevron" aria-hidden="true"></span><span class="carte-intitule"><h3 class="carte-titre">${titre}</h3><span class="carte-sous-titre">${sousTitre}</span></span><span class="carte-resume">${resume}</span></button>${choix ? `<div class="carte-choix">${choix}</div>` : ''}</div>${ouverte ? `<div class="carte-corps">${corps}</div>` : ''}</section>`;
-  const bascule = (libelle, options, actif) => `<div class="choix-d-affichage">${libelle ? `<span class="choix-libelle">${libelle}</span>` : ''}<div class="bascule" role="group">${options.map(([v, t]) => `<button type="button" class="bascule-option" aria-pressed="${v === actif}">${t}</button>`).join('')}</div></div>`;
-
-  function points() {
-    const lignes = alertes().map((p) => {
-      const a = palette(p.a); const b = palette(p.b);
-      return `<div class="bilan-ligne"><span class="bilan-mini paire"><i style="background:${couleur(a, 'light', 'solid/default')}"></i><i style="background:${couleur(b, 'light', 'solid/default')}"></i></span><b class="bilan-ligne-nom" title="${p.a} et ${p.b}">${p.a}</b><span class="bilan-ligne-constat">et ${p.b} : ${p.role}, ${p.mode === 'light' ? 'Light' : 'Dark'}, ΔEok ${fr(p.distance, 3)}</span><button type="button" class="bilan-verifier">Écarter</button></div>`;
-    });
-    const ec = ecartees();
-    if (ec.length) lignes.push(`<div class="bilan-ligne"><span class="bilan-mini">${ec.slice(0, 3).map((p) => `<i style="background:${p.reference}"></i>`).join('')}</span><b class="bilan-ligne-nom">${ec.length} palette${ec.length > 1 ? 's' : ''}</b><span class="bilan-ligne-constat ligne-secondaire">${ec.map((p) => p.nom).join(', ')} : saturation ou luminosité propre</span><button type="button" class="bilan-verifier">Rétablir</button></div>`);
-    return `<div class="bilan-detail">${lignes.join('')}</div>`;
+  /** Les constats de la comparaison : les paires trop proches, puis ce qui distingue la saturation et la luminosité des palettes cochées. */
+  function constats(o) {
+    const cochees = o.cochees.map(palette);
+    const lignes = [];
+    const enAlerte = alertes(o);
+    for (let i = 0; i < cochees.length; i += 1) for (let k = i + 1; k < cochees.length; k += 1) {
+      const a = cochees[i].nom; const b = cochees[k].nom;
+      const p = enAlerte.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+      if (p) lignes.push(['alerte', `<b>${p.a} et ${p.b}</b> : ${ROLES[p.role][2].toLowerCase()} trop proches en ${THEME[p.mode]}. Sortez la teinte de l'une d'elles de la zone hachurée, dans Réglages.`]);
+    }
+    if (!lignes.length && cochees.length > 1) lignes.push(['ok', 'Ces palettes se distinguent, en Light et en Dark.']);
+    const nom = o.intensite === 'soft' ? 'Soft' : 'Vivid';
+    const parmi = cochees.filter((p) => U.oklch(p.reference).C > 0.05);
+    const saturation = (p) => p.reglages.saturation[intensiteDe(p, o.intensite)] ?? 0;
+    const luminosite = (p) => p.reglages.luminosite[p.intensites === 1 ? 'vivid' : o.intensite] ?? 0;
+    if (parmi.length > 1) {
+      const tri = [...parmi].sort((x, y) => saturation(x) - saturation(y));
+      if (saturation(tri[tri.length - 1]) - saturation(tri[0]) >= 0.2) lignes.push(['info', `En ${nom}, <b>${tri[0].nom}</b> est la plus terne et <b>${tri[tri.length - 1].nom}</b> la plus vive.`]);
+      const lum = [...parmi].sort((x, y) => luminosite(x) - luminosite(y));
+      if (luminosite(lum[lum.length - 1]) - luminosite(lum[0]) >= 0.01) {
+        const haut = luminosite(lum[lum.length - 1]) > 0;
+        lignes.push(['info', `En ${nom}, <b>${haut ? lum[lum.length - 1].nom : lum[0].nom}</b> est ${haut ? 'plus claire' : 'plus foncée'} que les autres.`]);
+      }
+    }
+    const icone = { alerte: '!', ok: '✓', info: 'i' };
+    return `<div class="constats">${lignes.map(([ton, t]) => `<div class="constat" data-ton="${ton}"><i>${icone[ton]}</i><span>${t}</span></div>`).join('')}</div>`;
   }
 
-  function ongletComparer(d, { cochees = [] } = {}) {
-    // Les onglets : Comparer après Création, avec le compteur des paires qui se confondent.
+  function carteComparaison(o) {
+    if (o.cochees.length < 2) return '';
+    const j = jeu();
+    const cochees = o.cochees.map(palette);
+    const encre = o.mode === 'light' ? '#1E1E1E' : '#F2F2F2';
+    const montrer = (h) => (o.affichage === 'gris' ? gris(h) : h);
+    const nuances = `<div class="nuances" style="color:${encre}"><span></span>${j.crans.map((c) => `<span class="numero">${c}</span>`).join('')}${cochees.map((p) => `<b>${p.nom}</b>${rampe(p, o).map((c) => `<i style="background:${montrer(c)}"></i>`).join('')}`).join('')}</div>`;
+    const c = (p, role) => couleur(p, o, role);
+    const colonnes = `repeat(${cochees.length}, minmax(0, 1fr))`;
+    const rang = (f) => cochees.map(f).join('');
+    const composants = `<div class="composants" style="grid-template-columns:${colonnes};color:${encre}">
+      ${rang((p) => `<b>${p.nom}</b>`)}
+      ${rang((p) => `<span class="btn-c" style="background:${c(p, 'solid/default')};color:${c(p, 'solid/foreground')}">Valider</span>`)}
+      ${rang((p) => `<span class="btn-c" style="border-color:${c(p, 'page/border')};color:${c(p, 'page/foreground')}">Annuler</span>`)}
+      ${rang((p) => `<span class="message" style="background:${c(p, 'surface/default')};color:${c(p, 'surface/foreground')}">Message enregistré</span>`)}
+      ${rang((p) => `<span class="lien" style="color:${c(p, 'page/foreground')}">En savoir plus</span>`)}
+    </div>`;
+    const choix = bascule('affichage', [['couleurs', 'Couleurs'], ['gris', 'Niveaux de gris']], o.affichage);
+    return carte('comparaison', 'Comparaison', 'Les palettes cochées, côte à côte', `${cochees.length} palettes`, `<div class="surface" style="background:${j.fonds[o.mode]}">${nuances}${composants}</div>${constats(o)}`, choix);
+  }
+
+  /** Une réglette sur le modèle de Création : marque par défaut, bouts de piste, zones trop proches, points des autres palettes. */
+  function reglette({ nom, cle, valeur, min, max, defaut, format, piste, bouts, zones = [], autres = [], absolu }) {
+    const pc = (x) => Math.min(100, Math.max(0, ((x - min) / (max - min)) * 100));
+    const ici = pc(valeur); const x0 = pc(defaut);
+    const modifiee = Math.abs(ici - x0) > 0.5;
+    const loin = Math.abs(ici - x0) > 4;
+    const dansZone = zones.some(([a, b]) => valeur >= a - 0.5 && valeur <= b + 0.5);
+    const marques = autres.map(([n, v, teinte]) => `<span class="marque-palette" style="left:${pc(v)}%;background:${teinte}" title="${n} : ${format(v)}"></span>`).join('');
+    const zonesHtml = zones.map(([a, b, titre]) => `<span class="reglette-proche" style="left:${pc(a - 0.5)}%;width:${pc(b + 0.5) - pc(a - 0.5)}%" title="${titre}"></span>`).join('');
+    const boutsHtml = `<span class="reglette-bout gauche">${bouts[0]}</span><span class="reglette-bout droite">${bouts[1]}</span>`;
+    return `<div class="reglette reglage-de-la-palette avec-legende">
+      <span class="field-label">${nom}${modifiee ? '<span class="pastille-reglee" aria-hidden="true"></span>' : ''}</span>
+      <input type="text" class="input champ-nombre${dansZone ? ' champ-proche' : ''}" value="${format(valeur)}" aria-label="${nom}">
+      ${absolu !== undefined ? `<span class="ligne-secondaire absolu-du-reglage">${absolu}</span>` : ''}
+      <div class="reglette-curseur" role="slider" data-reglage="${cle}" data-min="${min}" data-max="${max}" aria-valuenow="${valeur}">
+        <span class="reglette-piste" style="background:${piste}"></span>
+        <span class="reglette-course">${zonesHtml}<span class="reglette-defaut" style="left:${x0}%" title="Valeur par défaut : ${format(defaut)}"></span>${marques}<span class="reglette-pouce" style="left:${ici}%"></span>${boutsHtml}${loin ? `<span class="reglette-legende" style="left:${x0}%">par défaut</span>` : ''}</span>
+      </div>
+      <button type="button" class="bouton-discret" data-retablir="${cle}"${modifiee ? ` title="Revenir à la valeur par défaut, ${format(defaut)}"` : ' disabled'}>Rétablir</button>
+    </div>`;
+  }
+  const signe = (x, f) => `${x > 0.0005 ? '+' : x < -0.0005 ? '−' : ''}${f(Math.abs(x))}`;
+  const degres = (v) => signe(Math.round(v), (x) => `${x}°`);
+  const pourcent = (s) => `${Math.round(s * 100)} %`;
+  const clarte = (l) => signe(l, (x) => fr(x, 3).replace(/0$/, ''));
+
+  function carteReglages(o) {
+    if (o.cochees.length < 2) return '';
+    const p = palette(o.regler);
+    const i = intensiteDe(p, o.intensite);
+    const autres = o.cochees.filter((n) => n !== p.nom).map(palette);
+    const base = U.oklch(p.rampes[i].light[jeu().crans.indexOf(600)]);
+    const pas = (f) => `linear-gradient(to right, ${Array.from({ length: 9 }, (_, k) => f(k / 8)).join(', ')})`;
+    const t = teinteDe(p, o); const t0 = teinteRangee(p, o.intensite);
+    // Les zones sont calculées sur la valeur du porteur : elles se lisent ici décalées vers l'intensité vue.
+    const versVue = t0 - (p.reglages.teinte[p.porteur] ?? 0);
+    const H = (base.H + (t - t0) + 360) % 360;
+    const s = o.saturations[p.nom] ?? (p.reglages.saturation[i] ?? 0);
+    const s0 = p.reglages.saturation[i] ?? 0;
+    const l = o.luminosites[p.nom] ?? (p.reglages.luminosite[p.intensites === 1 ? 'vivid' : o.intensite] ?? 0);
+    const l0 = p.reglages.luminosite[p.intensites === 1 ? 'vivid' : o.intensite] ?? 0;
+    const zones = [];
+    for (const paire of jeu().paires.filter((x) => x.alerte && x.zones && (x.a === p.nom || x.b === p.nom))) {
+      const autre = paire.a === p.nom ? paire.b : paire.a;
+      let debut = null;
+      paire.zones[p.nom].forEach((z, k) => {
+        if (z === 1 && debut === null) debut = k - 30;
+        if (z !== 1 && debut !== null) { zones.push([debut + versVue, k - 31 + versVue, `Trop proche de ${autre}`]); debut = null; }
+      });
+      if (debut !== null) zones.push([debut + versVue, 30 + versVue, `Trop proche de ${autre}`]);
+    }
+    const solide = (q) => rampe(q, { ...o, mode: 'light', affichage: 'couleurs' })[jeu().crans.indexOf(600)];
+    const lignes = [
+      reglette({ nom: 'Teinte', cle: 'teinte', valeur: t, min: -30, max: 30, defaut: 0, format: degres, absolu: `${Math.round(H)}°`,
+        piste: pas((x) => versHexa(base.L, base.C, base.H + (-30 + 60 * x) - t0)), bouts: [`plus ${voisine(H, -1)}`, `plus ${voisine(H, 1)}`], zones }),
+      reglette({ nom: 'Saturation', cle: 'saturation', valeur: s, min: 0, max: 1, defaut: p.reglages.saturationParDefaut[i] ?? s0, format: pourcent,
+        piste: pas((x) => versHexa(base.L, s0 > 0.01 ? base.C * x / s0 : 0.3 * x, base.H)), bouts: ['plus terne', 'plus vive'],
+        autres: autres.map((q) => [q.nom, q.reglages.saturation[intensiteDe(q, o.intensite)] ?? 0, solide(q)]) }),
+      reglette({ nom: 'Luminosité', cle: 'luminosite', valeur: l, min: -0.06, max: 0.06, defaut: 0, format: clarte,
+        piste: pas((x) => versHexa(base.L - l0 + (-0.06 + 0.12 * x), base.C, base.H)), bouts: ['plus foncée', 'plus claire'],
+        autres: autres.map((q) => [q.nom, q.reglages.luminosite[q.intensites === 1 ? 'vivid' : o.intensite] ?? 0, solide(q)]) }),
+    ];
+    const choix = bascule('regler', o.cochees.map((n) => [n, n]), o.regler, 'Régler');
+    const intensite = p.intensites === 1 ? 'une intensité' : (o.intensite === 'soft' ? 'Soft' : 'Vivid');
+    return carte('reglages', 'Réglages', 'Teinte, saturation et luminosité de chaque palette', intensite, `<div class="reglages-de-la-palette reglages-harmonie">${lignes.join('')}</div>`, choix);
+  }
+
+  function carteRoue(o) {
+    if (!o.roue) return carte('roue', 'Roue des teintes', 'La teinte des boutons pleins de chaque palette', 'Vision normale', '', '', false);
+    const fond = jeu().fonds[o.mode];
+    const encre = o.mode === 'light' ? '#1E1E1E' : '#F2F2F2';
+    const R = 70; const cx = 210; const cy = 128;
+    const point = (H, r) => [cx + r * Math.cos((H - 90) * Math.PI / 180), cy + r * Math.sin((H - 90) * Math.PI / 180)];
+    const position = (p) => point(U.oklch(rampe(p, o)[jeu().crans.indexOf(700)]).H, R);
+    const nommees = new Set(o.cochees);
+    for (const a of alertes(o)) { nommees.add(a.a); nommees.add(a.b); }
+    const discret = o.mode === 'light' ? '#9A9A9A' : '#7A7A7A';
+    let svg = `<svg class="roue plaque" width="420" height="256" viewBox="0 0 420 256" style="display:block;background:${fond}"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${o.mode === 'light' ? '#D9D9D9' : '#3A3A3A'}"/>`;
+    for (const [H, nom] of FAMILLES) { const [x, y] = point(H, R + 46); svg += `<text x="${x}" y="${y + 3}" text-anchor="middle" fill="${discret}" style="font-weight:400">${nom}</text>`; }
+    for (const a of alertes(o)) { const [x1, y1] = position(palette(a.a)); const [x2, y2] = position(palette(a.b)); svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#D98E04" stroke-width="2" stroke-dasharray="3 2"/>`; }
+    const places = [];
+    for (const p of colorees()) {
+      const [x, y] = position(p);
+      const grand = o.cochees.includes(p.nom);
+      svg += `<circle cx="${x}" cy="${y}" r="${grand ? 7 : 5}" fill="${couleur(p, { ...o, affichage: 'couleurs' }, 'solid/default')}" stroke="${grand ? encre : fond}" stroke-width="${grand ? 2 : 1}"><title>${p.nom}</title></circle>`;
+      if (!nommees.has(p.nom)) continue;
+      // Deux noms voisins du même côté se décalent d'une ligne : une paire trop proche a ses deux points presque confondus.
+      const droite = x > cx; let ty = y + 3;
+      while (places.some(([cote, yy]) => cote === droite && Math.abs(yy - ty) < 11)) ty += 11;
+      places.push([droite, ty]);
+      svg += `<text x="${x + (droite ? 11 : -11)}" y="${ty}" text-anchor="${droite ? 'start' : 'end'}" fill="${encre}">${p.nom}</text>`;
+    }
+    svg += '</svg>';
+    const choix = `<div class="choix-d-affichage"><span class="choix-libelle">Vision</span><select class="input" aria-label="Vision des couleurs"><option>Normale</option><option>Deutéranopie</option><option>Protanopie</option><option>Tritanopie</option></select></div>`;
+    return carte('roue', 'Roue des teintes', 'La teinte des boutons pleins de chaque palette', '', `${svg}<p class="ligne-secondaire" style="margin:6px 0 0">Un tireté relie deux palettes trop proches. Les noms suivent les palettes cochées et les paires trop proches ; le survol d'un point donne les autres.</p>`, choix);
+  }
+
+  /** L'onglet entier, selon l'état `o` ; les clics et le glisser modifient `o` et repeignent. */
+  function peindre(d, o) {
     const onglets = d.querySelector('.onglets');
-    const nb = alertes().length;
-    onglets.querySelector('#onglet-creation').after(el(d, `<button type="button" class="onglet" role="tab" aria-selected="true">Comparer${nb ? `<span class="compteur-de-verification" data-ton="ambre">${nb}</span>` : ''}</button>`));
-    onglets.querySelectorAll('.onglet').forEach((o) => { if (!o.textContent.startsWith('Comparer')) o.setAttribute('aria-selected', 'false'); });
-    const ec = ecartees().length;
+    onglets.querySelector('[data-harmonisation]')?.remove();
+    const nb = alertes(o).length;
+    onglets.querySelector('#onglet-verification').after(el(d, `<button type="button" class="onglet" role="tab" data-harmonisation aria-selected="true">Harmonisation${nb ? `<span class="compteur-de-verification" data-ton="ambre">${nb}</span>` : ''}</button>`));
+    onglets.querySelectorAll('.onglet').forEach((x) => { if (!x.hasAttribute('data-harmonisation')) x.setAttribute('aria-selected', 'false'); });
+    const modifiees = Object.keys({ ...o.decalages, ...o.saturations, ...o.luminosites });
+    const annuler = modifiees.length ? '<span class="ligne-fixe-gestes"><button type="button" class="bouton-discret" data-annuler>Annuler les modifications</button></span>' : '';
     const verdict = nb
-      ? `<div class="ligne-fixe avertissement-des-reglages" data-ton="avertissement"><span class="ligne-fixe-icone">!</span><span class="ligne-fixe-texte">${nb} paire${nb > 1 ? 's se confondent' : ' se confond'}${ec ? ` · ${ec} palette${ec > 1 ? 's s\'écartent' : ' s\'écarte'} des valeurs communes` : ''}</span></div>`
-      : '<div class="ligne-fixe"><span class="ligne-fixe-texte">Les palettes se distinguent toutes.</span></div>';
-    d.querySelector('#panneau-verification').innerHTML = `<div class="page-stack colonne vue-de-la-palette comparer">
-      <div class="tete-de-la-palette"><h2 class="titre-de-premier-rang">Comparer</h2>${bascule('Aperçu', [['light', 'Light'], ['dark', 'Dark']], etat.mode)}</div>
+      ? `<div class="ligne-fixe" data-ton="avertissement"><span class="ligne-fixe-icone">!</span><span class="ligne-fixe-texte">${nb} paire${nb > 1 ? 's' : ''} de palettes trop proches</span>${annuler}</div>`
+      : `<div class="ligne-fixe" data-ton="neutre"><span class="ligne-fixe-icone">✓</span><span class="ligne-fixe-texte">Toutes vos palettes se distinguent${modifiees.length ? ` · ${modifiees.join(', ')} modifiée${modifiees.length > 1 ? 's' : ''}` : ''}</span>${annuler}</div>`;
+    d.querySelector('#panneau-verification').innerHTML = `<div class="page-stack colonne vue-de-la-palette harmonisation">
+      <div class="tete-de-la-palette"><h2 class="titre-de-premier-rang">Harmonisation</h2>${bascule('intensite', [['soft', 'Soft'], ['vivid', 'Vivid']], o.intensite)}${bascule('mode', [['light', 'Light'], ['dark', 'Dark']], o.mode)}</div>
       ${verdict}
-      ${carte('Toutes les palettes', 'Cochez 2 à 4 palettes pour les voir sur des composants', '', `${vueDEnsemble(cochees)}<div class="pied-de-carte"><span class="ligne-secondaire">${cochees.length} sur 4 cochées</span>${cochees.length ? '<button type="button" class="bouton-discret">Tout décocher</button>' : ''}</div>`, bascule('', [['soft', 'Soft'], ['vivid', 'Vivid']], etat.intensite))}
-      ${cochees.length >= 2 ? carte('En détail', 'Les palettes cochées sur des composants', `${cochees.length} palettes`, detail(cochees, etat.mode)) : ''}
-      ${carte('Points à regarder', 'Ce qui écarte ces palettes, et le geste qui corrige', `${nb} à vérifier`, points())}
-      ${carte('Teintes', 'Roue des teintes, paires proches, visions des couleurs', 'Vision normale', '', '', false)}
+      ${cartePaires(o)}
+      ${carteListe(o)}
+      ${carteComparaison(o)}
+      ${carteReglages(o)}
+      ${carteRoue(o)}
     </div>`;
   }
 
-  // La modale « Rétablir » : les palettes écartées cochées, leur rampe avant et après.
-  function modaleRetablir(d) {
-    ongletComparer(d);
-    const ec = ecartees();
-    const mini = (r, libelle) => `<div class="rampe"><span>${libelle}</span>${r.map((c) => `<i style="background:${c}"></i>`).join('')}</div>`;
-    d.body.append(el(d, `<div class="voile-de-modale"><div class="modale" role="dialog" style="width:auto">
-      <h2 class="modale-titre">Rétablir les valeurs communes</h2>
-      <p class="ajustement-pourquoi">La saturation et la luminosité des palettes cochées reviennent aux valeurs des réglages communs. Leur teinte et leur référence ne changent pas.</p>
-      <div class="liste-retablir">${ec.map((p) => `<div class="retablir"><input type="checkbox" checked><b>${p.nom}</b><div class="rampes">${mini(rampe(p), 'Avant')}${mini(rampe(p, etat.mode, etat.intensite, 'communes'), 'Après')}</div><span class="ligne-secondaire">${p.ecarts.join(' · ')}</span></div>`).join('')}</div>
-      <p class="ligne-secondaire">Aperçu ${etat.mode === 'light' ? 'Light' : 'Dark'} · ${etat.intensite === 'soft' ? 'Soft' : 'Vivid'}. Les sept garanties tiennent sur ces palettes.</p>
-      <div class="confirmation-gestes"><button type="button" class="btn btn-secondary"><span>Annuler</span></button><button type="button" class="btn btn-primary"><span>Rétablir ${ec.length} palette${ec.length > 1 ? 's' : ''}</span></button></div>
-    </div></div>`));
+  /** Branche les gestes de l'écran : cases, bascules, « Comparer », « Rétablir », glisser des réglettes. */
+  function harmonisation(depart) {
+    return (d, ajuster) => {
+      const o = { cochees: [], regler: null, mode: 'light', intensite: 'vivid', affichage: 'couleurs', roue: false, decalages: {}, saturations: {}, luminosites: {}, ...depart() };
+      if (!o.regler) o.regler = o.cochees[0] ?? null;
+      const repeindre = () => { peindre(d, o); ajuster(); };
+      repeindre();
+      d.addEventListener('click', (ev) => {
+        const c = ev.target.closest('[data-cocher]');
+        if (c) {
+          const nom = c.dataset.cocher;
+          o.trop = false;
+          if (o.cochees.includes(nom)) o.cochees = o.cochees.filter((n) => n !== nom);
+          else if (o.cochees.length >= 4) o.trop = true;
+          else o.cochees = [...o.cochees, nom];
+          if (!o.cochees.includes(o.regler)) o.regler = o.cochees[0] ?? null;
+          ev.preventDefault();
+          return repeindre();
+        }
+        const b = ev.target.closest('[data-cle]');
+        if (b) { o[b.dataset.cle] = b.dataset.valeur; return repeindre(); }
+        const r = ev.target.closest('[data-replier]');
+        if (r) { if (r.dataset.replier === 'roue') o.roue = !o.roue; return repeindre(); }
+        const cmp = ev.target.closest('[data-comparer]');
+        if (cmp) {
+          const [a, bb] = cmp.dataset.comparer.split('|');
+          const paire = jeu().paires.find((x) => x.a === a && x.b === bb);
+          o.cochees = [a, bb]; o.mode = paire.mode;
+          const dep = paire.zones ? [a, bb].map((n) => [n, paire.zones[n].reduce((m, z, k) => (z === 0 ? Math.min(m, Math.abs(k - 30)) : m), 99)]).sort((x, y) => x[1] - y[1]) : [[a]];
+          o.regler = dep[0][0];
+          return repeindre();
+        }
+        if (ev.target.closest('[data-decocher]')) { o.cochees = []; o.regler = null; return repeindre(); }
+        if (ev.target.closest('[data-annuler]')) { o.decalages = {}; o.saturations = {}; o.luminosites = {}; return repeindre(); }
+        const ret = ev.target.closest('[data-retablir]');
+        if (ret) {
+          const cle = ret.dataset.retablir;
+          const p = palette(o.regler);
+          if (cle === 'teinte') o.decalages[p.nom] = -teinteRangee(p, o.intensite);
+          if (cle === 'saturation') o.saturations[p.nom] = p.reglages.saturationParDefaut[intensiteDe(p, o.intensite)];
+          if (cle === 'luminosite') o.luminosites[p.nom] = 0;
+          return repeindre();
+        }
+      });
+      let glisse = null;
+      const deplacer = (ev) => {
+        const v = glisse.min + Math.min(1, Math.max(0, (ev.clientX - glisse.gauche) / glisse.largeur)) * (glisse.max - glisse.min);
+        const nom = o.regler;
+        if (glisse.cle === 'teinte') o.decalages[nom] = Math.round(v) - teinteRangee(palette(nom), o.intensite);
+        if (glisse.cle === 'saturation') o.saturations[nom] = Math.round(v * 100) / 100;
+        if (glisse.cle === 'luminosite') o.luminosites[nom] = Math.round(v * 1000) / 1000;
+        repeindre();
+      };
+      d.addEventListener('pointerdown', (ev) => {
+        const curseur = ev.target.closest('.reglette-curseur[data-reglage]');
+        if (!curseur) return;
+        const course = curseur.querySelector('.reglette-course').getBoundingClientRect();
+        glisse = { cle: curseur.dataset.reglage, min: +curseur.dataset.min, max: +curseur.dataset.max, gauche: course.left, largeur: course.width };
+        deplacer(ev);
+      });
+      d.addEventListener('pointermove', (ev) => { if (glisse) deplacer(ev); });
+      d.addEventListener('pointerup', () => { glisse = null; });
+    };
   }
 
-  // La modale « Écarter » : la paire, une rotation par palette et par sens, l'aperçu des deux thèmes.
-  function modaleEcarter(d) {
-    ongletComparer(d);
-    const paire = alertes().find((p) => p.rotations.length) ?? alertes()[0];
-    if (!paire) return;
-    const choix = paire.rotations[0];
-    const remplacement = choix ? { [choix.palette]: choix.rampes } : {};
-    const options = paire.rotations.map((r) => `<button type="button" class="bascule-option" aria-pressed="${r === choix}">${r.palette} ${r.degres > 0 ? '+' : '−'}${Math.abs(r.degres)}°</button>`).join('');
-    const apercu = (mode) => `<div class="apercus"><div><p class="ligne-secondaire" style="margin:0 0 3px">${mode === 'light' ? 'Light' : 'Dark'}, avant</p>${detail([paire.a, paire.b], mode)}</div><div><p class="ligne-secondaire" style="margin:0 0 3px">${mode === 'light' ? 'Light' : 'Dark'}, après</p>${detail([paire.a, paire.b], mode, remplacement)}</div></div>`;
-    d.body.append(el(d, `<div class="voile-de-modale"><div class="modale" role="dialog" style="width:auto">
-      <h2 class="modale-titre">Écarter ${paire.a} et ${paire.b}</h2>
-      <p class="ajustement-pourquoi">Elles se confondent sur ${paire.role} en ${paire.mode === 'light' ? 'Light' : 'Dark'} : ΔEok ${fr(paire.distance, 3)}. Chaque choix est la plus petite rotation de teinte qui les sépare.</p>
-      ${options ? `<div class="bascule" role="group">${options}</div>` : '<p class="ligne-secondaire">Aucune rotation dans la borne du réglage de teinte (±30°) : ces palettes sont presque identiques. Supprimez-en une, ou changez une référence dans Création.</p>'}
-      ${apercu('light')}${apercu('dark')}
-      <p class="ligne-secondaire">La rotation passe par la teinte du Réglage global et déplace la référence.</p>
-      <div class="confirmation-gestes"><button type="button" class="btn btn-secondary"><span>Annuler</span></button><button type="button" class="btn btn-primary"${choix ? '' : ' disabled'}><span>${choix ? `Tourner ${choix.palette}` : 'Tourner'}</span></button></div>
-    </div></div>`));
+  /** Les palettes d'une démonstration d'harmonie : celles qui ont leur propre saturation, complétées jusqu'à quatre palettes colorées. */
+  function quatre() {
+    const propres = colorees().filter((p) => p.ecarts.some((e) => e.startsWith('Saturation') || e.startsWith('Luminosité')));
+    const reste = colorees().filter((p) => !propres.includes(p) && p.intensites === 2);
+    return [...propres, ...reste].slice(0, 4).map((p) => p.nom);
+  }
+  /** L'intensité où la saturation des palettes choisies s'étale le plus. */
+  function intensiteEtalee(noms) {
+    const etendue = (i) => { const s = noms.map((n) => palette(n).reglages.saturation[intensiteDe(palette(n), i)] ?? 0); return Math.max(...s) - Math.min(...s); };
+    return etendue('soft') >= etendue('vivid') ? 'soft' : 'vivid';
   }
 
-  /** La carte Teintes : la roue des pleins en Light, une ligne entre les palettes d'une paire en alerte, puis les paires les plus proches. */
-  function ongletTeintes(d) {
-    ongletComparer(d);
-    const j = jeu();
-    const colorees = j.palettes.filter((p) => U.oklch(p.reference).C > 0.05);
-    const R = 66; const cx = 140; const cy = 82;
-    const position = (p) => { const H = U.oklch(couleur(p, 'light', 'solid/default')).H; return [cx + R * Math.cos((H - 90) * Math.PI / 180), cy + R * Math.sin((H - 90) * Math.PI / 180)]; };
-    let roue = `<svg class="roue" width="280" height="166" viewBox="0 0 280 166" style="display:block;margin:0 auto"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--bordure)"/>`;
-    for (const a of alertes()) { const [x1, y1] = position(palette(a.a)); const [x2, y2] = position(palette(a.b)); roue += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgb(243 181 63)" stroke-width="1.5" stroke-dasharray="3 2"/>`; }
-    for (const p of colorees) { const [x, y] = position(p); roue += `<circle cx="${x}" cy="${y}" r="5" fill="${couleur(p, 'light', 'solid/default')}" stroke="var(--fond)" stroke-width="1"><title>${p.nom}</title></circle>${colorees.length <= 8 ? `<text x="${x + (x > cx ? 9 : -9)}" y="${y + 3}" text-anchor="${x > cx ? 'start' : 'end'}">${p.nom}</text>` : ''}`; }
-    roue += '</svg>';
-    const proches = j.paires.filter((p) => !p.alerte).slice(0, 4).map((p) => `<div class="bilan-ligne"><span class="bilan-mini paire"><i style="background:${couleur(palette(p.a), 'light', 'solid/default')}"></i><i style="background:${couleur(palette(p.b), 'light', 'solid/default')}"></i></span><b class="bilan-ligne-nom">${p.a}</b><span class="bilan-ligne-constat ligne-secondaire">et ${p.b} : ${p.role}, ΔEok ${fr(p.distance, 3)}</span>${p.rotations.length ? '<button type="button" class="bilan-verifier">Écarter</button>' : '<span></span>'}</div>`).join('');
-    const teintes = [...d.querySelectorAll('.comparer .carte')].pop();
-    teintes.outerHTML = carte('Teintes', 'Roue des teintes, paires proches, visions des couleurs', '', `${roue}<p class="ligne-secondaire" style="margin:4px 0 6px">Paires les plus proches, sans alerte :</p><div class="bilan-detail">${proches}</div>`, bascule('Vision', [['normale', 'Normale'], ['deuteranopie', 'Deutéranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'normale'));
-  }
+  function dessinerHarmonisation() {
+    ['r-harmonisation-1', 'r-harmonisation-2'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
+    const demo = jeu().demonstration;
+    const paire = demo ? jeu().paires.find((x) => x.a === demo.a && x.b === demo.b) : null;
+    const nb = jeu().paires.filter((x) => x.alerte).length;
+    const plusFacile = paire ? [demo.a, demo.b].map((n) => [n, paire.zones[n].reduce((m, z, k) => (z === 0 ? Math.min(m, Math.abs(k - 30)) : m), 99)]).sort((x, y) => x[1] - y[1])[0] : null;
+    const sortie = plusFacile ? (() => { const z = paire.zones[plusFacile[0]]; let v = null; for (let k = 0; k <= 30 && v === null; k += 1) { if (z[30 + k] === 0) v = k; else if (z[30 - k] === 0) v = -k; } return v; })() : null;
+    const harmonie = quatre();
+    const i = intensiteEtalee(harmonie);
+    const regle = harmonie.find((n) => palette(n).reglages.luminosite[i]) ?? harmonie[0];
 
-  function dessinerComparer() {
-    ['r-comparer-1', 'r-comparer-2'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
-    const premiere = alertes()[0];
-    const cochees = premiere ? [premiere.a, premiere.b] : jeu().palettes.slice(0, 2).map((p) => p.nom);
-    const nb = alertes().length;
-    monter('r-comparer-1', 'C1', 'Arriver dans l\'onglet', 'Toutes les palettes, une ligne de nuances chacune, dans le thème et l\'intensité choisis. Un point ambre marque une palette qui se confond avec une autre ; un point gris, une palette qui s\'écarte des valeurs communes. Sous la grille, un point marque un cran dont la clarté s\'écarte entre palettes.', 'verification-bilan-a-verifier', { transformer: (d) => ongletComparer(d), hauteur: 1300 },
-      `<ol><li><b>La ligne fixe</b> dit le verdict sans défiler, comme dans Création.</li><li><b>La liste reprend la grille de l'aperçu</b>, pastilles réduites à 18 px : vingt palettes tiennent en 450 px.</li><li><b>« Points à regarder »</b> reprend les lignes du bilan de Vérification : un constat, un geste.</li><li><b>Le compteur de l'onglet</b> compte les paires qui se confondent (${nb} ici), comme celui de Vérification compte ses points.</li></ol>`);
-    monter('r-comparer-1', 'C2', 'Cocher deux palettes', 'Cliquer « Écarter » sur un point, ou cocher deux lignes, ouvre « En détail » : les palettes cochées sur des composants. Quatre au plus.', 'verification-bilan-a-verifier', { transformer: (d) => ongletComparer(d, { cochees }), hauteur: 1500 },
-      '<ol><li><b>Le détail suit la sélection</b> ; il disparaît sous deux palettes.</li><li><b>Quatre au plus</b> : au-delà, les composants ne se comparent plus d\'un coup d\'œil.</li></ol>');
-    monter('r-comparer-2', 'C3', 'Rétablir les valeurs communes', 'Depuis la ligne « N palettes … saturation ou luminosité propre ». Décocher une palette la garde telle quelle : une marque voulue différente, par exemple.', 'verification-bilan-a-verifier', { transformer: modaleRetablir, hauteur: 900 },
-      '<ol><li><b>Avant et après par palette</b>, avec ses écarts en clair.</li><li><b>Un seul rangement</b>, défait par « Annuler les modifications ».</li></ol>');
-    monter('r-comparer-2', 'C4', 'Écarter deux teintes', 'Chaque choix est la plus petite rotation qui sépare la paire. Sans rotation possible, la modale le dit et propose les gestes qui restent.', 'verification-bilan-a-verifier', { transformer: modaleEcarter, hauteur: 900 },
-      '<ol><li><b>Un choix par palette et par sens</b>, chiffré.</li><li><b>Aperçu Light et Dark</b> des deux palettes, avant et après.</li></ol>');
-    monter('r-comparer-2', 'C5', 'La carte Teintes', 'Dépliée, elle pose les teintes des pleins sur une roue ; un trait relie une paire en alerte. Suivent les paires les plus proches, pour qui veut écarter avant l\'alerte. La vision des couleurs repeint la roue, sans alerte.', 'verification-bilan-a-verifier', { transformer: ongletTeintes, hauteur: 1500 },
-      '<ol><li><b>Les noms s\'effacent au-delà de huit palettes</b> ; le survol d\'un point les donne.</li><li><b>La simulation est une aide</b> : un statut ne repose jamais sur la couleur seule.</li></ol>');
-    monter('r-comparer-2', 'C6', 'Depuis Vérification', 'Le bilan de Vérification garde ses lignes. Une paire trop proche y renvoie vers Comparer, paire cochée.', 'verification-bilan-a-verifier', {
+    monter('r-harmonisation-1', 'H1', 'Arriver dans l\'onglet', 'Les paires trop proches d\'abord, puis toutes les palettes, chacune sur une ligne de nuances. Rien n\'est coché.', 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({})) },
+      `<ol><li><b>Le compteur de l'onglet</b> compte les paires trop proches (${nb} ici), comme celui de Vérification compte ses points.</li><li><b>Chaque paire montre ses deux couleurs en cause</b>, dans le thème en cause : ici, deux textes sur leur fond teinté.</li><li><b>Les deux noms ont le même style</b>, puis le constat en mots simples.</li><li><b>La case bleue de Figma</b>, à gauche du nom, coche une palette ; la ligne cochée se surligne.</li><li>Un « ! » en bout de ligne signale une palette trop proche d'une autre ; son survol la nomme.</li></ol>`);
+    if (demo) {
+      monter('r-harmonisation-1', 'H2', 'Comparer une paire, régler une teinte', `« Comparer » coche les deux palettes, passe l'aperçu dans le thème en cause et choisit à régler celle qu'un plus petit réglage sépare. Glissez la teinte de ${plusFacile[0]} hors de la zone hachurée.`, 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: [demo.a, demo.b], regler: plusFacile[0], mode: paire.mode })) },
+        `<ol><li><b>Comparaison</b> : les deux palettes nuance par nuance, puis sur des composants rangés en colonnes, sur le fond du thème.</li><li><b>Le constat dit quoi faire</b> : sortir une teinte de la zone hachurée.</li><li><b>Réglages</b> : les réglettes de Création. La zone hachurée couvre les teintes trop proches de ${plusFacile[0] === demo.a ? demo.b : demo.a} ; les bouts disent vers quelle couleur va la teinte.</li><li><b>Tout suit en direct</b> : nuances, composants, constat, compteur.</li><li>Dans cette maquette, seule la teinte de cette paire recalcule les couleurs ; les autres réglettes bougent sans repeindre.</li></ol>`);
+      monter('r-harmonisation-1', 'H3', 'La paire distinguée', `${plusFacile[0]} à ${degres(sortie)} : la zone est quittée, le constat passe au vert, le compteur disparaît.`, 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: [demo.a, demo.b], regler: plusFacile[0], mode: paire.mode, decalages: { [plusFacile[0]]: sortie - (palette(plusFacile[0]).reglages.teinte[palette(plusFacile[0]).porteur] ?? 0) } })) },
+        '<ol><li><b>La ligne fixe nomme la palette modifiée</b> et porte « Annuler les modifications ».</li><li><b>« par défaut »</b> paraît sous la marque quittée.</li><li>Gestion passe la palette à « À mettre à jour », comme après un réglage dans Création.</li></ol>');
+    }
+    monter('r-harmonisation-2', 'H4', 'Harmoniser la saturation', `Quatre palettes cochées, en ${i === 'soft' ? 'Soft' : 'Vivid'}. Le constat nomme la plus terne et la plus vive. Sur la saturation de ${regle}, un point par autre palette cochée.`, 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: harmonie, regler: regle, intensite: i })) },
+      '<ol><li><b>Les points de couleur</b> marquent la valeur des autres palettes cochées : on aligne une palette sur une autre en posant le pouce sur son point.</li><li><b>« Régler »</b> choisit la palette réglée, comme « Régler Soft, Vivid » dans Création.</li><li>Rien ne s\'aligne tout seul : le designer choisit la palette qui bouge.</li></ol>');
+    monter('r-harmonisation-2', 'H5', 'Comparer la clarté', 'Niveaux de gris : chaque couleur devient le gris de même clarté. Une palette plus claire ou plus foncée que les autres se voit d\'un coup d\'œil.', 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: harmonie, regler: regle, intensite: i, affichage: 'gris' })) },
+      '<ol><li><b>Le gris garde la clarté OKLab</b> de chaque couleur : deux boutons de même gris ont la même clarté.</li><li>Seule la comparaison passe en gris : la liste garde ses couleurs, pour retrouver chaque palette.</li></ol>');
+    monter('r-harmonisation-2', 'H6', 'La roue des teintes', 'Dépliée : la teinte des boutons pleins, sur le fond de page de l\'aperçu, blanc en Light.', 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: demo ? [demo.a, demo.b] : [], roue: true })) },
+      '<ol><li><b>Un tireté relie une paire trop proche.</b></li><li><b>Les palettes cochées</b> ont un point plus gros et cerclé.</li><li><b>La vision des couleurs</b> se choisit dans la liste ; elle repeint la roue et ne lève aucune alerte.</li></ol>');
+    monter('r-harmonisation-2', 'H7', 'Depuis Vérification', 'Le bilan de Vérification garde ses lignes. Une palette trop proche d\'une autre y mène à Harmonisation, paire cochée.', 'verification-bilan-a-verifier', {
       transformer: (d) => {
         // Cet écran montre les vingt palettes de la galerie : le compteur suit ce jeu, quel que soit le jeu choisi plus haut.
         const vingt = E.jeux.find((j) => j.id === 'galerie').paires.filter((p) => p.alerte).length;
-        d.querySelector('#onglet-creation').after(el(d, `<button type="button" class="onglet" role="tab" aria-selected="false">Comparer<span class="compteur-de-verification" data-ton="ambre">${vingt}</span></button>`));
-        d.querySelectorAll('.bilan-ligne').forEach((l) => { if (l.textContent.includes('trop proche')) l.querySelector('.bilan-verifier').textContent = 'Comparer'; });
+        d.querySelector('#onglet-verification').after(el(d, `<button type="button" class="onglet" role="tab" aria-selected="false">Harmonisation<span class="compteur-de-verification" data-ton="ambre">${vingt}</span></button>`));
+        d.querySelectorAll('.bilan-ligne').forEach((l) => {
+          const constat = l.querySelector('.bilan-ligne-constat');
+          const m = constat?.textContent.match(/trop proche de (\S+), ΔEok/);
+          if (!m) return;
+          constat.textContent = `trop proche ${/^[AEIOUÉ]/.test(m[1]) ? 'd\'' : 'de '}${m[1]}`;
+          constat.title = constat.textContent;
+          l.querySelector('.bilan-verifier').textContent = 'Comparer';
+        });
       },
-      hauteur: 760,
-    }, '<ol><li><b>Le geste change de nom</b> : « Comparer » ouvre l\'onglet sur la paire.</li><li>Le reste du bilan ne change pas.</li><li><b>Défaut relevé</b> : à 480 px, le bouton de chaque ligne déborde de la fenêtre (« Vérifi »), dans la galerie actuelle.</li></ol>');
+    }, '<ol><li><b>Le constat perd son ΔEok</b> : « trop proche d\'Azur ».</li><li><b>Le lien devient « Comparer »</b> et ouvre Harmonisation sur la paire.</li><li><b>Défaut corrigé</b> : dans la galerie actuelle, le lien de chaque ligne sort de la fenêtre à 480 px (« Vérifi »). La grille du bilan ne déclare aucune colonne : sa colonne implicite prend la largeur des lignes, 468 px dans 449. <code>grid-template-columns: minmax(0, 1fr)</code> la ramène à 449 px, ici appliqué.</li></ol>');
   }
 
-  const OPTIONS = { jeu: E.jeux.map((j) => [j.id, `${j.titre} · ${j.palettes.length}`]), mode: [['light', 'Light'], ['dark', 'Dark']], intensite: [['soft', 'Soft'], ['vivid', 'Vivid']] };
+  const OPTIONS = {
+    jeu: E.jeux.map((j) => [j.id, `${j.titre} · ${j.palettes.length}`]),
+    libelle: [['par défaut', 'par défaut'], ['défaut', 'défaut'], ['initial', 'initial'], ['config.', 'config.'], ['standard', 'standard']],
+  };
   const commandes = () => document.querySelectorAll('[data-commande]').forEach((h) => { h.innerHTML = OPTIONS[h.dataset.commande].map(([v, t]) => `<button type="button" data-valeur="${v}" aria-pressed="${etat[h.dataset.commande] === v}">${t}</button>`).join(''); });
   document.body.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-commande] button');
     if (!b) return;
-    etat[b.parentElement.dataset.commande] = b.dataset.valeur;
+    const cle = b.parentElement.dataset.commande;
+    etat[cle] = b.dataset.valeur;
     commandes();
-    dessinerComparer();
+    if (cle === 'jeu') dessinerHarmonisation(); else dessinerReglage();
   });
   commandes();
-  dessinerComparer();
+  dessinerReglage();
+  dessinerConfiguration();
+  dessinerHarmonisation();
 })();
 </script>
 </body>
