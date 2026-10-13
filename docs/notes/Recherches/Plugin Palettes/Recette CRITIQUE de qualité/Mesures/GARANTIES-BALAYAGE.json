@@ -388,6 +388,82 @@
    }
   }
  },
+ "actuel · Dark A : fonds 200, texte 950, focus 800": {
+  "couples": 50688,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.047,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.122,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.227,
+     "mediane": 1.261
+    },
+    "raised": {
+     "min": 1.118,
+     "mediane": 1.149
+    }
+   }
+  }
+ },
+ "actuel · Dark B : carte 200, fonds 300, texte 950, focus 800": {
+  "couples": 50688,
+  "echecs": 396,
+  "parGarantie": {
+   "G2 dark inverse sur raised": 192,
+   "G1 dark inverse sur solid/default": 144,
+   "G5 dark normal sur raised": 60
+  },
+  "exemples": [
+   "#E82D81 soft G2 dark inverse sur raised 2.88",
+   "#E82D81 vivid G1 dark inverse sur solid/default 4.10",
+   "#F883AA soft G2 dark inverse sur raised 2.88",
+   "#F883AA vivid G2 dark inverse sur raised 2.73",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#E82D81 vivid G5 dark normal sur raised 4.41",
+   "#F883AA vivid G5 dark normal sur raised 4.41",
+   "#EA2D74 vivid G5 dark normal sur raised 4.44"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.047,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.122,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.451,
+     "mediane": 1.529
+    },
+    "raised": {
+     "min": 1.144,
+     "mediane": 1.206
+    }
+   }
+  }
+ },
  "actuel · les deux": {
   "couples": 50688,
   "echecs": 878,
@@ -876,6 +952,98 @@
     "raised": {
      "min": 1,
      "mediane": 1.005
+    }
+   }
+  }
+ },
+ "enveloppe · Dark A : fonds 200, texte 950, focus 800": {
+  "couples": 50688,
+  "echecs": 164,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144,
+   "G7 light normal sur surface/default": 10,
+   "G7 light inverse sur surface/default": 10
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default 2.98",
+   "#29A039 vivid G7 light normal sur surface/default 2.98",
+   "#579B25 soft G7 light inverse sur surface/default 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default 2.98",
+   "#29A039 vivid G7 light inverse sur surface/default 2.98"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.056,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.131,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.223,
+     "mediane": 1.259
+    },
+    "raised": {
+     "min": 1.115,
+     "mediane": 1.148
+    }
+   }
+  }
+ },
+ "enveloppe · Dark B : carte 200, fonds 300, texte 950, focus 800": {
+  "couples": 50688,
+  "echecs": 444,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144,
+   "G2 dark inverse sur raised": 218,
+   "G7 light normal sur surface/default": 10,
+   "G5 dark normal sur raised": 62,
+   "G7 light inverse sur surface/default": 10
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#E82D81 vivid G2 dark inverse sur raised 2.70",
+   "#F883AA soft G2 dark inverse sur raised 2.77",
+   "#F883AA vivid G2 dark inverse sur raised 2.73",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09",
+   "#579B25 soft G7 light normal sur surface/default 2.99",
+   "#3F9E25 soft G7 light normal sur surface/default 2.98",
+   "#29A039 vivid G7 light normal sur surface/default 2.98",
+   "#E82D81 vivid G5 dark normal sur raised 4.40",
+   "#F883AA vivid G5 dark normal sur raised 4.41",
+   "#EA2D74 vivid G5 dark normal sur raised 4.44",
+   "#579B25 soft G7 light inverse sur surface/default 2.99",
+   "#3F9E25 soft G7 light inverse sur surface/default 2.98",
+   "#29A039 vivid G7 light inverse sur surface/default 2.98"
+  ],
+  "separationSurface": {
+   "light": {
+    "page": {
+     "min": 1.056,
+     "mediane": 1.08
+    },
+    "raised": {
+     "min": 1.131,
+     "mediane": 1.157
+    }
+   },
+   "dark": {
+    "page": {
+     "min": 1.443,
+     "mediane": 1.526
+    },
+    "raised": {
+     "min": 1.137,
+     "mediane": 1.203
     }
    }
   }

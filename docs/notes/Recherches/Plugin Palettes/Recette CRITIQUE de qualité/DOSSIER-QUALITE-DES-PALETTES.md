@@ -164,43 +164,50 @@ existent déjà.
 
 ### 3.6 Les notes à l'aveugle du mainteneur
 
-Une combinaison sur huit est notée : Light, Soft, sur carte. Notes de 1 à 5.
+Trois combinaisons notées, toutes sur carte : le mainteneur précise que ces
+composants se posent toujours sur une carte, et ne note pas la page. Dark
+Vivid ressemble à Dark Soft, avec les mêmes remarques ; il n'est pas noté.
+Notes de 1 à 5 : fond discret, texte coloré, lisibilité, séparation du
+support, statuts distincts, cohérence du groupe.
 
-| Règle | Fond discret | Texte coloré | Lisibilité | Séparation du support | Statuts distincts | Cohérence du groupe |
-|---|---|---|---|---|---|---|
-| Actuel | 4 | 5 | 5 | 5 | 5 | 5 |
-| Enveloppe | 4 | 4 | 5 | 5 | 5 | 5 |
-| Deux zones | 4 | 1 | 5 | 5 | 5 | 2 |
-| Relevé Tailwind | 4 | 1 | 5 | 5 | 5 | 2 |
+| Règle | Light Soft | Light Vivid | Dark Soft |
+|---|---|---|---|
+| Actuel, réglé à la main | 4 · 5 · 5 · 5 · 5 · 5 | 2 · 4 · 5 · 5 · 5 · 4 | 2 · 3 · 5 · 2 · 5 · 1 |
+| Actuel, valeurs par défaut | non noté | 3 · 5 · 5 · 5 · 5 · 4 | 2 · 1 · 4 · 1 · 5 · 5 |
+| Enveloppe | 4 · 4 · 5 · 5 · 5 · 5 | 3 · 5 · 5 · 5 · 5 · 4 | 2 · 2 · 5 · 1 · 5 · 5 |
+| Deux zones | 4 · 1 · 5 · 5 · 5 · 2 | 4 · 2 · 5 · 5 · 5 · 4 | 2 · 2 · 5 · 1 · 5 · 1 |
+| Relevé Tailwind | 4 · 1 · 5 · 5 · 5 · 2 | 4 · 5 · 5 · 5 · 5 · 3 | 2 · 3 · 5 · 1 · 5 · 2 |
 
-Ce que les mesures en disent, sur les textes 800 et les fonds 100 de Soft en
-Light des quatre utilitaires :
+Mesures des textes 800 et des fonds 100 de Soft en Light, sur les quatre
+utilitaires :
 
 | Règle | Chroma des textes | Chroma des fonds |
 |---|---|---|
-| Actuel | 0,058 à 0,175 | 0,017 à 0,044 |
+| Actuel, réglé à la main | 0,058 à 0,175 | 0,017 à 0,044 |
 | Actuel, valeurs par défaut | 0,042 à 0,076 | 0,011 à 0,044 |
 | Enveloppe | 0,079 à 0,136 | 0,022 à 0,026 |
 | Deux zones | 0,079 à 0,144 | 0,011 à 0,044 |
 | Relevé Tailwind | 0,074 à 0,133 | 0,013 à 0,034 |
 
-1. **« Actuel » est la recette du mainteneur, réglée à la main** : Soft 0,92
-   pour Orange, 1,00 pour Poppy, 0,65 pour Sky. Ce n'est pas ce qu'un fichier
-   neuf reçoit. Le test oppose donc des palettes réglées une à une à des règles
-   automatiques. L'enveloppe s'en approche sans réglage propre : 4 contre 5 sur
-   le texte, égalité ailleurs.
-2. **Enveloppe et Deux zones ont les mêmes textes**, à la chroma près, et
-   reçoivent 4 et 1. Leurs pleins 700 diffèrent de 0,010 de chroma au plus.
-   Leurs fonds 100 diffèrent nettement : uniformes avec l'enveloppe, inégaux
-   avec Deux zones, où le fond de Grass porte trois à quatre fois la chroma
-   des autres. L'écart des notes de texte et de cohérence suit donc les
+1. **L'enveloppe ne descend jamais sous 4 en cohérence** et la tient à 5 en
+   Light Soft et en Dark Soft. Aucune autre règle notée sur les trois
+   combinaisons ne fait de même.
+2. **« Actuel, réglé à la main » gagne en Light Soft et perd en Dark** : ses
+   parts propres (Soft 0,92 pour Orange, 1,00 pour Poppy, 0,65 pour Sky)
+   colorent les textes Light, mais rompent la cohérence en Dark (1).
+3. **Enveloppe et Deux zones ont les mêmes textes** en Light Soft, à la chroma
+   près, et reçoivent 4 et 1. Leurs pleins 700 diffèrent de 0,010 de chroma au
+   plus ; leurs fonds 100 diffèrent nettement, uniformes avec l'enveloppe,
+   inégaux avec Deux zones. Les notes de texte et de cohérence suivent les
    fonds.
-3. **« Actuel, valeurs par défaut » manquait au test.** C'est le moteur qu'un
-   fichier neuf reçoit, et la base de comparaison de l'enveloppe. La maquette
-   l'ajoute en cinquième candidat.
+4. **En Light Vivid, l'enveloppe rend les valeurs par défaut actuelles** : sa
+   borne ne mord presque pas sur Vivid, d'où des notes identiques.
+5. **En Dark, la séparation du support vaut 1 ou 2 pour toutes les règles** :
+   la cause est commune, et la section 4.1 la mesure.
 
-Restent à noter sept combinaisons : Light Soft sur page, puis Light Vivid,
-Dark Soft et Dark Vivid, chacune sur page et sur carte.
+Le texte coloré reste faible en Dark Soft avec l'enveloppe (2). La borne
+`a = 0,6` de Soft limite la chroma des textes clairs ; une borne plus haute
+est à essayer dans le banc avant toute décision.
 
 ### 3.7 Recommandation
 
@@ -225,6 +232,9 @@ périmètres, agnostique et UCM complet.
 
 ### 4.1 Le fond teinté et son support
 
+Les composants teintés se posent toujours sur une carte, précise le
+mainteneur. Le fond teinté se juge donc contre la carte.
+
 En Light, la page et la carte diffèrent de 1,08:1 ; en Dark, de 1,10:1. Un fond
 opaque ne garde donc pas le même écart avec les deux supports. Médianes du
 balayage, contraste du fond au repos contre son support :
@@ -240,6 +250,26 @@ Le cran 50 que le mainteneur préfère disparaît sur la page. Le cran 100 Dark
 disparaît sur la carte, pour toutes les palettes : le
 [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md)
 ne l'avait mesuré que sur le neutre.
+
+La cause est structurelle. En Dark, la page est le cran 50 du neutre
+(`#111213`) et la carte son cran 100 (`#1A1C1F`). Toutes les rampes partagent
+la clarté de chaque cran : un fond teinté 100 a la clarté de la carte, et
+seule sa chroma l'en distingue, réduite à 30 % par l'intensité des fonds du
+thème Dark. Contraste mesuré contre la carte : 1,00 à 1,02 pour les cinq
+règles. En Light, la carte est blanche, hors de toute rampe, et le fond 100
+s'en détache (1,11 à 1,17).
+
+La carte elle-même se distingue mal de la page en Dark : 1,10:1, ΔEok 0,044.
+Le mainteneur le note 1 ou 2 pour toutes les règles. Mesures sur l'enveloppe
+Soft, carte au neutre 100, 200 ou au-delà :
+
+| Carte Dark | Carte contre page | Fond 200 contre carte | Fond 300 contre carte |
+|---|---|---|---|
+| Neutre 100, `#1A1C1F` (actuelle) | 1,10 | 1,13 à 1,16 | 1,34 à 1,43 |
+| `#212225` | 1,18 | 1,05 à 1,08 | 1,25 à 1,33 |
+| Neutre 200, `#25282E` | 1,25 | 1,00 à 1,03 | 1,19 à 1,27 |
+
+Le fond teinté doit se tenir un cran au-dessus de la carte qui le porte.
 
 ### 4.2 Trois pistes
 
@@ -282,24 +312,45 @@ plein reste à 700.
 
 ### 4.3 Recommandation pour les fonds
 
-Adopter la piste translucide, sur les crans 50, 100 et 200 en Light et 100, 200
-et 300 en Dark. Conséquences :
+La piste translucide servait un fond posé tantôt sur la page, tantôt sur la
+carte. Les composants teintés se posent toujours sur une carte : un fond
+opaque, choisi contre la carte, suffit. La piste translucide reste décrite en
+section 4.2 pour le cas où un composant teinté se poserait sur la page.
 
-- Palettes écrit trois couleurs alpha par profil et par thème, dans
-  `primitives` à côté des crans. Le périmètre de Palettes reste les primitives.
-- La recette porte le fond des cartes en plus de celui de la page. C'est la
-  décision P9 encore ouverte de la collection d'usage ; cette piste la tranche
-  en faveur d'un réglage.
-- La table du kit marque ces trois variables comme translucides, et les
-  garanties les jugent composées sur chaque support. `ucm check` compose de
-  même avant de mesurer un contraste.
-- Le dossier d'élévation proposait une page noire et des surfaces décalées
-  d'un cran en Dark. Avec des fonds translucides, la page et la carte gardent
-  leurs crans actuels.
-- Dans Création, l'Aperçu porte le fond des cartes à côté de celui de la page,
-  et dessine les fonds translucides posés sur l'un et l'autre.
-- DTCG et les variables Figma portent l'alpha. Deux fonds translucides empilés
-  s'additionnent : une alerte dans une alerte devient plus foncée.
+| Thème | Carte | Fonds teintés (repos, survol, appui) | Texte du fond | Focus |
+|---|---|---|---|---|
+| Light | Blanche | 100, 200, 300, comme aujourd'hui ; ou 50, 100, 200, plus discrets | 800 | 600 |
+| Dark, option A (recommandée) | Neutre 100, comme aujourd'hui | 200, 300, 400 | 950 | 800 |
+| Dark, option B | Neutre 200 | 300, 400, 500 | 950 | 800 |
+
+Mesures de `verifier-garanties.ts` avec l'enveloppe, sur 50 688 couples du
+balayage :
+
+| Table | Échecs | Fond contre carte Dark (médiane) | Carte contre page Dark |
+|---|---|---|---|
+| Actuelle | 164 | 1,005 | 1,10 |
+| Option A | 164 | 1,148 | 1,10 |
+| Option B | 444 | 1,203 | 1,25 |
+
+Les 164 échecs communs viennent de G1 en Dark inversé (144) et de G7 en Light
+(20) : ils existent déjà. L'option A n'en ajoute aucun. L'option B en ajoute
+280, tous sur la carte plus claire : G2, le plein contre la carte (218), et
+G5, le texte de page contre la carte (62).
+
+L'option A rend le fond teinté visible sans rien casser. Elle ne règle pas la
+séparation de la carte et de la page : c'est l'élévation du thème, hors des
+palettes. Une carte plus claire la règle, au prix des échecs de l'option B ;
+un contour ou une ombre la règle sans toucher aux contrastes. Le
+[dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md)
+porte ce choix. Le banc à l'aveugle montre les deux options sous « En Dark » :
+« Fonds 200 » et « Carte 200, fonds 300 ».
+
+Conséquences :
+
+- La table du kit change ses crans de surface en Dark ; le sens `inverse` suit
+  le même décalage.
+- Palettes n'écrit aucune couleur nouvelle : les fonds restent des crans.
+- Dans Création, l'Aperçu peint les composants sur la carte du thème.
 
 ### 4.4 Le focus
 
@@ -363,7 +414,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85, a 0,6) ; Vivid : Tailwind (0,95, a 1,1) |
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Rétablir » y ramène ; les recettes au format 10 gardent la part constante |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
-| Q5 | Le fond teinté | Translucide, calculé contre la carte en Light et la page en Dark |
+| Q5 | Le fond teinté | Opaque, un cran au-dessus de la carte qui le porte. Light : 100 (ou 50). Dark : fonds 200, 300, 400, texte 950, focus 800, sur la carte actuelle (option A, aucun échec ajouté). La séparation de la carte Dark relève de l'élévation |
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
@@ -374,7 +425,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Décision | Fichiers et migrations |
 |---|---|
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
-| Q5 | `packages/kit/src/emplois/dossiers.ts` et `garanties.ts` (fonds composés) ; recette (fond des cartes) ; écriture des primitives alpha dans Palettes ; `diagnostic-contrastes.mjs` de `ucm check` ; architecture de référence et vue illustrée |
+| Q5 | `packages/kit/src/emplois/dossiers.ts` (crans de surface, texte et focus du Dark) et `garanties.ts` ; Aperçu de Création ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
 | C1 à C10 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
@@ -383,8 +434,8 @@ dossier.
 
 ## 8. Limites
 
-- Le jugement visuel porte sur une combinaison sur huit (section 3.6). Un
-  contraste conforme ne vaut pas validation.
+- Le jugement visuel porte sur trois combinaisons, toutes sur carte
+  (section 3.6). Un contraste conforme ne vaut pas validation.
 - Les seuils de distance par rôle et la séparation visuelle d'un fond translucide sont des
   valeurs d'essai.
 - Une seule recette réelle. Les palettes à une intensité et les palettes figées
@@ -395,8 +446,8 @@ dossier.
 - La rotation de teinte du calcul passe par le réglage de teinte de la carte,
   borné à ±30°, et déplace la référence. Un designer qui garde sa référence
   exacte n'a pas ce geste.
-- Le rendu d'un fond translucide dans Figma, sur des calques empilés, reste à
-  vérifier dans le fichier.
+- La séparation de la carte Dark n'est pas tranchée : elle relève de
+  l'élévation du thème (section 4.3).
 
 ## 9. Reproduire
 

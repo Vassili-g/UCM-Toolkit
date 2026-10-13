@@ -45,12 +45,20 @@ const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark'
   'plein 600 en Light': (sens, mode) => (mode === 'light' && sens === 'normal'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'solid/default': 600, 'solid/hover': 700, 'solid/pressed': 800 })
     : TABLE_DES_DOSSIERS[sens]),
+  'Dark A : fonds 200, texte 950, focus 800': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
+  'Dark B : carte 200, fonds 300, texte 950, focus 800': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
   'les deux': (sens, mode) => mode === 'light'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
     : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
 };
 
 const CARTE = { light: '#FFFFFF', dark: '#1A1C1F' };
+// L'option B des fonds pose la carte Dark au neutre 200 ; les autres tables gardent la carte actuelle.
+const CARTES: Record<string, { light: string; dark: string }> = { 'Dark B : carte 200, fonds 300, texte 950, focus 800': { light: '#FFFFFF', dark: '#25282E' } };
 const teintes = Array.from({ length: 72 }, (_, i) => i * 5);
 const references = teintes.flatMap((H) => [0.62, 0.75].map((L) => ({ H, L, hexa: ecrireHexa(lineaireVersRgb8(oklchVersLineaire({ L, C: 0.9 * plafond(L, H, 'srgb'), H }))) })));
 
@@ -83,7 +91,7 @@ for (const [nomRegle, regle] of Object.entries(regles)) for (const [nomTable, ta
         const sens = sensDuTheme(mode, texteDesBoutons[mode]);
         const t = table(sens, mode);
         const couleur = (v: string) => (t[v] === 'texteDesBoutons' ? (texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000') : rampe[recette.crans.indexOf(t[v] as number)]);
-        const supports = { page: recette.fonds[mode], raised: CARTE[mode] };
+        const supports = { page: recette.fonds[mode], raised: (CARTES[nomTable] ?? CARTE)[mode] };
         // Un fond translucide se juge composé sur chaque support ; il est calculé contre la carte en Light, la page en Dark.
         const translucide = nomTable.startsWith('translucide');
         const reference = lireHexa(mode === 'light' ? CARTE.light : recette.fonds.dark)!;

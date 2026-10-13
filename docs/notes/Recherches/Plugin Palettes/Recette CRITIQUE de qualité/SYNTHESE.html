@@ -59,16 +59,16 @@
     <div class="ligne"><span>Solution</span><span>L'enveloppe : la part donne la chroma, une borne par clarté la plafonne.</span></div>
     <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts</span></div>
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
-    <div class="ligne"><span>À l’aveugle</span><span>Light · Soft · carte : Actuel réglé à la main 5, Enveloppe 4, Deux zones et Tailwind 1 sur le texte ; 7 combinaisons à noter.</span></div>
+    <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles.</span></div>
     <a href="Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html">Maquette qualité ›</a>
   </section>
   <section class="sujet" data-sujet="2">
     <h3><span class="numero">2</span>Crans des rôles</h3>
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
-    <div class="ligne"><span>Problème</span><span>Fond 50 invisible sur la page, fond Dark invisible sur la carte, focus foncé.</span></div>
-    <div class="ligne"><span>Cause</span><span>Un fond opaque ne garde pas le même écart avec la page et la carte.</span></div>
-    <div class="ligne"><span>Solution</span><span>Fonds translucides ; focus 600 décalé de 2 px ; <code>ring</code> dans chaque dossier.</span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,10</span><br>fond posé sur la carte Dark, même écart sur la page</span></div>
+    <div class="ligne"><span>Problème</span><span>Fond Dark invisible sur la carte, carte Dark confondue avec la page, focus foncé.</span></div>
+    <div class="ligne"><span>Cause</span><span>En Dark, le fond teinté 100 a la clarté de la carte, neutre 100.</span></div>
+    <div class="ligne"><span>Solution</span><span>Fond Dark un cran au-dessus de la carte, sans échec ajouté ; focus 600 décalé de 2 px ; <code>ring</code> dans chaque dossier. Séparation de la carte : élévation.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,005 → 1,15</span><br>fond teinté contre la carte Dark, 0 échec ajouté</span></div>
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
   <section class="sujet" data-sujet="3">
@@ -109,7 +109,7 @@
       ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
     ] },
     { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
-      ['Q5', 'Fond teinté', 'Translucide', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#surfaces'],
+      ['Q5', 'Fond teinté', 'Opaque, un cran au-dessus de la carte ; Dark : fonds 200, texte 950, focus 800', 'DOSSIER-QUALITE-DES-PALETTES.md'],
       ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],

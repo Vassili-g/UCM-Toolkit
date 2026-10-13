@@ -118,6 +118,7 @@
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="aMode"></div></div>
   <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="aIntensite"></div></div>
   <div class="groupe"><span>Support</span><div class="bascule" data-commande="aSupport"></div></div>
+  <div class="groupe"><span>En Dark</span><div class="bascule" data-commande="aDark"></div></div>
 </div>
 <div class="panneaux" id="panneaux"></div>
 <div class="actions"><button type="button" id="melanger">Tirer un autre ordre</button><button type="button" id="reveler">Révéler les règles</button><button type="button" class="primaire" id="copier">Copier le bilan</button></div>
@@ -153,6 +154,8 @@
   const ecrire = (cle, valeur) => { try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch { /* stockage indisponible */ } };
 
   const etat = lire('qualite-etat', { variante: 'enveloppe', mode: 'light', intensite: 'soft', support: 'raised', crans: 'table', corps: 'colore', aMode: 'light', aIntensite: 'soft', aSupport: 'raised', gPalette: 'Grass', gRegle: 'enveloppe', gMode: 'light' });
+  // Un état rangé avant l'ajout de la commande du Dark n'a pas cette clé.
+  if (!etat.aDark) etat.aDark = 'actuel';
   const OPTIONS = {
     variante: VARIANTES,
     mode: [['light', 'Light'], ['dark', 'Dark']],
@@ -163,6 +166,7 @@
     aMode: [['light', 'Light'], ['dark', 'Dark']],
     aIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
     aSupport: [['page', 'Page'], ['raised', 'Carte']],
+    aDark: [['actuel', 'Table actuelle'], ['fonds200', 'Fonds 200'], ['carte200', 'Carte 200, fonds 300']],
     gPalette: STATUTS.map((s) => [s.palette, s.palette]),
     gRegle: [['zones', 'Deux zones'], ['enveloppe', 'Enveloppe'], ['tailwind', 'Relevé Tailwind']],
     gMode: [['light', 'Light'], ['dark', 'Dark']],
@@ -201,7 +205,8 @@
 
   /** Une page et sa carte ; les composants se posent sur le support choisi. */
   function scene(ctx, mesures = true) {
-    const { page, raised } = D.supports[ctx.mode];
+    const { page } = D.supports[ctx.mode];
+    const raised = ctx.carte ?? D.supports[ctx.mode].raised;
     const colonnes = STATUTS.map((s) => colonne(s, ctx, mesures)).join('');
     return ctx.support === 'page'
       ? `<div class="ui" style="background:${page}"><div class="statuts">${colonnes}</div></div>`
@@ -250,12 +255,18 @@
   if (!ordre || ordre.length !== CANDIDATES.length) ordre = melange();
   let revele = false;
   function melange() { const o = [...CANDIDATES]; for (let i = o.length - 1; i > 0; i -= 1) { const k = Math.floor(Math.random() * (i + 1)); [o[i], o[k]] = [o[k], o[i]]; } ecrire('qualite-ordre', o); return o; }
-  const cleNotes = () => `qualite-notes-${etat.aMode}-${etat.aIntensite}-${etat.aSupport}`;
+  // Les notes du Dark se rangent par état ; la table actuelle garde la clé des notes déjà données.
+  const suffixeDark = (mode, dark) => (mode === 'dark' && dark && dark !== 'actuel' ? `-${dark}` : '');
+  const cleNotes = () => `qualite-notes-${etat.aMode}-${etat.aIntensite}-${etat.aSupport}${suffixeDark(etat.aMode, etat.aDark)}`;
+  /** La carte et la table du Dark à noter : la carte passe au neutre 200, les fonds teintés au cran au-dessus de la carte. */
+  const CARTE_200 = '#25282E';
+  const DARK = { actuel: { crans: 'table' }, fonds200: { crans: 'dark200' }, carte200: { crans: 'dark300', carte: CARTE_200 } };
   function dessinerAveugle() {
     const notes = lire(cleNotes(), {});
     document.getElementById('panneaux').innerHTML = ordre.map((v, k) => {
       const lettre = 'ABCDE'[k];
-      const ctx = { variante: v, mode: etat.aMode, intensite: etat.aIntensite, support: etat.aSupport, crans: 'table', corps: 'colore' };
+      const dark = etat.aMode === 'dark' ? DARK[etat.aDark || 'actuel'] : DARK.actuel;
+      const ctx = { variante: v, mode: etat.aMode, intensite: etat.aIntensite, support: etat.aSupport, crans: dark.crans, carte: dark.carte, corps: 'colore' };
       return `<div class="panneau"><header><b>${lettre}</b><span>${revele ? D.variantes[v].nom : ''}</span></header>${scene(ctx, false)}
         <div class="notes">${CRITERES.map((c) => `<label>${c}<select data-note="${v}|${c}"><option value="">–</option>${[1, 2, 3, 4, 5].map((n) => `<option ${notes[`${v}|${c}`] == n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`).join('')}</div></div>`;
     }).join('');
@@ -271,10 +282,10 @@
   document.getElementById('reveler').addEventListener('click', () => { revele = !revele; dessinerAveugle(); });
   document.getElementById('copier').addEventListener('click', () => {
     const lignes = ['Recette critique : notes à l\'aveugle (1 à 5)'];
-    for (const mode of ['light', 'dark']) for (const intensite of ['soft', 'vivid']) for (const support of ['page', 'raised']) {
-      const notes = lire(`qualite-notes-${mode}-${intensite}-${support}`, {});
+    for (const mode of ['light', 'dark']) for (const intensite of ['soft', 'vivid']) for (const support of ['page', 'raised']) for (const dark of (mode === 'dark' ? ['actuel', 'fonds200', 'carte200'] : ['actuel'])) {
+      const notes = lire(`qualite-notes-${mode}-${intensite}-${support}${suffixeDark(mode, dark)}`, {});
       if (!Object.values(notes).some(Boolean)) continue;
-      lignes.push('', `${mode} · ${intensite} · ${support === 'page' ? 'page' : 'carte'}`);
+      lignes.push('', `${mode} · ${intensite} · ${support === 'page' ? 'page' : 'carte'}${mode === 'dark' ? ` · ${OPTIONS.aDark.find(([v]) => v === dark)[1].toLowerCase()}` : ''}`);
       for (const v of CANDIDATES) lignes.push(`  ${D.variantes[v].nom.padEnd(26)} ${CRITERES.map((c) => `${c} ${notes[`${v}|${c}`] || '–'}`).join(' · ')}`);
     }
     const zone = document.getElementById('bilan');
