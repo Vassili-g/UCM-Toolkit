@@ -2,13 +2,15 @@
 
 **Statut : solution à valider.** Ce document reprend tout le sujet des rampes
 après les notes à l'aveugle du mainteneur et un relevé de neuf systèmes. Il
-remplace les recommandations Q1, Q2, Q5 et Q6 du
+remplace les recommandations Q1, Q2, Q5 et Q6, et ajoute Q9, du
 [dossier de qualité](./DOSSIER-QUALITE-DES-PALETTES.md) ; les mesures et les
 pistes écartées restent dans ce dossier.
 
 Sources : [Collecte/Surfaces](./Collecte/Surfaces/README.md) (Primer,
 Atlassian, Carbon, Polaris, Material 3, Fluent 2, shadcn/ui, Radix, versions
-figées), [RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md),
+figées), [ANALYSE-COMPOSANTS-A-SURFACE.md](./Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md)
+(badges, alertes et boutons de onze systèmes),
+[RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md),
 et les scripts de [Mesures](./Mesures/) : `verifier-garanties.ts`,
 `mesurer-textes-sombres.ts`, `generer-donnees.ts`.
 
@@ -144,11 +146,37 @@ Les composants teintés se posent toujours sur une carte : un fond opaque
 choisi contre la carte suffit, comme chez Atlassian, Material 3, Fluent et
 Polaris. Palettes n'écrit que des crans ; la piste translucide est abandonnée.
 
-### S6. Le badge, un choix de composant
+### S6. Les composants à surface
 
-Les badges d'Atlassian et de Polaris prennent un fond plus marqué que les
-alertes (1,34 à 1,37 contre 1,14 à 1,17). Dans UCM, un badge peut employer
-`surface/hover` au repos. Les palettes n'en changent pas.
+[ANALYSE-COMPOSANTS-A-SURFACE.md](./Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md)
+relève les badges, alertes et boutons de onze systèmes. Les rôles d'UCM s'y
+retrouvent sans changement :
+
+| Composant | Rôles UCM | Light | Dark proposé | Ce que font les autres |
+|---|---|---|---|---|
+| Alerte | `surface/default`, `surface/foreground` | 100 · 800 | 200 · 900 | Fond pâle teinté dans les dix systèmes ; texte neutre dans cinq, teinté dans cinq (Q4) |
+| Badge discret | `surface/default`, `surface/foreground` | 100 · 800 | 200 · 900 | Fond pâle dans sept systèmes sur dix ; texte 7 à 9 crans plus loin que le fond |
+| Badge plein | `solid/default`, `solid/foreground` | 700, texte des boutons | 700 | Pas moyen à fort, texte blanc ou encre sur jaune |
+| Bouton teinté | `surface/default`, `hover`, `pressed`, texte constant | 100, 200, 300 | 200, 300, 400 | Un pas par état (Radix `a3`, `a4`, `a5`) ; texte constant |
+| Bouton plein | `solid/default`, `hover`, `pressed` | 700, 800, 900 | Texte noir : 700, 800, 900, plus clair ; texte blanc : 700, 600, 500, plus sombre | Survol plus sombre en clair ; en sombre, plus clair chez Radix, Atlassian, Fluent et Primer |
+
+UCM met 7 crans entre le fond et le texte (100 et 800 ; 200 et 900 en Dark
+proposé), dans la plage relevée.
+
+Avec un texte des boutons blanc en Dark, le réglage du mainteneur, le bouton
+plein d'UCM fonce au survol, quand les quatre systèmes cités l'éclaircissent :
+le plein éclairci perdrait le contraste du texte blanc. Avec un texte noir,
+UCM l'éclaircit comme eux. Ce choix suit le sens du thème et ne change pas.
+
+Un écart reste : le contour discret. Atlassian, Fluent, Tremor et Untitled UI
+bordent le badge discret d'un trait plus clair que son texte (Untitled UI :
+fond 50, contour 200, texte 700). Le contour d'UCM, `surface/border`, vaut le
+texte : il convient à un contour franc. Un badge bordé discrètement prend
+`page/divider` (cran 300) ; aucune variable n'est ajoutée.
+
+Les badges d'Atlassian et de Polaris prennent aussi un fond plus marqué que
+les alertes (1,34 à 1,37 contre 1,14 à 1,17). Dans UCM, un badge peut
+employer `surface/hover` au repos. Ces deux choix relèvent des composants.
 
 ## 4. Ce que la solution touche
 

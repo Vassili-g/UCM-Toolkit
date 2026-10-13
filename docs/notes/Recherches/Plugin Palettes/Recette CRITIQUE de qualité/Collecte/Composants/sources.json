@@ -1,0 +1,715 @@
+[
+  {
+    "id": "radixBadge",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/src/components/badge.css",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "src/components/badge.css",
+    "localFile": "sources/radix-badge.css.txt",
+    "sha256": "e9c259a1f85ec1fafdf64a3341dae9b32fc2d831618d331630fc2148c2b09b66"
+  },
+  {
+    "id": "radixCallout",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/src/components/callout.css",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "src/components/callout.css",
+    "localFile": "sources/radix-callout.css.txt",
+    "sha256": "d40e6db2cc446320884fe4845824e70e0008d76c6e35bd19a546895e4a0563a4"
+  },
+  {
+    "id": "radixBaseButton",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/src/components/_internal/base-button.css",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "src/components/_internal/base-button.css",
+    "localFile": "sources/radix-base-button.css.txt",
+    "sha256": "b1d99aafad784cb0e02b42890fd5bcab0ee09bbd734e965d59ed8e3c293f2400"
+  },
+  {
+    "id": "atlaskitLozengeCss",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/lozenge@17.0.5/dist/esm/new/lozenge-base.compiled.css",
+    "revision": "@atlaskit/lozenge@17.0.5",
+    "originalPath": "dist/esm/new/lozenge-base.compiled.css",
+    "localFile": "sources/atlaskit-lozenge-css.css.txt",
+    "sha256": "f451e846cd3998aeb043a81099839235dd8b8a67c261af0f407a06afd1cb81ae"
+  },
+  {
+    "id": "atlaskitLozengeJs",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/lozenge@17.0.5/dist/esm/new/lozenge-base.js",
+    "revision": "@atlaskit/lozenge@17.0.5",
+    "originalPath": "dist/esm/new/lozenge-base.js",
+    "localFile": "sources/atlaskit-lozenge-js.js.txt",
+    "sha256": "c1f072d0038655392adb6e0e58dd2c50db7718e51031aaa34d157b100da5b0d1"
+  },
+  {
+    "id": "atlaskitLozengeIndex",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/lozenge@17.0.5/dist/esm/lozenge.js",
+    "revision": "@atlaskit/lozenge@17.0.5",
+    "originalPath": "dist/esm/lozenge.js",
+    "localFile": "sources/atlaskit-lozenge-index.js.txt",
+    "sha256": "9eeb5cd2ed2d10c32a48606c09bda88605f3dc21482e6a3e115e99179e179e72"
+  },
+  {
+    "id": "atlaskitLozengeLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/lozenge@17.0.5/LICENSE",
+    "revision": "@atlaskit/lozenge@17.0.5",
+    "originalPath": "LICENSE",
+    "localFile": "sources/atlaskit-lozenge-licence.txt",
+    "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8"
+  },
+  {
+    "id": "atlaskitSectionMessageCss",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/section-message@10.2.6/dist/esm/section-message.compiled.css",
+    "revision": "@atlaskit/section-message@10.2.6",
+    "originalPath": "dist/esm/section-message.compiled.css",
+    "localFile": "sources/atlaskit-section-message-css.css.txt",
+    "sha256": "712f203d976289b2aeefef41e8a0d1363b995cb937754ece0cf3929822c1ba1d"
+  },
+  {
+    "id": "atlaskitSectionMessageJs",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/section-message@10.2.6/dist/esm/section-message.js",
+    "revision": "@atlaskit/section-message@10.2.6",
+    "originalPath": "dist/esm/section-message.js",
+    "localFile": "sources/atlaskit-section-message-js.js.txt",
+    "sha256": "ca7743a872a831e19fe3c03189792b629cc15d4e2816810666574a071b5b88c0"
+  },
+  {
+    "id": "atlaskitButtonCss",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/esm/new-button/variants/shared/button-base.compiled.css",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/esm/new-button/variants/shared/button-base.compiled.css",
+    "localFile": "sources/atlaskit-button-css.css.txt",
+    "sha256": "75192ee67d76d442e34f80bfc49ab9c722086f1ca90890a7f184848456e2eb41"
+  },
+  {
+    "id": "atlaskitButtonJs",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/esm/new-button/variants/shared/button-base.js",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/esm/new-button/variants/shared/button-base.js",
+    "localFile": "sources/atlaskit-button-js.js.txt",
+    "sha256": "24582f4d0d9181c46a9ce672c59c0e89d229099b923b908fe374e6823cdc37dd"
+  },
+  {
+    "id": "primerLabelCss",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/react@38.40.1/dist/Label/Label-7904957c.css",
+    "revision": "@primer/react@38.40.1",
+    "originalPath": "dist/Label/Label-7904957c.css",
+    "localFile": "sources/primer-label-css.css.txt",
+    "sha256": "0512301333c2b1bb0333ab171249d04238aaa22fc41de55f210e448ee4a0f17f"
+  },
+  {
+    "id": "primerFlashCss",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/react@38.40.1/dist/Flash/Flash-a3596568.css",
+    "revision": "@primer/react@38.40.1",
+    "originalPath": "dist/Flash/Flash-a3596568.css",
+    "localFile": "sources/primer-flash-css.css.txt",
+    "sha256": "575e0ec583d56446927e8d289132f4bd4b26877b87c7fc2623a1de2a9d39a882"
+  },
+  {
+    "id": "primerButtonCss",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/react@38.40.1/dist/Button/ButtonBase-014fae23.css",
+    "revision": "@primer/react@38.40.1",
+    "originalPath": "dist/Button/ButtonBase-014fae23.css",
+    "localFile": "sources/primer-button-css.css.txt",
+    "sha256": "a4711497fae2455c40393be2fce556e273a68ce35794a6065e3d7d7aeac207a9"
+  },
+  {
+    "id": "fluentButtonStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-button@9.11.1/lib/components/Button/useButtonStyles.styles.raw.js",
+    "revision": "@fluentui/react-button@9.11.1",
+    "originalPath": "lib/components/Button/useButtonStyles.styles.raw.js",
+    "localFile": "sources/fluent-button-styles.js.txt",
+    "sha256": "266f0391004f52a6f0f3bf33e8e4071680447ba10129252cab18b86592c42c3e"
+  },
+  {
+    "id": "fluentBrandColors",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/brandColors.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/brandColors.js",
+    "localFile": "sources/fluent-brand-colors.js.txt",
+    "sha256": "fab5b54dfb45a10c20b54fbcf70c7c1f1fc4a336283117f2009bd8c5de40ac47"
+  },
+  {
+    "id": "m3TonalButton",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-tonal-button.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-tonal-button.scss",
+    "localFile": "sources/m3-tonal-button.scss.txt",
+    "sha256": "1c658bb5e4ef29d140941951c23af6b74108a510469c42c0fd7f27cd3ebe042c"
+  },
+  {
+    "id": "m3FilledButton",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-button.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-button.scss",
+    "localFile": "sources/m3-filled-button.scss.txt",
+    "sha256": "15542bd5ba06432cd747f6a21abb604435f3bd177b2c49c559f840857694df23"
+  },
+  {
+    "id": "m3AssistChip",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-assist-chip.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-assist-chip.scss",
+    "localFile": "sources/m3-assist-chip.scss.txt",
+    "sha256": "d49ab8c83bb0ea02d108b0ca0e7e955a7dc966c7bd8659cefe3a3b79c7f1f59b"
+  },
+  {
+    "id": "m3SysState",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-state.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-state.scss",
+    "localFile": "sources/m3-sys-state.scss.txt",
+    "sha256": "d410dd5d47c1bc25b25b6fa82901bdf8d555360cbd35716bc73ed8d6a61ea6f8"
+  },
+  {
+    "id": "muiAlert",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/Alert/Alert.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "Alert/Alert.js",
+    "localFile": "sources/mui-alert.js.txt",
+    "sha256": "479b3f41f7cf970aa26eeddc618f686b51034c1df0e0f04864cf18cffd5611f1"
+  },
+  {
+    "id": "muiChip",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/Chip/Chip.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "Chip/Chip.js",
+    "localFile": "sources/mui-chip.js.txt",
+    "sha256": "6703a522ff18b92af19b5bb32a779a0e7b0a8fd3935d57410e7a2be8e31d9c58"
+  },
+  {
+    "id": "muiButton",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/Button/Button.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "Button/Button.js",
+    "localFile": "sources/mui-button.js.txt",
+    "sha256": "ff23554ae2eac98863f24c29ec04ab07c7903bc489ffbaf81a31f5979149a515"
+  },
+  {
+    "id": "muiPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/styles/createPalette.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "styles/createPalette.js",
+    "localFile": "sources/mui-palette.js.txt",
+    "sha256": "973057639a7d4bb422fed3fccdd9bc171a3380329201b59e2c6a6e6312647ce6"
+  },
+  {
+    "id": "muiBlue",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/blue.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/blue.js",
+    "localFile": "sources/mui-blue.js.txt",
+    "sha256": "9aa014c803daf97b35007d2377813111000a2f4cae0e548dbe4da2317f084c9f"
+  },
+  {
+    "id": "muiRed",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/red.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/red.js",
+    "localFile": "sources/mui-red.js.txt",
+    "sha256": "c025c2dc6db342403be1b10447d717f7bb2c3c07691289e0c3b904467136b3bb"
+  },
+  {
+    "id": "muiLightBlue",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/lightBlue.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/lightBlue.js",
+    "localFile": "sources/mui-light-blue.js.txt",
+    "sha256": "5684a35f75587995b96eb04e547f75cc7b28a9ca90efc72b99167e29f5218558"
+  },
+  {
+    "id": "muiGreen",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/green.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/green.js",
+    "localFile": "sources/mui-green.js.txt",
+    "sha256": "a14b8b0187a92689ebf4a4a30c1d2de6e6219a34c8f4dd8c2b1f616a8ffa157c"
+  },
+  {
+    "id": "muiOrange",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/orange.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/orange.js",
+    "localFile": "sources/mui-orange.js.txt",
+    "sha256": "9c180c0ccb4555aee8f67e4b4583e9eaddf9d12a11af2bd9b134f4378f751956"
+  },
+  {
+    "id": "muiCommon",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/colors/common.js",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "colors/common.js",
+    "localFile": "sources/mui-common.js.txt",
+    "sha256": "689cd2599cdb2a36b81ea98894c7652729984abcf68f9acb5fba0944018eca2a"
+  },
+  {
+    "id": "muiLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/LICENSE",
+    "revision": "@mui/material@9.5.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/mui-licence.txt",
+    "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d"
+  },
+  {
+    "id": "muiColorManipulator",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/system@9.5.0/colorManipulator/colorManipulator.mjs",
+    "revision": "@mui/system@9.5.0",
+    "originalPath": "colorManipulator/colorManipulator.mjs",
+    "localFile": "sources/mui-color-manipulator.mjs.txt",
+    "sha256": "d249188d7f8172a7819f846f171b8322cc2e2ebdcb5f1730c6e0b75c5cf0b601"
+  },
+  {
+    "id": "tailwindTheme",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.1.3/theme.css",
+    "revision": "tailwindcss@4.1.3",
+    "originalPath": "theme.css",
+    "localFile": "sources/tailwind-theme.css.txt",
+    "sha256": "5d1f0002f98471fa59bc53ec2bd2488ff3e4661d965f7fa665408218d63187cb"
+  },
+  {
+    "id": "tailwindLicence",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.1.3/LICENSE",
+    "revision": "tailwindcss@4.1.3",
+    "originalPath": "LICENSE",
+    "localFile": "sources/tailwind-licence.txt",
+    "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+  },
+  {
+    "id": "tremorBadge",
+    "url": "https://raw.githubusercontent.com/tremorlabs/tremor/ca4d588f47820ff3d514d37fa4ee08a4222dec11/src/components/Badge/Badge.tsx",
+    "revision": "tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11",
+    "originalPath": "src/components/Badge/Badge.tsx",
+    "localFile": "sources/tremor-badge.tsx.txt",
+    "sha256": "a57ebdff1b16a0a964cd18b6deb47d3d56d46ea9a63aedda5c75cc540f1eb43b"
+  },
+  {
+    "id": "tremorCallout",
+    "url": "https://raw.githubusercontent.com/tremorlabs/tremor/ca4d588f47820ff3d514d37fa4ee08a4222dec11/src/components/Callout/Callout.tsx",
+    "revision": "tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11",
+    "originalPath": "src/components/Callout/Callout.tsx",
+    "localFile": "sources/tremor-callout.tsx.txt",
+    "sha256": "f9641a20837912d812410533c3f965a5f4644e9438d1a41e697ddb6794cab62b"
+  },
+  {
+    "id": "tremorButton",
+    "url": "https://raw.githubusercontent.com/tremorlabs/tremor/ca4d588f47820ff3d514d37fa4ee08a4222dec11/src/components/Button/Button.tsx",
+    "revision": "tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11",
+    "originalPath": "src/components/Button/Button.tsx",
+    "localFile": "sources/tremor-button.tsx.txt",
+    "sha256": "ad3e5a5157c7fde574dc030074dc70152d2585872c69fa775465d3a6deef7fff"
+  },
+  {
+    "id": "tremorCard",
+    "url": "https://raw.githubusercontent.com/tremorlabs/tremor/ca4d588f47820ff3d514d37fa4ee08a4222dec11/src/components/Card/Card.tsx",
+    "revision": "tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11",
+    "originalPath": "src/components/Card/Card.tsx",
+    "localFile": "sources/tremor-card.tsx.txt",
+    "sha256": "3859dff2445a9f63b82990b932f7a022558583440acd586121683b8d063cd915"
+  },
+  {
+    "id": "tremorLicence",
+    "url": "https://raw.githubusercontent.com/tremorlabs/tremor/ca4d588f47820ff3d514d37fa4ee08a4222dec11/LICENSE",
+    "revision": "tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11",
+    "originalPath": "LICENSE",
+    "localFile": "sources/tremor-licence.txt",
+    "sha256": "6e43333ff4b171baacff233a3672365923eb688bf7ce8724eac42868bc4a08eb"
+  },
+  {
+    "id": "spectrumBadge",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/Badge.tsx",
+    "revision": "adobe/react-spectrum@740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/Badge.tsx",
+    "localFile": "sources/spectrum-badge.tsx.txt",
+    "sha256": "0ffcaa2f4237f813e74de5f5d86c27ce9e9c750bf0d26b8e0de846a336e4d076"
+  },
+  {
+    "id": "spectrumInlineAlert",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/src/InlineAlert.tsx",
+    "revision": "adobe/react-spectrum@740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/src/InlineAlert.tsx",
+    "localFile": "sources/spectrum-inline-alert.tsx.txt",
+    "sha256": "1fb2113e41aaceb5425d2f2d740e938220427829401184241af451d3aba79671"
+  },
+  {
+    "id": "spectrumTheme",
+    "url": "https://raw.githubusercontent.com/adobe/react-spectrum/740c6c5c4a717ca8c82fc4d15d199f6166cd42dc/packages/@react-spectrum/s2/style/spectrum-theme.ts",
+    "revision": "adobe/react-spectrum@740c6c5c4a717ca8c82fc4d15d199f6166cd42dc",
+    "originalPath": "packages/@react-spectrum/s2/style/spectrum-theme.ts",
+    "localFile": "sources/spectrum-theme.ts.txt",
+    "sha256": "a1606cf63c45b6f964771012d105ca92172573ffc2b702ae98b7b197759fc759"
+  },
+  {
+    "id": "spectrumVariables",
+    "url": "https://cdn.jsdelivr.net/npm/@adobe/spectrum-tokens@14.15.0/dist/json/variables.json",
+    "revision": "@adobe/spectrum-tokens@14.15.0",
+    "originalPath": "dist/json/variables.json",
+    "localFile": "sources/spectrum-variables.json.txt",
+    "sha256": "f6bd6a34520502514cc666c2f7552965e80d09302bde86f8a7578c9e6bbf298b"
+  },
+  {
+    "id": "atlaskitLight",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-light.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-light.js",
+    "localFile": "../Surfaces/sources/atlaskit-light.js.txt",
+    "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763",
+    "reutilise": true
+  },
+  {
+    "id": "atlaskitDark",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-dark.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-dark.js",
+    "localFile": "../Surfaces/sources/atlaskit-dark.js.txt",
+    "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4",
+    "reutilise": true
+  },
+  {
+    "id": "atlaskitTokenNames",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/token-names.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/token-names.js",
+    "localFile": "../Surfaces/sources/atlaskit-token-names.js.txt",
+    "sha256": "92096e1094805a4ce01eb5776cc819a1778fa0bad88b6af6a4c4140c4a934861",
+    "reutilise": true
+  },
+  {
+    "id": "primerLight",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/light.css",
+    "revision": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/light.css",
+    "localFile": "../Surfaces/sources/primer-light.css.txt",
+    "sha256": "86468bdfa1761f189d7bed7c1a13c6183f67ec132d689dacc63acc9eec986496",
+    "reutilise": true
+  },
+  {
+    "id": "primerDark",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/dark.css",
+    "revision": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/dark.css",
+    "localFile": "../Surfaces/sources/primer-dark.css.txt",
+    "sha256": "d70cf0d4f3b2b1056030b40fcf1cd65b1d74d07dbbec002ad300e08266188d89",
+    "reutilise": true
+  },
+  {
+    "id": "polarisStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris@13.9.5/build/esm/styles.css",
+    "revision": "@shopify/polaris@13.9.5",
+    "originalPath": "build/esm/styles.css",
+    "localFile": "../Surfaces/sources/polaris-styles.css.txt",
+    "sha256": "7679086b9fdbab646abae0b7a50ef7c122e18282027fdc1403e84e4336cc2617",
+    "reutilise": true
+  },
+  {
+    "id": "polarisTokensBuild",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris-tokens@9.4.2/dist/cjs/build/index.js",
+    "revision": "@shopify/polaris-tokens@9.4.2",
+    "originalPath": "dist/cjs/build/index.js",
+    "localFile": "../Surfaces/sources/polaris-tokens-build.js.txt",
+    "sha256": "e09f5c5a9da63fc4d2538604e2d40a646bed3eb2aaf0ae064541f8633c30a92e",
+    "reutilise": true
+  },
+  {
+    "id": "polarisBannerUtilities",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris@13.9.5/build/esm/components/Banner/utilities.js",
+    "revision": "@shopify/polaris@13.9.5",
+    "originalPath": "build/esm/components/Banner/utilities.js",
+    "localFile": "../Surfaces/sources/polaris-banner-utilities.js.txt",
+    "sha256": "6b42977851c8eb66df6456db73acb9827a86f65b87a6efb9bf54b0b0cbeb90ff",
+    "reutilise": true
+  },
+  {
+    "id": "m3SysColor",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-color.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-color.scss",
+    "localFile": "../Surfaces/sources/m3-sys-color.scss.txt",
+    "sha256": "aa0c2dc244989edcb1bb2af169a87d290e5303a7e945720cd2c21c8bdb103670",
+    "reutilise": true
+  },
+  {
+    "id": "m3RefPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-ref-palette.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-ref-palette.scss",
+    "localFile": "../Surfaces/sources/m3-ref-palette.scss.txt",
+    "sha256": "9208b47a2e67a9060a6d3440428a8ff0265e747d96477ae1b56dc7931d69f0d3",
+    "reutilise": true
+  },
+  {
+    "id": "fluentLightColor",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColor.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColor.js",
+    "localFile": "../Surfaces/sources/fluent-light-color.js.txt",
+    "sha256": "95c25a2fbfc3b465be4b0130bf40dbc0a2bfddd432b2551619055f64f165a6e6",
+    "reutilise": true
+  },
+  {
+    "id": "fluentDarkColor",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColor.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColor.js",
+    "localFile": "../Surfaces/sources/fluent-dark-color.js.txt",
+    "sha256": "bcff717c006279025ed9325f02ce6e831226bca2bc320a1499d0fa821e2cfc18",
+    "reutilise": true
+  },
+  {
+    "id": "fluentLightPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColorPalette.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColorPalette.js",
+    "localFile": "../Surfaces/sources/fluent-light-palette.js.txt",
+    "sha256": "3633cee2b5d8156920da3bdc7fd03c4a3b5799f75e9842512a147c830fde7660",
+    "reutilise": true
+  },
+  {
+    "id": "fluentDarkPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColorPalette.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColorPalette.js",
+    "localFile": "../Surfaces/sources/fluent-dark-palette.js.txt",
+    "sha256": "f034e258bf0517fdfd39e9eec2d5f0f54e32eaa426e2d69cf066571221a88337",
+    "reutilise": true
+  },
+  {
+    "id": "fluentColors",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/colors.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/colors.js",
+    "localFile": "../Surfaces/sources/fluent-colors.js.txt",
+    "sha256": "890345372ce466bc174aca2334f898d5299319509fffb57d115820bc6c7975cf",
+    "reutilise": true
+  },
+  {
+    "id": "fluentStatusMapping",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/statusColorMapping.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/statusColorMapping.js",
+    "localFile": "../Surfaces/sources/fluent-status-mapping.js.txt",
+    "sha256": "5bb061f0cc79762bc296284637207eb562c15b803ffcda837b7481c7c2b3291f",
+    "reutilise": true
+  },
+  {
+    "id": "fluentBadgeStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-badge@9.5.6/lib/components/Badge/useBadgeStyles.styles.raw.js",
+    "revision": "@fluentui/react-badge@9.5.6",
+    "originalPath": "lib/components/Badge/useBadgeStyles.styles.raw.js",
+    "localFile": "../Surfaces/sources/fluent-badge-styles.js.txt",
+    "sha256": "936af2ed966fcfffea58466054a92f58c3776b6070102a601678210c8c61b15a",
+    "reutilise": true
+  },
+  {
+    "id": "fluentMessageBarStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-message-bar@9.7.7/lib/components/MessageBar/useMessageBarStyles.styles.raw.js",
+    "revision": "@fluentui/react-message-bar@9.7.7",
+    "originalPath": "lib/components/MessageBar/useMessageBarStyles.styles.raw.js",
+    "localFile": "../Surfaces/sources/fluent-message-bar-styles.js.txt",
+    "sha256": "ac011a0b2e218bb8dcdad406a051db7a23109ea604375533df1aeb1199fccf61",
+    "reutilise": true
+  },
+  {
+    "id": "fluentWebLightTheme",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/themes/web/lightTheme.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/themes/web/lightTheme.js",
+    "localFile": "../Surfaces/sources/fluent-web-light-theme.js.txt",
+    "sha256": "1f5200a43d4a489770a6a94bfc33e481980b1396d1ebc7a5f1a477e48cc586f2",
+    "reutilise": true
+  },
+  {
+    "id": "fluentWebDarkTheme",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/themes/web/darkTheme.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/themes/web/darkTheme.js",
+    "localFile": "../Surfaces/sources/fluent-web-dark-theme.js.txt",
+    "sha256": "03ca4d2ab7481b1eba3b0642a036de4becae0714a8592e07ce0769b1af00be3d",
+    "reutilise": true
+  },
+  {
+    "id": "radixBase",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/base.css",
+    "localFile": "../Radix/sources/themes/base.css.txt",
+    "sha256": "8e1671e82366e57f6c3c584164325d81d0d7d963afc6ec59c7080fbe15d1dd25",
+    "reutilise": true
+  },
+  {
+    "id": "radixGray",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/gray.css",
+    "localFile": "../Radix/sources/themes/gray.css.txt",
+    "sha256": "07bc1ed882902f71ccf4ce473d6ec7140736f44d8486f685d4d2d44999e9f7f7",
+    "reutilise": true
+  },
+  {
+    "id": "radixGreen",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/green.css",
+    "localFile": "../Radix/sources/themes/green.css.txt",
+    "sha256": "8b532a3c9e38679473ad4801195d872e895804539419438786920c5cccbd9716",
+    "reutilise": true
+  },
+  {
+    "id": "radixRed",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/red.css",
+    "localFile": "../Radix/sources/themes/red.css.txt",
+    "sha256": "f68c055e65a2ecd4c2740b79ecf4fd76e2a488d869d8ddd40c6a86ea575c9d28",
+    "reutilise": true
+  },
+  {
+    "id": "radixAmber",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/amber.css",
+    "localFile": "../Radix/sources/themes/amber.css.txt",
+    "sha256": "66cf506f6f8e900f5880520025987df9f71a0f463cacc7db14715eba323ea8f5",
+    "reutilise": true
+  },
+  {
+    "id": "radixBlue",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/",
+    "revision": "@radix-ui/themes@3.3.0",
+    "originalPath": "themes/blue.css",
+    "localFile": "../Radix/sources/themes/blue.css.txt",
+    "sha256": "ae52360cf1712b8ebf9f822040b3a10e18a97198ffe38b99719b923cb5661222",
+    "reutilise": true
+  },
+  {
+    "id": "radixGreenAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/green-alpha.css",
+    "localFile": "../Radix/sources/colors/green-alpha.css.txt",
+    "sha256": "7c798b416ea83cae66ae64c7d4c3fb8e04f59f36f7edddb0a80f97d52c29bdc8",
+    "reutilise": true
+  },
+  {
+    "id": "radixRedAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/red-alpha.css",
+    "localFile": "../Radix/sources/colors/red-alpha.css.txt",
+    "sha256": "8603cfc7c0044db2fbe75e08635606ee3cf29ffb0bc44e1cf56e6b6d80b944e8",
+    "reutilise": true
+  },
+  {
+    "id": "radixAmberAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/amber-alpha.css",
+    "localFile": "../Radix/sources/colors/amber-alpha.css.txt",
+    "sha256": "265c8db0bf4a7440e3e2b30539858ffcc531da723d46fd2c63c54e06cd2f1a3f",
+    "reutilise": true
+  },
+  {
+    "id": "radixBlueAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/blue-alpha.css",
+    "localFile": "../Radix/sources/colors/blue-alpha.css.txt",
+    "sha256": "359da590e653bc3624ed0584d28756fd667b9c4c61fc6ab7f247dbf3011c0aa3",
+    "reutilise": true
+  },
+  {
+    "id": "radixGreenDarkAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/green-dark-alpha.css",
+    "localFile": "../Radix/sources/colors/green-dark-alpha.css.txt",
+    "sha256": "8781bb960f4635035fee139d14c43ec5af2ba2cc6919c913239d4e1f78aa1557",
+    "reutilise": true
+  },
+  {
+    "id": "radixRedDarkAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/red-dark-alpha.css",
+    "localFile": "../Radix/sources/colors/red-dark-alpha.css.txt",
+    "sha256": "e55b0c1a98b43cb2fc652c8d28cbfe4438e14d8ee493d47cc3f57ebe59c6c807",
+    "reutilise": true
+  },
+  {
+    "id": "radixAmberDarkAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/amber-dark-alpha.css",
+    "localFile": "../Radix/sources/colors/amber-dark-alpha.css.txt",
+    "sha256": "7c20660dcac97f18780b83cf09c6d7e6a56fb3eb056706217a0d52fc6c198834",
+    "reutilise": true
+  },
+  {
+    "id": "radixBlueDarkAlpha",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/blue-dark-alpha.css",
+    "localFile": "../Radix/sources/colors/blue-dark-alpha.css.txt",
+    "sha256": "3caf78b5282b8c7116d3438b257b30da08328d44c2b19775e5b11d5bf50b89f9",
+    "reutilise": true
+  },
+  {
+    "id": "radixGreenDark",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/green-dark.css",
+    "localFile": "../Radix/sources/colors/green-dark.css.txt",
+    "sha256": "2cebb00388fd84a41e39c51c184293b8cf2eeeb4424946e7fa6f9aba9b2b5dec",
+    "reutilise": true
+  },
+  {
+    "id": "radixRedDark",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/red-dark.css",
+    "localFile": "../Radix/sources/colors/red-dark.css.txt",
+    "sha256": "c65a4340bf310a3f37473a2db1986ec0e7af35fb41541f63b10364240c7825e1",
+    "reutilise": true
+  },
+  {
+    "id": "radixAmberDark",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/amber-dark.css",
+    "localFile": "../Radix/sources/colors/amber-dark.css.txt",
+    "sha256": "b1f84ce5cb8336b54c926c78bb89787df56d2bbe277dcd6a453d16d074d74013",
+    "reutilise": true
+  },
+  {
+    "id": "radixBlueDark",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/",
+    "revision": "@radix-ui/colors@3.0.0",
+    "originalPath": "colors/blue-dark.css",
+    "localFile": "../Radix/sources/colors/blue-dark.css.txt",
+    "sha256": "6a27324f2ad7d53649d40bddfd397db276d4fad8626945fd54d903190ba58c23",
+    "reutilise": true
+  },
+  {
+    "id": "figmaBadges",
+    "url": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "revision": "Untitled UI, kit gratuit et système de design v2.0 (Community)",
+    "originalPath": "processed/components/badges.json",
+    "localFile": "../Figma/processed/components/badges.json",
+    "sha256": "5cdc6b182fc0c8a59b0e46304c6b965990d05ed10c27a2c5feb3f58940cf01e3",
+    "reutilise": true
+  },
+  {
+    "id": "figmaComposants",
+    "url": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "revision": "Untitled UI, kit gratuit et système de design v2.0 (Community)",
+    "originalPath": "processed/components/components-ui.json",
+    "localFile": "../Figma/processed/components/components-ui.json",
+    "sha256": "851bc1042fc0ea2406d8b97eb37b642d025dfa5a8b74c87e4982b36fdb3e45a3",
+    "reutilise": true
+  },
+  {
+    "id": "figmaPalettes",
+    "url": "https://www.figma.com/design/iJscFYgN97zFFr0i2XLeyf/",
+    "revision": "Untitled UI, kit gratuit et système de design v2.0 (Community)",
+    "originalPath": "processed/tokens/color-palettes.json",
+    "localFile": "../Figma/processed/tokens/color-palettes.json",
+    "sha256": "841f7a7866e255c063032d4bbca515b0d8380c97370f434779002bb94520d2a6",
+    "reutilise": true
+  }
+]

@@ -59,6 +59,22 @@
   .figma .var[data-neuf] { background: #eef6ff; }
   .figma .pied { padding: 8px 10px; border-top: 1px solid var(--filet); color: var(--second); }
   ol.decisions li { margin-bottom: 8px; }
+
+  /* La solution. */
+  .solution { background: #fff; border: 1px solid var(--filet); border-radius: 10px; padding: 16px 18px; max-width: 1100px; }
+  .solution ol { margin: 6px 0 0; padding-left: 18px; }
+  .solution li { margin-bottom: 4px; }
+  .change { background: #eef6ff; font-weight: 600; }
+  .marche { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 4px 12px; align-items: center; max-width: 900px; margin-top: 10px; font-size: 12px; }
+  .marche .axe { position: relative; height: 18px; border-left: 1px solid var(--filet); border-right: 1px solid var(--filet); background: linear-gradient(90deg, transparent 0 calc(100% - 1px), transparent); }
+  .marche .barre { position: absolute; top: 5px; height: 8px; border-radius: 4px; background: #9aa4b2; }
+  .marche .barre.ucm { background: #c62828; }
+  .marche .barre.propose { background: #1a7f37; }
+  .marche .valeur { position: absolute; top: 0; font-size: 10.5px; color: var(--second); white-space: nowrap; transform: translateX(6px); }
+  .marche .graduations { display: flex; justify-content: space-between; font-size: 10px; color: var(--second); }
+  .composants { display: grid; grid-template-columns: 200px repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .composants .scene { min-height: 0; }
+  .composants .rang { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 </style>
 <script src="donnees-qualite.js"></script>
 <script src="couleurs.js"></script>
@@ -66,9 +82,54 @@
 <body>
 
 <h1>Rôles et crans du thème</h1>
-<p class="chapeau"><b>Pistes mesurées.</b> La solution proposée, dans <code>SOLUTION-RAMPES.md</code>, garde des fonds opaques : table Light actuelle, et en Dark fonds 200, 300, 400, texte 900, focus 800. Les fonds translucides ci-dessous sont écartés.</p>
 <p class="chapeau">Les crans que la table du thème (<code>TABLE_DES_DOSSIERS</code>) donne aux fonds teintés et au focus, éprouvés sur la page et sur la carte, dans les deux thèmes. Les couleurs viennent de la recette du mainteneur, dans la règle de chroma choisie. Le thème Dark est inversé : le texte des boutons y est blanc.</p>
-<nav><a href="#surfaces">1. Le fond teinté et son support</a><a href="#focus">2. Le focus</a><a href="#rangement">3. Où ranger le focus</a><a href="#table">4. La table proposée</a><a href="#decisions">5. Décisions</a></nav>
+<nav><a href="#solution">La solution proposée</a><a href="#surfaces">1. Le fond teinté et son support</a><a href="#focus">2. Le focus</a><a href="#rangement">3. Où ranger le focus</a><a href="#table">4. Les tables mesurées</a><a href="#decisions">5. Décisions</a></nav>
+
+<h2 id="solution">La solution proposée</h2>
+<div class="solution">
+  <p style="margin-top:0">Les composants teintés se posent sur une carte : blanche en Light, presque noire en Dark (neutre 100, <code>#1A1C1F</code>). Neuf systèmes relevés font de même. En Light, le fond teinté au cran 100 se tient déjà dans leur plage. En Dark, il a la clarté de la carte et disparaît : la table Dark monte d'un cran. Détail : <code>SOLUTION-RAMPES.md</code>.</p>
+  <ol>
+    <li><b>Light : rien ne change.</b> Fond 100, 200, 300 ; texte 800 ; focus 600.</li>
+    <li><b>Dark : fonds 200, 300, 400 ; texte et contour 900 ; focus 800</b>, dans les deux sens du thème. Le fond passe de 1,00 à 1,15 contre la carte ; aucun échec de garantie ajouté.</li>
+    <li><b>Fonds opaques.</b> Palettes n'écrit que des crans ; la piste translucide est écartée, comme chez Atlassian, Material 3, Fluent et Polaris.</li>
+    <li><b>Le focus</b> garde sa forme (anneau décalé de 2 px) et son nom (<code>ring</code> dans chaque dossier) : Q7 et Q8 ne changent pas.</li>
+    <li><b>Les composants à surface</b> gardent les rôles actuels ; un badge bordé discrètement prend <code>page/divider</code> (Q9).</li>
+  </ol>
+</div>
+<table style="margin-top:14px">
+  <thead><tr><th>Variable</th><th>Light</th><th>Dark aujourd'hui (normal · inversé)</th><th>Dark proposé</th></tr></thead>
+  <tbody>
+    <tr><td><code>surface/default</code></td><td>100</td><td>100 · 100</td><td class="change">200</td></tr>
+    <tr><td><code>surface/hover</code></td><td>200</td><td>200 · 200</td><td class="change">300</td></tr>
+    <tr><td><code>surface/pressed</code></td><td>300</td><td>300 · 300</td><td class="change">400</td></tr>
+    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800</td><td>800 · 900</td><td class="change">900</td></tr>
+    <tr><td><code>page/focus</code>, renommé <code>ring</code></td><td>600</td><td>600 · 700</td><td class="change">800</td></tr>
+    <tr><td><code>solid/*</code>, <code>page/foreground</code>, <code>page/border</code>, <code>page/divider</code></td><td colspan="3">Inchangés</td></tr>
+  </tbody>
+</table>
+<h3>Avant et après, sur la carte</h3>
+<div class="commandes">
+  <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="intensite"></div></div>
+</div>
+<div class="grille" id="grille-solution" style="grid-template-columns: 200px repeat(2, minmax(0, 1fr))"></div>
+<h3>Les composants à surface</h3>
+<p class="chapeau">Les rôles actuels servent chaque composant relevé dans onze systèmes (<code>Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md</code>). Table proposée, palette choisie ci-dessus.</p>
+<table>
+  <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark proposé</th><th>Ce que font les autres</th></tr></thead>
+  <tbody>
+    <tr><td>Alerte</td><td><code>surface/default</code>, <code>surface/foreground</code></td><td>100 · 800</td><td>200 · 900</td><td>Fond pâle teinté dans dix systèmes sur dix ; texte neutre dans cinq (Q4)</td></tr>
+    <tr><td>Badge discret</td><td>Les mêmes ; contour discret <code>page/divider</code></td><td>100 · 800 · 300</td><td>200 · 900 · 300</td><td>Fond pâle dans sept sur dix ; contour plus clair que le texte chez quatre</td></tr>
+    <tr><td>Badge plein</td><td><code>solid/default</code>, <code>solid/foreground</code></td><td>700</td><td>700</td><td>Pas moyen à fort, texte blanc</td></tr>
+    <tr><td>Bouton teinté</td><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>100, 200, 300</td><td>200, 300, 400</td><td>Un pas par état, texte constant</td></tr>
+    <tr><td>Bouton plein</td><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>700, 800, 900</td><td>Texte blanc : 700, 600, 500, plus sombre ; texte noir : 700, 800, 900, plus clair</td><td>Survol plus sombre en clair ; en sombre, plus clair chez Radix, Atlassian, Fluent et Primer. Avec un texte blanc, UCM fonce pour garder le contraste</td></tr>
+  </tbody>
+</table>
+<div class="composants" id="composants" style="margin-top:12px"></div>
+
+<h3>Le fond teinté contre son support, dans les autres systèmes</h3>
+<p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM proposé.</p>
+<div class="marche" id="marche"></div>
 
 <h2 id="surfaces">1. Le fond teinté et son support</h2>
 <p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,08:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
@@ -102,26 +163,29 @@
   </tbody>
 </table>
 
-<h2 id="table">4. La table proposée</h2>
-<p class="chapeau">Les lignes qui changent, dans les deux sens du thème. Les autres variables gardent leur cran. Le cran 50 devient requis dès que <code>surface/default</code> le vise en Light.</p>
+<h2 id="table">4. Les tables mesurées</h2>
+<p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème. La table retenue est en tête de page.</p>
 <table>
-  <thead><tr><th>Variable</th><th>Light, aujourd'hui</th><th>Light, proposé</th><th>Dark, aujourd'hui (normal · inversé)</th><th>Dark, proposé</th></tr></thead>
+  <thead><tr><th>Table</th><th>Échecs</th><th>Fond contre la carte, Dark</th><th>Sort</th></tr></thead>
   <tbody>
-    <tr><td><code>surface/default</code></td><td>100</td><td>50, translucide calculé sur la carte</td><td>100 · 100</td><td>100, translucide calculé sur la page</td></tr>
-    <tr><td><code>surface/hover</code></td><td>200</td><td>100, translucide</td><td>200 · 200</td><td>200, translucide</td></tr>
-    <tr><td><code>surface/pressed</code></td><td>300</td><td>200, translucide</td><td>300 · 300</td><td>300, translucide</td></tr>
-    <tr><td><code>page/focus</code></td><td>600</td><td><code>solid/ring</code>, <code>surface/ring</code>, <code>page/ring</code> : 600</td><td>600 · 700</td><td>Les trois <code>ring</code> : 700 · 800</td></tr>
-    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800</td><td>800, inchangé</td><td>800 · 900</td><td>inchangé</td></tr>
+    <tr><td>Actuelle</td><td>164</td><td>1,005</td><td>Le fond disparaît en Dark</td></tr>
+    <tr><td>Dark : fonds 200, 300, 400, texte 900, focus 800</td><td>164</td><td>1,15</td><td class="ok">Retenue</td></tr>
+    <tr><td>Dark : texte 950 au lieu de 900</td><td>164</td><td>1,15</td><td>Texte presque blanc, C 0,03 à 0,07</td></tr>
+    <tr><td>Dark : texte 800</td><td>472 à 1 440</td><td>1,15</td><td>Échoue sur le survol et l'appui</td></tr>
+    <tr><td>Dark : carte au neutre 200, fonds 300</td><td>444</td><td>1,20</td><td>218 pleins et 62 textes échouent sur la carte</td></tr>
+    <tr><td>Light : fond 50, texte 700</td><td>464 sur l'appui</td><td></td><td>Le fond 50 est plus pâle que tous les systèmes relevés</td></tr>
+    <tr><td>Fonds translucides</td><td>160 avec focus Dark 800</td><td>1,11</td><td>Écartée : les composants se posent toujours sur une carte</td></tr>
   </tbody>
 </table>
-<p>Avec ces fonds, le texte de surface tient 4,5:1 sur les trois états et les deux supports dans tout le balayage de 72 teintes, et au moins 7,0:1 au repos dans la recette du mainteneur. Le moteur actuel n'écrit que des couleurs opaques : la piste translucide demande une échelle alpha par palette, que la section « Décisions » chiffre.</p>
+<p>Les 164 échecs communs existent déjà avec le moteur actuel : G1 en Dark inversé (144) et G7 de trois références vert-jaune en Light (20).</p>
 
 <h2 id="decisions">5. Décisions</h2>
 <ol class="decisions">
-  <li><b>Q5. Le fond teinté.</b> Trois pistes : opaque 50 en Light et 200 en Dark (le texte passe à 950 et le focus à 800 en Dark, selon le dossier d'élévation) ; opaque avec un contour discret ; translucide (recommandée). La piste translucide ajoute trois couleurs alpha par profil et par thème, écrites dans <code>primitives</code> à côté des crans. Elle demande à la recette le fond des cartes, en plus de celui de la page : c'est la décision P9 encore ouverte.</li>
-  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; éclaircir d'un cran en Dark (700 normal, 800 inversé).</li>
+  <li><b>Q5. Le fond teinté.</b> Recommandé : opaque, table Light inchangée, et en Dark fonds 200, 300, 400 avec texte et contour 900. La séparation de la carte et de la page en Dark relève de l'élévation du thème : un contour au cran 300 du neutre la rend visible.</li>
+  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, la seule couleur qui tient 3:1 ; 800 en Dark, dans les deux sens.</li>
   <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé, la forme de Figma SDS, Radix et Spectrum) ou halo et trait (le halo pâle d'Untitled UI, bordé du trait qui tient 3:1). La forme se règle dans les composants, pas dans Palettes.</li>
   <li><b>Q8. Le nom et la place.</b> <code>ring</code> dans chaque dossier (recommandé), <code>ring</code> à la racine de la palette, ou <code>page/focus</code> conservé. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
+  <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
 </ol>
 
 <script>
@@ -237,7 +301,72 @@
     ecrire('roles-etat', etat);
     toutDessiner();
   });
-  function toutDessiner() { commandes(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
+  /** Avant et après sur la carte : l'enveloppe par thème, la table actuelle puis la table proposée. */
+  function dessinerSolution() {
+    const TABLES = [['table', 'Aujourd\'hui', 'Fonds 100, 200, 300 dans les deux thèmes'], ['dark900', 'Proposé', 'Light inchangé ; Dark : fonds 200, 300, 400, texte 900']];
+    let html = '<span></span><span class="tete">Light · carte</span><span class="tete">Dark · carte</span>';
+    for (const [crans, nom, detail] of TABLES) {
+      html += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
+      for (const mode of ['light', 'dark']) {
+        const j = U.jeu({ variante: 'enveloppe', palette: etat.palette, intensite: etat.intensite, mode, support: 'raised', crans });
+        const fond = j.fond;
+        const titre = mode === 'light' ? '#1e1e1e' : '#f2f2f2';
+        html += `<div class="scene" style="background:${fond}">
+          <div class="alerte" style="background:${j.surface.default};color:${j.surface.foreground}"><b>Modifications publiées</b>La version 4.2 est en ligne.</div>
+          <div class="badges"><span class="badge" style="background:${j.surface.default};color:${j.surface.foreground}">Actif</span>
+            <span class="badge" style="background:${j.surface.hover};color:${j.surface.foreground}">Survol</span>
+            <span class="badge" style="background:${j.surface.pressed};color:${j.surface.foreground}">Appui</span>
+            <span class="badge" style="background:${j.solid.default};color:${j.solid.foreground}">Plein</span></div>
+          <span class="mesure" style="color:${titre}">fond ${U.ct(U.contraste(j.surface.default, fond))} sur la carte · texte ${verdict(U.contraste(j.surface.foreground, j.surface.pressed), 4.5)} sur l'appui</span>
+        </div>`;
+      }
+    }
+    document.getElementById('grille-solution').innerHTML = html;
+  }
+
+  /** Le fond teinté contre son support : une barre par système, de 1,00 à 1,40 (Material 3 Dark, 1,87, dépasse). */
+  const MARCHE = [
+    ['Light', [
+      ['Primer, Flash', 1.15, 1.15], ['Atlassian, section message · lozenge', 1.14, 1.34], ['Radix, soft', 1.12, 1.12], ['Material 3, error-container', 1.15, 1.15],
+      ['Fluent 2, badge tint · MessageBar', 1.07, 1.09], ['Polaris, banner · badge', 1.17, 1.37], ['UCM, fond 100, aujourd\'hui et proposé', 1.11, 1.17, 'propose'],
+    ]],
+    ['Dark', [
+      ['Primer, Flash', 1.12, 1.12], ['Atlassian, section message · lozenge', 1.08, 1.22], ['Radix, soft', 1.17, 1.31], ['Material 3, error-container', 1.87, 1.87],
+      ['Fluent 2, badge tint · MessageBar', 1.12, 1.19], ['UCM aujourd\'hui, fond 100', 1.00, 1.02, 'ucm'], ['UCM proposé, fond 200', 1.13, 1.16, 'propose'],
+    ]],
+  ];
+  function dessinerMarche() {
+    const x = (v) => Math.min(100, ((v - 1) / 0.4) * 100);
+    let html = '';
+    for (const [theme, lignes] of MARCHE) {
+      html += `<b>${theme}</b><div class="graduations"><span>1,00</span><span>1,10</span><span>1,20</span><span>1,30</span><span>1,40</span></div>`;
+      for (const [nom, de, a, classe] of lignes) {
+        const texte = de === a ? U.ct(de) : `${U.ct(de)} à ${U.ct(a)}`;
+        html += `<span>${nom}</span><div class="axe"><span class="barre ${classe ?? ''}" style="left:${x(de)}%;width:max(8px, ${x(a) - x(de)}%)"></span><span class="valeur" style="left:${x(a)}%">${texte}</span></div>`;
+      }
+    }
+    document.getElementById('marche').innerHTML = html;
+  }
+  /** Chaque composant à surface, avec la table proposée, sur la carte des deux thèmes. */
+  function dessinerComposants() {
+    const LIGNES = [
+      ['Alerte', 'Fond et texte de surface', (j) => `<div class="alerte" style="background:${j.surface.default};color:${j.surface.foreground}"><b>Quota presque atteint</b>92 % de l'espace est utilisé.</div>`],
+      ['Badge discret', 'Sans contour, contour discret, contour franc', (j) => `<div class="rang"><span class="badge" style="background:${j.surface.default};color:${j.surface.foreground}">Actif</span><span class="badge" style="background:${j.surface.default};color:${j.surface.foreground};border-color:${j.page.divider}">Actif</span><span class="badge" style="background:${j.surface.default};color:${j.surface.foreground};border-color:${j.surface.border}">Actif</span><span class="badge" style="background:${j.surface.hover};color:${j.surface.foreground}">Plus marqué</span></div>`],
+      ['Badge plein', 'Plein et texte des boutons', (j) => `<div class="rang"><span class="badge" style="background:${j.solid.default};color:${j.solid.foreground}">Nouveau</span></div>`],
+      ['Bouton teinté', 'Repos, survol, appui', (j) => `<div class="rang">${['default', 'hover', 'pressed'].map((e) => `<span class="bouton" style="background:${j.surface[e]};color:${j.surface.foreground}">Revoir</span>`).join('')}</div>`],
+      ['Bouton plein', 'Repos, survol, appui', (j) => `<div class="rang">${['default', 'hover', 'pressed'].map((e) => `<span class="bouton" style="background:${j.solid[e]};color:${j.solid.foreground}">Valider</span>`).join('')}</div>`],
+    ];
+    let html = '<span></span><span class="tete">Light · carte</span><span class="tete">Dark · carte</span>';
+    for (const [nom, detail, rendu] of LIGNES) {
+      html += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
+      for (const mode of ['light', 'dark']) {
+        const j = U.jeu({ variante: 'enveloppe', palette: etat.palette, intensite: etat.intensite, mode, support: 'raised', crans: 'dark900' });
+        html += `<div class="scene" style="background:${j.fond}">${rendu(j)}</div>`;
+      }
+    }
+    document.getElementById('composants').innerHTML = html;
+  }
+  function toutDessiner() { commandes(); dessinerSolution(); dessinerComposants(); dessinerMarche(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
   toutDessiner();
 })();
 </script>

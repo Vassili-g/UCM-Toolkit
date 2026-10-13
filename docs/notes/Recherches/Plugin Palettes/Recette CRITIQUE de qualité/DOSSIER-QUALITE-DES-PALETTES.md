@@ -3,7 +3,7 @@
 **Statut : recherche faite, maquettes à valider.** La
 [solution proposée](./SOLUTION-RAMPES.md) reprend le sujet après les notes à
 l'aveugle et un relevé de neuf systèmes ; elle remplace les recommandations
-Q1, Q2, Q5 et Q6 ci-dessous, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
+Q1, Q2, Q5 et Q6 ci-dessous, ajoute Q9, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
 mainteneur. Huit décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
@@ -429,6 +429,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
+| Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S6) |
 | C1 à C10 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche

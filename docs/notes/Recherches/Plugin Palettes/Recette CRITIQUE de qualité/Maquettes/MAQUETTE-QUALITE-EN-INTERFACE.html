@@ -71,6 +71,15 @@
   .legende { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--second); margin-top: 6px; }
   .legende i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 4px; }
   ol.decisions li { margin-bottom: 8px; max-width: 920px; }
+
+  /* La solution : avant et après, une ligne par thème. */
+  .duo { display: grid; grid-template-columns: 70px repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; margin-top: 12px; }
+  .duo > .tete { font-size: 12px; font-weight: 600; color: var(--second); }
+  .duo > .theme { font-weight: 600; padding-top: 18px; }
+  .duo .ui { margin-top: 0; }
+  .solution { background: #fff; border: 1px solid var(--filet); border-radius: 10px; padding: 16px 18px; max-width: 1100px; }
+  .solution ol { margin: 6px 0 0; padding-left: 18px; }
+  .solution li { margin-bottom: 4px; }
 </style>
 <script src="donnees-qualite.js"></script>
 <script src="couleurs.js"></script>
@@ -80,8 +89,30 @@
 <h1>Qualité des palettes en interface</h1>
 <p class="chapeau">Les quatre utilitaires de la recette du mainteneur (Poppy, Orange, Grass, Sky) posés sur des composants : alertes, badges, boutons. Le moteur actuel est comparé à trois règles de chroma candidates, calculées par le banc de recherche avec les mêmes références, les mêmes teintes et le même ancrage. Les supports viennent de Titanium : page <code>50</code>, carte blanche en Light et <code>100</code> en Dark.</p>
 <nav>
-  <a href="#constat">1. Le constat chiffré</a><a href="#banc">2. Le banc de composants</a><a href="#aveugle">3. À l'aveugle</a><a href="#regles">4. Ce que change chaque règle</a><a href="#decisions">5. Décisions</a>
+  <a href="#solution">La solution proposée</a><a href="#constat">1. Le constat chiffré</a><a href="#banc">2. Le banc de composants</a><a href="#aveugle">3. À l'aveugle</a><a href="#regles">4. Ce que change chaque règle</a><a href="#decisions">5. Décisions</a>
 </nav>
+
+<h2 id="solution">La solution proposée</h2>
+<div class="solution">
+  <p style="margin-top:0">Les composants se posent sur du blanc en Light et sur un gris presque noir en Dark, comme dans les neuf systèmes relevés et comme déjà dans UCM. Ce qui manque est ailleurs : des textes colorés de même force d'une palette à l'autre, et un fond teinté visible en Dark. Détail, mesures et pistes écartées : <code>SOLUTION-RAMPES.md</code>.</p>
+  <ol>
+    <li><b>Une enveloppe par thème.</b> La part donne la chroma ; une borne qui ne dépend que de la clarté la plafonne. Vers le blanc, la borne calme les fonds du Light (Soft a = 0,6) et s'ouvre pour les textes du Dark (a = 1,1).</li>
+    <li><b>La table Light ne change pas</b> : fond 100, texte 800, plein 700. Le fond 100 vaut 1,11 à 1,17 contre la carte blanche, comme les alertes des autres systèmes (1,07 à 1,17).</li>
+    <li><b>En Dark, les fonds teintés montent d'un cran</b> (200, 300, 400), le texte reste au cran 900, le focus passe à 800. Le fond passe de 1,00 à 1,15 contre la carte.</li>
+    <li><b>Aucun échec de garantie ajouté</b> sur le balayage de 72 teintes : 164, ceux du moteur actuel.</li>
+  </ol>
+</div>
+<div class="chiffres">
+  <div class="chiffre"><b>×4,2 → ×1,7</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, Soft, valeurs par défaut puis enveloppe.</span></div>
+  <div class="chiffre"><b>0,08 → 0,14</b><span>La chroma maximale du texte 900 de Soft en Dark ; Radix et Primer écrivent à 0,13 à 0,21.</span></div>
+  <div class="chiffre"><b>1,00 → 1,15</b><span>Le contraste du fond teinté contre la carte en Dark ; les autres systèmes vont de 1,08 à 1,31.</span></div>
+</div>
+<div class="commandes" style="position:static">
+  <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="sIntensite"></div></div>
+  <div class="groupe"><span>Carte Dark</span><div class="bascule" data-commande="sBordure"></div></div>
+</div>
+<div class="duo" id="solution-duo"></div>
+<p class="resume">À gauche, le moteur actuel aux valeurs par défaut : c'est ce qu'un fichier neuf reçoit. À droite, la solution. Le contour de la carte Dark, au cran 300 du neutre, relève de l'élévation du thème : il se montre à part.</p>
 
 <h2 id="constat">1. Le constat chiffré</h2>
 <p>Le moteur fabrique chaque cran à une part constante du plafond sRGB : Soft 0,45, Vivid 0,95. Tailwind, dont viennent les rampes d'Untitled UI, emploie 0,90 à 1,00 de ce plafond sur presque tout le cercle. Il n'en garde que 0,59 à 0,81 dans les crans clairs des verts et 0,46 à 0,76 dans les crans foncés du bleu et de l'indigo.</p>
@@ -133,9 +164,9 @@
 
 <h2 id="decisions">5. Décisions</h2>
 <ol class="decisions">
-  <li><b>Q1. La règle de chroma.</b> Garder la part constante, ou adopter l'enveloppe (recommandée), les deux zones ou le relevé Tailwind. Avec l'enveloppe, la part donne la chroma et une borne qui ne dépend que de la clarté la plafonne : deux nombres par profil, sans table de données. Elle rapproche le plus les quatre utilitaires et laisse intactes les palettes ternes.</li>
-  <li><b>Q2. Le sens de Soft et Vivid.</b> Recommandé : Soft garde des fonds calmes (borne a = 0,6, proche de Radix) et des textes colorés (part 0,85) ; Vivid suit Tailwind (part 0,95, borne a = 1,1). Les deux profils restent distincts surtout dans les fonds et les pleins.</li>
-  <li><b>Q3. Les réglages par défaut et l'état personnalisé.</b> Les valeurs de Q2 deviennent le préréglage de la recette. Une palette dont la part ou la luminosité s'en écarte affiche « Personnalisé » et un geste « Revenir au préréglage ».</li>
+  <li><b>Q1. La règle de chroma.</b> Recommandé : l'enveloppe, avec des bornes par thème. La part donne la chroma, une borne qui ne dépend que de la clarté la plafonne. Elle rapproche le plus les quatre utilitaires, laisse intactes les palettes ternes, et tient la cohérence du groupe dans les notes à l'aveugle (5, 4 et 5).</li>
+  <li><b>Q2. Le sens de Soft et Vivid.</b> Recommandé : Soft garde des fonds calmes en Light (a = 0,6) et des textes colorés dans les deux thèmes (part 0,85 ; a = 1,1 en Dark) ; Vivid suit Tailwind (part 0,95, a = 1,1).</li>
+  <li><b>Q3. Les valeurs par défaut.</b> Les valeurs de Q2 deviennent les valeurs par défaut de la recette, dans la Configuration ; chaque réglette de Création les marque. Une recette existante garde la part constante.</li>
   <li><b>Q4. Le texte courant des alertes.</b> Coloré, comme aujourd'hui et comme Radix, ou neutre avec titre et icône colorés, comme Primer et Atlassian. Ce choix relève des composants ; la palette n'en dépend pas.</li>
 </ol>
 
@@ -156,6 +187,8 @@
   const etat = lire('qualite-etat', { variante: 'enveloppe', mode: 'light', intensite: 'soft', support: 'raised', crans: 'table', corps: 'colore', aMode: 'light', aIntensite: 'soft', aSupport: 'raised', gPalette: 'Grass', gRegle: 'enveloppe', gMode: 'light' });
   // Un état rangé avant l'ajout de la commande du Dark n'a pas cette clé.
   if (!etat.aDark) etat.aDark = 'actuel';
+  if (!etat.sIntensite) etat.sIntensite = 'soft';
+  if (!etat.sBordure) etat.sBordure = 'avec';
   const OPTIONS = {
     variante: VARIANTES,
     mode: [['light', 'Light'], ['dark', 'Dark']],
@@ -167,6 +200,8 @@
     aIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
     aSupport: [['page', 'Page'], ['raised', 'Carte']],
     aDark: [['actuel', 'Table actuelle'], ['propose', 'Fonds 200, texte 900'], ['borde', 'Fonds 200, texte 900, carte bordée']],
+    sIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    sBordure: [['sans', 'Sans contour'], ['avec', 'Avec contour']],
     gPalette: STATUTS.map((s) => [s.palette, s.palette]),
     gRegle: [['zones', 'Deux zones'], ['enveloppe', 'Enveloppe'], ['tailwind', 'Relevé Tailwind']],
     gMode: [['light', 'Light'], ['dark', 'Dark']],
@@ -320,7 +355,18 @@
     ecrire('qualite-etat', etat);
     toutDessiner();
   });
-  function toutDessiner() { commandes(); dessinerBanc(); dessinerGraphique(); dessinerAveugle(); }
+  /** Avant et après, sur carte : le moteur actuel aux valeurs par défaut, puis l'enveloppe par thème et la table Dark proposée. */
+  function dessinerSolution() {
+    const cas = (mode, propose) => scene({
+      variante: propose ? 'enveloppe' : 'communs', mode, intensite: etat.sIntensite, support: 'raised',
+      crans: propose && mode === 'dark' ? 'dark900' : 'table',
+      bordure: propose && mode === 'dark' && etat.sBordure === 'avec' ? '#31363E' : undefined, corps: 'colore',
+    }, false);
+    document.getElementById('solution-duo').innerHTML = `<span></span><span class="tete">Aujourd'hui, valeurs par défaut</span><span class="tete">Proposé</span>
+      <span class="theme">Light</span>${cas('light', false)}${cas('light', true)}
+      <span class="theme">Dark</span>${cas('dark', false)}${cas('dark', true)}`;
+  }
+  function toutDessiner() { commandes(); dessinerSolution(); dessinerBanc(); dessinerGraphique(); dessinerAveugle(); }
   toutDessiner();
   dessinerTable();
 })();

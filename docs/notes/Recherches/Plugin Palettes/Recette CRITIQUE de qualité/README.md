@@ -10,6 +10,7 @@
 | [Maquettes/](./Maquettes/) | Qualité en interface, rôles et crans, comparer ; données générées par `Mesures/` |
 | [Mesures/](./Mesures/) | Banc de recherche, scripts de mesure, témoins Tailwind et Radix, recette du mainteneur |
 | [Collecte/RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md) | Statuts discrets et focus de six systèmes |
+| [Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md](./Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md) | Badges, alertes et boutons de onze systèmes : crans du fond, du texte, du contour et des états ; audit des relevés anciens |
 | [Collecte/Surfaces/](./Collecte/Surfaces/README.md) | Pages, cartes et fonds de statut de neuf systèmes, en Light et en Dark, versions figées |
 | [Collecte/](./Collecte/) | Données relevées : Untitled UI dans Figma, Atlassian, Material UI, Radix, Spectrum, Tailwind 4 |
 | [PREPARATION-CLAUDE-OPUS.md](./PREPARATION-CLAUDE-OPUS.md) | Hypothèses et protocole de départ |
