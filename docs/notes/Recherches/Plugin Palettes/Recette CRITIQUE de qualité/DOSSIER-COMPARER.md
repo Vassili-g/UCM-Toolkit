@@ -9,7 +9,7 @@ onglet Harmonisation compare des palettes, signale celles qui se ressemblent
 trop et règle chacune avec les réglettes de Création. La
 [maquette](./Maquettes/MAQUETTE-COMPARER.html) part des écrans réels de la
 galerie, en thème sombre ; ses écrans d'Harmonisation répondent aux clics. Les
-décisions C1 à C9 sont en section 11.
+décisions C1 à C10 sont en section 11.
 
 ## 1. Le besoin
 
@@ -253,7 +253,7 @@ Vérification, Gestion.
 | Carte « Vos palettes » | Toujours | « Cochez de 2 à 4 palettes pour les comparer et les régler. » Une ligne par palette : la case du socle à gauche du nom, ses onze nuances jointes, arrondies aux deux bouts, et un rond ambre « ! » si elle est trop proche d'une autre, de la facture du compteur de l'onglet. Les numéros se centrent sur leur nuance. La ligne cochée se surligne en bleu |
 | Carte « Comparaison » | Deux palettes cochées | Sur le fond de page du thème : les nuances jointes, alignées par numéro, puis des composants rangés en colonnes (bouton plein, bouton à contour, message sur fond teinté, lien). Bascule Couleurs et Niveaux de gris. Sous le fond, les constats |
 | Carte « Réglages » | Deux palettes cochées | « Régler » et le nom des palettes cochées, un point bleu après chaque palette modifiée ; « Annuler les modifications » pour la palette choisie, quand elle a changé ; les trois réglettes de Création |
-| Carte « Roue des teintes » | Toujours, repliée | La teinte des boutons pleins sur le fond de page de l'aperçu, les familles de teinte autour, un tireté entre deux palettes trop proches ; liste « Vision » |
+| Carte « Roue des teintes » | Toujours, repliée | La teinte des boutons pleins sur le fond de page de l'aperçu, les familles de teinte autour, un arc ambre sur les teintes d'une paire trop proche, dont les points et les noms passent en ambre ; liste « Vision ». Jusqu'à huit palettes colorées, toutes sont nommées ; au-delà, les cochées et celles des paires trop proches |
 
 ### Ce qui compte comme trop proche
 
@@ -348,8 +348,8 @@ Les mesures sur le fichier du mainteneur et sur la galerie :
 ### Vingt palettes
 
 La liste des vingt palettes de la galerie tient en 500 px, à 24 px par ligne.
-La roue ne nomme que les palettes cochées et celles des paires trop proches ;
-le survol d'un point donne les autres. Les composants restent à quatre
+Au-delà de huit palettes colorées, la roue ne nomme que les palettes cochées
+et celles des paires trop proches ; le survol d'un point donne les autres. Les composants restent à quatre
 palettes : à cinq, les colonnes passent sous 80 px et les libellés des
 boutons se coupent.
 
@@ -389,9 +389,10 @@ boutons se coupent.
 | C4 | Harmoniser | Carte Réglages : une palette cochée à la fois, réglettes de Création, points des autres palettes sur la saturation et la luminosité, « Annuler les modifications » pour la palette choisie |
 | C5 | Distinguer | Carte « Palettes trop proches » ; zone hachurée sur la teinte ; mots aux bouts des pistes ; ni modale, ni réglage automatique |
 | C6 | L'alerte | Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
-| C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; noms des palettes cochées et des paires trop proches ; vision des couleurs à la demande, sans alerte |
+| C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; arc ambre sur une paire trop proche ; vision des couleurs à la demande, sans alerte |
 | C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Rétablir » actif seulement sur une valeur modifiée, « Tout rétablir » en tête, résumé sans chiffre, aucun encart |
 | C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; une phrase sous les onglets |
+| C10 | Libellés et listes | « Par défaut » et « Tout par défaut » remplacent « Rétablir » et « Tout rétablir » sur les réglettes et les cartes ; les listes prennent la police de l'interface, un chevron gris et 24 px parmi les boutons |
 
 ## 12. Défauts relevés dans le plugin actuel
 
@@ -403,11 +404,31 @@ dans un conteneur de 449. `grid-template-columns: minmax(0, 1fr)` la ramène à
 449 px ; la maquette l'applique dans l'écran H7, mesure faite.
 
 **Deux sens de « Rétablir ».** Sous le sélecteur de Création, « Rétablir »
-refait ce qu'« Annuler les modifications » vient de défaire. Sur une réglette,
-« Rétablir » ramène la valeur par défaut. Le même mot porte deux actions dans
-le même onglet. La proposition ne tranche pas : elle
-garde « Rétablir » sur les réglettes, où la marque « par défaut » en dit le
-sens.
+refait ce qu'« Annuler les modifications » vient de défaire : c'est le sens de
+Windows, macOS et Google Docs, où « Rétablir » est la commande inverse
+d'« Annuler ». Sur les réglettes de Réglage global et de Color shift, et dans
+les cartes de la Configuration, le même mot ramène la valeur par défaut. Les
+deux sens se côtoient dans l'onglet Création.
+
+| Réglette | Carte | Pour | Contre |
+|---|---|---|---|
+| **Par défaut** (retenu) | Tout par défaut | Mêmes mots que la marque : le bouton envoie le pouce sur la marque qui porte son nom. Le nom accessible des cartes de la Configuration dit déjà « Rétablir les valeurs par défaut » | Se lit d'abord comme un état ; le survol le précise : « Revenir à la valeur par défaut, 0 » |
+| Réinitialiser | Tout réinitialiser | Le terme courant d'une remise à zéro | Treize lettres : la piste perd une vingtaine de pixels à 480 px |
+| ↺ (icône) | Tout par défaut | Le plus compact ; la convention de Figma | Une icône seule se devine, et l'interface vise un designer débutant |
+| Rétablir | Tout rétablir | Aucun changement ici ; « Rétablir » de la barre deviendrait « Refaire » | Contredit la convention des systèmes |
+
+Les textes touchés sont dans `i18n/fr.ts` et `i18n/en.ts` : `retablir` et
+`retablirLa` de Réglage global, `retablir` et `toutRetablir` de Color shift,
+`retablir` des cartes de la Configuration. Celui de la barre ne change pas.
+
+**Les listes déroulantes.** Le socle donne la police de l'interface aux
+boutons et aux champs (`button, input { font: inherit; }`), pas aux listes. Un
+`select` garde la police du système, 13,3 px au lieu de 11 px, et sa flèche
+native : « Teinte Tailwind » de Color shift dépasse ses voisins. La
+proposition ajoute `select` à cette règle, remplace la flèche native par un
+chevron gris, et donne 24 px (`--hauteur-secondaire`) à une liste posée parmi
+des boutons. La langue, champ de formulaire, garde les 32 px des autres
+champs.
 
 ## 13. Limites
 

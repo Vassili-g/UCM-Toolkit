@@ -3,7 +3,7 @@
 **Statut : recherche faite, maquettes à valider.** Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Huit décisions sont listées en section 6, neuf autres dans le dossier dédié au sujet 3.
+mainteneur. Huit décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
 
 | Maquette | Sujet |
 |---|---|
@@ -327,7 +327,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
-| C1 à C9 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
+| C1 à C10 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche
 
@@ -336,7 +336,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
 | Q5 | `packages/kit/src/emplois/dossiers.ts` et `garanties.ts` (fonds composés) ; recette (fond des cartes) ; écriture des primitives alpha dans Palettes ; `diagnostic-contrastes.mjs` de `ucm check` ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
-| C1 à C9 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
+| C1 à C10 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
 Le plan d'implémentation se rédige après les décisions, par lots, dans ce
 dossier.
