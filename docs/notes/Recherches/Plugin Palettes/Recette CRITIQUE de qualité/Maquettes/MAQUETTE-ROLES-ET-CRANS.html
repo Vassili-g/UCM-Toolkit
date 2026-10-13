@@ -75,6 +75,59 @@
   pre.chemin { background: #fff; border: 1px solid var(--filet); border-radius: 8px; padding: 12px 14px; font: 11.5px/1.6 ui-monospace, Consolas, monospace; max-width: 900px; overflow-x: auto; }
   .niveau-page { border-radius: 10px; padding: 16px; }
   .niveau-carte { border-radius: 8px; padding: 14px; display: grid; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .rampes-gris { display: grid; gap: 14px; max-width: 1100px; margin-top: 8px; }
+  .rampe-gris { display: grid; grid-template-columns: 90px repeat(var(--n), minmax(0, 1fr)); gap: 2px; align-items: stretch; font-size: 10.5px; }
+  .rampe-gris > b { align-self: center; font-size: 12px; }
+  .rampe-gris .case { height: 40px; border-radius: 4px; display: grid; place-items: end center; padding-bottom: 3px; font-size: 9.5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+  .rampe-gris .role { text-align: center; color: var(--second); line-height: 1.25; min-height: 26px; }
+  .rampe-gris .role b { color: var(--texte); font-weight: 600; }
+  .rampe-gris .role.change b { color: #0b5cad; }
+  .exemple { border-radius: 10px; padding: 16px; }
+  .exemple .carte-ex { border-radius: 8px; padding: 14px; display: grid; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .exemple .titre-ex { font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  .exemple .liste-ex { display: grid; border-radius: 6px; overflow: hidden; }
+  .exemple .liste-ex span { padding: 7px 10px; font-size: 12px; display: flex; justify-content: space-between; }
+
+  /* Le panneau des variables, repris de la vue illustrée multimarques. */
+  .fx { --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --bgx:#F5F6F8; --add:#17687F; --mod:#A94A1C; --mod-bg:#FAEBE2; --keep:#1E7446; --keep-bg:#E3F3EA; --hl:#FFF3BF; --mono: ui-monospace, Consolas, monospace;
+    margin-top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; max-width: 1180px; }
+  .fx-top { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--soft); }
+  .fx .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .fx .seg button { all: unset; cursor: pointer; padding: 4px 12px; font-size: 12px; }
+  .fx .seg button + button { border-left: 1px solid var(--line); }
+  .fx .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .fx .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--muted); }
+  .fx .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .fx .legend i { width: 4px; height: 14px; border-radius: 2px; display: inline-block; }
+  .fx-body { display: grid; grid-template-columns: 290px 1fr; min-height: 420px; }
+  .fx-cols { border-right: 1px solid var(--line); padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .fx-cols .lab { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 2px 8px 6px; }
+  .fx-cols button { all: unset; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 5px; font-family: var(--mono); font-size: 12px; }
+  .fx-cols button:hover { background: var(--soft); }
+  .fx-cols button[aria-current="true"] { background: var(--ink); color: #fff; }
+  .fx .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 0 7px; border-radius: 99px; white-space: nowrap; line-height: 1.6; font-family: Inter, system-ui, sans-serif; }
+  .fx .tag.mod { background: var(--mod-bg); color: var(--mod); }
+  .fx .tag.same { background: var(--keep-bg); color: var(--keep); }
+  .fx-main { min-width: 0; padding: 12px 14px 16px; }
+  .fx-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 6px; }
+  .fx-head b { font-family: var(--mono); font-size: 14px; }
+  .fx-head span { color: var(--muted); font-size: 12px; }
+  .fx-note { font-size: 12.5px; background: var(--bgx); border-radius: 6px; padding: 9px 12px; margin-bottom: 10px; }
+  .fx-note p { margin: 0 0 4px; } .fx-note p:last-child { margin: 0; }
+  .fx table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .fx th { text-align: left; font-weight: 500; color: var(--muted); font-size: 11.5px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  .fx td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .fx td.nm { font-family: var(--mono); white-space: nowrap; }
+  .fx tr.g td { font-family: var(--mono); font-weight: 600; font-size: 11px; color: var(--muted); padding-top: 12px; border-bottom: none; }
+  .fx tr.mod td:first-child { box-shadow: inset 4px 0 var(--mod); }
+  .fx tr.hl td { background: var(--hl); }
+  .fx .val { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  .fx .sq { width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); display: inline-block; flex: none; }
+  .fx .chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 1px 7px 1px 3px; font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  .fx .chip:hover { border-color: var(--add); }
+  .fx .chip .col { color: var(--muted); }
+  .fx .old { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .fx .old s { text-decoration-color: #B42318; }
   .composants { display: grid; grid-template-columns: 200px repeat(2, minmax(0, 1fr)); gap: 8px; }
   .composants .scene { min-height: 0; }
   .composants .rang { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
@@ -86,11 +139,18 @@
 
 <h1>Rôles et crans du thème</h1>
 <p class="chapeau">Comment la page, la carte et les fonds teintés se séparent dans les deux thèmes, quels crans la table du thème (<code>TABLE_DES_DOSSIERS</code>) leur donne, et comment l'architecture des tokens le traduit. Couleurs de la recette du mainteneur, avec l'enveloppe par thème ; le thème Dark est inversé, le texte des boutons y est blanc.</p>
-<nav><a href="#niveaux">1. Le modèle des niveaux</a><a href="#mapping">2. Le mapping des tokens</a><a href="#composants-a-surface">3. Les composants à surface</a><a href="#marche">4. Les autres systèmes</a><a href="#focus">5. Le focus</a><a href="#rangement">6. Où ranger le focus</a><a href="#decisions">7. Décisions</a><a href="#surfaces">Annexe A. Pistes écartées</a><a href="#table">Annexe B. Tables mesurées</a></nav>
+<nav><a href="#niveaux">1. Le modèle des niveaux</a><a href="#mapping">2. Le mapping des tokens</a><a href="#composants-a-surface">3. Les composants à surface</a><a href="#autres-systemes">4. Les autres systèmes</a><a href="#focus">5. Le focus</a><a href="#rangement">6. Où ranger le focus</a><a href="#decisions">7. Décisions</a><a href="#surfaces">Annexe A. Pistes écartées</a><a href="#table">Annexe B. Tables mesurées</a></nav>
 
 <h2 id="niveaux">1. Le modèle des niveaux : page, carte, composant</h2>
 <p><b>La question.</b> <code>elevation/raised</code>, la carte, prend une couleur du neutre et se pose sur <code>elevation/page</code>. Un fond teinté, le <code>surface/default</code> d'une palette, se pose sur la carte : un badge dans une carte. En Dark aujourd'hui, la carte (neutre 100) ne se détache de la page (neutre 50) que de 1,10:1, et le fond teinté, au cran 100 lui aussi, a exactement la clarté de la carte : 1,00:1, le badge disparaît. En Light, le fond 100 paraît trop foncé sur la carte blanche.</p>
 <p><b>La réponse : chaque niveau se tient un cran plus loin du fond que celui qui le porte.</b> La page, puis la carte, puis le fond teinté. La même règle donne les crans des deux thèmes.</p>
+
+<h3>Les gris : la page, la carte et les surfaces du neutre</h3>
+<p class="chapeau"><code>elevation/page</code> et <code>elevation/raised</code> visent la rampe du neutre (Titanium dans la recette du mainteneur), comme les surfaces d'une puce ou d'un bouton gris. Chaque case est un cran de la rampe ; dessous, le rôle qui le vise aujourd'hui, puis avec le modèle. En bleu, ce qui change.</p>
+<div class="rampes-gris" id="rampes-gris"></div>
+<p class="chapeau" style="margin-top:14px">Un écran concret : une carte grise posée sur la page, et dans la carte une puce neutre, une liste dont une ligne est survolée, un bouton gris, et une puce verte pour comparer.</p>
+<div class="grille" id="grille-gris" style="grid-template-columns: 200px repeat(2, minmax(0, 1fr))"></div>
+
 <h3>L'échelle, aujourd'hui et avec le modèle</h3>
 <div class="commandes">
   <div class="groupe"><span>Palette</span><div class="bascule" data-commande="palette"></div></div>
@@ -125,7 +185,18 @@
 </table>
 <h2 id="mapping">2. Le mapping dans l'architecture des tokens</h2>
 <p class="chapeau">Le chemin ne change pas : un composant cite <code>theme</code>, qui cite <code>color-utilities</code> ou <code>color-brands</code>, qui citent <code>primitives</code>. Seuls changent le cran que <code>theme</code> vise et la clarté du cran 50 de la courbe Dark.</p>
-<pre class="chemin">components.badge.success.background
+<div class="fx" id="fx">
+  <div class="fx-top">
+    <div class="seg" role="group" aria-label="Vue"><button type="button" data-vue="actuel" aria-pressed="false">Aujourd'hui</button><button type="button" data-vue="modele" aria-pressed="true">Modèle des niveaux</button></div>
+    <div class="legend" id="fx-legende"><span><i style="background:var(--mod)"></i>cran visé ou valeur modifiés par le modèle ; dessous, l'alias ou la valeur d'aujourd'hui</span><span>sans barre : inchangé</span></div>
+  </div>
+  <div class="fx-body">
+    <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
+    <div class="fx-main"><div class="fx-head" id="fx-head"></div><div class="fx-note" id="fx-note"></div><div style="overflow-x:auto"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div></div>
+  </div>
+</div>
+<p class="chapeau">Choisissez une vue, puis une collection. Une étiquette grise est un alias : cliquez dessus pour ouvrir la variable visée. Les couleurs sont celles des rampes de la recette du mainteneur (Titanium pour le neutre, Grass pour <code>success</code>), avec l'enveloppe par thème. Seules quelques variables par groupe sont montrées.</p>
+<pre class="chemin" hidden>components.badge.success.background
   → theme.success.soft.surface.default
       light → color-utilities.success.soft.light.<b>50</b>      (aujourd'hui 100)
       dark  → color-utilities.success.soft.dark.<b>200</b>      (aujourd'hui 100)
@@ -160,7 +231,7 @@ theme.elevation.raised
 </table>
 <div class="composants" id="composants" style="margin-top:12px"></div>
 
-<h2 id="marche">4. Le fond teinté dans les autres systèmes</h2>
+<h2 id="autres-systemes">4. Le fond teinté dans les autres systèmes</h2>
 <p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM proposé.</p>
 <div class="marche" id="marche"></div>
 
@@ -421,7 +492,204 @@ theme.elevation.raised
     }
     document.getElementById('grille-niveaux').innerHTML = html;
   }
-  function toutDessiner() { commandes(); dessinerNiveaux(); dessinerComposants(); dessinerMarche(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
+  /** Les gris : la rampe du neutre et les rôles qui la visent, puis un écran de carte, aujourd'hui et avec le modèle. */
+  const PAGE_DARK_MODELE = '#0A0A0B';
+  function dessinerGris() {
+    const neutre = (mode) => U.rampe('enveloppe', 'Titanium', 'soft', mode);
+    const ROLES = {
+      light: {
+        actuel: { blanc: 'carte', 50: 'page', 100: 'surface', 200: 'survol', 300: 'appui' },
+        modele: { blanc: 'carte', 50: 'page · surface', 100: 'survol', 200: 'appui' },
+      },
+      dark: {
+        actuel: { 50: 'page', 100: 'carte · surface', 200: 'survol', 300: 'appui' },
+        modele: { 50: 'page, plus sombre', 100: 'carte', 200: 'surface', 300: 'survol', 400: 'appui' },
+      },
+    };
+    let html = '';
+    for (const mode of ['light', 'dark']) {
+      const crans = D.crans.map((c, k) => [c, neutre(mode)[k]]);
+      const cases = mode === 'light' ? [['blanc', '#FFFFFF'], ...crans] : crans;
+      const encre = (h) => (U.oklch(h).L > 0.6 ? '#1e1e1e' : '#f2f2f2');
+      const role = (quand, c) => ROLES[mode][quand][c] ?? '';
+      const ligneRoles = (quand, titre) => `<b style="font-size:10.5px;color:var(--second)">${titre}</b>${cases.map(([c]) => {
+        const texte = role(quand, c);
+        const change = quand === 'modele' && texte !== role('actuel', c);
+        return `<span class="role${change ? ' change' : ''}"><b>${texte}</b></span>`;
+      }).join('')}`;
+      html += `<div class="rampe-gris" style="--n:${cases.length}"><b>${mode === 'light' ? 'Light' : 'Dark'}</b>${cases.map(([c, h]) => {
+        const teinte = mode === 'dark' && c === 50 ? `linear-gradient(90deg, ${h} 50%, ${PAGE_DARK_MODELE} 50%)` : h;
+        return `<span class="case" style="background:${teinte};color:${encre(h)}">${c}</span>`;
+      }).join('')}${ligneRoles('actuel', 'Aujourd\'hui')}${ligneRoles('modele', 'Modèle')}</div>`;
+    }
+    document.getElementById('rampes-gris').innerHTML = html + '<p class="chapeau" style="margin:0">Dark, cran 50 : à gauche la clarté actuelle (L 0,180), à droite celle du modèle (L 0,145).</p>';
+
+    const CAS = [['table', 'Aujourd\'hui', 'Page 50, carte blanche ou 100, surfaces 100', {}], ['modele', 'Modèle des niveaux', 'Surfaces 50 en Light ; page abaissée et surfaces 200 en Dark', { dark: PAGE_DARK_MODELE }]];
+    let grille = '<span></span><span class="tete">Light</span><span class="tete">Dark</span>';
+    for (const [crans, nom, detail, pages] of CAS) {
+      grille += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
+      for (const mode of ['light', 'dark']) {
+        const n = U.jeu({ variante: 'enveloppe', palette: 'Titanium', intensite: 'soft', mode, support: 'raised', crans });
+        const g = U.jeu({ variante: 'enveloppe', palette: 'Grass', intensite: 'soft', mode, support: 'raised', crans });
+        const page = pages[mode] ?? D.supports[mode].page;
+        const carte = n.fond;
+        const encre = mode === 'light' ? '#1e1e1e' : '#f2f2f2';
+        const second = n.page.foreground;
+        grille += `<div class="exemple" style="background:${page}"><div class="carte-ex" style="background:${carte};color:${encre}">
+          <div class="titre-ex">Dossier Apicil <span class="badge" style="background:${n.surface.default};color:${n.surface.foreground}">Brouillon</span></div>
+          <div class="liste-ex">
+            <span style="border-bottom:1px solid ${n.page.divider}">Contrat cadre <em style="color:${second};font-style:normal">12 mars</em></span>
+            <span style="background:${n.surface.hover};border-bottom:1px solid ${n.page.divider}">Avenant n° 2, ligne survolée <em style="color:${second};font-style:normal">4 avril</em></span>
+            <span>Annexe tarifaire <em style="color:${second};font-style:normal">9 avril</em></span>
+          </div>
+          <div class="badges"><span class="bouton" style="background:${n.surface.default};color:${n.surface.foreground}">Filtrer</span><span class="bouton" style="background:${n.surface.pressed};color:${n.surface.foreground}">Filtrer, appui</span><span class="badge" style="background:${g.surface.default};color:${g.surface.foreground}">Publié</span></div>
+          <span class="mesure" style="color:${encre}">carte contre page ${U.ct(U.contraste(carte, page))} · puce grise contre carte ${U.ct(U.contraste(n.surface.default, carte))} · ligne survolée ${U.ct(U.contraste(n.surface.hover, carte))}</span>
+        </div></div>`;
+      }
+    }
+    document.getElementById('grille-gris').innerHTML = grille;
+  }
+
+  /** Le panneau des variables : quatre collections, aujourd'hui et avec le modèle ; chaque alias se résout vers son hexa. */
+  function panneauTokens() {
+    const ix = (c) => D.crans.indexOf(+c);
+    const rampe = (palette, mode) => U.rampe('enveloppe', palette, 'soft', mode);
+    const TABLES = {
+      actuel: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 100, hover: 200, pressed: 300, foreground: 900, border: 900, focus: 700 } },
+      modele: { light: { default: 50, hover: 100, pressed: 200, foreground: 800, border: 800, focus: 600 }, dark: { default: 200, hover: 300, pressed: 400, foreground: 900, border: 900, focus: 800 } },
+    };
+    const CRANS = [50, 100, 200, 300, 400, 800, 900];
+    /** La valeur brute de chaque variable : un alias ou un hexa ; `mode` vaut light ou dark pour `theme`. */
+    function brute(vue, chemin, mode) {
+      const [col, ...reste] = chemin.split('.');
+      if (col === 'primitives') {
+        if (reste[1] === 'white') return { h: '#FFFFFF' };
+        const [, palette, ...suite] = reste;
+        const theme = suite[suite.length - 2]; const cran = suite[suite.length - 1];
+        if (vue === 'modele' && palette === 'titanium' && theme === 'dark' && cran === '50') return { h: PAGE_DARK_MODELE };
+        return { h: rampe(palette === 'titanium' ? 'Titanium' : 'Grass', theme)[ix(cran)] };
+      }
+      if (col === 'color-utilities') {
+        if (reste[0] === 'elevation') {
+          const [, theme, niveau] = reste;
+          if (niveau === 'raised') return { a: theme === 'light' ? 'primitives.colors.white' : 'primitives.colors.titanium.dark.100' };
+          return { a: `primitives.colors.titanium.${theme}.50` };
+        }
+        if (reste[0] === 'neutral') return { a: `primitives.colors.titanium.${reste[1]}.${reste[2]}` };
+        return { a: `primitives.colors.grass.soft.${reste[2]}.${reste[3]}` };
+      }
+      if (col === 'theme') {
+        if (reste[0] === 'elevation') return { a: `color-utilities.elevation.${mode}.${reste[1]}` };
+        const neutre = reste[0] === 'neutral';
+        const role = reste.slice(neutre ? 1 : 2).join('/');
+        const cle = { 'surface/default': 'default', 'surface/hover': 'hover', 'surface/pressed': 'pressed', 'surface/foreground': 'foreground', 'surface/border': 'border', 'page/focus': 'focus', ring: 'focus' }[role];
+        const cran = TABLES[vue][mode][cle];
+        return { a: neutre ? `color-utilities.neutral.${mode}.${cran}` : `color-utilities.success.soft.${mode}.${cran}` };
+      }
+      return null;
+    }
+    function hexa(vue, chemin, mode) {
+      let v = brute(vue, chemin, mode);
+      for (let k = 0; k < 6 && v && v.a; k += 1) v = brute(vue, v.a, mode);
+      return v?.h;
+    }
+    const nom = (chemin) => chemin.split('.').slice(1).join('/');
+    // Les composants visent theme ; le nom du focus suit Q8 dans le modèle.
+    const COMPOSANTS = [
+      ['page/background', 'theme.elevation.page'], ['card/background', 'theme.elevation.raised'],
+      ['badge/neutral/background', 'theme.neutral.surface.default'], ['list/row/hover', 'theme.neutral.surface.hover'],
+      ['badge/success/background', 'theme.success.soft.surface.default'], ['badge/success/foreground', 'theme.success.soft.surface.foreground'],
+      ['button/success/tinted/pressed', 'theme.success.soft.surface.pressed'], ['button/success/focus', { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.ring' }],
+    ];
+    const THEME = [
+      ['elevation', ['theme.elevation.page', 'theme.elevation.raised']],
+      ['neutral', ['theme.neutral.surface.default', 'theme.neutral.surface.hover', 'theme.neutral.surface.pressed', 'theme.neutral.surface.foreground']],
+      ['success/soft', ['theme.success.soft.surface.default', 'theme.success.soft.surface.hover', 'theme.success.soft.surface.pressed', 'theme.success.soft.surface.foreground', { actuel: 'theme.success.soft.page.focus', modele: 'theme.success.soft.ring' }]],
+    ];
+    const UTILITAIRES = [
+      ['elevation', ['light.page', 'light.raised', 'dark.page', 'dark.raised'].map((x) => `color-utilities.elevation.${x}`)],
+      ['neutral', ['light', 'dark'].flatMap((m) => CRANS.map((c) => `color-utilities.neutral.${m}.${c}`))],
+      ['success/soft', ['light', 'dark'].flatMap((m) => CRANS.map((c) => `color-utilities.success.soft.${m}.${c}`))],
+    ];
+    const PRIMITIVES = [
+      ['colors', ['primitives.colors.white']],
+      ['colors/titanium', ['light', 'dark'].flatMap((m) => CRANS.map((c) => `primitives.colors.titanium.${m}.${c}`))],
+      ['colors/grass/soft', ['light', 'dark'].flatMap((m) => CRANS.map((c) => `primitives.colors.grass.soft.${m}.${c}`))],
+    ];
+    const etiquette = (chemin) => { const [col, ...reste] = chemin.split('.'); return `<span class="col">${col} ›</span> ${reste.join('/')}`; };
+    const carre = (h) => (h ? `<span class="sq" style="background:${h}"></span>` : '');
+    const cellule = (v, h) => (v.a ? `<button type="button" class="chip" data-chemin="${v.a}">${carre(h)}${etiquette(v.a)}</button>` : `<span class="val">${carre(v.h)}${v.h}</span>`);
+    const choisir = (x, vue) => (typeof x === 'string' ? x : x[vue]);
+
+    /** Les lignes d'une collection ; une ligne modifiée garde, dessous, ce qu'elle valait aujourd'hui. */
+    function lignes(vue, col) {
+      const sortie = [];
+      const ligne = (chemin, modes, nomAffiche) => {
+        const avant = modes.map((m) => [brute('actuel', typeof chemin === 'string' ? chemin : chemin.actuel, m), hexa('actuel', typeof chemin === 'string' ? chemin : chemin.actuel, m)]);
+        const ici = modes.map((m) => [brute(vue, choisir(chemin, vue), m), hexa(vue, choisir(chemin, vue), m)]);
+        const change = vue === 'modele' && ici.some(([v, h], k) => (v.a ?? v.h) !== (avant[k][0].a ?? avant[k][0].h) || h !== avant[k][1]);
+        const cellules = ici.map(([v, h], k) => {
+          let html = cellule(v, h);
+          const memeAlias = v.a && v.a === avant[k][0].a;
+          if (change && memeAlias && h !== avant[k][1]) html += `<span class="old">même alias ; aujourd'hui ${carre(avant[k][1])}<s>${avant[k][1]}</s></span>`;
+          else if (change && ((v.a ?? v.h) !== (avant[k][0].a ?? avant[k][0].h) || h !== avant[k][1])) html += `<span class="old">aujourd'hui : <s>${avant[k][0].a ? etiquette(avant[k][0].a) : avant[k][0].h}</s> ${carre(avant[k][1])}</span>`;
+          return `<td>${html}</td>`;
+        }).join('');
+        const cle = nom(choisir(chemin, vue));
+        sortie.push(`<tr class="${change ? 'mod' : ''}" data-k="${cle}"><td class="nm">${nomAffiche ?? cle}</td>${cellules}</tr>`);
+      };
+      if (col === 'components') for (const [n, cible] of COMPOSANTS) {
+        const ici = choisir(cible, vue);
+        const avant = choisir(cible, 'actuel');
+        const change = vue === 'modele' && (['light', 'dark'].some((m) => hexa('modele', ici, m) !== hexa('actuel', avant, m)) || ici !== avant);
+        const cell = (m) => {
+          const h = hexa(vue, ici, m); const h0 = hexa('actuel', avant, m);
+          let html = cellule({ a: ici }, h);
+          if (change && ici !== avant && m === 'light') html += `<span class="old">aujourd'hui : <s>${etiquette(avant)}</s></span>`;
+          if (change && h !== h0) html += `<span class="old">aujourd'hui ${carre(h0)}<s>${h0}</s></span>`;
+          return `<td>${html}</td>`;
+        };
+        sortie.push(`<tr class="${change ? 'mod' : ''}" data-k="${n}"><td class="nm">${n}</td>${cell('light')}${cell('dark')}</tr>`);
+      }
+      if (col === 'theme') for (const [groupe, chemins] of THEME) { sortie.push(`<tr class="g"><td colspan="3">${groupe}</td></tr>`); for (const c of chemins) ligne(c, ['light', 'dark']); }
+      if (col === 'color-utilities') for (const [groupe, chemins] of UTILITAIRES) { sortie.push(`<tr class="g"><td colspan="2">${groupe}</td></tr>`); for (const c of chemins) ligne(c, ['light']); }
+      if (col === 'primitives') for (const [groupe, chemins] of PRIMITIVES) { sortie.push(`<tr class="g"><td colspan="2">${groupe}</td></tr>`); for (const c of chemins) ligne(c, ['light']); }
+      return sortie.join('');
+    }
+    const COLLECTIONS = {
+      components: { info: 'aucun mode · résolu en light et en dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'inchangée'], modele: ['mod', 'valeurs modifiées'] },
+        note: ['Les composants citent theme. Leurs noms ne changent pas ; leur couleur suit le cran que theme vise. Les colonnes montrent la valeur résolue dans chaque thème.'] },
+      theme: { info: '2 modes · light, dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'table actuelle'], modele: ['mod', 'crans modifiés'] },
+        note: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 50, 100, 200 en light ; 200, 300, 400 en dark, texte 900, anneau 800.', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] },
+      'color-utilities': { info: 'aucun mode · un alias par cran', modes: ['Valeur'], tag: { actuel: ['same', 'inchangée'], modele: ['same', 'alias inchangés'] },
+        note: ['Les rôles communs aux marques, un alias par cran vers primitives. Le modèle n\'y change aucun alias.', 'elevation/dark/page vise toujours le cran 50 du neutre ; c\'est ce cran qui devient plus sombre dans primitives.'] },
+      primitives: { info: 'aucun mode · écrite par UCM Palettes', modes: ['Valeur'], tag: { actuel: ['same', 'rampes actuelles'], modele: ['mod', '50 Dark recalculé'] },
+        note: ['Les rampes que Palettes écrit. Le modèle recalcule le cran 50 de la courbe Dark, à L 0,145 : la page passe sous la carte. Les autres crans ne changent pas avec le modèle.', 'Dans cette vue, seul le neutre montre son cran 50 recalculé ; les autres palettes le reçoivent aussi, et aucun rôle de dossier ne l\'emploie.'] },
+    };
+    const etat = { vue: 'modele', col: 'theme' };
+    const $ = (id) => document.getElementById(id);
+    function peindre(surligne) {
+      const c = COLLECTIONS[etat.col];
+      document.querySelectorAll('#fx .seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vue === etat.vue)));
+      $('fx-legende').hidden = etat.vue !== 'modele';
+      $('fx-cols').innerHTML = '<span class="lab">Collections</span>' + Object.entries(COLLECTIONS).map(([id, x]) => `<button type="button" data-col="${id}" aria-current="${id === etat.col}"><span>${id}</span><span class="tag ${x.tag[etat.vue][0]}">${x.tag[etat.vue][1]}</span></button>`).join('');
+      $('fx-head').innerHTML = `<b>${etat.col}</b><span>${c.info}</span>`;
+      $('fx-note').innerHTML = c.note.map((n) => `<p>${n}</p>`).join('');
+      $('fx-thead').innerHTML = `<tr><th>Nom</th>${c.modes.map((m) => `<th>${m}</th>`).join('')}</tr>`;
+      $('fx-tbody').innerHTML = lignes(etat.vue, etat.col);
+      if (surligne) { const tr = document.querySelector(`#fx-tbody tr[data-k="${surligne}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } }
+    }
+    $('fx').addEventListener('click', (ev) => {
+      const b = ev.target.closest('button');
+      if (!b) return;
+      if (b.dataset.vue) { etat.vue = b.dataset.vue; peindre(); }
+      else if (b.dataset.col) { etat.col = b.dataset.col; peindre(); }
+      else if (b.dataset.chemin) { const [col, ...reste] = b.dataset.chemin.split('.'); if (COLLECTIONS[col]) { etat.col = col; peindre(reste.join('/')); } }
+    });
+    peindre();
+  }
+  panneauTokens();
+  function toutDessiner() { commandes(); dessinerGris(); dessinerNiveaux(); dessinerComposants(); dessinerMarche(); dessinerSurfaces(); dessinerFocus(); dessinerFigma(); }
   toutDessiner();
 })();
 </script>
