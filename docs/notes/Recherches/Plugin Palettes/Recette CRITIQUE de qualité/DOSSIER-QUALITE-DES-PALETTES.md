@@ -1,6 +1,9 @@
 # Qualité des palettes en interface : dossier
 
-**Statut : recherche faite, maquettes à valider.** Les causes sont mesurées sur
+**Statut : recherche faite, maquettes à valider.** La
+[solution proposée](./SOLUTION-RAMPES.md) reprend le sujet après les notes à
+l'aveugle et un relevé de neuf systèmes ; elle remplace les recommandations
+Q1, Q2, Q5 et Q6 ci-dessous, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
 mainteneur. Huit décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
@@ -211,6 +214,10 @@ est à essayer dans le banc avant toute décision.
 
 ### 3.7 Recommandation
 
+La [solution proposée](./SOLUTION-RAMPES.md) (S1) précise cette
+recommandation : l'enveloppe prend des bornes par thème, parce qu'en Dark les
+crans clairs sont des textes. Le reste de cette section vaut toujours.
+
 Adopter l'enveloppe. Elle rapproche le plus les quatre utilitaires, place Vivid
 aussi près de Tailwind que le relevé et ne demande aucune table de données.
 Elle donne un sens à chaque profil : Soft a des fonds calmes, proches de Radix,
@@ -312,6 +319,10 @@ plein reste à 700.
 
 ### 4.3 Recommandation pour les fonds
 
+La [solution proposée](./SOLUTION-RAMPES.md) (S3) remplace l'option A
+ci-dessous : le texte des fonds sombres reste au cran 900, plus coloré que le
+950, sans échec ajouté.
+
 La piste translucide servait un fond posé tantôt sur la page, tantôt sur la
 carte. Les composants teintés se posent toujours sur une carte : un fond
 opaque, choisi contre la carte, suffit. La piste translucide reste décrite en
@@ -410,12 +421,12 @@ leurs valeurs par défaut, sans garantie perdue.
 
 | # | Décision | Recommandation |
 |---|---|---|
-| Q1 | La règle de chroma | L'enveloppe |
-| Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85, a 0,6) ; Vivid : Tailwind (0,95, a 1,1) |
+| Q1 | La règle de chroma | L'enveloppe, avec des bornes par thème ([solution](./SOLUTION-RAMPES.md), S1) |
+| Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Rétablir » y ramène ; les recettes au format 10 gardent la part constante |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
-| Q5 | Le fond teinté | Opaque, un cran au-dessus de la carte qui le porte. Light : 100 (ou 50). Dark : fonds 200, 300, 400, texte 950, focus 800, sur la carte actuelle (option A, aucun échec ajouté). La séparation de la carte Dark relève de l'élévation |
-| Q6 | La couleur du focus | 600 en Light ; un cran plus clair en Dark |
+| Q5 | Le fond teinté | Opaque. Light : table actuelle, fond 100. Dark : fonds 200, 300, 400, texte et contour 900, sur la carte actuelle, sans échec ajouté ([solution](./SOLUTION-RAMPES.md), S2 à S5). La séparation de la carte Dark relève de l'élévation |
+| Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens |
 | Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
 | Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
 | C1 à C10 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
@@ -425,7 +436,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Décision | Fichiers et migrations |
 |---|---|
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
-| Q5 | `packages/kit/src/emplois/dossiers.ts` (crans de surface, texte et focus du Dark) et `garanties.ts` ; Aperçu de Création ; architecture de référence et vue illustrée |
+| Q5 | `packages/kit/src/emplois/dossiers.ts` (une table par thème en plus du sens : surfaces, texte et focus du Dark) et `garanties.ts` ; Aperçu de Création ; architecture de référence et vue illustrée |
 | Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
 | C1 à C10 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 

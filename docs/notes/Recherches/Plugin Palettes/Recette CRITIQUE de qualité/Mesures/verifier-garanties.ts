@@ -13,7 +13,7 @@ import { recetteParDefaut, type Palette, type Recette } from '../../../../../../
 import { contraste } from '../../../../../../packages/kit/src/emplois/contraste';
 import { GARANTIES } from '../../../../../../packages/kit/src/emplois/garanties';
 import { TABLE_DES_DOSSIERS, sensDuTheme, type TexteDesBoutons } from '../../../../../../packages/kit/src/emplois/dossiers';
-import { enveloppes, rampesDuBanc } from './prototype';
+import { enveloppes, enveloppesParTheme, rampesDuBanc } from './prototype';
 import { alphaMinimal, composer } from './prototype';
 import { valider } from './variantes';
 
@@ -51,6 +51,15 @@ const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark'
   'Dark B : carte 200, fonds 300, texte 950, focus 800': (sens, mode) => (mode === 'dark'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 })
     : TABLE_DES_DOSSIERS[sens]),
+  'Dark C : fonds 200, 300, 400, texte 800, focus 800': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 800, 'surface/border': 800, 'page/focus': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
+  'Dark D : fonds 200, 300, 300, texte 800, focus 800': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'page/focus': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
+  'Dark E : fonds 200, 300, 400, texte 900, focus 800': (sens, mode) => (mode === 'dark'
+    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 })
+    : TABLE_DES_DOSSIERS[sens]),
   'les deux': (sens, mode) => mode === 'light'
     ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
     : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
@@ -65,6 +74,11 @@ const references = teintes.flatMap((H) => [0.62, 0.75].map((L) => ({ H, L, hexa:
 const regles = {
   actuel: null,
   enveloppe: enveloppes({ soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } }),
+  // En Dark, les crans clairs sont des textes : la borne vers le blanc de Soft s'ouvre comme celle de Vivid.
+  'enveloppe, Dark a 1,1': enveloppesParTheme({
+    light: { soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } },
+    dark: { soft: { p0: 0.85, a: 1.1, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } },
+  }),
 } as const;
 
 const resultats: Record<string, unknown> = {};

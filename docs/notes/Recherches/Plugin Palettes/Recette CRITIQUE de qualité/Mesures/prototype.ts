@@ -42,6 +42,17 @@ export const enveloppes = (parProfil: Record<'soft' | 'vivid' | 'unique', { p0: 
   };
 
 /**
+ * L'enveloppe par thème. La borne vers le blanc, `a × (1 − L)`, plafonne les
+ * crans clairs : des fonds en Light, des textes en Dark. Chaque thème a donc
+ * ses bornes ; les autres termes suivent `enveloppes`.
+ */
+export const enveloppesParTheme = (parTheme: Record<Mode, Record<'soft' | 'vivid' | 'unique', { p0: number; a: number; b: number }>>): RegleDeChroma =>
+  ({ L, H, part, intensite, mode }) => {
+    const { p0, a, b } = parTheme[mode][intensite];
+    return Math.min(part * plafond(L, H, 'srgb'), p0 * Math.min(a * (1 - L), b * L));
+  };
+
+/**
  * Le poids des accents d'un cran, de 0 dans les fonds à 1 dans les accents,
  * lu sur la clarté de la courbe : en Light, fonds dès 0,86 et accents sous
  * 0,70 ; en Dark, fonds sous 0,33 et accents dès 0,45.

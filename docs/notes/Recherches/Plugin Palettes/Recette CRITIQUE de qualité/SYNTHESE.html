@@ -56,7 +56,7 @@
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
     <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
-    <div class="ligne"><span>Solution</span><span>L'enveloppe : la part donne la chroma, une borne par clarté la plafonne.</span></div>
+    <div class="ligne"><span>Solution</span><span>L'enveloppe : la part donne la chroma, une borne par clarté la plafonne, propre à chaque thème. <a href="SOLUTION-RAMPES.md">Solution ›</a></span></div>
     <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts</span></div>
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
     <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles.</span></div>
@@ -103,14 +103,14 @@
 (() => {
   const SUJETS = [
     { n: '1', titre: 'Palettes en interface', maquette: 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html', decisions: [
-      ['Q1', 'Règle de chroma', 'Enveloppe', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
-      ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
+      ['Q1', 'Règle de chroma', 'Enveloppe, bornes par thème', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#aveugle'],
+      ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés, plus vifs en Dark. Vivid : Tailwind', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
       ['Q3', 'Valeurs par défaut', 'Dans la Configuration ; marquées sur chaque réglette ; recettes actuelles inchangées', 'Maquettes/MAQUETTE-COMPARER.html#configuration'],
       ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
     ] },
     { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
-      ['Q5', 'Fond teinté', 'Opaque, un cran au-dessus de la carte ; Dark : fonds 200, texte 950, focus 800', 'DOSSIER-QUALITE-DES-PALETTES.md'],
-      ['Q6', 'Couleur du focus', '600 en Light, un cran plus clair en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
+      ['Q5', 'Fond teinté', 'Opaque ; Light inchangé ; Dark : fonds 200, texte 900, focus 800', 'SOLUTION-RAMPES.md'],
+      ['Q6', 'Couleur du focus', '600 en Light, 800 en Dark', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q7', 'Forme du focus', 'Anneau décalé de 2 px', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
       ['Q8', 'Nom du focus', '`ring` dans chaque dossier', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
     ] },

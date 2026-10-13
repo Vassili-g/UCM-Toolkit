@@ -1,0 +1,2282 @@
+{
+  "genereLe": "extract.mjs (voir README.md)",
+  "methode": "Valeurs lues dans sources/ ; hexa calculé = composition d'une couleur translucide ou conversion oklch ; contraste = WCAG 2, luminance relative standard, arrondi à 0,01.",
+  "sources": [
+    {
+      "id": "primerLight",
+      "fichier": "sources/primer-light.css.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "86468bdfa1761f189d7bed7c1a13c6183f67ec132d689dacc63acc9eec986496"
+    },
+    {
+      "id": "primerDark",
+      "fichier": "sources/primer-dark.css.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "d70cf0d4f3b2b1056030b40fcf1cd65b1d74d07dbbec002ad300e08266188d89"
+    },
+    {
+      "id": "primerLicence",
+      "fichier": "sources/primer-licence.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "e63582a78dddebe610b6cb59f0e7f5f761c1bb6a1c9551443beddc64fe525c3a"
+    },
+    {
+      "id": "atlaskitLight",
+      "fichier": "sources/atlaskit-light.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763"
+    },
+    {
+      "id": "atlaskitDark",
+      "fichier": "sources/atlaskit-dark.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4"
+    },
+    {
+      "id": "atlaskitTokenNames",
+      "fichier": "sources/atlaskit-token-names.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "92096e1094805a4ce01eb5776cc819a1778fa0bad88b6af6a4c4140c4a934861"
+    },
+    {
+      "id": "atlaskitLicence",
+      "fichier": "sources/atlaskit-licence.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8"
+    },
+    {
+      "id": "carbonWhite",
+      "fichier": "sources/carbon-white.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "c9674339b931da09696c25caab33c94dc17b36354955b0b4cbe9dfb2293594cd"
+    },
+    {
+      "id": "carbonG10",
+      "fichier": "sources/carbon-g10.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "ce936933fa231e60bd6497113e37e7989aa27ebee97f4e20581f651403bb8bbe"
+    },
+    {
+      "id": "carbonG90",
+      "fichier": "sources/carbon-g90.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "68a297ba2fcacfe316d0a2c1726c74de3aa9c6712b9c63ac3f57d37890d3ab92"
+    },
+    {
+      "id": "carbonG100",
+      "fichier": "sources/carbon-g100.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "17f4c7d11a2f2269653060f2cb3bf9e0ffec3ec43cafbb9cbbb63cbc0199059f"
+    },
+    {
+      "id": "carbonNotificationTokens",
+      "fichier": "sources/carbon-notification-tokens.scss.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "2ca4bc62dff7f49e193ed3e7d0a5f451e00ad3ea6095976cb542c4d1bbc83c1d"
+    },
+    {
+      "id": "carbonLicence",
+      "fichier": "sources/carbon-licence.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8"
+    },
+    {
+      "id": "carbonInlineNotification",
+      "fichier": "sources/carbon-inline-notification.scss.txt",
+      "version": "@carbon/styles@1.117.0",
+      "sha256": "8964cda3e5c4af091af958910cb20c77e37163f963aa32a65b82e9c28b446e15"
+    },
+    {
+      "id": "polarisTokensBuild",
+      "fichier": "sources/polaris-tokens-build.js.txt",
+      "version": "@shopify/polaris-tokens@9.4.2",
+      "sha256": "e09f5c5a9da63fc4d2538604e2d40a646bed3eb2aaf0ae064541f8633c30a92e"
+    },
+    {
+      "id": "polarisTokensLicence",
+      "fichier": "sources/polaris-tokens-licence.md.txt",
+      "version": "@shopify/polaris-tokens@9.4.2",
+      "sha256": "172d300fa7873e23b0aef00408b1429541e0bd33794e998296742fcfc44540ac"
+    },
+    {
+      "id": "polarisStyles",
+      "fichier": "sources/polaris-styles.css.txt",
+      "version": "@shopify/polaris@13.9.5",
+      "sha256": "7679086b9fdbab646abae0b7a50ef7c122e18282027fdc1403e84e4336cc2617"
+    },
+    {
+      "id": "polarisBannerUtilities",
+      "fichier": "sources/polaris-banner-utilities.js.txt",
+      "version": "@shopify/polaris@13.9.5",
+      "sha256": "6b42977851c8eb66df6456db73acb9827a86f65b87a6efb9bf54b0b0cbeb90ff"
+    },
+    {
+      "id": "m3SysColor",
+      "fichier": "sources/m3-sys-color.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "aa0c2dc244989edcb1bb2af169a87d290e5303a7e945720cd2c21c8bdb103670"
+    },
+    {
+      "id": "m3RefPalette",
+      "fichier": "sources/m3-ref-palette.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "9208b47a2e67a9060a6d3440428a8ff0265e747d96477ae1b56dc7931d69f0d3"
+    },
+    {
+      "id": "m3ElevatedCard",
+      "fichier": "sources/m3-elevated-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "e37530710e66b98ca03f0347c49c85782664bebc10f30d4fd20591f12be45cc7"
+    },
+    {
+      "id": "m3FilledCard",
+      "fichier": "sources/m3-filled-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "f9a1416362ede3e8b54266f33590ad09f6307d8f9550f3945a4b4a5c0371ef42"
+    },
+    {
+      "id": "m3OutlinedCard",
+      "fichier": "sources/m3-outlined-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "29f016b453ed60b215787dc6313991e06033d9e67038f33c5d193df92cbd02cf"
+    },
+    {
+      "id": "m3Dialog",
+      "fichier": "sources/m3-dialog.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "d6382d5fb185db5380a467e302308259168ae9b0d95fe7f737d133321dc7376f"
+    },
+    {
+      "id": "m3Menu",
+      "fichier": "sources/m3-menu.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "d32db0c611db7f7b8d58e33e4316e0ee424079354ce17086279fbbb9ef8451cc"
+    },
+    {
+      "id": "m3ColorTokensFull",
+      "fichier": "sources/m3-color-tokens-full.css.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "9ef227b8312531937905daec52271d936e73cb4388ab1c5f0925f1eef2758b77"
+    },
+    {
+      "id": "m3Licence",
+      "fichier": "sources/m3-licence.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "295cdb4364b782931c914f5ca8c47fac87c732fa7e448b788a47aa5b25728212"
+    },
+    {
+      "id": "fluentLightColor",
+      "fichier": "sources/fluent-light-color.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "95c25a2fbfc3b465be4b0130bf40dbc0a2bfddd432b2551619055f64f165a6e6"
+    },
+    {
+      "id": "fluentDarkColor",
+      "fichier": "sources/fluent-dark-color.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "bcff717c006279025ed9325f02ce6e831226bca2bc320a1499d0fa821e2cfc18"
+    },
+    {
+      "id": "fluentLightPalette",
+      "fichier": "sources/fluent-light-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "3633cee2b5d8156920da3bdc7fd03c4a3b5799f75e9842512a147c830fde7660"
+    },
+    {
+      "id": "fluentDarkPalette",
+      "fichier": "sources/fluent-dark-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "f034e258bf0517fdfd39e9eec2d5f0f54e32eaa426e2d69cf066571221a88337"
+    },
+    {
+      "id": "fluentColors",
+      "fichier": "sources/fluent-colors.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "890345372ce466bc174aca2334f898d5299319509fffb57d115820bc6c7975cf"
+    },
+    {
+      "id": "fluentColorPalette",
+      "fichier": "sources/fluent-color-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "e5e94346b57cda0b72f7b8296672e53110a6a6265a6e7a7da9153f2c162ad5f2"
+    },
+    {
+      "id": "fluentStatusMapping",
+      "fichier": "sources/fluent-status-mapping.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "5bb061f0cc79762bc296284637207eb562c15b803ffcda837b7481c7c2b3291f"
+    },
+    {
+      "id": "fluentSharedNames",
+      "fichier": "sources/fluent-shared-names.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "eef9c42010e8cc38b953d520c4922df170bf5c3aca708aaf32c074e7c1e06f49"
+    },
+    {
+      "id": "fluentWebLightTheme",
+      "fichier": "sources/fluent-web-light-theme.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "1f5200a43d4a489770a6a94bfc33e481980b1396d1ebc7a5f1a477e48cc586f2"
+    },
+    {
+      "id": "fluentWebDarkTheme",
+      "fichier": "sources/fluent-web-dark-theme.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "03ca4d2ab7481b1eba3b0642a036de4becae0714a8592e07ce0769b1af00be3d"
+    },
+    {
+      "id": "fluentLicence",
+      "fichier": "sources/fluent-licence.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "8189edb8b17032b0fa631dc776cc363080a51e8650821c8faad43ec22a303685"
+    },
+    {
+      "id": "fluentCardStyles",
+      "fichier": "sources/fluent-card-styles.js.txt",
+      "version": "@fluentui/react-card@9.7.3",
+      "sha256": "bc518dd171dcb16c0b1c239710168736549a735b5dda705d3197bb6b4051afba"
+    },
+    {
+      "id": "fluentMessageBarStyles",
+      "fichier": "sources/fluent-message-bar-styles.js.txt",
+      "version": "@fluentui/react-message-bar@9.7.7",
+      "sha256": "ac011a0b2e218bb8dcdad406a051db7a23109ea604375533df1aeb1199fccf61"
+    },
+    {
+      "id": "fluentBadgeStyles",
+      "fichier": "sources/fluent-badge-styles.js.txt",
+      "version": "@fluentui/react-badge@9.5.6",
+      "sha256": "936af2ed966fcfffea58466054a92f58c3776b6070102a601678210c8c61b15a"
+    },
+    {
+      "id": "shadcnThemes",
+      "fichier": "sources/shadcn-themes.ts.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "60cb5ed25f7b39d9973e2280f476dd2119a4268317f45bd7ee3cac7883db8ea0"
+    },
+    {
+      "id": "shadcnGlobals",
+      "fichier": "sources/shadcn-globals.css.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "cbae6d633c38be59fc036d1e5cf60203ae7619ea6af9b4cdd8d632a211ccffa9"
+    },
+    {
+      "id": "shadcnNeutralJson",
+      "fichier": "sources/shadcn-neutral-json.json.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "f895f5848b74f800282fb1a1d2cea25ed646b663881769a992fd164939a5fc00"
+    },
+    {
+      "id": "shadcnLicence",
+      "fichier": "sources/shadcn-licence.md.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    }
+  ],
+  "systemes": [
+    {
+      "id": "primer",
+      "nom": "GitHub Primer",
+      "versions": [
+        "@primer/primitives@11.10.0"
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": {
+            "token": "--bgColor-default",
+            "valeurPubliee": "#ffffff",
+            "role": "page : fond par défaut des pages et zones de contenu",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "sources/primer-light.css.txt",
+              "ligne": 656
+            }
+          },
+          "cartes": [
+            {
+              "token": "--card-bgColor",
+              "valeurPubliee": "var(--bgColor-default)",
+              "valeurResolue": "#ffffff",
+              "role": "carte (token dédié)",
+              "resolutionVia": {
+                "chaine": [
+                  "--card-bgColor",
+                  "--bgColor-default"
+                ]
+              },
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/primer-light.css.txt",
+                "ligne": 908
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": {
+            "token": "--bgColor-inset",
+            "valeurPubliee": "var(--bgColor-muted)",
+            "valeurResolue": "#f6f8fa",
+            "role": "fond creusé (inset)",
+            "resolutionVia": {
+              "chaine": [
+                "--bgColor-inset",
+                "--bgColor-muted"
+              ]
+            },
+            "hex": "#f6f8fa",
+            "source": {
+              "fichier": "sources/primer-light.css.txt",
+              "ligne": 659
+            },
+            "contrasteAvecPage": 1.06,
+            "sens": "plus foncée que la page"
+          },
+          "overlay": {
+            "token": "--overlay-bgColor",
+            "valeurPubliee": "#ffffff",
+            "role": "fond des superpositions (overlay)",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "sources/primer-light.css.txt",
+              "ligne": 836
+            },
+            "contrasteAvecPage": 1,
+            "sens": "identique à la page"
+          },
+          "autres": [
+            {
+              "token": "--bgColor-muted",
+              "valeurPubliee": "#f6f8fa",
+              "role": "fond atténué, zones secondaires",
+              "hex": "#f6f8fa",
+              "source": {
+                "fichier": "sources/primer-light.css.txt",
+                "ligne": 46
+              },
+              "contrasteAvecPage": 1.06,
+              "sens": "plus foncée que la page"
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "page": {
+            "token": "--bgColor-default",
+            "valeurPubliee": "#0d1117",
+            "role": "page : fond par défaut des pages et zones de contenu",
+            "hex": "#0d1117",
+            "source": {
+              "fichier": "sources/primer-dark.css.txt",
+              "ligne": 41
+            }
+          },
+          "cartes": [
+            {
+              "token": "--card-bgColor",
+              "valeurPubliee": "var(--bgColor-muted)",
+              "valeurResolue": "#151b23",
+              "role": "carte (token dédié)",
+              "resolutionVia": {
+                "chaine": [
+                  "--card-bgColor",
+                  "--bgColor-muted"
+                ]
+              },
+              "hex": "#151b23",
+              "source": {
+                "fichier": "sources/primer-dark.css.txt",
+                "ligne": 741
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": {
+            "token": "--bgColor-inset",
+            "valeurPubliee": "#010409",
+            "role": "fond creusé (inset)",
+            "hex": "#010409",
+            "source": {
+              "fichier": "sources/primer-dark.css.txt",
+              "ligne": 666
+            },
+            "contrasteAvecPage": 1.09,
+            "sens": "plus foncée que la page"
+          },
+          "overlay": {
+            "token": "--overlay-bgColor",
+            "valeurPubliee": "#010409",
+            "role": "fond des superpositions (overlay)",
+            "hex": "#010409",
+            "source": {
+              "fichier": "sources/primer-dark.css.txt",
+              "ligne": 851
+            },
+            "contrasteAvecPage": 1.09,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "--bgColor-muted",
+              "valeurPubliee": "#151b23",
+              "role": "fond atténué, zones secondaires",
+              "hex": "#151b23",
+              "source": {
+                "fichier": "sources/primer-dark.css.txt",
+                "ligne": 46
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus claire que la page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "atlassian",
+      "nom": "Atlassian",
+      "versions": [
+        "@atlaskit/tokens@20.4.1"
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": {
+            "token": "elevation.surface",
+            "valeurPubliee": "#FFFFFF",
+            "role": "page : surface par défaut",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "sources/atlaskit-light.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 534
+              }
+            },
+            "variableCss": "--ds-surface"
+          },
+          "cartes": [
+            {
+              "token": "elevation.surface.raised",
+              "valeurPubliee": "#FFFFFF",
+              "role": "carte : surface surélevée",
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/atlaskit-light.js.txt",
+                "tokenNames": {
+                  "fichier": "sources/atlaskit-token-names.js.txt",
+                  "ligne": 543
+                }
+              },
+              "variableCss": "--ds-surface-raised",
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": {
+            "token": "elevation.surface.sunken",
+            "valeurPubliee": "#F8F8F8",
+            "role": "surface creusée",
+            "hex": "#f8f8f8",
+            "source": {
+              "fichier": "sources/atlaskit-light.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 546
+              }
+            },
+            "variableCss": "--ds-surface-sunken",
+            "contrasteAvecPage": 1.06,
+            "sens": "plus foncée que la page"
+          },
+          "overlay": {
+            "token": "elevation.surface.overlay",
+            "valeurPubliee": "#FFFFFF",
+            "role": "surface des superpositions",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "sources/atlaskit-light.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 540
+              }
+            },
+            "variableCss": "--ds-surface-overlay",
+            "contrasteAvecPage": 1,
+            "sens": "identique à la page"
+          },
+          "autres": []
+        },
+        {
+          "id": "dark",
+          "page": {
+            "token": "elevation.surface",
+            "valeurPubliee": "#1F1F21",
+            "role": "page : surface par défaut",
+            "hex": "#1f1f21",
+            "source": {
+              "fichier": "sources/atlaskit-dark.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 534
+              }
+            },
+            "variableCss": "--ds-surface"
+          },
+          "cartes": [
+            {
+              "token": "elevation.surface.raised",
+              "valeurPubliee": "#242528",
+              "role": "carte : surface surélevée",
+              "hex": "#242528",
+              "source": {
+                "fichier": "sources/atlaskit-dark.js.txt",
+                "tokenNames": {
+                  "fichier": "sources/atlaskit-token-names.js.txt",
+                  "ligne": 543
+                }
+              },
+              "variableCss": "--ds-surface-raised",
+              "contrasteAvecPage": 1.07,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": {
+            "token": "elevation.surface.sunken",
+            "valeurPubliee": "#18191A",
+            "role": "surface creusée",
+            "hex": "#18191a",
+            "source": {
+              "fichier": "sources/atlaskit-dark.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 546
+              }
+            },
+            "variableCss": "--ds-surface-sunken",
+            "contrasteAvecPage": 1.07,
+            "sens": "plus foncée que la page"
+          },
+          "overlay": {
+            "token": "elevation.surface.overlay",
+            "valeurPubliee": "#2B2C2F",
+            "role": "surface des superpositions",
+            "hex": "#2b2c2f",
+            "source": {
+              "fichier": "sources/atlaskit-dark.js.txt",
+              "tokenNames": {
+                "fichier": "sources/atlaskit-token-names.js.txt",
+                "ligne": 540
+              }
+            },
+            "variableCss": "--ds-surface-overlay",
+            "contrasteAvecPage": 1.18,
+            "sens": "plus claire que la page"
+          },
+          "autres": []
+        }
+      ]
+    },
+    {
+      "id": "carbon",
+      "nom": "IBM Carbon",
+      "versions": [
+        "@carbon/themes@11.83.0"
+      ],
+      "notes": [
+        "Les couches de Carbon sont relatives : layer-02 se pose sur layer-01, qui se pose sur background. Le contraste avec la page est donné pour les trois, mais seul layer-01 repose directement sur la page.",
+        "Le token `overlay` est un voile rgba(0, 0, 0, 0.6), pas une surface ; l'hexa est calculé en le composant sur la page.",
+        "Carbon ne publie pas de fond creusé nommé."
+      ],
+      "themes": [
+        {
+          "id": "white",
+          "page": {
+            "token": "background",
+            "valeurPubliee": "#ffffff",
+            "role": "page",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "sources/carbon-white.js.txt",
+              "ligne": 29
+            },
+            "exportJs": "background"
+          },
+          "cartes": [
+            {
+              "token": "layer-01",
+              "valeurPubliee": "#f4f4f4",
+              "role": "carte : première couche",
+              "hex": "#f4f4f4",
+              "source": {
+                "fichier": "sources/carbon-white.js.txt",
+                "ligne": 92
+              },
+              "exportJs": "layer01",
+              "contrasteAvecPage": 1.1,
+              "sens": "plus foncée que la page"
+            },
+            {
+              "token": "layer-02",
+              "valeurPubliee": "#ffffff",
+              "role": "deuxième couche (se pose sur layer-01)",
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/carbon-white.js.txt",
+                "ligne": 93
+              },
+              "exportJs": "layer02",
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "overlay",
+            "valeurPubliee": "rgba(0, 0, 0, 0.6)",
+            "role": "voile derrière les modales",
+            "translucide": true,
+            "alpha": 0.6,
+            "source": {
+              "fichier": "sources/carbon-white.js.txt",
+              "ligne": 129
+            },
+            "exportJs": "overlay",
+            "composeSur": {
+              "page": "#ffffff"
+            },
+            "hexCalcule": "#666666",
+            "contrasteAvecPage": 5.74,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "layer-accent-01",
+              "valeurPubliee": "#e0e0e0",
+              "role": "couche d'accent (sur layer-01)",
+              "hex": "#e0e0e0",
+              "source": {
+                "fichier": "sources/carbon-white.js.txt",
+                "ligne": 95
+              },
+              "exportJs": "layerAccent01",
+              "contrasteAvecPage": 1.32,
+              "sens": "plus foncée que la page"
+            }
+          ]
+        },
+        {
+          "id": "g10",
+          "page": {
+            "token": "background",
+            "valeurPubliee": "#f4f4f4",
+            "role": "page",
+            "hex": "#f4f4f4",
+            "source": {
+              "fichier": "sources/carbon-g10.js.txt",
+              "ligne": 29
+            },
+            "exportJs": "background"
+          },
+          "cartes": [
+            {
+              "token": "layer-01",
+              "valeurPubliee": "#ffffff",
+              "role": "carte : première couche",
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/carbon-g10.js.txt",
+                "ligne": 92
+              },
+              "exportJs": "layer01",
+              "contrasteAvecPage": 1.1,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "layer-02",
+              "valeurPubliee": "#f4f4f4",
+              "role": "deuxième couche (se pose sur layer-01)",
+              "hex": "#f4f4f4",
+              "source": {
+                "fichier": "sources/carbon-g10.js.txt",
+                "ligne": 93
+              },
+              "exportJs": "layer02",
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "overlay",
+            "valeurPubliee": "rgba(0, 0, 0, 0.6)",
+            "role": "voile derrière les modales",
+            "translucide": true,
+            "alpha": 0.6,
+            "source": {
+              "fichier": "sources/carbon-g10.js.txt",
+              "ligne": 129
+            },
+            "exportJs": "overlay",
+            "composeSur": {
+              "page": "#f4f4f4"
+            },
+            "hexCalcule": "#626262",
+            "contrasteAvecPage": 5.55,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "layer-accent-01",
+              "valeurPubliee": "#e0e0e0",
+              "role": "couche d'accent (sur layer-01)",
+              "hex": "#e0e0e0",
+              "source": {
+                "fichier": "sources/carbon-g10.js.txt",
+                "ligne": 95
+              },
+              "exportJs": "layerAccent01",
+              "contrasteAvecPage": 1.2,
+              "sens": "plus foncée que la page"
+            }
+          ]
+        },
+        {
+          "id": "g90",
+          "page": {
+            "token": "background",
+            "valeurPubliee": "#262626",
+            "role": "page",
+            "hex": "#262626",
+            "source": {
+              "fichier": "sources/carbon-g90.js.txt",
+              "ligne": 29
+            },
+            "exportJs": "background"
+          },
+          "cartes": [
+            {
+              "token": "layer-01",
+              "valeurPubliee": "#393939",
+              "role": "carte : première couche",
+              "hex": "#393939",
+              "source": {
+                "fichier": "sources/carbon-g90.js.txt",
+                "ligne": 92
+              },
+              "exportJs": "layer01",
+              "contrasteAvecPage": 1.31,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "layer-02",
+              "valeurPubliee": "#525252",
+              "role": "deuxième couche (se pose sur layer-01)",
+              "hex": "#525252",
+              "source": {
+                "fichier": "sources/carbon-g90.js.txt",
+                "ligne": 93
+              },
+              "exportJs": "layer02",
+              "contrasteAvecPage": 1.94,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "overlay",
+            "valeurPubliee": "rgba(0, 0, 0, 0.6)",
+            "role": "voile derrière les modales",
+            "translucide": true,
+            "alpha": 0.6,
+            "source": {
+              "fichier": "sources/carbon-g90.js.txt",
+              "ligne": 129
+            },
+            "exportJs": "overlay",
+            "composeSur": {
+              "page": "#262626"
+            },
+            "hexCalcule": "#0f0f0f",
+            "contrasteAvecPage": 1.27,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "layer-accent-01",
+              "valeurPubliee": "#525252",
+              "role": "couche d'accent (sur layer-01)",
+              "hex": "#525252",
+              "source": {
+                "fichier": "sources/carbon-g90.js.txt",
+                "ligne": 95
+              },
+              "exportJs": "layerAccent01",
+              "contrasteAvecPage": 1.94,
+              "sens": "plus claire que la page"
+            }
+          ]
+        },
+        {
+          "id": "g100",
+          "page": {
+            "token": "background",
+            "valeurPubliee": "#161616",
+            "role": "page",
+            "hex": "#161616",
+            "source": {
+              "fichier": "sources/carbon-g100.js.txt",
+              "ligne": 29
+            },
+            "exportJs": "background"
+          },
+          "cartes": [
+            {
+              "token": "layer-01",
+              "valeurPubliee": "#262626",
+              "role": "carte : première couche",
+              "hex": "#262626",
+              "source": {
+                "fichier": "sources/carbon-g100.js.txt",
+                "ligne": 92
+              },
+              "exportJs": "layer01",
+              "contrasteAvecPage": 1.2,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "layer-02",
+              "valeurPubliee": "#393939",
+              "role": "deuxième couche (se pose sur layer-01)",
+              "hex": "#393939",
+              "source": {
+                "fichier": "sources/carbon-g100.js.txt",
+                "ligne": 93
+              },
+              "exportJs": "layer02",
+              "contrasteAvecPage": 1.57,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "overlay",
+            "valeurPubliee": "rgba(0, 0, 0, 0.6)",
+            "role": "voile derrière les modales",
+            "translucide": true,
+            "alpha": 0.6,
+            "source": {
+              "fichier": "sources/carbon-g100.js.txt",
+              "ligne": 129
+            },
+            "exportJs": "overlay",
+            "composeSur": {
+              "page": "#161616"
+            },
+            "hexCalcule": "#090909",
+            "contrasteAvecPage": 1.1,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "layer-accent-01",
+              "valeurPubliee": "#393939",
+              "role": "couche d'accent (sur layer-01)",
+              "hex": "#393939",
+              "source": {
+                "fichier": "sources/carbon-g100.js.txt",
+                "ligne": 95
+              },
+              "exportJs": "layerAccent01",
+              "contrasteAvecPage": 1.57,
+              "sens": "plus claire que la page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "polaris",
+      "nom": "Shopify Polaris",
+      "versions": [
+        "@shopify/polaris-tokens@9.4.2"
+      ],
+      "notes": [
+        "Le thème sombre publié s'appelle `dark-experimental`. Il ne redéfinit qu'une partie des tokens : `color-bg-surface-secondary` reste à #f7f7f7 et les fonds de statut `bg-surface-*` restent ceux du thème clair.",
+        "`color-backdrop-bg` (rgba(0, 0, 0, 0.71)) est le voile derrière les modales ; l'hexa est calculé en le composant sur la page."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "themePublie": "light",
+          "page": {
+            "token": "color-bg",
+            "valeurPubliee": "rgba(241, 241, 241, 1)",
+            "hex": "#f1f1f1",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-bg",
+            "role": "page"
+          },
+          "cartes": [
+            {
+              "token": "color-bg-surface",
+              "valeurPubliee": "rgba(255, 255, 255, 1)",
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/polaris-tokens-build.js.txt"
+              },
+              "variableCss": "--p-color-bg-surface",
+              "role": "carte",
+              "contrasteAvecPage": 1.13,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": {
+            "token": "color-bg-surface-secondary",
+            "valeurPubliee": "rgba(247, 247, 247, 1)",
+            "hex": "#f7f7f7",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-bg-surface-secondary",
+            "role": "surface secondaire (le plus proche du creusé)",
+            "contrasteAvecPage": 1.05,
+            "sens": "plus claire que la page"
+          },
+          "overlay": {
+            "token": "color-backdrop-bg",
+            "valeurPubliee": "rgba(0, 0, 0, 0.71)",
+            "translucide": true,
+            "alpha": 0.71,
+            "composeSur": "#f1f1f1",
+            "hexCalcule": "#464646",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-backdrop-bg",
+            "role": "voile derrière les modales",
+            "contrasteAvecPage": 8.36,
+            "sens": "plus foncée que la page"
+          },
+          "autres": []
+        },
+        {
+          "id": "dark",
+          "themePublie": "dark-experimental",
+          "page": {
+            "token": "color-bg",
+            "valeurPubliee": "rgba(26, 26, 26, 1)",
+            "hex": "#1a1a1a",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-bg",
+            "role": "page"
+          },
+          "cartes": [
+            {
+              "token": "color-bg-surface",
+              "valeurPubliee": "rgba(48, 48, 48, 1)",
+              "hex": "#303030",
+              "source": {
+                "fichier": "sources/polaris-tokens-build.js.txt"
+              },
+              "variableCss": "--p-color-bg-surface",
+              "role": "carte",
+              "contrasteAvecPage": 1.32,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": {
+            "token": "color-bg-surface-secondary",
+            "valeurPubliee": "rgba(247, 247, 247, 1)",
+            "hex": "#f7f7f7",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-bg-surface-secondary",
+            "role": "surface secondaire (le plus proche du creusé)",
+            "contrasteAvecPage": 16.25,
+            "sens": "plus claire que la page"
+          },
+          "overlay": {
+            "token": "color-backdrop-bg",
+            "valeurPubliee": "rgba(0, 0, 0, 0.71)",
+            "translucide": true,
+            "alpha": 0.71,
+            "composeSur": "#1a1a1a",
+            "hexCalcule": "#080808",
+            "source": {
+              "fichier": "sources/polaris-tokens-build.js.txt"
+            },
+            "variableCss": "--p-color-backdrop-bg",
+            "role": "voile derrière les modales",
+            "contrasteAvecPage": 1.15,
+            "sens": "plus foncée que la page"
+          },
+          "autres": []
+        }
+      ]
+    },
+    {
+      "id": "material3",
+      "nom": "Material 3",
+      "versions": [
+        "@material/web@2.5.0 (tokens/versions/v0_192)"
+      ],
+      "notes": [
+        "Schéma de base (baseline), sans couleur source dynamique. Le thème s'obtient par `light-dark()` dans le CSS de labs, et par deux fonctions `values-light` et `values-dark` dans les tokens SCSS.",
+        "Le rôle `background` est présent dans les tokens SCSS et vaut `surface` ; il est absent du CSS de labs/gb.",
+        "Le composant Card existe en trois variantes (elevated, filled, outlined), sans variante par défaut déclarée dans les fichiers lus : les trois sont donnés.",
+        "M3 ne publie pas de fond « creusé » nommé. `surface-dim` et `surface-container-lowest` sont donnés en autres surfaces."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": {
+            "token": "md.sys.color.background",
+            "valeurPubliee": "#fef7ff",
+            "role": "page",
+            "resolutionVia": {
+              "palette": "md.ref.palette.neutral98",
+              "fichierPalette": "sources/m3-ref-palette.scss.txt",
+              "lignePalette": 66
+            },
+            "hex": "#fef7ff",
+            "source": {
+              "fichier": "sources/m3-sys-color.scss.txt",
+              "ligne": 84
+            }
+          },
+          "cartes": [
+            {
+              "token": "md.sys.color.surface-container-low",
+              "valeurPubliee": "#f7f2fa",
+              "role": "Elevated card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral96",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 65
+              },
+              "hex": "#f7f2fa",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 125
+              },
+              "composant": {
+                "fichier": "sources/m3-elevated-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface-container-low"
+              },
+              "contrasteAvecPage": 1.05,
+              "sens": "plus foncée que la page"
+            },
+            {
+              "token": "md.sys.color.surface-container-highest",
+              "valeurPubliee": "#e6e0e9",
+              "role": "Filled card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral90",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 61
+              },
+              "hex": "#e6e0e9",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 124
+              },
+              "composant": {
+                "fichier": "sources/m3-filled-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface-container-highest"
+              },
+              "contrasteAvecPage": 1.23,
+              "sens": "plus foncée que la page"
+            },
+            {
+              "token": "md.sys.color.surface",
+              "valeurPubliee": "#fef7ff",
+              "role": "Outlined card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral98",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 66
+              },
+              "hex": "#fef7ff",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 120
+              },
+              "composant": {
+                "fichier": "sources/m3-outlined-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface"
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "md.sys.color.surface-container-high",
+            "valeurPubliee": "#ece6f0",
+            "role": "Dialog : container-color",
+            "resolutionVia": {
+              "palette": "md.ref.palette.neutral92",
+              "fichierPalette": "sources/m3-ref-palette.scss.txt",
+              "lignePalette": 62
+            },
+            "hex": "#ece6f0",
+            "source": {
+              "fichier": "sources/m3-sys-color.scss.txt",
+              "ligne": 123
+            },
+            "composant": {
+              "fichier": "sources/m3-dialog.scss.txt",
+              "ligne": 73,
+              "containerColor": "md.sys.color.surface-container-high"
+            },
+            "contrasteAvecPage": 1.16,
+            "sens": "plus foncée que la page"
+          },
+          "autres": [
+            {
+              "token": "md.sys.color.surface-container",
+              "valeurPubliee": "#f3edf7",
+              "role": "Menu : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral94",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 63
+              },
+              "hex": "#f3edf7",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 122
+              },
+              "composant": {
+                "fichier": "sources/m3-menu.scss.txt",
+                "ligne": 31,
+                "containerColor": "md.sys.color.surface-container"
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus foncée que la page"
+            },
+            {
+              "token": "md.sys.color.surface",
+              "valeurPubliee": "#fef7ff",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral98",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 66
+              },
+              "hex": "#fef7ff",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 120
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface",
+                "hex": "#fef7ff",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-dim",
+              "valeurPubliee": "#ded8e1",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral87",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 60
+              },
+              "hex": "#ded8e1",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 127
+              },
+              "contrasteAvecPage": 1.33,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-dim",
+                "hex": "#ded8e1",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-bright",
+              "valeurPubliee": "#fef7ff",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral98",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 66
+              },
+              "hex": "#fef7ff",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 121
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-bright",
+                "hex": "#fef7ff",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-lowest",
+              "valeurPubliee": "#fff",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral100",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 46
+              },
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 126
+              },
+              "contrasteAvecPage": 1.05,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-lowest",
+                "hex": "#ffffff",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-low",
+              "valeurPubliee": "#f7f2fa",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral96",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 65
+              },
+              "hex": "#f7f2fa",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 125
+              },
+              "contrasteAvecPage": 1.05,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-low",
+                "hex": "#f7f2fa",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container",
+              "valeurPubliee": "#f3edf7",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral94",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 63
+              },
+              "hex": "#f3edf7",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 122
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container",
+                "hex": "#f3edf7",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-high",
+              "valeurPubliee": "#ece6f0",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral92",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 62
+              },
+              "hex": "#ece6f0",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 123
+              },
+              "contrasteAvecPage": 1.16,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-high",
+                "hex": "#ece6f0",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-highest",
+              "valeurPubliee": "#e6e0e9",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral90",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 61
+              },
+              "hex": "#e6e0e9",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 124
+              },
+              "contrasteAvecPage": 1.23,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-highest",
+                "hex": "#e6e0e9",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.scrim",
+              "valeurPubliee": "#000",
+              "role": "voile (scrim) : couleur seule, l'opacité n'est pas dans ce token",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral0",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 44
+              },
+              "hex": "#000000",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 114
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "page": {
+            "token": "md.sys.color.background",
+            "valeurPubliee": "#141218",
+            "role": "page",
+            "resolutionVia": {
+              "palette": "md.ref.palette.neutral6",
+              "fichierPalette": "sources/m3-ref-palette.scss.txt",
+              "lignePalette": 56
+            },
+            "hex": "#141218",
+            "source": {
+              "fichier": "sources/m3-sys-color.scss.txt",
+              "ligne": 25
+            }
+          },
+          "cartes": [
+            {
+              "token": "md.sys.color.surface-container-low",
+              "valeurPubliee": "#1d1b20",
+              "role": "Elevated card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral10",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 45
+              },
+              "hex": "#1d1b20",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 66
+              },
+              "composant": {
+                "fichier": "sources/m3-elevated-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface-container-low"
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "md.sys.color.surface-container-highest",
+              "valeurPubliee": "#36343b",
+              "role": "Filled card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral22",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 50
+              },
+              "hex": "#36343b",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 65
+              },
+              "composant": {
+                "fichier": "sources/m3-filled-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface-container-highest"
+              },
+              "contrasteAvecPage": 1.52,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "md.sys.color.surface",
+              "valeurPubliee": "#141218",
+              "role": "Outlined card : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral6",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 56
+              },
+              "hex": "#141218",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 61
+              },
+              "composant": {
+                "fichier": "sources/m3-outlined-card.scss.txt",
+                "ligne": 34,
+                "containerColor": "md.sys.color.surface"
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "md.sys.color.surface-container-high",
+            "valeurPubliee": "#2b2930",
+            "role": "Dialog : container-color",
+            "resolutionVia": {
+              "palette": "md.ref.palette.neutral17",
+              "fichierPalette": "sources/m3-ref-palette.scss.txt",
+              "lignePalette": 48
+            },
+            "hex": "#2b2930",
+            "source": {
+              "fichier": "sources/m3-sys-color.scss.txt",
+              "ligne": 64
+            },
+            "composant": {
+              "fichier": "sources/m3-dialog.scss.txt",
+              "ligne": 73,
+              "containerColor": "md.sys.color.surface-container-high"
+            },
+            "contrasteAvecPage": 1.29,
+            "sens": "plus claire que la page"
+          },
+          "autres": [
+            {
+              "token": "md.sys.color.surface-container",
+              "valeurPubliee": "#211f26",
+              "role": "Menu : container-color",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral12",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 47
+              },
+              "hex": "#211f26",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 63
+              },
+              "composant": {
+                "fichier": "sources/m3-menu.scss.txt",
+                "ligne": 31,
+                "containerColor": "md.sys.color.surface-container"
+              },
+              "contrasteAvecPage": 1.14,
+              "sens": "plus claire que la page"
+            },
+            {
+              "token": "md.sys.color.surface",
+              "valeurPubliee": "#141218",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral6",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 56
+              },
+              "hex": "#141218",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 61
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface",
+                "hex": "#141218",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-dim",
+              "valeurPubliee": "#141218",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral6",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 56
+              },
+              "hex": "#141218",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 68
+              },
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-dim",
+                "hex": "#141218",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-bright",
+              "valeurPubliee": "#3b383e",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral24",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 51
+              },
+              "hex": "#3b383e",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 62
+              },
+              "contrasteAvecPage": 1.61,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-bright",
+                "hex": "#3b383e",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-lowest",
+              "valeurPubliee": "#0f0d13",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral4",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 53
+              },
+              "hex": "#0f0d13",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 67
+              },
+              "contrasteAvecPage": 1.04,
+              "sens": "plus foncée que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-lowest",
+                "hex": "#0f0d13",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-low",
+              "valeurPubliee": "#1d1b20",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral10",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 45
+              },
+              "hex": "#1d1b20",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 66
+              },
+              "contrasteAvecPage": 1.09,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-low",
+                "hex": "#1d1b20",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container",
+              "valeurPubliee": "#211f26",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral12",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 47
+              },
+              "hex": "#211f26",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 63
+              },
+              "contrasteAvecPage": 1.14,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container",
+                "hex": "#211f26",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-high",
+              "valeurPubliee": "#2b2930",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral17",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 48
+              },
+              "hex": "#2b2930",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 64
+              },
+              "contrasteAvecPage": 1.29,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-high",
+                "hex": "#2b2930",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.surface-container-highest",
+              "valeurPubliee": "#36343b",
+              "role": "échelle des surfaces",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral22",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 50
+              },
+              "hex": "#36343b",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 65
+              },
+              "contrasteAvecPage": 1.52,
+              "sens": "plus claire que la page",
+              "verifLabs": {
+                "token": "--md-sys-color-surface-container-highest",
+                "hex": "#36343b",
+                "identique": true
+              }
+            },
+            {
+              "token": "md.sys.color.scrim",
+              "valeurPubliee": "#000",
+              "role": "voile (scrim) : couleur seule, l'opacité n'est pas dans ce token",
+              "resolutionVia": {
+                "palette": "md.ref.palette.neutral0",
+                "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                "lignePalette": 44
+              },
+              "hex": "#000000",
+              "source": {
+                "fichier": "sources/m3-sys-color.scss.txt",
+                "ligne": 55
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fluent2",
+      "nom": "Microsoft Fluent 2",
+      "versions": [
+        "@fluentui/tokens@1.0.0-alpha.24 (thèmes web)",
+        "@fluentui/react-card@9.7.3",
+        "@fluentui/react-message-bar@9.7.7"
+      ],
+      "notes": [
+        "Fluent ne déclare pas de rôle « page ». `colorNeutralBackground1` est la surface de base ; le Card `filled` l'utilise (useCardStyles, ligne indiquée), `filledAlternative` utilise `colorNeutralBackground2`, et la barre de message sans statut utilise `colorNeutralBackground3`.",
+        "Le contraste est donc calculé entre la carte (Background1) et chacun des fonds neutres 2 à 6, sans en désigner un comme page."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": null,
+          "cartes": [
+            {
+              "token": "colorNeutralBackground1",
+              "valeurPubliee": "#ffffff",
+              "role": "carte : Card `filled` (useCardStyles.styles.raw.js)",
+              "resolutionVia": {
+                "expression": "white",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 62
+              },
+              "composant": {
+                "fichier": "sources/fluent-card-styles.js.txt",
+                "ligne": 148,
+                "classe": "filled"
+              }
+            }
+          ],
+          "creuse": null,
+          "overlay": null,
+          "autres": [
+            {
+              "token": "colorNeutralBackground2",
+              "valeurPubliee": "#fafafa",
+              "role": "Card `filledAlternative`",
+              "resolutionVia": {
+                "expression": "grey[98]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#fafafa",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 66
+              },
+              "contrasteAvecCarte": 1.04,
+              "sensParRapportALaCarte": "plus foncée que la carte",
+              "composant": {
+                "fichier": "sources/fluent-card-styles.js.txt",
+                "ligne": 181,
+                "classe": "filledAlternative"
+              }
+            },
+            {
+              "token": "colorNeutralBackground3",
+              "valeurPubliee": "#f5f5f5",
+              "role": "barre de message sans statut (MessageBar)",
+              "resolutionVia": {
+                "expression": "grey[96]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#f5f5f5",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 70
+              },
+              "contrasteAvecCarte": 1.09,
+              "sensParRapportALaCarte": "plus foncée que la carte",
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 21,
+                "classe": "useRootBaseStyles"
+              }
+            },
+            {
+              "token": "colorNeutralBackground4",
+              "valeurPubliee": "#f0f0f0",
+              "role": "fond neutre 4",
+              "resolutionVia": {
+                "expression": "grey[94]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#f0f0f0",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 74
+              },
+              "contrasteAvecCarte": 1.14,
+              "sensParRapportALaCarte": "plus foncée que la carte"
+            },
+            {
+              "token": "colorNeutralBackground5",
+              "valeurPubliee": "#ebebeb",
+              "role": "fond neutre 5",
+              "resolutionVia": {
+                "expression": "grey[92]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#ebebeb",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 78
+              },
+              "contrasteAvecCarte": 1.19,
+              "sensParRapportALaCarte": "plus foncée que la carte"
+            },
+            {
+              "token": "colorNeutralBackground6",
+              "valeurPubliee": "#e6e6e6",
+              "role": "fond neutre 6",
+              "resolutionVia": {
+                "expression": "grey[90]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#e6e6e6",
+              "source": {
+                "fichier": "sources/fluent-light-color.js.txt",
+                "ligne": 82
+              },
+              "contrasteAvecCarte": 1.25,
+              "sensParRapportALaCarte": "plus foncée que la carte"
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "page": null,
+          "cartes": [
+            {
+              "token": "colorNeutralBackground1",
+              "valeurPubliee": "#292929",
+              "role": "carte : Card `filled` (useCardStyles.styles.raw.js)",
+              "resolutionVia": {
+                "expression": "grey[16]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#292929",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 62
+              },
+              "composant": {
+                "fichier": "sources/fluent-card-styles.js.txt",
+                "ligne": 148,
+                "classe": "filled"
+              }
+            }
+          ],
+          "creuse": null,
+          "overlay": null,
+          "autres": [
+            {
+              "token": "colorNeutralBackground2",
+              "valeurPubliee": "#1f1f1f",
+              "role": "Card `filledAlternative`",
+              "resolutionVia": {
+                "expression": "grey[12]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#1f1f1f",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 66
+              },
+              "contrasteAvecCarte": 1.13,
+              "sensParRapportALaCarte": "plus foncée que la carte",
+              "composant": {
+                "fichier": "sources/fluent-card-styles.js.txt",
+                "ligne": 181,
+                "classe": "filledAlternative"
+              }
+            },
+            {
+              "token": "colorNeutralBackground3",
+              "valeurPubliee": "#141414",
+              "role": "barre de message sans statut (MessageBar)",
+              "resolutionVia": {
+                "expression": "grey[8]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#141414",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 70
+              },
+              "contrasteAvecCarte": 1.27,
+              "sensParRapportALaCarte": "plus foncée que la carte",
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 21,
+                "classe": "useRootBaseStyles"
+              }
+            },
+            {
+              "token": "colorNeutralBackground4",
+              "valeurPubliee": "#0a0a0a",
+              "role": "fond neutre 4",
+              "resolutionVia": {
+                "expression": "grey[4]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#0a0a0a",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 74
+              },
+              "contrasteAvecCarte": 1.36,
+              "sensParRapportALaCarte": "plus foncée que la carte"
+            },
+            {
+              "token": "colorNeutralBackground5",
+              "valeurPubliee": "#000000",
+              "role": "fond neutre 5",
+              "resolutionVia": {
+                "expression": "black",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#000000",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 78
+              },
+              "contrasteAvecCarte": 1.44,
+              "sensParRapportALaCarte": "plus foncée que la carte"
+            },
+            {
+              "token": "colorNeutralBackground6",
+              "valeurPubliee": "#333333",
+              "role": "fond neutre 6",
+              "resolutionVia": {
+                "expression": "grey[20]",
+                "fichierCouleurs": "sources/fluent-colors.js.txt"
+              },
+              "hex": "#333333",
+              "source": {
+                "fichier": "sources/fluent-dark-color.js.txt",
+                "ligne": 82
+              },
+              "contrasteAvecCarte": 1.15,
+              "sensParRapportALaCarte": "plus claire que la carte"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shadcn",
+      "nom": "shadcn/ui",
+      "versions": [
+        "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841"
+      ],
+      "notes": [
+        "Deux fichiers sont lus : le jeu `neutral` de registry/themes.ts (ce que le registre publie) et le globals.css du site de documentation. Leurs valeurs de `--background` et `--card` sont identiques ; les écarts éventuels sont signalés dans `verifGlobals`.",
+        "Les valeurs sont en oklch ; l'hexa est une conversion calculée.",
+        "Le fichier public/r/themes/neutral.json de la même révision porte d'anciennes valeurs HSL où --card égale --background dans les deux thèmes (champ ancienRegistreJson) ; il ne correspond ni à themes.ts ni à globals.css.",
+        "shadcn ne publie pas de fond creusé nommé. `--muted` est donné comme fond secondaire, `--popover` comme surface des superpositions."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": {
+            "token": "--background",
+            "valeurPubliee": "oklch(1 0 0)",
+            "role": "page",
+            "hex": "#ffffff",
+            "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+            "source": {
+              "fichier": "sources/shadcn-themes.ts.txt",
+              "ligne": 10
+            },
+            "jeu": "registry/themes.ts, thème \"neutral\""
+          },
+          "cartes": [
+            {
+              "token": "--card",
+              "valeurPubliee": "oklch(1 0 0)",
+              "role": "carte",
+              "hex": "#ffffff",
+              "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+              "source": {
+                "fichier": "sources/shadcn-themes.ts.txt",
+                "ligne": 12
+              },
+              "jeu": "registry/themes.ts, thème \"neutral\"",
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "--popover",
+            "valeurPubliee": "oklch(1 0 0)",
+            "role": "surface des popovers et menus",
+            "hex": "#ffffff",
+            "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+            "source": {
+              "fichier": "sources/shadcn-themes.ts.txt",
+              "ligne": 14
+            },
+            "jeu": "registry/themes.ts, thème \"neutral\"",
+            "contrasteAvecPage": 1,
+            "sens": "identique à la page"
+          },
+          "autres": [
+            {
+              "token": "--muted",
+              "valeurPubliee": "oklch(0.97 0 0)",
+              "role": "fond atténué",
+              "hex": "#f5f5f5",
+              "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+              "source": {
+                "fichier": "sources/shadcn-themes.ts.txt",
+                "ligne": 20
+              },
+              "jeu": "registry/themes.ts, thème \"neutral\"",
+              "contrasteAvecPage": 1.09,
+              "sens": "plus foncée que la page"
+            }
+          ],
+          "verifGlobals": {
+            "fichier": "sources/shadcn-globals.css.txt",
+            "background": {
+              "valeurPubliee": "oklch(1 0 0)",
+              "hex": "#ffffff",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 101
+              }
+            },
+            "card": {
+              "valeurPubliee": "oklch(1 0 0)",
+              "hex": "#ffffff",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 103
+              }
+            },
+            "popover": {
+              "valeurPubliee": "oklch(1 0 0)",
+              "hex": "#ffffff",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 105
+              }
+            },
+            "muted": {
+              "valeurPubliee": "oklch(0.97 0 0)",
+              "hex": "#f5f5f5",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 111
+              }
+            }
+          },
+          "ancienRegistreJson": {
+            "background": {
+              "valeurPubliee": "0 0% 100%",
+              "hexCalcule": "#ffffff",
+              "source": {
+                "fichier": "sources/shadcn-neutral-json.json.txt",
+                "ligne": 6
+              }
+            },
+            "card": {
+              "valeurPubliee": "0 0% 100%",
+              "hexCalcule": "#ffffff",
+              "source": {
+                "fichier": "sources/shadcn-neutral-json.json.txt",
+                "ligne": 8
+              }
+            }
+          }
+        },
+        {
+          "id": "dark",
+          "page": {
+            "token": "--background",
+            "valeurPubliee": "oklch(0.145 0 0)",
+            "role": "page",
+            "hex": "#0a0a0a",
+            "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+            "source": {
+              "fichier": "sources/shadcn-themes.ts.txt",
+              "ligne": 44
+            },
+            "jeu": "registry/themes.ts, thème \"neutral\""
+          },
+          "cartes": [
+            {
+              "token": "--card",
+              "valeurPubliee": "oklch(0.205 0 0)",
+              "role": "carte",
+              "hex": "#171717",
+              "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+              "source": {
+                "fichier": "sources/shadcn-themes.ts.txt",
+                "ligne": 46
+              },
+              "jeu": "registry/themes.ts, thème \"neutral\"",
+              "contrasteAvecPage": 1.1,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": {
+            "token": "--popover",
+            "valeurPubliee": "oklch(0.205 0 0)",
+            "role": "surface des popovers et menus",
+            "hex": "#171717",
+            "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+            "source": {
+              "fichier": "sources/shadcn-themes.ts.txt",
+              "ligne": 48
+            },
+            "jeu": "registry/themes.ts, thème \"neutral\"",
+            "contrasteAvecPage": 1.1,
+            "sens": "plus claire que la page"
+          },
+          "autres": [
+            {
+              "token": "--muted",
+              "valeurPubliee": "oklch(0.269 0 0)",
+              "role": "fond atténué",
+              "hex": "#262626",
+              "conversion": "oklch vers sRGB (calcul), arrondi au pas de 8 bits",
+              "source": {
+                "fichier": "sources/shadcn-themes.ts.txt",
+                "ligne": 54
+              },
+              "jeu": "registry/themes.ts, thème \"neutral\"",
+              "contrasteAvecPage": 1.31,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "verifGlobals": {
+            "fichier": "sources/shadcn-globals.css.txt",
+            "background": {
+              "valeurPubliee": "oklch(0.145 0 0)",
+              "hex": "#0a0a0a",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 144
+              }
+            },
+            "card": {
+              "valeurPubliee": "oklch(0.205 0 0)",
+              "hex": "#171717",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 146
+              }
+            },
+            "popover": {
+              "valeurPubliee": "oklch(0.205 0 0)",
+              "hex": "#171717",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 148
+              }
+            },
+            "muted": {
+              "valeurPubliee": "oklch(0.269 0 0)",
+              "hex": "#262626",
+              "identiqueAuRegistre": true,
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 154
+              }
+            }
+          },
+          "ancienRegistreJson": {
+            "background": {
+              "valeurPubliee": "0 0% 3.9%",
+              "hexCalcule": "#0a0a0a",
+              "source": {
+                "fichier": "sources/shadcn-neutral-json.json.txt",
+                "ligne": 32
+              }
+            },
+            "card": {
+              "valeurPubliee": "0 0% 3.9%",
+              "hexCalcule": "#0a0a0a",
+              "source": {
+                "fichier": "sources/shadcn-neutral-json.json.txt",
+                "ligne": 34
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radix",
+      "nom": "Radix Themes",
+      "versions": [
+        "@radix-ui/themes@3.3.0",
+        "@radix-ui/colors@3.0.0 (relevé existant, non retéléchargé)"
+      ],
+      "notes": [
+        "Valeurs reprises des fichiers de Collecte/Radix/sources, relus sans retéléchargement. Le panneau est le panneau opaque (`--color-panel-solid`)."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "page": {
+            "token": "--color-background",
+            "valeurPubliee": "white",
+            "hex": "#ffffff",
+            "source": {
+              "fichier": "../Radix/sources/themes/base.css.txt",
+              "ligne": 58
+            },
+            "role": "page"
+          },
+          "cartes": [
+            {
+              "token": "--color-panel-solid",
+              "valeurPubliee": "white",
+              "hex": "#ffffff",
+              "source": {
+                "fichier": "../Radix/sources/themes/base.css.txt",
+                "ligne": 60
+              },
+              "role": "carte : panneau opaque",
+              "contrasteAvecPage": 1,
+              "sens": "identique à la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": null,
+          "autres": []
+        },
+        {
+          "id": "dark",
+          "page": {
+            "token": "--color-background",
+            "valeurPubliee": "var(--gray-1)",
+            "resolutionVia": {
+              "chaine": [
+                "--gray-1"
+              ],
+              "fichier": "../Radix/sources/themes/gray.css.txt",
+              "ligne": 62
+            },
+            "hex": "#111111",
+            "source": {
+              "fichier": "../Radix/sources/themes/base.css.txt",
+              "ligne": 73
+            },
+            "role": "page"
+          },
+          "cartes": [
+            {
+              "token": "--color-panel-solid",
+              "valeurPubliee": "var(--gray-2)",
+              "resolutionVia": {
+                "chaine": [
+                  "--gray-2"
+                ],
+                "fichier": "../Radix/sources/themes/gray.css.txt",
+                "ligne": 63
+              },
+              "hex": "#191919",
+              "source": {
+                "fichier": "../Radix/sources/themes/base.css.txt",
+                "ligne": 75
+              },
+              "role": "carte : panneau opaque",
+              "contrasteAvecPage": 1.07,
+              "sens": "plus claire que la page"
+            }
+          ],
+          "creuse": null,
+          "overlay": null,
+          "autres": []
+        }
+      ]
+    }
+  ]
+}

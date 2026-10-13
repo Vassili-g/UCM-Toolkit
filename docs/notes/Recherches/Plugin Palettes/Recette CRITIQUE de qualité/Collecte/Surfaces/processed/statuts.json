@@ -1,0 +1,4405 @@
+{
+  "genereLe": "extract.mjs (voir README.md)",
+  "methode": "Valeurs lues dans sources/ ; hexa calculé = composition d'une couleur translucide ou conversion oklch ; contraste = WCAG 2, luminance relative standard, arrondi à 0,01.",
+  "sources": [
+    {
+      "id": "primerLight",
+      "fichier": "sources/primer-light.css.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "86468bdfa1761f189d7bed7c1a13c6183f67ec132d689dacc63acc9eec986496"
+    },
+    {
+      "id": "primerDark",
+      "fichier": "sources/primer-dark.css.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "d70cf0d4f3b2b1056030b40fcf1cd65b1d74d07dbbec002ad300e08266188d89"
+    },
+    {
+      "id": "primerLicence",
+      "fichier": "sources/primer-licence.txt",
+      "version": "@primer/primitives@11.10.0",
+      "sha256": "e63582a78dddebe610b6cb59f0e7f5f761c1bb6a1c9551443beddc64fe525c3a"
+    },
+    {
+      "id": "atlaskitLight",
+      "fichier": "sources/atlaskit-light.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763"
+    },
+    {
+      "id": "atlaskitDark",
+      "fichier": "sources/atlaskit-dark.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4"
+    },
+    {
+      "id": "atlaskitTokenNames",
+      "fichier": "sources/atlaskit-token-names.js.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "92096e1094805a4ce01eb5776cc819a1778fa0bad88b6af6a4c4140c4a934861"
+    },
+    {
+      "id": "atlaskitLicence",
+      "fichier": "sources/atlaskit-licence.txt",
+      "version": "@atlaskit/tokens@20.4.1",
+      "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8"
+    },
+    {
+      "id": "carbonWhite",
+      "fichier": "sources/carbon-white.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "c9674339b931da09696c25caab33c94dc17b36354955b0b4cbe9dfb2293594cd"
+    },
+    {
+      "id": "carbonG10",
+      "fichier": "sources/carbon-g10.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "ce936933fa231e60bd6497113e37e7989aa27ebee97f4e20581f651403bb8bbe"
+    },
+    {
+      "id": "carbonG90",
+      "fichier": "sources/carbon-g90.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "68a297ba2fcacfe316d0a2c1726c74de3aa9c6712b9c63ac3f57d37890d3ab92"
+    },
+    {
+      "id": "carbonG100",
+      "fichier": "sources/carbon-g100.js.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "17f4c7d11a2f2269653060f2cb3bf9e0ffec3ec43cafbb9cbbb63cbc0199059f"
+    },
+    {
+      "id": "carbonNotificationTokens",
+      "fichier": "sources/carbon-notification-tokens.scss.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "2ca4bc62dff7f49e193ed3e7d0a5f451e00ad3ea6095976cb542c4d1bbc83c1d"
+    },
+    {
+      "id": "carbonLicence",
+      "fichier": "sources/carbon-licence.txt",
+      "version": "@carbon/themes@11.83.0",
+      "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8"
+    },
+    {
+      "id": "carbonInlineNotification",
+      "fichier": "sources/carbon-inline-notification.scss.txt",
+      "version": "@carbon/styles@1.117.0",
+      "sha256": "8964cda3e5c4af091af958910cb20c77e37163f963aa32a65b82e9c28b446e15"
+    },
+    {
+      "id": "polarisTokensBuild",
+      "fichier": "sources/polaris-tokens-build.js.txt",
+      "version": "@shopify/polaris-tokens@9.4.2",
+      "sha256": "e09f5c5a9da63fc4d2538604e2d40a646bed3eb2aaf0ae064541f8633c30a92e"
+    },
+    {
+      "id": "polarisTokensLicence",
+      "fichier": "sources/polaris-tokens-licence.md.txt",
+      "version": "@shopify/polaris-tokens@9.4.2",
+      "sha256": "172d300fa7873e23b0aef00408b1429541e0bd33794e998296742fcfc44540ac"
+    },
+    {
+      "id": "polarisStyles",
+      "fichier": "sources/polaris-styles.css.txt",
+      "version": "@shopify/polaris@13.9.5",
+      "sha256": "7679086b9fdbab646abae0b7a50ef7c122e18282027fdc1403e84e4336cc2617"
+    },
+    {
+      "id": "polarisBannerUtilities",
+      "fichier": "sources/polaris-banner-utilities.js.txt",
+      "version": "@shopify/polaris@13.9.5",
+      "sha256": "6b42977851c8eb66df6456db73acb9827a86f65b87a6efb9bf54b0b0cbeb90ff"
+    },
+    {
+      "id": "m3SysColor",
+      "fichier": "sources/m3-sys-color.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "aa0c2dc244989edcb1bb2af169a87d290e5303a7e945720cd2c21c8bdb103670"
+    },
+    {
+      "id": "m3RefPalette",
+      "fichier": "sources/m3-ref-palette.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "9208b47a2e67a9060a6d3440428a8ff0265e747d96477ae1b56dc7931d69f0d3"
+    },
+    {
+      "id": "m3ElevatedCard",
+      "fichier": "sources/m3-elevated-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "e37530710e66b98ca03f0347c49c85782664bebc10f30d4fd20591f12be45cc7"
+    },
+    {
+      "id": "m3FilledCard",
+      "fichier": "sources/m3-filled-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "f9a1416362ede3e8b54266f33590ad09f6307d8f9550f3945a4b4a5c0371ef42"
+    },
+    {
+      "id": "m3OutlinedCard",
+      "fichier": "sources/m3-outlined-card.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "29f016b453ed60b215787dc6313991e06033d9e67038f33c5d193df92cbd02cf"
+    },
+    {
+      "id": "m3Dialog",
+      "fichier": "sources/m3-dialog.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "d6382d5fb185db5380a467e302308259168ae9b0d95fe7f737d133321dc7376f"
+    },
+    {
+      "id": "m3Menu",
+      "fichier": "sources/m3-menu.scss.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "d32db0c611db7f7b8d58e33e4316e0ee424079354ce17086279fbbb9ef8451cc"
+    },
+    {
+      "id": "m3ColorTokensFull",
+      "fichier": "sources/m3-color-tokens-full.css.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "9ef227b8312531937905daec52271d936e73cb4388ab1c5f0925f1eef2758b77"
+    },
+    {
+      "id": "m3Licence",
+      "fichier": "sources/m3-licence.txt",
+      "version": "@material/web@2.5.0",
+      "sha256": "295cdb4364b782931c914f5ca8c47fac87c732fa7e448b788a47aa5b25728212"
+    },
+    {
+      "id": "fluentLightColor",
+      "fichier": "sources/fluent-light-color.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "95c25a2fbfc3b465be4b0130bf40dbc0a2bfddd432b2551619055f64f165a6e6"
+    },
+    {
+      "id": "fluentDarkColor",
+      "fichier": "sources/fluent-dark-color.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "bcff717c006279025ed9325f02ce6e831226bca2bc320a1499d0fa821e2cfc18"
+    },
+    {
+      "id": "fluentLightPalette",
+      "fichier": "sources/fluent-light-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "3633cee2b5d8156920da3bdc7fd03c4a3b5799f75e9842512a147c830fde7660"
+    },
+    {
+      "id": "fluentDarkPalette",
+      "fichier": "sources/fluent-dark-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "f034e258bf0517fdfd39e9eec2d5f0f54e32eaa426e2d69cf066571221a88337"
+    },
+    {
+      "id": "fluentColors",
+      "fichier": "sources/fluent-colors.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "890345372ce466bc174aca2334f898d5299319509fffb57d115820bc6c7975cf"
+    },
+    {
+      "id": "fluentColorPalette",
+      "fichier": "sources/fluent-color-palette.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "e5e94346b57cda0b72f7b8296672e53110a6a6265a6e7a7da9153f2c162ad5f2"
+    },
+    {
+      "id": "fluentStatusMapping",
+      "fichier": "sources/fluent-status-mapping.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "5bb061f0cc79762bc296284637207eb562c15b803ffcda837b7481c7c2b3291f"
+    },
+    {
+      "id": "fluentSharedNames",
+      "fichier": "sources/fluent-shared-names.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "eef9c42010e8cc38b953d520c4922df170bf5c3aca708aaf32c074e7c1e06f49"
+    },
+    {
+      "id": "fluentWebLightTheme",
+      "fichier": "sources/fluent-web-light-theme.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "1f5200a43d4a489770a6a94bfc33e481980b1396d1ebc7a5f1a477e48cc586f2"
+    },
+    {
+      "id": "fluentWebDarkTheme",
+      "fichier": "sources/fluent-web-dark-theme.js.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "03ca4d2ab7481b1eba3b0642a036de4becae0714a8592e07ce0769b1af00be3d"
+    },
+    {
+      "id": "fluentLicence",
+      "fichier": "sources/fluent-licence.txt",
+      "version": "@fluentui/tokens@1.0.0-alpha.24",
+      "sha256": "8189edb8b17032b0fa631dc776cc363080a51e8650821c8faad43ec22a303685"
+    },
+    {
+      "id": "fluentCardStyles",
+      "fichier": "sources/fluent-card-styles.js.txt",
+      "version": "@fluentui/react-card@9.7.3",
+      "sha256": "bc518dd171dcb16c0b1c239710168736549a735b5dda705d3197bb6b4051afba"
+    },
+    {
+      "id": "fluentMessageBarStyles",
+      "fichier": "sources/fluent-message-bar-styles.js.txt",
+      "version": "@fluentui/react-message-bar@9.7.7",
+      "sha256": "ac011a0b2e218bb8dcdad406a051db7a23109ea604375533df1aeb1199fccf61"
+    },
+    {
+      "id": "fluentBadgeStyles",
+      "fichier": "sources/fluent-badge-styles.js.txt",
+      "version": "@fluentui/react-badge@9.5.6",
+      "sha256": "936af2ed966fcfffea58466054a92f58c3776b6070102a601678210c8c61b15a"
+    },
+    {
+      "id": "shadcnThemes",
+      "fichier": "sources/shadcn-themes.ts.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "60cb5ed25f7b39d9973e2280f476dd2119a4268317f45bd7ee3cac7883db8ea0"
+    },
+    {
+      "id": "shadcnGlobals",
+      "fichier": "sources/shadcn-globals.css.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "cbae6d633c38be59fc036d1e5cf60203ae7619ea6af9b4cdd8d632a211ccffa9"
+    },
+    {
+      "id": "shadcnNeutralJson",
+      "fichier": "sources/shadcn-neutral-json.json.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "f895f5848b74f800282fb1a1d2cea25ed646b663881769a992fd164939a5fc00"
+    },
+    {
+      "id": "shadcnLicence",
+      "fichier": "sources/shadcn-licence.md.txt",
+      "version": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    }
+  ],
+  "systemes": [
+    {
+      "id": "material3",
+      "nom": "Material 3",
+      "versions": [
+        "@material/web@2.5.0"
+      ],
+      "notes": [
+        "M3 publie un seul ton de statut : error (`error-container` et `on-error-container`). Les fichiers sys-color lus ne contiennent aucun rôle success, warning ni info (recherche textuelle : aucune occurrence).",
+        "Deux artefacts du même paquet divergent sur `on-error-container` en clair : tokens SCSS v0_192 (error10) contre labs/gb CSS (error30). Les deux sont donnés."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Tokens SCSS v0_192 : error-container / on-error-container",
+              "fond": {
+                "token": "md.sys.color.error-container",
+                "valeurPubliee": "#f9dedc",
+                "role": "fond",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error90",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 28
+                },
+                "hex": "#f9dedc",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 86
+                }
+              },
+              "texte": {
+                "token": "md.sys.color.on-error-container",
+                "valeurPubliee": "#410e0b",
+                "role": "texte",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error10",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 19
+                },
+                "hex": "#410e0b",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 92
+                }
+              },
+              "icone": {
+                "token": "md.sys.color.error",
+                "valeurPubliee": "#b3261e",
+                "role": "icône / accent",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error40",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 23
+                },
+                "hex": "#b3261e",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 85
+                }
+              },
+              "contrasteTexteFond": 12.77,
+              "contrasteTexteFondReference": "fond sur la carte md.sys.color.surface-container-low",
+              "contrasteFondPage": 1.21,
+              "contrasteFondCartes": {
+                "md.sys.color.surface-container-low": 1.15,
+                "md.sys.color.surface-container-highest": 1.02,
+                "md.sys.color.surface": 1.21
+              }
+            },
+            {
+              "ton": "error",
+              "usage": "CSS labs/gb (md-color-tokens-full.css) : error-container / on-error-container",
+              "fond": {
+                "token": "--md-sys-color-error-container",
+                "valeurPubliee": "#f9dedc",
+                "resolutionVia": {
+                  "palette": "--md-ref-palette-error90",
+                  "expression": "light-dark(error90, error30)"
+                },
+                "hex": "#f9dedc",
+                "source": {
+                  "fichier": "sources/m3-color-tokens-full.css.txt"
+                }
+              },
+              "texte": {
+                "token": "--md-sys-color-on-error-container",
+                "valeurPubliee": "#8c1d18",
+                "resolutionVia": {
+                  "palette": "--md-ref-palette-error30",
+                  "expression": "light-dark(error30, error90)"
+                },
+                "hex": "#8c1d18",
+                "source": {
+                  "fichier": "sources/m3-color-tokens-full.css.txt"
+                }
+              },
+              "contrasteTexteFond": 7.17,
+              "contrasteTexteFondReference": "fond sur la carte md.sys.color.surface-container-low",
+              "contrasteFondPage": 1.21,
+              "contrasteFondCartes": {
+                "md.sys.color.surface-container-low": 1.15,
+                "md.sys.color.surface-container-highest": 1.02,
+                "md.sys.color.surface": 1.21
+              },
+              "accordAvecScss": {
+                "fond": true,
+                "texte": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Tokens SCSS v0_192 : error-container / on-error-container",
+              "fond": {
+                "token": "md.sys.color.error-container",
+                "valeurPubliee": "#8c1d18",
+                "role": "fond",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error30",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 22
+                },
+                "hex": "#8c1d18",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 27
+                }
+              },
+              "texte": {
+                "token": "md.sys.color.on-error-container",
+                "valeurPubliee": "#f9dedc",
+                "role": "texte",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error90",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 28
+                },
+                "hex": "#f9dedc",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 33
+                }
+              },
+              "icone": {
+                "token": "md.sys.color.error",
+                "valeurPubliee": "#f2b8b5",
+                "role": "icône / accent",
+                "resolutionVia": {
+                  "palette": "md.ref.palette.error80",
+                  "fichierPalette": "sources/m3-ref-palette.scss.txt",
+                  "lignePalette": 27
+                },
+                "hex": "#f2b8b5",
+                "source": {
+                  "fichier": "sources/m3-sys-color.scss.txt",
+                  "ligne": 26
+                }
+              },
+              "contrasteTexteFond": 7.17,
+              "contrasteTexteFondReference": "fond sur la carte md.sys.color.surface-container-low",
+              "contrasteFondPage": 2.04,
+              "contrasteFondCartes": {
+                "md.sys.color.surface-container-low": 1.87,
+                "md.sys.color.surface-container-highest": 1.35,
+                "md.sys.color.surface": 2.04
+              }
+            },
+            {
+              "ton": "error",
+              "usage": "CSS labs/gb (md-color-tokens-full.css) : error-container / on-error-container",
+              "fond": {
+                "token": "--md-sys-color-error-container",
+                "valeurPubliee": "#8c1d18",
+                "resolutionVia": {
+                  "palette": "--md-ref-palette-error30",
+                  "expression": "light-dark(error90, error30)"
+                },
+                "hex": "#8c1d18",
+                "source": {
+                  "fichier": "sources/m3-color-tokens-full.css.txt"
+                }
+              },
+              "texte": {
+                "token": "--md-sys-color-on-error-container",
+                "valeurPubliee": "#f9dedc",
+                "resolutionVia": {
+                  "palette": "--md-ref-palette-error90",
+                  "expression": "light-dark(error30, error90)"
+                },
+                "hex": "#f9dedc",
+                "source": {
+                  "fichier": "sources/m3-color-tokens-full.css.txt"
+                }
+              },
+              "contrasteTexteFond": 7.17,
+              "contrasteTexteFondReference": "fond sur la carte md.sys.color.surface-container-low",
+              "contrasteFondPage": 2.04,
+              "contrasteFondCartes": {
+                "md.sys.color.surface-container-low": 1.87,
+                "md.sys.color.surface-container-highest": 1.35,
+                "md.sys.color.surface": 2.04
+              },
+              "accordAvecScss": {
+                "fond": true,
+                "texte": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "carbon",
+      "nom": "IBM Carbon",
+      "versions": [
+        "@carbon/themes@11.83.0",
+        "@carbon/styles@1.117.0"
+      ],
+      "notes": [
+        "Notification inline « low contrast » : fond `notification-background-<ton>`, texte `text-primary`, trait et icône `support-<ton>` (paires vérifiées dans _inline-notification.scss, lignes en `composant`).",
+        "En g90 et g100, le fond de notification est un gris neutre, identique à layer-01 du même thème : la couleur du ton ne passe que par le trait et l'icône."
+      ],
+      "themes": [
+        {
+          "id": "white",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-error",
+                "valeurPubliee": "#fff1f1",
+                "role": "fond",
+                "hex": "#fff1f1",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 52
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-error",
+                "valeurPubliee": "#da1e28",
+                "role": "trait et icône",
+                "hex": "#da1e28",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 136
+                },
+                "exportJs": "supportError"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 82
+                }
+              },
+              "contrasteTexteFond": 16.46,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.1,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.1
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-success",
+                "valeurPubliee": "#defbe6",
+                "role": "fond",
+                "hex": "#defbe6",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 66
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-success",
+                "valeurPubliee": "#24a148",
+                "role": "trait et icône",
+                "hex": "#24a148",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 140
+                },
+                "exportJs": "supportSuccess"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 96
+                }
+              },
+              "contrasteTexteFond": 16.41,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.1,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.1
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-warning",
+                "valeurPubliee": "#fcf4d6",
+                "role": "fond",
+                "hex": "#fcf4d6",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 73
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-warning",
+                "valeurPubliee": "#f1c21b",
+                "role": "trait et icône",
+                "hex": "#f1c21b",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 142
+                },
+                "exportJs": "supportWarning"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 124
+                }
+              },
+              "contrasteTexteFond": 16.42,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.1,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.1
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-info",
+                "valeurPubliee": "#edf5ff",
+                "role": "fond",
+                "hex": "#edf5ff",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 59
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-info",
+                "valeurPubliee": "#0043ce",
+                "role": "trait et icône",
+                "hex": "#0043ce",
+                "source": {
+                  "fichier": "sources/carbon-white.js.txt",
+                  "ligne": 138
+                },
+                "exportJs": "supportInfo"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 110
+                }
+              },
+              "contrasteTexteFond": 16.46,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.1,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.1
+              }
+            }
+          ]
+        },
+        {
+          "id": "g10",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-error",
+                "valeurPubliee": "#fff1f1",
+                "role": "fond",
+                "hex": "#fff1f1",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 52
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-error",
+                "valeurPubliee": "#da1e28",
+                "role": "trait et icône",
+                "hex": "#da1e28",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 136
+                },
+                "exportJs": "supportError"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 82
+                }
+              },
+              "contrasteTexteFond": 16.46,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "layer-01": 1.1,
+                "layer-02": 1
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-success",
+                "valeurPubliee": "#defbe6",
+                "role": "fond",
+                "hex": "#defbe6",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 66
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-success",
+                "valeurPubliee": "#24a148",
+                "role": "trait et icône",
+                "hex": "#24a148",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 140
+                },
+                "exportJs": "supportSuccess"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 96
+                }
+              },
+              "contrasteTexteFond": 16.41,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "layer-01": 1.1,
+                "layer-02": 1
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-warning",
+                "valeurPubliee": "#fcf4d6",
+                "role": "fond",
+                "hex": "#fcf4d6",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 73
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-warning",
+                "valeurPubliee": "#f1c21b",
+                "role": "trait et icône",
+                "hex": "#f1c21b",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 142
+                },
+                "exportJs": "supportWarning"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 124
+                }
+              },
+              "contrasteTexteFond": 16.42,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "layer-01": 1.1,
+                "layer-02": 1
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-info",
+                "valeurPubliee": "#edf5ff",
+                "role": "fond",
+                "hex": "#edf5ff",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 59
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#161616",
+                "role": "texte",
+                "hex": "#161616",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-info",
+                "valeurPubliee": "#0043ce",
+                "role": "trait et icône",
+                "hex": "#0043ce",
+                "source": {
+                  "fichier": "sources/carbon-g10.js.txt",
+                  "ligne": 138
+                },
+                "exportJs": "supportInfo"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 110
+                }
+              },
+              "contrasteTexteFond": 16.46,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "layer-01": 1.1,
+                "layer-02": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "g90",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-error",
+                "valeurPubliee": "#393939",
+                "role": "fond",
+                "hex": "#393939",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 52
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-error",
+                "valeurPubliee": "#ff8389",
+                "role": "trait et icône",
+                "hex": "#ff8389",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 136
+                },
+                "exportJs": "supportError"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 82
+                }
+              },
+              "contrasteTexteFond": 10.5,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.31,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.48
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-success",
+                "valeurPubliee": "#393939",
+                "role": "fond",
+                "hex": "#393939",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 66
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-success",
+                "valeurPubliee": "#42be65",
+                "role": "trait et icône",
+                "hex": "#42be65",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 140
+                },
+                "exportJs": "supportSuccess"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 96
+                }
+              },
+              "contrasteTexteFond": 10.5,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.31,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.48
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-warning",
+                "valeurPubliee": "#393939",
+                "role": "fond",
+                "hex": "#393939",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 73
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-warning",
+                "valeurPubliee": "#f1c21b",
+                "role": "trait et icône",
+                "hex": "#f1c21b",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 142
+                },
+                "exportJs": "supportWarning"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 124
+                }
+              },
+              "contrasteTexteFond": 10.5,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.31,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.48
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-info",
+                "valeurPubliee": "#393939",
+                "role": "fond",
+                "hex": "#393939",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 59
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-info",
+                "valeurPubliee": "#4589ff",
+                "role": "trait et icône",
+                "hex": "#4589ff",
+                "source": {
+                  "fichier": "sources/carbon-g90.js.txt",
+                  "ligne": 138
+                },
+                "exportJs": "supportInfo"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 110
+                }
+              },
+              "contrasteTexteFond": 10.5,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.31,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.48
+              }
+            }
+          ]
+        },
+        {
+          "id": "g100",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-error",
+                "valeurPubliee": "#262626",
+                "role": "fond",
+                "hex": "#262626",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 52
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-error",
+                "valeurPubliee": "#fa4d56",
+                "role": "trait et icône",
+                "hex": "#fa4d56",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 136
+                },
+                "exportJs": "supportError"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 82
+                }
+              },
+              "contrasteTexteFond": 13.76,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.2,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.31
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-success",
+                "valeurPubliee": "#262626",
+                "role": "fond",
+                "hex": "#262626",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 66
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-success",
+                "valeurPubliee": "#42be65",
+                "role": "trait et icône",
+                "hex": "#42be65",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 140
+                },
+                "exportJs": "supportSuccess"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 96
+                }
+              },
+              "contrasteTexteFond": 13.76,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.2,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.31
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-warning",
+                "valeurPubliee": "#262626",
+                "role": "fond",
+                "hex": "#262626",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 73
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-warning",
+                "valeurPubliee": "#f1c21b",
+                "role": "trait et icône",
+                "hex": "#f1c21b",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 142
+                },
+                "exportJs": "supportWarning"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 124
+                }
+              },
+              "contrasteTexteFond": 13.76,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.2,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.31
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Inline notification, style low-contrast",
+              "fond": {
+                "token": "notification-background-info",
+                "valeurPubliee": "#262626",
+                "role": "fond",
+                "hex": "#262626",
+                "source": {
+                  "fichier": "sources/carbon-notification-tokens.scss.txt",
+                  "ligne": 59
+                }
+              },
+              "texte": {
+                "token": "text-primary",
+                "valeurPubliee": "#f4f4f4",
+                "role": "texte",
+                "hex": "#f4f4f4",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 239
+                },
+                "exportJs": "textPrimary"
+              },
+              "bordure": {
+                "token": "support-info",
+                "valeurPubliee": "#4589ff",
+                "role": "trait et icône",
+                "hex": "#4589ff",
+                "source": {
+                  "fichier": "sources/carbon-g100.js.txt",
+                  "ligne": 138
+                },
+                "exportJs": "supportInfo"
+              },
+              "composant": {
+                "fichier": "sources/carbon-inline-notification.scss.txt",
+                "lignes": {
+                  "texte": 138,
+                  "ton": 110
+                }
+              },
+              "contrasteTexteFond": 13.76,
+              "contrasteTexteFondReference": "fond sur la carte layer-01",
+              "contrasteFondPage": 1.2,
+              "contrasteFondCartes": {
+                "layer-01": 1,
+                "layer-02": 1.31
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "polaris",
+      "nom": "Shopify Polaris",
+      "versions": [
+        "@shopify/polaris-tokens@9.4.2",
+        "@shopify/polaris@13.9.5"
+      ],
+      "notes": [
+        "Badge (Badge.css, dans polarisStyles) : fond `bg-fill-<ton>-secondary`, texte `text-<ton>`.",
+        "Banner dans un contenu (Banner/utilities.js, withinContentContainer) : fond `bg-surface-<ton>`, texte `text-<ton>` ; dans une page : aplat plein `bg-fill-<ton>` et texte `text-<ton>-on-bg-fill` (non relevé ici).",
+        "Le thème sombre `dark-experimental` ne redéfinit pas les tokens de statut : ils valent ceux du thème clair, posés sur une page sombre (#1a1a1a) et une carte #303030. Les valeurs sont celles que le paquet publie.",
+        "Le ton « info » de Polaris est le ton bleu ; « caution » (Badge `attention`) est le jaune ; « warning » est l'orange."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "themePublie": "light",
+          "tons": [
+            {
+              "ton": "critical",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-critical-secondary",
+                "valeurPubliee": "rgba(254, 209, 215, 1)",
+                "hex": "#fed1d7",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-critical-secondary"
+              },
+              "texte": {
+                "token": "color-text-critical",
+                "valeurPubliee": "rgba(142, 11, 33, 1)",
+                "hex": "#8e0b21",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-critical"
+              },
+              "icone": {
+                "token": "color-icon-critical",
+                "valeurPubliee": "rgba(226, 44, 56, 1)",
+                "hex": "#e22c38",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-critical"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2731,
+                "classe": "Polaris-Badge--toneCritical"
+              },
+              "contrasteTexteFond": 6.9,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.21,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.37
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-success-secondary",
+                "valeurPubliee": "rgba(175, 254, 191, 1)",
+                "hex": "#affebf",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-success-secondary"
+              },
+              "texte": {
+                "token": "color-text-success",
+                "valeurPubliee": "rgba(1, 75, 64, 1)",
+                "hex": "#014b40",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-success"
+              },
+              "icone": {
+                "token": "color-icon-success",
+                "valeurPubliee": "rgba(4, 123, 93, 1)",
+                "hex": "#047b5d",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-success"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2659,
+                "classe": "Polaris-Badge--toneSuccess"
+              },
+              "contrasteTexteFond": 8.53,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.05,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.18
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-warning-secondary",
+                "valeurPubliee": "rgba(255, 214, 164, 1)",
+                "hex": "#ffd6a4",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-warning-secondary"
+              },
+              "texte": {
+                "token": "color-text-warning",
+                "valeurPubliee": "rgba(94, 66, 0, 1)",
+                "hex": "#5e4200",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-warning"
+              },
+              "icone": {
+                "token": "color-icon-warning",
+                "valeurPubliee": "rgba(178, 132, 0, 1)",
+                "hex": "#b28400",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-warning"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2713,
+                "classe": "Polaris-Badge--toneWarning"
+              },
+              "contrasteTexteFond": 6.83,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.21,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.36
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-info-secondary",
+                "valeurPubliee": "rgba(213, 235, 255, 1)",
+                "hex": "#d5ebff",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-info-secondary"
+              },
+              "texte": {
+                "token": "color-text-info",
+                "valeurPubliee": "rgba(0, 58, 90, 1)",
+                "hex": "#003a5a",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-info"
+              },
+              "icone": {
+                "token": "color-icon-info",
+                "valeurPubliee": "rgba(0, 148, 213, 1)",
+                "hex": "#0094d5",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-info"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2677,
+                "classe": "Polaris-Badge--toneInfo"
+              },
+              "contrasteTexteFond": 9.79,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.08,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.22
+              }
+            },
+            {
+              "ton": "caution",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-caution-secondary",
+                "valeurPubliee": "rgba(255, 235, 120, 1)",
+                "hex": "#ffeb78",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-caution-secondary"
+              },
+              "texte": {
+                "token": "color-text-caution",
+                "valeurPubliee": "rgba(79, 71, 0, 1)",
+                "hex": "#4f4700",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-caution"
+              },
+              "icone": {
+                "token": "color-icon-caution",
+                "valeurPubliee": "rgba(153, 138, 0, 1)",
+                "hex": "#998a00",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-caution"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2695,
+                "classe": "Polaris-Badge--toneAttention"
+              },
+              "contrasteTexteFond": 7.79,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.07,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.21
+              }
+            },
+            {
+              "ton": "critical",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-critical",
+                "valeurPubliee": "rgba(254, 232, 235, 1)",
+                "hex": "#fee8eb",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-critical"
+              },
+              "texte": {
+                "token": "color-text-critical",
+                "valeurPubliee": "rgba(142, 11, 33, 1)",
+                "hex": "#8e0b21",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-critical"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 31
+              },
+              "contrasteTexteFond": 8.09,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.04,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.17
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-success",
+                "valeurPubliee": "rgba(205, 254, 212, 1)",
+                "hex": "#cdfed4",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-success"
+              },
+              "texte": {
+                "token": "color-text-success",
+                "valeurPubliee": "rgba(1, 75, 64, 1)",
+                "hex": "#014b40",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-success"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 5
+              },
+              "contrasteTexteFond": 8.99,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.01,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.12
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-warning",
+                "valeurPubliee": "rgba(255, 241, 227, 1)",
+                "hex": "#fff1e3",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-warning"
+              },
+              "texte": {
+                "token": "color-text-warning",
+                "valeurPubliee": "rgba(94, 66, 0, 1)",
+                "hex": "#5e4200",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-warning"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 18
+              },
+              "contrasteTexteFond": 8.4,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.11
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-info",
+                "valeurPubliee": "rgba(234, 244, 255, 1)",
+                "hex": "#eaf4ff",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-info"
+              },
+              "texte": {
+                "token": "color-text-info",
+                "valeurPubliee": "rgba(0, 58, 90, 1)",
+                "hex": "#003a5a",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-info"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 44
+              },
+              "contrasteTexteFond": 10.77,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "color-bg-surface": 1.11
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "themePublie": "dark-experimental",
+          "tons": [
+            {
+              "ton": "critical",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-critical-secondary",
+                "valeurPubliee": "rgba(254, 209, 215, 1)",
+                "hex": "#fed1d7",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-critical-secondary"
+              },
+              "texte": {
+                "token": "color-text-critical",
+                "valeurPubliee": "rgba(142, 11, 33, 1)",
+                "hex": "#8e0b21",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-critical"
+              },
+              "icone": {
+                "token": "color-icon-critical",
+                "valeurPubliee": "rgba(226, 44, 56, 1)",
+                "hex": "#e22c38",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-critical"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2731,
+                "classe": "Polaris-Badge--toneCritical"
+              },
+              "contrasteTexteFond": 6.9,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 12.69,
+              "contrasteFondCartes": {
+                "color-bg-surface": 9.63
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-success-secondary",
+                "valeurPubliee": "rgba(175, 254, 191, 1)",
+                "hex": "#affebf",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-success-secondary"
+              },
+              "texte": {
+                "token": "color-text-success",
+                "valeurPubliee": "rgba(1, 75, 64, 1)",
+                "hex": "#014b40",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-success"
+              },
+              "icone": {
+                "token": "color-icon-success",
+                "valeurPubliee": "rgba(4, 123, 93, 1)",
+                "hex": "#047b5d",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-success"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2659,
+                "classe": "Polaris-Badge--toneSuccess"
+              },
+              "contrasteTexteFond": 8.53,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 14.71,
+              "contrasteFondCartes": {
+                "color-bg-surface": 11.16
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-warning-secondary",
+                "valeurPubliee": "rgba(255, 214, 164, 1)",
+                "hex": "#ffd6a4",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-warning-secondary"
+              },
+              "texte": {
+                "token": "color-text-warning",
+                "valeurPubliee": "rgba(94, 66, 0, 1)",
+                "hex": "#5e4200",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-warning"
+              },
+              "icone": {
+                "token": "color-icon-warning",
+                "valeurPubliee": "rgba(178, 132, 0, 1)",
+                "hex": "#b28400",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-warning"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2713,
+                "classe": "Polaris-Badge--toneWarning"
+              },
+              "contrasteTexteFond": 6.83,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 12.77,
+              "contrasteFondCartes": {
+                "color-bg-surface": 9.68
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-info-secondary",
+                "valeurPubliee": "rgba(213, 235, 255, 1)",
+                "hex": "#d5ebff",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-info-secondary"
+              },
+              "texte": {
+                "token": "color-text-info",
+                "valeurPubliee": "rgba(0, 58, 90, 1)",
+                "hex": "#003a5a",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-info"
+              },
+              "icone": {
+                "token": "color-icon-info",
+                "valeurPubliee": "rgba(0, 148, 213, 1)",
+                "hex": "#0094d5",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-info"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2677,
+                "classe": "Polaris-Badge--toneInfo"
+              },
+              "contrasteTexteFond": 9.79,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 14.22,
+              "contrasteFondCartes": {
+                "color-bg-surface": 10.78
+              }
+            },
+            {
+              "ton": "caution",
+              "usage": "Badge (tone)",
+              "fond": {
+                "token": "color-bg-fill-caution-secondary",
+                "valeurPubliee": "rgba(255, 235, 120, 1)",
+                "hex": "#ffeb78",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-fill-caution-secondary"
+              },
+              "texte": {
+                "token": "color-text-caution",
+                "valeurPubliee": "rgba(79, 71, 0, 1)",
+                "hex": "#4f4700",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-caution"
+              },
+              "icone": {
+                "token": "color-icon-caution",
+                "valeurPubliee": "rgba(153, 138, 0, 1)",
+                "hex": "#998a00",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-icon-caution"
+              },
+              "composant": {
+                "fichier": "sources/polaris-styles.css.txt",
+                "ligne": 2695,
+                "classe": "Polaris-Badge--toneAttention"
+              },
+              "contrasteTexteFond": 7.79,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 14.43,
+              "contrasteFondCartes": {
+                "color-bg-surface": 10.94
+              }
+            },
+            {
+              "ton": "critical",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-critical",
+                "valeurPubliee": "rgba(254, 232, 235, 1)",
+                "hex": "#fee8eb",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-critical"
+              },
+              "texte": {
+                "token": "color-text-critical",
+                "valeurPubliee": "rgba(142, 11, 33, 1)",
+                "hex": "#8e0b21",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-critical"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 31
+              },
+              "contrasteTexteFond": 8.09,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 14.88,
+              "contrasteFondCartes": {
+                "color-bg-surface": 11.29
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-success",
+                "valeurPubliee": "rgba(205, 254, 212, 1)",
+                "hex": "#cdfed4",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-success"
+              },
+              "texte": {
+                "token": "color-text-success",
+                "valeurPubliee": "rgba(1, 75, 64, 1)",
+                "hex": "#014b40",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-success"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 5
+              },
+              "contrasteTexteFond": 8.99,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 15.52,
+              "contrasteFondCartes": {
+                "color-bg-surface": 11.77
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-warning",
+                "valeurPubliee": "rgba(255, 241, 227, 1)",
+                "hex": "#fff1e3",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-warning"
+              },
+              "texte": {
+                "token": "color-text-warning",
+                "valeurPubliee": "rgba(94, 66, 0, 1)",
+                "hex": "#5e4200",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-warning"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 18
+              },
+              "contrasteTexteFond": 8.4,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 15.7,
+              "contrasteFondCartes": {
+                "color-bg-surface": 11.91
+              }
+            },
+            {
+              "ton": "info",
+              "usage": "Banner dans un contenu (withinContentContainer)",
+              "fond": {
+                "token": "color-bg-surface-info",
+                "valeurPubliee": "rgba(234, 244, 255, 1)",
+                "hex": "#eaf4ff",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-bg-surface-info"
+              },
+              "texte": {
+                "token": "color-text-info",
+                "valeurPubliee": "rgba(0, 58, 90, 1)",
+                "hex": "#003a5a",
+                "source": {
+                  "fichier": "sources/polaris-tokens-build.js.txt"
+                },
+                "variableCss": "--p-color-text-info"
+              },
+              "composant": {
+                "fichier": "sources/polaris-banner-utilities.js.txt",
+                "ligne": 44
+              },
+              "contrasteTexteFond": 10.77,
+              "contrasteTexteFondReference": "fond sur la carte color-bg-surface",
+              "contrasteFondPage": 15.65,
+              "contrasteFondCartes": {
+                "color-bg-surface": 11.87
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fluent2",
+      "nom": "Microsoft Fluent 2",
+      "versions": [
+        "@fluentui/tokens@1.0.0-alpha.24",
+        "@fluentui/react-message-bar@9.7.7",
+        "@fluentui/react-badge@9.5.6"
+      ],
+      "notes": [
+        "Badge `tint` (useBadgeStyles) : fond `colorPalette<Couleur>Background1`, texte `colorPalette<Couleur>Foreground1`, contour `…Border1`. danger = Red, severe = DarkOrange, success = Green, warning = Yellow.",
+        "MessageBar (useMessageBarStyles) : fond `colorStatus<Ton>Background1`, contour `…Border1`, icône `colorStatus<Ton>Foreground1` (Foreground3 pour warning) ; le texte n'est pas fixé dans ce fichier, la colonne `texte` donne `colorNeutralForeground1`, le texte courant du thème, à titre indicatif et non lu dans un composant.",
+        "Les paires `…Background2` / `…Foreground2` existent dans les tokens (ligne `palette 2`) ; aucun composant lu ne les assemble.",
+        "Les cartes de comparaison sont Background1 (Card filled) ; la page n'est pas déclarée, son contraste est celui avec le fond neutre 2 (Background2), donné comme repère."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "reperePage": "colorNeutralBackground2",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusDangerBackground1",
+                "valeurPubliee": "#fdf3f4",
+                "resolutionVia": {
+                  "expression": "cranberry.tint60",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#fdf3f4",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#242424",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "grey[14]",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#242424",
+                "source": {
+                  "fichier": "sources/fluent-light-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusDangerBorder1",
+                "valeurPubliee": "#eeacb2",
+                "resolutionVia": {
+                  "expression": "cranberry.tint40",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#eeacb2",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusDangerForeground1",
+                "valeurPubliee": "#b10e1c",
+                "resolutionVia": {
+                  "expression": "cranberry.shade10",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#b10e1c",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 73
+              },
+              "contrasteTexteFond": 14.27,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.04,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.09
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusWarningBackground1",
+                "valeurPubliee": "#fff9f5",
+                "resolutionVia": {
+                  "expression": "orange.tint60",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#fff9f5",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#242424",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "grey[14]",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#242424",
+                "source": {
+                  "fichier": "sources/fluent-light-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusWarningBorder1",
+                "valeurPubliee": "#fdcfb4",
+                "resolutionVia": {
+                  "expression": "orange.tint40",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#fdcfb4",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusWarningForeground3",
+                "valeurPubliee": "#bc4b09",
+                "resolutionVia": {
+                  "expression": "orange.shade20",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "correction unitaire ligne 58",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#bc4b09",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 77
+              },
+              "contrasteTexteFond": 14.87,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.04
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusSuccessBackground1",
+                "valeurPubliee": "#f1faf1",
+                "resolutionVia": {
+                  "expression": "green.tint60",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#f1faf1",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#242424",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "grey[14]",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#242424",
+                "source": {
+                  "fichier": "sources/fluent-light-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusSuccessBorder1",
+                "valeurPubliee": "#9fd89f",
+                "resolutionVia": {
+                  "expression": "green.tint40",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#9fd89f",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusSuccessForeground1",
+                "valeurPubliee": "#0e700e",
+                "resolutionVia": {
+                  "expression": "green.shade10",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#0e700e",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 81
+              },
+              "contrasteTexteFond": 14.55,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.07
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteRedBackground1",
+                "valeurPubliee": "#fdf6f6",
+                "resolutionVia": {
+                  "expression": "red.tint60",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#fdf6f6",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteRedForeground1",
+                "valeurPubliee": "#bc2f32",
+                "resolutionVia": {
+                  "expression": "red.shade10",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#bc2f32",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteRedBorder1",
+                "valeurPubliee": "#f1bbbc",
+                "resolutionVia": {
+                  "expression": "red.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#f1bbbc",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 198
+              },
+              "contrasteTexteFond": 5.48,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.07
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteRedBackground2",
+                "valeurPubliee": "#f1bbbc",
+                "resolutionVia": {
+                  "expression": "red.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#f1bbbc",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteRedForeground2",
+                "valeurPubliee": "#751d1f",
+                "resolutionVia": {
+                  "expression": "red.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#751d1f",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.44,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.6,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.67
+              }
+            },
+            {
+              "ton": "severe",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteDarkOrangeBackground1",
+                "valeurPubliee": "#fdf6f3",
+                "resolutionVia": {
+                  "expression": "darkOrange.tint60",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#fdf6f3",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteDarkOrangeForeground1",
+                "valeurPubliee": "#c43501",
+                "resolutionVia": {
+                  "expression": "darkOrange.shade10",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#c43501",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteDarkOrangeBorder1",
+                "valeurPubliee": "#f4bfab",
+                "resolutionVia": {
+                  "expression": "darkOrange.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#f4bfab",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 213
+              },
+              "contrasteTexteFond": 5.1,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.07
+              }
+            },
+            {
+              "ton": "severe",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteDarkOrangeBackground2",
+                "valeurPubliee": "#f4bfab",
+                "resolutionVia": {
+                  "expression": "darkOrange.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#f4bfab",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteDarkOrangeForeground2",
+                "valeurPubliee": "#7a2101",
+                "resolutionVia": {
+                  "expression": "darkOrange.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#7a2101",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.3,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.56,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.63
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteGreenBackground1",
+                "valeurPubliee": "#f1faf1",
+                "resolutionVia": {
+                  "expression": "green.tint60",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#f1faf1",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteGreenForeground1",
+                "valeurPubliee": "#0e700e",
+                "resolutionVia": {
+                  "expression": "green.shade10",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#0e700e",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteGreenBorder1",
+                "valeurPubliee": "#9fd89f",
+                "resolutionVia": {
+                  "expression": "green.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#9fd89f",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 223
+              },
+              "contrasteTexteFond": 5.89,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.07
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteGreenBackground2",
+                "valeurPubliee": "#9fd89f",
+                "resolutionVia": {
+                  "expression": "green.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#9fd89f",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteGreenForeground2",
+                "valeurPubliee": "#094509",
+                "resolutionVia": {
+                  "expression": "green.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#094509",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.86,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.57,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.64
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteYellowBackground1",
+                "valeurPubliee": "#fffef5",
+                "resolutionVia": {
+                  "expression": "yellow.tint60",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#fffef5",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteYellowForeground1",
+                "valeurPubliee": "#817400",
+                "resolutionVia": {
+                  "expression": "yellow.shade30",
+                  "regle": "correction unitaire ligne 20",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#817400",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteYellowBorder1",
+                "valeurPubliee": "#fef7b2",
+                "resolutionVia": {
+                  "expression": "yellow.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#fef7b2",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 228
+              },
+              "contrasteTexteFond": 4.68,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.03,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.01
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteYellowBackground2",
+                "valeurPubliee": "#fef7b2",
+                "resolutionVia": {
+                  "expression": "yellow.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#fef7b2",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteYellowForeground2",
+                "valeurPubliee": "#817400",
+                "resolutionVia": {
+                  "expression": "yellow.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#817400",
+                "source": {
+                  "fichier": "sources/fluent-light-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 4.32,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.05,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.1
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "reperePage": "colorNeutralBackground2",
+          "tons": [
+            {
+              "ton": "error",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusDangerBackground1",
+                "valeurPubliee": "#3b0509",
+                "resolutionVia": {
+                  "expression": "cranberry.shade40",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#3b0509",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#ffffff",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "white",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#ffffff",
+                "source": {
+                  "fichier": "sources/fluent-dark-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusDangerBorder1",
+                "valeurPubliee": "#c50f1f",
+                "resolutionVia": {
+                  "expression": "cranberry.primary",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#c50f1f",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusDangerForeground1",
+                "valeurPubliee": "#dc626d",
+                "resolutionVia": {
+                  "expression": "cranberry.tint30",
+                  "correspondance": "statusColorMapping.danger = cranberry",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#dc626d",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 73
+              },
+              "contrasteTexteFond": 17.33,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.05,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.19
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusWarningBackground1",
+                "valeurPubliee": "#4a1e04",
+                "resolutionVia": {
+                  "expression": "orange.shade40",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#4a1e04",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#ffffff",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "white",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#ffffff",
+                "source": {
+                  "fichier": "sources/fluent-dark-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusWarningBorder1",
+                "valeurPubliee": "#f7630c",
+                "resolutionVia": {
+                  "expression": "orange.primary",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#f7630c",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusWarningForeground3",
+                "valeurPubliee": "#f98845",
+                "resolutionVia": {
+                  "expression": "orange.tint20",
+                  "correspondance": "statusColorMapping.warning = orange",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#f98845",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 77
+              },
+              "contrasteTexteFond": 14.2,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.16,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.02
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "MessageBar",
+              "fond": {
+                "token": "colorStatusSuccessBackground1",
+                "valeurPubliee": "#052505",
+                "resolutionVia": {
+                  "expression": "green.shade40",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#052505",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorNeutralForeground1",
+                "valeurPubliee": "#ffffff",
+                "role": "texte courant du thème",
+                "resolutionVia": {
+                  "expression": "white",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#ffffff",
+                "source": {
+                  "fichier": "sources/fluent-dark-color.js.txt",
+                  "ligne": 3
+                }
+              },
+              "bordure": {
+                "token": "colorStatusSuccessBorder1",
+                "valeurPubliee": "#107c10",
+                "resolutionVia": {
+                  "expression": "green.primary",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#107c10",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "icone": {
+                "token": "colorStatusSuccessForeground1",
+                "valeurPubliee": "#54b054",
+                "resolutionVia": {
+                  "expression": "green.tint30",
+                  "correspondance": "statusColorMapping.success = green",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt"
+                },
+                "hex": "#54b054",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-message-bar-styles.js.txt",
+                "ligne": 81
+              },
+              "contrasteTexteFond": 16.49,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.13
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteRedBackground1",
+                "valeurPubliee": "#3f1011",
+                "resolutionVia": {
+                  "expression": "red.shade40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#3f1011",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteRedForeground1",
+                "valeurPubliee": "#e37d80",
+                "resolutionVia": {
+                  "expression": "red.tint30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#e37d80",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteRedBorder1",
+                "valeurPubliee": "#d13438",
+                "resolutionVia": {
+                  "expression": "red.primary",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#d13438",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 198
+              },
+              "contrasteTexteFond": 5.81,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.02,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.12
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteRedBackground2",
+                "valeurPubliee": "#751d1f",
+                "resolutionVia": {
+                  "expression": "red.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#751d1f",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteRedForeground2",
+                "valeurPubliee": "#f1bbbc",
+                "resolutionVia": {
+                  "expression": "red.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 165
+                },
+                "hex": "#f1bbbc",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.44,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.53,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.35
+              }
+            },
+            {
+              "ton": "severe",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteDarkOrangeBackground1",
+                "valeurPubliee": "#411200",
+                "resolutionVia": {
+                  "expression": "darkOrange.shade40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#411200",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteDarkOrangeForeground1",
+                "valeurPubliee": "#e9835e",
+                "resolutionVia": {
+                  "expression": "darkOrange.tint30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#e9835e",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteDarkOrangeBorder1",
+                "valeurPubliee": "#da3b01",
+                "resolutionVia": {
+                  "expression": "darkOrange.primary",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#da3b01",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 213
+              },
+              "contrasteTexteFond": 6,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.03,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.1
+              }
+            },
+            {
+              "ton": "severe",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteDarkOrangeBackground2",
+                "valeurPubliee": "#7a2101",
+                "resolutionVia": {
+                  "expression": "darkOrange.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#7a2101",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteDarkOrangeForeground2",
+                "valeurPubliee": "#f4bfab",
+                "resolutionVia": {
+                  "expression": "darkOrange.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 179
+                },
+                "hex": "#f4bfab",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.3,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.61,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.42
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteGreenBackground1",
+                "valeurPubliee": "#052505",
+                "resolutionVia": {
+                  "expression": "green.shade40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#052505",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteGreenForeground1",
+                "valeurPubliee": "#54b054",
+                "resolutionVia": {
+                  "expression": "green.tint30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#54b054",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteGreenBorder1",
+                "valeurPubliee": "#107c10",
+                "resolutionVia": {
+                  "expression": "green.primary",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#107c10",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 223
+              },
+              "contrasteTexteFond": 6.06,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.13
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteGreenBackground2",
+                "valeurPubliee": "#094509",
+                "resolutionVia": {
+                  "expression": "green.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#094509",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteGreenForeground2",
+                "valeurPubliee": "#9fd89f",
+                "resolutionVia": {
+                  "expression": "green.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 389
+                },
+                "hex": "#9fd89f",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 6.86,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.47,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.29
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Badge tint",
+              "fond": {
+                "token": "colorPaletteYellowBackground1",
+                "valeurPubliee": "#4c4400",
+                "resolutionVia": {
+                  "expression": "yellow.shade40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#4c4400",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteYellowForeground1",
+                "valeurPubliee": "#feee66",
+                "resolutionVia": {
+                  "expression": "yellow.tint30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#feee66",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "bordure": {
+                "token": "colorPaletteYellowBorder1",
+                "valeurPubliee": "#fde300",
+                "resolutionVia": {
+                  "expression": "yellow.primary",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#fde300",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "composant": {
+                "fichier": "sources/fluent-badge-styles.js.txt",
+                "ligne": 228
+              },
+              "contrasteTexteFond": 8.26,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 1.68,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 1.48
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "palette 2 : Background2 / Foreground2 (aucun composant lu)",
+              "fond": {
+                "token": "colorPaletteYellowBackground2",
+                "valeurPubliee": "#817400",
+                "resolutionVia": {
+                  "expression": "yellow.shade30",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#817400",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "texte": {
+                "token": "colorPaletteYellowForeground2",
+                "valeurPubliee": "#fef7b2",
+                "resolutionVia": {
+                  "expression": "yellow.tint40",
+                  "regle": "règle générale de la boucle",
+                  "fichierCouleurs": "sources/fluent-colors.js.txt",
+                  "ligneCouleurs": 263
+                },
+                "hex": "#fef7b2",
+                "source": {
+                  "fichier": "sources/fluent-dark-palette.js.txt"
+                }
+              },
+              "contrasteTexteFond": 4.32,
+              "contrasteTexteFondReference": "fond sur la carte colorNeutralBackground1",
+              "contrasteFondPage": 3.48,
+              "contrasteFondCartes": {
+                "colorNeutralBackground1": 3.07
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "primer",
+      "nom": "GitHub Primer",
+      "versions": [
+        "@primer/primitives@11.10.0"
+      ],
+      "notes": [
+        "Complément : les valeurs figurent déjà dans RELEVE-STATUTS-ET-FOCUS.md ; ce bloc ajoute les contrastes.",
+        "Flash : fond `bgColor-<ton>-muted`, texte neutre `fgColor-default`, icône `fgColor-<ton>` (association reprise du relevé précédent, non relue dans le code de Flash). Label : texte `fgColor-<ton>` sans fond. La colonne `texteTon` donne le contraste de `fgColor-<ton>` sur le fond, à titre de repère.",
+        "Les fonds `-muted` sont translucides en sombre (alpha 10 à 15 %) : l'hexa est composé sur la page et sur la carte."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "tons": [
+            {
+              "ton": "success",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-success-muted",
+                "valeurPubliee": "#dafbe1",
+                "role": "fond",
+                "hex": "#dafbe1",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 54
+                }
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#1f2328",
+                "role": "texte neutre (Flash)",
+                "hex": "#1f2328",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 825
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-success-muted",
+                "valeurPubliee": "#4ac26b66",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 73
+                }
+              },
+              "contrasteTexteFond": 14.19,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteFondPage": 1.11,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.11
+              },
+              "texteTon": {
+                "token": "--fgColor-success",
+                "valeurPubliee": "#1a7f37",
+                "role": "texte et icône du ton",
+                "hex": "#1a7f37",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 472
+                },
+                "contrasteSurFond": 4.56
+              }
+            },
+            {
+              "ton": "attention",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-attention-muted",
+                "valeurPubliee": "#fff8c5",
+                "role": "fond",
+                "hex": "#fff8c5",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 38
+                }
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#1f2328",
+                "role": "texte neutre (Flash)",
+                "hex": "#1f2328",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 825
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-attention-muted",
+                "valeurPubliee": "#d4a72c66",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 59
+                }
+              },
+              "contrasteTexteFond": 14.66,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteFondPage": 1.08,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.08
+              },
+              "texteTon": {
+                "token": "--fgColor-attention",
+                "valeurPubliee": "#9a6700",
+                "role": "texte et icône du ton",
+                "hex": "#9a6700",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 464
+                },
+                "contrasteSurFond": 4.52
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-danger-muted",
+                "valeurPubliee": "#ffebe9",
+                "role": "fond",
+                "hex": "#ffebe9",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 40
+                }
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#1f2328",
+                "role": "texte neutre (Flash)",
+                "hex": "#1f2328",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 825
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-danger-muted",
+                "valeurPubliee": "#ff818266",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 61
+                }
+              },
+              "contrasteTexteFond": 13.78,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteFondPage": 1.15,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.15
+              },
+              "texteTon": {
+                "token": "--fgColor-danger",
+                "valeurPubliee": "#d1242f",
+                "role": "texte et icône du ton",
+                "hex": "#d1242f",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 17
+                },
+                "contrasteSurFond": 4.57
+              }
+            },
+            {
+              "ton": "accent",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-accent-muted",
+                "valeurPubliee": "#ddf4ff",
+                "role": "fond",
+                "hex": "#ddf4ff",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 36
+                }
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#1f2328",
+                "role": "texte neutre (Flash)",
+                "hex": "#1f2328",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 825
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-accent-muted",
+                "valeurPubliee": "#54aeff66",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 57
+                }
+              },
+              "contrasteTexteFond": 13.89,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteFondPage": 1.14,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.14
+              },
+              "texteTon": {
+                "token": "--fgColor-accent",
+                "valeurPubliee": "#0969da",
+                "role": "texte et icône du ton",
+                "hex": "#0969da",
+                "source": {
+                  "fichier": "sources/primer-light.css.txt",
+                  "ligne": 463
+                },
+                "contrasteSurFond": 4.56
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "tons": [
+            {
+              "ton": "success",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-success-muted",
+                "valeurPubliee": "#2ea04326",
+                "role": "fond",
+                "translucide": true,
+                "alpha": 0.149,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 54
+                },
+                "hexSurPage": "#12261e",
+                "hexSurCarte": {
+                  "--card-bgColor": "#192f28"
+                },
+                "composeSur": "page et chacune des cartes de ce thème (voir hexSurPage et hexSurCarte)"
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#f0f6fc",
+                "role": "texte neutre (Flash)",
+                "hex": "#f0f6fc",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 472
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-success-muted",
+                "valeurPubliee": "#2ea04366",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 72
+                }
+              },
+              "contrasteTexteFond": 13.05,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteTexteFondSurPage": 14.6,
+              "contrasteFondPage": 1.19,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.22
+              },
+              "texteTon": {
+                "token": "--fgColor-success",
+                "valeurPubliee": "#3fb950",
+                "role": "texte et icône du ton",
+                "hex": "#3fb950",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 480
+                },
+                "contrasteSurFond": 5.59
+              }
+            },
+            {
+              "ton": "attention",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-attention-muted",
+                "valeurPubliee": "#bb800926",
+                "role": "fond",
+                "translucide": true,
+                "alpha": 0.149,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 38
+                },
+                "hexSurPage": "#272215",
+                "hexSurCarte": {
+                  "--card-bgColor": "#2e2a1f"
+                },
+                "composeSur": "page et chacune des cartes de ce thème (voir hexSurPage et hexSurCarte)"
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#f0f6fc",
+                "role": "texte neutre (Flash)",
+                "hex": "#f0f6fc",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 472
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-attention-muted",
+                "valeurPubliee": "#bb800966",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 59
+                }
+              },
+              "contrasteTexteFond": 13.15,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteTexteFondSurPage": 14.55,
+              "contrasteFondPage": 1.19,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.21
+              },
+              "texteTon": {
+                "token": "--fgColor-attention",
+                "valeurPubliee": "#d29922",
+                "role": "texte et icône du ton",
+                "hex": "#d29922",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 470
+                },
+                "contrasteSurFond": 5.67
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-danger-muted",
+                "valeurPubliee": "#f851491a",
+                "role": "fond",
+                "translucide": true,
+                "alpha": 0.102,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 40
+                },
+                "hexSurPage": "#25181c",
+                "hexSurCarte": {
+                  "--card-bgColor": "#2c2127"
+                },
+                "composeSur": "page et chacune des cartes de ce thème (voir hexSurPage et hexSurCarte)"
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#f0f6fc",
+                "role": "texte neutre (Flash)",
+                "hex": "#f0f6fc",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 472
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-danger-muted",
+                "valeurPubliee": "#f8514966",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 61
+                }
+              },
+              "contrasteTexteFond": 14.25,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteTexteFondSurPage": 15.74,
+              "contrasteFondPage": 1.1,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.12
+              },
+              "texteTon": {
+                "token": "--fgColor-danger",
+                "valeurPubliee": "#f85149",
+                "role": "texte et icône du ton",
+                "hex": "#f85149",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 471
+                },
+                "contrasteSurFond": 4.63
+              }
+            },
+            {
+              "ton": "accent",
+              "usage": "Flash",
+              "fond": {
+                "token": "--bgColor-accent-muted",
+                "valeurPubliee": "#388bfd1a",
+                "role": "fond",
+                "translucide": true,
+                "alpha": 0.102,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 36
+                },
+                "hexSurPage": "#111d2e",
+                "hexSurCarte": {
+                  "--card-bgColor": "#192639"
+                },
+                "composeSur": "page et chacune des cartes de ce thème (voir hexSurPage et hexSurCarte)"
+              },
+              "texte": {
+                "token": "--fgColor-default",
+                "valeurPubliee": "#f0f6fc",
+                "role": "texte neutre (Flash)",
+                "hex": "#f0f6fc",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 472
+                }
+              },
+              "bordure": {
+                "token": "--borderColor-accent-muted",
+                "valeurPubliee": "#388bfd66",
+                "role": "contour",
+                "translucide": true,
+                "alpha": 0.4,
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 57
+                }
+              },
+              "contrasteTexteFond": 14,
+              "contrasteTexteFondReference": "fond sur la carte --card-bgColor",
+              "contrasteTexteFondSurPage": 15.57,
+              "contrasteFondPage": 1.12,
+              "contrasteFondCartes": {
+                "--card-bgColor": 1.14
+              },
+              "texteTon": {
+                "token": "--fgColor-accent",
+                "valeurPubliee": "#4493f8",
+                "role": "texte et icône du ton",
+                "hex": "#4493f8",
+                "source": {
+                  "fichier": "sources/primer-dark.css.txt",
+                  "ligne": 16
+                },
+                "contrasteSurFond": 4.92
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "atlassian",
+      "nom": "Atlassian",
+      "versions": [
+        "@atlaskit/tokens@20.4.1"
+      ],
+      "notes": [
+        "Complément : les valeurs figurent déjà dans RELEVE-STATUTS-ET-FOCUS.md ; ce bloc ajoute les contrastes.",
+        "Lozenge discret : fond `color.background.<ton>.subtler`, texte `color.text.<ton>.bolder`. Section message : fond `color.background.<ton>`, texte neutre `color.text`."
+      ],
+      "themes": [
+        {
+          "id": "light",
+          "tons": [
+            {
+              "ton": "success",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.success.subtler",
+                "valeurPubliee": "#D3F1A7",
+                "hex": "#d3f1a7",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 273
+                  }
+                },
+                "variableCss": "--ds-background-success-subtler"
+              },
+              "texte": {
+                "token": "color.text.success.bolder",
+                "valeurPubliee": "#37471F",
+                "hex": "#37471f",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 382
+                  }
+                },
+                "variableCss": "--ds-text-success-bolder"
+              },
+              "bordure": {
+                "token": "color.border.success",
+                "valeurPubliee": "#6A9A23",
+                "hex": "#6a9a23",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 333
+                  }
+                },
+                "variableCss": "--ds-border-success"
+              },
+              "contrasteTexteFond": 8.12,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.24,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.24
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.warning.subtler",
+                "valeurPubliee": "#FCE4A6",
+                "hex": "#fce4a6",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 263
+                  }
+                },
+                "variableCss": "--ds-background-warning-subtler"
+              },
+              "texte": {
+                "token": "color.text.warning.bolder",
+                "valeurPubliee": "#693200",
+                "hex": "#693200",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 380
+                  }
+                },
+                "variableCss": "--ds-text-warning-bolder"
+              },
+              "bordure": {
+                "token": "color.border.warning",
+                "valeurPubliee": "#E06C00",
+                "hex": "#e06c00",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 331
+                  }
+                },
+                "variableCss": "--ds-border-warning"
+              },
+              "contrasteTexteFond": 8.16,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.25,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.25
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.danger.subtler",
+                "valeurPubliee": "#FFD5D2",
+                "hex": "#ffd5d2",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 253
+                  }
+                },
+                "variableCss": "--ds-background-danger-subtler"
+              },
+              "texte": {
+                "token": "color.text.danger.bolder",
+                "valeurPubliee": "#5D1F1A",
+                "hex": "#5d1f1a",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 377
+                  }
+                },
+                "variableCss": "--ds-text-danger-bolder"
+              },
+              "bordure": {
+                "token": "color.border.danger",
+                "valeurPubliee": "#E2483D",
+                "hex": "#e2483d",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 329
+                  }
+                },
+                "variableCss": "--ds-border-danger"
+              },
+              "contrasteTexteFond": 9.37,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.34,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.34
+              }
+            },
+            {
+              "ton": "information",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.information.subtler",
+                "valeurPubliee": "#CFE1FD",
+                "hex": "#cfe1fd",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 293
+                  }
+                },
+                "variableCss": "--ds-background-information-subtler"
+              },
+              "texte": {
+                "token": "color.text.information.bolder",
+                "valeurPubliee": "#123263",
+                "hex": "#123263",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 386
+                  }
+                },
+                "variableCss": "--ds-text-information-bolder"
+              },
+              "bordure": {
+                "token": "color.border.information",
+                "valeurPubliee": "#357DE8",
+                "hex": "#357de8",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 337
+                  }
+                },
+                "variableCss": "--ds-border-information"
+              },
+              "contrasteTexteFond": 9.53,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.33,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.33
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.success",
+                "valeurPubliee": "#EFFFD6",
+                "hex": "#efffd6",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 270
+                  }
+                },
+                "variableCss": "--ds-background-success"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#292A2E",
+                "hex": "#292a2e",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 13.62,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.05,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.05
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.warning",
+                "valeurPubliee": "#FFF5DB",
+                "hex": "#fff5db",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 260
+                  }
+                },
+                "variableCss": "--ds-background-warning"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#292A2E",
+                "hex": "#292a2e",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 13.2,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.09,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.09
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.danger",
+                "valeurPubliee": "#FFECEB",
+                "hex": "#ffeceb",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 250
+                  }
+                },
+                "variableCss": "--ds-background-danger"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#292A2E",
+                "hex": "#292a2e",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 12.59,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.14,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.14
+              }
+            },
+            {
+              "ton": "information",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.information",
+                "valeurPubliee": "#E9F2FE",
+                "hex": "#e9f2fe",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 290
+                  }
+                },
+                "variableCss": "--ds-background-information"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#292A2E",
+                "hex": "#292a2e",
+                "source": {
+                  "fichier": "sources/atlaskit-light.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 12.69,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.13,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.13
+              }
+            }
+          ]
+        },
+        {
+          "id": "dark",
+          "tons": [
+            {
+              "ton": "success",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.success.subtler",
+                "valeurPubliee": "#37471F",
+                "hex": "#37471f",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 273
+                  }
+                },
+                "variableCss": "--ds-background-success-subtler"
+              },
+              "texte": {
+                "token": "color.text.success.bolder",
+                "valeurPubliee": "#D3F1A7",
+                "hex": "#d3f1a7",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 382
+                  }
+                },
+                "variableCss": "--ds-text-success-bolder"
+              },
+              "bordure": {
+                "token": "color.border.success",
+                "valeurPubliee": "#82B536",
+                "hex": "#82b536",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 333
+                  }
+                },
+                "variableCss": "--ds-border-success"
+              },
+              "contrasteTexteFond": 8.12,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.63,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.52
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.warning.subtler",
+                "valeurPubliee": "#693200",
+                "hex": "#693200",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 263
+                  }
+                },
+                "variableCss": "--ds-background-warning-subtler"
+              },
+              "texte": {
+                "token": "color.text.warning.bolder",
+                "valeurPubliee": "#FCE4A6",
+                "hex": "#fce4a6",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 380
+                  }
+                },
+                "variableCss": "--ds-text-warning-bolder"
+              },
+              "bordure": {
+                "token": "color.border.warning",
+                "valeurPubliee": "#F68909",
+                "hex": "#f68909",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 331
+                  }
+                },
+                "variableCss": "--ds-border-warning"
+              },
+              "contrasteTexteFond": 8.16,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.61,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.5
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.danger.subtler",
+                "valeurPubliee": "#5D1F1A",
+                "hex": "#5d1f1a",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 253
+                  }
+                },
+                "variableCss": "--ds-background-danger-subtler"
+              },
+              "texte": {
+                "token": "color.text.danger.bolder",
+                "valeurPubliee": "#FFD5D2",
+                "hex": "#ffd5d2",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 377
+                  }
+                },
+                "variableCss": "--ds-text-danger-bolder"
+              },
+              "bordure": {
+                "token": "color.border.danger",
+                "valeurPubliee": "#F15B50",
+                "hex": "#f15b50",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 329
+                  }
+                },
+                "variableCss": "--ds-border-danger"
+              },
+              "contrasteTexteFond": 9.37,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.31,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.22
+              }
+            },
+            {
+              "ton": "information",
+              "usage": "Lozenge discret",
+              "fond": {
+                "token": "color.background.information.subtler",
+                "valeurPubliee": "#123263",
+                "hex": "#123263",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 293
+                  }
+                },
+                "variableCss": "--ds-background-information-subtler"
+              },
+              "texte": {
+                "token": "color.text.information.bolder",
+                "valeurPubliee": "#CFE1FD",
+                "hex": "#cfe1fd",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 386
+                  }
+                },
+                "variableCss": "--ds-text-information-bolder"
+              },
+              "bordure": {
+                "token": "color.border.information",
+                "valeurPubliee": "#4688EC",
+                "hex": "#4688ec",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 337
+                  }
+                },
+                "variableCss": "--ds-border-information"
+              },
+              "contrasteTexteFond": 9.53,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.3,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.21
+              }
+            },
+            {
+              "ton": "success",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.success",
+                "valeurPubliee": "#28311B",
+                "hex": "#28311b",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 270
+                  }
+                },
+                "variableCss": "--ds-background-success"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#CECFD2",
+                "hex": "#cecfd2",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 8.72,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.21,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.13
+              }
+            },
+            {
+              "ton": "warning",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.warning",
+                "valeurPubliee": "#3A2C1F",
+                "hex": "#3a2c1f",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 260
+                  }
+                },
+                "variableCss": "--ds-background-warning"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#CECFD2",
+                "hex": "#cecfd2",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 8.64,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.22,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.14
+              }
+            },
+            {
+              "ton": "danger",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.danger",
+                "valeurPubliee": "#42221F",
+                "hex": "#42221f",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 250
+                  }
+                },
+                "variableCss": "--ds-background-danger"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#CECFD2",
+                "hex": "#cecfd2",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 9.11,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.16,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.08
+              }
+            },
+            {
+              "ton": "information",
+              "usage": "Section message",
+              "fond": {
+                "token": "color.background.information",
+                "valeurPubliee": "#1C2B42",
+                "hex": "#1c2b42",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 290
+                  }
+                },
+                "variableCss": "--ds-background-information"
+              },
+              "texte": {
+                "token": "color.text",
+                "valeurPubliee": "#CECFD2",
+                "hex": "#cecfd2",
+                "source": {
+                  "fichier": "sources/atlaskit-dark.js.txt",
+                  "tokenNames": {
+                    "fichier": "sources/atlaskit-token-names.js.txt",
+                    "ligne": 340
+                  }
+                },
+                "variableCss": "--ds-text"
+              },
+              "contrasteTexteFond": 9.15,
+              "contrasteTexteFondReference": "fond sur la carte elevation.surface.raised",
+              "contrasteFondPage": 1.15,
+              "contrasteFondCartes": {
+                "elevation.surface.raised": 1.08
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

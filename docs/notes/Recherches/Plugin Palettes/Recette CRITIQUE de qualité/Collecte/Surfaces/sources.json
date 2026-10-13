@@ -1,0 +1,362 @@
+[
+  {
+    "id": "primerLight",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/light.css",
+    "revision": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/light.css",
+    "localFile": "sources/primer-light.css.txt",
+    "sha256": "86468bdfa1761f189d7bed7c1a13c6183f67ec132d689dacc63acc9eec986496"
+  },
+  {
+    "id": "primerDark",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/dark.css",
+    "revision": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/dark.css",
+    "localFile": "sources/primer-dark.css.txt",
+    "sha256": "d70cf0d4f3b2b1056030b40fcf1cd65b1d74d07dbbec002ad300e08266188d89"
+  },
+  {
+    "id": "primerLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/LICENSE",
+    "revision": "@primer/primitives@11.10.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/primer-licence.txt",
+    "sha256": "e63582a78dddebe610b6cb59f0e7f5f761c1bb6a1c9551443beddc64fe525c3a"
+  },
+  {
+    "id": "atlaskitLight",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-light.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-light.js",
+    "localFile": "sources/atlaskit-light.js.txt",
+    "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763"
+  },
+  {
+    "id": "atlaskitDark",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-dark.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-dark.js",
+    "localFile": "sources/atlaskit-dark.js.txt",
+    "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4"
+  },
+  {
+    "id": "atlaskitTokenNames",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/token-names.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/token-names.js",
+    "localFile": "sources/atlaskit-token-names.js.txt",
+    "sha256": "92096e1094805a4ce01eb5776cc819a1778fa0bad88b6af6a4c4140c4a934861"
+  },
+  {
+    "id": "atlaskitLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/LICENSE",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "LICENSE",
+    "localFile": "sources/atlaskit-licence.txt",
+    "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8"
+  },
+  {
+    "id": "carbonWhite",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/js/generated/themes/white.js",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "js/generated/themes/white.js",
+    "localFile": "sources/carbon-white.js.txt",
+    "sha256": "c9674339b931da09696c25caab33c94dc17b36354955b0b4cbe9dfb2293594cd"
+  },
+  {
+    "id": "carbonG10",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/js/generated/themes/g10.js",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "js/generated/themes/g10.js",
+    "localFile": "sources/carbon-g10.js.txt",
+    "sha256": "ce936933fa231e60bd6497113e37e7989aa27ebee97f4e20581f651403bb8bbe"
+  },
+  {
+    "id": "carbonG90",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/js/generated/themes/g90.js",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "js/generated/themes/g90.js",
+    "localFile": "sources/carbon-g90.js.txt",
+    "sha256": "68a297ba2fcacfe316d0a2c1726c74de3aa9c6712b9c63ac3f57d37890d3ab92"
+  },
+  {
+    "id": "carbonG100",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/js/generated/themes/g100.js",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "js/generated/themes/g100.js",
+    "localFile": "sources/carbon-g100.js.txt",
+    "sha256": "17f4c7d11a2f2269653060f2cb3bf9e0ffec3ec43cafbb9cbbb63cbc0199059f"
+  },
+  {
+    "id": "carbonNotificationTokens",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/scss/generated/_notification-tokens.scss",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "scss/generated/_notification-tokens.scss",
+    "localFile": "sources/carbon-notification-tokens.scss.txt",
+    "sha256": "2ca4bc62dff7f49e193ed3e7d0a5f451e00ad3ea6095976cb542c4d1bbc83c1d"
+  },
+  {
+    "id": "carbonLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/LICENSE",
+    "revision": "@carbon/themes@11.83.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/carbon-licence.txt",
+    "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8"
+  },
+  {
+    "id": "carbonInlineNotification",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/styles@1.117.0/scss/components/notification/_inline-notification.scss",
+    "revision": "@carbon/styles@1.117.0",
+    "originalPath": "scss/components/notification/_inline-notification.scss",
+    "localFile": "sources/carbon-inline-notification.scss.txt",
+    "sha256": "8964cda3e5c4af091af958910cb20c77e37163f963aa32a65b82e9c28b446e15"
+  },
+  {
+    "id": "polarisTokensBuild",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris-tokens@9.4.2/dist/cjs/build/index.js",
+    "revision": "@shopify/polaris-tokens@9.4.2",
+    "originalPath": "dist/cjs/build/index.js",
+    "localFile": "sources/polaris-tokens-build.js.txt",
+    "sha256": "e09f5c5a9da63fc4d2538604e2d40a646bed3eb2aaf0ae064541f8633c30a92e"
+  },
+  {
+    "id": "polarisTokensLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris-tokens@9.4.2/LICENSE.md",
+    "revision": "@shopify/polaris-tokens@9.4.2",
+    "originalPath": "LICENSE.md",
+    "localFile": "sources/polaris-tokens-licence.md.txt",
+    "sha256": "172d300fa7873e23b0aef00408b1429541e0bd33794e998296742fcfc44540ac"
+  },
+  {
+    "id": "polarisStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris@13.9.5/build/esm/styles.css",
+    "revision": "@shopify/polaris@13.9.5",
+    "originalPath": "build/esm/styles.css",
+    "localFile": "sources/polaris-styles.css.txt",
+    "sha256": "7679086b9fdbab646abae0b7a50ef7c122e18282027fdc1403e84e4336cc2617"
+  },
+  {
+    "id": "polarisBannerUtilities",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris@13.9.5/build/esm/components/Banner/utilities.js",
+    "revision": "@shopify/polaris@13.9.5",
+    "originalPath": "build/esm/components/Banner/utilities.js",
+    "localFile": "sources/polaris-banner-utilities.js.txt",
+    "sha256": "6b42977851c8eb66df6456db73acb9827a86f65b87a6efb9bf54b0b0cbeb90ff"
+  },
+  {
+    "id": "m3SysColor",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-color.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-color.scss",
+    "localFile": "sources/m3-sys-color.scss.txt",
+    "sha256": "aa0c2dc244989edcb1bb2af169a87d290e5303a7e945720cd2c21c8bdb103670"
+  },
+  {
+    "id": "m3RefPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-ref-palette.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-ref-palette.scss",
+    "localFile": "sources/m3-ref-palette.scss.txt",
+    "sha256": "9208b47a2e67a9060a6d3440428a8ff0265e747d96477ae1b56dc7931d69f0d3"
+  },
+  {
+    "id": "m3ElevatedCard",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-elevated-card.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-elevated-card.scss",
+    "localFile": "sources/m3-elevated-card.scss.txt",
+    "sha256": "e37530710e66b98ca03f0347c49c85782664bebc10f30d4fd20591f12be45cc7"
+  },
+  {
+    "id": "m3FilledCard",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-card.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-card.scss",
+    "localFile": "sources/m3-filled-card.scss.txt",
+    "sha256": "f9a1416362ede3e8b54266f33590ad09f6307d8f9550f3945a4b4a5c0371ef42"
+  },
+  {
+    "id": "m3OutlinedCard",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-card.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-card.scss",
+    "localFile": "sources/m3-outlined-card.scss.txt",
+    "sha256": "29f016b453ed60b215787dc6313991e06033d9e67038f33c5d193df92cbd02cf"
+  },
+  {
+    "id": "m3Dialog",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-dialog.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-dialog.scss",
+    "localFile": "sources/m3-dialog.scss.txt",
+    "sha256": "d6382d5fb185db5380a467e302308259168ae9b0d95fe7f737d133321dc7376f"
+  },
+  {
+    "id": "m3Menu",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-menu.scss",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-menu.scss",
+    "localFile": "sources/m3-menu.scss.txt",
+    "sha256": "d32db0c611db7f7b8d58e33e4316e0ee424079354ce17086279fbbb9ef8451cc"
+  },
+  {
+    "id": "m3ColorTokensFull",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/labs/gb/styles/color/md-color-tokens-full.css",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "labs/gb/styles/color/md-color-tokens-full.css",
+    "localFile": "sources/m3-color-tokens-full.css.txt",
+    "sha256": "9ef227b8312531937905daec52271d936e73cb4388ab1c5f0925f1eef2758b77"
+  },
+  {
+    "id": "m3Licence",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/LICENSE",
+    "revision": "@material/web@2.5.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/m3-licence.txt",
+    "sha256": "295cdb4364b782931c914f5ca8c47fac87c732fa7e448b788a47aa5b25728212"
+  },
+  {
+    "id": "fluentLightColor",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColor.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColor.js",
+    "localFile": "sources/fluent-light-color.js.txt",
+    "sha256": "95c25a2fbfc3b465be4b0130bf40dbc0a2bfddd432b2551619055f64f165a6e6"
+  },
+  {
+    "id": "fluentDarkColor",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColor.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColor.js",
+    "localFile": "sources/fluent-dark-color.js.txt",
+    "sha256": "bcff717c006279025ed9325f02ce6e831226bca2bc320a1499d0fa821e2cfc18"
+  },
+  {
+    "id": "fluentLightPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColorPalette.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColorPalette.js",
+    "localFile": "sources/fluent-light-palette.js.txt",
+    "sha256": "3633cee2b5d8156920da3bdc7fd03c4a3b5799f75e9842512a147c830fde7660"
+  },
+  {
+    "id": "fluentDarkPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColorPalette.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColorPalette.js",
+    "localFile": "sources/fluent-dark-palette.js.txt",
+    "sha256": "f034e258bf0517fdfd39e9eec2d5f0f54e32eaa426e2d69cf066571221a88337"
+  },
+  {
+    "id": "fluentColors",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/colors.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/colors.js",
+    "localFile": "sources/fluent-colors.js.txt",
+    "sha256": "890345372ce466bc174aca2334f898d5299319509fffb57d115820bc6c7975cf"
+  },
+  {
+    "id": "fluentColorPalette",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/colorPalette.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/colorPalette.js",
+    "localFile": "sources/fluent-color-palette.js.txt",
+    "sha256": "e5e94346b57cda0b72f7b8296672e53110a6a6265a6e7a7da9153f2c162ad5f2"
+  },
+  {
+    "id": "fluentStatusMapping",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/statusColorMapping.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/statusColorMapping.js",
+    "localFile": "sources/fluent-status-mapping.js.txt",
+    "sha256": "5bb061f0cc79762bc296284637207eb562c15b803ffcda837b7481c7c2b3291f"
+  },
+  {
+    "id": "fluentSharedNames",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/sharedColorNames.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/sharedColorNames.js",
+    "localFile": "sources/fluent-shared-names.js.txt",
+    "sha256": "eef9c42010e8cc38b953d520c4922df170bf5c3aca708aaf32c074e7c1e06f49"
+  },
+  {
+    "id": "fluentWebLightTheme",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/themes/web/lightTheme.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/themes/web/lightTheme.js",
+    "localFile": "sources/fluent-web-light-theme.js.txt",
+    "sha256": "1f5200a43d4a489770a6a94bfc33e481980b1396d1ebc7a5f1a477e48cc586f2"
+  },
+  {
+    "id": "fluentWebDarkTheme",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/themes/web/darkTheme.js",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/themes/web/darkTheme.js",
+    "localFile": "sources/fluent-web-dark-theme.js.txt",
+    "sha256": "03ca4d2ab7481b1eba3b0642a036de4becae0714a8592e07ce0769b1af00be3d"
+  },
+  {
+    "id": "fluentLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/LICENSE",
+    "revision": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "LICENSE",
+    "localFile": "sources/fluent-licence.txt",
+    "sha256": "8189edb8b17032b0fa631dc776cc363080a51e8650821c8faad43ec22a303685"
+  },
+  {
+    "id": "fluentCardStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-card@9.7.3/lib/components/Card/useCardStyles.styles.raw.js",
+    "revision": "@fluentui/react-card@9.7.3",
+    "originalPath": "lib/components/Card/useCardStyles.styles.raw.js",
+    "localFile": "sources/fluent-card-styles.js.txt",
+    "sha256": "bc518dd171dcb16c0b1c239710168736549a735b5dda705d3197bb6b4051afba"
+  },
+  {
+    "id": "fluentMessageBarStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-message-bar@9.7.7/lib/components/MessageBar/useMessageBarStyles.styles.raw.js",
+    "revision": "@fluentui/react-message-bar@9.7.7",
+    "originalPath": "lib/components/MessageBar/useMessageBarStyles.styles.raw.js",
+    "localFile": "sources/fluent-message-bar-styles.js.txt",
+    "sha256": "ac011a0b2e218bb8dcdad406a051db7a23109ea604375533df1aeb1199fccf61"
+  },
+  {
+    "id": "fluentBadgeStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-badge@9.5.6/lib/components/Badge/useBadgeStyles.styles.raw.js",
+    "revision": "@fluentui/react-badge@9.5.6",
+    "originalPath": "lib/components/Badge/useBadgeStyles.styles.raw.js",
+    "localFile": "sources/fluent-badge-styles.js.txt",
+    "sha256": "936af2ed966fcfffea58466054a92f58c3776b6070102a601678210c8c61b15a"
+  },
+  {
+    "id": "shadcnThemes",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/registry/themes.ts",
+    "revision": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/registry/themes.ts",
+    "localFile": "sources/shadcn-themes.ts.txt",
+    "sha256": "60cb5ed25f7b39d9973e2280f476dd2119a4268317f45bd7ee3cac7883db8ea0"
+  },
+  {
+    "id": "shadcnGlobals",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/app/globals.css",
+    "revision": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/app/globals.css",
+    "localFile": "sources/shadcn-globals.css.txt",
+    "sha256": "cbae6d633c38be59fc036d1e5cf60203ae7619ea6af9b4cdd8d632a211ccffa9"
+  },
+  {
+    "id": "shadcnNeutralJson",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/public/r/themes/neutral.json",
+    "revision": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/public/r/themes/neutral.json",
+    "localFile": "sources/shadcn-neutral-json.json.txt",
+    "sha256": "f895f5848b74f800282fb1a1d2cea25ed646b663881769a992fd164939a5fc00"
+  },
+  {
+    "id": "shadcnLicence",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/LICENSE.md",
+    "revision": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "LICENSE.md",
+    "localFile": "sources/shadcn-licence.md.txt",
+    "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+  }
+]
