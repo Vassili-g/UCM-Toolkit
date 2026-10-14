@@ -34,7 +34,7 @@ test('S2 retrouve les dépendances du moteur et retire ses écoutes après la me
     const attendus = await portee.dansUnePorteeDAnalyse({}, () => composition.indexContractedNames([racine]));
     assert.deepEqual([...attendus], ['action']);
     composition.oublierLIndexDuDocument();
-    const chemin = join(__dirname, "../../../docs/notes/Recherches/Performance de l'analyse/sondes/S2-prechauffage.js");
+    const chemin = join(__dirname, '../sondes/S2-prechauffage.js');
     const source = ts.transpileModule(readFileSync(chemin, 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText;
