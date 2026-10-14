@@ -1051,8 +1051,8 @@ dans les deux sens du thème : la nuance de `solid/pressed` est la 900 dans le
 sens normal et la 500 dans le sens inversé. Une cellule montre le spécimen d'une
 variable peint de sa nuance, le nom de la variable avec son numéro de nuance,
 puis ses garanties. `page` n'a pas d'états : ses variables
-`page/foreground`, `page/border`, `page/focus` et `page/divider` se suivent
-sous les trois colonnes.
+`page/foreground`, `page/border` et `page/divider` se suivent sous les trois
+colonnes.
 
 | Variable | Spécimen |
 |---|---|
@@ -1060,9 +1060,14 @@ sous les trois colonnes.
 | `surface/default`, `surface/hover`, `surface/pressed` | un aplat « Fond teinté », écrit de `surface/foreground` et bordé de `surface/border` |
 | `page/foreground` | « Lien coloré » |
 | `page/border` | un champ bordé |
-| `page/focus` | un champ cerclé de l'anneau |
+| `ring` | un champ cerclé de l'anneau |
 | `page/divider` | un filet |
 
+- `[PLA-30]` `ring` n'appartient à aucun dossier : la planche lui donne une
+  rangée au niveau de la palette, après les lignes `solid`, `surface` et
+  `page`, avec son rôle, son nom et ses exemples comme une ligne de dossier ;
+  sa cellule s'aligne sous la première colonne d'états et garde la largeur de
+  l'anneau, 104 px, et ses garanties.
 - `[PLA-17]` Les sept garanties du moteur sont représentées, dans chaque
   thème, lues dans les promesses du moteur : la planche ne juge rien. Une
   garantie dont le premier membre a une cellule se lit dans cette cellule,
@@ -1080,7 +1085,7 @@ sous les trois colonnes.
   palettes de même configuration donnent deux cadres de même structure,
   quelle que soit la saturation de leur référence. Une palette à une
   intensité a une section, sans nom de profil. Le cadre de Bleu compte
-  1 754 calques à deux intensités et 902 à une, toutes parties dessinées.
+  1 778 calques à deux intensités et 914 à une, toutes parties dessinées.
 - `[PLA-28]` `contenuDesPlanches` choisit les parties qu'un cadre dessine :
   la note sous les rampes, les trois lignes de dossiers (clé `usages`), les
   grilles de contrastes, et chaque thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs

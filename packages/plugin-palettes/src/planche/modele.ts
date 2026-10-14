@@ -356,17 +356,18 @@ interface Tranche {
 
 type Dossier = (typeof DOSSIERS)[number];
 
-/** Les variables de chaque ligne, dans l'ordre de la planche. `page` n'a pas d'états : ses quatre variables se suivent. */
+/** Les variables de chaque ligne, dans l'ordre de la planche. `page` n'a pas d'états : ses trois variables se suivent. `ring`, à la racine de la palette, a sa propre rangée. */
 const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[]>> = {
   solid: ['solid/default', 'solid/hover', 'solid/pressed'],
   surface: ['surface/default', 'surface/hover', 'surface/pressed'],
-  page: ['page/foreground', 'page/border', 'ring', 'page/divider'],
+  page: ['page/foreground', 'page/border', 'page/divider'],
 };
 
 /**
- * La largeur d'une cellule de `page`. Les quatre tiennent dans les trois
- * colonnes d'états : 96 + 96 + 104 + 96, et trois espacements de 8, font 416 px,
- * soit 3 × 128 et deux espacements de 16.
+ * La largeur d'une cellule de `page`, et celle de `ring`, que son anneau élargit
+ * de la trame. Les trois cellules de `page` tiennent dans les trois colonnes
+ * d'états : 3 × 96 et deux espacements de 8 font 304 px, sous 3 × 128 et deux
+ * espacements de 16.
  */
 const LARGEUR_PAGE = { cellule: 96, anneau: SPECIMEN.largeur + TRAME } as const;
 
@@ -484,7 +485,7 @@ function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalet
     const tenue = promesse.verdict === 'tenue';
     return texte(nom, `${TEXTES_DU_DETAIL.garantie(tenue, sens, promesse.contraste)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, largeur);
   });
-  return cadre(variable === 'ring' ? 'page focus' : variable.replace('/', ' '), 'VERTICAL', [
+  return cadre(variable.replace('/', ' '), 'VERTICAL', [
     specimen(contexte, tranche, variable, encres),
     cadre('mesures', 'VERTICAL', [
       texte('variable', `${variable} · ${cran}`, 'chiffre', encres.encre, largeur),
@@ -498,7 +499,7 @@ function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalet
 /**
  * La ligne d'un dossier : son rôle, son code et ses exemples, le texte et le
  * contour qu'il porte dits une fois, puis une cellule par état. `page` n'a
- * pas d'états : ses quatre variables se suivent sous les colonnes d'états.
+ * pas d'états : ses trois variables se suivent sous les colonnes d'états.
  */
 function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, encres: Encres, garanties: readonly LigneDeGarantie[]): NoeudCadre | null {
   const variables = VARIABLES_DU_DOSSIER[dossier];
@@ -510,7 +511,7 @@ function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, 
     : dossier === 'surface' && cranDuTexte !== null && estPresente(contexte, tranche, 'surface/foreground') ? [t.texteEtContourDeSurface(cranDuTexte)] : [];
   const neutre = dossier === 'page' && estLaPaletteNeutre(contexte.palette);
   const largeurDe = (variable: VariableDePalette): number =>
-    dossier !== 'page' ? USAGE.etat : variable === 'ring' ? LARGEUR_PAGE.anneau : LARGEUR_PAGE.cellule;
+    dossier !== 'page' ? USAGE.etat : LARGEUR_PAGE.cellule;
   const cellules = variables.map((variable) =>
     estPresente(contexte, tranche, variable)
       ? cellule(contexte, tranche, variable, encres, garanties, largeurDe(variable))
@@ -524,6 +525,24 @@ function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, 
       ...(neutre ? [texte('neutre', t.noteDuNeutre, 'note', encres.seconde, USAGE.libelle)] : []),
     ], { espacement: 0, largeur: USAGE.libelle }),
     ...(dossier === 'page' ? [cadre('variables', 'HORIZONTAL', cellules, { espacement: TRAME })] : cellules),
+  ], { espacement: 2 * TRAME });
+}
+
+/**
+ * La rangée de `ring`, au niveau de la palette, après les trois dossiers
+ * ([PLA-30]), avec son rôle, son nom et ses exemples comme une ligne de
+ * dossier. Sa cellule s'aligne sous la première colonne d'états.
+ */
+function ligneDeRing(contexte: Contexte, tranche: Tranche, encres: Encres, garanties: readonly LigneDeGarantie[]): NoeudCadre | null {
+  if (!estPresente(contexte, tranche, 'ring')) return null;
+  const t = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.anneau;
+  return cadre('rangée ring', 'HORIZONTAL', [
+    cadre('libellés', 'VERTICAL', [
+      texte('rôle', t.role, 'role', encres.encre, USAGE.libelle),
+      texte('variable', 'ring', 'note', encres.seconde, USAGE.libelle),
+      texte('exemples', t.exemples, 'note', encres.seconde, USAGE.libelle),
+    ], { espacement: 0, largeur: USAGE.libelle }),
+    cellule(contexte, tranche, 'ring', encres, garanties, LARGEUR_PAGE.anneau),
   ], { espacement: 2 * TRAME });
 }
 
@@ -544,10 +563,12 @@ function sectionDesVariables(contexte: Contexte, intensite: Intensite, mode: Mod
     const ligne = ligneDeDossier(contexte, tranche, dossier, encres, garanties);
     return ligne ? [filet(encres.filet), ligne] : [];
   });
+  const anneau = ligneDeRing(contexte, tranche, encres, garanties);
   return cadre(intensite === 'unique' ? 'quelle nuance pour quelle variable' : `quelle nuance pour quelle variable ${intensite}`, 'VERTICAL', [
     texte('titre', titre, 'theme', encres.encre),
     entete,
     ...lignes,
+    ...(anneau ? [filet(encres.filet), anneau] : []),
   ], { espacement: 2 * TRAME, largeur });
 }
 

@@ -139,13 +139,13 @@ test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne p
   assert.deepEqual(textes(trouver(variables, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'pressed']);
   const lignes = variables.enfants.filter((noeud): noeud is NoeudCadre => noeud.nom.startsWith('dossier '));
   assert.deepEqual(lignes.map((noeud) => [noeud.nom, noeud.enfants.length - 1]), [['dossier solid', 3], ['dossier surface', 3], ['dossier page', 1]]);
-  assert.deepEqual(trouver(variables, 'variables').enfants.map((noeud) => noeud.nom), ['page foreground', 'page border', 'page focus', 'page divider']);
+  assert.deepEqual(trouver(variables, 'variables').enfants.map((noeud) => noeud.nom), ['page foreground', 'page border', 'page divider']);
   const legendes = (ligne: string) => textes(trouver(trouver(variables, ligne), 'libellés')).map((noeud) => noeud.contenu);
   assert.deepEqual(legendes('dossier solid'), ['Fond plein', 'solid', 'bouton principal, badge plein', 'texte : solid/foreground, blanc']);
   assert.deepEqual(legendes('dossier surface'), ['Fond teinté', 'surface', 'alerte, badge doux, ligne sélectionnée', 'texte et contour : surface/foreground, surface/border · 800']);
-  assert.deepEqual(legendes('dossier page'), ['Sur la page', 'page', 'lien, champ, anneau, filet']);
+  assert.deepEqual(legendes('dossier page'), ['Sur la page', 'page', 'lien, champ, filet']);
   const nom = (cellule: string) => textes(trouver(variables, cellule)).find((noeud) => noeud.nom === 'variable')!.contenu;
-  assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'page foreground', 'page border', 'page focus', 'page divider'].map(nom), [
+  assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'page foreground', 'page border', 'ring', 'page divider'].map(nom), [
     'solid/default · 700', 'solid/hover · 800', 'solid/pressed · 900', 'surface/default · 100', 'surface/hover · 200', 'surface/pressed · 300',
     'page/foreground · 700', 'page/border · 700', 'ring · 600', 'page/divider · 300',
   ]);
@@ -157,7 +157,7 @@ test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne p
   assert.equal((specimen('surface pressed').enfants[0] as NoeudTexte).couleur.hexa, peint(800), 'le texte de surface');
   assert.equal(specimen('surface pressed').trait?.couleur.hexa, peint(800), 'le contour de surface');
   assert.equal((specimen('page foreground').enfants[0] as NoeudTexte).couleur.hexa, peint(700));
-  assert.equal(specimen('page focus').trait?.couleur.hexa, peint(600));
+  assert.equal(specimen('ring').trait?.couleur.hexa, peint(600));
   assert.equal(specimen('page divider').fond, null);
   assert.equal(textes(trouver(variables, 'page divider')).some((noeud) => noeud.contenu === 'sans minimum de contraste'), true);
   assert.ok(!textes(MODELE.racine).some((noeud) => /active|Fonds (de carte|légers|pleins)|Fond léger|Séparateurs|Bordures de champ/.test(noeud.contenu)), 'plus rien de l’ancienne table');
@@ -174,9 +174,21 @@ function recetteAvecLesTextes(light: TexteDesBoutons, dark: TexteDesBoutons): Re
   return sombre.recette;
 }
 
+test('[PLA-30] ring est une rangée de la palette, hors du dossier page', () => {
+  const variables = variablesDe(MODELE.racine, 'light', 'vivid');
+  const rangs = variables.enfants.filter((noeud): noeud is NoeudCadre => noeud.type === 'cadre' && (noeud.nom.startsWith('dossier ') || noeud.nom === 'rangée ring')).map((noeud) => noeud.nom);
+  assert.deepEqual(rangs, ['dossier solid', 'dossier surface', 'dossier page', 'rangée ring']);
+  assert.ok(!trouver(variables, 'dossier page').enfants.some((noeud) => noeud.nom === 'ring' || tous(noeud).some((enfant) => enfant.nom === 'ring')), 'page ne porte pas ring');
+  const rangee = trouver(variables, 'rangée ring');
+  const cellule = rangee.enfants.find((noeud): noeud is NoeudCadre => noeud.type === 'cadre' && noeud.nom === 'ring')!;
+  assert.equal(cellule.largeur, 104, 'la largeur de l’anneau');
+  assert.equal(trouver(cellule, 'spécimen').largeur, 104);
+  assert.equal(textes(cellule).find((noeud) => noeud.nom === 'variable')!.contenu, 'ring · 600');
+});
+
 test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les quatre combinaisons de texte des boutons', () => {
-  const NORMAL = { solid: [700, 800, 900], surface: [100, 200, 300], texte: 800, page: [700, 700, 600, 300] };
-  const INVERSE = { solid: [700, 600, 500], surface: [100, 200, 300], texte: 900, page: [800, 800, 700, 300] };
+  const NORMAL = { solid: [700, 800, 900], surface: [100, 200, 300], texte: 800, page: [700, 700, 300], ring: 600 };
+  const INVERSE = { solid: [700, 600, 500], surface: [100, 200, 300], texte: 900, page: [800, 800, 300], ring: 700 };
   const PURS = { blanc: '#FFFFFF', noir: '#000000' };
   for (const [light, dark] of COMBINAISONS) {
     const recette = recetteAvecLesTextes(light, dark);
@@ -202,7 +214,8 @@ test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les qua
         assert.equal((specimen.enfants[0] as NoeudTexte).couleur.hexa, peint(table.texte), `${contexte} ${nom} : texte`);
         assert.equal(specimen.trait?.couleur.hexa, peint(table.texte), `${contexte} ${nom} : contour`);
       });
-      ['page foreground', 'page border', 'page focus', 'page divider'].forEach((nom, rang) => assert.equal(nuance(nom), String(table.page[rang]), `${contexte} ${nom}`));
+      ['page foreground', 'page border', 'page divider'].forEach((nom, rang) => assert.equal(nuance(nom), String(table.page[rang]), `${contexte} ${nom}`));
+      assert.equal(nuance('ring'), String(table.ring), `${contexte} ring`);
       const dites = cadres(variables).filter((noeud) => noeud.nom === 'libellés').flatMap(textes).map((noeud) => noeud.contenu);
       assert.ok(dites.includes(`texte : solid/foreground, ${texteDesBoutons}`), contexte);
       assert.ok(dites.includes(`texte et contour : surface/foreground, surface/border · ${table.texte}`), contexte);
@@ -241,7 +254,7 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,55:1 · AA', '✓ contour dessus : 6,55:1 · AA']);
   assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,74:1 · AA']);
   assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,74:1 · AA']);
-  assert.deepEqual(lignes('page focus'), ['✓ sur la page : 4,52:1 · AA', '✓ sur surface/default : 4,19:1 · AA']);
+  assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur surface/default : 4,19:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
   const echec = garantiesLues(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.contenu.startsWith('✗'))!;
   assert.equal(echec.style, 'chiffre');
@@ -461,7 +474,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Trois états par dossier : 1 754 calques à deux intensités, 902 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1754);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 902);
+  // Trois états par dossier : 1 778 calques à deux intensités, 914 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1778);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 914);
 });

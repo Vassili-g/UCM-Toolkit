@@ -15,8 +15,10 @@ export const TEXTES_DES_DOSSIERS_DE_LA_PLANCHE = {
   dossiers: {
     solid: { role: 'Fond plein', exemples: 'bouton principal, badge plein' },
     surface: { role: 'Fond teinté', exemples: 'alerte, badge doux, ligne sélectionnée' },
-    page: { role: 'Sur la page', exemples: 'lien, champ, anneau, filet' },
+    page: { role: 'Sur la page', exemples: 'lien, champ, filet' },
   },
+  /** La rangée de `ring`, hors des dossiers ([PLA-30]). */
+  anneau: { role: 'Anneau de focus', exemples: 'tout élément atteint au clavier' },
   /** Le texte et le contour d'un dossier, dits une fois dans l'en-tête de sa ligne. */
   texteDeSolid: (texte: TexteDesBoutons) => `texte : solid/foreground, ${NOM_DU_TEXTE_DES_BOUTONS[texte]}`,
   texteEtContourDeSurface: (cran: number) => `texte et contour : surface/foreground, surface/border · ${cran}`,
