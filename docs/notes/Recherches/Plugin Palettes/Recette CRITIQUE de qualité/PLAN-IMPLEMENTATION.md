@@ -235,7 +235,11 @@ la suite complète et, si la vague touche Palettes, après `test:ui`.
 
 ### Vague 0 · Préparation
 
-- [ ] **V0.1 · État de départ** · orchestrateur.
+- [x] **V0.1 · État de départ** · orchestrateur. Fait à e0e1d97 : typecheck,
+  build et les trois `test:ui` verts (Palettes 262, Exporter 39,
+  explorateur 24) ; `npm test` rouge sur un seul test d'Exporter, qui lisait
+  une sonde retirée par ce2623b, corrigé en 60a1d83 (1061 sur 1061).
+  Identifiants de la section 7 libres.
   - `git status` : seuls `docs/notes/Recherches/README.md` et
     `docs/notes/Recherches/Architecture globale UCM/` peuvent être modifiés,
     et ne se commitent pas.
@@ -249,7 +253,8 @@ la suite complète et, si la vague touche Palettes, après `test:ui`.
 
 Les tâches sont successives.
 
-- [ ] **R1 · `page/focus` devient `ring`** · `implementeur`, moyen.
+- [x] **R1 · `page/focus` devient `ring`** · `implementeur`, moyen. Fait en
+  a53024a ; la bande de l'aperçu dit `ring`.
   - Décision : DECISIONS.md, section 3, Q8. La variable garde ses crans
     (600 en sens normal, 700 en sens inversé) ; elle est la 13e variable de
     la palette, à la racine, hors des dossiers `solid`, `surface` et `page`.
@@ -280,7 +285,8 @@ Les tâches sont successives.
     `npm test`. Puis `git grep -n "page/focus" -- packages` ne rend rien.
   - Fini quand : les trois commandes passent et la recherche est vide.
 
-- [ ] **R2 · La planche dessine `ring` au niveau de la palette** · `implementeur`, moyen.
+- [x] **R2 · La planche dessine `ring` au niveau de la palette** · `implementeur`, moyen.
+  Fait en 974615f ; la rangée porte un rôle et des exemples comme un dossier.
   - Identifiant réservé : `[PLA-30]`, dans la section de SPEC-PAL qui décrit
     la planche des variables.
   - `PAL/src/planche/modele.ts` : retirer `ring` de `VARIABLES_DU_DOSSIER.page` ;
@@ -295,7 +301,11 @@ Les tâches sont successives.
   - Vérifier : `npm test --workspace ucm-palettes-plugin`.
   - Fini quand : vert.
 
-- [ ] **R3 · Une table par thème et par sens** · `implementeur-exigeant`, haut.
+- [x] **R3 · Une table par thème et par sens** · `implementeur-exigeant`, haut.
+  Fait en ae074b0, avec R4 : la table Dark seule faisait manquer G7 contre
+  `surface/default` au cran 300. `cransRequis('dark', 'normal')` vaut
+  `[300, 400, 500, 600, 700, 800, 900, 950]` ; la liste de 100 à 950 est la
+  réunion des deux thèmes (M2).
   - Décision : DECISIONS.md, section 3, tableau Q5 et Q6.
   - `packages/kit/src/emplois/dossiers.ts` :
     - `TABLE_DES_DOSSIERS` devient
@@ -337,7 +347,9 @@ Les tâches sont successives.
     aux crans 300, 400, 500 et leur texte au 950 (test d'interface sur un
     état de galerie en Dark, qui lit les couleurs des variables affichées).
 
-- [ ] **R4 · G7 jugée contre la page et la carte** · `implementeur-exigeant`, haut.
+- [x] **R4 · G7 jugée contre la page et la carte** · `implementeur-exigeant`, haut.
+  Fait en ae074b0. Vert #16A34A ne manquant plus rien, le témoin d'une
+  palette en échec devient Bleu #1E6FD9 au texte noir en Light (G1).
   - Décision : DECISIONS.md, section 4, G7 ; proposition PR3. Identifiants
     réservés : `[MOT-37]` (la carte déduite, section des promesses du moteur
     de SPEC-PAL) et `[VER-21]` (G7 contre la page et la carte, section des
@@ -394,8 +406,13 @@ Les tâches sont successives.
     réglette de G7 avec ses deux cases, Page et Carte, et le test d'interface
     lit leurs libellés.
 
-- [ ] **R5 · Fin de vague** · `verificateur`, puis orchestrateur.
+- [x] **R5 · Fin de vague** · `verificateur`, puis orchestrateur.
   - Suite complète et `test:ui` des trois plugins. Commits, push.
+  - Fait : 2627 tests, typecheck, build, `test:ui` 264, 39 et 24 verts.
+    Versions montées en a5e19bb (kit 0.6.0, cli 0.1.56, adapter 0.1.49) :
+    le kit ne change plus après la vague 1, F2 n'a plus qu'à vérifier la
+    publication. Le bilan de vingt palettes garde son jeu d'origine (52d9196) ;
+    ses comptes suivent le moteur et se revoient en fin de vague 2.
 
 ### Vague 2 · Le moteur
 
