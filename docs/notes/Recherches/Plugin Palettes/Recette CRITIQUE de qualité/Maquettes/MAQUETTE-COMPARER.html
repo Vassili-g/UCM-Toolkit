@@ -37,6 +37,8 @@
   .bascule button[aria-pressed="true"] { background: var(--texte); color: var(--fond); }
   details.replie { margin: 6px 0 14px; }
   details.replie > summary { cursor: pointer; opacity: .75; font-size: 12.5px; margin-bottom: 8px; }
+  a.ids { display: inline-block; margin-left: 10px; padding: 0 8px; border: 1px solid currentColor; border-radius: 10px; color: inherit; font-size: 11.5px; font-weight: 600; line-height: 18px; opacity: .65; text-decoration: none; vertical-align: middle; white-space: nowrap; }
+  a.ids:hover { opacity: 1; }
 </style>
 <script src="galerie/etats.js"></script>
 <script src="donnees-qualite.js"></script>
@@ -87,7 +89,7 @@
 </table>
 </details>
 
-<h2 id="reglage">1. Réglage global, dans Création</h2>
+<h2 id="reglage">1. Réglage global, dans Création <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q3 · C8 · C10</a></h2>
 <p class="chapeau">L'état « référence modifiée » de la galerie : Vivid porte la référence, sa luminosité vaut −0,02, Soft a une teinte de +8°. La proposition retire l'encart et la marque d'écart. Elle garde une marque par réglette, la valeur par défaut, et des mots aux deux bouts de chaque piste.</p>
 <details class="replie"><summary>Les libellés comparés pour la marque (décision C8)</summary>
 <table>
@@ -118,11 +120,11 @@
 <div class="commandes"><span>Libellé sous la marque</span><div class="bascule" data-commande="libelle"></div><span>Bouton des réglettes</span><div class="bascule" data-commande="bouton"></div></div>
 <div class="rangee" id="r-reglage"></div>
 
-<h2 id="configuration">2. Configuration</h2>
+<h2 id="configuration">2. Configuration <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q3 · C9</a></h2>
 <p class="chapeau">Le panneau qui s'ouvre par l'engrenage, en haut à droite. Il prend le nom et les onglets de la page de configuration de Contract Exporter : le composant d'onglets du socle, puis une phrase qui dit ce que l'onglet règle.</p>
 <div class="rangee" id="r-configuration"></div>
 
-<h2 id="harmonisation">3. L'onglet Harmonisation</h2>
+<h2 id="harmonisation">3. L'onglet Harmonisation <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">C1 à C7</a></h2>
 <p class="chapeau">Un quatrième onglet, entre Vérification et Gestion. Il compare des palettes, signale celles qui se ressemblent trop, et règle chacune avec les réglettes de Création. Rien ne s'y règle en groupe : le designer déplace une réglette à la fois, en voyant les autres palettes.</p>
 <details class="replie"><summary>Les noms d'onglet comparés (décision C1)</summary>
 <table>
@@ -141,7 +143,7 @@
 <div class="rangee" id="r-harmonisation-1"></div>
 <div class="rangee" id="r-harmonisation-2"></div>
 
-<h2 id="listes">4. Les listes déroulantes</h2>
+<h2 id="listes">4. Les listes déroulantes <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">C10</a></h2>
 <p class="chapeau">Le socle donne la police de l'interface aux boutons et aux champs (<code>button, input { font: inherit; }</code>), pas aux listes : un <code>select</code> garde la police du système, 13,3 px au lieu de 11 px, et sa flèche native. La proposition ajoute <code>select</code> à cette règle, retire la flèche native au profit d'un chevron gris, et donne la hauteur des bascules, 24 px, à une liste posée parmi des boutons : « Teinte Tailwind » de Color shift, « Vision » de la roue. La langue, champ d'un formulaire, garde les 32 px des autres champs.</p>
 <div class="rangee" id="r-listes"></div>
 
@@ -322,7 +324,9 @@
   const monter = (rangee, numero, titre, texte, nom, options, liste) => {
     const div = document.createElement('div');
     div.className = 'cadre';
-    div.innerHTML = `<h3><span>${numero}</span>${titre}</h3><p>${texte}</p>`;
+    // Les écrans de l'onglet Harmonisation renvoient aux décisions qu'ils montrent.
+    const decisions = { H1: 'C1 · C2 · C5 · C6', H2: 'C3 · C4 · C5', H3: 'C5 · C6', H4: 'C3 · C4', H5: 'C3', H6: 'C7', H7: 'C6' }[numero];
+    div.innerHTML = `<h3><span>${numero}</span>${titre}${decisions ? ` <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">${decisions}</a>` : ''}</h3><p>${texte}</p>`;
     document.getElementById(rangee).append(div);
     ecran(div, nom, options);
     const notes = document.createElement('div');

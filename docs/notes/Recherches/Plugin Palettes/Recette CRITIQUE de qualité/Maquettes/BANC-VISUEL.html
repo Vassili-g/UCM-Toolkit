@@ -68,6 +68,8 @@
     .focus-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .focus-grille .entete { display: none; }
   }
+  a.ids { display: inline-block; margin-left: 10px; padding: 0 8px; border: 1px solid currentColor; border-radius: 10px; color: inherit; font-size: 11.5px; font-weight: 600; line-height: 18px; opacity: .65; text-decoration: none; vertical-align: middle; white-space: nowrap; }
+  a.ids:hover { opacity: 1; }
 </style>
 <script src="donnees-banc-visuel.js"></script>
 </head>
@@ -84,18 +86,18 @@
   <div class="groupe"><span>Dérive de teinte</span><div class="bascule" data-commande="derive"></div></div>
 </div>
 
-<h2 id="regles">1. Les règles de chroma, à l'aveugle</h2>
+<h2 id="regles">1. Les règles de chroma, à l'aveugle <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q1 · Q2 · Q10</a></h2>
 <p class="chapeau">Trois règles, nommées A, B et C dans un ordre caché. Chaque ligne montre la rampe de la palette (le repère blanc marque la référence), puis une alerte, un badge discret, un badge plus marqué, un bouton teinté, un bouton plein et un lien. Sous chaque famille de Tailwind, une fine bande montre la rampe de Tailwind, pour comparer. Notez chaque règle dans chaque profil et chaque thème.</p>
 <div class="groupe" style="margin:4px 0 10px"><span>Fonds teintés</span><div class="bascule" data-commande="fondsRegles"></div><span id="fonds-regles-note" style="margin-left:6px"></span></div>
 <div class="scene" id="scene-regles"><div class="carte" id="carte-regles"><div class="lignes" id="lignes"></div></div></div>
 <div class="notes" id="notes-regles"></div>
 
-<h2 id="fonds">2. Le fond des surfaces : 50 ou 100 en Light, 200 ou 300 en Dark</h2>
+<h2 id="fonds">2. Le fond des surfaces : 50 ou 100 en Light, 200 ou 300 en Dark <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5 · Q9</a></h2>
 <p class="chapeau">La même règle de chroma de part et d'autre (celle choisie en haut) ; seul le cran du fond change. À gauche le modèle proposé, à droite un cran plus marqué. Un fond 300 en Dark demande un texte 950 : avec un texte 900, l'appui (500) manque 4,5:1 sur tout le balayage. En sens inversé, l'appui 500 prend aussi la couleur de l'appui du bouton plein.</p>
 <div class="duo" id="duo-fonds"></div>
 <div class="notes" id="notes-fonds"></div>
 
-<h2 id="focus">3. Le focus</h2>
+<h2 id="focus">3. Le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q6 · Q7</a></h2>
 <p class="chapeau" id="focus-chapeau"></p>
 <div class="scene" id="scene-focus"><div class="carte" id="carte-focus"><div class="focus-grille" id="focus-grille"></div></div></div>
 <div class="notes" id="notes-focus"></div>

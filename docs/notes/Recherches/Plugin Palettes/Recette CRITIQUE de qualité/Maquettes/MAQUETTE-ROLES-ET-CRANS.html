@@ -150,6 +150,8 @@
     .marche { grid-template-columns: minmax(0, 1fr); }
     .marche > b { margin-top: 10px; }
   }
+  a.ids { display: inline-block; margin-left: 10px; padding: 0 8px; border: 1px solid currentColor; border-radius: 10px; color: inherit; font-size: 11.5px; font-weight: 600; line-height: 18px; opacity: .65; text-decoration: none; vertical-align: middle; white-space: nowrap; }
+  a.ids:hover { opacity: 1; }
 </style>
 <script src="donnees-qualite.js"></script>
 <script src="couleurs.js"></script>
@@ -160,7 +162,7 @@
 <p class="chapeau">Comment la page, la carte et les fonds teintés se séparent dans les deux thèmes, quels crans la table du thème (<code>TABLE_DES_DOSSIERS</code>) leur donne, et comment l'architecture des tokens le traduit. Couleurs de la recette du mainteneur, avec l'enveloppe par thème ; le thème Dark est inversé, le texte des boutons y est blanc.</p>
 <nav><a href="#niveaux">1. Le modèle des niveaux</a><a href="#mapping">2. Le mapping des tokens</a><a href="#composants-a-surface">3. Les composants à surface</a><a href="#autres-systemes">4. Les autres systèmes</a><a href="#focus">5. Le focus</a><a href="#rangement">6. Où ranger le focus</a><a href="#decisions">7. Décisions</a><a href="#surfaces">Annexe A. Pistes écartées</a><a href="#table">Annexe B. Tables mesurées</a></nav>
 
-<h2 id="niveaux">1. Le modèle des niveaux : page, carte, composant</h2>
+<h2 id="niveaux">1. Le modèle des niveaux : page, carte, composant <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
 <p><b>La question.</b> <code>elevation/raised</code>, la carte, prend une couleur du neutre et se pose sur <code>elevation/page</code>. Un fond teinté, le <code>surface/default</code> d'une palette, se pose sur la carte : un badge dans une carte. En Dark aujourd'hui, la carte (neutre 100) ne se détache de la page (neutre 50) que de 1,10:1, et le fond teinté, au cran 100 lui aussi, a exactement la clarté de la carte : 1,00:1, le badge disparaît. En Light, le fond 100 paraît trop foncé sur la carte blanche.</p>
 <p><b>La réponse : chaque niveau se tient à distance fixe de celui qui le porte.</b> La page, puis la carte, puis le fond teinté, à deux crans de la carte : le banc visuel a retenu cet écart plutôt qu'un seul cran. La même règle donne les crans des deux thèmes.</p>
 
@@ -202,7 +204,7 @@
     <tr><td><code>solid/*</code>, <code>page/foreground</code>, <code>page/border</code>, <code>page/divider</code></td><td colspan="3">Inchangés</td></tr>
   </tbody>
 </table>
-<h2 id="mapping">2. Le mapping dans l'architecture des tokens</h2>
+<h2 id="mapping">2. Le mapping dans l'architecture des tokens <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5 · Q8</a></h2>
 <p class="chapeau">Le chemin ne change pas : un composant cite <code>theme</code>, qui cite <code>color-utilities</code> ou <code>color-brands</code>, qui citent <code>primitives</code>. Seuls changent le cran que <code>theme</code> vise et la clarté du cran 50 de la courbe Dark.</p>
 <div class="fx" id="fx">
   <div class="fx-top">
@@ -224,7 +226,7 @@
     <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 devient requis</td></tr>
   </tbody>
 </table>
-<h2 id="composants-a-surface">3. Les composants à surface</h2>
+<h2 id="composants-a-surface">3. Les composants à surface <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q9</a></h2>
 <p class="chapeau">Les rôles actuels servent chaque composant relevé dans onze systèmes (<code>Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md</code>). Table proposée, palette choisie ci-dessus.</p>
 <table>
   <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark proposé</th><th>Ce que font les autres</th></tr></thead>
@@ -238,11 +240,11 @@
 </table>
 <div class="composants" id="composants" style="margin-top:12px"></div>
 
-<h2 id="autres-systemes">4. Le fond teinté dans les autres systèmes</h2>
+<h2 id="autres-systemes">4. Le fond teinté dans les autres systèmes <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
 <p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM proposé.</p>
 <div class="marche" id="marche"></div>
 
-<h2 id="focus">5. Le focus</h2>
+<h2 id="focus">5. Le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q6 · Q7</a></h2>
 <p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark aussi, le cran d'aujourd'hui (600, ou 700 en sens inversé) est le plus discret qui tienne 3:1 contre la page et la carte. Le bleu de Figma (<code>#006AFF</code>) a d'ailleurs la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et séparé du bouton par 2 px de fond. L'impression de couleur foncée vient donc de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Le halo pâle collé est répandu (Bootstrap, Flowbite, shadcn/ui, Ant Design, le kit Figma d'Untitled UI, de 1,1 à 2,1:1 contre la page), mais aucun n'atteint le 3:1 que le W3C demande contre le fond qui l'entoure (<a href="../ROBUSTESSE-DES-RAMPES.md">robustesse</a>, section 6).</p>
 <div class="commandes">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="fMode"></div></div>
@@ -250,7 +252,7 @@
 </div>
 <div class="grille" id="grille-focus" style="grid-template-columns: 200px minmax(0, 1fr) 260px"></div>
 
-<h2 id="rangement">6. Où ranger le focus</h2>
+<h2 id="rangement">6. Où ranger le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q8</a></h2>
 <p>Le focus est rangé dans <code>page</code> parce que l'anneau se peint sur la page, et la règle des dossiers est « la couleur juste derrière le texte ». L'anneau n'a pas de texte : la règle ne le place nulle part avec évidence, et le mainteneur ne l'a pas trouvé en reliant un bouton <code>solid</code>. Le contrat nomme ce rôle <code>ring</code> (<code>SUPPORT_DES_VARIABLES</code>) ; la variable <code>text</code> est déjà devenue <code>foreground</code> pour suivre les rôles du contrat.</p>
 <div class="panneaux" id="panneaux-figma"></div>
 <table style="margin-top:14px">
@@ -273,7 +275,7 @@
   <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
 </ol>
 
-<h2 id="surfaces">Annexe A. Les pistes écartées : fond 50 sur la page, fond 200 seul, fonds translucides</h2>
+<h2 id="surfaces">Annexe A. Les pistes écartées : fond 50 sur la page, fond 200 seul, fonds translucides <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
 <details class="replie"><summary>Afficher les pistes écartées, avec leurs commandes</summary>
 <p class="chapeau">Les pistes mesurées avant le modèle des niveaux, sur la page et sur la carte. Elles restent pour comparer.</p>
 <p>En Light, la page (<code>#F6F7F8</code>) et la carte blanche diffèrent de 1,07:1. En Dark, la page (<code>#111213</code>) et la carte (<code>#1A1C1F</code>) diffèrent de 1,10:1. Un fond opaque ne peut donc pas garder le même écart avec les deux supports. Le cran 50 que le mainteneur préfère vaut 1,075:1 sur la carte blanche et 1,005:1 sur la page, médianes du balayage de 72 teintes. En Dark, le cran 100 vaut 1,004:1 sur la carte : la collision relevée par le dossier d'élévation touche toutes les palettes, pas seulement le neutre.</p>
@@ -287,7 +289,7 @@
 
 </details>
 
-<h2 id="table">Annexe B. Les tables mesurées</h2>
+<h2 id="table">Annexe B. Les tables mesurées <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
 <p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème (<code>Mesures/GARANTIES-BALAYAGE.json</code>). Le modèle est en tête de page.</p>
 <table>
   <thead><tr><th>Table</th><th>Échecs en plus du modèle</th><th>Sort</th></tr></thead>

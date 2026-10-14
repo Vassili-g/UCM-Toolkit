@@ -63,6 +63,8 @@
     .focus-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .focus-grille .entete { display: none; }
   }
+  a.ids { display: inline-block; margin-left: 10px; padding: 0 8px; border: 1px solid currentColor; border-radius: 10px; color: inherit; font-size: 11.5px; font-weight: 600; line-height: 18px; opacity: .65; text-decoration: none; vertical-align: middle; white-space: nowrap; }
+  a.ids:hover { opacity: 1; }
 </style>
 <script src="donnees-banc-tour-2.js"></script>
 </head>
@@ -85,12 +87,12 @@
   <div class="groupe"><span>Fonds Dark, Vivid</span><div class="bascule" data-commande="bDark"></div></div>
 </div>
 
-<h2 id="regles">1. Les jaunes clairs et les fonds Dark</h2>
+<h2 id="regles">1. Les jaunes clairs et les fonds Dark <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q1 · Q2</a></h2>
 <p class="chapeau"><b>Jaunes clairs.</b> L'enveloppe donne à tous les crans clairs la même chroma au plus : c'est sa cohérence. Un jaune pâle aussi peu saturé qu'un bleu pâle paraît marron clair. La marge élargit cette borne autour du jaune seulement, en Light : de 0 (l'enveloppe du premier tour) à +150 % (le niveau de la retenue par teinte). <b>Fonds Dark, Vivid.</b> Au cran 300, les bleus et les violets montent à 0,15 de chroma, les turquoises à 0,04 : c'est la cohérence de 3 du premier tour. Une borne plus basse (0,38 comme Soft, ou 0,30) rapproche les familles. Choisissez votre réglage préféré pour chaque profil.</p>
 <div class="scene" id="scene-regles"><div class="carte" id="carte-regles"><div class="lignes" id="lignes"></div></div></div>
 <div class="notes" id="notes-regles"></div>
 
-<h2 id="focus">2. Le focus</h2>
+<h2 id="focus">2. Le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q7</a></h2>
 <p class="chapeau">Le halo pâle collé au cran 200, votre préféré, a pour couleur le survol du fond teinté (<code>surface/hover</code>) : avec la table retenue, c'est exactement ce cran. Seul, il contraste à moins de 3:1 avec la carte, et le W3C le juge non conforme au niveau AA. Deux façons de garder son aspect et d'être conforme : l'entourer d'un liseré au cran du focus (<code>ring</code>), de 1 ou 2 px ; ou, sur les champs et les boutons à contour, passer aussi la bordure au cran du focus, comme Ant Design. Les deux n'emploient que des variables qui existent. La ligne « anneau décalé » rappelle la forme de référence.</p>
 <div class="scene" id="scene-focus"><div class="carte" id="carte-focus"><div class="focus-grille" id="focus-grille"></div></div></div>
 <div class="notes" id="notes-focus"></div>
