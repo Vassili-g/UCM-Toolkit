@@ -109,7 +109,7 @@
 <body>
 
 <h1>Qualité des palettes en interface</h1>
-<p class="chapeau">Les quatre utilitaires de la recette du mainteneur (Poppy, Orange, Grass, Sky) posés sur des composants : alertes, badges, boutons. Le moteur actuel est comparé à trois règles de chroma candidates, calculées par le banc de recherche avec les mêmes références, les mêmes teintes et le même ancrage. Les supports viennent de Titanium : page <code>50</code>, carte blanche en Light et <code>100</code> en Dark.</p>
+<p class="chapeau">Les quatre utilitaires de la recette du mainteneur (Poppy, Orange, Grass, Sky) posés sur des composants : alertes, badges, boutons. La page compare l'enveloppe retenue (Q1) au moteur actuel, à la recette du mainteneur et à deux pistes écartées (Deux zones, Relevé Tailwind), calculés par le banc de recherche avec les mêmes références, les mêmes teintes et le même ancrage. Les supports viennent de Titanium : page <code>50</code>, carte blanche en Light et <code>100</code> en Dark.</p>
 <nav>
   <a href="#solution">La solution proposée</a><a href="#constat">1. Le constat chiffré</a><a href="#banc">2. Le banc de composants</a><a href="#aveugle">3. À l'aveugle</a><a href="#regles">4. Ce que change chaque règle</a><a href="#decisions">5. Décisions</a>
 </nav>
@@ -121,11 +121,11 @@
     <li><b>Une enveloppe par thème.</b> La part donne la chroma ; une borne qui ne dépend que de la clarté la plafonne, la même pour toutes les teintes. Vers le blanc, elle calme les fonds du Light (Soft a = 0,6) et s'ouvre pour les textes du Dark (a = 1,1). Elle s'élargit autour du jaune, qui sans cela vire au marron clair (+100 % en Soft, +50 % en Vivid), et borne les fonds Dark de Vivid (b = 0,30).</li>
     <li><b>Le fond à deux crans de sa carte.</b> En Light, il prend 100 sur la carte blanche, comme aujourd'hui, avec une couleur plus calme. En Dark, il prend 300 sur la carte au neutre 100, et la page descend sous la carte (cran 50 à L 0,145).</li>
     <li><b>Le texte reste 800 en Light et passe à 950 en Dark</b> ; le focus garde son cran. La dérive de teinte suit Tailwind de plus près (pire écart 38° → 12°).</li>
-    <li><b>Les garanties</b> : les 144 échecs du balayage de 72 teintes existent déjà avec le moteur actuel ; 20 de plus si le focus touche le fond 100, aucun avec un indicateur extérieur.</li>
+    <li><b>Les garanties</b> : les 144 échecs du balayage de 72 teintes existent déjà avec le moteur actuel (G1, références ancrées en Dark inversé) ; G7 juge le focus contre la page et la carte.</li>
   </ol>
 </div>
 <div class="chiffres">
-  <div class="chiffre"><b>×4,2 → ×1,2</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, Soft, fonds 50 à 300, valeurs par défaut puis enveloppe.</span></div>
+  <div class="chiffre"><b>×4,2 → ×1,2</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, Soft, fonds 50 à 300, en Light, valeurs par défaut puis enveloppe.</span></div>
   <div class="chiffre"><b>38° → 12°</b><span>Le pire écart de teinte au préréglage Tailwind, sur ses dix-sept familles : les ambres et les jaunes clairs ne virent plus à l'orange.</span></div>
   <div class="chiffre"><b>1,00 → 1,39</b><span>Le contraste du fond teinté contre la carte en Dark (1,34 à 1,43) ; la page passe aussi de 1,10 à 1,16 contre la carte.</span></div>
   <div class="chiffre"><b>1,14 à 1,17</b><span>En Light, le contraste du fond 100 contre la carte blanche, comme aujourd'hui : seule sa couleur se calme, et s'accorde d'une palette à l'autre.</span></div>
@@ -134,14 +134,14 @@
   <div class="groupe"><span>Intensité</span><div class="bascule" data-commande="sIntensite"></div></div>
 </div>
 <div class="duo" id="solution-duo"></div>
-<p class="resume">À gauche, le moteur actuel aux valeurs par défaut : c'est ce qu'un fichier neuf reçoit. À droite, le modèle des niveaux : fond Light 50, fond Dark 200, page Dark abaissée. La commande « Texte des fonds en Dark » compare les deux textes possibles en Dark, 900 et 950.</p>
+<p class="resume">À gauche, le moteur actuel aux valeurs par défaut : c'est ce qu'un fichier neuf reçoit. À droite, la table et la règle retenues : fonds 100 en Light, 300 en Dark, texte 800 en Light et 950 en Dark, page Dark abaissée (<code>#0A0A0B</code> avec le Titanium du mainteneur).</p>
 
 <h2 id="constat">1. Le constat chiffré <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q1 · Q2</a></h2>
 <p>Le moteur fabrique chaque cran à une part constante du plafond sRGB : Soft 0,45, Vivid 0,95. Tailwind, dont viennent les rampes d'Untitled UI, emploie 0,90 à 1,00 de ce plafond sur presque tout le cercle. Il n'en garde que 0,59 à 0,81 dans les crans clairs des verts et 0,46 à 0,76 dans les crans foncés du bleu et de l'indigo.</p>
 <div class="chiffres">
   <div class="chiffre"><b>×0,33 à ×0,50</b><span>La chroma des textes 700 de Soft, aux valeurs par défaut, rapportée à celle de Tailwind au même cran. Orange 700 vaut <code>#765E45</code>, C 0,049.</span></div>
   <div class="chiffre"><b>×2</b><span>La chroma des crans 100 et 200 de Grass Vivid (<code>#C6FFD5</code> et <code>#7FFFA8</code>), rapportée à <code>green-100</code> et <code>green-200</code> de Tailwind. L'enveloppe la ramène à ×1,2.</span></div>
-  <div class="chiffre"><b>×3,4 à ×4,2</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, aux valeurs par défaut. L'enveloppe le ramène à ×1,7 en Soft et ×2,2 en Vivid.</span></div>
+  <div class="chiffre"><b>×3,3 à ×4,2</b><span>L'écart de chroma entre les quatre utilitaires à un même cran, aux valeurs par défaut. L'enveloppe le ramène à ×1,7 à ×2,1 en Soft, ×2,1 à ×2,2 en Vivid.</span></div>
 </div>
 <p>Les réglages du mainteneur ont compensé à la main : parts Soft 1,00 sur Poppy, 0,92 sur Orange, 0,65 sur Sky et 0,45 sur Grass. Un Color shift de luminosité de −0,015 à −0,02 au bout clair de Vivid fonce aussi les crans 50 et 100 de Poppy, Orange et Sky, ce qui augmente leur chroma. Le graphique montre la chroma de chaque cran en Light, pour une palette.</p>
 <div class="commandes" style="position:static">
@@ -166,6 +166,7 @@
 <div id="banc-ui"></div>
 
 <h2 id="aveugle">3. À l'aveugle <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q1</a></h2>
+<p class="chapeau">Premier test, avant le banc visuel. Q1 est tranchée depuis : l'enveloppe, élargie autour du jaune.</p>
 <p class="chapeau">Cinq panneaux, dans un ordre tiré au hasard et sans nom de règle. Noter chaque panneau de 1 à 5 sur six critères, puis révéler. Les notes restent dans ce navigateur ; « Copier le bilan » les met en texte avec les noms des règles.</p>
 <div class="commandes" style="position:static">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="aMode"></div></div>
@@ -182,13 +183,13 @@
 <div id="table-regles"></div>
 <h3>Les règles</h3>
 <ul id="liste-regles"></ul>
-<p>Sur un balayage de 72 teintes à deux clartés de référence, dans les quatre combinaisons du texte des boutons, l'enveloppe ne crée aucun échec de garantie avec une surface Light au cran 50. Avec la table actuelle, elle en crée 20 sur 50 688 couples : G7, le focus 600 contre <code>surface/default</code> 100, entre 2,98:1 et 3,00:1, sur cinq références vert-jaune. Les 144 échecs G1 du thème Dark inversé existent déjà avec le moteur actuel : le texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et garde ses octets.</p>
+<p>Sur un balayage de 72 teintes à deux clartés de référence, dans les quatre combinaisons du texte des boutons, l'enveloppe ne crée aucun échec nouveau : G7 juge le focus contre la page et la carte. Les 144 échecs G1 du thème Dark inversé existent déjà avec le moteur actuel : le texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et garde ses octets.</p>
 
 <h2 id="decisions">5. Décisions</h2>
 <ol class="decisions">
   <li><b>Q1. La règle de chroma.</b> Retenu au banc visuel : l'enveloppe par thème. La part donne la chroma, une borne qui ne dépend que de la clarté la plafonne, élargie autour du jaune (+100 % en Soft, +50 % en Vivid) ; les fonds Dark de Vivid sont bornés à 0,30. Elle rapproche le plus les palettes, laisse intactes les palettes ternes, et tient la cohérence du groupe (5 presque partout au banc).</li>
-  <li><b>Q2. Le sens de Soft et Vivid.</b> Recommandé : Soft garde des fonds calmes en Light (a = 0,6) et des textes colorés dans les deux thèmes (part 0,85 ; a = 1,1 en Dark) ; Vivid suit Tailwind (part 0,95, a = 1,1).</li>
-  <li><b>Q3. Les valeurs par défaut.</b> Les valeurs de Q2 deviennent les valeurs par défaut de la recette, dans la Configuration ; chaque réglette de Création les marque. Une recette existante garde la part constante jusqu'à ce que le designer choisisse « Par défaut ».</li>
+  <li><b>Q2. Le sens de Soft et Vivid.</b> Retenu : Soft garde des fonds calmes en Light (a = 0,6) et des textes colorés dans les deux thèmes (part 0,85 ; a = 1,1 en Dark) ; Vivid suit Tailwind (part 0,95, a = 1,1).</li>
+  <li><b>Q3. Les valeurs par défaut.</b> Retenu : les valeurs de Q2 deviennent les valeurs par défaut de la recette, dans la Configuration ; chaque réglette de Création les marque. Une recette existante garde la part constante jusqu'à ce que le designer choisisse « Par défaut ».</li>
   <li><b>Q4. Le texte courant des alertes.</b> Coloré, comme aujourd'hui et comme Radix, ou neutre avec titre et icône colorés, comme Primer et Atlassian. Ce choix relève des composants ; la palette n'en dépend pas.</li>
   <li><b>Q10. La dérive de teinte.</b> Retenu au banc visuel : le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence. Le pire écart à Tailwind passe de 38° à 12° ; les ambres et les jaunes clairs ne virent plus à l'orange.</li>
 </ol>
@@ -207,35 +208,39 @@
   const lire = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
   const ecrire = (cle, valeur) => { try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch { /* stockage indisponible */ } };
 
-  const etat = lire('qualite-etat', { variante: 'enveloppe', mode: 'light', intensite: 'soft', support: 'raised', crans: 'table', corps: 'colore', aMode: 'light', aIntensite: 'soft', aSupport: 'raised', gPalette: 'Grass', gRegle: 'enveloppe', gMode: 'light' });
+  const etat = lire('qualite-etat-2', { variante: 'enveloppe', mode: 'light', intensite: 'soft', support: 'raised', crans: 'modele', corps: 'colore', aMode: 'light', aIntensite: 'soft', aSupport: 'raised', gPalette: 'Grass', gRegle: 'enveloppe', gMode: 'light' });
   // Un état rangé avant l'ajout de la commande du Dark n'a pas cette clé.
-  if (!etat.aDark) etat.aDark = 'actuel';
+  if (!etat.aDark) etat.aDark = 'modele';
   if (!etat.sIntensite) etat.sIntensite = 'soft';
   if (!etat.sTexte) etat.sTexte = 'modele';
   // Les tables écartées ne se proposent plus : un état rangé qui les vise revient à la table actuelle.
-  if (!['table', 'modele', 'modele950'].includes(etat.crans)) etat.crans = 'table';
-  if (!['actuel', 'modele', 'modele950'].includes(etat.aDark)) etat.aDark = 'actuel';
+  if (!['table', 'modele', 'modele950'].includes(etat.crans)) etat.crans = 'modele';
+  if (!['actuel', 'modele', 'modele950'].includes(etat.aDark)) etat.aDark = 'modele';
   const OPTIONS = {
     variante: VARIANTES,
     mode: [['light', 'Light'], ['dark', 'Dark']],
     intensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
     support: [['page', 'Page'], ['raised', 'Carte']],
-    crans: [['table', 'Table actuelle'], ['modele', 'Modèle retenu']],
+    crans: [['modele', 'Table retenue (Q5)'], ['table', 'Table actuelle, pour comparer']],
     corps: [['colore', 'Coloré'], ['neutre', 'Neutre']],
     aMode: [['light', 'Light'], ['dark', 'Dark']],
     aIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
     aSupport: [['page', 'Page'], ['raised', 'Carte']],
-    aDark: [['actuel', 'Table actuelle'], ['modele', 'Modèle retenu']],
+    aDark: [['modele', 'Table retenue'], ['actuel', 'Table actuelle']],
     sIntensite: [['soft', 'Soft'], ['vivid', 'Vivid']],
     gPalette: STATUTS.map((s) => [s.palette, s.palette]),
     gRegle: [['zones', 'Deux zones'], ['enveloppe', 'Enveloppe'], ['tailwind', 'Relevé Tailwind']],
     gMode: [['light', 'Light'], ['dark', 'Dark']],
   };
 
+  /** La page peinte : la table retenue abaisse la page Dark à `#0A0A0B` ; les autres tables gardent la page de la recette. */
+  const pageDe = (ctx) => ctx.page ?? (String(ctx.crans).startsWith('modele') && ctx.mode === 'dark' ? '#0A0A0B' : D.supports[ctx.mode].page);
+
   /** Le jeu de composants d'une palette, sur le support choisi. */
   function colonne(statut, ctx, mesures) {
     const j = U.jeu({ ...ctx, palette: statut.palette });
-    const fond = j.fond;
+    // Le support « page » est mesuré contre la page réellement peinte par la scène.
+    const fond = ctx.support === 'page' ? pageDe(ctx) : j.fond;
     const surface = U.rendu(j.surface.default, fond);
     const neutre = U.cran('actuel', 'Titanium', 'soft', ctx.mode, 950);
     const corps = ctx.corps === 'neutre' ? neutre : j.surface.foreground;
@@ -265,8 +270,7 @@
 
   /** Une page et sa carte ; les composants se posent sur le support choisi. */
   function scene(ctx, mesures = true) {
-    // Le modèle abaisse la page Dark au cran 50 recalculé ; les autres tables gardent la page de la recette.
-    const page = ctx.page ?? (String(ctx.crans).startsWith('modele') && ctx.mode === 'dark' ? '#0A0A0B' : D.supports[ctx.mode].page);
+    const page = pageDe(ctx);
     const { raised } = D.supports[ctx.mode];
     const colonnes = STATUTS.map((s) => colonne(s, ctx, mesures)).join('');
     return ctx.support === 'page'
@@ -292,8 +296,8 @@
     const chemin = (rampe) => rampe.map((h, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(U.oklch(h).C).toFixed(1)}`).join(' ');
     const couleurPalette = U.cran('actuel', etat.gPalette, 'vivid', 'light', 600);
     const series = [
-      ['communs', 'soft', '#b5b5b5', 1.5, '', 'Actuel Soft'],
-      ['communs', 'vivid', '#6b6b6b', 2.5, '', 'Actuel Vivid'],
+      ['communs', 'soft', '#b5b5b5', 1.5, '', 'Moteur actuel Soft'],
+      ['communs', 'vivid', '#6b6b6b', 2.5, '', 'Moteur actuel Vivid'],
       [etat.gRegle, 'soft', couleurPalette, 1.5, '', `${D.variantes[etat.gRegle].nom} Soft`],
       [etat.gRegle, 'vivid', couleurPalette, 3, '', `${D.variantes[etat.gRegle].nom} Vivid`],
     ];
@@ -355,13 +359,14 @@
     try { navigator.clipboard.writeText(zone.value); } catch { /* le texte reste sélectionné */ }
   });
 
+  const SORTS = { actuel: 'comparaison', communs: 'comparaison', zones: 'écartée', enveloppe: 'retenue', tailwind: 'écartée' };
   function dessinerTable() {
     const vues = [['soft-light', 'Soft · Light'], ['vivid-light', 'Vivid · Light'], ['soft-dark', 'Soft · Dark'], ['vivid-dark', 'Vivid · Dark']];
-    let html = '<table><thead><tr><th>Règle</th>' + vues.map(([, n]) => `<th>${n}<br>rapport C · écart L · échecs</th>`).join('') + '<th>Distance à Tailwind<br>Soft · Vivid (moyenne)</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Règle</th><th>Sort</th>' + vues.map(([, n]) => `<th>${n}<br>rapport C · écart L · échecs</th>`).join('') + '<th>Distance à Tailwind<br>Soft · Vivid (moyenne)</th></tr></thead><tbody>';
     for (const [id, v] of Object.entries(D.variantes)) {
       const m = D.mesures[id];
       const dist = (i) => { const xs = Object.entries(m.distanceTailwind).filter(([k]) => k.endsWith(i)).map(([, x]) => x); return xs.reduce((s, x) => s + x, 0) / xs.length; };
-      html += `<tr><td><b>${v.nom}</b></td>${vues.map(([k]) => `<td class="n">×${U.fr(m.vues[k].rapportC, 1)} · ${U.fr(m.vues[k].ecartL, 3)} · ${m.vues[k].echecs}</td>`).join('')}<td class="n">${U.fr(dist('soft'), 3)} · ${U.fr(dist('vivid'), 3)}</td></tr>`;
+      html += `<tr><td><b>${v.nom}</b></td><td>${SORTS[id]}</td>${vues.map(([k]) => `<td class="n">×${U.fr(m.vues[k].rapportC, 1)} · ${U.fr(m.vues[k].ecartL, 3)} · ${m.vues[k].echecs}</td>`).join('')}<td class="n">${U.fr(dist('soft'), 3)} · ${U.fr(dist('vivid'), 3)}</td></tr>`;
     }
     document.getElementById('table-regles').innerHTML = `${html}</tbody></table>`;
     document.getElementById('liste-regles').innerHTML = Object.values(D.variantes).map((v) => `<li><b>${v.nom}.</b> ${v.resume}</li>`).join('');
@@ -377,7 +382,7 @@
     const bouton = ev.target.closest('[data-commande] button');
     if (!bouton) return;
     etat[bouton.parentElement.dataset.commande] = bouton.dataset.valeur;
-    ecrire('qualite-etat', etat);
+    ecrire('qualite-etat-2', etat);
     toutDessiner();
   });
   /** Avant et après, sur carte : le moteur actuel aux valeurs par défaut, puis l'enveloppe par thème et la table Dark proposée. */
@@ -386,7 +391,7 @@
       variante: propose ? 'enveloppe' : 'communs', mode, intensite: etat.sIntensite, support: 'raised',
       crans: propose ? 'modele' : 'table', corps: 'colore',
     }, false);
-    document.getElementById('solution-duo').innerHTML = `<span></span><span class="tete">Aujourd'hui, valeurs par défaut</span><span class="tete">Proposé</span>
+    document.getElementById('solution-duo').innerHTML = `<span></span><span class="tete">Aujourd'hui, valeurs par défaut</span><span class="tete">Retenu</span>
       <span class="theme">Light</span>${cas('light', false)}${cas('light', true)}
       <span class="theme">Dark</span>${cas('dark', false)}${cas('dark', true)}`;
   }

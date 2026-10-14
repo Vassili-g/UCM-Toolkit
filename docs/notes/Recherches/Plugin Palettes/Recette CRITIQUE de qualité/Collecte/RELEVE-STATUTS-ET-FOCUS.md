@@ -1,4 +1,4 @@
-# Statuts discrets et focus dans six systèmes
+# Statuts discrets de cinq systèmes, focus de dix
 
 Relevé lu dans le code et les fichiers de tokens publiés, aux versions citées.
 Les valeurs « calculées » sont des compositions faites pour ce relevé, pas des

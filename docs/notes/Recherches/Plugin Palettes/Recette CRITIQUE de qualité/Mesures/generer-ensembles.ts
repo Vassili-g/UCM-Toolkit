@@ -15,13 +15,13 @@ import { prereglageTailwind } from '../../../../../../packages/couleur/src/tailw
 import { TABLE_DES_DOSSIERS, sensDuTheme } from '../../../../../../packages/kit/src/emplois/dossiers';
 
 /**
- * La table du modèle des niveaux (SOLUTION-RAMPES.md, S2) : en Light, les fonds teintés 50, 100, 200 ;
- * en Dark, 200, 300, 400, texte et contour 900, focus 800. Les autres variables gardent la table du kit.
+ * La table retenue au banc visuel (SOLUTION-RAMPES.md, S2) : en Light, la table du kit (fonds 100, 200,
+ * 300) ; en Dark, fonds 300, 400, 500, texte et contour 950. Le focus garde ses crans.
  */
 function tableDuModele(mode: 'light' | 'dark', sens: 'normal' | 'inverse'): Record<string, number | 'texteDesBoutons'> {
   const base = { ...TABLE_DES_DOSSIERS[sens] } as Record<string, number | 'texteDesBoutons'>;
-  if (mode === 'light') return { ...base, 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 };
-  return { ...base, 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 };
+  if (mode === 'light') return base;
+  return { ...base, 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 };
 }
 import { RECETTE_REELLE, valider } from './variantes';
 
@@ -32,6 +32,9 @@ const SEUILS: Record<string, number> = { solid: 0.1, foreground: 0.06 };
 // Les fonds teintés clairs sont peu saturés par construction : à vingt palettes, les compter donnait 46 paires.
 // Une confusion se juge sur ce qui porte le statut, le plein et le texte.
 const ROLES = [['solid/default', 'solid', 'le plein'], ['surface/foreground', 'foreground', 'le texte du fond teinté']] as const;
+// En Dark, le texte du fond teinté est le cran 950, presque blanc : pâle par construction, comme les fonds
+// teintés, il se ressemble d'une palette à l'autre. Il ne compte qu'en Light ; le plein compte dans les deux thèmes.
+const compte = (mode: 'light' | 'dark', v: string) => mode === 'light' || v !== 'surface/foreground';
 
 // Les vingt palettes « à vérifier » de la galerie (`galerie/etats.cjs`), reconstruites à l'identique.
 const VINGT = [
@@ -92,6 +95,7 @@ function proximite(recette: Recette, a: Palette, b: Palette) {
   };
   let pire: { r: number; e: number; mode: string; role: string } | null = null;
   for (const mode of ['light', 'dark'] as const) for (const [v, famille, role] of ROLES) {
+    if (!compte(mode, v)) continue;
     const e = dE(couleur(a, mode, v), couleur(b, mode, v));
     if (!pire || e / SEUILS[famille] < pire.r) pire = { r: e / SEUILS[famille], e, mode, role };
   }
@@ -108,6 +112,7 @@ function distanceMin(recette: Recette, a: Palette, b: Palette) {
   };
   let pire = { e: Infinity, mode: '', role: '' };
   for (const mode of ['light', 'dark'] as const) for (const [v, , role] of ROLES) {
+    if (!compte(mode, v)) continue;
     const e = dE(couleur(a, mode, v), couleur(b, mode, v));
     if (e < pire.e) pire = { e, mode, role };
   }

@@ -3,6 +3,10 @@
  * et chaque table de crans candidate, dans les quatre combinaisons du texte
  * des boutons. Ajoute la carte (`elevation/raised`) aux fonds de page et
  * mesure la séparation entre `surface/default` et chaque support.
+ *
+ * Ces tables ont été mesurées avant le banc visuel. Le « Modèle » y désigne la
+ * proposition à un cran (fonds Light 50, Dark 200) ; la table retenue se mesure
+ * dans `garanties-regles.ts`.
  */
 import { writeFileSync } from 'node:fs';
 import { ecrireHexa, lineaireVersRgb8, oklchVersLineaire, lireHexa } from '../../../../../../packages/couleur/src/conversions';

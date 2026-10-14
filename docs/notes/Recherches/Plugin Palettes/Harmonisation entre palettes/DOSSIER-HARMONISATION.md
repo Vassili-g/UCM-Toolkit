@@ -1,5 +1,11 @@
 # Harmonisation entre palettes : dossier
 
+> **Remplacé en partie.** L'onglet Harmonisation de la
+> [recette critique](../Recette%20CRITIQUE%20de%20qualit%C3%A9/DOSSIER-COMPARER.md)
+> reprend ce sujet : la comparaison a son onglet (D1 tranchée), et aucun groupe
+> n'est rangé (D2 devient C2). Les mesures et le marché de ce dossier restent
+> valables ; ses tables de crans décrivent l'état d'avant la recette critique.
+
 **Statut : recherche faite, maquettes à valider.** Ce dossier reprend le
 [plan de recherche](./PLAN-RECHERCHE-HARMONISATION.md) du 2 octobre et la
 [note de recherche](./RECHERCHE-HARMONISATION.md) du 5 octobre. Il mesure une

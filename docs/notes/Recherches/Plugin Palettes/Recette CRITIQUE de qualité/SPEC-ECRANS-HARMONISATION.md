@@ -63,9 +63,9 @@ et le socle) ; les classes nouvelles sont définies en section 9.
   `texteDesBoutons[mode]` vaut `blanc` en Light ou `noir` en Dark, `inverse`
   sinon (`sensDuTheme`). `solid/foreground` vaut `#FFFFFF` pour `blanc` et
   `#000000` pour `noir`. Plein : `solid/default`
-  (700) et `solid/foreground` ; fond teinté : `surface/default` (50 en Light,
-  200 en Dark) et `surface/foreground` (800 en Light, 900 en Light inversé et
-  en Dark) ; contour : `page/border` et `page/foreground`.
+  (700) et `solid/foreground` ; fond teinté : `surface/default` (100 en Light,
+  300 en Dark) et `surface/foreground` (800 en Light, 900 en Light inversé,
+  950 en Dark) ; contour : `page/border` et `page/foreground`.
 - **Palette colorée** : référence de chroma OKLCH supérieure à 0,05. Les autres
   sont neutres : hors des paires, de la roue et des constats de saturation et
   de luminosité.
@@ -265,9 +265,10 @@ sauf la roue. Une carte repliée montre son résumé ; ouverte, ses choix.
 ### 7.3 Ce qui est trop proche
 
 Une paire de palettes colorées est trop proche quand, pour l'intensité Vivid
-(ou unique), la distance OKLab entre leurs `solid/default`, ou entre leurs
-`surface/foreground`, passe sous `recette.seuils.palettesProches` (0,05) en
-Light ou en Dark. Le constat retient le rôle et le thème de la plus petite
+(ou unique), la distance OKLab entre leurs `solid/default`, en Light ou en
+Dark, ou entre leurs `surface/foreground`, en Light seulement, passe sous
+`recette.seuils.palettesProches` (0,05). Le texte des fonds en Dark (cran 950,
+presque blanc) n'y entre pas. Le constat retient le rôle et le thème de la plus petite
 distance. `presque identiques` s'ajoute sous 0,01.
 
 Le plugin recalcule toutes les paires à chaque réglage, pour toutes les

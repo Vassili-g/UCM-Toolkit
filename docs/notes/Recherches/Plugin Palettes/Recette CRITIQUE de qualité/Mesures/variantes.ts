@@ -62,31 +62,31 @@ const banc = (regle: RegleDeChroma, parts: { soft: number; vivid: number }) => (
 export const VARIANTES: Variante[] = [
   {
     id: 'actuel',
-    nom: 'Actuel',
+    nom: 'Recette du mainteneur',
     resume: 'Le moteur et la recette du mainteneur, réglages propres compris.',
     rampes: (palette) => rampesDe(RECETTE_REELLE, palette),
   },
   {
     id: 'communs',
-    nom: 'Actuel, réglages communs',
+    nom: 'Moteur actuel',
     resume: 'Le moteur actuel ; chaque palette perd ses parts, sa luminosité et son Color shift de luminosité. Soft 0,45, Vivid 0,95.',
     rampes: (palette) => rampesDe(RECETTE_COMMUNE, RECETTE_COMMUNE.palettes.find((p) => p.id === palette.id)!),
   },
   {
     id: 'zones',
-    nom: 'Deux zones',
+    nom: 'Deux zones (écartée)',
     resume: 'Une part pour les fonds, une pour les accents. Soft 0,45 · 0,85 ; Vivid 0,75 · 0,95.',
     rampes: banc(deuxZones({ soft: { fonds: 0.45, accents: 0.85 }, vivid: { fonds: 0.75, accents: 0.95 }, unique: { fonds: 0.6, accents: 0.9 } }), { soft: 0.85, vivid: 0.95 }),
   },
   {
     id: 'enveloppe',
-    nom: 'Enveloppe',
+    nom: 'Enveloppe (retenue)',
     resume: 'La part donne la chroma ; une borne qui ne dépend que de la clarté la plafonne, élargie pour les jaunes clairs (+100 % en Soft, +50 % en Vivid). Parts communes Soft 0,85 et Vivid 0,95 ; bornes a 0,6 et 1,1 en Light, 1,1 en Dark ; fonds Dark de Vivid bornés à 0,30.',
     rampes: (palette) => rampesDuBanc(RECETTE_ENVELOPPE, RECETTE_ENVELOPPE.palettes.find((p) => p.id === palette.id)!, REGLE_FINALE),
   },
   {
     id: 'tailwind',
-    nom: 'Relevé Tailwind',
+    nom: 'Relevé Tailwind (écarté)',
     resume: 'La part de chaque cran suit celle que Tailwind emploie à cette clarté et cette teinte. Soft : fonds 0,5 · accents 0,9 ; Vivid : 1 · 1.',
     rampes: banc(releveTailwind(RELEVE, { soft: { fonds: 0.5, accents: 0.9 }, vivid: { fonds: 1, accents: 1 }, unique: { fonds: 0.7, accents: 0.95 } }), { soft: 0.9, vivid: 1 }),
   },

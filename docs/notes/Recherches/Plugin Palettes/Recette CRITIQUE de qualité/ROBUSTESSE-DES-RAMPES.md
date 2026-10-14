@@ -121,7 +121,7 @@ La clarté reste une limite assumée : UCM donne la même clarté à un cran de
 toutes les teintes, pour l'harmonie entre palettes. Tailwind éclaircit ses
 jaunes (yellow-100 à L 0,97, contre 0,95 pour le cran 100 d'UCM).
 
-## 5. Le cran des fonds : 50 ou 100, 200 ou 300
+## 5. Le cran des fonds : 50 ou 100, 200 ou 300 (retenu : 100 et 300)
 
 Le mainteneur trouve désormais les fonds 100 meilleurs, et les badges discrets
 trop discrets. C'est cohérent avec le changement du moteur : l'enveloppe a
@@ -183,13 +183,9 @@ décalé gris à 2,6:1 dans son thème par défaut.
 
 **Ce que cela donne pour UCM.** La variable de focus d'UCM reste conforme
 (600 en sens normal, 700 en sens inversé, dans les deux thèmes). La forme se règle dans les composants : un
-anneau décalé est conforme ; un halo pâle ne l'est pas. Une équipe qui choisit
-le halo pâle prend pour couleur un cran clair qui existe déjà (le fond teinté
-ou son survol), sans variable nouvelle, et sort de la garantie G7. Sur un
-champ, elle peut rester conforme en changeant aussi la bordure vers `ring`,
-comme Ant Design. Le banc
-visuel montre le halo pâle, un halo collé au cran conforme le plus proche du
-fond, et l'anneau décalé.
+anneau décalé est conforme ; un halo pâle ne l'est pas. Le mainteneur a
+retenu l'anneau décalé partout (section 10) : le halo pâle, préféré à l'œil,
+afficherait son rôle « AA ✗ » dans le plugin.
 
 ## 7. `ring` dans chaque dossier, ou une seule fois
 
@@ -217,7 +213,7 @@ pour un bouton de danger, et laisse aux composants le choix d'un focus unique.
 Notes du mainteneur, de 1 à 5, sur les dix-sept familles et les sept cas
 limites ; A, B et C étaient cachées :
 
-| Règle | Couleurs justes | Cohérence | Fonds | Textes |
+| Règle, au premier tour | Couleurs justes | Cohérence | Fonds | Textes |
 |---|---|---|---|---|
 | A, enveloppe : Soft Light, Soft Dark | 4, 4 | 5, 5 | 5, 5 | 5, 5 |
 | A, enveloppe : Vivid Light, Vivid Dark | 4, 4 | 5, 3 | 5, 4 | 5, 5 |
@@ -266,7 +262,7 @@ décidé et ne fait juger que trois choses ([generer-banc-tour-2.ts](./Mesures/g
   retenue par teinte ; les autres familles ne bougent pas.
 - **La borne des fonds Dark en Vivid** : 0,48, 0,38 (celle de Soft) ou 0,30.
   L'écart entre familles au cran 300 passe de ×3,5 à ×2,8 ou ×2,2.
-- **Le focus conforme qui garde l'aspect du halo** : le halo prend le survol
+- **Le focus conforme qui garde l'aspect du halo**, écarté au second tour (noté 1) : le halo prend le survol
   du fond teinté (`surface/hover`, exactement le cran 200 en Light avec la
   table retenue), et un liseré de 1 ou 2 px au cran du focus (`ring`) l'entoure.
   Le liseré touche la carte et la contraste de 3,9 à 5,2:1 : l'indicateur est

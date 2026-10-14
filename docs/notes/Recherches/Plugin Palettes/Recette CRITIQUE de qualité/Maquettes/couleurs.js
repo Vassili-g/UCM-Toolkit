@@ -48,7 +48,7 @@ window.UCM = (() => {
 
   /**
    * Les couleurs des rôles d'une palette dans un contexte. `crans` : `table` (la table du thème),
-   * `essai` (fond 50, texte 700 en Light), `translucide` (fonds alpha), `dark200` (surfaces Dark 200/300/400, texte 950, focus 800), `dark300` (surfaces Dark 300/400/500, pour une carte au neutre 200), `dark900` (surfaces Dark 200/300/400, texte 900, focus 800), `modele` (dark900, et surfaces Light 50/100/200), `modele950` (le modèle avec un texte Dark 950).
+   * `essai` (fond 50, texte 700 en Light), `translucide` (fonds alpha), `dark200` (surfaces Dark 200/300/400, texte 950, focus 800), `dark300` (surfaces Dark 300/400/500, pour une carte au neutre 200), `dark900` (surfaces Dark 200/300/400, texte 900, focus 800), `modele` et `modele950` (la table retenue : surfaces Light 100/200/300, surfaces Dark 300/400/500, texte et contour Dark 950, focus inchangé) ; `dark900` et `dark300` sont des pistes mesurées avant le banc visuel.
    */
   const jeu = ({ variante, palette, intensite, mode, support = 'raised', crans = 'table' }) => {
     const fond = D.supports[mode][support];

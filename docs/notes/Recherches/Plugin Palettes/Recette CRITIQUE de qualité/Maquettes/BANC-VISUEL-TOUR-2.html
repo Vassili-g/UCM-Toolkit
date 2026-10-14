@@ -93,7 +93,7 @@
 <div class="notes" id="notes-regles"></div>
 
 <h2 id="focus">2. Le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q7</a></h2>
-<p class="chapeau">Le halo pâle collé au cran 200, votre préféré, a pour couleur le survol du fond teinté (<code>surface/hover</code>) : avec la table retenue, c'est exactement ce cran. Seul, il contraste à moins de 3:1 avec la carte, et le W3C le juge non conforme au niveau AA. Deux façons de garder son aspect et d'être conforme : l'entourer d'un liseré au cran du focus (<code>ring</code>), de 1 ou 2 px ; ou, sur les champs et les boutons à contour, passer aussi la bordure au cran du focus, comme Ant Design. Les deux n'emploient que des variables qui existent. La ligne « anneau décalé » rappelle la forme de référence.</p>
+<p class="chapeau">Le halo pâle collé au cran 200, votre préféré, a pour couleur le survol du fond teinté (<code>surface/hover</code>) : avec la table retenue, c'est exactement ce cran. Seul, il contraste à moins de 3:1 avec la carte, et le W3C le juge non conforme au niveau AA. Deux façons de garder son aspect et d'être conforme : l'entourer d'un liseré au cran du focus (<code>ring</code>), de 1 ou 2 px ; ou, sur les champs et les boutons à contour, passer aussi la bordure au cran du focus, comme Ant Design. Les deux n'emploient que des variables qui existent. La ligne « anneau décalé » rappelle la forme de référence. Résultat : anneau décalé retenu (Q7) ; halo et liserés écartés.</p>
 <div class="scene" id="scene-focus"><div class="carte" id="carte-focus"><div class="focus-grille" id="focus-grille"></div></div></div>
 <div class="notes" id="notes-focus"></div>
 
@@ -105,10 +105,13 @@
   const B = window.BANC2;
   const CRANS = B.crans;
   const idx = (c) => CRANS.indexOf(c);
-  const lire = () => { try { return JSON.parse(localStorage.getItem('banc-visuel-tour-2')) || {}; } catch { return {}; } };
-  const ecrire = (v) => { try { localStorage.setItem('banc-visuel-tour-2', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
-  const memoire = lire();
-  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', jaunes: '0', bDark: '0.48' }, memoire.etat || {});
+  const lire = (cle = 'banc-visuel-tour-2b') => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch { return {}; } };
+  const ecrire = (v) => { try { localStorage.setItem('banc-visuel-tour-2b', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+  // L'ancienne clé garde ses notes, pas ses réglages : les défauts retenus ne sont plus masqués.
+  let dejaRange = false;
+  try { dejaRange = localStorage.getItem('banc-visuel-tour-2b') !== null; } catch { /* stockage indisponible */ }
+  const memoire = dejaRange ? lire() : { notes: lire('banc-visuel-tour-2').notes };
+  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', jaunes: '1', bDark: '0.3' }, memoire.etat || {});
   const notes = memoire.notes || {};
   const sauver = () => ecrire({ etat, notes });
 
@@ -160,9 +163,9 @@
         </div></div>`;
     }).join('');
     choix('notes-regles', 'reglages', [
-      ['jaunesSoft', 'Jaunes clairs, Soft', [['0', '0'], ['0.5', '+50 %'], ['1', '+100 %'], ['1.5', '+150 %']]],
-      ['jaunesVivid', 'Jaunes clairs, Vivid', [['0', '0'], ['0.5', '+50 %'], ['1', '+100 %'], ['1.5', '+150 %']]],
-      ['bDark', 'Fonds Dark, Vivid', [['0.48', '0,48'], ['0.38', '0,38'], ['0.3', '0,30']]],
+      ['jaunesSoft', 'Jaunes clairs, Soft', [['0', '0'], ['0.5', '+50 %'], ['1', '+100 % (retenu en Soft)'], ['1.5', '+150 %']]],
+      ['jaunesVivid', 'Jaunes clairs, Vivid', [['0', '0'], ['0.5', '+50 % (retenu en Vivid)'], ['1', '+100 %'], ['1.5', '+150 %']]],
+      ['bDark', 'Fonds Dark, Vivid', [['0.48', '0,48'], ['0.38', '0,38'], ['0.3', '0,30 (retenu)']]],
     ], 'Vos réglages préférés');
   }
 
@@ -241,8 +244,8 @@
     mode: [['light', 'Light'], ['dark', 'Dark']],
     sens: [['noir', 'Noir'], ['blanc', 'Blanc']],
     profil: [['soft', 'Soft'], ['vivid', 'Vivid']],
-    jaunes: B.jaunes.map((j) => [String(j), j === 0 ? '0' : `+${j * 100} %`]),
-    bDark: B.bDark.map((b) => [String(b), b.toFixed(2).replace('.', ',')]),
+    jaunes: B.jaunes.map((j) => [String(j), j === 0 ? '0' : `+${j * 100} %${j === 1 ? ' (retenu en Soft)' : j === 0.5 ? ' (retenu en Vivid)' : ''}`]),
+    bDark: B.bDark.map((b) => [String(b), b.toFixed(2).replace('.', ',') + (b === 0.3 ? ' (retenu)' : '')]),
   };
   function commandes() {
     document.querySelectorAll('[data-commande]').forEach((h) => {

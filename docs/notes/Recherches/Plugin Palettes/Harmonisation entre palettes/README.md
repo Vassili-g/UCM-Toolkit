@@ -1,5 +1,11 @@
 # Harmonisation entre palettes
 
+> **Remplacé en partie.** L'onglet Harmonisation de la
+> [recette critique](../Recette%20CRITIQUE%20de%20qualit%C3%A9/DOSSIER-COMPARER.md)
+> reprend ce sujet : la comparaison a son onglet (D1 tranchée), et aucun groupe
+> n'est rangé (D2 devient C2). Les mesures et le marché de ce dossier restent
+> valables ; ses tables de crans décrivent l'état d'avant la recette critique.
+
 Comparer un groupe de palettes d'UCM Palettes, puis aligner leur luminosité.
 
 **État.** Recherche faite, maquettes à valider. Sept décisions attendent le

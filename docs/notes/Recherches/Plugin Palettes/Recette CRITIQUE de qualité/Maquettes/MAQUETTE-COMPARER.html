@@ -170,7 +170,7 @@
   const E = window.ENSEMBLES;
   const U = window.UCM;
   const fr = (x, n = 2) => x.toFixed(n).replace('.', ',').replace('-', '−');
-  const etat = { jeu: 'mainteneur', libelle: 'par défaut', bouton: 'Par défaut' };
+  const etat = { jeu: 'galerie', libelle: 'par défaut', bouton: 'Par défaut' };
   /** Le libellé du bouton d'une réglette et celui du bouton de carte, selon la variante comparée. */
   const BOUTON = { 'Rétablir': ['Rétablir', 'Tout rétablir'], 'Par défaut': ['Par défaut', 'Tout par défaut'], 'Réinitialiser': ['Réinitialiser', 'Tout réinitialiser'], '↺': ['↺', 'Tout par défaut'] };
   const boutonDeReglette = (b) => { b.textContent = BOUTON[etat.bouton][0]; if (etat.bouton === '↺') b.classList.add('bouton-icone'); };
@@ -437,6 +437,10 @@
     const phrase = el(d, `<p class="subtitle">${onglet === 'palettes' ? 'Les réglages par défaut de toutes les palettes du fichier.' : 'Les réglages du plugin sur ce poste.'}</p>`);
     pile.prepend(onglets, phrase);
     if (onglet === 'general') { palettes.replaceWith(langue); return; }
+    // La valeur par défaut retenue pour Soft (Q3) : la réglette et son champ l'affichent.
+    d.querySelectorAll('[aria-label="Intensité Soft"]').forEach((c) => {
+      if (c.matches('input[type="range"]')) { c.value = '0.85'; c.setAttribute('value', '0.85'); c.setAttribute('aria-valuetext', '0,85'); } else { c.value = '0,85'; c.setAttribute('value', '0,85'); }
+    });
     d.querySelectorAll('.carte-de-reglage .bouton-discret').forEach((b) => {
       if (b.textContent.trim() !== 'Rétablir') return;
       b.textContent = BOUTON[etat.bouton][0];
@@ -879,10 +883,10 @@
       '<ol><li><b>Le gris garde la clarté OKLab</b> de chaque couleur : deux boutons de même gris ont la même clarté.</li><li>Seule la comparaison passe en gris : la liste garde ses couleurs, pour retrouver chaque palette.</li></ol>');
     monter('r-harmonisation-2', 'H6', 'La roue des teintes', 'Dépliée : la teinte des boutons pleins, sur le fond de page de l\'aperçu, blanc en Light.', 'verification-bilan-a-verifier', { transformer: harmonisation(() => ({ cochees: demo ? [demo.a, demo.b] : [], roue: true })) },
       '<ol><li><b>Glissez un point</b> : sa palette passe dans « Régler » et se coche s\'il reste une place ; sa teinte suit le pointeur, bornée à −30° et +30°. La course de la palette réglée se dessine en gris sur le cercle, ses zones trop proches en ambre.</li><li><b>Un arc ambre</b> couvre les teintes d\'une paire trop proche ; ses deux points et leurs noms passent en ambre. Un tireté entre deux points confondus ne se voyait pas.</li><li><b>Aucune phrase d\'explication</b> : jusqu\'à huit palettes colorées, toutes sont nommées ; au-delà, les cochées et celles des paires trop proches, les autres au survol.</li><li><b>Les palettes cochées</b> ont un point plus gros et cerclé.</li><li><b>La liste « Vision »</b> prend la police et la hauteur des bascules (section 4).</li><li><b>La vision des couleurs</b> se choisit dans la liste ; elle repeint la roue et ne lève aucune alerte.</li></ol>');
+    // Cet écran montre les palettes de la galerie : le compteur suit ce jeu, quel que soit le jeu choisi plus haut.
+    const vingt = E.jeux.find((j) => j.id === 'galerie').paires.filter((p) => p.alerte).length;
     monter('r-harmonisation-2', 'H7', 'Depuis Vérification', 'Le bilan de Vérification garde ses lignes. Une palette trop proche d\'une autre y mène à Harmonisation, paire cochée.', 'verification-bilan-a-verifier', {
       transformer: (d) => {
-        // Cet écran montre les vingt palettes de la galerie : le compteur suit ce jeu, quel que soit le jeu choisi plus haut.
-        const vingt = E.jeux.find((j) => j.id === 'galerie').paires.filter((p) => p.alerte).length;
         d.querySelector('#onglet-verification').after(el(d, `<button type="button" class="onglet" role="tab" aria-selected="false">Harmonisation<span class="compteur-de-verification" data-ton="avertissement">${vingt}</span></button>`));
         d.querySelectorAll('.bilan-ligne').forEach((l) => {
           const constat = l.querySelector('.bilan-ligne-constat');
@@ -893,7 +897,7 @@
           l.querySelector('.bilan-verifier').textContent = 'Comparer';
         });
       },
-    }, '<ol><li><b>Le constat perd son ΔEok</b> : « trop proche d\'Azur ».</li><li><b>Le lien devient « Comparer »</b> et ouvre Harmonisation sur la paire.</li><li><b>Une seule ligne ici, vingt au compteur</b> : les lignes viennent de la galerie actuelle, dont la règle fait la moyenne des distances aux crans 500, 600 et 700, en Light seulement. Avec la règle de la décision C6, Vérification signale les mêmes vingt paires que le compteur.</li><li><b>Défaut corrigé</b> : dans la galerie actuelle, le lien de chaque ligne sort de la fenêtre à 480 px (« Vérifi »). La grille du bilan ne déclare aucune colonne : sa colonne implicite prend la largeur du nuancier, sept cartes de 60 px et six écarts de 8 px, 468 px dans 449. <code>grid-template-columns: minmax(0, 1fr)</code> ramène les lignes à 449 px, ici appliqué ; le nuancier déborde encore de 19 px.</li></ol>');
+    }, `<ol><li><b>Le constat perd son ΔEok</b> : « trop proche d\'Azur ».</li><li><b>Le lien devient « Comparer »</b> et ouvre Harmonisation sur la paire.</li><li><b>Une seule ligne ici, ${vingt} au compteur</b> : les lignes viennent de la galerie actuelle, dont la règle fait la moyenne des distances aux crans 500, 600 et 700, en Light seulement. Avec la règle de la décision C6, Vérification signale les mêmes ${vingt} paires que le compteur.</li><li><b>Défaut corrigé</b> : dans la galerie actuelle, le lien de chaque ligne sort de la fenêtre à 480 px (« Vérifi »). La grille du bilan ne déclare aucune colonne : sa colonne implicite prend la largeur du nuancier, sept cartes de 60 px et six écarts de 8 px, 468 px dans 449. <code>grid-template-columns: minmax(0, 1fr)</code> ramène les lignes à 449 px, ici appliqué ; le nuancier déborde encore de 19 px.</li></ol>`);
   }
 
   function dessinerListes() {

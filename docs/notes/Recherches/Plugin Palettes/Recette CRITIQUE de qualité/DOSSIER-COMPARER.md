@@ -25,8 +25,9 @@ La recette critique a établi les causes chiffrées. Avec les valeurs par
 défaut, la clarté des quatre utilitaires tient à 0,002 près hors références ;
 les différences de 0,016 à 0,047 viennent des luminosités propres. La
 saturation varie de ×4,2 avec la part constante, de ×1,7 avec l'enveloppe.
-Dans le fichier du mainteneur, Terracota et Poppy se confondent sur le texte
-du fond teinté en Dark, à une distance de 0,047.
+Avec la table retenue, le fichier du mainteneur n'a plus de paire trop
+proche : Terracota et Poppy ne se confondaient que par leur texte Dark 900, à
+une distance de 0,047, et ce texte passe au cran 950.
 
 Les trois tâches passent donc par les trois réglettes que Création connaît
 déjà : teinte, saturation, luminosité. Seule la vue de plusieurs palettes est
@@ -263,7 +264,7 @@ Vérification, Gestion.
 | Onglet | Toujours, dès deux palettes | « Harmonisation », entre Vérification et Gestion, avec le compteur des paires trop proches, de même facture que celui de Vérification |
 | Ligne du titre | Toujours | « Harmonisation », la bascule Soft et Vivid, la bascule Light et Dark |
 | Ligne fixe | Toujours | « 1 paire de palettes trop proches », ou « Toutes vos palettes se distinguent ». Un état, sans bouton |
-| Carte « Palettes trop proches » | Une paire au moins | Une ligne par paire : les deux couleurs en cause dans le thème en cause, « Terracota et Poppy » en gras, « Textes sur fond teinté trop proches, en Dark », le lien « Comparer » |
+| Carte « Palettes trop proches » | Une paire au moins | Une ligne par paire : les deux couleurs en cause dans le thème en cause, « Bleu et Azur » en gras, « Textes sur fond teinté trop proches, en Light », le lien « Comparer » |
 | Carte « Vos palettes » | Toujours | « Cochez de 2 à 4 palettes pour les comparer et les régler. » Une ligne par palette : la case du socle à gauche du nom, ses onze nuances jointes, arrondies aux deux bouts, et un rond ambre « ! » si elle est trop proche d'une autre, de la facture du compteur de l'onglet. Les numéros se centrent sur leur nuance. La ligne cochée se surligne en bleu |
 | Carte « Comparaison » | Deux palettes cochées | Sur le fond de page du thème : les nuances jointes, alignées par numéro, puis des composants rangés en colonnes (bouton plein, bouton à contour, message sur fond teinté, lien). Bascule Couleurs et Niveaux de gris. Sous le fond, les constats |
 | Carte « Réglages » | Deux palettes cochées | « Régler » et le nom des palettes cochées, un point bleu après chaque palette modifiée ; « Annuler les modifications » pour la palette choisie, quand elle a changé ; les trois réglettes de Création |
@@ -271,30 +272,33 @@ Vérification, Gestion.
 
 ### Ce qui compte comme trop proche
 
-Deux palettes colorées sont trop proches quand leur plein, ou le texte de leur
-fond teinté, passe sous le seuil des couleurs proches de la recette (0,05 en
-ΔEok), en Light ou en Dark, dans l'intensité Vivid ou l'intensité unique. Les crans sont ceux du modèle des niveaux
+Deux palettes colorées sont trop proches quand leur plein, en Light ou en
+Dark, ou le texte de leur fond teinté, en Light, passe sous le seuil des
+couleurs proches de la recette (0,05 en ΔEok), dans l'intensité Vivid ou
+l'intensité unique. Les crans sont ceux de la table retenue
 ([solution](./SOLUTION-RAMPES.md), S2). Les neutres en sont exclus : un gris
 n'a pas de teinte à confondre. Les fonds teintés en sont exclus aussi : pâles
-par construction, ils se ressemblent presque tous.
+par construction, ils se ressemblent presque tous. Le texte des fonds en Dark
+l'est désormais pour la même raison : au cran 950, presque blanc, il se
+ressemble d'une palette à l'autre.
 
-| Jeu | Paires | Avec les fonds teintés | Plein et texte | Plein seul |
-|---|---|---|---|---|
-| Fichier du mainteneur, 6 palettes colorées | 15 | 10 | 1, Terracota et Poppy | 0 |
-| Galerie, 18 palettes colorées | 153 | 115 | 20 | 8 |
+| Jeu | Paires | Avec les fonds teintés | Plein, texte des deux thèmes | Plein, texte en Light (retenu) | Plein seul |
+|---|---|---|---|---|---|
+| Fichier du mainteneur, 6 palettes colorées | 15 | 5 | 3 | 0 | 0 |
+| Galerie, 18 palettes colorées | 153 | 72 | 56 | 12 | 8 |
 
 La galerie rassemble à dessein des quasi-doublons (Bleu et Azur, Vert et
-Feuille, Violet et Pourpre). Le texte du fond teinté y ajoute 12 paires au
-plein, surtout en Dark, où le texte 900 rapproche les bleus et les violets.
-Une alerte limitée au plein en donnerait 8 et laisserait Terracota et Poppy
-sans alerte : la décision C6 garde le plein et le texte. Ces comptes suivent le
-texte Dark 900 ; un texte 950 les changerait (décision Q5).
+Feuille, Violet et Pourpre). Compter le texte Dark 950 donnerait 56 alertes,
+dont la plupart qu'aucun réglage de teinte ne sépare : des textes presque
+blancs. Le texte Light ajoute 4 paires au plein, des teintes voisines aux
+textes colorés (Lime et Vert, Jaune et Cuivre). La décision C6 compare donc le
+plein dans les deux thèmes et le texte du fond teinté en Light.
 
 ### Les constats de la comparaison
 
 | Constat | Condition | Ton |
 |---|---|---|
-| « Terracota et Poppy : textes sur fond teinté trop proches en Dark. Sortez la teinte de l'une d'elles de la zone hachurée, dans Réglages. » | Une paire cochée trop proche | Avertissement |
+| « Bleu et Azur : textes sur fond teinté trop proches en Light. Sortez la teinte de l'une d'elles de la zone hachurée, dans Réglages. » | Une paire cochée trop proche | Avertissement |
 | « Ces palettes se distinguent, en Light et en Dark. » | Aucune paire cochée trop proche | Succès |
 | « En Soft, Grass est la plus terne et Poppy la plus vive. » | Saturations des palettes cochées étalées de 0,20 ou plus | Information |
 | « En Soft, Poppy est plus claire que les autres. » | Luminosités étalées de 0,01 ou plus | Information |
@@ -335,23 +339,21 @@ de la carte Réglages, en bouton secondaire compact, quand la palette choisie
 a changé depuis l'ouverture de l'onglet, et il ne défait que ses réglages. La
 ligne fixe reste un état, comme dans Création ; un bouton n'y a pas sa place.
 
-Les mesures sur le fichier du mainteneur et sur la galerie :
+Les paires en alerte de la galerie, avec la table retenue, et le plus petit
+réglage de teinte qui les sépare :
 
 | Paire | Thème et rôle | Réglage qui les sépare |
 |---|---|---|
-| Terracota et Poppy | Dark, texte du fond teinté | Poppy +5°, ou Terracota −8° |
-| Cyan et Teal | Light, texte du fond teinté | 1° |
-| Violet et Azur | Dark, texte du fond teinté | 1° |
-| Indigo et Pourpre, Fuchsia et Pourpre | Dark, texte du fond teinté | 2° à 3° |
-| Violet et Pourpre | Dark, texte du fond teinté | 14° |
-| Lime et Vert, Lime et Feuille | Light, texte du fond teinté | 10° |
-| Rouge et Cuivre | Dark, texte du fond teinté | 11° |
-| Jaune et Cuivre | Light, texte du fond teinté | 11° |
-| Bleu et Marine, Marine et Azur | Dark, texte du fond teinté | 25° |
-| Bleu et Azur | Light, texte du fond teinté | 27° ; presque identiques |
 | Vert et Feuille | Dark, plein | 23° ; presque identiques |
+| Bleu et Azur | Light, texte du fond teinté | 17° ; presque identiques |
+| Bleu et Marine, Marine et Azur | Dark, plein | 12° |
+| Violet et Pourpre | Dark, plein | 6° |
+| Lime et Vert, Lime et Feuille | Light, texte du fond teinté | 10° |
+| Jaune et Cuivre | Light, texte du fond teinté | 11° |
+| Rouge et Cuivre | Light, texte du fond teinté | 5° |
+| Cyan et Teal, Indigo et Azur, Bleu et Indigo | Light, texte du fond teinté | 1° à 2° |
 
-Les vingt paires de la galerie sont dans `Maquettes/donnees-ensembles.js`.
+Les douze paires sont dans `Maquettes/donnees-ensembles.js`.
 
 ### Le parcours
 
@@ -418,7 +420,7 @@ boutons se coupent.
 | C3 | Comparer | Carte Comparaison : nuances jointes et alignées, composants en colonnes, Couleurs ou Niveaux de gris, constats en mots simples sur le fond de leur ton |
 | C4 | Harmoniser | Carte Réglages : une palette cochée à la fois, réglettes de Création, points des autres palettes sur la saturation et la luminosité, « Annuler les modifications » pour la palette choisie |
 | C5 | Distinguer | Carte « Palettes trop proches » ; zone hachurée sur la teinte ; mots aux bouts des pistes ; ni modale, ni réglage automatique |
-| C6 | L'alerte | Plein et texte du fond teinté, deux thèmes, seuil des couleurs proches de la recette ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
+| C6 | L'alerte | Le plein dans les deux thèmes, le texte du fond teinté en Light, seuil des couleurs proches de la recette ; le texte Dark 950, presque blanc, n'y entre plus ; compteur de l'onglet ; constat sans ΔEok, Vérification comprise |
 | C7 | Roue des teintes | Repliée ; fond de page de l'aperçu ; familles de teinte autour ; arc ambre sur une paire trop proche ; un point se glisse pour régler la teinte ; vision des couleurs à la demande, sans alerte |
 | C8 | Réglage global | Marque « par défaut », bouts de piste nommés, point bleu, « Par défaut » actif seulement sur une valeur modifiée, « Tout par défaut » en tête, résumé sans chiffre, aucun encart |
 | C9 | Configuration | Nom « Configuration » ; bouton nommé dans les trois plugins ; onglets Palettes et Général ; une phrase sous les onglets |

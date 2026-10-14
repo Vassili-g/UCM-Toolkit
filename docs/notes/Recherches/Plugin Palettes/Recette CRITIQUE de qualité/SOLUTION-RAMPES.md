@@ -1,10 +1,12 @@
 # Rampes de couleur : la solution proposée
 
-**Statut : solution à valider.** Ce document reprend tout le sujet des rampes
-après les notes à l'aveugle du mainteneur et un relevé de neuf systèmes. Il
-remplace les recommandations Q1, Q2, Q5 et Q6, et ajoute Q9, du
-[dossier de qualité](./DOSSIER-QUALITE-DES-PALETTES.md) ; les mesures et les
-pistes écartées restent dans ce dossier.
+**Statut : décisions arrêtées au banc visuel (Q1 à Q10) ; implémentation à
+planifier.** Ce document décrit la solution retenue pour les rampes, après les
+notes à l'aveugle du mainteneur, un relevé de neuf systèmes et deux tours de
+[banc visuel](./Maquettes/BANC-VISUEL.html). Le [dossier de robustesse](./ROBUSTESSE-DES-RAMPES.md)
+porte les mesures sur toutes les teintes et les notes du banc ; le
+[dossier de qualité](./DOSSIER-QUALITE-DES-PALETTES.md) garde les premières
+mesures et les pistes écartées.
 
 Sources : [Collecte/Surfaces](./Collecte/Surfaces/README.md) (Primer,
 Atlassian, Carbon, Polaris, Material 3, Fluent 2, shadcn/ui, Radix, versions
@@ -97,114 +99,90 @@ Trois causes, mesurées :
 
 ## 3. La solution
 
-### S1. Une enveloppe par thème
+### S1. L'enveloppe par thème, élargie autour du jaune
 
-**Retenue au banc visuel.** Le mainteneur a préféré l'enveloppe, pour sa
-cohérence, à la retenue par teinte et au moteur actuel, avec deux réglages : la
-borne vers le blanc s'élargit autour du jaune (+100 % en Soft, +50 % en Vivid),
-et les fonds Dark de Vivid sont bornés à `b = 0,30`
-([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10). Auparavant rouverte : l'enveloppe corrige les verts clairs, mais sa borne ne dépend
-que de la clarté : elle ternit aussi les jaunes et les ambres clairs, que
-Tailwind et Radix gardent près du plafond. Le dossier
-[Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) la compare, sur toutes les
-familles de teinte, à une retenue par teinte calée sur le marché, et corrige le
-préréglage de teinte. Ce qui suit décrit l'enveloppe telle qu'elle a été
-mesurée.
+Chaque cran prend une part du plafond sRGB, plafonnée par une borne qui ne
+dépend que de la clarté, la même pour toutes les teintes ; en Light, cette
+borne s'élargit autour du jaune :
 
-`C = min(part × plafond(L, H), p₀ × min(a × (1 − L), b × L))`, avec des bornes
-propres à chaque thème :
+`C = min(part × plafond(L, H), p₀ × min(a × marge(H) × (1 − L), b × L))`,
+`marge(H) = 1 + k × exp(−½ × (écart à 100° / 12°)²)` en Light, 1 en Dark.
 
-| Profil | p₀ | Light : a, b | Dark : a, b |
-|---|---|---|---|
-| Soft | 0,85 | 0,6 · 0,38 | 1,1 · 0,38 |
-| Vivid, intensité unique | 0,95 | 1,1 · 0,48 | 1,1 · 0,48 |
+| Profil | p₀ | Light : a, b | Dark : a, b | Marge des jaunes clairs, `k` |
+|---|---|---|---|---|
+| Soft | 0,85 | 0,6 · 0,38 | 1,1 · 0,38 | +100 % |
+| Vivid, intensité unique | 0,95 | 1,1 · 0,48 | 1,1 · 0,30 | +50 % |
 
-Le Light ne change pas : ses notes à l'aveugle tiennent (cohérence 5 en Soft,
-4 en Vivid). En Dark, la chroma du texte 900 de Soft passe de 0,036 à 0,127
-aujourd'hui (0,069 à 0,077 avec une borne unique) à 0,069 à 0,141. Les fonds sombres gardent la réduction de l'intensité des fonds du
-thème Dark.
+La borne commune rend les crans clairs uniformes d'une palette à l'autre :
+c'est ce que le mainteneur a préféré au banc, en cohérence (5 presque partout),
+à une retenue par teinte calée sur Tailwind et Radix, aux couleurs plus
+fidèles mais aux fonds inégaux. Sans marge, un jaune pâle aussi peu saturé
+qu'un bleu pâle paraît marron clair ; la marge ne touche que les jaunes. En
+Dark, les crans clairs sont des textes : la borne s'ouvre (a 1,1), et les fonds
+sombres gardent la réduction de l'intensité des fonds du thème Dark ; la borne
+`b` des fonds Dark de Vivid descend à 0,30 pour les accorder. Mesures et notes :
+[robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 2, 8 et 10.
+
+Avec cette règle, l'écart de chroma entre les quatre utilitaires du mainteneur
+passe de ×4,2 à ×1,2 (Soft, fonds 50 à 300). La dérive de teinte du préréglage
+Tailwind est corrigée à part (Q10) : son pire écart passe de 38° à 12°.
 
 ### S2. Le modèle des niveaux
 
 Un composant teinté se pose sur une carte, et la carte sur la page. Chaque
-niveau se tient un cran plus loin du fond que celui qui le porte :
+niveau se tient à distance fixe de celui qui le porte : le fond teinté à deux
+crans de sa carte, dans les deux thèmes.
 
 | Niveau | Light | Dark |
 |---|---|---|
 | Page | neutre 50 | neutre 50, abaissé à L 0,145 |
 | Carte (`raised`) | blanc, hors rampe | neutre 100 |
-| Fond teinté au repos, survol, appui | 100, 200, 300 (retenu au banc ; 50, 100, 200 auparavant) | 300, 400, 500 (retenu au banc ; 200, 300, 400 auparavant) |
-| Texte et contour du fond teinté | inchangés : 800 en sens normal, 900 en sens inversé | 900 dans les deux sens, ou 950 (voir plus bas) |
-| Focus | inchangé : 600 en sens normal, 700 en sens inversé | inchangé : 600 en sens normal, 700 en sens inversé |
+| Fond teinté au repos, survol, appui | 100, 200, 300, comme aujourd'hui | 300, 400, 500 |
+| Texte et contour du fond teinté | 800 en sens normal, 900 en sens inversé, comme aujourd'hui | 950 dans les deux sens |
+| Focus (`ring`), anneau décalé | 600 en sens normal, 700 en sens inversé, comme aujourd'hui | 600 en sens normal, 700 en sens inversé, comme aujourd'hui |
 | Plein, texte et contour de page | inchangés | inchangés |
 
-La règle est la même dans les deux thèmes : le fond teinté se tient à une
-distance fixe de sa carte. Proposée à un cran (Light 50 sur la carte blanche,
-Dark 200 sur la carte au neutre 100), elle a été retenue à deux crans par le
-banc visuel, le mainteneur préférant un fond plus marqué : Light 100, Dark 300.
-Le survol et l'appui suivent d'un cran chacun. Les mesures ci-dessous portent
-sur la proposition à un cran ; celles du cran retenu sont dans le dossier
-[Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) (sections 3 et 5).
+En Light, la carte est le blanc, avant le cran 50 : le fond prend 100. En Dark,
+la carte est le neutre 100 : le fond prend 300. Le survol et l'appui suivent
+d'un cran chacun. Le banc visuel a préféré cet écart de deux crans à celui
+d'un cran d'abord proposé (Light 50, Dark 200), et le badge discret
+(`surface/default`) y suffit.
 
-La page Dark gagne la séparation qui lui manque sans déplacer la carte. Son
-écart avec la carte, 1,16, entre dans la plage relevée (1,07 à 1,32) ; une
-ombre ou un contour de carte la renforce sans toucher aux contrastes, et reste
-à juger à l'œil. Le
+La page Dark gagne la séparation qui lui manque sans déplacer la carte. Le
 cran 50 du Dark ne sert aucun rôle de dossier ; sa clarté descend de 0,180 à
-0,145, celle de `#0A0A0A` chez shadcn/ui. La page passe de 1,10 à 1,16 contre
-la carte, et toutes les palettes reçoivent ce cran 50 plus profond.
+0,145, celle de `#0A0A0A` chez shadcn/ui, et toutes les palettes reçoivent ce
+cran 50 plus profond. L'écart de la page avec la carte, 1,16, entre dans la
+plage relevée (1,07 à 1,32) ; une ombre ou un contour de carte le renforce
+sans toucher aux contrastes, et reste à juger à l'œil.
 
-| Mesure | Aujourd'hui | Modèle |
+| Mesure, recette du mainteneur | Aujourd'hui | Modèle retenu |
 |---|---|---|
-| Fond teinté contre la carte, Light | 1,11 à 1,17 | 1,06 à 1,08 |
+| Fond teinté contre la carte, Light | 1,13 à 1,16 | 1,14 à 1,17, couleur plus calme |
 | Page contre carte, Dark | 1,10 | 1,16 |
-| Fond teinté contre la carte, Dark | 1,00 à 1,02 | 1,13 à 1,16 |
-| Échecs des garanties, balayage de 72 teintes | 144 ; 164 avec l'enveloppe | 144 |
+| Fond teinté contre la carte, Dark | 1,00 à 1,01 | 1,34 à 1,43 |
+| Texte 950 sur les fonds Dark, pire cas | sans objet | 5,28:1, Orange Vivid avec le Color shift du mainteneur |
+| Échecs des garanties, balayage de 72 teintes | 144 | 144 |
 
-Le modèle n'ajoute aucun échec. Les 144 existent déjà avec le moteur actuel :
-G1 en Dark inversé, le texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et garde ses octets (72 teintes, deux profils), le cas que l'architecture
-prévoit. Avec l'enveloppe, la table actuelle en ajouterait 20 : le focus Light
-contre le fond 100 de cinq références vert-jaune. Le fond 50 les retire.
+Les 144 échecs existent déjà avec le moteur actuel : G1 en Dark inversé, le
+texte blanc sur le plein 700, où une référence de clarté 0,62 est ancrée et
+garde ses octets (72 teintes, deux profils), le cas que l'architecture
+prévoit. Le fond Light 100 en ajouterait 20 si G7 jugeait le focus contre lui ;
+G7 le juge contre la page et la carte, comme le W3C (Q6).
 
-**Le texte des fonds en Dark : 900 ou 950.** Le texte 900 garde la couleur
-(chroma jusqu'à 0,14 en Soft), comme Radix, Primer et Fluent. Sa marge est
-mince sur les teintes chaudes : aux valeurs par défaut, Orange Vivid tient
-4,72:1 sur l'appui 400 ; avec le Color shift « nuances sombres » de la recette
-du mainteneur (+0,045 de luminosité), il tombe à 4,12:1, sous le seuil, dès
-+0,02 environ. Le texte 950 tient dans ce cas (6,41:1) et sur tout le
-balayage, mais il pâlit (chroma 0,03 à 0,07) : c'est le choix du Simple Design
-System de Figma, d'Atlassian et de Material 3, un texte très clair sur un fond
-profond.
+**Le texte Dark 950.** Le fond Dark 300 l'impose : avec un texte 900, l'appui
+500 manque 4,5:1 sur les 576 rampes Dark du sens normal. Le 950 est pâle (chroma 0,03 à 0,07),
+comme chez le Simple Design System de Figma, Atlassian et Material 3, et il
+n'impose aucune borne nouvelle au Color shift : le texte 900 de l'ancien
+modèle à un cran manquait la marge sur l'Orange Vivid du mainteneur (4,12:1
+sur l'appui 400).
 
-| Texte des fonds en Dark | Couleur | Marge, Orange Vivid sur l'appui 400 | Conséquence |
-|---|---|---|---|
-| 900 | Colorée | 4,72:1 par défaut ; 4,12:1 avec le Color shift du mainteneur | Le Color shift « nuances sombres » des teintes chaudes se borne à +0,015 environ |
-| 950 | Pâle | 7,70:1 par défaut ; 6,41:1 avec le Color shift du mainteneur | Aucune borne nouvelle |
+Pistes mesurées avant le banc et écartées, sur le modèle à un cran, avec
+l'enveloppe par thème ([GARANTIES-BALAYAGE.json](./Mesures/GARANTIES-BALAYAGE.json)) :
 
-Décidé au banc visuel : 950, qu'impose le fond Dark 300 retenu. Avant ce
-choix, la recommandation était 900, parce que le mainteneur juge les textes sombres trop ternes
-et que les systèmes relevés gardent un texte coloré (L 0,66 à 0,89). 950 si la
-liberté du Color shift sombre compte davantage. La maquette de qualité compare
-les deux.
-
-Avec 900, la recette du mainteneur montre un échec dès l'ouverture : G3,
-Orange Vivid, 4,12:1. La plage sûre d'un réglage ne borne que les garanties
-tenues au départ (`limites.ts`) ; le designer ramène donc lui-même le Color
-shift « nuances sombres » d'Orange sous +0,015. Avec 950, la recette ne
-change pas. Le choix touche aussi l'alerte des palettes trop proches : le texte
-900 rapproche les bleus et les violets en Dark
-([dossier Comparer](./DOSSIER-COMPARER.md), section 8).
-
-Avec le fond Light 100 retenu, un composant teinté se détache aussi de la
-page (cran 50). Avec un fond 50, il aurait eu la clarté de la page.
-
-Pistes mesurées et écartées, avec l'enveloppe par thème, sur le balayage de
-72 teintes ([GARANTIES-BALAYAGE.json](./Mesures/GARANTIES-BALAYAGE.json)) :
-
-| Piste | Échecs en plus du modèle | Raison |
+| Piste | Échecs en plus | Raison |
 |---|---|---|
-| Fond Light 100, la table actuelle | 20 | Le focus manque 3:1 contre le fond 100 ; le fond est plus foncé que le rendu voulu par le mainteneur et que Figma, Tailwind et Untitled UI |
-| Texte Dark 800, plus coloré | 1 282 | Échoue sur le survol 300 et l'appui 400 |
+| Fond Light 50, Dark 200, texte Dark 900 | 0 | Tient ; le mainteneur a préféré un fond plus marqué au banc visuel |
+| Texte Dark 800, plus coloré | 1 282 | Échoue sur le survol et l'appui |
 | Appui Dark 300, texte 800 | 320 | Le survol et l'appui se confondent, et le texte échoue encore en sens inversé |
 | Carte Dark au neutre 200, fonds 300 | 334 | La carte plus claire fait échouer 218 pleins et 116 textes de page |
 | Fonds translucides, focus Dark 800 | 16 | Inutiles : les composants se posent sur une carte |
@@ -257,7 +235,7 @@ Le neutre suit la même table que les autres palettes : sa surface au repos
 vaut 100 en Light et 300 en Dark, sans règle propre au neutre.
 
 La table vaut pour les deux sens de chaque thème. En Light inversé (texte des
-boutons noir), les fonds sont aussi 50, 100 et 200, le texte reste 900 et le
+boutons noir), les fonds sont aussi 100, 200 et 300, le texte reste 900 et le
 focus 700.
 
 ### S4. Des fonds opaques
@@ -272,16 +250,16 @@ Polaris. Palettes n'écrit que des crans ; la piste translucide est abandonnée.
 relève les badges, alertes et boutons de onze systèmes. Les rôles d'UCM s'y
 retrouvent sans changement :
 
-| Composant | Rôles UCM | Light | Dark proposé | Ce que font les autres |
+| Composant | Rôles UCM | Light | Dark retenu | Ce que font les autres |
 |---|---|---|---|---|
-| Alerte | `surface/default`, `surface/foreground` | 50 · 800 | 200 · 900 | Fond pâle teinté dans les dix systèmes ; texte neutre dans cinq, teinté dans cinq (Q4) |
-| Badge discret | `surface/default`, `surface/foreground` | 50 · 800 | 200 · 900 | Fond pâle dans sept systèmes sur dix ; texte 7 à 9 crans plus loin que le fond |
+| Alerte | `surface/default`, `surface/foreground` | 100 · 800 | 300 · 950 | Fond pâle teinté dans les dix systèmes ; texte neutre dans cinq, teinté dans cinq (Q4) |
+| Badge discret | `surface/default`, `surface/foreground` | 100 · 800 | 300 · 950 | Fond pâle dans sept systèmes sur dix ; texte 7 à 9 crans plus loin que le fond |
 | Badge plein | `solid/default`, `solid/foreground` | 700, texte des boutons | 700 | Pas moyen à fort, texte blanc ou encre sur jaune |
-| Bouton teinté | `surface/default`, `hover`, `pressed`, texte constant | 50, 100, 200 | 200, 300, 400 | Un pas par état (Radix `a3`, `a4`, `a5`) ; texte constant |
+| Bouton teinté | `surface/default`, `hover`, `pressed`, texte constant | 100, 200, 300 | 300, 400, 500 | Un pas par état (Radix `a3`, `a4`, `a5`) ; texte constant |
 | Bouton plein | `solid/default`, `hover`, `pressed` | 700, 800, 900 | Texte noir : 700, 800, 900, plus clair ; texte blanc : 700, 600, 500, plus sombre | Survol plus sombre en clair ; en sombre, plus clair chez Radix, Atlassian, Fluent et Primer |
 
-UCM met 7 ou 8 crans entre le fond et le texte (50 et 800 ; 200 et 900 en
-Dark), dans la plage relevée.
+UCM met 7 crans entre le fond et le texte (100 et 800 ; 300 et 950 en Dark),
+dans la plage relevée.
 
 Avec un texte des boutons blanc en Dark, le réglage du mainteneur, le bouton
 plein d'UCM fonce au survol, quand les quatre systèmes cités l'éclaircissent :
@@ -295,8 +273,10 @@ texte : il convient à un contour franc. Un badge bordé discrètement prend
 `page/divider` (cran 300) ; aucune variable n'est ajoutée.
 
 Les badges d'Atlassian et de Polaris prennent aussi un fond plus marqué que
-les alertes (1,34 à 1,37 contre 1,14 à 1,17). Dans UCM, un badge plus marqué
-emploie `surface/hover` (100 en Light) au repos. Ces deux choix relèvent des composants.
+les alertes (1,34 à 1,37 contre 1,14 à 1,17). Au banc visuel, le badge discret
+a suffi avec la table retenue ; un composant qui voudrait un badge plus marqué
+emploierait `surface/hover` (200 en Light, 400 en Dark). Ces deux choix
+relèvent des composants.
 
 ## 4. Ce que la solution touche
 
@@ -310,7 +290,7 @@ emploie `surface/hover` (100 en Light) au repos. Ces deux choix relèvent des co
 | G7 contre la page et la carte | `packages/kit/src/emplois/garanties.ts` : les fonds de G7 deviennent la page et la carte ; `packages/couleur/src/promesses.ts` et `garantie.ts` reçoivent la couleur de la carte (blanche en Light, neutre 100 en Dark), absente aujourd'hui de la recette ; textes de Vérification |
 | S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (400, 500 et 950), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
-### Le focus, fichier par fichier
+### Le focus, fichier par fichier (à implémenter)
 
 Décisions : l'anneau décalé (2 px du fond, puis 2 px de trait) partout, au cran
 d'aujourd'hui (600 en sens normal, 700 en sens inversé, dans les deux thèmes) ;
@@ -338,24 +318,21 @@ la couleur de la carte changent.
 | `AGENTS.md` | La carte du code nomme `ring` |
 | Fichier Figma, contrats et Playground | Les liaisons et les références à `page/focus` migrent vers `ring`, comme `text` vers `foreground` |
 
-## 5. Ce qui reste à juger à l'œil
+## 5. Ce qui a été jugé à l'œil
 
-Dans la [maquette de qualité](./Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html),
-section « La solution proposée », et dans la
-[maquette des rôles](./Maquettes/MAQUETTE-ROLES-ET-CRANS.html), section
-« Le modèle des niveaux » : le fond Light 50, la page Dark abaissée, le fond
-Dark 200 sur la carte.
+Les deux tours du [banc visuel](./Maquettes/BANC-VISUEL.html) ont jugé la
+règle de chroma, la dérive de teinte, le cran des fonds et la forme du focus,
+sur dix-sept familles de Tailwind et sept cas limites. Reste à juger le modèle
+sur le fichier du mainteneur, avec la règle retenue : la
+[maquette de qualité](./Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html) et la
+[maquette des rôles](./Maquettes/MAQUETTE-ROLES-ET-CRANS.html) le montrent.
 
 ## 6. Limites
 
-- Le jugement visuel du modèle n'est pas encore fait. Les notes à l'aveugle
-  du Dark ont été données avec une borne unique (a = 0,6) : la borne Dark de
-  S1 est mesurée, pas encore notée.
+- Le banc visuel a jugé un jeu de palettes neuf ; le fichier du mainteneur
+  n'a pas encore été revu avec la règle retenue.
 - Polaris sombre est expérimental et partiel ; Material 3 ne publie qu'un rôle
   d'erreur ; Carbon ne teinte pas ses notifications en Dark.
-- Avec un texte Dark 900, la recette actuelle du mainteneur dépasse la marge
-  sur Orange Vivid (4,12:1) : son Color shift « nuances sombres » est à
-  ramener sous +0,015, ou le texte à passer à 950.
 - Une recette existante garde sa courbe : son cran 50 Dark ne descend qu'après
   un changement de courbe accepté par le designer.
 - `disabled/background` garde le neutre 200. En Dark, il prend la couleur d'une

@@ -1,12 +1,12 @@
 # Qualité des palettes en interface : dossier
 
-**Statut : recherche faite, maquettes à valider.** La
-[solution proposée](./SOLUTION-RAMPES.md) reprend le sujet après les notes à
-l'aveugle et un relevé de neuf systèmes ; elle remplace les recommandations
-Q1, Q2, Q5 et Q6 ci-dessous, ajoute Q9, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
-la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
-montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Dix décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3. La règle de chroma est rouverte par le dossier [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md).
+**Statut : décisions arrêtées au banc visuel ; ce dossier garde les premières
+mesures et les pistes.** La [solution](./SOLUTION-RAMPES.md) décrit ce qui est
+retenu, et le dossier [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) les
+mesures sur toutes les teintes et les notes du banc. Les causes sont mesurées
+ici sur la recette du mainteneur et sur un balayage de 72 teintes. Dix
+décisions sont listées en section 6, dix autres dans le dossier dédié au
+sujet 3.
 
 | Maquette | Sujet |
 |---|---|
@@ -41,7 +41,7 @@ leurs hypothèses.
 - **Témoins** : [Tailwind 3.4.17](./Mesures/references/tailwind-3.4.17.json),
   dont les rampes sont celles d'Untitled UI, et
   [Radix Colors 3.0.0](./Mesures/references/radix-colors-3.0.0.json).
-  Les composants de six systèmes sont relevés dans
+  Les statuts de cinq systèmes et le focus de dix sont relevés dans
   [RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md).
 - **Banc** : [prototype.ts](./Mesures/prototype.ts) refait la chaîne de
   `rampesDe` (courbe, pivot, Color shift, décalage, fonds du thème Dark,
@@ -118,7 +118,7 @@ et 800.
 | Règle | Formule | Réglages proposés |
 |---|---|---|
 | Deux zones | Une part pour les fonds, une pour les accents, raccordées entre L 0,86 et 0,70 en Light, entre 0,33 et 0,45 en Dark | Soft 0,45 · 0,85 ; Vivid 0,75 · 0,95 |
-| Enveloppe | `C = min(part × plafond(L, H), p₀ × min(a × (1 − L), b × L))` : la part donne la chroma, une borne qui ne dépend que de la clarté la plafonne | Parts communes p₀ : Soft 0,85, Vivid 0,95 ; Soft a 0,6, b 0,38 ; Vivid et intensité unique a 1,1, b 0,48 |
+| Enveloppe | `C = min(part × plafond(L, H), p₀ × min(a × (1 − L), b × L))` : la part donne la chroma, une borne qui ne dépend que de la clarté la plafonne | Parts communes p₀ : Soft 0,85, Vivid 0,95 ; Soft a 0,6, b 0,38 ; Vivid et intensité unique a 1,1, b 0,48. Retenue au banc avec une borne Dark propre, une marge pour les jaunes clairs et b 0,30 pour les fonds Dark de Vivid ([solution](./SOLUTION-RAMPES.md), S1) |
 | Relevé Tailwind | La part de chaque cran suit celle de Tailwind à cette clarté et cette teinte, interpolée sur le cercle comme `deriveTailwind` | Soft : fonds 0,5, accents 0,9 ; Vivid : 1 et 1 |
 
 Les trois règles gardent la courbe de clarté, les teintes, le Color shift et
@@ -212,8 +212,8 @@ utilitaires :
 Le texte coloré reste faible en Dark Soft avec l'enveloppe (2). La borne
 `a = 0,6` de Soft limite la chroma des textes clairs. La
 [solution](./SOLUTION-RAMPES.md) (S1) la porte à 1,1 en Dark : la chroma des
-textes 900 de Soft monte jusqu'à 0,141. Ce réglage est mesuré, pas encore noté
-à l'aveugle ; en Light, la borne ne change pas, et les notes ci-dessus valent.
+textes 900 de Soft monte jusqu'à 0,141. Ce réglage a été retenu au banc
+visuel ([robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 8 et 10).
 
 ### 3.7 Recommandation
 
@@ -280,9 +280,10 @@ Soft, carte au neutre 100, 200 ou au-delà :
 | `#212225` | 1,18 | 1,05 à 1,08 | 1,25 à 1,33 |
 | Neutre 200, `#25282E` | 1,25 | 1,00 à 1,03 | 1,19 à 1,27 |
 
-Le fond teinté doit se tenir un cran au-dessus de la carte qui le porte.
+Le fond teinté doit se tenir au-dessus de la carte qui le porte : à un cran,
+d'abord proposé ; à deux crans, retenu au banc visuel (Light 100, Dark 300).
 
-### 4.2 Trois pistes
+### 4.2 Trois pistes, mesurées avant la solution
 
 **Opaque, crans déplacés.** Surfaces 50/100/200 en Light, 200/300/400 en Dark.
 La piste Dark ajoute 552 échecs G3 et 182 G7 : le texte doit passer à 950 et le
@@ -306,11 +307,12 @@ le support de calcul compte.
 [mesurer-surfaces.ts](./Mesures/mesurer-surfaces.ts) et
 [verifier-garanties.ts](./Mesures/verifier-garanties.ts) donnent les mesures.
 Avec l'enveloppe, la piste translucide laisse 144 échecs G7 en Dark inversé :
-le focus 700 contre le fond posé sur la carte. Le focus Dark 800
-(section 4.4) les retire tous. Il reste 16 échecs G7 en Light, de même
+le focus 700 contre le fond posé sur la carte. Un focus Dark 800, alors
+envisagé, les retirait ; G7 jugé contre la page et la carte les rend sans
+objet. Il reste 16 échecs G7 en Light, de même
 nature que ceux de la section 3.5.
 
-**Le texte à 700.** Avec les fonds Light 50, 100 et 200, un texte constant au
+**Le texte à 700.** Avec les fonds Light 50, 100 et 200 du modèle à un cran, un texte constant au
 cran 700 tient 4,5:1 au repos et au survol, mais échoue sur l'appui (200) posé
 sur la page pour 464 des 576 rampes Light normales du balayage. Le texte reste donc à 800 ;
 l'enveloppe double sa chroma (Grass Soft 800 : C 0,058 à 0,109). Un composant
@@ -323,11 +325,11 @@ plein reste à 700.
 
 ### 4.3 Recommandation pour les fonds
 
-Le modèle des niveaux de la [solution proposée](./SOLUTION-RAMPES.md) (S2,
-S3) répond à cette section : fonds 50, 100 et 200 en Light ; 200, 300 et 400 en
-Dark, sur la carte au neutre 100 ; texte Dark 900 ou 950 ; page Dark abaissée.
-Les options mesurées avant lui (carte Dark au neutre 200, texte 800, fonds
-translucides) y sont chiffrées, avec leurs échecs en plus du modèle.
+Le modèle des niveaux de la [solution](./SOLUTION-RAMPES.md) (S2, S3)
+répond à cette section : fonds 100, 200 et 300 en Light ; 300, 400 et 500 en
+Dark, sur la carte au neutre 100, avec un texte et un contour 950 ; page Dark
+abaissée. Les options mesurées avant lui (carte Dark au neutre 200, texte 800,
+fonds translucides) y sont chiffrées.
 
 La piste translucide servait un fond posé tantôt sur la page, tantôt sur la
 carte. Les composants teintés se posent toujours sur une carte : un fond
@@ -445,8 +447,9 @@ dossier.
 - La rotation de teinte du calcul passe par le réglage de teinte de la carte,
   borné à ±30°, et déplace la référence. Un designer qui garde sa référence
   exacte n'a pas ce geste.
-- La séparation de la carte Dark n'est pas tranchée : elle relève de
-  l'élévation du thème (section 4.3).
+- La carte Dark garde le neutre 100 et la page descend à L 0,145
+  ([solution](./SOLUTION-RAMPES.md), S2) ; une ombre ou un contour de carte
+  reste à juger à l'œil.
 
 ## 9. Reproduire
 

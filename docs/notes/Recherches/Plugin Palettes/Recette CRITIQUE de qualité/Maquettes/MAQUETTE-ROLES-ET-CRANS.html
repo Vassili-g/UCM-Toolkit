@@ -185,14 +185,14 @@
   <ol>
     <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 100, 200, 300, comme aujourd'hui ; texte 800 ; focus 600. La règle de chroma calme les crans clairs : le fond 100 garde son contraste contre la carte (1,14 à 1,17), avec une couleur plus douce.</li>
     <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 300, 400, 500 ; texte et contour 950 ; focus inchangé (600, ou 700 en sens inversé). La page se détache de la carte (1,16) et le fond de la carte (1,34 à 1,43).</li>
-    <li><b>Garanties</b> : les 144 échecs du balayage existent déjà avec le moteur actuel. Le fond Light 100 en ajoute 20 si le focus touche le fond (2,98 à 3,00:1) ; un indicateur extérieur, mesuré contre la carte comme le demande le W3C, n'en ajoute aucun.</li>
+    <li><b>Garanties</b> : les 144 échecs du balayage existent déjà avec le moteur actuel ; G7 juge le focus contre la page et la carte.</li>
     <li><b>Fonds opaques.</b> Palettes n'écrit que des crans ; la piste translucide est écartée, comme chez Atlassian, Material 3, Fluent et Polaris.</li>
     <li><b>Le focus</b> garde sa forme (anneau décalé de 2 px) et son nom (<code>ring</code>, à la racine de la palette) : Q7 et Q8 ne dépendent pas du modèle.</li>
     <li><b>Les composants à surface</b> gardent les rôles actuels ; un badge bordé discrètement prend <code>page/divider</code> (Q9).</li>
   </ol>
 </div>
 <table style="margin-top:14px">
-  <thead><tr><th>Variable</th><th>Light</th><th>Dark aujourd'hui (normal · inversé)</th><th>Dark proposé</th></tr></thead>
+  <thead><tr><th>Variable</th><th>Light</th><th>Dark aujourd'hui (normal · inversé)</th><th>Dark retenu</th></tr></thead>
   <tbody>
     <tr><td><code>surface/default</code></td><td>100</td><td>100 · 100</td><td class="change">300</td></tr>
     <tr><td><code>surface/hover</code></td><td>200</td><td>200 · 200</td><td class="change">400</td></tr>
@@ -208,7 +208,7 @@
 <p class="chapeau">Le chemin ne change pas : un composant cite <code>theme</code>, qui cite <code>color-utilities</code> ou <code>color-brands</code>, qui citent <code>primitives</code>. Seuls changent le cran que <code>theme</code> vise et la clarté du cran 50 de la courbe Dark.</p>
 <div class="fx" id="fx">
   <div class="fx-top">
-    <div class="seg" role="group" aria-label="Vue"><button type="button" data-vue="actuel" aria-pressed="false">Aujourd'hui</button><button type="button" data-vue="modele" aria-pressed="true">Proposé (Q5 et Q8)</button></div>
+    <div class="seg" role="group" aria-label="Vue"><button type="button" data-vue="actuel" aria-pressed="false">Aujourd'hui</button><button type="button" data-vue="modele" aria-pressed="true">Retenu (Q5 et Q8)</button></div>
     <div class="legend" id="fx-legende"><span><i style="background:var(--mod)"></i>cran visé ou valeur modifiés par le modèle ; dessous, l'alias ou la valeur d'aujourd'hui</span><span>sans barre : inchangé</span></div>
   </div>
   <div class="fx-body">
@@ -223,13 +223,13 @@
     <tr><td><code>primitives</code></td><td>UCM Palettes</td><td>La courbe Dark place le cran 50 à L 0,145 ; l'enveloppe par thème</td></tr>
     <tr><td><code>color-utilities</code>, <code>color-brands</code>, <code>elevation</code></td><td>Le designer, une fois</td><td>Rien</td></tr>
     <tr><td><code>theme</code></td><td>La table du kit, <code>TABLE_DES_DOSSIERS</code></td><td>Une table par thème : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500 et texte 950 en Dark ; focus inchangé</td></tr>
-    <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 devient requis</td></tr>
+    <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 du neutre devient requis</td></tr>
   </tbody>
 </table>
 <h2 id="composants-a-surface">3. Les composants à surface <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q9</a></h2>
-<p class="chapeau">Les rôles actuels servent chaque composant relevé dans onze systèmes (<code>Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md</code>). Table proposée, palette choisie ci-dessus.</p>
+<p class="chapeau">Les rôles actuels servent chaque composant relevé dans onze systèmes (<code>Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md</code>). Table retenue, palette choisie ci-dessus.</p>
 <table>
-  <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark proposé</th><th>Ce que font les autres</th></tr></thead>
+  <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark retenu</th><th>Ce que font les autres</th></tr></thead>
   <tbody>
     <tr><td>Alerte</td><td><code>surface/default</code>, <code>surface/foreground</code></td><td>100 · 800</td><td>300 · 950</td><td>Fond pâle teinté dans dix systèmes sur dix ; texte neutre dans cinq (Q4)</td></tr>
     <tr><td>Badge discret</td><td>Les mêmes ; contour discret <code>page/divider</code></td><td>100 · 800 · 300</td><td>300 · 950 · 300</td><td>Fond pâle dans sept sur dix ; contour plus clair que le texte chez quatre</td></tr>
@@ -241,7 +241,7 @@
 <div class="composants" id="composants" style="margin-top:12px"></div>
 
 <h2 id="autres-systemes">4. Le fond teinté dans les autres systèmes <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
-<p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM proposé.</p>
+<p class="chapeau">Contraste WCAG entre le fond d'une alerte ou d'un badge et la carte ou la page qui le porte. Gris : les systèmes relevés (<code>Collecte/Surfaces</code>, <code>Collecte/RELEVE-STATUTS-ET-FOCUS.md</code>). Rouge : UCM aujourd'hui. Vert : UCM retenu.</p>
 <div class="marche" id="marche"></div>
 
 <h2 id="focus">5. Le focus <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q6 · Q7</a></h2>
@@ -271,8 +271,8 @@
   <li><b>Q5. Le fond teinté et les niveaux.</b> Retenu au banc visuel : le modèle des niveaux, le fond à deux crans de sa carte. Fonds opaques 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145. Le badge discret suffit.</li>
   <li><b>Q6. La couleur du focus.</b> Garder le cran d'aujourd'hui, 600 (700 en sens inversé), dans les deux thèmes : jugé contre la page et la carte, c'est le plus discret qui tient 3:1. Un focus unique à la couleur de la marque, comme chez Figma, reste un choix des composants.</li>
   <li><b>Q7. La forme du focus.</b> Décidé : l'anneau décalé partout, 2 px du fond puis 2 px de trait, conforme au niveau AA, la forme de Figma SDS, Radix et Spectrum ; le plugin le dessine déjà. Le halo pâle collé (Bootstrap, Flowbite, kit d'Untitled UI) est écarté : il contraste à moins de 3:1 avec la page, et son rôle s'afficherait « AA ✗ » dans le plugin.</li>
-  <li><b>Q8. Le nom et la place.</b> <code>ring</code> à la racine de la palette (recommandé : une seule variable, visible en ouvrant la palette), <code>ring</code> dans chaque dossier (trois alias du même cran), ou <code>page/focus</code> conservé. Le dossier <code>page</code> porte aussi des éléments interactifs (liens, boutons à contour, champs, cases), mais tous prennent le même cran. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
-  <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
+  <li><b>Q8. Le nom et la place.</b> Retenu : <code>ring</code> à la racine de la palette, 13 variables, une seule variable visible en ouvrant la palette. Écartés : <code>ring</code> dans chaque dossier (trois alias du même cran) et <code>page/focus</code> conservé. Le dossier <code>page</code> porte aussi des éléments interactifs (liens, boutons à contour, champs, cases), mais tous prennent le même cran. Un renommage migre les liaisons Figma et les références des contrats, comme <code>text</code> devenu <code>foreground</code>.</li>
+  <li><b>Q9. Les composants à surface.</b> Retenu : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
 </ol>
 
 <h2 id="surfaces">Annexe A. Les pistes écartées : fond 50 sur la page, fond 200 seul, fonds translucides <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
@@ -290,13 +290,13 @@
 </details>
 
 <h2 id="table">Annexe B. Les tables mesurées <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q5</a></h2>
-<p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème (<code>Mesures/GARANTIES-BALAYAGE.json</code>). Le modèle est en tête de page.</p>
+<p class="chapeau">Échecs des sept garanties sur 50 688 couples du balayage, avec l'enveloppe par thème (<code>Mesures/GARANTIES-BALAYAGE.json</code>). Le modèle est en tête de page. Les autres lignes sont mesurées sur le modèle à un cran.</p>
 <table>
   <thead><tr><th>Table</th><th>Échecs en plus du modèle</th><th>Sort</th></tr></thead>
   <tbody>
-    <tr><td>Modèle des niveaux, texte Dark 900</td><td>0 (144 au total)</td><td class="ok">Proposé</td></tr>
-    <tr><td>Modèle, texte Dark 950</td><td>0</td><td>L'autre choix de Q5 : plus pâle, C 0,03 à 0,07</td></tr>
-    <tr><td>Table actuelle</td><td>20</td><td>Le focus Light manque 3:1 contre le fond 100 ; en Dark, le fond disparaît sur la carte</td></tr>
+    <tr><td>Table retenue : fonds Light 100, Dark 300, texte Dark 950</td><td>0 (144 au total)</td><td class="ok">Retenue</td></tr>
+    <tr><td>Modèle à un cran : fonds Light 50, Dark 200, texte Dark 900</td><td>0</td><td>Écarté au banc visuel : fond plus marqué préféré</td></tr>
+    <tr><td>Table actuelle</td><td>0</td><td>En Dark, le fond disparaît sur la carte (1,00:1)</td></tr>
     <tr><td>Dark : texte 800</td><td>1 282</td><td>Échoue sur le survol 300 et l'appui 400</td></tr>
     <tr><td>Dark : appui 300, texte 800</td><td>320</td><td>Survol et appui confondus ; le texte échoue encore en sens inversé</td></tr>
     <tr><td>Dark : carte au neutre 200, fonds 300</td><td>334</td><td>218 pleins et 116 textes de page échouent sur la carte</td></tr>
@@ -352,13 +352,15 @@
 
   // Le focus : chaque forme sur un bouton plein, un bouton teinté, un bouton contour, un champ et un lien.
   const FORMES = [
-    { id: 'colle', nom: 'Aujourd\'hui', detail: 'Trait de 2 px collé, cran du focus', ombre: (f, a) => `0 0 0 2px ${a}` },
-    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; cran du focus', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
-    { id: 'halo', nom: 'Halo seul', detail: 'Le kit Figma d\'Untitled UI : 4 px au cran 100', ombre: (f, a, h) => `0 0 0 4px ${h}` },
-    { id: 'halo-trait', nom: 'Halo et trait', detail: '2 px de halo au cran 100 (300 en Dark), puis 2 px de trait', ombre: (f, a, h) => `0 0 0 2px ${h}, 0 0 0 4px ${a}`, clair: true },
+    { id: 'colle', nom: 'Trait collé de 2 px (écarté)', detail: 'Le trait d\'aujourd\'hui, au cran du focus', ombre: (f, a) => `0 0 0 2px ${a}` },
+    { id: 'decale', nom: 'Anneau décalé (retenu, Q7)', detail: '2 px de support puis 2 px de trait ; cran du focus', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
+    { id: 'halo', nom: 'Halo seul (écarté)', detail: 'Le kit Figma d\'Untitled UI : 4 px au cran 100', ombre: (f, a, h) => `0 0 0 4px ${h}` },
+    { id: 'halo-trait', nom: 'Halo et trait (écarté)', detail: '2 px de halo au cran 100 (300 en Dark), puis 2 px de trait', ombre: (f, a, h) => `0 0 0 2px ${h}, 0 0 0 4px ${a}`, clair: true },
   ];
   function dessinerFocus() {
     const mode = etat.fMode;
+    // En Dark, la page est celle de la table retenue (`#0A0A0B`), pas l'ancienne `#111213`.
+    const supportFocus = mode === 'dark' && etat.fSupport === 'page' ? PAGE_DARK_MODELE : D.supports[mode][etat.fSupport];
     let html = '<span></span><span class="tete">Composants au focus, quatre utilitaires</span><span class="tete">Contraste de l\'indicateur</span>';
     for (const forme of FORMES) {
       html += `<div class="piste"><b>${forme.nom}</b><span>${forme.detail}</span></div>`;
@@ -366,7 +368,7 @@
       const mesures = [];
       for (const palette of ['Poppy', 'Orange', 'Grass', 'Sky']) {
         const j = U.jeu({ variante: etat.variante, palette, intensite: etat.intensite, mode, support: etat.fSupport });
-        const fond = j.fond;
+        const fond = supportFocus;
         const sensInverse = U.sens(mode) === 'inverse';
         // Le focus garde le cran d'aujourd'hui dans les deux thèmes : 600, ou 700 en sens inversé.
         const cranFocus = sensInverse ? 700 : 600;
@@ -384,7 +386,7 @@
              <span class="lien" style="color:${j.page.foreground};box-shadow:${ombre}">Voir le détail</span>`
           : `<span class="bouton" style="background:${j.solid.default};color:${j.solid.foreground};box-shadow:${ombre}">${palette}</span>`;
       }
-      html += `<div class="focus-scene" style="background:${D.supports[mode][etat.fSupport]}">${scene}</div><div class="piste" style="font-size:11px">${mesures.join('<br>')}<br><span>Seuil 3:1 contre le support (1.4.11).</span></div>`;
+      html += `<div class="focus-scene" style="background:${supportFocus}">${scene}</div><div class="piste" style="font-size:11px">${mesures.join('<br>')}<br><span>Seuil 3:1 contre le support (1.4.11).</span></div>`;
     }
     document.getElementById('grille-focus').innerHTML = html;
   }
@@ -400,8 +402,8 @@
     const nom = `${etat.palette.toLowerCase()} / ${etat.intensite}`;
     const panneaux = [
       ['Aujourd\'hui : page/focus', `${solid(false)}${surface(false)}${page(true, false)}`, '13 variables. Le focus d\'un bouton plein se cherche dans <code>page</code>.'],
-      ['ring dans chaque dossier', `${solid(true)}${surface(true)}${page(false, true)}`, '15 variables, trois alias du même cran. Chaque dossier relie seul son composant.'],
-      ['ring à la racine', `<div class="var" data-neuf><i style="background:${j.page.focus}"></i><span>ring</span><em>600</em></div>${solid(false)}${surface(false)}${page(false, false)}`, '13 variables. Le nom se trouve en tête de la palette, hors des dossiers.'],
+      ['ring dans chaque dossier (écarté)', `${solid(true)}${surface(true)}${page(false, true)}`, '15 variables, trois alias du même cran. Chaque dossier relie seul son composant.'],
+      ['ring à la racine (retenu)', `<div class="var" data-neuf><i style="background:${j.page.focus}"></i><span>ring</span><em>600</em></div>${solid(false)}${surface(false)}${page(false, false)}`, '13 variables. Le nom se trouve en tête de la palette, hors des dossiers.'],
     ];
     document.getElementById('panneaux-figma').innerHTML = panneaux.map(([titre, corps, pied]) => `<div class="figma"><header>${titre}<br><span style="font-weight:400;color:var(--second)">theme · ${nom}</span></header>${corps}<div class="pied">${pied}</div></div>`).join('');
   }
@@ -447,11 +449,11 @@
     ['Light', [
       ['Primer, Flash', 1.15, 1.15], ['Atlassian, section message · lozenge', 1.14, 1.34], ['Radix, soft', 1.12, 1.12], ['Material 3, error-container', 1.15, 1.15],
       ['Fluent 2, badge tint · MessageBar', 1.07, 1.09], ['Polaris, banner · badge', 1.17, 1.37], ['Figma SDS, notification · tag', 1.04, 1.17], ['Tailwind et Untitled UI, cran 50', 1.04, 1.09],
-      ['UCM aujourd\'hui, fond 100', 1.11, 1.17, 'ucm'], ['UCM retenu, fond 100', 1.14, 1.17, 'propose'],
+      ['UCM aujourd\'hui (moteur actuel), fond 100', 1.11, 1.17, 'ucm'], ['UCM retenu, fond 100', 1.14, 1.17, 'propose'],
     ]],
     ['Dark', [
       ['Primer, Flash', 1.12, 1.12], ['Atlassian, section message · lozenge', 1.08, 1.22], ['Radix, soft', 1.17, 1.31], ['Material 3, error-container', 1.87, 1.87],
-      ['Fluent 2, badge tint · MessageBar', 1.12, 1.19], ['Figma SDS, notification', 1.09, 1.40], ['UCM aujourd\'hui, fond 100', 1.00, 1.02, 'ucm'], ['UCM retenu, fond 300', 1.34, 1.43, 'propose'],
+      ['Fluent 2, badge tint · MessageBar', 1.12, 1.19], ['Figma SDS, notification', 1.09, 1.40], ['UCM aujourd\'hui (moteur actuel), fond 100', 1.00, 1.02, 'ucm'], ['UCM retenu, fond 300', 1.34, 1.43, 'propose'],
     ]],
   ];
   function dessinerMarche() {

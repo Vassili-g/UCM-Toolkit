@@ -10,7 +10,7 @@
 | [SPEC-ECRANS-HARMONISATION.md](./SPEC-ECRANS-HARMONISATION.md) | Spécification de reproduction des écrans de la maquette Comparer : mesures, textes français et anglais, comportements, clavier, CSS, calculs, vérification au pixel |
 | [Maquettes/](./Maquettes/) | Qualité en interface, rôles et crans, comparer, banc visuel à noter ; données générées par `Mesures/` |
 | [Mesures/](./Mesures/) | Banc de recherche, scripts de mesure, témoins Tailwind et Radix, recette du mainteneur |
-| [Collecte/RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md) | Statuts discrets et focus de six systèmes |
+| [Collecte/RELEVE-STATUTS-ET-FOCUS.md](./Collecte/RELEVE-STATUTS-ET-FOCUS.md) | Statuts discrets de cinq systèmes, focus de dix |
 | [Collecte/Focus/](./Collecte/Focus/README.md) | Focus des boutons et des champs de dix autres systèmes, dont ceux qui collent un halo pâle, versions figées |
 | [Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md](./Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md) | Badges, alertes et boutons de onze systèmes : crans du fond, du texte, du contour et des états ; audit des relevés anciens |
 | [Collecte/SDS/](./Collecte/SDS/README.md) | Le Simple Design System de Figma : fonds des notifications et des tags, révision figée |

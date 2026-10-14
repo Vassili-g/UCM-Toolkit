@@ -1,8 +1,10 @@
 /**
  * Les données du second tour du banc visuel (`../Maquettes/donnees-banc-tour-2.js`). Le premier
  * tour a retenu l'enveloppe (cohérence 5), un fond plus marqué (Light 100, Dark 300, texte Dark
- * 950) et la dérive de teinte corrigée. Il reste deux réglages à juger : la marge des jaunes
- * clairs en Light, et la borne des fonds Dark en Vivid. Même jeu de palettes que le premier tour.
+ * 950) et la dérive de teinte corrigée. Il reste deux réglages à juger, la marge des jaunes
+ * clairs en Light et la borne des fonds Dark en Vivid, et la forme du focus. Même jeu de palettes
+ * que le premier tour. Choix du mainteneur : jaunes +100 % en Soft, +50 % en Vivid ; b 0,30 ;
+ * anneau décalé.
  */
 import { writeFileSync } from 'node:fs';
 import { lireHexa, rgb8VersOklch } from '../../../../../../packages/couleur/src/conversions';
