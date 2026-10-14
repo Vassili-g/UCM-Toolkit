@@ -89,7 +89,10 @@ Badges : fond 50, texte 700, contour 200 du badge intérieur ; voir
 
 Le halo du kit Figma d'Untitled UI a été lu dans le fichier par la
 [préparation](../RELEVE-UNTITLED-FOCUS.json). Le code React du même éditeur
-emploie un trait brand-500. Aucun autre système lu n'emploie un pas pâle seul.
+emploie un trait brand-500. Ce relevé ne lisait pas les systèmes qui collent
+un halo pâle : Bootstrap, Flowbite, shadcn/ui et Ant Design le font, et Radix
+colle un trait pâle sur quatre variantes de bouton
+([Focus/](./Focus/README.md)).
 
 WCAG 2.2 : [1.4.11](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)
 (AA) demande 3:1 entre l'indicateur et ses couleurs adjacentes et cite la

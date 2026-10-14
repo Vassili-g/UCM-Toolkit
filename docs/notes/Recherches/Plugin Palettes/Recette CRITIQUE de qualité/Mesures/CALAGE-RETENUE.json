@@ -1,0 +1,90 @@
+{
+  "vivid": {
+    "retenue": {
+      "clairs": {
+        "k": 0.31965694815059553,
+        "h": 156.97235611515146,
+        "s": 30.76432814313439,
+        "debut": 0.7620517062227199,
+        "plein": 0.897547948707334
+      },
+      "fonces": {
+        "k": 0.5661520962144303,
+        "h": 269.22874628416855,
+        "s": 13.813407832664787,
+        "debut": 0.6850151963632868,
+        "plein": 0.212526004890708
+      }
+    },
+    "erreur": 0.0031326228236315374
+  },
+  "soft": {
+    "retenue": {
+      "clairs": {
+        "k": 0.6745083143278733,
+        "h": 162.55864364348068,
+        "s": 34.88221462287939,
+        "debut": 0.5608700329857619,
+        "plein": 0.8807884520405604
+      },
+      "fonces": {
+        "k": 0.3494695735186421,
+        "h": 304.14254170526954,
+        "s": 150.13242724792667,
+        "debut": 0.5545023960136828,
+        "plein": 0.5343543221734118
+      }
+    },
+    "erreur": 0.0205622720434354
+  },
+  "resultats": {
+    "tailwind · part constante 0,95": {
+      "hors": 21,
+      "total": 173
+    },
+    "tailwind · enveloppe Vivid (a 1,1, b 0,48)": {
+      "hors": 12,
+      "total": 173
+    },
+    "tailwind · retenue Tailwind": {
+      "hors": 0,
+      "total": 173
+    },
+    "tailwind · retenue Radix clair": {
+      "hors": 75,
+      "total": 173
+    },
+    "radix clair · part constante 0,95": {
+      "hors": 48,
+      "total": 122
+    },
+    "radix clair · enveloppe Vivid (a 1,1, b 0,48)": {
+      "hors": 53,
+      "total": 122
+    },
+    "radix clair · retenue Tailwind": {
+      "hors": 45,
+      "total": 122
+    },
+    "radix clair · retenue Radix clair": {
+      "hors": 13,
+      "total": 122
+    },
+    "radix sombre · part constante 0,95": {
+      "hors": 42,
+      "total": 120
+    },
+    "radix sombre · enveloppe Vivid (a 1,1, b 0,48)": {
+      "hors": 43,
+      "total": 120
+    },
+    "radix sombre · retenue Tailwind": {
+      "hors": 38,
+      "total": 120
+    },
+    "radix sombre · retenue Radix clair": {
+      "hors": 40,
+      "total": 120
+    }
+  }
+}

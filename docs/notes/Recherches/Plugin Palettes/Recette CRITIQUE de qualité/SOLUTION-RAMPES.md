@@ -99,6 +99,14 @@ Trois causes, mesurées :
 
 ### S1. Une enveloppe par thème
 
+**Rouverte.** L'enveloppe corrige les verts clairs, mais sa borne ne dépend
+que de la clarté : elle ternit aussi les jaunes et les ambres clairs, que
+Tailwind et Radix gardent près du plafond. Le dossier
+[Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) la compare, sur toutes les
+familles de teinte, à une retenue par teinte calée sur le marché, et corrige le
+préréglage de teinte. Ce qui suit décrit l'enveloppe telle qu'elle a été
+mesurée.
+
 `C = min(part × plafond(L, H), p₀ × min(a × (1 − L), b × L))`, avec des bornes
 propres à chaque thème :
 
@@ -121,7 +129,7 @@ niveau se tient un cran plus loin du fond que celui qui le porte :
 |---|---|---|
 | Page | neutre 50 | neutre 50, abaissé à L 0,145 |
 | Carte (`raised`) | blanc, hors rampe | neutre 100 |
-| Fond teinté au repos, survol, appui | 50, 100, 200 | 200, 300, 400 |
+| Fond teinté au repos, survol, appui | 50, 100, 200 ; ou 100, 200, 300, à juger | 200, 300, 400 ; ou 300, 400, 500 avec un texte 950, à juger |
 | Texte et contour du fond teinté | inchangés : 800 en sens normal, 900 en sens inversé | 900 dans les deux sens, ou 950 (voir plus bas) |
 | Focus | inchangé : 600 en sens normal, 700 en sens inversé | 800, dans les deux sens |
 | Plein, texte et contour de page | inchangés | inchangés |
@@ -286,11 +294,12 @@ emploie `surface/hover` (100 en Light) au repos. Ces deux choix relèvent des co
 
 | Proposition | Fichiers |
 |---|---|
-| S1 | `packages/couleur/src/rampe.ts` (`cranVise`), `recette.ts` (bornes par profil et par thème, format 11), `palette.ts`, `limites.ts` ; une recette au format 10 garde la part constante |
+| S1 | `packages/couleur/src/rampe.ts` (`cranVise`), `recette.ts` (paramètres de la règle par profil et par thème, format 11), `palette.ts`, `limites.ts` ; une recette au format 10 garde la part constante |
+| Q10, dérive de teinte | `packages/couleur/src/tailwind.ts` (`deriveTailwind`, `prereglageTailwind`) ; le relevé `derives` de la recette porte la teinte et la clarté de chaque cran |
 | S2, courbe | `packages/couleur/src/nuances.ts` : clarté du cran 50 de la courbe Dark par défaut ; le fond de page Dark par défaut de la recette |
 | S2, table | `packages/kit/src/emplois/dossiers.ts` : une table par thème et par sens, que `cranDeLaVariable`, `cransRequis`, `variablePresente` et `variablesDuCran` lisent avec le thème ; `garanties.ts` et ses tests. Lecteurs à suivre : `packages/couleur/src/promesses.ts`, `garantie.ts`, `alertes.ts`, `recette.ts` (crans requis) ; `packages/plugin-palettes/src/presentation.ts`, `planche/modele.ts`, `ui/nuancier.ts`, `ui/garanties.ts`, `ui/apercuCompact.ts`, `ui/interfaceDeTest.ts`, textes `i18n` ; `packages/plugin-explorateur/src/integrations/palettes.ts` et `profilUcm.ts` |
-| Q8, `ring` | `VARIABLES_DE_PALETTE`, `ETAT_DU_FOND`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma et contrats qui lisent `page/focus` |
-| S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (50 et 400), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` dans chaque dossier, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
+| Q8, `ring` à la racine de la palette | `VARIABLES_DE_PALETTE`, `ETAT_DU_FOND`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma et contrats qui lisent `page/focus` |
+| S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (50 et 400), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
 ## 5. Ce qui reste à juger à l'œil
 

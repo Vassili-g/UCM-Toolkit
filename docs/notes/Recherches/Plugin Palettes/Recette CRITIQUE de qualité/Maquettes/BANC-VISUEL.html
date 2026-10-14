@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banc visuel des palettes</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e2e2e2; --fond: #f6f6f6; --carte: #fff; --lien: #007be5; --ok: #1a7f37; --ko: #b42318; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0 32px 80px; background: var(--fond); color: var(--texte); font: 13px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 24px 0 4px; font-size: 22px; }
+  h2 { margin: 36px 0 6px; font-size: 16px; }
+  h3 { margin: 18px 0 6px; font-size: 13.5px; }
+  code { font: 11px ui-monospace, Consolas, monospace; background: #ececec; padding: 1px 4px; border-radius: 3px; }
+  .chapeau { color: var(--second); max-width: 920px; margin: 0 0 10px; }
+  nav { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 0; }
+  nav a { color: var(--lien); text-decoration: none; }
+  .barre { position: sticky; top: 0; z-index: 5; background: var(--fond); border-bottom: 1px solid var(--filet); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+  .groupe { display: inline-flex; align-items: center; gap: 6px; }
+  .groupe > span { color: var(--second); font-size: 12px; }
+  .bascule { display: inline-flex; border: 1px solid #cfcfcf; border-radius: 6px; overflow: hidden; background: #fff; }
+  .bascule button { border: 0; background: transparent; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid #cfcfcf; }
+  .bascule button[aria-pressed="true"] { background: #1e1e1e; color: #fff; }
+  .scene { border-radius: 12px; padding: 18px; }
+  .carte { border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .lignes { display: grid; gap: 8px; }
+  .ligne { display: grid; grid-template-columns: 128px minmax(260px, 340px) minmax(0, 1fr); gap: 14px; align-items: center; }
+  .nom b { display: block; font-size: 12.5px; }
+  .nom span { font-size: 10.5px; opacity: .65; }
+  .rampe { display: grid; grid-template-columns: repeat(11, 1fr); height: 26px; border-radius: 6px; overflow: hidden; }
+  .rampe.temoin { height: 10px; margin-top: 3px; border-radius: 4px; opacity: .95; }
+  .rampe span { display: block; }
+  .rampe span.repere { box-shadow: inset 0 0 0 2px rgba(255,255,255,.9), inset 0 0 0 3px rgba(0,0,0,.35); }
+  .composants { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .alerte { border-radius: 6px; padding: 5px 10px; font-size: 12px; min-width: 190px; }
+  .alerte b { margin-right: 6px; }
+  .badge { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+  .bouton { border-radius: 6px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; border: 0; }
+  .lien { font-size: 12px; text-decoration: underline; }
+  .notes { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 12px 0 0; padding: 12px 14px; background: #fff; border: 1px solid var(--filet); border-radius: 10px; }
+  .critere { display: flex; align-items: center; gap: 6px; }
+  .critere > span { font-size: 12px; }
+  .critere .bascule button { padding: 3px 8px; }
+  textarea.commentaire { width: 100%; min-height: 38px; font: inherit; font-size: 12px; border: 1px solid var(--filet); border-radius: 6px; padding: 6px 8px; }
+  .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .duo .titre { font-weight: 600; margin-bottom: 8px; font-size: 12.5px; }
+  .mesure { font-size: 11px; opacity: .7; margin-top: 8px; }
+  .focus-grille { display: grid; grid-template-columns: 170px repeat(4, minmax(0, 1fr)); gap: 12px 14px; align-items: center; }
+  .focus-grille .entete { font-size: 11.5px; opacity: .7; }
+  .cellule { display: grid; gap: 6px; justify-items: start; }
+  .verdict { font-size: 10.5px; }
+  .verdict.ok { color: #1a7f37; } .verdict.ko { color: #c0392b; }
+  .scene.sombre .verdict.ok { color: #5fd38a; } .scene.sombre .verdict.ko { color: #ff8a80; }
+  .champ { border-radius: 6px; padding: 5px 10px; font-size: 12px; min-width: 120px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 28px; }
+  .actions button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid #1e1e1e; background: #1e1e1e; color: #fff; cursor: pointer; }
+  .actions span { color: var(--second); font-size: 12px; }
+  textarea#bilan { display: block; width: 100%; max-width: 1100px; height: 180px; margin-top: 8px; font: 11px ui-monospace, Consolas, monospace; }
+  textarea#bilan[hidden] { display: none; }
+  .revele { font-size: 12px; color: var(--second); }
+  table.regles { border-collapse: collapse; background: #fff; border: 1px solid var(--filet); border-radius: 8px; margin-top: 8px; }
+  table.regles td, table.regles th { padding: 6px 10px; border-bottom: 1px solid var(--filet); text-align: left; font-size: 12px; }
+  @media (max-width: 900px) {
+    body { padding: 0 16px 60px; }
+    .ligne { grid-template-columns: 1fr; gap: 6px; }
+    .duo { grid-template-columns: 1fr; }
+    .focus-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .focus-grille .entete { display: none; }
+  }
+</style>
+<script src="donnees-banc-visuel.js"></script>
+</head>
+<body>
+<h1>Banc visuel des palettes</h1>
+<p class="chapeau">Trois tests à noter à l'œil, sur un jeu de palettes neuf : les dix-sept familles de Tailwind (référence au cran 600) et sept cas limites (jaune clair, marine, sauge terne, vert néon, bleu primaire, taupe, corail). Les composants sont posés sur une carte, blanche en Light, grise au cran 100 du neutre en Dark, sur une page au cran 50 (<code>#0A0A0B</code> en Dark). La « dérive de teinte » choisit comment la teinte tourne le long de la rampe : le préréglage Tailwind actuel, ou sa correction, qui suit Tailwind de plus près sur les oranges, ambres et jaunes. Vos notes restent dans ce navigateur ; « Copier le bilan », en bas, les rassemble.</p>
+<nav><a href="#regles">1. Les règles de chroma, à l'aveugle</a><a href="#fonds">2. Le fond des surfaces</a><a href="#focus">3. Le focus</a><a href="#bilan-zone">Bilan</a></nav>
+
+<div class="barre" id="barre">
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="mode"></div></div>
+  <div class="groupe"><span>Texte des boutons en Dark</span><div class="bascule" data-commande="sens"></div></div>
+  <div class="groupe"><span>Profil</span><div class="bascule" data-commande="profil"></div></div>
+  <div class="groupe"><span>Règle</span><div class="bascule" data-commande="regle"></div></div>
+  <div class="groupe"><span>Dérive de teinte</span><div class="bascule" data-commande="derive"></div></div>
+</div>
+
+<h2 id="regles">1. Les règles de chroma, à l'aveugle</h2>
+<p class="chapeau">Trois règles, nommées A, B et C dans un ordre caché. Chaque ligne montre la rampe de la palette (le repère blanc marque la référence), puis une alerte, un badge discret, un badge plus marqué, un bouton teinté, un bouton plein et un lien. Sous chaque famille de Tailwind, une fine bande montre la rampe de Tailwind, pour comparer. Notez chaque règle dans chaque profil et chaque thème.</p>
+<div class="groupe" style="margin:4px 0 10px"><span>Fonds teintés</span><div class="bascule" data-commande="fondsRegles"></div><span id="fonds-regles-note" style="margin-left:6px"></span></div>
+<div class="scene" id="scene-regles"><div class="carte" id="carte-regles"><div class="lignes" id="lignes"></div></div></div>
+<div class="notes" id="notes-regles"></div>
+
+<h2 id="fonds">2. Le fond des surfaces : 50 ou 100 en Light, 200 ou 300 en Dark</h2>
+<p class="chapeau">La même règle de chroma de part et d'autre (celle choisie en haut) ; seul le cran du fond change. À gauche le modèle proposé, à droite un cran plus marqué. Un fond 300 en Dark demande un texte 950 : avec un texte 900, l'appui (500) manque 4,5:1 sur tout le balayage. En sens inversé, l'appui 500 prend aussi la couleur de l'appui du bouton plein.</p>
+<div class="duo" id="duo-fonds"></div>
+<div class="notes" id="notes-fonds"></div>
+
+<h2 id="focus">3. Le focus</h2>
+<p class="chapeau" id="focus-chapeau"></p>
+<div class="scene" id="scene-focus"><div class="carte" id="carte-focus"><div class="focus-grille" id="focus-grille"></div></div></div>
+<div class="notes" id="notes-focus"></div>
+
+<div class="actions" id="bilan-zone"><button type="button" id="copier">Copier le bilan</button><button type="button" id="reveler">Révéler les règles</button><span id="etat"></span></div>
+<div class="revele" id="revelation" hidden></div>
+<textarea id="bilan" readonly hidden aria-label="Bilan à copier"></textarea>
+
+<script>
+(() => {
+  const B = window.BANC;
+  const CRANS = B.crans;
+  const idx = (c) => CRANS.indexOf(c);
+  // L'ordre des lettres est fixe pour garder les notes, mais ne suit pas l'ordre des règles.
+  const LETTRES = { A: 'enveloppe', B: 'retenue', C: 'actuel' };
+
+  const lire = () => { try { return JSON.parse(localStorage.getItem('banc-visuel')) || {}; } catch { return {}; } };
+  const ecrire = (v) => { try { localStorage.setItem('banc-visuel', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+  const memoire = lire();
+  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', regle: 'A', fondsRegles: 'modele', derive: 'corrigee' }, memoire.etat || {});
+  const notes = memoire.notes || {};
+  const sauver = () => ecrire({ etat, notes });
+
+  // Contraste WCAG.
+  const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const n = parseInt(h.slice(1), 16); return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255); };
+  const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const ct = (x) => `${x.toFixed(2).replace('.', ',')}:1`;
+
+  const rampe = (p, regle, profil, mode, sens) => p.rampes[etat.derive][regle][profil][mode === 'light' ? 'light' : sens === 'blanc' ? 'darkInverse' : 'dark'];
+  const NEUTRE = B.palettes.find((p) => p.neutre);
+  const supports = (regle, mode, sens) => {
+    const n = rampe(NEUTRE, regle, 'soft', mode, sens);
+    return mode === 'light' ? { page: n[idx(50)], carte: '#FFFFFF', encre: '#1e1e1e' } : { page: '#0A0A0B', carte: n[idx(100)], encre: '#ececec' };
+  };
+
+  /** Les crans des rôles : modèle proposé (Light 50, Dark 200) ou plus marqué (Light 100, Dark 300, texte 950 en Dark). */
+  function roles(mode, sens, fonds) {
+    const inverse = mode === 'dark' && sens === 'blanc';
+    const marque = fonds === 'marque';
+    const base = mode === 'light' ? (marque ? 100 : 50) : (marque ? 300 : 200);
+    return {
+      fond: base, survol: CRANS[CRANS.indexOf(base) + 1], texte: mode === 'light' ? 800 : (marque ? 950 : 900),
+      plein: 700, texteDuPlein: mode === 'light' ? '#FFFFFF' : (inverse ? '#FFFFFF' : '#000000'),
+      lien: mode === 'light' ? 700 : (inverse ? 800 : 700),
+      focus: mode === 'light' ? 600 : 800,
+    };
+  }
+
+  function composants(r, t) {
+    const c = (n) => r[idx(n)];
+    return `<div class="composants">
+      <div class="alerte" style="background:${c(t.fond)};color:${c(t.texte)}"><b>Envoyé.</b>Le contrat est parti.</div>
+      <span class="badge" style="background:${c(t.fond)};color:${c(t.texte)}">Discret</span>
+      <span class="badge" style="background:${c(t.survol)};color:${c(t.texte)}">Plus marqué</span>
+      <button class="bouton" style="background:${c(t.fond)};color:${c(t.texte)}">Teinté</button>
+      <button class="bouton" style="background:${c(t.plein)};color:${t.texteDuPlein}">Plein</button>
+      <span class="lien" style="color:${c(t.lien)}">Un lien</span>
+    </div>`;
+  }
+
+  function dessinerRegles() {
+    const regle = LETTRES[etat.regle];
+    const s = supports(regle, etat.mode, etat.sens);
+    const t = roles(etat.mode, etat.sens, etat.fondsRegles);
+    document.getElementById('scene-regles').style.background = s.page;
+    const carte = document.getElementById('carte-regles');
+    carte.style.background = s.carte; carte.style.color = s.encre;
+    document.getElementById('fonds-regles-note').textContent = etat.fondsRegles === 'modele'
+      ? (etat.mode === 'light' ? 'fond 50, texte 800' : 'fond 200, texte 900')
+      : (etat.mode === 'light' ? 'fond 100, texte 800' : 'fond 300, texte 950');
+    document.getElementById('lignes').innerHTML = B.palettes.filter((p) => !p.neutre).map((p) => {
+      const r = rampe(p, regle, etat.profil, etat.mode, etat.sens);
+      const repere = r.indexOf(p.reference.toUpperCase());
+      const temoin = p.temoin && etat.mode === 'light' ? `<div class="rampe temoin" title="Tailwind">${p.temoin.map((h) => `<span style="background:${h}"></span>`).join('')}</div>` : '';
+      return `<div class="ligne"><div class="nom"><b>${p.nom}</b><span>${p.note}</span></div>
+        <div><div class="rampe">${r.map((h, k) => `<span class="${k === repere ? 'repere' : ''}" style="background:${h}" title="${CRANS[k]} ${h}"></span>`).join('')}</div>${temoin}</div>
+        ${composants(r, t)}</div>`;
+    }).join('');
+    const cle = `regles ${etat.regle} ${etat.profil} ${etat.mode}`;
+    notesDe('notes-regles', cle, [
+      ['couleurs', 'Couleurs justes : jaunes, verts, bleus'],
+      ['coherence', 'Cohérence entre les familles'],
+      ['fonds', 'Fonds ni trop pâles, ni trop marqués'],
+      ['textes', 'Textes colorés et lisibles'],
+    ], `Règle ${etat.regle}, ${etat.profil === 'soft' ? 'Soft' : 'Vivid'}, ${etat.mode === 'light' ? 'Light' : 'Dark'}`);
+  }
+
+  const FAMILLES_COURTES = ['Rouge', 'Ambre', 'Jaune', 'Vert', 'Ciel', 'Violet'];
+  function dessinerFonds() {
+    const regle = LETTRES[etat.regle];
+    const s = supports(regle, etat.mode, etat.sens);
+    const cote = (fonds, titre) => {
+      const t = roles(etat.mode, etat.sens, fonds);
+      const rapports = [];
+      const lignes = FAMILLES_COURTES.map((nom) => {
+        const p = B.palettes.find((x) => x.nom === nom);
+        const r = rampe(p, regle, etat.profil, etat.mode, etat.sens);
+        rapports.push(contraste(r[idx(t.fond)], s.carte));
+        return `<div class="ligne" style="grid-template-columns:70px minmax(0,1fr)"><div class="nom"><b>${nom}</b></div>${composants(r, t)}</div>`;
+      }).join('');
+      rapports.sort((a, b) => a - b);
+      return `<div class="scene" style="background:${s.page}"><div class="carte" style="background:${s.carte};color:${s.encre}"><div class="titre">${titre}</div><div class="lignes">${lignes}</div><div class="mesure">Fond contre la carte : ${ct(rapports[0])} à ${ct(rapports[rapports.length - 1])}</div></div></div>`;
+    };
+    const L = etat.mode === 'light';
+    document.getElementById('duo-fonds').innerHTML = cote('modele', L ? 'Gauche : fond 50, survol 100' : 'Gauche : fond 200, survol 300, texte 900')
+      + cote('marque', L ? 'Droite : fond 100, survol 200' : 'Droite : fond 300, survol 400, texte 950');
+    const cle = `fonds ${etat.mode}`;
+    choixDe('notes-fonds', cle, [
+      ['fond', 'Le fond des alertes et badges discrets', [['gauche', 'Gauche'], ['egal', 'Égal'], ['droite', 'Droite']]],
+      ['badge', 'Le badge', [['discret', 'Discret'], ['marque', 'Plus marqué']]],
+    ], `Fonds, ${L ? 'Light' : 'Dark'}`);
+  }
+
+  // Le focus : quatre styles, sur quatre composants, pour une palette bleue.
+  const STYLES = [
+    ['halo100', 'Halo pâle collé, 4 px : cran 100 en Light, 300 en Dark'],
+    ['halo200', 'Halo pâle collé, 4 px : cran 200 en Light, 400 en Dark'],
+    ['haloConforme', 'Halo collé, 3 px : le cran conforme le plus proche du fond'],
+    ['anneau', 'Anneau décalé : 2 px de fond, 2 px de trait'],
+  ];
+  function dessinerFocus() {
+    const regle = LETTRES[etat.regle];
+    const s = supports(regle, etat.mode, etat.sens);
+    const t = roles(etat.mode, etat.sens, 'modele');
+    const L = etat.mode === 'light';
+    document.getElementById('focus-chapeau').innerHTML = `Pour le W3C, un indicateur dessiné hors du composant doit contraster à 3:1 avec le fond qui l'entoure, pas avec le composant (Understanding 1.4.11, figures 9 et 10 ; niveau AA). Un halo pâle seul échoue donc : c'est le cas de Bootstrap (1,4 à 2,1:1), qui l'a reconnu et ne le corrige pas, de Flowbite, de shadcn/ui, d'Ant Design et du kit Figma d'Untitled UI. Contre une carte blanche, la couleur la plus claire qui passe a une luminance de 0,30 au plus, soit une clarté OKLCH d'environ 0,67 : le cran 600 d'UCM, parfois le 500. En Dark, contre la carte au neutre 100, il faut au moins le cran 400 ou 500. La colonne « halo conforme » prend ce cran pour chaque palette.`;
+    document.getElementById('scene-focus').style.background = s.page;
+    const carte = document.getElementById('carte-focus');
+    carte.style.background = s.carte; carte.style.color = s.encre;
+    const palettes = ['Bleu', 'Rouge', 'Vert', 'Violet'].map((nom) => B.palettes.find((p) => p.nom === nom));
+    let html = `<span class="entete"></span>${['Bouton plein', 'Bouton à contour', 'Bouton teinté', 'Champ de saisie'].map((x) => `<span class="entete">${x}</span>`).join('')}`;
+    for (const [id, titre] of STYLES) for (const p of palettes) {
+      const r = rampe(p, regle, etat.profil, etat.mode, etat.sens);
+      const c = (n) => r[idx(n)];
+      // Le cran conforme le plus proche du fond : le premier, en partant du cran 50, qui atteint 3:1 contre la carte.
+      const conforme = CRANS.find((n) => contraste(c(n), s.carte) >= 3) ?? 950;
+      const couleur = id === 'halo100' ? c(L ? 100 : 300) : id === 'halo200' ? c(L ? 200 : 400) : id === 'haloConforme' ? c(conforme) : c(t.focus);
+      const ombre = id === 'anneau' ? `0 0 0 2px ${s.carte}, 0 0 0 4px ${couleur}` : `0 0 0 ${id === 'haloConforme' ? 3 : 4}px ${couleur}`;
+      const v = contraste(couleur, s.carte);
+      const verdict = `<span class="verdict ${v >= 3 ? 'ok' : 'ko'}">${ct(v)} contre la carte · ${v >= 3 ? 'conforme' : 'non conforme'}${id === 'haloConforme' ? ` · cran ${conforme}` : ''}</span>`;
+      if (p === palettes[0]) html += `<span class="nom"><b>${titre}</b></span>`;
+      else html += '<span></span>';
+      const contour = `background:transparent;color:${c(t.lien)};box-shadow:inset 0 0 0 1px ${c(L ? 700 : 600)}, ${ombre}`;
+      html += [
+        `<button class="bouton" style="background:${c(t.plein)};color:${t.texteDuPlein};box-shadow:${ombre}">${p.nom}</button>`,
+        `<button class="bouton" style="${contour}">${p.nom}</button>`,
+        `<button class="bouton" style="background:${c(t.fond)};color:${c(t.texte)};box-shadow:${ombre}">${p.nom}</button>`,
+        `<span class="champ" style="background:${L ? '#fff' : s.page};color:${s.encre};box-shadow:inset 0 0 0 1px ${c(L ? 600 : 500)}, ${ombre}">Saisie</span>`,
+      ].map((x, k) => `<div class="cellule">${x}${k === 0 ? verdict : ''}</div>`).join('');
+    }
+    document.getElementById('focus-grille').innerHTML = html;
+    choixDe('notes-focus', `focus ${etat.mode}`, STYLES.map(([id, titre]) => [id, titre, [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']]]), `Focus, ${L ? 'Light' : 'Dark'} (5 = le préféré)`);
+  }
+
+  // Les notes : une bascule par critère.
+  function notesDe(conteneur, cle, criteres, titre) {
+    choixDe(conteneur, cle, criteres.map(([id, nom]) => [id, nom, [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']]]), titre);
+  }
+  function choixDe(conteneur, cle, criteres, titre) {
+    const n = notes[cle] || {};
+    document.getElementById(conteneur).innerHTML = `<div style="width:100%;font-weight:600;font-size:12.5px">${titre}</div>`
+      + criteres.map(([id, nom, options]) => `<div class="critere"><span>${nom}</span><div class="bascule">${options.map(([v, t]) => `<button type="button" data-note="${cle}|${id}" data-valeur="${v}" aria-pressed="${n[id] === v}">${t}</button>`).join('')}</div></div>`).join('')
+      + `<textarea class="commentaire" data-commentaire="${cle}" placeholder="Remarque">${n.remarque || ''}</textarea>`;
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-note]');
+    if (!b) return;
+    const [cle, id] = b.dataset.note.split('|');
+    notes[cle] = { ...(notes[cle] || {}), [id]: b.dataset.valeur };
+    sauver();
+    b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  document.addEventListener('input', (ev) => {
+    const z = ev.target.closest('[data-commentaire]');
+    if (!z) return;
+    notes[z.dataset.commentaire] = { ...(notes[z.dataset.commentaire] || {}), remarque: z.value };
+    sauver();
+  });
+
+  const OPTIONS = {
+    mode: [['light', 'Light'], ['dark', 'Dark']],
+    sens: [['noir', 'Noir'], ['blanc', 'Blanc']],
+    profil: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    regle: [['A', 'A'], ['B', 'B'], ['C', 'C']],
+    fondsRegles: [['modele', 'Modèle'], ['marque', 'Un cran plus marqué']],
+    derive: [['actuelle', 'Actuelle'], ['corrigee', 'Corrigée']],
+  };
+  function commandes() {
+    document.querySelectorAll('[data-commande]').forEach((h) => {
+      h.innerHTML = OPTIONS[h.dataset.commande].map(([v, t]) => `<button type="button" data-valeur="${v}" aria-pressed="${etat[h.dataset.commande] === v}">${t}</button>`).join('');
+    });
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-commande] button');
+    if (!b) return;
+    etat[b.parentElement.dataset.commande] = b.dataset.valeur;
+    sauver();
+    tout();
+  });
+  function tout() { commandes(); dessinerRegles(); dessinerFonds(); dessinerFocus(); }
+
+  document.getElementById('reveler').addEventListener('click', () => {
+    const z = document.getElementById('revelation');
+    z.hidden = false;
+    z.innerHTML = `<table class="regles"><tr><th>Lettre</th><th>Règle</th><th>Ce qu'elle fait</th></tr>${Object.entries(LETTRES).map(([l, id]) => `<tr><td>${l}</td><td>${B.regles[id].nom}</td><td>${B.regles[id].resume}</td></tr>`).join('')}</table>`;
+  });
+  document.getElementById('copier').addEventListener('click', async () => {
+    const lignes = Object.entries(notes).sort(([a], [b]) => a.localeCompare(b)).map(([cle, v]) => {
+      const regle = cle.startsWith('regles ') ? ` (${B.regles[LETTRES[cle.split(' ')[1]]].nom})` : '';
+      return `${cle}${regle} : ${Object.entries(v).map(([k, x]) => `${k} ${x}`).join(', ')}`;
+    });
+    const texte = ['Banc visuel des palettes', ...lignes].join('\n');
+    const zone = document.getElementById('bilan');
+    const etatTexte = document.getElementById('etat');
+    const montrer = () => { zone.hidden = false; zone.value = texte; zone.select(); etatTexte.textContent = 'Copie refusée : copiez le texte sélectionné à la main (Ctrl+C).'; };
+    if (!navigator.clipboard?.writeText) { montrer(); return; }
+    try { await navigator.clipboard.writeText(texte); etatTexte.textContent = 'Bilan copié'; } catch { montrer(); }
+  });
+  tout();
+})();
+</script>
+</body>
+</html>

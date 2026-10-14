@@ -1,0 +1,602 @@
+[
+  {
+    "id": "bootstrapCss",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.css",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "dist/css/bootstrap.css",
+    "localFile": "sources/bootstrap-css.css.txt",
+    "sha256": "4a50207b956a4ab943640ee993118b554a34e96a23261cfe58b9aa1807a7849b"
+  },
+  {
+    "id": "bootstrapVariables",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/scss/_variables.scss",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "scss/_variables.scss",
+    "localFile": "sources/bootstrap-variables.scss.txt",
+    "sha256": "b747baa51f23e4ab92ae865084e52f0b88de6587aa30ffd7ec3564291dc9dcee"
+  },
+  {
+    "id": "bootstrapVariablesDark",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/scss/_variables-dark.scss",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "scss/_variables-dark.scss",
+    "localFile": "sources/bootstrap-variables-dark.scss.txt",
+    "sha256": "f002abf8b3e88db3c2dd3b4a500c1a0f36253c8f07cfb00e38938b672f4a5803"
+  },
+  {
+    "id": "bootstrapButtons",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/scss/_buttons.scss",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "scss/_buttons.scss",
+    "localFile": "sources/bootstrap-buttons.scss.txt",
+    "sha256": "1b3b05d4373aa664739d785aed07cd6edc6e5eb3e8de99195a2c94b4ad4851ff"
+  },
+  {
+    "id": "bootstrapFormControl",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/scss/forms/_form-control.scss",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "scss/forms/_form-control.scss",
+    "localFile": "sources/bootstrap-form-control.scss.txt",
+    "sha256": "447be851ab7e013a5310e182129e14b038ee3ab47abff1697bd8b5fa9ffc5fee"
+  },
+  {
+    "id": "bootstrapLicence",
+    "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/LICENSE",
+    "revision": "bootstrap@5.3.8",
+    "originalPath": "LICENSE",
+    "localFile": "sources/bootstrap-licence.txt",
+    "sha256": "4620c84ad5ce8602ff65640ed6b7c8b78ebb9e036584f0ebc1ccc88206a4bb51"
+  },
+  {
+    "id": "flowbiteButtons",
+    "url": "https://raw.githubusercontent.com/themesberg/flowbite/752fb715d35d8dda44bfbe22707fb4135e959276/content/components/buttons.md",
+    "revision": "themesberg/flowbite@752fb715d35d8dda44bfbe22707fb4135e959276",
+    "originalPath": "content/components/buttons.md",
+    "localFile": "sources/flowbite-buttons.md.txt",
+    "sha256": "abe16e945aa237896f2cc32fba12f8ab44b9b8940ef58adca61b4d4769c11883"
+  },
+  {
+    "id": "flowbiteForms",
+    "url": "https://raw.githubusercontent.com/themesberg/flowbite/752fb715d35d8dda44bfbe22707fb4135e959276/content/components/forms.md",
+    "revision": "themesberg/flowbite@752fb715d35d8dda44bfbe22707fb4135e959276",
+    "originalPath": "content/components/forms.md",
+    "localFile": "sources/flowbite-forms.md.txt",
+    "sha256": "bfa8f47fefb3b681969223112d508804e6aa1ecd2209be39501909795fd80d71"
+  },
+  {
+    "id": "flowbiteTheme",
+    "url": "https://raw.githubusercontent.com/themesberg/flowbite/752fb715d35d8dda44bfbe22707fb4135e959276/src/themes/default.css",
+    "revision": "themesberg/flowbite@752fb715d35d8dda44bfbe22707fb4135e959276",
+    "originalPath": "src/themes/default.css",
+    "localFile": "sources/flowbite-theme.css.txt",
+    "sha256": "21c4a692464713c1487f6df31690e6eca25e73fb38d1f043d45bdbee398f651f"
+  },
+  {
+    "id": "flowbitePlugin",
+    "url": "https://raw.githubusercontent.com/themesberg/flowbite/752fb715d35d8dda44bfbe22707fb4135e959276/plugin.js",
+    "revision": "themesberg/flowbite@752fb715d35d8dda44bfbe22707fb4135e959276",
+    "originalPath": "plugin.js",
+    "localFile": "sources/flowbite-plugin.js.txt",
+    "sha256": "2e5a5f03a0ac2008e80723287036a7796498e7a3cecc81ba3b640c744f34ae01"
+  },
+  {
+    "id": "flowbiteLicence",
+    "url": "https://raw.githubusercontent.com/themesberg/flowbite/752fb715d35d8dda44bfbe22707fb4135e959276/LICENSE.md",
+    "revision": "themesberg/flowbite@752fb715d35d8dda44bfbe22707fb4135e959276",
+    "originalPath": "LICENSE.md",
+    "localFile": "sources/flowbite-licence.md.txt",
+    "sha256": "2ef12ba4b6b1172b8139d382e8b285e1ae034350151a71cb43fe55ca63199e6e"
+  },
+  {
+    "id": "tailwindTheme",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.3.3/theme.css",
+    "revision": "tailwindcss@4.3.3",
+    "originalPath": "theme.css",
+    "localFile": "sources/tailwind-theme.css.txt",
+    "sha256": "443d7af364200f8ec8352dc78e39485a118a1840d498c97967bf0ae402b39167"
+  },
+  {
+    "id": "tailwindLicence",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.3.3/LICENSE",
+    "revision": "tailwindcss@4.3.3",
+    "originalPath": "LICENSE",
+    "localFile": "sources/tailwind-licence.txt",
+    "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+  },
+  {
+    "id": "shadcnButton",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/registry/new-york-v4/ui/button.tsx",
+    "revision": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/registry/new-york-v4/ui/button.tsx",
+    "localFile": "sources/shadcn-button.tsx.txt",
+    "sha256": "79dd6f75f8136394442202d6b8b922fb269eaad0a5dba579397c9d5b41f893bb"
+  },
+  {
+    "id": "shadcnInput",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/registry/new-york-v4/ui/input.tsx",
+    "revision": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/registry/new-york-v4/ui/input.tsx",
+    "localFile": "sources/shadcn-input.tsx.txt",
+    "sha256": "0c9457181f6ddc80969bcf854e92c362903a55b6e889fbef3fd85343ecc4af5b"
+  },
+  {
+    "id": "shadcnGlobals",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/app/globals.css",
+    "revision": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/app/globals.css",
+    "localFile": "sources/shadcn-globals.css.txt",
+    "sha256": "cbae6d633c38be59fc036d1e5cf60203ae7619ea6af9b4cdd8d632a211ccffa9"
+  },
+  {
+    "id": "shadcnLicence",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/LICENSE.md",
+    "revision": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "LICENSE.md",
+    "localFile": "sources/shadcn-licence.md.txt",
+    "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+  },
+  {
+    "id": "chakraButton",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/theme/recipes/button.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/theme/recipes/button.js",
+    "localFile": "sources/chakra-button.js.txt",
+    "sha256": "1026d3d78c962d863a620e1fe0f5308f78902373f0a12fdbb9a09e33d7a77862"
+  },
+  {
+    "id": "chakraInput",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/theme/recipes/input.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/theme/recipes/input.js",
+    "localFile": "sources/chakra-input.js.txt",
+    "sha256": "672800d6384a388cc91695b64f3d6104ed10b109af4cc3672d469c685f5b923b"
+  },
+  {
+    "id": "chakraSemanticColors",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/theme/semantic-tokens/colors.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/theme/semantic-tokens/colors.js",
+    "localFile": "sources/chakra-semantic-colors.js.txt",
+    "sha256": "2eda6a5be4988064288531d636a6502adff862a6fae2dc963f5bb12c214b468a"
+  },
+  {
+    "id": "chakraColors",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/theme/tokens/colors.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/theme/tokens/colors.js",
+    "localFile": "sources/chakra-colors.js.txt",
+    "sha256": "3492c168a568e81828b02692be1fb8f638026c3ebce2291bac72f876ddc076b2"
+  },
+  {
+    "id": "chakraPresetBase",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/preset-base.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/preset-base.js",
+    "localFile": "sources/chakra-preset-base.js.txt",
+    "sha256": "1996d7fd26e24e1ecea2f3e860a0b1386d04f10c7953d8a9c8c356e727abd1d3"
+  },
+  {
+    "id": "chakraGlobalCss",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/dist/esm/theme/global-css.js",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "dist/esm/theme/global-css.js",
+    "localFile": "sources/chakra-global-css.js.txt",
+    "sha256": "b189ac3e74f1d18284f3302498f41f1394f757aa45a6db0852a568cf3bb2b49e"
+  },
+  {
+    "id": "chakraLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@chakra-ui/react@3.37.0/LICENSE",
+    "revision": "@chakra-ui/react@3.37.0",
+    "originalPath": "LICENSE",
+    "localFile": "sources/chakra-licence.txt",
+    "sha256": "9763e8439364e3663d1c41ac4c2a2bb44af407e3f28d9a079919d7a574d868f8"
+  },
+  {
+    "id": "mantineStyles",
+    "url": "https://cdn.jsdelivr.net/npm/@mantine/core@7.17.8/styles.css",
+    "revision": "@mantine/core@7.17.8",
+    "originalPath": "styles.css",
+    "localFile": "sources/mantine-styles.css.txt",
+    "sha256": "8d4905ad464ebf17cb5ab098b84afe758e45fa4f636f79f4a1314221f490a4a8"
+  },
+  {
+    "id": "mantineGlobalClassNames",
+    "url": "https://cdn.jsdelivr.net/npm/@mantine/core@7.17.8/esm/core/styles-api/use-styles/get-class-name/get-global-class-names/get-global-class-names.mjs",
+    "revision": "@mantine/core@7.17.8",
+    "originalPath": "esm/core/styles-api/use-styles/get-class-name/get-global-class-names/get-global-class-names.mjs",
+    "localFile": "sources/mantine-global-class-names.mjs.txt",
+    "sha256": "39a518c7746c52c2aca1b920a7deb4dc020b867b1ab57fa799d424c2258325db"
+  },
+  {
+    "id": "mantineDefaultTheme",
+    "url": "https://cdn.jsdelivr.net/npm/@mantine/core@7.17.8/esm/core/MantineProvider/default-theme.mjs",
+    "revision": "@mantine/core@7.17.8",
+    "originalPath": "esm/core/MantineProvider/default-theme.mjs",
+    "localFile": "sources/mantine-default-theme.mjs.txt",
+    "sha256": "05744e7b3341f8a609c28d37131f3774f982752de5f7e6b8201a2f079b5e29f7"
+  },
+  {
+    "id": "mantineUnstyledButton",
+    "url": "https://cdn.jsdelivr.net/npm/@mantine/core@7.17.8/esm/components/UnstyledButton/UnstyledButton.mjs",
+    "revision": "@mantine/core@7.17.8",
+    "originalPath": "esm/components/UnstyledButton/UnstyledButton.mjs",
+    "localFile": "sources/mantine-unstyled-button.mjs.txt",
+    "sha256": "9be1300995660af3953321f32881c3f6d7f231ee380072c2e36be9ae0e19246a"
+  },
+  {
+    "id": "mantineVariantResolver",
+    "url": "https://cdn.jsdelivr.net/npm/@mantine/core@7.17.8/esm/core/MantineProvider/color-functions/default-variant-colors-resolver/default-variant-colors-resolver.mjs",
+    "revision": "@mantine/core@7.17.8",
+    "originalPath": "esm/core/MantineProvider/color-functions/default-variant-colors-resolver/default-variant-colors-resolver.mjs",
+    "localFile": "sources/mantine-variant-resolver.mjs.txt",
+    "sha256": "0fe8a5364b421be0aa8c7e5a9d3d305ec93ca727f792db0f1dde686213760213"
+  },
+  {
+    "id": "antdStyle",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/style/index.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/style/index.js",
+    "localFile": "sources/antd-style.js.txt",
+    "sha256": "ec0369bb5031e06e9f230dcfb2de778b36fac0c09e2f1901c95f93d15b5084d3"
+  },
+  {
+    "id": "antdButtonStyle",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/button/style/index.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/button/style/index.js",
+    "localFile": "sources/antd-button-style.js.txt",
+    "sha256": "6935075f2bcff37beca455979dc001e2e1956f6ae140cb24746273efa3b3b268"
+  },
+  {
+    "id": "antdInputToken",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/input/style/token.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/input/style/token.js",
+    "localFile": "sources/antd-input-token.js.txt",
+    "sha256": "8e632080d4e62f199efa606b5dea184aeb91a1b874ee166ccdf430f38cc22e15"
+  },
+  {
+    "id": "antdInputVariants",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/input/style/variants.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/input/style/variants.js",
+    "localFile": "sources/antd-input-variants.js.txt",
+    "sha256": "77ecd14bc787570b8f06fc88c52d3917074e82a2e7d1bdebd6d89526b82c4a5c"
+  },
+  {
+    "id": "antdAlias",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/util/alias.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/util/alias.js",
+    "localFile": "sources/antd-alias.js.txt",
+    "sha256": "ef8e2065e69b61e754f5eeadd88dab89da319f0155c4f0693c6ee238ebf093b5"
+  },
+  {
+    "id": "antdSeed",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/seed.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/seed.js",
+    "localFile": "sources/antd-seed.js.txt",
+    "sha256": "a23832f1ee4ad35a9a95fee9870de7f3dc02247f777ce1facb3bc4a79fe7f8d9"
+  },
+  {
+    "id": "antdGenColorMap",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/shared/genColorMapToken.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/shared/genColorMapToken.js",
+    "localFile": "sources/antd-gen-color-map.js.txt",
+    "sha256": "5390c543b353e86ef48e805c8de68f480dd44ff6f96b468cf35b40b60e6c5dfe"
+  },
+  {
+    "id": "antdLightColors",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/default/colors.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/default/colors.js",
+    "localFile": "sources/antd-light-colors.js.txt",
+    "sha256": "dfd399159b528279a9b58e6f4211bd60705ad8d2fa971399c31a5de8c158b556"
+  },
+  {
+    "id": "antdLightAlgorithm",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/default/colorAlgorithm.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/default/colorAlgorithm.js",
+    "localFile": "sources/antd-light-algorithm.js.txt",
+    "sha256": "404b4066ff7aa893655e0759150b098f4097ff546139761eeffe1a260da84fe1"
+  },
+  {
+    "id": "antdDarkColors",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/dark/colors.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/dark/colors.js",
+    "localFile": "sources/antd-dark-colors.js.txt",
+    "sha256": "c4c82074f4daab87b2595d31da327d6b8b6c367aebc329a4e11993f7a06da837"
+  },
+  {
+    "id": "antdDarkAlgorithm",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/dark/colorAlgorithm.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/dark/colorAlgorithm.js",
+    "localFile": "sources/antd-dark-algorithm.js.txt",
+    "sha256": "8474394b5f6073c781371366d72045b2666ca65b8708c5c78a092459a8f3be00"
+  },
+  {
+    "id": "antdDarkIndex",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/es/theme/themes/dark/index.js",
+    "revision": "antd@5.29.3",
+    "originalPath": "es/theme/themes/dark/index.js",
+    "localFile": "sources/antd-dark-index.js.txt",
+    "sha256": "9a8619e9d0f61c215fe71710b110d24f0e38a5e90d1f01dc27e13eee61c72200"
+  },
+  {
+    "id": "antdLicence",
+    "url": "https://cdn.jsdelivr.net/npm/antd@5.29.3/LICENSE",
+    "revision": "antd@5.29.3",
+    "originalPath": "LICENSE",
+    "localFile": "sources/antd-licence.txt",
+    "sha256": "3c82654bb472ebbcacc4c1ff00f94aa8c60c4b7ee011b16bafcbacecc3703458"
+  },
+  {
+    "id": "antColorsGenerate",
+    "url": "https://cdn.jsdelivr.net/npm/@ant-design/colors@7.2.1/es/generate.js",
+    "revision": "@ant-design/colors@7.2.1",
+    "originalPath": "es/generate.js",
+    "localFile": "sources/ant-colors-generate.js.txt",
+    "sha256": "981cd6129a84c1bcfb92b401a4534b6811b05729016adc189a85a5d08eb50e1e"
+  },
+  {
+    "id": "antColorsPresets",
+    "url": "https://cdn.jsdelivr.net/npm/@ant-design/colors@7.2.1/es/presets.js",
+    "revision": "@ant-design/colors@7.2.1",
+    "originalPath": "es/presets.js",
+    "localFile": "sources/ant-colors-presets.js.txt",
+    "sha256": "9a89f73e22313467810ac08df1271ced211d0321ea5080c55ec80f0c40201b95"
+  },
+  {
+    "id": "antFastColor",
+    "url": "https://cdn.jsdelivr.net/npm/@ant-design/fast-color@2.0.6/es/FastColor.js",
+    "revision": "@ant-design/fast-color@2.0.6",
+    "originalPath": "es/FastColor.js",
+    "localFile": "sources/ant-fast-color.js.txt",
+    "sha256": "f8df58f890cf526764e177a3673b9bd8b6585111446a6478bed57a70c86387d3"
+  },
+  {
+    "id": "muiButton",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/Button/Button.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "Button/Button.js",
+    "localFile": "sources/mui-button.js.txt",
+    "sha256": "af6fdf40b5075565c99dfd08fdc26d57f470881d522adfa2b4881b7c0944513c"
+  },
+  {
+    "id": "muiButtonBase",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/ButtonBase/ButtonBase.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "ButtonBase/ButtonBase.js",
+    "localFile": "sources/mui-button-base.js.txt",
+    "sha256": "fea4c859992f4b595756840f06b8b2e63021c9f58b22fd2fd8b072b9ebc38b4c"
+  },
+  {
+    "id": "muiTouchRipple",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/ButtonBase/TouchRipple.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "ButtonBase/TouchRipple.js",
+    "localFile": "sources/mui-touch-ripple.js.txt",
+    "sha256": "cf44a77c55654d5095ddd9f00329dc6f3fb513026ede6f621bdce821a09a89aa"
+  },
+  {
+    "id": "muiOutlinedInput",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/OutlinedInput/OutlinedInput.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "OutlinedInput/OutlinedInput.js",
+    "localFile": "sources/mui-outlined-input.js.txt",
+    "sha256": "06fe4977bb0a30b9522c32c979e3b30c18444041d0b1d9a81ae2b3829c7b4828"
+  },
+  {
+    "id": "muiCreatePalette",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/styles/createPalette.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "styles/createPalette.js",
+    "localFile": "sources/mui-create-palette.js.txt",
+    "sha256": "973057639a7d4bb422fed3fccdd9bc171a3380329201b59e2c6a6e6312647ce6"
+  },
+  {
+    "id": "muiBlue",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/colors/blue.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "colors/blue.js",
+    "localFile": "sources/mui-blue.js.txt",
+    "sha256": "65a9bd343149877f9fba64a1564749547bac1214fc690534aa4d0ebd978ded34"
+  },
+  {
+    "id": "muiCommon",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/colors/common.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "colors/common.js",
+    "localFile": "sources/mui-common.js.txt",
+    "sha256": "5181c2776d00efe154950b51a00532692582ef48b97b5770f248304bded05436"
+  },
+  {
+    "id": "muiShadows",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/styles/shadows.js",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "styles/shadows.js",
+    "localFile": "sources/mui-shadows.js.txt",
+    "sha256": "6f8f7c7e8c6c9ab7d1d0c6383d48d4430d9bf423fe138fc9e73be607c2bc8f91"
+  },
+  {
+    "id": "muiLicence",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@7.3.11/LICENSE",
+    "revision": "@mui/material@7.3.11",
+    "originalPath": "LICENSE",
+    "localFile": "sources/mui-licence.txt",
+    "sha256": "f776953f07d3086635fd33953bcde47ba66fedaeb9a7cbc6ece2d4cb03cc56f8"
+  },
+  {
+    "id": "untitledButton",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/components/base/buttons/button.tsx",
+    "revision": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "components/base/buttons/button.tsx",
+    "localFile": "sources/untitled-button.tsx.txt",
+    "sha256": "9125b94dd75d4043e08140233f536a116909b8f589322a69fdd799c34ee912f0"
+  },
+  {
+    "id": "untitledInput",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/components/base/input/input.tsx",
+    "revision": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "components/base/input/input.tsx",
+    "localFile": "sources/untitled-input.tsx.txt",
+    "sha256": "1f6b9f6c8ab27c676b750da37f7bcc8d5531cf8510be2cf9e1da437ead4b69f9"
+  },
+  {
+    "id": "untitledTheme",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/styles/theme.css",
+    "revision": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "styles/theme.css",
+    "localFile": "sources/untitled-theme.css.txt",
+    "sha256": "52241a7d0d28f7022b59f11006d5f4b6b38e8173ef1ef2d81fb62cde520e344c"
+  },
+  {
+    "id": "untitledGlobals",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/styles/globals.css",
+    "revision": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "styles/globals.css",
+    "localFile": "sources/untitled-globals.css.txt",
+    "sha256": "0c1fd5eebe0cb65dbf9e81d2e3950d6156a872acd187330cd79574f85c40883e"
+  },
+  {
+    "id": "atlaskitButtonBase",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/cjs/new-button/variants/shared/button-base.js",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/cjs/new-button/variants/shared/button-base.js",
+    "localFile": "sources/atlaskit-button-base.js.txt",
+    "sha256": "5d684bf6cb5d80747b4796121d06161343e42a4de46ebcc706fdc19ba32978ac"
+  },
+  {
+    "id": "atlaskitButtonBaseCss",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/cjs/new-button/variants/shared/button-base.compiled.css",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/cjs/new-button/variants/shared/button-base.compiled.css",
+    "localFile": "sources/atlaskit-button-base-css.css.txt",
+    "sha256": "75192ee67d76d442e34f80bfc49ab9c722086f1ca90890a7f184848456e2eb41"
+  },
+  {
+    "id": "atlaskitButtonDefault",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/cjs/new-button/variants/default/button.js",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/cjs/new-button/variants/default/button.js",
+    "localFile": "sources/atlaskit-button-default.js.txt",
+    "sha256": "9e03aea4d5f4b6ff5b2f1d48280cc83128dc02f08a096805063071752a8a34e1"
+  },
+  {
+    "id": "atlaskitButtonPackage",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/package.json",
+    "revision": "@atlaskit/button@25.4.7",
+    "originalPath": "package.json",
+    "localFile": "sources/atlaskit-button-package.json.txt",
+    "sha256": "241cd31426c2f57dbbefcb5b196a9cb67ed4dabd14f9872e963ebc0f76af91d3"
+  },
+  {
+    "id": "atlaskitTextfield",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/textfield@10.2.6/dist/cjs/text-field.js",
+    "revision": "@atlaskit/textfield@10.2.6",
+    "originalPath": "dist/cjs/text-field.js",
+    "localFile": "sources/atlaskit-textfield.js.txt",
+    "sha256": "9a4d285fb469a758378e4a83efa6bb029420a14e79a1ccbad3d22e09cd3a56ab"
+  },
+  {
+    "id": "atlaskitTextfieldCss",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/textfield@10.2.6/dist/cjs/text-field.compiled.css",
+    "revision": "@atlaskit/textfield@10.2.6",
+    "originalPath": "dist/cjs/text-field.compiled.css",
+    "localFile": "sources/atlaskit-textfield-css.css.txt",
+    "sha256": "2ce8c636f3ebf737b6b15c29c87db90e426acbb2182a174a3858ed2a6dc18fbe"
+  },
+  {
+    "id": "atlaskitLight",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-light.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-light.js",
+    "localFile": "sources/atlaskit-light.js.txt",
+    "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763"
+  },
+  {
+    "id": "atlaskitDark",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.4.1/dist/cjs/artifacts/themes/atlassian-dark.js",
+    "revision": "@atlaskit/tokens@20.4.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-dark.js",
+    "localFile": "sources/atlaskit-dark.js.txt",
+    "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4"
+  },
+  {
+    "id": "atlaskitCssReset",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/css-reset@8.4.6/dist/bundle.css",
+    "revision": "@atlaskit/css-reset@8.4.6",
+    "originalPath": "dist/bundle.css",
+    "localFile": "sources/atlaskit-css-reset.css.txt",
+    "sha256": "074a65ce55d6657d96ace501d5174e0a55e3ee0417ccb021608cc7094bca07fc"
+  },
+  {
+    "id": "atlaskitFocusRing",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/focus-ring@6.0.0/dist/cjs/focus-ring.js",
+    "revision": "@atlaskit/focus-ring@6.0.0",
+    "originalPath": "dist/cjs/focus-ring.js",
+    "localFile": "sources/atlaskit-focus-ring.js.txt",
+    "sha256": "6d6e747a0bb1c5e91c0dc2f12bc33e23ab5ef54331f23d5cb2648a9c3f94c6c1"
+  },
+  {
+    "id": "govukButtonMixin",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/components/button/_mixin.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/components/button/_mixin.scss",
+    "localFile": "sources/govuk-button-mixin.scss.txt",
+    "sha256": "83b4e432c878cbffae51a597edb78072cd22ab0296544024ef73f61e4b2101ff"
+  },
+  {
+    "id": "govukButtonSettings",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/components/button/_settings.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/components/button/_settings.scss",
+    "localFile": "sources/govuk-button-settings.scss.txt",
+    "sha256": "abff7eccb3fe584b9e91e8d712f988d92077428d115a47653d7eef4d95bf928a"
+  },
+  {
+    "id": "govukInputMixin",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/components/input/_mixin.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/components/input/_mixin.scss",
+    "localFile": "sources/govuk-input-mixin.scss.txt",
+    "sha256": "bd63a73a83122b2624d86f4447a2e80ed9a2c7a1ddea86bff9d8b60ca973520c"
+  },
+  {
+    "id": "govukFocused",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/helpers/_focused.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/helpers/_focused.scss",
+    "localFile": "sources/govuk-focused.scss.txt",
+    "sha256": "305c6ad4b66f047cdeca4509bbf50d101ab96d2c349d977b78cda2293d8d691a"
+  },
+  {
+    "id": "govukFunctionalColours",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/settings/_colours-functional.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/settings/_colours-functional.scss",
+    "localFile": "sources/govuk-functional-colours.scss.txt",
+    "sha256": "6928ae08912a8da738fe3120f2e5231befa2c8558b92cf984ec8ef3ca41dc724"
+  },
+  {
+    "id": "govukPalette",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/settings/_colours-palette--internal.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/settings/_colours-palette--internal.scss",
+    "localFile": "sources/govuk-palette.scss.txt",
+    "sha256": "b0c66432cf6e1e38bedcd7eb5358ecb5162c1d9f9789ac3299f67c895df5dd52"
+  },
+  {
+    "id": "govukMeasurements",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.5.1/dist/govuk/settings/_measurements.scss",
+    "revision": "govuk-frontend@6.5.1",
+    "originalPath": "dist/govuk/settings/_measurements.scss",
+    "localFile": "sources/govuk-measurements.scss.txt",
+    "sha256": "e811935cc1f7908ad8bccdf8fe49db1cf581274304b629afcd9ddb66c8b585c2"
+  }
+]

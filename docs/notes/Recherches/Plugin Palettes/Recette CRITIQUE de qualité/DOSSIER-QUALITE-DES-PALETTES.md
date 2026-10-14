@@ -6,7 +6,7 @@ l'aveugle et un relevé de neuf systèmes ; elle remplace les recommandations
 Q1, Q2, Q5 et Q6 ci-dessous, ajoute Q9, et ce dossier garde les mesures et les pistes. Les causes sont mesurées sur
 la recette du mainteneur et sur un balayage de 72 teintes. Trois maquettes
 montrent les solutions sur des composants ; le jugement visuel revient au
-mainteneur. Neuf décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3.
+mainteneur. Dix décisions sont listées en section 6, dix autres dans le dossier dédié au sujet 3. La règle de chroma est rouverte par le dossier [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md).
 
 | Maquette | Sujet |
 |---|---|
@@ -338,8 +338,9 @@ opaque, choisi contre la carte, suffit.
 **Couleur.** En Light, 600 est le cran le plus clair qui tient 3:1 contre la
 page : 500 échoue sur 422 à 576 des 576 rampes Light du balayage. En Dark, le
 cran 800, dans les deux sens, tient partout et retire les échecs de la
-section 4.2. Hors du kit Figma d'Untitled UI, aucun système relevé
-n'emploie un pas pâle seul.
+section 4.2. Le halo pâle collé est pourtant répandu (Bootstrap, Flowbite,
+shadcn/ui, Ant Design, le kit Figma d'Untitled UI) ; aucun n'atteint 3:1
+contre la page ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 6).
 
 Le bleu du Simple Design System de Figma, `#006AFF`, n'est pas plus clair que
 le 600 d'UCM : L 0,571 contre 0,584 à 0,594 pour les palettes colorées du
@@ -367,9 +368,12 @@ Trois rangements :
 | `solid/ring`, `surface/ring`, `page/ring` | 15 | Chaque dossier relie seul son composant ; les trois alias visent le même cran. |
 | `ring` à la racine de la palette | 13 | Un seul nom, en tête de la palette, hors des dossiers. |
 
-Recommandé : `ring` dans chaque dossier, parce que le mainteneur relie un
-composant dossier par dossier. Le renommage migre les liaisons Figma et les
-références des contrats, comme le passage de `text` à `foreground`.
+Recommandé : `ring` à la racine de la palette. Les trois `ring` d'un
+rangement par dossier vaudraient le même cran ; la variable unique, à côté des
+trois dossiers, se trouve en ouvrant la palette, sans redondance
+([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 7). Le renommage migre les
+liaisons Figma et les références des contrats, comme le passage de `text` à
+`foreground`.
 
 ### 4.5 Le texte courant des alertes
 
@@ -401,15 +405,16 @@ leurs valeurs par défaut, sans garantie perdue.
 
 | # | Décision | Recommandation |
 |---|---|---|
-| Q1 | La règle de chroma | L'enveloppe, avec des bornes par thème ([solution](./SOLUTION-RAMPES.md), S1) |
-| Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
+| Q1 | La règle de chroma | Rouverte : la retenue par teinte, à noter contre l'enveloppe (S1) et le moteur actuel ([robustesse](./ROBUSTESSE-DES-RAMPES.md)) |
+| Q2 | Le sens de Soft et Vivid | Soft : fonds 0,6, textes 0,85, retenue de Radix ; Vivid : 0,95, retenue de Tailwind |
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3) : fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut. Aucun échec nouveau : 144, comme aujourd'hui. Texte et contour Dark : 900, coloré, recommandé ; ou 950, pâle. Avec 900, la recette du mainteneur échoue sur Orange Vivid (4,12:1) tant que son Color shift sombre dépasse +0,015 |
 | Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants |
-| Q7 | La forme du focus | Anneau décalé de 2 px, ou halo et trait |
-| Q8 | Le nom et la place du focus | `ring` dans chaque dossier |
+| Q7 | La forme du focus | Anneau décalé de 2 px, conforme ; le halo pâle collé ne l'est pas au niveau AA ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 6) |
+| Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
+| Q10 | La dérive de teinte | Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 4) |
 | C1 à C10 | Comparer, harmoniser, différencier | Voir le [dossier dédié](./DOSSIER-COMPARER.md#11-décisions) |
 
 ## 7. Ce que chaque décision touche

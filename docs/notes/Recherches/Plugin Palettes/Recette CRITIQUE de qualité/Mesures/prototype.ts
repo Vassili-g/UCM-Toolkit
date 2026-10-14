@@ -73,6 +73,102 @@ export const deuxZones = (parts: Record<'soft' | 'vivid' | 'unique', { fonds: nu
     return (fonds + (accents - fonds) * w) * relatif * plafond(L, H, 'srgb');
   };
 
+/** Les deux bosses de la retenue par teinte (voir `caler-retenue.ts`). */
+export interface Retenue {
+  clairs: { k: number; h: number; s: number; debut: number; plein: number };
+  fonces: { k: number; h: number; s: number; debut: number; plein: number };
+}
+const lisse = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
+const ecartDeTeinte = (a: number, b: number) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
+const bosse = (H: number, h: number, s: number) => Math.exp(-0.5 * (ecartDeTeinte(H, h) / s) ** 2);
+
+/** Le facteur de retenue à une clarté et une teinte : 1 hors des deux bosses, moins dans les verts clairs et les bleus foncés. */
+export function facteurDeRetenue(r: Retenue, L: number, H: number): number {
+  const clairs = r.clairs.k * bosse(H, r.clairs.h, r.clairs.s) * lisse((L - r.clairs.debut) / (r.clairs.plein - r.clairs.debut));
+  const fonces = r.fonces.k * bosse(H, r.fonces.h, r.fonces.s) * lisse((r.fonces.debut - L) / (r.fonces.debut - r.fonces.plein));
+  return Math.max(0, 1 - clairs - fonces);
+}
+
+/** La retenue calée sur Tailwind 3.4.17 : verts clairs et bleus foncés. */
+export const RETENUE_TAILWIND: Retenue = {
+  clairs: { k: 0.32, h: 157, s: 30.8, debut: 0.762, plein: 0.898 },
+  fonces: { k: 0.566, h: 269.2, s: 13.8, debut: 0.685, plein: 0.213 },
+};
+/** La retenue des clairs calée sur Radix clair, plus forte et plus large ; les foncés suivent Tailwind. */
+export const RETENUE_RADIX: Retenue = {
+  clairs: { k: 0.675, h: 162.6, s: 34.9, debut: 0.561, plein: 0.881 },
+  fonces: RETENUE_TAILWIND.fonces,
+};
+
+/**
+ * La retenue par teinte : une part par profil, éventuellement plus basse dans
+ * les fonds que dans les accents, multipliée par une retenue lisse qui ne mord
+ * que là où le marché retient la chroma (verts clairs, bleus foncés).
+ * `C = part(zone) × retenue(L, H) × plafond(L, H)`.
+ */
+export const retenueParTeinte = (parProfil: Record<'soft' | 'vivid' | 'unique', { fonds: number; accents: number; retenue: Retenue }>): RegleDeChroma =>
+  ({ L, H, mode, intensite, Lcourbe, part }) => {
+    const { fonds, accents, retenue } = parProfil[intensite];
+    const w = poidsDesAccents(Lcourbe, mode);
+    // `part` porte le Color shift de saturation et l'atténuation des fonds Dark, relatifs à la part des accents.
+    const relatif = part / (accents || 1);
+    return Math.min(1, (fonds + (accents - fonds) * w) * relatif * facteurDeRetenue(retenue, L, H)) * plafond(L, H, 'srgb');
+  };
+
+/**
+ * La retenue par teinte et par thème. La retenue des clairs calée sur Radix
+ * vise des fonds ; en Dark, ces clartés sont des textes, qui suivent la
+ * retenue de Tailwind.
+ */
+export const retenueParTheme = (parTheme: Record<Mode, Record<'soft' | 'vivid' | 'unique', { fonds: number; accents: number; retenue: Retenue }>>): RegleDeChroma => {
+  const regles = { light: retenueParTeinte(parTheme.light), dark: retenueParTeinte(parTheme.dark) };
+  return (v) => regles[v.mode](v);
+};
+
+/** La règle candidate : Vivid suit Tailwind ; Soft garde des fonds plus calmes (0,6) et des textes colorés (0,85). */
+export const REGLE_RETENUE = retenueParTheme({
+  light: {
+    soft: { fonds: 0.6, accents: 0.85, retenue: RETENUE_RADIX },
+    vivid: { fonds: 0.95, accents: 0.95, retenue: RETENUE_TAILWIND },
+    unique: { fonds: 0.95, accents: 0.95, retenue: RETENUE_TAILWIND },
+  },
+  dark: {
+    soft: { fonds: 0.6, accents: 0.85, retenue: RETENUE_TAILWIND },
+    vivid: { fonds: 0.95, accents: 0.95, retenue: RETENUE_TAILWIND },
+    unique: { fonds: 0.95, accents: 0.95, retenue: RETENUE_TAILWIND },
+  },
+});
+
+/**
+ * La dérive de teinte corrigée : le préréglage actuel choisit les rampes
+ * voisines de Tailwind d'après la teinte de leur cran 50 et répartit la dérive
+ * au prorata de la clarté. Celle-ci les choisit d'après leur teinte à la
+ * clarté de la référence, et lit sur elles la dérive à chaque bout.
+ */
+export function deriveAuxBouts(rampes: { pts: { L: number; H: number }[] }[], reference: { L: number; H: number }, bouts: { clair: number; sombre: number }) {
+  const ecart = (a: number, b: number) => ((b - a + 540) % 360) - 180;
+  const teinteA = (pts: { L: number; H: number }[], L: number) => {
+    const deplie = [pts[0].H];
+    for (let i = 1; i < pts.length; i += 1) deplie.push(deplie[i - 1] + ecart(pts[i - 1].H, pts[i].H));
+    if (L >= pts[0].L) return deplie[0];
+    if (L <= pts[pts.length - 1].L) return deplie[pts.length - 1];
+    const i = pts.findIndex((p) => p.L < L);
+    const t = (pts[i - 1].L - L) / (pts[i - 1].L - pts[i].L);
+    return deplie[i - 1] + t * (deplie[i] - deplie[i - 1]);
+  };
+  const lus = rampes.map((r) => {
+    const h0 = teinteA(r.pts, reference.L);
+    return { h: ((h0 % 360) + 360) % 360, clair: teinteA(r.pts, bouts.clair) - h0, sombre: teinteA(r.pts, bouts.sombre) - h0 };
+  }).sort((a, b) => a.h - b.h);
+  let s = lus.findIndex((x) => x.h > reference.H);
+  if (s < 0) s = 0;
+  const b = lus[s];
+  const a = lus[(s - 1 + lus.length) % lus.length];
+  const t = ((reference.H - a.h + 360) % 360) / (((b.h - a.h + 360) % 360) || 360);
+  const arrondi = (x: number) => Math.round(x * 100) / 100;
+  return { clair: arrondi(a.clair + (b.clair - a.clair) * t), sombre: arrondi(a.sombre + (b.sombre - a.sombre) * t) };
+}
+
 /** Une rampe de Tailwind relue : la teinte, la clarté et la part du plafond de chaque cran. */
 export interface RampeRelevee { nom: string; points: { L: number; H: number; part: number }[] }
 

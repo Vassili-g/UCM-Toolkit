@@ -1,0 +1,4884 @@
+{
+  "meta": {
+    "objet": "Indicateur de focus clavier du bouton plein principal, d'un bouton secondaire ou à contour et du champ de saisie texte, dans dix systèmes. Valeurs publiées, sans recommandation.",
+    "fonds": "Fond de page : celui que le système déclare pour le thème (blanc en clair, sauf mention). Fond du composant : le fond que le composant a au moment du focus. Une couleur translucide se compose sur le fond qu'elle recouvre : la page pour un halo ou un trait posé hors du composant, le composant pour une couche à l'intérieur.",
+    "contraste": "WCAG 2, luminance relative standard, arrondi à 0,01. Les couleurs sont lues au pas de 8 bits.",
+    "champs": {
+      "principal": "Indice de la couche qui sert d'indicateur : la plus extérieure, sinon la plus marquante.",
+      "pale": "Vrai si la couche principale contraste à moins de 3:1 avec le fond de page.",
+      "colle": "Vrai si la couche principale est hors du composant et sans décalage (0).",
+      "colleEtPale": "Vrai si la couche principale est collée et pâle.",
+      "autreCoucheNette": "Vrai si une autre couche (bordure, trait intérieur, ombre) atteint 3:1 contre la page.",
+      "decalagePx": "0 : collé au bord du composant. Positif : espace entre le composant et le trait. Négatif : couche à l'intérieur du bord.",
+      "recouvre": "Fond sur lequel la couche se compose : page ou composant."
+    },
+    "themesAbsents": "Une valeur null pour dark signifie que le système ne publie pas de thème sombre."
+  },
+  "systemes": [
+    {
+      "id": "bootstrap",
+      "nom": "Bootstrap",
+      "version": "5.3.8",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "btn-primary",
+          "light": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 83
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": ".btn-primary --bs-btn-hover-bg (le focus-visible applique le fond du survol)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 3039
+              },
+              "hex": "#0b5ed7"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de #0d6efd vers #0a58ca (--bs-btn-hover-border-color)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(49, 132, 253, .5)",
+                "couleurResolue": "rgba(49, 132, 253, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#ffffff",
+                "hexCompose": "#98c2fe",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.83,
+                "contrasteAvecComposant": 3.19,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2968
+                  },
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 3041
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.83,
+            "contrasteAvecComposant": 3.19,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Fond au repos : #0d6efd. Au focus-visible, la règle applique color, background-color et border-color du survol (ligne 3003).",
+              "Contraste du halo composé (#98c2fe) contre le fond au repos #0d6efd : 2.46."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 132
+              },
+              "hex": "#212529"
+            },
+            "fondComposant": {
+              "publie": ".btn-primary --bs-btn-hover-bg (le focus-visible applique le fond du survol)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 3039
+              },
+              "hex": "#0b5ed7"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de #0d6efd vers #0a58ca (--bs-btn-hover-border-color)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(49, 132, 253, .5)",
+                "couleurResolue": "rgba(49, 132, 253, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#212529",
+                "hexCompose": "#295593",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.07,
+                "contrasteAvecComposant": 1.28,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2968
+                  },
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 3041
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.07,
+            "contrasteAvecComposant": 1.28,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Fond au repos : #0d6efd. Au focus-visible, la règle applique color, background-color et border-color du survol (ligne 3003).",
+              "Contraste du halo composé (#295593) contre le fond au repos #0d6efd : 1.66."
+            ]
+          }
+        },
+        {
+          "id": "contour",
+          "composant": "bouton à contour",
+          "variante": "btn-outline-primary",
+          "light": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 83
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": ".btn-outline-primary --bs-btn-hover-bg (le focus-visible applique le fond du survol)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 3174
+              },
+              "hex": "#0d6efd"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de #0d6efd vers #0d6efd (--bs-btn-hover-border-color)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(13, 110, 253, .5)",
+                "couleurResolue": "rgba(13, 110, 253, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#ffffff",
+                "hexCompose": "#86b7fe",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.06,
+                "contrasteAvecComposant": 2.19,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2968
+                  },
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 3176
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.06,
+            "contrasteAvecComposant": 2.19,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Fond au repos : transparent. Au focus-visible, la règle applique color, background-color et border-color du survol (ligne 3003)."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 132
+              },
+              "hex": "#212529"
+            },
+            "fondComposant": {
+              "publie": ".btn-outline-primary --bs-btn-hover-bg (le focus-visible applique le fond du survol)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 3174
+              },
+              "hex": "#0d6efd"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de #0d6efd vers #0d6efd (--bs-btn-hover-border-color)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(13, 110, 253, .5)",
+                "couleurResolue": "rgba(13, 110, 253, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#212529",
+                "hexCompose": "#174a93",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.79,
+                "contrasteAvecComposant": 1.91,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2968
+                  },
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 3176
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.79,
+            "contrasteAvecComposant": 1.91,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Fond au repos : transparent. Au focus-visible, la règle applique color, background-color et border-color du survol (ligne 3003)."
+            ]
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "form-control",
+          "light": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 83
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "var(--bs-body-bg) (--bs-body-bg: #fff)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 2149
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --bs-border-color (#dee2e6) vers #86b7fe"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(13, 110, 253, 0.25)",
+                "couleurResolue": "rgba(13, 110, 253, 0.25)",
+                "alpha": 0.25,
+                "composeSur": "#ffffff",
+                "hexCompose": "#c3dbff",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.41,
+                "contrasteAvecComposant": 1.41,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2152
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ",
+                "valeurPubliee": "#86b7fe",
+                "couleurResolue": "#86b7fe",
+                "hexCompose": "#86b7fe",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.06,
+                "contrasteAvecComposant": 2.06,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2150
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.41,
+            "contrasteAvecComposant": 1.41,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--bs-body-bg",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 132
+              },
+              "hex": "#212529"
+            },
+            "fondComposant": {
+              "publie": "var(--bs-body-bg) (--bs-body-bg: #212529)",
+              "source": {
+                "fichier": "sources/bootstrap-css.css.txt",
+                "ligne": 2149
+              },
+              "hex": "#212529"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --bs-border-color (#495057) vers #86b7fe"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow étendu, flou nul",
+                "valeurPubliee": "0 0 0 0.25rem rgba(13, 110, 253, 0.25)",
+                "couleurResolue": "rgba(13, 110, 253, 0.25)",
+                "alpha": 0.25,
+                "composeSur": "#212529",
+                "hexCompose": "#1c375e",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.29,
+                "contrasteAvecComposant": 1.29,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2152
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ",
+                "valeurPubliee": "#86b7fe",
+                "couleurResolue": "#86b7fe",
+                "hexCompose": "#86b7fe",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 7.51,
+                "contrasteAvecComposant": 7.51,
+                "source": [
+                  {
+                    "fichier": "sources/bootstrap-css.css.txt",
+                    "ligne": 2150
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.29,
+            "contrasteAvecComposant": 1.29,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "flowbite",
+      "nom": "Flowbite",
+      "version": "4.0.2",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "Default (bg-brand)",
+          "light": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--color-brand (--color-brand: var(--color-blue-700) ; --color-blue-700: oklch(48.8% 0.243 264.376))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 81
+              },
+              "hex": "#1447e6"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-transparent)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-brand-medium (--color-brand-medium: var(--color-blue-200) ; --color-blue-200: oklch(88.2% 0.059 254.128))",
+                "couleurResolue": "oklch(88.2% 0.059 254.128)",
+                "hexCompose": "#bedbff",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.42,
+                "contrasteAvecComposant": 4.8,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 24
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 132
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.42,
+            "contrasteAvecComposant": 4.8,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "fondComposant": {
+              "publie": "--color-brand (--color-brand: var(--color-blue-600) ; --color-blue-600: oklch(54.6% 0.245 262.881))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 178
+              },
+              "hex": "#155dfc"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-transparent)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-brand-medium (--color-brand-medium: var(--color-blue-900) ; --color-blue-900: oklch(37.9% 0.146 265.522))",
+                "couleurResolue": "oklch(37.9% 0.146 265.522)",
+                "hexCompose": "#1c398e",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.94,
+                "contrasteAvecComposant": 1.98,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 24
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 179
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 139
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.94,
+            "contrasteAvecComposant": 1.98,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          }
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "Secondary (bg-neutral-secondary-medium)",
+          "light": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-secondary-medium (--color-neutral-secondary-medium: var(--color-gray-50) ; --color-gray-50: oklch(98.5% 0.002 247.839))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 68
+              },
+              "hex": "#f9fafb"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-default-medium)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-neutral-tertiary (--color-neutral-tertiary: var(--color-gray-100) ; --color-gray-100: oklch(96.7% 0.003 264.542))",
+                "couleurResolue": "oklch(96.7% 0.003 264.542)",
+                "hexCompose": "#f3f4f6",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.1,
+                "contrasteAvecComposant": 1.05,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 25
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 72
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 227
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.1,
+            "contrasteAvecComposant": 1.05,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-secondary-medium (--color-neutral-secondary-medium: var(--color-gray-800) ; --color-gray-800: oklch(27.8% 0.033 256.848))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 167
+              },
+              "hex": "#1e2939"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-default-medium)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-neutral-tertiary (--color-neutral-tertiary: var(--color-gray-800) ; --color-gray-800: oklch(27.8% 0.033 256.848))",
+                "couleurResolue": "oklch(27.8% 0.033 256.848)",
+                "hexCompose": "#1e2939",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.37,
+                "contrasteAvecComposant": 1,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 25
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 171
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 234
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.37,
+            "contrasteAvecComposant": 1,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          }
+        },
+        {
+          "id": "contour",
+          "composant": "bouton à contour",
+          "variante": "Outline Brand",
+          "light": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-primary (--color-neutral-primary: var(--color-white) ; --color-white: #fff)",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-brand)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-brand-subtle (--color-brand-subtle: var(--color-blue-200) ; --color-blue-200: oklch(88.2% 0.059 254.128))",
+                "couleurResolue": "oklch(88.2% 0.059 254.128)",
+                "hexCompose": "#bedbff",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.42,
+                "contrasteAvecComposant": 1.42,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 235
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 128
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 132
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.42,
+            "contrasteAvecComposant": 1.42,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-primary (--color-neutral-primary: var(--color-gray-950) ; --color-gray-950: oklch(13% 0.028 261.692))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (border border-brand)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-brand-subtle (--color-brand-subtle: var(--color-blue-900) ; --color-blue-900: oklch(37.9% 0.146 265.522))",
+                "couleurResolue": "oklch(37.9% 0.146 265.522)",
+                "hexCompose": "#1c398e",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.94,
+                "contrasteAvecComposant": 1.94,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 235
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 221
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 139
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.94,
+            "contrasteAvecComposant": 1.94,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif."
+            ]
+          }
+        },
+        {
+          "id": "plein-degrade",
+          "composant": "bouton plein principal",
+          "variante": "Gradient monochrome Blue (classes focus:ring-blue-300 dark:focus:ring-blue-800)",
+          "light": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--color-blue-600 (--color-blue-600: oklch(54.6% 0.245 262.881))",
+              "source": {
+                "fichier": "sources/tailwind-theme.css.txt",
+                "ligne": 136
+              },
+              "hex": "#155dfc"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (aucune classe border)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 focus:ring-blue-300 (--color-blue-300: oklch(80.9% 0.105 251.813))",
+                "couleurResolue": "oklch(80.9% 0.105 251.813)",
+                "hexCompose": "#8ec5ff",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.81,
+                "contrasteAvecComposant": 2.89,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 59
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 133
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.81,
+            "contrasteAvecComposant": 2.89,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif.",
+              "Fond en dégradé de blue-500 à blue-700 : le fond du composant est pris à la couleur du milieu (via-blue-600).",
+              "Variante sombre explicite dans les classes : dark:focus:ring-blue-800."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "fondComposant": {
+              "publie": "--color-blue-600 (--color-blue-600: oklch(54.6% 0.245 262.881))",
+              "source": {
+                "fichier": "sources/tailwind-theme.css.txt",
+                "ligne": 136
+              },
+              "hex": "#155dfc"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 4,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "inchangée (aucune classe border)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind (box-shadow étendu, sans décalage)",
+                "valeurPubliee": "focus:ring-4 dark:focus:ring-blue-800 (--color-blue-800: oklch(42.4% 0.199 265.638))",
+                "couleurResolue": "oklch(42.4% 0.199 265.638)",
+                "hexCompose": "#193cb8",
+                "recouvre": "page",
+                "epaisseurPx": 4,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.28,
+                "contrasteAvecComposant": 1.68,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-buttons.md.txt",
+                    "ligne": 59
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 138
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.28,
+            "contrasteAvecComposant": 1.68,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "focus:outline-none retire le contour natif.",
+              "Fond en dégradé de blue-500 à blue-700 : le fond du composant est pris à la couleur du milieu (via-blue-600).",
+              "Variante sombre explicite dans les classes : dark:focus:ring-blue-800."
+            ]
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "Base Input",
+          "light": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 63
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-secondary-medium (--color-neutral-secondary-medium: var(--color-gray-50) ; --color-gray-50: oklch(98.5% 0.002 247.839))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 68
+              },
+              "hex": "#f9fafb"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --color-default-medium (oklch(92.8% 0.006 264.531)) vers --color-brand"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "anneau de 1px du plugin Flowbite (box-shadow), couleur focus:ring-brand",
+                "valeurPubliee": "focus:ring-brand (--color-brand: var(--color-blue-700) ; --color-blue-700: oklch(48.8% 0.243 264.376)) ; anneau de 1px du plugin",
+                "couleurResolue": "oklch(48.8% 0.243 264.376)",
+                "hexCompose": "#1447e6",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 6.83,
+                "contrasteAvecComposant": 6.54,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-forms.md.txt",
+                    "ligne": 98
+                  },
+                  {
+                    "fichier": "sources/flowbite-plugin.js.txt",
+                    "ligne": 224
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 81
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 137
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ (focus:border-brand)",
+                "valeurPubliee": "focus:border-brand (--color-brand: var(--color-blue-700) ; --color-blue-700: oklch(48.8% 0.243 264.376))",
+                "couleurResolue": "oklch(48.8% 0.243 264.376)",
+                "hexCompose": "#1447e6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 6.83,
+                "contrasteAvecComposant": 6.54,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-forms.md.txt",
+                    "ligne": 98
+                  },
+                  {
+                    "fichier": "sources/flowbite-plugin.js.txt",
+                    "ligne": 226
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 6.83,
+            "contrasteAvecComposant": 6.54,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--color-neutral-primary",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 162
+              },
+              "hex": "#030712"
+            },
+            "fondComposant": {
+              "publie": "--color-neutral-secondary-medium (--color-neutral-secondary-medium: var(--color-gray-800) ; --color-gray-800: oklch(27.8% 0.033 256.848))",
+              "source": {
+                "fichier": "sources/flowbite-theme.css.txt",
+                "ligne": 167
+              },
+              "hex": "#1e2939"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --color-default-medium (oklch(37.3% 0.034 259.733)) vers --color-brand"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "anneau de 1px du plugin Flowbite (box-shadow), couleur focus:ring-brand",
+                "valeurPubliee": "focus:ring-brand (--color-brand: var(--color-blue-600) ; --color-blue-600: oklch(54.6% 0.245 262.881)) ; anneau de 1px du plugin",
+                "couleurResolue": "oklch(54.6% 0.245 262.881)",
+                "hexCompose": "#155dfc",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.84,
+                "contrasteAvecComposant": 2.8,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-forms.md.txt",
+                    "ligne": 98
+                  },
+                  {
+                    "fichier": "sources/flowbite-plugin.js.txt",
+                    "ligne": 224
+                  },
+                  {
+                    "fichier": "sources/flowbite-theme.css.txt",
+                    "ligne": 178
+                  },
+                  {
+                    "fichier": "sources/tailwind-theme.css.txt",
+                    "ligne": 136
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ (focus:border-brand)",
+                "valeurPubliee": "focus:border-brand (--color-brand: var(--color-blue-600) ; --color-blue-600: oklch(54.6% 0.245 262.881))",
+                "couleurResolue": "oklch(54.6% 0.245 262.881)",
+                "hexCompose": "#155dfc",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.84,
+                "contrasteAvecComposant": 2.8,
+                "source": [
+                  {
+                    "fichier": "sources/flowbite-forms.md.txt",
+                    "ligne": 98
+                  },
+                  {
+                    "fichier": "sources/flowbite-plugin.js.txt",
+                    "ligne": 226
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.84,
+            "contrasteAvecComposant": 2.8,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "shadcn",
+      "nom": "shadcn/ui (new-york v4)",
+      "version": "révision 30a58d4",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "default",
+          "light": {
+            "fondPage": {
+              "publie": "--background (oklch(1 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 101
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-primary --primary (oklch(0% 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 107
+              },
+              "hex": "#000000"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "aucune bordure sur la variante default (border-ring sans effet visible)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.708 0 0))",
+                "couleurResolue": "rgba(161, 161, 161, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#ffffff",
+                "hexCompose": "#d0d0d0",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.54,
+                "contrasteAvecComposant": 13.62,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.54,
+            "contrasteAvecComposant": 13.62,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Classes de la variante : sources/shadcn-button.tsx.txt ligne 11."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--background (oklch(0.145 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 144
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "bg-primary --primary (oklch(0.922 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 150
+              },
+              "hex": "#e5e5e5"
+            },
+            "geometrie": {
+              "type": "halo",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "aucune bordure sur la variante default (border-ring sans effet visible)"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.556 0 0))",
+                "couleurResolue": "rgba(115, 115, 115, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#0a0a0a",
+                "hexCompose": "#3f3f3f",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.88,
+                "contrasteAvecComposant": 8.36,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 162
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.88,
+            "contrasteAvecComposant": 8.36,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Classes de la variante : sources/shadcn-button.tsx.txt ligne 11."
+            ]
+          }
+        },
+        {
+          "id": "contour",
+          "composant": "bouton à contour",
+          "variante": "outline",
+          "light": {
+            "fondPage": {
+              "publie": "--background (oklch(1 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 101
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-background (oklch(1 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 101
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --border vers --ring"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.708 0 0))",
+                "couleurResolue": "rgba(161, 161, 161, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#ffffff",
+                "hexCompose": "#d0d0d0",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.54,
+                "contrasteAvecComposant": 1.54,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 119
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du composant (focus-visible:border-ring)",
+                "valeurPubliee": "focus-visible:border-ring (--ring: oklch(0.708 0 0))",
+                "couleurResolue": "oklch(0.708 0 0)",
+                "hexCompose": "#a1a1a1",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.58,
+                "contrasteAvecComposant": 2.58,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.54,
+            "contrasteAvecComposant": 1.54,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true,
+            "remarques": [
+              "Classes de la variante outline : sources/shadcn-button.tsx.txt ligne 15."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--background (oklch(0.145 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 144
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "dark:bg-input/30 (oklch(1 0 0 / 15%) à 30 %)",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 161
+              },
+              "alpha": 0.05,
+              "composeSur": "#0a0a0a",
+              "hex": "#151515",
+              "transparent": false
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --input (dark:border-input) vers --ring"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.556 0 0))",
+                "couleurResolue": "rgba(115, 115, 115, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#0a0a0a",
+                "hexCompose": "#3f3f3f",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.88,
+                "contrasteAvecComposant": 1.73,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 162
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du composant (focus-visible:border-ring)",
+                "valeurPubliee": "focus-visible:border-ring (--ring: oklch(0.556 0 0))",
+                "couleurResolue": "oklch(0.556 0 0)",
+                "hexCompose": "#737373",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 4.18,
+                "contrasteAvecComposant": 3.85,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-button.tsx.txt",
+                    "ligne": 7
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 162
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.88,
+            "contrasteAvecComposant": 1.73,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true,
+            "remarques": [
+              "Classes de la variante outline : sources/shadcn-button.tsx.txt ligne 15."
+            ]
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "Input",
+          "light": {
+            "fondPage": {
+              "publie": "--background (oklch(1 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 101
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-transparent",
+              "source": {
+                "fichier": "sources/shadcn-input.tsx.txt",
+                "ligne": 10
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --input vers --ring"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.708 0 0))",
+                "couleurResolue": "rgba(161, 161, 161, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#ffffff",
+                "hexCompose": "#d0d0d0",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.54,
+                "contrasteAvecComposant": 1.54,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-input.tsx.txt",
+                    "ligne": 11
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 119
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du composant (focus-visible:border-ring)",
+                "valeurPubliee": "focus-visible:border-ring (--ring: oklch(0.708 0 0))",
+                "couleurResolue": "oklch(0.708 0 0)",
+                "hexCompose": "#a1a1a1",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.58,
+                "contrasteAvecComposant": 2.58,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-input.tsx.txt",
+                    "ligne": 11
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.54,
+            "contrasteAvecComposant": 1.54,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--background (oklch(0.145 0 0))",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 144
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "dark:bg-input/30 (oklch(1 0 0 / 15%) à 30 %)",
+              "source": {
+                "fichier": "sources/shadcn-globals.css.txt",
+                "ligne": 161
+              },
+              "alpha": 0.05,
+              "composeSur": "#0a0a0a",
+              "hex": "#151515",
+              "transparent": false
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de --input vers --ring"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "ring Tailwind de 3px (focus-visible:ring-[3px]), couleur ring/50",
+                "valeurPubliee": "focus-visible:ring-ring/50 (--ring: oklch(0.556 0 0))",
+                "couleurResolue": "rgba(115, 115, 115, 0.5)",
+                "alpha": 0.5,
+                "composeSur": "#0a0a0a",
+                "hexCompose": "#3f3f3f",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.88,
+                "contrasteAvecComposant": 1.73,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-input.tsx.txt",
+                    "ligne": 11
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 162
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du composant (focus-visible:border-ring)",
+                "valeurPubliee": "focus-visible:border-ring (--ring: oklch(0.556 0 0))",
+                "couleurResolue": "oklch(0.556 0 0)",
+                "hexCompose": "#737373",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 4.18,
+                "contrasteAvecComposant": 3.85,
+                "source": [
+                  {
+                    "fichier": "sources/shadcn-input.tsx.txt",
+                    "ligne": 11
+                  },
+                  {
+                    "fichier": "sources/shadcn-globals.css.txt",
+                    "ligne": 162
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.88,
+            "contrasteAvecComposant": 1.73,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "untitled-ui-react",
+      "nom": "Untitled UI React",
+      "version": "révision 1d410cb",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "primary",
+          "light": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-white) ; --color-white: #fff)",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 385
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-brand-solid --background-color-brand-solid (--background-color-brand-solid: var(--color-bg-brand-solid) ; --color-bg-brand-solid: var(--color-brand-600) ; --color-brand-600: rgb(127 86 217))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 393
+              },
+              "hex": "#7f56d9"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (ring-1 ring-inset au repos)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focus-visible:outline-2, outline-offset-2), détaché de 2px",
+                "valeurPubliee": "outline-brand (--outline-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-500) ; --color-brand-500: rgb(158 119 237))",
+                "couleurResolue": "rgb(158 119 237)",
+                "hexCompose": "#9e77ed",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.33,
+                "contrasteAvecComposant": 1.49,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-button.tsx.txt",
+                    "ligne": 13
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 473
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 307
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 114
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.33,
+            "contrasteAvecComposant": 1.49,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Classes de la variante : sources/untitled-button.tsx.txt ligne 59."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-neutral-950) ; --color-neutral-950: oklch(14.5% 0 none))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 740
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "bg-brand-solid --background-color-brand-solid (--background-color-brand-solid: var(--color-bg-brand-solid) ; --color-bg-brand-solid: var(--color-brand-600) ; --color-brand-600: rgb(127 86 217))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 748
+              },
+              "hex": "#7f56d9"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (ring-1 ring-inset au repos)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focus-visible:outline-2, outline-offset-2), détaché de 2px",
+                "valeurPubliee": "outline-brand (--outline-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-400) ; --color-brand-400: rgb(182 146 246))",
+                "couleurResolue": "rgb(182 146 246)",
+                "hexCompose": "#b692f6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 7.95,
+                "contrasteAvecComposant": 1.99,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-button.tsx.txt",
+                    "ligne": 13
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 829
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 663
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 113
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.95,
+            "contrasteAvecComposant": 1.99,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Classes de la variante : sources/untitled-button.tsx.txt ligne 59."
+            ]
+          }
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "secondary",
+          "light": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-white) ; --color-white: #fff)",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 385
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-white) ; --color-white: #fff)",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 385
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (ring-1 ring-inset au repos)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focus-visible:outline-2, outline-offset-2), détaché de 2px",
+                "valeurPubliee": "outline-brand (--outline-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-500) ; --color-brand-500: rgb(158 119 237))",
+                "couleurResolue": "rgb(158 119 237)",
+                "hexCompose": "#9e77ed",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.33,
+                "contrasteAvecComposant": 3.33,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-button.tsx.txt",
+                    "ligne": 13
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 473
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 307
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 114
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.33,
+            "contrasteAvecComposant": 3.33,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Classes de la variante : sources/untitled-button.tsx.txt ligne 68."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-neutral-950) ; --color-neutral-950: oklch(14.5% 0 none))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 740
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-neutral-950) ; --color-neutral-950: oklch(14.5% 0 none))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 740
+              },
+              "hex": "#0a0a0a"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (ring-1 ring-inset au repos)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focus-visible:outline-2, outline-offset-2), détaché de 2px",
+                "valeurPubliee": "outline-brand (--outline-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-400) ; --color-brand-400: rgb(182 146 246))",
+                "couleurResolue": "rgb(182 146 246)",
+                "hexCompose": "#b692f6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 7.95,
+                "contrasteAvecComposant": 7.95,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-button.tsx.txt",
+                    "ligne": 13
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 829
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 663
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 113
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.95,
+            "contrasteAvecComposant": 7.95,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Classes de la variante : sources/untitled-button.tsx.txt ligne 68."
+            ]
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "Input",
+          "light": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-white) ; --color-white: #fff)",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 385
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg-primary (#ffffff)",
+              "source": {
+                "fichier": "sources/untitled-input.tsx.txt",
+                "ligne": 102
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait intérieur",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "anneau de 1px ring-primary remplacé par un anneau de 2px ring-brand"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "anneau intérieur de 2px (ring-2 ring-inset sur le conteneur au focus-within)",
+                "valeurPubliee": "ring-brand (--ring-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-500) ; --color-brand-500: rgb(158 119 237))",
+                "couleurResolue": "rgb(158 119 237)",
+                "hexCompose": "#9e77ed",
+                "recouvre": "composant",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.33,
+                "contrasteAvecComposant": 3.33,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-input.tsx.txt",
+                    "ligne": 104
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 461
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 307
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 114
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.33,
+            "contrasteAvecComposant": 3.33,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg-primary --background-color-primary (--background-color-primary: var(--color-bg-primary) ; --color-bg-primary: var(--color-neutral-950) ; --color-neutral-950: oklch(14.5% 0 none))",
+              "source": {
+                "fichier": "sources/untitled-theme.css.txt",
+                "ligne": 740
+              },
+              "hex": "#0a0a0a"
+            },
+            "fondComposant": {
+              "publie": "bg-primary (#0a0a0a)",
+              "source": {
+                "fichier": "sources/untitled-input.tsx.txt",
+                "ligne": 102
+              },
+              "hex": "#0a0a0a"
+            },
+            "geometrie": {
+              "type": "trait intérieur",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "anneau de 1px ring-primary remplacé par un anneau de 2px ring-brand"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "anneau intérieur de 2px (ring-2 ring-inset sur le conteneur au focus-within)",
+                "valeurPubliee": "ring-brand (--ring-color-brand: var(--color-border-brand) ; --color-border-brand: var(--color-brand-400) ; --color-brand-400: rgb(182 146 246))",
+                "couleurResolue": "rgb(182 146 246)",
+                "hexCompose": "#b692f6",
+                "recouvre": "composant",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 7.95,
+                "contrasteAvecComposant": 7.95,
+                "source": [
+                  {
+                    "fichier": "sources/untitled-input.tsx.txt",
+                    "ligne": 104
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 817
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 663
+                  },
+                  {
+                    "fichier": "sources/untitled-theme.css.txt",
+                    "ligne": 113
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.95,
+            "contrasteAvecComposant": 7.95,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "chakra",
+      "nom": "Chakra UI",
+      "version": "3.37.0",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "solid, colorPalette gray (défaut du thème)",
+          "light": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "colorPalette.solid, palette gray ({colors.gray.900} = #18181b)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 109
+              },
+              "hex": "#18181b"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 2.56,
+                "contrasteAvecComposant": 6.91,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.56,
+            "contrasteAvecComposant": 6.91,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.black} = #09090B)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#09090b"
+            },
+            "fondComposant": {
+              "publie": "colorPalette.solid, palette gray ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 109
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 7.76,
+                "contrasteAvecComposant": 2.56,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.76,
+            "contrasteAvecComposant": 2.56,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "plein-blue",
+          "composant": "bouton plein principal",
+          "variante": "solid, colorPalette blue",
+          "light": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "colorPalette.solid, palette blue ({colors.blue.600} = #2563eb)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 213
+              },
+              "hex": "#2563eb"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette blue ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.68,
+                "contrasteAvecComposant": 1.41,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.68,
+            "contrasteAvecComposant": 1.41,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.black} = #09090B)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#09090b"
+            },
+            "fondComposant": {
+              "publie": "colorPalette.solid, palette blue ({colors.blue.600} = #2563eb)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 213
+              },
+              "hex": "#2563eb"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette blue ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 5.41,
+                "contrasteAvecComposant": 1.41,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 5.41,
+            "contrasteAvecComposant": 1.41,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "contour",
+          "composant": "bouton à contour",
+          "variante": "outline, colorPalette gray",
+          "light": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-button.js.txt",
+                "ligne": 26
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 2.56,
+                "contrasteAvecComposant": 2.56,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.56,
+            "contrasteAvecComposant": 2.56,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.black} = #09090B)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#09090b"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-button.js.txt",
+                "ligne": 26
+              },
+              "alpha": 0,
+              "composeSur": "#09090b",
+              "hex": "#09090b",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px transparent, ou colorPalette.border en variante outline)"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing outside), détaché",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 7.76,
+                "contrasteAvecComposant": 7.76,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-button.js.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 29
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.76,
+            "contrasteAvecComposant": 7.76,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "outline, colorPalette gray",
+          "light": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-input.js.txt",
+                "ligne": 69
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait collé+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colors.border (#e4e4e7) vers la couleur de l'anneau"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing inside) : largeur 1px, décalage 0, donc contre le bord extérieur de la bordure",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.56,
+                "contrasteAvecComposant": 2.56,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-input.js.txt",
+                    "ligne": 69
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ, identique à la couleur de l'anneau",
+                "valeurPubliee": "borderColor: var(--focus-ring-color) ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.56,
+                "contrasteAvecComposant": 2.56,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.56,
+            "contrasteAvecComposant": 2.56,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": true
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.black} = #09090B)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#09090b"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-input.js.txt",
+                "ligne": 69
+              },
+              "alpha": 0,
+              "composeSur": "#09090b",
+              "hex": "#09090b",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait collé+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colors.border (#27272a) vers la couleur de l'anneau"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing inside) : largeur 1px, décalage 0, donc contre le bord extérieur de la bordure",
+                "valeurPubliee": "colorPalette.focusRing, palette gray ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 7.76,
+                "contrasteAvecComposant": 7.76,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-input.js.txt",
+                    "ligne": 69
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ, identique à la couleur de l'anneau",
+                "valeurPubliee": "borderColor: var(--focus-ring-color) ({colors.gray.400} = #a1a1aa)",
+                "couleurResolue": "#a1a1aa",
+                "hexCompose": "#a1a1aa",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 7.76,
+                "contrasteAvecComposant": 7.76,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 112
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 40
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 7.76,
+            "contrasteAvecComposant": 7.76,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "champ-blue",
+          "composant": "champ de saisie",
+          "variante": "outline, colorPalette blue",
+          "light": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.white} = #FFFFFF)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-input.js.txt",
+                "ligne": 69
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait collé+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colors.border (#e4e4e7) vers la couleur de l'anneau"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing inside) : largeur 1px, décalage 0, donc contre le bord extérieur de la bordure",
+                "valeurPubliee": "colorPalette.focusRing, palette blue ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.68,
+                "contrasteAvecComposant": 3.68,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-input.js.txt",
+                    "ligne": 69
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ, identique à la couleur de l'anneau",
+                "valeurPubliee": "borderColor: var(--focus-ring-color) ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.68,
+                "contrasteAvecComposant": 3.68,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.68,
+            "contrasteAvecComposant": 3.68,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "bg.DEFAULT ({colors.black} = #09090B)",
+              "source": {
+                "fichier": "sources/chakra-semantic-colors.js.txt",
+                "ligne": 7
+              },
+              "hex": "#09090b"
+            },
+            "fondComposant": {
+              "publie": "bg transparent (variante outline)",
+              "source": {
+                "fichier": "sources/chakra-input.js.txt",
+                "ligne": 69
+              },
+              "alpha": 0,
+              "composeSur": "#09090b",
+              "hex": "#09090b",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait collé+bordure",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colors.border (#27272a) vers la couleur de l'anneau"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline (focusVisibleRing inside) : largeur 1px, décalage 0, donc contre le bord extérieur de la bordure",
+                "valeurPubliee": "colorPalette.focusRing, palette blue ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "page",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 5.41,
+                "contrasteAvecComposant": 5.41,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-input.js.txt",
+                    "ligne": 69
+                  },
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "border-color du champ, identique à la couleur de l'anneau",
+                "valeurPubliee": "borderColor: var(--focus-ring-color) ({colors.blue.500} = #3b82f6)",
+                "couleurResolue": "#3b82f6",
+                "hexCompose": "#3b82f6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 5.41,
+                "contrasteAvecComposant": 5.41,
+                "source": [
+                  {
+                    "fichier": "sources/chakra-preset-base.js.txt",
+                    "ligne": 19
+                  },
+                  {
+                    "fichier": "sources/chakra-semantic-colors.js.txt",
+                    "ligne": 216
+                  },
+                  {
+                    "fichier": "sources/chakra-colors.js.txt",
+                    "ligne": 119
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 5.41,
+            "contrasteAvecComposant": 5.41,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "mantine",
+      "nom": "Mantine",
+      "version": "7.17.8",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "filled (défaut)",
+          "light": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-white) ; --mantine-color-white: #fff)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 466
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--mantine-primary-color-filled (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-6) ; --mantine-color-blue-6: #228be6)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 3190
+              },
+              "hex": "#228be6"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 0,125rem (classe mantine-focus-auto)",
+                "valeurPubliee": "outline: 2px solid var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-6) ; --mantine-color-blue-6: #228be6)",
+                "couleurResolue": "#228be6",
+                "hexCompose": "#228be6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.56,
+                "contrasteAvecComposant": 1,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 53
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 533
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 250
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.56,
+            "contrasteAvecComposant": 1,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "La couleur de l'anneau est celle du fond du bouton plein."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-dark-7) ; --mantine-color-dark-7: #242424)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 339
+              },
+              "hex": "#242424"
+            },
+            "fondComposant": {
+              "publie": "--mantine-primary-color-filled (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-8) ; --mantine-color-blue-8: #1971c2)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 3190
+              },
+              "hex": "#1971c2"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 0,125rem (classe mantine-focus-auto)",
+                "valeurPubliee": "outline: 2px solid var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-8) ; --mantine-color-blue-8: #1971c2)",
+                "couleurResolue": "#1971c2",
+                "hexCompose": "#1971c2",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.09,
+                "contrasteAvecComposant": 1,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 53
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 405
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 252
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.09,
+            "contrasteAvecComposant": 1,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "La couleur de l'anneau est celle du fond du bouton plein."
+            ]
+          }
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "default",
+          "light": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-white) ; --mantine-color-white: #fff)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 466
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--mantine-color-default (--mantine-color-default: var(--mantine-color-white) ; --mantine-color-white: #fff)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 471
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 0,125rem (classe mantine-focus-auto)",
+                "valeurPubliee": "outline: 2px solid var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-6) ; --mantine-color-blue-6: #228be6)",
+                "couleurResolue": "#228be6",
+                "hexCompose": "#228be6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.56,
+                "contrasteAvecComposant": 3.56,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 53
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 533
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 250
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.56,
+            "contrasteAvecComposant": 3.56,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Variante default : fond --mantine-color-default lu dans default-variant-colors-resolver.mjs."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-dark-7) ; --mantine-color-dark-7: #242424)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 339
+              },
+              "hex": "#242424"
+            },
+            "fondComposant": {
+              "publie": "--mantine-color-default (--mantine-color-default: var(--mantine-color-dark-6) ; --mantine-color-dark-6: #2e2e2e)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 343
+              },
+              "hex": "#2e2e2e"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 0,125rem (classe mantine-focus-auto)",
+                "valeurPubliee": "outline: 2px solid var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-8) ; --mantine-color-blue-8: #1971c2)",
+                "couleurResolue": "#1971c2",
+                "hexCompose": "#1971c2",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.09,
+                "contrasteAvecComposant": 2.7,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 53
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 405
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 252
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.09,
+            "contrasteAvecComposant": 2.7,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Variante default : fond --mantine-color-default lu dans default-variant-colors-resolver.mjs."
+            ]
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "TextInput default",
+          "light": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-white) ; --mantine-color-white: #fff)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 466
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--input-bg (var(--mantine-color-white) = #fff)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 1410
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "bordure seule",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px, de var(--mantine-color-gray-4) (#ced4da) vers var(--mantine-primary-color-filled) (#228be6)"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "bordure de 1px dont la couleur passe de --input-bd à --input-bd-focus ; outline: none",
+                "valeurPubliee": "--input-bd-focus: var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-6) ; --mantine-color-blue-6: #228be6)",
+                "couleurResolue": "#228be6",
+                "hexCompose": "#228be6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.56,
+                "contrasteAvecComposant": 3.56,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1411
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1508
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1476
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 533
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 250
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.56,
+            "contrasteAvecComposant": 3.56,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--mantine-color-body (--mantine-color-body: var(--mantine-color-dark-7) ; --mantine-color-dark-7: #242424)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 339
+              },
+              "hex": "#242424"
+            },
+            "fondComposant": {
+              "publie": "--input-bg (var(--mantine-color-dark-6) = #2e2e2e)",
+              "source": {
+                "fichier": "sources/mantine-styles.css.txt",
+                "ligne": 1433
+              },
+              "hex": "#2e2e2e"
+            },
+            "geometrie": {
+              "type": "bordure seule",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px, de var(--mantine-color-dark-4) (#424242) vers var(--mantine-primary-color-filled) (#1971c2)"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "bordure de 1px dont la couleur passe de --input-bd à --input-bd-focus ; outline: none",
+                "valeurPubliee": "--input-bd-focus: var(--mantine-primary-color-filled) (--mantine-primary-color-filled: var(--mantine-color-blue-filled) ; --mantine-color-blue-filled: var(--mantine-color-blue-8) ; --mantine-color-blue-8: #1971c2)",
+                "couleurResolue": "#1971c2",
+                "hexCompose": "#1971c2",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.09,
+                "contrasteAvecComposant": 2.7,
+                "source": [
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1434
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1508
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 1476
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 116
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 405
+                  },
+                  {
+                    "fichier": "sources/mantine-styles.css.txt",
+                    "ligne": 252
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.09,
+            "contrasteAvecComposant": 2.7,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "ant-design",
+      "nom": "Ant Design",
+      "version": "5.29.3",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "type primary",
+          "light": {
+            "fondPage": {
+              "publie": "colorBgContainer = darken(#fff, 0)",
+              "source": {
+                "fichier": "sources/antd-light-colors.js.txt",
+                "ligne": 8
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "colorPrimary (palette[6])",
+              "source": {
+                "fichier": "sources/antd-light-colors.js.txt",
+                "ligne": 8
+              },
+              "hex": "#1677ff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 3,
+              "decalagePx": 1,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de lineWidthFocus (3px), décalage 1px (genFocusOutline)",
+                "valeurPubliee": "3px solid colorPrimaryBorder = palette[3]",
+                "couleurResolue": "#91caff",
+                "hexCompose": "#91caff",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 1,
+                "contrasteAvecPage": 1.74,
+                "contrasteAvecComposant": 2.36,
+                "source": [
+                  {
+                    "fichier": "sources/antd-style.js.txt",
+                    "ligne": 109
+                  },
+                  {
+                    "fichier": "sources/antd-button-style.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 67
+                  },
+                  {
+                    "fichier": "sources/antd-light-colors.js.txt",
+                    "ligne": 8
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.74,
+            "contrasteAvecComposant": 2.36,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "colorBgContainer = lighten(#000, 8) (calculé)",
+              "source": {
+                "fichier": "sources/antd-dark-colors.js.txt",
+                "ligne": 10
+              },
+              "hex": "#141414"
+            },
+            "fondComposant": {
+              "publie": "colorPrimary (palette[6])",
+              "source": {
+                "fichier": "sources/antd-dark-colors.js.txt",
+                "ligne": 10
+              },
+              "hex": "#1668dc"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 3,
+              "decalagePx": 1,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de lineWidthFocus (3px), décalage 1px (genFocusOutline)",
+                "valeurPubliee": "3px solid colorPrimaryBorder = palette[3] (thème sombre, calculé)",
+                "couleurResolue": "#15325b",
+                "hexCompose": "#15325b",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 1,
+                "contrasteAvecPage": 1.44,
+                "contrasteAvecComposant": 2.47,
+                "source": [
+                  {
+                    "fichier": "sources/antd-style.js.txt",
+                    "ligne": 109
+                  },
+                  {
+                    "fichier": "sources/antd-button-style.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 67
+                  },
+                  {
+                    "fichier": "sources/antd-dark-colors.js.txt",
+                    "ligne": 10
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.44,
+            "contrasteAvecComposant": 2.47,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "default",
+          "light": {
+            "fondPage": {
+              "publie": "colorBgContainer = darken(#fff, 0)",
+              "source": {
+                "fichier": "sources/antd-light-colors.js.txt",
+                "ligne": 8
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "colorBgContainer (bouton default)",
+              "source": {
+                "fichier": "sources/antd-light-colors.js.txt",
+                "ligne": 8
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 3,
+              "decalagePx": 1,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de lineWidthFocus (3px), décalage 1px (genFocusOutline)",
+                "valeurPubliee": "3px solid colorPrimaryBorder = palette[3]",
+                "couleurResolue": "#91caff",
+                "hexCompose": "#91caff",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 1,
+                "contrasteAvecPage": 1.74,
+                "contrasteAvecComposant": 1.74,
+                "source": [
+                  {
+                    "fichier": "sources/antd-style.js.txt",
+                    "ligne": 109
+                  },
+                  {
+                    "fichier": "sources/antd-button-style.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 67
+                  },
+                  {
+                    "fichier": "sources/antd-light-colors.js.txt",
+                    "ligne": 8
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.74,
+            "contrasteAvecComposant": 1.74,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "colorBgContainer = lighten(#000, 8) (calculé)",
+              "source": {
+                "fichier": "sources/antd-dark-colors.js.txt",
+                "ligne": 10
+              },
+              "hex": "#141414"
+            },
+            "fondComposant": {
+              "publie": "colorBgContainer (bouton default)",
+              "source": {
+                "fichier": "sources/antd-dark-colors.js.txt",
+                "ligne": 10
+              },
+              "hex": "#141414"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 3,
+              "decalagePx": 1,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de lineWidthFocus (3px), décalage 1px (genFocusOutline)",
+                "valeurPubliee": "3px solid colorPrimaryBorder = palette[3] (thème sombre, calculé)",
+                "couleurResolue": "#15325b",
+                "hexCompose": "#15325b",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 1,
+                "contrasteAvecPage": 1.44,
+                "contrasteAvecComposant": 1.44,
+                "source": [
+                  {
+                    "fichier": "sources/antd-style.js.txt",
+                    "ligne": 109
+                  },
+                  {
+                    "fichier": "sources/antd-button-style.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 67
+                  },
+                  {
+                    "fichier": "sources/antd-dark-colors.js.txt",
+                    "ligne": 10
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.44,
+            "contrasteAvecComposant": 1.44,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "Input outlined",
+          "light": {
+            "fondPage": {
+              "publie": "colorBgContainer = darken(#fff, 0)",
+              "source": {
+                "fichier": "sources/antd-light-colors.js.txt",
+                "ligne": 8
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "colorBgContainer (activeBg)",
+              "source": {
+                "fichier": "sources/antd-input-token.js.txt",
+                "ligne": 46
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colorBorder vers colorPrimary"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow 0 0 0 2px controlOutline (controlOutlineWidth = 2 x lineWidth)",
+                "valeurPubliee": "activeShadow = 0 0 0 2px rgba(5, 145, 255, 0.1) (controlOutline = getAlphaColor(colorPrimaryBg #e6f4ff, colorBgContainer #ffffff))",
+                "couleurResolue": "rgba(5, 145, 255, 0.1)",
+                "alpha": 0.1,
+                "composeSur": "#ffffff",
+                "hexCompose": "#e6f4ff",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.12,
+                "contrasteAvecComposant": 1.12,
+                "source": [
+                  {
+                    "fichier": "sources/antd-input-token.js.txt",
+                    "ligne": 48
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 78
+                  },
+                  {
+                    "fichier": "sources/antd-light-colors.js.txt",
+                    "ligne": 8
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "borderColor = activeBorderColor = colorPrimary",
+                "valeurPubliee": "colorPrimary = palette[6]",
+                "couleurResolue": "#1677ff",
+                "hexCompose": "#1677ff",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 4.1,
+                "contrasteAvecComposant": 4.1,
+                "source": [
+                  {
+                    "fichier": "sources/antd-input-token.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-light-colors.js.txt",
+                    "ligne": 8
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.12,
+            "contrasteAvecComposant": 1.12,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "colorBgContainer = lighten(#000, 8) (calculé)",
+              "source": {
+                "fichier": "sources/antd-dark-colors.js.txt",
+                "ligne": 10
+              },
+              "hex": "#141414"
+            },
+            "fondComposant": {
+              "publie": "colorBgContainer (activeBg)",
+              "source": {
+                "fichier": "sources/antd-input-token.js.txt",
+                "ligne": 46
+              },
+              "hex": "#141414"
+            },
+            "geometrie": {
+              "type": "halo+bordure",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "1px, de colorBorder vers colorPrimary"
+            },
+            "couches": [
+              {
+                "role": "halo",
+                "forme": "box-shadow 0 0 0 2px controlOutline (controlOutlineWidth = 2 x lineWidth)",
+                "valeurPubliee": "activeShadow = 0 0 0 2px rgba(23, 117, 249, 0.31) (controlOutline = getAlphaColor(colorPrimaryBg #15325b, colorBgContainer #141414))",
+                "couleurResolue": "rgba(23, 117, 249, 0.31)",
+                "alpha": 0.31,
+                "composeSur": "#141414",
+                "hexCompose": "#15325b",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.44,
+                "contrasteAvecComposant": 1.44,
+                "source": [
+                  {
+                    "fichier": "sources/antd-input-token.js.txt",
+                    "ligne": 48
+                  },
+                  {
+                    "fichier": "sources/antd-alias.js.txt",
+                    "ligne": 78
+                  },
+                  {
+                    "fichier": "sources/antd-dark-colors.js.txt",
+                    "ligne": 10
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              },
+              {
+                "role": "bordure",
+                "forme": "borderColor = activeBorderColor = colorPrimary",
+                "valeurPubliee": "colorPrimary = palette[6] (thème sombre, calculé)",
+                "couleurResolue": "#1668dc",
+                "hexCompose": "#1668dc",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.55,
+                "contrasteAvecComposant": 3.55,
+                "source": [
+                  {
+                    "fichier": "sources/antd-input-token.js.txt",
+                    "ligne": 46
+                  },
+                  {
+                    "fichier": "sources/antd-dark-colors.js.txt",
+                    "ligne": 10
+                  },
+                  {
+                    "fichier": "sources/ant-colors-generate.js.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/antd-seed.js.txt",
+                    "ligne": 21
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.44,
+            "contrasteAvecComposant": 1.44,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "material-ui",
+      "nom": "Material UI",
+      "version": "7.3.11",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "contained, color primary",
+          "light": {
+            "fondPage": {
+              "publie": "palette.background.default (#fff)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 37
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "palette.primary.main = blue[700]",
+              "source": {
+                "fichier": "sources/mui-blue.js.txt",
+                "ligne": 15
+              },
+              "hex": "#1976d2"
+            },
+            "geometrie": {
+              "type": "ondulation intérieure + ombre",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "ondulation",
+                "forme": "ondulation de focus (TouchRipple, pulsation continue) dans le bouton, couleur currentColor à 0,3",
+                "valeurPubliee": "currentColor = contrastText blanc, opacity 0.3 (rippleVisible)",
+                "couleurResolue": "rgba(255, 255, 255, 0.3)",
+                "alpha": 0.3,
+                "composeSur": "#1976d2",
+                "hexCompose": "#5e9fe0",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.8,
+                "contrasteAvecComposant": 1.65,
+                "source": [
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 79
+                  },
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 101
+                  },
+                  {
+                    "fichier": "sources/mui-button.js.txt",
+                    "ligne": 583
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.8,
+            "contrasteAvecComposant": 1.65,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Le focus-visible du bouton contained ajoute aussi boxShadow: shadows[6] (trois ombres noires translucides, ligne 141), sans trait de couleur."
+            ]
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "palette.background.default (#121212)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 72
+              },
+              "hex": "#121212"
+            },
+            "fondComposant": {
+              "publie": "palette.primary.main = blue[200]",
+              "source": {
+                "fichier": "sources/mui-blue.js.txt",
+                "ligne": 10
+              },
+              "hex": "#90caf9"
+            },
+            "geometrie": {
+              "type": "ondulation intérieure + ombre",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "ondulation",
+                "forme": "ondulation de focus (TouchRipple, pulsation continue) dans le bouton, couleur currentColor à 0,3",
+                "valeurPubliee": "currentColor = contrastText rgba(0, 0, 0, 0.87), opacity 0.3 (rippleVisible)",
+                "couleurResolue": "rgba(0, 0, 0, 0.261)",
+                "alpha": 0.26,
+                "composeSur": "#90caf9",
+                "hexCompose": "#6a95b8",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 5.89,
+                "contrasteAvecComposant": 1.82,
+                "source": [
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 79
+                  },
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 101
+                  },
+                  {
+                    "fichier": "sources/mui-button.js.txt",
+                    "ligne": 583
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 5.89,
+            "contrasteAvecComposant": 1.82,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false,
+            "remarques": [
+              "Le focus-visible du bouton contained ajoute aussi boxShadow: shadows[6] (trois ombres noires translucides, ligne 141), sans trait de couleur."
+            ]
+          }
+        },
+        {
+          "id": "contour",
+          "composant": "bouton à contour",
+          "variante": "outlined, color primary",
+          "light": {
+            "fondPage": {
+              "publie": "palette.background.default (#fff)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 37
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "variant outlined, fond transparent",
+              "source": {
+                "fichier": "sources/mui-button.js.txt",
+                "ligne": 583
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "ondulation intérieure",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px, primary.main à 0,5)"
+            },
+            "couches": [
+              {
+                "role": "ondulation",
+                "forme": "ondulation de focus dans le bouton, couleur currentColor (primary.main) à 0,3",
+                "valeurPubliee": "currentColor = palette.primary.main blue[700], opacity 0.3",
+                "couleurResolue": "rgba(25, 118, 210, 0.3)",
+                "alpha": 0.3,
+                "composeSur": "#ffffff",
+                "hexCompose": "#bad6f2",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.5,
+                "contrasteAvecComposant": 1.5,
+                "source": [
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 79
+                  },
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 101
+                  },
+                  {
+                    "fichier": "sources/mui-button.js.txt",
+                    "ligne": 583
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.5,
+            "contrasteAvecComposant": 1.5,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "palette.background.default (#121212)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 72
+              },
+              "hex": "#121212"
+            },
+            "fondComposant": {
+              "publie": "variant outlined, fond transparent",
+              "source": {
+                "fichier": "sources/mui-button.js.txt",
+                "ligne": 583
+              },
+              "alpha": 0,
+              "composeSur": "#121212",
+              "hex": "#121212",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "ondulation intérieure",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "inchangée (1px, primary.main à 0,5)"
+            },
+            "couches": [
+              {
+                "role": "ondulation",
+                "forme": "ondulation de focus dans le bouton, couleur currentColor (primary.main) à 0,3",
+                "valeurPubliee": "currentColor = palette.primary.main blue[200], opacity 0.3",
+                "couleurResolue": "rgba(144, 202, 249, 0.3)",
+                "alpha": 0.3,
+                "composeSur": "#121212",
+                "hexCompose": "#384957",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 2.02,
+                "contrasteAvecComposant": 2.02,
+                "source": [
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 79
+                  },
+                  {
+                    "fichier": "sources/mui-touch-ripple.js.txt",
+                    "ligne": 101
+                  },
+                  {
+                    "fichier": "sources/mui-button.js.txt",
+                    "ligne": 583
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 2.02,
+            "contrasteAvecComposant": 2.02,
+            "pale": true,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "OutlinedInput",
+          "light": {
+            "fondPage": {
+              "publie": "palette.background.default (#fff)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 37
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "OutlinedInput sans fond propre",
+              "source": {
+                "fichier": "sources/mui-outlined-input.js.txt",
+                "ligne": 64
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "bordure seule",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px rgba(0, 0, 0, 0.23) vers 2px primary.main"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "notchedOutline : borderWidth 2px, borderColor primary.main",
+                "valeurPubliee": "palette.primary.main = blue[700]",
+                "couleurResolue": "#1976d2",
+                "hexCompose": "#1976d2",
+                "recouvre": "composant",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 4.6,
+                "contrasteAvecComposant": 4.6,
+                "source": [
+                  {
+                    "fichier": "sources/mui-outlined-input.js.txt",
+                    "ligne": 64
+                  },
+                  {
+                    "fichier": "sources/mui-outlined-input.js.txt",
+                    "ligne": 72
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 4.6,
+            "contrasteAvecComposant": 4.6,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "palette.background.default (#121212)",
+              "source": {
+                "fichier": "sources/mui-create-palette.js.txt",
+                "ligne": 72
+              },
+              "hex": "#121212"
+            },
+            "fondComposant": {
+              "publie": "OutlinedInput sans fond propre",
+              "source": {
+                "fichier": "sources/mui-outlined-input.js.txt",
+                "ligne": 64
+              },
+              "alpha": 0,
+              "composeSur": "#121212",
+              "hex": "#121212",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "bordure seule",
+              "epaisseurPx": 2,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px rgba(255, 255, 255, 0.23) vers 2px primary.main"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "notchedOutline : borderWidth 2px, borderColor primary.main",
+                "valeurPubliee": "palette.primary.main = blue[200]",
+                "couleurResolue": "#90caf9",
+                "hexCompose": "#90caf9",
+                "recouvre": "composant",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 10.71,
+                "contrasteAvecComposant": 10.71,
+                "source": [
+                  {
+                    "fichier": "sources/mui-outlined-input.js.txt",
+                    "ligne": 64
+                  },
+                  {
+                    "fichier": "sources/mui-outlined-input.js.txt",
+                    "ligne": 72
+                  },
+                  {
+                    "fichier": "sources/mui-create-palette.js.txt",
+                    "ligne": 118
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 10.71,
+            "contrasteAvecComposant": 10.71,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "atlassian",
+      "nom": "Atlassian",
+      "version": "@atlaskit/button 25.4.7, @atlaskit/textfield 10.2.6, @atlaskit/tokens 20.4.1",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "appearance primary",
+          "lisible": false,
+          "raison": "Le paquet @atlaskit/button publie le CSS compilé du bouton (button-base.compiled.css) sans aucune règle outline ni box-shadow de focus. Règles :focus-visible trouvées : ._g0pbb4wl:focus-visible{z-index:100} (z-index du bouton scindé). Propriété outline présente dans le CSS compilé : false. Import de @atlaskit/focus-ring dans button-base.js ou button.js : false. Dépendance @atlaskit/focus-ring déclarée dans package.json : true. Le reset @atlaskit/css-reset ne cible que le lien : règle de focus sur button ou input trouvée : false.",
+          "sources": [
+            {
+              "fichier": "sources/atlaskit-button-base-css.css.txt",
+              "ligne": 1
+            },
+            {
+              "fichier": "sources/atlaskit-button-package.json.txt",
+              "ligne": 82
+            },
+            {
+              "fichier": "sources/atlaskit-css-reset.css.txt",
+              "ligne": 86
+            }
+          ]
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "appearance default",
+          "lisible": false,
+          "raison": "Le paquet @atlaskit/button publie le CSS compilé du bouton (button-base.compiled.css) sans aucune règle outline ni box-shadow de focus. Règles :focus-visible trouvées : ._g0pbb4wl:focus-visible{z-index:100} (z-index du bouton scindé). Propriété outline présente dans le CSS compilé : false. Import de @atlaskit/focus-ring dans button-base.js ou button.js : false. Dépendance @atlaskit/focus-ring déclarée dans package.json : true. Le reset @atlaskit/css-reset ne cible que le lien : règle de focus sur button ou input trouvée : false.",
+          "sources": [
+            {
+              "fichier": "sources/atlaskit-button-base-css.css.txt",
+              "ligne": 1
+            },
+            {
+              "fichier": "sources/atlaskit-button-package.json.txt",
+              "ligne": 82
+            },
+            {
+              "fichier": "sources/atlaskit-css-reset.css.txt",
+              "ligne": 86
+            }
+          ]
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "Textfield standard",
+          "light": {
+            "fondPage": {
+              "publie": "--ds-surface (#ffffff)",
+              "source": {
+                "fichier": "sources/atlaskit-light.js.txt",
+                "ligne": 12
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "--ds-background-input-pressed (#ffffff)",
+              "source": {
+                "fichier": "sources/atlaskit-light.js.txt",
+                "ligne": 12
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "bordure + trait intérieur",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px, de --ds-border-input vers --ds-border-focused, doublée par 1px intérieur"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "border-color du conteneur (:has(input:focus))",
+                "valeurPubliee": "--ds-border-focused: #4688ec",
+                "couleurResolue": "#4688ec",
+                "hexCompose": "#4688ec",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 3.5,
+                "contrasteAvecComposant": 3.5,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-textfield.js.txt",
+                    "ligne": 39
+                  },
+                  {
+                    "fichier": "sources/atlaskit-textfield-css.css.txt",
+                    "ligne": 14
+                  },
+                  {
+                    "fichier": "sources/atlaskit-light.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              },
+              {
+                "role": "ombre-interne",
+                "forme": "box-shadow inset de 1px, même couleur que la bordure",
+                "valeurPubliee": "inset 0 0 0 1px --ds-border-focused: #4688ec",
+                "couleurResolue": "#4688ec",
+                "hexCompose": "#4688ec",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": -1,
+                "contrasteAvecPage": 3.5,
+                "contrasteAvecComposant": 3.5,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-textfield.js.txt",
+                    "ligne": 39
+                  },
+                  {
+                    "fichier": "sources/atlaskit-textfield-css.css.txt",
+                    "ligne": 14
+                  },
+                  {
+                    "fichier": "sources/atlaskit-light.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.5,
+            "contrasteAvecComposant": 3.5,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--ds-surface (#1f1f21)",
+              "source": {
+                "fichier": "sources/atlaskit-dark.js.txt",
+                "ligne": 12
+              },
+              "hex": "#1f1f21"
+            },
+            "fondComposant": {
+              "publie": "--ds-background-input-pressed (#242528)",
+              "source": {
+                "fichier": "sources/atlaskit-dark.js.txt",
+                "ligne": 12
+              },
+              "hex": "#242528"
+            },
+            "geometrie": {
+              "type": "bordure + trait intérieur",
+              "epaisseurPx": 1,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "1px, de --ds-border-input vers --ds-border-focused, doublée par 1px intérieur"
+            },
+            "couches": [
+              {
+                "role": "bordure",
+                "forme": "border-color du conteneur (:has(input:focus))",
+                "valeurPubliee": "--ds-border-focused: #8fb8f6",
+                "couleurResolue": "#8fb8f6",
+                "hexCompose": "#8fb8f6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": 0,
+                "contrasteAvecPage": 8.11,
+                "contrasteAvecComposant": 7.56,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-textfield.js.txt",
+                    "ligne": 39
+                  },
+                  {
+                    "fichier": "sources/atlaskit-textfield-css.css.txt",
+                    "ligne": 14
+                  },
+                  {
+                    "fichier": "sources/atlaskit-dark.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              },
+              {
+                "role": "ombre-interne",
+                "forme": "box-shadow inset de 1px, même couleur que la bordure",
+                "valeurPubliee": "inset 0 0 0 1px --ds-border-focused: #8fb8f6",
+                "couleurResolue": "#8fb8f6",
+                "hexCompose": "#8fb8f6",
+                "recouvre": "composant",
+                "epaisseurPx": 1,
+                "decalagePx": -1,
+                "contrasteAvecPage": 8.11,
+                "contrasteAvecComposant": 7.56,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-textfield.js.txt",
+                    "ligne": 39
+                  },
+                  {
+                    "fichier": "sources/atlaskit-textfield-css.css.txt",
+                    "ligne": 14
+                  },
+                  {
+                    "fichier": "sources/atlaskit-dark.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 8.11,
+            "contrasteAvecComposant": 7.56,
+            "pale": false,
+            "autreCoucheNette": true,
+            "colleEtPale": false
+          }
+        },
+        {
+          "id": "anneau-reference",
+          "composant": "anneau de référence du paquet @atlaskit/focus-ring (non appliqué au bouton)",
+          "variante": "FocusRing extérieur",
+          "reference": true,
+          "light": {
+            "fondPage": {
+              "publie": "--ds-surface (#ffffff)",
+              "source": {
+                "fichier": "sources/atlaskit-light.js.txt",
+                "ligne": 12
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "aucun composant : l'anneau est évalué contre la page seule",
+              "source": {
+                "fichier": "sources/atlaskit-light.js.txt",
+                "ligne": 12
+              },
+              "hex": "#ffffff"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 2px (FocusRing, mode extérieur)",
+                "valeurPubliee": "--ds-border-focused: #4688ec",
+                "couleurResolue": "#4688ec",
+                "hexCompose": "#4688ec",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 3.5,
+                "contrasteAvecComposant": 3.5,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-focus-ring.js.txt",
+                    "ligne": 18
+                  },
+                  {
+                    "fichier": "sources/atlaskit-light.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 3.5,
+            "contrasteAvecComposant": 3.5,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          },
+          "dark": {
+            "fondPage": {
+              "publie": "--ds-surface (#1f1f21)",
+              "source": {
+                "fichier": "sources/atlaskit-dark.js.txt",
+                "ligne": 12
+              },
+              "hex": "#1f1f21"
+            },
+            "fondComposant": {
+              "publie": "aucun composant : l'anneau est évalué contre la page seule",
+              "source": {
+                "fichier": "sources/atlaskit-dark.js.txt",
+                "ligne": 12
+              },
+              "hex": "#1f1f21"
+            },
+            "geometrie": {
+              "type": "trait détaché",
+              "epaisseurPx": 2,
+              "decalagePx": 2,
+              "position": "extérieur",
+              "colle": false,
+              "bordureComposant": "inchangée"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 2px, décalage 2px (FocusRing, mode extérieur)",
+                "valeurPubliee": "--ds-border-focused: #8fb8f6",
+                "couleurResolue": "#8fb8f6",
+                "hexCompose": "#8fb8f6",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 2,
+                "contrasteAvecPage": 8.11,
+                "contrasteAvecComposant": 8.11,
+                "source": [
+                  {
+                    "fichier": "sources/atlaskit-focus-ring.js.txt",
+                    "ligne": 18
+                  },
+                  {
+                    "fichier": "sources/atlaskit-dark.js.txt",
+                    "ligne": 12
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 8.11,
+            "contrasteAvecComposant": 8.11,
+            "pale": false,
+            "autreCoucheNette": false,
+            "colleEtPale": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "govuk",
+      "nom": "GOV.UK Frontend",
+      "version": "6.5.1",
+      "composants": [
+        {
+          "id": "plein",
+          "composant": "bouton plein principal",
+          "variante": "govuk-button (vert)",
+          "light": {
+            "fondPage": {
+              "publie": "govuk-functional-colour(body-background) = white",
+              "source": {
+                "fichier": "sources/govuk-palette.scss.txt",
+                "ligne": 103
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "$govuk-button-background-colour = green #0f7a52",
+              "source": {
+                "fichier": "sources/govuk-palette.scss.txt",
+                "ligne": 27
+              },
+              "hex": "#0f7a52"
+            },
+            "geometrie": {
+              "type": "remplissage + trait inférieur",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "bordure de 2px (couleur du fond au repos) vers #ffdd00"
+            },
+            "couches": [
+              {
+                "role": "remplissage",
+                "forme": "le fond du bouton devient la couleur de focus, avec une bordure de la même couleur",
+                "valeurPubliee": "background-color: govuk-functional-colour(focus) = yellow #ffdd00",
+                "couleurResolue": "#ffdd00",
+                "hexCompose": "#ffdd00",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.35,
+                "contrasteAvecComposant": 3.97,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-button-mixin.scss.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 45
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 50
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              },
+              {
+                "role": "ombre",
+                "forme": "box-shadow 0 2px 0 sous le bouton, couleur du texte de focus",
+                "valeurPubliee": "box-shadow: 0 2px 0 govuk-functional-colour(focus-text) = black #0b0c0c",
+                "couleurResolue": "#0b0c0c",
+                "hexCompose": "#0b0c0c",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 19.59,
+                "contrasteAvecComposant": 3.66,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-button-mixin.scss.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 45
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 50
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.35,
+            "contrasteAvecComposant": 3.97,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": false,
+            "remarques": [
+              "Le bouton passe du fond au repos au jaune ; le texte passe au noir. L'ombre noire de 2px sous le bouton reste la couche nette.",
+              "Un outline transparent de 3px est posé aussi (ligne 88 de sources/govuk-button-mixin.scss.txt) : il ne se voit qu'en mode de contraste forcé."
+            ]
+          },
+          "dark": null
+        },
+        {
+          "id": "secondaire",
+          "composant": "bouton secondaire",
+          "variante": "govuk-button--secondary",
+          "light": {
+            "fondPage": {
+              "publie": "govuk-functional-colour(body-background) = white",
+              "source": {
+                "fichier": "sources/govuk-palette.scss.txt",
+                "ligne": 103
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "$govuk-secondary-button-colour = black tint-95 #f3f3f3",
+              "source": {
+                "fichier": "sources/govuk-button-mixin.scss.txt",
+                "ligne": 15
+              },
+              "hex": "#f3f3f3"
+            },
+            "geometrie": {
+              "type": "remplissage + trait inférieur",
+              "epaisseurPx": null,
+              "decalagePx": 0,
+              "position": "intérieur",
+              "colle": false,
+              "bordureComposant": "bordure de 2px (couleur du fond au repos) vers #ffdd00"
+            },
+            "couches": [
+              {
+                "role": "remplissage",
+                "forme": "le fond du bouton devient la couleur de focus, avec une bordure de la même couleur",
+                "valeurPubliee": "background-color: govuk-functional-colour(focus) = yellow #ffdd00",
+                "couleurResolue": "#ffdd00",
+                "hexCompose": "#ffdd00",
+                "recouvre": "composant",
+                "epaisseurPx": null,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.35,
+                "contrasteAvecComposant": 1.21,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-button-mixin.scss.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 45
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 50
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              },
+              {
+                "role": "ombre",
+                "forme": "box-shadow 0 2px 0 sous le bouton, couleur du texte de focus",
+                "valeurPubliee": "box-shadow: 0 2px 0 govuk-functional-colour(focus-text) = black #0b0c0c",
+                "couleurResolue": "#0b0c0c",
+                "hexCompose": "#0b0c0c",
+                "recouvre": "page",
+                "epaisseurPx": 2,
+                "decalagePx": 0,
+                "contrasteAvecPage": 19.59,
+                "contrasteAvecComposant": 17.65,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-button-mixin.scss.txt",
+                    "ligne": 94
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 45
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 50
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.35,
+            "contrasteAvecComposant": 1.21,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": false,
+            "remarques": [
+              "Le bouton passe du fond au repos au jaune ; le texte passe au noir. L'ombre noire de 2px sous le bouton reste la couche nette.",
+              "Un outline transparent de 3px est posé aussi (ligne 88 de sources/govuk-button-mixin.scss.txt) : il ne se voit qu'en mode de contraste forcé."
+            ]
+          },
+          "dark": null
+        },
+        {
+          "id": "champ",
+          "composant": "champ de saisie",
+          "variante": "govuk-input",
+          "light": {
+            "fondPage": {
+              "publie": "govuk-functional-colour(body-background) = white",
+              "source": {
+                "fichier": "sources/govuk-palette.scss.txt",
+                "ligne": 103
+              },
+              "hex": "#ffffff"
+            },
+            "fondComposant": {
+              "publie": "champ sans fond propre (la page se voit)",
+              "source": {
+                "fichier": "sources/govuk-input-mixin.scss.txt",
+                "ligne": 26
+              },
+              "alpha": 0,
+              "composeSur": "#ffffff",
+              "hex": "#ffffff",
+              "transparent": true
+            },
+            "geometrie": {
+              "type": "trait collé + bordure doublée",
+              "epaisseurPx": 3,
+              "decalagePx": 0,
+              "position": "extérieur",
+              "colle": true,
+              "bordureComposant": "2px noire au repos, doublée à 4px par l'ombre intérieure"
+            },
+            "couches": [
+              {
+                "role": "trait",
+                "forme": "outline de 3px, décalage 0, contre le bord extérieur de la bordure",
+                "valeurPubliee": "outline: 3px solid govuk-functional-colour(focus) = yellow #ffdd00",
+                "couleurResolue": "#ffdd00",
+                "hexCompose": "#ffdd00",
+                "recouvre": "page",
+                "epaisseurPx": 3,
+                "decalagePx": 0,
+                "contrasteAvecPage": 1.35,
+                "contrasteAvecComposant": 1.35,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-focused.scss.txt",
+                    "ligne": 84
+                  },
+                  {
+                    "fichier": "sources/govuk-input-mixin.scss.txt",
+                    "ligne": 26
+                  },
+                  {
+                    "fichier": "sources/govuk-measurements.scss.txt",
+                    "ligne": 90
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 45
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 82
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 50
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              },
+              {
+                "role": "ombre-interne",
+                "forme": "box-shadow inset de 2px, couleur de la bordure du champ : double l'épaisseur de la bordure",
+                "valeurPubliee": "box-shadow: inset 0 0 0 2px govuk-functional-colour(input-border) = black #0b0c0c",
+                "couleurResolue": "#0b0c0c",
+                "hexCompose": "#0b0c0c",
+                "recouvre": "composant",
+                "epaisseurPx": 2,
+                "decalagePx": -2,
+                "contrasteAvecPage": 19.59,
+                "contrasteAvecComposant": 19.59,
+                "source": [
+                  {
+                    "fichier": "sources/govuk-focused.scss.txt",
+                    "ligne": 84
+                  },
+                  {
+                    "fichier": "sources/govuk-measurements.scss.txt",
+                    "ligne": 76
+                  },
+                  {
+                    "fichier": "sources/govuk-functional-colours.scss.txt",
+                    "ligne": 67
+                  },
+                  {
+                    "fichier": "sources/govuk-palette.scss.txt",
+                    "ligne": 97
+                  }
+                ]
+              }
+            ],
+            "principal": 0,
+            "contrasteAvecPage": 1.35,
+            "contrasteAvecComposant": 1.35,
+            "pale": true,
+            "autreCoucheNette": true,
+            "colleEtPale": true
+          },
+          "dark": null
+        }
+      ]
+    }
+  ]
+}
