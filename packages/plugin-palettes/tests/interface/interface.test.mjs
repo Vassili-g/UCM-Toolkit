@@ -6716,27 +6716,27 @@ const vueDuBilan = (page) => page.evaluate(() => {
   };
 });
 
-const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Sapin', 'Grenat', 'Azur', 'Bleu roi'];
-const ETATS_DES_CARTES = { Pourpre: 'rouge', 'Bleu roi': 'rouge', Bleu: 'ambre', Azur: 'ambre', Indigo: 'ambre', Rose: 'ambre' };
+const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Vert', 'Grenat', 'Azur', 'Feuille'];
+const ETATS_DES_CARTES = { Violet: 'rouge', Vert: 'rouge', Feuille: 'rouge', Bleu: 'ambre', Rouge: 'ambre', Rose: 'ambre', Indigo: 'ambre', Marine: 'ambre', Cuivre: 'ambre', Azur: 'ambre' };
 const nomsDesCartes = (vue, filtre) => vue.cartes.filter(filtre).map((carte) => carte.nom);
 
 test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À corriger » actif, ses cartes en couleur, les autres atténuées, une ligne de détail par palette à corriger', async () => {
   const page = await ouvrirLeBilan('verification-bilan-a-corriger');
   try {
     const vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '2', 'true', true], ['ambre', 'À vérifier', '4', 'false', true], ['conforme', 'Conformes', '14', 'false', false]]);
+    assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '3', 'true', true], ['ambre', 'À vérifier', '7', 'false', true], ['conforme', 'Conformes', '10', 'false', false]]);
     assert.deepEqual(vue.cartes.map((carte) => carte.nom), NOMS_DES_VINGT, 'toutes les palettes, dans l’ordre de la recette');
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Pourpre', 'Bleu roi']);
-    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 18);
-    assert.equal(vue.cartes.find((carte) => carte.nom === 'Pourpre').nomAccessible, 'Pourpre, à corriger');
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Vert', 'Feuille']);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 17);
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Violet').nomAccessible, 'Violet, à corriger');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Bleu').nomAccessible, 'Bleu, à vérifier');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Jaune').nomAccessible, 'Jaune');
-    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Pourpre', 'Vérifier', 'Vérifier Pourpre', 3], ['Bleu roi', 'Vérifier', 'Vérifier Bleu roi', 3]]);
-    for (const ligne of vue.detail) assert.match(ligne.constat, /^Light · texte des boutons, [34],\d\d:1$/);
+    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Violet', 'Vérifier', 'Vérifier Violet', 3], ['Vert', 'Vérifier', 'Vérifier Vert', 3], ['Feuille', 'Vérifier', 'Vérifier Feuille', 3]]);
+    assert.deepEqual(vue.detail.map((ligne) => ligne.constat), ['Dark · anneau de focus, 2,99:1', 'Light · texte coloré, 4,41:1', 'Light · texte coloré, 4,41:1']);
     assert.equal(vue.toutConforme, null);
     // Un nom accessible qui dit le compte : « À corriger 2 ».
-    assert.equal(await page.getByRole('button', { name: 'À corriger 2', exact: true }).isVisible(), true);
+    assert.equal(await page.getByRole('button', { name: 'À corriger 3', exact: true }).isVisible(), true);
     // La barre du sélecteur reste en haut, l'invitation a laissé la place.
     assert.equal(await page.locator('#panneau-verification .barre-de-palette').isVisible(), true);
     assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), 'Sélectionner une palette');
@@ -6758,25 +6758,24 @@ test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le d�
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     let vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, , , presse]) => [etat, presse]), [['rouge', 'false'], ['ambre', 'true'], ['conforme', 'false']]);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Azur']);
-    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 16);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Bleu', 'Rouge', 'Rose', 'Indigo', 'Marine', 'Cuivre', 'Azur']);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 13);
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES, 'les points ne changent pas avec l’onglet');
-    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rose', 'Indigo', 'Azur']);
+    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rouge', 'Rose', 'Indigo', 'Marine', 'Cuivre', 'Azur']);
     assert.match(vue.detail[0].constat, /^trop proche de Azur, ΔEok 0,\d\d$/, 'une paire trop proche met ses deux palettes à vérifier');
-    assert.equal(vue.detail[1].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
-    assert.equal(vue.detail[2].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
-    assert.match(vue.detail[3].constat, /^trop proche de Bleu, ΔEok 0,\d\d$/);
+    for (const rang of [1, 2, 3, 4, 5]) assert.equal(vue.detail[rang].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
+    assert.match(vue.detail[6].constat, /^trop proche de Bleu, ΔEok 0,\d\d$/);
     assert.equal(await page.evaluate(() => document.activeElement.dataset.onglet), 'ambre', 'le clavier garde sa place sur l’onglet');
 
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
     vue = await vueDuBilan(page);
-    assert.equal(vue.cartes.filter((carte) => !carte.attenuee).length, 14);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Pourpre', 'Azur', 'Bleu roi'].sort((a, b) => NOMS_DES_VINGT.indexOf(a) - NOMS_DES_VINGT.indexOf(b)));
+    assert.equal(vue.cartes.filter((carte) => !carte.attenuee).length, 10);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => carte.attenuee), ['Bleu', 'Rouge', 'Violet', 'Rose', 'Indigo', 'Marine', 'Cuivre', 'Vert', 'Azur', 'Feuille'].sort((a, b) => NOMS_DES_VINGT.indexOf(a) - NOMS_DES_VINGT.indexOf(b)));
     assert.equal(vue.detail, null, 'sous « Conformes », pas de détail');
     assert.equal(await page.locator('#panneau-verification .bilan-ligne').count(), 0);
 
     await page.locator('.bilan-onglets [data-onglet="rouge"]').click();
-    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Pourpre', 'Bleu roi']);
+    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Violet', 'Vert', 'Feuille']);
   } finally { await page.close(); }
 });
 
@@ -6785,7 +6784,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
   try {
     const complet = messageDe('verification-bilan-a-corriger');
     const sansLesRouges = structuredClone(complet);
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Pourpre' && nom !== 'Bleu roi');
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Vert', 'Feuille'].includes(nom));
     const actifs = async () => (await vueDuBilan(page)).onglets.filter(([, , , presse]) => presse === 'true').map(([etat]) => etat);
 
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
@@ -6795,9 +6794,9 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
     // Plus de garantie manquée : l'onglet « À corriger » disparaît, « À vérifier » reste actif.
     await envoyer(page, { ...sansLesRouges, demande: 3 });
     let vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['ambre', 'À vérifier', '4'], ['conforme', 'Conformes', '14']]);
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['ambre', 'À vérifier', '7'], ['conforme', 'Conformes', '10']]);
     assert.deepEqual(await actifs(), ['ambre']);
-    assert.equal(vue.cartes.length, 18);
+    assert.equal(vue.cartes.length, 17);
 
     // « Conformes » choisi, puis les garanties manquées reviennent : le choix tient.
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
@@ -6812,7 +6811,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
     await envoyer(page, { ...complet, demande: 6 });
     assert.deepEqual(await actifs(), ['rouge'], 'À corriger redevient l’onglet par défaut');
     vue = await vueDuBilan(page);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Pourpre', 'Bleu roi']);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Vert', 'Feuille']);
   } finally { await page.close(); }
 });
 
@@ -6820,13 +6819,13 @@ test('V3a [VER-18] à l’ouverture sans garantie manquée, « À vérifier » e
   const page = await ouvrir(MINIMALE);
   try {
     const sansLesRouges = structuredClone(messageDe('verification-bilan-a-corriger'));
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Pourpre' && nom !== 'Bleu roi');
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Vert', 'Feuille'].includes(nom));
     await envoyer(page, sansLesRouges);
     await page.locator('#onglet-verification').click();
     await page.locator('#panneau-verification .bilan-des-palettes').waitFor();
     const vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, , , presse]) => [etat, presse]), [['ambre', 'true'], ['conforme', 'false']]);
-    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rose', 'Indigo', 'Azur']);
+    assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rouge', 'Rose', 'Indigo', 'Marine', 'Cuivre', 'Azur']);
   } finally { await page.close(); }
 });
 
@@ -6835,18 +6834,18 @@ test('V3a [VER-18] une carte, au clic ou au clavier, et « Vérifier » ouvrent 
     const page = await ouvrirLeBilan('verification-bilan-a-corriger');
     try {
       const avant = await compte(page);
-      const nom = geste === 'verifier' ? 'Bleu roi' : 'Jaune';
+      const nom = geste === 'verifier' ? 'Feuille' : 'Jaune';
       if (geste === 'carte') await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').click();
       else if (geste === 'clavier') {
         await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').focus();
         await page.keyboard.press('Enter');
-      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Bleu roi' }).getByRole('button', { name: 'Vérifier Bleu roi' }).click();
+      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Feuille' }).getByRole('button', { name: 'Vérifier Feuille' }).click();
       await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').waitFor();
       assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`, geste);
       assert.equal(await page.locator('#panneau-verification .bilan-des-palettes').isVisible(), false);
       assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), nom);
       assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true', 'on reste dans Vérification');
-      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Bleu roi' ? 'danger' : 'succes');
+      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Feuille' ? 'danger' : 'succes');
       // Création ouvre la même palette que le sélecteur aurait ouverte.
       await page.locator('#onglet-creation').click();
       assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
@@ -6878,10 +6877,11 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
   const page = await ouvrirLeBilan('verification-bilan-a-corriger', { langue: 'en' });
   try {
     let vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '2'], ['ambre', 'To check', '4'], ['conforme', 'Passing', '14']]);
-    assert.equal(vue.cartes.find((carte) => carte.nom === 'Pourpre').nomAccessible, 'Pourpre, to fix');
-    assert.match(vue.detail[0].constat, /^Light · .+, [34]\.\d\d:1$/);
-    assert.equal(vue.detail[0].nomDuBouton, 'Verify Pourpre');
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '3'], ['ambre', 'To check', '7'], ['conforme', 'Passing', '10']]);
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Violet').nomAccessible, 'Violet, to fix');
+    assert.equal(vue.detail[0].constat, 'Dark · focus ring, 2.99:1');
+    assert.match(vue.detail[1].constat, /^Light · .+, 4\.41:1$/);
+    assert.equal(vue.detail[0].nomDuBouton, 'Verify Violet');
     assert.equal(vue.detail[0].bouton, 'Verify');
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     vue = await vueDuBilan(page);
