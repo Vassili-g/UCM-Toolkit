@@ -79,9 +79,19 @@ code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1
 .fx th.newcol{color:var(--add);font-weight:600}
 .fx td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
 .fx td.nm{font-family:var(--mono);white-space:nowrap}
-.fx tr.g td{font-family:var(--mono);font-weight:600;font-size:.78rem;color:var(--muted);padding-top:12px;border-bottom:none}
-.fx tr.g td .tag{margin-left:8px}
-.fx tr.more td{color:var(--muted);font-style:italic;font-size:.8rem}
+.fx tr.g td{padding:0}
+.fx td.nm{padding-left:calc(23px + var(--prof,0)*16px)}
+.dossier{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px 6px calc(10px + var(--prof,0)*16px);font-family:var(--mono);font-size:.82rem;font-weight:600}
+.dossier:hover{background:var(--soft)}
+.dossier:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.chev{flex:none;width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .12s}
+.dossier[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.dossier .nb{color:var(--muted);font-weight:400}
+.val.vide{color:var(--muted);font-family:var(--sans);font-style:italic}
+.chip .fin{color:var(--muted)}
+.fx-outils{display:flex;gap:14px;margin-left:auto}
+.fx-outils button{all:unset;cursor:pointer;color:var(--add);font-size:.84rem;text-decoration:underline;text-underline-offset:3px}
+.fx-outils button:focus-visible{outline:2px solid var(--add);outline-offset:2px}
 .fx tr.new td:first-child{box-shadow:inset 4px 0 var(--add)}
 .fx tr.mod td:first-child{box-shadow:inset 4px 0 var(--mod)}
 .fx tr.del td:first-child{box-shadow:inset 4px 0 var(--del)}
@@ -125,32 +135,7 @@ ul.rules li{margin-bottom:6px}
 footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 footer ul{padding-left:18px;margin:6px 0 0}
 
-/* arborescence des changements */
-.arbre-outils{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:10px 0 8px;font-size:.9rem}
-.arbre-outils label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.arbre-outils button{all:unset;cursor:pointer;color:var(--add);text-decoration:underline;text-underline-offset:3px;font-size:.88rem}
-.arbre-outils button:focus-visible{outline:2px solid var(--add);outline-offset:2px}
-.arbre{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:.84rem;line-height:1.5}
-.arbre details{margin-left:16px;border-left:1px solid var(--line);padding-left:10px}
-.arbre>details{margin-left:0;border-left:none;padding-left:0}
-.arbre summary{cursor:pointer;padding:2px 0;list-style-position:outside}
-.arbre summary:focus-visible{outline:2px solid var(--add);outline-offset:2px}
-.arbre summary .tag{margin-left:8px;vertical-align:1px}
-.arbre .feuille{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:2px 14px;margin-left:16px;border-left:1px solid var(--line);padding:3px 0 3px 10px}
-.arbre .feuille.inchange{color:var(--muted)}
-.arbre .feuille .nom{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
-.arbre .feuille.del .nom b{text-decoration:line-through}
-.arbre .modes{display:grid;gap:2px;min-width:0}
-.arbre .mode s,.arbre .mode b{overflow-wrap:anywhere}
-.arbre .mode{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
-.arbre .mode i{font-style:normal;color:var(--muted);min-width:68px}
-.arbre .mode s{color:var(--muted);text-decoration-color:var(--del)}
-.arbre .fl{color:var(--muted)}
-.arbre .vide{color:var(--muted);font-family:var(--sans);font-style:italic;margin-left:16px}
-
 @media (max-width:720px){
-  .arbre .feuille{grid-template-columns:1fr}
-  .arbre details{margin-left:8px}
   .fx-body{grid-template-columns:1fr}
   .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
   .fx-cols .lab{width:100%}
@@ -168,7 +153,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <h2>Le panneau des variables, aujourd’hui et demain</h2>
-  <p class="narrow">Aujourd’hui, ton fichier tel qu’il est ; demain, le même fichier après les décisions de la recette critique. Choisis une vue, puis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour ouvrir la variable qu’il vise. Dans la vue Demain, la barre à gauche d’une ligne indique ce qui change, et l’encadré de chaque collection renvoie à sa décision.</p>
+  <p class="narrow">Aujourd’hui, ton fichier tel qu’il est ; demain, le même fichier après les décisions de la recette critique. Choisis une vue, puis une collection, et déplie ses dossiers ; dans la vue Demain, l’étiquette d’un dossier dit combien de ses variables changent. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour ouvrir la variable qu’il vise. Dans la vue Demain, la barre à gauche d’une ligne indique ce qui change, et l’encadré de chaque collection renvoie à sa décision.</p>
 
   <div class="fx" id="fx">
     <div class="fx-top">
@@ -192,20 +177,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </div>
     </div>
   </div>
-  <p class="cap narrow">Vue Aujourd’hui : <code>theme</code>, <code>color-brands</code> et <code>color-utilities</code> de l’export de ton fichier Figma (<code>tokens-new-architecture.json</code>) ; <code>primitives</code> tel qu’UCM Palettes le calcule aujourd’hui sur ta recette, puisque l’export précède la courbe inversée de ton Dark. Vue Demain : la nouvelle table appliquée à ce fichier, et les palettes recalculées par le prototype du moteur (<code>REGLE_FINALE</code>), qui rend les mêmes couleurs que le moteur à venir. Les composants ne sont pas montrés : ils seront repointés vers <code>theme</code> à part (D11). Données : <a href="generer-vue-illustree.ts"><code>generer-vue-illustree.ts</code></a>.</p>
+  <p class="cap narrow">Vue Aujourd’hui : les collections de l’export de ton fichier Figma (<code>tokens-new-architecture.json</code>), sauf <code>tests</code> ; les couleurs de <code>primitives</code> telles qu’UCM Palettes les calcule aujourd’hui sur ta recette, puisque l’export précède la courbe inversée de ton Dark. Vue Demain : la nouvelle table appliquée à ce fichier, et les palettes recalculées par le prototype du moteur (<code>REGLE_FINALE</code>), qui rend les mêmes couleurs que le moteur à venir. <code>components</code> y est montrée telle qu’aujourd’hui : ses alias seront repointés vers <code>theme</code> à part (D11). Données : <a href="generer-vue-illustree.ts"><code>generer-vue-illustree.ts</code></a>.</p>
 
-
-  <div class="narrow">
-  <h2 id="changements">Ce qui change dans ton fichier</h2>
-  <p>L’arborescence de tes variables, de la collection à la variable, pour mettre tes tokens à jour. Chaque variable qui change porte ce qu’il faut faire : <span class="tag new">à créer</span>, <span class="tag mod">à modifier</span> ou <span class="tag del">à supprimer</span>, et pour chaque mode l’alias d’aujourd’hui, barré, puis celui de demain. <code>primitives</code> se met à jour en relançant UCM Palettes : tu n’y touches pas à la main.</p>
-  <p id="arbre-bilan"></p>
-  </div>
-  <div class="arbre-outils">
-    <label><input type="checkbox" id="arbre-tout"> Montrer aussi ce qui ne change pas</label>
-    <button type="button" id="arbre-ouvrir">Tout déplier</button>
-    <button type="button" id="arbre-fermer">Tout replier</button>
-  </div>
-  <div class="arbre" id="arbre"></div>
 
   <div class="narrow">
   <h2>Les décisions</h2>
@@ -452,7 +425,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
           <thead><tr><th>Niveau</th><th>Usage</th><th>light</th><th>dark</th></tr></thead>
           <tbody>
             <tr><td><code>page</code></td><td>fond d’écran ; réglage « Fond de la page » d’UCM Palettes</td><td>neutre 50, #F7F7F7</td><td>neutre 50, <b>#0A0A0A</b> (clarté 0,145)</td></tr>
-            <tr><td><code>raised</code></td><td>carte, panneau</td><td>blanc + ombre</td><td>neutre 100, #1C1C1C + ombre</td></tr>
+            <tr><td><code>raised</code></td><td>carte, panneau</td><td>blanc</td><td>neutre 100, #1C1C1C</td></tr>
           </tbody>
         </table></div>
         Le niveau <code>overlay</code> est retiré. Le réglage « Fond de la page » vaut la couleur qu’<code>elevation/page</code> affiche, pour que les garanties mesurent la page réelle.</dd>
@@ -462,7 +435,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
         <li><b>Opaque plutôt que translucide.</b> La table garantit des contrastes entre couleurs opaques, et une couleur translucide change selon ce qu’elle recouvre. Material 3 a remplacé son voile d’élévation par des surfaces opaques.</li>
         <li><b>Un élément posé sur un support de même niveau</b> prend <code>page/divider</code>, pas un niveau de plus.</li>
       </ul></dd>
-      <dt>Les ombres</dt><dd>Des effect styles Figma, dont la couleur se lie à une variable noire translucide, plus opaque en sombre. UCM Exporter lit déjà les effect styles et leurs réglages liés à des variables.</dd>
+      <dt>L’ombre</dt><dd>Ton fichier n’en a pas : la carte se détache de la page par sa seule couleur. Une ombre ou un contour de la carte en sombre reste à décider.</dd>
       <dt>Origine</dt><dd class="org">Ce document ; deux niveaux : ton fichier Figma, commit b31742f ; page sombre et modèle des niveaux : recette critique, Q5.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="demain:color-utilities">Voir les niveaux dans color-utilities</button></dd>
     </dl>
@@ -636,7 +609,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if(typeof v==="object")v=v[col==="theme"?ctx.theme:ctx.brand];
     return v===undefined?null:v;
   }
-  function hex(vue,path,ctx){var v=valeur(vue,path,ctx),n=0;while(v&&v.charAt(0)!=="#"&&n++<8)v=valeur(vue,v,ctx);return v;}
+  /* Un alias commence par le nom d'une collection ; le reste est une valeur : couleur, dimension, nombre, texte. */
+  function estAlias(v){return typeof v==="string"&&v.indexOf(".")>0&&v.split(".")[0] in V.aujourdhui;}
+  function fin(vue,path,ctx){var v=valeur(vue,path,ctx),n=0;while(estAlias(v)&&n++<8)v=valeur(vue,v,ctx);return v;}
   function ctxDe(col,mode){return {theme:col==="theme"?mode:"light",brand:col==="color-brands"?mode:MODES["color-brands"][0]};}
 
   /* L'ordre des lignes : celui du fichier ; demain, une variable retirée garde sa place et sa remplaçante la suit. */
@@ -654,147 +629,136 @@ footer ul{padding-left:18px;margin:6px 0 0}
     return out;
   }
 
-  function lignes(col,vue){
-    var out=[],dernier=null,modes=modesDe(col),changes=0;
+  /* L'arbre d'une collection : ses dossiers, puis ses variables, dans l'ordre des lignes. */
+  function arbre(col,vue){
+    var racine={enfants:[],index:{},change:0,mod:0};
     cles(col,vue).forEach(function(k){
-      var p=k.split("."),g=p.slice(1,-1).join("/"),n=p[p.length-1];
-      var t=V.aujourdhui[col][k],d=V.demain[col][k];
-      var st="",source=vue==="aujourdhui"?"aujourdhui":"demain";
-      if(vue==="demain"){
-        if(t===undefined)st="new";
-        else if(d===undefined){st="del";source="aujourdhui";}
-        else if(JSON.stringify(t)!==JSON.stringify(d)){st="mod";changes++;}
-      }
-      if(g!==dernier){out.push({g:g});dernier=g;}
-      var cells=modes.map(function(m){
-        var ctx=ctxDe(col,m),v=valeur(source,k,ctx),c=v&&v.charAt(0)==="#"?{h:v}:{a:v,hex:hex(source,k,ctx)};
-        if(st==="mod"){var avant=valeur("aujourdhui",k,ctx);if(avant!==v)c.old=avant.charAt(0)==="#"?{hex:avant}:{a:avant,hex:hex("aujourdhui",k,ctx)};}
-        return c;
+      var t=V.aujourdhui[col][k],d=V.demain[col][k],st="";
+      if(vue==="demain")st=t===undefined?"new":d===undefined?"del":JSON.stringify(t)!==JSON.stringify(d)?"mod":"";
+      var p=k.split(".").slice(1),n=racine;
+      if(st)racine.change++;
+      if(st==="mod")racine.mod++;
+      p.slice(0,-1).forEach(function(seg,i){
+        if(!n.index[seg]){var f={id:p.slice(0,i+1).join("/"),nom:seg,enfants:[],index:{},change:0,total:0};n.index[seg]=f;n.enfants.push(f);}
+        n=n.index[seg];n.total++;
+        if(st)n.change++;
       });
-      out.push({k:g+"/"+n,n:n,c:cells,st:st});
+      n.enfants.push({k:k,id:p.join("/"),nom:p[p.length-1],st:st});
     });
-    return {rows:out,changes:changes};
+    return racine;
+  }
+  function dossiers(n,out){n.enfants.forEach(function(e){if(!e.k){out.push(e.id);dossiers(e,out);}});return out;}
+
+  function cellules(col,vue,e){
+    var source=e.st==="del"?"aujourdhui":vue;
+    return modesDe(col).map(function(m){
+      var ctx=ctxDe(col,m),v=valeur(source,e.k,ctx),c=estAlias(v)?{a:v,fin:fin(source,e.k,ctx)}:{v:v};
+      if(e.st==="mod"){var avant=valeur("aujourdhui",e.k,ctx);if(avant!==v)c.old=estAlias(avant)?{a:avant,fin:fin("aujourdhui",e.k,ctx)}:{fin:avant};}
+      return c;
+    });
+  }
+  function lignesHtml(col,vue,n,prof,span,hl,out){
+    n.enfants.forEach(function(e){
+      if(e.k){
+        out.push('<tr class="'+e.st+(hl===e.id?" hl":"")+'" data-k="'+esc(e.id)+'"><td class="nm" style="--prof:'+prof+'">'+esc(e.nom)+"</td>"+cellules(col,vue,e).map(function(c){return "<td>"+cell(c)+"</td>";}).join("")+"</tr>");
+        return;
+      }
+      var ouvert=!!state.ouverts[e.id];
+      var tag=e.change?'<span class="tag mod">'+e.change+(e.change>1?" changements":" changement")+"</span>":"";
+      out.push('<tr class="g"><td colspan="'+span+'"><button type="button" class="dossier" style="--prof:'+prof+'" data-dossier="'+esc(e.id)+'" aria-expanded="'+ouvert+'"><span class="chev" aria-hidden="true"></span>'+esc(e.nom)+'<span class="nb">'+e.total+"</span>"+tag+"</button></td></tr>");
+      if(ouvert)lignesHtml(col,vue,e,prof+1,span,hl,out);
+    });
   }
 
   function lnk(id){return '<a href="#'+id+'">'+id.toUpperCase()+"</a>";}
   function compte(col){return Object.keys(V.aujourdhui[col]).length;}
+  /* L'export laisse sans valeur les alias qu'il n'a pas su lire. */
+  function sansValeur(){
+    var vides=Object.keys(V.aujourdhui.components).filter(function(k){return V.aujourdhui.components[k]==="∅";});
+    return vides.length?vides.length+" variables n’ont pas de valeur dans l’export ; elles sont marquées « sans valeur ».":"";
+  }
   var NOTES={
     aujourdhui:{
+      components:{info:"aucun mode · "+compte("components")+" variables",tag:["same","ton fichier"],note:["Les composants de ton fichier : leurs couleurs visent color-brands ou color-utilities, leurs dimensions layouts ou primitives. "+sansValeur()+" "+lnk("d11")]},
       theme:{info:"2 modes · "+compte("theme")+" variables",tag:["same","ton fichier"],note:["Le thème de ton fichier. Par palette : les dossiers solid, surface et page, et 11 crans sous scale ; puis disabled et elevation. Chaque variable vise un cran de color-brands ou de color-utilities, dans le mode light ou dark.","Ton Dark est au sens inversé (texte des boutons blanc) : le survol du plein vise 600. Les fonds teintés visent 100, 200 et 300 dans les deux thèmes, et l’anneau de focus est page/focus."]},
       "color-brands":{info:"1 mode par marque · "+compte("color-brands")+" variables",tag:["same","ton fichier"],note:["Une colonne par marque : chaque cran vise une palette de primitives. marque-2 reprend pour l’instant les palettes d’intencial. identity désigne le cran de la couleur de charte. "+lnk("d3")+" · "+lnk("d9")]},
       "color-utilities":{info:"aucun mode · "+compte("color-utilities")+" variables",tag:["same","ton fichier"],note:["Les rôles communs à toutes les marques : les statuts en soft et vivid, le neutre avec le blanc et le noir, et les deux niveaux d’élévation, page et raised. "+lnk("d6")+" · "+lnk("d15")]},
-      primitives:{info:"aucun mode · "+compte("primitives")+" couleurs",tag:["same","ta recette"],note:["Les palettes qu’UCM Palettes écrit aujourd’hui avec ta recette : cran 50 Dark à 0,180, part commune 0,45 en soft et 0,95 en vivid, chroma en part constante du maximum affichable."]}
+      primitives:{info:"aucun mode · "+compte("primitives")+" variables, dont "+Object.keys(V.aujourdhui.primitives).filter(function(k){return k.indexOf("primitives.colors.")===0;}).length+" couleurs",tag:["same","ta recette"],note:["Les palettes qu’UCM Palettes écrit aujourd’hui avec ta recette : cran 50 Dark à 0,180, part commune 0,45 en soft et 0,95 en vivid, chroma en part constante du maximum affichable.","Ses dimensions, sa police, ses graisses et ses réglages de texte viennent de l’export."]},
+      layouts:{info:"aucun mode · "+compte("layouts")+" variables",tag:["same","ton fichier"],note:["Les tailles, les rayons et les épaisseurs de trait, en alias vers primitives. "+lnk("d12")]},
+      typography:{info:"aucun mode · "+compte("typography")+" variables",tag:["same","ton fichier"],note:["Les styles de texte, de display à label : taille, interlignage, espacement et graisse, en alias vers primitives. "+lnk("d12")]}
     },
     demain:{
+      components:{tag:["same","montrée telle quelle"],note:["Les noms restent. Ses 306 alias de couleur seront repointés vers theme, chacun selon ce qu’il peint et le fond qui est derrière : ce travail se fait à part, et le panneau la montre telle qu’aujourd’hui. "+lnk("d11")]},
       theme:{tag:["mod","crans modifiés"],note:["En Dark, les fonds teintés visent 300, 400 et 500, et leur texte et leur contour 950. ring remplace page/focus, à la racine de la palette, aux mêmes crans : 600 en Light, 700 dans ton Dark inversé. Le Light ne change pas.","Sous chaque alias qui change, celui d’aujourd’hui. "+lnk("d13")+" · "+lnk("d18")+" · "+lnk("d19")]},
       "color-brands":{tag:["same","alias inchangés"],note:["Aucun alias ne change ; les couleurs suivent les palettes recalculées de primitives."]},
       "color-utilities":{tag:["same","alias inchangés"],note:["Aucun alias ne change. La page Dark, elevation/dark/page, vise toujours le neutre 50, désormais à la clarté 0,145. "+lnk("d15")]},
-      primitives:{tag:["mod","recalculées"],note:["Les palettes que la règle retenue calcule sur ta recette, « Par défaut » choisi pour les intensités (part commune 0,85 en soft, 0,95 en vivid) et cran 50 Dark à 0,145. Les parts propres de Sky, Orange et Poppy sont gardées, comme tes réglages.","Sous chaque valeur qui change, celle d’aujourd’hui. "+lnk("d7")+" · "+lnk("d20")]}
+      primitives:{tag:["mod","recalculées"],note:["Les palettes que la règle retenue calcule sur ta recette, « Par défaut » choisi pour les intensités (part commune 0,85 en soft, 0,95 en vivid) et cran 50 Dark à 0,145. Les parts propres de Sky, Orange et Poppy sont gardées, comme tes réglages. Ses autres variables ne changent pas.","Sous chaque valeur qui change, celle d’aujourd’hui. "+lnk("d7")+" · "+lnk("d20")]},
+      layouts:{tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
+      typography:{tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]}
     }
   };
-  var COLS=["theme","color-brands","color-utilities","primitives"];
+  var COLS=["components","theme","color-brands","color-utilities","primitives","layouts","typography"];
 
-  var state={view:"aujourdhui",col:"theme"};
+  /* Les dossiers ouverts de la collection affichée ; ils se referment quand on change de vue ou de collection. */
+  var state={view:"aujourdhui",col:"theme",ouverts:{}};
   var $=function(id){return document.getElementById(id);};
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
   function sq(h){return '<span class="sq" style="background:'+h+'"></span>';}
   function label(path){var p=path.split(".");return '<span class="col">'+p[0]+' ›</span> '+p.slice(1).join("/");}
+  function estCouleur(v){return typeof v==="string"&&v.charAt(0)==="#";}
+  function litteral(v){
+    if(v==="∅")return '<span class="val vide">sans valeur</span>';
+    if(v==null)return "";
+    return '<span class="val">'+(estCouleur(v)?sq(v):"")+esc(v)+"</span>";
+  }
   function cell(c){
-    var h=c.a?'<button type="button" class="chip" data-path="'+c.a+'">'+(c.hex?sq(c.hex):"")+label(c.a)+"</button>":'<span class="val">'+sq(c.h)+c.h+"</span>";
-    if(c.old)h+='<span class="old">avant : <s>'+(c.old.a?label(c.old.a):"")+"</s> "+(c.old.hex?sq(c.old.hex)+c.old.hex:"")+"</span>";
+    var h=c.a?'<button type="button" class="chip" data-path="'+c.a+'">'+(estCouleur(c.fin)?sq(c.fin):"")+label(c.a)+(c.fin!=null&&!estCouleur(c.fin)&&c.fin!=="∅"?'<span class="fin">'+esc(c.fin)+"</span>":"")+"</button>":litteral(c.v);
+    if(c.old)h+='<span class="old">avant : <s>'+(c.old.a?label(c.old.a):"")+"</s> "+(estCouleur(c.old.fin)?sq(c.old.fin)+c.old.fin:esc(c.old.fin==null?"":c.old.fin))+"</span>";
     return h;
   }
   function render(hl){
-    var col=state.col,res=lignes(col,state.view),n=NOTES[state.view][col],modes=modesDe(col);
-    var info=state.view==="aujourdhui"?n.info:NOTES.aujourdhui[col].info+(res.changes?" · "+res.changes+" valeurs modifiées":" · aucune valeur modifiée");
+    var col=state.col,res=arbre(col,state.view),n=NOTES[state.view][col],modes=modesDe(col);
+    var info=state.view==="aujourdhui"?n.info:NOTES.aujourdhui[col].info+(res.mod?" · "+res.mod+" valeurs modifiées":" · aucune valeur modifiée");
     document.querySelectorAll(".seg button").forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-view")===state.view));});
     $("legend").hidden=state.view!=="demain";
     $("fx-cols").innerHTML='<span class="lab">Collections</span>'+COLS.map(function(c){
       var t=NOTES[state.view][c].tag;
       return '<button type="button" data-col="'+c+'" aria-current="'+(c===col)+'"><span class="cn">'+c+'</span><span class="tag '+t[0]+'">'+t[1]+"</span></button>";
     }).join("");
-    $("fx-head").innerHTML="<b>"+col+"</b><span>"+info+"</span>";
+    $("fx-head").innerHTML="<b>"+col+"</b><span>"+info+'</span><span class="fx-outils"><button type="button" data-tout="1">Tout déplier</button><button type="button" data-tout="0">Tout replier</button></span>';
     $("fx-note").innerHTML=n.note.map(function(p){return "<p>"+p+"</p>";}).join("");
     $("fx-thead").innerHTML="<tr><th>Nom</th>"+modes.map(function(m){return "<th>"+esc(m)+"</th>";}).join("")+"</tr>";
-    var span=modes.length+1;
-    $("fx-tbody").innerHTML=res.rows.map(function(r){
-      if(r.g!==undefined)return '<tr class="g"><td colspan="'+span+'">'+esc(r.g||col)+"</td></tr>";
-      return '<tr class="'+r.st+(hl&&hl===r.k?" hl":"")+'" data-k="'+r.k+'"><td class="nm">'+esc(r.n)+"</td>"+r.c.map(function(c){return "<td>"+cell(c)+"</td>";}).join("")+"</tr>";
-    }).join("");
+    var span=modes.length+1,out=[];
+    lignesHtml(col,state.view,res,0,span,hl,out);
+    $("fx-tbody").innerHTML=out.join("");
     if(hl){var row=document.querySelector('#fx-tbody tr[data-k="'+hl+'"]');if(row&&row.scrollIntoView)row.scrollIntoView({block:"nearest"});}
   }
+  function choisir(view,col){if(view!==state.view||col!==state.col)state.ouverts={};state.view=view;state.col=col;}
   function go(path){
     var p=path.split("."),col=p[0];
     if(COLS.indexOf(col)<0)return;
-    state.col=col;render(p.slice(1).join("/"));
+    choisir(state.view,col);
+    for(var i=2;i<p.length;i++)state.ouverts[p.slice(1,i).join("/")]=true;
+    render(p.slice(1).join("/"));
   }
   $("fx").addEventListener("click",function(e){
     var t=e.target.closest("button");if(!t)return;
-    if(t.hasAttribute("data-view")){state.view=t.getAttribute("data-view");render();}
-    else if(t.hasAttribute("data-col")){state.col=t.getAttribute("data-col");render();}
+    if(t.hasAttribute("data-view")){choisir(t.getAttribute("data-view"),state.col);render();}
+    else if(t.hasAttribute("data-col")){choisir(state.view,t.getAttribute("data-col"));render();}
+    else if(t.hasAttribute("data-dossier")){
+      var id=t.getAttribute("data-dossier");state.ouverts[id]=!state.ouverts[id];render();
+      var b=document.querySelector('#fx-tbody [data-dossier="'+id+'"]');if(b)b.focus();
+    }
+    else if(t.hasAttribute("data-tout")){
+      state.ouverts={};
+      if(t.getAttribute("data-tout")==="1")dossiers(arbre(state.col,state.view),[]).forEach(function(id){state.ouverts[id]=true;});
+      render();
+    }
     else if(t.hasAttribute("data-path"))go(t.getAttribute("data-path"));
   });
   document.querySelectorAll("[data-go]").forEach(function(b){
-    b.addEventListener("click",function(){var p=b.getAttribute("data-go").split(":");state.view=p[0];state.col=p[1];render();$("fx").scrollIntoView({behavior:"smooth",block:"start"});});
+    b.addEventListener("click",function(){var p=b.getAttribute("data-go").split(":");choisir(p[0],p[1]);render();$("fx").scrollIntoView({behavior:"smooth",block:"start"});});
   });
-  /* L'arborescence des changements : collection › segments › variable, demain comparé à aujourd'hui. */
-  var STATUT={new:["new","à créer"],mod:["mod","à modifier"],del:["del","à supprimer"]};
-  function court(v){return v.charAt(0)==="#"?v:v.split(".").slice(1).join("/");}
-  function arbreDe(col){
-    var racine={enfants:{},ordre:[],change:0};
-    cles(col,"demain").forEach(function(k){
-      var t=V.aujourdhui[col][k],d=V.demain[col][k];
-      var st=t===undefined?"new":d===undefined?"del":JSON.stringify(t)!==JSON.stringify(d)?"mod":"";
-      var p=k.split(".").slice(1),n=racine;
-      if(st)n.change++;
-      p.slice(0,-1).forEach(function(seg){
-        if(!n.enfants[seg]){n.enfants[seg]={enfants:{},ordre:[],change:0};n.ordre.push(seg);}
-        n=n.enfants[seg];if(st)n.change++;
-      });
-      var f=p[p.length-1];n.enfants[f]={feuille:true,k:k,st:st};n.ordre.push(f);
-    });
-    return racine;
-  }
-  function modesFeuille(col,f){
-    return modesDe(col).map(function(m){
-      var ctx=ctxDe(col,m),t=valeur("aujourdhui",f.k,ctx),d=valeur("demain",f.k,ctx);
-      var ht=t&&hex("aujourdhui",f.k,ctx),hd=d&&hex("demain",f.k,ctx);
-      var lab=modesDe(col).length>1?"<i>"+esc(m)+"</i>":"";
-      if(f.st==="new")return '<span class="mode">'+lab+sq(hd)+esc(court(d))+"</span>";
-      if(f.st==="del")return '<span class="mode">'+lab+"<s>"+esc(court(t))+"</s></span>";
-      if(t===d)return '<span class="mode">'+lab+sq(hd)+esc(court(d))+"</span>";
-      return '<span class="mode">'+lab+sq(ht)+"<s>"+esc(court(t))+'</s><span class="fl">→</span>'+sq(hd)+"<b>"+esc(court(d))+"</b></span>";
-    }).join("");
-  }
-  function htmlNoeud(col,nom,n,tout,profondeur){
-    if(n.feuille){
-      if(!n.st&&!tout)return "";
-      var tag=n.st?'<span class="tag '+STATUT[n.st][0]+'">'+STATUT[n.st][1]+"</span>":"";
-      return '<div class="feuille '+(n.st||"inchange")+'"><span class="nom"><b>'+esc(nom)+"</b>"+tag+'</span><span class="modes">'+modesFeuille(col,n)+"</span></div>";
-    }
-    if(!n.change&&!tout)return "";
-    var corps=n.ordre.map(function(c){return htmlNoeud(col,c,n.enfants[c],tout,profondeur+1);}).join("");
-    var tag=n.change?'<span class="tag mod">'+n.change+(n.change>1?" changements":" changement")+"</span>":'<span class="tag same">inchangé</span>';
-    return "<details"+(n.change&&profondeur<3?" open":"")+"><summary>"+esc(nom)+tag+"</summary>"+corps+"</details>";
-  }
-  function dessinerArbre(){
-    var tout=$("arbre-tout").checked;
-    $("arbre").innerHTML=COLS.map(function(col){
-      var a=arbreDe(col);
-      var corps=a.ordre.map(function(c){return htmlNoeud(col,c,a.enfants[c],tout,1);}).join("");
-      var tag=a.change?'<span class="tag mod">'+a.change+" changements</span>":'<span class="tag same">aucun changement</span>';
-      return "<details"+(a.change?" open":"")+"><summary><b>"+col+"</b>"+tag+"</summary>"+(corps||'<p class="vide">Aucun alias ne change ; les couleurs suivent primitives.</p>')+"</details>";
-    }).join("");
-  }
-  (function(){
-    var t=arbreDe("theme"),compte={new:0,mod:0,del:0};
-    cles("theme","demain").forEach(function(k){var a=V.aujourdhui.theme[k],d=V.demain.theme[k];compte[a===undefined?"new":d===undefined?"del":JSON.stringify(a)!==JSON.stringify(d)?"mod":"x"]++;});
-    $("arbre-bilan").innerHTML="Dans <code>theme</code> : "+compte.mod+" variables à modifier, "+compte.new+" à créer, "+compte.del+" à supprimer. <code>color-brands</code> et <code>color-utilities</code> : rien. <code>primitives</code> : "+arbreDe("primitives").change+" couleurs, réécrites par UCM Palettes.";
-  })();
-  $("arbre-tout").addEventListener("change",dessinerArbre);
-  $("arbre-ouvrir").addEventListener("click",function(){document.querySelectorAll("#arbre details").forEach(function(d){d.open=true;});});
-  $("arbre-fermer").addEventListener("click",function(){document.querySelectorAll("#arbre details").forEach(function(d){d.open=false;});});
-  dessinerArbre();
   render();
 })();
 </script>

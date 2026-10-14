@@ -1,14 +1,15 @@
 /**
  * Les données du panneau de VUE-ILLUSTREE-MULTIMARQUES.html (`donnees-vue-illustree.js`).
  *
- * Aujourd'hui : `theme`, `color-brands` et `color-utilities` tels que l'export du fichier Figma
- * du mainteneur les porte ; `primitives` tel que le moteur le calcule aujourd'hui sur sa recette
+ * Aujourd'hui : les collections telles que l'export du fichier Figma du mainteneur les porte, sauf
+ * `tests` ; les couleurs de `primitives` telles que le moteur les calcule aujourd'hui sur sa recette
  * (l'export précède la courbe inversée, que la recette applique depuis).
  *
  * Demain : le même fichier après les décisions de la recette critique de qualité. `theme` suit la
  * table par thème (fonds teintés Dark 300, 400, 500, texte 950) et `ring` remplace `page/focus` ;
  * `primitives` sort de la règle retenue (`REGLE_FINALE`), sur la recette du mainteneur où « Par
  * défaut » a été choisi pour les intensités, avec le cran 50 Dark à 0,145 et la page Dark `#0A0A0A`.
+ * Les autres collections, et les variables de `primitives` qui ne sont pas des couleurs, ne changent pas.
  *
  * Usage : npx tsx generer-vue-illustree.ts <export tokens.json>
  */
@@ -26,16 +27,27 @@ type Valeur = string | Record<string, string>;
 type Collection = Record<string, Valeur>;
 
 const hexa = (c: { components: number[] }) => `#${c.components.map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
-const lireValeur = (v: unknown): string => (typeof v === 'string' ? v.replace(/^\{|\}$/g, '') : hexa(v as { components: number[] }));
+/**
+ * Un alias sans accolades, une couleur en hexa, une dimension avec son unité, un nombre ou un texte ;
+ * `∅` pour une variable que l'export laisse sans valeur.
+ */
+function lireValeur(v: unknown): string {
+  if (v === null) return '∅';
+  if (typeof v === 'string') return v.replace(/^\{|\}$/g, '');
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  const o = v as { components?: number[]; value?: number; unit?: string };
+  if (o.components) return hexa(o as { components: number[] });
+  return `${o.value}${o.unit ?? ''}`;
+}
 
-/** Les variables de couleur d'une collection de l'export, chemin → valeur, ou valeur par mode. */
-function collection(nom: string): Collection {
+/** Les variables d'une collection de l'export, chemin → valeur, ou valeur par mode. */
+function collection(nom: string, filtre: (type: string) => boolean = () => true): Collection {
   const sortie: Collection = {};
   const parcourir = (noeud: Record<string, unknown>, chemin: string[]) => {
     if ('$value' in noeud) {
-      if (noeud.$type !== 'color') return;
+      if (!filtre(noeud.$type as string)) return;
       const modes = (noeud.$extensions as { 'com.ucm.modes'?: Record<string, unknown> } | undefined)?.['com.ucm.modes'];
-      sortie[chemin.join('.')] = modes && nom !== 'primitives'
+      sortie[chemin.join('.')] = modes && nom !== 'primitives' && Object.keys(modes).length > 1
         ? Object.fromEntries(Object.entries(modes).map(([m, v]) => [m, lireValeur(v)]))
         : lireValeur(noeud.$value);
       return;
@@ -94,19 +106,25 @@ function themeDemain(theme: Collection): Collection {
 }
 
 const theme = collection('theme');
+const inchangees = {
+  components: collection('components'),
+  'color-brands': collection('color-brands'),
+  'color-utilities': collection('color-utilities'),
+  layouts: collection('layouts'),
+  typography: collection('typography'),
+};
+const horsCouleurs = collection('primitives', (type) => type !== 'color');
 const donnees = {
   modes: { theme: ['light', 'dark'], 'color-brands': exportFigma.$extensions['com.ucm.axes']['color-brands'].modes },
   aujourdhui: {
+    ...inchangees,
     theme,
-    'color-brands': collection('color-brands'),
-    'color-utilities': collection('color-utilities'),
-    primitives: primitives(RECETTE_REELLE, (p) => rampesDe(RECETTE_REELLE, p) as never),
+    primitives: { ...primitives(RECETTE_REELLE, (p) => rampesDe(RECETTE_REELLE, p) as never), ...horsCouleurs },
   },
   demain: {
+    ...inchangees,
     theme: themeDemain(theme),
-    'color-brands': collection('color-brands'),
-    'color-utilities': collection('color-utilities'),
-    primitives: primitives(RECETTE_DEMAIN, (p) => rampesDuBanc(RECETTE_DEMAIN, p, REGLE_FINALE) as never),
+    primitives: { ...primitives(RECETTE_DEMAIN, (p) => rampesDuBanc(RECETTE_DEMAIN, p, REGLE_FINALE) as never), ...horsCouleurs },
   },
 };
 
