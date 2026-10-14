@@ -922,18 +922,19 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : la liste des identifiants de la section 7 de ce plan est
     entièrement trouvée, chacun dans SPEC-PAL et dans un nom de test.
 
-- [ ] **D3 · L'architecture de référence et la vue illustrée** · `implementeur`, moyen.
-  - Fichiers :
-    `docs/notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md`
-    et `VUE-ILLUSTREE-MULTIMARQUES.html`. Leur bandeau « Décisions à
-    reporter » liste ce qui change ; la référence des valeurs est
-    DECISIONS.md, sections 2 à 4, et SOLUTION-RAMPES.md, S3.
+- [ ] **D3 · L'architecture de référence** · `implementeur`, moyen.
+  - Fichier :
+    `docs/notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md`.
+    Son bandeau « Décisions à reporter » liste ce qui change ; la référence
+    des valeurs est DECISIONS.md, sections 2 à 4, et SOLUTION-RAMPES.md, S3.
+    `VUE-ILLUSTREE-MULTIMARQUES.html` est déjà à jour (décisions D13 et D15
+    à D20) : s'y reporter pour la forme.
   - Reporter : la table par thème et sens, les crans requis, le cran 50 Dark
     à L 0,145 et la page `#0A0A0A`, `ring` à la racine de la palette, G7
     contre la page et la carte, la carte au blanc ou au neutre 100. Le chemin
     des tokens ne change pas. Retirer le bandeau une fois reporté.
-  - Fini quand : plus aucune valeur contraire à DECISIONS.md dans les deux
-    fichiers ; la vue illustrée s'ouvre sans erreur de console.
+  - Fini quand : plus aucune valeur contraire à DECISIONS.md dans le
+    fichier.
 
 - [ ] **D4 · Statuts** · orchestrateur.
   - `D/DECISIONS.md` et `D/README.md` : statut « implémenté », avec le
@@ -962,10 +963,6 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     `npm run build --workspace ucm-explorateur-plugin`.
 
 - [ ] **F4 · Recette du mainteneur dans Figma** · mainteneur.
-  - Dans le fichier : chaque palette du thème renomme `page/focus` en `ring`
-    et la sort du dossier `page` ; les composants qui liaient `page/focus`
-    lient `ring`. L'explorateur signale un fichier non migré par une
-    variable `ring` manquante.
   - Ouvrir Palettes sur la recette existante : elle se lit au format 11,
     couleurs inchangées ; les intensités montrent « Par défaut » actif.
     Choisir « Par défaut » : les couleurs suivent la règle retenue.

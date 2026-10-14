@@ -105,7 +105,7 @@ code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1
 .dec-h h3{font-size:1.05rem;margin:0;line-height:1.35;flex:1 1 380px}
 .dec dl{display:grid;grid-template-columns:120px 1fr;gap:7px 16px;margin:0}
 .dec dt{font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:3px}
-.dec dd{margin:0}
+.dec dd{margin:0;min-width:0}
 .dec dd ul{margin:0;padding-left:18px}
 .dec dd li{margin-bottom:4px}
 .dec .see{all:unset;cursor:pointer;color:var(--add);font-size:.88rem;text-decoration:underline;text-underline-offset:3px}
@@ -138,9 +138,8 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <main>
   <div class="narrow">
     <h1>Architecture des tokens : du Playground au design system</h1>
-    <p class="lede" style="border-left:3px solid #c98a00;padding-left:10px"><b>Décisions à reporter</b>, prises par la recette critique de qualité (<a href="../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/SOLUTION-RAMPES.md">solution des rampes</a>) : fonds teintés 100, 200, 300 en Light et 300, 400, 500 avec un texte 950 en Dark ; page Dark au cran 50 abaissé ; <code>page/focus</code> devenu <code>ring</code>, à la racine de la palette, en anneau décalé ; G7 contre la page et la carte. Cette vue montre encore l’état antérieur.</p>
-    <p class="lede">Ce document part des tokens actuels du Playground (<code>UCM-Playground/src/tokens/tokens.json</code>) et propose l’architecture du futur design system : six marques, un thème clair et un thème sombre, une gamme complète de composants. Chaque collection conservée, modifiée, ajoutée ou supprimée renvoie à une décision numérotée, avec sa raison, l’option écartée et son origine.</p>
-    <p>Il s’appuie sur la <a href="RECHERCHE-ARCHI-MULTIMARQUES.md">recherche</a>, la <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a>, <a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a>, tes décisions de mainteneur rangées dans l’historique du dépôt, et les propositions d’écriture des variables par <a href="../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md">UCM Palettes</a>.</p>
+    <p class="lede">Ce document part des tokens actuels du Playground (<code>UCM-Playground/src/tokens/tokens.json</code>) et montre l’architecture retenue pour le futur design system : six marques, un thème clair et un thème sombre, une gamme complète de composants. Chaque collection conservée, modifiée, ajoutée ou supprimée renvoie à une décision numérotée, avec sa raison, l’option écartée et son origine.</p>
+    <p>Il suit <a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a>, la <a href="Collection%20usage/RECHERCHE-COLLECTION-USAGE.md">table en dossiers</a> et les <a href="../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md">décisions de la recette critique de qualité</a> : table par thème, <code>ring</code>, page sombre abaissée, règle de chroma. Ces décisions sont validées ; le <a href="../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md">plan d’implémentation</a> les porte dans le code. Les étapes antérieures sont dans la <a href="RECHERCHE-ARCHI-MULTIMARQUES.md">recherche</a> et la <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a>.</p>
   </div>
 
   <h2>Le panneau des variables, aujourd’hui et demain</h2>
@@ -168,20 +167,20 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </div>
     </div>
   </div>
-  <p class="cap narrow">Vue Aujourd’hui : variables et couleurs réelles du Playground. Vue Demain : couleurs calculées par cette page avec la courbe de clarté proposée ; UCM Palettes produira les valeurs définitives. marque-3 et ses palettes <code>mimosa</code> et <code>ardoise</code> sont fictives et montrent l’ajout d’une marque. Chaque collection n’affiche que quelques lignes par groupe ; les lignes en italique résument le reste.</p>
+  <p class="cap narrow">Vue Aujourd’hui : variables et couleurs réelles du Playground. Vue Demain : couleurs calculées par cette page avec les courbes de clarté et la règle de chroma retenues, thèmes au sens normal (texte des boutons blanc en clair, noir en sombre) ; UCM Palettes produira les valeurs définitives. marque-3 et ses palettes <code>mimosa</code> et <code>ardoise</code> sont fictives et montrent l’ajout d’une marque. Chaque collection n’affiche que quelques lignes par groupe ; les lignes en italique résument le reste.</p>
 
   <div class="narrow">
   <h2>Les décisions</h2>
-  <p>L’origine de chaque décision est indiquée : ta décision de mainteneur (avec le commit), une recommandation de la revue critique, ou une proposition nouvelle de ce document.</p>
+  <p>L’origine de chaque décision est indiquée : ta décision de mainteneur (avec le commit ou le document), une recommandation de la revue critique, ou une proposition de ce document que tu as retenue. D13 et D17 sont remplacées ; elles restent ici avec ce qui les remplace.</p>
 
   <div class="dec" id="d1">
-    <div class="dec-h"><span class="id">D1</span><h3>Deux axes sur deux collections : <code>brand</code> pour la marque, <code>theme</code> pour le thème</h3><span class="tag same">Décision du mainteneur</span></div>
+    <div class="dec-h"><span class="id">D1</span><h3>Deux axes sur deux collections : <code>color-brands</code> pour la marque, <code>theme</code> pour le thème</h3><span class="tag same">Décision du mainteneur</span></div>
     <dl>
       <dt>Avant</dt><dd>Un seul axe, porté par <code>color-brand-tokens</code> : deux modes, dix variables. Aucun axe de thème.</dd>
-      <dt>Après</dt><dd><code>brand</code> a un mode par marque, <code>theme</code> les modes <code>light</code> et <code>dark</code>. Figma règle le mode de chaque collection séparément sur un cadre. Le code pose <code>data-brand</code> et <code>data-theme</code>, que <code>ucm tokens css</code> déduit du nom des collections.</dd>
+      <dt>Après</dt><dd><code>color-brands</code> a un mode par marque, <code>theme</code> les modes <code>light</code> et <code>dark</code>. Figma règle le mode de chaque collection séparément sur un cadre. Le code pose un attribut par axe, que <code>ucm tokens css</code> déduit du nom des collections : <code>data-color-brands</code>, renommable en <code>data-brand</code> dans <code>ucm.config.json</code>, et <code>data-theme</code>.</dd>
       <dt>Pourquoi</dt><dd>Six marques et deux thèmes font douze combinaisons. Une collection à douze modes dépasse les dix modes par collection de l’offre Figma Professional. Deux collections permettent aussi un encart sombre dans une page claire, sans répéter la marque.</dd>
-      <dt>Écarté</dt><dd>Une collection à douze modes <code>intencial-light</code>, <code>intencial-dark</code>… : plafond Professional, et la marque se répète sur chaque encart. Le thème rangé en dossiers <code>light</code> et <code>dark</code>, comme dans le fichier de production relevé par la recherche : toute la surface s’écrit deux fois.</dd>
-      <dt>Origine</dt><dd class="org">Recherche §5.1 et §7, revue critique §7, commit 5306c1a.</dd>
+      <dt>Écarté</dt><dd>Une collection à douze modes <code>intencial-light</code>, <code>intencial-dark</code>… : plafond Professional, et la marque se répète sur chaque encart. Le thème rangé en dossiers <code>light</code> et <code>dark</code> : toute la surface s’écrit deux fois.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §5.1 et §7, revue critique §7, commit 5306c1a ; nom <code>color-brands</code> : ton fichier Figma (table en dossiers, §4.8).</dd>
     </dl>
   </div>
 
@@ -189,46 +188,46 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <div class="dec-h"><span class="id">D2</span><h3><code>theme</code> est le seul endroit où le thème se choisit, et elle ne contient aucun choix du designer</h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>Avant</dt><dd>256 des 306 couleurs de composants (84 %) visent <code>color-utilities</code> ou <code>primitives</code>, qui n’ont pas de mode. Exemple : le fond de l’alerte d’information vise <code>primitives.colors.sky.50</code>.</dd>
-      <dt>Après</dt><dd><code>theme</code> contient 124 variables : 121 nuances et 3 niveaux d’élévation (D15). Chacune a deux alias, selon une règle fixe : <code>theme.X.N</code> vise <code>X.light.N</code> en <code>light</code> et <code>X.dark.N</code> en <code>dark</code>, dans <code>brand</code> pour <code>primary</code> et <code>secondary</code>, dans <code>color-utilities</code> pour le reste. Toute couleur d’un composant traverse <code>theme</code> : par <code>usage</code> pour la table des emplois (D13), directement pour une nuance hors table (D14).</dd>
+      <dt>Après</dt><dd><code>theme</code> contient 273 variables pour onze palettes : 152 variables de dossier (13 par palette, 4 propres au neutre, 3 de <code>disabled/*</code>, 2 d’élévation) et 121 crans sous <code>scale</code>. Chacune a deux alias, un par mode, vers <code>color-brands</code> pour <code>primary</code> et <code>secondary</code>, vers <code>color-utilities</code> pour le reste. Le cran visé suit la table de la section <a href="#emplois">La table en dossiers</a>, qui dépend du thème (D18). Toute couleur d’un composant traverse <code>theme</code>.</dd>
       <dt>Pourquoi</dt><dd><ul>
         <li>Un mode ne change que les variables de sa propre collection. Pour qu’un composant suive le thème, chacune de ses couleurs doit traverser une collection à modes.</li>
-        <li>Les choix (quelle palette pour quelle marque, quelle palette pour <code>success</code>) sont rangés ailleurs (D3, D6). <code>theme</code> se déduit donc entièrement de sa règle : un script peut le vérifier, UCM Palettes peut l’écrire sans décision du designer.</li>
-        <li>Les variables de <code>primitives</code>, <code>color-utilities</code>, <code>brand</code> et <code>theme</code> reçoivent des portées vides (<code>scopes = []</code>) : elles disparaissent des sélecteurs des calques. Un calque se lie à <code>usage</code> ou à <code>components</code> (D14).</li>
+        <li>Les choix (quelle palette pour quelle marque, quelle palette pour <code>success</code>) sont rangés ailleurs (D3, D6). <code>theme</code> se déduit donc entièrement de sa règle : le profil UCM d’UCM Explorateur compare ses alias à la table.</li>
+        <li><code>primitives</code>, <code>color-brands</code> et <code>color-utilities</code> reçoivent des portées vides (<code>scopes = []</code>) : elles disparaissent des sélecteurs des calques. Un calque se lie à <code>theme</code> ou à <code>components</code> (D14).</li>
       </ul></dd>
       <dt>Écarté</dt><dd>Poser un mode sur <code>color-utilities</code> et <code>primitives</code> : les 39 citations de teintes brutes y échapperaient, et chaque collection porterait son propre axe à synchroniser.</dd>
-      <dt>Origine</dt><dd class="org">Recherche §2.1 et §4, commit 5306c1a ; portées : comparaison avec le marché §3.3.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §2.1 et §4, commit 5306c1a ; portées : comparaison avec le marché §3.3 ; table en dossiers, commit 3e84659.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="tomorrow:theme">Voir theme dans le panneau</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d3">
-    <div class="dec-h"><span class="id">D3</span><h3><code>color-brand-tokens</code> devient <code>brand</code>, et <code>color-brands</code> y est fusionnée</h3><span class="tag mod">Renommage et fusion</span></div>
+    <div class="dec-h"><span class="id">D3</span><h3><code>color-brand-tokens</code> devient <code>color-brands</code>, à un mode par marque ; l’ancienne <code>color-brands</code> y est fusionnée</h3><span class="tag mod">Renommage et fusion</span></div>
     <dl>
       <dt>Avant</dt><dd><code>color-brands</code>, sans mode, range un dossier par marque : <code>intencial/primary/500</code> vise <code>colors/terracota/500</code>. <code>color-brand-tokens</code>, à deux modes, choisit dans ces dossiers.</dd>
-      <dt>Après</dt><dd><code>brand</code> a une colonne par marque. <code>palette/primary/light/N</code>, <code>palette/primary/dark/N</code> et leurs équivalents <code>secondary</code> sont des alias vers une palette de <code>primitives</code> : la colonne intencial vise <code>terracota</code>, la colonne marque-2 vise <code>sky</code>. <code>identity/primary</code> garde la couleur de charte (D9).</dd>
+      <dt>Après</dt><dd><code>color-brands</code> a une colonne par marque. <code>primary/light/N</code>, <code>primary/dark/N</code> et leurs équivalents <code>secondary</code> sont des alias vers une palette de <code>primitives</code> : la colonne intencial vise <code>terracota</code>, la colonne marque-2 vise <code>sky</code>. Aucun groupe <code>palette</code>. <code>identity/primary</code> et <code>identity/secondary</code> désignent la couleur de charte (D9).</dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li>Un choix qui dépend de la marque doit être rangé dans une collection à un mode par marque, sinon il ne suit pas <code>data-brand</code>. Les dossiers de <code>color-brands</code> ne suivent aucun mode : il faut aujourd’hui une seconde collection pour choisir entre eux. La fusion retire cet intermédiaire.</li>
-        <li>Renommer <code>color-brand-tokens</code> conserve ses modes <code>intencial</code> et <code>marque-2</code> et l’identifiant Figma de ses variables.</li>
+        <li>Un choix qui dépend de la marque doit être rangé dans une collection à un mode par marque, sinon il ne suit pas l’attribut de marque. Les dossiers de l’ancienne <code>color-brands</code> ne suivent aucun mode : il faut aujourd’hui une seconde collection pour choisir entre eux. La fusion retire cet intermédiaire.</li>
+        <li>Garder <code>color-brand-tokens</code> sous un autre nom conserve ses modes <code>intencial</code> et <code>marque-2</code> et l’identifiant Figma de ses variables.</li>
         <li>Ajouter une marque revient à ajouter une colonne, sans créer de variable.</li>
       </ul></dd>
       <dt>Écarté</dt><dd>Deux collections à six modes, par exemple une pour les palettes et une pour les exceptions : Figma règle leurs modes séparément, et une maquette peut afficher la marque A dans l’une et la marque B dans l’autre.</dd>
-      <dt>Origine</dt><dd class="org">Recherche §5.2, revue critique §3.6, commit 5306c1a.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:brand">Voir brand dans le panneau</button></dd>
+      <dt>Origine</dt><dd class="org">Recherche §5.2, revue critique §3.6, commit 5306c1a ; forme du fichier Figma, commit b31742f.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-brands">Voir color-brands dans le panneau</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d4">
-    <div class="dec-h"><span class="id">D4</span><h3>Les dix rôles <code>subtlest</code>, <code>subtle</code>, <code>default</code>, <code>emphasis</code>, <code>strong</code> sont supprimés ; une table des emplois les remplace</h3><span class="tag del">Suppression</span></div>
+    <div class="dec-h"><span class="id">D4</span><h3>Les dix rôles <code>subtlest</code>, <code>subtle</code>, <code>default</code>, <code>emphasis</code>, <code>strong</code> sont supprimés ; la table en dossiers les remplace</h3><span class="tag del">Suppression</span></div>
     <dl>
       <dt>Avant</dt><dd><ul>
         <li><code>primary/default</code> sert au fond du bouton plein, au texte du bouton outlined et à sa bordure.</li>
         <li>Chaque marque relie un rôle à la nuance de son choix : <code>secondary/default</code> vise 700 chez intencial, 500 chez marque-2.</li>
         <li>Texte blanc sur le bouton principal de marque-2 : <span class="bad">2,70:1</span>, au survol <span class="bad">3,99:1</span> (minimum 4,5:1). Anneau de focus contre le fond : <span class="bad">1,38:1</span> (minimum 3:1). Survol et appui ont la même couleur.</li>
       </ul></dd>
-      <dt>Après</dt><dd>La <a href="#emplois">table des emplois</a> fixe la nuance de chaque usage : fond plein 700, survol 800, appui 900, bordure de champ 600, etc. Elle est la même pour toutes les marques. Un composant la cite par son nom, <code>usage.primary.solid.default</code> (D13).</dd>
-      <dt>Pourquoi</dt><dd>Un rôle relié par marque oblige à relier aussi chaque état (survol, appui, focus) dans chaque marque et chaque thème. Avec une courbe de clarté commune (D7), un numéro de nuance donne le même contraste dans toutes les palettes : la table se vérifie une fois, sur la courbe, au lieu de marque par marque.</dd>
-      <dt>Écarté</dt><dd>Des rôles facultatifs à côté des nuances : un composant qui cite une nuance échappe alors aux contrôles des rôles (revue critique §3.5).</dd>
-      <dt>Limite</dt><dd>Une marque dont la couleur est plus claire que la nuance 700, un jaune par exemple, a un bouton plus foncé que sa charte.</dd>
+      <dt>Après</dt><dd>La <a href="#emplois">table en dossiers</a> fixe le cran de chaque variable : fond plein 700, survol 800, appui 900, texte coloré 700, anneau 600, etc. Elle est la même pour toutes les marques et toutes les palettes ; elle dépend seulement du thème et de son sens (D18). Un composant cite la variable par son nom, <code>theme.primary.solid.default</code> (D13).</dd>
+      <dt>Pourquoi</dt><dd>Un rôle relié par marque oblige à relier aussi chaque état (survol, appui, focus) dans chaque marque et chaque thème. Avec une courbe de clarté commune (D7), un numéro de cran donne le même contraste dans toutes les palettes : la table se vérifie une fois, sur la courbe, au lieu de marque par marque.</dd>
+      <dt>Écarté</dt><dd>Des rôles facultatifs à côté des crans : un composant qui cite un cran échappe alors aux contrôles des rôles (revue critique §3.5).</dd>
+      <dt>Limite</dt><dd>Une marque dont la couleur est plus claire que le cran 700, un jaune par exemple, a un bouton plus foncé que sa charte.</dd>
       <dt>Origine</dt><dd class="org">Commit 9ea3adc ; ARCHITECTURE-FINALE §4 ; spécification du plugin, décision D9.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="today:color-brand-tokens">Voir les rôles aujourd’hui</button></dd>
     </dl>
@@ -238,16 +237,15 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <div class="dec-h"><span class="id">D5</span><h3><code>primitives › colors</code> est conservé : un catalogue de palettes nommées, chacune en <code>light</code> et <code>dark</code></h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd>Neuf palettes dessinées à l’œil : terracota, deep, sky, rose, grass, orange, poppy, blue, titanium. Une seule version, sans thème.</dd>
-      <dt>Après</dt><dd>Chaque palette garde son nom et reçoit deux versions : <code>colors/terracota/light/700</code>, <code>colors/terracota/dark/700</code>. Une palette à deux intensités ajoute un segment : <code>colors/grass/soft/light/700</code>. UCM Palettes recalcule les valeurs sur la courbe commune. Chaque nouvelle marque y ajoute ses palettes.</dd>
+      <dt>Après</dt><dd>Chaque palette garde son nom et reçoit deux versions : <code>colors/terracota/light/700</code>, <code>colors/terracota/dark/700</code>. Une palette à deux intensités ajoute un segment : <code>colors/grass/soft/light/700</code>. UCM Palettes recalcule les valeurs sur la courbe commune et les écrit ici, à l’endroit fixé par sa configuration : c’est la seule collection qu’il écrit. Chaque nouvelle marque y ajoute ses palettes.</dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li>Une palette se fabrique une fois, indépendamment de son rôle. <code>brand</code> et <code>color-utilities</code> ne font que la choisir. La revue critique recommande cette séparation (§4) : « Famille primitive : définir une rampe et sa recette, indépendamment d’un emploi » ; « Marque : choisir ses familles ».</li>
-        <li>Le choix se lit dans Figma. La colonne marque-2 de <code>brand</code> affiche <code>colors/sky/…</code>, alors qu’une colonne d’hexas ne dit pas de quelle palette ils viennent.</li>
+        <li>Une palette se fabrique une fois, indépendamment de son rôle. <code>color-brands</code> et <code>color-utilities</code> ne font que la choisir. La revue critique recommande cette séparation (§4).</li>
+        <li>Le choix se lit dans Figma. La colonne marque-2 de <code>color-brands</code> affiche <code>colors/sky/…</code>, alors qu’une colonne d’hexas ne dit pas de quelle palette ils viennent.</li>
         <li>Une colonne de mode ajoutée recopie la première. Avec des alias, la colonne d’une nouvelle marque affiche <code>terracota</code> tant qu’elle n’est pas renseignée. Avec des hexas, une valeur copiée ne se distingue pas d’une valeur choisie.</li>
-        <li>Deux rôles qui partagent une palette le montrent. Aujourd’hui, <code>info</code> et la palette principale de marque-2 visent toutes deux <code>sky</code>.</li>
-        <li>UCM Palettes écrit chaque palette à un seul endroit, sous le nom que le designer lui donne. Changer le rôle d’une palette change un alias et ne déplace aucune variable : Figma ne sait pas déplacer une variable d’une collection à une autre (<code>variableCollectionId</code> est en lecture seule).</li>
+        <li>Changer le rôle d’une palette change un alias et ne déplace aucune variable : Figma ne sait pas déplacer une variable d’une collection à une autre (<code>variableCollectionId</code> est en lecture seule).</li>
       </ul></dd>
-      <dt>Coût</dt><dd>Un alias de plus dans chaque chaîne. <code>primitives</code> compte 464 couleurs pour six marques, au lieu de 198 dans ARCHITECTURE-FINALE, où <code>brand</code> portait les hexas.</dd>
-      <dt>Écarté</dt><dd>Les hexas directement dans <code>brand</code> (ARCHITECTURE-FINALE §2) : plus court d’un alias, mais les quatre raisons ci-dessus sont perdues, et aucun document n’en donnait la raison.</dd>
+      <dt>Coût</dt><dd>Un alias de plus dans chaque chaîne. <code>primitives</code> compte 464 couleurs pour six marques.</dd>
+      <dt>Écarté</dt><dd>Les hexas directement dans <code>color-brands</code> : plus court d’un alias, mais les raisons ci-dessus sont perdues.</dd>
       <dt>Origine</dt><dd class="org">Recherche §5.1 ; revue critique §4 ; ce document.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="tomorrow:primitives">Voir primitives dans le panneau</button></dd>
     </dl>
@@ -257,26 +255,38 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <div class="dec-h"><span class="id">D6</span><h3><code>color-utilities</code> est conservée : les rôles communs à toutes les marques</h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd><code>success/700</code> vise <code>colors/grass/700</code>, <code>neutral/50</code> vise <code>colors/titanium/50</code>. Une version, une intensité.</dd>
-      <dt>Après</dt><dd><code>success/soft/light/N</code> vise <code>colors/grass/soft/light/N</code>, et de même pour <code>vivid</code>, <code>dark</code> et les trois autres statuts. <code>neutral/light/N</code> et <code>neutral/dark/N</code> visent <code>titanium</code>. 198 alias, sans mode.</dd>
+      <dt>Après</dt><dd><code>success/soft/light/N</code> vise <code>colors/grass/soft/light/N</code>, et de même pour <code>vivid</code>, <code>dark</code> et les trois autres statuts. <code>neutral/light/N</code> et <code>neutral/dark/N</code> visent <code>titanium</code>, avec <code>white</code> et <code>black</code> (D10). <code>elevation/light|dark/page|raised</code> choisissent les deux niveaux d’élévation (D15). 206 alias, sans mode.</dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li>C’est l’équivalent de <code>brand</code> pour ce qui ne dépend pas de la marque : un nom de rôle choisit une palette. Sans elle, ce choix irait dans <code>theme</code>, qui ne serait plus déductible de sa règle (D2).</li>
-        <li>Si une marque veut un jour son propre vert de succès, les alias <code>theme.success.*</code> passent de <code>color-utilities</code> à <code>brand</code>, sans toucher aux composants.</li>
+        <li>C’est l’équivalent de <code>color-brands</code> pour ce qui ne dépend pas de la marque : un nom de rôle choisit une palette. Sans elle, ce choix irait dans <code>theme</code>, qui ne serait plus déductible de sa règle (D2).</li>
+        <li>Si une marque veut un jour son propre vert de succès, les alias <code>theme.success.*</code> passent de <code>color-utilities</code> à <code>color-brands</code>, sans toucher aux composants.</li>
         <li>La collection existe déjà : elle garde son identifiant, et ses variables sont renommées ou ajoutées.</li>
       </ul></dd>
-      <dt>Écarté</dt><dd>Ranger les statuts dans <code>primitives</code> sous leur nom de rôle, <code>primitives.success.soft.light.700</code> (ARCHITECTURE-FINALE) : le rôle se mélange au catalogue, et une palette ne peut plus servir deux rôles.</dd>
-      <dt>Origine</dt><dd class="org">Ce document. Le chemin famille, intensité, thème, nuance du commit 5306c1a est gardé.</dd>
+      <dt>Écarté</dt><dd>Ranger les statuts dans <code>primitives</code> sous leur nom de rôle : le rôle se mélange au catalogue, et une palette ne peut plus servir deux rôles.</dd>
+      <dt>Origine</dt><dd class="org">Ce document ; le chemin famille, intensité, thème, cran du commit 5306c1a est gardé.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir color-utilities dans le panneau</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d7">
-    <div class="dec-h"><span class="id">D7</span><h3>Une courbe de clarté commune, et onze nuances de 50 à 950 dans toutes les palettes, dont 400 et 950 obligatoires</h3><span class="tag mod">Modification</span></div>
+    <div class="dec-h"><span class="id">D7</span><h3>Une courbe de clarté commune par thème, onze crans de 50 à 950, et les crans 100 à 950 requis</h3><span class="tag mod">Modification</span></div>
     <dl>
       <dt>Avant</dt><dd>Contre le fond, la nuance 500 mesure <span class="bad">2,2:1</span> en <code>success</code> et <span class="bad">6,9:1</span> en <code>intencial/secondary</code>. Dans cette dernière, les nuances 700 à 950 mesurent toutes entre 15,7:1 et 17,8:1. Le neutre a 14 nuances, les statuts 10, les marques 11.</dd>
-      <dt>Après</dt><dd>La nuance N a la même clarté OKLCH dans toutes les palettes. Contre le fond de page, sur 360 teintes, deux intensités et deux thèmes : 600 mesure de 3,63 à 4,72:1, 700 de 5,23 à 6,79:1. En <code>dark</code>, les numéros s’inversent : 50 est le fond, le plus sombre.</dd>
-      <dt>Pourquoi</dt><dd>C’est ce qui rend la table des emplois (D4) valable pour toutes les palettes. Les mêmes numéros partout permettent une seule table. Le quatrième rang d’état (D17) vise 400 et 950 : les deux deviennent obligatoires, et le préréglage à 9 nuances disparaît. Seule la 500 n’a aucun emploi.</dd>
-      <dt>Limite</dt><dd>La clarté OKLCH et le contraste WCAG ne coïncident pas exactement. Les bornes ci-dessus sont mesurées par <a href="verifier-courbes.mjs"><code>verifier-courbes.mjs</code></a>, pas déduites.</dd>
-      <dt>Origine</dt><dd class="org">Recherche §2.3 et §6.3, ARCHITECTURE-FINALE §1.</dd>
+      <dt>Après</dt><dd><ul>
+        <li>Le cran N a la même clarté OKLCH dans toutes les palettes d’un thème. En sombre, les numéros s’inversent : 50 est le plus sombre.
+          <div class="tw" style="margin:8px 0"><table class="plain">
+            <thead><tr><th>Cran</th><th class="n">50</th><th class="n">100</th><th class="n">200</th><th class="n">300</th><th class="n">400</th><th class="n">500</th><th class="n">600</th><th class="n">700</th><th class="n">800</th><th class="n">900</th><th class="n">950</th></tr></thead>
+            <tbody>
+              <tr><td>Clair</td><td class="n">0,975</td><td class="n">0,950</td><td class="n">0,905</td><td class="n">0,845</td><td class="n">0,760</td><td class="n">0,670</td><td class="n">0,585</td><td class="n">0,500</td><td class="n">0,420</td><td class="n">0,340</td><td class="n">0,270</td></tr>
+              <tr><td>Sombre</td><td class="n"><b>0,145</b></td><td class="n">0,225</td><td class="n">0,275</td><td class="n">0,330</td><td class="n">0,400</td><td class="n">0,490</td><td class="n">0,580</td><td class="n">0,670</td><td class="n">0,760</td><td class="n">0,850</td><td class="n">0,930</td></tr>
+            </tbody>
+          </table></div></li>
+        <li>Le cran 50 sombre passe de 0,180 à 0,145 : c’est la page sombre (D15). Aucune variable de dossier ne le vise.</li>
+        <li>Un thème inversé (texte des boutons noir en clair, blanc en sombre) remplace les clartés des crans 500 à 800 : 0,745, 0,69, 0,61, 0,42 en clair ; 0,45, 0,50, 0,55, 0,70 en sombre.</li>
+        <li><b>Crans requis : 100, 200, 300, 400, 500, 600, 700, 800, 900 et 950</b>, déduits de la table des deux thèmes (D18). Le cran 50 est facultatif pour la table, et présent dans les préréglages : la page le vise. Les préréglages ont 11 crans (50 à 950) ou 13 (avec 1000 et 1050).</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd>C’est ce qui rend la table (D4) valable pour toutes les palettes : les mêmes numéros partout permettent une seule table. Contre le fond de page, sur 360 teintes, deux intensités et deux thèmes : 600 mesure de 3,63 à 4,72:1, 700 de 5,23 à 6,79:1.</dd>
+      <dt>Limite</dt><dd>La clarté OKLCH et le contraste WCAG ne coïncident pas exactement. Les bornes sont mesurées par <a href="verifier-courbes.mjs"><code>verifier-courbes.mjs</code></a>, pas déduites.</dd>
+      <dt>Origine</dt><dd class="org">Recherche §2.3 et §6.3, ARCHITECTURE-FINALE §1 ; courbe inversée : texte des boutons ; cran 50 sombre et crans requis : recette critique, Q5 et Q6.</dd>
     </dl>
   </div>
 
@@ -284,7 +294,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <div class="dec-h"><span class="id">D8</span><h3>Deux intensités, <code>soft</code> et <code>vivid</code>, pour les statuts ; une seule pour les palettes de marque et le neutre</h3><span class="tag same">Décision du mainteneur</span></div>
     <dl>
       <dt>Avant</dt><dd>Une seule intensité partout.</dd>
-      <dt>Après</dt><dd>Les statuts existent en <code>soft</code> (45 % de la chroma maximale) et en <code>vivid</code> (95 %), disponibles ensemble. Une palette de marque prend la chroma de sa couleur de charte. Le neutre est gris.</dd>
+      <dt>Après</dt><dd>Les statuts existent en <code>soft</code> et en <code>vivid</code>, disponibles ensemble. Une palette de marque prend la chroma de sa couleur de charte. Le neutre est gris. La vivacité de chaque cran suit la règle de chroma de D20.</dd>
       <dt>Pourquoi</dt><dd>Le besoin initial demande des couleurs douces et vives utilisables côte à côte, par exemple un badge doux à côté d’une alerte vive. Les deux intensités ont la même clarté, donc les mêmes contrastes. Une palette de marque à deux intensités ne garderait la couleur de charte exacte que dans l’une des deux.</dd>
       <dt>Écarté</dt><dd>Un troisième axe <code>soft</code>/<code>vivid</code> : 24 contextes pour six marques et deux thèmes, et un seul choix pour tout un écran (revue critique §3.1).</dd>
       <dt>Origine</dt><dd class="org">Commits 5306c1a et e3f8e28.</dd>
@@ -292,231 +302,250 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <div class="dec" id="d9">
-    <div class="dec-h"><span class="id">D9</span><h3>La couleur de charte est rangée à part, dans <code>brand › identity</code></h3><span class="tag new">Ajout</span></div>
+    <div class="dec-h"><span class="id">D9</span><h3>La couleur de charte est désignée à part, dans <code>color-brands › identity</code></h3><span class="tag new">Ajout</span></div>
     <dl>
       <dt>Avant</dt><dd>Aucune variable. La couleur de charte est une nuance parmi d’autres, par exemple <code>colors/terracota/500</code>.</dd>
-      <dt>Après</dt><dd><code>brand.identity.primary</code> contient la couleur saisie, par marque. Aucun composant ne la cite : elle sert au logo et aux aplats imposés par la charte.</dd>
-      <dt>Pourquoi</dt><dd>La courbe commune fixe la clarté de chaque nuance, et une couleur de charte tombe rarement pile sur l’une d’elles. La ranger à part évite de déformer la courbe pour elle. C’est un fait de la marque : sa place est dans <code>brand</code>, comme les réglages.</dd>
-      <dt>Origine</dt><dd class="org">Revue critique §3.4, ARCHITECTURE-FINALE §3.4.</dd>
+      <dt>Après</dt><dd><code>color-brands.identity.primary</code> et <code>.secondary</code> sont des alias vers le cran où la couleur de charte est posée ; l’alias garde le rang. Aucun composant ne les cite : elles servent au logo et aux aplats imposés par la charte.</dd>
+      <dt>Pourquoi</dt><dd>La courbe commune fixe la clarté de chaque cran. UCM Palettes pose la couleur de charte exacte au cran le plus proche, et la désigner évite de la chercher dans la rampe. C’est un fait de la marque : sa place est dans <code>color-brands</code>.</dd>
+      <dt>Origine</dt><dd class="org">Revue critique §3.4, ARCHITECTURE-FINALE §3.4 ; alias : ton fichier Figma, commit b31742f.</dd>
     </dl>
   </div>
 
   <div class="dec" id="d10">
-    <div class="dec-h"><span class="id">D10</span><h3>Le blanc et le noir deviennent des constantes, hors des palettes</h3><span class="tag mod">Modification</span></div>
+    <div class="dec-h"><span class="id">D10</span><h3>Le blanc et le noir sont rangés avec le neutre, hors de sa rampe</h3><span class="tag mod">Modification</span></div>
     <dl>
-      <dt>Avant</dt><dd><code>colors/titanium/0</code> (#FFFFFF) et <code>colors/titanium/1200</code> (#000000) font partie de la rampe neutre. Des composants les citent pour un texte ou un fond, par exemple le texte des alertes pleines.</dd>
-      <dt>Après</dt><dd><code>colors/white</code> et <code>colors/black</code>, dans <code>primitives</code>, hors de toute palette. Les citations actuelles passent au neutre : le texte des alertes pleines prend <code>theme.neutral.50</code>, comme celui des boutons.</dd>
-      <dt>Pourquoi</dt><dd>Un texte ou un fond doit suivre le thème, donc il passe par le neutre. Le blanc et le noir fixes n’ont pas de place sur la courbe de 50 à 950. La gamme de composants visée aura des voiles de modale et des ombres, dont la couleur ne change pas avec le thème. Les garder coûte deux variables ; une variable de <code>theme</code> les exposera au premier composant qui en a besoin.</dd>
-      <dt>Origine</dt><dd class="org">Ce document.</dd>
+      <dt>Avant</dt><dd><code>colors/titanium/0</code> (#FFFFFF) et <code>colors/titanium/1200</code> (#000000) font partie de la rampe neutre. Des composants les citent pour un texte ou un fond.</dd>
+      <dt>Après</dt><dd><code>primitives.colors.titanium.white</code> et <code>.black</code>, hors des crans. <code>color-utilities.neutral.light.white</code>, <code>.black</code>, et de même sous <code>dark</code>, les visent. Les visent à leur tour : le texte des boutons, <code>solid/foreground</code> (blanc ou noir selon le thème) ; le corps de texte, <code>neutral/page/foreground-main</code> (noir en clair, blanc en sombre) ; <code>neutral/scale/0</code> et <code>1000</code>.</dd>
+      <dt>Pourquoi</dt><dd>Le texte des boutons est blanc pur ou noir pur, un choix par thème ; le corps de texte le plus lisible aussi. Les ranger avec le neutre les garde au même endroit que les gris, sans les mettre sur la courbe.</dd>
+      <dt>Origine</dt><dd class="org">Texte des boutons ; forme du fichier Figma, commit b31742f.</dd>
     </dl>
   </div>
 
   <div class="dec" id="d11">
-    <div class="dec-h"><span class="id">D11</span><h3>Les noms de <code>components</code> sont conservés ; leurs 306 alias de couleur sont repointés vers <code>usage</code></h3><span class="tag mod">Valeurs modifiées</span></div>
+    <div class="dec-h"><span class="id">D11</span><h3>Les noms de <code>components</code> sont conservés ; leurs 306 alias de couleur sont repointés vers <code>theme</code></h3><span class="tag mod">Valeurs modifiées</span></div>
     <dl>
-      <dt>Pourquoi</dt><dd>Garder les noms garde les calques Figma liés et les variables CSS des composants. Chaque alias vise l’emploi qui correspond à ce qu’il peint. Une même ancienne cible peut en donner plusieurs : <code>primary/default</code> devient <code>primary/solid/default</code> pour un fond, <code>primary/text/default</code> pour un texte, <code>primary/border-control/default</code> pour une bordure. Une couleur hors table vise une nuance de <code>theme</code> (D14).</dd>
+      <dt>Pourquoi</dt><dd>Garder les noms garde les calques Figma liés et les variables CSS des composants. Chaque alias vise la variable de dossier qui correspond à ce qu’il peint et au fond qui est juste derrière le texte. Une même ancienne cible peut en donner plusieurs : <code>primary/default</code> devient <code>primary/solid/default</code> pour un fond plein, <code>primary/page/foreground</code> pour un texte posé sur la page, <code>primary/page/border</code> pour une bordure. Une couleur hors table vise un cran de <code>scale</code> (D14).</dd>
       <dt>Origine</dt><dd class="org">Recherche §10, ARCHITECTURE-FINALE §4.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="tomorrow:components">Voir components dans le panneau</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d12">
-    <div class="dec-h"><span class="id">D12</span><h3><code>layouts</code> et <code>typography</code> sont conservées ; les réglages et exceptions de marque sont réservés dans <code>brand</code></h3><span class="tag same">Décision du mainteneur</span></div>
+    <div class="dec-h"><span class="id">D12</span><h3><code>layouts</code> et <code>typography</code> sont conservées ; les réglages et exceptions de marque sont réservés dans <code>color-brands</code></h3><span class="tag same">Décision du mainteneur</span></div>
     <dl>
-      <dt>Après</dt><dd><code>brand › params</code> recevra une valeur autre qu’une couleur propre à une marque, par exemple <code>params/radius/button</code>. <code>brand › exception</code> et <code>theme › exception</code> recevront une couleur propre à une marque dans un seul thème. Les deux groupes restent vides.</dd>
-      <dt>Pourquoi</dt><dd>Aucune marque ne diverge aujourd’hui. Ranger réglages et exceptions dans <code>brand</code> garde une seule collection pour l’axe des marques (D3). Un composant lié à <code>components</code> ne change pas quand on repointe sa variable vers un réglage ou une exception.</dd>
+      <dt>Après</dt><dd><code>color-brands › params</code> recevra une valeur autre qu’une couleur propre à une marque, par exemple <code>params/radius/button</code>. <code>color-brands › exception</code> et <code>theme › exception</code> recevront une couleur propre à une marque dans un seul thème. Les deux groupes restent vides.</dd>
+      <dt>Pourquoi</dt><dd>Aucune marque ne diverge aujourd’hui. Ranger réglages et exceptions dans <code>color-brands</code> garde une seule collection pour l’axe des marques (D3). Un composant lié à <code>components</code> ne change pas quand on repointe sa variable vers un réglage ou une exception.</dd>
       <dt>Origine</dt><dd class="org">Commit 5306c1a, revue critique §3.6 et §3.8.</dd>
     </dl>
   </div>
 
-  <h2 id="recherche-usage">Noms d’usage ou nuances numérotées</h2>
-  <p>Deux extrêmes posent problème. Des nuances seules, de 50 à 950, laissent 121 choix dans chaque sélecteur, et rien ne vérifie qu’un composant applique la table. Une collection de noms par composant et par état fige chaque décision et retire la liberté de citer une autre nuance. Les systèmes établis se placent entre les deux :</p>
+  <h2 id="recherche-usage">Noms d’usage ou crans numérotés</h2>
+  <p>Deux extrêmes posent problème. Des crans seuls, de 50 à 950, laissent 121 choix dans chaque sélecteur, et rien ne vérifie qu’un composant applique la table. Une collection de noms par composant et par état fige chaque décision et retire la liberté de citer un autre cran. Les systèmes établis se placent entre les deux :</p>
   <div class="tw"><table class="plain">
     <thead><tr><th>Système</th><th>Ce qu’un composant cite</th><th>Ce que ce document en retient</th></tr></thead>
     <tbody>
-      <tr><td><a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">Radix Colors</a></td><td>Douze numéros, chacun avec un usage écrit : 3 fond d’élément, 4 son survol, 5 son appui, 9 fond plein, 10 son survol, 11 et 12 texte</td><td>Un numéro peut porter un usage, états compris : c’est notre table des emplois</td></tr>
-      <tr><td><a href="https://m3.material.io/styles/color/roles">Material 3</a></td><td>Des rôles appariés : <code>primary</code> et <code>on-primary</code>, <code>primary-container</code> et <code>on-primary-container</code> ; des surfaces opaques par niveau, <code>surface-container-lowest</code> à <code>highest</code>, qui ont <a href="https://docs.flutter.dev/release/breaking-changes/new-color-scheme-roles">remplacé le voile translucide</a> de l’élévation</td><td>Un nom qui dit sa paire (<code>on-solid</code>) ; l’élévation en surfaces opaques (D15)</td></tr>
+      <tr><td><a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">Radix Colors</a></td><td>Douze numéros, chacun avec un usage écrit : 3 fond d’élément, 4 son survol, 5 son appui, 9 fond plein, 10 son survol, 11 et 12 texte</td><td>Un numéro peut porter un usage, états compris : c’est notre table</td></tr>
+      <tr><td><a href="https://m3.material.io/styles/color/roles">Material 3</a></td><td>Des rôles appariés : <code>primary</code> et <code>on-primary</code>, <code>primary-container</code> et <code>on-primary-container</code> ; des surfaces opaques par niveau, qui ont <a href="https://docs.flutter.dev/release/breaking-changes/new-color-scheme-roles">remplacé le voile translucide</a> de l’élévation</td><td>Un fond et son texte rangés ensemble (un dossier) ; l’élévation en surfaces opaques (D15)</td></tr>
       <tr><td><a href="https://atlassian.design/llms-tokens.txt">Atlassian</a></td><td>Plus de 80 tokens de couleur : propriété, rôle, insistance, état, comme <code>color.background.brand.bold.hovered</code> ; <code>elevation.surface</code>, <code>.raised</code>, <code>.overlay</code>, <code>.sunken</code></td><td>Les états dans le nom ; les niveaux d’élévation nommés. Pas la précision : 80 noms figent des décisions par type d’élément</td></tr>
-      <tr><td><a href="https://primer.style/product/primitives/token-names/">Primer</a></td><td>Trois niveaux : base (valeur brute), fonctionnel (motif global), composant</td><td>La même séparation : <code>primitives</code>, <code>usage</code>, <code>components</code></td></tr>
+      <tr><td><a href="https://primer.style/product/primitives/token-names/">Primer</a></td><td>Trois niveaux : base (valeur brute), fonctionnel (motif global), composant</td><td>La même séparation : <code>primitives</code>, <code>theme</code>, <code>components</code></td></tr>
       <tr><td><a href="https://carbondesignsystem.com/elements/color/usage/">Carbon</a></td><td>Des couches empilées <code>layer-01</code> à <code>layer-03</code>, chacune avec ses champs et ses bordures</td><td>Un nombre borné de niveaux, avec leurs règles de contraste</td></tr>
     </tbody>
   </table></div>
   <p>Les guides de tokens convergent sur un point : un composant ne cite pas une valeur brute, et une exception passe par un token de composant (<a href="https://designsystemproblems.com/token-management/semantic-vs-primitive-tokens/">Design System Problems</a>). Côté Figma, les <a href="https://help.figma.com/hc/en-us/articles/15145852043927-Create-and-manage-variables-and-collections">portées</a> filtrent les variables qu’un sélecteur de propriété propose : une couleur de texte, un remplissage, un contour.</p>
 
   <div class="dec" id="d13">
-    <div class="dec-h"><span class="id">D13</span><h3>Une collection <code>usage</code>, sans mode : la table des emplois devient des variables</h3><span class="tag new">Ajout</span></div>
+    <div class="dec-h"><span class="id">D13</span><h3>La table en dossiers, dans <code>theme</code> : <code>solid</code>, <code>surface</code>, <code>page</code>, et <code>ring</code></h3><span class="tag mod">Remplace la collection <code>usage</code></span></div>
     <dl>
-      <dt>Avant</dt><dd>Aucun nom d’usage. La table n’existe que dans la documentation et dans le code d’UCM Palettes (<code>TABLE_DES_EMPLOIS</code>, <code>packages/couleur/src/emplois.ts</code>). Dans ARCHITECTURE-FINALE, un composant cite une nuance, <code>theme.primary.700</code>.</dd>
+      <dt>Avant</dt><dd>D13 proposait une collection <code>usage</code> de 20 variables par palette, sur quatre rangs d’état (D17). Tu l’as trouvée trop complexe pour un designer qui ne connaît que le survol et la sélection.</dd>
       <dt>Après</dt><dd><ul>
-        <li>Pour chaque palette, 20 variables : les 8 emplois du code d’UCM Palettes, et quatre rangs d’état pour ceux qui en ont (D17). <code>usage.primary.solid.default</code> vise <code>theme.primary.700</code>, <code>.hover</code> 800, <code>.active</code> 900, <code>.active-hover</code> 950. Les rangs portent les noms que publie UCM Palettes.</li>
-        <li>Les statuts ajoutent l’intensité : <code>usage.success.soft.surface.default</code>.</li>
-        <li>Le neutre ajoute trois usages propres : <code>text-strong</code> (900, le corps de texte), <code>text-disabled</code> (500), <code>fill-disabled</code> (200).</li>
-        <li><code>components</code> vise <code>usage</code>.</li>
+        <li>Pas de collection <code>usage</code> : les variables vivent dans <code>theme</code>, 13 par palette, rangées selon le fond qui est juste derrière le texte.</li>
+        <li><code>solid</code> : le fond plein et son texte, <code>default</code>, <code>hover</code>, <code>pressed</code>, <code>foreground</code>. La bordure d’un bouton outlined prend aussi <code>solid/default</code>.</li>
+        <li><code>surface</code> : le fond teinté discret, ses trois états, son texte <code>foreground</code> et son contour <code>border</code>.</li>
+        <li><code>page</code> : ce qui se pose sur la page ou la carte, <code>foreground</code>, <code>border</code> et <code>divider</code>.</li>
+        <li><code>ring</code>, à la racine de la palette : l’anneau de focus (D19).</li>
+        <li>Le texte et le contour ne changent pas avec l’état ; un état sélectionné prend un autre dossier.</li>
+        <li>Le neutre ajoute <code>page/foreground-main</code> (corps de texte), <code>page/foreground-subtle</code>, <code>scale/0</code> et <code>scale/1000</code> ; <code>disabled/background</code>, <code>foreground</code> et <code>border</code> sont communs.</li>
       </ul></dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li><b>Moins de choix.</b> Avec les portées (D14), un sélecteur de couleur de texte ne propose que les usages de texte : 4 par palette, contre 11 nuances.</li>
-        <li><b>Chaque nom dit sa paire.</b> <code>solid.hover</code> va avec <code>on-solid</code>, <code>surface.hover</code> avec <code>text.hover</code>. « Texte 700 sur fond 200 » se lit comme <code>text.default</code> sur <code>surface.hover</code> : l’écart d’état se voit dans les noms.</li>
-        <li><b>La table vit à un seul endroit.</b> Faire passer le fond plein de 700 à 800 change 3 alias par palette. Sans <code>usage</code>, il faut retrouver chaque token de composant qui cite 700 pour un fond plein, et seulement ceux-là.</li>
-        <li><b>Les mêmes noms dans les trois outils</b> (D16).</li>
-        <li><b>Aucune liaison par marque.</b> Chaque alias a la même cible pour toutes les marques. L’objection du commit 9ea3adc, relier chaque état dans chaque marque et chaque thème, ne s’applique pas.</li>
+        <li><b>Une règle de designer.</b> Quelle couleur est juste derrière le texte ? La page : <code>page</code>. Une teinte claire : <code>surface</code>. Une couleur forte : <code>solid</code>.</li>
+        <li><b>Moins de choix.</b> Avec les portées (D14), un sélecteur de couleur de texte propose 3 variables par palette : <code>solid/foreground</code>, <code>surface/foreground</code>, <code>page/foreground</code>.</li>
+        <li><b>La table vit à un seul endroit</b>, le kit (<code>@ucm-kit/core/emplois</code>), que lisent UCM Palettes, UCM Explorateur et <code>ucm check</code> (D16).</li>
+        <li><b>Aucune liaison par marque.</b> Chaque alias a la même cible pour toutes les marques.</li>
       </ul></dd>
-      <dt>Précision bornée</dt><dd><code>usage</code> ne contient que la table : 8 emplois, 4 rangs d’état, plus 3 usages du neutre et 3 niveaux d’élévation. Aucun nom de composant : <code>button</code> ou <code>card</code> restent dans <code>components</code>. C’est le niveau de Radix, pas celui d’Atlassian.</dd>
-      <dt>Écarté</dt><dd><ul>
-        <li>Les nuances seules (ARCHITECTURE-FINALE) : 121 choix par sélecteur, et une table qu’aucun outil ne peut vérifier sur un composant.</li>
-        <li>Des rôles par marque (recherche §5.3) : les liaisons que le commit 9ea3adc a retirées.</li>
-        <li>Les usages dans <code>theme</code> : ils se mêleraient aux nuances dans le même groupe du sélecteur, <code>primary/700</code> à côté de <code>primary/solid</code>, ce que la recherche relevait déjà (§5.3). Les séparer demanderait de renommer les 121 nuances.</li>
-      </ul></dd>
-      <dt>Coût</dt><dd>226 variables et un alias de plus dans chaque chaîne. Elles se déduisent de la table : UCM Palettes les écrit.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:usage">Voir usage dans le panneau</button></dd>
+      <dt>Écarté</dt><dd>La collection <code>usage</code> et ses quatre rangs ; les crans seuls (121 choix par sélecteur) ; un texte qui avance avec l’état du fond (aucun système du marché ne le fait sur toute la rampe).</dd>
+      <dt>Origine</dt><dd class="org"><a href="Collection%20usage/RECHERCHE-COLLECTION-USAGE.md">Recherche sur la collection usage</a>, commits 3e84659 et b31742f ; <code>foreground</code> au lieu de <code>text</code>, commit 4a83333.</dd>
+      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:theme">Voir les dossiers dans theme</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d14">
-    <div class="dec-h"><span class="id">D14</span><h3>Une nuance hors de la table reste possible : par un token de composant, délibéré et relevé</h3><span class="tag new">Ajout</span></div>
+    <div class="dec-h"><span class="id">D14</span><h3>Un cran hors de la table reste possible : par un token de composant, délibéré</h3><span class="tag new">Ajout</span></div>
     <dl>
-      <dt>La question</dt><dd>Un graphique a besoin d’une échelle de 100 à 800, une illustration d’un 400 : aucune de ces nuances n’a d’emploi.</dd>
+      <dt>La question</dt><dd>Un graphique a besoin d’une échelle de 100 à 800, une illustration d’un 400 : aucun de ces crans n’a de variable de dossier.</dd>
       <dt>Après</dt><dd><ul>
-        <li>Un calque se lie à <code>usage</code> ou à <code>components</code>. <code>theme</code> et les collections du dessous ont des portées vides et n’apparaissent dans aucun sélecteur de calque.</li>
-        <li>Pour une nuance hors table, crée un token de composant qui la vise dans <code>theme</code>. Exemple réel du Playground : <code>components.stresstest.info.scalewrap.colors.scale-5</code> vise aujourd’hui <code>primitives.colors.orange.600</code> ; demain <code>theme.warning.vivid.600</code>.</li>
-        <li>Les portées de <code>usage</code> suivent ce que chaque emploi peint (tableau ci-dessous).</li>
+        <li>Les crans de chaque palette restent sous <code>theme.{palette}.scale.N</code>, sans portée, avec le même numéro dans les deux thèmes.</li>
+        <li>Pour un cran hors table, crée un token de composant qui le vise. Exemple réel du Playground : <code>components.stresstest.info.scalewrap.colors.scale-5</code> vise aujourd’hui <code>primitives.colors.orange.600</code> ; demain <code>theme.warning.vivid.scale.600</code>.</li>
+        <li>Les portées des variables de dossier suivent ce que chacune peint (tableau ci-dessous). <code>ucm check</code> mesure le contraste de chaque couleur contre son fond réel, en information.</li>
       </ul></dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li><b>La liberté reste entière :</b> toute nuance de toute palette, dans les deux thèmes, suit la marque et le thème.</li>
-        <li><b>Le choix devient délibéré :</b> on ne tombe pas sur une nuance hors table en parcourant un sélecteur, il faut nommer un token.</li>
-        <li><b>Il reste traçable :</b> le premier alias du token vise <code>theme</code> et non <code>usage</code>, et le contrôle de D16 relève ce token, avec son contraste mesuré.</li>
-        <li><b>La table s’enrichit par l’usage :</b> quand deux composants ont le même besoin hors table, il devient un emploi de la table, qu’UCM Palettes vérifie ensuite sur chaque palette.</li>
+        <li><b>La liberté reste entière :</b> tout cran de toute palette, dans les deux thèmes, suit la marque et le thème.</li>
+        <li><b>Le choix devient délibéré :</b> on ne tombe pas sur un cran hors table en parcourant un sélecteur, il faut nommer un token.</li>
+        <li><b>La table s’enrichit par l’usage :</b> un besoin hors table que deux composants partagent devient une variable de dossier.</li>
       </ul></dd>
-      <dt>Écarté</dt><dd>Interdire toute nuance hors table : aucun graphique ni aucune illustration ne suivrait le thème. Laisser les nuances visibles dans tous les sélecteurs : retour aux 121 choix.</dd>
-      <dt>À vérifier dans Figma</dt><dd>La documentation décrit l’effet des portées sur les sélecteurs des propriétés, pas sur le choix d’un alias dans le panneau des variables. Si ce choix filtre aussi par portée, les nuances de <code>theme</code> gardent les portées de remplissage et de contour, et le contrôle de D16 reste la seule barrière.</dd>
+      <dt>À vérifier dans Figma</dt><dd>La documentation décrit l’effet des portées sur les sélecteurs des propriétés, pas sur le choix d’un alias dans le panneau des variables.</dd>
     </dl>
     <div class="tw"><table class="plain">
-      <thead><tr><th>Emploi</th><th>Ce qu’il peint (UCM Exporter)</th><th>Portées Figma</th></tr></thead>
+      <thead><tr><th>Variables</th><th>Ce qu’elles peignent (UCM Exporter)</th><th>Portées Figma</th></tr></thead>
       <tbody>
-        <tr><td><code>solid</code>, <code>surface</code>, <code>surface-card</code>, <code>fill-disabled</code>, <code>elevation.*</code></td><td><code>background</code></td><td>remplissage de cadre et de forme</td></tr>
-        <tr><td><code>text</code>, <code>text-strong</code>, <code>text-disabled</code>, <code>on-solid</code></td><td><code>foreground</code>, <code>icon</code></td><td>remplissage de texte et de forme (icônes)</td></tr>
-        <tr><td><code>border-control</code>, <code>border-decorative</code></td><td><code>border</code></td><td>contour</td></tr>
-        <tr><td><code>focus</code></td><td><code>ring</code></td><td>contour</td></tr>
+        <tr><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td><code>background</code>, <code>border</code></td><td>remplissage de cadre et de forme, contour</td></tr>
+        <tr><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code>, <code>disabled/background</code>, <code>elevation/*</code></td><td><code>background</code></td><td>remplissage de cadre et de forme</td></tr>
+        <tr><td><code>*/foreground</code>, <code>page/foreground-main</code>, <code>page/foreground-subtle</code>, <code>disabled/foreground</code></td><td><code>foreground</code>, <code>icon</code></td><td>remplissage de texte et de forme</td></tr>
+        <tr><td><code>surface/border</code>, <code>page/border</code>, <code>page/divider</code>, <code>disabled/border</code></td><td><code>border</code></td><td>contour</td></tr>
+        <tr><td><code>ring</code></td><td><code>ring</code></td><td>contour</td></tr>
+        <tr><td><code>scale/*</code></td><td>rien</td><td>aucune</td></tr>
       </tbody>
     </table></div>
   </div>
 
   <div class="dec" id="d15">
-    <div class="dec-h"><span class="id">D15</span><h3>Trois niveaux d’élévation, opaques : <code>page</code>, <code>raised</code>, <code>overlay</code></h3><span class="tag new">Ajout</span></div>
+    <div class="dec-h"><span class="id">D15</span><h3>Deux niveaux d’élévation, opaques : <code>page</code> et <code>raised</code></h3><span class="tag new">Ajout</span></div>
     <dl>
-      <dt>Avant</dt><dd>Aucun document ne traite l’élévation. <code>surface-card</code> (nuance 50) a la couleur du fond de page ; une carte dans une modale, un menu sur une carte ne sont pas couverts.</dd>
-      <dt>Après</dt><dd><code>usage.elevation.page</code>, <code>.raised</code>, <code>.overlay</code> visent <code>theme.elevation.*</code>, qui vise <code>color-utilities.elevation.light|dark.*</code> :
+      <dt>Avant</dt><dd>Aucun document ne traite l’élévation. Une carte dans une page, un fond teinté sur une carte ne sont pas couverts.</dd>
+      <dt>Après</dt><dd><code>theme.elevation.page</code> et <code>.raised</code> visent <code>color-utilities.elevation.light|dark.*</code> :
         <div class="tw" style="margin:8px 0"><table class="plain">
           <thead><tr><th>Niveau</th><th>Usage</th><th>light</th><th>dark</th></tr></thead>
           <tbody>
-            <tr><td><code>page</code></td><td>fond d’écran</td><td>neutre 50, #F7F7F7</td><td>neutre 50, #121212</td></tr>
+            <tr><td><code>page</code></td><td>fond d’écran ; réglage « Fond de la page » d’UCM Palettes</td><td>neutre 50, #F7F7F7</td><td>neutre 50, <b>#0A0A0A</b> (clarté 0,145)</td></tr>
             <tr><td><code>raised</code></td><td>carte, panneau</td><td>blanc + ombre</td><td>neutre 100, #1C1C1C + ombre</td></tr>
-            <tr><td><code>overlay</code></td><td>menu, modale</td><td>blanc + ombre plus forte</td><td>neutre 100 + ombre plus forte</td></tr>
           </tbody>
-        </table></div></dd>
+        </table></div>
+        Le niveau <code>overlay</code> est retiré. Le réglage « Fond de la page » vaut la couleur qu’<code>elevation/page</code> affiche, pour que les garanties mesurent la page réelle.</dd>
       <dt>Pourquoi</dt><dd><ul>
-        <li><b>Les numéros s’inversent entre thèmes.</b> En sombre, monter d’un niveau revient à éclaircir, donc à prendre un numéro plus grand. En clair, un numéro plus grand est plus foncé : une carte surélevée serait plus sombre que la page. Les niveaux sont donc des noms dont la valeur claire et la valeur sombre sont choisies séparément, dans <code>color-utilities</code>. <code>theme</code> reste mécanique.</li>
-        <li><b>Opaque plutôt que translucide.</b> La table garantit des contrastes entre couleurs opaques, et une couleur translucide change selon ce qu’elle recouvre. En clair, un voile blanc sur le fond ne se voit pas : blanc contre #F7F7F7 mesure 1,07:1. Material 3 a remplacé son voile d’élévation par des surfaces opaques.</li>
-        <li><b><code>overlay</code> reste à la nuance 100 en sombre.</b> Mesuré sur 360 teintes et les deux intensités, sur la nuance 100 : texte de couleur 700 au moins 4,88:1, bordure 600 au moins 3,41:1. Sur la nuance 200, ils tombent à 4,23:1 et 2,96:1, sous les seuils. <code>raised</code> et <code>overlay</code> se distinguent donc par l’ombre. Garder deux noms permet de changer la valeur d’<code>overlay</code> plus tard sans toucher aux composants.</li>
-        <li><b>Au-delà de trois niveaux,</b> un élément posé sur un support de même niveau prend <code>border-decorative</code>, pas un niveau de plus.</li>
+        <li><b>Chaque niveau à distance fixe de celui qui le porte.</b> En sombre, la page descend à 0,145 pour que la carte s’en détache : carte contre page de 1,10 à 1,16:1. Le fond teinté se pose sur la carte, deux crans plus loin qu’elle (D18) : contre la carte, 1,16:1 en clair, 1,39:1 en sombre, au lieu de 1,00:1.</li>
+        <li><b>Les numéros s’inversent entre thèmes.</b> Monter d’un niveau éclaircit en sombre et prend un cran plus grand ; en clair, il n’y a rien sous la page, et la carte est blanche. Les deux valeurs de chaque niveau se choisissent donc dans <code>color-utilities</code>, et <code>theme</code> reste mécanique.</li>
+        <li><b>Opaque plutôt que translucide.</b> La table garantit des contrastes entre couleurs opaques, et une couleur translucide change selon ce qu’elle recouvre. Material 3 a remplacé son voile d’élévation par des surfaces opaques.</li>
+        <li><b>Un élément posé sur un support de même niveau</b> prend <code>page/divider</code>, pas un niveau de plus.</li>
       </ul></dd>
-      <dt>Les ombres</dt><dd>Des effect styles Figma, dont la couleur se lie à une variable noire translucide, plus opaque en sombre. UCM Exporter lit déjà les effect styles et leurs réglages liés à des variables. La transparence reste pour ce cas et pour le voile derrière une modale.</dd>
+      <dt>Les ombres</dt><dd>Des effect styles Figma, dont la couleur se lie à une variable noire translucide, plus opaque en sombre. UCM Exporter lit déjà les effect styles et leurs réglages liés à des variables.</dd>
+      <dt>Origine</dt><dd class="org">Ce document ; deux niveaux : ton fichier Figma, commit b31742f ; page sombre et modèle des niveaux : recette critique, Q5.</dd>
       <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir les niveaux dans color-utilities</button></dd>
     </dl>
   </div>
 
   <div class="dec" id="d16">
-    <div class="dec-h"><span class="id">D16</span><h3>Une seule table des emplois pour UCM Palettes, l’architecture et UCM Exporter</h3><span class="tag new">Ajout</span></div>
+    <div class="dec-h"><span class="id">D16</span><h3>Une seule table pour UCM Palettes, l’architecture, UCM Explorateur et <code>ucm check</code></h3><span class="tag new">Ajout</span></div>
     <dl>
-      <dt>Avant</dt><dd><ul>
-        <li>UCM Palettes définit les 8 emplois et leurs 16 paires, sur trois rangs d’état, (<code>emplois.ts</code>, <code>promesses.ts</code>) et les juge sur chaque palette.</li>
-        <li>UCM Exporter lit dans le dernier segment d’un token de composant ce qu’il peint (<code>background</code>, <code>foreground</code>, <code>icon</code>, <code>border</code>, <code>ring</code>) et signale un rôle posé sur le mauvais support.</li>
-        <li>Aucun outil ne vérifie qu’un composant applique la table.</li>
-      </ul></dd>
+      <dt>Avant</dt><dd>UCM Palettes jugeait ses palettes sur sa propre table ; UCM Exporter lisait ce qu’un token peint ; rien ne reliait les deux.</dd>
       <dt>Après</dt><dd><ul>
-        <li><b>UCM Palettes</b> écrit <code>usage</code> à partir de <code>TABLE_DES_EMPLOIS</code>, et <code>theme</code> à partir de sa règle. Sa planche nomme déjà chaque nuance par les emplois qu’elle sert (<code>emploisDuCran</code>), c’est-à-dire par les noms des variables de <code>usage</code>.</li>
-        <li><b>UCM Exporter</b> garde la chaîne d’alias dans <code>tokens.json</code>. Pour chaque couleur d’un composant, <code>ucm check</code> lit ce que la couleur peint, publié par le contrat, et l’emploi qu’elle vise, par son premier alias vers <code>usage</code>.</li>
-        <li><b>Trois contrôles, avec les paires d’UCM Palettes :</b>
-          <ol>
-            <li>support : un emploi de texte posé sur un contour, ou de bordure en remplissage, donne un avertissement ; c’est l’extension de l’avertissement actuel ;</li>
-            <li>paire : dans un variant, un <code>foreground</code> et le <code>background</code> sur lequel il est posé doivent former une paire de la table, au même état ; sinon, un avertissement donne le contraste mesuré dans chaque marque et chaque thème ;</li>
-            <li>hors table : une couleur qui vise <code>theme</code> directement est relevée avec son contraste mesuré (D14).</li>
-          </ol></li>
-        <li>Les paires passent de 16 à 19 avec le quatrième rang (D17), et s’étendent aux niveaux d’élévation : texte et bordure sur <code>raised</code> et <code>overlay</code> (D15).</li>
-        <li>Un quatrième contrôle compare l’état de chaque variant au rang des usages qu’il vise (D17).</li>
+        <li>La table vit dans le kit, <code>@ucm-kit/core/emplois</code> (<code>dossiers.ts</code>, <code>garanties.ts</code>).</li>
+        <li><b>UCM Palettes</b> fabrique les palettes et les juge sur sept garanties par palette, dans la table du thème et de son sens. Il n’écrit que <code>primitives</code> : <code>color-brands</code>, <code>color-utilities</code> et <code>theme</code> se posent à la main.</li>
+        <li><b>UCM Explorateur</b> compare, dans son profil UCM, les alias de <code>theme</code> à la table et les portées à ce que chaque variable peint, en information.</li>
+        <li><b><code>ucm check</code></b> mesure le contraste de chaque couleur d’un composant contre son fond réel, lu dans le contrat ; il ne bloque que sur une variable manquante.</li>
       </ul></dd>
-      <dt>Pourquoi</dt><dd>Une seule définition des emplois et de leurs paires, lue par les trois outils. Aujourd’hui la table est garantie sur les palettes, et rien ne vérifie qu’un composant l’applique : c’est là que le Playground échoue (D4).</dd>
-      <dt>Coût</dt><dd>Le vocabulaire commun, emplois, paires, rangs et contraste WCAG, entre dans le point d’entrée <code>@ucm-kit/core/emplois</code> du kit, qui porte <code>ucm check</code> ; <code>ucm-couleur</code> l’importe et garde la fabrication des palettes (réponse R1 du <a href="PLAN-INTEGRATION-ARCHITECTURE.md#r1-ce-qui-entre-dans-le-kit">plan d’intégration</a>). Aucun de ces contrôles n’est écrit.</dd>
+      <dt>Les garanties</dt><dd>
+        <div class="tw" style="margin:4px 0"><table class="plain">
+          <thead><tr><th>N°</th><th>Premier membre</th><th>Contre</th><th>Seuil</th></tr></thead>
+          <tbody>
+            <tr><td>G1</td><td><code>solid/foreground</code></td><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>4,5:1</td></tr>
+            <tr><td>G2</td><td><code>solid/default</code></td><td>la page</td><td>3:1</td></tr>
+            <tr><td>G3</td><td><code>surface/foreground</code></td><td>les trois fonds de <code>surface</code>, la page</td><td>4,5:1</td></tr>
+            <tr><td>G4</td><td><code>surface/border</code></td><td>les mêmes fonds</td><td>3:1</td></tr>
+            <tr><td>G5</td><td><code>page/foreground</code></td><td>la page</td><td>4,5:1</td></tr>
+            <tr><td>G6</td><td><code>page/border</code></td><td>la page</td><td>3:1</td></tr>
+            <tr><td>G7</td><td><code>ring</code></td><td><b>la page et la carte</b></td><td>3:1</td></tr>
+          </tbody>
+        </table></div>
+        G7 se juge contre ce qui entoure l’anneau, la page et la carte, et non plus contre <code>surface/default</code> : la page est le pire cas en clair, la carte en sombre. UCM Palettes déduit la carte : blanche en clair, gris du cran 100 en sombre. Sur 72 teintes, la table et la règle retenues laissent 144 échecs, tous G1 et déjà présents : le texte blanc sur un plein où la couleur de référence est posée telle quelle.</dd>
+      <dt>Origine</dt><dd class="org">Plan d’intégration, R1 ; thème en dossiers, lots 1 à 10 ; G7 : recette critique.</dd>
     </dl>
   </div>
 
   <div class="dec" id="d17">
-    <div class="dec-h"><span class="id">D17</span><h3>Quatre rangs d’état, et une correspondance écrite entre l’état d’un composant et son rang</h3><span class="tag mod">Modification</span></div>
+    <div class="dec-h"><span class="id">D17</span><h3>Trois états, <code>default</code>, <code>hover</code>, <code>pressed</code> ; la sélection change de dossier</h3><span class="tag mod">Remplace les quatre rangs</span></div>
     <dl>
-      <dt>Le problème</dt><dd>Avec trois rangs, <code>active</code> sert à l’appui et à la sélection. Un élément sélectionné qu’on survole n’a plus de nuance. Et pour un développeur, <code>:active</code> désigne l’appui en CSS.</dd>
+      <dt>Avant</dt><dd>D17 proposait quatre rangs, <code>default</code>, <code>hover</code>, <code>active</code>, <code>active-hover</code>, et un texte qui avançait avec son fond.</dd>
       <dt>Après</dt><dd><ul>
-        <li>Quatre rangs, sous les noms d’UCM Palettes : <code>default</code> (+0), <code>hover</code> (+1), <code>active</code> (+2), <code>active-hover</code> (+3). Un rang nomme une nuance de la paire, pas une interaction.</li>
-        <li>Les noms d’interaction restent dans <code>components</code> (<code>…press.background</code>, <code>…selected.background</code>). Une table de <code>ucm-couleur</code> dit quel rang chaque état vise :
-          <div class="tw" style="margin:8px 0"><table class="plain">
-            <thead><tr><th>État du composant</th><th>Rang</th></tr></thead>
-            <tbody>
-              <tr><td>repos</td><td><code>default</code></td></tr>
-              <tr><td>survol</td><td><code>hover</code></td></tr>
-              <tr><td>appui</td><td><code>active</code></td></tr>
-              <tr><td>sélectionné</td><td><code>active</code></td></tr>
-              <tr><td>sélectionné et survolé, sélectionné et appuyé</td><td><code>active-hover</code></td></tr>
-              <tr><td>focus</td><td><code>default</code>, et l’anneau <code>focus</code></td></tr>
-              <tr><td>désactivé</td><td><code>neutral.fill-disabled</code>, <code>neutral.text-disabled</code></td></tr>
-            </tbody>
-          </table></div></li>
-        <li><code>ucm check</code> compare l’état de chaque variant, publié par le contrat (axe <code>State</code>), au rang des usages que ses couleurs visent. Une ligne sélectionnée qui viserait <code>surface.hover</code> donne un avertissement.</li>
-        <li>400 et 950 deviennent obligatoires dans toute liste de nuances. Le préréglage à 9 nuances, qui les retirait, est supprimé ; une recette qui le porte passe à 11 nuances.</li>
+        <li>Un fond a trois états : <code>default</code>, <code>hover</code>, <code>pressed</code>, sur <code>solid</code> comme sur <code>surface</code>. Les noms désignent une couleur, utilisable en fond ou en contour.</li>
+        <li>Le focus garde le fond du repos et ajoute <code>ring</code> (D19). Un état sélectionné prend un autre dossier, au choix du designer. Un composant désactivé prend <code>disabled/*</code>.</li>
+        <li>Le texte et le contour sont constants : <code>surface/foreground</code> 800 en clair, quel que soit l’état du fond.</li>
       </ul></dd>
-      <dt>Pourquoi</dt><dd><ul>
-        <li>Les paires du quatrième rang tiennent largement, mesurées sur 360 teintes, deux intensités et deux thèmes : <code>text</code> 950 sur <code>surface</code> 400, 6,61:1 ; <code>on-solid</code> sur <code>solid</code> 950, 13,66:1 ; <code>border-control</code> 900 sur <code>surface</code> 400, 5,32:1.</li>
-        <li>Le sens de <code>active</code> ne repose plus sur un nom : il est écrit dans une table et contrôlé. Le développeur lit un token de composant, <code>…selected.background</code>, dont le contrôle garantit le rang.</li>
-        <li>Radix range de même l’appui et la sélection sur une seule nuance.</li>
-      </ul></dd>
-      <dt>Écarté</dt><dd>Les noms d’Atlassian, <code>pressed</code>, <code>selected</code>, <code>selected-hover</code> : cinq noms par emploi au lieu de quatre, dont deux visent la même nuance. Garder <code>active</code> au survol d’un élément sélectionné : le survol ne se verrait pas.</dd>
-      <dt>Limite</dt><dd>En clair, le pas de clarté de 300 à 400 vaut 0,085, contre 0,060 de 200 à 300 : ce survol est plus marqué que les autres. Un texte laissé à 700 sur un fond 400 tombe à 2,75:1 : le texte avance avec le fond.</dd>
+      <dt>Pourquoi</dt><dd>Un designer pense survol et sélection, pas rang. Atlassian, Primer, Carbon et Radix gardent le texte constant sur un fond teinté ; aucun système relevé ne fait avancer le texte sur toute la rampe.</dd>
+      <dt>Reste ouvert</dt><dd>Le bouton plein basculable, activé puis survolé, n’a pas de variable. Pistes dans <a href="Bouton%20plein%20basculable/README.md">Bouton plein basculable</a>.</dd>
+      <dt>Origine</dt><dd class="org">Recherche sur la collection usage, commits 3e84659 et d9c19f4.</dd>
     </dl>
   </div>
 
-  <h2 id="emplois">La table des emplois, en variables</h2>
-  <p>La table que tu utilises en créant un composant. Elle vaut pour toutes les palettes, de marque et de statut, dans les deux intensités. <code>{p}</code> désigne la palette : <code>primary</code>, <code>secondary</code>, <code>neutral</code>, ou un statut avec son intensité, <code>success.soft</code>.</p>
+  <div class="dec" id="d18">
+    <div class="dec-h"><span class="id">D18</span><h3>Une table par thème et par sens : en sombre, fonds teintés 300, 400, 500 et texte 950</h3><span class="tag new">Recette critique</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Une table par sens, la même dans les deux thèmes. En sombre, le fond teinté 100 avait la clarté de la carte (neutre 100) : contraste 1,00:1, il ne se voyait pas.</dd>
+      <dt>Après</dt><dd>Le clair ne change pas : fonds teintés 100, 200, 300, texte 800 (900 en sens inversé). En sombre : fonds 300, 400, 500, texte et contour 950, dans les deux sens. Le plein, la page et l’anneau gardent leurs crans. Le sens vaut normal quand le texte des boutons est blanc en clair et noir en sombre, inversé sinon. Voir <a href="#emplois">la table</a>.</dd>
+      <dt>Pourquoi</dt><dd>Le fond teinté se pose sur une carte ; il en reste deux crans plus loin, dans chaque thème. Un texte 900 sur le fond 500 sombre manque 4,5:1 ; le 950 tient. Le badge discret reste lisible avec cette table.</dd>
+      <dt>Écarté</dt><dd>Des surfaces translucides ; une carte sombre au neutre 200 (280 garanties perdues) ; un fond clair au cran 50, trop proche de la page.</dd>
+      <dt>Origine</dt><dd class="org">Recette critique de qualité, Q5 et Q6, au banc visuel.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d19">
+    <div class="dec-h"><span class="id">D19</span><h3><code>ring</code>, à la racine de la palette, dessiné en anneau décalé</h3><span class="tag new">Recette critique</span></div>
+    <dl>
+      <dt>Avant</dt><dd><code>page/focus</code>, rangé dans le dossier <code>page</code>. Un bouton <code>solid</code> devait chercher son anneau dans un autre dossier.</dd>
+      <dt>Après</dt><dd><ul>
+        <li><code>{palette}/ring</code>, à côté des dossiers <code>solid</code>, <code>surface</code> et <code>page</code> : une variable, 13 par palette comme avant.</li>
+        <li>Cran 600 en sens normal, 700 en sens inversé, dans les deux thèmes : le plus discret qui tient 3:1 contre la page et la carte.</li>
+        <li>Forme : un espace de 2 px de la couleur du fond, puis 2 px de trait. En CSS, <code>outline: 2px solid</code> et <code>outline-offset: 2px</code>.</li>
+      </ul></dd>
+      <dt>Pourquoi</dt><dd>Au contact d’un bouton plein, aucun cran ne s’en détache à 3:1 : l’anneau 600 contre le 700 mesure 1,40:1. L’espace le pose sur la page ou la carte, contre lesquelles G7 le juge. Un seul nom, visible en ouvrant la palette, au lieu de trois alias de même valeur, un par dossier.</dd>
+      <dt>Écarté</dt><dd>Le halo pâle collé (Bootstrap, Flowbite) : il manque 3:1 contre ce qui l’entoure, et UCM Palettes afficherait son rôle « AA ✗ ». Un anneau sombre au cran 800 : il ne servait qu’à un focus collé au fond teinté.</dd>
+      <dt>Origine</dt><dd class="org">Recette critique de qualité, Q7 et Q8 ; WCAG 2.2, critère 1.4.11.</dd>
+    </dl>
+  </div>
+
+  <div class="dec" id="d20">
+    <div class="dec-h"><span class="id">D20</span><h3>La vivacité de chaque cran : une enveloppe par thème, élargie autour du jaune</h3><span class="tag new">Recette critique</span></div>
+    <dl>
+      <dt>Avant</dt><dd>Une part fixe du maximum affichable : 0,45 en <code>soft</code>, 0,95 en <code>vivid</code>. Les textes <code>soft</code> sortaient ternes (0,3 à 0,55 fois la chroma de Tailwind), les verts clairs <code>vivid</code> criards.</dd>
+      <dt>Après</dt><dd><code>C = min(part × plafond(L, H), p₀ × min(a × marge(H) × (1 − L), b × L))</code>. La part par défaut <code>p₀</code> vaut 0,85 en <code>soft</code> et 0,95 en <code>vivid</code> ; les bornes <code>a</code> et <code>b</code> limitent la vivacité des crans clairs et sombres, par thème ; la marge élargit la borne claire autour du jaune (+100 % en <code>soft</code>, +50 % en <code>vivid</code>), pour qu’un jaune pâle ne vire pas au beige. En sombre, les fonds gardent leur réduction de chroma. Le préréglage de teinte lit la dérive de Tailwind aux deux bouts des rampes voisines : pire écart 12° au lieu de 38°.</dd>
+      <dt>Pourquoi</dt><dd>Des fonds teintés de même vivacité d’une famille à l’autre, des textes colorés plus francs. Une recette existante garde ses couleurs jusqu’à ce que tu choisisses « Par défaut ». La clarté, donc les contrastes, ne change pas.</dd>
+      <dt>Origine</dt><dd class="org">Recette critique de qualité, Q1, Q2 et Q10, au banc visuel.</dd>
+    </dl>
+  </div>
+
+  <h2 id="emplois">La table en dossiers</h2>
+  <p>La table que tu utilises en créant un composant. Elle vaut pour toutes les palettes, de marque et de statut, dans les deux intensités. En gras, ce que D18 change.</p>
   <div class="tw"><table class="plain">
-    <thead><tr><th>Usage</th><th>Variable de <code>usage</code></th><th>Nuance</th><th>Contraste le plus faible mesuré</th></tr></thead>
+    <thead><tr><th>Variable</th><th>Ce qu’elle peint</th><th class="n">Clair normal</th><th class="n">Clair inversé</th><th class="n">Sombre normal</th><th class="n">Sombre inversé</th><th>Garantie</th></tr></thead>
     <tbody>
-      <tr><td>Fond plein : bouton, badge</td><td><code>{p}.solid.default|hover|active|active-hover</code></td><td class="c">700 · 800 · 900 · 950</td><td>avec <code>on-solid</code> : 5,23 · 7,45 · 10,50 · 13,66</td></tr>
-      <tr><td>Texte sur un fond plein</td><td><code>{p}.on-solid</code></td><td class="c">neutre 50</td><td></td></tr>
-      <tr><td>Texte ou lien de couleur</td><td><code>{p}.text.default|hover|active|active-hover</code></td><td class="c">700 · 800 · 900 · 950</td><td>sur la page : 5,23 ; sur <code>surface</code> au même rang : 4,95 · 6,32 · 7,28 · 6,61</td></tr>
-      <tr><td>Fond teinté : ligne sélectionnée, alerte, tuile</td><td><code>{p}.surface.default|hover|active|active-hover</code></td><td class="c">100 · 200 · 300 · 400</td><td></td></tr>
-      <tr><td>Carte teintée</td><td><code>{p}.surface-card</code></td><td class="c">50</td><td>texte 700 : 5,30 ; bordure 600 : 3,68</td></tr>
-      <tr><td>Bordure de champ, de bouton outlined</td><td><code>{p}.border-control.default|hover|active|active-hover</code></td><td class="c">600 · 700 · 800 · 900</td><td>sur <code>surface</code> au même rang : 3,45 · 4,36 · 5,25 · 5,32</td></tr>
-      <tr><td>Séparateur décoratif</td><td><code>{p}.border-decorative</code></td><td class="c">300</td><td>aucun seuil</td></tr>
-      <tr><td>Anneau de focus, séparé du composant par un espace</td><td><code>{p}.focus</code></td><td class="c">600</td><td>3,63</td></tr>
-      <tr><td>Corps de texte</td><td><code>neutral.text-strong</code></td><td class="c">900</td><td>sur la page : 10,94 en light, 11,90 en dark ; sur <code>raised</code> : 10,82</td></tr>
-      <tr><td>Désactivé</td><td><code>neutral.fill-disabled</code>, <code>neutral.text-disabled</code></td><td class="c">200 · 500</td><td>exempté par WCAG</td></tr>
-      <tr><td>Élévation</td><td><code>elevation.page|raised|overlay</code></td><td class="c">voir D15</td><td>texte 700 : 4,88 ; bordure 600 : 3,41</td></tr>
+      <tr><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>bouton plein, badge plein ; bordure du bouton outlined</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td>G2</td></tr>
+      <tr><td><code>solid/foreground</code></td><td>texte du plein</td><td class="n">blanc</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td>G1</td></tr>
+      <tr><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>alerte, badge discret, ligne sélectionnée</td><td class="n">100 · 200 · 300</td><td class="n">100 · 200 · 300</td><td class="n"><b>300 · 400 · 500</b></td><td class="n"><b>300 · 400 · 500</b></td><td></td></tr>
+      <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>texte et contour du fond teinté</td><td class="n">800</td><td class="n">900</td><td class="n"><b>950</b></td><td class="n"><b>950</b></td><td>G3, G4</td></tr>
+      <tr><td><code>page/foreground</code>, <code>page/border</code></td><td>texte coloré, lien, contour sur la page ou la carte</td><td class="n">700</td><td class="n">800</td><td class="n">700</td><td class="n">800</td><td>G5, G6</td></tr>
+      <tr><td><code>page/divider</code></td><td>séparateur, contour discret</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td>aucun seuil</td></tr>
+      <tr><td><code>ring</code></td><td>anneau de focus, décalé de 2 px</td><td class="n">600</td><td class="n">700</td><td class="n">600</td><td class="n">700</td><td>G7</td></tr>
+      <tr><td><code>neutral/page/foreground-main</code></td><td>corps de texte</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td class="n">blanc</td><td></td></tr>
+      <tr><td><code>disabled/background</code>, <code>foreground</code>, <code>border</code></td><td>contrôle désactivé</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td>exempté par WCAG</td></tr>
+      <tr><td><code>elevation/page</code>, <code>raised</code></td><td>page, carte</td><td class="n" colspan="2">neutre 50 · blanc</td><td class="n" colspan="2">neutre 50 · neutre 100</td><td></td></tr>
     </tbody>
   </table></div>
   <ul class="rules">
-    <li>Un rang nomme une nuance de la paire, pas une interaction. L’appui et la sélection visent <code>active</code> ; une sélection survolée vise <code>active-hover</code> (D17).</li>
-    <li>Un état fait avancer fond et texte ensemble : <code>text.hover</code> sur <code>surface.hover</code>. Un texte 700 resté sur un fond 200 descend à 4,46:1.</li>
-    <li>Au contact d’un fond 700, un anneau 600 mesure 1,40:1 : l’espace entre l’anneau et le composant est obligatoire.</li>
+    <li>Quel fond est juste derrière le texte ? La page ou la carte : <code>page</code>. Une teinte claire : <code>surface</code>. Une couleur forte : <code>solid</code>.</li>
+    <li>Un état change le fond, jamais le texte : <code>surface/foreground</code> sur <code>surface/hover</code>.</li>
+    <li>Une alerte et un badge discret prennent <code>surface/default</code> et <code>surface/foreground</code> ; un bouton teinté les trois états de <code>surface</code> ; un contour discret <code>page/divider</code>, un contour franc <code>surface/border</code>. Le texte courant d’une alerte, coloré ou neutre, est un choix du composant.</li>
+    <li>L’anneau ne touche jamais le composant : 2 px de fond, puis 2 px de trait.</li>
   </ul>
 
   <h2>Ce qui fait tenir l’architecture</h2>
   <div class="tw"><table class="plain">
     <thead><tr><th>Règle</th><th>Ce qui la fait respecter</th><th>État</th></tr></thead>
     <tbody>
-      <tr><td>Un calque se lie à <code>usage</code> ou à <code>components</code></td><td>Portées vides sur <code>theme</code> et les collections du dessous ; portées de <code>usage</code> par emploi (D14)</td><td>À poser à la migration</td></tr>
-      <tr><td>La table est la même partout</td><td><code>TABLE_DES_EMPLOIS</code> d’<code>ucm-couleur</code>, dont UCM Palettes écrit <code>usage</code> (D16)</td><td>Table écrite ; écriture des variables à faire</td></tr>
-      <tr><td><code>theme</code> suit sa règle</td><td>Un contrôle compare chaque alias de <code>theme</code> à sa règle</td><td>À écrire</td></tr>
+      <tr><td>Un calque se lie à <code>theme</code> ou à <code>components</code></td><td>Portées vides sur <code>primitives</code>, <code>color-brands</code> et <code>color-utilities</code> ; portées de <code>theme</code> par ce que chaque variable peint (D14)</td><td>À poser dans Figma</td></tr>
+      <tr><td>La table est la même partout</td><td><code>@ucm-kit/core/emplois</code>, lu par UCM Palettes, UCM Explorateur et <code>ucm check</code> (D16)</td><td>Écrit ; table par thème et <code>ring</code> : plan d’implémentation</td></tr>
+      <tr><td><code>theme</code> suit sa règle</td><td>Le profil UCM d’UCM Explorateur compare chaque alias de <code>theme</code> à la table, en information</td><td>Écrit</td></tr>
       <tr><td>Chaque marque et chaque thème ont une valeur</td><td><code>ucm tokens css</code> nomme un token sans valeur dans un contexte ; un contrôle de couverture reste à écrire</td><td>En partie</td></tr>
-      <tr><td>Une colonne de marque n’est pas une copie de la première</td><td>Les alias montrent la palette visée (D5) ; UCM Palettes marque chaque valeur qu’il écrit</td><td>À relire, puis par le plugin</td></tr>
-      <tr><td>Les paires tiennent sur les palettes</td><td><code>verifier-courbes.mjs</code> sur la courbe ; UCM Palettes sur chaque palette</td><td>Écrit</td></tr>
-      <tr><td>Les composants appliquent la table</td><td><code>ucm check</code> : support, paire, hors table (D16)</td><td>À écrire</td></tr>
-      <tr><td>Un état vise son rang</td><td>Table état → rang d’<code>ucm-couleur</code>, comparée par <code>ucm check</code> à l’état publié par le contrat (D17)</td><td>À écrire</td></tr>
+      <tr><td>Une colonne de marque n’est pas une copie de la première</td><td>Les alias montrent la palette visée (D5)</td><td>À relire à chaque marque ajoutée</td></tr>
+      <tr><td>Les garanties tiennent sur les palettes</td><td>UCM Palettes, G1 à G7 par palette, dans la table du thème</td><td>Écrit ; G7 contre la page et la carte : plan d’implémentation</td></tr>
+      <tr><td>Les composants tiennent leurs contrastes</td><td><code>ucm check</code> mesure chaque couleur contre son fond réel, lu dans le contrat</td><td>Écrit, en information</td></tr>
     </tbody>
   </table></div>
 
@@ -525,30 +554,31 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <thead><tr><th>Collection, six marques</th><th class="n">Variables de couleur</th><th class="n">Colonnes</th><th class="n">Valeurs</th></tr></thead>
     <tbody>
       <tr><td><code>primitives › colors</code> : 12 palettes de marque × 22, 4 statuts × 44, neutre 22, blanc et noir</td><td class="n">464</td><td class="n">1</td><td class="n">464</td></tr>
-      <tr><td><code>brand</code> : 44 alias et la couleur de charte</td><td class="n">45</td><td class="n">6</td><td class="n">270</td></tr>
-      <tr><td><code>color-utilities</code> : neutre 22, statuts 176, élévation 6</td><td class="n">204</td><td class="n">1</td><td class="n">204</td></tr>
-      <tr><td><code>theme</code> : 121 nuances, 3 niveaux d’élévation</td><td class="n">124</td><td class="n">2</td><td class="n">248</td></tr>
-      <tr><td><code>usage</code> : 10 palettes de couleur × 20, neutre 23, élévation 3</td><td class="n">226</td><td class="n">1</td><td class="n">226</td></tr>
+      <tr><td><code>color-brands</code> : 44 alias et deux couleurs de charte</td><td class="n">46</td><td class="n">6</td><td class="n">276</td></tr>
+      <tr><td><code>color-utilities</code> : neutre 22, blanc et noir 4, statuts 176, élévation 4</td><td class="n">206</td><td class="n">1</td><td class="n">206</td></tr>
+      <tr><td><code>theme</code> : 152 variables de dossier, 121 de <code>scale</code></td><td class="n">273</td><td class="n">2</td><td class="n">546</td></tr>
     </tbody>
-    <tfoot><tr><td>Total</td><td class="n">1 063</td><td></td><td class="n">1 412</td></tr></tfoot>
+    <tfoot><tr><td>Total</td><td class="n">989</td><td></td><td class="n">1 492</td></tr></tfoot>
   </table></div>
-  <p>La forme précédente, où <code>brand</code> portait les hexas et sans <code>usage</code>, en comptait 710. Tes décisions restent les mêmes : pour chaque marque, deux palettes et une couleur de charte ; pour les rôles communs, cinq palettes ; six niveaux d’élévation. Les autres valeurs suivent une règle, et UCM Palettes les écrit. Le compte des valeurs pèse sur la taille de la feuille CSS, que <code>ucm tokens css</code> imprime à chaque écriture.</p>
+  <p>Tes décisions restent les mêmes : pour chaque marque, deux palettes et une couleur de charte ; pour les rôles communs, cinq palettes ; deux niveaux d’élévation par thème. Les autres valeurs suivent une règle. Le compte des valeurs pèse sur la taille de la feuille CSS que <code>ucm tokens css</code> imprime.</p>
 
   <h2>À décider</h2>
   <ul class="rules">
-    <li>Les modifications que ces décisions entraînent dans ARCHITECTURE-FINALE, <code>ucm-couleur</code>, UCM Palettes et le kit sont inventoriées dans <a href="PLAN-INTEGRATION-ARCHITECTURE.md">PLAN-INTEGRATION-ARCHITECTURE.md</a>, pour l’agent qui les appliquera.</li>
-    <li>Deux essais dans Figma : le choix d’un alias filtre-t-il par portée (D14) ; la description d’une variable s’affiche-t-elle dans le sélecteur, pour y écrire la paire de chaque usage.</li>
-    <li>Le fond de page en clair : la nuance 50 à 0,975 donne #F7F7F7, le fond visé est #f8fafc. Tu règles la palette neutre et la clarté de sa nuance 50.</li>
+    <li>Le bouton plein basculable, activé et survolé : <a href="Bouton%20plein%20basculable/README.md">quatre pistes</a>.</li>
+    <li>L’ombre ou le contour de la carte en sombre, en plus de la page abaissée.</li>
+    <li>En sombre inversé, l’appui du fond teinté (500) a la couleur de l’appui du bouton plein ; seul le texte les distingue.</li>
+    <li>Trois essais dans Figma : le choix d’un alias filtre-t-il par portée ; la description d’une variable s’affiche-t-elle dans le sélecteur ; la couleur d’une ombre liée à une variable suit-elle le mode de <code>theme</code> ?</li>
     <li>Un essai sur six marques avant de généraliser : un jaune clair, un bleu très sombre, une couleur très vive, une marque presque grise.</li>
   </ul>
 
   <footer>
     Sources dans ce dossier et dans le dépôt :
     <ul>
+      <li><a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a> : courbes, table en dossiers, fabrication des palettes.</li>
+      <li><a href="Collection%20usage/RECHERCHE-COLLECTION-USAGE.md">Recherche sur la collection usage</a> : la table en dossiers et la forme du fichier Figma (§4.8).</li>
+      <li><a href="../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md">Décisions de la recette critique de qualité</a> : table par thème, <code>ring</code>, G7, courbe sombre, règle de chroma.</li>
       <li><a href="RECHERCHE-ARCHI-MULTIMARQUES.md">Recherche</a> et <a href="SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md">revue critique</a> ; elles nomment <code>scheme</code> la collection <code>theme</code>.</li>
-      <li><a href="ARCHITECTURE-FINALE-MULTIMARQUES.md">ARCHITECTURE-FINALE</a> : courbes, table des emplois, fabrication des palettes.</li>
       <li><a href="verifier-courbes.mjs"><code>verifier-courbes.mjs</code></a>, <a href="mesurer-duplication.mjs"><code>mesurer-duplication.mjs</code></a>, <a href="mesurer-rampes.mjs"><code>mesurer-rampes.mjs</code></a> : les mesures citées.</li>
-      <li><a href="../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md">UCM Palettes et les outils du marché</a>, section 3 : l’écriture des variables.</li>
     </ul>
   </footer>
   </div>
@@ -568,10 +598,11 @@ footer ul{padding-left:18px;margin:6px 0 0}
     return null;
   }
 
-  /* Demain : palettes calculées sur la courbe de clarté proposée. */
+  /* Demain : palettes calculées sur les courbes de clarté et la règle de chroma retenues (D7, D20). */
   var CR=[50,100,200,300,400,500,600,700,800,900,950];
-  var LC={light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.18,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]};
-  var PART={soft:.45,vivid:.95};
+  var LC={light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.145,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]};
+  /* L'enveloppe par profil et par thème : part par défaut p0, bornes a et b, marge des jaunes k. L'intensité unique prend celle de vivid. */
+  var ENV={soft:{p0:.85,light:{a:.6,b:.38,k:1},dark:{a:1.1,b:.38,k:0}},vivid:{p0:.95,light:{a:1.1,b:.48,k:.5},dark:{a:1.1,b:.30,k:0}}};
   function lin(L,C,h){
     var a=C*Math.cos(h*Math.PI/180),b=C*Math.sin(h*Math.PI/180);
     var l=Math.pow(L+.3963377774*a+.2158037573*b,3),m=Math.pow(L-.1055613458*a-.0638541728*b,3),s=Math.pow(L-.0894841775*a-1.291485548*b,3);
@@ -588,66 +619,80 @@ footer ul{padding-left:18px;margin:6px 0 0}
     var L=.2104542553*l+.793617785*m-.0040720468*s,A=1.9779984951*l-2.428592205*m+.4505937099*s,B=.0259040371*l+.7827717662*m-.808675766*s;
     return {L:L,C:Math.hypot(A,B),h:(Math.atan2(B,A)*180/Math.PI+360)%360};
   }
-  /* Les fonds 50 à 300 du thème sombre perdent de la chroma : facteur 0,30 au 50, 1 au 400. */
-  function fac(t,i){if(t!=="dark"||i>3)return 1;return .30+.70*(LC.dark[i]-.18)/(.40-.18);}
-  function ramp(h,part,t){return LC[t].map(function(l,i){return toHex(lin(l,maxC(l,h)*part*fac(t,i),h));});}
+  /* Les fonds sombres perdent de la chroma : facteur 0,30 au cran 50, 1 au cran 400. */
+  function fac(t,i){if(t!=="dark"||i>3)return 1;return .30+.70*(LC.dark[i]-LC.dark[0])/(.40-LC.dark[0]);}
+  function ecart(h){var d=Math.abs(h-100)%360;return d>180?360-d:d;}
+  /* C = min(part × plafond, p0 × min(a × marge × (1 − L), b × L)), la part réduite sur les fonds sombres. */
+  function chroma(l,h,part,t,i,profil){
+    var e=ENV[profil],bt=e[t],marge=1+bt.k*Math.exp(-.5*Math.pow(ecart(h)/12,2));
+    return Math.min(part*fac(t,i)*maxC(l,h),e.p0*Math.min(bt.a*marge*(1-l),bt.b*l));
+  }
+  function ramp(h,part,t,profil){return LC[t].map(function(l,i){return toHex(lin(l,chroma(l,h,part,t,i,profil),h));});}
+  function grey(t){return LC[t].map(function(l){return toHex(lin(l,0,0));});}
   function nearest(t,L){var best=0;LC[t].forEach(function(l,i){if(Math.abs(l-L)<Math.abs(LC[t][best]-L))best=i;});return best;}
-  /* Palette à une intensité : la chroma de la référence, la référence à sa nuance la plus proche. */
-  function one(ref){var o=oklch(ref),part=Math.min(1,o.C/Math.max(1e-6,maxC(o.L,o.h))),P={ref:ref};
-    ["light","dark"].forEach(function(t){var a=ramp(o.h,part,t);a[nearest(t,o.L)]=ref;P[t]=a;});return P;}
-  /* Palette à deux intensités : soft et vivid à la teinte de la référence. */
-  function two(ref){var o=oklch(ref),P={ref:ref};["soft","vivid"].forEach(function(p){P[p]={light:ramp(o.h,PART[p],"light"),dark:ramp(o.h,PART[p],"dark")};});return P;}
+  /* Palette à une intensité : la part de la référence, la référence posée à son cran le plus proche. */
+  function one(ref){var o=oklch(ref),part=Math.min(1,o.C/Math.max(1e-6,maxC(o.L,o.h))),P={ref:ref,cran:CR[nearest("light",o.L)]};
+    ["light","dark"].forEach(function(t){var a=ramp(o.h,part,t,"vivid");a[nearest(t,o.L)]=ref;P[t]=a;});return P;}
+  /* Palette à deux intensités : soft et vivid à leur part par défaut, à la teinte de la référence. */
+  function two(ref){var o=oklch(ref),P={ref:ref};["soft","vivid"].forEach(function(p){P[p]={light:ramp(o.h,ENV[p].p0,"light",p),dark:ramp(o.h,ENV[p].p0,"dark",p)};});return P;}
   var PAL={
     terracota:one("#B15152"),deep:one("#4C3EBA"),sky:one("#0EA5E9"),rose:one("#F43F5E"),mimosa:one("#F2CF4A"),ardoise:one("#2F3E5C"),
     grass:two("#22C55E"),orange:two("#F97316"),blue:two("#3B82F6"),poppy:two("#EF4444"),
-    titanium:{light:ramp(0,0,"light"),dark:ramp(0,0,"dark")}
+    titanium:{light:grey("light"),dark:grey("dark")}
   };
   var BRANDS=["intencial","marque-2","marque-3"];
   var BRAND_PAL={"intencial":{primary:"terracota",secondary:"deep"},"marque-2":{primary:"sky",secondary:"rose"},"marque-3":{primary:"mimosa",secondary:"ardoise"}};
   var UTIL_PAL={success:"grass",warning:"orange",info:"blue",danger:"poppy",neutral:"titanium"};
   function idx(n){return CR.indexOf(+n);}
 
-  /* La table des emplois d'ucm-couleur (emplois.ts) : nuance de repos, puis un rang par état. */
-  var EMP={"solid":700,"text":700,"surface":100,"surface-card":50,"border-control":600,"border-decorative":300,"focus":600};
-  var ETAT={"default":0,"hover":1,"active":2,"active-hover":3};
+  /* La table en dossiers par thème, au sens normal : texte des boutons blanc en clair, noir en sombre (D13, D18). */
+  var TABLE={
+    light:{"solid/default":700,"solid/hover":800,"solid/pressed":900,"solid/foreground":"white","surface/default":100,"surface/hover":200,"surface/pressed":300,"surface/foreground":800,"surface/border":800,"page/foreground":700,"page/border":700,"page/divider":300,"ring":600},
+    dark:{"solid/default":700,"solid/hover":800,"solid/pressed":900,"solid/foreground":"black","surface/default":300,"surface/hover":400,"surface/pressed":500,"surface/foreground":950,"surface/border":950,"page/foreground":700,"page/border":700,"page/divider":300,"ring":600}
+  };
+  var VARS=["solid/default","solid/hover","solid/pressed","solid/foreground","surface/default","surface/hover","surface/pressed","surface/foreground","surface/border","page/foreground","page/border","page/divider","ring"];
+  var NEUTRE={"page/foreground-main":{light:"black",dark:"white"},"page/foreground-subtle":{light:700,dark:700},"scale/0":{light:"white",dark:"black"},"scale/1000":{light:"black",dark:"white"}};
+  var DESACTIVE={"disabled/background":200,"disabled/foreground":500,"disabled/border":500};
   var STATUTS=["success","warning","info","danger"];
-  var ELEV={light:{page:"primitives.colors.titanium.light.50",raised:"primitives.colors.white",overlay:"primitives.colors.white"},
-            dark:{page:"primitives.colors.titanium.dark.50",raised:"primitives.colors.titanium.dark.100",overlay:"primitives.colors.titanium.dark.100"}};
-  function usageTarget(p){
-    if(p[1]==="elevation")return "theme.elevation."+p[2];
-    var fam=p[1],i=2,inten="";
-    if(STATUTS.indexOf(fam)>=0){inten="."+p[2];i=3;}
-    var emp=p[i],etat=p[i+1];
-    if(emp==="on-solid")return "theme.neutral.50";
-    if(emp==="text-strong")return "theme.neutral.900";
-    if(emp==="text-disabled")return "theme.neutral.500";
-    if(emp==="fill-disabled")return "theme.neutral.200";
-    return "theme."+fam+inten+"."+CR[CR.indexOf(EMP[emp])+(ETAT[etat]||0)];
-  }
+  var ELEV={light:{page:"color-utilities.neutral.light.50",raised:"color-utilities.neutral.light.white"},
+            dark:{page:"color-utilities.neutral.dark.50",raised:"color-utilities.neutral.dark.100"}};
 
+  /* Le cran ou la constante qu'une variable de theme vise dans le thème t. */
+  function cranDe(fam,rest,t){
+    if(rest.indexOf("scale/")===0){var n=rest.slice(6);if(fam==="neutral"&&NEUTRE[rest])return NEUTRE[rest][t];return +n;}
+    if(fam==="neutral"&&NEUTRE[rest])return NEUTRE[rest][t];
+    if(DESACTIVE[rest])return DESACTIVE[rest];
+    return TABLE[t][rest];
+  }
   /* L'alias suivant d'une variable de demain, dans une marque et un thème donnés ; null pour une valeur. */
   function next(path,brand,t){
     var p=path.split(".");
     t=t||"light";
-    if(p[0]==="usage")return usageTarget(p);
-    if(p[0]==="theme"&&p[1]==="elevation")return "color-utilities.elevation."+t+"."+p[2];
-    if(p[0]==="color-utilities"&&p[1]==="elevation")return ELEV[p[2]][p[3]];
     if(p[0]==="theme"){
-      if(p[1]==="primary"||p[1]==="secondary")return "brand.palette."+p[1]+"."+t+"."+p[2];
-      if(p[1]==="neutral")return "color-utilities.neutral."+t+"."+p[2];
-      return "color-utilities."+p[1]+"."+p[2]+"."+t+"."+p[3];
+      if(p[1]==="elevation")return "color-utilities.elevation."+t+"."+p[2];
+      var fam=p[1],i=2,inten="";
+      if(STATUTS.indexOf(fam)>=0){inten="."+p[2];i=3;}
+      if(p[1]==="disabled"){fam="neutral";i=1;}
+      var rest=p.slice(i).join("/"),c=cranDe(fam,rest,t);
+      if(c==="white"||c==="black")return "color-utilities.neutral."+t+"."+c;
+      if(fam==="primary"||fam==="secondary")return "color-brands."+fam+"."+t+"."+c;
+      return "color-utilities."+fam+inten+"."+t+"."+c;
     }
-    if(p[0]==="brand")return "primitives.colors."+BRAND_PAL[brand||"intencial"][p[2]]+"."+p[3]+"."+p[4];
+    if(p[0]==="color-utilities"&&p[1]==="elevation")return ELEV[p[2]][p[3]];
+    if(p[0]==="color-brands"){
+      if(p[1]==="identity")return "color-brands."+p[2]+".light."+PAL[BRAND_PAL[brand||"intencial"][p[2]]].cran;
+      return "primitives.colors."+BRAND_PAL[brand||"intencial"][p[1]]+"."+p[2]+"."+p[3];
+    }
     if(p[0]==="color-utilities"){
-      if(p[1]==="neutral")return "primitives.colors.titanium."+p[2]+"."+p[3];
+      if(p[1]==="neutral")return "primitives.colors.titanium."+(p[3]==="white"||p[3]==="black"?p[3]:p[2]+"."+p[3]);
       return "primitives.colors."+UTIL_PAL[p[1]]+"."+p[2]+"."+p[3]+"."+p[4];
     }
     return null;
   }
   function valueOf(path){
     var p=path.split("."),pal=PAL[p[2]];
-    if(p[2]==="white")return "#FFFFFF";
-    if(p[2]==="black")return "#000000";
+    if(p[3]==="white")return "#FFFFFF";
+    if(p[3]==="black")return "#000000";
     if(p.length===6)return pal[p[3]][p[4]][idx(p[5])];
     return pal[p[3]][idx(p[4])];
   }
@@ -662,18 +707,18 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function T(text){return {t:text};}
 
   var COMP=[
-    ["button/colors/primary/contained","default/background","color-brand-tokens.primary.default","usage.primary.solid.default"],
-    ["button/colors/primary/contained","hover/background","color-brand-tokens.primary.emphasis","usage.primary.solid.hover"],
-    ["button/colors/primary/contained","press/background","color-brand-tokens.primary.emphasis","usage.primary.solid.active"],
-    ["button/colors/primary/contained","default/foreground","color-utilities.neutral.50","usage.primary.on-solid"],
-    ["button/colors/primary/contained","focus/ring","color-brand-tokens.primary.subtle","usage.primary.focus"],
-    ["button/colors/primary/outlined","default/foreground","color-brand-tokens.primary.default","usage.primary.text.default"],
-    ["button/colors/primary/outlined","default/border","color-brand-tokens.primary.default","usage.primary.border-control.default"],
-    ["alert/colors/info/standard","background","primitives.colors.sky.50","usage.info.vivid.surface.default"],
-    ["alert/colors/info/standard","foreground","primitives.colors.sky.700","usage.info.vivid.text.default"],
-    ["alert/colors/success/filled","background","color-utilities.success.700","usage.success.vivid.solid.default"],
-    ["alert/colors/success/filled","foreground","primitives.colors.titanium.0","usage.success.vivid.on-solid"],
-    ["stresstest/info/scalewrap/colors","scale-5","primitives.colors.orange.600","theme.warning.vivid.600","hors table (D14)"]
+    ["button/colors/primary/contained","default/background","color-brand-tokens.primary.default","theme.primary.solid.default"],
+    ["button/colors/primary/contained","hover/background","color-brand-tokens.primary.emphasis","theme.primary.solid.hover"],
+    ["button/colors/primary/contained","press/background","color-brand-tokens.primary.emphasis","theme.primary.solid.pressed"],
+    ["button/colors/primary/contained","default/foreground","color-utilities.neutral.50","theme.primary.solid.foreground"],
+    ["button/colors/primary/contained","focus/ring","color-brand-tokens.primary.subtle","theme.primary.ring"],
+    ["button/colors/primary/outlined","default/foreground","color-brand-tokens.primary.default","theme.primary.page.foreground"],
+    ["button/colors/primary/outlined","default/border","color-brand-tokens.primary.default","theme.primary.solid.default"],
+    ["alert/colors/info/standard","background","primitives.colors.sky.50","theme.info.vivid.surface.default"],
+    ["alert/colors/info/standard","foreground","primitives.colors.sky.700","theme.info.vivid.surface.foreground"],
+    ["alert/colors/success/filled","background","color-utilities.success.700","theme.success.vivid.solid.default"],
+    ["alert/colors/success/filled","foreground","primitives.colors.titanium.0","theme.success.vivid.solid.foreground"],
+    ["stresstest/info/scalewrap/colors","scale-5","primitives.colors.orange.600","theme.warning.vivid.scale.600","hors table (D14)"]
   ];
   function compRows(tomorrow){
     var out=[],last="";
@@ -682,33 +727,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
       if(tomorrow)out.push(R(c[0],c[1],[A(c[3],hexTomorrow(c[3]))],"mod",{a:c[2],hex:hexToday(c[2])}));
       else out.push(R(c[0],c[1],[A(c[2],hexToday(c[2]))]));
     });
-    out.push(M(tomorrow?"Les 294 autres couleurs visent un usage de la table, ou une nuance de theme hors table. Les 63 dimensions ne changent pas.":"… 294 autres couleurs, et 63 dimensions"));
+    out.push(M(tomorrow?"Les 294 autres couleurs visent une variable de dossier de theme, ou un cran de scale pour une couleur hors table. Les 63 dimensions ne changent pas.":"… 294 autres couleurs, et 63 dimensions"));
     return out;
   }
-  var EMP_SANS_ETAT=["on-solid","surface-card","border-decorative","focus"];
-  var EMP_A_ETATS=["solid","text","surface","border-control"];
-  function usageRows(){
-    var out=[];
-    function row(g,n,path){var tgt=next(path);return R(g,n,[A(tgt,hexTomorrow(tgt))],"new");}
-    out.push(G("primary","ajouté"));
-    EMP_SANS_ETAT.forEach(function(e){out.push(row("primary",e,"usage.primary."+e));});
-    EMP_A_ETATS.forEach(function(e){
-      var g="primary/"+e;out.push(G(g,"ajouté"));
-      ["default","hover","active","active-hover"].forEach(function(s){out.push(row(g,s,"usage.primary."+e+"."+s));});
-    });
-    out.push(M("… secondary : les mêmes 20 usages, vers theme.secondary.*","new"));
-    [["info/vivid/surface","default","usage.info.vivid.surface.default"],["info/vivid/text","default","usage.info.vivid.text.default"],["success/vivid/solid","default","usage.success.vivid.solid.default"],["success/vivid","on-solid","usage.success.vivid.on-solid"]].forEach(function(e){
-      out.push(G(e[0],"ajouté"));out.push(row(e[0],e[1],e[2]));
-    });
-    out.push(M("… chaque statut, en soft et en vivid : les mêmes 20 usages","new"));
-    out.push(G("neutral","ajouté"));
-    ["text-strong","text-disabled","fill-disabled"].forEach(function(e){out.push(row("neutral",e,"usage.neutral."+e));});
-    out.push(M("… neutral porte aussi les 20 usages de la table","new"));
-    out.push(G("elevation","ajouté"));
-    ["page","raised","overlay"].forEach(function(e){out.push(row("elevation",e,"usage.elevation."+e));});
-    return out;
-  }
-
   /* Aujourd'hui */
   function brandsGroup(g,crans){
     var out=[G(g)];
@@ -748,25 +769,33 @@ footer ul{padding-left:18px;margin:6px 0 0}
     return out;
   }
 
+
   /* Demain */
+  function pair(src,brand){return ["light","dark"].map(function(t){var s=src.replace("{t}",t),n=next(s,brand||"intencial",t);return A(n,hexTomorrow(n,brand||"intencial",t));});}
   function themeRows(){
-    var out=[G("primary","ajouté")];
-    function pair(src){return [A(src.replace("{t}","light"),hexTomorrow(src.replace("{t}","light"),"intencial","light")),A(src.replace("{t}","dark"),hexTomorrow(src.replace("{t}","dark"),"intencial","dark"))];}
-    ["50","100","200","300","400","600","700","800","900","950"].forEach(function(n){out.push(R("primary",n,pair("brand.palette.primary.{t}."+n),"new"));});
-    out.push(M("… 500 : aucun emploi ; un token de composant peut la viser (D14)","new"));
+    var out=[];
+    var last=null;
+    function dossier(fam,label,vars){
+      vars.forEach(function(v){var parts=v.split("/"),g=parts.length>1?label+"/"+parts[0]:label,n=parts[parts.length-1];
+        if(g!==last){out.push(G(g,"ajouté"));last=g;}
+        out.push(R(g,n,pair("theme."+fam+"."+v.replace(/\//g,".")),"new"));});
+    }
+    dossier("primary","primary",VARS);
+    out.push(G("primary/scale","ajouté"));
+    ["100","300","500","700","950"].forEach(function(n){out.push(R("primary/scale",n,pair("theme.primary.scale."+n),"new"));});
+    out.push(M("… 6 autres crans, de 50 à 950 : les couleurs hors table (D14)","new"));
     out.push(G("secondary","ajouté"));
-    out.push(R("secondary","700",pair("brand.palette.secondary.{t}.700"),"new"));
-    out.push(M("… 10 autres nuances","new"));
+    out.push(M("… les mêmes 13 variables et 11 crans, vers color-brands.secondary","new"));
+    dossier("info.vivid","info/vivid",["surface/default","surface/hover","surface/pressed","surface/foreground","surface/border"]);
+    dossier("success.vivid","success/vivid",["solid/default","solid/foreground"]);
+    out.push(M("… 4 statuts × soft et vivid : 13 variables et 11 crans chacun","new"));
     out.push(G("neutral","ajouté"));
-    ["50","200","300","500","600","700","800","900"].forEach(function(n){out.push(R("neutral",n,pair("color-utilities.neutral.{t}."+n),"new"));});
-    out.push(M("… 3 autres nuances","new"));
-    [["info","vivid",["100","700"]],["success","soft",["100"]],["success","vivid",["700"]],["warning","vivid",["600"]]].forEach(function(e){
-      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      e[2].forEach(function(n){out.push(R(g,n,pair("color-utilities."+e[0]+"."+e[1]+".{t}."+n),"new"));});
-    });
-    out.push(M("… 4 statuts × soft et vivid × 11 nuances : 88 variables","new"));
+    ["page/foreground-main","page/foreground-subtle","page/foreground","page/border","page/divider"].forEach(function(v){out.push(R("neutral",v,pair("theme.neutral."+v.replace(/\//g,".")),"new"));});
+    out.push(M("… les 13 variables de palette, scale/0 et scale/1000, et 11 crans","new"));
+    out.push(G("disabled","ajouté"));
+    ["background","foreground","border"].forEach(function(v){out.push(R("disabled",v,pair("theme.disabled."+v),"new"));});
     out.push(G("elevation","ajouté"));
-    ["page","raised","overlay"].forEach(function(n){out.push(R("elevation",n,pair("color-utilities.elevation.{t}."+n),"new"));});
+    ["page","raised"].forEach(function(n){out.push(R("elevation",n,pair("theme.elevation."+n),"new"));});
     out.push(G("exception","réservé, vide"));
     return out;
   }
@@ -774,17 +803,19 @@ footer ul{padding-left:18px;margin:6px 0 0}
     var out=[];
     function aliasRow(g,role,t,n){return R(g,n,BRANDS.map(function(b){var path="primitives.colors."+BRAND_PAL[b][role]+"."+t+"."+n;return A(path,valueOf(path));}).concat([T("…")]),"new");}
     [["primary","light"],["primary","dark"]].forEach(function(e){
-      var g="palette/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      ["100","600","700","800","900"].forEach(function(n){out.push(aliasRow(g,e[0],e[1],n));});
-      out.push(M("… 6 autres nuances","new"));
+      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      ["100","300","600","700","950"].forEach(function(n){out.push(aliasRow(g,e[0],e[1],n));});
+      out.push(M("… 6 autres crans","new"));
     });
     [["secondary","light"],["secondary","dark"]].forEach(function(e){
-      var g="palette/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
+      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
       out.push(aliasRow(g,e[0],e[1],"700"));
-      out.push(M("… 10 autres nuances","new"));
+      out.push(M("… 10 autres crans","new"));
     });
     out.push(G("identity","ajouté"));
-    out.push(R("identity","primary",BRANDS.map(function(b){return H(PAL[BRAND_PAL[b].primary].ref);}).concat([T("…")]),"new"));
+    ["primary","secondary"].forEach(function(r){
+      out.push(R("identity",r,BRANDS.map(function(b){var pal=BRAND_PAL[b][r],path="color-brands."+r+".light."+PAL[pal].cran;return A(path,PAL[pal].ref);}).concat([T("…")]),"new"));
+    });
     out.push(G("params","réservé, vide"));
     out.push(G("exception","réservé, vide"));
     out.push(G("primary","supprimé"));
@@ -796,41 +827,42 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function utilRows(){
     var out=[];
     function aliasRow(g,path,n){return R(g,n,[A(path,valueOf(path))],"new");}
-    [["soft","light",["100","700"]],["soft","dark",["100","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
+    [["soft","light",["100","700"]],["soft","dark",["300","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
       var g="success/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
       e[2].forEach(function(n){out.push(aliasRow(g,"primitives.colors.grass."+e[0]+"."+e[1]+"."+n,n));});
     });
     out.push(M("… success : 44 alias au total","new"));
-    [["vivid","light"],["vivid","dark"]].forEach(function(e){
+    [["vivid","light",["100","800"]],["vivid","dark",["300","950"]]].forEach(function(e){
       var g="info/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      ["100","700"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.blue."+e[0]+"."+e[1]+"."+n,n));});
+      e[2].forEach(function(n){out.push(aliasRow(g,"primitives.colors.blue."+e[0]+"."+e[1]+"."+n,n));});
     });
     out.push(G("warning/vivid/light","ajouté"));
     out.push(aliasRow("warning/vivid/light","primitives.colors.orange.vivid.light.600","600"));
     out.push(M("… info vise blue, qui n’est plus la palette de marque-2 ; warning vise orange, danger vise poppy : 44 alias chacun","new"));
     ["light","dark"].forEach(function(t){
       var g="neutral/"+t;out.push(G(g,"ajouté"));
-      ["50","200","300","500","600","700","800","900"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+t+"."+n,n));});
-      out.push(M("… 3 autres nuances","new"));
+      ["50","100","200","300","500","700","900"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+t+"."+n,n));});
+      out.push(M("… 4 autres crans","new"));
+      ["white","black"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+n,n));});
     });
     ["light","dark"].forEach(function(t){
       var g="elevation/"+t;out.push(G(g,"ajouté"));
-      ["page","raised","overlay"].forEach(function(n){out.push(aliasRow(g,ELEV[t][n],n));});
+      ["page","raised"].forEach(function(n){var a=ELEV[t][n];out.push(R(g,n,[A(a,hexTomorrow(a,"intencial",t))],"new"));});
     });
     out.push(G("success, warning, info, danger : 50 à 900, sans thème ni intensité","supprimé"));
     out.push(M("40 variables remplacées par les groupes ci-dessus","del"));
     out.push(G("neutral : 1000, 1100, white, black","supprimé"));
-    out.push(M("hors de la courbe de 50 à 950 ; white et black deviennent colors/white et colors/black dans primitives (D10)","del"));
+    out.push(M("1000 et 1100 sont hors de la courbe ; white et black deviennent neutral/light|dark/white|black (D10)","del"));
     return out;
   }
   function primRows(){
     var out=[];
     var g="colors/terracota/light";out.push(G(g,"renommé, recalculé"));
     ["100","600","700","800","900"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.light[idx(n)])],"mod",{label:"colors/terracota/"+n,hex:D.prim.terracota[n]}));});
-    out.push(M("… 6 autres nuances","mod"));
+    out.push(M("… 6 autres crans","mod"));
     g="colors/terracota/dark";out.push(G(g,"ajouté"));
-    ["100","600","700","800","900"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.dark[idx(n)])],"new"));});
-    out.push(M("… 6 autres nuances","new"));
+    ["50","100","300","700","950"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.dark[idx(n)])],"new"));});
+    out.push(M("… 6 autres crans","new"));
     [["deep","mod"],["sky","mod"],["rose","mod"],["mimosa","new"],["ardoise","new"]].forEach(function(e){
       ["light","dark"].forEach(function(t){
         var gg="colors/"+e[0]+"/"+t,st=(t==="dark"||e[1]==="new")?"new":"mod";
@@ -838,26 +870,26 @@ footer ul{padding-left:18px;margin:6px 0 0}
         out.push(R(gg,"700",[H(PAL[e[0]][t][7])],st,st==="mod"?{label:"colors/"+e[0]+"/700",hex:D.prim[e[0]]["700"]}:null));
       });
     });
-    out.push(M("… chaque palette de marque : 11 nuances en light, 11 en dark. mimosa et ardoise sont les palettes de marque-3","new"));
-    [["soft","light",["100","700"]],["soft","dark",["100","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
+    out.push(M("… chaque palette de marque : 11 crans en light, 11 en dark. mimosa et ardoise sont les palettes de marque-3","new"));
+    [["soft","light",["100","700"]],["soft","dark",["300","950"]],["vivid","light",["100","700"]],["vivid","dark",["300","950"]]].forEach(function(e){
       var gg="colors/grass/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
       e[2].forEach(function(n){out.push(R(gg,n,[H(PAL.grass[e[0]][e[1]][idx(n)])],"new"));});
     });
     [["vivid","light"],["vivid","dark"]].forEach(function(e){
       var gg="colors/blue/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
-      ["100","700"].forEach(function(n){out.push(R(gg,n,[H(PAL.blue[e[0]][e[1]][idx(n)])],"new"));});
+      ["100","300","700"].forEach(function(n){out.push(R(gg,n,[H(PAL.blue[e[0]][e[1]][idx(n)])],"new"));});
     });
     out.push(G("colors/orange/vivid/light","ajouté"));
     out.push(R("colors/orange/vivid/light","600",[H(PAL.orange.vivid.light[idx("600")])],"new"));
-    out.push(M("… orange et poppy, et blue en soft : même forme, 44 nuances par palette. Les anciennes nuances de grass, orange, poppy et blue sont remplacées","new"));
+    out.push(M("… orange et poppy, et blue en soft : même forme, 44 crans par palette. Les anciennes nuances de grass, orange, poppy et blue sont remplacées","new"));
     ["light","dark"].forEach(function(t){
       var gg="colors/titanium/"+t;out.push(G(gg,t==="light"?"renommé, recalculé":"ajouté"));
       ["50","100","200","500","700","900"].forEach(function(n){out.push(R(gg,n,[H(PAL.titanium[t][idx(n)])],t==="light"?"mod":"new",t==="light"?{label:"colors/titanium/"+n,hex:D.prim.titanium[n]}:null));});
-      out.push(M("… 5 autres nuances",t==="light"?"mod":"new"));
+      out.push(M("… 5 autres crans",t==="light"?"mod":"new"));
     });
-    out.push(G("colors","renommé"));
-    out.push(R("colors","white",[H("#FFFFFF")],"mod",{label:"colors/titanium/0"}));
-    out.push(R("colors","black",[H("#000000")],"mod",{label:"colors/titanium/1200"}));
+    out.push(G("colors/titanium","renommé"));
+    out.push(R("colors/titanium","white",[H("#FFFFFF")],"mod",{label:"colors/titanium/0"}));
+    out.push(R("colors/titanium","black",[H("#000000")],"mod",{label:"colors/titanium/1200"}));
     out.push(G("colors/titanium : 1000, 1100","supprimé"));
     out.push(M("hors de la courbe de 50 à 950","del"));
     out.push(G("dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily","inchangé"));
@@ -883,21 +915,17 @@ footer ul{padding-left:18px;margin:6px 0 0}
     ],
     tomorrow:[
       {id:"components",info:"aucun mode · mêmes noms",modes:["Valeur"],rows:compRows(true),tag:["mod","valeurs modifiées"],
-        note:["Mêmes noms. Chaque couleur vise l’usage de la table qui correspond à ce qu’elle peint ; sous chaque valeur, l’alias d’aujourd’hui.","Une couleur hors table vise une nuance de theme par un token nommé, comme scale-5 en bas. "+lnk("d11")+" · "+lnk("d13")+" · "+lnk("d14")]},
-      {id:"usage",info:"aucun mode · 226 variables",modes:["Valeur"],rows:usageRows(),tag:["new","nouvelle"],
-        note:["La table des emplois en variables : 20 usages par palette, sur quatre rangs d’état, avec les noms du code d’UCM Palettes. Chaque usage vise une nuance de theme, la même pour toutes les marques.","Chaque usage n’apparaît que dans les sélecteurs de ce qu’il peint : texte, remplissage ou contour. "+lnk("d13")+" · "+lnk("d14")+" · "+lnk("d16")]},
-      {id:"theme",info:"2 modes · 124 variables",modes:["light","dark"],rows:themeRows(),tag:["new","nouvelle"],
-        note:["Le seul endroit où le thème se choisit. Chaque nuance vise la même nuance en version light et en version dark ; aucune valeur ne se choisit ici. Portées vides : theme n’apparaît dans aucun sélecteur de calque.","En dark, les numéros s’inversent : 50 est le fond, le plus sombre ; 700 reste une couleur de texte lisible. Le groupe elevation vise color-utilities, où ses valeurs se choisissent. "+lnk("d2")+" · "+lnk("d15")]},
-      {id:"brand",info:"1 mode par marque · 45 variables",modes:["intencial","marque-2","marque-3","… jusqu’à 6"],newCol:2,rows:brandRows(),tag:["mod","ex-color-brand-tokens"],
-        note:["color-brand-tokens renommée. Chaque colonne choisit les palettes de sa marque dans primitives, par alias. identity/primary garde la couleur de charte.","Les 10 rôles sont supprimés. La colonne marque-3 montre l’ajout d’une marque : une colonne, aucune variable. "+lnk("d3")+" · "+lnk("d4")+" · "+lnk("d9")]},
-      {id:"color-utilities",info:"aucun mode · 204 variables",modes:["Valeur"],rows:utilRows(),tag:["mod","conservée, modifiée"],
-        note:["Les rôles communs à toutes les marques. Chaque statut existe en soft et vivid, en light et dark ; le neutre en light et dark.","info vise maintenant blue : il ne partage plus sky avec la palette principale de marque-2. Les niveaux d’élévation choisissent leur valeur claire et leur valeur sombre séparément. "+lnk("d6")+" · "+lnk("d8")+" · "+lnk("d15")]},
+        note:["Mêmes noms. Chaque couleur vise la variable de theme qui correspond à ce qu’elle peint et au fond qui est derrière elle ; sous chaque valeur, l’alias d’aujourd’hui.","La bordure du bouton outlined prend solid/default ; l’anneau, ring. Une couleur hors table vise un cran de scale, comme scale-5 en bas. "+lnk("d11")+" · "+lnk("d13")+" · "+lnk("d14")+" · "+lnk("d19")]},
+      {id:"theme",info:"2 modes · 273 variables",modes:["light","dark"],rows:themeRows(),tag:["new","nouvelle"],
+        note:["Le seul endroit où le thème se choisit. Par palette, 13 variables en dossiers solid, surface et page, plus ring à la racine, et 11 crans sous scale. Chaque variable vise un cran, le même pour toutes les marques, selon la table du thème : en dark, les fonds teintés passent à 300, 400 et 500 et leur texte à 950.","Les thèmes sont montrés au sens normal : texte des boutons blanc en light, noir en dark. Portées selon ce que chaque variable peint ; scale n’en a aucune. "+lnk("d2")+" · "+lnk("d13")+" · "+lnk("d18")+" · "+lnk("d19")]},
+      {id:"color-brands",info:"1 mode par marque · 46 variables",modes:["intencial","marque-2","marque-3","… jusqu’à 6"],newCol:2,rows:brandRows(),tag:["mod","ex-color-brand-tokens"],
+        note:["color-brand-tokens renommée, l’ancienne color-brands fusionnée. Chaque colonne choisit les palettes de sa marque dans primitives, par alias. identity désigne le cran où la couleur de charte est posée.","Les 10 rôles sont supprimés. La colonne marque-3 montre l’ajout d’une marque : une colonne, aucune variable. "+lnk("d3")+" · "+lnk("d4")+" · "+lnk("d9")]},
+      {id:"color-utilities",info:"aucun mode · 206 variables",modes:["Valeur"],rows:utilRows(),tag:["mod","conservée, modifiée"],
+        note:["Les rôles communs à toutes les marques. Chaque statut existe en soft et vivid, en light et dark ; le neutre en light et dark, avec le blanc et le noir.","info vise maintenant blue : il ne partage plus sky avec la palette principale de marque-2. Les deux niveaux d’élévation choisissent leur valeur claire et leur valeur sombre séparément : en dark, la page au neutre 50 abaissé, la carte au neutre 100. "+lnk("d6")+" · "+lnk("d10")+" · "+lnk("d15")]},
       {id:"primitives",info:"aucun mode · 464 couleurs pour 6 marques",modes:["Valeur"],rows:primRows(),tag:["mod","conservée, modifiée"],
-        note:["Le catalogue des palettes, sous leur nom. Chacune reçoit une version light et une version dark, recalculées sur la courbe commune. Sous une valeur recalculée, la valeur d’aujourd’hui.","Dimensions et typographie inchangées. "+lnk("d5")+" · "+lnk("d7")+" · "+lnk("d10")]},
+        note:["Le catalogue des palettes, sous leur nom, la seule collection qu’UCM Palettes écrit. Chacune reçoit une version light et une version dark, recalculées sur les courbes et la règle de chroma retenues. Sous une valeur recalculée, la valeur d’aujourd’hui.","Dimensions et typographie inchangées. "+lnk("d5")+" · "+lnk("d7")+" · "+lnk("d20")]},
       {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke","inchangé"),M("31 dimensions")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
-      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label","inchangé"),M("60 variables de texte")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
-      {id:"color-brands",gone:true,info:"supprimée",modes:["Valeur"],rows:[G("intencial/…, marque-2/…","supprimé"),M("44 variables","del")],tag:["del","fusionnée"],
-        note:["Supprimée. Ses choix de palettes sont dans les colonnes de brand, groupe palette. "+lnk("d3")]}
+      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label","inchangé"),M("60 variables de texte")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]}
     ]
   };
 
@@ -944,7 +972,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     if(!VIEWS[state.view].some(function(c){return c.id===col;}))return;
     state.col=col;render(k);
   }
-  var SWAP={today:{"color-brand-tokens":"brand"},tomorrow:{"brand":"color-brand-tokens","theme":"components","usage":"components","color-brands":"color-brands"}};
+  var SWAP={today:{"color-brand-tokens":"color-brands"},tomorrow:{"theme":"components"}};
   $("fx").addEventListener("click",function(e){
     var t=e.target.closest("button");if(!t)return;
     if(t.hasAttribute("data-view")){

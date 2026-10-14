@@ -287,7 +287,7 @@ relèvent des composants.
 | Q10, dérive de teinte | `packages/couleur/src/tailwind.ts` (`deriveTailwind`, `prereglageTailwind`) ; le relevé `derives` de la recette porte la teinte et la clarté de chaque cran |
 | S2, courbe | `packages/couleur/src/nuances.ts` : clarté du cran 50 de la courbe Dark par défaut ; le fond de page Dark par défaut de la recette |
 | S2, table | `packages/kit/src/emplois/dossiers.ts` : une table par thème et par sens, que `cranDeLaVariable`, `cransRequis`, `variablePresente` et `variablesDuCran` lisent avec le thème ; `garanties.ts` et ses tests. Lecteurs à suivre : `packages/couleur/src/promesses.ts`, `garantie.ts`, `alertes.ts`, `recette.ts` (crans requis) ; `packages/plugin-palettes/src/presentation.ts`, `planche/modele.ts`, `ui/nuancier.ts`, `ui/garanties.ts`, `ui/apercuCompact.ts`, `ui/interfaceDeTest.ts`, textes `i18n` ; `packages/plugin-explorateur/src/integrations/palettes.ts` et `profilUcm.ts` |
-| Q8, `ring` à la racine de la palette | `VARIABLES_DE_PALETTE`, `ETAT_DU_FOND`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma et contrats qui lisent `page/focus` |
+| Q8, `ring` à la racine de la palette | `VARIABLES_DE_PALETTE`, `ETAT_DU_FOND`, `SUPPORT_DES_VARIABLES`, G7 |
 | G7 contre la page et la carte | `packages/kit/src/emplois/garanties.ts` : les fonds de G7 deviennent la page et la carte ; `packages/couleur/src/promesses.ts` et `garantie.ts` reçoivent la couleur de la carte (blanche en Light, neutre 100 en Dark), absente aujourd'hui de la recette ; textes de Vérification |
 | S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (400, 500 et 950), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
@@ -317,7 +317,6 @@ la couleur de la carte changent.
 | `packages/plugin-explorateur/src/integrations/`, `README.md`, `SPEC.md` | Le rôle `ring` remplace `page/focus` dans le profil UCM |
 | Tests | `kit/tests/dossiers.test.ts`, `garanties.test.ts`, `couleur/tests/garantie.test.ts`, `plugin-palettes/tests/` (aperçu et interface de test, bilan, configuration, planche), `plugin-explorateur/tests/integrationsUcm.test.ts` |
 | `AGENTS.md` | La carte du code nomme `ring` |
-| Fichier Figma, contrats et Playground | Les liaisons et les références à `page/focus` migrent vers `ring`, comme `text` vers `foreground` |
 
 ## 5. Ce qui a été jugé à l'œil
 

@@ -21,10 +21,10 @@ palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/1%20Reche
 
 [VUE-ILLUSTREE-MULTIMARQUES.html](./VUE-ILLUSTREE-MULTIMARQUES.html) montre
 la même architecture en schémas, à ouvrir dans un navigateur : le panneau des
-variables de Figma aujourd'hui et demain, et les décisions D1 à D17, chacune
+variables de Figma aujourd'hui et demain, et les décisions D1 à D20, chacune
 avec sa raison, l'option écartée et son origine. Ce document cite une décision
-par son numéro. La vue décrit encore la collection `usage` (D11, D13, D17) : la
-table en dossiers des sections 4 et 5 l'a remplacée.
+par son numéro. La vue montre déjà les décisions de la recette critique
+reportées en tête de ce document.
 
 Chaque nombre cité se rejoue avec un script de ce dossier :
 
