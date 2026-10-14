@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteAvecTexteDesBoutons, recetteParDefaut, validerRecette, type Palette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, validerRecette, type Palette } from 'ucm-couleur';
 
 import {
   changementAuPasVoisin,
@@ -19,8 +19,9 @@ import {
   propositionAuPas,
 } from '../src/ajustementDeLaReference';
 import { ajouter, changerReference, nouvellePalette, revenirALOriginale } from '../src/edition';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const RECETTE = recetteParDefaut();
+const RECETTE = recetteAuxPartsDe045();
 const VERT: Palette = { ...nouvellePalette(RECETTE, 'p-0000000b', '#16A34A', 2)!, nom: 'Vert' };
 const auPas = (palette: Palette, pas: number): Palette => paletteAuPas(RECETTE, palette, pas)!;
 

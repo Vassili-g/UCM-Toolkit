@@ -24,6 +24,20 @@ export function paletteTailwind(id: string, reference: string, autres: Partial<P
   };
 }
 
+/** Les profils par défaut, aux parts communes données : les enveloppes restent celles de la recette par défaut. */
+export function profilsAuxParts(soft: number, vivid: number): Recette['profils'] {
+  const { profils } = recetteParDefaut();
+  return { soft: { ...profils.soft, part: soft }, vivid: { ...profils.vivid, part: vivid } };
+}
+
+/**
+ * La recette par défaut aux parts communes 0,45 et 0,95 : les parts que décrivent les tests du
+ * classement des profils et des alertes de parts, d'avant la part Soft par défaut à 0,85.
+ */
+export function recetteAuxPartsDe045(...palettes: Palette[]): Recette {
+  return { ...recetteParDefaut(), profils: profilsAuxParts(0.45, 0.95), palettes };
+}
+
 /** La recette par défaut, avec les palettes données. */
 export function recetteAvec(...palettes: Palette[]): Recette {
   return { ...recetteParDefaut(), palettes };

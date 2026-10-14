@@ -42,8 +42,9 @@ import {
   revenirALOriginale,
   revenirAuModele,
 } from '../src/edition';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const RECETTE = recetteParDefaut();
+const RECETTE = recetteAuxPartsDe045();
 const BLEU: Palette = { ...nouvellePalette(RECETTE, 'p-0000001a', '#1E6FD9', 2)!, nom: 'Bleu' };
 const PORTEUR = profilPorteur(RECETTE, BLEU);
 const AUTRE = PORTEUR === 'vivid' ? 'soft' : 'vivid';

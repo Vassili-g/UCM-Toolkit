@@ -64,9 +64,9 @@ test('vecteur : les gris de clarté 0,975 et 0,180 sont les fonds par défaut', 
   assert.equal(fabriquerCran(0.18, 0, 0, 'srgb').hexa, '#121212');
 });
 
-test('vecteur : #1E6FD9 au préréglage Tailwind, dérive 12,63°, clair -7,53, sombre +5,11', () => {
+test('vecteur : #1E6FD9 au préréglage Tailwind, dérive 12,64°, clair -7,53, sombre +5,11', () => {
   const reference = rgb8VersOklch(hexa('#1E6FD9'));
-  assert.equal(deriveTailwind(reference.H).toFixed(2), '12.63');
+  assert.equal(deriveTailwind(reference.H).toFixed(2), '12.64');
   assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: -7.53, sombre: 5.11 });
 });
 

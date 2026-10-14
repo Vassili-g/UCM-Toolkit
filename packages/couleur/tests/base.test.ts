@@ -27,10 +27,10 @@ import {
   type Profil,
   type Recette,
 } from '../src/index';
-import { paletteTailwind } from './fabrique';
+import { paletteTailwind, profilsAuxParts, recetteAuxPartsDe045 } from './fabrique';
 
-/** Une recette d'une seule palette de cette référence, forcée sur `base` quand elle est donnée. */
-function forcee(reference: string, base?: Profil, recette: Recette = recetteParDefaut()): { recette: Recette; palette: Palette } {
+/** Une recette d'une seule palette de cette référence, forcée sur `base` quand elle est donnée, aux parts communes 0,45 et 0,95. */
+function forcee(reference: string, base?: Profil, recette: Recette = recetteAuxPartsDe045()): { recette: Recette; palette: Palette } {
   const palette = paletteTailwind('p-000000b1', reference, base ? { base } : {});
   return { recette: { ...recette, palettes: [palette] }, palette };
 }
@@ -91,7 +91,7 @@ test('[ENT-11] la part de l’autre profil est continue quand la référence pas
   // La part commune de Soft encadre celle de #897288, 0,160 : Vivid passe du rapport à sa part commune sans saut.
   const part = partDe('#897288');
   const autour = (soft: number) => {
-    const { recette, palette } = forcee('#897288', 'soft', { ...recetteParDefaut(), profils: { soft: { part: soft }, vivid: { part: 0.95 } } });
+    const { recette, palette } = forcee('#897288', 'soft', { ...recetteParDefaut(), profils: profilsAuxParts(soft, 0.95) });
     return partsDe(recette, palette).vivid!;
   };
   assert.ok(Math.abs(autour(part + 0.001) - 0.95) <= 0.01);
@@ -108,7 +108,7 @@ test('[ENT-11] des intensités du designer passent avant celles de la palette de
 
 test('[ENT-11] changer les intensités communes ne déplace pas une référence forcée', () => {
   const { recette, palette } = forcee('#A0B599', 'vivid');
-  const autre: Recette = { ...recette, profils: { soft: { part: 0.1 }, vivid: { part: 0.2 } } };
+  const autre: Recette = { ...recette, profils: profilsAuxParts(0.1, 0.2) };
   assert.equal(profilPorteur(autre, palette), 'vivid');
   assert.equal(partsDe(autre, palette).soft, Math.min(0.1, partDe('#A0B599')));
 });
@@ -120,7 +120,7 @@ test('[ENT-11] propriété : sur des teintes, clartés et intensités communes v
       const reference = hsl(teinte, 70, clarte);
       for (const [soft, vivid] of communes) {
         for (const base of PROFILS) {
-          const recette: Recette = { ...recetteParDefaut(), profils: { soft: { part: soft }, vivid: { part: vivid } } };
+          const recette: Recette = { ...recetteParDefaut(), profils: profilsAuxParts(soft, vivid) };
           const { recette: avec, palette } = forcee(reference, base, recette);
           const nom = `${reference} ${base} ${soft}/${vivid}`;
           assert.ok('recette' in validerRecette(avec), nom);

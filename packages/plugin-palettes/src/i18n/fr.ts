@@ -1099,8 +1099,16 @@ export function nommerChamp(chemin: string): string {
   if (trouve) return `Minimum ou seuil : ${NOMS_DES_SEUILS[trouve[1]] ?? trouve[1]}`;
   trouve = /^contenuDesPlanches\.(\w+)$/.exec(chemin);
   if (trouve) return `Contenu des planches, ${PARTIES_DU_CONTENU[trouve[1]] ?? trouve[1]}`;
-  trouve = /^derives\[(\d+)\]$/.exec(chemin);
-  if (trouve) return `Préréglage Tailwind, gamme ${Number(trouve[1]) + 1}`;
+  trouve = /^profils\.(soft|vivid)\.enveloppe(?:\.(light|dark))?(?:\.(\w+))?$/.exec(chemin);
+  if (trouve) {
+    return [`Règle de chroma de ${trouve[1]}`, ...(trouve[2] ? [PARTIES_DU_CONTENU[trouve[2]]] : []), ...(trouve[3] ? [`borne ${trouve[3]}`] : [])].join(', ');
+  }
+  trouve = /^derives\[(\d+)\](?:\.crans(?:\[(\d+)\])?)?$/.exec(chemin);
+  if (trouve) {
+    const gamme = `Préréglage Tailwind, gamme ${Number(trouve[1]) + 1}`;
+    if (!chemin.includes('.crans')) return gamme;
+    return `${gamme}, ${trouve[2] ? `${rangEcrit(Number(trouve[2]))} nuance` : 'nuances'}`;
+  }
   trouve = /^palettes\[(\d+)\]\.crans\[(\d+)\]$/.exec(chemin);
   if (trouve) return `Palette ${Number(trouve[1]) + 1}, ${rangEcrit(Number(trouve[2]))} nuance`;
   trouve = /^palettes\[(\d+)\]\.derive\.(soft|vivid)\.(clair|sombre)$/.exec(chemin);
@@ -1141,9 +1149,11 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'hexa-invalide': (champ, valeur) => `${champ} : « ${valeur} » invalide. Utilisez un code hexadécimal comme #1E6FD9.`,
   'seuils-positifs': (champ, valeur) => `${champ} : ${valeur}. Saisissez un nombre supérieur à 0.`,
   'derives-nombre': (champ, valeur) => `Préréglage Tailwind : ${valeur} gammes. Il en faut au moins deux.`,
-  'derives-noms': (champ, valeur) => `Préréglage Tailwind : « ${valeur} » en double. Renommez une gamme.`,
-  'derives-teintes': (champ, valeur) => `${champ} : ${valeur}°. Saisissez une teinte de 0° inclus à 360° exclu.`,
-  'derives-teintes-claires': (champ, valeur) => `Préréglage Tailwind : teinte claire ${valeur}° en double. Changez une des teintes.`,
+  'derives-noms': (champ, valeur) => (valeur
+    ? `Préréglage Tailwind : « ${valeur} » en double. Renommez une gamme.`
+    : 'Préréglage Tailwind : nom de gamme vide. Nommez chaque gamme.'),
+  'derives-crans': (champ, valeur) => `${champ} : ${valeur} invalide. Chaque gamme compte au moins deux nuances, de la plus claire à la plus sombre, avec une luminosité entre 0 et 1 (exclus) et une teinte de 0° inclus à 360° exclu.`,
+  enveloppe: (champ, valeur) => `${champ} : ${valeur} sort des bornes. Faites corriger ce champ dans le fichier.`,
   'derive-bornes': (champ, valeur) => `${champ} : ${valeur}°. Saisissez un décalage entre −90° et +90°.`,
   'derive-lien': (champ) => `${champ} : Color shift différents malgré la synchronisation. Alignez leurs valeurs ou désactivez la synchronisation.`,
   // Les trois règles du format 7 ([MOT-30]).

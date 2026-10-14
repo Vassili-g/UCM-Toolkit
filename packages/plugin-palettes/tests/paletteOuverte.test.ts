@@ -2,14 +2,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteAvecTexteDesBoutons, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference, passerEnLibre, remplacerPalette } from '../src/edition';
 import { verdictDeLaPalette } from '../src/presentation';
 import { creerPaletteOuverte, type PaletteOuverte } from '../src/ui/paletteOuverte';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const DEFAUT = recetteParDefaut();
+const DEFAUT = recetteAuxPartsDe045();
 const nouvelle = (id: string, reference: string): Palette => changerReference(DEFAUT, {
   id,
   reference: '#000000',

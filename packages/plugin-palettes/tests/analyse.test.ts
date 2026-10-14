@@ -2,12 +2,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { alertesDePalette, ancrageDe, rampesDe, recetteParDefaut, type Recette } from 'ucm-couleur';
+import { alertesDePalette, ancrageDe, rampesDe, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference } from '../src/edition';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const DEFAUT = recetteParDefaut();
+const DEFAUT = recetteAuxPartsDe045();
 /** Une palette neuve : dérive Tailwind, calculée par la même fonction que l'interface. */
 const nouvelle = (id: string, reference: string) => changerReference(DEFAUT, {
   id,

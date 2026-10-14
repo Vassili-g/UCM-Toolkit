@@ -6,32 +6,45 @@
 import { CHROMA_SANS_TEINTE, type Oklch } from './conversions';
 import { arrondir, type Bouts, type Derive } from './rampe';
 
-/** Une rampe relevée : son nom, la teinte de son cran 50 et celle de son cran 950. */
-export type PaireDeDerive = readonly [nom: string, teinteClaire: number, teinteSombre: number];
+/** Une rampe relevée : son nom, et pour chaque cran du 50 au 950 sa clarté OKLCH `L` et sa teinte `H` en degrés. */
+export interface RampeDeDerive {
+  readonly nom: string;
+  readonly crans: readonly (readonly [L: number, H: number])[];
+}
 
 /**
- * Le relevé par défaut, les dix-sept rampes colorées de Tailwind. La recette
- * le porte sous `derives` : c'est elle qui fait autorité une fois rangée.
+ * Le relevé par défaut : les dix-sept rampes colorées de Tailwind 3.4.17, sans
+ * `slate`, `gray`, `zinc`, `neutral` ni `stone`. Chaque rampe porte ses onze
+ * crans du 50 au 950, convertis de leur hexa par `rgb8VersOklch`, `L` à quatre
+ * décimales et `H` à deux. Source : `tailwind-3.4.17.json`, dans les mesures de
+ * la recette critique de qualité. La recette le porte sous `derives` : c'est
+ * elle qui fait autorité une fois rangée.
  */
-export const RELEVE_TAILWIND: readonly PaireDeDerive[] = [
-  ['rose', 12.422, 12.094],
-  ['red', 17.38, 26.042],
-  ['orange', 73.684, 36.259],
-  ['amber', 95.277, 45.635],
-  ['yellow', 102.212, 53.813],
-  ['lime', 120.757, 132.109],
-  ['green', 155.826, 152.934],
-  ['emerald', 166.113, 172.552],
-  ['teal', 180.72, 192.524],
-  ['cyan', 200.873, 229.695],
-  ['sky', 236.62, 243.157],
-  ['blue', 254.604, 267.935],
-  ['indigo', 272.314, 281.288],
-  ['violet', 293.756, 291.089],
-  ['purple', 308.299, 302.717],
-  ['fuchsia', 320.058, 325.661],
-  ['pink', 343.198, 3.907],
+export const RELEVE_TAILWIND: readonly RampeDeDerive[] = [
+  { nom: 'rose', crans: [[0.9694, 12.42], [0.9414, 12.58], [0.8924, 10], [0.8097, 11.64], [0.7192, 13.43], [0.645, 16.44], [0.5858, 17.58], [0.5143, 16.93], [0.4546, 13.7], [0.4103, 10.27], [0.2708, 12.09]] },
+  { nom: 'red', crans: [[0.9705, 17.38], [0.9356, 17.72], [0.8845, 18.33], [0.8077, 19.57], [0.7106, 22.22], [0.6368, 25.33], [0.5771, 27.33], [0.5054, 27.52], [0.4437, 26.9], [0.3958, 25.72], [0.2575, 26.04]] },
+  { nom: 'orange', crans: [[0.9796, 73.68], [0.9542, 75.16], [0.9015, 70.7], [0.8366, 66.29], [0.7576, 55.93], [0.7049, 47.6], [0.6461, 41.12], [0.5534, 38.4], [0.4698, 37.3], [0.4084, 38.17], [0.2659, 36.26]] },
+  { nom: 'amber', crans: [[0.9869, 95.28], [0.9619, 95.62], [0.9243, 95.75], [0.879, 91.61], [0.8369, 84.43], [0.7686, 70.08], [0.6658, 58.32], [0.5553, 49], [0.4732, 46.2], [0.4137, 45.9], [0.2791, 45.64]] },
+  { nom: 'yellow', crans: [[0.9873, 102.21], [0.9729, 103.19], [0.9451, 101.54], [0.9052, 98.11], [0.8606, 91.94], [0.7952, 86.05], [0.6806, 75.83], [0.5538, 66.44], [0.4762, 61.91], [0.421, 57.71], [0.2857, 53.81]] },
+  { nom: 'lime', crans: [[0.9857, 120.76], [0.9669, 122.33], [0.9382, 124.32], [0.8972, 126.67], [0.8493, 128.85], [0.7681, 130.85], [0.6482, 131.68], [0.5322, 131.59], [0.4528, 130.93], [0.405, 131.06], [0.2741, 132.11]] },
+  { nom: 'green', crans: [[0.9819, 155.83], [0.9624, 156.74], [0.925, 155.99], [0.8712, 154.45], [0.8003, 151.71], [0.7227, 149.58], [0.6271, 149.21], [0.5273, 150.07], [0.4479, 151.33], [0.3925, 152.54], [0.2664, 152.93]] },
+  { nom: 'emerald', crans: [[0.9793, 166.11], [0.9505, 163.05], [0.9049, 164.15], [0.8452, 164.98], [0.7729, 163.22], [0.6959, 162.48], [0.596, 163.23], [0.5081, 165.61], [0.4318, 166.91], [0.378, 168.94], [0.2621, 172.55]] },
+  { nom: 'teal', crans: [[0.9836, 180.72], [0.9527, 180.8], [0.91, 180.43], [0.8549, 181.07], [0.7845, 181.91], [0.7038, 182.5], [0.6002, 184.7], [0.5109, 186.39], [0.437, 188.22], [0.3861, 188.42], [0.2773, 192.52]] },
+  { nom: 'cyan', crans: [[0.9841, 200.87], [0.9563, 203.39], [0.9167, 205.04], [0.8651, 207.08], [0.7971, 211.53], [0.7148, 215.22], [0.6089, 221.72], [0.5198, 223.13], [0.45, 224.28], [0.3982, 227.39], [0.3018, 229.7]] },
+  { nom: 'sky', crans: [[0.9771, 236.62], [0.9514, 236.82], [0.9014, 230.9], [0.8276, 230.32], [0.7535, 232.66], [0.6847, 237.32], [0.5876, 241.97], [0.5, 242.75], [0.4434, 240.79], [0.3912, 240.88], [0.2935, 243.16]] },
+  { nom: 'blue', crans: [[0.9705, 254.6], [0.9319, 255.59], [0.8823, 254.13], [0.8091, 251.81], [0.7137, 254.62], [0.6231, 259.81], [0.5461, 262.88], [0.4882, 264.38], [0.4244, 265.64], [0.3791, 265.52], [0.2823, 267.94]] },
+  { nom: 'indigo', crans: [[0.9619, 272.31], [0.9299, 272.79], [0.8699, 274.04], [0.7853, 274.71], [0.6801, 276.93], [0.5854, 277.12], [0.5106, 276.97], [0.4568, 277.02], [0.3984, 277.37], [0.3588, 278.7], [0.2573, 281.29]] },
+  { nom: 'violet', crans: [[0.9691, 293.76], [0.9433, 294.59], [0.8943, 293.28], [0.8112, 293.57], [0.709, 293.54], [0.6056, 292.72], [0.5413, 293.01], [0.4907, 292.58], [0.432, 292.76], [0.3796, 293.74], [0.2827, 291.09]] },
+  { nom: 'purple', crans: [[0.9768, 308.3], [0.9464, 307.17], [0.9024, 306.7], [0.8268, 306.38], [0.7217, 305.5], [0.6268, 303.9], [0.5575, 302.32], [0.4955, 301.92], [0.4383, 303.72], [0.3807, 304.99], [0.2905, 302.72]] },
+  { nom: 'fuchsia', crans: [[0.9773, 320.06], [0.952, 318.85], [0.903, 319.62], [0.833, 321.43], [0.7477, 322.16], [0.6668, 322.15], [0.5915, 322.9], [0.518, 323.95], [0.4519, 324.59], [0.4007, 325.61], [0.2932, 325.66]] },
+  { nom: 'pink', crans: [[0.9714, 343.2], [0.9482, 342.26], [0.8994, 343.23], [0.8228, 346.02], [0.7253, 349.76], [0.6559, 354.31], [0.5916, 0.58], [0.5246, 3.96], [0.4587, 3.82], [0.4078, 2.43], [0.2845, 3.91]] },
 ];
+
+/** La teinte du premier cran d'une rampe relevée, celle du bout clair. */
+const teinteClaire = (rampe: RampeDeDerive): number => rampe.crans[0][1];
+
+/** La teinte du dernier cran d'une rampe relevée, celle du bout sombre. */
+const teinteSombre = (rampe: RampeDeDerive): number => rampe.crans[rampe.crans.length - 1][1];
 
 /** L'écart signé le plus court de `a` à `b`, dans `[-180, 180)`. */
 export function ecartAngulaire(a: number, b: number): number {
@@ -40,20 +53,20 @@ export function ecartAngulaire(a: number, b: number): number {
 
 /**
  * La dérive totale, du bout clair au bout sombre, prédite à la teinte `h` : les
- * deux rampes voisines de `h` sur le cercle, triées par teinte claire, et
- * l'interpolation linéaire de leur dérive totale selon la position angulaire
- * de `h` entre elles. Le relevé doit compter deux teintes claires distinctes
- * au moins, ce que la validation de la recette garantit ([REC-05]).
+ * deux rampes voisines de `h` sur le cercle, triées par la teinte de leur
+ * premier cran, et l'interpolation linéaire de leur dérive totale selon la
+ * position angulaire de `h` entre elles. Le relevé doit compter deux teintes
+ * claires distinctes au moins, sans quoi la position n'est pas définie.
  */
-export function deriveTailwind(h: number, releve: readonly PaireDeDerive[] = RELEVE_TAILWIND): number {
-  const triees = [...releve].sort((x, y) => x[1] - y[1]);
-  let suivante = triees.findIndex((paire) => paire[1] > h);
+export function deriveTailwind(h: number, releve: readonly RampeDeDerive[] = RELEVE_TAILWIND): number {
+  const triees = [...releve].sort((x, y) => teinteClaire(x) - teinteClaire(y));
+  let suivante = triees.findIndex((rampe) => teinteClaire(rampe) > h);
   if (suivante < 0) suivante = 0;
   const apres = triees[suivante];
   const avant = triees[(suivante - 1 + triees.length) % triees.length];
-  const position = ((h - avant[1] + 360) % 360) / ((apres[1] - avant[1] + 360) % 360);
-  const deriveAvant = ecartAngulaire(avant[1], avant[2]);
-  const deriveApres = ecartAngulaire(apres[1], apres[2]);
+  const position = ((h - teinteClaire(avant) + 360) % 360) / ((teinteClaire(apres) - teinteClaire(avant) + 360) % 360);
+  const deriveAvant = ecartAngulaire(teinteClaire(avant), teinteSombre(avant));
+  const deriveApres = ecartAngulaire(teinteClaire(apres), teinteSombre(apres));
   return deriveAvant + (deriveApres - deriveAvant) * position;
 }
 
@@ -69,7 +82,7 @@ export function deriveTailwind(h: number, releve: readonly PaireDeDerive[] = REL
 export function prereglageTailwind(
   reference: Oklch,
   bouts: Bouts,
-  releve: readonly PaireDeDerive[] = RELEVE_TAILWIND,
+  releve: readonly RampeDeDerive[] = RELEVE_TAILWIND,
 ): Derive {
   if (reference.C < CHROMA_SANS_TEINTE) return { clair: 0, sombre: 0 };
   const totale = deriveTailwind(reference.H, releve);

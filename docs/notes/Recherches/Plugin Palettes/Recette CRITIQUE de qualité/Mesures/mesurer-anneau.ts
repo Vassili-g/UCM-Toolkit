@@ -31,7 +31,7 @@ for (const tl of textes) for (const td of textes) {
     id: `p-${(k + 1).toString(16).padStart(8, '0')}`, reference,
     derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
   } as Palette));
-  const recette: Recette = valider({ ...base, fonds: PAGE, profils: { soft: { part: 0.85 }, vivid: { part: 0.95 } }, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
+  const recette: Recette = valider({ ...base, fonds: PAGE, profils: { soft: { ...base.profils.soft, part: 0.85 }, vivid: { ...base.profils.vivid, part: 0.95 } }, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
   for (const palette of recette.palettes) {
     const rampes = rampesDuBanc(recette, palette, REGLE_FINALE);
     for (const i of ['soft', 'vivid'] as const) for (const mode of ['light', 'dark'] as const) {

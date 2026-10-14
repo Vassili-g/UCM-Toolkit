@@ -441,7 +441,8 @@ Les tâches sont successives.
     après M2.
   - Fini quand : diff vide, et la commande repasse sans erreur après M2.
 
-- [ ] **M1 · La courbe Dark et le fond de page Dark** · `implementeur`, moyen.
+- [x] **M1 · La courbe Dark et le fond de page Dark** · `implementeur`, moyen.
+  Fait en 18fa2a4.
   - Décision : DECISIONS.md, section 2, « La courbe Dark ».
   - `packages/couleur/src/nuances.ts` : le premier nombre de
     `ONZE.courbes.dark` passe de `0.18` à `0.145`. Le préréglage 13 réutilise
@@ -462,7 +463,11 @@ Les tâches sont successives.
   - Fini quand : vert ; `#0A0A0A` ne déclenche pas `alertesDesFonds` contre la
     courbe par défaut (test).
 
-- [ ] **M2 · Le format 11, en un lot** · `implementeur-exigeant`, haut.
+- [x] **M2 · Le format 11, en un lot** · `implementeur-exigeant`, haut.
+  Fait. Les clartés ajoutées par la lecture s'arrondissent au millième. Des
+  tests du moteur et du plugin, et la galerie (`recetteDeLaGalerie`), gardent
+  la part Soft à 0,45 : ils racontent un Bleu porté par Vivid. À revoir en M6,
+  quand le calcul des couleurs est refait.
   - Décisions : Q3 ; propositions PR1, PR2 et PR4. Identifiants réservés :
     `[REC-12]` (le format 11 et la lecture des formats 8 à 10) et `[REC-13]`
     (les crans requis des deux thèmes), section de la recette de SPEC-PAL.

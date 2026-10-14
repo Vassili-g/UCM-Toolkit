@@ -48,7 +48,7 @@ const recette = (dark: 'noir' | 'blanc'): Recette => {
   const texteDesBoutons = { light: 'blanc' as const, dark };
   return valider({
     ...defaut, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons),
-    fonds: { ...defaut.fonds, dark: '#0A0A0B' }, profils: { soft: { part: 0.85 }, vivid: { part: 0.95 } }, palettes,
+    fonds: { ...defaut.fonds, dark: '#0A0A0B' }, profils: { soft: { ...defaut.profils.soft, part: 0.85 }, vivid: { ...defaut.profils.vivid, part: 0.95 } }, palettes,
   });
 };
 

@@ -27,7 +27,7 @@ import {
   type Palette,
   type Recette,
 } from '../src/index';
-import { paletteTailwind, recetteAvec } from './fabrique';
+import { paletteTailwind, recetteAuxPartsDe045, recetteAvec } from './fabrique';
 
 /** La même recette, fonds du thème Dark au facteur 1 : la part de chaque profil partout. */
 const sansAttenuation = (recette: Recette): Recette => ({ ...recette, intensiteDesFondsSombres: 1 });
@@ -116,7 +116,7 @@ test('[MOT-28] [VER-11] « Profils confondus » se tait sur les nuances atténu�
   for (let teinte = 0; teinte < 360 && !trouvee; teinte += 5) {
     const hexa = `#${[0, 120, 240].map((decalage) => Math.round(128 + 60 * Math.cos(((teinte + decalage) * Math.PI) / 180)).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
     const palette = paletteTailwind('p-000000d5', hexa);
-    const recette = recetteAvec(palette);
+    const recette = recetteAuxPartsDe045(palette);
     const sombre = confusionsDe(recette, palette).find(({ mode, cran }) => mode === 'dark' && [100, 200, 300].includes(cran));
     if (sombre) trouvee = { palette, recette, cran: sombre.cran };
   }

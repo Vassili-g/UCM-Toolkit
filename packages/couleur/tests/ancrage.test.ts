@@ -25,7 +25,7 @@ import {
   type Recette,
   type Rgb8,
 } from '../src/index';
-import { paletteTailwind, recetteAvec } from './fabrique';
+import { paletteTailwind, profilsAuxParts, recetteAuxPartsDe045, recetteAvec } from './fabrique';
 
 /** Une palette neuve de cette référence, dans la recette par défaut. */
 function neuve(reference: string, recette: Recette = recetteParDefaut()): { recette: Recette; palette: Palette } {
@@ -42,17 +42,17 @@ function decrire(reference: string, recette?: Recette): string {
 
 test('[MOT-17] une référence peu intense est portée par soft, une référence intense par vivid', () => {
   // #A0B599 a une part de 0,20 ; #1E6FD9, 0,89. Les parts communes valent 0,45 et 0,95.
-  assert.equal(decrire('#A0B599'), 'soft 400/800');
-  assert.equal(decrire('#1E6FD9'), 'vivid 600/600');
+  assert.equal(decrire('#A0B599', recetteAuxPartsDe045()), 'soft 400/800');
+  assert.equal(decrire('#1E6FD9', recetteAuxPartsDe045()), 'vivid 600/600');
 });
 
 test('[MOT-17] à égalité de distance entre les deux parts communes, vivid porte la référence', () => {
   const { recette, palette } = neuve('#1E6FD9');
   // La part se compare au millième : à 0,1 de part et d'autre, les deux distances valent 100 millièmes.
   const part = Math.round(partDeChroma(lireHexa('#1E6FD9')!) * 1000) / 1000;
-  const egale: Recette = { ...recette, profils: { soft: { part: part - 0.1 }, vivid: { part: part + 0.1 } } };
+  const egale: Recette = { ...recette, profils: profilsAuxParts(part - 0.1, part + 0.1) };
   assert.equal(profilPorteur(egale, palette), 'vivid');
-  const plusPresDeSoft: Recette = { ...recette, profils: { soft: { part: part - 0.099 }, vivid: { part: part + 0.1 } } };
+  const plusPresDeSoft: Recette = { ...recette, profils: profilsAuxParts(part - 0.099, part + 0.1) };
   assert.equal(profilPorteur(plusPresDeSoft, palette), 'soft');
 });
 
@@ -74,7 +74,7 @@ test('[MOT-17] les parts propres d’une palette ne changent pas son profil port
   const recette = recetteParDefaut();
   const designer = paletteTailwind('p-000000a2', '#A0B599', { parts: { soft: 0.9, vivid: 0.95, origine: 'designer' } });
   assert.equal(profilPorteur(recetteAvec(designer), designer), 'soft');
-  const communes: Recette = { ...recette, profils: { soft: { part: 0.1 }, vivid: { part: 0.25 } } };
+  const communes: Recette = { ...recette, profils: profilsAuxParts(0.1, 0.25) };
   assert.equal(decrire('#A0B599', communes).split(' ')[0], 'vivid');
 });
 
@@ -106,7 +106,7 @@ test('[MOT-17] à égalité de clarté, le premier rang porte la référence, da
 
 test('[MOT-17] [ENT-11] #1E6FD9 est le 600 de vivid dans les deux modes ; ses voisins prennent sa part, 0,894', () => {
   const bleu = paletteTailwind('p-0000000a', '#1E6FD9');
-  const rampes = rampesDe(recetteAvec(bleu), bleu);
+  const rampes = rampesDe(recetteAuxPartsDe045(bleu), bleu);
   assert.equal(rampes.vivid!.light[6].hexa, '#1E6FD9');
   assert.equal(rampes.vivid!.dark[6].hexa, '#1E6FD9');
   // À la part commune de vivid, 0,95, ils valaient #0E5DC6 et #4596FA.

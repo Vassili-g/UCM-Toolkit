@@ -12,6 +12,7 @@
 import {
   CONTENU_COMPLET,
   MODES,
+  PROFILS,
   aDesProfilsTernes,
   aUneIntensite,
   ecrireHexa,
@@ -27,9 +28,11 @@ import {
   recetteParDefaut,
   type Mode,
   type ContenuDesPlanches,
+  type BornesDeChroma,
   type NombreDeNuances,
   type Palette,
   type Profil,
+  type ProfilDeRecette,
   type Recette,
   type Seuils,
   type TexteDesBoutons,
@@ -63,7 +66,7 @@ export function poserValeur(recette: Recette, champ: ChampDeConfiguration, valeu
     return { ...recette, courbes: { ...recette.courbes, [champ.courbe]: courbe } };
   }
   if ('part' in champ) {
-    return { ...recette, profils: { ...recette.profils, [champ.part]: { part: valeur } } };
+    return { ...recette, profils: { ...recette.profils, [champ.part]: { ...recette.profils[champ.part], part: valeur } } };
   }
   if ('fondsSombres' in champ) return { ...recette, intensiteDesFondsSombres: valeur };
   return { ...recette, seuils: { ...recette.seuils, [champ.seuil]: valeur } };
@@ -190,12 +193,19 @@ export function retablir(recette: Recette, carte: CarteDesReglages): Recette | n
   }
 }
 
+/** Vrai quand deux profils ont la même part commune et la même enveloppe de chroma. */
+function memeProfil(a: ProfilDeRecette, b: ProfilDeRecette): boolean {
+  const memesBornes = (x: BornesDeChroma, y: BornesDeChroma): boolean => x.a === y.a && x.b === y.b && x.jaunes === y.jaunes;
+  return a.part === b.part && a.enveloppe.p0 === b.enveloppe.p0
+    && memesBornes(a.enveloppe.light, b.enveloppe.light) && memesBornes(a.enveloppe.dark, b.enveloppe.dark);
+}
+
 /** Vrai quand la carte porte déjà ses valeurs par défaut : « Rétablir » n'a rien à faire. */
 export function estParDefaut(recette: Recette, carte: CarteDesReglages): boolean {
   const defaut = recetteParDefaut();
   switch (carte) {
     case 'fonds': return MODES.every((mode) => recette.fonds[mode] === defaut.fonds[mode] && recette.texteDesBoutons[mode] === defaut.texteDesBoutons[mode]);
-    case 'parts': return recette.profils.soft.part === defaut.profils.soft.part && recette.profils.vivid.part === defaut.profils.vivid.part
+    case 'parts': return PROFILS.every((profil) => memeProfil(recette.profils[profil], defaut.profils[profil]))
       && recette.intensiteDesFondsSombres === defaut.intensiteDesFondsSombres;
     case 'contenu': return Object.values(recette.contenuDesPlanches).every(Boolean);
     case 'courbes': {

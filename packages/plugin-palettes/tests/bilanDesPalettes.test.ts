@@ -6,14 +6,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { alertesDeRecette, recetteAvecTexteDesBoutons, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { alertesDeRecette, recetteAvecTexteDesBoutons, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference, passerEnLibre } from '../src/edition';
 import { verdictDeLaPalette } from '../src/presentation';
 import { bilanDesPalettes, ongletActifDuBilan, toutEstConforme, type EtatDuBilan } from '../src/ui/bilanDesPalettes';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const DEFAUT = recetteParDefaut();
+const DEFAUT = recetteAuxPartsDe045();
 const nouvelle = (id: string, reference: string): Palette => changerReference(DEFAUT, {
   id,
   reference: '#000000',

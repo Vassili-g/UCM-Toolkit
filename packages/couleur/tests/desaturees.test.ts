@@ -25,7 +25,7 @@ import {
   type Palette,
   type Rgb8,
 } from '../src/index';
-import { paletteTailwind, recetteAvec } from './fabrique';
+import { paletteTailwind, recetteAuxPartsDe045, recetteAvec } from './fabrique';
 
 const RAPPORT = 0.95 / 0.45;
 
@@ -92,7 +92,7 @@ test('[MOT-18] une référence dans l’étendue de la liste garde sa part brute
 
 test('[ENT-11] un porteur figé suit la règle du porteur : Vivid figé sous la part commune de Soft, Soft garde le rapport', () => {
   const palette: Palette = { ...paletteTailwind('p-000000d5', '#897288'), reglages: { porteur: 'vivid' } };
-  const recette = recetteAvec(palette);
+  const recette = recetteAuxPartsDe045(palette);
   const part = arrondir(partDeChroma(lireHexa('#897288')!), 3);
   assert.equal(profilPorteur(recette, palette), 'vivid');
   assert.deepEqual(partsDe(recette, palette), { soft: arrondir(part / RAPPORT, 3), vivid: part });

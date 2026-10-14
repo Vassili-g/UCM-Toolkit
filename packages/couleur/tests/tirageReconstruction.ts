@@ -19,10 +19,12 @@ import {
   type PaletteFigee,
   type Recette,
 } from '../src/index';
+import { profilsAuxParts } from './fabrique';
 
 export const GRAINE_DE_LA_MESURE = 20261008;
 
-export const RECETTE = recetteParDefaut();
+/** La recette de la mesure : celle du format 8, aux parts communes 0,45 et 0,95, sur laquelle les tirages ont été calés. */
+export const RECETTE: Recette = { ...recetteParDefaut(), profils: profilsAuxParts(0.45, 0.95) };
 const BOUTS = boutsDe(RECETTE);
 
 /** Générateur à graine fixe (mulberry32), celui de la mesure. */

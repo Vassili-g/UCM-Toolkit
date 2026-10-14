@@ -56,7 +56,8 @@ const recette = (dark: 'noir' | 'blanc', parts?: { soft: number; vivid: number }
     texteDesBoutons,
     courbes: courbesParDefaut(11, texteDesBoutons),
     fonds: { ...defaut.fonds, dark: '#0A0A0B' },
-    ...(parts ? { profils: { soft: { part: parts.soft }, vivid: { part: parts.vivid } } } : {}),
+    // Sans parts demandées, les parts communes d'avant le format 11 : 0,45 et 0,95.
+    profils: parts ? { soft: { ...defaut.profils.soft, part: parts.soft }, vivid: { ...defaut.profils.vivid, part: parts.vivid } } : { soft: { ...defaut.profils.soft, part: 0.45 }, vivid: defaut.profils.vivid },
     palettes: PALETTES[deriveCourante],
   });
 };

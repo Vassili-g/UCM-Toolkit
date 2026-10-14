@@ -87,7 +87,8 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
         reference: r.hexa,
         derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
       } as Palette));
-      const profils = parts ? { soft: { part: parts.soft }, vivid: { part: parts.vivid } } : base.profils;
+      // Sans parts demandées, les parts communes d'avant le format 11 : 0,45 et 0,95.
+      const profils = parts ? { soft: { ...base.profils.soft, part: parts.soft }, vivid: { ...base.profils.vivid, part: parts.vivid } } : { soft: { ...base.profils.soft, part: 0.45 }, vivid: base.profils.vivid };
       const recette: Recette = valider({ ...base, fonds: { ...base.fonds, dark: pageDark }, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
       for (const palette of recette.palettes) {
         const rampes = regle ? rampesDuBanc(recette, palette, regle) : rampesDe(recette, palette);

@@ -3233,7 +3233,7 @@ test('[VAR-13] la carte de Poppy propose « Reprendre depuis les variables » ; 
     // D3 : aucune couleur du fichier ne change. La palette reprise est figée aux couleurs des quatre groupes, deux intensités, Light et Dark.
     const reprise = demande.recette.palettes[1];
     const rouge = ['#FEF2F2', '#FEE2E2', '#FECACA', '#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
-    assert.equal(demande.recette.formatVersion, 10);
+    assert.equal(demande.recette.formatVersion, 11);
     assert.equal(reprise.intensites, undefined);
     assert.deepEqual(reprise.crans, [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]);
     assert.deepEqual(reprise.figees, {

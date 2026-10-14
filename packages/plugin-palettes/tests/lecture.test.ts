@@ -2,10 +2,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { FORMAT_RECETTE, jsonCanonique, recetteParDefaut, rgb8VersP3 } from 'ucm-couleur';
+import { FORMAT_RECETTE, classerRecette, jsonCanonique, recetteParDefaut, rgb8VersP3 } from 'ucm-couleur';
 
 import { couleurDeLaSelection, empreinteDuTexte, lireEtat } from '../src/lecture';
 import { documentDeTest } from './document';
+import { temoinDeRecette } from './temoinsDeRecette';
 
 test('[REC-03] sans recette rangée, la recette par défaut est proposée, sans empreinte', () => {
   const etat = lireEtat(documentDeTest().root);
@@ -21,13 +22,14 @@ test('[REC-01] la recette se lit sous la clé partagée ucm_palettes/recette', (
   assert.match(etat.empreinte ?? '', /^[0-9a-f]{8}$/);
 });
 
-test('une recette 8 se lit au format courant sans rangement ni annulation Figma', () => {
-  const recette = recetteParDefaut();
-  const { texteDesBoutons: _, ...ancienne } = recette;
-  const texte = jsonCanonique({ ...ancienne, formatVersion: 8 });
+test('[REC-12] une recette 8 se lit au format courant sans rangement ni annulation Figma', () => {
+  const texte = temoinDeRecette('format-8');
   const document = documentDeTest(texte);
   const etat = lireEtat(document.root);
-  assert.deepEqual(etat.classement, { etat: 'courante', recette });
+  const lue = classerRecette(texte);
+  assert.equal(lue.etat, 'courante');
+  assert.deepEqual(etat.classement, lue);
+  assert.equal(etat.classement.etat === 'courante' && etat.classement.recette.formatVersion, FORMAT_RECETTE);
   assert.equal(etat.empreinte, empreinteDuTexte(texte));
   assert.equal(document.donnees.get('ucm_palettes/recette'), texte);
   assert.deepEqual(document.annulations, []);

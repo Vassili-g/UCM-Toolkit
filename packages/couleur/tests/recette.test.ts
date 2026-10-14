@@ -1,13 +1,18 @@
 /** La forme de la recette, sa validation et son classement ([REC-03] à [REC-05]). */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-import { cransRequis } from '@ucm-kit/core/emplois';
+import { cransRequis, sensDuTheme } from '@ucm-kit/core/emplois';
 import {
   FORMAT_RECETTE,
+  PROFILS_PAR_DEFAUT,
+  RELEVE_TAILWIND,
   ancrageDe,
   classerRecette,
   jsonCanonique,
+  luminositeAuNumero,
   rampesDe,
   recetteParDefaut,
   validerRecette,
@@ -16,6 +21,10 @@ import {
   type RegleRecette,
 } from '../src/index';
 import { copie, paletteTailwind, recetteAvec } from './fabrique';
+
+/** Un témoin : une recette rangée dans sa forme d'origine, que les tests lisent et ne réécrivent jamais. */
+const temoin = (nom: 'format-8' | 'format-9' | 'format-10'): string =>
+  readFileSync(fileURLToPath(new URL(`./fixtures/recettes/${nom}.json`, import.meta.url)), 'utf8');
 
 const valide = () => copie(recetteAvec(paletteTailwind('p-0000000a', '#1E6FD9'), paletteTailwind('p-0000000b', '#F2A900')));
 
@@ -48,9 +57,17 @@ const CAS: [RegleRecette, string, (r: any) => void][] = [
   ['hexa-invalide', 'palettes[1].reference', (r) => { r.palettes[1].reference = 'bleu'; }],
   ['seuils-positifs', 'seuils.texte', (r) => { r.seuils.texte = 0; }],
   ['derives-nombre', 'derives', (r) => { r.derives = r.derives.slice(0, 1); }],
-  ['derives-noms', 'derives[1]', (r) => { r.derives[1][0] = r.derives[0][0]; }],
-  ['derives-teintes', 'derives[2]', (r) => { r.derives[2][2] = 360; }],
-  ['derives-teintes-claires', 'derives[1]', (r) => { r.derives[1][1] = r.derives[0][1]; }],
+  ['derives-noms', 'derives[1]', (r) => { r.derives[1].nom = r.derives[0].nom; }],
+  ['derives-noms', 'derives[1]', (r) => { r.derives[1].nom = ''; }],
+  ['derives-crans', 'derives[3].crans', (r) => { r.derives[3].crans = r.derives[3].crans.slice(0, 1); }],
+  ['derives-crans', 'derives[2].crans[4]', (r) => { r.derives[2].crans[4][0] = 1; }],
+  ['derives-crans', 'derives[2].crans[4]', (r) => { r.derives[2].crans[4][1] = 360; }],
+  ['derives-crans', 'derives[2].crans[5]', (r) => { r.derives[2].crans[5][0] = r.derives[2].crans[4][0]; }],
+  ['forme', 'derives[0].crans[0]', (r) => { r.derives[0].crans[0] = [0.9]; }],
+  ['forme', 'derives[4]', (r) => { r.derives[4] = ['rose', 12.4, 12.1]; }],
+  ['forme', 'profils.soft.enveloppe', (r) => { delete r.profils.soft.enveloppe; }],
+  ['forme', 'profils.vivid.enveloppe.dark.jaunes', (r) => { r.profils.vivid.enveloppe.dark.jaunes = 'oui'; }],
+  ['cle-inconnue', 'profils.soft.enveloppe.light.c', (r) => { r.profils.soft.enveloppe.light.c = 1; }],
   ['derive-bornes', 'palettes[0].derive.soft.clair', (r) => {
     r.palettes[0].derive.lien = false;
     r.palettes[0].derive.soft.clair = 95;
@@ -105,8 +122,19 @@ for (const [regle, chemin, alterer] of CAS) {
   });
 }
 
-for (const cran of cransRequis('light', 'normal')) {
-  test(`[REC-05] crans-emplois : refusé quand ${cran} manque`, () => {
+/** Les crans que la table des deux thèmes exige, chacun dans le sens de son texte des boutons. */
+const requisDe = (texte: { light: 'blanc' | 'noir'; dark: 'blanc' | 'noir' }): number[] =>
+  [...new Set((['light', 'dark'] as const).flatMap((mode) => cransRequis(mode, sensDuTheme(mode, texte[mode]))))].sort((a, b) => a - b);
+
+/** La recette sans le cran `cran`, avec ses deux courbes au même rang. */
+function sansLeCran(recette: any, cran: number): any {
+  const rang = recette.crans.indexOf(cran);
+  const sans = (liste: number[]) => liste.filter((_, place) => place !== rang);
+  return { ...recette, crans: sans(recette.crans), courbes: { light: sans(recette.courbes.light), dark: sans(recette.courbes.dark) } };
+}
+
+for (const cran of requisDe({ light: 'blanc', dark: 'noir' })) {
+  test(`[REC-13] crans-emplois : refusé quand ${cran} manque`, () => {
     const recette = valide();
     // Le cran devient son voisin à +25 : la liste reste croissante et garde sa longueur.
     recette.crans[recette.crans.indexOf(cran)] = cran + 25;
@@ -134,30 +162,206 @@ test('[REC-03] une recette de la version courante est lue', () => {
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] une recette 10 exportée puis relue est égale', () => {
+test('[REC-03] une recette 11 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 10);
+  assert.equal(recette.formatVersion, 11);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] un lecteur au format 9 lit une recette 10 comme future ; ce lecteur-ci lit le format 11 comme future', () => {
-  // `classerRecette` classe `future` toute version au-dessus de FORMAT_RECETTE : passer à 10 suffit à écarter l'ancien lecteur.
-  assert.ok(FORMAT_RECETTE > 9);
-  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 11 })), { etat: 'future', version: 11 });
+test('[REC-03] un lecteur au format 10 lit une recette 11 comme future ; ce lecteur-ci lit le format 12 comme future', () => {
+  // `classerRecette` classe `future` toute version au-dessus de FORMAT_RECETTE : passer à 11 suffit à écarter l'ancien lecteur.
+  assert.ok(FORMAT_RECETTE > 10);
+  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 12 })), { etat: 'future', version: 12 });
 });
 
-test('une recette 8 se lit au format 10 avec le texte des boutons par défaut', () => {
-  const recette = valide();
-  const { texteDesBoutons: _, ...ancienne } = recette;
-  const texte = JSON.stringify({ ...ancienne, formatVersion: 8 });
-  assert.deepEqual(classerRecette(texte), { etat: 'courante', recette });
-  assert.equal(JSON.parse(texte).formatVersion, 8);
+test('[REC-12] la recette par défaut porte les profils et le relevé du paquet, en copies', () => {
+  const defaut = recetteParDefaut();
+  assert.deepEqual(defaut.profils, PROFILS_PAR_DEFAUT);
+  assert.deepEqual(defaut.derives, RELEVE_TAILWIND);
+  assert.notEqual(defaut.profils.soft.enveloppe, PROFILS_PAR_DEFAUT.soft.enveloppe);
+  assert.notEqual(defaut.derives[0], RELEVE_TAILWIND[0]);
+  assert.deepEqual(defaut.profils.soft, { part: 0.85, enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } } });
+  assert.deepEqual(defaut.profils.vivid, { part: 0.95, enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } } });
 });
 
-test('une recette 8 qui porte déjà texteDesBoutons est refusée par forme', () => {
-  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 8 })), {
+test('[REC-12] une recette 10 se lit en 11, aux profils et au relevé par défaut', () => {
+  const texte = temoin('format-10');
+  const ancienne = JSON.parse(texte);
+  const lue = classerRecette(texte);
+  assert.ok(lue.etat === 'courante');
+  assert.equal(ancienne.formatVersion, 10);
+  assert.equal(lue.recette.formatVersion, 11);
+  assert.deepEqual(lue.recette.profils, PROFILS_PAR_DEFAUT);
+  assert.deepEqual(lue.recette.derives, RELEVE_TAILWIND);
+  // Le reste de la recette est celui du témoin.
+  for (const cle of ['gamut', 'fonds', 'texteDesBoutons', 'seuils', 'intensiteDesFondsSombres', 'contenuDesPlanches', 'palettes'] as const) {
+    assert.deepEqual(lue.recette[cle], ancienne[cle], cle);
+  }
+});
+
+test('[REC-12] une recette 8 passe par 9 et 10', () => {
+  const ancienne = JSON.parse(temoin('format-8'));
+  assert.equal(ancienne.formatVersion, 8);
+  assert.ok(!('texteDesBoutons' in ancienne));
+  const lue = classerRecette(JSON.stringify(ancienne));
+  assert.ok(lue.etat === 'courante');
+  assert.equal(lue.recette.formatVersion, 11);
+  assert.deepEqual(lue.recette.texteDesBoutons, { light: 'blanc', dark: 'noir' });
+  // Le témoin 8 a ses onze crans : les mêmes données rangées en 9, puis en 10, rendent la même recette.
+  const avecTexte = { ...ancienne, texteDesBoutons: { light: 'blanc', dark: 'noir' } };
+  assert.deepEqual(classerRecette(JSON.stringify({ ...avecTexte, formatVersion: 9 })), { etat: 'courante', recette: lue.recette });
+  assert.deepEqual(classerRecette(JSON.stringify({ ...avecTexte, formatVersion: 10 })), { etat: 'courante', recette: lue.recette });
+  assert.deepEqual(lue.recette.profils, PROFILS_PAR_DEFAUT);
+  assert.deepEqual(lue.recette.derives, RELEVE_TAILWIND);
+  assert.deepEqual(lue.recette.palettes, ancienne.palettes);
+});
+
+test('[REC-12] une recette 8 qui porte déjà texteDesBoutons est refusée par forme', () => {
+  const ancienne = JSON.parse(temoin('format-8'));
+  assert.deepEqual(classerRecette(JSON.stringify({ ...ancienne, texteDesBoutons: { light: 'blanc', dark: 'noir' } })), {
     etat: 'illisible', refus: [{ regle: 'forme', chemin: 'texteDesBoutons' }],
   });
+});
+
+test('[REC-12] une recette 9 se lit, palette figée à une intensité comprise, et la lecture la laisse rangée au format 9', () => {
+  const texte = temoin('format-9');
+  const lue = classerRecette(texte);
+  assert.ok(lue.etat === 'courante');
+  assert.equal(JSON.parse(texte).formatVersion, 9);
+  assert.deepEqual(lue.recette.palettes, JSON.parse(texte).palettes);
+  assert.ok(lue.recette.palettes.some((palette) => palette.intensites === 1 && palette.figees !== undefined));
+});
+
+test('[REC-12] une recette 10 lit ses couleurs figées à deux intensités', () => {
+  const lue = classerRecette(temoin('format-10'));
+  assert.ok(lue.etat === 'courante');
+  const deux = lue.recette.palettes.find((palette) => palette.figees !== undefined && palette.intensites === undefined);
+  assert.ok(deux && 'soft' in deux.figees!);
+});
+
+test('[REC-12] une forme ancienne sans courbes est illisible, sans exception', () => {
+  for (const nom of ['format-8', 'format-9', 'format-10'] as const) {
+    for (const cle of ['courbes', 'crans']) {
+      const { [cle]: _absent, ...sans } = JSON.parse(temoin(nom));
+      assert.deepEqual(classerRecette(JSON.stringify(sans)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: cle }] }, `${nom} sans ${cle}`);
+    }
+  }
+  // Des crans ou des courbes d'une autre forme que des nombres ne lèvent rien : la validation du format 11 les refuse.
+  const ancienne = JSON.parse(temoin('format-10'));
+  for (const alteree of [{ crans: 'abc' }, { crans: [50, 'x'] }, { courbes: 3 }, { courbes: { light: [0.9], dark: 'x' } }, { crans: [] }]) {
+    const lue = classerRecette(JSON.stringify({ ...ancienne, ...alteree }));
+    assert.equal(lue.etat, 'illisible', JSON.stringify(alteree));
+  }
+});
+
+test('[REC-12] une enveloppe dans une recette 10 la rend illisible', () => {
+  for (const nom of ['format-8', 'format-9', 'format-10'] as const) {
+    const ancienne = JSON.parse(temoin(nom));
+    const avecEnveloppe = { ...ancienne, profils: { ...ancienne.profils, vivid: { ...ancienne.profils.vivid, enveloppe: PROFILS_PAR_DEFAUT.vivid.enveloppe } } };
+    assert.deepEqual(classerRecette(JSON.stringify(avecEnveloppe)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'profils.vivid.enveloppe' }] }, nom);
+    const avecRampe = { ...ancienne, derives: [RELEVE_TAILWIND[0], ...ancienne.derives.slice(1)] };
+    assert.deepEqual(classerRecette(JSON.stringify(avecRampe)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'derives[0]' }] }, nom);
+  }
+});
+
+test('[REC-12] une enveloppe hors bornes est refusée', () => {
+  const avec = (modifier: (r: any) => void): ReturnType<typeof validerRecette> => {
+    const recette = valide();
+    modifier(recette);
+    return validerRecette(recette);
+  };
+  // Les bornes incluses sont acceptées, les bornes exclues refusées.
+  assert.ok('recette' in avec((r) => {
+    r.profils.soft.enveloppe.p0 = 1;
+    r.profils.soft.enveloppe.light = { a: 2, b: 2, jaunes: 2 };
+    r.profils.vivid.enveloppe.dark = { a: 0.001, b: 0.001, jaunes: 0 };
+  }));
+  const refusees: [string, number][] = [
+    ['p0', 0], ['p0', 1.01], ['light.a', 0], ['light.a', 2.01], ['dark.b', 0], ['dark.b', 3], ['light.jaunes', -0.01], ['dark.jaunes', 2.01],
+  ];
+  for (const profil of ['soft', 'vivid']) {
+    for (const [chemin, valeur] of refusees) {
+      const resultat = avec((r) => {
+        const cles = chemin.split('.');
+        const dernier = cles.pop()!;
+        cles.reduce((objet: any, cle) => objet[cle], r.profils[profil].enveloppe)[dernier] = valeur;
+      });
+      assert.ok('refus' in resultat, `${profil} ${chemin} ${valeur}`);
+      assert.deepEqual(resultat.refus, [{ regle: 'enveloppe', chemin: `profils.${profil}.enveloppe.${chemin}`, valeur }]);
+    }
+  }
+});
+
+test("[REC-12] la lecture n'écrit rien, et ranger puis relire rend la même recette", () => {
+  const texte = temoin('format-10');
+  const lue = classerRecette(texte);
+  assert.ok(lue.etat === 'courante');
+  // La recette lue ne partage aucun objet avec les constantes du paquet.
+  assert.notEqual(lue.recette.profils.soft, PROFILS_PAR_DEFAUT.soft);
+  assert.notEqual(lue.recette.derives[0], RELEVE_TAILWIND[0]);
+  assert.equal(temoin('format-10'), texte);
+  assert.equal(JSON.parse(texte).formatVersion, 10);
+  const rangee = jsonCanonique(lue.recette);
+  assert.equal(JSON.parse(rangee).formatVersion, 11);
+  const relue = classerRecette(rangee);
+  assert.deepEqual(relue, { etat: 'courante', recette: lue.recette });
+  assert.ok(relue.etat === 'courante');
+  assert.equal(jsonCanonique(relue.recette), rangee);
+});
+
+test('[REC-13] la lecture ajoute 400 et 950 au témoin du format 10', () => {
+  const ancienne = JSON.parse(temoin('format-10'));
+  assert.ok(!ancienne.crans.includes(400) && !ancienne.crans.includes(950) && ancienne.crans.includes(500));
+  const lue = classerRecette(JSON.stringify(ancienne));
+  assert.ok(lue.etat === 'courante');
+  const { crans, courbes } = lue.recette;
+  assert.deepEqual(crans, [...ancienne.crans, 400, 950].sort((a: number, b: number) => a - b));
+  for (const mode of ['light', 'dark'] as const) {
+    assert.equal(courbes[mode].length, crans.length);
+    crans.forEach((cran, rang) => {
+      const avant = ancienne.crans.indexOf(cran);
+      const attendue = avant >= 0 ? ancienne.courbes[mode][avant] : Math.round(luminositeAuNumero(ancienne, mode, cran) * 1000) / 1000;
+      assert.equal(courbes[mode][rang], attendue, `${mode} ${cran}`);
+    });
+  }
+  // Le cran 50, facultatif, n'est jamais ajouté.
+  const lueSans50 = classerRecette(JSON.stringify(sansLeCran(ancienne, 50)));
+  assert.ok(lueSans50.etat === 'courante');
+  assert.ok(!lueSans50.recette.crans.includes(50));
+});
+
+test("[REC-13] la lecture ajoute aussi 500 quand le format 10 l'a laissé de côté", () => {
+  const sans500 = sansLeCran(JSON.parse(temoin('format-10')), 500);
+  const lue = classerRecette(JSON.stringify(sans500));
+  assert.ok(lue.etat === 'courante');
+  const rang = lue.recette.crans.indexOf(500);
+  assert.ok(rang >= 0);
+  assert.equal(lue.recette.courbes.light[rang], Math.round(luminositeAuNumero(sans500, 'light', 500) * 1000) / 1000);
+  assert.equal(lue.recette.courbes.dark[rang], Math.round(luminositeAuNumero(sans500, 'dark', 500) * 1000) / 1000);
+});
+
+test('[REC-13] une recette 11 sans 950 est refusée', () => {
+  const resultat = validerRecette(sansLeCran(valide(), 950));
+  assert.ok('refus' in resultat);
+  assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 950 }]);
+});
+
+test('[REC-13] les crans requis réunissent ceux des deux thèmes, chacun dans son sens ; seul 50 est facultatif', () => {
+  for (const light of ['blanc', 'noir'] as const) {
+    for (const dark of ['blanc', 'noir'] as const) {
+      const texteDesBoutons = { light, dark };
+      const requis = requisDe(texteDesBoutons);
+      assert.ok(!requis.includes(50), `${light}/${dark}`);
+      assert.ok(requis.includes(400) && requis.includes(500) && requis.includes(950), `${light}/${dark}`);
+      const complete = { ...valide(), texteDesBoutons };
+      assert.ok('recette' in validerRecette(sansLeCran(complete, 50)), `sans 50 en ${light}/${dark}`);
+      for (const cran of requis) {
+        const resultat = validerRecette(sansLeCran(complete, cran));
+        assert.ok('refus' in resultat, `sans ${cran} en ${light}/${dark}`);
+        assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: cran }]);
+      }
+    }
+  }
 });
 
 test('le texte des boutons refuse gris dans chacun des thèmes', () => {
@@ -167,37 +371,6 @@ test('le texte des boutons refuse gris dans chacun des thèmes', () => {
     const resultat = validerRecette(recette);
     assert.ok('refus' in resultat);
     assert.deepEqual(resultat.refus, [{ regle: 'texte-des-boutons', chemin: `texteDesBoutons.${mode}`, valeur: 'gris' }]);
-  }
-});
-
-test('une liste sans 500 se lit dans les thèmes normaux et se refuse dans chaque thème inversé', () => {
-  const recette = valide();
-  const rang = recette.crans.indexOf(500);
-  recette.crans.splice(rang, 1);
-  recette.courbes.light.splice(rang, 1);
-  recette.courbes.dark.splice(rang, 1);
-  assert.ok('recette' in validerRecette(recette));
-  for (const mode of ['light', 'dark'] as const) {
-    const inversee = { ...recette, texteDesBoutons: { ...recette.texteDesBoutons, [mode]: mode === 'light' ? 'noir' : 'blanc' } };
-    const resultat = validerRecette(inversee);
-    assert.ok('refus' in resultat);
-    assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 500 }]);
-  }
-});
-
-test('[REC-05] une liste sans 50, 400 ni 950 est acceptée dans les quatre combinaisons de texte des boutons', () => {
-  const recette = valide();
-  for (const cran of [950, 400, 50]) {
-    const rang = recette.crans.indexOf(cran);
-    recette.crans.splice(rang, 1);
-    recette.courbes.light.splice(rang, 1);
-    recette.courbes.dark.splice(rang, 1);
-  }
-  for (const light of ['blanc', 'noir'] as const) {
-    for (const dark of ['blanc', 'noir'] as const) {
-      const resultat = validerRecette({ ...recette, texteDesBoutons: { light, dark } });
-      assert.ok('recette' in resultat, `refusée en ${light}/${dark} : ${JSON.stringify('refus' in resultat ? resultat.refus : [])}`);
-    }
   }
 });
 
@@ -314,13 +487,6 @@ function figeeADeuxIntensites(reglages: Partial<Palette> = {}): Palette {
   const { parts: _parts, ...sansParts } = paletteTailwind('p-000000f2', '#475569');
   return { ...sansParts, crans: NUANCES_FIGEES, figees: { soft: { light: SLATE, dark: NUIT }, vivid: { light: ROUGE, dark: [...ROUGE].reverse() } }, ...reglages };
 }
-
-test('[REC-03] une recette 9 se lit telle quelle, palette figée à une intensité comprise, et la lecture la laisse rangée au format 9', () => {
-  const recette = { ...valide(), palettes: [...valide().palettes, figee()] };
-  const texte = JSON.stringify({ ...recette, formatVersion: 9 });
-  assert.deepEqual(classerRecette(texte), { etat: 'courante', recette });
-  assert.equal(JSON.parse(texte).formatVersion, 9);
-});
 
 test('[VAR-13] des couleurs figées à deux intensités se valident, et les rampes de chaque intensité rendent les siennes', () => {
   const palette = figeeADeuxIntensites();

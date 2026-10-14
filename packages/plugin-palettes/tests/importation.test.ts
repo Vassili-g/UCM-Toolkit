@@ -2,11 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { FORMAT_RECETTE, jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
+import { FORMAT_RECETTE, classerRecette, jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
 
 import { ajouter, nouvellePalette, renommer } from '../src/edition';
 import { ligneDesValeurs } from '../src/i18n/fr';
 import { ecartDImport, lireLImport, natureDeLEcart } from '../src/importation';
+import { temoinDeRecette } from './temoinsDeRecette';
 
 const VIDE = recetteParDefaut();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
@@ -14,11 +15,15 @@ const AMBRE = { ...nouvellePalette(VIDE, 'p-0000000b', '#F2A900', 2)!, nom: 'Amb
 const VERT = { ...nouvellePalette(VIDE, 'p-0000000c', '#16A34A', 2)!, nom: 'Vert' };
 const ACTUELLE: Recette = [BLEU, AMBRE].reduce(ajouter, VIDE);
 
-test('une recette 8 importée se lit au format courant avec le texte par défaut', () => {
-  const { texteDesBoutons: _, ...ancienne } = ACTUELLE;
-  const resultat = lireLImport(jsonCanonique({ ...ancienne, formatVersion: 8 }), ACTUELLE);
+test('[REC-12] une recette 8 importée se lit au format courant avec le texte par défaut', () => {
+  const texte = temoinDeRecette('format-8');
+  const resultat = lireLImport(texte, ACTUELLE);
   assert.ok(resultat.issue === 'prete');
-  assert.deepEqual(resultat.recette, ACTUELLE);
+  const lue = classerRecette(texte);
+  assert.ok(lue.etat === 'courante');
+  assert.deepEqual(resultat.recette, lue.recette);
+  assert.equal(resultat.recette.formatVersion, FORMAT_RECETTE);
+  assert.deepEqual(resultat.recette.texteDesBoutons, { light: 'blanc', dark: 'noir' });
 });
 
 test('[REC-03] I11 : une recette 9 se lit telle quelle ; son texte des boutons change l’écart et les couleurs, et une valeur autre que blanc ou noir se refuse', () => {

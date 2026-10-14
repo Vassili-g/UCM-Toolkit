@@ -14,15 +14,15 @@ import {
   type Alerte,
   type Palette,
 } from '../src/index';
-import { paletteTailwind, recetteAvec } from './fabrique';
+import { paletteTailwind, recetteAuxPartsDe045, recetteAvec } from './fabrique';
 
 const BLEU = paletteTailwind('p-0000000a', '#1E6FD9');
 const codes = (alertes: Alerte[]) => alertes.map((a) => a.code);
 const dePalette = (palette: Palette) => alertesDePalette(recetteAvec(palette), palette);
 
 test('[VER-08] profils confondus : sonne à partir de trois nuances, avec la mesure et le seuil', () => {
-  // #1E6FD9 ne confond ses profils qu'au cran 100 clair : sous trois nuances, la palette passe.
-  assert.ok(!codes(dePalette(BLEU)).includes('profils-confondus'));
+  // Aux parts communes 0,45 et 0,95, #1E6FD9 ne confond ses profils qu'au cran 100 clair : sous trois nuances, la palette passe.
+  assert.ok(!codes(alertesDePalette(recetteAuxPartsDe045(BLEU), BLEU)).includes('profils-confondus'));
   const serrees = { ...BLEU, parts: { soft: 0.1, vivid: 0.105, origine: 'designer' as const } };
   const alerte = dePalette(serrees).find((a) => a.code === 'profils-confondus');
   assert.ok(alerte && alerte.code === 'profils-confondus');

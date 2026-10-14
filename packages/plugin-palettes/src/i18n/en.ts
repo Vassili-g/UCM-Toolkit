@@ -1107,8 +1107,16 @@ export function nommerChamp(chemin: string): string {
   if (trouve) return `Minimum or threshold: ${NOMS_DES_SEUILS[trouve[1]] ?? trouve[1]}`;
   trouve = /^contenuDesPlanches\.(\w+)$/.exec(chemin);
   if (trouve) return `Board content, ${PARTIES_DU_CONTENU[trouve[1]] ?? trouve[1]}`;
-  trouve = /^derives\[(\d+)\]$/.exec(chemin);
-  if (trouve) return `Tailwind preset, colour family ${Number(trouve[1]) + 1}`;
+  trouve = /^profils\.(soft|vivid)\.enveloppe(?:\.(light|dark))?(?:\.(\w+))?$/.exec(chemin);
+  if (trouve) {
+    return [`Chroma rule of ${trouve[1]}`, ...(trouve[2] ? [PARTIES_DU_CONTENU[trouve[2]]] : []), ...(trouve[3] ? [`limit ${trouve[3]}`] : [])].join(', ');
+  }
+  trouve = /^derives\[(\d+)\](?:\.crans(?:\[(\d+)\])?)?$/.exec(chemin);
+  if (trouve) {
+    const gamme = `Tailwind preset, colour family ${Number(trouve[1]) + 1}`;
+    if (!chemin.includes('.crans')) return gamme;
+    return `${gamme}, ${trouve[2] ? `${rangEcrit(Number(trouve[2]))} shade` : 'shades'}`;
+  }
   trouve = /^palettes\[(\d+)\]\.crans\[(\d+)\]$/.exec(chemin);
   if (trouve) return `Palette ${Number(trouve[1]) + 1}, ${rangEcrit(Number(trouve[2]))} shade`;
   trouve = /^palettes\[(\d+)\]\.derive\.(soft|vivid)\.(clair|sombre)$/.exec(chemin);
@@ -1149,9 +1157,11 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'hexa-invalide': (champ, valeur) => `${champ}: invalid “${valeur}”. Use a hex code such as #1E6FD9.`,
   'seuils-positifs': (champ, valeur) => `${champ}: ${valeur}. Enter a number greater than 0.`,
   'derives-nombre': (champ, valeur) => `Tailwind preset: ${valeur} colour families. At least two are required.`,
-  'derives-noms': (champ, valeur) => `Tailwind preset: duplicate “${valeur}”. Rename one colour family.`,
-  'derives-teintes': (champ, valeur) => `${champ}: ${valeur}°. Enter a hue from 0° inclusive to 360° exclusive.`,
-  'derives-teintes-claires': (champ, valeur) => `Tailwind preset: duplicate light-end hue ${valeur}°. Change one hue.`,
+  'derives-noms': (champ, valeur) => (valeur
+    ? `Tailwind preset: duplicate “${valeur}”. Rename one colour family.`
+    : 'Tailwind preset: empty colour family name. Name every colour family.'),
+  'derives-crans': (champ, valeur) => `${champ}: ${valeur} is invalid. Each colour family needs at least two shades, from lightest to darkest, with lightness between 0 and 1 (exclusive) and a hue from 0° inclusive to 360° exclusive.`,
+  enveloppe: (champ, valeur) => `${champ}: ${valeur} is out of range. Have this field corrected in the file.`,
   'derive-bornes': (champ, valeur) => `${champ}: ${valeur}°. Enter an offset from −90° to +90°.`,
   'derive-lien': (champ) => `${champ}: different Color shifts with sync enabled. Match their values or turn off sync.`,
   // Les trois règles du format 7 ([MOT-30]).

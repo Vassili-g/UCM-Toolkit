@@ -2,11 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { arrondir, boutsDe, lireHexa, partDeChroma, partsDe, prereglageTailwind, profilPorteur, recetteParDefaut, rgb8VersOklch, type Palette } from 'ucm-couleur';
+import { arrondir, boutsDe, lireHexa, partDeChroma, partsDe, prereglageTailwind, profilPorteur, rgb8VersOklch, type Palette } from 'ucm-couleur';
 
 import { changerReference, choisirLaBase, poserPart, remplacerPalette, renommer, reprendreLesParts } from '../src/edition';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const RECETTE = recetteParDefaut();
+const RECETTE = recetteAuxPartsDe045();
 const prereglage = (hexa: string) => prereglageTailwind(rgb8VersOklch(lireHexa(hexa)!), boutsDe(RECETTE));
 
 const PALETTE: Palette = {

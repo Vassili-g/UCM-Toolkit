@@ -105,7 +105,8 @@ for (const [nomRegle, regle] of Object.entries(regles)) for (const [nomTable, ta
       reference: r.hexa,
       derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
     } as Palette));
-    const profils = regle ? { soft: { part: 0.85 }, vivid: { part: 0.95 } } : base.profils;
+    // Sans règle, les parts communes d'avant le format 11 : 0,45 et 0,95.
+    const profils = regle ? { soft: { ...base.profils.soft, part: 0.85 }, vivid: { ...base.profils.vivid, part: 0.95 } } : { soft: { ...base.profils.soft, part: 0.45 }, vivid: base.profils.vivid };
     const fonds = PAGES[nomTable] ? { ...base.fonds, ...PAGES[nomTable] } : base.fonds;
     const recette: Recette = valider({ ...base, fonds, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
     for (const palette of recette.palettes) {

@@ -9,18 +9,18 @@
 import { TEXTE_DES_BOUTONS_PAR_DEFAUT, cransRequis, sensDuTheme, type SensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
 
 import { lireHexa } from './conversions';
-import { PREREGLAGES, courbesParDefaut } from './nuances';
-import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Profil } from './rampe';
-import { RELEVE_TAILWIND, type PaireDeDerive } from './tailwind';
+import { PREREGLAGES, courbesParDefaut, luminositeAuNumero, type Grille } from './nuances';
+import { BORNES_DU_COLOR_SHIFT, type DecalageAuxBouts, type Derive, type Mode, type Profil } from './rampe';
+import { RELEVE_TAILWIND, type RampeDeDerive } from './tailwind';
 
 /**
- * La version écrite : `figees` peut porter les couleurs des deux intensités
- * d'une palette (`{ soft, vivid }`). Le format 9 se lit tel quel, puisque rien
- * n'y change de sens ; le format 8 se lit avec les couleurs de texte par
- * défaut ; les formats plus anciens sont illisibles et les formats plus
- * récents sont futurs.
+ * La version écrite : chaque profil porte sa part commune et son enveloppe de
+ * chroma, et `derives` relève les crans de chaque rampe Tailwind
+ * ([REC-12]). Les formats 8 à 10 se lisent en format 11 par `classerRecette` ;
+ * les formats plus anciens sont illisibles et les formats plus récents sont
+ * futurs.
  */
-export const FORMAT_RECETTE = 10;
+export const FORMAT_RECETTE = 11;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -162,20 +162,66 @@ export interface Seuils {
   readonly palettesProches: number;
 }
 
+/** Les bornes de chroma d'un thème dans l'enveloppe d'un profil. */
+export interface BornesDeChroma {
+  readonly a: number;
+  readonly b: number;
+  readonly jaunes: number;
+}
+
+/** L'enveloppe de chroma d'un profil : `p0` et les bornes de chaque thème. */
+export interface EnveloppeDeProfil {
+  readonly p0: number;
+  readonly light: BornesDeChroma;
+  readonly dark: BornesDeChroma;
+}
+
+/** Un profil de la recette : sa part commune et son enveloppe, toutes deux obligatoires. `p0` ne suit pas la part commune. */
+export interface ProfilDeRecette {
+  readonly part: number;
+  readonly enveloppe: EnveloppeDeProfil;
+}
+
+/** Les deux profils de la recette par défaut. Les bornes de chroma ne paraissent pas dans l'interface. */
+export const PROFILS_PAR_DEFAUT: { readonly soft: ProfilDeRecette; readonly vivid: ProfilDeRecette } = {
+  soft: {
+    part: 0.85,
+    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } },
+  },
+  vivid: {
+    part: 0.95,
+    enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } },
+  },
+};
+
+/** Une copie des profils par défaut : la recette ne partage aucun objet avec la constante. */
+function copierLesProfils(profils: Recette['profils']): Recette['profils'] {
+  const copie = (profil: ProfilDeRecette): ProfilDeRecette => ({
+    part: profil.part,
+    enveloppe: { p0: profil.enveloppe.p0, light: { ...profil.enveloppe.light }, dark: { ...profil.enveloppe.dark } },
+  });
+  return { soft: copie(profils.soft), vivid: copie(profils.vivid) };
+}
+
 export interface Recette {
   readonly formatVersion: number;
   readonly crans: readonly number[];
   readonly courbes: { readonly light: readonly number[]; readonly dark: readonly number[] };
-  readonly profils: { readonly soft: { readonly part: number }; readonly vivid: { readonly part: number } };
+  readonly profils: { readonly soft: ProfilDeRecette; readonly vivid: ProfilDeRecette };
   readonly gamut: 'srgb';
   readonly fonds: { readonly light: string; readonly dark: string };
   readonly texteDesBoutons: { readonly light: TexteDesBoutons; readonly dark: TexteDesBoutons };
   readonly seuils: Seuils;
-  readonly derives: readonly PaireDeDerive[];
+  readonly derives: readonly RampeDeDerive[];
   /** Le facteur de la part des fonds du thème Dark au numéro 50, entre 0 et 1 ([MOT-28]). */
   readonly intensiteDesFondsSombres: number;
   readonly contenuDesPlanches: ContenuDesPlanches;
   readonly palettes: readonly Palette[];
+}
+
+/** Une copie du relevé : la recette ne partage aucun objet avec `RELEVE_TAILWIND`. */
+function copierLeReleve(releve: readonly RampeDeDerive[]): RampeDeDerive[] {
+  return releve.map(({ nom, crans }) => ({ nom, crans: crans.map(([L, H]) => [L, H] as const) }));
 }
 
 /** La recette par défaut du paquet (section 7.2), sans palette. */
@@ -184,12 +230,12 @@ export function recetteParDefaut(): Recette {
     formatVersion: FORMAT_RECETTE,
     crans: [...PREREGLAGES[11].crans],
     courbes: courbesParDefaut(11, TEXTE_DES_BOUTONS_PAR_DEFAUT),
-    profils: { soft: { part: 0.45 }, vivid: { part: 0.95 } },
+    profils: copierLesProfils(PROFILS_PAR_DEFAUT),
     gamut: 'srgb',
     fonds: { light: '#F7F7F7', dark: '#0A0A0A' },
     texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT },
     seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05 },
-    derives: RELEVE_TAILWIND.map(([nom, clair, sombre]) => [nom, clair, sombre] as PaireDeDerive),
+    derives: copierLeReleve(RELEVE_TAILWIND),
     intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
     contenuDesPlanches: { ...CONTENU_COMPLET },
     palettes: [],
@@ -213,8 +259,8 @@ export type RegleRecette =
   | 'seuils-positifs'
   | 'derives-nombre'
   | 'derives-noms'
-  | 'derives-teintes'
-  | 'derives-teintes-claires'
+  | 'derives-crans'
+  | 'enveloppe'
   | 'derive-bornes'
   | 'derive-saturation'
   | 'derive-clarte'
@@ -342,6 +388,37 @@ function validerParts(releve: Releve, soft: unknown, vivid: unknown, chemin: str
   if (lues.length === 2 && lues[0] > lues[1]) releve.refuser('parts-ordre', chemin);
 }
 
+/** Les bornes d'un cran relevé : `L` dans `]0 ; 1[`, `H` dans `[0 ; 360[`. */
+function validerCranDeDerive(releve: Releve, cran: unknown, chemin: string, precedent: number | null): number | null {
+  if (!Array.isArray(cran) || cran.length !== 2 || !estNombre(cran[0]) || !estNombre(cran[1])) {
+    releve.refuser('forme', chemin);
+    return null;
+  }
+  const [L, H] = cran as [number, number];
+  if (L <= 0 || L >= 1) releve.refuser('derives-crans', chemin, L);
+  else if (H < 0 || H >= 360) releve.refuser('derives-crans', chemin, H);
+  else if (precedent !== null && L >= precedent) releve.refuser('derives-crans', chemin, L);
+  return L;
+}
+
+/** Les bornes de l'enveloppe d'un profil : `p0` dans `]0 ; 1]`, `a` et `b` dans `]0 ; 2]`, `jaunes` dans `[0 ; 2]`. */
+function validerEnveloppe(releve: Releve, enveloppe: unknown, chemin: string): void {
+  if (!releve.objet(enveloppe, chemin, ['p0', 'light', 'dark'])) return;
+  const dans = (valeur: unknown, ici: string, bas: number, haut: number, basInclus: boolean): void => {
+    if (!releve.nombre(valeur, ici)) return;
+    if ((basInclus ? valeur < bas : valeur <= bas) || valeur > haut) releve.refuser('enveloppe', ici, valeur);
+  };
+  dans(enveloppe.p0, `${chemin}.p0`, 0, 1, false);
+  for (const mode of ['light', 'dark'] as const) {
+    const ici = `${chemin}.${mode}`;
+    const bornes = enveloppe[mode];
+    if (!releve.objet(bornes, ici, ['a', 'b', 'jaunes'])) continue;
+    dans(bornes.a, `${ici}.a`, 0, 2, false);
+    dans(bornes.b, `${ici}.b`, 0, 2, false);
+    dans(bornes.jaunes, `${ici}.jaunes`, 0, 2, true);
+  }
+}
+
 function validerDerives(releve: Releve, derives: unknown): void {
   if (!Array.isArray(derives)) {
     releve.refuser('forme', 'derives');
@@ -349,22 +426,24 @@ function validerDerives(releve: Releve, derives: unknown): void {
   }
   if (derives.length < 2) releve.refuser('derives-nombre', 'derives', derives.length);
   const noms = new Set<string>();
-  const teintesClaires = new Set<number>();
-  derives.forEach((paire, rang) => {
+  derives.forEach((rampe, rang) => {
     const chemin = `derives[${rang}]`;
-    if (!Array.isArray(paire) || paire.length !== 3 || typeof paire[0] !== 'string'
-      || !estNombre(paire[1]) || !estNombre(paire[2])) {
-      releve.refuser('forme', chemin);
+    if (!releve.objet(rampe, chemin, ['nom', 'crans'])) return;
+    if (typeof rampe.nom !== 'string') releve.refuser('forme', `${chemin}.nom`);
+    else {
+      if (rampe.nom === '' || noms.has(rampe.nom)) releve.refuser('derives-noms', chemin, rampe.nom);
+      noms.add(rampe.nom);
+    }
+    const crans = rampe.crans;
+    if (!Array.isArray(crans)) {
+      releve.refuser('forme', `${chemin}.crans`);
       return;
     }
-    const [nom, clair, sombre] = paire as [string, number, number];
-    if (noms.has(nom)) releve.refuser('derives-noms', chemin, nom);
-    noms.add(nom);
-    for (const teinte of [clair, sombre]) {
-      if (teinte < 0 || teinte >= 360) releve.refuser('derives-teintes', chemin, teinte);
-    }
-    if (teintesClaires.has(clair)) releve.refuser('derives-teintes-claires', chemin, clair);
-    teintesClaires.add(clair);
+    if (crans.length < 2) releve.refuser('derives-crans', `${chemin}.crans`, crans.length);
+    let precedent: number | null = null;
+    crans.forEach((cran, place) => {
+      precedent = validerCranDeDerive(releve, cran, `${chemin}.crans[${place}]`, precedent);
+    });
   });
 }
 
@@ -658,32 +737,30 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
 
   if (entree.formatVersion !== FORMAT_RECETTE) releve.refuser('forme', 'formatVersion', entree.formatVersion as number);
   const crans = validerCrans(releve, entree.crans);
-  // Les crans requis sont ceux de la table de chaque sens en usage (S2, P7) : 50, 400 et 950 sont
-  // facultatifs, et 500 n'est exigé que si un thème est inversé. Un texte illisible est déjà
-  // refusé plus bas ; sans texte lisible, la liste se juge dans le sens normal.
-  const sens = new Set<SensDuTheme>();
+  // Les crans requis sont la réunion des crans de la table de chaque thème, dans son sens (S2, P7,
+  // [REC-13]) : seul 50 est facultatif. Un texte illisible est déjà refusé plus bas ; sans texte
+  // lisible, le thème se juge dans le sens normal.
+  const sens: Record<'light' | 'dark', SensDuTheme> = { light: 'normal', dark: 'normal' };
   if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', ['light', 'dark'])) {
     for (const mode of ['light', 'dark'] as const) {
       const texte = entree.texteDesBoutons[mode];
       if (texte !== 'blanc' && texte !== 'noir') releve.refuser('texte-des-boutons', `texteDesBoutons.${mode}`, texte);
-      else sens.add(sensDuTheme(mode, texte));
+      else sens[mode] = sensDuTheme(mode, texte);
     }
   }
-  if (sens.size === 0) sens.add('normal');
   if (crans !== null) {
-    // La liste se calcule dans la table du Light, comme avant les tables par thème.
-    const requis = [...new Set([...sens].flatMap((unSens) => cransRequis('light', unSens)))].sort((a, b) => a - b);
+    const requis = [...new Set((['light', 'dark'] as const).flatMap((mode) => cransRequis(mode, sens[mode])))].sort((a, b) => a - b);
     for (const cran of requis) if (!crans.includes(cran)) releve.refuser('crans-emplois', 'crans', cran);
   }
   validerCourbes(releve, entree.courbes, crans?.length ?? null);
 
   const profils = entree.profils;
   if (releve.objet(profils, 'profils', ['soft', 'vivid'])) {
-    const soft = profils.soft;
-    const vivid = profils.vivid;
-    if (releve.objet(soft, 'profils.soft', ['part']) && releve.objet(vivid, 'profils.vivid', ['part'])) {
-      validerParts(releve, soft.part, vivid.part, 'profils', '.part');
-    }
+    const soft = releve.objet(profils.soft, 'profils.soft', ['part', 'enveloppe']) ? profils.soft : null;
+    const vivid = releve.objet(profils.vivid, 'profils.vivid', ['part', 'enveloppe']) ? profils.vivid : null;
+    if (soft && vivid) validerParts(releve, soft.part, vivid.part, 'profils', '.part');
+    if (soft) validerEnveloppe(releve, soft.enveloppe, 'profils.soft.enveloppe');
+    if (vivid) validerEnveloppe(releve, vivid.enveloppe, 'profils.vivid.enveloppe');
   }
 
   if (entree.gamut !== 'srgb') releve.refuser('gamut-inconnu', 'gamut', entree.gamut);
@@ -733,13 +810,95 @@ export type Classement =
   | { readonly etat: 'future'; readonly version: number }
   | { readonly etat: 'illisible'; readonly refus: readonly Refus[] };
 
+/** Le plus ancien format que la lecture convertit ([REC-12]). */
+const PREMIER_FORMAT_LISIBLE = 8;
+
+/**
+ * Le premier refus d'une forme ancienne, avant toute transformation : le
+ * texte des boutons déjà présent au format 8, `crans` ou `courbes` absents,
+ * un champ du format 11 (`enveloppe`, une rampe de `derives` en objet) dans
+ * une recette plus ancienne.
+ */
+function refusDeLaFormeAncienne(objet: Objet, version: number): Refus | null {
+  if (version === 8 && 'texteDesBoutons' in objet) return { regle: 'forme', chemin: 'texteDesBoutons' };
+  for (const cle of ['crans', 'courbes']) {
+    if (!(cle in objet)) return { regle: 'forme', chemin: cle };
+  }
+  if (estObjet(objet.profils)) {
+    for (const profil of ['soft', 'vivid']) {
+      const lu = objet.profils[profil];
+      if (estObjet(lu) && 'enveloppe' in lu) return { regle: 'forme', chemin: `profils.${profil}.enveloppe` };
+    }
+  }
+  if (Array.isArray(objet.derives)) {
+    const rang = objet.derives.findIndex(estObjet);
+    if (rang >= 0) return { regle: 'forme', chemin: `derives[${rang}]` };
+  }
+  return null;
+}
+
+/** Le format 8 reçoit le texte des boutons par défaut ; le reste est celui du format 9. */
+function depuisLeFormat8(objet: Objet): Objet {
+  return { ...objet, formatVersion: 9, texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT } };
+}
+
+/** Le format 10 ajoute la forme à deux intensités de `figees` : rien ne change de sens pour une recette 9. */
+function depuisLeFormat9(objet: Objet): Objet {
+  return { ...objet, formatVersion: 10 };
+}
+
+/**
+ * La liste de nuances et les deux courbes d'une recette ancienne, quand
+ * `luminositeAuNumero` sait les lire : des nombres, deux numéros croissants au
+ * moins, une luminosité par numéro. Sinon `null`, et la validation du format 11
+ * en refuse la forme.
+ */
+function grilleLisible(objet: Objet): Grille | null {
+  const { crans, courbes } = objet;
+  const nombres = (x: unknown): x is number[] => Array.isArray(x) && x.every(estNombre);
+  if (!nombres(crans) || crans.length < 2 || !crans.every((cran, rang) => rang === 0 || cran > crans[rang - 1])) return null;
+  if (!estObjet(courbes) || !nombres(courbes.light) || !nombres(courbes.dark)) return null;
+  if (courbes.light.length !== crans.length || courbes.dark.length !== crans.length) return null;
+  return { crans, courbes: { light: courbes.light, dark: courbes.dark } };
+}
+
+/** Les crans que la table des deux thèmes exige et que le format 10 laissait facultatifs ([REC-13]). */
+const CRANS_AJOUTES_AU_FORMAT_11 = [400, 500, 950];
+
+/**
+ * Le format 11 : les profils et le relevé `derives` du paquet ([REC-12]). Les
+ * crans 400, 500 et 950 manquants s'ajoutent à la liste, triée, avec la
+ * luminosité que `luminositeAuNumero` donne sur la grille d'origine, au
+ * millième comme `grilleAuPrereglage` ([REC-13]). Le reste est tel quel.
+ */
+function depuisLeFormat10(objet: Objet): Objet {
+  const grille = grilleLisible(objet);
+  const manquants = grille ? CRANS_AJOUTES_AU_FORMAT_11.filter((cran) => !grille.crans.includes(cran)) : [];
+  const suivant: Objet = {
+    ...objet,
+    formatVersion: 11,
+    profils: copierLesProfils(PROFILS_PAR_DEFAUT),
+    derives: copierLeReleve(RELEVE_TAILWIND),
+  };
+  if (grille && manquants.length > 0) {
+    const crans = [...grille.crans, ...manquants].sort((a, b) => a - b);
+    const courbe = (mode: Mode): number[] => crans.map((cran) => {
+      const rang = grille.crans.indexOf(cran);
+      return rang >= 0 ? grille.courbes[mode][rang] : Math.round(luminositeAuNumero(grille, mode, cran) * 1000) / 1000;
+    });
+    suivant.crans = crans;
+    suivant.courbes = { light: courbe('light'), dark: courbe('dark') };
+  }
+  return suivant;
+}
+
 /**
  * Classe le texte rangé sous la clé de la recette avant tout emploi
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
- * supérieure est `future`. Le format 9 se lit tel quel, avec la version
- * courante ; le format 8 reçoit en plus le texte des boutons par défaut,
- * avant validation au format courant. Une version inférieure à 8 est
- * illisible. La lecture laisse la recette rangée intacte ([REC-04]).
+ * supérieure est `future`, une version inférieure à 8 est illisible. Les
+ * formats 8 à 10 se lisent en format 11, une étape par format ; une forme
+ * ancienne qui ne se convertit pas est illisible ([REC-12]). La lecture
+ * laisse la recette rangée intacte ([REC-04]).
  */
 export function classerRecette(texte: string | undefined): Classement {
   if (texte === undefined || texte === '') return { etat: 'absente', recette: recetteParDefaut() };
@@ -757,18 +916,19 @@ export function classerRecette(texte: string | undefined): Classement {
     return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion' }] };
   }
   if ((version as number) > FORMAT_RECETTE) return { etat: 'future', version: version as number };
-  if ((version as number) < 8) {
+  if ((version as number) < PREMIER_FORMAT_LISIBLE) {
     return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version as number }] };
   }
 
-  if (version === 8) {
-    if ('texteDesBoutons' in objet) return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'texteDesBoutons' }] };
-    objet = { ...objet, formatVersion: FORMAT_RECETTE, texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT } };
-  } else if (version === 9) {
-    // Le format 10 n'ajoute que la forme à deux intensités de `figees` : rien n'y change de sens pour une recette 9.
-    objet = { ...objet, formatVersion: FORMAT_RECETTE };
+  let lue: Objet = objet;
+  if ((version as number) < FORMAT_RECETTE) {
+    const refus = refusDeLaFormeAncienne(objet, version as number);
+    if (refus) return { etat: 'illisible', refus: [refus] };
+    if (version === 8) lue = depuisLeFormat8(lue);
+    if ((version as number) <= 9) lue = depuisLeFormat9(lue);
+    lue = depuisLeFormat10(lue);
   }
 
-  const lue = validerRecette(objet);
-  return 'refus' in lue ? { etat: 'illisible', refus: lue.refus } : { etat: 'courante', recette: lue.recette };
+  const validee = validerRecette(lue);
+  return 'refus' in validee ? { etat: 'illisible', refus: validee.refus } : { etat: 'courante', recette: validee.recette };
 }

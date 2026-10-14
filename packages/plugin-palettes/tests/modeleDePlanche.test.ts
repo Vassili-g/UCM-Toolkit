@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { contraste, lireHexa, recetteAvecTexteDesBoutons, recetteParDefaut, rgb8VersP3, verifierPromesses, type Mode, type Palette, type Recette, type Rgb8, type TexteDesBoutons } from 'ucm-couleur';
+import { contraste, lireHexa, recetteAvecTexteDesBoutons, rgb8VersP3, verifierPromesses, type Mode, type Palette, type Recette, type Rgb8, type TexteDesBoutons } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nouvellePalette, renommer } from '../src/edition';
 import { poserFond } from '../src/configuration';
@@ -18,8 +18,9 @@ import {
   type NoeudTexte,
 } from '../src/planche/modele';
 import { contrasteEcrit } from '../src/planche/textes';
+import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
-const VIDE = recetteParDefaut();
+const VIDE = recetteAuxPartsDe045();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
 const avec = (...palettes: Palette[]): Recette => palettes.reduce(ajouter, VIDE);
 const RECETTE = avec(BLEU);

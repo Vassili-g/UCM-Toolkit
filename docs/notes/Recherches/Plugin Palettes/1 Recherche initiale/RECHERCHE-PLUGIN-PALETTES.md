@@ -489,14 +489,14 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | Clé | Contenu | Portée |
 |---|---|---|
 | `formatVersion` | Entier positif, version de la forme de la recette | Fichier |
-| `crans` | `[50, 100, …, 950]` : les crans requis par la table du sens de chaque thème (`[VER-05]`), 50, 400 et 950 facultatifs | Toutes les rampes |
+| `crans` | `[50, 100, …, 950]` : la réunion des crans que la table de chaque thème exige dans son sens (`[VER-05]`, `[REC-13]`), 50 seul facultatif | Toutes les rampes |
 | `courbes` | `light` et `dark`, une clarté par cran | Toutes les rampes |
-| `profils` | `soft` et `vivid`, une part de chroma chacun | Toutes les palettes, sauf surcharge |
+| `profils` | `soft` et `vivid`, chacun avec sa `part` commune de chroma et son `enveloppe`, toutes deux obligatoires (`[REC-12]`) | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
 | `fonds` | `light` et `dark`, un hexa chacun : le fond de la page de chaque thème | Les garanties |
 | `texteDesBoutons` | `light` et `dark`, chacun `blanc` (`#FFFFFF`) ou `noir` (`#000000`) ; `blanc` en Light et `noir` en Dark par défaut | Thème |
 | `seuils` | `texte` 4,5 ; `nonTexte` 3 ; `profilsConfondus` 0,02 ; `palettesProches` 0,05 | Vérifications |
-| `derives` | Les dix-sept paires de Tailwind | Préréglage |
+| `derives` | Les dix-sept rampes colorées de Tailwind 3.4.17 : un nom et onze crans `[L, H]` du 50 au 950 (`[REC-12]`) | Préréglage |
 | `intensiteDesFondsSombres` | Nombre dans `[0, 1]`, 0,30 par défaut : le facteur de la part des fonds du thème Dark au numéro 50 (`[MOT-28]`) | Toutes les palettes, thème Dark |
 | `contenuDesPlanches` | `note`, `usages`, `grilles`, `light`, `dark` : les parties qu'un cadre dessine, toutes vraies par défaut, un thème au moins (`[PLA-28]`) | Planche |
 | `palettes` | Une entrée par palette, dans l'ordre d'affichage | Palettes |
@@ -540,13 +540,16 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
 
 ```json
 {
-  "formatVersion": 10,
+  "formatVersion": 11,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
     "dark": [0.18, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93]
   },
-  "profils": { "soft": { "part": 0.45 }, "vivid": { "part": 0.95 } },
+  "profils": {
+    "soft": { "part": 0.85, "enveloppe": { "p0": 0.85, "light": { "a": 0.6, "b": 0.38, "jaunes": 1 }, "dark": { "a": 1.1, "b": 0.38, "jaunes": 0 } } },
+    "vivid": { "part": 0.95, "enveloppe": { "p0": 0.95, "light": { "a": 1.1, "b": 0.48, "jaunes": 0.5 }, "dark": { "a": 1.1, "b": 0.3, "jaunes": 0 } } }
+  },
   "gamut": "srgb",
   "fonds": { "light": "#F7F7F7", "dark": "#121212" },
   "texteDesBoutons": { "light": "blanc", "dark": "noir" },
@@ -554,7 +557,10 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
     "texte": 4.5, "nonTexte": 3, "profilsConfondus": 0.02,
     "palettesProches": 0.05
   },
-  "derives": [["rose", 12.422, 12.094], ["red", 17.38, 26.042]],
+  "derives": [
+    { "nom": "rose", "crans": [[0.9694, 12.42], [0.9414, 12.58], [0.2708, 12.09]] },
+    { "nom": "red", "crans": [[0.9705, 17.38], [0.9356, 17.72], [0.2575, 26.04]] }
+  ],
   "intensiteDesFondsSombres": 0.3,
   "contenuDesPlanches": { "note": true, "usages": true, "grilles": true, "light": true, "dark": true },
   "palettes": [
@@ -582,8 +588,8 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
 }
 ```
 
-L'exemple abrège `derives`. La recette par défaut du paquet porte les
-dix-sept paires.
+L'exemple abrège `derives` à deux rampes de trois crans. La recette par défaut
+du paquet porte les dix-sept rampes de onze crans.
 
 ### 7.3 Rangement et version
 
@@ -597,16 +603,14 @@ dix-sept paires.
   moteur produit ces octets par son propre encodeur : le sandbox n'a pas
   `TextEncoder`.
 - `[REC-03]` La lecture classe la recette avant de l'employer : absente, la
-  recette par défaut du paquet est proposée ; au format 10, lue ; au format 9,
-  lue telle quelle : `classerRecette` lui donne la version 10 puis la valide,
-  rien n'y changeant de sens ; au format 8,
-  lue aussi : `classerRecette` lui ajoute `texteDesBoutons` par défaut, la
-  passe au format 10 et la valide, et son état est `courante`. Une recette 8
-  qui porte déjà `texteDesBoutons` est refusée par la règle `forme`.
+  recette par défaut du paquet est proposée ; au format 11, lue ; aux formats 8,
+  9 et 10, lue en format 11 par `classerRecette`, une étape par format
+  (`[REC-12]`), et son état est `courante`. Une recette 8 qui porte déjà
+  `texteDesBoutons` est refusée par la règle `forme`.
   Antérieure à 8, elle est illisible, par le refus de `formatVersion` et sans
-  conversion ; supérieure à 10, refusée avec un message qui demande de mettre
+  conversion ; supérieure à 11, refusée avec un message qui demande de mettre
   le plugin à jour ; illisible, refusée sans écrire. Comme toute lecture, elle
-  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 10 au prochain
+  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 11 au prochain
   rangement que fait un geste du designer.
 - `[REC-04]` Un refus de lecture laisse la recette rangée intacte. Le plugin ne
   dessine rien tant que la recette n'est pas lisible.
@@ -619,10 +623,14 @@ dix-sept paires.
   `clarte` aux deux valeurs nulles, seuils strictement positifs, hexas valides,
   identifiants uniques, `crans` qui contient les crans requis par la table du
   sens de chaque thème (`[VER-05]`) ; `texteDesBoutons` vaut `blanc` ou
-  `noir` pour chaque thème. `derives`
-  compte au moins deux paires, aux noms uniques, aux teintes dans `[0, 360)`, et
-  leurs teintes claires sont distinctes : deux teintes claires égales annulent
-  le dénominateur de l'interpolation de `dériveTailwind`. Une clé que la
+  `noir` pour chaque thème. Chaque profil a exactement `part` et `enveloppe`, et
+  l'enveloppe a exactement `p0`, `light` et `dark`, chacun de ceux-ci avec
+  `a`, `b` et `jaunes` (`[REC-12]`). `derives` compte au moins deux rampes, aux
+  noms non vides et uniques, chacune d'au moins deux crans `[L, H]` dont les `L`
+  sont dans `]0, 1[` et strictement décroissants, et les `H` dans `[0, 360)`.
+  Le relevé doit compter deux teintes de premier cran distinctes au moins :
+  deux teintes égales annulent le dénominateur de l'interpolation de
+  `dériveTailwind`, et la validation ne le vérifie pas. Une clé que la
   version courante ne connaît pas est refusée, `planche` comprise. Une palette
   aux profils liés porte deux Color shift identiques, teinte, saturation et
   luminosité comprises ; chaque origine est l'une de
@@ -644,7 +652,9 @@ dix-sept paires.
   différer au dernier bit, et la recette deviendrait illisible. La version 8
   ajoute `figees` et laisse une palette à une intensité porter `crans`. La
   version 9 ajoute `texteDesBoutons`. La
-  version 10 laisse `figees` porter les couleurs de deux intensités, `{ soft, vivid }`. Une recette d'une version antérieure à
+  version 10 laisse `figees` porter les couleurs de deux intensités, `{ soft, vivid }`. La
+  version 11 range l'enveloppe de chaque profil et le relevé `derives` par
+  rampes (`[REC-12]`). Une recette d'une version antérieure à
   8 est refusée sans conversion :
   seul le mainteneur en a rangé, pour ses essais. Un changement de forme
   reprendra sa conversion et ses tests le jour où des recettes seront rangées
@@ -666,6 +676,33 @@ dix-sept paires.
 - `[REC-11]` Une recette illisible ou future offre trois gestes : exporter la
   recette rangée telle quelle, importer une recette, et repartir de la recette
   par défaut après confirmation.
+- `[REC-12]` Le format 11 range, pour chaque profil, sa `part` commune et son
+  `enveloppe` de chroma, toutes deux obligatoires. L'enveloppe porte `p0` dans
+  `]0 ; 1]`, et `light` et `dark`, chacun avec `a` et `b` dans `]0 ; 2]` et
+  `jaunes` dans `[0 ; 2]` ; `p0` ne suit pas la part commune, et une valeur hors
+  bornes est refusée par la règle `enveloppe`, au chemin du champ. Par défaut,
+  `soft` a la part 0,85 et l'enveloppe `p0` 0,85, `light` `a` 0,6, `b` 0,38,
+  `jaunes` 1, `dark` `a` 1,1, `b` 0,38, `jaunes` 0 ; `vivid` a la part 0,95 et
+  l'enveloppe `p0` 0,95, `light` `a` 1,1, `b` 0,48, `jaunes` 0,5, `dark` `a` 1,1,
+  `b` 0,30, `jaunes` 0. `derives` range des rampes `{ nom, crans }` ; la règle
+  `derives-crans` refuse une rampe de moins de deux crans, un `L` hors de
+  `]0 ; 1[`, un `H` hors de `[0 ; 360[` et des `L` qui ne décroissent pas
+  strictement. `classerRecette` lit les formats 8, 9 et 10 en format 11, une
+  étape par format. L'étape du format 10 au format 11 donne aux profils les
+  parts et les enveloppes par défaut, ajoute à la liste les crans 400, 500 et 950
+  absents (`[REC-13]`) et remplace `derives` par le relevé du paquet : les parts
+  de l'ancienne recette ne sont pas conservées, donc les couleurs changent. Les
+  courbes, les fonds, le texte des boutons, les seuils et les palettes restent.
+  Avant toute étape, une forme ancienne sans `crans` ou sans `courbes`, ou qui
+  porte un champ du format 11 (`enveloppe`, une rampe de `derives` en objet),
+  est `illisible`, sans exception levée.
+- `[REC-13]` Les crans requis sont la réunion de ceux que la table de chaque
+  thème exige, chacun dans le sens de son texte des boutons ; seul 50 est
+  facultatif. Avec les textes par défaut, ce sont 100 à 900 et 950. La lecture
+  d'une recette 10 ajoute les crans 400, 500 et 950 absents, avec dans chaque
+  thème la clarté que `luminositeAuNumero` donne sur l'ancienne grille, au
+  même rang. Une recette 11 à qui il en manque un est refusée par la règle
+  `crans-emplois`.
 
 ## 8. Les entrées
 

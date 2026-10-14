@@ -33,7 +33,7 @@ export const valider = (brute: unknown): Recette => {
 export const RECETTE_REELLE = valider(lire('./references/recette-mainteneur.json'));
 export const RECETTE_COMMUNE = valider(recetteAuxReglagesCommuns(RECETTE_REELLE));
 /** Les réglages communs, parts communes portées au préréglage de l'enveloppe : le moteur calcule les parts de chaque palette. */
-export const RECETTE_ENVELOPPE = valider({ ...RECETTE_COMMUNE, profils: { soft: { part: 0.85 }, vivid: { part: 0.95 } } });
+export const RECETTE_ENVELOPPE = valider({ ...RECETTE_COMMUNE, profils: { soft: { ...RECETTE_COMMUNE.profils.soft, part: 0.85 }, vivid: { ...RECETTE_COMMUNE.profils.vivid, part: 0.95 } } });
 const BORNES_LIGHT = { soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } };
 // En Dark, les crans clairs sont des textes : la borne vers le blanc de Soft s'ouvre comme celle de Vivid.
 export const REGLE_ENVELOPPE = enveloppesParTheme({ light: BORNES_LIGHT, dark: { ...BORNES_LIGHT, soft: { p0: 0.85, a: 1.1, b: 0.38 } } });

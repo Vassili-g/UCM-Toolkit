@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { courbesParDefaut, garantieDesCourbes, grilleAuPrereglage, nuancesReglees, recetteParDefaut, validerRecette, type Mode, type NombreDeNuances, type Recette } from 'ucm-couleur';
+import { PROFILS_PAR_DEFAUT, classerRecette, courbesParDefaut, garantieDesCourbes, grilleAuPrereglage, nuancesReglees, recetteParDefaut, validerRecette, type Mode, type NombreDeNuances, type Recette } from 'ucm-couleur';
 
 import {
   CARTES_DES_REGLAGES,
@@ -21,6 +21,7 @@ import { ajouter, nouvellePalette } from '../src/edition';
 import { constatDeGarantie as constatEn } from '../src/i18n/en';
 import { constatDeGarantie, palettesConcernees, resumeDesEcarts, resumeDesMinimums } from '../src/i18n/fr';
 import { TRAME_DU_TRACE, geometrieDesCourbes } from '../src/ui/traceDesCourbes';
+import { temoinDeRecette } from './temoinsDeRecette';
 
 const DEFAUT = recetteParDefaut();
 
@@ -128,6 +129,38 @@ test('V9.5 : « Rétablir » remet une carte aux valeurs par défaut, sans touch
   assert.deepEqual(CARTES.map((carte) => estParDefaut(DEFAUT, carte)), [true, true, true, true, true, true]);
   assert.equal(estParDefaut(poserValeur(DEFAUT, { fondsSombres: true }, 0.5), 'parts'), false, 'les fonds du thème Dark comptent dans les intensités');
   assert.equal(estParDefaut(poserValeur(DEFAUT, { courbe: 'dark', rang: 3 }, 0.34), 'courbes'), false, 'la courbe sombre compte aussi');
+});
+
+test('[REC-12] une saisie de part garde l’enveloppe du profil, et les parts par défaut de Soft et de Vivid sont 0,85 et 0,95', () => {
+  assert.equal(valeurDe(DEFAUT, { part: 'soft' }), 0.85);
+  assert.equal(valeurDe(DEFAUT, { part: 'vivid' }), 0.95);
+  for (const profil of ['soft', 'vivid'] as const) {
+    const saisie = poserValeur(DEFAUT, { part: profil }, 0.5);
+    assert.equal(saisie.profils[profil].part, 0.5);
+    assert.deepEqual(saisie.profils[profil].enveloppe, PROFILS_PAR_DEFAUT[profil].enveloppe);
+    const autre = profil === 'soft' ? 'vivid' : 'soft';
+    assert.deepEqual(saisie.profils[autre], PROFILS_PAR_DEFAUT[autre]);
+  }
+  // `p0` ne suit pas la part commune.
+  assert.equal(poserValeur(DEFAUT, { part: 'soft' }, 0.5).profils.soft.enveloppe.p0, 0.85);
+});
+
+test('[REC-12] « Par défaut » des intensités pose les parts et les enveloppes, et une enveloppe modifiée n’est plus par défaut', () => {
+  const profils = { soft: { ...PROFILS_PAR_DEFAUT.soft, enveloppe: { ...PROFILS_PAR_DEFAUT.soft.enveloppe, p0: 0.5 } }, vivid: { ...PROFILS_PAR_DEFAUT.vivid, part: 0.9 } };
+  const reglee: Recette = { ...DEFAUT, profils };
+  assert.equal(estParDefaut(reglee, 'parts'), false);
+  assert.equal(estParDefaut({ ...DEFAUT, profils: { ...DEFAUT.profils, soft: profils.soft } }, 'parts'), false, 'l’enveloppe seule suffit à écarter la carte des valeurs par défaut');
+  const retablie = retablir(reglee, 'parts')!;
+  assert.deepEqual(retablie.profils, PROFILS_PAR_DEFAUT);
+  assert.equal(estParDefaut(retablie, 'parts'), true);
+  assert.notEqual(retablie.profils.soft.enveloppe, PROFILS_PAR_DEFAUT.soft.enveloppe, 'la recette ne partage aucun objet avec la constante');
+});
+
+test('[REC-12] une recette migrée du format 10 est « par défaut » pour la carte des intensités', () => {
+  const lue = classerRecette(temoinDeRecette('format-10'));
+  assert.ok(lue.etat === 'courante');
+  assert.equal(estParDefaut(lue.recette, 'parts'), true);
+  assert.equal(palettesModifiees(lue.recette, 'parts'), lue.recette.palettes.filter((palette) => !palette.parts && palette.intensites !== 1).length);
 });
 
 test('V9.5 : les courbes par défaut ne se rétablissent pas sur une autre liste de nuances', () => {

@@ -194,8 +194,18 @@ function etatDuFichier(texte, profil = 'SRGB', planche = PLANCHE_VIDE, demande =
   };
 }
 
+/**
+ * La recette par défaut aux parts communes 0,45 et 0,95 : les états racontent un Bleu porté par Vivid, des
+ * profils que l'écart des parts sépare et des alertes que ces parts décident. La part Soft par défaut du
+ * format 11 est 0,85.
+ */
+function recetteDeLaGalerie() {
+  const defaut = recetteParDefaut();
+  return { ...defaut, profils: { ...defaut.profils, soft: { ...defaut.profils.soft, part: 0.45 } } };
+}
+
 /** Une palette au préréglage Tailwind, profils liés, comme l'onglet Création la crée : un gris pur n'a pas de dérive. */
-function palette(id, nom, reference, recette = recetteParDefaut()) {
+function palette(id, nom, reference, recette = recetteDeLaGalerie()) {
   const couleur = lireHexa(reference);
   const derive = estGrisPur(couleur) ? PREREGLAGE_CONSTANTE : prereglageTailwind(rgb8VersOklch(couleur), boutsDe(recette));
   return {
@@ -208,7 +218,7 @@ function palette(id, nom, reference, recette = recetteParDefaut()) {
 
 /** Le texte rangé d'une recette : la recette par défaut, modifiée, avec ces palettes. */
 function rangee(palettes, modifier = (recette) => recette) {
-  return jsonCanonique({ ...modifier(recetteParDefaut()), palettes });
+  return jsonCanonique({ ...modifier(recetteDeLaGalerie()), palettes });
 }
 
 const BLEU = palette('p-3fa2c91e', 'Bleu', '#1E6FD9');
@@ -291,7 +301,7 @@ function variablesDuFichierAvecPoppy() {
  * n'atteint pas.
  */
 function sauge(variante = 'deux') {
-  const recette = recetteParDefaut();
+  const recette = recetteDeLaGalerie();
   const derive = { clair: -8.27, sombre: 20.49, origine: 'tailwind' };
   const calculee = { id: 'p-6a5e0b17', nom: 'Sauge', reference: '#A7B9BA', derive: { lien: true, soft: derive, vivid: derive }, base: 'soft' };
   const hexas = (rampe) => ({ light: rampe.light.map((cran) => cran.hexa), dark: rampe.dark.map((cran) => cran.hexa) });
@@ -461,7 +471,7 @@ const BLEU_FAUTIF = palette('p-2b3c4d5e', 'Bleu', '#1E6FD9');
 
 /** Deux fautes : une courbe claire qui remonte au 500, un fond sombre à cinq chiffres. */
 function recetteCassee() {
-  const recette = recetteParDefaut();
+  const recette = recetteDeLaGalerie();
   const light = [...recette.courbes.light];
   light[5] = 0.8;
   return JSON.stringify({ ...recette, courbes: { ...recette.courbes, light }, fonds: { ...recette.fonds, dark: '#12121' } });
@@ -1943,4 +1953,4 @@ ETATS.push({
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => palette(identifiantDuBilan(rang), nom, reference))))],
 });
 
-module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteParDefaut(), rampesDe } };
+module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

@@ -18,7 +18,7 @@ const C = (hexa: string) => rgb8VersOklch(lireHexa(hexa)!).C;
 const resultats: Record<string, unknown> = {};
 
 // 1. Les parts du moteur, communes portées à 0,85 et 0,95 : une référence terne garde des parts basses.
-const recette = valider({ ...RECETTE_COMMUNE, profils: { soft: { part: 0.85 }, vivid: { part: 0.95 } } });
+const recette = valider({ ...RECETTE_COMMUNE, profils: { soft: { ...RECETTE_COMMUNE.profils.soft, part: 0.85 }, vivid: { ...RECETTE_COMMUNE.profils.vivid, part: 0.95 } } });
 const regle = enveloppes({ soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } });
 const ternes: Record<string, unknown> = {};
 for (const p of recette.palettes) {
