@@ -125,7 +125,32 @@ ul.rules li{margin-bottom:6px}
 footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 footer ul{padding-left:18px;margin:6px 0 0}
 
+/* arborescence des changements */
+.arbre-outils{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:10px 0 8px;font-size:.9rem}
+.arbre-outils label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.arbre-outils button{all:unset;cursor:pointer;color:var(--add);text-decoration:underline;text-underline-offset:3px;font-size:.88rem}
+.arbre-outils button:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+.arbre{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:.84rem;line-height:1.5}
+.arbre details{margin-left:16px;border-left:1px solid var(--line);padding-left:10px}
+.arbre>details{margin-left:0;border-left:none;padding-left:0}
+.arbre summary{cursor:pointer;padding:2px 0;list-style-position:outside}
+.arbre summary:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+.arbre summary .tag{margin-left:8px;vertical-align:1px}
+.arbre .feuille{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:2px 14px;margin-left:16px;border-left:1px solid var(--line);padding:3px 0 3px 10px}
+.arbre .feuille.inchange{color:var(--muted)}
+.arbre .feuille .nom{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.arbre .feuille.del .nom b{text-decoration:line-through}
+.arbre .modes{display:grid;gap:2px;min-width:0}
+.arbre .mode s,.arbre .mode b{overflow-wrap:anywhere}
+.arbre .mode{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.arbre .mode i{font-style:normal;color:var(--muted);min-width:68px}
+.arbre .mode s{color:var(--muted);text-decoration-color:var(--del)}
+.arbre .fl{color:var(--muted)}
+.arbre .vide{color:var(--muted);font-family:var(--sans);font-style:italic;margin-left:16px}
+
 @media (max-width:720px){
+  .arbre .feuille{grid-template-columns:1fr}
+  .arbre details{margin-left:8px}
   .fx-body{grid-template-columns:1fr}
   .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
   .fx-cols .lab{width:100%}
@@ -168,6 +193,19 @@ footer ul{padding-left:18px;margin:6px 0 0}
     </div>
   </div>
   <p class="cap narrow">Vue Aujourd’hui : <code>theme</code>, <code>color-brands</code> et <code>color-utilities</code> de l’export de ton fichier Figma (<code>tokens-new-architecture.json</code>) ; <code>primitives</code> tel qu’UCM Palettes le calcule aujourd’hui sur ta recette, puisque l’export précède la courbe inversée de ton Dark. Vue Demain : la nouvelle table appliquée à ce fichier, et les palettes recalculées par le prototype du moteur (<code>REGLE_FINALE</code>), qui rend les mêmes couleurs que le moteur à venir. Les composants ne sont pas montrés : ils seront repointés vers <code>theme</code> à part (D11). Données : <a href="generer-vue-illustree.ts"><code>generer-vue-illustree.ts</code></a>.</p>
+
+
+  <div class="narrow">
+  <h2 id="changements">Ce qui change dans ton fichier</h2>
+  <p>L’arborescence de tes variables, de la collection à la variable, pour mettre tes tokens à jour. Chaque variable qui change porte ce qu’il faut faire : <span class="tag new">à créer</span>, <span class="tag mod">à modifier</span> ou <span class="tag del">à supprimer</span>, et pour chaque mode l’alias d’aujourd’hui, barré, puis celui de demain. <code>primitives</code> se met à jour en relançant UCM Palettes : tu n’y touches pas à la main.</p>
+  <p id="arbre-bilan"></p>
+  </div>
+  <div class="arbre-outils">
+    <label><input type="checkbox" id="arbre-tout"> Montrer aussi ce qui ne change pas</label>
+    <button type="button" id="arbre-ouvrir">Tout déplier</button>
+    <button type="button" id="arbre-fermer">Tout replier</button>
+  </div>
+  <div class="arbre" id="arbre"></div>
 
   <div class="narrow">
   <h2>Les décisions</h2>
@@ -699,6 +737,64 @@ footer ul{padding-left:18px;margin:6px 0 0}
   document.querySelectorAll("[data-go]").forEach(function(b){
     b.addEventListener("click",function(){var p=b.getAttribute("data-go").split(":");state.view=p[0];state.col=p[1];render();$("fx").scrollIntoView({behavior:"smooth",block:"start"});});
   });
+  /* L'arborescence des changements : collection › segments › variable, demain comparé à aujourd'hui. */
+  var STATUT={new:["new","à créer"],mod:["mod","à modifier"],del:["del","à supprimer"]};
+  function court(v){return v.charAt(0)==="#"?v:v.split(".").slice(1).join("/");}
+  function arbreDe(col){
+    var racine={enfants:{},ordre:[],change:0};
+    cles(col,"demain").forEach(function(k){
+      var t=V.aujourdhui[col][k],d=V.demain[col][k];
+      var st=t===undefined?"new":d===undefined?"del":JSON.stringify(t)!==JSON.stringify(d)?"mod":"";
+      var p=k.split(".").slice(1),n=racine;
+      if(st)n.change++;
+      p.slice(0,-1).forEach(function(seg){
+        if(!n.enfants[seg]){n.enfants[seg]={enfants:{},ordre:[],change:0};n.ordre.push(seg);}
+        n=n.enfants[seg];if(st)n.change++;
+      });
+      var f=p[p.length-1];n.enfants[f]={feuille:true,k:k,st:st};n.ordre.push(f);
+    });
+    return racine;
+  }
+  function modesFeuille(col,f){
+    return modesDe(col).map(function(m){
+      var ctx=ctxDe(col,m),t=valeur("aujourdhui",f.k,ctx),d=valeur("demain",f.k,ctx);
+      var ht=t&&hex("aujourdhui",f.k,ctx),hd=d&&hex("demain",f.k,ctx);
+      var lab=modesDe(col).length>1?"<i>"+esc(m)+"</i>":"";
+      if(f.st==="new")return '<span class="mode">'+lab+sq(hd)+esc(court(d))+"</span>";
+      if(f.st==="del")return '<span class="mode">'+lab+"<s>"+esc(court(t))+"</s></span>";
+      if(t===d)return '<span class="mode">'+lab+sq(hd)+esc(court(d))+"</span>";
+      return '<span class="mode">'+lab+sq(ht)+"<s>"+esc(court(t))+'</s><span class="fl">→</span>'+sq(hd)+"<b>"+esc(court(d))+"</b></span>";
+    }).join("");
+  }
+  function htmlNoeud(col,nom,n,tout,profondeur){
+    if(n.feuille){
+      if(!n.st&&!tout)return "";
+      var tag=n.st?'<span class="tag '+STATUT[n.st][0]+'">'+STATUT[n.st][1]+"</span>":"";
+      return '<div class="feuille '+(n.st||"inchange")+'"><span class="nom"><b>'+esc(nom)+"</b>"+tag+'</span><span class="modes">'+modesFeuille(col,n)+"</span></div>";
+    }
+    if(!n.change&&!tout)return "";
+    var corps=n.ordre.map(function(c){return htmlNoeud(col,c,n.enfants[c],tout,profondeur+1);}).join("");
+    var tag=n.change?'<span class="tag mod">'+n.change+(n.change>1?" changements":" changement")+"</span>":'<span class="tag same">inchangé</span>';
+    return "<details"+(n.change&&profondeur<3?" open":"")+"><summary>"+esc(nom)+tag+"</summary>"+corps+"</details>";
+  }
+  function dessinerArbre(){
+    var tout=$("arbre-tout").checked;
+    $("arbre").innerHTML=COLS.map(function(col){
+      var a=arbreDe(col);
+      var corps=a.ordre.map(function(c){return htmlNoeud(col,c,a.enfants[c],tout,1);}).join("");
+      var tag=a.change?'<span class="tag mod">'+a.change+" changements</span>":'<span class="tag same">aucun changement</span>';
+      return "<details"+(a.change?" open":"")+"><summary><b>"+col+"</b>"+tag+"</summary>"+(corps||'<p class="vide">Aucun alias ne change ; les couleurs suivent primitives.</p>')+"</details>";
+    }).join("");
+  }
+  (function(){
+    var t=arbreDe("theme"),compte={new:0,mod:0,del:0};
+    cles("theme","demain").forEach(function(k){var a=V.aujourdhui.theme[k],d=V.demain.theme[k];compte[a===undefined?"new":d===undefined?"del":JSON.stringify(a)!==JSON.stringify(d)?"mod":"x"]++;});
+    $("arbre-bilan").innerHTML="Dans <code>theme</code> : "+compte.mod+" variables à modifier, "+compte.new+" à créer, "+compte.del+" à supprimer. <code>color-brands</code> et <code>color-utilities</code> : rien. <code>primitives</code> : "+arbreDe("primitives").change+" couleurs, réécrites par UCM Palettes.";
+  })();
+  $("arbre-tout").addEventListener("change",dessinerArbre);
+  $("arbre-ouvrir").addEventListener("click",function(){document.querySelectorAll("#arbre details").forEach(function(d){d.open=true;});});
+  $("arbre-fermer").addEventListener("click",function(){document.querySelectorAll("#arbre details").forEach(function(d){d.open=false;});});
+  dessinerArbre();
   render();
 })();
 </script>
