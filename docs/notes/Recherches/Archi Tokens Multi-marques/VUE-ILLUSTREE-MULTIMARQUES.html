@@ -73,7 +73,7 @@ code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1
 .fx-note p{margin:0 0 4px}
 .fx-note p:last-child{margin:0}
 .fx-note a{font-weight:600}
-.fx-tw{overflow-x:auto}
+.fx-tw{overflow:auto;max-height:640px}
 .fx table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
 .fx th{text-align:left;font-weight:500;color:var(--muted);font-size:.8rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 .fx th.newcol{color:var(--add);font-weight:600}
@@ -143,13 +143,13 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 
   <h2>Le panneau des variables, aujourd’hui et demain</h2>
-  <p class="narrow">Choisis une vue, puis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour ouvrir la variable qu’il vise. Dans la vue Demain, la barre à gauche d’une ligne indique ce qui change, et l’encadré de chaque collection renvoie à sa décision.</p>
+  <p class="narrow">Aujourd’hui, ton fichier tel qu’il est ; demain, le même fichier après les décisions de la recette critique. Choisis une vue, puis une collection. Chaque colonne est un mode. Une étiquette grise est un alias : clique dessus pour ouvrir la variable qu’il vise. Dans la vue Demain, la barre à gauche d’une ligne indique ce qui change, et l’encadré de chaque collection renvoie à sa décision.</p>
 
   <div class="fx" id="fx">
     <div class="fx-top">
       <div class="seg" role="group" aria-label="Vue">
-        <button type="button" data-view="today" aria-pressed="true">Aujourd’hui</button>
-        <button type="button" data-view="tomorrow" aria-pressed="false">Demain</button>
+        <button type="button" data-view="aujourdhui" aria-pressed="true">Aujourd’hui</button>
+        <button type="button" data-view="demain" aria-pressed="false">Demain</button>
       </div>
       <div class="legend" id="legend" hidden>
         <span><i style="background:var(--add)"></i>ajouté</span>
@@ -167,7 +167,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </div>
     </div>
   </div>
-  <p class="cap narrow">Vue Aujourd’hui : variables et couleurs réelles du Playground. Vue Demain : couleurs calculées par cette page avec les courbes de clarté et la règle de chroma retenues, thèmes au sens normal (texte des boutons blanc en clair, noir en sombre) ; UCM Palettes produira les valeurs définitives. marque-3 et ses palettes <code>mimosa</code> et <code>ardoise</code> sont fictives et montrent l’ajout d’une marque. Chaque collection n’affiche que quelques lignes par groupe ; les lignes en italique résument le reste.</p>
+  <p class="cap narrow">Vue Aujourd’hui : <code>theme</code>, <code>color-brands</code> et <code>color-utilities</code> de l’export de ton fichier Figma (<code>tokens-new-architecture.json</code>) ; <code>primitives</code> tel qu’UCM Palettes le calcule aujourd’hui sur ta recette, puisque l’export précède la courbe inversée de ton Dark. Vue Demain : la nouvelle table appliquée à ce fichier, et les palettes recalculées par le prototype du moteur (<code>REGLE_FINALE</code>), qui rend les mêmes couleurs que le moteur à venir. Les composants ne sont pas montrés : ils seront repointés vers <code>theme</code> à part (D11). Données : <a href="generer-vue-illustree.ts"><code>generer-vue-illustree.ts</code></a>.</p>
 
   <div class="narrow">
   <h2>Les décisions</h2>
@@ -196,7 +196,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></dd>
       <dt>Écarté</dt><dd>Poser un mode sur <code>color-utilities</code> et <code>primitives</code> : les 39 citations de teintes brutes y échapperaient, et chaque collection porterait son propre axe à synchroniser.</dd>
       <dt>Origine</dt><dd class="org">Recherche §2.1 et §4, commit 5306c1a ; portées : comparaison avec le marché §3.3 ; table en dossiers, commit 3e84659.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:theme">Voir theme dans le panneau</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:theme">Voir theme dans le panneau</button></dd>
     </dl>
   </div>
 
@@ -212,7 +212,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></dd>
       <dt>Écarté</dt><dd>Deux collections à six modes, par exemple une pour les palettes et une pour les exceptions : Figma règle leurs modes séparément, et une maquette peut afficher la marque A dans l’une et la marque B dans l’autre.</dd>
       <dt>Origine</dt><dd class="org">Recherche §5.2, revue critique §3.6, commit 5306c1a ; forme du fichier Figma, commit b31742f.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-brands">Voir color-brands dans le panneau</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:color-brands">Voir color-brands dans le panneau</button></dd>
     </dl>
   </div>
 
@@ -229,7 +229,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <dt>Écarté</dt><dd>Des rôles facultatifs à côté des crans : un composant qui cite un cran échappe alors aux contrôles des rôles (revue critique §3.5).</dd>
       <dt>Limite</dt><dd>Une marque dont la couleur est plus claire que le cran 700, un jaune par exemple, a un bouton plus foncé que sa charte.</dd>
       <dt>Origine</dt><dd class="org">Commit 9ea3adc ; ARCHITECTURE-FINALE §4 ; spécification du plugin, décision D9.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="today:color-brand-tokens">Voir les rôles aujourd’hui</button></dd>
     </dl>
   </div>
 
@@ -247,7 +246,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       <dt>Coût</dt><dd>Un alias de plus dans chaque chaîne. <code>primitives</code> compte 464 couleurs pour six marques.</dd>
       <dt>Écarté</dt><dd>Les hexas directement dans <code>color-brands</code> : plus court d’un alias, mais les raisons ci-dessus sont perdues.</dd>
       <dt>Origine</dt><dd class="org">Recherche §5.1 ; revue critique §4 ; ce document.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:primitives">Voir primitives dans le panneau</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:primitives">Voir primitives dans le panneau</button></dd>
     </dl>
   </div>
 
@@ -263,7 +262,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></dd>
       <dt>Écarté</dt><dd>Ranger les statuts dans <code>primitives</code> sous leur nom de rôle : le rôle se mélange au catalogue, et une palette ne peut plus servir deux rôles.</dd>
       <dt>Origine</dt><dd class="org">Ce document ; le chemin famille, intensité, thème, cran du commit 5306c1a est gardé.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir color-utilities dans le panneau</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:color-utilities">Voir color-utilities dans le panneau</button></dd>
     </dl>
   </div>
 
@@ -326,7 +325,6 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <dl>
       <dt>Pourquoi</dt><dd>Garder les noms garde les calques Figma liés et les variables CSS des composants. Chaque alias vise la variable de dossier qui correspond à ce qu’il peint et au fond qui est juste derrière le texte. Une même ancienne cible peut en donner plusieurs : <code>primary/default</code> devient <code>primary/solid/default</code> pour un fond plein, <code>primary/page/foreground</code> pour un texte posé sur la page, <code>primary/page/border</code> pour une bordure. Une couleur hors table vise un cran de <code>scale</code> (D14).</dd>
       <dt>Origine</dt><dd class="org">Recherche §10, ARCHITECTURE-FINALE §4.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:components">Voir components dans le panneau</button></dd>
     </dl>
   </div>
 
@@ -374,7 +372,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></dd>
       <dt>Écarté</dt><dd>La collection <code>usage</code> et ses quatre rangs ; les crans seuls (121 choix par sélecteur) ; un texte qui avance avec l’état du fond (aucun système du marché ne le fait sur toute la rampe).</dd>
       <dt>Origine</dt><dd class="org"><a href="Collection%20usage/RECHERCHE-COLLECTION-USAGE.md">Recherche sur la collection usage</a>, commits 3e84659 et b31742f ; <code>foreground</code> au lieu de <code>text</code>, commit 4a83333.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:theme">Voir les dossiers dans theme</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:theme">Voir les dossiers dans theme</button></dd>
     </dl>
   </div>
 
@@ -428,7 +426,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
       </ul></dd>
       <dt>Les ombres</dt><dd>Des effect styles Figma, dont la couleur se lie à une variable noire translucide, plus opaque en sombre. UCM Exporter lit déjà les effect styles et leurs réglages liés à des variables.</dd>
       <dt>Origine</dt><dd class="org">Ce document ; deux niveaux : ton fichier Figma, commit b31742f ; page sombre et modèle des niveaux : recette critique, Q5.</dd>
-      <dt></dt><dd><button type="button" class="see" data-go="tomorrow:color-utilities">Voir les niveaux dans color-utilities</button></dd>
+      <dt></dt><dd><button type="button" class="see" data-go="demain:color-utilities">Voir les niveaux dans color-utilities</button></dd>
     </dl>
   </div>
 
@@ -584,401 +582,117 @@ footer ul{padding-left:18px;margin:6px 0 0}
   </div>
 </main>
 
+<script src="donnees-vue-illustree.js"></script>
 <script>
 (function(){
-  /* Aujourd'hui : relevé de UCM-Playground/src/tokens/tokens.json */
-  var D={"prim":{"titanium":{"0":"#FFFFFF","50":"#FCFCFD","100":"#F8FAFC","200":"#EEF2F6","300":"#E3E8EF","400":"#CDD5DF","500":"#9AA4B2","600":"#697586","700":"#4B5565","800":"#364152","900":"#202939","1000":"#121926","1100":"#0D121C","1200":"#000000"},"rose":{"50":"#FFF1F2","100":"#FFE4E6","200":"#FECDD3","300":"#FDA4AF","400":"#FB7185","500":"#F43F5E","600":"#E11D48","700":"#BE123C","800":"#9F1239","900":"#881337","950":"#4C0519"},"orange":{"50":"#FFF7ED","100":"#FFEDD5","200":"#FED7AA","300":"#FDBA74","400":"#FB923C","500":"#F97316","600":"#EA580C","700":"#C2410C","800":"#9A3412","900":"#7C2D12","950":"#431407"},"terracota":{"50":"#FFF4F4","100":"#FDE3E2","200":"#FDCECD","300":"#F4B8B7","400":"#DB9392","500":"#B15152","600":"#95383B","700":"#7A1E25","800":"#5E0010","900":"#3A0006","950":"#270003"},"sky":{"50":"#F0F9FF","100":"#E0F2FE","200":"#BAE6FD","300":"#7DD3FC","400":"#38BDF8","500":"#0EA5E9","600":"#0284C7","700":"#0369A1","800":"#075985","900":"#0C4A6E","950":"#082F49"},"grass":{"50":"#F0FDF4","100":"#DCFCE7","200":"#BBF7D0","300":"#86EFAC","400":"#4ADE80","500":"#22C55E","600":"#16A34A","700":"#15803D","800":"#166534","900":"#14532D","950":"#052E16"},"poppy":{"50":"#FEF2F2","100":"#FEE2E2","200":"#FECACA","300":"#FCA5A5","400":"#F87171","500":"#EF4444","600":"#DC2626","700":"#B91C1C","800":"#991B1B","900":"#7F1D1D","950":"#450A0A"},"deep":{"50":"#F2F1FD","100":"#E8E7F8","200":"#BFBCEC","300":"#9792DF","400":"#7168D1","500":"#4C3EBA","600":"#2D2478","700":"#161046","800":"#120D3A","900":"#0E0A2E","950":"#09061D"},"blue":{"50":"#EFF6FF","100":"#DBEAFE","200":"#BFDBFE","300":"#93C5FD","400":"#60A5FA","500":"#3B82F6","600":"#2563EB","700":"#1D4ED8","800":"#1E40AF","900":"#1E3A8A","950":"#172554"}},"brands":{"intencial/primary":{"50":"primitives.colors.terracota.50","100":"primitives.colors.terracota.100","200":"primitives.colors.terracota.200","300":"primitives.colors.terracota.300","400":"primitives.colors.terracota.400","500":"primitives.colors.terracota.500","600":"primitives.colors.terracota.600","700":"primitives.colors.terracota.700","800":"primitives.colors.terracota.800","900":"primitives.colors.terracota.900","950":"primitives.colors.terracota.950"},"intencial/secondary":{"50":"primitives.colors.deep.50","100":"primitives.colors.deep.100","200":"primitives.colors.deep.200","300":"primitives.colors.deep.300","400":"primitives.colors.deep.400","500":"primitives.colors.deep.500","600":"primitives.colors.deep.600","700":"primitives.colors.deep.700","800":"primitives.colors.deep.800","900":"primitives.colors.deep.900","950":"primitives.colors.deep.950"},"marque-2/primary":{"50":"primitives.colors.sky.50","100":"primitives.colors.sky.100","200":"primitives.colors.sky.200","300":"primitives.colors.sky.300","400":"primitives.colors.sky.400","500":"primitives.colors.sky.500","600":"primitives.colors.sky.600","700":"primitives.colors.sky.700","800":"primitives.colors.sky.800","900":"primitives.colors.sky.900","950":"primitives.colors.sky.950"},"marque-2/secondary":{"50":"primitives.colors.rose.50","100":"primitives.colors.rose.100","200":"primitives.colors.rose.200","300":"primitives.colors.rose.300","400":"primitives.colors.rose.400","500":"primitives.colors.rose.500","600":"primitives.colors.rose.600","700":"primitives.colors.rose.700","800":"primitives.colors.rose.800","900":"primitives.colors.rose.900","950":"primitives.colors.rose.950"}},"roles":{"primary/default":{"intencial":"color-brands.intencial.primary.500","marque-2":"color-brands.marque-2.primary.500"},"primary/subtle":{"intencial":"color-brands.intencial.primary.200","marque-2":"color-brands.marque-2.primary.200"},"primary/emphasis":{"intencial":"color-brands.intencial.primary.600","marque-2":"color-brands.marque-2.primary.600"},"primary/strong":{"intencial":"color-brands.intencial.primary.700","marque-2":"color-brands.marque-2.primary.700"},"primary/subtlest":{"intencial":"color-brands.intencial.primary.50","marque-2":"color-brands.marque-2.primary.50"},"secondary/subtle":{"intencial":"color-brands.intencial.secondary.200","marque-2":"color-brands.marque-2.secondary.200"},"secondary/default":{"intencial":"color-brands.intencial.secondary.700","marque-2":"color-brands.marque-2.secondary.500"},"secondary/emphasis":{"intencial":"color-brands.intencial.secondary.800","marque-2":"color-brands.marque-2.secondary.700"},"secondary/subtlest":{"intencial":"color-brands.intencial.secondary.100","marque-2":"color-brands.marque-2.secondary.50"},"secondary/strong":{"intencial":"color-brands.intencial.secondary.900","marque-2":"color-brands.marque-2.secondary.900"}},"util":{"success":{"50":"primitives.colors.grass.50","100":"primitives.colors.grass.100","200":"primitives.colors.grass.200","300":"primitives.colors.grass.300","400":"primitives.colors.grass.400","500":"primitives.colors.grass.500","600":"primitives.colors.grass.600","700":"primitives.colors.grass.700","800":"primitives.colors.grass.800","900":"primitives.colors.grass.900"},"warning":{"50":"primitives.colors.orange.50","100":"primitives.colors.orange.100","200":"primitives.colors.orange.200","300":"primitives.colors.orange.300","400":"primitives.colors.orange.400","500":"primitives.colors.orange.500","600":"primitives.colors.orange.600","700":"primitives.colors.orange.700","800":"primitives.colors.orange.800","900":"primitives.colors.orange.900"},"info":{"50":"primitives.colors.sky.50","100":"primitives.colors.sky.100","200":"primitives.colors.sky.200","300":"primitives.colors.sky.300","400":"primitives.colors.sky.400","500":"primitives.colors.sky.500","600":"primitives.colors.sky.600","700":"primitives.colors.sky.700","800":"primitives.colors.sky.800","900":"primitives.colors.sky.900"},"danger":{"50":"primitives.colors.poppy.50","100":"primitives.colors.poppy.100","200":"primitives.colors.poppy.200","300":"primitives.colors.poppy.300","400":"primitives.colors.poppy.400","500":"primitives.colors.poppy.500","600":"primitives.colors.poppy.600","700":"primitives.colors.poppy.700","800":"primitives.colors.poppy.800","900":"primitives.colors.poppy.900"},"neutral":{"50":"primitives.colors.titanium.50","100":"primitives.colors.titanium.100","200":"primitives.colors.titanium.200","300":"primitives.colors.titanium.300","400":"primitives.colors.titanium.400","500":"primitives.colors.titanium.500","600":"primitives.colors.titanium.600","700":"primitives.colors.titanium.700","800":"primitives.colors.titanium.800","900":"primitives.colors.titanium.900","1000":"primitives.colors.titanium.1000","1100":"primitives.colors.titanium.1100","white":"primitives.colors.titanium.0","black":"primitives.colors.titanium.1200"}}};
+  /* Les données viennent de generer-vue-illustree.ts : votre fichier aujourd'hui, et après les décisions. */
+  var V=window.VUE_DONNEES;
+  var MODES={theme:V.modes.theme,"color-brands":V.modes["color-brands"]};
+  var ORDRE_THEME=["primary","secondary","neutral","success","warning","danger","info","disabled","elevation"];
+  function modesDe(col){return MODES[col]||["Valeur"];}
 
-  function hexToday(path,mode){
-    var p=path.split("."),col=p[0];
-    if(col==="primitives")return D.prim[p[2]][p[3]];
-    if(col==="color-brands")return hexToday(D.brands[p[1]+"/"+p[2]][p[3]],mode);
-    if(col==="color-utilities")return hexToday(D.util[p[1]][p[2]],mode);
-    if(col==="color-brand-tokens")return hexToday(D.roles[p[1]+"/"+p[2]][mode||"intencial"],mode);
-    return null;
+  /* La valeur d'une variable dans une vue, pour un thème et une marque : un alias, ou un hexa. */
+  function valeur(vue,path,ctx){
+    var col=path.split(".")[0],v=V[vue][col]&&V[vue][col][path];
+    if(v===undefined)return null;
+    if(typeof v==="object")v=v[col==="theme"?ctx.theme:ctx.brand];
+    return v===undefined?null:v;
   }
+  function hex(vue,path,ctx){var v=valeur(vue,path,ctx),n=0;while(v&&v.charAt(0)!=="#"&&n++<8)v=valeur(vue,v,ctx);return v;}
+  function ctxDe(col,mode){return {theme:col==="theme"?mode:"light",brand:col==="color-brands"?mode:MODES["color-brands"][0]};}
 
-  /* Demain : palettes calculées sur les courbes de clarté et la règle de chroma retenues (D7, D20). */
-  var CR=[50,100,200,300,400,500,600,700,800,900,950];
-  var LC={light:[.975,.95,.905,.845,.76,.67,.585,.5,.42,.34,.27],dark:[.145,.225,.275,.33,.4,.49,.58,.67,.76,.85,.93]};
-  /* L'enveloppe par profil et par thème : part par défaut p0, bornes a et b, marge des jaunes k. L'intensité unique prend celle de vivid. */
-  var ENV={soft:{p0:.85,light:{a:.6,b:.38,k:1},dark:{a:1.1,b:.38,k:0}},vivid:{p0:.95,light:{a:1.1,b:.48,k:.5},dark:{a:1.1,b:.30,k:0}}};
-  function lin(L,C,h){
-    var a=C*Math.cos(h*Math.PI/180),b=C*Math.sin(h*Math.PI/180);
-    var l=Math.pow(L+.3963377774*a+.2158037573*b,3),m=Math.pow(L-.1055613458*a-.0638541728*b,3),s=Math.pow(L-.0894841775*a-1.291485548*b,3);
-    return [4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
-  }
-  function inG(v){return v.every(function(x){return x>=-1e-4&&x<=1+1e-4;});}
-  function maxC(L,h){var lo=0,hi=.4;for(var i=0;i<22;i++){var mid=(lo+hi)/2;if(inG(lin(L,mid,h)))lo=mid;else hi=mid;}return lo;}
-  function enc(x){x=Math.min(1,Math.max(0,x));return x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055;}
-  function toHex(v){return "#"+v.map(function(x){return ("0"+Math.round(enc(x)*255).toString(16)).slice(-2);}).join("").toUpperCase();}
-  function dec(hex){return [1,3,5].map(function(i){var c=parseInt(hex.substr(i,2),16)/255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);});}
-  function oklch(hex){
-    var v=dec(hex),r=v[0],g=v[1],b=v[2];
-    var l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
-    var L=.2104542553*l+.793617785*m-.0040720468*s,A=1.9779984951*l-2.428592205*m+.4505937099*s,B=.0259040371*l+.7827717662*m-.808675766*s;
-    return {L:L,C:Math.hypot(A,B),h:(Math.atan2(B,A)*180/Math.PI+360)%360};
-  }
-  /* Les fonds sombres perdent de la chroma : facteur 0,30 au cran 50, 1 au cran 400. */
-  function fac(t,i){if(t!=="dark"||i>3)return 1;return .30+.70*(LC.dark[i]-LC.dark[0])/(.40-LC.dark[0]);}
-  function ecart(h){var d=Math.abs(h-100)%360;return d>180?360-d:d;}
-  /* C = min(part × plafond, p0 × min(a × marge × (1 − L), b × L)), la part réduite sur les fonds sombres. */
-  function chroma(l,h,part,t,i,profil){
-    var e=ENV[profil],bt=e[t],marge=1+bt.k*Math.exp(-.5*Math.pow(ecart(h)/12,2));
-    return Math.min(part*fac(t,i)*maxC(l,h),e.p0*Math.min(bt.a*marge*(1-l),bt.b*l));
-  }
-  function ramp(h,part,t,profil){return LC[t].map(function(l,i){return toHex(lin(l,chroma(l,h,part,t,i,profil),h));});}
-  function grey(t){return LC[t].map(function(l){return toHex(lin(l,0,0));});}
-  function nearest(t,L){var best=0;LC[t].forEach(function(l,i){if(Math.abs(l-L)<Math.abs(LC[t][best]-L))best=i;});return best;}
-  /* Palette à une intensité : la part de la référence, la référence posée à son cran le plus proche. */
-  function one(ref){var o=oklch(ref),part=Math.min(1,o.C/Math.max(1e-6,maxC(o.L,o.h))),P={ref:ref,cran:CR[nearest("light",o.L)]};
-    ["light","dark"].forEach(function(t){var a=ramp(o.h,part,t,"vivid");a[nearest(t,o.L)]=ref;P[t]=a;});return P;}
-  /* Palette à deux intensités : soft et vivid à leur part par défaut, à la teinte de la référence. */
-  function two(ref){var o=oklch(ref),P={ref:ref};["soft","vivid"].forEach(function(p){P[p]={light:ramp(o.h,ENV[p].p0,"light",p),dark:ramp(o.h,ENV[p].p0,"dark",p)};});return P;}
-  var PAL={
-    terracota:one("#B15152"),deep:one("#4C3EBA"),sky:one("#0EA5E9"),rose:one("#F43F5E"),mimosa:one("#F2CF4A"),ardoise:one("#2F3E5C"),
-    grass:two("#22C55E"),orange:two("#F97316"),blue:two("#3B82F6"),poppy:two("#EF4444"),
-    titanium:{light:grey("light"),dark:grey("dark")}
-  };
-  var BRANDS=["intencial","marque-2","marque-3"];
-  var BRAND_PAL={"intencial":{primary:"terracota",secondary:"deep"},"marque-2":{primary:"sky",secondary:"rose"},"marque-3":{primary:"mimosa",secondary:"ardoise"}};
-  var UTIL_PAL={success:"grass",warning:"orange",info:"blue",danger:"poppy",neutral:"titanium"};
-  function idx(n){return CR.indexOf(+n);}
-
-  /* La table en dossiers par thème, au sens normal : texte des boutons blanc en clair, noir en sombre (D13, D18). */
-  var TABLE={
-    light:{"solid/default":700,"solid/hover":800,"solid/pressed":900,"solid/foreground":"white","surface/default":100,"surface/hover":200,"surface/pressed":300,"surface/foreground":800,"surface/border":800,"page/foreground":700,"page/border":700,"page/divider":300,"ring":600},
-    dark:{"solid/default":700,"solid/hover":800,"solid/pressed":900,"solid/foreground":"black","surface/default":300,"surface/hover":400,"surface/pressed":500,"surface/foreground":950,"surface/border":950,"page/foreground":700,"page/border":700,"page/divider":300,"ring":600}
-  };
-  var VARS=["solid/default","solid/hover","solid/pressed","solid/foreground","surface/default","surface/hover","surface/pressed","surface/foreground","surface/border","page/foreground","page/border","page/divider","ring"];
-  var NEUTRE={"page/foreground-main":{light:"black",dark:"white"},"page/foreground-subtle":{light:700,dark:700},"scale/0":{light:"white",dark:"black"},"scale/1000":{light:"black",dark:"white"}};
-  var DESACTIVE={"disabled/background":200,"disabled/foreground":500,"disabled/border":500};
-  var STATUTS=["success","warning","info","danger"];
-  var ELEV={light:{page:"color-utilities.neutral.light.50",raised:"color-utilities.neutral.light.white"},
-            dark:{page:"color-utilities.neutral.dark.50",raised:"color-utilities.neutral.dark.100"}};
-
-  /* Le cran ou la constante qu'une variable de theme vise dans le thème t. */
-  function cranDe(fam,rest,t){
-    if(rest.indexOf("scale/")===0){var n=rest.slice(6);if(fam==="neutral"&&NEUTRE[rest])return NEUTRE[rest][t];return +n;}
-    if(fam==="neutral"&&NEUTRE[rest])return NEUTRE[rest][t];
-    if(DESACTIVE[rest])return DESACTIVE[rest];
-    return TABLE[t][rest];
-  }
-  /* L'alias suivant d'une variable de demain, dans une marque et un thème donnés ; null pour une valeur. */
-  function next(path,brand,t){
-    var p=path.split(".");
-    t=t||"light";
-    if(p[0]==="theme"){
-      if(p[1]==="elevation")return "color-utilities.elevation."+t+"."+p[2];
-      var fam=p[1],i=2,inten="";
-      if(STATUTS.indexOf(fam)>=0){inten="."+p[2];i=3;}
-      if(p[1]==="disabled"){fam="neutral";i=1;}
-      var rest=p.slice(i).join("/"),c=cranDe(fam,rest,t);
-      if(c==="white"||c==="black")return "color-utilities.neutral."+t+"."+c;
-      if(fam==="primary"||fam==="secondary")return "color-brands."+fam+"."+t+"."+c;
-      return "color-utilities."+fam+inten+"."+t+"."+c;
-    }
-    if(p[0]==="color-utilities"&&p[1]==="elevation")return ELEV[p[2]][p[3]];
-    if(p[0]==="color-brands"){
-      if(p[1]==="identity")return "color-brands."+p[2]+".light."+PAL[BRAND_PAL[brand||"intencial"][p[2]]].cran;
-      return "primitives.colors."+BRAND_PAL[brand||"intencial"][p[1]]+"."+p[2]+"."+p[3];
-    }
-    if(p[0]==="color-utilities"){
-      if(p[1]==="neutral")return "primitives.colors.titanium."+(p[3]==="white"||p[3]==="black"?p[3]:p[2]+"."+p[3]);
-      return "primitives.colors."+UTIL_PAL[p[1]]+"."+p[2]+"."+p[3]+"."+p[4];
-    }
-    return null;
-  }
-  function valueOf(path){
-    var p=path.split("."),pal=PAL[p[2]];
-    if(p[3]==="white")return "#FFFFFF";
-    if(p[3]==="black")return "#000000";
-    if(p.length===6)return pal[p[3]][p[4]][idx(p[5])];
-    return pal[p[3]][idx(p[4])];
-  }
-  function hexTomorrow(path,brand,t){var n=next(path,brand,t||"light");return n?hexTomorrow(n,brand,t):valueOf(path);}
-
-  /* Constructeurs de lignes */
-  function G(g,tag,cls){return {g:g,tag:tag,cls:cls};}
-  function R(g,n,cells,st,old){return {k:g+"/"+n,n:n,c:cells,st:st||"",old:old};}
-  function M(text,st){return {more:text,st:st||""};}
-  function A(path,hex){return {a:path,hex:hex};}
-  function H(hex){return {h:hex};}
-  function T(text){return {t:text};}
-
-  var COMP=[
-    ["button/colors/primary/contained","default/background","color-brand-tokens.primary.default","theme.primary.solid.default"],
-    ["button/colors/primary/contained","hover/background","color-brand-tokens.primary.emphasis","theme.primary.solid.hover"],
-    ["button/colors/primary/contained","press/background","color-brand-tokens.primary.emphasis","theme.primary.solid.pressed"],
-    ["button/colors/primary/contained","default/foreground","color-utilities.neutral.50","theme.primary.solid.foreground"],
-    ["button/colors/primary/contained","focus/ring","color-brand-tokens.primary.subtle","theme.primary.ring"],
-    ["button/colors/primary/outlined","default/foreground","color-brand-tokens.primary.default","theme.primary.page.foreground"],
-    ["button/colors/primary/outlined","default/border","color-brand-tokens.primary.default","theme.primary.solid.default"],
-    ["alert/colors/info/standard","background","primitives.colors.sky.50","theme.info.vivid.surface.default"],
-    ["alert/colors/info/standard","foreground","primitives.colors.sky.700","theme.info.vivid.surface.foreground"],
-    ["alert/colors/success/filled","background","color-utilities.success.700","theme.success.vivid.solid.default"],
-    ["alert/colors/success/filled","foreground","primitives.colors.titanium.0","theme.success.vivid.solid.foreground"],
-    ["stresstest/info/scalewrap/colors","scale-5","primitives.colors.orange.600","theme.warning.vivid.scale.600","hors table (D14)"]
-  ];
-  function compRows(tomorrow){
-    var out=[],last="";
-    COMP.forEach(function(c){
-      if(c[0]!==last){out.push(G(c[0],tomorrow?c[4]:null));last=c[0];}
-      if(tomorrow)out.push(R(c[0],c[1],[A(c[3],hexTomorrow(c[3]))],"mod",{a:c[2],hex:hexToday(c[2])}));
-      else out.push(R(c[0],c[1],[A(c[2],hexToday(c[2]))]));
+  /* L'ordre des lignes : celui du fichier ; demain, une variable retirée garde sa place et sa remplaçante la suit. */
+  function cles(col,vue){
+    var auj=Object.keys(V.aujourdhui[col]),dem=V.demain[col];
+    if(col==="theme")auj.sort(function(a,b){return ORDRE_THEME.indexOf(a.split(".")[1])-ORDRE_THEME.indexOf(b.split(".")[1]);});
+    if(vue==="aujourdhui")return auj;
+    var out=[],vus={};
+    auj.forEach(function(k){
+      out.push(k);vus[k]=1;
+      if(!(k in dem)){var pre=k.split(".").slice(0,-2).join(".")+".";
+        Object.keys(dem).forEach(function(n){if(!vus[n]&&!(n in V.aujourdhui[col])&&n.indexOf(pre)===0&&n.split(".").length===pre.split(".").length){out.push(n);vus[n]=1;}});}
     });
-    out.push(M(tomorrow?"Les 294 autres couleurs visent une variable de dossier de theme, ou un cran de scale pour une couleur hors table. Les 63 dimensions ne changent pas.":"… 294 autres couleurs, et 63 dimensions"));
-    return out;
-  }
-  /* Aujourd'hui */
-  function brandsGroup(g,crans){
-    var out=[G(g)];
-    crans.forEach(function(n){var a=D.brands[g][n];out.push(R(g,n,[A(a,hexToday(a))]));});
-    out.push(M("… 6 autres nuances"));
-    return out;
-  }
-  var ROLE_ORDER=["subtlest","subtle","default","emphasis","strong"];
-  function rolesToday(){
-    var out=[];
-    ["primary","secondary"].forEach(function(p){
-      out.push(G(p));
-      ROLE_ORDER.forEach(function(r){var m=D.roles[p+"/"+r];out.push(R(p,r,[A(m.intencial,hexToday(m.intencial)),A(m["marque-2"],hexToday(m["marque-2"]))]));});
-    });
-    return out;
-  }
-  function utilToday(){
-    var out=[G("success")];
-    ["50","100","700"].forEach(function(n){var a=D.util.success[n];out.push(R("success",n,[A(a,hexToday(a))]));});
-    out.push(M("… 7 autres nuances (10 au total, de 50 à 900)"));
-    out.push(G("warning, info, danger"));
-    out.push(M("même forme : 10 nuances chacun, alias vers orange, sky et poppy"));
-    out.push(G("neutral"));
-    ["50","200","500","1100","white","black"].forEach(function(n){var a=D.util.neutral[n];out.push(R("neutral",n,[A(a,hexToday(a))]));});
-    out.push(M("… 8 autres nuances (14 au total)"));
-    return out;
-  }
-  function primToday(){
-    var out=[];
-    [["terracota",["100","600","700","800","900"]],["sky",["50","500","700"]],["grass",["50","700"]],["titanium",["0","50","200","500","700","1200"]]].forEach(function(e){
-      var g="colors/"+e[0];out.push(G(g));
-      e[1].forEach(function(n){out.push(R(g,n,[H(D.prim[e[0]][n])]));});
-    });
-    out.push(M("… colors/deep, rose, orange, poppy, blue : même forme, 11 nuances chacune"));
-    out.push(G("dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily"));
-    out.push(M("73 variables sans couleur"));
+    Object.keys(dem).forEach(function(n){if(!vus[n])out.push(n);});
     return out;
   }
 
-
-  /* Demain */
-  function pair(src,brand){return ["light","dark"].map(function(t){var s=src.replace("{t}",t),n=next(s,brand||"intencial",t);return A(n,hexTomorrow(n,brand||"intencial",t));});}
-  function themeRows(){
-    var out=[];
-    var last=null;
-    function dossier(fam,label,vars){
-      vars.forEach(function(v){var parts=v.split("/"),g=parts.length>1?label+"/"+parts[0]:label,n=parts[parts.length-1];
-        if(g!==last){out.push(G(g,"ajouté"));last=g;}
-        out.push(R(g,n,pair("theme."+fam+"."+v.replace(/\//g,".")),"new"));});
-    }
-    dossier("primary","primary",VARS);
-    out.push(G("primary/scale","ajouté"));
-    ["100","300","500","700","950"].forEach(function(n){out.push(R("primary/scale",n,pair("theme.primary.scale."+n),"new"));});
-    out.push(M("… 6 autres crans, de 50 à 950 : les couleurs hors table (D14)","new"));
-    out.push(G("secondary","ajouté"));
-    out.push(M("… les mêmes 13 variables et 11 crans, vers color-brands.secondary","new"));
-    dossier("info.vivid","info/vivid",["surface/default","surface/hover","surface/pressed","surface/foreground","surface/border"]);
-    dossier("success.vivid","success/vivid",["solid/default","solid/foreground"]);
-    out.push(M("… 4 statuts × soft et vivid : 13 variables et 11 crans chacun","new"));
-    out.push(G("neutral","ajouté"));
-    ["page/foreground-main","page/foreground-subtle","page/foreground","page/border","page/divider"].forEach(function(v){out.push(R("neutral",v,pair("theme.neutral."+v.replace(/\//g,".")),"new"));});
-    out.push(M("… les 13 variables de palette, scale/0 et scale/1000, et 11 crans","new"));
-    out.push(G("disabled","ajouté"));
-    ["background","foreground","border"].forEach(function(v){out.push(R("disabled",v,pair("theme.disabled."+v),"new"));});
-    out.push(G("elevation","ajouté"));
-    ["page","raised"].forEach(function(n){out.push(R("elevation",n,pair("theme.elevation."+n),"new"));});
-    out.push(G("exception","réservé, vide"));
-    return out;
-  }
-  function brandRows(){
-    var out=[];
-    function aliasRow(g,role,t,n){return R(g,n,BRANDS.map(function(b){var path="primitives.colors."+BRAND_PAL[b][role]+"."+t+"."+n;return A(path,valueOf(path));}).concat([T("…")]),"new");}
-    [["primary","light"],["primary","dark"]].forEach(function(e){
-      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      ["100","300","600","700","950"].forEach(function(n){out.push(aliasRow(g,e[0],e[1],n));});
-      out.push(M("… 6 autres crans","new"));
-    });
-    [["secondary","light"],["secondary","dark"]].forEach(function(e){
-      var g=e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      out.push(aliasRow(g,e[0],e[1],"700"));
-      out.push(M("… 10 autres crans","new"));
-    });
-    out.push(G("identity","ajouté"));
-    ["primary","secondary"].forEach(function(r){
-      out.push(R("identity",r,BRANDS.map(function(b){var pal=BRAND_PAL[b][r],path="color-brands."+r+".light."+PAL[pal].cran;return A(path,PAL[pal].ref);}).concat([T("…")]),"new"));
-    });
-    out.push(G("params","réservé, vide"));
-    out.push(G("exception","réservé, vide"));
-    out.push(G("primary","supprimé"));
-    ROLE_ORDER.forEach(function(r){out.push(R("primary",r,[T("rôle supprimé (D4)"),T(""),T(""),T("")],"del"));});
-    out.push(G("secondary","supprimé"));
-    out.push(M("subtlest, subtle, default, emphasis, strong : 5 rôles supprimés","del"));
-    return out;
-  }
-  function utilRows(){
-    var out=[];
-    function aliasRow(g,path,n){return R(g,n,[A(path,valueOf(path))],"new");}
-    [["soft","light",["100","700"]],["soft","dark",["300","700"]],["vivid","light",["700"]],["vivid","dark",["700"]]].forEach(function(e){
-      var g="success/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      e[2].forEach(function(n){out.push(aliasRow(g,"primitives.colors.grass."+e[0]+"."+e[1]+"."+n,n));});
-    });
-    out.push(M("… success : 44 alias au total","new"));
-    [["vivid","light",["100","800"]],["vivid","dark",["300","950"]]].forEach(function(e){
-      var g="info/"+e[0]+"/"+e[1];out.push(G(g,"ajouté"));
-      e[2].forEach(function(n){out.push(aliasRow(g,"primitives.colors.blue."+e[0]+"."+e[1]+"."+n,n));});
-    });
-    out.push(G("warning/vivid/light","ajouté"));
-    out.push(aliasRow("warning/vivid/light","primitives.colors.orange.vivid.light.600","600"));
-    out.push(M("… info vise blue, qui n’est plus la palette de marque-2 ; warning vise orange, danger vise poppy : 44 alias chacun","new"));
-    ["light","dark"].forEach(function(t){
-      var g="neutral/"+t;out.push(G(g,"ajouté"));
-      ["50","100","200","300","500","700","900"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+t+"."+n,n));});
-      out.push(M("… 4 autres crans","new"));
-      ["white","black"].forEach(function(n){out.push(aliasRow(g,"primitives.colors.titanium."+n,n));});
-    });
-    ["light","dark"].forEach(function(t){
-      var g="elevation/"+t;out.push(G(g,"ajouté"));
-      ["page","raised"].forEach(function(n){var a=ELEV[t][n];out.push(R(g,n,[A(a,hexTomorrow(a,"intencial",t))],"new"));});
-    });
-    out.push(G("success, warning, info, danger : 50 à 900, sans thème ni intensité","supprimé"));
-    out.push(M("40 variables remplacées par les groupes ci-dessus","del"));
-    out.push(G("neutral : 1000, 1100, white, black","supprimé"));
-    out.push(M("1000 et 1100 sont hors de la courbe ; white et black deviennent neutral/light|dark/white|black (D10)","del"));
-    return out;
-  }
-  function primRows(){
-    var out=[];
-    var g="colors/terracota/light";out.push(G(g,"renommé, recalculé"));
-    ["100","600","700","800","900"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.light[idx(n)])],"mod",{label:"colors/terracota/"+n,hex:D.prim.terracota[n]}));});
-    out.push(M("… 6 autres crans","mod"));
-    g="colors/terracota/dark";out.push(G(g,"ajouté"));
-    ["50","100","300","700","950"].forEach(function(n){out.push(R(g,n,[H(PAL.terracota.dark[idx(n)])],"new"));});
-    out.push(M("… 6 autres crans","new"));
-    [["deep","mod"],["sky","mod"],["rose","mod"],["mimosa","new"],["ardoise","new"]].forEach(function(e){
-      ["light","dark"].forEach(function(t){
-        var gg="colors/"+e[0]+"/"+t,st=(t==="dark"||e[1]==="new")?"new":"mod";
-        out.push(G(gg,st==="new"?"ajouté":"renommé, recalculé"));
-        out.push(R(gg,"700",[H(PAL[e[0]][t][7])],st,st==="mod"?{label:"colors/"+e[0]+"/700",hex:D.prim[e[0]]["700"]}:null));
+  function lignes(col,vue){
+    var out=[],dernier=null,modes=modesDe(col),changes=0;
+    cles(col,vue).forEach(function(k){
+      var p=k.split("."),g=p.slice(1,-1).join("/"),n=p[p.length-1];
+      var t=V.aujourdhui[col][k],d=V.demain[col][k];
+      var st="",source=vue==="aujourdhui"?"aujourdhui":"demain";
+      if(vue==="demain"){
+        if(t===undefined)st="new";
+        else if(d===undefined){st="del";source="aujourdhui";}
+        else if(JSON.stringify(t)!==JSON.stringify(d)){st="mod";changes++;}
+      }
+      if(g!==dernier){out.push({g:g});dernier=g;}
+      var cells=modes.map(function(m){
+        var ctx=ctxDe(col,m),v=valeur(source,k,ctx),c=v&&v.charAt(0)==="#"?{h:v}:{a:v,hex:hex(source,k,ctx)};
+        if(st==="mod"){var avant=valeur("aujourdhui",k,ctx);if(avant!==v)c.old=avant.charAt(0)==="#"?{hex:avant}:{a:avant,hex:hex("aujourdhui",k,ctx)};}
+        return c;
       });
+      out.push({k:g+"/"+n,n:n,c:cells,st:st});
     });
-    out.push(M("… chaque palette de marque : 11 crans en light, 11 en dark. mimosa et ardoise sont les palettes de marque-3","new"));
-    [["soft","light",["100","700"]],["soft","dark",["300","950"]],["vivid","light",["100","700"]],["vivid","dark",["300","950"]]].forEach(function(e){
-      var gg="colors/grass/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
-      e[2].forEach(function(n){out.push(R(gg,n,[H(PAL.grass[e[0]][e[1]][idx(n)])],"new"));});
-    });
-    [["vivid","light"],["vivid","dark"]].forEach(function(e){
-      var gg="colors/blue/"+e[0]+"/"+e[1];out.push(G(gg,"ajouté"));
-      ["100","300","700"].forEach(function(n){out.push(R(gg,n,[H(PAL.blue[e[0]][e[1]][idx(n)])],"new"));});
-    });
-    out.push(G("colors/orange/vivid/light","ajouté"));
-    out.push(R("colors/orange/vivid/light","600",[H(PAL.orange.vivid.light[idx("600")])],"new"));
-    out.push(M("… orange et poppy, et blue en soft : même forme, 44 crans par palette. Les anciennes nuances de grass, orange, poppy et blue sont remplacées","new"));
-    ["light","dark"].forEach(function(t){
-      var gg="colors/titanium/"+t;out.push(G(gg,t==="light"?"renommé, recalculé":"ajouté"));
-      ["50","100","200","500","700","900"].forEach(function(n){out.push(R(gg,n,[H(PAL.titanium[t][idx(n)])],t==="light"?"mod":"new",t==="light"?{label:"colors/titanium/"+n,hex:D.prim.titanium[n]}:null));});
-      out.push(M("… 5 autres crans",t==="light"?"mod":"new"));
-    });
-    out.push(G("colors/titanium","renommé"));
-    out.push(R("colors/titanium","white",[H("#FFFFFF")],"mod",{label:"colors/titanium/0"}));
-    out.push(R("colors/titanium","black",[H("#000000")],"mod",{label:"colors/titanium/1200"}));
-    out.push(G("colors/titanium : 1000, 1100","supprimé"));
-    out.push(M("hors de la courbe de 50 à 950","del"));
-    out.push(G("dimensions, fontsize, fontweight, lineheight, letterspacing, fontfamily","inchangé"));
-    out.push(M("73 variables sans couleur"));
-    return out;
+    return {rows:out,changes:changes};
   }
 
   function lnk(id){return '<a href="#'+id+'">'+id.toUpperCase()+"</a>";}
-  var VIEWS={
-    today:[
-      {id:"components",info:"aucun mode · 369 variables",modes:["Valeur"],rows:compRows(false),tag:["mod","valeurs modifiées"],
-        note:["Les couleurs des composants. Chacune vise directement color-brand-tokens, color-utilities ou primitives.","256 des 306 couleurs visent une collection sans mode : aucune ne peut suivre un thème."]},
-      {id:"color-brand-tokens",info:"2 modes · 10 variables",modes:["intencial","marque-2"],rows:rolesToday(),tag:["mod","devient brand"],
-        note:["La seule collection à modes : une colonne par marque. Chaque rôle choisit une nuance dans color-brands.","Les nuances choisies diffèrent selon la marque : secondary/default vise 700 chez intencial et 500 chez marque-2."]},
-      {id:"color-brands",info:"aucun mode · 44 variables",modes:["Valeur"],rows:[].concat(brandsGroup("intencial/primary",["50","200","500","600","700"]),brandsGroup("intencial/secondary",["100","200","700","800","900"]),brandsGroup("marque-2/primary",["50","200","500","600","700"]),brandsGroup("marque-2/secondary",["50","200","500","700","900"])),tag:["del","fusionnée"],
-        note:["Un dossier par marque, sans mode. Chaque nuance vise une palette de primitives : intencial/primary vise terracota."]},
-      {id:"color-utilities",info:"aucun mode · 54 variables",modes:["Valeur"],rows:utilToday(),tag:["mod","conservée"],
-        note:["Les rôles communs à toutes les marques : success vise grass, info vise sky. Une seule version, sans thème."]},
-      {id:"primitives",info:"aucun mode · 175 variables",modes:["Valeur"],rows:primToday(),tag:["mod","conservée"],
-        note:["Neuf palettes dessinées à l’œil, plus les dimensions et la typographie.","39 couleurs de composants visent ces palettes directement."]},
-      {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke"),M("31 dimensions, en alias vers primitives")],tag:["same","inchangée"],note:["Aucune couleur."]},
-      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label"),M("60 variables de texte, en alias vers primitives")],tag:["same","inchangée"],note:["Aucune couleur."]}
-    ],
-    tomorrow:[
-      {id:"components",info:"aucun mode · mêmes noms",modes:["Valeur"],rows:compRows(true),tag:["mod","valeurs modifiées"],
-        note:["Mêmes noms. Chaque couleur vise la variable de theme qui correspond à ce qu’elle peint et au fond qui est derrière elle ; sous chaque valeur, l’alias d’aujourd’hui.","La bordure du bouton outlined prend solid/default ; l’anneau, ring. Une couleur hors table vise un cran de scale, comme scale-5 en bas. "+lnk("d11")+" · "+lnk("d13")+" · "+lnk("d14")+" · "+lnk("d19")]},
-      {id:"theme",info:"2 modes · 273 variables",modes:["light","dark"],rows:themeRows(),tag:["new","nouvelle"],
-        note:["Le seul endroit où le thème se choisit. Par palette, 13 variables en dossiers solid, surface et page, plus ring à la racine, et 11 crans sous scale. Chaque variable vise un cran, le même pour toutes les marques, selon la table du thème : en dark, les fonds teintés passent à 300, 400 et 500 et leur texte à 950.","Les thèmes sont montrés au sens normal : texte des boutons blanc en light, noir en dark. Portées selon ce que chaque variable peint ; scale n’en a aucune. "+lnk("d2")+" · "+lnk("d13")+" · "+lnk("d18")+" · "+lnk("d19")]},
-      {id:"color-brands",info:"1 mode par marque · 46 variables",modes:["intencial","marque-2","marque-3","… jusqu’à 6"],newCol:2,rows:brandRows(),tag:["mod","ex-color-brand-tokens"],
-        note:["color-brand-tokens renommée, l’ancienne color-brands fusionnée. Chaque colonne choisit les palettes de sa marque dans primitives, par alias. identity désigne le cran où la couleur de charte est posée.","Les 10 rôles sont supprimés. La colonne marque-3 montre l’ajout d’une marque : une colonne, aucune variable. "+lnk("d3")+" · "+lnk("d4")+" · "+lnk("d9")]},
-      {id:"color-utilities",info:"aucun mode · 206 variables",modes:["Valeur"],rows:utilRows(),tag:["mod","conservée, modifiée"],
-        note:["Les rôles communs à toutes les marques. Chaque statut existe en soft et vivid, en light et dark ; le neutre en light et dark, avec le blanc et le noir.","info vise maintenant blue : il ne partage plus sky avec la palette principale de marque-2. Les deux niveaux d’élévation choisissent leur valeur claire et leur valeur sombre séparément : en dark, la page au neutre 50 abaissé, la carte au neutre 100. "+lnk("d6")+" · "+lnk("d10")+" · "+lnk("d15")]},
-      {id:"primitives",info:"aucun mode · 464 couleurs pour 6 marques",modes:["Valeur"],rows:primRows(),tag:["mod","conservée, modifiée"],
-        note:["Le catalogue des palettes, sous leur nom, la seule collection qu’UCM Palettes écrit. Chacune reçoit une version light et une version dark, recalculées sur les courbes et la règle de chroma retenues. Sous une valeur recalculée, la valeur d’aujourd’hui.","Dimensions et typographie inchangées. "+lnk("d5")+" · "+lnk("d7")+" · "+lnk("d20")]},
-      {id:"layouts",info:"aucun mode · 31 variables",modes:["Valeur"],rows:[G("sizing, radius, stroke","inchangé"),M("31 dimensions")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]},
-      {id:"typography",info:"aucun mode · 60 variables",modes:["Valeur"],rows:[G("display, headline, title, body, label","inchangé"),M("60 variables de texte")],tag:["same","inchangée"],note:["Inchangée. "+lnk("d12")]}
-    ]
+  function compte(col){return Object.keys(V.aujourdhui[col]).length;}
+  var NOTES={
+    aujourdhui:{
+      theme:{info:"2 modes · "+compte("theme")+" variables",tag:["same","ton fichier"],note:["Le thème de ton fichier. Par palette : les dossiers solid, surface et page, et 11 crans sous scale ; puis disabled et elevation. Chaque variable vise un cran de color-brands ou de color-utilities, dans le mode light ou dark.","Ton Dark est au sens inversé (texte des boutons blanc) : le survol du plein vise 600. Les fonds teintés visent 100, 200 et 300 dans les deux thèmes, et l’anneau de focus est page/focus."]},
+      "color-brands":{info:"1 mode par marque · "+compte("color-brands")+" variables",tag:["same","ton fichier"],note:["Une colonne par marque : chaque cran vise une palette de primitives. marque-2 reprend pour l’instant les palettes d’intencial. identity désigne le cran de la couleur de charte. "+lnk("d3")+" · "+lnk("d9")]},
+      "color-utilities":{info:"aucun mode · "+compte("color-utilities")+" variables",tag:["same","ton fichier"],note:["Les rôles communs à toutes les marques : les statuts en soft et vivid, le neutre avec le blanc et le noir, et les deux niveaux d’élévation, page et raised. "+lnk("d6")+" · "+lnk("d15")]},
+      primitives:{info:"aucun mode · "+compte("primitives")+" couleurs",tag:["same","ta recette"],note:["Les palettes qu’UCM Palettes écrit aujourd’hui avec ta recette : cran 50 Dark à 0,180, part commune 0,45 en soft et 0,95 en vivid, chroma en part constante du maximum affichable."]}
+    },
+    demain:{
+      theme:{tag:["mod","crans modifiés"],note:["En Dark, les fonds teintés visent 300, 400 et 500, et leur texte et leur contour 950. ring remplace page/focus, à la racine de la palette, aux mêmes crans : 600 en Light, 700 dans ton Dark inversé. Le Light ne change pas.","Sous chaque alias qui change, celui d’aujourd’hui. "+lnk("d13")+" · "+lnk("d18")+" · "+lnk("d19")]},
+      "color-brands":{tag:["same","alias inchangés"],note:["Aucun alias ne change ; les couleurs suivent les palettes recalculées de primitives."]},
+      "color-utilities":{tag:["same","alias inchangés"],note:["Aucun alias ne change. La page Dark, elevation/dark/page, vise toujours le neutre 50, désormais à la clarté 0,145. "+lnk("d15")]},
+      primitives:{tag:["mod","recalculées"],note:["Les palettes que la règle retenue calcule sur ta recette, « Par défaut » choisi pour les intensités (part commune 0,85 en soft, 0,95 en vivid) et cran 50 Dark à 0,145. Les parts propres de Sky, Orange et Poppy sont gardées, comme tes réglages.","Sous chaque valeur qui change, celle d’aujourd’hui. "+lnk("d7")+" · "+lnk("d20")]}
+    }
   };
+  var COLS=["theme","color-brands","color-utilities","primitives"];
 
-  var state={view:"today",col:"components"};
+  var state={view:"aujourdhui",col:"theme"};
   var $=function(id){return document.getElementById(id);};
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
   function sq(h){return '<span class="sq" style="background:'+h+'"></span>';}
   function label(path){var p=path.split(".");return '<span class="col">'+p[0]+' ›</span> '+p.slice(1).join("/");}
   function cell(c){
-    if(!c)return "";
-    if(c.a)return '<button type="button" class="chip" data-path="'+c.a+'">'+(c.hex?sq(c.hex):"")+label(c.a)+"</button>";
-    if(c.h)return '<span class="val">'+sq(c.h)+c.h+"</span>";
-    return esc(c.t||"");
+    var h=c.a?'<button type="button" class="chip" data-path="'+c.a+'">'+(c.hex?sq(c.hex):"")+label(c.a)+"</button>":'<span class="val">'+sq(c.h)+c.h+"</span>";
+    if(c.old)h+='<span class="old">avant : <s>'+(c.old.a?label(c.old.a):"")+"</s> "+(c.old.hex?sq(c.old.hex)+c.old.hex:"")+"</span>";
+    return h;
   }
-  function oldHtml(o){
-    var s='<span class="old">avant : <s>'+(o.a?label(o.a):esc(o.label))+"</s>";
-    if(o.hex)s+=" "+sq(o.hex)+o.hex;
-    return s+"</span>";
-  }
-  var TAGCLS={"ajouté":"new","supprimé":"del","inchangé":"same","renommé":"mod","renommé, recalculé":"mod","hors table (D14)":"mod"};
   function render(hl){
-    var cols=VIEWS[state.view],col=cols.filter(function(c){return c.id===state.col;})[0]||cols[0];
-    state.col=col.id;
+    var col=state.col,res=lignes(col,state.view),n=NOTES[state.view][col],modes=modesDe(col);
+    var info=state.view==="aujourdhui"?n.info:NOTES.aujourdhui[col].info+(res.changes?" · "+res.changes+" valeurs modifiées":" · aucune valeur modifiée");
     document.querySelectorAll(".seg button").forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-view")===state.view));});
-    $("legend").hidden=state.view!=="tomorrow";
-    $("fx-cols").innerHTML='<span class="lab">Collections</span>'+cols.map(function(c){
-      return '<button type="button" data-col="'+c.id+'" class="'+(c.gone?"gone":"")+'" aria-current="'+(c.id===col.id)+'"><span class="cn">'+c.id+'</span><span class="tag '+c.tag[0]+'">'+c.tag[1]+"</span></button>";
+    $("legend").hidden=state.view!=="demain";
+    $("fx-cols").innerHTML='<span class="lab">Collections</span>'+COLS.map(function(c){
+      var t=NOTES[state.view][c].tag;
+      return '<button type="button" data-col="'+c+'" aria-current="'+(c===col)+'"><span class="cn">'+c+'</span><span class="tag '+t[0]+'">'+t[1]+"</span></button>";
     }).join("");
-    $("fx-head").innerHTML="<b>"+col.id+"</b><span>"+col.info+"</span>";
-    $("fx-note").innerHTML=col.note.map(function(n){return "<p>"+n+"</p>";}).join("");
-    $("fx-thead").innerHTML="<tr><th>Nom</th>"+col.modes.map(function(m,i){var nw=col.newCol===i;return '<th class="'+(nw?"newcol":"")+'">'+esc(m)+(nw?" (marque ajoutée)":"")+"</th>";}).join("")+"</tr>";
-    var span=col.modes.length+1;
-    $("fx-tbody").innerHTML=col.rows.map(function(r){
-      if(r.g!==undefined){var tg=r.tag?'<span class="tag '+(TAGCLS[r.tag]||"same")+'">'+esc(r.tag)+"</span>":"";return '<tr class="g"><td colspan="'+span+'">'+esc(r.g)+tg+"</td></tr>";}
-      if(r.more!==undefined)return '<tr class="more '+r.st+'"><td colspan="'+span+'">'+esc(r.more)+"</td></tr>";
-      var cells=r.c.map(function(c,i){var h=cell(c);if(i===0&&r.old)h+=oldHtml(r.old);return "<td>"+h+"</td>";});
-      while(cells.length<col.modes.length)cells.push("<td></td>");
-      return '<tr class="'+r.st+(hl&&hl===r.k?" hl":"")+'" data-k="'+r.k+'"><td class="nm">'+esc(r.n)+"</td>"+cells.join("")+"</tr>";
+    $("fx-head").innerHTML="<b>"+col+"</b><span>"+info+"</span>";
+    $("fx-note").innerHTML=n.note.map(function(p){return "<p>"+p+"</p>";}).join("");
+    $("fx-thead").innerHTML="<tr><th>Nom</th>"+modes.map(function(m){return "<th>"+esc(m)+"</th>";}).join("")+"</tr>";
+    var span=modes.length+1;
+    $("fx-tbody").innerHTML=res.rows.map(function(r){
+      if(r.g!==undefined)return '<tr class="g"><td colspan="'+span+'">'+esc(r.g||col)+"</td></tr>";
+      return '<tr class="'+r.st+(hl&&hl===r.k?" hl":"")+'" data-k="'+r.k+'"><td class="nm">'+esc(r.n)+"</td>"+r.c.map(function(c){return "<td>"+cell(c)+"</td>";}).join("")+"</tr>";
     }).join("");
     if(hl){var row=document.querySelector('#fx-tbody tr[data-k="'+hl+'"]');if(row&&row.scrollIntoView)row.scrollIntoView({block:"nearest"});}
   }
   function go(path){
-    var p=path.split("."),col=p[0],k=p.slice(1).join("/");
-    if(!VIEWS[state.view].some(function(c){return c.id===col;}))return;
-    state.col=col;render(k);
+    var p=path.split("."),col=p[0];
+    if(COLS.indexOf(col)<0)return;
+    state.col=col;render(p.slice(1).join("/"));
   }
-  var SWAP={today:{"color-brand-tokens":"color-brands"},tomorrow:{"theme":"components"}};
   $("fx").addEventListener("click",function(e){
     var t=e.target.closest("button");if(!t)return;
-    if(t.hasAttribute("data-view")){
-      var v=t.getAttribute("data-view");
-      if(v!==state.view){state.col=SWAP[state.view][state.col]||state.col;state.view=v;render();}
-    }
+    if(t.hasAttribute("data-view")){state.view=t.getAttribute("data-view");render();}
     else if(t.hasAttribute("data-col")){state.col=t.getAttribute("data-col");render();}
     else if(t.hasAttribute("data-path"))go(t.getAttribute("data-path"));
   });
