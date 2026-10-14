@@ -96,8 +96,13 @@ test('palettes proches : sans l’un des crans 500, 600 et 700, la distance ne s
   assert.equal(distanceDePalettes(recette, BLEU, BLEU), null);
 });
 
-test('[ENT-06] fond hors de la courbe : se tait pour les fonds par défaut, #121212 compris', () => {
+test('[ENT-06] fond hors de la courbe : se tait pour les fonds par défaut, #0A0A0A compris', () => {
   assert.deepEqual(alertesDeRecette(recetteParDefaut()), []);
+});
+
+test('[ENT-06] #0A0A0A ne déclenche pas l’alerte contre la courbe Dark par défaut', () => {
+  const recette = { ...recetteParDefaut(), fonds: { light: '#F7F7F7', dark: '#0A0A0A' } };
+  assert.deepEqual(alertesDeRecette(recette), []);
 });
 
 test('[ENT-06] fond hors de la courbe : sonne pour un fond clair trop sombre ou un fond sombre trop clair', () => {

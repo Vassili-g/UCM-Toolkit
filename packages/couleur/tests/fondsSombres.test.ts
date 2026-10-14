@@ -41,10 +41,10 @@ const PALETTES: Palette[] = [
 
 test('[MOT-28] le facteur vaut 0,30 au numéro 50 de la courbe Dark, remonte linéairement, et vaut 1 dès le 400', () => {
   const fonds = fondsSombresDe(recetteParDefaut());
-  assert.deepEqual(fonds, { depart: 0.3, clarteBasse: 0.18, clarteHaute: 0.4 });
-  assert.equal(facteurSombre(0.18, fonds), 0.3);
+  assert.deepEqual(fonds, { depart: 0.3, clarteBasse: 0.145, clarteHaute: 0.4 });
+  assert.equal(facteurSombre(0.145, fonds), 0.3);
   assert.equal(facteurSombre(0.1, fonds), 0.3);
-  assert.ok(Math.abs(facteurSombre(0.29, fonds) - 0.65) < 1e-12);
+  assert.ok(Math.abs(facteurSombre(0.2725, fonds) - 0.65) < 1e-12);
   assert.equal(facteurSombre(0.4, fonds), 1);
   assert.equal(facteurSombre(0.93, fonds), 1);
 });

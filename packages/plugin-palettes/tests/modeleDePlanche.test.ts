@@ -69,7 +69,7 @@ test('W3.6 [UI-14] : chaque thème dit son fond, son texte des boutons et son ve
   assert.deepEqual(sections, ['en-tête', 'les deux rampes', 'quelle nuance pour quelle variable soft', 'quelle nuance pour quelle variable vivid', 'contrastes']);
   assert.equal(cadres(racine).some((noeud) => noeud.nom === 'écran de réglages'), false, 'l’écran de réglages est dans l’onglet Création, pas sur la planche');
   const tete = textes(trouver(trouver(racine, 'thème dark'), 'en-tête')).map((noeud) => noeud.contenu);
-  assert.deepEqual(tete, ['Thème Dark · fond de la page #121212 · texte des boutons noir', '✓ Toutes les garanties tenues']);
+  assert.deepEqual(tete, ['Thème Dark · fond de la page #0A0A0A · texte des boutons noir', '✓ Toutes les garanties tenues']);
   const echec = trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light');
   const verdict = textes(trouver(echec, 'verdict'))[0];
   assert.match(verdict.contenu, /^\d+ garanties manquées$/);

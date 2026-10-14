@@ -666,7 +666,7 @@ test('[UI-04] le nuancier porte le fond du thème choisi, et ses textes s’y li
     assert.equal(fond, 'rgb(255, 216, 77)');
     assert.equal(encre, 'rgb(30, 30, 30)');
     await choisirLeTheme(page, 'Dark');
-    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(18, 18, 18)');
+    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(10, 10, 10)');
   } finally {
     await page.close();
   }
@@ -859,7 +859,7 @@ test('[UI-09] [VER-20] en Dark inversé, Rouge #D94635 manque la garantie du tex
     await choisirLeTheme(page, 'Dark');
     await ouvrirLaVerification(page);
     const carte = carteDesGaranties(page);
-    assert.equal(await carte.locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(18, 18, 18)', 'la carte montre Dark');
+    assert.equal(await carte.locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(10, 10, 10)', 'la carte montre Dark');
     assert.deepEqual(await carte.locator('.choix-d-affichage button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getAttribute('aria-pressed')])), [['Soft ✓', 'false'], ['Vivid ✗ 1', 'true']]);
     const premiere = carte.locator('.garantie[data-garantie="1"]');
     assert.equal(await premiere.getAttribute('aria-pressed'), 'true', 'la ligne en échec est choisie d’office');
@@ -883,7 +883,7 @@ test('[UI-09] [VER-20] la carte suit le thème de la ligne du titre ; des garant
     await ouvrirLaVerification(page);
     const carte = carteDesGaranties(page);
     // La réglette est peinte du fond du thème montré.
-    const themeDeLaCarte = async () => ({ 'rgb(18, 18, 18)': 'Dark', 'rgb(247, 247, 247)': 'Light' })[await carte.locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor)];
+    const themeDeLaCarte = async () => ({ 'rgb(10, 10, 10)': 'Dark', 'rgb(247, 247, 247)': 'Light' })[await carte.locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor)];
     assert.equal(await themeDeLaCarte(), 'Dark', 'la carte montre le thème que la ligne du titre a choisi');
     assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'l’en-tête ne nomme pas le thème');
     const autre = carte.locator('.autre-theme');
@@ -941,7 +941,7 @@ test('[UI-23] la ligne du titre porte « Aperçu » Light et Dark dans Création
     await ouvrirLaVerification(page);
     assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .choix-libelle').textContent(), 'Aperçu');
     assert.deepEqual(await themesDuTitre(page), themesPresses(false));
-    assert.equal(await carteDesGaranties(page).locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(18, 18, 18)', 'la carte des garanties montre Dark');
+    assert.equal(await carteDesGaranties(page).locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(10, 10, 10)', 'la carte des garanties montre Dark');
     // L'inverse : Light, choisi dans Vérification, se retrouve dans Création, jusque dans le fond de l'aperçu.
     await choisirLeTheme(page, 'Light');
     assert.equal(await carteDesGaranties(page).locator('.reglette-des-garanties').evaluate((reglette) => getComputedStyle(reglette).backgroundColor), 'rgb(247, 247, 247)', 'la carte des garanties montre Light');
@@ -1012,7 +1012,7 @@ test('[UI-23] à 600 × 720 et à 500 × 520, Interface de test dépliée et pag
       assert.ok(avant > 0, `${nom} : la page est défilée jusqu’à l’interface de test`);
       assert.ok(Math.abs(await hautDuTitre(page)) <= 0.5, `${nom} : la ligne du titre est au haut de la zone visible`);
       await choisirLeTheme(page, 'Dark');
-      assert.equal(await fondDeLEcran(), 'rgb(18, 18, 18)', `${nom} : l’écran de l’essai est peint du fond Dark`);
+      assert.equal(await fondDeLEcran(), 'rgb(10, 10, 10)', `${nom} : l’écran de l’essai est peint du fond Dark`);
       assert.equal(await defilement(), avant, `${nom} : choisir Dark ne défile pas la page`);
       assert.ok(Math.abs(await hautDuTitre(page)) <= 0.5, `${nom} : la ligne du titre reste au haut après le choix`);
     } finally {
@@ -1432,7 +1432,7 @@ test('« Modifier » d’une fiche de Gestion en Dark ouvre Création en Dark, e
     await bleu.locator('[data-geste="modifier"]').click();
     assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
     assert.deepEqual(await themesDuTitre(page), themesPresses(false));
-    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(18, 18, 18)');
+    assert.equal(await page.locator('.nuancier-surface').evaluate((surface) => getComputedStyle(surface).backgroundColor), 'rgb(10, 10, 10)');
   } finally {
     await page.close();
   }
@@ -2188,7 +2188,7 @@ test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mentio
     assert.equal(await selecteur.locator('.selecteur-mention').textContent(), 'Ce fond s’applique à toutes les palettes.');
     assert.equal(await selecteur.locator('.selecteur-titre').textContent(), 'Fonds par défaut et premières nuances');
     const noms = await selecteur.locator('.selecteur-pastille').evaluateAll((boutons) => boutons.map((bouton) => bouton.getAttribute('aria-label')));
-    assert.deepEqual(noms.slice(0, 3), ['Fond Light par défaut, #F7F7F7', 'Fond Dark par défaut, #121212', 'Blanc, #FFFFFF']);
+    assert.deepEqual(noms.slice(0, 3), ['Fond Light par défaut, #F7F7F7', 'Fond Dark par défaut, #0A0A0A', 'Blanc, #FFFFFF']);
     assert.match(noms[3], /^Vivid 50, #[0-9A-F]{6}$/);
     assert.equal(noms.length, 5);
 
@@ -2589,7 +2589,7 @@ test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se ra
   try {
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     const fond = page.getByRole('textbox', { name: 'Fond de la page, thème Dark' });
-    assert.equal(await fond.inputValue(), '#121212');
+    assert.equal(await fond.inputValue(), '#0A0A0A');
     const avant = await compte(page);
     await fond.fill('#1c1c1c');
     await fond.press('Tab');

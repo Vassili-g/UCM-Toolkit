@@ -186,7 +186,7 @@ export function recetteParDefaut(): Recette {
     courbes: courbesParDefaut(11, TEXTE_DES_BOUTONS_PAR_DEFAUT),
     profils: { soft: { part: 0.45 }, vivid: { part: 0.95 } },
     gamut: 'srgb',
-    fonds: { light: '#F7F7F7', dark: '#121212' },
+    fonds: { light: '#F7F7F7', dark: '#0A0A0A' },
     texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT },
     seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05 },
     derives: RELEVE_TAILWIND.map(([nom, clair, sombre]) => [nom, clair, sombre] as PaireDeDerive),

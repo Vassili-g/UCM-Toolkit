@@ -51,7 +51,7 @@ test('[ENT-10] un cran 700 clair remonté à 0,56 ne tient plus ni 4,5 contre le
 });
 
 test('[ENT-10] un cran 600 sombre descendu vers le fond ne tient plus 3 : c’est le cran de ring', () => {
-  const manques = garantieDesCourbes(avecClarte(NORMAL, 'dark', 600, 0.5));
+  const manques = garantieDesCourbes(avecClarte(NORMAL, 'dark', 600, 0.48));
   assert.deepEqual(manques.map(({ mode, cran, profil, contre }) => `${mode} ${cran} ${profil} ${contre}`), ['dark 600 soft cranLeger', 'dark 600 vivid cranLeger']);
   assert.equal(manques[0].seuil, 3);
 });
