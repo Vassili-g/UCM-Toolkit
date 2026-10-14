@@ -290,7 +290,13 @@ Avec la table retenue (fonds Light 100, Dark 300, texte Dark 950), elle tient
 les garanties comme les autres règles : 144 échecs, ceux du moteur actuel, plus
 20 si le focus touche le fond 100. Ces 20 viennent de la garantie G7, qui juge
 le focus contre `surface/default` ; le W3C ne juge un indicateur extérieur que
-contre le fond qui l'entoure. Mesurer G7 contre la page et la carte les retire.
+contre le fond qui l'entoure. Décidé par le mainteneur : G7 juge le focus
+contre la page et la carte, et non plus contre `surface/default`, ce qui retire
+ces 20 cas. La page est le pire cas en Light (le neutre 50, plus foncé que la
+carte blanche), la carte en Dark (le neutre 100, plus clair que la page) : les
+deux comptent. Le plugin doit donc connaître la couleur de la carte, blanche en
+Light et au neutre 100 en Dark comme `elevation/raised` ; aujourd'hui, il ne
+mesure que le réglage « Fond de la page ».
 
 Focus Light, second tour : halo pâle collé 5 ; halo et liseré de 1 ou 2 px,
 halo et bordure au cran du focus 1 ; anneau décalé 2. Le mainteneur : « je
