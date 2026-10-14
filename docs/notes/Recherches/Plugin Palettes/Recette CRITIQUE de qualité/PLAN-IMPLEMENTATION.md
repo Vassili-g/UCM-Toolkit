@@ -418,7 +418,11 @@ Les tâches sont successives.
 
 Les tâches sont successives.
 
-- [ ] **M0 · Le banc lit les recettes par la migration** · `implementeur`, moyen.
+- [x] **M0 · Le banc lit les recettes par la migration** · `implementeur`, moyen.
+  Fait : le filtre qui rend le fichier du commit est
+  `FILTRE="retenue au banc (jaunes, fonds Dark 0,30) · retenue"` ; « retenue au
+  banc » seul ajoute quatre tables. Les scripts du banc suivent aussi `ring`
+  et le fond carte de G7.
   - Pourquoi : `D/Mesures/variantes.ts` valide `recette-mainteneur.json`
     (format 10) au chargement ; après M2, la validation exigerait le format
     11 et l'import échouerait. Les mesures historiques gardent leurs données.
@@ -432,7 +436,7 @@ Les tâches sont successives.
     `validerRecette` (`git grep -n validerRecette -- "D/Mesures"`), et dans
     `docs/notes/Recherches/Archi Tokens Multi-marques/generer-vue-illustree.ts`.
   - Les fichiers de `D/Mesures/references/` ne changent pas.
-  - Vérifier : `FILTRE="retenue au banc" npx tsx "D/Mesures/garanties-regles.ts"`
+  - Vérifier : `FILTRE="retenue au banc (jaunes, fonds Dark 0,30) · retenue" npx tsx "D/Mesures/garanties-regles.ts"`
     rend le même `GARANTIES-RETENUES.json` qu'avant (diff vide), avant et
     après M2.
   - Fini quand : diff vide, et la commande repasse sans erreur après M2.

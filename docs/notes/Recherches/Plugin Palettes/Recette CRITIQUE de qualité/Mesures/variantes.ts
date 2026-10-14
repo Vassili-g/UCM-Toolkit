@@ -8,17 +8,26 @@ import { readFileSync } from 'node:fs';
 import { lireHexa, rgb8VersOklch } from '../../../../../../packages/couleur/src/conversions';
 import { plafond } from '../../../../../../packages/couleur/src/plafond';
 import { rampesDe } from '../../../../../../packages/couleur/src/palette';
-import { validerRecette, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
+import { classerRecette, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import type { Cran, Intensite, Mode } from '../../../../../../packages/couleur/src/rampe';
 import {
   deuxZones, enveloppeAvecJaunes, enveloppesParTheme, rampesDuBanc, recetteAuxReglagesCommuns, releveTailwind, type RampeRelevee, type RegleDeChroma,
 } from './prototype';
 
 export const lire = (chemin: string) => JSON.parse(readFileSync(new URL(chemin, import.meta.url), 'utf8'));
+/**
+ * Lit une recette brute par la migration du paquet. Les mesures historiques gardent leurs données :
+ * les parts communes de la recette brute remplacent celles que la migration aurait écrites.
+ */
 export const valider = (brute: unknown): Recette => {
-  const v = validerRecette(brute);
-  if ('refus' in v) throw new Error(JSON.stringify(v.refus));
-  return v.recette;
+  const c = classerRecette(JSON.stringify(brute));
+  if (c.etat === 'illisible') throw new Error(JSON.stringify(c.refus));
+  if (c.etat !== 'courante') throw new Error(`recette ${c.etat}`);
+  const parts = (brute as { profils?: { soft?: { part?: number }; vivid?: { part?: number } } }).profils;
+  const soft = parts?.soft?.part;
+  const vivid = parts?.vivid?.part;
+  if (soft === undefined || vivid === undefined) return c.recette;
+  return { ...c.recette, profils: { soft: { ...c.recette.profils.soft, part: soft }, vivid: { ...c.recette.profils.vivid, part: vivid } } };
 };
 
 export const RECETTE_REELLE = valider(lire('./references/recette-mainteneur.json'));

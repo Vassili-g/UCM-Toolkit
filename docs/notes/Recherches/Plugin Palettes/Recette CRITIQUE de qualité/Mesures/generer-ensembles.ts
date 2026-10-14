@@ -19,7 +19,7 @@ import { TABLE_DES_DOSSIERS, sensDuTheme } from '../../../../../../packages/kit/
  * 300) ; en Dark, fonds 300, 400, 500, texte et contour 950. Le focus garde ses crans.
  */
 function tableDuModele(mode: 'light' | 'dark', sens: 'normal' | 'inverse'): Record<string, number | 'texteDesBoutons'> {
-  const base = { ...TABLE_DES_DOSSIERS[sens] } as Record<string, number | 'texteDesBoutons'>;
+  const base = { ...TABLE_DES_DOSSIERS[mode][sens] } as Record<string, number | 'texteDesBoutons'>;
   if (mode === 'light') return base;
   return { ...base, 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 };
 }

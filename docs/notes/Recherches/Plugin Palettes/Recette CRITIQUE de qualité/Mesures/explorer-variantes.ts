@@ -1,16 +1,12 @@
 /** Exploration : les crans des alertes dans chaque variante, contre Tailwind et Radix. */
 import { readFileSync } from 'node:fs';
 import { lireHexa, rgb8VersOklch } from '../../../../../../packages/couleur/src/conversions';
-import { validerRecette, type Recette } from '../../../../../../packages/couleur/src/recette';
+import type { Recette } from '../../../../../../packages/couleur/src/recette';
+import { valider } from './variantes';
 import { rampesDe } from '../../../../../../packages/couleur/src/palette';
 import { enveloppe, partDuPlafond, rampesDuBanc, recetteAuxReglagesCommuns } from './prototype';
 
 const lire = (chemin: string) => JSON.parse(readFileSync(new URL(chemin, import.meta.url), 'utf8'));
-const valider = (brute: unknown): Recette => {
-  const v = validerRecette(brute);
-  if ('refus' in v) throw new Error(JSON.stringify(v.refus));
-  return v.recette;
-};
 const reelle = valider(lire('./references/recette-mainteneur.json'));
 const commune = valider(recetteAuxReglagesCommuns(reelle));
 const NOMS = ['Poppy', 'Orange', 'Grass', 'Sky'];

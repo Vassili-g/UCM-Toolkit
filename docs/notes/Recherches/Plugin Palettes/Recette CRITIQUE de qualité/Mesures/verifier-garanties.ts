@@ -26,50 +26,50 @@ const avec = (base: Table, changements: Table): Table => ({ ...base, ...changeme
 
 /** Les tables candidates, par sens et par thème : le sens choisit les partenaires, le thème les fonds. */
 const TABLES: Record<string, (sens: 'normal' | 'inverse', mode: 'light' | 'dark') => Table> = {
-  actuelle: (sens) => TABLE_DES_DOSSIERS[sens],
+  actuelle: (sens, mode) => TABLE_DES_DOSSIERS[mode][sens],
   'surface 50 en Light': (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
-    : TABLE_DES_DOSSIERS[sens],
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
+    : TABLE_DES_DOSSIERS[mode][sens],
   'surface 200 en Dark': (sens, mode) => mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 })
-    : TABLE_DES_DOSSIERS[sens],
-  'focus un cran plus clair': (sens, mode) => avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) - (mode === 'light' ? 100 : -100) }),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 })
+    : TABLE_DES_DOSSIERS[mode][sens],
+  'focus un cran plus clair': (sens, mode) => avec(TABLE_DES_DOSSIERS[mode][sens], { 'ring': (TABLE_DES_DOSSIERS[mode][sens]['ring'] as number) - (mode === 'light' ? 100 : -100) }),
   translucide: (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
-    : TABLE_DES_DOSSIERS[sens],
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
+    : TABLE_DES_DOSSIERS[mode][sens],
   'translucide, focus Dark plus clair': (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
-    : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100 }),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
+    : avec(TABLE_DES_DOSSIERS[mode][sens], { 'ring': (TABLE_DES_DOSSIERS[mode][sens]['ring'] as number) + 100 }),
   'translucide, texte 700 en Light': (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 })
-    : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100 }),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[mode][sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[mode][sens]['surface/border'] as number) - 100 })
+    : avec(TABLE_DES_DOSSIERS[mode][sens], { 'ring': (TABLE_DES_DOSSIERS[mode][sens]['ring'] as number) + 100 }),
   'translucide, texte un cran plus coloré partout': (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 })
-    : avec(TABLE_DES_DOSSIERS[sens], { 'page/focus': (TABLE_DES_DOSSIERS[sens]['page/focus'] as number) + 100, 'surface/foreground': (TABLE_DES_DOSSIERS[sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[sens]['surface/border'] as number) - 100 }),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200, 'surface/foreground': (TABLE_DES_DOSSIERS[mode][sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[mode][sens]['surface/border'] as number) - 100 })
+    : avec(TABLE_DES_DOSSIERS[mode][sens], { 'ring': (TABLE_DES_DOSSIERS[mode][sens]['ring'] as number) + 100, 'surface/foreground': (TABLE_DES_DOSSIERS[mode][sens]['surface/foreground'] as number) - 100, 'surface/border': (TABLE_DES_DOSSIERS[mode][sens]['surface/border'] as number) - 100 }),
   'plein 600 en Light': (sens, mode) => (mode === 'light' && sens === 'normal'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'solid/default': 600, 'solid/hover': 700, 'solid/pressed': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'solid/default': 600, 'solid/hover': 700, 'solid/pressed': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Dark A : fonds 200, texte 950, focus 800': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 950, 'surface/border': 950, 'ring': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Dark B : carte 200, fonds 300, texte 950, focus 800': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'ring': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Dark C : fonds 200, 300, 400, texte 800, focus 800': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 800, 'surface/border': 800, 'page/focus': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 800, 'surface/border': 800, 'ring': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Dark D : fonds 200, 300, 300, texte 800, focus 800': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'page/focus': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'ring': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Dark E : fonds 200, 300, 400, texte 900, focus 800': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 })
-    : TABLE_DES_DOSSIERS[sens]),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'ring': 800 })
+    : TABLE_DES_DOSSIERS[mode][sens]),
   'Modèle : Light fonds 50, 100, 200 ; Dark fonds 200, 300, 400, texte 900, focus 800, page plus sombre': (sens, mode) => (mode === 'dark'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 })
-    : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'ring': 800 })
+    : avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })),
   'les deux': (sens, mode) => mode === 'light'
-    ? avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
-    : avec(TABLE_DES_DOSSIERS[sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
+    ? avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 50, 'surface/hover': 100, 'surface/pressed': 200 })
+    : avec(TABLE_DES_DOSSIERS[mode][sens], { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400 }),
 };
 
 const CARTE = { light: '#FFFFFF', dark: '#1A1C1F' };
@@ -123,6 +123,8 @@ for (const [nomRegle, regle] of Object.entries(regles)) for (const [nomTable, ta
           ? Object.entries(supports).map(([s, f]) => [`${v} sur ${s}`, ecrireHexa(composer(alphaMinimal(lireHexa(couleur(v))!, reference), lireHexa(f)!))])
           : [[v, couleur(v)]]);
         for (const g of GARANTIES) for (const fond of g.fonds) {
+          // Le kit sépare désormais la carte de la page dans G7 ; le banc juge la carte avec la page.
+          if ('fondDeLaCarte' in fond) continue;
           const fonds = 'fondDeLaPage' in fond ? Object.entries(supports) : fondsDe(fond.variable);
           for (const [nomFond, f] of fonds) {
             couples += 1;

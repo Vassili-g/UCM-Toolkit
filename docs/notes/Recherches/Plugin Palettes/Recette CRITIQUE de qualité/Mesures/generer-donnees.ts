@@ -48,7 +48,7 @@ for (const variante of VARIANTES) {
       return { cran, ecartL: r3(Math.max(...pts.map((p) => p.L)) - Math.min(...pts.map((p) => p.L))), rapportC: r3(Math.max(...Cs) / Math.max(1e-4, Math.min(...Cs))), C: Cs.map(r3) };
     });
     const sens = sensDuTheme(mode, RECETTE_REELLE.texteDesBoutons[mode]);
-    const table = TABLE_DES_DOSSIERS[sens] as Record<string, number | 'texteDesBoutons'>;
+    const table = TABLE_DES_DOSSIERS[mode][sens] as Record<string, number | 'texteDesBoutons'>;
     const couleur = (r: string[], variable: string) => {
       const cran = table[variable];
       if (cran === 'texteDesBoutons') return RECETTE_REELLE.texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000';
@@ -57,6 +57,8 @@ for (const variante of VARIANTES) {
     const echecs: string[] = [];
     rampes.forEach((r, k) => {
       for (const g of GARANTIES) for (const fond of g.fonds) for (const support of ['page', 'raised'] as const) {
+        // Le kit sépare désormais la carte de la page dans G7 ; le banc juge la carte avec la page.
+        if ('fondDeLaCarte' in fond) continue;
         const f = 'fondDeLaPage' in fond ? supports[mode][support] : couleur(r, fond.variable);
         if (!('fondDeLaPage' in fond) && support === 'raised') continue;
         const valeur = ct(couleur(r, g.premier.variable), f);

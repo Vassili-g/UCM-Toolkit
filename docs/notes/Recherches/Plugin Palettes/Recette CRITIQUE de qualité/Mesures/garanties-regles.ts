@@ -26,10 +26,10 @@ const table = (light: Fonds, dark: Fonds) => (sens: 'normal' | 'inverse', mode: 
   const f = mode === 'light' ? light : dark;
   const texte = mode === 'light' && sens === 'inverse' ? Math.max(f.texte, 900) : f.texte;
   return {
-    ...TABLE_DES_DOSSIERS[sens],
+    ...TABLE_DES_DOSSIERS[mode][sens],
     'surface/default': f.defaut, 'surface/hover': f.survol, 'surface/pressed': f.appui,
     'surface/foreground': texte, 'surface/border': texte,
-    ...(mode === 'dark' ? { 'page/focus': 800 } : {}),
+    ...(mode === 'dark' ? { 'ring': 800 } : {}),
   };
 };
 /**
@@ -37,8 +37,8 @@ const table = (light: Fonds, dark: Fonds) => (sens: 'normal' | 'inverse', mode: 
  * texte Dark 950 ; le focus garde ses crans. G7 s'y juge contre la page et la carte (décision G7).
  */
 const tableRetenue = (sens: 'normal' | 'inverse', mode: 'light' | 'dark'): Table => (mode === 'light'
-  ? { ...TABLE_DES_DOSSIERS[sens] }
-  : { ...TABLE_DES_DOSSIERS[sens], 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 });
+  ? { ...TABLE_DES_DOSSIERS[mode][sens] }
+  : { ...TABLE_DES_DOSSIERS[mode][sens], 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 });
 /** Les supports de chaque table : la page Dark et la carte Dark du Titanium du mainteneur, ou celles par défaut, sans teinte. */
 const SUPPORTS_DARK: Record<string, { page: string; carte: string }> = {
   'retenue, G7 contre la page et la carte, défauts sans teinte': { page: '#0A0A0A', carte: '#1C1C1C' },
@@ -100,6 +100,8 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
           for (const g of GARANTIES) for (const fond of g.fonds) {
             // Décision G7 : le focus, extérieur au composant, se juge contre la page et la carte seulement.
             if (g.numero === 7 && G7_PAGE_ET_CARTE(nomTable) && !('fondDeLaPage' in fond)) continue;
+            // Le kit sépare désormais la carte de la page dans G7 ; le banc garde son couple page et carte.
+            if ('fondDeLaCarte' in fond) continue;
             const fondsJuges = 'fondDeLaPage' in fond ? Object.entries(supports) : [[fond.variable, couleur(fond.variable)]];
             for (const [nomFond, f] of fondsJuges) {
               couples += 1;
