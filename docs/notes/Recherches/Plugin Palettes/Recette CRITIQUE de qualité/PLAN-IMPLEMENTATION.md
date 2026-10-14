@@ -717,7 +717,11 @@ Les tâches sont successives.
     `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert.
 
-- [ ] **M6 · Fin de vague : les garanties sur le moteur** · `implementeur`, puis `verificateur`, puis orchestrateur.
+- [x] **M6 · Fin de vague : les garanties sur le moteur** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  Mesure faite : le paquet et le mode produit du banc comptent 144 promesses
+  manquées, toutes G1 en Dark inversé ; G2 à G7 aucune. Reporté dans
+  DECISIONS.md, section 4. Les états de bilan de la galerie suivent le moteur
+  (e915511). Suite complète et push : après le retour de Codex sur S1 et D3.
   - Protocole, écrit par l'`implementeur` :
     - `D/Mesures/garanties-regles.ts` reçoit un mode « produit » (variable
       d'environnement `MODE=produit`) qui ne juge que les garanties du
@@ -1015,12 +1019,52 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; glisser la teinte hors de la zone éteint le constat
     et le compteur (test d'interface).
 
-- [ ] **H5a · Les matrices de vision des couleurs** · `chercheur`.
+- [x] **H5a · Les matrices de vision des couleurs** · `chercheur`.
   - Question : les matrices de simulation de la deutéranopie, de la
     protanopie et de la tritanopie de Machado, Oliveira et Fernandes (2009),
     sévérité 1,0, en RGB linéaire : valeurs exactes et source primaire (la
     page des auteurs ou l'article). Rendre les trois matrices 3 × 3 et l'URL.
   - Fini quand : trois matrices sourcées.
+  - **Livré par Codex.** Les 27 coefficients ci-dessous sont ceux de la
+    ligne `1.0` de la table 1 du [tutoriel des auteurs](https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html#Tutorial),
+    relue directement dans son HTML. Les six décimales sont la précision
+    publiée ; aucune interpolation n'est nécessaire.
+
+    ```ts
+    const deuteranopie = [
+      [ 0.367322,  0.860646, -0.227968],
+      [ 0.280085,  0.672501,  0.047413],
+      [-0.011820,  0.042940,  0.968881],
+    ] as const;
+
+    const protanopie = [
+      [ 0.152286,  1.052583, -0.204868],
+      [ 0.114503,  0.786281,  0.099216],
+      [-0.003882, -0.048116,  1.051998],
+    ] as const;
+
+    const tritanomalieSevere = [
+      [ 1.255528, -0.076749, -0.178779],
+      [-0.078411,  0.930809,  0.147602],
+      [ 0.004733,  0.691367,  0.303900],
+    ] as const;
+    ```
+
+  - **Borne de la source pour H5.** La troisième colonne du tutoriel se
+    nomme `Tritanomaly`. Dans l'[article corrigé, sections 4.2.1 et 4.3](https://profs.ic.uff.br/~laffernandes/content/publications/journal/2009_tvcg_15%286%29/machado_oliveira_fernandes-tvcg-15%286%29-2009-corrected.pdf),
+    les auteurs excluent la tritanopie de leur modèle et présentent la
+    tritanomalie comme une approximation. La troisième matrice répond au
+    choix Machado à sévérité 1 du plan ; ne pas la présenter dans le code
+    comme un modèle validé de tritanopie. Opus doit reprendre cette limite
+    lors du choix du libellé de vision de H5.
+  - **Raccordement de H5.** Multiplier chaque ligne par le vecteur colonne
+    `[R, G, B]` linéaire, dans cet ordre : `sortie[i] = somme(M[i][j] * entree[j])`.
+    Depuis une couleur `Rgb8`, employer `rgb8VersLineaire`, multiplier, puis
+    appeler `lineaireVersRgb8` pour borner à `[0, 1]`, encoder en sRGB et
+    arrondir à l'octet. Ces fonctions sont déjà exportées par `ucm-couleur`.
+    Conserver les coefficients négatifs jusqu'au bornage du résultat.
+    La simulation repeint les points ; elle ne modifie ni la recette ni les
+    garanties (SPEC, section 7.8). H5 reste à implémenter.
 
 - [ ] **H5 · Carte « Roue des teintes », clavier** · `implementeur-exigeant`, haut.
   - SPEC, sections 7.8 et 7.9 ; identifiant `[UI-43]` (roue) et `[UI-44]`

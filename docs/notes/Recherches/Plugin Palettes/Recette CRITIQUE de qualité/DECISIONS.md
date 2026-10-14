@@ -154,8 +154,16 @@ la table et la règle retenues, avec G7 contre la page et la carte et le focus
 à 600 ou 700, laissent 144 échecs, tous G1 et déjà présents aujourd'hui : le
 texte blanc sur un plein où une référence est ancrée. Mesuré avec la page et
 la carte du Titanium du mainteneur comme avec celles par défaut
-(`#0A0A0A`, `#1C1C1C`) : `FILTRE="retenue au banc" npx tsx Mesures/garanties-regles.ts`,
+(`#0A0A0A`, `#1C1C1C`) : `FILTRE="retenue au banc (jaunes, fonds Dark 0,30) · retenue" npx tsx Mesures/garanties-regles.ts`,
 résultat dans [GARANTIES-RETENUES.json](./Mesures/GARANTIES-RETENUES.json).
+
+Mesuré ensuite sur le moteur implémenté (M6 du plan, 14 octobre 2026) :
+`verifierPromesses` du paquet, sur les mêmes 144 références et les quatre
+couples de texte des boutons, compte 144 promesses manquées, toutes G1 en
+Dark inversé sur `solid/default` ; G2 à G7 n'en manquent aucune. Le mode
+produit du banc (`MODE=produit`, G1 à G6 contre la page seule, G7 contre la
+page et la carte) donne le même compte, garantie par garantie :
+`npx tsx Mesures/verifier-implementation.ts`.
 
 ### Q7. La forme du focus (arrêtée)
 

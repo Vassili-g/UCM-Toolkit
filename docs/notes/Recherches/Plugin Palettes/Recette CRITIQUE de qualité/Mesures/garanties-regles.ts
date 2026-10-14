@@ -4,13 +4,16 @@
  * référence, dans les quatre combinaisons du texte des boutons. Les fonds de
  * page sont la page (`#0A0A0B` en Dark, celle du modèle) et la carte.
  *
- * `npx tsx garanties-regles.ts` écrit GARANTIES-REGLES.json.
+ * `npx tsx garanties-regles.ts` écrit GARANTIES-REGLES.json. `MODE=produit` ne
+ * juge que les garanties du produit et affiche le décompte par garantie, comme
+ * `verifier-implementation.ts`.
  */
 import { writeFileSync } from 'node:fs';
 import { ecrireHexa, lineaireVersRgb8, oklchVersLineaire, lireHexa } from '../../../../../../packages/couleur/src/conversions';
 import { plafond } from '../../../../../../packages/couleur/src/plafond';
 import { courbesParDefaut } from '../../../../../../packages/couleur/src/nuances';
 import { rampesDe } from '../../../../../../packages/couleur/src/palette';
+import { couleurDeLaCarte } from '../../../../../../packages/couleur/src/promesses';
 import { recetteParDefaut, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import { contraste } from '../../../../../../packages/kit/src/emplois/contraste';
 import { GARANTIES } from '../../../../../../packages/kit/src/emplois/garanties';
@@ -71,9 +74,14 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
   const textes: TexteDesBoutons[] = ['blanc', 'noir'];
   // La variable d'environnement `FILTRE` limite le balayage aux règles et tables dont le nom contient sa valeur.
   const filtre = process.env.FILTRE;
+  // `MODE=produit` ne juge que les garanties du produit, sur la règle et la table retenues : G1 à G6 contre leurs
+  // fonds de la table et la page, G7 contre la page et la carte du paquet. Rien n'est écrit.
+  const produit = process.env.MODE === 'produit';
+  const decomptes: Record<string, number> = {};
   for (const [nomRegle, { regle, parts }] of Object.entries(REGLES)) for (const [nomTable, t] of Object.entries(TABLES_DU_MODELE)) {
+    if (produit && !(nomRegle.startsWith('enveloppe retenue au banc') && nomTable === 'retenue, G7 contre la page et la carte, défauts sans teinte')) continue;
     if (filtre && !`${nomRegle} · ${nomTable}`.includes(filtre)) continue;
-    const pageDark = SUPPORTS_DARK[nomTable]?.page ?? PAGE_DARK;
+    const pageDark = produit ? recetteParDefaut().fonds.dark : SUPPORTS_DARK[nomTable]?.page ?? PAGE_DARK;
     const carte = { light: CARTE.light, dark: SUPPORTS_DARK[nomTable]?.carte ?? CARTE.dark };
     let couples = 0;
     const echecs: Record<string, number> = {};
@@ -99,6 +107,16 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
           const couleur = (v: string) => (tt[v] === 'texteDesBoutons' ? (texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000') : rampe[recette.crans.indexOf(tt[v] as number)]);
           const supports = { page: recette.fonds[mode], raised: carte[mode] };
           for (const g of GARANTIES) for (const fond of g.fonds) {
+            if (produit) {
+              const juges: [string, string][] = 'fondDeLaPage' in fond ? [['page', recette.fonds[mode]]]
+                : 'fondDeLaCarte' in fond ? [['carte', ecrireHexa(couleurDeLaCarte(recette, mode))]]
+                  : [[fond.variable, couleur(fond.variable)]];
+              for (const [, f] of juges) {
+                couples += 1;
+                if (contraste(lireHexa(couleur(g.premier.variable))!, lireHexa(f)!) < (g.seuil === 'texte' ? 4.5 : 3)) decomptes[`G${g.numero}`] = (decomptes[`G${g.numero}`] ?? 0) + 1;
+              }
+              continue;
+            }
             // Décision G7 : le focus, extérieur au composant, se juge contre la page et la carte seulement.
             if (g.numero === 7 && G7_PAGE_ET_CARTE(nomTable) && !('fondDeLaPage' in fond)) continue;
             // Le kit sépare désormais la carte de la page dans G7 ; le banc garde son couple page et carte.
@@ -118,11 +136,17 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
         }
       }
     }
+    if (produit) continue;
     const mediane = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
     const total = Object.values(echecs).reduce((s, x) => s + x, 0);
     resultats[`${nomRegle} · ${nomTable}`] = { couples, echecs: total, parGarantie: echecs, exemples, fondContreCarte: { light: +mediane(separation.light).toFixed(3), dark: +mediane(separation.dark).toFixed(3) } };
     console.log(`${nomRegle.padEnd(40)} ${nomTable.padEnd(42)} échecs ${String(total).padStart(5)}  fond/carte L ${mediane(separation.light).toFixed(3)} D ${mediane(separation.dark).toFixed(3)}`);
     if (total) console.log('    ', Object.entries(echecs).map(([k, v]) => `${k}: ${v}`).join(' · '));
+  }
+  if (produit) {
+    for (let g = 1; g <= 7; g += 1) console.log(`G${g} : ${decomptes[`G${g}`] ?? 0} promesses manquées`);
+    console.log(`Total : ${Object.values(decomptes).reduce((s, x) => s + x, 0)} promesses manquées`);
+    process.exit(0);
   }
   writeFileSync(new URL(filtre ? './GARANTIES-RETENUES.json' : './GARANTIES-REGLES.json', import.meta.url), `${JSON.stringify(resultats, null, 1)}\n`);
 }
