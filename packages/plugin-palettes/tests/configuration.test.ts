@@ -68,7 +68,7 @@ test('[ENT-10] une courbe trop proche de la nuance la plus claire nomme sa varia
   assert.equal(constat.quoi, 'Contraste avec la nuance la plus claire : 4,18:1, minimum 4,5:1. Teinte : 147°.');
   assert.equal(constat.geste, 'Éloignez la luminosité de la nuance 700 de celle de la nuance la plus claire.');
   // En Light inversé, l'anneau de focus est la 700 et le texte coloré la 800.
-  assert.equal(constatDeGarantie({ mode: 'light', cran: 700, profil: 'vivid', teinte: 10, contraste: 2.9, seuil: 3, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 700 (page/focus), profil vivid');
+  assert.equal(constatDeGarantie({ mode: 'light', cran: 700, profil: 'vivid', teinte: 10, contraste: 2.9, seuil: 3, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 700 (ring), profil vivid');
   assert.equal(constatDeGarantie({ mode: 'light', cran: 800, profil: 'vivid', teinte: 10, contraste: 4.1, seuil: 4.5, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 800 (page/foreground), profil vivid');
   for (const texte of ['blanc', 'noir'] as const) {
     const brut = JSON.stringify(constatDeGarantie({ mode: 'dark', cran: 700, profil: 'vivid', teinte: 60, contraste: 4.12, seuil: 4.5, contre: 'cranLeger' }, texte));
@@ -89,7 +89,7 @@ test('[ENT-10] la 700 qui ne porte pas le texte des boutons le dit, et le geste 
   assert.equal(enBlanc.quoi, 'Shade 700 in Dark does not carry the white button text at 4.5:1 for every hue: 4.12:1 at 60°.');
   assert.equal(enBlanc.geste, 'Lower the lightness of 700 in “Shade lightness”.');
   assert.equal(constatEn(manque, 'noir').geste, 'Raise the lightness of 700 in “Shade lightness”.');
-  assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (page/focus), profile vivid');
+  assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (ring), profile vivid');
 });
 
 test('[ENT-05] un fond se saisit en hexa, s’écrit en majuscules, et une saisie qui n’est pas une couleur se refuse', () => {

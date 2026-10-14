@@ -267,7 +267,7 @@ couche. Le profil contrôle quatre règles, en information :
 | `portee` | Une variable de `primitives`, `color-brands` ou `color-utilities` porte une portée ; une variable de dossier de `theme` n'a pas les portées de sa ligne de la table |
 | `nuance` | Une variable de dossier de `theme` ne vise pas, dans un mode `light` ou `dark`, le cran que la table donne dans le sens de ce mode |
 
-Les variables de dossier (`solid/default`, `surface/border`, `page/focus`),
+Les variables de dossier (`solid/default`, `surface/border`, `ring`),
 leurs crans et leurs portées viennent de `@ucm-kit/core/emplois` ; le sens du
 mode vient de `texteDesBoutons` dans la recette associée. `scale/0`,
 `scale/1000`, `elevation/*` ne visent aucun cran et ne se jugent pas par

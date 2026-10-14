@@ -373,8 +373,8 @@ function construireVues(i18n: Localisation) {
       }
       paires.push(['texte', reglage.texte]);
       if (etat === 'focus') {
-        element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('page/focus')}`;
-        paires.push(['anneau', 'page/focus']);
+        element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('ring')}`;
+        paires.push(['anneau', 'ring']);
       }
       return peint(element, ...paires);
     };
@@ -400,8 +400,8 @@ function construireVues(i18n: Localisation) {
       element.style.background = couleurs.fond;
       element.style.color = couleurs.encre;
       element.style.borderColor = c('page/border');
-      if (etat === 'focus') element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('page/focus')}`;
-      return peint(element, ['contour', 'page/border'], ...(etat === 'focus' ? [['anneau', 'page/focus'] as const] : []));
+      if (etat === 'focus') element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('ring')}`;
+      return peint(element, ['contour', 'page/border'], ...(etat === 'focus' ? [['anneau', 'ring'] as const] : []));
     };
     const rangees: [Texte, (etat: EtatMontre) => HTMLElement | null][] = [
       [t.plein, plein],
@@ -557,7 +557,7 @@ function construireVues(i18n: Localisation) {
       surface.style.setProperty('--essai-encre', couleurs.encre);
       surface.style.setProperty('--essai-encre-seconde', couleurs.encreSeconde);
       surface.style.setProperty('--essai-separateur', couleurs.variable('page/divider'));
-      surface.style.setProperty('--essai-focus', couleurs.variable('page/focus'));
+      surface.style.setProperty('--essai-focus', couleurs.variable('ring'));
       surface.replaceChildren(vue === 'ecran' ? ecranDeLEquipe(couleurs) : composantsParEtat(couleurs));
     }
 

@@ -110,8 +110,8 @@ test('[UI-10] [I5] les garanties d\u2019une variable : une par fond quand elle e
   const lire = (variable: VariableDuTheme) => garantiesDeLaVariable(promesses, 'light', 'vivid', variable).map(({ promesse, role, partenaire }) => `${promesse.garantie.numero} ${role} ${partenaire}`);
   assert.deepEqual(lire('solid/foreground'), ['1 premier solid/default', '1 premier solid/hover', '1 premier solid/pressed']);
   assert.deepEqual(lire('solid/default'), ['1 fond solid/foreground', '2 premier elevation/page']);
-  assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border', '7 fond page/focus']);
-  assert.deepEqual(lire('page/focus'), ['7 premier elevation/page', '7 premier surface/default']);
+  assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border', '7 fond ring']);
+  assert.deepEqual(lire('ring'), ['7 premier elevation/page', '7 premier surface/default']);
   assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page']);
   assert.deepEqual(lire('page/divider'), [], 'le filet n\u2019a pas de minimum');
   assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft'], 'une intensité à la fois');
@@ -154,13 +154,13 @@ const NOMS = (bande: Bande, rang: number): string => bande.accolades[rang].codes
 const BANDES_NORMALES = {
   solid: 'foreground -1--1 [-1-2 start] | default·hover·pressed 7-9 [6-10 center]',
   surface: 'default·hover·pressed 1-3 [-1-5 center] | foreground·border 8-8 [6-10 center]',
-  page: 'divider 3-3 [2-4 center] | focus 6-6 [5-6 end colle] | foreground·border 7-7 [7-10 start]',
+  page: 'divider 3-3 [2-4 center] | ring 6-6 [5-6 end colle] | foreground·border 7-7 [7-10 start]',
 };
 /** Les bandes du sens inversé : `solid` descend vers la page, le texte et le contour montent d'une nuance. */
 const BANDES_INVERSEES = {
   solid: 'foreground -1--1 [-1-1 start] | pressed·hover·default 5-7 [2-10 center]',
   surface: 'default·hover·pressed 1-3 [-1-5 center] | foreground·border 9-9 [8-10 center]',
-  page: 'divider 3-3 [2-4 center] | focus 7-7 [5-7 end colle] | foreground·border 8-8 [8-10 start]',
+  page: 'divider 3-3 [2-4 center] | ring 7-7 [5-7 end colle] | foreground·border 8-8 [8-10 start]',
 };
 
 test('[UI-04] [I2] [I3] les trois bandes suivent la table du sens du thème, dans les quatre combinaisons du texte des boutons', () => {
@@ -254,10 +254,10 @@ test('[UI-04] [I13] survoler ou focaliser une pastille surligne chaque variable 
   const cran = (numero: number): Geste => ({ nature: 'cran', numero });
   assert.equal(surligne(cran(700), 'normal'), '700 | solid/default,page/foreground,page/border | -');
   assert.equal(surligne(cran(800), 'normal'), '800 | solid/hover,surface/foreground,surface/border | -');
-  assert.equal(surligne(cran(600), 'normal'), '600 | page/focus | -');
+  assert.equal(surligne(cran(600), 'normal'), '600 | ring | -');
   assert.equal(surligne(cran(300), 'normal'), '300 | surface/pressed,page/divider | -');
   assert.equal(surligne(cran(900), 'normal'), '900 | solid/pressed | -');
-  assert.equal(surligne(cran(700), 'inverse'), '700 | solid/default,page/focus | -');
+  assert.equal(surligne(cran(700), 'inverse'), '700 | solid/default,ring | -');
   assert.equal(surligne(cran(600), 'inverse'), '600 | solid/hover | -');
   assert.equal(surligne(cran(500), 'inverse'), '500 | solid/pressed | -');
   assert.equal(surligne(cran(800), 'inverse'), '800 | page/foreground,page/border | -');

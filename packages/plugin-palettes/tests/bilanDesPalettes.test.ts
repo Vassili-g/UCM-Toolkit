@@ -65,7 +65,7 @@ test('le premier constat d’une palette à corriger est celui que sa vérificat
   assert.equal(ligne.etat, 'rouge');
   assert.ok(ligne.constat && ligne.constat.nature === 'garantie');
   assert.equal(ligne.constat.mode, 'light');
-  assert.equal(ligne.constat.variable, 'page/focus');
+  assert.equal(ligne.constat.variable, 'ring');
   assert.ok(ligne.constat.contraste > 0 && ligne.constat.contraste < 3);
 });
 

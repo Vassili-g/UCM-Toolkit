@@ -24,7 +24,7 @@ export const GARANTIES: readonly Garantie[] = [
   { numero: 4, premier: { variable: 'surface/border' }, fonds: FONDS_SURFACE, seuil: 'nonTexte' },
   { numero: 5, premier: { variable: 'page/foreground' }, fonds: [FOND_DE_LA_PAGE], seuil: 'texte' },
   { numero: 6, premier: { variable: 'page/border' }, fonds: [FOND_DE_LA_PAGE], seuil: 'nonTexte' },
-  { numero: 7, premier: { variable: 'page/focus' }, fonds: [FOND_DE_LA_PAGE, { variable: 'surface/default' }], seuil: 'nonTexte' },
+  { numero: 7, premier: { variable: 'ring' }, fonds: [FOND_DE_LA_PAGE, { variable: 'surface/default' }], seuil: 'nonTexte' },
 ];
 
 /** Une garantie se juge quand la liste porte le cran de chacun de ses membres. */

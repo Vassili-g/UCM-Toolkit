@@ -147,7 +147,7 @@ test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne p
   const nom = (cellule: string) => textes(trouver(variables, cellule)).find((noeud) => noeud.nom === 'variable')!.contenu;
   assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'page foreground', 'page border', 'page focus', 'page divider'].map(nom), [
     'solid/default · 700', 'solid/hover · 800', 'solid/pressed · 900', 'surface/default · 100', 'surface/hover · 200', 'surface/pressed · 300',
-    'page/foreground · 700', 'page/border · 700', 'page/focus · 600', 'page/divider · 300',
+    'page/foreground · 700', 'page/border · 700', 'ring · 600', 'page/divider · 300',
   ]);
   const peint = (cran: number) => MODELE.peints.find(({ nom: calque }) => calque === `vivid/light/${cran}`)?.hexa;
   const specimen = (cellule: string) => trouver(trouver(variables, cellule), 'spécimen');

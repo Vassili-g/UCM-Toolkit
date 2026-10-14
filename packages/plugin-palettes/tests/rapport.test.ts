@@ -40,7 +40,7 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
     'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur surface/pressed', 'surface/foreground sur elevation/page',
     'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page',
     'page/foreground sur elevation/page', 'page/border sur elevation/page',
-    'page/focus sur elevation/page', 'page/focus sur surface/default',
+    'ring sur elevation/page', 'ring sur surface/default',
   ]);
   assert.ok(bleu.promesses.every((promesse) => !('paire' in promesse) && !('numero' in promesse.garantie)), 'aucun numéro de garantie ni paire d’emplois');
   const vive = jaune.alertes.find((alerte) => alerte.code === 'reference-plus-vive');

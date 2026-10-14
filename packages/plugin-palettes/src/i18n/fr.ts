@@ -402,7 +402,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
       geste: `${texteDesBoutons === 'blanc' ? 'Baissez' : 'Montez'} la luminosité de la ${manque.cran} dans « Luminosité des nuances ».`,
     };
   }
-  const variable = TABLE_DES_DOSSIERS[sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'page/focus';
+  const variable = TABLE_DES_DOSSIERS[sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
   return {
     ou: `${theme}, nuance ${manque.cran} (${variable}), profil ${manque.profil}`,
     quoi: `Contraste avec la nuance la plus claire : ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Teinte : ${manque.teinte}°.`,
@@ -741,7 +741,7 @@ export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = {
   'page/foreground': 'texte coloré',
   'page/border': 'contour',
   'page/divider': 'filet',
-  'page/focus': 'anneau de focus',
+  'ring': 'anneau de focus',
   'page/foreground-main': 'corps de texte',
   'page/foreground-subtle': 'texte secondaire',
   'elevation/page': 'fond de la page',

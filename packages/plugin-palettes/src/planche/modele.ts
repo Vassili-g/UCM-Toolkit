@@ -360,7 +360,7 @@ type Dossier = (typeof DOSSIERS)[number];
 const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[]>> = {
   solid: ['solid/default', 'solid/hover', 'solid/pressed'],
   surface: ['surface/default', 'surface/hover', 'surface/pressed'],
-  page: ['page/foreground', 'page/border', 'page/focus', 'page/divider'],
+  page: ['page/foreground', 'page/border', 'ring', 'page/divider'],
 };
 
 /**
@@ -423,7 +423,7 @@ function specimen(contexte: Contexte, tranche: Tranche, variable: VariableDePale
       return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.lien, 'role', peindre(variable))], { ...boite, alignement: A_GAUCHE });
     case 'page/border':
       return cadre('spécimen', 'HORIZONTAL', [champ()], { ...boite, alignement: A_GAUCHE });
-    case 'page/focus':
+    case 'ring':
       return cadre('spécimen', 'HORIZONTAL', [champ()], {
         largeur: LARGEUR_PAGE.anneau, hauteur: SPECIMEN.hauteur + TRAME, rayon: 8, trait: { couleur: peindre(variable), epaisseur: 2, tirets: false }, alignement: CENTRE,
       });
@@ -484,7 +484,7 @@ function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalet
     const tenue = promesse.verdict === 'tenue';
     return texte(nom, `${TEXTES_DU_DETAIL.garantie(tenue, sens, promesse.contraste)} · ${niveau}`, tenue ? 'note' : 'chiffre', tenue ? encres.seconde : encres.danger, largeur);
   });
-  return cadre(variable.replace('/', ' '), 'VERTICAL', [
+  return cadre(variable === 'ring' ? 'page focus' : variable.replace('/', ' '), 'VERTICAL', [
     specimen(contexte, tranche, variable, encres),
     cadre('mesures', 'VERTICAL', [
       texte('variable', `${variable} · ${cran}`, 'chiffre', encres.encre, largeur),
@@ -510,7 +510,7 @@ function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, 
     : dossier === 'surface' && cranDuTexte !== null && estPresente(contexte, tranche, 'surface/foreground') ? [t.texteEtContourDeSurface(cranDuTexte)] : [];
   const neutre = dossier === 'page' && estLaPaletteNeutre(contexte.palette);
   const largeurDe = (variable: VariableDePalette): number =>
-    dossier !== 'page' ? USAGE.etat : variable === 'page/focus' ? LARGEUR_PAGE.anneau : LARGEUR_PAGE.cellule;
+    dossier !== 'page' ? USAGE.etat : variable === 'ring' ? LARGEUR_PAGE.anneau : LARGEUR_PAGE.cellule;
   const cellules = variables.map((variable) =>
     estPresente(contexte, tranche, variable)
       ? cellule(contexte, tranche, variable, encres, garanties, largeurDe(variable))

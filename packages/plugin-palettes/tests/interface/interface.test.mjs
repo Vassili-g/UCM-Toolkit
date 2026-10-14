@@ -3888,15 +3888,15 @@ test('[UI-04] I8 la vue États a les colonnes default, hover, pressed et focus, 
   }
 });
 
-test('[UI-04] I8 S3 dans la vue États, le focus garde la forme du repos et ajoute l’anneau page/focus, pour les quatre boutons', async () => {
+test('[UI-04] I8 S3 dans la vue États, le focus garde la forme du repos et ajoute l’anneau ring, pour les quatre boutons', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     await ouvrirLaVueDesEtats(page);
-    assert.equal(await variablesDuSpecimen(page, 0, 3), 'fond=solid/default;texte=solid/foreground;anneau=page/focus');
+    assert.equal(await variablesDuSpecimen(page, 0, 3), 'fond=solid/default;texte=solid/foreground;anneau=ring');
     assert.equal(await variablesDuSpecimen(page, 0, 0), 'fond=solid/default;texte=solid/foreground');
-    assert.equal(await variablesDuSpecimen(page, 1, 3), 'fond=surface/default;texte=surface/foreground;anneau=page/focus');
-    assert.equal(await variablesDuSpecimen(page, 2, 3), 'contour=page/border;texte=page/foreground;anneau=page/focus');
-    assert.equal(await variablesDuSpecimen(page, 3, 3), 'texte=surface/foreground;anneau=page/focus');
+    assert.equal(await variablesDuSpecimen(page, 1, 3), 'fond=surface/default;texte=surface/foreground;anneau=ring');
+    assert.equal(await variablesDuSpecimen(page, 2, 3), 'contour=page/border;texte=page/foreground;anneau=ring');
+    assert.equal(await variablesDuSpecimen(page, 3, 3), 'texte=surface/foreground;anneau=ring');
     // Le survol et l'appui du plein gardent leurs variables propres.
     assert.equal(await variablesDuSpecimen(page, 0, 1), 'fond=solid/hover;texte=solid/foreground');
     assert.equal(await variablesDuSpecimen(page, 0, 2), 'fond=solid/pressed;texte=solid/foreground');
@@ -4791,12 +4791,12 @@ test('Z5.3 [UI-15] le lien ouvre la modale : la phrase qui dit pourquoi, les té
   try {
     const modale = await ouvrirLAjustement(page);
     assert.equal(await modale.getAttribute('aria-modal'), 'true');
-    assert.equal(await modale.locator('.ajustement-pourquoi').textContent(), 'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (page/focus).');
+    assert.equal(await modale.locator('.ajustement-pourquoi').textContent(), 'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (ring).');
     assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#16A34A', '#16A34A']);
     assert.equal(await modale.getByRole('button', { name: 'Un pas plus sombre' }).evaluate((element) => element === document.activeElement), true, 'le premier pas a le focus');
     assert.match(await modale.locator('.ajustement-nuances').textContent(), /^Nuance \d+/);
     assert.deepEqual(await modale.locator('.ajustement-entete').evaluate((entete) => [...entete.children].map((cellule) => cellule.textContent)), ['Garantie', 'Thème', 'Avant', '', 'Après']);
-    assert.deepEqual(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-qui').allTextContents(), ['page/focus sur surface/default']);
+    assert.deepEqual(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-qui').allTextContents(), ['ring sur surface/default']);
     assert.equal(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-theme').first().textContent(), 'Light · Vivid');
     assert.equal(await modale.locator('.ajustement-groupe').isVisible(), false, 'à 770 px, le thème est une colonne');
     assert.equal(await modale.locator('.ajustement-bilan').textContent(), 'Soft ✓ inchangé · Vivid ✗ 1 inchangé');
@@ -6056,7 +6056,7 @@ test('[DER-09] [DER-19] au clavier, Fin et Origine posent une poignée sur ses b
     await poignee(page, 'sombre').focus();
     await page.keyboard.press('ArrowUp');
     assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
-    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,055\. Au-delà, page\/focus sur surface\/default \(Vivid, Dark\) tomberait à 2,95:1, sous 3:1\.$/);
+    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,055\. Au-delà, ring sur surface\/default \(Vivid, Dark\) tomberait à 2,95:1, sous 3:1\.$/);
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
     // Les nuances sombres en butée, la borne basse des nuances claires se lit sur l'état du geste.
@@ -6435,7 +6435,7 @@ test('[UI-04] I13 la nuance choisie garde son surlignage, un survol le remplace 
     await page.keyboard.press('Space');
     await pastilleDeLApercu(page, 'vivid', 600).blur();
     assert.equal(await pastilleDeLApercu(page, 'vivid', 600).getAttribute('aria-selected'), 'true');
-    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 600', 'vivid 600'], petites: ['600', '600'], codes: ['page/focus'] }, 'Espace');
+    assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 600', 'vivid 600'], petites: ['600', '600'], codes: ['ring'] }, 'Espace');
     // La case tiretée choisie surligne `solid/foreground`.
     await page.locator('.pastille-on-solid').click();
     await quitterLApercu(page);
@@ -6456,14 +6456,14 @@ test('[UI-04] I3 I13 changer le thème affiché ou le texte des boutons déplace
     await choisirLeTheme(page, 'Dark');
     assert.deepEqual(await surlignage(page), crans700(CODES_DU_700_NORMAL), 'Dark, texte noir : thème normal');
     assert.equal(await ordreDeSolid(), 'default · hover · pressed');
-    // Dark passe au texte blanc : le thème est inversé, la 700 porte solid/default et page/focus, la 800 page/foreground et page/border.
+    // Dark passe au texte blanc : le thème est inversé, la 700 porte solid/default et ring, la 800 page/foreground et page/border.
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
     await reglage(page, 'Couleurs de fond').getByRole('group', { name: GROUPE_DU_TEXTE.dark }).getByRole('button', { name: 'Blanc' }).click();
     await envoyer(page, rangee((await prochaine(page, avant)).demande));
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     await page.locator('#panneau-creation .nuancier-surface').waitFor();
-    assert.deepEqual(await surlignage(page), crans700(['page/focus', 'solid/default']), 'Dark, texte blanc : thème inversé');
+    assert.deepEqual(await surlignage(page), crans700(['ring', 'solid/default']), 'Dark, texte blanc : thème inversé');
     assert.equal(await ordreDeSolid(), 'pressed · hover · default');
     await pastilleDeLApercu(page, 'soft', 800).hover();
     assert.deepEqual(await surlignage(page), { ...AUCUN_SURLIGNAGE, pastilles: ['soft 800', 'vivid 800'], petites: ['800', '800'], codes: ['page/border', 'page/foreground'] }, 'la 800 du thème inversé');

@@ -50,7 +50,7 @@ test('[ENT-10] un cran 700 clair remonté à 0,56 ne tient plus ni 4,5 contre le
   }
 });
 
-test('[ENT-10] un cran 600 sombre descendu vers le fond ne tient plus 3 : c’est le cran de page/focus', () => {
+test('[ENT-10] un cran 600 sombre descendu vers le fond ne tient plus 3 : c’est le cran de ring', () => {
   const manques = garantieDesCourbes(avecClarte(NORMAL, 'dark', 600, 0.5));
   assert.deepEqual(manques.map(({ mode, cran, profil, contre }) => `${mode} ${cran} ${profil} ${contre}`), ['dark 600 soft cranLeger', 'dark 600 vivid cranLeger']);
   assert.equal(manques[0].seuil, 3);
@@ -60,7 +60,7 @@ test('[ENT-10] la table du sens du mode choisit les crans : le 800 est garanti e
   assert.deepEqual(decrire(avecClarte(NORMAL, 'light', 800, 0.6)), []);
   const inverse = recetteDeTexte({ light: 'noir', dark: 'noir' });
   assert.deepEqual(decrire(avecClarte(inverse, 'light', 800, 0.6)), ['light 800 soft cranLeger', 'light 800 vivid cranLeger']);
-  // Le 600 de page/focus en sens normal n'est plus garanti en sens inversé, où le focus est la 700.
+  // Le 600 de ring en sens normal n'est plus garanti en sens inversé, où le focus est la 700.
   assert.deepEqual(decrire(avecClarte(inverse, 'light', 600, 0.9)), []);
 });
 

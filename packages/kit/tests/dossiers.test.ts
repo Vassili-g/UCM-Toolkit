@@ -14,7 +14,7 @@ const ATTENDUS: [VariableDePalette, number | 'texteDesBoutons', number | 'texteD
   ['solid/foreground', 'texteDesBoutons', 'texteDesBoutons'],
   ['surface/default', 100, 100], ['surface/hover', 200, 200], ['surface/pressed', 300, 300],
   ['surface/foreground', 800, 900], ['surface/border', 800, 900],
-  ['page/foreground', 700, 800], ['page/border', 700, 800], ['page/divider', 300, 300], ['page/focus', 600, 700],
+  ['page/foreground', 700, 800], ['page/border', 700, 800], ['page/divider', 300, 300], ['ring', 600, 700],
 ];
 const CRANS = [100, 200, 300, 500, 600, 700, 800, 900];
 
@@ -86,7 +86,7 @@ test('repos, survol, appui, focus et désactivation ; la sélection ne reçoit p
   assert.deepEqual(ETATS, ['default', 'hover', 'pressed']);
   assert.deepEqual(ETAT_DU_FOND, {
     repos: { etat: 'default' }, survol: { etat: 'hover' }, appui: { etat: 'pressed' },
-    focus: { etat: 'default', anneau: 'page/focus' },
+    focus: { etat: 'default', anneau: 'ring' },
     desactive: { variables: ['disabled/background', 'disabled/foreground', 'disabled/border'] },
   });
 });
@@ -97,7 +97,7 @@ test('chaque variable porte le support et les portées Figma prescrits', () => {
     [['surface/default', 'surface/hover', 'surface/pressed', 'disabled/background', 'elevation/page', 'elevation/raised'], ['background'], ['FRAME_FILL', 'SHAPE_FILL']],
     [['solid/foreground', 'surface/foreground', 'page/foreground', 'page/foreground-main', 'page/foreground-subtle', 'disabled/foreground'], ['foreground', 'icon'], ['TEXT_FILL', 'SHAPE_FILL']],
     [['surface/border', 'page/border', 'page/divider', 'disabled/border'], ['border'], ['STROKE_COLOR']],
-    [['page/focus'], ['ring'], ['STROKE_COLOR']],
+    [['ring'], ['ring'], ['STROKE_COLOR']],
     [['scale/0', 'scale/1000'], [], []],
   ];
   assert.deepEqual(Object.keys(SUPPORT_DES_VARIABLES).sort(), groupes.flatMap(([variables]) => variables).sort());

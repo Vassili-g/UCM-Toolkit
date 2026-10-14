@@ -174,7 +174,7 @@ test('[VER-06] le fond de la page se nomme elevation/page, et chaque garantie se
   assert.equal(page, 'Texte coloré, sur le fond de la page (page/foreground sur elevation/page) · Bleu, thème Dark');
   assert.equal(constatEn(groupe(5, { fondDeLaPage: true }, [promesse('vivid', 4.1)]), 'Blue').ou, 'Colored text, on the page background (page/foreground on elevation/page) · Blue, Dark theme');
   assert.equal(constatDeGroupe(groupe(1, { variable: 'solid/pressed' }, [promesse('vivid', 4.1)]), 'Bleu').ou, 'Texte des boutons, sur le bouton appuyé (solid/foreground sur solid/pressed) · Bleu, thème Dark');
-  assert.equal(constatEn(groupe(7, { variable: 'surface/default' }, [promesse('vivid', 2.1)]), 'Blue').ou, 'Focus ring, on the tinted fill (page/focus on surface/default) · Blue, Dark theme');
+  assert.equal(constatEn(groupe(7, { variable: 'surface/default' }, [promesse('vivid', 2.1)]), 'Blue').ou, 'Focus ring, on the tinted fill (ring on surface/default) · Blue, Dark theme');
   // Aucun numéro de garantie dans un message du designer.
   for (const g of GARANTIES) {
     for (const fond of g.fonds) {

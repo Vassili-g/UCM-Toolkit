@@ -475,7 +475,7 @@ const ETATS = [
     id: 'ajuster-en-modale',
     titre: 'Ajuster la référence, en modale',
     quand: 'Vert manque une garantie en Thème Light ; le designer ouvre « Ajuster la référence ».',
-    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (page/focus). », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
+    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (ring). », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),

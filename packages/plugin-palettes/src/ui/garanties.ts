@@ -155,7 +155,7 @@ function construireVues(i18n: Localisation) {
       return specimenDuRole('solid', premier.couleur, second.couleur, texte);
     }
     if (variable === 'surface/foreground' || variable === 'page/foreground') return specimenDuRole('text', premier.couleur, second.couleur);
-    if (variable === 'page/focus') return specimenDuRole('focus', premier.couleur, second.couleur);
+    if (variable === 'ring') return specimenDuRole('focus', premier.couleur, second.couleur);
     return specimenDuRole('border', premier.couleur, second.couleur);
   }
 

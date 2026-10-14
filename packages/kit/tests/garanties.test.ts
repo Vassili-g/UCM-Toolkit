@@ -11,7 +11,7 @@ test('les sept garanties ont leurs membres, fonds et seuil', () => {
     { numero: 4, premier: { variable: 'surface/border' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, { fondDeLaPage: true }], seuil: 'nonTexte' },
     { numero: 5, premier: { variable: 'page/foreground' }, fonds: [{ fondDeLaPage: true }], seuil: 'texte' },
     { numero: 6, premier: { variable: 'page/border' }, fonds: [{ fondDeLaPage: true }], seuil: 'nonTexte' },
-    { numero: 7, premier: { variable: 'page/focus' }, fonds: [{ fondDeLaPage: true }, { variable: 'surface/default' }], seuil: 'nonTexte' },
+    { numero: 7, premier: { variable: 'ring' }, fonds: [{ fondDeLaPage: true }, { variable: 'surface/default' }], seuil: 'nonTexte' },
   ]);
 });
 

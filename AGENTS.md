@@ -206,7 +206,7 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
   src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente
   src/alertes.ts           les alertes de conception et la notice
-  src/garantie.ts          la garantie des courbes : `page/foreground` et `page/focus` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
+  src/garantie.ts          la garantie des courbes : `page/foreground` et `ring` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
   src/limites.ts           la limite dynamique d'un réglage et la cause de chaque borne, balayée un pas à la fois
   src/constats.ts          les sévérités et leur ordre d'affichage
   src/index.ts             la porte du paquet, qui republie `@ucm-kit/core/emplois`
@@ -1048,7 +1048,7 @@ La spécification en lien porte le raisonnement.
   aucune ne croise deux palettes, et `elevation/raised` n'est jamais mesuré.
   Une garantie dont un cran manque n'est pas jugeable. Les seuils viennent de
   la recette (`texte`, `nonTexte`). La garantie des courbes lit, dans la table
-  du sens de chaque mode, `page/foreground` au seuil `texte` et `page/focus`
+  du sens de chaque mode, `page/foreground` au seuil `texte` et `ring`
   au seuil `nonTexte` contre le cran le plus clair, gris, puis `solid/default`
   au seuil `texte` contre le texte des boutons du mode, pour toute teinte et
   les deux profils (`garantie.ts`). `GARANTIES` (`packages/kit`) et

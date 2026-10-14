@@ -37,14 +37,14 @@ test('les variables d’un cran viennent de la table des dossiers, dans le sens 
   const normal = variablesDeLAssociation(recette, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
   assert.deepEqual(normal, ['solid/default', 'page/foreground', 'page/border']);
   const inverse = variablesDeLAssociation({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
-  assert.deepEqual(inverse, ['solid/default', 'page/focus']);
+  assert.deepEqual(inverse, ['solid/default', 'ring']);
   const neutre = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
   assert.deepEqual(neutre, ['disabled/foreground', 'disabled/border']);
 });
 
 test('un nom de theme porte sa variable de dossier et son support', () => {
   assert.equal(variableDuNom('primary/solid/hover')?.variable, 'solid/hover');
-  assert.equal(variableDuNom('success/vivid/page/focus')?.support.peint[0], 'ring');
+  assert.equal(variableDuNom('success/vivid/ring')?.support.peint[0], 'ring');
   assert.equal(variableDuNom('neutral/page/foreground-main')?.variable, 'page/foreground-main');
   assert.deepEqual(variableDuNom('neutral/scale/0')?.support.portees, []);
   assert.equal(variableDuNom('primary/identity'), null);

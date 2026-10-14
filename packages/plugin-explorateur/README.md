@@ -95,7 +95,7 @@ Le plugin est complet sans elles, et aucune ne s'active seule :
   variable à sa référence publiée et à ses emplacements dans les contrats ;
 - lire la recette UCM Palettes, puis associer une variable à un cran, montre
   les variables de dossier de `theme` que ce cran porte (`solid/default`,
-  `surface/foreground`, `page/focus`), dans le sens normal ou inversé du
+  `surface/foreground`, `ring`), dans le sens normal ou inversé du
   thème associé ;
 - appliquer le profil d'architecture UCM, après avoir associé chaque
   collection à l'une des cinq couches (`primitives`, `color-brands`,

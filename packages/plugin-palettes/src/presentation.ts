@@ -279,13 +279,13 @@ function groupesDuDossier(dossier: Dossier, neutre: boolean): Membre[][] {
     case 'page':
       return [
         [['page/divider', 'filet']],
-        [['page/focus', 'anneauDeFocus']],
+        [['ring', 'anneauDeFocus']],
         [neutre ? ['page/foreground-subtle', 'texteSecondaire'] : ['page/foreground', 'texte'], ['page/border', 'contour']],
       ];
   }
 }
 
-/** Le nom d'un code : la fin du nom de sa variable, `default`, `foreground-subtle`. */
+/** Le nom d'un code : la fin du nom de sa variable, `default`, `foreground-subtle`, `ring`. */
 const codeDe = (variable: VariableDuTheme): string => variable.slice(variable.indexOf('/') + 1);
 
 interface Groupe {
@@ -429,7 +429,7 @@ export function surlignageDe(geste: Geste, crans: readonly number[], sens: SensD
     return { crans: typeof cran === 'number' ? [cran] : [], variables: [geste.variable], dossier: null };
   }
   const numeros = VARIABLES_DE_PALETTE
-    .filter((variable) => variable.startsWith(`${geste.dossier}/`))
+    .filter((variable) => variable.startsWith(`${geste.dossier}/`) || (geste.dossier === 'page' && variable === 'ring'))
     .map((variable) => cranDeLaVariable(variable, sens))
     .filter((cran): cran is number => typeof cran === 'number' && crans.includes(cran));
   return { crans: [...new Set(numeros)].sort((a, b) => a - b), variables: [], dossier: geste.dossier };

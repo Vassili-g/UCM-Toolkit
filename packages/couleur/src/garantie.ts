@@ -1,7 +1,7 @@
 /**
  * La garantie des courbes ([ENT-10]) : dans la table du sens de chaque mode,
  * le cran de `page/foreground` tient le seuil textuel et le cran de
- * `page/focus` le seuil non textuel contre le cran le plus léger de la même
+ * `ring` le seuil non textuel contre le cran le plus léger de la même
  * courbe, gris, pour toute teinte, les deux profils et les deux modes, sur
  * les couleurs à 8 bits. Elle ajoute un contrôle : le cran de `solid/default`
  * tient le seuil textuel contre le texte des boutons du mode. Une courbe
@@ -38,7 +38,7 @@ export interface ManqueDeGarantie {
 /** Les variables garanties, le seuil que chacune tient, et ce qu'elle est jugée contre. */
 const VARIABLES_GARANTIES: readonly { variable: VariableDePalette; seuil: 'texte' | 'nonTexte'; contre: ManqueDeGarantie['contre'] }[] = [
   { variable: 'page/foreground', seuil: 'texte', contre: 'cranLeger' },
-  { variable: 'page/focus', seuil: 'nonTexte', contre: 'cranLeger' },
+  { variable: 'ring', seuil: 'nonTexte', contre: 'cranLeger' },
   { variable: 'solid/default', seuil: 'texte', contre: 'texteDesBoutons' },
 ];
 

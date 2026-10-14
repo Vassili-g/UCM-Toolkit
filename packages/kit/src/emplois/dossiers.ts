@@ -14,7 +14,7 @@ export const ETATS = ['default', 'hover', 'pressed'] as const;
 export const VARIABLES_DE_PALETTE = [
   'solid/default', 'solid/hover', 'solid/pressed', 'solid/foreground',
   'surface/default', 'surface/hover', 'surface/pressed', 'surface/foreground', 'surface/border',
-  'page/foreground', 'page/border', 'page/divider', 'page/focus',
+  'page/foreground', 'page/border', 'page/divider', 'ring',
 ] as const;
 export const VARIABLES_DU_NEUTRE = ['page/foreground-main', 'page/foreground-subtle', 'scale/0', 'scale/1000'] as const;
 export const VARIABLES_GLOBALES = ['disabled/background', 'disabled/foreground', 'disabled/border'] as const;
@@ -29,12 +29,12 @@ export const TABLE_DES_DOSSIERS = {
   normal: {
     'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
     'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800,
-    'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'page/focus': 600,
+    'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
   },
   inverse: {
     'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
     'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 900, 'surface/border': 900,
-    'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'page/focus': 700,
+    'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
   },
 } as const satisfies Record<SensDuTheme, Record<VariableDePalette, number | 'texteDesBoutons'>>;
 
@@ -85,7 +85,7 @@ export const ETAT_DU_FOND = {
   repos: { etat: 'default' },
   survol: { etat: 'hover' },
   appui: { etat: 'pressed' },
-  focus: { etat: 'default', anneau: 'page/focus' },
+  focus: { etat: 'default', anneau: 'ring' },
   desactive: { variables: VARIABLES_GLOBALES },
 } as const;
 
@@ -104,7 +104,7 @@ const ECHELLE: SupportDeVariable = { peint: [], portees: [] };
 export const SUPPORT_DES_VARIABLES: Readonly<Record<VariableDuTheme, SupportDeVariable>> = {
   'solid/default': SOLID, 'solid/hover': SOLID, 'solid/pressed': SOLID, 'solid/foreground': TEXTE,
   'surface/default': FOND, 'surface/hover': FOND, 'surface/pressed': FOND, 'surface/foreground': TEXTE, 'surface/border': CONTOUR,
-  'page/foreground': TEXTE, 'page/border': CONTOUR, 'page/divider': CONTOUR, 'page/focus': ANNEAU,
+  'page/foreground': TEXTE, 'page/border': CONTOUR, 'page/divider': CONTOUR, 'ring': ANNEAU,
   'page/foreground-main': TEXTE, 'page/foreground-subtle': TEXTE, 'scale/0': ECHELLE, 'scale/1000': ECHELLE,
   'disabled/background': FOND, 'disabled/foreground': TEXTE, 'disabled/border': CONTOUR,
   'elevation/page': FOND, 'elevation/raised': FOND,
