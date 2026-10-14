@@ -1879,8 +1879,10 @@ ETATS.push(
 /**
  * Vingt palettes qui tiennent toutes leurs garanties et ne se ressemblent pas :
  * le bilan de Vérification n'y trouve rien à corriger. Les références sont
- * choisies avec le moteur ; une palette de plus près d'une autre qu'un seuil de
- * 0,05 en ΔEok ferait une paire trop proche.
+ * choisies avec le moteur. Deux palettes forment une paire trop proche quand
+ * la plus petite distance ΔEok entre leurs pleins, en Light et en Dark, et entre
+ * leurs textes sur fond teinté, en Light, passe sous le seuil des palettes
+ * proches (0,05).
  */
 const VINGT_PALETTES_CONFORMES = [
   ['Bleu', '#1E6FD9'], ['Jaune', '#FACC15'], ['Rouge', '#D94635'], ['Violet', '#7C3AED'], ['Cyan', '#0891B2'],
@@ -1889,21 +1891,27 @@ const VINGT_PALETTES_CONFORMES = [
   ['Moutarde', '#B2B234'], ['Sapin', '#34B25E'], ['Grenat', '#B23488'], ['Brume', '#94A3B8'], ['Mauve', '#897288'],
 ];
 /**
- * Les mêmes vingt palettes pour l'état « tout est conforme » : Rouge, Violet,
- * Indigo, Marine et Cuivre y prennent une référence que le moteur juge conforme, car
- * celles du bilan ci-dessous manquent une garantie ou confondent Soft et
- * Vivid. Les autres références sont les mêmes.
+ * Les mêmes vingt palettes pour l'état « tout est conforme » : neuf y prennent
+ * une référence que le moteur juge conforme, car celles du bilan ci-dessous
+ * manquent une garantie, confondent Soft et Vivid ou forment une paire trop
+ * proche. Indigo y passe sous le chroma 0,05 : elle ne se compare plus aux
+ * autres. Marine et Cuivre prennent une teinte pâle. Les autres références
+ * sont les mêmes.
  */
-const REFERENCES_TOUT_CONFORME = { Rouge: '#D84924', Violet: '#723FF2', Indigo: '#5954F3', Marine: '#004572', Cuivre: '#AA5A25' };
+const REFERENCES_TOUT_CONFORME = {
+  Rouge: '#D84924', Violet: '#5A00BB', Cyan: '#1E8FB7', Rose: '#DE2568', Indigo: '#525461',
+  Pourpre: '#B348F9', Marine: '#3D3E61', Cuivre: '#AF7579', Sapin: '#00894F',
+};
 const identifiantDuBilan = (rang) => `p-b11a0${rang.toString(16).padStart(3, '0')}`;
 const PARTS_PRESQUE_EGALES = { soft: 0.5, vivid: 0.55, origine: 'designer' };
 
 /**
  * Les mêmes vingt palettes, trois remplacées : Vert et Feuille, dont la
  * clarté est relevée de 0,04 (CLARTE_FAUTIVE), manquent en Light le texte de
- * la page (G5, 4,41:1 pour 4,5:1 en Vivid) ; Azur et Bleu forment une paire
+ * la page (G5, 4,40:1 pour 4,5:1 en Vivid) ; Azur et Bleu forment une paire
  * trop proche, et Indigo et Rose ont Soft et Vivid presque identiques
- * (à vérifier). Quatorze palettes restent conformes.
+ * (à vérifier). Avec la règle des rôles, ce jeu compte dix paires trop proches
+ * (dont Vert et Feuille, Bleu et Azur) ; six palettes restent conformes.
  */
 const REMPLACEES_PAR_LE_BILAN = { Sapin: ['Vert', '#16A34A'], Mauve: ['Feuille', '#15A34B'], Brume: ['Azur', '#2272DD'] };
 const CLARTE_FAUTIVE = { soft: 0.04, vivid: 0.04 };
@@ -1918,8 +1926,8 @@ ETATS.push(
   {
     id: 'verification-bilan-a-corriger',
     titre: 'Vérification sans palette ouverte, à corriger',
-    quand: 'Le fichier porte vingt palettes ; trois manquent une garantie (Violet en Dark, Vert et Feuille en Light), deux sont trop proches l’une de l’autre (Bleu et Azur), cinq ont Soft et Vivid presque identiques (Rouge, Rose, Indigo, Marine et Cuivre). Le designer ouvre l’onglet Vérification sans palette ouverte.',
-    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 3 », « À vérifier 7 » et « Conformes 10 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Violet, Vert et Feuille, un point ambre sur Bleu, Rouge, Rose, Indigo, Marine, Cuivre et Azur, les trois cartes à corriger en couleur et les dix-sept autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, son constat en texte secondaire (« Dark · anneau de focus, 2,99:1 » pour Violet, « Light · texte coloré, 4,41:1 » pour Vert et pour Feuille), et « Vérifier ».',
+    quand: 'Le fichier porte vingt palettes ; trois manquent une garantie (Violet en Dark, Vert et Feuille en Light), dix paires sont trop proches (Vert et Feuille, Bleu et Azur, Bleu et Marine, Marine et Azur, Jaune et Cuivre, Violet et Pourpre, Indigo et Azur, Cyan et Teal, Bleu et Indigo, Rouge et Cuivre), et Rose a Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
+    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 3 », « À vérifier 11 » et « Conformes 6 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Violet, Vert et Feuille, un point ambre sur Bleu, Jaune, Rouge, Cyan, Rose, Indigo, Teal, Pourpre, Marine, Cuivre et Azur, les trois cartes à corriger en couleur et les dix-sept autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, son constat en texte secondaire (« Dark · anneau de focus, 2,99:1 » pour Violet, « Light · texte coloré, 4,40:1 » pour Vert et pour Feuille), et « Vérifier ».',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification],
@@ -1928,7 +1936,7 @@ ETATS.push(
     id: 'verification-bilan-a-verifier',
     titre: 'Vérification sans palette ouverte, à vérifier',
     quand: 'Même fichier ; le designer passe à l’onglet « À vérifier ».',
-    regarder: 'L’onglet « À vérifier 7 » actif. Bleu, Rouge, Rose, Indigo, Marine, Cuivre et Azur en couleur, les treize autres atténuées mais toujours cliquables. Le détail compte sept lignes : « trop proche de Azur, ΔEok 0,01 » pour Bleu, « trop proche de Bleu, ΔEok 0,01 » pour Azur, et pour Rouge, Rose, Indigo, Marine et Cuivre la phrase « Soft et Vivid sont presque identiques sur ces nuances. ».',
+    regarder: 'L’onglet « À vérifier 11 » actif. Bleu, Jaune, Rouge, Cyan, Rose, Indigo, Teal, Pourpre, Marine, Cuivre et Azur en couleur, les neuf autres atténuées mais toujours cliquables. Le détail compte onze lignes, sans ΔEok : « trop proche d’Azur » pour Bleu et pour Indigo, « trop proche de Cuivre » pour Jaune et pour Rouge, « trop proche de Teal » pour Cyan, « trop proche de Cyan » pour Teal, « trop proche de Violet » pour Pourpre, « trop proche de Bleu » pour Marine et pour Azur, « trop proche de Jaune » pour Cuivre, et pour Rose la phrase « Soft et Vivid sont presque identiques sur ces nuances. ».',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
@@ -1936,7 +1944,7 @@ ETATS.push(
   {
     id: 'verification-bilan-tout-conforme',
     titre: 'Vérification sans palette ouverte, tout est conforme',
-    quand: 'Le fichier porte vingt palettes qui tiennent toutes leurs garanties et ne se ressemblent pas.',
+    quand: 'Le fichier porte vingt palettes qui tiennent toutes leurs garanties, sans paire trop proche ni Soft et Vivid presque identiques ; Indigo y est assez pâle pour ne se comparer à aucune autre.',
     regarder: 'Pas d’onglets. Une coche verte dans un rond et « Les 20 palettes tiennent leurs garanties, en Light et en Dark. », puis en texte secondaire « Aucune palette trop proche d’une autre. » ; les vingt cartes au même niveau, sans point ; pas de détail.',
     existe: true,
     sansPaletteChoisie: true,
