@@ -6,6 +6,7 @@ donne le statut de chaque décision et le rôle de chaque autre document.
 | Fichier | Contenu |
 |---|---|
 | [DECISIONS.md](./DECISIONS.md) | La référence pour l'implémentation : valeurs, statuts, code à porter |
+| [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Le plan d'implémentation, en tâches distribuées à des sous-agents ; ses propositions P1 à P5 attendent l'avis du mainteneur |
 | [SYNTHESE.html](./SYNTHESE.html) | Les décisions, les problèmes, les solutions et les liens, sur une page |
 | [SOLUTION-RAMPES.md](./SOLUTION-RAMPES.md) | La solution proposée pour les rampes : relevé de neuf systèmes, enveloppe par thème, table Dark, supports |
 | [ROBUSTESSE-DES-RAMPES.md](./ROBUSTESSE-DES-RAMPES.md) | La règle de chroma sur toutes les teintes, la dérive de teinte, le cran des fonds, le focus et `ring` |

@@ -5,12 +5,10 @@ mesurent, comparent ou racontent comment on est arrivé ici ; en cas d'écart
 avec eux, ce document l'emporte, et l'écart est un défaut à corriger dans
 l'autre document.
 
-Chaque décision porte son statut :
-
-- **Arrêtée** : le mainteneur l'a choisie, au banc visuel ou par écrit.
-- **Recommandée** : proposée, en attente de son avis dans la
-  [page de synthèse](./SYNTHESE.html) (colonne « Avis »). Ne pas
-  l'implémenter avant cet avis.
+Toutes les décisions sont **arrêtées** : le mainteneur les a choisies au
+banc visuel ou validées dans la [page de synthèse](./SYNTHESE.html). Le
+[plan d'implémentation](./PLAN-IMPLEMENTATION.md) les découpe en tâches et
+propose les points de la section 6.
 
 ## 1. Le rôle de chaque document
 
@@ -54,7 +52,7 @@ celle de `rampesDuBanc`, identique à `rampesDe` hors règle de chroma.
 la règle par profil et par thème dans la recette (format 11), `palette.ts`,
 `limites.ts`.
 
-### Q3. Les valeurs par défaut et les recettes existantes (recommandée)
+### Q3. Les valeurs par défaut et les recettes existantes (arrêtée)
 
 Les valeurs du tableau ci-dessus sont les valeurs par défaut de la recette,
 dans la Configuration. Une recette au format 10 garde la part constante
@@ -86,7 +84,7 @@ plus clair que le cran 50.
 
 ## 3. La table des rôles
 
-### Q5, Q6 et Q8. La table (Q5 et Q6 arrêtées ; Q8 recommandée)
+### Q5, Q6 et Q8. La table (arrêtées)
 
 Une table par thème et par sens. Le sens vaut `normal` quand le texte des
 boutons est blanc en Light ou noir en Dark, `inverse` sinon (`sensDuTheme`).
@@ -104,11 +102,9 @@ boutons est blanc en Light ou noir en Dark, `inverse` sinon (`sensDuTheme`).
 En gras, ce qui change par rapport à la table du kit d'aujourd'hui. Le Light
 ne change pas ; le focus garde ses crans.
 
-- **Q8, recommandée** : `page/focus` devient `ring`, une variable à la racine
-  de la palette, à côté des dossiers `solid`, `surface` et `page` (13
-  variables par palette, comme aujourd'hui). Les crans du focus, G7 et sa
-  forme ne dépendent pas de Q8 ; seul le nom attend l'avis du mainteneur :
-  avant cet avis, ne rien renommer.
+- **Q8** : `page/focus` devient `ring`, une variable à la racine de la
+  palette, à côté des dossiers `solid`, `surface` et `page` (13 variables par
+  palette, comme aujourd'hui).
 - **Crans requis** : 100, 200, 300, 400, 500, 600, 700, 800, 900 et 950,
   déduits de la table. Le cran 50 reste dans les listes par défaut : la page
   du thème vise le neutre 50.
@@ -118,14 +114,14 @@ ne change pas ; le focus garde ses crans.
 À porter : `packages/kit/src/emplois/dossiers.ts` et tous les lecteurs de la
 table, listés dans la [solution](./SOLUTION-RAMPES.md), section 4.
 
-### Q9. Les composants à surface (recommandée)
+### Q9. Les composants à surface (arrêtée)
 
 Les rôles actuels suffisent. Alerte et badge discret : `surface/default` et
 `surface/foreground` ; bouton teinté : les trois états de `surface` ; contour
 discret : `page/divider` ; contour franc : `surface/border`. Le badge discret
 suffit avec la table retenue.
 
-### Q4. Le texte courant des alertes (recommandée)
+### Q4. Le texte courant des alertes (arrêtée)
 
 Choix des composants, coloré ou neutre ; la palette n'en dépend pas.
 
@@ -164,13 +160,13 @@ halo pâle est écarté : son rôle s'afficherait « AA ✗ ».
 
 ## 5. Le sujet 3 : comparer, harmoniser, différencier
 
-C1 à C10 sont **recommandées** : voir le [dossier Comparer](./DOSSIER-COMPARER.md),
+C1 à C10 sont arrêtées : voir le [dossier Comparer](./DOSSIER-COMPARER.md),
 section 11, et la [spécification des écrans](./SPEC-ECRANS-HARMONISATION.md).
 
 C6, l'alerte des palettes trop proches, est adaptée au texte Dark 950 : elle
 compare le plein dans les deux thèmes et le texte du fond teinté en Light
 seulement, au seuil `palettesProches` de la recette, dans l'intensité Vivid
-ou unique. Adaptation à valider avec C6.
+ou unique. Adaptation validée avec C6.
 
 ## 6. Ce que le plan d'implémentation doit concevoir
 
@@ -188,9 +184,7 @@ valide :
 
 ## 7. Ce qui reste ouvert
 
-- L'avis du mainteneur sur les décisions recommandées (Q3, Q4, Q8, Q9, C1 à
-  C10, dont l'adaptation de C6).
-- La couleur de la carte pour G7 : déduite ou réglée.
+- La couleur de la carte pour G7 : le plan propose de la déduire (section 6).
 - L'ombre ou le contour de la carte en Dark.
 - En Dark inversé, l'appui du fond teinté (500) a la couleur de l'appui du
   bouton plein ; seul le texte les distingue.
