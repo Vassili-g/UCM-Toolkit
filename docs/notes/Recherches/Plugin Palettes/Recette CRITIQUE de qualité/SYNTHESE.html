@@ -66,12 +66,12 @@
   <section class="sujet" data-sujet="1">
     <h3><span class="numero">1</span>Palettes en interface</h3>
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
-    <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
-    <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
+    <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, ambres et jaunes beiges, groupe incohérent.</span></div>
+    <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette ; un préréglage de teinte qui se trompe jusqu'à 38° sur les oranges, ambres et jaunes.</span></div>
     <div class="ligne"><span>Solution</span><span>L'enveloppe par thème, retenue au banc pour sa cohérence, élargie autour du jaune (+100 % en Soft, +50 % en Vivid), fonds Dark de Vivid bornés à 0,30 ; la dérive de teinte corrigée. <a href="ROBUSTESSE-DES-RAMPES.md">Robustesse ›</a></span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts ; texte Soft en Dark C 0,04–0,13 → 0,07–0,14 ; verts Vivid clairs ramenés au niveau de Tailwind</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,2</span><br>écart de chroma entre vos quatre utilitaires (Soft, fonds 50 à 300) ; dérive de teinte, pire écart 38° → 12° ; verts Vivid clairs ramenés au niveau de Tailwind</span></div>
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
-    <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons notées avec une borne unique : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles. La borne Dark de la solution reste à noter.</span></div>
+    <div class="ligne"><span>Au banc</span><span>Deux tours à l’aveugle sur 24 palettes neuves : l’enveloppe gagne par sa cohérence (5 presque partout) devant la retenue par teinte (1 à 4) et le moteur actuel (1 et 2) ; la marge des jaunes et la borne des fonds Dark choisies au second tour.</span></div>
     <a href="Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html">Maquette qualité ›</a>
   </section>
   <section class="sujet" data-sujet="2">
@@ -79,8 +79,8 @@
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Fond teinté trop foncé en Light ; en Dark, fond invisible sur la carte et carte confondue avec la page ; focus foncé.</span></div>
     <div class="ligne"><span>Cause</span><span>En Dark, le fond 100 a la clarté de la carte (neutre 100), et la page n'en est qu'à un cran.</span></div>
-    <div class="ligne"><span>Solution</span><span>Modèle des niveaux : chaque niveau un cran plus loin que celui qui le porte. Fond 50 en Light ; page Dark abaissée, fond 200. Focus décalé de 2 px ; <code>ring</code> dans chaque dossier.</span></div>
-    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,15</span><br>fond contre carte Dark ; carte contre page 1,10 → 1,16 ; aucun échec de garantie nouveau</span></div>
+    <div class="ligne"><span>Solution</span><span>Modèle des niveaux : chaque niveau à distance fixe de celui qui le porte. Fond 100 en Light ; page Dark abaissée, fond 300, texte 950. Focus en anneau décalé au cran d’aujourd’hui, <code>ring</code> à la racine de la palette, G7 contre la page et la carte.</span></div>
+    <div class="ligne"><span>Effet</span><span><span class="chiffre">1,00 → 1,39</span><br>fond contre carte Dark ; carte contre page 1,10 → 1,16 ; aucun échec de garantie nouveau</span></div>
     <div class="ligne"><span>Marché</span><span>Neuf systèmes : composants sur blanc en Light, sur gris presque noir en Dark ; fonds teintés à 1,07–1,17 et 1,08–1,31. Les rôles d’UCM servent les composants de onze systèmes.</span></div>
     <a href="Maquettes/MAQUETTE-ROLES-ET-CRANS.html">Maquette rôles ›</a>
   </section>
@@ -105,7 +105,7 @@
     <tr><td>En Dark, la carte (<code>elevation/raised</code>) doit se détacher de la page, et le fond teinté de la carte ; un modèle générique et son mapping de tokens</td><td>Le modèle des niveaux : chaque niveau à distance fixe de celui qui le porte. Dark : page au neutre 50 abaissé, carte au neutre 100, fonds 300, 400 et 500, texte 950. Carte contre page 1,10 → 1,16 ; fond contre carte 1,00 → 1,39. Le chemin des tokens ne change pas ; les alias de <code>theme</code> suivent une table par thème, et la page a une seule couleur (neutre 50 et réglage « Fond »).</td><td>Q5</td><td><span class="etat">Répondu</span></td></tr>
     <tr><td>Rendu réel décevant : Soft 700 fade, Vivid criard ; choix, réglages ou moteur ?</td><td>Le moteur, en trois points. Soft terne : une part fixe de 0,45 donne aux textes Soft 0,3 à 0,55 fois la chroma de Tailwind. Vivid criard : la part fixe sature les verts clairs (×1,2 à 1,6 de Tailwind). Ambres et jaunes beiges : le préréglage de teinte se trompe jusqu'à 38°. Retenus au banc : l'enveloppe, élargie pour les jaunes clairs, et la dérive de teinte corrigée. Orange brun : le réglage de teinte de la recette.</td><td>Q1, Q2, Q10</td><td><span class="etat">Répondu</span></td></tr>
     <tr><td>Un écran pour comparer et harmoniser : combien de palettes, quelle référence, quelle règle, tons clairs et foncés, « plus rouge », un écart minimal</td><td>L'onglet Harmonisation : 2 à 4 palettes cochées, comparées sur des composants, réglées à la main avec les réglettes de Création. Aucune palette de référence : la courbe commune aligne les crans de même numéro. Les tons clairs et foncés se règlent dans Color shift ; les bouts de la teinte se nomment (« plus rouge ») ; une zone hachurée montre les teintes trop proches d'une autre palette.</td><td>C1 à C7</td><td><span class="etat">Répondu</span></td></tr>
-    <tr><td>Analyse des autres systèmes, du code, des données réelles, maquettes</td><td>Huit systèmes, plus le Simple Design System de Figma, pour les pages, cartes et statuts ; onze pour les composants à surface, dix pour le focus. Les lecteurs de la table sont listés dans le kit, le moteur, Palettes et l'explorateur. Mesures sur votre recette, la galerie de 18 palettes colorées et un balayage de 72 teintes. Trois maquettes.</td><td></td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>Analyse des autres systèmes, du code, des données réelles, maquettes</td><td>Huit systèmes, plus le Simple Design System de Figma, pour les pages, cartes et statuts ; onze pour les composants à surface ; dix pour le focus, plus six systèmes à halo pâle collectés à part (Bootstrap, Flowbite, Chakra, Mantine, Ant Design, Material UI). Tailwind et Radix pour la forme de la chroma, famille par famille. Les lecteurs de la table et de <code>page/focus</code> sont listés dans le kit, le moteur, Palettes et l'explorateur. Mesures sur votre recette, la galerie de 18 palettes colorées, 24 palettes neuves et un balayage de 72 teintes. Trois maquettes et deux tours de banc visuel.</td><td></td><td><span class="etat">Répondu</span></td></tr>
   </tbody>
 </table>
 
@@ -118,7 +118,7 @@
 
 <h2 id="ouvert">Ce qui reste ouvert</h2>
 <ul class="ouverts">
-  <li>En sens inversé, l'appui du fond teinté (500) prend la couleur de l'appui du bouton plein ; seul le texte les distingue.</li>
+  <li>En sens inversé, l'appui du fond teinté (500) prend la couleur de l'appui du bouton plein ; seul le texte les distingue.</li><li>La couleur de la carte, que le plugin doit connaître pour G7 : déduite (blanche en Light, neutre 100 en Dark), ou un réglage « Fond de la carte » à côté de « Fond de la page ».</li>
   <li>Le jugement à l'œil du modèle sur votre fichier, avec la règle retenue.</li>
   <li>L'ombre ou le contour de la carte en Dark, en plus de la page abaissée.</li>
   <li>Les seuils des constats de saturation et de luminosité, valeurs d'essai.</li>
