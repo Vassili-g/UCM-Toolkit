@@ -1,15 +1,5 @@
 # L'architecture de tokens multi-marques
 
-> **Décisions à reporter** dans ce document, prises par la recette critique de
-> qualité ([solution des rampes](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/SOLUTION-RAMPES.md), sections 3 et 4) :
-> la table distingue le thème (fonds teintés 100, 200, 300 en Light ; 300,
-> 400, 500 et texte 950 en Dark) ; le cran 50 Dark à L 0,145 et le fond de page
-> `#0A0A0A` ; `page/focus` devient `ring`, à la racine de la palette, au même
-> cran, dessiné en anneau décalé (2 px du fond, 2 px de trait) ; G7 juge le
-> focus contre la page et la carte ; la règle de chroma est l'enveloppe par
-> thème, élargie autour du jaune ; la dérive de teinte du préréglage Tailwind
-> est corrigée. Les sections ci-dessous décrivent encore l'état antérieur.
-
 Ce document propose la forme des tokens du nouveau design system : six marques,
 un thème clair et un thème sombre, deux intensités de couleur, `soft` et
 `vivid`, pour les statuts, et une seule intensité pour les palettes de marque
@@ -23,44 +13,28 @@ palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/1%20Reche
 la même architecture en schémas, à ouvrir dans un navigateur : le panneau des
 variables de Figma aujourd'hui et demain, et les décisions D1 à D20, chacune
 avec sa raison, l'option écartée et son origine. Ce document cite une décision
-par son numéro. La vue montre déjà les décisions de la recette critique
-reportées en tête de ce document.
+par son numéro. Les valeurs des rampes et les garanties suivent les
+[décisions de la recette critique](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md),
+sections 2 à 4. Les mesures correspondantes sont dans son dossier
+[Mesures](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures/).
 
-Chaque nombre cité se rejoue avec un script de ce dossier :
+## 1. Les crans et leurs courbes de clarté
 
-```sh
-node "docs/notes/Recherches/Archi Tokens Multi-marques/verifier-courbes.mjs"
-node "docs/notes/Recherches/Archi Tokens Multi-marques/mesurer-derive-teinte.mjs"
-node "docs/notes/Recherches/Archi Tokens Multi-marques/mesurer-rampes.mjs" <tokens.json>
-```
+Les rampes partagent une courbe de clarté par thème et par sens. La teinte et
+la chroma font varier le contraste d'un même cran : les garanties se mesurent
+sur ses couleurs calculées (section 4). La référence ancrée d'une palette
+garde sa couleur exacte et peut manquer un seuil.
 
-## 1. Le principe : un numéro de cran vaut un contraste
-
-Toutes les rampes de couleur partagent la même courbe de clarté. La clarté fixe
-le contraste ; la teinte et la vivacité le déplacent peu. Un même numéro de cran
-donne donc le même contraste contre le fond de page, quelle que soit la couleur :
-
-| Cran | Contraste contre le fond de page | Emploi sûr |
-|---|---|---|
-| 500 | 2,58 à 3,26 | aucun emploi qui demande un seuil |
-| 600 | 3,63 à 4,72 | anneau de focus (seuil 3:1) |
-| 700 | 5,23 à 6,79 | texte et contour (seuils 4,5:1 et 3:1) |
-| 800 | 7,45 à 9,50 | texte appuyé |
-
-Ces bornes valent sur les 360 teintes, les deux profils et les deux thèmes,
-calculées en flottant à teinte constante. Avec la dérive de Tailwind et
-l'arrondi à 8 bits, les minimums baissent d'au plus 0,02 : 3,62 pour le 600,
-7,44 pour le 800. Aucun ne franchit un seuil.
-
-Le thème sombre a sa propre courbe, avec les mêmes numéros. Le fond de la page
-n'est pas un cran : c'est le réglage « Fond de la page » de chaque thème,
-`elevation/page`, `#F7F7F7` en clair et `#121212` en sombre par défaut. Les
-garanties de la section 4 se mesurent contre lui seul.
+Le thème sombre a sa propre courbe, avec les mêmes numéros. Les valeurs
+ci-dessous sont celles du sens normal. Le réglage « Fond de la page » vaut
+`#F7F7F7` en clair et `#0A0A0A` en sombre par défaut. Le designer le règle sur
+la couleur exposée par `elevation/page`, le neutre 50 dans l'architecture.
+G7 mesure aussi le fond de la carte, déduit de ce réglage (section 6).
 
 | Cran | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Clair | 0,975 | 0,950 | 0,905 | 0,845 | 0,760 | 0,670 | 0,585 | 0,500 | 0,420 | 0,340 | 0,270 |
-| Sombre | 0,180 | 0,225 | 0,275 | 0,330 | 0,400 | 0,490 | 0,580 | 0,670 | 0,760 | 0,850 | 0,930 |
+| Sombre | 0,145 | 0,225 | 0,275 | 0,330 | 0,400 | 0,490 | 0,580 | 0,670 | 0,760 | 0,850 | 0,930 |
 
 Le mainteneur a retenu ces vingt-deux clartés. Toutes les rampes d'un fichier ont le même
 nombre de crans, choisi parmi deux préréglages ; le Playground en emploie
@@ -72,11 +46,10 @@ aujourd'hui dix, onze ou douze selon la rampe, et son cran 500 y va de 2,2:1 à
 | 11 | 50 à 950, la table ci-dessus | aucune |
 | 13 | 50 à 950, puis 1000 et 1050 | 0,215 et 0,165 en clair, 0,960 et 0,980 en sombre |
 
-**Les crans requis** sont 100, 200, 300, 600, 700, 800 et 900, plus 500 quand
-un thème est inversé (section 4). Une liste de crans qui omet l'un d'eux est
-refusée. Les crans 50, 400 et 950 sont facultatifs : le plugin les calcule par
-défaut, une recette peut s'en passer, et aucune variable de dossier ni
-garantie ne les vise.
+**Les crans requis** sont 100, 200, 300, 400, 500, 600, 700, 800, 900 et 950,
+dans les deux sens. Une liste commune de crans qui omet l'un d'eux est refusée.
+Le cran 50 reste dans les préréglages : il porte le fond de page du neutre,
+sans être requis par la table des rôles.
 
 Aucun préréglage n'insère de cran entre deux crans d'emploi : les états gardent
 leurs numéros (section 4), et un même numéro garde sa clarté d'un préréglage à
@@ -92,7 +65,7 @@ pas `theme`.
 | `primitives` | aucun | Le catalogue des palettes nommées, chacune en `light` et `dark` ; `colors/white` et `colors/black` ; les espacements, les durées et la typographie (D5, D10) |
 | `color-brands` | un par marque | Ce qui change d'une marque à l'autre : un alias par cran de ses palettes `primary` et `secondary`, vers le catalogue, et sa couleur de charte (D3, D9) |
 | `color-utilities` | aucun | Ce que les marques partagent : un alias par cran du neutre et des quatre statuts, vers le catalogue, et les deux niveaux d'élévation (D6, D15) |
-| `theme` | `light`, `dark` | Les variables en dossiers `solid`, `surface` et `page` de chaque palette, le neutre, `disabled/*`, `elevation/*` et `scale/*`, aliasées vers `color-brands` ou `color-utilities` selon la table de la section 4 (D2) |
+| `theme` | `light`, `dark` | Les dossiers `solid`, `surface` et `page` et la variable `ring` de chaque palette, le neutre, `disabled/*`, `elevation/*` et `scale/*`, aliasés vers `color-brands` ou `color-utilities` selon la table de la section 4 (D2) |
 | `components` | aucun | Les tokens de composants, qui visent `theme` |
 
 Deux collections portent chacune un axe, et Figma choisit le mode de chaque
@@ -123,7 +96,7 @@ d'une alerte de succès traverse quatre collections :
 ```text
 components.alert.success.background
   → theme.success.soft.surface.default            light → color-utilities.success.soft.light.100
-                                                  dark  → color-utilities.success.soft.dark.100
+                                                  dark  → color-utilities.success.soft.dark.300
   → color-utilities.success.soft.light.100        → primitives.colors.grass.soft.light.100
 ```
 
@@ -158,9 +131,10 @@ variable peint (section 5).
 | Échelle | `theme.warning.vivid.scale.600` | `color-utilities.warning.vivid.light.600` | 1 par cran et par palette, soit 121 |
 | Exceptions | `theme.exception.…` | `color-brands.exception.light.…` | 0 |
 
-En sombre, la cible remplace `light` par `dark`. Les 11 palettes comptent
-152 variables de dossier, plus 121 de `scale`, soit 273 variables à deux
-colonnes. Le nombre de crans de `scale` suit la liste de crans du fichier
+En sombre, la cible remplace `light` par `dark` et prend le cran de la table
+du thème (section 4). Les 11 palettes comptent 152 variables hors `scale`,
+dont `ring`, plus 121 de `scale`, soit 273 variables à deux colonnes.
+Le nombre de crans de `scale` suit la liste de crans du fichier
 (section 1). `theme` ne contient aucun choix du designer : quelle palette pour
 quelle marque se range dans `color-brands`, quelle palette pour quel statut dans
 `color-utilities`. Un script peut donc vérifier `theme` contre sa règle.
@@ -217,8 +191,8 @@ Le designer donne la couleur de marque en hexa. Chaque cran de la rampe prend :
 
 - sa clarté sur la courbe du thème ;
 - sa teinte selon la règle de la section 3.3 ;
-- sa chroma, c'est-à-dire sa vivacité, en part du maximum que l'écran affiche à
-  cette clarté et à cette teinte.
+- sa chroma, c'est-à-dire sa vivacité, en part du plafond sRGB, limitée par
+  l'enveloppe du profil et du thème (section 3.2).
 
 Une chroma fixe sortirait de ce que l'écran affiche aux deux bouts de la rampe,
 et elle rendrait un jaune et un bleu inégalement vifs, parce que leurs maximums
@@ -226,20 +200,25 @@ diffèrent.
 
 ### 3.2 Les profils `soft` et `vivid`
 
-Les deux profils ont la même clarté, donc les mêmes contrastes. Ils diffèrent
-par la part de chroma, 0,45 pour `soft` et 0,95 pour `vivid`, valeurs retenues
-par le mainteneur. Les statuts portent les deux profils ; une palette de marque
-n'en a qu'une, à la part de chroma de la couleur de charte, qui reste exacte à
-son cran ; le neutre n'en a qu'un. Aucun profil ne se lie à un thème : une
-couleur douce ou vive sert dans les deux.
+Les deux profils partagent leur courbe de clarté. Leur chroma prend une part
+du plafond sRGB, limitée par une enveloppe propre au profil et au thème.
+La part par défaut vaut 0,85 pour `soft`, 0,95 pour `vivid` et l'intensité
+unique. La formule et ses paramètres sont dans
+[la règle de chroma](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#q1-et-q2-la-règle-de-chroma-arrêtée).
+En Light, l'enveloppe s'élargit autour du jaune ; en Dark, ses bornes gardent
+les textes clairs colorés et limitent les fonds sombres.
+
+Les statuts portent les deux profils ; les palettes de marque et le neutre
+n'ont qu'une intensité. La couleur de charte reste exacte à son cran ancré.
+Une couleur douce ou vive sert dans les deux thèmes.
 
 Un profil règle l'insistance d'un élément. `soft` sert à un élément répété ou
 secondaire, comme un badge présent vingt fois à l'écran. `vivid` sert à un
 élément qui doit être remarqué, comme une alerte.
 
 **Chaque profil peut avoir sa propre teinte.** Un bleu `vivid` peut tirer vers
-le violet quand le bleu `soft` reste neutre. Les contrastes de la section 1 sont
-mesurés sur les 360 teintes, donc ce choix ne les change pas.
+le violet quand le bleu `soft` reste neutre. Les garanties se recalculent sur
+les couleurs de chaque profil.
 
 **Les fonds du thème Dark perdent de la chroma.** Aux crans 50 à 300 du thème
 Dark, la part de chaque intensité est multipliée par un facteur qui vaut 0,30
@@ -276,31 +255,21 @@ sombre selon la teinte de départ :
 Il n'y a pas de loi lisse. Entre le jaune et le lime, la dérive saute de -48° à
 +11° : les bouts sombres fuient la zone jaune-olive des deux côtés, et aucun ne
 finit entre 55° et 130°. Dans cette zone, l'écran n'affiche une couleur vive
-qu'à très haute clarté, et une couleur sombre y devient kaki. Prédire la dérive
-d'une rampe par interpolation entre ses deux voisines se trompe de 10,4° en
-moyenne, contre 15,8° pour une teinte constante.
+qu'à très haute clarté, et une couleur sombre y devient kaki.
 
 Les rampes `danger` et `success` du Playground reprennent au degré près les
 rampes `red` et `green` de Tailwind.
 
-La règle retenue : **deux teintes par rampe**, une au bout clair et une au bout
-sombre. Entre les deux, la teinte suit la clarté du cran. Mesurée sur neuf
-rampes réelles :
-
-| Règle | Erreur moyenne | Pire erreur |
-|---|---|---|
-| Une seule teinte | 8,1° | 32,2° |
-| Deux teintes, aux deux bouts | 2,9° | 16,0° |
-| Trois teintes, aux bouts et au cran 500 | 2,0° | 10,4° |
-
-La pire erreur tombe sur les jaunes et les oranges, qui tournent surtout entre
-les crans 400 et 600. La troisième teinte sert à ces rampes.
+Chaque profil règle la teinte de ses deux bouts, clair et sombre. La référence
+fournit la teinte au pivot. Entre ces points, la teinte suit la clarté du cran.
 
 La teinte dépend de la clarté, pas du numéro de cran. En sombre, le cran 50 est
 sombre, donc il prend la teinte du bout sombre.
 
-Le générateur propose la teinte du bout sombre d'après le tableau de Tailwind,
-et le designer l'ajuste.
+Le préréglage Tailwind choisit les deux rampes voisines par leur teinte à la
+clarté de la référence. Il interpole leurs dérives aux deux bouts, clair et
+sombre. Le relevé contient la clarté et la teinte de chaque cran. Le pire
+écart mesuré à Tailwind est de 12° ; le designer peut régler chaque bout.
 
 ### 3.4 La couleur exacte de la marque
 
@@ -332,11 +301,19 @@ Deux outils qui lisent ce fichier produisent les mêmes hexas, et une palette
 régénérée plus tard reste identique. Il contient :
 
 - la liste des crans et les deux courbes de clarté ;
-- les parts de chroma des deux profils, et le facteur des fonds du thème Dark ;
+- les parts de chroma, les paramètres de l'enveloppe par profil et par thème,
+  et le facteur des fonds du thème Dark ;
+- le relevé des clartés et teintes de chaque cran des rampes de Tailwind ;
 - pour chaque rampe, la couleur de départ, une intensité ou deux, et ses
   teintes aux bouts, par profil ;
 - le gamut de sortie, sRGB ;
 - la liste des crans retouchés à la main, que la régénération n'écrase pas.
+
+La recette est au format 11. La lecture des formats 8 à 10 applique les parts
+et les enveloppes par défaut, ajoute les crans requis manquants et renouvelle
+le relevé Tailwind. Elle conserve les courbes et les fonds rangés : une
+recette existante n'adopte donc pas automatiquement le cran 50 Dark à L 0,145
+ni le fond `#0A0A0A`. Ses couleurs peuvent changer avec la règle de chroma.
 
 Les couleurs sortent en sRGB. Display P3 est écarté : il changerait toutes les
 valeurs, et un écran sRGB ne montre pas la différence au designer qui les
@@ -349,12 +326,14 @@ marques. Aucune marque ne relie une variable à un autre cran. Un cran câblé p
 marque obligerait à câbler aussi chacun de ses états dans chaque marque et
 chaque thème.
 
-La table range les variables de chaque palette en trois dossiers :
+La table range douze variables de chaque palette en trois dossiers :
 
 - `solid` : le fond plein d'un bouton ou d'un badge, et son texte ;
 - `surface` : le fond teinté discret, avec son texte et son contour ;
-- `page` : ce qui se pose directement sur la page, soit le texte coloré, le
-  contour, le filet et l'anneau de focus.
+- `page` : le texte coloré, le contour et le filet posés sur la page ou la carte.
+
+La treizième variable, `ring`, porte l'anneau de focus à la racine de la
+palette, à côté de ces dossiers : `theme.success.soft.ring`, par exemple.
 
 Elle vaut pour toutes les palettes, de marque et de statut, et pour les deux
 intensités. Un fond a trois états : `default`, `hover` et `pressed`.
@@ -371,21 +350,21 @@ fond de la page.
 | Dark | noir | normal |
 | Dark | blanc | inversé |
 
-| Variable | Normal | Inversé |
-|---|---|---|
-| `solid/default` | 700 | 700 |
-| `solid/hover` | 800 | 600 |
-| `solid/pressed` | 900 | 500 |
-| `solid/foreground` | le texte des boutons | le texte des boutons |
-| `surface/default` | 100 | 100 |
-| `surface/hover` | 200 | 200 |
-| `surface/pressed` | 300 | 300 |
-| `surface/foreground` | 800 | 900 |
-| `surface/border` | 800 | 900 |
-| `page/foreground` | 700 | 800 |
-| `page/border` | 700 | 800 |
-| `page/divider` | 300 | 300 |
-| `page/focus` | 600 | 700 |
+| Variable | Light normal | Light inversé | Dark normal | Dark inversé |
+|---|---|---|---|---|
+| `solid/default` | 700 | 700 | 700 | 700 |
+| `solid/hover` | 800 | 600 | 800 | 600 |
+| `solid/pressed` | 900 | 500 | 900 | 500 |
+| `solid/foreground` | blanc | noir | noir | blanc |
+| `surface/default` | 100 | 100 | 300 | 300 |
+| `surface/hover` | 200 | 200 | 400 | 400 |
+| `surface/pressed` | 300 | 300 | 500 | 500 |
+| `surface/foreground` | 800 | 900 | 950 | 950 |
+| `surface/border` | 800 | 900 | 950 | 950 |
+| `page/foreground` | 700 | 800 | 700 | 800 |
+| `page/border` | 700 | 800 | 700 | 800 |
+| `page/divider` | 300 | 300 | 300 | 300 |
+| `ring` | 600 | 700 | 600 | 700 |
 
 Le neutre ajoute des variables et ne change aucune des précédentes :
 `page/foreground-main`, noir pur en clair et blanc pur en sombre dans les deux
@@ -396,10 +375,9 @@ en sombre. Les contrôles désactivés prennent `disabled/background` (200),
 n'exige aucun contraste d'un composant inactif. `elevation/page` et
 `elevation/raised` n'appartiennent à aucune palette (section 6).
 
-**Les crans requis** sont 100, 200, 300, 600, 700, 800 et 900, plus 500 quand
-un thème est inversé. Les crans 50, 400 et 950 sont facultatifs : le plugin les
-calcule par défaut, une recette peut s'en passer, aucune variable ni garantie
-ne les vise. Une variable dont le cran manque n'existe pas pour cette palette.
+Le neutre suit aussi les cibles de `surface`, 100 à 300 en Light et 300 à
+500 en Dark. La liste des crans requis (section 1) couvre les quatre colonnes.
+Une variable dont le cran manque n'existe pas pour cette palette.
 Le kit tient la table dans `packages/kit/src/emplois/dossiers.ts`.
 
 **La courbe inversée.** Un texte blanc sur le cran 700 de la courbe sombre
@@ -419,12 +397,13 @@ courbe qui n'y resterait pas strictement monotone est refusée.
 
 **Les états.** Le repos vise `default`, le survol `hover`, l'appui `pressed`,
 sur `solid` comme sur `surface`. Le focus garde le fond du repos et ajoute
-`page/focus`. Un état sélectionné prend un autre dossier, au choix du
+`ring`. Un état sélectionné prend un autre dossier, au choix du
 designer : la table ne lui donne pas de cible. Un composant désactivé prend
 `disabled/*`. `ucm check` ne compare plus l'état d'un composant à un rang.
 
-**Les garanties.** Sept garanties se jugent par palette, dans la table du sens
-du thème, contre le seul fond de la page. Aucune ne croise deux palettes.
+**Les garanties.** Sept garanties se jugent par palette, dans la table du thème
+et de son sens. Elles comparent les couleurs de cette palette à ses fonds,
+à la page ou, pour G7, à la carte. Aucune ne croise deux palettes.
 Leurs seuils viennent de la recette : 4,5:1 pour un texte, 3:1 pour le reste.
 
 | N° | Premier membre | Contre | Seuil |
@@ -435,26 +414,27 @@ Leurs seuils viennent de la recette : 4,5:1 pour un texte, 3:1 pour le reste.
 | G4 | `surface/border` | les mêmes fonds | non textuel |
 | G5 | `page/foreground` | le fond de la page | texte |
 | G6 | `page/border` | le fond de la page | non textuel |
-| G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | non textuel |
+| G7 | `ring` | le fond de la page, le fond de la carte | non textuel |
 
-Le fond de la page est le réglage « Fond » de chaque thème, `elevation/page`.
-`elevation/raised` n'a pas de réglage dans le plugin et n'entre dans aucune
-mesure. Sur les quatorze références de
-[mesurer-dossiers.ts](./Collection%20usage/mesurer-dossiers.ts), à une et deux
-intensités et dans les quatre thèmes, G2 à G6 n'échouent jamais. G1 n'échoue
-que sur la nuance où la référence est ancrée : la couleur de marque garde ses
-octets, et son texte des boutons peut manquer 4,5:1. G7 n'échoue que pour
-`#16A34A`, dont l'anneau est la référence ancrée.
+Le fond de la page est le réglage « Fond de la page » de chaque thème,
+`elevation/page`. La carte, `elevation/raised`, s'en déduit (section 6).
+G7 juge les deux fonds séparément : la page est le cas le plus défavorable
+en Light, la carte en Dark avec les fonds par défaut. Le balayage de 72
+teintes de la recette critique ne relève que des échecs de G1, sur des
+références ancrées qui ne portent pas le texte blanc au seuil demandé. Les
+conditions et le résultat sont dans
+[GARANTIES-RETENUES.json](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures/GARANTIES-RETENUES.json).
 
 Les courbes ont leur propre garantie, valable pour toute teinte et les deux
 profils. Dans la table du sens de chaque mode, `page/foreground` tient le seuil
-du texte et `page/focus` le seuil non textuel contre le cran le plus clair de
+du texte et `ring` le seuil non textuel contre le cran le plus clair de
 la liste, gris ; `solid/default` tient le seuil du texte contre le texte des
 boutons du mode. `packages/couleur/src/garantie.ts` la calcule.
 
-**L'anneau de focus laisse un espace** entre lui et le contrôle. Posé au contact
-d'un bouton plein, aucun cran de la rampe ne s'en détache à 3:1 : l'anneau 600
-au contact du 700 donne 1,40:1. En CSS, un `outline-offset` non nul.
+**L'anneau de focus laisse 2 px de fond** entre lui et le contrôle, puis
+dessine un trait de 2 px en `ring`. En CSS : `outline: 2px solid` et
+`outline-offset: 2px`. G7 juge l'anneau contre ce fond, page ou carte ; elle
+ne garantit pas son contraste au contact d'un bouton plein.
 
 **La palette `primary` d'une marque porte ses actions**, pas forcément la
 première couleur de sa charte. Une marque qui mène avec sa deuxième couleur la
@@ -480,7 +460,7 @@ UCM Exporter :
 | `surface/default`, `hover`, `pressed`, `disabled/background`, `elevation/*` | fond | remplissage de cadre et de forme |
 | `*/foreground`, `page/foreground-main`, `page/foreground-subtle`, `disabled/foreground` | texte, icône | remplissage de texte et de forme |
 | `*/border`, `page/divider`, `disabled/border` | contour | contour |
-| `page/focus` | anneau | contour |
+| `ring` | anneau | contour |
 | `scale/*` | rien | aucune |
 
 Les fonds de `solid` portent la portée du contour pour le bouton sans fond
@@ -516,25 +496,47 @@ modale, est retiré de l'architecture.
 
 | Niveau | Usage | Light | Dark |
 |---|---|---|---|
-| `page` | fond d'écran, réglage « Fond de la page » | `#F7F7F7` par défaut | `#121212` par défaut |
-| `raised` | carte, panneau | blanc, et une ombre | neutre 100, et une ombre |
+| `page` | fond d'écran, réglage « Fond de la page » | neutre 50, `#F7F7F7` par défaut | neutre 50 à L 0,145, `#0A0A0A` par défaut |
+| `raised` | carte, panneau | blanc | neutre 100, environ `#1C1C1C` par défaut |
 
 Les numéros de cran s'inversent entre les thèmes : un niveau plus haut prend
 un cran plus grand en sombre, et plus petit en clair, où il n'y a rien sous le
 fond de la page. Les deux valeurs de chaque niveau se choisissent donc
-séparément, dans `color-utilities`, et `theme` reste une règle fixe. UCM
-Palettes ne mesure que `page` ; `raised` n'a pas de réglage dans le plugin et
-n'entre dans aucune mesure.
+séparément, dans `color-utilities`, et `theme` reste une règle fixe :
+
+```text
+theme.elevation.page
+  light → color-utilities.elevation.light.page   → primitives.colors.titanium.light.50
+  dark  → color-utilities.elevation.dark.page    → primitives.colors.titanium.dark.50
+theme.elevation.raised
+  light → color-utilities.elevation.light.raised → primitives.colors.white
+  dark  → color-utilities.elevation.dark.raised  → primitives.colors.titanium.dark.100
+```
+
+Dans UCM Palettes, le fond de page Dark reste réglable. La carte n'a pas de
+réglage : elle est blanche en Light. En Dark, le plugin repère sur la courbe
+le cran dont la clarté est la plus proche du fond, puis prend la clarté du
+cran suivant. Il conserve la teinte et la chroma du fond. Si le cran le plus
+proche est le dernier, sa clarté est conservée.
+La chroma se réduit si nécessaire pour rester dans le gamut sRGB.
+Avec le fond par défaut, la carte correspond au neutre 100. Si le fond est à
+la clarté du cran 100, la carte prend celle du cran 200. Un fond teinté donne
+une carte de même teinte.
+
+Le designer doit accorder le réglage du fond et la carte déduite aux couleurs
+exposées par les tokens. Sinon G7 mesurerait des supports différents de ceux
+du composant. Le modèle de tokens ci-dessus correspond à la page au neutre
+50 et à la carte au neutre 100 en Dark ; la déduction du plugin ne modifie
+aucun alias de `color-utilities`.
 
 Un voile translucide change selon ce qu'il recouvre, et la table ne garantit
 que des contrastes entre couleurs opaques. En clair, un voile blanc ne se voit
 pas sur le fond de page : le blanc mesure 1,07:1 contre le cran 50 de la
 courbe, proche du fond par défaut.
 
-`raised` reste au cran 100 en sombre. Sur le neutre 100, sur 360 teintes et les
-deux intensités, le texte 700 mesure au moins 4,88:1 et la bordure 600 au moins
-3,41:1. Sur le neutre 200, ils tombent à 4,23:1 et 2,96:1, sous les seuils. La
-section 10 de `verifier-courbes.mjs` produit ces nombres.
+Les fonds teintés se posent sur la carte. Au repos, ils visent 100 en Light
+et 300 en Dark ; leurs trois états et leur texte suivent la section 4.
+Une ombre ou un contour de la carte Dark reste à décider.
 
 Un élément posé sur un support de même niveau prend `page/divider`, pas un
 niveau de plus.
@@ -593,7 +595,7 @@ et `components` ne changent pas.
 | `primitives` : 12 palettes de marque × 22, 4 statuts × 44, neutre 22, blanc et noir | 464 | 1 | 464 |
 | `color-brands` : 44 alias et la couleur de charte | 45 | 6 | 270 |
 | `color-utilities` : neutre 22, statuts 176, élévation 4 | 202 | 1 | 202 |
-| `theme` : 152 variables de dossier, 121 de `scale` | 273 | 2 | 546 |
+| `theme` : 152 variables hors `scale`, 121 de `scale` | 273 | 2 | 546 |
 | Total | 984 | | 1 482 |
 
 Le compte des valeurs pèse sur la taille de la feuille CSS que
@@ -634,9 +636,10 @@ variables avant de la publier.
   `active-hover` couvrait ce cas. Le mainteneur a de tels composants. Pistes :
   1. deux variables de plus dans `solid`, `solid/selected` et
      `solid/selected-hover` : 900 et 950 dans le thème normal, 500 et 400 dans
-     le thème inversé. Les crans 950 et 400 redeviennent requis, et le texte
-     des boutons doit tenir sur ces deux fonds. En Light inversé, la 400 et la
-     500 ne sont qu'à 0,014 ΔEok : le survol activé s'y voit à peine. Les
+     le thème inversé. Les crans 950 et 400 sont déjà requis par les surfaces
+     Dark ; le texte des boutons doit aussi tenir sur ces deux fonds.
+     L'écart visuel entre les états reste à mesurer avec la règle de chroma
+     retenue, notamment entre 400 et 500 en Light inversé. Les
      tokens d'Atlassian ont une famille `selected` avec ses propres `hovered`
      et `pressed` (à vérifier). Piste recommandée ;
   2. trois états, et l'état activé marqué autrement que par la couleur

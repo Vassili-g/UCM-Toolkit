@@ -17,7 +17,10 @@ export interface DefinitionOnglet<Id extends string> {
 export interface OngletsUi<Id extends string> {
   liste: HTMLDivElement;
   selectionner(id: Id): void;
-  actif(): Id;
+  /** Si l'actif devient indisponible, le premier disponible s'active. */
+  definirDisponible(id: Id, disponible: boolean): void;
+  /** Sans onglet disponible, aucun panneau n'est affiché. */
+  actif(): Id | undefined;
 }
 
 export function createOnglets<Id extends string>(
@@ -37,6 +40,7 @@ export function createOnglets<Id extends string>(
     onglet.id = `onglet-${id}`;
     onglet.textContent = libelle;
     onglet.setAttribute('role', 'tab');
+    onglet.setAttribute('aria-disabled', 'false');
     onglet.setAttribute('aria-controls', `panneau-${id}`);
     onglet.addEventListener('click', () => selectionner(id));
 
@@ -49,9 +53,9 @@ export function createOnglets<Id extends string>(
     return { id, onglet, panneau };
   });
 
-  let courant = definitions[0].id;
+  let courant: Id | undefined;
 
-  function selectionner(id: Id) {
+  function afficher(id: Id | undefined) {
     courant = id;
     for (const { id: candidat, onglet, panneau } of onglets) {
       const choisi = candidat === id;
@@ -59,24 +63,48 @@ export function createOnglets<Id extends string>(
       onglet.tabIndex = choisi ? 0 : -1;
       panneau.hidden = !choisi;
     }
+  }
+
+  function selectionner(id: Id) {
+    const cible = onglets.find((candidat) => candidat.id === id);
+    if (!cible || cible.onglet.disabled) return;
+    afficher(id);
     onSelection(id);
   }
 
+  function definirDisponible(id: Id, disponible: boolean) {
+    const cible = onglets.find((candidat) => candidat.id === id);
+    if (!cible || cible.onglet.disabled === !disponible) return;
+    const avaitLeFocus = document.activeElement === cible.onglet;
+    cible.onglet.disabled = !disponible;
+    cible.onglet.setAttribute('aria-disabled', String(!disponible));
+    if (courant !== id && courant !== undefined) return;
+    const premier = onglets.find(({ onglet }) => !onglet.disabled);
+    if (premier) {
+      selectionner(premier.id);
+      if (avaitLeFocus) premier.onglet.focus();
+    } else {
+      afficher(undefined);
+    }
+  }
+
   liste.addEventListener('keydown', (evenement) => {
-    const rang = onglets.findIndex(({ id }) => id === courant);
+    const disponibles = onglets.filter(({ onglet }) => !onglet.disabled);
+    if (disponibles.length === 0) return;
+    const rang = disponibles.findIndex(({ id }) => id === courant);
     const cibles: Record<string, number> = {
-      ArrowRight: (rang + 1) % onglets.length,
-      ArrowLeft: (rang - 1 + onglets.length) % onglets.length,
+      ArrowRight: (rang + 1) % disponibles.length,
+      ArrowLeft: (rang - 1 + disponibles.length) % disponibles.length,
       Home: 0,
-      End: onglets.length - 1,
+      End: disponibles.length - 1,
     };
     const cible = cibles[evenement.key];
     if (cible === undefined) return;
     evenement.preventDefault();
-    selectionner(onglets[cible].id);
-    onglets[cible].onglet.focus();
+    selectionner(disponibles[cible].id);
+    disponibles[cible].onglet.focus();
   });
 
-  selectionner(courant);
-  return { liste, selectionner, actif: () => courant };
+  if (definitions[0]) selectionner(definitions[0].id);
+  return { liste, selectionner, definirDisponible, actif: () => courant };
 }

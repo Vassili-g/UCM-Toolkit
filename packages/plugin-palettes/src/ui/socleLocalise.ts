@@ -1,6 +1,6 @@
 /** Les libellés du socle sont liés au contexte de Palettes sans changer Exporter. */
 import { createButton as bouton, type OptionsBouton } from 'ucm-plugin-socle/src/ui/Button';
-import { createOnglets as onglets, type DefinitionOnglet } from 'ucm-plugin-socle/src/ui/Onglets';
+import { createOnglets as onglets, type DefinitionOnglet, type OngletsUi } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createInterrupteur as interrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
 import { createSettingsButton as reglages, createBackButton as retour } from 'ucm-plugin-socle/src/ui/EnTete';
 import { lireTexte, type Localisation, type Texte } from './localisation';
@@ -14,7 +14,7 @@ export function creerSocleLocalise(i18n: Localisation) {
       setLabel(options.label);
       return Object.assign(element, { setLabel });
     },
-    createOnglets<Id extends string>(etiquette: Texte, definitions: (Omit<DefinitionOnglet<Id>, 'libelle'> & { libelle: Texte })[], selection?: (id: Id) => void) {
+    createOnglets<Id extends string>(etiquette: Texte, definitions: (Omit<DefinitionOnglet<Id>, 'libelle'> & { libelle: Texte })[], selection?: (id: Id) => void): OngletsUi<Id> {
       const resultat = onglets(lireTexte(etiquette), definitions.map((definition) => ({ ...definition, libelle: lireTexte(definition.libelle) })), selection);
       i18n.lier(resultat.liste, 'aria-label', etiquette);
       resultat.liste.querySelectorAll('[role="tab"]').forEach((element, index) => i18n.lier(element, 'textContent', definitions[index].libelle));

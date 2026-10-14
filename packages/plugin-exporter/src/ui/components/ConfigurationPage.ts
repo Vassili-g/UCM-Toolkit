@@ -82,7 +82,7 @@ export function createConfigurationPage(): PageConfigurationUi {
     recevoirTest: depots.recevoirTest,
     signalerDepotsIllisibles: depots.signalerIllisible,
     ouvrirOnglet: onglets.selectionner,
-    ongletActif: onglets.actif,
+    ongletActif: () => onglets.actif() ?? 'general',
     montrerLActifEnEchec: depots.montrerLActifEnEchec,
     releaseSaveButton: depots.liberer,
   };

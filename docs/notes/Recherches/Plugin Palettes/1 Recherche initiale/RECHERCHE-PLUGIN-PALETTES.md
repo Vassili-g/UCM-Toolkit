@@ -2322,6 +2322,18 @@ Onglet Vérification :
   « Revenir au thème » ramène au thème d'avant ; ces deux liens ne se
   trouvent que dans la carte.
 
+Onglet Harmonisation :
+
+- `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
+  indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
+  `selectionner` refusent de l'activer ; les flèches, Début et Fin le
+  sautent. Si l'onglet actif devient indisponible, le premier disponible
+  s'active. Le focus le suit seulement si l'onglet désactivé le détenait.
+  Sans onglet disponible, tous les panneaux sont masqués et `actif()` rend
+  `undefined`. Une réactivation sélectionne le premier disponible seulement
+  en l'absence d'onglet actif. Le rappel de sélection reçoit uniquement un
+  identifiant disponible. `socleLocalise.ts` expose la même API.
+
 Onglet Gestion, Bleu dépliée :
 
 ```text

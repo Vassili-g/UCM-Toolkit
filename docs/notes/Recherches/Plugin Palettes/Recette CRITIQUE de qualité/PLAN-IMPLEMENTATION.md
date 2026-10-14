@@ -60,6 +60,20 @@ Règles d'économie, à tenir par l'orchestrateur :
    s'arrête et rend la question ; l'orchestrateur tranche d'après
    DECISIONS.md, ou demande au mainteneur si DECISIONS.md ne répond pas.
 
+## Point de reprise (14 octobre 2026, au soir)
+
+- Poussé : vagues 0 et 1 (kit 0.6.0, cli 0.1.56, adapter 0.1.49 publiés).
+- Commité sur `main`, **pas encore poussé** : M0 à M6, la reprise des états
+  de bilan (e915511), P1, et le travail de Codex sur S1, D3 et H5a
+  ([REPRISE-CODEX-S1-D3-H5A.md](./REPRISE-CODEX-S1-D3-H5A.md)).
+- **Prochaine étape** : la vérification de fin de vague 2, qui couvre aussi
+  S1 (`npm test`, `npm run typecheck`, `npm run build`, les trois `test:ui`).
+  Si elle est verte, cocher S1, D3 et H5a, puis pousser.
+- Ensuite, la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8.
+- Question au mainteneur : une référence plus sombre que le bout sombre
+  (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
+  `packages/couleur/tests/desaturees.test.ts`.
+
 ## 3. Ordre des vagues
 
 | Vague | Contenu | Dépend de |
