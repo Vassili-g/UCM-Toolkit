@@ -307,14 +307,22 @@ un indicateur pâle sur un champ de texte, où le curseur signale déjà le focu
 
 | Choix | Boutons | Champs | Ce qu'UCM promet |
 |---|---|---|---|
-| Halo pâle partout | Non conforme au niveau AA | Conforme, par le curseur | `ring` reste conforme ; le halo prend `surface/hover`, un rôle de survol, et sort des garanties par choix du composant |
-| Halo sur les champs, anneau sur les boutons | Conforme | Conforme | Tout est garanti |
-| Anneau décalé partout | Conforme | Conforme | Tout est garanti |
+| Halo pâle partout | Non conforme au niveau AA | Conforme, par le curseur | Incompatible avec le plugin (ci-dessous) |
+| Halo sur les champs, anneau sur les boutons | Conforme | Conforme | Un rôle de plus pour le halo des champs, validé sur un autre critère que le contraste |
+| Anneau décalé partout | Conforme | Conforme | Un seul rôle, `ring`, validé comme aujourd'hui |
 
-Dans les trois cas, le moteur ne nomme aucune couleur de focus non conforme :
-`ring` vaut 600 en Light et 800 en Dark. Le halo pâle reste un choix de forme
-des composants, comme chez Bootstrap ou shadcn/ui ; un contrôle comme
-`ucm check` peut le signaler à titre d'information.
+Le plugin donne à chaque cran ses rôles, et à chaque rôle son contraste et son
+badge WCAG (« AAA », « AA » ou « AA ✗ »). Un rôle de focus posé sur un cran
+pâle s'afficherait « AA ✗ », et à raison. Emprunter `surface/hover` pour le
+halo ne fait que cacher l'échec : le plugin valide ce cran comme un fond, pas
+comme un focus. Le halo pâle sur les boutons sort donc du principe du plugin :
+chaque usage d'un cran a un rôle, et chaque rôle est validé.
+
+Le halo des champs y reste possible, à une condition : un rôle propre (par
+exemple `ring-subtle`), dont la validation ne mesure pas le contraste mais
+rappelle que le curseur porte le focus du champ (Understanding de 1.4.11,
+figure 33). Le plugin l'afficherait comme un rôle décoratif, sans badge rouge.
+C'est un cas de validation nouveau, à concevoir.
 
 ## 11. Limites
 

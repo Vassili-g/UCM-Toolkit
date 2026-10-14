@@ -411,7 +411,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
 | Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants. Décidé : G7 juge le focus contre la page et la carte, comme le W3C, et non contre le fond teinté |
-| Q7 | La forme du focus | À choisir : halo pâle partout (non conforme sur les boutons), halo sur les champs et anneau décalé sur les boutons (recommandé, conforme), ou anneau décalé partout. Les variantes à liseré ont été écartées au banc ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
+| Q7 | La forme du focus | À choisir : anneau décalé partout, ou halo sur les champs (un rôle validé sans contraste, le curseur portant le focus) et anneau sur les boutons. Le halo pâle sur les boutons sort du principe du plugin : son rôle s'afficherait « AA ✗ ». Les variantes à liseré ont été écartées au banc ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
 | Q10 | La dérive de teinte | Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 4) |
