@@ -6755,6 +6755,21 @@ test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À c
   } finally { await page.close(); }
 });
 
+test('V3a [VER-18] à 480 px, le bord droit du nuancier et de chaque « Vérifier » reste dans la fenêtre', async () => {
+  const page = await ouvrirLeBilan('verification-bilan-a-verifier', { viewport: { width: 480, height: 720 } });
+  try {
+    const bords = await page.evaluate(() => ({
+      fenetre: window.innerWidth,
+      nuancier: document.querySelector('#panneau-verification .nuancier-des-palettes').getBoundingClientRect().right,
+      verifier: [...document.querySelectorAll('#panneau-verification .bilan-verifier')].map((bouton) => bouton.getBoundingClientRect().right),
+    }));
+    assert.ok(bords.verifier.length > 0, 'le détail montre des lignes à vérifier');
+    assert.ok(bords.nuancier <= bords.fenetre, `nuancier : ${bords.nuancier} > ${bords.fenetre}`);
+    for (const droit of bords.verifier) assert.ok(droit <= bords.fenetre, `« Vérifier » : ${droit} > ${bords.fenetre}`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  } finally { await page.close(); }
+});
+
 test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le détail ; « Conformes » n’a pas de détail', async () => {
   const page = await ouvrirLeBilan('verification-bilan-a-corriger');
   try {

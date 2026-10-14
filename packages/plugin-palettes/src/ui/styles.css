@@ -4547,13 +4547,13 @@ html {
   --point-rouge: rgb(229 72 77);
   --point-ambre: rgb(243 181 63);
   display: grid;
-  grid-template-columns: repeat(7, 60px);
-  /* Sept cartes et six écarts de 8 px font 468 px : ils tiennent dans les 469 px de 500 px de large. */
+  grid-template-columns: repeat(7, minmax(0, 60px));
+  /* Sept colonnes de 60 px au plus : à 480 px de large elles se resserrent au lieu de déborder. */
   gap: 8px;
 }
 
 .nuancier-carte {
-  width: 60px;
+  width: 100%;
   height: 80px;
   padding: 0;
   border: 0;
@@ -4630,6 +4630,7 @@ html {
   --point-rouge: rgb(229 72 77);
   --point-ambre: rgb(243 181 63);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: var(--espace-bloc);
 }

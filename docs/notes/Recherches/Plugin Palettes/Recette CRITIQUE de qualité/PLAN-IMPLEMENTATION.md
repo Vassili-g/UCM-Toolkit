@@ -741,10 +741,13 @@ Les tâches sont successives.
 
 ### Vague 3 · Palettes hors Harmonisation
 
+Ordre suivi : P1, P2, P6 et P7 pendant que Codex fait S1 ; P3, P4 et P5,
+qui touchent le socle et `socleLocalise.ts`, après l'intégration de S1.
+
 Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
 `tests/interface/interface.test.mjs`.
 
-- [ ] **P1 · Le bilan de Vérification à 480 px** · `implementeur`, moyen.
+- [x] **P1 · Le bilan de Vérification à 480 px** · `implementeur`, moyen.
   - SPEC, section 6, dernier point ; DOSSIER-COMPARER.md, section 12,
     « Le bilan à 480 px ».
   - `PAL/src/ui/styles.css` : `.bilan-des-palettes` reçoit
@@ -919,6 +922,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 (H5 en prend deux) ; H6 prend `[VER-23]` ; S1 prend `[UI-45]`.
 
 - [ ] **S1 · Les onglets indisponibles du socle** · `implementeur`, moyen.
+  - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#s1).
   - `SOC/src/ui/Onglets.ts` : chaque onglet peut être déclaré indisponible
     (`definirDisponible(id, disponible)`) ; un onglet indisponible porte
     `aria-disabled="true"` et `disabled`, se saute au clavier (flèches,
@@ -1019,52 +1023,13 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; glisser la teinte hors de la zone éteint le constat
     et le compteur (test d'interface).
 
-- [x] **H5a · Les matrices de vision des couleurs** · `chercheur`.
+- [ ] **H5a · Les matrices de vision des couleurs** · `chercheur`.
+  - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#h5a).
   - Question : les matrices de simulation de la deutéranopie, de la
     protanopie et de la tritanopie de Machado, Oliveira et Fernandes (2009),
     sévérité 1,0, en RGB linéaire : valeurs exactes et source primaire (la
     page des auteurs ou l'article). Rendre les trois matrices 3 × 3 et l'URL.
   - Fini quand : trois matrices sourcées.
-  - **Livré par Codex.** Les 27 coefficients ci-dessous sont ceux de la
-    ligne `1.0` de la table 1 du [tutoriel des auteurs](https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html#Tutorial),
-    relue directement dans son HTML. Les six décimales sont la précision
-    publiée ; aucune interpolation n'est nécessaire.
-
-    ```ts
-    const deuteranopie = [
-      [ 0.367322,  0.860646, -0.227968],
-      [ 0.280085,  0.672501,  0.047413],
-      [-0.011820,  0.042940,  0.968881],
-    ] as const;
-
-    const protanopie = [
-      [ 0.152286,  1.052583, -0.204868],
-      [ 0.114503,  0.786281,  0.099216],
-      [-0.003882, -0.048116,  1.051998],
-    ] as const;
-
-    const tritanomalieSevere = [
-      [ 1.255528, -0.076749, -0.178779],
-      [-0.078411,  0.930809,  0.147602],
-      [ 0.004733,  0.691367,  0.303900],
-    ] as const;
-    ```
-
-  - **Borne de la source pour H5.** La troisième colonne du tutoriel se
-    nomme `Tritanomaly`. Dans l'[article corrigé, sections 4.2.1 et 4.3](https://profs.ic.uff.br/~laffernandes/content/publications/journal/2009_tvcg_15%286%29/machado_oliveira_fernandes-tvcg-15%286%29-2009-corrected.pdf),
-    les auteurs excluent la tritanopie de leur modèle et présentent la
-    tritanomalie comme une approximation. La troisième matrice répond au
-    choix Machado à sévérité 1 du plan ; ne pas la présenter dans le code
-    comme un modèle validé de tritanopie. Opus doit reprendre cette limite
-    lors du choix du libellé de vision de H5.
-  - **Raccordement de H5.** Multiplier chaque ligne par le vecteur colonne
-    `[R, G, B]` linéaire, dans cet ordre : `sortie[i] = somme(M[i][j] * entree[j])`.
-    Depuis une couleur `Rgb8`, employer `rgb8VersLineaire`, multiplier, puis
-    appeler `lineaireVersRgb8` pour borner à `[0, 1]`, encoder en sRGB et
-    arrondir à l'octet. Ces fonctions sont déjà exportées par `ucm-couleur`.
-    Conserver les coefficients négatifs jusqu'au bornage du résultat.
-    La simulation repeint les points ; elle ne modifie ni la recette ni les
-    garanties (SPEC, section 7.8). H5 reste à implémenter.
 
 - [ ] **H5 · Carte « Roue des teintes », clavier** · `implementeur-exigeant`, haut.
   - SPEC, sections 7.8 et 7.9 ; identifiant `[UI-43]` (roue) et `[UI-44]`
@@ -1136,6 +1101,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     entièrement trouvée, chacun dans SPEC-PAL et dans un nom de test.
 
 - [ ] **D3 · L'architecture de référence** · `implementeur`, moyen.
+  - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#d3).
   - Fichier :
     `docs/notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md`.
     Son bandeau « Décisions à reporter » liste ce qui change ; la référence
