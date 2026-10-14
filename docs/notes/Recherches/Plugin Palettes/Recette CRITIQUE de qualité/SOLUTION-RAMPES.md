@@ -99,11 +99,11 @@ Trois causes, mesurées :
 
 ### S1. Une enveloppe par thème
 
-**Retenue au premier tour du banc, avec deux réglages à finir.** Le
-mainteneur a préféré l'enveloppe, pour sa cohérence, à la retenue par teinte
-et au moteur actuel ; la marge des jaunes clairs et la borne des fonds Dark en
-Vivid se jugent au second tour ([robustesse](./ROBUSTESSE-DES-RAMPES.md),
-sections 8 et 9). Auparavant rouverte : l'enveloppe corrige les verts clairs, mais sa borne ne dépend
+**Retenue au banc visuel.** Le mainteneur a préféré l'enveloppe, pour sa
+cohérence, à la retenue par teinte et au moteur actuel, avec deux réglages : la
+borne vers le blanc s'élargit autour du jaune (+100 % en Soft, +50 % en Vivid),
+et les fonds Dark de Vivid sont bornés à `b = 0,30`
+([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10). Auparavant rouverte : l'enveloppe corrige les verts clairs, mais sa borne ne dépend
 que de la clarté : elle ternit aussi les jaunes et les ambres clairs, que
 Tailwind et Radix gardent près du plafond. Le dossier
 [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) la compare, sur toutes les

@@ -61,11 +61,15 @@ export const enveloppesParTheme = (parTheme: Record<Mode, Record<'soft' | 'vivid
  * `1 + jaunes`. En Dark, ces clartés sont des textes : la marge ne s'applique
  * pas, et `b` règle les fonds sombres.
  */
-export const enveloppeAvecJaunes = (parTheme: Record<Mode, Record<'soft' | 'vivid' | 'unique', { p0: number; a: number; b: number }>>, jaunes: number): RegleDeChroma =>
+export const enveloppeAvecJaunes = (
+  parTheme: Record<Mode, Record<'soft' | 'vivid' | 'unique', { p0: number; a: number; b: number }>>,
+  jaunes: number | Record<'soft' | 'vivid' | 'unique', number>,
+): RegleDeChroma =>
   ({ L, H, part, intensite, mode }) => {
     const { p0, a, b } = parTheme[mode][intensite];
     const ecart = Math.min(Math.abs(H - 100) % 360, 360 - (Math.abs(H - 100) % 360));
-    const marge = mode === 'light' ? 1 + jaunes * Math.exp(-0.5 * (ecart / 12) ** 2) : 1;
+    const k = typeof jaunes === 'number' ? jaunes : jaunes[intensite];
+    const marge = mode === 'light' ? 1 + k * Math.exp(-0.5 * (ecart / 12) ** 2) : 1;
     return Math.min(part * plafond(L, H, 'srgb'), p0 * Math.min(a * marge * (1 - L), b * L));
   };
 

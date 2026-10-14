@@ -11,7 +11,7 @@ import { rampesDe } from '../../../../../../packages/couleur/src/palette';
 import { validerRecette, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import type { Cran, Intensite, Mode } from '../../../../../../packages/couleur/src/rampe';
 import {
-  deuxZones, enveloppesParTheme, rampesDuBanc, recetteAuxReglagesCommuns, releveTailwind, type RampeRelevee, type RegleDeChroma,
+  deuxZones, enveloppeAvecJaunes, enveloppesParTheme, rampesDuBanc, recetteAuxReglagesCommuns, releveTailwind, type RampeRelevee, type RegleDeChroma,
 } from './prototype';
 
 export const lire = (chemin: string) => JSON.parse(readFileSync(new URL(chemin, import.meta.url), 'utf8'));
@@ -28,6 +28,14 @@ export const RECETTE_ENVELOPPE = valider({ ...RECETTE_COMMUNE, profils: { soft: 
 const BORNES_LIGHT = { soft: { p0: 0.85, a: 0.6, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.48 }, unique: { p0: 0.95, a: 1.1, b: 0.48 } };
 // En Dark, les crans clairs sont des textes : la borne vers le blanc de Soft s'ouvre comme celle de Vivid.
 export const REGLE_ENVELOPPE = enveloppesParTheme({ light: BORNES_LIGHT, dark: { ...BORNES_LIGHT, soft: { p0: 0.85, a: 1.1, b: 0.38 } } });
+/**
+ * La règle retenue au banc visuel : l'enveloppe par thème, une marge pour les jaunes clairs
+ * (+100 % en Soft, +50 % en Vivid) et une borne de 0,30 pour les fonds Dark de Vivid.
+ */
+export const REGLE_FINALE = enveloppeAvecJaunes(
+  { light: BORNES_LIGHT, dark: { soft: { p0: 0.85, a: 1.1, b: 0.38 }, vivid: { p0: 0.95, a: 1.1, b: 0.3 }, unique: { p0: 0.95, a: 1.1, b: 0.3 } } },
+  { soft: 1, vivid: 0.5, unique: 0.5 },
+);
 export const UTILITAIRES = ['Poppy', 'Orange', 'Grass', 'Sky'] as const;
 
 const NEUTRES = new Set(['slate', 'gray', 'zinc', 'neutral', 'stone']);
@@ -73,8 +81,8 @@ export const VARIANTES: Variante[] = [
   {
     id: 'enveloppe',
     nom: 'Enveloppe',
-    resume: 'La part donne la chroma ; une borne qui ne dépend que de la clarté la plafonne. Parts communes Soft 0,85 et Vivid 0,95 ; bornes a 0,6 et 1,1 en Light, 1,1 pour les deux en Dark.',
-    rampes: (palette) => rampesDuBanc(RECETTE_ENVELOPPE, RECETTE_ENVELOPPE.palettes.find((p) => p.id === palette.id)!, REGLE_ENVELOPPE),
+    resume: 'La part donne la chroma ; une borne qui ne dépend que de la clarté la plafonne, élargie pour les jaunes clairs (+100 % en Soft, +50 % en Vivid). Parts communes Soft 0,85 et Vivid 0,95 ; bornes a 0,6 et 1,1 en Light, 1,1 en Dark ; fonds Dark de Vivid bornés à 0,30.',
+    rampes: (palette) => rampesDuBanc(RECETTE_ENVELOPPE, RECETTE_ENVELOPPE.palettes.find((p) => p.id === palette.id)!, REGLE_FINALE),
   },
   {
     id: 'tailwind',

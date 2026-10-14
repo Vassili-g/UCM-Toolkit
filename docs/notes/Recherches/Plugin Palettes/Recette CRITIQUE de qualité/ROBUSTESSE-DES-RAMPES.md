@@ -1,6 +1,6 @@
 # Robustesse des rampes : toutes les teintes, tous les cas
 
-**Statut : premier tour du banc noté, second tour à noter.** Ce dossier rouvre la règle
+**Statut : règle retenue au banc visuel ; reste le choix du focus.** Ce dossier rouvre la règle
 de chroma S1 de la [solution](./SOLUTION-RAMPES.md) : l'enveloppe corrigeait les
 verts clairs, mais elle ternissait les jaunes et les ambres clairs, absents du
 fichier du mainteneur et du test à l'aveugle. Il teste chaque règle sur toutes
@@ -274,7 +274,43 @@ décidé et ne fait juger que trois choses ([generer-banc-tour-2.ts](./Mesures/g
   champs et les boutons à contour, passer la bordure au cran du focus suffit
   aussi. Le moteur ne propose donc aucune couleur non conforme pour le focus.
 
-## 10. Limites
+## 10. Le second tour et la règle retenue
+
+Choix du mainteneur : la marge des jaunes clairs à +100 % en Soft et +50 % en
+Vivid, la borne des fonds Dark de Vivid à 0,30. La règle de chroma retenue est
+donc l'enveloppe par thème, élargie autour du jaune
+([variantes.ts](./Mesures/variantes.ts), `REGLE_FINALE`) :
+
+| Profil | Part | Light : a, b | Dark : a, b | Marge des jaunes clairs |
+|---|---|---|---|---|
+| Soft | 0,85 | 0,6 · 0,38 | 1,1 · 0,38 | +100 % |
+| Vivid, intensité unique | 0,95 | 1,1 · 0,48 | 1,1 · 0,30 | +50 % |
+
+Avec la table retenue (fonds Light 100, Dark 300, texte Dark 950), elle tient
+les garanties comme les autres règles : 144 échecs, ceux du moteur actuel, plus
+20 si le focus touche le fond 100. Ces 20 viennent de la garantie G7, qui juge
+le focus contre `surface/default` ; le W3C ne juge un indicateur extérieur que
+contre le fond qui l'entoure. Mesurer G7 contre la page et la carte les retire.
+
+Focus Light, second tour : halo pâle collé 5 ; halo et liseré de 1 ou 2 px,
+halo et bordure au cran du focus 1 ; anneau décalé 2. Le mainteneur : « je
+préfère le halo pâle collé, mais ça ne passe pas les normes d'accessibilité ».
+Aucune variante conforme ne garde l'aspect du halo sur un bouton. Le W3C admet
+un indicateur pâle sur un champ de texte, où le curseur signale déjà le focus
+(Understanding de 1.4.11, figure 33), pas sur un bouton. Trois choix restent :
+
+| Choix | Boutons | Champs | Ce qu'UCM promet |
+|---|---|---|---|
+| Halo pâle partout | Non conforme au niveau AA | Conforme, par le curseur | `ring` reste conforme ; le halo prend `surface/hover`, un rôle de survol, et sort des garanties par choix du composant |
+| Halo sur les champs, anneau sur les boutons | Conforme | Conforme | Tout est garanti |
+| Anneau décalé partout | Conforme | Conforme | Tout est garanti |
+
+Dans les trois cas, le moteur ne nomme aucune couleur de focus non conforme :
+`ring` vaut 600 en Light et 800 en Dark. Le halo pâle reste un choix de forme
+des composants, comme chez Bootstrap ou shadcn/ui ; un contrôle comme
+`ucm check` peut le signaler à titre d'information.
+
+## 11. Limites
 
 - Les références du marché sont Tailwind 3.4.17 et Radix Colors 3.0.0 ;
   Tailwind 4 définit ses rampes en OKLCH, en partie hors sRGB.

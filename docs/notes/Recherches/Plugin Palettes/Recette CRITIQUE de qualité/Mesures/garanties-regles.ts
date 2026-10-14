@@ -16,7 +16,7 @@ import { contraste } from '../../../../../../packages/kit/src/emplois/contraste'
 import { GARANTIES } from '../../../../../../packages/kit/src/emplois/garanties';
 import { TABLE_DES_DOSSIERS, sensDuTheme, type TexteDesBoutons } from '../../../../../../packages/kit/src/emplois/dossiers';
 import { REGLE_RETENUE, rampesDuBanc, type RegleDeChroma } from './prototype';
-import { REGLE_ENVELOPPE, valider } from './variantes';
+import { REGLE_ENVELOPPE, REGLE_FINALE, valider } from './variantes';
 
 type Table = Record<string, number | 'texteDesBoutons'>;
 type Fonds = { defaut: number; survol: number; appui: number; texte: number };
@@ -42,6 +42,7 @@ export const TABLES_DU_MODELE = {
 export const REGLES: Record<string, { regle: RegleDeChroma | null; parts?: { soft: number; vivid: number } }> = {
   'part constante (actuel)': { regle: null },
   'enveloppe par thème (S1)': { regle: REGLE_ENVELOPPE, parts: { soft: 0.85, vivid: 0.95 } },
+  'enveloppe retenue au banc (jaunes, fonds Dark 0,30)': { regle: REGLE_FINALE, parts: { soft: 0.85, vivid: 0.95 } },
   'retenue par teinte (Soft en deux zones)': { regle: REGLE_RETENUE, parts: { soft: 0.85, vivid: 0.95 } },
 };
 

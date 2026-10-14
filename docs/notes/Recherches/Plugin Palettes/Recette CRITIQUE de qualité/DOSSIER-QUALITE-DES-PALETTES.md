@@ -405,13 +405,13 @@ leurs valeurs par défaut, sans garantie perdue.
 
 | # | Décision | Recommandation |
 |---|---|---|
-| Q1 | La règle de chroma | L'enveloppe par thème (S1), retenue au banc visuel pour sa cohérence ; marge des jaunes clairs et borne des fonds Dark de Vivid au second tour ([robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 8 et 9) |
+| Q1 | La règle de chroma | L'enveloppe par thème (S1), retenue au banc visuel pour sa cohérence, élargie autour du jaune (+100 % en Soft, +50 % en Vivid), fonds Dark de Vivid bornés à 0,30 ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
 | Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants |
-| Q7 | La forme du focus | Le halo au cran du survol (200 en Light), préféré du mainteneur, entouré d'un liseré au cran du focus pour être conforme ; ou l'anneau décalé. Le halo seul ne l'est pas au niveau AA ([robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 6 et 9) |
+| Q7 | La forme du focus | À choisir : halo pâle partout (non conforme sur les boutons), halo sur les champs et anneau décalé sur les boutons (recommandé, conforme), ou anneau décalé partout. Les variantes à liseré ont été écartées au banc ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
 | Q10 | La dérive de teinte | Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 4) |

@@ -157,13 +157,12 @@
 <body>
 
 <h1>Rôles et crans du thème</h1>
-<p class="chapeau" style="background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 12px;color:#5c4400">Le premier tour du <a href="BANC-VISUEL.html">banc visuel</a> a retenu un fond teinté un cran plus marqué : 100 en Light (survol 200, appui 300), 300 en Dark (survol 400, appui 500), texte Dark 950. La règle reste « chaque niveau à distance fixe de celui qui le porte », à deux crans au lieu d'un. Les schémas de cette page montrent encore 50 et 200 ; ils seront mis à jour avec le second tour.</p>
 <p class="chapeau">Comment la page, la carte et les fonds teintés se séparent dans les deux thèmes, quels crans la table du thème (<code>TABLE_DES_DOSSIERS</code>) leur donne, et comment l'architecture des tokens le traduit. Couleurs de la recette du mainteneur, avec l'enveloppe par thème ; le thème Dark est inversé, le texte des boutons y est blanc.</p>
 <nav><a href="#niveaux">1. Le modèle des niveaux</a><a href="#mapping">2. Le mapping des tokens</a><a href="#composants-a-surface">3. Les composants à surface</a><a href="#autres-systemes">4. Les autres systèmes</a><a href="#focus">5. Le focus</a><a href="#rangement">6. Où ranger le focus</a><a href="#decisions">7. Décisions</a><a href="#surfaces">Annexe A. Pistes écartées</a><a href="#table">Annexe B. Tables mesurées</a></nav>
 
 <h2 id="niveaux">1. Le modèle des niveaux : page, carte, composant</h2>
 <p><b>La question.</b> <code>elevation/raised</code>, la carte, prend une couleur du neutre et se pose sur <code>elevation/page</code>. Un fond teinté, le <code>surface/default</code> d'une palette, se pose sur la carte : un badge dans une carte. En Dark aujourd'hui, la carte (neutre 100) ne se détache de la page (neutre 50) que de 1,10:1, et le fond teinté, au cran 100 lui aussi, a exactement la clarté de la carte : 1,00:1, le badge disparaît. En Light, le fond 100 paraît trop foncé sur la carte blanche.</p>
-<p><b>La réponse : chaque niveau se tient un cran plus loin du fond que celui qui le porte.</b> La page, puis la carte, puis le fond teinté. La même règle donne les crans des deux thèmes.</p>
+<p><b>La réponse : chaque niveau se tient à distance fixe de celui qui le porte.</b> La page, puis la carte, puis le fond teinté, à deux crans de la carte : le banc visuel a retenu cet écart plutôt qu'un seul cran. La même règle donne les crans des deux thèmes.</p>
 
 <h3>Les gris : la page, la carte et les surfaces du neutre</h3>
 <p class="chapeau"><code>elevation/page</code> et <code>elevation/raised</code> visent la rampe du neutre (Titanium dans la recette du mainteneur), comme les surfaces d'une puce ou d'un bouton gris. Chaque case est un cran de la rampe ; dessous, le rôle qui le vise aujourd'hui, puis avec le modèle. En bleu, ce qui change.</p>
@@ -182,9 +181,9 @@
 <div class="solution">
   <p style="margin-top:0">Les crans du modèle. Détail et pistes écartées : <code>SOLUTION-RAMPES.md</code>, sections S2 et S3.</p>
   <ol>
-    <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 50, 100, 200 ; texte 800 ; focus 600. Le fond 50 est presque blanc, comme chez Figma, Tailwind et Untitled UI.</li>
-    <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 200, 300, 400 ; texte et contour 900 ; focus 800. La page se détache de la carte (1,16) et le fond de la carte (1,15).</li>
-    <li><b>Garanties</b> : aucun échec nouveau sur le balayage ; les 144 existent déjà avec le moteur actuel. Avec l'enveloppe, la table actuelle en ajouterait 20.</li>
+    <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 100, 200, 300, comme aujourd'hui ; texte 800 ; focus 600. La règle de chroma calme les crans clairs : le fond 100 garde son contraste contre la carte (1,14 à 1,17), avec une couleur plus douce.</li>
+    <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 300, 400, 500 ; texte et contour 950 ; focus 800. La page se détache de la carte (1,16) et le fond de la carte (1,34 à 1,43).</li>
+    <li><b>Garanties</b> : les 144 échecs du balayage existent déjà avec le moteur actuel. Le fond Light 100 en ajoute 20 si le focus touche le fond (2,98 à 3,00:1) ; un indicateur extérieur, mesuré contre la carte comme le demande le W3C, n'en ajoute aucun.</li>
     <li><b>Fonds opaques.</b> Palettes n'écrit que des crans ; la piste translucide est écartée, comme chez Atlassian, Material 3, Fluent et Polaris.</li>
     <li><b>Le focus</b> garde sa forme (anneau décalé de 2 px) et son nom (<code>ring</code>, à la racine de la palette) : Q7 et Q8 ne dépendent pas du modèle.</li>
     <li><b>Les composants à surface</b> gardent les rôles actuels ; un badge bordé discrètement prend <code>page/divider</code> (Q9).</li>
@@ -193,10 +192,10 @@
 <table style="margin-top:14px">
   <thead><tr><th>Variable</th><th>Light</th><th>Dark aujourd'hui (normal · inversé)</th><th>Dark proposé</th></tr></thead>
   <tbody>
-    <tr><td><code>surface/default</code></td><td class="change">50 (aujourd'hui 100)</td><td>100 · 100</td><td class="change">200</td></tr>
-    <tr><td><code>surface/hover</code></td><td class="change">100 (200)</td><td>200 · 200</td><td class="change">300</td></tr>
-    <tr><td><code>surface/pressed</code></td><td class="change">200 (300)</td><td>300 · 300</td><td class="change">400</td></tr>
-    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800 (normal), 900 (inversé)</td><td>800 · 900</td><td class="change">900, ou 950 (voir ci-dessous)</td></tr>
+    <tr><td><code>surface/default</code></td><td>100</td><td>100 · 100</td><td class="change">300</td></tr>
+    <tr><td><code>surface/hover</code></td><td>200</td><td>200 · 200</td><td class="change">400</td></tr>
+    <tr><td><code>surface/pressed</code></td><td>300</td><td>300 · 300</td><td class="change">500</td></tr>
+    <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800 (normal), 900 (inversé)</td><td>800 · 900</td><td class="change">950</td></tr>
     <tr><td><code>page/focus</code>, devenu <code>ring</code> à la racine de la palette (Q8)</td><td>600</td><td>600 · 700</td><td class="change">800</td></tr>
     <tr><td><code>elevation/page</code></td><td>neutre 50</td><td>neutre 50, L 0,180</td><td class="change">neutre 50, L 0,145 (environ <code>#0A0A0B</code>)</td></tr>
     <tr><td><code>elevation/raised</code></td><td>blanc</td><td>neutre 100</td><td>neutre 100</td></tr>
@@ -221,7 +220,7 @@
   <tbody>
     <tr><td><code>primitives</code></td><td>UCM Palettes</td><td>La courbe Dark place le cran 50 à L 0,145 ; l'enveloppe par thème</td></tr>
     <tr><td><code>color-utilities</code>, <code>color-brands</code>, <code>elevation</code></td><td>Le designer, une fois</td><td>Rien</td></tr>
-    <tr><td><code>theme</code></td><td>La table du kit, <code>TABLE_DES_DOSSIERS</code></td><td>Une table par thème : surfaces 50, 100, 200 en Light ; 200, 300, 400, texte 900, focus 800 en Dark</td></tr>
+    <tr><td><code>theme</code></td><td>La table du kit, <code>TABLE_DES_DOSSIERS</code></td><td>Une table par thème : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500, texte 950, focus 800 en Dark</td></tr>
     <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 devient requis</td></tr>
   </tbody>
 </table>
@@ -230,10 +229,10 @@
 <table>
   <thead><tr><th>Composant</th><th>Rôles UCM</th><th>Light</th><th>Dark proposé</th><th>Ce que font les autres</th></tr></thead>
   <tbody>
-    <tr><td>Alerte</td><td><code>surface/default</code>, <code>surface/foreground</code></td><td>50 · 800</td><td>200 · 900</td><td>Fond pâle teinté dans dix systèmes sur dix ; texte neutre dans cinq (Q4)</td></tr>
-    <tr><td>Badge discret</td><td>Les mêmes ; contour discret <code>page/divider</code></td><td>50 · 800 · 300</td><td>200 · 900 · 300</td><td>Fond pâle dans sept sur dix ; contour plus clair que le texte chez quatre</td></tr>
+    <tr><td>Alerte</td><td><code>surface/default</code>, <code>surface/foreground</code></td><td>100 · 800</td><td>300 · 950</td><td>Fond pâle teinté dans dix systèmes sur dix ; texte neutre dans cinq (Q4)</td></tr>
+    <tr><td>Badge discret</td><td>Les mêmes ; contour discret <code>page/divider</code></td><td>100 · 800 · 300</td><td>300 · 950 · 300</td><td>Fond pâle dans sept sur dix ; contour plus clair que le texte chez quatre</td></tr>
     <tr><td>Badge plein</td><td><code>solid/default</code>, <code>solid/foreground</code></td><td>700</td><td>700</td><td>Pas moyen à fort, texte blanc</td></tr>
-    <tr><td>Bouton teinté</td><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>50, 100, 200</td><td>200, 300, 400</td><td>Un pas par état, texte constant</td></tr>
+    <tr><td>Bouton teinté</td><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>100, 200, 300</td><td>300, 400, 500</td><td>Un pas par état, texte constant</td></tr>
     <tr><td>Bouton plein</td><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>700, 800, 900</td><td>Texte blanc : 700, 600, 500, plus sombre ; texte noir : 700, 800, 900, plus clair</td><td>Survol plus sombre en clair ; en sombre, plus clair chez Radix, Atlassian, Fluent et Primer. Avec un texte blanc, UCM fonce pour garder le contraste</td></tr>
   </tbody>
 </table>
@@ -267,7 +266,7 @@
 
 <h2 id="decisions">7. Décisions</h2>
 <ol class="decisions">
-  <li><b>Q5. Le fond teinté et les niveaux.</b> Recommandé : le modèle des niveaux. Fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark ; page Dark au cran 50 abaissé à L 0,145. Texte et contour des fonds en Dark : 900, plus coloré, recommandé ; ou 950, plus robuste. Avec 900, votre Orange Vivid échoue (4,12:1) tant que son Color shift sombre dépasse +0,015 (section 1).</li>
+  <li><b>Q5. Le fond teinté et les niveaux.</b> Retenu au banc visuel : le modèle des niveaux, le fond à deux crans de sa carte. Fonds opaques 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145. Le badge discret suffit.</li>
   <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, le cran le plus clair qui tient 3:1 ; 800 en Dark, dans les deux sens. Un focus unique à la couleur de la marque, comme chez Figma, reste un choix des composants.</li>
   <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé : conforme au niveau AA, la forme de Figma SDS, Radix et Spectrum) ou halo pâle collé (la forme de Bootstrap, Flowbite et du kit d'Untitled UI, non conforme : il contraste à moins de 3:1 avec la page). La forme se règle dans les composants, pas dans Palettes ; le <a href="BANC-VISUEL.html#focus">banc visuel</a> compare les deux.</li>
   <li><b>Q8. Le nom et la place.</b> <code>ring</code> à la racine de la palette (recommandé : une seule variable, visible en ouvrant la palette), <code>ring</code> dans chaque dossier (trois alias du même cran), ou <code>page/focus</code> conservé. Le dossier <code>page</code> porte aussi des éléments interactifs (liens, boutons à contour, champs, cases), mais tous prennent le même cran. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
@@ -420,7 +419,7 @@
   });
   /** Avant et après sur la carte : l'enveloppe par thème, la table actuelle puis la table proposée. */
   function dessinerSolution() {
-    const TABLES = [['table', 'Aujourd\'hui', 'Fonds 100, 200, 300 dans les deux thèmes'], ['modele', 'Proposé', 'Light : fonds 50, 100, 200 ; Dark : 200, 300, 400, texte 900']];
+    const TABLES = [['table', 'Aujourd\'hui', 'Fonds 100, 200, 300 dans les deux thèmes'], ['modele', 'Retenu', 'Light : fonds 100, 200, 300 ; Dark : 300, 400, 500, texte 950']];
     let html = '<span></span><span class="tete">Light · carte</span><span class="tete">Dark · carte</span>';
     for (const [crans, nom, detail] of TABLES) {
       html += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
@@ -446,11 +445,11 @@
     ['Light', [
       ['Primer, Flash', 1.15, 1.15], ['Atlassian, section message · lozenge', 1.14, 1.34], ['Radix, soft', 1.12, 1.12], ['Material 3, error-container', 1.15, 1.15],
       ['Fluent 2, badge tint · MessageBar', 1.07, 1.09], ['Polaris, banner · badge', 1.17, 1.37], ['Figma SDS, notification · tag', 1.04, 1.17], ['Tailwind et Untitled UI, cran 50', 1.04, 1.09],
-      ['UCM aujourd\'hui, fond 100', 1.11, 1.17, 'ucm'], ['UCM proposé, fond 50', 1.06, 1.08, 'propose'],
+      ['UCM aujourd\'hui, fond 100', 1.11, 1.17, 'ucm'], ['UCM retenu, fond 100', 1.14, 1.17, 'propose'],
     ]],
     ['Dark', [
       ['Primer, Flash', 1.12, 1.12], ['Atlassian, section message · lozenge', 1.08, 1.22], ['Radix, soft', 1.17, 1.31], ['Material 3, error-container', 1.87, 1.87],
-      ['Fluent 2, badge tint · MessageBar', 1.12, 1.19], ['Figma SDS, notification', 1.09, 1.40], ['UCM aujourd\'hui, fond 100', 1.00, 1.02, 'ucm'], ['UCM proposé, fond 200', 1.13, 1.16, 'propose'],
+      ['Fluent 2, badge tint · MessageBar', 1.12, 1.19], ['Figma SDS, notification', 1.09, 1.40], ['UCM aujourd\'hui, fond 100', 1.00, 1.02, 'ucm'], ['UCM retenu, fond 300', 1.34, 1.43, 'propose'],
     ]],
   ];
   function dessinerMarche() {
@@ -489,7 +488,7 @@
   }
   /** L'échelle des niveaux : la page, la carte, les composants ; aujourd'hui puis le modèle. */
   function dessinerNiveaux() {
-    const CAS = [['table', 'Aujourd\'hui', 'Page 50, carte blanche ou 100, fond 100', {}], ['modele', 'Modèle des niveaux', 'Fond 50 en Light ; page Dark abaissée, fond 200', { dark: '#0A0A0B' }]];
+    const CAS = [['table', 'Aujourd\'hui', 'Page 50, carte blanche ou 100, fond 100', {}], ['modele', 'Modèle des niveaux', 'Fond 100 en Light ; page Dark abaissée, fond 300', { dark: '#0A0A0B' }]];
     let html = '<span></span><span class="tete">Light</span><span class="tete">Dark</span>';
     for (const [crans, nom, detail, pages] of CAS) {
       html += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
@@ -514,11 +513,11 @@
     const ROLES = {
       light: {
         actuel: { blanc: 'carte', 50: 'page', 100: 'surface', 200: 'survol', 300: 'appui' },
-        modele: { blanc: 'carte', 50: 'page · surface', 100: 'survol', 200: 'appui' },
+        modele: { blanc: 'carte', 50: 'page', 100: 'surface', 200: 'survol', 300: 'appui' },
       },
       dark: {
         actuel: { 50: 'page', 100: 'carte · surface', 200: 'survol', 300: 'appui' },
-        modele: { 50: 'page, plus sombre', 100: 'carte', 200: 'surface', 300: 'survol', 400: 'appui' },
+        modele: { 50: 'page, plus sombre', 100: 'carte', 300: 'surface', 400: 'survol', 500: 'appui' },
       },
     };
     let html = '';
@@ -539,7 +538,7 @@
     }
     document.getElementById('rampes-gris').innerHTML = html + '<p class="chapeau" style="margin:0">Dark, cran 50 : à gauche la clarté actuelle (L 0,180), à droite celle du modèle (L 0,145).</p>';
 
-    const CAS = [['table', 'Aujourd\'hui', 'Page 50, carte blanche ou 100, surfaces 100', {}], ['modele', 'Modèle des niveaux', 'Surfaces 50 en Light ; page abaissée et surfaces 200 en Dark', { dark: PAGE_DARK_MODELE }]];
+    const CAS = [['table', 'Aujourd\'hui', 'Page 50, carte blanche ou 100, surfaces 100', {}], ['modele', 'Modèle des niveaux', 'Surfaces 100 en Light ; page abaissée et surfaces 300 en Dark', { dark: PAGE_DARK_MODELE }]];
     let grille = '<span></span><span class="tete">Light</span><span class="tete">Dark</span>';
     for (const [crans, nom, detail, pages] of CAS) {
       grille += `<div class="piste"><b>${nom}</b><span>${detail}</span></div>`;
@@ -571,9 +570,9 @@
     const rampe = (palette, mode) => U.rampe('enveloppe', palette, 'soft', mode);
     const TABLES = {
       actuel: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 100, hover: 200, pressed: 300, foreground: 900, border: 900, focus: 700 } },
-      modele: { light: { default: 50, hover: 100, pressed: 200, foreground: 800, border: 800, focus: 600 }, dark: { default: 200, hover: 300, pressed: 400, foreground: 900, border: 900, focus: 800 } },
+      modele: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 300, hover: 400, pressed: 500, foreground: 950, border: 950, focus: 800 } },
     };
-    const CRANS = [50, 100, 200, 300, 400, 800, 900];
+    const CRANS = [50, 100, 200, 300, 400, 500, 800, 900, 950];
     /** La valeur brute de chaque variable : un alias ou un hexa ; `mode` vaut light ou dark pour `theme`. */
     function brute(vue, chemin, mode) {
       const [col, ...reste] = chemin.split('.');
@@ -683,7 +682,7 @@
       components: { info: 'aucun mode · résolu en light et en dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'inchangée'], modele: ['mod', 'valeurs modifiées'] },
         note: ['Les composants citent theme. Leurs noms ne changent pas ; leur couleur suit le cran que theme vise. Les colonnes montrent la valeur résolue dans chaque thème.'] },
       theme: { info: '2 modes · light, dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'table actuelle'], modele: ['mod', 'crans modifiés'] },
-        note: { actuel: ['Le seul endroit où le thème se choisit. Aujourd\'hui, la table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable selon le sens seul, le même dans les deux thèmes : surfaces 100, 200, 300 ; texte 800, ou 900 en sens inversé ; focus page/focus, 600, ou 700 en sens inversé.'], modele: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 50, 100, 200 en light ; 200, 300, 400 en dark, texte 900, anneau 800. Le focus devient ring, à la racine de la palette, à côté des trois dossiers (Q8).', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] } },
+        note: { actuel: ['Le seul endroit où le thème se choisit. Aujourd\'hui, la table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable selon le sens seul, le même dans les deux thèmes : surfaces 100, 200, 300 ; texte 800, ou 900 en sens inversé ; focus page/focus, 600, ou 700 en sens inversé.'], modele: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 100, 200, 300 en light, comme aujourd\'hui ; 300, 400, 500 en dark, texte 950, anneau 800. Le focus devient ring, à la racine de la palette, à côté des trois dossiers (Q8).', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] } },
       'color-utilities': { info: 'aucun mode · un alias par cran', modes: ['Valeur'], tag: { actuel: ['same', 'inchangée'], modele: ['same', 'alias inchangés'] },
         note: ['Les rôles communs aux marques, un alias par cran vers primitives. Le modèle n\'y change aucun alias.', 'elevation/dark/page vise toujours le cran 50 du neutre ; c\'est ce cran qui devient plus sombre dans primitives.'] },
       primitives: { info: 'aucun mode · écrite par UCM Palettes', modes: ['Valeur'], tag: { actuel: ['same', 'rampes actuelles'], modele: ['mod', '50 Dark recalculé'] },
