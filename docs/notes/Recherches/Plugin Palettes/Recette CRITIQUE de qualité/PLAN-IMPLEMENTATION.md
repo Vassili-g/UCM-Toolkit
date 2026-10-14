@@ -1,7 +1,7 @@
 # Plan d'implémentation de la recette critique de qualité
 
-**Statut : relu par Codex, corrigé ; propositions PR1 à PR7 à valider avant
-exécution.** Les décisions viennent de [DECISIONS.md](./DECISIONS.md), qui
+**Statut : relu par Codex, corrigé ; PR6 et PR7 validées par le mainteneur,
+PR1 à PR5 à valider avant exécution.** Les décisions viennent de [DECISIONS.md](./DECISIONS.md), qui
 fait foi. Les points que ce plan propose lui-même sont dans la section 4 ; le
 mainteneur les valide avant la vague qui les emploie. La
 [revue](./REVIEW-PLAN-IMPLEMENTATION.md) et la réponse à chacun de ses points
@@ -143,9 +143,13 @@ pose dans Exporter et Palettes seulement.
   palettes, l'onglet est indisponible et son état se vide.
 - Une palette à une intensité se compare sur sa seule rampe, quelle que soit
   la bascule Soft et Vivid ; ses réglages agissent sur cette rampe.
-- Une palette dont la liste de crans ne porte pas les crans des rôles (une
-  palette libre) paraît dans « Vos palettes », sa case désactivée, avec le
-  titre « Palette libre : ses nuances ne se comparent pas ».
+- Une palette libre (sa propre liste de numéros) se coche, se compare sur
+  ses nuances, se règle et paraît sur la roue comme les autres : ses numéros
+  suivent les courbes communes, donc un même numéro a la même clarté dans
+  toutes les palettes. Elle n'alimente pas `theme` : elle n'a ni bouton ni
+  message. Sa colonne de la carte Comparaison dit « Palette libre : pas de
+  composants », et elle n'entre pas dans l'alerte des palettes trop proches,
+  qui juge ces rôles.
 - Une palette figée se coche et se compare ; la carte Réglages dit « Palette
   figée : ses couleurs ne se règlent pas. » au lieu des réglettes, et son
   point de la roue ne se saisit pas.
@@ -925,14 +929,15 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; avec une palette, l'onglet est indisponible.
 
 - [ ] **H2 · Cartes « Palettes trop proches » et « Vos palettes »** · `implementeur-exigeant`, haut.
-  - SPEC, sections 7.4 et 7.5 ; PR6 (palettes libres, paire sans sortie) ;
+  - SPEC, sections 7.4 et 7.5 ; PR6 (paire sans sortie) ;
     identifiant `[UI-40]`. Le bouton « Comparer » choisit `regler` par
     `sortieLaPlusProche` de H0 ; à égalité ou sans sortie, A.
   - Galerie : `harmonisation-paire` (écran H2).
   - Fini quand : vert ; capture conforme à H1 et H2 de la maquette.
 
 - [ ] **H3 · Carte « Comparaison »** · `implementeur-exigeant`, haut.
-  - SPEC, section 7.6 ; PR6 (intensité unique) ; identifiant `[UI-41]`.
+  - SPEC, section 7.6 ; PR6 (intensité unique, palette libre sans
+    composants) ; identifiant `[UI-41]`.
     Niveaux de gris par `grisDeMemeClarte`. Les rôles de chaque composant
     suivent la table du kit (`cranDeLaVariable`), jamais un cran écrit en
     dur.
