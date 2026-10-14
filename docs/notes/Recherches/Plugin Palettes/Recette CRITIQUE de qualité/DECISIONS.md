@@ -55,9 +55,11 @@ la règle par profil et par thème dans la recette (format 11), `palette.ts`,
 ### Q3. Les valeurs par défaut et les recettes existantes (arrêtée)
 
 Les valeurs du tableau ci-dessus sont les valeurs par défaut de la recette,
-dans la Configuration. Une recette au format 10 garde la part constante
-d'aujourd'hui (Soft 0,45, Vivid 0,95) jusqu'à ce que le designer choisisse
-« Par défaut » dans sa carte des intensités.
+dans la Configuration. Une recette ancienne n'a pas à garder ses couleurs : le
+mainteneur l'a dit à la revue du plan, ses recettes servent au réglage et ses
+primitives peuvent être réécrites. Lue au format 11, elle prend les parts et
+l'enveloppe par défaut ; le [plan](./PLAN-IMPLEMENTATION.md), PR4, dit le
+détail.
 
 ### Q10. La dérive de teinte (arrêtée)
 
@@ -174,8 +176,8 @@ Le mainteneur n'a pas décidé ces points ; le plan les propose, il les
 valide :
 
 - Le schéma du format 11 de la recette : le nom et la place des paramètres de
-  la règle (p₀, a, b, k par profil et par thème), et la migration depuis le
-  format 10, qui garde la part constante.
+  la règle (p₀, a, b, k par profil et par thème), et la lecture des formats
+  anciens (Q3).
 - Le format étendu du relevé `derives` (teinte et clarté de chaque cran des
   rampes de Tailwind) et sa migration.
 - La couleur de la carte pour G7 : déduite du neutre et du blanc, ou un

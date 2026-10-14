@@ -542,7 +542,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
     <dl>
       <dt>Avant</dt><dd>Une part fixe du maximum affichable : 0,45 en <code>soft</code>, 0,95 en <code>vivid</code>. Les textes <code>soft</code> sortaient ternes (0,3 à 0,55 fois la chroma de Tailwind), les verts clairs <code>vivid</code> criards.</dd>
       <dt>Après</dt><dd><code>C = min(part × plafond(L, H), p₀ × min(a × marge(H) × (1 − L), b × L))</code>. La part par défaut <code>p₀</code> vaut 0,85 en <code>soft</code> et 0,95 en <code>vivid</code> ; les bornes <code>a</code> et <code>b</code> limitent la vivacité des crans clairs et sombres, par thème ; la marge élargit la borne claire autour du jaune (+100 % en <code>soft</code>, +50 % en <code>vivid</code>), pour qu’un jaune pâle ne vire pas au beige. En sombre, les fonds gardent leur réduction de chroma. Le préréglage de teinte lit la dérive de Tailwind aux deux bouts des rampes voisines : pire écart 12° au lieu de 38°.</dd>
-      <dt>Pourquoi</dt><dd>Des fonds teintés de même vivacité d’une famille à l’autre, des textes colorés plus francs. Une recette existante garde ses couleurs jusqu’à ce que tu choisisses « Par défaut ». La clarté, donc les contrastes, ne change pas.</dd>
+      <dt>Pourquoi</dt><dd>Des fonds teintés de même vivacité d’une famille à l’autre, des textes colorés plus francs. Une recette existante prend ces valeurs par défaut à sa lecture. La clarté, donc les contrastes, ne change pas.</dd>
       <dt>Origine</dt><dd class="org">Recette critique de qualité, Q1, Q2 et Q10, au banc visuel.</dd>
     </dl>
   </div>

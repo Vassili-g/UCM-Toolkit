@@ -155,7 +155,11 @@ Fonction `colorShiftPropose`, état `color-shift-luminosite`.
   synchronisation, `· synchronisé` disparaît.
 - `Tout rétablir` de `.editeur-entete` devient `Tout par défaut`.
 - Les réglettes des nuances claires et sombres reçoivent la marque, le libellé
-  et les bouts de la section 3.2 ; défaut 0. Bouts selon l'onglet de grandeur
+  et les bouts de la section 3.2. Défaut : pour la teinte, la valeur du
+  préréglage Tailwind de chaque bout (celle que « Tout par défaut » pose) ;
+  pour la saturation et la luminosité, 0. La marque, le bouton, son état
+  désactivé et le résumé emploient cette valeur, comparée au préréglage
+  courant et non à l'origine rangée de la dérive. Bouts selon l'onglet de grandeur
   actif : teinte, familles voisines de la teinte de la référence ; saturation,
   `plus terne` et `plus vive` ; luminosité, `plus foncée` et `plus claire`. La
   maquette montre l'onglet Luminosité.
@@ -222,18 +226,22 @@ Fonctions `peindre`, `harmonisation` et les cartes `cartePaires`,
 
 | Champ | Valeur initiale | Rôle |
 |---|---|---|
-| `cochees` | `[]` | Noms des palettes cochées, dans l'ordre de cochage, 4 au plus |
-| `regler` | première cochée, ou rien | Palette des réglettes de la carte Réglages |
+| `cochees` | `[]` | Identifiants (`Palette.id`) des palettes cochées, dans l'ordre de cochage, 4 au plus ; les noms ne servent qu'à l'affichage |
+| `regler` | première cochée, ou rien | Identifiant de la palette des réglettes de la carte Réglages |
 | `mode` | `light` | Thème de l'aperçu |
 | `intensite` | `vivid` | Intensité vue |
 | `affichage` | `couleurs` | `couleurs` ou `gris`, pour la carte Comparaison |
 | `roue` | repliée | Carte Roue des teintes ouverte ou non |
-| décalages, saturations, luminosités | vides | Réglages faits depuis l'ouverture de l'onglet, par palette |
+| départs | vides | Par identifiant de palette, ses réglages de teinte, saturation et luminosité à son premier réglage depuis l'entrée dans l'onglet ; se vident à chaque entrée |
 | `vision` | `Normale` | Vision choisie dans la carte Roue des teintes |
 | `trop` | faux | Vrai après une tentative de cocher une cinquième palette, par sa case ou par un point de la roue ; redevient faux au prochain changement des cochées (case, « Comparer », « Tout décocher ») |
 
 L'état vit le temps de la session du plugin ; il ne se range pas dans la
 recette. Les réglages, eux, s'appliquent aux palettes comme dans Création.
+Une palette supprimée sort de l'état ; sous deux palettes, l'onglet est
+indisponible et l'état se vide. Les palettes à une intensité, libres ou
+figées suivent la proposition PR6 du
+[plan d'implémentation](./PLAN-IMPLEMENTATION.md).
 
 ### 7.2 Barre et en-tête
 
@@ -392,8 +400,10 @@ Corps `.reglages-de-la-palette.reglages-harmonie` (grille) :
 
 1. Si la palette de `regler` a changé depuis l'ouverture de l'onglet :
    `.tete-des-reglages` avec, à gauche, `button.btn.btn-secondary.btn-compact`
-   `Annuler les modifications`. Il défait les réglages de cette palette faits
-   dans l'onglet, et d'elle seule.
+   `Annuler les modifications`. Il remet les réglages de teinte, saturation
+   et luminosité de cette palette, et d'elle seule, à leur départ (section
+   7.1), et range la recette par la frontière existante. Il ne défait rien de
+   ce qui a été fait dans Création, même dans la même session.
 2. Trois réglettes de Création (`.reglette.reglage-de-la-palette.avec-legende`),
    marques, libellé, bouts et bouton de la section 3.2 :
 
@@ -601,15 +611,20 @@ select.input:hover { background-color: var(--fond-survol); }
 - **Distance** : OKLab euclidienne entre deux couleurs à 8 bits
   (`rgb8VersOklch`, `oklchVersOklab`).
 - **Paires** : pour chaque couple de palettes colorées, la plus petite distance
-  sur `solid/default` et `surface/foreground`, Vivid ou unique, Light et Dark
-  (`distanceMin` de `Mesures/generer-ensembles.ts`).
+  sur `solid/default` en Light et en Dark et sur `surface/foreground` en Light
+  seulement, Vivid ou unique (section 7.3 ; `distanceMin` de
+  `Mesures/generer-ensembles.ts`).
 - **Zones trop proches** : pour la palette réglée et chaque palette avec
   laquelle elle forme une paire en alerte, la distance à chaque degré entier
-  de −30° à +30° de sa teinte, l'autre palette immobile ; la teinte se règle
-  comme dans Création (`referenceReglee` depuis `departDe`, porteur figé).
-  Soit 61 rampes par paire. Une zone est une suite de degrés sous le seuil.
-  Les degrés se lisent sur la valeur du profil porteur et se décalent de
-  `teinte rangée de l'intensité vue − teinte rangée du porteur` pour la
+  de l'écart commun appliqué aux deux profils, l'autre palette immobile (ses
+  rampes calculées une fois). Chaque position se calcule avec la fonction du
+  geste de teinte (`candidatDeTeinte`), pour que la couleur simulée soit
+  celle que le geste range. La course de l'écart commun est l'intersection
+  des bornes des deux profils (chacun de −30° à +30°) et des limites des
+  garanties : avec Soft à +25° et Vivid à −20°, elle va de −10° à +5°. Une
+  position hors course n'est pas calculée. Au plus 61 positions, chacune de
+  quatre rampes (deux profils, deux thèmes). Une zone est une suite de
+  degrés sous le seuil ; elle s'affiche en valeurs du profil affiché par la
   réglette.
 - **Recalcul** : au relâcher d'une réglette ou d'un point, toutes les paires
   et les zones de la palette réglée se recalculent ; pendant le glisser, la

@@ -1,9 +1,11 @@
 # Plan d'implémentation de la recette critique de qualité
 
-**Statut : à relire avant exécution.** Les décisions viennent de
-[DECISIONS.md](./DECISIONS.md), qui fait foi. Les points que ce plan propose
-lui-même sont dans la section 4 ; le mainteneur les valide avant la vague
-qui les emploie.
+**Statut : relu par Codex, corrigé ; propositions PR1 à PR7 à valider avant
+exécution.** Les décisions viennent de [DECISIONS.md](./DECISIONS.md), qui
+fait foi. Les points que ce plan propose lui-même sont dans la section 4 ; le
+mainteneur les valide avant la vague qui les emploie. La
+[revue](./REVIEW-PLAN-IMPLEMENTATION.md) et la réponse à chacun de ses points
+sont dans le même dossier.
 
 ## 1. Objet et lecteur
 
@@ -18,7 +20,8 @@ Les chemins sont relatifs à la racine du dépôt. `D/` désigne
 `docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/`,
 `PAL/` `packages/plugin-palettes/`, `SOC/` `packages/plugin-socle/`,
 `SPEC-PAL` la spécification de Palettes,
-`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`.
+`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`,
+et `SPEC` la [spécification des écrans](./SPEC-ECRANS-HARMONISATION.md).
 Les numéros de ligne cités viennent d'une lecture du code : l'agent les
 retrouve par la recherche du symbole, pas par le numéro.
 
@@ -63,56 +66,45 @@ Règles d'économie, à tenir par l'orchestrateur :
 |---|---|---|
 | 0 | Préparation | — |
 | 1 | Le kit : `ring`, table par thème, G7 contre la page et la carte | 0 |
-| 2 | Le moteur : courbe Dark, format 11, règle de chroma, dérive, alerte C6 | 1 |
+| 2 | Le moteur : banc, courbe Dark, format 11, règle de chroma, dérive, alerte C6 | 1 terminée |
 | 3 | Palettes hors Harmonisation : Vérification, libellés, listes, Configuration, Réglage global, Color shift | 2 |
-| 4 | L'onglet Harmonisation | 3 |
+| 4 | L'onglet Harmonisation, et les onglets indisponibles du socle | 3 |
 | 5 | Documents : AGENTS.md, SPEC-PAL, architecture de référence | 4 |
 | 6 | Vérification complète, publication du kit, recette Figma | 5 |
 
-Rien n'est donné au mainteneur pour un essai dans Figma avant la fin de la
-vague 2 : le format 11 se fixe en deux tâches (M2 et M4), et une recette
-rangée entre les deux aurait une forme provisoire.
+Chaque commit sur `main` laisse la suite verte. Le format 11 se définit et se
+raccorde dans une seule tâche (M2).
 
 ## 4. Ce que le plan propose (à valider par le mainteneur)
 
-DECISIONS.md, section 6, laisse quatre points au plan. Les voici, avec ce
-qu'ils changent. Chacun porte un identifiant de la SPEC-PAL réservé en
-section 7.
+DECISIONS.md, section 6, laisse quelques points au plan, et la revue en a
+ajouté. Chacun porte un identifiant de la SPEC-PAL réservé en section 7.
 
-**P1. Le schéma du format 11 pour la règle de chroma.** La part commune de
-chaque profil reste `profils.<profil>.part` ; elle vaut `p₀`. Chaque profil
-reçoit un champ facultatif `enveloppe`, avec les bornes de chaque thème :
+**PR1. Le schéma du format 11 pour la règle de chroma.** Chaque profil a sa
+part commune et son enveloppe, toutes deux obligatoires :
 
 ```ts
 export interface BornesDeChroma { readonly a: number; readonly b: number; readonly jaunes: number }
-export interface ProfilDeRecette {
-  readonly part: number;
-  readonly enveloppe?: { readonly light: BornesDeChroma; readonly dark: BornesDeChroma };
-}
+export interface EnveloppeDeProfil { readonly p0: number; readonly light: BornesDeChroma; readonly dark: BornesDeChroma }
+export interface ProfilDeRecette { readonly part: number; readonly enveloppe: EnveloppeDeProfil }
 // Recette.profils: { soft: ProfilDeRecette; vivid: ProfilDeRecette }
 ```
 
-`jaunes` est `k`. En Dark il vaut 0, ce qui donne `marge(H) = 1` sans cas
-particulier dans le code. Valeurs par défaut :
+`jaunes` est `k` : en Dark il vaut 0, ce qui donne `marge(H) = 1` sans cas
+particulier dans le code. `p0` est rangé dans l'enveloppe et ne suit pas la
+part commune : une palette qui a ses parts propres, ou une seule intensité,
+ne change pas quand le designer règle la part commune. Valeurs par défaut :
 
-| Profil | `part` | `enveloppe.light` | `enveloppe.dark` |
-|---|---|---|---|
-| `soft` | 0,85 | a 0,6 · b 0,38 · jaunes 1 | a 1,1 · b 0,38 · jaunes 0 |
-| `vivid` (sert aussi l'intensité unique) | 0,95 | a 1,1 · b 0,48 · jaunes 0,5 | a 1,1 · b 0,30 · jaunes 0 |
+| Profil | `part` | `enveloppe.p0` | `enveloppe.light` | `enveloppe.dark` |
+|---|---|---|---|---|
+| `soft` | 0,85 | 0,85 | a 0,6 · b 0,38 · jaunes 1 | a 1,1 · b 0,38 · jaunes 0 |
+| `vivid` (sert aussi l'intensité unique) | 0,95 | 0,95 | a 1,1 · b 0,48 · jaunes 0,5 | a 1,1 · b 0,30 · jaunes 0 |
 
-Sans `enveloppe`, la chroma reste `part × plafond` : c'est la part constante
-d'aujourd'hui. La migration du format 10 n'ajoute pas d'enveloppe et garde les
-parts (Soft 0,45, Vivid 0,95) : les couleurs ne bougent pas (Q3). « Par
-défaut », sur la carte des intensités de la Configuration, pose les parts et
-les enveloppes du tableau. Les bornes ne paraissent nulle part dans
-l'interface.
+Les bornes ne paraissent nulle part dans l'interface. « Par défaut », sur la
+carte des intensités de la Configuration, pose les parts et les enveloppes du
+tableau.
 
-*Pourquoi ce schéma* : `p₀` lié à la part commune garde un seul réglage
-d'intensité pour le designer ; l'absence d'enveloppe décrit exactement une
-recette ancienne ; les bornes dans la recette permettent un recalage sans
-nouveau format.
-
-**P2. Le relevé `derives` au format 11.** Chaque rampe de Tailwind porte la
+**PR2. Le relevé `derives` au format 11.** Chaque rampe de Tailwind porte la
 clarté et la teinte de chacun de ses crans :
 
 ```ts
@@ -120,30 +112,59 @@ export interface RampeDeDerive { readonly nom: string; readonly crans: readonly 
 // Recette.derives: readonly RampeDeDerive[]
 ```
 
-La migration du format 10 remplace le relevé par celui du paquet : l'ancien
-triplet ne contient pas les crans, et le relevé n'est pas un choix du
-designer. Les dérives déjà rangées dans chaque palette ne changent pas ; seul
-le préréglage, quand le designer le choisit à nouveau, donne la nouvelle
-valeur.
-
-**P3. La couleur de la carte pour G7 : déduite, sans réglage.** Light : blanc
+**PR3. La carte pour G7 : déduite, et désignée à part.** Light : blanc
 `#FFFFFF`. Dark : le gris sans teinte à la clarté du cran 100 de la courbe
-Dark de la recette, soit environ `#1C1C1C` avec la courbe par défaut. Aucun
-champ de recette, aucun réglage « Fond de la carte » : un réglage de plus
-n'aide pas un designer débutant, et la mesure donne le même résultat avec la
-carte du Titanium et avec ce gris (144 échecs, tous G1).
+Dark de la recette, environ `#1C1C1C` avec la courbe par défaut. Aucun champ
+de recette, aucun réglage. Dans les promesses, la carte est un fond distinct
+de la page, avec sa propre désignation, sa case dans la réglette et sa clé
+dans les limites.
 
-**P4. Les crans requis d'une recette ancienne.** La table Dark exige 400, 500
-et 950. Une recette au format 10 dont la liste en manque un ne doit pas
-devenir illisible : la migration ajoute ces numéros à la liste et donne à
-chaque courbe la clarté que `luminositeAuNumero` lit sur l'ancienne grille.
-Palettes crée les variables manquantes à la prochaine écriture, comme pour
-toute nuance ajoutée. Les préréglages 11 et 13 les ont déjà.
+**PR4. La lecture des recettes anciennes ne conserve pas les couleurs.** Le
+mainteneur l'a dit : ses recettes servent au réglage, et ses primitives
+peuvent être réécrites. Une recette au format 8, 9 ou 10 se lit au format 11
+ainsi : les profils prennent les parts et les enveloppes par défaut de PR1 ;
+les crans 400, 500 et 950 manquants s'ajoutent à la liste, leur clarté lue
+par `luminositeAuNumero` sur l'ancienne grille ; le relevé `derives` devient
+celui du paquet. Les courbes, les fonds, le texte des boutons, les seuils et
+les palettes restent. Une lecture n'écrit rien ; la prochaine écriture range
+le format 11. Une forme ancienne invalide (`crans` ou `courbes` absents, un
+champ du format 11 dans une recette plus ancienne) se classe `illisible`.
 
-**P5. Le bouton « Configuration » dans l'explorateur.** C9 le prévoit dans les
-trois plugins, mais l'explorateur n'a pas de configuration : le plan le pose
-dans Exporter et Palettes seulement, et le socle le rend disponible pour un
-futur écran de l'explorateur.
+**PR5. Le bouton « Configuration » dans l'explorateur.** C9 le prévoit dans
+les trois plugins, mais l'explorateur n'a pas de configuration : le plan le
+pose dans Exporter et Palettes seulement.
+
+**PR6. Les palettes dans Harmonisation.**
+
+- L'état de l'onglet range des identifiants (`Palette.id`), jamais des noms :
+  `cochees`, `regler`, les paires, les zones et le point de départ de
+  l'annulation. Une palette supprimée sort de l'état ; une palette importée
+  ou synchronisée garde sa place si son identifiant existe encore. Sous deux
+  palettes, l'onglet est indisponible et son état se vide.
+- Une palette à une intensité se compare sur sa seule rampe, quelle que soit
+  la bascule Soft et Vivid ; ses réglages agissent sur cette rampe.
+- Une palette dont la liste de crans ne porte pas les crans des rôles (une
+  palette libre) paraît dans « Vos palettes », sa case désactivée, avec le
+  titre « Palette libre : ses nuances ne se comparent pas ».
+- Une palette figée se coche et se compare ; la carte Réglages dit « Palette
+  figée : ses couleurs ne se règlent pas. » au lieu des réglettes, et son
+  point de la roue ne se saisit pas.
+- « Annuler les modifications » de la carte Réglages restaure, pour la seule
+  palette choisie, ses réglages de teinte, de saturation et de luminosité
+  tels qu'ils étaient à son premier réglage dans l'onglet depuis la dernière
+  entrée. Le point de départ se renouvelle à chaque entrée dans l'onglet :
+  un changement fait entre-temps dans Création n'est jamais défait. La
+  recette restaurée se range par la frontière existante.
+- Une paire qu'aucune teinte de la course ne sépare : « Comparer » choisit A
+  à régler, et le constat dit « Aucune teinte de la course ne les sépare :
+  changez la saturation ou la luminosité de l'une d'elles. »
+
+**PR7. Le « par défaut » du Color shift.** Le défaut d'un bout de teinte est
+la valeur du préréglage Tailwind de ce bout ; celui de la saturation et de la
+luminosité est 0. La marque, le bouton « Par défaut », son état désactivé, le
+résumé et « Tout par défaut » emploient la même valeur. Le résumé compare les
+valeurs au préréglage courant, et non l'origine rangée (`origine: 'tailwind'`),
+qui peut dater d'un relevé ancien.
 
 ## 5. Règles communes, à recopier dans chaque message d'agent
 
@@ -198,9 +219,9 @@ Un commit par tâche, par chemins explicites :
 `git commit -m "<message>" -- <chemins>`, message en français au format des
 commits voisins (`feat(couleur): …`, `fix(palettes): …`), terminé par la ligne
 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Avant de commiter :
-`git diff --stat -- <chemins>` ne montre aucun fichier réécrit en entier. Le
-push se fait en fin de vague, après la suite complète et, si la vague touche
-Palettes, après `test:ui`.
+`git diff --stat -- <chemins>` ne montre aucun fichier réécrit en entier, et
+la suite du paquet touché est verte. Le push se fait en fin de vague, après
+la suite complète et, si la vague touche Palettes, après `test:ui`.
 
 ## 6. Les vagues
 
@@ -212,17 +233,13 @@ Palettes, après `test:ui`.
     et ne se commitent pas.
   - Le `verificateur` lance la suite complète et `test:ui` de Palettes ; tout
     est vert. Sinon, s'arrêter et le signaler au mainteneur.
+  - Vérifier que les identifiants de la section 7 sont libres.
   - Fini quand : la suite est verte au commit de départ, et son résultat est
     noté dans le premier message de la vague 1.
 
 ### Vague 1 · Le kit et la table des rôles
 
-| Tâche | En parallèle avec |
-|---|---|
-| R1 | seule |
-| R2 | seule (après R1) |
-| R3 | seule |
-| R4 | seule |
+Les tâches sont successives.
 
 - [ ] **R1 · `page/focus` devient `ring`** · `implementeur`, moyen.
   - Décision : DECISIONS.md, section 3, Q8. La variable garde ses crans
@@ -252,8 +269,7 @@ Palettes, après `test:ui`.
   - Ne pas toucher : SPEC-PAL, `D/` (vague 5). Dans `AGENTS.md`, seulement
     les mentions de `page/focus` (règle commune sur l'inventaire).
   - Vérifier : `npm run build --workspace @ucm-kit/core`, `npm run typecheck`,
-    `npm test`. Puis
-    `git grep -n "page/focus" -- packages` ne rend rien.
+    `npm test`. Puis `git grep -n "page/focus" -- packages` ne rend rien.
   - Fini quand : les trois commandes passent et la recherche est vide.
 
 - [ ] **R2 · La planche dessine `ring` au niveau de la palette** · `implementeur`, moyen.
@@ -264,12 +280,12 @@ Palettes, après `test:ui`.
     trois dossiers, avec la largeur d'anneau d'aujourd'hui (`LARGEUR_PAGE.anneau`).
     Lire le rendu de la planche pour placer la rangée comme les autres
     rangées de variables (même composant, même échantillon d'anneau).
-  - Tests : `PAL/tests/modeleDePlanche.test.ts` ; ajouter
-    `[PLA-30] ring est une rangée de la palette, hors du dossier page`.
-  - Vérifier : `npm test --workspace ucm-palettes-plugin`,
-    `npm run test:ui --workspace ucm-palettes-plugin`.
-  - Fini quand : vert, et l'état de galerie de la planche montre `ring` sous
-    les dossiers.
+  - Tests : `PAL/tests/modeleDePlanche.test.ts` ;
+    `[PLA-30] ring est une rangée de la palette, hors du dossier page`. Le
+    test vérifie le modèle : rang de la rangée, cellule, largeur d'anneau. Le
+    rendu dans Figma se contrôle à la recette F4.
+  - Vérifier : `npm test --workspace ucm-palettes-plugin`.
+  - Fini quand : vert.
 
 - [ ] **R3 · Une table par thème et par sens** · `implementeur-exigeant`, haut.
   - Décision : DECISIONS.md, section 3, tableau Q5 et Q6.
@@ -295,28 +311,26 @@ Palettes, après `test:ui`.
     couples thème et sens. Les scripts `.mjs` ne sont pas typés : chercher
     `cranDeLaVariable|cransRequis|variablePresente|variablesDuCran|TABLE_DES_DOSSIERS`
     dans `packages/couleur/scripts/` et les mettre à jour.
-  - `packages/couleur/src/recette.ts`, `validerRecette` : les crans requis
-    sont la réunion de `cransRequis(mode, sens)` pour les deux thèmes, chacun
-    dans son sens. Mettre à jour le commentaire qui dit « 50, 400 et 950 sont
-    facultatifs » : seul 50 l'est.
+  - `packages/couleur/src/recette.ts`, `validerRecette` : **la liste des crans
+    requis ne change pas dans cette tâche.** Elle se calcule avec
+    `cransRequis('light', sens)` pour chaque sens en usage, ce qui rend
+    exactement la liste d'aujourd'hui. M2 l'étend aux deux thèmes avec la
+    lecture des recettes anciennes.
   - `packages/couleur/src/alertes.ts`, `rangsDesVariables` : passe le thème.
   - Tests : `kit/tests/dossiers.test.ts` (tableau `ATTENDUS` par thème et
     sens ; `cransRequis('dark', 'normal')` vaut
     `[100, 200, 300, 400, 500, 600, 700, 800, 900, 950]`),
-    `kit/tests/garanties.test.ts`, `couleur/tests/recette.test.ts`,
-    `couleur/tests/nuances.test.ts`, `PAL/tests/presentation.test.ts`, et ce
-    que la suite signale. Une recette de test sans 400, 500 ou 950 est
-    désormais refusée : lui ajouter ces crans, sauf si le test porte sur ce
-    refus.
-  - Ne pas faire ici : la migration des recettes anciennes (M2).
+    `kit/tests/garanties.test.ts`, `couleur/tests/nuances.test.ts`,
+    `PAL/tests/presentation.test.ts`, et ce que la suite signale. Aucune
+    recette de test n'est réécrite.
   - Vérifier : `npm run build --workspace @ucm-kit/core`, `npm run typecheck`,
     `npm test`, `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert ; l'aperçu de Palettes en Dark peint les fonds teintés
-    aux crans 300, 400, 500 et leur texte au 950 (état de galerie d'un aperçu
-    Dark, vérifié par une capture que l'agent décrit).
+    aux crans 300, 400, 500 et leur texte au 950 (test d'interface sur un
+    état de galerie en Dark, qui lit les couleurs des variables affichées).
 
 - [ ] **R4 · G7 jugée contre la page et la carte** · `implementeur-exigeant`, haut.
-  - Décision : DECISIONS.md, section 4, G7 ; proposition P3. Identifiants
+  - Décision : DECISIONS.md, section 4, G7 ; proposition PR3. Identifiants
     réservés : `[MOT-37]` (la carte déduite, section des promesses du moteur
     de SPEC-PAL) et `[VER-21]` (G7 contre la page et la carte, section des
     promesses de Vérification).
@@ -324,44 +338,72 @@ Palettes, après `test:ui`.
     `{ readonly fondDeLaCarte: true }` ; constante `FOND_DE_LA_CARTE` à côté
     de `FOND_DE_LA_PAGE`. G7 :
     `fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE]`.
-  - Moteur, `couleur/src/promesses.ts` : fonction exportée
-    `couleurDeLaCarte(recette, mode): Rgb8`. Light : `[255, 255, 255]`.
-    Dark : `fabriquerCran(luminositeAuNumero(recette, 'dark', 100), 0, 0, recette.gamut).couleur`
-    (part 0 : un gris sans teinte). `contexteDe` ajoute `cartes` à côté de
-    `fonds` ; `promessesDe` traite la branche `'fondDeLaCarte' in fond` comme
-    celle de la page.
-  - Lecteurs de `'fondDeLaPage' in fond`, à étendre au nouveau membre :
-    `PAL/src/presentation.ts` (la variable du fond vaut `'elevation/raised'`
-    pour la carte), `PAL/src/ui/modeleDesGaranties.ts` (`colonneDuFond` :
-    une colonne « Carte » après « Page »), `PAL/src/planche/modele.ts`,
-    `PAL/src/i18n/fr.ts` et `en.ts` (`variableDuFond` ; libellé
-    `'elevation/raised'` : « fond de la carte », « card background » ; le type
-    `VariableLibellee` le reçoit), `packages/couleur/scripts/mesurer-ancrage.mjs`.
-  - Tests : `couleur/tests/promesses.test.ts`
-    (`[MOT-37] la carte vaut le blanc en Light et un gris du cran 100 en Dark` :
-    R = G = B, entre `#1A1A1A` et `#1E1E1E` avec la recette par défaut),
-    `kit/tests/garanties.test.ts` (G7 a deux fonds, la page et la carte),
-    `PAL/tests/modeleDesGaranties.test.ts`
-    (`[VER-21] G7 se lit contre la page et la carte`), `presentation`,
-    `textes`.
+  - Moteur, `couleur/src/promesses.ts` :
+    - fonction exportée `couleurDeLaCarte(recette, mode): Rgb8`. Light :
+      `[255, 255, 255]`. Dark :
+      `fabriquerCran(luminositeAuNumero(recette, 'dark', 100), 0, 0, recette.gamut).couleur`
+      (part 0 : un gris sans teinte) ;
+    - `contexteDe` ajoute `cartes` à côté de `fonds` ;
+    - la désignation d'un fond extérieur à la palette distingue les deux :
+      `{ nature: 'fond', fond: 'page' | 'carte', couleur }` ; `promessesDe`
+      traite la branche `'fondDeLaCarte' in fond` avec `fond: 'carte'`.
+  - `couleur/src/limites.ts`, `cleDe` : la clé d'une promesse inclut `fond`,
+    pour qu'une promesse manquée contre la carte ne soit pas confondue avec
+    celle tenue contre la page.
+  - Lecteurs à étendre au nouveau fond :
+    - `PAL/src/presentation.ts`, `fondDeLaPromesse` : la variable du fond vaut
+      `'elevation/raised'` pour la carte ;
+    - `PAL/src/ui/modeleDesGaranties.ts` : `colonneDuFond` (une colonne
+      « Carte » après « Page ») et `caseDeLaReglette` (une case Carte) ;
+    - `PAL/src/ui/garanties.ts` : la case Carte de la réglette, sa position,
+      ses arcs, son libellé et son spécimen, sur le modèle de la case Page ;
+    - `PAL/src/planche/modele.ts` ;
+    - `PAL/src/i18n/fr.ts` et `en.ts` : `variableDuFond` ; libellé
+      `'elevation/raised'` : « fond de la carte », « card background » ; le
+      type `VariableLibellee` le reçoit ;
+    - `packages/couleur/scripts/mesurer-ancrage.mjs`.
+  - Tests :
+    - `couleur/tests/promesses.test.ts` :
+      `[MOT-37] la carte vaut le blanc en Light et un gris du cran 100 en Dark`
+      (R = G = B, entre `#1A1A1A` et `#1E1E1E` avec la recette par défaut) ;
+      `[VER-21] G7 tenue contre la page et manquée contre la carte`, qui
+      vérifie les deux désignations distinctes ;
+    - `couleur/tests/limites.test.ts` : avec la même paire de promesses, la
+      limite dynamique ne borne pas le réglage par la promesse de la carte,
+      manquée au départ ;
+    - `kit/tests/garanties.test.ts` (G7 a deux fonds) ;
+      `PAL/tests/modeleDesGaranties.test.ts` (case et colonne Carte),
+      `presentation`, `textes`.
   - Vérifier : comme R3.
-  - Fini quand : vert ; l'onglet Vérification de la galerie montre G7 contre
-    « fond de la page » et « fond de la carte », et non plus contre le fond
-    teinté.
+  - Fini quand : vert ; un état de galerie de Vérification montre la
+    réglette de G7 avec ses deux cases, Page et Carte, et le test d'interface
+    lit leurs libellés.
 
 - [ ] **R5 · Fin de vague** · `verificateur`, puis orchestrateur.
-  - Suite complète et `test:ui` des trois plugins. Commit de chaque tâche,
-    puis push.
+  - Suite complète et `test:ui` des trois plugins. Commits, push.
 
 ### Vague 2 · Le moteur
 
-| Tâche | En parallèle avec |
-|---|---|
-| M1 | R2 si la vague 1 n'est pas finie (fichiers disjoints) |
-| M2 | seule |
-| M3 | seule |
-| M4 | seule |
-| M5 | seule |
+Les tâches sont successives.
+
+- [ ] **M0 · Le banc lit les recettes par la migration** · `implementeur`, moyen.
+  - Pourquoi : `D/Mesures/variantes.ts` valide `recette-mainteneur.json`
+    (format 10) au chargement ; après M2, la validation exigerait le format
+    11 et l'import échouerait. Les mesures historiques gardent leurs données.
+  - `D/Mesures/variantes.ts`, fonction `valider` : lit la recette brute par
+    `classerRecette` du paquet (lisible ou migrée) au lieu de
+    `validerRecette`, puis, pour les mesures historiques, remet les parts
+    communes de la recette brute (`profils.soft.part`, `profils.vivid.part`)
+    à la place de celles de la migration. Une recette refusée lève une
+    erreur qui cite les refus.
+  - Même changement dans les autres scripts de `D/Mesures/` qui appellent
+    `validerRecette` (`git grep -n validerRecette -- "D/Mesures"`), et dans
+    `docs/notes/Recherches/Archi Tokens Multi-marques/generer-vue-illustree.ts`.
+  - Les fichiers de `D/Mesures/references/` ne changent pas.
+  - Vérifier : `FILTRE="retenue au banc" npx tsx "D/Mesures/garanties-regles.ts"`
+    rend le même `GARANTIES-RETENUES.json` qu'avant (diff vide), avant et
+    après M2.
+  - Fini quand : diff vide, et la commande repasse sans erreur après M2.
 
 - [ ] **M1 · La courbe Dark et le fond de page Dark** · `implementeur`, moyen.
   - Décision : DECISIONS.md, section 2, « La courbe Dark ».
@@ -371,78 +413,102 @@ Palettes, après `test:ui`.
   - `packages/couleur/src/recette.ts`, `recetteParDefaut` :
     `fonds.dark: '#0A0A0A'`. `fonds.light` reste `'#F7F7F7'`.
   - Ne change pas : `alertesDesFonds`, `TOLERANCE_FOND`, les courbes et
-    fonds d'une recette existante (aucune migration ne les touche).
+    fonds rangés d'une recette.
   - `packages/couleur/src/palette.ts`, `borneDesFonds` : lit le cran 50 de la
-    courbe ; une recette neuve y trouve 0,145. Le comportement suit, sans
-    changement de code.
+    courbe, ou celui du préréglage 11 s'il manque ; les deux donnent
+    désormais 0,145. Aucun changement de code.
   - Tests : `couleur/tests/fondsSombres.test.ts` (la borne d'une recette
-    neuve vaut `clarteBasse: 0.145` ; garder un cas d'une recette à 0,18),
-    `couleur/tests/nuances.test.ts`, `couleur/tests/recette.test.ts`, et ce
-    que la suite signale dans `PAL/tests/` (Configuration : le défaut du fond
-    Dark).
+    neuve vaut `clarteBasse: 0.145`), `couleur/tests/nuances.test.ts`,
+    `couleur/tests/recette.test.ts`, et ce que la suite signale dans
+    `PAL/tests/` (Configuration : le défaut du fond Dark).
   - Vérifier : `npm test --workspace ucm-couleur`,
     `npm test --workspace ucm-palettes-plugin`.
   - Fini quand : vert ; `#0A0A0A` ne déclenche pas `alertesDesFonds` contre la
     courbe par défaut (test).
 
-- [ ] **M2 · Le format 11 : enveloppe, crans requis, migration** · `implementeur-exigeant`, haut.
-  - Décisions : Q3 ; propositions P1 et P4. Identifiants réservés :
-    `[REC-12]` (le format 11 et la migration du format 10) et `[REC-13]`
-    (les crans requis ajoutés par la migration), section de la recette de
-    SPEC-PAL.
+- [ ] **M2 · Le format 11, en un lot** · `implementeur-exigeant`, haut.
+  - Décisions : Q3 ; propositions PR1, PR2 et PR4. Identifiants réservés :
+    `[REC-12]` (le format 11 et la lecture des formats 8 à 10) et `[REC-13]`
+    (les crans requis des deux thèmes), section de la recette de SPEC-PAL.
+  - Ce lot définit tout le format 11 et le raccorde en une fois : schéma,
+    validation, crans requis, lecture des anciens formats, configuration.
+    L'algorithme de la règle (M3) et celui de la dérive (M4) viennent après ;
+    ce lot les laisse inchangés.
   - `packages/couleur/src/recette.ts` :
     - `FORMAT_RECETTE = 11`.
-    - Les types `BornesDeChroma` et `ProfilDeRecette` de P1 ;
-      `Recette.profils` devient `{ soft: ProfilDeRecette; vivid: ProfilDeRecette }`.
-    - Constante exportée `ENVELOPPES_PAR_DEFAUT` aux valeurs de P1 ;
-      `recetteParDefaut` : `profils.soft = { part: 0.85, enveloppe: ENVELOPPES_PAR_DEFAUT.soft }`,
-      `profils.vivid = { part: 0.95, enveloppe: ENVELOPPES_PAR_DEFAUT.vivid }`.
-    - `validerRecette` : `profils.soft` et `profils.vivid` acceptent les clés
-      `part` et `enveloppe` (facultative). Si `enveloppe` est présente, elle a
-      exactement `light` et `dark`, chacun exactement `a`, `b`, `jaunes` ;
-      `a` et `b` dans `]0 ; 2]`, `jaunes` dans `[0 ; 2]`. Sinon refus de la
-      nouvelle règle `'enveloppe'` sur le chemin fautif
-      (`profils.soft.enveloppe.light.a`). Ajouter `'enveloppe'` à
-      `RegleRecette` et son message dans `PAL/src/i18n/fr.ts` et `en.ts`, sur
-      le modèle des messages de refus voisins.
-    - `classerRecette` : réécrire la chaîne en étapes successives, une
-      fonction par format (`depuisLeFormat8`, `depuisLeFormat9`,
-      `depuisLeFormat10`), chacune rendant le format suivant ; une recette 8
-      passe par 9 et 10 avant 11. L'étape 10 vers 11 :
-      1. pose `formatVersion: 11` ;
-      2. garde `profils` tels quels, sans enveloppe ;
-      3. ajoute à `crans` ceux de 400, 500 et 950 qui manquent, triés, et
-         insère dans `courbes.light` et `courbes.dark` la valeur
-         `luminositeAuNumero(ancienneGrille, mode, numero)` au même rang ;
-      4. laisse `fonds`, `courbes` existantes, `derives` et `palettes`
-         (M4 complète cette étape pour `derives`).
-    - Une lecture n'écrit rien : la recette reste rangée au format 10 dans
-      Figma jusqu'à la prochaine écriture, comme aujourd'hui.
-  - `PAL/src/configuration.ts` : la carte des intensités (`parts` dans
-    `CARTES_DES_REGLAGES`) compare aussi `enveloppe` à la recette par défaut
-    dans `estParDefaut`, et « Par défaut » (`poserValeur`) pose `part` et
-    `enveloppe` des deux profils. Une recette migrée n'est donc pas « par
-    défaut » : son bouton est actif.
+    - Les types de PR1 ; `Recette.profils` devient
+      `{ soft: ProfilDeRecette; vivid: ProfilDeRecette }`. Constante exportée
+      `PROFILS_PAR_DEFAUT` aux valeurs de PR1 ; `recetteParDefaut` la copie.
+    - Le type `RampeDeDerive` de PR2 remplace `PaireDeDerive` pour
+      `Recette.derives`. `RELEVE_TAILWIND` (dans `tailwind.ts`) prend cette
+      forme : les 17 rampes colorées de Tailwind 3.4.17 (sans `slate`,
+      `gray`, `zinc`, `neutral`, `stone`), chacune avec ses onze crans
+      `[L, H]` du 50 au 950, L à 4 décimales, H à 2 décimales. Source :
+      `D/Mesures/references/tailwind-3.4.17.json`, converti par
+      `rgb8VersOklch(lireHexa(hexa))` du paquet ; l'agent génère le tableau
+      par un script jetable et le colle, avec un commentaire qui nomme la
+      source et la version.
+    - `tailwind.ts` garde son algorithme dans ce lot : `deriveTailwind` lit,
+      pour chaque rampe, la teinte de son premier et de son dernier cran, qui
+      tiennent la place des anciennes teintes claire et sombre.
+    - `validerRecette` : chaque profil a exactement `part` et `enveloppe` ;
+      l'enveloppe a exactement `p0`, `light` et `dark`, chacun de ceux-ci
+      exactement `a`, `b`, `jaunes`. `p0` dans `]0 ; 1]`, `a` et `b` dans
+      `]0 ; 2]`, `jaunes` dans `[0 ; 2]`. Sinon refus de la nouvelle règle
+      `'enveloppe'` sur le chemin fautif (`profils.soft.enveloppe.light.a`).
+      `validerDerives` : refus `derives-nombre` (moins de deux rampes),
+      `derives-noms` (nom vide ou en double), et nouveau refus `derives-crans`
+      (une rampe de moins de deux crans, un L hors de `]0 ; 1[`, un H hors de
+      `[0 ; 360[`, des L non strictement décroissants) ; `derives-teintes` et
+      `derives-teintes-claires` disparaissent. Ajouter les règles nouvelles à
+      `RegleRecette` et leurs messages dans `PAL/src/i18n/fr.ts` et `en.ts`,
+      sur le modèle des messages de refus voisins.
+    - Crans requis : la réunion de `cransRequis(mode, sens)` pour les deux
+      thèmes, chacun dans son sens. Mettre à jour le commentaire qui dit
+      « 50, 400 et 950 sont facultatifs » : seul 50 l'est.
+    - `classerRecette` : une fonction par étape (`depuisLeFormat8`,
+      `depuisLeFormat9`, `depuisLeFormat10`), chacune rendant le format
+      suivant ; une recette 8 passe par 9 et 10. Avant toute transformation,
+      la forme ancienne se vérifie : `crans` ou `courbes` absents, ou un champ
+      du format 11 (`enveloppe`, une rampe de `derives` en objet) dans une
+      recette plus ancienne, la classent `illisible`, sans exception levée.
+      L'étape 10 vers 11 applique PR4 : `formatVersion: 11` ; `profils` =
+      `PROFILS_PAR_DEFAUT` ; ajout des crans 400, 500 et 950 manquants, triés,
+      avec dans `courbes.light` et `courbes.dark` la valeur
+      `luminositeAuNumero(ancienneGrille, mode, numero)` au même rang ;
+      `derives` = `RELEVE_TAILWIND` ; le reste tel quel.
+  - `PAL/src/configuration.ts` :
+    - `poserValeur` sur une part garde les autres champs du profil, dont
+      `enveloppe` : `{ ...profil, part: valeur }` ;
+    - `retablir(recette, 'parts')` pose `PROFILS_PAR_DEFAUT` ;
+    - `estParDefaut` compare les parts et les enveloppes ;
+    - `palettesModifiees` ne change pas : `p0` ne suit pas la part commune
+      (PR1).
+  - Témoins : trois fichiers `packages/couleur/tests/fixtures/recettes/format-8.json`,
+    `format-9.json`, `format-10.json`, des recettes valides dans leur forme
+    d'origine, jamais réécrites ensuite ; celle du format 10 a une liste sans
+    400 ni 950. Les tests de recette qui fabriquaient une recette au format
+    courant passent au format 11 ; ceux qui portent sur un ancien format
+    lisent un témoin.
   - Tests, `couleur/tests/recette.test.ts` :
-    `[REC-12] une recette 10 se lit en 11 sans enveloppe, parts gardées`,
+    `[REC-12] une recette 10 se lit en 11, aux profils et au relevé par défaut`,
     `[REC-12] une recette 8 passe par 9 et 10`,
+    `[REC-12] une forme ancienne sans courbes est illisible, sans exception`,
+    `[REC-12] une enveloppe dans une recette 10 la rend illisible`,
     `[REC-12] une enveloppe hors bornes est refusée`,
-    `[REC-13] la migration ajoute 400, 500 et 950 à une liste qui en manque`,
-    et le test qui fige « le format suivant » passe de 11 à 12.
-    `PAL/tests/configuration.test.ts` : « Par défaut » des intensités pose
-    l'enveloppe. Mettre à jour les tests qui figent `soft 0.45`
-    (`couleur/tests/base.test.ts` et voisins) en recette par défaut : 0,85.
-    Une recette de test qui doit garder la part constante n'a pas
-    d'enveloppe.
-  - Ne pas faire ici : la règle de chroma elle-même (M3) ; avec ce lot seul,
-    l'enveloppe est rangée mais pas encore lue.
-  - Vérifier : `npm test --workspace ucm-couleur`,
-    `npm test --workspace ucm-palettes-plugin`,
-    `npm test --workspace ucm-explorateur-plugin`, `npm run typecheck`.
+    `[REC-12] la lecture n'écrit rien, et ranger puis relire rend la même recette`,
+    `[REC-13] la lecture ajoute 400 et 950 au témoin du format 10`,
+    `[REC-13] une recette 11 sans 950 est refusée`, refus `derives-crans` ;
+    le test qui fige « le format suivant » passe de 11 à 12.
+    `PAL/tests/configuration.test.ts` : une saisie de part garde l'enveloppe ;
+    « Par défaut » des intensités pose parts et enveloppes ; une recette
+    migrée est « par défaut ». Les tests qui figent `soft 0.45` en recette
+    par défaut passent à 0,85.
+  - Vérifier : `npm run typecheck`, `npm test` (racine).
   - Fini quand : vert.
 
 - [ ] **M3 · La règle de chroma** · `implementeur-exigeant`, haut.
-  - Décision : DECISIONS.md, section 2, Q1 et Q2 ; proposition P1.
+  - Décision : DECISIONS.md, section 2, Q1 et Q2 ; proposition PR1.
     Identifiant réservé : `[MOT-35]`, section de la fabrication des rampes de
     SPEC-PAL. Code de référence : `D/Mesures/prototype.ts`,
     `enveloppeAvecJaunes` et `rampesDuBanc` ; `D/Mesures/variantes.ts`,
@@ -459,24 +525,25 @@ Palettes, après `test:ui`.
       return { L, H, C: Math.min(C, enveloppe.p0 * Math.min(enveloppe.a * marge * (1 - L), enveloppe.b * L)) };
       ```
       `ecartAngulaire` vit dans `tailwind.ts`, qui importe `rampe.ts` : le
-      déplacer dans `conversions.ts` (ou y écrire une fonction locale) pour
-      éviter l'import circulaire, et le réexporter de `tailwind.ts`.
-    - `cranFlottant`, `fabriquerCran` reçoivent le même dernier paramètre
+      déplacer dans `conversions.ts` et le réexporter de `tailwind.ts`.
+    - `cranFlottant` et `fabriquerCran` reçoivent le même dernier paramètre
       facultatif et le transmettent.
-    - `ParametresRampe` reçoit `enveloppes?: { light: Enveloppe; dark: Enveloppe }` ;
-      `fabriquerRampe` passe `enveloppes?.[mode]`. La part transmise garde
-      Color shift et `facteurSombre` ; `p0` ne les prend pas.
+    - `ParametresRampe` reçoit `enveloppe?: Enveloppe` ; `fabriquerRampe` la
+      passe à chaque cran. La part transmise garde Color shift et
+      `facteurSombre` ; `p0` ne les prend pas. Sans enveloppe, le calcul est
+      celui d'aujourd'hui : les tests qui fabriquent un cran sans recette ne
+      changent pas.
   - `packages/couleur/src/palette.ts` : fonction exportée
-    `enveloppeDe(recette, intensite, mode): Enveloppe | undefined`. Le profil
-    vaut `soft` pour l'intensité Soft, `vivid` pour Vivid et pour l'intensité
-    unique ; sans `enveloppe` dans ce profil, `undefined` ; sinon
-    `{ p0: recette.profils[profil].part, ...enveloppe[mode] }`.
-    `parametresDesRampes` la passe pour les deux thèmes.
+    `enveloppeDe(recette, intensite, mode): Enveloppe`. Le profil vaut `soft`
+    pour l'intensité Soft, `vivid` pour Vivid et pour l'intensité unique ;
+    elle rend `{ p0, ...bornes du mode }` de ce profil.
+    `parametresDesRampes(recette, palette)` rend déjà une fonction de
+    `(intensite, mode)` : elle y ajoute `enveloppe: enveloppeDe(recette, intensite, mode)`.
     `partDeLaReference` ne change pas (le prototype garde `partsDe`).
-  - Autres fabricants de crans, à mettre sur la même règle :
-    `reconstruction.ts` (la copie flottante de `fabriquerRampe` et les appels
-    de `fabriquerCran`), `garantie.ts` (`garantieDesCourbes` : l'enveloppe du
-    profil et du thème jugés), `PAL/src/ui/derive/editeur.ts` et
+  - Autres fabricants de crans, sur la même règle : `reconstruction.ts` (la
+    copie flottante de `fabriquerRampe` et les appels de `fabriquerCran`),
+    `garantie.ts` (`garantieDesCourbes` : l'enveloppe du profil et du thème
+    jugés), `PAL/src/ui/derive/editeur.ts` et
     `PAL/src/ui/reglagesDeLaPalette.ts` (les pistes peintes : l'enveloppe du
     profil réglé, dans le thème que la piste peint). `reglages.ts`,
     `ajustement.ts` et `contraste.ts` calculent la part de la référence : ne
@@ -491,66 +558,48 @@ Palettes, après `test:ui`.
       même cran à H 100, marge 2 ; Vivid Dark, L 0,20, H 30 ; un cran où
       `part × plafond` est le plus petit) ;
     - `[MOT-35] la marge des jaunes ne joue pas en Dark` ;
-    - `[MOT-35] les rampes de la recette par défaut suivent le prototype` :
-      trois références (`#3B82F6`, `#EAB308`, `#16A34A`), deux intensités,
-      deux thèmes ; les hexadécimaux attendus sont écrits dans le test. Pour
-      les obtenir, l'agent écrit un script jetable dans son répertoire
-      temporaire qui appelle `rampesDuBanc(recette, palette, REGLE_FINALE)`
-      sur la recette par défaut du paquet, et colle la sortie. Le script ne
-      se commite pas.
-  - Mesure de contrôle, par le `verificateur` après le lot : un script
-    `D/Mesures/comparer-implementation.ts` (écrit par l'agent, commité dans
-    `D/Mesures/`) compare, sur le balayage de 72 teintes de
-    `garanties-regles.ts`, `rampesDe` du paquet et `rampesDuBanc` avec
-    `REGLE_FINALE`, recette par défaut du paquet. Attendu : aucun canal ne
-    diffère de plus d'une unité.
+    - `[MOT-35] les rampes suivent le prototype` : des hexadécimaux écrits
+      dans le test, pour six palettes de la recette par défaut : `#3B82F6`,
+      `#EAB308` et `#16A34A` à deux intensités ; `#B15152` à une intensité ;
+      `#3B82F6` avec une teinte réglée à +8° et une luminosité à −0,02 ;
+      `#EAB308` avec des parts propres 0,6 et 1. Deux thèmes chacune. Pour les
+      obtenir, l'agent écrit un script jetable qui appelle
+      `rampesDuBanc(recette, palette, REGLE_FINALE)` sur ces palettes et
+      colle la sortie ; le script ne se commite pas.
+  - Mesure de contrôle, après le lot : un script
+    `D/Mesures/comparer-implementation.ts` (écrit par l'agent, commité)
+    compare `rampesDe` du paquet et `rampesDuBanc` avec `REGLE_FINALE`, sur
+    les palettes du balayage de `garanties-regles.ts` (72 teintes, deux
+    clartés de référence, deux profils), recette par défaut du paquet, dans
+    les quatre couples de texte des boutons. Attendu : aucun canal ne diffère
+    de plus d'une unité.
   - Vérifier : `npm run typecheck`, `npm test --workspace ucm-couleur`,
     `npm test --workspace ucm-palettes-plugin`,
-    `npx tsx "D/Mesures/comparer-implementation.ts"` (chemin entre
-    guillemets).
+    `npx tsx "D/Mesures/comparer-implementation.ts"`.
   - Fini quand : vert et la comparaison est sans écart.
 
 - [ ] **M4 · La dérive de teinte aux deux bouts** · `implementeur`, moyen.
-  - Décision : DECISIONS.md, section 2, Q10 ; proposition P2. Identifiant
-    réservé : `[MOT-36]`, section du préréglage Tailwind de SPEC-PAL, qui
-    remplace les règles de `[MOT-19]` sur la dérive totale (garder
-    `[MOT-19]`, réécrire son texte, ne pas supprimer l'identifiant).
-  - `packages/couleur/src/tailwind.ts` :
-    - Le type `RampeDeDerive` de P2 remplace `PaireDeDerive`.
-    - `RELEVE_TAILWIND` : les 17 rampes colorées de Tailwind 3.4.17 (sans
-      `slate`, `gray`, `zinc`, `neutral`, `stone`), chacune avec ses onze
-      crans `[L, H]` du 50 au 950, L à 4 décimales, H à 2 décimales. Source :
-      `D/Mesures/references/tailwind-3.4.17.json`, converti par
-      `rgb8VersOklch(lireHexa(hexa))` du paquet. L'agent génère le tableau
-      par un script jetable et le colle ; un commentaire nomme la source et
-      la version.
-    - `prereglageTailwind(reference, bouts, releve)` garde sa signature et
-      son résultat `{ clair, sombre }` arrondi au centième, et son cas sans
-      teinte (`reference.C < CHROMA_SANS_TEINTE`). Son calcul devient celui de
-      `deriveAuxBouts` du prototype : teinte de chaque rampe lue à la clarté
-      de la référence (teintes dépliées, interpolation entre crans, bornée
-      aux extrémités), choix des deux rampes voisines sur le cercle, dérive
-      lue à `bouts.clair` et à `bouts.sombre`, interpolée selon la teinte.
-    - `deriveTailwind` disparaît, avec ses tests.
-  - `packages/couleur/src/recette.ts` : `Recette.derives` prend
-    `readonly RampeDeDerive[]` ; `recetteParDefaut` le copie de
-    `RELEVE_TAILWIND`. `validerDerives` : refus `derives-nombre` (moins de
-    deux rampes), `derives-noms` (nom vide ou en double), et nouveau refus
-    `derives-crans` (une rampe de moins de deux crans, un L hors de `]0 ; 1[`,
-    un H hors de `[0 ; 360[`, des L non strictement décroissants).
-    `derives-teintes` et `derives-teintes-claires` disparaissent de
-    `RegleRecette` et des messages `i18n`. L'étape `depuisLeFormat10` de M2
-    remplace `derives` par `RELEVE_TAILWIND`.
-  - Lecteurs : `reconstruction.ts` (passe `recette.derives`),
-    `PAL/src/edition.ts`, `packages/couleur/scripts/mesurer-*.mjs`.
+  - Décision : DECISIONS.md, section 2, Q10. Identifiant réservé :
+    `[MOT-36]`, section du préréglage Tailwind de SPEC-PAL, qui remplace les
+    règles de `[MOT-19]` sur la dérive totale (garder `[MOT-19]`, réécrire son
+    texte, ne pas supprimer l'identifiant).
+  - `packages/couleur/src/tailwind.ts` : `prereglageTailwind(reference, bouts, releve)`
+    garde sa signature, son résultat `{ clair, sombre }` arrondi au centième
+    et son cas sans teinte (`reference.C < CHROMA_SANS_TEINTE`). Son calcul
+    devient celui de `deriveAuxBouts` du prototype : teinte de chaque rampe
+    lue à la clarté de la référence (teintes dépliées, interpolation entre
+    crans, bornée aux extrémités), choix des deux rampes voisines sur le
+    cercle, dérive lue à `bouts.clair` et à `bouts.sombre`, interpolée selon
+    la teinte. `deriveTailwind` disparaît, avec ses tests.
+  - Lecteurs : `reconstruction.ts`, `PAL/src/edition.ts`,
+    `packages/couleur/scripts/mesurer-*.mjs` (signature inchangée : rien à
+    faire, sinon vérifier).
   - Tests : `couleur/tests/tailwind.test.ts` (réécrit :
     `[MOT-36] la dérive se lit aux deux bouts des rampes voisines`, avec les
     références de cran 500 de cinq rampes, dont `amber` et `yellow`, et les
     valeurs attendues obtenues par `deriveAuxBouts` du prototype, script
-    jetable) ; `couleur/tests/vecteurs.test.ts` (valeurs figées à
-    recalculer de la même façon) ; `couleur/tests/recette.test.ts`
-    (`[REC-12] la migration remplace le relevé`, refus `derives-crans`) ;
-    `PAL/tests/edition.test.ts`.
+    jetable) ; `couleur/tests/vecteurs.test.ts` (valeurs figées à recalculer
+    de la même façon) ; `PAL/tests/edition.test.ts`.
   - Vérifier : `npm run typecheck`, `npm test --workspace ucm-couleur`,
     `npm test --workspace ucm-palettes-plugin`.
   - Fini quand : vert ; un test vérifie que le pire écart de teinte à
@@ -558,11 +607,11 @@ Palettes, après `test:ui`.
     référence, ne dépasse pas 12,5°.
 
 - [ ] **M5 · L'alerte des palettes trop proches (C6)** · `implementeur-exigeant`, haut.
-  - Décision : DECISIONS.md, section 5, C6 ; SPEC-ECRANS-HARMONISATION.md,
-    section 7.3 et section 10, « Paires ». Identifiant réservé : `[VER-22]`,
-    section des alertes de Vérification de SPEC-PAL ; il remplace la règle de
-    `[VER-11]` sur les crans 500 à 700 (réécrire le texte de `[VER-11]`, ne
-    pas supprimer l'identifiant).
+  - Décision : DECISIONS.md, section 5, C6 ; SPEC, sections 7.3 et 10,
+    « Paires ». Identifiant réservé : `[VER-22]`, section des alertes de
+    Vérification de SPEC-PAL ; il remplace la règle de `[VER-11]` sur les
+    crans 500 à 700 (réécrire le texte de `[VER-11]`, ne pas supprimer
+    l'identifiant).
   - `packages/couleur/src/alertes.ts` :
     - `CRANS_PALETTES_PROCHES` et `distanceDePalettes` disparaissent.
     - Constante `CHROMA_DES_PALETTES_COLOREES = 0.05` : une palette est
@@ -581,7 +630,8 @@ Palettes, après `test:ui`.
     - `alertesDeRecette` : l'alerte `palettes-proches` porte la proximité au
       lieu de la distance ; seuil inchangé, `recette.seuils.palettesProches`.
     - Fonction exportée `pairesTropProches(recette)` : toutes les paires en
-      alerte, par distance croissante, pour l'onglet Harmonisation.
+      alerte, par distance croissante, avec les identifiants des deux
+      palettes.
   - `PAL/src/analyse.ts` reconstruit aujourd'hui l'alerte seul : le faire
     lire `proximiteDePalettes`, pour une seule source.
   - Vérification, constat : `PAL/src/i18n/fr.ts`, `procheDe(nom)` rend
@@ -592,45 +642,49 @@ Palettes, après `test:ui`.
   - Tests : `couleur/tests/alertes.test.ts`
     (`[VER-22] le plein en Light et en Dark, le texte du fond en Light`,
     `[VER-22] le texte Dark n'entre pas`, `[VER-22] deux neutres ne se
-    comparent pas`, `[VER-22] presque identiques sous 0,01`),
+    comparent pas`, `[VER-22] presque identiques sous 0,01`,
+    `[VER-22] une palette à une intensité se compare sur sa rampe`),
     `intensites.test.ts`, `nuances.test.ts`, `PAL/tests/analyse.test.ts`,
     `bilanDesPalettes.test.ts`, `paletteOuverte.test.ts`, `rapport.test.ts`,
     `presentation.test.ts`, `textes.test.ts` ;
     `tests/interface/interface.test.mjs` (les expressions qui attendent
     « ΔEok » attendent « trop proche de »).
-  - Contrôle : sur `D/Mesures/references/recette-mainteneur.json`, aucune
-    paire en alerte ; sur le jeu de la galerie (`PAL/galerie/etats.cjs`,
-    recette de l'état `verification-bilan-a-verifier`), 12 paires (compte de
-    DOSSIER-COMPARER.md). Un autre compte s'explique avant de finir.
+  - Contrôle : sur la recette de l'état de galerie
+    `verification-bilan-a-verifier`, le nombre de paires est rapporté et
+    l'orchestrateur le compare aux 12 de DOSSIER-COMPARER.md, mesurées avec
+    l'ancien moteur ; un écart s'explique par la règle de chroma, ou se
+    signale.
   - Vérifier : `npm run typecheck`, `npm test --workspace ucm-couleur`,
     `npm test --workspace ucm-palettes-plugin`,
     `npm run test:ui --workspace ucm-palettes-plugin`.
-  - Fini quand : vert et comptes conformes.
+  - Fini quand : vert.
 
-- [ ] **M6 · Fin de vague** · `verificateur`, puis orchestrateur.
-  - Suite complète, `test:ui` de Palettes, puis la mesure des garanties sur
-    le moteur : script `D/Mesures/verifier-implementation.ts`, écrit par un
-    `implementeur` (moyen) sur le modèle de `garanties-regles.ts`, qui juge
-    `verifierPromesses` du paquet sur le balayage de 72 teintes, recette par
-    défaut. Attendu : des échecs G1 seulement, de l'ordre des 144 mesurés ;
-    tout échec G2 à G7 arrête la vague.
-  - Commits, push.
+- [ ] **M6 · Fin de vague : les garanties sur le moteur** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  - Protocole, écrit par l'`implementeur` :
+    - `D/Mesures/garanties-regles.ts` reçoit un mode « produit » (variable
+      d'environnement `MODE=produit`) qui ne juge que les garanties du
+      produit : G1 à G6 contre leurs fonds de la table, la page étant le seul
+      fond extérieur, et G7 contre la page et la carte. Les mesures
+      supplémentaires du banc (les autres garanties contre la carte) restent
+      dans le mode par défaut, compté à part.
+    - `D/Mesures/verifier-implementation.ts` juge `verifierPromesses` du
+      paquet sur exactement les mêmes entrées : les références, parts,
+      dérives, courbes et quatre couples de texte des boutons du balayage,
+      règle et table retenues, page et carte par défaut.
+  - Le `verificateur` lance les deux et rend les comptes par garantie.
+  - Fini quand : les deux comptes sont égaux garantie par garantie, et
+    seule G1 échoue. L'orchestrateur écrit le compte obtenu dans
+    DECISIONS.md, section 4, à la place de la mesure du banc.
+  - Puis : suite complète, `test:ui` de Palettes, commits, push.
 
 ### Vague 3 · Palettes hors Harmonisation
 
-| Tâche | En parallèle avec |
-|---|---|
-| P1 | P2 |
-| P2 | P1 |
-| P3 | seule (socle partagé) |
-| P4 | seule (socle partagé) |
-| P5 | seule |
-| P6 | seule |
-| P7 | seule (après P6, même réglette) |
+Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
+`tests/interface/interface.test.mjs`.
 
 - [ ] **P1 · Le bilan de Vérification à 480 px** · `implementeur`, moyen.
-  - SPEC-ECRANS-HARMONISATION.md, section 6, dernier point ;
-    DOSSIER-COMPARER.md, section 12, « Le bilan à 480 px ».
+  - SPEC, section 6, dernier point ; DOSSIER-COMPARER.md, section 12,
+    « Le bilan à 480 px ».
   - `PAL/src/ui/styles.css` : `.bilan-des-palettes` reçoit
     `grid-template-columns: minmax(0, 1fr)`. `.nuancier-des-palettes` passe
     de `repeat(7, 60px)` à `repeat(7, minmax(0, 60px))`, et les cartes du
@@ -644,7 +698,7 @@ Palettes, après `test:ui`.
 
 - [ ] **P2 · « Par défaut » remplace « Rétablir »** · `implementeur`, moyen.
   - C10 ; DOSSIER-COMPARER.md, section 12, « Deux sens de Rétablir » ;
-    SPEC-ECRANS-HARMONISATION.md, sections 3.3 et 4.
+    SPEC, sections 3.3 et 4.
   - `PAL/src/i18n/fr.ts` et `en.ts` :
 
     | Clé | Français | Anglais |
@@ -658,7 +712,9 @@ Palettes, après `test:ui`.
 
     `TEXTES.retablir` (la barre, après « Annuler les modifications ») ne
     change pas. `retablirAuBout` : garder le sens, remplacer « Rétablir » par
-    « Remettre par défaut » s'il y paraît.
+    « Remettre par défaut » s'il y paraît. Les commentaires qui citent ces
+    libellés (le contrat de `toutRetablir` dans `PAL/src/edition.ts`, par
+    exemple) suivent.
   - Mettre à jour `build-galerie.cjs` (`chemins`), les tests d'interface et
     de textes qui cherchent ces libellés.
   - Vérifier : `npm test --workspace ucm-palettes-plugin`,
@@ -667,8 +723,8 @@ Palettes, après `test:ui`.
     rien.
 
 - [ ] **P3 · Les listes déroulantes du socle** · `implementeur`, moyen.
-  - C10 ; SPEC-ECRANS-HARMONISATION.md, section 5, et les quatre dernières
-    règles CSS de la section 9 (`select`, `select.input`, `:hover`,
+  - C10 ; SPEC, section 5, et les quatre dernières règles CSS de la section 9
+    (`select`, `select.input`, `:hover`,
     `.champ-prereglage, .carte-choix select.input`). Identifiant réservé :
     `[UI-37]`, section de l'interface commune de SPEC-PAL.
   - `SOC/src/ui/socle.css` : `button, input, select { font: inherit; }` ;
@@ -677,8 +733,7 @@ Palettes, après `test:ui`.
     `currentColor`, ou deux images selon le thème du socle. Ne pas coder
     `#b3b3b3` seul.
   - `PAL/src/ui/styles.css` : la règle des listes de 24 px, si elle ne vit
-    pas mieux dans le socle (`.carte-choix` est une classe du socle ou de
-    Palettes : la règle suit la classe).
+    pas mieux dans le socle (la règle suit la classe `.carte-choix`).
   - Ne change pas : la liste de la langue (32 px, pleine largeur).
   - Tests : `PAL/tests/interface/interface.test.mjs`,
     `[UI-37] une liste prend la police de l'interface et 24 px parmi des boutons`
@@ -689,8 +744,8 @@ Palettes, après `test:ui`.
   - Fini quand : vert.
 
 - [ ] **P4 · Le bouton « Configuration » nommé** · `implementeur`, moyen.
-  - C9 ; SPEC-ECRANS-HARMONISATION.md, section 4, premier point, et la règle
-    `.icon-button.avec-libelle` de la section 9 ; proposition P5.
+  - C9 ; SPEC, section 4, premier point, et la règle
+    `.icon-button.avec-libelle` de la section 9 ; proposition PR5.
     Identifiant réservé : `[ENT-21]`, section de l'en-tête de SPEC-PAL.
   - `SOC/src/ui/EnTete.ts`, `createSettingsButton` : reçoit un libellé
     visible facultatif ; présent, le bouton prend la classe `avec-libelle`,
@@ -702,7 +757,7 @@ Palettes, après `test:ui`.
   - Exporter : `packages/plugin-exporter/src/ui/components/Header.ts`, même
     libellé et `title` (textes de l'Exporter, en français seulement s'il n'a
     pas d'anglais).
-  - Explorateur : rien (P5).
+  - Explorateur : rien (PR5).
   - Tests : `test:ui` de Palettes (`[ENT-21] le bouton d'en-tête dit
     Configuration`) et d'Exporter (son test qui prend `.icon-button` par
     position doit le trouver encore).
@@ -711,7 +766,7 @@ Palettes, après `test:ui`.
   - Fini quand : vert.
 
 - [ ] **P5 · La Configuration en deux onglets** · `implementeur`, moyen.
-  - C9 ; SPEC-ECRANS-HARMONISATION.md, section 4, points 2 à 5. Modèle :
+  - C9 ; SPEC, section 4, points 2 à 5. Modèle :
     `packages/plugin-exporter/src/ui/components/ConfigurationPage.ts`
     (`createOnglets`, `p.subtitle`, phrases par onglet). Identifiant
     réservé : `[ENT-20]`, section des réglages communs de SPEC-PAL ; mettre à
@@ -725,8 +780,8 @@ Palettes, après `test:ui`.
     les cartes de `createConfiguration` dans le panneau `palettes`. Le
     panneau reste `inert` pendant un dessin, sauf la langue, comme
     aujourd'hui.
-  - Textes : SPEC-ECRANS-HARMONISATION.md, section 8, lignes « Onglets de la
-    Configuration », « Phrase Palettes », « Phrase Général ».
+  - Textes : SPEC, section 8, lignes « Onglets de la Configuration »,
+    « Phrase Palettes », « Phrase Général ».
   - L'onglet actif se garde pendant la session ; chaque ouverture du panneau
     revient sur `Palettes`.
   - Galerie : l'état `configuration-de-la-recette` montre l'onglet Palettes ;
@@ -738,39 +793,46 @@ Palettes, après `test:ui`.
   - Fini quand : vert.
 
 - [ ] **P6 · Réglage global : la marque par défaut** · `implementeur-exigeant`, haut.
-  - C8 ; SPEC-ECRANS-HARMONISATION.md, sections 2, 3.1 et 3.2 en entier,
-    règles CSS de la section 9 de `.reglette-defaut` à `.tete-des-reglages .btn`.
-    Écran de référence : `D/Maquettes/MAQUETTE-COMPARER.html`, section 1,
-    fonctions `reglagePropose`, `marquer`, `replier`, `voisine`, `eviter`.
+  - C8 ; SPEC, sections 2, 3.1 et 3.2 en entier, règles CSS de la section 9
+    de `.reglette-defaut` à `.tete-des-reglages .btn`. Écran de référence :
+    `D/Maquettes/MAQUETTE-COMPARER.html`, section 1, fonctions
+    `reglagePropose`, `marquer`, `replier`, `voisine`, `eviter`.
     Identifiant réservé : `[UI-38]`, section de Création de SPEC-PAL.
   - Fichiers : `PAL/src/ui/derive/reglette.ts` (marque, libellé, bouts : des
     options de `createReglette`, pour que Color shift et Harmonisation les
     reprennent), `PAL/src/ui/reglagesDeLaPalette.ts` (« Tout par défaut »,
     valeurs par défaut, pastille, nom de l'autre profil dans
     `.fantome-du-profil`), `PAL/src/ui/ongletCreation.ts`
-    (`resumeDesReglages`), `PAL/src/ui/styles.css`, `i18n` (section 8 : bouton,
-    libellé, résumés, bouts, familles).
+    (`resumeDesReglages`), `PAL/src/ui/styles.css`, `i18n` (section 8 :
+    bouton, libellé, résumés, bouts, familles).
   - La classe `.pastille-reglee` existe déjà (`styles.css`) : la réemployer.
     `.bouton-discret:disabled` existe aussi.
   - Familles de teinte : constante dans un module sans DOM (par exemple
     `PAL/src/familles.ts`), testée seule :
     `[UI-38] 257° a pour voisines turquoise et violet`.
+  - La saturation par défaut d'un profil est sa part commune, ou pour le
+    profil qui porte la référence la saturation de la référence (SPEC,
+    section 3.2, « Valeurs par défaut »).
   - Galerie : l'état `reglages-reference-modifiee` montre la carte ouverte
     avec une réglette modifiée ; ajouter `reglages-par-defaut` (rien de
     modifié, « Tout par défaut » inactif).
   - Contrôle visuel : capture de l'état contre l'écran de la maquette
-    (SPEC-ECRANS-HARMONISATION.md, section 12, ancre `#r-reglage`) ; écarts
-    admis : section 11.
+    (SPEC, section 12, ancre `#r-reglage`) ; écarts admis : section 11.
   - Vérifier : `npm test --workspace ucm-palettes-plugin`,
     `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert et capture conforme.
 
 - [ ] **P7 · Color shift : la marque par défaut** · `implementeur`, moyen.
-  - SPEC-ECRANS-HARMONISATION.md, section 3.3. Reprend les options de
-    réglette de P6. Identifiant réservé : `[DER-25]`, section de Color shift
-    de SPEC-PAL.
-  - Fichiers : `PAL/src/ui/derive/editeur.ts`, `PAL/src/ui/ongletCreation.ts`
-    (`resumeDeLaDerive`), `i18n`.
+  - SPEC, section 3.3 ; proposition PR7. Reprend les options de réglette de
+    P6. Identifiant réservé : `[DER-25]`, section de Color shift de SPEC-PAL.
+  - Fichiers : `PAL/src/ui/derive/editeur.ts` (`depart` donne déjà la valeur
+    par défaut de chaque grandeur : la marque la lit), `PAL/src/presentation.ts`
+    (`colorShiftModifie` compare les valeurs au préréglage courant, et non
+    l'origine rangée), `PAL/src/ui/ongletCreation.ts` (`resumeDeLaDerive`),
+    `i18n`.
+  - Tests : `[DER-25] après « Tout par défaut », chaque pouce est sur sa marque
+    et chaque bouton est inactif` ; `[DER-25] une dérive d'origine Tailwind
+    différente du préréglage courant compte comme modifiée`.
   - Galerie : l'état `color-shift-luminosite` montre les marques.
   - Vérifier : comme P6.
   - Fini quand : vert ; le résumé replié dit `Par défaut · synchronisé`
@@ -781,10 +843,10 @@ Palettes, après `test:ui`.
 
 ### Vague 4 · L'onglet Harmonisation
 
-Toutes les tâches suivent SPEC-ECRANS-HARMONISATION.md, section 7 ; l'écran
-de référence est `D/Maquettes/MAQUETTE-COMPARER.html`, fonctions nommées en
-tête de chaque sous-section. Les textes sont ceux de la section 8, les règles
-CSS ceux de la section 9. Le module de l'onglet est
+Toutes les tâches suivent la SPEC, section 7, et la proposition PR6 ;
+l'écran de référence est `D/Maquettes/MAQUETTE-COMPARER.html`, fonctions
+nommées en tête de chaque sous-section. Les textes sont ceux de la section 8,
+les règles CSS celles de la section 9. Le module de l'onglet est
 `PAL/src/ui/ongletHarmonisation.ts`, ses cartes dans
 `PAL/src/ui/harmonisation/` (un fichier par carte), son état sans DOM dans
 `PAL/src/harmonisation.ts`. Les tâches sont successives : elles partagent
@@ -792,63 +854,104 @@ l'état, `styles.css`, `i18n`, `etats.cjs` et `interface.test.mjs`.
 
 Identifiants réservés, section de l'onglet Harmonisation à créer dans
 SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
-(H5 en prend deux) ; H6 prend `[VER-23]`.
+(H5 en prend deux) ; H6 prend `[VER-23]` ; S1 prend `[UI-45]`.
+
+- [ ] **S1 · Les onglets indisponibles du socle** · `implementeur`, moyen.
+  - `SOC/src/ui/Onglets.ts` : chaque onglet peut être déclaré indisponible
+    (`definirDisponible(id, disponible)`) ; un onglet indisponible porte
+    `aria-disabled="true"` et `disabled`, se saute au clavier (flèches,
+    Début, Fin) et refuse `selectionner`, au clic comme par programme. Quand
+    l'onglet actif devient indisponible, le premier onglet disponible
+    s'active. `PAL/src/ui/socleLocalise.ts` propage la fonction.
+  - Tests : `SOC/tests/` (`[UI-45] un onglet indisponible ne s'active ni au
+    clic, ni aux flèches, ni par programme`, et le repli) ; `test:ui` des
+    trois plugins.
+  - Fini quand : vert.
 
 - [ ] **H0 · Les calculs de l'onglet** · `implementeur-exigeant`, haut.
-  - SPEC-ECRANS-HARMONISATION.md, section 10. Code de référence :
-    `D/Mesures/generer-ensembles.ts`, fonctions `distanceMin`, `tourner` et le
-    calcul des zones.
-  - `packages/couleur/src/harmonisation.ts`, exporté par le paquet :
-    - `zonesTropProches(recette, palette, autre, intensite)` : pour chaque
-      degré entier de −30 à +30 appliqué à la teinte de `palette` (réglée
-      comme dans Création, `referenceReglee` depuis `departDe`, porteur figé),
-      `autre` immobile, la proximité de M5 ; rend les suites de degrés sous
-      le seuil, `{ debut, fin }[]`, en degrés de la réglette (décalage de la
-      section 10).
-    - `grisDeMemeClarte(couleur: Rgb8): Rgb8` : `Y = L³` (L d'OKLab), puis
-      encodage sRGB de `Y` sur les trois canaux.
-  - Tests `couleur/tests/harmonisation.test.ts` : une paire en alerte a une
-    zone qui contient 0 ; une paire éloignée n'en a pas ; le gris d'un blanc
-    est blanc, d'un noir est noir, et sa clarté OKLab égale celle de la
-    couleur à 0,005 près.
-  - Vérifier : `npm test --workspace ucm-couleur`, `npm run typecheck`.
-  - Fini quand : vert ; 61 rampes par paire au plus (test sur un compteur).
+  - SPEC, section 10 ; PR6. Code de référence :
+    `D/Mesures/generer-ensembles.ts`, fonctions `distanceMin` et `tourner`
+    (à ne pas porter tel quel : `tourner` refuse le retour à la couleur
+    d'origine).
+  - Le geste de teinte vit dans `PAL/src/edition.ts` (`reglerTeinte`). Son
+    calcul de la palette réglée passe dans `packages/couleur/src/harmonisation.ts`,
+    exporté par le paquet : `candidatDeTeinte(recette, palette, ecart)` rend
+    la palette telle que le geste « décaler les deux profils de `ecart`
+    degrés » la range, réglages nettoyés comme aujourd'hui. `reglerTeinte`
+    l'appelle : le geste et le calcul des zones emploient la même fonction.
+  - Trois coordonnées, nommées ainsi dans le code : l'écart commun (appliqué
+    aux deux profils) ; la valeur du profil porteur ; la valeur du profil
+    affiché, celle que la réglette montre. La course de l'écart commun est
+    l'intersection des bornes des deux profils (chacun de −30° à +30°) et des
+    limites des garanties ; une position hors course n'est pas calculée et se
+    représente comme hors de la piste.
+  - `zonesTropProches(recette, palette, autre)` : pour chaque degré entier
+    de la course, le candidat de `palette`, `autre` immobile (ses rampes
+    calculées une fois), la proximité de M5 ; rend les suites de degrés sous
+    le seuil, en valeurs du profil affiché. Une palette a au plus 61
+    candidats, chacun fait 4 rampes (deux profils, deux thèmes).
+  - `sortieLaPlusProche(recette, palette, autre)` : le plus petit écart qui
+    sort de toutes les zones dans la course, ou `null`.
+  - `grisDeMemeClarte(couleur: Rgb8): Rgb8` : `Y = L³` (L d'OKLab), puis
+    encodage sRGB de `Y` sur les trois canaux.
+  - Tests `couleur/tests/harmonisation.test.ts` : la valeur courante d'une
+    paire en alerte est dans une zone ; une paire éloignée n'a pas de zone ;
+    deux profils déjà décalés différemment (Soft +25°, Vivid −20°) donnent la
+    course de −10° à +5° ; le retour à l'écart 0 rend la palette d'origine ;
+    la couleur d'un candidat égale celle de la palette après `reglerTeinte` ;
+    une paire sans sortie rend `null` ; le gris d'un blanc est blanc, d'un
+    noir est noir, et sa clarté OKLab égale celle de la couleur à 0,005 près.
+  - Vérifier : `npm test --workspace ucm-couleur`,
+    `npm test --workspace ucm-palettes-plugin`, `npm run typecheck`.
+  - Fini quand : vert.
 
 - [ ] **H1 · L'onglet, son état et son en-tête** · `implementeur-exigeant`, haut.
-  - SPEC, sections 7.1 et 7.2 ; identifiant `[UI-39]`.
+  - SPEC, sections 7.1 et 7.2 ; PR6 ; identifiant `[UI-39]`.
   - `PAL/src/ui/index.ts` : l'onglet `harmonisation` entre `verification` et
     `gestion` (liste des onglets, `PANNEAUX`, `travail.append`, inertie
-    pendant un dessin) ; désactivé sous deux palettes ; compteur sur le
-    modèle de `lierLeCompteur` (`piedDeLaPalette.ts`), ton avertissement,
-    nombre de `pairesTropProches`, absent à zéro.
-  - `PAL/src/harmonisation.ts` : l'état de la section 7.1 et ses transitions
-    (cocher, décocher, cinquième refusée, `regler`), sans DOM, testé seul.
+    pendant un dessin) ; indisponible sous deux palettes, par S1 ; compteur
+    sur le modèle de `lierLeCompteur` (`piedDeLaPalette.ts`), ton
+    avertissement, nombre de `pairesTropProches`, absent à zéro.
+  - `PAL/src/harmonisation.ts` : l'état de la section 7.1, en identifiants
+    (PR6), et ses transitions sans DOM : cocher, décocher, cinquième refusée,
+    `regler`, suppression, import et synchronisation, passage sous deux
+    palettes.
   - En-tête, bascules, ligne fixe.
+  - Tests : deux palettes de même nom se cochent séparément ; un renommage
+    garde la sélection ; une suppression retire la palette de l'état.
   - Galerie : `harmonisation-arrivee` (écran H1 de la maquette, jeu
     « Fichier du mainteneur »).
   - Vérifier : `npm test --workspace ucm-palettes-plugin`, `test:ui`.
-  - Fini quand : vert ; l'onglet est désactivé avec une palette.
+  - Fini quand : vert ; avec une palette, l'onglet est indisponible.
 
 - [ ] **H2 · Cartes « Palettes trop proches » et « Vos palettes »** · `implementeur-exigeant`, haut.
-  - SPEC, sections 7.4 et 7.5 ; identifiant `[UI-40]`. Le bouton « Comparer »
-    choisit `regler` par le plus petit déplacement : `zonesTropProches` de
-    H0.
+  - SPEC, sections 7.4 et 7.5 ; PR6 (palettes libres, paire sans sortie) ;
+    identifiant `[UI-40]`. Le bouton « Comparer » choisit `regler` par
+    `sortieLaPlusProche` de H0 ; à égalité ou sans sortie, A.
   - Galerie : `harmonisation-paire` (écran H2).
   - Fini quand : vert ; capture conforme à H1 et H2 de la maquette.
 
 - [ ] **H3 · Carte « Comparaison »** · `implementeur-exigeant`, haut.
-  - SPEC, section 7.6 ; identifiant `[UI-41]`. Niveaux de gris par
-    `grisDeMemeClarte`. Les rôles de chaque composant suivent la table du kit
-    (`cranDeLaVariable`), jamais un cran écrit en dur.
+  - SPEC, section 7.6 ; PR6 (intensité unique) ; identifiant `[UI-41]`.
+    Niveaux de gris par `grisDeMemeClarte`. Les rôles de chaque composant
+    suivent la table du kit (`cranDeLaVariable`), jamais un cran écrit en
+    dur.
   - Galerie : `harmonisation-niveaux-de-gris` (écran H5).
   - Fini quand : vert ; capture conforme à H4 et H5.
 
 - [ ] **H4 · Carte « Réglages »** · `implementeur-exigeant`, haut.
-  - SPEC, section 7.7 ; identifiant `[UI-42]`. Réemploie les réglettes et
-    options de P6 ; les réglages s'appliquent à la palette par le même
-    chemin que Création (même message au code du plugin, même historique
-    d'annulation). « Annuler les modifications » ne défait que les réglages
-    de la palette choisie faits depuis l'ouverture de l'onglet.
+  - SPEC, section 7.7 ; PR6 (palette figée, annulation) ; identifiant
+    `[UI-42]`. Réemploie les réglettes et options de P6 ; la teinte passe par
+    `candidatDeTeinte` (H0), saturation et luminosité par les gestes de
+    Création. Les réglages se rangent par la frontière existante.
+  - « Annuler les modifications » : point de départ propre à l'onglet, par
+    identifiant de palette (PR6). Ne pas appeler
+    `frontiere.annulerLesModifications`, dont la portée est la session du
+    plugin (`ui/annulation.ts`).
+  - Tests : modifier une palette dans Création, entrer dans Harmonisation,
+    modifier deux palettes, annuler la première : le changement de Création
+    et la seconde palette restent ; un refus de rangement restaure l'état
+    visuel et le point de départ.
   - Galerie : `harmonisation-distinguee` (écran H3).
   - Fini quand : vert ; glisser la teinte hors de la zone éteint le constat
     et le compteur (test d'interface).
@@ -863,7 +966,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 - [ ] **H5 · Carte « Roue des teintes », clavier** · `implementeur-exigeant`, haut.
   - SPEC, sections 7.8 et 7.9 ; identifiant `[UI-43]` (roue) et `[UI-44]`
     (clavier et accessibilité de l'onglet). Les matrices viennent de H5a,
-    avec leur source en commentaire.
+    avec leur source en commentaire. Glisser un point passe par
+    `candidatDeTeinte` ; le point d'une palette figée ne se saisit pas.
   - Galerie : `harmonisation-roue` (écran H6).
   - Fini quand : vert ; un point se règle au clavier (flèches ±1°, Maj
     ±10°), test d'interface.
@@ -878,13 +982,18 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     palettes de la galerie »).
   - Fini quand : vert.
 
-- [ ] **H7 · Revue au pixel et fin de vague** · `verificateur`, puis orchestrateur.
+- [ ] **H7 · Revue au pixel et fin de vague** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  - Avant les captures, l'`implementeur` régénère les données de la maquette
+    avec le moteur de la vague 2 et la recette des états de galerie :
+    `npx tsx "D/Mesures/generer-ensembles.ts"`, puis vérifie que les couleurs
+    d'un écran de la maquette et de l'état de galerie correspondant sont les
+    mêmes. Sans cette étape, les deux témoins ne sont pas comparables.
   - SPEC, section 12 : capture de chaque écran H1 à H7 de la maquette et de
     l'état de galerie correspondant, à 480 px, mêmes données ; écarts admis
     de la section 11. Le `verificateur` rend un tableau des écarts ;
     l'orchestrateur corrige les petits, renvoie les autres à la tâche qui les
     a produits.
-  - Suite complète, `test:ui` de Palettes, commits, push.
+  - Suite complète, `test:ui` des trois plugins, commits, push.
 
 ### Vague 5 · Documents
 
@@ -897,11 +1006,12 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 - [ ] **D1 · AGENTS.md** · `implementeur`, moyen.
   - Sections : carte du code (`dossiers.ts`, `garanties.ts`, `recette.ts`,
     `rampe.ts`, `tailwind.ts`, `nuances.ts`, `garantie.ts`, `promesses.ts`,
-    `alertes.ts`, `harmonisation.ts` du moteur ; l'onglet Harmonisation de
-    Palettes) ; invariants « Moteur de couleur » : la table par thème et
-    sens, les crans requis 100 à 950, G7 contre la page et la carte (la
-    phrase « `elevation/raised` n'est jamais mesuré » est fausse
-    désormais : la réécrire), le format 11 et sa migration, l'enveloppe,
+    `limites.ts`, `alertes.ts`, `harmonisation.ts` du moteur ; l'onglet
+    Harmonisation de Palettes ; les onglets indisponibles du socle) ;
+    invariants « Moteur de couleur » : la table par thème et sens, les crans
+    requis 100 à 950, G7 contre la page et la carte (la phrase
+    « `elevation/raised` n'est jamais mesuré » est fausse désormais : la
+    réécrire), le format 11 et la lecture des anciens formats, l'enveloppe,
     `ring` ; invariants « Interface d'UCM Palettes » : l'onglet
     Harmonisation, la Configuration à deux onglets.
   - `tests/inventaireInvariants.test.ts` (racine) compare AGENTS.md au
@@ -937,8 +1047,9 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     fichier.
 
 - [ ] **D4 · Statuts** · orchestrateur.
-  - `D/DECISIONS.md` et `D/README.md` : statut « implémenté », avec le
-    dernier commit. Mémoire de la conversation principale.
+  - `D/DECISIONS.md` et `D/README.md` : statut « implémenté, recette Figma à
+    faire », avec le dernier commit. Il devient « recetté » après F4.
+    Mémoire de la conversation principale.
 
 ### Vague 6 · Vérification, publication, recette
 
@@ -947,6 +1058,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     plugins. Fini quand : tout est vert.
 
 - [ ] **F2 · Publier le kit** · `executant`.
+  - Le kit ne dépend pas de la recette Figma : sa publication n'attend pas
+    F4.
   - Modèle : le commit `65ba56f` (« chore: versions »). `@ucm-kit/core`
     passe de `0.5.0` à `0.6.0` (les signatures d'`emplois` changent) ;
     `@ucm-kit/cli` et `@ucm-kit/adapter-typescript` montent leur dernier
@@ -963,12 +1076,12 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     `npm run build --workspace ucm-explorateur-plugin`.
 
 - [ ] **F4 · Recette du mainteneur dans Figma** · mainteneur.
-  - Ouvrir Palettes sur la recette existante : elle se lit au format 11,
-    couleurs inchangées ; les intensités montrent « Par défaut » actif.
-    Choisir « Par défaut » : les couleurs suivent la règle retenue.
+  - Ouvrir Palettes sur la recette existante : elle se lit au format 11, aux
+    intensités par défaut (PR4) ; les couleurs suivent la règle retenue.
   - Parcourir Vérification (G7 contre la page et la carte, constats sans
-    ΔEok), Configuration (deux onglets), Réglage global et Color shift
-    (marques), Harmonisation (paires, comparaison, réglages, roue).
+    ΔEok), la planche (`ring` au niveau de la palette), Configuration (deux
+    onglets), Réglage global et Color shift (marques), Harmonisation (paires,
+    comparaison, réglages, roue).
 
 ## 7. Identifiants réservés
 
@@ -978,8 +1091,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 | `[MOT-35]` | M3 | L'enveloppe de chroma |
 | `[MOT-36]` | M4 | La dérive aux deux bouts |
 | `[MOT-37]` | R4 | La carte déduite |
-| `[REC-12]` | M2, M4 | Le format 11 et sa migration |
-| `[REC-13]` | M2 | Les crans requis ajoutés par la migration |
+| `[REC-12]` | M2 | Le format 11 et la lecture des formats 8 à 10 |
+| `[REC-13]` | M2 | Les crans requis des deux thèmes |
 | `[VER-21]` | R4 | G7 contre la page et la carte |
 | `[VER-22]` | M5 | L'alerte par rôle des palettes trop proches |
 | `[VER-23]` | H6 | Le lien « Comparer » du bilan |
@@ -989,11 +1102,11 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 | `[UI-37]` | P3 | Les listes déroulantes |
 | `[UI-38]` | P6 | Les marques par défaut de Réglage global |
 | `[UI-39]` à `[UI-44]` | H1 à H5 | L'onglet Harmonisation (H5 en prend deux) |
+| `[UI-45]` | S1 | Les onglets indisponibles |
 
-Avant la vague 1, l'orchestrateur vérifie dans SPEC-PAL et dans les tests
-qu'aucun de ces identifiants n'existe encore (`git grep -n "\[MOT-35\]"`,
-etc.) : ils étaient libres à l'écriture du plan. Un identifiant pris entre
-temps se remplace par le suivant libre, dans ce tableau d'abord.
+Ils étaient libres à l'écriture du plan (les identifiants `[MOT-…]` allaient jusqu'à 34, les `[ENT-…]` jusqu'à 19).
+Un identifiant pris entre temps se remplace par le suivant libre, dans ce
+tableau d'abord.
 
 ## 8. Récapitulatif
 
@@ -1001,8 +1114,8 @@ temps se remplace par le suivant libre, dans ce tableau d'abord.
 |---|---|---|
 | 0 | V0.1 | verificateur |
 | 1 | R1 à R5 | implementeur ×2, implementeur-exigeant ×2, verificateur |
-| 2 | M1 à M6 | implementeur ×2, implementeur-exigeant ×3, verificateur |
+| 2 | M0 à M6 | implementeur ×3, implementeur-exigeant ×3, verificateur |
 | 3 | P1 à P8 | implementeur ×6, implementeur-exigeant ×1, verificateur |
-| 4 | H0 à H7 | implementeur-exigeant ×6, chercheur, implementeur, verificateur |
+| 4 | S1, H0 à H7 | implementeur-exigeant ×6, implementeur ×3, chercheur, verificateur |
 | 5 | D1 à D4 | implementeur ×3 |
 | 6 | F1 à F4 | verificateur ×2, executant, mainteneur |

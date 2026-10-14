@@ -283,7 +283,7 @@ relèvent des composants.
 
 | Proposition | Fichiers |
 |---|---|
-| S1 | `packages/couleur/src/rampe.ts` (`cranVise`), `recette.ts` (paramètres de la règle par profil et par thème, format 11), `palette.ts`, `limites.ts` ; une recette au format 10 garde la part constante |
+| S1 | `packages/couleur/src/rampe.ts` (`cranVise`), `recette.ts` (paramètres de la règle par profil et par thème, format 11), `palette.ts`, `limites.ts` ; une recette ancienne prend l'enveloppe par défaut à la lecture |
 | Q10, dérive de teinte | `packages/couleur/src/tailwind.ts` (`deriveTailwind`, `prereglageTailwind`) ; le relevé `derives` de la recette porte la teinte et la clarté de chaque cran |
 | S2, courbe | `packages/couleur/src/nuances.ts` : clarté du cran 50 de la courbe Dark par défaut ; le fond de page Dark par défaut de la recette |
 | S2, table | `packages/kit/src/emplois/dossiers.ts` : une table par thème et par sens, que `cranDeLaVariable`, `cransRequis`, `variablePresente` et `variablesDuCran` lisent avec le thème ; `garanties.ts` et ses tests. Lecteurs à suivre : `packages/couleur/src/promesses.ts`, `garantie.ts`, `alertes.ts`, `recette.ts` (crans requis) ; `packages/plugin-palettes/src/presentation.ts`, `planche/modele.ts`, `ui/nuancier.ts`, `ui/garanties.ts`, `ui/apercuCompact.ts`, `ui/interfaceDeTest.ts`, textes `i18n` ; `packages/plugin-explorateur/src/integrations/palettes.ts` et `profilUcm.ts` |

@@ -233,11 +233,9 @@ carte « Réglage global » marque sa valeur par défaut, et le bouton « Par d�
 y ramène (section 5, décision C10). Les teintes et le Color shift de teinte n'ont pas d'autre valeur
 par défaut que zéro : ce sont des choix de couleur.
 
-Une recette existante doit rendre les mêmes couleurs après la mise à jour. La
-règle se range donc dans la recette, et une recette au format 10 se lit avec la
-part constante. Dans la Configuration, sa carte des intensités se marque
-alors comme modifiée ; son bouton « Par défaut » la fait passer à l'enveloppe,
-quand le designer le décide, et l'Aperçu de Création montre le résultat. Ce changement porte sur les rampes primitives : il sert les deux
+La règle se range dans la recette. Une recette ancienne prend l'enveloppe
+par défaut à la lecture : le mainteneur a renoncé à conserver ses couleurs
+(DECISIONS.md, Q3). Ce changement porte sur les rampes primitives : il sert les deux
 périmètres, agnostique et UCM complet.
 
 ## 4. Sujet 2 : les crans des rôles
@@ -413,7 +411,7 @@ leurs valeurs par défaut, sans garantie perdue.
 |---|---|---|
 | Q1 | La règle de chroma | L'enveloppe par thème (S1), retenue au banc visuel pour sa cohérence, élargie autour du jaune (+100 % en Soft, +50 % en Vivid), fonds Dark de Vivid bornés à 0,30 ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
-| Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
+| Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette ancienne prend l'enveloppe par défaut à la lecture (DECISIONS.md, Q3) |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
 | Q6 | La couleur du focus | Inchangée : 600 en sens normal, 700 en sens inversé, dans les deux thèmes ; le cran le plus discret qui tient 3:1 contre la page et la carte. Un focus unique, à la façon de Figma, reste un choix des composants. Décidé : G7 juge le focus contre la page et la carte, comme le W3C, et non contre le fond teinté |
