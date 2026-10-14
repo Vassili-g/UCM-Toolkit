@@ -10,7 +10,8 @@ import {
   PROFILS,
   ancrageDe,
   boutsDe,
-  fabriquerPalette,
+  enveloppeDe,
+  fabriquerRampe,
   fondsSombresDe,
   lireHexa,
   partDeChroma,
@@ -134,14 +135,17 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
     const { recette: r, palette } = neuve(hexa, recette);
     const ancrage = ancrageDe(r, palette);
     const rampes = rampesDe(r, palette);
-    const communes = fabriquerPalette({
-      reference: lireHexa(hexa)!,
-      courbes: r.courbes,
+    const parts = partsDe(r, palette) as { soft: number; vivid: number };
+    // Les rampes communes : la référence pour pivot, l'enveloppe de chaque profil dans chaque thème ([MOT-35]).
+    const commune = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => fabriquerRampe({
+      courbe: r.courbes[mode],
       bouts: boutsDe(r),
-      parts: partsDe(r, palette) as { soft: number; vivid: number },
-      derives: { soft: palette.derive.soft, vivid: palette.derive.vivid },
+      reference: rgb8VersOklch(lireHexa(hexa)!),
+      derive: palette.derive[profil],
+      part: parts[profil],
       gamut: r.gamut,
-      sombre: fondsSombresDe(r),
+      sombre: mode === 'dark' ? fondsSombresDe(r) : undefined,
+      enveloppe: enveloppeDe(r, profil, mode),
     });
     const L = rgb8VersOklch(octets).L;
     for (const mode of MODES) {
@@ -152,9 +156,10 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
       }
       if (ancrage.crans[mode] !== r.crans[rang]) fautes.push(`${hexa} ${mode} : numéro ${ancrage.crans[mode]}`);
       for (const profil of PROFILS) {
+        const communes = commune(profil, mode);
         rampes[profil]![mode].forEach((cran, autre) => {
           const ancre = profil === ancrage.profil && autre === rang;
-          const attendu = ancre ? hexa : communes[profil][mode][autre].hexa;
+          const attendu = ancre ? hexa : communes[autre].hexa;
           if (cran.hexa !== attendu) fautes.push(`${hexa} ${profil} ${mode} ${r.crans[autre]} : ${cran.hexa} pour ${attendu}`);
           if (ancre && cran.couleur.some((octet, canal) => octet !== octets[canal])) fautes.push(`${hexa} : octets ${cran.couleur}`);
         });

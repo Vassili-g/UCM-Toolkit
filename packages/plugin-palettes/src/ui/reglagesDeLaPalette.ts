@@ -25,6 +25,7 @@ import {
   aUnReglageDuPorteur,
   aUneIntensite,
   balayerLaLimite,
+  enveloppeDe,
   estPaletteGrise,
   fabriquerCran,
   partDeLaReference,
@@ -290,7 +291,10 @@ function construireVues(i18n: Localisation) {
 
     /** La piste peinte d'une grandeur : des couleurs fabriquées par le moteur, de la borne basse à la borne haute. */
     function peindre(recette: Recette, palette: Palette, profil: Profil, grandeur: Grandeur, valeurs: Record<Grandeur, number>): string {
-      const pivot = pivotDe(recette, palette, aUneIntensite(palette) ? 'unique' : profil);
+      const intensite = aUneIntensite(palette) ? 'unique' : profil;
+      const pivot = pivotDe(recette, palette, intensite);
+      // La référence est une couleur du thème Light : la piste en prend l'enveloppe ([MOT-35]).
+      const enveloppe = enveloppeDe(recette, intensite, 'light');
       const { min, max } = CURSEURS[grandeur];
       const depart = { L: pivot.L + valeurs.luminosite, H: pivot.H - valeurs.teinte, part: valeurs.saturation };
       const couleurs = Array.from({ length: 9 }, (_, rang) => {
@@ -298,7 +302,7 @@ function construireVues(i18n: Localisation) {
         const L = grandeur === 'luminosite' ? pivot.L + x : depart.L;
         const H = grandeur === 'teinte' ? depart.H + x : pivot.H;
         const part = grandeur === 'saturation' ? x : depart.part;
-        return fabriquerCran(Math.min(1, Math.max(0, L)), H, Math.min(1, Math.max(0, part)), recette.gamut).hexa;
+        return fabriquerCran(Math.min(1, Math.max(0, L)), H, Math.min(1, Math.max(0, part)), recette.gamut, enveloppe).hexa;
       });
       return `linear-gradient(to right, ${couleurs.join(', ')})`;
     }

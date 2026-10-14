@@ -13,6 +13,7 @@ import {
   ancrageDe,
   boutsDe,
   dansLeGamut,
+  enveloppeDe,
   estPaletteGrise,
   fabriquerCran,
   fabriquerPalette,
@@ -87,7 +88,8 @@ test('[MOT-30] à la clarté du pivot, le poids est nul : ni la teinte, ni la pa
 
 test('[MOT-30] sans saturation ni luminosité, chaque cran est celui de la teinte seule, à l’octet', () => {
   const tirer = generateur(11);
-  const sombre = fondsSombresDe(recetteAvec());
+  const recette = recetteAvec();
+  const sombre = fondsSombresDe(recette);
   const fautes: string[] = [];
   for (let essai = 0; essai < 500; essai += 1) {
     const reference = { L: tirer(), C: 0.1, H: tirer() * 360 };
@@ -95,10 +97,12 @@ test('[MOT-30] sans saturation ni luminosité, chaque cran est celui de la teint
     const part = tirer();
     const decalage = -0.05 + tirer() * 0.07;
     for (const mode of MODES) {
-      const commun = { courbe: COURBES[mode], bouts: BOUTS, reference, part, gamut: 'srgb' as const, decalage, sombre: mode === 'dark' ? sombre : undefined };
+      // Un essai sur deux porte l'enveloppe de Vivid ([MOT-35]), l'autre n'en a pas.
+      const enveloppe = essai % 2 === 0 ? undefined : enveloppeDe(recette, 'vivid', mode);
+      const commun = { courbe: COURBES[mode], bouts: BOUTS, reference, part, gamut: 'srgb' as const, decalage, sombre: mode === 'dark' ? sombre : undefined, enveloppe };
       // La formule de la teinte seule, d'avant le Color shift.
       const attendus = COURBES[mode].map((L) =>
-        fabriquerCran(Math.min(1, Math.max(0, L + decalage)), teinteA(L, reference, teinte, BOUTS), mode === 'dark' ? part * facteurSombre(L, sombre) : part, 'srgb').hexa);
+        fabriquerCran(Math.min(1, Math.max(0, L + decalage)), teinteA(L, reference, teinte, BOUTS), mode === 'dark' ? part * facteurSombre(L, sombre) : part, 'srgb', enveloppe).hexa);
       const nuls = { ...teinte, saturation: { clair: 0, sombre: 0 }, clarte: { clair: 0, sombre: 0 } };
       for (const derive of [teinte, nuls]) {
         const obtenus = fabriquerRampe({ ...commun, derive }).map((cran) => cran.hexa);

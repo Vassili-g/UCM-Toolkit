@@ -548,7 +548,12 @@ Les tâches sont successives.
   - Vérifier : `npm run typecheck`, `npm test` (racine).
   - Fini quand : vert.
 
-- [ ] **M3 · La règle de chroma** · `implementeur-exigeant`, haut.
+- [x] **M3 · La règle de chroma** · `implementeur-exigeant`, haut.
+  Fait : `comparer-implementation.ts` ne trouve aucun écart sur 25 344
+  couleurs. Les pistes de Réglage global prennent l'enveloppe Light. Trois
+  tests V3a de la galerie restent rouges (Violet et Indigo presque identiques
+  dans « tout conforme », Bleu trop proche de Marine) : ils se reprennent une
+  fois, après M5, qui refait l'alerte des palettes proches.
   - Décision : DECISIONS.md, section 2, Q1 et Q2 ; proposition PR1.
     Identifiant réservé : `[MOT-35]`, section de la fabrication des rampes de
     SPEC-PAL. Code de référence : `D/Mesures/prototype.ts`,

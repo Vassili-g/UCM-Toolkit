@@ -191,7 +191,8 @@ w  = poids(L)                       section 6.4
 H  = teinte(L)                      section 6.4
 Lf = clamp(L + clarte[p] + clarté(w), 0, 1)              [MOT-29], [MOT-30]
 q  = clamp(part(intensité) × (1 + saturation(w)), 0, 1)  [MOT-30]
-C  = q × facteur(mode, L) × plafond(Lf, H, gamut)        [MOT-28]
+C  = min(q × facteur(mode, L) × plafond(Lf, H, gamut),
+         p0 × min(a × marge(H) × (1 − Lf), b × Lf))      [MOT-28], [MOT-35]
 rgbLinéaire = oklchVersSrgbLinéaire(Lf, C, H)
 rgb8 = round(255 × encoder(clamp(rgbLinéaire, 0, 1)))   par canal
 hexa = format(rgb8)
@@ -219,6 +220,16 @@ hexa = format(rgb8)
   400 et au-delà, gardent leur part, et le thème `light` ne change pas.
   `facteurSombre` et `fondsSombresDe` (`packages/couleur`) en sont
   l'autorité.
+- `[MOT-35]` L'enveloppe de chroma plafonne la chroma d'un cran. `p0`, `a` et
+  `b` viennent du profil de l'intensité (`soft` pour Soft, `vivid` pour Vivid et
+  pour l'intensité unique) et du thème du cran, dans `profils.<profil>.enveloppe`
+  (section 7.1). `a × (1 − Lf)` borne les crans clairs, `b × Lf` les crans
+  sombres. `marge(H) = 1 + jaunes × exp(−½ × (écart entre H et 100° / 12°)²)`
+  élargit la borne claire autour du jaune ; `jaunes` vaut 0 en Dark par défaut,
+  la marge y est alors 1. `p0` ne suit ni le Color shift de saturation ni
+  `facteur` : ils agissent sur `q × facteur`, pas sur l'enveloppe. Sans
+  enveloppe, `C = q × facteur × plafond`. `cranVise` et `enveloppeDe`
+  (`packages/couleur`) en sont l'autorité.
 
 ### 6.4 La teinte d'un cran
 

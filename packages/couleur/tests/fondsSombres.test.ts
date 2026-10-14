@@ -13,6 +13,7 @@ import {
   ancrageDe,
   boutsDe,
   confusionsDe,
+  enveloppeDe,
   facteurSombre,
   fabriquerCran,
   fondsSombresDe,
@@ -88,7 +89,7 @@ test('[MOT-28] en Dark, les nuances 50 Ã  300 prennent la part de leur intensitÃ
       recette.crans.forEach((cran, rang) => {
         if (cran > 300) return;
         const L = recette.courbes.dark[rang];
-        const attendu = fabriquerCran(L, teinteA(L, reference, palette.derive[intensite === 'soft' ? 'soft' : 'vivid'], boutsDe(recette)), parts[intensite]! * facteurSombre(L, fonds), recette.gamut).hexa;
+        const attendu = fabriquerCran(L, teinteA(L, reference, palette.derive[intensite === 'soft' ? 'soft' : 'vivid'], boutsDe(recette)), parts[intensite]! * facteurSombre(L, fonds), recette.gamut, enveloppeDe(recette, intensite, 'dark')).hexa;
         const ancre = intensite === ancrage.profil && rang === ancrage.rangs.dark;
         assert.equal(rampe[rang].hexa, ancre ? palette.reference : attendu, `${palette.reference} ${intensite} ${cran}`);
         atteintes += 1;

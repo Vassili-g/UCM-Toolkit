@@ -24,6 +24,7 @@ import {
   boutsDe,
   decalageDe,
   decalageRange,
+  enveloppeDe,
   estPaletteGrise,
   fabriquerCran,
   partsDe,
@@ -525,7 +526,7 @@ function construireVues(i18n: Localisation) {
         const saturation = affichee === 'saturation' ? x : decalageRange(derive, 'saturation')[bout];
         const decalage = affichee === 'clarte' ? x : decalageRange(derive, 'clarte')[bout];
         const L = Math.min(1, Math.max(0, clarte + decalageDe(paletteLue, intensite) + decalage));
-        return fabriquerCran(L, teinte, Math.min(1, Math.max(0, part * (1 + saturation))), recetteLue.gamut).hexa;
+        return fabriquerCran(L, teinte, Math.min(1, Math.max(0, part * (1 + saturation))), recetteLue.gamut, enveloppeDe(recetteLue, intensite, mode)).hexa;
       });
       return `linear-gradient(to right, ${couleurs.join(', ')})`;
     }

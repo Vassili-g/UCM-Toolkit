@@ -16,6 +16,7 @@ import {
   PROFILS,
   rampeDe,
   type Cran,
+  type Enveloppe,
   type FondsSombres,
   type Intensite,
   type Mode,
@@ -311,11 +312,20 @@ function cranDeLaReference(reference: Rgb8): Cran {
 }
 
 /**
+ * L'enveloppe de chroma d'une intensité dans un thème ([MOT-35]) : le profil
+ * `soft` pour l'intensité Soft, `vivid` pour Vivid et pour l'intensité unique.
+ */
+export function enveloppeDe(recette: Recette, intensite: Intensite, mode: Mode): Enveloppe {
+  const { enveloppe } = recette.profils[intensite === 'soft' ? 'soft' : 'vivid'];
+  return { p0: enveloppe.p0, ...enveloppe[mode] };
+}
+
+/**
  * Ce que la rampe d'une intensité et d'un mode demande à `fabriquerRampe`,
  * avant l'ancrage de la référence : la courbe de la grille, le pivot du
- * profil, son Color shift, sa part et son décalage de clarté. Une palette à
- * une intensité lit la dérive de `vivid` et la part de sa référence
- * ([ENT-14]).
+ * profil, son Color shift, sa part, son décalage de clarté et son enveloppe
+ * de chroma. Une palette à une intensité lit la dérive de `vivid` et la part
+ * de sa référence ([ENT-14]).
  */
 function parametresDesRampes(recette: Recette, palette: Palette): (intensite: Intensite, mode: Mode) => ParametresRampe {
   const { courbes } = grilleDe(recette, palette);
@@ -331,6 +341,7 @@ function parametresDesRampes(recette: Recette, palette: Palette): (intensite: In
     gamut: recette.gamut,
     sombre: mode === 'dark' ? sombre : undefined,
     decalage: decalageDe(palette, intensite),
+    enveloppe: enveloppeDe(recette, intensite, mode),
   });
 }
 

@@ -29,13 +29,14 @@
  */
 import { ecrireHexa, encoder, lireHexa, normaliserTeinte, oklchVersLineaire, rgb8VersOklch, type Rgb8 } from './conversions';
 import { boutsDe, grilleDe } from './nuances';
-import { fondsSombresDe, partDeLaReference, partsDe, rangPorteur, rampesDe } from './palette';
+import { enveloppeDe, fondsSombresDe, partDeLaReference, partsDe, rangPorteur, rampesDe } from './palette';
 import { plafond } from './plafond';
 import {
   MODES,
   PROFILS,
   arrondir,
   facteurSombre,
+  cranVise,
   fabriquerCran,
   poidsA,
   type Bouts,
@@ -323,7 +324,7 @@ function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mo
     const part = borner(lire('p') * (1 + (clair ? lire('sc') : lire('ss')) * poids));
     const clarte = borner(L + lire('delta') + (clair ? lire('lc') : lire('ls')) * poids);
     const teinte = normaliserTeinte(lire('Hp') + (clair ? lire('dc') : lire('ds')) * poids);
-    const C = part * (mode === 'dark' ? facteurSombre(L, c.sombre) : 1) * plafond(clarte, teinte, 'srgb');
+    const { C } = cranVise(clarte, teinte, part * (mode === 'dark' ? facteurSombre(L, c.sombre) : 1), 'srgb', enveloppeDe(c.recette, profil, mode));
     return oklchVersLineaire({ L: clarte, C, H: teinte }).map((v) => 255 * encoder(borner(v)));
   });
 }

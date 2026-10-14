@@ -102,6 +102,11 @@ export function normaliserTeinte(degres: number): number {
   return ((degres % 360) + 360) % 360;
 }
 
+/** L'écart signé le plus court de `a` à `b`, dans `[-180, 180)`. */
+export function ecartAngulaire(a: number, b: number): number {
+  return ((b - a + 540) % 360) - 180;
+}
+
 /** Oklab vers OKLCH ; sous une chroma de `1e-4`, la teinte vaut 0 ([MOT-04]). */
 export function oklabVersOklch(oklab: Triplet): Oklch {
   const [L, a, b] = oklab;

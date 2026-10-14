@@ -19,6 +19,7 @@ import {
 } from '@ucm-kit/core/emplois';
 
 import { lireHexa, type Rgb8 } from './conversions';
+import { enveloppeDe } from './palette';
 import { fabriquerCran, MODES, PROFILS, type Mode, type Profil } from './rampe';
 import type { Recette } from './recette';
 
@@ -66,9 +67,10 @@ export function garantieDesCourbes(recette: Recette): ManqueDeGarantie[] {
       const seuil = recette.seuils[nom];
       for (const profil of PROFILS) {
         const part = recette.profils[profil].part;
+        const enveloppe = enveloppeDe(recette, profil, mode);
         let pire = { teinte: 0, contraste: Infinity };
         for (let teinte = 0; teinte < 360; teinte += 1) {
-          const valeur = contraste(fabriquerCran(courbe[rang], teinte, part, recette.gamut).couleur, opposants[contre]);
+          const valeur = contraste(fabriquerCran(courbe[rang], teinte, part, recette.gamut, enveloppe).couleur, opposants[contre]);
           if (valeur < pire.contraste) pire = { teinte, contraste: valeur };
         }
         if (!atteintLeSeuil(pire.contraste, seuil)) manques.push({ mode, cran, profil, ...pire, seuil, contre });

@@ -4,6 +4,7 @@
  * part des fonds du thème Dark ([MOT-28]).
  */
 import {
+  ecartAngulaire,
   ecrireHexa,
   lineaireVersRgb8,
   normaliserTeinte,
@@ -132,9 +133,34 @@ export interface Cran {
   readonly H: number;
 }
 
-/** La couleur visée par un cran, avant tout arrondi. */
-export function cranVise(L: number, H: number, part: number, gamut: Gamut): Oklch {
-  return { L, C: part * plafond(L, H, gamut), H };
+/**
+ * L'enveloppe de chroma d'un profil dans un thème ([MOT-35]) : `p0`, la part
+ * commune du profil, et les bornes `a` (vers le blanc) et `b` (vers le noir).
+ * `jaunes` élargit la borne vers le blanc autour de la teinte 100°.
+ */
+export interface Enveloppe {
+  readonly p0: number;
+  readonly a: number;
+  readonly b: number;
+  readonly jaunes: number;
+}
+
+/** La teinte du jaune que `Enveloppe.jaunes` élargit, et l'écart type de la bosse, en degrés. */
+const TEINTE_DES_JAUNES = 100;
+const LARGEUR_DES_JAUNES = 12;
+
+/**
+ * La couleur visée par un cran, avant tout arrondi ([MOT-35]). La chroma vaut
+ * `part × plafond`. Avec une enveloppe, elle ne dépasse pas
+ * `p0 × min(a × marge(H) × (1 − L), b × L)` : `p0` ne suit ni le Color shift ni
+ * les fonds Dark, que `part` porte déjà.
+ */
+export function cranVise(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Oklch {
+  const C = part * plafond(L, H, gamut);
+  if (!enveloppe) return { L, C, H };
+  const ecart = Math.abs(ecartAngulaire(H, TEINTE_DES_JAUNES));
+  const marge = 1 + enveloppe.jaunes * Math.exp(-0.5 * (ecart / LARGEUR_DES_JAUNES) ** 2);
+  return { L, H, C: Math.min(C, enveloppe.p0 * Math.min(enveloppe.a * marge * (1 - L), enveloppe.b * L)) };
 }
 
 /**
@@ -142,8 +168,8 @@ export function cranVise(L: number, H: number, part: number, gamut: Gamut): Oklc
  * `[0, 1]`. Il sert à comparer le moteur aux relevés en virgule flottante de
  * l'architecture ; le plugin ne l'affiche jamais.
  */
-export function cranFlottant(L: number, H: number, part: number, gamut: Gamut): Triplet {
-  const lineaire = oklchVersLineaire(cranVise(L, H, part, gamut));
+export function cranFlottant(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Triplet {
+  const lineaire = oklchVersLineaire(cranVise(L, H, part, gamut, enveloppe));
   return [
     Math.min(1, Math.max(0, lineaire[0])),
     Math.min(1, Math.max(0, lineaire[1])),
@@ -174,8 +200,8 @@ export function facteurSombre(L: number, fonds: FondsSombres): number {
 }
 
 /** Fabrique un cran (section 6.3). */
-export function fabriquerCran(L: number, H: number, part: number, gamut: Gamut): Cran {
-  const couleur = lineaireVersRgb8(oklchVersLineaire(cranVise(L, H, part, gamut)));
+export function fabriquerCran(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Cran {
+  const couleur = lineaireVersRgb8(oklchVersLineaire(cranVise(L, H, part, gamut, enveloppe)));
   const lu = rgb8VersOklch(couleur);
   return { couleur, hexa: ecrireHexa(couleur), L: lu.L, C: lu.C, H: lu.H };
 }
@@ -193,6 +219,8 @@ export interface ParametresRampe {
   readonly sombre?: FondsSombres;
   /** Le décalage de clarté du profil, réglé dans la carte (Z10.5) ; absent, 0. */
   readonly decalage?: number;
+  /** L'enveloppe de chroma du profil dans ce thème ([MOT-35]) ; absente, la chroma vaut `part × plafond`. */
+  readonly enveloppe?: Enveloppe;
 }
 
 const borner = (x: number): number => Math.min(1, Math.max(0, x));
@@ -220,6 +248,7 @@ export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
       teinteA(L, parametres.reference, derive, parametres.bouts),
       sombre ? part * facteurSombre(L, sombre) : part,
       parametres.gamut,
+      parametres.enveloppe,
     );
   });
 }

@@ -3,7 +3,7 @@
  * Tailwind montrent, prédite pour une couleur de référence ([MOT-18] à
  * [MOT-20]).
  */
-import { CHROMA_SANS_TEINTE, type Oklch } from './conversions';
+import { CHROMA_SANS_TEINTE, ecartAngulaire, type Oklch } from './conversions';
 import { arrondir, type Bouts, type Derive } from './rampe';
 
 /** Une rampe relevée : son nom, et pour chaque cran du 50 au 950 sa clarté OKLCH `L` et sa teinte `H` en degrés. */
@@ -46,10 +46,7 @@ const teinteClaire = (rampe: RampeDeDerive): number => rampe.crans[0][1];
 /** La teinte du dernier cran d'une rampe relevée, celle du bout sombre. */
 const teinteSombre = (rampe: RampeDeDerive): number => rampe.crans[rampe.crans.length - 1][1];
 
-/** L'écart signé le plus court de `a` à `b`, dans `[-180, 180)`. */
-export function ecartAngulaire(a: number, b: number): number {
-  return ((b - a + 540) % 360) - 180;
-}
+export { ecartAngulaire };
 
 /**
  * La dérive totale, du bout clair au bout sombre, prédite à la teinte `h` : les
