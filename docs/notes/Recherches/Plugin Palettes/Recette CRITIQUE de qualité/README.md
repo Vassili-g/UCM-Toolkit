@@ -1,7 +1,11 @@
 # Recette critique de qualité des palettes
 
+Pour implémenter, lire d'abord [DECISIONS.md](./DECISIONS.md) : il fait foi,
+donne le statut de chaque décision et le rôle de chaque autre document.
+
 | Fichier | Contenu |
 |---|---|
+| [DECISIONS.md](./DECISIONS.md) | La référence pour l'implémentation : valeurs, statuts, code à porter |
 | [SYNTHESE.html](./SYNTHESE.html) | Les décisions, les problèmes, les solutions et les liens, sur une page |
 | [SOLUTION-RAMPES.md](./SOLUTION-RAMPES.md) | La solution proposée pour les rampes : relevé de neuf systèmes, enveloppe par thème, table Dark, supports |
 | [ROBUSTESSE-DES-RAMPES.md](./ROBUSTESSE-DES-RAMPES.md) | La règle de chroma sur toutes les teintes, la dérive de teinte, le cran des fonds, le focus et `ring` |

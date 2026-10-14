@@ -1,7 +1,8 @@
 # Qualité des palettes en interface : dossier
 
 **Statut : décisions arrêtées au banc visuel ; ce dossier garde les premières
-mesures et les pistes.** La [solution](./SOLUTION-RAMPES.md) décrit ce qui est
+mesures et les pistes. La référence pour l'implémentation est
+[DECISIONS.md](./DECISIONS.md).** La [solution](./SOLUTION-RAMPES.md) décrit ce qui est
 retenu, et le dossier [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) les
 mesures sur toutes les teintes et les notes du banc. Les causes sont mesurées
 ici sur la recette du mainteneur et sur un balayage de 72 teintes. Dix

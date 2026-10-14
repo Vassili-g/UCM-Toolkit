@@ -32,7 +32,22 @@ const table = (light: Fonds, dark: Fonds) => (sens: 'normal' | 'inverse', mode: 
     ...(mode === 'dark' ? { 'page/focus': 800 } : {}),
   };
 };
+/**
+ * La table retenue telle que l'implémentation l'écrira : celle du kit, fonds Dark 300, 400, 500 et
+ * texte Dark 950 ; le focus garde ses crans. G7 s'y juge contre la page et la carte (décision G7).
+ */
+const tableRetenue = (sens: 'normal' | 'inverse', mode: 'light' | 'dark'): Table => (mode === 'light'
+  ? { ...TABLE_DES_DOSSIERS[sens] }
+  : { ...TABLE_DES_DOSSIERS[sens], 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 });
+/** Les supports de chaque table : la page Dark et la carte Dark du Titanium du mainteneur, ou celles par défaut, sans teinte. */
+const SUPPORTS_DARK: Record<string, { page: string; carte: string }> = {
+  'retenue, G7 contre la page et la carte, défauts sans teinte': { page: '#0A0A0A', carte: '#1C1C1C' },
+};
+const G7_PAGE_ET_CARTE = (nomTable: string) => nomTable.startsWith('retenue, G7');
+
 export const TABLES_DU_MODELE = {
+  'retenue, G7 contre la page et la carte, Titanium': tableRetenue,
+  'retenue, G7 contre la page et la carte, défauts sans teinte': tableRetenue,
   'fonds Light 50, Dark 200': table({ defaut: 50, survol: 100, appui: 200, texte: 800 }, { defaut: 200, survol: 300, appui: 400, texte: 900 }),
   'fonds Light 100, Dark 200': table({ defaut: 100, survol: 200, appui: 300, texte: 800 }, { defaut: 200, survol: 300, appui: 400, texte: 900 }),
   'fonds Light 100, Dark 300': table({ defaut: 100, survol: 200, appui: 300, texte: 800 }, { defaut: 300, survol: 400, appui: 500, texte: 900 }),
@@ -54,7 +69,12 @@ const references = teintes.flatMap((H) => [0.62, 0.75].map((L) => ({ H, L, hexa:
 if (process.argv[1]?.endsWith('garanties-regles.ts')) {
   const resultats: Record<string, unknown> = {};
   const textes: TexteDesBoutons[] = ['blanc', 'noir'];
+  // La variable d'environnement `FILTRE` limite le balayage aux règles et tables dont le nom contient sa valeur.
+  const filtre = process.env.FILTRE;
   for (const [nomRegle, { regle, parts }] of Object.entries(REGLES)) for (const [nomTable, t] of Object.entries(TABLES_DU_MODELE)) {
+    if (filtre && !`${nomRegle} · ${nomTable}`.includes(filtre)) continue;
+    const pageDark = SUPPORTS_DARK[nomTable]?.page ?? PAGE_DARK;
+    const carte = { light: CARTE.light, dark: SUPPORTS_DARK[nomTable]?.carte ?? CARTE.dark };
     let couples = 0;
     const echecs: Record<string, number> = {};
     const exemples: string[] = [];
@@ -68,7 +88,7 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
         derive: { lien: true, soft: { clair: 0, sombre: 0, origine: 'constante' }, vivid: { clair: 0, sombre: 0, origine: 'constante' } },
       } as Palette));
       const profils = parts ? { soft: { part: parts.soft }, vivid: { part: parts.vivid } } : base.profils;
-      const recette: Recette = valider({ ...base, fonds: { ...base.fonds, dark: PAGE_DARK }, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
+      const recette: Recette = valider({ ...base, fonds: { ...base.fonds, dark: pageDark }, profils, texteDesBoutons, courbes: courbesParDefaut(11, texteDesBoutons), palettes });
       for (const palette of recette.palettes) {
         const rampes = regle ? rampesDuBanc(recette, palette, regle) : rampesDe(recette, palette);
         for (const i of ['soft', 'vivid'] as const) for (const mode of ['light', 'dark'] as const) {
@@ -76,8 +96,10 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
           const sens = sensDuTheme(mode, texteDesBoutons[mode]);
           const tt = t(sens, mode);
           const couleur = (v: string) => (tt[v] === 'texteDesBoutons' ? (texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000') : rampe[recette.crans.indexOf(tt[v] as number)]);
-          const supports = { page: recette.fonds[mode], raised: CARTE[mode] };
+          const supports = { page: recette.fonds[mode], raised: carte[mode] };
           for (const g of GARANTIES) for (const fond of g.fonds) {
+            // Décision G7 : le focus, extérieur au composant, se juge contre la page et la carte seulement.
+            if (g.numero === 7 && G7_PAGE_ET_CARTE(nomTable) && !('fondDeLaPage' in fond)) continue;
             const fondsJuges = 'fondDeLaPage' in fond ? Object.entries(supports) : [[fond.variable, couleur(fond.variable)]];
             for (const [nomFond, f] of fondsJuges) {
               couples += 1;
@@ -89,7 +111,7 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
               }
             }
           }
-          separation[mode].push(contraste(lireHexa(couleur('surface/default'))!, lireHexa(CARTE[mode])!));
+          separation[mode].push(contraste(lireHexa(couleur('surface/default'))!, lireHexa(carte[mode])!));
         }
       }
     }
@@ -99,5 +121,5 @@ if (process.argv[1]?.endsWith('garanties-regles.ts')) {
     console.log(`${nomRegle.padEnd(40)} ${nomTable.padEnd(42)} échecs ${String(total).padStart(5)}  fond/carte L ${mediane(separation.light).toFixed(3)} D ${mediane(separation.dark).toFixed(3)}`);
     if (total) console.log('    ', Object.entries(echecs).map(([k, v]) => `${k}: ${v}`).join(' · '));
   }
-  writeFileSync(new URL('./GARANTIES-REGLES.json', import.meta.url), `${JSON.stringify(resultats, null, 1)}\n`);
+  writeFileSync(new URL(filtre ? './GARANTIES-RETENUES.json' : './GARANTIES-REGLES.json', import.meta.url), `${JSON.stringify(resultats, null, 1)}\n`);
 }

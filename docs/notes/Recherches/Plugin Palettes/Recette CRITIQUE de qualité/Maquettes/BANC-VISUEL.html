@@ -88,7 +88,7 @@
 </div>
 
 <h2 id="regles">1. Les règles de chroma, à l'aveugle <a class="ids" href="../SYNTHESE.html#decisions" title="Décisions de la page de synthèse">Q1 · Q2 · Q10</a></h2>
-<p class="chapeau">Trois règles, nommées A, B et C dans un ordre caché. Chaque ligne montre la rampe de la palette (le repère blanc marque la référence), puis une alerte, un badge discret, un badge plus marqué, un bouton teinté, un bouton plein et un lien. Sous chaque famille de Tailwind, une fine bande montre la rampe de Tailwind, pour comparer. Notez chaque règle dans chaque profil et chaque thème.</p>
+<p class="chapeau">La page s'ouvre sur la règle retenue, arrêtée après le second tour. Au premier tour, trois règles étaient notées à l'aveugle, nommées A, B et C dans un ordre caché. Chaque ligne montre la rampe de la palette (le repère blanc marque la référence), puis une alerte, un badge discret, un badge plus marqué, un bouton teinté, un bouton plein et un lien. Sous chaque famille de Tailwind, une fine bande montre la rampe de Tailwind, pour comparer. Notez chaque règle dans chaque profil et chaque thème.</p>
 <div class="groupe" style="margin:4px 0 10px"><span>Fonds teintés</span><div class="bascule" data-commande="fondsRegles"></div><span id="fonds-regles-note" style="margin-left:6px"></span></div>
 <div class="scene" id="scene-regles"><div class="carte" id="carte-regles"><div class="lignes" id="lignes"></div></div></div>
 <div class="notes" id="notes-regles"></div>
@@ -113,15 +113,16 @@
   const CRANS = B.crans;
   const idx = (c) => CRANS.indexOf(c);
   // L'ordre des lettres est fixe pour garder les notes, mais ne suit pas l'ordre des règles.
-  const LETTRES = { A: 'enveloppe', B: 'retenue', C: 'actuel' };
+  // A, B et C : les règles notées à l'aveugle au premier tour. R : la règle arrêtée après le second tour.
+  const LETTRES = { A: 'enveloppe', B: 'retenue', C: 'actuel', R: 'finale' };
 
   // La clé change avec les défauts du relevé : l'ancien état ne les masque pas, ses notes sont reprises.
-  const lire = (cle = 'banc-visuel-1b') => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch { return {}; } };
-  const ecrire = (v) => { try { localStorage.setItem('banc-visuel-1b', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+  const lire = (cle = 'banc-visuel-1c') => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch { return {}; } };
+  const ecrire = (v) => { try { localStorage.setItem('banc-visuel-1c', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
   let dejaRange = false;
-  try { dejaRange = localStorage.getItem('banc-visuel-1b') !== null; } catch { /* stockage indisponible */ }
-  const memoire = dejaRange ? lire() : { notes: lire('banc-visuel').notes };
-  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', regle: 'A', fondsRegles: 'marque', derive: 'corrigee' }, memoire.etat || {});
+  try { dejaRange = localStorage.getItem('banc-visuel-1c') !== null; } catch { /* stockage indisponible */ }
+  const memoire = dejaRange ? lire() : { notes: lire('banc-visuel-1b').notes || lire('banc-visuel').notes };
+  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', regle: 'R', fondsRegles: 'marque', derive: 'corrigee' }, memoire.etat || {});
   const notes = memoire.notes || {};
   const sauver = () => ecrire({ etat, notes });
 
@@ -286,7 +287,7 @@
     mode: [['light', 'Light'], ['dark', 'Dark']],
     sens: [['noir', 'Noir'], ['blanc', 'Blanc']],
     profil: [['soft', 'Soft'], ['vivid', 'Vivid']],
-    regle: [['A', 'A'], ['B', 'B'], ['C', 'C']],
+    regle: [['R', 'Règle retenue'], ['A', 'A'], ['B', 'B'], ['C', 'C']],
     fondsRegles: [['modele', 'Premier essai (50 · 200)'], ['marque', 'Retenu (100 · 300, texte 950)']],
     derive: [['actuelle', 'Actuelle'], ['corrigee', 'Corrigée']],
   };
@@ -305,7 +306,7 @@
   function tout() { commandes(); dessinerRegles(); dessinerFonds(); dessinerFocus(); }
 
   // Le sort de chaque règle, ajouté à son nom à la révélation.
-  const SORTS = { enveloppe: ' (premier tour ; retenue avec une marge pour les jaunes clairs)', retenue: ' (écartée)', actuel: ' (comparaison)' };
+  const SORTS = { enveloppe: ' (premier tour ; retenue avec une marge pour les jaunes clairs)', retenue: ' (écartée)', actuel: ' (comparaison)', finale: '' };
   document.getElementById('reveler').addEventListener('click', () => {
     const z = document.getElementById('revelation');
     z.hidden = false;

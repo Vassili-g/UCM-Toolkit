@@ -11,7 +11,7 @@ import { rampesDe } from '../../../../../../packages/couleur/src/palette';
 import { recetteParDefaut, type Palette, type Recette } from '../../../../../../packages/couleur/src/recette';
 import { prereglageTailwind } from '../../../../../../packages/couleur/src/tailwind';
 import { REGLE_RETENUE, deriveAuxBouts, rampesDuBanc, type RegleDeChroma } from './prototype';
-import { REGLE_ENVELOPPE, lire, valider } from './variantes';
+import { REGLE_ENVELOPPE, REGLE_FINALE, lire, valider } from './variantes';
 
 const tailwind = lire('./references/tailwind-3.4.17.json') as Record<string, Record<string, string>>;
 const FAMILLES: [string, string][] = [
@@ -77,6 +77,11 @@ const REGLES: Record<string, { nom: string; resume: string; rampes: (dark: 'noir
     nom: 'Retenue par teinte',
     resume: 'Une part fixe, retenue seulement là où Tailwind et Radix retiennent : verts clairs et bleus foncés. Soft : fonds 0,6, textes 0,85.',
     rampes: (dark, p) => banc(dark, p, REGLE_RETENUE),
+  },
+  finale: {
+    nom: 'Règle retenue',
+    resume: 'L\'enveloppe par thème, élargie autour du jaune (+100 % en Soft, +50 % en Vivid), fonds Dark de Vivid bornés à 0,30 : la règle arrêtée après le second tour.',
+    rampes: (dark, p) => banc(dark, p, REGLE_FINALE),
   },
 };
 function banc(dark: 'noir' | 'blanc', p: Palette, regle: RegleDeChroma) {

@@ -1,7 +1,8 @@
 # Rampes de couleur : la solution proposée
 
 **Statut : décisions arrêtées au banc visuel (Q1 à Q10) ; implémentation à
-planifier.** Ce document décrit la solution retenue pour les rampes, après les
+planifier. La référence pour l'implémentation est [DECISIONS.md](./DECISIONS.md) ;
+ce document en donne le détail et les raisons.** Ce document décrit la solution retenue pour les rampes, après les
 notes à l'aveugle du mainteneur, un relevé de neuf systèmes et deux tours de
 [banc visuel](./Maquettes/BANC-VISUEL.html). Le [dossier de robustesse](./ROBUSTESSE-DES-RAMPES.md)
 porte les mesures sur toutes les teintes et les notes du banc ; le
@@ -290,7 +291,7 @@ relèvent des composants.
 | G7 contre la page et la carte | `packages/kit/src/emplois/garanties.ts` : les fonds de G7 deviennent la page et la carte ; `packages/couleur/src/promesses.ts` et `garantie.ts` reçoivent la couleur de la carte (blanche en Light, neutre 100 en Dark), absente aujourd'hui de la recette ; textes de Vérification |
 | S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (400, 500 et 950), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
-### Le focus, fichier par fichier (à implémenter)
+### Le focus, fichier par fichier (à implémenter ; le nom `ring` attend l'avis sur Q8)
 
 Décisions : l'anneau décalé (2 px du fond, puis 2 px de trait) partout, au cran
 d'aujourd'hui (600 en sens normal, 700 en sens inversé, dans les deux thèmes) ;

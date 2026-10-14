@@ -1,0 +1,34 @@
+{
+ "enveloppe retenue au banc (jaunes, fonds Dark 0,30) · retenue, G7 contre la page et la carte, Titanium": {
+  "couples": 48384,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "fondContreCarte": {
+   "light": 1.157,
+   "dark": 1.391
+  }
+ },
+ "enveloppe retenue au banc (jaunes, fonds Dark 0,30) · retenue, G7 contre la page et la carte, défauts sans teinte": {
+  "couples": 48384,
+  "echecs": 144,
+  "parGarantie": {
+   "G1 dark inverse sur solid/default": 144
+  },
+  "exemples": [
+   "#E82D81 soft G1 dark inverse sur solid/default 4.10",
+   "#EA2D74 vivid G1 dark inverse sur solid/default 4.10",
+   "#EC2D67 vivid G1 dark inverse sur solid/default 4.09"
+  ],
+  "fondContreCarte": {
+   "light": 1.157,
+   "dark": 1.389
+  }
+ }
+}

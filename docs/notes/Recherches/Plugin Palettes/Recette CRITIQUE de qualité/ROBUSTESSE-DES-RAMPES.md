@@ -1,6 +1,6 @@
 # Robustesse des rampes : toutes les teintes, tous les cas
 
-**Statut : décisions prises au banc visuel ; la règle de chroma et le focus sont arrêtés.** Ce dossier rouvre la règle
+**Statut : décisions prises au banc visuel ; la règle de chroma et le focus sont arrêtés. Mesures et pistes ; la référence pour l'implémentation est [DECISIONS.md](./DECISIONS.md).** Ce dossier rouvre la règle
 de chroma S1 de la [solution](./SOLUTION-RAMPES.md) : l'enveloppe corrigeait les
 verts clairs, mais elle ternissait les jaunes et les ambres clairs, absents du
 fichier du mainteneur et du test à l'aveugle. Il teste chaque règle sur toutes

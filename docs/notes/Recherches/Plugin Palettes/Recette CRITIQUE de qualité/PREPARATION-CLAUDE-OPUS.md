@@ -1,5 +1,9 @@
 # Recette critique de qualité des palettes
 
+> **Document historique.** Point de départ de la recette critique ; ses
+> propositions ont été mesurées puis tranchées. Pour l'implémentation, la
+> référence est [DECISIONS.md](./DECISIONS.md).
+
 Ce dossier prépare l'investigation de Claude Opus à partir des retours du
 mainteneur. Les propositions restent à éprouver sur des composants avant de
 modifier le moteur. Les sections distinguent observations, faits vérifiés et

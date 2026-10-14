@@ -1,5 +1,9 @@
 # Relevé des couleurs et composants d’Untitled UI
 
+> **Document historique.** Point de départ de la recette critique ; ses
+> propositions ont été mesurées puis tranchées. Pour l'implémentation, la
+> référence est [DECISIONS.md](./DECISIONS.md).
+
 Ce relevé complète la [préparation de la recette critique](./PREPARATION-CLAUDE-OPUS.md). Il sépare les données extraites du fichier Figma des recommandations écrites dans ses notes et des essais à mener dans UCM Palettes. Les captures, métadonnées et extractions se trouvent dans [Collecte/Figma](./Collecte/Figma/README.md).
 
 ## Sources relevées
