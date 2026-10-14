@@ -1,14 +1,14 @@
-/** Le préréglage Tailwind ([MOT-18] à [MOT-20]). */
+/** Le préréglage Tailwind ([MOT-18] à [MOT-20], [MOT-36]). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
   RELEVE_TAILWIND,
-  deriveTailwind,
   ecartAngulaire,
   lireHexa,
   prereglageTailwind,
   rgb8VersOklch,
+  teinteA,
   type RampeDeDerive,
 } from '../src/index';
 
@@ -33,21 +33,6 @@ test('l’écart angulaire prend le plus court chemin', () => {
   assert.equal(ecartAngulaire(0, 180), -180);
 });
 
-test('à la teinte claire d’une rampe du relevé, la dérive totale est celle de cette rampe', () => {
-  for (const { nom, crans } of RELEVE_TAILWIND) {
-    const clair = crans[0][1];
-    const sombre = crans[crans.length - 1][1];
-    const obtenu = deriveTailwind(clair);
-    assert.ok(Math.abs(obtenu - ecartAngulaire(clair, sombre)) < 1e-9, `${nom} : ${obtenu}`);
-  }
-});
-
-test('entre pink et rose, l’interpolation passe par 0°', () => {
-  // pink 343,2° dérive de +20,71 ; rose 12,42° de -0,33.
-  const auMilieu = deriveTailwind((343.2 + 12.42 + 360) / 2 % 360);
-  assert.ok(Math.abs(auMilieu - (20.71 + -0.33) / 2) < 1e-3, `${auMilieu}`);
-});
-
 test('[MOT-18] une couleur sans teinte rend deux dérives nulles, une référence terne garde la sienne', () => {
   assert.deepEqual(prereglageTailwind(rgb8VersOklch(lireHexa('#808080')!), BOUTS), { clair: 0, sombre: 0 });
   // #7C717B et #6B7280, chroma 0,020 et 0,026 : leur teinte se lit à 6° près, leur dérive se calcule.
@@ -56,14 +41,30 @@ test('[MOT-18] une couleur sans teinte rend deux dérives nulles, une référenc
   }
 });
 
-test('[MOT-19] la dérive totale se répartit selon la place de la référence dans la rampe', () => {
-  const totale = 20;
-  const releve = [rampe('a', 0, 20), rampe('b', 180, 200)];
-  const reference = (L: number) => ({ L, C: 0.1, H: 90 });
-  // Une référence au bout clair reçoit toute la dérive du côté sombre, et l'inverse.
-  assert.deepEqual(prereglageTailwind(reference(0.975), BOUTS, releve), { clair: 0, sombre: totale });
-  assert.deepEqual(prereglageTailwind(reference(0.27), BOUTS, releve), { clair: -totale, sombre: 0 });
-  assert.deepEqual(prereglageTailwind(reference(0.99), BOUTS, releve), { clair: 0, sombre: totale });
+test('[MOT-36] la dérive se lit aux deux bouts des rampes voisines', () => {
+  // Valeurs de `deriveAuxBouts` du prototype de la recette critique, sur le relevé par défaut et ces bouts.
+  const attendu: Record<string, { clair: number; sombre: number }> = {
+    '#F59E0B': { clair: 25.36, sombre: -24.44 }, // amber-500
+    '#EAB308': { clair: 17, sombre: -32.24 }, // yellow-500
+    '#3B82F6': { clair: -5.21, sombre: 8.13 }, // blue-500
+    '#EC4899': { clair: -11.11, sombre: 9.6 }, // pink-500
+    '#10B981': { clair: 3.17, sombre: 9.82 }, // emerald-500
+  };
+  for (const [reference, derive] of Object.entries(attendu)) {
+    assert.deepEqual(prereglageTailwind(rgb8VersOklch(lireHexa(reference)!), BOUTS), derive, reference);
+  }
+});
+
+test('[MOT-36] une référence au cran 500 d’une rampe en suit la teinte à 12,5° près, sur les onze crans', () => {
+  for (const { nom, crans } of RELEVE_TAILWIND) {
+    const [L, H] = crans[5];
+    const reference = { L, C: 0.15, H };
+    const derive = prereglageTailwind(reference, BOUTS);
+    for (const [clarte, teinte] of crans) {
+      const ecart = Math.abs(ecartAngulaire(teinteA(clarte, reference, derive, BOUTS), teinte));
+      assert.ok(ecart <= 12.5, `${nom} à L ${clarte} : ${ecart.toFixed(2)}°`);
+    }
+  }
 });
 
 test('[MOT-20] un relevé passé en paramètre remplace celui par défaut', () => {

@@ -1,7 +1,7 @@
 /**
  * Le préréglage Tailwind : la dérive de teinte que les rampes colorées de
  * Tailwind montrent, prédite pour une couleur de référence ([MOT-18] à
- * [MOT-20]).
+ * [MOT-20], [MOT-36]).
  */
 import { CHROMA_SANS_TEINTE, ecartAngulaire, type Oklch } from './conversions';
 import { arrondir, type Bouts, type Derive } from './rampe';
@@ -40,41 +40,57 @@ export const RELEVE_TAILWIND: readonly RampeDeDerive[] = [
   { nom: 'pink', crans: [[0.9714, 343.2], [0.9482, 342.26], [0.8994, 343.23], [0.8228, 346.02], [0.7253, 349.76], [0.6559, 354.31], [0.5916, 0.58], [0.5246, 3.96], [0.4587, 3.82], [0.4078, 2.43], [0.2845, 3.91]] },
 ];
 
-/** La teinte du premier cran d'une rampe relevée, celle du bout clair. */
-const teinteClaire = (rampe: RampeDeDerive): number => rampe.crans[0][1];
-
-/** La teinte du dernier cran d'une rampe relevée, celle du bout sombre. */
-const teinteSombre = (rampe: RampeDeDerive): number => rampe.crans[rampe.crans.length - 1][1];
-
-export { ecartAngulaire };
-
 /**
- * La dérive totale, du bout clair au bout sombre, prédite à la teinte `h` : les
- * deux rampes voisines de `h` sur le cercle, triées par la teinte de leur
- * premier cran, et l'interpolation linéaire de leur dérive totale selon la
- * position angulaire de `h` entre elles. Le relevé doit compter deux teintes
- * claires distinctes au moins, sans quoi la position n'est pas définie.
+ * La teinte d'une rampe relevée à la clarté `L`. Les teintes des crans sont
+ * dépliées le long de la rampe pour ne pas franchir 0° ou 360° en
+ * interpolant ; au-delà des crans extrêmes, la teinte du cran extrême.
+ * Le résultat n'est pas ramené dans [0, 360[.
  */
-export function deriveTailwind(h: number, releve: readonly RampeDeDerive[] = RELEVE_TAILWIND): number {
-  const triees = [...releve].sort((x, y) => teinteClaire(x) - teinteClaire(y));
-  let suivante = triees.findIndex((rampe) => teinteClaire(rampe) > h);
-  if (suivante < 0) suivante = 0;
-  const apres = triees[suivante];
-  const avant = triees[(suivante - 1 + triees.length) % triees.length];
-  const position = ((h - teinteClaire(avant) + 360) % 360) / ((teinteClaire(apres) - teinteClaire(avant) + 360) % 360);
-  const deriveAvant = ecartAngulaire(teinteClaire(avant), teinteSombre(avant));
-  const deriveApres = ecartAngulaire(teinteClaire(apres), teinteSombre(apres));
-  return deriveAvant + (deriveApres - deriveAvant) * position;
+function teinteALaClarte(crans: RampeDeDerive['crans'], L: number): number {
+  const deplie = [crans[0][1]];
+  for (let i = 1; i < crans.length; i += 1) deplie.push(deplie[i - 1] + ecartAngulaire(crans[i - 1][1], crans[i][1]));
+  if (L >= crans[0][0]) return deplie[0];
+  if (L <= crans[crans.length - 1][0]) return deplie[crans.length - 1];
+  const i = crans.findIndex(([clarte]) => clarte < L);
+  const t = (crans[i - 1][0] - L) / (crans[i - 1][0] - crans[i][0]);
+  return deplie[i - 1] + t * (deplie[i] - deplie[i - 1]);
 }
 
 /**
- * Le préréglage Tailwind pour une référence (section 6.5). Une seule
- * évaluation de `deriveTailwind`, sur la teinte de la référence ([MOT-19]).
- * La dérive totale se répartit entre les deux bouts selon la place de la
- * référence dans la rampe, et chaque angle est arrondi au centième
- * ([MOT-27]). Une couleur sans teinte ([MOT-04]) rend deux dérives nulles ;
- * l'appelant qui lit des octets écarte aussi un gris pur (`estGrisPur`,
- * [MOT-18]).
+ * La dérive de teinte à chaque bout, prédite pour une référence ([MOT-36]).
+ * Chaque rampe du relevé est lue à la clarté de la référence : sa teinte à
+ * cette clarté la place sur le cercle, et sa dérive à `bouts.clair` et à
+ * `bouts.sombre` se mesure depuis cette teinte. Les deux rampes voisines de la
+ * teinte de la référence prêtent leur dérive, interpolée linéairement selon la
+ * position angulaire de la référence entre elles. Les angles sont arrondis au
+ * centième ([MOT-27]).
+ */
+function deriveAuxBouts(reference: Oklch, bouts: Bouts, releve: readonly RampeDeDerive[]): Derive {
+  const lues = releve
+    .map(({ crans }) => {
+      const h0 = teinteALaClarte(crans, reference.L);
+      return {
+        h: ((h0 % 360) + 360) % 360,
+        clair: teinteALaClarte(crans, bouts.clair) - h0,
+        sombre: teinteALaClarte(crans, bouts.sombre) - h0,
+      };
+    })
+    .sort((x, y) => x.h - y.h);
+  let suivante = lues.findIndex(({ h }) => h > reference.H);
+  if (suivante < 0) suivante = 0;
+  const apres = lues[suivante];
+  const avant = lues[(suivante - 1 + lues.length) % lues.length];
+  const position = ((reference.H - avant.h + 360) % 360) / (((apres.h - avant.h + 360) % 360) || 360);
+  return {
+    clair: arrondir(avant.clair + (apres.clair - avant.clair) * position, 2),
+    sombre: arrondir(avant.sombre + (apres.sombre - avant.sombre) * position, 2),
+  };
+}
+
+/**
+ * Le préréglage Tailwind pour une référence (section 6.5, [MOT-36]). Une
+ * couleur sans teinte ([MOT-04]) rend deux dérives nulles ; l'appelant qui
+ * lit des octets écarte aussi un gris pur (`estGrisPur`, [MOT-18]).
  */
 export function prereglageTailwind(
   reference: Oklch,
@@ -82,12 +98,7 @@ export function prereglageTailwind(
   releve: readonly RampeDeDerive[] = RELEVE_TAILWIND,
 ): Derive {
   if (reference.C < CHROMA_SANS_TEINTE) return { clair: 0, sombre: 0 };
-  const totale = deriveTailwind(reference.H, releve);
-  const place = Math.min(1, Math.max(0, (bouts.clair - reference.L) / (bouts.clair - bouts.sombre)));
-  return {
-    clair: arrondir(-totale * place, 2),
-    sombre: arrondir(totale * (1 - place), 2),
-  };
+  return deriveAuxBouts(reference, bouts, releve);
 }
 
 /** Le préréglage « Constante » : aucune dérive ([DER-11]). */

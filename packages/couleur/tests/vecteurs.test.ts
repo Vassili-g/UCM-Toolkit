@@ -5,9 +5,8 @@
  * dans un script hors du dépôt. culori emploie des matrices d'Oklab plus
  * précises que celles d'Ottosson : l'écart reste sous `1e-7`.
  *
- * Second jeu : relevé par `mesurer-recette.mjs` (dossier de recherche du
- * plugin Palettes), puis recalculé par le moteur, qui rend les mêmes hexas et
- * les mêmes angles.
+ * Second jeu : les hexas des préréglages Tailwind, figés depuis le moteur au
+ * moment de [MOT-36].
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -22,7 +21,6 @@ import {
   lireHexa,
   prereglageTailwind,
   rgb8VersOklch,
-  deriveTailwind,
   type Courbes,
 } from '../src/index';
 
@@ -64,16 +62,14 @@ test('vecteur : les gris de clarté 0,975 et 0,180 sont les fonds par défaut', 
   assert.equal(fabriquerCran(0.18, 0, 0, 'srgb').hexa, '#121212');
 });
 
-test('vecteur : #1E6FD9 au préréglage Tailwind, dérive 12,64°, clair -7,53, sombre +5,11', () => {
+test('vecteur : #1E6FD9 au préréglage Tailwind, clair -7,35, sombre +4,28', () => {
   const reference = rgb8VersOklch(hexa('#1E6FD9'));
-  assert.equal(deriveTailwind(reference.H).toFixed(2), '12.64');
-  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: -7.53, sombre: 5.11 });
+  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: -7.35, sombre: 4.28 });
 });
 
-test('vecteur : #F2A900 au préréglage Tailwind, dérive -39,63°, clair +10,69, sombre -28,94', () => {
+test('vecteur : #F2A900 au préréglage Tailwind, clair +20,53, sombre -29,08', () => {
   const reference = rgb8VersOklch(hexa('#F2A900'));
-  assert.equal(deriveTailwind(reference.H).toFixed(2), '-39.63');
-  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: 10.69, sombre: -28.94 });
+  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: 20.53, sombre: -29.08 });
 });
 
 /** Les quatre rampes d'une référence au préréglage Tailwind, les deux profils liés. */
@@ -96,9 +92,9 @@ test('vecteur : #1E6FD9, vivid, clair 700 vaut #0E5DC6 et contraste à 5,76 cont
   assert.equal(ecrireContraste(contraste(cran.couleur, hexa('#F7F7F7'))), '5,76');
 });
 
-test('vecteur : #1E6FD9, vivid, sombre 200 vaut #021F64, l’angle arrondi au centième', () => {
+test('vecteur : #1E6FD9, vivid, sombre 200 vaut #022160, l’angle arrondi au centième', () => {
   const cran = paletteTailwind('#1E6FD9').vivid.dark[2];
-  assert.equal(cran.hexa, '#021F64');
+  assert.equal(cran.hexa, '#022160');
   assert.equal(ecrireContraste(contraste(cran.couleur, hexa('#121212'))), '1,23');
 });
 
@@ -109,15 +105,15 @@ test('vecteur : #F2A900, vivid, sombre 700 vaut #C9851B et contraste à 6,11 con
 });
 
 test('vecteur : les 44 crans de #1E6FD9 et de #F2A900 en vivid sont ceux du relevé', () => {
-  // Relevé de mesurer-recette.mjs, angles arrondis au centième.
+  // Recalculé par le moteur après [MOT-36] ; angles arrondis au centième.
   const releve: Record<string, { light: string[]; dark: string[] }> = {
     '#1E6FD9': {
-      light: ['#F1F8FF', '#E3F0FE', '#CAE2FD', '#A9D0FD', '#7AB5FB', '#4596FA', '#1477ED', '#0E5DC6', '#0846A3', '#043080', '#021E61'],
-      dark: ['#000C35', '#01154B', '#021F64', '#032D7B', '#07409A', '#0D5AC2', '#1476EA', '#4596FA', '#7AB5FB', '#ACD2FD', '#D8EAFE'],
+      light: ['#F1F8FF', '#E3F0FE', '#CAE2FD', '#A9D0FD', '#7AB5FB', '#4596FA', '#1477ED', '#0E5DC6', '#0847A1', '#04317D', '#02205E'],
+      dark: ['#010E33', '#011648', '#022160', '#032F78', '#074198', '#0D5AC1', '#1476EA', '#4596FA', '#7AB5FB', '#ACD1FD', '#D8EAFE'],
     },
     '#F2A900': {
-      light: ['#FFF6E2', '#FEEDC6', '#FDDB95', '#FDC14D', '#E7A222', '#C9851B', '#AC6B14', '#8F520E', '#733D09', '#582905', '#401A02'],
-      dark: ['#210A01', '#301201', '#421B02', '#552704', '#6C3807', '#8B500D', '#AA6914', '#C9851B', '#E7A222', '#FDC354', '#FEE5B1'],
+      light: ['#FFF8D5', '#FEEFB4', '#FDDD80', '#FDC236', '#E7A222', '#C9851B', '#AC6B14', '#8F520E', '#733D09', '#582905', '#401A02'],
+      dark: ['#210A01', '#301201', '#421B02', '#552704', '#6D3807', '#8B500D', '#AA6914', '#C9851B', '#E7A222', '#FDC43E', '#FEE79C'],
     },
   };
   for (const [reference, attendu] of Object.entries(releve)) {

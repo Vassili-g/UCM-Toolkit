@@ -624,7 +624,13 @@ Les tâches sont successives.
     `npx tsx "D/Mesures/comparer-implementation.ts"`.
   - Fini quand : vert et la comparaison est sans écart.
 
-- [ ] **M4 · La dérive de teinte aux deux bouts** · `implementeur`, moyen.
+- [x] **M4 · La dérive de teinte aux deux bouts** · `implementeur`, moyen.
+  Fait. Pire écart à Tailwind mesuré : 10,6° (amber, cran 700), sur les onze
+  crans de chaque rampe relue depuis son cran 500. Question au mainteneur : une
+  référence plus sombre que le bout sombre (stone-950) prend toute la dérive
+  vers le clair, et sa 500 part à 81° pour 49° ; test `todo` dans
+  `desaturees.test.ts`. Deux V3a de plus (Pourpre à la place de Cuivre),
+  repris avec les autres après M5.
   - Décision : DECISIONS.md, section 2, Q10. Identifiant réservé :
     `[MOT-36]`, section du préréglage Tailwind de SPEC-PAL, qui remplace les
     règles de `[MOT-19]` sur la dérive totale (garder `[MOT-19]`, réécrire son

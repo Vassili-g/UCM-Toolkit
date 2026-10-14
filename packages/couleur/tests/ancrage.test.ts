@@ -111,7 +111,7 @@ test('[MOT-17] [ENT-11] #1E6FD9 est le 600 de vivid dans les deux modes ; ses vo
   assert.equal(rampes.vivid!.light[6].hexa, '#1E6FD9');
   assert.equal(rampes.vivid!.dark[6].hexa, '#1E6FD9');
   // À la part commune de vivid, 0,95, ils valaient #0E5DC6 et #4596FA.
-  assert.equal(rampes.vivid!.light[7].hexa, '#185EC1');
+  assert.equal(rampes.vivid!.light[7].hexa, '#185FC0');
   assert.equal(rampes.vivid!.dark[7].hexa, '#4B96F4');
   assert.notEqual(rampes.soft!.light[6].hexa, '#1E6FD9');
 });

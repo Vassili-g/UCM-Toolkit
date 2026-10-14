@@ -2463,7 +2463,7 @@ test('W6.5 une palette libre de six nuances : l’aperçu suit sa liste, le dét
     assert.deepEqual(await page.locator('.nuancier-numero').allTextContents(), ['100', '200', '400', '600', '800', '900']);
     await page.locator('.pastille[data-profil="vivid"][data-cran="800"]').click();
     const detail = page.locator('.nuancier-detail');
-    assert.match(await detail.textContent(), /^Vivid · 800#10479E/);
+    assert.match(await detail.textContent(), /^Vivid · 800#10489C/);
     assert.doesNotMatch(await detail.textContent(), /Sert à/);
     const configuration = page.locator('[aria-label="Configuration de la palette"]');
     for (const numero of [100, 200]) {
@@ -3505,7 +3505,7 @@ test('[ENT-09] Z10.8 un glisser de teinte, de saturation ou de luminosité prév
   const page = await ouvrirSur('alertes-seules');
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
-    const nuance = page.locator('[aria-label^="Profil Soft, nuance 50,"]');
+    const nuance = page.locator('[aria-label^="Profil Soft, nuance 500,"]');
     const avantLApercu = await nuance.getAttribute('aria-label');
     const avant = await compte(page);
     // Une saisie dans les bornes permises prévisualise comme un glisser ; la saturation se saisit en pour cent.
@@ -3513,7 +3513,7 @@ test('[ENT-09] Z10.8 un glisser de teinte, de saturation ou de luminosité prév
       const champ = page.getByRole('textbox', { name: `${grandeur} de Soft` });
       await champ.fill(valeur);
       // L'aperçu se rend à l'image suivante : un seul rendu par image pendant un glisser (Z4).
-      await page.waitForFunction((a) => document.querySelector('[aria-label^="Profil Soft, nuance 50,"]').getAttribute('aria-label') !== a, avantLApercu, { timeout: 2000 });
+      await page.waitForFunction((a) => document.querySelector('[aria-label^="Profil Soft, nuance 500,"]').getAttribute('aria-label') !== a, avantLApercu, { timeout: 2000 });
       assert.equal(await compte(page), avant, `${grandeur} : rien ne s’enregistre pendant le geste`);
       await champ.press('Escape');
       assert.equal(await nuance.getAttribute('aria-label'), avantLApercu, `${grandeur} : Échap rend l’aperçu d’avant`);
@@ -6041,7 +6041,7 @@ test('[DER-18] trois onglets choisissent la grandeur ; chacun porte ses deux val
     const carte = carteDeLOnglet(page, CARTE_DE_LA_DERIVE);
     const onglets = carte.getByRole('tab');
     assert.deepEqual(await onglets.locator('.onglet-de-grandeur-nom').allTextContents(), ['Teinte', 'Saturation', 'Luminosité']);
-    assert.deepEqual(await onglets.locator('.onglet-de-grandeur-valeurs').allTextContents(), ['−7,5° · +5,1°', '−40 % · +25 %', '+0,020 · −0,050']);
+    assert.deepEqual(await onglets.locator('.onglet-de-grandeur-valeurs').allTextContents(), ['−7,3° · +4,3°', '−40 % · +25 %', '+0,020 · −0,050']);
     // La teinte vaut Tailwind, son départ : pas de pastille ; la saturation et la luminosité s'écartent de zéro.
     assert.deepEqual(await onglets.locator('.pastille-reglee').evaluateAll((pastilles) => pastilles.map((pastille) => !pastille.hidden)), [false, true, true]);
     assert.equal(await carte.getByRole('tab', { selected: true }).locator('.onglet-de-grandeur-nom').textContent(), 'Saturation');
@@ -6096,18 +6096,18 @@ test('[DER-09] [DER-19] au clavier, Fin et Origine posent une poignée sur ses b
   try {
     await choisirLOnglet(page, 'Luminosité');
     const sombre = poignee(page, 'sombre');
-    assert.deepEqual([await sombre.getAttribute('aria-valuemin'), await sombre.getAttribute('aria-valuemax')], ['-0.15', '0.08']);
+    assert.deepEqual([await sombre.getAttribute('aria-valuemin'), await sombre.getAttribute('aria-valuemax')], ['-0.15', '0.075']);
     await sombre.focus();
     let avant = await compte(page);
     await page.keyboard.press('End');
     let palette = await rangementDe(page, avant);
-    assert.equal(palette.derive.vivid.clarte.sombre, 0.08, 'Fin va à la borne permise');
+    assert.equal(palette.derive.vivid.clarte.sombre, 0.075, 'Fin va à la borne permise');
     await limitesCalculees(carteDeLOnglet(page, CARTE_DE_LA_DERIVE));
     avant = await compte(page);
     await poignee(page, 'sombre').focus();
     await page.keyboard.press('ArrowUp');
     assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
-    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,080\. Au-delà, surface\/foreground sur surface\/pressed \(Soft, Light\) tomberait à 4,45:1, sous 4,5:1\.$/);
+    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,075\. Au-delà, surface\/foreground sur surface\/pressed \(Soft, Light\) tomberait à 4,47:1, sous 4,5:1\.$/);
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
     // Les nuances sombres en butée haute, les limites se croisent ([DER-20]) : la borne basse des nuances claires remonte à zéro.
@@ -6143,7 +6143,7 @@ test('[DER-13] Ctrl+Z défait le dernier réglage du Color shift, quelle que soi
     avant = await compte(page);
     await page.keyboard.press('Control+z');
     palette = await rangementDe(page, avant);
-    assert.equal(palette.derive.vivid.clair, -7.53, 'la teinte revient');
+    assert.equal(palette.derive.vivid.clair, -7.35, 'la teinte revient');
     assert.deepEqual(palette.derive.vivid.saturation, { clair: 0, sombre: 0.3 }, 'la saturation reste');
     avant = await compte(page);
     await poignee(page, 'clair').focus();
@@ -6161,7 +6161,7 @@ test('[DER-11] « Tout rétablir » rend la teinte Tailwind, la saturation et la
     const avant = await compte(page);
     await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('button', { name: 'Tout rétablir' }).click();
     const palette = await rangementDe(page, avant);
-    assert.deepEqual(palette.derive.vivid, { clair: -7.53, sombre: 5.11, origine: 'tailwind' });
+    assert.deepEqual(palette.derive.vivid, { clair: -7.35, sombre: 4.28, origine: 'tailwind' });
     assert.deepEqual(palette.derive.soft, palette.derive.vivid);
   } finally {
     await page.close();

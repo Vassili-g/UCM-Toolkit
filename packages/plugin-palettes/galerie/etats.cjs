@@ -302,7 +302,7 @@ function variablesDuFichierAvecPoppy() {
  */
 function sauge(variante = 'deux') {
   const recette = recetteDeLaGalerie();
-  const derive = { clair: -8.27, sombre: 20.49, origine: 'tailwind' };
+  const derive = { clair: -7.2, sombre: 14.53, origine: 'tailwind' };
   const calculee = { id: 'p-6a5e0b17', nom: 'Sauge', reference: '#A7B9BA', derive: { lien: true, soft: derive, vivid: derive }, base: 'soft' };
   const hexas = (rampe) => ({ light: rampe.light.map((cran) => cran.hexa), dark: rampe.dark.map((cran) => cran.hexa) });
   if (variante === 'deux') {

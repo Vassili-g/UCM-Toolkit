@@ -126,7 +126,7 @@ test('[PLA-14] quarante-quatre pastilles nommées profil/mode/cran, chacune une 
   const noms = AVEC_GRILLE.peints.map(({ nom }) => nom);
   assert.equal(noms.length, 44);
   assert.equal(new Set(noms).size, 44);
-  assert.equal(AVEC_GRILLE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1');
+  assert.equal(AVEC_GRILLE.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185FC0');
 });
 
 /** Les variables d'un profil dans un thème ([PLA-18]). */
@@ -249,14 +249,14 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
     assert.ok(!tous(modele.racine).some((noeud) => /garantie \d|\bG[1-7]\b/.test(noeud.nom) || (noeud.type === 'texte' && /\bG[1-7]\b/.test(noeud.contenu))), 'aucun numéro de garantie');
   }
   const lignes = (nom: string) => garantiesLues(trouver(variablesDe(MODELE.racine, 'light', 'vivid'), nom)).map((noeud) => noeud.contenu);
-  assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,15:1 · AA', '✓ sur la page : 5,74:1 · AA']);
-  assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,09:1 · AAA']);
+  assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,11:1 · AA', '✓ sur la page : 5,70:1 · AA']);
+  assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,04:1 · AAA']);
   assert.deepEqual(lignes('surface default'), [
-    '✓ texte dessus : 7,52:1 · AAA', '✓ texte sur la page : 8,10:1 · AAA', '✓ contour dessus : 7,52:1 · AA', '✓ contour sur la page : 8,10:1 · AA',
+    '✓ texte dessus : 7,48:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ contour dessus : 7,48:1 · AA', '✓ contour sur la page : 8,06:1 · AA',
   ]);
-  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,55:1 · AA', '✓ contour dessus : 6,55:1 · AA']);
-  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,74:1 · AA']);
-  assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,74:1 · AA']);
+  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,52:1 · AA', '✓ contour dessus : 6,52:1 · AA']);
+  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA']);
+  assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA']);
   assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
   const echec = garantiesLues(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.contenu.startsWith('✗'))!;
@@ -312,7 +312,7 @@ test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les ramp
   const valeur = (lisible.enfants[0] as NoeudTexte);
   assert.equal(valeur.couleur.hexa, hexa(100));
   assert.equal(valeur.style, 'chiffre');
-  assert.equal(valeur.contenu, '10,47 AAA');
+  assert.equal(valeur.contenu, '10,42 AAA');
   const aa = cadres(grille).find((noeud) => /^\d+\/\d+$/.test(noeud.nom) && (noeud.enfants[0] as NoeudTexte | undefined)?.contenu.endsWith(' AA'));
   assert.ok(aa, 'une paire entre 4,5:1 et 7:1 porte AA');
   const sansNiveau = cadres(grille).filter((noeud) => /^\d+\/\d+$/.test(noeud.nom) && noeud.enfants.length > 0).map((noeud) => (noeud.enfants[0] as NoeudTexte).contenu).filter((contenu) => !/ AAA?$/.test(contenu));
@@ -378,7 +378,7 @@ test('section 6.7 : la peinture suit le profil du document', () => {
     assert.ok(Math.abs(composante - rgb8VersP3(bleu)[rang]) <= 5e-7, `composante ${rang} en P3`);
   });
   const p3 = modeleDeCadre(RECETTE, BLEU, 'DISPLAY_P3');
-  assert.equal(p3.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185EC1', 'l’hexa annoncé ne change pas');
+  assert.equal(p3.peints.find(({ nom }) => nom === 'vivid/light/700')?.hexa, '#185FC0', 'l’hexa annoncé ne change pas');
 });
 
 test('[PLA-19] G3.2 : un cadre dessiné avant la version 6 de la recette est périmé quand ses couleurs changent', () => {

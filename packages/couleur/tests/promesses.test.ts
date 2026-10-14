@@ -312,7 +312,7 @@ test('[VER-03] oracles S8 : trois références en Dark avec texte blanc, profil 
   assert.equal(cibleDe(bleu.g1[1].second), 600);
 
   const vert = lire('#16A34A');
-  assert.equal(vert.hexa(700), '#11883D');
+  assert.equal(vert.hexa(700), '#118840');
   proche(vert.g1[0].contraste, 4.55);
   assert.equal(vert.g1[0].verdict, 'tenue');
 

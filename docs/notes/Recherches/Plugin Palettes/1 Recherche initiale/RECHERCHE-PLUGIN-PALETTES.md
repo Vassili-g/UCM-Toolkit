@@ -345,8 +345,8 @@ reste l'autorité de la teinte.
 ### 6.5 Le préréglage Tailwind
 
 Le préréglage reproduit la dérive des dix-sept rampes colorées de Tailwind. Le
-relevé est rangé dans la recette sous `derives` : une paire (teinte du cran 50,
-teinte du cran 950) par rampe. Il redonne le tableau 3.3 de l'architecture :
+relevé est rangé dans la recette sous `derives` : la clarté et la teinte des
+onze crans, du 50 au 950, de chaque rampe. Il redonne le tableau 3.3 de l'architecture :
 
 | Teinte au bout clair | Exemples | Dérive totale en fonçant |
 |---|---|---|
@@ -363,23 +363,18 @@ Calcul pour une couleur de référence `(La, Ca, Ha)`, lue sur le départ `S`
 (`[MOT-29]`) : les réglages de la carte ne déplacent pas le préréglage.
 
 ```text
-d       = dériveTailwind(Ha)          dérive totale, du bout clair au bout sombre
-ta      = clamp((Lc − La) / (Lc − Ls), 0, 1)
-dClair  = −d × ta
-dSombre =  d × (1 − ta)
+h0(r)     = teinte de la rampe r à la clarté La
+dClair(r) = teinte de r à Lc  − h0(r)
+dSombre(r)= teinte de r à Ls  − h0(r)
+dClair, dSombre = interpolation de (dClair(r), dSombre(r)) entre les deux
+                  rampes voisines de Ha sur le cercle, triées par h0
 ```
 
-`dériveTailwind(h)` trie le relevé par teinte claire, prend les deux rampes
-voisines de `h` sur le cercle et interpole linéairement leur dérive totale
-selon la position angulaire de `h` entre leurs teintes claires. La dérive totale
-d'une rampe est `écart(clair, sombre)`, avec
-`écart(a, b) = ((b − a + 540) mod 360) − 180`. Sur le relevé, cette prédiction se
-trompe de 10,4° en moyenne, contre 15,8° pour une teinte constante
-(`mesurer-derive-teinte.mjs`).
-
-La dérive totale se répartit entre les deux bouts selon la position de la
-couleur de référence dans la rampe. Une référence claire reçoit presque toute la
-dérive du côté sombre, une référence foncée du côté clair.
+La teinte d'une rampe à une clarté se lit entre ses crans, sur les teintes
+dépliées, et reste celle du cran extrême au-delà. Les deux rampes voisines et la
+position de `Ha` entre elles se calculent sur `h0`, la teinte de chaque rampe à
+la clarté de la référence : la dérive suit la rampe là où la référence se
+trouve, et non la teinte de son cran 50.
 
 - `[MOT-18]` Une référence dont R, G et B ne diffèrent pas de plus d'une
   unité est un gris pur : un de ses voisins à une unité n'a pas de teinte, et
@@ -394,11 +389,18 @@ dérive du côté sombre, une référence foncée du côté clair.
   produit pas le bleu franc `#0E44F7` que la part commune de `vivid` donnerait
   en `vivid.700`. `estGrisPur` (`packages/couleur/src/palette.ts`) en est
   l'autorité.
-- `[MOT-19]` Une seule évaluation de `dériveTailwind`, sur `Ha`. Deux
-  implémentations rendent ainsi le même préréglage.
+- `[MOT-19]` Une seule lecture du relevé par préréglage, sur `Ha` et `La`.
+  Deux implémentations rendent ainsi le même préréglage.
 - `[MOT-20]` La recette garde les deux angles retenus et le nom du préréglage
   dont ils viennent, `tailwind`, `constante` ou `libre`. Elle ne garde jamais la
   formule : un relevé modifié ne change pas une palette déjà réglée.
+- `[MOT-36]` La dérive de chaque bout se lit sur les deux rampes voisines de
+  la référence, choisies d'après leur teinte à la clarté `La`, à `Lc` pour le
+  bout clair et à `Ls` pour le bout sombre. Le choix des rampes d'après la
+  teinte de leur cran 50, et la répartition de la dérive totale selon la
+  position de la référence, n'existent plus. Une référence qui est le cran 500
+  d'une rampe du relevé retrouve la teinte de cette rampe à 12,5° près sur ses
+  onze crans.
 - `[MOT-27]` Un angle et un décalage de saturation se rangent au centième,
   une part de chroma et un décalage de luminosité au millième, arrondis au
   moment où ils sont posés :
