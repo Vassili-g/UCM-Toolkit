@@ -963,6 +963,9 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
   };
 }
 
+/** Ce que deux palettes trop proches ont de semblable, par rôle ([VER-22]). */
+const SUJET_DE_PROXIMITE = { plein: 'Solid buttons are', texte: 'Text on tinted fill is' } as const;
+
 /** Ce que la mise en mots d'une alerte lit de la recette. */
 export interface ContexteDAlerte {
   readonly recette: Recette;
@@ -975,7 +978,8 @@ const referenceLue = (contexte: ContexteDAlerte, id: string): string =>
 /**
  * Une alerte de la section 11.3 : où, quoi et le geste, qui cite la carte que
  * son lien ouvre ([VER-15]). Une proximité ne donne pas sa mesure en ΔEok :
- * le rapport exporté la garde ([VER-08]).
+ * le rapport exporté la garde ([VER-08]). Elle nomme le rôle et le thème de
+ * sa plus petite distance ([VER-22]).
  */
 export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): ConstatIllustre {
   switch (alerte.code) {
@@ -990,7 +994,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'palettes-proches':
       return {
         ou: `Palettes to compare: ${contexte.nomDe(alerte.palettes[0])} and ${contexte.nomDe(alerte.palettes[1])}`,
-        quoi: "Shades 500, 600 and 700 in these palettes are very similar in Light.",
+        quoi: `${SUJET_DE_PROXIMITE[alerte.proximite.role]} ${alerte.proximite.presqueIdentiques ? 'almost identical' : 'too close'} in ${NOM_DU_MODE[alerte.proximite.mode]}.`,
         geste: "Change a reference colour or delete the duplicate palette.",
       };
     case 'reference-plus-terne':
@@ -1034,7 +1038,7 @@ export const TEXTES_DU_BILAN_DES_PALETTES = {
   verifier: (nom: string) => `Verify ${nom}`,
   garantie: (mode: Mode, variable: VariableLibellee, contraste: number) =>
     `${NOM_DU_MODE[mode]} · ${LIBELLE_DE_LA_VARIABLE[variable]}, ${contrasteEcrit(contraste)}`,
-  procheDe: (nom: string, distance: number) => `too close to ${nom}, ΔEok ${ecrireArrondi(distance, 2)}`,
+  procheDe: (nom: string) => `too close to ${nom}`,
 } as const;
 /** Un message en trois parties. */
 export interface Constat {

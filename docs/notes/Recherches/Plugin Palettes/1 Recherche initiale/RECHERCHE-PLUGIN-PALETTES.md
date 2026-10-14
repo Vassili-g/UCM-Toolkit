@@ -1237,6 +1237,9 @@ toutes les nuances : ses cases ne sont pas des promesses.
   mode, sans clé de profil, et son ancrage sans profil. La version 4 nomme la
   garantie de chaque promesse par ses variables (`garantie.premier`,
   `garantie.fond`, `garantie.seuil`), sans numéro, et ajoute `texteDesBoutons`.
+  La version 5 remplace la `distance` de l'alerte `palettes-proches` par sa
+  `proximite` : la distance, le rôle, le thème et `presqueIdentiques`
+  (`[VER-22]`).
   Le rapport garde toutes les alertes du moteur, y compris celles que l'interface montre ailleurs que dans
   la liste des messages.
 
@@ -1400,16 +1403,25 @@ garantie par ses variables et son libellé, jamais par son numéro.
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
 | Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans que visent les variables de dossier, dans le sens de chaque thème, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
-| Palettes proches | ΔEok moyen sur les crans 500, 600 et 700, en clair, chaque palette lue sur sa liste, sur les rampes de `[VER-17]` | `palettesProches` | chaque paire de palettes dont les deux listes portent ces trois crans |
+| Palettes proches | la plus petite des ΔEok entre deux palettes sur le plein en Light, le plein en Dark et le texte du fond teinté en Light (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
 | Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
 
-- `[VER-17]` « Palettes proches » compare Vivid à Vivid entre deux palettes à
-  deux intensités, comme au format 3, et la rampe unique à la rampe unique
-  entre deux palettes à une intensité. Entre une palette à une intensité et
-  une à deux, la plus petite des distances de la rampe unique à Soft et à
-  Vivid l'emporte : la part d'une rampe unique est quelconque, et elle
-  ressemble au profil le plus proche d'elle.
+- `[VER-17]` « Palettes proches » lit une palette à deux intensités dans
+  Vivid, et une palette à une intensité dans sa rampe unique (`[VER-22]`).
+  Soft n'entre pas dans la comparaison.
+- `[VER-22]` « Palettes proches » compare deux palettes colorées sur trois
+  couleurs : `solid/default` en Light, `solid/default` en Dark et
+  `surface/foreground` en Light. Chaque cran vient de la table des rôles, dans
+  le sens de chaque thème (`cranDeLaVariable`), lu dans la liste de la palette.
+  Le texte des fonds en Dark (cran 950, presque blanc) n'entre pas dans la
+  comparaison. Une palette est colorée quand la chroma OKLCH de sa référence
+  dépasse 0,05 (`CHROMA_DES_PALETTES_COLOREES`). Une paire est comparée seulement
+  si les deux palettes sont colorées, ni libres (liste de numéros propre) ni
+  figées, et portent ces crans. Le constat garde la plus petite des trois
+  distances, avec son rôle (plein ou texte) et son thème ; la paire est trop
+  proche sous `palettesProches`, et presque identique sous 0,01. Cette règle
+  remplace la moyenne des crans 500, 600 et 700 en Light.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. Son message ne porte aucune ligne
   de mesure : la valeur et le seuil se lisent dans le rapport

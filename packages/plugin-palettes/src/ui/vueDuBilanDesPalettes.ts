@@ -45,7 +45,7 @@ function construireVues(i18n: Localisation) {
       case 'garantie':
         return TEXTES_DU_BILAN_DES_PALETTES.garantie(constat.mode, constat.variable, constat.contraste);
       case 'proche':
-        return TEXTES_DU_BILAN_DES_PALETTES.procheDe(nomDeLaPalette(constat.avec), constat.distance);
+        return TEXTES_DU_BILAN_DES_PALETTES.procheDe(nomDeLaPalette(constat.avec));
       case 'alerte':
         return constatDAlerte(constat.alerte, {
           recette,

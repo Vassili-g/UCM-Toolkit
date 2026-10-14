@@ -50,7 +50,7 @@ test('une garantie manquée range la palette à corriger, une alerte ou l’appa
   assert.deepEqual(bilan.comptes, { rouge: 1, ambre: 3, conforme: 1 });
 });
 
-test('les deux palettes d’une paire trop proche sont à vérifier, chacune nomme l’autre et la même distance', () => {
+test('les deux palettes d’une paire trop proche sont à vérifier, chacune nomme l’autre', () => {
   const bilan = bilanDesPalettes(avec(CYAN, VOISIN));
   assert.deepEqual(bilan.comptes, { rouge: 0, ambre: 2, conforme: 0 });
   const alerte = alertesDeRecette(avec(CYAN, VOISIN)).find((candidate) => candidate.code === 'palettes-proches');
@@ -59,8 +59,7 @@ test('les deux palettes d’une paire trop proche sont à vérifier, chacune nom
   assert.ok(premiere && premiere.nature === 'proche' && seconde && seconde.nature === 'proche');
   assert.equal(premiere.avec.id, VOISIN.id);
   assert.equal(seconde.avec.id, CYAN.id);
-  assert.equal(premiere.distance, alerte.distance);
-  assert.equal(seconde.distance, alerte.distance);
+  assert.deepEqual(alerte.palettes, [CYAN.id, VOISIN.id]);
   assert.deepEqual(etats(avec(VOISIN, CYAN)), [[VOISIN.id, 'ambre'], [CYAN.id, 'ambre']]);
 });
 
@@ -110,10 +109,10 @@ test('une alerte de la recette, comme un fond hors courbe, ne range aucune palet
   assert.deepEqual(bilanDesPalettes(recette).lignes.map((ligne) => ligne.etat).filter((etat) => etat === 'ambre'), []);
 });
 
-test('une palette libre n’a pas de garantie à manquer, mais une paire trop proche la compte comme une autre', () => {
+test('[VER-22] une palette libre n’a pas de garantie à manquer et n’entre dans aucune paire trop proche', () => {
   const libre = passerEnLibre(DEFAUT, CYAN);
-  assert.deepEqual(etats(avec(libre, VOISIN)), [[libre.id, 'ambre'], [VOISIN.id, 'ambre']]);
-  assert.deepEqual(etats(avec(VOISIN, libre)), [[VOISIN.id, 'ambre'], [libre.id, 'ambre']]);
+  assert.deepEqual(etats(avec(libre, VOISIN)), [[libre.id, 'conforme'], [VOISIN.id, 'conforme']]);
+  assert.deepEqual(etats(avec(VOISIN, libre)), [[VOISIN.id, 'conforme'], [libre.id, 'conforme']]);
 });
 
 test('le classement s’accorde avec le verdict de l’analyse de chaque palette', () => {

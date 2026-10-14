@@ -38,7 +38,7 @@ export const ETATS_DU_BILAN: readonly EtatDuBilan[] = ['rouge', 'ambre', 'confor
 /** Le premier constat d'une palette qui n'est pas conforme, tel que la vérification de la palette le dit en premier. */
 export type PremierConstat =
   | { readonly nature: 'garantie'; readonly mode: Mode; readonly variable: VariableDePalette; readonly contraste: number }
-  | { readonly nature: 'proche'; readonly avec: Palette; readonly distance: number }
+  | { readonly nature: 'proche'; readonly avec: Palette }
   | { readonly nature: 'alerte'; readonly alerte: Alerte };
 
 export interface LigneDuBilan {
@@ -65,17 +65,17 @@ function alertesParPalette(alertes: readonly Alerte[]): Map<string, Alerte[]> {
   return parPalette;
 }
 
-/** Pour chaque palette d'une paire trop proche, sa première partenaire dans l'ordre du moteur et leur distance. */
-function partenaires(recette: Recette, alertes: readonly Alerte[]): Map<string, { avec: Palette; distance: number }> {
+/** Pour chaque palette d'une paire trop proche, sa première partenaire dans l'ordre du moteur. */
+function partenaires(recette: Recette, alertes: readonly Alerte[]): Map<string, { avec: Palette }> {
   const parId = new Map(recette.palettes.map((palette) => [palette.id, palette]));
-  const proches = new Map<string, { avec: Palette; distance: number }>();
+  const proches = new Map<string, { avec: Palette }>();
   for (const alerte of alertes) {
     if (alerte.code !== 'palettes-proches') continue;
     const [premiere, seconde] = alerte.palettes;
     const [a, b] = [parId.get(premiere), parId.get(seconde)];
     if (a && b) {
-      if (!proches.has(premiere)) proches.set(premiere, { avec: b, distance: alerte.distance });
-      if (!proches.has(seconde)) proches.set(seconde, { avec: a, distance: alerte.distance });
+      if (!proches.has(premiere)) proches.set(premiere, { avec: b });
+      if (!proches.has(seconde)) proches.set(seconde, { avec: a });
     }
   }
   return proches;

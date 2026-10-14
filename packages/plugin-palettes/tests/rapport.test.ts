@@ -47,18 +47,19 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
   assert.ok(vive && vive.code === 'reference-plus-vive' && vive.part > vive.partVivid, JSON.stringify(jaune.alertes));
 });
 
-test('[VER-08] le rapport garde l’écart et le minimum d’une proximité, que l’interface ne montre plus', () => {
+test('[VER-08] le rapport garde la proximité (distance, rôle, thème) et le minimum, que l’interface ne montre plus', () => {
   // Deux bleus voisins : « palettes proches » sonne sur chacun.
   const voisin = nouvellePalette(VIDE, 'p-0000000c', '#1E70DA', 2)!;
   const [bleu] = rapportDeLaRecette([BLEU, voisin].reduce(ajouter, VIDE), null, 'SRGB', null).palettes;
   const proches = bleu.alertes.find((alerte) => alerte.code === 'palettes-proches');
   assert.ok(proches && proches.code === 'palettes-proches', JSON.stringify(bleu.alertes));
-  assert.ok(proches.distance < proches.seuil && proches.seuil === VIDE.seuils.palettesProches, JSON.stringify(proches));
+  assert.ok(proches.proximite.distance < proches.seuil && proches.seuil === VIDE.seuils.palettesProches, JSON.stringify(proches));
+  assert.deepEqual([proches.proximite.role, proches.proximite.mode], ['texte', 'light']);
 });
 
 test('[MOT-17] le rapport nomme l’ancrage de chaque palette, le même que l’analyse, et le profil du document', () => {
   const rapport = rapportDeLaRecette(RECETTE, null, 'LEGACY', null);
-  assert.equal(rapport.formatDuRapport, 4);
+  assert.equal(rapport.formatDuRapport, 5);
   assert.equal(rapport.profilDuDocument, 'LEGACY');
   for (const [rang, palette] of RECETTE.palettes.entries()) {
     const ancrage = ancrageDe(RECETTE, palette);

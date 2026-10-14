@@ -11,7 +11,6 @@ import {
   classerRecette,
   courbesParDefaut,
   confusionsDe,
-  distanceDePalettes,
   ecrireHexa,
   fabriquerPalette,
   grilleAuPrereglage,
@@ -22,6 +21,7 @@ import {
   nombreDeNuancesDe,
   nuancesReglees,
   propositionDAjustement,
+  proximiteDePalettes,
   pasDepuisLOriginale,
   rampesDe,
   recetteParDefaut,
@@ -213,15 +213,14 @@ test('W6 : une palette libre suit les courbes communes, garde sa référence exa
   assert.ok(confusionsDe(recette, libre).some(({ cran }) => cran === 100));
 });
 
-test('W6.8 : une palette libre sans 500 ne se compare à aucune ; deux palettes qui portent 500, 600 et 700 se comparent', () => {
-  const sans500: Palette = { ...paletteTailwind('p-0000000a', '#1E6FD9'), crans: [100, 300, 600, 700, 900] };
+test('W6.8 : une palette libre ne se compare à aucune, qu’elle porte ou non les crans des rôles ([VER-22])', () => {
   const voisine = paletteTailwind('p-0000000b', '#1D6DDB');
-  assert.equal(distanceDePalettes(recetteAvec(sans500, voisine), sans500, voisine), null);
-  const avec500: Palette = { ...paletteTailwind('p-0000000c', '#1E6FD9'), crans: [100, 500, 600, 700] };
-  const recette = recetteAvec(avec500, voisine);
-  const distance = distanceDePalettes(recette, avec500, voisine);
-  assert.ok(distance !== null && distance < recette.seuils.palettesProches);
-  assert.ok(alertesDeRecette(recette).some((alerte) => alerte.code === 'palettes-proches'));
+  const sans600: Palette = { ...paletteTailwind('p-0000000a', '#1E6FD9'), crans: [100, 300, 500, 700, 900] };
+  assert.equal(proximiteDePalettes(recetteAvec(sans600, voisine), sans600, voisine), null);
+  const avec600: Palette = { ...paletteTailwind('p-0000000c', '#1E6FD9'), crans: [100, 500, 600, 700, 950] };
+  const recette = recetteAvec(avec600, voisine);
+  assert.equal(proximiteDePalettes(recette, avec600, voisine), null);
+  assert.ok(!alertesDeRecette(recette).some((alerte) => alerte.code === 'palettes-proches'));
 });
 
 test('W6.3 : les règles du format 3 refusent une liste libre hors bornes, une base sur une palette libre et une originale identique', () => {

@@ -107,7 +107,7 @@ const CONTEXTE = { recette: RECETTE, nomDe: (id: string) => (id === 'p-0000000a'
 /** Une alerte de chaque code : `Record` refuse à la compilation un code oublié. */
 const ALERTES: Record<Alerte['code'], Alerte> = {
   'profils-confondus': { code: 'profils-confondus', palette: 'p-0000000a', crans: [{ mode: 'light', cran: 100, distance: 0.012 }], seuil: 0.02 },
-  'palettes-proches': { code: 'palettes-proches', palettes: ['p-0000000a', 'p-0000000b'], distance: 0.03, seuil: 0.05 },
+  'palettes-proches': { code: 'palettes-proches', palettes: ['p-0000000a', 'p-0000000b'], proximite: { distance: 0.03, role: 'plein', mode: 'light', presqueIdentiques: false }, seuil: 0.05 },
   'reference-plus-terne': { code: 'reference-plus-terne', palette: 'p-0000000a', part: 0.226, partSoft: 0.45 },
   'reference-plus-vive': { code: 'reference-plus-vive', palette: 'p-0000000a', part: 0.983, partVivid: 0.95 },
   'fond-hors-courbe': { code: 'fond-hors-courbe', mode: 'light', clarte: 0.949, cran: 0.975 },
@@ -135,6 +135,27 @@ test('[VER-15] le geste d’une alerte cite la carte que son lien ouvre', () => 
   assert.match(geste('fond-hors-courbe'), /« Couleurs de fond »/);
   assert.match(geste('palettes-proches'), /couleur de référence/);
   assert.equal(LIBELLES_DES_CIBLES['saturation-palette'], 'Ajuster la saturation');
+});
+
+test('[VER-22] une paire trop proche nomme le rôle et le thème de sa plus petite distance, sans mesure', () => {
+  const alerte = (role: 'plein' | 'texte', mode: 'light' | 'dark', presqueIdentiques: boolean): Alerte => ({
+    code: 'palettes-proches',
+    palettes: ['p-0000000a', 'p-0000000b'],
+    proximite: { distance: presqueIdentiques ? 0.004 : 0.03, role, mode, presqueIdentiques },
+    seuil: 0.05,
+  });
+  assert.equal(constatDAlerte(alerte('plein', 'light', false), CONTEXTE).quoi, 'Boutons pleins trop proches, en Light.');
+  assert.equal(constatDAlerte(alerte('texte', 'dark', false), CONTEXTE).quoi, 'Textes sur fond teinté trop proches, en Dark.');
+  assert.equal(constatDAlerte(alerte('plein', 'dark', true), CONTEXTE).quoi, 'Boutons pleins presque identiques, en Dark.');
+  assert.equal(anglais.constatDAlerte(alerte('plein', 'light', false), CONTEXTE).quoi, 'Solid buttons are too close in Light.');
+  assert.equal(anglais.constatDAlerte(alerte('texte', 'dark', true), CONTEXTE).quoi, 'Text on tinted fill is almost identical in Dark.');
+});
+
+test('[VER-22] le bilan écrit « trop proche de » ou « trop proche d’ » selon l’initiale du nom, sans mesure', () => {
+  const { procheDe } = francais.TEXTES_DU_BILAN_DES_PALETTES;
+  for (const nom of ['Azur', 'Émeraude', 'Ocre', 'Ivoire', 'Ulm', 'Yeuse', 'Hélice', 'azur']) assert.equal(procheDe(nom), `trop proche d’${nom}`, nom);
+  for (const nom of ['Bleu', 'Cyan', 'Rose', 'Violet']) assert.equal(procheDe(nom), `trop proche de ${nom}`, nom);
+  assert.equal(anglais.TEXTES_DU_BILAN_DES_PALETTES.procheDe('Azure'), 'too close to Azure');
 });
 
 test('un fond hors de la courbe nomme son thème et son hexa', () => {

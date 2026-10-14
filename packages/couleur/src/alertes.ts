@@ -1,16 +1,16 @@
 /**
  * Les alertes de la section 11.3 : une mesure qui franchit un seuil de
- * conception ([VER-08], [VER-10], [VER-11], [ENT-06]). Une alerte n'empêche
- * rien ; elle porte la mesure, le seuil et ce qu'ils visent, et l'interface
- * les met en mots.
+ * conception ([VER-08], [VER-10], [VER-11], [VER-22], [ENT-06]). Une alerte
+ * n'empêche rien ; elle porte la mesure, le seuil et ce qu'ils visent, et
+ * l'interface les met en mots.
  */
 import { VARIABLES_DE_PALETTE, cranDeLaVariable, rangDuCranLeger, sensDuTheme } from '@ucm-kit/core/emplois';
 
-import { lireHexa, rgb8VersOklch } from './conversions';
+import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
 import { distanceOk } from './contraste';
-import { aUneIntensite, fondsSombresDe, intensitesDe, partDeLaReference, partsDe, rampesDe } from './palette';
+import { aUneIntensite, fondsSombresDe, partDeLaReference, partsDe, rampesDe } from './palette';
 import { estLibre, grilleDe } from './nuances';
-import { facteurSombre, MODES, rampeDe, type Intensite, type Mode } from './rampe';
+import { facteurSombre, MODES, rampeDe, type Mode } from './rampe';
 import type { Palette, Recette } from './recette';
 
 /** Un cran où `soft` et `vivid` se confondent. */
@@ -22,16 +22,13 @@ export interface Confusion {
 
 export type Alerte =
   | { readonly code: 'profils-confondus'; readonly palette: string; readonly crans: readonly Confusion[]; readonly seuil: number }
-  | { readonly code: 'palettes-proches'; readonly palettes: readonly [string, string]; readonly distance: number; readonly seuil: number }
+  | { readonly code: 'palettes-proches'; readonly palettes: readonly [string, string]; readonly proximite: Proximite; readonly seuil: number }
   | { readonly code: 'reference-plus-terne'; readonly palette: string; readonly part: number; readonly partSoft: number }
   | { readonly code: 'reference-plus-vive'; readonly palette: string; readonly part: number; readonly partVivid: number }
   | { readonly code: 'fond-hors-courbe'; readonly mode: Mode; readonly clarte: number; readonly cran: number };
 
 /** La tolérance sur la clarté d'un fond : `#121212` vaut 0,1822 contre une courbe à 0,18 ([ENT-06]). */
 export const TOLERANCE_FOND = 0.005;
-
-/** Les crans où l'on compare deux palettes pour les juger proches. */
-export const CRANS_PALETTES_PROCHES: readonly number[] = [500, 600, 700];
 
 /**
  * Les rangs des crans que les variables de palette visent dans `crans`, dans
@@ -120,43 +117,96 @@ export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
   return alertes;
 }
 
+/** La chroma OKLCH que la référence d'une palette dépasse pour que la palette soit colorée ([VER-22]). */
+export const CHROMA_DES_PALETTES_COLOREES = 0.05;
+
+/** Sous cette distance, deux palettes sont presque identiques ([VER-22]). */
+const DISTANCE_DES_PALETTES_PRESQUE_IDENTIQUES = 0.01;
+
+/** Le rôle où deux palettes se ressemblent : le plein des boutons, ou le texte posé sur le fond teinté. */
+export type RoleDeProximite = 'plein' | 'texte';
+
+/** La plus petite distance entre deux palettes, avec le rôle et le thème qui la portent ([VER-22]). */
+export interface Proximite {
+  readonly distance: number;
+  readonly role: RoleDeProximite;
+  readonly mode: Mode;
+  readonly presqueIdentiques: boolean;
+}
+
+/** Les trois couleurs que deux palettes se disputent : le plein dans les deux thèmes, le texte du fond teinté en Light seulement. */
+const MESURES_DE_PROXIMITE = [
+  { role: 'plein', variable: 'solid/default', mode: 'light' },
+  { role: 'plein', variable: 'solid/default', mode: 'dark' },
+  { role: 'texte', variable: 'surface/foreground', mode: 'light' },
+] as const;
+
+type NuancesDeProximite = readonly { readonly role: RoleDeProximite; readonly mode: Mode; readonly couleur: Rgb8 }[];
+
 /**
- * Les rampes où deux palettes se comparent ([VER-17]) : Vivid contre Vivid
- * entre deux palettes à deux intensités, la rampe unique contre la rampe
- * unique, et une rampe unique contre Soft et contre Vivid, la plus petite
- * distance l'emportant : sa part est quelconque, et elle ressemble au profil
- * le plus proche d'elle.
+ * Les trois couleurs d'une palette que la comparaison lit, dans l'intensité
+ * Vivid ou l'unique intensité de la palette ; `null` si la palette n'entre pas
+ * dans la comparaison : libre ou figée, terne, ou sans l'un de ces crans.
  */
-function rampesComparees(a: Palette, b: Palette): [Intensite, Intensite][] {
-  const [unA, unB] = [aUneIntensite(a), aUneIntensite(b)];
-  if (!unA && !unB) return [['vivid', 'vivid']];
-  const cotesA = unA ? ['unique' as const] : intensitesDe(a);
-  const cotesB = unB ? ['unique' as const] : intensitesDe(b);
-  return cotesA.flatMap((cote) => cotesB.map((autre): [Intensite, Intensite] => [cote, autre]));
+function nuancesDeProximite(recette: Recette, palette: Palette): NuancesDeProximite | null {
+  if (estLibre(palette)) return null;
+  const reference = lireHexa(palette.reference);
+  if (!reference || rgb8VersOklch(reference).C <= CHROMA_DES_PALETTES_COLOREES) return null;
+  const { crans } = grilleDe(recette, palette);
+  const rampe = rampeDe(rampesDe(recette, palette), aUneIntensite(palette) ? 'unique' : 'vivid');
+  const nuances: { role: RoleDeProximite; mode: Mode; couleur: Rgb8 }[] = [];
+  for (const { role, variable, mode } of MESURES_DE_PROXIMITE) {
+    const cran = cranDeLaVariable(variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
+    const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
+    if (rang < 0) return null;
+    nuances.push({ role, mode, couleur: rampe[mode][rang].couleur });
+  }
+  return nuances;
+}
+
+function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite): Proximite {
+  let plus = { distance: Infinity, rang: 0 };
+  a.forEach((nuance, rang) => {
+    const distance = distanceOk(nuance.couleur, b[rang].couleur);
+    if (distance < plus.distance) plus = { distance, rang };
+  });
+  const { role, mode } = a[plus.rang];
+  return { distance: plus.distance, role, mode, presqueIdentiques: plus.distance < DISTANCE_DES_PALETTES_PRESQUE_IDENTIQUES };
 }
 
 /**
- * La distance moyenne de deux palettes sur les crans 500, 600 et 700, en
- * clair, chacune lue sur sa liste, et sur les rampes que `rampesComparees`
- * désigne ; `null` si l'une manque d'un de ces crans. Deux palettes libres se
- * comparent donc dès qu'elles les portent.
+ * La proximité de deux palettes colorées ([VER-22]) : la plus petite des
+ * distances de leur plein en Light, de leur plein en Dark et de leur texte sur
+ * fond teinté en Light, chaque couleur lue au cran que la table des rôles lui
+ * donne dans la grille de la palette. `null` si l'une des palettes est libre,
+ * figée ou terne, ou manque d'un de ces crans.
  */
-export function distanceDePalettes(recette: Recette, a: Palette, b: Palette): number | null {
-  const lire = (palette: Palette) => {
-    const { crans } = grilleDe(recette, palette);
-    const rangs = CRANS_PALETTES_PROCHES.map((cran) => crans.indexOf(cran));
-    if (rangs.some((rang) => rang < 0)) return null;
-    const rampes = rampesDe(recette, palette);
-    return (intensite: Intensite) => rangs.map((rang) => rampeDe(rampes, intensite).light[rang].couleur);
-  };
-  const nuancesA = lire(a);
-  const nuancesB = lire(b);
-  if (!nuancesA || !nuancesB) return null;
-  const distances = rampesComparees(a, b).map(([cote, autre]) => {
-    const [deA, deB] = [nuancesA(cote), nuancesB(autre)];
-    return deA.reduce((total, couleur, rang) => total + distanceOk(couleur, deB[rang]), 0) / deA.length;
+export function proximiteDePalettes(recette: Recette, a: Palette, b: Palette): Proximite | null {
+  const [nuancesA, nuancesB] = [nuancesDeProximite(recette, a), nuancesDeProximite(recette, b)];
+  return nuancesA && nuancesB ? proximiteDeNuances(nuancesA, nuancesB) : null;
+}
+
+/** Une paire de palettes que le seuil `palettesProches` de la recette juge trop proches. */
+export interface PaireTropProche {
+  readonly palettes: readonly [string, string];
+  readonly proximite: Proximite;
+}
+
+/** Toutes les paires de la recette sous le seuil `palettesProches`, par distance croissante ; à distance égale, l'ordre de la recette. */
+export function pairesTropProches(recette: Recette): PaireTropProche[] {
+  const nuances = recette.palettes.map((palette) => nuancesDeProximite(recette, palette));
+  const paires: PaireTropProche[] = [];
+  recette.palettes.forEach((a, rang) => {
+    const nuancesA = nuances[rang];
+    if (!nuancesA) return;
+    for (let autre = rang + 1; autre < recette.palettes.length; autre += 1) {
+      const nuancesB = nuances[autre];
+      if (!nuancesB) continue;
+      const proximite = proximiteDeNuances(nuancesA, nuancesB);
+      if (proximite.distance < recette.seuils.palettesProches) paires.push({ palettes: [a.id, recette.palettes[autre].id], proximite });
+    }
   });
-  return Math.min(...distances);
+  return paires.sort((x, y) => x.proximite.distance - y.proximite.distance);
 }
 
 /** Un fond plus sombre que le cran le plus léger de la courbe claire, ou plus clair que celui de la courbe sombre, à 0,005 près ([ENT-06]). */
@@ -175,18 +225,13 @@ export function alertesDesFonds(recette: Recette): Alerte[] {
 
 /**
  * Toutes les alertes d'une recette : ses fonds, chaque palette dans l'ordre de
- * la recette, puis chaque paire de palettes proches.
+ * la recette, puis chaque paire de palettes proches, par distance croissante.
  */
 export function alertesDeRecette(recette: Recette): Alerte[] {
   const alertes = alertesDesFonds(recette);
   for (const palette of recette.palettes) alertes.push(...alertesDePalette(recette, palette));
-  recette.palettes.forEach((a, rang) => {
-    for (const b of recette.palettes.slice(rang + 1)) {
-      const distance = distanceDePalettes(recette, a, b);
-      if (distance !== null && distance < recette.seuils.palettesProches) {
-        alertes.push({ code: 'palettes-proches', palettes: [a.id, b.id], distance, seuil: recette.seuils.palettesProches });
-      }
-    }
-  });
+  for (const { palettes, proximite } of pairesTropProches(recette)) {
+    alertes.push({ code: 'palettes-proches', palettes, proximite, seuil: recette.seuils.palettesProches });
+  }
   return alertes;
 }

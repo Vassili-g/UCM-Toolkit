@@ -959,6 +959,9 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
   };
 }
 
+/** Ce que deux palettes trop proches ont de semblable, par rôle ([VER-22]). */
+const SUJET_DE_PROXIMITE = { plein: 'Boutons pleins', texte: 'Textes sur fond teinté' } as const;
+
 /** Ce que la mise en mots d'une alerte lit de la recette. */
 export interface ContexteDAlerte {
   readonly recette: Recette;
@@ -971,7 +974,8 @@ const referenceLue = (contexte: ContexteDAlerte, id: string): string =>
 /**
  * Une alerte de la section 11.3 : où, quoi et le geste, qui cite la carte que
  * son lien ouvre ([VER-15]). Une proximité ne donne pas sa mesure en ΔEok :
- * le rapport exporté la garde ([VER-08]).
+ * le rapport exporté la garde ([VER-08]). Elle nomme le rôle et le thème de
+ * sa plus petite distance ([VER-22]).
  */
 export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): ConstatIllustre {
   switch (alerte.code) {
@@ -986,7 +990,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'palettes-proches':
       return {
         ou: `Palettes à comparer : ${contexte.nomDe(alerte.palettes[0])} et ${contexte.nomDe(alerte.palettes[1])}`,
-        quoi: 'Les nuances 500, 600 et 700 de ces palettes sont très proches en Light.',
+        quoi: `${SUJET_DE_PROXIMITE[alerte.proximite.role]} ${alerte.proximite.presqueIdentiques ? 'presque identiques' : 'trop proches'}, en ${NOM_DU_MODE[alerte.proximite.mode]}.`,
         geste: 'Changez une couleur de référence ou supprimez la palette en double.',
       };
     case 'reference-plus-terne':
@@ -1030,7 +1034,7 @@ export const TEXTES_DU_BILAN_DES_PALETTES = {
   verifier: (nom: string) => `Vérifier ${nom}`,
   garantie: (mode: Mode, variable: VariableLibellee, contraste: number) =>
     `${NOM_DU_MODE[mode]} · ${LIBELLE_DE_LA_VARIABLE[variable]}, ${contrasteEcrit(contraste)}`,
-  procheDe: (nom: string, distance: number) => `trop proche de ${nom}, ΔEok ${ecrireArrondi(distance, 2)}`,
+  procheDe: (nom: string) => (/^[aeiouyh]/i.test(nom.normalize('NFD')) ? `trop proche d’${nom}` : `trop proche de ${nom}`),
 } as const;
 /** Un message en trois parties. */
 export interface Constat {

@@ -6762,9 +6762,9 @@ test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le d�
     assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 13);
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES, 'les points ne changent pas avec l’onglet');
     assert.deepEqual(vue.detail.map((ligne) => ligne.nom), ['Bleu', 'Rouge', 'Rose', 'Indigo', 'Marine', 'Cuivre', 'Azur']);
-    assert.match(vue.detail[0].constat, /^trop proche de Azur, ΔEok 0,\d\d$/, 'une paire trop proche met ses deux palettes à vérifier');
+    assert.match(vue.detail[0].constat, /^trop proche d’Azur$/, 'une paire trop proche met ses deux palettes à vérifier');
     for (const rang of [1, 2, 3, 4, 5]) assert.equal(vue.detail[rang].constat, 'Soft et Vivid sont presque identiques sur ces nuances.');
-    assert.match(vue.detail[6].constat, /^trop proche de Bleu, ΔEok 0,\d\d$/);
+    assert.match(vue.detail[6].constat, /^trop proche de Bleu$/);
     assert.equal(await page.evaluate(() => document.activeElement.dataset.onglet), 'ambre', 'le clavier garde sa place sur l’onglet');
 
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
@@ -6885,7 +6885,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     assert.equal(vue.detail[0].bouton, 'Verify');
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     vue = await vueDuBilan(page);
-    assert.match(vue.detail[0].constat, /^too close to Azur, ΔEok 0\.\d\d$/);
+    assert.match(vue.detail[0].constat, /^too close to Azur$/);
     assert.equal(vue.detail[1].constat, 'Soft and Vivid are almost identical at these shades.');
     // Le changement de langue en cours de route retraduit sans redessiner.
     await page.getByRole('button', { name: 'Open shared settings' }).click();
@@ -6893,7 +6893,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, libelle]) => [etat, libelle]), [['rouge', 'À corriger'], ['ambre', 'À vérifier'], ['conforme', 'Conformes']]);
-    assert.match(vue.detail[0].constat, /^trop proche de Azur, ΔEok 0,\d\d$/);
+    assert.match(vue.detail[0].constat, /^trop proche d’Azur$/);
   } finally { await page.close(); }
   const conforme = await ouvrirLeBilan('verification-bilan-tout-conforme', { langue: 'en' });
   try {

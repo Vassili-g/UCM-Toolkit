@@ -658,7 +658,13 @@ Les tâches sont successives.
     Tailwind, sur les 17 rampes relues avec leur propre cran 500 comme
     référence, ne dépasse pas 12,5°.
 
-- [ ] **M5 · L'alerte des palettes trop proches (C6)** · `implementeur-exigeant`, haut.
+- [x] **M5 · L'alerte des palettes trop proches (C6)** · `implementeur-exigeant`, haut.
+  Fait. Une palette libre ou figée, ou terne, n'entre pas dans l'alerte (PR6).
+  Le rapport passe au format 5 (`[VER-16]`) : `distance` devient `proximite`.
+  `[VER-11]` ne portait pas la règle des crans 500 à 700 et reste tel quel.
+  Contrôle : 10 paires sur `verification-bilan-a-verifier` au lieu de 12 ;
+  Lime/Vert et Lime/Feuille passent juste au-dessus du seuil (0,0566) avec la
+  règle de chroma.
   - Décision : DECISIONS.md, section 5, C6 ; SPEC, sections 7.3 et 10,
     « Paires ». Identifiant réservé : `[VER-22]`, section des alertes de
     Vérification de SPEC-PAL ; il remplace la règle de `[VER-11]` sur les

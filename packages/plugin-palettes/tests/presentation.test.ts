@@ -138,7 +138,7 @@ test('[VER-10] [VER-11] les alertes qui comparent les intensités se lisent prè
 test('[VER-15] chaque alerte ouvre le réglage de sa cause : des profils confondus, la saturation de la palette', () => {
   assert.deepEqual(ciblesDeLAlerte({ code: 'profils-confondus', palette: BLEU.id, crans: [], seuil: 0.02 }), ['saturation-palette']);
   assert.deepEqual(ciblesDeLAlerte({ code: 'reference-plus-terne', palette: BLEU.id, part: 0.2, partSoft: 0.45 }), ['intensites-palette']);
-  assert.deepEqual(ciblesDeLAlerte({ code: 'palettes-proches', palettes: [BLEU.id, 'p-0000000b'], distance: 0.03, seuil: 0.05 }), ['reference']);
+  assert.deepEqual(ciblesDeLAlerte({ code: 'palettes-proches', palettes: [BLEU.id, 'p-0000000b'], proximite: { distance: 0.03, role: 'plein', mode: 'light', presqueIdentiques: false }, seuil: 0.05 }), ['reference']);
   assert.deepEqual(ciblesDeLAlerte({ code: 'fond-hors-courbe', mode: 'light', clarte: 0.9, cran: 0.975 }), ['fonds']);
 });
 

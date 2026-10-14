@@ -1,18 +1,29 @@
-/** Les alertes de la section 11.3 ([VER-08], [VER-10], [VER-11], [ENT-06], [ENT-09]). */
+/** Les alertes de la section 11.3 ([VER-08], [VER-10], [VER-11], [VER-22], [ENT-06], [ENT-09]). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { cranDeLaVariable, sensDuTheme } from '@ucm-kit/core/emplois';
+
 import {
+  CHROMA_DES_PALETTES_COLOREES,
   aDesProfilsTernes,
+  aUneIntensite,
   alertesDePalette,
   alertesDeRecette,
   confusionsDe,
-  distanceDePalettes,
+  distanceOk,
+  lireHexa,
+  pairesTropProches,
+  proximiteDePalettes,
+  rampeDe,
+  rampesDe,
   rangsDesVariables,
   recetteParDefaut,
+  rgb8VersOklch,
   severiteDeLAlerte,
   type Alerte,
   type Palette,
+  type Recette,
 } from '../src/index';
 import { paletteTailwind, recetteAuxPartsDe045, recetteAvec } from './fabrique';
 
@@ -87,13 +98,125 @@ test('[VER-08] palettes proches : sonne pour deux bleus voisins, se tait pour un
   const alerte = alertesDeRecette(recetteAvec(BLEU, voisin, ambre)).find((a) => a.code === 'palettes-proches');
   assert.ok(alerte && alerte.code === 'palettes-proches');
   assert.deepEqual(alerte.palettes, [BLEU.id, voisin.id]);
-  assert.ok(alerte.distance < alerte.seuil);
+  assert.ok(alerte.proximite.distance < alerte.seuil);
+  assert.equal(alerte.seuil, recetteParDefaut().seuils.palettesProches);
   assert.equal(alertesDeRecette(recetteAvec(BLEU, voisin, ambre)).filter((a) => a.code === 'palettes-proches').length, 1);
 });
 
-test('palettes proches : sans l’un des crans 500, 600 et 700, la distance ne se calcule pas', () => {
-  const recette = { ...recetteAvec(BLEU), crans: [50, 100, 200, 300, 400, 550, 600, 700, 800, 900, 950] };
-  assert.equal(distanceDePalettes(recette, BLEU, BLEU), null);
+/** Deux palettes à deux intensités, aux références données, dans la recette par défaut. */
+function paire(a: string, b: string) {
+  const [pa, pb] = [paletteTailwind('p-0000000a', a), paletteTailwind('p-0000000b', b)];
+  const recette = recetteAvec(pa, pb);
+  return { recette, pa, pb, proximite: proximiteDePalettes(recette, pa, pb) };
+}
+
+type Lecture = readonly ['solid/default' | 'surface/foreground', 'light' | 'dark'];
+
+/** La distance de deux palettes sur une variable, dans un mode, au cran que la table des rôles lui donne ; Vivid, ou la rampe unique. */
+function distanceSurLaVariable(recette: Recette, a: Palette, b: Palette, [variable, mode]: Lecture): number {
+  const cran = cranDeLaVariable(variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
+  const rang = recette.crans.indexOf(cran as number);
+  const lire = (palette: Palette) => rampeDe(rampesDe(recette, palette), aUneIntensite(palette) ? 'unique' : 'vivid')[mode][rang].couleur;
+  return distanceOk(lire(a), lire(b));
+}
+
+const LECTURES: readonly Lecture[] = [['solid/default', 'light'], ['solid/default', 'dark'], ['surface/foreground', 'light']];
+
+test('[VER-22] le plein en Light et en Dark, le texte du fond en Light', () => {
+  const cas = [
+    { refs: ['#D92626', '#D92926'], role: 'plein', lecture: LECTURES[0] },
+    { refs: ['#AD1F1F', '#AD211F'], role: 'plein', lecture: LECTURES[1] },
+    { refs: ['#AD1F1F', '#AD231F'], role: 'texte', lecture: LECTURES[2] },
+  ] as const;
+  for (const { refs, role, lecture } of cas) {
+    const { recette, pa, pb, proximite } = paire(refs[0], refs[1]);
+    assert.ok(proximite, refs.join(' '));
+    assert.deepEqual([proximite.role, proximite.mode], [role, lecture[1]], refs.join(' '));
+    assert.equal(proximite.distance, distanceSurLaVariable(recette, pa, pb, lecture), refs.join(' '));
+    for (const autre of LECTURES) assert.ok(proximite.distance <= distanceSurLaVariable(recette, pa, pb, autre), `${refs.join(' ')} ${autre.join(' ')}`);
+    assert.ok(proximite.distance < recette.seuils.palettesProches);
+    assert.deepEqual(proximiteDePalettes(recette, pb, pa), proximite, 'la mesure est symétrique');
+  }
+});
+
+test("[VER-22] le texte Dark n'entre pas", () => {
+  // Au cran 950 de Dark, un orange et un jaune sont à 0,03 l'un de l'autre, sous le seuil : ils ne forment pas une paire.
+  const { recette, pa, pb, proximite } = paire('#D98026', '#D9D926');
+  assert.equal(cranDeLaVariable('surface/foreground', 'dark', sensDuTheme('dark', recette.texteDesBoutons.dark)), 950);
+  assert.ok(distanceSurLaVariable(recette, pa, pb, ['surface/foreground', 'dark']) < recette.seuils.palettesProches, 'le texte Dark serait sous le seuil');
+  assert.ok(proximite && proximite.distance >= recette.seuils.palettesProches, JSON.stringify(proximite));
+  assert.deepEqual(pairesTropProches(recette), []);
+  assert.ok(!codes(alertesDeRecette(recette)).includes('palettes-proches'));
+});
+
+test('[VER-22] deux neutres ne se comparent pas', () => {
+  for (const [a, b] of [['#808080', '#808080'], ['#808080', '#6B7280'], ['#1E6FD9', '#6B7280']]) {
+    const { recette, proximite } = paire(a, b);
+    assert.equal(proximite, null, `${a} ${b}`);
+    assert.deepEqual(pairesTropProches(recette), []);
+  }
+  // Une palette est colorée dès que la chroma de sa référence dépasse la constante.
+  assert.ok(rgb8VersOklch(lireHexa('#6B7280')!).C <= CHROMA_DES_PALETTES_COLOREES);
+  assert.ok(rgb8VersOklch(lireHexa('#1E6FD9')!).C > CHROMA_DES_PALETTES_COLOREES);
+});
+
+test('[VER-22] presque identiques sous 0,01', () => {
+  const presque = paire('#1E6FD9', '#2A78D0').proximite;
+  assert.ok(presque && presque.distance < 0.01 && presque.presqueIdentiques, JSON.stringify(presque));
+  const proche = paire('#1E6FD9', '#3A80C8').proximite;
+  assert.ok(proche && proche.distance >= 0.01 && proche.distance < 0.05 && !proche.presqueIdentiques, JSON.stringify(proche));
+});
+
+test('[VER-22] une palette à une intensité se compare sur sa rampe', () => {
+  const unique = (id: string, reference: string): Palette => ({ ...paletteTailwind(id, reference), intensites: 1 });
+  const [seule, deux, autre] = [unique('p-0000000a', '#1E6FD9'), paletteTailwind('p-0000000b', '#2A78D0'), unique('p-0000000c', '#3A80C8')];
+  const recette = recetteAvec(seule, deux, autre);
+  const plus = (a: Palette, b: Palette) => Math.min(...LECTURES.map((lecture) => distanceSurLaVariable(recette, a, b, lecture)));
+  // La rampe unique contre Vivid d'une palette à deux intensités, et contre une autre rampe unique.
+  assert.equal(proximiteDePalettes(recette, seule, deux)!.distance, plus(seule, deux));
+  assert.equal(proximiteDePalettes(recette, seule, autre)!.distance, plus(seule, autre));
+  assert.equal(proximiteDePalettes(recette, deux, seule)!.distance, plus(seule, deux), 'la mesure est symétrique');
+});
+
+test('[VER-22] une palette libre ou figée ne se compare pas', () => {
+  const voisin = paletteTailwind('p-0000000b', '#1D6DDB');
+  const recette = recetteAvec(BLEU, voisin);
+  assert.ok(proximiteDePalettes(recette, BLEU, voisin), 'le point de départ se compare');
+  const libre: Palette = { ...BLEU, crans: [...recette.crans] };
+  const figee: Palette = { ...BLEU, intensites: 1, crans: [...recette.crans], figees: { light: rampesDe(recette, BLEU).vivid!.light.map((cran) => cran.hexa) } };
+  for (const palette of [libre, figee]) {
+    const essai = recetteAvec(palette, voisin);
+    assert.equal(proximiteDePalettes(essai, palette, voisin), null);
+    assert.equal(proximiteDePalettes(essai, voisin, palette), null);
+    assert.deepEqual(pairesTropProches(essai), []);
+    assert.ok(!codes(alertesDeRecette(essai)).includes('palettes-proches'));
+  }
+});
+
+test("[VER-22] sans l'un des crans que les rôles lisent, une paire ne se compare pas", () => {
+  const voisin = paletteTailwind('p-0000000b', '#1D6DDB');
+  // Le plein vise le 700 dans les deux thèmes, le texte du fond teinté le 800 en Light : sans l'un d'eux, la paire n'a plus de proximité.
+  const recette = recetteAvec(BLEU, voisin);
+  assert.ok(proximiteDePalettes(recette, BLEU, voisin));
+  for (const manquant of [700, 800]) {
+    const sans = { ...recette, crans: recette.crans.filter((cran) => cran !== manquant) };
+    assert.equal(proximiteDePalettes(sans, BLEU, voisin), null, String(manquant));
+  }
+});
+
+test('[VER-22] les paires trop proches se rendent par distance croissante, avec les identifiants des palettes', () => {
+  const [a, b, c, ambre] = [
+    paletteTailwind('p-0000000a', '#1E6FD9'),
+    paletteTailwind('p-0000000b', '#2873D0'),
+    paletteTailwind('p-0000000c', '#1D6DDB'),
+    paletteTailwind('p-0000000d', '#F2A900'),
+  ];
+  const recette = recetteAvec(a, b, c, ambre);
+  const paires = pairesTropProches(recette);
+  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [a.id, b.id], [b.id, c.id]]);
+  const distances = paires.map((paire) => paire.proximite.distance);
+  assert.deepEqual(distances, [...distances].sort((x, y) => x - y));
+  assert.deepEqual(alertesDeRecette(recette).flatMap((alerte) => (alerte.code === 'palettes-proches' ? [alerte.palettes] : [])), paires.map((paire) => paire.palettes));
 });
 
 test('[ENT-06] fond hors de la courbe : se tait pour les fonds par défaut, #0A0A0A compris', () => {

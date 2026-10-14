@@ -58,7 +58,7 @@ test('[VER-19] une garantie manquée donne danger, une alerte avertissement, rie
   assert.equal(verdictDeLaPalette(analyserPalette(recetteRatee(CYAN, VOISIN), CYAN)), 'danger');
   const libre = passerEnLibre(DEFAUT, CYAN);
   const avecLibre = avec(libre, VOISIN);
-  assert.ok(analyserPalette(avecLibre, libre).alertes.some((alerte) => alerte.code === 'palettes-proches'), 'la palette libre a bien une alerte');
+  assert.ok(!analyserPalette(avecLibre, libre).alertes.some((alerte) => alerte.code === 'palettes-proches'), 'la palette libre n’entre dans aucune paire trop proche ([VER-22])');
   assert.equal(verdictDeLaPalette(analyserPalette(avecLibre, libre)), 'succes');
 });
 

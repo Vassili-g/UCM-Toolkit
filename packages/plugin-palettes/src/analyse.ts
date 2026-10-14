@@ -10,12 +10,12 @@ import {
   ancrageDe,
   compterManquees,
   confusionsDe,
-  distanceDePalettes,
   estLibre,
   grilleDe,
   intensitesDe,
   partDeLaReference,
   partsDe,
+  proximiteDePalettes,
   rampesDe,
   referenceDe,
   verifierPromesses,
@@ -58,16 +58,16 @@ export interface AnalyseDePalette {
 
 /**
  * Les alertes qui concernent la palette : les siennes, celles des fonds, et
- * chaque palette proche d'elle. La distance ne se calcule que contre elle, pas
- * entre toutes les paires de la recette.
+ * chaque palette proche d'elle ([VER-22]). La proximité ne se calcule que contre
+ * elle, pas entre toutes les paires de la recette.
  */
 function alertesQuiLaConcernent(recette: Recette, palette: Palette): Alerte[] {
   const alertes = [...alertesDePalette(recette, palette), ...alertesDesFonds(recette)];
   for (const autre of recette.palettes) {
     if (autre.id === palette.id) continue;
-    const distance = distanceDePalettes(recette, palette, autre);
-    if (distance !== null && distance < recette.seuils.palettesProches) {
-      alertes.push({ code: 'palettes-proches', palettes: [palette.id, autre.id], distance, seuil: recette.seuils.palettesProches });
+    const proximite = proximiteDePalettes(recette, palette, autre);
+    if (proximite && proximite.distance < recette.seuils.palettesProches) {
+      alertes.push({ code: 'palettes-proches', palettes: [palette.id, autre.id], proximite, seuil: recette.seuils.palettesProches });
     }
   }
   return alertes;

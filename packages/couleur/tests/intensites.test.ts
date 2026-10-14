@@ -14,19 +14,18 @@ import {
   classerRecette,
   compterManquees,
   confusionsDe,
-  distanceDePalettes,
   distanceOk,
   intensitesDe,
   jsonCanonique,
   partDeChroma,
   partsDe,
+  proximiteDePalettes,
   rampesDe,
   recetteParDefaut,
   validerRecette,
   verifierPromesses,
   arrondir,
   lireHexa,
-  CRANS_PALETTES_PROCHES,
   type Intensite,
   type Palette,
   type Recette,
@@ -128,25 +127,14 @@ test('[ENT-14] une palette à une intensité refuse une autre valeur, la palette
   assert.deepEqual(refus((palette) => { palette.derive.lien = false; }), ['intensites-incompatible palettes[0].derive.lien']);
 });
 
-/** La distance de deux palettes sur une rampe donnée de chacune, crans 500, 600 et 700 en clair. */
-function distanceSur(recette: Recette, a: Palette, cote: Intensite, b: Palette, autre: Intensite): number {
-  const rangs = CRANS_PALETTES_PROCHES.map((cran) => recette.crans.indexOf(cran));
-  const [rampeA, rampeB] = [rampesDe(recette, a)[cote]!, rampesDe(recette, b)[autre]!];
-  return rangs.reduce((total, rang) => total + distanceOk(rampeA.light[rang].couleur, rampeB.light[rang].couleur), 0) / rangs.length;
-}
-
-test('[VER-17] « Palettes proches » : Vivid contre Vivid à deux intensités, la rampe unique contre le profil le plus proche', () => {
-  const sauge = unique('p-000000c8', '#A0B599');
-  const deux = paletteTailwind('p-000000c9', '#9DB396');
-  const autre = unique('p-000000ca', '#9DB396');
-  const recette = recetteAvec(sauge, deux, autre);
-  const versSoft = distanceSur(recette, sauge, 'unique', deux, 'soft');
-  const versVivid = distanceSur(recette, sauge, 'unique', deux, 'vivid');
-  assert.ok(versSoft < versVivid, 'une référence terne ressemble à Soft');
-  assert.equal(distanceDePalettes(recette, sauge, deux), Math.min(versSoft, versVivid));
-  assert.equal(distanceDePalettes(recette, deux, sauge), Math.min(versSoft, versVivid), 'la mesure est symétrique');
-  assert.equal(distanceDePalettes(recette, sauge, autre), distanceSur(recette, sauge, 'unique', autre, 'unique'));
-  const bleu = paletteTailwind('p-000000cb', '#1E6FD9');
-  assert.equal(distanceDePalettes(recette, bleu, deux), distanceSur(recette, bleu, 'vivid', deux, 'vivid'), 'deux intensités : Vivid contre Vivid, comme au format 3');
+test("[VER-22] une palette à deux intensités se lit en Vivid : la part de Soft ne change pas sa proximité", () => {
+  const seule = unique('p-000000c8', '#1E6FD9');
+  const deux = paletteTailwind('p-000000c9', '#2A78D0');
+  const recette = recetteAvec(seule, deux);
+  const proximite = proximiteDePalettes(recette, seule, deux);
+  assert.ok(proximite && proximite.distance < recette.seuils.palettesProches);
+  const softPlusTerne = { ...deux, parts: { soft: 0.2, vivid: partsDe(recette, deux).vivid!, origine: 'designer' as const } };
+  assert.notDeepEqual(rampesDe(recette, softPlusTerne).soft, rampesDe(recette, deux).soft, 'la part change bien la rampe de Soft');
+  assert.deepEqual(proximiteDePalettes(recetteAvec(seule, softPlusTerne), seule, softPlusTerne), proximite);
   assert.equal(recetteParDefaut().formatVersion, 11);
 });

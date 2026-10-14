@@ -80,7 +80,7 @@ export interface PaletteDuRapport {
  * toujours des crans et un ancrage par profil ; la 3 nommait chaque promesse
  * par sa paire d'emplois, la 4 par les variables de sa garantie.
  */
-export const FORMAT_DU_RAPPORT = 4;
+export const FORMAT_DU_RAPPORT = 5;
 
 export interface Rapport {
   readonly formatDuRapport: number;
