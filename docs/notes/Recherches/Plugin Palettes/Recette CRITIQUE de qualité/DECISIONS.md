@@ -144,9 +144,12 @@ affiche. Le chemin des tokens ne change pas : composants, `theme`,
 
 G7 juge `ring` à 3:1 contre la page et contre la carte, et non plus contre
 `surface/default`. La page est le pire cas en Light, la carte en Dark. Le
-plugin doit donc connaître la couleur de la carte : déduite (blanche en
-Light, neutre 100 en Dark) ou réglée (« Fond de la carte ») ; ce choix est
-ouvert. Les autres garanties ne changent pas. Sur le balayage de 72 teintes,
+plugin la déduit, sans réglage de plus : en Light, le blanc ; en Dark, le
+cran qui suit celui de la page. Elle prend la teinte et la saturation du
+réglage « Fond de la page » Dark, à la clarté du cran suivant celui dont la
+clarté est la plus proche de ce fond sur la courbe Dark : avec le fond par
+défaut, au cran 50, la carte est au cran 100, environ `#1C1C1C`. Les autres
+garanties ne changent pas. Sur le balayage de 72 teintes,
 la table et la règle retenues, avec G7 contre la page et la carte et le focus
 à 600 ou 700, laissent 144 échecs, tous G1 et déjà présents aujourd'hui : le
 texte blanc sur un plein où une référence est ancrée. Mesuré avec la page et
@@ -180,13 +183,10 @@ valide :
   anciens (Q3).
 - Le format étendu du relevé `derives` (teinte et clarté de chaque cran des
   rampes de Tailwind) et sa migration.
-- La couleur de la carte pour G7 : déduite du neutre et du blanc, ou un
-  réglage « Fond de la carte », avec sa place dans la recette.
 - L'ordre des lots et les tests de chaque lot.
 
 ## 7. Ce qui reste ouvert
 
-- La couleur de la carte pour G7 : le plan propose de la déduire (section 6).
 - L'ombre ou le contour de la carte en Dark.
 - En Dark inversé, l'appui du fond teinté (500) a la couleur de l'appui du
   bouton plein ; seul le texte les distingue.

@@ -1,7 +1,7 @@
 # Plan d'implémentation de la recette critique de qualité
 
-**Statut : relu par Codex, corrigé ; PR6 et PR7 validées par le mainteneur,
-PR1 à PR5 à valider avant exécution.** Les décisions viennent de [DECISIONS.md](./DECISIONS.md), qui
+**Statut : relu par Codex, corrigé ; propositions PR1 à PR7 validées par le
+mainteneur (PR3 précisée par lui). Prêt à exécuter.** Les décisions viennent de [DECISIONS.md](./DECISIONS.md), qui
 fait foi. Les points que ce plan propose lui-même sont dans la section 4 ; le
 mainteneur les valide avant la vague qui les emploie. La
 [revue](./REVIEW-PLAN-IMPLEMENTATION.md) et la réponse à chacun de ses points
@@ -113,9 +113,13 @@ export interface RampeDeDerive { readonly nom: string; readonly crans: readonly 
 ```
 
 **PR3. La carte pour G7 : déduite, et désignée à part.** Light : blanc
-`#FFFFFF`. Dark : le gris sans teinte à la clarté du cran 100 de la courbe
-Dark de la recette, environ `#1C1C1C` avec la courbe par défaut. Aucun champ
-de recette, aucun réglage. Dans les promesses, la carte est un fond distinct
+`#FFFFFF`. Dark : un cran, celui qui suit la page. Le mainteneur l'a précisé :
+la carte dépend du fond que le designer règle. Elle prend la teinte et la
+saturation du réglage « Fond de la page » Dark, à la clarté du cran suivant
+celui dont la clarté est la plus proche de ce fond sur la courbe Dark. Avec
+le fond par défaut `#0A0A0A`, au cran 50, la carte est au cran 100, environ
+`#1C1C1C` ; un fond teinté donne une carte de même teinte. Aucun champ de
+recette, aucun réglage. Dans les promesses, la carte est un fond distinct
 de la page, avec sa propre désignation, sa case dans la réglette et sa clé
 dans les limites.
 
@@ -344,9 +348,13 @@ Les tâches sont successives.
     `fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE]`.
   - Moteur, `couleur/src/promesses.ts` :
     - fonction exportée `couleurDeLaCarte(recette, mode): Rgb8`. Light :
-      `[255, 255, 255]`. Dark :
-      `fabriquerCran(luminositeAuNumero(recette, 'dark', 100), 0, 0, recette.gamut).couleur`
-      (part 0 : un gris sans teinte) ;
+      `[255, 255, 255]`. Dark : lire le fond `recette.fonds.dark` en OKLCH ;
+      trouver sur `recette.courbes.dark` le rang dont la clarté est la plus
+      proche de la sienne ; prendre la clarté du rang suivant (le dernier rang
+      s'il n'y en a pas) ; rendre la couleur de cette clarté avec la teinte et
+      la chroma du fond, chroma réduite jusqu'à entrer dans le gamut, à 8 bits
+      (`oklchVersLineaire`, `lineaireVersRgb8` ou les fonctions voisines de
+      `rampe.ts`) ;
     - `contexteDe` ajoute `cartes` à côté de `fonds` ;
     - la désignation d'un fond extérieur à la palette distingue les deux :
       `{ nature: 'fond', fond: 'page' | 'carte', couleur }` ; `promessesDe`
@@ -368,8 +376,11 @@ Les tâches sont successives.
     - `packages/couleur/scripts/mesurer-ancrage.mjs`.
   - Tests :
     - `couleur/tests/promesses.test.ts` :
-      `[MOT-37] la carte vaut le blanc en Light et un gris du cran 100 en Dark`
-      (R = G = B, entre `#1A1A1A` et `#1E1E1E` avec la recette par défaut) ;
+      `[MOT-37] la carte vaut le blanc en Light et le cran qui suit la page en Dark` :
+      avec la recette par défaut, un gris (R = G = B) entre `#1A1A1A` et
+      `#1E1E1E` ; avec un fond Dark bleuté `#0B1020`, la teinte OKLCH de la carte est
+      celle du fond à 5° près ; avec un fond Dark à la clarté du cran 100, la
+      carte est à la clarté du cran 200 ;
       `[VER-21] G7 tenue contre la page et manquée contre la carte`, qui
       vérifie les deux désignations distinctes ;
     - `couleur/tests/limites.test.ts` : avec la même paire de promesses, la
