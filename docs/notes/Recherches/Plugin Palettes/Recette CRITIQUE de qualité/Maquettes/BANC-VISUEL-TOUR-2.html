@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banc visuel, second tour</title>
+<style>
+  :root { --texte: #1e1e1e; --second: #6b6b6b; --filet: #e2e2e2; --fond: #f6f6f6; --lien: #007be5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0 32px 80px; background: var(--fond); color: var(--texte); font: 13px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+  h1 { margin: 24px 0 4px; font-size: 22px; }
+  h2 { margin: 36px 0 6px; font-size: 16px; }
+  code { font: 11px ui-monospace, Consolas, monospace; background: #ececec; padding: 1px 4px; border-radius: 3px; }
+  .chapeau { color: var(--second); max-width: 940px; margin: 0 0 10px; }
+  .acquis { background: #fff; border: 1px solid var(--filet); border-radius: 10px; padding: 10px 14px; max-width: 940px; }
+  .acquis ul { margin: 4px 0 0; padding-left: 18px; }
+  nav { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 0; }
+  nav a { color: var(--lien); text-decoration: none; }
+  .barre { position: sticky; top: 0; z-index: 5; background: var(--fond); border-bottom: 1px solid var(--filet); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+  .groupe { display: inline-flex; align-items: center; gap: 6px; }
+  .groupe > span { color: var(--second); font-size: 12px; }
+  .bascule { display: inline-flex; border: 1px solid #cfcfcf; border-radius: 6px; overflow: hidden; background: #fff; }
+  .bascule button { border: 0; background: transparent; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid #cfcfcf; }
+  .bascule button[aria-pressed="true"] { background: #1e1e1e; color: #fff; }
+  .bascule button:disabled { opacity: .35; cursor: default; }
+  .scene { border-radius: 12px; padding: 18px; }
+  .carte { border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .lignes { display: grid; gap: 8px; }
+  .ligne { display: grid; grid-template-columns: 128px minmax(260px, 340px) minmax(0, 1fr); gap: 14px; align-items: center; }
+  .nom b { display: block; font-size: 12.5px; }
+  .nom span { font-size: 10.5px; opacity: .65; }
+  .rampe { display: grid; grid-template-columns: repeat(11, 1fr); height: 26px; border-radius: 6px; overflow: hidden; }
+  .rampe.temoin { height: 10px; margin-top: 3px; border-radius: 4px; }
+  .rampe span { display: block; }
+  .rampe span.repere { box-shadow: inset 0 0 0 2px rgba(255,255,255,.9), inset 0 0 0 3px rgba(0,0,0,.35); }
+  .composants { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .alerte { border-radius: 6px; padding: 5px 10px; font-size: 12px; min-width: 190px; }
+  .alerte b { margin-right: 6px; }
+  .badge { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+  .bouton { border-radius: 6px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; border: 0; font-family: inherit; }
+  .lien { font-size: 12px; text-decoration: underline; }
+  .notes { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 12px 0 0; padding: 12px 14px; background: #fff; border: 1px solid var(--filet); border-radius: 10px; }
+  .critere { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .critere > span { font-size: 12px; }
+  .critere .bascule button { padding: 3px 8px; }
+  textarea.commentaire { width: 100%; min-height: 38px; font: inherit; font-size: 12px; border: 1px solid var(--filet); border-radius: 6px; padding: 6px 8px; }
+  .focus-grille { display: grid; grid-template-columns: 190px repeat(4, minmax(0, 1fr)); gap: 14px; align-items: center; }
+  .focus-grille .entete { font-size: 11.5px; opacity: .7; }
+  .cellule { display: grid; gap: 6px; justify-items: start; }
+  .verdict { font-size: 10.5px; }
+  .verdict.ok { color: #1a7f37; } .verdict.ko { color: #c0392b; }
+  .sombre .verdict.ok { color: #5fd38a; } .sombre .verdict.ko { color: #ff8a80; }
+  .champ { border-radius: 6px; padding: 5px 10px; font-size: 12px; min-width: 120px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 28px; }
+  .actions button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid #1e1e1e; background: #1e1e1e; color: #fff; cursor: pointer; }
+  .actions span { color: var(--second); font-size: 12px; }
+  textarea#bilan { display: block; width: 100%; max-width: 1100px; height: 180px; margin-top: 8px; font: 11px ui-monospace, Consolas, monospace; }
+  textarea#bilan[hidden] { display: none; }
+  @media (max-width: 900px) {
+    body { padding: 0 16px 60px; }
+    .ligne { grid-template-columns: 1fr; gap: 6px; }
+    .focus-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .focus-grille .entete { display: none; }
+  }
+</style>
+<script src="donnees-banc-tour-2.js"></script>
+</head>
+<body>
+<h1>Banc visuel, second tour</h1>
+<div class="acquis"><b>Acquis au premier tour</b> (<a href="BANC-VISUEL.html">premier tour</a>) :
+  <ul>
+    <li>La règle de chroma : l'enveloppe, notée 5 en cohérence, en fonds et en textes ; la retenue par teinte avait les couleurs les plus justes mais une cohérence de 1 à 4.</li>
+    <li>La dérive de teinte corrigée.</li>
+    <li>Le fond teinté un cran plus marqué : 100 en Light (survol 200, appui 300), 300 en Dark (survol 400, appui 500), avec un texte Dark 950 ; le badge discret suffit.</li>
+  </ul>
+  Restent deux réglages de l'enveloppe, et le focus.</div>
+<nav><a href="#regles">1. Les jaunes clairs et les fonds Dark</a><a href="#focus">2. Le focus</a><a href="#bilan-zone">Bilan</a></nav>
+
+<div class="barre">
+  <div class="groupe"><span>Thème</span><div class="bascule" data-commande="mode"></div></div>
+  <div class="groupe"><span>Texte des boutons en Dark</span><div class="bascule" data-commande="sens"></div></div>
+  <div class="groupe"><span>Profil</span><div class="bascule" data-commande="profil"></div></div>
+  <div class="groupe"><span>Jaunes clairs (Light)</span><div class="bascule" data-commande="jaunes"></div></div>
+  <div class="groupe"><span>Fonds Dark, Vivid</span><div class="bascule" data-commande="bDark"></div></div>
+</div>
+
+<h2 id="regles">1. Les jaunes clairs et les fonds Dark</h2>
+<p class="chapeau"><b>Jaunes clairs.</b> L'enveloppe donne à tous les crans clairs la même chroma au plus : c'est sa cohérence. Un jaune pâle aussi peu saturé qu'un bleu pâle paraît marron clair. La marge élargit cette borne autour du jaune seulement, en Light : de 0 (l'enveloppe du premier tour) à +150 % (le niveau de la retenue par teinte). <b>Fonds Dark, Vivid.</b> Au cran 300, les bleus et les violets montent à 0,15 de chroma, les turquoises à 0,04 : c'est la cohérence de 3 du premier tour. Une borne plus basse (0,38 comme Soft, ou 0,30) rapproche les familles. Choisissez votre réglage préféré pour chaque profil.</p>
+<div class="scene" id="scene-regles"><div class="carte" id="carte-regles"><div class="lignes" id="lignes"></div></div></div>
+<div class="notes" id="notes-regles"></div>
+
+<h2 id="focus">2. Le focus</h2>
+<p class="chapeau">Le halo pâle collé au cran 200, votre préféré, a pour couleur le survol du fond teinté (<code>surface/hover</code>) : avec la table retenue, c'est exactement ce cran. Seul, il contraste à moins de 3:1 avec la carte, et le W3C le juge non conforme au niveau AA. Deux façons de garder son aspect et d'être conforme : l'entourer d'un liseré au cran du focus (<code>ring</code>), de 1 ou 2 px ; ou, sur les champs et les boutons à contour, passer aussi la bordure au cran du focus, comme Ant Design. Les deux n'emploient que des variables qui existent. La ligne « anneau décalé » rappelle la forme de référence.</p>
+<div class="scene" id="scene-focus"><div class="carte" id="carte-focus"><div class="focus-grille" id="focus-grille"></div></div></div>
+<div class="notes" id="notes-focus"></div>
+
+<div class="actions" id="bilan-zone"><button type="button" id="copier">Copier le bilan</button><span id="etat"></span></div>
+<textarea id="bilan" readonly hidden aria-label="Bilan à copier"></textarea>
+
+<script>
+(() => {
+  const B = window.BANC2;
+  const CRANS = B.crans;
+  const idx = (c) => CRANS.indexOf(c);
+  const lire = () => { try { return JSON.parse(localStorage.getItem('banc-visuel-tour-2')) || {}; } catch { return {}; } };
+  const ecrire = (v) => { try { localStorage.setItem('banc-visuel-tour-2', JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+  const memoire = lire();
+  const etat = Object.assign({ mode: 'light', sens: 'noir', profil: 'soft', jaunes: '0', bDark: '0.48' }, memoire.etat || {});
+  const notes = memoire.notes || {};
+  const sauver = () => ecrire({ etat, notes });
+
+  const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const n = parseInt(h.slice(1), 16); return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255); };
+  const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const ct = (x) => `${x.toFixed(2).replace('.', ',')}:1`;
+
+  /** La rampe d'une palette pour l'état courant : la marge des jaunes en Light, la borne des fonds en Dark. */
+  const rampe = (p, profil = etat.profil) => (etat.mode === 'light'
+    ? p.light[etat.jaunes][profil]
+    : p.dark[profil === 'vivid' ? etat.bDark : '0.48'][profil][etat.sens === 'blanc' ? 'inverse' : 'normal']);
+  const NEUTRE = B.palettes.find((p) => p.neutre);
+  const supports = () => {
+    const n = rampe(NEUTRE, 'soft');
+    return etat.mode === 'light' ? { page: n[idx(50)], carte: '#FFFFFF', encre: '#1e1e1e' } : { page: '#0A0A0B', carte: n[idx(100)], encre: '#ececec' };
+  };
+  /** La table retenue au premier tour. */
+  const roles = () => {
+    const L = etat.mode === 'light';
+    const inverse = !L && etat.sens === 'blanc';
+    return {
+      fond: L ? 100 : 300, survol: L ? 200 : 400, texte: L ? 800 : 950, plein: 700,
+      texteDuPlein: L || inverse ? '#FFFFFF' : '#000000', lien: L ? 700 : (inverse ? 800 : 700), focus: L ? 600 : 800,
+      bordure: L ? 700 : 600,
+    };
+  };
+
+  function dessinerRegles() {
+    const s = supports();
+    const t = roles();
+    document.getElementById('scene-regles').style.background = s.page;
+    const carte = document.getElementById('carte-regles');
+    carte.style.background = s.carte; carte.style.color = s.encre;
+    document.getElementById('lignes').innerHTML = B.palettes.filter((p) => !p.neutre).map((p) => {
+      const r = rampe(p);
+      const c = (n) => r[idx(n)];
+      const repere = r.indexOf(p.reference.toUpperCase());
+      const temoin = p.temoin && etat.mode === 'light' ? `<div class="rampe temoin" title="Tailwind">${p.temoin.map((h) => `<span style="background:${h}"></span>`).join('')}</div>` : '';
+      return `<div class="ligne"><div class="nom"><b>${p.nom}</b><span>${p.note}</span></div>
+        <div><div class="rampe">${r.map((h, k) => `<span class="${k === repere ? 'repere' : ''}" style="background:${h}" title="${CRANS[k]} ${h}"></span>`).join('')}</div>${temoin}</div>
+        <div class="composants">
+          <div class="alerte" style="background:${c(t.fond)};color:${c(t.texte)}"><b>Envoyé.</b>Le contrat est parti.</div>
+          <span class="badge" style="background:${c(t.fond)};color:${c(t.texte)}">Badge</span>
+          <button class="bouton" style="background:${c(t.fond)};color:${c(t.texte)}">Teinté</button>
+          <button class="bouton" style="background:${c(t.survol)};color:${c(t.texte)}">Teinté, survol</button>
+          <button class="bouton" style="background:${c(t.plein)};color:${t.texteDuPlein}">Plein</button>
+          <span class="lien" style="color:${c(t.lien)}">Un lien</span>
+        </div></div>`;
+    }).join('');
+    choix('notes-regles', 'reglages', [
+      ['jaunesSoft', 'Jaunes clairs, Soft', [['0', '0'], ['0.5', '+50 %'], ['1', '+100 %'], ['1.5', '+150 %']]],
+      ['jaunesVivid', 'Jaunes clairs, Vivid', [['0', '0'], ['0.5', '+50 %'], ['1', '+100 %'], ['1.5', '+150 %']]],
+      ['bDark', 'Fonds Dark, Vivid', [['0.48', '0,48'], ['0.38', '0,38'], ['0.3', '0,30']]],
+    ], 'Vos réglages préférés');
+  }
+
+  const STYLES = [
+    ['halo', 'Halo pâle collé, 4 px'],
+    ['lisere1', 'Halo 3 px et liseré de 1 px'],
+    ['lisere2', 'Halo 2 px et liseré de 2 px'],
+    ['bordure', 'Halo 4 px et bordure au cran du focus'],
+    ['anneau', 'Anneau décalé : 2 px de fond, 2 px de trait'],
+  ];
+  function dessinerFocus() {
+    const s = supports();
+    const t = roles();
+    const L = etat.mode === 'light';
+    document.getElementById('scene-focus').style.background = s.page;
+    document.getElementById('scene-focus').classList.toggle('sombre', !L);
+    const carte = document.getElementById('carte-focus');
+    carte.style.background = s.carte; carte.style.color = s.encre;
+    const palettes = ['Bleu', 'Rouge', 'Vert', 'Violet'].map((nom) => B.palettes.find((p) => p.nom === nom));
+    let html = `<span class="entete"></span>${['Bouton plein', 'Bouton à contour', 'Bouton teinté', 'Champ de saisie'].map((x) => `<span class="entete">${x}</span>`).join('')}`;
+    for (const [id, titre] of STYLES) for (const p of palettes) {
+      const r = rampe(p);
+      const c = (n) => r[idx(n)];
+      const halo = c(t.survol);
+      const ring = c(t.focus);
+      const ombre = {
+        halo: `0 0 0 4px ${halo}`,
+        lisere1: `0 0 0 3px ${halo}, 0 0 0 4px ${ring}`,
+        lisere2: `0 0 0 2px ${halo}, 0 0 0 4px ${ring}`,
+        bordure: `0 0 0 4px ${halo}`,
+        anneau: `0 0 0 2px ${s.carte}, 0 0 0 4px ${ring}`,
+      }[id];
+      // Ce qui touche la carte : le liseré ou l'anneau quand il existe, sinon le halo ; la bordure ne compte que sur un composant bordé.
+      const exterieur = id === 'halo' || id === 'bordure' ? halo : ring;
+      const verdictDe = (borde) => {
+        const v = contraste(exterieur, s.carte);
+        const parBordure = id === 'bordure' && borde && contraste(ring, s.carte) >= 3;
+        const ok = v >= 3 || parBordure;
+        return `<span class="verdict ${ok ? 'ok' : 'ko'}">${ok ? 'conforme' : 'non conforme'} · ${ct(parBordure ? contraste(ring, s.carte) : v)}${parBordure ? ' par la bordure' : ''}</span>`;
+      };
+      const bordure = (defaut) => (id === 'bordure' ? ring : defaut);
+      if (p === palettes[0]) html += `<span class="nom"><b>${titre}</b></span>`; else html += '<span></span>';
+      html += [
+        [`<button class="bouton" style="background:${c(t.plein)};color:${t.texteDuPlein};box-shadow:${ombre}">${p.nom}</button>`, false],
+        [`<button class="bouton" style="background:transparent;color:${c(t.lien)};box-shadow:inset 0 0 0 1px ${bordure(c(t.bordure))}, ${ombre}">${p.nom}</button>`, true],
+        [`<button class="bouton" style="background:${c(t.fond)};color:${c(t.texte)};box-shadow:${ombre}">${p.nom}</button>`, false],
+        [`<span class="champ" style="background:${L ? '#fff' : s.page};color:${s.encre};box-shadow:inset 0 0 0 1px ${bordure(c(L ? 600 : 500))}, ${ombre}">Saisie</span>`, true],
+      ].map(([x, borde]) => `<div class="cellule">${x}${verdictDe(borde)}</div>`).join('');
+    }
+    document.getElementById('focus-grille').innerHTML = html;
+    choix('notes-focus', `focus ${etat.mode}`, STYLES.map(([id, titre]) => [id, titre, [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']]]), `Focus, ${L ? 'Light' : 'Dark'} (5 = le préféré)`);
+  }
+
+  function choix(conteneur, cle, criteres, titre) {
+    const n = notes[cle] || {};
+    document.getElementById(conteneur).innerHTML = `<div style="width:100%;font-weight:600;font-size:12.5px">${titre}</div>`
+      + criteres.map(([id, nom, options]) => `<div class="critere"><span>${nom}</span><div class="bascule">${options.map(([v, x]) => `<button type="button" data-note="${cle}|${id}" data-valeur="${v}" aria-pressed="${n[id] === v}">${x}</button>`).join('')}</div></div>`).join('')
+      + `<textarea class="commentaire" data-commentaire="${cle}" placeholder="Remarque">${n.remarque || ''}</textarea>`;
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-note]');
+    if (!b) return;
+    const [cle, id] = b.dataset.note.split('|');
+    notes[cle] = { ...(notes[cle] || {}), [id]: b.dataset.valeur };
+    sauver();
+    b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  document.addEventListener('input', (ev) => {
+    const z = ev.target.closest('[data-commentaire]');
+    if (!z) return;
+    notes[z.dataset.commentaire] = { ...(notes[z.dataset.commentaire] || {}), remarque: z.value };
+    sauver();
+  });
+
+  const OPTIONS = {
+    mode: [['light', 'Light'], ['dark', 'Dark']],
+    sens: [['noir', 'Noir'], ['blanc', 'Blanc']],
+    profil: [['soft', 'Soft'], ['vivid', 'Vivid']],
+    jaunes: B.jaunes.map((j) => [String(j), j === 0 ? '0' : `+${j * 100} %`]),
+    bDark: B.bDark.map((b) => [String(b), b.toFixed(2).replace('.', ',')]),
+  };
+  function commandes() {
+    document.querySelectorAll('[data-commande]').forEach((h) => {
+      const cle = h.dataset.commande;
+      // La marge des jaunes ne vaut qu'en Light ; la borne des fonds Dark, qu'en Dark et en Vivid.
+      const inactif = (cle === 'jaunes' && etat.mode !== 'light') || (cle === 'bDark' && (etat.mode !== 'dark' || etat.profil !== 'vivid'));
+      h.innerHTML = OPTIONS[cle].map(([v, x]) => `<button type="button" data-valeur="${v}" aria-pressed="${etat[cle] === v}"${inactif ? ' disabled' : ''}>${x}</button>`).join('');
+    });
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-commande] button');
+    if (!b || b.disabled) return;
+    etat[b.parentElement.dataset.commande] = b.dataset.valeur;
+    sauver();
+    tout();
+  });
+  function tout() { commandes(); dessinerRegles(); dessinerFocus(); }
+
+  document.getElementById('copier').addEventListener('click', async () => {
+    const lignes = Object.entries(notes).sort(([a], [b]) => a.localeCompare(b)).map(([cle, v]) => `${cle} : ${Object.entries(v).map(([k, x]) => `${k} ${x}`).join(', ')}`);
+    const texte = ['Banc visuel, second tour', ...lignes].join('\n');
+    const zone = document.getElementById('bilan');
+    const etatTexte = document.getElementById('etat');
+    const montrer = () => { zone.hidden = false; zone.value = texte; zone.select(); etatTexte.textContent = 'Copie refusée : copiez le texte sélectionné à la main (Ctrl+C).'; };
+    if (!navigator.clipboard?.writeText) { montrer(); return; }
+    try { await navigator.clipboard.writeText(texte); etatTexte.textContent = 'Bilan copié'; } catch { montrer(); }
+  });
+  tout();
+})();
+</script>
+</body>
+</html>

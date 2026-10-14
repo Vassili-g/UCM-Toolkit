@@ -405,13 +405,13 @@ leurs valeurs par défaut, sans garantie perdue.
 
 | # | Décision | Recommandation |
 |---|---|---|
-| Q1 | La règle de chroma | Rouverte : la retenue par teinte, à noter contre l'enveloppe (S1) et le moteur actuel ([robustesse](./ROBUSTESSE-DES-RAMPES.md)) |
-| Q2 | Le sens de Soft et Vivid | Soft : fonds 0,6, textes 0,85, retenue de Radix ; Vivid : 0,95, retenue de Tailwind |
+| Q1 | La règle de chroma | L'enveloppe par thème (S1), retenue au banc visuel pour sa cohérence ; marge des jaunes clairs et borne des fonds Dark de Vivid au second tour ([robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 8 et 9) |
+| Q2 | Le sens de Soft et Vivid | Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark) ; Vivid : Tailwind (0,95, a 1,1) |
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
-| Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3) : fonds opaques 50, 100, 200 en Light ; 200, 300, 400 en Dark ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut. Aucun échec nouveau : 144, comme aujourd'hui. Texte et contour Dark : 900, coloré, recommandé ; ou 950, pâle. Avec 900, la recette du mainteneur échoue sur Orange Vivid (4,12:1) tant que son Color shift sombre dépasse +0,015 |
+| Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
 | Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants |
-| Q7 | La forme du focus | Anneau décalé de 2 px, conforme ; le halo pâle collé ne l'est pas au niveau AA ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 6) |
+| Q7 | La forme du focus | Le halo au cran du survol (200 en Light), préféré du mainteneur, entouré d'un liseré au cran du focus pour être conforme ; ou l'anneau décalé. Le halo seul ne l'est pas au niveau AA ([robustesse](./ROBUSTESSE-DES-RAMPES.md), sections 6 et 9) |
 | Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
 | Q10 | La dérive de teinte | Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 4) |

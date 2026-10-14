@@ -99,7 +99,11 @@ Trois causes, mesurées :
 
 ### S1. Une enveloppe par thème
 
-**Rouverte.** L'enveloppe corrige les verts clairs, mais sa borne ne dépend
+**Retenue au premier tour du banc, avec deux réglages à finir.** Le
+mainteneur a préféré l'enveloppe, pour sa cohérence, à la retenue par teinte
+et au moteur actuel ; la marge des jaunes clairs et la borne des fonds Dark en
+Vivid se jugent au second tour ([robustesse](./ROBUSTESSE-DES-RAMPES.md),
+sections 8 et 9). Auparavant rouverte : l'enveloppe corrige les verts clairs, mais sa borne ne dépend
 que de la clarté : elle ternit aussi les jaunes et les ambres clairs, que
 Tailwind et Radix gardent près du plafond. Le dossier
 [Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) la compare, sur toutes les
@@ -129,15 +133,18 @@ niveau se tient un cran plus loin du fond que celui qui le porte :
 |---|---|---|
 | Page | neutre 50 | neutre 50, abaissé à L 0,145 |
 | Carte (`raised`) | blanc, hors rampe | neutre 100 |
-| Fond teinté au repos, survol, appui | 50, 100, 200 ; ou 100, 200, 300, à juger | 200, 300, 400 ; ou 300, 400, 500 avec un texte 950, à juger |
+| Fond teinté au repos, survol, appui | 100, 200, 300 (retenu au banc ; 50, 100, 200 auparavant) | 300, 400, 500 (retenu au banc ; 200, 300, 400 auparavant) |
 | Texte et contour du fond teinté | inchangés : 800 en sens normal, 900 en sens inversé | 900 dans les deux sens, ou 950 (voir plus bas) |
 | Focus | inchangé : 600 en sens normal, 700 en sens inversé | 800, dans les deux sens |
 | Plein, texte et contour de page | inchangés | inchangés |
 
-La règle est la même dans les deux thèmes : le fond teinté prend le premier
-cran au-delà de sa carte. En Light, la carte est le blanc, avant le cran 50 :
-le fond prend 50. En Dark, la carte est le neutre 100 : le fond prend 200. Le
-survol et l'appui suivent d'un cran chacun.
+La règle est la même dans les deux thèmes : le fond teinté se tient à une
+distance fixe de sa carte. Proposée à un cran (Light 50 sur la carte blanche,
+Dark 200 sur la carte au neutre 100), elle a été retenue à deux crans par le
+banc visuel, le mainteneur préférant un fond plus marqué : Light 100, Dark 300.
+Le survol et l'appui suivent d'un cran chacun. Les mesures ci-dessous portent
+sur la proposition à un cran ; celles du cran retenu sont dans le dossier
+[Robustesse des rampes](./ROBUSTESSE-DES-RAMPES.md) (sections 3 et 5).
 
 La page Dark gagne la séparation qui lui manque sans déplacer la carte. Son
 écart avec la carte, 1,16, entre dans la plage relevée (1,07 à 1,32) ; une
@@ -174,7 +181,8 @@ profond.
 | 900 | Colorée | 4,72:1 par défaut ; 4,12:1 avec le Color shift du mainteneur | Le Color shift « nuances sombres » des teintes chaudes se borne à +0,015 environ |
 | 950 | Pâle | 7,70:1 par défaut ; 6,41:1 avec le Color shift du mainteneur | Aucune borne nouvelle |
 
-Recommandé : 900, parce que le mainteneur juge les textes sombres trop ternes
+Décidé au banc visuel : 950, qu'impose le fond Dark 300 retenu. Avant ce
+choix, la recommandation était 900, parce que le mainteneur juge les textes sombres trop ternes
 et que les systèmes relevés gardent un texte coloré (L 0,66 à 0,89). 950 si la
 liberté du Color shift sombre compte davantage. La maquette de qualité compare
 les deux.
@@ -187,8 +195,8 @@ change pas. Le choix touche aussi l'alerte des palettes trop proches : le texte
 900 rapproche les bleus et les violets en Dark
 ([dossier Comparer](./DOSSIER-COMPARER.md), section 8).
 
-En Light, le fond 50 a la clarté de la page : un composant teinté posé sur la
-page, hors d'une carte, prend `surface/hover` ou un contour `page/divider`.
+Avec le fond Light 100 retenu, un composant teinté se détache aussi de la
+page (cran 50). Avec un fond 50, il aurait eu la clarté de la page.
 
 Pistes mesurées et écartées, avec l'enveloppe par thème, sur le balayage de
 72 teintes ([GARANTIES-BALAYAGE.json](./Mesures/GARANTIES-BALAYAGE.json)) :
@@ -211,9 +219,9 @@ est le cran visé, et la clarté d'un cran.
 ```text
 components.badge.success.background
   → theme.success.soft.surface.default
-      light → color-utilities.success.soft.light.50     (aujourd'hui .100)
-      dark  → color-utilities.success.soft.dark.200     (aujourd'hui .100)
-  → primitives.colors.grass.soft.light.50 | .dark.200
+      light → color-utilities.success.soft.light.100    (inchangé)
+      dark  → color-utilities.success.soft.dark.300     (aujourd'hui .100)
+  → primitives.colors.grass.soft.light.100 | .dark.300
 
 theme.elevation.page
       light → color-utilities.elevation.light.page   → primitives.colors.titanium.light.50
@@ -228,7 +236,7 @@ theme.elevation.raised
 | `primitives` | UCM Palettes | La courbe Dark place le cran 50 à L 0,145 ; les rampes suivent l'enveloppe par thème (S1) |
 | `color-utilities`, `color-brands` | Le designer, une fois | Rien : un alias par cran |
 | `color-utilities.elevation` | Le designer, une fois | Rien : la page vise le neutre 50, la carte le blanc ou le neutre 100 |
-| `theme` | La table du kit, `TABLE_DES_DOSSIERS` | La table distingue le thème en plus du sens : surfaces 50, 100, 200 en Light ; 200, 300, 400, texte 900 et focus 800 en Dark |
+| `theme` | La table du kit, `TABLE_DES_DOSSIERS` | La table distingue le thème en plus du sens : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500, texte 950 et focus 800 en Dark |
 | Recette | UCM Palettes | Le réglage « Fond de la page » Dark vaut par défaut `#0A0A0A`, le cran 50 de la nouvelle courbe sans teinte ; les garanties se mesurent contre lui |
 
 **La page a une seule couleur.** Dans les tokens, `elevation/page` vise le
@@ -241,12 +249,12 @@ le cran 50 de la courbe sans teinte : `#F7F7F7` en Light, inchangé, et
 règle sur son neutre 50, comme aujourd'hui (Titanium : `#F6F7F8` et
 `#0A0A0B`). La page noire du dossier d'élévation est écartée.
 
-Le cran 50 devient requis : la table le vise en Light. Les crans requis
-passent à 50, 100, 200, 300, 400, 600, 700, 800 et 900, plus 500 quand un
-thème est inversé ; 950 reste facultatif.
+Avec la table retenue, les crans requis passent à 100, 200, 300, 400, 500,
+600, 700, 800, 900 et 950 : l'appui Dark (500) et le texte Dark (950) entrent
+dans la table. Le cran 50 du neutre porte la page.
 
 Le neutre suit la même table que les autres palettes : sa surface au repos
-vaut 50 en Light et 200 en Dark, sans règle propre au neutre.
+vaut 100 en Light et 300 en Dark, sans règle propre au neutre.
 
 La table vaut pour les deux sens de chaque thème. En Light inversé (texte des
 boutons noir), les fonds sont aussi 50, 100 et 200, le texte reste 900 et le
@@ -299,7 +307,7 @@ emploie `surface/hover` (100 en Light) au repos. Ces deux choix relèvent des co
 | S2, courbe | `packages/couleur/src/nuances.ts` : clarté du cran 50 de la courbe Dark par défaut ; le fond de page Dark par défaut de la recette |
 | S2, table | `packages/kit/src/emplois/dossiers.ts` : une table par thème et par sens, que `cranDeLaVariable`, `cransRequis`, `variablePresente` et `variablesDuCran` lisent avec le thème ; `garanties.ts` et ses tests. Lecteurs à suivre : `packages/couleur/src/promesses.ts`, `garantie.ts`, `alertes.ts`, `recette.ts` (crans requis) ; `packages/plugin-palettes/src/presentation.ts`, `planche/modele.ts`, `ui/nuancier.ts`, `ui/garanties.ts`, `ui/apercuCompact.ts`, `ui/interfaceDeTest.ts`, textes `i18n` ; `packages/plugin-explorateur/src/integrations/palettes.ts` et `profilUcm.ts` |
 | Q8, `ring` à la racine de la palette | `VARIABLES_DE_PALETTE`, `ETAT_DU_FOND`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma et contrats qui lisent `page/focus` |
-| S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (50 et 400), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
+| S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (400, 500 et 950), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
 ## 5. Ce qui reste à juger à l'œil
 

@@ -60,7 +60,7 @@
 </head>
 <body>
 <h1>Recette critique : décisions</h1>
-<p class="sous">Trois sujets, vingt décisions. La règle de chroma est rouverte : le <a href="Maquettes/BANC-VISUEL.html">banc visuel</a> la fait noter à l'œil sur toutes les familles de teinte. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
+<p class="sous">Trois sujets, vingt décisions. Le premier tour du <a href="Maquettes/BANC-VISUEL.html">banc visuel</a> en a tranché plusieurs ; le <a href="Maquettes/BANC-VISUEL-TOUR-2.html">second tour</a> règle les dernières. Notes : qualité · réponse à la demande · complétion, sur 10, avant et après la repasse.</p>
 
 <div class="sujets">
   <section class="sujet" data-sujet="1">
@@ -68,7 +68,7 @@
     <div class="notes"><span class="note">Qualité 7 → <b>8</b></span><span class="note">Réponse 7 → <b>8</b></span><span class="note">Complétion 6 → <b>8</b></span></div>
     <div class="ligne"><span>Problème</span><span>Soft terne, Vivid criard sur les verts, groupe incohérent.</span></div>
     <div class="ligne"><span>Cause</span><span>Une part constante du plafond sRGB, compensée palette par palette.</span></div>
-    <div class="ligne"><span>Solution</span><span>Rouverte. Candidate : la retenue par teinte, qui ne retient la chroma que là où Tailwind et Radix la retiennent (verts clairs, bleus foncés) ; l'enveloppe ternissait les jaunes clairs. Et une dérive de teinte corrigée. <a href="ROBUSTESSE-DES-RAMPES.md">Robustesse ›</a></span></div>
+    <div class="ligne"><span>Solution</span><span>L'enveloppe, retenue au banc pour sa cohérence, avec une marge pour les jaunes clairs et une borne pour les fonds Dark de Vivid, à régler au second tour ; la dérive de teinte corrigée. <a href="ROBUSTESSE-DES-RAMPES.md">Robustesse ›</a></span></div>
     <div class="ligne"><span>Effet</span><span><span class="chiffre">×4,2 → ×1,7</span><br>écart de saturation entre statuts ; texte Soft en Dark C 0,04–0,13 → 0,07–0,14 ; verts Vivid clairs ramenés au niveau de Tailwind</span></div>
     <div class="ligne"><span>Maintenant</span><span>Orange Soft : préréglage Tailwind de teinte, <code>#85581F</code> → <code>#91501F</code>.</span></div>
     <div class="ligne"><span>À l’aveugle</span><span>Sur carte, trois combinaisons notées avec une borne unique : l’enveloppe tient la cohérence (5, 4, 5) ; en Dark, la carte et les fonds 100 se confondent pour toutes les règles. La borne Dark de la solution reste à noter.</span></div>
@@ -100,10 +100,10 @@
   <thead><tr><th>Demande</th><th>Réponse</th><th>Décisions</th><th>État</th></tr></thead>
   <tbody>
     <tr><td>Le focus est rangé dans <code>page</code> ; il manque en reliant un bouton <code>solid</code></td><td>Le focus devient <code>ring</code>, à la racine de la palette, à côté des trois dossiers : une seule variable, visible en ouvrant la palette, sans les trois alias de même valeur qu'aurait demandés un <code>ring</code> par dossier.</td><td>Q8</td><td><span class="etat">Répondu</span></td></tr>
-    <tr><td>Le focus est très foncé ; celui de Figma paraît clair ; faut-il changer le moteur ?</td><td>Le bleu de Figma (<code>#006AFF</code>) a la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et décalé de 2 px. Le halo pâle collé, très répandu (Bootstrap, Flowbite, shadcn/ui, Ant Design, Untitled UI), contraste à moins de 3:1 avec la page : le W3C le juge non conforme au niveau AA. La couleur la plus claire qui passe est le cran 600, parfois 500. Le moteur ne change pas ; la forme se règle dans les composants.</td><td>Q6, Q7</td><td><span class="etat ouvert">Forme à choisir dans le banc</span></td></tr>
-    <tr><td><code>surface/default</code> trop foncé, le 50 préféré ; des réglages optimaux par défaut et un mode personnalisé</td><td>Le fond 50 en Light (1,07 contre la carte) ou, depuis que la règle de chroma calme les crans clairs, le fond 100 (1,16) ; en Dark, 200 (1,15) ou 300 (1,39, texte 950). Les valeurs par défaut vivent dans la Configuration ; chaque réglette les marque, le résumé dit « Modifié : … » dès qu'on s'en écarte, et « Par défaut » y ramène.</td><td>Q3, Q5, C8 à C10</td><td><span class="etat ouvert">Cran à choisir dans le banc</span></td></tr>
-    <tr><td>En Dark, la carte (<code>elevation/raised</code>) doit se détacher de la page, et le fond teinté de la carte ; un modèle générique et son mapping de tokens</td><td>Le modèle des niveaux : chaque niveau un cran plus loin que celui qui le porte. Dark : page au neutre 50 abaissé, carte au neutre 100, fonds 200, 300 et 400. Carte contre page 1,10 → 1,16 ; fond contre carte 1,00 → 1,13 à 1,16. Le chemin des tokens ne change pas ; les alias de <code>theme</code> suivent une table par thème, et la page a une seule couleur (neutre 50 et réglage « Fond »).</td><td>Q5</td><td><span class="etat ouvert">Texte Dark : 900 ou 950</span></td></tr>
-    <tr><td>Rendu réel décevant : Soft 700 fade, Vivid criard ; choix, réglages ou moteur ?</td><td>Le moteur, en trois points. Soft terne : une part fixe de 0,45 donne aux textes Soft 0,3 à 0,55 fois la chroma de Tailwind. Vivid criard : la part fixe sature les verts clairs (×1,2 à 1,6 de Tailwind), là où le marché retient. Ambres et jaunes beiges : le préréglage de teinte se trompe jusqu'à 38°. La retenue par teinte et la dérive corrigée répondent aux trois ; l'enveloppe ne répondait qu'aux deux premiers et ternissait les jaunes. Orange brun : le réglage de teinte de la recette.</td><td>Q1, Q2, Q10</td><td><span class="etat ouvert">À noter dans le banc</span></td></tr>
+    <tr><td>Le focus est très foncé ; celui de Figma paraît clair ; faut-il changer le moteur ?</td><td>Le bleu de Figma (<code>#006AFF</code>) a la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et décalé de 2 px. Le halo pâle collé, très répandu (Bootstrap, Flowbite, shadcn/ui, Ant Design, Untitled UI), contraste à moins de 3:1 avec la page : le W3C le juge non conforme au niveau AA. Votre préféré, le halo au cran 200, devient conforme entouré d'un liseré de 1 ou 2 px au cran du focus ; il prend le survol du fond teinté, sans couleur nouvelle.</td><td>Q6, Q7</td><td><span class="etat ouvert">Liseré à juger au second tour</span></td></tr>
+    <tr><td><code>surface/default</code> trop foncé, le 50 préféré ; des réglages optimaux par défaut et un mode personnalisé</td><td>Retenu au banc : le fond 100 en Light (1,16 contre la carte), depuis que la règle de chroma calme les crans clairs, et 300 en Dark (1,39), avec un texte 950 ; le badge discret suffit. Les valeurs par défaut vivent dans la Configuration ; chaque réglette les marque, le résumé dit « Modifié : … » dès qu'on s'en écarte, et « Par défaut » y ramène.</td><td>Q3, Q5, C8 à C10</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>En Dark, la carte (<code>elevation/raised</code>) doit se détacher de la page, et le fond teinté de la carte ; un modèle générique et son mapping de tokens</td><td>Le modèle des niveaux : chaque niveau à distance fixe de celui qui le porte. Dark : page au neutre 50 abaissé, carte au neutre 100, fonds 300, 400 et 500, texte 950. Carte contre page 1,10 → 1,16 ; fond contre carte 1,00 → 1,39. Le chemin des tokens ne change pas ; les alias de <code>theme</code> suivent une table par thème, et la page a une seule couleur (neutre 50 et réglage « Fond »).</td><td>Q5</td><td><span class="etat">Répondu</span></td></tr>
+    <tr><td>Rendu réel décevant : Soft 700 fade, Vivid criard ; choix, réglages ou moteur ?</td><td>Le moteur, en trois points. Soft terne : une part fixe de 0,45 donne aux textes Soft 0,3 à 0,55 fois la chroma de Tailwind. Vivid criard : la part fixe sature les verts clairs (×1,2 à 1,6 de Tailwind). Ambres et jaunes beiges : le préréglage de teinte se trompe jusqu'à 38°. Retenus au banc : l'enveloppe, notée 5 en cohérence, et la dérive de teinte corrigée ; il reste à régler la marge des jaunes clairs et les fonds Dark de Vivid. Orange brun : le réglage de teinte de la recette.</td><td>Q1, Q2, Q10</td><td><span class="etat ouvert">Deux réglages au second tour</span></td></tr>
     <tr><td>Un écran pour comparer et harmoniser : combien de palettes, quelle référence, quelle règle, tons clairs et foncés, « plus rouge », un écart minimal</td><td>L'onglet Harmonisation : 2 à 4 palettes cochées, comparées sur des composants, réglées à la main avec les réglettes de Création. Aucune palette de référence : la courbe commune aligne les crans de même numéro. Les tons clairs et foncés se règlent dans Color shift ; les bouts de la teinte se nomment (« plus rouge ») ; une zone hachurée montre les teintes trop proches d'une autre palette.</td><td>C1 à C7</td><td><span class="etat">Répondu</span></td></tr>
     <tr><td>Analyse des autres systèmes, du code, des données réelles, maquettes</td><td>Huit systèmes, plus le Simple Design System de Figma, pour les pages, cartes et statuts ; onze pour les composants à surface, dix pour le focus. Les lecteurs de la table sont listés dans le kit, le moteur, Palettes et l'explorateur. Mesures sur votre recette, la galerie de 18 palettes colorées et un balayage de 72 teintes. Trois maquettes.</td><td></td><td><span class="etat">Répondu</span></td></tr>
   </tbody>
@@ -111,14 +111,14 @@
 
 <h2 id="modele">Le modèle unifié</h2>
 <div class="couches">
-  <div class="couche"><h3>Le moteur</h3><ul><li>La règle de chroma : une part par profil, retenue là où le marché retient (Q1, rouverte). Une seule formule pour toutes les teintes.</li><li>La dérive de teinte du préréglage Tailwind, lue aux deux bouts des rampes voisines (Q10).</li><li>La courbe Dark place le cran 50 à L 0,145 ; le fond de page par défaut devient <code>#0A0A0A</code> (<code>#0A0A0B</code> avec le Titanium du mainteneur).</li><li>Une recette existante garde ses couleurs jusqu'à ce que le designer choisisse « Par défaut ».</li></ul></div>
-  <div class="couche"><h3>La table des rôles</h3><ul><li>Une table par thème et par sens : fonds 50, 100 et 200 en Light, ou 100, 200 et 300 ; 200, 300 et 400 en Dark, ou 300, 400 et 500.</li><li>Texte Dark 900, ou 950 avec le fond 300 ; focus 600 en Light, 800 en Dark, nommé <code>ring</code> à la racine de la palette.</li><li>Crans requis : 50 à 400 et 600 à 900, plus 500 en sens inversé, et 950 si le texte Dark le prend.</li></ul></div>
+  <div class="couche"><h3>Le moteur</h3><ul><li>La règle de chroma : l'enveloppe par thème, une borne de clarté commune à toutes les teintes, avec une marge pour les jaunes clairs (Q1).</li><li>La dérive de teinte du préréglage Tailwind, lue aux deux bouts des rampes voisines (Q10).</li><li>La courbe Dark place le cran 50 à L 0,145 ; le fond de page par défaut devient <code>#0A0A0A</code> (<code>#0A0A0B</code> avec le Titanium du mainteneur).</li><li>Une recette existante garde ses couleurs jusqu'à ce que le designer choisisse « Par défaut ».</li></ul></div>
+  <div class="couche"><h3>La table des rôles</h3><ul><li>Une table par thème et par sens : fonds 100, 200 et 300 en Light ; 300, 400 et 500 en Dark.</li><li>Texte Dark 950 ; focus 600 en Light, 800 en Dark, nommé <code>ring</code> à la racine de la palette.</li><li>Crans requis : 100 à 950, plus 50 pour la page.</li></ul></div>
   <div class="couche"><h3>Les tokens</h3><ul><li>Le chemin ne change pas : composants, <code>theme</code>, <code>color-utilities</code> ou <code>color-brands</code>, <code>primitives</code>.</li><li>Les alias de <code>theme</code> suivent la table ; <code>elevation</code> garde page au neutre 50 et carte au blanc ou au neutre 100.</li><li>Le réglage « Fond de la page » vaut la couleur du neutre 50, pour que les garanties mesurent la page affichée.</li></ul></div>
 </div>
 
 <h2 id="ouvert">Ce qui reste ouvert</h2>
 <ul class="ouverts">
-  <li>Dans le <a href="Maquettes/BANC-VISUEL.html">banc visuel</a> : la règle de chroma (à l'aveugle, Soft et Vivid, deux thèmes), la dérive de teinte, le cran des fonds (50 ou 100, 200 ou 300), le style du focus.</li><li>Le texte des fonds en Dark : 900, coloré ; ou 950, pâle, imposé par un fond 300. Avec 900, votre Orange Vivid échoue (4,12:1) tant que son Color shift sombre dépasse +0,015.</li>
+  <li>Dans le <a href="Maquettes/BANC-VISUEL-TOUR-2.html">second tour du banc</a> : la marge des jaunes clairs, la borne des fonds Dark de Vivid, et le focus (halo au cran 200 entouré d'un liseré, ou anneau décalé).</li><li>En sens inversé, l'appui du fond teinté (500) prend la couleur de l'appui du bouton plein ; seul le texte les distingue.</li>
   <li>Le jugement à l'œil du modèle sur votre fichier, avec la règle retenue.</li>
   <li>L'ombre ou le contour de la carte en Dark, en plus de la page abaissée.</li>
   <li>Les seuils des constats de saturation et de luminosité, valeurs d'essai.</li>
@@ -135,7 +135,8 @@
 <ul class="docs">
   <li><a href="SOLUTION-RAMPES.md">Solution des sujets 1 et 2</a></li>
   <li><a href="ROBUSTESSE-DES-RAMPES.md">Robustesse : toutes les teintes, focus, ring</a></li>
-  <li><a href="Maquettes/BANC-VISUEL.html">Banc visuel à noter</a></li>
+  <li><a href="Maquettes/BANC-VISUEL.html">Banc visuel, premier tour</a></li>
+  <li><a href="Maquettes/BANC-VISUEL-TOUR-2.html">Banc visuel, second tour</a></li>
   <li><a href="DOSSIER-QUALITE-DES-PALETTES.md">Dossier des sujets 1 et 2</a></li>
   <li><a href="Collecte/Surfaces/README.md">Pages, cartes et statuts de huit systèmes</a></li>
   <li><a href="Collecte/ANALYSE-COMPOSANTS-A-SURFACE.md">Composants à surface de onze systèmes</a></li>
@@ -150,16 +151,16 @@
 (() => {
   const SUJETS = [
     { n: '1', titre: 'Palettes en interface', maquette: 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html', decisions: [
-      ['Q1', 'Règle de chroma', 'Rouverte : retenue par teinte, à noter contre l’enveloppe et le moteur actuel', 'Maquettes/BANC-VISUEL.html#regles'],
-      ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds 0,6, textes 0,85, retenue de Radix. Vivid : 0,95, retenue de Tailwind', 'Maquettes/BANC-VISUEL.html#regles'],
+      ['Q1', 'Règle de chroma', 'L’enveloppe par thème, retenue au banc ; marge des jaunes clairs et borne des fonds Dark de Vivid au second tour', 'Maquettes/BANC-VISUEL-TOUR-2.html#regles'],
+      ['Q2', 'Sens de Soft et Vivid', 'Soft : fonds calmes, textes colorés (0,85 ; a 0,6 en Light, 1,1 en Dark). Vivid : Tailwind (0,95, a 1,1)', 'Maquettes/BANC-VISUEL-TOUR-2.html#regles'],
       ['Q3', 'Valeurs par défaut', 'Dans la Configuration ; marquées sur chaque réglette ; recettes actuelles inchangées jusqu’à « Par défaut »', 'Maquettes/MAQUETTE-COMPARER.html#configuration'],
       ['Q4', 'Texte courant des alertes', 'Choix de composant, hors Palettes', 'Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html#banc'],
-      ['Q10', 'Dérive de teinte', 'Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines : pire écart 38° → 12°', 'ROBUSTESSE-DES-RAMPES.md'],
+      ['Q10', 'Dérive de teinte', 'Retenue au banc : le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines ; pire écart 38° → 12°', 'ROBUSTESSE-DES-RAMPES.md'],
     ] },
     { n: '2', titre: 'Crans des rôles', maquette: 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html', decisions: [
-      ['Q5', 'Fond teinté et niveaux', 'Le fond à un ou deux crans de sa carte : Light 50 ou 100, Dark 200 ou 300 (texte 950) ; page Dark abaissée', 'Maquettes/BANC-VISUEL.html#fonds'],
+      ['Q5', 'Fond teinté et niveaux', 'Retenu au banc : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte 950 ; page Dark abaissée', 'Maquettes/BANC-VISUEL.html#fonds'],
       ['Q6', 'Couleur du focus', '600 en Light, 800 en Dark ; un focus unique de marque reste un choix des composants', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#focus'],
-      ['Q7', 'Forme du focus', 'Anneau décalé de 2 px, conforme ; halo pâle collé, plus élégant pour le mainteneur mais non conforme AA', 'Maquettes/BANC-VISUEL.html#focus'],
+      ['Q7', 'Forme du focus', 'Halo au cran du survol (200 en Light) entouré d’un liseré au cran du focus, conforme ; ou anneau décalé', 'Maquettes/BANC-VISUEL-TOUR-2.html#focus'],
       ['Q8', 'Nom du focus', '`ring` à la racine de la palette', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#rangement'],
       ['Q9', 'Composants à surface', 'Rôles actuels ; contour discret sur `page/divider`', 'Maquettes/MAQUETTE-ROLES-ET-CRANS.html#composants-a-surface'],
     ] },

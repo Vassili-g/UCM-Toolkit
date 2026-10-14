@@ -1,6 +1,6 @@
 # Robustesse des rampes : toutes les teintes, tous les cas
 
-**Statut : mesures faites, test visuel à noter.** Ce dossier rouvre la règle
+**Statut : premier tour du banc noté, second tour à noter.** Ce dossier rouvre la règle
 de chroma S1 de la [solution](./SOLUTION-RAMPES.md) : l'enveloppe corrigeait les
 verts clairs, mais elle ternissait les jaunes et les ambres clairs, absents du
 fichier du mainteneur et du test à l'aveugle. Il teste chaque règle sur toutes
@@ -212,13 +212,69 @@ Recommandé : `ring` à la racine de la palette. Il règle le problème de dépa
 (la variable introuvable dans `solid`) sans redondance, garde un focus rouge
 pour un bouton de danger, et laisse aux composants le choix d'un focus unique.
 
-## 8. Ce qui reste à juger
+## 8. Le premier tour du banc
 
-Dans le [banc visuel](./Maquettes/BANC-VISUEL.html) : la règle de chroma, à
-l'aveugle, en Soft et en Vivid, dans les deux thèmes ; la dérive de teinte ;
-le cran des fonds ; le style du focus.
+Notes du mainteneur, de 1 à 5, sur les dix-sept familles et les sept cas
+limites ; A, B et C étaient cachées :
 
-## 9. Limites
+| Règle | Couleurs justes | Cohérence | Fonds | Textes |
+|---|---|---|---|---|
+| A, enveloppe : Soft Light, Soft Dark | 4, 4 | 5, 5 | 5, 5 | 5, 5 |
+| A, enveloppe : Vivid Light, Vivid Dark | 4, 4 | 5, 3 | 5, 4 | 5, 5 |
+| B, retenue par teinte : Soft Light, Soft Dark | 5, 4 | 2, 1 | 2, 4 | 5, 3 |
+| B, retenue par teinte : Vivid Light, Vivid Dark | 5, 4 | 4, 1 | 3, 4 | 5, 3 |
+| C, moteur actuel : Soft Light, Soft Dark | 3, 2 | 2, 2 | 1, 3 | 2, 2 |
+| C, moteur actuel : Vivid Light, Vivid Dark | 5, 4 | 1, 1 | 2, 4 | 4, 2 |
+
+Ce que les notes disent :
+
+- **L'enveloppe gagne**, par sa cohérence. Elle donne à tous les crans clairs
+  la même chroma au plus : l'écart entre familles au cran 100 vaut ×1,4 en Soft,
+  contre ×4,3 avec la retenue par teinte. Le mainteneur préfère des fonds
+  uniformes à des couleurs fidèles au marché.
+- **Son défaut : les jaunes clairs**, « plus marron clair que jaune »,
+  surtout en Soft Light (C 0,025 au cran 100). Remarque du mainteneur :
+  « Règle A, un cran plus marqué et dérive de teinte corrigée, c'est vraiment
+  pas mal. »
+- **Sa cohérence de 3 en Vivid Dark** vient des fonds : au cran 300, les bleus
+  et les violets montent à 0,15 de chroma, les turquoises restent à 0,04.
+- **La retenue par teinte** a les couleurs les plus justes (5 en Light), mais
+  des fonds inégaux et, en Dark, des textes verts et jaunes trop colorés.
+
+Décisions prises :
+
+- La règle de chroma reste l'enveloppe par thème (Q1), avec deux réglages à
+  juger au second tour.
+- La dérive de teinte corrigée (Q10).
+- Le fond teinté un cran plus marqué : 100 en Light (survol 200, appui 300),
+  300 en Dark (survol 400, appui 500), texte Dark 950 (Q5). Le fond se tient à
+  deux crans de sa carte dans les deux thèmes. Le badge discret suffit : le
+  badge plus marqué n'a plus d'usage.
+- Focus Light : halo pâle collé au cran 200 noté 5, halo au cran 100 et
+  anneau décalé 3, halo au cran conforme 1. Le mainteneur : « le halo collé en
+  cran 200 est le plus esthétique, mais ça m'embête que le moteur propose un
+  cran de couleur pour un usage et que ça ne suive pas la réglementation ».
+
+## 9. Le second tour
+
+Le [second tour](./Maquettes/BANC-VISUEL-TOUR-2.html) fixe ce qui est
+décidé et ne fait juger que trois choses ([generer-banc-tour-2.ts](./Mesures/generer-banc-tour-2.ts)) :
+
+- **La marge des jaunes clairs**, en Light : la borne de l'enveloppe s'élargit
+  autour du jaune seulement (100°, écart type 12°), de 0 à +150 %. Au cran 100,
+  le jaune Soft passe de C 0,025 à 0,038, 0,051 ou 0,064, le niveau de la
+  retenue par teinte ; les autres familles ne bougent pas.
+- **La borne des fonds Dark en Vivid** : 0,48, 0,38 (celle de Soft) ou 0,30.
+  L'écart entre familles au cran 300 passe de ×3,5 à ×2,8 ou ×2,2.
+- **Le focus conforme qui garde l'aspect du halo** : le halo prend le survol
+  du fond teinté (`surface/hover`, exactement le cran 200 en Light avec la
+  table retenue), et un liseré de 1 ou 2 px au cran du focus (`ring`) l'entoure.
+  Le liseré touche la carte et la contraste de 3,9 à 5,2:1 : l'indicateur est
+  conforme au niveau AA, et n'emploie que des variables qui existent. Sur les
+  champs et les boutons à contour, passer la bordure au cran du focus suffit
+  aussi. Le moteur ne propose donc aucune couleur non conforme pour le focus.
+
+## 10. Limites
 
 - Les références du marché sont Tailwind 3.4.17 et Radix Colors 3.0.0 ;
   Tailwind 4 définit ses rampes en OKLCH, en partie hors sRGB.

@@ -53,6 +53,23 @@ export const enveloppesParTheme = (parTheme: Record<Mode, Record<'soft' | 'vivid
   };
 
 /**
+ * L'enveloppe avec une marge pour les jaunes clairs (second tour du banc).
+ * Une borne qui ne dépend que de la clarté rend les crans clairs uniformes,
+ * ce que le mainteneur note 5 en cohérence, mais un jaune pâle aussi peu
+ * saturé qu'un bleu pâle paraît marron clair. En Light, la borne vers le
+ * blanc s'élargit autour du jaune (100°, écart type 12°) d'un facteur
+ * `1 + jaunes`. En Dark, ces clartés sont des textes : la marge ne s'applique
+ * pas, et `b` règle les fonds sombres.
+ */
+export const enveloppeAvecJaunes = (parTheme: Record<Mode, Record<'soft' | 'vivid' | 'unique', { p0: number; a: number; b: number }>>, jaunes: number): RegleDeChroma =>
+  ({ L, H, part, intensite, mode }) => {
+    const { p0, a, b } = parTheme[mode][intensite];
+    const ecart = Math.min(Math.abs(H - 100) % 360, 360 - (Math.abs(H - 100) % 360));
+    const marge = mode === 'light' ? 1 + jaunes * Math.exp(-0.5 * (ecart / 12) ** 2) : 1;
+    return Math.min(part * plafond(L, H, 'srgb'), p0 * Math.min(a * marge * (1 - L), b * L));
+  };
+
+/**
  * Le poids des accents d'un cran, de 0 dans les fonds à 1 dans les accents,
  * lu sur la clarté de la courbe : en Light, fonds dès 0,86 et accents sous
  * 0,70 ; en Dark, fonds sous 0,33 et accents dès 0,45.
