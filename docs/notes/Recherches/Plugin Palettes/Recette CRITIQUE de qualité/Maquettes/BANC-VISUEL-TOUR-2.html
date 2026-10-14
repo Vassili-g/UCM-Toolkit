@@ -130,7 +130,7 @@
     const inverse = !L && etat.sens === 'blanc';
     return {
       fond: L ? 100 : 300, survol: L ? 200 : 400, texte: L ? 800 : 950, plein: 700,
-      texteDuPlein: L || inverse ? '#FFFFFF' : '#000000', lien: L ? 700 : (inverse ? 800 : 700), focus: L ? 600 : 800,
+      texteDuPlein: L || inverse ? '#FFFFFF' : '#000000', lien: L ? 700 : (inverse ? 800 : 700), focus: inverse ? 700 : 600,
       bordure: L ? 700 : 600,
     };
   };

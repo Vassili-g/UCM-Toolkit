@@ -337,8 +337,10 @@ opaque, choisi contre la carte, suffit.
 
 **Couleur.** En Light, 600 est le cran le plus clair qui tient 3:1 contre la
 page : 500 échoue sur 422 à 576 des 576 rampes Light du balayage. En Dark, le
-cran 800, dans les deux sens, tient partout et retire les échecs de la
-section 4.2. Le halo pâle collé est pourtant répandu (Bootstrap, Flowbite,
+focus garde aussi le cran d'aujourd'hui (600 en sens normal, 700 en sens
+inversé) : jugé contre la page et la carte (décision G7), c'est le plus discret
+qui tient 3:1 ([mesurer-anneau.ts](./Mesures/mesurer-anneau.ts)). Le cran 800
+ne servait qu'à un focus collé au fond teinté. Le halo pâle collé est pourtant répandu (Bootstrap, Flowbite,
 shadcn/ui, Ant Design, le kit Figma d'Untitled UI) ; aucun n'atteint 3:1
 contre la page ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 6).
 
@@ -410,7 +412,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q3 | Les valeurs par défaut | Celles de Q2, dans la Configuration ; chaque réglette de Création les marque, « Par défaut » y ramène ; une recette au format 10 garde la part constante, et « Par défaut » sur sa carte des intensités la fait passer à l'enveloppe |
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
-| Q6 | La couleur du focus | 600 en Light ; 800 en Dark, dans les deux sens. Un focus unique, à la façon de Figma, reste un choix des composants. Décidé : G7 juge le focus contre la page et la carte, comme le W3C, et non contre le fond teinté |
+| Q6 | La couleur du focus | Inchangée : 600 en sens normal, 700 en sens inversé, dans les deux thèmes ; le cran le plus discret qui tient 3:1 contre la page et la carte. Un focus unique, à la façon de Figma, reste un choix des composants. Décidé : G7 juge le focus contre la page et la carte, comme le W3C, et non contre le fond teinté |
 | Q7 | La forme du focus | À choisir : anneau décalé partout, ou halo sur les champs (un rôle validé sans contraste, le curseur portant le focus) et anneau sur les boutons. Le halo pâle sur les boutons sort du principe du plugin : son rôle s'afficherait « AA ✗ ». Les variantes à liseré ont été écartées au banc ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |

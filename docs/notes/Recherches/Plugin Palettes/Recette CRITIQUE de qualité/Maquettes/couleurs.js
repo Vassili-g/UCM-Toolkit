@@ -72,7 +72,7 @@ window.UCM = (() => {
     // Le modèle retenu au banc visuel : le fond à deux crans de sa carte, 100 en Light, 300 en Dark, texte Dark 950.
     if (modele && mode === 'light') Object.assign(table, { 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300 });
     if (crans === 'dark900' && mode === 'dark') Object.assign(table, { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/foreground': 900, 'surface/border': 900, 'page/focus': 800 });
-    if (modele && mode === 'dark') Object.assign(table, { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 });
+    if (modele && mode === 'dark') Object.assign(table, { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 });
     if (crans === 'dark300' && mode === 'dark') Object.assign(table, { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950, 'page/focus': 800 });
     const c = (v) => (table[v] === 'texteDesBoutons' ? blanc : cran(variante, palette, intensite, mode, table[v]));
     let fonds = { default: c('surface/default'), hover: c('surface/hover'), pressed: c('surface/pressed') };

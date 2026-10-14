@@ -135,7 +135,7 @@ niveau se tient un cran plus loin du fond que celui qui le porte :
 | Carte (`raised`) | blanc, hors rampe | neutre 100 |
 | Fond teinté au repos, survol, appui | 100, 200, 300 (retenu au banc ; 50, 100, 200 auparavant) | 300, 400, 500 (retenu au banc ; 200, 300, 400 auparavant) |
 | Texte et contour du fond teinté | inchangés : 800 en sens normal, 900 en sens inversé | 900 dans les deux sens, ou 950 (voir plus bas) |
-| Focus | inchangé : 600 en sens normal, 700 en sens inversé | 800, dans les deux sens |
+| Focus | inchangé : 600 en sens normal, 700 en sens inversé | inchangé : 600 en sens normal, 700 en sens inversé |
 | Plein, texte et contour de page | inchangés | inchangés |
 
 La règle est la même dans les deux thèmes : le fond teinté se tient à une
@@ -236,7 +236,7 @@ theme.elevation.raised
 | `primitives` | UCM Palettes | La courbe Dark place le cran 50 à L 0,145 ; les rampes suivent l'enveloppe par thème (S1) |
 | `color-utilities`, `color-brands` | Le designer, une fois | Rien : un alias par cran |
 | `color-utilities.elevation` | Le designer, une fois | Rien : la page vise le neutre 50, la carte le blanc ou le neutre 100 |
-| `theme` | La table du kit, `TABLE_DES_DOSSIERS` | La table distingue le thème en plus du sens : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500, texte 950 et focus 800 en Dark |
+| `theme` | La table du kit, `TABLE_DES_DOSSIERS` | La table distingue le thème en plus du sens : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500 et texte 950 en Dark ; focus inchangé |
 | Recette | UCM Palettes | Le réglage « Fond de la page » Dark vaut par défaut `#0A0A0A`, le cran 50 de la nouvelle courbe sans teinte ; les garanties se mesurent contre lui |
 
 **La page a une seule couleur.** Dans les tokens, `elevation/page` vise le

@@ -182,7 +182,7 @@
   <p style="margin-top:0">Les crans du modèle. Détail et pistes écartées : <code>SOLUTION-RAMPES.md</code>, sections S2 et S3.</p>
   <ol>
     <li><b>Light</b> : page au neutre 50, carte blanche, fond teinté 100, 200, 300, comme aujourd'hui ; texte 800 ; focus 600. La règle de chroma calme les crans clairs : le fond 100 garde son contraste contre la carte (1,14 à 1,17), avec une couleur plus douce.</li>
-    <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 300, 400, 500 ; texte et contour 950 ; focus 800. La page se détache de la carte (1,16) et le fond de la carte (1,34 à 1,43).</li>
+    <li><b>Dark</b> : page au neutre 50 abaissé à L 0,145, carte au neutre 100, fond teinté 300, 400, 500 ; texte et contour 950 ; focus inchangé (600, ou 700 en sens inversé). La page se détache de la carte (1,16) et le fond de la carte (1,34 à 1,43).</li>
     <li><b>Garanties</b> : les 144 échecs du balayage existent déjà avec le moteur actuel. Le fond Light 100 en ajoute 20 si le focus touche le fond (2,98 à 3,00:1) ; un indicateur extérieur, mesuré contre la carte comme le demande le W3C, n'en ajoute aucun.</li>
     <li><b>Fonds opaques.</b> Palettes n'écrit que des crans ; la piste translucide est écartée, comme chez Atlassian, Material 3, Fluent et Polaris.</li>
     <li><b>Le focus</b> garde sa forme (anneau décalé de 2 px) et son nom (<code>ring</code>, à la racine de la palette) : Q7 et Q8 ne dépendent pas du modèle.</li>
@@ -196,7 +196,7 @@
     <tr><td><code>surface/hover</code></td><td>200</td><td>200 · 200</td><td class="change">400</td></tr>
     <tr><td><code>surface/pressed</code></td><td>300</td><td>300 · 300</td><td class="change">500</td></tr>
     <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>800 (normal), 900 (inversé)</td><td>800 · 900</td><td class="change">950</td></tr>
-    <tr><td><code>page/focus</code>, devenu <code>ring</code> à la racine de la palette (Q8)</td><td>600</td><td>600 · 700</td><td class="change">800</td></tr>
+    <tr><td><code>page/focus</code>, devenu <code>ring</code> à la racine de la palette (Q8)</td><td>600</td><td>600 · 700</td><td>600 · 700, inchangé</td></tr>
     <tr><td><code>elevation/page</code></td><td>neutre 50</td><td>neutre 50, L 0,180</td><td class="change">neutre 50, L 0,145 (environ <code>#0A0A0B</code>)</td></tr>
     <tr><td><code>elevation/raised</code></td><td>blanc</td><td>neutre 100</td><td>neutre 100</td></tr>
     <tr><td><code>solid/*</code>, <code>page/foreground</code>, <code>page/border</code>, <code>page/divider</code></td><td colspan="3">Inchangés</td></tr>
@@ -220,7 +220,7 @@
   <tbody>
     <tr><td><code>primitives</code></td><td>UCM Palettes</td><td>La courbe Dark place le cran 50 à L 0,145 ; l'enveloppe par thème</td></tr>
     <tr><td><code>color-utilities</code>, <code>color-brands</code>, <code>elevation</code></td><td>Le designer, une fois</td><td>Rien</td></tr>
-    <tr><td><code>theme</code></td><td>La table du kit, <code>TABLE_DES_DOSSIERS</code></td><td>Une table par thème : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500, texte 950, focus 800 en Dark</td></tr>
+    <tr><td><code>theme</code></td><td>La table du kit, <code>TABLE_DES_DOSSIERS</code></td><td>Une table par thème : surfaces 100, 200, 300 en Light, comme aujourd'hui ; 300, 400, 500 et texte 950 en Dark ; focus inchangé</td></tr>
     <tr><td>Recette</td><td>UCM Palettes</td><td>« Fond de la page » Dark par défaut au neutre 50 ; le cran 50 devient requis</td></tr>
   </tbody>
 </table>
@@ -243,7 +243,7 @@
 <div class="marche" id="marche"></div>
 
 <h2 id="focus">5. Le focus</h2>
-<p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark, le cran 800 tient partout. Le bleu de Figma (<code>#006AFF</code>) a d'ailleurs la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et séparé du bouton par 2 px de fond. L'impression de couleur foncée vient donc de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Le halo pâle collé est répandu (Bootstrap, Flowbite, shadcn/ui, Ant Design, le kit Figma d'Untitled UI, de 1,1 à 2,1:1 contre la page), mais aucun n'atteint le 3:1 que le W3C demande contre le fond qui l'entoure (<a href="../ROBUSTESSE-DES-RAMPES.md">robustesse</a>, section 6).</p>
+<p>Le focus actuel vise 600 en Light et 700 en Dark inversé. Un cran plus clair en Light (500) manque 3:1 sur la page pour 422 à 576 des 576 rampes Light du balayage ; en Dark aussi, le cran d'aujourd'hui (600, ou 700 en sens inversé) est le plus discret qui tienne 3:1 contre la page et la carte. Le bleu de Figma (<code>#006AFF</code>) a d'ailleurs la clarté de notre 600 (L 0,57 contre 0,58 à 0,59) : il paraît clair parce qu'il est très saturé et séparé du bouton par 2 px de fond. L'impression de couleur foncée vient donc de la géométrie : un trait de 2 px collé à un plein 700 se lit comme une bordure épaisse. Le halo pâle collé est répandu (Bootstrap, Flowbite, shadcn/ui, Ant Design, le kit Figma d'Untitled UI, de 1,1 à 2,1:1 contre la page), mais aucun n'atteint le 3:1 que le W3C demande contre le fond qui l'entoure (<a href="../ROBUSTESSE-DES-RAMPES.md">robustesse</a>, section 6).</p>
 <div class="commandes">
   <div class="groupe"><span>Thème</span><div class="bascule" data-commande="fMode"></div></div>
   <div class="groupe"><span>Support</span><div class="bascule" data-commande="fSupport"></div></div>
@@ -267,7 +267,7 @@
 <h2 id="decisions">7. Décisions</h2>
 <ol class="decisions">
   <li><b>Q5. Le fond teinté et les niveaux.</b> Retenu au banc visuel : le modèle des niveaux, le fond à deux crans de sa carte. Fonds opaques 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145. Le badge discret suffit.</li>
-  <li><b>Q6. La couleur du focus.</b> Garder 600 en Light, le cran le plus clair qui tient 3:1 ; 800 en Dark, dans les deux sens. Un focus unique à la couleur de la marque, comme chez Figma, reste un choix des composants.</li>
+  <li><b>Q6. La couleur du focus.</b> Garder le cran d'aujourd'hui, 600 (700 en sens inversé), dans les deux thèmes : jugé contre la page et la carte, c'est le plus discret qui tient 3:1. Un focus unique à la couleur de la marque, comme chez Figma, reste un choix des composants.</li>
   <li><b>Q7. La forme du focus.</b> Anneau décalé de 2 px (recommandé : conforme au niveau AA, la forme de Figma SDS, Radix et Spectrum) ou halo pâle collé (la forme de Bootstrap, Flowbite et du kit d'Untitled UI, non conforme : il contraste à moins de 3:1 avec la page). La forme se règle dans les composants, pas dans Palettes ; le <a href="BANC-VISUEL.html#focus">banc visuel</a> compare les deux.</li>
   <li><b>Q8. Le nom et la place.</b> <code>ring</code> à la racine de la palette (recommandé : une seule variable, visible en ouvrant la palette), <code>ring</code> dans chaque dossier (trois alias du même cran), ou <code>page/focus</code> conservé. Le dossier <code>page</code> porte aussi des éléments interactifs (liens, boutons à contour, champs, cases), mais tous prennent le même cran. Un renommage migre les liaisons Figma et les références des contrats : il passe par les mêmes étapes que <code>text</code> devenu <code>foreground</code>.</li>
   <li><b>Q9. Les composants à surface.</b> Recommandé : les rôles actuels, sans variable nouvelle. Alerte et badge discret sur <code>surface/default</code> et <code>surface/foreground</code> ; bouton teinté sur les trois états de surface ; un contour discret sur <code>page/divider</code>, un contour franc sur <code>surface/border</code>.</li>
@@ -351,7 +351,7 @@
   // Le focus : chaque forme sur un bouton plein, un bouton teinté, un bouton contour, un champ et un lien.
   const FORMES = [
     { id: 'colle', nom: 'Aujourd\'hui', detail: 'Trait de 2 px collé, cran du focus', ombre: (f, a) => `0 0 0 2px ${a}` },
-    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; cran 800 en Dark', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
+    { id: 'decale', nom: 'Anneau décalé', detail: '2 px de support puis 2 px de trait ; cran du focus', ombre: (f, a) => `0 0 0 2px ${f}, 0 0 0 4px ${a}`, clair: true },
     { id: 'halo', nom: 'Halo seul', detail: 'Le kit Figma d\'Untitled UI : 4 px au cran 100', ombre: (f, a, h) => `0 0 0 4px ${h}` },
     { id: 'halo-trait', nom: 'Halo et trait', detail: '2 px de halo au cran 100 (300 en Dark), puis 2 px de trait', ombre: (f, a, h) => `0 0 0 2px ${h}, 0 0 0 4px ${a}`, clair: true },
   ];
@@ -366,8 +366,8 @@
         const j = U.jeu({ variante: etat.variante, palette, intensite: etat.intensite, mode, support: etat.fSupport });
         const fond = j.fond;
         const sensInverse = U.sens(mode) === 'inverse';
-        // Les formes proposées prennent le focus du modèle : 800 en Dark, dans les deux sens.
-        const cranFocus = mode === 'dark' && forme.clair ? 800 : (mode === 'light' ? (sensInverse ? 700 : 600) : (sensInverse ? 700 : 600));
+        // Le focus garde le cran d'aujourd'hui dans les deux thèmes : 600, ou 700 en sens inversé.
+        const cranFocus = sensInverse ? 700 : 600;
         const anneau = U.cran(etat.variante, palette, etat.intensite, mode, cranFocus);
         const halo = U.cran(etat.variante, palette, etat.intensite, mode, mode === 'light' ? 100 : 300);
         const ombre = forme.ombre(fond, anneau, halo);
@@ -570,7 +570,7 @@
     const rampe = (palette, mode) => U.rampe('enveloppe', palette, 'soft', mode);
     const TABLES = {
       actuel: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 100, hover: 200, pressed: 300, foreground: 900, border: 900, focus: 700 } },
-      modele: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 300, hover: 400, pressed: 500, foreground: 950, border: 950, focus: 800 } },
+      modele: { light: { default: 100, hover: 200, pressed: 300, foreground: 800, border: 800, focus: 600 }, dark: { default: 300, hover: 400, pressed: 500, foreground: 950, border: 950, focus: 700 } },
     };
     const CRANS = [50, 100, 200, 300, 400, 500, 800, 900, 950];
     /** La valeur brute de chaque variable : un alias ou un hexa ; `mode` vaut light ou dark pour `theme`. */
@@ -682,7 +682,7 @@
       components: { info: 'aucun mode · résolu en light et en dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'inchangée'], modele: ['mod', 'valeurs modifiées'] },
         note: ['Les composants citent theme. Leurs noms ne changent pas ; leur couleur suit le cran que theme vise. Les colonnes montrent la valeur résolue dans chaque thème.'] },
       theme: { info: '2 modes · light, dark', modes: ['light', 'dark'], tag: { actuel: ['same', 'table actuelle'], modele: ['mod', 'crans modifiés'] },
-        note: { actuel: ['Le seul endroit où le thème se choisit. Aujourd\'hui, la table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable selon le sens seul, le même dans les deux thèmes : surfaces 100, 200, 300 ; texte 800, ou 900 en sens inversé ; focus page/focus, 600, ou 700 en sens inversé.'], modele: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 100, 200, 300 en light, comme aujourd\'hui ; 300, 400, 500 en dark, texte 950, anneau 800. Le focus devient ring, à la racine de la palette, à côté des trois dossiers (Q8).', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] } },
+        note: { actuel: ['Le seul endroit où le thème se choisit. Aujourd\'hui, la table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable selon le sens seul, le même dans les deux thèmes : surfaces 100, 200, 300 ; texte 800, ou 900 en sens inversé ; focus page/focus, 600, ou 700 en sens inversé.'], modele: ['Le seul endroit où le thème se choisit, et le seul où le modèle change d\'alias. La table du kit (TABLE_DES_DOSSIERS) fixe le cran de chaque variable, désormais par thème : surfaces 100, 200, 300 en light, comme aujourd\'hui ; 300, 400, 500 en dark, texte 950 ; l\'anneau garde son cran. Le focus devient ring, à la racine de la palette, à côté des trois dossiers (Q8).', 'elevation/page et elevation/raised gardent leurs alias : ils visent color-utilities, où leurs valeurs se choisissent.'] } },
       'color-utilities': { info: 'aucun mode · un alias par cran', modes: ['Valeur'], tag: { actuel: ['same', 'inchangée'], modele: ['same', 'alias inchangés'] },
         note: ['Les rôles communs aux marques, un alias par cran vers primitives. Le modèle n\'y change aucun alias.', 'elevation/dark/page vise toujours le cran 50 du neutre ; c\'est ce cran qui devient plus sombre dans primitives.'] },
       primitives: { info: 'aucun mode · écrite par UCM Palettes', modes: ['Valeur'], tag: { actuel: ['same', 'rampes actuelles'], modele: ['mod', '50 Dark recalculé'] },

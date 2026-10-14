@@ -182,7 +182,7 @@ et Mantine emploient un trait franc, le plus souvent décalé ; Chakra, un trait
 décalé gris à 2,6:1 dans son thème par défaut.
 
 **Ce que cela donne pour UCM.** La variable de focus d'UCM reste conforme
-(600 en Light, 800 en Dark). La forme se règle dans les composants : un
+(600 en sens normal, 700 en sens inversé, dans les deux thèmes). La forme se règle dans les composants : un
 anneau décalé est conforme ; un halo pâle ne l'est pas. Une équipe qui choisit
 le halo pâle prend pour couleur un cran clair qui existe déjà (le fond teinté
 ou son survol), sans variable nouvelle, et sort de la garantie G7. Sur un
@@ -297,6 +297,22 @@ carte blanche), la carte en Dark (le neutre 100, plus clair que la page) : les
 deux comptent. Le plugin doit donc connaître la couleur de la carte, blanche en
 Light et au neutre 100 en Dark comme `elevation/raised` ; aujourd'hui, il ne
 mesure que le réglage « Fond de la page ».
+
+Avec G7 jugé contre la page et la carte, le cran le plus discret de l'anneau
+décalé est celui de la table actuelle, dans les quatre combinaisons du texte
+des boutons ([mesurer-anneau.ts](./Mesures/mesurer-anneau.ts), balayage de 72
+teintes, règle retenue) :
+
+| Thème et sens | Un cran plus discret | Cran de la table | Pire contraste |
+|---|---|---|---|
+| Light, sens normal | 500 : 422 échecs sur 576 | 600 | 3,17:1 |
+| Light, sens inversé | 600 : 574 échecs | 700 | 3,17:1 |
+| Dark, sens normal | 500 : 576 échecs | 600 | 3,59:1 |
+| Dark, sens inversé | 600 : 548 échecs | 700 | 3,18:1 |
+
+Le focus Dark à 800 du modèle des niveaux ne servait qu'à l'ancienne G7, qui
+jugeait le focus contre le fond teinté : il revient au cran d'aujourd'hui, un
+ou deux crans plus discret. En Light, aucun cran plus clair ne tient.
 
 Focus Light, second tour : halo pâle collé 5 ; halo et liseré de 1 ou 2 px,
 halo et bordure au cran du focus 1 ; anneau décalé 2. Le mainteneur : « je
