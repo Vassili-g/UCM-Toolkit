@@ -356,10 +356,11 @@ d'une seule palette, celle de la marque. Le halo d'Untitled UI,
 `#F4EBFF` sur 4 px, vaut 1,16:1 sur blanc : il manque le critère 1.4.11.
 
 **Forme.** Un trait de 2 px collé à un plein 700 se lit comme une bordure
-épaisse. L'anneau décalé (2 px de support, puis 2 px de trait) est la forme de
-Simple Design System de Figma, de Radix, de Spectrum et d'Untitled UI React. La forme « halo et trait »
-remplit l'écart du cran 100 : elle donne l'aspect du kit d'Untitled UI, et son
-trait extérieur tient 3:1. La forme se règle dans les composants.
+épaisse. Décidé : l'anneau décalé (2 px de support, puis 2 px de trait), la
+forme du Simple Design System de Figma, de Radix, de Spectrum et d'Untitled UI
+React, partout. Le halo pâle, préféré à l'œil, contraste à moins de 3:1 et son
+rôle s'afficherait « AA ✗ » dans le plugin ; les variantes conformes qui
+l'imitent ont été écartées au banc visuel.
 
 **Nom et place.** Le contrat nomme ce rôle `ring` (`SUPPORT_DES_VARIABLES`).
 Trois rangements :
@@ -413,7 +414,7 @@ leurs valeurs par défaut, sans garantie perdue.
 | Q4 | Le texte courant des alertes | Choix de composant, hors Palettes |
 | Q5 | Le fond teinté et les niveaux | Le modèle des niveaux ([solution](./SOLUTION-RAMPES.md), S2 et S3), au cran retenu par le banc visuel : fonds 100, 200, 300 en Light ; 300, 400, 500 en Dark, texte et contour 950 ; page Dark au cran 50 abaissé à L 0,145, fond de page `#0A0A0A` par défaut |
 | Q6 | La couleur du focus | Inchangée : 600 en sens normal, 700 en sens inversé, dans les deux thèmes ; le cran le plus discret qui tient 3:1 contre la page et la carte. Un focus unique, à la façon de Figma, reste un choix des composants. Décidé : G7 juge le focus contre la page et la carte, comme le W3C, et non contre le fond teinté |
-| Q7 | La forme du focus | À choisir : anneau décalé partout, ou halo sur les champs (un rôle validé sans contraste, le curseur portant le focus) et anneau sur les boutons. Le halo pâle sur les boutons sort du principe du plugin : son rôle s'afficherait « AA ✗ ». Les variantes à liseré ont été écartées au banc ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
+| Q7 | La forme du focus | Décidé : l'anneau décalé partout, 2 px du fond puis 2 px de trait, au cran du focus. Le plugin le dessine déjà ; le halo pâle est écarté, son rôle s'afficherait « AA ✗ » ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 10) |
 | Q8 | Le nom et la place du focus | `ring` à la racine de la palette |
 | Q9 | Les composants à surface | Les rôles actuels suffisent ; un badge bordé discrètement prend `page/divider` ([solution](./SOLUTION-RAMPES.md), S5) |
 | Q10 | La dérive de teinte | Le préréglage Tailwind lit la dérive aux deux bouts des rampes voisines, choisies à la clarté de la référence ([robustesse](./ROBUSTESSE-DES-RAMPES.md), section 4) |
@@ -425,7 +426,7 @@ leurs valeurs par défaut, sans garantie perdue.
 |---|---|
 | Q1 à Q3 | `packages/couleur/src/rampe.ts` (`cranVise`), `palette.ts`, `recette.ts` (format 11, règle et bornes par profil), `limites.ts`, `garantie.ts` ; interface de la Configuration ; tests de propriétés et de lecture du format 10 |
 | Q5 | La table par thème et ses lecteurs dans le kit, le moteur, Palettes et l'explorateur ; la courbe Dark et le fond de page par défaut ; Aperçu de Création ; architecture de référence et vue illustrée (liste complète dans la [solution](./SOLUTION-RAMPES.md), section 4) |
-| Q6, Q8 | `TABLE_DES_DOSSIERS`, `VARIABLES_DE_PALETTE`, `SUPPORT_DES_VARIABLES`, G7 ; liaisons Figma du fichier du mainteneur ; Playground et consommateurs qui lisent `page/focus` |
+| Q6 à Q8, G7 | La liste « Le focus, fichier par fichier » de la [solution](./SOLUTION-RAMPES.md), section 4 : `ring` dans le kit, le moteur, Palettes et l'explorateur ; G7 contre la page et la carte ; liaisons Figma, contrats et Playground qui lisent `page/focus` |
 | C1 à C10 | Voir la section 10 du [dossier dédié](./DOSSIER-COMPARER.md) |
 
 Le plan d'implémentation se rédige après les décisions, par lots, dans ce

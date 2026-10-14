@@ -1,5 +1,15 @@
 # L'architecture de tokens multi-marques
 
+> **Décisions à reporter** dans ce document, prises par la recette critique de
+> qualité ([solution des rampes](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/SOLUTION-RAMPES.md), sections 3 et 4) :
+> la table distingue le thème (fonds teintés 100, 200, 300 en Light ; 300,
+> 400, 500 et texte 950 en Dark) ; le cran 50 Dark à L 0,145 et le fond de page
+> `#0A0A0A` ; `page/focus` devient `ring`, à la racine de la palette, au même
+> cran, dessiné en anneau décalé (2 px du fond, 2 px de trait) ; G7 juge le
+> focus contre la page et la carte ; la règle de chroma est l'enveloppe par
+> thème, élargie autour du jaune ; la dérive de teinte du préréglage Tailwind
+> est corrigée. Les sections ci-dessous décrivent encore l'état antérieur.
+
 Ce document propose la forme des tokens du nouveau design system : six marques,
 un thème clair et un thème sombre, deux intensités de couleur, `soft` et
 `vivid`, pour les statuts, et une seule intensité pour les palettes de marque

@@ -310,6 +310,34 @@ emploie `surface/hover` (100 en Light) au repos. Ces deux choix relèvent des co
 | G7 contre la page et la carte | `packages/kit/src/emplois/garanties.ts` : les fonds de G7 deviennent la page et la carte ; `packages/couleur/src/promesses.ts` et `garantie.ts` reçoivent la couleur de la carte (blanche en Light, neutre 100 en Dark), absente aujourd'hui de la recette ; textes de Vérification |
 | S3 | Les alias `theme` de l'export suivent la table ; `color-utilities` et `elevation` ne changent pas. L'architecture de référence et la vue illustrée prennent : la table par thème, les crans requis (400, 500 et 950), le cran 50 Dark à L 0,145 et le fond de page `#0A0A0A`, `ring` à la racine de la palette, les mesures contre la carte. Le [dossier d'élévation](../../Archi%20Tokens%20Multi-marques/Elevation%20et%20surfaces/README.md) est remplacé sur la page noire et le texte 950 |
 
+### Le focus, fichier par fichier
+
+Décisions : l'anneau décalé (2 px du fond, puis 2 px de trait) partout, au cran
+d'aujourd'hui (600 en sens normal, 700 en sens inversé, dans les deux thèmes) ;
+la variable `page/focus` devient `ring`, à la racine de la palette ; G7 juge le
+focus contre la page et la carte, et non plus contre `surface/default`.
+
+Le plugin dessine déjà cette forme : l'interface de test pose
+`0 0 0 2px fond, 0 0 0 4px focus` (`ui/interfaceDeTest.ts`, `ui/styles.css`,
+classes de l'essai), et le spécimen du rôle est un contour décalé
+(`ui/specimens.ts`). La forme ne change donc nulle part ; le nom, la garantie et
+la couleur de la carte changent.
+
+| Où | Ce qui change |
+|---|---|
+| `packages/kit/src/emplois/dossiers.ts` | `VARIABLES_DE_PALETTE` : `page/focus` devient `ring` ; mêmes crans dans `TABLE_DES_DOSSIERS` (600, 700) ; `ETAT_DU_FOND.focus.anneau` et `SUPPORT_DES_VARIABLES` (`ANNEAU`, portée contour) suivent le nom |
+| `packages/kit/src/emplois/garanties.ts` | G7 : premier membre `ring`, fonds la page et la carte |
+| `packages/couleur/src/garantie.ts` | La garantie des courbes nomme `ring` contre le cran le plus léger (inchangé sur le fond) |
+| `packages/couleur/src/promesses.ts`, `recette.ts` | La couleur de la carte entre dans le jugement : blanche en Light, neutre 100 en Dark, ou un réglage « Fond de la carte » à côté de « Fond de la page » |
+| `packages/plugin-palettes/src/presentation.ts` | La correspondance `page/focus` → `anneauDeFocus` devient `ring` |
+| `packages/plugin-palettes/src/planche/modele.ts` | Le dossier `page` perd `page/focus` ; la planche dessine `ring` au niveau de la palette, avec la largeur d'anneau actuelle |
+| `packages/plugin-palettes/src/ui/interfaceDeTest.ts`, `ui/garanties.ts`, `ui/nuancier.ts` | Lisent `ring` au lieu de `page/focus` ; même dessin |
+| `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts` | Le libellé « anneau de focus » s'attache à `ring` ; G7 dit « contre la page et la carte » |
+| `packages/plugin-explorateur/src/integrations/`, `README.md`, `SPEC.md` | Le rôle `ring` remplace `page/focus` dans le profil UCM |
+| Tests | `kit/tests/dossiers.test.ts`, `garanties.test.ts`, `couleur/tests/garantie.test.ts`, `plugin-palettes/tests/` (aperçu et interface de test, bilan, configuration, planche), `plugin-explorateur/tests/integrationsUcm.test.ts` |
+| `AGENTS.md` | La carte du code nomme `ring` |
+| Fichier Figma, contrats et Playground | Les liaisons et les références à `page/focus` migrent vers `ring`, comme `text` vers `foreground` |
+
 ## 5. Ce qui reste à juger à l'œil
 
 Dans la [maquette de qualité](./Maquettes/MAQUETTE-QUALITE-EN-INTERFACE.html),

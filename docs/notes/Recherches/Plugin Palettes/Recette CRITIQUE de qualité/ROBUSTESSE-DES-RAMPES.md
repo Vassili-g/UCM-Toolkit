@@ -1,6 +1,6 @@
 # Robustesse des rampes : toutes les teintes, tous les cas
 
-**Statut : règle retenue au banc visuel ; reste le choix du focus.** Ce dossier rouvre la règle
+**Statut : décisions prises au banc visuel ; la règle de chroma et le focus sont arrêtés.** Ce dossier rouvre la règle
 de chroma S1 de la [solution](./SOLUTION-RAMPES.md) : l'enveloppe corrigeait les
 verts clairs, mais elle ternissait les jaunes et les ambres clairs, absents du
 fichier du mainteneur et du test à l'aveugle. Il teste chaque règle sur toutes
@@ -339,6 +339,13 @@ exemple `ring-subtle`), dont la validation ne mesure pas le contraste mais
 rappelle que le curseur porte le focus du champ (Understanding de 1.4.11,
 figure 33). Le plugin l'afficherait comme un rôle décoratif, sans badge rouge.
 C'est un cas de validation nouveau, à concevoir.
+
+**Décidé par le mainteneur : l'anneau décalé partout**, 2 px du fond puis
+2 px de trait, au cran d'aujourd'hui (600 en sens normal, 700 en sens
+inversé). Un seul rôle, `ring`, validé comme aujourd'hui ; ni halo, ni rôle de
+halo de champ. Le plugin dessine déjà cette forme ; ce que l'implémentation met
+à jour est listé dans la [solution](./SOLUTION-RAMPES.md), section 4, « Le
+focus, fichier par fichier ».
 
 ## 11. Limites
 
