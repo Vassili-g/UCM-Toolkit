@@ -27,7 +27,7 @@ function construireVues(i18n: Localisation) {
    */
   function boutonsDeLApercu(recette: Recette, analyse: AnalyseDePalette, mode: Mode): HTMLDivElement {
     const texte = recette.texteDesBoutons[mode];
-    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, texte)];
+    const table = TABLE_DES_DOSSIERS[mode][sensDuTheme(mode, texte)];
     const rampe = rampeDe(analyse.rampes, analyse.intensites.includes('vivid') ? 'vivid' : 'unique')[mode];
     const boutons = document.createElement('div');
     boutons.className = 'fiche-boutons';

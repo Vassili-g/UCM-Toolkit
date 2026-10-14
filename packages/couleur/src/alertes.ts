@@ -47,7 +47,7 @@ export function rangsDesVariables(recette: Recette): number[] {
     const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
     for (const variable of VARIABLES_DE_PALETTE) {
       if (variable === 'solid/foreground') continue;
-      const cran = cranDeLaVariable(variable, sens);
+      const cran = cranDeLaVariable(variable, mode, sens);
       const rang = typeof cran === 'number' ? recette.crans.indexOf(cran) : -1;
       if (rang >= 0) rangs.add(rang);
     }

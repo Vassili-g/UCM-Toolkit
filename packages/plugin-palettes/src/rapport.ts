@@ -27,12 +27,12 @@ export interface CranDuRapport {
 /**
  * Une promesse du rapport : la garantie est nommée par ses variables, le
  * premier membre et le fond qu'elle juge (`elevation/page` pour le fond de la
- * page), jamais par un numéro.
+ * page, `elevation/raised` pour celui de la carte), jamais par un numéro.
  */
 export interface PromesseDuRapport {
   readonly garantie: {
     readonly premier: VariableDePalette;
-    readonly fond: VariableDePalette | 'elevation/page';
+    readonly fond: VariableDePalette | 'elevation/page' | 'elevation/raised';
     readonly seuil: 'texte' | 'nonTexte';
   };
   readonly mode: Mode;

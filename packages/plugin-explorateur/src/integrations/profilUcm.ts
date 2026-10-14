@@ -86,7 +86,7 @@ export function variableDuNom(nom: string): { variable: VariableDuTheme; support
 export function nuanceAttendue(nom: string, mode: 'light' | 'dark', recette: Recette): number | null {
   const lue = variableDuNom(nom);
   if (!lue) return null;
-  const cran = cranDeLaVariable(lue.variable, sensDuTheme(mode, recette.texteDesBoutons[mode]));
+  const cran = cranDeLaVariable(lue.variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
   return typeof cran === 'number' ? cran : null;
 }
 

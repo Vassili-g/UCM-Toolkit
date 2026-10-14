@@ -46,9 +46,13 @@ export interface DemandeDeLimite {
   readonly ordre: boolean;
 }
 
-/** La clé d'une promesse, qui la retrouve d'une palette candidate à l'autre : une garantie compte une promesse par fond. */
+/**
+ * La clé d'une promesse, qui la retrouve d'une palette candidate à l'autre : une
+ * garantie compte une promesse par fond, et la page n'est pas la carte ([VER-21]).
+ */
 const cleDe = (promesse: Promesse): string => {
-  const fond = promesse.second.nature === 'cran' ? promesse.second.cran : promesse.second.nature;
+  const { second } = promesse;
+  const fond = second.nature === 'cran' ? second.cran : second.nature === 'fond' ? second.fond : second.nature;
   return `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${fond}`;
 };
 

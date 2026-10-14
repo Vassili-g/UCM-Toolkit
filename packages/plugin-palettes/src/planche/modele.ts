@@ -372,11 +372,11 @@ const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[
 const LARGEUR_PAGE = { cellule: 96, anneau: SPECIMEN.largeur + TRAME } as const;
 
 const estPresente = (contexte: Contexte, tranche: Tranche, variable: VariableDePalette): boolean =>
-  variablePresente(variable, contexte.analyse.grille.crans, tranche.sens);
+  variablePresente(variable, contexte.analyse.grille.crans, tranche.mode, tranche.sens);
 
 /** Le cran d'une variable de la table, ou `null` pour le texte des boutons, qui n'a pas de cran. */
 function cranDeLaTable(tranche: Tranche, variable: VariableDePalette): number | null {
-  const cran = TABLE_DES_DOSSIERS[tranche.sens][variable];
+  const cran = TABLE_DES_DOSSIERS[tranche.mode][tranche.sens][variable];
   return cran === 'texteDesBoutons' ? null : cran;
 }
 
@@ -459,7 +459,7 @@ const NOM_DU_MEMBRE_SANS_CELLULE: Partial<Record<VariableDePalette, string>> = {
  */
 function garantiesDeLaTranche(contexte: Contexte, tranche: Tranche): LigneDeGarantie[] {
   const { sur, dessus } = TEXTES_DU_DETAIL;
-  const laPage = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.laPage;
+  const { laPage, laCarte } = TEXTES_DES_DOSSIERS_DE_LA_PLANCHE;
   return GARANTIES.flatMap((garantie) => {
     const jugees = contexte.analyse.promesses.filter((promesse) =>
       promesse.mode === tranche.mode && promesse.profil === tranche.intensite && promesse.garantie.numero === garantie.numero);
@@ -468,9 +468,10 @@ function garantiesDeLaTranche(contexte: Contexte, tranche: Tranche): LigneDeGara
     return garantie.fonds.flatMap((fond, rang): LigneDeGarantie[] => {
       const promesse = jugees[rang];
       if (!promesse) return [];
-      const nom = `garantie ${premier} sur ${'variable' in fond ? fond.variable : 'page'}`;
+      const fondNomme = 'variable' in fond ? fond.variable : 'fondDeLaCarte' in fond ? 'carte' : 'page';
+      const nom = `garantie ${premier} sur ${fondNomme}`;
       const ligne = { nom, seuil: garantie.seuil, promesse };
-      if (membre === undefined) return [{ ...ligne, cellule: premier, sens: sur('variable' in fond ? fond.variable : laPage) }];
+      if (membre === undefined) return [{ ...ligne, cellule: premier, sens: sur('variable' in fond ? fond.variable : 'fondDeLaCarte' in fond ? laCarte : laPage) }];
       if ('variable' in fond) return [{ ...ligne, cellule: fond.variable, sens: dessus(membre) }];
       return [{ ...ligne, cellule: 'surface/default', sens: `${membre} ${sur(laPage)}` }];
     });

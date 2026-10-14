@@ -76,9 +76,9 @@ function limite(recette, palette, grandeur, bout) {
   return resultat;
 }
 
-/** Un membre de promesse : la variable de la table et son cran, le fond de la page ou le texte des boutons. */
+/** Un membre de promesse : la variable de la table et son cran, le fond de la page ou de la carte, ou le texte des boutons. */
 function membre(recette, designation, mode, variable) {
-  if (designation.nature === 'fond') return 'fond';
+  if (designation.nature === 'fond') return designation.fond === 'carte' ? 'carte' : 'fond';
   if (designation.nature === 'texteDesBoutons') return `${variable} ${recette.texteDesBoutons[mode]}`;
   return `${variable} ${designation.cran}`;
 }
@@ -87,7 +87,7 @@ function membre(recette, designation, mode, variable) {
 function variableDuSecond(p) {
   const sens = sensDuTheme(p.mode, RECETTE.texteDesBoutons[p.mode]);
   if (p.second.nature !== 'cran') return null;
-  const fond = p.garantie.fonds.find((f) => 'variable' in f && TABLE_DES_DOSSIERS[sens][f.variable] === p.second.cran);
+  const fond = p.garantie.fonds.find((f) => 'variable' in f && TABLE_DES_DOSSIERS[p.mode][sens][f.variable] === p.second.cran);
   return fond ? fond.variable : null;
 }
 

@@ -28,9 +28,12 @@ test('[UI-04] le même clic sur la même nuance la relâche ; une autre nuance, 
   assert.equal(memeChoix(null, vivid600), false, 'sans choix, un clic choisit');
 });
 
-/** S2 écrite en dur : les crans de chaque variable, dans le sens normal puis inversé. */
+/** S2 écrite en dur : les crans de chaque variable en Light, dans le sens normal puis inversé. */
 const CRANS_NORMAL = { 'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800, 'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600 } as const;
 const CRANS_INVERSE = { ...CRANS_NORMAL, 'solid/hover': 600, 'solid/pressed': 500, 'surface/foreground': 900, 'surface/border': 900, 'page/foreground': 800, 'page/border': 800, 'ring': 700 } as const;
+
+/** Le Dark pose ses surfaces aux crans 300 à 500 et leur texte au 950 ; le reste suit le Light. */
+const EN_DARK = { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950 } as const;
 
 test('[UI-14] chaque variable de l’interface de test prend la nuance de la table des dossiers du sens du thème montré, dans le profil porteur, pour les quatre combinaisons', () => {
   for (const mode of ['light', 'dark'] as const) {
@@ -38,7 +41,7 @@ test('[UI-14] chaque variable de l’interface de test prend la nuance de la tab
       const recette = { ...RECETTE, texteDesBoutons: { ...RECETTE.texteDesBoutons, [mode]: texte } };
       const couleurs = couleursDeLInterface(recette, ANALYSE, mode);
       const normal = texte === (mode === 'light' ? 'blanc' : 'noir');
-      const crans = normal ? CRANS_NORMAL : CRANS_INVERSE;
+      const crans = { ...(normal ? CRANS_NORMAL : CRANS_INVERSE), ...(mode === 'dark' ? EN_DARK : {}) };
       const rampe = ANALYSE.rampes[ANALYSE.ancrage.profil]![mode];
       const nuance = (numero: number) => rampe[ANALYSE.grille.crans.indexOf(numero)].hexa;
       const message = `${mode}, texte ${texte}`;

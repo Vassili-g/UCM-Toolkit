@@ -105,7 +105,7 @@ for (const [regle, chemin, alterer] of CAS) {
   });
 }
 
-for (const cran of cransRequis('normal')) {
+for (const cran of cransRequis('light', 'normal')) {
   test(`[REC-05] crans-emplois : refusé quand ${cran} manque`, () => {
     const recette = valide();
     // Le cran devient son voisin à +25 : la liste reste croissante et garde sa longueur.

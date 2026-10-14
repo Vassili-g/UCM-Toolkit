@@ -1,33 +1,34 @@
 /**
  * Ce que la carte « Garanties de contraste » montre, avant son dessin : une
- * ligne par garantie G1 à G7, ses promesses rangées dans les quatre colonnes
+ * ligne par garantie G1 à G7, ses promesses rangées dans les cinq colonnes
  * de fonds, les cibles qu'elle nomme et le départ de son éventail sur la
  * réglette. Pur : ni DOM, ni texte. Le numéro d'une garantie sert de clé à la
  * ligne ; aucun texte ne l'affiche.
  */
 import { ETATS, GARANTIES, type Designation, type FondDeGarantie, type Garantie, type Promesse } from 'ucm-couleur';
 
-/** Les quatre colonnes de fonds : la page, puis les trois états de `solid` et de `surface` (S3). */
-export const COLONNES = ['page', ...ETATS] as const;
+/** Les cinq colonnes de fonds : la page, la carte, puis les trois états de `solid` et de `surface` (S3). */
+export const COLONNES = ['page', 'carte', ...ETATS] as const;
 export type Colonne = (typeof COLONNES)[number];
 
 /** La garantie choisie quand aucune ne manque : le texte sur fond teinté. */
 export const GARANTIE_PAR_DEFAUT = 3;
 
-/** Une case de la réglette : les deux cases avant la première nuance, ou une nuance. */
-export type CaseDeLaReglette = 'page' | 'boutons' | number;
+/** Une case de la réglette : les trois cases avant la première nuance, ou une nuance. */
+export type CaseDeLaReglette = 'page' | 'carte' | 'boutons' | number;
 
-/** La colonne d'un fond : la page, ou l'état que son nom porte (`surface/hover` : `hover`). */
+/** La colonne d'un fond : la page, la carte, ou l'état que son nom porte (`surface/hover` : `hover`). */
 export function colonneDuFond(fond: FondDeGarantie): Colonne {
   if ('fondDeLaPage' in fond) return 'page';
+  if ('fondDeLaCarte' in fond) return 'carte';
   const etat = ETATS.find((candidat) => fond.variable.endsWith(`/${candidat}`));
   if (!etat) throw new Error(`Le fond ${fond.variable} n'a pas d'état.`);
   return etat;
 }
 
-/** La case de la réglette qu'un membre désigne : la page, le texte des boutons, ou une nuance. */
+/** La case de la réglette qu'un membre désigne : la page, la carte, le texte des boutons, ou une nuance. */
 export function caseDeLaReglette(designation: Designation): CaseDeLaReglette {
-  if (designation.nature === 'fond') return 'page';
+  if (designation.nature === 'fond') return designation.fond === 'carte' ? 'carte' : 'page';
   return designation.nature === 'cran' ? designation.cran : 'boutons';
 }
 
@@ -85,8 +86,8 @@ export function garantieParDefaut(lignes: readonly LigneDeGarantie[]): number {
   return premiere ? premiere.garantie.numero : GARANTIE_PAR_DEFAUT;
 }
 
-/** Ce qu'une ligne nomme après « sur » : le fond de la page, une variable, ou les trois états d'un dossier (`surface/*`). */
-export type CibleDeGarantie = { readonly page: true } | { readonly code: string };
+/** Ce qu'une ligne nomme après « sur » : le fond de la page ou de la carte, une variable, ou les trois états d'un dossier (`surface/*`). */
+export type CibleDeGarantie = { readonly page: true } | { readonly carte: true } | { readonly code: string };
 
 /**
  * Les fonds d'une garantie, dans l'ordre de `garantie.fonds` : les trois états
@@ -99,6 +100,10 @@ export function ciblesDeLaGarantie(garantie: Garantie): CibleDeGarantie[] {
   for (const fond of garantie.fonds) {
     if ('fondDeLaPage' in fond) {
       cibles.push({ page: true });
+      continue;
+    }
+    if ('fondDeLaCarte' in fond) {
+      cibles.push({ carte: true });
       continue;
     }
     const dossier = fond.variable.slice(0, fond.variable.indexOf('/'));

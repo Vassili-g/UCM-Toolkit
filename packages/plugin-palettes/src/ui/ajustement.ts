@@ -107,7 +107,8 @@ function construireVues(i18n: Localisation) {
     const qui = cellule();
     qui.className = 'ajustement-qui';
     qui.append(codeDeLaVariable(promesse.garantie.premier.variable), i18n.noeud(i18n.composer` ${TEXTES_DE_L_AJUSTEMENT.sur} `));
-    qui.append(fond === 'elevation/page' ? i18n.noeud(TEXTES_DE_L_AJUSTEMENT.laPage) : codeDeLaVariable(fond));
+    if (fond === 'elevation/page') qui.append(i18n.noeud(TEXTES_DE_L_AJUSTEMENT.laPage));
+    else qui.append(fond === 'elevation/raised' ? i18n.noeud(TEXTES_DE_L_AJUSTEMENT.laCarte) : codeDeLaVariable(fond));
     return qui;
   }
 

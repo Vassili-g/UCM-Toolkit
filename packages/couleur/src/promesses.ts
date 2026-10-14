@@ -2,9 +2,10 @@
  * Les promesses du thème : les garanties G1 à G7 de `@ucm-kit/core/emplois`,
  * jugées par palette, par mode et par intensité présente ([VER-03] à
  * [VER-07], section 11.2 de la spécification). Chaque garantie se juge dans
- * la table du sens du thème (`sensDuTheme`), contre le seul fond de la page,
- * le réglage « Fond » du thème. Une garantie dont un cran manque à la liste
- * ne se juge pas.
+ * la table du sens du thème (`sensDuTheme`), contre les fonds de la palette
+ * et, hors de la palette, contre la page (le réglage « Fond » du thème) et la
+ * carte, qui s'en déduit ([MOT-37]). Une garantie dont un cran manque à la
+ * liste ne se juge pas.
  */
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
@@ -19,18 +20,20 @@ import {
   type VariableDePalette,
 } from '@ucm-kit/core/emplois';
 
-import { lireHexa, type Rgb8 } from './conversions';
+import { lireHexa, lineaireVersRgb8, oklchVersLineaire, rgb8VersOklch, type Rgb8 } from './conversions';
 import { intensitesDe, rampesDe } from './palette';
+import { plafond } from './plafond';
 import { MODES, rampeDe, type Intensite, type Mode, type Rampes } from './rampe';
 import type { Palette, Recette, Seuils } from './recette';
 
 /**
  * Ce qu'un membre désigne dans la rampe d'un profil et d'un mode : un cran,
- * le fond de la page, ou le blanc ou le noir purs du texte des boutons.
+ * un fond extérieur à la palette (la page ou la carte), ou le blanc ou le noir
+ * purs du texte des boutons.
  */
 export type Designation =
   | { readonly nature: 'cran'; readonly cran: number; readonly couleur: Rgb8 }
-  | { readonly nature: 'fond'; readonly couleur: Rgb8 }
+  | { readonly nature: 'fond'; readonly fond: 'page' | 'carte'; readonly couleur: Rgb8 }
   | { readonly nature: 'texteDesBoutons'; readonly couleur: Rgb8 };
 
 export type Verdict = 'tenue' | 'manquee';
@@ -47,11 +50,35 @@ export interface Promesse {
   readonly verdict: Verdict;
 }
 
-/** Tout ce qu'un jugement lit : la recette, les rampes et le fond de la page de chaque mode. */
+/** Tout ce qu'un jugement lit : la recette, les rampes, et le fond de la page et la carte de chaque mode. */
 interface Contexte {
   readonly recette: Recette;
   readonly rampes: Rampes;
   readonly fonds: { readonly [M in Mode]: Rgb8 };
+  readonly cartes: { readonly [M in Mode]: Rgb8 };
+}
+
+/**
+ * La couleur de la carte, le fond qu'une surface élevée pose sur la page
+ * ([MOT-37]). Aucun réglage ne la porte : elle se déduit du fond de la page.
+ * Light : le blanc. Dark : la teinte et la chroma du fond, à la clarté du rang
+ * qui suit, sur la courbe Dark, celui dont la clarté est la plus proche de la
+ * sienne ; le dernier rang n'a pas de suivant et se garde. La chroma se réduit
+ * jusqu'à entrer dans le gamut, puis la couleur s'arrondit à 8 bits.
+ */
+export function couleurDeLaCarte(recette: Recette, mode: Mode): Rgb8 {
+  if (mode === 'light') return [255, 255, 255];
+  const page = lireHexa(recette.fonds.dark);
+  if (!page) throw new Error(`Fond illisible : ${recette.fonds.dark}. La recette n'a pas été validée.`);
+  const fond = rgb8VersOklch(page);
+  const courbe = recette.courbes.dark;
+  let proche = 0;
+  courbe.forEach((clarte, rang) => {
+    if (Math.abs(clarte - fond.L) < Math.abs(courbe[proche] - fond.L)) proche = rang;
+  });
+  const L = courbe[Math.min(proche + 1, courbe.length - 1)];
+  const C = Math.min(fond.C, plafond(L, fond.H, recette.gamut));
+  return lineaireVersRgb8(oklchVersLineaire({ L, C, H: fond.H }));
 }
 
 /**
@@ -60,7 +87,7 @@ interface Contexte {
  * est présent : `garantieJugeable` l'a vérifié avant le jugement.
  */
 function designer(variable: VariableDePalette, mode: Mode, sens: SensDuTheme, profil: Intensite, contexte: Contexte): Designation {
-  const cible = TABLE_DES_DOSSIERS[sens][variable];
+  const cible = TABLE_DES_DOSSIERS[mode][sens][variable];
   if (cible === 'texteDesBoutons') {
     return { nature: 'texteDesBoutons', couleur: lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[contexte.recette.texteDesBoutons[mode]])! };
   }
@@ -103,6 +130,7 @@ function contexteDe(recette: Recette, palette: Palette): Contexte {
     recette,
     rampes: rampesDe(recette, palette),
     fonds: { light: fond(recette.fonds.light), dark: fond(recette.fonds.dark) },
+    cartes: { light: couleurDeLaCarte(recette, 'light'), dark: couleurDeLaCarte(recette, 'dark') },
   };
 }
 
@@ -111,8 +139,10 @@ function promessesDe(garantie: Garantie, mode: Mode, sens: SensDuTheme, profil: 
   const premier = designer(garantie.premier.variable, mode, sens, profil, contexte);
   return garantie.fonds.flatMap((fond) => {
     const second: Designation = 'fondDeLaPage' in fond
-      ? { nature: 'fond', couleur: contexte.fonds[mode] }
-      : designer(fond.variable, mode, sens, profil, contexte);
+      ? { nature: 'fond', fond: 'page', couleur: contexte.fonds[mode] }
+      : 'fondDeLaCarte' in fond
+        ? { nature: 'fond', fond: 'carte', couleur: contexte.cartes[mode] }
+        : designer(fond.variable, mode, sens, profil, contexte);
     return [juger(garantie, premier, second, mode, profil, contexte)];
   });
 }
@@ -130,7 +160,7 @@ export function verifierPromesses(recette: Recette, palette: Palette): Promesse[
   const contexte = contexteDe(recette, palette);
   return MODES.flatMap((mode) => {
     const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
-    const garanties = GARANTIES.filter((garantie) => garantieJugeable(garantie, recette.crans, sens));
+    const garanties = GARANTIES.filter((garantie) => garantieJugeable(garantie, recette.crans, mode, sens));
     return intensitesDe(palette).flatMap((profil) =>
       garanties.flatMap((garantie) => promessesDe(garantie, mode, sens, profil, contexte)));
   });

@@ -14,7 +14,7 @@ const { CATALOGUES } = require(traductions);
 const chemins = [
   ['TEXTES', 'ouvrirLesReglages'], ['TEXTES_DE_L_INTERFACE_DE_TEST', 'titre'],
   ['TEXTES_DE_L_ONGLET', 'derive'], ['TEXTES_DE_L_ONGLET', 'configuration'],
-  ['TEXTES_DE_LA_BASE', 'libelle'], ['TEXTES_DE_L_AJUSTEMENT', 'plusSombre'],
+  ['TEXTES_DE_LA_BASE', 'libelle'], ['TEXTES_DE_L_AJUSTEMENT', 'plusSombre'], ['TEXTES_DE_L_AJUSTEMENT', 'plusClair'],
   ['TEXTES_DE_CONFIGURATION', 'contenu'], ['TEXTES_DE_CONFIGURATION', 'fondsSombres'],
   ['TEXTES_DES_REGLAGES', 'titre'],
 ];

@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { alertesDeRecette, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { alertesDeRecette, recetteAvecTexteDesBoutons, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference, passerEnLibre } from '../src/edition';
@@ -24,20 +24,27 @@ const CYAN = nouvelle('p-0000000a', '#0891B2');
 const VOISIN = nouvelle('p-0000000b', '#0992B3');
 const ARDOISE = nouvelle('p-0000000c', '#6B7280');
 const JAUNE = nouvelle('p-0000000d', '#FACC15');
-/** Bleu confond ses deux profils sur trois nuances au moins, Vert manque la garantie de l'anneau de focus en Light. */
+/** Bleu confond ses deux profils sur trois nuances au moins ; Bleu roi, #1E6FD9, manque en Light le texte noir des boutons sur solid/default (texte des boutons noir en Light). */
 const BLEU: Palette = { ...nouvelle('p-0000000e', '#1E6FD9'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } };
-const VERT = nouvelle('p-0000000f', '#16A34A');
+/** Jaune confond ses deux profils comme Bleu, mais tient ses garanties avec le texte noir en Light. */
+const JAUNE_CONFONDU: Palette = { ...nouvelle('p-00000010', '#FACC15'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } };
+const BLEU_ROI = nouvelle('p-0000000f', '#1E6FD9');
+const NOIR_EN_LIGHT = recetteAvecTexteDesBoutons(DEFAUT, 'light', 'noir');
+if (!('recette' in NOIR_EN_LIGHT)) throw new Error('le texte noir se pose en Light');
 const avec = (...palettes: Palette[]): Recette => ({ ...DEFAUT, palettes });
+/** La recette dont le texte des boutons est noir en Light, avec ces palettes : la palette du témoin y manque une garantie. */
+const avecLeNoir = (...palettes: Palette[]): Recette => ({ ...NOIR_EN_LIGHT.recette, palettes });
 const etats = (recette: Recette) => bilanDesPalettes(recette).lignes.map((ligne) => [ligne.palette.id, ligne.etat]);
 
 test('une garantie manquée range la palette à corriger, une alerte ou l’appartenance à une paire trop proche à vérifier, le reste conforme', () => {
-  const bilan = bilanDesPalettes(avec(CYAN, VOISIN, ARDOISE, BLEU, VERT));
+  // Le texte noir en Light fait manquer G1 à Bleu et à Ardoise : Jaune tient lieu de palette conforme, Jaune confondu d'alerte.
+  const bilan = bilanDesPalettes(avecLeNoir(CYAN, VOISIN, JAUNE, JAUNE_CONFONDU, BLEU_ROI));
   assert.deepEqual(bilan.lignes.map((ligne) => [ligne.palette.id, ligne.etat]), [
     [CYAN.id, 'ambre'],
     [VOISIN.id, 'ambre'],
-    [ARDOISE.id, 'conforme'],
-    [BLEU.id, 'ambre'],
-    [VERT.id, 'rouge'],
+    [JAUNE.id, 'conforme'],
+    [JAUNE_CONFONDU.id, 'ambre'],
+    [BLEU_ROI.id, 'rouge'],
   ]);
   assert.deepEqual(bilan.comptes, { rouge: 1, ambre: 3, conforme: 1 });
 });
@@ -57,16 +64,16 @@ test('les deux palettes d’une paire trop proche sont à vérifier, chacune nom
 });
 
 test('une palette à corriger reste à corriger à côté d’une paire trop proche, qui reste à vérifier', () => {
-  assert.deepEqual(etats(avec(CYAN, VOISIN, VERT)), [[CYAN.id, 'ambre'], [VOISIN.id, 'ambre'], [VERT.id, 'rouge']]);
+  assert.deepEqual(etats(avecLeNoir(CYAN, VOISIN, BLEU_ROI)), [[CYAN.id, 'ambre'], [VOISIN.id, 'ambre'], [BLEU_ROI.id, 'rouge']]);
 });
 
 test('le premier constat d’une palette à corriger est celui que sa vérification dit en premier : le groupe manqué de Light', () => {
-  const [ligne] = bilanDesPalettes(avec(VERT)).lignes;
+  const [ligne] = bilanDesPalettes(avecLeNoir(BLEU_ROI)).lignes;
   assert.equal(ligne.etat, 'rouge');
   assert.ok(ligne.constat && ligne.constat.nature === 'garantie');
   assert.equal(ligne.constat.mode, 'light');
-  assert.equal(ligne.constat.variable, 'ring');
-  assert.ok(ligne.constat.contraste > 0 && ligne.constat.contraste < 3);
+  assert.equal(ligne.constat.variable, 'solid/foreground');
+  assert.ok(ligne.constat.contraste > 0 && ligne.constat.contraste < 4.5);
 });
 
 test('une palette en alerte donne son alerte ; la paire précède l’alerte, comme dans les messages de la palette', () => {
@@ -109,7 +116,7 @@ test('une palette libre n’a pas de garantie à manquer, mais une paire trop pr
 });
 
 test('le classement s’accorde avec le verdict de l’analyse de chaque palette', () => {
-  const recette = avec(CYAN, VOISIN, ARDOISE, BLEU, VERT, JAUNE);
+  const recette = avecLeNoir(CYAN, VOISIN, ARDOISE, BLEU, BLEU_ROI, JAUNE);
   for (const ligne of bilanDesPalettes(recette).lignes) {
     const analyse = analyserPalette(recette, ligne.palette);
     assert.equal(ligne.etat === 'rouge', analyse.manquees > 0, `${ligne.palette.id} : garanties manquées`);

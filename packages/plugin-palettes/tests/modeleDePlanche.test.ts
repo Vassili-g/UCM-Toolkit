@@ -195,7 +195,9 @@ test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les qua
     const modele = modeleDeCadre(recette, BLEU, 'SRGB');
     for (const [mode, texteDesBoutons] of [['light', light], ['dark', dark]] as const) {
       const contexte = `Light ${light}, Dark ${dark}, ${mode}`;
-      const table = texteDesBoutons === (mode === 'light' ? 'blanc' : 'noir') ? NORMAL : INVERSE;
+      const sens = texteDesBoutons === (mode === 'light' ? 'blanc' : 'noir') ? NORMAL : INVERSE;
+      // Le Dark pose ses surfaces aux crans 300 à 500 et leur texte au 950.
+      const table = mode === 'dark' ? { ...sens, surface: [300, 400, 500], texte: 950 } : sens;
       const theme = trouver(modele.racine, `thème ${mode}`);
       assert.equal(textes(trouver(theme, 'en-tête'))[0].contenu, `${mode === 'light' ? 'Thème Light' : 'Thème Dark'} · fond de la page ${recette.fonds[mode]} · texte des boutons ${texteDesBoutons}`, contexte);
       const variables = variablesDe(modele.racine, mode, 'vivid');
@@ -254,7 +256,7 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,55:1 · AA', '✓ contour dessus : 6,55:1 · AA']);
   assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,74:1 · AA']);
   assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,74:1 · AA']);
-  assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur surface/default : 4,19:1 · AA']);
+  assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
   const echec = garantiesLues(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.contenu.startsWith('✗'))!;
   assert.equal(echec.style, 'chiffre');

@@ -39,7 +39,9 @@ test('les variables d’un cran viennent de la table des dossiers, dans le sens 
   const inverse = variablesDeLAssociation({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
   assert.deepEqual(inverse, ['solid/default', 'ring']);
   const neutre = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
-  assert.deepEqual(neutre, ['disabled/foreground', 'disabled/border']);
+  assert.deepEqual(neutre, ['surface/pressed', 'disabled/foreground', 'disabled/border'], 'en Dark, surface/pressed vise le 500');
+  const neutreLight = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'light', cran: 500 });
+  assert.deepEqual(neutreLight, ['disabled/foreground', 'disabled/border']);
 });
 
 test('un nom de theme porte sa variable de dossier et son support', () => {

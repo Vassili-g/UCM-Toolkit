@@ -1,4 +1,4 @@
-/** Ce que la carte des garanties montre avant son dessin : sept lignes, quatre colonnes de fonds, un départ d'éventail ([UI-09], M1). */
+/** Ce que la carte des garanties montre avant son dessin : sept lignes, cinq colonnes de fonds, un départ d'éventail ([UI-09], M1). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,7 +33,7 @@ function avecTexte(mode: Mode, texte: TexteDesBoutons): Recette {
 const lignesDe = (recette: Recette, mode: Mode) =>
   lignesDesGaranties(verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === mode && promesse.profil === 'vivid'));
 
-/** Les colonnes remplies d'une ligne, dans l'ordre : `page`, `default`, `hover`, `pressed`. */
+/** Les colonnes remplies d'une ligne, dans l'ordre : `page`, `carte`, `default`, `hover`, `pressed`. */
 const colonnesDe = (ligne: ReturnType<typeof lignesDe>[number]) => ligne.cases.map((cas) => cas.colonne).join(' ');
 
 test('[UI-09] une ligne par garantie : sept lignes, dans deux blocs, textes lisibles puis éléments visibles', () => {
@@ -52,7 +52,7 @@ test('[UI-09] une garantie qui ne vise pas un fond laisse sa case vide', () => {
     4: 'page default hover pressed',
     5: 'page',
     6: 'page',
-    7: 'page default',
+    7: 'page carte',
   });
 });
 
@@ -61,7 +61,7 @@ test('[UI-09] l’éventail part d’un seul point : la nuance du premier membre
   assert.deepEqual(lignes.map((ligne) => ligne.depart), ['boutons', 700, 800, 800, 700, 700, 600]);
   const [g1, , , , , , g7] = lignes;
   assert.deepEqual(g1.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), [700, 800, 900]);
-  assert.deepEqual(g7.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), ['page', 100]);
+  assert.deepEqual(g7.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), ['page', 'carte']);
 });
 
 test('[UI-09] les crans suivent la table du sens du thème affiché, et le texte des boutons de ce thème', () => {
@@ -71,8 +71,8 @@ test('[UI-09] les crans suivent la table du sens du thème affiché, et le texte
   assert.deepEqual(lignes[0].cases.map((cas) => caseDeLaReglette(cas.promesse.second)), [700, 600, 500], 'solid/hover et solid/pressed vont vers la page');
   assert.equal(lignes[0].cases[0].promesse.premier.nature, 'texteDesBoutons');
   assert.deepEqual(lignes[0].cases[0].promesse.premier.couleur, [0, 0, 0], 'noir pur');
-  // L'autre thème garde sa table : Dark reste normal.
-  assert.deepEqual(lignesDe(inverse, 'dark').map((ligne) => ligne.depart), ['boutons', 700, 800, 800, 700, 700, 600]);
+  // L'autre thème garde sa table : Dark reste normal, avec ses surfaces plus hautes (texte au 950).
+  assert.deepEqual(lignesDe(inverse, 'dark').map((ligne) => ligne.depart), ['boutons', 700, 950, 950, 700, 700, 600]);
 });
 
 test('[UI-09] la garantie choisie à l’ouverture est la première ligne manquée de la carte, sinon le texte sur fond teinté', () => {
@@ -87,8 +87,8 @@ test('[UI-09] la garantie choisie à l’ouverture est la première ligne manqu�
   assert.equal(garantieParDefaut(manque([1, 3])), 1);
 });
 
-test('[UI-09] une ligne nomme ses fonds : les trois états d’un dossier s’écrivent une fois, une variable seule garde son nom', () => {
-  const nom = (cibles: CibleDeGarantie[]) => cibles.map((cible) => ('page' in cible ? 'la page' : cible.code));
+test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossier s’écrivent une fois, une variable seule garde son nom', () => {
+  const nom = (cibles: CibleDeGarantie[]) => cibles.map((cible) => ('page' in cible ? 'la page' : 'carte' in cible ? 'la carte' : cible.code));
   assert.deepEqual(GARANTIES.map((garantie) => nom(ciblesDeLaGarantie(garantie))), [
     ['solid/*'],
     ['la page'],
@@ -96,7 +96,7 @@ test('[UI-09] une ligne nomme ses fonds : les trois états d’un dossier s’é
     ['surface/*', 'la page'],
     ['la page'],
     ['la page'],
-    ['la page', 'surface/default'],
+    ['la page', 'la carte'],
   ]);
   assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(colonneDuFond)), [
     'default', 'hover', 'pressed',
@@ -104,7 +104,7 @@ test('[UI-09] une ligne nomme ses fonds : les trois états d’un dossier s’é
     'default', 'hover', 'pressed', 'page',
     'default', 'hover', 'pressed', 'page',
     'page', 'page',
-    'page', 'default',
+    'page', 'carte',
   ]);
 });
 

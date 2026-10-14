@@ -671,7 +671,8 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   }
   if (sens.size === 0) sens.add('normal');
   if (crans !== null) {
-    const requis = [...new Set([...sens].flatMap(cransRequis))].sort((a, b) => a - b);
+    // La liste se calcule dans la table du Light, comme avant les tables par thème.
+    const requis = [...new Set([...sens].flatMap((unSens) => cransRequis('light', unSens)))].sort((a, b) => a - b);
     for (const cran of requis) if (!crans.includes(cran)) releve.refuser('crans-emplois', 'crans', cran);
   }
   validerCourbes(releve, entree.courbes, crans?.length ?? null);

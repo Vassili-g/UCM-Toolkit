@@ -6,17 +6,20 @@ import {
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS,
   TEXTE_DES_BOUTONS_PAR_DEFAUT, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES,
   cranDeLaVariable, cransRequis, rangDuCranLeger, sensDuTheme, variablePresente, variablesDuCran,
-  type SensDuTheme, type VariableDePalette, type VariableDuTheme,
+  type ModeDuTheme, type SensDuTheme, type VariableDePalette, type VariableDuTheme,
 } from '../src/emplois/index';
 
-const ATTENDUS: [VariableDePalette, number | 'texteDesBoutons', number | 'texteDesBoutons'][] = [
-  ['solid/default', 700, 700], ['solid/hover', 800, 600], ['solid/pressed', 900, 500],
-  ['solid/foreground', 'texteDesBoutons', 'texteDesBoutons'],
-  ['surface/default', 100, 100], ['surface/hover', 200, 200], ['surface/pressed', 300, 300],
-  ['surface/foreground', 800, 900], ['surface/border', 800, 900],
-  ['page/foreground', 700, 800], ['page/border', 700, 800], ['page/divider', 300, 300], ['ring', 600, 700],
+type Cran = number | 'texteDesBoutons';
+/** Une ligne par variable ; les colonnes sont Light normal, Light inversé, Dark normal, Dark inversé. */
+const ATTENDUS: [VariableDePalette, Cran, Cran, Cran, Cran][] = [
+  ['solid/default', 700, 700, 700, 700], ['solid/hover', 800, 600, 800, 600], ['solid/pressed', 900, 500, 900, 500],
+  ['solid/foreground', 'texteDesBoutons', 'texteDesBoutons', 'texteDesBoutons', 'texteDesBoutons'],
+  ['surface/default', 100, 100, 300, 300], ['surface/hover', 200, 200, 400, 400], ['surface/pressed', 300, 300, 500, 500],
+  ['surface/foreground', 800, 900, 950, 950], ['surface/border', 800, 900, 950, 950],
+  ['page/foreground', 700, 800, 700, 800], ['page/border', 700, 800, 700, 800], ['page/divider', 300, 300, 300, 300], ['ring', 600, 700, 600, 700],
 ];
-const CRANS = [100, 200, 300, 500, 600, 700, 800, 900];
+const COLONNES = [['light', 'normal', 1], ['light', 'inverse', 2], ['dark', 'normal', 3], ['dark', 'inverse', 4]] as const;
+const CRANS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 
 test('les quatre combinaisons du thème et du texte des boutons', () => {
   assert.deepEqual(COULEUR_DU_TEXTE_DES_BOUTONS, { blanc: '#FFFFFF', noir: '#000000' });
@@ -27,31 +30,43 @@ test('les quatre combinaisons du thème et du texte des boutons', () => {
   assert.equal(sensDuTheme('dark', 'blanc'), 'inverse');
 });
 
-test('les treize variables suivent la table dans les deux sens', () => {
+test('les treize variables suivent la table de chaque thème et de chaque sens', () => {
   assert.deepEqual(DOSSIERS, ['solid', 'surface', 'page']);
   assert.deepEqual(VARIABLES_DE_PALETTE, ATTENDUS.map(([variable]) => variable));
-  for (const [sens, colonne] of [['normal', 1], ['inverse', 2]] as const) {
-    assert.deepEqual(TABLE_DES_DOSSIERS[sens], Object.fromEntries(ATTENDUS.map((ligne) => [ligne[0], ligne[colonne]])));
-    for (const ligne of ATTENDUS) assert.equal(cranDeLaVariable(ligne[0], sens), ligne[colonne]);
+  for (const [mode, sens, colonne] of COLONNES) {
+    assert.deepEqual(TABLE_DES_DOSSIERS[mode][sens], Object.fromEntries(ATTENDUS.map((ligne) => [ligne[0], ligne[colonne]])), `${mode} ${sens}`);
+    for (const ligne of ATTENDUS) assert.equal(cranDeLaVariable(ligne[0], mode, sens), ligne[colonne], `${mode} ${sens} ${ligne[0]}`);
   }
 });
 
-test('les crans requis ne comprennent ni 50, ni 400, ni 950 ; 500 dépend du sens', () => {
-  assert.deepEqual(cransRequis('normal'), [100, 200, 300, 600, 700, 800, 900]);
-  assert.deepEqual(cransRequis('inverse'), [100, 200, 300, 500, 600, 700, 800, 900]);
+test('le Dark monte les surfaces aux crans 300 à 500 et leur texte au 950, le reste suit le Light', () => {
+  for (const sens of ['normal', 'inverse'] as const) {
+    const light = TABLE_DES_DOSSIERS.light[sens];
+    const dark = TABLE_DES_DOSSIERS.dark[sens];
+    const changees = VARIABLES_DE_PALETTE.filter((variable) => light[variable] !== dark[variable]);
+    assert.deepEqual(changees, ['surface/default', 'surface/hover', 'surface/pressed', 'surface/foreground', 'surface/border']);
+  }
+});
+
+test('les crans requis ne comprennent ni 50 ni 400 en Light ; 500 dépend du sens ; le Dark déduit les siens de sa table', () => {
+  assert.deepEqual(cransRequis('light', 'normal'), [100, 200, 300, 600, 700, 800, 900]);
+  assert.deepEqual(cransRequis('light', 'inverse'), [100, 200, 300, 500, 600, 700, 800, 900]);
+  assert.deepEqual(cransRequis('dark', 'normal'), [300, 400, 500, 600, 700, 800, 900, 950]);
+  assert.deepEqual(cransRequis('dark', 'inverse'), [300, 400, 500, 600, 700, 800, 950]);
 });
 
 test('chaque variable numérique exige son cran, les couleurs pures et les élévations restent présentes', () => {
-  for (const sens of ['normal', 'inverse'] as const) {
-    for (const [variable, normal, inverse] of ATTENDUS) {
-      const cran = sens === 'normal' ? normal : inverse;
-      assert.equal(variablePresente(variable, CRANS, sens), true);
-      assert.equal(variablePresente(variable, [], sens), cran === 'texteDesBoutons');
-      if (typeof cran === 'number') assert.equal(variablePresente(variable, CRANS.filter((c) => c !== cran), sens), false);
+  for (const [mode, sens, colonne] of COLONNES) {
+    for (const ligne of ATTENDUS) {
+      const [variable] = ligne;
+      const cran = ligne[colonne];
+      assert.equal(variablePresente(variable, CRANS, mode, sens), true);
+      assert.equal(variablePresente(variable, [], mode, sens), cran === 'texteDesBoutons');
+      if (typeof cran === 'number') assert.equal(variablePresente(variable, CRANS.filter((c) => c !== cran), mode, sens), false, `${mode} ${sens} ${variable}`);
     }
     for (const variable of ['page/foreground-main', 'scale/0', 'scale/1000', 'elevation/page', 'elevation/raised'] as const) {
-      assert.equal(cranDeLaVariable(variable, sens), undefined);
-      assert.equal(variablePresente(variable, [], sens), true);
+      assert.equal(cranDeLaVariable(variable, mode, sens), undefined);
+      assert.equal(variablePresente(variable, [], mode, sens), true);
     }
   }
 });
@@ -60,26 +75,31 @@ test('le neutre et les variables globales ajoutent leurs crans sans remplacer un
   assert.deepEqual(VARIABLES_DU_NEUTRE, ['page/foreground-main', 'page/foreground-subtle', 'scale/0', 'scale/1000']);
   assert.deepEqual(VARIABLES_GLOBALES, ['disabled/background', 'disabled/foreground', 'disabled/border']);
   assert.deepEqual(NIVEAUX_D_ELEVATION_DU_THEME, ['page', 'raised']);
-  for (const sens of ['normal', 'inverse'] as const) {
-    assert.equal(cranDeLaVariable('page/foreground-subtle', sens), sens === 'normal' ? 700 : 800);
+  for (const [mode, sens] of COLONNES) {
+    assert.equal(cranDeLaVariable('page/foreground-subtle', mode, sens), sens === 'normal' ? 700 : 800);
     for (const [variable, cran] of [['disabled/background', 200], ['disabled/foreground', 500], ['disabled/border', 500]] as const) {
-      assert.equal(cranDeLaVariable(variable, sens), cran);
-      assert.equal(variablePresente(variable, [], sens), false);
+      assert.equal(cranDeLaVariable(variable, mode, sens), cran);
+      assert.equal(variablePresente(variable, [], mode, sens), false);
     }
   }
 });
 
-test('les variables du cran respectent les indices, le sens et le supplément du neutre', () => {
-  const variables = (cran: number, sens: SensDuTheme, neutre = false) => variablesDuCran(CRANS, CRANS.indexOf(cran), sens, neutre);
-  assert.deepEqual(variables(700, 'normal'), ['solid/default', 'page/foreground', 'page/border']);
-  assert.deepEqual(variables(600, 'inverse'), ['solid/hover']);
-  assert.deepEqual(variables(700, 'normal', true), ['solid/default', 'page/foreground', 'page/border', 'page/foreground-subtle']);
-  assert.deepEqual(variables(500, 'normal', true), ['disabled/foreground', 'disabled/border']);
-  assert.deepEqual(variables(500, 'inverse', true), ['solid/pressed', 'disabled/foreground', 'disabled/border']);
-  assert.deepEqual(variables(200, 'inverse', true), ['surface/hover', 'disabled/background']);
-  assert.deepEqual(variables(800, 'inverse', true), ['page/foreground', 'page/border', 'page/foreground-subtle']);
-  for (const rang of [-1, CRANS.length, 0.5, NaN]) assert.deepEqual(variablesDuCran(CRANS, rang, 'normal', true), []);
-  assert.deepEqual(variablesDuCran([], 0, 'normal', true), []);
+test('les variables du cran respectent les indices, le thème, le sens et le supplément du neutre', () => {
+  const variables = (cran: number, mode: ModeDuTheme, sens: SensDuTheme, neutre = false) => variablesDuCran(CRANS, CRANS.indexOf(cran), mode, sens, neutre);
+  assert.deepEqual(variables(700, 'light', 'normal'), ['solid/default', 'page/foreground', 'page/border']);
+  assert.deepEqual(variables(600, 'light', 'inverse'), ['solid/hover']);
+  assert.deepEqual(variables(700, 'light', 'normal', true), ['solid/default', 'page/foreground', 'page/border', 'page/foreground-subtle']);
+  assert.deepEqual(variables(500, 'light', 'normal', true), ['disabled/foreground', 'disabled/border']);
+  assert.deepEqual(variables(500, 'light', 'inverse', true), ['solid/pressed', 'disabled/foreground', 'disabled/border']);
+  assert.deepEqual(variables(200, 'light', 'inverse', true), ['surface/hover', 'disabled/background']);
+  assert.deepEqual(variables(800, 'light', 'inverse', true), ['page/foreground', 'page/border', 'page/foreground-subtle']);
+  assert.deepEqual(variables(300, 'dark', 'normal'), ['surface/default', 'page/divider']);
+  assert.deepEqual(variables(400, 'dark', 'normal'), ['surface/hover']);
+  assert.deepEqual(variables(500, 'dark', 'inverse', true), ['solid/pressed', 'surface/pressed', 'disabled/foreground', 'disabled/border']);
+  assert.deepEqual(variables(950, 'dark', 'normal'), ['surface/foreground', 'surface/border']);
+  assert.deepEqual(variables(950, 'light', 'normal'), []);
+  for (const rang of [-1, CRANS.length, 0.5, NaN]) assert.deepEqual(variablesDuCran(CRANS, rang, 'light', 'normal', true), []);
+  assert.deepEqual(variablesDuCran([], 0, 'dark', 'normal', true), []);
 });
 
 test('repos, survol, appui, focus et désactivation ; la sélection ne reçoit pas de cible', () => {

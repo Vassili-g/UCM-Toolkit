@@ -138,21 +138,25 @@ const SENS: readonly SensDuTheme[] = ['normal', 'inverse'];
 
 /**
  * Le fond de la garantie qu'une promesse juge, d'après son second membre : la
- * page, ou la variable dont le cran est le sien. Un cran désigne une seule
+ * page, la carte, ou la variable dont le cran est le sien. Un cran désigne une seule
  * variable parmi les fonds d'une garantie, dans les deux sens du thème.
  */
 export function fondDeLaPromesse(promesse: Promesse): FondDeGarantie {
   const { fonds } = promesse.garantie;
   const { second } = promesse;
   const trouve = second.nature === 'cran'
-    ? fonds.find((fond) => 'variable' in fond && SENS.some((sens) => cranDeLaVariable(fond.variable, sens) === second.cran))
-    : fonds.find((fond) => 'fondDeLaPage' in fond);
+    ? fonds.find((fond) => 'variable' in fond && SENS.some((sens) => cranDeLaVariable(fond.variable, promesse.mode, sens) === second.cran))
+    : fonds.find((fond) => (second.nature === 'fond' && second.fond === 'carte' ? 'fondDeLaCarte' in fond : 'fondDeLaPage' in fond));
   return trouve ?? fonds[0];
 }
 
-/** La variable que désigne le fond d'une garantie : une variable de palette, ou le fond de la page. */
-export function variableDuFond(fond: FondDeGarantie): VariableDePalette | 'elevation/page' {
-  return 'fondDeLaPage' in fond ? 'elevation/page' : fond.variable;
+/** Ce qu'un fond de garantie désigne : une variable de palette, le fond de la page ou celui de la carte. */
+export type VariableDuFond = VariableDePalette | 'elevation/page' | 'elevation/raised';
+
+/** La variable que désigne le fond d'une garantie : une variable de palette, le fond de la page ou celui de la carte. */
+export function variableDuFond(fond: FondDeGarantie): VariableDuFond {
+  if ('fondDeLaPage' in fond) return 'elevation/page';
+  return 'fondDeLaCarte' in fond ? 'elevation/raised' : fond.variable;
 }
 
 /** Une garantie qui compte une variable, et l'autre variable qu'elle lui oppose. */
@@ -160,8 +164,8 @@ export interface GarantieDeLaVariable {
   readonly promesse: Promesse;
   /** `premier` quand la variable est le premier membre de la garantie, `fond` quand elle en est un fond. */
   readonly role: 'premier' | 'fond';
-  /** La variable en face : le fond de la page, ou une variable de palette. */
-  readonly partenaire: VariableDePalette | 'elevation/page';
+  /** La variable en face : le fond de la page ou de la carte, ou une variable de palette. */
+  readonly partenaire: VariableDuFond;
 }
 
 /**
@@ -332,11 +336,11 @@ export function etaler(groupes: readonly Groupe[], nombreDeCrans: number): Accol
  * sans variable n'existe pas. Les codes d'une accolade suivent l'ordre de leurs
  * nuances : dans le sens inversé, `solid` s'écrit `pressed · hover · default`.
  */
-export function bandesDe(crans: readonly number[], sens: SensDuTheme, neutre: boolean): Bande[] {
+export function bandesDe(crans: readonly number[], mode: Mode, sens: SensDuTheme, neutre: boolean): Bande[] {
   return DOSSIERS.map((dossier): Bande => {
     const groupes = groupesDuDossier(dossier, neutre).flatMap((membres): Groupe[] => {
       const presents = membres.flatMap(([variable, nom]) => {
-        const cran = cranDeLaVariable(variable, sens);
+        const cran = cranDeLaVariable(variable, mode, sens);
         if (cran === undefined) return [];
         const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
         if (typeof cran === 'number' && rang < 0) return [];
@@ -362,7 +366,7 @@ export interface ApercuEnBandes {
 /** L'aperçu du thème que la bascule « Aperçu » montre : ses crans suivent la table du sens que son texte des boutons donne (I3). */
 export function apercuEnBandes(mode: Mode, texte: TexteDesBoutons, crans: readonly number[], neutre: boolean): ApercuEnBandes {
   const sens = sensDuTheme(mode, texte);
-  return { sens, couleurDuTexte: COULEUR_DU_TEXTE_DES_BOUTONS[texte], bandes: bandesDe(crans, sens, neutre) };
+  return { sens, couleurDuTexte: COULEUR_DU_TEXTE_DES_BOUTONS[texte], bandes: bandesDe(crans, mode, sens, neutre) };
 }
 
 /**
@@ -414,23 +418,23 @@ function variablesAffichees(neutre: boolean): Set<VariableDuTheme> {
  * Ce que surligne un geste, dans la table du sens du thème montré (S11).
  * Une nuance qu'aucune variable ne prend ne surligne rien.
  */
-export function surlignageDe(geste: Geste, crans: readonly number[], sens: SensDuTheme, neutre: boolean): Surlignage {
+export function surlignageDe(geste: Geste, crans: readonly number[], mode: Mode, sens: SensDuTheme, neutre: boolean): Surlignage {
   const affichees = variablesAffichees(neutre);
   if (geste.nature === 'cran') {
     const rang = crans.indexOf(geste.numero);
     if (rang < 0) return RIEN;
-    const variables = variablesDuCran(crans, rang, sens, neutre).filter((variable) => affichees.has(variable));
+    const variables = variablesDuCran(crans, rang, mode, sens, neutre).filter((variable) => affichees.has(variable));
     return variables.length === 0 ? RIEN : { crans: [geste.numero], variables, dossier: null };
   }
   if (geste.nature === 'code') {
     if (!affichees.has(geste.variable)) return RIEN;
-    const cran = cranDeLaVariable(geste.variable, sens);
+    const cran = cranDeLaVariable(geste.variable, mode, sens);
     if (typeof cran === 'number' && !crans.includes(cran)) return RIEN;
     return { crans: typeof cran === 'number' ? [cran] : [], variables: [geste.variable], dossier: null };
   }
   const numeros = VARIABLES_DE_PALETTE
     .filter((variable) => variable.startsWith(`${geste.dossier}/`) || (geste.dossier === 'page' && variable === 'ring'))
-    .map((variable) => cranDeLaVariable(variable, sens))
+    .map((variable) => cranDeLaVariable(variable, mode, sens))
     .filter((cran): cran is number => typeof cran === 'number' && crans.includes(cran));
   return { crans: [...new Set(numeros)].sort((a, b) => a - b), variables: [], dossier: geste.dossier };
 }

@@ -8,12 +8,16 @@ import {
   compterManquees,
   contraste,
   courbesParDefaut,
+  couleurDeLaCarte,
   ecrireHexa,
   intensitesDe,
+  lineaireVersRgb8,
   lireHexa,
   mesurerCran,
+  oklchVersLineaire,
   rampesDe,
   recetteParDefaut,
+  rgb8VersOklch,
   verifierPromesses,
   type Mode,
   type Palette,
@@ -44,32 +48,62 @@ const sens = (mode: Mode, texte: { light: TexteDesBoutons; dark: TexteDesBoutons
   (mode === 'light' ? texte.light === 'blanc' : texte.dark === 'noir') ? 'normal' : 'inverse';
 
 /** Ce qu'un second membre désigne : un numéro de cran, le fond de la page, ou le texte des boutons. */
-type Cible = number | 'fond' | 'texteDesBoutons';
+type Cible = number | 'fond' | 'carte' | 'texteDesBoutons';
 
 /**
  * Les garanties de la section 7 du plan, recopiées ici : les tests ci-dessous
  * bouclent sur elles, pas sur le kit, sans quoi une garantie retirée
  * retirerait son propre test. Leur forme se teste dans le kit
  * (`packages/kit/tests/emplois.test.ts`) ; ici, leur jugement. Le premier
- * membre et les fonds, dans l'ordre, pour chaque sens.
+ * membre et les fonds, dans l'ordre, pour chaque thème et chaque sens : le Dark
+ * pose ses surfaces aux crans 300 à 500 et leur texte au 950.
  */
+interface Membres { premier: Cible; fonds: Cible[] }
 const TABLE_S7: {
   numero: number;
   seuil: 'texte' | 'nonTexte';
-  normal: { premier: Cible; fonds: Cible[] };
-  inverse: { premier: Cible; fonds: Cible[] };
+  light: { normal: Membres; inverse: Membres };
+  dark: { normal: Membres; inverse: Membres };
 }[] = [
-  { numero: 1, seuil: 'texte', normal: { premier: 'texteDesBoutons', fonds: [700, 800, 900] }, inverse: { premier: 'texteDesBoutons', fonds: [700, 600, 500] } },
-  { numero: 2, seuil: 'nonTexte', normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 700, fonds: ['fond'] } },
-  { numero: 3, seuil: 'texte', normal: { premier: 800, fonds: [100, 200, 300, 'fond'] }, inverse: { premier: 900, fonds: [100, 200, 300, 'fond'] } },
-  { numero: 4, seuil: 'nonTexte', normal: { premier: 800, fonds: [100, 200, 300, 'fond'] }, inverse: { premier: 900, fonds: [100, 200, 300, 'fond'] } },
-  { numero: 5, seuil: 'texte', normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
-  { numero: 6, seuil: 'nonTexte', normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
-  { numero: 7, seuil: 'nonTexte', normal: { premier: 600, fonds: ['fond', 100] }, inverse: { premier: 700, fonds: ['fond', 100] } },
+  {
+    numero: 1, seuil: 'texte',
+    light: { normal: { premier: 'texteDesBoutons', fonds: [700, 800, 900] }, inverse: { premier: 'texteDesBoutons', fonds: [700, 600, 500] } },
+    dark: { normal: { premier: 'texteDesBoutons', fonds: [700, 800, 900] }, inverse: { premier: 'texteDesBoutons', fonds: [700, 600, 500] } },
+  },
+  {
+    numero: 2, seuil: 'nonTexte',
+    light: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 700, fonds: ['fond'] } },
+    dark: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 700, fonds: ['fond'] } },
+  },
+  {
+    numero: 3, seuil: 'texte',
+    light: { normal: { premier: 800, fonds: [100, 200, 300, 'fond'] }, inverse: { premier: 900, fonds: [100, 200, 300, 'fond'] } },
+    dark: { normal: { premier: 950, fonds: [300, 400, 500, 'fond'] }, inverse: { premier: 950, fonds: [300, 400, 500, 'fond'] } },
+  },
+  {
+    numero: 4, seuil: 'nonTexte',
+    light: { normal: { premier: 800, fonds: [100, 200, 300, 'fond'] }, inverse: { premier: 900, fonds: [100, 200, 300, 'fond'] } },
+    dark: { normal: { premier: 950, fonds: [300, 400, 500, 'fond'] }, inverse: { premier: 950, fonds: [300, 400, 500, 'fond'] } },
+  },
+  {
+    numero: 5, seuil: 'texte',
+    light: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
+    dark: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
+  },
+  {
+    numero: 6, seuil: 'nonTexte',
+    light: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
+    dark: { normal: { premier: 700, fonds: ['fond'] }, inverse: { premier: 800, fonds: ['fond'] } },
+  },
+  {
+    numero: 7, seuil: 'nonTexte',
+    light: { normal: { premier: 600, fonds: ['fond', 'carte'] }, inverse: { premier: 700, fonds: ['fond', 'carte'] } },
+    dark: { normal: { premier: 600, fonds: ['fond', 'carte'] }, inverse: { premier: 700, fonds: ['fond', 'carte'] } },
+  },
 ];
 
 const cibleDe = (designation: Promesse['premier'] | Promesse['second']): Cible =>
-  designation.nature === 'cran' ? designation.cran : designation.nature;
+  designation.nature === 'cran' ? designation.cran : designation.nature === 'fond' ? (designation.fond === 'carte' ? 'carte' : 'fond') : designation.nature;
 
 /** La promesse d'une garantie contre un fond, pour un mode et une intensité. */
 function promesse(r: Recette, palette: Palette, numero: number, fond: Cible, mode: Mode, profil: Profil): Promesse {
@@ -87,7 +121,10 @@ function promesse(r: Recette, palette: Palette, numero: number, fond: Cible, mod
  */
 function recettePourEchouer(r: Recette, p: Promesse): Recette {
   const copiee = copie(r);
-  if (p.second.nature === 'fond') {
+  if (p.second.nature === 'fond' && p.second.fond === 'carte') {
+    // La carte se déduit du fond de la page : le premier membre prend sa clarté, et le contraste tombe près de 1.
+    copiee.courbes[p.mode][copiee.crans.indexOf((p.premier as { cran: number }).cran)] = rgb8VersOklch(p.second.couleur).L;
+  } else if (p.second.nature === 'fond') {
     copiee.fonds[p.mode] = ecrireHexa(p.premier.couleur);
   } else if (p.second.nature === 'cran') {
     const rang = copiee.crans.indexOf(p.second.cran);
@@ -98,12 +135,12 @@ function recettePourEchouer(r: Recette, p: Promesse): Recette {
   return copiee;
 }
 
-for (const { numero, normal } of TABLE_S7) {
+for (const { numero, light, dark } of TABLE_S7) {
   for (const profil of ['soft', 'vivid'] as const) {
     test(`[VER-03] G${numero}, ${profil} : tenue par défaut, manquée quand ses membres se rejoignent`, () => {
       assert.ok(GARANTIES.some((g) => g.numero === numero), `le kit n'a pas de garantie ${numero}`);
       for (const mode of ['light', 'dark'] as const) {
-        for (const fond of normal.fonds) {
+        for (const fond of (mode === 'light' ? light : dark).normal.fonds) {
           const p = promesse(recette, BLEU, numero, fond, mode, profil);
           assert.equal(p.verdict, 'tenue', `défaut, ${mode}, contre ${fond} : ${p.contraste}`);
           const echec = promesse(recettePourEchouer(recette, p), BLEU, numero, fond, mode, profil);
@@ -121,7 +158,7 @@ test('[VER-03] chaque garantie désigne ses membres dans la table du sens de cha
     for (const mode of ['light', 'dark'] as const) {
       for (const profil of intensitesDe(BLEU)) {
         const attendues = TABLE_S7.flatMap(({ numero, seuil, ...parSens }) => {
-          const { premier, fonds } = parSens[sens(mode, texte)];
+          const { premier, fonds } = parSens[mode][sens(mode, texte)];
           return fonds.map((fond) => ({ numero, seuil, premier, fond }));
         });
         const jugees = verifierPromesses(r, BLEU).filter((p) => p.mode === mode && p.profil === profil);
@@ -134,9 +171,11 @@ test('[VER-03] chaque garantie désigne ses membres dans la table du sens de cha
         for (const p of jugees) {
           const couleurDe = (cible: Cible) => cible === 'fond'
             ? lireHexa(r.fonds[mode])
-            : cible === 'texteDesBoutons'
-              ? lireHexa(r.texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000')
-              : rampes[profil]![mode][r.crans.indexOf(cible)].couleur;
+            : cible === 'carte'
+              ? couleurDeLaCarte(r, mode)
+              : cible === 'texteDesBoutons'
+                ? lireHexa(r.texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000')
+                : rampes[profil]![mode][r.crans.indexOf(cible)].couleur;
           assert.deepEqual(p.premier.couleur, couleurDe(cibleDe(p.premier)), `premier membre, ${lieu}`);
           assert.deepEqual(p.second.couleur, couleurDe(cibleDe(p.second)), `second membre, ${lieu}`);
           assert.equal(p.seuil, r.seuils[p.garantie.seuil], lieu);
@@ -159,9 +198,10 @@ test('[VER-03] le fond de la page est le seul fond jugé : jamais le texte des b
 test('[VER-03] une palette compte soixante-quatre promesses, par mode, puis par profil, puis par garantie et par fond', () => {
   const promesses = verifierPromesses(recette, BLEU);
   assert.equal(promesses.length, 64);
-  const parGarantie = TABLE_S7.flatMap(({ numero, normal }) => normal.fonds.map((fond) => `${numero} ${fond}`));
-  assert.equal(parGarantie.length, 16);
-  const attendu = ['light', 'dark'].flatMap((mode) => ['soft', 'vivid'].flatMap((profil) => parGarantie.map((cle) => `${mode} ${profil} ${cle}`)));
+  const parGarantie = (mode: 'light' | 'dark') => TABLE_S7.flatMap(({ numero, ...parMode }) => parMode[mode].normal.fonds.map((fond) => `${numero} ${fond}`));
+  assert.equal(parGarantie('light').length, 16);
+  assert.equal(parGarantie('dark').length, 16);
+  const attendu = (['light', 'dark'] as const).flatMap((mode) => ['soft', 'vivid'].flatMap((profil) => parGarantie(mode).map((cle) => `${mode} ${profil} ${cle}`)));
   assert.deepEqual(promesses.map((p) => `${p.mode} ${p.profil} ${p.garantie.numero} ${cibleDe(p.second)}`), attendu);
 });
 
@@ -199,11 +239,16 @@ function sansCran(r: Recette, cran: number): Recette {
   return { ...r, crans: sans(r.crans), courbes: { light: sans(r.courbes.light), dark: sans(r.courbes.dark) } };
 }
 
-test('[VER-05] les crans 50, 400 et 950 sont facultatifs : sans eux, aucune garantie ne s’en va', () => {
-  for (const cran of [50, 400, 950]) {
+test('[VER-05] le cran 50 est facultatif ; sans 400 ou 950, G3 et G4 ne se jugent plus en Dark, où les surfaces et leur texte les visent', () => {
+  assert.equal(verifierPromesses(sansCran(recette, 50), BLEU).length, 64, 'sans 50');
+  for (const cran of [400, 950]) {
     const sans = sansCran(recette, cran);
     assert.ok(!sans.crans.includes(cran));
-    assert.equal(verifierPromesses(sans, BLEU).length, 64, `sans ${cran}`);
+    const promesses = verifierPromesses(sans, BLEU);
+    const parMode = (mode: Mode) => [...new Set(promesses.filter((p) => p.mode === mode).map((p) => p.garantie.numero))];
+    assert.deepEqual(parMode('light'), [1, 2, 3, 4, 5, 6, 7], `sans ${cran}, Light`);
+    assert.deepEqual(parMode('dark'), [1, 2, 5, 6, 7], `sans ${cran}, Dark`);
+    assert.equal(promesses.length, 64 - 2 * 2 * 4, `sans ${cran}`);
   }
 });
 
@@ -212,15 +257,15 @@ test('[VER-05] sans le cran 900, G1 ne se juge pas dans le sens normal, et les a
   assert.deepEqual([...new Set(promesses.map((p) => p.garantie.numero))], [2, 3, 4, 5, 6, 7]);
 });
 
-test('[VER-05] sans le cran 500, G1 ne se juge que dans les thèmes normaux', () => {
+test('[VER-05] sans le cran 500, G1 ne se juge que dans les thèmes normaux, et G3 et G4 manquent en Dark (surface/pressed)', () => {
   const sans500 = sansCran(recette, 500);
-  assert.equal(verifierPromesses(sans500, BLEU).length, 64, 'deux thèmes normaux');
+  assert.equal(verifierPromesses(sans500, BLEU).length, 64 - 2 * 2 * 4, 'deux thèmes normaux : G3 et G4 ne se jugent pas en Dark');
   const inverse = { ...sans500, texteDesBoutons: { light: 'noir' as const, dark: 'noir' as const } };
   const promesses = verifierPromesses(inverse, BLEU);
   const parMode = (mode: Mode) => [...new Set(promesses.filter((p) => p.mode === mode).map((p) => p.garantie.numero))];
   assert.deepEqual(parMode('light'), [2, 3, 4, 5, 6, 7], 'Light inversé : G1 attend le 500 de solid/pressed');
-  assert.deepEqual(parMode('dark'), [1, 2, 3, 4, 5, 6, 7], 'Dark normal : G1 se juge');
-  assert.equal(promesses.length, 2 * 13 + 2 * 16);
+  assert.deepEqual(parMode('dark'), [1, 2, 5, 6, 7], 'Dark normal : G1 se juge, G3 et G4 attendent le 500 de surface/pressed');
+  assert.equal(promesses.length, 2 * 13 + 2 * 8);
 });
 
 test('[VER-05] une palette libre n’a pas de promesses', () => {
@@ -321,16 +366,62 @@ test('[VER-03] oracles S8 : en Light inversé, cinq références ancrées manque
   assert.ok(Math.abs(pire - 5.27) <= 0.01, String(pire));
 });
 
-test('[VER-03] oracles S8 : G2 à G6 ne manquent jamais, et G7 ne manque que sur #16A34A, à son anneau ancré', () => {
+test('[VER-03] oracles S8 : G2 à G7 ne manquent jamais sur les quatorze références, dans les quatre combinaisons', () => {
+  // G7 se jugeait contre `surface/default` et manquait sur #16A34A en Vivid, Light ; contre la page et la carte, elle tient partout.
   for (const texte of COMBINAISONS) {
     const manquees = promessesDesReferences(texte).filter(({ p }) => p.garantie.numero >= 2 && p.verdict === 'manquee');
-    assert.ok(manquees.every(({ p }) => p.garantie.numero === 7), `G2 à G6, texte ${texte.light}/${texte.dark}`);
-    assert.ok(manquees.every(({ reference }) => reference === '#16A34A'));
-    assert.ok(manquees.every(({ p, surLAncre }) => surLAncre(p.premier)), 'l’anneau manqué est la référence ancrée');
-    // 600 en Light, 700 en Light inversé : le Dark tient G7 dans les deux sens.
-    assert.deepEqual(
-      [...new Set(manquees.map(({ p }) => `${p.mode} ${cibleDe(p.premier)}`))],
-      [`light ${sens('light', texte) === 'normal' ? 600 : 700}`],
-    );
+    assert.deepEqual(manquees.map(({ reference, p }) => `${reference} ${p.mode} ${p.profil} G${p.garantie.numero}`), [], `texte ${texte.light}/${texte.dark}`);
   }
+});
+
+test('[MOT-37] la carte vaut le blanc en Light et le cran qui suit la page en Dark', () => {
+  const defaut = recetteParDefaut();
+  assert.deepEqual(couleurDeLaCarte(defaut, 'light'), [255, 255, 255]);
+  // Le fond Dark par défaut de ce commit est #121212, au cran 50 : la carte est au cran 100, un gris.
+  const gris = couleurDeLaCarte(defaut, 'dark');
+  assert.equal(gris[0], gris[1]);
+  assert.equal(gris[1], gris[2]);
+  assert.ok(gris[0] >= 0x1a && gris[0] <= 0x1e, ecrireHexa(gris));
+
+  // Un fond bleuté donne une carte de même teinte, à 5° près.
+  const bleute = { ...defaut, fonds: { ...defaut.fonds, dark: '#0B1020' } };
+  const carte = rgb8VersOklch(couleurDeLaCarte(bleute, 'dark'));
+  const fond = rgb8VersOklch(lireHexa('#0B1020')!);
+  const ecart = Math.abs(((carte.H - fond.H + 540) % 360) - 180);
+  assert.ok(ecart <= 5, `teinte de la carte ${carte.H}, du fond ${fond.H}`);
+  assert.ok(carte.C > 0.01, 'la carte garde la chroma du fond');
+
+  // Un fond à la clarté du cran 100 : la carte est à la clarté du cran 200 (au pas de 8 bits près).
+  const clairs = defaut.courbes.dark;
+  const auCran100 = ecrireHexa(lineaireVersRgb8(oklchVersLineaire({ L: clairs[1], C: 0, H: 0 })));
+  const sur100 = rgb8VersOklch(couleurDeLaCarte({ ...defaut, fonds: { ...defaut.fonds, dark: auCran100 } }, 'dark'));
+  assert.ok(Math.abs(sur100.L - clairs[2]) < 0.005, `${sur100.L} contre ${clairs[2]}`);
+
+  // Le dernier rang n'a pas de suivant : la carte reste à sa clarté.
+  const dernier = rgb8VersOklch(couleurDeLaCarte({ ...defaut, fonds: { ...defaut.fonds, dark: '#FFFFFF' } }, 'dark'));
+  assert.ok(Math.abs(dernier.L - clairs[clairs.length - 1]) < 0.005, String(dernier.L));
+});
+
+test('[VER-21] G7 tenue contre la page et manquée contre la carte : deux désignations distinctes', () => {
+  const g7Dark = (r: Recette) => verifierPromesses(r, BLEU).filter((p) => p.garantie.numero === 7 && p.mode === 'dark' && p.profil === 'soft');
+  // Par défaut, l'anneau tient la page et la carte, en Light comme en Dark.
+  for (const p of verifierPromesses(recette, BLEU).filter((promesse) => promesse.garantie.numero === 7)) assert.equal(p.verdict, 'tenue', `${p.mode} ${p.profil} ${cibleDe(p.second)}`);
+  // La carte est plus claire que la page : une clarté d'anneau existe où il tient l'une et manque l'autre.
+  const rang = recette.crans.indexOf(600);
+  let trouvee: Recette | null = null;
+  for (let L = 0.4; L <= 0.6 && !trouvee; L += 0.002) {
+    const essai = copie(recette);
+    essai.courbes.dark[rang] = L;
+    const [page, carte] = g7Dark(essai);
+    if (page.verdict === 'tenue' && carte.verdict === 'manquee') trouvee = essai;
+  }
+  assert.ok(trouvee, 'aucune clarté ne sépare la page de la carte');
+  const [page, carte] = g7Dark(trouvee);
+  assert.deepEqual([cibleDe(page.second), cibleDe(carte.second)], ['fond', 'carte']);
+  assert.deepEqual([page.second.nature === 'fond' && page.second.fond, carte.second.nature === 'fond' && carte.second.fond], ['page', 'carte']);
+  assert.deepEqual(page.second.couleur, lireHexa(trouvee.fonds.dark));
+  assert.deepEqual(carte.second.couleur, couleurDeLaCarte(trouvee, 'dark'));
+  assert.notDeepEqual(page.second.couleur, carte.second.couleur);
+  assert.deepEqual(page.premier.couleur, carte.premier.couleur, 'le même anneau, deux fonds');
+  assert.ok(page.contraste > carte.contraste, 'la carte, plus claire que la page, porte moins de contraste');
 });

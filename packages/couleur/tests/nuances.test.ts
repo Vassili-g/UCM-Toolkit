@@ -134,7 +134,7 @@ test('W6 : les deux préréglages se reconnaissent, et la recette par défaut es
 });
 
 test('W6.8 : chaque préréglage garde les variables de thème à leurs numéros', () => {
-  const variablesParNumero = (recette: Recette) => new Map(recette.crans.map((cran, rang) => [cran, variablesDuCran(recette.crans, rang, 'normal', true)]));
+  const variablesParNumero = (recette: Recette) => new Map(recette.crans.map((cran, rang) => [cran, variablesDuCran(recette.crans, rang, 'light', 'normal', true)]));
   const onze = variablesParNumero(recetteParDefaut());
   for (const nombre of [13] as const) {
     const autres = variablesParNumero(recetteA(nombre));

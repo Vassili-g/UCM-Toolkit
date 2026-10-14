@@ -313,7 +313,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
 
     /** Une garantie du détail, qui la choisit dans la carte des garanties. */
     function lienDeGarantie({ promesse, role, partenaire }: GarantieDeLaVariable): HTMLButtonElement {
-      const nom: Texte = partenaire === 'elevation/page' ? TEXTES_DES_GARANTIES.laPage : partenaire;
+      const nom: Texte = partenaire === 'elevation/page' ? TEXTES_DES_GARANTIES.laPage : partenaire === 'elevation/raised' ? TEXTES_DES_GARANTIES.laCarte : partenaire;
       const sens = role === 'premier' ? TEXTES_DU_DETAIL.sur(nom) : TEXTES_DU_DETAIL.dessus(nom);
       const lien = bouton('lien-de-constat', TEXTES_DU_DETAIL.garantie(promesse.verdict === 'tenue', sens, promesse.contraste));
       lien.classList.add('garantie-du-detail');
@@ -436,7 +436,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       const blocs: HTMLElement[] = [enTeteDuDetail(cran.hexa, TEXTES_DU_DETAIL.titre(profil, crans[rang]), cran.hexa, reference)];
       // Les variables que la nuance porte dans la table du sens du thème montré (I5). Une palette libre n'en a pas (W6.5).
       const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
-      const variables = analyse.libre ? [] : variablesDuCran(crans, rang, sens, entrees.neutre ?? false);
+      const variables = analyse.libre ? [] : variablesDuCran(crans, rang, mode, sens, entrees.neutre ?? false);
       blocs.push(variables.length === 0
         ? groupe(TEXTES_DU_DETAIL.sansRole, paragraphe(TEXTES_DU_DETAIL.aucunRole, 'ligne-secondaire'))
         : groupe(TEXTES_DU_DETAIL.sertA, ...variables.map((variable) => ligneDeVariable(
@@ -459,7 +459,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       const couleur = COULEUR_DU_TEXTE_DES_BOUTONS[texte];
       const rgbDuTexte = lireHexa(couleur) ?? [255, 255, 255];
       const fondDeLaPage = lireHexa(recette.fonds[mode]) ?? [255, 255, 255];
-      const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, texte)];
+      const table = TABLE_DES_DOSSIERS[mode][sensDuTheme(mode, texte)];
       const depart = analyse.grille.crans.indexOf(table['solid/default']);
       const crans = ETATS.map((etat) => table[`solid/${etat}`]);
       const lignes: HTMLElement[] = [];
@@ -588,7 +588,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       const { analyse, mode, neutre } = entrees;
       const { crans } = analyse.grille;
       const hexaDe = (variable: VariableDuTheme): string => {
-        const cran = cranDeLaVariable(variable, apercu.sens);
+        const cran = cranDeLaVariable(variable, mode, apercu.sens);
         const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
         return rang < 0 ? 'transparent' : rampeDe(analyse.rampes, analyse.intensites.includes('vivid') ? 'vivid' : 'unique')[mode][rang].hexa;
       };
@@ -633,7 +633,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       if (!geste) return;
       const { recette, analyse, mode } = donnees;
       const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
-      const { crans, variables, dossier } = surlignageDe(geste, analyse.grille.crans, sens, donnees.neutre ?? false);
+      const { crans, variables, dossier } = surlignageDe(geste, analyse.grille.crans, mode, sens, donnees.neutre ?? false);
       // `lie` marque une cible surlignée, `active` la bande du dossier survolé : la loi des styles ne lit que des classes littérales.
       const allumer = (selecteur: string, bandeActive = false): void => {
         surface.querySelectorAll(selecteur).forEach((element) => {

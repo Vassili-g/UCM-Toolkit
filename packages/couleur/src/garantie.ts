@@ -52,7 +52,7 @@ export function garantieDesCourbes(recette: Recette): ManqueDeGarantie[] {
   for (const mode of MODES) {
     const courbe = recette.courbes[mode];
     const texte = recette.texteDesBoutons[mode];
-    const table = TABLE_DES_DOSSIERS[sensDuTheme(mode, texte)];
+    const table = TABLE_DES_DOSSIERS[mode][sensDuTheme(mode, texte)];
     const cranLeger = fabriquerCran(courbe[rangDuCranLeger(recette.crans)], 0, 0, recette.gamut).couleur;
     const opposants: { [C in ManqueDeGarantie['contre']]: Rgb8 } = {
       cranLeger,

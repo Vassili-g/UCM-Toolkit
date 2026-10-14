@@ -27,6 +27,7 @@ export const TEXTES_DES_DOSSIERS_DE_LA_PLANCHE = {
   specimens: { solid: 'Bouton', surface: 'Fond teinté', lien: 'Lien coloré', champ: 'Champ' },
   /** Les garanties, sous les spécimens, nomment leurs variables. */
   laPage: 'la page',
+  laCarte: 'la carte',
   texte: 'texte',
   contour: 'contour',
   sansMinimum: 'sans minimum de contraste',

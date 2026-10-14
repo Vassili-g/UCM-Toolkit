@@ -47,7 +47,7 @@ function recetteAMoitieRatee(): Recette {
 }
 
 /** Le fond d'un groupe, par son nom de variable. */
-const nomDuFond = (fond: GroupeDePromesses['fond']): string => ('fondDeLaPage' in fond ? 'page' : fond.variable);
+const nomDuFond = (fond: GroupeDePromesses['fond']): string => ('fondDeLaPage' in fond ? 'page' : 'fondDeLaCarte' in fond ? 'carte' : fond.variable);
 
 test('[VER-06] deux profils en échec sur le même fond font un groupe, et comptent deux contrôles', () => {
   const recette = recetteAMoitieRatee();
@@ -102,6 +102,7 @@ test('[UI-10] [I5] le fond que juge une promesse se lit dans son second membre, 
     }
   }
   assert.equal(variableDuFond({ fondDeLaPage: true }), 'elevation/page');
+  assert.equal(variableDuFond({ fondDeLaCarte: true }), 'elevation/raised');
   assert.equal(variableDuFond({ variable: 'surface/hover' }), 'surface/hover');
 });
 
@@ -110,8 +111,8 @@ test('[UI-10] [I5] les garanties d\u2019une variable : une par fond quand elle e
   const lire = (variable: VariableDuTheme) => garantiesDeLaVariable(promesses, 'light', 'vivid', variable).map(({ promesse, role, partenaire }) => `${promesse.garantie.numero} ${role} ${partenaire}`);
   assert.deepEqual(lire('solid/foreground'), ['1 premier solid/default', '1 premier solid/hover', '1 premier solid/pressed']);
   assert.deepEqual(lire('solid/default'), ['1 fond solid/foreground', '2 premier elevation/page']);
-  assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border', '7 fond ring']);
-  assert.deepEqual(lire('ring'), ['7 premier elevation/page', '7 premier surface/default']);
+  assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border']);
+  assert.deepEqual(lire('ring'), ['7 premier elevation/page', '7 premier elevation/raised']);
   assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page']);
   assert.deepEqual(lire('page/divider'), [], 'le filet n\u2019a pas de minimum');
   assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft'], 'une intensité à la fois');
@@ -163,6 +164,9 @@ const BANDES_INVERSEES = {
   page: 'divider 3-3 [2-4 center] | ring 7-7 [5-7 end colle] | foreground·border 8-8 [8-10 start]',
 };
 
+/** La bande `surface` du Dark, dans les deux sens : les fonds teintés aux crans 300 à 500, leur texte et leur contour au 950. */
+const SURFACE_DARK = 'default·hover·pressed 3-5 [1-7 center] | foreground·border 10-10 [8-10 end]';
+
 test('[UI-04] [I2] [I3] les trois bandes suivent la table du sens du thème, dans les quatre combinaisons du texte des boutons', () => {
   const combinaisons: [Mode, TexteDesBoutons, SensDuTheme, string][] = [
     ['light', 'blanc', 'normal', '#FFFFFF'],
@@ -172,7 +176,7 @@ test('[UI-04] [I2] [I3] les trois bandes suivent la table du sens du thème, dan
   ];
   for (const [mode, texte, sens, couleur] of combinaisons) {
     const apercu = apercuEnBandes(mode, texte, DEFAUT.crans, false);
-    const attendues = sens === 'normal' ? BANDES_NORMALES : BANDES_INVERSEES;
+    const attendues = { ...(sens === 'normal' ? BANDES_NORMALES : BANDES_INVERSEES), ...(mode === 'dark' ? { surface: SURFACE_DARK } : {}) };
     assert.equal(apercu.sens, sens, `${mode} ${texte}`);
     assert.equal(apercu.couleurDuTexte, couleur, `la case tiretée de ${mode} ${texte} prend le texte des boutons`);
     assert.deepEqual(apercu.bandes.map((bande) => bande.dossier), ['solid', 'surface', 'page']);
@@ -182,7 +186,7 @@ test('[UI-04] [I2] [I3] les trois bandes suivent la table du sens du thème, dan
 });
 
 test('[UI-04] [I12] les états s’écrivent dans l’ordre de leurs nuances : pressed · hover · default dans le sens inversé', () => {
-  const [normal, inverse] = (['normal', 'inverse'] as const).map((sens) => bandesDe(DEFAUT.crans, sens, false)[0]);
+  const [normal, inverse] = (['normal', 'inverse'] as const).map((sens) => bandesDe(DEFAUT.crans, 'light', sens, false)[0]);
   assert.deepEqual(normal.accolades[1].codes.map((code) => code.variable), ['solid/default', 'solid/hover', 'solid/pressed']);
   assert.deepEqual(inverse.accolades[1].codes.map((code) => code.variable), ['solid/pressed', 'solid/hover', 'solid/default']);
   assert.equal(NOMS(normal, 1), 'repos·survol·appui');
@@ -193,11 +197,11 @@ test('[UI-04] [I12] les états s’écrivent dans l’ordre de leurs nuances : p
   assert.equal(ecrire(normal, TEXTES_EN), 'rest · hover · pressed');
   assert.equal(ecrire(inverse, TEXTES_EN), 'pressed · hover · rest');
   // Les fonds de `surface` restent dans l'ordre des nuances dans les deux sens.
-  assert.equal(NOMS(bandesDe(DEFAUT.crans, 'inverse', false)[1], 0), 'repos·survol·appui');
+  assert.equal(NOMS(bandesDe(DEFAUT.crans, 'light', 'inverse', false)[1], 0), 'repos·survol·appui');
 });
 
 test('[UI-04] [I12] les noms sous les codes viennent du catalogue de chaque langue, texte et contour compris', () => {
-  const bandes = bandesDe(DEFAUT.crans, 'normal', false);
+  const bandes = bandesDe(DEFAUT.crans, 'light', 'normal', false);
   const noms = (textes: typeof TEXTES_FR | typeof TEXTES_EN) => bandes.map((bande) => bande.accolades.map((accolade) => accolade.codes.map((code) => textes.noms[code.nom]).join(' · ')));
   assert.deepEqual(noms(TEXTES_FR), [['texte des boutons', 'repos · survol · appui'], ['repos · survol · appui', 'texte · contour'], ['filet', 'anneau de focus', 'texte · contour']]);
   assert.deepEqual(noms(TEXTES_EN), [['button text', 'rest · hover · pressed'], ['rest · hover · pressed', 'text · border'], ['divider', 'focus ring', 'text · border']]);
@@ -209,31 +213,31 @@ test('[UI-04] [I12] une palette à une ou deux intensités a les mêmes bandes ;
   assert.deepEqual(hauteursDesRayures(2), { petite: 3, texteDesBoutons: 7 });
   assert.deepEqual(hauteursDesRayures(1), { petite: 5, texteDesBoutons: 5 });
   // Le contenu et la place des libellés ne dépendent que de la liste et du sens : `bandesDe` ne reçoit pas les intensités.
-  assert.deepEqual(bandesDe(DEFAUT.crans, 'normal', false).map(decrire), [BANDES_NORMALES.solid, BANDES_NORMALES.surface, BANDES_NORMALES.page]);
+  assert.deepEqual(bandesDe(DEFAUT.crans, 'light', 'normal', false).map(decrire), [BANDES_NORMALES.solid, BANDES_NORMALES.surface, BANDES_NORMALES.page]);
 });
 
 test('[UI-04] [I2] une variable dont le cran manque n’a pas de code, et une accolade sans variable disparaît', () => {
   // Sans 500, une recette reste lisible tant que ses deux thèmes sont normaux ; inversé, `solid/pressed` manque.
   const sans500 = DEFAUT.crans.filter((cran) => cran !== 500);
-  assert.equal(decrire(bandesDe(sans500, 'normal', false)[0]), 'foreground -1--1 [-1-2 start] | default·hover·pressed 6-8 [5-9 center]');
-  const inverse = bandesDe(sans500, 'inverse', false)[0];
+  assert.equal(decrire(bandesDe(sans500, 'light', 'normal', false)[0]), 'foreground -1--1 [-1-2 start] | default·hover·pressed 6-8 [5-9 center]');
+  const inverse = bandesDe(sans500, 'light', 'inverse', false)[0];
   assert.deepEqual(inverse.accolades[1].codes.map((code) => code.code), ['hover', 'default']);
-  const sansPage = bandesDe([100, 200, 300], 'normal', false)[2];
+  const sansPage = bandesDe([100, 200, 300], 'light', 'normal', false)[2];
   assert.deepEqual(sansPage.accolades.map((accolade) => accolade.codes.map((code) => code.code)), [['divider']]);
 });
 
 test('[UI-04] [I2] la bande du neutre lit foreground-subtle · border, et page/foreground-main se lit hors de la rampe', () => {
   for (const sens of ['normal', 'inverse'] as const) {
-    const page = bandesDe(DEFAUT.crans, sens, true)[2];
+    const page = bandesDe(DEFAUT.crans, 'light', sens, true)[2];
     const dernier = page.accolades[2];
     assert.deepEqual(dernier.codes.map((code) => code.variable), ['page/foreground-subtle', 'page/border']);
     assert.deepEqual(dernier.codes.map((code) => code.code), ['foreground-subtle', 'border']);
     assert.deepEqual(dernier.codes.map((code) => TEXTES_FR.noms[code.nom]), ['texte secondaire', 'contour']);
     assert.deepEqual(dernier.codes.map((code) => TEXTES_EN.noms[code.nom]), ['secondary text', 'border']);
     // Les deux autres bandes ne changent pas.
-    assert.deepEqual(bandesDe(DEFAUT.crans, sens, true).slice(0, 2).map(decrire), bandesDe(DEFAUT.crans, sens, false).slice(0, 2).map(decrire));
+    assert.deepEqual(bandesDe(DEFAUT.crans, 'light', sens, true).slice(0, 2).map(decrire), bandesDe(DEFAUT.crans, 'light', sens, false).slice(0, 2).map(decrire));
   }
-  assert.equal(decrire(bandesDe(DEFAUT.crans, 'normal', true)[2]), BANDES_NORMALES.page.replace('foreground·border', 'foreground-subtle·border'));
+  assert.equal(decrire(bandesDe(DEFAUT.crans, 'light', 'normal', true)[2]), BANDES_NORMALES.page.replace('foreground·border', 'foreground-subtle·border'));
   assert.equal(TEXTES_FR.noteDuNeutre, 'corps de texte, noir ou blanc purs, hors de la rampe');
   assert.equal(TEXTES_EN.noteDuNeutre, 'body text, pure black or white, outside the ramp');
   assert.equal(estLaPaletteNeutre({ nom: 'neutral' }), true);
@@ -243,8 +247,8 @@ test('[UI-04] [I2] la bande du neutre lit foreground-subtle · border, et page/f
 });
 
 /** Ce qu'un geste surligne, en une ligne : les crans, les variables, puis le dossier. */
-function surligne(geste: Geste, sens: SensDuTheme, neutre = false, crans: readonly number[] = DEFAUT.crans): string {
-  const { crans: numeros, variables, dossier } = surlignageDe(geste, crans, sens, neutre);
+function surligne(geste: Geste, mode: Mode, sens: SensDuTheme, neutre = false, crans: readonly number[] = DEFAUT.crans): string {
+  const { crans: numeros, variables, dossier } = surlignageDe(geste, crans, mode, sens, neutre);
   return `${numeros.join(',')} | ${variables.join(',')} | ${dossier ?? '-'}`;
 }
 
@@ -252,53 +256,53 @@ const VIDE = ' |  | -';
 
 test('[UI-04] [I13] survoler ou focaliser une pastille surligne chaque variable de son cran, dans la table du sens montré', () => {
   const cran = (numero: number): Geste => ({ nature: 'cran', numero });
-  assert.equal(surligne(cran(700), 'normal'), '700 | solid/default,page/foreground,page/border | -');
-  assert.equal(surligne(cran(800), 'normal'), '800 | solid/hover,surface/foreground,surface/border | -');
-  assert.equal(surligne(cran(600), 'normal'), '600 | ring | -');
-  assert.equal(surligne(cran(300), 'normal'), '300 | surface/pressed,page/divider | -');
-  assert.equal(surligne(cran(900), 'normal'), '900 | solid/pressed | -');
-  assert.equal(surligne(cran(700), 'inverse'), '700 | solid/default,ring | -');
-  assert.equal(surligne(cran(600), 'inverse'), '600 | solid/hover | -');
-  assert.equal(surligne(cran(500), 'inverse'), '500 | solid/pressed | -');
-  assert.equal(surligne(cran(800), 'inverse'), '800 | page/foreground,page/border | -');
-  assert.equal(surligne(cran(900), 'inverse'), '900 | surface/foreground,surface/border | -');
+  assert.equal(surligne(cran(700), 'light', 'normal'), '700 | solid/default,page/foreground,page/border | -');
+  assert.equal(surligne(cran(800), 'light', 'normal'), '800 | solid/hover,surface/foreground,surface/border | -');
+  assert.equal(surligne(cran(600), 'light', 'normal'), '600 | ring | -');
+  assert.equal(surligne(cran(300), 'light', 'normal'), '300 | surface/pressed,page/divider | -');
+  assert.equal(surligne(cran(900), 'light', 'normal'), '900 | solid/pressed | -');
+  assert.equal(surligne(cran(700), 'light', 'inverse'), '700 | solid/default,ring | -');
+  assert.equal(surligne(cran(600), 'light', 'inverse'), '600 | solid/hover | -');
+  assert.equal(surligne(cran(500), 'light', 'inverse'), '500 | solid/pressed | -');
+  assert.equal(surligne(cran(800), 'light', 'inverse'), '800 | page/foreground,page/border | -');
+  assert.equal(surligne(cran(900), 'light', 'inverse'), '900 | surface/foreground,surface/border | -');
 });
 
 test('[UI-04] [I13] une nuance qu’aucune variable ne prend ne surligne rien', () => {
-  for (const numero of [50, 400, 950]) assert.equal(surligne({ nature: 'cran', numero }, 'normal'), VIDE, `${numero}`);
-  assert.equal(surligne({ nature: 'cran', numero: 500 }, 'normal'), VIDE, '500 n’est requis que dans le sens inversé');
-  assert.equal(surligne({ nature: 'cran', numero: 400 }, 'inverse'), VIDE);
-  assert.equal(surligne({ nature: 'cran', numero: 1234 }, 'normal'), VIDE, 'un numéro hors de la liste');
+  for (const numero of [50, 400, 950]) assert.equal(surligne({ nature: 'cran', numero }, 'light', 'normal'), VIDE, `${numero}`);
+  assert.equal(surligne({ nature: 'cran', numero: 500 }, 'light', 'normal'), VIDE, '500 n’est requis que dans le sens inversé');
+  assert.equal(surligne({ nature: 'cran', numero: 400 }, 'light', 'inverse'), VIDE);
+  assert.equal(surligne({ nature: 'cran', numero: 1234 }, 'light', 'normal'), VIDE, 'un numéro hors de la liste');
   // `disabled/*` n’a pas de code dans les bandes : le cran 500 du neutre reste muet.
-  assert.equal(surligne({ nature: 'cran', numero: 500 }, 'normal', true), VIDE);
+  assert.equal(surligne({ nature: 'cran', numero: 500 }, 'light', 'normal', true), VIDE);
   // Le neutre ajoute son texte secondaire au cran 700 : page/foreground n’a plus de code.
-  assert.equal(surligne({ nature: 'cran', numero: 700 }, 'normal', true), '700 | solid/default,page/border,page/foreground-subtle | -');
+  assert.equal(surligne({ nature: 'cran', numero: 700 }, 'light', 'normal', true), '700 | solid/default,page/border,page/foreground-subtle | -');
 });
 
 test('[UI-04] [I13] survoler un code surligne ses pastilles et ses petites pastilles ; solid/foreground, la case tiretée', () => {
   const code = (variable: VariableDuTheme): Geste => ({ nature: 'code', variable });
-  assert.equal(surligne(code('solid/hover'), 'normal'), '800 | solid/hover | -');
-  assert.equal(surligne(code('solid/hover'), 'inverse'), '600 | solid/hover | -', 'le surlignage suit la table du nouveau sens');
-  assert.equal(surligne(code('surface/border'), 'inverse'), '900 | surface/border | -');
-  assert.equal(surligne(code('solid/foreground'), 'normal'), ' | solid/foreground | -');
-  assert.equal(surligne(code('page/foreground-subtle'), 'inverse', true), '800 | page/foreground-subtle | -');
-  assert.equal(surligne(code('page/foreground-main'), 'normal', true), ' | page/foreground-main | -');
-  assert.equal(surligne(code('page/foreground-main'), 'normal', false), VIDE, 'seul le neutre a cette note');
-  assert.equal(surligne(code('page/foreground'), 'normal', true), VIDE, 'le neutre lit foreground-subtle à sa place');
-  assert.equal(surligne(code('disabled/border'), 'normal', true), VIDE, 'pas de code dans les bandes');
-  assert.equal(surligne(code('solid/pressed'), 'normal', false, [100, 200, 300, 700, 800]), VIDE, 'un cran absent de la liste');
+  assert.equal(surligne(code('solid/hover'), 'light', 'normal'), '800 | solid/hover | -');
+  assert.equal(surligne(code('solid/hover'), 'light', 'inverse'), '600 | solid/hover | -', 'le surlignage suit la table du nouveau sens');
+  assert.equal(surligne(code('surface/border'), 'light', 'inverse'), '900 | surface/border | -');
+  assert.equal(surligne(code('solid/foreground'), 'light', 'normal'), ' | solid/foreground | -');
+  assert.equal(surligne(code('page/foreground-subtle'), 'light', 'inverse', true), '800 | page/foreground-subtle | -');
+  assert.equal(surligne(code('page/foreground-main'), 'light', 'normal', true), ' | page/foreground-main | -');
+  assert.equal(surligne(code('page/foreground-main'), 'light', 'normal', false), VIDE, 'seul le neutre a cette note');
+  assert.equal(surligne(code('page/foreground'), 'light', 'normal', true), VIDE, 'le neutre lit foreground-subtle à sa place');
+  assert.equal(surligne(code('disabled/border'), 'light', 'normal', true), VIDE, 'pas de code dans les bandes');
+  assert.equal(surligne(code('solid/pressed'), 'light', 'normal', false, [100, 200, 300, 700, 800]), VIDE, 'un cran absent de la liste');
 });
 
 test('[UI-04] [I13] survoler un spécimen de dossier surligne les crans du dossier, et le dossier pour atténuer le reste', () => {
   const dossier = (nom: 'solid' | 'surface' | 'page'): Geste => ({ nature: 'dossier', dossier: nom });
-  assert.equal(surligne(dossier('solid'), 'normal'), '700,800,900 |  | solid');
-  assert.equal(surligne(dossier('solid'), 'inverse'), '500,600,700 |  | solid');
-  assert.equal(surligne(dossier('surface'), 'normal'), '100,200,300,800 |  | surface');
-  assert.equal(surligne(dossier('surface'), 'inverse'), '100,200,300,900 |  | surface');
-  assert.equal(surligne(dossier('page'), 'normal'), '300,600,700 |  | page');
-  assert.equal(surligne(dossier('page'), 'inverse'), '300,700,800 |  | page');
-  assert.equal(surligne(dossier('page'), 'inverse', true), '300,700,800 |  | page', 'le neutre garde les crans de page/foreground');
-  assert.equal(surligne(dossier('solid'), 'inverse', false, DEFAUT.crans.filter((cran) => cran !== 500)), '600,700 |  | solid');
+  assert.equal(surligne(dossier('solid'), 'light', 'normal'), '700,800,900 |  | solid');
+  assert.equal(surligne(dossier('solid'), 'light', 'inverse'), '500,600,700 |  | solid');
+  assert.equal(surligne(dossier('surface'), 'light', 'normal'), '100,200,300,800 |  | surface');
+  assert.equal(surligne(dossier('surface'), 'light', 'inverse'), '100,200,300,900 |  | surface');
+  assert.equal(surligne(dossier('page'), 'light', 'normal'), '300,600,700 |  | page');
+  assert.equal(surligne(dossier('page'), 'light', 'inverse'), '300,700,800 |  | page');
+  assert.equal(surligne(dossier('page'), 'light', 'inverse', true), '300,700,800 |  | page', 'le neutre garde les crans de page/foreground');
+  assert.equal(surligne(dossier('solid'), 'light', 'inverse', false, DEFAUT.crans.filter((cran) => cran !== 500)), '600,700 |  | solid');
 });
 
 test('[UI-04] [I13] le choix d’une pastille surligne comme le survol, et le survol désigne un code avant une pastille, une pastille avant un dossier', () => {
@@ -310,9 +314,9 @@ test('[UI-04] [I13] le choix d’une pastille surligne comme le survol, et le su
   assert.equal(gesteDeLaCible({}), null);
   // Le choix d'une nuance est le geste d'une pastille de ce numéro : même surlignage, tant qu'elle reste choisie.
   const choisie = gesteDeLaCible({ cran: '700' })!;
-  assert.equal(surligne(choisie, 'normal'), surligne({ nature: 'cran', numero: 700 }, 'normal'));
+  assert.equal(surligne(choisie, 'light', 'normal'), surligne({ nature: 'cran', numero: 700 }, 'light', 'normal'));
   // Changer le thème affiché ou le texte des boutons change le sens : le même geste surligne la table du nouveau sens.
-  assert.notEqual(surligne(choisie, 'normal'), surligne(choisie, 'inverse'));
+  assert.notEqual(surligne(choisie, 'light', 'normal'), surligne(choisie, 'light', 'inverse'));
 });
 
 

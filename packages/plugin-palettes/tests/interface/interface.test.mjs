@@ -625,7 +625,7 @@ test('[MOT-17] [UI-04] la nuance qui porte la référence porte son repère, qui
 });
 
 test('[UI-11] [UI-15] [UI-17] « Ajuster la référence » ne paraît sous le code qu’avec une garantie manquée, hors du libellé, dans la ligne qui commence au bord gauche de la colonne', async () => {
-  // Vert, #16A34A : deux garanties Vivid manquées.
+  // Bleu, #1E6FD9, texte des boutons noir en Light : une garantie Vivid manquée.
   const page = await ouvrirSur('ajustement-ouvert', PAR_DEFAUT);
   try {
     const configuration = carteDeLOnglet(page, 'Configuration de la palette');
@@ -646,13 +646,13 @@ test('[UI-11] [UI-15] [UI-17] « Ajuster la référence » ne paraît sous le co
   } finally {
     await page.close();
   }
-  // Vert ajusté, #0DA047 : toutes les garanties tenues ; la trace de l'ajustement reste.
+  // Bleu ajusté d'un pas plus clair, #2272DC : toutes les garanties tenues ; la trace de l'ajustement reste.
   const ajustee = await ouvrirSur('reference-ajustee', PAR_DEFAUT);
   try {
     const configuration = carteDeLOnglet(ajustee, 'Configuration de la palette');
     assert.equal(await configuration.getByRole('button', { name: 'Ajuster la référence', exact: true }).isVisible(), false);
     const ligne = configuration.locator('.ligne-de-la-reference');
-    assert.equal(await ligne.locator('.ligne-fixe-texte').textContent(), 'Ajustée depuis #16A34A');
+    assert.equal(await ligne.locator('.ligne-fixe-texte').textContent(), 'Ajustée depuis #1E6FD9');
     assert.equal(await ligne.getByRole('button', { name: 'Revenir à l’originale' }).isVisible(), true);
   } finally {
     await ajustee.close();
@@ -746,7 +746,7 @@ test('Z6.3 [UI-09] un encadré par minimum ; les états nommés une fois, en tê
       const texte = await bloc.evaluate((element) => [...element.querySelectorAll('.garantie')].map((ligne) => ligne.innerText).join(' '));
       // Un nom de variable (`solid/default`) peut porter le nom d'un état ; seul l'état isolé se répète.
       for (const etat of ['default', 'hover', 'pressed']) assert.equal(new RegExp(`(?<![\w/])${etat}(?![\w/])`).test(texte), false, `« ${etat} » se répète dans les lignes`);
-      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['sur la page', 'default', 'hover', 'pressed']);
+      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['sur la page', 'sur la carte', 'default', 'hover', 'pressed']);
     }
     // Chaque case tombe sous le nom de son état.
     const alignees = await carte.evaluate((element) => [...element.querySelectorAll('.garantie-etat')].every((cellule) => {
@@ -790,7 +790,7 @@ test('Z6.3 [UI-09] la rangée choisie porte une barre écartée du texte, le foc
 /** Les cases d'une ligne de garantie qui portent un résultat, par rang de colonne : 0 la page, 1 default, 2 hover, 3 pressed. */
 const rangsRemplis = (ligne) => ligne.locator('.garantie-etat').evaluateAll((cases) => cases.filter((cellule) => cellule.querySelector('.garantie-resultat')).map((cellule) => cellule.dataset.rang));
 
-test('[UI-09] la carte des garanties montre sept lignes sans numéro, en deux blocs et quatre colonnes, avec les cases vides des garanties qui ne jugent pas tous les états', async () => {
+test('[UI-09] la carte des garanties montre sept lignes sans numéro, en deux blocs et cinq colonnes, avec les cases vides des garanties qui ne jugent pas tous les états', async () => {
   const page = await ouvrirSur('garanties-respectees', { width: 770, height: 720 });
   try {
     await ouvrirLaVerification(page);
@@ -803,21 +803,51 @@ test('[UI-09] la carte des garanties montre sept lignes sans numéro, en deux bl
     const nomsAccessibles = await carte.locator('.garantie').evaluateAll((lignes) => lignes.map((ligne) => ligne.getAttribute('aria-label') ?? ''));
     assert.equal(nomsAccessibles.some((nom) => /\bG[1-7]\b/.test(nom)), false, 'aucun numéro dans les noms accessibles');
     for (const bloc of await carte.locator('.garanties-bloc').all()) {
-      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['sur la page', 'default', 'hover', 'pressed']);
+      assert.deepEqual(await bloc.locator('.garanties-colonnes [data-rang]').allTextContents(), ['sur la page', 'sur la carte', 'default', 'hover', 'pressed']);
     }
     const rangs = Object.fromEntries(await Promise.all([1, 2, 3, 4, 5, 6, 7].map(async (numero) => [numero, (await rangsRemplis(carte.locator(`.garantie[data-garantie="${numero}"]`))).join('')])));
     assert.deepEqual(rangs, {
-      1: '123', // le texte des boutons ne se juge que sur les trois états du bouton
+      1: '234', // le texte des boutons ne se juge que sur les trois états du bouton
       2: '0', // le bouton au repos contre la page
-      3: '0123', // le texte sur fond teinté, sur la page et sur ses trois états
-      4: '0123',
+      3: '0234', // le texte sur fond teinté, sur la page et sur ses trois états
+      4: '0234',
       5: '0',
       6: '0',
-      7: '01', // l'anneau de focus, sur la page et sur le fond teinté au repos
+      7: '01', // l'anneau de focus, sur la page et sur la carte
     });
     // Une case sans jugement reste vide : pas de ratio, pas de badge.
     assert.equal(await carte.locator('.garantie[data-garantie="1"] .garantie-etat[data-rang="0"] .garantie-resultat').count(), 0);
     assert.equal(await carte.locator('.garantie-echec').count(), 0, 'Bleu tient ses sept garanties');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-09] [VER-21] la réglette porte les cases « page », « carte » et « boutons » avant les nuances ; la ligne de l’anneau trace un arc vers la page et un vers la carte', async () => {
+  const page = await ouvrirSur('garantie-g7-page-et-carte', { width: 770, height: 720 });
+  try {
+    await ouvrirLaVerification(page);
+    const carte = carteDesGaranties(page);
+    const numeros = () => carte.locator('.reglette-svg .reglette-numero').evaluateAll((noeuds) => noeuds.map((noeud) => [noeud.textContent, noeud.dataset.vise]));
+    // Comme l'état de la galerie : le designer choisit la ligne de l'anneau, la septième garantie.
+    await carte.locator('.garantie[data-garantie="7"]').click();
+    assert.equal(await carte.locator('.garantie[aria-pressed="true"]').getAttribute('data-garantie'), '7');
+    assert.deepEqual((await numeros()).slice(0, 3), [['page', 'true'], ['carte', 'true'], ['boutons', 'false']]);
+    assert.equal(await carte.locator('.reglette-svg .reglette-page').count(), 1);
+    assert.equal(await carte.locator('.reglette-svg .reglette-carte').count(), 1);
+    // Deux arcs, un par fond jugé, partis de la nuance de l'anneau, tous deux tenus.
+    assert.equal(await carte.locator('.reglette-svg .reglette-arc').count(), 2);
+    assert.deepEqual(await carte.locator('.reglette-svg .reglette-arc').evaluateAll((arcs) => arcs.map((arc) => arc.dataset.verdict)), ['tenue', 'tenue']);
+    // Les deux résultats de la ligne sont rangés sous « sur la page » et « sur la carte ».
+    assert.deepEqual(await rangsRemplis(carte.locator('.garantie[data-garantie="7"]')), ['0', '1']);
+    // La carte de Light est blanche, et sa case porte la même couleur.
+    assert.equal(await carte.locator('.reglette-svg .reglette-carte').getAttribute('fill'), '#FFFFFF');
+    // En Dark, la carte est un gris plus clair que le fond de la page.
+    await choisirLeTheme(page, 'Dark');
+    const fond = (selecteur) => carte.locator(selecteur).getAttribute('fill');
+    assert.notEqual(await fond('.reglette-svg .reglette-carte'), await fond('.reglette-svg .reglette-page'));
+    assert.match(await fond('.reglette-svg .reglette-carte'), /^#[0-9A-F]{6}$/);
+    assert.deepEqual((await numeros()).slice(0, 3), [['page', 'true'], ['carte', 'true'], ['boutons', 'false']]);
   } finally {
     await page.close();
   }
@@ -834,7 +864,7 @@ test('[UI-09] [VER-20] en Dark inversé, Rouge #D94635 manque la garantie du tex
     const premiere = carte.locator('.garantie[data-garantie="1"]');
     assert.equal(await premiere.getAttribute('aria-pressed'), 'true', 'la ligne en échec est choisie d’office');
     // Le ratio est tronqué à deux décimales : 4,3052 s'écrit 4,30.
-    assert.match(await premiere.locator('.garantie-etat[data-rang="1"]').innerText(), /4,30/);
+    assert.match(await premiere.locator('.garantie-etat[data-rang="2"]').innerText(), /4,30/);
     const echec = carte.locator('.garantie[data-garantie="1"] + .garantie-echec');
     assert.equal(await echec.count(), 1, 'le bloc d’échec suit la première ligne');
     assert.match(await echec.innerText(), /^État default : 4,30:1 pour un minimum de 4,5:1/);
@@ -1897,7 +1927,7 @@ test('[UI-06] [ENT-14] la création est une carte en P2, en Standard et à une i
 });
 
 test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la réaffiche, une autre palette choisie ferme la carte, « Créer la palette » ouvre la nouvelle', async () => {
-  const page = await ouvrirSur('alertes-seules');
+  const page = await ouvrirSur('creation-en-texte-noir');
   try {
     const visibles = async () => ({
       titre: await page.locator('#panneau-creation .tete-de-la-palette').isVisible(),
@@ -1919,13 +1949,13 @@ test('[UI-06] la création ouverte masque la palette affichée, « Annuler » la
     assert.equal(await nouvelle.evaluate((bouton) => bouton === document.activeElement), true);
 
     await nouvelle.click();
-    await page.locator('.champ-creation').fill('#16A34A');
+    await page.locator('.champ-creation').fill('#1E6FD9');
     const avant = await compte(page);
     await page.getByRole('button', { name: 'Créer la palette', exact: true }).click();
     const demande = await prochaine(page, avant);
     assert.equal(demande.type, 'ranger-recette');
     assert.equal(await carte.isVisible(), false);
-    // La palette créée, #16A34A, manque une garantie : le pied paraît.
+    // La palette créée, #1E6FD9, manque le texte noir des boutons en Light : le pied paraît.
     assert.deepEqual(await visibles(), { titre: true, configuration: true, apercu: true, pied: true });
   } finally {
     await page.close();
@@ -3920,6 +3950,27 @@ test('[UI-04] I8 dans la vue États, le texte du bouton soft est surface/foregro
   }
 });
 
+test('[UI-04] I8 la table par thème : en Light, les fonds teintés de la vue États sont aux crans 100, 200 et 300 et leur texte au 800 ; en Dark, aux crans 300, 400 et 500 et leur texte au 950', async () => {
+  const page = await ouvrirSur('interface-de-test-dark');
+  try {
+    await ouvrirLaVueDesEtats(page);
+    // La rampe affichée est celle du nuancier : Vivid porte la référence de Bleu, et l'interface de test la peint.
+    const nuance = (cran) => page.locator(`#panneau-creation .pastille[data-profil="vivid"][data-cran="${cran}"]`).evaluate((pastille) => getComputedStyle(pastille).backgroundColor);
+    const soft = (colonne) => page.locator('.essai-etats [role="row"]:has(.essai-specimen, .essai-lien-peint)').nth(1).locator('[role="cell"]').nth(colonne).locator('.essai-specimen');
+    const fond = (colonne) => soft(colonne).evaluate((specimen) => getComputedStyle(specimen).backgroundColor);
+    const texte = (colonne) => soft(colonne).evaluate((specimen) => getComputedStyle(specimen).color);
+    for (const [theme, fonds, cranDuTexte] of [['Light', [100, 200, 300], 800], ['Dark', [300, 400, 500], 950]]) {
+      await choisirLeTheme(page, theme);
+      for (const [colonne, cran] of fonds.entries()) {
+        assert.equal(await fond(colonne), await nuance(cran), `${theme} : fond teinté de la colonne ${colonne}, cran ${cran}`);
+        assert.equal(await texte(colonne), await nuance(cranDuTexte), `${theme} : texte de la colonne ${colonne}, cran ${cranDuTexte}`);
+      }
+    }
+  } finally {
+    await page.close();
+  }
+});
+
 test('[UI-04] I8 dans le thème inversé (texte des boutons noir en Light), solid/hover du bouton plein vise la 600, solid/pressed la 500, solid/default la 700', async () => {
   const page = await ouvrirSur('texte-des-boutons-noir-noir');
   try {
@@ -4775,7 +4826,7 @@ test('Z4.9 [UI-13] un code tapé dans le sélecteur puis un clic sur la bascule 
   }
 });
 
-/** Vert, #16A34A : deux garanties Vivid manquées en Thème Light. Ouvre la modale par le lien sous le code. */
+/** Bleu, #1E6FD9, texte des boutons noir en Light : une garantie Vivid manquée en Thème Light. Ouvre la modale par le lien sous le code. */
 async function ouvrirLAjustement(page) {
   await carteDeLOnglet(page, 'Configuration de la palette').getByRole('button', { name: 'Ajuster la référence', exact: true }).click();
   const modale = page.getByRole('dialog', { name: 'Ajuster la référence' });
@@ -4791,12 +4842,12 @@ test('Z5.3 [UI-15] le lien ouvre la modale : la phrase qui dit pourquoi, les té
   try {
     const modale = await ouvrirLAjustement(page);
     assert.equal(await modale.getAttribute('aria-modal'), 'true');
-    assert.equal(await modale.locator('.ajustement-pourquoi').textContent(), 'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (ring).');
-    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#16A34A', '#16A34A']);
+    assert.equal(await modale.locator('.ajustement-pourquoi').textContent(), 'La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « texte des boutons » (solid/foreground).');
+    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#1E6FD9', '#1E6FD9']);
     assert.equal(await modale.getByRole('button', { name: 'Un pas plus sombre' }).evaluate((element) => element === document.activeElement), true, 'le premier pas a le focus');
     assert.match(await modale.locator('.ajustement-nuances').textContent(), /^Nuance \d+/);
     assert.deepEqual(await modale.locator('.ajustement-entete').evaluate((entete) => [...entete.children].map((cellule) => cellule.textContent)), ['Garantie', 'Thème', 'Avant', '', 'Après']);
-    assert.deepEqual(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-qui').allTextContents(), ['ring sur surface/default']);
+    assert.deepEqual(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-qui').allTextContents(), ['solid/foreground sur solid/default']);
     assert.equal(await modale.locator('.ajustement-ligne:not(.ajustement-entete) .ajustement-theme').first().textContent(), 'Light · Vivid');
     assert.equal(await modale.locator('.ajustement-groupe').isVisible(), false, 'à 770 px, le thème est une colonne');
     assert.equal(await modale.locator('.ajustement-bilan').textContent(), 'Soft ✓ inchangé · Vivid ✗ 1 inchangé');
@@ -4814,21 +4865,21 @@ test('Z5.3 [UI-15] rien ne change avant « Appliquer » ; Appliquer range la pro
   const page = await ouvrirSur('ajustement-ouvert', { width: 770, height: 720 });
   try {
     const modale = await ouvrirLAjustement(page);
-    await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
-    await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
-    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#16A34A', '#029D44']);
+    // Le noir sur la 700 manque 4,5:1 : il faut éclaircir la référence, d'un pas.
+    await modale.getByRole('button', { name: 'Un pas plus clair' }).click();
+    assert.deepEqual(await modale.locator('.ajustement-temoin .detail-code').allTextContents(), ['#1E6FD9', '#2272DC']);
     assert.equal(await modale.locator('.ajustement-bilan').textContent(), 'Soft ✓ inchangé · Vivid ✗ 1 → ✓');
     assert.deepEqual(await rangements(page), [], 'un pas ne range rien');
-    assert.equal(await referenceMontree(page), '#16A34A', 'un pas ne change pas la palette');
+    assert.equal(await referenceMontree(page), '#1E6FD9', 'un pas ne change pas la palette');
     await modale.getByRole('button', { name: 'Appliquer' }).click();
     assert.equal(await modale.isVisible(), false);
     // La demande passe par `postMessage` : elle arrive au relevé dans une tâche suivante.
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     const ranges = await rangements(page);
     assert.equal(ranges.length, 1);
-    assert.equal(ranges[0].recette.palettes[0].reference, '#029D44');
-    assert.equal(ranges[0].recette.palettes[0].originale, '#16A34A');
-    assert.deepEqual(ranges[0].recette.palettes[0].reglages, { porteur: 'vivid', clarte: { vivid: -0.02 } }, 'la modale pose la luminosité du porteur (R1)');
+    assert.equal(ranges[0].recette.palettes[0].reference, '#2272DC');
+    assert.equal(ranges[0].recette.palettes[0].originale, '#1E6FD9');
+    assert.deepEqual(ranges[0].recette.palettes[0].reglages, { porteur: 'vivid', clarte: { vivid: 0.01 } }, 'la modale pose la luminosité du porteur (R1)');
     assert.equal(await lienDAjustement(page).isVisible(), false, 'toutes les garanties tenues : le lien disparaît');
     assert.equal(await focusDans(page, '[aria-label="Configuration de la palette"] .colonnes-de-base .champ-hexa'), true, 'le focus revient au code');
     assert.equal(await page.locator('#app').evaluate((app) => app.inert), false);
@@ -4836,7 +4887,7 @@ test('Z5.3 [UI-15] rien ne change avant « Appliquer » ; Appliquer range la pro
     await page.getByRole('button', { name: 'Revenir à l’originale' }).click();
     await page.waitForFunction(() => window.demandes.filter(({ type }) => type === 'ranger-recette').length === 2, null, { timeout: 2000 });
     const [, retour] = await rangements(page);
-    assert.equal(retour.recette.palettes[0].reference, '#16A34A');
+    assert.equal(retour.recette.palettes[0].reference, '#1E6FD9');
     assert.equal(retour.recette.palettes[0].originale, undefined);
     assert.equal(retour.recette.palettes[0].reglages, undefined);
   } finally {
@@ -4854,13 +4905,13 @@ test('Z5.3 [UI-15] « Annuler », Échap et un clic sur le voile referment sans 
     };
     for (const [nom, fermer] of Object.entries(fermetures)) {
       const modale = await ouvrirLAjustement(page);
-      await modale.getByRole('button', { name: 'Un pas plus sombre' }).click();
+      await modale.getByRole('button', { name: 'Un pas plus clair' }).click();
       await modale.locator('.ajustement-pourquoi').click();
       assert.equal(await modale.isVisible(), true, `${nom} : un clic dans la modale la garde ouverte`);
       await fermer(modale);
       assert.equal(await modale.isVisible(), false, `${nom} referme la modale`);
       assert.equal(await lienDAjustement(page).evaluate((element) => element === document.activeElement), true, `${nom} rend le focus au lien`);
-      assert.equal(await referenceMontree(page), '#16A34A', `${nom} ne change rien`);
+      assert.equal(await referenceMontree(page), '#1E6FD9', `${nom} ne change rien`);
       assert.equal(await page.locator('#app').evaluate((app) => app.inert), false, `${nom} rend la page`);
     }
     assert.deepEqual(await rangements(page), []);
@@ -5676,7 +5727,7 @@ const deuxImages = (page) => page.evaluate(() => new Promise((resolve) => reques
  */
 const SANS_DEFILEMENT = (largeur) => ({ width: largeur, height: 1600 });
 
-test('[UI-20] [ENT-15] glisser la luminosité de Soft et Vivid de 0 vers +0,02 sur Vert, près d’un seuil, ne déplace pas le curseur d’un pixel, et le curseur s’arrête à sa limite', async () => {
+test('[UI-20] [ENT-15] glisser la luminosité de Soft et Vivid de 0 vers −0,05 sur Bleu, texte des boutons noir, près d’un seuil, ne déplace pas le curseur d’un pixel, et le curseur s’arrête à sa limite', async () => {
   const page = await ouvrirSur('ajuster-en-modale', SANS_DEFILEMENT(600));
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
@@ -5693,16 +5744,16 @@ test('[UI-20] [ENT-15] glisser la luminosité de Soft et Vivid de 0 vers +0,02 s
     await releverLesEcarts(page, `[aria-label="${nom}"]`);
     await souris('mouseMoved', x(0), y, 0);
     await souris('mousePressed', x(0), y, 1);
-    for (const valeur of [0.005, 0.01, 0.015, 0.02, 0.01, 0.02]) {
+    for (const valeur of [-0.01, -0.02, -0.03, -0.05, -0.03, -0.05]) {
       await souris('mouseMoved', x(valeur), y, 1);
       await deuxImages(page);
     }
     const ecarts = await ecartsReleves(page);
-    await souris('mouseReleased', x(0.02), y, 0);
-    // À +0,010, deux garanties tenues au départ manqueraient : le curseur s'arrête à +0,005, et la ligne de la plage dit pourquoi ([DER-22]).
-    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.005', 'le geste s’arrête à la limite');
+    await souris('mouseReleased', x(-0.05), y, 0);
+    // Au-delà de −0,035, une garantie tenue au départ manquerait : le curseur s'arrête à −0,035, et la ligne de la plage dit pourquoi ([DER-22]).
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '-0.035', 'le geste s’arrête à la limite');
     const plage = carte.locator('.reglages-de-la-palette > .ligne-fixe[data-ton="butee"] .ligne-fixe-texte');
-    assert.match(await plage.textContent(), /^Luminosité de Soft et Vivid : limite atteinte à \+0,005\. Au-delà, .+ tomberait à \d+,\d+:1, sous \d(,\d)?:1\.$/);
+    assert.match(await plage.textContent(), /^Luminosité de Soft et Vivid : limite atteinte à −0,035\. Au-delà, .+ tomberait à \d+,\d+:1, sous \d(,\d)?:1\.$/);
     assert.deepEqual([...new Set(ecarts)], [0], `écarts relevés à chaque image : ${ecarts.join(', ')} px`);
   } finally {
     await page.close();
@@ -5740,7 +5791,7 @@ test('[UI-17] une ligne fixe coupée s’ouvre au clic dans une bulle, sans rien
   try {
     const ligne = carteDeLOnglet(page, 'Configuration de la palette').locator('.ligne-de-la-reference');
     const texte = ligne.locator('.ligne-fixe-texte');
-    const complet = '1 garantie manquée en Thème Light · Ajustée depuis #15803D';
+    const complet = '1 garantie manquée en Thème Light · Ajustée depuis #1A6CD6';
     assert.equal(await texte.getAttribute('title'), complet);
     assert.ok(await texte.evaluate((element) => element.scrollWidth > element.clientWidth), 'à 500 px, le texte se coupe');
     assert.equal((await ligne.boundingBox()).height, 24);
@@ -5956,15 +6007,15 @@ test('[UI-20] le bilan ne s’annonce au lecteur d’écran qu’à la fin d’u
     await souris('mouseMoved', x(0), y, 0);
     await souris('mousePressed', x(0), y, 1);
     const pendant = [];
-    // Vers le bas, Vert répare ses deux garanties manquées : la limite laisse passer ce qui répare ([DER-19]).
-    for (const valeur of [-0.005, -0.01, -0.015, -0.02]) {
+    // Vers le haut, Bleu répare sa garantie manquée (le noir sur la 700 s'éclaircit) : la limite laisse passer ce qui répare ([DER-19]).
+    for (const valeur of [0.005, 0.01, 0.015, 0.02]) {
       await souris('mouseMoved', x(valeur), y, 1);
       await deuxImages(page);
       pendant.push(await annonce.textContent());
     }
     assert.deepEqual([...new Set(pendant)], [avant], 'rien ne s’annonce pendant le glisser');
     const bilanPendant = await page.locator('#panneau-creation .pied-texte').textContent();
-    await souris('mouseReleased', x(-0.02), y, 0);
+    await souris('mouseReleased', x(0.02), y, 0);
     await deuxImages(page);
     assert.notEqual(await annonce.textContent(), avant, 'le bilan changé s’annonce au relâcher');
     assert.ok(bilanPendant.startsWith(await annonce.textContent()), 'l’annonce reprend le bilan du pied');
@@ -6017,8 +6068,8 @@ test('[DER-19] [DER-21] [DER-22] glisser une réglette au-delà de sa limite pos
     // Bleu, nuances claires : −0,065 à +0,040, la borne haute tenue par l'ordre des nuances (étude, section 5.2).
     assert.equal(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), '', 'sans butée, la ligne garde sa place vide');
     const curseur = regletteDuBout(page, 'clair').getByRole('slider');
-    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.065', '0.04']);
-    assert.match(await curseur.getAttribute('aria-valuetext'), /^0,000\. Plage sûre de −0,065 à \+0,040$/);
+    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.045', '0.04']);
+    assert.match(await curseur.getAttribute('aria-valuetext'), /^0,000\. Plage sûre de −0,045 à \+0,040$/);
     assert.equal(await regletteDuBout(page, 'clair').locator('.reglette-interdit-haut').isVisible(), true, 'la piste est hachurée au-delà de la limite');
     await curseur.scrollIntoViewIfNeeded();
     const boite = await curseur.boundingBox();
@@ -6045,27 +6096,29 @@ test('[DER-09] [DER-19] au clavier, Fin et Origine posent une poignée sur ses b
   try {
     await choisirLOnglet(page, 'Luminosité');
     const sombre = poignee(page, 'sombre');
-    assert.deepEqual([await sombre.getAttribute('aria-valuemin'), await sombre.getAttribute('aria-valuemax')], ['-0.15', '0.055']);
+    assert.deepEqual([await sombre.getAttribute('aria-valuemin'), await sombre.getAttribute('aria-valuemax')], ['-0.15', '0.08']);
     await sombre.focus();
     let avant = await compte(page);
     await page.keyboard.press('End');
     let palette = await rangementDe(page, avant);
-    assert.equal(palette.derive.vivid.clarte.sombre, 0.055, 'Fin va à la borne permise');
+    assert.equal(palette.derive.vivid.clarte.sombre, 0.08, 'Fin va à la borne permise');
     await limitesCalculees(carteDeLOnglet(page, CARTE_DE_LA_DERIVE));
     avant = await compte(page);
     await poignee(page, 'sombre').focus();
     await page.keyboard.press('ArrowUp');
     assert.equal(await ligneDeLaPlage(page).getAttribute('data-ton'), 'butee');
-    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,055\. Au-delà, ring sur surface\/default \(Vivid, Dark\) tomberait à 2,95:1, sous 3:1\.$/);
+    assert.match(await ligneDeLaPlage(page).locator('.ligne-fixe-texte').textContent(), /^Luminosité, nuances sombres : limite atteinte à \+0,080\. Au-delà, surface\/foreground sur surface\/pressed \(Soft, Light\) tomberait à 4,45:1, sous 4,5:1\.$/);
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
-    // Les nuances sombres en butée, la borne basse des nuances claires se lit sur l'état du geste.
-    const clair = poignee(page, 'clair');
-    const basse = Number(await clair.getAttribute('aria-valuemin'));
-    await clair.focus();
+    // Les nuances sombres en butée haute, les limites se croisent ([DER-20]) : la borne basse des nuances claires remonte à zéro.
+    // Elle valait −0,065 quand G7 se jugeait contre `surface/default` en Light ; Origine se vérifie donc sur la poignée sombre.
+    assert.equal(Number(await poignee(page, 'clair').getAttribute('aria-valuemin')), 0);
+    const basse = Number(await sombre.getAttribute('aria-valuemin'));
+    await sombre.focus();
+    avant = await compte(page);
     await page.keyboard.press('Home');
     palette = await rangementDe(page, avant);
-    assert.equal(palette.derive.vivid.clarte.clair, basse);
+    assert.equal(palette.derive.vivid.clarte.sombre, basse);
     assert.ok(basse < 0, String(basse));
   } finally {
     await page.close();
@@ -6115,7 +6168,7 @@ test('[DER-11] « Tout rétablir » rend la teinte Tailwind, la saturation et la
   }
 });
 
-test('[UI-20] glisser une réglette du Color shift sur Vert jusqu’à sa butée ne déplace pas le curseur d’un pixel', async () => {
+test('[UI-20] glisser une réglette du Color shift sur Bleu, texte des boutons noir, jusqu’à sa butée ne déplace pas le curseur d’un pixel', async () => {
   const page = await ouvrirSur('ajuster-en-modale', SANS_DEFILEMENT(600));
   try {
     await page.keyboard.press('Escape');
@@ -6150,19 +6203,20 @@ test('[ENT-15] [DER-19] au clavier, Fin pose la luminosité du réglage global �
     await carte.getByRole('button', { name: 'Les deux' }).click();
     await limitesCalculees(carte);
     const curseur = carte.getByRole('slider', { name: 'Luminosité de Soft et Vivid' });
-    // Vert : une garantie tenue au départ manquerait sous −0,055, bien avant la borne fixe de −0,10.
-    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.055', '0.005']);
+    // Bleu, texte des boutons noir : une garantie tenue au départ manquerait sous −0,035, bien avant la borne fixe de −0,15 ;
+    // vers le haut, l'ordre des nuances arrête à +0,040.
+    assert.deepEqual([await curseur.getAttribute('aria-valuemin'), await curseur.getAttribute('aria-valuemax')], ['-0.035', '0.04']);
     let avant = await compte(page);
     await curseur.focus();
     await page.keyboard.press('End');
     const rangement = await prochaine(page, avant);
-    assert.deepEqual(rangement.recette.palettes[0].reglages.clarte, { soft: 0.005, vivid: 0.005 });
+    assert.deepEqual(rangement.recette.palettes[0].reglages.clarte, { soft: 0.04, vivid: 0.04 });
     await envoyer(page, rangee(rangement.demande));
     avant = await compte(page);
     await curseur.focus();
     await page.keyboard.press('ArrowRight');
-    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.005');
-    assert.match(await carte.locator('.reglages-de-la-palette > .ligne-fixe[data-ton="butee"] .ligne-fixe-texte').textContent(), /^Luminosité de Soft et Vivid : limite atteinte à \+0,005\./);
+    assert.equal(await curseur.getAttribute('aria-valuenow'), '0.04');
+    assert.match(await carte.locator('.reglages-de-la-palette > .ligne-fixe[data-ton="butee"] .ligne-fixe-texte').textContent(), /^Luminosité de Soft et Vivid : limite atteinte à \+0,04\./);
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant, 'un pas au-delà de la borne ne range rien');
   } finally {
@@ -6662,8 +6716,8 @@ const vueDuBilan = (page) => page.evaluate(() => {
   };
 });
 
-const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Vert', 'Grenat', 'Azur', 'Feuille'];
-const ETATS_DES_CARTES = { Vert: 'rouge', Feuille: 'rouge', Bleu: 'ambre', Azur: 'ambre', Indigo: 'ambre', Rose: 'ambre' };
+const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Sapin', 'Grenat', 'Azur', 'Bleu roi'];
+const ETATS_DES_CARTES = { Pourpre: 'rouge', 'Bleu roi': 'rouge', Bleu: 'ambre', Azur: 'ambre', Indigo: 'ambre', Rose: 'ambre' };
 const nomsDesCartes = (vue, filtre) => vue.cartes.filter(filtre).map((carte) => carte.nom);
 
 test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À corriger » actif, ses cartes en couleur, les autres atténuées, une ligne de détail par palette à corriger', async () => {
@@ -6673,13 +6727,13 @@ test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À c
     assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '2', 'true', true], ['ambre', 'À vérifier', '4', 'false', true], ['conforme', 'Conformes', '14', 'false', false]]);
     assert.deepEqual(vue.cartes.map((carte) => carte.nom), NOMS_DES_VINGT, 'toutes les palettes, dans l’ordre de la recette');
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Vert', 'Feuille']);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Pourpre', 'Bleu roi']);
     assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 18);
-    assert.equal(vue.cartes.find((carte) => carte.nom === 'Vert').nomAccessible, 'Vert, à corriger');
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Pourpre').nomAccessible, 'Pourpre, à corriger');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Bleu').nomAccessible, 'Bleu, à vérifier');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Jaune').nomAccessible, 'Jaune');
-    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Vert', 'Vérifier', 'Vérifier Vert', 3], ['Feuille', 'Vérifier', 'Vérifier Feuille', 3]]);
-    for (const ligne of vue.detail) assert.match(ligne.constat, /^Light · anneau de focus, 2,9\d:1$/);
+    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Pourpre', 'Vérifier', 'Vérifier Pourpre', 3], ['Bleu roi', 'Vérifier', 'Vérifier Bleu roi', 3]]);
+    for (const ligne of vue.detail) assert.match(ligne.constat, /^Light · texte des boutons, [34],\d\d:1$/);
     assert.equal(vue.toutConforme, null);
     // Un nom accessible qui dit le compte : « À corriger 2 ».
     assert.equal(await page.getByRole('button', { name: 'À corriger 2', exact: true }).isVisible(), true);
@@ -6717,12 +6771,12 @@ test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le d�
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
     vue = await vueDuBilan(page);
     assert.equal(vue.cartes.filter((carte) => !carte.attenuee).length, 14);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Vert', 'Azur', 'Feuille'].sort((a, b) => NOMS_DES_VINGT.indexOf(a) - NOMS_DES_VINGT.indexOf(b)));
+    assert.deepEqual(nomsDesCartes(vue, (carte) => carte.attenuee), ['Bleu', 'Rose', 'Indigo', 'Pourpre', 'Azur', 'Bleu roi'].sort((a, b) => NOMS_DES_VINGT.indexOf(a) - NOMS_DES_VINGT.indexOf(b)));
     assert.equal(vue.detail, null, 'sous « Conformes », pas de détail');
     assert.equal(await page.locator('#panneau-verification .bilan-ligne').count(), 0);
 
     await page.locator('.bilan-onglets [data-onglet="rouge"]').click();
-    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Vert', 'Feuille']);
+    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Pourpre', 'Bleu roi']);
   } finally { await page.close(); }
 });
 
@@ -6731,7 +6785,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
   try {
     const complet = messageDe('verification-bilan-a-corriger');
     const sansLesRouges = structuredClone(complet);
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Vert' && nom !== 'Feuille');
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Pourpre' && nom !== 'Bleu roi');
     const actifs = async () => (await vueDuBilan(page)).onglets.filter(([, , , presse]) => presse === 'true').map(([etat]) => etat);
 
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
@@ -6758,7 +6812,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
     await envoyer(page, { ...complet, demande: 6 });
     assert.deepEqual(await actifs(), ['rouge'], 'À corriger redevient l’onglet par défaut');
     vue = await vueDuBilan(page);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Vert', 'Feuille']);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Pourpre', 'Bleu roi']);
   } finally { await page.close(); }
 });
 
@@ -6766,7 +6820,7 @@ test('V3a [VER-18] à l’ouverture sans garantie manquée, « À vérifier » e
   const page = await ouvrir(MINIMALE);
   try {
     const sansLesRouges = structuredClone(messageDe('verification-bilan-a-corriger'));
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Vert' && nom !== 'Feuille');
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => nom !== 'Pourpre' && nom !== 'Bleu roi');
     await envoyer(page, sansLesRouges);
     await page.locator('#onglet-verification').click();
     await page.locator('#panneau-verification .bilan-des-palettes').waitFor();
@@ -6781,18 +6835,18 @@ test('V3a [VER-18] une carte, au clic ou au clavier, et « Vérifier » ouvrent 
     const page = await ouvrirLeBilan('verification-bilan-a-corriger');
     try {
       const avant = await compte(page);
-      const nom = geste === 'verifier' ? 'Feuille' : 'Jaune';
+      const nom = geste === 'verifier' ? 'Bleu roi' : 'Jaune';
       if (geste === 'carte') await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').click();
       else if (geste === 'clavier') {
         await page.locator('#panneau-verification .nuancier-carte[title="Jaune"]').focus();
         await page.keyboard.press('Enter');
-      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Feuille' }).getByRole('button', { name: 'Vérifier Feuille' }).click();
+      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Bleu roi' }).getByRole('button', { name: 'Vérifier Bleu roi' }).click();
       await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').waitFor();
       assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`, geste);
       assert.equal(await page.locator('#panneau-verification .bilan-des-palettes').isVisible(), false);
       assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), nom);
       assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true', 'on reste dans Vérification');
-      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Feuille' ? 'danger' : 'succes');
+      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Bleu roi' ? 'danger' : 'succes');
       // Création ouvre la même palette que le sélecteur aurait ouverte.
       await page.locator('#onglet-creation').click();
       assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
@@ -6825,9 +6879,9 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
   try {
     let vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '2'], ['ambre', 'To check', '4'], ['conforme', 'Passing', '14']]);
-    assert.equal(vue.cartes.find((carte) => carte.nom === 'Vert').nomAccessible, 'Vert, to fix');
-    assert.match(vue.detail[0].constat, /^Light · .+, 2\.9\d:1$/);
-    assert.equal(vue.detail[0].nomDuBouton, 'Verify Vert');
+    assert.equal(vue.cartes.find((carte) => carte.nom === 'Pourpre').nomAccessible, 'Pourpre, to fix');
+    assert.match(vue.detail[0].constat, /^Light · .+, [34]\.\d\d:1$/);
+    assert.equal(vue.detail[0].nomDuBouton, 'Verify Pourpre');
     assert.equal(vue.detail[0].bouton, 'Verify');
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     vue = await vueDuBilan(page);

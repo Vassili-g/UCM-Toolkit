@@ -1,11 +1,12 @@
 /** Les variables de thème, leurs crans et leurs portées, communes aux lecteurs de palettes. */
 export type TexteDesBoutons = 'blanc' | 'noir';
 export type SensDuTheme = 'normal' | 'inverse';
+export type ModeDuTheme = 'light' | 'dark';
 
 export const COULEUR_DU_TEXTE_DES_BOUTONS = { blanc: '#FFFFFF', noir: '#000000' } as const;
 export const TEXTE_DES_BOUTONS_PAR_DEFAUT = { light: 'blanc', dark: 'noir' } as const;
 
-export function sensDuTheme(mode: 'light' | 'dark', texte: TexteDesBoutons): SensDuTheme {
+export function sensDuTheme(mode: ModeDuTheme, texte: TexteDesBoutons): SensDuTheme {
   return texte === TEXTE_DES_BOUTONS_PAR_DEFAUT[mode] ? 'normal' : 'inverse';
 }
 
@@ -25,31 +26,48 @@ export type VariablePropreAuNeutre = (typeof VARIABLES_DU_NEUTRE)[number];
 export type VariableGlobale = (typeof VARIABLES_GLOBALES)[number];
 export type VariableDuTheme = VariableDePalette | VariablePropreAuNeutre | VariableGlobale | `elevation/${(typeof NIVEAUX_D_ELEVATION_DU_THEME)[number]}`;
 
+/** Une table par thème et par sens : en Dark, les surfaces montent aux crans 300 à 500 et leur texte au 950. */
 export const TABLE_DES_DOSSIERS = {
-  normal: {
-    'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
-    'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800,
-    'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
+  light: {
+    normal: {
+      'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
+      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800,
+      'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
+    },
+    inverse: {
+      'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
+      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 900, 'surface/border': 900,
+      'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
+    },
   },
-  inverse: {
-    'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
-    'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 900, 'surface/border': 900,
-    'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
+  dark: {
+    normal: {
+      'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
+      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950,
+      'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
+    },
+    inverse: {
+      'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
+      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950,
+      'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
+    },
   },
-} as const satisfies Record<SensDuTheme, Record<VariableDePalette, number | 'texteDesBoutons'>>;
+} as const satisfies Record<ModeDuTheme, Record<SensDuTheme, Record<VariableDePalette, number | 'texteDesBoutons'>>>;
 
+/** Les trois couleurs désactivées ne dépendent ni du thème ni du sens. */
 const CRANS_GLOBAUX = { 'disabled/background': 200, 'disabled/foreground': 500, 'disabled/border': 500 } as const;
 
 /** Les couleurs du neutre hors rampe et les élévations rendent `undefined` : elles ne visent aucun cran. */
-export function cranDeLaVariable(variable: VariableDuTheme, sens: SensDuTheme): number | 'texteDesBoutons' | undefined {
-  if (variable === 'page/foreground-subtle') return TABLE_DES_DOSSIERS[sens]['page/foreground'];
+export function cranDeLaVariable(variable: VariableDuTheme, mode: ModeDuTheme, sens: SensDuTheme): number | 'texteDesBoutons' | undefined {
+  const table = TABLE_DES_DOSSIERS[mode][sens];
+  if (variable === 'page/foreground-subtle') return table['page/foreground'];
   if (variable in CRANS_GLOBAUX) return CRANS_GLOBAUX[variable as VariableGlobale];
-  if (variable in TABLE_DES_DOSSIERS[sens]) return TABLE_DES_DOSSIERS[sens][variable as VariableDePalette];
+  if (variable in table) return table[variable as VariableDePalette];
   return undefined;
 }
 
-export function cransRequis(sens: SensDuTheme): number[] {
-  const crans = Object.values(TABLE_DES_DOSSIERS[sens]).filter((cran) => typeof cran === 'number');
+export function cransRequis(mode: ModeDuTheme, sens: SensDuTheme): number[] {
+  const crans = Object.values(TABLE_DES_DOSSIERS[mode][sens]).filter((cran) => typeof cran === 'number');
   return [...new Set(crans)].sort((a, b) => a - b);
 }
 
@@ -66,19 +84,19 @@ export function rangDuCranLeger(crans: readonly number[]): number {
 }
 
 /** Les couleurs sans cran sont présentes indépendamment de la liste des nuances. */
-export function variablePresente(variable: VariableDuTheme, crans: readonly number[], sens: SensDuTheme): boolean {
-  const cran = cranDeLaVariable(variable, sens);
+export function variablePresente(variable: VariableDuTheme, crans: readonly number[], mode: ModeDuTheme, sens: SensDuTheme): boolean {
+  const cran = cranDeLaVariable(variable, mode, sens);
   return typeof cran !== 'number' || crans.includes(cran);
 }
 
 /** Les variables du cran à l'indice `rang`, dans l'ordre de la table ; le neutre ajoute ses variables numériques. */
-export function variablesDuCran(crans: readonly number[], rang: number, sens: SensDuTheme, neutre: boolean): VariableDuTheme[] {
+export function variablesDuCran(crans: readonly number[], rang: number, mode: ModeDuTheme, sens: SensDuTheme, neutre: boolean): VariableDuTheme[] {
   const cran = crans[rang];
   if (cran === undefined) return [];
   const variables: readonly VariableDuTheme[] = neutre
     ? [...VARIABLES_DE_PALETTE, ...VARIABLES_DU_NEUTRE, ...VARIABLES_GLOBALES]
     : VARIABLES_DE_PALETTE;
-  return variables.filter((variable) => cranDeLaVariable(variable, sens) === cran);
+  return variables.filter((variable) => cranDeLaVariable(variable, mode, sens) === cran);
 }
 
 export const ETAT_DU_FOND = {

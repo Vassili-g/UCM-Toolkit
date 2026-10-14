@@ -62,6 +62,7 @@ export interface CouleursDeLInterface {
   readonly fond: string;
   readonly encre: string;
   readonly encreSeconde: string;
+  readonly mode: Mode;
   readonly sens: SensDuTheme;
   readonly texteDesBoutons: TexteDesBoutons;
   /** La couleur d'une variable, dans l'intensité montrée ; `solid/foreground` est le texte des boutons du thème. */
@@ -100,10 +101,11 @@ function construireVues(i18n: Localisation) {
       fond,
       encre: encres.encre,
       encreSeconde: encres.seconde,
+      mode,
       sens,
       texteDesBoutons,
       variable(variable) {
-        const cran = TABLE_DES_DOSSIERS[sens][variable];
+        const cran = TABLE_DES_DOSSIERS[mode][sens][variable];
         if (cran === 'texteDesBoutons') return COULEUR_DU_TEXTE_DES_BOUTONS[texteDesBoutons];
         const rang = analyse.grille.crans.indexOf(cran);
         return rang < 0 ? fond : rampe[rang].hexa;
@@ -504,7 +506,7 @@ function construireVues(i18n: Localisation) {
       const couleurs = couleursMontrees;
       bulle.replaceChildren(...(element.getAttribute('data-variables') ?? '').split(';').map((paire) => {
         const [propriete, variable] = paire.split('=') as [Propriete, VariableDePalette];
-        const cran = TABLE_DES_DOSSIERS[couleurs.sens][variable];
+        const cran = TABLE_DES_DOSSIERS[couleurs.mode][couleurs.sens][variable];
         const ligne = noeud('div');
         ligne.className = 'essai-bulle-ligne';
         const quoi = noeud('span');

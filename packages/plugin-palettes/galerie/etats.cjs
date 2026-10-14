@@ -400,8 +400,8 @@ const montrerLeThemeDark = { clic: '#panneau-creation .tete-de-la-palette .bascu
  */
 const defilerJusquAuDernierBoutonDeLEssai = { touche: { dans: '#panneau-creation .essai-actions .essai-bouton:last-child', cle: 'Shift' } };
 
-/** Vert, ajusté d'un pas plus sombre : #16A34A devient #0DA047, et l'originale se garde (W7). */
-const VERT_AJUSTE = { ...palette('p-2b3c4d5e', 'Vert', '#0DA047'), originale: '#16A34A' };
+/** Bleu, texte des boutons noir en Light, ajusté d'un pas plus clair : #1E6FD9 devient #2272DC, et l'originale se garde (W7). */
+const BLEU_AJUSTE = { ...palette('p-2b3c4d5e', 'Bleu', '#2272DC'), originale: '#1E6FD9', reglages: { porteur: 'vivid', clarte: { vivid: 0.01 } } };
 /** Déplier une carte de réglage attend la fin du calcul de ses limites ([DER-20]). */
 const deplierLaDerive = { clic: '[aria-label="Color shift"] .carte-bascule', attendre: '.editeur-derive[data-limites="pretes"]' };
 /** Le dépliant « Réglages avancés » de la configuration : modèle, intensités et référence exacte (recette v8, R7). */
@@ -453,6 +453,12 @@ const CINQ_ETATS = SEPT_PALETTES.slice(0, 5);
  */
 const texteNoirEnLight = avecLeTexteDesBoutons('noir', 'noir');
 
+/**
+ * Le témoin d'une palette qui manque une garantie, quand elle est seule dans
+ * le fichier : Bleu, avec le texte des boutons noir en Light (donc inversé).
+ */
+const BLEU_FAUTIF = palette('p-2b3c4d5e', 'Bleu', '#1E6FD9');
+
 /** Deux fautes : une courbe claire qui remonte au 500, un fond sombre à cinq chiffres. */
 function recetteCassee() {
   const recette = recetteParDefaut();
@@ -474,11 +480,11 @@ const ETATS = [
   {
     id: 'ajuster-en-modale',
     titre: 'Ajuster la référence, en modale',
-    quand: 'Vert manque une garantie en Thème Light ; le designer ouvre « Ajuster la référence ».',
-    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « anneau de focus » (ring). », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
+    quand: 'Le texte des boutons du thème Light est noir : Bleu manque une garantie en Thème Light ; le designer ouvre « Ajuster la référence ».',
+    regarder: 'La modale centrée sur le voile, 520 px au plus : « La palette utilise votre couleur telle quelle. En Thème Light, elle est trop claire pour « texte des boutons » (solid/foreground). », les deux témoins, les pas, la ligne des nuances, le code, le tableau avant et après, le bilan par intensité, puis Annuler et Appliquer ; sans luminosité. À 500 px, le thème et l’intensité en titre, chaque garantie sur une ligne.',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
+      etatDuFichier(rangee([BLEU_FAUTIF], texteNoirEnLight)),
       { clic: '[aria-label="Configuration de la palette"] .colonnes-de-base .lien-de-constat' },
     ],
   },
@@ -700,11 +706,11 @@ const ETATS = [
   {
     id: 'reglage-global-en-butee',
     titre: 'Réglage global en butée',
-    quand: 'Vert, deux intensités, « Les deux » : le designer pousse la luminosité à sa borne permise, +0,005, puis d’un pas au-delà.',
+    quand: 'Le texte des boutons du thème Light est noir ; Bleu, deux intensités, « Les deux » : le designer pousse la luminosité à sa borne permise, +0,005, puis d’un pas au-delà.',
     regarder: 'Le pouce de la luminosité contre sa zone hachurée ; la ligne en ton de butée « Luminosité de Soft et Vivid : limite atteinte à +0,005. Au-delà, … tomberait à …, sous 3:1. ».',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
+      etatDuFichier(rangee([BLEU_FAUTIF], texteNoirEnLight)),
       deplierLesReglages,
       { clic: '.cible-des-reglages .bascule-option:nth-child(3)', attendre: '.reglages-de-la-palette[data-limites="pretes"]' },
       { touche: { dans: '.reglages-de-la-palette > .reglette:nth-child(5) .reglette-curseur', cle: 'End' } },
@@ -1371,9 +1377,17 @@ const ETATS = [
     id: 'garanties-respectees',
     titre: 'Garanties respectées',
     quand: 'Bleu tient toutes ses garanties, texte des boutons blanc en Light ; le designer ouvre Vérification : la carte est sur le texte des boutons.',
-    regarder: 'Le verdict d’avertissement, « 64 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron et sans thème dans son en-tête : le thème se choisit dans la ligne du titre « Palette Bleu », par la bascule « Aperçu » Light, Dark ; en tête du corps, une rangée dont le choix « Afficher », calé à droite, porte les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, sept lignes sans numéro, « Textes lisibles » puis « Éléments visibles », sous les quatre colonnes « sur la page », default, hover et pressed, la réglette avec ses deux repères, page et boutons, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
+    regarder: 'Le verdict d’avertissement, « 64 garanties tenues » et le point à vérifier de Bleu ; la carte fixe, sans chevron et sans thème dans son en-tête : le thème se choisit dans la ligne du titre « Palette Bleu », par la bascule « Aperçu » Light, Dark ; en tête du corps, une rangée dont le choix « Afficher », calé à droite, porte les segments « Soft ✓ » et « Vivid ✓ », Vivid pressé, sept lignes sans numéro, « Textes lisibles » puis « Éléments visibles », sous les cinq colonnes « sur la page », « sur la carte », default, hover et pressed, la réglette avec ses trois repères, page, carte et boutons, et les numéros sous chaque spécimen ; le pied et « Passer à Gestion ».',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification],
+  },
+  {
+    id: 'garantie-g7-page-et-carte',
+    titre: 'Garantie de l’anneau, sur la page et sur la carte',
+    quand: 'Bleu tient toutes ses garanties ; dans Vérification, le designer choisit la ligne de l’anneau de focus.',
+    regarder: 'La réglette montre trois cases avant les nuances, « page », « carte » et « boutons » ; la ligne de l’anneau est choisie et trace deux arcs depuis la nuance de l’anneau, l’un vers « page », l’autre vers « carte », dont les numéros sont en évidence ; sous les colonnes « sur la page » et « sur la carte », la ligne porte deux résultats tenus.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification, { clic: '#panneau-verification .garantie[data-garantie="7"]' }],
   },
   {
     id: 'garantie-en-echec',
@@ -1467,19 +1481,19 @@ const ETATS = [
   {
     id: 'reference-ajustee',
     titre: 'Référence ajustée',
-    quand: 'La référence #16A34A a été ajustée d’un pas plus sombre, en #0DA047, et l’originale est gardée.',
-    regarder: 'Sous le code #0DA047, « Ajustée depuis #16A34A · Revenir à l’originale », sans « Ajuster la référence » : les garanties sont tenues ; le ◆ au 600 dans les deux thèmes.',
+    quand: 'Le texte des boutons du thème Light est noir ; la référence #1E6FD9 a été ajustée d’un pas plus clair, en #2272DC, et l’originale est gardée.',
+    regarder: 'Sous le code #2272DC, « Ajustée depuis #1E6FD9 · Revenir à l’originale », sans « Ajuster la référence » : les garanties sont tenues ; le ◆ au 600 dans les deux thèmes.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([VERT_AJUSTE]))],
+    atteinte: [etatDuFichier(rangee([BLEU_AJUSTE], texteNoirEnLight))],
   },
   {
     id: 'avertissement-long',
     titre: 'Avertissement long, sur une ligne fixe',
-    quand: 'Vert, #16A34A, garde l’originale #15803D d’un ajustement et manque encore une garantie ; le designer clique la ligne sous le code.',
+    quand: 'Le texte des boutons du thème Light est noir ; Bleu, #1E6FD9, garde l’originale #1A6CD6 d’un ajustement et manque encore une garantie ; le designer clique la ligne sous le code.',
     regarder: 'La ligne de 24 px sous le code : ✗, le texte coupé par une ellipse, puis « Ajuster la référence » et « Revenir à l’originale ». La bulle posée sous elle, par-dessus les cartes, dans la fenêtre, avec le texte entier ; rien n’a bougé dessous. À 500 × 520, le texte se réduit à quelques lettres et les deux gestes restent entiers.',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([{ ...palette('p-2b3c4d5e', 'Vert', '#16A34A'), originale: '#15803D' }])),
+      etatDuFichier(rangee([{ ...BLEU_FAUTIF, originale: '#1A6CD6' }], texteNoirEnLight)),
       { clic: '[aria-label="Configuration de la palette"] .ligne-de-la-reference .ligne-fixe-texte' },
     ],
   },
@@ -1503,6 +1517,14 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU])), ouvrirLaVerification],
   },
   {
+    id: 'creation-en-texte-noir',
+    titre: 'Création, texte des boutons noir en Light',
+    quand: 'Le texte des boutons du thème Light est noir ; Jaune tient ses garanties. Le designer ouvre la création d’une palette.',
+    regarder: 'Création sur Jaune, sans pied, car aucune garantie ne manque ; une palette créée sur #1E6FD9 y manque le texte noir des boutons en Light, et le pied « Vérifier » paraît.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([JAUNE], texteNoirEnLight))],
+  },
+  {
     id: 'verification-libre',
     titre: 'Vérification d’une palette libre',
     quand: 'Une palette libre, sortie du modèle : ni rôles, ni garanties ; le designer ouvre Vérification.',
@@ -1513,22 +1535,21 @@ const ETATS = [
   {
     id: 'verdicts-du-selecteur',
     titre: 'Verdicts dans le sélecteur',
-    quand: 'Le fichier porte Vert, qui manque des garanties, Bleu, qui a un point à vérifier, et Jaune ; le designer ouvre la liste.',
-    regarder: 'À droite de chaque option, ✗ en danger pour Vert, ! en avertissement pour Bleu, ✓ en succès pour Jaune ; le ✗ de Vert, la palette ouverte, sur le bouton, avant la flèche.',
+    quand: 'Le texte des boutons du thème Light est noir ; le fichier porte Bleu, qui manque des garanties, Azur, qui a un point à vérifier, et Jaune ; le designer ouvre la liste.',
+    regarder: 'À droite de chaque option, ✗ en danger pour Bleu, ! en avertissement pour Azur, ✓ en succès pour Jaune ; le ✗ de Bleu, la palette ouverte, sur le bouton, avant la flèche.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A'), BLEU, JAUNE])), { clic: '.selecteur-bouton' }],
+    atteinte: [etatDuFichier(rangee([BLEU_FAUTIF, { ...palette('p-6e7f8091', 'Azur', '#2272DD'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } }, JAUNE], texteNoirEnLight)), { clic: '.selecteur-bouton' }],
   },
   {
     id: 'ajustement-ouvert',
     titre: 'Ajuster la référence',
-    quand: 'Sur Vert, #16A34A, le designer ouvre « Ajuster la référence » et fait deux pas plus sombres.',
-    regarder: 'La modale après deux pas : Originale #16A34A et Proposition #029D44 côte à côte, la piste de luminosité entre « − » et « + », la ligne de la nuance visée, le code, la garantie passée de ✗ à ✓ avec son badge, « Soft ✓ inchangé · Vivid ✗ 1 → ✓ », puis Annuler et Appliquer actif.',
+    quand: 'Le texte des boutons du thème Light est noir ; sur Bleu, #1E6FD9, le designer ouvre « Ajuster la référence » et fait un pas plus clair.',
+    regarder: 'La modale après un pas : Originale #1E6FD9 et Proposition #2272DC côte à côte, la piste de luminosité entre « − » et « + », la ligne de la nuance visée, le code, la garantie passée de ✗ à ✓ avec son badge, « Soft ✓ inchangé · Vivid ✗ 1 → ✓ », puis Annuler et Appliquer actif.',
     existe: true,
     atteinte: [
-      etatDuFichier(rangee([palette('p-2b3c4d5e', 'Vert', '#16A34A')])),
+      etatDuFichier(rangee([BLEU_FAUTIF], texteNoirEnLight)),
       { clic: '[aria-label="Configuration de la palette"] .colonnes-de-base .lien-de-constat' },
-      { clic: '[aria-label="Un pas plus sombre"]' },
-      { clic: '[aria-label="Un pas plus sombre"]' },
+      { clic: '[aria-label="Un pas plus clair"]' },
     ],
   },
   {
@@ -1852,21 +1873,28 @@ ETATS.push(
  * 0,05 en ΔEok ferait une paire trop proche.
  */
 const VINGT_PALETTES_CONFORMES = [
-  ['Bleu', '#1E6FD9'], ['Jaune', '#FACC15'], ['Rouge', '#D94635'], ['Violet', '#7C3AED'], ['Cyan', '#0891B2'],
-  ['Ardoise', '#6B7280'], ['Rose', '#DB2777'], ['Indigo', '#4F46E5'], ['Lime', '#65A30D'], ['Teal', '#0D9488'],
-  ['Fuchsia', '#C026D3'], ['Pourpre', '#9333EA'], ['Sable', '#A8A29E'], ['Marine', '#1E3A8A'], ['Cuivre', '#B25E34'],
+  ['Bleu', '#1E6FD9'], ['Jaune', '#FACC15'], ['Rouge', '#D84924'], ['Violet', '#723FF2'], ['Cyan', '#0891B2'],
+  ['Ardoise', '#6B7280'], ['Rose', '#DB2777'], ['Indigo', '#5954F3'], ['Lime', '#65A30D'], ['Teal', '#0D9488'],
+  ['Fuchsia', '#C026D3'], ['Pourpre', '#9333EA'], ['Sable', '#A8A29E'], ['Marine', '#004572'], ['Cuivre', '#AA5A25'],
   ['Moutarde', '#B2B234'], ['Sapin', '#34B25E'], ['Grenat', '#B23488'], ['Brume', '#94A3B8'], ['Mauve', '#897288'],
 ];
 const identifiantDuBilan = (rang) => `p-b11a0${rang.toString(16).padStart(3, '0')}`;
 const PARTS_PRESQUE_EGALES = { soft: 0.5, vivid: 0.55, origine: 'designer' };
 
 /**
- * Les mêmes vingt palettes, cinq remplacées : Vert et Feuille manquent la
- * garantie de l'anneau de focus en Light (à corriger) ; Azur et Bleu forment une
- * paire trop proche, et Indigo et Rose ont Soft et Vivid presque identiques
- * (à vérifier). Quatorze palettes restent conformes.
+ * Les mêmes vingt palettes, texte des boutons noir en Light. Ce réglage fait
+ * manquer à Pourpre, et à Bleu roi qui prend la place de Mauve, le texte noir
+ * des boutons sur solid/default (à corriger) ; Azur et Bleu forment une paire
+ * trop proche, et Indigo et Rose ont Soft et Vivid presque identiques (à
+ * vérifier). Les autres palettes que ce réglage ferait manquer prennent une
+ * référence un peu plus claire, choisie avec le moteur : quatorze palettes
+ * restent conformes.
  */
-const REMPLACEES_PAR_LE_BILAN = { Sapin: ['Vert', '#16A34A'], Mauve: ['Feuille', '#15A34B'], Brume: ['Azur', '#2272DD'] };
+const REMPLACEES_PAR_LE_BILAN = {
+  Bleu: ['Bleu', '#2373DE'], Violet: ['Violet', '#695AFF'], Ardoise: ['Ardoise', '#717886'], Indigo: ['Indigo', '#6363FF'],
+  Lime: ['Lime', '#6BA91B'], Fuchsia: ['Fuchsia', '#C730DA'], Cuivre: ['Cuivre', '#B1602C'], Grenat: ['Grenat', '#C34AA2'],
+  Brume: ['Azur', '#2272DD'], Mauve: ['Bleu roi', '#1E6FD9'],
+};
 const VINGT_PALETTES_A_VERIFIER = VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => {
   const [nomFinal, referenceFinale] = REMPLACEES_PAR_LE_BILAN[nom] ?? [nom, reference];
   const suivante = palette(identifiantDuBilan(rang), nomFinal, referenceFinale);
@@ -1877,11 +1905,11 @@ ETATS.push(
   {
     id: 'verification-bilan-a-corriger',
     titre: 'Vérification sans palette ouverte, à corriger',
-    quand: 'Le fichier porte vingt palettes ; deux manquent une garantie, deux sont trop proches l’une de l’autre, deux ont Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
-    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 2 », « À vérifier 4 » et « Conformes 14 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Vert et Feuille, un point ambre sur Bleu, Azur, Indigo et Rose, les deux cartes à corriger en couleur et les dix-huit autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, « Light · anneau de focus, 2,91:1 » en texte secondaire, et « Vérifier ».',
+    quand: 'Le fichier porte vingt palettes, le texte des boutons du thème Light est noir ; deux manquent une garantie, deux sont trop proches l’une de l’autre, deux ont Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
+    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 2 », « À vérifier 4 » et « Conformes 14 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Pourpre et Bleu roi, un point ambre sur Bleu, Azur, Indigo et Rose, les deux cartes à corriger en couleur et les dix-huit autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, « Light · anneau de focus, 2,91:1 » en texte secondaire, et « Vérifier ».',
     existe: true,
     sansPaletteChoisie: true,
-    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification],
+    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER, texteNoirEnLight)), ouvrirLaVerification],
   },
   {
     id: 'verification-bilan-a-verifier',
@@ -1890,7 +1918,7 @@ ETATS.push(
     regarder: 'L’onglet « À vérifier 4 » actif. Bleu, Rose, Indigo et Azur en couleur, les seize autres atténuées mais toujours cliquables. Le détail compte quatre lignes : « trop proche de Azur, ΔEok 0,01 » pour Bleu, « trop proche de Bleu, ΔEok 0,01 » pour Azur, et pour Rose et Indigo la phrase « Soft et Vivid sont presque identiques sur ces nuances. ».',
     existe: true,
     sansPaletteChoisie: true,
-    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
+    atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER, texteNoirEnLight)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
   },
   {
     id: 'verification-bilan-tout-conforme',

@@ -12,6 +12,7 @@ import {
   PAS_DU_COLOR_SHIFT,
   arrondir,
   balayerLaLimite,
+  courbesParDefaut,
   limiteDynamique,
   ordreTenu,
   verifierPromesses,
@@ -22,7 +23,7 @@ import {
   type Promesse,
   type Recette,
 } from '../src/index';
-import { paletteTailwind, recetteAvec } from './fabrique';
+import { copie, paletteTailwind, recetteAvec } from './fabrique';
 
 type Bout = 'clair' | 'sombre';
 
@@ -51,7 +52,8 @@ function limite(recette: Recette, palette: Palette, grandeur: GrandeurDuColorShi
 }
 
 const cle = (promesse: Promesse): string => {
-  const fond = promesse.second.nature === 'cran' ? promesse.second.cran : promesse.second.nature;
+  const { second } = promesse;
+  const fond = second.nature === 'cran' ? second.cran : second.nature === 'fond' ? second.fond : second.nature;
   return `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${fond}`;
 };
 const tenuesDe = (recette: Recette, palette: Palette): Set<string> =>
@@ -128,15 +130,19 @@ test('[DER-20] les limites se croisent : la luminosité sombre posée en butée 
     const { bas, haut } = limite(recette, avec(palette, 'clarte', 'sombre', butee), 'teinte', 'sombre');
     teintes[nom] = [bas.valeur, haut.valeur];
   }
-  // Mesure du moteur aux garanties G1 à G7 : Bleu ne descend plus sous 0°, Jaune ne monte plus au-dessus de 0°,
-  // Rouge de +15°. Sauge ne se resserre plus : sa borne reste celle du réglage, +90°.
-  assert.deepEqual(teintes, { Bleu: [0, 90], Rouge: [-90, 15], Jaune: [-90, 0], Sauge: [-90, 90] });
+  // Mesure du moteur aux garanties G1 à G7, G7 jugée contre la page et la carte : à la butée haute de la luminosité
+  // sombre, l'anneau Dark touche le seuil de la carte. Bleu ne bouge plus que de 5,11° à 7°, Jaune ne monte plus
+  // au-dessus de −5°, Rouge de +5°. Sauge ne se resserre plus : sa borne reste celle du réglage, +90°.
+  assert.deepEqual(teintes, { Bleu: [5.11, 7], Rouge: [-90, 5], Jaune: [-90, -5], Sauge: [-90, 90] });
 });
 
-test('[DER-19] une promesse manquée au départ ne borne rien : Vert la laisse manquer sur toute la plage de teinte', () => {
-  const { recette, palette } = neuve('#16A34A');
+test('[DER-19] une promesse manquée au départ ne borne rien : Bleu, texte des boutons noir, la laisse manquer sur toute la plage de teinte', () => {
+  // G7 jugée contre la carte, Vert ne manque plus rien par défaut : Bleu manque G1 en Light inversé (texte noir).
+  const noir = { light: 'noir', dark: 'noir' } as const;
+  const palette = paletteTailwind('p-000000c1', '#1E6FD9');
+  const recette: Recette = { ...recetteAvec(palette), texteDesBoutons: noir, courbes: courbesParDefaut(11, noir) };
   const manquees = verifierPromesses(recette, palette).filter((promesse) => promesse.verdict === 'manquee');
-  assert.ok(manquees.length > 0, 'Vert manque des garanties sans réglage');
+  assert.ok(manquees.length > 0, 'Bleu manque des garanties sans réglage');
   const { bas, haut } = limite(recette, palette, 'teinte', 'clair');
   assert.deepEqual([bas, haut], [{ valeur: -90, cause: null }, { valeur: 90, cause: null }]);
 });
@@ -168,7 +174,34 @@ test('[DER-20] le balayage rend la main après chaque candidate et rend la même
     rendus += 1;
     pas = balayage.next();
   }
-  // −0,065 à +0,040 : treize pas vers le bas, huit vers le haut, chacun suivi d'une main rendue.
-  assert.equal(rendus, 21);
+  // −0,045 à +0,040 : neuf pas vers le bas, huit vers le haut, chacun suivi d'une main rendue. En Dark, le texte de
+  // `surface` au 950 sur le 500 de `surface/pressed` arrête le bas ; il s'arrêtait plus bas avec la table d'avant.
+  assert.equal(rendus, 17);
   assert.deepEqual(pas.value, limiteDynamique(demande));
+});
+
+test('[DER-20] [VER-21] la limite ne borne pas le réglage par la promesse de la carte, manquée au départ, alors que la page de la même garantie est tenue', () => {
+  const { recette: neutre, palette } = neuve('#1E6FD9');
+  const rang = neutre.crans.indexOf(600);
+  // Une clarté d'anneau Dark qui tient G7 contre la page et la manque contre la carte, plus claire.
+  let recette: Recette | null = null;
+  for (let L = 0.4; L <= 0.6 && !recette; L += 0.002) {
+    const essai = copie(neutre) as Recette;
+    (essai.courbes.dark as number[])[rang] = L;
+    const g7 = verifierPromesses(essai, palette).filter((p) => p.garantie.numero === 7 && p.mode === 'dark' && p.profil === 'soft');
+    if (g7.length === 2 && g7[0].verdict === 'tenue' && g7[1].verdict === 'manquee') recette = essai;
+  }
+  assert.ok(recette, 'aucune clarté ne sépare la page de la carte');
+  const g7 = verifierPromesses(recette, palette).filter((p) => p.garantie.numero === 7 && p.mode === 'dark' && p.profil === 'soft');
+  assert.deepEqual(g7.map((p) => p.second.nature === 'fond' && p.second.fond), ['page', 'carte']);
+  assert.notEqual(cle(g7[0]), cle(g7[1]), 'la page et la carte ont chacune leur clé');
+  const causes: string[] = [];
+  for (const grandeur of GRANDEURS) {
+    for (const bout of BOUTS) {
+      const { bas, haut } = limite(recette, palette, grandeur, bout);
+      for (const borne of [bas, haut]) if (borne.cause?.nature === 'promesse') causes.push(cle(borne.cause.promesse));
+    }
+  }
+  assert.ok(causes.length > 0);
+  assert.ok(!causes.includes(cle(g7[1])), `la carte, manquée au départ, borne un réglage : ${causes.join(', ')}`);
 });

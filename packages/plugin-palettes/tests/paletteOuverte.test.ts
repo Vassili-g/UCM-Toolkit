@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference, passerEnLibre, remplacerPalette } from '../src/edition';
@@ -20,10 +20,16 @@ const CYAN = nouvelle('p-0000000a', '#0891B2');
 const VOISIN = nouvelle('p-0000000b', '#0992B3');
 const ARDOISE = nouvelle('p-0000000c', '#6B7280');
 const JAUNE = nouvelle('p-0000000d', '#FACC15');
-/** Bleu confond ses deux profils sur trois nuances au moins, Vert manque deux garanties en Thème Light. */
+/** Bleu confond ses deux profils sur trois nuances au moins, Bleu roi manque G1 en Thème Light quand le texte des boutons y est noir. */
 const BLEU: Palette = { ...nouvelle('p-0000000e', '#1E6FD9'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } };
-const VERT = nouvelle('p-0000000f', '#16A34A');
+/** Jaune confond ses deux profils comme Bleu, mais tient ses garanties avec le texte noir en Light. */
+const JAUNE_CONFONDU: Palette = { ...nouvelle('p-00000010', '#FACC15'), parts: { soft: 0.1, vivid: 0.105, origine: 'designer' } };
+const BLEU_ROI = nouvelle('p-0000000f', '#1E6FD9');
+const NOIR_EN_LIGHT = recetteAvecTexteDesBoutons(DEFAUT, 'light', 'noir');
+if (!('recette' in NOIR_EN_LIGHT)) throw new Error('le texte noir se pose en Light');
 const avec = (...palettes: Palette[]): Recette => ({ ...DEFAUT, palettes });
+/** La recette dont le texte des boutons est noir en Light, avec ces palettes. */
+const avecLeNoir = (...palettes: Palette[]): Recette => ({ ...NOIR_EN_LIGHT.recette, palettes });
 
 /** La courbe claire place le cran 700 à 0,55 : text sur surface manque 4,5 en Light. */
 function recetteRatee(...palettes: Palette[]): Recette {
@@ -46,7 +52,7 @@ test('[VER-19] une garantie manquée donne danger, une alerte avertissement, rie
   assert.equal(verdictDeLaPalette(analyserPalette(avec(CYAN, ARDOISE), CYAN)), 'succes');
   assert.equal(verdictDeLaPalette(analyserPalette(avec(BLEU), BLEU)), 'avertissement');
   assert.equal(verdictDeLaPalette(analyserPalette(avec(CYAN, VOISIN), CYAN)), 'avertissement');
-  assert.equal(verdictDeLaPalette(analyserPalette(avec(VERT), VERT)), 'danger');
+  assert.equal(verdictDeLaPalette(analyserPalette(avecLeNoir(BLEU_ROI), BLEU_ROI)), 'danger');
   // Une garantie manquée l'emporte sur une alerte.
   assert.equal(verdictDeLaPalette(analyserPalette(recetteRatee(CYAN, VOISIN), CYAN)), 'danger');
   const libre = passerEnLibre(DEFAUT, CYAN);
@@ -117,15 +123,15 @@ test('[VER-19] l’analyse de la palette ouverte se calcule une fois par recette
 
 test('[VER-19] à la fin d’un geste, seule une palette changée se réanalyse ; pendant le geste, aucune autre que la palette ouverte', () => {
   const { etat, analyses } = etatCompte();
-  etat.poserRecette(avec(CYAN, BLEU, VERT));
+  etat.poserRecette(avecLeNoir(CYAN, JAUNE_CONFONDU, BLEU_ROI));
   etat.rendu('complet');
-  assert.deepEqual([...analyses].sort(), [CYAN.id, BLEU.id, VERT.id].sort(), 'chaque palette s’analyse au premier état');
-  assert.deepEqual([...etat.verdicts()], [[CYAN.id, 'succes'], [BLEU.id, 'avertissement'], [VERT.id, 'danger']]);
+  assert.deepEqual([...analyses].sort(), [CYAN.id, JAUNE_CONFONDU.id, BLEU_ROI.id].sort(), 'chaque palette s’analyse au premier état');
+  assert.deepEqual([...etat.verdicts()], [[CYAN.id, 'succes'], [JAUNE_CONFONDU.id, 'avertissement'], [BLEU_ROI.id, 'danger']]);
 
   etat.ouvrir(CYAN.id);
   analyses.length = 0;
   // Un glisser de la référence : chaque image pose une recette et rend l'aperçu.
-  for (const reference of ['#16A34A', '#16A34B', '#16A34C']) {
+  for (const reference of ['#1E6FD9', '#1E6FDA', '#1E6FDB']) {
     etat.poserGeste(true);
     etat.poserRecette(remplacerPalette(etat.recette()!, changerReference(DEFAUT, etat.palette()!, reference)!));
     etat.analyse();
@@ -141,7 +147,7 @@ test('[VER-19] à la fin d’un geste, seule une palette changée se réanalyse 
   etat.poserGeste(false);
   etat.rendu('complet');
   assert.deepEqual(analyses, [CYAN.id, CYAN.id, CYAN.id], 'la fin du geste reprend l’analyse de la palette ouverte, sans analyser les autres');
-  assert.deepEqual([...etat.verdicts()], [[CYAN.id, 'danger'], [BLEU.id, 'avertissement'], [VERT.id, 'danger']]);
+  assert.deepEqual([...etat.verdicts()], [[CYAN.id, 'danger'], [JAUNE_CONFONDU.id, 'avertissement'], [BLEU_ROI.id, 'danger']]);
 });
 
 test('[VER-19] une palette devenue proche d’une autre change le verdict des deux, sans analyser la seconde', () => {

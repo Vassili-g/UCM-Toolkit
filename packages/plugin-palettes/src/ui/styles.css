@@ -3179,6 +3179,11 @@
   stroke: var(--bordure-surface);
 }
 
+/* La carte, après la page : le fond que la page porte, cerné comme elle. */
+.reglette-carte {
+  stroke: var(--bordure-surface);
+}
+
 /* Le texte des boutons, en tirets : le départ de la garantie qui le juge. */
 .reglette-boutons {
   stroke: var(--encre-surface-seconde);
@@ -3188,7 +3193,7 @@
 /*
  * La liste des garanties (maquettes Z3.2, G2 et M1) : un encadré par minimum,
  * son titre en bandeau, les fonds nommés une fois en tête de colonne (la page,
- * puis les trois états), chaque fond dans sa colonne. La rangée choisie prend
+ * la carte, puis les trois états), chaque fond dans sa colonne. La rangée choisie prend
  * le fond de survol et une barre de 3 px écartée du texte.
  */
 .liste-des-garanties {
@@ -3223,7 +3228,7 @@
   display: grid;
   column-gap: var(--espace-controle);
   /* 150 px : le spécimen de 64 px, 6 px, puis « ✗ 21,00 » et « AA ✗ », le résultat le plus large. */
-  grid-template-columns: minmax(0, 1fr) repeat(4, 150px);
+  grid-template-columns: minmax(0, 1fr) repeat(5, 150px);
 }
 
 .garanties-colonnes {
@@ -3316,6 +3321,11 @@
   grid-column: 5;
 }
 
+.garanties-colonnes > [data-rang='4'],
+.garantie-etat[data-rang='4'] {
+  grid-column: 6;
+}
+
 .garantie-numeros {
   font-family: ui-monospace, 'SF Mono', Consolas, monospace;
   font-size: 10px;
@@ -3350,8 +3360,8 @@
 }
 
 /*
- * Sous 900 px, quatre fonds et le nom ne tiennent plus sur une ligne : le nom
- * passe au-dessus de ses quatre cases, qui se partagent la largeur, et le
+ * Sous 900 px, cinq fonds et le nom ne tiennent plus sur une ligne : le nom
+ * passe au-dessus de ses cinq cases, qui se partagent la largeur, et le
  * spécimen au-dessus des numéros et du ratio. Le nom de chaque colonne se
  * centre sur elle.
  */
@@ -3360,7 +3370,7 @@
   .garantie,
   .garantie-echec {
     column-gap: 6px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .garanties-colonnes {
@@ -3394,6 +3404,11 @@
   .garanties-colonnes > [data-rang='3'],
   .garantie-etat[data-rang='3'] {
     grid-column: 4;
+  }
+
+  .garanties-colonnes > [data-rang='4'],
+  .garantie-etat[data-rang='4'] {
+    grid-column: 5;
   }
 
   .garantie-qui {

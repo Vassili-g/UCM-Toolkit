@@ -1,9 +1,10 @@
 /** Les sept garanties de contraste du thème, jugées par palette : membres, fonds et seuils. */
-import { variablePresente, type SensDuTheme, type VariableDePalette } from './dossiers.js';
+import { variablePresente, type ModeDuTheme, type SensDuTheme, type VariableDePalette } from './dossiers.js';
 
 export type FondDeGarantie =
   | { readonly variable: VariableDePalette }
-  | { readonly fondDeLaPage: true };
+  | { readonly fondDeLaPage: true }
+  | { readonly fondDeLaCarte: true };
 
 export interface Garantie {
   readonly numero: number;
@@ -13,6 +14,7 @@ export interface Garantie {
 }
 
 const FOND_DE_LA_PAGE = { fondDeLaPage: true } as const;
+const FOND_DE_LA_CARTE = { fondDeLaCarte: true } as const;
 const FONDS_SURFACE: readonly FondDeGarantie[] = [
   { variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, FOND_DE_LA_PAGE,
 ];
@@ -24,11 +26,11 @@ export const GARANTIES: readonly Garantie[] = [
   { numero: 4, premier: { variable: 'surface/border' }, fonds: FONDS_SURFACE, seuil: 'nonTexte' },
   { numero: 5, premier: { variable: 'page/foreground' }, fonds: [FOND_DE_LA_PAGE], seuil: 'texte' },
   { numero: 6, premier: { variable: 'page/border' }, fonds: [FOND_DE_LA_PAGE], seuil: 'nonTexte' },
-  { numero: 7, premier: { variable: 'ring' }, fonds: [FOND_DE_LA_PAGE, { variable: 'surface/default' }], seuil: 'nonTexte' },
+  { numero: 7, premier: { variable: 'ring' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
 ];
 
 /** Une garantie se juge quand la liste porte le cran de chacun de ses membres. */
-export function garantieJugeable(garantie: Garantie, crans: readonly number[], sens: SensDuTheme): boolean {
-  if (!variablePresente(garantie.premier.variable, crans, sens)) return false;
-  return garantie.fonds.every((fond) => 'fondDeLaPage' in fond || variablePresente(fond.variable, crans, sens));
+export function garantieJugeable(garantie: Garantie, crans: readonly number[], mode: ModeDuTheme, sens: SensDuTheme): boolean {
+  if (!variablePresente(garantie.premier.variable, crans, mode, sens)) return false;
+  return garantie.fonds.every((fond) => 'fondDeLaPage' in fond || 'fondDeLaCarte' in fond || variablePresente(fond.variable, crans, mode, sens));
 }

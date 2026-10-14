@@ -72,14 +72,19 @@ test('R1 : un pas de luminosité ne change plus le numéro de la référence', (
   assert.equal(changementAuPasVoisin(RECETTE, VERT, 4, 1), null, 'au-delà du dernier pas');
 });
 
-test('W7.2 : les garanties se comparent avant et après : #16A34A en manque en Light, deux pas plus sombres les tiennent', () => {
-  const ajustee = auPas(VERT, -2);
+test('W7.2 : les garanties se comparent avant et après : #1E6FD9 en manque en Light, texte des boutons noir, et un pas plus clair les tient', () => {
+  // Le noir sur une 700 sombre manque G1 : il faut éclaircir, non assombrir (Vert ne manque plus rien par défaut).
+  const inversee = recetteAvecTexteDesBoutons(RECETTE, 'light', 'noir');
+  assert.ok('recette' in inversee);
+  const recette = inversee.recette;
+  const bleu: Palette = { ...nouvellePalette(recette, 'p-0000000c', '#1E6FD9', 2)!, nom: 'Bleu' };
+  const ajustee = paletteAuPas(recette, bleu, 1)!;
   const vivid = (liste: ReturnType<typeof manqueesParIntensite>) => liste.find(({ intensite }) => intensite === 'vivid')!.manquees;
-  const avant = manqueesParIntensite(RECETTE, VERT);
+  const avant = manqueesParIntensite(recette, bleu);
   assert.deepEqual(avant.map(({ intensite }) => intensite), ['soft', 'vivid']);
   assert.ok(vivid(avant) > 0, 'l’originale manque des garanties en Vivid');
-  assert.equal(vivid(manqueesParIntensite(RECETTE, ajustee)), 0);
-  const comparees = garantiesComparees(RECETTE, VERT, ajustee);
+  assert.equal(vivid(manqueesParIntensite(recette, ajustee)), 0);
+  const comparees = garantiesComparees(recette, bleu, ajustee);
   assert.ok(comparees.length > 0);
   assert.ok(comparees.every(({ avant: a, apres: b }) => a.garantie.numero === b.garantie.numero && a.mode === b.mode && a.profil === b.profil));
   assert.ok(comparees.some(({ avant: a, apres: b }) => a.verdict === 'manquee' && b.verdict === 'tenue'));

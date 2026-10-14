@@ -61,5 +61,5 @@ export function variablesDeLAssociation(recette: Recette, association: Associati
   const rang = crans.indexOf(association.cran);
   if (rang < 0) return [];
   const sens = sensDuTheme(association.theme, recette.texteDesBoutons[association.theme]);
-  return variablesDuCran(crans, rang, sens, (palette.nom ?? '').toLowerCase() === PALETTE_NEUTRE);
+  return variablesDuCran(crans, rang, association.theme, sens, (palette.nom ?? '').toLowerCase() === PALETTE_NEUTRE);
 }

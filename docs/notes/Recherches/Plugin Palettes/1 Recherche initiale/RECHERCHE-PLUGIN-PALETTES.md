@@ -1206,10 +1206,10 @@ référence de la recette.
 ### 11.2 Promesses des emplois
 
 Pour chaque palette, chaque mode et chaque intensité présente, sept garanties
-G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le seul
-fond de la page : le réglage « Fond » du thème, `elevation/page`. La carte,
-`elevation/raised`, n'a pas de réglage dans le plugin et n'entre dans aucune
-mesure. L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#4-la-table-en-dossiers-et-ses-états)
+G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le fond
+de la page, le réglage « Fond » du thème, `elevation/page`. G7 se juge aussi
+contre la carte, `elevation/raised`, qui n'a pas de réglage dans le plugin : le
+moteur la déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#4-la-table-en-dossiers-et-ses-états)
 explique le choix de cette table ; le kit la tient dans
 `packages/kit/src/emplois/dossiers.ts`.
 
@@ -1253,8 +1253,20 @@ dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
 | G4 | `surface/border` | les mêmes fonds | `nonTexte` |
 | G5 | `page/foreground` | le fond de la page | `texte` |
 | G6 | `page/border` | le fond de la page | `nonTexte` |
-| G7 | `page/focus` | le fond de la page, `surface/default` de sa palette | `nonTexte` |
+| G7 | `page/focus` | le fond de la page, le fond de la carte | `nonTexte` |
 
+- `[MOT-37]` La carte est le fond qu'une surface élevée pose sur la page. Aucun
+  champ de la recette ne la porte : `couleurDeLaCarte(recette, mode)`
+  (`packages/couleur/src/promesses.ts`) la déduit. Light : le blanc `#FFFFFF`.
+  Dark : le moteur lit le fond Dark de la recette en OKLCH, cherche sur la
+  courbe Dark le rang dont la clarté est la plus proche de la sienne, prend la
+  clarté du rang suivant (le dernier rang, s'il n'y en a pas), et rend la
+  couleur de cette clarté avec la teinte et la chroma du fond, la chroma
+  réduite jusqu'à entrer dans le gamut, à 8 bits. Un fond au cran 50 donne une
+  carte au cran 100 ; un fond teinté donne une carte de même teinte. Dans les
+  promesses, la page et la carte sont deux désignations distinctes
+  (`nature: 'fond'`, `fond: 'page'` ou `'carte'`), et la limite dynamique les
+  distingue dans sa clé.
 - `[VER-05]` Les seuils `texte` (4,5 par défaut) et `nonTexte` (3) viennent de
   la recette. Chaque garantie se juge par palette ; aucune ne croise deux
   palettes. Les crans requis sont 100, 200, 300, 600, 700, 800 et 900 dans le
@@ -1271,9 +1283,8 @@ les deux sens. G2 juge le bouton au repos dans les deux sens. Une référence
 qui ne porte pas le texte des boutons reste ancrée, et le message de la
 garantie manquée propose « Ajuster la référence ». Sur les quatorze
 références de la recherche, à une et deux intensités et dans les quatre
-thèmes, G1 n'échoue que sur la nuance où la référence est ancrée, G2 à G6
-n'échouent jamais, et G7 n'échoue que pour `#16A34A`, dont l'anneau est la
-référence ancrée. Sur 864 références de toutes teintes, chromas et clartés,
+thèmes, G1 n'échoue que sur la nuance où la référence est ancrée, G2 à G7
+n'échouent jamais. Sur 864 références de toutes teintes, chromas et clartés,
 G1 hors nuance ancrée tient dans les quatre thèmes.
 
 Une palette à deux intensités compte 64 contrôles : seize par mode et par
@@ -1282,6 +1293,12 @@ leurs clartés, mais pas leur chroma : leurs contrastes diffèrent un peu, et
 les composants citent l'un comme l'autre. L'interface et la planche nomment une
 garantie par ses variables et son libellé, jamais par son numéro.
 
+- `[VER-21]` G7 juge l'anneau contre la page et contre la carte : deux
+  promesses, que la carte des garanties range dans deux colonnes, « sur la
+  page » puis « sur la carte », et que la réglette montre par deux cases,
+  « page » et « carte », avant celle des boutons. L'anneau peut tenir l'une et
+  manquer l'autre ; la carte, plus claire que la page en Dark, est la plus
+  exigeante. G7 ne vise plus `surface/default`.
 - `[VER-06]` Une promesse manquée nomme ses deux variables, d'abord par leur
   libellé puis par leur nom (`surface/foreground` sur `surface/hover`), le
   mode, le profil pour une palette à deux intensités, son contraste mesuré et

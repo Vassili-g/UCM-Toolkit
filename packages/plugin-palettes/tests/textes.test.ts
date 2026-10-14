@@ -175,6 +175,9 @@ test('[VER-06] le fond de la page se nomme elevation/page, et chaque garantie se
   assert.equal(constatEn(groupe(5, { fondDeLaPage: true }, [promesse('vivid', 4.1)]), 'Blue').ou, 'Colored text, on the page background (page/foreground on elevation/page) · Blue, Dark theme');
   assert.equal(constatDeGroupe(groupe(1, { variable: 'solid/pressed' }, [promesse('vivid', 4.1)]), 'Bleu').ou, 'Texte des boutons, sur le bouton appuyé (solid/foreground sur solid/pressed) · Bleu, thème Dark');
   assert.equal(constatEn(groupe(7, { variable: 'surface/default' }, [promesse('vivid', 2.1)]), 'Blue').ou, 'Focus ring, on the tinted fill (ring on surface/default) · Blue, Dark theme');
+  // La carte se nomme elevation/raised ([VER-21]).
+  assert.equal(constatDeGroupe(groupe(7, { fondDeLaCarte: true }, [promesse('vivid', 2.1)]), 'Bleu').ou, 'Anneau de focus, sur le fond de la carte (ring sur elevation/raised) · Bleu, thème Dark');
+  assert.equal(constatEn(groupe(7, { fondDeLaCarte: true }, [promesse('vivid', 2.1)]), 'Blue').ou, 'Focus ring, on the card background (ring on elevation/raised) · Blue, Dark theme');
   // Aucun numéro de garantie dans un message du designer.
   for (const g of GARANTIES) {
     for (const fond of g.fonds) {
@@ -309,7 +312,7 @@ test('[DER-22] la butée nomme les deux variables que la garantie oppose, sans n
   const bleu = nouvellePalette(recette, 'p-0000000a', '#1E6FD9', 2)!;
   const promesses = verifierPromesses({ ...recette, palettes: [bleu] }, bleu);
   const pourPage = promesses.find((promesse) => promesse.garantie.numero === 5 && promesse.mode === 'light' && promesse.profil === 'vivid')!;
-  const pourSurface = promesses.find((promesse) => promesse.garantie.numero === 3 && promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.second.nature === 'cran' && promesse.second.cran === 200)!;
+  const pourSurface = promesses.find((promesse) => promesse.garantie.numero === 3 && promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.second.nature === 'cran' && promesse.second.cran === 400)!;
   const butee = (catalogue: Catalogue, promesse: Promesse) => catalogue.buteeDuColorShift('clarte', 'clair', 0.04, { nature: 'promesse', promesse });
   assert.match(butee(francais, pourPage), /Au-delà, page\/foreground sur elevation\/page \(Vivid, Light\) tomberait à \d+,\d\d:1, sous 4,5:1\.$/);
   assert.match(butee(francais, pourSurface), /Au-delà, surface\/foreground sur surface\/hover \(Soft, Dark\) tomberait à /);

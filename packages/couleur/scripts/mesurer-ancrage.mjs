@@ -24,6 +24,7 @@ import {
   atteintLeSeuil,
   boutsDe,
   contraste,
+  couleurDeLaCarte,
   distanceOk,
   estGrisPur,
   fabriquerPalette,
@@ -60,8 +61,9 @@ function paletteNeuve(hexa) {
 /** Les promesses manquées d'un jeu de rampes, jugées comme `verifierPromesses` les juge (garanties G1 à G7). */
 function manquees(recette, rampes) {
   const fonds = { light: lireHexa(recette.fonds.light), dark: lireHexa(recette.fonds.dark) };
+  const cartes = { light: couleurDeLaCarte(recette, 'light'), dark: couleurDeLaCarte(recette, 'dark') };
   const couleur = (variable, mode, profil, sens) => {
-    const cible = TABLE_DES_DOSSIERS[sens][variable];
+    const cible = TABLE_DES_DOSSIERS[mode][sens][variable];
     if (cible === 'texteDesBoutons') return lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]]);
     return rampes[profil][mode][recette.crans.indexOf(cible)].couleur;
   };
@@ -70,13 +72,13 @@ function manquees(recette, rampes) {
     const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
     for (const profil of PROFILS) {
       for (const garantie of GARANTIES) {
-        if (!garantieJugeable(garantie, recette.crans, sens)) continue;
+        if (!garantieJugeable(garantie, recette.crans, mode, sens)) continue;
         const premier = couleur(garantie.premier.variable, mode, profil, sens);
         for (const fond of garantie.fonds) {
-          const second = 'fondDeLaPage' in fond ? fonds[mode] : couleur(fond.variable, mode, profil, sens);
+          const second = 'fondDeLaPage' in fond ? fonds[mode] : 'fondDeLaCarte' in fond ? cartes[mode] : couleur(fond.variable, mode, profil, sens);
           const valeur = contraste(premier, second);
           if (!atteintLeSeuil(valeur, recette.seuils[garantie.seuil])) {
-            echecs.push(`${mode}/${profil}/G${garantie.numero}${'variable' in fond ? ` ${fond.variable}` : ''} ${valeur.toFixed(2)}`);
+            echecs.push(`${mode}/${profil}/G${garantie.numero}${'variable' in fond ? ` ${fond.variable}` : 'fondDeLaCarte' in fond ? ' carte' : ''} ${valeur.toFixed(2)}`);
           }
         }
       }

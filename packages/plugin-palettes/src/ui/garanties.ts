@@ -5,8 +5,8 @@
  * choix « Afficher » Soft/Vivid, dont chaque segment porte le résultat de
  * son profil ; viennent ensuite une réglette des nuances où la garantie
  * choisie se trace en éventail, sa légende, puis un encadré par minimum : les
- * quatre colonnes de fonds nommées une fois en tête (la page, `default`,
- * `hover`, `pressed`), une ligne par garantie, chaque fond dans sa colonne,
+ * cinq colonnes de fonds nommées une fois en tête (la page, la carte,
+ * `default`, `hover`, `pressed`), une ligne par garantie, chaque fond dans sa colonne,
  * son ratio avec son niveau WCAG sur une seule ligne ([VER-13]). Une garantie
  * qui ne vise pas un fond laisse sa case vide. Sous 900 px, le spécimen passe
  * au-dessus des numéros. Une ligne en échec porte le fond fautif et les
@@ -26,6 +26,8 @@ import {
   MODES,
   PROFILS,
   TABLE_DES_DOSSIERS,
+  couleurDeLaCarte,
+  ecrireHexa,
   lireHexa,
   rampeDe,
   sensDuTheme,
@@ -93,22 +95,22 @@ function construireVues(i18n: Localisation) {
 
   /**
    * La trame de la réglette : l'écart entre deux cases, le pas avant la
-   * première mesure, et les deux cases avant la première nuance, la page et
-   * le texte des boutons. Le pas suit ensuite la largeur mesurée (Z8.3).
+   * première mesure, et les trois cases avant la première nuance, la page, la
+   * carte et le texte des boutons. Le pas suit ensuite la largeur mesurée (Z8.3).
    */
   const ECART_ENTRE_CASES = 3.5;
 
   const PAS_AVANT_MESURE = 40.5;
 
-  const CASES_AVANT = 2;
+  const CASES_AVANT = 3;
 
   /** La hauteur du viewBox, et les pixels d'une unité : l'échelle de la réglette dans la fenêtre minimale, 451 px pour 491,5 unités (Z8.1). */
   const HAUTEUR = 92;
 
   const PIXELS_PAR_UNITE = 451 / 491.5;
 
-  /** Le trait de l'arc de chaque colonne : plein, tireté, pointillé, tiret-point pour la page. */
-  const TIRETS: Record<Colonne, string> = { default: '', hover: '4 3', pressed: '1.5 2.5', page: '6 2 1.5 2' };
+  /** Le trait de l'arc de chaque colonne : plein, tireté, pointillé, tiret-point pour la page, longs tirets pour la carte. */
+  const TIRETS: Record<Colonne, string> = { default: '', hover: '4 3', pressed: '1.5 2.5', page: '6 2 1.5 2', carte: '10 3' };
 
   function element<K extends keyof SVGElementTagNameMap>(nom: K, attributs: Record<string, string | number>): SVGElementTagNameMap[K] {
     const noeud = document.createElementNS(SVG, nom);
@@ -133,11 +135,12 @@ function construireVues(i18n: Localisation) {
 
   const manquees = (promesses: readonly Promesse[]): number => promesses.filter((promesse) => promesse.verdict === 'manquee').length;
 
-  /** Le numéro d'un membre dans une promesse : une nuance, « page », « blanc » ou « noir ». */
+  /** Le numéro d'un membre dans une promesse : une nuance, « page », « carte », « blanc » ou « noir ». */
   function numeroDuMembre(promesse: Promesse, rang: 'premier' | 'second', recette: Recette): Texte {
     const designe = promesse[rang];
     if (designe.nature === 'cran') return String(designe.cran);
-    return designe.nature === 'fond' ? TEXTES_DES_GARANTIES.casePage : NOM_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[promesse.mode]];
+    if (designe.nature === 'fond') return designe.fond === 'carte' ? TEXTES_DES_GARANTIES.caseCarte : TEXTES_DES_GARANTIES.casePage;
+    return NOM_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[promesse.mode]];
   }
 
   /**
@@ -170,7 +173,7 @@ function construireVues(i18n: Localisation) {
   function fondsEcrits(ligne: LigneDeGarantie): MessageLocalise {
     const cibles = ciblesDeLaGarantie(ligne.garantie);
     return {
-      lire: () => cibles.map((cible) => ('page' in cible ? lireTexte(TEXTES_DES_GARANTIES.laPage) : cible.code)).join(` ${lireTexte(TEXTES_DES_GARANTIES.et)} `),
+      lire: () => cibles.map((cible) => ('page' in cible ? lireTexte(TEXTES_DES_GARANTIES.laPage) : 'carte' in cible ? lireTexte(TEXTES_DES_GARANTIES.laCarte) : cible.code)).join(` ${lireTexte(TEXTES_DES_GARANTIES.et)} `),
     };
   }
 
@@ -212,7 +215,7 @@ function construireVues(i18n: Localisation) {
       analyse.promesses.filter((promesse) => promesse.mode === mode && promesse.profil === duProfil);
 
     /**
-     * La réglette : la page et le texte des boutons, les nuances numérotées, et
+     * La réglette : la page, la carte et le texte des boutons, les nuances numérotées, et
      * l'éventail de la garantie choisie, un arc de son départ vers chacun de
      * ses fonds.
      */
@@ -232,7 +235,7 @@ function construireVues(i18n: Localisation) {
       const svg = element('svg', { viewBox: `0 0 ${largeur} ${HAUTEUR}`, 'aria-hidden': 'true' });
       svg.classList.add('reglette-svg');
       svg.style.height = `${HAUTEUR * PIXELS_PAR_UNITE}px`;
-      const rangDeLaCase = (cas: CaseDeLaReglette): number => (cas === 'page' ? 0 : cas === 'boutons' ? 1 : recette.crans.indexOf(cas) + CASES_AVANT);
+      const rangDeLaCase = (cas: CaseDeLaReglette): number => (cas === 'page' ? 0 : cas === 'carte' ? 1 : cas === 'boutons' ? 2 : recette.crans.indexOf(cas) + CASES_AVANT);
       const centre = (cas: CaseDeLaReglette): number => rangDeLaCase(cas) * PAS + CASE / 2;
       const vises = new Set<CaseDeLaReglette>();
       if (ligne) {
@@ -265,9 +268,11 @@ function construireVues(i18n: Localisation) {
       };
       const casePage = element('rect', { x: 0, y: 52, width: CASE, height: 22, rx: 3, fill: fond });
       casePage.classList.add('reglette-page');
-      const caseBoutons = element('rect', { x: PAS, y: 52, width: CASE, height: 22, rx: 3, fill: COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]] });
+      const caseCarte = element('rect', { x: PAS, y: 52, width: CASE, height: 22, rx: 3, fill: ecrireHexa(couleurDeLaCarte(recette, mode)) });
+      caseCarte.classList.add('reglette-carte');
+      const caseBoutons = element('rect', { x: 2 * PAS, y: 52, width: CASE, height: 22, rx: 3, fill: COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]] });
       caseBoutons.classList.add('reglette-boutons');
-      svg.append(casePage, nom('page', TEXTES_DES_GARANTIES.casePage), caseBoutons, nom('boutons', TEXTES_DES_GARANTIES.caseBoutons));
+      svg.append(casePage, nom('page', TEXTES_DES_GARANTIES.casePage), caseCarte, nom('carte', TEXTES_DES_GARANTIES.caseCarte), caseBoutons, nom('boutons', TEXTES_DES_GARANTIES.caseBoutons));
       const rampe = rampeDe(analyse.rampes, profil)[mode];
       rampe.forEach((cran, rang) => {
         const x = (rang + CASES_AVANT) * PAS;
@@ -310,7 +315,7 @@ function construireVues(i18n: Localisation) {
       relation.append(code(ligne.garantie.premier.variable), i18n.noeud(i18n.composer` ${TEXTES_DES_GARANTIES.sur} `));
       ciblesDeLaGarantie(ligne.garantie).forEach((cible, rang) => {
         if (rang > 0) relation.append(i18n.noeud(i18n.composer` ${TEXTES_DES_GARANTIES.et} `));
-        relation.append('page' in cible ? i18n.noeud(TEXTES_DES_GARANTIES.laPage) : code(cible.code));
+        relation.append('page' in cible ? i18n.noeud(TEXTES_DES_GARANTIES.laPage) : 'carte' in cible ? i18n.noeud(TEXTES_DES_GARANTIES.laCarte) : code(cible.code));
       });
       return relation;
     }
@@ -370,7 +375,7 @@ function construireVues(i18n: Localisation) {
 
     /** La ligne du filet, sans minimum de contraste : son cran se lit dans la table du sens du thème montré. */
     function ligneDuFilet(recette: Recette, mode: Mode): HTMLElement | null {
-      const cran = TABLE_DES_DOSSIERS[sensDuTheme(mode, recette.texteDesBoutons[mode])]['page/divider'];
+      const cran = TABLE_DES_DOSSIERS[mode][sensDuTheme(mode, recette.texteDesBoutons[mode])]['page/divider'];
       if (!recette.crans.includes(cran)) return null;
       const decoratif = document.createElement('p');
       decoratif.className = 'garantie-decorative';

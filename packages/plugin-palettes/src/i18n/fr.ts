@@ -402,7 +402,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
       geste: `${texteDesBoutons === 'blanc' ? 'Baissez' : 'Montez'} la luminosité de la ${manque.cran} dans « Luminosité des nuances ».`,
     };
   }
-  const variable = TABLE_DES_DOSSIERS[sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
+  const variable = TABLE_DES_DOSSIERS[manque.mode][sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
   return {
     ou: `${theme}, nuance ${manque.cran} (${variable}), profil ${manque.profil}`,
     quoi: `Contraste avec la nuance la plus claire : ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Teinte : ${manque.teinte}°.`,
@@ -722,7 +722,7 @@ export function resumeDeLaDerive(modifie: boolean, lien: boolean | null, points:
 }
 
 /** Une variable de thème qui a un libellé : celles de la palette, du neutre, et le fond de la page. */
-export type VariableLibellee = VariableDePalette | 'page/foreground-main' | 'page/foreground-subtle' | 'elevation/page';
+export type VariableLibellee = VariableDePalette | 'page/foreground-main' | 'page/foreground-subtle' | 'elevation/page' | 'elevation/raised';
 
 /**
  * Le libellé d'une variable du thème, dans le détail d'une nuance, les
@@ -745,6 +745,7 @@ export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = {
   'page/foreground-main': 'corps de texte',
   'page/foreground-subtle': 'texte secondaire',
   'elevation/page': 'fond de la page',
+  'elevation/raised': 'fond de la carte',
 };
 
 /**
@@ -774,12 +775,14 @@ export const TEXTES_DES_GARANTIES = {
   sur: 'sur',
   et: 'et',
   laPage: 'la page',
-  // Les quatre colonnes de fonds : la page, puis les trois états de `solid` et de `surface` (S3).
-  colonnes: { page: 'sur la page', default: 'default', hover: 'hover', pressed: 'pressed' },
-  // Les deux cases de la réglette avant la première nuance.
+  laCarte: 'la carte',
+  // Les cinq colonnes de fonds : la page, la carte, puis les trois états de `solid` et de `surface` (S3).
+  colonnes: { page: 'sur la page', carte: 'sur la carte', default: 'default', hover: 'hover', pressed: 'pressed' },
+  // Les trois cases de la réglette avant la première nuance.
   casePage: 'page',
+  caseCarte: 'carte',
   caseBoutons: 'boutons',
-  legende: "Trait plein : default · tireté : hover · pointillé : pressed · tiret-point : la page. Le texte garde sa nuance dans tous les états : seul le fond change.",
+  legende: "Trait plein : default · tireté : hover · pointillé : pressed · tiret-point : la page · longs tirets : la carte. Le texte garde sa nuance dans tous les états : seul le fond change.",
   // Dite sous `solid/foreground`, dont le code s'écrit avant elle.
   noteDuTexteDesBoutons: (mode: Mode, texte: TexteDesBoutons) => ` suit le réglage « Texte des boutons » du thème ${NOM_DU_MODE[mode]} : ${NOM_DU_TEXTE_DES_BOUTONS[texte]}.`,
   // Dite sous `page/divider`, dont le code s'écrit avant elle.
@@ -790,8 +793,8 @@ export const TEXTES_DES_GARANTIES = {
     ? `Thème ${NOM_DU_MODE[mode]} : 1 garantie manquée`
     : `Thème ${NOM_DU_MODE[mode]} : ${nombre} garanties manquées`),
   voirLeTheme: (mode: Mode) => `Voir le thème ${NOM_DU_MODE[mode]}`,
-  echec: (fond: 'page' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
-    `${fond === 'page' ? 'Sur la page' : `État ${fond}`} : ${contrasteEcrit(contraste)} pour un minimum de ${seuilEcrit(seuil)}:1`,
+  echec: (fond: 'page' | 'carte' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
+    `${fond === 'page' ? 'Sur la page' : fond === 'carte' ? 'Sur la carte' : `État ${fond}`} : ${contrasteEcrit(contraste)} pour un minimum de ${seuilEcrit(seuil)}:1`,
   numeros: (premier: string, second: string) => `${premier} / ${second}`,
   resultat: (tenue: boolean, contraste: number) => `${tenue ? '✓' : '✗'} ${ecrireContraste(contraste)}`,
 } as const;
@@ -934,7 +937,7 @@ export interface ConstatIllustre extends Constat {
 const enCapitale = (libelle: string): string => `${libelle[0].toUpperCase()}${libelle.slice(1)}`;
 
 /** La variable que le fond d'un groupe désigne : celle de la table, ou le fond de la page. */
-const variableDuFond = (fond: GroupeDePromesses['fond']): VariableLibellee => ('fondDeLaPage' in fond ? 'elevation/page' : fond.variable);
+const variableDuFond = (fond: GroupeDePromesses['fond']): VariableLibellee => ('fondDeLaPage' in fond ? 'elevation/page' : 'fondDeLaCarte' in fond ? 'elevation/raised' : fond.variable);
 
 /**
  * Un groupe de promesses manquées ([VER-06]) : la garantie, le fond jugé et
@@ -1565,6 +1568,7 @@ export const TEXTES_DE_L_AJUSTEMENT = {
   colonnes: { garantie: 'Garantie', theme: 'Thème', avant: 'Avant', apres: 'Après' },
   sur: 'sur',
   laPage: 'la page',
+  laCarte: 'la carte',
 } as const;
 
 /**
