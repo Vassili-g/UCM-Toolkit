@@ -1,17 +1,17 @@
 /**
  * La carte « Vos palettes » d'Harmonisation ([UI-40]) : une rangée par palette,
- * dans l'ordre de la recette, avec sa case, son nom et ses nuances dans le
+ * par teinte (`ordreParTeinte`), avec sa case, son nom et ses nuances dans le
  * thème et l'intensité de l'aperçu. La rangée entière est le `label` de sa
  * case. Un rond `!` signale une palette qui appartient à une paire trop
  * proche. Le pied dit combien de palettes sont cochées et les décoche toutes.
  *
- * Les rangées se refont quand la recette, ses paires, le thème ou l'intensité
- * changent ; cocher ne met à jour que les cases et le pied, pour que le focus
- * reste sur la case cliquée.
+ * Les rangées se refont quand la recette, ses paires, leur ordre, le thème ou
+ * l'intensité changent ; cocher ne met à jour que les cases et le pied, pour
+ * que le focus reste sur la case cliquée.
  */
 import type { Mode, PaireTropProche, Profil, Recette } from 'ucm-couleur';
 
-import type { EtatHarmonisation } from '../../harmonisation';
+import { rangerSelon, type EtatHarmonisation } from '../../harmonisation';
 import { createCarte } from '../carte';
 import { memoriserVues, type Localisation } from '../localisation';
 import { nuancesVues } from './apercu';
@@ -24,7 +24,8 @@ export interface GestesDeLaListe {
 
 export interface CarteDeLaListeUi {
   readonly element: HTMLElement;
-  afficher(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation): void;
+  /** `ordre` range les palettes par identifiant. */
+  afficher(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation, ordre: readonly string[]): void;
 }
 
 interface Rangee {
@@ -59,7 +60,7 @@ function construireVues(i18n: Localisation) {
     carte.corps.append(aide, grille, pied);
 
     let rangees: Rangee[] = [];
-    let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[]; readonly mode: Mode; readonly intensite: Profil } | null = null;
+    let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[]; readonly ordre: readonly string[]; readonly mode: Mode; readonly intensite: Profil } | null = null;
 
     /** Pour chaque palette d'une paire trop proche, les noms des palettes dont elle est trop proche. */
     function voisines(recette: Recette, paires: readonly PaireTropProche[]): Map<string, string[]> {
@@ -122,7 +123,7 @@ function construireVues(i18n: Localisation) {
       return { id, element, coche };
     }
 
-    function dessinerLesRangees(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation): void {
+    function dessinerLesRangees(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation, ordre: readonly string[]): void {
       const entete = [document.createElement('span'), document.createElement('span'), document.createElement('span'), document.createElement('span')];
       entete[2].className = 'numeros';
       for (const cran of recette.crans) {
@@ -131,16 +132,16 @@ function construireVues(i18n: Localisation) {
         entete[2].append(numero);
       }
       const proches = voisines(recette, paires);
-      rangees = recette.palettes.map((palette, rang) => rangeeDe(recette, proches, palette.id, rang, etat));
+      rangees = rangerSelon(recette.palettes, ordre).map((palette, rang) => rangeeDe(recette, proches, palette.id, rang, etat));
       grille.replaceChildren(...entete, ...rangees.map(({ element }) => element));
     }
 
     return {
       element: carte.element,
-      afficher(recette, paires, etat) {
-        const cle = { recette, paires, mode: etat.mode, intensite: etat.intensite };
-        if (!dessinee || dessinee.recette !== recette || dessinee.paires !== paires || dessinee.mode !== etat.mode || dessinee.intensite !== etat.intensite) {
-          dessinerLesRangees(recette, paires, etat);
+      afficher(recette, paires, etat, ordre) {
+        const cle = { recette, paires, ordre, mode: etat.mode, intensite: etat.intensite };
+        if (!dessinee || dessinee.recette !== recette || dessinee.paires !== paires || dessinee.ordre !== ordre || dessinee.mode !== etat.mode || dessinee.intensite !== etat.intensite) {
+          dessinerLesRangees(recette, paires, etat, ordre);
           dessinee = cle;
           i18n.lier(sousTitre, 'textContent', TEXTES.sousTitre(recette.crans[0], recette.crans[recette.crans.length - 1], etat.mode));
           carte.poserResume(TEXTES.resume(recette.palettes.length));

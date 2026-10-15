@@ -190,7 +190,7 @@ test('[UI-40] « Comparer » coche la paire seule, passe au thème du constat et
     assert.equal(await panneau.locator('.pied-de-carte .bouton-discret').isVisible(), false);
     await panneau.getByRole('button', { name: 'Soft', exact: true }).click();
     await panneau.getByRole('button', { name: 'Comparer Indigo et Marine', exact: true }).click();
-    assert.deepEqual(await cochees(page), ['Indigo', 'Marine']);
+    assert.deepEqual(await cochees(page), ['Marine', 'Indigo']);
     assert.deepEqual(await panneau.locator('.tete-de-la-palette [aria-pressed="true"]').allTextContents(), ['Soft', 'Dark']);
     assert.equal(await panneau.locator('.liste-aide').textContent(), 'Cochez de 2 à 4 palettes pour les comparer et les régler.');
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '2 cochées, 4 au plus');
@@ -215,9 +215,9 @@ test('[UI-40] la liste coche par la rangée ou la case, refuse la cinquième et 
     assert.deepEqual(await cochees(page), ['Ardoise']);
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '1 cochée, 4 au plus');
     for (const nom of ['Rose', 'Lime', 'Sable']) await liste.getByRole('checkbox', { name: nom, exact: true }).click();
-    assert.deepEqual(await cochees(page), ['Ardoise', 'Rose', 'Lime', 'Sable']);
+    assert.deepEqual(await cochees(page), ['Lime', 'Rose', 'Ardoise', 'Sable']);
     await liste.getByRole('checkbox', { name: 'Grenat', exact: true }).click();
-    assert.deepEqual(await cochees(page), ['Ardoise', 'Rose', 'Lime', 'Sable']);
+    assert.deepEqual(await cochees(page), ['Lime', 'Rose', 'Ardoise', 'Sable']);
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Quatre palettes au plus : décochez-en une.');
     await liste.getByRole('checkbox', { name: 'Rose', exact: true }).click();
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '3 cochées, 4 au plus');
@@ -281,9 +281,9 @@ test('[UI-41] la carte Comparaison paraît dès deux palettes cochées et peint 
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Les palettes cochées, côte à côte');
     assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Couleurs', 'Niveaux de gris']);
     assert.deepEqual(await carte.locator('.nuances .numeros span').allTextContents(), ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']);
-    assert.deepEqual(await carte.locator('.nuances b').allTextContents(), ['Ardoise', 'Rose']);
+    assert.deepEqual(await carte.locator('.nuances b').allTextContents(), ['Rose', 'Ardoise']);
     assert.deepEqual(await carte.locator('.nuances .rampe-continue').evaluateAll((rampes) => rampes.map((rampe) => rampe.children.length)), [11, 11]);
-    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Ardoise', 'Rose']);
+    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Rose', 'Ardoise']);
     assert.deepEqual(await carte.locator('.composants .btn-c').allTextContents(), ['Valider', 'Annuler', 'Valider', 'Annuler']);
     assert.equal(await carte.locator('.surface').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
     assert.equal(await carte.locator('.nuances').evaluate((element) => getComputedStyle(element).color), 'rgb(30, 30, 30)');
@@ -411,7 +411,7 @@ test('[UI-41] une palette libre dit qu’elle n’a pas de composants ; une pale
     const panneau = page.locator('#panneau-harmonisation');
     for (const nom of ['Indigo', 'Azur']) await coche(panneau, nom);
     const carte = carteComparaison(page);
-    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Indigo', 'Azur']);
+    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Azur', 'Indigo']);
     assert.equal(await carte.locator('.composants .composants-libre').textContent(), 'Palette libre : pas de composants');
     assert.equal(await carte.locator('.composants .btn-c').count(), 2);
     assert.equal(await carte.locator('.composants .message').count(), 1);
@@ -489,7 +489,7 @@ test('[UI-42] la carte Réglages paraît dès deux palettes cochées : trois ré
     await limitesCalculees(carte);
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Teinte, saturation et luminosité de chaque palette');
     assert.equal(await carte.locator('.carte-resume').textContent(), 'Vivid');
-    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Indigo', 'Azur']);
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo']);
     assert.deepEqual(await carte.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Indigo']);
     assert.equal(await carte.locator('.choix-libelle').textContent(), 'Régler');
     assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false, 'rien n’est modifié : pas d’annulation');
@@ -523,7 +523,7 @@ test('[UI-42] la carte Réglages paraît dès deux palettes cochées : trois ré
     assert.equal(await reglettes.nth(1).locator('.marque-palette').getAttribute('title'), 'Indigo : 55 %');
     // Une palette cochée s'ajoute à « Régler ».
     await coche(panneau, 'Rose');
-    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Indigo', 'Azur', 'Rose']);
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo', 'Rose']);
     // Quatre noms dans « Régler », à 480 px : le sous-titre passe à la ligne au lieu de se couper.
     await page.setViewportSize({ width: 480, height: 520 });
     await coche(panneau, 'Vert');
@@ -568,8 +568,8 @@ test('[UI-42] glisser la teinte hors de la zone éteint le constat et le compteu
     assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').inputValue(), '+10°');
     assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').evaluate((champ) => champ.classList.contains('champ-proche')), false);
     assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isVisible(), true);
-    assert.equal(await carte.locator('.carte-choix .bascule-option').first().locator('.pastille-reglee').count(), 1);
-    assert.equal(await carte.locator('.carte-choix .bascule-option').last().locator('.pastille-reglee').count(), 0);
+    assert.equal(await carte.locator('.carte-choix .bascule-option').last().locator('.pastille-reglee').count(), 1);
+    assert.equal(await carte.locator('.carte-choix .bascule-option').first().locator('.pastille-reglee').count(), 0);
     // Revenir dans la zone rallume le constat et le compteur.
     const retour = await abscisseDe(page, -10);
     await page.mouse.move(retour.x, retour.y);
@@ -818,14 +818,14 @@ test('[UI-43] glisser un point règle sa palette, la met dans « Régler » et l
     await deplierLaRoue(page);
     const reglages = carteReglages(page);
     await limitesCalculees(reglages);
-    assert.deepEqual(await cochees(page), ['Indigo', 'Azur']);
+    assert.deepEqual(await cochees(page), ['Azur', 'Indigo']);
     // Rose n'est pas cochée : la saisir la coche et la règle.
     const avant = await compte(page);
     const depart = await placeDuPoint(page, 'Rose');
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Azur'], 'la liste suit l’ordre de la recette');
-    assert.deepEqual(await reglages.locator('.carte-choix .bascule-option').allTextContents(), ['Indigo', 'Azur', 'Rose']);
+    assert.deepEqual(await cochees(page), ['Azur', 'Indigo', 'Rose'], 'la liste suit l’ordre des teintes');
+    assert.deepEqual(await reglages.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo', 'Rose']);
     assert.deepEqual(await reglages.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
     // La troisième palette agrandit les cartes au-dessus de la roue : la roue se pose avant de viser.
     await page.waitForTimeout(300);
@@ -995,7 +995,7 @@ test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une pal
     await page.mouse.down();
     await page.mouse.up();
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Quatre palettes au plus : décochez-en une.');
-    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Vert', 'Azur']);
+    assert.deepEqual(await cochees(page), ['Vert', 'Azur', 'Indigo', 'Rose']);
     await pointDeLaRoue(page, 'Jaune').focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await compte(page), avant, 'le clavier ne saisit pas non plus');
@@ -1084,7 +1084,7 @@ test('[UI-44] un point saisi au clavier coche sa palette et la met dans « Régl
     await page.keyboard.press('ArrowRight');
     const demande = await prochaine(page, avant);
     assert.deepEqual(demande.recette.palettes.find((palette) => palette.nom === 'Rose').reglages.teinte, { soft: 1, vivid: 1 });
-    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Azur']);
+    assert.deepEqual(await cochees(page), ['Azur', 'Indigo', 'Rose']);
     assert.deepEqual(await carteReglages(page).locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
   } finally { await page.close(); }
 });

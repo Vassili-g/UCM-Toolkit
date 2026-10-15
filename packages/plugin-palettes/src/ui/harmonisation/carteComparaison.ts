@@ -1,8 +1,8 @@
 /**
- * La carte « Comparaison » d'Harmonisation ([UI-41]) : les palettes cochées sur
- * le fond de page du thème de l'aperçu, leurs nuances l'une sous l'autre, puis
- * leurs composants en colonnes (plein, contour, message, lien), puis les
- * constats. Les rôles de chaque composant viennent de la table du kit. En
+ * La carte « Comparaison » d'Harmonisation ([UI-41]) : les palettes cochées,
+ * par teinte comme la liste, sur le fond de page du thème de l'aperçu, leurs
+ * nuances l'une sous l'autre, puis leurs composants en colonnes (plein,
+ * contour, message, lien), puis les constats. Les rôles de chaque composant viennent de la table du kit. En
  * Niveaux de gris, chaque couleur de la surface devient le gris de même
  * clarté OKLab ; le texte des boutons pleins reste blanc ou noir. Une palette
  * libre n'a pas de composants : sa colonne le dit. Les constats lisent les
@@ -13,7 +13,7 @@
  */
 import { estLibre, type Mode, type Palette, type PaireTropProche, type Profil, type Recette } from 'ucm-couleur';
 
-import { constatsDeLaComparaison, type ConstatDeComparaison, type EtatHarmonisation } from '../../harmonisation';
+import { constatsDeLaComparaison, rangerSelon, type ConstatDeComparaison, type EtatHarmonisation } from '../../harmonisation';
 import { createCarte } from '../carte';
 import { creerVuesChoix } from '../choix';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
@@ -25,7 +25,8 @@ export interface GestesDeLaCarteDeComparaison {
 
 export interface CarteDeComparaisonUi {
   readonly element: HTMLElement;
-  afficher(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation): void;
+  /** `ordre` range les palettes cochées par identifiant. */
+  afficher(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation, ordre: readonly string[]): void;
 }
 
 const ICONES: Readonly<Record<ConstatDeComparaison['ton'], string>> = { avertissement: '!', succes: '✓', info: 'i' };
@@ -163,15 +164,15 @@ function construireVues(i18n: Localisation) {
 
     return {
       element: carte.element,
-      afficher(recette, paires, etat) {
-        const cochees = etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []);
+      afficher(recette, paires, etat, ordre) {
+        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre);
         carte.element.hidden = cochees.length < 2;
         if (cochees.length < 2) {
           dessinee = null;
           return;
         }
         affichage.poser(etat.affichage);
-        const identifiants = etat.cochees.join(' ');
+        const identifiants = cochees.map(({ id }) => id).join(' ');
         if (dessinee?.recette === recette && dessinee.paires === paires && dessinee.cochees === identifiants
           && dessinee.mode === etat.mode && dessinee.intensite === etat.intensite && dessinee.affichage === etat.affichage) return;
         dessinee = { recette, paires, cochees: identifiants, mode: etat.mode, intensite: etat.intensite, affichage: etat.affichage };

@@ -2507,9 +2507,16 @@ Onglet Harmonisation :
   `sortieLaPlusProche` en valeur absolue, la palette A à égalité ou sans sortie
   de l'une et de l'autre. Il garde l'intensité, l'affichage et les réglages, et
   remet le refus de la cinquième palette à faux. La carte « Vos palettes » liste
-  les palettes dans l'ordre de la recette : case, nom, nuances dans le thème et
-  l'intensité de l'aperçu, et un rond `!` sur chaque palette d'une paire trop
+  les palettes par teinte (`ordreParTeinte`) : case, nom, nuances dans le thème
+  et l'intensité de l'aperçu, et un rond `!` sur chaque palette d'une paire trop
   proche, qui nomme ses voisines. La rangée entière est le `label` de sa case.
+  L'ordre suit la teinte OKLCH de la référence, du rouge au rose : le cercle
+  s'ouvre à mi-chemin des familles rose et rouge (14,5°). Deux teintes égales
+  gardent l'ordre de la recette, et les palettes sans teinte (chroma de la
+  référence au plus 0,05) viennent à la fin, dans l'ordre de la recette. Les
+  cartes « Comparaison » et « Réglages » rangent les cochées dans cet ordre.
+  Un glisser garde l'ordre de son départ : aucune rangée ne change de place
+  sous le pointeur, et l'ordre suit la nouvelle teinte à la fin du geste.
   Le pied dit le nombre de palettes cochées et leur refus au-delà de quatre, et
   « Tout décocher » les décoche. Les cartes sont dans
   `src/ui/harmonisation/cartePaires.ts` et `carteListe.ts`, le choix de la
@@ -2518,7 +2525,8 @@ Onglet Harmonisation :
 - `[UI-41]` La carte « Comparaison » paraît dès deux palettes cochées. Une
   surface au fond de page du thème de l'aperçu, d'encre `#1E1E1E` en Light et
   `#F2F2F2` en Dark, aligne sous les numéros de la recette les nuances de
-  chaque cochée (intensité et thème de l'aperçu), puis range ses composants en
+  chaque cochée, par teinte (`[UI-40]`), dans l'intensité et le thème de
+  l'aperçu, puis range ses composants en
   une colonne par palette : plein, contour, message, lien. Le cran de chaque
   rôle vient de `cranDeLaVariable`, jamais d'un cran écrit en dur. Une palette
   à une intensité se montre sur sa seule rampe. Une palette libre ou figée
@@ -2539,7 +2547,7 @@ Onglet Harmonisation :
   `choisirAffichage` sont dans `src/harmonisation.ts`.
 
 - `[UI-42]` La carte « Réglages » paraît dès deux palettes cochées. Sa bascule
-  « Régler » nomme les cochées dans l'ordre de cochage et choisit la palette
+  « Régler » nomme les cochées par teinte (`[UI-40]`) et choisit la palette
   réglée ; un point suit le nom d'une palette modifiée. Trois réglettes de
   Création règlent cette palette dans l'intensité vue : la teinte décale les
   deux intensités du même écart par `candidatDeTeinte`, la saturation et la

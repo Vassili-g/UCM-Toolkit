@@ -21,7 +21,7 @@
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from '../edition';
-import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, ordreParTeinte, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
 import { creerVuesChoix } from './choix';
 import type { StatutDuRangement } from './frontiere';
 import { creerVuesCarteDeComparaison } from './harmonisation/carteComparaison';
@@ -64,6 +64,13 @@ function construireVues(i18n: Localisation) {
     /** Les paires se recalculent quand la recette change, pas à chaque rendu. */
     let recette: Recette | null = null;
     let paires: readonly PaireTropProche[] = [];
+    /**
+     * L'ordre des palettes par teinte, et la recette qui l'a donné. Un glisser
+     * garde celui de son départ : aucune rangée ne change de place sous le
+     * pointeur, l'ordre suit la teinte à la fin du geste.
+     */
+    let ordre: readonly string[] = [];
+    let recetteDeLOrdre: Recette | null = null;
     /** Le bouton de l'onglet, une fois le compteur lié. */
     let boutonDeLOnglet: HTMLElement | null = null;
     /** La recette et les départs d'avant le glisser en cours. */
@@ -187,9 +194,9 @@ function construireVues(i18n: Localisation) {
       if (!recette) return;
       accorderLesHauteurs();
       cartePaires.afficher(recette, paires);
-      carteListe.afficher(recette, paires, etat);
-      carteComparaison.afficher(recette, paires, etat);
-      carteReglages.afficher(recette, etat, avantLeGeste !== null);
+      carteListe.afficher(recette, paires, etat, ordre);
+      carteComparaison.afficher(recette, paires, etat, ordre);
+      carteReglages.afficher(recette, etat, avantLeGeste !== null, ordre);
       carteRoue.afficher(recette, paires, etat, avantLeGeste !== null);
       garderLesCartes();
     }
@@ -225,6 +232,10 @@ function construireVues(i18n: Localisation) {
       if (lue !== recette) {
         recette = lue;
         paires = lue ? pairesTropProches(lue) : [];
+      }
+      if (avantLeGeste === null && lue !== recetteDeLOrdre) {
+        recetteDeLOrdre = lue;
+        ordre = lue ? ordreParTeinte(lue) : [];
       }
       nombre = paires.length;
       if (!boutonDeLOnglet) return;

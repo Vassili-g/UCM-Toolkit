@@ -30,7 +30,7 @@ import {
 } from 'ucm-couleur';
 
 import { reglerClarte, reglerSaturation, retablirLaSaturation } from '../../edition';
-import { modifieeDepuisLeDepart, type EtatHarmonisation } from '../../harmonisation';
+import { modifieeDepuisLeDepart, rangerSelon, type EtatHarmonisation } from '../../harmonisation';
 import { CURSEURS, GRANDEURS, estModifiee, valeursDesProfils, valeursParDefaut, type Grandeur } from '../../reglagesParDefaut';
 import { createCalculsDeLimites } from '../calculDesLimites';
 import { createCarte } from '../carte';
@@ -62,8 +62,9 @@ export interface CarteDesReglagesUi {
    * Repeint la carte : appelé à chaque rendu de l'onglet, et à chaque image d'un
    * glisser. `enGeste` dit qu'un glisser de l'onglet est en cours, sur cette
    * carte ou sur la roue : la course et les zones gardent alors celles de son départ.
+   * `ordre` range les cochées de la bascule « Régler ».
    */
-  afficher(recette: Recette, etat: EtatHarmonisation, enGeste: boolean): void;
+  afficher(recette: Recette, etat: EtatHarmonisation, enGeste: boolean, ordre: readonly string[]): void;
 }
 
 interface Rangee {
@@ -369,9 +370,10 @@ function construireVues(i18n: Localisation) {
 
     return {
       element: carte.element,
-      afficher(recette, etat, enGeste) {
+      afficher(recette, etat, enGeste, ordre) {
         enGesteDeLOnglet = enGeste;
-        const cochees = etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []);
+        // La bascule « Régler » nomme les cochées par teinte, comme la liste.
+        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre);
         carte.element.hidden = cochees.length < 2;
         const choisie = cochees.find(({ id }) => id === etat.regler);
         if (!choisie) {
