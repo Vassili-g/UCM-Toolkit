@@ -4,10 +4,13 @@
  * la table du kit. Elles se calculent par recette : une carte qui se repeint
  * sans que la recette change ne refait pas les rampes.
  */
-import { aUneIntensite, cranDeLaVariable, grilleDe, rampesDe, sensDuTheme, type Cran, type Intensite, type Mode, type Palette, type Profil, type Rampes, type Recette } from 'ucm-couleur';
+import { aUneIntensite, cranDeLaVariable, ecrireHexa, grilleDe, grisDeMemeClarte, lireHexa, rampesDe, sensDuTheme, type Cran, type Intensite, type Mode, type Palette, type Profil, type Rampes, type Recette } from 'ucm-couleur';
 
-/** Les rôles que les cartes montrent : un plein et son texte, un fond teinté et son texte. */
-export type RoleDApercu = 'solid/default' | 'solid/foreground' | 'surface/default' | 'surface/foreground';
+/** Les rôles que les cartes montrent : un plein et son texte, un fond teinté et son texte, un contour et un texte de page. */
+export type RoleDApercu = 'solid/default' | 'solid/foreground' | 'surface/default' | 'surface/foreground' | 'page/border' | 'page/foreground';
+
+/** L'affichage des cartes de comparaison : les couleurs, ou le gris de même clarté OKLab. */
+export type AffichageDApercu = 'couleurs' | 'gris';
 
 /** L'encre d'une surface d'aperçu : sombre sur le fond Light, claire sur le fond Dark. */
 export const ENCRE_D_APERCU: Readonly<Record<Mode, string>> = { light: '#1E1E1E', dark: '#F2F2F2' };
@@ -56,4 +59,16 @@ export function couleurDuRole(recette: Recette, palette: Palette, role: RoleDApe
   if (cran === undefined) return null;
   const rang = grilleDe(recette, palette).crans.indexOf(cran);
   return rang < 0 ? null : nuancesVues(recette, palette, intensite, mode)[rang].hexa;
+}
+
+/** Le gris de même clarté OKLab qu'une couleur écrite en hexa. */
+export function enGris(hexa: string): string {
+  const couleur = lireHexa(hexa);
+  return couleur ? ecrireHexa(grisDeMemeClarte(couleur)) : hexa;
+}
+
+/** La couleur d'un rôle telle que l'affichage la montre ; le texte des boutons pleins reste blanc ou noir en gris. */
+export function couleurDuRoleVue(recette: Recette, palette: Palette, role: RoleDApercu, mode: Mode, intensite: Profil, affichage: AffichageDApercu): string | null {
+  const couleur = couleurDuRole(recette, palette, role, mode, intensite);
+  return couleur === null || affichage === 'couleurs' || role === 'solid/foreground' ? couleur : enGris(couleur);
 }

@@ -71,8 +71,8 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 4 à partir de H3 ; H1 (Codex) et H2 sont faits.
-  H2 rend `paletteARegler(...).sansSortie` : H3 affiche le constat de PR6.
+- **Prochaine étape** : la vague 4 à partir de H4 ; H1 (Codex), H2 et H3 sont
+  faits.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1016,7 +1016,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Galerie : `harmonisation-paire` (écran H2).
   - Fini quand : vert ; capture conforme à H1 et H2 de la maquette.
 
-- [ ] **H3 · Carte « Comparaison »** · `implementeur-exigeant`, haut.
+- [x] **H3 · Carte « Comparaison »** · `implementeur-exigeant`, haut.
   - SPEC, section 7.6 ; PR6 (intensité unique, palette libre sans
     composants) ; identifiant `[UI-41]`.
     Niveaux de gris par `grisDeMemeClarte`. Les rôles de chaque composant

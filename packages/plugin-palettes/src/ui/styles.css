@@ -2365,6 +2365,120 @@
   gap: 8px;
 }
 
+/*
+ * La carte « Comparaison » : une surface au fond de page du thème de l'aperçu,
+ * où les nuances de chaque palette cochée s'alignent sous les numéros, puis
+ * les composants en colonnes, puis les constats. Les constats de la
+ * comparaison ont leurs propres classes : `.constat` est celui de Vérification.
+ */
+.surface {
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.nuances {
+  display: grid;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 10.5px;
+  column-gap: 8px;
+  grid-template-columns: 70px minmax(0, 1fr);
+  row-gap: 4px;
+}
+
+.nuances .numeros span {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.nuances b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuances .rampe-continue {
+  height: 20px;
+}
+
+.composants {
+  display: grid;
+  align-items: center;
+  font-size: 10.5px;
+  gap: 7px 8px;
+}
+
+.composants b {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composants .btn-c {
+  display: grid;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-weight: 600;
+  place-items: center;
+}
+
+.composants .message {
+  padding: 6px 7px;
+  border-radius: 5px;
+  line-height: 1.3;
+}
+
+.composants .lien {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.composants .composants-libre {
+  align-self: start;
+  line-height: 1.3;
+  opacity: 0.7;
+}
+
+.constats-de-comparaison {
+  display: grid;
+  margin-top: 8px;
+  gap: 4px;
+}
+
+.constat-de-comparaison {
+  display: grid;
+  padding: 6px 8px;
+  border-radius: var(--rayon);
+  font-size: 11px;
+  gap: 6px;
+  grid-template-columns: 14px minmax(0, 1fr);
+  line-height: 1.4;
+}
+
+.constat-de-comparaison i {
+  font-style: normal;
+  font-weight: 700;
+  text-align: center;
+}
+
+.constat-de-comparaison[data-ton='succes'] {
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+}
+
+.constat-de-comparaison[data-ton='info'] {
+  background: color-mix(in srgb, var(--fond-marque) 18%, var(--fond));
+  color: var(--texte-marque);
+}
+
+.constat-de-comparaison[data-ton='avertissement'] {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
 .titre-de-premier-rang {
   min-width: 0;
   margin: 0;

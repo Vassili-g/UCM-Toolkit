@@ -125,7 +125,7 @@ test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux 
       const panneau = page.locator('#panneau-harmonisation');
       assert.equal(await panneau.isVisible(), true);
       assert.equal(await panneau.getByRole('heading', { name: langue === 'fr' ? 'Harmonisation' : 'Harmony', exact: true }).isVisible(), true);
-      assert.deepEqual(await panneau.locator('.bascule-option').allTextContents(), ['Soft', 'Vivid', 'Light', 'Dark']);
+      assert.deepEqual(await panneau.locator('.tete-de-la-palette .bascule-option').allTextContents(), ['Soft', 'Vivid', 'Light', 'Dark']);
       assert.equal(await panneau.locator('.choix-libelle:visible').count(), 0);
       const blocs = await panneau.locator('.tete-de-la-palette > *').evaluateAll((elements) => elements.map((element) => {
         const { x, y, width, height } = element.getBoundingClientRect();
@@ -252,6 +252,197 @@ test('[UI-40] les deux cartes se replient et se traduisent', async () => {
     }
     assert.equal(await paires.locator('.carte-resume').textContent(), '10 pairs');
     assert.equal(await liste.locator('.carte-resume').textContent(), '20 palettes');
+  } finally { await page.close(); }
+});
+
+const rvb = (couleur) => couleur.match(/\d+/g).slice(0, 3).map(Number);
+/** La clarté OKLab d'une couleur 8 bits, pour juger qu'un gris a la clarté de sa couleur. */
+function clarteOklab([r, g, b]) {
+  const lineaire = (x) => { const c = x / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const [rl, gl, bl] = [r, g, b].map(lineaire);
+  const [l, m, s] = [0.4122214708 * rl + 0.5363325363 * gl + 0.0514459929 * bl, 0.2119034982 * rl + 0.6806995451 * gl + 0.1073969566 * bl, 0.0883024619 * rl + 0.2817188376 * gl + 0.6299787005 * bl];
+  return 0.2104542553 * Math.cbrt(l) + 0.793617785 * Math.cbrt(m) - 0.0040720468 * Math.cbrt(s);
+}
+const coche = (panneau, nom) => panneau.locator('.liste').getByRole('checkbox', { name: nom, exact: true }).click();
+const carteComparaison = (page, nom = 'Comparaison') => page.locator(`#panneau-harmonisation .carte[aria-label="${nom}"]`);
+
+test('[UI-41] la carte Comparaison paraît dès deux palettes cochées et peint les composants des rôles de la table du kit', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    const carte = carteComparaison(page);
+    assert.equal(await carte.isVisible(), false);
+    await coche(panneau, 'Ardoise');
+    assert.equal(await carte.isVisible(), false);
+    await coche(panneau, 'Rose');
+    assert.equal(await carte.isVisible(), true);
+    assert.equal(await carte.locator('.carte-resume').textContent(), '2 palettes');
+    assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Les palettes cochées, côte à côte');
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Couleurs', 'Niveaux de gris']);
+    assert.deepEqual(await carte.locator('.nuances .numeros span').allTextContents(), ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']);
+    assert.deepEqual(await carte.locator('.nuances b').allTextContents(), ['Ardoise', 'Rose']);
+    assert.deepEqual(await carte.locator('.nuances .rampe-continue').evaluateAll((rampes) => rampes.map((rampe) => rampe.children.length)), [11, 11]);
+    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Ardoise', 'Rose']);
+    assert.deepEqual(await carte.locator('.composants .btn-c').allTextContents(), ['Valider', 'Annuler', 'Valider', 'Annuler']);
+    assert.equal(await carte.locator('.surface').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    assert.equal(await carte.locator('.nuances').evaluate((element) => getComputedStyle(element).color), 'rgb(30, 30, 30)');
+    const lire = () => carte.evaluate((element) => {
+      const rampe = element.querySelector('.nuances .rampe-continue');
+      const composant = (classe, rang = 0) => getComputedStyle(element.querySelectorAll(`.composants .${classe}`)[rang]);
+      return {
+        plein: composant('btn-c', 0).backgroundColor, texteDuPlein: composant('btn-c', 0).color,
+        contour: composant('btn-c', 1).borderTopColor, texteDuContour: composant('btn-c', 1).color,
+        message: composant('message').backgroundColor, texteDuMessage: composant('message').color,
+        lien: composant('lien').color,
+        nuance: [...rampe.children].map((aplat) => getComputedStyle(aplat).backgroundColor),
+      };
+    });
+    // Light, texte blanc sur les boutons : plein 700, contour 700, message 100 et 800, lien 700.
+    const light = await lire();
+    assert.equal(light.plein, light.nuance[7]);
+    assert.equal(light.contour, light.nuance[7]);
+    assert.equal(light.texteDuContour, light.nuance[7]);
+    assert.equal(light.message, light.nuance[1]);
+    assert.equal(light.texteDuMessage, light.nuance[8]);
+    assert.equal(light.lien, light.nuance[7]);
+    assert.equal(light.texteDuPlein, 'rgb(255, 255, 255)');
+    // Dark, texte noir sur les boutons : le message monte au 300 et son texte au 950.
+    await panneau.getByRole('button', { name: 'Dark', exact: true }).click();
+    const dark = await lire();
+    assert.equal(dark.plein, dark.nuance[7]);
+    assert.equal(dark.message, dark.nuance[3]);
+    assert.equal(dark.texteDuMessage, dark.nuance[10]);
+    assert.equal(dark.texteDuPlein, 'rgb(0, 0, 0)');
+    assert.notEqual(await carte.locator('.surface').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    assert.equal(await carte.locator('.nuances').evaluate((element) => getComputedStyle(element).color), 'rgb(242, 242, 242)');
+    // Décocher l'une des deux fait disparaître la carte.
+    await coche(panneau, 'Rose');
+    assert.equal(await carte.isVisible(), false);
+  } finally { await page.close(); }
+});
+
+test('[UI-41] « Niveaux de gris » remplace chaque couleur de la surface par le gris de même clarté, et la liste garde ses couleurs', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    for (const nom of ['Rose', 'Indigo']) await coche(panneau, nom);
+    const carte = carteComparaison(page);
+    const couleurs = () => carte.evaluate((element) => ({
+      nuances: [...element.querySelectorAll('.nuances .rampe-continue i')].map((aplat) => getComputedStyle(aplat).backgroundColor),
+      fonds: [...element.querySelectorAll('.composants .btn-c, .composants .message')].map((composant) => getComputedStyle(composant).backgroundColor),
+      encres: [...element.querySelectorAll('.composants .btn-c, .composants .message, .composants .lien')].map((composant) => getComputedStyle(composant).color),
+      contours: [...element.querySelectorAll('.composants .btn-c')].map((composant) => getComputedStyle(composant).borderTopColor),
+    }));
+    const avant = await couleurs();
+    await carte.getByRole('button', { name: 'Niveaux de gris', exact: true }).click();
+    const gris = await couleurs();
+    const estGris = (couleur) => { const [r, g, b] = rvb(couleur); return r === g && g === b; };
+    for (const couleur of [...gris.nuances, ...gris.fonds]) assert.equal(estGris(couleur), true, couleur);
+    // Un bouton à contour : la bordure du deuxième bouton de chaque colonne passe en gris.
+    assert.equal(estGris(gris.contours[1]), true);
+    assert.equal(estGris(gris.contours[3]), true);
+    // Les gris ont la clarté OKLab des couleurs, à l'arrondi de l'encodage près.
+    gris.nuances.forEach((couleur, rang) => {
+      assert.ok(Math.abs(clarteOklab(rvb(couleur)) - clarteOklab(rvb(avant.nuances[rang]))) < 0.01, `nuance ${rang}`);
+    });
+    // Le texte des boutons pleins reste blanc ; les encres du message et du lien passent en gris.
+    assert.equal(gris.encres[0], 'rgb(255, 255, 255)');
+    assert.equal(estGris(gris.encres[2]), true);
+    assert.equal(estGris(gris.encres[3]), true);
+    const listeEnCouleurs = await panneau.locator('.liste .rampe-continue i').evaluateAll((aplats) => aplats.some((aplat) => {
+      const [r, g, b] = getComputedStyle(aplat).backgroundColor.match(/\d+/g).map(Number);
+      return r !== g || g !== b;
+    }));
+    assert.equal(listeEnCouleurs, true);
+    assert.deepEqual(await carte.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Niveaux de gris']);
+    await carte.getByRole('button', { name: 'Couleurs', exact: true }).click();
+    assert.deepEqual(await couleurs(), avant);
+  } finally { await page.close(); }
+});
+
+test('[UI-41] les constats disent la paire trop proche, ou que les palettes se distinguent', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    const carte = carteComparaison(page);
+    const constats = () => carte.locator('.constat-de-comparaison').evaluateAll((lignes) => lignes.map((ligne) => ({ ton: ligne.dataset.ton, icone: ligne.querySelector('i').textContent, texte: ligne.querySelector('span').textContent, gras: [...ligne.querySelectorAll('b')].map((b) => b.textContent) })));
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    assert.equal(await carte.locator('.constats-de-comparaison').getAttribute('role'), 'status');
+    // Une paire que des teintes séparent : le constat renvoie à la zone hachurée.
+    const [paire] = await constats();
+    assert.deepEqual([paire.ton, paire.icone, paire.gras], ['avertissement', '!', ['Indigo et Azur']]);
+    assert.equal(paire.texte, 'Indigo et Azur : textes sur fond teinté trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.');
+    // Une paire qu'aucune teinte ne sépare : le constat de PR6.
+    await panneau.getByRole('button', { name: 'Comparer Vert et Feuille', exact: true }).click();
+    assert.equal((await constats())[0].texte, 'Vert et Feuille : boutons pleins trop proches en Light. Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.');
+    // Des palettes éloignées : elles se distinguent.
+    await panneau.getByRole('button', { name: 'Tout décocher', exact: true }).click();
+    for (const nom of ['Ardoise', 'Rose']) await coche(panneau, nom);
+    const [distinctes] = await constats();
+    assert.deepEqual([distinctes.ton, distinctes.icone, distinctes.texte], ['succes', '✓', 'Ces palettes se distinguent, en Light et en Dark.']);
+    assert.equal(await carte.locator('.constat-de-comparaison').first().evaluate((ligne) => getComputedStyle(ligne).display), 'grid');
+  } finally { await page.close(); }
+});
+
+test('[UI-41] un étalement de saturation et de luminosité se nomme, dans l’intensité vue', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    for (const nom of ['Rose', 'Indigo', 'Vert', 'Feuille']) await coche(panneau, nom);
+    const carte = carteComparaison(page);
+    const infos = () => carte.locator('.constat-de-comparaison[data-ton="info"] > span').allTextContents();
+    assert.deepEqual(await infos(), ['En Vivid, Rose est la plus terne et Feuille la plus vive.', 'En Vivid, Feuille est plus claire que les autres.']);
+    assert.deepEqual(await carte.locator('.constat-de-comparaison[data-ton="info"] b').allTextContents(), ['Rose', 'Feuille', 'Feuille']);
+    await panneau.getByRole('button', { name: 'Soft', exact: true }).click();
+    assert.ok((await infos()).every((texte) => texte.startsWith('En Soft, ')));
+  } finally { await page.close(); }
+});
+
+test('[UI-41] une palette libre dit qu’elle n’a pas de composants ; une palette à une intensité garde sa rampe quand l’intensité change', async () => {
+  const page = await ouvrir(MINIMALE);
+  try {
+    const lu = structuredClone(messageDe('harmonisation-paire'));
+    const palettes = lu.classement.recette.palettes;
+    palettes.find(({ nom }) => nom === 'Indigo').crans = [100, 300, 500, 700];
+    palettes.find(({ nom }) => nom === 'Azur').intensites = 1;
+    await envoyer(page, lu);
+    await page.locator('#onglet-harmonisation').click();
+    const panneau = page.locator('#panneau-harmonisation');
+    for (const nom of ['Indigo', 'Azur']) await coche(panneau, nom);
+    const carte = carteComparaison(page);
+    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Indigo', 'Azur']);
+    assert.equal(await carte.locator('.composants .composants-libre').textContent(), 'Palette libre : pas de composants');
+    assert.equal(await carte.locator('.composants .btn-c').count(), 2);
+    assert.equal(await carte.locator('.composants .message').count(), 1);
+    assert.deepEqual(await carte.locator('.nuances .rampe-continue').evaluateAll((rampes) => rampes.map((rampe) => rampe.children.length)), [4, 11]);
+    const rampeDAzur = () => carte.locator('.nuances .rampe-continue').nth(1).locator('i').evaluateAll((aplats) => aplats.map((aplat) => getComputedStyle(aplat).backgroundColor));
+    const vivid = await rampeDAzur();
+    await panneau.getByRole('button', { name: 'Soft', exact: true }).click();
+    assert.deepEqual(await rampeDAzur(), vivid);
+    // La palette libre n'entre pas dans les paires trop proches : aucun avertissement.
+    assert.equal(await carte.locator('.constat-de-comparaison[data-ton="avertissement"]').count(), 0);
+  } finally { await page.close(); }
+});
+
+test('[UI-41] la carte Comparaison se replie, se traduit et tient dans la fenêtre minimale à quatre palettes', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes('en');
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    for (const nom of ['Rose', 'Indigo', 'Vert', 'Feuille']) await coche(panneau, nom);
+    const carte = carteComparaison(page, 'Comparison');
+    assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Checked palettes, side by side');
+    assert.equal(await carte.locator('.carte-resume').textContent(), '4 palettes');
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Colors', 'Grayscale']);
+    assert.deepEqual(await carte.locator('.composants .btn-c').allTextContents(), ['Confirm', 'Cancel', 'Confirm', 'Cancel', 'Confirm', 'Cancel', 'Confirm', 'Cancel']);
+    const textes = await carte.locator('.constat-de-comparaison > span').allTextContents();
+    assert.equal(textes[0], 'Vert and Feuille: filled buttons too close in Light. No hue in the range separates them: change the saturation or lightness of one of them.');
+    assert.equal(textes[1], 'In Vivid, Rose is the dullest and Feuille the most vivid.');
+    assert.equal(textes[2], 'In Vivid, Feuille is lighter than the others.');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    assert.equal(await carte.getAttribute('data-ouverte'), 'true');
+    await carte.locator('> .carte-tete > .carte-bascule').click();
+    assert.equal(await carte.getAttribute('data-ouverte'), 'false');
+    assert.equal(await carte.locator('.carte-corps').isVisible(), false);
   } finally { await page.close(); }
 });
 

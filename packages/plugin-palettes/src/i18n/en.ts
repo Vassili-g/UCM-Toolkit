@@ -184,6 +184,34 @@ export const TEXTES_DE_L_HARMONISATION = {
     toutDecocher: 'Uncheck all',
     tropProcheDe: (noms: readonly string[]) => `Too close to ${noms.reduce((texte, nom, rang) => rang === 0 ? nom : `${texte}${rang === noms.length - 1 ? ' and ' : ', '}${nom}`, '')}`,
   },
+  /**
+   * [UI-41] La carte qui compare les palettes cochées. Un constat se rend en
+   * segments : les rangs impairs s'écrivent en gras (les noms de palettes).
+   */
+  comparaison: {
+    titre: 'Comparison',
+    sousTitre: 'Checked palettes, side by side',
+    resume: (nombre: number) => `${nombre} palettes`,
+    affichage: 'Comparison display',
+    couleurs: 'Colors',
+    gris: 'Grayscale',
+    valider: 'Confirm',
+    annuler: 'Cancel',
+    message: 'Message saved',
+    lien: 'Learn more',
+    libre: 'Free palette: no components',
+    constats: {
+      paire: (a: string, b: string, role: RoleDeProximite, mode: Mode, sansSortie: boolean) => [
+        '', `${a} and ${b}`,
+        `: ${role === 'plein' ? 'filled buttons' : 'text on tinted background'} too close in ${NOM_DU_MODE[mode]}. ${sansSortie
+          ? 'No hue in the range separates them: change the saturation or lightness of one of them.'
+          : 'Move the hue of one of them out of the hatched zone, in Adjustments.'}`,
+      ],
+      distinctes: 'These palettes are distinct, in Light and in Dark.',
+      saturation: (intensite: Profil, terne: string, vive: string) => [`In ${NOM_DU_PROFIL[intensite]}, `, terne, ' is the dullest and ', vive, ' the most vivid.'],
+      luminosite: (intensite: Profil, palette: string, sens: 'claire' | 'foncee') => [`In ${NOM_DU_PROFIL[intensite]}, `, palette, ` is ${sens === 'claire' ? 'lighter' : 'darker'} than the others.`],
+    },
+  },
 };
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Verify, 1 guarantee unmet ». */

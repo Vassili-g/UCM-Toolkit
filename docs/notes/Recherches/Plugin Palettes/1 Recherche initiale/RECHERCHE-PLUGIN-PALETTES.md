@@ -2426,6 +2426,29 @@ Onglet Harmonisation :
   `src/ui/harmonisation/cartePaires.ts` et `carteListe.ts`, le choix de la
   palette à régler dans `paletteARegler` (`src/harmonisation.ts`).
 
+- `[UI-41]` La carte « Comparaison » paraît dès deux palettes cochées. Une
+  surface au fond de page du thème de l'aperçu, d'encre `#1E1E1E` en Light et
+  `#F2F2F2` en Dark, aligne sous les numéros de la recette les nuances de
+  chaque cochée (intensité et thème de l'aperçu), puis range ses composants en
+  une colonne par palette : plein, contour, message, lien. Le cran de chaque
+  rôle vient de `cranDeLaVariable`, jamais d'un cran écrit en dur. Une palette
+  à une intensité se montre sur sa seule rampe. Une palette libre ou figée
+  dit « Palette libre : pas de composants » dans sa colonne. La bascule
+  « Couleurs | Niveaux de gris » (`affichage`) remplace chaque couleur de la
+  surface par `grisDeMemeClarte` ; le texte des boutons pleins reste blanc ou
+  noir ; la liste, les pastilles des paires et les constats gardent leurs
+  couleurs. Les constats, dans l'ordre : une ligne d'avertissement par paire
+  cochée trop proche, ou « Ces palettes se distinguent, en Light et en Dark. »
+  quand aucune ne l'est ; puis, parmi les cochées colorées (ni libres, ni
+  figées, chroma de la référence au-dessus de 0,05), une ligne d'information
+  quand la saturation de l'intensité vue s'étale de 0,20 ou plus, et une quand
+  sa luminosité s'étale de 0,01 ou plus. Une paire que `paletteARegler` rend
+  `sansSortie` remplace « Sortez la teinte de l'une d'elles de la zone
+  hachurée, dans Réglages. » par « Aucune teinte de la course ne les sépare :
+  changez la saturation ou la luminosité de l'une d'elles. » La carte est dans
+  `src/ui/harmonisation/carteComparaison.ts` ; `constatsDeLaComparaison` et
+  `choisirAffichage` sont dans `src/harmonisation.ts`.
+
 - `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
   indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
   `selectionner` refusent de l'activer ; les flèches, Début et Fin le

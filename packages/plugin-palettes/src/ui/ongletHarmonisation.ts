@@ -6,8 +6,9 @@
  */
 import { pairesTropProches, type Mode, type PaireTropProche, type Profil, type Recette } from 'ucm-couleur';
 
-import { cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../harmonisation';
+import { choisirAffichage, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../harmonisation';
 import { creerVuesChoix } from './choix';
+import { creerVuesCarteDeComparaison } from './harmonisation/carteComparaison';
 import { creerVuesCarteDeLaListe } from './harmonisation/carteListe';
 import { creerVuesCarteDesPaires } from './harmonisation/cartePaires';
 import { lireTexte, memoriserVues, type Localisation } from './localisation';
@@ -17,6 +18,7 @@ function construireVues(i18n: Localisation) {
   const { createChoix } = creerVuesChoix(i18n);
   const { createCarteDesPaires } = creerVuesCarteDesPaires(i18n);
   const { createCarteDeLaListe } = creerVuesCarteDeLaListe(i18n);
+  const { createCarteDeComparaison } = creerVuesCarteDeComparaison(i18n);
   const { TEXTES, TEXTES_DE_L_HARMONISATION, NOM_DU_PROFIL } = i18n.messages;
 
   function createOngletHarmonisation(source: PaletteOuverte) {
@@ -71,13 +73,20 @@ function construireVues(i18n: Localisation) {
         rendre();
       },
     });
-    element.append(tete, ligne, cartePaires.element, carteListe.element);
+    const carteComparaison = createCarteDeComparaison({
+      choisirAffichage(affichage) {
+        etat = choisirAffichage(etat, affichage);
+        rendre();
+      },
+    });
+    element.append(tete, ligne, cartePaires.element, carteListe.element, carteComparaison.element);
 
     /** Les cartes se repeignent seulement onglet visible : un onglet caché ne calcule pas les rampes. */
     function peindreLesCartes(): void {
       if (!recette) return;
       cartePaires.afficher(recette, paires);
       carteListe.afficher(recette, paires, etat);
+      carteComparaison.afficher(recette, paires, etat);
     }
 
     function rendre(): void {

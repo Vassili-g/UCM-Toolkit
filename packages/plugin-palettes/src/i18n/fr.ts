@@ -184,6 +184,34 @@ export const TEXTES_DE_L_HARMONISATION = {
       return /^[aeiouyh]/i.test(noms[0].normalize('NFD')) ? `Trop proche d’${cible}` : `Trop proche de ${cible}`;
     },
   },
+  /**
+   * [UI-41] La carte qui compare les palettes cochées. Un constat se rend en
+   * segments : les rangs impairs s'écrivent en gras (les noms de palettes).
+   */
+  comparaison: {
+    titre: 'Comparaison',
+    sousTitre: 'Les palettes cochées, côte à côte',
+    resume: (nombre: number) => `${nombre} palettes`,
+    affichage: 'Affichage de la comparaison',
+    couleurs: 'Couleurs',
+    gris: 'Niveaux de gris',
+    valider: 'Valider',
+    annuler: 'Annuler',
+    message: 'Message enregistré',
+    lien: 'En savoir plus',
+    libre: 'Palette libre : pas de composants',
+    constats: {
+      paire: (a: string, b: string, role: RoleDeProximite, mode: Mode, sansSortie: boolean) => [
+        '', `${a} et ${b}`,
+        ` : ${role === 'plein' ? 'boutons pleins' : 'textes sur fond teinté'} trop proches en ${NOM_DU_MODE[mode]}. ${sansSortie
+          ? 'Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.'
+          : 'Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.'}`,
+      ],
+      distinctes: 'Ces palettes se distinguent, en Light et en Dark.',
+      saturation: (intensite: Profil, terne: string, vive: string) => [`En ${NOM_DU_PROFIL[intensite]}, `, terne, ' est la plus terne et ', vive, ' la plus vive.'],
+      luminosite: (intensite: Profil, palette: string, sens: 'claire' | 'foncee') => [`En ${NOM_DU_PROFIL[intensite]}, `, palette, ` est plus ${sens === 'claire' ? 'claire' : 'foncée'} que les autres.`],
+    },
+  },
 };
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Vérification, 1 garantie manquée ». */

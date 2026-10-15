@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { candidatDeTeinte, pairesTropProches, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
-import { choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, paletteARegler, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { choisirAffichage, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, paletteARegler, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
 import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
@@ -124,4 +124,79 @@ test('[UI-40] « Comparer » coche la paire seule, passe au thème du constat et
   assert.equal(apres.affichage, 'gris');
   assert.deepEqual(apres.departs, avant.departs);
   assert.equal(comparerLaPaire(avant, recette, { ...paire, palettes: [paire.palettes[0], 'absente'] }).cochees.length, 2);
+});
+
+const ROUGE = paletteTailwind('p-000000b1', '#DC2626');
+const VERT = paletteTailwind('p-000000b2', '#16A34A');
+const cochees = (lue: Recette, ...ids: string[]) => ids.reduce((etat, id) => cocherPalette(etat, lue, id), harmonisationInitiale());
+
+test('[UI-41] « Couleurs | Niveaux de gris » ne change que l’affichage', () => {
+  const etat = { ...selectionner([palettes[0].id, palettes[1].id]), mode: 'dark' as const };
+  const gris = choisirAffichage(etat, 'gris');
+  assert.equal(gris.affichage, 'gris');
+  assert.deepEqual({ ...gris, affichage: 'couleurs' }, etat);
+  assert.equal(choisirAffichage(gris, 'gris'), gris);
+});
+
+test('[UI-41] une paire cochée trop proche donne une ligne d’avertissement, et « se distinguent » quand aucune ne l’est', () => {
+  const proches = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' }, ROUGE);
+  const paires = pairesTropProches(proches);
+  assert.equal(paires.length, 1);
+  const [constat] = constatsDeLaComparaison(proches, cochees(proches, BLEU.id, 'p-000000a2'), paires);
+  assert.deepEqual(constat, { ton: 'avertissement', genre: 'paire', palettes: paires[0].palettes, role: paires[0].proximite.role, mode: paires[0].proximite.mode, sansSortie: false });
+  assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id, ROUGE.id), paires), [{ ton: 'succes', genre: 'distinctes' }]);
+  assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id), paires), []);
+  assert.deepEqual(constatsDeLaComparaison(proches, harmonisationInitiale(), paires), []);
+});
+
+test('[UI-41] une paire qu’aucune teinte de la course ne sépare le dit, parmi les constats de la carte', () => {
+  const recette = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' });
+  const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 } };
+  const [constat] = constatsDeLaComparaison(large, cochees(large, BLEU.id, 'p-000000a2'), pairesTropProches(large));
+  assert.equal(constat.genre === 'paire' && constat.sansSortie, true);
+  assert.equal(constat.genre === 'paire' && constat.sansSortie, paletteARegler(large, [BLEU.id, 'p-000000a2']).sansSortie);
+});
+
+test('[UI-41] la saturation de l’intensité vue, étalée de 0,20, nomme la plus terne et la plus vive', () => {
+  const terne = { ...ROUGE, parts: { soft: 0.3, vivid: 0.6, origine: 'designer' as const } };
+  const vive = { ...VERT, parts: { soft: 0.6, vivid: 0.65, origine: 'designer' as const } };
+  const recette = recetteAvec(terne, vive);
+  const etat = cochees(recette, terne.id, vive.id);
+  const constats = (intensite: 'soft' | 'vivid') => constatsDeLaComparaison(recette, { ...etat, intensite }, []).filter(({ genre }) => genre === 'saturation');
+  assert.deepEqual(constats('soft'), [{ ton: 'info', genre: 'saturation', intensite: 'soft', terne: terne.id, vive: vive.id }]);
+  // En Vivid, 0,60 et 0,65 s'étalent de 0,05 : rien à dire.
+  assert.deepEqual(constats('vivid'), []);
+  // L'étalement de 0,20 exactement se dit.
+  const exacte = recetteAvec({ ...terne, parts: { soft: 0.4, vivid: 0.6, origine: 'designer' as const } }, { ...vive, parts: { soft: 0.6, vivid: 0.65, origine: 'designer' as const } });
+  assert.equal(constatsDeLaComparaison(exacte, { ...cochees(exacte, terne.id, vive.id), intensite: 'soft' }, []).some(({ genre }) => genre === 'saturation'), true);
+});
+
+test('[UI-41] la luminosité étalée de 0,01 nomme la palette plus claire si la plus haute est positive, sinon la plus foncée', () => {
+  const avec = (clarteDeRouge: number, clarteDeVert: number) => {
+    const recette = recetteAvec({ ...ROUGE, reglages: { clarte: { vivid: clarteDeRouge } } }, { ...VERT, reglages: { clarte: { vivid: clarteDeVert } } }, paletteTailwind('p-000000b3', '#2563EB'));
+    return constatsDeLaComparaison(recette, cochees(recette, ROUGE.id, VERT.id, 'p-000000b3'), []).filter(({ genre }) => genre === 'luminosite');
+  };
+  assert.deepEqual(avec(0.03, 0), [{ ton: 'info', genre: 'luminosite', intensite: 'vivid', palette: ROUGE.id, sens: 'claire' }]);
+  assert.deepEqual(avec(-0.02, 0), [{ ton: 'info', genre: 'luminosite', intensite: 'vivid', palette: ROUGE.id, sens: 'foncee' }]);
+  assert.deepEqual(avec(0.005, 0), []);
+  assert.deepEqual(avec(0, 0), []);
+});
+
+test('[UI-41] une palette libre, figée ou neutre n’entre pas dans les constats de saturation et de luminosité', () => {
+  const libre = { ...ROUGE, id: 'p-000000b4', crans: [100, 500, 900], parts: { soft: 0.1, vivid: 0.2, origine: 'designer' as const }, reglages: { clarte: { vivid: 0.08 } } };
+  const neutre = { ...paletteTailwind('p-000000b5', '#808080'), reglages: { clarte: { vivid: -0.08 } } };
+  const recette = recetteAvec(libre, neutre, VERT);
+  const constats = constatsDeLaComparaison(recette, cochees(recette, libre.id, neutre.id, VERT.id), []);
+  assert.deepEqual(constats.map(({ genre }) => genre), ['distinctes']);
+});
+
+test('[UI-41] une palette à une intensité se lit sous « unique » pour sa saturation et « vivid » pour sa luminosité, quelle que soit l’intensité vue', () => {
+  const une = { ...ROUGE, intensites: 1 as const, reglages: { clarte: { vivid: 0.04 } } };
+  const deux = { ...VERT, parts: { soft: 0.2, vivid: 0.2, origine: 'designer' as const } };
+  const recette = recetteAvec(une, deux);
+  const etat = cochees(recette, une.id, deux.id);
+  for (const intensite of ['soft', 'vivid'] as const) {
+    const constats = constatsDeLaComparaison(recette, { ...etat, intensite }, []);
+    assert.deepEqual(constats.filter(({ genre }) => genre === 'luminosite'), [{ ton: 'info', genre: 'luminosite', intensite, palette: une.id, sens: 'claire' }]);
+  }
 });
