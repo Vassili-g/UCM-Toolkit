@@ -48,7 +48,7 @@ implémentées des pistes conservées.
 | Couleur de référence | La couleur autour de laquelle se calcule la palette ; le réglage global peut la modifier depuis son départ |
 | Rampe | Une liste de nuances de 50 à 950, pour une intensité et un mode ; les préréglages comportent onze ou treize nuances |
 | Cran | Une couleur de la rampe, désignée par son numéro |
-| Profil | `soft` ou `vivid` : la part de la vivacité maximale que l'écran affiche, 0,45 ou 0,95 par défaut |
+| Profil | `soft` ou `vivid` : la part de la vivacité maximale que l'écran affiche, 0,85 ou 0,95 par défaut |
 | Intensité | Une rampe par mode qu'une palette porte : `soft` et `vivid` pour une palette à deux intensités, la rampe unique, sans nom de profil, pour une palette à une intensité (`[ENT-14]`) |
 | Mode | `light` ou `dark` : la courbe de clarté employée |
 | Color shift | Les décalages de teinte, de saturation et de luminosité à chaque bout de la rampe, autour de la couleur de référence (`[MOT-30]`). La recette les range sous `derive`, et le code garde ce nom |
@@ -64,8 +64,8 @@ implémentées des pistes conservées.
 
 L'interface et la planche emploient le vocabulaire d'affichage de
 l'[inventaire des textes](../Textes et langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md#vocabulaire-retenu) :
-« Palettes et réglages » pour la recette, « Réglages communs » pour sa
-configuration, « nuance » pour un cran, « intensité » pour une part de chroma,
+« Palettes et réglages » pour la recette, « Configuration » pour ses réglages,
+« nuance » pour un cran, « intensité » pour une part de chroma,
 « usage » pour un emploi, « Thème Light » et « Thème Dark » pour les modes.
 Ce document garde les termes du code, que les données enregistrées portent
 aussi.
@@ -98,10 +98,10 @@ paramètre de la recette.
 | # | Question | Défaut implémenté | Où se change le choix |
 |---|---|---|---|
 | Q1 | Courbes de clarté | Celles de l'architecture | Recette, `courbes` |
-| Q2 | Parts de chroma | 0,45 `soft`, 0,95 `vivid` | Recette, `profils` |
+| Q2 | Parts de chroma | 0,85 `soft`, 0,95 `vivid` | Recette, `profils` |
 | Q3 | Seuil de confusion entre profils | 0,02 en distance Oklab | Recette, `seuils` |
 | Q4 | Gamut de fabrication | sRGB, tranché par l'architecture, qui écarte Display P3 | Recette, `gamut`, qui n'accepte que `srgb` |
-| Q5 | Fonds de référence | `#F7F7F7` en clair, `#121212` en sombre : le gris de clarté 0,975 et 0,18 | Recette, `fonds` |
+| Q5 | Fonds de référence | `#F7F7F7` en clair, `#0A0A0A` en sombre : le gris de clarté 0,975 et 0,145 | Recette, `fonds` |
 | Q6 | Profil vérifié par les promesses | Les deux, `soft` et `vivid` | Aucun endroit : la table en dossiers vaut pour les deux profils |
 | Q7 | Color shift d'une palette nouvelle | Teinte du préréglage Tailwind, saturation et luminosité à zéro | Réglage de la palette |
 
@@ -467,7 +467,7 @@ référence n'entre pas dans les dépendances du paquet.
 | `#1E6FD9` | `L ≈ 0,555`, `C ≈ 0,179`, `H ≈ 257,4` |
 | `plafond(0.5, h, srgb)` sur 360 teintes | jamais hors gamut, et une chroma supérieure de `1e-3` en sort |
 | dérives nulles, 360 teintes, deux profils, deux modes, rampes communes | les garanties de la [section 11.2](#112-promesses-des-emplois) tenues après arrondi, hors la nuance où la référence est ancrée |
-| gris de clarté 0,975 et 0,180 | `#F7F7F7` et `#121212`, les fonds par défaut |
+| gris de clarté 0,975 et 0,180 | `#F7F7F7` et `#121212` |
 | tout Color shift, toute référence dans `[Ls, Lc]` | à la clarté `La`, la teinte vaut `Ha`, la part celle du profil et la clarté celle de la courbe |
 
 Un second jeu vient de cette spécification. [`mesurer-recette.mjs`](./mesurer-recette.mjs)
@@ -476,10 +476,10 @@ le calcule, angles arrondis au centième (`[MOT-27]`) et contrastes tronqués
 
 | Entrée | Attendu |
 |---|---|
-| Référence `#1E6FD9`, préréglage Tailwind | dérive totale 12,63°, `dClair = -7,53`, `dSombre = +5,11` |
+| Référence `#1E6FD9`, préréglage Tailwind | dérive totale 11,63°, `dClair = -7,35`, `dSombre = +4,28` |
 | Même palette, `vivid`, clair 700 | `#0E5DC6`, contraste 5,76 contre `#F7F7F7` |
-| Même palette, `vivid`, sombre 200 | `#021F64`, contraste 1,23 contre `#121212` |
-| Référence `#F2A900`, préréglage Tailwind | dérive totale -39,63°, `dClair = +10,69`, `dSombre = -28,94` |
+| Même palette, `vivid`, sombre 200 | `#022160`, contraste 1,23 contre `#121212` |
+| Référence `#F2A900`, préréglage Tailwind | dérive totale -49,61°, `dClair = +20,53`, `dSombre = -29,08` |
 | Même palette, `vivid`, sombre 700 | `#C9851B`, contraste 6,11 contre `#121212` |
 
 Ces vecteurs portent sur les rampes communes. Sur les rampes ancrées de
@@ -487,7 +487,7 @@ Ces vecteurs portent sur les rampes communes. Sur les rampes ancrées de
 
 | Entrée | Attendu |
 |---|---|
-| Référence `#1E6FD9`, préréglage Tailwind | profil porteur `vivid`, à la part de la référence, 0,894 (`[ENT-11]`) ; cran 600 en clair et en sombre, où l'hexa vaut `#1E6FD9` ; clair 700 `#185EC1` |
+| Référence `#1E6FD9`, préréglage Tailwind | profil porteur `vivid`, à la part de la référence, 0,894 (`[ENT-11]`) ; cran 600 en clair et en sombre, où l'hexa vaut `#1E6FD9` ; clair 700 `#185FC0` |
 | Référence `#A0B599` | profil porteur `soft`, cran 400 en clair, 800 en sombre |
 | Référence `#B00100` | profil porteur `vivid`, cran 700 en clair, 500 en sombre |
 | Référence `#000000` | profil porteur `soft`, cran 950 en clair, 50 en sombre |
@@ -557,14 +557,14 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
-    "dark": [0.18, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93]
+    "dark": [0.145, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93]
   },
   "profils": {
     "soft": { "part": 0.85, "enveloppe": { "p0": 0.85, "light": { "a": 0.6, "b": 0.38, "jaunes": 1 }, "dark": { "a": 1.1, "b": 0.38, "jaunes": 0 } } },
     "vivid": { "part": 0.95, "enveloppe": { "p0": 0.95, "light": { "a": 1.1, "b": 0.48, "jaunes": 0.5 }, "dark": { "a": 1.1, "b": 0.3, "jaunes": 0 } } }
   },
   "gamut": "srgb",
-  "fonds": { "light": "#F7F7F7", "dark": "#121212" },
+  "fonds": { "light": "#F7F7F7", "dark": "#0A0A0A" },
   "texteDesBoutons": { "light": "blanc", "dark": "noir" },
   "seuils": {
     "texte": 4.5, "nonTexte": 3, "profilsConfondus": 0.02,
@@ -810,8 +810,8 @@ du paquet porte les dix-sept rampes de onze crans.
   se récrit à cette part, comme un cran de sa rampe. Sans cela, la référence
   garderait sa saturation entre des voisines plus ternes ou plus vives. Une
   part égale à celle du départ ne se range pas : poser la valeur que le
-  curseur montrait rend les octets du départ. « Rétablir » et « Reprendre »
-  retirent `part` avec les parts du designer. Le premier
+  curseur montrait rend les octets du départ. « Par défaut » et « Tout par
+  défaut » retirent `part` avec les parts du designer. Le premier
   réglage fige le porteur dans `reglages.porteur`, sauf sous une palette de
   base. Un réglage du porteur (sa teinte, sa clarté ou `part`) déplace la
   référence : le geste garde `originale`, puis récrit
@@ -848,14 +848,14 @@ du paquet porte les dix-sept rampes de onze crans.
   par son numéro : la garantie des
   courbes (`[ENT-10]`) se mesure contre cette nuance, la 50 des préréglages,
   et ne couvre pas un fond au-delà. La clarté du fond se compare à la valeur de la courbe avec une
-  tolérance de 0,005 : `#121212`, le fond sombre par défaut, a une clarté de
-  0,1822.
+  tolérance de 0,005 : `#0A0A0A`, le fond sombre par défaut, a une clarté de 0,1448.
 
 ### 8.3 La recette commune
 
 La configuration de la recette règle ce qui touche toutes les palettes :
-courbes, parts, fonds du thème Dark, fonds, seuils et contenu des planches. Le bouton en forme d'engrenage
-de l'en-tête l'ouvre, comme la configuration d'UCM Exporter, et le même
+courbes, parts, fonds du thème Dark, fonds, seuils et contenu des planches. Le
+bouton « Configuration » de l'en-tête l'ouvre, comme la configuration d'UCM
+Exporter, et le même
 composant du socle la porte (`[UI-02]`).
 
 - `[ENT-21]` Le bouton de l'en-tête se nomme : l'engrenage de 12 px, puis le
@@ -882,21 +882,21 @@ composant du socle la porte (`[UI-02]`).
   ne se range qu'à « Passer à N nuances » ; « Annuler » ne range rien. Une
   liste importée se dit « Liste importée ». Au-delà de onze nuances, les
   champs de la table se resserrent pour tenir à la largeur minimale.
-- `[ENT-12]` L'onglet Palettes de la Configuration (les anciens Réglages
-  communs) se range en six cartes : Couleurs de
+- `[ENT-12]` L'onglet Palettes de la Configuration se range en six cartes : Couleurs de
   fond, Intensités, Luminosité des nuances, puis, repliées, Contrastes
   minimums, Détection des couleurs proches et Contenu des planches
   (`[PLA-28]`). Couleurs de fond donne, pour chaque thème, le « Fond de la
   page » (`elevation/page`) et le « Texte des boutons » (`solid/foreground`),
-  Blanc ou Noir ; « Rétablir » y remet le texte des boutons sans
+  Blanc ou Noir ; « Par défaut » y remet le texte des boutons sans
   confirmation, et affiche le refus d'`[ENT-05]` quand la courbe par défaut
   ne reste pas monotone. La carte Intensités porte, sous Soft et Vivid, « Fonds du
   thème Dark », un curseur et un champ de 0 à 1 (`[MOT-28]`), qui touche
-  toutes les palettes ; « Rétablir » le remet à 0,30 avec les parts. « Rétablir » remet une carte
+  toutes les palettes ; « Par défaut » le remet à 0,30 avec les parts. « Par
+  défaut » remet une carte
   aux valeurs de la recette par défaut, sans toucher aux autres cartes ni aux
   palettes : leurs parts propres, du designer ou d'une palette de base
-  forcée, restent. Les courbes se rétablissent à celles du préréglage que la liste
-  reconnaît ; une liste importée n'en a pas, et « Rétablir » y reste inactif.
+  forcée, restent. Les courbes reprennent celles du préréglage que la liste
+  reconnaît ; une liste importée n'en a pas, et « Par défaut » y reste inactif.
   En tête, l'aperçu compact de la palette
   ouverte, dans le thème de son aperçu, donne le résultat Soft et Vivid de ses
   garanties ; sans palette, rien n'est montré à sa place. Le tracé des deux
@@ -910,13 +910,13 @@ composant du socle la porte (`[UI-02]`).
   gauche, lisibles sans survol, le champ et son unité dans deux colonnes
   alignées d'une ligne à l'autre.
 - `[ENT-08]` La liste commune se choisit parmi deux préréglages, 11 ou 13
-  nuances, dans les Réglages communs ; une autre liste passe par un import de
+  nuances, dans l'onglet Palettes de la Configuration ; une autre liste passe par un import de
   recette. Changer de préréglage garde la luminosité de chaque numéro gardé ;
   un numéro ajouté prend celle du préréglage quand la courbe reste monotone,
   sinon celle de la règle de la luminosité d’un numéro.
 - `[ENT-10]` La configuration mesure la garantie des courbes. Dans la table
   du sens de chaque mode, le cran de `page/foreground` tient le seuil `texte`
-  et le cran de `page/focus` le seuil `nonTexte` contre le cran le plus clair
+  et le cran de `ring` le seuil `nonTexte` contre le cran le plus clair
   de la liste, de la même courbe, gris. Le cran de `solid/default` tient le
   seuil `texte` contre le texte des boutons du mode, blanc ou noir purs. Le
   contrôle porte sur 360 teintes, les deux profils et les deux modes, sur les
@@ -1048,7 +1048,7 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 │ Sur la page        [Lien coloré]  [Champ]  [Anneau]  [Filet]               │
 │ page               page/foreground · 700 …  page/divider · 300             │
 │ Contrastes, nuance par nuance        une grille Soft, une grille Vivid     │
-├ Thème Dark · fond #121212 ── filet ───────────────────────────────────────┤
+├ Thème Dark · fond #0A0A0A ── filet ───────────────────────────────────────┤
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1158,7 +1158,7 @@ colonnes.
   pastilles portent les couleurs que la palette écrit dans ses variables
   ([section 17](#17-sortie-2--les-variables)). Une partie retirée change l'empreinte du modèle : les cadres générés
   passent « À actualiser ». La carte « Contenu des planches », repliée en
-  dernier dans les Réglages communs, porte un interrupteur par partie et le
+  dernier dans l'onglet Palettes de la Configuration, porte un interrupteur par partie et le
   nombre de calques qu'elle pèse dans le cadre de la palette ouverte.
 
 ### 9.5 Les contrastes, nuance par nuance
@@ -1292,21 +1292,25 @@ Le sens d'un thème vient de son texte des boutons, blanc (`#FFFFFF`) ou noir
 | Dark | noir | normal |
 | Dark | blanc | inversé |
 
-| Variable | Normal | Inversé |
-|---|---|---|
-| `solid/default` | 700 | 700 |
-| `solid/hover` | 800 | 600 |
-| `solid/pressed` | 900 | 500 |
-| `solid/foreground` | le texte des boutons | le texte des boutons |
-| `surface/default` | 100 | 100 |
-| `surface/hover` | 200 | 200 |
-| `surface/pressed` | 300 | 300 |
-| `surface/foreground` | 800 | 900 |
-| `surface/border` | 800 | 900 |
-| `page/foreground` | 700 | 800 |
-| `page/border` | 700 | 800 |
-| `page/divider` | 300 | 300 |
-| `page/focus` | 600 | 700 |
+| Variable | Light normal | Light inversé | Dark normal | Dark inversé |
+|---|---|---|---|---|
+| `solid/default` | 700 | 700 | 700 | 700 |
+| `solid/hover` | 800 | 600 | 800 | 600 |
+| `solid/pressed` | 900 | 500 | 900 | 500 |
+| `solid/foreground` | le texte des boutons | le texte des boutons | le texte des boutons | le texte des boutons |
+| `surface/default` | 100 | 100 | 300 | 300 |
+| `surface/hover` | 200 | 200 | 400 | 400 |
+| `surface/pressed` | 300 | 300 | 500 | 500 |
+| `surface/foreground` | 800 | 900 | 950 | 950 |
+| `surface/border` | 800 | 900 | 950 | 950 |
+| `page/foreground` | 700 | 800 | 700 | 800 |
+| `page/border` | 700 | 800 | 700 | 800 |
+| `page/divider` | 300 | 300 | 300 | 300 |
+| `ring` | 600 | 700 | 600 | 700 |
+
+`ring` est une variable à la racine de la palette, hors des dossiers `solid`,
+`surface` et `page`. La table est `TABLE_DES_DOSSIERS`
+(`packages/kit/src/emplois/dossiers.ts`).
 
 Le neutre ajoute `page/foreground-main` (noir pur en Light, blanc pur en Dark,
 dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
@@ -1322,7 +1326,7 @@ dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
 | G4 | `surface/border` | les mêmes fonds | `nonTexte` |
 | G5 | `page/foreground` | le fond de la page | `texte` |
 | G6 | `page/border` | le fond de la page | `nonTexte` |
-| G7 | `page/focus` | le fond de la page, le fond de la carte | `nonTexte` |
+| G7 | `ring` | le fond de la page, le fond de la carte | `nonTexte` |
 
 - `[MOT-37]` La carte est le fond qu'une surface élevée pose sur la page. Aucun
   champ de la recette ne la porte : `couleurDeLaCarte(recette, mode)`
@@ -1436,8 +1440,7 @@ garantie par ses variables et son libellé, jamais par son numéro.
   si les deux palettes sont colorées, ni libres (liste de numéros propre) ni
   figées, et portent ces crans. Le constat garde la plus petite des trois
   distances, avec son rôle (plein ou texte) et son thème ; la paire est trop
-  proche sous `palettesProches`, et presque identique sous 0,01. Cette règle
-  remplace la moyenne des crans 500, 600 et 700 en Light.
+  proche sous `palettesProches`, et presque identique sous 0,01.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. Son message ne porte aucune ligne
   de mesure : la valeur et le seuil se lisent dans le rapport
@@ -1489,7 +1492,7 @@ comme sRGB (section 6.7), et le rapport garde le profil.
   lien nomme le geste, ouvre la carte où il se fait, dépliée, et y focalise
   le réglage ; le message cite la même carte que son lien. Depuis
   Vérification, un lien vers un réglage de Création change d'onglet ; un lien
-  vers les Réglages communs garde Vérification, où le retour rend le focus
+  vers la Configuration garde Vérification, où le retour rend le focus
   au lien. Le retour garde la palette, le thème, la nuance choisie et la
   position de lecture.
 
@@ -1500,9 +1503,9 @@ comme sRGB (section 6.7), et le rapport garde le profil.
   | Création, « Color shift » | Ajuster le Color shift |
   | Création, le champ de la référence | Changer la couleur de référence |
   | La modale « Ajuster la référence » | Ajuster la référence |
-  | Réglages communs, « Luminosité des nuances » | Ajuster la luminosité des nuances |
-  | Réglages communs, « Couleurs de fond » | Changer les couleurs de fond |
-  | Réglages communs, « Intensités communes » | Ajuster les intensités communes |
+  | Configuration, onglet Palettes, « Luminosité des nuances » | Ajuster la luminosité des nuances |
+  | Configuration, onglet Palettes, « Couleurs de fond » | Changer les couleurs de fond |
+  | Configuration, onglet Palettes, « Intensités » | Ajuster les intensités communes |
 
 ## 12. Le Color shift
 
@@ -1610,8 +1613,8 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
 - `[DER-09]` Au clavier, une poignée ou une réglette qui a le focus avance
   d'un pas avec les flèches, d'un grand pas avec Maj et les flèches. Origine
   et Fin vont aux bornes permises (`[DER-19]`). À côté de chaque champ, un
-  bouton « Tailwind » ramène la teinte du préréglage, et « Rétablir » ramène
-  zéro pour la saturation et la luminosité. Chaque poignée et chaque
+  bouton « Tailwind » ramène la teinte du préréglage, et « Par défaut » ramène
+  chaque grandeur à sa marque (`[DER-25]`). Chaque poignée et chaque
   réglette porte `role="slider"`, `aria-valuemin` et `aria-valuemax` aux
   bornes permises, et une `aria-valuetext` qui donne la valeur et la plage
   sûre, avec la teinte absolue pour la teinte.
@@ -1733,16 +1736,18 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   ou à la sortie de la fenêtre quand la capture est perdue ; après lui, un
   survol ne redimensionne rien. Le sandbox n'applique qu'une taille qui
   change, et ne range la taille qu'une fois, à la fin du geste.
-- `[UI-02]` Trois onglets, **Création**, **Vérification** et **Gestion**, et
-  un bouton en forme d'engrenage dans l'en-tête, qui ouvre les Réglages
-  communs (section 8.3) comme celui d'UCM Exporter ouvre sa configuration. Le
+- `[UI-02]` Quatre onglets, **Création**, **Vérification**, **Harmonisation**
+  et **Gestion**, et un bouton « Configuration » dans l'en-tête, qui ouvre la
+  Configuration (section 8.3) comme celui d'UCM Exporter ouvre sa
+  configuration. Le
   designer crée une palette, vérifie ses contrastes, puis l'écrit dans
   Figma : chaque étape a son onglet. Création et Vérification portent sur la
   palette ouverte et partagent la barre du sélecteur (`[UI-23]`) ; Gestion
-  porte sur le fichier. Le code nomme les onglets `creation`, `verification`
-  et `gestion` : `ongletCreation.ts` et `#panneau-creation`,
-  `ongletVerification.ts` et `#panneau-verification`, `ongletGestion.ts` et
-  `#panneau-gestion`. L'onglet Création ne génère rien et n'écrit aucune
+  porte sur le fichier. Le code nomme les onglets `creation`, `verification`,
+  `harmonisation` et `gestion` : `ongletCreation.ts` et `#panneau-creation`,
+  `ongletVerification.ts` et `#panneau-verification`, `ongletHarmonisation.ts`,
+  `ongletGestion.ts` et `#panneau-gestion`. L'onglet Création ne génère rien et
+  n'écrit aucune
   variable : ces gestes appartiennent à Gestion (`[UI-05]`). Le pied de
   Création mène à Vérification (`[UI-18]`), et le pied de Vérification à
   Gestion (`[VER-18]`).
@@ -1759,8 +1764,9 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   (`[UI-18]`) reste en vue : il couvre la bande du bas de la fenêtre, et la
   page défile jusqu'à dégager ce qu'il cache.
 - `[UI-16]` L'interface s'ouvre en anglais, quelle que soit la langue de
-  Figma, du navigateur ou du système. Le premier champ des Réglages communs,
-  « Language », propose chaque langue du registre sous son nom dans sa propre
+  Figma, du navigateur ou du système. Le champ « Language » de l'onglet Général
+  de la Configuration propose chaque langue du registre sous son nom dans sa
+  propre
   langue : `English`, `Français`. Il reste utilisable sans recette, avec une
   recette illisible ou future, et pendant un dessin. Le choix traduit tout ce
   qui est affiché, résultats et erreurs compris, sans reconstruire un élément
@@ -1811,8 +1817,8 @@ Onglet Création, une palette ouverte :
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ Ajuster la palette                                                   │
 │ Le réglage global déplace toute la rampe. Le Color shift écarte …    │
-│ ┌ › ▭ Réglage global ─────────── Aucun réglage · Soft 45 % · … ┐    │
-│ ┌ › ◆ Color shift ───────────── Tailwind · Teinte −7,5° / +5,1° ┐   │
+│ ┌ › ▭ Réglage global ─────────────────────────────── Par défaut ┐    │
+│ ┌ › ◆ Color shift ──────────────────────────────────── Par défaut ┐   │
 │ ┌ › Interface de test ─────────────────────── Thème Light · Vivid ─┐ │
 ├──────────────────────────────────────────────────────────────────────┤
 │ ✗ 2 garanties manquées sur 76 · 1 alerte · text 700 / …  [Vérifier] │
@@ -1847,7 +1853,7 @@ palette » gardent leurs libellés au-dessus des champs.
   La pastille est un bouton de saisie, hors des choix d'affichage : elle
   ouvre le sélecteur de couleur sur ce fond, et une ligne sous le sélecteur
   dit que le fond vaut pour toutes les palettes. La saisie change le réglage
-  commun `fonds`, que les Réglages communs montrent aussi. L'étiquette
+  commun `fonds`, que l'onglet Palettes de la Configuration montre aussi. L'étiquette
   accessible du bouton nomme le thème et la valeur. Sous la surface, la ligne
   « ◆ Référence : Vivid · nuance 600 », coupée par une ellipse, nomme le profil porteur et la nuance du
   thème montré ; une palette à une intensité écrit « ◆ Référence : nuance
@@ -1874,7 +1880,7 @@ palette » gardent leurs libellés au-dessus des champs.
   son nom français. `solid` porte `foreground` (texte des boutons) et
   `default · hover · pressed` (repos · survol · appui), `surface` porte
   `default · hover · pressed` et `foreground · border` (texte · contour), `page`
-  porte `divider` (filet), `focus` (anneau de focus) et `foreground · border`.
+  porte `divider` (filet), `ring` (anneau de focus) et `foreground · border`.
   Dans le sens inversé, `solid` s'écrit `pressed · hover · default` sous 500,
   600 et 700. La palette du neutre lit `foreground-subtle · border` (texte
   secondaire · contour) dans `page`, et une note sous la surface dit que
@@ -1909,7 +1915,7 @@ palette » gardent leurs libellés au-dessus des champs.
   compacte du bouton du socle, 24 px, comme ceux de la carte d'une palette
   supprimée. Le geste enregistre la palette si un rangement est en attente,
   puis génère son cadre, grille des contrastes comprise : la génération n'a
-  pas d'option. Pendant la génération, les trois onglets sont inertes. La
+  pas d'option. Pendant la génération, les quatre onglets sont inertes. La
   progression, l'erreur, la confirmation des calques étrangers ou les écarts
   de peinture se lisent sous le bloc de la connexion, dans l'onglet
   Gestion : un nouveau résultat remplace le précédent. Les
@@ -2070,8 +2076,8 @@ palette » gardent leurs libellés au-dessus des champs.
   de `[DER-19]` pour la cible choisie, avec `reglerTeinte`,
   `reglerSaturation` ou `reglerClarte` comme candidate, ses hachures
   (`[DER-21]`) et sa ligne de butée (`[DER-22]`), sous les réglettes, vide
-  sans butée. Les limites ne se calculent que carte dépliée. Les
-  Réglages communs restent sans limite : ils touchent toutes les palettes à
+  sans butée. Les limites ne se calculent que carte dépliée. La Configuration
+  reste sans limite : elle touche toutes les palettes à
   la fois. Un pas au clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur
   chaque piste, le nom de l'autre profil situe sa valeur quand un seul
   profil se règle ; sur la piste de saturation, un repère situe la référence
@@ -2165,8 +2171,8 @@ palette » gardent leurs libellés au-dessus des champs.
   d'un losange. Les autres cartes titrées en reçoivent un du même style :
   dans l'onglet Création, Configuration de la palette, Interface de test et
   la création d'une palette ; dans l'onglet Vérification, Garanties de
-  contraste ; dans les
-  Réglages communs, Couleurs de fond, Intensités, Luminosité des nuances,
+  contraste ; dans l'onglet Palettes de la Configuration, Couleurs de fond,
+  Intensités, Luminosité des nuances,
   Minimums des promesses, Détection des couleurs proches et Contenu des
   planches ; dans l'onglet Gestion, Palettes et réglages. Une fiche ou une
   carte titrée par un nom de palette n'en a pas. `src/ui/glyphes.ts` les
@@ -2203,7 +2209,7 @@ palette » gardent leurs libellés au-dessus des champs.
   l'équipe » sur le modèle de Radix Themes, en HTML, avec une navigation dont
   l'entrée courante est en `surface`, un encart en `surface`, un tableau dont
   une ligne se choisit, des badges `surface`, `solid` et `page`, un champ
-  bordé de `page/border` et cerclé de `page/focus` au focus, une case et un
+  bordé de `page/border` et cerclé de `ring` au focus, une case et un
   interrupteur en `solid`, et trois boutons, sans fond, `surface` et
   `solid`. Le survol et l'appui prennent les fonds `hover` et `pressed` de
   `solid` ou de `surface` ; le texte ne change pas avec l'état. Les
@@ -2211,7 +2217,7 @@ palette » gardent leurs libellés au-dessus des champs.
   composant, boutons plein, soft, contour et sans fond, champ, lien et
   badge, et une colonne par état, `default`, `hover`, `pressed` et `focus`,
   chaque cellule peinte de son état sans survol. Le focus garde la forme du
-  repos et ajoute l'anneau `page/focus` ; un composant qui n'a pas un état
+  repos et ajoute l'anneau `ring` ; un composant qui n'a pas un état
   garde un tiret. La vue n'a pas de ligne « Carte » : la table ne donne pas
   de fond de carte à la palette, `elevation/raised` n'ayant pas de réglage.
   Survoler un élément ou un spécimen ouvre une bulle sous lui : une ligne par
@@ -2228,7 +2234,7 @@ palette » gardent leurs libellés au-dessus des champs.
   inerte, et Tab reste dans la modale. Elle part de la référence rangée.
   En tête, sous le titre, une phrase dit pourquoi ajuster, une idée par
   phrase, sans ratio : « La palette utilise votre couleur telle quelle. En
-  Thème Light, elle est trop claire pour « anneau de focus » (`page/focus`). »,
+  Thème Light, elle est trop claire pour « anneau de focus » (`ring`). »,
   avec la variable de la première garantie manquée de chaque thème, son
   libellé puis son nom, trop claire en Light, trop sombre en Dark. Suivent l'originale et la proposition en grandes pastilles côte à
   côte ; « − » et « + » par pas de 0,01 de la luminosité du profil porteur
@@ -2250,7 +2256,7 @@ palette » gardent leurs libellés au-dessus des champs.
   notice le dit. Aucun ajustement ne se fait sans le geste du designer.
 - `[UI-13]` Aucune couleur ne se choisit dans le sélecteur du navigateur, qui
   s'ouvre en RGB dans Figma. La pastille de la couleur de référence, celle
-  de la création, celles des deux fonds des Réglages communs et celle du
+  de la création, celles des deux fonds de la Configuration et celle du
   fond de l'aperçu ouvrent le sélecteur embarqué : 232 px sous le contrôle,
   par-dessus le contenu, aligné sur son bord. Il porte une zone de saturation
   et de luminosité, un curseur de teinte, un menu de format et le code, en
@@ -2264,8 +2270,8 @@ palette » gardent leurs libellés au-dessus des champs.
   par Échap, par la fermeture du sélecteur, après le clic qui l'a refermé,
   ou par la capture du pointeur perdue en plein glisser. Aucun rendu complet
   ne part pendant le geste, même quand le pointeur s'arrête ; une réponse
-  du sandbox à un rangement n'y montre qu'un refus. Pendant la saisie d'un fond des
-  Réglages communs, seul leur aperçu compact suit : le tracé et la garantie
+  du sandbox à un rangement n'y montre qu'un refus. Pendant la saisie d'un fond
+  de la Configuration, seul son aperçu compact suit : le tracé et la garantie
   des courbes, qui ne lisent pas les fonds, attendent le relâcher, et
   l'onglet Création, caché, se rend au retour. Un code s'enregistre à Entrée
   ou à la sortie du champ, et un code invalide reste dans son champ, marqué,
@@ -2705,20 +2711,22 @@ Onglet Gestion, Bleu dépliée :
   designer se rangent sous `ucm-palettes.sections` dans `figma.clientStorage`.
   Une recette illisible ouvre la section de la recette sans ranger ce choix.
 
-Réglages communs, derrière l'engrenage :
+La Configuration, onglet Palettes, derrière le bouton « Configuration » :
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ ← Retour aux palettes et à la planche     Réglages communs    │
+│ ← Retour aux palettes et à la planche         Configuration    │
+│ Palettes · Général                                              │
+│ Les réglages par défaut de toutes les palettes du fichier.      │
 │ Palette ouverte : Bleu · Thème Light      Soft ✓  Vivid ✗ 2   │
 │ Soft ▪▪▪▪▪▪▪▪▪▪▪  Vivid ▪▪▪▪▪▪◆▪▪▪▪                           │
-│ ┌ Couleurs de fond ─────────── 3 palettes concernées  Rétablir ┐ │
+│ ┌ Couleurs de fond ─────────── 3 palettes concernées  Par défaut ┐ │
 │ │ Fond du thème Light         Fond du thème Dark              │ │
-│ │ [■][#F7F7F7]                [■][#121212]                     │ │
-│ ┌ Intensités ───────────────── 2 palettes concernées  Rétablir ┐ │
-│ │ Intensité Soft  [───●──────] 0,45                           │ │
+│ │ [■][#F7F7F7]                [■][#0A0A0A]                     │ │
+│ ┌ Intensités ───────────────── 2 palettes concernées  Par défaut ┐ │
+│ │ Intensité Soft  [───────●──] 0,85                           │ │
 │ │ Intensité Vivid [────────●─] 0,95                           │ │
-│ ┌ Luminosité des nuances ───── 3 palettes concernées  Rétablir ┐ │
+│ ┌ Luminosité des nuances ───── 3 palettes concernées  Par défaut ┐ │
 │ │ tracé des deux courbes et ◆, une colonne par nuance dessous │ │
 │ ┌ › Minimums des promesses  Texte 4,5:1 · Éléments graphiques 3:1 ┐ │
 │ ┌ › Détection des couleurs proches   Soft et Vivid 0,02 · …   ┐ │
@@ -2765,8 +2773,9 @@ qui le créera.
 | Référence ajustée | « Ajustée depuis #16A34A · Revenir à l'originale » sous le code |
 | Palette libre | Libre pressé, six puces allumées, l’aperçu à six colonnes sans case tiretée ni bandes, aucune carte des garanties |
 | Référence dans le sélecteur de couleur | La pastille de la référence ouverte, les nuances Vivid de la palette proposées |
-| Réglages communs | Fonds, intensités, luminosité et groupes repliés, avec le nombre de palettes concernées |
-| Réglages communs sans palette | Aucun aperçu en tête, tracé sans ◆, aucune palette concernée |
+| Configuration de la recette | Les onglets Palettes et Général, puis fonds, intensités, luminosité et groupes repliés, avec le nombre de palettes concernées |
+| Configuration, onglet Général | Le seul champ Langue, sous la phrase de l'onglet |
+| Réglages communs sans palette (titre de l'état de la galerie) | Aucun aperçu en tête, tracé sans ◆, aucune palette concernée |
 | Courbe hors garantie | Alerte sous la courbe : cran, mode, profil, teinte du pire cas et contraste |
 | Hexa invalide | Le champ de référence refuse la saisie, aperçu inchangé |
 | Conflit de sauvegarde | Enregistrement refusé : consultation et export du brouillon possibles, « Recharger » |
@@ -2822,7 +2831,7 @@ qui le créera.
 | Copie de bibliothèque refusée | Figma refuse l'import : le message sous le bloc de la connexion |
 | Bibliothèques illisibles | Figma n'a pas rendu les collections : la notice, et Gestion qui fonctionne |
 | Contenu des planches | Un interrupteur par partie d’un cadre et par thème, ses calques, l’effet sur le cadre de la palette ouverte |
-| Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités des Réglages communs |
+| Fonds du thème Dark | Le réglage sous Soft et Vivid dans la carte Intensités de la Configuration |
 | Cadre déplacé | Un cadre rangé dans une section ou sur une autre page, retrouvé par son identité |
 | Palette supprimée | Une carte par cadre resté dans Figma, teinte d'avertissement, « Supprimer définitivement » |
 | Copie de cadre | Information, la copie n'est pas réécrite |

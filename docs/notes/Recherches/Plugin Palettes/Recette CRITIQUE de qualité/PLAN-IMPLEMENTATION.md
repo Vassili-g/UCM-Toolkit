@@ -1120,7 +1120,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; `git grep -n "page/focus\|format 10" -- AGENTS.md`
     ne rend que des mentions historiques explicites.
 
-- [ ] **D2 · SPEC-PAL, relecture d'ensemble** · `implementeur`, moyen.
+- [x] **D2 · SPEC-PAL, relecture d'ensemble** · `implementeur`, moyen.
   - Chaque tâche a écrit ses identifiants. Ici : relire les sections
     touchées (recette, promesses, alertes, Création, Color shift,
     Configuration, Harmonisation, planche), retirer les phrases devenues
