@@ -403,7 +403,10 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
   });
 
-  const configuration = panneauDeConfiguration.element;
+  const panneauPalettes = panneauDeConfiguration.element;
+  // [ENT-20] Le champ Langue et son refus de stockage forment le panneau Général.
+  const panneauGeneral = document.createElement('div');
+  panneauGeneral.className = 'page-stack colonne';
   const preference = document.createElement('div');
   preference.className = 'champ-colonne';
   const libelleDeLangue = document.createElement('label');
@@ -432,11 +435,10 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
   i18n.lier(refusDePreference, 'textContent', TEXTES.langueNonRangee);
   const reessayerPreference = createButton({ label: TEXTES.reessayerLangue, variant: 'secondary', onClick: rangerLaLangue });
   erreurDePreference.append(refusDePreference, reessayerPreference);
-  configuration.prepend(preference, erreurDePreference);
+  panneauGeneral.append(preference, erreurDePreference);
+  // Pendant un dessin, les cartes se figent ; la langue reste réglable.
   suivi.abonner((etat) => {
-    Array.from(configuration.children).forEach((element) => {
-      if (element !== preference && element !== erreurDePreference) (element as HTMLElement).inert = etat.phase === 'en-cours';
-    });
+    panneauPalettes.inert = etat.phase === 'en-cours';
   });
   let selectionDeLangue = 0;
   function rangerLaLangue(): void {
@@ -449,6 +451,17 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     rangerLaLangue();
   });
 
+  const phraseDeLOnglet = document.createElement('p');
+  phraseDeLOnglet.className = 'subtitle';
+  const phrasesDesOnglets = { palettes: TEXTES.phraseConfigurationPalettes, general: TEXTES.phraseConfigurationGeneral };
+  const ongletsDeConfiguration = createOnglets(TEXTES.etiquetteDesOngletsDeLaConfiguration, [
+    { id: 'palettes', libelle: TEXTES.ongletConfigurationPalettes, panneau: panneauPalettes },
+    { id: 'general', libelle: TEXTES.ongletConfigurationGeneral, panneau: panneauGeneral },
+  ], (id) => i18n.lier(phraseDeLOnglet, 'textContent', phrasesDesOnglets[id]));
+
+  const configuration = document.createElement('div');
+  configuration.className = 'page-stack colonne';
+  configuration.append(ongletsDeConfiguration.liste, phraseDeLOnglet, panneauPalettes, panneauGeneral);
   configuration.hidden = true;
 
   function bascule(): ElementsDeBascule {
@@ -471,6 +484,8 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
       lienDeVerification: ongletVerification.rangDuLien(document.activeElement),
     };
     panneauDeConfiguration.afficher();
+    // [ENT-20] Chaque ouverture revient sur Palettes ; l'onglet choisi se garde tant que le panneau reste ouvert.
+    ongletsDeConfiguration.selectionner('palettes');
     montrerConfiguration(bascule());
     i18n.lier(titre, 'textContent', TEXTES.titreConfiguration);
   }

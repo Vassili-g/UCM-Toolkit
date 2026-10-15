@@ -864,6 +864,15 @@ composant du socle la porte (`[UI-02]`).
   settings »). Le socle le porte, avec la classe `avec-libelle`, pour
   UCM Palettes et UCM Exporter ; l'explorateur n'a pas de configuration et
   n'en pose pas.
+- `[ENT-20]` La Configuration, titrée « Configuration » (« Settings »), s'ouvre
+  sur deux onglets du socle, Palettes puis Général. Une phrase sous les
+  onglets dit ce que l'onglet actif règle : « Les réglages par défaut de
+  toutes les palettes du fichier. » pour Palettes, « Les réglages du plugin
+  sur ce poste. » pour Général. Palettes porte les cartes de `[ENT-12]` ;
+  Général porte le champ Langue et son message de refus. Pendant un dessin,
+  le panneau Palettes est inerte et la langue reste réglable. Chaque
+  ouverture de la Configuration revient sur Palettes ; changer la langue ne
+  change pas d'onglet.
 - `[ENT-07]` Chaque champ de la configuration affiche le nombre de palettes
   qu'il modifie.
 - `[ENT-13]` « Luminosité des nuances » s'ouvre sur le nombre de nuances,
@@ -873,7 +882,8 @@ composant du socle la porte (`[UI-02]`).
   ne se range qu'à « Passer à N nuances » ; « Annuler » ne range rien. Une
   liste importée se dit « Liste importée ». Au-delà de onze nuances, les
   champs de la table se resserrent pour tenir à la largeur minimale.
-- `[ENT-12]` Les Réglages communs se rangent en six cartes : Couleurs de
+- `[ENT-12]` L'onglet Palettes de la Configuration (les anciens Réglages
+  communs) se range en six cartes : Couleurs de
   fond, Intensités, Luminosité des nuances, puis, repliées, Contrastes
   minimums, Détection des couleurs proches et Contenu des planches
   (`[PLA-28]`). Couleurs de fond donne, pour chaque thème, le « Fond de la

@@ -47,7 +47,13 @@ export const TEXTES = {
   langueNonRangee: "Langue non enregistrée. Réessayez.",
   reessayerLangue: 'Réessayer l’enregistrement de la langue',
   titre: 'UCM Palettes',
-  titreConfiguration: 'Réglages communs',
+  titreConfiguration: 'Configuration',
+  // [ENT-20] : les deux onglets de la Configuration et la phrase de chacun.
+  etiquetteDesOngletsDeLaConfiguration: 'Configuration',
+  ongletConfigurationPalettes: 'Palettes',
+  ongletConfigurationGeneral: 'Général',
+  phraseConfigurationPalettes: 'Les réglages par défaut de toutes les palettes du fichier.',
+  phraseConfigurationGeneral: 'Les réglages du plugin sur ce poste.',
   largeurDeLaFenetre: (largeur: number) => `${largeur} px`,
   etiquetteDesOnglets: 'Navigation du plugin',
   // N130. Les clés portent le nom de leur module (Q6.1).

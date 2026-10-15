@@ -640,9 +640,17 @@ const ETATS = [
     id: 'configuration-de-la-recette',
     titre: 'Configuration de la recette',
     quand: 'Le designer ouvre l’engrenage sur un fichier de trois palettes, dont une aux parts propres et une aux profils ternes.',
-    regarder: 'En tête, Bleu en Thème Light avec « Soft ✓ · Vivid ✓ » et ses rampes ; les cartes Couleurs de fond, Intensités et Luminosité des nuances, chacune avec son compte (3, 1 et 3 palettes concernées) et « Par défaut » inactif ; le tracé des deux courbes et les deux ◆ de Bleu, puis une colonne par nuance sous son point, Light puis Dark ; puis Minimums des promesses et Détection des couleurs proches repliées, avec leur résumé.',
+    regarder: 'Le titre « Configuration », les onglets Palettes (sélectionné) et Général, la phrase « Les réglages par défaut de toutes les palettes du fichier. » ; en tête, Bleu en Thème Light avec « Soft ✓ · Vivid ✓ » et ses rampes ; les cartes Couleurs de fond, Intensités et Luminosité des nuances, chacune avec son compte (3, 1 et 3 palettes concernées) et « Par défaut » inactif ; le tracé des deux courbes et les deux ◆ de Bleu, puis une colonne par nuance sous son point, Light puis Dark ; puis Minimums des promesses et Détection des couleurs proches repliées, avec leur résumé.',
     existe: true,
     atteinte: [etatDuFichier(rangee(TROIS_PALETTES)), ouvrirLaConfiguration],
+  },
+  {
+    id: 'configuration-general',
+    titre: 'Configuration, onglet Général',
+    quand: 'Le designer ouvre l’engrenage, puis l’onglet Général.',
+    regarder: 'Le titre « Configuration », les onglets Palettes et Général avec Général sélectionné, la phrase « Les réglages du plugin sur ce poste. » et le seul champ Langue ; aucune carte de réglage.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee(TROIS_PALETTES)), ouvrirLaConfiguration, { clic: '#onglet-general' }],
   },
   {
     id: 'reglages-sans-palette',

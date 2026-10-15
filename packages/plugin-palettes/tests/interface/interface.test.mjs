@@ -93,6 +93,7 @@ test('la préférence anglaise, son enregistrement et sa récupération sont ind
     await page.getByRole('tab', { name: 'Create', exact: true }).waitFor();
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'General', exact: true }).click();
     const langue = page.getByLabel('Language', { exact: true });
     assert.deepEqual(await langue.locator('option').allTextContents(), ['English', 'Français']);
     await langue.selectOption('fr');
@@ -139,6 +140,7 @@ test('un dessin en cours garde sa demande et son résultat à travers une bascul
     const demande = await dessinEnvoye(page, 1);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
+    await page.getByRole('tab', { name: 'Général', exact: true }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
     assert.equal(await page.locator('#panneau-gestion').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
     assert.equal(await page.locator('.carte-de-reglage').first().evaluate((element) => element.closest('[inert]') !== null), true);
@@ -154,6 +156,7 @@ test('un refus de préférence se retraduit et peut être réessayé, une lectur
   const page = await ouvrir(MINIMALE, 'en');
   try {
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'General', exact: true }).click();
     await page.evaluate(() => { window.refuserLangue = true; });
     await page.getByLabel('Language', { exact: true }).selectOption('fr');
     const reessayer = page.getByRole('button', { name: 'Réessayer l’enregistrement de la langue' });
@@ -259,11 +262,38 @@ test('l’engrenage ouvre la configuration, le retour ramène aux onglets', asyn
   const page = await ouvrir();
   try {
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
-    assert.equal(await page.getByRole('tablist').isVisible(), false);
-    assert.equal(await page.locator('.page-title').textContent(), 'Réglages communs');
+    assert.equal(await page.getByRole('tablist', { name: 'Navigation du plugin' }).isVisible(), false);
+    assert.equal(await page.locator('.page-title').textContent(), 'Configuration');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
-    assert.equal(await page.getByRole('tablist').isVisible(), true);
+    assert.equal(await page.getByRole('tablist', { name: 'Navigation du plugin' }).isVisible(), true);
     assert.equal(await page.locator('.page-title').textContent(), 'UCM Palettes');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[ENT-20] la Configuration s’ouvre sur Palettes et range la langue dans Général', async () => {
+  const page = await ouvrirSur('configuration-de-la-recette');
+  try {
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
+    const onglets = page.getByRole('tablist', { name: 'Configuration', exact: true });
+    assert.deepEqual(await onglets.getByRole('tab').allTextContents(), ['Palettes', 'Général']);
+    assert.equal(await onglets.getByRole('tab', { name: 'Palettes', exact: true }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('.subtitle').textContent(), 'Les réglages par défaut de toutes les palettes du fichier.');
+    assert.equal(await page.locator('#panneau-palettes .carte-de-reglage').first().isVisible(), true);
+    assert.equal(await page.locator('#langue-du-plugin').isVisible(), false);
+    assert.equal(await page.locator('#panneau-palettes').locator('#langue-du-plugin').count(), 0);
+    await onglets.getByRole('tab', { name: 'Général', exact: true }).click();
+    assert.equal(await page.locator('.subtitle').textContent(), 'Les réglages du plugin sur ce poste.');
+    assert.equal(await page.locator('#panneau-general #langue-du-plugin').isVisible(), true);
+    assert.equal(await page.locator('#panneau-palettes').isVisible(), false);
+    await page.getByLabel('Langue', { exact: true }).selectOption('en');
+    assert.equal(await page.getByRole('tab', { name: 'General', exact: true }).getAttribute('aria-selected'), 'true', 'changer la langue garde l’onglet');
+    assert.equal(await page.locator('.subtitle').textContent(), 'Plugin settings on this computer.');
+    await page.getByRole('button', { name: 'Back to palettes' }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    assert.equal(await page.getByRole('tab', { name: 'Palettes', exact: true }).getAttribute('aria-selected'), 'true', 'la réouverture revient sur Palettes');
+    assert.equal(await page.locator('.subtitle').textContent(), 'Default settings for every palette in this file.');
   } finally {
     await page.close();
   }
@@ -387,6 +417,7 @@ test('[UI-33] un fichier sans variables montre sa bibliothèque distante sous so
     await gray.locator('[data-geste="deplier"]').click();
     assert.equal(await gray.getByRole('button', { name: 'Copier dans le plugin', exact: true }).isVisible(), true);
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
+    await page.getByRole('tab', { name: 'Général', exact: true }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
     await page.getByRole('button', { name: 'Back to palettes' }).click();
     assert.equal(await intertitres.locator('.ligne-secondaire').textContent(), 'Published by a remote library');
@@ -5441,6 +5472,7 @@ test('[UI-37] une liste prend la police de l’interface et 24 px parmi des bout
     assert.equal(mesure.fleche, 'none');
     assert.match(mesure.chevron, /^url\("data:image\/svg\+xml/);
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
+    await page.getByRole('tab', { name: 'Général', exact: true }).click();
     assert.equal(await page.getByLabel('Langue', { exact: true }).evaluate((element) => element.getBoundingClientRect().height), 32, 'la liste de la langue garde 32 px');
   } finally {
     await page.close();
@@ -6103,11 +6135,11 @@ test('[UI-18] B4 : le compteur de l’onglet Vérification suit le bilan de la p
 test('[UI-18] B4 : les trois onglets restent sur une seule ligne à 500 px avec le compteur', async () => {
   const page = await ouvrirSur('promesses-manquees', { width: 500, height: 520 });
   try {
-    const hauts = await page.locator('.onglets .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().top)));
+    const hauts = await page.locator('[aria-label="Navigation du plugin"] .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().top)));
     assert.equal(new Set(hauts).size, 1, `les trois onglets sont sur une ligne : ${hauts}`);
-    const hauteurs = await page.locator('.onglets .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().height)));
+    const hauteurs = await page.locator('[aria-label="Navigation du plugin"] .onglet').evaluateAll((onglets) => onglets.map((onglet) => Math.round(onglet.getBoundingClientRect().height)));
     assert.equal(new Set(hauteurs).size, 1, `les onglets gardent la même hauteur : ${hauteurs}`);
-    assert.equal(await page.locator('.onglets').evaluate((liste) => liste.scrollWidth <= liste.clientWidth), true, 'la rangée ne déborde pas');
+    assert.equal(await page.locator('[aria-label="Navigation du plugin"]').evaluate((liste) => liste.scrollWidth <= liste.clientWidth), true, 'la rangée ne déborde pas');
   } finally {
     await page.close();
   }
@@ -7142,6 +7174,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     assert.equal(vue.detail[4].constat, 'Soft and Vivid are almost identical at these shades.');
     // Le changement de langue en cours de route retraduit sans redessiner.
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'General', exact: true }).click();
     await page.getByLabel('Language', { exact: true }).selectOption('fr');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     vue = await vueDuBilan(page);

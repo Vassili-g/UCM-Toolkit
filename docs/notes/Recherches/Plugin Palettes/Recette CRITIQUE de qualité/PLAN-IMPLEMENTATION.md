@@ -69,7 +69,7 @@ Règles d'économie, à tenir par l'orchestrateur :
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
 - **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
-  P2, P6, P7, P3 et P4 sont faits ; Codex fait H0 en parallèle
+  P2 à P7 sont faits ; Codex fait H0 en parallèle
   (`packages/couleur`, `reglerTeinte`).
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
@@ -846,7 +846,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
     Palettes et d'Exporter.
   - Fini quand : vert.
 
-- [ ] **P5 · La Configuration en deux onglets** · `implementeur`, moyen.
+- [x] **P5 · La Configuration en deux onglets** · `implementeur`, moyen.
   - C9 ; SPEC, section 4, points 2 à 5. Modèle :
     `packages/plugin-exporter/src/ui/components/ConfigurationPage.ts`
     (`createOnglets`, `p.subtitle`, phrases par onglet). Identifiant

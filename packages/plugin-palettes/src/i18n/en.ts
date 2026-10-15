@@ -51,7 +51,12 @@ export const TEXTES = {
   langueNonRangee: "Language not saved. Try again.",
   reessayerLangue: 'Save language again',
   titre: 'UCM Palettes',
-  titreConfiguration: "Shared settings",
+  titreConfiguration: "Settings",
+  etiquetteDesOngletsDeLaConfiguration: "Settings",
+  ongletConfigurationPalettes: "Palettes",
+  ongletConfigurationGeneral: "General",
+  phraseConfigurationPalettes: "Default settings for every palette in this file.",
+  phraseConfigurationGeneral: "Plugin settings on this computer.",
   largeurDeLaFenetre: (largeur: number) => `${largeur} px`,
   etiquetteDesOnglets: "Plugin navigation",
   // N130. Les clés portent le nom de leur module (Q6.1).
