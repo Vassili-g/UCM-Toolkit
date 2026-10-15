@@ -4,7 +4,7 @@
  * [MOT-20], [MOT-36]).
  */
 import { CHROMA_SANS_TEINTE, ecartAngulaire, type Oklch } from './conversions';
-import { arrondir, type Bouts, type Derive } from './rampe';
+import { arrondir, poidsA, type Bouts, type Derive } from './rampe';
 
 /** Une rampe relevée : son nom, et pour chaque cran du 50 au 950 sa clarté OKLCH `L` et sa teinte `H` en degrés. */
 export interface RampeDeDerive {
@@ -103,3 +103,47 @@ export function prereglageTailwind(
 
 /** Le préréglage « Constante » : aucune dérive ([DER-11]). */
 export const PREREGLAGE_CONSTANTE: Derive = { clair: 0, sombre: 0 };
+
+/** La borne du décalage de clarté du bout clair : au-delà, le 100 du jaune dépasse celui de Tailwind. */
+export const CLARTE_SELON_LA_TEINTE_MAXIMALE = 0.03;
+
+/** L'indice du cran 100 dans une rampe du relevé, qui va du 50 au 950. */
+const RANG_DU_CENT = 1;
+
+function mediane(valeurs: readonly number[]): number {
+  const triees = [...valeurs].sort((a, b) => a - b);
+  const milieu = triees.length / 2;
+  return triees.length % 2 ? triees[(triees.length - 1) / 2] : (triees[milieu - 1] + triees[milieu]) / 2;
+}
+
+/**
+ * Le décalage de clarté du bout clair que les rampes de Tailwind montrent à
+ * la teinte de `reference`. Pour chaque rampe du relevé, l'écart de clarté de
+ * son cran 100 à la médiane des rampes ; les deux rampes voisines de la
+ * teinte de la référence prêtent leur écart, interpolé comme la dérive de
+ * teinte. `clarteDuCent` est la clarté de courbe du cran 100 de la palette : son
+ * poids vers le bout clair divise l'écart. Le résultat se borne à
+ * `CLARTE_SELON_LA_TEINTE_MAXIMALE` et se range au millième. Il vaut 0 pour une
+ * couleur sans teinte ([MOT-04]) et quand le cran 100 pèse moins de 0,2.
+ */
+export function clarteSelonLaTeinteDuReleve(
+  reference: Oklch,
+  bouts: Bouts,
+  clarteDuCent: number,
+  releve: readonly RampeDeDerive[],
+): number {
+  if (reference.C < CHROMA_SANS_TEINTE) return 0;
+  const { bout, poids } = poidsA(clarteDuCent, reference, bouts);
+  if (bout !== 'clair' || poids < 0.2) return 0;
+  const clarteMediane = mediane(releve.map(({ crans }) => crans[RANG_DU_CENT][0]));
+  const lues = releve
+    .map(({ crans }) => ({ h: ((teinteALaClarte(crans, reference.L) % 360) + 360) % 360, ecart: crans[RANG_DU_CENT][0] - clarteMediane }))
+    .sort((x, y) => x.h - y.h);
+  let suivante = lues.findIndex(({ h }) => h > reference.H);
+  if (suivante < 0) suivante = 0;
+  const apres = lues[suivante];
+  const avant = lues[(suivante - 1 + lues.length) % lues.length];
+  const position = ((reference.H - avant.h + 360) % 360) / (((apres.h - avant.h + 360) % 360) || 360);
+  const ecart = avant.ecart + (apres.ecart - avant.ecart) * position;
+  return arrondir(Math.max(-CLARTE_SELON_LA_TEINTE_MAXIMALE, Math.min(CLARTE_SELON_LA_TEINTE_MAXIMALE, (poids * ecart) / (poids * poids))), 3);
+}

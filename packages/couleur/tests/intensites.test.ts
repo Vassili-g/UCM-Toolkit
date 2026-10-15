@@ -70,7 +70,11 @@ test('[ENT-14] sur cinq cents références, la rampe unique est celle du profil 
         ? { ...recette, profils: { ...recette.profils, soft: { ...recette.profils.soft, enveloppe: recette.profils.vivid.enveloppe, clairs: recette.profils.vivid.clairs } } }
         : recette;
       const rampe = rampesDe(jugee, forcee)[profil]!;
+      const ancrage = ancrageDe(jugee, forcee);
       for (const mode of MODES) {
+        // Soft garde des fonds calmes même quand il porte la référence : la bosse de chroma n'y entre pas, alors que l'intensité unique l'y laisse entrer.
+        const Lc = jugee.courbes[mode][ancrage.rangs[mode]];
+        if (profil === 'soft' && (mode === 'light' ? Lc > 0.78 : Lc < 0.56)) continue;
         if (jsonCanonique(rampe[mode]) !== jsonCanonique(attendue[mode])) fautes.push(`${hexa} ${profil} ${mode}`);
       }
     }

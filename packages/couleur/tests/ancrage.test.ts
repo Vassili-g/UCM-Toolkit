@@ -10,6 +10,7 @@ import {
   PROFILS,
   ancrageDe,
   boutsDe,
+  clarteSelonLaTeinteGardee,
   enveloppeDe,
   fabriquerRampe,
   fondsSombresDe,
@@ -22,6 +23,7 @@ import {
   rangPorteur,
   recetteParDefaut,
   rgb8VersOklch,
+  viseesDeLaRampe,
   type Palette,
   type Recette,
   type Rgb8,
@@ -109,7 +111,8 @@ test('[MOT-17] [ENT-11] #1E6FD9 est le 600 de vivid dans les deux modes ; ses vo
   assert.equal(rampes.vivid!.dark[6].hexa, '#1E6FD9');
   // À la part commune de vivid, 0,95, ils valaient #0E5DC6 et #4596FA.
   assert.equal(rampes.vivid!.light[7].hexa, '#185FC0');
-  assert.equal(rampes.vivid!.dark[7].hexa, '#4B96F4');
+  // Le 800 sombre est plus clair que la référence : la clarté selon la teinte du bleu (−0,021) le baisse, #4B96F4 sans elle.
+  assert.equal(rampes.vivid!.dark[7].hexa, '#4895F4');
   assert.notEqual(rampes.soft!.light[6].hexa, '#1E6FD9');
 });
 
@@ -122,7 +125,7 @@ function generateur(graine: number): () => number {
   };
 }
 
-test('[MOT-17] sur deux mille références, le profil porteur contient les octets exacts, et rien d’autre ne change', () => {
+test('[MOT-17] sur deux mille références, le profil porteur contient les octets exacts, et seules la clarté selon la teinte et la bosse changent les autres crans', () => {
   const tirer = generateur(20260924);
   const recette = recetteParDefaut();
   const fautes: string[] = [];
@@ -133,18 +136,27 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
     const ancrage = ancrageDe(r, palette);
     const rampes = rampesDe(r, palette);
     const parts = partsDe(r, palette) as { soft: number; vivid: number };
-    // Les rampes communes : la référence pour pivot, l'enveloppe de chaque profil dans chaque thème ([MOT-35]).
-    const commune = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => fabriquerRampe({
+    // Les rampes communes : la référence pour pivot, l'enveloppe de chaque profil dans chaque thème ([MOT-35]),
+    // et la clarté selon la teinte que la palette applique, la chroma gardée.
+    const decalage = clarteSelonLaTeinteGardee(r, palette).decalage;
+    const parametres = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => ({
       courbe: r.courbes[mode],
       bouts: boutsDe(r),
       reference: rgb8VersOklch(lireHexa(hexa)!),
-      derive: palette.derive[profil],
+      derive: { ...palette.derive[profil], clarte: { clair: decalage, sombre: 0 } },
       part: parts[profil],
       gamut: r.gamut,
       sombre: mode === 'dark' ? fondsSombresDe(r) : undefined,
       enveloppe: enveloppeDe(r, profil, mode),
       clairs: mode === 'light' ? r.profils[profil].clairs : 1,
+      decalageDeClarteGarde: decalage,
     });
+    const commune = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => fabriquerRampe(parametres(profil, mode));
+    // La bosse agit dans l'intensité porteuse quand la référence est plus vive que la chroma visée à son cran.
+    const aLaBosse = (mode: 'light' | 'dark') => {
+      const visees = viseesDeLaRampe(parametres(ancrage.profil as 'soft' | 'vivid', mode));
+      return rgb8VersOklch(octets).C > visees[ancrage.rangs[mode]].C;
+    };
     const L = rgb8VersOklch(octets).L;
     for (const mode of MODES) {
       const rang = ancrage.rangs[mode];
@@ -155,8 +167,10 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
       if (ancrage.crans[mode] !== r.crans[rang]) fautes.push(`${hexa} ${mode} : numéro ${ancrage.crans[mode]}`);
       for (const profil of PROFILS) {
         const communes = commune(profil, mode);
+        const bosse = profil === ancrage.profil && aLaBosse(mode);
         rampes[profil]![mode].forEach((cran, autre) => {
           const ancre = profil === ancrage.profil && autre === rang;
+          if (bosse && !ancre) return;
           const attendu = ancre ? hexa : communes[autre].hexa;
           if (cran.hexa !== attendu) fautes.push(`${hexa} ${profil} ${mode} ${r.crans[autre]} : ${cran.hexa} pour ${attendu}`);
           if (ancre && cran.couleur.some((octet, canal) => octet !== octets[canal])) fautes.push(`${hexa} : octets ${cran.couleur}`);

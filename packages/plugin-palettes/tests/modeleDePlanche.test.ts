@@ -257,9 +257,9 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,11:1 · AA', '✓ sur la page : 5,70:1 · AA']);
   assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,04:1 · AAA']);
   assert.deepEqual(lignes('surface default'), [
-    '✓ texte dessus : 7,48:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ contour dessus : 7,48:1 · AA', '✓ contour sur la page : 8,06:1 · AA',
+    '✓ texte dessus : 7,14:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ contour dessus : 7,14:1 · AA', '✓ contour sur la page : 8,06:1 · AA',
   ]);
-  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,52:1 · AA', '✓ contour dessus : 6,52:1 · AA']);
+  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,25:1 · AA', '✓ contour dessus : 6,25:1 · AA']);
   assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA']);
   assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA']);
   assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
@@ -317,7 +317,7 @@ test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les ramp
   const valeur = (lisible.enfants[0] as NoeudTexte);
   assert.equal(valeur.couleur.hexa, hexa(100));
   assert.equal(valeur.style, 'chiffre');
-  assert.equal(valeur.contenu, '10,42 AAA');
+  assert.equal(valeur.contenu, '9,94 AAA');
   const aa = cadres(grille).find((noeud) => /^\d+\/\d+$/.test(noeud.nom) && (noeud.enfants[0] as NoeudTexte | undefined)?.contenu.endsWith(' AA'));
   assert.ok(aa, 'une paire entre 4,5:1 et 7:1 porte AA');
   const sansNiveau = cadres(grille).filter((noeud) => /^\d+\/\d+$/.test(noeud.nom) && noeud.enfants.length > 0).map((noeud) => (noeud.enfants[0] as NoeudTexte).contenu).filter((contenu) => !/ AAA?$/.test(contenu));

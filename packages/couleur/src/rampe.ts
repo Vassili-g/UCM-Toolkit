@@ -212,7 +212,7 @@ export function facteurSombre(L: number, fonds: FondsSombres): number {
 }
 
 /** Les octets d'une couleur visée, et sa lecture OKLCH recalculée. */
-function cranDeLaVisee(visee: Oklch): Cran {
+export function cranDeLaVisee(visee: Oklch): Cran {
   const couleur = lineaireVersRgb8(oklchVersLineaire(visee));
   const lu = rgb8VersOklch(couleur);
   return { couleur, hexa: ecrireHexa(couleur), L: lu.L, C: lu.C, H: lu.H };
@@ -274,29 +274,46 @@ export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
 }
 
 /**
- * Les couleurs visées par `fabriquerRampe`, avant l'arrondi à 8 bits. Le
- * facteur `clairs` multiplie la chroma après l'enveloppe, et l'enveloppe d'un
- * cran clair se lit à la clarté fabriquée moins `decalageDeClarteGarde × poids`.
+ * Ce que `fabriquerRampe` vise pour un cran : sa clarté de courbe `Lc`, la
+ * couleur visée (`L`, `C`, `H`), la part que `cranVise` a reçue et le plafond
+ * de l'écran à la clarté fabriquée.
  */
-export function couleursViseesDeLaRampe(parametres: ParametresRampe): Oklch[] {
+export interface ViseeDeCran extends Oklch {
+  readonly Lc: number;
+  readonly part: number;
+  readonly plafond: number;
+}
+
+/**
+ * Les cibles de `fabriquerRampe`, avant l'arrondi à 8 bits. Le facteur
+ * `clairs` multiplie la chroma après l'enveloppe, et l'enveloppe d'un cran
+ * clair se lit à la clarté fabriquée moins `decalageDeClarteGarde × poids`.
+ */
+export function viseesDeLaRampe(parametres: ParametresRampe): ViseeDeCran[] {
   const { derive, sombre, clairs = 1, decalageDeClarteGarde = 0 } = parametres;
-  return parametres.courbe.map((L) => {
-    const poids = poidsA(L, parametres.reference, parametres.bouts);
+  return parametres.courbe.map((Lc) => {
+    const poids = poidsA(Lc, parametres.reference, parametres.bouts);
     const part = borner(parametres.part * (1 + (derive.saturation?.[poids.bout] ?? 0) * poids.poids));
-    const clarte = clarteDuCran(L, poids, parametres);
+    const clarte = clarteDuCran(Lc, poids, parametres);
     const clarteDeLEnveloppe = poids.bout === 'clair' ? borner(clarte - decalageDeClarteGarde * poids.poids) : clarte;
+    const partDuCran = sombre ? part * facteurSombre(Lc, sombre) : part;
     const visee = cranVise(
       clarte,
-      teinteA(L, parametres.reference, derive, parametres.bouts),
-      sombre ? part * facteurSombre(L, sombre) : part,
+      teinteA(Lc, parametres.reference, derive, parametres.bouts),
+      partDuCran,
       parametres.gamut,
       parametres.enveloppe,
       clarteDeLEnveloppe,
     );
-    const x = borner((CLAIRS_PLEIN - L) / (CLAIRS_PLEIN - CLAIRS_NUL));
+    const x = borner((CLAIRS_PLEIN - Lc) / (CLAIRS_PLEIN - CLAIRS_NUL));
     const t = 1 - x * x * (3 - 2 * x);
-    return { ...visee, C: visee.C * (1 - (1 - clairs) * t) };
+    return { ...visee, C: visee.C * (1 - (1 - clairs) * t), Lc, part: partDuCran, plafond: plafond(visee.L, visee.H, parametres.gamut) };
   });
+}
+
+/** Les couleurs visées par `fabriquerRampe`, avant l'arrondi à 8 bits. */
+export function couleursViseesDeLaRampe(parametres: ParametresRampe): Oklch[] {
+  return viseesDeLaRampe(parametres).map(({ L, C, H }) => ({ L, C, H }));
 }
 
 /**

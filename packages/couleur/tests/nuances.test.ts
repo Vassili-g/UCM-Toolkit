@@ -205,10 +205,15 @@ test('W6 : une palette libre suit les courbes communes, garde sa référence exa
   assert.equal(rampesDe(recette, libre)[ancrage.profil]!.light[ancrage.rangs.light].hexa, '#1E6FD9');
   assert.deepEqual(verifierPromesses(recette, libre), []);
   assert.ok(!alertesDeRecette(recette).some((alerte) => alerte.code === 'profils-confondus'));
-  // À numéro égal et parts égales, hors de la nuance de la référence, la couleur est celle du modèle.
+  // À numéro égal et parts égales, hors de la nuance de la référence, la couleur est celle du modèle. Une palette
+  // libre n'a pas de clarté selon la teinte : les nuances plus claires que la référence, que ce décalage touche, ne se comparent pas.
   const modele = paletteTailwind('p-0000000b', '#1E6FD9');
   const hexasDuModele = hexasParNuance(recetteAvec(modele), modele);
-  for (const [cle, valeur] of hexasParNuance(recette, libre)) if (!cle.endsWith('/600')) assert.equal(valeur, hexasDuModele.get(cle), cle);
+  const plusClaire = (cle: string): boolean => {
+    const [, mode, cran] = cle.split('/');
+    return mode === 'light' ? Number(cran) < 600 : Number(cran) > 600;
+  };
+  for (const [cle, valeur] of hexasParNuance(recette, libre)) if (!cle.endsWith('/600') && !plusClaire(cle)) assert.equal(valeur, hexasDuModele.get(cle), cle);
   // Le repère ≈ vaut aussi pour une palette libre, sur les fonds qu'elle porte : le 200 de ce bleu confond Soft et Vivid.
   assert.deepEqual(confusionsDe(recette, libre).map(({ mode, cran }) => `${mode} ${cran}`), ['light 200']);
 });

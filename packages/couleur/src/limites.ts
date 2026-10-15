@@ -6,13 +6,14 @@
  * Le balayage ne lit aucun réglage : le Color shift et le réglage global lui
  * passent chacun la palette que leur geste donnerait pour une valeur.
  */
+import { ECART_MINIMAL_DES_CLARTES, ordreDesClartesTenu } from './ordre';
 import { clartesDe } from './palette';
+import { cleDeLaPromesse } from './jugement';
 import { verifierPromesses, type Promesse } from './promesses';
 import { arrondir } from './rampe';
 import type { Palette, Recette } from './recette';
 
-/** L'écart de clarté minimal entre deux nuances voisines, pour que l'ordre de la rampe tienne ([DER-19]). */
-export const ECART_MINIMAL_DES_CLARTES = 0.01;
+export { ECART_MINIMAL_DES_CLARTES };
 
 /** Ce qui arrête une borne : une promesse tenue au départ qui manquerait, ou l'ordre des nuances. */
 export type CauseDeLaBorne =
@@ -46,23 +47,9 @@ export interface DemandeDeLimite {
   readonly ordre: boolean;
 }
 
-/**
- * La clé d'une promesse, qui la retrouve d'une palette candidate à l'autre : une
- * garantie compte une promesse par fond, et la page n'est pas la carte ([VER-21]).
- */
-const cleDe = (promesse: Promesse): string => {
-  const { second } = promesse;
-  const fond = second.nature === 'cran' ? second.cran : second.nature === 'fond' ? second.fond : second.nature;
-  return `${promesse.mode}/${promesse.profil}/${promesse.garantie.numero}/${fond}`;
-};
-
 /** Vrai quand chaque liste de clartés de la palette garde `ECART_MINIMAL_DES_CLARTES` entre voisines. */
 export function ordreTenu(recette: Recette, palette: Palette): boolean {
-  return Object.values(clartesDe(recette, palette)).every((parMode) => Object.values(parMode).every((clartes) => {
-    const sens = Math.sign(clartes[0] - clartes[clartes.length - 1]);
-    // Le millionième absorbe l'erreur d'arrondi d'un écart posé exactement à 0,01.
-    return clartes.every((clarte, rang) => rang === 0 || sens * (clartes[rang - 1] - clarte) >= ECART_MINIMAL_DES_CLARTES - 1e-6);
-  }));
+  return ordreDesClartesTenu(clartesDe(recette, palette));
 }
 
 /** Le nombre de décimales d'un pas : 0 pour 1, 2 pour 0,01, 3 pour 0,005. */
@@ -85,14 +72,14 @@ export function* balayerLaLimite(demande: DemandeDeLimite): Generator<void, Limi
   const { recette, valeur, bornes, pas } = demande;
   const tenues = new Set(verifierPromesses(recette, demande.palette)
     .filter((promesse) => promesse.verdict === 'tenue')
-    .map(cleDe));
+    .map(cleDeLaPromesse));
   const ordre = demande.ordre && ordreTenu(recette, demande.palette);
   const decimales = decimalesDu(pas);
 
   const causeA = (candidate: number): CauseDeLaBorne | null => {
     const palette = demande.candidate(candidate);
     if (ordre && !ordreTenu(recette, palette)) return { nature: 'ordre' };
-    const manquee = verifierPromesses(recette, palette).find((promesse) => promesse.verdict === 'manquee' && tenues.has(cleDe(promesse)));
+    const manquee = verifierPromesses(recette, palette).find((promesse) => promesse.verdict === 'manquee' && tenues.has(cleDeLaPromesse(promesse)));
     return manquee ? { nature: 'promesse', promesse: manquee } : null;
   };
 

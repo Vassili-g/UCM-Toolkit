@@ -4,18 +4,24 @@
  *
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
+import { bosseDeChroma } from './bosse';
 import { CHROMA_SANS_TEINTE, ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
+import { cleDeLaPromesse, jugerLesRampes } from './jugement';
 import { PREREGLAGES, boutsDe, estFigee, estLibre, etendueDe, grilleDe } from './nuances';
+import { ordreDesClartesTenu, type ClartesParMode } from './ordre';
 import { plafond } from './plafond';
 import {
   arrondir,
   clartesVisees,
-  fabriquerRampe,
+  cranDeLaVisee,
   MODES,
   partsEffectives,
   PROFILS,
   rampeDe,
+  viseesDeLaRampe,
   type Cran,
+  type DecalageAuxBouts,
+  type Derive,
   type Enveloppe,
   type FondsSombres,
   type Intensite,
@@ -25,8 +31,10 @@ import {
   type Profil,
   type RampeParMode,
   type Rampes,
+  type ViseeDeCran,
 } from './rampe';
 import { figeesParIntensite, type CouleursFigees, type CouleursFigeesParIntensite, type Palette, type Recette } from './recette';
+import { clarteSelonLaTeinteDuReleve } from './tailwind';
 
 /** Vrai pour une palette à une intensité ([ENT-14]). */
 export function aUneIntensite(palette: Palette): boolean {
@@ -314,37 +322,192 @@ export function enveloppeDe(recette: Recette, intensite: Intensite, mode: Mode):
   return { p0: enveloppe.p0, ...enveloppe[mode] };
 }
 
+
 /**
  * Ce que la rampe d'une intensité et d'un mode demande à `fabriquerRampe`,
  * avant l'ancrage de la référence : la courbe de la grille, le pivot du
  * profil, son Color shift, sa part, son décalage de clarté et son enveloppe
  * de chroma. Une palette à une intensité lit la dérive de `vivid` et la part
- * de sa référence ([ENT-14]).
+ * de sa référence ([ENT-14]). `decalageDeClarte`, celui que
+ * `clarteSelonLaTeinteGardee` retient ou celui d'un candidat, s'ajoute à la
+ * luminosité du Color shift au bout clair, et l'enveloppe de chroma se lit
+ * sans lui.
  */
-function parametresDesRampes(recette: Recette, palette: Palette): (intensite: Intensite, mode: Mode) => ParametresRampe {
+function parametresDesRampes(recette: Recette, palette: Palette, decalageDeClarte: number): (intensite: Intensite, mode: Mode) => ParametresRampe {
   const { courbes } = grilleDe(recette, palette);
   const bouts = boutsDe(recette);
   const parts = partsDe(recette, palette);
   const sombre = fondsSombresDe(recette);
+  const deriveDe = (intensite: Intensite): Derive => {
+    const derive = palette.derive[intensite === 'unique' ? 'vivid' : intensite];
+    return decalageDeClarte === 0
+      ? derive
+      : { ...derive, clarte: { clair: (derive.clarte?.clair ?? 0) + decalageDeClarte, sombre: derive.clarte?.sombre ?? 0 } };
+  };
   return (intensite, mode) => ({
     courbe: courbes[mode],
     bouts,
     reference: pivotDe(recette, palette, intensite),
-    derive: palette.derive[intensite === 'unique' ? 'vivid' : intensite],
+    derive: deriveDe(intensite),
     part: parts[intensite] ?? 0,
     gamut: recette.gamut,
     sombre: mode === 'dark' ? sombre : undefined,
     decalage: decalageDe(palette, intensite),
     enveloppe: enveloppeDe(recette, intensite, mode),
     clairs: mode === 'light' ? recette.profils[intensite === 'soft' ? 'soft' : 'vivid'].clairs : 1,
+    decalageDeClarteGarde: decalageDeClarte,
   });
+}
+
+/**
+ * Le décalage de clarté du bout clair que les rampes de Tailwind montrent à
+ * la teinte du départ de la palette ([MOT-36]), lu sur le relevé `derives`
+ * de la recette. Il vaut 0 pour un gris, pour une palette figée ou libre et
+ * quand la liste n'a pas de cran 100. Le bout sombre vaut 0. Il ne se range
+ * pas : `clarteSelonLaTeinteGardee` en retient la part que les promesses et
+ * l'ordre des nuances permettent.
+ */
+export function clarteSelonLaTeinte(recette: Recette, palette: Palette): DecalageAuxBouts {
+  const rang = recette.crans.indexOf(100);
+  if (rang < 0 || estFigee(palette) || estLibre(palette) || estGrisPur(referenceDe(palette))) return { clair: 0, sombre: 0 };
+  const depart = rgb8VersOklch(departDe(recette, palette));
+  return { clair: clarteSelonLaTeinteDuReleve(depart, boutsDe(recette), recette.courbes.light[rang], recette.derives), sombre: 0 };
+}
+
+/** Le décalage de clarté que `rampesDe` et `clartesDe` appliquent, et la fraction du décalage voulu qu'il représente. */
+export interface ClarteGardee {
+  /** La part de `clarteSelonLaTeinte` que la garde retient, dans `[0 ; 1]`. */
+  readonly fraction: number;
+  /** Le décalage ajouté au bout clair : `arrondir(voulu × fraction, 3)`. */
+  readonly decalage: number;
+}
+
+const DICHOTOMIES_DE_LA_CLARTE = 12;
+const DICHOTOMIES_DE_LA_BOSSE = 14;
+
+/**
+ * La plus grande fraction du décalage de `clarteSelonLaTeinte` qui garde
+ * l'ordre des nuances ([DER-19]) et ne fait manquer aucune promesse que la
+ * palette tient sans décalage. Les promesses se jugent sur la chaîne entière,
+ * bosse comprise. Dichotomie quand la fraction 1 échoue.
+ */
+function chercherLaClarteGardee(recette: Recette, palette: Palette): ClarteGardee {
+  const voulu = clarteSelonLaTeinte(recette, palette).clair;
+  if (voulu === 0) return { fraction: 1, decalage: 0 };
+  const intensites = intensitesDe(palette);
+  const jugees = (decalage: number) => jugerLesRampes(recette, intensites, rampesAvecLeDecalage(recette, palette, decalage));
+  const tenues = new Set(jugees(0).filter((promesse) => promesse.verdict === 'tenue').map(cleDeLaPromesse));
+  const poser = (fraction: number): ClarteGardee => ({ fraction, decalage: arrondir(voulu * fraction, 3) });
+  const accepte = ({ decalage }: ClarteGardee): boolean =>
+    ordreDesClartesTenu(clartesAvecLeDecalage(recette, palette, decalage))
+    && !jugees(decalage).some((promesse) => promesse.verdict === 'manquee' && tenues.has(cleDeLaPromesse(promesse)));
+  if (accepte(poser(1))) return poser(1);
+  let bas = 0;
+  let haut = 1;
+  for (let i = 0; i < DICHOTOMIES_DE_LA_CLARTE; i += 1) {
+    const milieu = (bas + haut) / 2;
+    if (accepte(poser(milieu))) bas = milieu;
+    else haut = milieu;
+  }
+  return poser(bas);
+}
+
+const clartesGardees = new WeakMap<Recette, WeakMap<Palette, ClarteGardee>>();
+
+/**
+ * La clarté selon la teinte que la palette applique ([MOT-36]) : la fraction
+ * gardée de `clarteSelonLaTeinte`, mémorisée par recette et par palette, que
+ * `rampesDe` et `clartesDe` lisent toutes deux. Elle s'ajoute à la
+ * luminosité du Color shift des deux profils, rangée ou non, et ne se range
+ * jamais.
+ */
+export function clarteSelonLaTeinteGardee(recette: Recette, palette: Palette): ClarteGardee {
+  let parPalette = clartesGardees.get(recette);
+  if (!parPalette) {
+    parPalette = new WeakMap();
+    clartesGardees.set(recette, parPalette);
+  }
+  let gardee = parPalette.get(palette);
+  if (!gardee) {
+    gardee = chercherLaClarteGardee(recette, palette);
+    parPalette.set(palette, gardee);
+  }
+  return gardee;
+}
+
+/**
+ * Les rampes de l'intensité porteuse, la référence ancrée et la bosse de
+ * chroma posée ([MOT-17]). La bosse monte les crans de clarté voisine vers la
+ * référence quand elle est plus vive que la chroma visée à son cran. Elle se
+ * garde mode par mode, Light puis Dark : sa force est la plus grande, par
+ * dichotomie, qui ne fait manquer à ce mode et à cette intensité aucune
+ * promesse tenue sans elle.
+ */
+function rampeDeLIntensitePorteuse(
+  recette: Recette,
+  palette: Palette,
+  intensite: Intensite,
+  ancrage: Ancrage,
+  reference: Rgb8,
+  visees: { readonly [M in Mode]: readonly ViseeDeCran[] },
+): RampeParMode {
+  const lue = rgb8VersOklch(reference);
+  const bosses = {
+    light: bosseDeChroma(visees.light, ancrage.rangs.light, 'light', lue, intensite !== 'soft'),
+    dark: bosseDeChroma(visees.dark, ancrage.rangs.dark, 'dark', lue, intensite !== 'soft'),
+  };
+  const rampe = (mode: Mode, force: number): Cran[] => {
+    const bosse = bosses[mode];
+    return visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
+      ? cranDeLaReference(reference)
+      : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C })));
+  };
+  const forces = { light: 0, dark: 0 };
+  for (const mode of MODES) {
+    if (!bosses[mode]) continue;
+    forces[mode] = 1;
+    // Une palette libre n'a pas de promesses (W6) : la bosse y reste entière.
+    if (estLibre(palette)) continue;
+    // Le jugement ne lit que ce mode : l'autre rampe reste vide.
+    const jugees = (force: number) => jugerLesRampes(recette, [intensite], { [intensite]: { light: [], dark: [], [mode]: rampe(mode, force) } }, { mode, intensite });
+    const tenues = new Set(jugees(0).filter((promesse) => promesse.verdict === 'tenue').map(cleDeLaPromesse));
+    const perd = (force: number): boolean => jugees(force).some((promesse) => promesse.verdict === 'manquee' && tenues.has(cleDeLaPromesse(promesse)));
+    if (!perd(1)) continue;
+    let bas = 0;
+    let haut = 1;
+    for (let i = 0; i < DICHOTOMIES_DE_LA_BOSSE; i += 1) {
+      const milieu = (bas + haut) / 2;
+      if (perd(milieu)) haut = milieu;
+      else bas = milieu;
+    }
+    forces[mode] = bas;
+  }
+  return { light: rampe('light', forces.light), dark: rampe('dark', forces.dark) };
+}
+
+/** Les rampes d'une palette non figée sous un décalage de clarté donné : la chaîne que `rampesDe` retient et que la garde de la clarté essaie. */
+function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): Rampes {
+  const reference = referenceDe(palette);
+  const ancrage = ancrageDe(recette, palette);
+  const parametres = parametresDesRampes(recette, palette, decalageDeClarte);
+  const rampes: { [I in Intensite]?: RampeParMode } = {};
+  for (const intensite of intensitesDe(palette)) {
+    const visees = { light: viseesDeLaRampe(parametres(intensite, 'light')), dark: viseesDeLaRampe(parametres(intensite, 'dark')) };
+    if (intensite === ancrage.profil) {
+      rampes[intensite] = rampeDeLIntensitePorteuse(recette, palette, intensite, ancrage, reference, visees);
+      continue;
+    }
+    rampes[intensite] = { light: visees.light.map(cranDeLaVisee), dark: visees.dark.map(cranDeLaVisee) };
+  }
+  return rampes;
 }
 
 /**
  * Les rampes d'une palette, une par intensité présente, la référence ancrée
  * ([MOT-17]) : dans l'intensité porteuse, le cran de l'ancrage de chaque mode
  * prend les octets exacts de la référence, fonds du thème Dark compris. Les
- * autres crans gardent le calcul commun. Promesses, alertes, planche et
+ * autres crans gardent le calcul commun, sauf ceux de l'intensité porteuse que
+ * la bosse de chroma monte vers la référence. Promesses, alertes, planche et
  * rapport lisent ces rampes-ci.
  */
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
@@ -357,30 +520,16 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
       ? { soft: parMode(palette.figees.soft), vivid: parMode(palette.figees.vivid) }
       : { unique: parMode(palette.figees) };
   }
-  const reference = referenceDe(palette);
-  const ancrage = ancrageDe(recette, palette);
-  const parametres = parametresDesRampes(recette, palette);
-  const rampes: { [I in Intensite]?: RampeParMode } = {};
-  for (const intensite of intensitesDe(palette)) {
-    const rampe = (mode: Mode): Cran[] => fabriquerRampe(parametres(intensite, mode))
-      .map((cran, rang) => (intensite === ancrage.profil && rang === ancrage.rangs[mode] ? cranDeLaReference(reference) : cran));
-    rampes[intensite] = { light: rampe('light'), dark: rampe('dark') };
-  }
-  return rampes;
+  return rampesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage);
 }
 
-/** Une liste de clartés par thème. */
-export type ClartesParMode = { readonly [M in Mode]: readonly number[] };
+export type { ClartesParMode };
 
-/**
- * Les clartés auxquelles les crans d'une palette se fabriquent, par intensité
- * présente, la clarté de la référence à son cran ([MOT-17]). L'ordre des
- * nuances se juge sur elles ([DER-19]).
- */
-export function clartesDe(recette: Recette, palette: Palette): { readonly [I in Intensite]?: ClartesParMode } {
+/** Les clartés de la chaîne sous un décalage de clarté donné. */
+function clartesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): { readonly [I in Intensite]?: ClartesParMode } {
   const L = rgb8VersOklch(referenceDe(palette)).L;
   const ancrage = ancrageDe(recette, palette);
-  const parametres = parametresDesRampes(recette, palette);
+  const parametres = parametresDesRampes(recette, palette, decalageDeClarte);
   const clartes: { [I in Intensite]?: ClartesParMode } = {};
   for (const intensite of intensitesDe(palette)) {
     const parMode = (mode: Mode): number[] => clartesVisees(parametres(intensite, mode))
@@ -388,4 +537,14 @@ export function clartesDe(recette: Recette, palette: Palette): { readonly [I in 
     clartes[intensite] = { light: parMode('light'), dark: parMode('dark') };
   }
   return clartes;
+}
+
+/**
+ * Les clartés auxquelles les crans d'une palette se fabriquent, par intensité
+ * présente, la clarté de la référence à son cran ([MOT-17]). L'ordre des
+ * nuances se juge sur elles ([DER-19]). Elles portent la même clarté selon la
+ * teinte que `rampesDe`.
+ */
+export function clartesDe(recette: Recette, palette: Palette): { readonly [I in Intensite]?: ClartesParMode } {
+  return clartesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage);
 }
