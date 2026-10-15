@@ -42,9 +42,9 @@ test('[MOT-35] sans enveloppe, la chroma reste part × plafond', () => {
 });
 
 /** Les enveloppes par défaut, écrites ici : Soft Light, Vivid Dark et Soft Dark. */
-const SOFT_LIGHT: Enveloppe = { p0: 0.85, a: 0.6, b: 0.38, jaunes: 1 };
-const VIVID_DARK: Enveloppe = { p0: 0.95, a: 1.1, b: 0.3, jaunes: 0 };
-const SOFT_DARK: Enveloppe = { p0: 0.85, a: 1.1, b: 0.38, jaunes: 0 };
+const SOFT_LIGHT: Enveloppe = { p0: 0.85, a: 0.6, b: 0.38, jaunes: 1, cyans: 0 };
+const VIVID_DARK: Enveloppe = { p0: 0.95, a: 1.1, b: 0.3, jaunes: 0, cyans: 0 };
+const SOFT_DARK: Enveloppe = { p0: 0.85, a: 1.1, b: 0.15, jaunes: 0, cyans: 0 };
 
 test('[MOT-35] la borne vers le blanc et la borne vers le noir', () => {
   const proche = (obtenu: number, attendu: number) => assert.ok(Math.abs(obtenu - attendu) < 1e-9, `${obtenu} contre ${attendu}`);
@@ -97,14 +97,15 @@ const PALETTES: Record<string, Palette> = {
 
 /**
  * Les rampes de `rampesDuBanc` avec `REGLE_FINALE` (Mesures/prototype.ts et
- * variantes.ts, dossier de la recette critique de qualité), relevées une fois.
+ * variantes.ts, dossier de la recette critique de qualité), relevées une fois ; les rampes Soft du thème Dark
+ * suivent la borne `b` 0,15 du format 12, relevée sur le moteur.
  */
 const DU_PROTOTYPE: Record<string, Rampes> = {
   // Bleu #3B82F6
   bleu: {
     soft: {
       light: ['#F2F7FE', '#E6F0FD', '#CFE1FA', '#B1CEF8', '#87B3F4', '#5A94F0', '#3375E9', '#2E5DBE', '#264796', '#1D3270', '#142250'],
-      dark: ['#060A14', '#0E193A', '#152353', '#1C306B', '#24428C', '#2D5AB9', '#3274E7', '#5A94F0', '#87B3F4', '#B3D0F8', '#DBE9FC'],
+      dark: ['#070A12', '#161B29', '#202739', '#2B354B', '#3A4764', '#4E6084', '#617BA6', '#7596CA', '#8AB3EF', '#B3D0F8', '#DBE9FC'],
     },
     vivid: {
       light: ['#F2F7FE', '#E5F0FE', '#CDE2FD', '#AECFFB', '#83B3F9', '#5494F7', '#3B82F6', '#0F52E0', '#153DB3', '#132B86', '#0E1C61'],
@@ -115,7 +116,7 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   jaune: {
     soft: {
       light: ['#F9F8E5', '#F6F0C9', '#F2E097', '#EEC856', '#D9A93F', '#BD8B33', '#A17129', '#86581F', '#6C4216', '#522E0E', '#3C1D07'],
-      dark: ['#0D0907', '#251911', '#362215', '#4A2E17', '#653D14', '#83551E', '#A06F28', '#BD8B33', '#D9A93F', '#F0CA55', '#F3E9B7'],
+      dark: ['#0D0907', '#251911', '#352317', '#46301F', '#5C412A', '#785A39', '#957347', '#B28F57', '#CEAC67', '#E8CC78', '#F3E9B7'],
     },
     vivid: {
       light: ['#FBF9DB', '#FAF1B4', '#FCDF61', '#F6C60A', '#EAB308', '#C38905', '#A76E03', '#8B5502', '#713F01', '#562B01', '#3F1B00'],
@@ -126,7 +127,7 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   vert: {
     soft: {
       light: ['#F0FAF3', '#E2F4E7', '#C7EAD2', '#A4DCB4', '#71C78A', '#3AAF5F', '#2F924C', '#24753F', '#1A5B31', '#114324', '#092E18'],
-      dark: ['#070B08', '#121F16', '#182D1E', '#1B3E26', '#18552E', '#23723D', '#2E904C', '#3AAF5F', '#47CF78', '#7EE8A3', '#C6F6D5'],
+      dark: ['#070B08', '#121F16', '#1A2D1F', '#243C2B', '#32503A', '#466B4E', '#5A8763', '#6EA479', '#81C393', '#94E3AD', '#C6F6D5'],
     },
     vivid: {
       light: ['#EAFCF0', '#D4FAE0', '#AAF4C3', '#69EA9A', '#20D26F', '#19B256', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
@@ -144,7 +145,7 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   reglee: {
     soft: {
       light: ['#EAF0FD', '#DEE8FC', '#C9DAF9', '#AEC6F7', '#89A9F3', '#6489EF', '#4B6AE0', '#3E53B4', '#323E8C', '#242B66', '#181B47'],
-      dark: ['#05060E', '#111430', '#191C49', '#232962', '#2F3982', '#3D50AF', '#4A68DD', '#6489EF', '#89A9F3', '#B0C7F7', '#D5E2FB'],
+      dark: ['#05060C', '#141623', '#1E2133', '#2A2F44', '#3A415C', '#4E597D', '#63739F', '#788EC2', '#8FAAE7', '#B0C7F7', '#D5E2FB'],
     },
     vivid: {
       light: ['#E9F0FE', '#DDE8FD', '#C8DAFC', '#ACC6FB', '#86A8F9', '#6087F7', '#3B82F6', '#3645D6', '#2D33A7', '#22227B', '#171456'],
@@ -155,7 +156,7 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   propres: {
     soft: {
       light: ['#F9F8E5', '#F6F0C9', '#F2E097', '#E6CA7B', '#CDAC6A', '#B18F58', '#977548', '#7C5C39', '#63462B', '#4B311E', '#362113'],
-      dark: ['#0C0908', '#221A14', '#32241B', '#453021', '#5D4127', '#795937', '#957347', '#B18F58', '#CDAC6A', '#E7CC7C', '#F3E9B7'],
+      dark: ['#0C0908', '#221A14', '#32241B', '#453021', '#5C412A', '#785A39', '#957347', '#B18F58', '#CDAC6A', '#E7CC7C', '#F3E9B7'],
     },
     vivid: {
       light: ['#FBF9DB', '#FAF1B4', '#FCDF61', '#F7C600', '#EAB308', '#C38900', '#A86E00', '#8B5500', '#713F00', '#562B00', '#3F1B00'],

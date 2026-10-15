@@ -67,6 +67,8 @@ const CAS: [RegleRecette, string, (r: any) => void][] = [
   ['forme', 'derives[4]', (r) => { r.derives[4] = ['rose', 12.4, 12.1]; }],
   ['forme', 'profils.soft.enveloppe', (r) => { delete r.profils.soft.enveloppe; }],
   ['forme', 'profils.vivid.enveloppe.dark.jaunes', (r) => { r.profils.vivid.enveloppe.dark.jaunes = 'oui'; }],
+  ['forme', 'profils.soft.clairs', (r) => { delete r.profils.soft.clairs; }],
+  ['forme', 'profils.vivid.enveloppe.light.cyans', (r) => { delete r.profils.vivid.enveloppe.light.cyans; }],
   ['cle-inconnue', 'profils.soft.enveloppe.light.c', (r) => { r.profils.soft.enveloppe.light.c = 1; }],
   ['derive-bornes', 'palettes[0].derive.soft.clair', (r) => {
     r.palettes[0].derive.lien = false;
@@ -164,14 +166,14 @@ test('[REC-03] une recette de la version courante est lue', () => {
 
 test('[REC-03] une recette 11 exportée puis relue est égale', () => {
   const recette = { ...valide(), palettes: [...valide().palettes, paletteTailwind('p-0000000c', '#808080'), paletteTailwind('p-0000000d', '#7C717B')] };
-  assert.equal(recette.formatVersion, 11);
+  assert.equal(recette.formatVersion, 12);
   assert.deepEqual(classerRecette(JSON.stringify(recette)), { etat: 'courante', recette });
 });
 
-test('[REC-03] un lecteur au format 10 lit une recette 11 comme future ; ce lecteur-ci lit le format 12 comme future', () => {
-  // `classerRecette` classe `future` toute version au-dessus de FORMAT_RECETTE : passer à 11 suffit à écarter l'ancien lecteur.
-  assert.ok(FORMAT_RECETTE > 10);
-  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 12 })), { etat: 'future', version: 12 });
+test('[REC-03] un lecteur au format 11 lit une recette 12 comme future ; ce lecteur-ci lit le format 13 comme future', () => {
+  // `classerRecette` classe `future` toute version au-dessus de FORMAT_RECETTE : passer à 12 suffit à écarter l'ancien lecteur.
+  assert.ok(FORMAT_RECETTE > 11);
+  assert.deepEqual(classerRecette(JSON.stringify({ ...valide(), formatVersion: 13 })), { etat: 'future', version: 13 });
 });
 
 test('[REC-12] la recette par défaut porte les profils et le relevé du paquet, en copies', () => {
@@ -180,17 +182,25 @@ test('[REC-12] la recette par défaut porte les profils et le relevé du paquet,
   assert.deepEqual(defaut.derives, RELEVE_TAILWIND);
   assert.notEqual(defaut.profils.soft.enveloppe, PROFILS_PAR_DEFAUT.soft.enveloppe);
   assert.notEqual(defaut.derives[0], RELEVE_TAILWIND[0]);
-  assert.deepEqual(defaut.profils.soft, { part: 0.85, enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } } });
-  assert.deepEqual(defaut.profils.vivid, { part: 0.95, enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } } });
+  assert.deepEqual(defaut.profils.soft, {
+    part: 0.85,
+    clairs: 0.7,
+    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1, cyans: 0 }, dark: { a: 1.1, b: 0.15, jaunes: 0, cyans: 0 } },
+  });
+  assert.deepEqual(defaut.profils.vivid, {
+    part: 0.95,
+    clairs: 1,
+    enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5, cyans: -0.2 }, dark: { a: 1.1, b: 0.3, jaunes: 0, cyans: 0 } },
+  });
 });
 
-test('[REC-12] une recette 10 se lit en 11, aux profils et au relevé par défaut', () => {
+test('[REC-12] une recette 10 se lit en 12, aux profils et au relevé par défaut', () => {
   const texte = temoin('format-10');
   const ancienne = JSON.parse(texte);
   const lue = classerRecette(texte);
   assert.ok(lue.etat === 'courante');
   assert.equal(ancienne.formatVersion, 10);
-  assert.equal(lue.recette.formatVersion, 11);
+  assert.equal(lue.recette.formatVersion, 12);
   assert.deepEqual(lue.recette.profils, PROFILS_PAR_DEFAUT);
   assert.deepEqual(lue.recette.derives, RELEVE_TAILWIND);
   // Le reste de la recette est celui du témoin.
@@ -205,7 +215,7 @@ test('[REC-12] une recette 8 passe par 9 et 10', () => {
   assert.ok(!('texteDesBoutons' in ancienne));
   const lue = classerRecette(JSON.stringify(ancienne));
   assert.ok(lue.etat === 'courante');
-  assert.equal(lue.recette.formatVersion, 11);
+  assert.equal(lue.recette.formatVersion, 12);
   assert.deepEqual(lue.recette.texteDesBoutons, { light: 'blanc', dark: 'noir' });
   // Le témoin 8 a ses onze crans : les mêmes données rangées en 9, puis en 10, rendent la même recette.
   const avecTexte = { ...ancienne, texteDesBoutons: { light: 'blanc', dark: 'noir' } };
@@ -264,6 +274,77 @@ test('[REC-12] une enveloppe dans une recette 10 la rend illisible', () => {
   }
 });
 
+/** Une recette 12 réécrite en format 11 : sans `clairs` ni `cyans`, les profils par défaut du format 11, sauf `profils` si fourni. */
+function enFormat11(profils?: Record<string, unknown>): any {
+  const recette: any = copie(valide());
+  recette.formatVersion = 11;
+  recette.profils = profils ?? {
+    soft: { part: 0.85, enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } } },
+    vivid: { part: 0.95, enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } } },
+  };
+  return recette;
+}
+
+test('[REC-12] une recette 11 aux profils par défaut prend les profils par défaut du format 12', () => {
+  const ancienne = enFormat11();
+  const lue = classerRecette(JSON.stringify(ancienne));
+  assert.ok(lue.etat === 'courante');
+  assert.equal(lue.recette.formatVersion, 12);
+  assert.deepEqual(lue.recette.profils, PROFILS_PAR_DEFAUT);
+  assert.equal(lue.recette.profils.soft.enveloppe.dark.b, 0.15);
+  assert.deepEqual(lue.recette.palettes, ancienne.palettes);
+});
+
+test('[REC-12] une recette 11 à l’enveloppe modifiée garde ses valeurs, avec cyans 0 et clairs 1', () => {
+  const profils = enFormat11().profils;
+  profils.soft.enveloppe.dark.b = 0.25;
+  profils.vivid.part = 0.9;
+  const lue = classerRecette(JSON.stringify(enFormat11(profils)));
+  assert.ok(lue.etat === 'courante');
+  assert.deepEqual(lue.recette.profils.soft, {
+    part: 0.85,
+    clairs: 1,
+    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1, cyans: 0 }, dark: { a: 1.1, b: 0.25, jaunes: 0, cyans: 0 } },
+  });
+  // Vivid garde son enveloppe par défaut du format 11 : il prend celle du format 12, et sa part reste 0,9.
+  assert.deepEqual(lue.recette.profils.vivid, { ...PROFILS_PAR_DEFAUT.vivid, part: 0.9 });
+});
+
+test('[REC-12] une recette 11 qui porte un champ du format 12 est refusée par forme', () => {
+  const avecClairs = enFormat11();
+  avecClairs.profils.vivid.clairs = 1;
+  assert.deepEqual(classerRecette(JSON.stringify(avecClairs)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'profils.vivid.clairs' }] });
+  const avecCyans = enFormat11();
+  avecCyans.profils.soft.enveloppe.dark.cyans = 0;
+  assert.deepEqual(classerRecette(JSON.stringify(avecCyans)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'profils.soft.enveloppe.dark.cyans' }] });
+});
+
+test('[REC-12] cyans et clairs hors bornes sont refusés', () => {
+  const avec = (modifier: (r: any) => void): ReturnType<typeof validerRecette> => {
+    const recette = valide();
+    modifier(recette);
+    return validerRecette(recette);
+  };
+  assert.ok('recette' in avec((r) => {
+    r.profils.soft.clairs = 1;
+    r.profils.soft.enveloppe.light.cyans = 1;
+    r.profils.vivid.clairs = 0.01;
+    r.profils.vivid.enveloppe.dark.cyans = -1;
+  }));
+  for (const profil of ['soft', 'vivid']) {
+    for (const valeur of [-1.01, 1.01]) {
+      for (const mode of ['light', 'dark']) {
+        const resultat = avec((r) => { r.profils[profil].enveloppe[mode].cyans = valeur; });
+        assert.deepEqual('refus' in resultat && resultat.refus, [{ regle: 'enveloppe', chemin: `profils.${profil}.enveloppe.${mode}.cyans`, valeur }]);
+      }
+    }
+    for (const valeur of [0, -0.1, 1.01]) {
+      const resultat = avec((r) => { r.profils[profil].clairs = valeur; });
+      assert.deepEqual('refus' in resultat && resultat.refus, [{ regle: 'enveloppe', chemin: `profils.${profil}.clairs`, valeur }]);
+    }
+  }
+});
+
 test('[REC-12] une enveloppe hors bornes est refusée', () => {
   const avec = (modifier: (r: any) => void): ReturnType<typeof validerRecette> => {
     const recette = valide();
@@ -273,8 +354,8 @@ test('[REC-12] une enveloppe hors bornes est refusée', () => {
   // Les bornes incluses sont acceptées, les bornes exclues refusées.
   assert.ok('recette' in avec((r) => {
     r.profils.soft.enveloppe.p0 = 1;
-    r.profils.soft.enveloppe.light = { a: 2, b: 2, jaunes: 2 };
-    r.profils.vivid.enveloppe.dark = { a: 0.001, b: 0.001, jaunes: 0 };
+    r.profils.soft.enveloppe.light = { a: 2, b: 2, jaunes: 2, cyans: 0 };
+    r.profils.vivid.enveloppe.dark = { a: 0.001, b: 0.001, jaunes: 0, cyans: 0 };
   }));
   const refusees: [string, number][] = [
     ['p0', 0], ['p0', 1.01], ['light.a', 0], ['light.a', 2.01], ['dark.b', 0], ['dark.b', 3], ['light.jaunes', -0.01], ['dark.jaunes', 2.01],
@@ -302,7 +383,7 @@ test("[REC-12] la lecture n'écrit rien, et ranger puis relire rend la même rec
   assert.equal(temoin('format-10'), texte);
   assert.equal(JSON.parse(texte).formatVersion, 10);
   const rangee = jsonCanonique(lue.recette);
-  assert.equal(JSON.parse(rangee).formatVersion, 11);
+  assert.equal(JSON.parse(rangee).formatVersion, 12);
   const relue = classerRecette(rangee);
   assert.deepEqual(relue, { etat: 'courante', recette: lue.recette });
   assert.ok(relue.etat === 'courante');

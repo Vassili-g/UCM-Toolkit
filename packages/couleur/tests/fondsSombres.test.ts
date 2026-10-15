@@ -105,7 +105,9 @@ test('[MOT-28] une nuance de fond du thème Dark est moins saturée qu’avant, 
   for (const palette of PALETTES.slice(0, 2)) {
     for (const profil of PROFILS) {
       const [apres, sans] = [rampesDe(recette, palette)[profil]!.dark[1], rampesDe(avant, palette)[profil]!.dark[1]];
-      assert.ok(apres.C < sans.C, `${palette.reference} ${profil} : ${apres.C} contre ${sans.C}`);
+      // La borne vers le noir de Soft Dark (b 0,15) plafonne la chroma de ce cran avec ou sans atténuation.
+      const moins = profil === 'soft' ? apres.C <= sans.C : apres.C < sans.C;
+      assert.ok(moins, `${palette.reference} ${profil} : ${apres.C} contre ${sans.C}`);
     }
   }
   assert.deepEqual(garantieDesCourbes(recette), []);

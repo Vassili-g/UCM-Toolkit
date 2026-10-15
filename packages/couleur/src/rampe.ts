@@ -136,13 +136,16 @@ export interface Cran {
 /**
  * L'enveloppe de chroma d'un profil dans un thème ([MOT-35]) : `p0`, la part
  * commune du profil, et les bornes `a` (vers le blanc) et `b` (vers le noir).
- * `jaunes` élargit la borne vers le blanc autour de la teinte 100°.
+ * `jaunes` élargit la borne vers le blanc autour de la teinte 100°. `cyans`
+ * est l'amplitude d'une seconde bosse de la marge, centrée à 195° (écart type
+ * 30°), dans `[−1 ; 1]`.
  */
 export interface Enveloppe {
   readonly p0: number;
   readonly a: number;
   readonly b: number;
   readonly jaunes: number;
+  readonly cyans: number;
 }
 
 /** La teinte du jaune que `Enveloppe.jaunes` élargit, et l'écart type de la bosse, en degrés. */

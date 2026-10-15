@@ -16,11 +16,11 @@ import { RELEVE_TAILWIND, type RampeDeDerive } from './tailwind';
 /**
  * La version écrite : chaque profil porte sa part commune et son enveloppe de
  * chroma, et `derives` relève les crans de chaque rampe Tailwind
- * ([REC-12]). Les formats 8 à 10 se lisent en format 11 par `classerRecette` ;
+ * ([REC-12]). Les formats 8 à 11 se lisent en format 12 par `classerRecette` ;
  * les formats plus anciens sont illisibles et les formats plus récents sont
  * futurs.
  */
-export const FORMAT_RECETTE = 11;
+export const FORMAT_RECETTE = 12;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -162,11 +162,12 @@ export interface Seuils {
   readonly palettesProches: number;
 }
 
-/** Les bornes de chroma d'un thème dans l'enveloppe d'un profil. */
+/** Les bornes de chroma d'un thème dans l'enveloppe d'un profil ; `cyans` est l'amplitude de la bosse centrée à 195°, dans `[−1 ; 1]`. */
 export interface BornesDeChroma {
   readonly a: number;
   readonly b: number;
   readonly jaunes: number;
+  readonly cyans: number;
 }
 
 /** L'enveloppe de chroma d'un profil : `p0` et les bornes de chaque thème. */
@@ -176,9 +177,14 @@ export interface EnveloppeDeProfil {
   readonly dark: BornesDeChroma;
 }
 
-/** Un profil de la recette : sa part commune et son enveloppe, toutes deux obligatoires. `p0` ne suit pas la part commune. */
+/**
+ * Un profil de la recette : sa part commune, le facteur de chroma `clairs` des
+ * tons clairs du thème Light (dans `]0 ; 1]`) et son enveloppe, tous
+ * obligatoires. `p0` ne suit pas la part commune.
+ */
 export interface ProfilDeRecette {
   readonly part: number;
+  readonly clairs: number;
   readonly enveloppe: EnveloppeDeProfil;
 }
 
@@ -186,11 +192,13 @@ export interface ProfilDeRecette {
 export const PROFILS_PAR_DEFAUT: { readonly soft: ProfilDeRecette; readonly vivid: ProfilDeRecette } = {
   soft: {
     part: 0.85,
-    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } },
+    clairs: 0.7,
+    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1, cyans: 0 }, dark: { a: 1.1, b: 0.15, jaunes: 0, cyans: 0 } },
   },
   vivid: {
     part: 0.95,
-    enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } },
+    clairs: 1,
+    enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5, cyans: -0.2 }, dark: { a: 1.1, b: 0.3, jaunes: 0, cyans: 0 } },
   },
 };
 
@@ -198,6 +206,7 @@ export const PROFILS_PAR_DEFAUT: { readonly soft: ProfilDeRecette; readonly vivi
 function copierLesProfils(profils: Recette['profils']): Recette['profils'] {
   const copie = (profil: ProfilDeRecette): ProfilDeRecette => ({
     part: profil.part,
+    clairs: profil.clairs,
     enveloppe: { p0: profil.enveloppe.p0, light: { ...profil.enveloppe.light }, dark: { ...profil.enveloppe.dark } },
   });
   return { soft: copie(profils.soft), vivid: copie(profils.vivid) };
@@ -401,8 +410,17 @@ function validerCranDeDerive(releve: Releve, cran: unknown, chemin: string, prec
   return L;
 }
 
-/** Les bornes de l'enveloppe d'un profil : `p0` dans `]0 ; 1]`, `a` et `b` dans `]0 ; 2]`, `jaunes` dans `[0 ; 2]`. */
-function validerEnveloppe(releve: Releve, enveloppe: unknown, chemin: string): void {
+/**
+ * Les bornes de l'enveloppe d'un profil : `p0` dans `]0 ; 1]`, `a` et `b` dans
+ * `]0 ; 2]`, `jaunes` dans `[0 ; 2]`, `cyans` dans `[−1 ; 1]`. Le `clairs` du
+ * profil est dans `]0 ; 1]`.
+ */
+function validerEnveloppe(releve: Releve, profil: Objet, cheminDuProfil: string): void {
+  const chemin = `${cheminDuProfil}.enveloppe`;
+  const enveloppe = profil.enveloppe;
+  if (releve.nombre(profil.clairs, `${cheminDuProfil}.clairs`) && (profil.clairs <= 0 || profil.clairs > 1)) {
+    releve.refuser('enveloppe', `${cheminDuProfil}.clairs`, profil.clairs);
+  }
   if (!releve.objet(enveloppe, chemin, ['p0', 'light', 'dark'])) return;
   const dans = (valeur: unknown, ici: string, bas: number, haut: number, basInclus: boolean): void => {
     if (!releve.nombre(valeur, ici)) return;
@@ -412,10 +430,11 @@ function validerEnveloppe(releve: Releve, enveloppe: unknown, chemin: string): v
   for (const mode of ['light', 'dark'] as const) {
     const ici = `${chemin}.${mode}`;
     const bornes = enveloppe[mode];
-    if (!releve.objet(bornes, ici, ['a', 'b', 'jaunes'])) continue;
+    if (!releve.objet(bornes, ici, ['a', 'b', 'jaunes', 'cyans'])) continue;
     dans(bornes.a, `${ici}.a`, 0, 2, false);
     dans(bornes.b, `${ici}.b`, 0, 2, false);
     dans(bornes.jaunes, `${ici}.jaunes`, 0, 2, true);
+    dans(bornes.cyans, `${ici}.cyans`, -1, 1, true);
   }
 }
 
@@ -756,11 +775,11 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
 
   const profils = entree.profils;
   if (releve.objet(profils, 'profils', ['soft', 'vivid'])) {
-    const soft = releve.objet(profils.soft, 'profils.soft', ['part', 'enveloppe']) ? profils.soft : null;
-    const vivid = releve.objet(profils.vivid, 'profils.vivid', ['part', 'enveloppe']) ? profils.vivid : null;
+    const soft = releve.objet(profils.soft, 'profils.soft', ['part', 'clairs', 'enveloppe']) ? profils.soft : null;
+    const vivid = releve.objet(profils.vivid, 'profils.vivid', ['part', 'clairs', 'enveloppe']) ? profils.vivid : null;
     if (soft && vivid) validerParts(releve, soft.part, vivid.part, 'profils', '.part');
-    if (soft) validerEnveloppe(releve, soft.enveloppe, 'profils.soft.enveloppe');
-    if (vivid) validerEnveloppe(releve, vivid.enveloppe, 'profils.vivid.enveloppe');
+    if (soft) validerEnveloppe(releve, soft, 'profils.soft');
+    if (vivid) validerEnveloppe(releve, vivid, 'profils.vivid');
   }
 
   if (entree.gamut !== 'srgb') releve.refuser('gamut-inconnu', 'gamut', entree.gamut);
@@ -817,7 +836,8 @@ const PREMIER_FORMAT_LISIBLE = 8;
  * Le premier refus d'une forme ancienne, avant toute transformation : le
  * texte des boutons déjà présent au format 8, `crans` ou `courbes` absents,
  * un champ du format 11 (`enveloppe`, une rampe de `derives` en objet) dans
- * une recette plus ancienne.
+ * une recette plus ancienne, un champ du format 12 (`clairs`, `cyans`) dans une
+ * recette 11.
  */
 function refusDeLaFormeAncienne(objet: Objet, version: number): Refus | null {
   if (version === 8 && 'texteDesBoutons' in objet) return { regle: 'forme', chemin: 'texteDesBoutons' };
@@ -827,10 +847,17 @@ function refusDeLaFormeAncienne(objet: Objet, version: number): Refus | null {
   if (estObjet(objet.profils)) {
     for (const profil of ['soft', 'vivid']) {
       const lu = objet.profils[profil];
-      if (estObjet(lu) && 'enveloppe' in lu) return { regle: 'forme', chemin: `profils.${profil}.enveloppe` };
+      if (!estObjet(lu)) continue;
+      if (version <= 10 && 'enveloppe' in lu) return { regle: 'forme', chemin: `profils.${profil}.enveloppe` };
+      if (version !== 11) continue;
+      if ('clairs' in lu) return { regle: 'forme', chemin: `profils.${profil}.clairs` };
+      for (const mode of ['light', 'dark']) {
+        const bornes = estObjet(lu.enveloppe) ? lu.enveloppe[mode] : undefined;
+        if (estObjet(bornes) && 'cyans' in bornes) return { regle: 'forme', chemin: `profils.${profil}.enveloppe.${mode}.cyans` };
+      }
     }
   }
-  if (Array.isArray(objet.derives)) {
+  if (version <= 10 && Array.isArray(objet.derives)) {
     const rang = objet.derives.findIndex(estObjet);
     if (rang >= 0) return { regle: 'forme', chemin: `derives[${rang}]` };
   }
@@ -862,6 +889,22 @@ function grilleLisible(objet: Objet): Grille | null {
   return { crans, courbes: { light: courbes.light, dark: courbes.dark } };
 }
 
+/** Les profils par défaut du format 11, sans `clairs` ni `cyans` : ce que `depuisLeFormat10` écrit et ce que `depuisLeFormat11` reconnaît. */
+const PROFILS_PAR_DEFAUT_DU_FORMAT_11 = {
+  soft: {
+    part: 0.85,
+    enveloppe: { p0: 0.85, light: { a: 0.6, b: 0.38, jaunes: 1 }, dark: { a: 1.1, b: 0.38, jaunes: 0 } },
+  },
+  vivid: {
+    part: 0.95,
+    enveloppe: { p0: 0.95, light: { a: 1.1, b: 0.48, jaunes: 0.5 }, dark: { a: 1.1, b: 0.3, jaunes: 0 } },
+  },
+} as const;
+
+function copierLesProfilsDuFormat11(): Objet {
+  return JSON.parse(JSON.stringify(PROFILS_PAR_DEFAUT_DU_FORMAT_11)) as Objet;
+}
+
 /** Les crans que la table des deux thèmes exige et que le format 10 laissait facultatifs ([REC-13]). */
 const CRANS_AJOUTES_AU_FORMAT_11 = [400, 500, 950];
 
@@ -877,7 +920,7 @@ function depuisLeFormat10(objet: Objet): Objet {
   const suivant: Objet = {
     ...objet,
     formatVersion: 11,
-    profils: copierLesProfils(PROFILS_PAR_DEFAUT),
+    profils: copierLesProfilsDuFormat11(),
     derives: copierLeReleve(RELEVE_TAILWIND),
   };
   if (grille && manquants.length > 0) {
@@ -892,11 +935,50 @@ function depuisLeFormat10(objet: Objet): Objet {
   return suivant;
 }
 
+/** Vrai quand les deux bornes d'un thème portent les mêmes `a`, `b` et `jaunes`. */
+function memesBornesDuFormat11(lues: unknown, defaut: { readonly a: number; readonly b: number; readonly jaunes: number }): boolean {
+  return estObjet(lues) && lues.a === defaut.a && lues.b === defaut.b && lues.jaunes === defaut.jaunes;
+}
+
+/**
+ * Le format 12 ajoute `clairs` à chaque profil et `cyans` à chaque thème de
+ * son enveloppe. Une enveloppe égale à celle du format 11 par défaut prend
+ * l'enveloppe et le `clairs` du format 12 par défaut, profil par profil ; une
+ * enveloppe modifiée garde ses valeurs, avec `cyans` 0 et `clairs` 1. Les
+ * parts ne changent pas.
+ */
+function depuisLeFormat11(objet: Objet): Objet {
+  if (!estObjet(objet.profils)) return { ...objet, formatVersion: 12 };
+  const lus = objet.profils;
+  const profils: Objet = { ...lus };
+  for (const nom of ['soft', 'vivid'] as const) {
+    const profil = lus[nom];
+    if (!estObjet(profil) || !estObjet(profil.enveloppe)) continue;
+    const { enveloppe } = profil;
+    const defaut11 = PROFILS_PAR_DEFAUT_DU_FORMAT_11[nom].enveloppe;
+    const parDefaut = enveloppe.p0 === defaut11.p0
+      && memesBornesDuFormat11(enveloppe.light, defaut11.light)
+      && memesBornesDuFormat11(enveloppe.dark, defaut11.dark);
+    if (parDefaut) {
+      const { clairs, enveloppe: neuve } = copierLesProfils(PROFILS_PAR_DEFAUT)[nom];
+      profils[nom] = { ...profil, clairs, enveloppe: neuve };
+      continue;
+    }
+    const avecCyans = (bornes: unknown): unknown => (estObjet(bornes) ? { ...bornes, cyans: 0 } : bornes);
+    profils[nom] = {
+      ...profil,
+      clairs: 1,
+      enveloppe: { ...enveloppe, light: avecCyans(enveloppe.light), dark: avecCyans(enveloppe.dark) },
+    };
+  }
+  return { ...objet, formatVersion: 12, profils };
+}
+
 /**
  * Classe le texte rangé sous la clé de la recette avant tout emploi
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
  * supérieure est `future`, une version inférieure à 8 est illisible. Les
- * formats 8 à 10 se lisent en format 11, une étape par format ; une forme
+ * formats 8 à 11 se lisent en format 12, une étape par format ; une forme
  * ancienne qui ne se convertit pas est illisible ([REC-12]). La lecture
  * laisse la recette rangée intacte ([REC-04]).
  */
@@ -926,7 +1008,8 @@ export function classerRecette(texte: string | undefined): Classement {
     if (refus) return { etat: 'illisible', refus: [refus] };
     if (version === 8) lue = depuisLeFormat8(lue);
     if ((version as number) <= 9) lue = depuisLeFormat9(lue);
-    lue = depuisLeFormat10(lue);
+    if ((version as number) <= 10) lue = depuisLeFormat10(lue);
+    lue = depuisLeFormat11(lue);
   }
 
   const validee = validerRecette(lue);

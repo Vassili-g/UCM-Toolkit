@@ -136,5 +136,5 @@ test("[VER-22] une palette à deux intensités se lit en Vivid : la part de Soft
   const softPlusTerne = { ...deux, parts: { soft: 0.2, vivid: partsDe(recette, deux).vivid!, origine: 'designer' as const } };
   assert.notDeepEqual(rampesDe(recette, softPlusTerne).soft, rampesDe(recette, deux).soft, 'la part change bien la rampe de Soft');
   assert.deepEqual(proximiteDePalettes(recetteAvec(seule, softPlusTerne), seule, softPlusTerne), proximite);
-  assert.equal(recetteParDefaut().formatVersion, 11);
+  assert.equal(recetteParDefaut().formatVersion, 12);
 });

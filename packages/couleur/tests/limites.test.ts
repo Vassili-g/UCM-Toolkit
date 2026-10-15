@@ -133,8 +133,8 @@ test('[DER-20] les limites se croisent : la luminosité sombre posée en butée 
   // Mesure du moteur aux garanties G1 à G7, G7 jugée contre la page et la carte : à la butée haute de la luminosité
   // sombre, l'anneau Dark touche le seuil de la carte. Aux parts communes 0,85 et 0,95 et à l'enveloppe par défaut
   // ([MOT-35]) et à la dérive de [MOT-36], Bleu se resserre entre +4,28° et +6°, Rouge entre −90° et +11°, Jaune ne monte
-  // plus au-dessus de −19°, et Sauge se resserre entre 0° et +3°.
-  assert.deepEqual(teintes, { Bleu: [4.28, 6], Rouge: [-90, 11], Jaune: [-90, -19], Sauge: [0, 3] });
+  // plus au-dessus de −30°, et Sauge se resserre entre 0° et +3°.
+  assert.deepEqual(teintes, { Bleu: [4.28, 6], Rouge: [-90, 11], Jaune: [-90, -30], Sauge: [0, 3] });
 });
 
 test('[DER-19] une promesse manquée au départ ne borne rien : Bleu, texte des boutons noir, la laisse manquer sur toute la plage de teinte', () => {
@@ -175,9 +175,9 @@ test('[DER-20] le balayage rend la main après chaque candidate et rend la même
     rendus += 1;
     pas = balayage.next();
   }
-  // −0,05 à +0,040 : dix pas vers le bas, huit vers le haut, chacun suivi d'une main rendue. En Dark, le texte de
+  // −0,045 à +0,040 : neuf pas vers le bas, huit vers le haut, chacun suivi d'une main rendue. En Dark, le texte de
   // `surface` au 950 sur le 500 de `surface/pressed` arrête le bas.
-  assert.equal(rendus, 18);
+  assert.equal(rendus, 17);
   assert.deepEqual(pas.value, limiteDynamique(demande));
 });
 

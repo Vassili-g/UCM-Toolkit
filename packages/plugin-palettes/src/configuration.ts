@@ -195,8 +195,8 @@ export function retablir(recette: Recette, carte: CarteDesReglages): Recette | n
 
 /** Vrai quand deux profils ont la même part commune et la même enveloppe de chroma. */
 function memeProfil(a: ProfilDeRecette, b: ProfilDeRecette): boolean {
-  const memesBornes = (x: BornesDeChroma, y: BornesDeChroma): boolean => x.a === y.a && x.b === y.b && x.jaunes === y.jaunes;
-  return a.part === b.part && a.enveloppe.p0 === b.enveloppe.p0
+  const memesBornes = (x: BornesDeChroma, y: BornesDeChroma): boolean => x.a === y.a && x.b === y.b && x.jaunes === y.jaunes && x.cyans === y.cyans;
+  return a.part === b.part && a.clairs === b.clairs && a.enveloppe.p0 === b.enveloppe.p0
     && memesBornes(a.enveloppe.light, b.enveloppe.light) && memesBornes(a.enveloppe.dark, b.enveloppe.dark);
 }
 
