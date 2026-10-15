@@ -1,0 +1,4653 @@
+{
+ "candidats": [
+  {
+   "id": "A",
+   "resume": "actuel : Soft 0,85, p0 0,85, Dark b 0,38",
+   "profils": {
+    "soft": {
+     "part": 0.85,
+     "enveloppe": {
+      "p0": 0.85,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.38,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "B",
+   "resume": "A, Soft Dark b 0,25",
+   "profils": {
+    "soft": {
+     "part": 0.85,
+     "enveloppe": {
+      "p0": 0.85,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "C",
+   "resume": "Soft part et p0 0,70, Dark b 0,25",
+   "profils": {
+    "soft": {
+     "part": 0.7,
+     "enveloppe": {
+      "p0": 0.7,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "D",
+   "resume": "Soft part et p0 0,60, Dark b 0,25",
+   "profils": {
+    "soft": {
+     "part": 0.6,
+     "enveloppe": {
+      "p0": 0.6,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "E",
+   "resume": "Soft part et p0 0,45, Dark b 0,25",
+   "profils": {
+    "soft": {
+     "part": 0.45,
+     "enveloppe": {
+      "p0": 0.45,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "G",
+   "resume": "Soft part 0,85, p0 0,60, Dark b 0,25 : la part garde la chroma des textes, p0 plafonne les fonds",
+   "profils": {
+    "soft": {
+     "part": 0.85,
+     "enveloppe": {
+      "p0": 0.6,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "H",
+   "resume": "Soft part 0,85, p0 0,45, Dark b 0,25",
+   "profils": {
+    "soft": {
+     "part": 0.85,
+     "enveloppe": {
+      "p0": 0.45,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": []
+  },
+  {
+   "id": "F",
+   "resume": "C, l'alerte ne juge pas les nuances 50 et 950",
+   "profils": {
+    "soft": {
+     "part": 0.7,
+     "enveloppe": {
+      "p0": 0.7,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "exclus": [
+    50,
+    950
+   ]
+  }
+ ],
+ "resultats": {
+  "Tailwind 500": {
+   "A": {
+    "palettes": 17,
+    "alerte": 14,
+    "enAlerte": [
+     "orange",
+     "amber",
+     "yellow",
+     "lime",
+     "green",
+     "emerald",
+     "teal",
+     "cyan",
+     "sky",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "rose"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "red",
+     "fuchsia",
+     "pink"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.019,
+      "max": 0.083
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.013,
+      "max": 0.069
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.001,
+     "medianeLight": 0.007,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.472,
+      "mediane": 0.856,
+      "max": 1.03
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.8,
+      "mediane": 0.89,
+      "max": 1.36
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 39,
+     "dark": 36,
+     "parCran": {
+      "light 500": 2,
+      "dark 400": 8,
+      "dark 500": 8,
+      "dark 600": 6,
+      "dark 700": 4,
+      "light 600": 1,
+      "dark 100": 1,
+      "dark 200": 4,
+      "dark 300": 5
+     },
+     "maximum": 1.36,
+     "exemples": [
+      {
+       "palette": "red",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.026
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.132
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.133
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.127
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.089
+      },
+      {
+       "palette": "blue",
+       "mode": "light",
+       "cran": 600,
+       "rapport": 1.002
+      },
+      {
+       "palette": "blue",
+       "mode": "dark",
+       "cran": 100,
+       "rapport": 1.033
+      },
+      {
+       "palette": "blue",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.13
+      },
+      {
+       "palette": "blue",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.124
+      },
+      {
+       "palette": "blue",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.13
+      },
+      {
+       "palette": "blue",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.132
+      },
+      {
+       "palette": "indigo",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.122
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.786,
+     "max": 1.47
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "B": {
+    "palettes": 17,
+    "alerte": 14,
+    "enAlerte": [
+     "orange",
+     "amber",
+     "yellow",
+     "lime",
+     "green",
+     "emerald",
+     "teal",
+     "cyan",
+     "sky",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "rose"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "red",
+     "fuchsia",
+     "pink"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.019,
+      "max": 0.083
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.018,
+      "max": 0.101
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.001,
+     "medianeLight": 0.007,
+     "medianeDark": 0.005
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.472,
+      "mediane": 0.856,
+      "max": 1.03
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.559,
+      "mediane": 0.853,
+      "max": 1.36
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 8,
+     "dark": 5,
+     "parCran": {
+      "light 500": 2,
+      "dark 700": 4,
+      "light 600": 1,
+      "dark 600": 1
+     },
+     "maximum": 1.36,
+     "exemples": [
+      {
+       "palette": "red",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.026
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.089
+      },
+      {
+       "palette": "blue",
+       "mode": "light",
+       "cran": 600,
+       "rapport": 1.002
+      },
+      {
+       "palette": "indigo",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.234
+      },
+      {
+       "palette": "fuchsia",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.36
+      },
+      {
+       "palette": "pink",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.107
+      },
+      {
+       "palette": "rose",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.03
+      },
+      {
+       "palette": "rose",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.129
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.786,
+     "max": 1.47
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "C": {
+    "palettes": 17,
+    "alerte": 11,
+    "enAlerte": [
+     "red",
+     "emerald",
+     "teal",
+     "sky",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "fuchsia",
+     "pink",
+     "rose"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.003,
+      "mediane": 0.037,
+      "max": 0.12
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.005,
+      "mediane": 0.035,
+      "max": 0.142
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.005,
+     "medianeLight": 0.011,
+     "medianeDark": 0.009
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.391,
+      "mediane": 0.706,
+      "max": 0.881
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.453,
+      "mediane": 0.701,
+      "max": 1.107
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 1,
+     "dark": 1,
+     "parCran": {
+      "dark 700": 1
+     },
+     "maximum": 1.107,
+     "exemples": [
+      {
+       "palette": "pink",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.107
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.646,
+     "max": 1.203
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "D": {
+    "palettes": 17,
+    "alerte": 7,
+    "enAlerte": [
+     "red",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "pink",
+     "rose"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.007,
+      "mediane": 0.05,
+      "max": 0.142
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.006,
+      "mediane": 0.045,
+      "max": 0.159
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.007,
+     "dark": 0.006,
+     "medianeLight": 0.015,
+     "medianeDark": 0.012
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.332,
+      "mediane": 0.608,
+      "max": 0.724
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.388,
+      "mediane": 0.601,
+      "max": 0.765
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.551,
+     "max": 1.057
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "E": {
+    "palettes": 17,
+    "alerte": 1,
+    "enAlerte": [
+     "red"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.01,
+      "mediane": 0.069,
+      "max": 0.17
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.011,
+      "mediane": 0.059,
+      "max": 0.183
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.01,
+     "dark": 0.011,
+     "medianeLight": 0.019,
+     "medianeDark": 0.018
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.237,
+      "mediane": 0.455,
+      "max": 0.547
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.292,
+      "mediane": 0.451,
+      "max": 0.57
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.12,
+     "mediane": 0.416,
+     "max": 0.776
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "G": {
+    "palettes": 17,
+    "alerte": 14,
+    "enAlerte": [
+     "orange",
+     "amber",
+     "yellow",
+     "lime",
+     "green",
+     "emerald",
+     "teal",
+     "cyan",
+     "sky",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "rose"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "red",
+     "fuchsia",
+     "pink"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.004,
+      "mediane": 0.036,
+      "max": 0.127
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.037,
+      "max": 0.139
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.004,
+     "dark": 0.001,
+     "medianeLight": 0.01,
+     "medianeDark": 0.005
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.332,
+      "mediane": 0.649,
+      "max": 1.03
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.404,
+      "mediane": 0.679,
+      "max": 1.36
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 7,
+     "dark": 5,
+     "parCran": {
+      "light 500": 2,
+      "dark 700": 4,
+      "dark 600": 1
+     },
+     "maximum": 1.36,
+     "exemples": [
+      {
+       "palette": "red",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.026
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.089
+      },
+      {
+       "palette": "indigo",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.234
+      },
+      {
+       "palette": "fuchsia",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.36
+      },
+      {
+       "palette": "pink",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.107
+      },
+      {
+       "palette": "rose",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.03
+      },
+      {
+       "palette": "rose",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.129
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.587,
+     "max": 1.057
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "H": {
+    "palettes": 17,
+    "alerte": 9,
+    "enAlerte": [
+     "emerald",
+     "teal",
+     "cyan",
+     "sky",
+     "blue",
+     "indigo",
+     "violet",
+     "purple",
+     "rose"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "red",
+     "fuchsia",
+     "pink"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.007,
+      "mediane": 0.055,
+      "max": 0.161
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.001,
+      "mediane": 0.054,
+      "max": 0.164
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.007,
+     "dark": 0.001,
+     "medianeLight": 0.013,
+     "medianeDark": 0.006
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.237,
+      "mediane": 0.49,
+      "max": 1.03
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.3,
+      "mediane": 0.507,
+      "max": 1.36
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 7,
+     "dark": 5,
+     "parCran": {
+      "light 500": 2,
+      "dark 700": 4,
+      "dark 600": 1
+     },
+     "maximum": 1.36,
+     "exemples": [
+      {
+       "palette": "red",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.026
+      },
+      {
+       "palette": "red",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.089
+      },
+      {
+       "palette": "indigo",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.234
+      },
+      {
+       "palette": "fuchsia",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.36
+      },
+      {
+       "palette": "pink",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.107
+      },
+      {
+       "palette": "rose",
+       "mode": "light",
+       "cran": 500,
+       "rapport": 1.03
+      },
+      {
+       "palette": "rose",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.129
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.461,
+     "max": 0.882
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "F": {
+    "palettes": 17,
+    "alerte": 6,
+    "enAlerte": [
+     "red",
+     "blue",
+     "indigo",
+     "violet",
+     "pink",
+     "rose"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.003,
+      "mediane": 0.037,
+      "max": 0.12
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.005,
+      "mediane": 0.035,
+      "max": 0.142
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.005,
+     "medianeLight": 0.011,
+     "medianeDark": 0.009
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 153,
+      "min": 0.391,
+      "mediane": 0.706,
+      "max": 0.881
+     },
+     "dark": {
+      "n": 153,
+      "min": 0.453,
+      "mediane": 0.701,
+      "max": 1.107
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 1,
+     "dark": 1,
+     "parCran": {
+      "dark 700": 1
+     },
+     "maximum": 1.107,
+     "exemples": [
+      {
+       "palette": "pink",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.107
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.646,
+     "max": 1.203
+    },
+    "garantiesManquees": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   }
+  },
+  "Tour #C59735 (L 0,703 C 0,125)": {
+   "A": {
+    "palettes": 24,
+    "alerte": 7,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#2DB897",
+     "#00B7AD",
+     "#00B4C0",
+     "#0CB1D2",
+     "#3AACDF"
+    ],
+    "ternes": 17,
+    "ternesNoms": [
+     "#A0A742",
+     "#89AE54",
+     "#6FB36A",
+     "#51B680",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851",
+     "#D28F40"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848
+    ],
+    "teintesTernes": [
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.012,
+      "max": 0.083
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.011,
+      "max": 0.049
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.001,
+     "medianeLight": 0.004,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.467,
+      "mediane": 0.892,
+      "max": 0.96
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.777,
+      "mediane": 0.896,
+      "max": 1.147
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 17,
+     "dark": 17,
+     "parCran": {
+      "dark 200": 2,
+      "dark 300": 3,
+      "dark 400": 4,
+      "dark 500": 4,
+      "dark 600": 4
+     },
+     "maximum": 1.147,
+     "exemples": [
+      {
+       "palette": "#759EED",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.106
+      },
+      {
+       "palette": "#759EED",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.133
+      },
+      {
+       "palette": "#759EED",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.136
+      },
+      {
+       "palette": "#759EED",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.129
+      },
+      {
+       "palette": "#759EED",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.113
+      },
+      {
+       "palette": "#8D97EC",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.105
+      },
+      {
+       "palette": "#8D97EC",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.131
+      },
+      {
+       "palette": "#8D97EC",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.13
+      },
+      {
+       "palette": "#8D97EC",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.131
+      },
+      {
+       "palette": "#8D97EC",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.124
+      },
+      {
+       "palette": "#A290E6",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.147
+      },
+      {
+       "palette": "#A290E6",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.128
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.467
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "B": {
+    "palettes": 24,
+    "alerte": 7,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#2DB897",
+     "#00B7AD",
+     "#00B4C0",
+     "#0CB1D2",
+     "#3AACDF"
+    ],
+    "ternes": 17,
+    "ternesNoms": [
+     "#A0A742",
+     "#89AE54",
+     "#6FB36A",
+     "#51B680",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851",
+     "#D28F40"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848
+    ],
+    "teintesTernes": [
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.012,
+      "max": 0.083
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.011,
+      "max": 0.049
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.001,
+     "medianeLight": 0.004,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.467,
+      "mediane": 0.892,
+      "max": 0.96
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.734,
+      "mediane": 0.889,
+      "max": 0.957
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.467
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "C": {
+    "palettes": 24,
+    "alerte": 14,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#A0A742",
+     "#51B680",
+     "#2DB897",
+     "#00B7AD",
+     "#00B4C0",
+     "#0CB1D2",
+     "#3AACDF",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#D28F40"
+    ],
+    "ternes": 10,
+    "ternesNoms": [
+     "#89AE54",
+     "#6FB36A",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     67.61014049912848
+    ],
+    "teintesTernes": [
+     127.61014049912848,
+     142.61014049912848,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.031,
+      "max": 0.099
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.027,
+      "max": 0.075
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.004,
+     "medianeLight": 0.009,
+     "medianeDark": 0.007
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.378,
+      "mediane": 0.736,
+      "max": 0.882
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.595,
+      "mediane": 0.732,
+      "max": 0.882
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.628,
+     "max": 1.21
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "D": {
+    "palettes": 24,
+    "alerte": 10,
+    "enAlerte": [
+     "#A0A742",
+     "#51B680",
+     "#3AACDF",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265"
+    ],
+    "ternes": 4,
+    "ternesNoms": [
+     "#6FB36A",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6"
+    ],
+    "teintesAlerte": [
+     112.61014049912848,
+     157.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848
+    ],
+    "teintesTernes": [
+     142.61014049912848,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.006,
+      "mediane": 0.041,
+      "max": 0.133
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.038,
+      "max": 0.098
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.006,
+     "dark": 0.004,
+     "medianeLight": 0.013,
+     "medianeDark": 0.01
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.322,
+      "mediane": 0.63,
+      "max": 0.858
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.515,
+      "mediane": 0.635,
+      "max": 0.836
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.549,
+     "max": 1.034
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "E": {
+    "palettes": 24,
+    "alerte": 4,
+    "enAlerte": [
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285
+    ],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.008,
+      "mediane": 0.057,
+      "max": 0.179
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.007,
+      "mediane": 0.053,
+      "max": 0.132
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.008,
+     "dark": 0.007,
+     "medianeLight": 0.024,
+     "medianeDark": 0.013
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.243,
+      "mediane": 0.462,
+      "max": 0.758
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.383,
+      "mediane": 0.489,
+      "max": 0.758
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.12,
+     "mediane": 0.413,
+     "max": 0.784
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "G": {
+    "palettes": 24,
+    "alerte": 7,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#2DB897",
+     "#00B7AD",
+     "#00B4C0",
+     "#0CB1D2",
+     "#3AACDF"
+    ],
+    "ternes": 17,
+    "ternesNoms": [
+     "#A0A742",
+     "#89AE54",
+     "#6FB36A",
+     "#51B680",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851",
+     "#D28F40"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848
+    ],
+    "teintesTernes": [
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.018,
+      "max": 0.115
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.022,
+      "max": 0.079
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.001,
+     "medianeLight": 0.005,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.322,
+      "mediane": 0.833,
+      "max": 0.96
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.515,
+      "mediane": 0.798,
+      "max": 0.957
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.629,
+     "max": 1.034
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "H": {
+    "palettes": 24,
+    "alerte": 7,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#2DB897",
+     "#00B7AD",
+     "#00B4C0",
+     "#0CB1D2",
+     "#3AACDF"
+    ],
+    "ternes": 17,
+    "ternesNoms": [
+     "#A0A742",
+     "#89AE54",
+     "#6FB36A",
+     "#51B680",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851",
+     "#D28F40"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848
+    ],
+    "teintesTernes": [
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.035,
+      "max": 0.144
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.035,
+      "max": 0.1
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.004,
+     "dark": 0.001,
+     "medianeLight": 0.008,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.243,
+      "mediane": 0.657,
+      "max": 0.952
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.383,
+      "mediane": 0.616,
+      "max": 0.954
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.502,
+     "max": 0.892
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "F": {
+    "palettes": 24,
+    "alerte": 11,
+    "enAlerte": [
+     "#C59735",
+     "#B49F36",
+     "#A0A742",
+     "#51B680",
+     "#2DB897",
+     "#3AACDF",
+     "#5AA5E9",
+     "#759EED",
+     "#8D97EC",
+     "#A290E6",
+     "#D28F40"
+    ],
+    "ternes": 10,
+    "ternesNoms": [
+     "#89AE54",
+     "#6FB36A",
+     "#B489DB",
+     "#C484CC",
+     "#D180BB",
+     "#DA7DA6",
+     "#E07C91",
+     "#E27E7B",
+     "#E18265",
+     "#DB8851"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     67.61014049912848
+    ],
+    "teintesTernes": [
+     127.61014049912848,
+     142.61014049912848,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.031,
+      "max": 0.099
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.027,
+      "max": 0.075
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.004,
+     "medianeLight": 0.009,
+     "medianeDark": 0.007
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.378,
+      "mediane": 0.736,
+      "max": 0.882
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.595,
+      "mediane": 0.732,
+      "max": 0.882
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.628,
+     "max": 1.21
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   }
+  },
+  "Tour vif (L 0,60 C 0,18)": {
+   "A": {
+    "palettes": 24,
+    "alerte": 15,
+    "enAlerte": [
+     "#A47800",
+     "#958000",
+     "#828700",
+     "#659000",
+     "#2A9927",
+     "#00995E",
+     "#009679",
+     "#00948B",
+     "#00929B",
+     "#008FAA",
+     "#008BBD",
+     "#0085DA",
+     "#D54D1F",
+     "#C46000",
+     "#B36E00"
+    ],
+    "ternes": 9,
+    "ternesNoms": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5",
+     "#CC478A",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "teintesTernes": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.018,
+      "max": 0.121
+     },
+     "dark": {
+      "n": 216,
+      "min": 0,
+      "mediane": 0.012,
+      "max": 0.035
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0,
+     "medianeLight": 0.008,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.469,
+      "mediane": 0.85,
+      "max": 0.968
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.81,
+      "mediane": 0.876,
+      "max": 1.147
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 41,
+     "dark": 41,
+     "parCran": {
+      "dark 400": 11,
+      "dark 500": 11,
+      "dark 600": 10,
+      "dark 700": 3,
+      "dark 800": 1,
+      "dark 200": 2,
+      "dark 300": 3
+     },
+     "maximum": 1.147,
+     "exemples": [
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.012
+      },
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.033
+      },
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 700,
+       "rapport": 1.047
+      },
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 800,
+       "rapport": 1.031
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.126
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.14
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.137
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.131
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 200,
+       "rapport": 1.122
+      },
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.131
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.474
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "B": {
+    "palettes": 24,
+    "alerte": 15,
+    "enAlerte": [
+     "#A47800",
+     "#958000",
+     "#828700",
+     "#659000",
+     "#2A9927",
+     "#00995E",
+     "#009679",
+     "#00948B",
+     "#00929B",
+     "#008FAA",
+     "#008BBD",
+     "#0085DA",
+     "#D54D1F",
+     "#C46000",
+     "#B36E00"
+    ],
+    "ternes": 9,
+    "ternesNoms": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5",
+     "#CC478A",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "teintesTernes": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.018,
+      "max": 0.121
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.002,
+      "mediane": 0.017,
+      "max": 0.06
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0.002,
+     "medianeLight": 0.008,
+     "medianeDark": 0.004
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.469,
+      "mediane": 0.85,
+      "max": 0.968
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.685,
+      "mediane": 0.849,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 10,
+     "dark": 10,
+     "parCran": {
+      "dark 600": 10
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.474
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "C": {
+    "palettes": 24,
+    "alerte": 12,
+    "enAlerte": [
+     "#2A9927",
+     "#009679",
+     "#00929B",
+     "#008FAA",
+     "#008BBD",
+     "#0085DA",
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#D3456C",
+     "#D6474B",
+     "#D54D1F"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5"
+    ],
+    "teintesAlerte": [
+     142.61014049912848,
+     172.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848
+    ],
+    "teintesTernes": [
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.04,
+      "max": 0.138
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.006,
+      "mediane": 0.033,
+      "max": 0.083
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.006,
+     "medianeLight": 0.017,
+     "medianeDark": 0.009
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.378,
+      "mediane": 0.695,
+      "max": 0.87
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.56,
+      "mediane": 0.697,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 8,
+     "dark": 8,
+     "parCran": {
+      "dark 600": 8
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.643,
+     "max": 1.203
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "D": {
+    "palettes": 24,
+    "alerte": 6,
+    "enAlerte": [
+     "#0085DA",
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.006,
+      "mediane": 0.052,
+      "max": 0.171
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.008,
+      "mediane": 0.044,
+      "max": 0.103
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.006,
+     "dark": 0.008,
+     "medianeLight": 0.021,
+     "medianeDark": 0.011
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.322,
+      "mediane": 0.595,
+      "max": 0.804
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.482,
+      "mediane": 0.598,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 7,
+     "dark": 7,
+     "parCran": {
+      "dark 600": 7
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.546,
+     "max": 1.051
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "E": {
+    "palettes": 24,
+    "alerte": 5,
+    "enAlerte": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.008,
+      "mediane": 0.065,
+      "max": 0.2
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.011,
+      "mediane": 0.057,
+      "max": 0.133
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.008,
+     "dark": 0.011,
+     "medianeLight": 0.028,
+     "medianeDark": 0.015
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.243,
+      "mediane": 0.447,
+      "max": 0.739
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.362,
+      "mediane": 0.449,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 3,
+     "dark": 3,
+     "parCran": {
+      "dark 600": 3
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.12,
+     "mediane": 0.413,
+     "max": 0.776
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "G": {
+    "palettes": 24,
+    "alerte": 14,
+    "enAlerte": [
+     "#A47800",
+     "#958000",
+     "#828700",
+     "#659000",
+     "#00995E",
+     "#009679",
+     "#00948B",
+     "#00929B",
+     "#008FAA",
+     "#008BBD",
+     "#0085DA",
+     "#D54D1F",
+     "#C46000",
+     "#B36E00"
+    ],
+    "ternes": 9,
+    "ternesNoms": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5",
+     "#CC478A",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "teintesTernes": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.033,
+      "max": 0.157
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.002,
+      "mediane": 0.028,
+      "max": 0.103
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.002,
+     "medianeLight": 0.01,
+     "medianeDark": 0.005
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.322,
+      "mediane": 0.728,
+      "max": 0.96
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.486,
+      "mediane": 0.712,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 10,
+     "dark": 10,
+     "parCran": {
+      "dark 600": 10
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.669,
+     "max": 1.051
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "H": {
+    "palettes": 24,
+    "alerte": 9,
+    "enAlerte": [
+     "#A47800",
+     "#958000",
+     "#009679",
+     "#00948B",
+     "#00929B",
+     "#008FAA",
+     "#008BBD",
+     "#0085DA",
+     "#D54D1F"
+    ],
+    "ternes": 9,
+    "ternesNoms": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5",
+     "#CC478A",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "teintesAlerte": [
+     82.61014049912848,
+     97.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     37.61014049912848
+    ],
+    "teintesTernes": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.007,
+      "mediane": 0.046,
+      "max": 0.179
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.046,
+      "max": 0.133
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.007,
+     "dark": 0.003,
+     "medianeLight": 0.013,
+     "medianeDark": 0.006
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.243,
+      "mediane": 0.549,
+      "max": 0.96
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.363,
+      "mediane": 0.536,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 10,
+     "dark": 10,
+     "parCran": {
+      "dark 600": 10
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#2A9927",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#427AEA",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.506,
+     "max": 0.94
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "F": {
+    "palettes": 24,
+    "alerte": 5,
+    "enAlerte": [
+     "#427AEA",
+     "#6A6FE8",
+     "#8665E0",
+     "#D3456C",
+     "#D6474B"
+    ],
+    "ternes": 3,
+    "ternesNoms": [
+     "#9E5CD2",
+     "#B153BE",
+     "#C04CA5"
+    ],
+    "teintesAlerte": [
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     7.610140499128477,
+     22.610140499128477
+    ],
+    "teintesTernes": [
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.003,
+      "mediane": 0.04,
+      "max": 0.138
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.006,
+      "mediane": 0.033,
+      "max": 0.083
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.003,
+     "dark": 0.006,
+     "medianeLight": 0.017,
+     "medianeDark": 0.009
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.378,
+      "mediane": 0.695,
+      "max": 0.87
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.56,
+      "mediane": 0.697,
+      "max": 1.092
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 8,
+     "dark": 8,
+     "parCran": {
+      "dark 600": 8
+     },
+     "maximum": 1.092,
+     "exemples": [
+      {
+       "palette": "#6A6FE8",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.087
+      },
+      {
+       "palette": "#8665E0",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#9E5CD2",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#B153BE",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#C04CA5",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.088
+      },
+      {
+       "palette": "#CC478A",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.092
+      },
+      {
+       "palette": "#D3456C",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.084
+      },
+      {
+       "palette": "#D6474B",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.09
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.643,
+     "max": 1.203
+    },
+    "garantiesManquees": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   }
+  },
+  "Tour doux (L 0,75 C 0,07)": {
+   "A": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.008,
+      "max": 0.042
+     },
+     "dark": {
+      "n": 216,
+      "min": 0,
+      "mediane": 0.006,
+      "max": 0.018
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0,
+     "medianeLight": 0.003,
+     "medianeDark": 0.002
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.517,
+      "mediane": 0.892,
+      "max": 0.956
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.74,
+      "mediane": 0.896,
+      "max": 1.134
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 4,
+     "dark": 4,
+     "parCran": {
+      "dark 400": 2,
+      "dark 500": 2
+     },
+     "maximum": 1.134,
+     "exemples": [
+      {
+       "palette": "#96AEDB",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.134
+      },
+      {
+       "palette": "#96AEDB",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.127
+      },
+      {
+       "palette": "#A3AADB",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.128
+      },
+      {
+       "palette": "#A3AADB",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.131
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "B": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.008,
+      "max": 0.042
+     },
+     "dark": {
+      "n": 216,
+      "min": 0,
+      "mediane": 0.007,
+      "max": 0.037
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0,
+     "medianeLight": 0.003,
+     "medianeDark": 0.002
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.517,
+      "mediane": 0.892,
+      "max": 0.956
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.735,
+      "mediane": 0.893,
+      "max": 1
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "C": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.022,
+      "max": 0.082
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.002,
+      "mediane": 0.019,
+      "max": 0.066
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.004,
+     "dark": 0.002,
+     "medianeLight": 0.006,
+     "medianeDark": 0.005
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.386,
+      "mediane": 0.734,
+      "max": 0.781
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.602,
+      "mediane": 0.735,
+      "max": 0.876
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.21
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "D": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.006,
+      "mediane": 0.036,
+      "max": 0.116
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.031,
+      "max": 0.08
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.006,
+     "dark": 0.004,
+     "medianeLight": 0.009,
+     "medianeDark": 0.009
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.338,
+      "mediane": 0.63,
+      "max": 0.693
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.514,
+      "mediane": 0.628,
+      "max": 0.752
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.056
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "E": {
+    "palettes": 24,
+    "alerte": 2,
+    "enAlerte": [
+     "#96AEDB",
+     "#A3AADB"
+    ],
+    "ternes": 11,
+    "ternesNoms": [
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [
+     262.6101404991285,
+     277.6101404991285
+    ],
+    "teintesTernes": [
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.01,
+      "mediane": 0.059,
+      "max": 0.159
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.009,
+      "mediane": 0.054,
+      "max": 0.117
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.01,
+     "dark": 0.009,
+     "medianeLight": 0.016,
+     "medianeDark": 0.016
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.246,
+      "mediane": 0.474,
+      "max": 0.605
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.383,
+      "mediane": 0.472,
+      "max": 0.605
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.392,
+     "max": 0.784
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "G": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.008,
+      "max": 0.073
+     },
+     "dark": {
+      "n": 216,
+      "min": 0,
+      "mediane": 0.007,
+      "max": 0.067
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0,
+     "medianeLight": 0.003,
+     "medianeDark": 0.002
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.377,
+      "mediane": 0.891,
+      "max": 0.956
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.514,
+      "mediane": 0.89,
+      "max": 1
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.056
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "H": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.001,
+      "mediane": 0.008,
+      "max": 0.098
+     },
+     "dark": {
+      "n": 216,
+      "min": 0,
+      "mediane": 0.007,
+      "max": 0.085
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.001,
+     "dark": 0,
+     "medianeLight": 0.003,
+     "medianeDark": 0.002
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.277,
+      "mediane": 0.885,
+      "max": 0.956
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.387,
+      "mediane": 0.884,
+      "max": 1
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.392,
+     "max": 0.784
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "F": {
+    "palettes": 24,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 24,
+    "ternesNoms": [
+     "#C4AA7B",
+     "#BAAF7B",
+     "#AEB380",
+     "#A1B787",
+     "#95BA91",
+     "#89BC9D",
+     "#7FBDA9",
+     "#78BDB6",
+     "#77BBC1",
+     "#7AB9CB",
+     "#81B6D3",
+     "#8BB3D9",
+     "#96AEDB",
+     "#A3AADB",
+     "#AFA6D7",
+     "#BAA3D1",
+     "#C4A0C8",
+     "#CC9DBE",
+     "#D29CB2",
+     "#D69CA6",
+     "#D79D9A",
+     "#D69F8E",
+     "#D2A285",
+     "#CCA67E"
+    ],
+    "teintesAlerte": [],
+    "teintesTernes": [
+     82.61014049912848,
+     97.61014049912848,
+     112.61014049912848,
+     127.61014049912848,
+     142.61014049912848,
+     157.61014049912848,
+     172.61014049912848,
+     187.61014049912848,
+     202.61014049912848,
+     217.61014049912848,
+     232.61014049912848,
+     247.61014049912848,
+     262.6101404991285,
+     277.6101404991285,
+     292.6101404991285,
+     307.6101404991285,
+     322.6101404991285,
+     337.6101404991285,
+     352.6101404991285,
+     7.610140499128477,
+     22.610140499128477,
+     37.61014049912848,
+     52.61014049912848,
+     67.61014049912848
+    ],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.004,
+      "mediane": 0.022,
+      "max": 0.082
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.002,
+      "mediane": 0.019,
+      "max": 0.066
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.004,
+     "dark": 0.002,
+     "medianeLight": 0.006,
+     "medianeDark": 0.005
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 216,
+      "min": 0.386,
+      "mediane": 0.734,
+      "max": 0.781
+     },
+     "dark": {
+      "n": 216,
+      "min": 0.602,
+      "mediane": 0.735,
+      "max": 0.876
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.21
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   }
+  },
+  "Recette du mainteneur": {
+   "A": {
+    "palettes": 7,
+    "alerte": 1,
+    "enAlerte": [
+     "Grass"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.01,
+      "mediane": 0.042,
+      "max": 0.084
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.003,
+      "mediane": 0.027,
+      "max": 0.094
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.01,
+     "dark": 0.003,
+     "medianeLight": 0.019,
+     "medianeDark": 0.011
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.363,
+      "mediane": 0.754,
+      "max": 0.945
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.555,
+      "mediane": 0.813,
+      "max": 1.133
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 4,
+     "dark": 4,
+     "parCran": {
+      "dark 300": 1,
+      "dark 400": 1,
+      "dark 500": 1,
+      "dark 600": 1
+     },
+     "maximum": 1.133,
+     "exemples": [
+      {
+       "palette": "Poppy",
+       "mode": "dark",
+       "cran": 300,
+       "rapport": 1.037
+      },
+      {
+       "palette": "Poppy",
+       "mode": "dark",
+       "cran": 400,
+       "rapport": 1.099
+      },
+      {
+       "palette": "Poppy",
+       "mode": "dark",
+       "cran": 500,
+       "rapport": 1.118
+      },
+      {
+       "palette": "Poppy",
+       "mode": "dark",
+       "cran": 600,
+       "rapport": 1.133
+      }
+     ]
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.681,
+     "max": 1.036
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "B": {
+    "palettes": 7,
+    "alerte": 1,
+    "enAlerte": [
+     "Grass"
+    ],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.01,
+      "mediane": 0.042,
+      "max": 0.084
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.003,
+      "mediane": 0.036,
+      "max": 0.128
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.01,
+     "dark": 0.003,
+     "medianeLight": 0.019,
+     "medianeDark": 0.011
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.363,
+      "mediane": 0.754,
+      "max": 0.945
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.494,
+      "mediane": 0.771,
+      "max": 0.937
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.681,
+     "max": 1.036
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "C": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.045,
+      "max": 0.101
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.006,
+      "mediane": 0.047,
+      "max": 0.15
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.006,
+     "medianeLight": 0.021,
+     "medianeDark": 0.018
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.303,
+      "mediane": 0.634,
+      "max": 0.896
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.403,
+      "mediane": 0.661,
+      "max": 0.847
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.681,
+     "max": 0.859
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "D": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.053,
+      "max": 0.115
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.006,
+      "mediane": 0.054,
+      "max": 0.162
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.006,
+     "medianeLight": 0.031,
+     "medianeDark": 0.022
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.254,
+      "mediane": 0.561,
+      "max": 0.847
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.349,
+      "mediane": 0.607,
+      "max": 0.8
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.645,
+     "max": 0.744
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "E": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.063,
+      "max": 0.142
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.006,
+      "mediane": 0.068,
+      "max": 0.183
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.006,
+     "medianeLight": 0.041,
+     "medianeDark": 0.026
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.194,
+      "mediane": 0.422,
+      "max": 0.791
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.262,
+      "mediane": 0.474,
+      "max": 0.766
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.311,
+     "mediane": 0.504,
+     "max": 0.683
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "G": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.048,
+      "max": 0.115
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.003,
+      "mediane": 0.054,
+      "max": 0.162
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.003,
+     "medianeLight": 0.024,
+     "medianeDark": 0.02
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.254,
+      "mediane": 0.561,
+      "max": 0.847
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.349,
+      "mediane": 0.607,
+      "max": 0.937
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.645,
+     "max": 0.877
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "H": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.059,
+      "max": 0.142
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.004,
+      "mediane": 0.068,
+      "max": 0.183
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.004,
+     "medianeLight": 0.041,
+     "medianeDark": 0.021
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.194,
+      "mediane": 0.422,
+      "max": 0.791
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.262,
+      "mediane": 0.474,
+      "max": 0.885
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.311,
+     "mediane": 0.509,
+     "max": 0.683
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   },
+   "F": {
+    "palettes": 7,
+    "alerte": 0,
+    "enAlerte": [],
+    "ternes": 0,
+    "ternesNoms": [],
+    "teintesAlerte": [],
+    "teintesTernes": [],
+    "ecartsAvecLePaquet": [],
+    "deltaEokSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.019,
+      "mediane": 0.045,
+      "max": 0.101
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.006,
+      "mediane": 0.047,
+      "max": 0.15
+     }
+    },
+    "minimumParPalette": {
+     "light": 0.019,
+     "dark": 0.006,
+     "medianeLight": 0.021,
+     "medianeDark": 0.018
+    },
+    "rapportChromaSoftVivid": {
+     "light": {
+      "n": 36,
+      "min": 0.303,
+      "mediane": 0.634,
+      "max": 0.896
+     },
+     "dark": {
+      "n": 36,
+      "min": 0.403,
+      "mediane": 0.661,
+      "max": 0.847
+     }
+    },
+    "softAuDessusDeVivid": {
+     "total": 0,
+     "dark": 0,
+     "parCran": {},
+     "maximum": 0,
+     "exemples": []
+    },
+    "chromaDesTextesSoftContreTailwind": {
+     "n": 8,
+     "min": 0.31,
+     "mediane": 0.681,
+     "max": 0.859
+    },
+    "garantiesManquees": {},
+    "garantiesTotal": 0
+   }
+  }
+ }
+}
