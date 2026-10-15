@@ -11,6 +11,12 @@
  * d'avant les rangements en vol : un refus (de la validation, ou du sandbox
  * qui juge la recette invalide) les rend. Un conflit d'enregistrement ne rend
  * rien, pour que le brouillon reste exportable.
+ *
+ * Pendant un glisser, aucune carte ne change de hauteur ([UI-20]) : tant que
+ * l'onglet garde la recette d'avant le geste, chaque rendu fige la hauteur des
+ * cartes avant de les repeindre, et la validation ou Échap la libère. Un
+ * constat qui paraît ou disparaît sous le pointeur ne déplace donc ni la roue
+ * ni les réglettes.
  */
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
@@ -141,7 +147,34 @@ function construireVues(i18n: Localisation) {
       valider: validerLaPalette,
       abandonner,
     });
-    element.append(tete, ligne, cartePaires.element, carteListe.element, carteComparaison.element, carteReglages.element, carteRoue.element);
+    const cartes = [cartePaires, carteListe, carteComparaison, carteReglages, carteRoue].map(({ element: carte }) => carte);
+    element.append(tete, ligne, ...cartes);
+
+    /** Les cartes visibles au début du glisser en cours, dont la hauteur est figée ; `null` hors d'un glisser. */
+    let figees: ReadonlySet<HTMLElement> | null = null;
+
+    /**
+     * Fige la hauteur des cartes visibles pendant un glisser, ou la libère à sa
+     * fin. Le contenu qui dépasse reste caché jusqu'à la fin, et une carte qui se
+     * cacherait (« Palettes trop proches » sans paire) reste en place, vide.
+     */
+    function accorderLesHauteurs(): void {
+      if (avantLeGeste === null) {
+        if (!figees) return;
+        figees = null;
+        delete element.dataset.enGeste;
+        for (const carte of cartes) carte.style.height = '';
+      } else if (!figees) {
+        figees = new Set(cartes.filter((carte) => !carte.hidden));
+        for (const carte of figees) carte.style.height = `${carte.getBoundingClientRect().height}px`;
+        element.dataset.enGeste = '';
+      }
+    }
+
+    /** Remet en place les cartes qui se sont cachées ou montrées sous un glisser. */
+    function garderLesCartes(): void {
+      if (figees) for (const carte of cartes) carte.hidden = !figees.has(carte);
+    }
 
     /** Coche la paire et choisit la palette à régler, depuis la carte des paires ou le bilan de Vérification. */
     function comparerLaPaireChoisie(paire: PaireTropProche): void {
@@ -152,11 +185,13 @@ function construireVues(i18n: Localisation) {
     /** Les cartes se repeignent seulement onglet visible : un onglet caché ne calcule pas les rampes. */
     function peindreLesCartes(): void {
       if (!recette) return;
+      accorderLesHauteurs();
       cartePaires.afficher(recette, paires);
       carteListe.afficher(recette, paires, etat);
       carteComparaison.afficher(recette, paires, etat);
       carteReglages.afficher(recette, etat, avantLeGeste !== null);
       carteRoue.afficher(recette, paires, etat, avantLeGeste !== null);
+      garderLesCartes();
     }
 
     function rendre(): void {

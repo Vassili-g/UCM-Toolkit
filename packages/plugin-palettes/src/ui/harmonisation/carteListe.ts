@@ -38,7 +38,7 @@ function construireVues(i18n: Localisation) {
 
   function createCarteDeLaListe(gestes: GestesDeLaListe): CarteDeLaListeUi {
     // Le sous-titre dit les numéros de la recette : `afficher` le refait à la première lecture.
-    const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre(50, 950, 'light'), repliable: { ouverte: true } }, i18n);
+    const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre(50, 950, 'light'), repliable: { ouverte: true, resumeReplie: true } }, i18n);
     const sousTitre = carte.element.querySelector<HTMLElement>('.carte-sous-titre')!;
     const aide = document.createElement('p');
     aide.className = 'ligne-secondaire liste-aide';

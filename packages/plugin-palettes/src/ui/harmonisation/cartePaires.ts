@@ -27,7 +27,7 @@ function construireVues(i18n: Localisation) {
   const { TEXTES_DE_L_HARMONISATION: { echantillon, paires: TEXTES }, nomDeLaPalette } = i18n.messages;
 
   function createCarteDesPaires(gestes: GestesDeLaCarteDesPaires): CarteDesPairesUi {
-    const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre, repliable: { ouverte: true } }, i18n);
+    const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre, repliable: { ouverte: true, resumeReplie: true } }, i18n);
     const liste = document.createElement('div');
     liste.className = 'paires';
     carte.corps.append(liste);

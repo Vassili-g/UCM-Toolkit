@@ -2257,6 +2257,17 @@
   cursor: default;
 }
 
+.carte-des-reglages .carte-sous-titre {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* Pendant un glisser, la hauteur d'une carte est figée : ce qui la dépasse reste caché jusqu'à la fin ([UI-20]). */
+.harmonisation[data-en-geste] > .carte {
+  overflow: hidden;
+}
+
 /*
  * La carte « Palettes trop proches » : une rangée par paire, avec ses deux
  * pastilles `Aa` sur le fond de page du thème du constat, les deux noms, le

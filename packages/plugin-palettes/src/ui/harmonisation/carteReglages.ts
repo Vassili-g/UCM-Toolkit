@@ -89,6 +89,8 @@ function construireVues(i18n: Localisation) {
 
   function createCarteDesReglages(gestes: GestesDeLaCarteDesReglages): CarteDesReglagesUi {
     const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre, repliable: { ouverte: true } }, i18n);
+    // Quatre noms dans « Régler » ne laissent pas la place d'une ligne au sous-titre : il passe à la ligne au lieu de se couper.
+    carte.element.classList.add('carte-des-reglages');
     const corps = document.createElement('div');
     corps.className = 'reglages-de-la-palette reglages-harmonie';
 
@@ -295,7 +297,8 @@ function construireVues(i18n: Localisation) {
       figee.hidden = !rigide;
       for (const { reglette } of rangees) reglette.element.hidden = rigide;
       const depart = etat.departs.get(palette.id);
-      tete.hidden = rigide || !depart || !modifieeDepuisLeDepart(recette, palette, depart);
+      // Pendant un glisser, « Annuler les modifications » garde sa place : le bouton qui paraît ne décale pas les réglettes ([UI-20]).
+      if (!avantLeGeste && !enGesteDeLOnglet) tete.hidden = rigide || !depart || !modifieeDepuisLeDepart(recette, palette, depart);
       if (rigide) {
         signaler(null);
         return;

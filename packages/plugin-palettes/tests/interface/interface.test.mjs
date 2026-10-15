@@ -155,6 +155,7 @@ test('[UI-40] la carte des paires range les dix paires par distance, avec leurs 
   try {
     const carte = page.locator('#panneau-harmonisation .carte[aria-label="Palettes trop proches"]');
     assert.equal(await carte.locator('.carte-resume').textContent(), '10 paires');
+    assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'ouverte, la carte ne montre pas son résumé');
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Difficiles à distinguer dans vos composants');
     const rangees = carte.locator('.paire');
     assert.equal(await rangees.count(), 10);
@@ -523,6 +524,10 @@ test('[UI-42] la carte Réglages paraît dès deux palettes cochées : trois ré
     // Une palette cochée s'ajoute à « Régler ».
     await coche(panneau, 'Rose');
     assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Indigo', 'Azur', 'Rose']);
+    // Quatre noms dans « Régler », à 480 px : le sous-titre passe à la ligne au lieu de se couper.
+    await page.setViewportSize({ width: 480, height: 520 });
+    await coche(panneau, 'Vert');
+    assert.ok(await carte.locator('.carte-sous-titre').evaluate((titre) => titre.getBoundingClientRect().height > 20), 'le sous-titre tient sur deux lignes');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally { await page.close(); }
 });
@@ -826,8 +831,7 @@ test('[UI-43] glisser un point règle sa palette, la met dans « Régler » et l
     await page.waitForTimeout(300);
     const arrivee = await placeDuPoint(page, 'Rose', 5);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
-    // Pendant le glisser : la réglette de teinte lit un écart positif, rien n'est encore rangé. La carte « Comparaison »
-    // change de hauteur avec les constats et déplace la roue sous le pointeur : l'écart exact n'est pas celui du geste visé.
+    // Pendant le glisser : la réglette de teinte lit un écart positif, rien n'est encore rangé.
     await page.waitForFunction(() => /^\+\d+°$/.test(document.querySelector('#panneau-harmonisation .reglage-de-la-palette .champ-nombre')?.value ?? ''));
     assert.equal(await compte(page), avant);
     await page.mouse.up();
@@ -875,6 +879,106 @@ test('[UI-43] glisser Indigo hors de la zone éteint le constat et le compteur ;
     assert.equal(await compteur.textContent(), '1');
     assert.equal(await pointDeLaRoue(page, 'Indigo').getAttribute('aria-valuenow'), '0');
     assert.equal(await compte(page), avant, 'rien n’a été rangé');
+  } finally { await page.close(); }
+});
+
+/** Le haut de la roue et de la première réglette, comptés depuis le haut de l'onglet, et la hauteur de chaque carte de l'onglet. */
+const miseEnPage = (page) => page.evaluate(() => {
+  const origine = document.querySelector('#panneau-harmonisation').getBoundingClientRect().top;
+  const haut = (selecteur) => document.querySelector(selecteur).getBoundingClientRect().top - origine;
+  const cartes = [...document.querySelectorAll('#panneau-harmonisation > .carte')].filter((carte) => !carte.hidden);
+  return {
+    roue: haut('#panneau-harmonisation .plaque'),
+    reglette: haut('#panneau-harmonisation .reglage-de-la-palette'),
+    hauteurs: cartes.map((carte) => carte.getBoundingClientRect().height),
+    figee: document.querySelector('#panneau-harmonisation').dataset.enGeste !== undefined,
+  };
+});
+
+test('[UI-44] pendant un glisser de la roue, aucune carte ne change de hauteur ; la mise en page suit à la fin du glisser', async () => {
+  const page = await ouvrirHarmonisationSurTroisPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await limitesCalculees(carteReglages(page));
+    await deplierLaRoue(page);
+    const constats = carteComparaison(page).locator('.constat-de-comparaison');
+    const avertissement = await constats.first().evaluate((constat) => constat.getBoundingClientRect().height);
+    const repos = await miseEnPage(page);
+    assert.equal(repos.figee, false);
+    const avant = await compte(page);
+    const depart = await placeDuPoint(page, 'Indigo');
+    await page.mouse.move(depart.x, depart.y);
+    await page.mouse.down();
+    // Sortir de la zone éteint le constat : la roue ne bouge pas, les cartes gardent leur hauteur.
+    const arrivee = await placeDuPoint(page, 'Indigo', 12);
+    await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
+    const enGeste = await miseEnPage(page);
+    assert.equal(enGeste.figee, true);
+    assert.equal(enGeste.roue, repos.roue, 'la roue reste sous le pointeur');
+    assert.deepEqual(enGeste.hauteurs, repos.hauteurs);
+    // Revenir dans la zone rallume le constat : rien ne bouge non plus.
+    await page.mouse.move(depart.x, depart.y, { steps: 6 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
+    assert.deepEqual(await miseEnPage(page), enGeste);
+    await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
+    await page.mouse.up();
+    const demande = await prochaine(page, avant);
+    await envoyer(page, rangee(demande.demande));
+    // Rangée, la hauteur se libère : la carte Comparaison a la hauteur de son nouveau constat, et la roue la suit.
+    const fin = await miseEnPage(page);
+    assert.equal(fin.figee, false);
+    assert.equal(await carteComparaison(page).evaluate((carte) => carte.style.height), '');
+    const succes = await constats.first().evaluate((constat) => constat.getBoundingClientRect().height);
+    assert.ok(succes < avertissement, 'le constat de succès est plus court que l’avertissement');
+    assert.ok(fin.roue < repos.roue, 'la roue remonte avec la carte Comparaison');
+    // Échap libère aussi la hauteur.
+    const depart2 = await placeDuPoint(page, 'Indigo');
+    await page.mouse.move(depart2.x, depart2.y);
+    await page.mouse.down();
+    const loin = await placeDuPoint(page, 'Indigo', -12);
+    await page.mouse.move(loin.x, loin.y, { steps: 6 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
+    assert.equal((await miseEnPage(page)).figee, true);
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
+    assert.equal((await miseEnPage(page)).figee, false);
+  } finally { await page.close(); }
+});
+
+test('[UI-44] pendant un glisser d’une réglette, ni les réglettes ni la roue ne bougent quand « Annuler les modifications » paraît ou qu’un constat change', async () => {
+  const page = await ouvrirHarmonisationSurTroisPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    const carte = carteReglages(page);
+    await limitesCalculees(carte);
+    await deplierLaRoue(page);
+    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false);
+    const repos = await miseEnPage(page);
+    const avant = await compte(page);
+    const depart = await abscisseDe(page, 0);
+    await page.mouse.move(depart.x, depart.y);
+    await page.mouse.down();
+    const arrivee = await abscisseDe(page, 10);
+    await page.mouse.move(arrivee.x, arrivee.y, { steps: 5 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
+    const enGeste = await miseEnPage(page);
+    assert.equal(enGeste.reglette, repos.reglette, 'la réglette reste sous le pointeur');
+    assert.equal(enGeste.roue, repos.roue);
+    assert.deepEqual(enGeste.hauteurs, repos.hauteurs);
+    await page.mouse.up();
+    const demande = await prochaine(page, avant);
+    await envoyer(page, rangee(demande.demande));
+    // Le geste fini, le bouton paraît et la mise en page suit.
+    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), true);
+    const fin = await miseEnPage(page);
+    assert.equal(fin.figee, false);
+    const hauteurDeReglages = (page) => carteReglages(page).evaluate((element) => element.getBoundingClientRect().height);
+    assert.ok(await hauteurDeReglages(page) > repos.hauteurs[3], 'la carte Réglages grandit du bouton qui paraît');
   } finally { await page.close(); }
 });
 
