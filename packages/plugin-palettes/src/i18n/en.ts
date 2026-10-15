@@ -105,8 +105,8 @@ export const TEXTES = {
   exporterLeBrouillon: "Export my changes",
   conflitEnCours: "Export your changes or reload the palettes before saving, importing or generating.",
   detailTechnique: "Technical details",
-  ouvrirLesReglages: "Open shared settings",
-  reglagesCommuns: "Shared settings",
+  boutonConfiguration: "Settings",
+  ouvrirLaConfiguration: "Open settings",
   retour: "Back to palettes",
   // N102 : le bilan d'une palette libre, à la place des résultats Soft et Vivid (W3.5, W6.6).
   paletteLibre: (nombre: number) => `Freeform palette · ${nombre} shades`,

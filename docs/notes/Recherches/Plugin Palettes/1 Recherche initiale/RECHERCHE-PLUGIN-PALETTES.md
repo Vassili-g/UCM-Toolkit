@@ -858,6 +858,12 @@ courbes, parts, fonds du thème Dark, fonds, seuils et contenu des planches. Le 
 de l'en-tête l'ouvre, comme la configuration d'UCM Exporter, et le même
 composant du socle la porte (`[UI-02]`).
 
+- `[ENT-21]` Le bouton de l'en-tête se nomme : l'engrenage de 12 px, puis le
+  texte « Configuration » (« Settings » en anglais), sur une largeur
+  automatique. Son `title` dit « Ouvrir la configuration » (« Open
+  settings »). Le socle le porte, avec la classe `avec-libelle`, pour
+  UCM Palettes et UCM Exporter ; l'explorateur n'a pas de configuration et
+  n'en pose pas.
 - `[ENT-07]` Chaque champ de la configuration affiche le nombre de palettes
   qu'il modifie.
 - `[ENT-13]` « Luminosité des nuances » s'ouvre sur le nombre de nuances,

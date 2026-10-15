@@ -58,7 +58,11 @@ export function createHeader(
   connection.setAttribute('aria-live', 'polite');
   connection.addEventListener('click', () => onConnection());
 
-  const settingsButton = createSettingsButton(onSettings);
+  const settingsButton = createSettingsButton(onSettings, {
+    etiquette: 'Configuration',
+    infobulle: 'Ouvrir la configuration',
+    texte: 'Configuration',
+  });
   const backButton = createBackButton(onBack);
 
   topLine.append(titleElement, settingsButton, backButton);

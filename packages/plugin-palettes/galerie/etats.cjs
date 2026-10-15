@@ -372,7 +372,7 @@ const ouvrirLaVerification = { clic: '#onglet-verification' };
 /** Le designer choisit un fichier de recette dans l'onglet Gestion. */
 const importer = (contenu) => ({ fichier: { dans: '#panneau-gestion input[type="file"]', nom: 'palettes-et-reglages.json', contenu } });
 
-const ouvrirLaConfiguration = { clic: '[aria-label="Ouvrir les réglages communs"]' };
+const ouvrirLaConfiguration = { clic: '.icon-button.avec-libelle' };
 /** Déplie la ligne d'une palette du plugin dans l'onglet Gestion ouvert ([UI-27]). */
 const deplier = (palette) => ({ clic: `#panneau-gestion .palette-depliable[data-cle="${palette.id}"] [data-geste="deplier"]` });
 /** Déplie la première ligne d'une palette du fichier, ou d'une bibliothèque. */

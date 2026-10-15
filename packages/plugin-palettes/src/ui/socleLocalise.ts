@@ -26,9 +26,9 @@ export function creerSocleLocalise(i18n: Localisation) {
       i18n.lier(resultat.element.querySelector('.field-help')!, 'textContent', aide);
       return resultat;
     },
-    createSettingsButton(ouvrir: () => void, libelles: { etiquette: Texte; infobulle: Texte }) {
-      const element = reglages(ouvrir);
-      i18n.lier(element, 'aria-label', libelles.etiquette);
+    createSettingsButton(ouvrir: () => void, libelles: { texte: Texte; infobulle: Texte }) {
+      const element = reglages(ouvrir, { etiquette: '', infobulle: '', texte: '' });
+      i18n.lier(element.querySelector('span')!, 'textContent', libelles.texte);
       i18n.lier(element, 'title', libelles.infobulle);
       return element;
     },

@@ -12,7 +12,7 @@ const traductions = path.join(racine, 'dist/galerie-i18n.cjs');
 require('esbuild').buildSync({ entryPoints: [path.join(racine, 'src/i18n/index.ts')], outfile: traductions, bundle: true, format: 'cjs', platform: 'node' });
 const { CATALOGUES } = require(traductions);
 const chemins = [
-  ['TEXTES', 'ouvrirLesReglages'], ['TEXTES_DE_L_INTERFACE_DE_TEST', 'titre'],
+  ['TEXTES_DE_L_INTERFACE_DE_TEST', 'titre'],
   ['TEXTES_DE_L_ONGLET', 'derive'], ['TEXTES_DE_L_ONGLET', 'configuration'],
   ['TEXTES_DE_LA_BASE', 'libelle'], ['TEXTES_DE_L_AJUSTEMENT', 'plusSombre'], ['TEXTES_DE_L_AJUSTEMENT', 'plusClair'],
   ['TEXTES_DE_CONFIGURATION', 'contenu'], ['TEXTES_DE_CONFIGURATION', 'fondsSombres'],

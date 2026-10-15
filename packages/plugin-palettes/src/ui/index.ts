@@ -66,7 +66,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     'intensites-communes': 'parts',
   };
 
-  const settingsButton = createSettingsButton(ouvrirConfiguration, { etiquette: TEXTES.ouvrirLesReglages, infobulle: TEXTES.reglagesCommuns });
+  const settingsButton = createSettingsButton(ouvrirConfiguration, { texte: TEXTES.boutonConfiguration, infobulle: TEXTES.ouvrirLaConfiguration });
 
   const backButton = createBackButton(ouvrirTravail, TEXTES.retour);
 

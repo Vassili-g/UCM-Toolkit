@@ -69,7 +69,7 @@ Règles d'économie, à tenir par l'orchestrateur :
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
 - **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
-  P2, P6, P7 et P3 sont faits ; Codex fait H0 en parallèle
+  P2, P6, P7, P3 et P4 sont faits ; Codex fait H0 en parallèle
   (`packages/couleur`, `reglerTeinte`).
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
@@ -824,7 +824,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
   - Vérifier : `npm test --workspace ucm-plugin-socle` et les trois `test:ui`.
   - Fini quand : vert.
 
-- [ ] **P4 · Le bouton « Configuration » nommé** · `implementeur`, moyen.
+- [x] **P4 · Le bouton « Configuration » nommé** · `implementeur`, moyen.
   - C9 ; SPEC, section 4, premier point, et la règle
     `.icon-button.avec-libelle` de la section 9 ; proposition PR5.
     Identifiant réservé : `[ENT-21]`, section de l'en-tête de SPEC-PAL.

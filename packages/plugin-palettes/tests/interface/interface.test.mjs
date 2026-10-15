@@ -92,7 +92,7 @@ test('la préférence anglaise, son enregistrement et sa récupération sont ind
   try {
     await page.getByRole('tab', { name: 'Create', exact: true }).waitFor();
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
-    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const langue = page.getByLabel('Language', { exact: true });
     assert.deepEqual(await langue.locator('option').allTextContents(), ['English', 'Français']);
     await langue.selectOption('fr');
@@ -110,7 +110,7 @@ test('la bascule conserve les champs incomplets, les cartes ouvertes et les él�
   const page = await ouvrirSur('dessin-en-cours');
   try {
     await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const champ = page.locator('input[data-mode="light"][data-rang="7"]');
     await champ.fill('0,');
     await page.evaluate(() => {
@@ -138,7 +138,7 @@ test('un dessin en cours garde sa demande et son résultat à travers une bascul
     await genererDepuisLaFiche(page, ID_DU_BLEU);
     const demande = await dessinEnvoye(page, 1);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
     assert.equal(await page.locator('#panneau-gestion').textContent().then((texte) => texte.includes('Generating “Bleu”…')), true);
     assert.equal(await page.locator('.carte-de-reglage').first().evaluate((element) => element.closest('[inert]') !== null), true);
@@ -153,7 +153,7 @@ test('un dessin en cours garde sa demande et son résultat à travers une bascul
 test('un refus de préférence se retraduit et peut être réessayé, une lecture tardive est ignorée', async () => {
   const page = await ouvrir(MINIMALE, 'en');
   try {
-    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.evaluate(() => { window.refuserLangue = true; });
     await page.getByLabel('Language', { exact: true }).selectOption('fr');
     const reessayer = page.getByRole('button', { name: 'Réessayer l’enregistrement de la langue' });
@@ -232,10 +232,33 @@ test('la fenêtre s’ouvre sur l’onglet Création et demande l’état du fic
   }
 });
 
+test('[ENT-21] le bouton d’en-tête dit Configuration', async () => {
+  const page = await ouvrir();
+  try {
+    const bouton = page.locator('.icon-button.avec-libelle');
+    assert.equal(await bouton.count(), 1);
+    assert.equal((await bouton.textContent()).trim(), 'Configuration');
+    assert.equal(await bouton.getAttribute('title'), 'Ouvrir la configuration');
+    assert.equal(await bouton.locator('svg').evaluate((icone) => [icone.getBoundingClientRect().width, icone.getBoundingClientRect().height]).then((t) => t.join('x')), '12x12');
+    assert.equal(await bouton.evaluate((element) => element.firstElementChild.tagName.toLowerCase()), 'svg');
+    assert.ok((await bouton.boundingBox()).width > 24, 'la largeur est automatique');
+  } finally {
+    await page.close();
+  }
+  const anglais = await ouvrir(undefined, 'en');
+  try {
+    const bouton = anglais.locator('.icon-button.avec-libelle');
+    assert.equal((await bouton.textContent()).trim(), 'Settings');
+    assert.equal(await bouton.getAttribute('title'), 'Open settings');
+  } finally {
+    await anglais.close();
+  }
+});
+
 test('l’engrenage ouvre la configuration, le retour ramène aux onglets', async () => {
   const page = await ouvrir();
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     assert.equal(await page.getByRole('tablist').isVisible(), false);
     assert.equal(await page.locator('.page-title').textContent(), 'Réglages communs');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
@@ -363,7 +386,7 @@ test('[UI-33] un fichier sans variables montre sa bibliothèque distante sous so
     const gray = page.locator('#panneau-gestion .palette-depliable[data-bibliotheque]');
     await gray.locator('[data-geste="deplier"]').click();
     assert.equal(await gray.getByRole('button', { name: 'Copier dans le plugin', exact: true }).isVisible(), true);
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
     await page.getByRole('button', { name: 'Back to palettes' }).click();
     assert.equal(await intertitres.locator('.ligne-secondaire').textContent(), 'Published by a remote library');
@@ -2207,7 +2230,7 @@ test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mentio
     assert.equal(await selecteur.isVisible(), false);
     assert.equal(await pastille.evaluate((bouton) => bouton === document.activeElement), true, 'Échap rend le focus à la pastille');
     assert.equal(await pastille.getAttribute('aria-expanded'), 'false');
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     assert.equal(await page.locator('.champ-hexa[aria-label="Fond de la page, thème Light"]').inputValue(), '#FFD84D');
   } finally {
     await page.close();
@@ -2336,7 +2359,7 @@ test('W4.1 la création ouvre le sélecteur sans pastille, et la couleur choisie
 test('W4.3 Luminosité des nuances : chaque champ sous son point du tracé, flèches à 0,005 et 0,05 avec Maj, puis « Par défaut »', async () => {
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const carte = page.locator('[aria-label="Luminosité des nuances"]');
     for (const mode of ['light', 'dark']) {
       const points = await carte.locator(`.trace-point[data-mode="${mode}"]`).evaluateAll((cercles) => cercles.map((cercle) => {
@@ -2384,7 +2407,7 @@ test('W4.3 Luminosité des nuances : chaque champ sous son point du tracé, flè
 test('W4.4 Minimums et détection : une ligne par seuil, l’aide lisible sans survol, champs et unités alignés', async () => {
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     for (const [titre, lignes] of [['Contrastes minimums', 2], ['Détection des couleurs proches', 2]]) {
       const carte = page.locator(`[aria-label="${titre}"]`);
       await carte.locator('.carte-bascule').click();
@@ -2481,7 +2504,7 @@ test('W6.5 une palette libre de six nuances : l’aperçu suit sa liste, le dét
 test('W6.4 le préréglage se choisit dans « Luminosité des nuances » : l’effet se lit avant, se range à la confirmation, et Annuler ne range rien', async () => {
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const carte = page.locator('[aria-label="Luminosité des nuances"]');
     assert.equal(await carte.getByRole('button', { name: '11 nuances' }).getAttribute('aria-pressed'), 'true');
     assert.deepEqual(await carte.locator('.bascule-du-prereglage .bascule-option').allTextContents(), ['11', '13'], 'le préréglage à neuf nuances, sans 400 ni 950, est retiré');
@@ -2513,7 +2536,7 @@ test('[ENT-10] une clarté éditée fait sonner la garantie, se range à la vali
   const page = await ouvrirSur('alertes-seules');
   try {
     const avantLAperçu = await page.locator('[aria-label^="Profil Vivid, nuance 700,"]').getAttribute('aria-label');
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const clair700 = page.getByRole('textbox', { name: 'Thème Light 700' });
     assert.equal(await clair700.inputValue(), '0,5');
     assert.equal(await reglage(page, 'Luminosité des nuances').locator('.constat-alerte').count(), 0);
@@ -2544,7 +2567,7 @@ test('[ENT-10] une clarté éditée fait sonner la garantie, se range à la vali
 test('[REC-05] une clarté qui casse la courbe se refuse sous le groupe, et rien n’est rangé', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const avant = await compte(page);
     const clair700 = page.getByRole('textbox', { name: 'Thème Light 700' });
     await clair700.fill('0,9');
@@ -2560,7 +2583,7 @@ test('[REC-05] une clarté qui casse la courbe se refuse sous le groupe, et rien
 test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes qu’elle touche ; les cartes repliées, une ligne par seuil', async () => {
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const fixes = ['Couleurs de fond', 'Intensités', 'Luminosité des nuances'];
     assert.deepEqual(await Promise.all(fixes.map((titre) => reglage(page, titre).locator('.carte-resume').textContent())), [
       '3 palettes concernées',
@@ -2587,7 +2610,7 @@ test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes q
 test('[ENT-05] un fond et un seuil se saisissent dans la configuration, et se rangent à la validation', async () => {
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const fond = page.getByRole('textbox', { name: 'Fond de la page, thème Dark' });
     assert.equal(await fond.inputValue(), '#0A0A0A');
     const avant = await compte(page);
@@ -2953,7 +2976,7 @@ test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, 
     assert.deepEqual(demande, { type: 'dessiner', demande: demande.demande, palettes: [ID_DU_BLEU], empreinteLue: messageDe('dessin-en-cours').empreinte, etrangersConfirmes: [] });
     assert.equal(await page.locator('#panneau-creation').evaluate((panneau) => panneau.inert), true);
     assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
-    assert.equal(await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).isDisabled(), false);
+    assert.equal(await page.getByRole('button', { name: 'Configuration', exact: true }).isDisabled(), false);
     await envoyer(page, { type: 'progression', demande: demande.demande, fait: 0, total: 1, nom: 'Bleu' });
     assert.equal(await page.locator('#panneau-gestion .visuellement-masque[role="status"]').first().textContent(), 'Génération de « Bleu »…');
 
@@ -3177,7 +3200,7 @@ test('[PLA-20] une courbe rangée depuis la configuration, ouverte sur l’ongle
   const page = await ouvrirSur('planche-a-jour');
   try {
     await ouvrirLaPlanche(page);
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const avant = await compte(page);
     const clair700 = page.getByRole('textbox', { name: 'Thème Light 700' });
     await clair700.fill('0,56');
@@ -4481,7 +4504,7 @@ test('[UI-22] A2a le fichier sans palette garde son encart « Créez votre premi
 test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont pas d’aperçu en tête et ne nomment aucune palette', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     assert.equal(await page.locator('.reglages-apercu').isVisible(), false);
     assert.equal(await reglage(page, 'Couleurs de fond').isVisible(), true);
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
@@ -4767,7 +4790,7 @@ test('Z4.9 [UI-04] pendant un glisser, le nuancier repeint ses pastilles sans cr
 test('Z4.9 [UI-02] le glisser d’un fond des Réglages communs ne redessine ni le tracé ni la garantie des courbes avant le relâcher, puis une fois', async () => {
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     await reglage(page, 'Couleurs de fond').locator('.pipette').first().click();
     const pendant = await page.evaluate(async () => {
       const zone = document.querySelector('.selecteur-zone');
@@ -5037,7 +5060,7 @@ test('Z8.5 [DER-01] [UI-09] à 500 et à 1 000 px, la dérive et la réglette ga
 test('Z8.5 [UI-02] à 500 et à 1 000 px, le tracé des courbes garde ses traits, son losange et sa hauteur', async () => {
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     await imageSuivante(page);
     const petit = await rendu(page, '.trace-courbes', ['.trace-reference'], '.trace-courbe');
     await page.setViewportSize({ width: 1000, height: 720 });
@@ -5417,7 +5440,7 @@ test('[UI-37] une liste prend la police de l’interface et 24 px parmi des bout
     assert.equal(mesure.famille, mesure.familleDesBoutons, 'la liste prend la police des boutons');
     assert.equal(mesure.fleche, 'none');
     assert.match(mesure.chevron, /^url\("data:image\/svg\+xml/);
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     assert.equal(await page.getByLabel('Langue', { exact: true }).evaluate((element) => element.getBoundingClientRect().height), 32, 'la liste de la langue garde 32 px');
   } finally {
     await page.close();
@@ -6484,7 +6507,7 @@ for (const [light, dark] of [['blanc', 'noir'], ['noir', 'noir'], ['blanc', 'bla
   test(`[ENT-16] le texte des boutons ${light} en Light et ${dark} en Dark : segments, message d’effet, étiquettes, courbes et libellés des fonds`, async () => {
     const page = await ouvrirSur(`texte-des-boutons-${light}-${dark}`);
     try {
-      await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+      await page.getByRole('button', { name: 'Configuration', exact: true }).click();
       const choix = { light, dark };
       const sens = { light: light === 'noir' ? 'inverse' : 'normal', dark: dark === 'blanc' ? 'inverse' : 'normal' };
       const inverses = ['light', 'dark'].filter((mode) => sens[mode] === 'inverse');
@@ -6529,7 +6552,7 @@ for (const [light, dark] of [['blanc', 'noir'], ['noir', 'noir'], ['blanc', 'bla
 test('[ENT-16] une nuance réglée à la main demande une confirmation : Annuler ne change rien, Remplacer pose la courbe inversée', async () => {
   const page = await ouvrirSur('texte-des-boutons-confirmation');
   try {
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     const fonds = reglage(page, 'Couleurs de fond');
     const groupe = fonds.getByRole('group', { name: GROUPE_DU_TEXTE.light });
     const confirmation = fonds.locator('.confirmation');
@@ -6726,7 +6749,7 @@ test('[UI-04] I3 I13 changer le thème affiché ou le texte des boutons déplace
     assert.equal(await ordreDeSolid(), 'default · hover · pressed');
     // Dark passe au texte blanc : le thème est inversé, la 700 porte solid/default et ring, la 800 page/foreground et page/border.
     const avant = await compte(page);
-    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    await page.getByRole('button', { name: 'Configuration', exact: true }).click();
     await reglage(page, 'Couleurs de fond').getByRole('group', { name: GROUPE_DU_TEXTE.dark }).getByRole('button', { name: 'Blanc' }).click();
     await envoyer(page, rangee((await prochaine(page, avant)).demande));
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
@@ -7118,7 +7141,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     assert.match(vue.detail[0].constat, /^too close to Azur$/);
     assert.equal(vue.detail[4].constat, 'Soft and Vivid are almost identical at these shades.');
     // Le changement de langue en cours de route retraduit sans redessiner.
-    await page.getByRole('button', { name: 'Open shared settings' }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByLabel('Language', { exact: true }).selectOption('fr');
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     vue = await vueDuBilan(page);

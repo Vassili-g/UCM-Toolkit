@@ -25,13 +25,18 @@ function createSettingsIcon(): SVGSVGElement {
   return icon;
 }
 
-/** Les libellés de l'engrenage ; chaque plugin peut nommer sa configuration. */
+/**
+ * Les libellés de l'engrenage ; chaque plugin peut nommer sa configuration.
+ * Avec `texte`, le bouton le montre à droite de l'engrenage et ce texte est son
+ * nom accessible : `etiquette` n'est alors pas posée.
+ */
 export interface LibellesDeLEngrenage {
   readonly etiquette: string;
   readonly infobulle: string;
+  readonly texte?: string;
 }
 
-/** Le bouton en forme d'engrenage qui ouvre la configuration. */
+/** Le bouton en forme d'engrenage qui ouvre la configuration ([ENT-21]). */
 export function createSettingsButton(
   onSettings: () => void,
   libelles: LibellesDeLEngrenage = { etiquette: 'Ouvrir la configuration', infobulle: 'Configuration' },
@@ -39,9 +44,16 @@ export function createSettingsButton(
   const settingsButton = document.createElement('button');
   settingsButton.type = 'button';
   settingsButton.className = 'icon-button';
-  settingsButton.setAttribute('aria-label', libelles.etiquette);
   settingsButton.title = libelles.infobulle;
   settingsButton.appendChild(createSettingsIcon());
+  if (libelles.texte === undefined) {
+    settingsButton.setAttribute('aria-label', libelles.etiquette);
+  } else {
+    settingsButton.classList.add('avec-libelle');
+    const texte = document.createElement('span');
+    texte.textContent = libelles.texte;
+    settingsButton.appendChild(texte);
+  }
   settingsButton.addEventListener('click', () => onSettings());
   return settingsButton;
 }
