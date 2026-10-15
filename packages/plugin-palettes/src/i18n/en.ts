@@ -454,6 +454,16 @@ export const TEXTES_DES_REGLAGES = {
   grandeurs: { teinte: "Hue", saturation: "Saturation", luminosite: "Lightness" },
   retablir: "Default",
   retablirLa: (grandeur: string) => `Reset ${grandeur.toLowerCase()} to default`,
+  toutRetablir: "All to default",
+  valeurParDefaut: (valeur: string) => `Default value: ${valeur}`,
+  libelleDeLaMarque: "default",
+  revenirALaValeurParDefaut: (valeur: string) => `Back to the default value, ${valeur}`,
+  bouts: {
+    teinte: (famille: string) => `more ${famille}`,
+    saturation: { gauche: "duller", droite: "more vivid" },
+    luminosite: { gauche: "darker", droite: "lighter" },
+  },
+  familles: { rose: "pink", rouge: "red", orange: "orange", jaune: "yellow", vert: "green", turquoise: "turquoise", bleu: "blue", violet: "purple" },
   etiquette: (grandeur: string, profil: string) => `${profil} ${grandeur.toLowerCase()}`,
   avertissementAvant: "This adjustment will change your reference colour.",
   avertissementApres: "Your reference colour has changed.",
@@ -478,11 +488,19 @@ export function saturationReglee(valeur: number): string {
 }
 
 /**
- * Le résumé de la carte repliée (N146, recette v7) : son état seul, sans les
- * valeurs réglées, puis les points à vérifier.
+ * Le résumé de la carte repliée ([UI-38]) : « Default », ou « Changed: »
+ * suivi des réglages modifiés, sans leurs valeurs, puis les points à
+ * vérifier. Un réglage s'écrit « Soft hue » ; une palette à une intensité
+ * n'a pas de profil à nommer.
  */
-export function resumeDesReglages(modifie: boolean, points: number): string {
-  return `${modifie ? "Adjusted" : "No adjustment"}${pointsAVerifier(points)}`;
+export function resumeDesReglages(modifies: readonly { readonly grandeur: 'teinte' | 'saturation' | 'luminosite'; readonly profil: Profil | null }[], points: number): string {
+  const liste = modifies
+    .map(({ grandeur, profil }) => {
+      const nom = TEXTES_DES_REGLAGES.grandeurs[grandeur].toLowerCase();
+      return profil ? TEXTES_DES_REGLAGES.etiquette(nom, NOM_DU_PROFIL[profil]) : nom;
+    })
+    .join(", ");
+  return `${modifies.length === 0 ? "Default" : `Changed: ${liste}`}${pointsAVerifier(points)}`;
 }
 
 /** Le choix des intensités d'une palette, en deux cartes ([ENT-14], maquettes Y2.1 et Y2.6). */

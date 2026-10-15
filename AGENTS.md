@@ -235,6 +235,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/lecture.ts           la recette rangée, classée, son empreinte, le profil du document, les cadres retrouvés où qu'ils soient, et les pages du fichier
   src/analyse.ts           une palette pour l'onglet : rampes, promesses, alertes et notices triées
   src/edition.ts           ce qu'une saisie fait à une palette, avant tout rangement, ajustement de la référence compris ; la palette du plugin qu'une palette du fichier devient, recalculée ou figée
+  src/familles.ts         les huit familles de teinte, et la famille voisine d'une teinte dans un sens, qui nomme les bouts de la piste de teinte
+  src/reglagesParDefaut.ts les valeurs par défaut des trois réglettes du réglage global, ce qui les écarte d'elles, et la liste des réglages modifiés d'une palette, sans DOM
   src/ajustementDeLaReference.ts  le panneau d'ajustement sans DOM : pas, proposition, nuance visée, annonce d'un pas, garanties avant et après
   src/configuration.ts     les champs de la configuration, fonds et seuils compris, les palettes que chacun touche, et « Par défaut » par carte
   src/importation.ts       un fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et la nature de cet écart
@@ -307,7 +309,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/gestesDeLaRecette.ts exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
   src/ui/telechargement.ts le fichier proposé au designer, par un lien vers un blob
   src/ui/derive/           la carte « Color shift » : choix du profil à régler, onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
-  src/ui/derive/reglette.ts la réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne
+  src/ui/derive/reglette.ts la réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne, marque par défaut, libellé, bouts nommés et pastille facultatifs
   src/ui/textes.ts         tous les textes destinés au designer, provisoires jusqu'au point M2
   galerie/                 les états de l'interface, à la taille par défaut et à la taille minimale
   tests/                   dont la loi d'écriture, et interface/ pour Chromium

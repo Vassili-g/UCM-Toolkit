@@ -1,11 +1,12 @@
 /**
  * La carte « Réglage global » de la palette ouverte ([UI-12], Z10.6, maquette
  * Z10.4, forme A) : le choix « Régler », Soft, Vivid ou les deux, que la carte
- * pose dans son en-tête, puis trois réglettes peintes par le moteur, chacune avec son champ, sa
- * valeur absolue et « Par défaut ». La lettre de l'autre profil situe sa valeur
- * sur chaque piste, et un repère situe la saturation de la référence sur
- * celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
- * régler ([DER-15]).
+ * pose dans son en-tête, puis « Tout par défaut » et trois réglettes peintes
+ * par le moteur, chacune avec son champ, sa valeur absolue, sa marque par
+ * défaut, ses deux bouts nommés et « Par défaut » ([UI-38]). Le nom de
+ * l'autre profil situe sa valeur sur chaque piste, et un repère situe la
+ * saturation de la référence sur celle des deux profils ([VER-10]). Une
+ * palette grise n'a pas de teinte à régler ([DER-15]).
  *
  * Chaque réglette s'arrête à la limite dynamique de `[DER-19]`, calculée pour
  * la cible choisie, carte ouverte, et étalée entre les images ; une ligne fixe
@@ -29,11 +30,9 @@ import {
   estPaletteGrise,
   fabriquerCran,
   partDeLaReference,
-  partsDesProfils,
   pivotDe,
   profilPorteur,
   validerRecette,
-  BORNES_DES_REGLAGES,
   type Limite,
   type Palette,
   type Profil,
@@ -47,16 +46,17 @@ import {
   reglerTeinte,
   remplacerPalette,
   retablirLaSaturation,
-  valeursDe,
   type CibleDuReglage,
 } from '../edition';
+import { familleVoisine } from '../familles';
 import type { CibleDAction } from '../presentation';
+import { CURSEURS, GRANDEURS, estModifiee, valeursDesProfils, valeursParDefaut, type Grandeur } from '../reglagesParDefaut';
 import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
 import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
 import { creerVuesChoix, type ChoixDuProfilUi } from './choix';
 import { creerVuesLigneFixe } from './ligneFixe';
-import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
+import { memoriserVues, type Localisation, type Texte } from './localisation';
 
 export interface ReglagesDeLaPaletteUi {
   element: HTMLDivElement;
@@ -78,17 +78,6 @@ export interface GestesDesReglages {
   valider(palette: Palette): void;
   ouvrir(cible: CibleDAction): void;
 }
-
-type Grandeur = 'teinte' | 'saturation' | 'luminosite';
-
-const GRANDEURS: readonly Grandeur[] = ['teinte', 'saturation', 'luminosite'];
-
-/** Les bornes, le pas au clavier et le pas avec Maj de chaque réglette (maquette Z10.4, question 2). */
-const CURSEURS: Record<Grandeur, { readonly min: number; readonly max: number; readonly pas: number; readonly grandPas: number }> = {
-  teinte: { min: -BORNES_DES_REGLAGES.teinte, max: BORNES_DES_REGLAGES.teinte, pas: 1, grandPas: 5 },
-  saturation: { min: 0, max: 1, pas: 0.01, grandPas: 0.05 },
-  luminosite: { min: BORNES_DES_REGLAGES.clarte.bas, max: BORNES_DES_REGLAGES.clarte.haut, pas: 0.005, grandPas: 0.02 },
-};
 
 interface Rangee {
   readonly grandeur: Grandeur;
@@ -129,6 +118,16 @@ function construireVues(i18n: Localisation) {
       },
     });
     cible.element.classList.add('cible-des-reglages');
+
+    // « Tout par défaut » agit sur le profil choisi dans « Régler », ou sur les deux.
+    const tete = document.createElement('div');
+    tete.className = 'tete-des-reglages';
+    const toutRetablir = document.createElement('button');
+    toutRetablir.type = 'button';
+    toutRetablir.className = 'bouton-discret';
+    i18n.lier(toutRetablir, 'textContent', TEXTES_DES_REGLAGES.toutRetablir);
+    toutRetablir.addEventListener('click', () => remettreParDefaut(GRANDEURS));
+    tete.append(toutRetablir);
 
     const avertissement = createLigneFixe();
     avertissement.element.classList.add('avertissement-des-reglages');
@@ -176,7 +175,7 @@ function construireVues(i18n: Localisation) {
         previsualiser: (valeur) => prevoir(grandeur, valeur),
         valider: (valeur) => terminer(grandeur, valeur),
         annuler,
-        retablir: () => retablirLaGrandeur(grandeur),
+        retablir: () => remettreParDefaut([grandeur]),
         lire(saisie) {
           const valeur = lire(grandeur, saisie);
           if (valeur === null) signaler(nombreInvalide(saisie));
@@ -205,7 +204,7 @@ function construireVues(i18n: Localisation) {
     lienDeLAlerte.addEventListener('click', () => {
       if (cibleDeLAlerte) gestes.ouvrir(cibleDeLAlerte);
     });
-    element.append(avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
+    element.append(tete, avertissement.element, ...rangees.map(({ reglette }) => reglette.element), erreur, plage.element, origine.element, alerte.element);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -263,30 +262,30 @@ function construireVues(i18n: Localisation) {
       rendre();
     }
 
-    /** « Par défaut » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
-    function retablirLaGrandeur(grandeur: Grandeur): void {
+    /**
+     * « Par défaut », « Tout par défaut » ou un double-clic : les grandeurs
+     * demandées reprennent leur valeur par défaut, pour la cible ou pour les
+     * deux profils. La saturation passe en dernier : sa valeur par défaut est
+     * celle de la référence, une fois la teinte et la luminosité rendues.
+     */
+    function remettreParDefaut(grandeurs: readonly Grandeur[]): void {
       if (!lue || !courante) return;
+      const recette = lue;
       calculs.terminer();
       butee = null;
-      if (grandeur === 'saturation') {
-        valider(retablirLaSaturation(lue, courante, cibleDuGeste()));
-      } else {
+      const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
+      const sansSaturation = grandeurs.filter((grandeur) => grandeur !== 'saturation').reduce((palette, grandeur) => {
         const regler = grandeur === 'teinte' ? reglerTeinte : reglerClarte;
-        const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
-        valider(profils.reduce((palette, profil) => regler(lue!, palette, profil, 0), courante));
-      }
+        return profils.reduce((suivante, profil) => regler(recette, suivante, profil, 0), palette);
+      }, courante);
+      valider(grandeurs.includes('saturation') ? retablirLaSaturation(recette, sansSaturation, cibleDuGeste()) : sansSaturation);
     }
 
-    /** Les valeurs d'un profil pour les trois réglettes, et sa teinte absolue. */
-    function valeursDuProfil(recette: Recette, palette: Palette, profil: Profil): Record<Grandeur, number> & { absolue: number } {
-      const { teinte, clarte } = valeursDe(palette);
-      const saturation = aUneIntensite(palette) ? (palette.reglages?.part ?? partDeLaReference(recette, palette)) : partsDesProfils(recette, palette)[profil];
-      return {
-        teinte: teinte[profil] ?? 0,
-        saturation,
-        luminosite: clarte[profil] ?? 0,
-        absolue: pivotDe(recette, palette, aUneIntensite(palette) ? 'unique' : profil).H,
-      };
+    /** Les mots des deux bouts d'une piste ; ceux de la teinte nomment les familles voisines de la teinte affichée. */
+    function boutsDe(grandeur: Grandeur, teinte: number): { gauche: Texte; droite: Texte } {
+      if (grandeur !== 'teinte') return TEXTES_DES_REGLAGES.bouts[grandeur];
+      const { bouts, familles } = TEXTES_DES_REGLAGES;
+      return { gauche: bouts.teinte(familles[familleVoisine(teinte, -1)]), droite: bouts.teinte(familles[familleVoisine(teinte, 1)]) };
     }
 
     /** La piste peinte d'une grandeur : des couleurs fabriquées par le moteur, de la borne basse à la borne haute. */
@@ -347,8 +346,15 @@ function construireVues(i18n: Localisation) {
 
       const profil: Profil = uneSeule ? 'vivid' : choisie === 'deux' ? porteur : choisie;
       const autre: Profil = profil === 'soft' ? 'vivid' : 'soft';
-      const valeurs = valeursDuProfil(recette, palette, profil);
-      const valeursDeLAutre = valeursDuProfil(recette, palette, autre);
+      const tous = valeursDesProfils(recette, palette);
+      const defauts = valeursParDefaut(recette, palette);
+      const valeurs = tous[profil];
+      const absolue = pivotDe(recette, palette, uneSeule ? 'unique' : profil).H;
+      const teinteAffichee = Math.round(absolue) % 360;
+      // Une réglette est modifiée dès qu'un profil visé s'écarte de son défaut : « Par défaut » a alors quelque chose à rendre.
+      const profilsVises: readonly Profil[] = uneSeule ? ['vivid'] : choisie === 'deux' ? ['soft', 'vivid'] : [choisie];
+      const modifiee = (grandeur: Grandeur): boolean => profilsVises.some((vise) => estModifiee(grandeur, tous[vise][grandeur], defauts[vise][grandeur]));
+      toutRetablir.disabled = !GRANDEURS.some(modifiee);
       // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme le Color shift ([DER-15]).
       const grise = estPaletteGrise(recette, palette);
       lancerLesLimites(recette, palette, valeurs, grise);
@@ -366,16 +372,18 @@ function construireVues(i18n: Localisation) {
         const valeur = valeurs[grandeur];
         const { min, max, pas, grandPas } = CURSEURS[grandeur];
         const reperes: RepereDeReglette[] = [];
-        // La lettre de l'autre profil situe sa valeur, quand un seul profil se règle.
+        // Le nom de l'autre profil situe sa valeur, quand un seul profil se règle.
         if (!uneSeule && choisie !== 'deux') {
           const nomDeLAutre = NOM_DU_PROFIL[autre];
-          reperes.push({ valeur: valeursDeLAutre[grandeur], classe: 'fantome-du-profil', titre: nomDeLAutre, lettre: { lire: () => lireTexte(nomDeLAutre).charAt(0) } });
+          reperes.push({ valeur: tous[autre][grandeur], classe: 'fantome-du-profil', titre: nomDeLAutre, nom: nomDeLAutre });
         }
         // À une intensité, la saturation est celle de la référence : le repère n'y situerait qu'elle-même.
         if (grandeur === 'saturation' && !uneSeule) {
           reperes.push({ valeur: partDeReference, classe: 'repere-de-reference', titre: TEXTES_DES_INTENSITES.repere(nombreEcrit(Math.round(partDeReference * 100) / 100)) });
         }
         const permises = inactive ? null : permisesDe(grandeur);
+        const parDefaut = defauts[profil][grandeur];
+        const reglee = modifiee(grandeur);
         reglette.poser({
           valeur,
           bornes: { bas: min, haut: max },
@@ -387,12 +395,20 @@ function construireVues(i18n: Localisation) {
           etiquette: etiquetteDe(grandeur),
           annonce: permises ? i18n.composer`${ecrire(grandeur, valeur)}, ${plageSureDuReglage([{ grandeur: TEXTES_DES_REGLAGES.grandeurs[grandeur], bas: ecrire(grandeur, permises.bas), haut: ecrire(grandeur, permises.haut) }])}` : ecrire(grandeur, valeur),
           reperes,
+          defaut: { valeur: parDefaut, titre: TEXTES_DES_REGLAGES.valeurParDefaut(ecrire(grandeur, parDefaut)), libelle: TEXTES_DES_REGLAGES.libelleDeLaMarque },
+          // Une palette grise n'a pas de teinte : ses bouts ne nomment aucune famille.
+          bouts: inactive ? undefined : boutsDe(grandeur, teinteAffichee),
+          modifiee: reglee,
           desactivee: inactive,
           horsDeLaPlage: false,
-          // Une teinte rangée se remet toujours à zéro, même sur une palette devenue grise.
-          bouton: { texte: TEXTES_DES_REGLAGES.retablir, etiquette: TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]), inactif: inactive && valeur === 0 },
+          bouton: {
+            texte: TEXTES_DES_REGLAGES.retablir,
+            etiquette: TEXTES_DES_REGLAGES.retablirLa(TEXTES_DES_REGLAGES.grandeurs[grandeur]),
+            inactif: !reglee,
+            titre: reglee ? TEXTES_DES_REGLAGES.revenirALaValeurParDefaut(ecrire(grandeur, parDefaut)) : undefined,
+          },
         });
-        i18n.lier(absolu, 'textContent', grandeur === 'teinte' ? `${Math.round(valeurs.absolue) % 360}°` : '');
+        i18n.lier(absolu, 'textContent', grandeur === 'teinte' ? `${teinteAffichee}°` : '');
       }
 
       // L'état du calcul des limites, que les tests d'interface attendent avant un geste.

@@ -450,6 +450,18 @@ export const TEXTES_DES_REGLAGES = {
   grandeurs: { teinte: 'Teinte', saturation: 'Saturation', luminosite: 'Luminosité' },
   retablir: 'Par défaut',
   retablirLa: (grandeur: string) => `Remettre la ${grandeur.toLowerCase()} par défaut`,
+  toutRetablir: 'Tout par défaut',
+  // La marque posée sur la piste, le libellé qu'elle porte quand le pouce s'en éloigne, et le survol du bouton.
+  valeurParDefaut: (valeur: string) => `Valeur par défaut : ${valeur}`,
+  libelleDeLaMarque: 'par défaut',
+  revenirALaValeurParDefaut: (valeur: string) => `Revenir à la valeur par défaut, ${valeur}`,
+  // Les mots des deux bouts de chaque piste ([UI-38]).
+  bouts: {
+    teinte: (famille: string) => `plus ${famille}`,
+    saturation: { gauche: 'plus terne', droite: 'plus vive' },
+    luminosite: { gauche: 'plus foncée', droite: 'plus claire' },
+  },
+  familles: { rose: 'rose', rouge: 'rouge', orange: 'orange', jaune: 'jaune', vert: 'vert', turquoise: 'turquoise', bleu: 'bleu', violet: 'violet' },
   etiquette: (grandeur: string, profil: string) => `${grandeur} de ${profil}`,
   avertissementAvant: "Ce réglage modifiera votre couleur de référence.",
   avertissementApres: "Votre couleur de référence a été modifiée.",
@@ -474,11 +486,19 @@ export function saturationReglee(valeur: number): string {
 }
 
 /**
- * Le résumé de la carte repliée (N146, recette v7) : son état seul, sans les
- * valeurs réglées, puis les points à vérifier.
+ * Le résumé de la carte repliée ([UI-38]) : « Par défaut », ou « Modifié : »
+ * suivi des réglages modifiés, sans leurs valeurs, puis les points à
+ * vérifier. Un réglage s'écrit « teinte de Soft » ; une palette à une
+ * intensité n'a pas de profil à nommer.
  */
-export function resumeDesReglages(modifie: boolean, points: number): string {
-  return `${modifie ? 'Réglé' : 'Aucun réglage'}${pointsAVerifier(points)}`;
+export function resumeDesReglages(modifies: readonly { readonly grandeur: 'teinte' | 'saturation' | 'luminosite'; readonly profil: Profil | null }[], points: number): string {
+  const liste = modifies
+    .map(({ grandeur, profil }) => {
+      const nom = TEXTES_DES_REGLAGES.grandeurs[grandeur].toLowerCase();
+      return profil ? TEXTES_DES_REGLAGES.etiquette(nom, NOM_DU_PROFIL[profil]) : nom;
+    })
+    .join(', ');
+  return `${modifies.length === 0 ? 'Par défaut' : `Modifié : ${liste}`}${pointsAVerifier(points)}`;
 }
 
 /** Le choix des intensités d'une palette, en deux cartes ([ENT-14], maquettes Y2.1 et Y2.6). */

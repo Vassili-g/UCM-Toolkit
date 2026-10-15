@@ -3474,8 +3474,8 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
   try {
     const soft = page.getByRole('textbox', { name: 'Saturation de Soft' });
     assert.equal(await soft.isVisible(), false, 'la carte est repliée à l’ouverture');
-    // Le résumé ne dit que l'état, sans les valeurs (recette v7).
-    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Aucun réglage');
+    // Le résumé ne dit que l'état, sans les valeurs ([UI-38]).
+    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Par défaut');
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     // Le profil proposé d'abord ne porte pas la référence : Vivid la porte.
     assert.equal(await soft.inputValue(), '45 %');
@@ -3485,6 +3485,7 @@ test('[ENT-09] [UI-12] la saturation d’un profil se saisit dans la carte « Te
     const rangement = await prochaine(page, avant);
     assert.deepEqual(rangement.recette.palettes[0].parts, { soft: 0.6, vivid: 0.983, origine: 'designer' });
     await envoyer(page, rangee(rangement.demande));
+    assert.equal(await carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.carte-resume').textContent(), 'Modifié : saturation de Soft');
 
     // Soft ne dépasse jamais vivid : une saisie au-dessus s'arrête à la saturation de vivid.
     await soft.fill('99');
@@ -5163,7 +5164,7 @@ test('Z10.8 un profil réglé seul ne touche ni l’autre ni la référence ; l�
     assert.equal(await avertissement.getAttribute('data-ton'), 'avertissement');
     assert.equal(await texteDeLAvertissement(), 'Votre couleur de référence a été modifiée.');
     assert.equal(await referenceMontree(page), '#1669D2');
-    assert.equal(await carte.locator('.carte-resume').textContent(), 'Réglé', 'le résumé ne dit que l’état (recette v7)');
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Modifié : teinte de Soft, luminosité de Vivid', 'le résumé nomme les réglages, sans valeurs ([UI-38])');
   } finally {
     await page.close();
   }
@@ -5257,6 +5258,162 @@ test('Z10.8 « Les deux » déplace les deux profils du même écart et prévien
     assert.equal(retablie.recette.palettes[0].reglages, undefined);
     assert.equal(retablie.recette.palettes[0].reference, '#1E6FD9');
     assert.equal(retablie.recette.palettes[0].originale, undefined);
+  } finally {
+    await page.close();
+  }
+});
+
+/** Les trois réglettes de la carte « Réglage global », avec la place de leur marque, de leur pouce, de leur libellé et de leurs bouts. */
+const lireLesReglettes = (carte) => carte.locator('.reglette.reglage-de-la-palette').evaluateAll((lignes) => lignes.map((ligne) => {
+  const centre = (element) => { const r = element.getBoundingClientRect(); return r.left + r.width / 2; };
+  const visible = (element) => element !== null && element.getClientRects().length > 0;
+  const legende = ligne.querySelector('.reglette-legende');
+  const bouton = ligne.querySelector(':scope > .bouton-discret');
+  return {
+    nom: ligne.querySelector('.field-label').textContent,
+    avecLegende: ligne.classList.contains('avec-legende'),
+    pastille: visible(ligne.querySelector('.pastille-reglee')),
+    xDeLaMarque: centre(ligne.querySelector('.reglette-defaut')),
+    xDuPouce: centre(ligne.querySelector('.reglette-pouce')),
+    titreDeLaMarque: ligne.querySelector('.reglette-defaut').getAttribute('title'),
+    legende: visible(legende) ? { texte: legende.textContent, x: centre(legende) } : null,
+    bouts: [...ligne.querySelectorAll('.reglette-bout')].map((bout) => ({ texte: bout.textContent, masque: getComputedStyle(bout).visibility === 'hidden' })),
+    bouton: { texte: bouton.textContent, inactif: bouton.disabled, titre: bouton.getAttribute('title'), etiquette: bouton.getAttribute('aria-label') },
+  };
+}));
+
+test('[UI-38] sans réglage, chaque marque par défaut est sous son pouce, les bouts se nomment, et « Tout par défaut » comme chaque « Par défaut » sont inactifs', async () => {
+  const page = await ouvrirSur('reglages-par-defaut', { width: 480, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    assert.equal(await carte.locator('.reglages-de-la-palette > :first-child').getAttribute('class'), 'tete-des-reglages', 'la rangée de « Tout par défaut » ouvre le corps');
+    const tout = carte.locator('.tete-des-reglages .bouton-discret');
+    assert.equal(await tout.textContent(), 'Tout par défaut');
+    assert.equal(await tout.isDisabled(), true);
+    const reglettes = await lireLesReglettes(carte);
+    assert.deepEqual(reglettes.map(({ nom }) => nom), ['Teinte', 'Saturation', 'Luminosité']);
+    for (const { nom, avecLegende, pastille, xDeLaMarque, xDuPouce, legende, bouton } of reglettes) {
+      assert.equal(avecLegende, true, `${nom} : la marge basse loge le libellé et les bouts`);
+      assert.ok(Math.abs(xDeLaMarque - xDuPouce) < 0.6, `${nom} : le pouce est sur la marque (${xDeLaMarque} contre ${xDuPouce})`);
+      assert.equal(legende, null, `${nom} : le libellé « par défaut » n'apparaît pas sur la marque`);
+      assert.equal(pastille, false, `${nom} : aucune pastille`);
+      assert.deepEqual([bouton.texte, bouton.inactif, bouton.titre], ['Par défaut', true, null], `${nom} : « Par défaut » est inactif`);
+    }
+    assert.deepEqual(reglettes.map(({ titreDeLaMarque }) => titreDeLaMarque), ['Valeur par défaut : 0°', 'Valeur par défaut : 45 %', 'Valeur par défaut : 0']);
+    assert.deepEqual(reglettes.map(({ bouts }) => bouts.map(({ texte }) => texte)), [['plus turquoise', 'plus violet'], ['plus terne', 'plus vive'], ['plus foncée', 'plus claire']]);
+    assert.deepEqual(reglettes.map(({ bouton }) => bouton.etiquette), ['Remettre la teinte par défaut', 'Remettre la saturation par défaut', 'Remettre la luminosité par défaut']);
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Par défaut');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-38] une réglette modifiée allume sa pastille, montre « par défaut » sous la marque et active son bouton ; « Tout par défaut » rend le profil choisi', async () => {
+  const page = await ouvrirSur('reglages-reference-modifiee', { width: 480, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    await carte.getByRole('button', { name: 'Vivid ◆' }).click();
+    const [teinte, saturation, luminosite] = await lireLesReglettes(carte);
+    // Vivid porte la référence et n'est modifié que sur la luminosité : sa saturation reste celle de sa référence.
+    assert.deepEqual([teinte.pastille, saturation.pastille, luminosite.pastille], [false, false, true]);
+    assert.deepEqual([teinte.bouton.inactif, saturation.bouton.inactif, luminosite.bouton.inactif], [true, true, false]);
+    assert.equal(luminosite.bouton.titre, 'Revenir à la valeur par défaut, 0');
+    assert.equal(luminosite.titreDeLaMarque, 'Valeur par défaut : 0');
+    assert.equal(luminosite.legende.texte, 'par défaut');
+    assert.ok(Math.abs(luminosite.legende.x - luminosite.xDeLaMarque) < 0.6, 'le libellé est centré sous la marque');
+    assert.ok(luminosite.xDuPouce < luminosite.xDeLaMarque, 'la luminosité réglée à −0,02 est à gauche de sa marque');
+    assert.equal(teinte.legende, null);
+    const tout = carte.locator('.tete-des-reglages .bouton-discret');
+    assert.equal(await tout.isDisabled(), false);
+
+    const avant = await compte(page);
+    await tout.click();
+    const retablie = await prochaine(page, avant);
+    // Seul le profil choisi reprend ses valeurs : la teinte de Soft reste réglée, et la référence revient à l'originale.
+    assert.deepEqual(retablie.recette.palettes[0].reglages, { teinte: { soft: 8 }, porteur: 'vivid' });
+    assert.equal(retablie.recette.palettes[0].reference, '#1E6FD9');
+    assert.equal(retablie.recette.palettes[0].originale, undefined);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-38] avec « Les deux », « Tout par défaut » remet les réglettes des deux profils, et un bouton « Par défaut » reste actif tant qu’un profil s’écarte', async () => {
+  const page = await ouvrirSur('reglages-reference-modifiee', { width: 480, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    await carte.getByRole('button', { name: 'Les deux' }).click();
+    // Le pouce montre le porteur, Vivid ; Soft a une teinte et le porteur une luminosité : les deux boutons s'activent.
+    const [teinte, saturation, luminosite] = await lireLesReglettes(carte);
+    assert.deepEqual([teinte.bouton.inactif, saturation.bouton.inactif, luminosite.bouton.inactif], [false, true, false]);
+    assert.equal(await carte.locator('.fantome-du-profil:visible').count(), 0);
+    const avant = await compte(page);
+    await carte.locator('.tete-des-reglages .bouton-discret').click();
+    const retablie = await prochaine(page, avant);
+    assert.equal(retablie.recette.palettes[0].reglages, undefined);
+    assert.equal(retablie.recette.palettes[0].reference, '#1E6FD9');
+    await envoyer(page, rangee(retablie.demande));
+    assert.equal(await carte.locator('.tete-des-reglages .bouton-discret').isDisabled(), true, 'plus rien à remettre');
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Par défaut');
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-38] le repère de l’autre profil porte son nom, et le résumé replié nomme les réglages modifiés', async () => {
+  const page = await ouvrirSur('reglages-reference-modifiee', { width: 480, height: 720 });
+  try {
+    const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Modifié : teinte de Soft, luminosité de Vivid');
+    assert.equal(await carte.locator('.carte-resume').getAttribute('title'), 'Modifié : teinte de Soft, luminosité de Vivid', 'le survol donne le texte entier');
+    await deplierLaCarte(page, CARTE_DES_REGLAGES);
+    await carte.getByRole('button', { name: 'Vivid ◆' }).click();
+    assert.deepEqual(await carte.locator('.fantome-du-profil:visible').allTextContents(), ['Soft', 'Soft', 'Soft']);
+    assert.deepEqual(await carte.locator('.fantome-du-profil:visible').evaluateAll((reperes) => reperes.map((repere) => getComputedStyle(repere).fontWeight)), ['600', '600', '600']);
+    await carte.getByRole('button', { name: 'Soft', exact: true }).click();
+    assert.deepEqual(await carte.locator('.fantome-du-profil:visible').allTextContents(), ['Vivid', 'Vivid', 'Vivid']);
+  } finally {
+    await page.close();
+  }
+});
+
+test('[UI-38] un bout de piste que le libellé « par défaut » chevauche, à 6 px près, se masque', async () => {
+  for (const largeur of [440, 500]) {
+    const page = await ouvrirSur('reglages-reference-modifiee', { width: largeur, height: 720 });
+    try {
+      await deplierLaCarte(page, CARTE_DES_REGLAGES);
+      const carte = carteDeLOnglet(page, CARTE_DES_REGLAGES);
+      await carte.getByRole('button', { name: 'Vivid ◆' }).click();
+      const mesures = await carte.locator('.reglette.reglage-de-la-palette').evaluateAll((lignes) => lignes.map((ligne) => {
+        const legende = ligne.querySelector('.reglette-legende');
+        const boite = legende.getClientRects().length > 0 ? legende.getBoundingClientRect() : null;
+        return [...ligne.querySelectorAll('.reglette-bout')].map((bout) => {
+          const r = bout.getBoundingClientRect();
+          return { masque: getComputedStyle(bout).visibility === 'hidden', chevauche: boite !== null && r.right + 6 > boite.left && r.left - 6 < boite.right };
+        });
+      }));
+      for (const bouts of mesures) for (const { masque, chevauche } of bouts) assert.equal(masque, chevauche, `à ${largeur} px, un bout est masqué si et seulement s'il frôle le libellé`);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+test('[UI-38] en anglais, la carte dit « Default », « All to default » et les bouts de la piste', async () => {
+  const page = await ouvrirSurEn('reglages-reference-modifiee', { width: 480, height: 720 }, 'en');
+  try {
+    const carte = carteDeLOnglet(page, 'Global adjustment');
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Changed: Soft hue, Vivid lightness');
+    await bascule(page, 'Global adjustment').click();
+    await limitesCalculees(carte);
+    assert.equal(await carte.locator('.tete-des-reglages .bouton-discret').textContent(), 'All to default');
+    const reglettes = await lireLesReglettes(carte);
+    assert.deepEqual(reglettes.map(({ bouts }) => bouts.map(({ texte }) => texte)), [['more turquoise', 'more purple'], ['duller', 'more vivid'], ['darker', 'lighter']]);
+    assert.deepEqual(reglettes.map(({ bouton }) => bouton.texte), ['Default', 'Default', 'Default']);
+    assert.equal(reglettes[2].titreDeLaMarque, 'Default value: 0');
   } finally {
     await page.close();
   }

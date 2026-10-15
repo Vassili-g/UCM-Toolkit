@@ -103,8 +103,11 @@ Chaque `.reglette.reglage-de-la-palette` reçoit la classe `avec-legende`
 (13 px de marge basse) et, dans sa `.reglette-course` :
 
 1. **La marque par défaut** : `span.reglette-defaut`, à `left: x0 %`, où
-   `x0 = (défaut − min) / (max − min) × 100`, bornes de `aria-valuemin` et
-   `aria-valuemax`. Elle précède le pouce dans le DOM : le pouce passe dessus.
+   `x0 = (défaut − min) / (max − min) × 100`, sur les bornes fixes de la
+   piste, celles qui placent le pouce, et non sur `aria-valuemin` et
+   `aria-valuemax`, qui suivent les bornes permises : sur la valeur par
+   défaut, le pouce couvre ainsi la marque. Elle précède le pouce dans le
+   DOM : le pouce passe dessus.
    `title` : `Valeur par défaut : <défaut écrit selon la section 2>`.
 2. **Le libellé** : `span.reglette-legende`, texte `par défaut`, à `left: x0 %`,
    centré, couleur `--texte`. Il paraît seulement quand le pouce s'écarte de
@@ -143,8 +146,10 @@ de 10° de la teinte de départ. Pour 257° : `plus turquoise`, `plus violet`.
 
 **Valeurs par défaut** : teinte 0° ; luminosité 0 ; saturation, la part
 commune du profil dans la Configuration, ou pour le profil qui porte la
-référence la saturation de la référence (`partsDe` sur la palette sans
-`parts`, sans `reglages.part`, sans `reglages.clarte`).
+référence la saturation de la référence. La valeur est celle que « Par
+défaut » range (`retablirLaSaturation(recette, palette, 'deux')`) : la
+luminosité réglée du profil porteur reste comptée, sans quoi la saturation se
+dirait modifiée dès que le designer règle la luminosité.
 
 ### 3.3 Color shift
 

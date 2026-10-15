@@ -1103,6 +1103,63 @@
   pointer-events: none;
 }
 
+/*
+ * La valeur par défaut d'une réglette ([UI-38]) : sa marque, posée avant le
+ * pouce dans le DOM pour que le pouce passe dessus, le libellé qu'elle porte
+ * quand le pouce s'en éloigne, et les mots des deux bouts de la piste. Les
+ * bouts se limitent à la course : `.reglette-bout` nomme aussi les bouts de la
+ * réglette SVG des garanties.
+ */
+.reglette-defaut {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--texte);
+  pointer-events: none;
+}
+
+.reglette-legende,
+.reglette-course .reglette-bout {
+  position: absolute;
+  top: 24px;
+  color: var(--texte-second);
+  font-size: 9.5px;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.reglette-legende {
+  color: var(--texte);
+  transform: translateX(-50%);
+}
+
+.reglette-course .reglette-bout.gauche {
+  left: -7px;
+}
+
+.reglette-course .reglette-bout.droite {
+  right: -7px;
+}
+
+.reglette.avec-legende {
+  padding-bottom: 13px;
+}
+
+.reglette .bouton-discret[disabled] {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.reglette .field-label .pastille-reglee {
+  display: inline-block;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
 /* Les onglets de grandeur ([DER-18]) : le nom, sa pastille, et les deux valeurs dessous. */
 .onglets-de-grandeur {
   display: grid;
@@ -3509,6 +3566,16 @@
   gap: var(--espace-serre);
 }
 
+/* « Tout par défaut », calé à droite en tête du corps de la carte ; le bouton de l'onglet Harmonisation s'écarte à gauche. */
+.tete-des-reglages {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tete-des-reglages .btn {
+  margin-right: auto;
+}
+
 .reglage-de-la-palette {
   display: flex;
   align-items: center;
@@ -3521,12 +3588,13 @@
   flex-shrink: 0;
 }
 
-/* La lettre de l'autre profil, au-dessus de sa valeur. */
+/* Le nom de l'autre profil, au-dessus de sa valeur. */
 .fantome-du-profil {
   position: absolute;
   top: -10px;
   color: var(--texte-second);
   font-size: 9px;
+  font-weight: 600;
   line-height: 1;
   pointer-events: none;
   transform: translateX(-50%);

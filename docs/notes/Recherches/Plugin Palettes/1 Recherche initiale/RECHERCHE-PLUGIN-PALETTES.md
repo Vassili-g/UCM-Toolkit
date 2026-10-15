@@ -2027,20 +2027,20 @@ palette » gardent leurs libellés au-dessus des champs.
   droite. Les cartes fixes, sans bouton de repli, posent leurs choix sur une
   première rangée de leur corps, calée à droite : les garanties
   (`[UI-09]`). Le résumé de la première donne les
-  réglages de chaque profil, ou « Aucun réglage », puis sa saturation. La
+  réglages modifiés, ou « Par défaut » (`[UI-38]`). La
   première porte, dans son en-tête, le libellé « Régler » et les segments
   « Soft · Vivid · Les deux », le ◆ sur le profil porteur ; son corps porte
   une ligne fixe (`[UI-17]`), puis trois rangées : Teinte,
   Saturation et Luminosité, chacune avec sa réglette peinte par le moteur,
-  son champ, la teinte absolue après le champ de la teinte, et « Rétablir » ;
-  un double-clic sur la piste rétablit aussi. Chaque réglette prend la limite
+  son champ, la teinte absolue après le champ de la teinte, et « Par défaut » ;
+  un double-clic sur la piste remet aussi la valeur par défaut. Chaque réglette prend la limite
   de `[DER-19]` pour la cible choisie, avec `reglerTeinte`,
   `reglerSaturation` ou `reglerClarte` comme candidate, ses hachures
   (`[DER-21]`) et sa ligne de butée (`[DER-22]`), sous les réglettes, vide
   sans butée. Les limites ne se calculent que carte dépliée. Les
   Réglages communs restent sans limite : ils touchent toutes les palettes à
   la fois. Un pas au clavier vaut 1°, 1 % ou 0,005, et Maj le multiplie. Sur
-  chaque piste, la lettre de l'autre profil situe sa valeur quand un seul
+  chaque piste, le nom de l'autre profil situe sa valeur quand un seul
   profil se règle ; sur la piste de saturation, un repère situe la référence
   (`[VER-10]`). La ligne fixe au-dessus des curseurs dit l'effet du réglage
   sur la référence : « Ce réglage ne touche pas la couleur de référence. »
@@ -2062,6 +2062,42 @@ palette » gardent leurs libellés au-dessus des champs.
   focaliser le contrôle. Les deux cartes suivent l'aperçu, et l'Interface de
   test (`[UI-14]`) ferme l'onglet : la palette se règle dans Création et se
   juge dans Vérification (`[VER-18]`).
+- `[UI-38]` Le corps de la carte « Réglage global » commence par une rangée
+  `.tete-des-reglages` qui cale à droite « Tout par défaut » : il remet
+  teinte, saturation et luminosité du profil choisi dans « Régler », ou des
+  deux profils avec « Les deux », et reste inactif quand ces réglettes sont
+  toutes à leur valeur par défaut. Chaque réglette pose une marque
+  (`.reglette-defaut`) à sa valeur par défaut, avant le pouce dans le DOM,
+  avec le survol « Valeur par défaut : » et la valeur écrite comme dans le
+  champ. Le libellé « par défaut » (`.reglette-legende`) se centre sous la
+  marque quand le pouce s'en écarte de plus de 4 points de la course. Deux
+  mots nomment les bouts de la piste (`.reglette-bout`) : « plus terne » et
+  « plus vive », « plus foncée » et « plus claire », et pour la teinte « plus »
+  suivi de la famille voisine de la teinte absolue affichée, dans le sens des
+  degrés décroissants à gauche et croissants à droite. Huit familles, de
+  centres 0° rose, 29° rouge, 62° orange, 100° jaune, 145° vert, 195° turquoise,
+  255° bleu, 300° violet ; la voisine d'un sens est le centre le plus proche
+  dans ce sens à plus de 10° de la teinte (257° : turquoise et violet).
+  Un bout que le libellé frôle à moins de 6 px se masque, et se remontre
+  quand le libellé disparaît. Teinte et luminosité valent 0 par défaut. La
+  saturation d'un profil vaut sa part commune ; celle du profil qui porte la
+  référence, ou d'une palette à une intensité, vaut la saturation de la
+  référence rendue à son départ (`retablirLaSaturation`, sans part propre).
+  Une réglette est modifiée quand sa valeur s'écarte du défaut de plus de
+  0,5 point de sa course, pour l'un des profils visés. Elle ajoute alors
+  une pastille (`.pastille-reglee`) après son nom, active son bouton
+  « Par défaut » (survol « Revenir à la valeur par défaut, » et la valeur)
+  et le laisse désactivé sinon. Le nom de l'autre profil remplace sa lettre
+  sur la piste. Carte repliée, le résumé dit « Par défaut », ou « Modifié : »
+  suivi de « teinte de Soft », « saturation de Vivid » ou « luminosité de
+  Soft », dans l'ordre teinte, saturation, luminosité puis Soft avant Vivid,
+  sans valeur ; une palette à une intensité écrit « Modifié : teinte,
+  luminosité ». Un nombre de points à vérifier s'ajoute après, comme avant.
+  Les tests `[UI-38]` de `tests/familles.test.ts`,
+  `tests/reglagesParDefaut.test.ts`, `tests/textes.test.ts` et de l'interface
+  les tiennent. La marque, le libellé, les bouts et la pastille sont des
+  champs facultatifs de `EtatDeLaReglette` (`src/ui/derive/reglette.ts`) :
+  une réglette sans eux reste celle d'avant.
 - `[UI-17]` Une ligne fixe porte un message sur une ligne de 24 px, qui ne
   change jamais de hauteur. Son texte se coupe par une ellipse ; le texte
   entier est dans `title` et dans le nom accessible. Elle a quatre tons,

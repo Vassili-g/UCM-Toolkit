@@ -276,8 +276,16 @@ test('[UI-12] une carte repliée se résume par son état, sans valeurs, puis la
   assert.equal(resumeDeLaDerive(false, null, 0), 'Aucun réglage');
   assert.equal(resumeDeLaDerive(true, false, 0), 'Réglé · désynchronisé');
   assert.equal(resumeDeLaDerive(true, true, 1), 'Réglé · synchronisé · 1 point à vérifier');
-  assert.equal(resumeDesReglages(false, 0), 'Aucun réglage');
-  assert.equal(resumeDesReglages(true, 2), 'Réglé · 2 points à vérifier');
+});
+
+test('[UI-38] le résumé du Réglage global dit « Par défaut », ou nomme les réglages modifiés, sans valeurs', () => {
+  const soft = { grandeur: 'teinte', profil: 'soft' } as const;
+  const vivid = { grandeur: 'luminosite', profil: 'vivid' } as const;
+  assert.equal(resumeDesReglages([], 0), 'Par défaut');
+  assert.equal(resumeDesReglages([soft, vivid], 0), 'Modifié : teinte de Soft, luminosité de Vivid');
+  assert.equal(resumeDesReglages([{ grandeur: 'teinte', profil: null }, { grandeur: 'luminosite', profil: null }], 2), 'Modifié : teinte, luminosité · 2 points à vérifier');
+  assert.equal(anglais.resumeDesReglages([], 0), 'Default');
+  assert.equal(anglais.resumeDesReglages([soft, vivid], 1), 'Changed: Soft hue, Vivid lightness · 1 point to check');
 });
 
 test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {

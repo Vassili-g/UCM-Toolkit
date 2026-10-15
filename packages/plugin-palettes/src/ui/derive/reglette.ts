@@ -5,6 +5,11 @@
  * piste est hachurée, et le pouce s'arrête sur la borne. Le Color shift et la
  * carte « Réglage global » l'emploient.
  *
+ * Une réglette peut porter sa valeur par défaut ([UI-38]) : une marque sur la
+ * piste, le libellé de la marque quand le pouce s'en éloigne de plus de 4
+ * points de la course, deux mots aux bouts de la piste, une pastille après son
+ * nom quand la valeur est modifiée. Un bout que le libellé chevauche se masque.
+ *
  * Le curseur est un élément `role="slider"` : `aria-valuemin` et
  * `aria-valuemax` portent les bornes permises, que le clavier atteint par
  * Origine et Fin ([DER-09]). Le glisser se suit sur le document : dans Figma,
@@ -28,8 +33,8 @@ export interface RepereDeReglette {
   readonly valeur: number;
   readonly classe: 'reglette-repere' | 'repere-de-reference' | 'fantome-du-profil';
   readonly titre: Texte;
-  /** La lettre posée au-dessus du repère : l'initiale de l'autre profil. */
-  readonly lettre?: Texte;
+  /** Le nom posé au-dessus du repère : celui de l'autre profil. */
+  readonly nom?: Texte;
 }
 
 /** Ce que la réglette montre ; l'appelant le pose à chaque rendu. */
@@ -50,11 +55,17 @@ export interface EtatDeLaReglette {
   /** Ce que le curseur annonce : la valeur et la plage sûre. */
   readonly annonce: Texte;
   readonly reperes: readonly RepereDeReglette[];
+  /** La valeur par défaut : sa marque sur la piste, son survol, et le libellé qu'elle porte quand le pouce s'en éloigne. */
+  readonly defaut?: { readonly valeur: number; readonly titre: Texte; readonly libelle: Texte };
+  /** Les mots des deux bouts de la piste. */
+  readonly bouts?: { readonly gauche: Texte; readonly droite: Texte };
+  /** La valeur s'écarte de son défaut : une pastille suit le nom de la réglette. */
+  readonly modifiee?: boolean;
   readonly desactivee: boolean;
   /** Une valeur rangée hors de sa plage sûre ([DER-23]) : le pouce se lit hachuré. */
   readonly horsDeLaPlage: boolean;
   /** Le bouton qui ramène la valeur de départ, « Tailwind » ou « Par défaut ». */
-  readonly bouton: { readonly texte: Texte; readonly etiquette: Texte; readonly inactif: boolean };
+  readonly bouton: { readonly texte: Texte; readonly etiquette: Texte; readonly inactif: boolean; readonly titre?: Texte };
 }
 
 /** Ce que la réglette demande à son appelant. */
@@ -79,6 +90,11 @@ export interface RegletteUi {
   poser(etat: EtatDeLaReglette): void;
 }
 
+/** Le libellé de la marque paraît quand le pouce s'en écarte de plus de 4 points de la course. */
+const ECART_DU_LIBELLE = 4;
+/** Un bout de piste se masque quand le libellé le frôle à moins de 6 px. */
+const MARGE_DU_LIBELLE = 6;
+
 /** Le nombre de décimales d'un pas : 0 pour 1, 2 pour 0,01, 3 pour 0,005. */
 const decimalesDu = (pas: number): number => Math.max(0, Math.ceil(-Math.log10(pas) - 1e-9));
 
@@ -90,6 +106,10 @@ function construireVues(i18n: Localisation) {
     const nom = document.createElement('span');
     nom.className = 'field-label';
     i18n.lier(nom, 'textContent', libelle);
+    const pastille = document.createElement('span');
+    pastille.className = 'pastille-reglee';
+    pastille.setAttribute('aria-hidden', 'true');
+    nom.append(pastille);
     const champ = document.createElement('input');
     champ.type = 'text';
     champ.inputMode = 'decimal';
@@ -110,7 +130,16 @@ function construireVues(i18n: Localisation) {
     interditHaut.className = 'reglette-interdit reglette-interdit-haut';
     const pouce = document.createElement('span');
     pouce.className = 'reglette-pouce';
-    course.append(interditBas, interditHaut, pouce);
+    const marque = document.createElement('span');
+    marque.className = 'reglette-defaut';
+    const legende = document.createElement('span');
+    legende.className = 'reglette-legende';
+    const boutGauche = document.createElement('span');
+    boutGauche.className = 'reglette-bout gauche';
+    const boutDroit = document.createElement('span');
+    boutDroit.className = 'reglette-bout droite';
+    // La marque précède le pouce dans le DOM : le pouce passe dessus.
+    course.append(interditBas, interditHaut, marque, pouce, legende, boutGauche, boutDroit);
     curseur.append(piste, course);
 
     const bouton = document.createElement('button');
@@ -123,6 +152,9 @@ function construireVues(i18n: Localisation) {
     element.append(nom, champ, ...(suffixe ? [suffixe] : []), curseur, bouton);
 
     let etat: EtatDeLaReglette | null = null;
+    /** La valeur que montre le pouce : celle de l'état, ou celle du geste en cours. */
+    let affichee = 0;
+    let titreDuBouton = false;
     let reperes: HTMLSpanElement[] = [];
     /** Le geste en cours : clavier, saisie ou glisser, la valeur et le texte d'avant, et le pointeur du glisser. */
     let geste: { avant: number; texte: Texte; pointeur: number | null } | null = null;
@@ -153,9 +185,24 @@ function construireVues(i18n: Localisation) {
     };
 
     function placerLePouce(valeur: number): void {
+      affichee = valeur;
       pouce.style.left = `${position(valeur)}%`;
       curseur.setAttribute('aria-valuenow', String(valeur));
+      legende.hidden = !etat?.defaut || Math.abs(position(valeur) - position(etat.defaut.valeur)) <= ECART_DU_LIBELLE;
     }
+
+    /** Masque le bout de piste que le libellé de la marque chevauche, à 6 px près. Sans mise en page, les boîtes sont vides : rien ne se masque. */
+    function eviter(): void {
+      const boite = legende.hidden ? null : legende.getBoundingClientRect();
+      for (const bout of [boutGauche, boutDroit]) {
+        const bord = bout.getBoundingClientRect();
+        const chevauche = boite !== null && bord.width > 0 && boite.width > 0 && bord.right + MARGE_DU_LIBELLE > boite.left && bord.left - MARGE_DU_LIBELLE < boite.right;
+        bout.style.visibility = chevauche ? 'hidden' : '';
+      }
+    }
+    // Le libellé et les bouts changent de largeur avec la langue, la course avec la fenêtre ou l'ouverture de la carte.
+    const mesures = new ResizeObserver(eviter);
+    for (const suivi of [course, legende, boutGauche, boutDroit]) mesures.observe(suivi);
 
     function commencer(pointeur: number | null): void {
       if (!etat) return;
@@ -318,7 +365,25 @@ function construireVues(i18n: Localisation) {
         interditHaut.style.width = `calc(${100 - position(haut)}% + 7px)`;
         i18n.lier(bouton, 'textContent', suivant.bouton.texte);
         i18n.lier(bouton, 'aria-label', suivant.bouton.etiquette);
+        if (suivant.bouton.titre !== undefined || titreDuBouton) i18n.lier(bouton, 'title', suivant.bouton.titre ?? '');
+        titreDuBouton = suivant.bouton.titre !== undefined;
         bouton.disabled = suivant.desactivee || suivant.bouton.inactif;
+        const { defaut, bouts } = suivant;
+        element.classList.toggle('avec-legende', defaut !== undefined || bouts !== undefined);
+        marque.hidden = !defaut;
+        if (defaut) {
+          marque.style.left = `${position(defaut.valeur)}%`;
+          legende.style.left = marque.style.left;
+          i18n.lier(marque, 'title', defaut.titre);
+          i18n.lier(legende, 'textContent', defaut.libelle);
+        }
+        legende.hidden = !defaut || Math.abs(position(affichee) - position(defaut.valeur)) <= ECART_DU_LIBELLE;
+        boutGauche.hidden = boutDroit.hidden = !bouts;
+        if (bouts) {
+          i18n.lier(boutGauche, 'textContent', bouts.gauche);
+          i18n.lier(boutDroit, 'textContent', bouts.droite);
+        }
+        pastille.hidden = !suivant.modifiee;
         // Les repères se recréent : leur nombre change avec la cible du réglage global.
         for (const ancien of reperes) ancien.remove();
         reperes = suivant.reperes.map((repere) => {
@@ -330,7 +395,7 @@ function construireVues(i18n: Localisation) {
           marque.setAttribute('aria-hidden', 'true');
           marque.style.left = `${position(repere.valeur)}%`;
           i18n.lier(marque, 'title', repere.titre);
-          if (repere.lettre) i18n.lier(marque, 'textContent', repere.lettre);
+          if (repere.nom) i18n.lier(marque, 'textContent', repere.nom);
           course.insertBefore(marque, pouce);
           return marque;
         });

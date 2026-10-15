@@ -63,7 +63,8 @@ import {
   revenirAuModele,
   supprimer,
 } from '../edition';
-import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, estLaPaletteNeutre, reglageGlobalModifie, type CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, estLaPaletteNeutre, type CibleDAction } from '../presentation';
+import { reglagesModifies } from '../reglagesParDefaut';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
 import { palettesDuFichier as lirePalettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
@@ -1113,7 +1114,7 @@ function construireVues(i18n: Localisation) {
       // Toute palette a la carte, une intensité comprise : c'est là qu'elle affine sa référence (Z10.4, question 4).
       if (!figee) intensites.afficher(lue, courante, messages.intensite, carteDesIntensites.estOuverte());
       const pointsDIntensite = messages.intensite.filter((message) => message.severite !== 'notice').length;
-      carteDesIntensites.poserResume(resumeDesReglages(reglageGlobalModifie(courante), pointsDIntensite));
+      carteDesIntensites.poserResume(resumeDesReglages(reglagesModifies(lue, courante), pointsDIntensite));
       pied.afficher({
         garanties: analyse.libre ? 0 : analyse.promesses.length,
         manquees: analyse.manquees,

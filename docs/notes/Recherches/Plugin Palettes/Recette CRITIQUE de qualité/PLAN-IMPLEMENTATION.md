@@ -68,7 +68,8 @@ Règles d'économie, à tenir par l'orchestrateur :
   vérification de fin de vague 2 est verte : `npm test`, `npm run typecheck`,
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8.
+- **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
+  P2 et P6 sont faits.
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
   `packages/couleur/tests/desaturees.test.ts`.
@@ -775,7 +776,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
   - Vérifier : `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert ; « Vérifier » s'affiche entier à 480 px.
 
-- [ ] **P2 · « Par défaut » remplace « Rétablir »** · `implementeur`, moyen.
+- [x] **P2 · « Par défaut » remplace « Rétablir »** · `implementeur`, moyen.
   - C10 ; DOSSIER-COMPARER.md, section 12, « Deux sens de Rétablir » ;
     SPEC, sections 3.3 et 4.
   - `PAL/src/i18n/fr.ts` et `en.ts` :
@@ -871,7 +872,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
     `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert.
 
-- [ ] **P6 · Réglage global : la marque par défaut** · `implementeur-exigeant`, haut.
+- [x] **P6 · Réglage global : la marque par défaut** · `implementeur-exigeant`, haut.
   - C8 ; SPEC, sections 2, 3.1 et 3.2 en entier, règles CSS de la section 9
     de `.reglette-defaut` à `.tete-des-reglages .btn`. Écran de référence :
     `D/Maquettes/MAQUETTE-COMPARER.html`, section 1, fonctions
